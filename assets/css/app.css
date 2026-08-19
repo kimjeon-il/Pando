@@ -884,6 +884,36 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .segment.active { background: var(--accent-surface); color: var(--accent-text); box-shadow: inset 0 0 0 1px var(--accent-border); }
 .segment.active::before { content: none; }
 .renderer-info { min-height: 28px; margin-top: var(--ui-space-2); padding: 0 3px; font-size: var(--ui-font-caption); }
+.terrain-view-controls { display: grid; gap: var(--ui-space-2); margin-top: var(--ui-space-3); padding-top: var(--ui-space-3); border-top: 1px solid var(--border); }
+.terrain-view-controls .field-group { margin: 0; }
+.terrain-view-controls .field-group > span { display: flex; justify-content: space-between; gap: 8px; color: var(--text-soft); font-size: var(--ui-font-caption); }
+.terrain-view-controls select { min-height: var(--ui-control-height); }
+.terrain-strength input[type="range"] { width: 100%; min-height: 28px; accent-color: var(--accent); cursor: pointer; }
+.terrain-strength strong { color: var(--accent-2); font-variant-numeric: tabular-nums; }
+
+.hydro-lakes-layer,
+.hydro-rivers-layer,
+.hydro-selection-layer { pointer-events: none; }
+.hydro-lake-group {
+  fill: #5aa9d6; fill-opacity: .82; stroke: #3c83ad; stroke-width: .55px;
+  vector-effect: non-scaling-stroke;
+}
+.hydro-river-group {
+  fill: none; stroke: #3b82c4; stroke-opacity: .92; stroke-linecap: round; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.hydro-selected {
+  fill: none; stroke: var(--accent-2); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent-2) 58%, transparent));
+}
+.hydro-selected.is-lake { fill: color-mix(in srgb, var(--accent-2) 18%, transparent); }
+#hydroProperties .meta-card { margin: 0; }
+#copyHydroBtn { width: 100%; }
+
+@media (prefers-color-scheme: dark) {
+  .hydro-lake-group { fill: #376f91; fill-opacity: .8; stroke: #68b3df; }
+  .hydro-river-group { stroke: #66b5e5; stroke-opacity: .88; }
+}
 
 .layer-search { min-height: var(--ui-control-height); margin-bottom: var(--ui-space-2); padding: 0 var(--ui-space-2); border-radius: var(--ui-radius-control); }
 .layer-search input { min-height: 38px; padding: 0; font-size: 12px; }

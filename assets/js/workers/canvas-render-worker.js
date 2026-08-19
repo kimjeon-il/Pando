@@ -5,6 +5,265 @@ function canvasFallbackWorkerMain() {
     let canvas = null;
     let context = null;
     let features = [];
+    let terrainManifest = null;
+    let terrainManifestUrl = '';
+    const terrainTiles = new Map();
+    const terrainRequests = new Map();
+
+    function terrainTileSpec(level, column, row) {
+      const x0 = column * level.tileSize;
+      const y0 = row * level.tileSize;
+      const x1 = Math.min(level.width, x0 + level.tileSize);
+      const y1 = Math.min(level.height, y0 + level.tileSize);
+      return {
+        key: `${level.id}/${column}-${row}`,
+        level: Number(level.id),
+        column,
+        row,
+        pixelWidth: x1 - x0,
+        pixelHeight: y1 - y0,
+        bounds: [
+          -180 + x0 / level.width * 360,
+          90 - y0 / level.height * 180,
+          -180 + x1 / level.width * 360,
+          90 - y1 / level.height * 180,
+        ],
+      };
+    }
+
+    function terrainTileUrl(spec) {
+      const relative = terrainManifest.urlTemplate
+        .replace('{level}', String(spec.level))
+        .replace('{column}', String(spec.column))
+        .replace('{row}', String(spec.row));
+      return new URL(relative, new URL('../../', terrainManifestUrl)).href;
+    }
+
+    async function prepareTerrainBitmap(blob) {
+      let bitmap;
+      try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
+      catch (_) { bitmap = await createImageBitmap(blob); }
+      const source = new OffscreenCanvas(bitmap.width, bitmap.height);
+      const sourceContext = source.getContext('2d', { willReadFrequently: true });
+      sourceContext.drawImage(bitmap, 0, 0);
+      bitmap.close?.();
+      const pixels = sourceContext.getImageData(0, 0, source.width, source.height);
+      const physicalPixels = new Uint8ClampedArray(pixels.data.length);
+      const politicalPixels = new Uint8ClampedArray(pixels.data.length);
+      for (let offset = 0; offset < pixels.data.length; offset += 4) {
+        const neutral = pixels.data[offset + 3];
+        physicalPixels[offset] = pixels.data[offset];
+        physicalPixels[offset + 1] = pixels.data[offset + 1];
+        physicalPixels[offset + 2] = pixels.data[offset + 2];
+        physicalPixels[offset + 3] = 255;
+        politicalPixels[offset] = neutral;
+        politicalPixels[offset + 1] = neutral;
+        politicalPixels[offset + 2] = neutral;
+        politicalPixels[offset + 3] = 255;
+      }
+      const physical = new OffscreenCanvas(source.width, source.height);
+      const political = new OffscreenCanvas(source.width, source.height);
+      physical.getContext('2d').putImageData(new ImageData(physicalPixels, source.width, source.height), 0, 0);
+      political.getContext('2d').putImageData(new ImageData(politicalPixels, source.width, source.height), 0, 0);
+      return { physical, political };
+    }
+
+    function requestTerrainTile(spec) {
+      if (!terrainManifest || terrainTiles.has(spec.key) || terrainRequests.has(spec.key)) return;
+      const request = fetch(terrainTileUrl(spec))
+        .then(response => {
+          if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
+          return response.blob();
+        })
+        .then(prepareTerrainBitmap)
+        .then(images => {
+          terrainTiles.set(spec.key, { ...images, lastUsed: performance.now() });
+          while (terrainTiles.size > 40) {
+            const oldest = [...terrainTiles.entries()].sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
+            if (!oldest || oldest[0] === spec.key) break;
+            terrainTiles.delete(oldest[0]);
+          }
+          self.postMessage({ type: 'terrain-ready', count: terrainTiles.size, key: spec.key });
+        })
+        .catch(error => self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) }))
+        .finally(() => terrainRequests.delete(spec.key));
+      terrainRequests.set(spec.key, request);
+    }
+
+    async function loadTerrainManifest(url) {
+      if (!url || terrainManifest || terrainManifestUrl === url) return;
+      terrainManifestUrl = url;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`지형 매니페스트 HTTP ${response.status}`);
+        terrainManifest = await response.json();
+        const base = terrainManifest.levels?.[0];
+        if (!base) throw new Error('지형 타일 단계가 없습니다.');
+        for (let row = 0; row < base.rows; row += 1) {
+          for (let column = 0; column < base.columns; column += 1) requestTerrainTile(terrainTileSpec(base, column, row));
+        }
+      } catch (error) {
+        self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) });
+      }
+    }
+
+    function terrainLevelForView(projection, dpr) {
+      if (!terrainManifest?.levels?.length) return null;
+      const desiredWidth = Math.max(1, 2 * Math.PI * projection.scale() * dpr);
+      return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
+        || terrainManifest.levels[terrainManifest.levels.length - 1];
+    }
+
+    function visibleTerrainTileSpecs(level, message, projection, width, height, includeAll = false) {
+      const specs = [];
+      const view = message.view || {};
+      const scale = projection.scale();
+      const center = message.projection === 'globe'
+        ? [-Number(view.globeRotation?.[0] || 0), -Number(view.globeRotation?.[1] || 0)]
+        : (view.flatCenter || [0, 20]);
+      const flatHalfLon = width / Math.max(1, scale) * 90 / Math.PI;
+      const flatHalfLat = height / Math.max(1, scale) * 90 / Math.PI;
+      const globeRadius = Math.asin(Math.min(1, Math.hypot(width, height) * 0.5 / Math.max(1, scale)));
+      for (let row = 0; row < level.rows; row += 1) {
+        for (let column = 0; column < level.columns; column += 1) {
+          const spec = terrainTileSpec(level, column, row);
+          if (includeAll) {
+            specs.push(spec);
+            continue;
+          }
+          const [west, north, east, south] = spec.bounds;
+          const tileCenter = [(west + east) / 2, (north + south) / 2];
+          const halfLon = (east - west) / 2;
+          const halfLat = (north - south) / 2;
+          if (message.projection === 'flat') {
+            const deltaLon = Math.abs((((tileCenter[0] - center[0]) + 540) % 360) - 180);
+            if (deltaLon <= flatHalfLon + halfLon + 2 && Math.abs(tileCenter[1] - center[1]) <= flatHalfLat + halfLat + 2) specs.push(spec);
+          } else if (self.d3.geo.distance(center, tileCenter) <= globeRadius + Math.hypot(halfLon, halfLat) * Math.PI / 180 + 0.04) {
+            specs.push(spec);
+          }
+        }
+      }
+      return specs;
+    }
+
+    function affineTransform(sourcePoints, destinationPoints) {
+      const [s0, s1, s2] = sourcePoints;
+      const [d0, d1, d2] = destinationPoints;
+      const denominator = s0[0] * (s1[1] - s2[1]) + s1[0] * (s2[1] - s0[1]) + s2[0] * (s0[1] - s1[1]);
+      if (Math.abs(denominator) < 1e-7) return null;
+      const coefficients = values => [
+        (values[0] * (s1[1] - s2[1]) + values[1] * (s2[1] - s0[1]) + values[2] * (s0[1] - s1[1])) / denominator,
+        (values[0] * (s2[0] - s1[0]) + values[1] * (s0[0] - s2[0]) + values[2] * (s1[0] - s0[0])) / denominator,
+        (values[0] * (s1[0] * s2[1] - s2[0] * s1[1]) + values[1] * (s2[0] * s0[1] - s0[0] * s2[1]) + values[2] * (s0[0] * s1[1] - s1[0] * s0[1])) / denominator,
+      ];
+      const x = coefficients([d0[0], d1[0], d2[0]]);
+      const y = coefficients([d0[1], d1[1], d2[1]]);
+      return [x[0], y[0], x[1], y[1], x[2], y[2]];
+    }
+
+    function drawTexturedTriangle(image, sourcePoints, destinationPoints, dpr) {
+      const transform = affineTransform(sourcePoints, destinationPoints);
+      if (!transform || destinationPoints.some(point => !point || !point.every(Number.isFinite))) return;
+      context.save();
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      context.beginPath();
+      context.moveTo(destinationPoints[0][0], destinationPoints[0][1]);
+      context.lineTo(destinationPoints[1][0], destinationPoints[1][1]);
+      context.lineTo(destinationPoints[2][0], destinationPoints[2][1]);
+      context.closePath();
+      context.clip();
+      context.setTransform(dpr * transform[0], dpr * transform[1], dpr * transform[2], dpr * transform[3], dpr * transform[4], dpr * transform[5]);
+      context.drawImage(image, 0, 0);
+      context.restore();
+    }
+
+    function drawFlatTerrainTile(spec, image, projection, dpr) {
+      const gutter = Number(terrainManifest.gutter || 0);
+      const [west, north, east, south] = spec.bounds;
+      for (const offset of [-360, 0, 360]) {
+        const topLeft = projection([west + offset, north]);
+        const bottomRight = projection([east + offset, south]);
+        if (!topLeft || !bottomRight) continue;
+        context.drawImage(
+          image,
+          gutter,
+          gutter,
+          spec.pixelWidth,
+          spec.pixelHeight,
+          topLeft[0] * dpr,
+          topLeft[1] * dpr,
+          (bottomRight[0] - topLeft[0]) * dpr,
+          (bottomRight[1] - topLeft[1]) * dpr,
+        );
+      }
+    }
+
+    function drawGlobeTerrainTile(spec, image, projection, message, dpr, isBase) {
+      const gutter = Number(terrainManifest.gutter || 0);
+      const [west, north, east, south] = spec.bounds;
+      const zoom = Math.max(1, Number(message.view?.globeZoom || 1));
+      const step = isBase ? 4 : Math.max(0.24, Math.min(4, 4 / zoom));
+      const stepsX = Math.max(1, Math.ceil((east - west) / step));
+      const stepsY = Math.max(1, Math.ceil((north - south) / step));
+      const center = [-Number(message.view?.globeRotation?.[0] || 0), -Number(message.view?.globeRotation?.[1] || 0)];
+      const front = coordinate => self.d3.geo.distance(center, coordinate) <= Math.PI / 2 + 0.012;
+      for (let y = 0; y < stepsY; y += 1) {
+        const v0 = y / stepsY;
+        const v1 = (y + 1) / stepsY;
+        const lat0 = north + (south - north) * v0;
+        const lat1 = north + (south - north) * v1;
+        for (let x = 0; x < stepsX; x += 1) {
+          const u0 = x / stepsX;
+          const u1 = (x + 1) / stepsX;
+          const lon0 = west + (east - west) * u0;
+          const lon1 = west + (east - west) * u1;
+          const coordinates = [[lon0, lat0], [lon1, lat0], [lon0, lat1], [lon1, lat1]];
+          const visible = coordinates.map(front);
+          if (!visible.some(Boolean)) continue;
+          const destination = coordinates.map(projection);
+          const source = [
+            [gutter + u0 * spec.pixelWidth, gutter + v0 * spec.pixelHeight],
+            [gutter + u1 * spec.pixelWidth, gutter + v0 * spec.pixelHeight],
+            [gutter + u0 * spec.pixelWidth, gutter + v1 * spec.pixelHeight],
+            [gutter + u1 * spec.pixelWidth, gutter + v1 * spec.pixelHeight],
+          ];
+          if (visible[0] && visible[1] && visible[2]) drawTexturedTriangle(image, [source[0], source[1], source[2]], [destination[0], destination[1], destination[2]], dpr);
+          if (visible[1] && visible[3] && visible[2]) drawTexturedTriangle(image, [source[1], source[3], source[2]], [destination[1], destination[3], destination[2]], dpr);
+        }
+      }
+    }
+
+    function renderTerrain(message, projection, width, height, dpr) {
+      if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return;
+      const baseLevel = terrainManifest.levels[0];
+      const targetLevel = terrainLevelForView(projection, dpr) || baseLevel;
+      const baseSpecs = visibleTerrainTileSpecs(baseLevel, message, projection, width, height, true);
+      const targetSpecs = Number(targetLevel.id) === Number(baseLevel.id) ? [] : visibleTerrainTileSpecs(targetLevel, message, projection, width, height);
+      for (const spec of [...baseSpecs, ...targetSpecs]) requestTerrainTile(spec);
+      const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
+      context.save();
+      context.globalAlpha = 1;
+      context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
+      if (message.projection === 'globe') {
+        const center = projection.translate();
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        context.beginPath();
+        context.arc(center[0], center[1], projection.scale(), 0, Math.PI * 2);
+        context.clip();
+        context.setTransform(1, 0, 0, 1, 0, 0);
+      }
+      for (const [specs, isBase] of [[baseSpecs, true], [targetSpecs, false]]) {
+        for (const spec of specs) {
+          const tile = terrainTiles.get(spec.key);
+          if (!tile) continue;
+          tile.lastUsed = performance.now();
+          const image = tile[style];
+          if (message.projection === 'flat') drawFlatTerrainTile(spec, image, projection, dpr);
+          else drawGlobeTerrainTile(spec, image, projection, message, dpr, isBase);
+        }
+      }
+      context.restore();
+    }
     function countryId(feature, index) {
       return String(feature.properties?.editor_id || feature.properties?.iso_a3 || index);
     }
@@ -24,7 +283,7 @@ function canvasFallbackWorkerMain() {
       if (!context) throw new Error('Canvas Worker 2D 컨텍스트를 만들 수 없습니다.');
       context.setTransform(1, 0, 0, 1, 0, 0);
       context.clearRect(0, 0, pixelWidth, pixelHeight);
-      if (message.visible) {
+      {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const view = message.view || {};
         let projection;
@@ -46,6 +305,8 @@ function canvasFallbackWorkerMain() {
             .clipExtent([[0, 0], [width, height - 25]])
             .precision(0.25);
         }
+        renderTerrain(message, projection, width, height, dpr);
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const geoPath = self.d3.geo.path().projection(projection).context(context);
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
         const theme = message.theme || {};
@@ -55,7 +316,7 @@ function canvasFallbackWorkerMain() {
         const borderAlpha = Number.isFinite(theme.borderAlpha) ? theme.borderAlpha : 0.92;
         context.lineJoin = 'round';
         context.lineWidth = 0.72;
-        for (let index = 0; index < features.length; index += 1) {
+        for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
           if (hiddenCountryIds.has(countryId(feature, index))) continue;
           context.beginPath();
@@ -82,6 +343,7 @@ function canvasFallbackWorkerMain() {
       const message = event.data || {};
       if (message.type === 'init') {
         features = message.features || [];
+        loadTerrainManifest(message.terrainManifestUrl);
         self.postMessage({ type: 'ready' });
       } else if (message.type === 'data') {
         features = message.features || [];

@@ -1,6 +1,6 @@
-# AtlasWright v0.11.2
+# AtlasWright v0.12.0
 
-국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
+국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터, 1:10m 지형 음영과 Natural Earth 5.0.0 수계를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
 ## 로컬 실행
 
@@ -30,7 +30,7 @@ python -m http.server 8080
 
 ## 레이어 폴더
 
-`국가`, `지형지물`, `도시·지명`, `국가명 라벨` 폴더를 펼쳐 개별 항목을 표시하거나 숨길 수 있습니다. 항목명을 선택하면 해당 객체를 선택하고 지도 화면을 그 위치로 이동합니다. `추가` 메뉴에서는 강을 선으로, 호수를 영역으로 만들 수 있습니다. 개별 표시 상태와 폴더 열림 상태는 자동저장 및 GeoPackage의 `aw_project_settings`에 보존됩니다.
+`국가`, `지형지물`, `도시·지명`, `국가명 라벨` 폴더를 펼쳐 개별 항목을 표시하거나 숨길 수 있습니다. `지형지물`에는 지형 음영, 전 세계 기본·유럽·북미·호주 보충 강과 호수, 사용자가 만든 지형지물이 함께 표시됩니다. 내장 수계는 잠겨 있으며 선택 후 `편집용 복사 만들기`를 사용하면 원본을 숨기고 같은 형상의 편집 객체를 만들 수 있습니다. 개별 표시 상태와 폴더 열림 상태는 자동저장 및 GeoPackage의 `aw_project_settings`에 보존됩니다.
 
 국가명은 해외 영토를 포함한 전체 중심점 대신 가장 큰 연결 영토 내부의 최적 지점에 자동 배치됩니다.
 
@@ -45,6 +45,18 @@ AtlasWright는 운영체제·브라우저의 `prefers-color-scheme` 설정을 �
 국가 면은 원본 국경을 제거하거나 단순화하지 않고 WebGL2·WebGL1에서 렌더링합니다. 일반 영토는 날짜변경선을 해제한 경위도 평면, 극지 영토는 극 중심 방위평면에서 삼각분할과 세분화를 함께 수행해 렌더링 삼각형이 바다로 이탈하지 않게 합니다. 모든 렌더링 변의 구면 각거리는 `0.499°` 이하입니다.
 
 내장 메시를 다시 생성하려면 저장소 루트에서 `node tools/build-world-mesh.mjs`를 실행합니다. 이 과정은 배포 시 필요하지 않으며 정적 사이트는 생성된 메시를 바로 읽습니다.
+
+## 지형 음영과 수계
+
+보기 패널에서 `국가색 + 음영`과 `지형색 강조`를 전환하고 음영 강도를 조절할 수 있습니다. 지형은 Natural Earth raster 3.2.0의 `GRAY_HR_SR_OB`와 `HYP_HR_SR_OB_DR` 21,600×10,800 원본을 결합한 무손실 WebP 타일 피라미드입니다. RGB에는 자연 지형색·해저 수심을, 알파 채널에는 중립 음영을 넣어 스타일 전환 시 형상이나 타일을 다시 만들지 않습니다. 초기 국가지도 로딩을 막지 않으며 현재 화면에 필요한 단계의 타일만 불러옵니다.
+
+수계는 [Natural Earth 5.0.0의 1:10m Physical Vectors](https://www.naturalearthdata.com/downloads/10m-physical-vectors/) 강·호수 및 유럽·북미·호주 보충 자료입니다. 원본 좌표를 단순화하지 않았고 `name_ko → name_en → name` 순서로 이름을 표시합니다. 자동 수계 라벨은 포함하지 않습니다.
+
+배포 자산을 다시 만들 때는 공식 ZIP을 작업용 폴더에 풀고 다음 명령을 실행합니다. `pyshp`와 Pillow가 필요하며 생성된 manifest에는 원본 파일 SHA-256과 변환 방식을 기록합니다.
+
+```powershell
+python tools/build-physical-data.py <Natural-Earth-원본-폴더> assets/data
+```
 
 ## QGIS 벡터 파일
 
@@ -66,6 +78,8 @@ QGS/QGZ는 데이터 자체를 항상 포함하지 않으므로, 프로젝트가
 - `countries`: EPSG:4326 MultiPolygon 국가와 원본 속성
 - `places`: 사용자 지명 Point
 - `drawings_point`, `drawings_line`, `drawings_polygon`: 지형지물과 기존 사용자 도형
+- `rivers_base`, `rivers_europe`, `rivers_north_america`, `rivers_australia`: 내장 강 벡터
+- `lakes_base`, `lakes_europe`, `lakes_north_america`, `lakes_australia`: 내장 호수 벡터
 - `aw_country_assets`: 국기 이미지 BLOB
 - `aw_project_settings`: 투영법, 카메라와 레이어 상태
 - `aw_source_info`: 원본 파일·드라이버·CRS·필드 매핑·SHA-256
@@ -75,9 +89,13 @@ QGIS에서는 일반 벡터 레이어를 열어 편집할 수 있고, AtlasWrigh
 ## 지도 데이터와 라이선스
 
 - Natural Earth 5.1.1 Admin 0 Countries, 1:10m (퍼블릭 도메인)
+- [Natural Earth 5.0.0 Rivers + Lake Centerlines / Lakes + Reservoirs, 1:10m](https://www.naturalearthdata.com/downloads/10m-physical-vectors/) (퍼블릭 도메인)
+- [Natural Earth raster 3.2.0 Gray Earth / Cross-blended Hypsometric Tints, 21,600×10,800](https://www.naturalearthdata.com/downloads/10m-raster-data/) (퍼블릭 도메인)
 - 258개 국가·속령·분쟁 단위, 원본 좌표 548,471개
 - gdal3.js 2.8.1 / GDAL 3.8.4 (LGPL-2.1-or-later)
 - sql.js 1.14.2 (MIT)
 - fflate 0.8.3 (MIT)
+
+Natural Earth 자료는 [이용 조건](https://www.naturalearthdata.com/about/terms-of-use/)에 따라 퍼블릭 도메인으로 제공됩니다.
 
 각 라이선스 원문은 `assets/js/vendor`의 해당 폴더에 포함되어 있습니다. GIS 런타임은 파일을 열거나 저장할 때만 지연 로딩됩니다.

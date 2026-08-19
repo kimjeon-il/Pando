@@ -1,5 +1,6 @@
 'use strict';
 
+const BUILD_ID = '0.12.0';
 const COUNTRY_URL = new URL('../../data/countries-ne-5.1.1.geojson', self.location.href);
 const MESH_URL = new URL('../../data/world-mesh-v0.10.2.bin.gz', self.location.href);
 const LABEL_ANCHORS_URL = new URL('../../data/country-label-anchors-v0.10.1.json', self.location.href);
@@ -90,7 +91,7 @@ async function loadLabelAnchors() {
   try {
     report('start', '고해상도 지도 데이터를 요청하는 중입니다.');
     const [countries, meshBuffer, labelAnchors] = await Promise.all([loadCountries(), loadMesh(), loadLabelAnchors()]);
-    self.postMessage({ type: 'ready', countries, meshBuffer, labelAnchors }, [meshBuffer]);
+    self.postMessage({ type: 'ready', buildId: BUILD_ID, countries, meshBuffer, labelAnchors }, [meshBuffer]);
   } catch (error) {
     self.postMessage({ type: 'error', message: error?.message || String(error) });
   }

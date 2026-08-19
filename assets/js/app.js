@@ -1,4 +1,4 @@
-/* AtlasWright v0.11.2
+/* AtlasWright v0.12.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,10 @@
 (() => {
   'use strict';
 
+  const APP_VERSION = '0.12.0';
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
+  const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
+  const PHYSICAL_DATASET = 'Natural Earth 5.0.0 1:10m physical vectors · raster 3.2.0';
 
   const STORAGE_KEY = 'atlaswright-editor-v010-project';
   const AUTOSAVE_DB_NAME = 'atlaswright-editor-v010';
@@ -27,6 +30,16 @@
     river: Object.freeze({ geometry: 'LineString', category: 'river', label: '강', color: '#3b82c4', prefix: 'river' }),
     lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
   });
+  const HYDRO_LAYER_META = Object.freeze({
+    rivers_base: Object.freeze({ label: '강 · 전 세계 기본', category: 'river', color: '#3b82c4' }),
+    rivers_europe: Object.freeze({ label: '강 · 유럽 보충', category: 'river', color: '#3b82c4' }),
+    rivers_north_america: Object.freeze({ label: '강 · 북미 보충', category: 'river', color: '#3b82c4' }),
+    rivers_australia: Object.freeze({ label: '강 · 호주 보충', category: 'river', color: '#3b82c4' }),
+    lakes_base: Object.freeze({ label: '호수 · 전 세계 기본', category: 'lake', color: '#5aa9d6' }),
+    lakes_europe: Object.freeze({ label: '호수 · 유럽 보충', category: 'lake', color: '#5aa9d6' }),
+    lakes_north_america: Object.freeze({ label: '호수 · 북미 보충', category: 'lake', color: '#5aa9d6' }),
+    lakes_australia: Object.freeze({ label: '호수 · 호주 보충', category: 'lake', color: '#5aa9d6' }),
+  });
   const MAX_HISTORY = 30;
   const LAYOUT_QUERIES = {
     mobile: window.matchMedia('(max-width: 799px)'),
@@ -39,9 +52,15 @@
   window.__ATLASWRIGHT_THEME__ = systemTheme;
 
   function mapTheme() {
+    const terrainVisible = state?.physicalSettings?.terrainVisible !== false;
+    const terrainStyle = state?.physicalSettings?.terrainStyle || 'political';
+    const terrainStrength = clamp(Number(state?.physicalSettings?.terrainStrength ?? 0.32), 0, 1);
+    const terrainFillAlpha = terrainVisible
+      ? (terrainStyle === 'physical' ? 0.22 : 1 - terrainStrength)
+      : null;
     return systemTheme === 'light'
-      ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: 1, fillAlphaByte: 255, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1 }
-      : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: 0.74, fillAlphaByte: 189, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92 };
+      ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, fillAlphaByte: Math.round((terrainFillAlpha ?? 1) * 255), border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1 }
+      : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, fillAlphaByte: Math.round((terrainFillAlpha ?? 0.74) * 255), border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92 };
   }
 
   function defaultCountryColor() {
@@ -64,6 +83,34 @@
   }
 
   const $ = (id) => document.getElementById(id);
+  function runtimeAssetUrl(relativePath) {
+    const url = new URL(relativePath, ATLASWRIGHT_ASSET_BASE_URL);
+    url.searchParams.set('v', APP_VERSION);
+    return url;
+  }
+  const REQUIRED_UI_IDS = Object.freeze([
+    'app', 'map', 'engineStatus', 'countryStatus',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
+    'resetViewBtn', 'terrainStyleSelect', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
+    'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
+    'drawingNameInput', 'drawingColorInput', 'drawingCategoryInput', 'drawingNotesInput',
+    'labelNameInput', 'labelKindInput', 'labelNotesInput', 'deleteLabelBtn',
+    'hydroProperties', 'hydroNameValue', 'hydroCategoryValue', 'hydroLayerValue', 'hydroSourceValue', 'copyHydroBtn',
+    'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
+    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn',
+    'importGeoJsonBtn', 'geoJsonFileInput', 'exportGeoJsonBtn',
+  ]);
+  const CACHE_MISMATCH_MESSAGE = '화면 파일과 스크립트 버전이 다릅니다. 페이지를 강력 새로고침하세요. PC에서는 Ctrl+F5를 사용할 수 있습니다.';
+
+  function assertRuntimeCompatibility() {
+    const htmlVersion = $('app')?.dataset.appVersion;
+    const bootstrapVersion = window.ATLASWRIGHT_BUILD_ID;
+    if (htmlVersion !== APP_VERSION || bootstrapVersion !== APP_VERSION) throw new Error(CACHE_MISMATCH_MESSAGE);
+    const missingIds = REQUIRED_UI_IDS.filter(id => !$(id));
+    const missingSelectors = ['.workspace'].filter(selector => !document.querySelector(selector));
+    if (missingIds.length || missingSelectors.length) throw new Error(CACHE_MISMATCH_MESSAGE);
+  }
+
   const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
   // 내장 원본은 읽기 전용 기준 지도다. 렌더링 메시와 편집 사본을 분리해 원본 좌표를 보존한다.
   const PRISTINE_COUNTRIES = window.ATLASWRIGHT_COUNTRIES || { type: 'FeatureCollection', features: [] };
@@ -301,6 +348,21 @@
       labels: true,
       basemapLabels: true,
     },
+    physicalSettings: {
+      terrainVisible: true,
+      terrainStyle: 'political',
+      terrainStrength: 0.32,
+      hydroLayers: {
+        rivers_base: true, rivers_europe: true, rivers_north_america: true, rivers_australia: true,
+        lakes_base: true, lakes_europe: true, lakes_north_america: true, lakes_australia: true,
+      },
+      hiddenHydroIds: {},
+      dataset: PHYSICAL_DATASET,
+    },
+    hydroCollections: {},
+    hydroManifest: null,
+    terrainManifest: null,
+    physicalLoadState: { terrain: 'idle', hydro: 'idle' },
     itemVisibility: {
       countries: {},
       drawings: {},
@@ -362,6 +424,9 @@
   let countryLayer;
   let boundaryEditLayer;
   let drawingLayer;
+  let hydroLakeLayer;
+  let hydroRiverLayer;
+  let hydroSelectionLayer;
   let countryLabelLayer;
   let labelLayer;
   let vertexLayer;
@@ -401,6 +466,7 @@
     let fillProgram = null;
     let lineProgram = null;
     let pickProgram = null;
+    let terrainProgram = null;
     let fillVao = null;
     let lineVao = null;
     let positionBuffer = null;
@@ -408,6 +474,11 @@
     let fillIndexBuffer = null;
     let lineIndexBuffer = null;
     let paletteTexture = null;
+    let terrainManifest = null;
+    const terrainTiles = new Map();
+    const terrainTileRequests = new Map();
+    const terrainGridMeshes = new Map();
+    let terrainLastLevel = -1;
     let mesh = null;
     let meshCountryIds = [];
     let pixelWidth = 0;
@@ -489,7 +560,7 @@
         if (uMode == 0 && vDepth < 0.0) discard;
         vec4 color = texelFetch(uPalette, ivec2(int(vCountry), 0), 0);
         if (color.a <= 0.0) discard;
-        outColor = vec4(color.rgb * color.a, color.a);
+        outColor = color;
       }`;
     const lineFragmentSourceWebGl2 = `#version 300 es
       precision highp float;
@@ -564,7 +635,7 @@
         float index = floor(vCountry + 0.5);
         vec4 color = texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5));
         if (color.a <= 0.0) discard;
-        gl_FragColor = vec4(color.rgb * color.a, color.a);
+        gl_FragColor = color;
       }`;
     const lineFragmentSourceWebGl1 = `
       precision highp float;
@@ -598,6 +669,106 @@
         float g = mod(floor(id / 256.0), 256.0);
         float b = mod(floor(id / 65536.0), 256.0);
         gl_FragColor = vec4(r, g, b, 255.0) / 255.0;
+      }`;
+    const terrainVertexSourceWebGl2 = `#version 300 es
+      precision highp float;
+      layout(location=0) in vec2 aGrid;
+      uniform vec4 uGeoBounds;
+      uniform vec4 uUvBounds;
+      uniform vec2 uViewport;
+      uniform vec2 uTranslate;
+      uniform float uScale;
+      uniform vec3 uRowX;
+      uniform vec3 uRowY;
+      uniform vec3 uRowZ;
+      uniform vec2 uFlatCenter;
+      uniform float uWorldOffset;
+      uniform int uMode;
+      out vec2 vUv;
+      out float vDepth;
+      void main() {
+        float lon = mix(uGeoBounds.x, uGeoBounds.z, aGrid.x) * ${Math.PI / 180};
+        float lat = mix(uGeoBounds.y, uGeoBounds.w, aGrid.y) * ${Math.PI / 180};
+        vec2 screenPoint;
+        if (uMode == 0) {
+          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
+          vDepth = dot(uRowZ, point);
+        } else {
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
+          vDepth = 1.0;
+        }
+        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
+        gl_Position = vec4(clip, 0.0, 1.0);
+        vUv = mix(uUvBounds.xy, uUvBounds.zw, aGrid);
+      }`;
+    const terrainFragmentSourceWebGl2 = `#version 300 es
+      precision highp float;
+      precision highp int;
+      in vec2 vUv;
+      in float vDepth;
+      uniform sampler2D uTerrain;
+      uniform int uMode;
+      uniform float uPhysicalStyle;
+      uniform float uDarkTheme;
+      out vec4 outColor;
+      void main() {
+        if (uMode == 0 && vDepth < 0.0) discard;
+        vec4 terrainSample = texture(uTerrain, vUv);
+        vec3 neutral = vec3(terrainSample.a);
+        vec3 color = mix(neutral, terrainSample.rgb, uPhysicalStyle);
+        color = mix(color, color * vec3(0.60, 0.68, 0.76), uDarkTheme * 0.48);
+        outColor = vec4(color, 1.0);
+      }`;
+    const terrainVertexSourceWebGl1 = `
+      precision highp float;
+      precision mediump int;
+      attribute vec2 aGrid;
+      uniform vec4 uGeoBounds;
+      uniform vec4 uUvBounds;
+      uniform vec2 uViewport;
+      uniform vec2 uTranslate;
+      uniform float uScale;
+      uniform vec3 uRowX;
+      uniform vec3 uRowY;
+      uniform vec3 uRowZ;
+      uniform vec2 uFlatCenter;
+      uniform float uWorldOffset;
+      uniform int uMode;
+      varying vec2 vUv;
+      varying float vDepth;
+      void main() {
+        float lon = mix(uGeoBounds.x, uGeoBounds.z, aGrid.x) * ${Math.PI / 180};
+        float lat = mix(uGeoBounds.y, uGeoBounds.w, aGrid.y) * ${Math.PI / 180};
+        vec2 screenPoint;
+        if (uMode == 0) {
+          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
+          vDepth = dot(uRowZ, point);
+        } else {
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
+          vDepth = 1.0;
+        }
+        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
+        gl_Position = vec4(clip, 0.0, 1.0);
+        vUv = mix(uUvBounds.xy, uUvBounds.zw, aGrid);
+      }`;
+    const terrainFragmentSourceWebGl1 = `
+      precision highp float;
+      precision mediump int;
+      varying vec2 vUv;
+      varying float vDepth;
+      uniform sampler2D uTerrain;
+      uniform int uMode;
+      uniform float uPhysicalStyle;
+      uniform float uDarkTheme;
+      void main() {
+        if (uMode == 0 && vDepth < 0.0) discard;
+        vec4 terrainSample = texture2D(uTerrain, vUv);
+        vec3 neutral = vec3(terrainSample.a);
+        vec3 color = mix(neutral, terrainSample.rgb, uPhysicalStyle);
+        color = mix(color, color * vec3(0.60, 0.68, 0.76), uDarkTheme * 0.48);
+        gl_FragColor = vec4(color, 1.0);
       }`;
 
     function compileShader(type, source) {
@@ -674,6 +845,10 @@
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
       lineProgram = createProgram(vertexSource, glVersion === 2 ? lineFragmentSourceWebGl2 : lineFragmentSourceWebGl1);
       pickProgram = createProgram(vertexSource, glVersion === 2 ? pickFragmentSourceWebGl2 : pickFragmentSourceWebGl1);
+      terrainProgram = createProgram(
+        glVersion === 2 ? terrainVertexSourceWebGl2 : terrainVertexSourceWebGl1,
+        glVersion === 2 ? terrainFragmentSourceWebGl2 : terrainFragmentSourceWebGl1,
+      );
       paletteTexture = gl.createTexture();
       positionBuffer = gl.createBuffer();
       countryBuffer = gl.createBuffer();
@@ -684,6 +859,9 @@
       gl.disable(gl.DEPTH_TEST);
       pickFramebuffer = null;
       pickTexture = null;
+      terrainTiles.clear();
+      terrainTileRequests.clear();
+      terrainGridMeshes.clear();
     }
 
     function handleWebGlContextLost(event) {
@@ -835,7 +1013,7 @@
 
     function createWorker() {
       if (worker) worker.terminate();
-      worker = new Worker(new URL('workers/gpu-mesh-worker.js', ATLASWRIGHT_ASSET_BASE_URL), {
+      worker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), {
         name: 'atlaswright-gpu-mesh',
       });
       return worker;
@@ -1055,6 +1233,197 @@
       }
     }
 
+    function terrainLevelForView() {
+      if (!terrainManifest?.levels?.length) return null;
+      const scale = activeProjection().scale();
+      const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+      const desiredWidth = Math.max(1, 2 * PI * scale * dpr);
+      return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
+        || terrainManifest.levels[terrainManifest.levels.length - 1];
+    }
+
+    function terrainTileSpec(level, column, row) {
+      const x0 = column * level.tileSize;
+      const y0 = row * level.tileSize;
+      const x1 = Math.min(level.width, x0 + level.tileSize);
+      const y1 = Math.min(level.height, y0 + level.tileSize);
+      return {
+        key: `${level.id}/${column}-${row}`,
+        level: level.id,
+        column,
+        row,
+        pixelWidth: x1 - x0,
+        pixelHeight: y1 - y0,
+        bounds: [
+          -180 + x0 / level.width * 360,
+          90 - y0 / level.height * 180,
+          -180 + x1 / level.width * 360,
+          90 - y1 / level.height * 180,
+        ],
+      };
+    }
+
+    function visibleTerrainTileSpecs(level, includeAll = false) {
+      const specs = [];
+      const projection = activeProjection();
+      const scale = projection.scale();
+      const flatHalfLon = cssWidth / Math.max(1, scale) * 90 / PI;
+      const flatHalfLat = cssHeight / Math.max(1, scale) * 90 / PI;
+      const globeCenter = [-Number(state.view.globeRotation?.[0] || 0), -Number(state.view.globeRotation?.[1] || 0)];
+      const globeRadius = Math.asin(Math.min(1, Math.hypot(cssWidth, cssHeight) * 0.5 / Math.max(1, scale)));
+      for (let row = 0; row < level.rows; row += 1) {
+        for (let column = 0; column < level.columns; column += 1) {
+          const spec = terrainTileSpec(level, column, row);
+          if (includeAll) {
+            specs.push(spec);
+            continue;
+          }
+          const [west, north, east, south] = spec.bounds;
+          const center = [(west + east) / 2, (north + south) / 2];
+          const halfLon = (east - west) / 2;
+          const halfLat = (north - south) / 2;
+          if (state.projection === 'flat') {
+            const deltaLon = Math.abs((((center[0] - state.view.flatCenter[0]) + 540) % 360) - 180);
+            const deltaLat = Math.abs(center[1] - state.view.flatCenter[1]);
+            if (deltaLon <= flatHalfLon + halfLon + 2 && deltaLat <= flatHalfLat + halfLat + 2) specs.push(spec);
+          } else {
+            const padding = Math.hypot(halfLon, halfLat) * PI / 180;
+            if (d3.geo.distance(globeCenter, center) <= globeRadius + padding + 0.04) specs.push(spec);
+          }
+        }
+      }
+      return specs;
+    }
+
+    function terrainTileUrl(spec) {
+      const relative = terrainManifest.urlTemplate
+        .replace('{level}', String(spec.level))
+        .replace('{column}', String(spec.column))
+        .replace('{row}', String(spec.row));
+      const url = new URL(relative, PHYSICAL_DATA_BASE_URL);
+      url.searchParams.set('v', terrainManifest.version || APP_VERSION);
+      return url;
+    }
+
+    async function requestTerrainTile(spec) {
+      if (!gl || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key)) return;
+      const request = (async () => {
+        const response = await fetch(terrainTileUrl(spec));
+        if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
+        const blob = await response.blob();
+        let bitmap;
+        try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
+        catch (_) { bitmap = await createImageBitmap(blob); }
+        if (!gl || !isWebGlRenderer()) {
+          bitmap.close?.();
+          return;
+        }
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
+        bitmap.close?.();
+        terrainTiles.set(spec.key, { texture, lastUsed: performance.now() });
+        while (terrainTiles.size > 96) {
+          const oldest = [...terrainTiles.entries()].sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
+          if (!oldest || oldest[0] === spec.key) break;
+          gl.deleteTexture(oldest[1].texture);
+          terrainTiles.delete(oldest[0]);
+        }
+        scheduleRender();
+      })().catch(error => {
+        console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
+      }).finally(() => terrainTileRequests.delete(spec.key));
+      terrainTileRequests.set(spec.key, request);
+    }
+
+    function terrainGridMesh(spec) {
+      const spanLon = Math.abs(spec.bounds[2] - spec.bounds[0]);
+      const spanLat = Math.abs(spec.bounds[1] - spec.bounds[3]);
+      const stepsX = Math.max(1, Math.ceil(spanLon / 0.499));
+      const stepsY = Math.max(1, Math.ceil(spanLat / 0.499));
+      const key = `${stepsX}x${stepsY}`;
+      if (terrainGridMeshes.has(key)) return terrainGridMeshes.get(key);
+      const vertices = new Float32Array((stepsX + 1) * (stepsY + 1) * 2);
+      let vertexOffset = 0;
+      for (let y = 0; y <= stepsY; y += 1) {
+        for (let x = 0; x <= stepsX; x += 1) {
+          vertices[vertexOffset++] = x / stepsX;
+          vertices[vertexOffset++] = y / stepsY;
+        }
+      }
+      const indices = new Uint32Array(stepsX * stepsY * 6);
+      let indexOffset = 0;
+      for (let y = 0; y < stepsY; y += 1) {
+        for (let x = 0; x < stepsX; x += 1) {
+          const a = y * (stepsX + 1) + x;
+          const b = a + 1;
+          const c = a + stepsX + 1;
+          const d = c + 1;
+          indices[indexOffset++] = a; indices[indexOffset++] = c; indices[indexOffset++] = b;
+          indices[indexOffset++] = b; indices[indexOffset++] = c; indices[indexOffset++] = d;
+        }
+      }
+      const vertexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+      const indexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+      const meshEntry = { vertexBuffer, indexBuffer, indexCount: indices.length };
+      terrainGridMeshes.set(key, meshEntry);
+      return meshEntry;
+    }
+
+    function drawTerrainTile(spec) {
+      const tile = terrainTiles.get(spec.key);
+      if (!tile || !terrainProgram) return false;
+      tile.lastUsed = performance.now();
+      const grid = terrainGridMesh(spec);
+      gl.useProgram(terrainProgram);
+      const gridLocation = glVersion === 2 ? 0 : gl.getAttribLocation(terrainProgram, 'aGrid');
+      gl.bindBuffer(gl.ARRAY_BUFFER, grid.vertexBuffer);
+      gl.enableVertexAttribArray(gridLocation);
+      gl.vertexAttribPointer(gridLocation, 2, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, grid.indexBuffer);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, tile.texture);
+      gl.uniform1i(gl.getUniformLocation(terrainProgram, 'uTerrain'), 1);
+      const [west, north, east, south] = spec.bounds;
+      gl.uniform4f(gl.getUniformLocation(terrainProgram, 'uGeoBounds'), west, north, east, south);
+      const gutter = Number(terrainManifest.gutter || 0);
+      const u0 = gutter / (spec.pixelWidth + gutter * 2);
+      const v0 = gutter / (spec.pixelHeight + gutter * 2);
+      const u1 = (gutter + spec.pixelWidth) / (spec.pixelWidth + gutter * 2);
+      const v1 = (gutter + spec.pixelHeight) / (spec.pixelHeight + gutter * 2);
+      gl.uniform4f(gl.getUniformLocation(terrainProgram, 'uUvBounds'), u0, v0, u1, v1);
+      gl.uniform1f(gl.getUniformLocation(terrainProgram, 'uPhysicalStyle'), state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
+      gl.uniform1f(gl.getUniformLocation(terrainProgram, 'uDarkTheme'), systemTheme === 'dark' ? 1 : 0);
+      const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
+      for (const offset of offsets) {
+        setViewUniforms(terrainProgram, offset);
+        gl.drawElements(gl.TRIANGLES, grid.indexCount, gl.UNSIGNED_INT, 0);
+      }
+      gl.disableVertexAttribArray(gridLocation);
+      return true;
+    }
+
+    function renderTerrain() {
+      if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return;
+      const baseLevel = terrainManifest.levels[0];
+      const targetLevel = terrainLevelForView() || baseLevel;
+      terrainLastLevel = Number(targetLevel.id);
+      const baseSpecs = visibleTerrainTileSpecs(baseLevel, true);
+      const targetSpecs = Number(targetLevel.id) === Number(baseLevel.id) ? [] : visibleTerrainTileSpecs(targetLevel);
+      for (const spec of [...baseSpecs, ...targetSpecs]) requestTerrainTile(spec);
+      for (const spec of baseSpecs) drawTerrainTile(spec);
+      for (const spec of targetSpecs) drawTerrainTile(spec);
+    }
+
     function renderWebGl() {
       if (!gl || !mesh) return;
       resize();
@@ -1063,12 +1432,13 @@
       gl.viewport(0, 0, pixelWidth, pixelHeight);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.disable(gl.BLEND);
+      renderTerrain();
       if (state.layerVisibility.countries) {
         updatePalette();
-        gl.disable(gl.BLEND);
-        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
         drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
       }
       gl.flush();
@@ -1122,6 +1492,9 @@
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
         theme: mapTheme(),
+        physicalSettings: deepClone(state.physicalSettings),
+        darkTheme: systemTheme === 'dark',
+        terrainManifestUrl: new URL('terrain/v0.12.0/manifest.json', PHYSICAL_DATA_BASE_URL).href,
       };
     }
 
@@ -1193,6 +1566,14 @@
         postCanvasWorkerFrame(pending);
         return;
       }
+      if (message.type === 'terrain-ready') {
+        renderCanvasWorker(currentRenderRevision);
+        return;
+      }
+      if (message.type === 'terrain-warning') {
+        console.warn('Canvas 지형 타일을 불러오지 못했습니다.', message.message || '알 수 없는 오류');
+        return;
+      }
       if (message.type === 'error') {
         failCanvasWorker(message.message || 'Canvas Worker 렌더링 오류');
         return;
@@ -1236,7 +1617,9 @@
         try {
           rendererMode = 'canvas-worker';
           resize();
-          canvasWorker = new Worker(new URL('workers/canvas-render-worker.js', ATLASWRIGHT_ASSET_BASE_URL), {
+          const canvasRuntimeUrl = runtimeAssetUrl('workers/canvas-render-worker.js');
+          canvasRuntimeUrl.searchParams.set('physical', '1');
+          canvasWorker = new Worker(canvasRuntimeUrl, {
             name: 'atlaswright-canvas-renderer',
           });
           canvasWorkerReady = false;
@@ -1341,6 +1724,15 @@
       return false;
     }
 
+    function setTerrainManifest(manifest) {
+      terrainManifest = manifest?.levels?.length ? manifest : null;
+      terrainLastLevel = -1;
+      if (terrainManifest && isWebGlRenderer()) {
+        for (const spec of visibleTerrainTileSpecs(terrainManifest.levels[0], true)) requestTerrainTile(spec);
+      }
+      render(currentRenderRevision);
+    }
+
     function getStats() {
       const sorted = [...frameTimes].sort((a, b) => a - b);
       const p95 = sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] : 0;
@@ -1362,10 +1754,13 @@
         webGlVersion: glVersion || null,
         forcedRenderer: forcedRenderer || null,
         fallbackReason,
+        terrainLevel: terrainLastLevel,
+        terrainTilesLoaded: terrainTiles.size,
+        terrainTilesLoading: terrainTileRequests.size,
       };
     }
 
-    return { attach, initialize, render, resize, verifyLayout, pick, rebuildFromCountries, prioritizeLatest, getStats };
+    return { attach, initialize, render, resize, verifyLayout, pick, rebuildFromCountries, prioritizeLatest, getStats, setTerrainManifest };
   })();
 
   let gpuRebuildTimer = null;
@@ -1395,6 +1790,43 @@
     const gpuFeature = gpuId ? countryFeatureById(gpuId) : null;
     if (gpuFeature && isLayerItemVisible('countries', gpuId) && pointInCountryFeature(coord, gpuFeature)) return gpuFeature;
     return cpuCountryAtCoordinate(coord);
+  }
+
+  function hydroLineParts(geometry) {
+    if (geometry?.type === 'LineString') return [geometry.coordinates || []];
+    if (geometry?.type === 'MultiLineString') return geometry.coordinates || [];
+    return [];
+  }
+
+  function hydroAtScreenPoint(screenPoint, coord) {
+    if (!state.layerVisibility.drawings || state.tool !== 'select') return null;
+    const projection = activeProjection();
+    const toleranceDegrees = 9 / Math.max(1, projection.scale()) * 180 / Math.PI;
+    let nearest = null;
+    for (const feature of allHydroFeatures()) {
+      if (!hydroFeatureInView(feature)) continue;
+      const bounds = feature.__awBounds || [-180, -90, 180, 90];
+      const category = feature.properties?.category;
+      if (category === 'lake') {
+        if (coord[0] >= bounds[0] && coord[0] <= bounds[2] && coord[1] >= bounds[1] && coord[1] <= bounds[3] && pointInCountryFeature(coord, feature)) return feature;
+        continue;
+      }
+      if (coord[1] < bounds[1] - toleranceDegrees || coord[1] > bounds[3] + toleranceDegrees) continue;
+      for (const line of hydroLineParts(feature.geometry)) {
+        for (let index = 0; index < line.length - 1; index += 1) {
+          if (!isCoordVisible(line[index]) && !isCoordVisible(line[index + 1])) continue;
+          const a = projection(line[index]);
+          const b = projection(line[index + 1]);
+          if (!a || !b || Math.hypot(b[0] - a[0], b[1] - a[1]) > state.size.width * 0.7) continue;
+          const vx = b[0] - a[0], vy = b[1] - a[1];
+          const length2 = vx * vx + vy * vy;
+          const t = length2 ? clamp(((screenPoint[0] - a[0]) * vx + (screenPoint[1] - a[1]) * vy) / length2, 0, 1) : 0;
+          const distance = Math.hypot(screenPoint[0] - (a[0] + vx * t), screenPoint[1] - (a[1] + vy * t));
+          if (distance <= 7 && (!nearest || distance < nearest.distance)) nearest = { feature, distance };
+        }
+      }
+    }
+    return nearest?.feature || null;
   }
 
 
@@ -1622,7 +2054,7 @@
 
   function ensureCountryLabelAnchorWorker() {
     if (countryLabelAnchorWorker) return countryLabelAnchorWorker;
-    const worker = new Worker(new URL('workers/label-anchor-worker.js', ATLASWRIGHT_ASSET_BASE_URL), {
+    const worker = new Worker(runtimeAssetUrl('workers/label-anchor-worker.js'), {
       name: 'atlaswright-label-anchors',
     });
     worker.onmessage = event => {
@@ -2930,6 +3362,47 @@
   const layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
   let renderedLayerTreeRevision = -1;
 
+  function normalizePhysicalSettings(value) {
+    const hydroLayers = {};
+    for (const id of Object.keys(HYDRO_LAYER_META)) hydroLayers[id] = value?.hydroLayers?.[id] !== false;
+    return {
+      terrainVisible: value?.terrainVisible !== false,
+      terrainStyle: value?.terrainStyle === 'physical' ? 'physical' : 'political',
+      terrainStrength: clamp(Number(value?.terrainStrength ?? 0.32), 0, 1),
+      hydroLayers,
+      userFeaturesVisible: value?.userFeaturesVisible !== false,
+      hiddenHydroIds: value?.hiddenHydroIds && typeof value.hiddenHydroIds === 'object' ? { ...value.hiddenHydroIds } : {},
+      dataset: PHYSICAL_DATASET,
+    };
+  }
+
+  function syncPhysicalControls() {
+    if ($('terrainStyleSelect')) $('terrainStyleSelect').value = state.physicalSettings.terrainStyle;
+    if ($('terrainStrengthInput')) $('terrainStrengthInput').value = String(Math.round(state.physicalSettings.terrainStrength * 100));
+    if ($('terrainStrengthValue')) $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
+  }
+
+  function hydroLayerVisible(layerId) {
+    return !!state.layerVisibility.drawings && state.physicalSettings.hydroLayers?.[layerId] !== false;
+  }
+
+  function isHydroFeatureVisible(feature) {
+    const id = String(feature?.properties?.aw_id || feature?.id || '');
+    return hydroLayerVisible(feature?.properties?.layer_id) && state.physicalSettings.hiddenHydroIds?.[id] !== true;
+  }
+
+  function allHydroFeatures() {
+    return Object.values(state.hydroCollections || {}).flatMap(collection => collection?.features || []);
+  }
+
+  function hydroFeatureById(id) {
+    const key = String(id);
+    for (const feature of allHydroFeatures()) {
+      if (String(feature.properties?.aw_id || feature.id || '') === key) return feature;
+    }
+    return null;
+  }
+
   function normalizeLayerItemState(value) {
     const output = {};
     for (const group of LAYER_GROUP_KEYS) {
@@ -2948,6 +3421,11 @@
   }
 
   function isLayerItemVisible(group, id) {
+    if (group === 'drawings' && id === 'terrain') return state.physicalSettings.terrainVisible;
+    if (group === 'drawings' && id === 'user-terrain') return state.physicalSettings.userFeaturesVisible !== false;
+    if (group === 'drawings' && String(id).startsWith('hydro-layer:')) {
+      return state.physicalSettings.hydroLayers?.[String(id).slice('hydro-layer:'.length)] !== false;
+    }
     return state.itemVisibility?.[group]?.[String(id)] !== false;
   }
 
@@ -2958,6 +3436,27 @@
   function setLayerItemVisibility(group, id, visible) {
     if (!LAYER_GROUP_KEYS.includes(group)) return;
     const key = String(id);
+    if (group === 'drawings' && key === 'terrain') {
+      state.physicalSettings.terrainVisible = !!visible;
+      markLayerTreeDirty();
+      renderAll();
+      queueAutosave();
+      return;
+    }
+    if (group === 'drawings' && key === 'user-terrain') {
+      state.physicalSettings.userFeaturesVisible = !!visible;
+      markLayerTreeDirty();
+      renderAll();
+      queueAutosave();
+      return;
+    }
+    if (group === 'drawings' && key.startsWith('hydro-layer:')) {
+      state.physicalSettings.hydroLayers[key.slice('hydro-layer:'.length)] = !!visible;
+      markLayerTreeDirty();
+      renderAll();
+      queueAutosave();
+      return;
+    }
     state.itemVisibility[group] ||= {};
     if (visible) delete state.itemVisibility[group][key];
     else state.itemVisibility[group][key] = false;
@@ -2980,13 +3479,25 @@
       });
     }
     if (group === 'drawings') {
-      return state.drawings.map(feature => ({
+      const builtIns = [
+        { id: 'terrain', name: '지형 음영', color: '#8a9c78', meta: state.physicalLoadState.terrain === 'error' ? '불러오기 실패 · 다시 선택해 재시도' : 'Natural Earth 1:10m', selected: false },
+        ...Object.entries(HYDRO_LAYER_META).map(([id, meta]) => ({
+          id: `hydro-layer:${id}`,
+          name: meta.label,
+          color: meta.color,
+          meta: state.hydroCollections[id]?.features ? `${state.hydroCollections[id].features.length.toLocaleString()}개 · 잠금` : state.physicalLoadState.hydro === 'error' ? '불러오기 실패' : '불러오는 중',
+          selected: false,
+        })),
+        { id: 'user-terrain', name: '사용자 지형지물', color: '#7d5ca8', meta: `${state.drawings.length.toLocaleString()}개 · 편집 가능`, selected: false },
+      ];
+      const userItems = state.drawings.map(feature => ({
         id: String(feature.id),
         name: drawingName(feature),
         color: drawingColor(feature),
-        meta: drawingCategoryLabel(feature),
+        meta: `${drawingCategoryLabel(feature)} · 사용자`,
         selected: state.selected?.type === 'drawing' && state.selected.id === String(feature.id),
       }));
+      return [...builtIns, ...userItems];
     }
     return state.labels.map(label => ({
       id: String(label.id),
@@ -3001,7 +3512,7 @@
     const valid = {
       countries: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
       countryLabels: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
-      drawings: new Set(state.drawings.map(feature => String(feature.id))),
+      drawings: new Set(['terrain', 'user-terrain', ...Object.keys(HYDRO_LAYER_META).map(id => `hydro-layer:${id}`), ...state.drawings.map(feature => String(feature.id))]),
       labels: new Set(state.labels.map(label => String(label.id))),
     };
     for (const group of LAYER_GROUP_KEYS) {
@@ -3198,8 +3709,156 @@
     selection.exit().remove();
   }
 
+  function prepareHydroFeature(feature) {
+    const bounds = coordinateBounds(feature?.geometry?.coordinates);
+    feature.__awBounds = bounds.every(Number.isFinite) ? bounds : [-180, -90, 180, 90];
+    try { feature.__awCentroid = d3.geo.centroid(feature); }
+    catch (_) { feature.__awCentroid = [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2]; }
+    feature.__awRadius = Math.min(180, Math.hypot(bounds[2] - bounds[0], bounds[3] - bounds[1]) / 2);
+    return feature;
+  }
+
+  async function loadTerrainManifest(force = false) {
+    if (!force && ['loading', 'ready'].includes(state.physicalLoadState.terrain)) return;
+    state.physicalLoadState.terrain = 'loading';
+    markLayerTreeDirty();
+    renderLayerTree();
+    try {
+      const url = new URL('terrain/v0.12.0/manifest.json', PHYSICAL_DATA_BASE_URL);
+      url.searchParams.set('v', APP_VERSION);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const manifest = await response.json();
+      if (manifest.version !== APP_VERSION || !manifest.levels?.length) throw new Error('지형 타일 버전이 맞지 않습니다.');
+      state.terrainManifest = manifest;
+      state.physicalLoadState.terrain = 'ready';
+      gpuMapRenderer.setTerrainManifest(manifest);
+      markLayerTreeDirty();
+      renderLayerTree();
+      renderAll();
+    } catch (error) {
+      state.physicalLoadState.terrain = 'error';
+      markLayerTreeDirty();
+      renderLayerTree();
+      console.warn('Terrain load failed', error);
+      setActionStatus(`지형 음영을 불러올 수 없습니다. 국가 지도는 계속 사용할 수 있습니다. ${error.message}`, 'error', 0);
+    }
+  }
+
+  async function loadHydroLayer(layerId, force = false) {
+    if (!HYDRO_LAYER_META[layerId]) return;
+    if (!force && state.hydroCollections[layerId]) return;
+    const manifestEntry = state.hydroManifest?.layers?.find(entry => entry.id === layerId);
+    if (!manifestEntry) return;
+    const url = new URL(manifestEntry.url, PHYSICAL_DATA_BASE_URL);
+    url.searchParams.set('v', APP_VERSION);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`${HYDRO_LAYER_META[layerId].label} HTTP ${response.status}`);
+    const collection = await response.json();
+    collection.features = (collection.features || []).map(prepareHydroFeature);
+    state.hydroCollections[layerId] = collection;
+    markLayerTreeDirty();
+    renderLayerTree();
+    renderHydro();
+  }
+
+  async function loadHydroData(force = false) {
+    if (!force && ['loading', 'ready'].includes(state.physicalLoadState.hydro)) return;
+    state.physicalLoadState.hydro = 'loading';
+    markLayerTreeDirty();
+    renderLayerTree();
+    try {
+      const manifestUrl = new URL('hydro/manifest.json', PHYSICAL_DATA_BASE_URL);
+      manifestUrl.searchParams.set('v', APP_VERSION);
+      const response = await fetch(manifestUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const manifest = await response.json();
+      if (manifest.version !== APP_VERSION) throw new Error('수계 데이터 버전이 맞지 않습니다.');
+      state.hydroManifest = manifest;
+      const results = await Promise.allSettled(Object.keys(HYDRO_LAYER_META).map(id => loadHydroLayer(id, force)));
+      const failed = results.filter(result => result.status === 'rejected');
+      state.physicalLoadState.hydro = failed.length === results.length ? 'error' : 'ready';
+      markLayerTreeDirty();
+      renderLayerTree();
+      renderHydro();
+      if (failed.length) setActionStatus(`일부 수계 레이어를 불러오지 못했습니다. 지형지물 목록에서 다시 시도하세요. (${failed.length}개)`, 'error', 0);
+    } catch (error) {
+      state.physicalLoadState.hydro = 'error';
+      markLayerTreeDirty();
+      renderLayerTree();
+      console.warn('Hydro load failed', error);
+      setActionStatus(`수계 데이터를 불러올 수 없습니다. 국가 지도는 계속 사용할 수 있습니다. ${error.message}`, 'error', 0);
+    }
+  }
+
+  function loadPhysicalData() {
+    loadTerrainManifest();
+    loadHydroData();
+  }
+
+  function hydroVisibilityThreshold() {
+    return 2.4 + Math.log2(Math.max(1, currentMapZoom())) * 2.05;
+  }
+
+  function hydroFeatureInView(feature) {
+    if (!isHydroFeatureVisible(feature)) return false;
+    const minZoom = Number(feature.properties?.min_zoom ?? feature.properties?.scale_rank ?? 10);
+    if (minZoom > hydroVisibilityThreshold()) return false;
+    const bounds = feature.__awBounds || [-180, -90, 180, 90];
+    if (state.projection === 'flat') {
+      const scale = flatProjection.scale();
+      const halfLon = state.size.width / Math.max(1, scale) * 90 / Math.PI;
+      const halfLat = state.size.height / Math.max(1, scale) * 90 / Math.PI;
+      const centerLon = (bounds[0] + bounds[2]) / 2;
+      const centerLat = (bounds[1] + bounds[3]) / 2;
+      const deltaLon = Math.abs((((centerLon - state.view.flatCenter[0]) + 540) % 360) - 180);
+      return deltaLon <= halfLon + Math.abs(bounds[2] - bounds[0]) / 2 + 2
+        && Math.abs(centerLat - state.view.flatCenter[1]) <= halfLat + Math.abs(bounds[3] - bounds[1]) / 2 + 2;
+    }
+    const center = [-Number(state.view.globeRotation?.[0] || 0), -Number(state.view.globeRotation?.[1] || 0)];
+    const radius = Math.asin(Math.min(1, Math.hypot(state.size.width, state.size.height) * 0.5 / Math.max(1, globeProjection.scale())));
+    return d3.geo.distance(center, feature.__awCentroid || [0, 0]) <= radius + Number(feature.__awRadius || 0) * Math.PI / 180 + 0.04;
+  }
+
+  function hydroRenderGroups(category) {
+    const groups = new Map();
+    for (const [layerId, collection] of Object.entries(state.hydroCollections || {})) {
+      if (HYDRO_LAYER_META[layerId]?.category !== category || !hydroLayerVisible(layerId)) continue;
+      for (const feature of collection.features || []) {
+        if (!hydroFeatureInView(feature)) continue;
+        const width = category === 'river' ? Math.max(0.45, Math.min(3.2, Number(feature.properties?.stroke_width || 0.8))) : 1;
+        const widthBucket = Math.round(width * 2) / 2;
+        const key = `${layerId}:${widthBucket}`;
+        if (!groups.has(key)) groups.set(key, { key, layerId, width: widthBucket, features: [] });
+        groups.get(key).features.push(feature);
+      }
+    }
+    return [...groups.values()].map(group => ({ ...group, collection: { type: 'FeatureCollection', features: group.features } }));
+  }
+
+  function renderHydro() {
+    if (!hydroLakeLayer || !hydroRiverLayer) return;
+    const lakes = hydroRenderGroups('lake');
+    const lakeSelection = hydroLakeLayer.selectAll('path.hydro-lake-group').data(lakes, item => item.key);
+    lakeSelection.enter().append('path').attr('class', 'hydro-lake-group');
+    lakeSelection.attr('d', item => path(item.collection));
+    lakeSelection.exit().remove();
+
+    const rivers = hydroRenderGroups('river');
+    const riverSelection = hydroRiverLayer.selectAll('path.hydro-river-group').data(rivers, item => item.key);
+    riverSelection.enter().append('path').attr('class', 'hydro-river-group');
+    riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width}px`);
+    riverSelection.exit().remove();
+
+    const selected = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
+    const selection = hydroSelectionLayer.selectAll('path.hydro-selected').data(selected && hydroFeatureInView(selected) ? [selected] : [], item => item.properties.aw_id);
+    selection.enter().append('path').attr('class', 'hydro-selected');
+    selection.attr('d', path).classed('is-lake', item => item.properties.category === 'lake');
+    selection.exit().remove();
+  }
+
   function renderDrawings() {
-    const data = state.layerVisibility.drawings
+    const data = state.layerVisibility.drawings && state.physicalSettings.userFeaturesVisible !== false
       ? state.drawings.filter(feature => isLayerItemVisible('drawings', feature.id))
       : [];
     const selection = drawingLayer.selectAll('path.drawing-shape')
@@ -3488,6 +4147,7 @@
     updateProjection();
     renderBase();
     renderCountries(revision);
+    renderHydro();
     renderBoundaryEditOverlay();
     renderDrawings();
     renderCountryLabels();
@@ -3523,6 +4183,9 @@
       .attr('y', 0);
     graticuleLayer = root.append('path').attr('class', 'map-graticule');
     countryLayer = root.append('g').attr('class', 'countries-layer');
+    hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
+    hydroRiverLayer = root.append('g').attr('class', 'hydro-rivers-layer');
+    hydroSelectionLayer = root.append('g').attr('class', 'hydro-selection-layer');
     boundaryEditLayer = root.append('g').attr('class', 'boundary-edit-layer');
     drawingLayer = root.append('g').attr('class', 'drawings-layer');
     countryLabelLayer = root.append('g').attr('class', 'country-label-layer');
@@ -4243,6 +4906,13 @@
       addLabelAt(coord);
       return;
     }
+    if (state.tool === 'select' && !state.labelPlacementMode) {
+      const clickedHydro = hydroAtScreenPoint(screenPoint, coord);
+      if (clickedHydro) {
+        selectHydro(String(clickedHydro.properties?.aw_id || clickedHydro.id));
+        return;
+      }
+    }
     const needsCountryHit = (state.tool === 'select' && !state.labelPlacementMode) ||
       (state.tool === 'new-country' && state.newCountryPhase === 'sources') ||
       (state.tool === 'annex-territory' && state.annexPhase === 'donor') ||
@@ -4721,6 +5391,7 @@
     $('countryProperties').classList.toggle('hidden', type !== 'country');
     $('drawingProperties').classList.toggle('hidden', type !== 'drawing');
     $('labelProperties').classList.toggle('hidden', type !== 'label');
+    $('hydroProperties').classList.toggle('hidden', type !== 'hydro');
   }
 
   function renderFlag(dataUrl) {
@@ -4794,6 +5465,56 @@
     markLayerTreeDirty();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
+  }
+
+  function selectHydro(id, refreshOnly = false) {
+    const feature = hydroFeatureById(id);
+    if (!feature || !isHydroFeatureVisible(feature)) return;
+    const properties = feature.properties || {};
+    const category = properties.category === 'lake' ? '호수' : '강';
+    state.selected = { type: 'hydro', id: String(properties.aw_id || feature.id) };
+    showPropertyForm('hydro');
+    $('propertyTitle').textContent = properties.name || `이름 없는 ${category}`;
+    $('propertyType').textContent = `${category} · 내장 잠금`;
+    $('hydroNameValue').textContent = properties.name || '이름 없음';
+    $('hydroCategoryValue').textContent = category;
+    $('hydroLayerValue').textContent = HYDRO_LAYER_META[properties.layer_id]?.label || properties.layer_id || '수계';
+    $('hydroSourceValue').textContent = properties.source || 'Natural Earth 5.0.0 1:10m';
+    $('selectionStatus').textContent = `${category} · ${properties.name || '이름 없음'}`;
+    markLayerTreeDirty();
+    renderAll();
+    if (!refreshOnly) openSelectionEditor();
+  }
+
+  function copySelectedHydroForEditing() {
+    if (state.selected?.type !== 'hydro') return;
+    const source = hydroFeatureById(state.selected.id);
+    if (!source) {
+      setActionStatus('복사할 수계 객체를 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
+      return;
+    }
+    recordHistory();
+    const category = source.properties?.category === 'lake' ? 'lake' : 'river';
+    const copy = {
+      type: 'Feature',
+      id: uid(category),
+      geometry: deepClone(source.geometry),
+      properties: {
+        name: source.properties?.name || '',
+        category,
+        editorColor: TERRAIN_TOOL_CONFIG[category].color,
+        notes: `Natural Earth 편집용 복사본 · 원본 ${source.properties?.aw_id || source.id}`,
+        source: source.properties?.source || 'Natural Earth 5.0.0 1:10m',
+        sourceFeatureId: source.properties?.aw_id || source.id,
+      },
+    };
+    state.drawings.push(copy);
+    state.physicalSettings.hiddenHydroIds[String(source.properties?.aw_id || source.id)] = true;
+    markLayerTreeDirty();
+    selectDrawing(String(copy.id));
+    renderAll();
+    queueAutosave();
+    setActionStatus(`${source.properties?.name || (category === 'lake' ? '호수' : '강')}의 편집용 복사본을 만들고 내장 원본을 숨겼습니다.`, 'success', 3600);
   }
 
   function clearSelection(announce = true) {
@@ -4925,6 +5646,7 @@
       sourceInfo: deepClone(state.sourceInfo),
       labels: deepClone(state.labels),
       drawings: deepClone(state.drawings),
+      physicalSettings: deepClone(state.physicalSettings),
     };
   }
 
@@ -4944,6 +5666,8 @@
     state.sourceInfo = deepClone(snapshot.sourceInfo || null);
     state.labels = deepClone(snapshot.labels || []);
     state.drawings = deepClone(snapshot.drawings || []);
+    state.physicalSettings = normalizePhysicalSettings(snapshot.physicalSettings || state.physicalSettings);
+    syncPhysicalControls();
     restoreCountriesFromSnapshot(snapshot);
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
@@ -5002,15 +5726,16 @@
     queueAutosave();
   }
 
-  function buildAtlasState() {
-    return {
+  function buildAtlasState({ includePhysicalVectors = false } = {}) {
+    const project = {
       format: 'atlaswright-project-state',
-      version: '0.11.2',
+      version: APP_VERSION,
       savedAt: new Date().toISOString(),
       countriesData: state.countriesData,
       countryOverrides: state.countryOverrides,
       labels: state.labels,
       drawings: state.drawings,
+      physicalSettings: state.physicalSettings,
       projection: state.projection,
       layerVisibility: state.layerVisibility,
       itemVisibility: state.itemVisibility,
@@ -5020,18 +5745,43 @@
       baseDataset: BASE_DATASET,
       sourceInfo: state.sourceInfo,
     };
+    if (includePhysicalVectors) {
+      project.hydroCollections = state.hydroCollections;
+      project.physicalSourceInfo = {
+        terrain: {
+          dataset: state.terrainManifest?.dataset || TERRAIN_DATASET,
+          version: state.terrainManifest?.version || APP_VERSION,
+          sources: deepClone(state.terrainManifest?.sources || []),
+        },
+        hydro: {
+          dataset: state.hydroManifest?.dataset || HYDRO_DATASET,
+          version: state.hydroManifest?.version || APP_VERSION,
+          coordinatePolicy: state.hydroManifest?.coordinatePolicy || 'source coordinates retained without simplification',
+          layers: deepClone((state.hydroManifest?.layers || []).map(layer => ({
+            id: layer.id,
+            sourceFile: layer.sourceFile,
+            sourceSha256: layer.sourceSha256,
+            outputSha256: layer.outputSha256,
+            featureCount: layer.featureCount,
+            coordinateCount: layer.coordinateCount,
+          }))),
+        },
+      };
+    }
+    return project;
   }
 
   function buildAutosaveData() {
     if (state.sessionBaseCountriesJson) return { ...buildAtlasState(), format: 'atlaswright-autosave-full' };
     return {
       format: 'atlaswright-autosave-delta',
-      version: '0.11.2',
+      version: APP_VERSION,
       savedAt: new Date().toISOString(),
       countryDelta: buildCountryDelta(),
       countryOverrides: state.countryOverrides,
       labels: state.labels,
       drawings: state.drawings,
+      physicalSettings: state.physicalSettings,
       projection: state.projection,
       layerVisibility: state.layerVisibility,
       itemVisibility: state.itemVisibility,
@@ -5208,6 +5958,7 @@
     state.countryOverrides = deepClone(project.countryOverrides || {});
     state.labels = deepClone(project.labels || []);
     state.drawings = deepClone(project.drawings || []);
+    state.physicalSettings = normalizePhysicalSettings(project.physicalSettings);
     state.projection = project.projection || project.view?.projection || 'globe';
     state.layerVisibility = { ...state.layerVisibility, ...(project.layerVisibility || {}) };
     state.itemVisibility = normalizeLayerItemState(project.itemVisibility);
@@ -5237,6 +5988,7 @@
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
     $('countriesLocked').checked = state.countriesLocked;
+    syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
     showPropertyForm(null);
@@ -5286,6 +6038,7 @@
     state.sourceInfo = null;
     state.labels = [];
     state.drawings = [];
+    state.physicalSettings = normalizePhysicalSettings(null);
     state.projection = 'globe';
     state.layerVisibility = { countries: true, drawings: true, labels: true, basemapLabels: true };
     state.itemVisibility = normalizeLayerItemState(null);
@@ -5327,6 +6080,7 @@
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
     $('countriesLocked').checked = false;
+    syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = '';
     renderLayerTree(true);
     $('globeBtn').classList.add('active');
@@ -5416,7 +6170,8 @@
     if (button) button.disabled = true;
     setActionStatus('GeoPackage 저장을 준비하는 중입니다.', 'working', 0);
     try {
-      const blob = await window.AtlasWrightGIS.exportGeoPackage(buildAtlasState(), (message, percent) => {
+      await loadHydroData();
+      const blob = await window.AtlasWrightGIS.exportGeoPackage(buildAtlasState({ includePhysicalVectors: true }), (message, percent) => {
         setActionStatus(`${message}${Number.isFinite(percent) ? ` · ${Math.round(percent)}%` : ''}`, 'working', 0);
       });
       downloadBlob('AtlasWright-프로젝트.gpkg', blob);
@@ -5454,7 +6209,7 @@
 
   function getGisGeometryWorker() {
     if (gisGeometryWorker) return gisGeometryWorker;
-    gisGeometryWorker = new Worker(new URL('workers/gis-geometry-worker.js', ATLASWRIGHT_ASSET_BASE_URL), { name: 'atlaswright-gis-geometry' });
+    gisGeometryWorker = new Worker(runtimeAssetUrl('workers/gis-geometry-worker.js'), { name: 'atlaswright-gis-geometry' });
     gisGeometryWorker.onmessage = event => {
       const pending = gisGeometryPending.get(event.data?.id);
       if (!pending) return;
@@ -5726,6 +6481,10 @@
       setActionStatus('선택한 국가는 이 방법으로 삭제할 수 없습니다. 편집 패널의 국가 삭제 또는 합병 기능을 사용하세요.', 'error', 3500);
       return;
     }
+    if (state.selected.type === 'hydro') {
+      setActionStatus('내장 수계는 삭제할 수 없습니다. 편집용 복사본을 만들어 수정하세요.', 'error', 3400);
+      return;
+    }
     recordHistory();
     if (state.selected.type === 'drawing') {
       state.drawings = state.drawings.filter(f => String(f.id) !== state.selected.id);
@@ -5803,6 +6562,24 @@
       focusCountry(primary, { maxZoom: isMobile() ? 10 : 9 });
       if (state.countriesLocked) setActionStatus('국가 레이어가 잠겨 있어 위치만 이동했습니다.', 'error', 2600);
     } else if (group === 'drawings') {
+      if (key === 'terrain') {
+        if (state.physicalLoadState.terrain === 'error') loadTerrainManifest(true);
+        else setActionStatus(`지형 음영은 ${state.physicalSettings.terrainVisible ? '표시 중' : '숨김 상태'}입니다.`, 'success', 2200);
+        return;
+      }
+      if (key === 'user-terrain') {
+        setActionStatus(`사용자 지형지물은 ${state.drawings.length.toLocaleString()}개입니다. 항목을 선택하면 위치로 이동하고 편집할 수 있습니다.`, 'success', 2600);
+        return;
+      }
+      if (key.startsWith('hydro-layer:')) {
+        const layerId = key.slice('hydro-layer:'.length);
+        if (!state.hydroCollections[layerId]) {
+          if (!state.hydroManifest) loadHydroData(true);
+          else loadHydroLayer(layerId, true).catch(error => setActionStatus(`${HYDRO_LAYER_META[layerId]?.label || '수계'} 레이어를 불러올 수 없습니다. ${error.message}`, 'error', 0));
+        }
+        else setActionStatus(`${HYDRO_LAYER_META[layerId]?.label || '수계'} 레이어에 ${state.hydroCollections[layerId].features.length.toLocaleString()}개 객체가 있습니다.`, 'success', 2600);
+        return;
+      }
       const feature = state.drawings.find(item => String(item.id) === key);
       if (!feature) return;
       selectDrawing(key);
@@ -5928,6 +6705,18 @@
     $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
     $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
     $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
+    $('terrainStyleSelect').addEventListener('change', event => {
+      state.physicalSettings.terrainStyle = event.target.value === 'physical' ? 'physical' : 'political';
+      renderAll();
+      queueAutosave();
+      setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 스타일로 전환했습니다.`, 'success', 2200);
+    });
+    $('terrainStrengthInput').addEventListener('input', event => {
+      state.physicalSettings.terrainStrength = clamp(Number(event.target.value) / 100, 0, 1);
+      $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
+      scheduleRender();
+    });
+    $('terrainStrengthInput').addEventListener('change', () => queueAutosave());
     $('layerSearchInput')?.addEventListener('input', event => {
       state.layerSearch = event.target.value || '';
       markLayerTreeDirty();
@@ -6029,6 +6818,7 @@
     $('labelKindInput').addEventListener('change', e => commitLabelEdit('kind', e.target.value));
     $('labelNotesInput').addEventListener('change', e => commitLabelEdit('notes', e.target.value));
     $('deleteLabelBtn').addEventListener('click', deleteSelected);
+    $('copyHydroBtn').addEventListener('click', copySelectedHydroForEditing);
     $('deleteDrawingInlineBtn')?.addEventListener('click', deleteSelected);
 
     $('undoBtn').addEventListener('click', undo);
@@ -6150,6 +6940,7 @@
   }
 
   async function init() {
+    assertRuntimeCompatibility();
     if (!window.d3) {
       $('engineStatus').textContent = '엔진 오류';
       setActionStatus('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.', 'error', 0);
@@ -6168,6 +6959,7 @@
       state.sourceInfo = deepClone(restored.sourceInfo || null);
       state.labels = deepClone(restored.labels || []);
       state.drawings = deepClone(restored.drawings || []);
+      state.physicalSettings = normalizePhysicalSettings(restored.physicalSettings);
       state.projection = restored.projection || 'globe';
       state.layerVisibility = { ...state.layerVisibility, ...(restored.layerVisibility || {}) };
       state.itemVisibility = normalizeLayerItemState(restored.itemVisibility);
@@ -6205,6 +6997,7 @@
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
     $('countriesLocked').checked = state.countriesLocked;
+    syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
     $('globeBtn').classList.toggle('active', state.projection === 'globe');
@@ -6213,6 +7006,7 @@
     resizeMap();
     updateHistoryButtons();
     setTool('select');
+    loadPhysicalData();
 
     $('startupProbe')?.remove();
     scheduleMapContextCollapse();

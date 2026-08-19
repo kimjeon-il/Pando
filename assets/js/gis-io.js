@@ -11,7 +11,9 @@
   const gdalBaseUrl = new URL('vendor/gdal/', baseUrl).href;
   const gdalScriptUrl = new URL('vendor/gdal/gdal3.js', baseUrl).href;
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
-  const gpkgWorkerUrl = new URL('workers/gis-gpkg-worker.js', baseUrl).href;
+  const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
+  gpkgWorkerUrlObject.searchParams.set('v', '0.12.0');
+  const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
   const inputLimit = 512 * 1024 * 1024;
@@ -740,7 +742,12 @@
       ...projectState,
       countryOverrides,
       countryAssets: countryAssets(projectState.countryOverrides),
-      sourceInfo: { ...(projectState.sourceInfo || {}), exportedAt: new Date().toISOString(), reservedFieldMapping: reservedMap },
+      sourceInfo: {
+        ...(projectState.sourceInfo || {}),
+        exportedAt: new Date().toISOString(),
+        reservedFieldMapping: reservedMap,
+        physicalDatasets: projectState.physicalSourceInfo || null,
+      },
     };
     delete stateForPackage.countriesData;
     const exactBytes = bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice();
