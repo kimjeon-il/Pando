@@ -7,7 +7,7 @@
   <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
-    <link rel="stylesheet" href="assets/css/app.css" />
+    <link rel="stylesheet" href="assets/css/app.css?v=0.12.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -35,13 +35,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.11.2" data-layout="wide">
+  <div id="app" data-app-version="0.12.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.11.2 · Natural Earth 1:10m · QGIS 벡터 호환</span>
+          <span>v0.12.0 · Natural Earth 1:10m · 지형·수계·QGIS 벡터 호환</span>
         </div>
       </div>
 
@@ -77,6 +77,10 @@
             <button id="flatBtn" class="segment"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>평면</span></button>
           </div>
           <div class="renderer-info" aria-label="지도 렌더러 정보"><span>지도 엔진</span><strong id="engineStatus">준비하는 중입니다.</strong></div>
+          <div class="terrain-view-controls">
+            <label class="field-group"><span>지형 스타일</span><select id="terrainStyleSelect"><option value="political">국가색 + 음영</option><option value="physical">지형색 강조</option></select></label>
+            <label class="field-group terrain-strength"><span>음영 강도 <strong id="terrainStrengthValue">32%</strong></span><input id="terrainStrengthInput" type="range" min="0" max="100" step="1" value="32" /></label>
+          </div>
         </section>
 
         <section id="layerSection" class="panel-section">
@@ -308,6 +312,20 @@
           </details>
           <button id="deleteLabelBtn" type="button" class="danger-btn editor-delete-btn">이 지명 삭제</button>
         </form>
+
+        <section id="hydroProperties" class="property-form editor-form hidden">
+          <section class="editor-card editor-card-primary">
+            <div class="editor-card-title">내장 수계 정보</div>
+            <div class="meta-card compact-meta">
+              <div><span>이름</span><strong id="hydroNameValue">—</strong></div>
+              <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
+              <div><span>레이어</span><strong id="hydroLayerValue">—</strong></div>
+              <div><span>출처</span><strong id="hydroSourceValue">Natural Earth 5.0.0 1:10m</strong></div>
+            </div>
+            <p class="editor-help">내장 수계는 원본 보호를 위해 잠겨 있습니다. 수정하려면 편집용 복사본을 만드세요.</p>
+          </section>
+          <button id="copyHydroBtn" type="button" class="btn wide">편집용 복사 만들기</button>
+        </section>
       </aside>
     </div>
   </div>
@@ -368,7 +386,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js" defer></script>
-  <script src="assets/js/bootstrap.js" defer></script>
+  <script src="assets/js/gis-io.js?v=0.12.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.12.0" defer></script>
 </body>
 </html>
