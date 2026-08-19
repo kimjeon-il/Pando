@@ -1,4 +1,4 @@
-/* AtlasWright v0.10.4
+/* AtlasWright v0.11.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -20,6 +20,10 @@
   const LIGHT_DEFAULT_COLOR = '#cccccc';
   const DEFAULT_DRAWING_COLOR = '#8c68d8';
   const MAX_HISTORY = 30;
+  const LAYOUT_QUERIES = {
+    mobile: window.matchMedia('(max-width: 799px)'),
+    compact: window.matchMedia('(min-width: 800px) and (max-width: 1199px)'),
+  };
 
   const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
   let systemTheme = systemThemeQuery.matches ? 'dark' : 'light';
@@ -64,41 +68,95 @@
   }
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   const uid = (prefix = 'obj') => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-  const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
+  const detectLayoutMode = () => LAYOUT_QUERIES.mobile.matches ? 'mobile' : LAYOUT_QUERIES.compact.matches ? 'compact' : 'wide';
+  let layoutMode = detectLayoutMode();
+  const isMobile = () => layoutMode === 'mobile';
+  const isCompact = () => layoutMode === 'compact';
+  const usesOverlayEditor = () => layoutMode !== 'wide';
   let mobileLeftContext = 'tools';
+  let lastOverlayTrigger = null;
+  let mapContextCollapseTimer = 0;
+
+  function scheduleMapContextCollapse(delay = 4200) {
+    window.clearTimeout(mapContextCollapseTimer);
+    const context = $('currentTool');
+    if (!context || context.classList.contains('has-active-context')) return;
+    mapContextCollapseTimer = window.setTimeout(() => {
+      if (!context.classList.contains('has-active-context')) context.classList.add('is-collapsed');
+    }, delay);
+  }
+
+  function updateMapContextDefault() {
+    const hint = $('mapContextDefault');
+    if (!hint) return;
+    hint.textContent = isMobile()
+      ? '한 손가락으로 이동 · 두 손가락으로 확대·축소'
+      : '드래그로 이동 · 휠로 확대·축소 · 지도에서 객체 선택';
+  }
+
+  function applyLayoutMode({ initial = false } = {}) {
+    const previous = layoutMode;
+    layoutMode = detectLayoutMode();
+    const app = $('app');
+    if (app) app.dataset.layout = layoutMode;
+    document.body.dataset.layout = layoutMode;
+    updateMapContextDefault();
+
+    const left = $('leftPanel');
+    const right = $('rightPanel');
+    const fileMenu = document.querySelector('.top-actions');
+    if (layoutMode === 'wide') {
+      left?.classList.remove('mobile-open');
+      right?.classList.remove('mobile-open');
+      fileMenu?.classList.remove('mobile-open');
+    } else if (layoutMode === 'compact') {
+      left?.classList.remove('mobile-open');
+      fileMenu?.classList.remove('mobile-open');
+    } else if (previous === 'wide') {
+      right?.classList.remove('mobile-open');
+    }
+    syncMobileBackdrop();
+    if (layoutMode === 'mobile') syncMobileToolButtons();
+    if (!initial && previous !== layoutMode) queueMapResize();
+    return previous !== layoutMode;
+  }
 
   function syncMobileBackdrop() {
     const fileOpen = document.querySelector('.top-actions')?.classList.contains('mobile-open');
     $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
     $('mobileFileBtn')?.setAttribute('aria-expanded', String(!!fileOpen));
-    if (!isMobile()) {
-      document.body.classList.remove('mobile-sheet-open');
-      return;
-    }
     const leftOpen = $('leftPanel')?.classList.contains('mobile-open');
     const rightOpen = $('rightPanel')?.classList.contains('mobile-open');
-    document.body.classList.toggle('mobile-sheet-open', !!(leftOpen || rightOpen || fileOpen));
+    const overlayOpen = isMobile() ? (leftOpen || rightOpen || fileOpen) : isCompact() ? rightOpen : false;
+    document.body.classList.toggle('mobile-sheet-open', !!overlayOpen);
+    document.body.classList.toggle('responsive-overlay-open', !!overlayOpen);
     $('mobileToolsBtn')?.classList.toggle('sheet-open', !!leftOpen && mobileLeftContext === 'tools');
+    $('mobileToolsBtn')?.setAttribute('aria-expanded', String(!!leftOpen));
+    $('togglePanelBtn')?.setAttribute('aria-expanded', String(layoutMode === 'wide' ? !$('rightPanel')?.classList.contains('collapsed') : !!rightOpen));
     $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
   }
 
-  function closeMobileSheets(except = null) {
-    if (!isMobile()) return;
+  function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
+    if (!isMobile() && !isCompact()) return;
     if (except !== 'left') $('leftPanel')?.classList.remove('mobile-open');
     if (except !== 'right') $('rightPanel')?.classList.remove('mobile-open');
     if (except !== 'file') document.querySelector('.top-actions')?.classList.remove('mobile-open');
     syncMobileBackdrop();
+    if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
+    if (restoreFocus) lastOverlayTrigger = null;
   }
 
   function toggleMobileSheet(which) {
-    if (!isMobile()) return;
+    if (layoutMode === 'wide' || (which === 'left' && !isMobile())) return;
     const map = { left: $('leftPanel'), right: $('rightPanel'), file: document.querySelector('.top-actions') };
     const el = map[which];
     if (!el) return;
     const willOpen = !el.classList.contains('mobile-open');
-    closeMobileSheets();
+    if (willOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeMobileSheets(null, { restoreFocus: false });
     if (willOpen) el.classList.add('mobile-open');
     syncMobileBackdrop();
+    if (willOpen) requestAnimationFrame(() => el.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true }));
   }
 
   function toggleFileMenu() {
@@ -117,6 +175,7 @@
     const left = $('leftPanel');
     if (!left) return;
     const sameOpen = left.classList.contains('mobile-open') && mobileLeftContext === context;
+    if (!sameOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeMobileSheets();
     if (sameOpen) return;
     mobileLeftContext = context;
@@ -131,8 +190,10 @@
   function openSelectionEditor() {
     const panel = $('rightPanel');
     if (!panel) return;
-    if (isMobile()) {
-      closeMobileSheets();
+    if (usesOverlayEditor()) {
+      lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      closeMobileSheets(null, { restoreFocus: false });
+      panel.classList.remove('collapsed');
       panel.classList.add('mobile-open');
       syncMobileBackdrop();
       panel.scrollTop = 0;
@@ -1356,6 +1417,8 @@
 
   function setCurrentTool(name) {
     $('currentToolName').textContent = name || '선택·편집';
+    $('currentTool')?.classList.remove('is-collapsed');
+    scheduleMapContextCollapse();
   }
 
   function setActionStatus(message, tone = 'success', timeout = 1800) {
@@ -3399,7 +3462,7 @@
     vertexLayer = root.append('g').attr('class', 'vertices-layer');
     draftLayer = root.append('g').attr('class', 'draft-layer');
 
-    mapEl.insertAdjacentHTML('beforeend', `<div class="map-instruction">${isMobile() ? '한 손가락: 회전·이동 · 두 손가락: 확대·축소 · 두 번 탭: 확대' : '드래그: 지도 이동 · 휠: 확대/축소 · 선택 도구: 객체 편집'}</div><div id="mapRendererBadge" class="map-renderer-badge">렌더러 준비 중</div>`);
+    mapEl.insertAdjacentHTML('beforeend', '<div id="mapRendererBadge" class="map-renderer-badge">렌더러 준비 중</div>');
 
     const interactiveDragTarget = target => !!target?.closest?.('.vertex-handle, .user-label');
     const beginMapMovement = () => {
@@ -3688,14 +3751,23 @@
 
   function setModeBanner(text = '', modeClass = '') {
     const banner = $('modeBanner');
+    const context = $('currentTool');
+    const defaultHint = $('mapContextDefault');
     banner.classList.remove('coast-mode', 'merge-mode', 'add-country-mode', 'annex-mode');
     if (!text) {
       banner.classList.add('hidden');
+      defaultHint?.classList.remove('hidden');
+      context?.classList.remove('has-active-context');
+      scheduleMapContextCollapse();
       return;
     }
+    window.clearTimeout(mapContextCollapseTimer);
     banner.textContent = text;
     if (modeClass) banner.classList.add(modeClass);
     banner.classList.remove('hidden');
+    defaultHint?.classList.add('hidden');
+    context?.classList.remove('is-collapsed');
+    context?.classList.add('has-active-context');
   }
 
   function updateModeButtons() {
@@ -3923,7 +3995,7 @@
     state.annexTargetCountryId = String(id);
     syncCountryActionButtons();
     renderCountries();
-    if (isMobile()) closeMobileSheets();
+    if (usesOverlayEditor()) closeMobileSheets();
     focusCountry(feature);
     setModeBanner(`${countryName(feature)}의 피편입국을 지도에서 선택하세요 · 드래그로 지도 이동`, 'annex-mode');
     setActionStatus(`피편입국 선택 대기 · 수령국 ${countryName(feature)}`, 'working', 0);
@@ -3971,7 +4043,7 @@
     state.coastEditCountryId = String(id);
     rebuildBoundaryTopology(id);
     syncCountryActionButtons();
-    if (isMobile()) closeMobileSheets();
+    if (usesOverlayEditor()) closeMobileSheets();
     focusCountry(feature);
     setModeBanner(`${countryName(feature)} 해안선 수정 · 육상국경 잠금 · 해안선 꼭짓점만 이동`, 'coast-mode');
     setActionStatus(`해안선 수정 시작 · ${countryName(feature)}`, 'working', 0);
@@ -4000,7 +4072,7 @@
     state.mergeSourceCountryId = String(id);
     setModeBanner(`${countryName(feature)}에 합병할 다른 국가를 지도에서 누르세요`, 'merge-mode');
     syncCountryActionButtons();
-    if (isMobile()) closeMobileSheets();
+    if (usesOverlayEditor()) closeMobileSheets();
     setActionStatus(`합병 대상 선택 대기 · ${countryName(feature)}`, 'working', 0);
   }
 
@@ -4028,9 +4100,7 @@
     $('addLabelBtn').classList.add('active');
     ['selectToolBtn', 'polygonToolBtn', 'lineToolBtn', 'pointToolBtn'].forEach(id => $(id)?.classList.remove('active'));
     $('map').classList.add('drawing-mode');
-    const banner = $('modeBanner');
-    banner.textContent = '지도에서 지명을 놓을 위치를 클릭하세요. ESC로 취소';
-    banner.classList.remove('hidden');
+    setModeBanner('지도에서 지명을 놓을 위치를 클릭하세요 · ESC로 취소');
     syncMobileToolButtons();
     setActionStatus('지명 배치 모드', 'working', 0);
   }
@@ -4042,7 +4112,7 @@
     $('selectToolBtn').classList.add('active');
     $('map').classList.remove('drawing-mode');
     $('map').classList.add('select-mode');
-    $('modeBanner').classList.add('hidden');
+    setModeBanner();
     setCurrentTool('국가 선택');
     syncMobileToolButtons();
     updateModeButtons();
@@ -4428,7 +4498,7 @@
 
   function cancelDraft(showMessage = true) {
     clearDraftInput(true);
-    $('modeBanner').classList.add('hidden');
+    setModeBanner();
     renderDraft();
     if (showMessage) setActionStatus('도형 그리기 취소', 'success');
   }
@@ -4870,7 +4940,7 @@
   function buildAtlasState() {
     return {
       format: 'atlaswright-project-state',
-      version: '0.10.4',
+      version: '0.11.0',
       savedAt: new Date().toISOString(),
       countriesData: state.countriesData,
       countryOverrides: state.countryOverrides,
@@ -4891,7 +4961,7 @@
     if (state.sessionBaseCountriesJson) return { ...buildAtlasState(), format: 'atlaswright-autosave-full' };
     return {
       format: 'atlaswright-autosave-delta',
-      version: '0.10.4',
+      version: '0.11.0',
       savedAt: new Date().toISOString(),
       countryDelta: buildCountryDelta(),
       countryOverrides: state.countryOverrides,
@@ -5761,7 +5831,7 @@
       event.stopPropagation();
       toggleFileMenu();
     });
-    $('mobileBackdrop')?.addEventListener('click', () => closeMobileSheets());
+    $('mobileBackdrop')?.addEventListener('click', () => closeMobileSheets(null, { restoreFocus: true }));
     bindHoldZoom($('mobileZoomInBtn'), 1.34);
     bindHoldZoom($('mobileZoomOutBtn'), 0.746);
     $('mobileWorldBtn')?.addEventListener('click', () => {
@@ -5769,8 +5839,8 @@
       if (navigator.vibrate) navigator.vibrate(8);
     });
     $('mobileToolsBtn')?.addEventListener('click', () => openMobileLeftAt('tools'));
-    $('mobileCloseLeftBtn')?.addEventListener('click', () => closeMobileSheets());
-    $('mobileCloseRightBtn')?.addEventListener('click', () => closeMobileSheets());
+    $('mobileCloseLeftBtn')?.addEventListener('click', () => closeMobileSheets(null, { restoreFocus: true }));
+    $('mobileCloseRightBtn')?.addEventListener('click', () => closeMobileSheets(null, { restoreFocus: true }));
     $('mobileSelectBtn')?.addEventListener('click', () => { setTool('select'); closeMobileSheets(); });
     $('mobilePolygonBtn')?.addEventListener('click', () => { enterNewCountryMode(); closeMobileSheets(); });
     $('mobileLabelBtn')?.addEventListener('click', () => {
@@ -5880,7 +5950,7 @@
     $('zoomInBtn')?.addEventListener('click', () => zoomBy(1.25));
 
     $('togglePanelBtn').addEventListener('click', () => {
-      if (isMobile()) {
+      if (usesOverlayEditor()) {
         toggleMobileSheet('right');
         return;
       }
@@ -5944,6 +6014,7 @@
         if (state.labelPlacementMode) exitLabelMode();
         else if (['new-country', 'annex-territory', 'merge-country', 'country-coast'].includes(state.tool)) cancelActiveMode();
         else if (state.draftCoords.length) cancelDraft(true);
+        else if (document.body.classList.contains('responsive-overlay-open')) closeMobileSheets(null, { restoreFocus: true });
         else clearSelection();
       }
       const newCountryLineMode = state.tool === 'new-country' && state.newCountryPhase === 'line';
@@ -5979,15 +6050,8 @@
     });
 
     window.addEventListener('resize', () => {
-      if (!isMobile()) {
-        $('leftPanel')?.classList.remove('mobile-open');
-        $('rightPanel')?.classList.remove('mobile-open');
-        document.querySelector('.top-actions')?.classList.remove('mobile-open');
-        document.body.classList.remove('mobile-sheet-open');
-      } else {
-        syncMobileBackdrop();
-      }
-      queueMapResize();
+      const layoutChanged = applyLayoutMode();
+      if (!layoutChanged) queueMapResize();
     });
     const onSystemThemeChange = event => applySystemTheme(!!event.matches);
     if (typeof systemThemeQuery.addEventListener === 'function') systemThemeQuery.addEventListener('change', onSystemThemeChange);
@@ -6042,6 +6106,7 @@
     $('engineStatus').textContent = 'Natural Earth 5.1.1 · GPU 렌더러 준비 중';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
 
+    applyLayoutMode({ initial: true });
     bindUI();
     initSvg();
     resizeMap();
@@ -6065,9 +6130,7 @@
     setTool('select');
 
     $('startupProbe')?.remove();
-    if (isMobile()) {
-      setTimeout(() => document.querySelector('.map-instruction')?.classList.add('auto-hidden'), 5200);
-    }
+    scheduleMapContextCollapse();
 
     if (restored) {
       if (restored.countriesData && restored.baseDataset === BASE_DATASET) queueAutosave(0);

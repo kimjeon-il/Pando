@@ -6,6 +6,13 @@
   const overlay = document.getElementById('bootstrapLoading');
   const message = document.getElementById('bootstrapLoadingText');
   const progressBar = document.getElementById('bootstrapProgressBar');
+  const initialLayout = window.matchMedia('(max-width: 799px)').matches
+    ? 'mobile'
+    : window.matchMedia('(max-width: 1199px)').matches
+      ? 'compact'
+      : 'wide';
+  document.getElementById('app')?.setAttribute('data-layout', initialLayout);
+  document.body.dataset.layout = initialLayout;
 
   function setProgress(text, percent = 0) {
     if (message) message.textContent = text;
