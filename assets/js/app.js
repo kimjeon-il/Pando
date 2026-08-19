@@ -1,4 +1,4 @@
-/* AtlasWright v0.10.3
+/* AtlasWright v0.10.4
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -4870,7 +4870,7 @@
   function buildAtlasState() {
     return {
       format: 'atlaswright-project-state',
-      version: '0.10.3',
+      version: '0.10.4',
       savedAt: new Date().toISOString(),
       countriesData: state.countriesData,
       countryOverrides: state.countryOverrides,
@@ -4891,7 +4891,7 @@
     if (state.sessionBaseCountriesJson) return { ...buildAtlasState(), format: 'atlaswright-autosave-full' };
     return {
       format: 'atlaswright-autosave-delta',
-      version: '0.10.3',
+      version: '0.10.4',
       savedAt: new Date().toISOString(),
       countryDelta: buildCountryDelta(),
       countryOverrides: state.countryOverrides,
