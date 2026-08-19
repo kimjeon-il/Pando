@@ -69,10 +69,10 @@
   async function getGdal(progress = () => {}) {
     if (!gdalPromise) {
       gdalPromise = (async () => {
-        progress('GIS 변환 엔진을 불러오는 중…', 12);
+        progress('GIS 변환 엔진을 불러오는 중입니다.', 12);
         await loadScript(gdalScriptUrl);
         if (typeof window.initGdalJs !== 'function') throw new Error('GDAL 초기화 함수를 찾을 수 없습니다.');
-        progress('좌표계와 파일 드라이버를 준비하는 중…', 28);
+        progress('좌표계와 파일 드라이버를 준비하는 중입니다.', 28);
         return window.initGdalJs({
           path: gdalBaseUrl,
           useWorker: true,
@@ -249,14 +249,14 @@
   async function prepareFiles(inputFiles, progress) {
     const originals = [...inputFiles];
     const selectedBytes = originals.reduce((sum, file) => sum + file.size, 0);
-    if (!originals.length) throw new Error('가져올 파일을 선택해 주세요.');
+    if (!originals.length) throw new Error('가져올 파일을 선택하세요.');
     if (selectedBytes > inputLimit) throw new Error('선택한 파일의 전체 크기가 512MB를 초과합니다.');
     const dataFiles = [];
     const qgsTexts = [];
     for (let i = 0; i < originals.length; i += 1) {
       const file = originals[i];
       const ext = extension(file.name);
-      progress(`파일 확인 중 · ${i + 1}/${originals.length}`, 4 + Math.round((i / originals.length) * 10));
+      progress(`파일을 확인하는 중입니다. ${i + 1}/${originals.length}`, 4 + Math.round((i / originals.length) * 10));
       if (!supportedExtensions.has(ext)) continue;
       if (archiveExtensions.has(ext)) {
         const unpacked = await unpackArchive(file);
@@ -274,7 +274,7 @@
     dataFiles.sort((a, b) => (driverPriority[extension(a.name)] ?? 5) - (driverPriority[extension(b.name)] ?? 5));
     const qgsLayers = qgsTexts.flatMap(project => parseQgsProject(project.text, project.name));
     const report = qgsReferenceReport(qgsLayers, dataFiles);
-    if (!dataFiles.length) throw new Error(qgsLayers.length ? `QGIS 프로젝트가 참조하는 경계 파일을 함께 선택해 주세요.\n${report.missing.slice(0, 4).join('\n')}` : '지원되는 벡터 데이터 파일이 없습니다.');
+    if (!dataFiles.length) throw new Error(qgsLayers.length ? `QGIS 프로젝트가 참조하는 경계 파일을 함께 선택하세요.\n${report.missing.slice(0, 4).join('\n')}` : '지원되는 벡터 데이터 파일이 없습니다.');
     return { originals, dataFiles, qgsLayers, report };
   }
 
@@ -319,7 +319,7 @@
     await closeActiveSession();
     const prepared = await prepareFiles(inputFiles, progress);
     const gdal = await getGdal(progress);
-    progress('벡터 레이어를 검사하는 중…', 42);
+    progress('벡터 레이어를 검사하는 중입니다.', 42);
     const opened = await gdal.open(prepared.dataFiles);
     if (!opened.datasets?.length) throw new Error(`벡터 파일을 열 수 없습니다.${opened.errors?.length ? ` ${opened.errors.map(error => error.message || error).join(' · ')}` : ''}`);
     const descriptors = [];
@@ -546,12 +546,12 @@
       options.push('-s_srs', mapping.sourceCrs.toUpperCase());
     }
     options.push(descriptor.layerName);
-    progress('국가 경계를 EPSG:4326으로 변환하는 중…', 55);
+    progress('국가 경계를 EPSG:4326으로 변환하는 중입니다.', 55);
     const output = await gdal.ogr2ogr(dataset, options, `atlaswright_import_${Date.now()}`);
     const bytes = await gdal.getFileBytes(output);
     const parsed = JSON.parse(new TextDecoder().decode(bytes));
     const countriesData = normalizeCountryFeatures(parsed, descriptor, mapping);
-    progress('원본 속성과 프로젝트 정보를 확인하는 중…', 78);
+    progress('원본 속성과 프로젝트 정보를 확인하는 중입니다.', 78);
     const sourceFile = prepared.dataFiles.find(file => file.name.toLowerCase() === basename(descriptor.datasetPath).toLowerCase())
       || prepared.dataFiles.find(file => withoutExtension(file.name).toLowerCase() === withoutExtension(descriptor.datasetPath).toLowerCase());
     const atlasMetadata = sourceFile && extension(sourceFile.name) === 'gpkg' ? await readAtlasMetadata(sourceFile) : null;
@@ -561,7 +561,7 @@
     }
     const fileHashes = [];
     for (const file of prepared.originals) fileHashes.push({ name: file.name, size: file.size, sha256: await sha256File(file) });
-    progress('가져오기 미리보기 준비 완료', 100);
+    progress('가져오기 미리보기를 준비했습니다.', 100);
     return {
       countriesData,
       atlasMetadata,
@@ -596,7 +596,7 @@
     const mergeRow = document.getElementById('gisMergeStrategyRow');
     form.classList.add('is-busy');
     confirmButton.disabled = true;
-    setWizardProgress('선택한 GIS 파일을 확인하는 중…', 2);
+    setWizardProgress('선택한 GIS 파일을 확인하는 중입니다.', 2);
     try {
       const session = await inspectFiles(files, setWizardProgress);
       layerSelect.replaceChildren();
@@ -711,7 +711,7 @@
 
   async function exportGeoPackage(projectState, progress = () => {}) {
     const gdal = await getGdal(progress);
-    progress('국가 레이어를 GeoPackage로 변환하는 중…', 25);
+    progress('국가 레이어를 GeoPackage로 변환하는 중입니다.', 25);
     const countries = {
       type: 'FeatureCollection',
       features: [],
@@ -730,7 +730,7 @@
     } finally {
       await gdal.close(dataset);
     }
-    progress('지명·도형·국기와 프로젝트 설정을 기록하는 중…', 72);
+    progress('지명·지형지물·국기와 프로젝트 설정을 기록하는 중입니다.', 72);
     const countryOverrides = Object.fromEntries(Object.entries(projectState.countryOverrides || {}).map(([id, override]) => {
       const copy = { ...(override || {}) };
       delete copy.flagDataUrl;
@@ -745,7 +745,7 @@
     delete stateForPackage.countriesData;
     const exactBytes = bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice();
     const result = await callGpkgWorker('write', exactBytes.buffer, { projectState: stateForPackage });
-    progress('GeoPackage 저장 준비 완료', 100);
+    progress('GeoPackage 저장 준비를 마쳤습니다.', 100);
     return new Blob([result.buffer], { type: 'application/geopackage+sqlite3' });
   }
 
