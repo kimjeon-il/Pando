@@ -16,13 +16,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.9.0">
+  <div id="app" data-app-version="0.10.0">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.9.0 · Natural Earth 1:10m · 정적 웹 앱</span>
+          <span>v0.10.0 · Natural Earth 1:10m · QGIS 벡터 호환</span>
         </div>
       </div>
 
@@ -34,9 +34,9 @@
 
       <nav class="top-actions" aria-label="프로젝트 도구">
         <button id="newProjectBtn" type="button" class="btn ghost" title="새 프로젝트" aria-pressed="false">새 프로젝트</button>
-        <button id="saveProjectBtn" class="btn">프로젝트 저장</button>
-        <button id="loadProjectBtn" class="btn ghost">프로젝트 불러오기</button>
-        <input id="projectFileInput" type="file" accept="application/json,.json,.chronomap" hidden />
+        <button id="saveProjectBtn" class="btn">GeoPackage 저장</button>
+        <button id="openGisBtn" class="btn ghost">GIS 파일 열기</button>
+        <input id="gisFileInput" type="file" multiple accept=".gpkg,.qgz,.qgs,.shp,.shx,.dbf,.prj,.cpg,.shz,.zip,.geojson,.json,.kml,.kmz,.gml,.xml,.fgb,application/geopackage+sqlite3,application/geo+json,application/json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden />
         <span class="divider"></span>
         <button id="importGeoJsonBtn" class="btn ghost">GeoJSON 가져오기</button>
         <input id="geoJsonFileInput" type="file" accept="application/geo+json,application/json,.geojson,.json" hidden />
@@ -282,6 +282,39 @@
       </div>
     </section>
   </div>
+  <div id="gisImportModal" class="gis-modal hidden" role="dialog" aria-modal="true" aria-labelledby="gisImportTitle">
+    <div class="gis-modal-dim"></div>
+    <section class="gis-modal-card">
+      <header class="gis-modal-header">
+        <div>
+          <span class="gis-modal-kicker">QGIS 벡터 가져오기</span>
+          <h2 id="gisImportTitle">국가 경계 레이어 선택</h2>
+        </div>
+        <button id="gisImportCancelBtn" type="button" class="icon-btn" aria-label="가져오기 닫기">×</button>
+      </header>
+      <form id="gisImportForm" onsubmit="return false;">
+        <div class="gis-progress" aria-hidden="true"><span id="gisImportProgressBar"></span></div>
+        <p id="gisImportStatus" class="gis-import-status" aria-live="polite">선택한 파일을 확인하는 중…</p>
+        <div id="gisSourceReport" class="gis-source-report">파일 참조를 확인하고 있습니다.</div>
+
+        <div class="gis-form-grid">
+          <label class="field-group gis-wide"><span>국가 경계 Polygon 레이어</span><select id="gisLayerSelect"></select><small id="gisLayerDetails">레이어 정보를 불러오는 중…</small></label>
+          <label class="field-group"><span>국가 ID 필드</span><select id="gisIdField"></select></label>
+          <label class="field-group"><span>국명 필드</span><select id="gisNameField"></select></label>
+          <label class="field-group"><span>지도색</span><select id="gisColorField"></select></label>
+          <label class="field-group"><span>원본 CRS</span><input id="gisCrsInput" type="text" inputmode="numeric" placeholder="EPSG:4326" /></label>
+          <label class="gis-check gis-wide"><input id="gisGroupDuplicates" type="checkbox" checked /><span>같은 ID의 여러 행을 하나의 MultiPolygon 국가로 묶기</span></label>
+          <label class="field-group"><span>열기 방식</span><select id="gisOpenMode"><option value="replace">새 프로젝트로 열기</option><option value="merge">현재 지도에 병합</option></select></label>
+          <label id="gisMergeStrategyRow" class="field-group hidden"><span>병합 방식</span><select id="gisMergeStrategy"><option value="id-replace">ID 기준 교체</option><option value="imported-wins">가져온 영토 우선</option></select></label>
+        </div>
+        <p class="gis-security-note">QGS/QGZ의 매크로·스크립트·플러그인은 실행하지 않습니다. 원격·DB·래스터 레이어는 제외됩니다.</p>
+        <div class="gis-modal-actions">
+          <button type="button" class="btn ghost" data-gis-cancel="true">취소</button>
+          <button id="gisImportConfirmBtn" type="button" class="btn" disabled>선택 레이어 열기</button>
+        </div>
+      </form>
+    </section>
+  </div>
   <noscript><div class="fatal-noscript">AtlasWright를 사용하려면 브라우저의 자바스크립트 실행을 허용해 주세요.</div></noscript>
 
   
@@ -292,6 +325,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
+  <script src="assets/js/gis-io.js" defer></script>
   <script src="assets/js/bootstrap.js" defer></script>
 </body>
 </html>

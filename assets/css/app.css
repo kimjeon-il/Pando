@@ -664,7 +664,7 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
 }
 
 
-/* ===== 시험판 0.9.0: 구면 삼각형 왜곡 제거 ===== */
+/* ===== v0.10.0: 무손실 구면 메시와 QGIS 벡터 호환 ===== */
 .country-shape.coast-editing {
   fill-opacity: .68 !important;
   stroke: #323c46 !important;
@@ -703,6 +703,37 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
 .confirm-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
 .confirm-modal-actions .btn { min-height: 44px; }
 .confirm-modal-actions .danger-confirm { background: #6c3434; border-color: #945050; color: #ffe2e2; }
+
+/* QGIS/GDAL 가져오기 마법사 */
+body.modal-open { overflow: hidden; }
+.gis-modal { position: fixed; inset: 0; z-index: 12500; display: grid; place-items: center; padding: 18px; }
+.gis-modal.hidden { display: none !important; }
+.gis-modal-dim { position: absolute; inset: 0; background: rgba(5,8,12,.76); }
+.gis-modal-card {
+  position: relative; z-index: 1; width: min(760px, 100%); max-height: min(820px, calc(100dvh - 36px));
+  overflow: auto; padding: 22px; border: 1px solid #46515f; border-radius: 16px;
+  background: #1a2027; box-shadow: 0 28px 90px rgba(0,0,0,.62);
+}
+.gis-modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.gis-modal-header h2 { margin: 3px 0 0; color: #f1f4f7; font-size: 20px; }
+.gis-modal-kicker { color: #d8bc75; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.gis-progress { height: 6px; overflow: hidden; border-radius: 999px; background: #10151a; }
+.gis-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: #d6b563; transition: width .18s ease; }
+.gis-import-status { min-height: 20px; margin: 9px 0 12px; color: #bbc5ce; font-size: 12px; }
+.gis-import-status.error { color: #ff9b9b; }
+.gis-source-report { margin-bottom: 14px; padding: 10px 12px; border: 1px solid #313c47; border-radius: 9px; background: #141a20; color: #91a0ab; font-size: 10px; line-height: 1.55; }
+.gis-source-report strong { color: #e4c779; }
+.gis-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.gis-form-grid .field-group { margin: 0; }
+.gis-form-grid .field-group > span { color: #cbd4dc; font-size: 11px; font-weight: 700; }
+.gis-form-grid small { margin-top: 5px; color: #7f8d98; font-size: 9px; line-height: 1.45; }
+.gis-wide { grid-column: 1 / -1; }
+.gis-check { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid #303b45; border-radius: 8px; color: #aeb9c2; font-size: 11px; }
+.gis-check input { margin: 0; }
+.gis-security-note { margin: 14px 0 0; color: #7f8e99; font-size: 10px; line-height: 1.55; }
+.gis-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 18px; }
+.gis-modal-actions .btn { min-height: 44px; }
+.gis-modal-card .is-busy select, .gis-modal-card .is-busy input, .gis-modal-card .is-busy .gis-modal-actions button { pointer-events: none; opacity: .58; }
 .new-project-armed {
   background: #6f3434 !important; border-color: #a45a5a !important; color: #ffe8e8 !important;
   box-shadow: inset 0 0 0 1px rgba(255,190,190,.14);
@@ -722,6 +753,12 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
   .confirm-modal-card h2 { font-size: 20px; }
   .confirm-modal-card p { font-size: 14px; }
   .confirm-modal-actions .btn { min-height: 50px; font-size: 14px; }
+  .gis-modal { padding: 10px; }
+  .gis-modal-card { max-height: calc(100dvh - 20px); padding: 17px 14px; border-radius: 15px; }
+  .gis-modal-header h2 { font-size: 18px; }
+  .gis-form-grid { grid-template-columns: 1fr; gap: 10px; }
+  .gis-wide { grid-column: 1; }
+  .gis-modal-actions .btn { min-height: 50px; font-size: 14px; }
 }
 
 /* ===== 시험판 0.8.4: 단순·직관형 작업공간 ===== */
