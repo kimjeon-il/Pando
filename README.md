@@ -1,4 +1,4 @@
-# AtlasWright v0.10.3
+# AtlasWright v0.10.4
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
