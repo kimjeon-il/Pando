@@ -20,7 +20,7 @@ function report(stage, message) {
 
 async function fetchBytes(url, key, label) {
   const response = await fetch(url, { cache: 'default' });
-  if (!response.ok) throw new Error(`${label} 요청 실패 (${response.status})`);
+  if (!response.ok) throw new Error(`${label} 요청에 실패했습니다. (${response.status})`);
   const total = Number(response.headers.get('content-length') || 0);
   progress[key].total = total;
   if (!response.body?.getReader) {
@@ -28,7 +28,7 @@ async function fetchBytes(url, key, label) {
     progress[key].loaded = buffer.byteLength;
     progress[key].total ||= buffer.byteLength;
     progress[key].done = true;
-    report(key, `${label} 다운로드 완료`);
+    report(key, `${label}: 다운로드를 완료했습니다.`);
     return buffer;
   }
   const reader = response.body.getReader();
@@ -40,7 +40,7 @@ async function fetchBytes(url, key, label) {
     chunks.push(value);
     length += value.byteLength;
     progress[key].loaded = length;
-    report(key, `${label} 다운로드 중`);
+    report(key, `${label}: 다운로드하는 중입니다.`);
   }
   const merged = new Uint8Array(length);
   let offset = 0;
@@ -50,13 +50,13 @@ async function fetchBytes(url, key, label) {
   }
   progress[key].total ||= length;
   progress[key].done = true;
-  report(key, `${label} 다운로드 완료`);
+  report(key, `${label}: 다운로드를 완료했습니다.`);
   return merged.buffer;
 }
 
 async function loadCountries() {
   const buffer = await fetchBytes(COUNTRY_URL, 'countries', '국가 데이터');
-  report('countries-parse', '국가 데이터 해석 중');
+  report('countries-parse', '국가 데이터를 해석하는 중입니다.');
   const data = JSON.parse(new TextDecoder().decode(buffer));
   if (data?.type !== 'FeatureCollection' || data.features?.length !== 258) {
     throw new Error('국가 데이터의 국가 수가 올바르지 않습니다.');
@@ -67,7 +67,7 @@ async function loadCountries() {
 async function loadMesh() {
   if (typeof DecompressionStream !== 'function') throw new Error('이 브라우저는 GPU 메시 압축 해제를 지원하지 않습니다.');
   const compressed = await fetchBytes(MESH_URL, 'mesh', 'GPU 메시');
-  report('mesh-decode', 'GPU 메시 압축 해제 중');
+  report('mesh-decode', 'GPU 메시의 압축을 해제하는 중입니다.');
   const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
   const buffer = await new Response(stream).arrayBuffer();
   const header = new Uint32Array(buffer, 0, 8);
@@ -88,7 +88,7 @@ async function loadLabelAnchors() {
 
 (async () => {
   try {
-    report('start', '고해상도 지도 데이터 요청 중');
+    report('start', '고해상도 지도 데이터를 요청하는 중입니다.');
     const [countries, meshBuffer, labelAnchors] = await Promise.all([loadCountries(), loadMesh(), loadLabelAnchors()]);
     self.postMessage({ type: 'ready', countries, meshBuffer, labelAnchors }, [meshBuffer]);
   } catch (error) {
