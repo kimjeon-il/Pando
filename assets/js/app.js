@@ -1,4 +1,4 @@
-/* AtlasWright v0.10.0
+/* AtlasWright v0.10.2
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -24,9 +24,12 @@
   const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
   // 내장 원본은 읽기 전용 기준 지도다. 렌더링 메시와 편집 사본을 분리해 원본 좌표를 보존한다.
   const PRISTINE_COUNTRIES = window.ATLASWRIGHT_COUNTRIES || { type: 'FeatureCollection', features: [] };
+  const PRISTINE_LABEL_ANCHORS = window.ATLASWRIGHT_LABEL_ANCHORS || {};
 
   function freshPristineCountries(applyOverrides = true) {
-    return reindexCountries(deepClone(PRISTINE_COUNTRIES), applyOverrides);
+    const countries = reindexCountries(deepClone(PRISTINE_COUNTRIES), applyOverrides);
+    applyPristineLabelAnchors(countries);
+    return countries;
   }
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   const uid = (prefix = 'obj') => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -144,6 +147,19 @@
       labels: true,
       basemapLabels: true,
     },
+    itemVisibility: {
+      countries: {},
+      drawings: {},
+      labels: {},
+      countryLabels: {},
+    },
+    layerFolders: {
+      countries: false,
+      drawings: false,
+      labels: false,
+      countryLabels: false,
+    },
+    layerSearch: '',
     countriesLocked: false,
     tool: 'select',
     labelPlacementMode: false,
@@ -180,6 +196,7 @@
       flatZoom: 1,
     },
     size: { width: 1000, height: 700 },
+    layerTreeRevision: 1,
   };
 
   let baseSvg;
@@ -205,6 +222,11 @@
   let touchTap = null;
   let pendingMapClickRevision = null;
   let geometryBoundsCache = new WeakMap();
+  const pendingCountryLabelAnchors = new Set();
+  const countryLabelAnchorVersions = new Map();
+  let countryLabelAnchorWorker = null;
+  let countryLabelAnchorTimer = 0;
+  let countryLabelAnchorRequestId = 0;
 
   const globeProjection = d3.geo.orthographic().clipAngle(90).precision(isMobile() ? 0.9 : 0.35);
   const flatProjection = d3.geo.equirectangular().precision(isMobile() ? 0.7 : 0.25);
@@ -319,10 +341,13 @@
       precision highp float;
       precision highp int;
       in float vDepth;
+      flat in uint vCountry;
+      uniform sampler2D uPalette;
       uniform int uMode;
       out vec4 outColor;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
+        if (texelFetch(uPalette, ivec2(int(vCountry), 0), 0).a <= 0.0) discard;
         outColor = vec4(0.196, 0.235, 0.275, 0.92);
       }`;
     const pickFragmentSourceWebGl2 = `#version 300 es
@@ -330,10 +355,12 @@
       precision highp int;
       in float vDepth;
       flat in uint vCountry;
+      uniform sampler2D uPalette;
       uniform int uMode;
       out vec4 outColor;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
+        if (texelFetch(uPalette, ivec2(int(vCountry), 0), 0).a <= 0.0) discard;
         uint id = vCountry + 1u;
         outColor = vec4(float(id & 255u), float((id >> 8u) & 255u), float((id >> 16u) & 255u), 255.0) / 255.0;
       }`;
@@ -388,9 +415,14 @@
       precision highp float;
       precision mediump int;
       varying float vDepth;
+      varying float vCountry;
+      uniform sampler2D uPalette;
+      uniform float uPaletteWidth;
       uniform int uMode;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
+        float index = floor(vCountry + 0.5);
+        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5)).a <= 0.0) discard;
         gl_FragColor = vec4(0.196, 0.235, 0.275, 0.92);
       }`;
     const pickFragmentSourceWebGl1 = `
@@ -398,9 +430,13 @@
       precision mediump int;
       varying float vDepth;
       varying float vCountry;
+      uniform sampler2D uPalette;
+      uniform float uPaletteWidth;
       uniform int uMode;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
+        float index = floor(vCountry + 0.5);
+        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5)).a <= 0.0) discard;
         float id = floor(vCountry + 1.5);
         float r = mod(id, 256.0);
         float g = mod(floor(id / 256.0), 256.0);
@@ -621,7 +657,9 @@
       if (!(buffer instanceof ArrayBuffer)) throw new Error('외부 GPU 메시가 준비되지 않았습니다.');
       window.ATLASWRIGHT_GPU_MESH_BUFFER = null;
       const header = new Uint32Array(buffer, 0, 8);
-      if (header[0] !== 0x434d4731 || header[1] !== 1) throw new Error('외부 GPU 메시 형식이 올바르지 않습니다.');
+      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471 || header[7] !== 2) {
+        throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
+      }
       const countryCount = header[2];
       const vertexCount = header[3];
       const triangleIndexCount = header[4];
@@ -706,7 +744,7 @@
         pixels[index * 4] = color[0];
         pixels[index * 4 + 1] = color[1];
         pixels[index * 4 + 2] = color[2];
-        pixels[index * 4 + 3] = feature && state.layerVisibility.countries ? 189 : 0;
+        pixels[index * 4 + 3] = feature && isCountryVisibleById(meshCountryIds[index]) ? 189 : 0;
       }
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, paletteTexture);
@@ -837,7 +875,7 @@
 
     function drawProgram(program, vao, indexBuffer, indexCount, primitive) {
       gl.useProgram(program);
-      if (program === fillProgram) {
+      if (program === fillProgram || program === lineProgram || program === pickProgram) {
         gl.uniform1i(gl.getUniformLocation(program, 'uPalette'), 0);
         const paletteWidthLocation = gl.getUniformLocation(program, 'uPaletteWidth');
         if (paletteWidthLocation) gl.uniform1f(paletteWidthLocation, Math.max(1, meshCountryIds.length));
@@ -892,6 +930,7 @@
       ctx2d.lineJoin = 'round';
       ctx2d.lineWidth = 0.72;
       for (const feature of state.countriesData?.features || []) {
+        if (!isLayerItemVisible('countries', feature.properties?.editor_id || '')) continue;
         ctx2d.beginPath();
         canvasPath(feature);
         ctx2d.globalAlpha = 0.74;
@@ -919,6 +958,7 @@
         view: deepClone(state.view),
         revision: Number(revision || 0),
         visible: !!state.layerVisibility.countries,
+        hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
       };
     }
@@ -1181,7 +1221,9 @@
       return coord[0] >= b[0] && coord[0] <= b[2] && coord[1] >= b[1] && coord[1] <= b[3];
     });
     for (let i = candidates.length - 1; i >= 0; i -= 1) {
-      if (pointInCountryFeature(coord, candidates[i].feature)) return candidates[i].feature;
+      const feature = candidates[i].feature;
+      if (!isLayerItemVisible('countries', feature.properties?.editor_id || '')) continue;
+      if (pointInCountryFeature(coord, feature)) return feature;
     }
     return null;
   }
@@ -1189,7 +1231,7 @@
   function countryAtScreenPoint(screenPoint, coord) {
     const gpuId = gpuMapRenderer.pick(screenPoint);
     const gpuFeature = gpuId ? countryFeatureById(gpuId) : null;
-    if (gpuFeature && pointInCountryFeature(coord, gpuFeature)) return gpuFeature;
+    if (gpuFeature && isLayerItemVisible('countries', gpuId) && pointInCountryFeature(coord, gpuFeature)) return gpuFeature;
     return cpuCountryAtCoordinate(coord);
   }
 
@@ -1361,7 +1403,150 @@
       state.countryIndex.set(id, index);
     });
     rebuildSpatialIndex(out.features);
+    markLayerTreeDirty();
     return out;
+  }
+
+  function validLabelAnchor(value) {
+    return Array.isArray(value) && value.length >= 2 && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]));
+  }
+
+  function applyPristineLabelAnchors(collection, onlyIds = null) {
+    const filter = onlyIds ? new Set([...onlyIds].map(String)) : null;
+    for (const feature of collection?.features || []) {
+      const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+      if (filter && !filter.has(id)) continue;
+      const anchor = PRISTINE_LABEL_ANCHORS[id];
+      if (!validLabelAnchor(anchor)) continue;
+      feature.properties ||= {};
+      feature.properties.editor_label_anchor = [Number(anchor[0]), Number(anchor[1])];
+      pendingCountryLabelAnchors.delete(id);
+    }
+  }
+
+  function largestCountryComponentFeature(feature) {
+    const geometry = feature?.geometry;
+    if (!geometry) return null;
+    if (geometry.type === 'Polygon') return { type: 'Feature', properties: feature.properties || {}, geometry: deepClone(geometry) };
+    if (geometry.type !== 'MultiPolygon') return null;
+    let bestCoordinates = null;
+    let bestArea = -Infinity;
+    for (const coordinates of geometry.coordinates || []) {
+      let area = 0;
+      try { area = d3.geo.area({ type: 'Polygon', coordinates }); } catch (_) {}
+      if (area > bestArea) { bestArea = area; bestCoordinates = coordinates; }
+    }
+    return bestCoordinates
+      ? { type: 'Feature', properties: feature.properties || {}, geometry: { type: 'Polygon', coordinates: deepClone(bestCoordinates) } }
+      : null;
+  }
+
+  function fallbackCountryLabelAnchor(feature) {
+    const primary = largestCountryComponentFeature(feature) || feature;
+    try {
+      const centroid = d3.geo.centroid(primary);
+      if (validLabelAnchor(centroid)) return centroid;
+    } catch (_) {}
+    const ring = primary?.geometry?.coordinates?.[0] || [];
+    return ringRepresentativePoint(ring);
+  }
+
+  function ensureCountryLabelAnchorWorker() {
+    if (countryLabelAnchorWorker) return countryLabelAnchorWorker;
+    const worker = new Worker(new URL('workers/label-anchor-worker.js', ATLASWRIGHT_ASSET_BASE_URL), {
+      name: 'atlaswright-label-anchors',
+    });
+    worker.onmessage = event => {
+      const message = event.data || {};
+      if (message.type === 'error') {
+        console.warn('Country label anchor worker failed', message.message);
+        for (const id of [...pendingCountryLabelAnchors]) {
+          const feature = countryFeatureById(id);
+          if (feature) feature.properties.editor_label_anchor = fallbackCountryLabelAnchor(feature);
+          pendingCountryLabelAnchors.delete(id);
+        }
+        markLayerTreeDirty();
+        scheduleRender();
+        return;
+      }
+      if (message.type !== 'anchors') return;
+      for (const result of message.results || []) {
+        const id = String(result.id || '');
+        if (countryLabelAnchorVersions.get(id) !== Number(result.version || 0)) continue;
+        const feature = countryFeatureById(id);
+        if (feature && validLabelAnchor(result.anchor)) feature.properties.editor_label_anchor = [Number(result.anchor[0]), Number(result.anchor[1])];
+        else if (feature) feature.properties.editor_label_anchor = fallbackCountryLabelAnchor(feature);
+        pendingCountryLabelAnchors.delete(id);
+      }
+      markLayerTreeDirty();
+      scheduleRender();
+    };
+    worker.onerror = event => {
+      console.warn('Country label anchor worker error', event.message || event);
+      countryLabelAnchorWorker?.terminate();
+      countryLabelAnchorWorker = null;
+      for (const id of [...pendingCountryLabelAnchors]) {
+        const feature = countryFeatureById(id);
+        if (feature) feature.properties.editor_label_anchor = fallbackCountryLabelAnchor(feature);
+        pendingCountryLabelAnchors.delete(id);
+      }
+      markLayerTreeDirty();
+      scheduleRender();
+    };
+    countryLabelAnchorWorker = worker;
+    return worker;
+  }
+
+  function resetCountryLabelAnchorRuntime() {
+    clearTimeout(countryLabelAnchorTimer);
+    countryLabelAnchorTimer = 0;
+    countryLabelAnchorWorker?.terminate();
+    countryLabelAnchorWorker = null;
+    pendingCountryLabelAnchors.clear();
+    countryLabelAnchorVersions.clear();
+    countryLabelAnchorRequestId += 1;
+  }
+
+  function flushCountryLabelAnchorQueue() {
+    countryLabelAnchorTimer = 0;
+    const items = [];
+    for (const id of pendingCountryLabelAnchors) {
+      const feature = countryFeatureById(id);
+      if (!feature?.geometry) continue;
+      items.push({
+        id,
+        version: countryLabelAnchorVersions.get(id) || 0,
+        geometry: deepClone(feature.geometry),
+      });
+    }
+    if (!items.length) return;
+    try {
+      ensureCountryLabelAnchorWorker().postMessage({ requestId: ++countryLabelAnchorRequestId, items });
+    } catch (error) {
+      console.warn('Country label anchor request failed', error);
+      countryLabelAnchorWorker = null;
+      for (const item of items) {
+        const feature = countryFeatureById(item.id);
+        if (feature) feature.properties.editor_label_anchor = fallbackCountryLabelAnchor(feature);
+        pendingCountryLabelAnchors.delete(item.id);
+      }
+    }
+  }
+
+  function scheduleCountryLabelAnchors(ids = null, delay = 30) {
+    const requested = ids ? new Set([...ids].map(String)) : null;
+    for (const feature of state.countriesData?.features || []) {
+      const id = String(feature.properties?.editor_id || '');
+      if (requested && !requested.has(id)) continue;
+      if (!requested && validLabelAnchor(feature.properties?.editor_label_anchor)) continue;
+      delete feature.properties.editor_label_anchor;
+      countryLabelAnchorVersions.set(id, (countryLabelAnchorVersions.get(id) || 0) + 1);
+      pendingCountryLabelAnchors.add(id);
+    }
+    if (!pendingCountryLabelAnchors.size) return;
+    markLayerTreeDirty();
+    clearTimeout(countryLabelAnchorTimer);
+    countryLabelAnchorTimer = setTimeout(flushCountryLabelAnchorQueue, delay);
   }
 
   function normalizeCountries(raw) {
@@ -1811,6 +1996,7 @@
       try { feature.properties.editor_centroid = d3.geo.centroid(feature); }
       catch (_) { feature.properties.editor_centroid = [0, 0]; }
     }
+    scheduleCountryLabelAnchors(filter, 20);
   }
 
   function ensureClosedRing(rawRing) {
@@ -2555,12 +2741,171 @@
     return feature.properties?.editor_name || feature.properties?.editor_original_name || feature.properties?.name || '국가';
   }
 
+  const LAYER_GROUP_KEYS = ['countries', 'drawings', 'labels', 'countryLabels'];
+  const layerGroupVisibilityKey = group => group === 'countryLabels' ? 'basemapLabels' : group;
+  const layerGroupNames = { countries: '국가', drawings: '보조 데이터', labels: '도시·지명', countryLabels: '국가명 라벨' };
+  const layerGroupTargetIds = {
+    countries: ['countriesLayerChildren', 'countriesLayerCount'],
+    drawings: ['drawingsLayerChildren', 'drawingsLayerCount'],
+    labels: ['labelsLayerChildren', 'labelsLayerCount'],
+    countryLabels: ['countryLabelsLayerChildren', 'countryLabelsLayerCount'],
+  };
+  const layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
+  let renderedLayerTreeRevision = -1;
+
+  function normalizeLayerItemState(value) {
+    const output = {};
+    for (const group of LAYER_GROUP_KEYS) {
+      const source = value?.[group];
+      output[group] = source && typeof source === 'object' && !Array.isArray(source) ? { ...source } : {};
+    }
+    return output;
+  }
+
+  function normalizeLayerFolderState(value) {
+    return Object.fromEntries(LAYER_GROUP_KEYS.map(group => [group, !!value?.[group]]));
+  }
+
+  function markLayerTreeDirty() {
+    state.layerTreeRevision += 1;
+  }
+
+  function isLayerItemVisible(group, id) {
+    return state.itemVisibility?.[group]?.[String(id)] !== false;
+  }
+
+  function isCountryVisibleById(id) {
+    return !!state.layerVisibility.countries && isLayerItemVisible('countries', id);
+  }
+
+  function setLayerItemVisibility(group, id, visible) {
+    if (!LAYER_GROUP_KEYS.includes(group)) return;
+    const key = String(id);
+    state.itemVisibility[group] ||= {};
+    if (visible) delete state.itemVisibility[group][key];
+    else state.itemVisibility[group][key] = false;
+    markLayerTreeDirty();
+    renderAll();
+    queueAutosave();
+    setActionStatus(`${layerGroupNames[group]} 항목 ${visible ? '표시' : '숨김'}`, 'success');
+  }
+
+  function layerTreeItems(group) {
+    if (group === 'countries' || group === 'countryLabels') {
+      return (state.countriesData?.features || []).map(feature => {
+        const id = String(feature.properties?.editor_id || '');
+        return {
+          id,
+          name: countryName(feature),
+          color: countryColor(feature),
+          meta: group === 'countries' ? id : (pendingCountryLabelAnchors.has(id) ? '계산 중' : '국명'),
+          selected: state.selected?.type === 'country' && state.selected.id === id,
+        };
+      });
+    }
+    if (group === 'drawings') {
+      return state.drawings.map(feature => ({
+        id: String(feature.id),
+        name: drawingName(feature),
+        color: drawingColor(feature),
+        meta: String(feature.geometry?.type || '').replace('Multi', ''),
+        selected: state.selected?.type === 'drawing' && state.selected.id === String(feature.id),
+      }));
+    }
+    return state.labels.map(label => ({
+      id: String(label.id),
+      name: label.name || '이름 없는 지명',
+      color: '#d6b969',
+      meta: label.kind || '지명',
+      selected: state.selected?.type === 'label' && state.selected.id === String(label.id),
+    }));
+  }
+
+  function pruneLayerItemVisibility() {
+    const valid = {
+      countries: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
+      countryLabels: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
+      drawings: new Set(state.drawings.map(feature => String(feature.id))),
+      labels: new Set(state.labels.map(label => String(label.id))),
+    };
+    for (const group of LAYER_GROUP_KEYS) {
+      state.itemVisibility[group] ||= {};
+      for (const id of Object.keys(state.itemVisibility[group])) if (!valid[group].has(id)) delete state.itemVisibility[group][id];
+    }
+  }
+
+  function renderLayerTree(force = false) {
+    if (!force && renderedLayerTreeRevision === state.layerTreeRevision) return;
+    pruneLayerItemVisibility();
+    const search = String(state.layerSearch || '').trim().toLocaleLowerCase('ko');
+    for (const group of LAYER_GROUP_KEYS) {
+      const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]`);
+      const [childrenId, countId] = layerGroupTargetIds[group];
+      const container = $(childrenId);
+      const count = $(countId);
+      if (!folder || !container || !count) continue;
+      const allItems = layerTreeItems(group).sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
+      const filtered = search ? allItems.filter(item => `${item.name} ${item.id} ${item.meta}`.toLocaleLowerCase('ko').includes(search)) : allItems;
+      const visibleCount = allItems.filter(item => isLayerItemVisible(group, item.id)).length;
+      const expanded = !!search || !!state.layerFolders[group];
+      folder.classList.toggle('is-expanded', expanded);
+      folder.querySelectorAll('[data-layer-folder-toggle]').forEach(button => {
+        button.setAttribute('aria-expanded', String(expanded));
+        button.setAttribute('aria-label', `${layerGroupNames[group]} 폴더 ${expanded ? '접기' : '펼치기'}`);
+      });
+      count.textContent = visibleCount === allItems.length ? String(allItems.length) : `${visibleCount}/${allItems.length}`;
+      container.hidden = !expanded;
+      container.replaceChildren();
+      if (!expanded) continue;
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.className = 'layer-empty';
+        empty.textContent = search ? '검색 결과 없음' : '항목 없음';
+        container.appendChild(empty);
+        continue;
+      }
+      const fragment = document.createDocumentFragment();
+      for (const item of filtered) {
+        const row = document.createElement('div');
+        row.className = `layer-child${item.selected ? ' is-selected' : ''}`;
+        row.dataset.layerGroup = group;
+        row.dataset.itemId = item.id;
+        const visibility = document.createElement('input');
+        visibility.type = 'checkbox';
+        visibility.checked = isLayerItemVisible(group, item.id);
+        visibility.dataset.layerItemVisibility = group;
+        visibility.dataset.itemId = item.id;
+        visibility.setAttribute('aria-label', `${item.name} 표시`);
+        const swatch = document.createElement('span');
+        swatch.className = `layer-child-swatch ${group === 'labels' || group === 'countryLabels' ? 'label' : 'polygon'}`;
+        if (group === 'countryLabels') swatch.textContent = 'A';
+        else swatch.style.setProperty('--layer-item-color', item.color || '#63758a');
+        const name = document.createElement('button');
+        name.type = 'button';
+        name.className = 'layer-child-name';
+        name.dataset.layerItemSelect = group;
+        name.dataset.itemId = item.id;
+        name.textContent = item.name;
+        name.title = `${item.name} 선택하고 이동`;
+        const meta = document.createElement('span');
+        meta.className = 'layer-child-meta';
+        meta.textContent = item.meta;
+        row.append(visibility, swatch, name, meta);
+        fragment.appendChild(row);
+      }
+      container.appendChild(fragment);
+    }
+    renderedLayerTreeRevision = state.layerTreeRevision;
+  }
+
   function currentMapZoom() {
     return state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
   }
 
   function shouldShowCountryLabel(feature) {
     if (!state.layerVisibility.basemapLabels) return false;
+    const id = String(feature.properties?.editor_id || '');
+    if (!isLayerItemVisible('countryLabels', id) || pendingCountryLabelAnchors.has(id)) return false;
     const pop = Number(feature.properties?.pop_est || 0);
     const z = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
     let threshold = isMobile() ? 120_000_000 : 30_000_000;
@@ -2577,6 +2922,7 @@
     const highlighted = state.layerVisibility.countries && state.countriesData
       ? state.countriesData.features.filter(feature => {
           const id = String(feature.properties?.editor_id || '');
+          if (!isLayerItemVisible('countries', id)) return false;
           return (state.selected?.type === 'country' && state.selected.id === id) ||
             (state.tool === 'country-coast' && state.coastEditCountryId === id) ||
             (state.tool === 'annex-territory' && (state.annexTargetCountryId === id || state.annexDonorCountryId === id)) ||
@@ -2601,12 +2947,12 @@
     const features = state.countriesData?.features || [];
     const candidates = features
       .filter(f => {
-        const c = f.properties?.editor_centroid;
+        const c = f.properties?.editor_label_anchor;
         return shouldShowCountryLabel(f) && isCoordVisible(c);
       })
       .map(f => ({
         feature: f,
-        point: activeProjection()(f.properties.editor_centroid),
+        point: activeProjection()(f.properties.editor_label_anchor),
         population: Number(f.properties?.pop_est || 0),
         selected: state.selected?.type === 'country' && state.selected.id === f.properties?.editor_id,
       }))
@@ -2669,7 +3015,7 @@
       .text(countryName)
       .classed('major', d => Number(d.properties?.pop_est || 0) >= 50_000_000)
       .attr('transform', d => {
-        const p = activeProjection()(d.properties.editor_centroid);
+        const p = activeProjection()(d.properties.editor_label_anchor);
         return p ? `translate(${p[0]},${p[1]})` : 'translate(-9999,-9999)';
       });
 
@@ -2677,7 +3023,9 @@
   }
 
   function renderDrawings() {
-    const data = state.layerVisibility.drawings ? state.drawings : [];
+    const data = state.layerVisibility.drawings
+      ? state.drawings.filter(feature => isLayerItemVisible('drawings', feature.id))
+      : [];
     const selection = drawingLayer.selectAll('path.drawing-shape')
       .data(data, d => String(d.id));
 
@@ -2702,7 +3050,7 @@
 
   function renderUserLabels() {
     const data = state.layerVisibility.labels
-      ? state.labels.filter(l => isCoordVisible(l.coordinates))
+      ? state.labels.filter(l => isLayerItemVisible('labels', l.id) && isCoordVisible(l.coordinates))
       : [];
 
     const selection = labelLayer.selectAll('g.user-label')
@@ -2973,6 +3321,7 @@
     renderUserLabels();
     renderVertices();
     renderDraft();
+    renderLayerTree();
     window.__ATLASWRIGHT_VIEW_REVISION__ = revision;
   }
 
@@ -4223,6 +4572,7 @@
     renderFlag(override.flagDataUrl || p.flagDataUrl || null);
     $('selectionStatus').textContent = `국가 · ${$('propertyTitle').textContent}`;
     syncCountryActionButtons();
+    markLayerTreeDirty();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
     if (!refreshOnly) setActionStatus(`국가 선택 · ${$('propertyTitle').textContent}`, 'success');
@@ -4242,6 +4592,7 @@
     $('drawingCategoryInput').value = meta.category || 'custom';
     $('drawingNotesInput').value = meta.notes || '';
     $('selectionStatus').textContent = `영역 · ${meta.name || String(id).slice(0, 8)}`;
+    markLayerTreeDirty();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
     if (!refreshOnly) setActionStatus('영역 선택됨', 'success');
@@ -4258,6 +4609,7 @@
     $('labelKindInput').value = label.kind;
     $('labelNotesInput').value = label.notes || '';
     $('selectionStatus').textContent = `지명 · ${label.name}`;
+    markLayerTreeDirty();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
     if (!refreshOnly) setActionStatus(`지명 선택 · ${label.name}`, 'success');
@@ -4270,6 +4622,7 @@
     $('selectionStatus').textContent = '선택 없음';
     showPropertyForm(null);
     syncCountryActionButtons();
+    markLayerTreeDirty();
     renderAll();
     if (announce) setActionStatus('선택 해제', 'success');
   }
@@ -4285,6 +4638,7 @@
       f.properties.editor_name = state.countryOverrides[id].name || f.properties.editor_original_name;
       f.properties.editor_color = state.countryOverrides[id].color || DEFAULT_COLOR;
     }
+    markLayerTreeDirty();
     selectCountry(id, true);
     queueAutosave();
     setActionStatus('국가 정보 변경됨', 'success');
@@ -4297,6 +4651,7 @@
     recordHistory();
     f.properties = f.properties || {};
     f.properties[field] = value;
+    markLayerTreeDirty();
     selectDrawing(state.selected.id, true);
     queueAutosave();
     setActionStatus('영역 정보 변경됨', 'success');
@@ -4308,6 +4663,7 @@
     if (!label) return;
     recordHistory();
     label[field] = value;
+    markLayerTreeDirty();
     selectLabel(label.id, true);
     queueAutosave();
     setActionStatus('지명 정보 변경됨', 'success');
@@ -4374,6 +4730,8 @@
     });
     for (const [id, feature] of changed) if (!seen.has(id)) base.features.push(deepClone(feature));
     state.countriesData = reindexCountries(base, true);
+    const unchangedIds = (state.countriesData.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(id => !changed.has(id));
+    if (!state.sessionBaseCountriesJson) applyPristineLabelAnchors(state.countriesData, unchangedIds);
     state.historyDirtyCountryIds = new Set(snapshot.historyDirtyCountryIds || [...changed.keys(), ...removed]);
   }
 
@@ -4405,6 +4763,9 @@
     state.labels = deepClone(snapshot.labels || []);
     state.drawings = deepClone(snapshot.drawings || []);
     restoreCountriesFromSnapshot(snapshot);
+    pruneLayerItemVisibility();
+    scheduleCountryLabelAnchors(null, 10);
+    markLayerTreeDirty();
     state.selected = null;
     state.coastEditCountryId = null;
     state.mergeSourceCountryId = null;
@@ -4465,7 +4826,7 @@
   function buildAtlasState() {
     return {
       format: 'atlaswright-project-state',
-      version: '0.10.0',
+      version: '0.10.2',
       savedAt: new Date().toISOString(),
       countriesData: state.countriesData,
       countryOverrides: state.countryOverrides,
@@ -4473,6 +4834,8 @@
       drawings: state.drawings,
       projection: state.projection,
       layerVisibility: state.layerVisibility,
+      itemVisibility: state.itemVisibility,
+      layerFolders: state.layerFolders,
       countriesLocked: state.countriesLocked,
       view: state.view,
       baseDataset: BASE_DATASET,
@@ -4484,7 +4847,7 @@
     if (state.sessionBaseCountriesJson) return { ...buildAtlasState(), format: 'atlaswright-autosave-full' };
     return {
       format: 'atlaswright-autosave-delta',
-      version: '0.10.0',
+      version: '0.10.2',
       savedAt: new Date().toISOString(),
       countryDelta: buildCountryDelta(),
       countryOverrides: state.countryOverrides,
@@ -4492,6 +4855,8 @@
       drawings: state.drawings,
       projection: state.projection,
       layerVisibility: state.layerVisibility,
+      itemVisibility: state.itemVisibility,
+      layerFolders: state.layerFolders,
       countriesLocked: state.countriesLocked,
       view: state.view,
       baseDataset: BASE_DATASET,
@@ -4515,7 +4880,10 @@
       return deepClone(changed.get(id));
     });
     for (const [id, feature] of changed) if (!seen.has(id) && !removed.has(id)) base.features.push(deepClone(feature));
-    return reindexCountries(base, true);
+    const result = reindexCountries(base, true);
+    const unchangedIds = (result.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(id => !changed.has(id));
+    applyPristineLabelAnchors(result, unchangedIds);
+    return result;
   }
 
   let autosaveDbPromise = null;
@@ -4657,17 +5025,24 @@
 
   function applyAtlasState(project, manual = false) {
     if (!project || typeof project !== 'object') throw new Error('프로젝트 형식이 올바르지 않습니다.');
+    resetCountryLabelAnchorRuntime();
     state.countryOverrides = deepClone(project.countryOverrides || {});
     state.labels = deepClone(project.labels || []);
     state.drawings = deepClone(project.drawings || []);
     state.projection = project.projection || project.view?.projection || 'globe';
     state.layerVisibility = { ...state.layerVisibility, ...(project.layerVisibility || {}) };
+    state.itemVisibility = normalizeLayerItemState(project.itemVisibility);
+    state.layerFolders = normalizeLayerFolderState(project.layerFolders);
+    state.layerSearch = '';
     state.countriesLocked = !!project.countriesLocked;
     state.sourceInfo = deepClone(project.sourceInfo || null);
     state.view = { ...state.view, ...(project.view || {}) };
     state.countriesData = project.countriesData
       ? reindexCountries(deepClone(project.countriesData), true)
       : freshPristineCountries(true);
+    pruneLayerItemVisibility();
+    scheduleCountryLabelAnchors(null, 10);
+    markLayerTreeDirty();
     configureDatasetSession(project);
     const externalGeometry = !!project.countriesData && project.baseDataset !== BASE_DATASET;
     state.history = [];
@@ -4683,6 +5058,8 @@
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
     $('countriesLocked').checked = state.countriesLocked;
+    if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
+    renderLayerTree(true);
     showPropertyForm(null);
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     scheduleGpuMeshRebuild(0);
@@ -4723,6 +5100,7 @@
 
     // 자동저장 타이머가 직전 편집 geometry를 다시 저장하는 것을 먼저 차단한다.
     await deleteAutosavedProject();
+    resetCountryLabelAnchorRuntime();
 
     state.countryOverrides = {};
     state.sourceInfo = null;
@@ -4730,6 +5108,9 @@
     state.drawings = [];
     state.projection = 'globe';
     state.layerVisibility = { countries: true, drawings: true, labels: true, basemapLabels: true };
+    state.itemVisibility = normalizeLayerItemState(null);
+    state.layerFolders = normalizeLayerFolderState(null);
+    state.layerSearch = '';
     state.countriesLocked = false;
     state.tool = 'select';
     state.labelPlacementMode = false;
@@ -4745,6 +5126,8 @@
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     state.countryIndex.clear();
     state.countriesData = freshPristineCountries(false);
+    pruneLayerItemVisibility();
+    markLayerTreeDirty();
     configureDatasetSession(null);
     scheduleGpuMeshRebuild(0);
     const restoredGeometrySignature = JSON.stringify(
@@ -4764,6 +5147,8 @@
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
     $('countriesLocked').checked = false;
+    if ($('layerSearchInput')) $('layerSearchInput').value = '';
+    renderLayerTree(true);
     $('globeBtn').classList.add('active');
     $('flatBtn').classList.remove('active');
     showPropertyForm(null);
@@ -5065,6 +5450,8 @@
       state.countryOverrides[id] = next;
     }
     state.countriesData = reindexCountries(deepClone(plan.countriesData), true);
+    pruneLayerItemVisibility();
+    scheduleCountryLabelAnchors(null, 10);
     markCountryGeometriesChanged([...beforeIds, ...importedIds, ...state.countriesData.features.map(feature => String(feature.properties?.editor_id || ''))]);
     commitHistorySnapshot(before);
     clearSelection(false);
@@ -5144,6 +5531,7 @@
     if (!supported.length) throw new Error('지원되는 점·선·면 지도 객체가 없습니다.');
     recordHistory();
     state.drawings.push(...supported);
+    markLayerTreeDirty();
     renderAll();
     queueAutosave();
     showToast(`GeoJSON ${supported.length}개 객체를 가져왔습니다.`);
@@ -5220,6 +5608,43 @@
     renderAll();
     queueAutosave();
     if (announce) setActionStatus(`${countryName(feature)} 중심으로 확대`, 'success');
+  }
+
+  function focusCoordinate(coord, zoom = null) {
+    if (!validLabelAnchor(coord)) return;
+    if (state.projection === 'globe') {
+      state.view.globeRotation = [-Number(coord[0]), -Number(coord[1]), 0];
+      state.view.globeZoom = zoom || Math.max(4.5, state.view.globeZoom);
+    } else {
+      state.view.flatCenter = [Number(coord[0]), Number(coord[1])];
+      state.view.flatZoom = zoom || Math.max(6, state.view.flatZoom);
+    }
+    renderAll();
+    queueViewAutosave();
+  }
+
+  function selectLayerTreeItem(group, id) {
+    const key = String(id);
+    if (group === 'countries' || group === 'countryLabels') {
+      const feature = countryFeatureById(key);
+      if (!feature) return;
+      if (!state.countriesLocked) selectCountry(key);
+      const primary = largestCountryComponentFeature(feature) || feature;
+      focusCountry(primary, { maxZoom: isMobile() ? 10 : 9 });
+      if (state.countriesLocked) setActionStatus('국가 레이어가 잠겨 있어 위치만 이동했습니다.', 'error', 2600);
+    } else if (group === 'drawings') {
+      const feature = state.drawings.find(item => String(item.id) === key);
+      if (!feature) return;
+      selectDrawing(key);
+      focusCountry(feature, { maxZoom: isMobile() ? 12 : 10 });
+    } else if (group === 'labels') {
+      const label = state.labels.find(item => String(item.id) === key);
+      if (!label) return;
+      selectLabel(key);
+      focusCoordinate(label.coordinates);
+    }
+    markLayerTreeDirty();
+    if (isMobile()) closeMobileSheets();
   }
 
   function resetView() {
@@ -5311,6 +5736,30 @@
     $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
     $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
     $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
+    $('layerSearchInput')?.addEventListener('input', event => {
+      state.layerSearch = event.target.value || '';
+      markLayerTreeDirty();
+      renderLayerTree();
+    });
+    $('layerSection')?.addEventListener('click', event => {
+      const folderButton = event.target.closest('[data-layer-folder-toggle]');
+      if (folderButton) {
+        const group = folderButton.dataset.layerFolderToggle;
+        if (!LAYER_GROUP_KEYS.includes(group)) return;
+        state.layerFolders[group] = !state.layerFolders[group];
+        markLayerTreeDirty();
+        renderLayerTree();
+        queueAutosave();
+        return;
+      }
+      const itemButton = event.target.closest('[data-layer-item-select]');
+      if (itemButton) selectLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId);
+    });
+    $('layerSection')?.addEventListener('change', event => {
+      const checkbox = event.target.closest('[data-layer-item-visibility]');
+      if (!checkbox) return;
+      setLayerItemVisibility(checkbox.dataset.layerItemVisibility, checkbox.dataset.itemId, checkbox.checked);
+    });
     $('countriesLocked').addEventListener('change', e => {
       state.countriesLocked = e.target.checked;
       renderCountries();
@@ -5523,6 +5972,8 @@
       state.drawings = deepClone(restored.drawings || []);
       state.projection = restored.projection || 'globe';
       state.layerVisibility = { ...state.layerVisibility, ...(restored.layerVisibility || {}) };
+      state.itemVisibility = normalizeLayerItemState(restored.itemVisibility);
+      state.layerFolders = normalizeLayerFolderState(restored.layerFolders);
       state.countriesLocked = !!restored.countriesLocked;
       state.view = { ...state.view, ...(restored.view || {}) };
     }
@@ -5533,6 +5984,9 @@
       : restored?.countriesData
         ? reindexCountries(deepClone(restored.countriesData), true)
         : freshPristineCountries(true);
+    pruneLayerItemVisibility();
+    scheduleCountryLabelAnchors(null, 10);
+    markLayerTreeDirty();
     configureDatasetSession(restored);
     const externalGeometry = !!restored?.countriesData && restored.baseDataset !== BASE_DATASET;
     $('countryStatus').textContent = `${restored ? (externalGeometry ? '외부 형상' : '프로젝트') : '1:10m 내장'} ${state.countriesData.features.length}개`;
@@ -5552,6 +6006,8 @@
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
     $('countriesLocked').checked = state.countriesLocked;
+    if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
+    renderLayerTree(true);
     $('globeBtn').classList.toggle('active', state.projection === 'globe');
     $('flatBtn').classList.toggle('active', state.projection !== 'globe');
 

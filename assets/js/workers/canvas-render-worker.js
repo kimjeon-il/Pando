@@ -47,10 +47,12 @@ function canvasFallbackWorkerMain() {
             .precision(0.25);
         }
         const geoPath = self.d3.geo.path().projection(projection).context(context);
+        const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
         context.lineJoin = 'round';
         context.lineWidth = 0.72;
         for (let index = 0; index < features.length; index += 1) {
           const feature = features[index];
+          if (hiddenCountryIds.has(countryId(feature, index))) continue;
           context.beginPath();
           geoPath(feature);
           context.globalAlpha = 0.74;
