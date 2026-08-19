@@ -82,20 +82,39 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
 .segment.active { background: #735f35; color: #fff3cf; box-shadow: inset 0 0 0 1px #9b8048, 0 1px 7px rgba(0,0,0,.28); font-weight: 700; }
 .segment.active::before { content: "✓ "; color: #ffe39b; }
 
+.layer-search { display: grid; grid-template-columns: 18px 1fr; align-items: center; gap: 4px; margin: 0 0 6px; padding: 0 7px; min-height: 31px; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); background: rgba(8,12,17,.28); }
+.layer-search:focus-within { border-color: #788595; box-shadow: 0 0 0 1px rgba(120,133,149,.18); }
+.layer-search input { min-width: 0; border: 0; outline: 0; padding: 6px 0; color: var(--text); background: transparent; font: inherit; font-size: 10px; }
+.layer-search input::placeholder { color: #77818c; }
 .layer-list { display: flex; flex-direction: column; gap: 4px; }
-.layer-item { display: grid; grid-template-columns: 18px 18px 1fr auto; align-items: center; min-height: 34px; padding: 4px 6px; border-radius: 6px; cursor: pointer; }
-.layer-item:hover { background: var(--panel-2); }
-.layer-item:has(> input:first-child:checked) { background: rgba(69,79,91,.24); }
-.layer-item:has(> input:first-child:not(:checked)) { opacity: .58; }
-.layer-item:has(.lock-toggle:checked) .layer-name::after { content: "  잠금"; color: #dcb76e; font-size: 8px; }
-.layer-item input { accent-color: var(--accent); }
-.layer-name { font-size: 11px; }
+.layer-folder { border: 1px solid transparent; border-radius: 7px; overflow: clip; background: rgba(69,79,91,.12); }
+.layer-folder.is-expanded { border-color: rgba(87,99,112,.45); background: rgba(29,36,45,.62); }
+.layer-folder-row { display: grid; grid-template-columns: 18px 18px 18px minmax(0,1fr) auto 18px; align-items: center; min-height: 34px; padding: 4px 6px; }
+.layer-folder-row:hover { background: var(--panel-2); }
+.layer-folder-row:has(> input:nth-of-type(1):not(:checked)) { opacity: .62; }
+.layer-folder-row:has(.lock-toggle:checked) .layer-folder-name::after { content: "  잠금"; color: #dcb76e; font-size: 8px; }
+.layer-folder-row input { accent-color: var(--accent); }
+.layer-folder-toggle, .layer-folder-name, .layer-child-name { appearance: none; border: 0; padding: 0; color: inherit; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.layer-folder-toggle { width: 18px; height: 24px; color: #aeb8c2; font-size: 20px; line-height: 20px; text-align: center; transition: transform .14s ease; }
+.layer-folder.is-expanded .layer-folder-toggle { transform: rotate(90deg); }
+.layer-folder-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.layer-children { max-height: 235px; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid rgba(87,99,112,.35); padding: 3px; scrollbar-width: thin; }
+.layer-child { display: grid; grid-template-columns: 18px 14px minmax(0,1fr) auto; align-items: center; min-height: 29px; gap: 4px; padding: 2px 5px 2px 7px; border-radius: 5px; color: #c7d0da; }
+.layer-child:hover, .layer-child.is-selected { background: rgba(89,102,116,.28); }
+.layer-child:has(> input:not(:checked)) { opacity: .5; }
+.layer-child input { margin: 0; accent-color: var(--accent); }
+.layer-child-swatch { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(236,241,246,.45); background: var(--layer-item-color, #63758a); }
+.layer-child-swatch.polygon { border-radius: 2px; transform: rotate(10deg); }
+.layer-child-swatch.label { border: 0; border-radius: 0; background: transparent; color: #bbc5cf; font-size: 10px; line-height: 1; }
+.layer-child-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+.layer-child-meta { color: #77828d; font-size: 8px; }
+.layer-empty { padding: 10px 8px; color: var(--muted); font-size: 9px; text-align: center; }
 .layer-icon { width: 13px; height: 13px; display: inline-block; }
 .layer-icon.polygon { border: 1px solid #98a4b2; background: #586476; clip-path: polygon(18% 3%, 90% 18%, 97% 72%, 59% 98%, 7% 73%); }
 .layer-icon.polygon.custom { background: #7762a6; }
 .layer-icon.point { width: 9px; height: 9px; margin-left: 2px; border-radius: 50%; background: #d6b969; box-shadow: 0 0 0 2px #443d2c; }
 .layer-icon.label::before { content: "A"; font-size: 11px; color: #bbc5cf; }
-.layer-badge { color: var(--muted); font-size: 9px; border: 1px solid var(--border); padding: 2px 4px; border-radius: 4px; }
+.layer-badge { color: var(--muted); font-size: 9px; border: 1px solid var(--border); padding: 2px 4px; border-radius: 4px; font-variant-numeric: tabular-nums; }
 .lock-toggle { opacity: .6; }
 
 .hint { font-size: 10px; line-height: 1.55; color: var(--muted); margin: 0 0 11px; }
@@ -283,9 +302,14 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
   .hint { font-size: 12px; line-height: 1.6; }
   .segmented { min-height: 48px; }
   .segment { min-height: 42px; font-size: 13px; }
-  .layer-item { min-height: 48px; grid-template-columns: 24px 22px 1fr auto; padding: 7px 8px; }
-  .layer-item input[type="checkbox"] { width: 19px; height: 19px; }
-  .layer-name { font-size: 13px; }
+  .layer-search { min-height: 42px; margin-bottom: 8px; }
+  .layer-search input { font-size: 13px; }
+  .layer-folder-row { min-height: 48px; grid-template-columns: 24px 22px 22px minmax(0,1fr) auto 22px; padding: 7px 8px; }
+  .layer-folder-row input[type="checkbox"], .layer-child input[type="checkbox"] { width: 19px; height: 19px; }
+  .layer-folder-name { font-size: 13px; }
+  .layer-children { max-height: min(310px, 38vh); }
+  .layer-child { min-height: 42px; grid-template-columns: 24px 18px minmax(0,1fr) auto; padding: 5px 8px 5px 11px; }
+  .layer-child-name { font-size: 12px; }
   .layer-badge { font-size: 10px; padding: 3px 6px; }
   .tool-grid { gap: 8px; }
   .tool-card { min-height: 66px; padding: 10px; font-size: 13px; }
@@ -480,7 +504,7 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
 
   .tool-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .tool-card { min-height: 70px; border-radius: 10px; }
-  .layer-item { border-radius: 9px; }
+  .layer-folder { border-radius: 9px; }
   .segmented { border-radius: 10px; }
   .segment { border-radius: 8px; }
 
@@ -664,7 +688,7 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
 }
 
 
-/* ===== v0.10.0: 무손실 구면 메시와 QGIS 벡터 호환 ===== */
+/* ===== v0.10.2: 매개평면 GPU 메시, QGIS 벡터 호환, 계층형 레이어 ===== */
 .country-shape.coast-editing {
   fill-opacity: .68 !important;
   stroke: #323c46 !important;

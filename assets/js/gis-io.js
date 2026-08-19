@@ -673,6 +673,7 @@
   function exportCountryProperties(feature, overrides, reservedMap) {
     const source = { ...(feature.properties || {}) };
     delete source.editor_centroid;
+    delete source.editor_label_anchor;
     delete source.flagDataUrl;
     const id = String(source.editor_id || feature.id || '');
     const override = overrides?.[id] || {};

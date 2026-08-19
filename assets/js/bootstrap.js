@@ -57,6 +57,7 @@
     if (data.type !== 'ready') return;
     window.ATLASWRIGHT_COUNTRIES = data.countries;
     window.ATLASWRIGHT_GPU_MESH_BUFFER = data.meshBuffer;
+    window.ATLASWRIGHT_LABEL_ANCHORS = data.labelAnchors || {};
     setProgress('지도 편집기 시작 중', 97);
     const app = document.createElement('script');
     app.src = new URL('./app.js', assetBaseUrl).href;

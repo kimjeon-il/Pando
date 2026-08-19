@@ -1,10 +1,12 @@
 'use strict';
 
 const COUNTRY_URL = new URL('../../data/countries-ne-5.1.1.geojson', self.location.href);
-const MESH_URL = new URL('../../data/world-mesh-v0.10.0.bin.gz', self.location.href);
+const MESH_URL = new URL('../../data/world-mesh-v0.10.2.bin.gz', self.location.href);
+const LABEL_ANCHORS_URL = new URL('../../data/country-label-anchors-v0.10.1.json', self.location.href);
 const progress = {
   countries: { loaded: 0, total: 0, done: false },
   mesh: { loaded: 0, total: 0, done: false },
+  labelAnchors: { loaded: 0, total: 0, done: false },
 };
 
 function report(stage, message) {
@@ -12,7 +14,7 @@ function report(stage, message) {
   const knownTotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
   const knownLoaded = items.reduce((sum, item) => sum + Math.min(item.loaded, item.total || item.loaded), 0);
   const completed = items.filter(item => item.done).length;
-  const percent = knownTotal > 0 ? Math.min(96, Math.round(knownLoaded / knownTotal * 92)) : completed * 44;
+  const percent = knownTotal > 0 ? Math.min(96, Math.round(knownLoaded / knownTotal * 92)) : completed * 30;
   self.postMessage({ type: 'progress', stage, message, percent });
 }
 
@@ -69,17 +71,26 @@ async function loadMesh() {
   const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
   const buffer = await new Response(stream).arrayBuffer();
   const header = new Uint32Array(buffer, 0, 8);
-  if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471) {
+  if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471 || header[7] !== 2) {
     throw new Error('GPU 메시 헤더가 올바르지 않습니다.');
   }
   return buffer;
 }
 
+async function loadLabelAnchors() {
+  const buffer = await fetchBytes(LABEL_ANCHORS_URL, 'labelAnchors', '국명 기준점');
+  const data = JSON.parse(new TextDecoder().decode(buffer));
+  if (data?.version !== '0.10.1' || !data.anchors || Object.keys(data.anchors).length !== 258) {
+    throw new Error('국명 기준점 데이터가 올바르지 않습니다.');
+  }
+  return data.anchors;
+}
+
 (async () => {
   try {
     report('start', '고해상도 지도 데이터 요청 중');
-    const [countries, meshBuffer] = await Promise.all([loadCountries(), loadMesh()]);
-    self.postMessage({ type: 'ready', countries, meshBuffer }, [meshBuffer]);
+    const [countries, meshBuffer, labelAnchors] = await Promise.all([loadCountries(), loadMesh(), loadLabelAnchors()]);
+    self.postMessage({ type: 'ready', countries, meshBuffer, labelAnchors }, [meshBuffer]);
   } catch (error) {
     self.postMessage({ type: 'error', message: error?.message || String(error) });
   }

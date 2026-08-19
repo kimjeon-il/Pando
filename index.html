@@ -16,13 +16,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.10.0">
+  <div id="app" data-app-version="0.10.2">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.10.0 · Natural Earth 1:10m · QGIS 벡터 호환</span>
+          <span>v0.10.2 · Natural Earth 1:10m · QGIS 벡터 호환</span>
         </div>
       </div>
 
@@ -60,31 +60,52 @@
             <h2>레이어</h2>
             <span class="muted small">표시 / 잠금</span>
           </div>
+          <label class="layer-search" for="layerSearchInput">
+            <span aria-hidden="true">⌕</span>
+            <input id="layerSearchInput" type="search" placeholder="레이어 항목 검색" autocomplete="off" />
+          </label>
           <div class="layer-list">
-            <label class="layer-item">
-              <input id="countriesVisible" type="checkbox" checked />
-              <span class="layer-icon polygon"></span>
-              <span class="layer-name">국가</span>
-              <input id="countriesLocked" type="checkbox" class="lock-toggle" title="국가 선택 잠금" />
-            </label>
-            <label class="layer-item">
-              <input id="drawingsVisible" type="checkbox" checked />
-              <span class="layer-icon polygon custom"></span>
-              <span class="layer-name">보조 데이터</span>
-              <span class="layer-badge">가져오기</span>
-            </label>
-            <label class="layer-item">
-              <input id="labelsVisible" type="checkbox" checked />
-              <span class="layer-icon point"></span>
-              <span class="layer-name">도시·지명</span>
-              <span class="layer-badge">점</span>
-            </label>
-            <label class="layer-item">
-              <input id="basemapLabelsVisible" type="checkbox" checked />
-              <span class="layer-icon label"></span>
-              <span class="layer-name">국가명 라벨</span>
-              <span class="layer-badge">내장</span>
-            </label>
+            <div class="layer-folder" data-layer-group="countries">
+              <div class="layer-folder-row">
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="countries" aria-expanded="false" aria-label="국가 폴더 펼치기">›</button>
+                <input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" />
+                <span class="layer-icon polygon"></span>
+                <button class="layer-folder-name" type="button" data-layer-folder-toggle="countries">국가</button>
+                <span id="countriesLayerCount" class="layer-badge">0</span>
+                <input id="countriesLocked" type="checkbox" class="lock-toggle" title="국가 선택 잠금" aria-label="국가 레이어 잠금" />
+              </div>
+              <div id="countriesLayerChildren" class="layer-children" role="group" aria-label="국가 항목" hidden></div>
+            </div>
+            <div class="layer-folder" data-layer-group="drawings">
+              <div class="layer-folder-row">
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="drawings" aria-expanded="false" aria-label="보조 데이터 폴더 펼치기">›</button>
+                <input id="drawingsVisible" type="checkbox" checked aria-label="보조 데이터 레이어 표시" />
+                <span class="layer-icon polygon custom"></span>
+                <button class="layer-folder-name" type="button" data-layer-folder-toggle="drawings">보조 데이터</button>
+                <span id="drawingsLayerCount" class="layer-badge">0</span>
+              </div>
+              <div id="drawingsLayerChildren" class="layer-children" role="group" aria-label="보조 데이터 항목" hidden></div>
+            </div>
+            <div class="layer-folder" data-layer-group="labels">
+              <div class="layer-folder-row">
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="labels" aria-expanded="false" aria-label="도시·지명 폴더 펼치기">›</button>
+                <input id="labelsVisible" type="checkbox" checked aria-label="도시·지명 레이어 표시" />
+                <span class="layer-icon point"></span>
+                <button class="layer-folder-name" type="button" data-layer-folder-toggle="labels">도시·지명</button>
+                <span id="labelsLayerCount" class="layer-badge">0</span>
+              </div>
+              <div id="labelsLayerChildren" class="layer-children" role="group" aria-label="도시·지명 항목" hidden></div>
+            </div>
+            <div class="layer-folder" data-layer-group="countryLabels">
+              <div class="layer-folder-row">
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="countryLabels" aria-expanded="false" aria-label="국가명 라벨 폴더 펼치기">›</button>
+                <input id="basemapLabelsVisible" type="checkbox" checked aria-label="국가명 라벨 표시" />
+                <span class="layer-icon label"></span>
+                <button class="layer-folder-name" type="button" data-layer-folder-toggle="countryLabels">국가명 라벨</button>
+                <span id="countryLabelsLayerCount" class="layer-badge">0</span>
+              </div>
+              <div id="countryLabelsLayerChildren" class="layer-children" role="group" aria-label="국가명 라벨 항목" hidden></div>
+            </div>
           </div>
         </section>
 
