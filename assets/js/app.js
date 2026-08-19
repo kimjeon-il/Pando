@@ -1,4 +1,4 @@
-/* AtlasWright v0.10.2
+/* AtlasWright v0.10.3
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -16,9 +16,40 @@
   const AUTOSAVE_RECORD_KEY = 'active-project';
   const AUTOSAVE_VIEW_KEY = 'active-view';
   const BASE_DATASET = 'Natural Earth 5.1.1 · Admin 0 Countries · 1:10m · de facto';
-  const DEFAULT_COLOR = '#63758a';
+  const DARK_DEFAULT_COLOR = '#63758a';
+  const LIGHT_DEFAULT_COLOR = '#cccccc';
   const DEFAULT_DRAWING_COLOR = '#8c68d8';
   const MAX_HISTORY = 30;
+
+  const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  let systemTheme = systemThemeQuery.matches ? 'dark' : 'light';
+  document.documentElement.dataset.systemTheme = systemTheme;
+  window.__ATLASWRIGHT_THEME__ = systemTheme;
+
+  function mapTheme() {
+    return systemTheme === 'light'
+      ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: 1, fillAlphaByte: 255, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1 }
+      : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: 0.74, fillAlphaByte: 189, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92 };
+  }
+
+  function defaultCountryColor() {
+    return mapTheme().defaultLand;
+  }
+
+  function applySystemTheme(matchesDark) {
+    const nextTheme = matchesDark ? 'dark' : 'light';
+    if (nextTheme === systemTheme) return;
+    systemTheme = nextTheme;
+    document.documentElement.dataset.systemTheme = systemTheme;
+    window.__ATLASWRIGHT_THEME__ = systemTheme;
+    if (state?.selected?.type === 'country') {
+      const id = String(state.selected.id);
+      const feature = countryFeatureById(id);
+      const hasExplicitColor = !!(state.countryOverrides[id]?.color || feature?.properties?.editor_color);
+      if (!hasExplicitColor && $('countryColorInput')) $('countryColorInput').value = defaultCountryColor();
+    }
+    if (svg) renderAll();
+  }
 
   const $ = (id) => document.getElementById(id);
   const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
@@ -344,11 +375,12 @@
       flat in uint vCountry;
       uniform sampler2D uPalette;
       uniform int uMode;
+      uniform vec4 uBorderColor;
       out vec4 outColor;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
         if (texelFetch(uPalette, ivec2(int(vCountry), 0), 0).a <= 0.0) discard;
-        outColor = vec4(0.196, 0.235, 0.275, 0.92);
+        outColor = uBorderColor;
       }`;
     const pickFragmentSourceWebGl2 = `#version 300 es
       precision highp float;
@@ -419,11 +451,12 @@
       uniform sampler2D uPalette;
       uniform float uPaletteWidth;
       uniform int uMode;
+      uniform vec4 uBorderColor;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
         float index = floor(vCountry + 0.5);
         if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5)).a <= 0.0) discard;
-        gl_FragColor = vec4(0.196, 0.235, 0.275, 0.92);
+        gl_FragColor = uBorderColor;
       }`;
     const pickFragmentSourceWebGl1 = `
       precision highp float;
@@ -730,7 +763,7 @@
 
     function parseColor(value) {
       const match = /^#([0-9a-f]{6})$/i.exec(String(value || ''));
-      if (!match) return [99, 117, 138];
+      if (!match) return parseColor(defaultCountryColor());
       const n = Number.parseInt(match[1], 16);
       return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
     }
@@ -744,7 +777,7 @@
         pixels[index * 4] = color[0];
         pixels[index * 4 + 1] = color[1];
         pixels[index * 4 + 2] = color[2];
-        pixels[index * 4 + 3] = feature && isCountryVisibleById(meshCountryIds[index]) ? 189 : 0;
+        pixels[index * 4 + 3] = feature && isCountryVisibleById(meshCountryIds[index]) ? mapTheme().fillAlphaByte : 0;
       }
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, paletteTexture);
@@ -882,6 +915,10 @@
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, paletteTexture);
       }
+      if (program === lineProgram) {
+        const theme = mapTheme();
+        gl.uniform4f(gl.getUniformLocation(program, 'uBorderColor'), theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha);
+      }
       const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer);
       if (glVersion === 2) gl.bindVertexArray(vao);
       const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
@@ -927,17 +964,18 @@
       ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!state.layerVisibility.countries) return;
       const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
+      const theme = mapTheme();
       ctx2d.lineJoin = 'round';
       ctx2d.lineWidth = 0.72;
       for (const feature of state.countriesData?.features || []) {
         if (!isLayerItemVisible('countries', feature.properties?.editor_id || '')) continue;
         ctx2d.beginPath();
         canvasPath(feature);
-        ctx2d.globalAlpha = 0.74;
+        ctx2d.globalAlpha = theme.fillAlpha;
         ctx2d.fillStyle = countryColor(feature);
         ctx2d.fill();
-        ctx2d.globalAlpha = 0.92;
-        ctx2d.strokeStyle = '#323c46';
+        ctx2d.globalAlpha = theme.borderAlpha;
+        ctx2d.strokeStyle = theme.border;
         ctx2d.stroke();
       }
       ctx2d.globalAlpha = 1;
@@ -960,6 +998,7 @@
         visible: !!state.layerVisibility.countries,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
+        theme: mapTheme(),
       };
     }
 
@@ -1394,7 +1433,9 @@
       feature.properties.editor_id = id;
       feature.properties.editor_original_name = originalName;
       feature.properties.editor_name = override.name || feature.properties.editor_name || originalName;
-      feature.properties.editor_color = override.color || feature.properties.editor_color || DEFAULT_COLOR;
+      const explicitColor = override.color || feature.properties.editor_color;
+      if (explicitColor) feature.properties.editor_color = explicitColor;
+      else delete feature.properties.editor_color;
       try {
         feature.properties.editor_centroid = d3.geo.centroid(feature);
       } catch (_) {
@@ -2734,7 +2775,7 @@
   }
 
   function countryColor(feature) {
-    return feature.properties?.editor_color || DEFAULT_COLOR;
+    return feature.properties?.editor_color || defaultCountryColor();
   }
 
   function countryName(feature) {
@@ -4565,7 +4606,7 @@
     $('propertyType').textContent = '국가';
     $('countryNameInput').value = override.name || p.editor_name || p.editor_original_name || '';
     $('countryCodeInput').value = id;
-    $('countryColorInput').value = override.color || p.editor_color || DEFAULT_COLOR;
+    $('countryColorInput').value = override.color || p.editor_color || defaultCountryColor();
     $('capitalInput').value = override.capital || p.capital || '';
     $('notesInput').value = override.notes || p.notes || '';
     $('originalNameValue').textContent = p.editor_original_name || p.editor_name || '—';
@@ -4636,7 +4677,9 @@
     if (idx !== undefined) {
       const f = state.countriesData.features[idx];
       f.properties.editor_name = state.countryOverrides[id].name || f.properties.editor_original_name;
-      f.properties.editor_color = state.countryOverrides[id].color || DEFAULT_COLOR;
+      const explicitColor = state.countryOverrides[id].color || f.properties.editor_color;
+      if (explicitColor) f.properties.editor_color = explicitColor;
+      else delete f.properties.editor_color;
     }
     markLayerTreeDirty();
     selectCountry(id, true);
@@ -4826,7 +4869,7 @@
   function buildAtlasState() {
     return {
       format: 'atlaswright-project-state',
-      version: '0.10.2',
+      version: '0.10.3',
       savedAt: new Date().toISOString(),
       countriesData: state.countriesData,
       countryOverrides: state.countryOverrides,
@@ -4847,7 +4890,7 @@
     if (state.sessionBaseCountriesJson) return { ...buildAtlasState(), format: 'atlaswright-autosave-full' };
     return {
       format: 'atlaswright-autosave-delta',
-      version: '0.10.2',
+      version: '0.10.3',
       savedAt: new Date().toISOString(),
       countryDelta: buildCountryDelta(),
       countryOverrides: state.countryOverrides,
@@ -5392,12 +5435,14 @@
       const properties = feature.properties || {};
       const id = String(properties.editor_id || feature.id || '');
       if (!id) continue;
-      output[id] = {
+      const mapped = {
         name: properties.aw_name || properties.editor_name || properties.editor_original_name || properties.name || id,
-        color: properties.aw_color || properties.editor_color || DEFAULT_COLOR,
         capital: properties.aw_capital || properties.capital || '',
         notes: properties.aw_notes || properties.notes || '',
       };
+      const explicitColor = properties.aw_color || properties.editor_color;
+      if (explicitColor) mapped.color = explicitColor;
+      output[id] = mapped;
     }
     return output;
   }
@@ -5943,6 +5988,9 @@
       }
       queueMapResize();
     });
+    const onSystemThemeChange = event => applySystemTheme(!!event.matches);
+    if (typeof systemThemeQuery.addEventListener === 'function') systemThemeQuery.addEventListener('change', onSystemThemeChange);
+    else if (typeof systemThemeQuery.addListener === 'function') systemThemeQuery.addListener(onSystemThemeChange);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') queueAutosave(0);
     });
