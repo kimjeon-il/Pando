@@ -3346,6 +3346,7 @@
   }
 
   function renderBase() {
+    baseSvg.classed('flat-projection', state.projection !== 'globe');
     shadowLayer.datum({ type: 'Sphere' }).attr('d', path);
     oceanLayer.datum({ type: 'Sphere' }).attr('d', path);
     graticuleLayer.datum(graticule()).attr('d', path);

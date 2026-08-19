@@ -400,6 +400,8 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
 .map-hit-area { fill: transparent; pointer-events: all; }
 .gpu-country-highlight { fill: none !important; pointer-events: none !important; }
 .map-ocean { fill: var(--map-ocean); stroke: var(--map-rim); stroke-width: 1.2px; }
+.map-base-svg.flat-projection .map-ocean { stroke: none; }
+.map-base-svg.flat-projection .globe-shadow { display: none; }
 .map-graticule { fill: none; stroke: var(--map-graticule); stroke-opacity: var(--map-graticule-opacity); stroke-width: .55px; pointer-events: none; }
 .country-shape { stroke: var(--map-border); stroke-width: .72px; stroke-linejoin: round; cursor: pointer; transition: fill-opacity .12s ease; }
 .country-shape:hover { fill-opacity: .82 !important; stroke: #75818d; }
@@ -417,7 +419,7 @@ button.button-flash { box-shadow: 0 0 0 2px rgba(226,201,130,.42), 0 0 20px rgba
 .vertex-handle:hover { r: 6px; }
 .draft-shape { fill: rgba(205,169,93,.14); stroke: #e2c982; stroke-width: 2px; stroke-dasharray: 5 4; pointer-events: none; }
 .draft-vertex { fill: #ffe099; stroke: #6f5520; stroke-width: 1.2px; pointer-events: none; }
-.globe-shadow { fill: none; stroke: var(--globe-shadow); stroke-opacity: var(--globe-shadow-opacity); stroke-width: 7px; filter: none; pointer-events: none; }
+.globe-shadow { fill: none; stroke: var(--globe-shadow); stroke-opacity: var(--globe-shadow-opacity); stroke-width: 2px; filter: none; pointer-events: none; }
 .map-instruction {
   position: absolute; top: 10px; left: 10px; z-index: 5; padding: 6px 8px;
   border: 1px solid var(--overlay-border); border-radius: 6px; background: var(--overlay-panel-soft);
