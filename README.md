@@ -1,4 +1,4 @@
-# AtlasWright v0.10.2
+# AtlasWright v0.10.3
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
@@ -25,6 +25,12 @@ python -m http.server 8080
 `국가`, `보조 데이터`, `도시·지명`, `국가명 라벨` 폴더를 펼쳐 개별 항목을 표시하거나 숨길 수 있습니다. 항목명을 누르면 해당 객체를 선택하고 지도 화면을 그 위치로 이동합니다. 개별 표시 상태와 폴더 열림 상태는 자동저장 및 GeoPackage의 `aw_project_settings`에 보존됩니다.
 
 국가명은 해외 영토를 포함한 전체 중심점 대신 가장 큰 연결 영토 내부의 최적 지점에 자동 배치됩니다.
+
+## 시스템 테마
+
+AtlasWright는 운영체제·브라우저의 `prefers-color-scheme` 설정을 따라 밝은 테마와 어두운 테마를 자동 전환합니다. 실행 중 시스템 설정이 바뀌어도 현재 카메라, 선택 객체와 편집 중인 선은 유지되며 테마는 프로젝트나 GeoPackage에 저장되지 않습니다.
+
+밝은 지도의 바다 `#FFFFFF`, 기본 육지 `#CCCCCC`, 국경 `#FFFFFF`, 지구본 외곽선 `#000000`, 격자 `#AAAAAA` 배색은 Milenioscuro의 Wikimedia Commons 파일 [Russian Empire (orthographic projection).svg](https://commons.wikimedia.org/wiki/File:Russian_Empire_(orthographic_projection).svg)를 참조했습니다. 해당 SVG는 [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)으로 제공됩니다. AtlasWright는 색상 토큰만 참조했으며 사용자 지정 및 GIS에서 가져온 국가 색상은 두 테마에서 그대로 유지됩니다.
 
 ## GPU 메시
 

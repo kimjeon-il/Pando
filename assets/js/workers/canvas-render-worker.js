@@ -48,6 +48,11 @@ function canvasFallbackWorkerMain() {
         }
         const geoPath = self.d3.geo.path().projection(projection).context(context);
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
+        const theme = message.theme || {};
+        const defaultLand = theme.defaultLand || '#63758a';
+        const fillAlpha = Number.isFinite(theme.fillAlpha) ? theme.fillAlpha : 0.74;
+        const border = theme.border || '#323c46';
+        const borderAlpha = Number.isFinite(theme.borderAlpha) ? theme.borderAlpha : 0.92;
         context.lineJoin = 'round';
         context.lineWidth = 0.72;
         for (let index = 0; index < features.length; index += 1) {
@@ -55,11 +60,11 @@ function canvasFallbackWorkerMain() {
           if (hiddenCountryIds.has(countryId(feature, index))) continue;
           context.beginPath();
           geoPath(feature);
-          context.globalAlpha = 0.74;
-          context.fillStyle = message.colors?.[countryId(feature, index)] || feature.properties?.editor_color || '#63758a';
+          context.globalAlpha = fillAlpha;
+          context.fillStyle = message.colors?.[countryId(feature, index)] || feature.properties?.editor_color || defaultLand;
           context.fill();
-          context.globalAlpha = 0.92;
-          context.strokeStyle = '#323c46';
+          context.globalAlpha = borderAlpha;
+          context.strokeStyle = border;
           context.stroke();
         }
         context.globalAlpha = 1;
