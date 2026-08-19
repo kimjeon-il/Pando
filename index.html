@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
+  <link rel="icon" href="data:," />
+  <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
+    <link rel="stylesheet" href="assets/css/app.css" />
+</head>
+<body class="is-loading">
+  <div id="bootstrapLoading" class="bootstrap-loading" role="status" aria-live="polite">
+    <div class="bootstrap-loading-card">
+      <strong>AtlasWright 지도 준비 중</strong>
+      <p id="bootstrapLoadingText">고해상도 국가 데이터와 GPU 메시를 불러오고 있습니다.</p>
+      <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
+    </div>
+  </div>
+  <div id="app" data-app-version="0.9.0">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">◎</div>
+        <div>
+          <strong>AtlasWright</strong>
+          <span>v0.9.0 · Natural Earth 1:10m · 정적 웹 앱</span>
+        </div>
+      </div>
+
+      <div class="topbar-center" aria-live="polite">
+        <span id="actionStatus" class="action-status ready"><span class="status-dot"></span><strong>준비</strong></span>
+      </div>
+
+      <button id="mobileFileBtn" class="file-menu-btn" type="button" aria-label="파일 메뉴 열기" aria-expanded="false">파일</button>
+
+      <nav class="top-actions" aria-label="프로젝트 도구">
+        <button id="newProjectBtn" type="button" class="btn ghost" title="새 프로젝트" aria-pressed="false">새 프로젝트</button>
+        <button id="saveProjectBtn" class="btn">프로젝트 저장</button>
+        <button id="loadProjectBtn" class="btn ghost">프로젝트 불러오기</button>
+        <input id="projectFileInput" type="file" accept="application/json,.json,.chronomap" hidden />
+        <span class="divider"></span>
+        <button id="importGeoJsonBtn" class="btn ghost">GeoJSON 가져오기</button>
+        <input id="geoJsonFileInput" type="file" accept="application/geo+json,application/json,.geojson,.json" hidden />
+        <button id="exportGeoJsonBtn" class="btn ghost">GeoJSON 내보내기</button>
+      </nav>
+    </header>
+
+    <div class="workspace">
+      <aside id="leftPanel" class="sidebar left-panel">
+        <div class="mobile-sheet-header"><strong>도구·레이어</strong><button id="mobileCloseLeftBtn" type="button" aria-label="도구창 닫기">닫기</button></div>
+        <section class="panel-section compact-view-section">
+          <div class="section-heading"><h2>보기</h2></div>
+          <div class="segmented" role="group" aria-label="지도 투영법">
+            <button id="globeBtn" class="segment active">지구본</button>
+            <button id="flatBtn" class="segment">평면</button>
+          </div>
+        </section>
+
+        <section id="layerSection" class="panel-section">
+          <div class="section-heading row-between">
+            <h2>레이어</h2>
+            <span class="muted small">표시 / 잠금</span>
+          </div>
+          <div class="layer-list">
+            <label class="layer-item">
+              <input id="countriesVisible" type="checkbox" checked />
+              <span class="layer-icon polygon"></span>
+              <span class="layer-name">국가</span>
+              <input id="countriesLocked" type="checkbox" class="lock-toggle" title="국가 선택 잠금" />
+            </label>
+            <label class="layer-item">
+              <input id="drawingsVisible" type="checkbox" checked />
+              <span class="layer-icon polygon custom"></span>
+              <span class="layer-name">보조 데이터</span>
+              <span class="layer-badge">가져오기</span>
+            </label>
+            <label class="layer-item">
+              <input id="labelsVisible" type="checkbox" checked />
+              <span class="layer-icon point"></span>
+              <span class="layer-name">도시·지명</span>
+              <span class="layer-badge">점</span>
+            </label>
+            <label class="layer-item">
+              <input id="basemapLabelsVisible" type="checkbox" checked />
+              <span class="layer-icon label"></span>
+              <span class="layer-name">국가명 라벨</span>
+              <span class="layer-badge">내장</span>
+            </label>
+          </div>
+        </section>
+
+        <section id="editToolsSection" class="panel-section grow">
+          <div class="section-heading row-between"><h2>도구</h2><span class="muted small">ESC 취소</span></div>
+          <p class="hint">도구를 선택한 뒤 지도에서 작업하세요. 선택한 국가의 상세 편집은 오른쪽에 표시됩니다.</p>
+          <div class="tool-grid primary-tool-grid">
+            <button id="selectToolBtn" class="tool-card active"><span class="tool-symbol">↖</span><span>국가 선택</span></button>
+            <button id="addCountryBtn" class="tool-card"><span class="tool-symbol">＋</span><span>국가 추가</span></button>
+            <button id="addLabelBtn" class="tool-card"><span class="tool-symbol">T</span><span>지명 추가</span></button>
+            <button id="finishDrawingBtn" class="tool-card context-tool hidden"><span class="tool-symbol">✓</span><span>경계 그리기 완료</span></button>
+            <button id="cancelModeBtn" class="tool-card context-tool hidden"><span class="tool-symbol">×</span><span>작업 취소</span></button>
+          </div>
+        </section>
+
+        <section class="panel-section status-box app-status-box" aria-hidden="true">
+          <div class="status-row"><span>지도 엔진</span><strong id="engineStatus">내장 · 오프라인</strong></div>
+          <div class="status-row"><span>국가 데이터</span><strong id="countryStatus">내장 데이터 준비</strong></div>
+          <div class="status-row"><span>자동 저장</span><strong id="autosaveStatus">대기</strong></div>
+        </section>
+      </aside>
+
+      <main class="map-wrap">
+        <div id="map" aria-label="지도 편집 영역"></div>
+
+        <div class="map-toolbar floating-toolbar">
+          <button id="undoBtn" class="icon-btn" title="실행취소">↶</button>
+          <button id="redoBtn" class="icon-btn" title="다시실행">↷</button>
+          <span class="toolbar-divider"></span>
+          <button id="zoomOutBtn" class="icon-btn" title="축소">−</button>
+          <button id="zoomInBtn" class="icon-btn" title="확대">＋</button>
+          <button id="resetViewBtn" class="icon-btn" title="세계 보기" aria-label="세계 보기">◎</button>
+          <span class="toolbar-divider"></span>
+          <button id="togglePanelBtn" class="icon-btn" title="편집창 열기/닫기">▤</button>
+        </div>
+
+
+        <div id="mobileZoomDock" class="mobile-zoom-dock" aria-label="모바일 확대축소">
+          <button id="mobileZoomInBtn" type="button" aria-label="지도 확대">＋</button>
+          <div id="mobileZoomValue" class="mobile-zoom-value">×1.0</div>
+          <button id="mobileZoomOutBtn" type="button" aria-label="지도 축소">−</button>
+          <button id="mobileWorldBtn" class="mobile-world-btn" type="button" aria-label="세계 보기">◎</button>
+        </div>
+
+        <div id="modeBanner" class="mode-banner hidden"></div>
+        <div id="modeActionBar" class="mode-action-bar hidden" aria-live="polite">
+          <button id="modePrimaryBtn" type="button" class="mode-primary-btn">완료</button>
+          <button id="modeSecondaryBtn" type="button" class="mode-secondary-btn hidden">영토 조각 전체 선택</button>
+          <button id="modeCancelBtn" type="button" class="mode-cancel-btn">취소</button>
+        </div>
+        <div class="current-tool" id="currentTool"><span class="current-tool-label">현재 도구</span><strong id="currentToolName">국가 선택</strong></div>
+
+        <div class="map-bottom-status">
+          <span id="coordStatus">경도 0.0000 · 위도 0.0000</span>
+          <span id="zoomStatus">지구본 ×1.0</span>
+          <span id="selectionStatus">선택 없음</span>
+          <span id="lastActionStatus">마지막 동작 · 준비</span>
+        </div>
+
+        <nav class="mobile-bottom-bar" aria-label="모바일 지도 도구">
+          <button id="mobileSelectBtn" type="button" class="active"><span>↖</span><strong>선택</strong></button>
+          <button id="mobilePolygonBtn" type="button"><span>＋</span><strong>국가 추가</strong></button>
+          <button id="mobileLabelBtn" type="button"><span>T</span><strong>지명</strong></button>
+          <button id="mobileToolsBtn" type="button"><span>☰</span><strong>메뉴</strong></button>
+        </nav>
+      </main>
+
+      <aside id="rightPanel" class="sidebar right-panel editor-panel">
+        <div class="mobile-sheet-header"><strong>편집</strong><button id="mobileCloseRightBtn" type="button" aria-label="편집창 닫기">닫기</button></div>
+
+        <section class="editor-header">
+          <div class="editor-title-row">
+            <span id="propertyType" class="type-chip">선택 없음</span>
+            <span class="autosave-note">변경사항 자동 저장</span>
+          </div>
+          <h2 id="propertyTitle">지도에서 객체를 선택하세요</h2>
+        </section>
+
+        <section id="emptyProperties" class="empty-state editor-empty">
+          <div class="empty-icon">↖</div>
+          <strong>편집할 대상을 선택하세요</strong>
+          <p>국가나 지명을 누르면 이곳에서 바로 수정할 수 있습니다. 국가를 선택하면 영토 편입·국가 합병 기능이 표시되고, 해안선 수정은 고급 편집에 있습니다.</p>
+        </section>
+
+        <form id="countryProperties" class="property-form editor-form hidden" onsubmit="return false;">
+          <section class="editor-card country-actions-card">
+            <div class="editor-card-title">영토 편집</div>
+            <div class="country-action-grid">
+              <button id="annexTerritoryBtn" type="button" class="country-action-btn primary annex-action"><span>＋</span><strong>영토 편입</strong><small>피편입국을 고르고 새 국경선 연결</small></button>
+              <button id="mergeCountryBtn" type="button" class="country-action-btn"><span>⇄</span><strong>국가 합병</strong><small>합병할 국가 선택</small></button>
+            </div>
+            <p id="countryActionHint" class="editor-help country-action-hint">국가를 선택한 상태입니다. 원하는 영토 작업을 바로 시작할 수 있습니다.</p>
+          </section>
+          <section class="editor-card editor-card-primary">
+            <div class="editor-card-title">기본 정보</div>
+            <div class="editor-main-row">
+              <div class="field-group editor-name-field"><label for="countryNameInput">국명</label><input id="countryNameInput" type="text" autocomplete="off" /></div>
+              <div class="field-group compact-color editor-color-field"><label for="countryColorInput">지도색</label><input id="countryColorInput" type="color" value="#7c8da6" /></div>
+            </div>
+            <div class="field-group"><label for="capitalInput">수도</label><input id="capitalInput" type="text" placeholder="예: 아테네" autocomplete="off" /></div>
+          </section>
+
+          <section class="editor-card">
+            <div class="editor-card-title">국기</div>
+            <div class="flag-editor simple-flag-editor">
+              <div id="flagPreview" class="flag-preview">국기 없음</div>
+              <div class="flag-actions">
+                <button id="flagUploadBtn" type="button" class="btn ghost wide">국기 변경</button>
+                <button id="flagRemoveBtn" type="button" class="text-btn">국기 삭제</button>
+                <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
+              </div>
+            </div>
+          </section>
+
+          <details class="editor-details" id="countryAdvancedDetails">
+            <summary><span>고급 편집</span><small>해안선 · 코드 · 메모</small></summary>
+            <div class="editor-details-body">
+              <section class="advanced-boundary-box">
+                <div class="advanced-boundary-copy">
+                  <strong>해안선 수정</strong>
+                  <span>시대별 간척·매립·해수면 변화처럼 필요한 경우에만 사용합니다.</span>
+                </div>
+                <button id="editCoastBtn" type="button" class="btn ghost advanced-boundary-btn">해안선 수정</button>
+              </section>
+              <div class="field-group"><label for="countryCodeInput">국가 코드</label><input id="countryCodeInput" type="text" readonly /></div>
+              <div class="field-group"><label for="notesInput">메모</label><textarea id="notesInput" rows="5" placeholder="정체, 국가원수, 역사적 비고 등 자유 입력"></textarea></div>
+              <div class="meta-card compact-meta">
+                <div><span>기본 국명</span><strong id="originalNameValue">—</strong></div>
+                <div><span>데이터 유형</span><strong>국가 영역</strong></div>
+              </div>
+              <button id="deleteCountryBtn" type="button" class="danger-btn editor-delete-btn">이 국가 삭제</button>
+            </div>
+          </details>
+        </form>
+
+        <form id="drawingProperties" class="property-form editor-form hidden" onsubmit="return false;">
+          <section class="editor-card editor-card-primary">
+            <div class="editor-card-title">영역 정보</div>
+            <div class="field-group"><label for="drawingNameInput">이름</label><input id="drawingNameInput" type="text" placeholder="예: 마케도니아 민족권" /></div>
+            <div class="editor-main-row">
+              <div class="field-group editor-name-field">
+                <label for="drawingCategoryInput">분류</label>
+                <select id="drawingCategoryInput">
+                  <option value="territory">영토</option><option value="administrative">행정구역</option><option value="ethnicity">민족</option><option value="religion">종교</option><option value="language">언어</option><option value="custom">사용자 정의</option>
+                </select>
+              </div>
+              <div class="field-group compact-color editor-color-field"><label for="drawingColorInput">색상</label><input id="drawingColorInput" type="color" value="#8c68d8" /></div>
+            </div>
+            <p class="editor-help">선택 도구에서 꼭짓점을 끌어 경계를 수정할 수 있습니다.</p>
+          </section>
+
+          <details class="editor-details">
+            <summary><span>상세 정보</span><small>ID · 메모</small></summary>
+            <div class="editor-details-body">
+              <div class="field-group"><label for="drawingIdInput">객체 ID</label><input id="drawingIdInput" type="text" readonly /></div>
+              <div class="field-group"><label for="drawingNotesInput">메모</label><textarea id="drawingNotesInput" rows="5"></textarea></div>
+            </div>
+          </details>
+          <button id="deleteDrawingInlineBtn" type="button" class="danger-btn editor-delete-btn">이 영역 삭제</button>
+        </form>
+
+        <form id="labelProperties" class="property-form editor-form hidden" onsubmit="return false;">
+          <section class="editor-card editor-card-primary">
+            <div class="editor-card-title">지명 정보</div>
+            <div class="field-group"><label for="labelNameInput">이름</label><input id="labelNameInput" type="text" /></div>
+            <div class="field-group">
+              <label for="labelKindInput">종류</label>
+              <select id="labelKindInput"><option value="capital">수도</option><option value="city">도시</option><option value="town">마을</option><option value="region">지역명</option><option value="mountain">산</option><option value="water">수역</option><option value="custom">기타</option></select>
+            </div>
+          </section>
+
+          <details class="editor-details">
+            <summary><span>상세 정보</span><small>메모</small></summary>
+            <div class="editor-details-body">
+              <div class="field-group"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div>
+            </div>
+          </details>
+          <button id="deleteLabelBtn" type="button" class="danger-btn editor-delete-btn">이 지명 삭제</button>
+        </form>
+      </aside>
+    </div>
+  </div>
+
+  <div id="mobileBackdrop" class="mobile-backdrop" aria-hidden="true"></div>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <div id="startupProbe" class="startup-probe">지도 엔진 시작 중… 이 문구가 계속 남아 있으면 정적 서버가 자바스크립트 또는 Worker 실행을 차단한 것입니다.</div>
+  <div id="confirmModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="confirm-modal-dim"></div>
+    <section class="confirm-modal-card">
+      <h2 id="confirmModalTitle">확인</h2>
+      <p id="confirmModalMessage"></p>
+      <div class="confirm-modal-actions">
+        <button id="confirmModalCancelBtn" type="button" class="btn ghost">취소</button>
+        <button id="confirmModalOkBtn" type="button" class="btn">확인</button>
+      </div>
+    </section>
+  </div>
+  <noscript><div class="fatal-noscript">AtlasWright를 사용하려면 브라우저의 자바스크립트 실행을 허용해 주세요.</div></noscript>
+
+  
+  
+
+
+  
+  
+  <script src="assets/js/vendor/d3.min.js" defer></script>
+  <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
+  <script src="assets/js/bootstrap.js" defer></script>
+</body>
+</html>
