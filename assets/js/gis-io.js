@@ -36,6 +36,17 @@
     return basename(name).replace(/\.[^.]+$/, '');
   }
 
+  function normalizeRelativePath(path) {
+    const parts = String(path || '').replace(/\\/g, '/').replace(/^\.\//, '').split('/');
+    const normalized = [];
+    for (const part of parts) {
+      if (!part || part === '.') continue;
+      if (part === '..') normalized.pop();
+      else normalized.push(part);
+    }
+    return normalized.join('/').toLowerCase();
+  }
+
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
   }
@@ -201,18 +212,24 @@
           if (color) style.categories[String(category.getAttribute('value') ?? '')] = color;
         });
       }
-      const labelField = mapLayer.querySelector('customproperties > property[key="labeling/fieldName"]')?.getAttribute('value') || '';
+      const labelField = mapLayer.querySelector('customproperties > property[key="labeling/fieldName"]')?.getAttribute('value')
+        || mapLayer.querySelector('labeling settings text-style')?.getAttribute('fieldName')
+        || '';
       layers.push({ projectName, layerName, sourcePath, sourceFile: basename(sourcePath), sourceLayer, provider, style, labelField });
     }
     return layers;
   }
 
   function qgsReferenceReport(qgsLayers, files) {
+    const exactPaths = new Map();
     const lowerNames = new Map();
     for (const file of files) {
       const name = file.name.toLowerCase();
       if (!lowerNames.has(name)) lowerNames.set(name, []);
       lowerNames.get(name).push(file);
+      const relativePath = normalizeRelativePath(file.__atlasArchivePath || file.webkitRelativePath || file.name);
+      if (!exactPaths.has(relativePath)) exactPaths.set(relativePath, []);
+      exactPaths.get(relativePath).push(file);
     }
     const missing = [];
     const ambiguous = [];
@@ -221,7 +238,8 @@
         missing.push(`${layer.layerName || layer.sourceLayer || '이름 없는 레이어'} · 원격/DB 데이터 소스`);
         continue;
       }
-      const candidates = lowerNames.get(layer.sourceFile.toLowerCase()) || [];
+      const exact = exactPaths.get(normalizeRelativePath(layer.sourcePath)) || [];
+      const candidates = exact.length ? exact : (lowerNames.get(layer.sourceFile.toLowerCase()) || []);
       if (!candidates.length) missing.push(`${layer.layerName || layer.sourceLayer || '이름 없는 레이어'} · ${layer.sourceFile}`);
       else if (candidates.length > 1) ambiguous.push(`${layer.layerName || layer.sourceLayer || '이름 없는 레이어'} · ${layer.sourceFile}`);
     }
@@ -252,6 +270,8 @@
         dataFiles.push(file);
       }
     }
+    const driverPriority = { shp: 0, gpkg: 0, geojson: 0, json: 0, kml: 0, gml: 0, xml: 0, fgb: 0, shx: 10, dbf: 11, prj: 12, cpg: 13 };
+    dataFiles.sort((a, b) => (driverPriority[extension(a.name)] ?? 5) - (driverPriority[extension(b.name)] ?? 5));
     const qgsLayers = qgsTexts.flatMap(project => parseQgsProject(project.text, project.name));
     const report = qgsReferenceReport(qgsLayers, dataFiles);
     if (!dataFiles.length) throw new Error(qgsLayers.length ? `QGIS 프로젝트가 참조하는 경계 파일을 함께 선택해 주세요.\n${report.missing.slice(0, 4).join('\n')}` : '지원되는 벡터 데이터 파일이 없습니다.');
@@ -280,6 +300,13 @@
     return (layer?.fields || []).map(field => typeof field === 'string' ? field : field.name).filter(Boolean);
   }
 
+  function layerFieldDefinitions(layer) {
+    return (layer?.fields || []).map(field => typeof field === 'string'
+      ? { name: field, type: 'String' }
+      : { name: field.name, type: field.type || 'String', subtype: field.subType || null, width: field.width ?? null, precision: field.precision ?? null })
+      .filter(field => field.name);
+  }
+
   function styleForLayer(qgsLayers, layerName, datasetPath) {
     const base = basename(datasetPath).toLowerCase();
     return qgsLayers.find(layer => layer.sourceLayer && layer.sourceLayer === layerName)
@@ -303,8 +330,11 @@
       catch (error) { console.warn('AtlasWright layer inspection failed', error); }
       const layers = info?.layers || dataset.info?.layers || [];
       for (const layer of layers) {
+        if (Number(layer.featureCount) === 0) continue;
         const geometryType = layerGeometryType(layer);
-        if (!/polygon|surface/i.test(geometryType) || /line|point/i.test(geometryType)) continue;
+        const hasGeometryField = Array.isArray(layer?.geometryFields) && layer.geometryFields.length > 0;
+        const polygonCandidate = /polygon|surface/i.test(geometryType) || (hasGeometryField && /^(geometry|unknown|알 수 없음)/i.test(geometryType));
+        if (!polygonCandidate || /line|point/i.test(geometryType)) continue;
         const crs = layerCrs(layer, info?.driverShortName || dataset.info?.driverName || '');
         const qgs = styleForLayer(prepared.qgsLayers, layer.name, dataset.path || dataset.info?.dsName || '');
         descriptors.push({
@@ -313,6 +343,7 @@
           featureCount: Number(layer.featureCount || 0),
           geometryType,
           fields: layerFields(layer),
+          fieldDefinitions: layerFieldDefinitions(layer),
           crs,
           driverName: info?.driverLongName || info?.driverShortName || dataset.info?.driverName || 'OGR',
           datasetPath: dataset.path || dataset.info?.dsName || '',
@@ -321,14 +352,7 @@
         });
       }
     }
-    if (!descriptors.length) {
-      for (let datasetIndex = 0; datasetIndex < opened.datasets.length; datasetIndex += 1) {
-        const dataset = opened.datasets[datasetIndex];
-        for (const layer of dataset.info?.layers || []) {
-          descriptors.push({ datasetIndex, layerName: layer.name, featureCount: Number(layer.featureCount || 0), geometryType: '확인 필요', fields: [], crs: { hasCrs: false, label: '좌표계 확인 필요', source: null }, driverName: dataset.info?.driverName || 'OGR', datasetPath: dataset.path || '', qgsStyle: null, qgsLabelField: '' });
-        }
-      }
-    }
+    if (!descriptors.length) throw new Error('Polygon/MultiPolygon 국가 경계 레이어를 찾지 못했습니다.');
     activeSession = { gdal, datasets: opened.datasets, descriptors, prepared };
     progress(`국가 경계 후보 ${descriptors.length}개 확인됨`, 100);
     return activeSession;
@@ -365,7 +389,8 @@
     crsInput.value = descriptor.crs.source || '';
     crsInput.disabled = descriptor.crs.hasCrs;
     crsInput.required = !descriptor.crs.hasCrs;
-    document.getElementById('gisLayerDetails').textContent = `${descriptor.featureCount.toLocaleString()}개 · ${descriptor.geometryType} · ${descriptor.crs.label} · ${descriptor.driverName}`;
+    const dimensionNote = /(?:^|\s)(?:Z|M|ZM)(?:\s|$)/i.test(descriptor.geometryType) ? ' · Z/M은 XY로 편집' : '';
+    document.getElementById('gisLayerDetails').textContent = `${descriptor.featureCount.toLocaleString()}개 · ${descriptor.geometryType} · ${descriptor.crs.label} · ${descriptor.driverName}${dimensionNote}`;
   }
 
   function setWizardProgress(message, percent = null) {
@@ -462,11 +487,60 @@
     return { type: 'FeatureCollection', features };
   }
 
+  async function layerAsGeoJson(gdal, dataset, layerName, outputTag) {
+    const output = await gdal.ogr2ogr(dataset, ['-f', 'GeoJSON', '-t_srs', 'EPSG:4326', '-dim', 'XY', layerName], `atlaswright_${outputTag}_${Date.now()}`);
+    return JSON.parse(new TextDecoder().decode(await gdal.getFileBytes(output)));
+  }
+
+  async function readAtlasVectorState(gdal, dataset) {
+    const layerNames = new Set((dataset.info?.layers || []).map(layer => layer.name));
+    const hasPlaces = layerNames.has('places');
+    const drawingLayerNames = ['drawings_point', 'drawings_line', 'drawings_polygon'].filter(name => layerNames.has(name));
+    const state = {};
+    if (hasPlaces) {
+      const collection = await layerAsGeoJson(gdal, dataset, 'places', 'places');
+      state.labels = (collection.features || []).filter(feature => feature.geometry?.type === 'Point').map((feature, index) => ({
+        id: String(feature.properties?.aw_id || feature.id || `place_${index + 1}`),
+        name: String(feature.properties?.name || ''),
+        kind: String(feature.properties?.kind || 'custom'),
+        countryId: String(feature.properties?.country_id || ''),
+        notes: String(feature.properties?.notes || ''),
+        coordinates: feature.geometry.coordinates.slice(0, 2),
+      }));
+    }
+    if (drawingLayerNames.length) {
+      state.drawings = [];
+      for (const layerName of drawingLayerNames) {
+        const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
+        for (let index = 0; index < (collection.features || []).length; index += 1) {
+          const feature = collection.features[index];
+          const basic = feature.properties || {};
+          let properties = {};
+          try { properties = basic.properties_json ? JSON.parse(basic.properties_json) : {}; } catch (_) {}
+          state.drawings.push({
+            type: 'Feature',
+            id: String(basic.aw_id || feature.id || `${layerName}_${index + 1}`),
+            properties: {
+              ...properties,
+              name: basic.name ?? properties.name ?? '',
+              category: basic.category ?? properties.category ?? 'custom',
+              editorColor: basic.color ?? properties.editorColor ?? properties.color ?? '#8c68d8',
+              notes: basic.notes ?? properties.notes ?? '',
+            },
+            geometry: feature.geometry,
+          });
+        }
+      }
+    }
+    return state;
+  }
+
   async function convertSelectedLayer(descriptor, mapping, progress) {
     if (!activeSession) throw new Error('GIS 가져오기 세션이 종료되었습니다.');
+    if (/curvepolygon|circularstring|compoundcurve/i.test(descriptor.geometryType)) throw new Error('곡선 표면은 자동 변형하지 않습니다. QGIS에서 Polygon/MultiPolygon으로 변환해 주세요.');
     const { gdal, datasets, prepared } = activeSession;
     const dataset = datasets[descriptor.datasetIndex];
-    const options = ['-f', 'GeoJSON', '-t_srs', 'EPSG:4326', '-dim', 'XY', '-nlt', 'PROMOTE_TO_MULTI', '-lco', 'RFC7946=YES'];
+    const options = ['-f', 'GeoJSON', '-t_srs', 'EPSG:4326', '-dim', 'XY', '-nlt', 'PROMOTE_TO_MULTI', '-fieldTypeToString', 'Integer64,Integer64List', '-lco', 'RFC7946=YES'];
     if (!descriptor.crs.hasCrs) {
       if (!/^EPSG:\d+$/i.test(mapping.sourceCrs || '')) throw new Error('좌표계가 없는 레이어에는 EPSG 코드를 입력해 주세요.');
       options.push('-s_srs', mapping.sourceCrs.toUpperCase());
@@ -481,6 +555,10 @@
     const sourceFile = prepared.dataFiles.find(file => file.name.toLowerCase() === basename(descriptor.datasetPath).toLowerCase())
       || prepared.dataFiles.find(file => withoutExtension(file.name).toLowerCase() === withoutExtension(descriptor.datasetPath).toLowerCase());
     const atlasMetadata = sourceFile && extension(sourceFile.name) === 'gpkg' ? await readAtlasMetadata(sourceFile) : null;
+    if (atlasMetadata?.projectState) {
+      const vectorState = await readAtlasVectorState(gdal, dataset);
+      atlasMetadata.projectState = { ...atlasMetadata.projectState, ...vectorState };
+    }
     const fileHashes = [];
     for (const file of prepared.originals) fileHashes.push({ name: file.name, size: file.size, sha256: await sha256File(file) });
     progress('가져오기 미리보기 준비 완료', 100);
@@ -493,6 +571,7 @@
         driver: descriptor.driverName,
         layer: descriptor.layerName,
         sourceCrs: descriptor.crs.label,
+        fields: descriptor.fieldDefinitions || [],
         mapping: { id: mapping.idField, name: mapping.nameField, color: mapping.colorField },
       },
     };
@@ -521,7 +600,10 @@
     try {
       const session = await inspectFiles(files, setWizardProgress);
       layerSelect.replaceChildren();
-      session.descriptors.forEach((descriptor, index) => layerSelect.add(new Option(`${descriptor.layerName} · ${descriptor.featureCount.toLocaleString()}개`, String(index))));
+      session.descriptors.forEach((descriptor, index) => {
+        const fileLabel = basename(descriptor.datasetPath) || descriptor.driverName;
+        layerSelect.add(new Option(`${fileLabel} › ${descriptor.layerName} · ${descriptor.featureCount.toLocaleString()}개`, String(index)));
+      });
       document.getElementById('gisSourceReport').innerHTML = reportHtml(session);
       const refresh = () => updateWizardFields(session.descriptors[Number(layerSelect.value) || 0]);
       layerSelect.onchange = refresh;
@@ -574,7 +656,21 @@
     }
   }
 
-  function exportCountryProperties(feature, overrides) {
+  const atlasReservedFields = ['aw_id', 'aw_name', 'aw_color', 'aw_capital', 'aw_notes', 'aw_source_properties', 'aw_field_map'];
+
+  function reservedFieldMapping(collection) {
+    const keys = new Set((collection?.features || []).flatMap(feature => Object.keys(feature.properties || {})));
+    const mapping = {};
+    for (const key of atlasReservedFields) {
+      if (!keys.has(key)) continue;
+      let replacement = `source_${key}`;
+      while (keys.has(replacement) || Object.values(mapping).includes(replacement)) replacement = `source_${replacement}`;
+      mapping[key] = replacement;
+    }
+    return mapping;
+  }
+
+  function exportCountryProperties(feature, overrides, reservedMap) {
     const source = { ...(feature.properties || {}) };
     delete source.editor_centroid;
     delete source.flagDataUrl;
@@ -583,11 +679,10 @@
     const output = {};
     const nested = {};
     const renamed = {};
-    const reserved = new Set(['aw_id', 'aw_name', 'aw_color', 'aw_capital', 'aw_notes', 'aw_source_properties', 'aw_field_map']);
+    const reserved = new Set(atlasReservedFields);
     for (const [key, value] of Object.entries(source)) {
       if (reserved.has(key)) {
-        let replacement = `source_${key}`;
-        while (Object.prototype.hasOwnProperty.call(source, replacement) || Object.prototype.hasOwnProperty.call(output, replacement)) replacement = `source_${replacement}`;
+        const replacement = reservedMap[key] || `source_${key}`;
         renamed[key] = replacement;
         if (value == null || ['string', 'number', 'boolean'].includes(typeof value)) output[replacement] = value;
         else nested[replacement] = value;
@@ -618,8 +713,10 @@
     progress('국가 레이어를 GeoPackage로 변환하는 중…', 25);
     const countries = {
       type: 'FeatureCollection',
-      features: (projectState.countriesData?.features || []).map(feature => ({ type: 'Feature', id: String(feature.properties?.editor_id || feature.id || ''), properties: exportCountryProperties(feature, projectState.countryOverrides), geometry: feature.geometry })),
+      features: [],
     };
+    const reservedMap = reservedFieldMapping(projectState.countriesData);
+    countries.features = (projectState.countriesData?.features || []).map(feature => ({ type: 'Feature', id: String(feature.properties?.editor_id || feature.id || ''), properties: exportCountryProperties(feature, projectState.countryOverrides, reservedMap), geometry: feature.geometry }));
     if (!countries.features.length) throw new Error('저장할 국가 레이어가 없습니다.');
     const source = new File([JSON.stringify(countries)], `atlaswright_export_${Date.now()}.geojson`, { type: 'application/geo+json' });
     const opened = await gdal.open(source);
@@ -638,7 +735,12 @@
       delete copy.flagDataUrl;
       return [id, copy];
     }));
-    const stateForPackage = { ...projectState, countryOverrides, countryAssets: countryAssets(projectState.countryOverrides) };
+    const stateForPackage = {
+      ...projectState,
+      countryOverrides,
+      countryAssets: countryAssets(projectState.countryOverrides),
+      sourceInfo: { ...(projectState.sourceInfo || {}), exportedAt: new Date().toISOString(), reservedFieldMapping: reservedMap },
+    };
     delete stateForPackage.countriesData;
     const exactBytes = bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice();
     const result = await callGpkgWorker('write', exactBytes.buffer, { projectState: stateForPackage });

@@ -4418,6 +4418,7 @@
     updateModeButtons();
     scheduleGpuMeshRebuild(0);
     renderAll();
+    $('countryStatus').textContent = `현재 지도 ${state.countriesData?.features?.length || 0}개`;
     queueAutosave();
   }
 
@@ -4658,18 +4659,17 @@
     if (!project || typeof project !== 'object') throw new Error('프로젝트 형식이 올바르지 않습니다.');
     state.countryOverrides = deepClone(project.countryOverrides || {});
     state.labels = deepClone(project.labels || []);
-    state.drawings = deepClone(project.drawings || project.restoreDrawings || []);
+    state.drawings = deepClone(project.drawings || []);
     state.projection = project.projection || project.view?.projection || 'globe';
     state.layerVisibility = { ...state.layerVisibility, ...(project.layerVisibility || {}) };
     state.countriesLocked = !!project.countriesLocked;
     state.sourceInfo = deepClone(project.sourceInfo || null);
     state.view = { ...state.view, ...(project.view || {}) };
-    if (project.view?.center && !project.view.flatCenter) state.view.flatCenter = project.view.center;
     state.countriesData = project.countriesData
       ? reindexCountries(deepClone(project.countriesData), true)
       : freshPristineCountries(true);
     configureDatasetSession(project);
-    const legacyGeometry = !!project.countriesData && project.baseDataset !== BASE_DATASET;
+    const externalGeometry = !!project.countriesData && project.baseDataset !== BASE_DATASET;
     state.history = [];
     state.future = [];
     state.selected = null;
@@ -4690,9 +4690,9 @@
     updateHistoryButtons();
     setTool('select');
     queueAutosave();
-    $('countryStatus').textContent = `${legacyGeometry ? '기존 형상' : '프로젝트'} ${state.countriesData.features.length}개`;
-    if (manual) showToast(legacyGeometry
-      ? '기존 프로젝트를 저장 당시 형상 그대로 불러왔습니다.'
+    $('countryStatus').textContent = `${externalGeometry ? '외부 형상' : '프로젝트'} ${state.countriesData.features.length}개`;
+    if (manual) showToast(externalGeometry
+      ? '외부 GIS 형상을 저장 당시 상태로 불러왔습니다.'
       : '프로젝트를 불러왔습니다.');
   }
 
@@ -4887,20 +4887,40 @@
     };
   }
 
-  function importedFeaturesDoNotOverlap(features) {
-    const clipper = window.polygonClipping;
-    let overlapAreaKm2 = 0;
-    for (let i = 0; i < features.length; i += 1) {
-      for (let j = i + 1; j < features.length; j += 1) {
-        if (!boundsOverlap(geometryBounds(features[i].geometry), geometryBounds(features[j].geometry))) continue;
-        const overlap = normalizeClippedLandGeometry(clipper.intersection(features[i].geometry.coordinates, features[j].geometry.coordinates));
-        if (overlap && multiPolygonPlanarArea(geometryMultiCoordinates(overlap)) > 1e-8) overlapAreaKm2 += geometryAreaKm2(overlap);
-      }
-    }
-    return overlapAreaKm2;
+  let gisGeometryWorker = null;
+  let gisGeometrySequence = 0;
+  const gisGeometryPending = new Map();
+
+  function getGisGeometryWorker() {
+    if (gisGeometryWorker) return gisGeometryWorker;
+    gisGeometryWorker = new Worker(new URL('workers/gis-geometry-worker.js', ATLASWRIGHT_ASSET_BASE_URL), { name: 'atlaswright-gis-geometry' });
+    gisGeometryWorker.onmessage = event => {
+      const pending = gisGeometryPending.get(event.data?.id);
+      if (!pending) return;
+      gisGeometryPending.delete(event.data.id);
+      if (event.data.ok) pending.resolve(event.data);
+      else pending.reject(new Error(event.data.error || 'GIS 지오메트리 검증에 실패했습니다.'));
+    };
+    gisGeometryWorker.onerror = event => {
+      const error = new Error(event.message || 'GIS 지오메트리 Worker 오류');
+      for (const pending of gisGeometryPending.values()) pending.reject(error);
+      gisGeometryPending.clear();
+      gisGeometryWorker?.terminate();
+      gisGeometryWorker = null;
+    };
+    return gisGeometryWorker;
   }
 
-  function planGisMerge(importedCountries, strategy) {
+  function validateGisCountryCollection(collection) {
+    return new Promise((resolve, reject) => {
+      const worker = getGisGeometryWorker();
+      const id = ++gisGeometrySequence;
+      gisGeometryPending.set(id, { resolve, reject });
+      worker.postMessage({ id, action: 'validate', collection });
+    });
+  }
+
+  async function planGisMerge(importedCountries, strategy) {
     const clipper = window.polygonClipping;
     if (!clipper?.union || !clipper?.difference || !clipper?.intersection) throw new Error('국가 병합 연산 엔진을 불러오지 못했습니다.');
     const current = (state.countriesData?.features || []).map(deepClone);
@@ -4910,15 +4930,13 @@
       return feature;
     });
     if (!imported.length) throw new Error('병합할 국가 객체가 없습니다.');
-    const importedOverlap = importedFeaturesDoNotOverlap(imported);
-    if (importedOverlap > 0.001) throw new Error(`가져온 레이어 안에서 서로 다른 국가가 ${Math.round(importedOverlap).toLocaleString()} km² 겹칩니다.`);
 
     const currentById = new Map(current.map(feature => [String(feature.properties?.editor_id || ''), feature]));
     const importedById = new Map(imported.map(feature => [String(feature.properties?.editor_id || ''), feature]));
     const importedIds = new Set(importedById.keys());
     const matched = [...importedIds].filter(id => currentById.has(id)).length;
     const added = imported.length - matched;
-    const counts = { matched, added, replaced: 0, subtracted: 0, deleted: 0, overlapAreaKm2: 0 };
+    const counts = { matched, added, replaced: 0, subtracted: 0, deleted: 0, overlapAreaKm2: 0, residualOverlapAreaKm2: 0 };
     let result;
 
     if (strategy === 'id-replace') {
@@ -4968,7 +4986,9 @@
       if (!geometry) throw new Error(`${countryName(incoming)} 영토를 결합할 수 없습니다.`);
       result.push(mergeImportedCountryProperties(existing, incoming, geometry));
     }
-    return { countriesData: { type: 'FeatureCollection', features: result }, counts, canCommit: true };
+    const countriesData = { type: 'FeatureCollection', features: result };
+    counts.residualOverlapAreaKm2 = (await validateGisCountryCollection(countriesData)).overlapAreaKm2;
+    return { countriesData, counts, canCommit: counts.residualOverlapAreaKm2 <= 0.001 };
   }
 
   function applyGpkgAssets(metadata, overrides) {
@@ -4981,12 +5001,44 @@
     return output;
   }
 
+  function importedCountryOverrides(collection) {
+    const output = {};
+    for (const feature of collection?.features || []) {
+      const properties = feature.properties || {};
+      const id = String(properties.editor_id || feature.id || '');
+      if (!id) continue;
+      output[id] = {
+        name: properties.aw_name || properties.editor_name || properties.editor_original_name || properties.name || id,
+        color: properties.aw_color || properties.editor_color || DEFAULT_COLOR,
+        capital: properties.aw_capital || properties.capital || '',
+        notes: properties.aw_notes || properties.notes || '',
+      };
+    }
+    return output;
+  }
+
+  function appendSourceInfo(previous, next) {
+    const imports = [];
+    const append = value => {
+      if (!value) return;
+      if (Array.isArray(value.imports)) imports.push(...value.imports);
+      else imports.push(value);
+    };
+    append(previous);
+    append(next);
+    return { mergedAt: new Date().toISOString(), imports };
+  }
+
   function applyImportedReplacement(result) {
     const packageState = result.atlasMetadata?.projectState || {};
+    const restoredOverrides = {
+      ...importedCountryOverrides(result.countriesData),
+      ...(packageState.countryOverrides || {}),
+    };
     const mergedState = {
       ...packageState,
       countriesData: result.countriesData,
-      countryOverrides: applyGpkgAssets(result.atlasMetadata, packageState.countryOverrides || {}),
+      countryOverrides: applyGpkgAssets(result.atlasMetadata, restoredOverrides),
       sourceInfo: result.atlasMetadata?.sourceInfo || result.sourceInfo,
     };
     applyAtlasState(mergedState, false);
@@ -4998,9 +5050,12 @@
   function commitGisMerge(result, plan) {
     const before = snapshotEditable();
     const beforeIds = (state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''));
-    state.sourceInfo = deepClone(result.sourceInfo || null);
+    state.sourceInfo = appendSourceInfo(state.sourceInfo, result.sourceInfo);
     const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || '')));
-    const packagedOverrides = applyGpkgAssets(result.atlasMetadata, result.atlasMetadata?.projectState?.countryOverrides || {});
+    const packagedOverrides = applyGpkgAssets(result.atlasMetadata, {
+      ...importedCountryOverrides(result.countriesData),
+      ...(result.atlasMetadata?.projectState?.countryOverrides || {}),
+    });
     for (const feature of result.countriesData?.features || []) {
       const id = String(feature.properties?.editor_id || '');
       if (!id) continue;
@@ -5027,7 +5082,10 @@
       `차감 ${c.subtracted}개 · 삭제 ${c.deleted}개`,
       `겹치는 면적 ${Math.round(c.overlapAreaKm2).toLocaleString()} km²`,
     ];
-    if (!plan.canCommit) lines.push('', 'ID 기준 교체 후 다른 국가와 영토가 겹치므로 확정할 수 없습니다.');
+    if (c.residualOverlapAreaKm2 > 0.001) lines.push(`처리 후 남는 중첩 ${Math.round(c.residualOverlapAreaKm2).toLocaleString()} km²`);
+    if (!plan.canCommit) lines.push('', c.residualOverlapAreaKm2 > 0.001
+      ? '자동 차감 후에도 국가 간 중첩이 남아 확정할 수 없습니다.'
+      : 'ID 기준 교체 후 다른 국가와 영토가 겹치므로 확정할 수 없습니다.');
     openConfirmModal({
       title: plan.canCommit ? 'GIS 병합 미리보기' : 'GIS 병합 중첩 발견',
       message: lines.join('\n'),
@@ -5043,6 +5101,9 @@
     setActionStatus('GIS 파일 검사 중', 'working', 0);
     try {
       const result = await window.AtlasWrightGIS.openImportWizard(files);
+      setActionStatus('국가 경계 무결성 검사 중', 'working', 0);
+      const importedOverlapAreaKm2 = (await validateGisCountryCollection(result.countriesData)).overlapAreaKm2;
+      if (importedOverlapAreaKm2 > 0.001) throw new Error(`가져온 레이어 안에서 서로 다른 국가가 ${Math.round(importedOverlapAreaKm2).toLocaleString()} km² 겹칩니다.`);
       if (result.openMode === 'replace') {
         openConfirmModal({
           title: '새 GIS 프로젝트로 열기',
@@ -5052,7 +5113,7 @@
           onConfirm: () => applyImportedReplacement(result),
         });
       } else {
-        showGisMergePreview(result, planGisMerge(result.countriesData, result.mergeStrategy));
+        showGisMergePreview(result, await planGisMerge(result.countriesData, result.mergeStrategy));
       }
       setActionStatus('GIS 가져오기 확인 대기', 'working', 0);
     } catch (error) {
@@ -5473,8 +5534,8 @@
         ? reindexCountries(deepClone(restored.countriesData), true)
         : freshPristineCountries(true);
     configureDatasetSession(restored);
-    const legacyGeometry = !!restored?.countriesData && restored.baseDataset !== BASE_DATASET;
-    $('countryStatus').textContent = `${restored ? (legacyGeometry ? '기존 형상' : '프로젝트') : '1:10m 내장'} ${state.countriesData.features.length}개`;
+    const externalGeometry = !!restored?.countriesData && restored.baseDataset !== BASE_DATASET;
+    $('countryStatus').textContent = `${restored ? (externalGeometry ? '외부 형상' : '프로젝트') : '1:10m 내장'} ${state.countriesData.features.length}개`;
     $('engineStatus').textContent = 'Natural Earth 5.1.1 · GPU 렌더러 준비 중';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
 
@@ -5506,8 +5567,8 @@
     if (restored) {
       if (restored.countriesData && restored.baseDataset === BASE_DATASET) queueAutosave(0);
       setAutosaveStatus(autosaveRestore.source === 'localstorage' ? '기존 저장 이전됨' : '복원됨');
-      showToast(legacyGeometry
-        ? '기존 자동저장 프로젝트를 저장 당시 형상 그대로 복원했습니다.'
+      showToast(externalGeometry
+        ? '외부 GIS 자동저장을 저장 당시 형상 그대로 복원했습니다.'
         : '자동 저장 프로젝트를 복원했습니다.');
       if (gpuReady) {
         setActionStatus(`고해상도 지도 준비 완료 · 국가 ${state.countriesData.features.length}개`, 'success');

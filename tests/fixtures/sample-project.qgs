@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qgis version="3.44.0">
+  <projectlayers>
+    <maplayer type="vector">
+      <layername>시험 국가 경계</layername>
+      <datasource>./sample-countries.geojson</datasource>
+      <provider>ogr</provider>
+      <renderer-v2 type="singleSymbol">
+        <symbols><symbol name="0"><layer><prop k="color" v="99,117,138,255" /></layer></symbol></symbols>
+      </renderer-v2>
+      <customproperties><property key="labeling/fieldName" value="NAME_KO" /></customproperties>
+    </maplayer>
+  </projectlayers>
+</qgis>
