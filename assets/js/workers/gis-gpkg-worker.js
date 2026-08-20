@@ -197,41 +197,6 @@ function writeAtlasTables(db, payload) {
   createFeatureTable(db, { tableName: 'drawings_line', geometryType: 'MULTILINESTRING', rows: lines, columns: drawingColumns, description: 'AtlasWright line drawings' });
   createFeatureTable(db, { tableName: 'drawings_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: drawingColumns, description: 'AtlasWright polygon drawings' });
 
-  const hydroColumns = [
-    { name: 'aw_id' }, { name: 'name' }, { name: 'name_ko' }, { name: 'name_en' },
-    { name: 'category' }, { name: 'scale_rank', type: 'INTEGER' }, { name: 'min_zoom', type: 'REAL' },
-    { name: 'stroke_width', type: 'REAL' }, { name: 'source' }, { name: 'source_id' },
-    { name: 'wikidata_id' }, { name: 'feature_class' }, { name: 'note' },
-  ];
-  for (const [layerId, collection] of Object.entries(state.hydroCollections || {})) {
-    if (!/^(rivers|lakes)_(base|europe|north_america|australia)$/.test(layerId)) continue;
-    const category = layerId.startsWith('lakes_') ? 'lake' : 'river';
-    const geometryType = category === 'lake' ? 'MULTIPOLYGON' : 'MULTILINESTRING';
-    const rows = (collection?.features || []).map(feature => ({
-      geometry: feature.geometry,
-      aw_id: feature.properties?.aw_id || feature.id || '',
-      name: feature.properties?.name || '',
-      name_ko: feature.properties?.name_ko || '',
-      name_en: feature.properties?.name_en || '',
-      category,
-      scale_rank: feature.properties?.scale_rank ?? null,
-      min_zoom: feature.properties?.min_zoom ?? null,
-      stroke_width: feature.properties?.stroke_width ?? null,
-      source: feature.properties?.source || 'Natural Earth 5.0.0 1:10m',
-      source_id: feature.properties?.source_id ?? '',
-      wikidata_id: feature.properties?.wikidata_id || '',
-      feature_class: feature.properties?.feature_class || '',
-      note: feature.properties?.note || '',
-    }));
-    createFeatureTable(db, {
-      tableName: layerId,
-      geometryType,
-      rows,
-      columns: hydroColumns,
-      description: `AtlasWright built-in ${category === 'lake' ? 'lakes' : 'rivers'} · Natural Earth 5.0.0 1:10m`,
-    });
-  }
-
   createAttributeTable(db, 'aw_project_settings', 'setting_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'AtlasWright project settings');
   const settings = { ...state };
   delete settings.countriesData;
