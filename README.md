@@ -1,6 +1,6 @@
-# AtlasWright v0.12.0
+# AtlasWright v0.12.1
 
-국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터, 1:10m 지형 음영과 Natural Earth 5.0.0 수계를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
+국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터, 1:10m 지형 음영, Natural Earth 기본 수계와 성능 기준으로 선별한 전 세계 Hydro 보충 수계를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
 ## 로컬 실행
 
@@ -30,7 +30,7 @@ python -m http.server 8080
 
 ## 레이어 폴더
 
-`국가`, `지형지물`, `도시·지명`, `국가명 라벨` 폴더를 펼쳐 개별 항목을 표시하거나 숨길 수 있습니다. `지형지물`에는 지형 음영, 전 세계 기본·유럽·북미·호주 보충 강과 호수, 사용자가 만든 지형지물이 함께 표시됩니다. 내장 수계는 잠겨 있으며 선택 후 `편집용 복사 만들기`를 사용하면 원본을 숨기고 같은 형상의 편집 객체를 만들 수 있습니다. 개별 표시 상태와 폴더 열림 상태는 자동저장 및 GeoPackage의 `aw_project_settings`에 보존됩니다.
+`국가`, `지형지물`, `도시·지명`, `국가명 라벨` 폴더를 펼쳐 개별 항목을 표시하거나 숨길 수 있습니다. `지형지물`에는 지형 음영, Natural Earth 기본 강·호수, 전 세계 Hydro 보충 강·호수와 사용자가 만든 지형지물이 표시됩니다. 내장 수계는 잠겨 있으며 선택 후 `편집용 복사 만들기`를 사용하면 원본을 숨기고 같은 형상의 편집 객체를 만들 수 있습니다. 개별 표시 상태와 폴더 열림 상태는 자동저장 및 GeoPackage의 `aw_project_settings`에 보존됩니다.
 
 국가명은 해외 영토를 포함한 전체 중심점 대신 가장 큰 연결 영토 내부의 최적 지점에 자동 배치됩니다.
 
@@ -50,12 +50,40 @@ AtlasWright는 운영체제·브라우저의 `prefers-color-scheme` 설정을 �
 
 보기 패널에서 `국가색 + 음영`과 `지형색 강조`를 전환하고 음영 강도를 조절할 수 있습니다. 지형은 Natural Earth raster 3.2.0의 `GRAY_HR_SR_OB`와 `HYP_HR_SR_OB_DR` 21,600×10,800 원본을 결합한 무손실 WebP 타일 피라미드입니다. RGB에는 자연 지형색·해저 수심을, 알파 채널에는 중립 음영을 넣어 스타일 전환 시 형상이나 타일을 다시 만들지 않습니다. 초기 국가지도 로딩을 막지 않으며 현재 화면에 필요한 단계의 타일만 불러옵니다.
 
-수계는 [Natural Earth 5.0.0의 1:10m Physical Vectors](https://www.naturalearthdata.com/downloads/10m-physical-vectors/) 강·호수 및 유럽·북미·호주 보충 자료입니다. 원본 좌표를 단순화하지 않았고 `name_ko → name_en → name` 순서로 이름을 표시합니다. 자동 수계 라벨은 포함하지 않습니다.
+수계는 [Natural Earth 5.0.0의 1:10m Physical Vectors](https://www.naturalearthdata.com/downloads/10m-physical-vectors/) 기본 강·호수와 HydroRIVERS 1.0·HydroLAKES 1.0의 전 세계 보충 자료입니다. Hydro 강은 `ORD_STRA + 4×log10(DIS_AV_CMS) - 0.5×log10(UPLAND_SKM)` 중요도 기준, 호수는 50㎢ 이상 기준으로 선별했습니다. 선택된 객체의 원본 꼭짓점은 단순화하지 않고 1e-6° 정밀도로 저장합니다.
 
-배포 자산을 다시 만들 때는 공식 ZIP을 작업용 폴더에 풀고 다음 명령을 실행합니다. `pyshp`와 Pillow가 필요하며 생성된 manifest에는 원본 파일 SHA-256과 변환 방식을 기록합니다.
+초기 실행에서는 100KiB 미만의 manifest만 읽고, 현재 화면과 확대 단계에 필요한 바이너리 타일만 Worker에서 복원합니다. WebGL에서는 수계를 정적 GPU 버퍼로 표시하며 캐시는 데스크톱 96MiB, 모바일 48MiB로 제한합니다. 자동 수계 라벨은 포함하지 않습니다.
+
+지형 배포 자산을 다시 만들 때는 공식 ZIP을 작업용 폴더에 풀고 다음 명령을 실행합니다. `pyshp`와 Pillow가 필요하며 생성된 manifest에는 원본 파일 SHA-256과 변환 방식을 기록합니다.
 
 ```powershell
 python tools/build-physical-data.py <Natural-Earth-원본-폴더> assets/data
+```
+
+### Hydro 전 세계 보충 자료 캘리브레이션
+
+`tools/calibrate-hydro.py`는 HydroRIVERS·HydroLAKES를 현재 Natural Earth 기본+지역 보충 수계와 비교하는 분석 전용 도구입니다. 유럽·북미·호주에 동일한 중요도 공식과 `min_zoom 6.0·6.7·7.0·7.5` 경계를 적용하고, 한반도는 별도 검증 범위로 사용합니다. Natural Earth 기본 수계 중복 제거, 단계별 길이·화면 점유율·호수 개수, 하천 체인 결합 시 좌표 보존과 예상 전 세계 용량을 함께 계산합니다.
+
+```powershell
+python -m pip install -r tools/requirements-hydro-calibration.txt
+python tools/calibrate-hydro.py `
+  --hydrorivers-root <HydroRIVERS-대륙별-폴더> `
+  --hydrolakes <HydroLAKES_polys_v10.shp> `
+  --natural-earth-root assets/data/hydro `
+  --output reports/hydro-calibration
+```
+
+분석 출력은 안전상 `assets/data` 아래로 지정할 수 없습니다. 캘리브레이션 원본 결과는 [`reports/hydro-calibration`](reports/hydro-calibration/README.md)에 보존되어 있습니다.
+
+실제 v0.12.1 타일은 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile과 HydroLAKES Shapefile이 필요합니다.
+
+```powershell
+python -m pip install -r tools/requirements-hydro-tiles.txt
+python tools/build-hydro-tiles.py `
+  --hydrorivers-root <HydroRIVERS-원본-폴더> `
+  --hydrolakes <HydroLAKES_polys_v10.shp> `
+  --natural-earth-root assets/data/hydro `
+  --output assets/data/hydro/v0.12.1
 ```
 
 ## QGIS 벡터 파일
@@ -78,18 +106,17 @@ QGS/QGZ는 데이터 자체를 항상 포함하지 않으므로, 프로젝트가
 - `countries`: EPSG:4326 MultiPolygon 국가와 원본 속성
 - `places`: 사용자 지명 Point
 - `drawings_point`, `drawings_line`, `drawings_polygon`: 지형지물과 기존 사용자 도형
-- `rivers_base`, `rivers_europe`, `rivers_north_america`, `rivers_australia`: 내장 강 벡터
-- `lakes_base`, `lakes_europe`, `lakes_north_america`, `lakes_australia`: 내장 호수 벡터
 - `aw_country_assets`: 국기 이미지 BLOB
-- `aw_project_settings`: 투영법, 카메라와 레이어 상태
+- `aw_project_settings`: 투영법, 카메라, 레이어 상태와 내장 수계 데이터 버전
 - `aw_source_info`: 원본 파일·드라이버·CRS·필드 매핑·SHA-256
 
-QGIS에서는 일반 벡터 레이어를 열어 편집할 수 있고, AtlasWright로 다시 열면 추가 테이블의 국기·메모·화면 상태도 복원됩니다. 자동저장은 별도의 AtlasWright 전용 IndexedDB에만 저장되며 공개 프로젝트 파일로 노출되지 않습니다.
+내장 전 세계 수계는 파일 용량이 중복되지 않도록 GeoPackage에 넣지 않습니다. 사용자가 만든 강·호수와 `편집용 복사`로 만든 객체만 `drawings_line`·`drawings_polygon`에 저장됩니다. QGIS에서는 이 사용자 벡터를 일반 레이어로 열어 편집할 수 있고, AtlasWright로 다시 열면 국기·메모·화면 상태와 내장 수계 버전도 복원됩니다. 자동저장은 별도의 AtlasWright 전용 IndexedDB에만 저장되며 공개 프로젝트 파일로 노출되지 않습니다.
 
 ## 지도 데이터와 라이선스
 
 - Natural Earth 5.1.1 Admin 0 Countries, 1:10m (퍼블릭 도메인)
 - [Natural Earth 5.0.0 Rivers + Lake Centerlines / Lakes + Reservoirs, 1:10m](https://www.naturalearthdata.com/downloads/10m-physical-vectors/) (퍼블릭 도메인)
+- [HydroRIVERS 1.0](https://www.hydrosheds.org/products/hydrorivers) / [HydroLAKES 1.0](https://www.hydrosheds.org/products/hydrolakes) (HydroSHEDS 라이선스 및 인용 조건 적용)
 - [Natural Earth raster 3.2.0 Gray Earth / Cross-blended Hypsometric Tints, 21,600×10,800](https://www.naturalearthdata.com/downloads/10m-raster-data/) (퍼블릭 도메인)
 - 258개 국가·속령·분쟁 단위, 원본 좌표 548,471개
 - gdal3.js 2.8.1 / GDAL 3.8.4 (LGPL-2.1-or-later)
