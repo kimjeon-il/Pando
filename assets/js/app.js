@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.0
+/* AtlasWright v0.12.1
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,10 +8,11 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.12.0';
+  const APP_VERSION = '0.12.1';
+  const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
-  const PHYSICAL_DATASET = 'Natural Earth 5.0.0 1:10m physical vectors · raster 3.2.0';
+  const PHYSICAL_DATASET = 'Natural Earth 5.0.0 base · HydroRIVERS/HydroLAKES 1.0 성능 필터 · raster 3.2.0';
 
   const STORAGE_KEY = 'atlaswright-editor-v010-project';
   const AUTOSAVE_DB_NAME = 'atlaswright-editor-v010';
@@ -31,14 +32,10 @@
     lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
   });
   const HYDRO_LAYER_META = Object.freeze({
-    rivers_base: Object.freeze({ label: '강 · 전 세계 기본', category: 'river', color: '#3b82c4' }),
-    rivers_europe: Object.freeze({ label: '강 · 유럽 보충', category: 'river', color: '#3b82c4' }),
-    rivers_north_america: Object.freeze({ label: '강 · 북미 보충', category: 'river', color: '#3b82c4' }),
-    rivers_australia: Object.freeze({ label: '강 · 호주 보충', category: 'river', color: '#3b82c4' }),
-    lakes_base: Object.freeze({ label: '호수 · 전 세계 기본', category: 'lake', color: '#5aa9d6' }),
-    lakes_europe: Object.freeze({ label: '호수 · 유럽 보충', category: 'lake', color: '#5aa9d6' }),
-    lakes_north_america: Object.freeze({ label: '호수 · 북미 보충', category: 'lake', color: '#5aa9d6' }),
-    lakes_australia: Object.freeze({ label: '호수 · 호주 보충', category: 'lake', color: '#5aa9d6' }),
+    rivers_base: Object.freeze({ label: '강 · Natural Earth 기본', category: 'river', color: '#3b82c4' }),
+    rivers_hydro: Object.freeze({ label: '강 · Hydro 보충', category: 'river', color: '#3b82c4' }),
+    lakes_base: Object.freeze({ label: '호수 · Natural Earth 기본', category: 'lake', color: '#5aa9d6' }),
+    lakes_hydro: Object.freeze({ label: '호수 · Hydro 보충', category: 'lake', color: '#5aa9d6' }),
   });
   const MAX_HISTORY = 30;
   const LAYOUT_QUERIES = {
@@ -85,7 +82,7 @@
   const $ = (id) => document.getElementById(id);
   function runtimeAssetUrl(relativePath) {
     const url = new URL(relativePath, ATLASWRIGHT_ASSET_BASE_URL);
-    url.searchParams.set('v', APP_VERSION);
+    url.searchParams.set('v', ASSET_REVISION);
     return url;
   }
   const REQUIRED_UI_IDS = Object.freeze([
@@ -353,13 +350,15 @@
       terrainStyle: 'political',
       terrainStrength: 0.32,
       hydroLayers: {
-        rivers_base: true, rivers_europe: true, rivers_north_america: true, rivers_australia: true,
-        lakes_base: true, lakes_europe: true, lakes_north_america: true, lakes_australia: true,
+        rivers_base: true, rivers_hydro: true,
+        lakes_base: true, lakes_hydro: true,
       },
       hiddenHydroIds: {},
       dataset: PHYSICAL_DATASET,
     },
     hydroCollections: {},
+    hydroFeatureCache: new Map(),
+    hydroFeatureByFid: new Map(),
     hydroManifest: null,
     terrainManifest: null,
     physicalLoadState: { terrain: 'idle', hydro: 'idle' },
@@ -467,6 +466,24 @@
     let lineProgram = null;
     let pickProgram = null;
     let terrainProgram = null;
+    let hydroFillProgram = null;
+    let hydroLineProgram = null;
+    let hydroPickProgram = null;
+    let hydroLinePickProgram = null;
+    let hydroCornerBuffer = null;
+    let instancedExtension = null;
+    let hydroVisibilityTexture = null;
+    let hydroVisibilityWidth = 1;
+    let hydroVisibilityHeight = 1;
+    let hydroManifest = null;
+    let hydroManifestUrl = null;
+    let hydroWorker = null;
+    let hydroWorkerReady = false;
+    let hydroPendingView = null;
+    let hydroViewKey = '';
+    let hydroRequestRevision = 0;
+    let hydroActivePackIds = new Set();
+    const hydroPacks = new Map();
     let fillVao = null;
     let lineVao = null;
     let positionBuffer = null;
@@ -622,6 +639,104 @@
         gl_Position = vec4(clip, 0.0, 1.0);
         vCountry = aCountry;
       }`;
+    const hydroRibbonVertexSourceWebGl2 = `#version 300 es
+      precision highp float;
+      precision highp int;
+      layout(location=0) in vec2 aCorner;
+      layout(location=1) in ivec2 aStart;
+      layout(location=2) in ivec2 aEnd;
+      layout(location=3) in uint aCountry;
+      layout(location=4) in float aWidth;
+      uniform vec2 uViewport;
+      uniform vec2 uTranslate;
+      uniform float uScale;
+      uniform vec3 uRowX;
+      uniform vec3 uRowY;
+      uniform vec3 uRowZ;
+      uniform vec2 uFlatCenter;
+      uniform float uWorldOffset;
+      uniform float uWidthBoost;
+      uniform int uMode;
+      out float vDepth;
+      flat out uint vCountry;
+      void projectCoord(ivec2 coord, out vec2 screenPoint, out float depth) {
+        float lon = float(coord.x) * 0.000001 * ${Math.PI / 180};
+        float lat = float(coord.y) * 0.000001 * ${Math.PI / 180};
+        if (uMode == 0) {
+          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
+          depth = dot(uRowZ, point);
+        } else {
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
+          depth = 1.0;
+        }
+      }
+      void main() {
+        vec2 startPoint;
+        vec2 endPoint;
+        float startDepth;
+        float endDepth;
+        projectCoord(aStart, startPoint, startDepth);
+        projectCoord(aEnd, endPoint, endDepth);
+        vec2 direction = endPoint - startPoint;
+        float segmentLength = length(direction);
+        direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
+        vec2 normal = vec2(-direction.y, direction.x);
+        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (aWidth + uWidthBoost) * 0.5;
+        vDepth = mix(startDepth, endDepth, aCorner.x);
+        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
+        gl_Position = vec4(clip, 0.0, 1.0);
+        vCountry = aCountry;
+      }`;
+    const hydroRibbonVertexSourceWebGl1 = `
+      precision highp float;
+      precision mediump int;
+      attribute vec2 aCorner;
+      attribute vec2 aStart;
+      attribute vec2 aEnd;
+      attribute float aCountry;
+      attribute float aWidth;
+      uniform vec2 uViewport;
+      uniform vec2 uTranslate;
+      uniform float uScale;
+      uniform vec3 uRowX;
+      uniform vec3 uRowY;
+      uniform vec3 uRowZ;
+      uniform vec2 uFlatCenter;
+      uniform float uWorldOffset;
+      uniform float uWidthBoost;
+      uniform int uMode;
+      varying float vDepth;
+      varying float vCountry;
+      void projectCoord(vec2 coord, out vec2 screenPoint, out float depth) {
+        float lon = coord.x * 0.000001 * ${Math.PI / 180};
+        float lat = coord.y * 0.000001 * ${Math.PI / 180};
+        if (uMode == 0) {
+          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
+          depth = dot(uRowZ, point);
+        } else {
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
+          depth = 1.0;
+        }
+      }
+      void main() {
+        vec2 startPoint;
+        vec2 endPoint;
+        float startDepth;
+        float endDepth;
+        projectCoord(aStart, startPoint, startDepth);
+        projectCoord(aEnd, endPoint, endDepth);
+        vec2 direction = endPoint - startPoint;
+        float segmentLength = length(direction);
+        direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
+        vec2 normal = vec2(-direction.y, direction.x);
+        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (aWidth + uWidthBoost) * 0.5;
+        vDepth = mix(startDepth, endDepth, aCorner.x);
+        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
+        gl_Position = vec4(clip, 0.0, 1.0);
+        vCountry = aCountry;
+      }`;
     const fillFragmentSourceWebGl1 = `
       precision highp float;
       precision mediump int;
@@ -770,6 +885,74 @@
         color = mix(color, color * vec3(0.60, 0.68, 0.76), uDarkTheme * 0.48);
         gl_FragColor = vec4(color, 1.0);
       }`;
+    const hydroFragmentSourceWebGl2 = `#version 300 es
+      precision highp float;
+      precision highp int;
+      in float vDepth;
+      flat in uint vCountry;
+      uniform sampler2D uHydroVisibility;
+      uniform ivec2 uHydroVisibilitySize;
+      uniform vec4 uHydroColor;
+      uniform int uMode;
+      out vec4 outColor;
+      void main() {
+        if (uMode == 0 && vDepth < 0.0) discard;
+        int featureId = int(vCountry);
+        ivec2 cell = ivec2(featureId % uHydroVisibilitySize.x, featureId / uHydroVisibilitySize.x);
+        if (texelFetch(uHydroVisibility, cell, 0).a <= 0.0) discard;
+        outColor = uHydroColor;
+      }`;
+    const hydroPickFragmentSourceWebGl2 = `#version 300 es
+      precision highp float;
+      precision highp int;
+      in float vDepth;
+      flat in uint vCountry;
+      uniform sampler2D uHydroVisibility;
+      uniform ivec2 uHydroVisibilitySize;
+      uniform int uMode;
+      out vec4 outColor;
+      void main() {
+        if (uMode == 0 && vDepth < 0.0) discard;
+        int featureId = int(vCountry);
+        ivec2 cell = ivec2(featureId % uHydroVisibilitySize.x, featureId / uHydroVisibilitySize.x);
+        if (texelFetch(uHydroVisibility, cell, 0).a <= 0.0) discard;
+        uint id = vCountry + 1u;
+        outColor = vec4(float(id & 255u), float((id >> 8u) & 255u), float((id >> 16u) & 255u), 255.0) / 255.0;
+      }`;
+    const hydroFragmentSourceWebGl1 = `
+      precision highp float;
+      precision mediump int;
+      varying float vDepth;
+      varying float vCountry;
+      uniform sampler2D uHydroVisibility;
+      uniform vec2 uHydroVisibilitySize;
+      uniform vec4 uHydroColor;
+      uniform int uMode;
+      void main() {
+        if (uMode == 0 && vDepth < 0.0) discard;
+        float featureId = floor(vCountry + 0.5);
+        float x = mod(featureId, uHydroVisibilitySize.x);
+        float y = floor(featureId / uHydroVisibilitySize.x);
+        if (texture2D(uHydroVisibility, vec2((x + 0.5) / uHydroVisibilitySize.x, (y + 0.5) / uHydroVisibilitySize.y)).a <= 0.0) discard;
+        gl_FragColor = uHydroColor;
+      }`;
+    const hydroPickFragmentSourceWebGl1 = `
+      precision highp float;
+      precision mediump int;
+      varying float vDepth;
+      varying float vCountry;
+      uniform sampler2D uHydroVisibility;
+      uniform vec2 uHydroVisibilitySize;
+      uniform int uMode;
+      void main() {
+        if (uMode == 0 && vDepth < 0.0) discard;
+        float featureId = floor(vCountry + 0.5);
+        float x = mod(featureId, uHydroVisibilitySize.x);
+        float y = floor(featureId / uHydroVisibilitySize.x);
+        if (texture2D(uHydroVisibility, vec2((x + 0.5) / uHydroVisibilitySize.x, (y + 0.5) / uHydroVisibilitySize.y)).a <= 0.0) discard;
+        float id = featureId + 1.0;
+        gl_FragColor = vec4(mod(id, 256.0), mod(floor(id / 256.0), 256.0), mod(floor(id / 65536.0), 256.0), 255.0) / 255.0;
+      }`;
 
     function compileShader(type, source) {
       const shader = gl.createShader(type);
@@ -819,6 +1002,7 @@
       glVersion = 0;
       webGlContextKind = '';
       uintIndexExtension = null;
+      instancedExtension = null;
       ctx2d = null;
       canvasWorkerBitmapContext = null;
       canvasWorker2dContext = null;
@@ -849,7 +1033,21 @@
         glVersion === 2 ? terrainVertexSourceWebGl2 : terrainVertexSourceWebGl1,
         glVersion === 2 ? terrainFragmentSourceWebGl2 : terrainFragmentSourceWebGl1,
       );
+      hydroFillProgram = createProgram(vertexSource, glVersion === 2 ? hydroFragmentSourceWebGl2 : hydroFragmentSourceWebGl1);
+      hydroLineProgram = createProgram(
+        glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
+        glVersion === 2 ? hydroFragmentSourceWebGl2 : hydroFragmentSourceWebGl1,
+      );
+      hydroPickProgram = createProgram(vertexSource, glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1);
+      hydroLinePickProgram = createProgram(
+        glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
+        glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1,
+      );
       paletteTexture = gl.createTexture();
+      hydroVisibilityTexture = gl.createTexture();
+      hydroCornerBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, -1, 0, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
       positionBuffer = gl.createBuffer();
       countryBuffer = gl.createBuffer();
       fillIndexBuffer = gl.createBuffer();
@@ -862,6 +1060,7 @@
       terrainTiles.clear();
       terrainTileRequests.clear();
       terrainGridMeshes.clear();
+      for (const entry of hydroPacks.values()) entry.resources = null;
     }
 
     function handleWebGlContextLost(event) {
@@ -889,6 +1088,8 @@
         if (glVersion === 1) {
           uintIndexExtension = gl.getExtension('OES_element_index_uint');
           if (!uintIndexExtension) throw new Error('WebGL1 32비트 인덱스를 지원하지 않습니다.');
+          instancedExtension = gl.getExtension('ANGLE_instanced_arrays');
+          if (!instancedExtension) throw new Error('WebGL1 인스턴스 수계 렌더링을 지원하지 않습니다.');
         }
         createWebGlResources();
         webglContextLost = false;
@@ -924,6 +1125,8 @@
       glVersion = version;
       uintIndexExtension = version === 1 ? gl.getExtension('OES_element_index_uint') : true;
       if (version === 1 && !uintIndexExtension) throw new Error('WebGL1 OES_element_index_uint를 지원하지 않습니다.');
+      instancedExtension = version === 1 ? gl.getExtension('ANGLE_instanced_arrays') : true;
+      if (version === 1 && !instancedExtension) throw new Error('WebGL1 ANGLE_instanced_arrays를 지원하지 않습니다.');
       createWebGlResources();
       canvas.addEventListener('webglcontextlost', handleWebGlContextLost);
       canvas.addEventListener('webglcontextrestored', handleWebGlContextRestored);
@@ -1233,6 +1436,302 @@
       }
     }
 
+    function createHydroBuffer(data, target = gl.ARRAY_BUFFER) {
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(target, buffer);
+      gl.bufferData(target, data, gl.STATIC_DRAW);
+      return buffer;
+    }
+
+    function uploadHydroPack(entry) {
+      if (!gl || !isWebGlRenderer() || entry.resources) return;
+      const meshData = entry.mesh;
+      const riverStarts = glVersion === 2 ? meshData.riverStarts : Float32Array.from(meshData.riverStarts);
+      const riverEnds = glVersion === 2 ? meshData.riverEnds : Float32Array.from(meshData.riverEnds);
+      const riverFeatureIds = glVersion === 2 ? meshData.riverFeatureIds : Float32Array.from(meshData.riverFeatureIds);
+      const lakePositions = glVersion === 2 ? meshData.lakePositions : Float32Array.from(meshData.lakePositions);
+      const lakeFeatureIds = glVersion === 2 ? meshData.lakeFeatureIds : Float32Array.from(meshData.lakeFeatureIds);
+      entry.resources = {
+        riverStartBuffer: createHydroBuffer(riverStarts),
+        riverEndBuffer: createHydroBuffer(riverEnds),
+        riverFeatureBuffer: createHydroBuffer(riverFeatureIds),
+        riverWidthBuffer: createHydroBuffer(meshData.riverWidths),
+        riverSegmentCount: meshData.riverFeatureIds.length,
+        lakePositionBuffer: createHydroBuffer(lakePositions),
+        lakeFeatureBuffer: createHydroBuffer(lakeFeatureIds),
+        lakeIndexBuffer: createHydroBuffer(meshData.lakeIndices, gl.ELEMENT_ARRAY_BUFFER),
+        lakeIndexCount: meshData.lakeIndices.length,
+      };
+    }
+
+    function deleteHydroPackResources(entry) {
+      if (!entry?.resources || !gl) return;
+      for (const key of ['riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverWidthBuffer', 'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer']) {
+        if (entry.resources[key]) gl.deleteBuffer(entry.resources[key]);
+      }
+      entry.resources = null;
+    }
+
+    function updateHydroVisibility() {
+      if (!gl || !hydroVisibilityTexture || !hydroManifest) return;
+      const count = Math.max(1, Number(hydroManifest.stats?.featureCount || 1));
+      hydroVisibilityWidth = Math.min(4096, Math.max(1, count));
+      hydroVisibilityHeight = Math.ceil(count / hydroVisibilityWidth);
+      const pixels = new Uint8Array(hydroVisibilityWidth * hydroVisibilityHeight * 4);
+      for (const feature of state.hydroFeatureCache?.values?.() || []) {
+        const fid = Number(feature.properties?.__fid);
+        if (!Number.isInteger(fid) || fid < 0 || fid >= count || !isHydroFeatureVisible(feature)) continue;
+        const offset = fid * 4;
+        pixels[offset] = pixels[offset + 1] = pixels[offset + 2] = pixels[offset + 3] = 255;
+      }
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, hydroVisibilityTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const internalFormat = glVersion === 2 ? gl.RGBA8 : gl.RGBA;
+      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, hydroVisibilityWidth, hydroVisibilityHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    }
+
+    function bindLakeAttributes(program, resources) {
+      const coordLocation = glVersion === 2 ? 0 : gl.getAttribLocation(program, 'aCoord');
+      const featureLocation = glVersion === 2 ? 1 : gl.getAttribLocation(program, 'aCountry');
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.lakePositionBuffer);
+      gl.enableVertexAttribArray(coordLocation);
+      if (glVersion === 2) gl.vertexAttribIPointer(coordLocation, 2, gl.INT, 0, 0);
+      else gl.vertexAttribPointer(coordLocation, 2, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.lakeFeatureBuffer);
+      gl.enableVertexAttribArray(featureLocation);
+      if (glVersion === 2) gl.vertexAttribIPointer(featureLocation, 1, gl.UNSIGNED_INT, 0, 0);
+      else gl.vertexAttribPointer(featureLocation, 1, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resources.lakeIndexBuffer);
+      return [coordLocation, featureLocation];
+    }
+
+    function setHydroUniforms(program, color) {
+      gl.useProgram(program);
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, hydroVisibilityTexture);
+      gl.uniform1i(gl.getUniformLocation(program, 'uHydroVisibility'), 2);
+      const sizeLocation = gl.getUniformLocation(program, 'uHydroVisibilitySize');
+      if (glVersion === 2) gl.uniform2i(sizeLocation, hydroVisibilityWidth, hydroVisibilityHeight);
+      else gl.uniform2f(sizeLocation, hydroVisibilityWidth, hydroVisibilityHeight);
+      const colorLocation = gl.getUniformLocation(program, 'uHydroColor');
+      if (colorLocation && color) gl.uniform4fv(colorLocation, color);
+    }
+
+    function setInstanceDivisor(location, divisor) {
+      if (glVersion === 2) gl.vertexAttribDivisor(location, divisor);
+      else instancedExtension.vertexAttribDivisorANGLE(location, divisor);
+    }
+
+    function bindRiverAttributes(program, resources) {
+      const locations = glVersion === 2 ? [0, 1, 2, 3, 4] : [
+        gl.getAttribLocation(program, 'aCorner'), gl.getAttribLocation(program, 'aStart'),
+        gl.getAttribLocation(program, 'aEnd'), gl.getAttribLocation(program, 'aCountry'),
+        gl.getAttribLocation(program, 'aWidth'),
+      ];
+      const [corner, start, end, feature, width] = locations;
+      gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
+      gl.enableVertexAttribArray(corner);
+      gl.vertexAttribPointer(corner, 2, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverStartBuffer);
+      gl.enableVertexAttribArray(start);
+      if (glVersion === 2) gl.vertexAttribIPointer(start, 2, gl.INT, 0, 0);
+      else gl.vertexAttribPointer(start, 2, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverEndBuffer);
+      gl.enableVertexAttribArray(end);
+      if (glVersion === 2) gl.vertexAttribIPointer(end, 2, gl.INT, 0, 0);
+      else gl.vertexAttribPointer(end, 2, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverFeatureBuffer);
+      gl.enableVertexAttribArray(feature);
+      if (glVersion === 2) gl.vertexAttribIPointer(feature, 1, gl.UNSIGNED_INT, 0, 0);
+      else gl.vertexAttribPointer(feature, 1, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverWidthBuffer);
+      gl.enableVertexAttribArray(width);
+      gl.vertexAttribPointer(width, 1, gl.FLOAT, false, 0, 0);
+      setInstanceDivisor(corner, 0);
+      for (const location of [start, end, feature, width]) setInstanceDivisor(location, 1);
+      return locations;
+    }
+
+    function drawHydroEntry(program, entry, category, color = null, picking = false) {
+      uploadHydroPack(entry);
+      const resources = entry.resources;
+      if (!resources) return;
+      const count = category === 'lake' ? resources.lakeIndexCount : resources.riverSegmentCount;
+      if (!count) return;
+      setHydroUniforms(program, color);
+      const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources);
+      const widthBoostLocation = gl.getUniformLocation(program, 'uWidthBoost');
+      if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 : 0);
+      const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
+      for (const offset of offsets) {
+        setViewUniforms(program, offset);
+        if (category === 'lake') gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, 0);
+        else if (glVersion === 2) gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
+        else instancedExtension.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP, 0, 4, count);
+      }
+      if (category === 'river') for (const location of locations.slice(1)) setInstanceDivisor(location, 0);
+      for (const location of locations) gl.disableVertexAttribArray(location);
+      entry.lastUsed = performance.now();
+    }
+
+    function drawHydro(category, picking = false) {
+      if (!hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return;
+      updateHydroVisibility();
+      const program = category === 'river'
+        ? (picking ? hydroLinePickProgram : hydroLineProgram)
+        : (picking ? hydroPickProgram : hydroFillProgram);
+      const color = category === 'lake' ? [0.353, 0.663, 0.839, 0.92] : [0.231, 0.510, 0.769, 0.96];
+      for (const packId of hydroActivePackIds) {
+        const entry = hydroPacks.get(packId);
+        if (entry) drawHydroEntry(program, entry, category, color, picking);
+      }
+    }
+
+    function hydroVisibleTileSpecs() {
+      if (!hydroManifest?.stages?.length) return [];
+      const threshold = hydroVisibilityThreshold();
+      const flatScale = Math.max(1, flatProjection.scale());
+      const flatHalfLon = state.size.width / flatScale * 90 / Math.PI + 2;
+      const flatHalfLat = state.size.height / flatScale * 90 / Math.PI + 2;
+      const flatCenter = state.view.flatCenter || [0, 0];
+      const globeCenter = [-Number(state.view.globeRotation?.[0] || 0), -Number(state.view.globeRotation?.[1] || 0)];
+      const globeRadius = Math.asin(Math.min(1, Math.hypot(state.size.width, state.size.height) * 0.5 / Math.max(1, globeProjection.scale())));
+      const specs = [];
+      for (const stage of hydroManifest.stages) {
+        if (Number(stage.minZoom) > threshold + 1e-9) continue;
+        const tileLon = 360 / stage.columns;
+        const tileLat = 180 / stage.rows;
+        for (let y = 0; y < stage.rows; y += 1) {
+          const centerLat = 90 - (y + 0.5) * tileLat;
+          for (let x = 0; x < stage.columns; x += 1) {
+            const centerLon = -180 + (x + 0.5) * tileLon;
+            let visible;
+            if (state.projection === 'flat') {
+              const deltaLon = Math.abs((((centerLon - flatCenter[0]) + 540) % 360) - 180);
+              visible = deltaLon <= flatHalfLon + tileLon / 2 && Math.abs(centerLat - flatCenter[1]) <= flatHalfLat + tileLat / 2;
+            } else {
+              const tileRadius = Math.hypot(tileLon, tileLat) * Math.PI / 360;
+              visible = d3.geo.distance(globeCenter, [centerLon, centerLat]) <= globeRadius + tileRadius + 0.04;
+            }
+            if (visible) specs.push({ stage: Number(stage.id), x, y });
+          }
+        }
+      }
+      return specs;
+    }
+
+    function requestHydroView() {
+      if (!hydroWorker || !hydroWorkerReady || !hydroManifest) return;
+      const tiles = hydroVisibleTileSpecs();
+      const key = tiles.map(spec => `${spec.stage}/${spec.x}-${spec.y}`).join('|');
+      if (key === hydroViewKey) return;
+      hydroViewKey = key;
+      const message = { type: 'view', revision: ++hydroRequestRevision, tiles };
+      hydroPendingView = message;
+      hydroWorker.postMessage(message);
+    }
+
+    let hydroRenderFrame = 0;
+    function queueHydroRender() {
+      if (hydroRenderFrame) return;
+      hydroRenderFrame = requestAnimationFrame(() => {
+        hydroRenderFrame = 0;
+        renderAll();
+      });
+    }
+
+    function receiveHydroWorkerMessage(event) {
+      const message = event.data || {};
+      if (message.type === 'ready') {
+        hydroWorkerReady = true;
+        hydroViewKey = '';
+        requestHydroView();
+        return;
+      }
+      if (message.type === 'active') {
+        hydroActivePackIds = new Set(message.packIds || []);
+        pruneHydroCache();
+        queueHydroRender();
+        return;
+      }
+      if (message.type === 'pack') {
+        const meshData = message.mesh || {};
+        const features = (message.features || []).map(prepareHydroFeature);
+        const entry = {
+          id: Number(message.packId), features, resources: null, lastUsed: performance.now(),
+          mesh: {
+            riverStarts: new Int32Array(meshData.riverStarts || 0),
+            riverEnds: new Int32Array(meshData.riverEnds || 0),
+            riverFeatureIds: new Uint32Array(meshData.riverFeatureIds || 0),
+            riverWidths: new Float32Array(meshData.riverWidths || 0),
+            lakePositions: new Int32Array(meshData.lakePositions || 0),
+            lakeFeatureIds: new Uint32Array(meshData.lakeFeatureIds || 0),
+            lakeIndices: new Uint32Array(meshData.lakeIndices || 0),
+          },
+        };
+        entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0)
+          + Number(message.sourceBytesEstimate || 0);
+        hydroPacks.set(entry.id, entry);
+        for (const feature of features) {
+          const id = String(feature.properties?.aw_id || feature.id);
+          state.hydroFeatureCache.set(id, feature);
+          state.hydroFeatureByFid.set(Number(feature.properties?.__fid), feature);
+        }
+        if (isWebGlRenderer()) uploadHydroPack(entry);
+        pruneHydroCache();
+        queueHydroRender();
+        return;
+      }
+      if (message.type === 'error') {
+        console.warn('Hydro tile worker failed', message.message);
+        setActionStatus(`현재 화면의 수계 데이터를 불러올 수 없습니다. 지도를 조금 이동하거나 다시 시도하세요. ${message.message || ''}`, 'error', 0);
+      }
+    }
+
+    function pruneHydroCache() {
+      const limit = (isMobile() ? 48 : 96) * 1024 * 1024;
+      let total = [...hydroPacks.values()].reduce((sum, entry) => sum + entry.byteLength, 0);
+      if (total <= limit) return;
+      const selectedPack = state.selected?.type === 'hydro' ? Number(hydroFeatureById(state.selected.id)?.properties?.pack_id) : -1;
+      const candidates = [...hydroPacks.values()]
+        .filter(entry => !hydroActivePackIds.has(entry.id) && entry.id !== selectedPack)
+        .sort((left, right) => left.lastUsed - right.lastUsed);
+      const released = [];
+      for (const entry of candidates) {
+        if (total <= limit) break;
+        deleteHydroPackResources(entry);
+        hydroPacks.delete(entry.id);
+        for (const feature of entry.features) {
+          state.hydroFeatureCache.delete(String(feature.properties?.aw_id || feature.id));
+          state.hydroFeatureByFid.delete(Number(feature.properties?.__fid));
+        }
+        total -= entry.byteLength;
+        released.push(entry.id);
+      }
+      if (released.length) hydroWorker?.postMessage({ type: 'release', packIds: released });
+    }
+
+    function setHydroManifest(nextManifest, sourceUrl) {
+      hydroManifest = nextManifest?.stages?.length ? nextManifest : null;
+      hydroManifestUrl = sourceUrl ? new URL(sourceUrl) : null;
+      hydroWorker?.terminate();
+      hydroWorker = null;
+      hydroWorkerReady = false;
+      hydroViewKey = '';
+      hydroActivePackIds.clear();
+      for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
+      hydroPacks.clear();
+      if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') return;
+      hydroWorker = new Worker(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'atlaswright-hydro-tiles' });
+      hydroWorker.onmessage = receiveHydroWorkerMessage;
+      hydroWorker.onerror = event => receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '수계 Worker 실행 오류' } });
+      hydroWorker.postMessage({ type: 'init', manifest: hydroManifest, baseUrl: new URL('./', hydroManifestUrl).href, assetRevision: ASSET_REVISION });
+    }
+
     function terrainLevelForView() {
       if (!terrainManifest?.levels?.length) return null;
       const scale = activeProjection().scale();
@@ -1427,6 +1926,7 @@
     function renderWebGl() {
       if (!gl || !mesh) return;
       resize();
+      requestHydroView();
       const started = performance.now();
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, pixelWidth, pixelHeight);
@@ -1434,13 +1934,15 @@
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.disable(gl.BLEND);
       renderTerrain();
+      updatePalette();
+      gl.enable(gl.BLEND);
+      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       if (state.layerVisibility.countries) {
-        updatePalette();
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
-        drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
       }
+      drawHydro('lake');
+      drawHydro('river');
+      if (state.layerVisibility.countries) drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
       frameTimes.push(performance.now() - started);
@@ -1521,6 +2023,7 @@
 
     function render(revision = currentRenderRevision) {
       currentRenderRevision = Math.max(currentRenderRevision, Number(revision || 0));
+      requestHydroView();
       if (isWebGlRenderer()) renderWebGl();
       else if (rendererMode === 'canvas-worker') renderCanvasWorker(currentRenderRevision);
       else if (rendererMode === 'canvas2d') renderCanvasFallback();
@@ -1691,6 +2194,28 @@
       return index >= 0 ? meshCountryIds[index] || null : null;
     }
 
+    function pickHydro(screenPoint) {
+      if (!isWebGlRenderer() || !gl || !hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return null;
+      resize();
+      try { ensurePickTarget(); } catch (_) { return null; }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
+      gl.viewport(0, 0, pixelWidth, pixelHeight);
+      gl.disable(gl.BLEND);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      drawHydro('lake', true);
+      drawHydro('river', true);
+      const dpr = pixelWidth / cssWidth;
+      const x = Math.max(0, Math.min(pixelWidth - 1, Math.round(screenPoint[0] * dpr)));
+      const y = Math.max(0, Math.min(pixelHeight - 1, Math.round(pixelHeight - 1 - screenPoint[1] * dpr)));
+      const pixel = new Uint8Array(4);
+      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+      gl.enable(gl.BLEND);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      const fid = (pixel[0] | (pixel[1] << 8) | (pixel[2] << 16)) - 1;
+      return fid >= 0 ? state.hydroFeatureByFid.get(fid) || null : null;
+    }
+
     async function initialize() {
       if (forcedRenderer === 'canvas') {
         activateCanvasFallback('강제 Canvas 테스트');
@@ -1757,10 +2282,14 @@
         terrainLevel: terrainLastLevel,
         terrainTilesLoaded: terrainTiles.size,
         terrainTilesLoading: terrainTileRequests.size,
+        hydroFeaturesLoaded: state.hydroFeatureCache?.size || 0,
+        hydroPacksLoaded: hydroPacks.size,
+        hydroPacksActive: hydroActivePackIds.size,
+        hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0),
       };
     }
 
-    return { attach, initialize, render, resize, verifyLayout, pick, rebuildFromCountries, prioritizeLatest, getStats, setTerrainManifest };
+    return { attach, initialize, render, resize, verifyLayout, pick, pickHydro, rebuildFromCountries, prioritizeLatest, getStats, setTerrainManifest, setHydroManifest };
   })();
 
   let gpuRebuildTimer = null;
@@ -1800,6 +2329,8 @@
 
   function hydroAtScreenPoint(screenPoint, coord) {
     if (!state.layerVisibility.drawings || state.tool !== 'select') return null;
+    const picked = gpuMapRenderer.pickHydro(screenPoint);
+    if (picked && isHydroFeatureVisible(picked) && hydroFeatureInView(picked)) return picked;
     const projection = activeProjection();
     const toleranceDegrees = 9 / Math.max(1, projection.scale()) * 180 / Math.PI;
     let nearest = null;
@@ -3364,7 +3895,13 @@
 
   function normalizePhysicalSettings(value) {
     const hydroLayers = {};
-    for (const id of Object.keys(HYDRO_LAYER_META)) hydroLayers[id] = value?.hydroLayers?.[id] !== false;
+    const legacyRiverSupplement = ['rivers_europe', 'rivers_north_america', 'rivers_australia'].some(id => value?.hydroLayers?.[id] !== false);
+    const legacyLakeSupplement = ['lakes_europe', 'lakes_north_america', 'lakes_australia'].some(id => value?.hydroLayers?.[id] !== false);
+    for (const id of Object.keys(HYDRO_LAYER_META)) {
+      if (id === 'rivers_hydro' && value?.hydroLayers?.[id] === undefined) hydroLayers[id] = legacyRiverSupplement;
+      else if (id === 'lakes_hydro' && value?.hydroLayers?.[id] === undefined) hydroLayers[id] = legacyLakeSupplement;
+      else hydroLayers[id] = value?.hydroLayers?.[id] !== false;
+    }
     return {
       terrainVisible: value?.terrainVisible !== false,
       terrainStyle: value?.terrainStyle === 'physical' ? 'physical' : 'political',
@@ -3392,11 +3929,14 @@
   }
 
   function allHydroFeatures() {
-    return Object.values(state.hydroCollections || {}).flatMap(collection => collection?.features || []);
+    const tiled = state.hydroFeatureCache instanceof Map ? [...state.hydroFeatureCache.values()] : [];
+    const legacy = Object.values(state.hydroCollections || {}).flatMap(collection => collection?.features || []);
+    return [...tiled, ...legacy];
   }
 
   function hydroFeatureById(id) {
     const key = String(id);
+    if (state.hydroFeatureCache instanceof Map && state.hydroFeatureCache.has(key)) return state.hydroFeatureCache.get(key);
     for (const feature of allHydroFeatures()) {
       if (String(feature.properties?.aw_id || feature.id || '') === key) return feature;
     }
@@ -3485,7 +4025,9 @@
           id: `hydro-layer:${id}`,
           name: meta.label,
           color: meta.color,
-          meta: state.hydroCollections[id]?.features ? `${state.hydroCollections[id].features.length.toLocaleString()}개 · 잠금` : state.physicalLoadState.hydro === 'error' ? '불러오기 실패' : '불러오는 중',
+          meta: state.hydroManifest?.stats?.layerCounts?.[id] !== undefined
+            ? `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 필요할 때 불러옴`
+            : state.physicalLoadState.hydro === 'error' ? '불러오기 실패' : '목록을 불러오는 중',
           selected: false,
         })),
         { id: 'user-terrain', name: '사용자 지형지물', color: '#7d5ca8', meta: `${state.drawings.length.toLocaleString()}개 · 편집 가능`, selected: false },
@@ -3725,11 +4267,11 @@
     renderLayerTree();
     try {
       const url = new URL('terrain/v0.12.0/manifest.json', PHYSICAL_DATA_BASE_URL);
-      url.searchParams.set('v', APP_VERSION);
+      url.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
-      if (manifest.version !== APP_VERSION || !manifest.levels?.length) throw new Error('지형 타일 버전이 맞지 않습니다.');
+      if (!manifest.levels?.length) throw new Error('지형 타일 manifest가 올바르지 않습니다.');
       state.terrainManifest = manifest;
       state.physicalLoadState.terrain = 'ready';
       gpuMapRenderer.setTerrainManifest(manifest);
@@ -3745,49 +4287,33 @@
     }
   }
 
-  async function loadHydroLayer(layerId, force = false) {
-    if (!HYDRO_LAYER_META[layerId]) return;
-    if (!force && state.hydroCollections[layerId]) return;
-    const manifestEntry = state.hydroManifest?.layers?.find(entry => entry.id === layerId);
-    if (!manifestEntry) return;
-    const url = new URL(manifestEntry.url, PHYSICAL_DATA_BASE_URL);
-    url.searchParams.set('v', APP_VERSION);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`${HYDRO_LAYER_META[layerId].label} HTTP ${response.status}`);
-    const collection = await response.json();
-    collection.features = (collection.features || []).map(prepareHydroFeature);
-    state.hydroCollections[layerId] = collection;
-    markLayerTreeDirty();
-    renderLayerTree();
-    renderHydro();
-  }
-
   async function loadHydroData(force = false) {
     if (!force && ['loading', 'ready'].includes(state.physicalLoadState.hydro)) return;
     state.physicalLoadState.hydro = 'loading';
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const manifestUrl = new URL('hydro/manifest.json', PHYSICAL_DATA_BASE_URL);
-      manifestUrl.searchParams.set('v', APP_VERSION);
+      const manifestUrl = new URL('hydro/v0.12.1/manifest.json', PHYSICAL_DATA_BASE_URL);
+      manifestUrl.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(manifestUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
-      if (manifest.version !== APP_VERSION) throw new Error('수계 데이터 버전이 맞지 않습니다.');
+      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-hydro-packs-v1') throw new Error('수계 타일 버전이 맞지 않습니다.');
       state.hydroManifest = manifest;
-      const results = await Promise.allSettled(Object.keys(HYDRO_LAYER_META).map(id => loadHydroLayer(id, force)));
-      const failed = results.filter(result => result.status === 'rejected');
-      state.physicalLoadState.hydro = failed.length === results.length ? 'error' : 'ready';
+      state.hydroCollections = {};
+      state.hydroFeatureCache = new Map();
+      state.hydroFeatureByFid = new Map();
+      gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
+      state.physicalLoadState.hydro = 'ready';
       markLayerTreeDirty();
       renderLayerTree();
       renderHydro();
-      if (failed.length) setActionStatus(`일부 수계 레이어를 불러오지 못했습니다. 지형지물 목록에서 다시 시도하세요. (${failed.length}개)`, 'error', 0);
     } catch (error) {
       state.physicalLoadState.hydro = 'error';
       markLayerTreeDirty();
       renderLayerTree();
       console.warn('Hydro load failed', error);
-      setActionStatus(`수계 데이터를 불러올 수 없습니다. 국가 지도는 계속 사용할 수 있습니다. ${error.message}`, 'error', 0);
+      setActionStatus(`수계 목록을 불러올 수 없습니다. 국가 지도는 계속 사용할 수 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도하세요. ${error.message}`, 'error', 0);
     }
   }
 
@@ -3822,33 +4348,37 @@
 
   function hydroRenderGroups(category) {
     const groups = new Map();
-    for (const [layerId, collection] of Object.entries(state.hydroCollections || {})) {
-      if (HYDRO_LAYER_META[layerId]?.category !== category || !hydroLayerVisible(layerId)) continue;
-      for (const feature of collection.features || []) {
-        if (!hydroFeatureInView(feature)) continue;
-        const width = category === 'river' ? Math.max(0.45, Math.min(3.2, Number(feature.properties?.stroke_width || 0.8))) : 1;
-        const widthBucket = Math.round(width * 2) / 2;
-        const key = `${layerId}:${widthBucket}`;
-        if (!groups.has(key)) groups.set(key, { key, layerId, width: widthBucket, features: [] });
-        groups.get(key).features.push(feature);
-      }
+    for (const feature of allHydroFeatures()) {
+      const layerId = feature.properties?.layer_id;
+      if (HYDRO_LAYER_META[layerId]?.category !== category || !hydroLayerVisible(layerId) || !hydroFeatureInView(feature)) continue;
+      const width = category === 'river' ? Math.max(0.45, Math.min(3.2, Number(feature.properties?.stroke_width || 0.8))) : 1;
+      const widthBucket = Math.round(width * 2) / 2;
+      const key = `${layerId}:${widthBucket}`;
+      if (!groups.has(key)) groups.set(key, { key, layerId, width: widthBucket, features: [] });
+      groups.get(key).features.push(feature);
     }
     return [...groups.values()].map(group => ({ ...group, collection: { type: 'FeatureCollection', features: group.features } }));
   }
 
   function renderHydro() {
     if (!hydroLakeLayer || !hydroRiverLayer) return;
-    const lakes = hydroRenderGroups('lake');
-    const lakeSelection = hydroLakeLayer.selectAll('path.hydro-lake-group').data(lakes, item => item.key);
-    lakeSelection.enter().append('path').attr('class', 'hydro-lake-group');
-    lakeSelection.attr('d', item => path(item.collection));
-    lakeSelection.exit().remove();
+    const gpuHydro = gpuMapRenderer.getStats().renderer === 'webgl2' || gpuMapRenderer.getStats().renderer === 'webgl1';
+    if (gpuHydro) {
+      hydroLakeLayer.selectAll('*').remove();
+      hydroRiverLayer.selectAll('*').remove();
+    } else {
+      const lakes = hydroRenderGroups('lake');
+      const lakeSelection = hydroLakeLayer.selectAll('path.hydro-lake-group').data(lakes, item => item.key);
+      lakeSelection.enter().append('path').attr('class', 'hydro-lake-group');
+      lakeSelection.attr('d', item => path(item.collection));
+      lakeSelection.exit().remove();
 
-    const rivers = hydroRenderGroups('river');
-    const riverSelection = hydroRiverLayer.selectAll('path.hydro-river-group').data(rivers, item => item.key);
-    riverSelection.enter().append('path').attr('class', 'hydro-river-group');
-    riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width}px`);
-    riverSelection.exit().remove();
+      const rivers = hydroRenderGroups('river');
+      const riverSelection = hydroRiverLayer.selectAll('path.hydro-river-group').data(rivers, item => item.key);
+      riverSelection.enter().append('path').attr('class', 'hydro-river-group');
+      riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width}px`);
+      riverSelection.exit().remove();
+    }
 
     const selected = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
     const selection = hydroSelectionLayer.selectAll('path.hydro-selected').data(selected && hydroFeatureInView(selected) ? [selected] : [], item => item.properties.aw_id);
@@ -5726,7 +6256,7 @@
     queueAutosave();
   }
 
-  function buildAtlasState({ includePhysicalVectors = false } = {}) {
+  function buildAtlasState() {
     const project = {
       format: 'atlaswright-project-state',
       version: APP_VERSION,
@@ -5745,29 +6275,18 @@
       baseDataset: BASE_DATASET,
       sourceInfo: state.sourceInfo,
     };
-    if (includePhysicalVectors) {
-      project.hydroCollections = state.hydroCollections;
-      project.physicalSourceInfo = {
-        terrain: {
-          dataset: state.terrainManifest?.dataset || TERRAIN_DATASET,
-          version: state.terrainManifest?.version || APP_VERSION,
-          sources: deepClone(state.terrainManifest?.sources || []),
-        },
-        hydro: {
-          dataset: state.hydroManifest?.dataset || HYDRO_DATASET,
-          version: state.hydroManifest?.version || APP_VERSION,
-          coordinatePolicy: state.hydroManifest?.coordinatePolicy || 'source coordinates retained without simplification',
-          layers: deepClone((state.hydroManifest?.layers || []).map(layer => ({
-            id: layer.id,
-            sourceFile: layer.sourceFile,
-            sourceSha256: layer.sourceSha256,
-            outputSha256: layer.outputSha256,
-            featureCount: layer.featureCount,
-            coordinateCount: layer.coordinateCount,
-          }))),
-        },
-      };
-    }
+    project.physicalSourceInfo = {
+      terrain: {
+        dataset: state.terrainManifest?.dataset || TERRAIN_DATASET,
+        version: state.terrainManifest?.version || '0.12.0',
+      },
+      hydro: {
+        dataset: state.hydroManifest?.dataset || HYDRO_DATASET,
+        version: state.hydroManifest?.version || APP_VERSION,
+        coordinatePolicy: state.hydroManifest?.coordinatePolicy || 'selected source coordinates retained without simplification',
+        selection: deepClone(state.hydroManifest?.selection || {}),
+      },
+    };
     return project;
   }
 
@@ -6170,8 +6689,7 @@
     if (button) button.disabled = true;
     setActionStatus('GeoPackage 저장을 준비하는 중입니다.', 'working', 0);
     try {
-      await loadHydroData();
-      const blob = await window.AtlasWrightGIS.exportGeoPackage(buildAtlasState({ includePhysicalVectors: true }), (message, percent) => {
+      const blob = await window.AtlasWrightGIS.exportGeoPackage(buildAtlasState(), (message, percent) => {
         setActionStatus(`${message}${Number.isFinite(percent) ? ` · ${Math.round(percent)}%` : ''}`, 'working', 0);
       });
       downloadBlob('AtlasWright-프로젝트.gpkg', blob);
@@ -6573,11 +7091,11 @@
       }
       if (key.startsWith('hydro-layer:')) {
         const layerId = key.slice('hydro-layer:'.length);
-        if (!state.hydroCollections[layerId]) {
-          if (!state.hydroManifest) loadHydroData(true);
-          else loadHydroLayer(layerId, true).catch(error => setActionStatus(`${HYDRO_LAYER_META[layerId]?.label || '수계'} 레이어를 불러올 수 없습니다. ${error.message}`, 'error', 0));
+        if (!state.hydroManifest) loadHydroData(true);
+        else {
+          const count = Number(state.hydroManifest?.stats?.layerCounts?.[layerId] || 0);
+          setActionStatus(`${HYDRO_LAYER_META[layerId]?.label || '수계'}에 ${count.toLocaleString()}개 객체가 있습니다. 현재 화면에 필요한 자료만 자동으로 불러옵니다.`, 'success', 3200);
         }
-        else setActionStatus(`${HYDRO_LAYER_META[layerId]?.label || '수계'} 레이어에 ${state.hydroCollections[layerId].features.length.toLocaleString()}개 객체가 있습니다.`, 'success', 2600);
         return;
       }
       const feature = state.drawings.find(item => String(item.id) === key);

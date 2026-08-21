@@ -1,7 +1,8 @@
 'use strict';
 
 (() => {
-  const BUILD_ID = '0.12.0';
+  const BUILD_ID = '0.12.1';
+  const ASSET_REVISION = '0.12.1-r2';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
   const overlay = document.getElementById('bootstrapLoading');
@@ -37,7 +38,7 @@
 
   function versionedAsset(relativePath) {
     const url = new URL(relativePath, assetBaseUrl);
-    url.searchParams.set('v', BUILD_ID);
+    url.searchParams.set('v', ASSET_REVISION);
     return url;
   }
 
@@ -57,6 +58,7 @@
 
   window.ATLASWRIGHT_ASSET_BASE_URL = assetBaseUrl.href;
   window.ATLASWRIGHT_BUILD_ID = BUILD_ID;
+  window.ATLASWRIGHT_ASSET_REVISION = ASSET_REVISION;
   const loader = new Worker(versionedAsset('./workers/data-loader-worker.js'), {
     name: 'atlaswright-data-loader',
   });
