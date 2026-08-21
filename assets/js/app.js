@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.1
+/* AtlasWright v0.12.2
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,11 +8,11 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.12.1';
+  const APP_VERSION = '0.12.2';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
-  const PHYSICAL_DATASET = 'Natural Earth 5.0.0 base · HydroRIVERS/HydroLAKES 1.0 성능 필터 · raster 3.2.0';
+  const PHYSICAL_DATASET = 'HydroRIVERS/HydroLAKES 1.0 · Natural Earth 명칭 보충 · raster 3.2.0';
 
   const STORAGE_KEY = 'atlaswright-editor-v010-project';
   const AUTOSAVE_DB_NAME = 'atlaswright-editor-v010';
@@ -32,10 +32,8 @@
     lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
   });
   const HYDRO_LAYER_META = Object.freeze({
-    rivers_base: Object.freeze({ label: '강 · Natural Earth 기본', category: 'river', color: '#3b82c4' }),
-    rivers_hydro: Object.freeze({ label: '강 · Hydro 보충', category: 'river', color: '#3b82c4' }),
-    lakes_base: Object.freeze({ label: '호수 · Natural Earth 기본', category: 'lake', color: '#5aa9d6' }),
-    lakes_hydro: Object.freeze({ label: '호수 · Hydro 보충', category: 'lake', color: '#5aa9d6' }),
+    rivers_hydro: Object.freeze({ label: '강 · Hydro', category: 'river', color: '#3b82c4' }),
+    lakes_hydro: Object.freeze({ label: '호수 · Hydro', category: 'lake', color: '#5aa9d6' }),
   });
   const MAX_HISTORY = 30;
   const LAYOUT_QUERIES = {
@@ -350,8 +348,8 @@
       terrainStyle: 'political',
       terrainStrength: 0.32,
       hydroLayers: {
-        rivers_base: true, rivers_hydro: true,
-        lakes_base: true, lakes_hydro: true,
+        rivers_hydro: true,
+        lakes_hydro: true,
       },
       hiddenHydroIds: {},
       dataset: PHYSICAL_DATASET,
@@ -646,7 +644,8 @@
       layout(location=1) in ivec2 aStart;
       layout(location=2) in ivec2 aEnd;
       layout(location=3) in uint aCountry;
-      layout(location=4) in float aWidth;
+      layout(location=4) in float aStartWidth;
+      layout(location=5) in float aEndWidth;
       uniform vec2 uViewport;
       uniform vec2 uTranslate;
       uniform float uScale;
@@ -682,7 +681,8 @@
         float segmentLength = length(direction);
         direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
         vec2 normal = vec2(-direction.y, direction.x);
-        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (aWidth + uWidthBoost) * 0.5;
+        float width = mix(aStartWidth, aEndWidth, aCorner.x);
+        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (width + uWidthBoost) * 0.5;
         vDepth = mix(startDepth, endDepth, aCorner.x);
         vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
         gl_Position = vec4(clip, 0.0, 1.0);
@@ -695,7 +695,8 @@
       attribute vec2 aStart;
       attribute vec2 aEnd;
       attribute float aCountry;
-      attribute float aWidth;
+      attribute float aStartWidth;
+      attribute float aEndWidth;
       uniform vec2 uViewport;
       uniform vec2 uTranslate;
       uniform float uScale;
@@ -731,7 +732,8 @@
         float segmentLength = length(direction);
         direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
         vec2 normal = vec2(-direction.y, direction.x);
-        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (aWidth + uWidthBoost) * 0.5;
+        float width = mix(aStartWidth, aEndWidth, aCorner.x);
+        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (width + uWidthBoost) * 0.5;
         vDepth = mix(startDepth, endDepth, aCorner.x);
         vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
         gl_Position = vec4(clip, 0.0, 1.0);
@@ -1455,7 +1457,8 @@
         riverStartBuffer: createHydroBuffer(riverStarts),
         riverEndBuffer: createHydroBuffer(riverEnds),
         riverFeatureBuffer: createHydroBuffer(riverFeatureIds),
-        riverWidthBuffer: createHydroBuffer(meshData.riverWidths),
+        riverStartWidthBuffer: createHydroBuffer(meshData.riverStartWidths),
+        riverEndWidthBuffer: createHydroBuffer(meshData.riverEndWidths),
         riverSegmentCount: meshData.riverFeatureIds.length,
         lakePositionBuffer: createHydroBuffer(lakePositions),
         lakeFeatureBuffer: createHydroBuffer(lakeFeatureIds),
@@ -1466,7 +1469,7 @@
 
     function deleteHydroPackResources(entry) {
       if (!entry?.resources || !gl) return;
-      for (const key of ['riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverWidthBuffer', 'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer']) {
+      for (const key of ['riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverStartWidthBuffer', 'riverEndWidthBuffer', 'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer']) {
         if (entry.resources[key]) gl.deleteBuffer(entry.resources[key]);
       }
       entry.resources = null;
@@ -1527,12 +1530,12 @@
     }
 
     function bindRiverAttributes(program, resources) {
-      const locations = glVersion === 2 ? [0, 1, 2, 3, 4] : [
+      const locations = glVersion === 2 ? [0, 1, 2, 3, 4, 5] : [
         gl.getAttribLocation(program, 'aCorner'), gl.getAttribLocation(program, 'aStart'),
         gl.getAttribLocation(program, 'aEnd'), gl.getAttribLocation(program, 'aCountry'),
-        gl.getAttribLocation(program, 'aWidth'),
+        gl.getAttribLocation(program, 'aStartWidth'), gl.getAttribLocation(program, 'aEndWidth'),
       ];
-      const [corner, start, end, feature, width] = locations;
+      const [corner, start, end, feature, startWidth, endWidth] = locations;
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
       gl.enableVertexAttribArray(corner);
       gl.vertexAttribPointer(corner, 2, gl.FLOAT, false, 0, 0);
@@ -1548,11 +1551,14 @@
       gl.enableVertexAttribArray(feature);
       if (glVersion === 2) gl.vertexAttribIPointer(feature, 1, gl.UNSIGNED_INT, 0, 0);
       else gl.vertexAttribPointer(feature, 1, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverWidthBuffer);
-      gl.enableVertexAttribArray(width);
-      gl.vertexAttribPointer(width, 1, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverStartWidthBuffer);
+      gl.enableVertexAttribArray(startWidth);
+      gl.vertexAttribPointer(startWidth, 1, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverEndWidthBuffer);
+      gl.enableVertexAttribArray(endWidth);
+      gl.vertexAttribPointer(endWidth, 1, gl.FLOAT, false, 0, 0);
       setInstanceDivisor(corner, 0);
-      for (const location of [start, end, feature, width]) setInstanceDivisor(location, 1);
+      for (const location of [start, end, feature, startWidth, endWidth]) setInstanceDivisor(location, 1);
       return locations;
     }
 
@@ -1667,7 +1673,8 @@
             riverStarts: new Int32Array(meshData.riverStarts || 0),
             riverEnds: new Int32Array(meshData.riverEnds || 0),
             riverFeatureIds: new Uint32Array(meshData.riverFeatureIds || 0),
-            riverWidths: new Float32Array(meshData.riverWidths || 0),
+            riverStartWidths: new Float32Array(meshData.riverStartWidths || 0),
+            riverEndWidths: new Float32Array(meshData.riverEndWidths || 0),
             lakePositions: new Int32Array(meshData.lakePositions || 0),
             lakeFeatureIds: new Uint32Array(meshData.lakeFeatureIds || 0),
             lakeIndices: new Uint32Array(meshData.lakeIndices || 0),
@@ -3894,21 +3901,25 @@
   let renderedLayerTreeRevision = -1;
 
   function normalizePhysicalSettings(value) {
-    const hydroLayers = {};
-    const legacyRiverSupplement = ['rivers_europe', 'rivers_north_america', 'rivers_australia'].some(id => value?.hydroLayers?.[id] !== false);
-    const legacyLakeSupplement = ['lakes_europe', 'lakes_north_america', 'lakes_australia'].some(id => value?.hydroLayers?.[id] !== false);
-    for (const id of Object.keys(HYDRO_LAYER_META)) {
-      if (id === 'rivers_hydro' && value?.hydroLayers?.[id] === undefined) hydroLayers[id] = legacyRiverSupplement;
-      else if (id === 'lakes_hydro' && value?.hydroLayers?.[id] === undefined) hydroLayers[id] = legacyLakeSupplement;
-      else hydroLayers[id] = value?.hydroLayers?.[id] !== false;
-    }
+    const previousLayers = value?.hydroLayers || {};
+    const mergeVisibility = ids => {
+      const defined = ids.filter(id => typeof previousLayers[id] === 'boolean');
+      return defined.length ? defined.some(id => previousLayers[id] !== false) : true;
+    };
+    const hydroLayers = {
+      rivers_hydro: mergeVisibility(['rivers_hydro', 'rivers_base', 'rivers_europe', 'rivers_north_america', 'rivers_australia']),
+      lakes_hydro: mergeVisibility(['lakes_hydro', 'lakes_base', 'lakes_europe', 'lakes_north_america', 'lakes_australia']),
+    };
+    const hiddenHydroIds = Object.fromEntries(Object.entries(value?.hiddenHydroIds || {}).filter(([id, hidden]) => (
+      hidden === true && !String(id).startsWith('rivers_base:') && !String(id).startsWith('lakes_base:')
+    )));
     return {
       terrainVisible: value?.terrainVisible !== false,
       terrainStyle: value?.terrainStyle === 'physical' ? 'physical' : 'political',
       terrainStrength: clamp(Number(value?.terrainStrength ?? 0.32), 0, 1),
       hydroLayers,
       userFeaturesVisible: value?.userFeaturesVisible !== false,
-      hiddenHydroIds: value?.hiddenHydroIds && typeof value.hiddenHydroIds === 'object' ? { ...value.hiddenHydroIds } : {},
+      hiddenHydroIds,
       dataset: PHYSICAL_DATASET,
     };
   }
@@ -4293,12 +4304,12 @@
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const manifestUrl = new URL('hydro/v0.12.1/manifest.json', PHYSICAL_DATA_BASE_URL);
+      const manifestUrl = new URL('hydro/v0.12.2/manifest.json', PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(manifestUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
-      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-hydro-packs-v1') throw new Error('수계 타일 버전이 맞지 않습니다.');
+      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-hydro-packs-v2') throw new Error('수계 타일 버전이 맞지 않습니다.');
       state.hydroManifest = manifest;
       state.hydroCollections = {};
       state.hydroFeatureCache = new Map();
@@ -4348,14 +4359,35 @@
 
   function hydroRenderGroups(category) {
     const groups = new Map();
-    for (const feature of allHydroFeatures()) {
-      const layerId = feature.properties?.layer_id;
-      if (HYDRO_LAYER_META[layerId]?.category !== category || !hydroLayerVisible(layerId) || !hydroFeatureInView(feature)) continue;
-      const width = category === 'river' ? Math.max(0.45, Math.min(3.2, Number(feature.properties?.stroke_width || 0.8))) : 1;
-      const widthBucket = Math.round(width * 2) / 2;
+    const addFeature = (layerId, width, feature) => {
+      const widthBucket = category === 'river' ? Math.round(width * 10) / 10 : 1;
       const key = `${layerId}:${widthBucket}`;
       if (!groups.has(key)) groups.set(key, { key, layerId, width: widthBucket, features: [] });
       groups.get(key).features.push(feature);
+    };
+    for (const feature of allHydroFeatures()) {
+      const layerId = feature.properties?.layer_id;
+      if (HYDRO_LAYER_META[layerId]?.category !== category || !hydroLayerVisible(layerId) || !hydroFeatureInView(feature)) continue;
+      if (category !== 'river') {
+        addFeature(layerId, 1, feature);
+        continue;
+      }
+      const parts = hydroLineParts(feature.geometry);
+      const widthProfiles = feature.properties?.stroke_widths || [];
+      const fallbackWidth = Math.max(0.55, Math.min(2.6, Number(feature.properties?.stroke_width || 0.8)));
+      for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
+        const part = parts[partIndex];
+        const widths = widthProfiles[partIndex] || [];
+        for (let index = 0; index < part.length - 1; index += 1) {
+          const startWidth = Number(widths[index] ?? fallbackWidth);
+          const endWidth = Number(widths[index + 1] ?? startWidth);
+          addFeature(layerId, (startWidth + endWidth) / 2, {
+            type: 'Feature',
+            properties: feature.properties,
+            geometry: { type: 'LineString', coordinates: [part[index], part[index + 1]] },
+          });
+        }
+      }
     }
     return [...groups.values()].map(group => ({ ...group, collection: { type: 'FeatureCollection', features: group.features } }));
   }
@@ -6009,7 +6041,7 @@
     $('hydroNameValue').textContent = properties.name || '이름 없음';
     $('hydroCategoryValue').textContent = category;
     $('hydroLayerValue').textContent = HYDRO_LAYER_META[properties.layer_id]?.label || properties.layer_id || '수계';
-    $('hydroSourceValue').textContent = properties.source || 'Natural Earth 5.0.0 1:10m';
+    $('hydroSourceValue').textContent = properties.source || 'HydroRIVERS/HydroLAKES 1.0';
     $('selectionStatus').textContent = `${category} · ${properties.name || '이름 없음'}`;
     markLayerTreeDirty();
     renderAll();
@@ -6033,8 +6065,8 @@
         name: source.properties?.name || '',
         category,
         editorColor: TERRAIN_TOOL_CONFIG[category].color,
-        notes: `Natural Earth 편집용 복사본 · 원본 ${source.properties?.aw_id || source.id}`,
-        source: source.properties?.source || 'Natural Earth 5.0.0 1:10m',
+        notes: `Hydro 편집용 복사본 · 원본 ${source.properties?.aw_id || source.id}`,
+        source: source.properties?.source || 'HydroRIVERS/HydroLAKES 1.0',
         sourceFeatureId: source.properties?.aw_id || source.id,
       },
     };
