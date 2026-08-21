@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.1 hydro tile loader and mesh worker. */
+/* AtlasWright v0.12.2 hydro tile loader and mesh worker. */
 'use strict';
 
 importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js');
@@ -99,6 +99,42 @@ function readGeometry(bytes, geometryKind) {
   return geometryKind === 3 ? { type: 'Polygon', coordinates: polygons[0] || [] } : { type: 'MultiPolygon', coordinates: polygons };
 }
 
+function readWidthProfile(bytes, geometry) {
+  if (!bytes?.length) return [];
+  const cursor = { offset: 0 };
+  const partCount = readUVarint(bytes, cursor);
+  const geometryParts = lineParts(geometry);
+  if (partCount !== geometryParts.length) throw new Error('강 너비 part 수가 지오메트리와 다릅니다.');
+  const profiles = new Array(partCount);
+  for (let partIndex = 0; partIndex < partCount; partIndex += 1) {
+    const count = readUVarint(bytes, cursor);
+    if (count !== geometryParts[partIndex].length) throw new Error('강 너비 꼭짓점 수가 지오메트리와 다릅니다.');
+    const widths = new Array(count);
+    let width = count ? readUVarint(bytes, cursor) : 0;
+    for (let index = 0; index < count; index += 1) {
+      if (index > 0) width += readSVarint(bytes, cursor);
+      widths[index] = width / 1000;
+    }
+    profiles[partIndex] = widths;
+  }
+  if (cursor.offset !== bytes.length) throw new Error('강 너비 데이터에 불필요한 바이트가 있습니다.');
+  return profiles;
+}
+
+function readSourceIds(bytes) {
+  if (!bytes?.length) return '';
+  const cursor = { offset: 0 };
+  const count = readUVarint(bytes, cursor);
+  const sourceIds = new Array(count);
+  let sourceId = count ? readUVarint(bytes, cursor) : 0;
+  for (let index = 0; index < count; index += 1) {
+    if (index > 0) sourceId += readSVarint(bytes, cursor);
+    sourceIds[index] = String(sourceId);
+  }
+  if (cursor.offset !== bytes.length) throw new Error('강 원본 ID 데이터에 불필요한 바이트가 있습니다.');
+  return sourceIds.join(',');
+}
+
 function lineParts(geometry) {
   if (geometry.type === 'LineString') return [geometry.coordinates];
   if (geometry.type === 'MultiLineString') return geometry.coordinates;
@@ -122,21 +158,27 @@ function buildMesh(features) {
   const riverStarts = [];
   const riverEnds = [];
   const riverFeatureIds = [];
-  const riverWidths = [];
+  const riverStartWidths = [];
+  const riverEndWidths = [];
   const lakePositions = [];
   const lakeFeatureIds = [];
   const lakeIndices = [];
   for (const feature of features) {
     const fid = Number(feature.properties.__fid);
     if (feature.properties.category === 'river') {
-      for (const part of lineParts(feature.geometry)) {
+      const parts = lineParts(feature.geometry);
+      const widthProfiles = feature.properties.stroke_widths || [];
+      for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
+        const part = parts[partIndex];
+        const widths = widthProfiles[partIndex] || [];
         for (let index = 0; index < part.length - 1; index += 1) {
           const a = part[index];
           const b = part[index + 1];
           riverStarts.push(Math.round(a[0] * 1e6), Math.round(a[1] * 1e6));
           riverEnds.push(Math.round(b[0] * 1e6), Math.round(b[1] * 1e6));
           riverFeatureIds.push(fid);
-          riverWidths.push(Number(feature.properties.stroke_width || 0.8));
+          riverStartWidths.push(Number(widths[index] ?? feature.properties.stroke_width ?? 0.8));
+          riverEndWidths.push(Number(widths[index + 1] ?? widths[index] ?? feature.properties.stroke_width ?? 0.8));
         }
       }
       continue;
@@ -166,7 +208,8 @@ function buildMesh(features) {
     riverStarts: new Int32Array(riverStarts),
     riverEnds: new Int32Array(riverEnds),
     riverFeatureIds: new Uint32Array(riverFeatureIds),
-    riverWidths: new Float32Array(riverWidths),
+    riverStartWidths: new Float32Array(riverStartWidths),
+    riverEndWidths: new Float32Array(riverEndWidths),
     lakePositions: new Int32Array(lakePositions),
     lakeFeatureIds: new Uint32Array(lakeFeatureIds),
     lakeIndices: new Uint32Array(lakeIndices),
@@ -175,7 +218,7 @@ function buildMesh(features) {
 
 function readPack(bytes, packId) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (view.getUint32(0, true) !== 0x46485741 || view.getUint16(4, true) !== 1) throw new Error('수계 feature pack 형식이 올바르지 않습니다.');
+  if (view.getUint32(0, true) !== 0x46485741 || view.getUint16(4, true) !== 2) throw new Error('수계 feature pack 형식이 올바르지 않습니다.');
   const count = view.getUint32(8, true);
   const features = [];
   let offset = 12;
@@ -187,23 +230,32 @@ function readPack(bytes, packId) {
     const width = view.getFloat32(offset + 8, true);
     const bounds = [0, 1, 2, 3].map(item => view.getInt32(offset + 12 + item * 4, true) / 1e6);
     const lengths = [0, 1, 2, 3, 4].map(item => view.getUint16(offset + 28 + item * 2, true));
-    const payloadLength = view.getUint32(offset + 38, true);
-    offset += 42;
+    const sourcePayloadLength = view.getUint32(offset + 38, true);
+    const payloadLength = view.getUint32(offset + 42, true);
+    const widthPayloadLength = view.getUint32(offset + 46, true);
+    offset += 50;
     const strings = [];
     for (const length of lengths) {
       strings.push(textDecoder.decode(bytes.subarray(offset, offset + length)));
       offset += length;
     }
+    const sourceIdPayload = bytes.subarray(offset, offset + sourcePayloadLength);
+    offset += sourcePayloadLength;
     const geometry = readGeometry(bytes.subarray(offset, offset + payloadLength), geometryKind);
     offset += payloadLength;
+    const widthProfile = kind === 1
+      ? readWidthProfile(bytes.subarray(offset, offset + widthPayloadLength), geometry)
+      : [];
+    offset += widthPayloadLength;
     const category = kind === 1 ? 'river' : 'lake';
-    const [awId, name, sourceId, source, layerId] = strings;
+    const [awId, name, legacySourceId, source, layerId] = strings;
+    const sourceId = sourceIdPayload.length ? readSourceIds(sourceIdPayload) : legacySourceId;
     features.push({
       type: 'Feature', id: awId,
       properties: {
         __fid: fid, aw_id: awId, layer_id: layerId, category, name, name_ko: name,
         source_id: sourceId, source, min_zoom: manifest.stages[stage].minZoom, stage,
-        stroke_width: width, pack_id: packId,
+        stroke_width: width, stroke_widths: widthProfile, pack_id: packId,
       },
       geometry,
       __awBounds: bounds,
@@ -250,12 +302,13 @@ async function processView(message) {
         riverStarts: mesh.riverStarts.buffer,
         riverEnds: mesh.riverEnds.buffer,
         riverFeatureIds: mesh.riverFeatureIds.buffer,
-        riverWidths: mesh.riverWidths.buffer,
+        riverStartWidths: mesh.riverStartWidths.buffer,
+        riverEndWidths: mesh.riverEndWidths.buffer,
         lakePositions: mesh.lakePositions.buffer,
         lakeFeatureIds: mesh.lakeFeatureIds.buffer,
         lakeIndices: mesh.lakeIndices.buffer,
       },
-    }, [mesh.riverStarts.buffer, mesh.riverEnds.buffer, mesh.riverFeatureIds.buffer, mesh.riverWidths.buffer, mesh.lakePositions.buffer, mesh.lakeFeatureIds.buffer, mesh.lakeIndices.buffer]);
+    }, [mesh.riverStarts.buffer, mesh.riverEnds.buffer, mesh.riverFeatureIds.buffer, mesh.riverStartWidths.buffer, mesh.riverEndWidths.buffer, mesh.lakePositions.buffer, mesh.lakeFeatureIds.buffer, mesh.lakeIndices.buffer]);
     postedPacks.add(packId);
     packCache.delete(packId);
   }
