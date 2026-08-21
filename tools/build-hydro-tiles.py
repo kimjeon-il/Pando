@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.12.2 Hydro-only hydrography packs.
+"""Build AtlasWright v0.12.3 connected Hydro hydrography shards.
 
 HydroRIVERS/HydroLAKES provide the canonical geometry. Natural Earth is used
 only to enrich matched feature names. Selected source coordinates are quantized
@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import gzip
 import hashlib
+import heapq
 import json
 import math
 import os
@@ -23,22 +24,23 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator, Sequence
 
 import shapefile
-from shapely.geometry import LineString, MultiLineString, MultiPolygon, Polygon, box, shape
-from shapely.ops import transform
+from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, Polygon, box, shape
+from shapely.ops import nearest_points, transform, unary_union
 from shapely.strtree import STRtree
 
 
-VERSION = "0.12.2"
-PACK_FORMAT_VERSION = 2
+VERSION = "0.12.3"
+PACK_FORMAT_VERSION = 3
 MICRO = 1_000_000
 RIVER_FLOW_WEIGHT = 4.0
 RIVER_AREA_WEIGHT = -0.5
-RIVER_THRESHOLDS = (14.4744, 12.4307, 11.2137, 10.65)
+RIVER_THRESHOLDS = (14.4744, 12.4307, 11.2137, 10.55)
 LAKE_THRESHOLDS_KM2 = (250.0, 100.0, 40.0, 40.0)
 STAGE_MIN_ZOOM = (6.0, 6.7, 7.0, 7.5)
 STAGE_GRIDS = ((8, 4), (16, 8), (32, 16), (64, 32))
-PACK_RAW_LIMIT = 6 * 1024 * 1024
-MAX_TOTAL_GZIP_MIB = 40.0
+PACK_RAW_LIMIT = 512 * 1024
+SHARD_GZIP_LIMIT = 4 * 1024 * 1024
+MAX_TOTAL_GZIP_MIB = 48.0
 CONTINUITY_MIN_ORDER = 5
 CONTINUITY_MIN_FLOW_CMS = 75.0
 CONTINUITY_MIN_SCORE = 10.86
@@ -54,6 +56,7 @@ def remove_readonly(function, path: str, _error: object) -> None:
 @dataclass
 class BuiltFeature:
     fid: int
+    logical_fid: int
     aw_id: str
     layer_id: str
     category: str
@@ -65,6 +68,8 @@ class BuiltFeature:
     geometry: dict[str, Any]
     bounds: tuple[float, float, float, float]
     width_profile: list[list[float]] | None = None
+    fragment_index: int = 0
+    fragment_count: int = 1
 
 
 @dataclass
@@ -79,6 +84,8 @@ class RiverReach:
     width: float
     end_width: float
     parts: list[list[tuple[float, float]]]
+    endorheic: bool = False
+    render_snap: tuple[float, float] | None = None
 
 
 @dataclass(slots=True)
@@ -93,6 +100,7 @@ class RiverMeta:
     record_index: int
     width: float
     corrected_width: float
+    endorheic: bool
 
 
 def sha256(path: Path) -> str:
@@ -262,12 +270,97 @@ def line_direction(line: LineString) -> tuple[float, float]:
     return dx / length, dy / length
 
 
-def read_selected_rivers(path: Path) -> tuple[list[RiverReach], tuple[float, float, float, float], dict[str, int]]:
-    """Select score seeds, then retain each seed's dominant upstream trunk."""
+class ReferenceGuides:
+    """Natural Earth lines used only to select/name the corresponding Hydro spine."""
+
+    def __init__(self, features: Sequence[dict[str, Any]]):
+        self.lines: list[LineString] = []
+        self.names: list[str] = []
+        for feature in features:
+            properties = feature.get("properties") or {}
+            name = str(properties.get("name_ko") or properties.get("name_en") or properties.get("name") or "").strip()
+            geometry = shape(feature.get("geometry"))
+            candidates = [geometry] if isinstance(geometry, LineString) else list(getattr(geometry, "geoms", []))
+            for line in candidates:
+                if isinstance(line, LineString) and len(line.coords) >= 2:
+                    self.lines.append(line)
+                    self.names.append(name)
+        self.tree = STRtree(self.lines)
+
+    def nearest(self, line: LineString, max_distance: float = 0.22) -> tuple[LineString, str] | None:
+        if line.is_empty or not self.lines:
+            return None
+        index = int(self.tree.nearest(line))
+        reference = self.lines[index]
+        return (reference, self.names[index]) if line.distance(reference) <= max_distance else None
+
+
+class CoastSnapper:
+    """Snap only sub-2km Hydro outlet offsets to the canonical land coastline."""
+
+    def __init__(self, countries_path: Path):
+        features = json.loads(countries_path.read_text(encoding="utf-8"))["features"]
+        coastline = unary_union([shape(feature["geometry"]) for feature in features]).boundary
+        self.lines = list(coastline.geoms) if hasattr(coastline, "geoms") else [coastline]
+        self.tree = STRtree(self.lines)
+
+    def snap(self, point: tuple[float, float], max_km: float = 2.0) -> tuple[float, float] | None:
+        source = Point(point)
+        target = nearest_points(source, self.lines[int(self.tree.nearest(source))])[1]
+        distance_km = math.hypot(
+            (source.x - target.x) * 111.32 * math.cos(math.radians(source.y)),
+            (source.y - target.y) * 110.57,
+        )
+        if 1e-5 < distance_km <= max_km:
+            return float(target.x), float(target.y)
+        return None
+
+
+def longest_line(shape_interface: dict[str, Any]) -> LineString | None:
+    parts = [LineString(part) for part in line_parts(shape_interface) if len(part) >= 2]
+    return max(parts, key=lambda line: line.length) if parts else None
+
+
+def guided_branch_score(current: LineString, candidate: LineString, reference: LineString) -> tuple[float, float]:
+    """Score distance plus upstream directional continuity at a confluence."""
+    current_ends = [current.coords[0], current.coords[-1]]
+    candidate_ends = [candidate.coords[0], candidate.coords[-1]]
+    pairs = [
+        (math.hypot(left[0] - right[0], left[1] - right[1]), left_index, right_index)
+        for left_index, left in enumerate(current_ends)
+        for right_index, right in enumerate(candidate_ends)
+    ]
+    _gap, current_index, candidate_index = min(pairs)
+    confluence = current_ends[current_index]
+    downstream_end = current_ends[1 - current_index]
+    upstream_end = candidate_ends[1 - candidate_index]
+
+    def unit(dx: float, dy: float) -> tuple[float, float]:
+        length = math.hypot(dx, dy) or 1.0
+        return dx / length, dy / length
+
+    downstream = unit(downstream_end[0] - confluence[0], downstream_end[1] - confluence[1])
+    upstream = unit(upstream_end[0] - confluence[0], upstream_end[1] - confluence[1])
+    position = reference.project(Point(confluence))
+    delta = min(0.025, max(reference.length * 0.08, 1e-5))
+    before = reference.interpolate(max(0.0, position - delta))
+    after = reference.interpolate(min(reference.length, position + delta))
+    tangent = unit(after.x - before.x, after.y - before.y)
+    if tangent[0] * downstream[0] + tangent[1] * downstream[1] < 0:
+        tangent = (-tangent[0], -tangent[1])
+    desired_upstream = (-tangent[0], -tangent[1])
+    alignment = upstream[0] * desired_upstream[0] + upstream[1] * desired_upstream[1]
+    return candidate.distance(reference) + max(0.0, 1.0 - alignment) * 0.04, alignment
+
+
+def read_selected_rivers(
+    path: Path, guides: ReferenceGuides, coast_snapper: CoastSnapper,
+) -> tuple[list[RiverReach], tuple[float, float, float, float], dict[str, int]]:
+    """Select score seeds, close them downstream, and extend guided main stems upstream."""
     reader = shapefile.Reader(str(path), encoding="latin1")
-    fields = ["HYRIV_ID", "NEXT_DOWN", "MAIN_RIV", "ORD_STRA", "DIS_AV_CMS", "UPLAND_SKM"]
+    fields = ["HYRIV_ID", "NEXT_DOWN", "MAIN_RIV", "ORD_STRA", "DIS_AV_CMS", "UPLAND_SKM", "ENDORHEIC"]
     metadata: dict[int, RiverMeta] = {}
-    dominant_upstream: dict[int, tuple[float, float, int]] = {}
+    upstream_candidates: dict[int, list[tuple[float, float, int]]] = defaultdict(list)
     seed_ids: set[int] = set()
     for record_index, record in enumerate(reader.iterRecords(fields=fields)):
         values = record.as_dict()
@@ -280,14 +373,17 @@ def read_selected_rivers(path: Path) -> tuple[list[RiverReach], tuple[float, flo
         width = river_width(order, flow)
         metadata[source_id] = RiverMeta(
             source_id, next_down, int(values.get("MAIN_RIV") or 0), order, flow,
-            upstream_area, stage, record_index, width, width,
+            upstream_area, stage, record_index, width, width, bool(int(values.get("ENDORHEIC") or 0)),
         )
         if stage is not None:
             seed_ids.add(source_id)
         if next_down:
+            candidates = upstream_candidates[next_down]
             candidate = (upstream_area, flow, source_id)
-            if candidate > dominant_upstream.get(next_down, (-1.0, -1.0, -1)):
-                dominant_upstream[next_down] = candidate
+            if len(candidates) < 8:
+                heapq.heappush(candidates, candidate)
+            elif candidate > candidates[0]:
+                heapq.heapreplace(candidates, candidate)
 
     # Only extend the headward edge of a substantial selected trunk. Extending
     # every selected reach independently pulls in hundreds of thousands of tiny
@@ -310,13 +406,71 @@ def read_selected_rivers(path: Path) -> tuple[list[RiverReach], tuple[float, flo
     ]
 
     selected_ids = set(seed_ids)
+    shape_cache: dict[int, LineString | None] = {}
+
+    def source_line(source_id: int) -> LineString | None:
+        if source_id not in shape_cache:
+            meta = metadata.get(source_id)
+            shape_cache[source_id] = longest_line(reader.shape(meta.record_index).__geo_interface__) if meta else None
+        return shape_cache[source_id]
+
+    def guided_upstream(source_id: int) -> int:
+        current = metadata[source_id]
+        candidates = [metadata[row[2]] for row in upstream_candidates.get(source_id, []) if row[2] in metadata]
+        if not candidates:
+            return 0
+        current_line = source_line(source_id)
+        guide = guides.nearest(current_line) if current_line is not None else None
+        if guide:
+            reference, _name = guide
+            scored: list[tuple[float, float, float, int]] = []
+            for candidate in candidates:
+                line = source_line(candidate.source_id)
+                if line is None:
+                    continue
+                # Prefer the branch that follows the same named reference line.
+                distance, alignment = guided_branch_score(current_line, line, reference)
+                scored.append((distance, -alignment, -candidate.upstream_area, -candidate.flow, candidate.source_id))
+            if scored:
+                best = min(scored)
+                # A distant reference must not overrule the Hydro topology fallback.
+                if best[0] <= 0.16:
+                    return best[4]
+        return max(
+            candidates,
+            key=lambda row: (row.main_river == current.main_river, row.upstream_area, row.flow, row.source_id),
+        ).source_id
+
+    # A named Natural Earth spine is itself sufficient evidence that the
+    # selected Hydro root is a visible main stem. This keeps medium rivers such
+    # as the Yalu and Tumen continuous without region-specific exceptions.
+    named_roots = []
+    continuity_root_set = set(continuity_roots)
+    for source_id, upstream_count in seed_upstream_count.items():
+        if upstream_count or source_id in continuity_root_set:
+            continue
+        line = source_line(source_id)
+        if line is not None and guides.nearest(line, 0.06):
+            named_roots.append(source_id)
+    continuity_roots.extend(named_roots)
+
     stack = list(continuity_roots)
     while stack:
-        upstream = dominant_upstream.get(stack.pop())
-        upstream_id = upstream[2] if upstream else 0
+        upstream_id = guided_upstream(stack.pop())
         if upstream_id and upstream_id not in selected_ids:
             selected_ids.add(upstream_id)
             stack.append(upstream_id)
+
+    # Visibility seeds and continuity additions are never allowed to end in the
+    # middle of land: retain every downstream reach until the Hydro terminal.
+    downstream_added = 0
+    stack = list(selected_ids)
+    while stack:
+        downstream_id = metadata[stack.pop()].next_down
+        if downstream_id and downstream_id in metadata and downstream_id not in selected_ids:
+            selected_ids.add(downstream_id)
+            downstream_added += 1
+            stack.append(downstream_id)
 
     selected_upstream_count = {source_id: 0 for source_id in selected_ids}
     for source_id in selected_ids:
@@ -360,53 +514,115 @@ def read_selected_rivers(path: Path) -> tuple[list[RiverReach], tuple[float, flo
         reaches.append(RiverReach(
             meta.source_id, meta.next_down, meta.main_river,
             meta.stage if meta.stage is not None else len(STAGE_MIN_ZOOM) - 1,
-            meta.order, meta.flow, meta.upstream_area, meta.corrected_width, end_width, parts,
+            meta.order, meta.flow, meta.upstream_area, meta.corrected_width, end_width, parts, meta.endorheic,
         ))
     reader.close()
+    coast_snapped = 0
+    for reach in reaches:
+        if reach.next_down or reach.endorheic or not reach.parts or not reach.parts[-1]:
+            continue
+        reach.render_snap = coast_snapper.snap(reach.parts[-1][-1])
+        coast_snapped += int(reach.render_snap is not None)
     return reaches, (min_x, min_y, max_x, max_y), {
         "seedReachCount": len(seed_ids),
         "continuityRootCount": len(continuity_roots),
+        "namedContinuityRootCount": len(named_roots),
         "selectedReachCount": len(reaches),
         "continuityReachCount": max(0, len(reaches) - len(seed_ids)),
+        "downstreamClosureReachCount": downstream_added,
+        "coastSnappedTerminalCount": coast_snapped,
     }
 
 
-def chain_reaches(reaches: Iterable[RiverReach]) -> list[list[RiverReach]]:
+def choose_canonical_upstream(
+    downstream: RiverReach, candidates: Sequence[RiverReach], guides: ReferenceGuides,
+) -> RiverReach:
+    """Choose the branch that keeps a named/main Hydro river continuous."""
+    current_line = longest_line(chain_geometry([downstream]))
+    guide = guides.nearest(current_line) if current_line is not None else None
+    if guide:
+        reference, _name = guide
+        scored = []
+        for candidate in candidates:
+            line = longest_line(chain_geometry([candidate]))
+            if line is not None:
+                distance, alignment = guided_branch_score(current_line, line, reference)
+                scored.append((distance, -alignment, -candidate.upstream_area, -candidate.flow, candidate.source_id, candidate))
+        if scored:
+            best = min(scored, key=lambda row: row[:5])
+            if best[0] <= 0.16:
+                return best[5]
+    return max(
+        candidates,
+        key=lambda row: (
+            row.main_river == downstream.main_river,
+            row.upstream_area,
+            row.flow,
+            row.order,
+            row.source_id,
+        ),
+    )
+
+
+def logical_river_objects(reaches: Iterable[RiverReach], guides: ReferenceGuides) -> list[list[RiverReach]]:
+    """Make one logical object for each main stem; tributaries remain separate."""
     selected = {reach.source_id: reach for reach in reaches}
-    upstream_count = {source_id: 0 for source_id in selected}
+    upstreams: dict[int, list[RiverReach]] = defaultdict(list)
     for reach in selected.values():
-        downstream = selected.get(reach.next_down)
-        if downstream and downstream.stage == reach.stage:
-            upstream_count[reach.next_down] += 1
-    starts = [
-        reach for reach in selected.values()
-        if upstream_count[reach.source_id] != 1
-        or reach.next_down not in selected
-        or selected[reach.next_down].stage != reach.stage
-    ]
-    visited: set[int] = set()
-    chains: list[list[RiverReach]] = []
-    for start in starts:
-        if start.source_id in visited:
+        if reach.next_down in selected:
+            upstreams[reach.next_down].append(reach)
+        elif reach.next_down:
+            raise RuntimeError(f"{reach.source_id}: 선택한 강의 하류 {reach.next_down}가 누락되었습니다.")
+    canonical = {
+        downstream_id: choose_canonical_upstream(selected[downstream_id], rows, guides)
+        for downstream_id, rows in upstreams.items() if rows
+    }
+    pending = {source_id: len(upstreams.get(source_id, [])) for source_id in selected}
+    queue = [source_id for source_id, count in pending.items() if count == 0]
+    object_for: dict[int, int] = {}
+    objects: dict[int, list[RiverReach]] = {}
+    visited = 0
+    while queue:
+        source_id = queue.pop()
+        reach = selected[source_id]
+        if source_id not in object_for:
+            object_for[source_id] = source_id
+            objects[source_id] = []
+        objects[object_for[source_id]].append(reach)
+        visited += 1
+        downstream_id = reach.next_down
+        if downstream_id not in selected:
             continue
-        chain: list[RiverReach] = []
-        current: RiverReach | None = start
-        while current and current.source_id not in visited:
-            visited.add(current.source_id)
-            chain.append(current)
-            downstream = selected.get(current.next_down)
-            if not downstream or downstream.stage != current.stage or upstream_count.get(current.next_down, 0) != 1:
-                break
-            current = downstream
-        chains.append(chain)
-    for reach in selected.values():
-        if reach.source_id not in visited:
-            chains.append([reach])
-    return chains
+        pending[downstream_id] -= 1
+        if pending[downstream_id] == 0:
+            canonical_reach = canonical[downstream_id]
+            object_for[downstream_id] = object_for[canonical_reach.source_id]
+            queue.append(downstream_id)
+    if visited != len(selected):
+        raise RuntimeError("HydroRIVERS 전 세계 연결망에 순환이 있습니다.")
+    return list(objects.values())
+
+
+def stage_fragments(chain: Sequence[RiverReach]) -> list[list[RiverReach]]:
+    fragments: list[list[RiverReach]] = []
+    for reach in chain:
+        if not fragments or fragments[-1][-1].stage != reach.stage:
+            fragments.append([reach])
+        else:
+            fragments[-1].append(reach)
+    return fragments
 
 
 def chain_geometry(chain: Sequence[RiverReach]) -> dict[str, Any]:
-    parts = [part for reach in chain for part in reach.parts if len(part) >= 2]
+    parts = []
+    for reach in chain:
+        for part_index, source_part in enumerate(reach.parts):
+            if len(source_part) < 2:
+                continue
+            part = list(source_part)
+            if reach.render_snap is not None and part_index == len(reach.parts) - 1:
+                part[-1] = reach.render_snap
+            parts.append(part)
     return {"type": "LineString", "coordinates": parts[0]} if len(parts) == 1 else {"type": "MultiLineString", "coordinates": parts}
 
 
@@ -578,8 +794,9 @@ def encode_feature(feature: BuiltFeature) -> bytes:
     geometry_kind = {"LineString": 1, "MultiLineString": 2, "Polygon": 3, "MultiPolygon": 4}[feature.geometry["type"]]
     bounds = [round(value * MICRO) for value in feature.bounds]
     header = struct.pack(
-        "<IBBBBf4i5HIII",
-        feature.fid, kind, feature.stage, geometry_kind, 0, feature.width,
+        "<IIBBBBHHf4i5HIII",
+        feature.fid, feature.logical_fid, kind, feature.stage, geometry_kind, 0,
+        feature.fragment_index, feature.fragment_count, feature.width,
         *bounds, *(len(value) for value in encoded), len(source_payload), len(payload), len(width_payload),
     )
     return header + b"".join(encoded) + source_payload + payload + width_payload
@@ -588,7 +805,7 @@ def encode_feature(feature: BuiltFeature) -> bytes:
 class PackBuilder:
     def __init__(self, output: Path):
         self.output = output
-        self.groups: dict[tuple[int, int, int], list[tuple[int, bytes]]] = defaultdict(list)
+        self.groups: dict[tuple[int, int, int], list[tuple[int, int, bytes]]] = defaultdict(list)
         self.group_sizes: dict[tuple[int, int, int], int] = defaultdict(int)
         self.memberships: dict[tuple[int, int, int], set[int]] = defaultdict(set)
         self.feature_count = 0
@@ -605,7 +822,7 @@ class PackBuilder:
         owner_y = min(height - 1, max(0, int((90 - center_y) / 180 * height)))
         key = (feature.stage, owner_x, owner_y)
         encoded = encode_feature(feature)
-        self.groups[key].append((feature.fid, encoded))
+        self.groups[key].append((feature.fid, feature.logical_fid, encoded))
         self.group_sizes[key] += len(encoded)
         min_x = min(width - 1, max(0, int((feature.bounds[0] + 180) / 360 * width)))
         max_x = min(width - 1, max(0, int((feature.bounds[2] + 180 - 1e-9) / 360 * width)))
@@ -623,33 +840,73 @@ class PackBuilder:
     def write(self) -> dict[str, Any]:
         if self.output.exists():
             shutil.rmtree(self.output, onerror=remove_readonly)
-        packs_dir = self.output / "packs"
-        index_dir = self.output / "index"
+        packs_dir = self.output / ".packs"
+        shards_dir = self.output / "shards"
         packs_dir.mkdir(parents=True)
+        shards_dir.mkdir(parents=True)
         fid_pack: dict[int, int] = {}
+        logical_packs: dict[int, set[int]] = defaultdict(set)
         pack_rows: list[dict[str, Any]] = []
         pack_id = 0
         for key in sorted(self.groups):
-            batch: list[tuple[int, bytes]] = []
+            batch: list[tuple[int, int, bytes]] = []
             batch_size = 0
             for row in self.groups[key]:
-                if batch and batch_size + len(row[1]) > PACK_RAW_LIMIT:
-                    pack_id = self._write_pack(packs_dir, pack_id, key, batch, fid_pack, pack_rows)
+                if batch and batch_size + len(row[2]) > PACK_RAW_LIMIT:
+                    pack_id = self._write_pack(packs_dir, pack_id, key, batch, fid_pack, logical_packs, pack_rows)
                     batch, batch_size = [], 0
-                batch.append(row); batch_size += len(row[1])
+                batch.append(row); batch_size += len(row[2])
             if batch:
-                pack_id = self._write_pack(packs_dir, pack_id, key, batch, fid_pack, pack_rows)
-        index_rows: list[dict[str, Any]] = []
+                pack_id = self._write_pack(packs_dir, pack_id, key, batch, fid_pack, logical_packs, pack_rows)
+
+        shard_rows: list[dict[str, Any]] = []
+        shard_id = 0
+        shard_payload = bytearray()
+        shard_pack_ids: list[int] = []
+
+        def flush_shard() -> None:
+            nonlocal shard_id, shard_payload, shard_pack_ids
+            if not shard_pack_ids:
+                return
+            target = shards_dir / f"s{shard_id}.bin"
+            target.write_bytes(shard_payload)
+            digest = hashlib.sha256(shard_payload).hexdigest()
+            shard_rows.append({"id": shard_id, "url": f"shards/s{shard_id}.bin", "bytes": len(shard_payload), "sha256": digest, "packs": len(shard_pack_ids)})
+            shard_id += 1
+            shard_payload = bytearray()
+            shard_pack_ids = []
+
+        for row in pack_rows:
+            compressed = (packs_dir / f"p{row['id']}.bin.gz").read_bytes()
+            if shard_pack_ids and len(shard_payload) + len(compressed) > SHARD_GZIP_LIMIT:
+                flush_shard()
+            row["shard"] = shard_id
+            row["offset"] = len(shard_payload)
+            row["length"] = len(compressed)
+            shard_payload.extend(compressed)
+            shard_pack_ids.append(row["id"])
+        flush_shard()
+
+        index_tiles: list[tuple[int, int, int, list[int]]] = []
         for (stage, tile_x, tile_y), fids in sorted(self.memberships.items()):
-            target = index_dir / str(stage) / f"{tile_x}-{tile_y}.bin.gz"
-            target.parent.mkdir(parents=True, exist_ok=True)
-            entries = sorted((fid_pack[fid], fid) for fid in fids)
-            raw = bytearray(struct.pack("<4sHHI", b"AWIX", 1, stage, len(entries)))
-            for owner_pack, fid in entries:
-                raw.extend(struct.pack("<II", owner_pack, fid))
-            target.write_bytes(gzip.compress(bytes(raw), compresslevel=9, mtime=0))
-            index_rows.append({"stage": stage, "x": tile_x, "y": tile_y, "entries": len(entries), "bytes": target.stat().st_size})
-        total_bytes = sum(row["bytes"] for row in pack_rows) + sum(row["bytes"] for row in index_rows)
+            index_tiles.append((stage, tile_x, tile_y, sorted({fid_pack[fid] for fid in fids})))
+        raw_index = bytearray(struct.pack("<4sHHIII", b"AWI3", 3, 0, len(index_tiles), len(logical_packs), len(pack_rows)))
+        for stage, tile_x, tile_y, pack_ids in index_tiles:
+            raw_index.extend(struct.pack("<BHHH", stage, tile_x, tile_y, len(pack_ids)))
+            for owner_pack in pack_ids:
+                raw_index.extend(struct.pack("<I", owner_pack))
+        for logical_fid, owner_packs in sorted(logical_packs.items()):
+            pack_ids = sorted(owner_packs)
+            raw_index.extend(struct.pack("<IH", logical_fid, len(pack_ids)))
+            for owner_pack in pack_ids:
+                raw_index.extend(struct.pack("<I", owner_pack))
+        for row in sorted(pack_rows, key=lambda item: item["id"]):
+            raw_index.extend(struct.pack("<IHII B", row["id"], row["shard"], row["offset"], row["length"], row["stage"]))
+        index_target = self.output / "index.bin.gz"
+        index_target.write_bytes(gzip.compress(bytes(raw_index), compresslevel=9, mtime=0))
+        index_row = {"url": "index.bin.gz", "bytes": index_target.stat().st_size, "sha256": sha256(index_target), "tileCount": len(index_tiles), "logicalFeatureCount": len(logical_packs)}
+        shutil.rmtree(packs_dir, onerror=remove_readonly)
+        total_bytes = sum(row["bytes"] for row in shard_rows) + index_row["bytes"]
         if total_bytes > MAX_TOTAL_GZIP_MIB * 1024 * 1024:
             raise RuntimeError(f"압축 수계 자산이 {total_bytes / 1024 / 1024:.1f}MiB로 {MAX_TOTAL_GZIP_MIB:.0f}MiB 상한을 초과했습니다.")
         return {
@@ -659,16 +916,23 @@ class PackBuilder:
             "layerCounts": dict(self.layer_counts),
             "stageCounts": {f"{kind}:{stage}": count for (kind, stage), count in self.stage_counts.items()},
             "packCount": len(pack_rows),
-            "indexTileCount": len(index_rows),
+            "shardCount": len(shard_rows),
+            "indexTileCount": len(index_tiles),
+            "logicalFeatureCount": len(logical_packs),
             "compressedBytes": total_bytes,
             "largestPackBytes": max((row["bytes"] for row in pack_rows), default=0),
+            "_layout": {"index": index_row, "packs": pack_rows, "shards": shard_rows},
         }
 
     @staticmethod
-    def _write_pack(directory: Path, pack_id: int, key: tuple[int, int, int], rows: list[tuple[int, bytes]], fid_pack: dict[int, int], pack_rows: list[dict[str, Any]]) -> int:
+    def _write_pack(
+        directory: Path, pack_id: int, key: tuple[int, int, int], rows: list[tuple[int, int, bytes]],
+        fid_pack: dict[int, int], logical_packs: dict[int, set[int]], pack_rows: list[dict[str, Any]],
+    ) -> int:
         raw = bytearray(struct.pack("<4sHHI", b"AWHF", PACK_FORMAT_VERSION, key[0], len(rows)))
-        for fid, encoded in rows:
+        for fid, logical_fid, encoded in rows:
             fid_pack[fid] = pack_id
+            logical_packs[logical_fid].add(pack_id)
             raw.extend(encoded)
         target = directory / f"p{pack_id}.bin.gz"
         target.write_bytes(gzip.compress(bytes(raw), compresslevel=9, mtime=0))
@@ -717,15 +981,18 @@ def main() -> None:
     hydro_root = args.natural_earth_root.resolve()
     output = args.output.resolve()
     rivers_base, lakes_base = load_ne_base(hydro_root)
+    guides = ReferenceGuides(rivers_base)
+    coast_snapper = CoastSnapper(hydro_root.parent / "countries-ne-5.1.1.geojson")
     builder = PackBuilder(output)
     fid = 0
+    logical_fid = 0
     source_rows: list[dict[str, Any]] = []
     river_names_enriched = 0
     for code in RIVER_CODES:
         path = find_unique(roots, f"HydroRIVERS_v10_{code}.shp")
         print(f"[{code}] 강과 본류 연결망을 읽는 중입니다.", flush=True)
-        reaches, bounds, reach_stats = read_selected_rivers(path)
-        chains = chain_reaches(reaches)
+        reaches, bounds, reach_stats = read_selected_rivers(path, guides, coast_snapper)
+        chains = logical_river_objects(reaches, guides)
         matched_names = match_ne_river_names(chains, rivers_base, bounds)
         river_names_enriched += len(matched_names)
         print(
@@ -734,23 +1001,30 @@ def main() -> None:
             flush=True,
         )
         for chain_index, chain in enumerate(chains):
-            geometry = chain_geometry(chain)
-            width_profile = chain_width_profile(chain)
-            start = chain[0]
-            builder.add(BuiltFeature(
-                fid=fid,
-                aw_id=f"hydro-river:{code}:{start.source_id}",
-                layer_id="rivers_hydro",
-                category="river",
-                stage=start.stage,
-                name=matched_names.get(chain_index, ""),
-                source_id=",".join(str(reach.source_id) for reach in chain),
-                source="HydroRIVERS 1.0",
-                width=max((max(widths) for widths in width_profile), default=start.width),
-                geometry=geometry,
-                bounds=geometry_bounds(geometry),
-                width_profile=width_profile,
-            )); fid += 1
+            fragments = stage_fragments(chain)
+            aw_id = f"hydro-river:{chain[0].source_id}"
+            for fragment_index, fragment in enumerate(fragments):
+                geometry = chain_geometry(fragment)
+                width_profile = chain_width_profile(fragment)
+                start = fragment[0]
+                builder.add(BuiltFeature(
+                    fid=fid,
+                    logical_fid=logical_fid,
+                    aw_id=aw_id,
+                    layer_id="rivers_hydro",
+                    category="river",
+                    stage=start.stage,
+                    name=matched_names.get(chain_index, ""),
+                    source_id=",".join(str(reach.source_id) for reach in fragment),
+                    source="HydroRIVERS 1.0",
+                    width=max((max(widths) for widths in width_profile), default=start.width),
+                    geometry=geometry,
+                    bounds=geometry_bounds(geometry),
+                    width_profile=width_profile,
+                    fragment_index=fragment_index,
+                    fragment_count=len(fragments),
+                )); fid += 1
+            logical_fid += 1
         source_rows.append({
             "datasetCode": code,
             "files": shapefile_source_files(path),
@@ -787,6 +1061,7 @@ def main() -> None:
         source_id = str(record.get("Hylak_id") or index)
         builder.add(BuiltFeature(
             fid=fid,
+            logical_fid=logical_fid,
             aw_id=f"hydro-lake:{source_id}",
             layer_id="lakes_hydro",
             category="lake",
@@ -797,18 +1072,22 @@ def main() -> None:
             width=1.0,
             geometry=geometry_dict,
             bounds=geometry_bounds(geometry_dict),
-        )); fid += 1; selected_lakes += 1
+        )); fid += 1; logical_fid += 1; selected_lakes += 1
         if selected_lakes and selected_lakes % 1000 == 0:
             print(f"[lakes] {selected_lakes:,}개 선택", flush=True)
     reader.close()
     stats = builder.write()
+    layout = stats.pop("_layout")
     stats["seedReachCount"] = sum(row["seedReachCount"] for row in source_rows)
     stats["continuityRootCount"] = sum(row["continuityRootCount"] for row in source_rows)
+    stats["namedContinuityRootCount"] = sum(row["namedContinuityRootCount"] for row in source_rows)
     stats["selectedReachCount"] = sum(row["selectedReachCount"] for row in source_rows)
     stats["continuityReachCount"] = sum(row["continuityReachCount"] for row in source_rows)
+    stats["downstreamClosureReachCount"] = sum(row["downstreamClosureReachCount"] for row in source_rows)
+    stats["coastSnappedTerminalCount"] = sum(row["coastSnappedTerminalCount"] for row in source_rows)
     manifest = {
         "version": VERSION,
-        "schema": "atlaswright-hydro-packs-v2",
+        "schema": "atlaswright-hydro-shards-v3",
         "dataset": "HydroRIVERS/HydroLAKES 1.0 · Natural Earth 5.0.0 name enrichment",
         "crs": "EPSG:4326",
         "coordinatePolicy": "selected Hydro source vertices retained; 1e-6 degree Int32 delta-varint",
@@ -817,19 +1096,26 @@ def main() -> None:
             "riverThresholds": list(RIVER_THRESHOLDS),
             "riverWidthFormula": "clamp(0.5 + 0.19*log2(1+DIS_AV_CMS) + 0.06*(ORD_STRA-1), 0.55, 2.6)",
             "riverContinuity": (
-                "dominant upstream UPLAND_SKM path to headwater from selected headward roots "
+                "Natural Earth guided Hydro main-stem path to headwater from selected headward roots; "
                 f"with ORD_STRA >= {CONTINUITY_MIN_ORDER} and DIS_AV_CMS >= {CONTINUITY_MIN_FLOW_CMS:g}; "
                 f"importance >= {CONTINUITY_MIN_SCORE:g}; "
-                "added reaches at stage 3"
+                "all selected paths closed downstream to Hydro terminal; added reaches at stage 3"
             ),
             "lakeAreaThresholdsKm2": list(LAKE_THRESHOLDS_KM2),
             "minZoomStages": list(STAGE_MIN_ZOOM),
         },
         "stages": [
-            {"id": index, "minZoom": STAGE_MIN_ZOOM[index], "columns": grid[0], "rows": grid[1], "indexTemplate": f"index/{index}/{{x}}-{{y}}.bin.gz"}
+            {"id": index, "minZoom": STAGE_MIN_ZOOM[index], "columns": grid[0], "rows": grid[1]}
             for index, grid in enumerate(STAGE_GRIDS)
         ],
-        "packTemplate": "packs/p{id}.bin.gz",
+        "format": {"pack": 3, "index": 3, "fragmentLogicalIds": True},
+        "index": layout["index"],
+        "shards": layout["shards"],
+        "cache": {
+            "name": f"atlaswright-hydro-v0.12.3-{layout['index']['sha256'][:12]}",
+            "backgroundDownload": True,
+            "rangeRequests": True,
+        },
         "layers": [
             {"id": "rivers_hydro", "category": "river", "label": "강 · Hydro", "locked": True},
             {"id": "lakes_hydro", "category": "lake", "label": "호수 · Hydro", "locked": True},

@@ -1,4 +1,4 @@
-# AtlasWright v0.12.2
+# AtlasWright v0.12.3
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS·HydroLAKES 기반 전 세계 수계를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
@@ -75,7 +75,7 @@ python tools/calibrate-hydro.py `
 
 분석 출력은 안전상 `assets/data` 아래로 지정할 수 없습니다. 캘리브레이션 원본 결과는 [`reports/hydro-calibration`](reports/hydro-calibration/README.md)에 보존되어 있습니다.
 
-실제 v0.12.2 타일은 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile과 HydroLAKES Shapefile이 필요합니다.
+실제 v0.12.3 수계 샤드는 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile과 HydroLAKES Shapefile이 필요합니다. 생성기는 선택 구간을 하구까지 폐합하고, 논리 강별 fragment와 단일 공간 인덱스, 4MiB 이하 정적 샤드를 만듭니다.
 
 ```powershell
 python -m pip install -r tools/requirements-hydro-tiles.txt
@@ -83,7 +83,9 @@ python tools/build-hydro-tiles.py `
   --hydrorivers-root <HydroRIVERS-원본-폴더> `
   --hydrolakes <HydroLAKES_polys_v10.shp> `
   --natural-earth-root assets/data/hydro `
-  --output assets/data/hydro/v0.12.2
+  --output assets/data/hydro/v0.12.3
+
+앱은 현재 화면의 샤드 범위를 먼저 병렬로 불러온 뒤 전 세계 압축 샤드를 Cache Storage에 백그라운드 저장합니다. 압축 원본만 영구 저장하며 해제 형상과 GPU 버퍼는 데스크톱 96MiB, 모바일 48MiB LRU 범위를 유지합니다.
 ```
 
 ## QGIS 벡터 파일

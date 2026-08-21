@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.2
+/* AtlasWright v0.12.3
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.12.2';
+  const APP_VERSION = '0.12.3';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
@@ -357,9 +357,10 @@
     hydroCollections: {},
     hydroFeatureCache: new Map(),
     hydroFeatureByFid: new Map(),
+    hydroFragmentsByLogicalId: new Map(),
     hydroManifest: null,
     terrainManifest: null,
-    physicalLoadState: { terrain: 'idle', hydro: 'idle' },
+    physicalLoadState: { terrain: 'idle', hydro: 'idle', hydroCache: 'idle', hydroCachePercent: 0 },
     itemVisibility: {
       countries: {},
       drawings: {},
@@ -482,6 +483,9 @@
     let hydroRequestRevision = 0;
     let hydroActivePackIds = new Set();
     const hydroPacks = new Map();
+    const hydroFeatureRequests = new Map();
+    let hydroFeatureRequestId = 0;
+    let hydroCacheCompletionNotified = false;
     let fillVao = null;
     let lineVao = null;
     let positionBuffer = null;
@@ -1481,8 +1485,8 @@
       hydroVisibilityWidth = Math.min(4096, Math.max(1, count));
       hydroVisibilityHeight = Math.ceil(count / hydroVisibilityWidth);
       const pixels = new Uint8Array(hydroVisibilityWidth * hydroVisibilityHeight * 4);
-      for (const feature of state.hydroFeatureCache?.values?.() || []) {
-        const fid = Number(feature.properties?.__fid);
+      for (const [fidValue, feature] of state.hydroFeatureByFid?.entries?.() || []) {
+        const fid = Number(fidValue);
         if (!Number.isInteger(fid) || fid < 0 || fid >= count || !isHydroFeatureVisible(feature)) continue;
         const offset = fid * 4;
         pixels[offset] = pixels[offset + 1] = pixels[offset + 2] = pixels[offset + 3] = 255;
@@ -1636,7 +1640,7 @@
       const key = tiles.map(spec => `${spec.stage}/${spec.x}-${spec.y}`).join('|');
       if (key === hydroViewKey) return;
       hydroViewKey = key;
-      const message = { type: 'view', revision: ++hydroRequestRevision, tiles };
+      const message = { type: 'view', revision: ++hydroRequestRevision, tiles, mobile: isMobile() };
       hydroPendingView = message;
       hydroWorker.postMessage(message);
     }
@@ -1648,6 +1652,82 @@
         hydroRenderFrame = 0;
         renderAll();
       });
+    }
+
+    function aggregateHydroLogicalFeature(logicalId) {
+      const fragments = state.hydroFragmentsByLogicalId.get(logicalId);
+      if (!fragments?.size) {
+        state.hydroFragmentsByLogicalId.delete(logicalId);
+        state.hydroFeatureCache.delete(logicalId);
+        return null;
+      }
+      const ordered = [...fragments.values()].sort((left, right) => (
+        Number(left.properties?.fragment_index || 0) - Number(right.properties?.fragment_index || 0)
+      ));
+      const first = ordered[0];
+      let aggregate = first;
+      if (first.properties?.category === 'river') {
+        const parts = ordered.flatMap(feature => feature.geometry?.type === 'LineString' ? [feature.geometry.coordinates] : feature.geometry?.coordinates || []);
+        const widths = ordered.flatMap(feature => feature.properties?.stroke_widths || []);
+        const sourceIds = [...new Set(ordered.flatMap(feature => String(feature.properties?.source_id || '').split(',').filter(Boolean)))];
+        aggregate = {
+          type: 'Feature', id: logicalId,
+          properties: {
+            ...first.properties,
+            source_id: sourceIds.join(','),
+            stroke_widths: widths,
+            pack_ids: [...new Set(ordered.map(feature => Number(feature.properties?.pack_id)))],
+            fragment_count: Math.max(...ordered.map(feature => Number(feature.properties?.fragment_count || 1))),
+            loaded_fragment_count: ordered.length,
+            min_zoom: Math.min(...ordered.map(feature => Number(feature.properties?.min_zoom ?? 99))),
+          },
+          geometry: parts.length === 1 ? { type: 'LineString', coordinates: parts[0] } : { type: 'MultiLineString', coordinates: parts },
+        };
+      }
+      prepareHydroFeature(aggregate);
+      state.hydroFeatureCache.set(logicalId, aggregate);
+      for (const fragment of ordered) state.hydroFeatureByFid.set(Number(fragment.properties?.__fid), aggregate);
+      const sourceIds = new Set(String(aggregate.properties?.source_id || '').split(',').filter(Boolean));
+      const legacyHidden = Object.keys(state.physicalSettings.hiddenHydroIds || {}).find(id => (
+        state.physicalSettings.hiddenHydroIds[id] === true && id !== logicalId && sourceIds.has(String(id).split(':').pop())
+      ));
+      if (legacyHidden) state.physicalSettings.hiddenHydroIds[logicalId] = true;
+      return aggregate;
+    }
+
+    function registerHydroFragments(features) {
+      const logicalIds = new Set();
+      for (const fragment of features) {
+        const logicalId = String(fragment.properties?.aw_id || fragment.id);
+        if (!state.hydroFragmentsByLogicalId.has(logicalId)) state.hydroFragmentsByLogicalId.set(logicalId, new Map());
+        state.hydroFragmentsByLogicalId.get(logicalId).set(Number(fragment.properties?.__fid), fragment);
+        logicalIds.add(logicalId);
+      }
+      for (const logicalId of logicalIds) aggregateHydroLogicalFeature(logicalId);
+    }
+
+    function unregisterHydroFragments(features) {
+      const logicalIds = new Set();
+      for (const fragment of features || []) {
+        const logicalId = String(fragment.properties?.aw_id || fragment.id);
+        state.hydroFragmentsByLogicalId.get(logicalId)?.delete(Number(fragment.properties?.__fid));
+        state.hydroFeatureByFid.delete(Number(fragment.properties?.__fid));
+        logicalIds.add(logicalId);
+      }
+      for (const logicalId of logicalIds) aggregateHydroLogicalFeature(logicalId);
+    }
+
+    function loadHydroLogicalFeature(logicalFid) {
+      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('수계 로더가 준비되지 않았습니다.'));
+      const requestId = ++hydroFeatureRequestId;
+      return new Promise((resolve, reject) => {
+        hydroFeatureRequests.set(requestId, { resolve, reject });
+        hydroWorker.postMessage({ type: 'load-feature', requestId, logicalFid });
+      });
+    }
+
+    function retryHydroCache() {
+      hydroWorker?.postMessage({ type: 'retry-cache' });
     }
 
     function receiveHydroWorkerMessage(event) {
@@ -1666,7 +1746,7 @@
       }
       if (message.type === 'pack') {
         const meshData = message.mesh || {};
-        const features = (message.features || []).map(prepareHydroFeature);
+        const features = message.features || [];
         const entry = {
           id: Number(message.packId), features, resources: null, lastUsed: performance.now(),
           mesh: {
@@ -1683,14 +1763,43 @@
         entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0)
           + Number(message.sourceBytesEstimate || 0);
         hydroPacks.set(entry.id, entry);
-        for (const feature of features) {
-          const id = String(feature.properties?.aw_id || feature.id);
-          state.hydroFeatureCache.set(id, feature);
-          state.hydroFeatureByFid.set(Number(feature.properties?.__fid), feature);
-        }
+        registerHydroFragments(features);
         if (isWebGlRenderer()) uploadHydroPack(entry);
         pruneHydroCache();
         queueHydroRender();
+        return;
+      }
+      if (message.type === 'feature' || message.type === 'feature-error') {
+        const pending = hydroFeatureRequests.get(Number(message.requestId));
+        if (!pending) return;
+        hydroFeatureRequests.delete(Number(message.requestId));
+        if (message.type === 'feature-error') pending.reject(new Error(message.message || '수계 전체 형상을 불러오지 못했습니다.'));
+        else pending.resolve(message.feature ? prepareHydroFeature(message.feature) : null);
+        return;
+      }
+      if (message.type === 'cache-progress') {
+        state.physicalLoadState.hydroCache = 'loading';
+        state.physicalLoadState.hydroCachePercent = Number(message.percent || 0);
+        markLayerTreeDirty();
+        renderLayerTree();
+        return;
+      }
+      if (message.type === 'cache-complete') {
+        state.physicalLoadState.hydroCache = 'ready';
+        state.physicalLoadState.hydroCachePercent = 100;
+        markLayerTreeDirty();
+        renderLayerTree();
+        if (!hydroCacheCompletionNotified) {
+          hydroCacheCompletionNotified = true;
+          setActionStatus('전 세계 수계 데이터를 오프라인 저장소에 준비했습니다.', 'success', 3200);
+        }
+        return;
+      }
+      if (message.type === 'cache-unavailable') {
+        state.physicalLoadState.hydroCache = 'error';
+        markLayerTreeDirty();
+        renderLayerTree();
+        console.warn('Hydro persistent cache unavailable', message.message);
         return;
       }
       if (message.type === 'error') {
@@ -1703,19 +1812,17 @@
       const limit = (isMobile() ? 48 : 96) * 1024 * 1024;
       let total = [...hydroPacks.values()].reduce((sum, entry) => sum + entry.byteLength, 0);
       if (total <= limit) return;
-      const selectedPack = state.selected?.type === 'hydro' ? Number(hydroFeatureById(state.selected.id)?.properties?.pack_id) : -1;
+      const selectedFeature = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
+      const selectedPacks = new Set(selectedFeature?.properties?.pack_ids || [selectedFeature?.properties?.pack_id].filter(Number.isFinite));
       const candidates = [...hydroPacks.values()]
-        .filter(entry => !hydroActivePackIds.has(entry.id) && entry.id !== selectedPack)
+        .filter(entry => !hydroActivePackIds.has(entry.id) && !selectedPacks.has(entry.id))
         .sort((left, right) => left.lastUsed - right.lastUsed);
       const released = [];
       for (const entry of candidates) {
         if (total <= limit) break;
         deleteHydroPackResources(entry);
         hydroPacks.delete(entry.id);
-        for (const feature of entry.features) {
-          state.hydroFeatureCache.delete(String(feature.properties?.aw_id || feature.id));
-          state.hydroFeatureByFid.delete(Number(feature.properties?.__fid));
-        }
+        unregisterHydroFragments(entry.features);
         total -= entry.byteLength;
         released.push(entry.id);
       }
@@ -1732,11 +1839,15 @@
       hydroActivePackIds.clear();
       for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
       hydroPacks.clear();
+      for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('수계 로더가 다시 시작되었습니다.'));
+      hydroFeatureRequests.clear();
+      state.hydroFragmentsByLogicalId = new Map();
       if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') return;
       hydroWorker = new Worker(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'atlaswright-hydro-tiles' });
       hydroWorker.onmessage = receiveHydroWorkerMessage;
       hydroWorker.onerror = event => receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '수계 Worker 실행 오류' } });
-      hydroWorker.postMessage({ type: 'init', manifest: hydroManifest, baseUrl: new URL('./', hydroManifestUrl).href, assetRevision: ASSET_REVISION });
+      const hydroRevision = `${ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
+      hydroWorker.postMessage({ type: 'init', manifest: hydroManifest, baseUrl: new URL('./', hydroManifestUrl).href, assetRevision: hydroRevision });
     }
 
     function terrainLevelForView() {
@@ -2296,7 +2407,7 @@
       };
     }
 
-    return { attach, initialize, render, resize, verifyLayout, pick, pickHydro, rebuildFromCountries, prioritizeLatest, getStats, setTerrainManifest, setHydroManifest };
+    return { attach, initialize, render, resize, verifyLayout, pick, pickHydro, rebuildFromCountries, prioritizeLatest, getStats, setTerrainManifest, setHydroManifest, loadHydroLogicalFeature, retryHydroCache };
   })();
 
   let gpuRebuildTimer = null;
@@ -4037,7 +4148,13 @@
           name: meta.label,
           color: meta.color,
           meta: state.hydroManifest?.stats?.layerCounts?.[id] !== undefined
-            ? `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 필요할 때 불러옴`
+            ? state.physicalLoadState.hydroCache === 'ready'
+              ? `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 오프라인 준비 완료`
+              : state.physicalLoadState.hydroCache === 'loading'
+                ? `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 전 세계 자료 ${Math.round(state.physicalLoadState.hydroCachePercent || 0)}%`
+                : state.physicalLoadState.hydroCache === 'error'
+                  ? `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 스트리밍 사용 중`
+                  : `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 현재 화면 우선 준비`
             : state.physicalLoadState.hydro === 'error' ? '불러오기 실패' : '목록을 불러오는 중',
           selected: false,
         })),
@@ -4304,16 +4421,19 @@
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const manifestUrl = new URL('hydro/v0.12.2/manifest.json', PHYSICAL_DATA_BASE_URL);
+      const manifestUrl = new URL('hydro/v0.12.3/manifest.json', PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(manifestUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
-      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-hydro-packs-v2') throw new Error('수계 타일 버전이 맞지 않습니다.');
+      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-hydro-shards-v3') throw new Error('수계 타일 버전이 맞지 않습니다.');
       state.hydroManifest = manifest;
       state.hydroCollections = {};
       state.hydroFeatureCache = new Map();
       state.hydroFeatureByFid = new Map();
+      state.hydroFragmentsByLogicalId = new Map();
+      state.physicalLoadState.hydroCache = 'idle';
+      state.physicalLoadState.hydroCachePercent = 0;
       gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
       state.physicalLoadState.hydro = 'ready';
       markLayerTreeDirty();
@@ -6048,12 +6168,25 @@
     if (!refreshOnly) openSelectionEditor();
   }
 
-  function copySelectedHydroForEditing() {
+  async function copySelectedHydroForEditing() {
     if (state.selected?.type !== 'hydro') return;
-    const source = hydroFeatureById(state.selected.id);
+    let source = hydroFeatureById(state.selected.id);
     if (!source) {
       setActionStatus('복사할 수계 객체를 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
       return;
+    }
+    if (source.properties?.category === 'river' && Number(source.properties?.fragment_count || 1) > 1) {
+      setActionStatus('강 전체 형상을 준비하는 중입니다.', 'working', 0);
+      try {
+        source = await gpuMapRenderer.loadHydroLogicalFeature(Number(source.properties.__logicalFid));
+      } catch (error) {
+        setActionStatus(`강 전체 형상을 불러오지 못했습니다. 잠시 후 다시 시도하세요. ${error.message}`, 'error', 0);
+        return;
+      }
+      if (!source) {
+        setActionStatus('강 전체 형상을 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
+        return;
+      }
     }
     recordHistory();
     const category = source.properties?.category === 'lake' ? 'lake' : 'river';
@@ -7126,7 +7259,14 @@
         if (!state.hydroManifest) loadHydroData(true);
         else {
           const count = Number(state.hydroManifest?.stats?.layerCounts?.[layerId] || 0);
-          setActionStatus(`${HYDRO_LAYER_META[layerId]?.label || '수계'}에 ${count.toLocaleString()}개 객체가 있습니다. 현재 화면에 필요한 자료만 자동으로 불러옵니다.`, 'success', 3200);
+          const cacheState = state.physicalLoadState.hydroCache;
+          if (cacheState === 'error') {
+            gpuMapRenderer.retryHydroCache?.();
+            setActionStatus('전 세계 수계 자료의 오프라인 저장을 다시 시도합니다.', 'working', 0);
+          } else {
+            const suffix = cacheState === 'ready' ? '오프라인에서도 바로 사용할 수 있습니다.' : `전 세계 자료를 백그라운드에서 준비하고 있습니다. ${Math.round(state.physicalLoadState.hydroCachePercent || 0)}%`;
+            setActionStatus(`${HYDRO_LAYER_META[layerId]?.label || '수계'}에 ${count.toLocaleString()}개 객체가 있습니다. ${suffix}`, 'success', 3200);
+          }
         }
         return;
       }
