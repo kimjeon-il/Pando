@@ -1,6 +1,6 @@
 'use strict';
 
-const BUILD_ID = '0.12.2';
+const BUILD_ID = '0.12.3';
 const COUNTRY_URL = new URL('../../data/countries-ne-5.1.1.geojson', self.location.href);
 const MESH_URL = new URL('../../data/world-mesh-v0.10.2.bin.gz', self.location.href);
 const LABEL_ANCHORS_URL = new URL('../../data/country-label-anchors-v0.10.1.json', self.location.href);

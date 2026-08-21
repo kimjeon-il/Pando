@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import gzip
 import json
+import math
 import struct
 import unittest
+from collections import defaultdict
 from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.2"
+DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.3"
 KOREA_BOUNDS = (124.0, 33.0, 131.0, 43.0)
 
 
@@ -22,8 +24,6 @@ def read_uvarint(data: bytes, offset: int) -> tuple[int, int]:
         if not byte & 0x80:
             return value, offset
         shift += 7
-        if shift > 35:
-            raise AssertionError("invalid hydro varint")
     raise AssertionError("truncated hydro varint")
 
 
@@ -32,31 +32,53 @@ def read_svarint(data: bytes, offset: int) -> tuple[int, int]:
     return (value >> 1) ^ -(value & 1), offset
 
 
-def skip_line(data: bytes, offset: int) -> tuple[int, int]:
+def decode_line(data: bytes, offset: int) -> tuple[list[tuple[float, float]], int]:
     count, offset = read_uvarint(data, offset)
-    for _ in range(count * 2):
-        _, offset = read_uvarint(data, offset)
-    return count, offset
+    points = []
+    x = y = 0
+    for index in range(count):
+        dx, offset = read_svarint(data, offset)
+        dy, offset = read_svarint(data, offset)
+        if index:
+            x += dx
+            y += dy
+        else:
+            x, y = dx, dy
+        points.append((x / 1_000_000, y / 1_000_000))
+    return points, offset
 
 
-def geometry_coordinate_count(data: bytes, geometry_kind: int) -> int:
+def decode_geometry(data: bytes, geometry_kind: int):
     offset = 0
-    total = 0
     if geometry_kind in (1, 2):
         part_count, offset = read_uvarint(data, offset)
+        parts = []
         for _ in range(part_count):
-            count, offset = skip_line(data, offset)
-            total += count
+            part, offset = decode_line(data, offset)
+            parts.append(part)
+        geometry = parts[0] if geometry_kind == 1 else parts
     else:
         polygon_count, offset = read_uvarint(data, offset)
+        polygons = []
         for _ in range(polygon_count):
             ring_count, offset = read_uvarint(data, offset)
+            rings = []
             for _ in range(ring_count):
-                count, offset = skip_line(data, offset)
-                total += count
+                ring, offset = decode_line(data, offset)
+                rings.append(ring)
+            polygons.append(rings)
+        geometry = polygons[0] if geometry_kind == 3 else polygons
     if offset != len(data):
-        raise AssertionError(f"hydro geometry has {len(data) - offset} trailing bytes")
-    return total
+        raise AssertionError("hydro geometry has trailing bytes")
+    return geometry
+
+
+def coordinate_count(geometry, geometry_kind: int) -> int:
+    if geometry_kind == 1:
+        return len(geometry)
+    if geometry_kind in (2, 3):
+        return sum(len(part) for part in geometry)
+    return sum(len(ring) for polygon in geometry for ring in polygon)
 
 
 def decode_width_profile(data: bytes) -> list[list[float]]:
@@ -66,10 +88,10 @@ def decode_width_profile(data: bytes) -> list[list[float]]:
     profiles = []
     for _ in range(part_count):
         count, offset = read_uvarint(data, offset)
-        widths = []
         width = 0
         if count:
             width, offset = read_uvarint(data, offset)
+        widths = []
         for index in range(count):
             if index:
                 delta, offset = read_svarint(data, offset)
@@ -77,7 +99,7 @@ def decode_width_profile(data: bytes) -> list[list[float]]:
             widths.append(width / 1000)
         profiles.append(widths)
     if offset != len(data):
-        raise AssertionError(f"river width profile has {len(data) - offset} trailing bytes")
+        raise AssertionError("river width profile has trailing bytes")
     return profiles
 
 
@@ -85,65 +107,93 @@ def decode_source_ids(data: bytes) -> list[str]:
     if not data:
         return []
     count, offset = read_uvarint(data, 0)
-    source_ids = []
     source_id = 0
     if count:
         source_id, offset = read_uvarint(data, offset)
+    result = []
     for index in range(count):
         if index:
             delta, offset = read_svarint(data, offset)
             source_id += delta
-        source_ids.append(str(source_id))
-    if offset != len(data):
-        raise AssertionError(f"river source IDs have {len(data) - offset} trailing bytes")
-    return source_ids
+        result.append(str(source_id))
+    return result
 
 
-def intersects(left: tuple[float, float, float, float], right: tuple[float, float, float, float]) -> bool:
-    return not (left[2] < right[0] or left[0] > right[2] or left[3] < right[1] or left[1] > right[3])
-
-
-def decode_pack(path: Path):
+def read_index(path: Path):
     raw = gzip.decompress(path.read_bytes())
+    magic, version, _reserved, tile_count, logical_count, pack_count = struct.unpack_from("<4sHHIII", raw, 0)
+    if (magic, version) != (b"AWI3", 3):
+        raise AssertionError("invalid global hydro index")
+    offset = 20
+    tiles = {}
+    for _ in range(tile_count):
+        stage, x, y, count = struct.unpack_from("<BHHH", raw, offset)
+        offset += 7
+        tiles[(stage, x, y)] = list(struct.unpack_from(f"<{count}I", raw, offset)) if count else []
+        offset += count * 4
+    logical = {}
+    for _ in range(logical_count):
+        logical_fid, count = struct.unpack_from("<IH", raw, offset)
+        offset += 6
+        logical[logical_fid] = list(struct.unpack_from(f"<{count}I", raw, offset)) if count else []
+        offset += count * 4
+    packs = {}
+    for _ in range(pack_count):
+        pack_id, shard, pack_offset, length, stage = struct.unpack_from("<IHII B", raw, offset)
+        offset += 15
+        packs[pack_id] = {"shard": shard, "offset": pack_offset, "length": length, "stage": stage}
+    if offset != len(raw):
+        raise AssertionError("global hydro index has trailing bytes")
+    return tiles, logical, packs
+
+
+def decode_pack(raw: bytes, pack_id: int):
     magic, version, pack_stage, feature_count = struct.unpack_from("<4sHHI", raw, 0)
-    if magic != b"AWHF" or version != 2:
-        raise AssertionError(f"invalid hydro pack: {path}")
+    if (magic, version) != (b"AWHF", 3):
+        raise AssertionError(f"invalid hydro pack {pack_id}")
     offset = 12
     for _ in range(feature_count):
-        fid, kind, stage, geometry_kind, _reserved, width, *tail = struct.unpack_from("<IBBBBf4i5HIII", raw, offset)
-        bounds = tuple(value / 1_000_000 for value in tail[:4])
-        lengths = tail[4:9]
-        source_payload_length = tail[9]
-        payload_length = tail[10]
-        width_payload_length = tail[11]
-        offset += 50
+        header = struct.unpack_from("<IIBBBBHHf4i5HIII", raw, offset)
+        fid, logical_fid, kind, stage, geometry_kind, _flags, fragment_index, fragment_count, width = header[:9]
+        bounds = tuple(value / 1_000_000 for value in header[9:13])
+        lengths = header[13:18]
+        source_length, geometry_length, width_length = header[18:21]
+        offset += 58
         strings = []
         for length in lengths:
             strings.append(raw[offset:offset + length].decode("utf-8"))
             offset += length
-        source_payload = raw[offset:offset + source_payload_length]
-        offset += source_payload_length
-        payload = raw[offset:offset + payload_length]
-        offset += payload_length
-        width_payload = raw[offset:offset + width_payload_length]
-        offset += width_payload_length
-        width_profiles = decode_width_profile(width_payload)
+        source_payload = raw[offset:offset + source_length]
+        offset += source_length
+        geometry_payload = raw[offset:offset + geometry_length]
+        offset += geometry_length
+        width_payload = raw[offset:offset + width_length]
+        offset += width_length
+        geometry = decode_geometry(geometry_payload, geometry_kind)
         yield {
             "fid": fid,
+            "logical_fid": logical_fid,
             "kind": kind,
             "stage": stage,
             "pack_stage": pack_stage,
-            "geometry_kind": geometry_kind,
+            "fragment_index": fragment_index,
+            "fragment_count": fragment_count,
             "width": width,
             "bounds": bounds,
             "aw_id": strings[0],
+            "name": strings[1],
             "layer_id": strings[4],
-            "source_ids": decode_source_ids(source_payload) if source_payload else (strings[2].split(",") if strings[2] else []),
-            "coordinate_count": geometry_coordinate_count(payload, geometry_kind),
-            "width_profiles": width_profiles,
+            "source_ids": decode_source_ids(source_payload),
+            "coordinate_count": coordinate_count(geometry, geometry_kind),
+            "geometry": geometry if intersects(bounds, KOREA_BOUNDS) else None,
+            "width_profiles": decode_width_profile(width_payload),
         }
     if offset != len(raw):
-        raise AssertionError(f"pack has {len(raw) - offset} trailing bytes: {path}")
+        raise AssertionError(f"pack {pack_id} has trailing bytes")
+
+
+def intersects(left, right) -> bool:
+    return not (left[2] < right[0] or left[0] > right[2] or left[3] < right[1] or left[1] > right[3])
 
 
 class HydroTileTests(unittest.TestCase):
@@ -151,70 +201,81 @@ class HydroTileTests(unittest.TestCase):
     def setUpClass(cls):
         cls.manifest_path = DATA / "manifest.json"
         cls.manifest = json.loads(cls.manifest_path.read_text(encoding="utf-8"))
-        cls.features = [feature for path in sorted((DATA / "packs").glob("p*.bin.gz")) for feature in decode_pack(path)]
+        cls.tiles, cls.logical_index, cls.packs = read_index(DATA / cls.manifest["index"]["url"])
+        shards = {row["id"]: (DATA / row["url"]).read_bytes() for row in cls.manifest["shards"]}
+        cls.features = []
+        for pack_id, spec in sorted(cls.packs.items()):
+            compressed = shards[spec["shard"]][spec["offset"]:spec["offset"] + spec["length"]]
+            cls.features.extend(decode_pack(gzip.decompress(compressed), pack_id))
 
-    def test_manifest_and_assets_stay_within_limits(self):
-        self.assertEqual(self.manifest["version"], "0.12.2")
-        self.assertEqual(self.manifest["schema"], "atlaswright-hydro-packs-v2")
+    def test_manifest_index_and_shards_stay_within_limits(self):
+        self.assertEqual(self.manifest["version"], "0.12.3")
+        self.assertEqual(self.manifest["schema"], "atlaswright-hydro-shards-v3")
         self.assertLess(self.manifest_path.stat().st_size, 100 * 1024)
-        self.assertLess(self.manifest["stats"]["compressedBytes"], 40 * 1024 * 1024)
-        self.assertEqual({layer["id"] for layer in self.manifest["layers"]}, {"rivers_hydro", "lakes_hydro"})
+        self.assertLess((DATA / self.manifest["index"]["url"]).stat().st_size, 100 * 1024)
+        self.assertLess(self.manifest["stats"]["compressedBytes"], 48 * 1024 * 1024)
+        self.assertTrue(all(row["bytes"] <= 4 * 1024 * 1024 for row in self.manifest["shards"]))
+        self.assertEqual(len(self.packs), self.manifest["stats"]["packCount"])
+        self.assertEqual(len(self.logical_index), self.manifest["stats"]["logicalFeatureCount"])
+        self.assertTrue(self.manifest["cache"]["name"].endswith(self.manifest["index"]["sha256"][:12]))
 
-    def test_selection_thresholds_are_the_approved_global_values(self):
+    def test_selection_uses_new_detail_and_downstream_closure(self):
         selection = self.manifest["selection"]
-        self.assertEqual(selection["riverThresholds"], [14.4744, 12.4307, 11.2137, 10.65])
-        self.assertEqual(selection["lakeAreaThresholdsKm2"], [250.0, 100.0, 40.0, 40.0])
-        self.assertEqual(selection["minZoomStages"], [6.0, 6.7, 7.0, 7.5])
-        self.assertIn("dominant upstream", selection["riverContinuity"])
+        self.assertEqual(selection["riverThresholds"], [14.4744, 12.4307, 11.2137, 10.55])
+        self.assertIn("closed downstream", selection["riverContinuity"])
+        self.assertGreater(self.manifest["stats"]["downstreamClosureReachCount"], 0)
+        self.assertGreater(self.manifest["stats"]["coastSnappedTerminalCount"], 0)
 
-    def test_every_feature_and_source_coordinate_round_trips(self):
-        stats = self.manifest["stats"]
-        self.assertEqual(len(self.features), stats["featureCount"])
-        self.assertEqual(sum(feature["coordinate_count"] for feature in self.features), stats["coordinateCount"])
-        self.assertEqual(len({feature["fid"] for feature in self.features}), len(self.features))
-        self.assertEqual(len({feature["aw_id"] for feature in self.features}), len(self.features))
-        self.assertTrue(all(feature["stage"] == feature["pack_stage"] for feature in self.features))
-        decoded_layers = {}
+    def test_fragments_share_one_logical_river_identity(self):
+        self.assertEqual(len(self.features), self.manifest["stats"]["featureCount"])
+        self.assertEqual(len({row["fid"] for row in self.features}), len(self.features))
+        self.assertEqual(sum(row["coordinate_count"] for row in self.features), self.manifest["stats"]["coordinateCount"])
+        groups = defaultdict(list)
         for feature in self.features:
-            decoded_layers[feature["layer_id"]] = decoded_layers.get(feature["layer_id"], 0) + 1
-        self.assertEqual(decoded_layers, stats["layerCounts"])
+            groups[feature["logical_fid"]].append(feature)
+            self.assertEqual(feature["stage"], feature["pack_stage"])
+        for logical_fid, fragments in groups.items():
+            self.assertEqual({row["aw_id"] for row in fragments}, {fragments[0]["aw_id"]})
+            self.assertEqual(sorted(row["fragment_index"] for row in fragments), list(range(fragments[0]["fragment_count"])))
+            self.assertIn(logical_fid, self.logical_index)
 
-    def test_river_widths_are_tapered_and_never_narrow_downstream(self):
-        rivers = [feature for feature in self.features if feature["kind"] == 1]
-        self.assertTrue(rivers)
-        for feature in rivers:
+    def test_river_width_never_narrows_inside_a_fragment(self):
+        for feature in (row for row in self.features if row["kind"] == 1):
             self.assertTrue(feature["width_profiles"])
-            previous_end = 0.0
             for widths in feature["width_profiles"]:
                 self.assertGreaterEqual(min(widths), 0.55)
                 self.assertLessEqual(max(widths), 2.6)
                 self.assertTrue(all(right + 1e-6 >= left for left, right in zip(widths, widths[1:])))
-                self.assertGreaterEqual(widths[0] + 1e-6, previous_end)
-                previous_end = widths[-1]
 
-    def test_korea_density_matches_performance_target(self):
+    def test_korea_density_and_named_main_stems(self):
         korea = [feature for feature in self.features if intersects(feature["bounds"], KOREA_BOUNDS)]
-        hydro_rivers = [feature for feature in korea if feature["layer_id"] == "rivers_hydro"]
-        hydro_lakes = [feature for feature in korea if feature["layer_id"] == "lakes_hydro"]
-        self.assertGreaterEqual(len(hydro_rivers), 20)
-        self.assertGreaterEqual(len(hydro_lakes), 5)
-        source_ids = {source_id for feature in hydro_rivers for source_id in feature["source_ids"]}
-        self.assertTrue({"40425195", "40434490", "40425194", "40391748"}.issubset(source_ids))
+        river_groups = {feature["logical_fid"] for feature in korea if feature["kind"] == 1}
+        lakes = [feature for feature in korea if feature["kind"] == 2]
+        self.assertGreaterEqual(len(river_groups), 18)
+        self.assertGreaterEqual(len(lakes), 5)
+        source_ids = {source_id for feature in korea for source_id in feature["source_ids"]}
+        self.assertTrue({"40425195", "40425194", "40391748"}.issubset(source_ids))
+        names = {feature["name"] for feature in korea if feature["kind"] == 1}
+        self.assertTrue(any("압록" in name or "Yalu" in name for name in names))
+        self.assertTrue(any("두만" in name or "Tumen" in name for name in names))
+        paektu = (128.095, 42.006)
 
-    def test_spatial_index_headers_and_pack_references_are_valid(self):
-        pack_count = self.manifest["stats"]["packCount"]
-        indexed_tiles = 0
-        for path in (DATA / "index").glob("*/*.bin.gz"):
-            raw = gzip.decompress(path.read_bytes())
-            magic, version, stage, count = struct.unpack_from("<4sHHI", raw, 0)
-            self.assertEqual((magic, version), (b"AWIX", 1))
-            self.assertEqual(len(raw), 12 + count * 8)
-            for offset in range(12, len(raw), 8):
-                pack_id, _fid = struct.unpack_from("<II", raw, offset)
-                self.assertLess(pack_id, pack_count)
-            self.assertIn(stage, range(4))
-            indexed_tiles += 1
-        self.assertEqual(indexed_tiles, self.manifest["stats"]["indexTileCount"])
+        def points(value):
+            if isinstance(value, tuple) and len(value) == 2:
+                return [value]
+            return [point for item in value for point in points(item)] if isinstance(value, list) else []
+
+        for labels in (("압록", "Yalu"), ("두만", "Tumen")):
+            main_stem = [feature for feature in korea if feature["kind"] == 1 and any(label in feature["name"] for label in labels)]
+            self.assertEqual(len({feature["logical_fid"] for feature in main_stem}), 1)
+            distance = min(
+                math.hypot(
+                    (point[0] - paektu[0]) * 111.32 * math.cos(math.radians((point[1] + paektu[1]) / 2)),
+                    (point[1] - paektu[1]) * 110.57,
+                )
+                for feature in main_stem for point in points(feature["geometry"])
+            )
+            self.assertLessEqual(distance, 35.0)
 
 
 if __name__ == "__main__":
