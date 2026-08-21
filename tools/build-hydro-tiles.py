@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.12.1 performance-first hydrography packs.
+"""Build AtlasWright v0.12.2 Hydro-only hydrography packs.
 
-The builder keeps Natural Earth base hydrography, replaces the three regional
-supplements with one globally filtered HydroRIVERS/HydroLAKES supplement, and
-writes feature packs plus small EPSG:4326 spatial-index tiles. Selected source
-coordinates are quantized to 1e-6 degree Int32 and delta-varint encoded without
-vertex simplification.
+HydroRIVERS/HydroLAKES provide the canonical geometry. Natural Earth is used
+only to enrich matched feature names. Selected source coordinates are quantized
+to 1e-6 degree Int32 and delta-varint encoded without vertex simplification.
 """
 
 from __future__ import annotations
@@ -26,21 +24,24 @@ from typing import Any, Iterable, Iterator, Sequence
 
 import shapefile
 from shapely.geometry import LineString, MultiLineString, MultiPolygon, Polygon, box, shape
-from shapely.ops import transform, unary_union
-from shapely.prepared import prep
+from shapely.ops import transform
 from shapely.strtree import STRtree
 
 
-VERSION = "0.12.1"
+VERSION = "0.12.2"
+PACK_FORMAT_VERSION = 2
 MICRO = 1_000_000
 RIVER_FLOW_WEIGHT = 4.0
 RIVER_AREA_WEIGHT = -0.5
-RIVER_THRESHOLDS = (14.4744, 12.4307, 11.2137, 10.7957)
-LAKE_THRESHOLDS_KM2 = (250.0, 100.0, 50.0, 50.0)
+RIVER_THRESHOLDS = (14.4744, 12.4307, 11.2137, 10.65)
+LAKE_THRESHOLDS_KM2 = (250.0, 100.0, 40.0, 40.0)
 STAGE_MIN_ZOOM = (6.0, 6.7, 7.0, 7.5)
 STAGE_GRIDS = ((8, 4), (16, 8), (32, 16), (64, 32))
 PACK_RAW_LIMIT = 6 * 1024 * 1024
-MAX_TOTAL_GZIP_MIB = 180.0
+MAX_TOTAL_GZIP_MIB = 40.0
+CONTINUITY_MIN_ORDER = 5
+CONTINUITY_MIN_FLOW_CMS = 75.0
+CONTINUITY_MIN_SCORE = 10.86
 RIVER_CODES = ("af", "ar", "as", "au", "eu", "gr", "na", "sa", "si")
 
 
@@ -63,6 +64,7 @@ class BuiltFeature:
     width: float
     geometry: dict[str, Any]
     bounds: tuple[float, float, float, float]
+    width_profile: list[list[float]] | None = None
 
 
 @dataclass
@@ -71,9 +73,26 @@ class RiverReach:
     next_down: int
     main_river: int
     stage: int
+    order: int
+    flow: float
+    upstream_area: float
+    width: float
+    end_width: float
     parts: list[list[tuple[float, float]]]
-    duplicate: bool = False
-    duplicate_fraction: float = 0.0
+
+
+@dataclass(slots=True)
+class RiverMeta:
+    source_id: int
+    next_down: int
+    main_river: int
+    order: int
+    flow: float
+    upstream_area: float
+    stage: int | None
+    record_index: int
+    width: float
+    corrected_width: float
 
 
 def sha256(path: Path) -> str:
@@ -149,12 +168,22 @@ def geometry_bounds(geometry: dict[str, Any]) -> tuple[float, float, float, floa
     return min(xs), min(ys), max(xs), max(ys)
 
 
+def river_importance(order: int, flow: float, upstream_area: float) -> float:
+    return order + RIVER_FLOW_WEIGHT * math.log10(max(flow, 1e-6)) + RIVER_AREA_WEIGHT * math.log10(max(upstream_area, 1e-6))
+
+
 def river_stage(order: int, flow: float, upstream_area: float) -> int | None:
-    score = order + RIVER_FLOW_WEIGHT * math.log10(max(flow, 1e-6)) + RIVER_AREA_WEIGHT * math.log10(max(upstream_area, 1e-6))
+    score = river_importance(order, flow, upstream_area)
     for stage, threshold in enumerate(RIVER_THRESHOLDS):
         if score >= threshold:
             return stage
     return None
+
+
+def river_width(order: int, flow: float) -> float:
+    """Return a restrained symbolic width independent from visibility score."""
+    value = 0.5 + 0.19 * math.log2(1.0 + max(float(flow), 0.0)) + 0.06 * max(int(order) - 1, 0)
+    return max(0.55, min(2.6, value))
 
 
 def lake_stage(area_km2: float) -> int | None:
@@ -233,68 +262,117 @@ def line_direction(line: LineString) -> tuple[float, float]:
     return dx / length, dy / length
 
 
-def mark_river_duplicates(reaches: list[RiverReach], ne_rivers: list[dict[str, Any]], bounds: tuple[float, float, float, float]) -> None:
-    region_box = box(*bounds)
-    project = projector((bounds[1] + bounds[3]) / 2)
-    base_lines: list[LineString] = []
-    for feature in ne_rivers:
-        geometry = shape(feature.get("geometry"))
-        if not geometry.is_empty and geometry.intersects(region_box):
-            clipped = geometry.intersection(region_box)
-            candidates = [clipped] if isinstance(clipped, LineString) else list(getattr(clipped, "geoms", []))
-            base_lines.extend(transform(project, line) for line in candidates if isinstance(line, LineString) and len(line.coords) >= 2)
-    if not base_lines:
-        return
-    tree = STRtree(base_lines)
-    corridor = prep(unary_union(base_lines).buffer(4.0, cap_style="flat", join_style="round"))
-    for reach in reaches:
-        projected = [transform(project, LineString(part)) for part in reach.parts if len(part) >= 2]
-        if not projected:
-            continue
-        hits = total = 0
-        for line in projected:
-            samples = max(5, min(9, math.ceil(line.length / 25.0) + 2))
-            for index in range(samples):
-                total += 1
-                hits += int(corridor.covers(line.interpolate(index / max(samples - 1, 1), normalized=True)))
-        overlap = hits / max(total, 1)
-        reach.duplicate_fraction = overlap
-        if overlap < 0.18:
-            continue
-        main = max(projected, key=lambda item: item.length)
-        nearest = base_lines[int(tree.nearest(main))]
-        ax, ay = line_direction(main)
-        bx, by = line_direction(nearest)
-        direction = abs(ax * bx + ay * by) if main.distance(nearest) <= 4.0 else 0.0
-        reach.duplicate = overlap >= 0.70 or (overlap >= 0.18 and direction >= 0.62)
+def read_selected_rivers(path: Path) -> tuple[list[RiverReach], tuple[float, float, float, float], dict[str, int]]:
+    """Select score seeds, then retain each seed's dominant upstream trunk."""
+    reader = shapefile.Reader(str(path), encoding="latin1")
+    fields = ["HYRIV_ID", "NEXT_DOWN", "MAIN_RIV", "ORD_STRA", "DIS_AV_CMS", "UPLAND_SKM"]
+    metadata: dict[int, RiverMeta] = {}
+    dominant_upstream: dict[int, tuple[float, float, int]] = {}
+    seed_ids: set[int] = set()
+    for record_index, record in enumerate(reader.iterRecords(fields=fields)):
+        values = record.as_dict()
+        source_id = int(values.get("HYRIV_ID") or 0)
+        next_down = int(values.get("NEXT_DOWN") or 0)
+        order = int(values.get("ORD_STRA") or 0)
+        flow = float(values.get("DIS_AV_CMS") or 0)
+        upstream_area = float(values.get("UPLAND_SKM") or 0)
+        stage = river_stage(order, flow, upstream_area)
+        width = river_width(order, flow)
+        metadata[source_id] = RiverMeta(
+            source_id, next_down, int(values.get("MAIN_RIV") or 0), order, flow,
+            upstream_area, stage, record_index, width, width,
+        )
+        if stage is not None:
+            seed_ids.add(source_id)
+        if next_down:
+            candidate = (upstream_area, flow, source_id)
+            if candidate > dominant_upstream.get(next_down, (-1.0, -1.0, -1)):
+                dominant_upstream[next_down] = candidate
 
+    # Only extend the headward edge of a substantial selected trunk. Extending
+    # every selected reach independently pulls in hundreds of thousands of tiny
+    # headwater reaches without improving the visible continuity of main rivers.
+    seed_upstream_count = {source_id: 0 for source_id in seed_ids}
+    for source_id in seed_ids:
+        downstream = metadata[source_id].next_down
+        if downstream in seed_ids:
+            seed_upstream_count[downstream] += 1
+    continuity_roots = [
+        source_id for source_id, upstream_count in seed_upstream_count.items()
+        if upstream_count == 0
+        and metadata[source_id].order >= CONTINUITY_MIN_ORDER
+        and metadata[source_id].flow >= CONTINUITY_MIN_FLOW_CMS
+        and river_importance(
+            metadata[source_id].order,
+            metadata[source_id].flow,
+            metadata[source_id].upstream_area,
+        ) >= CONTINUITY_MIN_SCORE
+    ]
 
-def read_selected_rivers(path: Path) -> tuple[list[RiverReach], tuple[float, float, float, float]]:
+    selected_ids = set(seed_ids)
+    stack = list(continuity_roots)
+    while stack:
+        upstream = dominant_upstream.get(stack.pop())
+        upstream_id = upstream[2] if upstream else 0
+        if upstream_id and upstream_id not in selected_ids:
+            selected_ids.add(upstream_id)
+            stack.append(upstream_id)
+
+    selected_upstream_count = {source_id: 0 for source_id in selected_ids}
+    for source_id in selected_ids:
+        downstream = metadata[source_id].next_down
+        if downstream in selected_ids:
+            selected_upstream_count[downstream] += 1
+    queue = [source_id for source_id, count in selected_upstream_count.items() if count == 0]
+    processed = 0
+    while queue:
+        source_id = queue.pop()
+        processed += 1
+        current = metadata[source_id]
+        downstream_id = current.next_down
+        if downstream_id not in selected_ids:
+            continue
+        downstream = metadata[downstream_id]
+        downstream.corrected_width = max(downstream.corrected_width, current.corrected_width)
+        selected_upstream_count[downstream_id] -= 1
+        if selected_upstream_count[downstream_id] == 0:
+            queue.append(downstream_id)
+    if processed != len(selected_ids):
+        reader.close()
+        raise RuntimeError(f"{path.name}: HydroRIVERS 연결망에 순환이 있습니다.")
+
+    selected_by_index = {metadata[source_id].record_index: metadata[source_id] for source_id in selected_ids}
     reaches: list[RiverReach] = []
     min_x = min_y = float("inf")
     max_x = max_y = float("-inf")
-    reader = shapefile.Reader(str(path), encoding="latin1")
-    for shape_record in reader.iterShapeRecords(fields=["HYRIV_ID", "NEXT_DOWN", "MAIN_RIV", "ORD_STRA", "DIS_AV_CMS", "UPLAND_SKM"]):
-        record = shape_record.record.as_dict()
-        stage = river_stage(int(record.get("ORD_STRA") or 0), float(record.get("DIS_AV_CMS") or 0), float(record.get("UPLAND_SKM") or 0))
-        if stage is None:
+    for record_index, source_shape in enumerate(reader.iterShapes()):
+        meta = selected_by_index.get(record_index)
+        if not meta:
             continue
-        geometry = shape_record.shape.__geo_interface__
-        parts = line_parts(geometry)
+        parts = line_parts(source_shape.__geo_interface__)
         if not parts:
             continue
         for part in parts:
             for x, y in part:
                 min_x, min_y, max_x, max_y = min(min_x, x), min(min_y, y), max(max_x, x), max(max_y, y)
+        downstream = metadata.get(meta.next_down)
+        end_width = downstream.corrected_width if downstream and meta.next_down in selected_ids else meta.corrected_width
         reaches.append(RiverReach(
-            int(record.get("HYRIV_ID") or 0), int(record.get("NEXT_DOWN") or 0), int(record.get("MAIN_RIV") or 0), stage, parts,
+            meta.source_id, meta.next_down, meta.main_river,
+            meta.stage if meta.stage is not None else len(STAGE_MIN_ZOOM) - 1,
+            meta.order, meta.flow, meta.upstream_area, meta.corrected_width, end_width, parts,
         ))
     reader.close()
-    return reaches, (min_x, min_y, max_x, max_y)
+    return reaches, (min_x, min_y, max_x, max_y), {
+        "seedReachCount": len(seed_ids),
+        "continuityRootCount": len(continuity_roots),
+        "selectedReachCount": len(reaches),
+        "continuityReachCount": max(0, len(reaches) - len(seed_ids)),
+    }
 
 
 def chain_reaches(reaches: Iterable[RiverReach]) -> list[list[RiverReach]]:
-    selected = {reach.source_id: reach for reach in reaches if not reach.duplicate}
+    selected = {reach.source_id: reach for reach in reaches}
     upstream_count = {source_id: 0 for source_id in selected}
     for reach in selected.values():
         downstream = selected.get(reach.next_down)
@@ -330,6 +408,68 @@ def chain_reaches(reaches: Iterable[RiverReach]) -> list[list[RiverReach]]:
 def chain_geometry(chain: Sequence[RiverReach]) -> dict[str, Any]:
     parts = [part for reach in chain for part in reach.parts if len(part) >= 2]
     return {"type": "LineString", "coordinates": parts[0]} if len(parts) == 1 else {"type": "MultiLineString", "coordinates": parts}
+
+
+def part_widths(part: Sequence[Sequence[float]], start_width: float, end_width: float) -> list[float]:
+    if len(part) <= 1:
+        return [start_width] * len(part)
+    cumulative = [0.0]
+    for left, right in zip(part, part[1:]):
+        mean_lat = math.radians((float(left[1]) + float(right[1])) / 2)
+        dx = (float(right[0]) - float(left[0])) * math.cos(mean_lat)
+        dy = float(right[1]) - float(left[1])
+        cumulative.append(cumulative[-1] + math.hypot(dx, dy))
+    total = cumulative[-1]
+    if total <= 1e-12:
+        return [start_width] * len(part)
+    return [start_width + (end_width - start_width) * distance / total for distance in cumulative]
+
+
+def chain_width_profile(chain: Sequence[RiverReach]) -> list[list[float]]:
+    return [
+        part_widths(part, reach.width, reach.end_width)
+        for reach in chain for part in reach.parts if len(part) >= 2
+    ]
+
+
+def match_ne_river_names(
+    chains: Sequence[Sequence[RiverReach]], ne_rivers: Sequence[dict[str, Any]], bounds: tuple[float, float, float, float],
+) -> dict[int, str]:
+    """Transfer Natural Earth names without rendering its geometry."""
+    region_box = box(*bounds)
+    project = projector((bounds[1] + bounds[3]) / 2)
+    base_lines: list[LineString] = []
+    base_names: list[str] = []
+    for feature in ne_rivers:
+        properties = feature.get("properties") or {}
+        name = str(properties.get("name_ko") or properties.get("name_en") or properties.get("name") or "").strip()
+        if not name:
+            continue
+        geometry = shape(feature.get("geometry"))
+        if geometry.is_empty or not geometry.intersects(region_box):
+            continue
+        clipped = geometry.intersection(region_box)
+        candidates = [clipped] if isinstance(clipped, LineString) else list(getattr(clipped, "geoms", []))
+        for line in candidates:
+            if isinstance(line, LineString) and len(line.coords) >= 2:
+                base_lines.append(transform(project, line))
+                base_names.append(name)
+    if not base_lines:
+        return {}
+    tree = STRtree(base_lines)
+    matches: dict[int, str] = {}
+    for chain_index, chain in enumerate(chains):
+        projected = [transform(project, LineString(part)) for reach in chain for part in reach.parts if len(part) >= 2]
+        if not projected:
+            continue
+        main = max(projected, key=lambda line: line.length)
+        nearest_index = int(tree.nearest(main))
+        nearest = base_lines[nearest_index]
+        ax, ay = line_direction(main)
+        bx, by = line_direction(nearest)
+        if main.distance(nearest) <= 4.0 and abs(ax * bx + ay * by) >= 0.55:
+            matches[chain_index] = base_names[nearest_index]
+    return matches
 
 
 def polygon_geometry(shape_interface: dict[str, Any]) -> dict[str, Any] | None:
@@ -395,19 +535,54 @@ def encode_geometry(geometry: dict[str, Any]) -> bytes:
     return bytes(output)
 
 
+def encode_width_profile(feature: BuiltFeature) -> bytes:
+    if feature.category != "river":
+        return b""
+    parts = feature.width_profile or []
+    geometry_parts = line_parts(feature.geometry)
+    if len(parts) != len(geometry_parts):
+        raise ValueError(f"{feature.aw_id}: 강 너비 part 수가 지오메트리와 다릅니다.")
+    output = bytearray(encode_uvarint(len(parts)))
+    for widths, points in zip(parts, geometry_parts):
+        if len(widths) != len(points):
+            raise ValueError(f"{feature.aw_id}: 강 너비 꼭짓점 수가 지오메트리와 다릅니다.")
+        output.extend(encode_uvarint(len(widths)))
+        quantized = [round(max(0.0, min(65.535, width)) * 1000) for width in widths]
+        if quantized:
+            output.extend(encode_uvarint(quantized[0]))
+            for previous, current in zip(quantized, quantized[1:]):
+                output.extend(encode_svarint(current - previous))
+    return bytes(output)
+
+
+def encode_source_ids(feature: BuiltFeature) -> bytes:
+    """Store Hydro reach membership compactly without dropping provenance."""
+    if feature.category != "river" or not feature.source_id:
+        return b""
+    source_ids = [int(value) for value in feature.source_id.split(",") if value]
+    output = bytearray(encode_uvarint(len(source_ids)))
+    if source_ids:
+        output.extend(encode_uvarint(source_ids[0]))
+        for previous, current in zip(source_ids, source_ids[1:]):
+            output.extend(encode_svarint(current - previous))
+    return bytes(output)
+
+
 def encode_feature(feature: BuiltFeature) -> bytes:
-    names = [feature.aw_id, feature.name, feature.source_id, feature.source, feature.layer_id]
+    source_payload = encode_source_ids(feature)
+    names = [feature.aw_id, feature.name, "" if source_payload else feature.source_id, feature.source, feature.layer_id]
     encoded = [value.encode("utf-8") for value in names]
     payload = encode_geometry(feature.geometry)
+    width_payload = encode_width_profile(feature)
     kind = 1 if feature.category == "river" else 2
     geometry_kind = {"LineString": 1, "MultiLineString": 2, "Polygon": 3, "MultiPolygon": 4}[feature.geometry["type"]]
     bounds = [round(value * MICRO) for value in feature.bounds]
     header = struct.pack(
-        "<IBBBBf4i5HI",
+        "<IBBBBf4i5HIII",
         feature.fid, kind, feature.stage, geometry_kind, 0, feature.width,
-        *bounds, *(len(value) for value in encoded), len(payload),
+        *bounds, *(len(value) for value in encoded), len(source_payload), len(payload), len(width_payload),
     )
-    return header + b"".join(encoded) + payload
+    return header + b"".join(encoded) + source_payload + payload + width_payload
 
 
 class PackBuilder:
@@ -491,7 +666,7 @@ class PackBuilder:
 
     @staticmethod
     def _write_pack(directory: Path, pack_id: int, key: tuple[int, int, int], rows: list[tuple[int, bytes]], fid_pack: dict[int, int], pack_rows: list[dict[str, Any]]) -> int:
-        raw = bytearray(struct.pack("<4sHHI", b"AWHF", 1, key[0], len(rows)))
+        raw = bytearray(struct.pack("<4sHHI", b"AWHF", PACK_FORMAT_VERSION, key[0], len(rows)))
         for fid, encoded in rows:
             fid_pack[fid] = pack_id
             raw.extend(encoded)
@@ -501,39 +676,30 @@ class PackBuilder:
         return pack_id + 1
 
 
-def make_ne_feature(raw: dict[str, Any], fid: int, category: str) -> BuiltFeature:
-    properties = raw.get("properties") or {}
-    geometry = raw.get("geometry")
-    aw_id = str(properties.get("aw_id") or raw.get("id") or f"ne-{category}-{fid}")
-    return BuiltFeature(
-        fid=fid,
-        aw_id=aw_id,
-        layer_id=f"{category}s_base",
-        category=category,
-        stage=min_zoom_stage(float(properties.get("min_zoom") or properties.get("scale_rank") or 7.5)),
-        name=str(properties.get("name_ko") or properties.get("name_en") or properties.get("name") or ""),
-        source_id=str(properties.get("source_id") or raw.get("id") or fid),
-        source=str(properties.get("source") or "Natural Earth 5.0.0 1:10m"),
-        width=max(0.65, min(3.2, float(properties.get("stroke_width") or 0.8))),
-        geometry=geometry,
-        bounds=geometry_bounds(geometry),
-    )
-
-
-def lake_duplicate(geometry: Polygon | MultiPolygon, base_tree: STRtree, base_polygons: list[Polygon | MultiPolygon]) -> tuple[bool, float]:
-    best = 0.0
+def match_ne_lake_name(
+    geometry: Polygon | MultiPolygon,
+    base_tree: STRtree,
+    base_polygons: Sequence[Polygon | MultiPolygon],
+    base_names: Sequence[str],
+) -> str:
+    best_score = 0.0
+    best_name = ""
     for index in base_tree.query(geometry):
-        candidate = base_polygons[int(index)]
-        intersection = geometry.intersection(candidate).area
-        if intersection <= 0:
+        candidate_index = int(index)
+        name = base_names[candidate_index]
+        if not name:
             continue
-        coverage = intersection / max(geometry.area, 1e-12)
-        union = geometry.area + candidate.area - intersection
-        iou = intersection / max(union, 1e-12)
-        best = max(best, coverage)
-        if coverage >= 0.08 or iou >= 0.08 or geometry.centroid.distance(candidate.centroid) <= 0.045:
-            return True, best
-    return False, best
+        candidate = base_polygons[candidate_index]
+        intersection = geometry.intersection(candidate).area
+        coverage = intersection / max(min(geometry.area, candidate.area), 1e-12)
+        if coverage > best_score:
+            best_score = coverage
+            best_name = name
+    if best_score >= 0.08:
+        return best_name
+    nearest_index = int(base_tree.nearest(geometry))
+    nearest = base_polygons[nearest_index]
+    return base_names[nearest_index] if geometry.centroid.distance(nearest.centroid) <= 0.045 else ""
 
 
 def parse_args() -> argparse.Namespace:
@@ -553,28 +719,23 @@ def main() -> None:
     rivers_base, lakes_base = load_ne_base(hydro_root)
     builder = PackBuilder(output)
     fid = 0
-    for raw in rivers_base:
-        builder.add(make_ne_feature(raw, fid, "river")); fid += 1
-    for raw in lakes_base:
-        builder.add(make_ne_feature(raw, fid, "lake")); fid += 1
-
     source_rows: list[dict[str, Any]] = []
-    residual_river_length = duplicate_river_length = 0.0
+    river_names_enriched = 0
     for code in RIVER_CODES:
         path = find_unique(roots, f"HydroRIVERS_v10_{code}.shp")
-        print(f"[{code}] 성능 기준 강을 읽는 중입니다.", flush=True)
-        reaches, bounds = read_selected_rivers(path)
-        mark_river_duplicates(reaches, rivers_base, bounds)
-        for reach in reaches:
-            if reach.duplicate:
-                continue
-            length = sum(LineString(part).length for part in reach.parts if len(part) >= 2)
-            residual_river_length += length * reach.duplicate_fraction
-            duplicate_river_length += length
+        print(f"[{code}] 강과 본류 연결망을 읽는 중입니다.", flush=True)
+        reaches, bounds, reach_stats = read_selected_rivers(path)
         chains = chain_reaches(reaches)
-        print(f"[{code}] {len(reaches):,} reach → {len(chains):,} chain", flush=True)
-        for chain in chains:
+        matched_names = match_ne_river_names(chains, rivers_base, bounds)
+        river_names_enriched += len(matched_names)
+        print(
+            f"[{code}] seed {reach_stats['seedReachCount']:,} + 본류 {reach_stats['continuityReachCount']:,} "
+            f"→ {len(chains):,} chain",
+            flush=True,
+        )
+        for chain_index, chain in enumerate(chains):
             geometry = chain_geometry(chain)
+            width_profile = chain_width_profile(chain)
             start = chain[0]
             builder.add(BuiltFeature(
                 fid=fid,
@@ -582,23 +743,33 @@ def main() -> None:
                 layer_id="rivers_hydro",
                 category="river",
                 stage=start.stage,
-                name="",
+                name=matched_names.get(chain_index, ""),
                 source_id=",".join(str(reach.source_id) for reach in chain),
                 source="HydroRIVERS 1.0",
-                width=max(0.7, 2.1 - start.stage * 0.35),
+                width=max((max(widths) for widths in width_profile), default=start.width),
                 geometry=geometry,
                 bounds=geometry_bounds(geometry),
+                width_profile=width_profile,
             )); fid += 1
-        source_rows.append({"datasetCode": code, "files": shapefile_source_files(path), "selectedReachCount": len(reaches), "chainCount": len(chains)})
+        source_rows.append({
+            "datasetCode": code,
+            "files": shapefile_source_files(path),
+            **reach_stats,
+            "chainCount": len(chains),
+            "nameMatches": len(matched_names),
+        })
         del reaches, chains
 
     base_lake_polygons = [shape(feature["geometry"]) for feature in lakes_base]
+    base_lake_names = [
+        str((feature.get("properties") or {}).get("name_ko") or (feature.get("properties") or {}).get("name_en") or (feature.get("properties") or {}).get("name") or "").strip()
+        for feature in lakes_base
+    ]
     base_lake_tree = STRtree(base_lake_polygons)
     lake_path = find_unique([args.hydrolakes.resolve()], "HydroLAKES_polys_v10.shp")
     reader = shapefile.Reader(str(lake_path), encoding="cp1252")
-    selected_lakes = duplicate_lakes = 0
-    overlap_area = total_lake_area = 0.0
-    print("[lakes] 50㎢ 이상 호수를 읽는 중입니다.", flush=True)
+    selected_lakes = lake_names_enriched = 0
+    print("[lakes] 40㎢ 이상 호수를 읽는 중입니다.", flush=True)
     for index, shape_record in enumerate(reader.iterShapeRecords(fields=["Hylak_id", "Lake_name", "Lake_area", "Shore_len"])):
         record = shape_record.record.as_dict()
         area = float(record.get("Lake_area") or 0)
@@ -609,12 +780,10 @@ def main() -> None:
         if not geometry_dict:
             continue
         geometry_shape = shape(geometry_dict)
-        duplicate, overlap = lake_duplicate(geometry_shape, base_lake_tree, base_lake_polygons)
-        if duplicate:
-            duplicate_lakes += 1
-            continue
-        total_lake_area += area
-        overlap_area += area * overlap
+        name = str(record.get("Lake_name") or "").strip()
+        if not name:
+            name = match_ne_lake_name(geometry_shape, base_lake_tree, base_lake_polygons, base_lake_names)
+            lake_names_enriched += int(bool(name))
         source_id = str(record.get("Hylak_id") or index)
         builder.add(BuiltFeature(
             fid=fid,
@@ -622,7 +791,7 @@ def main() -> None:
             layer_id="lakes_hydro",
             category="lake",
             stage=stage,
-            name=str(record.get("Lake_name") or "").strip(),
+            name=name,
             source_id=source_id,
             source="HydroLAKES 1.0",
             width=1.0,
@@ -633,18 +802,28 @@ def main() -> None:
             print(f"[lakes] {selected_lakes:,}개 선택", flush=True)
     reader.close()
     stats = builder.write()
+    stats["seedReachCount"] = sum(row["seedReachCount"] for row in source_rows)
+    stats["continuityRootCount"] = sum(row["continuityRootCount"] for row in source_rows)
+    stats["selectedReachCount"] = sum(row["selectedReachCount"] for row in source_rows)
+    stats["continuityReachCount"] = sum(row["continuityReachCount"] for row in source_rows)
     manifest = {
         "version": VERSION,
-        "schema": "atlaswright-hydro-packs-v1",
-        "dataset": "Natural Earth 5.0.0 base + performance-filtered HydroRIVERS/HydroLAKES 1.0",
+        "schema": "atlaswright-hydro-packs-v2",
+        "dataset": "HydroRIVERS/HydroLAKES 1.0 · Natural Earth 5.0.0 name enrichment",
         "crs": "EPSG:4326",
-        "coordinatePolicy": "selected source vertices retained; 1e-6 degree Int32 delta-varint",
+        "coordinatePolicy": "selected Hydro source vertices retained; 1e-6 degree Int32 delta-varint",
         "selection": {
             "riverFormula": "ORD_STRA + 4*log10(DIS_AV_CMS) - 0.5*log10(UPLAND_SKM)",
             "riverThresholds": list(RIVER_THRESHOLDS),
+            "riverWidthFormula": "clamp(0.5 + 0.19*log2(1+DIS_AV_CMS) + 0.06*(ORD_STRA-1), 0.55, 2.6)",
+            "riverContinuity": (
+                "dominant upstream UPLAND_SKM path to headwater from selected headward roots "
+                f"with ORD_STRA >= {CONTINUITY_MIN_ORDER} and DIS_AV_CMS >= {CONTINUITY_MIN_FLOW_CMS:g}; "
+                f"importance >= {CONTINUITY_MIN_SCORE:g}; "
+                "added reaches at stage 3"
+            ),
             "lakeAreaThresholdsKm2": list(LAKE_THRESHOLDS_KM2),
             "minZoomStages": list(STAGE_MIN_ZOOM),
-            "baseDedupTarget": 0.02,
         },
         "stages": [
             {"id": index, "minZoom": STAGE_MIN_ZOOM[index], "columns": grid[0], "rows": grid[1], "indexTemplate": f"index/{index}/{{x}}-{{y}}.bin.gz"}
@@ -652,30 +831,25 @@ def main() -> None:
         ],
         "packTemplate": "packs/p{id}.bin.gz",
         "layers": [
-            {"id": "rivers_base", "category": "river", "label": "강 · Natural Earth 기본", "locked": True},
-            {"id": "rivers_hydro", "category": "river", "label": "강 · Hydro 보충", "locked": True},
-            {"id": "lakes_base", "category": "lake", "label": "호수 · Natural Earth 기본", "locked": True},
-            {"id": "lakes_hydro", "category": "lake", "label": "호수 · Hydro 보충", "locked": True},
+            {"id": "rivers_hydro", "category": "river", "label": "강 · Hydro", "locked": True},
+            {"id": "lakes_hydro", "category": "lake", "label": "호수 · Hydro", "locked": True},
         ],
         "stats": stats,
         "sources": {
-            "naturalEarthBase": [
+            "naturalEarthNameReference": [
                 {"file": "rivers_base.geojson", "sha256": sha256(hydro_root / "rivers_base.geojson")},
                 {"file": "lakes_base.geojson", "sha256": sha256(hydro_root / "lakes_base.geojson")},
             ],
             "hydroRivers": source_rows,
-            "hydroLakes": {"files": shapefile_source_files(lake_path), "selected": selected_lakes, "duplicates": duplicate_lakes},
-        },
-        "dedup": {
-            "riverSampleOverlap": residual_river_length / max(duplicate_river_length, 1e-12),
-            "lakeAreaOverlap": overlap_area / max(total_lake_area, 1e-12),
+            "hydroLakes": {"files": shapefile_source_files(lake_path), "selected": selected_lakes},
+            "nameEnrichment": {"rivers": river_names_enriched, "lakes": lake_names_enriched},
         },
     }
     manifest_path = output / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     if manifest_path.stat().st_size > 100 * 1024:
         raise RuntimeError("초기 수계 manifest가 100KiB를 초과했습니다.")
-    print(json.dumps({"manifest": str(manifest_path), "stats": stats, "dedup": manifest["dedup"]}, ensure_ascii=False, indent=2), flush=True)
+    print(json.dumps({"manifest": str(manifest_path), "stats": stats}, ensure_ascii=False, indent=2), flush=True)
 
 
 if __name__ == "__main__":
