@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.5 water shard, Range, and persistent-cache worker. */
+/* AtlasWright v0.12.6 water shard, Range, and persistent-cache worker. */
 'use strict';
 
 importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js');

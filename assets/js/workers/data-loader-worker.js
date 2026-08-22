@@ -1,8 +1,8 @@
 'use strict';
 
-const BUILD_ID = '0.12.5';
+const BUILD_ID = '0.12.6';
 const COUNTRY_URL = new URL('../../data/countries-ne-5.1.1.geojson', self.location.href);
-const MESH_URL = new URL('../../data/world-mesh-v0.10.2.bin.gz', self.location.href);
+const MESH_URL = new URL('../../data/world-mesh-v0.12.6.bin.gz', self.location.href);
 const LABEL_ANCHORS_URL = new URL('../../data/country-label-anchors-v0.10.1.json', self.location.href);
 const progress = {
   countries: { loaded: 0, total: 0, done: false },
@@ -72,7 +72,7 @@ async function loadMesh() {
   const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
   const buffer = await new Response(stream).arrayBuffer();
   const header = new Uint32Array(buffer, 0, 8);
-  if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471 || header[7] !== 2) {
+  if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471 || header[7] !== 3) {
     throw new Error('GPU 메시 헤더가 올바르지 않습니다.');
   }
   return buffer;
