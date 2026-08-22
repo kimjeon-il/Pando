@@ -1,4 +1,4 @@
-# AtlasWright v0.12.5
+# AtlasWright v0.12.6
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
@@ -48,7 +48,7 @@ AtlasWright는 운영체제·브라우저의 `prefers-color-scheme` 설정을 �
 
 ## 지형 음영과 수계
 
-보기 패널에서 `국가색 + 음영`과 `지형색 강조`를 전환하고 음영 강도를 조절할 수 있습니다. 지형은 Natural Earth raster 3.2.0의 `GRAY_HR_SR_OB`와 `HYP_HR_SR_OB_DR` 21,600×10,800 원본을 결합한 무손실 WebP 타일 피라미드입니다. RGB에는 자연 지형색·해저 수심을, 알파 채널에는 중립 음영을 넣어 스타일 전환 시 형상이나 타일을 다시 만들지 않습니다. 초기 국가지도 로딩을 막지 않으며 현재 화면에 필요한 단계의 타일만 불러옵니다.
+보기 패널에서 `국가색 + 음영`과 `지형색 강조`를 전환하고 음영 강도를 조절할 수 있습니다. 지형은 Natural Earth raster 3.2.0의 `GRAY_HR_SR_OB`, 무수계 `HYP_HR_SR`, 해저 지형용 `HYP_HR_SR_OB_DR` 21,600×10,800 원본을 결합한 무손실 WebP 타일 피라미드입니다. RGB에는 강·호수가 중복되지 않는 육지 지형색과 해저 수심을, 알파 채널에는 중립 음영을 넣습니다. 초기 국가지도 로딩을 막지 않으며 현재 화면에 필요한 단계의 타일만 불러옵니다.
 
 강은 HydroRIVERS 1.0을 사용합니다. `ORD_STRA + 4×log10(DIS_AV_CMS) - 0.5×log10(UPLAND_SKM)` 중요도 기준으로 선별하고, 최종 유역면적 2,500㎢ 이상인 유역은 대표 본류를 발원부부터 하구·내륙 종점까지 보존합니다. 추가 본류는 최고 세부 단계부터만 표시합니다. 강 너비는 유량과 하천 차수로 계산하고 하류가 상류보다 가늘어지지 않게 보정합니다. 선택된 Hydro 원본 꼭짓점은 단순화하지 않고 1e-6° 정밀도로 저장합니다.
 
@@ -58,12 +58,14 @@ AtlasWright는 운영체제·브라우저의 `prefers-color-scheme` 설정을 �
 
 초기 실행에서는 100KiB 미만의 manifest와 압축 metadata를 Worker에서 읽고, 현재 화면과 확대 단계에 필요한 바이너리 타일만 복원합니다. 표시 pack에는 좌표만 들어 있으며 GeoJSON은 선택·편집용 복사 시에만 복원합니다. 인접 Range 요청은 합쳐 받고 GPU 업로드는 프레임별로 나눕니다. WebGL 캐시는 데스크톱 96MiB, 모바일 48MiB로 제한합니다. 자동 수계 라벨은 포함하지 않습니다.
 
-v0.12.5에서는 수계 metadata를 표시용 core와 상세 출처용 detail로 분리합니다. 긴 원본 reach 목록이 들은 detail은 수계를 선택하거나 `편집용 복사`를 실행할 때만 지연 로드하며, WebGL 메인 스레드에는 GeoJSON 대신 GPU `TypedArray`와 고정 크기 descriptor만 전달합니다. Canvas 대체 경로는 Hydro Worker와 Canvas Worker를 `MessageChannel`로 직접 연결해, 메인 스레드에는 좌표 대신 완성된 `ImageBitmap`과 선택 ID만 보냅니다.
+v0.12.6에서는 국가 외곽선에서 극점·날짜변경선용 인공 폐합 구간을 제외하고, 국가 채움용 Polygon은 그대로 보존합니다. `국가색 + 음영`은 국가 면 스텐실로 육지만 음영 처리하며, `지형색 강조`는 강·호수가 없는 Natural Earth `HYP_HR_SR` 육지와 기존 해저 지형을 합성합니다. 강과 호수는 각각 흰색 또는 현재 테마의 바다색을 선택할 수 있습니다.
+
+수계 metadata는 표시용 core와 상세 출처용 detail로 분리합니다. 긴 원본 reach 목록이 들은 detail은 수계를 선택하거나 `편집용 복사`를 실행할 때만 지연 로드하며, WebGL 메인 스레드에는 GeoJSON 대신 GPU `TypedArray`와 고정 크기 descriptor만 전달합니다. Canvas 대체 경로는 Hydro Worker와 Canvas Worker를 `MessageChannel`로 직접 연결해, 메인 스레드에는 좌표 대신 완성된 `ImageBitmap`과 선택 ID만 보냅니다.
 
 지형 배포 자산을 다시 만들 때는 공식 ZIP을 작업용 폴더에 풀고 다음 명령을 실행합니다. `pyshp`와 Pillow가 필요하며 생성된 manifest에는 원본 파일 SHA-256과 변환 방식을 기록합니다.
 
 ```powershell
-python tools/build-physical-data.py <Natural-Earth-원본-폴더> assets/data
+python tools/build-physical-data.py <Natural-Earth-원본-폴더> assets/data --countries assets/data/countries-ne-5.1.1.geojson
 ```
 
 ### Hydro 전 세계 보충 자료 캘리브레이션
@@ -81,14 +83,15 @@ python tools/calibrate-hydro.py `
 
 분석 출력은 안전상 `assets/data` 아래로 지정할 수 없습니다. 캘리브레이션 원본 결과는 [`reports/hydro-calibration`](reports/hydro-calibration/README.md)에 보존되어 있습니다.
 
-실제 v0.12.5 수계 샤드는 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile과 저장소의 Natural Earth `lakes_base.geojson`을 사용합니다. 생성기는 중형 본류를 하구까지 폐합하고, 내장 공유국경과 일치하는 구간을 표시용 형상으로 정렬한 뒤 논리 강별 fragment, Natural Earth 호수, 단일 공간 인덱스와 4MiB 이하 정적 샤드를 만듭니다.
+실제 v0.12.6 수계 샤드는 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile과 저장소의 Natural Earth `lakes_base.geojson`을 사용합니다. 생성기는 중형 본류를 하구까지 폐합하고, 내장 공유국경과 일치하는 구간을 표시용 형상으로 정렬한 뒤 논리 강별 fragment, Natural Earth 호수, 단일 공간 인덱스와 4MiB 이하 정적 샤드를 만듭니다. 표시 강의 종점은 바다·Natural Earth 호수·합류점·내륙 유역으로 분류하고, 같은 육지 안의 명확한 하구만 최대 25km 범위에서 연결합니다. Hydro 원본 연결망 자체가 해안에서 멀리 끊겨 안전하게 복구할 수 없는 경우에는 임의의 직선을 만들지 않고 해당 논리 강 전체를 제외하며 manifest 통계에 남깁니다.
 
 ```powershell
 python -m pip install -r tools/requirements-hydro-tiles.txt
 python tools/build-hydro-tiles.py `
   --hydrorivers-root <HydroRIVERS-원본-폴더> `
   --natural-earth-root assets/data/hydro `
-  --output assets/data/hydro/v0.12.5
+  --drainage-free-raster <HYP_HR_SR.tif> `
+  --output assets/data/hydro/v0.12.6
 ```
 
 앱은 현재 화면의 샤드 범위를 먼저 불러온 뒤 지도 조작이 2초 동안 없을 때 전 세계 압축 샤드를 Cache Storage에 저장합니다. 지도 조작이나 전경 요청이 시작되면 다운로드를 일시 중지합니다. 압축 원본만 영구 저장하며 해제 형상과 GPU 버퍼는 데스크톱 96MiB, 모바일 48MiB LRU 범위를 유지합니다.

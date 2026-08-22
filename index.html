@@ -7,7 +7,7 @@
   <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
-    <link rel="stylesheet" href="assets/css/app.css?v=0.12.5" />
+    <link rel="stylesheet" href="assets/css/app.css?v=0.12.6" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -35,13 +35,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.12.5" data-layout="wide">
+  <div id="app" data-app-version="0.12.6" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.12.5 · Natural Earth 1:10m · 무정지 수계·QGIS 벡터 호환</span>
+          <span>v0.12.6 · Natural Earth 1:10m · 극지·수계·편입 안정화</span>
         </div>
       </div>
 
@@ -80,6 +80,10 @@
           <div class="terrain-view-controls">
             <label class="field-group"><span>지형 스타일</span><select id="terrainStyleSelect"><option value="political">국가색 + 음영</option><option value="physical">지형색 강조</option></select></label>
             <label class="field-group terrain-strength"><span>음영 강도 <strong id="terrainStrengthValue">32%</strong></span><input id="terrainStrengthInput" type="range" min="0" max="100" step="1" value="32" /></label>
+            <div class="water-color-controls">
+              <label class="field-group"><span>강 색상</span><select id="riverColorSelect"><option value="ocean">바다색</option><option value="white">흰색</option></select></label>
+              <label class="field-group"><span>호수 색상</span><select id="lakeColorSelect"><option value="ocean">바다색</option><option value="white">흰색</option></select></label>
+            </div>
           </div>
         </section>
 
@@ -386,7 +390,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.12.5" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.12.5" defer></script>
+  <script src="assets/js/gis-io.js?v=0.12.6" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.12.6" defer></script>
 </body>
 </html>

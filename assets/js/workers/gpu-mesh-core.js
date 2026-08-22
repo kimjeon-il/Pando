@@ -4,7 +4,7 @@
   const MAX_RENDER_EDGE_DEGREES = 0.499;
   const REFINEMENT_EDGE_DEGREES = MAX_RENDER_EDGE_DEGREES - 0.000002;
   const MAX_REFINEMENT_PASSES = 40;
-  const MESH_ALGORITHM_REVISION = 2;
+  const MESH_ALGORITHM_REVISION = 3;
   const DEG_TO_RAD = Math.PI / 180;
   const MIN_EDGE_DOT = Math.cos(REFINEMENT_EDGE_DEGREES * DEG_TO_RAD);
   const PARAM_EPSILON = 1e-12;
@@ -12,6 +12,19 @@
 
   function samePoint(a, b, epsilon = PARAM_EPSILON) {
     return a && b && Math.abs(a[0] - b[0]) <= epsilon && Math.abs(a[1] - b[1]) <= epsilon;
+  }
+
+  function isArtificialPolarClosureEdge(a, b) {
+    if (!a || !b) return false;
+    const poleEpsilon = 1e-7;
+    const seamEpsilon = 1e-7;
+    const aAtPole = Math.abs(Math.abs(Number(a[1])) - 90) <= poleEpsilon;
+    const bAtPole = Math.abs(Math.abs(Number(b[1])) - 90) <= poleEpsilon;
+    if (aAtPole || bAtPole) return true;
+    const aAtSeam = Math.abs(Math.abs(normalizeLongitude(Number(a[0]))) - 180) <= seamEpsilon;
+    const bAtSeam = Math.abs(Math.abs(normalizeLongitude(Number(b[0]))) - 180) <= seamEpsilon;
+    const crossesDateLine = Math.abs(normalizeLongitude(Number(a[0])) - normalizeLongitude(Number(b[0]))) > 180;
+    return (aAtSeam && bAtSeam) || crossesDateLine;
   }
 
   function polygonsFor(geometry) {
@@ -415,7 +428,7 @@
             const next = (index + 1) % count;
             const a = geoPoints[ringStarts[ringIndex] + index];
             const b = geoPoints[ringStarts[ringIndex] + next];
-            if (Math.abs(a[0] - b[0]) > 180) continue;
+            if (Math.abs(a[0] - b[0]) > 180 || isArtificialPolarClosureEdge(a, b)) continue;
             lineIndices.push(start + index, start + next);
           }
         }
@@ -453,6 +466,7 @@
   const api = {
     MAX_RENDER_EDGE_DEGREES,
     MESH_ALGORITHM_REVISION,
+    isArtificialPolarClosureEdge,
     buildGpuMeshFeatures,
   };
   scope.AtlasWrightGpuMeshCore = api;

@@ -14,6 +14,7 @@ function canvasFallbackWorkerMain() {
     let hydroPort = null;
     let lastRenderMessage = null;
     let hydroRenderTimer = 0;
+    const countryOutlineCache = new WeakMap();
 
     function terrainTileSpec(level, column, row) {
       const x0 = column * level.tileSize;
@@ -249,6 +250,12 @@ function canvasFallbackWorkerMain() {
       context.save();
       context.globalAlpha = 1;
       context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
+      if (style === 'political') {
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        context.beginPath();
+        self.d3.geo.path().projection(projection).context(context)({ type: 'FeatureCollection', features });
+        context.clip();
+      }
       if (message.projection === 'globe') {
         const center = projection.translate();
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -318,6 +325,10 @@ function canvasFallbackWorkerMain() {
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       context.lineCap = 'round';
       context.lineJoin = 'round';
+      const waterColor = category => {
+        const key = category === 'lake' ? 'lakeColor' : 'riverColor';
+        return message.physicalSettings?.[key] === 'white' ? '#ffffff' : (message.theme?.ocean || '#0d2837');
+      };
       for (const feature of features) {
         if (!hydroFeatureVisible(feature, message)) continue;
         const properties = feature.properties || {};
@@ -328,7 +339,7 @@ function canvasFallbackWorkerMain() {
           context.beginPath();
           geoPath(feature);
           context.globalAlpha = 0.92;
-          context.fillStyle = '#5aa9d6';
+          context.fillStyle = waterColor('lake');
           context.fill();
           continue;
         }
@@ -337,7 +348,7 @@ function canvasFallbackWorkerMain() {
         const profiles = properties.stroke_widths || [];
         const fallback = Math.max(0.55, Math.min(2.6, Number(properties.stroke_width || 0.8)));
         context.globalAlpha = 0.96;
-        context.strokeStyle = '#3b82c4';
+        context.strokeStyle = waterColor('river');
         for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
           const part = parts[partIndex];
           const widths = profiles[partIndex] || [];
@@ -418,6 +429,35 @@ function canvasFallbackWorkerMain() {
     function countryId(feature, index) {
       return String(feature.properties?.editor_id || feature.properties?.iso_a3 || index);
     }
+
+    function isArtificialPolarClosureEdge(a, b) {
+      if (!a || !b) return false;
+      const atPole = point => Math.abs(Math.abs(Number(point[1])) - 90) <= 1e-7;
+      const atDateLine = point => Math.abs(Math.abs(Number(point[0])) - 180) <= 1e-7;
+      return atPole(a) || atPole(b) || (atDateLine(a) && atDateLine(b));
+    }
+
+    function countryOutlineFeature(feature) {
+      const geometry = feature?.geometry;
+      if (geometry && countryOutlineCache.has(geometry)) return countryOutlineCache.get(geometry);
+      const polygons = feature?.geometry?.type === 'Polygon'
+        ? [feature.geometry.coordinates]
+        : feature?.geometry?.type === 'MultiPolygon' ? feature.geometry.coordinates : [];
+      const lines = [];
+      for (const polygon of polygons) {
+        for (const ring of polygon || []) {
+          for (let index = 0; index < ring.length - 1; index += 1) {
+            const a = ring[index];
+            const b = ring[index + 1];
+            if (Math.abs(Number(a?.[0]) - Number(b?.[0])) > 180 || isArtificialPolarClosureEdge(a, b)) continue;
+            lines.push([a, b]);
+          }
+        }
+      }
+      const outline = { type: 'Feature', geometry: { type: 'MultiLineString', coordinates: lines }, properties: feature?.properties || {} };
+      if (geometry) countryOutlineCache.set(geometry, outline);
+      return outline;
+    }
     function render(message) {
       lastRenderMessage = message;
       const width = Math.max(1, Number(message.width || 1));
@@ -464,7 +504,7 @@ function canvasFallbackWorkerMain() {
           const feature = features[index];
           if (hiddenCountryIds.has(countryId(feature, index))) continue;
           context.beginPath();
-          geoPath(feature);
+          geoPath(countryOutlineFeature(feature));
           context.globalAlpha = borderAlpha;
           context.strokeStyle = border;
           context.stroke();
