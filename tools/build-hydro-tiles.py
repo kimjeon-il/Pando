@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.12.4 connected and border-aligned Hydro shards.
+"""Build AtlasWright v0.12.5 connected rivers and Natural Earth lake shards.
 
-HydroRIVERS/HydroLAKES provide the canonical geometry. Natural Earth is used
-only to enrich matched feature names. Selected source coordinates are quantized
-to 1e-6 degree Int32 and delta-varint encoded without vertex simplification.
+HydroRIVERS provides canonical river geometry. Natural Earth provides the
+global 1:10m lake geometry and enriches matched river names. Selected source
+coordinates are quantized to 1e-6 degree Int32 and delta-varint encoded without
+vertex simplification. Display packs contain geometry only; metadata is stored
+once in a compressed sidecar.
 """
 
 from __future__ import annotations
@@ -29,8 +31,8 @@ from shapely.ops import linemerge, nearest_points, transform, unary_union
 from shapely.strtree import STRtree
 
 
-VERSION = "0.12.4"
-PACK_FORMAT_VERSION = 3
+VERSION = "0.12.5"
+PACK_FORMAT_VERSION = 4
 MICRO = 1_000_000
 RIVER_FLOW_WEIGHT = 4.0
 RIVER_AREA_WEIGHT = -0.5
@@ -1033,21 +1035,18 @@ def encode_source_ids(feature: BuiltFeature) -> bytes:
 
 
 def encode_feature(feature: BuiltFeature) -> bytes:
-    source_payload = encode_source_ids(feature)
-    names = [feature.aw_id, feature.name, "" if source_payload else feature.source_id, feature.source, feature.layer_id]
-    encoded = [value.encode("utf-8") for value in names]
     payload = encode_geometry(feature.geometry)
     width_payload = encode_width_profile(feature)
     kind = 1 if feature.category == "river" else 2
     geometry_kind = {"LineString": 1, "MultiLineString": 2, "Polygon": 3, "MultiPolygon": 4}[feature.geometry["type"]]
     bounds = [round(value * MICRO) for value in feature.bounds]
     header = struct.pack(
-        "<IIBBBBHHf4i5HIII",
+        "<IIBBBBHHf4iII",
         feature.fid, feature.logical_fid, kind, feature.stage, geometry_kind, feature.flags,
         feature.fragment_index, feature.fragment_count, feature.width,
-        *bounds, *(len(value) for value in encoded), len(source_payload), len(payload), len(width_payload),
+        *bounds, len(payload), len(width_payload),
     )
-    return header + b"".join(encoded) + source_payload + payload + width_payload
+    return header + payload + width_payload
 
 
 class PackBuilder:
@@ -1061,6 +1060,7 @@ class PackBuilder:
         self.category_counts = defaultdict(int)
         self.layer_counts = defaultdict(int)
         self.stage_counts = defaultdict(int)
+        self.metadata: list[dict[str, Any]] = []
 
     def add(self, feature: BuiltFeature) -> None:
         width, height = STAGE_GRIDS[feature.stage]
@@ -1084,6 +1084,16 @@ class PackBuilder:
         self.category_counts[feature.category] += 1
         self.layer_counts[feature.layer_id] += 1
         self.stage_counts[(feature.category, feature.stage)] += 1
+        self.metadata.append({
+            "fid": feature.fid, "logicalFid": feature.logical_fid,
+            "awId": feature.aw_id, "name": feature.name,
+            "sourceId": feature.source_id, "source": feature.source,
+            "layerId": feature.layer_id, "category": feature.category,
+            "bounds": [round(value * MICRO) for value in feature.bounds],
+            "stage": feature.stage, "flags": feature.flags,
+            "fragmentIndex": feature.fragment_index,
+            "fragmentCount": feature.fragment_count, "width": feature.width,
+        })
 
     def write(self) -> dict[str, Any]:
         if self.output.exists():
@@ -1138,7 +1148,7 @@ class PackBuilder:
         index_tiles: list[tuple[int, int, int, list[int]]] = []
         for (stage, tile_x, tile_y), fids in sorted(self.memberships.items()):
             index_tiles.append((stage, tile_x, tile_y, sorted({fid_pack[fid] for fid in fids})))
-        raw_index = bytearray(struct.pack("<4sHHIII", b"AWI3", 3, 0, len(index_tiles), len(logical_packs), len(pack_rows)))
+        raw_index = bytearray(struct.pack("<4sHHIII", b"AWI4", 4, 0, len(index_tiles), len(logical_packs), len(pack_rows)))
         for stage, tile_x, tile_y, pack_ids in index_tiles:
             raw_index.extend(struct.pack("<BHHH", stage, tile_x, tile_y, len(pack_ids)))
             for owner_pack in pack_ids:
@@ -1153,8 +1163,33 @@ class PackBuilder:
         index_target = self.output / "index.bin.gz"
         index_target.write_bytes(gzip.compress(bytes(raw_index), compresslevel=9, mtime=0))
         index_row = {"url": "index.bin.gz", "bytes": index_target.stat().st_size, "sha256": sha256(index_target), "tileCount": len(index_tiles), "logicalFeatureCount": len(logical_packs)}
+        ordered_metadata = sorted(self.metadata, key=lambda item: item["fid"])
+        core_metadata = [
+            {key: value for key, value in item.items() if key not in {"sourceId", "source"}}
+            for item in ordered_metadata
+        ]
+        detail_metadata = [
+            {"fid": item["fid"], "sourceId": item["sourceId"], "source": item["source"]}
+            for item in ordered_metadata
+        ]
+        metadata_core_target = self.output / "metadata-core.json.gz"
+        metadata_core_target.write_bytes(gzip.compress(json.dumps({
+            "version": 4,
+            "features": core_metadata,
+        }, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), compresslevel=9, mtime=0))
+        metadata_detail_target = self.output / "metadata-detail.json.gz"
+        metadata_detail_target.write_bytes(gzip.compress(json.dumps({
+            "version": 4,
+            "features": detail_metadata,
+        }, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), compresslevel=9, mtime=0))
+        metadata_row = {
+            "version": 4,
+            "featureCount": len(self.metadata),
+            "core": {"url": "metadata-core.json.gz", "bytes": metadata_core_target.stat().st_size, "sha256": sha256(metadata_core_target)},
+            "detail": {"url": "metadata-detail.json.gz", "bytes": metadata_detail_target.stat().st_size, "sha256": sha256(metadata_detail_target), "lazy": True},
+        }
         shutil.rmtree(packs_dir, onerror=remove_readonly)
-        total_bytes = sum(row["bytes"] for row in shard_rows) + index_row["bytes"]
+        total_bytes = sum(row["bytes"] for row in shard_rows) + index_row["bytes"] + metadata_row["core"]["bytes"] + metadata_row["detail"]["bytes"]
         if total_bytes > MAX_TOTAL_GZIP_MIB * 1024 * 1024:
             raise RuntimeError(f"압축 수계 자산이 {total_bytes / 1024 / 1024:.1f}MiB로 {MAX_TOTAL_GZIP_MIB:.0f}MiB 상한을 초과했습니다.")
         return {
@@ -1169,7 +1204,7 @@ class PackBuilder:
             "logicalFeatureCount": len(logical_packs),
             "compressedBytes": total_bytes,
             "largestPackBytes": max((row["bytes"] for row in pack_rows), default=0),
-            "_layout": {"index": index_row, "packs": pack_rows, "shards": shard_rows},
+            "_layout": {"index": index_row, "metadata": metadata_row, "packs": pack_rows, "shards": shard_rows},
         }
 
     @staticmethod
@@ -1217,7 +1252,6 @@ def match_ne_lake_name(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--hydrorivers-root", type=Path, action="append", required=True)
-    parser.add_argument("--hydrolakes", type=Path, required=True)
     parser.add_argument("--natural-earth-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
@@ -1291,48 +1325,31 @@ def main() -> None:
         })
         del reaches, chains
 
-    base_lake_polygons = [shape(feature["geometry"]) for feature in lakes_base]
-    base_lake_names = [
-        str((feature.get("properties") or {}).get("name_ko") or (feature.get("properties") or {}).get("name_en") or (feature.get("properties") or {}).get("name") or "").strip()
-        for feature in lakes_base
-    ]
-    base_lake_tree = STRtree(base_lake_polygons)
-    lake_path = find_unique([args.hydrolakes.resolve()], "HydroLAKES_polys_v10.shp")
-    reader = shapefile.Reader(str(lake_path), encoding="cp1252")
-    selected_lakes = lake_names_enriched = 0
-    print("[lakes] 40㎢ 이상 호수를 읽는 중입니다.", flush=True)
-    for index, shape_record in enumerate(reader.iterShapeRecords(fields=["Hylak_id", "Lake_name", "Lake_area", "Shore_len"])):
-        record = shape_record.record.as_dict()
-        area = float(record.get("Lake_area") or 0)
-        stage = lake_stage(area)
-        if stage is None:
-            continue
-        geometry_dict = polygon_geometry(shape_record.shape.__geo_interface__)
+    selected_lakes = 0
+    print("[lakes] Natural Earth 1:10m 전 세계 기본 호수를 읽는 중입니다.", flush=True)
+    for index, raw_feature in enumerate(lakes_base):
+        properties = raw_feature.get("properties") or {}
+        geometry_dict = polygon_geometry(raw_feature.get("geometry") or {})
         if not geometry_dict:
             continue
-        geometry_shape = shape(geometry_dict)
-        name = str(record.get("Lake_name") or "").strip()
-        if not name:
-            name = match_ne_lake_name(geometry_shape, base_lake_tree, base_lake_polygons, base_lake_names)
-            lake_names_enriched += int(bool(name))
-        source_id = str(record.get("Hylak_id") or index)
+        stage = min_zoom_stage(float(properties.get("min_zoom") or 7.5))
+        name = str(properties.get("name_ko") or properties.get("name_en") or properties.get("name") or "").strip()
+        source_id = str(properties.get("source_id") or raw_feature.get("id") or index)
+        aw_id = str(properties.get("aw_id") or raw_feature.get("id") or f"lakes_base:{source_id}")
         builder.add(BuiltFeature(
             fid=fid,
             logical_fid=logical_fid,
-            aw_id=f"hydro-lake:{source_id}",
-            layer_id="lakes_hydro",
+            aw_id=aw_id,
+            layer_id="lakes_natural_earth",
             category="lake",
             stage=stage,
             name=name,
             source_id=source_id,
-            source="HydroLAKES 1.0",
+            source="Natural Earth 5.0.0 1:10m",
             width=1.0,
             geometry=geometry_dict,
             bounds=geometry_bounds(geometry_dict),
         )); fid += 1; logical_fid += 1; selected_lakes += 1
-        if selected_lakes and selected_lakes % 1000 == 0:
-            print(f"[lakes] {selected_lakes:,}개 선택", flush=True)
-    reader.close()
     stats = builder.write()
     layout = stats.pop("_layout")
     stats["seedReachCount"] = sum(row["seedReachCount"] for row in source_rows)
@@ -1350,8 +1367,8 @@ def main() -> None:
     stats["borderChangedCoordinateCount"] = sum(row["borderChangedCoordinateCount"] for row in source_rows)
     manifest = {
         "version": VERSION,
-        "schema": "atlaswright-hydro-shards-v3",
-        "dataset": "HydroRIVERS/HydroLAKES 1.0 · Natural Earth 5.1.1 border alignment",
+        "schema": "atlaswright-water-shards-v4",
+        "dataset": "HydroRIVERS 1.0 · Natural Earth 5.0.0 1:10m lakes · Natural Earth 5.1.1 border alignment",
         "crs": "EPSG:4326",
         "coordinatePolicy": (
             "Hydro source vertices retained outside border-aligned display fragments; "
@@ -1378,24 +1395,25 @@ def main() -> None:
                 "minLengthKm": BORDER_MIN_LENGTH_KM,
                 "scope": "built-in Natural Earth shared country borders only",
             },
-            "lakeAreaThresholdsKm2": list(LAKE_THRESHOLDS_KM2),
+            "lakeSelection": "Natural Earth 5.0.0 1:10m global lakes and reservoirs; no regional supplements",
             "minZoomStages": list(STAGE_MIN_ZOOM),
         },
         "stages": [
             {"id": index, "minZoom": STAGE_MIN_ZOOM[index], "columns": grid[0], "rows": grid[1]}
             for index, grid in enumerate(STAGE_GRIDS)
         ],
-        "format": {"pack": 3, "index": 3, "fragmentLogicalIds": True, "featureFlags": {"borderAligned": BORDER_FLAG}},
+        "format": {"pack": 4, "index": 4, "metadata": 4, "fragmentLogicalIds": True, "featureFlags": {"borderAligned": BORDER_FLAG}},
         "index": layout["index"],
+        "metadata": layout["metadata"],
         "shards": layout["shards"],
         "cache": {
-            "name": f"atlaswright-hydro-v0.12.4-{layout['index']['sha256'][:12]}",
+            "name": f"atlaswright-water-v0.12.5-{layout['index']['sha256'][:12]}",
             "backgroundDownload": True,
             "rangeRequests": True,
         },
         "layers": [
             {"id": "rivers_hydro", "category": "river", "label": "강 · Hydro", "locked": True},
-            {"id": "lakes_hydro", "category": "lake", "label": "호수 · Hydro", "locked": True},
+            {"id": "lakes_natural_earth", "category": "lake", "label": "호수 · Natural Earth", "locked": True},
         ],
         "stats": stats,
         "sources": {
@@ -1405,8 +1423,8 @@ def main() -> None:
                 {"file": "countries-ne-5.1.1.geojson", "sha256": sha256(countries_path)},
             ],
             "hydroRivers": source_rows,
-            "hydroLakes": {"files": shapefile_source_files(lake_path), "selected": selected_lakes},
-            "nameEnrichment": {"rivers": river_names_enriched, "lakes": lake_names_enriched},
+            "naturalEarthLakes": {"file": "lakes_base.geojson", "sha256": sha256(hydro_root / "lakes_base.geojson"), "selected": selected_lakes},
+            "nameEnrichment": {"rivers": river_names_enriched},
         },
     }
     manifest_path = output / "manifest.json"

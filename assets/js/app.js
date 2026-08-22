@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.4
+/* AtlasWright v0.12.5
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,11 +8,11 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.12.4';
+  const APP_VERSION = '0.12.5';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
-  const PHYSICAL_DATASET = 'HydroRIVERS/HydroLAKES 1.0 · Natural Earth 명칭 보충 · raster 3.2.0';
+  const PHYSICAL_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · raster 3.2.0';
 
   const STORAGE_KEY = 'atlaswright-editor-v010-project';
   const AUTOSAVE_DB_NAME = 'atlaswright-editor-v010';
@@ -33,7 +33,7 @@
   });
   const HYDRO_LAYER_META = Object.freeze({
     rivers_hydro: Object.freeze({ label: '강 · Hydro', category: 'river', color: '#3b82c4' }),
-    lakes_hydro: Object.freeze({ label: '호수 · Hydro', category: 'lake', color: '#5aa9d6' }),
+    lakes_natural_earth: Object.freeze({ label: '호수 · Natural Earth', category: 'lake', color: '#5aa9d6' }),
   });
   const MAX_HISTORY = 30;
   const LAYOUT_QUERIES = {
@@ -349,7 +349,7 @@
       terrainStrength: 0.32,
       hydroLayers: {
         rivers_hydro: true,
-        lakes_hydro: true,
+        lakes_natural_earth: true,
       },
       hiddenHydroIds: {},
       dataset: PHYSICAL_DATASET,
@@ -481,8 +481,12 @@
     let hydroPendingView = null;
     let hydroViewKey = '';
     let hydroRequestRevision = 0;
+    let hydroAcceptedRevision = 0;
     let hydroActivePackIds = new Set();
     const hydroPacks = new Map();
+    const hydroUploadQueue = [];
+    let hydroUploadFrame = 0;
+    let hydroVisibilityDirty = true;
     const hydroFeatureRequests = new Map();
     let hydroFeatureRequestId = 0;
     let hydroCacheCompletionNotified = false;
@@ -517,7 +521,10 @@
     let canvasWorkerPendingMessage = null;
     let canvasWorkerLatestRequestedRevision = 0;
     let canvasWorkerDisplayedRevision = 0;
+    let canvasHydroPickRequestId = 0;
+    const canvasHydroPickRequests = new Map();
     let rebuildToken = 0;
+    let countryMeshStale = false;
     let fallbackReason = '';
     let layoutMismatchCount = 0;
     let layoutVerificationFrame = 0;
@@ -1019,6 +1026,13 @@
       return rendererMode === 'webgl2' || rendererMode === 'webgl1';
     }
 
+    function connectHydroCanvasWorkers() {
+      if (!hydroWorker || !canvasWorker || rendererMode !== 'canvas-worker' || typeof MessageChannel !== 'function') return;
+      const channel = new MessageChannel();
+      canvasWorker.postMessage({ type: 'hydro-port', port: channel.port1 }, [channel.port1]);
+      hydroWorker.postMessage({ type: 'hydro-port', port: channel.port2 }, [channel.port2]);
+    }
+
     function rendererName() {
       return glVersion === 2 ? 'WebGL2' : glVersion === 1 ? 'WebGL1' : 'Canvas';
     }
@@ -1066,7 +1080,12 @@
       terrainTiles.clear();
       terrainTileRequests.clear();
       terrainGridMeshes.clear();
-      for (const entry of hydroPacks.values()) entry.resources = null;
+      for (const entry of hydroPacks.values()) {
+        entry.resources = null;
+        entry.uploadQueued = false;
+        scheduleHydroUpload(entry);
+      }
+      hydroVisibilityDirty = true;
     }
 
     function handleWebGlContextLost(event) {
@@ -1143,6 +1162,7 @@
     function setMesh(nextMesh, countryIds) {
       mesh = nextMesh;
       meshCountryIds = [...countryIds];
+      countryMeshStale = false;
       webGl1PositionData = null;
       webGl1CountryData = null;
       if (!gl || !isWebGlRenderer()) return;
@@ -1271,6 +1291,10 @@
       currentWorker.postMessage({ token, features });
     }
 
+    function markCountryMeshStale() {
+      countryMeshStale = true;
+    }
+
     function parseColor(value) {
       const match = /^#([0-9a-f]{6})$/i.exec(String(value || ''));
       if (!match) return parseColor(defaultCountryColor());
@@ -1279,7 +1303,7 @@
     }
 
     function updatePalette() {
-      if (!gl || !meshCountryIds.length) return;
+      if (!gl || !meshCountryIds.length || countryMeshStale) return;
       const pixels = new Uint8Array(meshCountryIds.length * 4);
       for (let index = 0; index < meshCountryIds.length; index += 1) {
         const feature = countryFeatureById(meshCountryIds[index]);
@@ -1493,7 +1517,7 @@
     }
 
     function updateHydroVisibility() {
-      if (!gl || !hydroVisibilityTexture || !hydroManifest) return;
+      if (!gl || !hydroVisibilityTexture || !hydroManifest || !hydroVisibilityDirty) return;
       const count = Math.max(1, Number(hydroManifest.stats?.featureCount || 1));
       hydroVisibilityWidth = Math.min(4096, Math.max(1, count));
       hydroVisibilityHeight = Math.ceil(count / hydroVisibilityWidth);
@@ -1512,6 +1536,7 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       const internalFormat = glVersion === 2 ? gl.RGBA8 : gl.RGBA;
       gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, hydroVisibilityWidth, hydroVisibilityHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      hydroVisibilityDirty = false;
     }
 
     function bindLakeAttributes(program, resources) {
@@ -1581,7 +1606,6 @@
     }
 
     function drawHydroEntry(program, entry, category, color = null, picking = false) {
-      uploadHydroPack(entry);
       const resources = entry.resources;
       if (!resources) return;
       const borderAligned = category === 'border-river';
@@ -1603,6 +1627,27 @@
       if (category !== 'lake') for (const location of locations.slice(1)) setInstanceDivisor(location, 0);
       for (const location of locations) gl.disableVertexAttribArray(location);
       entry.lastUsed = performance.now();
+    }
+
+    function scheduleHydroUpload(entry) {
+      if (!entry || entry.resources || entry.uploadQueued) return;
+      entry.uploadQueued = true;
+      hydroUploadQueue.push(entry);
+      if (hydroUploadFrame) return;
+      const drain = () => {
+        hydroUploadFrame = 0;
+        const started = performance.now();
+        const next = hydroUploadQueue.shift();
+        if (next) {
+          next.uploadQueued = false;
+          uploadHydroPack(next);
+          render(currentRenderRevision);
+        }
+        if (hydroUploadQueue.length) {
+          hydroUploadFrame = requestAnimationFrame(drain);
+        }
+      };
+      hydroUploadFrame = requestAnimationFrame(drain);
     }
 
     function drawHydro(category, picking = false) {
@@ -1667,8 +1712,45 @@
       if (hydroRenderFrame) return;
       hydroRenderFrame = requestAnimationFrame(() => {
         hydroRenderFrame = 0;
-        renderAll();
+        render(currentRenderRevision);
       });
+    }
+
+    function registerHydroDescriptors(descriptors) {
+      const logicalIds = new Set();
+      for (const row of descriptors || []) {
+        const logicalId = String(row.awId || row.logicalFid);
+        let aggregate = state.hydroFeatureCache.get(logicalId);
+        if (!aggregate) {
+          aggregate = {
+            type: 'Feature', id: logicalId, geometry: null,
+            properties: {
+              aw_id: logicalId, __logicalFid: Number(row.logicalFid),
+              category: row.category, layer_id: row.layerId,
+              name: row.name || '', name_ko: row.name || '', source: row.source || '',
+              source_id: row.sourceId || '', fragment_count: Number(row.fragmentCount || 1),
+              min_zoom: Number(row.minZoom ?? 99), stroke_width: Number(row.width || 1), pack_ids: [],
+            },
+            __awBounds: [Infinity, Infinity, -Infinity, -Infinity],
+          };
+        }
+        aggregate.properties.pack_ids = [...new Set([...(aggregate.properties.pack_ids || []), Number(row.packId)])];
+        aggregate.properties.min_zoom = Math.min(Number(aggregate.properties.min_zoom ?? 99), Number(row.minZoom ?? 99));
+        const bounds = (row.bounds || []).map(value => Number(value) / 1e6);
+        if (bounds.length === 4) {
+          aggregate.__awBounds = [
+            Math.min(aggregate.__awBounds[0], bounds[0]), Math.min(aggregate.__awBounds[1], bounds[1]),
+            Math.max(aggregate.__awBounds[2], bounds[2]), Math.max(aggregate.__awBounds[3], bounds[3]),
+          ];
+        }
+        const b = aggregate.__awBounds;
+        aggregate.__awCentroid = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+        aggregate.__awRadius = Math.min(180, Math.hypot(b[2] - b[0], b[3] - b[1]) / 2);
+        state.hydroFeatureCache.set(logicalId, aggregate);
+        state.hydroFeatureByFid.set(Number(row.fid), aggregate);
+        logicalIds.add(logicalId);
+      }
+      if (logicalIds.size) hydroVisibilityDirty = true;
     }
 
     function aggregateHydroLogicalFeature(logicalId) {
@@ -1721,6 +1803,7 @@
         logicalIds.add(logicalId);
       }
       for (const logicalId of logicalIds) aggregateHydroLogicalFeature(logicalId);
+      if (logicalIds.size) hydroVisibilityDirty = true;
     }
 
     function unregisterHydroFragments(features) {
@@ -1732,6 +1815,7 @@
         logicalIds.add(logicalId);
       }
       for (const logicalId of logicalIds) aggregateHydroLogicalFeature(logicalId);
+      if (logicalIds.size) hydroVisibilityDirty = true;
     }
 
     function loadHydroLogicalFeature(logicalFid) {
@@ -1756,16 +1840,20 @@
         return;
       }
       if (message.type === 'active') {
+        if (Number(message.revision || 0) < hydroAcceptedRevision) return;
+        hydroAcceptedRevision = Number(message.revision || hydroAcceptedRevision);
         hydroActivePackIds = new Set(message.packIds || []);
         pruneHydroCache();
         queueHydroRender();
         return;
       }
       if (message.type === 'pack') {
+        if (Number(message.revision || 0) < hydroAcceptedRevision) return;
         const meshData = message.mesh || {};
         const features = message.features || [];
+        const descriptors = message.descriptors || [];
         const entry = {
-          id: Number(message.packId), features, resources: null, lastUsed: performance.now(),
+          id: Number(message.packId), features, descriptors, resources: null, uploadQueued: false, lastUsed: performance.now(),
           mesh: {
             riverStarts: new Int32Array(meshData.riverStarts || 0),
             riverEnds: new Int32Array(meshData.riverEnds || 0),
@@ -1782,13 +1870,12 @@
             lakeIndices: new Uint32Array(meshData.lakeIndices || 0),
           },
         };
-        entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0)
-          + Number(message.sourceBytesEstimate || 0);
+        entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0);
         hydroPacks.set(entry.id, entry);
-        registerHydroFragments(features);
-        if (isWebGlRenderer()) uploadHydroPack(entry);
+        if (features.length) registerHydroFragments(features);
+        else registerHydroDescriptors(descriptors);
+        if (isWebGlRenderer()) scheduleHydroUpload(entry);
         pruneHydroCache();
-        queueHydroRender();
         return;
       }
       if (message.type === 'feature' || message.type === 'feature-error') {
@@ -1858,7 +1945,12 @@
       hydroWorker = null;
       hydroWorkerReady = false;
       hydroViewKey = '';
+      hydroAcceptedRevision = 0;
       hydroActivePackIds.clear();
+      hydroUploadQueue.length = 0;
+      if (hydroUploadFrame) cancelAnimationFrame(hydroUploadFrame);
+      hydroUploadFrame = 0;
+      hydroVisibilityDirty = true;
       for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
       hydroPacks.clear();
       for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('수계 로더가 다시 시작되었습니다.'));
@@ -1869,7 +1961,20 @@
       hydroWorker.onmessage = receiveHydroWorkerMessage;
       hydroWorker.onerror = event => receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '수계 Worker 실행 오류' } });
       const hydroRevision = `${ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
-      hydroWorker.postMessage({ type: 'init', manifest: hydroManifest, baseUrl: new URL('./', hydroManifestUrl).href, assetRevision: hydroRevision });
+      hydroWorker.postMessage({
+        type: 'init', manifest: hydroManifest, baseUrl: new URL('./', hydroManifestUrl).href,
+        assetRevision: hydroRevision, includeGeometry: rendererMode === 'canvas2d',
+      });
+      connectHydroCanvasWorkers();
+    }
+
+    function setHydroInteractionActive(active) {
+      hydroWorker?.postMessage({ type: 'interaction', active: active === true });
+    }
+
+    function invalidateHydroVisibility() {
+      hydroVisibilityDirty = true;
+      queueHydroRender();
     }
 
     function terrainLevelForView() {
@@ -2132,6 +2237,7 @@
         view: deepClone(state.view),
         revision: Number(revision || 0),
         visible: !!state.layerVisibility.countries,
+        hydroVisible: !!state.layerVisibility.drawings,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
         theme: mapTheme(),
@@ -2190,6 +2296,8 @@
       canvasWorkerReady = false;
       canvasWorkerBusy = false;
       canvasWorkerPendingMessage = null;
+      for (const pending of canvasHydroPickRequests.values()) pending.resolve(null);
+      canvasHydroPickRequests.clear();
       replaceCanvas();
       rendererMode = 'canvas2d';
       resize();
@@ -2198,6 +2306,7 @@
       $('engineStatus').textContent = `Canvas 무손실 대체 · ${fallbackReason}`;
       updateRendererBadge('Canvas · 무손실 대체', fallbackReason);
       setActionStatus(`무손실 Canvas 렌더러로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
+      if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
     }
 
@@ -2216,6 +2325,14 @@
       }
       if (message.type === 'terrain-warning') {
         console.warn('Canvas 지형 타일을 불러오지 못했습니다.', message.message || '알 수 없는 오류');
+        return;
+      }
+      if (message.type === 'hydro-pick') {
+        const pending = canvasHydroPickRequests.get(Number(message.requestId));
+        if (pending) {
+          canvasHydroPickRequests.delete(Number(message.requestId));
+          pending.resolve(Number.isFinite(Number(message.fid)) ? state.hydroFeatureByFid.get(Number(message.fid)) || null : null);
+        }
         return;
       }
       if (message.type === 'error') {
@@ -2279,6 +2396,8 @@
           canvasWorker.postMessage(initMessage);
           canvasWorker.onmessage = receiveCanvasWorkerMessage;
           canvasWorker.onerror = event => failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
+          if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
+          else connectHydroCanvasWorkers();
           $('engineStatus').textContent = `Canvas Worker 무손실 · ${fallbackReason}`;
           updateRendererBadge('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
           setActionStatus(`무손실 Canvas Worker로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
@@ -2296,6 +2415,7 @@
       $('engineStatus').textContent = `Canvas 무손실 대체 · ${fallbackReason}`;
       updateRendererBadge('Canvas · 무손실 대체', fallbackReason);
       setActionStatus('GPU를 사용할 수 없어 무손실 Canvas 렌더러로 전환했습니다.', 'working', 4200);
+      if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
     }
 
@@ -2356,6 +2476,21 @@
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       const fid = (pixel[0] | (pixel[1] << 8) | (pixel[2] << 16)) - 1;
       return fid >= 0 ? state.hydroFeatureByFid.get(fid) || null : null;
+    }
+
+    function pickHydroAsync(screenPoint) {
+      if (rendererMode !== 'canvas-worker' || !canvasWorker || !canvasWorkerReady) return Promise.resolve(null);
+      const requestId = ++canvasHydroPickRequestId;
+      return new Promise(resolve => {
+        canvasHydroPickRequests.set(requestId, { resolve });
+        canvasWorker.postMessage({ type: 'hydro-pick', requestId, point: screenPoint });
+        setTimeout(() => {
+          const pending = canvasHydroPickRequests.get(requestId);
+          if (!pending) return;
+          canvasHydroPickRequests.delete(requestId);
+          pending.resolve(null);
+        }, 900);
+      });
     }
 
     async function initialize() {
@@ -2431,7 +2566,12 @@
       };
     }
 
-    return { attach, initialize, render, resize, verifyLayout, pick, pickHydro, rebuildFromCountries, prioritizeLatest, getStats, setTerrainManifest, setHydroManifest, loadHydroLogicalFeature, retryHydroCache };
+    return {
+      attach, initialize, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
+      rebuildFromCountries, markCountryMeshStale, prioritizeLatest, getStats, setTerrainManifest,
+      setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
+      setHydroInteractionActive, invalidateHydroVisibility,
+    };
   })();
 
   let gpuRebuildTimer = null;
@@ -2469,14 +2609,15 @@
     return [];
   }
 
-  function hydroAtScreenPoint(screenPoint, coord) {
+  async function hydroAtScreenPoint(screenPoint, coord) {
     if (!state.layerVisibility.drawings || state.tool !== 'select') return null;
-    const picked = gpuMapRenderer.pickHydro(screenPoint);
+    const picked = gpuMapRenderer.pickHydro(screenPoint) || await gpuMapRenderer.pickHydroAsync(screenPoint);
     if (picked && isHydroFeatureVisible(picked) && hydroFeatureInView(picked)) return picked;
     const projection = activeProjection();
     const toleranceDegrees = 9 / Math.max(1, projection.scale()) * 180 / Math.PI;
     let nearest = null;
     for (const feature of allHydroFeatures()) {
+      if (!feature.geometry) continue;
       if (!hydroFeatureInView(feature)) continue;
       const bounds = feature.__awBounds || [-180, -90, 180, 90];
       const category = feature.properties?.category;
@@ -2873,6 +3014,7 @@
     }
     invalidateGeometryCaches(ids);
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+    gpuMapRenderer.markCountryMeshStale();
     scheduleGpuMeshRebuild();
   }
 
@@ -3178,9 +3320,65 @@
     }));
   }
 
-  function validateCountryGeometryEdit(affectedIds, unionBefore = null) {
+  function snapGeometryToGrid(geometry, precision = 7) {
+    if (!geometry?.coordinates) return geometry;
+    const factor = 10 ** precision;
+    const snap = value => {
+      if (Array.isArray(value) && value.length >= 2 && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]))) {
+        return [Math.round(Number(value[0]) * factor) / factor, Math.round(Number(value[1]) * factor) / factor];
+      }
+      return Array.isArray(value) ? value.map(snap) : value;
+    };
+    return { ...geometry, coordinates: snap(geometry.coordinates) };
+  }
+
+  function countryGeometryBoundaryLength(geometry) {
+    let length = 0;
+    for (const polygon of geometryPolygonSets(geometry)) {
+      for (const rawRing of polygon) {
+        const ring = ensureClosedRing(rawRing);
+        for (let index = 0; index < ring.length - 1; index += 1) {
+          const dx = unwrapLongitudeNear(ring[index + 1][0], ring[index][0]) - ring[index][0];
+          length += Math.hypot(dx, ring[index + 1][1] - ring[index][1]);
+        }
+      }
+    }
+    return length;
+  }
+
+  function captureCountryGeometryBaseline(affectedIds) {
     const clipper = window.polygonClipping;
     const affected = new Set([...affectedIds].map(String));
+    const features = state.countriesData?.features || [];
+    const overlaps = new Map();
+    for (let leftIndex = 0; leftIndex < features.length; leftIndex += 1) {
+      const left = features[leftIndex];
+      const leftId = String(left.properties?.editor_id || '');
+      if (!affected.has(leftId)) continue;
+      for (let rightIndex = 0; rightIndex < features.length; rightIndex += 1) {
+        const right = features[rightIndex];
+        const rightId = String(right.properties?.editor_id || '');
+        if (!rightId || leftId === rightId || !boundsOverlap(geometryBounds(left.geometry), geometryBounds(right.geometry))) continue;
+        const key = leftId < rightId ? `${leftId}|${rightId}` : `${rightId}|${leftId}`;
+        if (overlaps.has(key)) continue;
+        overlaps.set(key, multiPolygonPlanarArea(clipper.intersection(left.geometry.coordinates, right.geometry.coordinates)));
+      }
+    }
+    return {
+      union: countryUnionFromFeatures(features, affected),
+      overlaps,
+      boundaryLength: features.filter(feature => affected.has(String(feature.properties?.editor_id || '')))
+        .reduce((sum, feature) => sum + countryGeometryBoundaryLength(feature.geometry), 0),
+    };
+  }
+
+  function validateCountryGeometryEdit(affectedIds, baselineOrUnion = null) {
+    const clipper = window.polygonClipping;
+    const affected = new Set([...affectedIds].map(String));
+    const baseline = baselineOrUnion?.union
+      ? baselineOrUnion
+      : { union: baselineOrUnion, overlaps: new Map(), boundaryLength: 0 };
+    const areaTolerance = Math.max(1e-8, Number(baseline.boundaryLength || 0) * 2e-7);
     const features = state.countriesData?.features || [];
     const ids = features.map(feature => String(feature.properties?.editor_id || ''));
     if (ids.some(id => !id) || new Set(ids).size !== ids.length) {
@@ -3204,18 +3402,18 @@
         const pairKey = id < otherId ? `${id}|${otherId}` : `${otherId}|${id}`;
         if (tested.has(pairKey)) continue;
         tested.add(pairKey);
-        const overlap = clipper.intersection(feature.geometry.coordinates, other.geometry.coordinates);
-        if (multiPolygonPlanarArea(overlap) > 1e-8) {
-          return { ok: false, message: `${countryName(feature)}과(와) ${countryName(other)}의 영토가 겹칩니다.` };
+        const overlapArea = multiPolygonPlanarArea(clipper.intersection(feature.geometry.coordinates, other.geometry.coordinates));
+        const previousArea = Number(baseline.overlaps?.get(pairKey) || 0);
+        if (overlapArea > previousArea + areaTolerance) {
+          return { ok: false, message: `${countryName(feature)}과(와) ${countryName(other)} 사이에 ${(overlapArea - previousArea).toExponential(3)}deg²의 새 중첩이 생겼습니다. 편입 영역을 줄이거나 국경선을 다시 지정하세요.` };
         }
       }
     }
 
-    if (unionBefore) {
+    if (baseline.union) {
       const unionAfter = countryUnionFromFeatures(features, affected);
-      const changedArea = multiPolygonPlanarArea(clipper.xor(unionBefore, unionAfter));
-      const tolerance = Math.max(1e-8, multiPolygonPlanarArea(unionBefore) * 1e-10);
-      if (changedArea > tolerance) return { ok: false, message: '편집 과정에서 국토에 빈틈이 생겼습니다.' };
+      const changedArea = multiPolygonPlanarArea(clipper.xor(baseline.union, unionAfter));
+      if (changedArea > areaTolerance) return { ok: false, message: `편집 영역에 ${changedArea.toExponential(3)}deg²의 새 빈틈 또는 면적 변화가 생겼습니다. 편입선을 다시 지정하세요.` };
     }
     return { ok: true };
   }
@@ -3760,8 +3958,10 @@
       throw new Error('선택 영역이 피편입국 밖으로 벗어났습니다.');
     }
 
-    const donorRemainder = differenceGeometryByRegion(donor.geometry, transferred);
-    const targetResult = unionGeometryWithRegion(target.geometry, transferred);
+    const donorRemainderRaw = differenceGeometryByRegion(donor.geometry, transferred);
+    const donorRemainder = donorRemainderRaw ? snapGeometryToGrid(donorRemainderRaw, 7) : null;
+    const targetResultRaw = unionGeometryWithRegion(target.geometry, transferred);
+    const targetResult = targetResultRaw ? snapGeometryToGrid(targetResultRaw, 7) : null;
     if (!targetResult) throw new Error('편입 후 수령국 경계를 만들 수 없습니다.');
     const updates = [{ id: String(targetId), geometry: targetResult }];
     const removedIds = [];
@@ -3809,7 +4009,8 @@
       const overlap = clipper.intersection(feature.geometry.coordinates, transferred);
       if (multiPolygonPlanarArea(overlap) <= tolerance) continue;
       affectedSourceIds.push(id);
-      const remainder = differenceGeometryByRegion(feature.geometry, transferred);
+      const remainderRaw = differenceGeometryByRegion(feature.geometry, transferred);
+      const remainder = remainderRaw ? snapGeometryToGrid(remainderRaw, 7) : null;
       if (remainder) updates.push({ id, geometry: remainder });
       else removedIds.push(id);
     }
@@ -4043,10 +4244,10 @@
     };
     const hydroLayers = {
       rivers_hydro: mergeVisibility(['rivers_hydro', 'rivers_base', 'rivers_europe', 'rivers_north_america', 'rivers_australia']),
-      lakes_hydro: mergeVisibility(['lakes_hydro', 'lakes_base', 'lakes_europe', 'lakes_north_america', 'lakes_australia']),
+      lakes_natural_earth: mergeVisibility(['lakes_natural_earth', 'lakes_hydro', 'lakes_base', 'lakes_europe', 'lakes_north_america', 'lakes_australia']),
     };
     const hiddenHydroIds = Object.fromEntries(Object.entries(value?.hiddenHydroIds || {}).filter(([id, hidden]) => (
-      hidden === true && !String(id).startsWith('rivers_base:') && !String(id).startsWith('lakes_base:')
+      hidden === true && !String(id).startsWith('rivers_base:') && !String(id).startsWith('hydro-lake:')
     )));
     return {
       terrainVisible: value?.terrainVisible !== false,
@@ -4138,6 +4339,7 @@
     }
     if (group === 'drawings' && key.startsWith('hydro-layer:')) {
       state.physicalSettings.hydroLayers[key.slice('hydro-layer:'.length)] = !!visible;
+      gpuMapRenderer.invalidateHydroVisibility();
       markLayerTreeDirty();
       renderAll();
       queueAutosave();
@@ -4445,12 +4647,12 @@
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const manifestUrl = new URL('hydro/v0.12.4/manifest.json', PHYSICAL_DATA_BASE_URL);
+      const manifestUrl = new URL('hydro/v0.12.5/manifest.json', PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(manifestUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
-      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-hydro-shards-v3') throw new Error('수계 타일 버전이 맞지 않습니다.');
+      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-water-shards-v4') throw new Error('수계 타일 버전이 맞지 않습니다.');
       state.hydroManifest = manifest;
       state.hydroCollections = {};
       state.hydroFeatureCache = new Map();
@@ -4510,6 +4712,7 @@
       groups.get(key).features.push(feature);
     };
     for (const feature of allHydroFeatures()) {
+      if (!feature.geometry) continue;
       const layerId = feature.properties?.layer_id;
       if (HYDRO_LAYER_META[layerId]?.category !== category || !hydroLayerVisible(layerId) || !hydroFeatureInView(feature)) continue;
       if (category !== 'river') {
@@ -4538,8 +4741,9 @@
 
   function renderHydro() {
     if (!hydroLakeLayer || !hydroRiverLayer) return;
-    const gpuHydro = gpuMapRenderer.getStats().renderer === 'webgl2' || gpuMapRenderer.getStats().renderer === 'webgl1';
-    if (gpuHydro) {
+    const renderer = gpuMapRenderer.getStats().renderer;
+    const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker';
+    if (nativeHydro) {
       hydroLakeLayer.selectAll('*').remove();
       hydroRiverLayer.selectAll('*').remove();
     } else {
@@ -4557,7 +4761,7 @@
     }
 
     const selected = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
-    const selection = hydroSelectionLayer.selectAll('path.hydro-selected').data(selected && hydroFeatureInView(selected) ? [selected] : [], item => item.properties.aw_id);
+    const selection = hydroSelectionLayer.selectAll('path.hydro-selected').data(selected?.geometry && hydroFeatureInView(selected) ? [selected] : [], item => item.properties.aw_id);
     selection.enter().append('path').attr('class', 'hydro-selected');
     selection.attr('d', path).classed('is-lake', item => item.properties.category === 'lake');
     selection.exit().remove();
@@ -4902,6 +5106,7 @@
     const interactiveDragTarget = target => !!target?.closest?.('.vertex-handle, .user-label');
     const beginMapMovement = () => {
       state.mapMoving = true;
+      gpuMapRenderer.setHydroInteractionActive(true);
       mapEl.classList.add('dragging');
       if (state.draftHover) {
         state.draftHover = null;
@@ -4910,6 +5115,7 @@
     };
     const finishMapMovement = point => {
       state.mapMoving = false;
+      gpuMapRenderer.setHydroInteractionActive(false);
       mapEl.classList.remove('dragging');
       suppressNextMapClick(point);
       renderAll();
@@ -5605,7 +5811,7 @@
     return feature;
   }
 
-  function handleMapClick(screenPoint) {
+  async function handleMapClick(screenPoint) {
     const coord = screenToGeo(screenPoint);
     if (!coord) return;
     if (state.labelPlacementMode) {
@@ -5613,7 +5819,7 @@
       return;
     }
     if (state.tool === 'select' && !state.labelPlacementMode) {
-      const clickedHydro = hydroAtScreenPoint(screenPoint, coord);
+      const clickedHydro = await hydroAtScreenPoint(screenPoint, coord);
       if (clickedHydro) {
         selectHydro(String(clickedHydro.properties?.aw_id || clickedHydro.id));
         return;
@@ -5829,12 +6035,12 @@
     try {
       plan = buildAnnexationPlan(targetId, donorId, candidate.geometry);
       const affectedIds = new Set(plan.affectedIds);
-      const unionBefore = countryUnionFromFeatures(state.countriesData.features, affectedIds);
+      const baseline = captureCountryGeometryBaseline(affectedIds);
       applyTerritoryTransferPlan(plan);
       reindexCountries(state.countriesData, true);
       refreshCountryCentroids(affectedIds);
       state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-      const validation = validateCountryGeometryEdit(affectedIds, unionBefore);
+      const validation = validateCountryGeometryEdit(affectedIds, baseline);
       if (!validation.ok) throw new Error(validation.message);
       const targetAfter = countryFeatureById(targetId);
       if (!targetAfter) throw new Error('수령국이 편입 결과에서 사라졌습니다.');
@@ -5876,16 +6082,21 @@
     const snapshot = snapshotEditable();
     try {
       const transferPlan = buildNewCountryTransferPlan(sourceIds, candidate.geometry);
-      const unionBefore = countryUnionFromFeatures(state.countriesData.features, new Set(transferPlan.affectedSourceIds));
+      const baseline = captureCountryGeometryBaseline(new Set(transferPlan.affectedSourceIds));
       applyTerritoryTransferPlan(transferPlan);
-      const feature = createCountryFeature(nameInput.trim() || '새 국가', state.draftCoords, null, candidate.geometry);
+      const feature = createCountryFeature(
+        nameInput.trim() || '새 국가',
+        state.draftCoords,
+        null,
+        snapGeometryToGrid(candidate.geometry, 7),
+      );
       state.countriesData.features.push(feature);
       const affectedIds = new Set([...transferPlan.affectedSourceIds, feature.properties.editor_id]);
       markCountryGeometriesChanged(affectedIds);
       reindexCountries(state.countriesData, true);
       refreshCountryCentroids(affectedIds);
       state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-      const validation = validateCountryGeometryEdit(affectedIds, unionBefore);
+      const validation = validateCountryGeometryEdit(affectedIds, baseline);
       if (!validation.ok) throw new Error(validation.message);
 
       commitHistorySnapshot(snapshot);
@@ -6185,11 +6396,24 @@
     $('hydroNameValue').textContent = properties.name || '이름 없음';
     $('hydroCategoryValue').textContent = category;
     $('hydroLayerValue').textContent = HYDRO_LAYER_META[properties.layer_id]?.label || properties.layer_id || '수계';
-    $('hydroSourceValue').textContent = properties.source || 'HydroRIVERS/HydroLAKES 1.0';
+    $('hydroSourceValue').textContent = properties.source || 'AtlasWright 내장 수계';
     $('selectionStatus').textContent = `${category} · ${properties.name || '이름 없음'}`;
     markLayerTreeDirty();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
+    if (!feature.geometry && !feature.__geometryLoading) {
+      feature.__geometryLoading = true;
+      gpuMapRenderer.loadHydroLogicalFeature(Number(properties.__logicalFid)).then(full => {
+        if (!full) return;
+        prepareHydroFeature(full);
+        const key = String(full.properties?.aw_id || full.id);
+        state.hydroFeatureCache.set(key, full);
+        for (const [fid, cached] of state.hydroFeatureByFid) {
+          if (String(cached?.properties?.aw_id || cached?.id) === key) state.hydroFeatureByFid.set(fid, full);
+        }
+        if (state.selected?.type === 'hydro' && state.selected.id === key) selectHydro(key, true);
+      }).catch(error => console.warn('수계 선택 형상을 불러오지 못했습니다.', error)).finally(() => { feature.__geometryLoading = false; });
+    }
   }
 
   async function copySelectedHydroForEditing() {
@@ -6199,16 +6423,16 @@
       setActionStatus('복사할 수계 객체를 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
       return;
     }
-    if (source.properties?.category === 'river' && Number(source.properties?.fragment_count || 1) > 1) {
-      setActionStatus('강 전체 형상을 준비하는 중입니다.', 'working', 0);
+    if (!source.geometry || (source.properties?.category === 'river' && Number(source.properties?.fragment_count || 1) > 1)) {
+      setActionStatus('수계 전체 형상을 준비하는 중입니다.', 'working', 0);
       try {
         source = await gpuMapRenderer.loadHydroLogicalFeature(Number(source.properties.__logicalFid));
       } catch (error) {
-        setActionStatus(`강 전체 형상을 불러오지 못했습니다. 잠시 후 다시 시도하세요. ${error.message}`, 'error', 0);
+        setActionStatus(`수계 전체 형상을 불러오지 못했습니다. 잠시 후 다시 시도하세요. ${error.message}`, 'error', 0);
         return;
       }
       if (!source) {
-        setActionStatus('강 전체 형상을 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
+        setActionStatus('수계 전체 형상을 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
         return;
       }
     }
@@ -6222,13 +6446,14 @@
         name: source.properties?.name || '',
         category,
         editorColor: TERRAIN_TOOL_CONFIG[category].color,
-        notes: `Hydro 편집용 복사본 · 원본 ${source.properties?.aw_id || source.id}`,
-        source: source.properties?.source || 'HydroRIVERS/HydroLAKES 1.0',
+        notes: `AtlasWright 내장 수계 편집용 복사본 · 원본 ${source.properties?.aw_id || source.id}`,
+        source: source.properties?.source || 'AtlasWright 내장 수계',
         sourceFeatureId: source.properties?.aw_id || source.id,
       },
     };
     state.drawings.push(copy);
     state.physicalSettings.hiddenHydroIds[String(source.properties?.aw_id || source.id)] = true;
+    gpuMapRenderer.invalidateHydroVisibility();
     markLayerTreeDirty();
     selectDrawing(String(copy.id));
     renderAll();
@@ -6402,6 +6627,7 @@
     $('selectionStatus').textContent = '선택 없음';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     updateModeButtons();
+    gpuMapRenderer.markCountryMeshStale();
     scheduleGpuMeshRebuild(0);
     renderAll();
     $('countryStatus').textContent = `현재 지도 ${state.countriesData?.features?.length || 0}개`;
