@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gzip
+import hashlib
 import json
 import math
 import struct
@@ -12,7 +13,7 @@ from shapely.geometry import LineString, MultiLineString, shape
 
 
 ROOT = Path(__file__).parents[1]
-DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.4"
+DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.5"
 KOREA_BOUNDS = (124.0, 33.0, 131.0, 43.0)
 
 
@@ -124,7 +125,7 @@ def decode_source_ids(data: bytes) -> list[str]:
 def read_index(path: Path):
     raw = gzip.decompress(path.read_bytes())
     magic, version, _reserved, tile_count, logical_count, pack_count = struct.unpack_from("<4sHHIII", raw, 0)
-    if (magic, version) != (b"AWI3", 3):
+    if (magic, version) != (b"AWI4", 4):
         raise AssertionError("invalid global hydro index")
     offset = 20
     tiles = {}
@@ -149,29 +150,23 @@ def read_index(path: Path):
     return tiles, logical, packs
 
 
-def decode_pack(raw: bytes, pack_id: int):
+def decode_pack(raw: bytes, pack_id: int, metadata: dict[int, dict]):
     magic, version, pack_stage, feature_count = struct.unpack_from("<4sHHI", raw, 0)
-    if (magic, version) != (b"AWHF", 3):
+    if (magic, version) != (b"AWHF", 4):
         raise AssertionError(f"invalid hydro pack {pack_id}")
     offset = 12
     for _ in range(feature_count):
-        header = struct.unpack_from("<IIBBBBHHf4i5HIII", raw, offset)
+        header = struct.unpack_from("<IIBBBBHHf4iII", raw, offset)
         fid, logical_fid, kind, stage, geometry_kind, flags, fragment_index, fragment_count, width = header[:9]
         bounds = tuple(value / 1_000_000 for value in header[9:13])
-        lengths = header[13:18]
-        source_length, geometry_length, width_length = header[18:21]
-        offset += 58
-        strings = []
-        for length in lengths:
-            strings.append(raw[offset:offset + length].decode("utf-8"))
-            offset += length
-        source_payload = raw[offset:offset + source_length]
-        offset += source_length
+        geometry_length, width_length = header[13:15]
+        offset += 44
         geometry_payload = raw[offset:offset + geometry_length]
         offset += geometry_length
         width_payload = raw[offset:offset + width_length]
         offset += width_length
         geometry = decode_geometry(geometry_payload, geometry_kind)
+        meta = metadata[fid]
         yield {
             "fid": fid,
             "logical_fid": logical_fid,
@@ -183,11 +178,11 @@ def decode_pack(raw: bytes, pack_id: int):
             "width": width,
             "flags": flags,
             "bounds": bounds,
-            "aw_id": strings[0],
-            "name": strings[1],
-            "source": strings[3],
-            "layer_id": strings[4],
-            "source_ids": decode_source_ids(source_payload),
+            "aw_id": meta["awId"],
+            "name": meta["name"],
+            "source": meta["source"],
+            "layer_id": meta["layerId"],
+            "source_ids": [value for value in str(meta.get("sourceId") or "").split(",") if value],
             "coordinate_count": coordinate_count(geometry, geometry_kind),
             "geometry": geometry if flags & 1 or intersects(bounds, KOREA_BOUNDS) else None,
             "width_profiles": decode_width_profile(width_payload),
@@ -205,18 +200,26 @@ class HydroTileTests(unittest.TestCase):
     def setUpClass(cls):
         cls.manifest_path = DATA / "manifest.json"
         cls.manifest = json.loads(cls.manifest_path.read_text(encoding="utf-8"))
+        core_payload = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["core"]["url"]).read_bytes()).decode("utf-8"))
+        detail_payload = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()).decode("utf-8"))
+        cls.metadata = {int(row["fid"]): row for row in core_payload["features"]}
+        for detail in detail_payload["features"]:
+            cls.metadata[int(detail["fid"])].update(detail)
         cls.tiles, cls.logical_index, cls.packs = read_index(DATA / cls.manifest["index"]["url"])
         shards = {row["id"]: (DATA / row["url"]).read_bytes() for row in cls.manifest["shards"]}
         cls.features = []
         for pack_id, spec in sorted(cls.packs.items()):
             compressed = shards[spec["shard"]][spec["offset"]:spec["offset"] + spec["length"]]
-            cls.features.extend(decode_pack(gzip.decompress(compressed), pack_id))
+            cls.features.extend(decode_pack(gzip.decompress(compressed), pack_id, cls.metadata))
 
     def test_manifest_index_and_shards_stay_within_limits(self):
-        self.assertEqual(self.manifest["version"], "0.12.4")
-        self.assertEqual(self.manifest["schema"], "atlaswright-hydro-shards-v3")
+        self.assertEqual(self.manifest["version"], "0.12.5")
+        self.assertEqual(self.manifest["schema"], "atlaswright-water-shards-v4")
         self.assertLess(self.manifest_path.stat().st_size, 100 * 1024)
         self.assertLess((DATA / self.manifest["index"]["url"]).stat().st_size, 100 * 1024)
+        self.assertEqual(self.manifest["metadata"]["featureCount"], self.manifest["stats"]["featureCount"])
+        self.assertLess(self.manifest["metadata"]["core"]["bytes"], 700 * 1024)
+        self.assertTrue(self.manifest["metadata"]["detail"]["lazy"])
         self.assertLess(self.manifest["stats"]["compressedBytes"], 48 * 1024 * 1024)
         self.assertTrue(all(row["bytes"] <= 4 * 1024 * 1024 for row in self.manifest["shards"]))
         self.assertEqual(len(self.packs), self.manifest["stats"]["packCount"])
@@ -232,6 +235,16 @@ class HydroTileTests(unittest.TestCase):
         self.assertEqual(selection["mediumMainstemMinBasinKm2"], 2500.0)
         self.assertGreater(self.manifest["stats"]["mediumMainstemReachCount"], 0)
         self.assertGreater(self.manifest["stats"]["borderAlignedLengthKm"], 0)
+
+    def test_natural_earth_global_lakes_replace_hydrolakes(self):
+        lakes = [feature for feature in self.features if feature["kind"] == 2]
+        self.assertEqual(len(lakes), 1355)
+        self.assertEqual(sum(feature["coordinate_count"] for feature in lakes), 162852)
+        self.assertEqual({feature["layer_id"] for feature in lakes}, {"lakes_natural_earth"})
+        self.assertTrue(all(feature["source"] == "Natural Earth 5.0.0 1:10m" for feature in lakes))
+        self.assertTrue(all(not feature["aw_id"].startswith("hydro-lake:") for feature in lakes))
+        source = ROOT / "assets" / "data" / "hydro" / "lakes_base.geojson"
+        self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), self.manifest["sources"]["naturalEarthLakes"]["sha256"])
 
     def test_fragments_share_one_logical_river_identity(self):
         self.assertEqual(len(self.features), self.manifest["stats"]["featureCount"])
@@ -259,7 +272,7 @@ class HydroTileTests(unittest.TestCase):
         river_groups = {feature["logical_fid"] for feature in korea if feature["kind"] == 1}
         lakes = [feature for feature in korea if feature["kind"] == 2]
         self.assertGreaterEqual(len(river_groups), 18)
-        self.assertGreaterEqual(len(lakes), 5)
+        self.assertGreaterEqual(len(lakes), 1)
         source_ids = {source_id for feature in korea for source_id in feature["source_ids"]}
         self.assertTrue({"40425195", "40425194", "40391748"}.issubset(source_ids))
         # Daedong, Geum, and Yeongsan terminal reaches must all be present even

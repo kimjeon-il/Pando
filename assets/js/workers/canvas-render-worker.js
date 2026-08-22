@@ -9,6 +9,11 @@ function canvasFallbackWorkerMain() {
     let terrainManifestUrl = '';
     const terrainTiles = new Map();
     const terrainRequests = new Map();
+    const hydroPacks = new Map();
+    let hydroActivePackIds = new Set();
+    let hydroPort = null;
+    let lastRenderMessage = null;
+    let hydroRenderTimer = 0;
 
     function terrainTileSpec(level, column, row) {
       const x0 = column * level.tileSize;
@@ -264,10 +269,157 @@ function canvasFallbackWorkerMain() {
       }
       context.restore();
     }
+
+    function createProjection(message, width, height) {
+      const view = message.view || {};
+      if (message.projection === 'globe') {
+        const base = Math.max(60, Math.min(width, height - 26) * 0.455);
+        return self.d3.geo.orthographic()
+          .translate([width / 2, height / 2])
+          .scale(base * Number(view.globeZoom || 1))
+          .rotate(view.globeRotation || [-15, -25, 0])
+          .clipAngle(90)
+          .precision(0.35);
+      }
+      const base = Math.max(30, width / (2 * Math.PI));
+      return self.d3.geo.equirectangular()
+        .translate([width / 2, height / 2])
+        .scale(base * Number(view.flatZoom || 1))
+        .center(view.flatCenter || [0, 20])
+        .rotate([0, 0, 0])
+        .clipExtent([[0, 0], [width, height - 25]])
+        .precision(0.25);
+    }
+
+    function activeHydroFeatures() {
+      const result = [];
+      for (const packId of hydroActivePackIds) result.push(...(hydroPacks.get(Number(packId)) || []));
+      return result;
+    }
+
+    function hydroFeatureVisible(feature, message) {
+      if (!message.hydroVisible) return false;
+      const properties = feature.properties || {};
+      if (message.physicalSettings?.hydroLayers?.[properties.layer_id] === false) return false;
+      if (message.physicalSettings?.hiddenHydroIds?.[String(properties.aw_id || feature.id)] === true) return false;
+      return true;
+    }
+
+    function lineParts(geometry) {
+      if (geometry?.type === 'LineString') return [geometry.coordinates || []];
+      if (geometry?.type === 'MultiLineString') return geometry.coordinates || [];
+      return [];
+    }
+
+    function renderHydroPass(message, projection, dpr, borderAligned) {
+      const geoPath = self.d3.geo.path().projection(projection).context(context);
+      const features = activeHydroFeatures();
+      context.save();
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      context.lineCap = 'round';
+      context.lineJoin = 'round';
+      for (const feature of features) {
+        if (!hydroFeatureVisible(feature, message)) continue;
+        const properties = feature.properties || {};
+        const isLake = properties.category === 'lake';
+        const isBorder = properties.border_aligned === true || (Number(properties.__flags || 0) & 1) !== 0;
+        if (isLake) {
+          if (borderAligned) continue;
+          context.beginPath();
+          geoPath(feature);
+          context.globalAlpha = 0.92;
+          context.fillStyle = '#5aa9d6';
+          context.fill();
+          continue;
+        }
+        if (isBorder !== borderAligned) continue;
+        const parts = lineParts(feature.geometry);
+        const profiles = properties.stroke_widths || [];
+        const fallback = Math.max(0.55, Math.min(2.6, Number(properties.stroke_width || 0.8)));
+        context.globalAlpha = 0.96;
+        context.strokeStyle = '#3b82c4';
+        for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
+          const part = parts[partIndex];
+          const widths = profiles[partIndex] || [];
+          for (let index = 0; index < part.length - 1; index += 1) {
+            context.beginPath();
+            geoPath({ type: 'LineString', coordinates: [part[index], part[index + 1]] });
+            const start = Number(widths[index] ?? fallback);
+            const end = Number(widths[index + 1] ?? start);
+            context.lineWidth = (start + end) / 2;
+            context.stroke();
+          }
+        }
+      }
+      context.restore();
+    }
+
+    function pickHydroFeature(point) {
+      const message = lastRenderMessage;
+      if (!message || !Array.isArray(point)) return null;
+      const width = Math.max(1, Number(message.width || 1));
+      const height = Math.max(1, Number(message.height || 1));
+      const projection = createProjection(message, width, height);
+      const coordinate = projection.invert(point);
+      if (!coordinate) return null;
+      let nearest = null;
+      for (const feature of activeHydroFeatures()) {
+        if (!hydroFeatureVisible(feature, message)) continue;
+        const properties = feature.properties || {};
+        if (properties.category === 'lake') {
+          if (self.d3.geo.contains(feature, coordinate)) return Number(properties.__fid);
+          continue;
+        }
+        for (const part of lineParts(feature.geometry)) {
+          for (let index = 0; index < part.length - 1; index += 1) {
+            const a = projection(part[index]);
+            const b = projection(part[index + 1]);
+            if (!a || !b || Math.hypot(b[0] - a[0], b[1] - a[1]) > width * 0.7) continue;
+            const vx = b[0] - a[0], vy = b[1] - a[1];
+            const length2 = vx * vx + vy * vy;
+            const t = length2 ? Math.max(0, Math.min(1, ((point[0] - a[0]) * vx + (point[1] - a[1]) * vy) / length2)) : 0;
+            const distance = Math.hypot(point[0] - (a[0] + vx * t), point[1] - (a[1] + vy * t));
+            if (distance <= 7 && (!nearest || distance < nearest.distance)) nearest = { fid: Number(properties.__fid), distance };
+          }
+        }
+      }
+      return nearest?.fid ?? null;
+    }
+
+    function scheduleHydroRender() {
+      if (!lastRenderMessage || hydroRenderTimer) return;
+      hydroRenderTimer = setTimeout(() => {
+        hydroRenderTimer = 0;
+        try { render(lastRenderMessage); }
+        catch (error) { self.postMessage({ type: 'error', message: error?.message || String(error) }); }
+      }, 0);
+    }
+
+    function connectHydroPort(port) {
+      hydroPort?.close?.();
+      hydroPort = port || null;
+      if (!hydroPort) return;
+      hydroPort.onmessage = event => {
+        const message = event.data || {};
+        if (message.type === 'pack') {
+          hydroPacks.set(Number(message.packId), message.features || []);
+          if (hydroActivePackIds.has(Number(message.packId))) scheduleHydroRender();
+        }
+        else if (message.type === 'active') {
+          hydroActivePackIds = new Set((message.packIds || []).map(Number));
+          scheduleHydroRender();
+        } else if (message.type === 'release') {
+          for (const packId of message.packIds || []) hydroPacks.delete(Number(packId));
+        }
+      };
+      hydroPort.start?.();
+    }
+
     function countryId(feature, index) {
       return String(feature.properties?.editor_id || feature.properties?.iso_a3 || index);
     }
     function render(message) {
+      lastRenderMessage = message;
       const width = Math.max(1, Number(message.width || 1));
       const height = Math.max(1, Number(message.height || 1));
       const dpr = Math.max(1, Number(message.dpr || 1));
@@ -285,26 +437,7 @@ function canvasFallbackWorkerMain() {
       context.clearRect(0, 0, pixelWidth, pixelHeight);
       {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const view = message.view || {};
-        let projection;
-        if (message.projection === 'globe') {
-          const base = Math.max(60, Math.min(width, height - 26) * 0.455);
-          projection = self.d3.geo.orthographic()
-            .translate([width / 2, height / 2])
-            .scale(base * Number(view.globeZoom || 1))
-            .rotate(view.globeRotation || [-15, -25, 0])
-            .clipAngle(90)
-            .precision(0.35);
-        } else {
-          const base = Math.max(30, width / (2 * Math.PI));
-          projection = self.d3.geo.equirectangular()
-            .translate([width / 2, height / 2])
-            .scale(base * Number(view.flatZoom || 1))
-            .center(view.flatCenter || [0, 20])
-            .rotate([0, 0, 0])
-            .clipExtent([[0, 0], [width, height - 25]])
-            .precision(0.25);
-        }
+        const projection = createProjection(message, width, height);
         renderTerrain(message, projection, width, height, dpr);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const geoPath = self.d3.geo.path().projection(projection).context(context);
@@ -324,10 +457,19 @@ function canvasFallbackWorkerMain() {
           context.globalAlpha = fillAlpha;
           context.fillStyle = message.colors?.[countryId(feature, index)] || feature.properties?.editor_color || defaultLand;
           context.fill();
+        }
+        renderHydroPass(message, projection, dpr, false);
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        for (let index = 0; message.visible && index < features.length; index += 1) {
+          const feature = features[index];
+          if (hiddenCountryIds.has(countryId(feature, index))) continue;
+          context.beginPath();
+          geoPath(feature);
           context.globalAlpha = borderAlpha;
           context.strokeStyle = border;
           context.stroke();
         }
+        renderHydroPass(message, projection, dpr, true);
         context.globalAlpha = 1;
       }
       const bitmap = canvas.transferToImageBitmap();
@@ -345,6 +487,10 @@ function canvasFallbackWorkerMain() {
         features = message.features || [];
         loadTerrainManifest(message.terrainManifestUrl);
         self.postMessage({ type: 'ready' });
+      } else if (message.type === 'hydro-port') {
+        connectHydroPort(message.port);
+      } else if (message.type === 'hydro-pick') {
+        self.postMessage({ type: 'hydro-pick', requestId: message.requestId, fid: pickHydroFeature(message.point) });
       } else if (message.type === 'data') {
         features = message.features || [];
         self.postMessage({ type: 'data-ready', revision: Number(message.revision || 0) });
