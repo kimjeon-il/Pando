@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.3 Hydro shard, Range, and persistent-cache worker. */
+/* AtlasWright v0.12.4 Hydro shard, Range, and persistent-cache worker. */
 'use strict';
 
 importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js');
@@ -227,20 +227,27 @@ function coordinateCount(geometry) {
 
 function buildMesh(features) {
   const riverStarts = [], riverEnds = [], riverFeatureIds = [], riverStartWidths = [], riverEndWidths = [];
+  const borderRiverStarts = [], borderRiverEnds = [], borderRiverFeatureIds = [], borderRiverStartWidths = [], borderRiverEndWidths = [];
   const lakePositions = [], lakeFeatureIds = [], lakeIndices = [];
   for (const feature of features) {
     const fid = Number(feature.properties.__fid);
     if (feature.properties.category === 'river') {
+      const aligned = (Number(feature.properties.__flags || 0) & 1) !== 0;
+      const starts = aligned ? borderRiverStarts : riverStarts;
+      const ends = aligned ? borderRiverEnds : riverEnds;
+      const featureIds = aligned ? borderRiverFeatureIds : riverFeatureIds;
+      const startWidths = aligned ? borderRiverStartWidths : riverStartWidths;
+      const endWidths = aligned ? borderRiverEndWidths : riverEndWidths;
       const parts = lineParts(feature.geometry);
       const profiles = feature.properties.stroke_widths || [];
       for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
         const part = parts[partIndex], widths = profiles[partIndex] || [];
         for (let index = 0; index < part.length - 1; index += 1) {
-          riverStarts.push(Math.round(part[index][0] * 1e6), Math.round(part[index][1] * 1e6));
-          riverEnds.push(Math.round(part[index + 1][0] * 1e6), Math.round(part[index + 1][1] * 1e6));
-          riverFeatureIds.push(fid);
-          riverStartWidths.push(Number(widths[index] ?? feature.properties.stroke_width ?? 0.8));
-          riverEndWidths.push(Number(widths[index + 1] ?? widths[index] ?? feature.properties.stroke_width ?? 0.8));
+          starts.push(Math.round(part[index][0] * 1e6), Math.round(part[index][1] * 1e6));
+          ends.push(Math.round(part[index + 1][0] * 1e6), Math.round(part[index + 1][1] * 1e6));
+          featureIds.push(fid);
+          startWidths.push(Number(widths[index] ?? feature.properties.stroke_width ?? 0.8));
+          endWidths.push(Number(widths[index + 1] ?? widths[index] ?? feature.properties.stroke_width ?? 0.8));
         }
       }
       continue;
@@ -268,6 +275,8 @@ function buildMesh(features) {
   return {
     riverStarts: new Int32Array(riverStarts), riverEnds: new Int32Array(riverEnds), riverFeatureIds: new Uint32Array(riverFeatureIds),
     riverStartWidths: new Float32Array(riverStartWidths), riverEndWidths: new Float32Array(riverEndWidths),
+    borderRiverStarts: new Int32Array(borderRiverStarts), borderRiverEnds: new Int32Array(borderRiverEnds), borderRiverFeatureIds: new Uint32Array(borderRiverFeatureIds),
+    borderRiverStartWidths: new Float32Array(borderRiverStartWidths), borderRiverEndWidths: new Float32Array(borderRiverEndWidths),
     lakePositions: new Int32Array(lakePositions), lakeFeatureIds: new Uint32Array(lakeFeatureIds), lakeIndices: new Uint32Array(lakeIndices),
   };
 }
@@ -284,6 +293,7 @@ function readPack(bytes, packId) {
     const kind = view.getUint8(offset + 8);
     const stage = view.getUint8(offset + 9);
     const geometryKind = view.getUint8(offset + 10);
+    const flags = view.getUint8(offset + 11);
     const fragmentIndex = view.getUint16(offset + 12, true);
     const fragmentCount = view.getUint16(offset + 14, true);
     const width = view.getFloat32(offset + 16, true);
@@ -305,7 +315,8 @@ function readPack(bytes, packId) {
     features.push({
       type: 'Feature', id: awId,
       properties: {
-        __fid: fid, __logicalFid: logicalFid, fragment_index: fragmentIndex, fragment_count: fragmentCount,
+        __fid: fid, __logicalFid: logicalFid, __flags: flags, border_aligned: (flags & 1) !== 0,
+        fragment_index: fragmentIndex, fragment_count: fragmentCount,
         aw_id: awId, layer_id: layerId, category: kind === 1 ? 'river' : 'lake', name, name_ko: name,
         source_id: sourcePayload.length ? readSourceIds(sourcePayload) : legacySourceId, source,
         min_zoom: manifest.stages[stage].minZoom, stage, stroke_width: width, stroke_widths: widthProfile, pack_id: packId,
@@ -332,9 +343,16 @@ function postPack(packId, pack, revision) {
     mesh: {
       riverStarts: mesh.riverStarts.buffer, riverEnds: mesh.riverEnds.buffer, riverFeatureIds: mesh.riverFeatureIds.buffer,
       riverStartWidths: mesh.riverStartWidths.buffer, riverEndWidths: mesh.riverEndWidths.buffer,
+      borderRiverStarts: mesh.borderRiverStarts.buffer, borderRiverEnds: mesh.borderRiverEnds.buffer, borderRiverFeatureIds: mesh.borderRiverFeatureIds.buffer,
+      borderRiverStartWidths: mesh.borderRiverStartWidths.buffer, borderRiverEndWidths: mesh.borderRiverEndWidths.buffer,
       lakePositions: mesh.lakePositions.buffer, lakeFeatureIds: mesh.lakeFeatureIds.buffer, lakeIndices: mesh.lakeIndices.buffer,
     },
-  }, [mesh.riverStarts.buffer, mesh.riverEnds.buffer, mesh.riverFeatureIds.buffer, mesh.riverStartWidths.buffer, mesh.riverEndWidths.buffer, mesh.lakePositions.buffer, mesh.lakeFeatureIds.buffer, mesh.lakeIndices.buffer]);
+  }, [
+    mesh.riverStarts.buffer, mesh.riverEnds.buffer, mesh.riverFeatureIds.buffer, mesh.riverStartWidths.buffer, mesh.riverEndWidths.buffer,
+    mesh.borderRiverStarts.buffer, mesh.borderRiverEnds.buffer, mesh.borderRiverFeatureIds.buffer,
+    mesh.borderRiverStartWidths.buffer, mesh.borderRiverEndWidths.buffer,
+    mesh.lakePositions.buffer, mesh.lakeFeatureIds.buffer, mesh.lakeIndices.buffer,
+  ]);
   postedPacks.add(packId);
 }
 
