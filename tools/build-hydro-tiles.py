@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.12.3 connected Hydro hydrography shards.
+"""Build AtlasWright v0.12.4 connected and border-aligned Hydro shards.
 
 HydroRIVERS/HydroLAKES provide the canonical geometry. Natural Earth is used
 only to enrich matched feature names. Selected source coordinates are quantized
@@ -25,11 +25,11 @@ from typing import Any, Iterable, Iterator, Sequence
 
 import shapefile
 from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, Polygon, box, shape
-from shapely.ops import nearest_points, transform, unary_union
+from shapely.ops import linemerge, nearest_points, transform, unary_union
 from shapely.strtree import STRtree
 
 
-VERSION = "0.12.3"
+VERSION = "0.12.4"
 PACK_FORMAT_VERSION = 3
 MICRO = 1_000_000
 RIVER_FLOW_WEIGHT = 4.0
@@ -44,6 +44,13 @@ MAX_TOTAL_GZIP_MIB = 48.0
 CONTINUITY_MIN_ORDER = 5
 CONTINUITY_MIN_FLOW_CMS = 75.0
 CONTINUITY_MIN_SCORE = 10.86
+MEDIUM_MAINSTEM_MIN_BASIN_KM2 = 2_500.0
+BORDER_FLAG = 1
+BORDER_MAX_DISTANCE_KM = 12.0
+BORDER_COVERAGE_DISTANCE_KM = 5.0
+BORDER_MIN_COVERAGE = 0.70
+BORDER_MAX_DIRECTION_DEGREES = 30.0
+BORDER_MIN_LENGTH_KM = 10.0
 RIVER_CODES = ("af", "ar", "as", "au", "eu", "gr", "na", "sa", "si")
 
 
@@ -70,6 +77,7 @@ class BuiltFeature:
     width_profile: list[list[float]] | None = None
     fragment_index: int = 0
     fragment_count: int = 1
+    flags: int = 0
 
 
 @dataclass
@@ -86,6 +94,7 @@ class RiverReach:
     parts: list[list[tuple[float, float]]]
     endorheic: bool = False
     render_snap: tuple[float, float] | None = None
+    border_pair: tuple[str, str] | None = None
 
 
 @dataclass(slots=True)
@@ -316,6 +325,206 @@ class CoastSnapper:
         return None
 
 
+def iter_line_geometries(geometry: Any) -> Iterator[LineString]:
+    if isinstance(geometry, LineString):
+        if len(geometry.coords) >= 2 and geometry.length > 1e-9:
+            yield geometry
+        return
+    for child in getattr(geometry, "geoms", []):
+        yield from iter_line_geometries(child)
+
+
+def metric_line_substring(
+    source: LineString, metric: LineString, start_distance: float, end_distance: float,
+) -> list[tuple[float, float]]:
+    """Return a shared-border path while retaining every canonical border vertex."""
+    source_points = [(float(x), float(y)) for x, y, *_ in source.coords]
+    metric_points = [(float(x), float(y)) for x, y, *_ in metric.coords]
+    if len(source_points) != len(metric_points) or len(source_points) < 2:
+        return []
+    reverse = start_distance > end_distance
+    lower, upper = sorted((max(0.0, start_distance), min(metric.length, end_distance)))
+    if upper - lower <= 1e-6:
+        return []
+    cumulative = [0.0]
+    for left, right in zip(metric_points, metric_points[1:]):
+        cumulative.append(cumulative[-1] + math.hypot(right[0] - left[0], right[1] - left[1]))
+
+    def interpolate_at(distance: float) -> tuple[float, float]:
+        for index in range(len(cumulative) - 1):
+            if distance <= cumulative[index + 1] + 1e-9:
+                span = cumulative[index + 1] - cumulative[index]
+                ratio = 0.0 if span <= 1e-12 else (distance - cumulative[index]) / span
+                left, right = source_points[index], source_points[index + 1]
+                return left[0] + (right[0] - left[0]) * ratio, left[1] + (right[1] - left[1]) * ratio
+        return source_points[-1]
+
+    points = [interpolate_at(lower)]
+    points.extend(source_points[index] for index in range(1, len(source_points) - 1) if lower < cumulative[index] < upper)
+    points.append(interpolate_at(upper))
+    deduped: list[tuple[float, float]] = []
+    for point in points:
+        if not deduped or quantize(point) != quantize(deduped[-1]):
+            deduped.append(point)
+    return list(reversed(deduped)) if reverse else deduped
+
+
+class BorderAligner:
+    """Match long Hydro reaches to exact shared borders of the built-in map."""
+
+    def __init__(self, countries_path: Path):
+        collection = json.loads(countries_path.read_text(encoding="utf-8"))
+        features = collection.get("features") or []
+        countries = [shape(feature["geometry"]) for feature in features]
+        country_ids = [
+            str((feature.get("properties") or {}).get("editor_id") or (feature.get("properties") or {}).get("iso_a3") or feature.get("id") or index)
+            for index, feature in enumerate(features)
+        ]
+        country_tree = STRtree(countries)
+        pair_lines: dict[tuple[str, str], list[LineString]] = defaultdict(list)
+        for left_index, left in enumerate(countries):
+            for candidate in country_tree.query(left):
+                right_index = int(candidate)
+                if right_index <= left_index:
+                    continue
+                shared = left.boundary.intersection(countries[right_index].boundary)
+                pair = tuple(sorted((country_ids[left_index], country_ids[right_index])))
+                for line in iter_line_geometries(shared):
+                    pair_lines[pair].append(line)
+        self.lines: list[LineString] = []
+        self.pairs: list[tuple[str, str]] = []
+        for pair, lines in sorted(pair_lines.items()):
+            unioned = unary_union(lines)
+            merged = unioned if isinstance(unioned, LineString) else linemerge(unioned)
+            for line in iter_line_geometries(merged):
+                self.lines.append(line)
+                self.pairs.append(pair)
+        self.tree = STRtree(self.lines)
+        self.grid: dict[tuple[int, int], set[int]] = defaultdict(set)
+        for line_index, line in enumerate(self.lines):
+            min_x, min_y, max_x, max_y = line.bounds
+            for cell_x in range(math.floor((min_x - 1.0) / 2), math.floor((max_x + 1.0) / 2) + 1):
+                for cell_y in range(math.floor((min_y - 1.0) / 2), math.floor((max_y + 1.0) / 2) + 1):
+                    self.grid[(cell_x, cell_y)].add(line_index)
+
+    @staticmethod
+    def _sample_distances(line: LineString, border: LineString) -> list[float]:
+        sample_count = max(1, math.ceil(line.length))
+        return [line.interpolate(min(line.length, index)).distance(border) for index in range(sample_count + 1)]
+
+    def _candidate(self, reach: RiverReach) -> dict[str, Any] | None:
+        if len(reach.parts) != 1 or len(reach.parts[0]) < 2:
+            return None
+        source_points = reach.parts[0]
+        min_x = min(point[0] for point in source_points)
+        max_x = max(point[0] for point in source_points)
+        min_y = min(point[1] for point in source_points)
+        max_y = max(point[1] for point in source_points)
+        nearby: set[int] = set()
+        for cell_x in range(math.floor(min_x / 2), math.floor(max_x / 2) + 1):
+            for cell_y in range(math.floor(min_y / 2), math.floor(max_y / 2) + 1):
+                nearby.update(self.grid.get((cell_x, cell_y), ()))
+        if not nearby:
+            return None
+        source = LineString(source_points)
+        if source.is_empty:
+            return None
+        center_lat = source.centroid.y
+        project = projector(center_lat)
+        metric_source = transform(project, source)
+        if metric_source.length <= 1e-6:
+            return None
+        candidates: list[dict[str, Any]] = []
+        # The two-degree grid is only a coarse prefilter. All acceptance
+        # distances below are measured in kilometres.
+        for line_index in nearby:
+            border = self.lines[line_index]
+            metric_border = transform(project, border)
+            if metric_source.distance(metric_border) > BORDER_MAX_DISTANCE_KM:
+                continue
+            start_position = metric_border.project(Point(metric_source.coords[0]))
+            end_position = metric_border.project(Point(metric_source.coords[-1]))
+            border_span = abs(end_position - start_position)
+            if border_span < metric_source.length * 0.35 or border_span > metric_source.length * 3.0 + 5.0:
+                continue
+            midpoint = (start_position + end_position) / 2
+            tangent_span = min(5.0, max(0.5, border_span / 2))
+            before = metric_border.interpolate(max(0.0, midpoint - tangent_span))
+            after = metric_border.interpolate(min(metric_border.length, midpoint + tangent_span))
+            border_direction = line_direction(LineString([before, after]))
+            river_direction = line_direction(metric_source)
+            dot = abs(border_direction[0] * river_direction[0] + border_direction[1] * river_direction[1])
+            angle = math.degrees(math.acos(max(-1.0, min(1.0, dot))))
+            if angle > BORDER_MAX_DIRECTION_DEGREES:
+                continue
+            distances = self._sample_distances(metric_source, metric_border)
+            if not distances or max(distances) > BORDER_MAX_DISTANCE_KM:
+                continue
+            candidates.append({
+                "lineIndex": line_index,
+                "pair": self.pairs[line_index],
+                "metricBorder": metric_border,
+                "start": start_position,
+                "end": end_position,
+                "length": metric_source.length,
+                "distances": distances,
+                "score": sum(distances) / len(distances) + angle * 0.08,
+            })
+        if not candidates:
+            return None
+        candidates.sort(key=lambda row: (row["score"], row["pair"], row["lineIndex"]))
+        if len(candidates) > 1 and candidates[1]["pair"] != candidates[0]["pair"] and candidates[1]["score"] <= candidates[0]["score"] + 0.5:
+            return None
+        return candidates[0]
+
+    def align_chains(self, chains: Sequence[Sequence[RiverReach]]) -> dict[str, Any]:
+        aligned_reaches = aligned_chains = changed_coordinates = 0
+        aligned_length = 0.0
+        pair_lengths: dict[str, float] = defaultdict(float)
+        for chain in chains:
+            candidates = [self._candidate(reach) for reach in chain]
+            chain_aligned = False
+            cursor = 0
+            while cursor < len(chain):
+                candidate = candidates[cursor]
+                if candidate is None:
+                    cursor += 1
+                    continue
+                end = cursor + 1
+                while end < len(chain) and candidates[end] is not None and candidates[end]["lineIndex"] == candidate["lineIndex"]:
+                    end += 1
+                group = candidates[cursor:end]
+                group_length = sum(row["length"] for row in group if row)
+                distances = [distance for row in group if row for distance in row["distances"]]
+                coverage = sum(distance <= BORDER_COVERAGE_DISTANCE_KM for distance in distances) / max(len(distances), 1)
+                if group_length >= BORDER_MIN_LENGTH_KM and coverage >= BORDER_MIN_COVERAGE and distances and max(distances) <= BORDER_MAX_DISTANCE_KM:
+                    for reach, row in zip(chain[cursor:end], group):
+                        border = self.lines[row["lineIndex"]]
+                        aligned = metric_line_substring(border, row["metricBorder"], row["start"], row["end"])
+                        if len(aligned) < 2:
+                            continue
+                        changed_coordinates += sum(
+                            1 for old, new in zip(reach.parts[0], aligned)
+                            if quantize(old) != quantize(new)
+                        ) + abs(len(reach.parts[0]) - len(aligned))
+                        reach.parts = [aligned]
+                        reach.border_pair = row["pair"]
+                        reach.render_snap = None
+                        aligned_reaches += 1
+                        aligned_length += row["length"]
+                        pair_lengths["/".join(row["pair"])] += row["length"]
+                        chain_aligned = True
+                cursor = end
+            aligned_chains += int(chain_aligned)
+        return {
+            "borderAlignedReachCount": aligned_reaches,
+            "borderAlignedRiverCount": aligned_chains,
+            "borderAlignedLengthKm": round(aligned_length, 1),
+            "borderChangedCoordinateCount": changed_coordinates,
+            "borderPairLengthsKm": {key: round(value, 1) for key, value in sorted(pair_lengths.items())},
+        }
+
+
 def longest_line(shape_interface: dict[str, Any]) -> LineString | None:
     parts = [LineString(part) for part in line_parts(shape_interface) if len(part) >= 2]
     return max(parts, key=lambda line: line.length) if parts else None
@@ -406,6 +615,11 @@ def read_selected_rivers(
     ]
 
     selected_ids = set(seed_ids)
+    medium_mainstem_roots = [
+        source_id for source_id, row in metadata.items()
+        if not row.next_down and row.upstream_area >= MEDIUM_MAINSTEM_MIN_BASIN_KM2
+    ]
+    medium_added_ids: set[int] = set()
     shape_cache: dict[int, LineString | None] = {}
 
     def source_line(source_id: int) -> LineString | None:
@@ -419,12 +633,16 @@ def read_selected_rivers(
         candidates = [metadata[row[2]] for row in upstream_candidates.get(source_id, []) if row[2] in metadata]
         if not candidates:
             return 0
+        same_basin = [candidate for candidate in candidates if candidate.main_river == current.main_river]
+        topology_pool = same_basin or candidates
+        largest_area = max(candidate.upstream_area for candidate in topology_pool)
+        guide_candidates = [candidate for candidate in topology_pool if candidate.upstream_area >= largest_area * 0.10]
         current_line = source_line(source_id)
         guide = guides.nearest(current_line) if current_line is not None else None
         if guide:
             reference, _name = guide
             scored: list[tuple[float, float, float, int]] = []
-            for candidate in candidates:
+            for candidate in guide_candidates:
                 line = source_line(candidate.source_id)
                 if line is None:
                     continue
@@ -437,7 +655,7 @@ def read_selected_rivers(
                 if best[0] <= 0.16:
                     return best[4]
         return max(
-            candidates,
+            topology_pool,
             key=lambda row: (row.main_river == current.main_river, row.upstream_area, row.flow, row.source_id),
         ).source_id
 
@@ -460,6 +678,19 @@ def read_selected_rivers(
         if upstream_id and upstream_id not in selected_ids:
             selected_ids.add(upstream_id)
             stack.append(upstream_id)
+
+    # A final basin area is available even for unnamed medium rivers. Preserve
+    # one representative MAIN_RIV spine from every qualifying terminal to its
+    # headwater, using the same global branch rule as named rivers.
+    for root_id in medium_mainstem_roots:
+        current_id = root_id
+        visited_medium: set[int] = set()
+        while current_id and current_id not in visited_medium:
+            visited_medium.add(current_id)
+            if current_id not in selected_ids:
+                selected_ids.add(current_id)
+                medium_added_ids.add(current_id)
+            current_id = guided_upstream(current_id)
 
     # Visibility seeds and continuity additions are never allowed to end in the
     # middle of land: retain every downstream reach until the Hydro terminal.
@@ -527,6 +758,8 @@ def read_selected_rivers(
         "seedReachCount": len(seed_ids),
         "continuityRootCount": len(continuity_roots),
         "namedContinuityRootCount": len(named_roots),
+        "mediumMainstemRootCount": len(medium_mainstem_roots),
+        "mediumMainstemReachCount": len(medium_added_ids),
         "selectedReachCount": len(reaches),
         "continuityReachCount": max(0, len(reaches) - len(seed_ids)),
         "downstreamClosureReachCount": downstream_added,
@@ -539,11 +772,15 @@ def choose_canonical_upstream(
 ) -> RiverReach:
     """Choose the branch that keeps a named/main Hydro river continuous."""
     current_line = longest_line(chain_geometry([downstream]))
+    same_basin = [candidate for candidate in candidates if candidate.main_river == downstream.main_river]
+    topology_pool = same_basin or list(candidates)
+    largest_area = max(candidate.upstream_area for candidate in topology_pool)
+    guide_candidates = [candidate for candidate in topology_pool if candidate.upstream_area >= largest_area * 0.10]
     guide = guides.nearest(current_line) if current_line is not None else None
     if guide:
         reference, _name = guide
         scored = []
-        for candidate in candidates:
+        for candidate in guide_candidates:
             line = longest_line(chain_geometry([candidate]))
             if line is not None:
                 distance, alignment = guided_branch_score(current_line, line, reference)
@@ -553,7 +790,7 @@ def choose_canonical_upstream(
             if best[0] <= 0.16:
                 return best[5]
     return max(
-        candidates,
+        topology_pool,
         key=lambda row: (
             row.main_river == downstream.main_river,
             row.upstream_area,
@@ -606,7 +843,11 @@ def logical_river_objects(reaches: Iterable[RiverReach], guides: ReferenceGuides
 def stage_fragments(chain: Sequence[RiverReach]) -> list[list[RiverReach]]:
     fragments: list[list[RiverReach]] = []
     for reach in chain:
-        if not fragments or fragments[-1][-1].stage != reach.stage:
+        if (
+            not fragments
+            or fragments[-1][-1].stage != reach.stage
+            or fragments[-1][-1].border_pair != reach.border_pair
+        ):
             fragments.append([reach])
         else:
             fragments[-1].append(reach)
@@ -673,7 +914,7 @@ def match_ne_river_names(
     if not base_lines:
         return {}
     tree = STRtree(base_lines)
-    matches: dict[int, str] = {}
+    candidates_by_name: dict[str, list[tuple[float, float, float, int]]] = defaultdict(list)
     for chain_index, chain in enumerate(chains):
         projected = [transform(project, LineString(part)) for reach in chain for part in reach.parts if len(part) >= 2]
         if not projected:
@@ -683,8 +924,15 @@ def match_ne_river_names(
         nearest = base_lines[nearest_index]
         ax, ay = line_direction(main)
         bx, by = line_direction(nearest)
-        if main.distance(nearest) <= 4.0 and abs(ax * bx + ay * by) >= 0.55:
-            matches[chain_index] = base_names[nearest_index]
+        distance = main.distance(nearest)
+        alignment = abs(ax * bx + ay * by)
+        if distance <= 4.0 and alignment >= 0.55:
+            terminal_basin = max((reach.upstream_area for reach in chain), default=0.0)
+            candidates_by_name[base_names[nearest_index]].append((-terminal_basin, distance, -alignment, chain_index))
+    matches: dict[int, str] = {}
+    for name, candidates in candidates_by_name.items():
+        _basin, _distance, _alignment, chain_index = min(candidates)
+        matches[chain_index] = name
     return matches
 
 
@@ -795,7 +1043,7 @@ def encode_feature(feature: BuiltFeature) -> bytes:
     bounds = [round(value * MICRO) for value in feature.bounds]
     header = struct.pack(
         "<IIBBBBHHf4i5HIII",
-        feature.fid, feature.logical_fid, kind, feature.stage, geometry_kind, 0,
+        feature.fid, feature.logical_fid, kind, feature.stage, geometry_kind, feature.flags,
         feature.fragment_index, feature.fragment_count, feature.width,
         *bounds, *(len(value) for value in encoded), len(source_payload), len(payload), len(width_payload),
     )
@@ -982,7 +1230,9 @@ def main() -> None:
     output = args.output.resolve()
     rivers_base, lakes_base = load_ne_base(hydro_root)
     guides = ReferenceGuides(rivers_base)
-    coast_snapper = CoastSnapper(hydro_root.parent / "countries-ne-5.1.1.geojson")
+    countries_path = hydro_root.parent / "countries-ne-5.1.1.geojson"
+    coast_snapper = CoastSnapper(countries_path)
+    border_aligner = BorderAligner(countries_path)
     builder = PackBuilder(output)
     fid = 0
     logical_fid = 0
@@ -994,10 +1244,11 @@ def main() -> None:
         reaches, bounds, reach_stats = read_selected_rivers(path, guides, coast_snapper)
         chains = logical_river_objects(reaches, guides)
         matched_names = match_ne_river_names(chains, rivers_base, bounds)
+        border_stats = border_aligner.align_chains(chains)
         river_names_enriched += len(matched_names)
         print(
             f"[{code}] seed {reach_stats['seedReachCount']:,} + 본류 {reach_stats['continuityReachCount']:,} "
-            f"→ {len(chains):,} chain",
+            f"→ {len(chains):,} chain · 국경 정렬 {border_stats['borderAlignedLengthKm']:,.1f}km",
             flush=True,
         )
         for chain_index, chain in enumerate(chains):
@@ -1007,6 +1258,7 @@ def main() -> None:
                 geometry = chain_geometry(fragment)
                 width_profile = chain_width_profile(fragment)
                 start = fragment[0]
+                border_pair = start.border_pair
                 builder.add(BuiltFeature(
                     fid=fid,
                     logical_fid=logical_fid,
@@ -1016,19 +1268,24 @@ def main() -> None:
                     stage=start.stage,
                     name=matched_names.get(chain_index, ""),
                     source_id=",".join(str(reach.source_id) for reach in fragment),
-                    source="HydroRIVERS 1.0",
+                    source=(
+                        f"HydroRIVERS 1.0 · Natural Earth border {'/'.join(border_pair)}"
+                        if border_pair else "HydroRIVERS 1.0"
+                    ),
                     width=max((max(widths) for widths in width_profile), default=start.width),
                     geometry=geometry,
                     bounds=geometry_bounds(geometry),
                     width_profile=width_profile,
                     fragment_index=fragment_index,
                     fragment_count=len(fragments),
+                    flags=BORDER_FLAG if border_pair else 0,
                 )); fid += 1
             logical_fid += 1
         source_rows.append({
             "datasetCode": code,
             "files": shapefile_source_files(path),
             **reach_stats,
+            **border_stats,
             "chainCount": len(chains),
             "nameMatches": len(matched_names),
         })
@@ -1081,16 +1338,25 @@ def main() -> None:
     stats["seedReachCount"] = sum(row["seedReachCount"] for row in source_rows)
     stats["continuityRootCount"] = sum(row["continuityRootCount"] for row in source_rows)
     stats["namedContinuityRootCount"] = sum(row["namedContinuityRootCount"] for row in source_rows)
+    stats["mediumMainstemRootCount"] = sum(row["mediumMainstemRootCount"] for row in source_rows)
+    stats["mediumMainstemReachCount"] = sum(row["mediumMainstemReachCount"] for row in source_rows)
     stats["selectedReachCount"] = sum(row["selectedReachCount"] for row in source_rows)
     stats["continuityReachCount"] = sum(row["continuityReachCount"] for row in source_rows)
     stats["downstreamClosureReachCount"] = sum(row["downstreamClosureReachCount"] for row in source_rows)
     stats["coastSnappedTerminalCount"] = sum(row["coastSnappedTerminalCount"] for row in source_rows)
+    stats["borderAlignedReachCount"] = sum(row["borderAlignedReachCount"] for row in source_rows)
+    stats["borderAlignedRiverCount"] = sum(row["borderAlignedRiverCount"] for row in source_rows)
+    stats["borderAlignedLengthKm"] = round(sum(row["borderAlignedLengthKm"] for row in source_rows), 1)
+    stats["borderChangedCoordinateCount"] = sum(row["borderChangedCoordinateCount"] for row in source_rows)
     manifest = {
         "version": VERSION,
         "schema": "atlaswright-hydro-shards-v3",
-        "dataset": "HydroRIVERS/HydroLAKES 1.0 · Natural Earth 5.0.0 name enrichment",
+        "dataset": "HydroRIVERS/HydroLAKES 1.0 · Natural Earth 5.1.1 border alignment",
         "crs": "EPSG:4326",
-        "coordinatePolicy": "selected Hydro source vertices retained; 1e-6 degree Int32 delta-varint",
+        "coordinatePolicy": (
+            "Hydro source vertices retained outside border-aligned display fragments; "
+            "aligned fragments use exact Natural Earth shared-border paths; 1e-6 degree Int32 delta-varint"
+        ),
         "selection": {
             "riverFormula": "ORD_STRA + 4*log10(DIS_AV_CMS) - 0.5*log10(UPLAND_SKM)",
             "riverThresholds": list(RIVER_THRESHOLDS),
@@ -1099,8 +1365,19 @@ def main() -> None:
                 "Natural Earth guided Hydro main-stem path to headwater from selected headward roots; "
                 f"with ORD_STRA >= {CONTINUITY_MIN_ORDER} and DIS_AV_CMS >= {CONTINUITY_MIN_FLOW_CMS:g}; "
                 f"importance >= {CONTINUITY_MIN_SCORE:g}; "
+                f"all terminal basins >= {MEDIUM_MAINSTEM_MIN_BASIN_KM2:g} km2 preserve one main stem; "
                 "all selected paths closed downstream to Hydro terminal; added reaches at stage 3"
             ),
+            "mediumMainstemMinBasinKm2": MEDIUM_MAINSTEM_MIN_BASIN_KM2,
+            "borderAlignment": {
+                "revision": 1,
+                "maxDistanceKm": BORDER_MAX_DISTANCE_KM,
+                "coverageDistanceKm": BORDER_COVERAGE_DISTANCE_KM,
+                "minCoverage": BORDER_MIN_COVERAGE,
+                "maxDirectionDegrees": BORDER_MAX_DIRECTION_DEGREES,
+                "minLengthKm": BORDER_MIN_LENGTH_KM,
+                "scope": "built-in Natural Earth shared country borders only",
+            },
             "lakeAreaThresholdsKm2": list(LAKE_THRESHOLDS_KM2),
             "minZoomStages": list(STAGE_MIN_ZOOM),
         },
@@ -1108,11 +1385,11 @@ def main() -> None:
             {"id": index, "minZoom": STAGE_MIN_ZOOM[index], "columns": grid[0], "rows": grid[1]}
             for index, grid in enumerate(STAGE_GRIDS)
         ],
-        "format": {"pack": 3, "index": 3, "fragmentLogicalIds": True},
+        "format": {"pack": 3, "index": 3, "fragmentLogicalIds": True, "featureFlags": {"borderAligned": BORDER_FLAG}},
         "index": layout["index"],
         "shards": layout["shards"],
         "cache": {
-            "name": f"atlaswright-hydro-v0.12.3-{layout['index']['sha256'][:12]}",
+            "name": f"atlaswright-hydro-v0.12.4-{layout['index']['sha256'][:12]}",
             "backgroundDownload": True,
             "rangeRequests": True,
         },
@@ -1125,6 +1402,7 @@ def main() -> None:
             "naturalEarthNameReference": [
                 {"file": "rivers_base.geojson", "sha256": sha256(hydro_root / "rivers_base.geojson")},
                 {"file": "lakes_base.geojson", "sha256": sha256(hydro_root / "lakes_base.geojson")},
+                {"file": "countries-ne-5.1.1.geojson", "sha256": sha256(countries_path)},
             ],
             "hydroRivers": source_rows,
             "hydroLakes": {"files": shapefile_source_files(lake_path), "selected": selected_lakes},
