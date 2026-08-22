@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.5
+/* AtlasWright v0.12.6
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,11 +8,13 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.12.5';
+  const APP_VERSION = '0.12.6';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
   const PHYSICAL_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · raster 3.2.0';
+  const TERRAIN_DATASET = 'Natural Earth raster 3.2.0 1:10m';
+  const HYDRO_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 1:10m lakes';
 
   const STORAGE_KEY = 'atlaswright-editor-v010-project';
   const AUTOSAVE_DB_NAME = 'atlaswright-editor-v010';
@@ -54,8 +56,8 @@
       ? (terrainStyle === 'physical' ? 0.22 : 1 - terrainStrength)
       : null;
     return systemTheme === 'light'
-      ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, fillAlphaByte: Math.round((terrainFillAlpha ?? 1) * 255), border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1 }
-      : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, fillAlphaByte: Math.round((terrainFillAlpha ?? 0.74) * 255), border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92 };
+      ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, fillAlphaByte: Math.round((terrainFillAlpha ?? 1) * 255), border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1, ocean: '#ffffff', oceanGpu: [1, 1, 1] }
+      : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, fillAlphaByte: Math.round((terrainFillAlpha ?? 0.74) * 255), border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92, ocean: '#0d2837', oceanGpu: [0.051, 0.157, 0.216] };
   }
 
   function defaultCountryColor() {
@@ -86,7 +88,7 @@
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'countryStatus',
     'globeBtn', 'flatBtn', 'countriesVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
-    'resetViewBtn', 'terrainStyleSelect', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
+    'resetViewBtn', 'terrainStyleSelect', 'terrainStrengthInput', 'terrainStrengthValue', 'riverColorSelect', 'lakeColorSelect', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
     'drawingNameInput', 'drawingColorInput', 'drawingCategoryInput', 'drawingNotesInput',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'deleteLabelBtn',
@@ -347,6 +349,8 @@
       terrainVisible: true,
       terrainStyle: 'political',
       terrainStrength: 0.32,
+      riverColor: 'ocean',
+      lakeColor: 'ocean',
       hydroLayers: {
         rivers_hydro: true,
         lakes_natural_earth: true,
@@ -439,6 +443,7 @@
   let touchTap = null;
   let pendingMapClickRevision = null;
   let geometryBoundsCache = new WeakMap();
+  let countryOutlineCache = new WeakMap();
   const pendingCountryLabelAnchors = new Set();
   const countryLabelAnchorVersions = new Map();
   let countryLabelAnchorWorker = null;
@@ -462,6 +467,7 @@
     let ctx2d = null;
     let rendererMode = 'pending';
     let fillProgram = null;
+    let landMaskProgram = null;
     let lineProgram = null;
     let pickProgram = null;
     let terrainProgram = null;
@@ -615,6 +621,16 @@
         if (texelFetch(uPalette, ivec2(int(vCountry), 0), 0).a <= 0.0) discard;
         uint id = vCountry + 1u;
         outColor = vec4(float(id & 255u), float((id >> 8u) & 255u), float((id >> 16u) & 255u), 255.0) / 255.0;
+      }`;
+    const landMaskFragmentSourceWebGl2 = `#version 300 es
+      precision highp float;
+      precision highp int;
+      in float vDepth;
+      uniform int uMode;
+      out vec4 outColor;
+      void main() {
+        if (uMode == 0 && vDepth < 0.0) discard;
+        outColor = vec4(1.0);
       }`;
     const vertexShaderSourceWebGl1 = `
       precision highp float;
@@ -797,6 +813,15 @@
         float g = mod(floor(id / 256.0), 256.0);
         float b = mod(floor(id / 65536.0), 256.0);
         gl_FragColor = vec4(r, g, b, 255.0) / 255.0;
+      }`;
+    const landMaskFragmentSourceWebGl1 = `
+      precision highp float;
+      precision mediump int;
+      varying float vDepth;
+      uniform int uMode;
+      void main() {
+        if (uMode == 0 && vDepth < 0.0) discard;
+        gl_FragColor = vec4(1.0);
       }`;
     const terrainVertexSourceWebGl2 = `#version 300 es
       precision highp float;
@@ -1047,6 +1072,7 @@
     function createWebGlResources() {
       const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
+      landMaskProgram = createProgram(vertexSource, glVersion === 2 ? landMaskFragmentSourceWebGl2 : landMaskFragmentSourceWebGl1);
       lineProgram = createProgram(vertexSource, glVersion === 2 ? lineFragmentSourceWebGl2 : lineFragmentSourceWebGl1);
       pickProgram = createProgram(vertexSource, glVersion === 2 ? pickFragmentSourceWebGl2 : pickFragmentSourceWebGl1);
       terrainProgram = createProgram(
@@ -1126,7 +1152,8 @@
         setActionStatus('지도 GPU를 복구했습니다.', 'success', 2200);
       } catch (error) {
         webglContextLost = false;
-        activateCanvasFallback(`WebGL 컨텍스트 복구 실패: ${error?.message || error}`);
+        console.error('[AW-GPU-002]', error);
+        activateCanvasFallback('WebGL 컨텍스트를 복구하지 못했습니다.');
       }
     }
 
@@ -1137,16 +1164,17 @@
         alpha: true,
         antialias: true,
         depth: false,
-        stencil: false,
+        stencil: true,
         preserveDrawingBuffer: false,
         premultipliedAlpha: true,
         powerPreference: 'high-performance',
       });
       if (!gl && version === 1) {
         webGlContextKind = 'experimental-webgl';
-        gl = canvas.getContext(webGlContextKind);
+        gl = canvas.getContext(webGlContextKind, { alpha: true, antialias: true, depth: false, stencil: true, preserveDrawingBuffer: false, premultipliedAlpha: true, powerPreference: 'high-performance' });
       }
       if (!gl) throw new Error(`${version === 2 ? 'WebGL2' : 'WebGL1'}를 지원하지 않습니다.`);
+      if (!gl.getContextAttributes()?.stencil) throw new Error(`${version === 2 ? 'WebGL2' : 'WebGL1'} 스텐실 마스크를 지원하지 않습니다.`);
       glVersion = version;
       uintIndexExtension = version === 1 ? gl.getExtension('OES_element_index_uint') : true;
       if (version === 1 && !uintIndexExtension) throw new Error('WebGL1 OES_element_index_uint를 지원하지 않습니다.');
@@ -1220,7 +1248,7 @@
       if (!(buffer instanceof ArrayBuffer)) throw new Error('외부 GPU 메시가 준비되지 않았습니다.');
       window.ATLASWRIGHT_GPU_MESH_BUFFER = null;
       const header = new Uint32Array(buffer, 0, 8);
-      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471 || header[7] !== 2) {
+      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471 || header[7] !== 3) {
         throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
       }
       const countryCount = header[2];
@@ -1262,7 +1290,8 @@
       let currentWorker;
       try { currentWorker = createWorker(); }
       catch (error) {
-        activateCanvasFallback(`동적 메시 준비 실패: ${error.message}`);
+        console.error('[AW-GPU-001]', error);
+        activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
         return;
       }
       $('engineStatus').textContent = `${rendererName()} · 편집 메시를 계산하는 중입니다.`;
@@ -1271,7 +1300,8 @@
         currentWorker.terminate();
         worker = null;
         if (!event.data?.ok) {
-          activateCanvasFallback(`동적 메시 실패: ${event.data?.message || '알 수 없는 오류'}`);
+          console.error('[AW-GPU-003]', event.data?.message || event.data);
+          activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
           return;
         }
         const next = event.data.mesh;
@@ -1286,7 +1316,8 @@
       };
       currentWorker.onerror = event => {
         if (token !== rebuildToken) return;
-        activateCanvasFallback(`동적 메시 워커 오류: ${event.message || '알 수 없는 오류'}`);
+        console.error('[AW-GPU-004]', event.message || event);
+        activateCanvasFallback('동적 지도 메시 Worker를 사용할 수 없습니다.');
       };
       currentWorker.postMessage({ token, features });
     }
@@ -1656,7 +1687,8 @@
       const program = category === 'river' || category === 'border-river'
         ? (picking ? hydroLinePickProgram : hydroLineProgram)
         : (picking ? hydroPickProgram : hydroFillProgram);
-      const color = category === 'lake' ? [0.353, 0.663, 0.839, 0.92] : [0.231, 0.510, 0.769, 0.96];
+      const rgb = hydroDisplayColor(category === 'lake' ? 'lake' : 'river', true);
+      const color = [...rgb, category === 'lake' ? 0.92 : 0.96];
       for (const packId of hydroActivePackIds) {
         const entry = hydroPacks.get(packId);
         if (entry) drawHydroEntry(program, entry, category, color, picking);
@@ -1913,7 +1945,7 @@
       }
       if (message.type === 'error') {
         console.warn('Hydro tile worker failed', message.message);
-        setActionStatus(`현재 화면의 수계 데이터를 불러올 수 없습니다. 지도를 조금 이동하거나 다시 시도하세요. ${message.message || ''}`, 'error', 0);
+        reportOperationError(new Error(message.message || ''), '현재 화면의 수계 데이터를 불러오지 못했습니다. 지도를 조금 이동하거나 다시 시도하세요.', 'AW-WATER-003', 0);
       }
     }
 
@@ -2176,9 +2208,26 @@
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, pixelWidth, pixelHeight);
       gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.clearStencil(0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
       gl.disable(gl.BLEND);
-      renderTerrain();
+      if (state.physicalSettings.terrainVisible && state.physicalSettings.terrainStyle !== 'physical') {
+        gl.enable(gl.STENCIL_TEST);
+        gl.stencilMask(0xff);
+        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+        gl.colorMask(false, false, false, false);
+        drawProgram(landMaskProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
+        gl.colorMask(true, true, true, true);
+        gl.stencilMask(0x00);
+        gl.stencilFunc(gl.EQUAL, 1, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+        renderTerrain();
+        gl.disable(gl.STENCIL_TEST);
+        gl.stencilMask(0xff);
+      } else {
+        renderTerrain();
+      }
       updatePalette();
       gl.enable(gl.BLEND);
       gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -2215,6 +2264,8 @@
         ctx2d.globalAlpha = theme.fillAlpha;
         ctx2d.fillStyle = countryColor(feature);
         ctx2d.fill();
+        ctx2d.beginPath();
+        canvasPath(countryOutlineFeature(feature));
         ctx2d.globalAlpha = theme.borderAlpha;
         ctx2d.strokeStyle = theme.border;
         ctx2d.stroke();
@@ -2243,7 +2294,7 @@
         theme: mapTheme(),
         physicalSettings: deepClone(state.physicalSettings),
         darkTheme: systemTheme === 'dark',
-        terrainManifestUrl: new URL('terrain/v0.12.0/manifest.json', PHYSICAL_DATA_BASE_URL).href,
+        terrainManifestUrl: new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL).href,
       };
     }
 
@@ -2363,7 +2414,9 @@
     }
 
     function activateCanvasFallback(reason) {
-      fallbackReason = reason || 'GPU 미지원';
+      const rawReason = String(reason || '');
+      if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[AW-GPU-005]', rawReason);
+      fallbackReason = isSafeKoreanErrorMessage({ message: rawReason }) ? rawReason : 'GPU 렌더러를 사용할 수 없습니다.';
       clearTimeout(webglRecoveryTimer);
       webglContextLost = false;
       canvasWorker?.terminate();
@@ -2751,6 +2804,19 @@
     setActionStatus._timer = setTimeout(clearNotification, timeout);
   }
 
+  function isSafeKoreanErrorMessage(error) {
+    const message = String(error?.message || '');
+    if (!/[가-힣]/.test(message)) return false;
+    return !/(Cannot read|undefined|null is not|is not a function|TypeError|ReferenceError|SyntaxError|RangeError|failed\b|\bat\s+\S+\s*\()/i.test(message);
+  }
+
+  function reportOperationError(error, fallbackMessage, code, timeout = 4400) {
+    console.error(`[${code}]`, error);
+    const detail = isSafeKoreanErrorMessage(error) ? String(error.message).trim() : '';
+    const message = detail || `${fallbackMessage} 다시 시도해도 문제가 계속되면 오류 코드 ${code}를 확인하세요.`;
+    setActionStatus(message, 'error', timeout);
+  }
+
   function flashButton(button) {
     if (!button || button.disabled) return;
     button.classList.remove('button-flash');
@@ -2761,7 +2827,9 @@
 
   function showFatalError(error) {
     console.error(error);
-    const message = error?.message || String(error || '알 수 없는 오류');
+    const message = isSafeKoreanErrorMessage(error)
+      ? String(error.message).trim()
+      : '내부 오류가 발생했습니다. 오류 코드 AW-RUNTIME-001을 확인하세요.';
     let box = document.getElementById('fatalErrorBox');
     if (!box) {
       box = document.createElement('div');
@@ -3001,7 +3069,10 @@
   function invalidateGeometryCaches(ids = []) {
     const wanted = new Set([...ids].map(String));
     for (const feature of state.countriesData?.features || []) {
-      if (!wanted.size || wanted.has(String(feature.properties?.editor_id || ''))) geometryBoundsCache.delete(feature.geometry);
+      if (!wanted.size || wanted.has(String(feature.properties?.editor_id || ''))) {
+        geometryBoundsCache.delete(feature.geometry);
+        countryOutlineCache.delete(feature.geometry);
+      }
     }
     rebuildSpatialIndex();
   }
@@ -4253,6 +4324,8 @@
       terrainVisible: value?.terrainVisible !== false,
       terrainStyle: value?.terrainStyle === 'physical' ? 'physical' : 'political',
       terrainStrength: clamp(Number(value?.terrainStrength ?? 0.32), 0, 1),
+      riverColor: value?.riverColor === 'white' ? 'white' : 'ocean',
+      lakeColor: value?.lakeColor === 'white' ? 'white' : 'ocean',
       hydroLayers,
       userFeaturesVisible: value?.userFeaturesVisible !== false,
       hiddenHydroIds,
@@ -4264,6 +4337,15 @@
     if ($('terrainStyleSelect')) $('terrainStyleSelect').value = state.physicalSettings.terrainStyle;
     if ($('terrainStrengthInput')) $('terrainStrengthInput').value = String(Math.round(state.physicalSettings.terrainStrength * 100));
     if ($('terrainStrengthValue')) $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
+    if ($('riverColorSelect')) $('riverColorSelect').value = state.physicalSettings.riverColor;
+    if ($('lakeColorSelect')) $('lakeColorSelect').value = state.physicalSettings.lakeColor;
+  }
+
+  function hydroDisplayColor(category, gpu = false) {
+    const setting = category === 'lake' ? state.physicalSettings.lakeColor : state.physicalSettings.riverColor;
+    if (setting === 'white') return gpu ? [1, 1, 1] : '#ffffff';
+    const theme = mapTheme();
+    return gpu ? theme.oceanGpu : theme.ocean;
   }
 
   function hydroLayerVisible(layerId) {
@@ -4485,6 +4567,35 @@
     return state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
   }
 
+  function isArtificialPolarClosureEdge(a, b) {
+    if (!a || !b) return false;
+    const atPole = point => Math.abs(Math.abs(Number(point[1])) - 90) <= 1e-7;
+    const atDateLine = point => Math.abs(Math.abs(Number(point[0])) - 180) <= 1e-7;
+    return atPole(a) || atPole(b) || (atDateLine(a) && atDateLine(b));
+  }
+
+  function countryOutlineFeature(feature) {
+    const geometry = feature?.geometry;
+    if (geometry && countryOutlineCache.has(geometry)) return countryOutlineCache.get(geometry);
+    const polygons = feature?.geometry?.type === 'Polygon'
+      ? [feature.geometry.coordinates]
+      : feature?.geometry?.type === 'MultiPolygon' ? feature.geometry.coordinates : [];
+    const lines = [];
+    for (const polygon of polygons) {
+      for (const ring of polygon || []) {
+        for (let index = 0; index < ring.length - 1; index += 1) {
+          const a = ring[index];
+          const b = ring[index + 1];
+          if (Math.abs(Number(a?.[0]) - Number(b?.[0])) > 180 || isArtificialPolarClosureEdge(a, b)) continue;
+          lines.push([a, b]);
+        }
+      }
+    }
+    const outline = { type: 'Feature', properties: feature?.properties || {}, geometry: { type: 'MultiLineString', coordinates: lines } };
+    if (geometry) countryOutlineCache.set(geometry, outline);
+    return outline;
+  }
+
   function shouldShowCountryLabel(feature) {
     if (!state.layerVisibility.basemapLabels) return false;
     const id = String(feature.properties?.editor_id || '');
@@ -4517,7 +4628,7 @@
     selection.enter().append('path').attr('class', 'country-shape gpu-country-highlight');
     const allCountries = countryLayer.selectAll('path.country-shape');
     allCountries
-      .attr('d', path)
+      .attr('d', feature => path(countryOutlineFeature(feature)))
       .classed('selected', feature => state.selected?.type === 'country' && state.selected.id === feature.properties.editor_id)
       .classed('coast-editing', feature => state.tool === 'country-coast' && state.coastEditCountryId === feature.properties.editor_id)
       .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.properties.editor_id)
@@ -4567,6 +4678,10 @@
     const selection = countryLabelLayer.selectAll('text.country-label')
       .data(data, d => d.properties.editor_id);
 
+    // 사라진 국가와 기준점 계산 중인 라벨을 먼저 제거해야 이전 DOM이
+    // undefined 기준점으로 한 프레임 더 투영되지 않는다.
+    selection.exit().remove();
+
     selection.enter().append('text')
       .attr('class', 'country-label')
       .attr('dy', '.35em')
@@ -4598,11 +4713,10 @@
       .text(countryName)
       .classed('major', d => Number(d.properties?.pop_est || 0) >= 50_000_000)
       .attr('transform', d => {
-        const p = activeProjection()(d.properties.editor_label_anchor);
+        const anchor = d.properties?.editor_label_anchor;
+        const p = Array.isArray(anchor) && anchor.length >= 2 ? activeProjection()(anchor) : null;
         return p ? `translate(${p[0]},${p[1]})` : 'translate(-9999,-9999)';
       });
-
-    selection.exit().remove();
   }
 
   function prepareHydroFeature(feature) {
@@ -4620,7 +4734,7 @@
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const url = new URL('terrain/v0.12.0/manifest.json', PHYSICAL_DATA_BASE_URL);
+      const url = new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL);
       url.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -4637,7 +4751,7 @@
       markLayerTreeDirty();
       renderLayerTree();
       console.warn('Terrain load failed', error);
-      setActionStatus(`지형 음영을 불러올 수 없습니다. 국가 지도는 계속 사용할 수 있습니다. ${error.message}`, 'error', 0);
+      reportOperationError(error, '지형 음영을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'AW-TERRAIN-001', 0);
     }
   }
 
@@ -4647,7 +4761,7 @@
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const manifestUrl = new URL('hydro/v0.12.5/manifest.json', PHYSICAL_DATA_BASE_URL);
+      const manifestUrl = new URL('hydro/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(manifestUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -4670,7 +4784,7 @@
       markLayerTreeDirty();
       renderLayerTree();
       console.warn('Hydro load failed', error);
-      setActionStatus(`수계 목록을 불러올 수 없습니다. 국가 지도는 계속 사용할 수 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도하세요. ${error.message}`, 'error', 0);
+      reportOperationError(error, '수계 목록을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도하세요.', 'AW-WATER-001', 0);
     }
   }
 
@@ -4750,13 +4864,13 @@
       const lakes = hydroRenderGroups('lake');
       const lakeSelection = hydroLakeLayer.selectAll('path.hydro-lake-group').data(lakes, item => item.key);
       lakeSelection.enter().append('path').attr('class', 'hydro-lake-group');
-      lakeSelection.attr('d', item => path(item.collection));
+      lakeSelection.attr('d', item => path(item.collection)).style('fill', hydroDisplayColor('lake')).style('stroke', hydroDisplayColor('lake'));
       lakeSelection.exit().remove();
 
       const rivers = hydroRenderGroups('river');
       const riverSelection = hydroRiverLayer.selectAll('path.hydro-river-group').data(rivers, item => item.key);
       riverSelection.enter().append('path').attr('class', 'hydro-river-group');
-      riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width}px`);
+      riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width}px`).style('stroke', hydroDisplayColor('river'));
       riverSelection.exit().remove();
     }
 
@@ -5623,7 +5737,7 @@
     try {
       selectedCountryUnionGeometry(state.newCountrySourceIds);
     } catch (error) {
-      setActionStatus(error.message, 'error', 3600);
+      reportOperationError(error, '원본 국가를 합칠 수 없습니다. 서로 연결된 국가를 다시 선택하세요.', 'AW-COUNTRY-004', 3600);
       return;
     }
     state.newCountryPhase = 'line';
@@ -5948,7 +6062,7 @@
         updateModeButtons();
         renderAll();
       } catch (error) {
-        setActionStatus(`새 국경선을 사용할 수 없습니다. ${error.message}`, 'error', 4400);
+        reportOperationError(error, '새 국경선을 사용할 수 없습니다. 피편입국을 한 번만 관통하도록 선을 다시 그리세요.', 'AW-ANNEX-003');
         return;
       }
       return;
@@ -5971,7 +6085,7 @@
         updateModeButtons();
         renderAll();
       } catch (error) {
-        setActionStatus(`신생국 국경선을 사용할 수 없습니다. ${error.message}`, 'error', 4400);
+        reportOperationError(error, '신생국 국경선을 사용할 수 없습니다. 선택 영토를 한 번만 관통하도록 선을 다시 그리세요.', 'AW-COUNTRY-003');
         return;
       }
       return;
@@ -6015,7 +6129,10 @@
     let candidate = null;
     if (state.annexPhase === 'components') {
       try { candidate = { geometry: selectedTerritoryComponentGeometry() }; }
-      catch (error) { setActionStatus(error.message, 'error', 3800); return; }
+      catch (error) {
+        reportOperationError(error, '선택한 영토 조각을 확인하지 못했습니다. 영역을 다시 선택하세요.', 'AW-ANNEX-001', 3800);
+        return;
+      }
     } else {
       const selectedIndex = candidateIndex === null ? NaN : Number(candidateIndex);
       candidate = Number.isInteger(selectedIndex) && selectedIndex >= 0
@@ -6045,18 +6162,18 @@
       const targetAfter = countryFeatureById(targetId);
       if (!targetAfter) throw new Error('수령국이 편입 결과에서 사라졌습니다.');
 
-      commitHistorySnapshot(snapshot);
       state.draftCoords = [];
       state.draftHover = null;
       setTool('select', false);
-      selectCountry(targetId);
+      selectCountry(targetId, false, false);
       renderAll();
+      commitHistorySnapshot(snapshot);
       queueAutosave();
       const removedText = plan.removedIds.includes(donorId) ? ' · 피편입국 완전 흡수' : '';
       setActionStatus(`${donorName}의 선택 영토를 ${targetName}에 편입했습니다${removedText}.`, 'success', 4000);
     } catch (error) {
       restoreCountryEditSnapshot(snapshot);
-      setActionStatus(`영토를 편입할 수 없어 변경을 되돌렸습니다. ${error.message}`, 'error', 4400);
+      reportOperationError(error, '영토를 편입하지 못해 변경을 되돌렸습니다. 편입 범위를 조정한 뒤 다시 시도하세요.', 'AW-ANNEX-002');
     }
   }
 
@@ -6065,7 +6182,10 @@
     let candidate = null;
     if (state.newCountryPhase === 'components') {
       try { candidate = { geometry: selectedTerritoryComponentGeometry() }; }
-      catch (error) { setActionStatus(error.message, 'error', 3800); return; }
+      catch (error) {
+        reportOperationError(error, '선택한 영토 조각을 확인하지 못했습니다. 영역을 다시 선택하세요.', 'AW-COUNTRY-001', 3800);
+        return;
+      }
     } else {
       const selectedIndex = candidateIndex === null ? NaN : Number(candidateIndex);
       candidate = Number.isInteger(selectedIndex) && selectedIndex >= 0
@@ -6099,18 +6219,18 @@
       const validation = validateCountryGeometryEdit(affectedIds, baseline);
       if (!validation.ok) throw new Error(validation.message);
 
-      commitHistorySnapshot(snapshot);
       state.draftCoords = [];
       state.draftHover = null;
       setTool('select', false);
-      selectCountry(feature.properties.editor_id);
+      selectCountry(feature.properties.editor_id, false, false);
       renderAll();
+      commitHistorySnapshot(snapshot);
       queueAutosave();
       const removedText = transferPlan.removedIds.length ? ` · 원본 ${transferPlan.removedIds.length}개국 완전 흡수` : '';
       setActionStatus(`${countryName(feature)} 국가를 추가했습니다. 선택한 ${transferPlan.affectedSourceIds.length}개국의 영토만 이전했습니다${removedText}.`, 'success', 4200);
     } catch (error) {
       restoreCountryEditSnapshot(snapshot);
-      setActionStatus(`국가를 추가할 수 없어 변경을 되돌렸습니다. ${error.message}`, 'error', 4400);
+      reportOperationError(error, '국가를 추가하지 못해 변경을 되돌렸습니다. 선택 범위를 조정한 뒤 다시 시도하세요.', 'AW-COUNTRY-002');
     }
   }
 
@@ -6276,7 +6396,7 @@
           setActionStatus('해안선을 수정했습니다.', 'success');
         } catch (error) {
           restoreCountryEditSnapshot(snapshot);
-          setActionStatus(`해안선을 이동할 수 없어 변경을 되돌렸습니다. ${error.message}`, 'error', 4300);
+          reportOperationError(error, '해안선을 이동하지 못해 변경을 되돌렸습니다. 점을 해안선을 따라 다시 이동하세요.', 'AW-COAST-001', 4300);
         }
       });
   }
@@ -6324,7 +6444,7 @@
     preview.appendChild(img);
   }
 
-  function selectCountry(id, refreshOnly = false) {
+  function selectCountry(id, refreshOnly = false, shouldRender = true) {
     const idx = state.countryIndex.get(String(id));
     if (idx === undefined) return;
     const feature = state.countriesData.features[idx];
@@ -6344,7 +6464,7 @@
     $('selectionStatus').textContent = `국가 · ${$('propertyTitle').textContent}`;
     syncCountryActionButtons();
     markLayerTreeDirty();
-    renderAll();
+    if (shouldRender) renderAll();
     if (!refreshOnly) openSelectionEditor();
   }
 
@@ -6428,7 +6548,7 @@
       try {
         source = await gpuMapRenderer.loadHydroLogicalFeature(Number(source.properties.__logicalFid));
       } catch (error) {
-        setActionStatus(`수계 전체 형상을 불러오지 못했습니다. 잠시 후 다시 시도하세요. ${error.message}`, 'error', 0);
+        reportOperationError(error, '수계 전체 형상을 불러오지 못했습니다. 잠시 후 다시 시도하세요.', 'AW-WATER-002', 0);
         return;
       }
       if (!source) {
@@ -6693,7 +6813,7 @@
     project.physicalSourceInfo = {
       terrain: {
         dataset: state.terrainManifest?.dataset || TERRAIN_DATASET,
-        version: state.terrainManifest?.version || '0.12.0',
+        version: state.terrainManifest?.version || '0.12.6',
       },
       hydro: {
         dataset: state.hydroManifest?.dataset || HYDRO_DATASET,
@@ -7110,7 +7230,7 @@
       downloadBlob('AtlasWright-프로젝트.gpkg', blob);
       setActionStatus('QGIS에서 열 수 있는 GeoPackage를 저장했습니다.', 'success', 3200);
     } catch (error) {
-      setActionStatus(`GeoPackage를 저장할 수 없습니다. ${error.message}`, 'error', 5200);
+      reportOperationError(error, 'GeoPackage를 저장하지 못했습니다. 저장 공간을 확인한 뒤 다시 시도하세요.', 'AW-GPKG-001', 5200);
     } finally {
       if (button) button.disabled = false;
     }
@@ -7368,7 +7488,7 @@
       }
     } catch (error) {
       if (error?.name === 'AbortError') { setActionStatus('GIS 파일 가져오기를 취소했습니다.', 'success'); return; }
-      setActionStatus(`GIS 파일을 열 수 없습니다. ${error.message}`, 'error', 5600);
+      reportOperationError(error, 'GIS 파일을 열지 못했습니다. 파일 형식과 함께 선택한 구성 파일을 확인하세요.', 'AW-GIS-001', 5600);
     }
   }
 
@@ -7657,6 +7777,14 @@
       scheduleRender();
     });
     $('terrainStrengthInput').addEventListener('change', () => queueAutosave());
+    for (const [id, key] of [['riverColorSelect', 'riverColor'], ['lakeColorSelect', 'lakeColor']]) {
+      $(id).addEventListener('change', event => {
+        state.physicalSettings[key] = event.target.value === 'white' ? 'white' : 'ocean';
+        renderAll();
+        queueAutosave();
+        setActionStatus(`${key === 'riverColor' ? '강' : '호수'} 색상을 ${state.physicalSettings[key] === 'white' ? '흰색' : '바다색'}으로 변경했습니다.`, 'success', 2200);
+      });
+    }
     $('layerSearchInput')?.addEventListener('input', event => {
       state.layerSearch = event.target.value || '';
       markLayerTreeDirty();
@@ -7803,7 +7931,7 @@
       if (!file) return;
       try { await importGeoJson(file); }
       catch (error) {
-        setActionStatus(`GeoJSON을 가져올 수 없습니다. ${error.message}`, 'error', 4500);
+        reportOperationError(error, 'GeoJSON을 가져오지 못했습니다. Polygon 또는 MultiPolygon 형식인지 확인하세요.', 'AW-GEOJSON-001', 4500);
       }
       e.target.value = '';
     });
@@ -7955,8 +8083,8 @@
       if (restored.countriesData && restored.baseDataset === BASE_DATASET) queueAutosave(0);
       setAutosaveStatus(autosaveRestore.source === 'localstorage' ? '기존 저장 이전됨' : '복원됨');
       if (gpuReady) {
-        const restoredLabel = externalGeometry ? '외부 GIS 자동저장' : '자동저장 프로젝트';
-        setActionStatus(`${restoredLabel}을 복원했습니다. 국가 ${state.countriesData.features.length}개를 불러왔습니다.`, 'success', 3200);
+        const restoredLabel = externalGeometry ? '외부 GIS 자동저장 데이터를' : '자동저장 프로젝트를';
+        setActionStatus(`${restoredLabel} 복원했습니다. 국가 ${state.countriesData.features.length}개를 불러왔습니다.`, 'success', 3200);
       } else {
         const renderer = gpuMapRenderer.getStats();
         setActionStatus(`자동저장을 복원했습니다. ${renderer.renderer === 'canvas-worker' ? 'Canvas Worker' : 'Canvas'} 무손실 렌더러를 사용합니다.`, 'success', 4200);

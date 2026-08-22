@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.12.0 physical-map assets from official Natural Earth files.
+"""Build AtlasWright v0.12.6 physical-map assets from official Natural Earth files.
 
 The source directory must contain the eight extracted 1:10m hydrography
-shapefiles and the GRAY_HR_SR_OB / HYP_HR_SR_OB_DR 21,600 x 10,800 TIFFs.
+shapefiles and the GRAY_HR_SR_OB / HYP_HR_SR / HYP_HR_SR_OB_DR
+21,600 x 10,800 TIFFs.
 Generated GeoJSON keeps every source coordinate. Terrain tiles pack the natural
 terrain colour into RGB and the neutral relief/bathymetry luminance into alpha.
 """
@@ -13,16 +14,15 @@ import argparse
 import hashlib
 import json
 import math
-import os
 from pathlib import Path
 from typing import Any
 
 import shapefile
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 Image.MAX_IMAGE_PIXELS = None
-VERSION = "0.12.0"
+VERSION = "0.12.6"
 TILE_SIZE = 1024
 LEVEL_WIDTHS = (1350, 2700, 5400, 10800, 21600)
 
@@ -170,24 +170,74 @@ def crop_with_gutter(image: Image.Image, box: tuple[int, int, int, int]) -> Imag
     return tile
 
 
-def build_terrain(source_root: Path, output_root: Path) -> dict[str, Any]:
+def build_outer_land_mask(countries_path: Path, lakes_path: Path, size: tuple[int, int]) -> Image.Image:
+    """Rasterize country outer rings while deliberately filling inland-water holes."""
+    width, height = size
+    mask = Image.new("L", size, 0)
+    draw = ImageDraw.Draw(mask)
+    countries = json.loads(countries_path.read_text(encoding="utf-8"))
+    lakes = json.loads(lakes_path.read_text(encoding="utf-8"))
+    for feature in [*countries.get("features", []), *lakes.get("features", [])]:
+        geometry = feature.get("geometry") or {}
+        polygons = [geometry.get("coordinates") or []] if geometry.get("type") == "Polygon" else geometry.get("coordinates") or []
+        for polygon in polygons:
+            if not polygon or len(polygon[0]) < 3:
+                continue
+            unwrapped: list[tuple[float, float]] = []
+            for raw_lon, raw_lat, *_ in polygon[0]:
+                lon = float(raw_lon)
+                if unwrapped:
+                    while lon - unwrapped[-1][0] > 180:
+                        lon -= 360
+                    while lon - unwrapped[-1][0] < -180:
+                        lon += 360
+                unwrapped.append((lon, float(raw_lat)))
+            pixels = [((lon + 180) / 360 * width, (90 - lat) / 180 * height) for lon, lat in unwrapped]
+            min_x = min(point[0] for point in pixels)
+            max_x = max(point[0] for point in pixels)
+            first_shift = math.floor((-max_x) / width)
+            last_shift = math.ceil((width - min_x) / width)
+            for shift in range(first_shift, last_shift + 1):
+                shifted = [(x + shift * width, y) for x, y in pixels]
+                if max(x for x, _ in shifted) >= 0 and min(x for x, _ in shifted) <= width:
+                    draw.polygon(shifted, fill=255)
+    return mask
+
+
+def combine_land_without_drainages(land: Image.Image, ocean: Image.Image, land_mask: Image.Image) -> Image.Image:
+    """Keep no-drainage land colours and restore bathymetry over the white water background."""
+    land_rgb = land.convert("RGB")
+    combined = Image.composite(land_rgb, ocean.convert("RGB"), land_mask)
+    land_rgb.close()
+    return combined
+
+
+def build_terrain(source_root: Path, output_root: Path, countries_path: Path) -> dict[str, Any]:
     gray_path = find_file(source_root, "GRAY_HR_SR_OB.tif")
-    natural_path = find_file(source_root, "HYP_HR_SR_OB_DR.tif")
+    land_path = find_file(source_root, "HYP_HR_SR.tif")
+    ocean_path = find_file(source_root, "HYP_HR_SR_OB_DR.tif")
     terrain_dir = output_root / "terrain" / f"v{VERSION}"
     terrain_dir.mkdir(parents=True, exist_ok=True)
     source_gray = Image.open(gray_path)
-    source_natural = Image.open(natural_path)
-    if source_gray.size != (21600, 10800) or source_natural.size != source_gray.size:
-        raise RuntimeError(f"Unexpected raster dimensions: {source_gray.size}, {source_natural.size}")
+    source_land = Image.open(land_path)
+    source_ocean = Image.open(ocean_path)
+    if source_gray.size != (21600, 10800) or source_land.size != source_gray.size or source_ocean.size != source_gray.size:
+        raise RuntimeError(f"Unexpected raster dimensions: {source_gray.size}, {source_land.size}, {source_ocean.size}")
+    lakes_path = countries_path.parent / "hydro" / "lakes_base.geojson"
+    source_land_mask = build_outer_land_mask(countries_path, lakes_path, source_gray.size)
     levels = []
     for level_index, width in enumerate(LEVEL_WIDTHS):
         height = width // 2
-        if width == source_natural.width:
-            natural = source_natural
+        if width == source_land.width:
+            land = source_land
+            ocean = source_ocean
             gray = source_gray
+            land_mask = source_land_mask
         else:
-            natural = source_natural.resize((width, height), Image.Resampling.LANCZOS)
+            land = source_land.resize((width, height), Image.Resampling.LANCZOS)
+            ocean = source_ocean.resize((width, height), Image.Resampling.LANCZOS)
             gray = source_gray.resize((width, height), Image.Resampling.LANCZOS)
+            land_mask = source_land_mask.resize((width, height), Image.Resampling.NEAREST)
         level_dir = terrain_dir / str(level_index)
         level_dir.mkdir(exist_ok=True)
         columns = math.ceil(width / TILE_SIZE)
@@ -200,11 +250,15 @@ def build_terrain(source_root: Path, output_root: Path) -> dict[str, Any]:
                     min(width, (column + 1) * TILE_SIZE),
                     min(height, (row + 1) * TILE_SIZE),
                 )
-                rgb = crop_with_gutter(natural, box).convert("RGB")
+                land_tile = crop_with_gutter(land, box)
+                ocean_tile = crop_with_gutter(ocean, box)
+                land_mask_tile = crop_with_gutter(land_mask, box)
+                rgb = combine_land_without_drainages(land_tile, ocean_tile, land_mask_tile)
                 relief = crop_with_gutter(gray, box).convert("L")
                 red, green, blue = rgb.split()
                 packed = Image.merge("RGBA", (red, green, blue, relief))
                 packed.save(level_dir / f"{column}-{row}.webp", "WEBP", lossless=True, method=4, exact=True)
+                land_tile.close(); ocean_tile.close(); land_mask_tile.close(); rgb.close(); relief.close(); red.close(); green.close(); blue.close(); packed.close()
         levels.append({
             "id": level_index,
             "width": width,
@@ -214,24 +268,31 @@ def build_terrain(source_root: Path, output_root: Path) -> dict[str, Any]:
             "tileSize": TILE_SIZE,
         })
         print(f"terrain level {level_index}: {width}x{height}, {columns * rows} tiles")
-        if natural is not source_natural:
-            natural.close()
+        if land is not source_land:
+            land.close()
+            ocean.close()
             gray.close()
+            land_mask.close()
     source_gray.close()
-    source_natural.close()
+    source_land.close()
+    source_ocean.close()
+    source_land_mask.close()
     manifest = {
         "version": VERSION,
         "dataset": "Natural Earth raster 3.2.0 1:10m",
         "crs": "EPSG:4326",
         "extent": [-180, -90, 180, 90],
         "tileFormat": "lossless WebP RGBA",
-        "channels": {"rgb": "cross-blended hypsometric colour, shaded relief, water, drainages and ocean bottom", "alpha": "Gray Earth relief, hypsography and ocean-bottom luminance"},
+        "channels": {"rgb": "drainage-free cross-blended land combined with ocean-bottom colour", "alpha": "Gray Earth relief, hypsography and ocean-bottom luminance"},
         "gutter": 1,
         "levels": levels,
         "urlTemplate": f"terrain/v{VERSION}/{{level}}/{{column}}-{{row}}.webp",
         "sources": [
+            {"file": countries_path.name, "version": "Natural Earth 5.1.1", "sha256": sha256(countries_path)},
+            {"file": lakes_path.name, "version": "Natural Earth 5.0.0", "sha256": sha256(lakes_path)},
             {"file": gray_path.name, "version": "3.2.0", "sha256": sha256(gray_path)},
-            {"file": natural_path.name, "version": "3.2.0", "sha256": sha256(natural_path)},
+            {"file": land_path.name, "version": "3.2.0", "sha256": sha256(land_path)},
+            {"file": ocean_path.name, "version": "3.2.0", "sha256": sha256(ocean_path)},
         ],
     }
     manifest_path = terrain_dir / "manifest.json"
@@ -245,12 +306,14 @@ def main() -> None:
     parser.add_argument("output_root", type=Path)
     parser.add_argument("--hydro-only", action="store_true")
     parser.add_argument("--terrain-only", action="store_true")
+    parser.add_argument("--countries", type=Path)
     args = parser.parse_args()
     args.output_root.mkdir(parents=True, exist_ok=True)
     if not args.terrain_only:
         build_hydro(args.source_root, args.output_root)
     if not args.hydro_only:
-        build_terrain(args.source_root, args.output_root)
+        countries_path = (args.countries or (args.output_root / "countries-ne-5.1.1.geojson")).resolve()
+        build_terrain(args.source_root, args.output_root, countries_path)
 
 
 if __name__ == "__main__":

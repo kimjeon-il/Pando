@@ -1,8 +1,8 @@
 'use strict';
 
 (() => {
-  const BUILD_ID = '0.12.5';
-  const ASSET_REVISION = '0.12.5';
+  const BUILD_ID = '0.12.6';
+  const ASSET_REVISION = '0.12.6';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
   const overlay = document.getElementById('bootstrapLoading');
@@ -23,8 +23,13 @@
   }
 
   function fail(reason) {
+    const rawReason = String(reason || '');
+    const safeReason = /[가-힣]/.test(rawReason) && !/(Cannot read|undefined|null is not|is not a function|TypeError|ReferenceError|SyntaxError|RangeError|failed\b|\bat\s+\S+\s*\()/i.test(rawReason)
+      ? rawReason
+      : '내부 오류가 발생했습니다. 오류 코드 AW-BOOT-001을 확인하세요.';
+    if (safeReason !== rawReason) console.error('[AW-BOOT-001]', rawReason);
     overlay?.classList.add('error');
-    setProgress(`지도를 불러올 수 없습니다. ${reason}`, 100);
+    setProgress(`지도를 불러올 수 없습니다. ${safeReason}`, 100);
     document.body.classList.add('is-loading');
     const actionText = document.querySelector('#actionStatus strong');
     if (actionText) actionText.textContent = '지도 데이터를 불러올 수 없습니다.';
