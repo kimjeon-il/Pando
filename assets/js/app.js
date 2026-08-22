@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.3
+/* AtlasWright v0.12.4
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.12.3';
+  const APP_VERSION = '0.12.4';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
@@ -1455,6 +1455,9 @@
       const riverStarts = glVersion === 2 ? meshData.riverStarts : Float32Array.from(meshData.riverStarts);
       const riverEnds = glVersion === 2 ? meshData.riverEnds : Float32Array.from(meshData.riverEnds);
       const riverFeatureIds = glVersion === 2 ? meshData.riverFeatureIds : Float32Array.from(meshData.riverFeatureIds);
+      const borderRiverStarts = glVersion === 2 ? meshData.borderRiverStarts : Float32Array.from(meshData.borderRiverStarts);
+      const borderRiverEnds = glVersion === 2 ? meshData.borderRiverEnds : Float32Array.from(meshData.borderRiverEnds);
+      const borderRiverFeatureIds = glVersion === 2 ? meshData.borderRiverFeatureIds : Float32Array.from(meshData.borderRiverFeatureIds);
       const lakePositions = glVersion === 2 ? meshData.lakePositions : Float32Array.from(meshData.lakePositions);
       const lakeFeatureIds = glVersion === 2 ? meshData.lakeFeatureIds : Float32Array.from(meshData.lakeFeatureIds);
       entry.resources = {
@@ -1464,6 +1467,12 @@
         riverStartWidthBuffer: createHydroBuffer(meshData.riverStartWidths),
         riverEndWidthBuffer: createHydroBuffer(meshData.riverEndWidths),
         riverSegmentCount: meshData.riverFeatureIds.length,
+        borderRiverStartBuffer: createHydroBuffer(borderRiverStarts),
+        borderRiverEndBuffer: createHydroBuffer(borderRiverEnds),
+        borderRiverFeatureBuffer: createHydroBuffer(borderRiverFeatureIds),
+        borderRiverStartWidthBuffer: createHydroBuffer(meshData.borderRiverStartWidths),
+        borderRiverEndWidthBuffer: createHydroBuffer(meshData.borderRiverEndWidths),
+        borderRiverSegmentCount: meshData.borderRiverFeatureIds.length,
         lakePositionBuffer: createHydroBuffer(lakePositions),
         lakeFeatureBuffer: createHydroBuffer(lakeFeatureIds),
         lakeIndexBuffer: createHydroBuffer(meshData.lakeIndices, gl.ELEMENT_ARRAY_BUFFER),
@@ -1473,7 +1482,11 @@
 
     function deleteHydroPackResources(entry) {
       if (!entry?.resources || !gl) return;
-      for (const key of ['riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverStartWidthBuffer', 'riverEndWidthBuffer', 'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer']) {
+      for (const key of [
+        'riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverStartWidthBuffer', 'riverEndWidthBuffer',
+        'borderRiverStartBuffer', 'borderRiverEndBuffer', 'borderRiverFeatureBuffer', 'borderRiverStartWidthBuffer', 'borderRiverEndWidthBuffer',
+        'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer',
+      ]) {
         if (entry.resources[key]) gl.deleteBuffer(entry.resources[key]);
       }
       entry.resources = null;
@@ -1533,32 +1546,33 @@
       else instancedExtension.vertexAttribDivisorANGLE(location, divisor);
     }
 
-    function bindRiverAttributes(program, resources) {
+    function bindRiverAttributes(program, resources, borderAligned = false) {
       const locations = glVersion === 2 ? [0, 1, 2, 3, 4, 5] : [
         gl.getAttribLocation(program, 'aCorner'), gl.getAttribLocation(program, 'aStart'),
         gl.getAttribLocation(program, 'aEnd'), gl.getAttribLocation(program, 'aCountry'),
         gl.getAttribLocation(program, 'aStartWidth'), gl.getAttribLocation(program, 'aEndWidth'),
       ];
       const [corner, start, end, feature, startWidth, endWidth] = locations;
+      const prefix = borderAligned ? 'borderRiver' : 'river';
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
       gl.enableVertexAttribArray(corner);
       gl.vertexAttribPointer(corner, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverStartBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}StartBuffer`]);
       gl.enableVertexAttribArray(start);
       if (glVersion === 2) gl.vertexAttribIPointer(start, 2, gl.INT, 0, 0);
       else gl.vertexAttribPointer(start, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverEndBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}EndBuffer`]);
       gl.enableVertexAttribArray(end);
       if (glVersion === 2) gl.vertexAttribIPointer(end, 2, gl.INT, 0, 0);
       else gl.vertexAttribPointer(end, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverFeatureBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}FeatureBuffer`]);
       gl.enableVertexAttribArray(feature);
       if (glVersion === 2) gl.vertexAttribIPointer(feature, 1, gl.UNSIGNED_INT, 0, 0);
       else gl.vertexAttribPointer(feature, 1, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverStartWidthBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}StartWidthBuffer`]);
       gl.enableVertexAttribArray(startWidth);
       gl.vertexAttribPointer(startWidth, 1, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources.riverEndWidthBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}EndWidthBuffer`]);
       gl.enableVertexAttribArray(endWidth);
       gl.vertexAttribPointer(endWidth, 1, gl.FLOAT, false, 0, 0);
       setInstanceDivisor(corner, 0);
@@ -1570,10 +1584,13 @@
       uploadHydroPack(entry);
       const resources = entry.resources;
       if (!resources) return;
-      const count = category === 'lake' ? resources.lakeIndexCount : resources.riverSegmentCount;
+      const borderAligned = category === 'border-river';
+      const count = category === 'lake'
+        ? resources.lakeIndexCount
+        : (borderAligned ? resources.borderRiverSegmentCount : resources.riverSegmentCount);
       if (!count) return;
       setHydroUniforms(program, color);
-      const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources);
+      const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources, borderAligned);
       const widthBoostLocation = gl.getUniformLocation(program, 'uWidthBoost');
       if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 : 0);
       const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
@@ -1583,7 +1600,7 @@
         else if (glVersion === 2) gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
         else instancedExtension.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP, 0, 4, count);
       }
-      if (category === 'river') for (const location of locations.slice(1)) setInstanceDivisor(location, 0);
+      if (category !== 'lake') for (const location of locations.slice(1)) setInstanceDivisor(location, 0);
       for (const location of locations) gl.disableVertexAttribArray(location);
       entry.lastUsed = performance.now();
     }
@@ -1591,7 +1608,7 @@
     function drawHydro(category, picking = false) {
       if (!hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return;
       updateHydroVisibility();
-      const program = category === 'river'
+      const program = category === 'river' || category === 'border-river'
         ? (picking ? hydroLinePickProgram : hydroLineProgram)
         : (picking ? hydroPickProgram : hydroFillProgram);
       const color = category === 'lake' ? [0.353, 0.663, 0.839, 0.92] : [0.231, 0.510, 0.769, 0.96];
@@ -1755,6 +1772,11 @@
             riverFeatureIds: new Uint32Array(meshData.riverFeatureIds || 0),
             riverStartWidths: new Float32Array(meshData.riverStartWidths || 0),
             riverEndWidths: new Float32Array(meshData.riverEndWidths || 0),
+            borderRiverStarts: new Int32Array(meshData.borderRiverStarts || 0),
+            borderRiverEnds: new Int32Array(meshData.borderRiverEnds || 0),
+            borderRiverFeatureIds: new Uint32Array(meshData.borderRiverFeatureIds || 0),
+            borderRiverStartWidths: new Float32Array(meshData.borderRiverStartWidths || 0),
+            borderRiverEndWidths: new Float32Array(meshData.borderRiverEndWidths || 0),
             lakePositions: new Int32Array(meshData.lakePositions || 0),
             lakeFeatureIds: new Uint32Array(meshData.lakeFeatureIds || 0),
             lakeIndices: new Uint32Array(meshData.lakeIndices || 0),
@@ -2061,6 +2083,7 @@
       drawHydro('lake');
       drawHydro('river');
       if (state.layerVisibility.countries) drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
+      drawHydro('border-river');
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
       frameTimes.push(performance.now() - started);
@@ -2323,6 +2346,7 @@
       gl.clear(gl.COLOR_BUFFER_BIT);
       drawHydro('lake', true);
       drawHydro('river', true);
+      drawHydro('border-river', true);
       const dpr = pixelWidth / cssWidth;
       const x = Math.max(0, Math.min(pixelWidth - 1, Math.round(screenPoint[0] * dpr)));
       const y = Math.max(0, Math.min(pixelHeight - 1, Math.round(pixelHeight - 1 - screenPoint[1] * dpr)));
@@ -4421,7 +4445,7 @@
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const manifestUrl = new URL('hydro/v0.12.3/manifest.json', PHYSICAL_DATA_BASE_URL);
+      const manifestUrl = new URL('hydro/v0.12.4/manifest.json', PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(manifestUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

@@ -8,9 +8,11 @@ import unittest
 from collections import defaultdict
 from pathlib import Path
 
+from shapely.geometry import LineString, MultiLineString, shape
+
 
 ROOT = Path(__file__).parents[1]
-DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.3"
+DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.4"
 KOREA_BOUNDS = (124.0, 33.0, 131.0, 43.0)
 
 
@@ -154,7 +156,7 @@ def decode_pack(raw: bytes, pack_id: int):
     offset = 12
     for _ in range(feature_count):
         header = struct.unpack_from("<IIBBBBHHf4i5HIII", raw, offset)
-        fid, logical_fid, kind, stage, geometry_kind, _flags, fragment_index, fragment_count, width = header[:9]
+        fid, logical_fid, kind, stage, geometry_kind, flags, fragment_index, fragment_count, width = header[:9]
         bounds = tuple(value / 1_000_000 for value in header[9:13])
         lengths = header[13:18]
         source_length, geometry_length, width_length = header[18:21]
@@ -179,13 +181,15 @@ def decode_pack(raw: bytes, pack_id: int):
             "fragment_index": fragment_index,
             "fragment_count": fragment_count,
             "width": width,
+            "flags": flags,
             "bounds": bounds,
             "aw_id": strings[0],
             "name": strings[1],
+            "source": strings[3],
             "layer_id": strings[4],
             "source_ids": decode_source_ids(source_payload),
             "coordinate_count": coordinate_count(geometry, geometry_kind),
-            "geometry": geometry if intersects(bounds, KOREA_BOUNDS) else None,
+            "geometry": geometry if flags & 1 or intersects(bounds, KOREA_BOUNDS) else None,
             "width_profiles": decode_width_profile(width_payload),
         }
     if offset != len(raw):
@@ -209,7 +213,7 @@ class HydroTileTests(unittest.TestCase):
             cls.features.extend(decode_pack(gzip.decompress(compressed), pack_id))
 
     def test_manifest_index_and_shards_stay_within_limits(self):
-        self.assertEqual(self.manifest["version"], "0.12.3")
+        self.assertEqual(self.manifest["version"], "0.12.4")
         self.assertEqual(self.manifest["schema"], "atlaswright-hydro-shards-v3")
         self.assertLess(self.manifest_path.stat().st_size, 100 * 1024)
         self.assertLess((DATA / self.manifest["index"]["url"]).stat().st_size, 100 * 1024)
@@ -225,6 +229,9 @@ class HydroTileTests(unittest.TestCase):
         self.assertIn("closed downstream", selection["riverContinuity"])
         self.assertGreater(self.manifest["stats"]["downstreamClosureReachCount"], 0)
         self.assertGreater(self.manifest["stats"]["coastSnappedTerminalCount"], 0)
+        self.assertEqual(selection["mediumMainstemMinBasinKm2"], 2500.0)
+        self.assertGreater(self.manifest["stats"]["mediumMainstemReachCount"], 0)
+        self.assertGreater(self.manifest["stats"]["borderAlignedLengthKm"], 0)
 
     def test_fragments_share_one_logical_river_identity(self):
         self.assertEqual(len(self.features), self.manifest["stats"]["featureCount"])
@@ -255,6 +262,9 @@ class HydroTileTests(unittest.TestCase):
         self.assertGreaterEqual(len(lakes), 5)
         source_ids = {source_id for feature in korea for source_id in feature["source_ids"]}
         self.assertTrue({"40425195", "40425194", "40391748"}.issubset(source_ids))
+        # Daedong, Geum, and Yeongsan terminal reaches must all be present even
+        # when they have no Natural Earth naming guide.
+        self.assertTrue({"40391614", "40475481", "40515775"}.issubset(source_ids))
         names = {feature["name"] for feature in korea if feature["kind"] == 1}
         self.assertTrue(any("압록" in name or "Yalu" in name for name in names))
         self.assertTrue(any("두만" in name or "Tumen" in name for name in names))
@@ -276,6 +286,28 @@ class HydroTileTests(unittest.TestCase):
                 for feature in main_stem for point in points(feature["geometry"])
             )
             self.assertLessEqual(distance, 35.0)
+
+    def test_border_fragments_use_reserved_flag_and_exact_source_pair(self):
+        aligned = [feature for feature in self.features if feature["kind"] == 1 and feature["flags"] & 1]
+        self.assertGreaterEqual(self.manifest["stats"]["borderAlignedReachCount"], len(aligned))
+        self.assertGreater(len(aligned), 0)
+        self.assertTrue(all("Natural Earth border " in feature["source"] for feature in aligned))
+        self.assertTrue(all(not (feature["flags"] & ~1) for feature in aligned))
+        korea_aligned = [feature for feature in aligned if intersects(feature["bounds"], KOREA_BOUNDS)]
+        self.assertTrue(any("CHN/PRK" in feature["source"] for feature in korea_aligned))
+        self.assertTrue(any("PRK/RUS" in feature["source"] for feature in korea_aligned))
+
+        countries = json.loads((ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson").read_text(encoding="utf-8"))["features"]
+        by_id = {feature["properties"]["editor_id"]: shape(feature["geometry"]) for feature in countries}
+        shared = {}
+        for feature in aligned:
+            pair = tuple(feature["source"].rsplit(" ", 1)[-1].split("/"))
+            if pair not in shared:
+                self.assertTrue(all(country_id in by_id for country_id in pair))
+                shared[pair] = by_id[pair[0]].boundary.intersection(by_id[pair[1]].boundary)
+            geometry = LineString(feature["geometry"]) if feature["geometry"] and isinstance(feature["geometry"][0], tuple) else MultiLineString(feature["geometry"])
+            for part in ([geometry] if isinstance(geometry, LineString) else geometry.geoms):
+                self.assertTrue(all(shared[pair].distance(shape({"type": "Point", "coordinates": point})) <= 2e-6 for point in part.coords))
 
 
 if __name__ == "__main__":
