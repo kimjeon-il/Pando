@@ -13,7 +13,7 @@ from shapely.geometry import LineString, MultiLineString, shape
 
 
 ROOT = Path(__file__).parents[1]
-DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.5"
+DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.6"
 KOREA_BOUNDS = (124.0, 33.0, 131.0, 43.0)
 
 
@@ -167,6 +167,11 @@ def decode_pack(raw: bytes, pack_id: int, metadata: dict[int, dict]):
         offset += width_length
         geometry = decode_geometry(geometry_payload, geometry_kind)
         meta = metadata[fid]
+        line_parts = []
+        if geometry_kind == 1:
+            line_parts = [geometry]
+        elif geometry_kind == 2:
+            line_parts = geometry
         yield {
             "fid": fid,
             "logical_fid": logical_fid,
@@ -183,6 +188,13 @@ def decode_pack(raw: bytes, pack_id: int, metadata: dict[int, dict]):
             "source": meta["source"],
             "layer_id": meta["layerId"],
             "source_ids": [value for value in str(meta.get("sourceId") or "").split(",") if value],
+            "terminal": meta.get("terminal"),
+            "start": line_parts[0][0] if line_parts else None,
+            "end": line_parts[-1][-1] if line_parts else None,
+            "part_connections_exact": all(left[-1] == right[0] for left, right in zip(line_parts, line_parts[1:])),
+            "part_connection_mismatches": [
+                (left[-1], right[0]) for left, right in zip(line_parts, line_parts[1:]) if left[-1] != right[0]
+            ],
             "coordinate_count": coordinate_count(geometry, geometry_kind),
             "geometry": geometry if flags & 1 or intersects(bounds, KOREA_BOUNDS) else None,
             "width_profiles": decode_width_profile(width_payload),
@@ -213,7 +225,7 @@ class HydroTileTests(unittest.TestCase):
             cls.features.extend(decode_pack(gzip.decompress(compressed), pack_id, cls.metadata))
 
     def test_manifest_index_and_shards_stay_within_limits(self):
-        self.assertEqual(self.manifest["version"], "0.12.5")
+        self.assertEqual(self.manifest["version"], "0.12.6")
         self.assertEqual(self.manifest["schema"], "atlaswright-water-shards-v4")
         self.assertLess(self.manifest_path.stat().st_size, 100 * 1024)
         self.assertLess((DATA / self.manifest["index"]["url"]).stat().st_size, 100 * 1024)
@@ -235,6 +247,11 @@ class HydroTileTests(unittest.TestCase):
         self.assertEqual(selection["mediumMainstemMinBasinKm2"], 2500.0)
         self.assertGreater(self.manifest["stats"]["mediumMainstemReachCount"], 0)
         self.assertGreater(self.manifest["stats"]["borderAlignedLengthKm"], 0)
+        connectivity = selection["terminalConnectivity"]
+        self.assertEqual(connectivity["maximumCoastExtensionKm"], 25)
+        self.assertIn("exclude", connectivity["unresolvedRenderedLandTerminal"])
+        terminal_counts = self.manifest["stats"]["terminalClassCounts"]
+        self.assertEqual(terminal_counts.get("unresolved-land", 0), 0)
 
     def test_natural_earth_global_lakes_replace_hydrolakes(self):
         lakes = [feature for feature in self.features if feature["kind"] == 2]
@@ -258,6 +275,29 @@ class HydroTileTests(unittest.TestCase):
             self.assertEqual({row["aw_id"] for row in fragments}, {fragments[0]["aw_id"]})
             self.assertEqual(sorted(row["fragment_index"] for row in fragments), list(range(fragments[0]["fragment_count"])))
             self.assertIn(logical_fid, self.logical_index)
+
+    def test_every_displayed_logical_river_has_a_classified_terminal(self):
+        groups = defaultdict(list)
+        for feature in self.features:
+            if feature["kind"] == 1:
+                groups[feature["logical_fid"]].append(feature)
+        allowed = {"sea", "lake", "confluence", "endorheic"}
+        for logical_fid, fragments in groups.items():
+            terminal_rows = [row for row in fragments if row.get("terminal")]
+            self.assertEqual(len(terminal_rows), 1, f"logical river {logical_fid}")
+            self.assertIn(terminal_rows[0]["terminal"]["class"], allowed)
+
+    def test_every_river_part_and_fragment_uses_an_exact_shared_endpoint(self):
+        groups = defaultdict(list)
+        for feature in self.features:
+            if feature["kind"] != 1:
+                continue
+            self.assertTrue(feature["part_connections_exact"], feature["fid"])
+            groups[feature["logical_fid"]].append(feature)
+        for logical_fid, fragments in groups.items():
+            fragments.sort(key=lambda row: row["fragment_index"])
+            for left, right in zip(fragments, fragments[1:]):
+                self.assertEqual(left["end"], right["start"], f"logical river {logical_fid}")
 
     def test_river_width_never_narrows_inside_a_fragment(self):
         for feature in (row for row in self.features if row["kind"] == 1):

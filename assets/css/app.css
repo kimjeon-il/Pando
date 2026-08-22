@@ -887,6 +887,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .terrain-view-controls { display: grid; gap: var(--ui-space-2); margin-top: var(--ui-space-3); padding-top: var(--ui-space-3); border-top: 1px solid var(--border); }
 .terrain-view-controls .field-group { margin: 0; }
 .terrain-view-controls .field-group > span { display: flex; justify-content: space-between; gap: 8px; color: var(--text-soft); font-size: var(--ui-font-caption); }
+.water-color-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 .terrain-view-controls select { min-height: var(--ui-control-height); }
 .terrain-strength input[type="range"] { width: 100%; min-height: 28px; accent-color: var(--accent); cursor: pointer; }
 .terrain-strength strong { color: var(--accent-2); font-variant-numeric: tabular-nums; }

@@ -11,7 +11,7 @@ const projectRoot = path.resolve(toolDirectory, '..');
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
 const outputPath = path.resolve(
   projectRoot,
-  process.argv[2] || path.join('assets', 'data', 'world-mesh-v0.10.2.bin.gz'),
+  process.argv[2] || path.join('assets', 'data', 'world-mesh-v0.12.6.bin.gz'),
 );
 const earcut = require(path.join(projectRoot, 'assets', 'js', 'vendor', 'earcut.min.js'));
 const meshCore = require(path.join(projectRoot, 'assets', 'js', 'workers', 'gpu-mesh-core.js'));

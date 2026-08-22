@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.12.5 connected rivers and Natural Earth lake shards.
+"""Build AtlasWright v0.12.6 connected rivers and Natural Earth lake shards.
 
 HydroRIVERS provides canonical river geometry. Natural Earth provides the
 global 1:10m lake geometry and enriches matched river names. Selected source
@@ -26,12 +26,14 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator, Sequence
 
 import shapefile
+from PIL import Image
+from shapely.affinity import translate
 from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, Polygon, box, shape
 from shapely.ops import linemerge, nearest_points, transform, unary_union
 from shapely.strtree import STRtree
 
 
-VERSION = "0.12.5"
+VERSION = "0.12.6"
 PACK_FORMAT_VERSION = 4
 MICRO = 1_000_000
 RIVER_FLOW_WEIGHT = 4.0
@@ -54,6 +56,7 @@ BORDER_MIN_COVERAGE = 0.70
 BORDER_MAX_DIRECTION_DEGREES = 30.0
 BORDER_MIN_LENGTH_KM = 10.0
 RIVER_CODES = ("af", "ar", "as", "au", "eu", "gr", "na", "sa", "si")
+Image.MAX_IMAGE_PIXELS = None
 
 
 def remove_readonly(function, path: str, _error: object) -> None:
@@ -80,6 +83,7 @@ class BuiltFeature:
     fragment_index: int = 0
     fragment_count: int = 1
     flags: int = 0
+    terminal: dict[str, Any] | None = None
 
 
 @dataclass
@@ -97,6 +101,8 @@ class RiverReach:
     endorheic: bool = False
     render_snap: tuple[float, float] | None = None
     border_pair: tuple[str, str] | None = None
+    terminal_class: str = ""
+    original_endpoint: tuple[float, float] | None = None
 
 
 @dataclass(slots=True)
@@ -307,24 +313,83 @@ class ReferenceGuides:
 
 
 class CoastSnapper:
-    """Snap only sub-2km Hydro outlet offsets to the canonical land coastline."""
+    """Classify Hydro terminals and safely extend clear coastal outlets."""
 
-    def __init__(self, countries_path: Path):
+    def __init__(
+        self, countries_path: Path, lake_features: Sequence[dict[str, Any]], drainage_free_raster: Path,
+    ):
         features = json.loads(countries_path.read_text(encoding="utf-8"))["features"]
-        coastline = unary_union([shape(feature["geometry"]) for feature in features]).boundary
-        self.lines = list(coastline.geoms) if hasattr(coastline, "geoms") else [coastline]
+        self.land = unary_union([shape(feature["geometry"]) for feature in features])
+        coastline = self.land.boundary
+        base_lines = list(coastline.geoms) if hasattr(coastline, "geoms") else [coastline]
+        self.lines = [translate(line, xoff=offset) for offset in (-360.0, 0.0, 360.0) for line in base_lines]
         self.tree = STRtree(self.lines)
+        self.land_variants = [translate(self.land, xoff=offset) for offset in (-360.0, 0.0, 360.0)]
+        self.land_presence_variants = [geometry.buffer(0.01) for geometry in self.land_variants]
+        self.land_connector_variants = [geometry.buffer(0.002) for geometry in self.land_variants]
+        lakes = [shape(feature.get("geometry")) for feature in lake_features]
+        self.lakes = [translate(lake, xoff=offset) for offset in (-360.0, 0.0, 360.0) for lake in lakes if not lake.is_empty]
+        self.lake_tree = STRtree(self.lakes) if self.lakes else None
+        self.drainage_free_land = Image.open(drainage_free_raster)
 
-    def snap(self, point: tuple[float, float], max_km: float = 2.0) -> tuple[float, float] | None:
-        source = Point(point)
-        target = nearest_points(source, self.lines[int(self.tree.nearest(source))])[1]
-        distance_km = math.hypot(
-            (source.x - target.x) * 111.32 * math.cos(math.radians(source.y)),
+    def is_undisplayed_water(self, point: Point) -> bool:
+        x = min(self.drainage_free_land.width - 1, max(0, int((normalize_lon(point.x) + 180) / 360 * self.drainage_free_land.width)))
+        y = min(self.drainage_free_land.height - 1, max(0, int((90 - point.y) / 180 * self.drainage_free_land.height)))
+        red, green, blue = self.drainage_free_land.getpixel((x, y))
+        return max(red, green, blue) - min(red, green, blue) <= 1 and min(red, green, blue) >= 249
+
+    @staticmethod
+    def distance_km(source: Point, target: Point) -> float:
+        return math.hypot(
+            normalize_lon(source.x - target.x) * 111.32 * math.cos(math.radians(source.y)),
             (source.y - target.y) * 110.57,
         )
-        if 1e-5 < distance_km <= max_km:
-            return float(target.x), float(target.y)
-        return None
+
+    def resolve(self, point: tuple[float, float], max_km: float = 25.0) -> dict[str, Any]:
+        source = Point(normalize_lon(point[0]), float(point[1]))
+        if self.lake_tree is not None:
+            lake = self.lakes[int(self.lake_tree.nearest(source))]
+            lake_target = nearest_points(source, lake)[1]
+            if lake.covers(source) or self.distance_km(source, lake_target) <= 1.0:
+                return {"class": "lake", "distanceKm": self.distance_km(source, lake_target), "snap": None}
+
+        coast = self.lines[int(self.tree.nearest(source))]
+        target = nearest_points(source, coast)[1]
+        distance_km = self.distance_km(source, target)
+        land_index = min(range(len(self.land_variants)), key=lambda index: self.land_variants[index].distance(source))
+        local_land = self.land_variants[land_index]
+        on_rendered_land = self.land_presence_variants[land_index].covers(source)
+        if distance_km <= 1e-5:
+            return {"class": "sea", "distanceKm": 0.0, "snap": None}
+        if distance_km <= 2.0:
+            return {
+                "class": "sea",
+                "distanceKm": distance_km,
+                "snap": (normalize_lon(float(target.x)), float(target.y)),
+            }
+        if distance_km <= max_km and on_rendered_land:
+            connector = LineString([source, target])
+            outside_length = connector.difference(self.land_connector_variants[land_index]).length
+            if outside_length <= 1e-5:
+                return {
+                    "class": "sea",
+                    "distanceKm": distance_km,
+                    "snap": (normalize_lon(float(target.x)), float(target.y)),
+                }
+        if distance_km <= max_km and not on_rendered_land and self.is_undisplayed_water(source):
+            # Hydro outlet vertices are sometimes a few kilometres offshore.
+            # Retract those water vertices to the canonical coastline; do not
+            # mistake them for rivers on tiny land omitted from the base map.
+            return {
+                "class": "sea",
+                "distanceKm": distance_km,
+                "snap": (normalize_lon(float(target.x)), float(target.y)),
+            }
+        if not on_rendered_land:
+            return {"class": "excluded-small-land", "distanceKm": distance_km, "snap": None}
+        if self.is_undisplayed_water(source):
+            return {"class": "excluded-undisplayed-water", "distanceKm": distance_km, "snap": None}
+        return {"class": "unresolved-land", "distanceKm": distance_km, "snap": None}
 
 
 def iter_line_geometries(geometry: Any) -> Iterator[LineString]:
@@ -395,9 +460,11 @@ class BorderAligner:
                     pair_lines[pair].append(line)
         self.lines: list[LineString] = []
         self.pairs: list[tuple[str, str]] = []
+        self.pair_geometries: dict[tuple[str, str], Any] = {}
         for pair, lines in sorted(pair_lines.items()):
             unioned = unary_union(lines)
             merged = unioned if isinstance(unioned, LineString) else linemerge(unioned)
+            self.pair_geometries[pair] = merged
             for line in iter_line_geometries(merged):
                 self.lines.append(line)
                 self.pairs.append(pair)
@@ -408,6 +475,33 @@ class BorderAligner:
             for cell_x in range(math.floor((min_x - 1.0) / 2), math.floor((max_x + 1.0) / 2) + 1):
                 for cell_y in range(math.floor((min_y - 1.0) / 2), math.floor((max_y + 1.0) / 2) + 1):
                     self.grid[(cell_x, cell_y)].add(line_index)
+
+    def junction_coordinate(
+        self, left_pair: tuple[str, str], right_pair: tuple[str, str],
+        left_point: Sequence[float], right_point: Sequence[float], maximum_gap_km: float,
+    ) -> tuple[float, float] | None:
+        """Return the exact shared-country triple point for two border rivers."""
+        left_border = self.pair_geometries.get(left_pair)
+        right_border = self.pair_geometries.get(right_pair)
+        if left_border is None or right_border is None:
+            return None
+        junctions = left_border.intersection(right_border)
+        if junctions.is_empty:
+            return None
+        right_lon = float(left_point[0]) + normalize_lon(float(right_point[0]) - float(left_point[0]))
+        reference = Point(
+            (float(left_point[0]) + right_lon) / 2,
+            (float(left_point[1]) + float(right_point[1])) / 2,
+        )
+        candidate = nearest_points(reference, junctions)[1]
+        coordinate = (normalize_lon(float(candidate.x)), float(candidate.y))
+        if max(
+            CoastSnapper.distance_km(Point(*left_point), Point(*coordinate)),
+            CoastSnapper.distance_km(Point(*right_point), Point(*coordinate)),
+        ) > maximum_gap_km:
+            return None
+        qx, qy = quantize(coordinate)
+        return qx / MICRO, qy / MICRO
 
     @staticmethod
     def _sample_distances(line: LineString, border: LineString) -> list[float]:
@@ -748,14 +842,61 @@ def read_selected_rivers(
             meta.source_id, meta.next_down, meta.main_river,
             meta.stage if meta.stage is not None else len(STAGE_MIN_ZOOM) - 1,
             meta.order, meta.flow, meta.upstream_area, meta.corrected_width, end_width, parts, meta.endorheic,
+            original_endpoint=tuple(parts[-1][-1]),
         ))
     reader.close()
+    terminal_counts: dict[str, int] = defaultdict(int)
+    excluded_terminal_records: list[dict[str, Any]] = []
     coast_snapped = 0
+    excluded_terminal_ids: set[int] = set()
     for reach in reaches:
-        if reach.next_down or reach.endorheic or not reach.parts or not reach.parts[-1]:
+        if reach.next_down or not reach.parts or not reach.parts[-1]:
             continue
-        reach.render_snap = coast_snapper.snap(reach.parts[-1][-1])
+        if reach.endorheic:
+            reach.terminal_class = "endorheic"
+            terminal_counts[reach.terminal_class] += 1
+            continue
+        terminal = coast_snapper.resolve(reach.original_endpoint)
+        reach.terminal_class = str(terminal["class"])
+        terminal_counts[reach.terminal_class] += 1
+        reach.render_snap = terminal.get("snap")
         coast_snapped += int(reach.render_snap is not None)
+        if reach.terminal_class == "unresolved-land":
+            # HydroRIVERS occasionally marks NEXT_DOWN=0 well inside a rendered
+            # landmass even though no source reach continues to the coast.  A
+            # synthetic connector longer than the audited 25 km limit would be
+            # misleading, so omit that whole upstream logical river and record
+            # the malformed source terminal instead of shipping a broken line.
+            reach.terminal_class = "excluded-unresolved-source-terminal"
+            terminal_counts["unresolved-land"] -= 1
+            terminal_counts[reach.terminal_class] += 1
+        if reach.terminal_class in {
+            "excluded-small-land", "excluded-undisplayed-water",
+            "excluded-unresolved-source-terminal",
+        }:
+            excluded_terminal_ids.add(reach.source_id)
+            excluded_terminal_records.append({
+                "sourceId": reach.source_id,
+                "class": reach.terminal_class,
+                "distanceKm": round(float(terminal["distanceKm"]), 3),
+                "endpoint": list(reach.original_endpoint),
+            })
+
+    if excluded_terminal_ids:
+        excluded_ids = set(excluded_terminal_ids)
+        upstream_by_downstream: dict[int, list[int]] = defaultdict(list)
+        for reach in reaches:
+            if reach.next_down:
+                upstream_by_downstream[reach.next_down].append(reach.source_id)
+        stack = list(excluded_terminal_ids)
+        while stack:
+            downstream_id = stack.pop()
+            for upstream_id in upstream_by_downstream.get(downstream_id, []):
+                if upstream_id in excluded_ids:
+                    continue
+                excluded_ids.add(upstream_id)
+                stack.append(upstream_id)
+        reaches = [reach for reach in reaches if reach.source_id not in excluded_ids]
     return reaches, (min_x, min_y, max_x, max_y), {
         "seedReachCount": len(seed_ids),
         "continuityRootCount": len(continuity_roots),
@@ -766,6 +907,9 @@ def read_selected_rivers(
         "continuityReachCount": max(0, len(reaches) - len(seed_ids)),
         "downstreamClosureReachCount": downstream_added,
         "coastSnappedTerminalCount": coast_snapped,
+        "terminalClassCounts": dict(terminal_counts),
+        "excludedTerminalSources": excluded_terminal_records,
+        "excludedTerminalReachCount": len(excluded_ids) if excluded_terminal_ids else 0,
     }
 
 
@@ -867,6 +1011,53 @@ def chain_geometry(chain: Sequence[RiverReach]) -> dict[str, Any]:
                 part[-1] = reach.render_snap
             parts.append(part)
     return {"type": "LineString", "coordinates": parts[0]} if len(parts) == 1 else {"type": "MultiLineString", "coordinates": parts}
+
+
+def normalize_chain_connections(
+    chain: Sequence[RiverReach], maximum_gap_km: float = 25.0,
+    border_aligner: BorderAligner | None = None,
+) -> int:
+    """Make every reach/part boundary share one exact Int32 coordinate."""
+    changed = 0
+    ordered_parts: list[tuple[RiverReach, list[tuple[float, float]]]] = [
+        (reach, part) for reach in chain for part in reach.parts if len(part) >= 2
+    ]
+    for (left_reach, left), (right_reach, right) in zip(ordered_parts, ordered_parts[1:]):
+        left_point = left[-1]
+        right_point = right[0]
+        longitude_delta = normalize_lon(right_point[0] - left_point[0])
+        gap_km = math.hypot(
+            longitude_delta * 111.32 * math.cos(math.radians((left_point[1] + right_point[1]) / 2)),
+            (right_point[1] - left_point[1]) * 110.57,
+        )
+        if gap_km > maximum_gap_km:
+            raise RuntimeError(
+                f"Hydro 논리 강 {chain[0].source_id}의 fragment 연결이 {gap_km:.2f}km 끊겨 있습니다."
+            )
+        if quantize(left_point) == quantize(right_point):
+            shared = (quantize(right_point)[0] / MICRO, quantize(right_point)[1] / MICRO)
+        elif left_reach.border_pair and right_reach.border_pair:
+            if left_reach.border_pair == right_reach.border_pair:
+                shared = (quantize(left_point)[0] / MICRO, quantize(left_point)[1] / MICRO)
+            else:
+                shared = border_aligner.junction_coordinate(
+                    left_reach.border_pair, right_reach.border_pair,
+                    left_point, right_point, maximum_gap_km,
+                ) if border_aligner else None
+                if shared is None:
+                    raise RuntimeError(
+                        f"국경하천 {'/'.join(left_reach.border_pair)}와(과) "
+                        f"{'/'.join(right_reach.border_pair)}의 공통 접점을 찾을 수 없습니다."
+                    )
+        elif left_reach.border_pair and not right_reach.border_pair:
+            shared = (quantize(left_point)[0] / MICRO, quantize(left_point)[1] / MICRO)
+        else:
+            shared = (quantize(right_point)[0] / MICRO, quantize(right_point)[1] / MICRO)
+        if quantize(left_point) != quantize(shared) or quantize(right_point) != quantize(shared):
+            changed += 1
+        left[-1] = shared
+        right[0] = shared
+    return changed
 
 
 def part_widths(part: Sequence[Sequence[float]], start_width: float, end_width: float) -> list[float]:
@@ -1093,6 +1284,7 @@ class PackBuilder:
             "stage": feature.stage, "flags": feature.flags,
             "fragmentIndex": feature.fragment_index,
             "fragmentCount": feature.fragment_count, "width": feature.width,
+            **({"terminal": feature.terminal} if feature.terminal else {}),
         })
 
     def write(self) -> dict[str, Any]:
@@ -1254,6 +1446,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--hydrorivers-root", type=Path, action="append", required=True)
     parser.add_argument("--natural-earth-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--drainage-free-raster", type=Path, required=True)
     return parser.parse_args()
 
 
@@ -1265,7 +1458,7 @@ def main() -> None:
     rivers_base, lakes_base = load_ne_base(hydro_root)
     guides = ReferenceGuides(rivers_base)
     countries_path = hydro_root.parent / "countries-ne-5.1.1.geojson"
-    coast_snapper = CoastSnapper(countries_path)
+    coast_snapper = CoastSnapper(countries_path, lakes_base, args.drainage_free_raster.resolve())
     border_aligner = BorderAligner(countries_path)
     builder = PackBuilder(output)
     fid = 0
@@ -1279,6 +1472,14 @@ def main() -> None:
         chains = logical_river_objects(reaches, guides)
         matched_names = match_ne_river_names(chains, rivers_base, bounds)
         border_stats = border_aligner.align_chains(chains)
+        connection_changed_count = sum(
+            normalize_chain_connections(chain, border_aligner=border_aligner) for chain in chains
+        )
+        for chain in chains:
+            terminal_reach = chain[-1]
+            chain_ids = {reach.source_id for reach in chain}
+            if terminal_reach.next_down and terminal_reach.next_down not in chain_ids:
+                terminal_reach.terminal_class = "confluence"
         river_names_enriched += len(matched_names)
         print(
             f"[{code}] seed {reach_stats['seedReachCount']:,} + 본류 {reach_stats['continuityReachCount']:,} "
@@ -1289,10 +1490,14 @@ def main() -> None:
             fragments = stage_fragments(chain)
             aw_id = f"hydro-river:{chain[0].source_id}"
             for fragment_index, fragment in enumerate(fragments):
+                connection_changed_count += normalize_chain_connections(
+                    fragment, border_aligner=border_aligner,
+                )
                 geometry = chain_geometry(fragment)
                 width_profile = chain_width_profile(fragment)
                 start = fragment[0]
                 border_pair = start.border_pair
+                terminal_reach = fragment[-1] if fragment[-1].terminal_class else None
                 builder.add(BuiltFeature(
                     fid=fid,
                     logical_fid=logical_fid,
@@ -1313,6 +1518,14 @@ def main() -> None:
                     fragment_index=fragment_index,
                     fragment_count=len(fragments),
                     flags=BORDER_FLAG if border_pair else 0,
+                    terminal=(
+                        {
+                            "class": terminal_reach.terminal_class,
+                            "sourceEndpoint": list(terminal_reach.original_endpoint or fragment[-1].parts[-1][-1]),
+                            "renderEndpoint": list(terminal_reach.render_snap or fragment[-1].parts[-1][-1]),
+                        }
+                        if terminal_reach else None
+                    ),
                 )); fid += 1
             logical_fid += 1
         source_rows.append({
@@ -1320,6 +1533,7 @@ def main() -> None:
             "files": shapefile_source_files(path),
             **reach_stats,
             **border_stats,
+            "connectionChangedCount": connection_changed_count,
             "chainCount": len(chains),
             "nameMatches": len(matched_names),
         })
@@ -1361,10 +1575,17 @@ def main() -> None:
     stats["continuityReachCount"] = sum(row["continuityReachCount"] for row in source_rows)
     stats["downstreamClosureReachCount"] = sum(row["downstreamClosureReachCount"] for row in source_rows)
     stats["coastSnappedTerminalCount"] = sum(row["coastSnappedTerminalCount"] for row in source_rows)
+    terminal_class_counts: dict[str, int] = defaultdict(int)
+    for row in source_rows:
+        for terminal_class, count in row.get("terminalClassCounts", {}).items():
+            terminal_class_counts[terminal_class] += int(count)
+    stats["terminalClassCounts"] = dict(terminal_class_counts)
+    stats["excludedTerminalReachCount"] = sum(row.get("excludedTerminalReachCount", 0) for row in source_rows)
     stats["borderAlignedReachCount"] = sum(row["borderAlignedReachCount"] for row in source_rows)
     stats["borderAlignedRiverCount"] = sum(row["borderAlignedRiverCount"] for row in source_rows)
     stats["borderAlignedLengthKm"] = round(sum(row["borderAlignedLengthKm"] for row in source_rows), 1)
     stats["borderChangedCoordinateCount"] = sum(row["borderChangedCoordinateCount"] for row in source_rows)
+    stats["connectionChangedCount"] = sum(row["connectionChangedCount"] for row in source_rows)
     manifest = {
         "version": VERSION,
         "schema": "atlaswright-water-shards-v4",
@@ -1395,6 +1616,14 @@ def main() -> None:
                 "minLengthKm": BORDER_MIN_LENGTH_KM,
                 "scope": "built-in Natural Earth shared country borders only",
             },
+            "terminalConnectivity": {
+                "revision": 2,
+                "classes": ["sea", "lake", "confluence", "endorheic"],
+                "maximumCoastExtensionKm": 25,
+                "requiresLandContainedConnector": True,
+                "unresolvedRenderedLandTerminal": "repair source graph or exclude the affected logical river before packing",
+                "undisplayedRasterWaterTerminal": "logical river excluded and reported",
+            },
             "lakeSelection": "Natural Earth 5.0.0 1:10m global lakes and reservoirs; no regional supplements",
             "minZoomStages": list(STAGE_MIN_ZOOM),
         },
@@ -1407,7 +1636,7 @@ def main() -> None:
         "metadata": layout["metadata"],
         "shards": layout["shards"],
         "cache": {
-            "name": f"atlaswright-water-v0.12.5-{layout['index']['sha256'][:12]}",
+            "name": f"atlaswright-water-v0.12.6-{layout['index']['sha256'][:12]}",
             "backgroundDownload": True,
             "rangeRequests": True,
         },
@@ -1422,6 +1651,7 @@ def main() -> None:
                 {"file": "lakes_base.geojson", "sha256": sha256(hydro_root / "lakes_base.geojson")},
                 {"file": "countries-ne-5.1.1.geojson", "sha256": sha256(countries_path)},
             ],
+            "drainageFreeWaterMask": {"file": args.drainage_free_raster.name, "sha256": sha256(args.drainage_free_raster)},
             "hydroRivers": source_rows,
             "naturalEarthLakes": {"file": "lakes_base.geojson", "sha256": sha256(hydro_root / "lakes_base.geojson"), "selected": selected_lakes},
             "nameEnrichment": {"rivers": river_names_enriched},
