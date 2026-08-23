@@ -1,4 +1,4 @@
-/* AtlasWright v0.14.4
+/* AtlasWright v0.15.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.14.4';
+  const APP_VERSION = '0.15.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -47,6 +47,7 @@
 
   const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
   let systemTheme = systemThemeQuery.matches ? 'dark' : 'light';
+  let runtimeReady = false;
   document.documentElement.dataset.systemTheme = systemTheme;
   window.__ATLASWRIGHT_THEME__ = systemTheme;
 
@@ -2840,7 +2841,10 @@
   function reportOperationError(error, fallbackMessage, code, timeout = 4400) {
     console.error(`[${code}]`, error);
     const detail = isSafeKoreanErrorMessage(error) ? String(error.message).trim() : '';
-    const message = detail || `${fallbackMessage} 다시 시도해도 문제가 계속되면 오류 코드 ${code}를 확인하세요.`;
+    const hasRecoveryAction = /(선택|확인|입력|이동|조정|해제|새로고침|다시 시도|다시 그리)하세요\.$/.test(detail);
+    const message = detail
+      ? (hasRecoveryAction ? detail : `${detail} ${fallbackMessage}`)
+      : `${fallbackMessage} 다시 시도해도 문제가 계속되면 오류 코드 ${code}를 확인하세요.`;
     setActionStatus(message, 'error', timeout);
   }
 
@@ -2853,23 +2857,32 @@
   }
 
   function showFatalError(error) {
-    console.error(error);
+    console.error('[AW-RUNTIME-001]', error);
     const message = isSafeKoreanErrorMessage(error)
       ? String(error.message).trim()
-      : '내부 오류가 발생했습니다. 오류 코드 AW-RUNTIME-001을 확인하세요.';
+      : '내부 오류로 AtlasWright를 시작할 수 없습니다. 오류 코드 AW-RUNTIME-001을 확인하세요.';
     let box = document.getElementById('fatalErrorBox');
     if (!box) {
       box = document.createElement('div');
       box.id = 'fatalErrorBox';
-      box.style.cssText = 'position:fixed;z-index:99999;left:10px;right:10px;top:70px;padding:14px;border:1px solid #8a4f4f;border-radius:10px;background:#3b2525;color:#ffd1d1;font:13px/1.55 sans-serif;white-space:pre-wrap;';
+      box.style.cssText = 'position:fixed;z-index:99999;left:10px;right:10px;top:70px;padding:14px;border:1px solid #8a4f4f;border-radius:10px;background:#3b2525;color:#ffd1d1;font:500 13px/1.55 var(--ui-font-family);white-space:pre-wrap;';
       document.body.appendChild(box);
     }
-    box.textContent = `AtlasWright 실행 오류\n${message}\n\nGitHub Pages 또는 로컬 HTTP 서버에서 열었는지 확인해 주세요.`;
+    box.textContent = `AtlasWright를 시작할 수 없습니다.\n${message}\n\n페이지를 새로고침하세요. 문제가 계속되면 오류 코드를 확인하세요.`;
     try { $('engineStatus').textContent = '실행 오류'; } catch (_) {}
   }
 
-  window.addEventListener('error', event => showFatalError(event.error || event.message));
-  window.addEventListener('unhandledrejection', event => showFatalError(event.reason));
+  function handleUnexpectedRuntimeError(error) {
+    if (!runtimeReady) {
+      showFatalError(error);
+      return;
+    }
+    console.error('[AW-RUNTIME-001]', error);
+    setActionStatus('작업 중 오류가 발생했습니다. 다시 시도하세요. 문제가 계속되면 오류 코드 AW-RUNTIME-001을 확인하세요.', 'error', 0);
+  }
+
+  window.addEventListener('error', event => handleUnexpectedRuntimeError(event.error || event.message));
+  window.addEventListener('unhandledrejection', event => handleUnexpectedRuntimeError(event.reason));
 
   function slugify(value) {
     return String(value || 'country')
@@ -3890,12 +3903,12 @@
     if (componentIndex === null) throw new Error('두 국경 교차점 사이에 유효한 내부 구간이 없습니다.');
     if (entry.position > 1e-7) {
       const before = coordinateAtPathPosition(line, entry.position / 2);
-      if (interiorComponentIndex(before, polygons) !== null) throw new Error('국경선은 선택 영토 밖이나 경계에서 시작해 주세요.');
+      if (interiorComponentIndex(before, polygons) !== null) throw new Error('국경선은 선택 영토 밖이나 경계에서 시작하세요.');
     }
     const maxPosition = line.length - 1;
     if (exit.position < maxPosition - 1e-7) {
       const after = coordinateAtPathPosition(line, (exit.position + maxPosition) / 2);
-      if (interiorComponentIndex(after, polygons) !== null) throw new Error('국경선은 선택 영토 밖이나 경계에서 끝내 주세요.');
+      if (interiorComponentIndex(after, polygons) !== null) throw new Error('국경선은 선택 영토 밖이나 경계에서 끝내세요.');
     }
     const entryRef = entry.refs.find(ref => ref.polygonIndex === componentIndex && ref.ringIndex === 0);
     const exitRef = exit.refs.find(ref => ref.polygonIndex === componentIndex && ref.ringIndex === 0);
@@ -3939,7 +3952,7 @@
     const firstIndex = augmented.findIndex(coord => coordNear(coord, firstEndpoint.coord, 1e-7));
     const lastIndex = augmented.findIndex(coord => coordNear(coord, lastEndpoint.coord, 1e-7));
     if (firstIndex < 0 || lastIndex < 0 || firstIndex === lastIndex) {
-      throw new Error('편입선의 양 끝점을 피편입국 경계에서 구분할 수 없습니다.');
+      throw new Error('편입선의 양 끝점을 영토를 가져올 국가의 경계에서 구분할 수 없습니다.');
     }
     return { ring: augmented, firstIndex, lastIndex };
   }
@@ -3952,7 +3965,7 @@
       index = (index + step + ring.length) % ring.length;
       result.push(ring[index].slice());
     }
-    if (index !== endIndex) throw new Error('피편입국 경계 경로를 만들 수 없습니다.');
+    if (index !== endIndex) throw new Error('영토를 가져올 국가의 경계 경로를 만들 수 없습니다.');
     return result;
   }
 
@@ -3960,12 +3973,12 @@
     if (!Array.isArray(cutLine) || cutLine.length < 2) throw new Error('새 국경선에는 두 점 이상이 필요합니다.');
     const unique = new Set(cutLine.map(coord => coordKey(coord, 8)));
     if (unique.size < 2 || cutLine.some((coord, index) => index > 0 && coordNear(coord, cutLine[index - 1], 1e-9))) {
-      throw new Error('서로 다른 위치를 연결해 주세요.');
+      throw new Error('서로 다른 위치를 연결하세요.');
     }
     if (lineHasSelfIntersection(cutLine)) throw new Error('새 국경선이 자기 자신과 교차합니다.');
     for (let i = 1; i < cutLine.length - 1; i += 1) {
       if (!pointInPolygonSetInterior(cutLine[i], component)) {
-        throw new Error('중간 국경점은 피편입국 내부에 놓아야 합니다.');
+        throw new Error('중간 국경점은 영토를 가져올 국가의 내부에 놓아야 합니다.');
       }
     }
     for (let i = 0; i < cutLine.length - 1; i += 1) {
@@ -3977,14 +3990,14 @@
       for (let sample = 1; sample < samples; sample += 1) {
         const point = interpolateCoordinate(a, b, sample / samples);
         if (!pointInPolygonSetInterior(point, component)) {
-          throw new Error('새 국경선은 피편입국 밖이나 호수·구멍을 통과할 수 없습니다.');
+          throw new Error('새 국경선은 영토를 가져올 국가의 밖이나 호수·구멍을 통과할 수 없습니다.');
         }
       }
       for (const ring of component) {
         const closed = ensureClosedRing(ring);
         for (let j = 0; j < closed.length - 1; j += 1) {
           if (segmentsProperlyIntersect(a, b, closed[j], closed[j + 1])) {
-            throw new Error('새 국경선이 피편입국 경계를 중간에서 가로지릅니다.');
+            throw new Error('새 국경선이 영토를 가져올 국가의 경계를 중간에서 가로지릅니다.');
           }
         }
       }
@@ -4019,7 +4032,7 @@
     const overlapArea = multiPolygonPlanarArea(clipper.intersection(candidates[0].coordinates, candidates[1].coordinates));
     const combined = clipper.union(candidates[0].coordinates, candidates[1].coordinates);
     const missingArea = multiPolygonPlanarArea(clipper.xor(component, combined));
-    if (overlapArea > tolerance || missingArea > tolerance) throw new Error('새 국경선이 피편입국을 정확히 두 영역으로 나누지 못했습니다.');
+    if (overlapArea > tolerance || missingArea > tolerance) throw new Error('새 국경선이 영토를 가져올 국가를 정확히 두 영역으로 나누지 못했습니다.');
 
     return {
       componentIndex,
@@ -4039,8 +4052,8 @@
     const ids = new Set((donorIds || []).map(String).filter(id => id && id !== String(targetId)));
     const donors = (state.countriesData?.features || [])
       .filter(feature => ids.has(String(feature.properties?.editor_id || '')));
-    if (!target?.geometry || !donors.length) throw new Error('수령국 또는 피편입국을 찾을 수 없습니다.');
-    if (ids.size !== donors.length) throw new Error('선택한 피편입국 중 일부를 찾을 수 없습니다. 대상을 다시 선택하세요.');
+    if (!target?.geometry || !donors.length) throw new Error('편입받을 국가 또는 영토를 가져올 국가를 찾을 수 없습니다.');
+    if (ids.size !== donors.length) throw new Error('영토를 가져올 국가 중 일부를 찾을 수 없습니다. 대상을 다시 선택하세요.');
 
     const transferred = geometryMultiCoordinates(transferredGeometry);
     const transferredArea = multiPolygonPlanarArea(transferred);
@@ -4048,12 +4061,12 @@
     const donorUnion = clipper.union(...donors.map(feature => feature.geometry.coordinates));
     const outsideDonor = clipper.difference(transferred, donorUnion);
     if (multiPolygonPlanarArea(outsideDonor) > Math.max(1e-10, transferredArea * 1e-10)) {
-      throw new Error('선택 영역이 선택한 피편입국들의 영토 밖으로 벗어났습니다.');
+      throw new Error('선택 영역이 영토를 가져올 국가들의 영토 밖으로 벗어났습니다.');
     }
 
     const targetResultRaw = unionGeometryWithRegion(target.geometry, transferred);
     const targetResult = targetResultRaw ? snapGeometryToGrid(targetResultRaw, 7) : null;
-    if (!targetResult) throw new Error('편입 후 수령국 경계를 만들 수 없습니다.');
+    if (!targetResult) throw new Error('편입 후 편입받을 국가의 경계를 만들 수 없습니다.');
     const updates = [{ id: String(targetId), geometry: targetResult }];
     const removedIds = [];
     const affectedDonorIds = [];
@@ -4068,7 +4081,7 @@
       if (donorRemainder) updates.push({ id: donorId, geometry: donorRemainder });
       else removedIds.push(donorId);
     }
-    if (!affectedDonorIds.length) throw new Error('선택 영역과 겹치는 피편입국이 없습니다.');
+    if (!affectedDonorIds.length) throw new Error('선택 영역과 겹치는 국가가 없습니다. 영토를 가져올 국가를 다시 선택하세요.');
     return {
       targetId: String(targetId), donorIds: [...ids], affectedDonorIds,
       updates, removedIds,
@@ -4079,7 +4092,7 @@
 
   function selectedCountryUnionGeometry(sourceIds) {
     const ids = new Set((sourceIds || []).map(String));
-    if (!ids.size) throw new Error('원본 국가를 하나 이상 선택하세요.');
+    if (!ids.size) throw new Error('영토를 가져올 국가를 하나 이상 선택하세요.');
     const union = countryUnionFromFeatures(state.countriesData?.features || [], ids);
     const geometry = normalizeClippedLandGeometry(union);
     if (!geometry) throw new Error('선택 국가의 영토 합집합을 만들 수 없습니다.');
@@ -4092,14 +4105,14 @@
     const ids = new Set((sourceIds || []).map(String));
     const sourceFeatures = (state.countriesData?.features || [])
       .filter(feature => ids.has(String(feature.properties?.editor_id || '')));
-    if (!sourceFeatures.length) throw new Error('원본 국가를 찾을 수 없습니다.');
+    if (!sourceFeatures.length) throw new Error('영토를 가져올 국가를 찾을 수 없습니다.');
     const transferred = geometryMultiCoordinates(transferredGeometry);
     const transferredArea = multiPolygonPlanarArea(transferred);
     if (transferredArea <= 1e-14) throw new Error('신생국으로 만들 유효한 영토가 없습니다.');
     const sourceUnion = clipper.union(...sourceFeatures.map(feature => feature.geometry.coordinates));
     const outsideSource = clipper.difference(transferred, sourceUnion);
     if (multiPolygonPlanarArea(outsideSource) > Math.max(1e-10, transferredArea * 1e-10)) {
-      throw new Error('선택 영역이 원본 국가들의 영토 밖으로 벗어났습니다.');
+      throw new Error('선택 영역이 영토를 가져올 국가들의 영토 밖으로 벗어났습니다.');
     }
 
     const updates = [];
@@ -4116,7 +4129,7 @@
       if (remainder) updates.push({ id, geometry: remainder });
       else removedIds.push(id);
     }
-    if (!affectedSourceIds.length) throw new Error('선택 영역과 겹치는 원본 국가가 없습니다.');
+    if (!affectedSourceIds.length) throw new Error('선택 영역과 겹치는 국가가 없습니다. 영토를 가져올 국가를 다시 선택하세요.');
     return { updates, removedIds, affectedSourceIds, transferredArea };
   }
 
@@ -5203,7 +5216,7 @@
   function updateTerritoryComponentSelectionFeedback() {
     if (state.tool === 'annex-territory' && state.annexPhase === 'components') {
       const selectedCount = state.annexSelectedComponentKeys.length;
-      setModeBanner(`선택한 ${state.annexDonorCountryIds.length}개 피편입국에서 편입할 영토를 선택하세요.${selectedCount ? ` 현재 ${selectedCount}개 조각을 선택했습니다.` : ''}`, 'annex-mode');
+      setModeBanner(`선택한 ${state.annexDonorCountryIds.length}개 국가에서 가져올 영토를 선택하세요.${selectedCount ? ` 현재 ${selectedCount}개 조각을 선택했습니다.` : ''}`, 'annex-mode');
     } else if (state.tool === 'new-country' && state.newCountryPhase === 'components') {
       const selectedCount = state.newCountrySelectedComponentKeys.length;
       setModeBanner(`신생국으로 만들 영토를 선택하세요.${selectedCount ? ` 현재 ${selectedCount}개 조각을 선택했습니다.` : ' 여러 조각을 함께 선택할 수 있습니다.'}`, 'add-country-mode');
@@ -5565,7 +5578,7 @@
     const hint = $('countryActionHint');
     if (hint) {
       hint.classList.toggle('hidden', annexActive || coastActive || mergeActive);
-      hint.textContent = '피편입국을 지정한 뒤 새 국경선을 연결해 원하는 쪽 영토만 편입할 수 있습니다.';
+      hint.textContent = '영토를 가져올 국가를 선택한 뒤 새 경계를 그어 원하는 영역만 편입할 수 있습니다.';
     }
   }
 
@@ -5659,7 +5672,7 @@
         || (annexComponentsMode && !state.annexSelectedComponentKeys.length)
         || (newCountryComponentsMode && !state.newCountrySelectedComponentKeys.length);
       let primaryLabel = '완료';
-      if (state.tool === 'country-coast') primaryLabel = '해안선 수정 완료';
+      if (state.tool === 'country-coast') primaryLabel = '수정 완료';
       else if (terrainMode) primaryLabel = '그리기 완료';
       else if (newCountrySourceMode || annexDonorMode) primaryLabel = '선택 완료';
       else if (mergeTargetMode) primaryLabel = '합병';
@@ -5719,7 +5732,7 @@
       state.annexPhase = useComponents ? 'components' : 'line';
       if (useComponents) updateTerritoryComponentSelectionFeedback();
       else {
-        setModeBanner(`선택한 ${state.annexDonorCountryIds.length}개 피편입국의 연결된 영토를 가로질러 새 경계를 그리세요.`, 'annex-mode');
+        setModeBanner(`영토를 가져올 ${state.annexDonorCountryIds.length}개 국가의 연결된 영토를 가로질러 새 경계를 그리세요.`, 'annex-mode');
       }
     } else if (state.tool === 'new-country' && ['line', 'side', 'components'].includes(state.newCountryPhase)) {
       clearDraftInput(true);
@@ -5808,7 +5821,7 @@
     resetNewCountryState();
     state.newCountryPhase = 'sources';
     setTool('new-country', false);
-    setModeBanner('신생국 영토를 가져올 원본 국가를 하나 이상 선택하세요. 여러 국가를 선택할 수 있습니다.', 'add-country-mode');
+    setModeBanner('영토를 가져올 국가를 하나 이상 선택하세요. 여러 국가를 선택할 수 있습니다.', 'add-country-mode');
   }
 
   function toggleNewCountrySource(id) {
@@ -5821,7 +5834,7 @@
     state.newCountrySourceIds = [...selected];
     const count = state.newCountrySourceIds.length;
     renderCountries();
-    setModeBanner(`원본 국가 ${count}개를 선택했습니다. 지도에서 국가를 선택해 추가하거나 해제한 뒤 선택을 완료하세요.`, 'add-country-mode');
+    setModeBanner(`영토를 가져올 국가 ${count}개를 선택했습니다. 지도에서 국가를 추가하거나 해제한 뒤 선택을 완료하세요.`, 'add-country-mode');
   }
 
   function beginNewCountryLine() {
@@ -5829,7 +5842,7 @@
     try {
       selectedCountryUnionGeometry(state.newCountrySourceIds);
     } catch (error) {
-      reportOperationError(error, '원본 국가를 합칠 수 없습니다. 서로 연결된 국가를 다시 선택하세요.', 'AW-COUNTRY-004', 3600);
+      reportOperationError(error, '선택한 국가의 영토를 합칠 수 없습니다. 서로 연결된 국가를 다시 선택하세요.', 'AW-COUNTRY-004', 3600);
       return;
     }
     state.newCountryPhase = 'line';
@@ -5867,7 +5880,7 @@
     syncCountryActionButtons();
     renderCountries();
     if (usesOverlayEditor()) closeMobileSheets();
-    setModeBanner(`${countryName(feature)}에 영토를 넘길 국가를 선택하세요. 여러 국가를 함께 선택할 수 있습니다.`, 'annex-mode');
+    setModeBanner(`${countryName(feature)}에 편입할 영토를 가져올 국가를 선택하세요. 여러 국가를 함께 선택할 수 있습니다.`, 'annex-mode');
     updateModeButtons();
   }
 
@@ -5876,12 +5889,12 @@
     const donorId = String(id || '');
     if (state.tool !== 'annex-territory' || state.annexPhase !== 'donor') return;
     if (!targetId || donorId === targetId) {
-      setActionStatus('수령국은 피편입국으로 선택할 수 없습니다. 다른 국가를 선택하세요.', 'error', 3500);
+      setActionStatus('편입받을 국가는 영토를 가져올 국가로 선택할 수 없습니다. 다른 국가를 선택하세요.', 'error', 3500);
       return;
     }
     const donor = countryFeatureById(donorId);
     if (!donor?.geometry || !['Polygon', 'MultiPolygon'].includes(donor.geometry.type)) {
-      setActionStatus('피편입국을 찾을 수 없습니다. 지도에 표시된 다른 국가를 선택하세요.', 'error', 3500);
+      setActionStatus('영토를 가져올 국가를 찾을 수 없습니다. 지도에 표시된 다른 국가를 선택하세요.', 'error', 3500);
       return;
     }
     const selected = new Set(state.annexDonorCountryIds.map(String));
@@ -5889,7 +5902,7 @@
     else selected.add(donorId);
     state.annexDonorCountryIds = [...selected];
     renderCountries();
-    setModeBanner(`${countryName(countryFeatureById(targetId))}에 영토를 넘길 국가를 선택하세요. 현재 ${state.annexDonorCountryIds.length}개국을 선택했습니다.`, 'annex-mode');
+    setModeBanner(`${countryName(countryFeatureById(targetId))}에 편입할 영토를 가져올 국가를 선택하세요. 현재 ${state.annexDonorCountryIds.length}개국을 선택했습니다.`, 'annex-mode');
     updateModeButtons();
   }
 
@@ -5898,7 +5911,7 @@
     try {
       selectedCountryUnionGeometry(state.annexDonorCountryIds);
     } catch (error) {
-      reportOperationError(error, '피편입국의 영토를 준비하지 못했습니다. 대상을 다시 선택하세요.', 'AW-ANNEX-004', 3600);
+      reportOperationError(error, '선택한 국가의 영토를 준비할 수 없습니다. 대상을 다시 선택하세요.', 'AW-ANNEX-004', 3600);
       return;
     }
     state.annexPhase = 'line';
@@ -5909,7 +5922,7 @@
     state.annexSelectionMethod = 'line';
     state.draftCoords = [];
     state.draftHover = null;
-    setModeBanner(`선택한 ${state.annexDonorCountryIds.length}개 피편입국의 연결된 영토를 가로질러 새 경계를 그리세요.`, 'annex-mode');
+    setModeBanner(`영토를 가져올 ${state.annexDonorCountryIds.length}개 국가의 연결된 영토를 가로질러 새 경계를 그리세요.`, 'annex-mode');
     updateModeButtons();
     renderAll();
   }
@@ -5968,7 +5981,7 @@
     const targetId = String(id || '');
     if (state.tool !== 'merge-country' || !sourceId) return;
     if (!targetId || targetId === sourceId) {
-      setActionStatus('수령국 자신은 합병 대상으로 선택할 수 없습니다. 다른 국가를 선택하세요.', 'error', 3200);
+      setActionStatus('기준 국가는 합병 대상으로 선택할 수 없습니다. 다른 국가를 선택하세요.', 'error', 3200);
       return;
     }
     if (!countryFeatureById(targetId)) {
@@ -6010,7 +6023,7 @@
     setCurrentTool('지명 배치');
     $('map').classList.add('drawing-mode');
     $('map').classList.remove('select-mode');
-    setModeBanner('지도에서 지명을 배치할 위치를 선택하세요. Esc를 누르면 취소됩니다.');
+    setModeBanner('지도에서 지명을 배치할 위치를 선택하세요. Esc 키로 취소할 수 있습니다.');
     syncMobileNavigation();
     updateModeButtons();
   }
@@ -6082,12 +6095,12 @@
       : null;
     if (state.tool === 'new-country' && state.newCountryPhase === 'sources') {
       if (clickedCountry) toggleNewCountrySource(clickedCountry.properties.editor_id);
-      else setActionStatus('원본 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
+      else setActionStatus('영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
       return;
     }
     if (state.tool === 'annex-territory' && state.annexPhase === 'donor') {
       if (clickedCountry) toggleAnnexDonor(clickedCountry.properties.editor_id);
-      else setActionStatus('피편입국을 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
+      else setActionStatus('영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
       return;
     }
     if (state.tool === 'merge-country' && state.mergeSourceCountryId) {
@@ -6105,12 +6118,12 @@
     }
     if (state.tool === 'annex-territory') {
       if (state.annexPhase === 'donor') {
-        setActionStatus('피편입국을 먼저 지도에서 선택하세요.', 'error', 3200);
+        setActionStatus('영토를 가져올 국가를 먼저 지도에서 선택하세요.', 'error', 3200);
         return;
       }
       if (state.annexPhase !== 'line') return;
       if (!state.annexDonorCountryIds.length) {
-        setActionStatus('선택한 피편입국을 찾을 수 없습니다. 피편입국을 다시 선택하세요.', 'error', 3400);
+        setActionStatus('선택한 국가를 찾을 수 없습니다. 영토를 가져올 국가를 다시 선택하세요.', 'error', 3400);
         return;
       }
       const nextCoord = coord.slice();
@@ -6178,7 +6191,7 @@
       const targetId = String(state.annexTargetCountryId || '');
       const target = countryFeatureById(targetId);
       if (state.annexPhase !== 'line' || !target || !state.annexDonorCountryIds.length) {
-        setActionStatus('편입을 진행할 수 없습니다. 수령국과 피편입국을 먼저 선택하세요.', 'error', 3800);
+        setActionStatus('편입을 진행할 수 없습니다. 편입받을 국가와 영토를 가져올 국가를 먼저 선택하세요.', 'error', 3800);
         return;
       }
 
@@ -6194,7 +6207,7 @@
         updateModeButtons();
         renderAll();
       } catch (error) {
-        reportOperationError(error, '새 국경선을 사용할 수 없습니다. 피편입국을 한 번만 관통하도록 선을 다시 그리세요.', 'AW-ANNEX-003');
+        reportOperationError(error, '새 경계를 사용할 수 없습니다. 영토를 가져올 국가를 한 번만 관통하도록 선을 다시 그리세요.', 'AW-ANNEX-003');
         return;
       }
       return;
@@ -6202,7 +6215,7 @@
 
     if (state.tool === 'new-country') {
       if (state.newCountryPhase !== 'line') {
-        setActionStatus('새 국가를 만들 수 없습니다. 원본 국가 선택을 먼저 완료하세요.', 'error', 3600);
+        setActionStatus('새 국가를 만들 수 없습니다. 영토를 가져올 국가 선택을 먼저 완료하세요.', 'error', 3600);
         return;
       }
       try {
@@ -6291,7 +6304,7 @@
       const validation = validateCountryGeometryEdit(affectedIds, baseline);
       if (!validation.ok) throw new Error(validation.message);
       const targetAfter = countryFeatureById(targetId);
-      if (!targetAfter) throw new Error('수령국이 편입 결과에서 사라졌습니다.');
+      if (!targetAfter) throw new Error('편입받을 국가가 편입 결과에서 사라졌습니다.');
 
       state.draftCoords = [];
       state.draftHover = null;
@@ -8262,7 +8275,10 @@
 
   try {
     init()
-      .then(() => window.dispatchEvent(new CustomEvent('atlaswright:ready')))
+      .then(() => {
+        runtimeReady = true;
+        window.dispatchEvent(new CustomEvent('atlaswright:ready'));
+      })
       .catch(error => {
         window.dispatchEvent(new CustomEvent('atlaswright:error', { detail: error?.message || String(error) }));
         showFatalError(error);
