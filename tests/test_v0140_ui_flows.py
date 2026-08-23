@@ -51,6 +51,16 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertNotIn("합병 후 국명을 입력하세요", APP)
         self.assertIn("const mergedName = sourceName", merge)
 
+    def test_projection_controls_move_between_toolbar_and_mobile_sheet(self):
+        self.assertNotIn('class="panel-section compact-view-section"', INDEX)
+        for element_id in ("projectionControl", "projectionToolbarSlot", "mobileProjectionSlot"):
+            self.assertIn(f'id="{element_id}"', INDEX)
+        self.assertIn('id="engineStatus" class="engine-status"', INDEX)
+        self.assertIn("function placeProjectionControl()", APP)
+        self.assertIn("host.appendChild(control)", APP)
+        self.assertIn("button.setAttribute('aria-pressed', String(active))", APP)
+        self.assertIn('#app[data-layout="mobile"] .mobile-projection-slot:not(:empty)', CSS)
+
 
 if __name__ == "__main__":
     unittest.main()
