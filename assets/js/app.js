@@ -1,4 +1,4 @@
-/* AtlasWright v0.16.3
+/* AtlasWright v0.16.4
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.16.3';
+  const APP_VERSION = '0.16.4';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -6985,6 +6985,7 @@
   function updateHistoryButtons() {
     $('undoBtn').disabled = !state.history.length;
     $('redoBtn').disabled = !state.future.length;
+    $('mapCommandToolbar')?.classList.toggle('history-empty', !state.history.length && !state.future.length);
   }
 
   function syncProjectionButtons() {
