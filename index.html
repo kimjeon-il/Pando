@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.16.0" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.16.1" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -38,13 +38,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.16.0" data-layout="wide">
+  <div id="app" data-app-version="0.16.1" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.16.0 · Natural Earth 1:10m · 다중 영토 편집</span>
+          <span>v0.16.1 · Natural Earth 1:10m · 다중 영토 편집</span>
         </div>
       </div>
 
@@ -72,7 +72,7 @@
 
     <div class="workspace">
       <aside id="leftPanel" class="sidebar left-panel">
-        <div class="mobile-sheet-header"><strong>지도·레이어</strong><button id="mobileCloseLeftBtn" type="button" aria-label="지도·레이어 창 닫기">닫기</button></div>
+        <div class="mobile-sheet-header"><strong>지도·레이어</strong><button id="mobileCloseLeftBtn" class="icon-btn sheet-close-btn" type="button" aria-label="지도·레이어 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
         <div id="mobileProjectionSlot" class="mobile-projection-slot" aria-label="모바일 지도 투영법"></div>
 
         <section id="layerSection" class="panel-section">
@@ -224,7 +224,7 @@
       </main>
 
       <aside id="rightPanel" class="sidebar right-panel editor-panel">
-        <div class="mobile-sheet-header"><strong>편집</strong><button id="mobileCloseRightBtn" type="button" aria-label="편집창 닫기">닫기</button></div>
+        <div class="mobile-sheet-header"><strong>편집</strong><button id="mobileCloseRightBtn" class="icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
 
         <section class="editor-header">
           <div class="editor-title-row">
@@ -412,7 +412,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.16.0" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.16.0" defer></script>
+  <script src="assets/js/gis-io.js?v=0.16.1" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.16.1" defer></script>
 </body>
 </html>

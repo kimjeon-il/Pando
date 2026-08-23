@@ -1267,34 +1267,38 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 /* ===== AtlasWright v0.14.2: projection controls and renderer status placement ===== */
 .projection-toolbar-slot { display: flex; align-items: center; }
 .projection-control {
-  display: inline-flex;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
-  gap: 2px;
-  padding: 2px;
+  gap: 0;
+  width: calc(var(--ui-control-height) * 2);
+  height: var(--ui-control-height);
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--border);
-  width: auto;
   border-radius: 10px;
   background: var(--surface-subtle);
 }
 .projection-btn {
-  flex: 0 0 var(--ui-control-height);
-  width: var(--ui-control-height);
-  min-width: var(--ui-control-height);
-  height: var(--ui-control-height);
-  min-height: var(--ui-control-height);
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0;
   padding: 0;
   border: 0;
-  border-radius: 7px;
+  border-radius: 0;
   background: transparent;
   color: var(--muted);
   font-size: var(--ui-font-sm);
   font-weight: var(--ui-weight-strong);
   box-shadow: none;
 }
+.projection-btn + .projection-btn { border-left: 1px solid var(--border); }
 .projection-btn:hover { background: var(--surface-hover); color: var(--text); }
 .projection-btn.active {
   background: var(--accent-surface);
@@ -1315,16 +1319,16 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 #app[data-layout="mobile"] .projection-control {
   width: 100%;
-  display: grid;
+  height: var(--ui-touch-height);
   grid-template-columns: repeat(2,minmax(0,1fr));
-  gap: var(--ui-space-1);
-  padding: var(--ui-space-1);
+  gap: 0;
+  padding: 0;
 }
 #app[data-layout="mobile"] .projection-btn {
   width: 100%;
   min-width: 0;
-  min-height: var(--ui-touch-height);
-  height: var(--ui-touch-height);
+  min-height: 0;
+  height: 100%;
   font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-medium);
   gap: 7px;
@@ -1356,11 +1360,18 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   color: var(--accent-text);
 }
 #app[data-layout="mobile"] .mobile-sheet-header button {
-  padding: 0 var(--ui-space-3);
+  padding: 0;
   border-radius: var(--ui-radius-control);
 }
+#app[data-layout="mobile"] .mobile-sheet-header .sheet-close-btn {
+  flex: 0 0 var(--ui-touch-height);
+  width: var(--ui-touch-height);
+  min-width: var(--ui-touch-height);
+  height: var(--ui-touch-height);
+}
+#app[data-layout="mobile"] .mobile-sheet-header .sheet-close-btn .ui-icon { width: 20px; height: 20px; }
 
-/* ===== AtlasWright v0.16.0: map-first responsive workspace ===== */
+/* ===== AtlasWright v0.16.1: map-first responsive workspace ===== */
 #app {
   grid-template-rows: var(--ui-topbar-height) minmax(0, 1fr);
 }
@@ -1412,6 +1423,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .map-view-toolbar {
   top: 12px;
   right: auto;
+  padding: 3px;
   transition: left 170ms ease, right 170ms ease, opacity 170ms ease;
 }
 
@@ -1713,7 +1725,7 @@ body[data-layout="mobile"] {
 #app[data-layout="mobile"] .mobile-sheet-header { display: flex; }
 #app[data-layout="mobile"] .mobile-sheet-header::before { content: none; }
 #app[data-layout="mobile"] .mobile-sheet-header strong { padding: 0; font-size: var(--ui-font-section); }
-#app[data-layout="mobile"] .mobile-sheet-header button { min-width: 68px; height: var(--ui-touch-height); font-size: var(--ui-font-body); }
+#app[data-layout="mobile"] .mobile-sheet-header button { height: var(--ui-touch-height); font-size: var(--ui-font-body); }
 body[data-layout="mobile"].responsive-overlay-open .mobile-backdrop {
   display: block;
   position: fixed;
