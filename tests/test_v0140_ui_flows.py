@@ -37,8 +37,12 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertNotIn('id="modeSecondaryBtn"', INDEX)
         self.assertIn("switchTerritorySelectionMethod('line')", APP)
         self.assertIn("switchTerritorySelectionMethod('components')", APP)
-        self.assertIn("국경선으로 나누기", INDEX)
-        self.assertIn("영토 조각 선택", INDEX)
+        self.assertIn('aria-label="국경선으로 나누기"', INDEX)
+        self.assertIn('aria-label="영토 조각 선택"', INDEX)
+        self.assertIn(">선으로 나누기</button>", INDEX)
+        self.assertIn(">조각 선택</button>", INDEX)
+        self.assertIn("top: 84px", CSS)
+        self.assertIn("mode-command-visible", APP)
 
     def test_merge_finishes_without_prompt_or_confirmation(self):
         merge = source_section(APP, "function completeCountryMerge", "function cancelDraft")

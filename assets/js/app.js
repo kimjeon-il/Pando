@@ -1,4 +1,4 @@
-/* AtlasWright v0.14.0
+/* AtlasWright v0.14.1
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.14.0';
+  const APP_VERSION = '0.14.1';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -5617,9 +5617,12 @@
     const primary = $('modePrimaryBtn');
     const cancel = $('modeCancelBtn');
     if (bar) {
+      const mapWrap = bar.closest('.map-wrap');
       bar.classList.toggle('hidden', !specialMode);
       bar.classList.toggle('single-action', state.tool === 'merge-country' || annexDonorMode || labelMode);
       bar.classList.toggle('has-method-switch', methodSwitchAvailable);
+      mapWrap?.classList.toggle('mode-command-visible', specialMode);
+      mapWrap?.classList.toggle('mode-command-methods', specialMode && methodSwitchAvailable);
     }
     methodSwitch?.classList.toggle('hidden', !methodSwitchAvailable);
     for (const [button, method] of [[lineMethod, 'line'], [componentsMethod, 'components']]) {
@@ -5646,17 +5649,26 @@
         || (newCountrySideMode && !state.newCountryCandidates[state.newCountrySelectedCandidateIndex]?.geometry)
         || (annexComponentsMode && !state.annexSelectedComponentKeys.length)
         || (newCountryComponentsMode && !state.newCountrySelectedComponentKeys.length);
-      if (state.tool === 'country-coast') primary.textContent = '해안선 수정 완료';
-      else if (terrainMode) primary.textContent = '그리기 완료';
-      else if (newCountrySourceMode) primary.textContent = '선택 완료';
-      else if (newCountryLineMode || annexLineMode) primary.textContent = '영역 나누기';
-      else if (newCountrySideMode) primary.textContent = '선택 영역으로 국가 추가';
-      else if (annexSideMode) primary.textContent = '이 영역 편입';
-      else if (newCountryComponentsMode) primary.textContent = '선택 조각으로 국가 추가';
-      else if (annexComponentsMode) primary.textContent = '선택한 조각 편입';
-      else primary.textContent = '완료';
+      let primaryLabel = '완료';
+      if (state.tool === 'country-coast') primaryLabel = '해안선 수정 완료';
+      else if (terrainMode) primaryLabel = '그리기 완료';
+      else if (newCountrySourceMode) primaryLabel = '선택 완료';
+      else if (newCountryLineMode || annexLineMode) primaryLabel = '영역 나누기';
+      else if (newCountrySideMode) primaryLabel = '선택 영역으로 국가 추가';
+      else if (annexSideMode) primaryLabel = '이 영역 편입';
+      else if (newCountryComponentsMode) primaryLabel = '선택 조각으로 국가 추가';
+      else if (annexComponentsMode) primaryLabel = '선택한 조각 편입';
+      const primaryLabelNode = primary.querySelector('.mode-button-label');
+      if (primaryLabelNode) primaryLabelNode.textContent = primaryLabel;
+      else primary.textContent = primaryLabel;
+      primary.setAttribute('aria-label', primaryLabel);
     }
-    if (cancel) cancel.textContent = '취소';
+    if (cancel) {
+      const cancelLabelNode = cancel.querySelector('.mode-button-label');
+      if (cancelLabelNode) cancelLabelNode.textContent = '취소';
+      else cancel.textContent = '취소';
+      cancel.setAttribute('aria-label', '작업 취소');
+    }
     syncMapCursorMode();
     syncCountryActionButtons();
   }
