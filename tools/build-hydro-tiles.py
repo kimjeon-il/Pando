@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.12.6 connected rivers and Natural Earth lake shards.
+"""Build AtlasWright v0.13.0 connected river systems and Natural Earth lake shards.
 
 HydroRIVERS provides canonical river geometry. Natural Earth provides the
-global 1:10m lake geometry and enriches matched river names. Selected source
+global 1:10m lake geometry and enriches matched river names. Optional OSM
+waterway relation metadata enriches Korean names and river-system aliases. Selected source
 coordinates are quantized to 1e-6 degree Int32 and delta-varint encoded without
 vertex simplification. Display packs contain geometry only; metadata is stored
 once in a compressed sidecar.
@@ -17,11 +18,12 @@ import heapq
 import json
 import math
 import os
+import re
 import shutil
 import stat
 import struct
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Sequence
 
@@ -33,7 +35,7 @@ from shapely.ops import linemerge, nearest_points, transform, unary_union
 from shapely.strtree import STRtree
 
 
-VERSION = "0.12.6"
+VERSION = "0.13.0"
 PACK_FORMAT_VERSION = 4
 MICRO = 1_000_000
 RIVER_FLOW_WEIGHT = 4.0
@@ -84,6 +86,12 @@ class BuiltFeature:
     fragment_count: int = 1
     flags: int = 0
     terminal: dict[str, Any] | None = None
+    system_id: str = ""
+    mainstem_name_ko: str = ""
+    role: str = ""
+    aliases: list[str] | None = None
+    tributary_names: list[str] | None = None
+    osm_relation_ids: list[int] | None = None
 
 
 @dataclass
@@ -126,6 +134,109 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+HYDRONYM_SUFFIX_RE = re.compile(r"\s+(호수|강|천|호)$")
+HYDRONYM_DUPLICATE_SUFFIX_RE = re.compile(r"(호수|강|천|호)\1$")
+HYDRONYM_ENGLISH_SUFFIX_RE = re.compile(r"\s+(River|Stream|Creek|Lake|Reservoir)$", re.IGNORECASE)
+
+
+def load_hydronym_overrides(path: Path | None) -> dict[str, str]:
+    if path is None or not path.exists():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return {str(key).strip(): str(value).strip() for key, value in (payload.get("aliases") or {}).items() if str(value).strip()}
+
+
+def normalize_hydronym(name: str, category: str, overrides: dict[str, str]) -> str:
+    """Normalize Korean hydronym spacing without inventing a proper name."""
+    value = " ".join(str(name or "").replace("\u00a0", " ").split()).strip()
+    if not value:
+        return ""
+    value = overrides.get(value, value)
+    value = HYDRONYM_SUFFIX_RE.sub(r"\1", value)
+    value = HYDRONYM_DUPLICATE_SUFFIX_RE.sub(r"\1", value)
+    if re.search(r"[A-Za-z]", value):
+        value = HYDRONYM_ENGLISH_SUFFIX_RE.sub("", value).strip()
+    if value in overrides:
+        value = overrides[value]
+    if category == "river" and re.search(r"[가-힣]$", value) and not value.endswith(("강", "천", "수계")):
+        value += "강"
+    if category == "lake" and re.search(r"[가-힣]$", value) and not value.endswith(("호", "호수", "해", "만", "저수지")):
+        value += "호"
+    return value
+
+
+class OsmWaterwayIndex:
+    """Compact matcher for an Overpass `out tags bb` waterway-relation export."""
+
+    def __init__(self, path: Path | None, overrides: dict[str, str]):
+        self.path = path
+        self.overrides = overrides
+        self.rows: list[dict[str, Any]] = []
+        self.boxes: list[Polygon] = []
+        self.tree: STRtree | None = None
+        if path is None or not path.exists():
+            return
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for element in payload.get("elements") or []:
+            tags = element.get("tags") or {}
+            bounds = element.get("bounds") or {}
+            if element.get("type") != "relation" or tags.get("type") != "waterway":
+                continue
+            if not all(key in bounds for key in ("minlon", "minlat", "maxlon", "maxlat")):
+                continue
+            extent = (
+                float(bounds["minlon"]), float(bounds["minlat"]),
+                float(bounds["maxlon"]), float(bounds["maxlat"]),
+            )
+            if extent[2] <= extent[0] or extent[3] <= extent[1]:
+                continue
+            names = [str(tags.get(key) or "").strip() for key in ("name:ko", "name", "name:en")]
+            names = list(dict.fromkeys(name for name in names if name))
+            if not names:
+                continue
+            self.rows.append({
+                "id": int(element.get("id") or 0), "bounds": extent,
+                "nameKo": normalize_hydronym(str(tags.get("name:ko") or ""), "river", overrides),
+                "names": names,
+            })
+            self.boxes.append(box(*extent))
+        if self.boxes:
+            self.tree = STRtree(self.boxes)
+
+    def match(self, bounds: tuple[float, float, float, float]) -> dict[str, Any] | None:
+        if self.tree is None:
+            return None
+        target = box(*bounds)
+        span_x = max(bounds[2] - bounds[0], 0.05)
+        span_y = max(bounds[3] - bounds[1], 0.05)
+        target_center = target.centroid
+        candidates: list[tuple[float, int]] = []
+        for raw_index in self.tree.query(target.buffer(max(span_x, span_y) * 0.08 + 0.05)):
+            index = int(raw_index)
+            candidate = self.boxes[index]
+            intersection = target.intersection(candidate).area
+            union = target.union(candidate).area
+            overlap = intersection / union if union else 0.0
+            candidate_bounds = self.rows[index]["bounds"]
+            edge_error = (
+                abs(candidate_bounds[0] - bounds[0]) / span_x + abs(candidate_bounds[2] - bounds[2]) / span_x
+                + abs(candidate_bounds[1] - bounds[1]) / span_y + abs(candidate_bounds[3] - bounds[3]) / span_y
+            )
+            center_error = math.hypot(
+                (candidate.centroid.x - target_center.x) / span_x,
+                (candidate.centroid.y - target_center.y) / span_y,
+            )
+            score = edge_error + center_error * 0.8 - overlap * 2.0
+            if overlap >= 0.12 or (center_error <= 0.35 and edge_error <= 2.5):
+                candidates.append((score, index))
+        if not candidates:
+            return None
+        candidates.sort()
+        if len(candidates) > 1 and candidates[1][0] <= candidates[0][0] + 0.15:
+            return None
+        return self.rows[candidates[0][1]]
 
 
 def shapefile_source_files(path: Path) -> list[dict[str, str]]:
@@ -476,6 +587,30 @@ class BorderAligner:
                 for cell_y in range(math.floor((min_y - 1.0) / 2), math.floor((max_y + 1.0) / 2) + 1):
                     self.grid[(cell_x, cell_y)].add(line_index)
 
+    def _nearby_line_indexes(
+        self, min_x: float, min_y: float, max_x: float, max_y: float,
+    ) -> set[int]:
+        """Return only shared borders whose envelopes are within 12 km.
+
+        The legacy two-degree grid remains useful for junction lookup, but it
+        is far too coarse for the roughly half-million Hydro reaches.  Querying
+        the STRtree with a latitude-aware envelope prevents inland reaches in
+        the same grid cell from entering the expensive metric alignment test.
+        """
+        center_lat = max(-89.5, min(89.5, (min_y + max_y) / 2))
+        latitude_padding = BORDER_MAX_DISTANCE_KM / 110.57 + 1e-4
+        longitude_padding = min(
+            4.0,
+            BORDER_MAX_DISTANCE_KM / max(4.0, 111.32 * abs(math.cos(math.radians(center_lat)))) + 1e-4,
+        )
+        query_bounds = box(
+            min_x - longitude_padding,
+            min_y - latitude_padding,
+            max_x + longitude_padding,
+            max_y + latitude_padding,
+        )
+        return {int(index) for index in self.tree.query(query_bounds)}
+
     def junction_coordinate(
         self, left_pair: tuple[str, str], right_pair: tuple[str, str],
         left_point: Sequence[float], right_point: Sequence[float], maximum_gap_km: float,
@@ -516,10 +651,7 @@ class BorderAligner:
         max_x = max(point[0] for point in source_points)
         min_y = min(point[1] for point in source_points)
         max_y = max(point[1] for point in source_points)
-        nearby: set[int] = set()
-        for cell_x in range(math.floor(min_x / 2), math.floor(max_x / 2) + 1):
-            for cell_y in range(math.floor(min_y / 2), math.floor(max_y / 2) + 1):
-                nearby.update(self.grid.get((cell_x, cell_y), ()))
+        nearby = self._nearby_line_indexes(min_x, min_y, max_x, max_y)
         if not nearby:
             return None
         source = LineString(source_points)
@@ -573,7 +705,132 @@ class BorderAligner:
             return None
         return candidates[0]
 
-    def align_chains(self, chains: Sequence[Sequence[RiverReach]]) -> dict[str, Any]:
+    def _partial_align_reach(self, reach: RiverReach) -> tuple[list[RiverReach], dict[str, Any]]:
+        """Split a reach at border entry/exit vertices and align qualifying sub-runs."""
+        if len(reach.parts) != 1 or len(reach.parts[0]) < 3 or reach.border_pair:
+            return [reach], {"reachCount": 0, "lengthKm": 0.0, "coordinates": 0, "pairs": {}}
+        points = reach.parts[0]
+        min_x = min(point[0] for point in points)
+        max_x = max(point[0] for point in points)
+        min_y = min(point[1] for point in points)
+        max_y = max(point[1] for point in points)
+        nearby = self._nearby_line_indexes(min_x, min_y, max_x, max_y)
+        if not nearby:
+            return [reach], {"reachCount": 0, "lengthKm": 0.0, "coordinates": 0, "pairs": {}}
+
+        source = LineString(points)
+        project = projector(source.centroid.y)
+        metric_source = transform(project, source)
+        if metric_source.length <= 1e-6:
+            return [reach], {"reachCount": 0, "lengthKm": 0.0, "coordinates": 0, "pairs": {}}
+        candidates: list[dict[str, Any]] = []
+        for line_index in nearby:
+            border = self.lines[line_index]
+            metric_border = transform(project, border)
+            if metric_source.distance(metric_border) > BORDER_MAX_DISTANCE_KM:
+                continue
+            near_geometry = metric_source.intersection(metric_border.buffer(BORDER_MAX_DISTANCE_KM, cap_style=2))
+            for near_line in iter_line_geometries(near_geometry):
+                if near_line.length < BORDER_MIN_LENGTH_KM:
+                    continue
+                source_start = metric_source.project(Point(near_line.coords[0]))
+                source_end = metric_source.project(Point(near_line.coords[-1]))
+                if source_end < source_start:
+                    source_start, source_end = source_end, source_start
+                if source_end - source_start < BORDER_MIN_LENGTH_KM:
+                    continue
+                source_part = metric_line_substring(source, metric_source, source_start, source_end)
+                if len(source_part) < 2:
+                    continue
+                metric_part = transform(project, LineString(source_part))
+                border_start = metric_border.project(Point(metric_part.coords[0]))
+                border_end = metric_border.project(Point(metric_part.coords[-1]))
+                border_span = abs(border_end - border_start)
+                if border_span < metric_part.length * 0.35 or border_span > metric_part.length * 3.0 + 5.0:
+                    continue
+                midpoint = (border_start + border_end) / 2
+                tangent_span = min(5.0, max(0.5, border_span / 2))
+                before = metric_border.interpolate(max(0.0, midpoint - tangent_span))
+                after = metric_border.interpolate(min(metric_border.length, midpoint + tangent_span))
+                border_direction = line_direction(LineString([before, after]))
+                river_direction = line_direction(metric_part)
+                dot = abs(border_direction[0] * river_direction[0] + border_direction[1] * river_direction[1])
+                angle = math.degrees(math.acos(max(-1.0, min(1.0, dot))))
+                if angle > BORDER_MAX_DIRECTION_DEGREES:
+                    continue
+                distances = self._sample_distances(metric_part, metric_border)
+                coverage = sum(distance <= BORDER_COVERAGE_DISTANCE_KM for distance in distances) / max(len(distances), 1)
+                if coverage < BORDER_MIN_COVERAGE or not distances or max(distances) > BORDER_MAX_DISTANCE_KM:
+                    continue
+                candidates.append({
+                    "lineIndex": line_index, "pair": self.pairs[line_index],
+                    "metricBorder": metric_border, "start": border_start, "end": border_end,
+                    "sourceStart": source_start, "sourceEnd": source_end,
+                    "length": metric_part.length,
+                    "score": sum(distances) / len(distances) + angle * 0.08,
+                })
+        if not candidates:
+            return [reach], {"reachCount": 0, "lengthKm": 0.0, "coordinates": 0, "pairs": {}}
+        accepted: list[dict[str, Any]] = []
+        for candidate in sorted(candidates, key=lambda row: (row["score"], -row["length"], row["pair"])):
+            if any(
+                min(candidate["sourceEnd"], row["sourceEnd"]) - max(candidate["sourceStart"], row["sourceStart"]) > 0.5
+                for row in accepted
+            ):
+                continue
+            accepted.append(candidate)
+        runs = sorted(accepted, key=lambda row: row["sourceStart"])
+
+        pieces: list[RiverReach] = []
+        source_cursor = 0.0
+        changed_coordinates = 0
+        aligned_length = 0.0
+        pair_lengths: dict[str, float] = defaultdict(float)
+        for candidate in runs:
+            source_start = float(candidate["sourceStart"])
+            source_end = float(candidate["sourceEnd"])
+            if source_start > source_cursor + 1e-6:
+                unaligned = metric_line_substring(source, metric_source, source_cursor, source_start)
+                pieces.append(replace(
+                    reach, parts=[unaligned], border_pair=None,
+                    render_snap=None, terminal_class="",
+                ))
+            border = self.lines[candidate["lineIndex"]]
+            aligned = metric_line_substring(
+                border, candidate["metricBorder"], candidate["start"], candidate["end"],
+            )
+            if len(aligned) >= 2:
+                source_slice = metric_line_substring(source, metric_source, source_start, source_end)
+                changed_coordinates += sum(
+                    1 for old, new in zip(source_slice, aligned) if quantize(old) != quantize(new)
+                ) + abs(len(source_slice) - len(aligned))
+                pieces.append(replace(
+                    reach, parts=[aligned], border_pair=candidate["pair"],
+                    render_snap=None, terminal_class="",
+                ))
+                aligned_length += float(candidate["length"])
+                pair_lengths["/".join(candidate["pair"])] += float(candidate["length"])
+            source_cursor = source_end
+        if source_cursor < metric_source.length - 1e-6:
+            unaligned = metric_line_substring(source, metric_source, source_cursor, metric_source.length)
+            pieces.append(replace(
+                reach, parts=[unaligned], border_pair=None,
+                render_snap=None, terminal_class="",
+            ))
+        pieces = [piece for piece in pieces if piece.parts and len(piece.parts[0]) >= 2]
+        if not pieces:
+            return [reach], {"reachCount": 0, "lengthKm": 0.0, "coordinates": 0, "pairs": {}}
+        pieces[-1].render_snap = reach.render_snap
+        pieces[-1].terminal_class = reach.terminal_class
+        pieces[-1].original_endpoint = reach.original_endpoint
+        return pieces, {
+            "reachCount": sum(1 for piece in pieces if piece.border_pair),
+            "lengthKm": aligned_length,
+            "coordinates": changed_coordinates,
+            "pairs": dict(pair_lengths),
+        }
+
+    def align_chains(self, chains: Sequence[list[RiverReach]]) -> dict[str, Any]:
         aligned_reaches = aligned_chains = changed_coordinates = 0
         aligned_length = 0.0
         pair_lengths: dict[str, float] = defaultdict(float)
@@ -611,6 +868,19 @@ class BorderAligner:
                         pair_lengths["/".join(row["pair"])] += row["length"]
                         chain_aligned = True
                 cursor = end
+            rebuilt: list[RiverReach] = []
+            for reach in chain:
+                pieces, partial = self._partial_align_reach(reach)
+                rebuilt.extend(pieces)
+                if partial["reachCount"]:
+                    chain_aligned = True
+                    aligned_reaches += int(partial["reachCount"])
+                    aligned_length += float(partial["lengthKm"])
+                    changed_coordinates += int(partial["coordinates"])
+                    for pair_key, length in partial["pairs"].items():
+                        pair_lengths[pair_key] += float(length)
+            if rebuilt:
+                chain[:] = rebuilt
             aligned_chains += int(chain_aligned)
         return {
             "borderAlignedReachCount": aligned_reaches,
@@ -948,7 +1218,7 @@ def choose_canonical_upstream(
 
 
 def logical_river_objects(reaches: Iterable[RiverReach], guides: ReferenceGuides) -> list[list[RiverReach]]:
-    """Make one logical object for each main stem; tributaries remain separate."""
+    """Build ordered main-stem and tributary chains before basin-level grouping."""
     selected = {reach.source_id: reach for reach in reaches}
     upstreams: dict[int, list[RiverReach]] = defaultdict(list)
     for reach in selected.values():
@@ -984,6 +1254,47 @@ def logical_river_objects(reaches: Iterable[RiverReach], guides: ReferenceGuides
     if visited != len(selected):
         raise RuntimeError("HydroRIVERS 전 세계 연결망에 순환이 있습니다.")
     return list(objects.values())
+
+
+def river_system_key(chain: Sequence[RiverReach]) -> int:
+    keys = [int(reach.main_river) for reach in chain if int(reach.main_river)]
+    if keys:
+        return max(set(keys), key=lambda key: (keys.count(key), key))
+    terminal = chain[-1] if chain else None
+    return int(terminal.source_id if terminal else 0)
+
+
+def river_systems(chains: Sequence[Sequence[RiverReach]]) -> list[dict[str, Any]]:
+    """Group every displayed main stem and tributary by Hydro MAIN_RIV."""
+    grouped: dict[int, list[int]] = defaultdict(list)
+    for index, chain in enumerate(chains):
+        grouped[river_system_key(chain)].append(index)
+    systems: list[dict[str, Any]] = []
+    for system_id, chain_indexes in sorted(grouped.items()):
+        mainstem_index = next((
+            index for index in chain_indexes
+            if any(reach.source_id == system_id for reach in chains[index])
+        ), None)
+        if mainstem_index is None:
+            mainstem_index = max(
+                chain_indexes,
+                key=lambda index: (
+                    chains[index][-1].upstream_area,
+                    chains[index][-1].flow,
+                    len(chains[index]),
+                ),
+            )
+        points = [point for index in chain_indexes for reach in chains[index] for part in reach.parts for point in part]
+        bounds = geometry_bounds({"type": "MultiLineString", "coordinates": [
+            part for index in chain_indexes for reach in chains[index] for part in reach.parts if len(part) >= 2
+        ]}) if points else (0.0, 0.0, 0.0, 0.0)
+        systems.append({
+            "systemId": system_id,
+            "chainIndexes": sorted(chain_indexes, key=lambda index: (index != mainstem_index, index)),
+            "mainstemIndex": mainstem_index,
+            "bounds": bounds,
+        })
+    return systems
 
 
 def stage_fragments(chain: Sequence[RiverReach]) -> list[list[RiverReach]]:
@@ -1284,6 +1595,12 @@ class PackBuilder:
             "stage": feature.stage, "flags": feature.flags,
             "fragmentIndex": feature.fragment_index,
             "fragmentCount": feature.fragment_count, "width": feature.width,
+            **({"systemId": feature.system_id} if feature.system_id else {}),
+            **({"mainstemNameKo": feature.mainstem_name_ko} if feature.mainstem_name_ko else {}),
+            **({"role": feature.role} if feature.role else {}),
+            **({"aliases": feature.aliases} if feature.aliases else {}),
+            **({"tributaryNames": feature.tributary_names} if feature.tributary_names else {}),
+            **({"osmRelationIds": feature.osm_relation_ids} if feature.osm_relation_ids else {}),
             **({"terminal": feature.terminal} if feature.terminal else {}),
         })
 
@@ -1356,26 +1673,27 @@ class PackBuilder:
         index_target.write_bytes(gzip.compress(bytes(raw_index), compresslevel=9, mtime=0))
         index_row = {"url": "index.bin.gz", "bytes": index_target.stat().st_size, "sha256": sha256(index_target), "tileCount": len(index_tiles), "logicalFeatureCount": len(logical_packs)}
         ordered_metadata = sorted(self.metadata, key=lambda item: item["fid"])
+        detail_keys = ("sourceId", "source", "aliases", "tributaryNames", "osmRelationIds")
         core_metadata = [
-            {key: value for key, value in item.items() if key not in {"sourceId", "source"}}
+            {key: value for key, value in item.items() if key not in set(detail_keys)}
             for item in ordered_metadata
         ]
         detail_metadata = [
-            {"fid": item["fid"], "sourceId": item["sourceId"], "source": item["source"]}
+            {"fid": item["fid"], **{key: item[key] for key in detail_keys if key in item}}
             for item in ordered_metadata
         ]
         metadata_core_target = self.output / "metadata-core.json.gz"
         metadata_core_target.write_bytes(gzip.compress(json.dumps({
-            "version": 4,
+            "version": 5,
             "features": core_metadata,
         }, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), compresslevel=9, mtime=0))
         metadata_detail_target = self.output / "metadata-detail.json.gz"
         metadata_detail_target.write_bytes(gzip.compress(json.dumps({
-            "version": 4,
+            "version": 5,
             "features": detail_metadata,
         }, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), compresslevel=9, mtime=0))
         metadata_row = {
-            "version": 4,
+            "version": 5,
             "featureCount": len(self.metadata),
             "core": {"url": "metadata-core.json.gz", "bytes": metadata_core_target.stat().st_size, "sha256": sha256(metadata_core_target)},
             "detail": {"url": "metadata-detail.json.gz", "bytes": metadata_detail_target.stat().st_size, "sha256": sha256(metadata_detail_target), "lazy": True},
@@ -1447,6 +1765,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--natural-earth-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--drainage-free-raster", type=Path, required=True)
+    parser.add_argument("--osm-waterways", type=Path, help="Overpass `out tags bb` waterway relation JSON")
+    parser.add_argument("--hydronym-overrides", type=Path, help="한국어 수계명 교정 JSON")
     return parser.parse_args()
 
 
@@ -1455,6 +1775,11 @@ def main() -> None:
     roots = [path.resolve() for path in args.hydrorivers_root]
     hydro_root = args.natural_earth_root.resolve()
     output = args.output.resolve()
+    overrides_path = args.hydronym_overrides.resolve() if args.hydronym_overrides else hydro_root / "hydronym-ko-overrides.json"
+    hydronym_overrides = load_hydronym_overrides(overrides_path)
+    reviewed_hydronyms = set(hydronym_overrides.values())
+    osm_path = args.osm_waterways.resolve() if args.osm_waterways else None
+    osm_index = OsmWaterwayIndex(osm_path, hydronym_overrides)
     rivers_base, lakes_base = load_ne_base(hydro_root)
     guides = ReferenceGuides(rivers_base)
     countries_path = hydro_root.parent / "countries-ne-5.1.1.geojson"
@@ -1465,6 +1790,8 @@ def main() -> None:
     logical_fid = 0
     source_rows: list[dict[str, Any]] = []
     river_names_enriched = 0
+    osm_name_matches = 0
+    unnamed_system_count = 0
     for code in RIVER_CODES:
         path = find_unique(roots, f"HydroRIVERS_v10_{code}.shp")
         print(f"[{code}] 강과 본류 연결망을 읽는 중입니다.", flush=True)
@@ -1480,16 +1807,66 @@ def main() -> None:
             chain_ids = {reach.source_id for reach in chain}
             if terminal_reach.next_down and terminal_reach.next_down not in chain_ids:
                 terminal_reach.terminal_class = "confluence"
-        river_names_enriched += len(matched_names)
+        systems = river_systems(chains)
         print(
             f"[{code}] seed {reach_stats['seedReachCount']:,} + 본류 {reach_stats['continuityReachCount']:,} "
-            f"→ {len(chains):,} chain · 국경 정렬 {border_stats['borderAlignedLengthKm']:,.1f}km",
+            f"→ {len(systems):,}개 수계/{len(chains):,}개 chain · 국경 정렬 {border_stats['borderAlignedLengthKm']:,.1f}km",
             flush=True,
         )
-        for chain_index, chain in enumerate(chains):
-            fragments = stage_fragments(chain)
-            aw_id = f"hydro-river:{chain[0].source_id}"
-            for fragment_index, fragment in enumerate(fragments):
+        region_osm_matches = 0
+        region_named_systems = 0
+        for system in systems:
+            system_id = int(system["systemId"])
+            mainstem_index = int(system["mainstemIndex"])
+            chain_osm_matches = {
+                index: osm_index.match(geometry_bounds(chain_geometry(chains[index])))
+                for index in system["chainIndexes"]
+            }
+            osm_match = chain_osm_matches.get(mainstem_index)
+            osm_name = str((osm_match or {}).get("nameKo") or "")
+            ne_mainstem_name = normalize_hydronym(matched_names.get(mainstem_index, ""), "river", hydronym_overrides)
+            ne_other_names = sorted({
+                normalize_hydronym(matched_names.get(index, ""), "river", hydronym_overrides)
+                for index in system["chainIndexes"] if matched_names.get(index)
+            } - {""})
+            osm_names = sorted({
+                normalize_hydronym(name, "river", hydronym_overrides)
+                for match in chain_osm_matches.values() if match
+                for name in match.get("names", [])
+            } - {""})
+            reviewed_name = next((
+                name for name in [ne_mainstem_name, *ne_other_names, normalize_hydronym(osm_name, "river", hydronym_overrides), *osm_names]
+                if name in reviewed_hydronyms
+            ), "")
+            display_name = normalize_hydronym(
+                reviewed_name or osm_name or ne_mainstem_name or (ne_other_names[0] if ne_other_names else ""),
+                "river", hydronym_overrides,
+            )
+            if display_name:
+                region_named_systems += 1
+            else:
+                display_name = f"미명명 수계 {system_id}"
+                unnamed_system_count += 1
+            matched_osm_relations = sorted({
+                int(match["id"]) for match in chain_osm_matches.values() if match
+            })
+            if matched_osm_relations:
+                region_osm_matches += 1
+                osm_name_matches += 1
+            aliases = sorted(set(ne_other_names + osm_names) - {"", display_name})
+            tributary_names = sorted(({
+                normalize_hydronym(matched_names.get(index, ""), "river", hydronym_overrides)
+                for index in system["chainIndexes"] if index != mainstem_index and matched_names.get(index)
+            } | {
+                normalize_hydronym(str((chain_osm_matches.get(index) or {}).get("nameKo") or ""), "river", hydronym_overrides)
+                for index in system["chainIndexes"] if index != mainstem_index
+            }) - {"", display_name})
+            fragment_rows: list[tuple[int, list[RiverReach]]] = []
+            for chain_index in system["chainIndexes"]:
+                fragment_rows.extend((chain_index, fragment) for fragment in stage_fragments(chains[chain_index]))
+            aw_id = f"hydro-system:{system_id}"
+            fragment_count = len(fragment_rows)
+            for fragment_index, (chain_index, fragment) in enumerate(fragment_rows):
                 connection_changed_count += normalize_chain_connections(
                     fragment, border_aligner=border_aligner,
                 )
@@ -1505,19 +1882,25 @@ def main() -> None:
                     layer_id="rivers_hydro",
                     category="river",
                     stage=start.stage,
-                    name=matched_names.get(chain_index, ""),
+                    name=display_name,
                     source_id=",".join(str(reach.source_id) for reach in fragment),
                     source=(
                         f"HydroRIVERS 1.0 · Natural Earth border {'/'.join(border_pair)}"
-                        if border_pair else "HydroRIVERS 1.0"
+                        if border_pair else "HydroRIVERS 1.0 · OSM waterway names" if matched_osm_relations else "HydroRIVERS 1.0"
                     ),
                     width=max((max(widths) for widths in width_profile), default=start.width),
                     geometry=geometry,
                     bounds=geometry_bounds(geometry),
                     width_profile=width_profile,
                     fragment_index=fragment_index,
-                    fragment_count=len(fragments),
+                    fragment_count=fragment_count,
                     flags=BORDER_FLAG if border_pair else 0,
+                    system_id=str(system_id),
+                    mainstem_name_ko=display_name,
+                    role="mainstem" if chain_index == mainstem_index else "tributary",
+                    aliases=aliases if fragment_index == 0 else None,
+                    tributary_names=tributary_names if fragment_index == 0 else None,
+                    osm_relation_ids=matched_osm_relations if matched_osm_relations and fragment_index == 0 else None,
                     terminal=(
                         {
                             "class": terminal_reach.terminal_class,
@@ -1528,6 +1911,7 @@ def main() -> None:
                     ),
                 )); fid += 1
             logical_fid += 1
+        river_names_enriched += region_named_systems
         source_rows.append({
             "datasetCode": code,
             "files": shapefile_source_files(path),
@@ -1535,9 +1919,11 @@ def main() -> None:
             **border_stats,
             "connectionChangedCount": connection_changed_count,
             "chainCount": len(chains),
-            "nameMatches": len(matched_names),
+            "systemCount": len(systems),
+            "nameMatches": region_named_systems,
+            "osmMatches": region_osm_matches,
         })
-        del reaches, chains
+        del reaches, chains, systems
 
     selected_lakes = 0
     print("[lakes] Natural Earth 1:10m 전 세계 기본 호수를 읽는 중입니다.", flush=True)
@@ -1547,7 +1933,10 @@ def main() -> None:
         if not geometry_dict:
             continue
         stage = min_zoom_stage(float(properties.get("min_zoom") or 7.5))
-        name = str(properties.get("name_ko") or properties.get("name_en") or properties.get("name") or "").strip()
+        name = normalize_hydronym(
+            str(properties.get("name_ko") or properties.get("name_en") or properties.get("name") or ""),
+            "lake", hydronym_overrides,
+        )
         source_id = str(properties.get("source_id") or raw_feature.get("id") or index)
         aw_id = str(properties.get("aw_id") or raw_feature.get("id") or f"lakes_base:{source_id}")
         builder.add(BuiltFeature(
@@ -1586,10 +1975,14 @@ def main() -> None:
     stats["borderAlignedLengthKm"] = round(sum(row["borderAlignedLengthKm"] for row in source_rows), 1)
     stats["borderChangedCoordinateCount"] = sum(row["borderChangedCoordinateCount"] for row in source_rows)
     stats["connectionChangedCount"] = sum(row["connectionChangedCount"] for row in source_rows)
+    stats["riverSystemCount"] = sum(row.get("systemCount", 0) for row in source_rows)
+    stats["namedRiverSystemCount"] = river_names_enriched
+    stats["unnamedRiverSystemCount"] = unnamed_system_count
+    stats["osmWaterwayMatchCount"] = osm_name_matches
     manifest = {
         "version": VERSION,
-        "schema": "atlaswright-water-shards-v4",
-        "dataset": "HydroRIVERS 1.0 · Natural Earth 5.0.0 1:10m lakes · Natural Earth 5.1.1 border alignment",
+        "schema": "atlaswright-water-shards-v5",
+        "dataset": "HydroRIVERS 1.0 systems · OSM waterway names · Natural Earth 5.0.0 1:10m lakes · Natural Earth 5.1.1 border alignment",
         "crs": "EPSG:4326",
         "coordinatePolicy": (
             "Hydro source vertices retained outside border-aligned display fragments; "
@@ -1606,9 +1999,10 @@ def main() -> None:
                 f"all terminal basins >= {MEDIUM_MAINSTEM_MIN_BASIN_KM2:g} km2 preserve one main stem; "
                 "all selected paths closed downstream to Hydro terminal; added reaches at stage 3"
             ),
+            "logicalGrouping": "all displayed MAIN_RIV main-stem and tributary chains share one system ID",
             "mediumMainstemMinBasinKm2": MEDIUM_MAINSTEM_MIN_BASIN_KM2,
             "borderAlignment": {
-                "revision": 1,
+                "revision": 2,
                 "maxDistanceKm": BORDER_MAX_DISTANCE_KM,
                 "coverageDistanceKm": BORDER_COVERAGE_DISTANCE_KM,
                 "minCoverage": BORDER_MIN_COVERAGE,
@@ -1631,12 +2025,12 @@ def main() -> None:
             {"id": index, "minZoom": STAGE_MIN_ZOOM[index], "columns": grid[0], "rows": grid[1]}
             for index, grid in enumerate(STAGE_GRIDS)
         ],
-        "format": {"pack": 4, "index": 4, "metadata": 4, "fragmentLogicalIds": True, "featureFlags": {"borderAligned": BORDER_FLAG}},
+        "format": {"pack": 4, "index": 4, "metadata": 5, "fragmentLogicalIds": True, "riverSystemIds": True, "featureFlags": {"borderAligned": BORDER_FLAG}},
         "index": layout["index"],
         "metadata": layout["metadata"],
         "shards": layout["shards"],
         "cache": {
-            "name": f"atlaswright-water-v0.12.6-{layout['index']['sha256'][:12]}",
+            "name": f"atlaswright-water-v0.13.0-{layout['index']['sha256'][:12]}",
             "backgroundDownload": True,
             "rangeRequests": True,
         },
@@ -1654,7 +2048,16 @@ def main() -> None:
             "drainageFreeWaterMask": {"file": args.drainage_free_raster.name, "sha256": sha256(args.drainage_free_raster)},
             "hydroRivers": source_rows,
             "naturalEarthLakes": {"file": "lakes_base.geojson", "sha256": sha256(hydro_root / "lakes_base.geojson"), "selected": selected_lakes},
-            "nameEnrichment": {"rivers": river_names_enriched},
+            "osmWaterways": (
+                {"file": osm_path.name, "sha256": sha256(osm_path), "matchedSystems": osm_name_matches, "license": "ODbL"}
+                if osm_path and osm_path.exists() else {"file": None, "matchedSystems": 0, "license": "ODbL"}
+            ),
+            "hydronymOverrides": {"file": overrides_path.name, "sha256": sha256(overrides_path)},
+            "nameEnrichment": {
+                "namedRiverSystems": river_names_enriched,
+                "unnamedRiverSystems": unnamed_system_count,
+                "osmMatches": osm_name_matches,
+            },
         },
     }
     manifest_path = output / "manifest.json"

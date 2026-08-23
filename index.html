@@ -7,7 +7,7 @@
   <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
-    <link rel="stylesheet" href="assets/css/app.css?v=0.12.6" />
+    <link rel="stylesheet" href="assets/css/app.css?v=0.13.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -35,13 +35,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.12.6" data-layout="wide">
+  <div id="app" data-app-version="0.13.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.12.6 · Natural Earth 1:10m · 극지·수계·편입 안정화</span>
+          <span>v0.13.0 · Natural Earth 1:10m · 수계·UI 정합 개선</span>
         </div>
       </div>
 
@@ -324,6 +324,8 @@
               <div><span>이름</span><strong id="hydroNameValue">—</strong></div>
               <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
               <div><span>레이어</span><strong id="hydroLayerValue">—</strong></div>
+              <div><span>대표 수계</span><strong id="hydroSystemValue">—</strong></div>
+              <div><span>포함 지류</span><strong id="hydroTributaryValue">—</strong></div>
               <div><span>출처</span><strong id="hydroSourceValue">Natural Earth 5.0.0 1:10m</strong></div>
             </div>
             <p class="editor-help">내장 수계는 원본 보호를 위해 잠겨 있습니다. 수정하려면 편집용 복사본을 만드세요.</p>
@@ -390,7 +392,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.12.6" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.12.6" defer></script>
+  <script src="assets/js/gis-io.js?v=0.13.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.13.0" defer></script>
 </body>
 </html>
