@@ -9,7 +9,10 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 
 class V0151ControlStyleTests(unittest.TestCase):
     def test_projection_buttons_are_compact_but_mobile_labels_remain(self):
-        self.assertIn("width: var(--ui-control-height);", CSS)
+        self.assertIn("width: calc(var(--ui-control-height) * 2);", CSS)
+        self.assertIn("height: var(--ui-control-height);", CSS)
+        self.assertIn(".projection-btn + .projection-btn { border-left: 1px solid var(--border); }", CSS)
+        self.assertIn("padding: 3px;", CSS)
         self.assertIn(".projection-btn > span { display: none; }", CSS)
         self.assertIn('#app[data-layout="mobile"] .projection-btn > span { display: inline; }', CSS)
         self.assertIn('aria-label="지구본 투영"', INDEX)
@@ -27,6 +30,15 @@ class V0151ControlStyleTests(unittest.TestCase):
         self.assertIn('#app[data-layout="mobile"] .mobile-sheet-header button {', CSS)
         self.assertIn("border: 1px solid var(--border);", CSS)
         self.assertIn("background: var(--panel-2);", CSS)
+
+    def test_mobile_sheet_close_buttons_use_shared_icons(self):
+        self.assertEqual(INDEX.count('class="icon-btn sheet-close-btn"'), 2)
+        self.assertIn('id="mobileCloseLeftBtn" class="icon-btn sheet-close-btn"', INDEX)
+        self.assertIn('id="mobileCloseRightBtn" class="icon-btn sheet-close-btn"', INDEX)
+        self.assertNotIn('aria-label="지도·레이어 창 닫기">닫기</button>', INDEX)
+        self.assertNotIn('aria-label="편집창 닫기">닫기</button>', INDEX)
+        self.assertIn('.mobile-sheet-header .sheet-close-btn {', CSS)
+        self.assertIn('width: var(--ui-touch-height);', CSS)
 
 
 if __name__ == "__main__":
