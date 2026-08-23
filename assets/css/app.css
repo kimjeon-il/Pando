@@ -105,9 +105,18 @@
   --ui-space-5: 24px;
   --ui-radius-control: 8px;
   --ui-radius-panel: 12px;
-  --ui-font-caption: 13px;
-  --ui-font-body: 15px;
-  --ui-font-title: 18px;
+  --ui-font-xs: 12px;
+  --ui-font-sm: 13px;
+  --ui-font-md: 15px;
+  --ui-font-lg: 16px;
+  --ui-font-xl: 18px;
+  --ui-font-caption: var(--ui-font-sm);
+  --ui-font-body: var(--ui-font-md);
+  --ui-font-title: var(--ui-font-xl);
+  --ui-line-tight: 1.3;
+  --ui-line-normal: 1.5;
+  --ui-weight-medium: 600;
+  --ui-weight-strong: 750;
   --ui-control-height: 42px;
   --ui-touch-height: 46px;
   --ui-topbar-height: 60px;
@@ -1191,3 +1200,139 @@ body[data-layout="mobile"] .gis-modal-header .icon-btn { width: var(--ui-touch-h
 body[data-layout="mobile"] .gis-form-grid { grid-template-columns: 1fr; }
 body[data-layout="mobile"] .gis-wide { grid-column: 1; }
 body[data-layout="mobile"] .gis-modal-actions .btn { min-height: 50px; font-size: var(--ui-font-body); }
+
+/* ===== AtlasWright v0.14.0: unified typography, controls, and stable scroll layout ===== */
+body {
+  font-size: var(--ui-font-md);
+  line-height: var(--ui-line-normal);
+  text-rendering: optimizeLegibility;
+}
+button, input, textarea, select { line-height: var(--ui-line-tight); }
+.brand strong, .section-heading h2, .property-header h2, .editor-card-title,
+.mobile-sheet-header strong { font-size: var(--ui-font-lg); font-weight: var(--ui-weight-strong); line-height: var(--ui-line-tight); }
+.editor-header h2, .confirm-modal-card h2, .gis-modal-header h2 { font-size: var(--ui-font-xl); line-height: var(--ui-line-tight); }
+.small, .eyebrow, .hint, .status-row, .renderer-info, .layer-child-meta, .layer-child-count,
+.layer-empty, .layer-badge, .current-tool-label, .map-context-instruction, .map-bottom-status,
+.editor-help, .editor-details > summary small, .meta-card div, .meta-card strong,
+.advanced-boundary-copy span, .gis-source-report, .gis-form-grid small, .gis-security-note,
+.gis-import-status, .autosave-note, .type-chip { font-size: var(--ui-font-sm); line-height: var(--ui-line-normal); }
+.btn, .icon-btn, .text-btn, .danger-btn, .segment, .tool-card, .create-menu-btn,
+.create-menu-item, .country-action-btn, .advanced-boundary-btn, .mode-action-bar button,
+.mobile-sheet-header button { font-size: var(--ui-font-md); font-weight: var(--ui-weight-medium); }
+
+:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .right-panel) {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .right-panel)::-webkit-scrollbar { width: 10px; height: 10px; }
+:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .right-panel)::-webkit-scrollbar-thumb {
+  border: 3px solid transparent; border-radius: 999px; background: var(--border-strong); background-clip: padding-box;
+}
+
+.panel-section, .editor-header, .editor-form { min-width: 0; }
+.panel-section { padding: var(--ui-space-4); }
+.layer-search, .segmented, .editor-card, .editor-details, .advanced-boundary-box,
+.meta-card, .flag-preview, .create-menu, .top-actions, .confirm-modal-card, .gis-modal-card {
+  border-radius: var(--ui-radius-panel);
+}
+.layer-folder, .create-menu-item, .country-action-btn, .terrain-mode-option {
+  border-radius: var(--ui-radius-control);
+}
+.editor-card, .editor-details, .advanced-boundary-box, .meta-card {
+  border-color: var(--editor-card-border);
+  background: var(--surface-card);
+}
+.field-group input[type="text"], .field-group textarea, .field-group select,
+.layer-search, .gis-check {
+  min-height: var(--ui-control-height);
+  border-color: var(--editor-field-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-input);
+}
+.btn, .icon-btn, .danger-btn, .tool-card, .segment, .create-menu-btn, .create-menu-item,
+.country-action-btn, .advanced-boundary-btn, .mode-action-bar button, .mobile-sheet-header button {
+  min-height: var(--ui-control-height);
+  border-radius: var(--ui-radius-control);
+  transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease;
+}
+.btn.ghost, .icon-btn, .mode-cancel-btn, .advanced-boundary-btn {
+  border-color: var(--border);
+  background: var(--panel-2);
+  color: var(--text-soft);
+}
+.btn.ghost:hover, .icon-btn:hover, .mode-cancel-btn:hover, .advanced-boundary-btn:hover {
+  border-color: var(--surface-hover-border);
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.mode-primary-btn {
+  border-color: var(--accent-border) !important;
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+.mode-action-bar {
+  width: min(720px, calc(100% - 24px));
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2);
+}
+.mode-action-bar:not(.has-method-switch) { width: auto; }
+.mode-method-switch {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto repeat(2,minmax(0,1fr));
+  align-items: center;
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--ui-radius-control) + 2px);
+  background: var(--surface-subtle);
+}
+.mode-method-switch.hidden { display: none !important; }
+.mode-method-label { padding: 0 var(--ui-space-2); color: var(--muted); font-size: var(--ui-font-sm); font-weight: var(--ui-weight-medium); white-space: nowrap; }
+.mode-method-btn {
+  min-width: 0;
+  padding: 0 var(--ui-space-3) !important;
+  border-color: transparent !important;
+  background: transparent;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mode-method-btn:hover { background: var(--surface-hover); color: var(--text); }
+.mode-method-btn.active {
+  background: var(--accent-surface);
+  color: var(--accent-text);
+  box-shadow: none;
+}
+.mode-selection-summary {
+  min-width: 0;
+  padding-left: var(--ui-space-2);
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mode-selection-summary.hidden { display: none !important; }
+.mode-action-buttons { display: flex; justify-content: flex-end; gap: var(--ui-space-2); }
+.mode-action-bar:not(.has-method-switch) .mode-action-buttons { grid-column: 1 / -1; justify-content: center; }
+
+@media (max-width: 799px) {
+  #app[data-layout="mobile"] .mode-action-bar {
+    width: auto;
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: var(--ui-space-1);
+  }
+  #app[data-layout="mobile"] .mode-method-switch { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #app[data-layout="mobile"] .mode-method-label { display: none; }
+  #app[data-layout="mobile"] .mode-method-btn { padding: 0 5px !important; font-size: var(--ui-font-sm); }
+  #app[data-layout="mobile"] .mode-selection-summary { padding: 0 var(--ui-space-1); text-align: center; }
+  #app[data-layout="mobile"] .mode-action-buttons { width: 100%; }
+  #app[data-layout="mobile"] .mode-action-buttons button { flex: 1; }
+}
