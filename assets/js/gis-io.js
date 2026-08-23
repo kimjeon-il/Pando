@@ -12,7 +12,7 @@
   const gdalScriptUrl = new URL('vendor/gdal/gdal3.js', baseUrl).href;
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.14.4');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.15.0');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
@@ -539,12 +539,12 @@
 
   async function convertSelectedLayer(descriptor, mapping, progress) {
     if (!activeSession) throw new Error('GIS 가져오기 세션이 종료되었습니다.');
-    if (/curvepolygon|circularstring|compoundcurve/i.test(descriptor.geometryType)) throw new Error('곡선 표면은 자동 변형하지 않습니다. QGIS에서 Polygon/MultiPolygon으로 변환해 주세요.');
+    if (/curvepolygon|circularstring|compoundcurve/i.test(descriptor.geometryType)) throw new Error('곡선 표면은 자동 변형하지 않습니다. QGIS에서 Polygon/MultiPolygon으로 변환하세요.');
     const { gdal, datasets, prepared } = activeSession;
     const dataset = datasets[descriptor.datasetIndex];
     const options = ['-f', 'GeoJSON', '-t_srs', 'EPSG:4326', '-dim', 'XY', '-nlt', 'PROMOTE_TO_MULTI', '-fieldTypeToString', 'Integer64,Integer64List', '-lco', 'RFC7946=YES'];
     if (!descriptor.crs.hasCrs) {
-      if (!/^EPSG:\d+$/i.test(mapping.sourceCrs || '')) throw new Error('좌표계가 없는 레이어에는 EPSG 코드를 입력해 주세요.');
+      if (!/^EPSG:\d+$/i.test(mapping.sourceCrs || '')) throw new Error('좌표계가 없는 레이어에는 EPSG 코드를 입력하세요.');
       options.push('-s_srs', mapping.sourceCrs.toUpperCase());
     }
     options.push(descriptor.layerName);
