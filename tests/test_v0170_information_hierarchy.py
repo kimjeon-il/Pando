@@ -38,8 +38,8 @@ class InformationHierarchyV0170Tests(unittest.TestCase):
         self.assertNotIn("변경사항 자동 저장", INDEX)
         self.assertNotIn("countryActionHint", INDEX + APP)
         self.assertIn("지도에서 편집할 대상을 선택하세요.", INDEX)
-        self.assertIn('class="ui-disclosure editor-details hydro-data-details"', INDEX)
-        self.assertLess(INDEX.index('id="copyHydroBtn"'), INDEX.index('class="ui-disclosure editor-details hydro-data-details"'))
+        self.assertIn('class="ui-disclosure editor-disclosure hydro-data-details"', INDEX)
+        self.assertLess(INDEX.index('id="copyHydroBtn"'), INDEX.index('class="ui-disclosure editor-disclosure hydro-data-details"'))
         self.assertNotIn('propertyType', INDEX + APP)
 
 
