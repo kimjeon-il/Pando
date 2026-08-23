@@ -31,6 +31,13 @@ class V0151ControlStyleTests(unittest.TestCase):
         self.assertIn("border: 1px solid var(--border);", CSS)
         self.assertIn("background: var(--panel-2);", CSS)
 
+    def test_mobile_zoom_dock_uses_shared_shell_without_duplicate_scale(self):
+        self.assertNotIn('id="mobileZoomValue"', INDEX)
+        self.assertNotIn("mobileZoomValue", (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8"))
+        self.assertIn("grid-template-rows: repeat(3, var(--ui-touch-height));", CSS)
+        self.assertIn("padding: 3px;", CSS)
+        self.assertIn("background: var(--toolbar-bg);", CSS)
+
     def test_mobile_sheet_close_buttons_use_shared_icons(self):
         self.assertEqual(INDEX.count('class="icon-btn sheet-close-btn"'), 2)
         self.assertIn('id="mobileCloseLeftBtn" class="icon-btn sheet-close-btn"', INDEX)
