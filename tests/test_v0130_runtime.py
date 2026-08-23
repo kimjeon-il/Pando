@@ -30,9 +30,9 @@ class V0130RuntimeTests(unittest.TestCase):
         cls.core = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["core"]["url"]).read_bytes()))["features"]
         cls.detail = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()))["features"]
 
-    def test_v0132_shell_and_v0130_assets_are_compatible(self):
-        self.assertIn('data-app-version="0.13.2"', INDEX)
-        self.assertIn("v0.13.2", APP[:200])
+    def test_v0133_shell_and_v0130_assets_are_compatible(self):
+        self.assertIn('data-app-version="0.13.3"', INDEX)
+        self.assertIn("v0.13.3", APP[:200])
         self.assertIn("HYDRO_DATA_VERSION = '0.13.0'", APP)
         self.assertEqual(self.manifest["version"], "0.13.0")
         self.assertEqual(self.manifest["schema"], "atlaswright-water-shards-v5")
@@ -57,7 +57,7 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertEqual(TERRAIN_MANIFEST["displayColors"]["oceanRepresentative"].lower(), "#6aa8d2")
 
     def test_ui_type_camera_and_country_selection_fill(self):
-        for token in ("--ui-font-caption: 12px", "--ui-font-body: 14px", "--ui-font-title: 17px"):
+        for token in ("--ui-font-caption: 13px", "--ui-font-body: 15px", "--ui-font-title: 18px"):
             self.assertIn(token, CSS)
         self.assertIn(".country-highlight-fill.selected", CSS)
         self.assertIn("path.country-highlight-fill", APP)
@@ -66,6 +66,16 @@ class V0130RuntimeTests(unittest.TestCase):
         annex_donor = source_section(APP, "function selectAnnexDonor", "function enterCountryCoastEdit")
         self.assertNotIn("focusCountry(", annex_entry)
         self.assertNotIn("focusCountry(", annex_donor)
+
+    def test_pointer_focus_layer_folders_and_water_labels_are_simplified(self):
+        self.assertIn("html.keyboard-navigation", CSS)
+        self.assertIn("document.addEventListener('pointerdown', disableKeyboardNavigation", APP)
+        self.assertIn(".layer-folder { border: 0;", CSS)
+        self.assertIn("border-top: 0", CSS)
+        self.assertNotIn("label: '강 · Hydro'", APP)
+        self.assertNotIn("label: '호수 · Natural Earth'", APP)
+        self.assertIn("label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS'", APP)
+        self.assertIn("label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth'", APP)
 
     def test_hydro_fragments_share_system_identity_and_roles(self):
         rivers = [row for row in self.core if row["category"] == "river"]
