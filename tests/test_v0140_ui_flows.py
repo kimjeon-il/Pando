@@ -32,15 +32,18 @@ class V0140UiFlowTests(unittest.TestCase):
             self.assertIn(token, CSS)
 
     def test_territory_method_switch_is_explicit(self):
-        for element_id in ("modeMethodSwitch", "modeLineMethodBtn", "modeComponentsMethodBtn", "modeSelectionSummary"):
+        for element_id in ("modeMethodSwitch", "modeLineMethodBtn", "modeComponentsMethodBtn"):
             self.assertIn(f'id="{element_id}"', INDEX)
+        self.assertNotIn('id="modeSelectionSummary"', INDEX)
         self.assertNotIn('id="modeSecondaryBtn"', INDEX)
         self.assertIn("switchTerritorySelectionMethod('line')", APP)
         self.assertIn("switchTerritorySelectionMethod('components')", APP)
-        self.assertIn('aria-label="국경선으로 나누기"', INDEX)
-        self.assertIn('aria-label="영토 조각 선택"', INDEX)
-        self.assertIn(">선으로 나누기</button>", INDEX)
-        self.assertIn(">조각 선택</button>", INDEX)
+        self.assertIn('aria-label="경계를 그려 영토 일부 선택"', INDEX)
+        self.assertIn('aria-label="기존 영토 조각 선택"', INDEX)
+        self.assertIn(">경계 그리기</button>", INDEX)
+        self.assertIn(">영토 선택</button>", INDEX)
+        self.assertNotIn("개 점 연결", APP)
+        self.assertIn("width: 248px", CSS)
         self.assertIn("top: 84px", CSS)
         self.assertIn("mode-command-visible", APP)
 
@@ -49,7 +52,24 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertNotIn("prompt(", merge)
         self.assertNotIn("confirm(", merge)
         self.assertNotIn("합병 후 국명을 입력하세요", APP)
-        self.assertIn("const mergedName = sourceName", merge)
+        self.assertIn("state.mergeTargetCountryIds", merge)
+        self.assertIn("commitHistorySnapshot(snapshot)", merge)
+
+    def test_annex_and_merge_support_multiple_targets(self):
+        self.assertIn("annexDonorCountryIds: []", APP)
+        self.assertIn("mergeTargetCountryIds: []", APP)
+        self.assertIn("function toggleAnnexDonor", APP)
+        self.assertIn("function beginAnnexSelection", APP)
+        self.assertIn("function toggleMergeTarget", APP)
+        self.assertIn("buildAnnexationPlan(targetId, donorIds", APP)
+        self.assertIn("clipper.union(...donors.map", APP)
+        self.assertIn("if (clickedCountry) toggleMergeTarget", APP)
+        self.assertIn("else if (state.tool === 'merge-country') completeCountryMerge()", APP)
+
+    def test_layer_row_buttons_skip_transient_flash(self):
+        flash = source_section(APP, "function flashButton", "function showFatalError")
+        for selector in (".layer-folder-toggle", ".layer-folder-name", ".layer-child-name"):
+            self.assertIn(selector, flash)
 
     def test_projection_controls_move_between_toolbar_and_mobile_sheet(self):
         self.assertNotIn('class="panel-section compact-view-section"', INDEX)

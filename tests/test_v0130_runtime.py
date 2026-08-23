@@ -31,8 +31,8 @@ class V0130RuntimeTests(unittest.TestCase):
         cls.detail = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()))["features"]
 
     def test_v0140_shell_and_v0130_assets_are_compatible(self):
-        self.assertIn('data-app-version="0.14.2"', INDEX)
-        self.assertIn("v0.14.2", APP[:200])
+        self.assertIn('data-app-version="0.14.3"', INDEX)
+        self.assertIn("v0.14.3", APP[:200])
         self.assertIn("HYDRO_DATA_VERSION = '0.13.0'", APP)
         self.assertEqual(self.manifest["version"], "0.13.0")
         self.assertEqual(self.manifest["schema"], "atlaswright-water-shards-v5")
@@ -66,8 +66,8 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertIn(".country-highlight-fill.selected", CSS)
         self.assertIn("path.country-highlight-fill", APP)
         self.assertIn("feature => path(feature)", APP)
-        annex_entry = source_section(APP, "function enterAnnexTerritoryMode", "function selectAnnexDonor")
-        annex_donor = source_section(APP, "function selectAnnexDonor", "function enterCountryCoastEdit")
+        annex_entry = source_section(APP, "function enterAnnexTerritoryMode", "function toggleAnnexDonor")
+        annex_donor = source_section(APP, "function toggleAnnexDonor", "function enterCountryCoastEdit")
         self.assertNotIn("focusCountry(", annex_entry)
         self.assertNotIn("focusCountry(", annex_donor)
 
