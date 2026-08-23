@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.17.0" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.18.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -30,6 +30,7 @@
     <symbol id="icon-river" viewBox="0 0 24 24"><path d="M4 4c6 2 2 6 8 8s2 6 8 8"/></symbol>
     <symbol id="icon-lake" viewBox="0 0 24 24"><path d="M5 8c2-3 5-4 8-2 3-1 6 1 6 4 2 3-1 7-4 7-2 2-6 1-7-1-4 0-5-5-3-8Z"/></symbol>
     <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path d="m7 9 5 5 5-5"/></symbol>
+    <symbol id="icon-atlas" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m12 6 2.2 5.8L18 14l-5.8 2.2L10 20l-2.2-5.8L4 12l5.8-2.2L12 6Z"/></symbol>
   </svg>
   <div id="bootstrapLoading" class="bootstrap-loading" role="status" aria-live="polite">
     <div class="bootstrap-loading-card">
@@ -38,10 +39,10 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.17.0" data-layout="wide">
+  <div id="app" data-app-version="0.18.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark">◎</div>
+        <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
         <div><strong>AtlasWright</strong></div>
       </div>
 
@@ -81,7 +82,7 @@
           <div class="layer-list">
             <div class="layer-folder" data-layer-group="countries">
               <div class="layer-folder-row">
-                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="countries" aria-expanded="false" aria-label="국가 폴더 펼치기">›</button>
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="countries" aria-expanded="false" aria-label="국가 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" />
                 <span class="layer-icon polygon"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="countries">국가</button>
@@ -91,7 +92,7 @@
             </div>
             <div class="layer-folder" data-layer-group="terrain">
               <div class="layer-folder-row">
-                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="terrain" aria-expanded="false" aria-label="지형 음영 폴더 펼치기">›</button>
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="terrain" aria-expanded="false" aria-label="지형 음영 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <input id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시" />
                 <span class="layer-icon terrain"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="terrain">지형 음영</button>
@@ -109,7 +110,7 @@
             </div>
             <div class="layer-folder" data-layer-group="drawings">
               <div class="layer-folder-row">
-                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="drawings" aria-expanded="false" aria-label="지형지물 폴더 펼치기">›</button>
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="drawings" aria-expanded="false" aria-label="지형지물 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <input id="drawingsVisible" type="checkbox" checked aria-label="지형지물 레이어 표시" />
                 <span class="layer-icon polygon custom"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="drawings">지형지물</button>
@@ -118,7 +119,7 @@
             </div>
             <div class="layer-folder" data-layer-group="labels">
               <div class="layer-folder-row">
-                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="labels" aria-expanded="false" aria-label="도시·지명 폴더 펼치기">›</button>
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="labels" aria-expanded="false" aria-label="도시·지명 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <input id="labelsVisible" type="checkbox" checked aria-label="도시·지명 레이어 표시" />
                 <span class="layer-icon point"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="labels">도시·지명</button>
@@ -127,7 +128,7 @@
             </div>
             <div class="layer-folder" data-layer-group="countryLabels">
               <div class="layer-folder-row">
-                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="countryLabels" aria-expanded="false" aria-label="국가명 라벨 폴더 펼치기">›</button>
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="countryLabels" aria-expanded="false" aria-label="국가명 라벨 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <input id="basemapLabelsVisible" type="checkbox" checked aria-label="국가명 라벨 표시" />
                 <span class="layer-icon label"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="countryLabels">국가명 라벨</button>
@@ -177,9 +178,9 @@
 
 
         <div id="mobileZoomDock" class="mobile-zoom-dock" aria-label="모바일 지도 보기">
-          <button id="mobileZoomInBtn" type="button" aria-label="지도 확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
-          <button id="mobileZoomOutBtn" type="button" aria-label="지도 축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
-          <button id="mobileWorldBtn" class="mobile-world-btn" type="button" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
+          <button id="mobileZoomInBtn" class="icon-btn" type="button" aria-label="지도 확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
+          <button id="mobileZoomOutBtn" class="icon-btn" type="button" aria-label="지도 축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
+          <button id="mobileWorldBtn" class="icon-btn mobile-world-btn" type="button" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
         <div id="modeActionBar" class="mode-action-bar hidden" aria-live="polite">
@@ -263,7 +264,7 @@
           </section>
 
           <details class="editor-details" id="countryAdvancedDetails">
-            <summary><span>고급 편집</span><small>해안선 · 코드 · 메모</small></summary>
+            <summary><span>고급 편집</span><small>해안선 · 코드 · 메모</small><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
             <div class="editor-details-body">
               <section class="advanced-boundary-box">
                 <div class="advanced-boundary-copy">
@@ -301,7 +302,7 @@
           </section>
 
           <details class="editor-details">
-            <summary><span>상세 정보</span><small>ID · 메모</small></summary>
+            <summary><span>상세 정보</span><small>ID · 메모</small><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
             <div class="editor-details-body">
               <div class="field-group"><label for="drawingIdInput">객체 ID</label><input id="drawingIdInput" type="text" readonly /></div>
               <div class="field-group"><label for="drawingNotesInput">메모</label><textarea id="drawingNotesInput" rows="5"></textarea></div>
@@ -321,7 +322,7 @@
           </section>
 
           <details class="editor-details">
-            <summary><span>상세 정보</span><small>메모</small></summary>
+            <summary><span>상세 정보</span><small>메모</small><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
             <div class="editor-details-body">
               <div class="field-group"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div>
             </div>
@@ -340,7 +341,7 @@
           </section>
           <button id="copyHydroBtn" type="button" class="btn wide">편집용 복사 만들기</button>
           <details class="editor-details hydro-data-details">
-            <summary><span>데이터 정보</span></summary>
+            <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
             <div class="editor-details-body">
               <div class="meta-card compact-meta">
                 <div><span>레이어</span><strong id="hydroLayerValue">—</strong></div>
@@ -411,7 +412,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.17.0" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.17.0" defer></script>
+  <script src="assets/js/gis-io.js?v=0.18.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.18.0" defer></script>
 </body>
 </html>
