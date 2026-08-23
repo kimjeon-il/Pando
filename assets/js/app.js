@@ -1,4 +1,4 @@
-/* AtlasWright v0.13.3
+/* AtlasWright v0.14.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.3';
+  const APP_VERSION = '0.14.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -115,6 +115,7 @@
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'deleteLabelBtn',
     'hydroProperties', 'hydroNameValue', 'hydroCategoryValue', 'hydroLayerValue', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
+    'modeActionBar', 'modeMethodSwitch', 'modeLineMethodBtn', 'modeComponentsMethodBtn', 'modeSelectionSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn',
     'importGeoJsonBtn', 'geoJsonFileInput', 'exportGeoJsonBtn',
   ]);
@@ -410,11 +411,13 @@
     annexCandidates: [],
     annexSelectedCandidateIndex: null,
     annexSelectedComponentKeys: [],
+    annexSelectionMethod: 'line',
     newCountryPhase: null,
     newCountrySourceIds: [],
     newCountryCandidates: [],
     newCountrySelectedCandidateIndex: null,
     newCountrySelectedComponentKeys: [],
+    newCountrySelectionMethod: 'line',
     boundaryTopology: { edges: new Map(), nodes: new Map() },
     spatialIndex: [],
     mapMoving: false,
@@ -5171,7 +5174,7 @@
     const index = Number(candidateIndex);
     if (state.tool === 'annex-territory' && state.annexPhase === 'side' && state.annexCandidates[index]?.geometry) {
       state.annexSelectedCandidateIndex = index;
-      setModeBanner('초록색 편입 영역을 확인하세요. 반대 영역을 선택하려면 보라색 영역을 선택한 뒤 완료하세요.', 'annex-mode');
+      setModeBanner('편입할 영역을 확인하세요. 반대쪽 영역을 선택해 변경할 수도 있습니다.', 'annex-mode');
     } else if (state.tool === 'new-country' && state.newCountryPhase === 'side' && state.newCountryCandidates[index]?.geometry) {
       state.newCountrySelectedCandidateIndex = index;
       setModeBanner('초록색 신생국 영역을 확인하세요. 반대 영역을 선택하려면 보라색 영역을 선택한 뒤 완료하세요.', 'add-country-mode');
@@ -5183,12 +5186,11 @@
   }
 
   function updateTerritoryComponentSelectionFeedback() {
-    const summary = territoryComponentSelectionSummary();
     if (state.tool === 'annex-territory' && state.annexPhase === 'components') {
       const donor = countryFeatureById(state.annexDonorCountryId);
-      setModeBanner(`${donor ? countryName(donor) : '피편입국'}의 영토 조각을 선택하세요. 현재 선택: ${summary}. 완료하면 선택한 조각이 편입됩니다.`, 'annex-mode');
+      setModeBanner(`${donor ? countryName(donor) : '피편입국'}에서 편입할 영토 조각을 선택하세요. 여러 조각을 함께 선택할 수 있습니다.`, 'annex-mode');
     } else if (state.tool === 'new-country' && state.newCountryPhase === 'components') {
-      setModeBanner(`신생국으로 만들 영토 조각을 선택하세요. 현재 선택: ${summary}. 완료하면 선택한 조각이 새 국가가 됩니다.`, 'add-country-mode');
+      setModeBanner('신생국으로 만들 영토 조각을 선택하세요. 여러 조각을 함께 선택할 수 있습니다.', 'add-country-mode');
     }
   }
 
@@ -5599,23 +5601,47 @@
     const newCountryLineMode = state.tool === 'new-country' && state.newCountryPhase === 'line';
     const newCountrySideMode = state.tool === 'new-country' && state.newCountryPhase === 'side';
     const newCountryComponentsMode = state.tool === 'new-country' && state.newCountryPhase === 'components';
-    const componentsMode = annexComponentsMode || newCountryComponentsMode;
     const methodSwitchAvailable = annexLineMode || annexSideMode || annexComponentsMode
       || newCountryLineMode || newCountrySideMode || newCountryComponentsMode;
+    const activeMethod = state.tool === 'annex-territory'
+      ? state.annexSelectionMethod
+      : state.newCountrySelectionMethod;
     const labelMode = state.labelPlacementMode || state.tool === 'label';
     const terrainMode = !!terrainToolConfig(state.tool);
     const specialMode = labelMode || terrainMode || ['new-country', 'annex-territory', 'merge-country', 'country-coast'].includes(state.tool);
     const bar = $('modeActionBar');
+    const methodSwitch = $('modeMethodSwitch');
+    const lineMethod = $('modeLineMethodBtn');
+    const componentsMethod = $('modeComponentsMethodBtn');
+    const selectionSummary = $('modeSelectionSummary');
     const primary = $('modePrimaryBtn');
-    const secondary = $('modeSecondaryBtn');
     const cancel = $('modeCancelBtn');
     if (bar) {
       bar.classList.toggle('hidden', !specialMode);
       bar.classList.toggle('single-action', state.tool === 'merge-country' || annexDonorMode || labelMode);
+      bar.classList.toggle('has-method-switch', methodSwitchAvailable);
+    }
+    methodSwitch?.classList.toggle('hidden', !methodSwitchAvailable);
+    for (const [button, method] of [[lineMethod, 'line'], [componentsMethod, 'components']]) {
+      if (!button) continue;
+      const active = activeMethod === method;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    }
+    if (selectionSummary) {
+      let summary = '';
+      if (annexComponentsMode || newCountryComponentsMode) summary = territoryComponentSelectionSummary();
+      else if (annexSideMode) summary = '편입 영역 선택됨';
+      else if (newCountrySideMode) summary = '신생국 영역 선택됨';
+      else if (annexLineMode || newCountryLineMode) summary = `${state.draftCoords.length}개 점 연결`;
+      selectionSummary.textContent = summary;
+      selectionSummary.classList.toggle('hidden', !methodSwitchAvailable || !summary);
     }
     if (primary) {
       primary.classList.toggle('hidden', state.tool === 'merge-country' || annexDonorMode || labelMode);
       primary.disabled = (terrainMode && state.draftCoords.length < (isPolygonDraftTool(state.tool) ? 3 : 2))
+        || (newCountrySourceMode && !state.newCountrySourceIds.length)
+        || ((annexLineMode || newCountryLineMode) && state.draftCoords.length < 2)
         || (annexSideMode && !state.annexCandidates[state.annexSelectedCandidateIndex]?.geometry)
         || (newCountrySideMode && !state.newCountryCandidates[state.newCountrySelectedCandidateIndex]?.geometry)
         || (annexComponentsMode && !state.annexSelectedComponentKeys.length)
@@ -5623,17 +5649,12 @@
       if (state.tool === 'country-coast') primary.textContent = '해안선 수정 완료';
       else if (terrainMode) primary.textContent = '그리기 완료';
       else if (newCountrySourceMode) primary.textContent = '선택 완료';
-      else if (newCountryLineMode) primary.textContent = '선 연결 완료';
-      else if (annexLineMode) primary.textContent = '선 연결 완료';
+      else if (newCountryLineMode || annexLineMode) primary.textContent = '영역 나누기';
       else if (newCountrySideMode) primary.textContent = '선택 영역으로 국가 추가';
-      else if (annexSideMode) primary.textContent = '선택 영역 편입';
+      else if (annexSideMode) primary.textContent = '이 영역 편입';
       else if (newCountryComponentsMode) primary.textContent = '선택 조각으로 국가 추가';
-      else if (annexComponentsMode) primary.textContent = '선택 조각 편입';
+      else if (annexComponentsMode) primary.textContent = '선택한 조각 편입';
       else primary.textContent = '완료';
-    }
-    if (secondary) {
-      secondary.classList.toggle('hidden', !methodSwitchAvailable);
-      secondary.textContent = componentsMode ? '국경선으로 일부 선택' : '영토 조각 전체 선택';
     }
     if (cancel) cancel.textContent = '취소';
     syncMapCursorMode();
@@ -5648,6 +5669,7 @@
     state.annexCandidates = [];
     state.annexSelectedCandidateIndex = null;
     state.annexSelectedComponentKeys = [];
+    state.annexSelectionMethod = 'line';
   }
 
   function resetNewCountryState() {
@@ -5656,6 +5678,7 @@
     state.newCountryCandidates = [];
     state.newCountrySelectedCandidateIndex = null;
     state.newCountrySelectedComponentKeys = [];
+    state.newCountrySelectionMethod = 'line';
   }
 
   function switchTerritorySelectionMethod(method) {
@@ -5668,32 +5691,28 @@
       state.annexCandidates = [];
       state.annexSelectedCandidateIndex = null;
       state.annexSelectedComponentKeys = [];
+      state.annexSelectionMethod = useComponents ? 'components' : 'line';
       state.annexPhase = useComponents ? 'components' : 'line';
       if (useComponents) updateTerritoryComponentSelectionFeedback();
       else {
-        setModeBanner(`${countryName(donor)}의 경계 밖에서 시작해 영토 조각 하나를 한 번 관통하는 선을 그리세요. 국가 밖의 선은 판정에서 제외됩니다.`, 'annex-mode');
+        setModeBanner(`${countryName(donor)} 영토를 가로지르는 선을 그리세요. 시작점과 끝점은 국경 밖에 둘 수 있습니다.`, 'annex-mode');
       }
     } else if (state.tool === 'new-country' && ['line', 'side', 'components'].includes(state.newCountryPhase)) {
       clearDraftInput(true);
       state.newCountryCandidates = [];
       state.newCountrySelectedCandidateIndex = null;
       state.newCountrySelectedComponentKeys = [];
+      state.newCountrySelectionMethod = useComponents ? 'components' : 'line';
       state.newCountryPhase = useComponents ? 'components' : 'line';
       if (useComponents) updateTerritoryComponentSelectionFeedback();
       else {
-        setModeBanner('선택한 영토 밖에서 시작해 연결 영역 하나를 한 번 관통하는 국경선을 그리세요. 영토 밖의 선은 판정에서 제외됩니다.', 'add-country-mode');
+        setModeBanner('선택한 영토를 가로지르는 선을 그리세요. 시작점과 끝점은 영토 밖에 둘 수 있습니다.', 'add-country-mode');
       }
     } else {
       return;
     }
     updateModeButtons();
     renderAll();
-  }
-
-  function toggleTerritorySelectionMethod() {
-    const componentsMode = (state.tool === 'annex-territory' && state.annexPhase === 'components')
-      || (state.tool === 'new-country' && state.newCountryPhase === 'components');
-    switchTerritorySelectionMethod(componentsMode ? 'line' : 'components');
   }
 
   function clearDraftInput(invalidateInteraction = true) {
@@ -5790,12 +5809,13 @@
       return;
     }
     state.newCountryPhase = 'line';
+    state.newCountrySelectionMethod = 'line';
     state.newCountryCandidates = [];
     state.newCountrySelectedCandidateIndex = null;
     state.newCountrySelectedComponentKeys = [];
     state.draftCoords = [];
     state.draftHover = null;
-    setModeBanner('선택한 영토 밖에서 시작해 연결 영역 하나를 한 번 관통하는 국경선을 그리세요. 영토 밖의 선은 판정에서 제외됩니다.', 'add-country-mode');
+    setModeBanner('선택한 영토를 가로지르는 선을 그리세요. 시작점과 끝점은 영토 밖에 둘 수 있습니다.', 'add-country-mode');
     updateModeButtons();
     renderAll();
   }
@@ -5817,12 +5837,13 @@
     state.annexCandidates = [];
     state.annexSelectedCandidateIndex = null;
     state.annexSelectedComponentKeys = [];
+    state.annexSelectionMethod = 'line';
     setTool('annex-territory', false);
     state.annexTargetCountryId = String(id);
     syncCountryActionButtons();
     renderCountries();
     if (usesOverlayEditor()) closeMobileSheets();
-    setModeBanner(`${countryName(feature)}에 영토를 넘길 피편입국을 지도에서 선택하세요.`, 'annex-mode');
+    setModeBanner(`${countryName(feature)}에 영토를 넘길 국가를 지도에서 선택하세요.`, 'annex-mode');
   }
 
   function selectAnnexDonor(id) {
@@ -5844,9 +5865,10 @@
     state.annexCandidates = [];
     state.annexSelectedCandidateIndex = null;
     state.annexSelectedComponentKeys = [];
+    state.annexSelectionMethod = 'line';
     state.draftCoords = [];
     state.draftHover = null;
-    setModeBanner(`${countryName(donor)}의 경계 밖에서 시작해 영토 조각 하나를 한 번 관통하는 선을 그리세요. 국가 밖의 선은 판정에서 제외됩니다.`, 'annex-mode');
+    setModeBanner(`${countryName(donor)} 영토를 가로지르는 선을 그리세요. 시작점과 끝점은 국경 밖에 둘 수 있습니다.`, 'annex-mode');
     updateModeButtons();
     renderAll();
   }
@@ -5892,7 +5914,7 @@
     state.mergeSourceCountryId = String(id);
     setTool('merge-country', false);
     state.mergeSourceCountryId = String(id);
-    setModeBanner(`${countryName(feature)}에 합병할 국가를 지도에서 선택하세요.`, 'merge-mode');
+    setModeBanner(`${countryName(feature)}에 합병할 국가를 선택하세요. 선택하면 즉시 합병됩니다.`, 'merge-mode');
     syncCountryActionButtons();
     if (usesOverlayEditor()) closeMobileSheets();
   }
@@ -6034,9 +6056,10 @@
       state.draftHover = null;
       renderDraft();
       setModeBanner(
-        `${countryName(donor)}의 영토 조각 하나를 한 번 관통하도록 새 국경선을 그리세요. 현재 ${state.draftCoords.length}개 점을 입력했습니다.`,
+        `${countryName(donor)} 영토를 가로지르는 선을 그리세요. 현재 ${state.draftCoords.length}개 점을 연결했습니다.`,
         'annex-mode'
       );
+      updateModeButtons();
       return;
     }
     const newCountryLineMode = state.tool === 'new-country' && state.newCountryPhase === 'line';
@@ -6050,7 +6073,7 @@
       if (terrain) {
         setModeBanner(`${terrain.label}의 ${polygonMode ? '경계를' : '흐름을'} 따라 점을 연결하세요. 현재 ${state.draftCoords.length}개를 입력했으며 최소 ${min}개가 필요합니다.`);
       } else if (newCountryLineMode) {
-        setModeBanner(`선택한 영토의 연결 영역을 한 번 관통하도록 새 국경선을 그리세요. 현재 ${state.draftCoords.length}개 점을 입력했습니다.`, 'add-country-mode');
+        setModeBanner(`선택한 영토를 가로지르는 선을 그리세요. 현재 ${state.draftCoords.length}개 점을 연결했습니다.`, 'add-country-mode');
       } else {
         setModeBanner(`점 ${state.draftCoords.length}개를 입력했습니다. 최소 ${min}개를 입력한 뒤 완료하세요.`);
       }
@@ -6105,7 +6128,7 @@
         state.annexCandidates = split.candidates;
         state.annexSelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
         state.annexPhase = 'side';
-        setModeBanner('작은 영역을 자동으로 선택했습니다. 초록색 영역을 확인하거나 보라색 영역을 선택해 전환한 뒤 완료하세요.', 'annex-mode');
+        setModeBanner('작은 영역을 자동으로 선택했습니다. 편입할 영역을 확인하거나 반대쪽 영역을 선택하세요.', 'annex-mode');
         updateModeButtons();
         renderAll();
       } catch (error) {
@@ -6296,13 +6319,10 @@
     }
     const sourceName = countryName(source);
     const targetName = countryName(target);
-    if (!confirm(`${sourceName}에 ${targetName}을(를) 합병할까요?\n두 국가의 영토가 하나의 국가 데이터로 합쳐집니다.`)) return;
-    const mergedNameInput = prompt('합병 후 국명을 입력하세요.', sourceName);
-    if (mergedNameInput === null) return;
-    recordHistory();
     const result = mergeCountryGeometries([source.geometry, target.geometry]);
+    recordHistory();
     source.geometry = result.geometry;
-    const mergedName = mergedNameInput.trim() || sourceName;
+    const mergedName = sourceName;
     source.properties.editor_name = mergedName;
     source.properties.name = mergedName;
     source.properties.pop_est = Number(source.properties.pop_est || 0) + Number(target.properties.pop_est || 0);
@@ -7888,7 +7908,8 @@
       else if (state.tool === 'annex-territory' && state.annexPhase === 'components') completeLinearAnnexation(null);
       else if (isDrawingDraftTool(state.tool) || ['new-country', 'annex-territory'].includes(state.tool)) finishDraft();
     });
-    $('modeSecondaryBtn')?.addEventListener('click', toggleTerritorySelectionMethod);
+    $('modeLineMethodBtn')?.addEventListener('click', () => switchTerritorySelectionMethod('line'));
+    $('modeComponentsMethodBtn')?.addEventListener('click', () => switchTerritorySelectionMethod('components'));
     $('modeCancelBtn')?.addEventListener('click', () => {
       if (state.labelPlacementMode || state.tool === 'label') exitLabelMode();
       else if (isDrawingDraftTool(state.tool)) cancelDraft(true);
