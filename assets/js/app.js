@@ -1,4 +1,4 @@
-/* AtlasWright v0.19.0
+/* AtlasWright v0.20.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.19.0';
+  const APP_VERSION = '0.20.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -160,10 +160,62 @@
   let layoutMode = detectLayoutMode();
   const isMobile = () => layoutMode === 'mobile';
   const isCompact = () => layoutMode === 'compact';
-  const usesOverlayEditor = () => layoutMode !== 'wide';
   let lastOverlayTrigger = null;
+  let fileMenuTrigger = null;
   let createMenuTrigger = null;
   let editorPanelOpenReason = null;
+  const SHEET_SNAP_RATIOS = Object.freeze([0.35, 0.6, 0.9]);
+  const SHEET_SNAP_LABELS = Object.freeze(['기본 높이', '중간 높이', '최대 높이']);
+  const sheetSnapIndex = new Map([['leftPanel', 0], ['rightPanel', 0], ['createMenu', 0]]);
+  let activeSheetDrag = null;
+
+  function mobileSheetAvailableHeight() {
+    const topbarHeight = document.querySelector('.topbar')?.getBoundingClientRect().height || 60;
+    return Math.max(220, window.innerHeight - topbarHeight - 120);
+  }
+
+  function setMobileSheetHeight(panel, index, temporaryHeight = null) {
+    if (!panel) return 0;
+    const maxHeight = mobileSheetAvailableHeight() * SHEET_SNAP_RATIOS[SHEET_SNAP_RATIOS.length - 1];
+    const minHeight = mobileSheetAvailableHeight() * SHEET_SNAP_RATIOS[0];
+    const height = temporaryHeight == null
+      ? mobileSheetAvailableHeight() * SHEET_SNAP_RATIOS[index]
+      : clamp(temporaryHeight, Math.max(140, minHeight * 0.72), maxHeight);
+    panel.style.setProperty('--sheet-height', `${Math.round(height)}px`);
+    if (temporaryHeight == null) {
+      sheetSnapIndex.set(panel.id, index);
+      panel.dataset.sheetSnap = String(index);
+      const handle = panel.querySelector('[data-sheet-handle]');
+      handle?.setAttribute('aria-valuetext', SHEET_SNAP_LABELS[index]);
+    }
+    return height;
+  }
+
+  function refreshMapSheetMetrics() {
+    const workspace = document.querySelector('.workspace');
+    const panels = [$('createMenu'), $('leftPanel'), $('rightPanel')].filter(Boolean);
+    if (!isMobile()) {
+      panels.forEach(panel => panel.style.removeProperty('--sheet-height'));
+      workspace?.style.removeProperty('--map-safe-bottom');
+      document.body.classList.remove('map-sheet-open', 'map-sheet-dragging');
+      return;
+    }
+    panels.forEach(panel => {
+      if (activeSheetDrag?.panel !== panel) setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
+    });
+    const openPanel = panels.find(panel => panel.id === 'createMenu'
+      ? !panel.classList.contains('hidden')
+      : panel.classList.contains('mobile-open'));
+    document.body.classList.toggle('map-sheet-open', !!openPanel);
+    if (!openPanel) {
+      workspace?.style.removeProperty('--map-safe-bottom');
+      return;
+    }
+    const styles = getComputedStyle(openPanel);
+    const height = Number.parseFloat(styles.height) || setMobileSheetHeight(openPanel, sheetSnapIndex.get(openPanel.id) ?? 0);
+    const bottom = Number.parseFloat(styles.bottom) || 104;
+    workspace?.style.setProperty('--map-safe-bottom', `${Math.round(height + bottom + 8)}px`);
+  }
 
   function placeProjectionControl() {
     const control = $('projectionControl');
@@ -179,42 +231,28 @@
     document.body.dataset.layout = layoutMode;
     placeProjectionControl();
 
-    const left = $('leftPanel');
     const right = $('rightPanel');
-    const fileMenu = document.querySelector('.top-actions');
     if (layoutMode === 'wide') {
-      left?.classList.remove('mobile-open');
-      fileMenu?.classList.remove('mobile-open');
-      if (state?.selected && right && !right.classList.contains('mobile-open')) {
-        right.classList.remove('collapsed');
-        right.classList.add('mobile-open');
-        editorPanelOpenReason = 'auto';
-      }
-    } else {
-      fileMenu?.classList.remove('mobile-open');
-      if (previous === 'wide' && editorPanelOpenReason === 'auto') {
-        right?.classList.remove('mobile-open');
-        editorPanelOpenReason = null;
-      }
+      right?.classList.remove('collapsed');
     }
-    syncMobileBackdrop();
+    syncOverlayState();
+    refreshMapSheetMetrics();
     syncMobileNavigation();
     if (!initial && previous !== layoutMode) queueMapResize();
     return previous !== layoutMode;
   }
 
-  function syncMobileBackdrop() {
+  function syncOverlayState() {
     const fileOpen = document.querySelector('.top-actions')?.classList.contains('mobile-open');
     $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
     $('mobileFileBtn')?.setAttribute('aria-expanded', String(!!fileOpen));
     const leftOpen = $('leftPanel')?.classList.contains('mobile-open');
     const rightOpen = $('rightPanel')?.classList.contains('mobile-open');
-    const overlayOpen = isMobile() && (leftOpen || rightOpen || fileOpen);
     const workspace = document.querySelector('.workspace');
     workspace?.classList.toggle('layers-drawer-open', !!leftOpen);
     workspace?.classList.toggle('editor-drawer-open', !!rightOpen);
-    document.body.classList.toggle('mobile-sheet-open', !!overlayOpen);
-    document.body.classList.toggle('responsive-overlay-open', !!overlayOpen);
+    document.body.classList.toggle('file-menu-open', !!fileOpen);
+    $('mobileBackdrop')?.setAttribute('aria-hidden', String(!fileOpen));
     $('mobileMapBtn')?.classList.toggle('sheet-open', !!leftOpen);
     $('mobileMapBtn')?.setAttribute('aria-expanded', String(!!leftOpen));
     $('mobileEditBtn')?.classList.toggle('sheet-open', !!rightOpen);
@@ -222,7 +260,17 @@
     $('togglePanelBtn')?.classList.toggle('active', !!rightOpen);
     $('togglePanelBtn')?.setAttribute('aria-expanded', String(!!rightOpen));
     $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
+    refreshMapSheetMetrics();
     syncMobileNavigation();
+  }
+
+  function closeFileMenu({ restoreFocus = false } = {}) {
+    const menu = document.querySelector('.top-actions');
+    if (!menu?.classList.contains('mobile-open')) return;
+    menu.classList.remove('mobile-open');
+    syncOverlayState();
+    if (restoreFocus && fileMenuTrigger?.isConnected) fileMenuTrigger.focus({ preventScroll: true });
+    if (restoreFocus) fileMenuTrigger = null;
   }
 
   function isCreateMenuOpen() {
@@ -236,6 +284,7 @@
     $('mobileCreateBtn')?.setAttribute('aria-expanded', String(open));
     $('mobileCreateBtn')?.classList.toggle('sheet-open', open);
     document.body.classList.toggle('create-menu-open', open);
+    refreshMapSheetMetrics();
     syncMobileNavigation();
   }
 
@@ -257,22 +306,20 @@
       return;
     }
     createMenuTrigger = trigger instanceof HTMLElement ? trigger : null;
-    closeMobileSheets(null, { restoreFocus: false });
-    document.querySelector('.top-actions')?.classList.remove('mobile-open');
+    closeFileMenu();
+    if (isMobile()) setMobileSheetHeight(menu, sheetSnapIndex.get(menu.id) ?? 0);
     menu.classList.remove('hidden');
     syncCreateMenuState();
     requestAnimationFrame(() => menu.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
   }
 
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
-    if (!isMobile() && !isCompact()) return;
     if (except !== 'left') $('leftPanel')?.classList.remove('mobile-open');
     if (except !== 'right') {
       $('rightPanel')?.classList.remove('mobile-open');
       editorPanelOpenReason = null;
     }
-    if (except !== 'file') document.querySelector('.top-actions')?.classList.remove('mobile-open');
-    syncMobileBackdrop();
+    syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
     queueMapResize();
@@ -280,32 +327,32 @@
 
   function toggleMobileSheet(which) {
     if (layoutMode === 'wide') return;
-    const map = { left: $('leftPanel'), right: $('rightPanel'), file: document.querySelector('.top-actions') };
+    const map = { left: $('leftPanel'), right: $('rightPanel') };
     const el = map[which];
     if (!el) return;
     const willOpen = !el.classList.contains('mobile-open');
     if (willOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeCreateMenu();
+    closeFileMenu();
     closeMobileSheets(null, { restoreFocus: false });
     if (willOpen) {
+      setMobileSheetHeight(el, sheetSnapIndex.get(el.id) ?? 0);
       el.classList.add('mobile-open');
       if (which === 'right') editorPanelOpenReason = 'manual';
     } else if (which === 'right') editorPanelOpenReason = null;
-    syncMobileBackdrop();
-    if (willOpen && isMobile()) requestAnimationFrame(() => el.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true }));
+    syncOverlayState();
     queueMapResize();
   }
 
   function toggleFileMenu() {
     closeCreateMenu();
-    if (isMobile()) {
-      toggleMobileSheet('file');
-      return;
-    }
     const menu = document.querySelector('.top-actions');
     if (!menu) return;
-    menu.classList.toggle('mobile-open');
-    syncMobileBackdrop();
+    const willOpen = !menu.classList.contains('mobile-open');
+    if (willOpen) fileMenuTrigger = $('mobileFileBtn');
+    menu.classList.toggle('mobile-open', willOpen);
+    syncOverlayState();
+    if (willOpen) requestAnimationFrame(() => menu.querySelector('button:not(:disabled)')?.focus({ preventScroll: true }));
   }
 
   function openMobileLeftAt() {
@@ -315,30 +362,111 @@
     const sameOpen = left.classList.contains('mobile-open');
     if (!sameOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeCreateMenu();
+    closeFileMenu();
     closeMobileSheets();
     if (sameOpen) return;
     left.classList.add('mobile-open');
-    syncMobileBackdrop();
-    if (isMobile()) requestAnimationFrame(() => {
-      left.scrollTop = 0;
-      left.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true });
-    });
+    setMobileSheetHeight(left, sheetSnapIndex.get(left.id) ?? 0);
+    syncOverlayState();
+    if (isMobile()) left.scrollTop = 0;
     queueMapResize();
+  }
+
+  function nearestSheetSnapIndex(height) {
+    const available = mobileSheetAvailableHeight();
+    let nearest = 0;
+    let distance = Infinity;
+    SHEET_SNAP_RATIOS.forEach((ratio, index) => {
+      const nextDistance = Math.abs(height - available * ratio);
+      if (nextDistance < distance) {
+        distance = nextDistance;
+        nearest = index;
+      }
+    });
+    return nearest;
+  }
+
+  function closeMapSheet(panel, { restoreFocus = false } = {}) {
+    if (!panel) return;
+    panel.classList.remove('mobile-open');
+    if (panel.id === 'rightPanel') editorPanelOpenReason = null;
+    syncOverlayState();
+    queueMapResize();
+    if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
+    if (restoreFocus) lastOverlayTrigger = null;
+  }
+
+  function bindSheetDragHandle(handle) {
+    const panel = $(handle?.dataset?.sheetHandle);
+    if (!handle || !panel) return;
+    handle.addEventListener('click', event => {
+      if (!isMobile()) return;
+      if (handle.dataset.dragged === 'true') {
+        handle.dataset.dragged = 'false';
+        event.preventDefault();
+        return;
+      }
+      const current = sheetSnapIndex.get(panel.id) ?? 0;
+      setMobileSheetHeight(panel, (current + 1) % SHEET_SNAP_RATIOS.length);
+      syncOverlayState();
+      queueMapResize();
+    });
+    handle.addEventListener('pointerdown', event => {
+      if (!isMobile() || event.button > 0) return;
+      const currentHeight = Number.parseFloat(getComputedStyle(panel).height) || setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
+      activeSheetDrag = {
+        panel,
+        handle,
+        pointerId: event.pointerId,
+        startY: event.clientY,
+        startHeight: currentHeight,
+        startIndex: sheetSnapIndex.get(panel.id) ?? 0,
+        moved: false,
+      };
+      handle.setPointerCapture?.(event.pointerId);
+      document.body.classList.add('map-sheet-dragging');
+      event.preventDefault();
+    });
+    handle.addEventListener('pointermove', event => {
+      const drag = activeSheetDrag;
+      if (!drag || drag.handle !== handle || drag.pointerId !== event.pointerId) return;
+      const deltaY = event.clientY - drag.startY;
+      if (Math.abs(deltaY) > 4) drag.moved = true;
+      setMobileSheetHeight(panel, drag.startIndex, drag.startHeight - deltaY);
+      refreshMapSheetMetrics();
+      queueMapResize();
+      event.preventDefault();
+    });
+    const finish = (event, cancelled = false) => {
+      const drag = activeSheetDrag;
+      if (!drag || drag.handle !== handle || drag.pointerId !== event.pointerId) return;
+      const deltaY = event.clientY - drag.startY;
+      const currentHeight = Number.parseFloat(getComputedStyle(panel).height) || drag.startHeight;
+      activeSheetDrag = null;
+      document.body.classList.remove('map-sheet-dragging');
+      handle.dataset.dragged = String(drag.moved);
+      if (!cancelled && drag.startIndex === 0 && deltaY > 64) {
+        if (panel.id === 'createMenu') closeCreateMenu({ restoreFocus: true });
+        else closeMapSheet(panel, { restoreFocus: true });
+      } else {
+        const targetIndex = cancelled ? drag.startIndex : nearestSheetSnapIndex(currentHeight);
+        setMobileSheetHeight(panel, targetIndex);
+        syncOverlayState();
+        queueMapResize();
+      }
+      try { handle.releasePointerCapture?.(event.pointerId); } catch (_) {}
+    };
+    handle.addEventListener('pointerup', event => finish(event));
+    handle.addEventListener('pointercancel', event => finish(event, true));
   }
 
   function openSelectionEditor() {
     const panel = $('rightPanel');
     if (!panel) return;
-    if (layoutMode === 'wide') {
-      panel.classList.remove('collapsed');
-      panel.classList.add('mobile-open');
-      editorPanelOpenReason = 'auto';
-      syncMobileBackdrop();
+    if (panel.classList.contains('mobile-open')) {
       panel.scrollTop = 0;
-      queueMapResize();
-    } else {
-      syncMobileNavigation();
     }
+    syncMobileNavigation();
   }
 
   function toggleEditorPanel() {
@@ -353,7 +481,7 @@
     panel.classList.remove('collapsed');
     panel.classList.toggle('mobile-open', willOpen);
     editorPanelOpenReason = willOpen ? 'manual' : null;
-    syncMobileBackdrop();
+    syncOverlayState();
     queueMapResize();
   }
 
@@ -2830,6 +2958,7 @@
     const selectedText = $('selectionStatus')?.textContent?.trim() || '';
     const showSelection = !!state.selected && !!selectedText;
     $('coordStatus')?.classList.toggle('hidden', !showCoordinates);
+    $('statusView')?.classList.toggle('coordinates-active', showCoordinates);
     $('statusPrimary')?.classList.toggle('hidden', !showTask);
     $('statusSelection')?.classList.toggle('hidden', !showSelection);
   }
@@ -4297,10 +4426,13 @@
     const safe = currentMapSafeInsets();
     const contentWidth = Math.max(1, width - safe.left - safe.right);
     const contentHeight = Math.max(1, height - safe.top - safe.bottom);
+    const scaleContentHeight = isMobile()
+      ? Math.max(1, height - safe.top - 96)
+      : contentHeight;
     const centerX = safe.left + contentWidth / 2;
     const centerY = safe.top + contentHeight / 2;
     if (state.projection === 'globe') {
-      const base = Math.max(60, Math.min(contentWidth, contentHeight) * 0.455);
+      const base = Math.max(60, Math.min(contentWidth, scaleContentHeight) * 0.455);
       globeProjection
         .translate([centerX, centerY])
         .scale(base * state.view.globeZoom)
@@ -5567,7 +5699,10 @@
       mapResizeObserver = new ResizeObserver(() => queueMapResize());
       mapResizeObserver.observe($('map'));
     }
-    window.visualViewport?.addEventListener?.('resize', queueMapResize);
+    window.visualViewport?.addEventListener?.('resize', () => {
+      refreshMapSheetMetrics();
+      queueMapResize();
+    });
     watchDevicePixelRatio();
   }
 
@@ -5843,7 +5978,6 @@
       ? '강의 흐름을 따라 점을 연결하세요. 완료하면 하나의 선으로 저장합니다.'
       : '호수의 경계를 따라 점을 연결하세요. 완료하면 영역을 자동으로 닫습니다.');
     updateModeButtons();
-    if (usesOverlayEditor()) closeMobileSheets();
   }
 
   function enterNewCountryMode() {
@@ -5916,7 +6050,6 @@
     state.annexTargetCountryId = String(id);
     syncCountryActionButtons();
     renderCountries();
-    if (usesOverlayEditor()) closeMobileSheets();
     setModeBanner(`${countryName(feature)}로 영토를 이전할 국가를 선택하세요.`);
     updateModeButtons();
   }
@@ -5978,7 +6111,6 @@
     state.coastEditCountryId = String(id);
     rebuildBoundaryTopology(id);
     syncCountryActionButtons();
-    if (usesOverlayEditor()) closeMobileSheets();
     focusCountry(feature);
     setModeBanner(`${countryName(feature)}의 해안선 꼭짓점을 드래그하세요. 육상 국경은 변경되지 않습니다.`, 'coast-mode');
   }
@@ -6010,7 +6142,6 @@
     setModeBanner(`${countryName(feature)}에 합병할 국가를 선택하세요.`);
     syncCountryActionButtons();
     updateModeButtons();
-    if (usesOverlayEditor()) closeMobileSheets();
   }
 
   function toggleMergeTarget(id) {
@@ -7264,7 +7395,6 @@
     const modal = $('confirmModal');
     if (!modal) return;
     clearNotification();
-    closeMobileSheets();
     $('confirmModalTitle').textContent = title;
     $('confirmModalMessage').textContent = message;
     const ok = $('confirmModalOkBtn');
@@ -7364,9 +7494,7 @@
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
-    // 모바일 파일 메뉴 위의 공용 backdrop과 확인 UI를 분리한다.
-    // 파일 메뉴를 닫은 뒤 DOM 최상단 confirmModal에서 확인하므로 터치가 가로채이지 않는다.
-    closeMobileSheets();
+    closeFileMenu();
     openConfirmModal({
       title: '새 프로젝트',
       message: '현재 편집한 국경, 추가한 국가·지명·영역, 실행취소 기록과 자동저장을 모두 지우고\n내장된 최초 세계 국경으로 돌아갑니다.',
@@ -7837,7 +7965,6 @@
       focusCoordinate(label.coordinates);
     }
     markLayerTreeDirty();
-    if (isMobile()) closeMobileSheets();
   }
 
   function resetView() {
@@ -7896,10 +8023,8 @@
     }, true);
     document.addEventListener('click', e => {
       if (!e.target.closest('.top-actions') && !e.target.closest('#mobileFileBtn')) {
-        document.querySelector('.top-actions')?.classList.remove('mobile-open');
-        syncMobileBackdrop();
+        closeFileMenu();
       }
-      if (!e.target.closest('.create-menu-wrap') && !e.target.closest('#mobileCreateBtn')) closeCreateMenu();
     });
 
     $('globeBtn').addEventListener('click', () => setProjection('globe'));
@@ -7915,9 +8040,9 @@
       toggleCreateMenu(event.currentTarget);
     });
     $('mobileBackdrop')?.addEventListener('click', () => {
-      closeCreateMenu();
-      closeMobileSheets(null, { restoreFocus: true });
+      closeFileMenu({ restoreFocus: true });
     });
+    document.querySelectorAll('[data-sheet-handle]').forEach(bindSheetDragHandle);
     bindHoldZoom($('mobileZoomInBtn'), 1.34);
     bindHoldZoom($('mobileZoomOutBtn'), 0.746);
     $('mobileWorldBtn')?.addEventListener('click', () => {
@@ -7930,17 +8055,11 @@
       toggleCreateMenu(event.currentTarget);
     });
     $('mobileEditBtn')?.addEventListener('click', () => toggleMobileSheet('right'));
-    $('mobileCloseLeftBtn')?.addEventListener('click', () => closeMobileSheets(null, { restoreFocus: true }));
+    $('mobileCloseLeftBtn')?.addEventListener('click', () => closeMapSheet($('leftPanel'), { restoreFocus: true }));
     $('mobileCloseRightBtn')?.addEventListener('click', () => {
-      if (layoutMode === 'wide') {
-        $('rightPanel')?.classList.remove('mobile-open');
-        editorPanelOpenReason = null;
-        syncMobileBackdrop();
-        queueMapResize();
-        if (lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
-        lastOverlayTrigger = null;
-      } else closeMobileSheets(null, { restoreFocus: true });
+      closeMapSheet($('rightPanel'), { restoreFocus: true });
     });
+    $('mobileCloseCreateBtn')?.addEventListener('click', () => closeCreateMenu({ restoreFocus: true }));
     $('createMenu')?.addEventListener('keydown', event => {
       const items = [...event.currentTarget.querySelectorAll('[role="menuitem"]')];
       const index = items.indexOf(document.activeElement);
@@ -8130,19 +8249,17 @@
       const button = e.target.closest('button');
       if (!button) return;
       setTimeout(() => {
-        document.querySelector('.top-actions')?.classList.remove('mobile-open');
-        syncMobileBackdrop();
+        closeFileMenu();
       }, 80);
     });
 
     document.addEventListener('keydown', e => {
       const tag = document.activeElement?.tagName;
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
-      if (e.key === 'Tab' && isMobile() && document.body.classList.contains('responsive-overlay-open')) {
-        const activeSheet = [$('leftPanel'), $('rightPanel'), document.querySelector('.top-actions')]
-          .find(element => element?.classList.contains('mobile-open'));
-        const focusable = activeSheet
-          ? [...activeSheet.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')]
+      if (e.key === 'Tab' && document.body.classList.contains('file-menu-open')) {
+        const fileMenu = document.querySelector('.top-actions.mobile-open');
+        const focusable = fileMenu
+          ? [...fileMenu.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')]
           : [];
         if (focusable.length) {
           const first = focusable[0];
@@ -8154,20 +8271,16 @@
       if (e.key === 'Escape') {
         if (!$('gisImportModal')?.classList.contains('hidden')) { $('gisImportCancelBtn')?.click(); return; }
         if (!$('confirmModal')?.classList.contains('hidden')) { closeConfirmModal(); return; }
+        if (document.body.classList.contains('file-menu-open')) { closeFileMenu({ restoreFocus: true }); return; }
         if (isCreateMenuOpen()) { closeCreateMenu({ restoreFocus: true }); return; }
         if (state.labelPlacementMode) exitLabelMode();
         else if (isDrawingDraftTool(state.tool)) cancelDraft(true);
         else if (['new-country', 'annex-territory', 'merge-country', 'country-coast'].includes(state.tool)) cancelActiveMode();
         else if (state.draftCoords.length) cancelDraft(true);
-        else if (document.body.classList.contains('responsive-overlay-open')) closeMobileSheets(null, { restoreFocus: true });
         else if ($('rightPanel')?.classList.contains('mobile-open')) {
-          $('rightPanel').classList.remove('mobile-open');
-          editorPanelOpenReason = null;
-          syncMobileBackdrop();
-          queueMapResize();
-          if (lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
-          lastOverlayTrigger = null;
+          closeMapSheet($('rightPanel'), { restoreFocus: true });
         }
+        else if (layoutMode !== 'wide' && $('leftPanel')?.classList.contains('mobile-open')) closeMapSheet($('leftPanel'), { restoreFocus: true });
         else if (!$('actionStatus')?.classList.contains('hidden')) clearNotification();
         else clearSelection();
       }
@@ -8215,7 +8328,10 @@
 
     window.addEventListener('resize', () => {
       const layoutChanged = applyLayoutMode();
-      if (!layoutChanged) queueMapResize();
+      if (!layoutChanged) {
+        refreshMapSheetMetrics();
+        queueMapResize();
+      }
     });
     const onSystemThemeChange = event => applySystemTheme(!!event.matches);
     if (typeof systemThemeQuery.addEventListener === 'function') systemThemeQuery.addEventListener('change', onSystemThemeChange);

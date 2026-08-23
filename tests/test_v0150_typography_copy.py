@@ -18,12 +18,12 @@ LICENSE = ROOT / "assets" / "fonts" / "pretendard-v1.3.9" / "LICENSE.txt"
 
 class V0150TypographyCopyTests(unittest.TestCase):
     def test_versioned_shell_and_cache_keys_match(self):
-        self.assertIn('data-app-version="0.19.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.19.0'", APP)
-        self.assertIn("const BUILD_ID = '0.19.0'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.19.0'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.19.0", INDEX)
-        self.assertIn("bootstrap.js?v=0.19.0", INDEX)
+        self.assertIn('data-app-version="0.20.0"', INDEX)
+        self.assertIn("const APP_VERSION = '0.20.0'", APP)
+        self.assertIn("const BUILD_ID = '0.20.0'", BOOTSTRAP)
+        self.assertIn("const ASSET_REVISION = '0.20.0'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.20.0", INDEX)
+        self.assertIn("bootstrap.js?v=0.20.0", INDEX)
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())

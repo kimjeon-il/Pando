@@ -39,7 +39,7 @@ class V0151ControlStyleTests(unittest.TestCase):
         self.assertIn("background: var(--toolbar-bg);", CSS)
 
     def test_mobile_sheet_close_buttons_use_shared_icons(self):
-        self.assertEqual(INDEX.count('class="ui-button icon-btn sheet-close-btn"'), 2)
+        self.assertEqual(INDEX.count('class="ui-button icon-btn sheet-close-btn"'), 3)
         self.assertIn('id="mobileCloseLeftBtn" class="ui-button icon-btn sheet-close-btn"', INDEX)
         self.assertIn('id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn"', INDEX)
         self.assertNotIn('aria-label="지도·레이어 창 닫기">닫기</button>', INDEX)
