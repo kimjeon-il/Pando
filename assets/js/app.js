@@ -1,4 +1,4 @@
-/* AtlasWright v0.13.2
+/* AtlasWright v0.13.3
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.2';
+  const APP_VERSION = '0.13.3';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -35,8 +35,8 @@
     lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
   });
   const HYDRO_LAYER_META = Object.freeze({
-    rivers_hydro: Object.freeze({ label: '강 · Hydro', shortLabel: '강', category: 'river', color: '#3b82c4' }),
-    lakes_natural_earth: Object.freeze({ label: '호수 · Natural Earth', shortLabel: '호수', category: 'lake', color: '#5aa9d6' }),
+    rivers_hydro: Object.freeze({ label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS', category: 'river', color: '#3b82c4' }),
+    lakes_natural_earth: Object.freeze({ label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth', category: 'lake', color: '#5aa9d6' }),
   });
   const TERRAIN_OCEAN_REPRESENTATIVE = '#6aa8d2';
   const MAX_HISTORY = 30;
@@ -49,6 +49,21 @@
   let systemTheme = systemThemeQuery.matches ? 'dark' : 'light';
   document.documentElement.dataset.systemTheme = systemTheme;
   window.__ATLASWRIGHT_THEME__ = systemTheme;
+
+  function enableKeyboardNavigation(event) {
+    if (event.key === 'Tab') document.documentElement.classList.add('keyboard-navigation');
+  }
+
+  function disableKeyboardNavigation() {
+    document.documentElement.classList.remove('keyboard-navigation');
+  }
+
+  document.addEventListener('keydown', enableKeyboardNavigation, true);
+  if ('PointerEvent' in window) document.addEventListener('pointerdown', disableKeyboardNavigation, true);
+  else {
+    document.addEventListener('mousedown', disableKeyboardNavigation, true);
+    document.addEventListener('touchstart', disableKeyboardNavigation, { capture: true, passive: true });
+  }
 
   function mapTheme() {
     const terrainVisible = state?.physicalSettings?.terrainVisible !== false;
