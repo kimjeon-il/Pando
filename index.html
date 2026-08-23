@@ -7,7 +7,8 @@
   <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
-    <link rel="stylesheet" href="assets/css/app.css?v=0.14.4" />
+  <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.15.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -36,13 +37,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.14.4" data-layout="wide">
+  <div id="app" data-app-version="0.15.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.14.4 · Natural Earth 1:10m · 다중 영토 편집</span>
+          <span>v0.15.0 · Natural Earth 1:10m · 다중 영토 편집</span>
         </div>
       </div>
 
@@ -80,7 +81,7 @@
           </div>
           <label class="layer-search" for="layerSearchInput">
             <span aria-hidden="true">⌕</span>
-            <input id="layerSearchInput" type="search" placeholder="레이어 항목 검색" autocomplete="off" />
+            <input id="layerSearchInput" type="search" placeholder="레이어 검색" autocomplete="off" />
           </label>
           <div class="layer-list">
             <div class="layer-folder" data-layer-group="countries">
@@ -200,7 +201,7 @@
           </div>
         </div>
         <div class="current-tool map-context-panel" id="currentTool" aria-live="polite">
-          <div class="map-context-heading"><span class="current-tool-label">현재 도구</span><strong id="currentToolName">국가 선택</strong></div>
+          <div class="map-context-heading"><span class="current-tool-label">현재 작업</span><strong id="currentToolName">국가 선택</strong></div>
           <span id="mapContextDefault" class="map-context-instruction">드래그로 이동 · 휠로 확대·축소 · 지도에서 객체 선택</span>
           <span id="modeBanner" class="map-context-instruction mode-banner hidden"></span>
         </div>
@@ -240,7 +241,7 @@
           <section class="editor-card country-actions-card">
             <div class="editor-card-title">영토 편집</div>
             <div class="country-action-grid">
-              <button id="annexTerritoryBtn" type="button" class="country-action-btn primary annex-action"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영토 편입</strong><small>피편입국을 고르고 새 국경선 연결</small></button>
+              <button id="annexTerritoryBtn" type="button" class="country-action-btn primary annex-action"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영토 편입</strong><small>영토를 가져올 국가와 범위 선택</small></button>
               <button id="mergeCountryBtn" type="button" class="country-action-btn"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>국가 합병</strong><small>합병할 국가 선택</small></button>
             </div>
             <p id="countryActionHint" class="editor-help country-action-hint">선택한 국가의 영토를 편입하거나 다른 국가와 합병할 수 있습니다.</p>
@@ -398,7 +399,7 @@
       </form>
     </section>
   </div>
-  <noscript><div class="fatal-noscript">AtlasWright를 사용하려면 브라우저의 자바스크립트 실행을 허용해 주세요.</div></noscript>
+  <noscript><div class="fatal-noscript">AtlasWright를 사용하려면 브라우저에서 자바스크립트 실행을 허용하세요.</div></noscript>
 
   
   
@@ -408,7 +409,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.14.4" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.14.4" defer></script>
+  <script src="assets/js/gis-io.js?v=0.15.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.15.0" defer></script>
 </body>
 </html>

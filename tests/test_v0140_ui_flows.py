@@ -23,11 +23,13 @@ class V0140UiFlowTests(unittest.TestCase):
 
     def test_typography_uses_semantic_scale(self):
         for token in (
-            "--ui-font-xs: 12px",
-            "--ui-font-sm: 13px",
-            "--ui-font-md: 15px",
-            "--ui-font-lg: 16px",
-            "--ui-font-xl: 18px",
+            "--ui-font-map: 12px",
+            "--ui-font-caption: 13px",
+            "--ui-font-label: 14px",
+            "--ui-font-body: 15px",
+            "--ui-font-section: 16px",
+            "--ui-font-title: 18px",
+            "--ui-font-modal-title: 20px",
         ):
             self.assertIn(token, CSS)
 
