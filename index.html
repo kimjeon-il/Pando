@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.18.1" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.19.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -39,7 +39,7 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.18.1" data-layout="wide">
+  <div id="app" data-app-version="0.19.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
@@ -179,7 +179,11 @@
           <button id="mobileWorldBtn" class="ui-button icon-btn mobile-world-btn" type="button" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
-        <div id="modeActionBar" class="mode-action-bar hidden" aria-live="polite">
+        <div id="modeActionBar" class="mode-action-bar hidden" aria-label="지도 편집 작업">
+          <div id="modeTaskContext" class="mode-task-context">
+            <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span></div>
+            <p id="modeTaskInstruction" class="mode-task-instruction" aria-live="polite"></p>
+          </div>
           <div id="modeMethodSwitch" class="ui-segmented mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
             <button id="modeLineMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="경계를 그려 영토 일부 선택" aria-pressed="true">경계 그리기</button>
             <button id="modeComponentsMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false">영토 선택</button>
@@ -188,11 +192,6 @@
             <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span></button>
             <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
           </div>
-        </div>
-        <div class="current-tool map-context-panel" id="currentTool" aria-live="polite">
-          <div class="map-context-heading"><span class="current-tool-label">현재 작업</span><strong id="currentToolName">국가 선택</strong></div>
-          <span id="mapContextDefault" class="map-context-instruction">드래그로 이동 · 휠로 확대·축소 · 지도에서 객체 선택</span>
-          <span id="modeBanner" class="map-context-instruction mode-banner hidden"></span>
         </div>
 
         <div class="map-bottom-status" aria-label="지도 상태">
@@ -216,135 +215,156 @@
         </nav>
       </main>
 
-      <aside id="rightPanel" class="sidebar right-panel editor-panel">
-        <div class="mobile-sheet-header"><strong>편집</strong><button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+      <aside id="rightPanel" class="sidebar right-panel editor-panel editor-shell">
+        <header class="mobile-sheet-header editor-shell-header"><strong>편집</strong><button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
 
-        <section class="editor-header">
-          <h2 id="propertyTitle">편집</h2>
-        </section>
-
-        <section id="emptyProperties" class="empty-state editor-empty">
-          <p>지도에서 편집할 대상을 선택하세요.</p>
-        </section>
-
-        <form id="countryProperties" class="property-form editor-form hidden" onsubmit="return false;">
-          <section class="ui-card editor-card country-actions-card">
-            <div class="editor-card-title">영토 편집</div>
-            <div class="country-action-grid">
-              <button id="annexTerritoryBtn" type="button" class="ui-button ui-card-button country-action-btn primary annex-action"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영토 편입</strong><small>영토를 가져올 국가와 범위 선택</small></button>
-              <button id="mergeCountryBtn" type="button" class="ui-button ui-card-button country-action-btn"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>국가 합병</strong><small>합병할 국가 선택</small></button>
-            </div>
-          </section>
-          <section class="ui-card editor-card editor-card-primary">
-            <div class="editor-card-title">기본 정보</div>
-            <div class="editor-main-row">
-              <div class="ui-field field-group editor-name-field"><label for="countryNameInput">국명</label><input id="countryNameInput" type="text" autocomplete="off" /></div>
-              <div class="ui-field field-group compact-color editor-color-field"><label for="countryColorInput">지도색</label><input id="countryColorInput" type="color" value="#7c8da6" /></div>
-            </div>
-            <div class="ui-field field-group"><label for="capitalInput">수도</label><input id="capitalInput" type="text" placeholder="예: 아테네" autocomplete="off" /></div>
+        <div id="editorScrollBody" class="editor-scroll-body">
+          <section id="editorObjectHeader" class="editor-object-header hidden">
+            <h2 id="propertyTitle"></h2>
           </section>
 
-          <section class="ui-card editor-card">
-            <div class="editor-card-title">국기</div>
-            <div class="flag-editor simple-flag-editor">
-              <div id="flagPreview" class="flag-preview">국기 없음</div>
-              <div class="flag-actions">
-                <button id="flagUploadBtn" type="button" class="ui-button btn ghost wide">국기 변경</button>
-                <button id="flagRemoveBtn" type="button" class="ui-button btn ghost danger-ghost">국기 삭제</button>
-                <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
+          <section id="emptyProperties" class="empty-state editor-empty">
+            <p>지도에서 편집할 대상을 선택하세요.</p>
+          </section>
+
+          <form id="countryProperties" class="editor-view hidden" onsubmit="return false;">
+            <section class="editor-section editor-section-primary">
+              <h3 class="editor-section-title">기본 정보</h3>
+              <div class="editor-field-grid editor-field-grid-color">
+                <div class="ui-field field-group editor-field"><label for="countryNameInput">국명</label><input id="countryNameInput" type="text" autocomplete="off" /></div>
+                <div class="ui-field field-group editor-field editor-color-field"><label for="countryColorInput">국가 색상</label><input id="countryColorInput" type="color" value="#7c8da6" /></div>
               </div>
-            </div>
-          </section>
+              <div class="ui-field field-group editor-field"><label for="capitalInput">수도</label><input id="capitalInput" type="text" placeholder="예: 아테네" autocomplete="off" /></div>
+            </section>
 
-          <details class="ui-disclosure editor-details" id="countryAdvancedDetails">
-            <summary><span>고급 편집</span><small>해안선 · 코드 · 메모</small><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
-            <div class="editor-details-body">
-              <section class="advanced-boundary-box">
-                <div class="advanced-boundary-copy">
-                  <strong>해안선 수정</strong>
-                  <span>시대별 간척·매립·해수면 변화처럼 필요한 경우에만 사용합니다.</span>
+            <section class="editor-section">
+              <h3 class="editor-section-title">국기</h3>
+              <div class="editor-flag-layout">
+                <div id="flagPreview" class="editor-flag-preview">국기 없음</div>
+                <div class="editor-flag-actions">
+                  <button id="flagUploadBtn" type="button" class="ui-button btn ghost wide">국기 변경</button>
+                  <button id="flagRemoveBtn" type="button" class="ui-button btn ghost danger-ghost">국기 삭제</button>
+                  <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
                 </div>
-                <button id="editCoastBtn" type="button" class="ui-button btn ghost advanced-boundary-btn">해안선 수정</button>
-              </section>
-              <div class="ui-field field-group"><label for="countryCodeInput">국가 코드</label><input id="countryCodeInput" type="text" readonly /></div>
-              <div class="ui-field field-group"><label for="notesInput">메모</label><textarea id="notesInput" rows="5" placeholder="정체, 국가원수, 역사적 비고 등 자유 입력"></textarea></div>
-              <div class="ui-info-list meta-card compact-meta">
-                <div><span>기본 국명</span><strong id="originalNameValue">—</strong></div>
-                <div><span>데이터 유형</span><strong>국가 영역</strong></div>
               </div>
-              <button id="deleteCountryBtn" type="button" class="ui-button danger-btn editor-delete-btn">이 국가 삭제</button>
-            </div>
-          </details>
-        </form>
+            </section>
 
-        <form id="drawingProperties" class="property-form editor-form hidden" onsubmit="return false;">
-          <section class="ui-card editor-card editor-card-primary">
-            <div class="editor-card-title">지형지물 정보</div>
-            <div class="ui-field field-group"><label for="drawingNameInput">이름</label><input id="drawingNameInput" type="text" placeholder="예: 라인강" /></div>
-            <div class="editor-main-row">
-              <div class="ui-field field-group editor-name-field">
-                <label for="drawingCategoryInput">분류</label>
-                <select id="drawingCategoryInput">
-                  <option value="river">강</option><option value="lake">호수</option>
-                  <option value="territory">영토</option><option value="administrative">행정구역</option><option value="ethnicity">민족</option><option value="religion">종교</option><option value="language">언어</option><option value="custom">사용자 정의</option>
-                </select>
+            <section class="editor-section">
+              <h3 class="editor-section-title">영토 작업</h3>
+              <div class="editor-action-grid editor-action-grid-two">
+                <button id="annexTerritoryBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></button>
+                <button id="mergeCountryBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>국가 합병</strong><small>여러 국가를 하나로 합치기</small></button>
               </div>
-              <div class="ui-field field-group compact-color editor-color-field"><label for="drawingColorInput">색상</label><input id="drawingColorInput" type="color" value="#8c68d8" /></div>
-            </div>
-            <p class="editor-help">꼭짓점을 드래그해 형상을 수정할 수 있습니다.</p>
-          </section>
+            </section>
 
-          <details class="ui-disclosure editor-details">
-            <summary><span>상세 정보</span><small>ID · 메모</small><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
-            <div class="editor-details-body">
-              <div class="ui-field field-group"><label for="drawingIdInput">객체 ID</label><input id="drawingIdInput" type="text" readonly /></div>
-              <div class="ui-field field-group"><label for="drawingNotesInput">메모</label><textarea id="drawingNotesInput" rows="5"></textarea></div>
-            </div>
-          </details>
-          <button id="deleteDrawingInlineBtn" type="button" class="ui-button danger-btn editor-delete-btn">이 지형지물 삭제</button>
-        </form>
-
-        <form id="labelProperties" class="property-form editor-form hidden" onsubmit="return false;">
-          <section class="ui-card editor-card editor-card-primary">
-            <div class="editor-card-title">지명 정보</div>
-            <div class="ui-field field-group"><label for="labelNameInput">이름</label><input id="labelNameInput" type="text" /></div>
-            <div class="ui-field field-group">
-              <label for="labelKindInput">종류</label>
-              <select id="labelKindInput"><option value="capital">수도</option><option value="city">도시</option><option value="town">마을</option><option value="region">지역명</option><option value="mountain">산</option><option value="water">수역</option><option value="custom">기타</option></select>
-            </div>
-          </section>
-
-          <details class="ui-disclosure editor-details">
-            <summary><span>상세 정보</span><small>메모</small><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
-            <div class="editor-details-body">
-              <div class="ui-field field-group"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div>
-            </div>
-          </details>
-          <button id="deleteLabelBtn" type="button" class="ui-button danger-btn editor-delete-btn">이 지명 삭제</button>
-        </form>
-
-        <section id="hydroProperties" class="property-form editor-form hidden">
-          <section class="ui-card editor-card editor-card-primary">
-            <div class="editor-card-title">내장 수계 정보</div>
-            <div class="ui-info-list meta-card compact-meta">
-              <div><span>이름</span><strong id="hydroNameValue">—</strong></div>
-              <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
-            </div>
-            <p class="editor-help">내장 수계는 원본 보호를 위해 잠겨 있습니다. 수정하려면 편집용 복사본을 만드세요.</p>
-          </section>
-          <button id="copyHydroBtn" type="button" class="ui-button btn wide">편집용 복사 만들기</button>
-          <details class="ui-disclosure editor-details hydro-data-details">
-            <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
-            <div class="editor-details-body">
-              <div class="ui-info-list meta-card compact-meta">
-                <div><span>레이어</span><strong id="hydroLayerValue">—</strong></div>
-                <div><span>대표 수계</span><strong id="hydroSystemValue">—</strong></div>
-                <div><span>포함 지류</span><strong id="hydroTributaryValue">—</strong></div>
-                <div><span>출처</span><strong id="hydroSourceValue">Natural Earth 5.0.0 1:10m</strong></div>
+            <details class="ui-disclosure editor-disclosure">
+              <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
+              <div class="editor-disclosure-body">
+                <div class="ui-field field-group editor-field"><label for="notesInput">메모</label><textarea id="notesInput" rows="5" placeholder="국가에 관한 메모를 입력하세요."></textarea></div>
+                <div class="ui-info-list editor-info-list">
+                  <div><span>국가 코드</span><output id="countryCodeInput">—</output></div>
+                  <div><span>기본 국명</span><strong id="originalNameValue">—</strong></div>
+                </div>
               </div>
-            </div>
-          </details>
-        </section>
+            </details>
+
+            <details class="ui-disclosure editor-disclosure" id="countryAdvancedDetails">
+              <summary><span>고급 작업</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
+              <div class="editor-disclosure-body">
+                <div class="editor-inline-action">
+                  <div class="editor-inline-copy">
+                    <strong>해안선 수정</strong>
+                    <span>간척·매립·해수면 변화가 필요한 경우에만 사용하세요.</span>
+                  </div>
+                  <button id="editCoastBtn" type="button" class="ui-button btn ghost editor-inline-action-button">해안선 수정</button>
+                </div>
+              </div>
+            </details>
+
+            <section class="editor-danger-zone">
+              <h3 class="editor-section-title">위험 작업</h3>
+              <button id="deleteCountryBtn" type="button" class="ui-button danger-btn editor-delete-btn">국가 삭제</button>
+            </section>
+          </form>
+
+          <form id="drawingProperties" class="editor-view hidden" onsubmit="return false;">
+            <section class="editor-section editor-section-primary">
+              <h3 class="editor-section-title">기본 정보</h3>
+              <div class="ui-field field-group editor-field"><label for="drawingNameInput">이름</label><input id="drawingNameInput" type="text" placeholder="예: 라인강" /></div>
+              <div class="editor-field-grid editor-field-grid-color">
+                <div class="ui-field field-group editor-field">
+                  <label for="drawingCategoryInput">분류</label>
+                  <select id="drawingCategoryInput">
+                    <option value="river">강</option><option value="lake">호수</option>
+                    <option value="territory">영토</option><option value="administrative">행정구역</option><option value="ethnicity">민족</option><option value="religion">종교</option><option value="language">언어</option><option value="custom">사용자 정의</option>
+                  </select>
+                </div>
+                <div class="ui-field field-group editor-field editor-color-field"><label for="drawingColorInput">색상</label><input id="drawingColorInput" type="color" value="#8c68d8" /></div>
+              </div>
+              <p class="editor-help">꼭짓점을 드래그해 형상을 수정할 수 있습니다.</p>
+            </section>
+
+            <details class="ui-disclosure editor-disclosure">
+              <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
+              <div class="editor-disclosure-body">
+                <div class="ui-info-list editor-info-list"><div><span>객체 ID</span><output id="drawingIdInput">—</output></div></div>
+                <div class="ui-field field-group editor-field"><label for="drawingNotesInput">메모</label><textarea id="drawingNotesInput" rows="5"></textarea></div>
+              </div>
+            </details>
+
+            <section class="editor-danger-zone">
+              <h3 class="editor-section-title">위험 작업</h3>
+              <button id="deleteDrawingInlineBtn" type="button" class="ui-button danger-btn editor-delete-btn">지형지물 삭제</button>
+            </section>
+          </form>
+
+          <form id="labelProperties" class="editor-view hidden" onsubmit="return false;">
+            <section class="editor-section editor-section-primary">
+              <h3 class="editor-section-title">기본 정보</h3>
+              <div class="ui-field field-group editor-field"><label for="labelNameInput">이름</label><input id="labelNameInput" type="text" /></div>
+              <div class="ui-field field-group editor-field">
+                <label for="labelKindInput">종류</label>
+                <select id="labelKindInput"><option value="capital">수도</option><option value="city">도시</option><option value="town">마을</option><option value="region">지역명</option><option value="mountain">산</option><option value="water">수역</option><option value="custom">기타</option></select>
+              </div>
+            </section>
+
+            <details class="ui-disclosure editor-disclosure">
+              <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
+              <div class="editor-disclosure-body">
+                <div class="ui-field field-group editor-field"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div>
+              </div>
+            </details>
+
+            <section class="editor-danger-zone">
+              <h3 class="editor-section-title">위험 작업</h3>
+              <button id="deleteLabelBtn" type="button" class="ui-button danger-btn editor-delete-btn">지명 삭제</button>
+            </section>
+          </form>
+
+          <section id="hydroProperties" class="editor-view hidden">
+            <section class="editor-section editor-section-primary">
+              <h3 class="editor-section-title">수계 정보</h3>
+              <div class="ui-info-list editor-info-list">
+                <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
+              </div>
+              <p class="editor-help">내장 수계는 직접 수정할 수 없습니다. 복사본을 만들어 편집하세요.</p>
+            </section>
+
+            <button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button>
+
+            <details class="ui-disclosure editor-disclosure hydro-data-details">
+              <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
+              <div class="editor-disclosure-body">
+                <div class="ui-info-list editor-info-list">
+                  <div><span>수계 ID</span><strong id="hydroIdValue">—</strong></div>
+                  <div id="hydroSystemRow"><span>대표 수계</span><strong id="hydroSystemValue">—</strong></div>
+                  <div><span>구성</span><strong id="hydroTributaryValue">—</strong></div>
+                  <div><span>출처</span><strong id="hydroSourceValue">Natural Earth 5.0.0 1:10m</strong></div>
+                </div>
+              </div>
+            </details>
+          </section>
+        </div>
       </aside>
     </div>
   </div>
@@ -381,7 +401,7 @@
           <label class="ui-field field-group gis-wide"><span>국가 경계 Polygon 레이어</span><select id="gisLayerSelect"></select><small id="gisLayerDetails">레이어 정보를 불러오는 중입니다.</small></label>
           <label class="ui-field field-group"><span>국가 ID 필드</span><select id="gisIdField"></select></label>
           <label class="ui-field field-group"><span>국명 필드</span><select id="gisNameField"></select></label>
-          <label class="ui-field field-group"><span>지도색</span><select id="gisColorField"></select></label>
+          <label class="ui-field field-group"><span>국가 색상</span><select id="gisColorField"></select></label>
           <label class="ui-field field-group"><span>원본 CRS</span><input id="gisCrsInput" type="text" inputmode="numeric" placeholder="EPSG:4326" /></label>
           <label class="ui-choice-row gis-check gis-wide"><input id="gisGroupDuplicates" type="checkbox" checked /><span>같은 ID의 여러 행을 하나의 MultiPolygon 국가로 묶기</span></label>
           <label class="ui-field field-group"><span>열기 방식</span><select id="gisOpenMode"><option value="replace">새 프로젝트로 열기</option><option value="merge">현재 지도에 병합</option></select></label>
@@ -405,7 +425,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.18.1" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.18.1" defer></script>
+  <script src="assets/js/gis-io.js?v=0.19.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.19.0" defer></script>
 </body>
 </html>

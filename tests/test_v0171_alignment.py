@@ -10,7 +10,9 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 class V0171AlignmentTests(unittest.TestCase):
     def test_panel_internal_dividers_are_removed(self):
         self.assertIn(".panel-section { padding: 15px; border-bottom: 0; }", CSS)
-        self.assertIn(".editor-details[open] > summary { border-bottom: 0; }", CSS)
+        self.assertIn(".editor-disclosure > summary {", CSS)
+        disclosure_rules = CSS[CSS.rindex(".editor-disclosure > summary {"):]
+        self.assertIn("border: 0;", disclosure_rules[:500])
         self.assertIn(".mobile-sheet-header {", CSS)
         self.assertIn("border-bottom: 0;", CSS)
 
@@ -30,8 +32,8 @@ class V0171AlignmentTests(unittest.TestCase):
         self.assertIn('#app[data-layout="mobile"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }', CSS)
 
     def test_version_is_updated(self):
-        self.assertIn('data-app-version="0.18.1"', INDEX)
-        self.assertIn("app.css?v=0.18.1", INDEX)
+        self.assertIn('data-app-version="0.19.0"', INDEX)
+        self.assertIn("app.css?v=0.19.0", INDEX)
 
 
 if __name__ == "__main__":

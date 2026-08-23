@@ -45,9 +45,9 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertIn(">경계 그리기</button>", INDEX)
         self.assertIn(">영토 선택</button>", INDEX)
         self.assertNotIn("개 점 연결", APP)
-        self.assertIn("width: 248px", CSS)
-        self.assertIn("top: 84px", CSS)
-        self.assertIn("mode-command-visible", APP)
+        self.assertIn(".mode-action-bar .mode-method-switch { width: 224px; }", CSS)
+        self.assertIn('id="modeTaskInstruction"', INDEX)
+        self.assertNotIn("mode-command-visible", APP + CSS)
 
     def test_merge_finishes_without_prompt_or_confirmation(self):
         merge = source_section(APP, "function completeCountryMerge", "function cancelDraft")
