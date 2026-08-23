@@ -16,7 +16,7 @@ class EditorLayoutV0163Tests(unittest.TestCase):
         self.assertIn(".map-context-panel.has-active-context", CSS)
 
     def test_editor_stops_above_the_status_line_in_every_layout(self):
-        self.assertIn('#app[data-layout="wide"] .map-bottom-status { left: var(--panel-left-width); right: 0; }', CSS)
+        self.assertIn('#app[data-layout="wide"] .map-bottom-status { left: 0; right: 0; }', CSS)
         self.assertIn('#app[data-layout="compact"] .map-bottom-status { left: 0; right: 0; }', CSS)
         self.assertGreaterEqual(CSS.count("bottom: 42px;"), 3)
         self.assertIn("bottom: calc(104px + env(safe-area-inset-bottom));", CSS)

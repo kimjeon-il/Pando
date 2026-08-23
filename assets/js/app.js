@@ -1,4 +1,4 @@
-/* AtlasWright v0.17.0
+/* AtlasWright v0.18.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.17.0';
+  const APP_VERSION = '0.18.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -2901,14 +2901,6 @@
       ? (hasRecoveryAction ? detail : `${detail} ${fallbackMessage}`)
       : `${fallbackMessage} 다시 시도해도 문제가 계속되면 오류 코드 ${code}를 확인하세요.`;
     setActionStatus(message, 'error', timeout);
-  }
-
-  function flashButton(button) {
-    if (!button || button.disabled || button.matches('.layer-folder-toggle, .layer-folder-name, .layer-child-name, .projection-btn, .mode-method-btn')) return;
-    button.classList.remove('button-flash');
-    void button.offsetWidth;
-    button.classList.add('button-flash');
-    setTimeout(() => button.classList.remove('button-flash'), 260);
   }
 
   function showFatalError(error) {
@@ -7938,8 +7930,6 @@
       if (!event.target.closest('#notificationCloseBtn')) clearErrorNotification();
     }, true);
     document.addEventListener('click', e => {
-      const button = e.target.closest('button');
-      if (button) flashButton(button);
       if (!e.target.closest('.top-actions') && !e.target.closest('#mobileFileBtn')) {
         document.querySelector('.top-actions')?.classList.remove('mobile-open');
         syncMobileBackdrop();
