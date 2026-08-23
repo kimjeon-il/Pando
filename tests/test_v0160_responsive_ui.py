@@ -34,9 +34,10 @@ class ResponsiveUiV0160Tests(unittest.TestCase):
         self.assertIn('#app[data-layout="mobile"] .adaptive-nav', CSS)
         self.assertIn("if (layoutMode === 'wide')", APP)
 
-    def test_selection_editor_only_auto_opens_in_wide_layout(self):
-        self.assertIn("if (layoutMode === 'wide')", APP[APP.index("function openSelectionEditor"):APP.index("function toggleEditorPanel")])
-        self.assertIn("editorPanelOpenReason = 'auto'", APP)
+    def test_selection_updates_the_editor_without_forcing_panels_open(self):
+        selection_editor = APP[APP.index("function openSelectionEditor"):APP.index("function toggleEditorPanel")]
+        self.assertNotIn("classList.add('mobile-open')", selection_editor)
+        self.assertNotIn("editorPanelOpenReason = 'auto'", APP)
         self.assertIn("needs-attention", APP)
 
 

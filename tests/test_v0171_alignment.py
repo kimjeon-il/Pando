@@ -16,14 +16,18 @@ class V0171AlignmentTests(unittest.TestCase):
         self.assertIn(".mobile-sheet-header {", CSS)
         self.assertIn("border-bottom: 0;", CSS)
 
-    def test_status_groups_keep_semantic_columns(self):
-        self.assertIn(".status-view { grid-column: 1;", CSS)
-        self.assertIn(".status-primary { grid-column: 2;", CSS)
-        self.assertIn(".status-selection { grid-column: 3;", CSS)
-        self.assertIn("padding-left: calc(var(--map-safe-left) + var(--ui-space-3));", CSS)
-        self.assertIn("padding-right: calc(var(--map-safe-right) + var(--ui-space-3));", CSS)
-        self.assertIn("transition: padding-left 170ms ease, padding-right 170ms ease;", CSS)
-        self.assertIn('#app[data-layout="wide"] .map-bottom-status { left: 0; right: 0; }', CSS)
+    def test_status_groups_use_one_left_aligned_safe_area_row(self):
+        self.assertIn('class="status-inner"', INDEX)
+        self.assertIn(".status-inner {", CSS)
+        self.assertIn("left: var(--map-safe-left, 0px);", CSS)
+        self.assertIn("right: var(--map-safe-right, 0px);", CSS)
+        self.assertIn("display: flex;", CSS)
+        self.assertIn("transition: left 170ms ease, right 170ms ease;", CSS)
+        self.assertNotIn(".status-view { grid-column:", CSS)
+        self.assertNotIn(".status-primary { grid-column:", CSS)
+        self.assertNotIn(".status-selection { grid-column:", CSS)
+        self.assertNotIn("#selectionStatus { margin-left: auto;", CSS)
+        self.assertNotIn(".status-primary { grid-column: 2; justify-self: center; padding-inline: var(--ui-space-3); border-inline:", CSS)
 
     def test_toolbar_and_scroll_gutters_are_symmetric(self):
         self.assertIn("scrollbar-gutter: stable both-edges", CSS)
@@ -32,8 +36,8 @@ class V0171AlignmentTests(unittest.TestCase):
         self.assertIn('#app[data-layout="mobile"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }', CSS)
 
     def test_version_is_updated(self):
-        self.assertIn('data-app-version="0.19.0"', INDEX)
-        self.assertIn("app.css?v=0.19.0", INDEX)
+        self.assertIn('data-app-version="0.20.0"', INDEX)
+        self.assertIn("app.css?v=0.20.0", INDEX)
 
 
 if __name__ == "__main__":
