@@ -816,7 +816,6 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .mobile-sheet-header::before { background: #b1bbc4; }
   .mobile-bottom-bar button.sheet-open { background: #e8edf1; color: #26313b; box-shadow: none; }
   .mobile-zoom-dock button:active { background: #dce8f7; border-color: #87a7cf; }
-  .mobile-zoom-value { color: var(--accent); }
   .startup-probe { border-color: #87a7cf; background: #eaf2fc; color: #1f416d; }
   .editor-empty .empty-icon { border-color: #cbd2d9; background: #f1f3f6; }
   .country-actions-card { background: linear-gradient(180deg, #f3f7fc, #f7f8fa); border-color: #9bb5d5; }
@@ -1026,6 +1025,15 @@ body { font-size: var(--ui-font-body); }
   box-shadow: none; text-align: left; font-size: var(--ui-font-caption);
 }
 .map-bottom-status { min-height: 30px; gap: var(--ui-space-4); padding: 5px var(--ui-space-3); font-size: var(--ui-font-caption); }
+.current-tool-status { min-width: 0; overflow: hidden; color: var(--text-soft); text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 800px) {
+  .current-tool-status {
+    position: absolute;
+    left: 50%;
+    max-width: 32%;
+    transform: translateX(-50%);
+  }
+}
 .mode-action-bar {
   top: auto; bottom: 42px; gap: var(--ui-space-2); padding: 6px; border-radius: var(--ui-radius-panel);
 }
@@ -1126,10 +1134,11 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-regular);
 }
-.map-context-heading { align-items: baseline; min-height: 21px; }
+.map-context-heading { align-items: center; min-height: 21px; }
 .current-tool-label {
-  font-size: var(--ui-font-sm);
+  font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-tight);
   letter-spacing: 0;
 }
 .current-tool strong {
@@ -1371,7 +1380,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 #app[data-layout="mobile"] .mobile-sheet-header .sheet-close-btn .ui-icon { width: 20px; height: 20px; }
 
-/* ===== AtlasWright v0.16.1: map-first responsive workspace ===== */
+/* ===== AtlasWright v0.16.3: map-first responsive workspace ===== */
 #app {
   grid-template-rows: var(--ui-topbar-height) minmax(0, 1fr);
 }
@@ -1419,6 +1428,32 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
 }
 
+/* Keep the editor compact enough to preserve the map and status line. */
+.editor-header { padding: 12px 14px 10px; }
+.editor-title-row { margin-bottom: 5px; }
+.editor-form { padding: 10px; gap: 9px; }
+.editor-card { padding: 11px; }
+.editor-card-title { margin-bottom: 8px; }
+.editor-form .field-group { gap: 4px; }
+.editor-main-row { gap: 8px; }
+.editor-main-row + .field-group { margin-top: 8px; }
+.country-action-grid { gap: 8px; }
+.country-action-btn,
+.country-action-btn.annex-action { min-height: 68px; padding: 8px; }
+.country-action-hint { margin-top: 7px; }
+.simple-flag-editor { grid-template-columns: 104px minmax(0, 1fr); }
+.simple-flag-editor .flag-preview { min-height: 66px; }
+.editor-details > summary { min-height: 44px; }
+.editor-details-body { gap: 10px; padding: 10px; }
+
+/* Default work state lives in the status line; active instructions stay on-map. */
+.map-context-panel { display: none; }
+.map-context-panel.has-active-context {
+  display: flex;
+  left: calc(var(--map-safe-left) + (100% - var(--map-safe-left) - var(--map-safe-right)) / 2);
+  transform: translateX(-50%);
+}
+
 .map-command-toolbar,
 .map-view-toolbar {
   top: 12px;
@@ -1450,8 +1485,8 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 
 .map-bottom-status {
-  left: var(--map-safe-left);
-  right: var(--map-safe-right);
+  left: 0;
+  right: 0;
   transition: left 170ms ease, right 170ms ease;
 }
 
@@ -1472,6 +1507,8 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   --map-safe-right: calc(var(--panel-right-width) + 12px);
 }
 
+#app[data-layout="wide"] .map-bottom-status { left: var(--panel-left-width); right: 0; }
+
 #app[data-layout="wide"] .left-panel {
   inset: 0 auto 0 0;
   width: var(--panel-left-width);
@@ -1490,7 +1527,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 #app[data-layout="wide"] .right-panel.collapsed {
   top: 12px;
   right: 12px;
-  bottom: 12px;
+  bottom: 42px;
   left: auto;
   width: var(--panel-right-width);
   border: 1px solid var(--border);
@@ -1517,8 +1554,8 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   z-index: 3;
   align-items: center;
   justify-content: space-between;
-  min-height: 54px;
-  padding: 7px 10px 7px 16px;
+  min-height: 50px;
+  padding: 2px 6px 2px 14px;
   border-bottom: 1px solid var(--border);
   background: var(--surface-elevated);
 }
@@ -1542,11 +1579,13 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   --map-safe-right: calc(var(--compact-drawer-width) + 12px);
 }
 
+#app[data-layout="compact"] .map-bottom-status { left: var(--compact-rail-width); right: 0; }
+
 #app[data-layout="compact"] .left-panel,
 #app[data-layout="compact"] .right-panel,
 #app[data-layout="compact"] .right-panel.collapsed {
   top: 12px;
-  bottom: 12px;
+  bottom: 42px;
   width: var(--compact-drawer-width);
   max-height: none;
   border: 1px solid var(--border);
@@ -1586,8 +1625,8 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   z-index: 3;
   align-items: center;
   justify-content: space-between;
-  min-height: 54px;
-  padding: 7px 10px 7px 16px;
+  min-height: 50px;
+  padding: 2px 6px 2px 14px;
   border-bottom: 1px solid var(--border);
   background: var(--surface-elevated);
 }
@@ -1700,7 +1739,7 @@ body[data-layout="mobile"] {
   z-index: 100;
   top: auto;
   right: 8px;
-  bottom: calc(72px + env(safe-area-inset-bottom));
+  bottom: calc(104px + env(safe-area-inset-bottom));
   left: 8px;
   width: auto;
   max-height: min(76dvh, 700px);
@@ -1789,23 +1828,23 @@ body[data-layout="mobile"].responsive-overlay-open .mobile-backdrop {
   z-index: 18;
   right: 8px;
   bottom: calc(112px + env(safe-area-inset-bottom));
-  width: 56px;
-  grid-template-rows: 50px 28px 50px 44px;
-  gap: 5px;
-  padding: 4px;
-  border: 1px solid var(--mobile-zoom-border);
+  width: 54px;
+  grid-template-rows: repeat(3, var(--ui-touch-height));
+  gap: var(--ui-space-1);
+  padding: 3px;
+  border: 1px solid var(--toolbar-border);
   border-radius: var(--ui-radius-panel);
-  background: var(--mobile-zoom-bg);
-  box-shadow: var(--mobile-zoom-shadow);
+  background: var(--toolbar-bg);
+  box-shadow: var(--shadow);
 }
-#app[data-layout="mobile"] .mobile-zoom-dock button { width: 46px; height: 100%; display: grid; place-items: center; padding: 0; border-radius: 9px; }
+#app[data-layout="mobile"] .mobile-zoom-dock button { width: var(--ui-touch-height); height: var(--ui-touch-height); display: grid; place-items: center; padding: 0; border-radius: var(--ui-radius-control); }
 #app[data-layout="mobile"] .mobile-zoom-dock .ui-icon { width: 22px; height: 22px; }
-#app[data-layout="mobile"] .mobile-zoom-value { min-height: 28px; font-size: var(--ui-font-caption); }
 #app[data-layout="mobile"] .map-context-panel {
   top: 8px;
-  left: 8px;
-  width: min(196px, calc(100% - 124px));
-  max-width: calc(100% - 124px);
+  left: 50%;
+  width: min(304px, calc(100% - 16px));
+  max-width: calc(100% - 16px);
+  transform: translateX(-50%);
 }
 #app[data-layout="mobile"] .map-context-panel.has-active-context { width: min(304px, calc(100% - 16px)); max-width: calc(100% - 16px); }
 #app[data-layout="mobile"] .mode-action-bar {
@@ -1837,11 +1876,13 @@ body[data-layout="mobile"].responsive-overlay-open .mobile-backdrop {
   bottom: calc(64px + env(safe-area-inset-bottom));
   left: 0;
   min-height: 32px;
+  gap: var(--ui-space-2);
 }
 #app[data-layout="mobile"] #coordStatus { display: none !important; }
+#app[data-layout="mobile"] .current-tool-status { max-width: 31vw; }
 #app[data-layout="mobile"] #selectionStatus {
   margin-left: auto;
-  max-width: 52vw;
+  max-width: 31vw;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -1,4 +1,4 @@
-/* AtlasWright v0.16.1
+/* AtlasWright v0.16.3
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.16.1';
+  const APP_VERSION = '0.16.3';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -2831,7 +2831,9 @@
   }
 
   function setCurrentTool(name) {
-    $('currentToolName').textContent = name || '선택·편집';
+    const currentName = name || '선택·편집';
+    $('currentToolName').textContent = currentName;
+    if ($('currentToolStatus')) $('currentToolStatus').textContent = `작업 · ${currentName}`;
     $('currentTool')?.classList.remove('is-collapsed');
     scheduleMapContextCollapse();
   }
@@ -4335,8 +4337,6 @@
     $('zoomStatus').textContent = state.projection === 'globe'
       ? `지구본 ×${zoom.toFixed(1)}`
       : `평면 ×${zoom.toFixed(1)}`;
-    const mobileValue = $('mobileZoomValue');
-    if (mobileValue) mobileValue.textContent = `×${zoom.toFixed(1)}`;
   }
 
   function isCoordVisible(coord) {
