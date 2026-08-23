@@ -11,8 +11,8 @@ CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 class MobileStatusV0164Tests(unittest.TestCase):
     def test_status_bar_has_three_semantic_groups(self):
         self.assertIn('class="status-group status-view"', INDEX)
-        self.assertIn('class="status-group status-primary"', INDEX)
-        self.assertIn('class="status-group status-selection"', INDEX)
+        self.assertIn('class="status-group status-primary hidden"', INDEX)
+        self.assertIn('class="status-group status-selection hidden"', INDEX)
         self.assertIn("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);", CSS)
         self.assertIn("border-inline: 1px solid var(--map-status-border);", CSS)
 
