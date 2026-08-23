@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.6 water shard, Range, and persistent-cache worker. */
+/* AtlasWright v0.13.0 water-system shard, Range, and persistent-cache worker. */
 'use strict';
 
 importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js');
@@ -81,7 +81,7 @@ function readGlobalIndex(bytes) {
 
 function readFeatureMetadata(bytes) {
   const payload = JSON.parse(textDecoder.decode(bytes));
-  if (Number(payload?.version) !== 4 || !Array.isArray(payload?.features)) {
+  if (Number(payload?.version) !== 5 || !Array.isArray(payload?.features)) {
     throw new Error('수계 메타데이터 버전이 올바르지 않습니다.');
   }
   for (const row of payload.features) featureMetadata.set(Number(row.fid), row);
@@ -93,7 +93,7 @@ async function ensureDetailMetadata() {
   if (!detailUrl) return null;
   detailMetadataPromise = fetchGzip(detailUrl).then(bytes => {
     const payload = JSON.parse(textDecoder.decode(bytes));
-    if (Number(payload?.version) !== 4 || !Array.isArray(payload?.features)) {
+    if (Number(payload?.version) !== 5 || !Array.isArray(payload?.features)) {
       throw new Error('수계 상세 메타데이터 버전이 올바르지 않습니다.');
     }
     for (const row of payload.features) {
@@ -346,6 +346,9 @@ function readPack(bytes, packId) {
         fragment_index: fragmentIndex, fragment_count: fragmentCount,
         aw_id: metadata.awId, layer_id: metadata.layerId, category: kind === 1 ? 'river' : 'lake', name: metadata.name || '', name_ko: metadata.name || '',
         source_id: metadata.sourceId || '', source: metadata.source || '',
+        system_id: metadata.systemId || '', mainstem_name_ko: metadata.mainstemNameKo || metadata.name || '',
+        role: metadata.role || '', aliases: metadata.aliases || [], tributary_names: metadata.tributaryNames || [],
+        osm_relation_ids: metadata.osmRelationIds || [],
         min_zoom: manifest.stages[stage].minZoom, stage, stroke_width: width, stroke_widths: widthProfile, pack_id: packId,
       },
       geometry, __awBounds: bounds,
@@ -354,6 +357,7 @@ function readPack(bytes, packId) {
     descriptors.push({
       fid, logicalFid, flags, fragmentIndex, fragmentCount,
       awId: metadata.awId, name: metadata.name || '', source: metadata.source || '',
+      systemId: metadata.systemId || '', mainstemNameKo: metadata.mainstemNameKo || metadata.name || '', role: metadata.role || '',
       sourceId: metadata.sourceId || '', layerId: metadata.layerId,
       category: kind === 1 ? 'river' : 'lake', minZoom: manifest.stages[stage].minZoom,
       stage, width, packId, bounds: metadata.bounds || bounds.map(value => Math.round(value * 1e6)),

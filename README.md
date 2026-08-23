@@ -1,4 +1,4 @@
-# AtlasWright v0.12.6
+# AtlasWright v0.13.0
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
@@ -26,6 +26,8 @@ python -m http.server 8080
 
 화면 크기나 방향이 바뀌어도 선택 객체, 입력 중인 편집선과 지도 카메라는 유지됩니다. 패널의 열림 상태는 임시 UI 상태이며 자동저장이나 GeoPackage에는 기록되지 않습니다.
 
+v0.13.0에서는 UI 본문을 14px, 보조 문구를 최소 12px로 통일하고 국가·지명 라벨도 확대했습니다. 선택 국가는 기존 2px 외곽선과 함께 테마 강조색의 옅은 반투명 면으로 표시됩니다. 영토 편입을 시작하거나 피편입국을 선택해도 현재 지구본 회전·중심·확대율을 바꾸지 않습니다.
+
 국가 선택은 지도의 기본 동작입니다. 새 국가·지명·강·호수는 지도 위 `추가` 메뉴에서 만들며, 활성 편집의 완료·선택 방식 전환·취소는 지도 하단 작업 바에만 표시됩니다. 진행·성공·오류 알림은 상단 중앙 한곳에서 안내합니다.
 
 ## 레이어 폴더
@@ -50,11 +52,13 @@ AtlasWright는 운영체제·브라우저의 `prefers-color-scheme` 설정을 �
 
 보기 패널에서 `국가색 + 음영`과 `지형색 강조`를 전환하고 음영 강도를 조절할 수 있습니다. 지형은 Natural Earth raster 3.2.0의 `GRAY_HR_SR_OB`, 무수계 `HYP_HR_SR`, 해저 지형용 `HYP_HR_SR_OB_DR` 21,600×10,800 원본을 결합한 무손실 WebP 타일 피라미드입니다. RGB에는 강·호수가 중복되지 않는 육지 지형색과 해저 수심을, 알파 채널에는 중립 음영을 넣습니다. 초기 국가지도 로딩을 막지 않으며 현재 화면에 필요한 단계의 타일만 불러옵니다.
 
-강은 HydroRIVERS 1.0을 사용합니다. `ORD_STRA + 4×log10(DIS_AV_CMS) - 0.5×log10(UPLAND_SKM)` 중요도 기준으로 선별하고, 최종 유역면적 2,500㎢ 이상인 유역은 대표 본류를 발원부부터 하구·내륙 종점까지 보존합니다. 추가 본류는 최고 세부 단계부터만 표시합니다. 강 너비는 유량과 하천 차수로 계산하고 하류가 상류보다 가늘어지지 않게 보정합니다. 선택된 Hydro 원본 꼭짓점은 단순화하지 않고 1e-6° 정밀도로 저장합니다.
+강은 HydroRIVERS 1.0을 사용합니다. `ORD_STRA + 4×log10(DIS_AV_CMS) - 0.5×log10(UPLAND_SKM)` 중요도 기준으로 선별하고, 최종 유역면적 2,500㎢ 이상인 유역은 대표 본류를 발원부부터 하구·내륙 종점까지 보존합니다. 추가 본류는 최고 세부 단계부터만 표시합니다. 같은 `MAIN_RIV`에 속한 본류와 표시 지류는 하나의 논리적 수계로 묶여 선택·숨김·편집용 복사가 함께 적용되며, 지류별 명칭과 역할은 상세 메타데이터에 보존됩니다. 강 너비는 유량과 하천 차수로 계산하고 하류가 상류보다 가늘어지지 않게 보정합니다. 선택된 Hydro 원본 꼭짓점은 단순화하지 않고 1e-6° 정밀도로 저장합니다.
+
+한국어 수계명은 검수 교정표, OpenStreetMap `name:ko`, Natural Earth 이름 순으로 적용합니다. `강·천·호·호수` 접미사는 고유명과 붙여 쓰며 `다뉴브강`은 `도나우강`으로 교정합니다. 검증된 이름이 없는 지류에는 이름을 임의 생성하지 않고 대표 수계에 포함하며, 수계 전체에 이름이 없을 때만 안정적인 ID가 붙은 `미명명 수계`로 표시합니다. OpenStreetMap 관계 자료는 빌드 시 명칭·관계 보강에만 사용하고 런타임 온라인 요청은 하지 않습니다. OSM 파생 정보는 [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)의 ODbL 조건을 따릅니다.
 
 호수는 Natural Earth 5.0.0 1:10m 전 세계 기본 `Lakes + Reservoirs` 1,355개를 사용합니다. 유럽·북미·호주 지역 보충 자료와 HydroLAKES 형상은 렌더링하지 않아 전 세계 표시 밀도를 일정하게 유지합니다. 162,852개 원본 좌표는 단순화하지 않습니다.
 
-내장 Natural Earth 국가 사이의 공유국경을 10km 이상 따라가는 강은 거리·표본 점유율·방향 조건을 모두 통과한 구간만 정확한 공유국경 경로에 맞춥니다. 국가 폴리곤과 사용자 편집 국경은 변경하지 않습니다. 정렬된 구간은 일반 강과 같은 논리 ID를 유지하며 국경 위에 다시 그려 중심선이 가려지지 않게 합니다.
+내장 Natural Earth 국가 사이의 공유국경을 10km 이상 따라가는 강은 거리·표본 점유율·방향 조건을 모두 통과한 구간만 진입점·이탈점에서 분할해 정확한 공유국경 경로로 교체합니다. 한 Hydro reach의 일부만 국경 역할을 해도 해당 구간만 정렬하며, 단순 횡단이나 짧은 평행 구간은 제외합니다. 국가 폴리곤과 사용자 편집 국경은 변경하지 않습니다. 정렬 전 Hydro 좌표와 국가 쌍은 상세 메타데이터에 보존하고, 정렬 구간은 같은 논리 수계 ID를 유지한 채 국경 위에 다시 그립니다.
 
 초기 실행에서는 100KiB 미만의 manifest와 압축 metadata를 Worker에서 읽고, 현재 화면과 확대 단계에 필요한 바이너리 타일만 복원합니다. 표시 pack에는 좌표만 들어 있으며 GeoJSON은 선택·편집용 복사 시에만 복원합니다. 인접 Range 요청은 합쳐 받고 GPU 업로드는 프레임별로 나눕니다. WebGL 캐시는 데스크톱 96MiB, 모바일 48MiB로 제한합니다. 자동 수계 라벨은 포함하지 않습니다.
 
@@ -83,7 +87,7 @@ python tools/calibrate-hydro.py `
 
 분석 출력은 안전상 `assets/data` 아래로 지정할 수 없습니다. 캘리브레이션 원본 결과는 [`reports/hydro-calibration`](reports/hydro-calibration/README.md)에 보존되어 있습니다.
 
-실제 v0.12.6 수계 샤드는 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile과 저장소의 Natural Earth `lakes_base.geojson`을 사용합니다. 생성기는 중형 본류를 하구까지 폐합하고, 내장 공유국경과 일치하는 구간을 표시용 형상으로 정렬한 뒤 논리 강별 fragment, Natural Earth 호수, 단일 공간 인덱스와 4MiB 이하 정적 샤드를 만듭니다. 표시 강의 종점은 바다·Natural Earth 호수·합류점·내륙 유역으로 분류하고, 같은 육지 안의 명확한 하구만 최대 25km 범위에서 연결합니다. Hydro 원본 연결망 자체가 해안에서 멀리 끊겨 안전하게 복구할 수 없는 경우에는 임의의 직선을 만들지 않고 해당 논리 강 전체를 제외하며 manifest 통계에 남깁니다.
+실제 v0.13.0 수계 샤드는 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile, 저장소의 Natural Earth `lakes_base.geojson`, 검수 교정표와 빌드용 OSM waterway 관계 내보내기를 사용합니다. 생성기는 중형 본류를 하구까지 폐합하고, 수계 단위 논리 ID와 본류·지류 역할을 만든 뒤 내장 공유국경과 일치하는 세부 구간을 표시용 형상으로 정렬합니다. 결과에는 Natural Earth 호수, 단일 공간 인덱스와 4MiB 이하 정적 샤드가 포함됩니다. 표시 강의 종점은 바다·Natural Earth 호수·합류점·내륙 유역으로 분류하고, 같은 육지 안의 명확한 하구만 최대 25km 범위에서 연결합니다. Hydro 원본 연결망 자체가 해안에서 멀리 끊겨 안전하게 복구할 수 없는 경우에는 임의의 직선을 만들지 않고 해당 논리 수계 전체를 제외하며 manifest 통계에 남깁니다.
 
 ```powershell
 python -m pip install -r tools/requirements-hydro-tiles.txt
@@ -91,7 +95,9 @@ python tools/build-hydro-tiles.py `
   --hydrorivers-root <HydroRIVERS-원본-폴더> `
   --natural-earth-root assets/data/hydro `
   --drainage-free-raster <HYP_HR_SR.tif> `
-  --output assets/data/hydro/v0.12.6
+  --osm-waterways assets/data/hydro/osm-waterway-ko-v0.13.0.json `
+  --hydronym-overrides assets/data/hydro/hydronym-ko-overrides.json `
+  --output assets/data/hydro/v0.13.0
 ```
 
 앱은 현재 화면의 샤드 범위를 먼저 불러온 뒤 지도 조작이 2초 동안 없을 때 전 세계 압축 샤드를 Cache Storage에 저장합니다. 지도 조작이나 전경 요청이 시작되면 다운로드를 일시 중지합니다. 압축 원본만 영구 저장하며 해제 형상과 GPU 버퍼는 데스크톱 96MiB, 모바일 48MiB LRU 범위를 유지합니다.
