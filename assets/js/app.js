@@ -1,4 +1,4 @@
-/* AtlasWright v0.15.0
+/* AtlasWright v0.16.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.15.0';
+  const APP_VERSION = '0.16.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -42,7 +42,7 @@
   const MAX_HISTORY = 30;
   const LAYOUT_QUERIES = {
     mobile: window.matchMedia('(max-width: 799px)'),
-    compact: window.matchMedia('(min-width: 800px) and (max-width: 1199px)'),
+    compact: window.matchMedia('(min-width: 800px) and (max-width: 1359px)'),
   };
 
   const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -160,6 +160,7 @@
   const usesOverlayEditor = () => layoutMode !== 'wide';
   let lastOverlayTrigger = null;
   let createMenuTrigger = null;
+  let editorPanelOpenReason = null;
   let mapContextCollapseTimer = 0;
 
   function scheduleMapContextCollapse(delay = 4200) {
@@ -199,16 +200,21 @@
     const fileMenu = document.querySelector('.top-actions');
     if (layoutMode === 'wide') {
       left?.classList.remove('mobile-open');
-      right?.classList.remove('mobile-open');
       fileMenu?.classList.remove('mobile-open');
-    } else if (layoutMode === 'compact') {
-      left?.classList.remove('mobile-open');
+      if (state?.selected && right && !right.classList.contains('mobile-open')) {
+        right.classList.remove('collapsed');
+        right.classList.add('mobile-open');
+        editorPanelOpenReason = 'auto';
+      }
+    } else {
       fileMenu?.classList.remove('mobile-open');
-    } else if (previous === 'wide') {
-      right?.classList.remove('mobile-open');
+      if (previous === 'wide' && editorPanelOpenReason === 'auto') {
+        right?.classList.remove('mobile-open');
+        editorPanelOpenReason = null;
+      }
     }
     syncMobileBackdrop();
-    if (layoutMode === 'mobile') syncMobileNavigation();
+    syncMobileNavigation();
     if (!initial && previous !== layoutMode) queueMapResize();
     return previous !== layoutMode;
   }
@@ -219,14 +225,18 @@
     $('mobileFileBtn')?.setAttribute('aria-expanded', String(!!fileOpen));
     const leftOpen = $('leftPanel')?.classList.contains('mobile-open');
     const rightOpen = $('rightPanel')?.classList.contains('mobile-open');
-    const overlayOpen = isMobile() ? (leftOpen || rightOpen || fileOpen) : isCompact() ? rightOpen : false;
+    const overlayOpen = isMobile() && (leftOpen || rightOpen || fileOpen);
+    const workspace = document.querySelector('.workspace');
+    workspace?.classList.toggle('layers-drawer-open', !!leftOpen);
+    workspace?.classList.toggle('editor-drawer-open', !!rightOpen);
     document.body.classList.toggle('mobile-sheet-open', !!overlayOpen);
     document.body.classList.toggle('responsive-overlay-open', !!overlayOpen);
     $('mobileMapBtn')?.classList.toggle('sheet-open', !!leftOpen);
     $('mobileMapBtn')?.setAttribute('aria-expanded', String(!!leftOpen));
     $('mobileEditBtn')?.classList.toggle('sheet-open', !!rightOpen);
     $('mobileEditBtn')?.setAttribute('aria-expanded', String(!!rightOpen));
-    $('togglePanelBtn')?.setAttribute('aria-expanded', String(layoutMode === 'wide' ? !$('rightPanel')?.classList.contains('collapsed') : !!rightOpen));
+    $('togglePanelBtn')?.classList.toggle('active', !!rightOpen);
+    $('togglePanelBtn')?.setAttribute('aria-expanded', String(!!rightOpen));
     $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
     syncMobileNavigation();
   }
@@ -273,15 +283,19 @@
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
     if (!isMobile() && !isCompact()) return;
     if (except !== 'left') $('leftPanel')?.classList.remove('mobile-open');
-    if (except !== 'right') $('rightPanel')?.classList.remove('mobile-open');
+    if (except !== 'right') {
+      $('rightPanel')?.classList.remove('mobile-open');
+      editorPanelOpenReason = null;
+    }
     if (except !== 'file') document.querySelector('.top-actions')?.classList.remove('mobile-open');
     syncMobileBackdrop();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
+    queueMapResize();
   }
 
   function toggleMobileSheet(which) {
-    if (layoutMode === 'wide' || (which === 'left' && !isMobile())) return;
+    if (layoutMode === 'wide') return;
     const map = { left: $('leftPanel'), right: $('rightPanel'), file: document.querySelector('.top-actions') };
     const el = map[which];
     if (!el) return;
@@ -289,9 +303,13 @@
     if (willOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeCreateMenu();
     closeMobileSheets(null, { restoreFocus: false });
-    if (willOpen) el.classList.add('mobile-open');
+    if (willOpen) {
+      el.classList.add('mobile-open');
+      if (which === 'right') editorPanelOpenReason = 'manual';
+    } else if (which === 'right') editorPanelOpenReason = null;
     syncMobileBackdrop();
-    if (willOpen) requestAnimationFrame(() => el.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true }));
+    if (willOpen && isMobile()) requestAnimationFrame(() => el.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true }));
+    queueMapResize();
   }
 
   function toggleFileMenu() {
@@ -307,7 +325,7 @@
   }
 
   function openMobileLeftAt() {
-    if (!isMobile()) return;
+    if (layoutMode === 'wide') return;
     const left = $('leftPanel');
     if (!left) return;
     const sameOpen = left.classList.contains('mobile-open');
@@ -317,27 +335,42 @@
     if (sameOpen) return;
     left.classList.add('mobile-open');
     syncMobileBackdrop();
-    requestAnimationFrame(() => {
+    if (isMobile()) requestAnimationFrame(() => {
       left.scrollTop = 0;
       left.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true });
     });
+    queueMapResize();
   }
 
   function openSelectionEditor() {
     const panel = $('rightPanel');
     if (!panel) return;
-    if (usesOverlayEditor()) {
-      lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      closeMobileSheets(null, { restoreFocus: false });
+    if (layoutMode === 'wide') {
       panel.classList.remove('collapsed');
       panel.classList.add('mobile-open');
+      editorPanelOpenReason = 'auto';
       syncMobileBackdrop();
       panel.scrollTop = 0;
+      queueMapResize();
     } else {
-      panel.classList.remove('collapsed');
-      document.querySelector('.workspace')?.classList.remove('panel-collapsed');
-      setTimeout(resizeMap, 40);
+      syncMobileNavigation();
     }
+  }
+
+  function toggleEditorPanel() {
+    const panel = $('rightPanel');
+    if (!panel) return;
+    if (layoutMode !== 'wide') {
+      toggleMobileSheet('right');
+      return;
+    }
+    const willOpen = !panel.classList.contains('mobile-open');
+    if (willOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    panel.classList.remove('collapsed');
+    panel.classList.toggle('mobile-open', willOpen);
+    editorPanelOpenReason = willOpen ? 'manual' : null;
+    syncMobileBackdrop();
+    queueMapResize();
   }
 
   function syncMobileNavigation() {
@@ -348,6 +381,7 @@
     $('addLabelBtn')?.classList.toggle('active', !!state?.labelPlacementMode || state?.tool === 'label');
     $('addRiverBtn')?.classList.toggle('active', state?.tool === 'river');
     $('addLakeBtn')?.classList.toggle('active', state?.tool === 'lake');
+    $('mobileEditBtn')?.classList.toggle('needs-attention', !!state?.selected && !$('rightPanel')?.classList.contains('mobile-open'));
   }
 
   let renderQueued = false;
@@ -4255,24 +4289,42 @@
     return state.projection === 'globe' ? globeProjection : flatProjection;
   }
 
+  function currentMapSafeInsets() {
+    const workspace = document.querySelector('.workspace');
+    if (!workspace) return { left: 0, right: 0, top: 0, bottom: 26 };
+    const styles = getComputedStyle(workspace);
+    const read = name => Math.max(0, Number.parseFloat(styles.getPropertyValue(name)) || 0);
+    return {
+      left: read('--map-safe-left'),
+      right: read('--map-safe-right'),
+      top: read('--map-safe-top'),
+      bottom: Math.max(26, read('--map-safe-bottom')),
+    };
+  }
+
   function updateProjection() {
     const { width, height } = state.size;
+    const safe = currentMapSafeInsets();
+    const contentWidth = Math.max(1, width - safe.left - safe.right);
+    const contentHeight = Math.max(1, height - safe.top - safe.bottom);
+    const centerX = safe.left + contentWidth / 2;
+    const centerY = safe.top + contentHeight / 2;
     if (state.projection === 'globe') {
-      const base = Math.max(60, Math.min(width, height - 26) * 0.455);
+      const base = Math.max(60, Math.min(contentWidth, contentHeight) * 0.455);
       globeProjection
-        .translate([width / 2, height / 2])
+        .translate([centerX, centerY])
         .scale(base * state.view.globeZoom)
         .rotate(state.view.globeRotation)
         .clipAngle(90);
       path.projection(globeProjection);
     } else {
-      const base = Math.max(30, width / (2 * Math.PI));
+      const base = Math.max(30, contentWidth / (2 * Math.PI));
       flatProjection
-        .translate([width / 2, height / 2])
+        .translate([centerX, centerY])
         .scale(base * state.view.flatZoom)
         .center(state.view.flatCenter)
         .rotate([0, 0, 0])
-        .clipExtent([[0, 0], [width, height - 25]]);
+        .clipExtent([[safe.left, safe.top], [width - safe.right, height - safe.bottom]]);
       path.projection(flatProjection);
     }
     updateZoomStatus();
@@ -6745,6 +6797,7 @@
     $('selectionStatus').textContent = '선택 없음';
     showPropertyForm(null);
     syncCountryActionButtons();
+    syncMobileNavigation();
     markLayerTreeDirty();
     renderAll();
   }
@@ -7906,7 +7959,16 @@
     });
     $('mobileEditBtn')?.addEventListener('click', () => toggleMobileSheet('right'));
     $('mobileCloseLeftBtn')?.addEventListener('click', () => closeMobileSheets(null, { restoreFocus: true }));
-    $('mobileCloseRightBtn')?.addEventListener('click', () => closeMobileSheets(null, { restoreFocus: true }));
+    $('mobileCloseRightBtn')?.addEventListener('click', () => {
+      if (layoutMode === 'wide') {
+        $('rightPanel')?.classList.remove('mobile-open');
+        editorPanelOpenReason = null;
+        syncMobileBackdrop();
+        queueMapResize();
+        if (lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
+        lastOverlayTrigger = null;
+      } else closeMobileSheets(null, { restoreFocus: true });
+    });
     $('createMenu')?.addEventListener('keydown', event => {
       const items = [...event.currentTarget.querySelectorAll('[role="menuitem"]')];
       const index = items.indexOf(document.activeElement);
@@ -8058,15 +8120,7 @@
     $('zoomOutBtn')?.addEventListener('click', () => zoomBy(0.8));
     $('zoomInBtn')?.addEventListener('click', () => zoomBy(1.25));
 
-    $('togglePanelBtn').addEventListener('click', () => {
-      if (usesOverlayEditor()) {
-        toggleMobileSheet('right');
-        return;
-      }
-      $('rightPanel').classList.toggle('collapsed');
-      document.querySelector('.workspace').classList.toggle('panel-collapsed');
-      setTimeout(resizeMap, 60);
-    });
+    $('togglePanelBtn').addEventListener('click', toggleEditorPanel);
 
     $('saveProjectBtn').addEventListener('click', saveGeoPackageFile);
     $('openGisBtn').addEventListener('click', () => {
@@ -8112,6 +8166,19 @@
     document.addEventListener('keydown', e => {
       const tag = document.activeElement?.tagName;
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
+      if (e.key === 'Tab' && isMobile() && document.body.classList.contains('responsive-overlay-open')) {
+        const activeSheet = [$('leftPanel'), $('rightPanel'), document.querySelector('.top-actions')]
+          .find(element => element?.classList.contains('mobile-open'));
+        const focusable = activeSheet
+          ? [...activeSheet.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')]
+          : [];
+        if (focusable.length) {
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }
       if (e.key === 'Escape') {
         if (!$('gisImportModal')?.classList.contains('hidden')) { $('gisImportCancelBtn')?.click(); return; }
         if (!$('confirmModal')?.classList.contains('hidden')) { closeConfirmModal(); return; }
@@ -8121,6 +8188,14 @@
         else if (['new-country', 'annex-territory', 'merge-country', 'country-coast'].includes(state.tool)) cancelActiveMode();
         else if (state.draftCoords.length) cancelDraft(true);
         else if (document.body.classList.contains('responsive-overlay-open')) closeMobileSheets(null, { restoreFocus: true });
+        else if ($('rightPanel')?.classList.contains('mobile-open')) {
+          $('rightPanel').classList.remove('mobile-open');
+          editorPanelOpenReason = null;
+          syncMobileBackdrop();
+          queueMapResize();
+          if (lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
+          lastOverlayTrigger = null;
+        }
         else if (!$('actionStatus')?.classList.contains('hidden')) clearNotification();
         else clearSelection();
       }
