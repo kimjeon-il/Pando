@@ -569,9 +569,11 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .draft-shape.annex-draft { fill: rgba(108,177,119,.18); stroke: #9ee0a9; }
 .country-highlight-fill.annex-editing { fill: rgba(104,190,126,.16); }
 .country-highlight-fill.annex-donor { fill: rgba(153,111,205,.16); }
+.country-highlight-fill.merge-target { fill: rgba(153,111,205,.16); }
 .country-highlight-fill.new-country-source { fill: rgba(226,201,130,.14); }
 .country-shape.annex-editing { fill: none !important; stroke: #9ee0a9 !important; stroke-width: 2.4px !important; }
 .country-shape.annex-donor { fill: none !important; stroke: #d8b5ff !important; stroke-width: 2.6px !important; }
+.country-shape.merge-target { fill: none !important; stroke: #d8b5ff !important; stroke-width: 2.6px !important; }
 .country-shape.new-country-source { fill: none !important; stroke: #ffd77d !important; stroke-width: 2.6px !important; }
 .annex-candidate { stroke-width: 2.2px; vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: all; }
 .annex-candidate.side-a { fill: rgba(104,190,126,.30); stroke: #a8edb8; }
@@ -1272,11 +1274,12 @@ button, input, textarea, select { line-height: var(--ui-line-tight); }
   color: var(--accent-text);
 }
 
-/* ===== AtlasWright v0.14.1: top command dock ===== */
+/* ===== AtlasWright v0.14.3: compact territory command dock ===== */
 .mode-action-bar {
   top: 84px;
   bottom: auto;
-  width: min(680px, calc(100% - 24px));
+  width: auto;
+  max-width: calc(100% - 24px);
   min-height: 52px;
   display: flex;
   align-items: center;
@@ -1288,26 +1291,26 @@ button, input, textarea, select { line-height: var(--ui-line-tight); }
   background: var(--overlay-panel);
   box-shadow: 0 10px 28px rgba(0,0,0,.22);
 }
-.mode-action-bar.has-method-switch { justify-content: flex-start; }
-.mode-action-bar:not(.has-method-switch) { width: auto; }
+.mode-action-bar.has-method-switch { justify-content: center; }
 .mode-method-switch {
-  display: flex;
-  flex: 1 1 310px;
+  display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 2px;
-  min-width: 0;
-  padding: 3px;
-  border: 0;
-  border-radius: 10px;
+  width: 248px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-control);
   background: var(--surface-subtle);
 }
 .mode-method-switch.hidden { display: none !important; }
 .mode-method-btn {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 38px !important;
-  padding: 0 var(--ui-space-3) !important;
+  min-height: 36px !important;
+  padding: 0 10px !important;
   border-color: transparent !important;
+  border-radius: 6px !important;
   background: transparent;
   color: var(--muted);
   box-shadow: inset 0 -2px 0 transparent;
@@ -1319,24 +1322,6 @@ button, input, textarea, select { line-height: var(--ui-line-tight); }
   color: var(--accent);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
-.mode-selection-summary {
-  flex: 0 1 auto;
-  min-width: 64px;
-  max-width: 150px;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-subtle);
-  color: var(--text-soft);
-  font-size: var(--ui-font-sm);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.3;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.mode-selection-summary.hidden { display: none !important; }
 .mode-action-buttons { display: flex; flex: 0 0 auto; justify-content: flex-end; gap: 6px; }
 .mode-action-buttons button {
   display: inline-flex;
@@ -1344,7 +1329,7 @@ button, input, textarea, select { line-height: var(--ui-line-tight); }
   justify-content: center;
   gap: 7px;
   min-height: 40px;
-  padding: 0 13px;
+  padding: 0 11px;
 }
 .mode-action-buttons .ui-icon { width: 17px; height: 17px; }
 .mode-action-bar:not(.has-method-switch) .mode-action-buttons { justify-content: center; }
@@ -1352,17 +1337,15 @@ button, input, textarea, select { line-height: var(--ui-line-tight); }
 #app[data-layout="compact"] .mode-action-bar,
 #app[data-layout="mobile"] .mode-action-bar.has-method-switch {
   top: 64px;
-  width: min(560px, calc(100% - 16px));
+  width: min(420px, calc(100% - 16px));
   display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
+  grid-template-columns: 1fr;
   gap: 6px var(--ui-space-2);
 }
 #app[data-layout="compact"] .mode-method-switch,
 #app[data-layout="mobile"] .mode-method-switch { grid-column: 1 / -1; width: 100%; }
-#app[data-layout="compact"] .mode-selection-summary,
-#app[data-layout="mobile"] .mode-selection-summary { justify-self: start; max-width: 190px; }
 #app[data-layout="compact"] .mode-action-buttons,
-#app[data-layout="mobile"] .mode-action-buttons { justify-self: end; }
+#app[data-layout="mobile"] .mode-action-buttons { justify-self: center; }
 #app[data-layout="compact"] .mode-action-bar:not(.has-method-switch) { width: auto; display: flex; }
 #app[data-layout="compact"] .map-wrap.mode-command-visible .map-context-panel { top: 124px; }
 #app[data-layout="compact"] .map-wrap.mode-command-methods .map-context-panel { top: 166px; }
@@ -1373,10 +1356,9 @@ button, input, textarea, select { line-height: var(--ui-line-tight); }
   bottom: auto;
 }
 #app[data-layout="mobile"] .mode-action-bar.has-method-switch {
-  left: 8px;
-  right: 8px;
-  transform: none;
-  width: auto;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
 }
 #app[data-layout="mobile"] .mode-action-bar:not(.has-method-switch) {
   left: 50%;
@@ -1384,14 +1366,12 @@ button, input, textarea, select { line-height: var(--ui-line-tight); }
   width: auto;
   transform: translateX(-50%);
 }
-#app[data-layout="mobile"] .mode-method-btn { min-height: var(--ui-touch-height) !important; padding: 0 6px !important; font-size: var(--ui-font-sm); }
-#app[data-layout="mobile"] .mode-selection-summary { padding: 6px 9px; }
+#app[data-layout="mobile"] .mode-method-btn { min-height: var(--ui-touch-height) !important; padding: 0 8px !important; font-size: var(--ui-font-sm); }
 #app[data-layout="mobile"] .mode-action-buttons button { min-height: var(--ui-touch-height); flex: 0 0 auto; padding: 0 11px; }
 #app[data-layout="mobile"] .map-wrap.mode-command-visible .map-context-panel.has-active-context { top: 122px; }
 #app[data-layout="mobile"] .map-wrap.mode-command-methods .map-context-panel.has-active-context { top: 174px; }
 
 @media (max-width: 359px) {
-  #app[data-layout="mobile"] .mode-selection-summary { max-width: 112px; }
   #app[data-layout="mobile"] .mode-action-buttons button { padding: 0 9px; }
   #app[data-layout="mobile"] .mode-action-buttons .ui-icon { display: none; }
 }
