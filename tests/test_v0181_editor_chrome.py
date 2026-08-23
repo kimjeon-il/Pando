@@ -41,21 +41,19 @@ class EditorChromeTests(unittest.TestCase):
             self.assertNotIn(obsolete, combined)
 
     def test_close_control_keeps_side_spacing_and_adds_top_spacing(self):
-        self.assertIn('#app .right-panel .mobile-sheet-header {', CSS)
-        editor_header_rules = CSS[CSS.rindex('#app .right-panel .mobile-sheet-header {'):]
-        self.assertIn('min-height: 68px;', editor_header_rules[:180])
-        self.assertIn('padding-top: 18px;', editor_header_rules[:180])
-        self.assertIn('#app .right-panel .mobile-sheet-header .sheet-close-btn {', CSS)
-        close_rules = CSS[CSS.rindex('#app .right-panel .mobile-sheet-header .sheet-close-btn {'):]
-        self.assertIn('top: 18px;', close_rules[:160])
-        self.assertIn('right: var(--ui-space-2);', close_rules[:160])
+        self.assertIn('.editor-shell-header {', CSS)
+        editor_header_rules = CSS[CSS.index('\n.editor-shell-header {'):]
+        self.assertIn('min-height: 74px;', editor_header_rules[:260])
+        self.assertIn('padding: 16px;', editor_header_rules[:260])
+        self.assertIn('.editor-shell-header .sheet-close-btn {', CSS)
         self.assertNotIn('right: calc(-1 * var(--ui-space-3));', CSS)
 
     def test_hydro_metadata_does_not_draw_nested_table_borders(self):
-        self.assertIn('#hydroProperties .meta-card {', CSS)
-        self.assertIn('#hydroProperties .meta-card div {', CSS)
-        hydro_rules = CSS[CSS.rindex('#hydroProperties .meta-card {'):]
-        self.assertIn('border: 0;', hydro_rules[:400])
+        self.assertIn('class="ui-info-list editor-info-list"', INDEX)
+        self.assertIn('.editor-info-list > div {', CSS)
+        info_rules = CSS[CSS.rindex('.editor-info-list > div {'):]
+        self.assertIn('border: 0;', info_rules[:420])
+        self.assertNotIn('#hydroProperties .', CSS)
 
 
 if __name__ == "__main__":

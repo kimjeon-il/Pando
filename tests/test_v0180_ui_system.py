@@ -13,19 +13,19 @@ APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 
 class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
-        self.assertIn('data-app-version="0.18.1"', INDEX)
+        self.assertIn('data-app-version="0.19.0"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.18.1", INDEX)
-        self.assertIn("const APP_VERSION = '0.18.1'", APP)
+            self.assertIn(f"{asset}?v=0.19.0", INDEX)
+        self.assertIn("const APP_VERSION = '0.19.0'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
         toggles = re.findall(r'class="ui-button layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)
         self.assertEqual(len(toggles), 5)
         self.assertTrue(all('class="ui-icon disclosure-icon"' in toggle for toggle in toggles))
-        self.assertEqual(INDEX.count('class="ui-icon disclosure-icon"'), 9)
+        self.assertEqual(INDEX.count('class="ui-icon disclosure-icon"'), 10)
         self.assertNotIn('>›</button>', INDEX)
         self.assertNotIn("content: '⌄'", CSS)
-        self.assertIn(".editor-details > summary::after { content: none !important; }", CSS)
+        self.assertIn(".editor-disclosure > summary::-webkit-details-marker { display: none; }", CSS)
 
     def test_transient_button_flash_is_removed(self):
         self.assertNotIn("function flashButton", APP)

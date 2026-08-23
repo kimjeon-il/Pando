@@ -18,12 +18,12 @@ LICENSE = ROOT / "assets" / "fonts" / "pretendard-v1.3.9" / "LICENSE.txt"
 
 class V0150TypographyCopyTests(unittest.TestCase):
     def test_versioned_shell_and_cache_keys_match(self):
-        self.assertIn('data-app-version="0.18.1"', INDEX)
-        self.assertIn("const APP_VERSION = '0.18.1'", APP)
-        self.assertIn("const BUILD_ID = '0.18.1'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.18.1'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.18.1", INDEX)
-        self.assertIn("bootstrap.js?v=0.18.1", INDEX)
+        self.assertIn('data-app-version="0.19.0"', INDEX)
+        self.assertIn("const APP_VERSION = '0.19.0'", APP)
+        self.assertIn("const BUILD_ID = '0.19.0'", BOOTSTRAP)
+        self.assertIn("const ASSET_REVISION = '0.19.0'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.19.0", INDEX)
+        self.assertIn("bootstrap.js?v=0.19.0", INDEX)
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())
@@ -55,13 +55,16 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertFalse(re.search(r"font-weight:\s*(?:650|750|760|800)\b", CSS))
         self.assertFalse(re.search(r"font-size:\s*(?:8|9|10|11)px\b", CSS))
 
-    def test_current_work_and_layer_search_copy(self):
-        self.assertIn('<span class="current-tool-label">현재 작업</span>', INDEX)
+    def test_task_dock_and_layer_search_copy(self):
+        self.assertIn('id="modeTaskName"', INDEX)
+        self.assertIn('id="modeTaskStage"', INDEX)
+        self.assertIn('id="modeTaskInstruction"', INDEX)
         self.assertIn('placeholder="레이어 검색"', INDEX)
+        self.assertNotIn('>현재 작업<', INDEX)
         self.assertNotIn("현재 도구", INDEX)
         self.assertNotIn("레이어 항목 검색", INDEX)
         self.assertIn("height: var(--ui-control-height)", CSS)
-        self.assertIn(".current-tool-label {\n  font-size: var(--ui-font-md);", CSS)
+        self.assertIn(".mode-task-heading strong {", CSS)
 
     def test_user_copy_avoids_mixed_terms_and_request_tone(self):
         visible_sources = "\n".join((INDEX, APP, BOOTSTRAP))
