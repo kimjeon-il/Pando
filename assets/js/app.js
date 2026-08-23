@@ -1,4 +1,4 @@
-/* AtlasWright v0.12.6
+/* AtlasWright v0.13.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.12.6';
+  const APP_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
@@ -92,7 +92,7 @@
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
     'drawingNameInput', 'drawingColorInput', 'drawingCategoryInput', 'drawingNotesInput',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'deleteLabelBtn',
-    'hydroProperties', 'hydroNameValue', 'hydroCategoryValue', 'hydroLayerValue', 'hydroSourceValue', 'copyHydroBtn',
+    'hydroProperties', 'hydroNameValue', 'hydroCategoryValue', 'hydroLayerValue', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn',
     'importGeoJsonBtn', 'geoJsonFileInput', 'exportGeoJsonBtn',
@@ -1760,6 +1760,7 @@
               aw_id: logicalId, __logicalFid: Number(row.logicalFid),
               category: row.category, layer_id: row.layerId,
               name: row.name || '', name_ko: row.name || '', source: row.source || '',
+              system_id: row.systemId || '', mainstem_name_ko: row.mainstemNameKo || row.name || '', role: row.role || '',
               source_id: row.sourceId || '', fragment_count: Number(row.fragmentCount || 1),
               min_zoom: Number(row.minZoom ?? 99), stroke_width: Number(row.width || 1), pack_ids: [],
             },
@@ -4623,6 +4624,17 @@
             (state.tool === 'new-country' && state.newCountrySourceIds.includes(id));
         })
       : [];
+    const fillSelection = countryLayer.selectAll('path.country-highlight-fill')
+      .data(highlighted, feature => feature.properties.editor_id);
+    fillSelection.enter().append('path').attr('class', 'country-highlight-fill');
+    const allCountryFills = countryLayer.selectAll('path.country-highlight-fill');
+    allCountryFills
+      .attr('d', feature => path(feature))
+      .classed('selected', feature => state.selected?.type === 'country' && state.selected.id === feature.properties.editor_id)
+      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.properties.editor_id)
+      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryId === feature.properties.editor_id)
+      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds.includes(String(feature.properties.editor_id)));
+    fillSelection.exit().remove();
     const selection = countryLayer.selectAll('path.country-shape')
       .data(highlighted, feature => feature.properties.editor_id);
     selection.enter().append('path').attr('class', 'country-shape gpu-country-highlight');
@@ -4761,12 +4773,12 @@
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const manifestUrl = new URL('hydro/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL);
+      const manifestUrl = new URL('hydro/v0.13.0/manifest.json', PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(manifestUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
-      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-water-shards-v4') throw new Error('수계 타일 버전이 맞지 않습니다.');
+      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-water-shards-v5') throw new Error('수계 타일 버전이 맞지 않습니다.');
       state.hydroManifest = manifest;
       state.hydroCollections = {};
       state.hydroFeatureCache = new Map();
@@ -5493,12 +5505,8 @@
     if (annexBtn) annexBtn.classList.toggle('active', annexActive);
     const hint = $('countryActionHint');
     if (hint) {
-      if (annexActive && state.annexPhase === 'donor') hint.textContent = '지도에서 영토를 가져올 피편입국 하나를 선택하세요. 드래그로 지도 이동이 가능합니다.';
-      else if (annexActive && state.annexPhase === 'line') hint.textContent = '피편입국 밖이나 경계에서 시작해 한 영토 조각을 한 번 관통하세요. 외부 구간은 제외됩니다.';
-      else if (annexActive && state.annexPhase === 'side') hint.textContent = '두 미리보기 중 수령국에 넘길 영토를 지도에서 선택하세요. 지도를 드래그해 이동할 수 있습니다.';
-      else if (coastActive) hint.textContent = '해안선만 수정 중입니다. 육상국경은 잠겨 있습니다.';
-      else if (mergeActive) hint.textContent = '지도에서 합병할 다른 국가를 선택하세요.';
-      else hint.textContent = '피편입국을 지정한 뒤 새 국경선을 연결해 원하는 쪽 영토만 편입할 수 있습니다.';
+      hint.classList.toggle('hidden', annexActive || coastActive || mergeActive);
+      hint.textContent = '피편입국을 지정한 뒤 새 국경선을 연결해 원하는 쪽 영토만 편입할 수 있습니다.';
     }
   }
 
@@ -5773,7 +5781,6 @@
     syncCountryActionButtons();
     renderCountries();
     if (usesOverlayEditor()) closeMobileSheets();
-    focusCountry(feature);
     setModeBanner(`${countryName(feature)}에 영토를 넘길 피편입국을 지도에서 선택하세요.`, 'annex-mode');
   }
 
@@ -5798,7 +5805,6 @@
     state.annexSelectedComponentKeys = [];
     state.draftCoords = [];
     state.draftHover = null;
-    focusCountry(donor);
     setModeBanner(`${countryName(donor)}의 경계 밖에서 시작해 영토 조각 하나를 한 번 관통하는 선을 그리세요. 국가 밖의 선은 판정에서 제외됩니다.`, 'annex-mode');
     updateModeButtons();
     renderAll();
@@ -6516,6 +6522,10 @@
     $('hydroNameValue').textContent = properties.name || '이름 없음';
     $('hydroCategoryValue').textContent = category;
     $('hydroLayerValue').textContent = HYDRO_LAYER_META[properties.layer_id]?.label || properties.layer_id || '수계';
+    $('hydroSystemValue').textContent = properties.mainstem_name_ko || properties.name || '미명명 수계';
+    $('hydroTributaryValue').textContent = Array.isArray(properties.tributary_names) && properties.tributary_names.length
+      ? properties.tributary_names.join(' · ')
+      : '표시 지류 포함';
     $('hydroSourceValue').textContent = properties.source || 'AtlasWright 내장 수계';
     $('selectionStatus').textContent = `${category} · ${properties.name || '이름 없음'}`;
     markLayerTreeDirty();
