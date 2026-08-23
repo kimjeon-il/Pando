@@ -31,8 +31,8 @@ class V0130RuntimeTests(unittest.TestCase):
         cls.detail = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()))["features"]
 
     def test_v0140_shell_and_v0130_assets_are_compatible(self):
-        self.assertIn('data-app-version="0.14.4"', INDEX)
-        self.assertIn("v0.14.4", APP[:200])
+        self.assertIn('data-app-version="0.15.0"', INDEX)
+        self.assertIn("v0.15.0", APP[:200])
         self.assertIn("HYDRO_DATA_VERSION = '0.13.0'", APP)
         self.assertEqual(self.manifest["version"], "0.13.0")
         self.assertEqual(self.manifest["schema"], "atlaswright-water-shards-v5")
@@ -58,9 +58,9 @@ class V0130RuntimeTests(unittest.TestCase):
 
     def test_ui_type_camera_and_country_selection_fill(self):
         for token in (
-            "--ui-font-caption: var(--ui-font-sm)",
-            "--ui-font-body: var(--ui-font-md)",
-            "--ui-font-title: var(--ui-font-xl)",
+            "--ui-font-caption: 13px",
+            "--ui-font-body: 15px",
+            "--ui-font-title: 18px",
         ):
             self.assertIn(token, CSS)
         self.assertIn(".country-highlight-fill.selected", CSS)

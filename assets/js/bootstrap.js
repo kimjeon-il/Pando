@@ -1,8 +1,8 @@
 'use strict';
 
 (() => {
-  const BUILD_ID = '0.14.4';
-  const ASSET_REVISION = '0.14.4';
+  const BUILD_ID = '0.15.0';
+  const ASSET_REVISION = '0.15.0';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
   const overlay = document.getElementById('bootstrapLoading');
@@ -52,7 +52,7 @@
   }
 
   if (location.protocol === 'file:') {
-    fail('직접 파일 열기는 지원하지 않습니다. GitHub Pages 또는 로컬 HTTP 서버를 사용해 주세요.');
+    fail('직접 파일 열기는 지원하지 않습니다. GitHub Pages 또는 로컬 HTTP 서버를 사용하세요.');
     return;
   }
 
