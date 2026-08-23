@@ -17,7 +17,7 @@ def source_section(source: str, start: str, end: str) -> str:
 
 class V0140UiFlowTests(unittest.TestCase):
     def test_scroll_containers_reserve_scrollbar_space(self):
-        self.assertIn("scrollbar-gutter: stable", CSS)
+        self.assertIn("scrollbar-gutter: stable both-edges", CSS)
         for selector in (".sidebar", ".layer-children", ".top-actions", ".gis-modal-card"):
             self.assertIn(selector, CSS)
 
@@ -68,10 +68,9 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertIn("if (clickedCountry) toggleMergeTarget", APP)
         self.assertIn("else if (state.tool === 'merge-country') completeCountryMerge()", APP)
 
-    def test_layer_row_buttons_skip_transient_flash(self):
-        flash = source_section(APP, "function flashButton", "function showFatalError")
-        for selector in (".layer-folder-toggle", ".layer-folder-name", ".layer-child-name"):
-            self.assertIn(selector, flash)
+    def test_buttons_use_css_pressed_state_without_transient_flash(self):
+        self.assertNotIn("function flashButton", APP)
+        self.assertNotIn("button-flash", CSS)
 
     def test_projection_controls_move_between_toolbar_and_mobile_sheet(self):
         self.assertNotIn('class="panel-section compact-view-section"', INDEX)
