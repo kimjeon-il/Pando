@@ -1,4 +1,4 @@
-/* AtlasWright v0.14.3
+/* AtlasWright v0.14.4
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.14.3';
+  const APP_VERSION = '0.14.4';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -2845,7 +2845,7 @@
   }
 
   function flashButton(button) {
-    if (!button || button.disabled || button.matches('.layer-folder-toggle, .layer-folder-name, .layer-child-name')) return;
+    if (!button || button.disabled || button.matches('.layer-folder-toggle, .layer-folder-name, .layer-child-name, .projection-btn, .mode-method-btn')) return;
     button.classList.remove('button-flash');
     void button.offsetWidth;
     button.classList.add('button-flash');
