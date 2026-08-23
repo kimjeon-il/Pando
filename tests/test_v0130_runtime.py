@@ -13,6 +13,8 @@ APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 README = (ROOT / "README.md").read_text(encoding="utf-8")
+CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
+TERRAIN_MANIFEST = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))
 DATA = ROOT / "assets" / "data" / "hydro" / "v0.13.0"
 
 
@@ -28,9 +30,10 @@ class V0130RuntimeTests(unittest.TestCase):
         cls.core = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["core"]["url"]).read_bytes()))["features"]
         cls.detail = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()))["features"]
 
-    def test_v0130_assets_are_one_compatible_set(self):
-        self.assertIn('data-app-version="0.13.0"', INDEX)
-        self.assertIn("v0.13.0", APP[:200])
+    def test_v0132_shell_and_v0130_assets_are_compatible(self):
+        self.assertIn('data-app-version="0.13.2"', INDEX)
+        self.assertIn("v0.13.2", APP[:200])
+        self.assertIn("HYDRO_DATA_VERSION = '0.13.0'", APP)
         self.assertEqual(self.manifest["version"], "0.13.0")
         self.assertEqual(self.manifest["schema"], "atlaswright-water-shards-v5")
         self.assertEqual(self.manifest["format"]["metadata"], 5)
@@ -38,6 +41,20 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertEqual(len(self.core), len(self.detail))
         self.assertLess(self.manifest["stats"]["compressedBytes"], 48 * 1024 * 1024)
         self.assertTrue(all(row["bytes"] <= 4 * 1024 * 1024 for row in self.manifest["shards"]))
+
+    def test_terrain_folder_and_automatic_water_colour(self):
+        self.assertIn('data-layer-group="terrain"', INDEX)
+        self.assertLess(INDEX.index('data-layer-group="countries"'), INDEX.index('data-layer-group="terrain"'))
+        self.assertLess(INDEX.index('data-layer-group="terrain"'), INDEX.index('data-layer-group="drawings"'))
+        for element_id in ("terrainVisible", "terrainPoliticalRadio", "terrainPhysicalRadio", "terrainStrengthControl"):
+            self.assertIn(f'id="{element_id}"', INDEX)
+        for removed_id in ("terrainStyleSelect", "riverColorSelect", "lakeColorSelect"):
+            self.assertNotIn(f'id="{removed_id}"', INDEX)
+        self.assertIn("automaticWaterColor", APP)
+        self.assertIn("automaticWaterColor", CANVAS)
+        self.assertNotIn("riverColor:", APP)
+        self.assertNotIn("lakeColor:", APP)
+        self.assertEqual(TERRAIN_MANIFEST["displayColors"]["oceanRepresentative"].lower(), "#6aa8d2")
 
     def test_ui_type_camera_and_country_selection_fill(self):
         for token in ("--ui-font-caption: 12px", "--ui-font-body: 14px", "--ui-font-title: 17px"):

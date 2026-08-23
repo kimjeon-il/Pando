@@ -1,4 +1,4 @@
-/* AtlasWright v0.13.0
+/* AtlasWright v0.13.2
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,8 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.0';
+  const APP_VERSION = '0.13.2';
+  const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
@@ -34,9 +35,10 @@
     lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
   });
   const HYDRO_LAYER_META = Object.freeze({
-    rivers_hydro: Object.freeze({ label: '강 · Hydro', category: 'river', color: '#3b82c4' }),
-    lakes_natural_earth: Object.freeze({ label: '호수 · Natural Earth', category: 'lake', color: '#5aa9d6' }),
+    rivers_hydro: Object.freeze({ label: '강 · Hydro', shortLabel: '강', category: 'river', color: '#3b82c4' }),
+    lakes_natural_earth: Object.freeze({ label: '호수 · Natural Earth', shortLabel: '호수', category: 'lake', color: '#5aa9d6' }),
   });
+  const TERRAIN_OCEAN_REPRESENTATIVE = '#6aa8d2';
   const MAX_HISTORY = 30;
   const LAYOUT_QUERIES = {
     mobile: window.matchMedia('(max-width: 799px)'),
@@ -76,7 +78,11 @@
       const hasExplicitColor = !!(state.countryOverrides[id]?.color || feature?.properties?.editor_color);
       if (!hasExplicitColor && $('countryColorInput')) $('countryColorInput').value = defaultCountryColor();
     }
-    if (svg) renderAll();
+    if (svg) {
+      markLayerTreeDirty();
+      renderLayerTree();
+      renderAll();
+    }
   }
 
   const $ = (id) => document.getElementById(id);
@@ -88,7 +94,7 @@
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'countryStatus',
     'globeBtn', 'flatBtn', 'countriesVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
-    'resetViewBtn', 'terrainStyleSelect', 'terrainStrengthInput', 'terrainStrengthValue', 'riverColorSelect', 'lakeColorSelect', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
+    'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
     'drawingNameInput', 'drawingColorInput', 'drawingCategoryInput', 'drawingNotesInput',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'deleteLabelBtn',
@@ -349,8 +355,6 @@
       terrainVisible: true,
       terrainStyle: 'political',
       terrainStrength: 0.32,
-      riverColor: 'ocean',
-      lakeColor: 'ocean',
       hydroLayers: {
         rivers_hydro: true,
         lakes_natural_earth: true,
@@ -373,6 +377,7 @@
     },
     layerFolders: {
       countries: false,
+      terrain: false,
       drawings: false,
       labels: false,
       countryLabels: false,
@@ -1922,15 +1927,11 @@
       if (message.type === 'cache-progress') {
         state.physicalLoadState.hydroCache = 'loading';
         state.physicalLoadState.hydroCachePercent = Number(message.percent || 0);
-        markLayerTreeDirty();
-        renderLayerTree();
         return;
       }
       if (message.type === 'cache-complete') {
         state.physicalLoadState.hydroCache = 'ready';
         state.physicalLoadState.hydroCachePercent = 100;
-        markLayerTreeDirty();
-        renderLayerTree();
         if (!hydroCacheCompletionNotified) {
           hydroCacheCompletionNotified = true;
           setActionStatus('전 세계 수계 데이터를 오프라인 저장소에 준비했습니다.', 'success', 3200);
@@ -1939,9 +1940,8 @@
       }
       if (message.type === 'cache-unavailable') {
         state.physicalLoadState.hydroCache = 'error';
-        markLayerTreeDirty();
-        renderLayerTree();
         console.warn('Hydro persistent cache unavailable', message.message);
+        setActionStatus('전 세계 수계 자료를 오프라인 저장소에 준비하지 못했습니다. 현재 화면은 계속 사용할 수 있으며, 강 또는 호수 레이어를 선택하면 다시 시도합니다.', 'error', 0);
         return;
       }
       if (message.type === 'error') {
@@ -4297,6 +4297,7 @@
   }
 
   const LAYER_GROUP_KEYS = ['countries', 'drawings', 'labels', 'countryLabels'];
+  const LAYER_FOLDER_KEYS = ['countries', 'terrain', 'drawings', 'labels', 'countryLabels'];
   const layerGroupVisibilityKey = group => group === 'countryLabels' ? 'basemapLabels' : group;
   const layerGroupNames = { countries: '국가', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
@@ -4325,8 +4326,6 @@
       terrainVisible: value?.terrainVisible !== false,
       terrainStyle: value?.terrainStyle === 'physical' ? 'physical' : 'political',
       terrainStrength: clamp(Number(value?.terrainStrength ?? 0.32), 0, 1),
-      riverColor: value?.riverColor === 'white' ? 'white' : 'ocean',
-      lakeColor: value?.lakeColor === 'white' ? 'white' : 'ocean',
       hydroLayers,
       userFeaturesVisible: value?.userFeaturesVisible !== false,
       hiddenHydroIds,
@@ -4335,18 +4334,37 @@
   }
 
   function syncPhysicalControls() {
-    if ($('terrainStyleSelect')) $('terrainStyleSelect').value = state.physicalSettings.terrainStyle;
+    if ($('terrainVisible')) $('terrainVisible').checked = state.physicalSettings.terrainVisible;
+    if ($('terrainPoliticalRadio')) $('terrainPoliticalRadio').checked = state.physicalSettings.terrainStyle === 'political';
+    if ($('terrainPhysicalRadio')) $('terrainPhysicalRadio').checked = state.physicalSettings.terrainStyle === 'physical';
     if ($('terrainStrengthInput')) $('terrainStrengthInput').value = String(Math.round(state.physicalSettings.terrainStrength * 100));
     if ($('terrainStrengthValue')) $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
-    if ($('riverColorSelect')) $('riverColorSelect').value = state.physicalSettings.riverColor;
-    if ($('lakeColorSelect')) $('lakeColorSelect').value = state.physicalSettings.lakeColor;
+    if ($('terrainStrengthControl')) $('terrainStrengthControl').hidden = state.physicalSettings.terrainStyle !== 'political';
   }
 
-  function hydroDisplayColor(category, gpu = false) {
-    const setting = category === 'lake' ? state.physicalSettings.lakeColor : state.physicalSettings.riverColor;
-    if (setting === 'white') return gpu ? [1, 1, 1] : '#ffffff';
+  function parseHexRgb(value, fallback = TERRAIN_OCEAN_REPRESENTATIVE) {
+    const match = /^#([0-9a-f]{6})$/i.exec(String(value || '')) || /^#([0-9a-f]{6})$/i.exec(fallback);
+    const packed = Number.parseInt(match[1], 16);
+    return [(packed >> 16) & 255, (packed >> 8) & 255, packed & 255];
+  }
+
+  function formatHexRgb(rgb) {
+    return `#${rgb.map(value => clamp(Math.round(value), 0, 255).toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  function automaticWaterColor(gpu = false) {
+    if (state.physicalSettings.terrainVisible && state.physicalSettings.terrainStyle === 'physical') {
+      const representative = state.terrainManifest?.displayColors?.oceanRepresentative || TERRAIN_OCEAN_REPRESENTATIVE;
+      let rgb = parseHexRgb(representative);
+      if (systemTheme === 'dark') rgb = rgb.map((value, index) => value * [0.808, 0.8464, 0.8848][index]);
+      return gpu ? rgb.map(value => value / 255) : formatHexRgb(rgb);
+    }
     const theme = mapTheme();
     return gpu ? theme.oceanGpu : theme.ocean;
+  }
+
+  function hydroDisplayColor(_category, gpu = false) {
+    return automaticWaterColor(gpu);
   }
 
   function hydroLayerVisible(layerId) {
@@ -4383,7 +4401,7 @@
   }
 
   function normalizeLayerFolderState(value) {
-    return Object.fromEntries(LAYER_GROUP_KEYS.map(group => [group, !!value?.[group]]));
+    return Object.fromEntries(LAYER_FOLDER_KEYS.map(group => [group, !!value?.[group]]));
   }
 
   function markLayerTreeDirty() {
@@ -4391,7 +4409,6 @@
   }
 
   function isLayerItemVisible(group, id) {
-    if (group === 'drawings' && id === 'terrain') return state.physicalSettings.terrainVisible;
     if (group === 'drawings' && id === 'user-terrain') return state.physicalSettings.userFeaturesVisible !== false;
     if (group === 'drawings' && String(id).startsWith('hydro-layer:')) {
       return state.physicalSettings.hydroLayers?.[String(id).slice('hydro-layer:'.length)] !== false;
@@ -4406,13 +4423,6 @@
   function setLayerItemVisibility(group, id, visible) {
     if (!LAYER_GROUP_KEYS.includes(group)) return;
     const key = String(id);
-    if (group === 'drawings' && key === 'terrain') {
-      state.physicalSettings.terrainVisible = !!visible;
-      markLayerTreeDirty();
-      renderAll();
-      queueAutosave();
-      return;
-    }
     if (group === 'drawings' && key === 'user-terrain') {
       state.physicalSettings.userFeaturesVisible = !!visible;
       markLayerTreeDirty();
@@ -4451,23 +4461,16 @@
     }
     if (group === 'drawings') {
       const builtIns = [
-        { id: 'terrain', name: '지형 음영', color: '#8a9c78', meta: state.physicalLoadState.terrain === 'error' ? '불러오기 실패 · 다시 선택해 재시도' : 'Natural Earth 1:10m', selected: false },
         ...Object.entries(HYDRO_LAYER_META).map(([id, meta]) => ({
           id: `hydro-layer:${id}`,
-          name: meta.label,
-          color: meta.color,
-          meta: state.hydroManifest?.stats?.layerCounts?.[id] !== undefined
-            ? state.physicalLoadState.hydroCache === 'ready'
-              ? `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 오프라인 준비 완료`
-              : state.physicalLoadState.hydroCache === 'loading'
-                ? `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 전 세계 자료 ${Math.round(state.physicalLoadState.hydroCachePercent || 0)}%`
-                : state.physicalLoadState.hydroCache === 'error'
-                  ? `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 스트리밍 사용 중`
-                  : `${Number(state.hydroManifest.stats.layerCounts[id]).toLocaleString()}개 · 현재 화면 우선 준비`
-            : state.physicalLoadState.hydro === 'error' ? '불러오기 실패' : '목록을 불러오는 중',
+          name: meta.shortLabel,
+          searchText: meta.label,
+          title: `${meta.label} 상태 보기`,
+          color: hydroDisplayColor(meta.category),
+          count: state.hydroManifest?.stats?.layerCounts?.[id] ?? null,
           selected: false,
         })),
-        { id: 'user-terrain', name: '사용자 지형지물', color: '#7d5ca8', meta: `${state.drawings.length.toLocaleString()}개 · 편집 가능`, selected: false },
+        { id: 'user-terrain', name: '사용자 지형지물', color: '#7d5ca8', count: state.drawings.length, selected: false },
       ];
       const userItems = state.drawings.map(feature => ({
         id: String(feature.id),
@@ -4491,7 +4494,7 @@
     const valid = {
       countries: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
       countryLabels: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
-      drawings: new Set(['terrain', 'user-terrain', ...Object.keys(HYDRO_LAYER_META).map(id => `hydro-layer:${id}`), ...state.drawings.map(feature => String(feature.id))]),
+      drawings: new Set(['user-terrain', ...Object.keys(HYDRO_LAYER_META).map(id => `hydro-layer:${id}`), ...state.drawings.map(feature => String(feature.id))]),
       labels: new Set(state.labels.map(label => String(label.id))),
     };
     for (const group of LAYER_GROUP_KEYS) {
@@ -4500,10 +4503,27 @@
     }
   }
 
+  function renderTerrainLayerFolder(search = '') {
+    const folder = document.querySelector('.layer-folder[data-layer-group="terrain"]');
+    const container = $('terrainLayerChildren');
+    if (!folder || !container) return;
+    const matchesSearch = !search || '지형 음영 국가색 지형색 강조'.includes(search);
+    folder.hidden = !matchesSearch;
+    const expanded = matchesSearch && (!!search || !!state.layerFolders.terrain);
+    folder.classList.toggle('is-expanded', expanded);
+    folder.querySelectorAll('[data-layer-folder-toggle="terrain"]').forEach(button => {
+      button.setAttribute('aria-expanded', String(expanded));
+      button.setAttribute('aria-label', `지형 음영 폴더 ${expanded ? '접기' : '펼치기'}`);
+    });
+    container.hidden = !expanded;
+    syncPhysicalControls();
+  }
+
   function renderLayerTree(force = false) {
     if (!force && renderedLayerTreeRevision === state.layerTreeRevision) return;
     pruneLayerItemVisibility();
     const search = String(state.layerSearch || '').trim().toLocaleLowerCase('ko');
+    renderTerrainLayerFolder(search);
     for (const group of LAYER_GROUP_KEYS) {
       const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]`);
       const [childrenId, countId] = layerGroupTargetIds[group];
@@ -4511,7 +4531,7 @@
       const count = $(countId);
       if (!folder || !container || !count) continue;
       const allItems = layerTreeItems(group).sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
-      const filtered = search ? allItems.filter(item => `${item.name} ${item.id} ${item.meta}`.toLocaleLowerCase('ko').includes(search)) : allItems;
+      const filtered = search ? allItems.filter(item => `${item.name} ${item.searchText || ''} ${item.id} ${item.meta || ''} ${item.count ?? ''}`.toLocaleLowerCase('ko').includes(search)) : allItems;
       const visibleCount = allItems.filter(item => isLayerItemVisible(group, item.id)).length;
       const expanded = !!search || !!state.layerFolders[group];
       folder.classList.toggle('is-expanded', expanded);
@@ -4552,11 +4572,17 @@
         name.dataset.layerItemSelect = group;
         name.dataset.itemId = item.id;
         name.textContent = item.name;
-        name.title = `${item.name} 선택하고 이동`;
-        const meta = document.createElement('span');
-        meta.className = 'layer-child-meta';
-        meta.textContent = item.meta;
-        row.append(visibility, swatch, name, meta);
+        name.title = item.title || (item.count !== undefined ? `${item.name} 상태 보기` : `${item.name} 선택하고 이동`);
+        const detailValue = item.count !== undefined && item.count !== null
+          ? `${Number(item.count).toLocaleString()}개`
+          : item.meta;
+        row.append(visibility, swatch, name);
+        if (detailValue) {
+          const detail = document.createElement('span');
+          detail.className = item.count !== undefined && item.count !== null ? 'layer-child-count' : 'layer-child-meta';
+          detail.textContent = detailValue;
+          row.append(detail);
+        }
         fragment.appendChild(row);
       }
       container.appendChild(fragment);
@@ -4773,12 +4799,12 @@
     markLayerTreeDirty();
     renderLayerTree();
     try {
-      const manifestUrl = new URL('hydro/v0.13.0/manifest.json', PHYSICAL_DATA_BASE_URL);
+      const manifestUrl = new URL(`hydro/v${HYDRO_DATA_VERSION}/manifest.json`, PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
       const response = await fetch(manifestUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
-      if (manifest.version !== APP_VERSION || manifest.schema !== 'atlaswright-water-shards-v5') throw new Error('수계 타일 버전이 맞지 않습니다.');
+      if (manifest.version !== HYDRO_DATA_VERSION || manifest.schema !== 'atlaswright-water-shards-v5') throw new Error('수계 타일 버전이 맞지 않습니다.');
       state.hydroManifest = manifest;
       state.hydroCollections = {};
       state.hydroFeatureCache = new Map();
@@ -7625,11 +7651,6 @@
       focusCountry(primary, { maxZoom: isMobile() ? 10 : 9 });
       if (state.countriesLocked) setActionStatus('국가 레이어가 잠겨 있어 위치만 이동했습니다.', 'error', 2600);
     } else if (group === 'drawings') {
-      if (key === 'terrain') {
-        if (state.physicalLoadState.terrain === 'error') loadTerrainManifest(true);
-        else setActionStatus(`지형 음영은 ${state.physicalSettings.terrainVisible ? '표시 중' : '숨김 상태'}입니다.`, 'success', 2200);
-        return;
-      }
       if (key === 'user-terrain') {
         setActionStatus(`사용자 지형지물은 ${state.drawings.length.toLocaleString()}개입니다. 항목을 선택하면 위치로 이동하고 편집할 수 있습니다.`, 'success', 2600);
         return;
@@ -7775,11 +7796,21 @@
     $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
     $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
     $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
-    $('terrainStyleSelect').addEventListener('change', event => {
-      state.physicalSettings.terrainStyle = event.target.value === 'physical' ? 'physical' : 'political';
+    $('terrainVisible').addEventListener('change', event => {
+      state.physicalSettings.terrainVisible = !!event.target.checked;
+      markLayerTreeDirty();
+      renderLayerTree();
       renderAll();
       queueAutosave();
-      setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 스타일로 전환했습니다.`, 'success', 2200);
+    });
+    for (const id of ['terrainPoliticalRadio', 'terrainPhysicalRadio']) $(id).addEventListener('change', event => {
+      if (!event.target.checked) return;
+      state.physicalSettings.terrainStyle = event.target.value === 'physical' ? 'physical' : 'political';
+      markLayerTreeDirty();
+      renderLayerTree();
+      renderAll();
+      queueAutosave();
+      setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
     });
     $('terrainStrengthInput').addEventListener('input', event => {
       state.physicalSettings.terrainStrength = clamp(Number(event.target.value) / 100, 0, 1);
@@ -7787,14 +7818,6 @@
       scheduleRender();
     });
     $('terrainStrengthInput').addEventListener('change', () => queueAutosave());
-    for (const [id, key] of [['riverColorSelect', 'riverColor'], ['lakeColorSelect', 'lakeColor']]) {
-      $(id).addEventListener('change', event => {
-        state.physicalSettings[key] = event.target.value === 'white' ? 'white' : 'ocean';
-        renderAll();
-        queueAutosave();
-        setActionStatus(`${key === 'riverColor' ? '강' : '호수'} 색상을 ${state.physicalSettings[key] === 'white' ? '흰색' : '바다색'}으로 변경했습니다.`, 'success', 2200);
-      });
-    }
     $('layerSearchInput')?.addEventListener('input', event => {
       state.layerSearch = event.target.value || '';
       markLayerTreeDirty();
@@ -7804,7 +7827,7 @@
       const folderButton = event.target.closest('[data-layer-folder-toggle]');
       if (folderButton) {
         const group = folderButton.dataset.layerFolderToggle;
-        if (!LAYER_GROUP_KEYS.includes(group)) return;
+        if (!LAYER_FOLDER_KEYS.includes(group)) return;
         state.layerFolders[group] = !state.layerFolders[group];
         markLayerTreeDirty();
         renderLayerTree();
