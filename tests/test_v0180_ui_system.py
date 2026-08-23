@@ -13,13 +13,13 @@ APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 
 class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
-        self.assertIn('data-app-version="0.18.0"', INDEX)
+        self.assertIn('data-app-version="0.18.1"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.18.0", INDEX)
-        self.assertIn("const APP_VERSION = '0.18.0'", APP)
+            self.assertIn(f"{asset}?v=0.18.1", INDEX)
+        self.assertIn("const APP_VERSION = '0.18.1'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
-        toggles = re.findall(r'class="layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)
+        toggles = re.findall(r'class="ui-button layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)
         self.assertEqual(len(toggles), 5)
         self.assertTrue(all('class="ui-icon disclosure-icon"' in toggle for toggle in toggles))
         self.assertEqual(INDEX.count('class="ui-icon disclosure-icon"'), 9)
@@ -38,14 +38,16 @@ class V0180UiSystemTests(unittest.TestCase):
         self.assertIn("icon-chevron-down", INDEX)
 
     def test_segmented_controls_share_one_rule(self):
-        self.assertIn(".segmented,\n.projection-control,\n.mode-method-switch", CSS)
-        self.assertIn(".segment,\n.projection-btn,\n.mode-method-btn", CSS)
+        self.assertIn(".ui-segmented {", CSS)
+        self.assertIn(".ui-segment-option {", CSS)
+        self.assertIn('class="ui-segmented projection-control"', INDEX)
+        self.assertIn('class="ui-segmented mode-method-switch hidden"', INDEX)
 
     def test_touch_controls_keep_shared_component_language(self):
         self.assertIn('#app[data-layout="mobile"] .icon-btn,', CSS)
         self.assertIn("width: var(--ui-touch-height);", CSS)
-        self.assertIn('id="mobileZoomInBtn" class="icon-btn"', INDEX)
-        self.assertIn('id="mobileZoomOutBtn" class="icon-btn"', INDEX)
+        self.assertIn('id="mobileZoomInBtn" class="ui-button icon-btn"', INDEX)
+        self.assertIn('id="mobileZoomOutBtn" class="ui-button icon-btn"', INDEX)
 
 
 if __name__ == "__main__":
