@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.15.0" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.16.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -20,6 +20,7 @@
     <symbol id="icon-undo" viewBox="0 0 24 24"><path d="m9 7-5 5 5 5M5 12h8a6 6 0 0 1 6 6"/></symbol>
     <symbol id="icon-redo" viewBox="0 0 24 24"><path d="m15 7 5 5-5 5M19 12h-8a6 6 0 0 0-6 6"/></symbol>
     <symbol id="icon-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></symbol>
     <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
     <symbol id="icon-map" viewBox="0 0 24 24"><path d="m4 6 5-2 6 2 5-2v14l-5 2-6-2-5 2V6ZM9 4v14M15 6v14"/></symbol>
     <symbol id="icon-fit-map" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/><path d="M8 9.5 12 8l4 1.5v5L12 16l-4-1.5v-5Z"/></symbol>
@@ -37,13 +38,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.15.0" data-layout="wide">
+  <div id="app" data-app-version="0.16.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.15.0 · Natural Earth 1:10m · 다중 영토 편집</span>
+          <span>v0.16.0 · Natural Earth 1:10m · 다중 영토 편집</span>
         </div>
       </div>
 
@@ -80,7 +81,7 @@
             <span class="muted small">표시 / 잠금</span>
           </div>
           <label class="layer-search" for="layerSearchInput">
-            <span aria-hidden="true">⌕</span>
+            <svg class="ui-icon layer-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
             <input id="layerSearchInput" type="search" placeholder="레이어 검색" autocomplete="off" />
           </label>
           <div class="layer-list">
@@ -155,7 +156,7 @@
       <main class="map-wrap">
         <div id="map" aria-label="지도 편집 영역"></div>
 
-        <div class="map-toolbar floating-toolbar">
+        <div id="mapCommandToolbar" class="map-toolbar map-command-toolbar floating-toolbar" aria-label="지도 명령">
           <div class="create-menu-wrap">
             <button id="createMenuBtn" class="create-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
             <div id="createMenu" class="create-menu hidden" role="menu" aria-label="지도 객체 추가">
@@ -168,7 +169,9 @@
           <span class="toolbar-divider create-toolbar-divider"></span>
           <button id="undoBtn" class="icon-btn" title="실행취소" aria-label="실행취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></button>
           <button id="redoBtn" class="icon-btn" title="다시실행" aria-label="다시실행"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></button>
-          <span class="toolbar-divider"></span>
+        </div>
+
+        <div id="mapViewToolbar" class="map-toolbar map-view-toolbar floating-toolbar" aria-label="지도 보기">
           <button id="zoomOutBtn" class="icon-btn" title="축소" aria-label="축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
           <button id="zoomInBtn" class="icon-btn" title="확대" aria-label="확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="resetViewBtn" class="icon-btn" title="전체 지도 맞춤" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
@@ -213,7 +216,7 @@
           <span id="selectionStatus">선택 없음</span>
         </div>
 
-        <nav class="mobile-bottom-bar" aria-label="모바일 지도 도구">
+        <nav class="adaptive-nav mobile-bottom-bar" aria-label="지도 탐색">
           <button id="mobileMapBtn" type="button" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>지도</strong></button>
           <button id="mobileCreateBtn" type="button" aria-haspopup="menu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>추가</strong></button>
           <button id="mobileEditBtn" type="button" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
@@ -409,7 +412,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.15.0" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.15.0" defer></script>
+  <script src="assets/js/gis-io.js?v=0.16.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.16.0" defer></script>
 </body>
 </html>
