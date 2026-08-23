@@ -78,7 +78,7 @@ class V0140UiFlowTests(unittest.TestCase):
         for element_id in ("projectionControl", "projectionToolbarSlot", "mobileProjectionSlot"):
             self.assertIn(f'id="{element_id}"', INDEX)
         self.assertIn('id="engineStatus"', INDEX)
-        self.assertIn('class="status-item engine-status"', INDEX)
+        self.assertIn('class="status-item engine-status hidden"', INDEX)
         self.assertIn("function placeProjectionControl()", APP)
         self.assertIn("host.appendChild(control)", APP)
         self.assertIn("button.setAttribute('aria-pressed', String(active))", APP)

@@ -1,4 +1,4 @@
-/* AtlasWright v0.16.4
+/* AtlasWright v0.17.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.16.4';
+  const APP_VERSION = '0.17.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -108,7 +108,7 @@
     return url;
   }
   const REQUIRED_UI_IDS = Object.freeze([
-    'app', 'map', 'engineStatus', 'countryStatus',
+    'app', 'map', 'engineStatus', 'countryStatus', 'statusView', 'statusPrimary', 'statusSelection',
     'globeBtn', 'flatBtn', 'countriesVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
@@ -2833,9 +2833,28 @@
   function setCurrentTool(name) {
     const currentName = name || '선택·편집';
     $('currentToolName').textContent = currentName;
-    if ($('currentToolStatus')) $('currentToolStatus').textContent = `작업 · ${currentName}`;
+    if ($('currentToolStatus')) $('currentToolStatus').textContent = currentName;
     $('currentTool')?.classList.remove('is-collapsed');
+    syncStatusBar();
     scheduleMapContextCollapse();
+  }
+
+  function shouldShowCoordinates() {
+    if (state.labelPlacementMode || state.tool === 'label' || state.tool === 'point') return true;
+    if (state.tool === 'country-coast' || isDrawingDraftTool(state.tool)) return true;
+    if (state.tool === 'new-country') return state.newCountryPhase === 'line';
+    if (state.tool === 'annex-territory') return state.annexPhase === 'line';
+    return false;
+  }
+
+  function syncStatusBar() {
+    const showCoordinates = shouldShowCoordinates();
+    const showTask = state.tool !== 'select' || state.labelPlacementMode;
+    const selectedText = $('selectionStatus')?.textContent?.trim() || '';
+    const showSelection = !!state.selected && !!selectedText;
+    $('coordStatus')?.classList.toggle('hidden', !showCoordinates);
+    $('statusPrimary')?.classList.toggle('hidden', !showTask);
+    $('statusSelection')?.classList.toggle('hidden', !showSelection);
   }
 
   function clearNotification() {
@@ -4334,9 +4353,7 @@
 
   function updateZoomStatus() {
     const zoom = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
-    $('zoomStatus').textContent = state.projection === 'globe'
-      ? `지구본 ×${zoom.toFixed(1)}`
-      : `평면 ×${zoom.toFixed(1)}`;
+    $('zoomStatus').textContent = `×${zoom.toFixed(1)}`;
   }
 
   function isCoordVisible(coord) {
@@ -4396,10 +4413,10 @@
   const layerGroupVisibilityKey = group => group === 'countryLabels' ? 'basemapLabels' : group;
   const layerGroupNames = { countries: '국가', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
-    countries: ['countriesLayerChildren', 'countriesLayerCount'],
-    drawings: ['drawingsLayerChildren', 'drawingsLayerCount'],
-    labels: ['labelsLayerChildren', 'labelsLayerCount'],
-    countryLabels: ['countryLabelsLayerChildren', 'countryLabelsLayerCount'],
+    countries: 'countriesLayerChildren',
+    drawings: 'drawingsLayerChildren',
+    labels: 'labelsLayerChildren',
+    countryLabels: 'countryLabelsLayerChildren',
   };
   const layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
   let renderedLayerTreeRevision = -1;
@@ -4621,20 +4638,16 @@
     renderTerrainLayerFolder(search);
     for (const group of LAYER_GROUP_KEYS) {
       const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]`);
-      const [childrenId, countId] = layerGroupTargetIds[group];
-      const container = $(childrenId);
-      const count = $(countId);
-      if (!folder || !container || !count) continue;
+      const container = $(layerGroupTargetIds[group]);
+      if (!folder || !container) continue;
       const allItems = layerTreeItems(group).sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
       const filtered = search ? allItems.filter(item => `${item.name} ${item.searchText || ''} ${item.id} ${item.meta || ''} ${item.count ?? ''}`.toLocaleLowerCase('ko').includes(search)) : allItems;
-      const visibleCount = allItems.filter(item => isLayerItemVisible(group, item.id)).length;
       const expanded = !!search || !!state.layerFolders[group];
       folder.classList.toggle('is-expanded', expanded);
       folder.querySelectorAll('[data-layer-folder-toggle]').forEach(button => {
         button.setAttribute('aria-expanded', String(expanded));
         button.setAttribute('aria-label', `${layerGroupNames[group]} 폴더 ${expanded ? '접기' : '펼치기'}`);
       });
-      count.textContent = visibleCount === allItems.length ? String(allItems.length) : `${visibleCount}/${allItems.length}`;
       container.hidden = !expanded;
       container.replaceChildren();
       if (!expanded) continue;
@@ -4668,13 +4681,11 @@
         name.dataset.itemId = item.id;
         name.textContent = item.name;
         name.title = item.title || (item.count !== undefined ? `${item.name} 상태 보기` : `${item.name} 선택하고 이동`);
-        const detailValue = item.count !== undefined && item.count !== null
-          ? `${Number(item.count).toLocaleString()}개`
-          : item.meta;
+        const detailValue = item.count === undefined || item.count === null ? item.meta : '';
         row.append(visibility, swatch, name);
         if (detailValue) {
           const detail = document.createElement('span');
-          detail.className = item.count !== undefined && item.count !== null ? 'layer-child-count' : 'layer-child-meta';
+          detail.className = 'layer-child-meta';
           detail.textContent = detailValue;
           row.append(detail);
         }
@@ -5627,11 +5638,6 @@
     }
     if (mergeBtn) mergeBtn.classList.toggle('active', mergeActive);
     if (annexBtn) annexBtn.classList.toggle('active', annexActive);
-    const hint = $('countryActionHint');
-    if (hint) {
-      hint.classList.toggle('hidden', annexActive || coastActive || mergeActive);
-      hint.textContent = '영토를 가져올 국가를 선택한 뒤 새 경계를 그어 원하는 영역만 편입할 수 있습니다.';
-    }
   }
 
   function setModeBanner(text = '', modeClass = '') {
@@ -5643,6 +5649,7 @@
       banner.classList.add('hidden');
       defaultHint?.classList.remove('hidden');
       context?.classList.remove('has-active-context');
+      syncStatusBar();
       scheduleMapContextCollapse();
       return;
     }
@@ -5653,6 +5660,7 @@
     defaultHint?.classList.add('hidden');
     context?.classList.remove('is-collapsed');
     context?.classList.add('has-active-context');
+    syncStatusBar();
   }
 
   function syncMapCursorMode() {
@@ -5744,6 +5752,7 @@
     }
     syncMapCursorMode();
     syncCountryActionButtons();
+    syncStatusBar();
   }
 
   function resetAnnexState() {
@@ -6634,6 +6643,8 @@
     $('drawingProperties').classList.toggle('hidden', type !== 'drawing');
     $('labelProperties').classList.toggle('hidden', type !== 'label');
     $('hydroProperties').classList.toggle('hidden', type !== 'hydro');
+    $('propertyType').classList.toggle('hidden', !['drawing', 'label', 'hydro'].includes(type));
+    syncStatusBar();
   }
 
   function renderFlag(dataUrl) {
@@ -6667,6 +6678,7 @@
     $('originalNameValue').textContent = p.editor_original_name || p.editor_name || '—';
     renderFlag(override.flagDataUrl || p.flagDataUrl || null);
     $('selectionStatus').textContent = `국가 · ${$('propertyTitle').textContent}`;
+    syncStatusBar();
     syncCountryActionButtons();
     markLayerTreeDirty();
     if (shouldRender) renderAll();
@@ -6688,6 +6700,7 @@
     $('drawingCategoryInput').value = meta.category || 'custom';
     $('drawingNotesInput').value = meta.notes || '';
     $('selectionStatus').textContent = `${typeLabel} · ${meta.name || String(id).slice(0, 8)}`;
+    syncStatusBar();
     markLayerTreeDirty();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
@@ -6704,6 +6717,7 @@
     $('labelKindInput').value = label.kind;
     $('labelNotesInput').value = label.notes || '';
     $('selectionStatus').textContent = `지명 · ${label.name}`;
+    syncStatusBar();
     markLayerTreeDirty();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
@@ -6727,6 +6741,7 @@
       : '표시 지류 포함';
     $('hydroSourceValue').textContent = properties.source || 'AtlasWright 내장 수계';
     $('selectionStatus').textContent = `${category} · ${properties.name || '이름 없음'}`;
+    syncStatusBar();
     markLayerTreeDirty();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
@@ -6792,9 +6807,9 @@
 
   function clearSelection(announce = true) {
     state.selected = null;
-    $('propertyTitle').textContent = '지도에서 객체를 선택하세요';
-    $('propertyType').textContent = '선택 없음';
-    $('selectionStatus').textContent = '선택 없음';
+    $('propertyTitle').textContent = '편집';
+    $('propertyType').textContent = '';
+    $('selectionStatus').textContent = '';
     showPropertyForm(null);
     syncCountryActionButtons();
     syncMobileNavigation();
@@ -6952,9 +6967,9 @@
     resetTerritoryEditingState(true);
     state.tool = 'select';
     showPropertyForm(null);
-    $('propertyTitle').textContent = '지도에서 객체를 선택하세요';
-    $('propertyType').textContent = '선택 없음';
-    $('selectionStatus').textContent = '선택 없음';
+    $('propertyTitle').textContent = '편집';
+    $('propertyType').textContent = '';
+    $('selectionStatus').textContent = '';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     updateModeButtons();
     gpuMapRenderer.markCountryMeshStale();
@@ -7265,6 +7280,9 @@
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
     showPropertyForm(null);
+    $('propertyTitle').textContent = '편집';
+    $('propertyType').textContent = '';
+    $('selectionStatus').textContent = '';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     scheduleGpuMeshRebuild(0);
     renderAll();
@@ -7358,9 +7376,9 @@
     renderLayerTree(true);
     syncProjectionButtons();
     showPropertyForm(null);
-    $('propertyTitle').textContent = '지도에서 객체를 선택하세요';
-    $('propertyType').textContent = '선택 없음';
-    $('selectionStatus').textContent = '선택 없음';
+    $('propertyTitle').textContent = '편집';
+    $('propertyType').textContent = '';
+    $('selectionStatus').textContent = '';
     setTool('select', false);
 
     // 기존 SVG 노드는 편집된 Feature 객체를 __data__로 들고 있을 수 있으므로 완전히 제거 후 원본으로 재바인딩한다.
@@ -7834,21 +7852,19 @@
       if (state.countriesLocked) setActionStatus('국가 레이어가 잠겨 있어 위치만 이동했습니다.', 'error', 2600);
     } else if (group === 'drawings') {
       if (key === 'user-terrain') {
-        setActionStatus(`사용자 지형지물은 ${state.drawings.length.toLocaleString()}개입니다. 항목을 선택하면 위치로 이동하고 편집할 수 있습니다.`, 'success', 2600);
         return;
       }
       if (key.startsWith('hydro-layer:')) {
         const layerId = key.slice('hydro-layer:'.length);
         if (!state.hydroManifest) loadHydroData(true);
         else {
-          const count = Number(state.hydroManifest?.stats?.layerCounts?.[layerId] || 0);
           const cacheState = state.physicalLoadState.hydroCache;
           if (cacheState === 'error') {
             gpuMapRenderer.retryHydroCache?.();
             setActionStatus('전 세계 수계 자료의 오프라인 저장을 다시 시도합니다.', 'working', 0);
           } else {
             const suffix = cacheState === 'ready' ? '오프라인에서도 바로 사용할 수 있습니다.' : `전 세계 자료를 백그라운드에서 준비하고 있습니다. ${Math.round(state.physicalLoadState.hydroCachePercent || 0)}%`;
-            setActionStatus(`${HYDRO_LAYER_META[layerId]?.label || '수계'}에 ${count.toLocaleString()}개 객체가 있습니다. ${suffix}`, 'success', 3200);
+            setActionStatus(suffix, 'success', 3200);
           }
         }
         return;
@@ -8333,7 +8349,7 @@
       setAutosaveStatus(autosaveRestore.source === 'localstorage' ? '기존 저장 이전됨' : '복원됨');
       if (gpuReady) {
         const restoredLabel = externalGeometry ? '외부 GIS 자동저장 데이터를' : '자동저장 프로젝트를';
-        setActionStatus(`${restoredLabel} 복원했습니다. 국가 ${state.countriesData.features.length}개를 불러왔습니다.`, 'success', 3200);
+        setActionStatus(`${restoredLabel} 복원했습니다.`, 'success', 3200);
       } else {
         const renderer = gpuMapRenderer.getStats();
         setActionStatus(`자동저장을 복원했습니다. ${renderer.renderer === 'canvas-worker' ? 'Canvas Worker' : 'Canvas'} 무손실 렌더러를 사용합니다.`, 'success', 4200);
@@ -8341,7 +8357,7 @@
     } else {
       setAutosaveStatus('준비');
       if (gpuReady) {
-        setActionStatus(`고해상도 지도를 준비했습니다. 국가 ${state.countriesData.features.length}개를 불러왔습니다.`, 'success');
+        setActionStatus('고해상도 지도를 준비했습니다.', 'success');
       } else {
         const renderer = gpuMapRenderer.getStats();
         setActionStatus(`${renderer.renderer === 'canvas-worker' ? 'Canvas Worker' : 'Canvas'} 무손실 렌더러를 준비했습니다.`, 'success', 4200);
