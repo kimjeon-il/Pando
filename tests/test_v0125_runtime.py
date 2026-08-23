@@ -19,7 +19,7 @@ class V0125RuntimeTests(unittest.TestCase):
         handler = section(APP, "function receiveHydroWorkerMessage", "function pruneHydroCache")
         self.assertNotIn("renderAll()", handler)
         self.assertIn("scheduleHydroUpload(entry)", handler)
-        self.assertIn("renderLayerTree()", handler)  # progress only; worker throttles this to 4 Hz
+        self.assertNotIn("renderLayerTree()", handler)  # progress no longer rebuilds layer rows
 
     def test_webgl_receives_mesh_descriptors_not_geojson(self):
         self.assertIn("features: includeGeometry ? pack.features : null", WORKER)
