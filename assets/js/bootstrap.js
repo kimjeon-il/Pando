@@ -1,8 +1,8 @@
 'use strict';
 
 (() => {
-  const BUILD_ID = '0.18.1';
-  const ASSET_REVISION = '0.18.1';
+  const BUILD_ID = '0.19.0';
+  const ASSET_REVISION = '0.19.0';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
   const overlay = document.getElementById('bootstrapLoading');
