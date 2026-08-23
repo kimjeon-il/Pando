@@ -18,12 +18,12 @@ LICENSE = ROOT / "assets" / "fonts" / "pretendard-v1.3.9" / "LICENSE.txt"
 
 class V0150TypographyCopyTests(unittest.TestCase):
     def test_versioned_shell_and_cache_keys_match(self):
-        self.assertIn('data-app-version="0.16.1"', INDEX)
-        self.assertIn("const APP_VERSION = '0.16.1'", APP)
-        self.assertIn("const BUILD_ID = '0.16.1'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.16.1'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.16.1", INDEX)
-        self.assertIn("bootstrap.js?v=0.16.1", INDEX)
+        self.assertIn('data-app-version="0.16.3"', INDEX)
+        self.assertIn("const APP_VERSION = '0.16.3'", APP)
+        self.assertIn("const BUILD_ID = '0.16.3'", BOOTSTRAP)
+        self.assertIn("const ASSET_REVISION = '0.16.3'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.16.3", INDEX)
+        self.assertIn("bootstrap.js?v=0.16.3", INDEX)
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())
@@ -61,6 +61,7 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertNotIn("현재 도구", INDEX)
         self.assertNotIn("레이어 항목 검색", INDEX)
         self.assertIn("height: var(--ui-control-height)", CSS)
+        self.assertIn(".current-tool-label {\n  font-size: var(--ui-font-md);", CSS)
 
     def test_user_copy_avoids_mixed_terms_and_request_tone(self):
         visible_sources = "\n".join((INDEX, APP, BOOTSTRAP))
