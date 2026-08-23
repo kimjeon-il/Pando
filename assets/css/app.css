@@ -1272,67 +1272,126 @@ button, input, textarea, select { line-height: var(--ui-line-tight); }
   color: var(--accent-text);
 }
 
+/* ===== AtlasWright v0.14.1: top command dock ===== */
 .mode-action-bar {
-  width: min(720px, calc(100% - 24px));
-  display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
+  top: 84px;
+  bottom: auto;
+  width: min(680px, calc(100% - 24px));
+  min-height: 52px;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--ui-space-2);
-  padding: var(--ui-space-2);
+  padding: 6px 8px;
+  border-color: var(--overlay-border);
+  border-radius: 14px;
+  background: var(--overlay-panel);
+  box-shadow: 0 10px 28px rgba(0,0,0,.22);
 }
+.mode-action-bar.has-method-switch { justify-content: flex-start; }
 .mode-action-bar:not(.has-method-switch) { width: auto; }
 .mode-method-switch {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: auto repeat(2,minmax(0,1fr));
+  display: flex;
+  flex: 1 1 310px;
   align-items: center;
-  gap: var(--ui-space-1);
-  padding: var(--ui-space-1);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--ui-radius-control) + 2px);
+  gap: 2px;
+  min-width: 0;
+  padding: 3px;
+  border: 0;
+  border-radius: 10px;
   background: var(--surface-subtle);
 }
 .mode-method-switch.hidden { display: none !important; }
-.mode-method-label { padding: 0 var(--ui-space-2); color: var(--muted); font-size: var(--ui-font-sm); font-weight: var(--ui-weight-medium); white-space: nowrap; }
 .mode-method-btn {
+  flex: 1 1 0;
   min-width: 0;
+  min-height: 38px !important;
   padding: 0 var(--ui-space-3) !important;
   border-color: transparent !important;
   background: transparent;
   color: var(--muted);
+  box-shadow: inset 0 -2px 0 transparent;
   white-space: nowrap;
 }
 .mode-method-btn:hover { background: var(--surface-hover); color: var(--text); }
 .mode-method-btn.active {
-  background: var(--accent-surface);
-  color: var(--accent-text);
-  box-shadow: none;
+  background: var(--surface-hover);
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 .mode-selection-summary {
-  min-width: 0;
-  padding-left: var(--ui-space-2);
+  flex: 0 1 auto;
+  min-width: 64px;
+  max-width: 150px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-subtle);
   color: var(--text-soft);
   font-size: var(--ui-font-sm);
   font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .mode-selection-summary.hidden { display: none !important; }
-.mode-action-buttons { display: flex; justify-content: flex-end; gap: var(--ui-space-2); }
-.mode-action-bar:not(.has-method-switch) .mode-action-buttons { grid-column: 1 / -1; justify-content: center; }
+.mode-action-buttons { display: flex; flex: 0 0 auto; justify-content: flex-end; gap: 6px; }
+.mode-action-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 13px;
+}
+.mode-action-buttons .ui-icon { width: 17px; height: 17px; }
+.mode-action-bar:not(.has-method-switch) .mode-action-buttons { justify-content: center; }
 
-@media (max-width: 799px) {
-  #app[data-layout="mobile"] .mode-action-bar {
-    width: auto;
-    display: grid;
-    grid-template-columns: minmax(0,1fr);
-    gap: var(--ui-space-1);
-  }
-  #app[data-layout="mobile"] .mode-method-switch { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  #app[data-layout="mobile"] .mode-method-label { display: none; }
-  #app[data-layout="mobile"] .mode-method-btn { padding: 0 5px !important; font-size: var(--ui-font-sm); }
-  #app[data-layout="mobile"] .mode-selection-summary { padding: 0 var(--ui-space-1); text-align: center; }
-  #app[data-layout="mobile"] .mode-action-buttons { width: 100%; }
-  #app[data-layout="mobile"] .mode-action-buttons button { flex: 1; }
+#app[data-layout="compact"] .mode-action-bar,
+#app[data-layout="mobile"] .mode-action-bar.has-method-switch {
+  top: 64px;
+  width: min(560px, calc(100% - 16px));
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 6px var(--ui-space-2);
+}
+#app[data-layout="compact"] .mode-method-switch,
+#app[data-layout="mobile"] .mode-method-switch { grid-column: 1 / -1; width: 100%; }
+#app[data-layout="compact"] .mode-selection-summary,
+#app[data-layout="mobile"] .mode-selection-summary { justify-self: start; max-width: 190px; }
+#app[data-layout="compact"] .mode-action-buttons,
+#app[data-layout="mobile"] .mode-action-buttons { justify-self: end; }
+#app[data-layout="compact"] .mode-action-bar:not(.has-method-switch) { width: auto; display: flex; }
+#app[data-layout="compact"] .map-wrap.mode-command-visible .map-context-panel { top: 124px; }
+#app[data-layout="compact"] .map-wrap.mode-command-methods .map-context-panel { top: 166px; }
+
+#app[data-layout="mobile"] .mode-action-bar {
+  top: 60px;
+  right: auto;
+  bottom: auto;
+}
+#app[data-layout="mobile"] .mode-action-bar.has-method-switch {
+  left: 8px;
+  right: 8px;
+  transform: none;
+  width: auto;
+}
+#app[data-layout="mobile"] .mode-action-bar:not(.has-method-switch) {
+  left: 50%;
+  right: auto;
+  width: auto;
+  transform: translateX(-50%);
+}
+#app[data-layout="mobile"] .mode-method-btn { min-height: var(--ui-touch-height) !important; padding: 0 6px !important; font-size: var(--ui-font-sm); }
+#app[data-layout="mobile"] .mode-selection-summary { padding: 6px 9px; }
+#app[data-layout="mobile"] .mode-action-buttons button { min-height: var(--ui-touch-height); flex: 0 0 auto; padding: 0 11px; }
+#app[data-layout="mobile"] .map-wrap.mode-command-visible .map-context-panel.has-active-context { top: 122px; }
+#app[data-layout="mobile"] .map-wrap.mode-command-methods .map-context-panel.has-active-context { top: 174px; }
+
+@media (max-width: 359px) {
+  #app[data-layout="mobile"] .mode-selection-summary { max-width: 112px; }
+  #app[data-layout="mobile"] .mode-action-buttons button { padding: 0 9px; }
+  #app[data-layout="mobile"] .mode-action-buttons .ui-icon { display: none; }
 }

@@ -7,7 +7,7 @@
   <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
-    <link rel="stylesheet" href="assets/css/app.css?v=0.14.0" />
+    <link rel="stylesheet" href="assets/css/app.css?v=0.14.1" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -35,13 +35,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.14.0" data-layout="wide">
+  <div id="app" data-app-version="0.14.1" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.14.0 · Natural Earth 1:10m · 통합 UI</span>
+          <span>v0.14.1 · Natural Earth 1:10m · 상단 작업 도크</span>
         </div>
       </div>
 
@@ -191,14 +191,13 @@
 
         <div id="modeActionBar" class="mode-action-bar hidden" aria-live="polite">
           <div id="modeMethodSwitch" class="mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
-            <span class="mode-method-label">선택 방식</span>
-            <button id="modeLineMethodBtn" type="button" class="mode-method-btn" aria-pressed="true">국경선으로 나누기</button>
-            <button id="modeComponentsMethodBtn" type="button" class="mode-method-btn" aria-pressed="false">영토 조각 선택</button>
+            <button id="modeLineMethodBtn" type="button" class="mode-method-btn" aria-label="국경선으로 나누기" aria-pressed="true">선으로 나누기</button>
+            <button id="modeComponentsMethodBtn" type="button" class="mode-method-btn" aria-label="영토 조각 선택" aria-pressed="false">조각 선택</button>
           </div>
           <span id="modeSelectionSummary" class="mode-selection-summary hidden"></span>
           <div class="mode-action-buttons">
-            <button id="modePrimaryBtn" type="button" class="mode-primary-btn">완료</button>
-            <button id="modeCancelBtn" type="button" class="mode-cancel-btn">취소</button>
+            <button id="modePrimaryBtn" type="button" class="mode-primary-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span></button>
+            <button id="modeCancelBtn" type="button" class="mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
           </div>
         </div>
         <div class="current-tool map-context-panel" id="currentTool" aria-live="polite">
@@ -409,7 +408,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.14.0" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.14.0" defer></script>
+  <script src="assets/js/gis-io.js?v=0.14.1" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.14.1" defer></script>
 </body>
 </html>
