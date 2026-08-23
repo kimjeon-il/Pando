@@ -1,4 +1,4 @@
-/* AtlasWright v0.14.1
+/* AtlasWright v0.14.2
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.14.1';
+  const APP_VERSION = '0.14.2';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -178,12 +178,19 @@
       : '드래그로 이동 · 휠로 확대·축소 · 지도에서 객체 선택';
   }
 
+  function placeProjectionControl() {
+    const control = $('projectionControl');
+    const host = isMobile() ? $('mobileProjectionSlot') : $('projectionToolbarSlot');
+    if (control && host && control.parentElement !== host) host.appendChild(control);
+  }
+
   function applyLayoutMode({ initial = false } = {}) {
     const previous = layoutMode;
     layoutMode = detectLayoutMode();
     const app = $('app');
     if (app) app.dataset.layout = layoutMode;
     document.body.dataset.layout = layoutMode;
+    placeProjectionControl();
     updateMapContextDefault();
 
     const left = $('leftPanel');
@@ -6860,10 +6867,19 @@
     $('redoBtn').disabled = !state.future.length;
   }
 
+  function syncProjectionButtons() {
+    for (const [id, projection] of [['globeBtn', 'globe'], ['flatBtn', 'flat']]) {
+      const button = $(id);
+      if (!button) continue;
+      const active = state.projection === projection;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    }
+  }
+
   function setProjection(type) {
     state.projection = type === 'globe' ? 'globe' : 'flat';
-    $('globeBtn').classList.toggle('active', state.projection === 'globe');
-    $('flatBtn').classList.toggle('active', state.projection === 'flat');
+    syncProjectionButtons();
     renderAll();
     queueViewAutosave();
   }
@@ -7118,8 +7134,7 @@
     state.draftCoords = [];
     state.draftHover = null;
 
-    $('globeBtn').classList.toggle('active', state.projection === 'globe');
-    $('flatBtn').classList.toggle('active', state.projection !== 'globe');
+    syncProjectionButtons();
     $('countriesVisible').checked = state.layerVisibility.countries;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
@@ -7220,8 +7235,7 @@
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = '';
     renderLayerTree(true);
-    $('globeBtn').classList.add('active');
-    $('flatBtn').classList.remove('active');
+    syncProjectionButtons();
     showPropertyForm(null);
     $('propertyTitle').textContent = '지도에서 객체를 선택하세요';
     $('propertyType').textContent = '선택 없음';
@@ -8149,8 +8163,7 @@
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
-    $('globeBtn').classList.toggle('active', state.projection === 'globe');
-    $('flatBtn').classList.toggle('active', state.projection !== 'globe');
+    syncProjectionButtons();
 
     resizeMap();
     updateHistoryButtons();
