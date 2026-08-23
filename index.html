@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.16.3" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.16.4" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -38,13 +38,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.16.3" data-layout="wide">
+  <div id="app" data-app-version="0.16.4" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.16.3 · Natural Earth 1:10m · 다중 영토 편집</span>
+          <span>v0.16.4 · Natural Earth 1:10m · 다중 영토 편집</span>
         </div>
       </div>
 
@@ -156,7 +156,7 @@
       <main class="map-wrap">
         <div id="map" aria-label="지도 편집 영역"></div>
 
-        <div id="mapCommandToolbar" class="map-toolbar map-command-toolbar floating-toolbar" aria-label="지도 명령">
+        <div id="mapCommandToolbar" class="map-toolbar map-command-toolbar floating-toolbar history-empty" aria-label="지도 명령">
           <div class="create-menu-wrap">
             <button id="createMenuBtn" class="create-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
             <div id="createMenu" class="create-menu hidden" role="menu" aria-label="지도 객체 추가">
@@ -208,12 +208,18 @@
           <span id="modeBanner" class="map-context-instruction mode-banner hidden"></span>
         </div>
 
-        <div class="map-bottom-status">
-          <span id="coordStatus">경도 0.0000 · 위도 0.0000</span>
-          <span id="zoomStatus">지구본 ×1.0</span>
-          <span id="engineStatus" class="engine-status">지도 엔진 준비 중</span>
-          <span id="currentToolStatus" class="current-tool-status">작업 · 국가 선택</span>
-          <span id="selectionStatus">선택 없음</span>
+        <div class="map-bottom-status" aria-label="지도 상태">
+          <div class="status-group status-view" aria-label="보기 정보">
+            <span id="coordStatus" class="status-item">경도 0.0000 · 위도 0.0000</span>
+            <span id="zoomStatus" class="status-item">지구본 ×1.0</span>
+            <span id="engineStatus" class="status-item engine-status">지도 엔진 준비 중</span>
+          </div>
+          <div class="status-group status-primary" aria-label="현재 작업">
+            <span id="currentToolStatus" class="current-tool-status">작업 · 국가 선택</span>
+          </div>
+          <div class="status-group status-selection" aria-label="선택 대상">
+            <span id="selectionStatus">선택 없음</span>
+          </div>
         </div>
 
         <nav class="adaptive-nav mobile-bottom-bar" aria-label="지도 탐색">
@@ -412,7 +418,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.16.3" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.16.3" defer></script>
+  <script src="assets/js/gis-io.js?v=0.16.4" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.16.4" defer></script>
 </body>
 </html>
