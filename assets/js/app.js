@@ -1,4 +1,4 @@
-/* AtlasWright v0.18.0
+/* AtlasWright v0.18.1
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.18.0';
+  const APP_VERSION = '0.18.1';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -108,7 +108,7 @@
     return url;
   }
   const REQUIRED_UI_IDS = Object.freeze([
-    'app', 'map', 'engineStatus', 'countryStatus', 'statusView', 'statusPrimary', 'statusSelection',
+    'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection',
     'globeBtn', 'flatBtn', 'countriesVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
@@ -1128,7 +1128,7 @@
       return glVersion === 2 ? 'WebGL2' : glVersion === 1 ? 'WebGL1' : 'Canvas';
     }
 
-    function updateRendererBadge(label, reason = '') {
+    function updateRendererStatus(label, reason = '') {
       const status = $('engineStatus');
       if (!status) return;
       status.textContent = reason ? `${label} · ${reason}` : label;
@@ -1187,7 +1187,7 @@
       rendererMode = 'webgl-recovering';
       clearTimeout(webglRecoveryTimer);
       $('engineStatus').textContent = `${rendererName()} · 컨텍스트를 복구하는 중입니다.`;
-      updateRendererBadge(`${rendererName()} · GPU를 복구하는 중입니다.`);
+      updateRendererStatus(`${rendererName()} · GPU를 복구하는 중입니다.`);
       setActionStatus('지도 GPU를 복구하는 중입니다.', 'working', 0);
       webglRecoveryTimer = setTimeout(() => {
         if (webglContextLost && rendererMode === 'webgl-recovering') {
@@ -1214,7 +1214,7 @@
         if (mesh) setMesh(mesh, meshCountryIds);
         else render(currentRenderRevision);
         $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
-        updateRendererBadge(`${rendererName()} · GPU 실시간`);
+        updateRendererStatus(`${rendererName()} · GPU 실시간`);
         setActionStatus('지도 GPU를 복구했습니다.', 'success', 2200);
       } catch (error) {
         webglContextLost = false;
@@ -1378,7 +1378,7 @@
           lineIndices: new Uint32Array(next.lineIndices),
         }, next.countryIds || []);
         $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
-        updateRendererBadge(`${rendererName()} · GPU 실시간`);
+        updateRendererStatus(`${rendererName()} · GPU 실시간`);
       };
       currentWorker.onerror = event => {
         if (token !== rebuildToken) return;
@@ -2417,7 +2417,7 @@
       ctx2d = canvas.getContext('2d', { alpha: true });
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
       $('engineStatus').textContent = `Canvas 무손실 대체 · ${fallbackReason}`;
-      updateRendererBadge('Canvas · 무손실 대체', fallbackReason);
+      updateRendererStatus('Canvas · 무손실 대체', fallbackReason);
       setActionStatus(`무손실 Canvas 렌더러로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
@@ -2514,7 +2514,7 @@
           if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
           else connectHydroCanvasWorkers();
           $('engineStatus').textContent = `Canvas Worker 무손실 · ${fallbackReason}`;
-          updateRendererBadge('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
+          updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
           setActionStatus(`무손실 Canvas Worker로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
           return;
         } catch (error) {
@@ -2528,7 +2528,7 @@
       ctx2d = canvas.getContext('2d', { alpha: true });
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
       $('engineStatus').textContent = `Canvas 무손실 대체 · ${fallbackReason}`;
-      updateRendererBadge('Canvas · 무손실 대체', fallbackReason);
+      updateRendererStatus('Canvas · 무손실 대체', fallbackReason);
       setActionStatus('GPU를 사용할 수 없어 무손실 Canvas 렌더러로 전환했습니다.', 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
@@ -2622,12 +2622,12 @@
         try {
           initWebGl(version);
           $('engineStatus').textContent = `${rendererName()} · 원본 메시를 준비하는 중입니다.`;
-          updateRendererBadge(`${rendererName()} · GPU를 준비하는 중입니다.`);
+          updateRendererStatus(`${rendererName()} · GPU를 준비하는 중입니다.`);
           if (!decoded) decoded = await decodeBuiltInMesh();
           setMesh(decoded.mesh, decoded.ids);
           if (isWebGlRenderer()) {
             $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
-            updateRendererBadge(`${rendererName()} · GPU 실시간`);
+            updateRendererStatus(`${rendererName()} · GPU 실시간`);
             return true;
           }
         } catch (error) {
@@ -2826,10 +2826,6 @@
     state.view.flatCenter[0] = ((state.view.flatCenter[0] + 540) % 360) - 180;
   }
 
-  function setAutosaveStatus(text) {
-    $('autosaveStatus').textContent = text;
-  }
-
   function setCurrentTool(name) {
     const currentName = name || '선택·편집';
     $('currentToolName').textContent = currentName;
@@ -2859,12 +2855,12 @@
 
   function clearNotification() {
     clearTimeout(setActionStatus._timer);
-    const chip = $('actionStatus');
-    if (!chip) return;
-    chip.classList.add('hidden');
-    chip.classList.remove('working', 'success', 'error');
-    chip.classList.add('ready');
-    chip.setAttribute('role', 'status');
+    const notice = $('actionStatus');
+    if (!notice) return;
+    notice.classList.add('hidden');
+    notice.classList.remove('working', 'success', 'error');
+    notice.classList.add('ready');
+    notice.setAttribute('role', 'status');
     document.body.classList.remove('notification-visible');
   }
 
@@ -2873,14 +2869,14 @@
   }
 
   function setActionStatus(message, tone = 'success', timeout = 1800) {
-    const chip = $('actionStatus');
-    if (!chip) return;
+    const notice = $('actionStatus');
+    if (!notice) return;
     clearTimeout(setActionStatus._timer);
-    chip.classList.remove('hidden');
-    chip.classList.remove('ready', 'working', 'success', 'error');
-    chip.classList.add(tone);
-    chip.setAttribute('role', tone === 'error' ? 'alert' : 'status');
-    const strong = chip.querySelector('strong');
+    notice.classList.remove('hidden');
+    notice.classList.remove('ready', 'working', 'success', 'error');
+    notice.classList.add(tone);
+    notice.setAttribute('role', tone === 'error' ? 'alert' : 'status');
+    const strong = notice.querySelector('strong');
     if (strong) strong.textContent = message;
     document.body.classList.add('notification-visible');
     if (tone === 'error' || timeout <= 0) return;
@@ -4653,7 +4649,7 @@
       const fragment = document.createDocumentFragment();
       for (const item of filtered) {
         const row = document.createElement('div');
-        row.className = `layer-child${item.selected ? ' is-selected' : ''}`;
+        row.className = `ui-row layer-child${item.selected ? ' is-selected' : ''}`;
         row.dataset.layerGroup = group;
         row.dataset.itemId = item.id;
         const visibility = document.createElement('input');
@@ -4668,7 +4664,7 @@
         else swatch.style.setProperty('--layer-item-color', item.color || '#63758a');
         const name = document.createElement('button');
         name.type = 'button';
-        name.className = 'layer-child-name';
+        name.className = 'ui-button layer-child-name';
         name.dataset.layerItemSelect = group;
         name.dataset.itemId = item.id;
         name.textContent = item.name;
@@ -6635,7 +6631,6 @@
     $('drawingProperties').classList.toggle('hidden', type !== 'drawing');
     $('labelProperties').classList.toggle('hidden', type !== 'label');
     $('hydroProperties').classList.toggle('hidden', type !== 'hydro');
-    $('propertyType').classList.toggle('hidden', !['drawing', 'label', 'hydro'].includes(type));
     syncStatusBar();
   }
 
@@ -6661,7 +6656,6 @@
     state.selected = { type: 'country', id: String(id) };
     showPropertyForm('country');
     $('propertyTitle').textContent = override.name || p.editor_name || p.editor_original_name || id;
-    $('propertyType').textContent = '국가';
     $('countryNameInput').value = override.name || p.editor_name || p.editor_original_name || '';
     $('countryCodeInput').value = id;
     $('countryColorInput').value = override.color || p.editor_color || defaultCountryColor();
@@ -6685,7 +6679,6 @@
     state.selected = { type: 'drawing', id: String(id) };
     showPropertyForm('drawing');
     $('propertyTitle').textContent = drawingName(feature);
-    $('propertyType').textContent = typeLabel;
     $('drawingNameInput').value = meta.name || '';
     $('drawingIdInput').value = String(id);
     $('drawingColorInput').value = meta.editorColor || DEFAULT_DRAWING_COLOR;
@@ -6704,7 +6697,6 @@
     state.selected = { type: 'label', id };
     showPropertyForm('label');
     $('propertyTitle').textContent = label.name;
-    $('propertyType').textContent = '지명';
     $('labelNameInput').value = label.name;
     $('labelKindInput').value = label.kind;
     $('labelNotesInput').value = label.notes || '';
@@ -6723,7 +6715,6 @@
     state.selected = { type: 'hydro', id: String(properties.aw_id || feature.id) };
     showPropertyForm('hydro');
     $('propertyTitle').textContent = properties.name || `이름 없는 ${category}`;
-    $('propertyType').textContent = `${category} · 내장 잠금`;
     $('hydroNameValue').textContent = properties.name || '이름 없음';
     $('hydroCategoryValue').textContent = category;
     $('hydroLayerValue').textContent = HYDRO_LAYER_META[properties.layer_id]?.label || properties.layer_id || '수계';
@@ -6800,7 +6791,6 @@
   function clearSelection(announce = true) {
     state.selected = null;
     $('propertyTitle').textContent = '편집';
-    $('propertyType').textContent = '';
     $('selectionStatus').textContent = '';
     showPropertyForm(null);
     syncCountryActionButtons();
@@ -6960,14 +6950,12 @@
     state.tool = 'select';
     showPropertyForm(null);
     $('propertyTitle').textContent = '편집';
-    $('propertyType').textContent = '';
     $('selectionStatus').textContent = '';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     updateModeButtons();
     gpuMapRenderer.markCountryMeshStale();
     scheduleGpuMeshRebuild(0);
     renderAll();
-    $('countryStatus').textContent = `현재 지도 ${state.countriesData?.features?.length || 0}개`;
     queueAutosave();
   }
 
@@ -7186,22 +7174,18 @@
   }
 
   function queueAutosave(delay = 650) {
-    setAutosaveStatus('저장 대기…');
     clearTimeout(state.autosaveTimer);
     state.autosaveTimer = setTimeout(async () => {
       const project = buildAutosaveData();
       try {
         await writeIndexedDbProject(project);
         state.lastSavedAt = new Date();
-        setAutosaveStatus(state.lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       } catch (error) {
         try {
           saveLocalStorageFallback(project);
           state.lastSavedAt = new Date();
-          setAutosaveStatus(`${state.lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · 호환 저장`);
         } catch (fallbackError) {
           console.warn('Autosave failed', error, fallbackError);
-          setAutosaveStatus('수동 저장 필요');
           setActionStatus('자동저장 용량을 초과했습니다. GeoPackage 파일로 직접 저장하세요.', 'error', 5200);
         }
       }
@@ -7273,7 +7257,6 @@
     renderLayerTree(true);
     showPropertyForm(null);
     $('propertyTitle').textContent = '편집';
-    $('propertyType').textContent = '';
     $('selectionStatus').textContent = '';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     scheduleGpuMeshRebuild(0);
@@ -7281,7 +7264,6 @@
     updateHistoryButtons();
     setTool('select');
     queueAutosave();
-    $('countryStatus').textContent = `${externalGeometry ? '외부 형상' : '프로젝트'} ${state.countriesData.features.length}개`;
     if (manual) setActionStatus(externalGeometry
       ? '외부 GIS 형상을 저장 당시 상태로 불러왔습니다.'
       : '프로젝트를 불러왔습니다.', 'success', 3200);
@@ -7369,7 +7351,6 @@
     syncProjectionButtons();
     showPropertyForm(null);
     $('propertyTitle').textContent = '편집';
-    $('propertyType').textContent = '';
     $('selectionStatus').textContent = '';
     setTool('select', false);
 
@@ -7386,8 +7367,6 @@
     updateHistoryButtons();
     updateZoomStatus();
 
-    $('countryStatus').textContent = `내장 ${state.countriesData.features.length}개`;
-    setAutosaveStatus('새 프로젝트');
     // 복원된 최초 geometry를 새 자동저장 기준으로 기록한다.
     queueAutosave();
     setActionStatus('새 프로젝트: 모든 국경을 최초 상태로 복원했습니다.', 'success', 3200);
@@ -7641,7 +7620,6 @@
       sourceInfo: result.atlasMetadata?.sourceInfo || result.sourceInfo,
     };
     applyAtlasState(mergedState, false);
-    $('countryStatus').textContent = `GIS 레이어 ${state.countriesData.features.length}개`;
     setActionStatus(`국가 경계 ${state.countriesData.features.length}개를 새 프로젝트로 열었습니다.`, 'success', 3200);
   }
 
@@ -7670,7 +7648,6 @@
     clearSelection(false);
     renderAll();
     queueAutosave();
-    $('countryStatus').textContent = `병합 지도 ${state.countriesData.features.length}개`;
     setActionStatus('GIS 레이어를 한 번의 편집 작업으로 병합했습니다.', 'success', 3200);
   }
 
@@ -8271,7 +8248,6 @@
       return;
     }
     if (!window.ATLASWRIGHT_COUNTRIES?.features?.length) {
-      $('countryStatus').textContent = '내장 데이터 오류';
       setActionStatus('내장 국가 데이터를 불러올 수 없습니다. 페이지를 새로고침하세요.', 'error', 0);
       return;
     }
@@ -8303,7 +8279,6 @@
     markLayerTreeDirty();
     configureDatasetSession(restored);
     const externalGeometry = !!restored?.countriesData && restored.baseDataset !== BASE_DATASET;
-    $('countryStatus').textContent = `${restored ? (externalGeometry ? '외부 형상' : '프로젝트') : '1:10m 내장'} ${state.countriesData.features.length}개`;
     $('engineStatus').textContent = 'Natural Earth 5.1.1 · GPU 렌더러를 준비하는 중입니다.';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
 
@@ -8336,7 +8311,6 @@
 
     if (restored) {
       if (restored.countriesData && restored.baseDataset === BASE_DATASET) queueAutosave(0);
-      setAutosaveStatus(autosaveRestore.source === 'localstorage' ? '기존 저장 이전됨' : '복원됨');
       if (gpuReady) {
         const restoredLabel = externalGeometry ? '외부 GIS 자동저장 데이터를' : '자동저장 프로젝트를';
         setActionStatus(`${restoredLabel} 복원했습니다.`, 'success', 3200);
@@ -8345,7 +8319,6 @@
         setActionStatus(`자동저장을 복원했습니다. ${renderer.renderer === 'canvas-worker' ? 'Canvas Worker' : 'Canvas'} 무손실 렌더러를 사용합니다.`, 'success', 4200);
       }
     } else {
-      setAutosaveStatus('준비');
       if (gpuReady) {
         setActionStatus('고해상도 지도를 준비했습니다.', 'success');
       } else {

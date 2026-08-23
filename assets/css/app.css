@@ -287,16 +287,14 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .top-actions { display: flex; align-items: center; gap: 7px; overflow-x: auto; }
 .divider { width: 1px; height: 23px; background: var(--border); margin: 0 4px; }
 
-.btn, .icon-btn, .text-btn, .danger-btn, .tool-card, .segment {
+.btn, .icon-btn, .danger-btn {
   border: 1px solid var(--border); background: var(--panel-2); cursor: pointer; transition: .16s ease;
 }
 .btn { height: 32px; padding: 0 11px; border-radius: 7px; font-size: var(--ui-font-body); }
-.btn:hover, .icon-btn:hover, .tool-card:hover, .segment:hover { background: var(--surface-hover); border-color: var(--surface-hover-border); }
+.btn:hover, .icon-btn:hover { background: var(--surface-hover); border-color: var(--surface-hover-border); }
 .btn:not(.ghost) { background: var(--accent-surface); border-color: var(--accent-border); color: var(--accent-text); }
 .btn:not(.ghost):hover { background: var(--accent-surface-hover); }
 .btn.wide { width: 100%; }
-.text-btn { border: 0; background: transparent; padding: 5px 0; color: var(--muted); font-size: var(--ui-font-body); }
-.text-btn:hover { color: var(--text); }
 .danger-btn { border-color: var(--danger-border); background: var(--danger-surface); padding: 9px 12px; border-radius: 7px; color: var(--danger-text); }
 .danger-btn:hover { background: #553030; }
 
@@ -316,12 +314,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .small { font-size: var(--ui-font-caption); }
 .eyebrow { display: block; color: var(--muted); font-size: var(--ui-font-caption); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
 
-.segmented { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-subtle); }
-.segment { border: 0; background: transparent; padding: 7px 8px; border-radius: 5px; color: var(--muted); font-size: var(--ui-font-body); }
-.segment.active { background: #735f35; color: #fff3cf; box-shadow: none; font-weight: var(--ui-weight-bold); }
-.segment.active::before { content: "✓ "; color: #ffe39b; }
-.renderer-info { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; color: var(--muted); font-size: var(--ui-font-caption); }
-.renderer-info strong { min-width: 0; color: var(--text-soft); font-weight: var(--ui-weight-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .layer-search { display: grid; grid-template-columns: 18px 1fr; align-items: center; gap: 4px; margin: 0 0 6px; padding: 0 7px; min-height: 31px; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); background: rgba(8,12,17,.28); }
 .layer-search:focus-within { border-color: #788595; box-shadow: 0 0 0 1px rgba(120,133,149,.18); }
@@ -359,15 +351,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .lock-toggle { opacity: .6; }
 
 .hint { font-size: var(--ui-font-caption); line-height: 1.55; color: var(--muted); margin: 0 0 11px; }
-.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.tool-card { min-height: 62px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; padding: 9px; color: var(--muted); font-size: var(--ui-font-body); text-align: left; }
-.tool-symbol { color: var(--accent-2); font-size: 17px; }
-.tool-card.active { background: #6f5b32; border-color: transparent; color: #fff3cf; box-shadow: none; }
-.tool-card.active .tool-symbol { color: #fff1bd; }
-.tool-card.active::after { content: "사용 중"; align-self: flex-end; margin-top: -14px; font-size: var(--ui-font-caption); color: #ffe39b; }
-.status-box { background: var(--surface-topbar); }
-.status-row { display: flex; justify-content: space-between; gap: 8px; font-size: var(--ui-font-caption); color: var(--muted); margin: 4px 0; }
-.status-row strong { color: #d2d8df; font-weight: var(--ui-weight-semibold); }
 
 .map-wrap { position: relative; min-width: 0; min-height: 0; background: var(--map-wrap-bg); }
 #map { position: absolute; inset: 0; }
@@ -399,7 +382,6 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 
 .property-header { display: flex; justify-content: space-between; align-items: flex-start; }
 .property-header h2 { font-size: var(--ui-font-title); max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.type-chip { font-size: var(--ui-font-caption); padding: 3px 6px; border-radius: 999px; background: #303844; color: #c9d0d8; }
 .empty-state { padding: 42px 22px; text-align: center; color: var(--muted); }
 .empty-state p { font-size: var(--ui-font-body); line-height: 1.7; }
 .property-form { padding: 15px; display: flex; flex-direction: column; gap: 13px; }
@@ -428,14 +410,6 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 
 /* 오프라인 SVG 지구본 */
 .topbar-center { gap: 8px; }
-.offline-chip {
-  display: inline-flex; align-items: center; height: 25px; padding: 0 9px;
-  border: 1px solid #3c6351; border-radius: 999px; background: #1b2d25;
-  color: #a9ddbd; font-size: var(--ui-font-caption); white-space: nowrap;
-}
-.offline-chip::before { content: "●"; margin-right: 5px; color: #6fc48c; font-size: 7px; }
-.utility-heading { margin-top: 14px; }
-.utility-grid .tool-card { min-height: 50px; }
 #map { overflow: hidden; touch-action: none; cursor: grab; background: var(--map-stage); isolation: isolate; }
 #map.drawing-mode { cursor: crosshair; }
 #map.country-pick-mode,
@@ -510,9 +484,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
   position: sticky; top: 0; z-index: 2; padding: 17px 16px 14px;
   border-bottom: 0; background: var(--editor-header-bg); backdrop-filter: none;
 }
-.editor-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .editor-header h2 { margin: 0; color: var(--text-strong); font-size: var(--ui-font-title); line-height: 1.25; font-weight: var(--ui-weight-bold); overflow-wrap: anywhere; }
-.type-chip { padding: 4px 8px; background: #2b3440; color: #d3dae1; font-size: var(--ui-font-caption); font-weight: var(--ui-weight-bold); }
 .editor-empty { padding: 32px 26px; }
 .editor-empty p { margin: 0; color: var(--muted); text-align: center; }
 .editor-form { padding: 12px; gap: 10px; }
@@ -717,17 +689,6 @@ body.modal-open { overflow: hidden; }
 .left-panel .section-heading { margin-bottom: 8px; }
 .left-panel .hint { margin-bottom: 9px; line-height: 1.45; }
 #layerSection { order: 2; }
-.compact-view-section { order: 3; }
-.app-status-box { order: 4; }
-.primary-tool-grid { grid-template-columns: 1fr; gap: 5px; }
-.primary-tool-grid .tool-card {
-  min-height: 42px; padding: 7px 9px; border-radius: 7px; flex-direction: row;
-  align-items: center; justify-content: flex-start; gap: 9px; font-size: var(--ui-font-body);
-}
-.primary-tool-grid .tool-symbol { width: 20px; font-size: 16px; text-align: center; }
-.primary-tool-grid .tool-card.active::after { margin: 0 0 0 auto; align-self: center; }
-.compact-view-section { padding-top: 10px !important; padding-bottom: 10px !important; }
-.app-status-box { display: none; }
 .floating-toolbar #resetViewBtn { font-size: 14px; }
 
 
@@ -759,13 +720,8 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .action-status.success { border-color: #7faf8c; background: #edf8f0; color: #265d38; }
   .action-status.error { border-color: #cf8585; background: #fff0f0; color: #902f2f; }
   .status-dot { background: #75818d; }
-  .segment.active,
-  .tool-card.active,
   .mobile-bottom-bar button.active,
   .mobile-top-btn.sheet-open { background: var(--accent-surface); border-color: transparent; color: var(--accent-text); box-shadow: none; }
-  .segment.active::before,
-  .tool-card.active .tool-symbol,
-  .tool-card.active::after { color: #ffffff; }
   .layer-search { background: #ffffff; }
   .layer-search input::placeholder,
   .layer-child-meta { color: #7a8590; }
@@ -780,13 +736,11 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .layer-child-swatch { border-color: rgba(27,32,39,.35); }
   .layer-folder-row:has(.lock-toggle:checked) .layer-folder-name::after { color: var(--accent); }
   .layer-icon.point { background: var(--accent); box-shadow: 0 0 0 2px #ffffff; }
-  .status-row strong,
   .editor-empty strong,
   .advanced-boundary-copy strong { color: var(--text-strong); }
   .mode-banner,
   .current-tool { background: rgba(234,242,252,.96); border-color: #87a7cf; color: #1f416d; }
   .current-tool-label { color: var(--accent); }
-  .type-chip { background: #e8edf1; color: #3d4853; }
   .field-group label,
   .editor-form .field-group label,
   .editor-card-title,
@@ -798,7 +752,6 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .flag-preview { border-color: #aeb8c2; background: #f4f6f8; color: #74808b; }
   .meta-card div,
   .editor-details[open] > summary { border-color: #d8dde2; }
-  .offline-chip { border-color: #83aa91; background: #eef8f1; color: #2f6540; }
   .fatal-noscript { border-color: #c97979; background: #fff0f0; color: #8b2929; }
   .mobile-sheet-header::before { background: #b1bbc4; }
   .mobile-bottom-bar button.sheet-open { background: #e8edf1; color: #26313b; box-shadow: none; }
@@ -888,14 +841,13 @@ body { font-size: var(--ui-font-body); }
 }
 .top-actions .divider { width: 100%; height: 1px; margin: 0; }
 
-.btn, .icon-btn, .danger-btn, .tool-card, .segment, .mode-action-bar button {
+.btn, .icon-btn, .danger-btn, .mode-action-bar button {
   border-radius: var(--ui-radius-control); transition: background-color .14s ease, border-color .14s ease, color .14s ease, box-shadow .14s ease;
 }
 .btn { height: var(--ui-control-height); min-height: var(--ui-control-height); padding: 0 var(--ui-space-3); font-size: var(--ui-font-body); }
 .icon-btn { width: var(--ui-control-height); height: var(--ui-control-height); display: grid; place-items: center; padding: 0; }
 .icon-btn .ui-icon { width: 19px; height: 19px; }
 .danger-btn { min-height: var(--ui-control-height); padding: 0 var(--ui-space-3); font-size: var(--ui-font-body); }
-.text-btn { min-height: var(--ui-control-height); padding: 0; font-size: var(--ui-font-body); }
 
 .workspace { min-width: 0; min-height: 0; }
 .sidebar { min-width: 0; font-size: var(--ui-font-body); scrollbar-width: thin; }
@@ -904,16 +856,10 @@ body { font-size: var(--ui-font-body); }
 .panel-section { padding: var(--ui-space-4); }
 .section-heading { margin-bottom: var(--ui-space-3); }
 .section-heading h2, .property-header h2 { font-size: var(--ui-font-section); line-height: 1.3; }
-.small, .eyebrow, .hint, .status-row { font-size: var(--ui-font-caption); }
+.small, .eyebrow, .hint { font-size: var(--ui-font-caption); }
 .eyebrow { letter-spacing: .08em; }
 .hint { margin-bottom: var(--ui-space-3); line-height: 1.55; }
 
-.segmented { min-height: 46px; padding: 3px; border-radius: 10px; }
-.segment { min-height: var(--ui-control-height); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 var(--ui-space-2); font-size: var(--ui-font-body); }
-.segment .ui-icon { width: 16px; height: 16px; }
-.segment.active { background: var(--accent-surface); color: var(--accent-text); box-shadow: none; }
-.segment.active::before { content: none; }
-.renderer-info { min-height: 28px; margin-top: var(--ui-space-2); padding: 0 3px; font-size: var(--ui-font-caption); }
 .terrain-layer-children { padding: 6px 7px 8px; }
 .terrain-mode-options { display: grid; gap: 4px; }
 .terrain-mode-option {
@@ -967,18 +913,7 @@ body { font-size: var(--ui-font-body); }
 .layer-child-name { font-size: var(--ui-font-body); }
 .layer-child-meta, .layer-empty { font-size: var(--ui-font-caption); }
 
-.primary-tool-grid { grid-template-columns: 1fr; gap: 6px; }
-.primary-tool-grid .tool-card {
-  min-height: var(--ui-touch-height); padding: 0 10px; display: flex; flex-direction: row;
-  align-items: center; justify-content: flex-start; gap: 10px; color: var(--text-soft); font-size: var(--ui-font-body); text-align: left;
-}
-.primary-tool-grid .tool-symbol { width: 20px; display: grid; place-items: center; color: var(--accent-2); }
-.primary-tool-grid .tool-symbol .ui-icon { width: 19px; height: 19px; }
-.primary-tool-grid .tool-card.active { background: var(--accent-surface); border-color: transparent; color: var(--accent-text); box-shadow: none; }
-.primary-tool-grid .tool-card.active::after { content: '사용 중'; margin-left: auto; color: inherit; font-size: var(--ui-font-caption); }
-.app-status-box { display: none; }
 #layerSection { order: 2; }
-.compact-view-section { order: 1; }
 
 .floating-toolbar {
   top: 12px; right: 12px; gap: var(--ui-space-1); padding: var(--ui-space-1);
@@ -1034,7 +969,7 @@ body { font-size: var(--ui-font-body); }
 .editor-header { padding: var(--ui-space-4); }
 .editor-header h2 { font-size: var(--ui-font-title); }
 .flag-preview { font-size: var(--ui-font-caption); }
-.type-chip, .editor-help, .editor-details > summary small,
+.editor-help, .editor-details > summary small,
 .meta-card div, .meta-card strong { font-size: var(--ui-font-caption); }
 .editor-card-title { font-size: var(--ui-font-section); }
 .editor-form .field-group label { font-size: var(--ui-font-label); }
@@ -1095,12 +1030,12 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   font-weight: var(--ui-weight-medium);
   line-height: var(--ui-line-normal);
 }
-.small, .eyebrow, .hint, .status-row, .renderer-info, .layer-child-meta,
+.small, .eyebrow, .hint, .layer-child-meta,
 .layer-empty, .current-tool-label, .map-context-instruction, .map-bottom-status,
 .editor-help, .editor-details > summary small, .meta-card div, .meta-card strong,
 .advanced-boundary-copy span, .gis-source-report, .gis-form-grid small, .gis-security-note,
-.gis-import-status, .type-chip { font-size: var(--ui-font-sm); line-height: var(--ui-line-normal); }
-.btn, .icon-btn, .text-btn, .danger-btn, .segment, .tool-card, .create-menu-btn,
+.gis-import-status { font-size: var(--ui-font-sm); line-height: var(--ui-line-normal); }
+.btn, .icon-btn, .danger-btn, .create-menu-btn,
 .create-menu-item, .country-action-btn, .advanced-boundary-btn, .mode-action-bar button,
 .mobile-sheet-header button { font-size: var(--ui-font-md); font-weight: var(--ui-weight-semibold); }
 
@@ -1161,7 +1096,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 
 .panel-section, .editor-header, .editor-form { min-width: 0; }
 .panel-section { padding: var(--ui-space-4); }
-.layer-search, .segmented, .editor-card, .editor-details, .advanced-boundary-box,
+.layer-search, .editor-card, .editor-details, .advanced-boundary-box,
 .meta-card, .flag-preview, .create-menu, .top-actions, .confirm-modal-card, .gis-modal-card {
   border-radius: var(--ui-radius-panel);
 }
@@ -1179,7 +1114,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   border-radius: var(--ui-radius-control);
   background: var(--surface-input);
 }
-.btn, .icon-btn, .danger-btn, .tool-card, .segment, .create-menu-btn, .create-menu-item,
+.btn, .icon-btn, .danger-btn, .create-menu-btn, .create-menu-item,
 .country-action-btn, .advanced-boundary-btn, .mode-action-bar button, .mobile-sheet-header button {
   min-height: var(--ui-control-height);
   border-radius: var(--ui-radius-control);
@@ -1371,7 +1306,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 #app[data-layout="mobile"] .mobile-sheet-header .sheet-close-btn .ui-icon { width: 20px; height: 20px; }
 
-/* ===== AtlasWright v0.18.0: map-first responsive workspace ===== */
+/* ===== AtlasWright v0.18.1: map-first responsive workspace ===== */
 #app {
   grid-template-rows: var(--ui-topbar-height) minmax(0, 1fr);
 }
@@ -1433,7 +1368,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 
 /* Keep the editor compact enough to preserve the map and status line. */
 .editor-header { padding: 12px 14px 10px; }
-.editor-title-row { margin-bottom: 5px; }
 .editor-form { padding: 10px; gap: 9px; }
 .editor-card { padding: 11px; }
 .editor-card-title { margin-bottom: 8px; }
@@ -1443,7 +1377,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .country-action-grid { gap: 8px; }
 .country-action-btn,
 .country-action-btn.annex-action { min-height: 68px; padding: 8px; }
-.editor-title-row:has(.type-chip.hidden) { display: none; }
 .hydro-data-details .meta-card { margin: 0; }
 .simple-flag-editor { grid-template-columns: 104px minmax(0, 1fr); }
 .simple-flag-editor .flag-preview { min-height: 66px; }
@@ -1787,8 +1720,6 @@ body[data-layout="mobile"].responsive-overlay-open .mobile-backdrop {
   font-size: var(--ui-font-body) !important;
 }
 #app[data-layout="mobile"] .panel-section { padding: var(--ui-space-4); }
-#app[data-layout="mobile"] .segment,
-#app[data-layout="mobile"] .text-btn,
 #app[data-layout="mobile"] .terrain-mode-option,
 #app[data-layout="mobile"] .layer-child,
 #app[data-layout="mobile"] .layer-folder-name,
@@ -1960,7 +1891,7 @@ body[data-layout="mobile"] .gis-wide { grid-column: 1; }
   #app[data-layout="mobile"] .mode-action-buttons .ui-icon { display: none; }
 }
 
-/* ===== AtlasWright v0.18.0: unified interaction and component system ===== */
+/* ===== AtlasWright v0.18.1: unified interaction and component system ===== */
 :root {
   --ui-icon-size: 20px;
   --ui-icon-size-sm: 16px;
@@ -1987,17 +1918,26 @@ label:has(> input[type="checkbox"]),
 label:has(> input[type="radio"]) {
   -webkit-tap-highlight-color: transparent;
 }
-button {
+.ui-button {
   appearance: none;
   font-family: var(--ui-font-family);
+  -webkit-tap-highlight-color: transparent;
 }
-button:active:not(:disabled) { transform: translateY(1px); }
+.ui-button:active:not(:disabled) { transform: translateY(1px); }
+.ui-button:disabled { cursor: not-allowed; opacity: .48; }
 html.keyboard-navigation :where(button, a[href], summary, input, textarea, select):focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 72%, white 12%);
   outline-offset: 2px;
 }
 
 /* Core button primitives. */
+.ui-button {
+  border-radius: var(--ui-radius-control);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-semibold);
+  box-shadow: none;
+  transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease, transform .08s ease;
+}
 .btn,
 .icon-btn,
 .file-menu-btn,
@@ -2013,10 +1953,6 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
   border-radius: var(--ui-radius-control);
   background: var(--ui-control-bg);
   color: var(--ui-control-text);
-  font-size: var(--ui-font-body);
-  font-weight: var(--ui-weight-semibold);
-  box-shadow: none;
-  transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease, transform .08s ease;
 }
 .btn,
 .file-menu-btn,
@@ -2077,17 +2013,8 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
   background: color-mix(in srgb, var(--danger-surface) 76%, var(--danger));
   color: var(--danger-text);
 }
-.text-btn {
-  min-height: var(--ui-control-height);
-  padding: 0 var(--ui-space-2);
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--muted);
-  font-size: var(--ui-font-body);
-  font-weight: var(--ui-weight-semibold);
-}
-.text-btn:hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.danger-ghost { color: var(--danger-text) !important; }
+.danger-ghost:hover { border-color: var(--danger-border) !important; background: var(--danger-surface) !important; }
 
 /* Inline dismiss controls use the same icon language at a compact size. */
 .notification-close {
@@ -2104,10 +2031,8 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
 .notification-close .ui-icon { width: var(--ui-icon-size-sm); height: var(--ui-icon-size-sm); }
 .notification-close:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
 
-/* Shared segmented control for projection, modes, and form choices. */
-.segmented,
-.projection-control,
-.mode-method-switch {
+/* Shared segmented control for projection and territory modes. */
+.ui-segmented {
   box-sizing: border-box;
   min-height: var(--ui-control-height);
   padding: var(--ui-segment-padding);
@@ -2122,9 +2047,7 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
 }
 .projection-control { width: calc(var(--ui-control-height) * 2); height: var(--ui-control-height); }
 .mode-method-switch { width: 248px; height: var(--ui-control-height); }
-.segment,
-.projection-btn,
-.mode-method-btn {
+.ui-segment-option {
   width: 100%;
   min-width: 0;
   min-height: 0 !important;
@@ -2143,16 +2066,32 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
   box-shadow: none;
 }
 .projection-btn + .projection-btn { border-left: 0; }
-:is(.segment, .projection-btn, .mode-method-btn):hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
-:is(.segment, .projection-btn, .mode-method-btn).active,
-:is(.projection-btn, .mode-method-btn)[aria-pressed="true"] {
+.ui-segment-option:hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.ui-segment-option.active,
+.ui-segment-option[aria-pressed="true"] {
   background: var(--accent-surface);
   color: var(--accent-text);
 }
-:is(.segment, .projection-btn, .mode-method-btn).active:hover,
-:is(.projection-btn, .mode-method-btn)[aria-pressed="true"]:hover { background: var(--accent-surface-hover); color: var(--accent-text); }
+.ui-segment-option.active:hover,
+.ui-segment-option[aria-pressed="true"]:hover { background: var(--accent-surface-hover); color: var(--accent-text); }
 .projection-btn .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 #resetViewBtn { font-size: var(--ui-font-body); }
+
+/* Common composition primitives used by every active UI family. */
+.ui-row { min-width: 0; }
+.ui-card { border: 1px solid var(--ui-card-border); background: var(--ui-card-bg); }
+.ui-row-button,
+.ui-card-button {
+  border: 1px solid var(--ui-control-border);
+  background: var(--ui-control-bg);
+  color: var(--ui-control-text);
+}
+.ui-row-button:hover,
+.ui-card-button:hover { border-color: var(--ui-control-border-hover); background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.ui-choice-row { border: 1px solid transparent; border-radius: var(--ui-radius-control); }
+.ui-field { min-width: 0; }
+.ui-disclosure { border: 1px solid var(--ui-card-border); background: var(--ui-card-bg); }
+.ui-info-list { border: 1px solid var(--ui-card-border); background: var(--ui-card-bg); }
 
 /* One SVG disclosure language for folders and details. */
 .disclosure-icon {
@@ -2518,6 +2457,32 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   box-shadow: none;
 }
 body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-empty > :not(.create-menu-wrap) { display: none; }
+
+/* Editor chrome: optical close alignment and borderless nested metadata. */
+#app .right-panel .mobile-sheet-header {
+  min-height: 68px;
+  padding-top: 18px;
+  padding-bottom: 8px;
+}
+#app .right-panel .mobile-sheet-header .sheet-close-btn {
+  position: absolute;
+  top: 18px;
+  right: var(--ui-space-2);
+}
+#app[data-layout="mobile"] .right-panel .mobile-sheet-header { min-height: 72px; }
+#hydroProperties .meta-card {
+  display: grid;
+  gap: var(--ui-space-1);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+#hydroProperties .meta-card div {
+  min-height: 32px;
+  padding: var(--ui-space-1) 0;
+  border: 0;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .left-panel, .right-panel, .map-command-toolbar, .map-view-toolbar,
