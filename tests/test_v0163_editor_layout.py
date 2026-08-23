@@ -11,7 +11,7 @@ CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 class EditorLayoutV0163Tests(unittest.TestCase):
     def test_default_work_state_uses_the_continuous_status_line(self):
         self.assertIn('id="currentToolStatus" class="current-tool-status"', INDEX)
-        self.assertIn("$('currentToolStatus').textContent = `작업 · ${currentName}`", APP)
+        self.assertIn("$('currentToolStatus').textContent = currentName", APP)
         self.assertIn(".map-context-panel { display: none; }", CSS)
         self.assertIn(".map-context-panel.has-active-context", CSS)
 

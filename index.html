@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.16.4" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.17.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -38,14 +38,11 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.16.4" data-layout="wide">
+  <div id="app" data-app-version="0.17.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
-        <div>
-          <strong>AtlasWright</strong>
-          <span>v0.16.4 · Natural Earth 1:10m · 다중 영토 편집</span>
-        </div>
+        <div><strong>AtlasWright</strong></div>
       </div>
 
       <div id="notificationCenter" class="topbar-center notification-center" aria-live="polite" aria-atomic="true">
@@ -76,10 +73,7 @@
         <div id="mobileProjectionSlot" class="mobile-projection-slot" aria-label="모바일 지도 투영법"></div>
 
         <section id="layerSection" class="panel-section">
-          <div class="section-heading row-between">
-            <h2>레이어</h2>
-            <span class="muted small">표시 / 잠금</span>
-          </div>
+          <div class="section-heading row-between"><h2>레이어</h2></div>
           <label class="layer-search" for="layerSearchInput">
             <svg class="ui-icon layer-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
             <input id="layerSearchInput" type="search" placeholder="레이어 검색" autocomplete="off" />
@@ -91,7 +85,6 @@
                 <input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" />
                 <span class="layer-icon polygon"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="countries">국가</button>
-                <span id="countriesLayerCount" class="layer-badge">0</span>
                 <input id="countriesLocked" type="checkbox" class="lock-toggle" title="국가 선택 잠금" aria-label="국가 레이어 잠금" />
               </div>
               <div id="countriesLayerChildren" class="layer-children" role="group" aria-label="국가 항목" hidden></div>
@@ -120,7 +113,6 @@
                 <input id="drawingsVisible" type="checkbox" checked aria-label="지형지물 레이어 표시" />
                 <span class="layer-icon polygon custom"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="drawings">지형지물</button>
-                <span id="drawingsLayerCount" class="layer-badge">0</span>
               </div>
               <div id="drawingsLayerChildren" class="layer-children" role="group" aria-label="지형지물 항목" hidden></div>
             </div>
@@ -130,7 +122,6 @@
                 <input id="labelsVisible" type="checkbox" checked aria-label="도시·지명 레이어 표시" />
                 <span class="layer-icon point"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="labels">도시·지명</button>
-                <span id="labelsLayerCount" class="layer-badge">0</span>
               </div>
               <div id="labelsLayerChildren" class="layer-children" role="group" aria-label="도시·지명 항목" hidden></div>
             </div>
@@ -140,7 +131,6 @@
                 <input id="basemapLabelsVisible" type="checkbox" checked aria-label="국가명 라벨 표시" />
                 <span class="layer-icon label"></span>
                 <button class="layer-folder-name" type="button" data-layer-folder-toggle="countryLabels">국가명 라벨</button>
-                <span id="countryLabelsLayerCount" class="layer-badge">0</span>
               </div>
               <div id="countryLabelsLayerChildren" class="layer-children" role="group" aria-label="국가명 라벨 항목" hidden></div>
             </div>
@@ -209,16 +199,16 @@
         </div>
 
         <div class="map-bottom-status" aria-label="지도 상태">
-          <div class="status-group status-view" aria-label="보기 정보">
-            <span id="coordStatus" class="status-item">경도 0.0000 · 위도 0.0000</span>
-            <span id="zoomStatus" class="status-item">지구본 ×1.0</span>
-            <span id="engineStatus" class="status-item engine-status">지도 엔진 준비 중</span>
+          <div id="statusView" class="status-group status-view" aria-label="보기 정보">
+            <span id="zoomStatus" class="status-item">×1.0</span>
+            <span id="coordStatus" class="status-item hidden">경도 0.0000 · 위도 0.0000</span>
+            <span id="engineStatus" class="status-item engine-status hidden" aria-hidden="true">지도 엔진 준비 중</span>
           </div>
-          <div class="status-group status-primary" aria-label="현재 작업">
-            <span id="currentToolStatus" class="current-tool-status">작업 · 국가 선택</span>
+          <div id="statusPrimary" class="status-group status-primary hidden" aria-label="현재 작업">
+            <span id="currentToolStatus" class="current-tool-status"></span>
           </div>
-          <div class="status-group status-selection" aria-label="선택 대상">
-            <span id="selectionStatus">선택 없음</span>
+          <div id="statusSelection" class="status-group status-selection hidden" aria-label="선택 대상">
+            <span id="selectionStatus"></span>
           </div>
         </div>
 
@@ -234,16 +224,13 @@
 
         <section class="editor-header">
           <div class="editor-title-row">
-            <span id="propertyType" class="type-chip">선택 없음</span>
-            <span class="autosave-note">변경사항 자동 저장</span>
+            <span id="propertyType" class="type-chip hidden"></span>
           </div>
-          <h2 id="propertyTitle">지도에서 객체를 선택하세요</h2>
+          <h2 id="propertyTitle">편집</h2>
         </section>
 
         <section id="emptyProperties" class="empty-state editor-empty">
-          <div class="empty-icon">↖</div>
-          <strong>편집할 대상을 선택하세요</strong>
-          <p>국가나 지명을 선택하면 이곳에서 바로 수정할 수 있습니다. 국가를 선택하면 영토 편입·국가 합병 기능이 표시되고, 해안선 수정은 고급 편집에 있습니다.</p>
+          <p>지도에서 편집할 대상을 선택하세요.</p>
         </section>
 
         <form id="countryProperties" class="property-form editor-form hidden" onsubmit="return false;">
@@ -253,7 +240,6 @@
               <button id="annexTerritoryBtn" type="button" class="country-action-btn primary annex-action"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영토 편입</strong><small>영토를 가져올 국가와 범위 선택</small></button>
               <button id="mergeCountryBtn" type="button" class="country-action-btn"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>국가 합병</strong><small>합병할 국가 선택</small></button>
             </div>
-            <p id="countryActionHint" class="editor-help country-action-hint">선택한 국가의 영토를 편입하거나 다른 국가와 합병할 수 있습니다.</p>
           </section>
           <section class="editor-card editor-card-primary">
             <div class="editor-card-title">기본 정보</div>
@@ -349,14 +335,21 @@
             <div class="meta-card compact-meta">
               <div><span>이름</span><strong id="hydroNameValue">—</strong></div>
               <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
-              <div><span>레이어</span><strong id="hydroLayerValue">—</strong></div>
-              <div><span>대표 수계</span><strong id="hydroSystemValue">—</strong></div>
-              <div><span>포함 지류</span><strong id="hydroTributaryValue">—</strong></div>
-              <div><span>출처</span><strong id="hydroSourceValue">Natural Earth 5.0.0 1:10m</strong></div>
             </div>
             <p class="editor-help">내장 수계는 원본 보호를 위해 잠겨 있습니다. 수정하려면 편집용 복사본을 만드세요.</p>
           </section>
           <button id="copyHydroBtn" type="button" class="btn wide">편집용 복사 만들기</button>
+          <details class="editor-details hydro-data-details">
+            <summary><span>데이터 정보</span></summary>
+            <div class="editor-details-body">
+              <div class="meta-card compact-meta">
+                <div><span>레이어</span><strong id="hydroLayerValue">—</strong></div>
+                <div><span>대표 수계</span><strong id="hydroSystemValue">—</strong></div>
+                <div><span>포함 지류</span><strong id="hydroTributaryValue">—</strong></div>
+                <div><span>출처</span><strong id="hydroSourceValue">Natural Earth 5.0.0 1:10m</strong></div>
+              </div>
+            </div>
+          </details>
         </section>
       </aside>
     </div>
@@ -418,7 +411,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.16.4" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.16.4" defer></script>
+  <script src="assets/js/gis-io.js?v=0.17.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.17.0" defer></script>
 </body>
 </html>
