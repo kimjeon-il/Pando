@@ -57,7 +57,7 @@ class V0126RuntimeTests(unittest.TestCase):
             self.assertFalse(abs(abs(a[0]) - 180) <= 1e-7 and abs(abs(b[0]) - 180) <= 1e-7)
             self.assertLessEqual(abs(a[0] - b[0]), 180)
 
-    def test_land_only_relief_and_independent_water_colours(self):
+    def test_land_only_relief_and_automatic_water_colours(self):
         manifest = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["version"], "0.12.6")
         self.assertIn("drainage-free", manifest["channels"]["rgb"])
@@ -65,9 +65,12 @@ class V0126RuntimeTests(unittest.TestCase):
         self.assertIn("stencil: true", APP)
         self.assertIn("gl.stencilFunc(gl.EQUAL, 1", APP)
         self.assertIn("style === 'political'", CANVAS)
+        self.assertEqual(manifest["displayColors"]["oceanRepresentative"].lower(), "#6aa8d2")
         for element_id in ("riverColorSelect", "lakeColorSelect"):
-            self.assertIn(f'id="{element_id}"', INDEX)
-            self.assertIn(element_id, APP)
+            self.assertNotIn(f'id="{element_id}"', INDEX)
+            self.assertNotIn(element_id, APP)
+        self.assertIn("automaticWaterColor", APP)
+        self.assertIn("automaticWaterColor", CANVAS)
 
 
 if __name__ == "__main__":

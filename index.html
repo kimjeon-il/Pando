@@ -7,7 +7,7 @@
   <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
-    <link rel="stylesheet" href="assets/css/app.css?v=0.13.0" />
+    <link rel="stylesheet" href="assets/css/app.css?v=0.13.2" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -35,13 +35,13 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.13.0" data-layout="wide">
+  <div id="app" data-app-version="0.13.2" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">◎</div>
         <div>
           <strong>AtlasWright</strong>
-          <span>v0.13.0 · Natural Earth 1:10m · 수계·UI 정합 개선</span>
+          <span>v0.13.2 · Natural Earth 1:10m · 지형 레이어 분리</span>
         </div>
       </div>
 
@@ -77,14 +77,6 @@
             <button id="flatBtn" class="segment"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>평면</span></button>
           </div>
           <div class="renderer-info" aria-label="지도 렌더러 정보"><span>지도 엔진</span><strong id="engineStatus">준비하는 중입니다.</strong></div>
-          <div class="terrain-view-controls">
-            <label class="field-group"><span>지형 스타일</span><select id="terrainStyleSelect"><option value="political">국가색 + 음영</option><option value="physical">지형색 강조</option></select></label>
-            <label class="field-group terrain-strength"><span>음영 강도 <strong id="terrainStrengthValue">32%</strong></span><input id="terrainStrengthInput" type="range" min="0" max="100" step="1" value="32" /></label>
-            <div class="water-color-controls">
-              <label class="field-group"><span>강 색상</span><select id="riverColorSelect"><option value="ocean">바다색</option><option value="white">흰색</option></select></label>
-              <label class="field-group"><span>호수 색상</span><select id="lakeColorSelect"><option value="ocean">바다색</option><option value="white">흰색</option></select></label>
-            </div>
-          </div>
         </section>
 
         <section id="layerSection" class="panel-section">
@@ -107,6 +99,24 @@
                 <input id="countriesLocked" type="checkbox" class="lock-toggle" title="국가 선택 잠금" aria-label="국가 레이어 잠금" />
               </div>
               <div id="countriesLayerChildren" class="layer-children" role="group" aria-label="국가 항목" hidden></div>
+            </div>
+            <div class="layer-folder" data-layer-group="terrain">
+              <div class="layer-folder-row">
+                <button class="layer-folder-toggle" type="button" data-layer-folder-toggle="terrain" aria-expanded="false" aria-label="지형 음영 폴더 펼치기">›</button>
+                <input id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시" />
+                <span class="layer-icon terrain"></span>
+                <button class="layer-folder-name" type="button" data-layer-folder-toggle="terrain">지형 음영</button>
+              </div>
+              <div id="terrainLayerChildren" class="layer-children terrain-layer-children" role="group" aria-label="지형 음영 모드" hidden>
+                <div class="terrain-mode-options" role="radiogroup" aria-label="지형 음영 모드">
+                  <label class="terrain-mode-option" for="terrainPoliticalRadio"><input id="terrainPoliticalRadio" type="radio" name="terrainStyle" value="political" checked /><span>국가색 + 음영</span></label>
+                  <div id="terrainStrengthControl" class="terrain-strength-control">
+                    <div class="terrain-strength-heading"><span>음영 강도</span><strong id="terrainStrengthValue">32%</strong></div>
+                    <input id="terrainStrengthInput" type="range" min="0" max="100" step="1" value="32" aria-label="음영 강도" />
+                  </div>
+                  <label class="terrain-mode-option" for="terrainPhysicalRadio"><input id="terrainPhysicalRadio" type="radio" name="terrainStyle" value="physical" /><span>지형색 강조</span></label>
+                </div>
+              </div>
             </div>
             <div class="layer-folder" data-layer-group="drawings">
               <div class="layer-folder-row">
@@ -392,7 +402,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.13.0" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.13.0" defer></script>
+  <script src="assets/js/gis-io.js?v=0.13.2" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.13.2" defer></script>
 </body>
 </html>

@@ -284,6 +284,7 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path) ->
         "extent": [-180, -90, 180, 90],
         "tileFormat": "lossless WebP RGBA",
         "channels": {"rgb": "drainage-free cross-blended land combined with ocean-bottom colour", "alpha": "Gray Earth relief, hypsography and ocean-bottom luminance"},
+        "displayColors": {"oceanRepresentative": "#6aa8d2"},
         "gutter": 1,
         "levels": levels,
         "urlTemplate": f"terrain/v{VERSION}/{{level}}/{{column}}-{{row}}.webp",

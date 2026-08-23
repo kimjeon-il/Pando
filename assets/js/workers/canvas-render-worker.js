@@ -318,6 +318,19 @@ function canvasFallbackWorkerMain() {
       return [];
     }
 
+    function automaticWaterColor(message) {
+      if (!(message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical')) {
+        return message.theme?.ocean || '#0d2837';
+      }
+      const source = String(terrainManifest?.displayColors?.oceanRepresentative || '#6aa8d2');
+      const match = /^#([0-9a-f]{6})$/i.exec(source);
+      if (!match || !message.darkTheme) return match ? source : '#6aa8d2';
+      const packed = Number.parseInt(match[1], 16);
+      const values = [(packed >> 16) & 255, (packed >> 8) & 255, packed & 255]
+        .map((value, index) => Math.max(0, Math.min(255, Math.round(value * [0.808, 0.8464, 0.8848][index]))));
+      return `#${values.map(value => value.toString(16).padStart(2, '0')).join('')}`;
+    }
+
     function renderHydroPass(message, projection, dpr, borderAligned) {
       const geoPath = self.d3.geo.path().projection(projection).context(context);
       const features = activeHydroFeatures();
@@ -325,10 +338,7 @@ function canvasFallbackWorkerMain() {
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       context.lineCap = 'round';
       context.lineJoin = 'round';
-      const waterColor = category => {
-        const key = category === 'lake' ? 'lakeColor' : 'riverColor';
-        return message.physicalSettings?.[key] === 'white' ? '#ffffff' : (message.theme?.ocean || '#0d2837');
-      };
+      const waterColor = automaticWaterColor(message);
       for (const feature of features) {
         if (!hydroFeatureVisible(feature, message)) continue;
         const properties = feature.properties || {};
@@ -339,7 +349,7 @@ function canvasFallbackWorkerMain() {
           context.beginPath();
           geoPath(feature);
           context.globalAlpha = 0.92;
-          context.fillStyle = waterColor('lake');
+          context.fillStyle = waterColor;
           context.fill();
           continue;
         }
@@ -348,7 +358,7 @@ function canvasFallbackWorkerMain() {
         const profiles = properties.stroke_widths || [];
         const fallback = Math.max(0.55, Math.min(2.6, Number(properties.stroke_width || 0.8)));
         context.globalAlpha = 0.96;
-        context.strokeStyle = waterColor('river');
+        context.strokeStyle = waterColor;
         for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
           const part = parts[partIndex];
           const widths = profiles[partIndex] || [];
