@@ -22,7 +22,8 @@ class EditorLayoutV0163Tests(unittest.TestCase):
         self.assertIn("left: 0;", CSS)
         self.assertIn(".status-inner {", CSS)
         self.assertGreaterEqual(CSS.count("bottom: 42px;"), 3)
-        self.assertIn("bottom: calc(104px + env(safe-area-inset-bottom));", CSS)
+        self.assertIn("bottom: var(--mobile-nav-height);", CSS)
+        self.assertIn("border-radius: 16px 16px 0 0;", CSS)
 
     def test_editor_density_is_compact_without_shrinking_controls(self):
         self.assertIn(".editor-view {", CSS)
