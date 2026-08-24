@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.23.0" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.24.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -32,6 +32,7 @@
     <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M3.5 6.5h6l2 2h9v9.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6.5Z"/><path d="M3.5 9h17"/></symbol>
     <symbol id="icon-lock-open" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M9 10V7a4 4 0 0 1 7.5-2"/></symbol>
     <symbol id="icon-lock-closed" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></symbol>
     <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path d="m7 9 5 5 5-5"/></symbol>
     <symbol id="icon-atlas" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m12 6 2.2 5.8L18 14l-5.8 2.2L10 20l-2.2-5.8L4 12l5.8-2.2L12 6Z"/></symbol>
   </svg>
@@ -42,7 +43,7 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.23.0" data-layout="wide">
+  <div id="app" data-app-version="0.24.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
@@ -322,10 +323,47 @@
               <p class="editor-help">꼭짓점을 드래그해 형상을 수정할 수 있습니다.</p>
             </section>
 
+            <section id="drawingLandRelationSection" class="editor-section hidden">
+              <h3 class="editor-section-title">육지 관계</h3>
+              <div id="drawingOwnerField" class="ui-field field-group editor-field">
+                <label for="drawingOwnerInput">소유 국가</label>
+                <select id="drawingOwnerInput"><option value="">소유 국가 없음</option></select>
+              </div>
+              <div id="drawingParentField" class="ui-field field-group editor-field hidden">
+                <label for="drawingParentInput">상위 영역</label>
+                <select id="drawingParentInput"><option value="">상위 영역 없음</option></select>
+              </div>
+              <div id="drawingLandBindingField" class="ui-field field-group editor-field">
+                <label for="drawingLandBindingInput">육지 결합</label>
+                <select id="drawingLandBindingInput">
+                  <option value="hard">국가 해안선과 함께 변경</option>
+                  <option value="clip">육지 안에서만 표시</option>
+                  <option value="none">독립 형상</option>
+                </select>
+              </div>
+              <p id="drawingRoleHelp" class="editor-help"></p>
+            </section>
+
+            <section id="drawingLandActionsSection" class="editor-section hidden">
+              <h3 class="editor-section-title">영역 작업</h3>
+              <div class="editor-action-grid editor-action-grid-two">
+                <button id="splitDrawingBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></button>
+                <button id="mergeDrawingBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>영역 합치기</strong><small>같은 역할의 영역 합치기</small></button>
+                <button id="syncDrawingCoastBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>국가 육지에 맞춤</strong><small>소유 국가 밖 형상 정리</small></button>
+                <button id="editDrawingCoastBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>해안 구간 수정</strong><small>국가 해안선을 기준으로 수정</small></button>
+                <button id="applyDrawingToCountryBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>국가 영토에 반영</strong><small>이 영역의 소유권 확정</small></button>
+                <button id="promoteDrawingToCountryBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>국가로 전환</strong><small>이 영역으로 새 국가 만들기</small></button>
+              </div>
+            </section>
+
             <details class="ui-disclosure editor-disclosure">
               <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
-                <div class="ui-info-list editor-info-list"><div><span>객체 ID</span><output id="drawingIdInput">—</output></div></div>
+                <div class="ui-info-list editor-info-list">
+                  <div><span>객체 ID</span><output id="drawingIdInput">—</output></div>
+                  <div><span>역할</span><output id="drawingRoleValue">—</output></div>
+                  <div><span>토폴로지 그룹</span><output id="drawingTopologyValue">—</output></div>
+                </div>
                 <div class="ui-field field-group editor-field"><label for="drawingNotesInput">메모</label><textarea id="drawingNotesInput" rows="5"></textarea></div>
               </div>
             </details>
@@ -454,7 +492,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.23.0" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.23.0" defer></script>
+  <script src="assets/js/gis-io.js?v=0.24.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.24.0" defer></script>
 </body>
 </html>
