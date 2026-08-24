@@ -543,7 +543,22 @@ function canvasFallbackWorkerMain() {
         self.postMessage({ type: 'hydro-pick', requestId: message.requestId, fid: pickHydroFeature(message.point) });
       } else if (message.type === 'data') {
         features = message.features || [];
-        self.postMessage({ type: 'data-ready', revision: Number(message.revision || 0) });
+        self.postMessage({ type: 'data-ready', revision: Number(message.revision || 0), ids: message.ids || [] });
+      } else if (message.type === 'patch') {
+        const updates = new Map((message.features || []).map(feature => [countryId(feature), feature]));
+        const removed = new Set((message.removedIds || []).map(String));
+        const seen = new Set();
+        features = features.flatMap(feature => {
+          const id = countryId(feature);
+          if (removed.has(id)) return [];
+          if (updates.has(id)) {
+            seen.add(id);
+            return [updates.get(id)];
+          }
+          return [feature];
+        });
+        for (const [id, feature] of updates) if (!seen.has(id)) features.push(feature);
+        self.postMessage({ type: 'data-ready', revision: Number(message.revision || 0), ids: message.ids || [] });
       } else if (message.type === 'render') {
         try {
           render(message);

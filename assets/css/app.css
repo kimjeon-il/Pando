@@ -393,6 +393,11 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .map-hit-area { fill: transparent; pointer-events: all; }
 .gpu-country-highlight,
 .country-highlight-fill { pointer-events: none !important; }
+.country-patch-preview {
+  pointer-events: none !important;
+  stroke-width: .72px;
+  vector-effect: non-scaling-stroke;
+}
 .gpu-country-highlight { fill: transparent; }
 .country-highlight-fill { fill: transparent; stroke: none; }
 .map-ocean { fill: var(--map-ocean); stroke: none; }
