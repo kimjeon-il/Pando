@@ -12,7 +12,7 @@ CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js")
 
 class V0210PerformancePipelineTests(unittest.TestCase):
     def test_version_and_incremental_country_renderer(self):
-        self.assertIn("const APP_VERSION = '0.23.0'", APP)
+        self.assertIn("const APP_VERSION = '0.24.0'", APP)
         for interface in ("applyCountryPatch", "setInteractionActive", "renderViewFrame", "compactCountryOverrides"):
             self.assertIn(interface, APP)
         self.assertIn("countryOverrideIds", APP)
