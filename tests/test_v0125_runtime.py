@@ -37,9 +37,10 @@ class V0125RuntimeTests(unittest.TestCase):
         self.assertIn("await ensureDetailMetadata()", load_feature)
 
     def test_country_mesh_and_annex_validation_are_revision_safe(self):
-        self.assertIn("if (!gl || !meshCountryIds.length || countryMeshStale) return;", APP)
+        self.assertIn("basePixels[index * 4 + 3] = countryOverrideIds.has(id) ? 0 : visible", APP)
+        self.assertIn("gpuMapRenderer.applyCountryPatch(changed)", APP)
         annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
-        self.assertLess(annex.index("captureCountryGeometryBaseline"), annex.index("applyTerritoryTransferPlan"))
+        self.assertIn("await mapEditClient.execute('annex'", annex)
         validator = section(APP, "function validateCountryGeometryEdit", "function restoreCountryEditSnapshot")
         self.assertIn("overlapArea > previousArea + areaTolerance", validator)
         self.assertIn("boundaryLength || 0) * 2e-7", validator)
