@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.21.0" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.22.0" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -42,7 +42,7 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.21.0" data-layout="wide">
+  <div id="app" data-app-version="0.22.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
@@ -62,13 +62,14 @@
     </header>
 
     <div class="workspace">
-      <aside id="leftPanel" class="sidebar left-panel">
-        <div class="mobile-sheet-header">
-          <button class="ui-button sheet-drag-handle" type="button" data-sheet-handle="leftPanel" aria-label="지도·레이어 창 높이 조절" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
-          <strong>지도·레이어</strong>
+      <aside id="leftPanel" class="sidebar left-panel map-sheet-surface" aria-labelledby="mapSheetTitle">
+        <div class="mobile-sheet-header map-sheet-header">
+          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="leftPanel" aria-label="지도·레이어 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="0" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
+          <strong id="mapSheetTitle">지도·레이어</strong>
           <button id="mobileCloseLeftBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="지도·레이어 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
         </div>
-        <div id="mobileProjectionSlot" class="mobile-projection-slot" aria-label="모바일 지도 투영법"></div>
+        <div class="map-sheet-body map-sheet-body-layers">
+          <div id="mobileProjectionSlot" class="mobile-projection-slot" aria-label="모바일 지도 투영법"></div>
 
         <section id="layerSection" class="panel-section">
           <div class="section-heading row-between"><h2>레이어</h2></div>
@@ -137,7 +138,8 @@
               <div id="countryLabelsLayerChildren" class="layer-children" role="group" aria-label="국가명 라벨 항목" hidden></div>
             </div>
           </div>
-        </section>
+          </section>
+        </div>
 
       </aside>
 
@@ -147,16 +149,18 @@
         <div id="mapCommandToolbar" class="map-toolbar map-command-toolbar floating-toolbar history-empty" aria-label="지도 명령">
           <div class="create-menu-wrap">
             <button id="createMenuBtn" class="ui-button create-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
-            <div id="createMenu" class="create-menu hidden" role="menu" aria-label="지도 객체 추가">
-              <div class="create-sheet-header" role="presentation">
-                <button class="ui-button sheet-drag-handle" type="button" data-sheet-handle="createMenu" aria-label="추가 창 높이 조절" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
-                <strong>추가</strong>
+            <div id="createMenu" class="create-menu map-sheet-surface hidden" role="menu" aria-label="지도 객체 추가">
+              <div class="create-sheet-header mobile-sheet-header map-sheet-header">
+                <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="createMenu" aria-label="추가 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
+                <strong id="createSheetTitle">추가</strong>
                 <button id="mobileCloseCreateBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="추가 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
               </div>
-              <button id="addCountryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><span><strong>국가 추가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
-              <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><span><strong>지명 추가</strong><small>지도에 도시·지명 배치하기</small></span></button>
-              <button id="addRiverBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강 추가</strong><small>강의 흐름을 선으로 그리기</small></span></button>
-              <button id="addLakeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수 추가</strong><small>호수의 경계를 영역으로 그리기</small></span></button>
+              <div class="map-sheet-body create-sheet-body">
+                <button id="addCountryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><span><strong>국가 추가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
+                <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><span><strong>지명 추가</strong><small>지도에 도시·지명 배치하기</small></span></button>
+                <button id="addRiverBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강 추가</strong><small>강의 흐름을 선으로 그리기</small></span></button>
+                <button id="addLakeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수 추가</strong><small>호수의 경계를 영역으로 그리기</small></span></button>
+              </div>
             </div>
           </div>
           <span class="toolbar-divider create-toolbar-divider"></span>
@@ -217,16 +221,16 @@
         </div>
 
         <nav class="adaptive-nav mobile-bottom-bar" aria-label="지도 탐색">
-          <button id="mobileMapBtn" class="ui-button nav-button" type="button" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>지도</strong></button>
-          <button id="mobileCreateBtn" class="ui-button nav-button" type="button" aria-haspopup="menu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>추가</strong></button>
-          <button id="mobileEditBtn" class="ui-button nav-button" type="button" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
+          <button id="mobileMapBtn" class="ui-button nav-button" type="button" aria-controls="leftPanel" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>지도</strong></button>
+          <button id="mobileCreateBtn" class="ui-button nav-button" type="button" aria-controls="createMenu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>추가</strong></button>
+          <button id="mobileEditBtn" class="ui-button nav-button" type="button" aria-controls="rightPanel" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
         </nav>
       </main>
 
-      <aside id="rightPanel" class="sidebar right-panel editor-panel editor-shell">
-        <header class="mobile-sheet-header editor-shell-header">
-          <button class="ui-button sheet-drag-handle" type="button" data-sheet-handle="rightPanel" aria-label="편집창 높이 조절" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
-          <strong>편집</strong>
+      <aside id="rightPanel" class="sidebar right-panel editor-panel editor-shell map-sheet-surface" aria-labelledby="editSheetTitle">
+        <header class="mobile-sheet-header editor-shell-header map-sheet-header">
+          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="rightPanel" aria-label="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="0" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
+          <strong id="editSheetTitle">편집</strong>
           <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
         </header>
 
@@ -448,7 +452,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.21.0" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.21.0" defer></script>
+  <script src="assets/js/gis-io.js?v=0.22.0" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.22.0" defer></script>
 </body>
 </html>

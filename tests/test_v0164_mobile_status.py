@@ -25,10 +25,10 @@ class MobileStatusV0164Tests(unittest.TestCase):
 
     def test_mobile_sheet_header_uses_one_shared_row(self):
         self.assertIn(".mobile-sheet-header {", CSS)
-        self.assertIn("flex: 0 0 54px;", CSS)
+        self.assertIn("flex: 0 0 64px;", CSS)
         self.assertIn("justify-content: space-between;", CSS)
-        self.assertIn("padding: 4px 6px 4px 14px;", CSS)
-        self.assertIn("calc(100dvh - var(--ui-topbar-height) - 120px)", CSS)
+        self.assertIn("padding: 14px 12px 4px 16px;", CSS)
+        self.assertIn("calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height))", CSS)
 
     def test_empty_mobile_history_toolbar_is_hidden(self):
         self.assertIn("history-empty", INDEX)

@@ -39,9 +39,9 @@ class StatusLayoutV0191Tests(unittest.TestCase):
         self.assertIn("$('statusView')?.classList.toggle('coordinates-active', showCoordinates);", APP)
 
     def test_version_is_updated(self):
-        self.assertIn('data-app-version="0.21.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.21.0'", APP)
-        self.assertIn("app.css?v=0.21.0", INDEX)
+        self.assertIn('data-app-version="0.22.0"', INDEX)
+        self.assertIn("const APP_VERSION = '0.22.0'", APP)
+        self.assertIn("app.css?v=0.22.0", INDEX)
 
 
 if __name__ == "__main__":
