@@ -12,7 +12,7 @@
   const gdalScriptUrl = new URL('vendor/gdal/gdal3.js', baseUrl).href;
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.23.0');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.24.0');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
@@ -526,6 +526,11 @@
               ...properties,
               name: basic.name ?? properties.name ?? '',
               category: basic.category ?? properties.category ?? 'custom',
+              aw_role: basic.aw_role ?? properties.aw_role ?? '',
+              aw_owner_id: basic.aw_owner_id ?? properties.aw_owner_id ?? '',
+              aw_parent_id: basic.aw_parent_id ?? properties.aw_parent_id ?? '',
+              aw_topology_group: basic.aw_topology_group ?? properties.aw_topology_group ?? '',
+              aw_land_binding: basic.aw_land_binding ?? properties.aw_land_binding ?? '',
               editorColor: basic.color ?? properties.editorColor ?? properties.color ?? '#8c68d8',
               notes: basic.notes ?? properties.notes ?? '',
             },
