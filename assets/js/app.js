@@ -1,4 +1,4 @@
-/* AtlasWright v0.20.0
+/* AtlasWright v0.21.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.20.0';
+  const APP_VERSION = '0.21.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -497,6 +497,7 @@
   }
 
   let renderQueued = false;
+  let viewRenderQueued = false;
   function scheduleRender() {
     if (renderQueued) return;
     renderQueued = true;
@@ -505,6 +506,50 @@
       renderAll();
     });
   }
+
+  function scheduleViewRender() {
+    if (viewRenderQueued) return;
+    viewRenderQueued = true;
+    requestAnimationFrame(() => {
+      viewRenderQueued = false;
+      renderViewFrame();
+    });
+  }
+
+  const mapWorkScheduler = (() => {
+    let interactionActive = false;
+    const jobs = new Map();
+    function cancel(key) {
+      const job = jobs.get(key);
+      if (!job) return;
+      clearTimeout(job.timer);
+      if (job.idleId && typeof cancelIdleCallback === 'function') cancelIdleCallback(job.idleId);
+      jobs.delete(key);
+    }
+    function scheduleIdle(key, task, delay = 0) {
+      cancel(key);
+      const job = { task, delay, timer: 0, idleId: 0 };
+      const queue = () => {
+        if (interactionActive) {
+          job.timer = setTimeout(queue, 180);
+          return;
+        }
+        const run = () => {
+          if (jobs.get(key) !== job || interactionActive) return queue();
+          jobs.delete(key);
+          task();
+        };
+        if (typeof requestIdleCallback === 'function') job.idleId = requestIdleCallback(run, { timeout: 1800 });
+        else job.timer = setTimeout(run, 0);
+      };
+      job.timer = setTimeout(queue, delay);
+      jobs.set(key, job);
+    }
+    function setInteractionActive(active) {
+      interactionActive = !!active;
+    }
+    return { scheduleIdle, cancel, setInteractionActive, isInteractionActive: () => interactionActive };
+  })();
 
   const state = {
     countriesData: null,
@@ -577,6 +622,7 @@
     spatialIndex: [],
     mapMoving: false,
     historyDirtyCountryIds: new Set(),
+    pendingCountryRenderIds: new Set(),
     sessionBaseCountriesJson: null,
     draftCoords: [],
     draftHover: null,
@@ -681,9 +727,25 @@
     let fillIndexBuffer = null;
     let lineIndexBuffer = null;
     let paletteTexture = null;
+    let overridePaletteTexture = null;
+    let overridePositionBuffer = null;
+    let overrideCountryBuffer = null;
+    let overrideFillIndexBuffer = null;
+    let overrideLineIndexBuffer = null;
+    let overrideFillVao = null;
+    let overrideLineVao = null;
+    let overrideMesh = null;
+    let overrideWebGl1PositionData = null;
+    let overrideWebGl1CountryData = null;
+    const countryOverrideIds = new Set();
+    let patchWorker = null;
+    let patchWorkerToken = 0;
     let terrainManifest = null;
     const terrainTiles = new Map();
     const terrainTileRequests = new Map();
+    const terrainTileQueuedKeys = new Set();
+    const terrainUploadQueue = [];
+    let terrainUploadFrame = 0;
     const terrainGridMeshes = new Map();
     let terrainLastLevel = -1;
     let mesh = null;
@@ -1268,6 +1330,7 @@
         glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1,
       );
       paletteTexture = gl.createTexture();
+      overridePaletteTexture = gl.createTexture();
       hydroVisibilityTexture = gl.createTexture();
       hydroCornerBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
@@ -1276,16 +1339,23 @@
       countryBuffer = gl.createBuffer();
       fillIndexBuffer = gl.createBuffer();
       lineIndexBuffer = gl.createBuffer();
+      overridePositionBuffer = gl.createBuffer();
+      overrideCountryBuffer = gl.createBuffer();
+      overrideFillIndexBuffer = gl.createBuffer();
+      overrideLineIndexBuffer = gl.createBuffer();
       gl.enable(gl.BLEND);
       gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.disable(gl.DEPTH_TEST);
       pickFramebuffer = null;
       pickTexture = null;
+      for (const pending of terrainUploadQueue.splice(0)) pending.bitmap?.close?.();
+      terrainTileQueuedKeys.clear();
       terrainTiles.clear();
       terrainTileRequests.clear();
       terrainGridMeshes.clear();
       for (const entry of hydroPacks.values()) {
         entry.resources = null;
+        entry.uploadState = null;
         entry.uploadQueued = false;
         scheduleHydroUpload(entry);
       }
@@ -1324,6 +1394,7 @@
         webglContextLost = false;
         rendererMode = glVersion === 2 ? 'webgl2' : 'webgl1';
         if (mesh) setMesh(mesh, meshCountryIds);
+        if (overrideMesh) setOverrideMesh(overrideMesh);
         else render(currentRenderRevision);
         $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
         updateRendererStatus(`${rendererName()} · GPU 실시간`);
@@ -1421,6 +1492,131 @@
       render(currentRenderRevision);
     }
 
+    function setOverrideMesh(nextMesh) {
+      overrideMesh = nextMesh;
+      overrideWebGl1PositionData = null;
+      overrideWebGl1CountryData = null;
+      if (!gl || !isWebGlRenderer() || !nextMesh) return;
+      gl.bindBuffer(gl.ARRAY_BUFFER, overridePositionBuffer);
+      if (glVersion === 2) gl.bufferData(gl.ARRAY_BUFFER, nextMesh.positions, gl.DYNAMIC_DRAW);
+      else {
+        overrideWebGl1PositionData = Float32Array.from(nextMesh.positions);
+        gl.bufferData(gl.ARRAY_BUFFER, overrideWebGl1PositionData, gl.DYNAMIC_DRAW);
+      }
+      gl.bindBuffer(gl.ARRAY_BUFFER, overrideCountryBuffer);
+      if (glVersion === 2) gl.bufferData(gl.ARRAY_BUFFER, nextMesh.countryIndices, gl.DYNAMIC_DRAW);
+      else {
+        overrideWebGl1CountryData = Float32Array.from(nextMesh.countryIndices);
+        gl.bufferData(gl.ARRAY_BUFFER, overrideWebGl1CountryData, gl.DYNAMIC_DRAW);
+      }
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, overrideFillIndexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nextMesh.triangleIndices, gl.DYNAMIC_DRAW);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, overrideLineIndexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nextMesh.lineIndices, gl.DYNAMIC_DRAW);
+      overrideFillVao = null;
+      overrideLineVao = null;
+      if (glVersion === 2) {
+        const createVao = indexBuffer => {
+          const vao = gl.createVertexArray();
+          gl.bindVertexArray(vao);
+          gl.bindBuffer(gl.ARRAY_BUFFER, overridePositionBuffer);
+          gl.enableVertexAttribArray(0);
+          gl.vertexAttribIPointer(0, 2, gl.INT, 0, 0);
+          gl.bindBuffer(gl.ARRAY_BUFFER, overrideCountryBuffer);
+          gl.enableVertexAttribArray(1);
+          gl.vertexAttribIPointer(1, 1, gl.UNSIGNED_SHORT, 0, 0);
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+          gl.bindVertexArray(null);
+          return vao;
+        };
+        overrideFillVao = createVao(overrideFillIndexBuffer);
+        overrideLineVao = createVao(overrideLineIndexBuffer);
+      }
+      updatePalette();
+      render(currentRenderRevision);
+    }
+
+    function remapOverrideMesh(rawMesh, localIds) {
+      const globalIndices = localIds.map(id => {
+        const key = String(id);
+        let index = meshCountryIds.indexOf(key);
+        if (index < 0) {
+          meshCountryIds.push(key);
+          index = meshCountryIds.length - 1;
+        }
+        return index;
+      });
+      const local = new Uint16Array(rawMesh.countryIndices);
+      const countryIndices = new Uint16Array(local.length);
+      for (let index = 0; index < local.length; index += 1) countryIndices[index] = globalIndices[local[index]];
+      return {
+        positions: new Int32Array(rawMesh.positions),
+        countryIndices,
+        triangleIndices: new Uint32Array(rawMesh.triangleIndices),
+        lineIndices: new Uint32Array(rawMesh.lineIndices),
+      };
+    }
+
+    function ensurePatchWorker() {
+      if (patchWorker) return patchWorker;
+      patchWorker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'atlaswright-country-patch-mesh' });
+      patchWorker.onerror = event => {
+        console.error('[AW-GPU-PATCH-001]', event.message || event);
+        patchWorker?.terminate();
+        patchWorker = null;
+        scheduleGpuMeshRebuild(0);
+      };
+      return patchWorker;
+    }
+
+    function applyCountryPatch(rawIds) {
+      const ids = [...new Set([...rawIds].map(String).filter(Boolean))];
+      for (const id of ids) countryOverrideIds.add(id);
+      if (rendererMode === 'canvas-worker' && canvasWorker) {
+        const features = ids.map(countryFeatureById).filter(Boolean).map(deepClone);
+        const removedIds = ids.filter(id => !countryFeatureById(id));
+        canvasWorker.postMessage({ type: 'patch', features, removedIds, ids, revision: currentRenderRevision });
+        renderCanvasWorker();
+        return Promise.resolve();
+      }
+      if (!isWebGlRenderer()) {
+        render();
+        return Promise.resolve();
+      }
+      updatePalette();
+      const features = [...countryOverrideIds].map(countryFeatureById).filter(Boolean).map(deepClone);
+      const token = ++patchWorkerToken;
+      return new Promise((resolve, reject) => {
+        let currentWorker;
+        try { currentWorker = ensurePatchWorker(); }
+        catch (error) { reject(error); return; }
+        currentWorker.onmessage = event => {
+          if (event.data?.token !== token || token !== patchWorkerToken) return;
+          if (!event.data?.ok) {
+            reject(new Error(event.data?.message || '변경 국가 메시를 만들지 못했습니다.'));
+            return;
+          }
+          const next = event.data.mesh;
+          setOverrideMesh(remapOverrideMesh(next, next.countryIds || []));
+          for (const id of ids) state.pendingCountryRenderIds.delete(id);
+          renderViewFrame();
+          if (countryOverrideIds.size > 48 || (overrideMesh?.countryIndices?.length || 0) > (mesh?.countryIndices?.length || 1) * 0.25) {
+            mapWorkScheduler.scheduleIdle('country-mesh-compaction', compactCountryOverrides, 2000);
+          }
+          resolve();
+        };
+        currentWorker.postMessage({ token, features });
+      }).catch(error => {
+        console.error('[AW-GPU-PATCH-002]', error);
+        scheduleGpuMeshRebuild(0);
+      });
+    }
+
+    function compactCountryOverrides() {
+      if (!countryOverrideIds.size) return;
+      rebuildFromCountries(state.countriesData?.features || []);
+    }
+
     async function decodeBuiltInMesh() {
       const buffer = window.ATLASWRIGHT_GPU_MESH_BUFFER;
       if (!(buffer instanceof ArrayBuffer)) throw new Error('외부 GPU 메시가 준비되지 않았습니다.');
@@ -1456,7 +1652,10 @@
 
     function rebuildFromCountries(features) {
       if (rendererMode === 'canvas-worker' && canvasWorker) {
-        canvasWorker.postMessage({ type: 'data', features });
+        countryOverrideIds.clear();
+        overrideMesh = null;
+        const ids = [...state.pendingCountryRenderIds];
+        canvasWorker.postMessage({ type: 'data', features, ids, revision: currentRenderRevision });
         renderCanvasWorker();
         return;
       }
@@ -1483,6 +1682,9 @@
           return;
         }
         const next = event.data.mesh;
+        countryOverrideIds.clear();
+        overrideMesh = null;
+        state.pendingCountryRenderIds.clear();
         setMesh({
           positions: new Int32Array(next.positions),
           countryIndices: new Uint16Array(next.countryIndices),
@@ -1511,25 +1713,36 @@
       return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
     }
 
-    function updatePalette() {
-      if (!gl || !meshCountryIds.length || countryMeshStale) return;
-      const pixels = new Uint8Array(meshCountryIds.length * 4);
-      for (let index = 0; index < meshCountryIds.length; index += 1) {
-        const feature = countryFeatureById(meshCountryIds[index]);
-        const color = parseColor(feature ? countryColor(feature) : '#000000');
-        pixels[index * 4] = color[0];
-        pixels[index * 4 + 1] = color[1];
-        pixels[index * 4 + 2] = color[2];
-        pixels[index * 4 + 3] = feature && isCountryVisibleById(meshCountryIds[index]) ? mapTheme().fillAlphaByte : 0;
-      }
+    function uploadPalette(texture, pixels) {
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, paletteTexture);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       const internalFormat = glVersion === 2 ? gl.RGBA8 : gl.RGBA;
       gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, Math.max(1, meshCountryIds.length), 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    }
+
+    function updatePalette() {
+      if (!gl || !meshCountryIds.length) return;
+      const basePixels = new Uint8Array(meshCountryIds.length * 4);
+      const overridePixels = new Uint8Array(meshCountryIds.length * 4);
+      for (let index = 0; index < meshCountryIds.length; index += 1) {
+        const id = meshCountryIds[index];
+        const feature = countryFeatureById(id);
+        const color = parseColor(feature ? countryColor(feature) : '#000000');
+        for (const pixels of [basePixels, overridePixels]) {
+          pixels[index * 4] = color[0];
+          pixels[index * 4 + 1] = color[1];
+          pixels[index * 4 + 2] = color[2];
+        }
+        const visible = feature && isCountryVisibleById(id) ? mapTheme().fillAlphaByte : 0;
+        basePixels[index * 4 + 3] = countryOverrideIds.has(id) ? 0 : visible;
+        overridePixels[index * 4 + 3] = countryOverrideIds.has(id) ? visible : 0;
+      }
+      uploadPalette(paletteTexture, basePixels);
+      uploadPalette(overridePaletteTexture, overridePixels);
     }
 
     function rotationRows() {
@@ -1632,15 +1845,15 @@
       return false;
     }
 
-    function bindWebGl1Attributes(program, indexBuffer) {
+    function bindWebGl1Attributes(program, indexBuffer, resources = null) {
       const coordLocation = gl.getAttribLocation(program, 'aCoord');
       const countryLocation = gl.getAttribLocation(program, 'aCountry');
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources?.positionBuffer || positionBuffer);
       if (coordLocation >= 0) {
         gl.enableVertexAttribArray(coordLocation);
         gl.vertexAttribPointer(coordLocation, 2, gl.FLOAT, false, 0, 0);
       }
-      gl.bindBuffer(gl.ARRAY_BUFFER, countryBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources?.countryBuffer || countryBuffer);
       if (countryLocation >= 0) {
         gl.enableVertexAttribArray(countryLocation);
         gl.vertexAttribPointer(countryLocation, 1, gl.FLOAT, false, 0, 0);
@@ -1649,20 +1862,20 @@
       return [coordLocation, countryLocation];
     }
 
-    function drawProgram(program, vao, indexBuffer, indexCount, primitive) {
+    function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture) {
       gl.useProgram(program);
       if (program === fillProgram || program === lineProgram || program === pickProgram) {
         gl.uniform1i(gl.getUniformLocation(program, 'uPalette'), 0);
         const paletteWidthLocation = gl.getUniformLocation(program, 'uPaletteWidth');
         if (paletteWidthLocation) gl.uniform1f(paletteWidthLocation, Math.max(1, meshCountryIds.length));
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, paletteTexture);
+        gl.bindTexture(gl.TEXTURE_2D, palette);
       }
       if (program === lineProgram) {
         const theme = mapTheme();
         gl.uniform4f(gl.getUniformLocation(program, 'uBorderColor'), theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha);
       }
-      const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer);
+      const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer, resources);
       if (glVersion === 2) gl.bindVertexArray(vao);
       const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
       for (const offset of offsets) {
@@ -1675,46 +1888,69 @@
       }
     }
 
-    function createHydroBuffer(data, target = gl.ARRAY_BUFFER) {
-      const buffer = gl.createBuffer();
-      gl.bindBuffer(target, buffer);
-      gl.bufferData(target, data, gl.STATIC_DRAW);
-      return buffer;
-    }
-
     function uploadHydroPack(entry) {
       if (!gl || !isWebGlRenderer() || entry.resources) return;
       const meshData = entry.mesh;
-      const riverStarts = glVersion === 2 ? meshData.riverStarts : Float32Array.from(meshData.riverStarts);
-      const riverEnds = glVersion === 2 ? meshData.riverEnds : Float32Array.from(meshData.riverEnds);
-      const riverFeatureIds = glVersion === 2 ? meshData.riverFeatureIds : Float32Array.from(meshData.riverFeatureIds);
-      const borderRiverStarts = glVersion === 2 ? meshData.borderRiverStarts : Float32Array.from(meshData.borderRiverStarts);
-      const borderRiverEnds = glVersion === 2 ? meshData.borderRiverEnds : Float32Array.from(meshData.borderRiverEnds);
-      const borderRiverFeatureIds = glVersion === 2 ? meshData.borderRiverFeatureIds : Float32Array.from(meshData.borderRiverFeatureIds);
-      const lakePositions = glVersion === 2 ? meshData.lakePositions : Float32Array.from(meshData.lakePositions);
-      const lakeFeatureIds = glVersion === 2 ? meshData.lakeFeatureIds : Float32Array.from(meshData.lakeFeatureIds);
-      entry.resources = {
-        riverStartBuffer: createHydroBuffer(riverStarts),
-        riverEndBuffer: createHydroBuffer(riverEnds),
-        riverFeatureBuffer: createHydroBuffer(riverFeatureIds),
-        riverStartWidthBuffer: createHydroBuffer(meshData.riverStartWidths),
-        riverEndWidthBuffer: createHydroBuffer(meshData.riverEndWidths),
-        riverSegmentCount: meshData.riverFeatureIds.length,
-        borderRiverStartBuffer: createHydroBuffer(borderRiverStarts),
-        borderRiverEndBuffer: createHydroBuffer(borderRiverEnds),
-        borderRiverFeatureBuffer: createHydroBuffer(borderRiverFeatureIds),
-        borderRiverStartWidthBuffer: createHydroBuffer(meshData.borderRiverStartWidths),
-        borderRiverEndWidthBuffer: createHydroBuffer(meshData.borderRiverEndWidths),
-        borderRiverSegmentCount: meshData.borderRiverFeatureIds.length,
-        lakePositionBuffer: createHydroBuffer(lakePositions),
-        lakeFeatureBuffer: createHydroBuffer(lakeFeatureIds),
-        lakeIndexBuffer: createHydroBuffer(meshData.lakeIndices, gl.ELEMENT_ARRAY_BUFFER),
-        lakeIndexCount: meshData.lakeIndices.length,
-      };
+      if (!entry.uploadState) {
+        entry.uploadState = {
+          resources: {
+            riverSegmentCount: meshData.riverFeatureIds.length,
+            borderRiverSegmentCount: meshData.borderRiverFeatureIds.length,
+            lakeIndexCount: meshData.lakeIndices.length,
+          },
+          tasks: [
+            ['riverStartBuffer', meshData.riverStarts, gl.ARRAY_BUFFER, true], ['riverEndBuffer', meshData.riverEnds, gl.ARRAY_BUFFER, true],
+            ['riverFeatureBuffer', meshData.riverFeatureIds, gl.ARRAY_BUFFER, true], ['riverStartWidthBuffer', meshData.riverStartWidths, gl.ARRAY_BUFFER],
+            ['riverEndWidthBuffer', meshData.riverEndWidths, gl.ARRAY_BUFFER], ['borderRiverStartBuffer', meshData.borderRiverStarts, gl.ARRAY_BUFFER, true],
+            ['borderRiverEndBuffer', meshData.borderRiverEnds, gl.ARRAY_BUFFER, true], ['borderRiverFeatureBuffer', meshData.borderRiverFeatureIds, gl.ARRAY_BUFFER, true],
+            ['borderRiverStartWidthBuffer', meshData.borderRiverStartWidths, gl.ARRAY_BUFFER], ['borderRiverEndWidthBuffer', meshData.borderRiverEndWidths, gl.ARRAY_BUFFER],
+            ['lakePositionBuffer', meshData.lakePositions, gl.ARRAY_BUFFER, true], ['lakeFeatureBuffer', meshData.lakeFeatureIds, gl.ARRAY_BUFFER, true],
+            ['lakeIndexBuffer', meshData.lakeIndices, gl.ELEMENT_ARRAY_BUFFER],
+          ].map(([key, data, target, webGl1Float]) => ({ key, data, target, webGl1Float, offset: 0, buffer: null })),
+        };
+      }
+      const task = entry.uploadState.tasks[0];
+      if (task) {
+        const convertToFloat = task.webGl1Float && glVersion === 1 && !(task.data instanceof Float32Array);
+        const outputBytes = convertToFloat ? task.data.length * 4 : task.data.byteLength;
+        if (!task.buffer) {
+          task.buffer = gl.createBuffer();
+          gl.bindBuffer(task.target, task.buffer);
+          gl.bufferData(task.target, outputBytes, gl.STATIC_DRAW);
+          entry.uploadState.resources[task.key] = task.buffer;
+        } else {
+          gl.bindBuffer(task.target, task.buffer);
+        }
+        const byteBudget = 2 * 1024 * 1024;
+        if (convertToFloat) {
+          const start = Math.floor(task.offset / 4);
+          const count = Math.min(task.data.length - start, Math.floor(byteBudget / 4));
+          const chunk = Float32Array.from(task.data.subarray(start, start + count));
+          gl.bufferSubData(task.target, task.offset, chunk);
+          task.offset += chunk.byteLength;
+        } else {
+          const count = Math.min(outputBytes - task.offset, byteBudget);
+          const chunk = new Uint8Array(task.data.buffer, task.data.byteOffset + task.offset, count);
+          gl.bufferSubData(task.target, task.offset, chunk);
+          task.offset += count;
+        }
+        if (task.offset >= outputBytes) entry.uploadState.tasks.shift();
+      }
+      if (!entry.uploadState.tasks.length) {
+        entry.resources = entry.uploadState.resources;
+        entry.uploadState = null;
+      }
     }
 
     function deleteHydroPackResources(entry) {
-      if (!entry?.resources || !gl) return;
+      if (!entry || !gl) return;
+      if (entry.uploadState?.resources) {
+        for (const buffer of Object.values(entry.uploadState.resources)) {
+          if (buffer && gl.isBuffer(buffer)) gl.deleteBuffer(buffer);
+        }
+      }
+      entry.uploadState = null;
+      if (!entry.resources) return;
       for (const key of [
         'riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverStartWidthBuffer', 'riverEndWidthBuffer',
         'borderRiverStartBuffer', 'borderRiverEndBuffer', 'borderRiverFeatureBuffer', 'borderRiverStartWidthBuffer', 'borderRiverEndWidthBuffer',
@@ -1850,7 +2086,8 @@
         if (next) {
           next.uploadQueued = false;
           uploadHydroPack(next);
-          render(currentRenderRevision);
+          if (next.resources) render(currentRenderRevision);
+          else scheduleHydroUpload(next);
         }
         if (hydroUploadQueue.length) {
           hydroUploadFrame = requestAnimationFrame(drain);
@@ -2256,7 +2493,7 @@
     }
 
     async function requestTerrainTile(spec) {
-      if (!gl || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key)) return;
+      if (!gl || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key) || terrainTileQueuedKeys.has(spec.key)) return;
       const request = (async () => {
         const response = await fetch(terrainTileUrl(spec));
         if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
@@ -2266,6 +2503,28 @@
         catch (_) { bitmap = await createImageBitmap(blob); }
         if (!gl || !isWebGlRenderer()) {
           bitmap.close?.();
+          return;
+        }
+        terrainTileQueuedKeys.add(spec.key);
+        terrainUploadQueue.push({ spec, bitmap });
+        scheduleTerrainUpload();
+      })().catch(error => {
+        console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
+      }).finally(() => terrainTileRequests.delete(spec.key));
+      terrainTileRequests.set(spec.key, request);
+    }
+
+    function scheduleTerrainUpload() {
+      if (terrainUploadFrame || !terrainUploadQueue.length) return;
+      terrainUploadFrame = requestAnimationFrame(() => {
+        terrainUploadFrame = 0;
+        const next = terrainUploadQueue.shift();
+        if (!next) return;
+        const { spec, bitmap } = next;
+        terrainTileQueuedKeys.delete(spec.key);
+        if (!gl || !isWebGlRenderer()) {
+          bitmap.close?.();
+          scheduleTerrainUpload();
           return;
         }
         const texture = gl.createTexture();
@@ -2279,16 +2538,15 @@
         bitmap.close?.();
         terrainTiles.set(spec.key, { texture, lastUsed: performance.now() });
         while (terrainTiles.size > 96) {
-          const oldest = [...terrainTiles.entries()].sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
+          let oldest = null;
+          for (const item of terrainTiles.entries()) if (!oldest || item[1].lastUsed < oldest[1].lastUsed) oldest = item;
           if (!oldest || oldest[0] === spec.key) break;
           gl.deleteTexture(oldest[1].texture);
           terrainTiles.delete(oldest[0]);
         }
-        scheduleRender();
-      })().catch(error => {
-        console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
-      }).finally(() => terrainTileRequests.delete(spec.key));
-      terrainTileRequests.set(spec.key, request);
+        scheduleViewRender();
+        scheduleTerrainUpload();
+      });
     }
 
     function terrainGridMesh(spec) {
@@ -2385,6 +2643,7 @@
       gl.clearStencil(0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
       gl.disable(gl.BLEND);
+      const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
       if (state.physicalSettings.terrainVisible && state.physicalSettings.terrainStyle !== 'physical') {
         gl.enable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
@@ -2392,6 +2651,7 @@
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         gl.colorMask(false, false, false, false);
         drawProgram(landMaskProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
+        if (overrideMesh?.triangleIndices?.length) drawProgram(landMaskProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture);
         gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);
         gl.stencilFunc(gl.EQUAL, 1, 0xff);
@@ -2407,10 +2667,14 @@
       gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       if (state.layerVisibility.countries) {
         drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
+        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture);
       }
       drawHydro('lake');
       drawHydro('river');
-      if (state.layerVisibility.countries) drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
+      if (state.layerVisibility.countries) {
+        drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
+        if (overrideMesh?.lineIndices?.length) drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture);
+      }
       drawHydro('border-river');
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
@@ -2552,6 +2816,11 @@
         console.warn('Canvas 지형 타일을 불러오지 못했습니다.', message.message || '알 수 없는 오류');
         return;
       }
+      if (message.type === 'data-ready') {
+        for (const id of message.ids || []) state.pendingCountryRenderIds.delete(String(id));
+        renderViewFrame();
+        return;
+      }
       if (message.type === 'hydro-pick') {
         const pending = canvasHydroPickRequests.get(Number(message.requestId));
         if (pending) {
@@ -2671,6 +2940,17 @@
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       drawProgram(pickProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
+      if (overrideMesh?.triangleIndices?.length) {
+        drawProgram(
+          pickProgram,
+          overrideFillVao,
+          overrideFillIndexBuffer,
+          overrideMesh.triangleIndices.length,
+          gl.TRIANGLES,
+          { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer },
+          overridePaletteTexture,
+        );
+      }
       const dpr = pixelWidth / cssWidth;
       const x = Math.max(0, Math.min(pixelWidth - 1, Math.round(screenPoint[0] * dpr)));
       const y = Math.max(0, Math.min(pixelHeight - 1, Math.round(pixelHeight - 1 - screenPoint[1] * dpr)));
@@ -2795,9 +3075,10 @@
 
     return {
       attach, initialize, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
-      rebuildFromCountries, markCountryMeshStale, prioritizeLatest, getStats, setTerrainManifest,
+      rebuildFromCountries, applyCountryPatch, compactCountryOverrides, markCountryMeshStale, prioritizeLatest, getStats, setTerrainManifest,
       setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
-      setHydroInteractionActive, invalidateHydroVisibility,
+      setHydroInteractionActive, setInteractionActive: setHydroInteractionActive, renderViewFrame: render,
+      invalidateHydroVisibility,
     };
   })();
 
@@ -2805,6 +3086,7 @@
   function scheduleGpuMeshRebuild(delay = 80) {
     clearTimeout(gpuRebuildTimer);
     gpuRebuildTimer = setTimeout(() => {
+      mapEditClient.rebase(state.countriesData?.features || []);
       gpuMapRenderer.rebuildFromCountries(state.countriesData?.features || []);
     }, delay);
   }
@@ -3271,16 +3553,131 @@
   }
 
   function markCountryGeometriesChanged(ids = []) {
+    const changed = new Set();
     for (const rawId of ids) {
       const id = String(rawId || '');
       if (!id) continue;
+      changed.add(id);
       state.historyDirtyCountryIds.add(id);
+      state.pendingCountryRenderIds.add(id);
     }
     invalidateGeometryCaches(ids);
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    gpuMapRenderer.markCountryMeshStale();
-    scheduleGpuMeshRebuild();
+    gpuMapRenderer.applyCountryPatch(changed);
+    if (!applyingMapEditWorkerResult) mapEditClient.syncPatch(changed);
   }
+
+  let applyingMapEditWorkerResult = false;
+
+  const mapEditClient = (() => {
+    let worker = null;
+    let sequence = 0;
+    let dataRevision = 0;
+    let ready = false;
+    let activeRequestId = 0;
+    const pending = new Map();
+
+    function stopWorker(error = null) {
+      if (error) for (const request of pending.values()) request.reject(error);
+      pending.clear();
+      worker?.terminate();
+      worker = null;
+      ready = false;
+      activeRequestId = 0;
+    }
+
+    function ensureWorker() {
+      if (worker) return worker;
+      worker = new Worker(runtimeAssetUrl('workers/map-edit-worker.js'), { name: 'atlaswright-map-edit' });
+      worker.onmessage = event => {
+        const message = event.data || {};
+        if (message.type === 'ready') {
+          ready = true;
+          return;
+        }
+        if (message.type !== 'result') return;
+        const request = pending.get(Number(message.requestId));
+        if (!request) return;
+        pending.delete(Number(message.requestId));
+        if (activeRequestId === Number(message.requestId)) activeRequestId = 0;
+        if (Number(message.dataRevision) !== dataRevision) {
+          request.reject(Object.assign(new Error('지도 상태가 바뀌어 오래된 계산 결과를 폐기했습니다.'), { cancelled: true }));
+          return;
+        }
+        if (message.ok) request.resolve(message.result);
+        else if (message.cancelled) request.reject(Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true }));
+        else request.reject(new Error(message.message || '지도 편집 계산에 실패했습니다.'));
+      };
+      worker.onerror = event => {
+        const error = new Error(event.message || '지도 편집 Worker를 사용할 수 없습니다.');
+        stopWorker(error);
+      };
+      return worker;
+    }
+
+    function rebase(features = state.countriesData?.features || []) {
+      if (activeRequestId || pending.size) {
+        stopWorker(Object.assign(new Error('지도 상태가 바뀌어 이전 계산을 취소했습니다.'), { cancelled: true }));
+      }
+      dataRevision += 1;
+      ready = false;
+      ensureWorker().postMessage({ type: 'rebase', dataRevision, features });
+    }
+
+    function syncPatch(rawIds) {
+      if (!worker || !ready) return;
+      const ids = [...new Set([...rawIds].map(String).filter(Boolean))];
+      const features = ids.map(countryFeatureById).filter(Boolean).map(deepClone);
+      const removedIds = ids.filter(id => !countryFeatureById(id));
+      dataRevision += 1;
+      worker.postMessage({ type: 'sync-patch', dataRevision, features, removedIds });
+    }
+
+    async function execute(operation, payload) {
+      if (!worker || !ready) {
+        rebase();
+        await new Promise(resolve => {
+          const started = performance.now();
+          const poll = () => ready || performance.now() - started > 3000 ? resolve() : setTimeout(poll, 16);
+          poll();
+        });
+      }
+      if (!ready) throw new Error('지도 편집 Worker를 준비하지 못했습니다. 잠시 후 다시 시도하세요.');
+      if (activeRequestId) {
+        stopWorker(Object.assign(new Error('새 작업을 시작해 이전 계산을 취소했습니다.'), { cancelled: true }));
+        rebase();
+        await new Promise(resolve => {
+          const started = performance.now();
+          const poll = () => ready || performance.now() - started > 3000 ? resolve() : setTimeout(poll, 16);
+          poll();
+        });
+        if (!ready) throw new Error('지도 편집 Worker를 다시 준비하지 못했습니다. 잠시 후 다시 시도하세요.');
+      }
+      const requestId = ++sequence;
+      activeRequestId = requestId;
+      const promise = new Promise((resolve, reject) => pending.set(requestId, { resolve, reject }));
+      worker.postMessage({ type: 'execute', operation, requestId, dataRevision, ...payload });
+      const result = await promise;
+      return { requestId, result };
+    }
+
+    function commit(requestId) {
+      worker?.postMessage({ type: 'commit', requestId });
+      dataRevision += 1;
+    }
+
+    function discard(requestId) {
+      worker?.postMessage({ type: 'discard', requestId });
+    }
+
+    function cancel() {
+      if (!activeRequestId && !pending.size) return;
+      stopWorker(Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true }));
+      rebase();
+    }
+
+    return { rebase, syncPatch, execute, commit, discard, cancel };
+  })();
 
   function geometryPolygonSets(geometry) {
     if (!geometry) return [];
@@ -3677,8 +4074,13 @@
   }
 
   function restoreCountryEditSnapshot(snapshot) {
+    const changedIds = new Set(state.historyDirtyCountryIds);
     state.countryOverrides = deepClone(snapshot.countryOverrides || {});
     restoreCountriesFromSnapshot(snapshot);
+    const restoredDirtyIds = new Set(state.historyDirtyCountryIds);
+    for (const id of state.historyDirtyCountryIds) changedIds.add(String(id));
+    markCountryGeometriesChanged(changedIds);
+    state.historyDirtyCountryIds = restoredDirtyIds;
     rebuildBoundaryTopology(state.coastEditCountryId);
     renderAll();
   }
@@ -4301,6 +4703,32 @@
     markCountryGeometriesChanged(new Set([...updates.keys(), ...removed]));
   }
 
+  function applyWorkerCountryPatches(result) {
+    const updates = new Map((result.features || []).map(feature => [String(feature.properties?.editor_id || ''), deepClone(feature)]));
+    const removed = new Set((result.removedIds || []).map(String));
+    state.countriesData.features = state.countriesData.features.flatMap(feature => {
+      const id = String(feature.properties?.editor_id || '');
+      if (removed.has(id)) {
+        delete state.countryOverrides[id];
+        return [];
+      }
+      if (updates.has(id)) {
+        const next = updates.get(id);
+        updates.delete(id);
+        return [next];
+      }
+      return [feature];
+    });
+    for (const feature of updates.values()) state.countriesData.features.push(feature);
+    reindexCountries(state.countriesData, true);
+    applyingMapEditWorkerResult = true;
+    try {
+      markCountryGeometriesChanged(new Set(result.affectedIds || [...updates.keys(), ...removed]));
+    } finally {
+      applyingMapEditWorkerResult = false;
+    }
+  }
+
   function ringRepresentativePoint(ring) {
     if (!ring?.length) return [0, 0];
     let x = 0, y = 0, n = Math.max(1, ring.length - 1);
@@ -4847,6 +5275,19 @@
 
   function renderCountries(revision = ++renderRevision) {
     gpuMapRenderer.render(revision);
+    const pending = state.layerVisibility.countries && state.pendingCountryRenderIds?.size
+      ? [...state.pendingCountryRenderIds].map(countryFeatureById).filter(Boolean)
+      : [];
+    const patchPreview = countryLayer.selectAll('path.country-patch-preview')
+      .data(pending, feature => feature.properties.editor_id);
+    patchPreview.enter().append('path').attr('class', 'country-patch-preview');
+    countryLayer.selectAll('path.country-patch-preview')
+      .attr('d', feature => path(feature))
+      .style('fill', countryColor)
+      .style('fill-opacity', mapTheme().fillAlpha)
+      .style('stroke', mapTheme().border)
+      .style('stroke-opacity', mapTheme().borderAlpha);
+    patchPreview.exit().remove();
     const highlighted = state.layerVisibility.countries && state.countriesData
       ? state.countriesData.features.filter(feature => {
           const id = String(feature.properties?.editor_id || '');
@@ -5189,6 +5630,25 @@
     selection.exit().remove();
   }
 
+  function renderCountryLabelPositions() {
+    countryLabelLayer.selectAll('text.country-label').attr('transform', feature => {
+      const anchor = feature.properties?.editor_label_anchor;
+      const point = Array.isArray(anchor) && anchor.length >= 2 && isCoordVisible(anchor) ? activeProjection()(anchor) : null;
+      return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
+    });
+  }
+
+  function renderUserLabelPositions() {
+    labelLayer.selectAll('g.user-label').attr('transform', label => {
+      const point = isCoordVisible(label.coordinates) ? activeProjection()(label.coordinates) : null;
+      return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
+    });
+  }
+
+  function renderHydroSelectionPosition() {
+    hydroSelectionLayer.selectAll('path.hydro-selected').attr('d', path);
+  }
+
   function getEditableVertices(feature) {
     if (!feature?.geometry) return [];
     const type = feature.geometry.type;
@@ -5428,6 +5888,34 @@
     window.__ATLASWRIGHT_VIEW_REVISION__ = revision;
   }
 
+  function renderViewFrame() {
+    const revision = ++renderRevision;
+    updateProjection();
+    renderBase();
+    renderCountries(revision);
+    renderHydroSelectionPosition();
+    renderBoundaryEditOverlay();
+    renderDrawings();
+    renderCountryLabelPositions();
+    renderUserLabelPositions();
+    renderVertices();
+    renderDraft();
+    window.__ATLASWRIGHT_VIEW_REVISION__ = revision;
+  }
+
+  function renderSceneData() {
+    renderAll();
+  }
+
+  function renderUiState() {
+    renderLayerTree();
+    updateModeButtons();
+  }
+
+  function renderFinalFrame() {
+    renderAll();
+  }
+
   function initSvg() {
     const mapEl = $('map');
     const map = d3.select(mapEl);
@@ -5466,7 +5954,8 @@
     const interactiveDragTarget = target => !!target?.closest?.('.vertex-handle, .user-label');
     const beginMapMovement = () => {
       state.mapMoving = true;
-      gpuMapRenderer.setHydroInteractionActive(true);
+      mapWorkScheduler.setInteractionActive(true);
+      gpuMapRenderer.setInteractionActive(true);
       mapEl.classList.add('dragging');
       if (state.draftHover) {
         state.draftHover = null;
@@ -5475,10 +5964,11 @@
     };
     const finishMapMovement = point => {
       state.mapMoving = false;
-      gpuMapRenderer.setHydroInteractionActive(false);
+      mapWorkScheduler.setInteractionActive(false);
+      gpuMapRenderer.setInteractionActive(false);
       mapEl.classList.remove('dragging');
-      suppressNextMapClick(point);
-      renderAll();
+      if (point) suppressNextMapClick(point);
+      renderFinalFrame();
       gpuMapRenderer.prioritizeLatest();
       queueViewAutosave();
     };
@@ -5503,7 +5993,7 @@
       panMapBy(event.clientX - mousePan.lastX, event.clientY - mousePan.lastY);
       mousePan.lastX = event.clientX;
       mousePan.lastY = event.clientY;
-      scheduleRender();
+      scheduleViewRender();
       event.preventDefault();
     }, { passive: false });
     window.addEventListener('mouseup', event => {
@@ -5553,15 +6043,19 @@
       }
     });
 
+    let wheelFinishTimer = 0;
     mapEl.addEventListener('wheel', (event) => {
       event.preventDefault();
+      if (!state.mapMoving) beginMapMovement();
       const factor = Math.exp(-event.deltaY * 0.0013);
       if (state.projection === 'globe') {
         state.view.globeZoom = clamp(state.view.globeZoom * factor, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
       } else {
         state.view.flatZoom = clamp(state.view.flatZoom * factor, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
       }
-      scheduleRender();
+      scheduleViewRender();
+      clearTimeout(wheelFinishTimer);
+      wheelFinishTimer = setTimeout(() => finishMapMovement(null), 120);
       queueViewAutosave();
     }, { passive: false });
 
@@ -5590,7 +6084,7 @@
       panMapBy(t.clientX - touchTap.lastX, t.clientY - touchTap.lastY);
       touchTap.lastX = t.clientX;
       touchTap.lastY = t.clientY;
-      scheduleRender();
+      scheduleViewRender();
       event.preventDefault();
     }, { passive: false });
     mapEl.addEventListener('touchend', event => {
@@ -5629,8 +6123,7 @@
     };
     mapEl.addEventListener('touchstart', event => {
       if (event.touches.length !== 2) return;
-      mapEl.classList.remove('dragging');
-      state.mapMoving = true;
+      beginMapMovement();
       pinch = {
         distance: touchDistance(event.touches),
         zoom: state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom,
@@ -5645,16 +6138,14 @@
       const factor = Math.pow(rawFactor, 1.18);
       if (state.projection === 'globe') state.view.globeZoom = clamp(pinch.zoom * factor, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
       else state.view.flatZoom = clamp(pinch.zoom * factor, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
-      scheduleRender();
+      scheduleViewRender();
       event.preventDefault();
       event.stopPropagation();
     }, { passive: false, capture: true });
     mapEl.addEventListener('touchend', event => {
       if (pinch && event.touches.length < 2) {
         pinch = null;
-        state.mapMoving = false;
-        renderAll();
-        queueViewAutosave();
+        finishMapMovement(null);
       }
       if (touchTap?.moved) return;
       if (!isMobile() || event.changedTouches.length !== 1 || !['select', 'country-coast', 'merge-country'].includes(state.tool) || state.labelPlacementMode) return;
@@ -6167,6 +6658,7 @@
 
   function cancelActiveMode() {
     const cancelledTool = state.tool;
+    mapEditClient.cancel();
     const selectedId = state.annexTargetCountryId
       || state.coastEditCountryId
       || state.mergeSourceCountryId
@@ -6431,7 +6923,7 @@
     setActionStatus(`${createdObjectLabel} 추가했습니다.`, 'success');
   }
 
-  function completeLinearAnnexation(candidateIndex) {
+  async function completeLinearAnnexation(candidateIndex) {
     if (state.tool !== 'annex-territory' || !['side', 'components'].includes(state.annexPhase)) return;
     const targetId = String(state.annexTargetCountryId || '');
     const donorIds = state.annexDonorCountryIds.map(String);
@@ -6456,17 +6948,17 @@
     }
     const targetName = countryName(targetBefore);
     const snapshot = snapshotEditable();
-    let plan;
+    let workerRequestId = 0;
     try {
-      plan = buildAnnexationPlan(targetId, donorIds, candidate.geometry);
+      setActionStatus('선택한 영토를 편입하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
+      const response = await mapEditClient.execute('annex', { targetId, donorIds, transferredGeometry: candidate.geometry });
+      workerRequestId = response.requestId;
+      const plan = response.result;
       const affectedIds = new Set(plan.affectedIds);
-      const baseline = captureCountryGeometryBaseline(affectedIds);
-      applyTerritoryTransferPlan(plan);
+      applyWorkerCountryPatches(plan);
       reindexCountries(state.countriesData, true);
       refreshCountryCentroids(affectedIds);
       state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-      const validation = validateCountryGeometryEdit(affectedIds, baseline);
-      if (!validation.ok) throw new Error(validation.message);
       const targetAfter = countryFeatureById(targetId);
       if (!targetAfter) throw new Error('편입받을 국가가 편입 결과에서 사라졌습니다.');
 
@@ -6476,16 +6968,19 @@
       selectCountry(targetId, false, false);
       renderAll();
       commitHistorySnapshot(snapshot);
+      mapEditClient.commit(workerRequestId);
       queueAutosave();
       const removedText = plan.removedIds.length ? ` · ${plan.removedIds.length}개국 완전 흡수` : '';
       setActionStatus(`선택한 ${plan.affectedDonorIds.length}개국의 영토를 ${targetName}에 편입했습니다${removedText}.`, 'success', 4000);
     } catch (error) {
+      if (workerRequestId) mapEditClient.discard(workerRequestId);
       restoreCountryEditSnapshot(snapshot);
+      if (error?.cancelled) return;
       reportOperationError(error, '영토를 편입하지 못해 변경을 되돌렸습니다. 편입 범위를 조정한 뒤 다시 시도하세요.', 'AW-ANNEX-002');
     }
   }
 
-  function completeNewCountryCreation(candidateIndex) {
+  async function completeNewCountryCreation(candidateIndex) {
     if (state.tool !== 'new-country' || !['side', 'components'].includes(state.newCountryPhase)) return;
     let candidate = null;
     if (state.newCountryPhase === 'components') {
@@ -6508,41 +7003,46 @@
     if (nameInput === null) return;
     const sourceIds = state.newCountrySourceIds.map(String);
     const snapshot = snapshotEditable();
+    let workerRequestId = 0;
     try {
-      const transferPlan = buildNewCountryTransferPlan(sourceIds, candidate.geometry);
-      const baseline = captureCountryGeometryBaseline(new Set(transferPlan.affectedSourceIds));
-      applyTerritoryTransferPlan(transferPlan);
       const feature = createCountryFeature(
         nameInput.trim() || '새 국가',
         state.draftCoords,
         null,
         snapGeometryToGrid(candidate.geometry, 7),
       );
-      state.countriesData.features.push(feature);
-      const affectedIds = new Set([...transferPlan.affectedSourceIds, feature.properties.editor_id]);
-      markCountryGeometriesChanged(affectedIds);
+      setActionStatus('새 국가의 영토를 계산하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
+      const response = await mapEditClient.execute('new-country', {
+        sourceIds,
+        transferredGeometry: candidate.geometry,
+        newFeature: feature,
+      });
+      workerRequestId = response.requestId;
+      const transferPlan = response.result;
+      const affectedIds = new Set(transferPlan.affectedIds);
+      applyWorkerCountryPatches(transferPlan);
       reindexCountries(state.countriesData, true);
       refreshCountryCentroids(affectedIds);
       state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-      const validation = validateCountryGeometryEdit(affectedIds, baseline);
-      if (!validation.ok) throw new Error(validation.message);
-
       state.draftCoords = [];
       state.draftHover = null;
       setTool('select', false);
       selectCountry(feature.properties.editor_id, false, false);
       renderAll();
       commitHistorySnapshot(snapshot);
+      mapEditClient.commit(workerRequestId);
       queueAutosave();
       const removedText = transferPlan.removedIds.length ? ` · 원본 ${transferPlan.removedIds.length}개국 완전 흡수` : '';
       setActionStatus(`${countryName(feature)} 국가를 추가했습니다. 선택한 ${transferPlan.affectedSourceIds.length}개국의 영토만 이전했습니다${removedText}.`, 'success', 4200);
     } catch (error) {
+      if (workerRequestId) mapEditClient.discard(workerRequestId);
       restoreCountryEditSnapshot(snapshot);
+      if (error?.cancelled) return;
       reportOperationError(error, '국가를 추가하지 못해 변경을 되돌렸습니다. 선택 범위를 조정한 뒤 다시 시도하세요.', 'AW-COUNTRY-002');
     }
   }
 
-  function completeCountryMerge() {
+  async function completeCountryMerge() {
     const sourceId = String(state.mergeSourceCountryId || '');
     const targetIds = [...new Set(state.mergeTargetCountryIds.map(String))].filter(id => id && id !== sourceId);
     if (!sourceId || !targetIds.length) {
@@ -6556,38 +7056,32 @@
       return;
     }
     const sourceName = countryName(source);
-    const affectedIds = new Set([sourceId, ...targetIds]);
     const snapshot = snapshotEditable();
+    let workerRequestId = 0;
     try {
-      const baseline = captureCountryGeometryBaseline(affectedIds);
-      const result = mergeCountryGeometries([source.geometry, ...targets.map(target => target.geometry)]);
-      source.geometry = result.geometry;
-      source.properties.editor_name = sourceName;
-      source.properties.name = sourceName;
-      source.properties.pop_est = Number(source.properties.pop_est || 0)
-        + targets.reduce((sum, target) => sum + Number(target.properties?.pop_est || 0), 0);
-      source.properties.gdp_md_est = Number(source.properties.gdp_md_est || 0)
-        + targets.reduce((sum, target) => sum + Number(target.properties?.gdp_md_est || 0), 0);
+      setActionStatus('선택한 국가를 합병하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
+      const response = await mapEditClient.execute('merge', { sourceId, targetIds });
+      workerRequestId = response.requestId;
+      const result = response.result;
+      applyWorkerCountryPatches(result);
+      const affectedIds = new Set(result.affectedIds);
       state.countryOverrides[sourceId] = { ...(state.countryOverrides[sourceId] || {}), name: sourceName };
       for (const targetId of targetIds) delete state.countryOverrides[targetId];
-      state.countriesData.features = state.countriesData.features
-        .filter(feature => !targetIds.includes(String(feature.properties?.editor_id || '')));
-      markCountryGeometriesChanged(affectedIds);
       reindexCountries(state.countriesData, true);
       refreshCountryCentroids(new Set([sourceId]));
       state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-      const validation = validateCountryGeometryEdit(affectedIds, baseline);
-      if (!validation.ok) throw new Error(validation.message);
 
       setTool('select', false);
       selectCountry(sourceId, false, false);
       renderAll();
       commitHistorySnapshot(snapshot);
+      mapEditClient.commit(workerRequestId);
       queueAutosave();
-      const seamText = result.seamless ? '' : ' 일부 원본 국경 꼭짓점이 일치하지 않아 내부 경계선이 남을 수 있습니다.';
-      setActionStatus(`${targetIds.length}개국을 ${sourceName}에 합병했습니다.${seamText}`, 'success', seamText ? 4300 : 3200);
+      setActionStatus(`${targetIds.length}개국을 ${sourceName}에 합병했습니다.`, 'success', 3200);
     } catch (error) {
+      if (workerRequestId) mapEditClient.discard(workerRequestId);
       restoreCountryEditSnapshot(snapshot);
+      if (error?.cancelled) return;
       reportOperationError(error, '국가를 합병하지 못해 변경을 되돌렸습니다. 대상을 다시 확인하세요.', 'AW-MERGE-001');
     }
   }
@@ -7055,6 +7549,7 @@
   }
 
   function restoreEditable(snapshot) {
+    const changedCountryIds = new Set(state.historyDirtyCountryIds);
     state.countryOverrides = deepClone(snapshot.countryOverrides || {});
     state.sourceInfo = deepClone(snapshot.sourceInfo || null);
     state.labels = deepClone(snapshot.labels || []);
@@ -7062,6 +7557,8 @@
     state.physicalSettings = normalizePhysicalSettings(snapshot.physicalSettings || state.physicalSettings);
     syncPhysicalControls();
     restoreCountriesFromSnapshot(snapshot);
+    const restoredDirtyIds = new Set(state.historyDirtyCountryIds);
+    for (const id of state.historyDirtyCountryIds) changedCountryIds.add(String(id));
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -7074,8 +7571,8 @@
     $('selectionStatus').textContent = '';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     updateModeButtons();
-    gpuMapRenderer.markCountryMeshStale();
-    scheduleGpuMeshRebuild(0);
+    if (changedCountryIds.size) markCountryGeometriesChanged(changedCountryIds);
+    state.historyDirtyCountryIds = restoredDirtyIds;
     renderAll();
     queueAutosave();
   }
@@ -7264,6 +7761,7 @@
 
   async function deleteAutosavedProject() {
     clearTimeout(state.autosaveTimer);
+    mapWorkScheduler.cancel('autosave');
     state.autosaveTimer = null;
     try {
       const db = await openAutosaveDatabase();
@@ -7289,28 +7787,29 @@
 
   function queueViewAutosave(delay = 120) {
     clearTimeout(state.viewAutosaveTimer);
-    state.viewAutosaveTimer = setTimeout(() => {
+    mapWorkScheduler.scheduleIdle('view-autosave', () => {
       writeIndexedDbView().catch(error => console.warn('View autosave failed', error));
     }, delay);
   }
 
+  async function persistAutosave(project = buildAutosaveData()) {
+    try {
+      await writeIndexedDbProject(project);
+      state.lastSavedAt = new Date();
+    } catch (error) {
+      try {
+        saveLocalStorageFallback(project);
+        state.lastSavedAt = new Date();
+      } catch (fallbackError) {
+        console.warn('Autosave failed', error, fallbackError);
+        setActionStatus('자동저장 용량을 초과했습니다. GeoPackage 파일로 직접 저장하세요.', 'error', 5200);
+      }
+    }
+  }
+
   function queueAutosave(delay = 650) {
     clearTimeout(state.autosaveTimer);
-    state.autosaveTimer = setTimeout(async () => {
-      const project = buildAutosaveData();
-      try {
-        await writeIndexedDbProject(project);
-        state.lastSavedAt = new Date();
-      } catch (error) {
-        try {
-          saveLocalStorageFallback(project);
-          state.lastSavedAt = new Date();
-        } catch (fallbackError) {
-          console.warn('Autosave failed', error, fallbackError);
-          setActionStatus('자동저장 용량을 초과했습니다. GeoPackage 파일로 직접 저장하세요.', 'error', 5200);
-        }
-      }
-    }, delay);
+    mapWorkScheduler.scheduleIdle('autosave', () => persistAutosave(), delay);
   }
 
   function restoreLocalAutosave() {
@@ -8337,7 +8836,11 @@
     if (typeof systemThemeQuery.addEventListener === 'function') systemThemeQuery.addEventListener('change', onSystemThemeChange);
     else if (typeof systemThemeQuery.addListener === 'function') systemThemeQuery.addListener(onSystemThemeChange);
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') queueAutosave(0);
+      if (document.visibilityState === 'hidden') {
+        mapWorkScheduler.cancel('autosave');
+        mapWorkScheduler.cancel('view-autosave');
+        persistAutosave().catch(error => console.warn('Immediate autosave failed', error));
+      }
     });
     window.addEventListener('beforeunload', () => {
       try { writeIndexedDbProject(buildAutosaveData()).catch(() => {}); } catch (_) {}
@@ -8390,10 +8893,17 @@
     bindUI();
     initSvg();
     resizeMap();
+    mapEditClient.rebase(state.countriesData?.features || []);
     await new Promise(resolve => requestAnimationFrame(resolve));
     const gpuReady = await gpuMapRenderer.initialize();
     startMapResizeObserver();
-    if (restored && gpuReady) scheduleGpuMeshRebuild(0);
+    if (restored && gpuReady) {
+      if (externalGeometry || state.sessionBaseCountriesJson) scheduleGpuMeshRebuild(0);
+      else if (state.historyDirtyCountryIds.size) {
+        for (const id of state.historyDirtyCountryIds) state.pendingCountryRenderIds.add(String(id));
+        gpuMapRenderer.applyCountryPatch(state.historyDirtyCountryIds);
+      }
+    }
 
     $('countriesVisible').checked = state.layerVisibility.countries;
     $('drawingsVisible').checked = state.layerVisibility.drawings;

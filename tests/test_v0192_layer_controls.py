@@ -40,8 +40,8 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-border\)')
 
     def test_build_version_is_updated(self):
-        self.assertIn('data-app-version="0.20.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.20.0'", APP)
+        self.assertIn('data-app-version="0.21.0"', INDEX)
+        self.assertIn("const APP_VERSION = '0.21.0'", APP)
 
 
 if __name__ == "__main__":
