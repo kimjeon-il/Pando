@@ -185,11 +185,13 @@ function writeAtlasTables(db, payload) {
     country_id: label.countryId || label.country_id || '',
     notes: label.notes || '',
   }));
-  const points = drawings.filter(item => item.geometry?.type === 'Point').map(item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', category: item.properties?.category || 'custom', color: item.properties?.editorColor || item.properties?.color || '', notes: item.properties?.notes || '', properties_json: JSON.stringify(item.properties || {}) }));
-  const lines = drawings.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', category: item.properties?.category || 'custom', color: item.properties?.editorColor || item.properties?.color || '', notes: item.properties?.notes || '', properties_json: JSON.stringify(item.properties || {}) }));
-  const polygons = drawings.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', category: item.properties?.category || 'custom', color: item.properties?.editorColor || item.properties?.color || '', notes: item.properties?.notes || '', properties_json: JSON.stringify(item.properties || {}) }));
+  const drawingRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', category: item.properties?.category || 'custom', aw_role: item.properties?.aw_role || 'custom', aw_owner_id: item.properties?.aw_owner_id || '', aw_parent_id: item.properties?.aw_parent_id || '', aw_topology_group: item.properties?.aw_topology_group || '', aw_land_binding: item.properties?.aw_land_binding || 'none', color: item.properties?.editorColor || item.properties?.color || '', notes: item.properties?.notes || '', properties_json: JSON.stringify(item.properties || {}) });
+  const points = drawings.filter(item => item.geometry?.type === 'Point').map(drawingRow);
+  const lines = drawings.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(drawingRow);
+  const polygons = drawings.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(drawingRow);
   const drawingColumns = [
-    { name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'category' },
+    { name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'category' }, { name: 'aw_role' },
+    { name: 'aw_owner_id' }, { name: 'aw_parent_id' }, { name: 'aw_topology_group' }, { name: 'aw_land_binding' },
     { name: 'color' }, { name: 'notes' }, { name: 'properties_json' },
   ];
   createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'AtlasWright places' });
