@@ -15,7 +15,7 @@ class V0192LayerControlTests(unittest.TestCase):
     def test_layer_groups_use_one_folder_icon(self):
         self.assertIn('symbol id="icon-folder"', INDEX)
         self.assertEqual(INDEX.count('class="ui-icon layer-folder-icon"'), 5)
-        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 5)
+        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 6)
         self.assertNotIn('class="layer-icon', INDEX)
         self.assertNotIn(".layer-icon", CSS)
 
@@ -40,8 +40,8 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-border\)')
 
     def test_build_version_is_updated(self):
-        self.assertIn('data-app-version="0.22.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.22.0'", APP)
+        self.assertIn('data-app-version="0.23.0"', INDEX)
+        self.assertIn("const APP_VERSION = '0.23.0'", APP)
 
 
 if __name__ == "__main__":

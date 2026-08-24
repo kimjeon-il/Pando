@@ -1,4 +1,4 @@
-/* AtlasWright v0.22.0
+/* AtlasWright v0.23.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.22.0';
+  const APP_VERSION = '0.23.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -163,7 +163,12 @@
   let lastOverlayTrigger = null;
   let fileMenuTrigger = null;
   let createMenuTrigger = null;
-  let editorPanelOpenReason = null;
+  const surfaceState = {
+    activeSurface: null,
+    layersOpen: false,
+    editorOpen: false,
+    editorManuallyCollapsed: false,
+  };
   const SHEET_SNAP_RATIOS = Object.freeze([0.35, 0.6, 0.9]);
   const SHEET_SNAP_LABELS = Object.freeze(['기본 높이', '중간 높이', '최대 높이']);
   const MOBILE_SHEET_IDS = Object.freeze({ map: 'leftPanel', create: 'createMenu', edit: 'rightPanel' });
@@ -189,11 +194,6 @@
   function mobileSheetSnapHeight(index) {
     const safeIndex = clamp(Number(index) || 0, 0, SHEET_SNAP_RATIOS.length - 1);
     return Math.min(mobileSheetAvailableHeight(), mobileViewportHeight() * SHEET_SNAP_RATIOS[safeIndex]);
-  }
-
-  function mobileSheetKind(panel) {
-    if (!panel) return null;
-    return Object.keys(MOBILE_SHEET_IDS).find(kind => MOBILE_SHEET_IDS[kind] === panel.id) || null;
   }
 
   function mobileSheetPanel(kind) {
@@ -270,6 +270,34 @@
     if (control && host && control.parentElement !== host) host.appendChild(control);
   }
 
+  function updateSurfaceStateFromDom() {
+    const leftOpen = layoutMode === 'wide' || (isMobile()
+      ? activeMobileSheet === 'map'
+      : $('leftPanel')?.classList.contains('mobile-open'));
+    const editorOpen = isMobile()
+      ? activeMobileSheet === 'edit'
+      : $('rightPanel')?.classList.contains('mobile-open');
+    surfaceState.layersOpen = !!leftOpen;
+    surfaceState.editorOpen = !!editorOpen;
+    if (isMobile() && activeMobileSheet) surfaceState.activeSurface = activeMobileSheet === 'map' ? 'layers' : activeMobileSheet;
+    else if (editorOpen) surfaceState.activeSurface = 'editor';
+    else if (layoutMode !== 'wide' && leftOpen) surfaceState.activeSurface = 'layers';
+    else if (surfaceState.activeSurface !== 'create') surfaceState.activeSurface = null;
+  }
+
+  function syncEditorPanelControls() {
+    const edge = $('togglePanelBtn');
+    edge?.classList.toggle('active', surfaceState.editorOpen);
+    edge?.setAttribute('aria-expanded', String(surfaceState.editorOpen));
+    edge?.setAttribute('aria-label', '편집창 열기');
+    edge?.setAttribute('title', '편집창 열기');
+    const headerToggle = $('mobileCloseRightBtn');
+    if (!headerToggle) return;
+    const label = layoutMode === 'wide' ? '편집창 접기' : '편집창 닫기';
+    headerToggle.setAttribute('aria-label', label);
+    headerToggle.setAttribute('title', label);
+  }
+
   function applyLayoutMode({ initial = false } = {}) {
     const previous = layoutMode;
     layoutMode = detectLayoutMode();
@@ -280,9 +308,9 @@
 
     const right = $('rightPanel');
     if (layoutMode === 'mobile' && previous !== 'mobile') {
-      const rightOpen = right?.classList.contains('mobile-open');
-      const leftOpen = $('leftPanel')?.classList.contains('mobile-open');
-      activeMobileSheet = rightOpen ? 'edit' : leftOpen ? 'map' : null;
+      activeMobileSheet = surfaceState.editorOpen ? 'edit' : surfaceState.layersOpen ? 'map' : null;
+      $('leftPanel')?.classList.toggle('mobile-open', activeMobileSheet === 'map');
+      right?.classList.toggle('mobile-open', activeMobileSheet === 'edit');
       if (activeMobileSheet === 'edit') $('leftPanel')?.classList.remove('mobile-open');
       if (activeMobileSheet === 'map') right?.classList.remove('mobile-open');
     } else if (layoutMode !== 'mobile' && previous === 'mobile') {
@@ -293,8 +321,17 @@
       document.querySelector('.workspace')?.style.removeProperty('--sheet-occlusion-bottom');
     }
     if (layoutMode === 'wide') {
-      right?.classList.remove('collapsed');
+      $('leftPanel')?.classList.remove('mobile-open');
+      right?.classList.toggle('mobile-open', surfaceState.editorOpen);
+      surfaceState.layersOpen = true;
+    } else if (layoutMode === 'compact') {
+      const showEditor = surfaceState.editorOpen && surfaceState.activeSurface === 'editor';
+      const showLayers = !showEditor && surfaceState.layersOpen;
+      $('leftPanel')?.classList.toggle('mobile-open', showLayers);
+      right?.classList.toggle('mobile-open', showEditor);
+      surfaceState.activeSurface = showEditor ? 'editor' : showLayers ? 'layers' : null;
     }
+    right?.classList.remove('collapsed');
     syncMobileSheetAccessibility();
     syncOverlayState();
     refreshMapSheetMetrics();
@@ -307,8 +344,9 @@
     const fileOpen = document.querySelector('.top-actions')?.classList.contains('mobile-open');
     $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
     $('mobileFileBtn')?.setAttribute('aria-expanded', String(!!fileOpen));
-    const leftOpen = isMobile() ? activeMobileSheet === 'map' : $('leftPanel')?.classList.contains('mobile-open');
-    const rightOpen = isMobile() ? activeMobileSheet === 'edit' : $('rightPanel')?.classList.contains('mobile-open');
+    updateSurfaceStateFromDom();
+    const leftOpen = surfaceState.layersOpen;
+    const rightOpen = surfaceState.editorOpen;
     const workspace = document.querySelector('.workspace');
     workspace?.classList.toggle('layers-drawer-open', !!leftOpen);
     workspace?.classList.toggle('editor-drawer-open', !!rightOpen);
@@ -318,8 +356,7 @@
     $('mobileMapBtn')?.setAttribute('aria-expanded', String(!!leftOpen));
     $('mobileEditBtn')?.classList.toggle('sheet-open', !!rightOpen);
     $('mobileEditBtn')?.setAttribute('aria-expanded', String(!!rightOpen));
-    $('togglePanelBtn')?.classList.toggle('active', !!rightOpen);
-    $('togglePanelBtn')?.setAttribute('aria-expanded', String(!!rightOpen));
+    syncEditorPanelControls();
     $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
     refreshMapSheetMetrics();
     syncMobileNavigation();
@@ -359,6 +396,7 @@
     }
     if (menu.classList.contains('hidden')) return;
     menu.classList.add('hidden');
+    if (surfaceState.activeSurface === 'create') surfaceState.activeSurface = null;
     syncCreateMenuState();
     if (restoreFocus && createMenuTrigger?.isConnected) createMenuTrigger.focus({ preventScroll: true });
     createMenuTrigger = null;
@@ -377,6 +415,7 @@
       return;
     }
     createMenuTrigger = trigger instanceof HTMLElement ? trigger : null;
+    surfaceState.activeSurface = 'create';
     closeFileMenu();
     menu.classList.remove('hidden');
     syncCreateMenuState();
@@ -389,7 +428,7 @@
     const panel = mobileSheetPanel(kind);
     panel?.classList.remove('mobile-open');
     if (kind === 'create') panel?.classList.add('hidden');
-    if (kind === 'edit') editorPanelOpenReason = null;
+    if (kind === 'edit') surfaceState.editorOpen = false;
     activeMobileSheet = null;
     syncMobileSheetAccessibility();
     syncCreateMenuState();
@@ -415,7 +454,7 @@
     });
     activeMobileSheet = kind;
     const panel = mobileSheetPanel(kind);
-    if (kind === 'edit') editorPanelOpenReason = 'manual';
+    if (kind === 'edit') surfaceState.editorOpen = true;
     if (!sheetSnapTouched.has(panel.id)) {
       const initialIndex = kind === 'create' ? 1 : kind === 'edit' && state?.selected ? 1 : 0;
       sheetSnapIndex.set(panel.id, initialIndex);
@@ -435,35 +474,11 @@
     if (except !== 'left') $('leftPanel')?.classList.remove('mobile-open');
     if (except !== 'right') {
       $('rightPanel')?.classList.remove('mobile-open');
-      editorPanelOpenReason = null;
+      surfaceState.editorOpen = false;
     }
     syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
-    queueMapResize();
-  }
-
-  function toggleMobileSheet(which) {
-    if (layoutMode === 'wide') return;
-    if (isMobile()) {
-      setActiveMobileSheet(which === 'left' ? 'map' : 'edit', document.activeElement, { toggle: true });
-      return;
-    }
-    const map = { left: $('leftPanel'), right: $('rightPanel') };
-    const el = map[which];
-    if (!el) return;
-    const willOpen = !el.classList.contains('mobile-open');
-    if (willOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeCreateMenu();
-    closeFileMenu();
-    closeMobileSheets(null, { restoreFocus: false });
-    if (willOpen) {
-      setMobileSheetHeight(el, sheetSnapIndex.get(el.id) ?? 0);
-      el.classList.add('mobile-open');
-      if (which === 'right') editorPanelOpenReason = 'manual';
-    } else if (which === 'right') editorPanelOpenReason = null;
-    syncOverlayState();
-    queueMapResize();
   }
 
   function toggleFileMenu() {
@@ -477,27 +492,6 @@
     if (willOpen) requestAnimationFrame(() => menu.querySelector('button:not(:disabled)')?.focus({ preventScroll: true }));
   }
 
-  function openMobileLeftAt() {
-    if (layoutMode === 'wide') return;
-    if (isMobile()) {
-      setActiveMobileSheet('map', $('mobileMapBtn'), { toggle: true });
-      return;
-    }
-    const left = $('leftPanel');
-    if (!left) return;
-    const sameOpen = left.classList.contains('mobile-open');
-    if (!sameOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeCreateMenu();
-    closeFileMenu();
-    closeMobileSheets();
-    if (sameOpen) return;
-    left.classList.add('mobile-open');
-    setMobileSheetHeight(left, sheetSnapIndex.get(left.id) ?? 0);
-    syncOverlayState();
-    if (isMobile()) left.scrollTop = 0;
-    queueMapResize();
-  }
-
   function nearestSheetSnapIndex(height) {
     let nearest = 0;
     let distance = Infinity;
@@ -509,20 +503,6 @@
       }
     });
     return nearest;
-  }
-
-  function closeMapSheet(panel, { restoreFocus = false } = {}) {
-    if (!panel) return;
-    if (isMobile()) {
-      if (activeMobileSheet === mobileSheetKind(panel)) closeActiveMobileSheet({ restoreFocus });
-      return;
-    }
-    panel.classList.remove('mobile-open');
-    if (panel.id === 'rightPanel') editorPanelOpenReason = null;
-    syncOverlayState();
-    queueMapResize();
-    if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
-    if (restoreFocus) lastOverlayTrigger = null;
   }
 
   function bindSheetDragHandle(handle) {
@@ -613,26 +593,83 @@
   function openSelectionEditor() {
     const panel = $('rightPanel');
     if (!panel) return;
-    if (panel.classList.contains('mobile-open')) {
-      panel.scrollTop = 0;
-    }
+    if (layoutMode === 'wide' && !surfaceState.editorManuallyCollapsed) openSurface('editor', { automatic: true });
+    if (panel.classList.contains('mobile-open')) $('editorScrollBody')?.scrollTo?.({ top: 0, behavior: 'instant' });
     syncMobileNavigation();
   }
 
-  function toggleEditorPanel() {
-    const panel = $('rightPanel');
-    if (!panel) return;
-    if (layoutMode !== 'wide') {
-      toggleMobileSheet('right');
+  function openSurface(surface, { trigger = null, automatic = false } = {}) {
+    closeFileMenu();
+    if (surface === 'create') {
+      surfaceState.activeSurface = 'create';
+      toggleCreateMenu(trigger || document.activeElement);
       return;
     }
-    const willOpen = !panel.classList.contains('mobile-open');
-    if (willOpen) lastOverlayTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    panel.classList.remove('collapsed');
-    panel.classList.toggle('mobile-open', willOpen);
-    editorPanelOpenReason = willOpen ? 'manual' : null;
+    if (surface === 'layers') {
+      if (layoutMode === 'wide') {
+        surfaceState.layersOpen = true;
+        surfaceState.activeSurface = 'layers';
+        syncOverlayState();
+      } else if (isMobile()) {
+        setActiveMobileSheet('map', trigger || $('mobileMapBtn'));
+      } else {
+        $('rightPanel')?.classList.remove('mobile-open');
+        $('leftPanel')?.classList.add('mobile-open');
+        surfaceState.activeSurface = 'layers';
+        surfaceState.layersOpen = true;
+        surfaceState.editorOpen = false;
+        syncOverlayState();
+      }
+      return;
+    }
+    if (surface !== 'editor') return;
+    if (!automatic) surfaceState.editorManuallyCollapsed = false;
+    if (isMobile()) {
+      setActiveMobileSheet('edit', trigger || $('mobileEditBtn'));
+    } else {
+      if (layoutMode === 'compact') $('leftPanel')?.classList.remove('mobile-open');
+      $('rightPanel')?.classList.add('mobile-open');
+      surfaceState.activeSurface = 'editor';
+      surfaceState.editorOpen = true;
+      surfaceState.layersOpen = layoutMode === 'wide';
+      syncOverlayState();
+    }
+  }
+
+  function closeSurface(surface, { manual = false, restoreFocus = false } = {}) {
+    if (surface === 'create') {
+      closeCreateMenu({ restoreFocus });
+      if (surfaceState.activeSurface === 'create') surfaceState.activeSurface = null;
+      return;
+    }
+    if (surface === 'layers') {
+      if (layoutMode === 'wide') return;
+      if (isMobile() && activeMobileSheet === 'map') closeActiveMobileSheet({ restoreFocus });
+      else $('leftPanel')?.classList.remove('mobile-open');
+      surfaceState.layersOpen = false;
+    } else if (surface === 'editor') {
+      if (isMobile() && activeMobileSheet === 'edit') closeActiveMobileSheet({ restoreFocus });
+      else $('rightPanel')?.classList.remove('mobile-open');
+      surfaceState.editorOpen = false;
+      if (manual && layoutMode === 'wide' && state?.selected) surfaceState.editorManuallyCollapsed = true;
+    }
+    if (surfaceState.activeSurface === surface) surfaceState.activeSurface = null;
     syncOverlayState();
-    queueMapResize();
+  }
+
+  function toggleSurface(surface, trigger = null) {
+    const open = surface === 'layers'
+      ? surfaceState.layersOpen
+      : surface === 'editor' ? surfaceState.editorOpen : isCreateMenuOpen();
+    if (open && !(surface === 'layers' && layoutMode === 'wide')) {
+      closeSurface(surface, { manual: surface === 'editor', restoreFocus: true });
+    } else {
+      openSurface(surface, { trigger });
+    }
+  }
+
+  function toggleEditorPanel() {
+    toggleSurface('editor', document.activeElement);
   }
 
   function syncMobileNavigation() {
@@ -643,7 +680,7 @@
     $('addLabelBtn')?.classList.toggle('active', !!state?.labelPlacementMode || state?.tool === 'label');
     $('addRiverBtn')?.classList.toggle('active', state?.tool === 'river');
     $('addLakeBtn')?.classList.toggle('active', state?.tool === 'lake');
-    $('mobileEditBtn')?.classList.toggle('needs-attention', !!state?.selected && !$('rightPanel')?.classList.contains('mobile-open'));
+    $('mobileEditBtn')?.classList.toggle('needs-attention', !!state?.selected && !surfaceState.editorOpen);
   }
 
   let renderQueued = false;
@@ -4992,10 +5029,10 @@
     const styles = getComputedStyle(workspace);
     const read = name => Math.max(0, Number.parseFloat(styles.getPropertyValue(name)) || 0);
     return {
-      left: read('--map-safe-left'),
-      right: read('--map-safe-right'),
-      top: read('--map-safe-top'),
-      bottom: Math.max(26, read('--map-safe-bottom')),
+      left: read('--projection-safe-left'),
+      right: read('--projection-safe-right'),
+      top: read('--projection-safe-top'),
+      bottom: Math.max(26, read('--projection-safe-bottom')),
     };
   }
 
@@ -5192,7 +5229,12 @@
   }
 
   function normalizeLayerFolderState(value) {
-    return Object.fromEntries(LAYER_FOLDER_KEYS.map(group => [group, !!value?.[group]]));
+    let expandedFound = false;
+    return Object.fromEntries(LAYER_FOLDER_KEYS.map(group => {
+      const expanded = !expandedFound && !!value?.[group];
+      if (expanded) expandedFound = true;
+      return [group, expanded];
+    }));
   }
 
   function markLayerTreeDirty() {
@@ -5245,7 +5287,8 @@
           id,
           name: countryName(feature),
           color: countryColor(feature),
-          meta: group === 'countries' ? id : (pendingCountryLabelAnchors.has(id) ? '계산 중' : '국명'),
+          searchText: id,
+          meta: group === 'countries' ? '' : (pendingCountryLabelAnchors.has(id) ? '계산 중' : '국명'),
           selected: state.selected?.type === 'country' && state.selected.id === id,
         };
       });
@@ -5294,13 +5337,77 @@
     }
   }
 
+  const LAYER_VIRTUAL_ROW_HEIGHT = 48;
+  const LAYER_VIRTUAL_OVERSCAN = 5;
+  const layerVirtualItems = new Map();
+
+  function createLayerItemRow(group, item, { searchResult = false } = {}) {
+    const row = document.createElement(searchResult ? 'button' : 'div');
+    row.className = `ui-row ${searchResult ? 'layer-search-result' : 'layer-child'}${item.selected ? ' is-selected' : ''}`;
+    row.dataset.layerGroup = group;
+    row.dataset.itemId = item.id;
+    if (searchResult) {
+      row.type = 'button';
+      row.dataset.layerItemSelect = group;
+      row.setAttribute('role', 'option');
+      row.innerHTML = `<span>${layerGroupNames[group] || '지형 음영'}</span><strong></strong>`;
+      row.querySelector('strong').textContent = item.name;
+      return row;
+    }
+    const visibility = document.createElement('input');
+    visibility.type = 'checkbox';
+    visibility.checked = isLayerItemVisible(group, item.id);
+    visibility.dataset.layerItemVisibility = group;
+    visibility.dataset.itemId = item.id;
+    visibility.setAttribute('aria-label', `${item.name} 표시`);
+    const swatch = document.createElement('span');
+    swatch.className = `layer-child-swatch ${group === 'labels' || group === 'countryLabels' ? 'label' : 'polygon'}`;
+    if (group === 'countryLabels') swatch.textContent = 'A';
+    else swatch.style.setProperty('--layer-item-color', item.color || '#63758a');
+    const name = document.createElement('button');
+    name.type = 'button';
+    name.className = 'ui-button layer-child-name';
+    name.dataset.layerItemSelect = group;
+    name.dataset.itemId = item.id;
+    name.textContent = item.name;
+    name.title = item.title || `${item.name} 선택하고 이동`;
+    row.append(visibility, swatch, name);
+    if (item.meta) {
+      const detail = document.createElement('span');
+      detail.className = 'layer-child-meta';
+      detail.textContent = item.meta;
+      row.append(detail);
+    }
+    return row;
+  }
+
+  function renderVirtualizedLayerGroup(group, container, items) {
+    layerVirtualItems.set(group, items);
+    const viewportHeight = Math.max(144, container.clientHeight || 235);
+    const start = Math.max(0, Math.floor(container.scrollTop / LAYER_VIRTUAL_ROW_HEIGHT) - LAYER_VIRTUAL_OVERSCAN);
+    const count = Math.ceil(viewportHeight / LAYER_VIRTUAL_ROW_HEIGHT) + LAYER_VIRTUAL_OVERSCAN * 2;
+    const end = Math.min(items.length, start + count);
+    const fragment = document.createDocumentFragment();
+    const top = document.createElement('div');
+    top.className = 'layer-virtual-spacer';
+    top.style.height = `${start * LAYER_VIRTUAL_ROW_HEIGHT}px`;
+    fragment.appendChild(top);
+    for (let index = start; index < end; index += 1) fragment.appendChild(createLayerItemRow(group, items[index]));
+    const bottom = document.createElement('div');
+    bottom.className = 'layer-virtual-spacer';
+    bottom.style.height = `${Math.max(0, items.length - end) * LAYER_VIRTUAL_ROW_HEIGHT}px`;
+    fragment.appendChild(bottom);
+    container.replaceChildren(fragment);
+    container.dataset.virtualized = 'true';
+  }
+
   function renderTerrainLayerFolder(search = '') {
     const folder = document.querySelector('.layer-folder[data-layer-group="terrain"]');
     const container = $('terrainLayerChildren');
     if (!folder || !container) return;
     const matchesSearch = !search || '지형 음영 국가색 지형색 강조'.includes(search);
     folder.hidden = !matchesSearch;
-    const expanded = matchesSearch && (!!search || !!state.layerFolders.terrain);
+    const expanded = matchesSearch && !search && !!state.layerFolders.terrain;
     folder.classList.toggle('is-expanded', expanded);
     folder.querySelectorAll('[data-layer-folder-toggle="terrain"]').forEach(button => {
       button.setAttribute('aria-expanded', String(expanded));
@@ -5314,14 +5421,39 @@
     if (!force && renderedLayerTreeRevision === state.layerTreeRevision) return;
     pruneLayerItemVisibility();
     const search = String(state.layerSearch || '').trim().toLocaleLowerCase('ko');
+    const searchResults = $('layerSearchResults');
+    const layerList = document.querySelector('.layer-list');
+    searchResults?.classList.toggle('hidden', !search);
+    layerList?.classList.toggle('hidden', !!search);
+    if (search) {
+      const matches = [];
+      for (const group of LAYER_GROUP_KEYS) {
+        for (const item of layerTreeItems(group)) {
+          const haystack = `${item.name} ${item.searchText || ''} ${item.id} ${item.meta || ''}`.toLocaleLowerCase('ko');
+          if (haystack.includes(search)) matches.push({ group, item });
+        }
+      }
+      matches.sort((a, b) => layerNameCollator.compare(a.item.name, b.item.name));
+      const fragment = document.createDocumentFragment();
+      for (const { group, item } of matches.slice(0, 160)) fragment.appendChild(createLayerItemRow(group, item, { searchResult: true }));
+      if (!matches.length) {
+        const empty = document.createElement('div');
+        empty.className = 'layer-empty';
+        empty.textContent = '검색 결과가 없습니다.';
+        fragment.appendChild(empty);
+      }
+      searchResults?.replaceChildren(fragment);
+    } else {
+      searchResults?.replaceChildren();
+    }
     renderTerrainLayerFolder(search);
     for (const group of LAYER_GROUP_KEYS) {
       const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]`);
       const container = $(layerGroupTargetIds[group]);
       if (!folder || !container) continue;
       const allItems = layerTreeItems(group).sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
-      const filtered = search ? allItems.filter(item => `${item.name} ${item.searchText || ''} ${item.id} ${item.meta || ''} ${item.count ?? ''}`.toLocaleLowerCase('ko').includes(search)) : allItems;
-      const expanded = !!search || !!state.layerFolders[group];
+      const filtered = allItems;
+      const expanded = !search && !!state.layerFolders[group];
       folder.classList.toggle('is-expanded', expanded);
       folder.querySelectorAll('[data-layer-folder-toggle]').forEach(button => {
         button.setAttribute('aria-expanded', String(expanded));
@@ -5337,40 +5469,13 @@
         container.appendChild(empty);
         continue;
       }
-      const fragment = document.createDocumentFragment();
-      for (const item of filtered) {
-        const row = document.createElement('div');
-        row.className = `ui-row layer-child${item.selected ? ' is-selected' : ''}`;
-        row.dataset.layerGroup = group;
-        row.dataset.itemId = item.id;
-        const visibility = document.createElement('input');
-        visibility.type = 'checkbox';
-        visibility.checked = isLayerItemVisible(group, item.id);
-        visibility.dataset.layerItemVisibility = group;
-        visibility.dataset.itemId = item.id;
-        visibility.setAttribute('aria-label', `${item.name} 표시`);
-        const swatch = document.createElement('span');
-        swatch.className = `layer-child-swatch ${group === 'labels' || group === 'countryLabels' ? 'label' : 'polygon'}`;
-        if (group === 'countryLabels') swatch.textContent = 'A';
-        else swatch.style.setProperty('--layer-item-color', item.color || '#63758a');
-        const name = document.createElement('button');
-        name.type = 'button';
-        name.className = 'ui-button layer-child-name';
-        name.dataset.layerItemSelect = group;
-        name.dataset.itemId = item.id;
-        name.textContent = item.name;
-        name.title = item.title || (item.count !== undefined ? `${item.name} 상태 보기` : `${item.name} 선택하고 이동`);
-        const detailValue = item.count === undefined || item.count === null ? item.meta : '';
-        row.append(visibility, swatch, name);
-        if (detailValue) {
-          const detail = document.createElement('span');
-          detail.className = 'layer-child-meta';
-          detail.textContent = detailValue;
-          row.append(detail);
-        }
-        fragment.appendChild(row);
+      if (filtered.length > 80) renderVirtualizedLayerGroup(group, container, filtered);
+      else {
+        container.removeAttribute('data-virtualized');
+        const fragment = document.createDocumentFragment();
+        for (const item of filtered) fragment.appendChild(createLayerItemRow(group, item));
+        container.appendChild(fragment);
       }
-      container.appendChild(fragment);
     }
     renderedLayerTreeRevision = state.layerTreeRevision;
   }
@@ -7563,6 +7668,10 @@
     syncMobileNavigation();
     markLayerTreeDirty();
     renderAll();
+    if (layoutMode === 'wide') {
+      surfaceState.editorManuallyCollapsed = false;
+      if (surfaceState.editorOpen) closeSurface('editor');
+    }
   }
 
   function commitCountryEdit(field, value) {
@@ -8698,15 +8807,15 @@
       resetView();
       if (navigator.vibrate) navigator.vibrate(8);
     });
-    $('mobileMapBtn')?.addEventListener('click', () => openMobileLeftAt());
+    $('mobileMapBtn')?.addEventListener('click', event => toggleSurface('layers', event.currentTarget));
     $('mobileCreateBtn')?.addEventListener('click', event => {
       event.stopPropagation();
-      toggleCreateMenu(event.currentTarget);
+      toggleSurface('create', event.currentTarget);
     });
-    $('mobileEditBtn')?.addEventListener('click', () => toggleMobileSheet('right'));
-    $('mobileCloseLeftBtn')?.addEventListener('click', () => closeMapSheet($('leftPanel'), { restoreFocus: true }));
+    $('mobileEditBtn')?.addEventListener('click', event => toggleSurface('editor', event.currentTarget));
+    $('mobileCloseLeftBtn')?.addEventListener('click', () => closeSurface('layers', { restoreFocus: true }));
     $('mobileCloseRightBtn')?.addEventListener('click', () => {
-      closeMapSheet($('rightPanel'), { restoreFocus: true });
+      closeSurface('editor', { manual: layoutMode === 'wide', restoreFocus: true });
     });
     $('mobileCloseCreateBtn')?.addEventListener('click', () => closeCreateMenu({ restoreFocus: true }));
     $('createMenu')?.addEventListener('keydown', event => {
@@ -8758,7 +8867,9 @@
       if (folderButton) {
         const group = folderButton.dataset.layerFolderToggle;
         if (!LAYER_FOLDER_KEYS.includes(group)) return;
-        state.layerFolders[group] = !state.layerFolders[group];
+        const willExpand = !state.layerFolders[group];
+        for (const key of LAYER_FOLDER_KEYS) state.layerFolders[key] = false;
+        state.layerFolders[group] = willExpand;
         markLayerTreeDirty();
         renderLayerTree();
         queueAutosave();
@@ -8767,6 +8878,14 @@
       const itemButton = event.target.closest('[data-layer-item-select]');
       if (itemButton) selectLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId);
     });
+    $('layerSection')?.addEventListener('scroll', event => {
+      const container = event.target.closest?.('.layer-children[data-virtualized="true"]');
+      if (!container) return;
+      const folder = container.closest('.layer-folder');
+      const group = folder?.dataset.layerGroup;
+      const items = layerVirtualItems.get(group);
+      if (group && items) renderVirtualizedLayerGroup(group, container, items);
+    }, true);
     $('layerSection')?.addEventListener('change', event => {
       const checkbox = event.target.closest('[data-layer-item-visibility]');
       if (!checkbox) return;
@@ -8927,9 +9046,9 @@
         else if (['new-country', 'annex-territory', 'merge-country', 'country-coast'].includes(state.tool)) cancelActiveMode();
         else if (state.draftCoords.length) cancelDraft(true);
         else if ($('rightPanel')?.classList.contains('mobile-open')) {
-          closeMapSheet($('rightPanel'), { restoreFocus: true });
+          closeSurface('editor', { manual: layoutMode === 'wide', restoreFocus: true });
         }
-        else if (layoutMode !== 'wide' && $('leftPanel')?.classList.contains('mobile-open')) closeMapSheet($('leftPanel'), { restoreFocus: true });
+        else if (layoutMode !== 'wide' && $('leftPanel')?.classList.contains('mobile-open')) closeSurface('layers', { restoreFocus: true });
         else if (!$('actionStatus')?.classList.contains('hidden')) clearNotification();
         else clearSelection();
       }
