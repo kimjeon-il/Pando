@@ -1,4 +1,4 @@
-/* AtlasWright v0.21.0
+/* AtlasWright v0.22.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -8,7 +8,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.21.0';
+  const APP_VERSION = '0.22.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -166,55 +166,102 @@
   let editorPanelOpenReason = null;
   const SHEET_SNAP_RATIOS = Object.freeze([0.35, 0.6, 0.9]);
   const SHEET_SNAP_LABELS = Object.freeze(['기본 높이', '중간 높이', '최대 높이']);
-  const sheetSnapIndex = new Map([['leftPanel', 0], ['rightPanel', 0], ['createMenu', 0]]);
+  const MOBILE_SHEET_IDS = Object.freeze({ map: 'leftPanel', create: 'createMenu', edit: 'rightPanel' });
+  const MOBILE_SHEET_TRIGGERS = Object.freeze({ map: 'mobileMapBtn', create: 'mobileCreateBtn', edit: 'mobileEditBtn' });
+  const sheetSnapIndex = new Map([['leftPanel', 0], ['rightPanel', 0], ['createMenu', 1]]);
+  const sheetSnapTouched = new Set();
+  let activeMobileSheet = null;
   let activeSheetDrag = null;
+
+  const mobileViewportHeight = () => window.visualViewport?.height || window.innerHeight;
+
+  function mobileSheetNavHeight() {
+    const nav = document.querySelector('.adaptive-nav');
+    const height = nav?.getBoundingClientRect().height || 0;
+    return height > 0 ? height : 64;
+  }
 
   function mobileSheetAvailableHeight() {
     const topbarHeight = document.querySelector('.topbar')?.getBoundingClientRect().height || 60;
-    return Math.max(220, window.innerHeight - topbarHeight - 120);
+    return Math.max(180, mobileViewportHeight() - topbarHeight - mobileSheetNavHeight());
+  }
+
+  function mobileSheetSnapHeight(index) {
+    const safeIndex = clamp(Number(index) || 0, 0, SHEET_SNAP_RATIOS.length - 1);
+    return Math.min(mobileSheetAvailableHeight(), mobileViewportHeight() * SHEET_SNAP_RATIOS[safeIndex]);
+  }
+
+  function mobileSheetKind(panel) {
+    if (!panel) return null;
+    return Object.keys(MOBILE_SHEET_IDS).find(kind => MOBILE_SHEET_IDS[kind] === panel.id) || null;
+  }
+
+  function mobileSheetPanel(kind) {
+    return $(MOBILE_SHEET_IDS[kind]);
   }
 
   function setMobileSheetHeight(panel, index, temporaryHeight = null) {
     if (!panel) return 0;
-    const maxHeight = mobileSheetAvailableHeight() * SHEET_SNAP_RATIOS[SHEET_SNAP_RATIOS.length - 1];
-    const minHeight = mobileSheetAvailableHeight() * SHEET_SNAP_RATIOS[0];
+    const safeIndex = clamp(Number(index) || 0, 0, SHEET_SNAP_RATIOS.length - 1);
+    const maxHeight = mobileSheetSnapHeight(SHEET_SNAP_RATIOS.length - 1);
+    const minHeight = mobileSheetSnapHeight(0);
     const height = temporaryHeight == null
-      ? mobileSheetAvailableHeight() * SHEET_SNAP_RATIOS[index]
-      : clamp(temporaryHeight, Math.max(140, minHeight * 0.72), maxHeight);
+      ? mobileSheetSnapHeight(safeIndex)
+      : clamp(temporaryHeight, Math.max(128, minHeight * 0.62), maxHeight);
     panel.style.setProperty('--sheet-height', `${Math.round(height)}px`);
     if (temporaryHeight == null) {
-      sheetSnapIndex.set(panel.id, index);
-      panel.dataset.sheetSnap = String(index);
+      sheetSnapIndex.set(panel.id, safeIndex);
+      panel.dataset.sheetSnap = String(safeIndex);
       const handle = panel.querySelector('[data-sheet-handle]');
-      handle?.setAttribute('aria-valuetext', SHEET_SNAP_LABELS[index]);
+      handle?.setAttribute('aria-valuenow', String(safeIndex));
+      handle?.setAttribute('aria-valuetext', SHEET_SNAP_LABELS[safeIndex]);
     }
     return height;
   }
 
+  function syncMobileSheetAccessibility() {
+    const mobile = isMobile();
+    Object.entries(MOBILE_SHEET_IDS).forEach(([kind, id]) => {
+      const panel = $(id);
+      if (!panel) return;
+      if (mobile) {
+        panel.setAttribute('role', 'dialog');
+        panel.setAttribute('aria-modal', 'false');
+        panel.setAttribute('aria-hidden', String(activeMobileSheet !== kind));
+      } else {
+        panel.removeAttribute('aria-modal');
+        panel.removeAttribute('aria-hidden');
+        if (kind === 'create') panel.setAttribute('role', 'menu');
+        else panel.removeAttribute('role');
+      }
+    });
+    document.querySelectorAll('#createMenu .create-menu-item').forEach(item => {
+      if (mobile) item.removeAttribute('role');
+      else item.setAttribute('role', 'menuitem');
+    });
+  }
+
   function refreshMapSheetMetrics() {
     const workspace = document.querySelector('.workspace');
-    const panels = [$('createMenu'), $('leftPanel'), $('rightPanel')].filter(Boolean);
+    const panels = Object.values(MOBILE_SHEET_IDS).map(id => $(id)).filter(Boolean);
     if (!isMobile()) {
       panels.forEach(panel => panel.style.removeProperty('--sheet-height'));
-      workspace?.style.removeProperty('--map-safe-bottom');
+      workspace?.style.removeProperty('--sheet-occlusion-bottom');
       document.body.classList.remove('map-sheet-open', 'map-sheet-dragging');
       return;
     }
     panels.forEach(panel => {
       if (activeSheetDrag?.panel !== panel) setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
     });
-    const openPanel = panels.find(panel => panel.id === 'createMenu'
-      ? !panel.classList.contains('hidden')
-      : panel.classList.contains('mobile-open'));
+    const openPanel = activeMobileSheet ? mobileSheetPanel(activeMobileSheet) : null;
     document.body.classList.toggle('map-sheet-open', !!openPanel);
     if (!openPanel) {
-      workspace?.style.removeProperty('--map-safe-bottom');
+      workspace?.style.removeProperty('--sheet-occlusion-bottom');
       return;
     }
-    const styles = getComputedStyle(openPanel);
-    const height = Number.parseFloat(styles.height) || setMobileSheetHeight(openPanel, sheetSnapIndex.get(openPanel.id) ?? 0);
-    const bottom = Number.parseFloat(styles.bottom) || 104;
-    workspace?.style.setProperty('--map-safe-bottom', `${Math.round(height + bottom + 8)}px`);
+    const height = Number.parseFloat(getComputedStyle(openPanel).height)
+      || setMobileSheetHeight(openPanel, sheetSnapIndex.get(openPanel.id) ?? 0);
+    workspace?.style.setProperty('--sheet-occlusion-bottom', `${Math.round(height + mobileSheetNavHeight())}px`);
   }
 
   function placeProjectionControl() {
@@ -232,9 +279,23 @@
     placeProjectionControl();
 
     const right = $('rightPanel');
+    if (layoutMode === 'mobile' && previous !== 'mobile') {
+      const rightOpen = right?.classList.contains('mobile-open');
+      const leftOpen = $('leftPanel')?.classList.contains('mobile-open');
+      activeMobileSheet = rightOpen ? 'edit' : leftOpen ? 'map' : null;
+      if (activeMobileSheet === 'edit') $('leftPanel')?.classList.remove('mobile-open');
+      if (activeMobileSheet === 'map') right?.classList.remove('mobile-open');
+    } else if (layoutMode !== 'mobile' && previous === 'mobile') {
+      activeMobileSheet = null;
+      $('createMenu')?.classList.remove('mobile-open');
+      $('createMenu')?.classList.add('hidden');
+      document.body.classList.remove('map-sheet-open', 'map-sheet-dragging');
+      document.querySelector('.workspace')?.style.removeProperty('--sheet-occlusion-bottom');
+    }
     if (layoutMode === 'wide') {
       right?.classList.remove('collapsed');
     }
+    syncMobileSheetAccessibility();
     syncOverlayState();
     refreshMapSheetMetrics();
     syncMobileNavigation();
@@ -246,8 +307,8 @@
     const fileOpen = document.querySelector('.top-actions')?.classList.contains('mobile-open');
     $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
     $('mobileFileBtn')?.setAttribute('aria-expanded', String(!!fileOpen));
-    const leftOpen = $('leftPanel')?.classList.contains('mobile-open');
-    const rightOpen = $('rightPanel')?.classList.contains('mobile-open');
+    const leftOpen = isMobile() ? activeMobileSheet === 'map' : $('leftPanel')?.classList.contains('mobile-open');
+    const rightOpen = isMobile() ? activeMobileSheet === 'edit' : $('rightPanel')?.classList.contains('mobile-open');
     const workspace = document.querySelector('.workspace');
     workspace?.classList.toggle('layers-drawer-open', !!leftOpen);
     workspace?.classList.toggle('editor-drawer-open', !!rightOpen);
@@ -275,7 +336,7 @@
 
   function isCreateMenuOpen() {
     const menu = $('createMenu');
-    return !!menu && !menu.classList.contains('hidden');
+    return !!menu && (isMobile() ? activeMobileSheet === 'create' : !menu.classList.contains('hidden'));
   }
 
   function syncCreateMenuState() {
@@ -290,7 +351,13 @@
 
   function closeCreateMenu({ restoreFocus = false } = {}) {
     const menu = $('createMenu');
-    if (!menu || menu.classList.contains('hidden')) return;
+    if (!menu) return;
+    if (isMobile()) {
+      if (activeMobileSheet !== 'create') return;
+      closeActiveMobileSheet({ restoreFocus });
+      return;
+    }
+    if (menu.classList.contains('hidden')) return;
     menu.classList.add('hidden');
     syncCreateMenuState();
     if (restoreFocus && createMenuTrigger?.isConnected) createMenuTrigger.focus({ preventScroll: true });
@@ -300,6 +367,10 @@
   function toggleCreateMenu(trigger) {
     const menu = $('createMenu');
     if (!menu) return;
+    if (isMobile()) {
+      setActiveMobileSheet('create', trigger, { toggle: true });
+      return;
+    }
     const willOpen = menu.classList.contains('hidden');
     if (!willOpen) {
       closeCreateMenu({ restoreFocus: true });
@@ -307,13 +378,60 @@
     }
     createMenuTrigger = trigger instanceof HTMLElement ? trigger : null;
     closeFileMenu();
-    if (isMobile()) setMobileSheetHeight(menu, sheetSnapIndex.get(menu.id) ?? 0);
     menu.classList.remove('hidden');
     syncCreateMenuState();
     requestAnimationFrame(() => menu.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
   }
 
+  function closeActiveMobileSheet({ restoreFocus = false } = {}) {
+    if (!isMobile() || !activeMobileSheet) return;
+    const kind = activeMobileSheet;
+    const panel = mobileSheetPanel(kind);
+    panel?.classList.remove('mobile-open');
+    if (kind === 'create') panel?.classList.add('hidden');
+    if (kind === 'edit') editorPanelOpenReason = null;
+    activeMobileSheet = null;
+    syncMobileSheetAccessibility();
+    syncCreateMenuState();
+    syncOverlayState();
+    if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
+    if (restoreFocus) lastOverlayTrigger = null;
+  }
+
+  function setActiveMobileSheet(kind, trigger = null, { toggle = false } = {}) {
+    if (!isMobile() || !MOBILE_SHEET_IDS[kind]) return;
+    if (toggle && activeMobileSheet === kind) {
+      closeActiveMobileSheet({ restoreFocus: true });
+      return;
+    }
+    closeFileMenu();
+    lastOverlayTrigger = trigger instanceof HTMLElement
+      ? trigger
+      : document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    Object.entries(MOBILE_SHEET_IDS).forEach(([otherKind, id]) => {
+      const panel = $(id);
+      panel?.classList.toggle('mobile-open', otherKind === kind);
+      if (otherKind === 'create') panel?.classList.toggle('hidden', otherKind !== kind);
+    });
+    activeMobileSheet = kind;
+    const panel = mobileSheetPanel(kind);
+    if (kind === 'edit') editorPanelOpenReason = 'manual';
+    if (!sheetSnapTouched.has(panel.id)) {
+      const initialIndex = kind === 'create' ? 1 : kind === 'edit' && state?.selected ? 1 : 0;
+      sheetSnapIndex.set(panel.id, initialIndex);
+    }
+    setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
+    syncMobileSheetAccessibility();
+    syncCreateMenuState();
+    syncOverlayState();
+  }
+
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
+    if (isMobile()) {
+      const exceptKind = except === 'left' ? 'map' : except === 'right' ? 'edit' : except === 'create' ? 'create' : null;
+      if (activeMobileSheet && activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
+      return;
+    }
     if (except !== 'left') $('leftPanel')?.classList.remove('mobile-open');
     if (except !== 'right') {
       $('rightPanel')?.classList.remove('mobile-open');
@@ -327,6 +445,10 @@
 
   function toggleMobileSheet(which) {
     if (layoutMode === 'wide') return;
+    if (isMobile()) {
+      setActiveMobileSheet(which === 'left' ? 'map' : 'edit', document.activeElement, { toggle: true });
+      return;
+    }
     const map = { left: $('leftPanel'), right: $('rightPanel') };
     const el = map[which];
     if (!el) return;
@@ -357,6 +479,10 @@
 
   function openMobileLeftAt() {
     if (layoutMode === 'wide') return;
+    if (isMobile()) {
+      setActiveMobileSheet('map', $('mobileMapBtn'), { toggle: true });
+      return;
+    }
     const left = $('leftPanel');
     if (!left) return;
     const sameOpen = left.classList.contains('mobile-open');
@@ -373,11 +499,10 @@
   }
 
   function nearestSheetSnapIndex(height) {
-    const available = mobileSheetAvailableHeight();
     let nearest = 0;
     let distance = Infinity;
-    SHEET_SNAP_RATIOS.forEach((ratio, index) => {
-      const nextDistance = Math.abs(height - available * ratio);
+    SHEET_SNAP_RATIOS.forEach((_, index) => {
+      const nextDistance = Math.abs(height - mobileSheetSnapHeight(index));
       if (nextDistance < distance) {
         distance = nextDistance;
         nearest = index;
@@ -388,6 +513,10 @@
 
   function closeMapSheet(panel, { restoreFocus = false } = {}) {
     if (!panel) return;
+    if (isMobile()) {
+      if (activeMobileSheet === mobileSheetKind(panel)) closeActiveMobileSheet({ restoreFocus });
+      return;
+    }
     panel.classList.remove('mobile-open');
     if (panel.id === 'rightPanel') editorPanelOpenReason = null;
     syncOverlayState();
@@ -407,9 +536,28 @@
         return;
       }
       const current = sheetSnapIndex.get(panel.id) ?? 0;
-      setMobileSheetHeight(panel, (current + 1) % SHEET_SNAP_RATIOS.length);
+      const target = current === SHEET_SNAP_RATIOS.length - 1 ? 1 : current + 1;
+      sheetSnapTouched.add(panel.id);
+      setMobileSheetHeight(panel, target);
       syncOverlayState();
-      queueMapResize();
+    });
+    handle.addEventListener('keydown', event => {
+      if (!isMobile()) return;
+      const current = sheetSnapIndex.get(panel.id) ?? 0;
+      let target = current;
+      if (event.key === 'ArrowUp' || event.key === 'PageUp') target = Math.min(SHEET_SNAP_RATIOS.length - 1, current + 1);
+      else if (event.key === 'ArrowDown' || event.key === 'PageDown') target = Math.max(0, current - 1);
+      else if (event.key === 'Home') target = 0;
+      else if (event.key === 'End') target = SHEET_SNAP_RATIOS.length - 1;
+      else if (event.key === 'Escape') {
+        closeActiveMobileSheet({ restoreFocus: true });
+        event.preventDefault();
+        return;
+      } else return;
+      sheetSnapTouched.add(panel.id);
+      setMobileSheetHeight(panel, target);
+      refreshMapSheetMetrics();
+      event.preventDefault();
     });
     handle.addEventListener('pointerdown', event => {
       if (!isMobile() || event.button > 0) return;
@@ -421,6 +569,7 @@
         startY: event.clientY,
         startHeight: currentHeight,
         startIndex: sheetSnapIndex.get(panel.id) ?? 0,
+        startTime: performance.now(),
         moved: false,
       };
       handle.setPointerCapture?.(event.pointerId);
@@ -434,7 +583,6 @@
       if (Math.abs(deltaY) > 4) drag.moved = true;
       setMobileSheetHeight(panel, drag.startIndex, drag.startHeight - deltaY);
       refreshMapSheetMetrics();
-      queueMapResize();
       event.preventDefault();
     });
     const finish = (event, cancelled = false) => {
@@ -442,17 +590,19 @@
       if (!drag || drag.handle !== handle || drag.pointerId !== event.pointerId) return;
       const deltaY = event.clientY - drag.startY;
       const currentHeight = Number.parseFloat(getComputedStyle(panel).height) || drag.startHeight;
+      const elapsed = Math.max(1, performance.now() - drag.startTime);
+      const velocity = deltaY / elapsed;
       activeSheetDrag = null;
       document.body.classList.remove('map-sheet-dragging');
       handle.dataset.dragged = String(drag.moved);
-      if (!cancelled && drag.startIndex === 0 && deltaY > 64) {
-        if (panel.id === 'createMenu') closeCreateMenu({ restoreFocus: true });
-        else closeMapSheet(panel, { restoreFocus: true });
+      const dismissDistance = Math.min(180, drag.startHeight * 0.3);
+      if (!cancelled && deltaY > 64 && (deltaY >= dismissDistance || velocity > 0.65)) {
+        closeActiveMobileSheet({ restoreFocus: true });
       } else {
         const targetIndex = cancelled ? drag.startIndex : nearestSheetSnapIndex(currentHeight);
+        if (!cancelled) sheetSnapTouched.add(panel.id);
         setMobileSheetHeight(panel, targetIndex);
         syncOverlayState();
-        queueMapResize();
       }
       try { handle.releasePointerCapture?.(event.pointerId); } catch (_) {}
     };
