@@ -97,6 +97,7 @@
     window.ATLASWRIGHT_LABEL_ANCHORS = data.labelAnchors || {};
     setProgress('지도 편집기를 시작하는 중입니다.', 97);
     const app = document.createElement('script');
+    app.type = 'module';
     app.src = versionedAsset('./app.js').href;
     app.onload = () => setProgress('GPU 지도를 준비하는 중입니다.', 99);
     app.onerror = () => fail('애플리케이션 파일을 불러오지 못했습니다.');

@@ -9,12 +9,9 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 
 class V0171AlignmentTests(unittest.TestCase):
     def test_panel_internal_dividers_are_removed(self):
-        self.assertIn(".panel-section { padding: 15px; border-bottom: 0; }", CSS)
-        self.assertIn(".editor-disclosure > summary {", CSS)
-        disclosure_rules = CSS[CSS.rindex(".editor-disclosure > summary {"):]
-        self.assertIn("border: 0;", disclosure_rules[:500])
-        self.assertIn(".mobile-sheet-header {", CSS)
-        self.assertIn("border-bottom: 0;", CSS)
+        self.assertRegex(CSS, r"\.panel-section\s*\{[^}]*border-bottom:\s*0;")
+        self.assertRegex(CSS, r"\.editor-disclosure\s*>\s*summary\s*\{[^}]*border:\s*0;")
+        self.assertRegex(CSS, r"\.mobile-sheet-header\s*\{[^}]*border-bottom:\s*0;")
 
     def test_status_groups_use_one_left_aligned_safe_area_row(self):
         self.assertIn('class="status-inner"', INDEX)

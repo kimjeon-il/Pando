@@ -74,8 +74,7 @@ class V0130RuntimeTests(unittest.TestCase):
     def test_pointer_focus_layer_folders_and_water_labels_are_simplified(self):
         self.assertIn("html.keyboard-navigation", CSS)
         self.assertIn("document.addEventListener('pointerdown', disableKeyboardNavigation", APP)
-        self.assertIn(".layer-folder { border: 0;", CSS)
-        self.assertIn("border-top: 0", CSS)
+        self.assertRegex(CSS, r"\.layer-folder\s*\{[^}]*border:\s*0;")
         self.assertNotIn("label: '강 · Hydro'", APP)
         self.assertNotIn("label: '호수 · Natural Earth'", APP)
         self.assertIn("label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS'", APP)

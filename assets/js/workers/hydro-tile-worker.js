@@ -238,25 +238,7 @@ function readWidthProfile(bytes, geometry) {
   });
 }
 
-function readSourceIds(bytes) {
-  if (!bytes.length) return '';
-  const cursor = { offset: 0 };
-  const count = readUVarint(bytes, cursor);
-  let sourceId = count ? readUVarint(bytes, cursor) : 0;
-  const ids = new Array(count);
-  for (let index = 0; index < count; index += 1) {
-    if (index) sourceId += readSVarint(bytes, cursor);
-    ids[index] = String(sourceId);
-  }
-  return ids.join(',');
-}
 
-function coordinateCount(geometry) {
-  if (geometry.type === 'LineString') return geometry.coordinates.length;
-  if (geometry.type === 'MultiLineString' || geometry.type === 'Polygon') return geometry.coordinates.reduce((sum, part) => sum + part.length, 0);
-  if (geometry.type === 'MultiPolygon') return geometry.coordinates.reduce((sum, polygon) => sum + polygon.reduce((ringSum, ring) => ringSum + ring.length, 0), 0);
-  return 0;
-}
 
 function buildMesh(features) {
   const riverStarts = [], riverEnds = [], riverFeatureIds = [], riverStartWidths = [], riverEndWidths = [];

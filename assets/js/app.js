@@ -5,8 +5,31 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.24.0';
+const versionedModuleUrl = relativePath => {
+  const url = new URL(relativePath, import.meta.url);
+  url.searchParams.set('v', moduleRevision);
+  return url.href;
+};
+const [projectStateModule, countryEditTransactionModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule] = await Promise.all([
+  import(versionedModuleUrl('./modules/project-state.js')),
+  import(versionedModuleUrl('./modules/country-edit-transaction.js')),
+  import(versionedModuleUrl('./modules/surface-controller.js')),
+  import(versionedModuleUrl('./modules/tool-controller.js')),
+  import(versionedModuleUrl('./modules/map-input-controller.js')),
+  import(versionedModuleUrl('./modules/gpu-map-renderer.js')),
+]);
+const { applyProjectFields, pickProjectFields } = projectStateModule;
+const { runCountryEditTransaction } = countryEditTransactionModule;
+const { createSurfaceController } = surfaceControllerModule;
+const { describeTool, dispatchTool, isSpecialTool, toolCursorMode, toolLabel } = toolControllerModule;
+const { createMapInputController } = mapInputControllerModule;
+const { createGpuMapRenderer } = gpuMapRendererModule;
+
 (() => {
   'use strict';
+
+  const d3 = window.d3;
 
   const APP_VERSION = '0.24.0';
   const HYDRO_DATA_VERSION = '0.13.0';
@@ -134,7 +157,7 @@
     'countryProperties', 'drawingProperties', 'labelProperties', 'hydroProperties',
     'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
-    'modeActionBar', 'modeTaskContext', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
+    'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modeComponentsMethodBtn', 'modePrimaryBtn', 'modeCancelBtn',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn',
     'importGeoJsonBtn', 'geoJsonFileInput', 'exportGeoJsonBtn',
@@ -175,23 +198,16 @@
   const detectLayoutMode = () => LAYOUT_QUERIES.mobile.matches ? 'mobile' : LAYOUT_QUERIES.compact.matches ? 'compact' : 'wide';
   let layoutMode = detectLayoutMode();
   const isMobile = () => layoutMode === 'mobile';
-  const isCompact = () => layoutMode === 'compact';
   let lastOverlayTrigger = null;
   let fileMenuTrigger = null;
   let createMenuTrigger = null;
-  const surfaceState = {
-    activeSurface: null,
-    layersOpen: false,
-    editorOpen: false,
-    editorManuallyCollapsed: false,
-  };
+  const surfaceController = createSurfaceController({ getElement: $, getLayout: () => layoutMode, document });
+  const surfaceState = surfaceController.state;
   const SHEET_SNAP_RATIOS = Object.freeze([0.35, 0.6, 0.9]);
   const SHEET_SNAP_LABELS = Object.freeze(['기본 높이', '중간 높이', '최대 높이']);
   const MOBILE_SHEET_IDS = Object.freeze({ map: 'leftPanel', create: 'createMenu', edit: 'rightPanel' });
-  const MOBILE_SHEET_TRIGGERS = Object.freeze({ map: 'mobileMapBtn', create: 'mobileCreateBtn', edit: 'mobileEditBtn' });
   const sheetSnapIndex = new Map([['leftPanel', 0], ['rightPanel', 0], ['createMenu', 1]]);
   const sheetSnapTouched = new Set();
-  let activeMobileSheet = null;
   let activeSheetDrag = null;
 
   const mobileViewportHeight = () => window.visualViewport?.height || window.innerHeight;
@@ -235,49 +251,17 @@
     return height;
   }
 
-  function syncMobileSheetAccessibility() {
-    const mobile = isMobile();
-    Object.entries(MOBILE_SHEET_IDS).forEach(([kind, id]) => {
-      const panel = $(id);
-      if (!panel) return;
-      if (mobile) {
-        panel.setAttribute('role', 'dialog');
-        panel.setAttribute('aria-modal', 'false');
-        panel.setAttribute('aria-hidden', String(activeMobileSheet !== kind));
-      } else {
-        panel.removeAttribute('aria-modal');
-        panel.removeAttribute('aria-hidden');
-        if (kind === 'create') panel.setAttribute('role', 'menu');
-        else panel.removeAttribute('role');
-      }
-    });
-    document.querySelectorAll('#createMenu .create-menu-item').forEach(item => {
-      if (mobile) item.removeAttribute('role');
-      else item.setAttribute('role', 'menuitem');
-    });
-  }
 
   function refreshMapSheetMetrics() {
-    const workspace = document.querySelector('.workspace');
     const panels = Object.values(MOBILE_SHEET_IDS).map(id => $(id)).filter(Boolean);
     if (!isMobile()) {
       panels.forEach(panel => panel.style.removeProperty('--sheet-height'));
-      workspace?.style.removeProperty('--sheet-occlusion-bottom');
-      document.body.classList.remove('map-sheet-open', 'map-sheet-dragging');
+      document.body.classList.remove('map-sheet-dragging');
       return;
     }
     panels.forEach(panel => {
       if (activeSheetDrag?.panel !== panel) setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
     });
-    const openPanel = activeMobileSheet ? mobileSheetPanel(activeMobileSheet) : null;
-    document.body.classList.toggle('map-sheet-open', !!openPanel);
-    if (!openPanel) {
-      workspace?.style.removeProperty('--sheet-occlusion-bottom');
-      return;
-    }
-    const height = Number.parseFloat(getComputedStyle(openPanel).height)
-      || setMobileSheetHeight(openPanel, sheetSnapIndex.get(openPanel.id) ?? 0);
-    workspace?.style.setProperty('--sheet-occlusion-bottom', `${Math.round(height + mobileSheetNavHeight())}px`);
   }
 
   function placeProjectionControl() {
@@ -286,20 +270,6 @@
     if (control && host && control.parentElement !== host) host.appendChild(control);
   }
 
-  function updateSurfaceStateFromDom() {
-    const leftOpen = layoutMode === 'wide' || (isMobile()
-      ? activeMobileSheet === 'map'
-      : $('leftPanel')?.classList.contains('mobile-open'));
-    const editorOpen = isMobile()
-      ? activeMobileSheet === 'edit'
-      : $('rightPanel')?.classList.contains('mobile-open');
-    surfaceState.layersOpen = !!leftOpen;
-    surfaceState.editorOpen = !!editorOpen;
-    if (isMobile() && activeMobileSheet) surfaceState.activeSurface = activeMobileSheet === 'map' ? 'layers' : activeMobileSheet;
-    else if (editorOpen) surfaceState.activeSurface = 'editor';
-    else if (layoutMode !== 'wide' && leftOpen) surfaceState.activeSurface = 'layers';
-    else if (surfaceState.activeSurface !== 'create') surfaceState.activeSurface = null;
-  }
 
   function syncEditorPanelControls() {
     const edge = $('togglePanelBtn');
@@ -321,61 +291,22 @@
     if (app) app.dataset.layout = layoutMode;
     document.body.dataset.layout = layoutMode;
     placeProjectionControl();
-
-    const right = $('rightPanel');
-    if (layoutMode === 'mobile' && previous !== 'mobile') {
-      activeMobileSheet = surfaceState.editorOpen ? 'edit' : surfaceState.layersOpen ? 'map' : null;
-      $('leftPanel')?.classList.toggle('mobile-open', activeMobileSheet === 'map');
-      right?.classList.toggle('mobile-open', activeMobileSheet === 'edit');
-      if (activeMobileSheet === 'edit') $('leftPanel')?.classList.remove('mobile-open');
-      if (activeMobileSheet === 'map') right?.classList.remove('mobile-open');
-    } else if (layoutMode !== 'mobile' && previous === 'mobile') {
-      activeMobileSheet = null;
-      $('createMenu')?.classList.remove('mobile-open');
-      $('createMenu')?.classList.add('hidden');
-      document.body.classList.remove('map-sheet-open', 'map-sheet-dragging');
-      document.querySelector('.workspace')?.style.removeProperty('--sheet-occlusion-bottom');
-    }
-    if (layoutMode === 'wide') {
-      $('leftPanel')?.classList.remove('mobile-open');
-      right?.classList.toggle('mobile-open', surfaceState.editorOpen);
-      surfaceState.layersOpen = true;
-    } else if (layoutMode === 'compact') {
-      const showEditor = surfaceState.editorOpen && surfaceState.activeSurface === 'editor';
-      const showLayers = !showEditor && surfaceState.layersOpen;
-      $('leftPanel')?.classList.toggle('mobile-open', showLayers);
-      right?.classList.toggle('mobile-open', showEditor);
-      surfaceState.activeSurface = showEditor ? 'editor' : showLayers ? 'layers' : null;
-    }
-    right?.classList.remove('collapsed');
-    syncMobileSheetAccessibility();
-    syncOverlayState();
+    surfaceController.syncLayout(previous);
+    surfaceController.render({ fileOpen: document.querySelector('.top-actions')?.classList.contains('mobile-open') });
     refreshMapSheetMetrics();
+    syncEditorPanelControls();
     syncMobileNavigation();
     if (!initial && previous !== layoutMode) queueMapResize();
     return previous !== layoutMode;
   }
 
   function syncOverlayState() {
-    const fileOpen = document.querySelector('.top-actions')?.classList.contains('mobile-open');
-    $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
-    $('mobileFileBtn')?.setAttribute('aria-expanded', String(!!fileOpen));
-    updateSurfaceStateFromDom();
-    const leftOpen = surfaceState.layersOpen;
-    const rightOpen = surfaceState.editorOpen;
-    const workspace = document.querySelector('.workspace');
-    workspace?.classList.toggle('layers-drawer-open', !!leftOpen);
-    workspace?.classList.toggle('editor-drawer-open', !!rightOpen);
-    document.body.classList.toggle('file-menu-open', !!fileOpen);
-    $('mobileBackdrop')?.setAttribute('aria-hidden', String(!fileOpen));
-    $('mobileMapBtn')?.classList.toggle('sheet-open', !!leftOpen);
-    $('mobileMapBtn')?.setAttribute('aria-expanded', String(!!leftOpen));
-    $('mobileEditBtn')?.classList.toggle('sheet-open', !!rightOpen);
-    $('mobileEditBtn')?.setAttribute('aria-expanded', String(!!rightOpen));
+    const fileOpen = !!document.querySelector('.top-actions')?.classList.contains('mobile-open');
+    const view = surfaceController.render({ fileOpen });
     syncEditorPanelControls();
-    $('mobileFileBtn')?.classList.toggle('sheet-open', !!fileOpen);
     refreshMapSheetMetrics();
     syncMobileNavigation();
+    return view;
   }
 
   function closeFileMenu({ restoreFocus = false } = {}) {
@@ -388,110 +319,56 @@
   }
 
   function isCreateMenuOpen() {
-    const menu = $('createMenu');
-    return !!menu && (isMobile() ? activeMobileSheet === 'create' : !menu.classList.contains('hidden'));
-  }
-
-  function syncCreateMenuState() {
-    const open = isCreateMenuOpen();
-    $('createMenuBtn')?.setAttribute('aria-expanded', String(open));
-    $('mobileCreateBtn')?.setAttribute('aria-expanded', String(open));
-    $('mobileCreateBtn')?.classList.toggle('sheet-open', open);
-    document.body.classList.toggle('create-menu-open', open);
-    refreshMapSheetMetrics();
-    syncMobileNavigation();
+    return surfaceController.isOpen('create');
   }
 
   function closeCreateMenu({ restoreFocus = false } = {}) {
-    const menu = $('createMenu');
-    if (!menu) return;
-    if (isMobile()) {
-      if (activeMobileSheet !== 'create') return;
-      closeActiveMobileSheet({ restoreFocus });
-      return;
-    }
-    if (menu.classList.contains('hidden')) return;
-    menu.classList.add('hidden');
-    if (surfaceState.activeSurface === 'create') surfaceState.activeSurface = null;
-    syncCreateMenuState();
-    if (restoreFocus && createMenuTrigger?.isConnected) createMenuTrigger.focus({ preventScroll: true });
+    if (!isCreateMenuOpen()) return;
+    surfaceController.close('create');
+    syncOverlayState();
+    const trigger = isMobile() ? lastOverlayTrigger : createMenuTrigger;
+    if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
+    if (restoreFocus) lastOverlayTrigger = null;
     createMenuTrigger = null;
   }
 
   function toggleCreateMenu(trigger) {
-    const menu = $('createMenu');
-    if (!menu) return;
-    if (isMobile()) {
-      setActiveMobileSheet('create', trigger, { toggle: true });
-      return;
-    }
-    const willOpen = menu.classList.contains('hidden');
-    if (!willOpen) {
+    if (isCreateMenuOpen()) {
       closeCreateMenu({ restoreFocus: true });
       return;
     }
-    createMenuTrigger = trigger instanceof HTMLElement ? trigger : null;
-    surfaceState.activeSurface = 'create';
     closeFileMenu();
-    menu.classList.remove('hidden');
-    syncCreateMenuState();
-    if (layoutMode !== 'compact') requestAnimationFrame(() => menu.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
+    const activeTrigger = trigger instanceof HTMLElement ? trigger : null;
+    if (isMobile()) lastOverlayTrigger = activeTrigger;
+    else createMenuTrigger = activeTrigger;
+    surfaceController.open('create');
+    const panel = $('createMenu');
+    if (isMobile() && panel) {
+      if (!sheetSnapTouched.has(panel.id)) sheetSnapIndex.set(panel.id, 1);
+      setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 1);
+    }
+    syncOverlayState();
+    if (layoutMode === 'wide') requestAnimationFrame(() => panel?.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
   }
 
   function closeActiveMobileSheet({ restoreFocus = false } = {}) {
-    if (!isMobile() || !activeMobileSheet) return;
-    const kind = activeMobileSheet;
-    const panel = mobileSheetPanel(kind);
-    panel?.classList.remove('mobile-open');
-    if (kind === 'create') panel?.classList.add('hidden');
-    if (kind === 'edit') surfaceState.editorOpen = false;
-    activeMobileSheet = null;
-    syncMobileSheetAccessibility();
-    syncCreateMenuState();
+    if (!isMobile() || !surfaceController.activeMobileSheet) return;
+    const surface = { map: 'layers', create: 'create', edit: 'editor' }[surfaceController.activeMobileSheet];
+    surfaceController.close(surface);
     syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
   }
 
-  function setActiveMobileSheet(kind, trigger = null, { toggle = false } = {}) {
-    if (!isMobile() || !MOBILE_SHEET_IDS[kind]) return;
-    if (toggle && activeMobileSheet === kind) {
-      closeActiveMobileSheet({ restoreFocus: true });
-      return;
-    }
-    closeFileMenu();
-    lastOverlayTrigger = trigger instanceof HTMLElement
-      ? trigger
-      : document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    Object.entries(MOBILE_SHEET_IDS).forEach(([otherKind, id]) => {
-      const panel = $(id);
-      panel?.classList.toggle('mobile-open', otherKind === kind);
-      if (otherKind === 'create') panel?.classList.toggle('hidden', otherKind !== kind);
-    });
-    activeMobileSheet = kind;
-    const panel = mobileSheetPanel(kind);
-    if (kind === 'edit') surfaceState.editorOpen = true;
-    if (!sheetSnapTouched.has(panel.id)) {
-      const initialIndex = kind === 'create' ? 1 : kind === 'edit' && state?.selected ? 1 : 0;
-      sheetSnapIndex.set(panel.id, initialIndex);
-    }
-    setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
-    syncMobileSheetAccessibility();
-    syncCreateMenuState();
-    syncOverlayState();
-  }
-
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
     if (isMobile()) {
       const exceptKind = except === 'left' ? 'map' : except === 'right' ? 'edit' : except === 'create' ? 'create' : null;
-      if (activeMobileSheet && activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
+      if (surfaceController.activeMobileSheet && surfaceController.activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
       return;
     }
-    if (except !== 'left') $('leftPanel')?.classList.remove('mobile-open');
-    if (except !== 'right') {
-      $('rightPanel')?.classList.remove('mobile-open');
-      surfaceState.editorOpen = false;
-    }
+    if (except !== 'left') surfaceController.close('layers');
+    if (except !== 'right') surfaceController.close('editor');
+    if (except !== 'create') surfaceController.close('create');
     syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
@@ -540,7 +417,7 @@
     handle.addEventListener('keydown', event => {
       if (!isMobile()) return;
       const current = sheetSnapIndex.get(panel.id) ?? 0;
-      let target = current;
+      let target;
       if (event.key === 'ArrowUp' || event.key === 'PageUp') target = Math.min(SHEET_SNAP_RATIOS.length - 1, current + 1);
       else if (event.key === 'ArrowDown' || event.key === 'PageDown') target = Math.max(0, current - 1);
       else if (event.key === 'Home') target = 0;
@@ -614,85 +491,40 @@
     syncMobileNavigation();
   }
 
-  function closeCompetingCompactSurfaces(surface) {
-    if (layoutMode !== 'compact') return;
-    if (surface !== 'create') closeCreateMenu();
-    if (surface !== 'layers') {
-      $('leftPanel')?.classList.remove('mobile-open');
-      surfaceState.layersOpen = false;
-    }
-    if (surface !== 'editor') {
-      $('rightPanel')?.classList.remove('mobile-open');
-      surfaceState.editorOpen = false;
-    }
-  }
 
   function openSurface(surface, { trigger = null, automatic = false } = {}) {
+    if (!['layers', 'create', 'editor'].includes(surface)) return;
     closeFileMenu();
-    closeCompetingCompactSurfaces(surface);
-    if (surface === 'create') {
-      surfaceState.activeSurface = 'create';
-      toggleCreateMenu(trigger || document.activeElement);
-      if (layoutMode === 'compact') syncOverlayState();
-      return;
-    }
-    if (surface === 'layers') {
-      if (layoutMode === 'wide') {
-        surfaceState.layersOpen = true;
-        surfaceState.activeSurface = 'layers';
-        syncOverlayState();
-      } else if (isMobile()) {
-        setActiveMobileSheet('map', trigger || $('mobileMapBtn'));
-      } else {
-        $('rightPanel')?.classList.remove('mobile-open');
-        $('leftPanel')?.classList.add('mobile-open');
-        surfaceState.activeSurface = 'layers';
-        surfaceState.layersOpen = true;
-        surfaceState.editorOpen = false;
-        syncOverlayState();
-      }
-      return;
-    }
-    if (surface !== 'editor') return;
-    if (!automatic) surfaceState.editorManuallyCollapsed = false;
+    const activeTrigger = trigger instanceof HTMLElement ? trigger : document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (surface === 'create' && !isMobile()) createMenuTrigger = activeTrigger;
+    if (isMobile()) lastOverlayTrigger = activeTrigger;
+    surfaceController.open(surface, { automatic });
     if (isMobile()) {
-      setActiveMobileSheet('edit', trigger || $('mobileEditBtn'));
-    } else {
-      if (layoutMode === 'compact') $('leftPanel')?.classList.remove('mobile-open');
-      $('rightPanel')?.classList.add('mobile-open');
-      surfaceState.activeSurface = 'editor';
-      surfaceState.editorOpen = true;
-      surfaceState.layersOpen = layoutMode === 'wide';
-      syncOverlayState();
+      const kind = { layers: 'map', create: 'create', editor: 'edit' }[surface];
+      const panel = mobileSheetPanel(kind);
+      if (panel && !sheetSnapTouched.has(panel.id)) {
+        const initialIndex = kind === 'create' ? 1 : kind === 'edit' && state?.selected ? 1 : 0;
+        sheetSnapIndex.set(panel.id, initialIndex);
+      }
+      if (panel) setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
+    }
+    syncOverlayState();
+    if (surface === 'create' && layoutMode === 'wide') {
+      requestAnimationFrame(() => $('createMenu')?.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
     }
   }
 
   function closeSurface(surface, { manual = false, restoreFocus = false } = {}) {
-    if (surface === 'create') {
-      closeCreateMenu({ restoreFocus });
-      if (surfaceState.activeSurface === 'create') surfaceState.activeSurface = null;
-      return;
-    }
-    if (surface === 'layers') {
-      if (layoutMode === 'wide') return;
-      if (isMobile() && activeMobileSheet === 'map') closeActiveMobileSheet({ restoreFocus });
-      else $('leftPanel')?.classList.remove('mobile-open');
-      surfaceState.layersOpen = false;
-    } else if (surface === 'editor') {
-      if (isMobile() && activeMobileSheet === 'edit') closeActiveMobileSheet({ restoreFocus });
-      else $('rightPanel')?.classList.remove('mobile-open');
-      surfaceState.editorOpen = false;
-      if (manual && layoutMode === 'wide' && state?.selected) surfaceState.editorManuallyCollapsed = true;
-    }
-    if (surfaceState.activeSurface === surface) surfaceState.activeSurface = null;
+    if (!surfaceController.close(surface, { manual, selected: !!state?.selected })) return;
     syncOverlayState();
+    const trigger = surface === 'create' && !isMobile() ? createMenuTrigger : lastOverlayTrigger;
+    if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
+    if (restoreFocus) lastOverlayTrigger = null;
+    if (surface === 'create') createMenuTrigger = null;
   }
 
   function toggleSurface(surface, trigger = null) {
-    const open = surface === 'layers'
-      ? surfaceState.layersOpen
-      : surface === 'editor' ? surfaceState.editorOpen : isCreateMenuOpen();
-    if (open && !(surface === 'layers' && layoutMode === 'wide')) {
+    if (surfaceController.isOpen(surface) && !(surface === 'layers' && layoutMode === 'wide')) {
       closeSurface(surface, { manual: surface === 'editor', restoreFocus: true });
     } else {
       openSurface(surface, { trigger });
@@ -892,9 +724,7 @@
   let resolutionQuery = null;
   let renderRevision = 0;
   let editInteractionRevision = 0;
-  let mousePan = null;
-  let touchTap = null;
-  let pendingMapClickRevision = null;
+  let mapInputController = null;
   let geometryBoundsCache = new WeakMap();
   let countryOutlineCache = new WeakMap();
   let drawingLandClipCache = new WeakMap();
@@ -912,2406 +742,41 @@
 
 
 
-  const gpuMapRenderer = (() => {
-    const PI = Math.PI;
-    let canvas = null;
-    let gl = null;
-    let glVersion = 0;
-    let webGlContextKind = '';
-    let uintIndexExtension = null;
-    let ctx2d = null;
-    let rendererMode = 'pending';
-    let fillProgram = null;
-    let landMaskProgram = null;
-    let lineProgram = null;
-    let pickProgram = null;
-    let terrainProgram = null;
-    let hydroFillProgram = null;
-    let hydroLineProgram = null;
-    let hydroPickProgram = null;
-    let hydroLinePickProgram = null;
-    let hydroCornerBuffer = null;
-    let instancedExtension = null;
-    let hydroVisibilityTexture = null;
-    let hydroVisibilityWidth = 1;
-    let hydroVisibilityHeight = 1;
-    let hydroManifest = null;
-    let hydroManifestUrl = null;
-    let hydroWorker = null;
-    let hydroWorkerReady = false;
-    let hydroPendingView = null;
-    let hydroViewKey = '';
-    let hydroRequestRevision = 0;
-    let hydroAcceptedRevision = 0;
-    let hydroActivePackIds = new Set();
-    const hydroPacks = new Map();
-    const hydroUploadQueue = [];
-    let hydroUploadFrame = 0;
-    let hydroVisibilityDirty = true;
-    const hydroFeatureRequests = new Map();
-    let hydroFeatureRequestId = 0;
-    let hydroCacheCompletionNotified = false;
-    let fillVao = null;
-    let lineVao = null;
-    let positionBuffer = null;
-    let countryBuffer = null;
-    let fillIndexBuffer = null;
-    let lineIndexBuffer = null;
-    let paletteTexture = null;
-    let overridePaletteTexture = null;
-    let overridePositionBuffer = null;
-    let overrideCountryBuffer = null;
-    let overrideFillIndexBuffer = null;
-    let overrideLineIndexBuffer = null;
-    let overrideFillVao = null;
-    let overrideLineVao = null;
-    let overrideMesh = null;
-    let overrideWebGl1PositionData = null;
-    let overrideWebGl1CountryData = null;
-    const countryOverrideIds = new Set();
-    let patchWorker = null;
-    let patchWorkerToken = 0;
-    let terrainManifest = null;
-    const terrainTiles = new Map();
-    const terrainTileRequests = new Map();
-    const terrainTileQueuedKeys = new Set();
-    const terrainUploadQueue = [];
-    let terrainUploadFrame = 0;
-    const terrainGridMeshes = new Map();
-    let terrainLastLevel = -1;
-    let mesh = null;
-    let meshCountryIds = [];
-    let pixelWidth = 0;
-    let pixelHeight = 0;
-    let cssWidth = 0;
-    let cssHeight = 0;
-    let pickFramebuffer = null;
-    let pickTexture = null;
-    let worker = null;
-    let workerUrl = null;
-    let canvasWorker = null;
-    let canvasWorkerUrl = null;
-    let canvasWorkerBitmapContext = null;
-    let canvasWorker2dContext = null;
-    let canvasWorkerReady = false;
-    let canvasWorkerBusy = false;
-    let canvasWorkerPendingMessage = null;
-    let canvasWorkerLatestRequestedRevision = 0;
-    let canvasWorkerDisplayedRevision = 0;
-    let canvasHydroPickRequestId = 0;
-    const canvasHydroPickRequests = new Map();
-    let rebuildToken = 0;
-    let countryMeshStale = false;
-    let fallbackReason = '';
-    let layoutMismatchCount = 0;
-    let layoutVerificationFrame = 0;
-    let webglRecoveryTimer = 0;
-    let webglContextLost = false;
-    let currentRenderRevision = 0;
-    let displayedRenderRevision = 0;
-    let webGl1PositionData = null;
-    let webGl1CountryData = null;
-    const frameTimes = [];
-    const forcedRenderer = (() => {
-      try {
-        const value = new URLSearchParams(location.search).get('renderer');
-        return ['webgl2', 'webgl1', 'canvas'].includes(value) ? value : '';
-      } catch (_) { return ''; }
-    })();
-
-    const vertexShaderSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      layout(location=0) in ivec2 aCoord;
-      layout(location=1) in uint aCountry;
-      uniform vec2 uViewport;
-      uniform vec2 uTranslate;
-      uniform float uScale;
-      uniform vec3 uRowX;
-      uniform vec3 uRowY;
-      uniform vec3 uRowZ;
-      uniform vec2 uFlatCenter;
-      uniform float uWorldOffset;
-      uniform int uMode;
-      out float vDepth;
-      flat out uint vCountry;
-      void main() {
-        float lon = float(aCoord.x) * 0.000001 * ${Math.PI / 180};
-        float lat = float(aCoord.y) * 0.000001 * ${Math.PI / 180};
-        vec2 screenPoint;
-        if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
-          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
-          vDepth = dot(uRowZ, point);
-        } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
-          vDepth = 1.0;
-        }
-        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
-        gl_Position = vec4(clip, 0.0, 1.0);
-        vCountry = aCountry;
-      }`;
-    const fillFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in float vDepth;
-      flat in uint vCountry;
-      uniform sampler2D uPalette;
-      uniform int uMode;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        vec4 color = texelFetch(uPalette, ivec2(int(vCountry), 0), 0);
-        if (color.a <= 0.0) discard;
-        outColor = color;
-      }`;
-    const lineFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in float vDepth;
-      flat in uint vCountry;
-      uniform sampler2D uPalette;
-      uniform int uMode;
-      uniform vec4 uBorderColor;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        if (texelFetch(uPalette, ivec2(int(vCountry), 0), 0).a <= 0.0) discard;
-        outColor = uBorderColor;
-      }`;
-    const pickFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in float vDepth;
-      flat in uint vCountry;
-      uniform sampler2D uPalette;
-      uniform int uMode;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        if (texelFetch(uPalette, ivec2(int(vCountry), 0), 0).a <= 0.0) discard;
-        uint id = vCountry + 1u;
-        outColor = vec4(float(id & 255u), float((id >> 8u) & 255u), float((id >> 16u) & 255u), 255.0) / 255.0;
-      }`;
-    const landMaskFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in float vDepth;
-      uniform int uMode;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        outColor = vec4(1.0);
-      }`;
-    const vertexShaderSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      attribute vec2 aCoord;
-      attribute float aCountry;
-      uniform vec2 uViewport;
-      uniform vec2 uTranslate;
-      uniform float uScale;
-      uniform vec3 uRowX;
-      uniform vec3 uRowY;
-      uniform vec3 uRowZ;
-      uniform vec2 uFlatCenter;
-      uniform float uWorldOffset;
-      uniform int uMode;
-      varying float vDepth;
-      varying float vCountry;
-      void main() {
-        float lon = aCoord.x * 0.000001 * ${Math.PI / 180};
-        float lat = aCoord.y * 0.000001 * ${Math.PI / 180};
-        vec2 screenPoint;
-        if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
-          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
-          vDepth = dot(uRowZ, point);
-        } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
-          vDepth = 1.0;
-        }
-        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
-        gl_Position = vec4(clip, 0.0, 1.0);
-        vCountry = aCountry;
-      }`;
-    const hydroRibbonVertexSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      layout(location=0) in vec2 aCorner;
-      layout(location=1) in ivec2 aStart;
-      layout(location=2) in ivec2 aEnd;
-      layout(location=3) in uint aCountry;
-      layout(location=4) in float aStartWidth;
-      layout(location=5) in float aEndWidth;
-      uniform vec2 uViewport;
-      uniform vec2 uTranslate;
-      uniform float uScale;
-      uniform vec3 uRowX;
-      uniform vec3 uRowY;
-      uniform vec3 uRowZ;
-      uniform vec2 uFlatCenter;
-      uniform float uWorldOffset;
-      uniform float uWidthBoost;
-      uniform int uMode;
-      out float vDepth;
-      flat out uint vCountry;
-      void projectCoord(ivec2 coord, out vec2 screenPoint, out float depth) {
-        float lon = float(coord.x) * 0.000001 * ${Math.PI / 180};
-        float lat = float(coord.y) * 0.000001 * ${Math.PI / 180};
-        if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
-          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
-          depth = dot(uRowZ, point);
-        } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
-          depth = 1.0;
-        }
-      }
-      void main() {
-        vec2 startPoint;
-        vec2 endPoint;
-        float startDepth;
-        float endDepth;
-        projectCoord(aStart, startPoint, startDepth);
-        projectCoord(aEnd, endPoint, endDepth);
-        vec2 direction = endPoint - startPoint;
-        float segmentLength = length(direction);
-        direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
-        vec2 normal = vec2(-direction.y, direction.x);
-        float width = mix(aStartWidth, aEndWidth, aCorner.x);
-        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (width + uWidthBoost) * 0.5;
-        vDepth = mix(startDepth, endDepth, aCorner.x);
-        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
-        gl_Position = vec4(clip, 0.0, 1.0);
-        vCountry = aCountry;
-      }`;
-    const hydroRibbonVertexSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      attribute vec2 aCorner;
-      attribute vec2 aStart;
-      attribute vec2 aEnd;
-      attribute float aCountry;
-      attribute float aStartWidth;
-      attribute float aEndWidth;
-      uniform vec2 uViewport;
-      uniform vec2 uTranslate;
-      uniform float uScale;
-      uniform vec3 uRowX;
-      uniform vec3 uRowY;
-      uniform vec3 uRowZ;
-      uniform vec2 uFlatCenter;
-      uniform float uWorldOffset;
-      uniform float uWidthBoost;
-      uniform int uMode;
-      varying float vDepth;
-      varying float vCountry;
-      void projectCoord(vec2 coord, out vec2 screenPoint, out float depth) {
-        float lon = coord.x * 0.000001 * ${Math.PI / 180};
-        float lat = coord.y * 0.000001 * ${Math.PI / 180};
-        if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
-          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
-          depth = dot(uRowZ, point);
-        } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
-          depth = 1.0;
-        }
-      }
-      void main() {
-        vec2 startPoint;
-        vec2 endPoint;
-        float startDepth;
-        float endDepth;
-        projectCoord(aStart, startPoint, startDepth);
-        projectCoord(aEnd, endPoint, endDepth);
-        vec2 direction = endPoint - startPoint;
-        float segmentLength = length(direction);
-        direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
-        vec2 normal = vec2(-direction.y, direction.x);
-        float width = mix(aStartWidth, aEndWidth, aCorner.x);
-        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (width + uWidthBoost) * 0.5;
-        vDepth = mix(startDepth, endDepth, aCorner.x);
-        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
-        gl_Position = vec4(clip, 0.0, 1.0);
-        vCountry = aCountry;
-      }`;
-    const fillFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying float vDepth;
-      varying float vCountry;
-      uniform sampler2D uPalette;
-      uniform float uPaletteWidth;
-      uniform int uMode;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        float index = floor(vCountry + 0.5);
-        vec4 color = texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5));
-        if (color.a <= 0.0) discard;
-        gl_FragColor = color;
-      }`;
-    const lineFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying float vDepth;
-      varying float vCountry;
-      uniform sampler2D uPalette;
-      uniform float uPaletteWidth;
-      uniform int uMode;
-      uniform vec4 uBorderColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        float index = floor(vCountry + 0.5);
-        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5)).a <= 0.0) discard;
-        gl_FragColor = uBorderColor;
-      }`;
-    const pickFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying float vDepth;
-      varying float vCountry;
-      uniform sampler2D uPalette;
-      uniform float uPaletteWidth;
-      uniform int uMode;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        float index = floor(vCountry + 0.5);
-        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5)).a <= 0.0) discard;
-        float id = floor(vCountry + 1.5);
-        float r = mod(id, 256.0);
-        float g = mod(floor(id / 256.0), 256.0);
-        float b = mod(floor(id / 65536.0), 256.0);
-        gl_FragColor = vec4(r, g, b, 255.0) / 255.0;
-      }`;
-    const landMaskFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying float vDepth;
-      uniform int uMode;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        gl_FragColor = vec4(1.0);
-      }`;
-    const terrainVertexSourceWebGl2 = `#version 300 es
-      precision highp float;
-      layout(location=0) in vec2 aGrid;
-      uniform vec4 uGeoBounds;
-      uniform vec4 uUvBounds;
-      uniform vec2 uViewport;
-      uniform vec2 uTranslate;
-      uniform float uScale;
-      uniform vec3 uRowX;
-      uniform vec3 uRowY;
-      uniform vec3 uRowZ;
-      uniform vec2 uFlatCenter;
-      uniform float uWorldOffset;
-      uniform int uMode;
-      out vec2 vUv;
-      out float vDepth;
-      void main() {
-        float lon = mix(uGeoBounds.x, uGeoBounds.z, aGrid.x) * ${Math.PI / 180};
-        float lat = mix(uGeoBounds.y, uGeoBounds.w, aGrid.y) * ${Math.PI / 180};
-        vec2 screenPoint;
-        if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
-          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
-          vDepth = dot(uRowZ, point);
-        } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
-          vDepth = 1.0;
-        }
-        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
-        gl_Position = vec4(clip, 0.0, 1.0);
-        vUv = mix(uUvBounds.xy, uUvBounds.zw, aGrid);
-      }`;
-    const terrainFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in vec2 vUv;
-      in float vDepth;
-      uniform sampler2D uTerrain;
-      uniform int uMode;
-      uniform float uPhysicalStyle;
-      uniform float uDarkTheme;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        vec4 terrainSample = texture(uTerrain, vUv);
-        vec3 neutral = vec3(terrainSample.a);
-        vec3 color = mix(neutral, terrainSample.rgb, uPhysicalStyle);
-        color = mix(color, color * vec3(0.60, 0.68, 0.76), uDarkTheme * 0.48);
-        outColor = vec4(color, 1.0);
-      }`;
-    const terrainVertexSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      attribute vec2 aGrid;
-      uniform vec4 uGeoBounds;
-      uniform vec4 uUvBounds;
-      uniform vec2 uViewport;
-      uniform vec2 uTranslate;
-      uniform float uScale;
-      uniform vec3 uRowX;
-      uniform vec3 uRowY;
-      uniform vec3 uRowZ;
-      uniform vec2 uFlatCenter;
-      uniform float uWorldOffset;
-      uniform int uMode;
-      varying vec2 vUv;
-      varying float vDepth;
-      void main() {
-        float lon = mix(uGeoBounds.x, uGeoBounds.z, aGrid.x) * ${Math.PI / 180};
-        float lat = mix(uGeoBounds.y, uGeoBounds.w, aGrid.y) * ${Math.PI / 180};
-        vec2 screenPoint;
-        if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
-          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
-          vDepth = dot(uRowZ, point);
-        } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
-          vDepth = 1.0;
-        }
-        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
-        gl_Position = vec4(clip, 0.0, 1.0);
-        vUv = mix(uUvBounds.xy, uUvBounds.zw, aGrid);
-      }`;
-    const terrainFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying vec2 vUv;
-      varying float vDepth;
-      uniform sampler2D uTerrain;
-      uniform int uMode;
-      uniform float uPhysicalStyle;
-      uniform float uDarkTheme;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        vec4 terrainSample = texture2D(uTerrain, vUv);
-        vec3 neutral = vec3(terrainSample.a);
-        vec3 color = mix(neutral, terrainSample.rgb, uPhysicalStyle);
-        color = mix(color, color * vec3(0.60, 0.68, 0.76), uDarkTheme * 0.48);
-        gl_FragColor = vec4(color, 1.0);
-      }`;
-    const hydroFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in float vDepth;
-      flat in uint vCountry;
-      uniform sampler2D uHydroVisibility;
-      uniform ivec2 uHydroVisibilitySize;
-      uniform vec4 uHydroColor;
-      uniform int uMode;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        int featureId = int(vCountry);
-        ivec2 cell = ivec2(featureId % uHydroVisibilitySize.x, featureId / uHydroVisibilitySize.x);
-        if (texelFetch(uHydroVisibility, cell, 0).a <= 0.0) discard;
-        outColor = uHydroColor;
-      }`;
-    const hydroPickFragmentSourceWebGl2 = `#version 300 es
-      precision highp float;
-      precision highp int;
-      in float vDepth;
-      flat in uint vCountry;
-      uniform sampler2D uHydroVisibility;
-      uniform ivec2 uHydroVisibilitySize;
-      uniform int uMode;
-      out vec4 outColor;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        int featureId = int(vCountry);
-        ivec2 cell = ivec2(featureId % uHydroVisibilitySize.x, featureId / uHydroVisibilitySize.x);
-        if (texelFetch(uHydroVisibility, cell, 0).a <= 0.0) discard;
-        uint id = vCountry + 1u;
-        outColor = vec4(float(id & 255u), float((id >> 8u) & 255u), float((id >> 16u) & 255u), 255.0) / 255.0;
-      }`;
-    const hydroFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying float vDepth;
-      varying float vCountry;
-      uniform sampler2D uHydroVisibility;
-      uniform vec2 uHydroVisibilitySize;
-      uniform vec4 uHydroColor;
-      uniform int uMode;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        float featureId = floor(vCountry + 0.5);
-        float x = mod(featureId, uHydroVisibilitySize.x);
-        float y = floor(featureId / uHydroVisibilitySize.x);
-        if (texture2D(uHydroVisibility, vec2((x + 0.5) / uHydroVisibilitySize.x, (y + 0.5) / uHydroVisibilitySize.y)).a <= 0.0) discard;
-        gl_FragColor = uHydroColor;
-      }`;
-    const hydroPickFragmentSourceWebGl1 = `
-      precision highp float;
-      precision mediump int;
-      varying float vDepth;
-      varying float vCountry;
-      uniform sampler2D uHydroVisibility;
-      uniform vec2 uHydroVisibilitySize;
-      uniform int uMode;
-      void main() {
-        if (uMode == 0 && vDepth < 0.0) discard;
-        float featureId = floor(vCountry + 0.5);
-        float x = mod(featureId, uHydroVisibilitySize.x);
-        float y = floor(featureId / uHydroVisibilitySize.x);
-        if (texture2D(uHydroVisibility, vec2((x + 0.5) / uHydroVisibilitySize.x, (y + 0.5) / uHydroVisibilitySize.y)).a <= 0.0) discard;
-        float id = featureId + 1.0;
-        gl_FragColor = vec4(mod(id, 256.0), mod(floor(id / 256.0), 256.0), mod(floor(id / 65536.0), 256.0), 255.0) / 255.0;
-      }`;
-
-    function compileShader(type, source) {
-      const shader = gl.createShader(type);
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        const message = gl.getShaderInfoLog(shader) || 'shader compile failed';
-        gl.deleteShader(shader);
-        throw new Error(message);
-      }
-      return shader;
-    }
-
-    function createProgram(vertexSource, fragmentSource) {
-      const program = gl.createProgram();
-      const vertex = compileShader(gl.VERTEX_SHADER, vertexSource);
-      const fragment = compileShader(gl.FRAGMENT_SHADER, fragmentSource);
-      gl.attachShader(program, vertex);
-      gl.attachShader(program, fragment);
-      gl.linkProgram(program);
-      gl.deleteShader(vertex);
-      gl.deleteShader(fragment);
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        const message = gl.getProgramInfoLog(program) || 'program link failed';
-        gl.deleteProgram(program);
-        throw new Error(message);
-      }
-      return program;
-    }
-
-    function attach(nextCanvas) {
-      canvas = nextCanvas;
-      canvas.className = 'gpu-map-canvas';
-      canvas.setAttribute('aria-hidden', 'true');
-      canvas.style.position = 'absolute';
-      canvas.style.inset = '0';
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-      layoutMismatchCount = 0;
-    }
-
-    function replaceCanvas() {
-      const replacement = document.createElement('canvas');
-      canvas?.replaceWith(replacement);
-      attach(replacement);
-      gl = null;
-      glVersion = 0;
-      webGlContextKind = '';
-      uintIndexExtension = null;
-      instancedExtension = null;
-      ctx2d = null;
-      canvasWorkerBitmapContext = null;
-      canvasWorker2dContext = null;
-      return replacement;
-    }
-
-    function isWebGlRenderer() {
-      return rendererMode === 'webgl2' || rendererMode === 'webgl1';
-    }
-
-    function connectHydroCanvasWorkers() {
-      if (!hydroWorker || !canvasWorker || rendererMode !== 'canvas-worker' || typeof MessageChannel !== 'function') return;
-      const channel = new MessageChannel();
-      canvasWorker.postMessage({ type: 'hydro-port', port: channel.port1 }, [channel.port1]);
-      hydroWorker.postMessage({ type: 'hydro-port', port: channel.port2 }, [channel.port2]);
-    }
-
-    function rendererName() {
-      return glVersion === 2 ? 'WebGL2' : glVersion === 1 ? 'WebGL1' : 'Canvas';
-    }
-
-    function updateRendererStatus(label, reason = '') {
-      const status = $('engineStatus');
-      if (!status) return;
-      status.textContent = reason ? `${label} · ${reason}` : label;
-      status.title = status.textContent;
-    }
-
-    function createWebGlResources() {
-      const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
-      fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
-      landMaskProgram = createProgram(vertexSource, glVersion === 2 ? landMaskFragmentSourceWebGl2 : landMaskFragmentSourceWebGl1);
-      lineProgram = createProgram(vertexSource, glVersion === 2 ? lineFragmentSourceWebGl2 : lineFragmentSourceWebGl1);
-      pickProgram = createProgram(vertexSource, glVersion === 2 ? pickFragmentSourceWebGl2 : pickFragmentSourceWebGl1);
-      terrainProgram = createProgram(
-        glVersion === 2 ? terrainVertexSourceWebGl2 : terrainVertexSourceWebGl1,
-        glVersion === 2 ? terrainFragmentSourceWebGl2 : terrainFragmentSourceWebGl1,
-      );
-      hydroFillProgram = createProgram(vertexSource, glVersion === 2 ? hydroFragmentSourceWebGl2 : hydroFragmentSourceWebGl1);
-      hydroLineProgram = createProgram(
-        glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
-        glVersion === 2 ? hydroFragmentSourceWebGl2 : hydroFragmentSourceWebGl1,
-      );
-      hydroPickProgram = createProgram(vertexSource, glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1);
-      hydroLinePickProgram = createProgram(
-        glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
-        glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1,
-      );
-      paletteTexture = gl.createTexture();
-      overridePaletteTexture = gl.createTexture();
-      hydroVisibilityTexture = gl.createTexture();
-      hydroCornerBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, -1, 0, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
-      positionBuffer = gl.createBuffer();
-      countryBuffer = gl.createBuffer();
-      fillIndexBuffer = gl.createBuffer();
-      lineIndexBuffer = gl.createBuffer();
-      overridePositionBuffer = gl.createBuffer();
-      overrideCountryBuffer = gl.createBuffer();
-      overrideFillIndexBuffer = gl.createBuffer();
-      overrideLineIndexBuffer = gl.createBuffer();
-      gl.enable(gl.BLEND);
-      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-      gl.disable(gl.DEPTH_TEST);
-      pickFramebuffer = null;
-      pickTexture = null;
-      for (const pending of terrainUploadQueue.splice(0)) pending.bitmap?.close?.();
-      terrainTileQueuedKeys.clear();
-      terrainTiles.clear();
-      terrainTileRequests.clear();
-      terrainGridMeshes.clear();
-      for (const entry of hydroPacks.values()) {
-        entry.resources = null;
-        entry.uploadState = null;
-        entry.uploadQueued = false;
-        scheduleHydroUpload(entry);
-      }
-      hydroVisibilityDirty = true;
-    }
-
-    function handleWebGlContextLost(event) {
-      if (event.currentTarget !== canvas) return;
-      event.preventDefault();
-      webglContextLost = true;
-      rendererMode = 'webgl-recovering';
-      clearTimeout(webglRecoveryTimer);
-      $('engineStatus').textContent = `${rendererName()} · 컨텍스트를 복구하는 중입니다.`;
-      updateRendererStatus(`${rendererName()} · GPU를 복구하는 중입니다.`);
-      setActionStatus('지도 GPU를 복구하는 중입니다.', 'working', 0);
-      webglRecoveryTimer = setTimeout(() => {
-        if (webglContextLost && rendererMode === 'webgl-recovering') {
-          activateCanvasFallback('WebGL 컨텍스트 복구 시간 초과');
-        }
-      }, 5000);
-    }
-
-    function handleWebGlContextRestored(event) {
-      if (event.currentTarget !== canvas || !webglContextLost) return;
-      clearTimeout(webglRecoveryTimer);
-      try {
-        gl = canvas.getContext(webGlContextKind);
-        if (!gl) throw new Error(`복구된 ${rendererName()} 컨텍스트를 가져올 수 없습니다.`);
-        if (glVersion === 1) {
-          uintIndexExtension = gl.getExtension('OES_element_index_uint');
-          if (!uintIndexExtension) throw new Error('WebGL1 32비트 인덱스를 지원하지 않습니다.');
-          instancedExtension = gl.getExtension('ANGLE_instanced_arrays');
-          if (!instancedExtension) throw new Error('WebGL1 인스턴스 수계 렌더링을 지원하지 않습니다.');
-        }
-        createWebGlResources();
-        webglContextLost = false;
-        rendererMode = glVersion === 2 ? 'webgl2' : 'webgl1';
-        if (mesh) setMesh(mesh, meshCountryIds);
-        if (overrideMesh) setOverrideMesh(overrideMesh);
-        else render(currentRenderRevision);
-        $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
-        updateRendererStatus(`${rendererName()} · GPU 실시간`);
-        setActionStatus('지도 GPU를 복구했습니다.', 'success', 2200);
-      } catch (error) {
-        webglContextLost = false;
-        console.error('[AW-GPU-002]', error);
-        activateCanvasFallback('WebGL 컨텍스트를 복구하지 못했습니다.');
-      }
-    }
-
-    function initWebGl(version) {
-      const contextKind = version === 2 ? 'webgl2' : 'webgl';
-      webGlContextKind = contextKind;
-      gl = canvas.getContext(contextKind, {
-        alpha: true,
-        antialias: true,
-        depth: false,
-        stencil: true,
-        preserveDrawingBuffer: false,
-        premultipliedAlpha: true,
-        powerPreference: 'high-performance',
-      });
-      if (!gl && version === 1) {
-        webGlContextKind = 'experimental-webgl';
-        gl = canvas.getContext(webGlContextKind, { alpha: true, antialias: true, depth: false, stencil: true, preserveDrawingBuffer: false, premultipliedAlpha: true, powerPreference: 'high-performance' });
-      }
-      if (!gl) throw new Error(`${version === 2 ? 'WebGL2' : 'WebGL1'}를 지원하지 않습니다.`);
-      if (!gl.getContextAttributes()?.stencil) throw new Error(`${version === 2 ? 'WebGL2' : 'WebGL1'} 스텐실 마스크를 지원하지 않습니다.`);
-      glVersion = version;
-      uintIndexExtension = version === 1 ? gl.getExtension('OES_element_index_uint') : true;
-      if (version === 1 && !uintIndexExtension) throw new Error('WebGL1 OES_element_index_uint를 지원하지 않습니다.');
-      instancedExtension = version === 1 ? gl.getExtension('ANGLE_instanced_arrays') : true;
-      if (version === 1 && !instancedExtension) throw new Error('WebGL1 ANGLE_instanced_arrays를 지원하지 않습니다.');
-      createWebGlResources();
-      canvas.addEventListener('webglcontextlost', handleWebGlContextLost);
-      canvas.addEventListener('webglcontextrestored', handleWebGlContextRestored);
-      webglContextLost = false;
-      rendererMode = version === 2 ? 'webgl2' : 'webgl1';
-    }
-
-    function setMesh(nextMesh, countryIds) {
-      mesh = nextMesh;
-      meshCountryIds = [...countryIds];
-      countryMeshStale = false;
-      webGl1PositionData = null;
-      webGl1CountryData = null;
-      if (!gl || !isWebGlRenderer()) return;
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-      if (glVersion === 2) {
-        gl.bufferData(gl.ARRAY_BUFFER, mesh.positions, gl.STATIC_DRAW);
-      } else {
-        webGl1PositionData = new Float32Array(mesh.positions.length);
-        for (let index = 0; index < mesh.positions.length; index += 1) webGl1PositionData[index] = mesh.positions[index];
-        gl.bufferData(gl.ARRAY_BUFFER, webGl1PositionData, gl.STATIC_DRAW);
-      }
-      gl.bindBuffer(gl.ARRAY_BUFFER, countryBuffer);
-      if (glVersion === 2) {
-        gl.bufferData(gl.ARRAY_BUFFER, mesh.countryIndices, gl.STATIC_DRAW);
-      } else {
-        webGl1CountryData = new Float32Array(mesh.countryIndices.length);
-        for (let index = 0; index < mesh.countryIndices.length; index += 1) webGl1CountryData[index] = mesh.countryIndices[index];
-        gl.bufferData(gl.ARRAY_BUFFER, webGl1CountryData, gl.STATIC_DRAW);
-      }
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, fillIndexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.triangleIndices, gl.STATIC_DRAW);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.lineIndices, gl.STATIC_DRAW);
-
-      fillVao = null;
-      lineVao = null;
-      if (glVersion === 2) {
-        fillVao = gl.createVertexArray();
-        gl.bindVertexArray(fillVao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribIPointer(0, 2, gl.INT, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, countryBuffer);
-        gl.enableVertexAttribArray(1);
-        gl.vertexAttribIPointer(1, 1, gl.UNSIGNED_SHORT, 0, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, fillIndexBuffer);
-
-        lineVao = gl.createVertexArray();
-        gl.bindVertexArray(lineVao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribIPointer(0, 2, gl.INT, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, countryBuffer);
-        gl.enableVertexAttribArray(1);
-        gl.vertexAttribIPointer(1, 1, gl.UNSIGNED_SHORT, 0, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
-        gl.bindVertexArray(null);
-      }
-      window.__ATLASWRIGHT_GPU_METRICS__ = getStats();
-      render(currentRenderRevision);
-    }
-
-    function setOverrideMesh(nextMesh) {
-      overrideMesh = nextMesh;
-      overrideWebGl1PositionData = null;
-      overrideWebGl1CountryData = null;
-      if (!gl || !isWebGlRenderer() || !nextMesh) return;
-      gl.bindBuffer(gl.ARRAY_BUFFER, overridePositionBuffer);
-      if (glVersion === 2) gl.bufferData(gl.ARRAY_BUFFER, nextMesh.positions, gl.DYNAMIC_DRAW);
-      else {
-        overrideWebGl1PositionData = Float32Array.from(nextMesh.positions);
-        gl.bufferData(gl.ARRAY_BUFFER, overrideWebGl1PositionData, gl.DYNAMIC_DRAW);
-      }
-      gl.bindBuffer(gl.ARRAY_BUFFER, overrideCountryBuffer);
-      if (glVersion === 2) gl.bufferData(gl.ARRAY_BUFFER, nextMesh.countryIndices, gl.DYNAMIC_DRAW);
-      else {
-        overrideWebGl1CountryData = Float32Array.from(nextMesh.countryIndices);
-        gl.bufferData(gl.ARRAY_BUFFER, overrideWebGl1CountryData, gl.DYNAMIC_DRAW);
-      }
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, overrideFillIndexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nextMesh.triangleIndices, gl.DYNAMIC_DRAW);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, overrideLineIndexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nextMesh.lineIndices, gl.DYNAMIC_DRAW);
-      overrideFillVao = null;
-      overrideLineVao = null;
-      if (glVersion === 2) {
-        const createVao = indexBuffer => {
-          const vao = gl.createVertexArray();
-          gl.bindVertexArray(vao);
-          gl.bindBuffer(gl.ARRAY_BUFFER, overridePositionBuffer);
-          gl.enableVertexAttribArray(0);
-          gl.vertexAttribIPointer(0, 2, gl.INT, 0, 0);
-          gl.bindBuffer(gl.ARRAY_BUFFER, overrideCountryBuffer);
-          gl.enableVertexAttribArray(1);
-          gl.vertexAttribIPointer(1, 1, gl.UNSIGNED_SHORT, 0, 0);
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-          gl.bindVertexArray(null);
-          return vao;
-        };
-        overrideFillVao = createVao(overrideFillIndexBuffer);
-        overrideLineVao = createVao(overrideLineIndexBuffer);
-      }
-      updatePalette();
-      render(currentRenderRevision);
-    }
-
-    function remapOverrideMesh(rawMesh, localIds) {
-      const globalIndices = localIds.map(id => {
-        const key = String(id);
-        let index = meshCountryIds.indexOf(key);
-        if (index < 0) {
-          meshCountryIds.push(key);
-          index = meshCountryIds.length - 1;
-        }
-        return index;
-      });
-      const local = new Uint16Array(rawMesh.countryIndices);
-      const countryIndices = new Uint16Array(local.length);
-      for (let index = 0; index < local.length; index += 1) countryIndices[index] = globalIndices[local[index]];
-      return {
-        positions: new Int32Array(rawMesh.positions),
-        countryIndices,
-        triangleIndices: new Uint32Array(rawMesh.triangleIndices),
-        lineIndices: new Uint32Array(rawMesh.lineIndices),
-      };
-    }
-
-    function ensurePatchWorker() {
-      if (patchWorker) return patchWorker;
-      patchWorker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'atlaswright-country-patch-mesh' });
-      patchWorker.onerror = event => {
-        console.error('[AW-GPU-PATCH-001]', event.message || event);
-        patchWorker?.terminate();
-        patchWorker = null;
-        scheduleGpuMeshRebuild(0);
-      };
-      return patchWorker;
-    }
-
-    function applyCountryPatch(rawIds) {
-      const ids = [...new Set([...rawIds].map(String).filter(Boolean))];
-      for (const id of ids) countryOverrideIds.add(id);
-      if (rendererMode === 'canvas-worker' && canvasWorker) {
-        const features = ids.map(countryFeatureById).filter(Boolean).map(deepClone);
-        const removedIds = ids.filter(id => !countryFeatureById(id));
-        canvasWorker.postMessage({ type: 'patch', features, removedIds, ids, revision: currentRenderRevision });
-        renderCanvasWorker();
-        return Promise.resolve();
-      }
-      if (!isWebGlRenderer()) {
-        render();
-        return Promise.resolve();
-      }
-      updatePalette();
-      const features = [...countryOverrideIds].map(countryFeatureById).filter(Boolean).map(deepClone);
-      const token = ++patchWorkerToken;
-      return new Promise((resolve, reject) => {
-        let currentWorker;
-        try { currentWorker = ensurePatchWorker(); }
-        catch (error) { reject(error); return; }
-        currentWorker.onmessage = event => {
-          if (event.data?.token !== token || token !== patchWorkerToken) return;
-          if (!event.data?.ok) {
-            reject(new Error(event.data?.message || '변경 국가 메시를 만들지 못했습니다.'));
-            return;
-          }
-          const next = event.data.mesh;
-          setOverrideMesh(remapOverrideMesh(next, next.countryIds || []));
-          for (const id of ids) state.pendingCountryRenderIds.delete(id);
-          renderViewFrame();
-          if (countryOverrideIds.size > 48 || (overrideMesh?.countryIndices?.length || 0) > (mesh?.countryIndices?.length || 1) * 0.25) {
-            mapWorkScheduler.scheduleIdle('country-mesh-compaction', compactCountryOverrides, 2000);
-          }
-          resolve();
-        };
-        currentWorker.postMessage({ token, features });
-      }).catch(error => {
-        console.error('[AW-GPU-PATCH-002]', error);
-        scheduleGpuMeshRebuild(0);
-      });
-    }
-
-    function compactCountryOverrides() {
-      if (!countryOverrideIds.size) return;
-      rebuildFromCountries(state.countriesData?.features || []);
-    }
-
-    async function decodeBuiltInMesh() {
-      const buffer = window.ATLASWRIGHT_GPU_MESH_BUFFER;
-      if (!(buffer instanceof ArrayBuffer)) throw new Error('외부 GPU 메시가 준비되지 않았습니다.');
-      window.ATLASWRIGHT_GPU_MESH_BUFFER = null;
-      const header = new Uint32Array(buffer, 0, 8);
-      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471 || header[7] !== 3) {
-        throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
-      }
-      const countryCount = header[2];
-      const vertexCount = header[3];
-      const triangleIndexCount = header[4];
-      const lineIndexCount = header[5];
-      let offset = 8 * 4;
-      const positions = new Int32Array(buffer, offset, vertexCount * 2);
-      offset += positions.byteLength;
-      const countryIndices = new Uint16Array(buffer, offset, vertexCount);
-      offset += (countryIndices.byteLength + 3) & ~3;
-      const triangleIndices = new Uint32Array(buffer, offset, triangleIndexCount);
-      offset += triangleIndices.byteLength;
-      const lineIndices = new Uint32Array(buffer, offset, lineIndexCount);
-      const ids = (window.ATLASWRIGHT_COUNTRIES?.features || []).slice(0, countryCount)
-        .map((feature, index) => String(feature.properties?.editor_id || feature.properties?.iso_a3 || index));
-      return { mesh: { positions, countryIndices, triangleIndices, lineIndices }, ids, sourceCoordinateCount: header[6] };
-    }
-
-    function createWorker() {
-      if (worker) worker.terminate();
-      worker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), {
-        name: 'atlaswright-gpu-mesh',
-      });
-      return worker;
-    }
-
-    function rebuildFromCountries(features) {
-      if (rendererMode === 'canvas-worker' && canvasWorker) {
-        countryOverrideIds.clear();
-        overrideMesh = null;
-        const ids = [...state.pendingCountryRenderIds];
-        canvasWorker.postMessage({ type: 'data', features, ids, revision: currentRenderRevision });
-        renderCanvasWorker();
-        return;
-      }
-      if (!isWebGlRenderer()) {
-        render();
-        return;
-      }
-      const token = ++rebuildToken;
-      let currentWorker;
-      try { currentWorker = createWorker(); }
-      catch (error) {
-        console.error('[AW-GPU-001]', error);
-        activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
-        return;
-      }
-      $('engineStatus').textContent = `${rendererName()} · 편집 메시를 계산하는 중입니다.`;
-      currentWorker.onmessage = event => {
-        if (event.data?.token !== token || token !== rebuildToken) return;
-        currentWorker.terminate();
-        worker = null;
-        if (!event.data?.ok) {
-          console.error('[AW-GPU-003]', event.data?.message || event.data);
-          activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
-          return;
-        }
-        const next = event.data.mesh;
-        countryOverrideIds.clear();
-        overrideMesh = null;
-        state.pendingCountryRenderIds.clear();
-        setMesh({
-          positions: new Int32Array(next.positions),
-          countryIndices: new Uint16Array(next.countryIndices),
-          triangleIndices: new Uint32Array(next.triangleIndices),
-          lineIndices: new Uint32Array(next.lineIndices),
-        }, next.countryIds || []);
-        $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
-        updateRendererStatus(`${rendererName()} · GPU 실시간`);
-      };
-      currentWorker.onerror = event => {
-        if (token !== rebuildToken) return;
-        console.error('[AW-GPU-004]', event.message || event);
-        activateCanvasFallback('동적 지도 메시 Worker를 사용할 수 없습니다.');
-      };
-      currentWorker.postMessage({ token, features });
-    }
-
-    function markCountryMeshStale() {
-      countryMeshStale = true;
-    }
-
-    function parseColor(value) {
-      const match = /^#([0-9a-f]{6})$/i.exec(String(value || ''));
-      if (!match) return parseColor(defaultCountryColor());
-      const n = Number.parseInt(match[1], 16);
-      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-    }
-
-    function uploadPalette(texture, pixels) {
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      const internalFormat = glVersion === 2 ? gl.RGBA8 : gl.RGBA;
-      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, Math.max(1, meshCountryIds.length), 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-    }
-
-    function updatePalette() {
-      if (!gl || !meshCountryIds.length) return;
-      const basePixels = new Uint8Array(meshCountryIds.length * 4);
-      const overridePixels = new Uint8Array(meshCountryIds.length * 4);
-      for (let index = 0; index < meshCountryIds.length; index += 1) {
-        const id = meshCountryIds[index];
-        const feature = countryFeatureById(id);
-        const color = parseColor(feature ? countryColor(feature) : '#000000');
-        for (const pixels of [basePixels, overridePixels]) {
-          pixels[index * 4] = color[0];
-          pixels[index * 4 + 1] = color[1];
-          pixels[index * 4 + 2] = color[2];
-        }
-        const visible = feature && isCountryVisibleById(id) ? mapTheme().fillAlphaByte : 0;
-        basePixels[index * 4 + 3] = countryOverrideIds.has(id) ? 0 : visible;
-        overridePixels[index * 4 + 3] = countryOverrideIds.has(id) ? visible : 0;
-      }
-      uploadPalette(paletteTexture, basePixels);
-      uploadPalette(overridePaletteTexture, overridePixels);
-    }
-
-    function rotationRows() {
-      const projection = globeProjection;
-      const translate = projection.translate();
-      const scale = projection.scale();
-      const basis = [[0, 0], [90, 0], [0, 90]].map(coord => projection(coord));
-      const rowX = basis.map(point => (point[0] - translate[0]) / scale);
-      const rowY = basis.map(point => (point[1] - translate[1]) / scale);
-      const cross = [
-        rowX[1] * rowY[2] - rowX[2] * rowY[1],
-        rowX[2] * rowY[0] - rowX[0] * rowY[2],
-        rowX[0] * rowY[1] - rowX[1] * rowY[0],
-      ];
-      const length = Math.hypot(...cross) || 1;
-      const rowZ = cross.map(value => -value / length);
-      return { rowX, rowY, rowZ, translate, scale };
-    }
-
-    function setViewUniforms(program, worldOffset = 0) {
-      const mode = state.projection === 'globe' ? 0 : 1;
-      const data = mode === 0
-        ? rotationRows()
-        : {
-            rowX: [1, 0, 0], rowY: [0, 1, 0], rowZ: [0, 0, 1],
-            translate: flatProjection.translate(), scale: flatProjection.scale(),
-          };
-      gl.uniform2f(gl.getUniformLocation(program, 'uViewport'), cssWidth, cssHeight);
-      gl.uniform2f(gl.getUniformLocation(program, 'uTranslate'), data.translate[0], data.translate[1]);
-      gl.uniform1f(gl.getUniformLocation(program, 'uScale'), data.scale);
-      gl.uniform3fv(gl.getUniformLocation(program, 'uRowX'), data.rowX);
-      gl.uniform3fv(gl.getUniformLocation(program, 'uRowY'), data.rowY);
-      gl.uniform3fv(gl.getUniformLocation(program, 'uRowZ'), data.rowZ);
-      gl.uniform2f(gl.getUniformLocation(program, 'uFlatCenter'), state.view.flatCenter[0] * PI / 180, state.view.flatCenter[1] * PI / 180);
-      gl.uniform1f(gl.getUniformLocation(program, 'uWorldOffset'), worldOffset);
-      gl.uniform1i(gl.getUniformLocation(program, 'uMode'), mode);
-    }
-
-    function resize() {
-      if (!canvas) return;
-      cssWidth = Math.max(1, state.size.width);
-      cssHeight = Math.max(1, state.size.height);
-      const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
-      const nextWidth = Math.max(1, Math.round(cssWidth * dpr));
-      const nextHeight = Math.max(1, Math.round(cssHeight * dpr));
-      if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
-        canvas.width = nextWidth;
-        canvas.height = nextHeight;
-        pickFramebuffer = null;
-        pickTexture = null;
-      }
-      pixelWidth = nextWidth;
-      pixelHeight = nextHeight;
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-    }
-
-    function layoutMismatch() {
-      const mapElement = $('map');
-      if (!canvas || !mapElement?.isConnected || !canvas.isConnected) return 0;
-      const mapRect = mapElement.getBoundingClientRect();
-      const canvasRect = canvas.getBoundingClientRect();
-      return Math.max(
-        Math.abs(mapRect.left - canvasRect.left),
-        Math.abs(mapRect.top - canvasRect.top),
-        Math.abs(mapRect.width - canvasRect.width),
-        Math.abs(mapRect.height - canvasRect.height),
-      );
-    }
-
-    function verifyLayout() {
-      if (!canvas) return true;
-      const mismatch = layoutMismatch();
-      if (mismatch <= 0.5) {
-        layoutMismatchCount = 0;
-        return true;
-      }
-      canvas.style.position = 'absolute';
-      canvas.style.inset = '0';
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-      resize();
-      if (layoutVerificationFrame) cancelAnimationFrame(layoutVerificationFrame);
-      layoutVerificationFrame = requestAnimationFrame(() => {
-        layoutVerificationFrame = 0;
-        if (layoutMismatch() <= 0.5) {
-          layoutMismatchCount = 0;
-          render(currentRenderRevision);
-          return;
-        }
-        layoutMismatchCount += 1;
-        if (layoutMismatchCount <= 3) {
-          queueMapResize();
-          verifyLayout();
-        } else {
-          console.warn('지도 레이어 크기를 완전히 맞추지 못했습니다.', layoutMismatch());
-          layoutMismatchCount = 0;
-        }
-      });
-      return false;
-    }
-
-    function bindWebGl1Attributes(program, indexBuffer, resources = null) {
-      const coordLocation = gl.getAttribLocation(program, 'aCoord');
-      const countryLocation = gl.getAttribLocation(program, 'aCountry');
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources?.positionBuffer || positionBuffer);
-      if (coordLocation >= 0) {
-        gl.enableVertexAttribArray(coordLocation);
-        gl.vertexAttribPointer(coordLocation, 2, gl.FLOAT, false, 0, 0);
-      }
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources?.countryBuffer || countryBuffer);
-      if (countryLocation >= 0) {
-        gl.enableVertexAttribArray(countryLocation);
-        gl.vertexAttribPointer(countryLocation, 1, gl.FLOAT, false, 0, 0);
-      }
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-      return [coordLocation, countryLocation];
-    }
-
-    function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture) {
-      gl.useProgram(program);
-      if (program === fillProgram || program === lineProgram || program === pickProgram) {
-        gl.uniform1i(gl.getUniformLocation(program, 'uPalette'), 0);
-        const paletteWidthLocation = gl.getUniformLocation(program, 'uPaletteWidth');
-        if (paletteWidthLocation) gl.uniform1f(paletteWidthLocation, Math.max(1, meshCountryIds.length));
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, palette);
-      }
-      if (program === lineProgram) {
-        const theme = mapTheme();
-        gl.uniform4f(gl.getUniformLocation(program, 'uBorderColor'), theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha);
-      }
-      const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer, resources);
-      if (glVersion === 2) gl.bindVertexArray(vao);
-      const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
-      for (const offset of offsets) {
-        setViewUniforms(program, offset);
-        gl.drawElements(primitive, indexCount, gl.UNSIGNED_INT, 0);
-      }
-      if (glVersion === 2) gl.bindVertexArray(null);
-      else {
-        for (const location of webGl1Locations) if (location >= 0) gl.disableVertexAttribArray(location);
-      }
-    }
-
-    function uploadHydroPack(entry) {
-      if (!gl || !isWebGlRenderer() || entry.resources) return;
-      const meshData = entry.mesh;
-      if (!entry.uploadState) {
-        entry.uploadState = {
-          resources: {
-            riverSegmentCount: meshData.riverFeatureIds.length,
-            borderRiverSegmentCount: meshData.borderRiverFeatureIds.length,
-            lakeIndexCount: meshData.lakeIndices.length,
-          },
-          tasks: [
-            ['riverStartBuffer', meshData.riverStarts, gl.ARRAY_BUFFER, true], ['riverEndBuffer', meshData.riverEnds, gl.ARRAY_BUFFER, true],
-            ['riverFeatureBuffer', meshData.riverFeatureIds, gl.ARRAY_BUFFER, true], ['riverStartWidthBuffer', meshData.riverStartWidths, gl.ARRAY_BUFFER],
-            ['riverEndWidthBuffer', meshData.riverEndWidths, gl.ARRAY_BUFFER], ['borderRiverStartBuffer', meshData.borderRiverStarts, gl.ARRAY_BUFFER, true],
-            ['borderRiverEndBuffer', meshData.borderRiverEnds, gl.ARRAY_BUFFER, true], ['borderRiverFeatureBuffer', meshData.borderRiverFeatureIds, gl.ARRAY_BUFFER, true],
-            ['borderRiverStartWidthBuffer', meshData.borderRiverStartWidths, gl.ARRAY_BUFFER], ['borderRiverEndWidthBuffer', meshData.borderRiverEndWidths, gl.ARRAY_BUFFER],
-            ['lakePositionBuffer', meshData.lakePositions, gl.ARRAY_BUFFER, true], ['lakeFeatureBuffer', meshData.lakeFeatureIds, gl.ARRAY_BUFFER, true],
-            ['lakeIndexBuffer', meshData.lakeIndices, gl.ELEMENT_ARRAY_BUFFER],
-          ].map(([key, data, target, webGl1Float]) => ({ key, data, target, webGl1Float, offset: 0, buffer: null })),
-        };
-      }
-      const task = entry.uploadState.tasks[0];
-      if (task) {
-        const convertToFloat = task.webGl1Float && glVersion === 1 && !(task.data instanceof Float32Array);
-        const outputBytes = convertToFloat ? task.data.length * 4 : task.data.byteLength;
-        if (!task.buffer) {
-          task.buffer = gl.createBuffer();
-          gl.bindBuffer(task.target, task.buffer);
-          gl.bufferData(task.target, outputBytes, gl.STATIC_DRAW);
-          entry.uploadState.resources[task.key] = task.buffer;
-        } else {
-          gl.bindBuffer(task.target, task.buffer);
-        }
-        const byteBudget = 2 * 1024 * 1024;
-        if (convertToFloat) {
-          const start = Math.floor(task.offset / 4);
-          const count = Math.min(task.data.length - start, Math.floor(byteBudget / 4));
-          const chunk = Float32Array.from(task.data.subarray(start, start + count));
-          gl.bufferSubData(task.target, task.offset, chunk);
-          task.offset += chunk.byteLength;
-        } else {
-          const count = Math.min(outputBytes - task.offset, byteBudget);
-          const chunk = new Uint8Array(task.data.buffer, task.data.byteOffset + task.offset, count);
-          gl.bufferSubData(task.target, task.offset, chunk);
-          task.offset += count;
-        }
-        if (task.offset >= outputBytes) entry.uploadState.tasks.shift();
-      }
-      if (!entry.uploadState.tasks.length) {
-        entry.resources = entry.uploadState.resources;
-        entry.uploadState = null;
-      }
-    }
-
-    function deleteHydroPackResources(entry) {
-      if (!entry || !gl) return;
-      if (entry.uploadState?.resources) {
-        for (const buffer of Object.values(entry.uploadState.resources)) {
-          if (buffer && gl.isBuffer(buffer)) gl.deleteBuffer(buffer);
-        }
-      }
-      entry.uploadState = null;
-      if (!entry.resources) return;
-      for (const key of [
-        'riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverStartWidthBuffer', 'riverEndWidthBuffer',
-        'borderRiverStartBuffer', 'borderRiverEndBuffer', 'borderRiverFeatureBuffer', 'borderRiverStartWidthBuffer', 'borderRiverEndWidthBuffer',
-        'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer',
-      ]) {
-        if (entry.resources[key]) gl.deleteBuffer(entry.resources[key]);
-      }
-      entry.resources = null;
-    }
-
-    function updateHydroVisibility() {
-      if (!gl || !hydroVisibilityTexture || !hydroManifest || !hydroVisibilityDirty) return;
-      const count = Math.max(1, Number(hydroManifest.stats?.featureCount || 1));
-      hydroVisibilityWidth = Math.min(4096, Math.max(1, count));
-      hydroVisibilityHeight = Math.ceil(count / hydroVisibilityWidth);
-      const pixels = new Uint8Array(hydroVisibilityWidth * hydroVisibilityHeight * 4);
-      for (const [fidValue, feature] of state.hydroFeatureByFid?.entries?.() || []) {
-        const fid = Number(fidValue);
-        if (!Number.isInteger(fid) || fid < 0 || fid >= count || !isHydroFeatureVisible(feature)) continue;
-        const offset = fid * 4;
-        pixels[offset] = pixels[offset + 1] = pixels[offset + 2] = pixels[offset + 3] = 255;
-      }
-      gl.activeTexture(gl.TEXTURE2);
-      gl.bindTexture(gl.TEXTURE_2D, hydroVisibilityTexture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      const internalFormat = glVersion === 2 ? gl.RGBA8 : gl.RGBA;
-      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, hydroVisibilityWidth, hydroVisibilityHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-      hydroVisibilityDirty = false;
-    }
-
-    function bindLakeAttributes(program, resources) {
-      const coordLocation = glVersion === 2 ? 0 : gl.getAttribLocation(program, 'aCoord');
-      const featureLocation = glVersion === 2 ? 1 : gl.getAttribLocation(program, 'aCountry');
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources.lakePositionBuffer);
-      gl.enableVertexAttribArray(coordLocation);
-      if (glVersion === 2) gl.vertexAttribIPointer(coordLocation, 2, gl.INT, 0, 0);
-      else gl.vertexAttribPointer(coordLocation, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources.lakeFeatureBuffer);
-      gl.enableVertexAttribArray(featureLocation);
-      if (glVersion === 2) gl.vertexAttribIPointer(featureLocation, 1, gl.UNSIGNED_INT, 0, 0);
-      else gl.vertexAttribPointer(featureLocation, 1, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resources.lakeIndexBuffer);
-      return [coordLocation, featureLocation];
-    }
-
-    function setHydroUniforms(program, color) {
-      gl.useProgram(program);
-      gl.activeTexture(gl.TEXTURE2);
-      gl.bindTexture(gl.TEXTURE_2D, hydroVisibilityTexture);
-      gl.uniform1i(gl.getUniformLocation(program, 'uHydroVisibility'), 2);
-      const sizeLocation = gl.getUniformLocation(program, 'uHydroVisibilitySize');
-      if (glVersion === 2) gl.uniform2i(sizeLocation, hydroVisibilityWidth, hydroVisibilityHeight);
-      else gl.uniform2f(sizeLocation, hydroVisibilityWidth, hydroVisibilityHeight);
-      const colorLocation = gl.getUniformLocation(program, 'uHydroColor');
-      if (colorLocation && color) gl.uniform4fv(colorLocation, color);
-    }
-
-    function setInstanceDivisor(location, divisor) {
-      if (glVersion === 2) gl.vertexAttribDivisor(location, divisor);
-      else instancedExtension.vertexAttribDivisorANGLE(location, divisor);
-    }
-
-    function bindRiverAttributes(program, resources, borderAligned = false) {
-      const locations = glVersion === 2 ? [0, 1, 2, 3, 4, 5] : [
-        gl.getAttribLocation(program, 'aCorner'), gl.getAttribLocation(program, 'aStart'),
-        gl.getAttribLocation(program, 'aEnd'), gl.getAttribLocation(program, 'aCountry'),
-        gl.getAttribLocation(program, 'aStartWidth'), gl.getAttribLocation(program, 'aEndWidth'),
-      ];
-      const [corner, start, end, feature, startWidth, endWidth] = locations;
-      const prefix = borderAligned ? 'borderRiver' : 'river';
-      gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
-      gl.enableVertexAttribArray(corner);
-      gl.vertexAttribPointer(corner, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}StartBuffer`]);
-      gl.enableVertexAttribArray(start);
-      if (glVersion === 2) gl.vertexAttribIPointer(start, 2, gl.INT, 0, 0);
-      else gl.vertexAttribPointer(start, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}EndBuffer`]);
-      gl.enableVertexAttribArray(end);
-      if (glVersion === 2) gl.vertexAttribIPointer(end, 2, gl.INT, 0, 0);
-      else gl.vertexAttribPointer(end, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}FeatureBuffer`]);
-      gl.enableVertexAttribArray(feature);
-      if (glVersion === 2) gl.vertexAttribIPointer(feature, 1, gl.UNSIGNED_INT, 0, 0);
-      else gl.vertexAttribPointer(feature, 1, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}StartWidthBuffer`]);
-      gl.enableVertexAttribArray(startWidth);
-      gl.vertexAttribPointer(startWidth, 1, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, resources[`${prefix}EndWidthBuffer`]);
-      gl.enableVertexAttribArray(endWidth);
-      gl.vertexAttribPointer(endWidth, 1, gl.FLOAT, false, 0, 0);
-      setInstanceDivisor(corner, 0);
-      for (const location of [start, end, feature, startWidth, endWidth]) setInstanceDivisor(location, 1);
-      return locations;
-    }
-
-    function drawHydroEntry(program, entry, category, color = null, picking = false) {
-      const resources = entry.resources;
-      if (!resources) return;
-      const borderAligned = category === 'border-river';
-      const count = category === 'lake'
-        ? resources.lakeIndexCount
-        : (borderAligned ? resources.borderRiverSegmentCount : resources.riverSegmentCount);
-      if (!count) return;
-      setHydroUniforms(program, color);
-      const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources, borderAligned);
-      const widthBoostLocation = gl.getUniformLocation(program, 'uWidthBoost');
-      if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 : 0);
-      const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
-      for (const offset of offsets) {
-        setViewUniforms(program, offset);
-        if (category === 'lake') gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, 0);
-        else if (glVersion === 2) gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
-        else instancedExtension.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP, 0, 4, count);
-      }
-      if (category !== 'lake') for (const location of locations.slice(1)) setInstanceDivisor(location, 0);
-      for (const location of locations) gl.disableVertexAttribArray(location);
-      entry.lastUsed = performance.now();
-    }
-
-    function scheduleHydroUpload(entry) {
-      if (!entry || entry.resources || entry.uploadQueued) return;
-      entry.uploadQueued = true;
-      hydroUploadQueue.push(entry);
-      if (hydroUploadFrame) return;
-      const drain = () => {
-        hydroUploadFrame = 0;
-        const started = performance.now();
-        const next = hydroUploadQueue.shift();
-        if (next) {
-          next.uploadQueued = false;
-          uploadHydroPack(next);
-          if (next.resources) render(currentRenderRevision);
-          else scheduleHydroUpload(next);
-        }
-        if (hydroUploadQueue.length) {
-          hydroUploadFrame = requestAnimationFrame(drain);
-        }
-      };
-      hydroUploadFrame = requestAnimationFrame(drain);
-    }
-
-    function drawHydro(category, picking = false) {
-      if (!hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return;
-      updateHydroVisibility();
-      const program = category === 'river' || category === 'border-river'
-        ? (picking ? hydroLinePickProgram : hydroLineProgram)
-        : (picking ? hydroPickProgram : hydroFillProgram);
-      const rgb = hydroDisplayColor(category === 'lake' ? 'lake' : 'river', true);
-      const color = [...rgb, category === 'lake' ? 0.92 : 0.96];
-      for (const packId of hydroActivePackIds) {
-        const entry = hydroPacks.get(packId);
-        if (entry) drawHydroEntry(program, entry, category, color, picking);
-      }
-    }
-
-    function hydroVisibleTileSpecs() {
-      if (!hydroManifest?.stages?.length) return [];
-      const threshold = hydroVisibilityThreshold();
-      const flatScale = Math.max(1, flatProjection.scale());
-      const flatHalfLon = state.size.width / flatScale * 90 / Math.PI + 2;
-      const flatHalfLat = state.size.height / flatScale * 90 / Math.PI + 2;
-      const flatCenter = state.view.flatCenter || [0, 0];
-      const globeCenter = [-Number(state.view.globeRotation?.[0] || 0), -Number(state.view.globeRotation?.[1] || 0)];
-      const globeRadius = Math.asin(Math.min(1, Math.hypot(state.size.width, state.size.height) * 0.5 / Math.max(1, globeProjection.scale())));
-      const specs = [];
-      for (const stage of hydroManifest.stages) {
-        if (Number(stage.minZoom) > threshold + 1e-9) continue;
-        const tileLon = 360 / stage.columns;
-        const tileLat = 180 / stage.rows;
-        for (let y = 0; y < stage.rows; y += 1) {
-          const centerLat = 90 - (y + 0.5) * tileLat;
-          for (let x = 0; x < stage.columns; x += 1) {
-            const centerLon = -180 + (x + 0.5) * tileLon;
-            let visible;
-            if (state.projection === 'flat') {
-              const deltaLon = Math.abs((((centerLon - flatCenter[0]) + 540) % 360) - 180);
-              visible = deltaLon <= flatHalfLon + tileLon / 2 && Math.abs(centerLat - flatCenter[1]) <= flatHalfLat + tileLat / 2;
-            } else {
-              const tileRadius = Math.hypot(tileLon, tileLat) * Math.PI / 360;
-              visible = d3.geo.distance(globeCenter, [centerLon, centerLat]) <= globeRadius + tileRadius + 0.04;
-            }
-            if (visible) specs.push({ stage: Number(stage.id), x, y });
-          }
-        }
-      }
-      return specs;
-    }
-
-    function requestHydroView() {
-      if (!hydroWorker || !hydroWorkerReady || !hydroManifest) return;
-      const tiles = hydroVisibleTileSpecs();
-      const key = tiles.map(spec => `${spec.stage}/${spec.x}-${spec.y}`).join('|');
-      if (key === hydroViewKey) return;
-      hydroViewKey = key;
-      const message = { type: 'view', revision: ++hydroRequestRevision, tiles, mobile: isMobile() };
-      hydroPendingView = message;
-      hydroWorker.postMessage(message);
-    }
-
-    let hydroRenderFrame = 0;
-    function queueHydroRender() {
-      if (hydroRenderFrame) return;
-      hydroRenderFrame = requestAnimationFrame(() => {
-        hydroRenderFrame = 0;
-        render(currentRenderRevision);
-      });
-    }
-
-    function registerHydroDescriptors(descriptors) {
-      const logicalIds = new Set();
-      for (const row of descriptors || []) {
-        const logicalId = String(row.awId || row.logicalFid);
-        let aggregate = state.hydroFeatureCache.get(logicalId);
-        if (!aggregate) {
-          aggregate = {
-            type: 'Feature', id: logicalId, geometry: null,
-            properties: {
-              aw_id: logicalId, __logicalFid: Number(row.logicalFid),
-              category: row.category, layer_id: row.layerId,
-              name: row.name || '', name_ko: row.name || '', source: row.source || '',
-              system_id: row.systemId || '', mainstem_name_ko: row.mainstemNameKo || row.name || '', role: row.role || '',
-              source_id: row.sourceId || '', fragment_count: Number(row.fragmentCount || 1),
-              min_zoom: Number(row.minZoom ?? 99), stroke_width: Number(row.width || 1), pack_ids: [],
-            },
-            __awBounds: [Infinity, Infinity, -Infinity, -Infinity],
-          };
-        }
-        aggregate.properties.pack_ids = [...new Set([...(aggregate.properties.pack_ids || []), Number(row.packId)])];
-        aggregate.properties.min_zoom = Math.min(Number(aggregate.properties.min_zoom ?? 99), Number(row.minZoom ?? 99));
-        const bounds = (row.bounds || []).map(value => Number(value) / 1e6);
-        if (bounds.length === 4) {
-          aggregate.__awBounds = [
-            Math.min(aggregate.__awBounds[0], bounds[0]), Math.min(aggregate.__awBounds[1], bounds[1]),
-            Math.max(aggregate.__awBounds[2], bounds[2]), Math.max(aggregate.__awBounds[3], bounds[3]),
-          ];
-        }
-        const b = aggregate.__awBounds;
-        aggregate.__awCentroid = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
-        aggregate.__awRadius = Math.min(180, Math.hypot(b[2] - b[0], b[3] - b[1]) / 2);
-        state.hydroFeatureCache.set(logicalId, aggregate);
-        state.hydroFeatureByFid.set(Number(row.fid), aggregate);
-        logicalIds.add(logicalId);
-      }
-      if (logicalIds.size) hydroVisibilityDirty = true;
-    }
-
-    function aggregateHydroLogicalFeature(logicalId) {
-      const fragments = state.hydroFragmentsByLogicalId.get(logicalId);
-      if (!fragments?.size) {
-        state.hydroFragmentsByLogicalId.delete(logicalId);
-        state.hydroFeatureCache.delete(logicalId);
-        return null;
-      }
-      const ordered = [...fragments.values()].sort((left, right) => (
-        Number(left.properties?.fragment_index || 0) - Number(right.properties?.fragment_index || 0)
-      ));
-      const first = ordered[0];
-      let aggregate = first;
-      if (first.properties?.category === 'river') {
-        const parts = ordered.flatMap(feature => feature.geometry?.type === 'LineString' ? [feature.geometry.coordinates] : feature.geometry?.coordinates || []);
-        const widths = ordered.flatMap(feature => feature.properties?.stroke_widths || []);
-        const sourceIds = [...new Set(ordered.flatMap(feature => String(feature.properties?.source_id || '').split(',').filter(Boolean)))];
-        aggregate = {
-          type: 'Feature', id: logicalId,
-          properties: {
-            ...first.properties,
-            source_id: sourceIds.join(','),
-            stroke_widths: widths,
-            pack_ids: [...new Set(ordered.map(feature => Number(feature.properties?.pack_id)))],
-            fragment_count: Math.max(...ordered.map(feature => Number(feature.properties?.fragment_count || 1))),
-            loaded_fragment_count: ordered.length,
-            min_zoom: Math.min(...ordered.map(feature => Number(feature.properties?.min_zoom ?? 99))),
-          },
-          geometry: parts.length === 1 ? { type: 'LineString', coordinates: parts[0] } : { type: 'MultiLineString', coordinates: parts },
-        };
-      }
-      prepareHydroFeature(aggregate);
-      state.hydroFeatureCache.set(logicalId, aggregate);
-      for (const fragment of ordered) state.hydroFeatureByFid.set(Number(fragment.properties?.__fid), aggregate);
-      const sourceIds = new Set(String(aggregate.properties?.source_id || '').split(',').filter(Boolean));
-      const legacyHidden = Object.keys(state.physicalSettings.hiddenHydroIds || {}).find(id => (
-        state.physicalSettings.hiddenHydroIds[id] === true && id !== logicalId && sourceIds.has(String(id).split(':').pop())
-      ));
-      if (legacyHidden) state.physicalSettings.hiddenHydroIds[logicalId] = true;
-      return aggregate;
-    }
-
-    function registerHydroFragments(features) {
-      const logicalIds = new Set();
-      for (const fragment of features) {
-        const logicalId = String(fragment.properties?.aw_id || fragment.id);
-        if (!state.hydroFragmentsByLogicalId.has(logicalId)) state.hydroFragmentsByLogicalId.set(logicalId, new Map());
-        state.hydroFragmentsByLogicalId.get(logicalId).set(Number(fragment.properties?.__fid), fragment);
-        logicalIds.add(logicalId);
-      }
-      for (const logicalId of logicalIds) aggregateHydroLogicalFeature(logicalId);
-      if (logicalIds.size) hydroVisibilityDirty = true;
-    }
-
-    function unregisterHydroFragments(features) {
-      const logicalIds = new Set();
-      for (const fragment of features || []) {
-        const logicalId = String(fragment.properties?.aw_id || fragment.id);
-        state.hydroFragmentsByLogicalId.get(logicalId)?.delete(Number(fragment.properties?.__fid));
-        state.hydroFeatureByFid.delete(Number(fragment.properties?.__fid));
-        logicalIds.add(logicalId);
-      }
-      for (const logicalId of logicalIds) aggregateHydroLogicalFeature(logicalId);
-      if (logicalIds.size) hydroVisibilityDirty = true;
-    }
-
-    function loadHydroLogicalFeature(logicalFid) {
-      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('수계 로더가 준비되지 않았습니다.'));
-      const requestId = ++hydroFeatureRequestId;
-      return new Promise((resolve, reject) => {
-        hydroFeatureRequests.set(requestId, { resolve, reject });
-        hydroWorker.postMessage({ type: 'load-feature', requestId, logicalFid });
-      });
-    }
-
-    function retryHydroCache() {
-      hydroWorker?.postMessage({ type: 'retry-cache' });
-    }
-
-    function receiveHydroWorkerMessage(event) {
-      const message = event.data || {};
-      if (message.type === 'ready') {
-        hydroWorkerReady = true;
-        hydroViewKey = '';
-        requestHydroView();
-        return;
-      }
-      if (message.type === 'active') {
-        if (Number(message.revision || 0) < hydroAcceptedRevision) return;
-        hydroAcceptedRevision = Number(message.revision || hydroAcceptedRevision);
-        hydroActivePackIds = new Set(message.packIds || []);
-        pruneHydroCache();
-        queueHydroRender();
-        return;
-      }
-      if (message.type === 'pack') {
-        if (Number(message.revision || 0) < hydroAcceptedRevision) return;
-        const meshData = message.mesh || {};
-        const features = message.features || [];
-        const descriptors = message.descriptors || [];
-        const entry = {
-          id: Number(message.packId), features, descriptors, resources: null, uploadQueued: false, lastUsed: performance.now(),
-          mesh: {
-            riverStarts: new Int32Array(meshData.riverStarts || 0),
-            riverEnds: new Int32Array(meshData.riverEnds || 0),
-            riverFeatureIds: new Uint32Array(meshData.riverFeatureIds || 0),
-            riverStartWidths: new Float32Array(meshData.riverStartWidths || 0),
-            riverEndWidths: new Float32Array(meshData.riverEndWidths || 0),
-            borderRiverStarts: new Int32Array(meshData.borderRiverStarts || 0),
-            borderRiverEnds: new Int32Array(meshData.borderRiverEnds || 0),
-            borderRiverFeatureIds: new Uint32Array(meshData.borderRiverFeatureIds || 0),
-            borderRiverStartWidths: new Float32Array(meshData.borderRiverStartWidths || 0),
-            borderRiverEndWidths: new Float32Array(meshData.borderRiverEndWidths || 0),
-            lakePositions: new Int32Array(meshData.lakePositions || 0),
-            lakeFeatureIds: new Uint32Array(meshData.lakeFeatureIds || 0),
-            lakeIndices: new Uint32Array(meshData.lakeIndices || 0),
-          },
-        };
-        entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0);
-        hydroPacks.set(entry.id, entry);
-        if (features.length) registerHydroFragments(features);
-        else registerHydroDescriptors(descriptors);
-        if (isWebGlRenderer()) scheduleHydroUpload(entry);
-        pruneHydroCache();
-        return;
-      }
-      if (message.type === 'feature' || message.type === 'feature-error') {
-        const pending = hydroFeatureRequests.get(Number(message.requestId));
-        if (!pending) return;
-        hydroFeatureRequests.delete(Number(message.requestId));
-        if (message.type === 'feature-error') pending.reject(new Error(message.message || '수계 전체 형상을 불러오지 못했습니다.'));
-        else pending.resolve(message.feature ? prepareHydroFeature(message.feature) : null);
-        return;
-      }
-      if (message.type === 'cache-progress') {
-        state.physicalLoadState.hydroCache = 'loading';
-        state.physicalLoadState.hydroCachePercent = Number(message.percent || 0);
-        return;
-      }
-      if (message.type === 'cache-complete') {
-        state.physicalLoadState.hydroCache = 'ready';
-        state.physicalLoadState.hydroCachePercent = 100;
-        if (!hydroCacheCompletionNotified) {
-          hydroCacheCompletionNotified = true;
-          setActionStatus('전 세계 수계 데이터를 오프라인 저장소에 준비했습니다.', 'success', 3200);
-        }
-        return;
-      }
-      if (message.type === 'cache-unavailable') {
-        state.physicalLoadState.hydroCache = 'error';
-        console.warn('Hydro persistent cache unavailable', message.message);
-        setActionStatus('전 세계 수계 자료를 오프라인 저장소에 준비하지 못했습니다. 현재 화면은 계속 사용할 수 있으며, 강 또는 호수 레이어를 선택하면 다시 시도합니다.', 'error', 0);
-        return;
-      }
-      if (message.type === 'error') {
-        console.warn('Hydro tile worker failed', message.message);
-        reportOperationError(new Error(message.message || ''), '현재 화면의 수계 데이터를 불러오지 못했습니다. 지도를 조금 이동하거나 다시 시도하세요.', 'AW-WATER-003', 0);
-      }
-    }
-
-    function pruneHydroCache() {
-      const limit = (isMobile() ? 48 : 96) * 1024 * 1024;
-      let total = [...hydroPacks.values()].reduce((sum, entry) => sum + entry.byteLength, 0);
-      if (total <= limit) return;
-      const selectedFeature = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
-      const selectedPacks = new Set(selectedFeature?.properties?.pack_ids || [selectedFeature?.properties?.pack_id].filter(Number.isFinite));
-      const candidates = [...hydroPacks.values()]
-        .filter(entry => !hydroActivePackIds.has(entry.id) && !selectedPacks.has(entry.id))
-        .sort((left, right) => left.lastUsed - right.lastUsed);
-      const released = [];
-      for (const entry of candidates) {
-        if (total <= limit) break;
-        deleteHydroPackResources(entry);
-        hydroPacks.delete(entry.id);
-        unregisterHydroFragments(entry.features);
-        total -= entry.byteLength;
-        released.push(entry.id);
-      }
-      if (released.length) hydroWorker?.postMessage({ type: 'release', packIds: released });
-    }
-
-    function setHydroManifest(nextManifest, sourceUrl) {
-      hydroManifest = nextManifest?.stages?.length ? nextManifest : null;
-      hydroManifestUrl = sourceUrl ? new URL(sourceUrl) : null;
-      hydroWorker?.terminate();
-      hydroWorker = null;
-      hydroWorkerReady = false;
-      hydroViewKey = '';
-      hydroAcceptedRevision = 0;
-      hydroActivePackIds.clear();
-      hydroUploadQueue.length = 0;
-      if (hydroUploadFrame) cancelAnimationFrame(hydroUploadFrame);
-      hydroUploadFrame = 0;
-      hydroVisibilityDirty = true;
-      for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
-      hydroPacks.clear();
-      for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('수계 로더가 다시 시작되었습니다.'));
-      hydroFeatureRequests.clear();
-      state.hydroFragmentsByLogicalId = new Map();
-      if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') return;
-      hydroWorker = new Worker(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'atlaswright-hydro-tiles' });
-      hydroWorker.onmessage = receiveHydroWorkerMessage;
-      hydroWorker.onerror = event => receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '수계 Worker 실행 오류' } });
-      const hydroRevision = `${ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
-      hydroWorker.postMessage({
-        type: 'init', manifest: hydroManifest, baseUrl: new URL('./', hydroManifestUrl).href,
-        assetRevision: hydroRevision, includeGeometry: rendererMode === 'canvas2d',
-      });
-      connectHydroCanvasWorkers();
-    }
-
-    function setHydroInteractionActive(active) {
-      hydroWorker?.postMessage({ type: 'interaction', active: active === true });
-    }
-
-    function invalidateHydroVisibility() {
-      hydroVisibilityDirty = true;
-      queueHydroRender();
-    }
-
-    function terrainLevelForView() {
-      if (!terrainManifest?.levels?.length) return null;
-      const scale = activeProjection().scale();
-      const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
-      const desiredWidth = Math.max(1, 2 * PI * scale * dpr);
-      return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
-        || terrainManifest.levels[terrainManifest.levels.length - 1];
-    }
-
-    function terrainTileSpec(level, column, row) {
-      const x0 = column * level.tileSize;
-      const y0 = row * level.tileSize;
-      const x1 = Math.min(level.width, x0 + level.tileSize);
-      const y1 = Math.min(level.height, y0 + level.tileSize);
-      return {
-        key: `${level.id}/${column}-${row}`,
-        level: level.id,
-        column,
-        row,
-        pixelWidth: x1 - x0,
-        pixelHeight: y1 - y0,
-        bounds: [
-          -180 + x0 / level.width * 360,
-          90 - y0 / level.height * 180,
-          -180 + x1 / level.width * 360,
-          90 - y1 / level.height * 180,
-        ],
-      };
-    }
-
-    function visibleTerrainTileSpecs(level, includeAll = false) {
-      const specs = [];
-      const projection = activeProjection();
-      const scale = projection.scale();
-      const flatHalfLon = cssWidth / Math.max(1, scale) * 90 / PI;
-      const flatHalfLat = cssHeight / Math.max(1, scale) * 90 / PI;
-      const globeCenter = [-Number(state.view.globeRotation?.[0] || 0), -Number(state.view.globeRotation?.[1] || 0)];
-      const globeRadius = Math.asin(Math.min(1, Math.hypot(cssWidth, cssHeight) * 0.5 / Math.max(1, scale)));
-      for (let row = 0; row < level.rows; row += 1) {
-        for (let column = 0; column < level.columns; column += 1) {
-          const spec = terrainTileSpec(level, column, row);
-          if (includeAll) {
-            specs.push(spec);
-            continue;
-          }
-          const [west, north, east, south] = spec.bounds;
-          const center = [(west + east) / 2, (north + south) / 2];
-          const halfLon = (east - west) / 2;
-          const halfLat = (north - south) / 2;
-          if (state.projection === 'flat') {
-            const deltaLon = Math.abs((((center[0] - state.view.flatCenter[0]) + 540) % 360) - 180);
-            const deltaLat = Math.abs(center[1] - state.view.flatCenter[1]);
-            if (deltaLon <= flatHalfLon + halfLon + 2 && deltaLat <= flatHalfLat + halfLat + 2) specs.push(spec);
-          } else {
-            const padding = Math.hypot(halfLon, halfLat) * PI / 180;
-            if (d3.geo.distance(globeCenter, center) <= globeRadius + padding + 0.04) specs.push(spec);
-          }
-        }
-      }
-      return specs;
-    }
-
-    function terrainTileUrl(spec) {
-      const relative = terrainManifest.urlTemplate
-        .replace('{level}', String(spec.level))
-        .replace('{column}', String(spec.column))
-        .replace('{row}', String(spec.row));
-      const url = new URL(relative, PHYSICAL_DATA_BASE_URL);
-      url.searchParams.set('v', terrainManifest.version || APP_VERSION);
-      return url;
-    }
-
-    async function requestTerrainTile(spec) {
-      if (!gl || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key) || terrainTileQueuedKeys.has(spec.key)) return;
-      const request = (async () => {
-        const response = await fetch(terrainTileUrl(spec));
-        if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
-        const blob = await response.blob();
-        let bitmap;
-        try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
-        catch (_) { bitmap = await createImageBitmap(blob); }
-        if (!gl || !isWebGlRenderer()) {
-          bitmap.close?.();
-          return;
-        }
-        terrainTileQueuedKeys.add(spec.key);
-        terrainUploadQueue.push({ spec, bitmap });
-        scheduleTerrainUpload();
-      })().catch(error => {
-        console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
-      }).finally(() => terrainTileRequests.delete(spec.key));
-      terrainTileRequests.set(spec.key, request);
-    }
-
-    function scheduleTerrainUpload() {
-      if (terrainUploadFrame || !terrainUploadQueue.length) return;
-      terrainUploadFrame = requestAnimationFrame(() => {
-        terrainUploadFrame = 0;
-        const next = terrainUploadQueue.shift();
-        if (!next) return;
-        const { spec, bitmap } = next;
-        terrainTileQueuedKeys.delete(spec.key);
-        if (!gl || !isWebGlRenderer()) {
-          bitmap.close?.();
-          scheduleTerrainUpload();
-          return;
-        }
-        const texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
-        bitmap.close?.();
-        terrainTiles.set(spec.key, { texture, lastUsed: performance.now() });
-        while (terrainTiles.size > 96) {
-          let oldest = null;
-          for (const item of terrainTiles.entries()) if (!oldest || item[1].lastUsed < oldest[1].lastUsed) oldest = item;
-          if (!oldest || oldest[0] === spec.key) break;
-          gl.deleteTexture(oldest[1].texture);
-          terrainTiles.delete(oldest[0]);
-        }
-        scheduleViewRender();
-        scheduleTerrainUpload();
-      });
-    }
-
-    function terrainGridMesh(spec) {
-      const spanLon = Math.abs(spec.bounds[2] - spec.bounds[0]);
-      const spanLat = Math.abs(spec.bounds[1] - spec.bounds[3]);
-      const stepsX = Math.max(1, Math.ceil(spanLon / 0.499));
-      const stepsY = Math.max(1, Math.ceil(spanLat / 0.499));
-      const key = `${stepsX}x${stepsY}`;
-      if (terrainGridMeshes.has(key)) return terrainGridMeshes.get(key);
-      const vertices = new Float32Array((stepsX + 1) * (stepsY + 1) * 2);
-      let vertexOffset = 0;
-      for (let y = 0; y <= stepsY; y += 1) {
-        for (let x = 0; x <= stepsX; x += 1) {
-          vertices[vertexOffset++] = x / stepsX;
-          vertices[vertexOffset++] = y / stepsY;
-        }
-      }
-      const indices = new Uint32Array(stepsX * stepsY * 6);
-      let indexOffset = 0;
-      for (let y = 0; y < stepsY; y += 1) {
-        for (let x = 0; x < stepsX; x += 1) {
-          const a = y * (stepsX + 1) + x;
-          const b = a + 1;
-          const c = a + stepsX + 1;
-          const d = c + 1;
-          indices[indexOffset++] = a; indices[indexOffset++] = c; indices[indexOffset++] = b;
-          indices[indexOffset++] = b; indices[indexOffset++] = c; indices[indexOffset++] = d;
-        }
-      }
-      const vertexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-      const indexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-      const meshEntry = { vertexBuffer, indexBuffer, indexCount: indices.length };
-      terrainGridMeshes.set(key, meshEntry);
-      return meshEntry;
-    }
-
-    function drawTerrainTile(spec) {
-      const tile = terrainTiles.get(spec.key);
-      if (!tile || !terrainProgram) return false;
-      tile.lastUsed = performance.now();
-      const grid = terrainGridMesh(spec);
-      gl.useProgram(terrainProgram);
-      const gridLocation = glVersion === 2 ? 0 : gl.getAttribLocation(terrainProgram, 'aGrid');
-      gl.bindBuffer(gl.ARRAY_BUFFER, grid.vertexBuffer);
-      gl.enableVertexAttribArray(gridLocation);
-      gl.vertexAttribPointer(gridLocation, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, grid.indexBuffer);
-      gl.activeTexture(gl.TEXTURE1);
-      gl.bindTexture(gl.TEXTURE_2D, tile.texture);
-      gl.uniform1i(gl.getUniformLocation(terrainProgram, 'uTerrain'), 1);
-      const [west, north, east, south] = spec.bounds;
-      gl.uniform4f(gl.getUniformLocation(terrainProgram, 'uGeoBounds'), west, north, east, south);
-      const gutter = Number(terrainManifest.gutter || 0);
-      const u0 = gutter / (spec.pixelWidth + gutter * 2);
-      const v0 = gutter / (spec.pixelHeight + gutter * 2);
-      const u1 = (gutter + spec.pixelWidth) / (spec.pixelWidth + gutter * 2);
-      const v1 = (gutter + spec.pixelHeight) / (spec.pixelHeight + gutter * 2);
-      gl.uniform4f(gl.getUniformLocation(terrainProgram, 'uUvBounds'), u0, v0, u1, v1);
-      gl.uniform1f(gl.getUniformLocation(terrainProgram, 'uPhysicalStyle'), state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
-      gl.uniform1f(gl.getUniformLocation(terrainProgram, 'uDarkTheme'), systemTheme === 'dark' ? 1 : 0);
-      const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
-      for (const offset of offsets) {
-        setViewUniforms(terrainProgram, offset);
-        gl.drawElements(gl.TRIANGLES, grid.indexCount, gl.UNSIGNED_INT, 0);
-      }
-      gl.disableVertexAttribArray(gridLocation);
-      return true;
-    }
-
-    function renderTerrain() {
-      if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return;
-      const baseLevel = terrainManifest.levels[0];
-      const targetLevel = terrainLevelForView() || baseLevel;
-      terrainLastLevel = Number(targetLevel.id);
-      const baseSpecs = visibleTerrainTileSpecs(baseLevel, true);
-      const targetSpecs = Number(targetLevel.id) === Number(baseLevel.id) ? [] : visibleTerrainTileSpecs(targetLevel);
-      for (const spec of [...baseSpecs, ...targetSpecs]) requestTerrainTile(spec);
-      for (const spec of baseSpecs) drawTerrainTile(spec);
-      for (const spec of targetSpecs) drawTerrainTile(spec);
-    }
-
-    function renderWebGl() {
-      if (!gl || !mesh) return;
-      resize();
-      requestHydroView();
-      const started = performance.now();
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.viewport(0, 0, pixelWidth, pixelHeight);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clearStencil(0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-      gl.disable(gl.BLEND);
-      const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
-      if (state.physicalSettings.terrainVisible && state.physicalSettings.terrainStyle !== 'physical') {
-        gl.enable(gl.STENCIL_TEST);
-        gl.stencilMask(0xff);
-        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-        gl.colorMask(false, false, false, false);
-        drawProgram(landMaskProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(landMaskProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture);
-        gl.colorMask(true, true, true, true);
-        gl.stencilMask(0x00);
-        gl.stencilFunc(gl.EQUAL, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-        renderTerrain();
-        gl.disable(gl.STENCIL_TEST);
-        gl.stencilMask(0xff);
-      } else {
-        renderTerrain();
-      }
-      updatePalette();
-      gl.enable(gl.BLEND);
-      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-      if (state.layerVisibility.countries) {
-        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture);
-      }
-      drawHydro('lake');
-      drawHydro('river');
-      if (state.layerVisibility.countries) {
-        drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
-        if (overrideMesh?.lineIndices?.length) drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture);
-      }
-      drawHydro('border-river');
-      gl.flush();
-      displayedRenderRevision = currentRenderRevision;
-      frameTimes.push(performance.now() - started);
-      if (frameTimes.length > 240) frameTimes.shift();
-      window.__ATLASWRIGHT_GPU_METRICS__ = getStats();
-    }
-
-    function renderCanvasFallback() {
-      if (!ctx2d || !canvas) return;
-      resize();
-      const dpr = pixelWidth / cssWidth;
-      ctx2d.setTransform(1, 0, 0, 1, 0, 0);
-      ctx2d.clearRect(0, 0, pixelWidth, pixelHeight);
-      ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (!state.layerVisibility.countries) return;
-      const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
-      const theme = mapTheme();
-      ctx2d.lineJoin = 'round';
-      ctx2d.lineWidth = 0.72;
-      for (const feature of state.countriesData?.features || []) {
-        if (!isLayerItemVisible('countries', feature.properties?.editor_id || '')) continue;
-        ctx2d.beginPath();
-        canvasPath(feature);
-        ctx2d.globalAlpha = theme.fillAlpha;
-        ctx2d.fillStyle = countryColor(feature);
-        ctx2d.fill();
-        ctx2d.beginPath();
-        canvasPath(countryOutlineFeature(feature));
-        ctx2d.globalAlpha = theme.borderAlpha;
-        ctx2d.strokeStyle = theme.border;
-        ctx2d.stroke();
-      }
-      ctx2d.globalAlpha = 1;
-      displayedRenderRevision = currentRenderRevision;
-    }
-
-    function canvasWorkerRenderMessage(type = 'render', revision = currentRenderRevision) {
-      const colors = {};
-      for (const feature of state.countriesData?.features || []) {
-        colors[String(feature.properties?.editor_id || feature.properties?.iso_a3 || '')] = countryColor(feature);
-      }
-      return {
-        type,
-        width: Math.max(1, state.size.width),
-        height: Math.max(1, state.size.height),
-        dpr: Math.min(3, Math.max(1, window.devicePixelRatio || 1)),
-        projection: state.projection,
-        view: deepClone(state.view),
-        revision: Number(revision || 0),
-        visible: !!state.layerVisibility.countries,
-        hydroVisible: !!state.layerVisibility.drawings,
-        hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
-        colors,
-        theme: mapTheme(),
-        physicalSettings: deepClone(state.physicalSettings),
-        darkTheme: systemTheme === 'dark',
-        terrainManifestUrl: new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL).href,
-      };
-    }
-
-    function postCanvasWorkerFrame(message) {
-      if (!canvasWorker || !canvasWorkerReady) {
-        canvasWorkerPendingMessage = message;
-        return;
-      }
-      canvasWorkerBusy = true;
-      canvasWorker.postMessage(message);
-    }
-
-    function renderCanvasWorker(revision = currentRenderRevision) {
-      if (!canvasWorker) return;
-      resize();
-      const message = canvasWorkerRenderMessage('render', revision);
-      canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
-      if (!canvasWorkerReady || canvasWorkerBusy) {
-        canvasWorkerPendingMessage = message;
-        return;
-      }
-      postCanvasWorkerFrame(message);
-    }
-
-    function render(revision = currentRenderRevision) {
-      currentRenderRevision = Math.max(currentRenderRevision, Number(revision || 0));
-      requestHydroView();
-      if (isWebGlRenderer()) renderWebGl();
-      else if (rendererMode === 'canvas-worker') renderCanvasWorker(currentRenderRevision);
-      else if (rendererMode === 'canvas2d') renderCanvasFallback();
-    }
-
-    function prioritizeLatest() {
-      if (rendererMode !== 'canvas-worker' || !canvasWorker) return;
-      const message = canvasWorkerRenderMessage('render', currentRenderRevision);
-      canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
-      if (!canvasWorkerReady || canvasWorkerBusy) {
-        if (!canvasWorkerPendingMessage || canvasWorkerPendingMessage.revision <= message.revision) {
-          canvasWorkerPendingMessage = message;
-        }
-        return;
-      }
-      postCanvasWorkerFrame(message);
-    }
-
-    function failCanvasWorker(message) {
-      console.warn('Canvas worker failed', message);
-      canvasWorker?.terminate();
-      canvasWorker = null;
-      canvasWorkerReady = false;
-      canvasWorkerBusy = false;
-      canvasWorkerPendingMessage = null;
-      for (const pending of canvasHydroPickRequests.values()) pending.resolve(null);
-      canvasHydroPickRequests.clear();
-      replaceCanvas();
-      rendererMode = 'canvas2d';
-      resize();
-      ctx2d = canvas.getContext('2d', { alpha: true });
-      if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
-      $('engineStatus').textContent = `Canvas 무손실 대체 · ${fallbackReason}`;
-      updateRendererStatus('Canvas · 무손실 대체', fallbackReason);
-      setActionStatus(`무손실 Canvas 렌더러로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
-      if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
-      renderCanvasFallback();
-    }
-
-    function receiveCanvasWorkerMessage(event) {
-      const message = event.data || {};
-      if (message.type === 'ready') {
-        canvasWorkerReady = true;
-        const pending = canvasWorkerPendingMessage || canvasWorkerRenderMessage('render', currentRenderRevision);
-        canvasWorkerPendingMessage = null;
-        postCanvasWorkerFrame(pending);
-        return;
-      }
-      if (message.type === 'terrain-ready') {
-        renderCanvasWorker(currentRenderRevision);
-        return;
-      }
-      if (message.type === 'terrain-warning') {
-        console.warn('Canvas 지형 타일을 불러오지 못했습니다.', message.message || '알 수 없는 오류');
-        return;
-      }
-      if (message.type === 'data-ready') {
-        for (const id of message.ids || []) state.pendingCountryRenderIds.delete(String(id));
-        renderViewFrame();
-        return;
-      }
-      if (message.type === 'hydro-pick') {
-        const pending = canvasHydroPickRequests.get(Number(message.requestId));
-        if (pending) {
-          canvasHydroPickRequests.delete(Number(message.requestId));
-          pending.resolve(Number.isFinite(Number(message.fid)) ? state.hydroFeatureByFid.get(Number(message.fid)) || null : null);
-        }
-        return;
-      }
-      if (message.type === 'error') {
-        failCanvasWorker(message.message || 'Canvas Worker 렌더링 오류');
-        return;
-      }
-      if (message.type !== 'frame') return;
-      canvasWorkerBusy = false;
-      const revision = Number(message.revision || 0);
-      const canDisplay = revision >= canvasWorkerDisplayedRevision;
-      if (canDisplay && message.bitmap) {
-        if (canvasWorkerBitmapContext) {
-          canvasWorkerBitmapContext.transferFromImageBitmap(message.bitmap);
-        } else if (canvasWorker2dContext) {
-          canvasWorker2dContext.setTransform(1, 0, 0, 1, 0, 0);
-          canvasWorker2dContext.clearRect(0, 0, canvas.width, canvas.height);
-          canvasWorker2dContext.drawImage(message.bitmap, 0, 0, canvas.width, canvas.height);
-          message.bitmap.close?.();
-        }
-        canvasWorkerDisplayedRevision = revision;
-        displayedRenderRevision = revision;
-      } else {
-        message.bitmap?.close?.();
-      }
-      const pending = canvasWorkerPendingMessage;
-      canvasWorkerPendingMessage = null;
-      if (pending) postCanvasWorkerFrame(pending);
-    }
-
-    function activateCanvasFallback(reason) {
-      const rawReason = String(reason || '');
-      if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[AW-GPU-005]', rawReason);
-      fallbackReason = isSafeKoreanErrorMessage({ message: rawReason }) ? rawReason : 'GPU 렌더러를 사용할 수 없습니다.';
-      clearTimeout(webglRecoveryTimer);
-      webglContextLost = false;
-      canvasWorker?.terminate();
-      canvasWorker = null;
-      canvasWorkerReady = false;
-      canvasWorkerBusy = false;
-      canvasWorkerPendingMessage = null;
-      if (canvasWorkerUrl) URL.revokeObjectURL(canvasWorkerUrl);
-      canvasWorkerUrl = null;
-      if (canvas) replaceCanvas();
-      if (typeof Worker === 'function' && typeof OffscreenCanvas === 'function') {
-        try {
-          rendererMode = 'canvas-worker';
-          resize();
-          const canvasRuntimeUrl = runtimeAssetUrl('workers/canvas-render-worker.js');
-          canvasRuntimeUrl.searchParams.set('physical', '1');
-          canvasWorker = new Worker(canvasRuntimeUrl, {
-            name: 'atlaswright-canvas-renderer',
-          });
-          canvasWorkerReady = false;
-          canvasWorkerBusy = false;
-          canvasWorkerPendingMessage = canvasWorkerRenderMessage('render', currentRenderRevision);
-          canvasWorkerLatestRequestedRevision = currentRenderRevision;
-          canvasWorkerDisplayedRevision = 0;
-          canvasWorkerBitmapContext = canvas.getContext('bitmaprenderer');
-          if (!canvasWorkerBitmapContext) canvasWorker2dContext = canvas.getContext('2d', { alpha: true });
-          if (!canvasWorkerBitmapContext && !canvasWorker2dContext) throw new Error('Canvas 표시 컨텍스트를 만들 수 없습니다.');
-          const initMessage = canvasWorkerRenderMessage('init');
-          initMessage.features = state.countriesData?.features || [];
-          canvasWorker.postMessage(initMessage);
-          canvasWorker.onmessage = receiveCanvasWorkerMessage;
-          canvasWorker.onerror = event => failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
-          if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
-          else connectHydroCanvasWorkers();
-          $('engineStatus').textContent = `Canvas Worker 무손실 · ${fallbackReason}`;
-          updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
-          setActionStatus(`무손실 Canvas Worker로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
-          return;
-        } catch (error) {
-          console.warn('Canvas worker unavailable', error);
-          canvasWorker?.terminate();
-          canvasWorker = null;
-          replaceCanvas();
-        }
-      }
-      rendererMode = 'canvas2d';
-      ctx2d = canvas.getContext('2d', { alpha: true });
-      if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
-      $('engineStatus').textContent = `Canvas 무손실 대체 · ${fallbackReason}`;
-      updateRendererStatus('Canvas · 무손실 대체', fallbackReason);
-      setActionStatus('GPU를 사용할 수 없어 무손실 Canvas 렌더러로 전환했습니다.', 'working', 4200);
-      if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
-      renderCanvasFallback();
-    }
-
-    function ensurePickTarget() {
-      if (pickFramebuffer && pickTexture) return;
-      pickFramebuffer = gl.createFramebuffer();
-      pickTexture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, pickTexture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      const internalFormat = glVersion === 2 ? gl.RGBA8 : gl.RGBA;
-      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, pixelWidth, pixelHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0);
-      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('GPU 선택 버퍼 생성 실패');
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-
-    function pick(screenPoint) {
-      if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.countries) return null;
-      resize();
-      try { ensurePickTarget(); } catch (_) { return null; }
-      gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
-      gl.viewport(0, 0, pixelWidth, pixelHeight);
-      gl.disable(gl.BLEND);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      drawProgram(pickProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
-      if (overrideMesh?.triangleIndices?.length) {
-        drawProgram(
-          pickProgram,
-          overrideFillVao,
-          overrideFillIndexBuffer,
-          overrideMesh.triangleIndices.length,
-          gl.TRIANGLES,
-          { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer },
-          overridePaletteTexture,
-        );
-      }
-      const dpr = pixelWidth / cssWidth;
-      const x = Math.max(0, Math.min(pixelWidth - 1, Math.round(screenPoint[0] * dpr)));
-      const y = Math.max(0, Math.min(pixelHeight - 1, Math.round(pixelHeight - 1 - screenPoint[1] * dpr)));
-      const pixel = new Uint8Array(4);
-      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-      gl.enable(gl.BLEND);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      const index = (pixel[0] | (pixel[1] << 8) | (pixel[2] << 16)) - 1;
-      return index >= 0 ? meshCountryIds[index] || null : null;
-    }
-
-    function pickHydro(screenPoint) {
-      if (!isWebGlRenderer() || !gl || !hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return null;
-      resize();
-      try { ensurePickTarget(); } catch (_) { return null; }
-      gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
-      gl.viewport(0, 0, pixelWidth, pixelHeight);
-      gl.disable(gl.BLEND);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      drawHydro('lake', true);
-      drawHydro('river', true);
-      drawHydro('border-river', true);
-      const dpr = pixelWidth / cssWidth;
-      const x = Math.max(0, Math.min(pixelWidth - 1, Math.round(screenPoint[0] * dpr)));
-      const y = Math.max(0, Math.min(pixelHeight - 1, Math.round(pixelHeight - 1 - screenPoint[1] * dpr)));
-      const pixel = new Uint8Array(4);
-      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-      gl.enable(gl.BLEND);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      const fid = (pixel[0] | (pixel[1] << 8) | (pixel[2] << 16)) - 1;
-      return fid >= 0 ? state.hydroFeatureByFid.get(fid) || null : null;
-    }
-
-    function pickHydroAsync(screenPoint) {
-      if (rendererMode !== 'canvas-worker' || !canvasWorker || !canvasWorkerReady) return Promise.resolve(null);
-      const requestId = ++canvasHydroPickRequestId;
-      return new Promise(resolve => {
-        canvasHydroPickRequests.set(requestId, { resolve });
-        canvasWorker.postMessage({ type: 'hydro-pick', requestId, point: screenPoint });
-        setTimeout(() => {
-          const pending = canvasHydroPickRequests.get(requestId);
-          if (!pending) return;
-          canvasHydroPickRequests.delete(requestId);
-          pending.resolve(null);
-        }, 900);
-      });
-    }
-
-    async function initialize() {
-      if (forcedRenderer === 'canvas') {
-        activateCanvasFallback('강제 Canvas 테스트');
-        return false;
-      }
-      let decoded = null;
-      const failures = [];
-      const versions = forcedRenderer === 'webgl2' ? [2] : forcedRenderer === 'webgl1' ? [1] : [2, 1];
-      for (let index = 0; index < versions.length; index += 1) {
-        const version = versions[index];
-        if (index > 0 || gl) replaceCanvas();
-        try {
-          initWebGl(version);
-          $('engineStatus').textContent = `${rendererName()} · 원본 메시를 준비하는 중입니다.`;
-          updateRendererStatus(`${rendererName()} · GPU를 준비하는 중입니다.`);
-          if (!decoded) decoded = await decodeBuiltInMesh();
-          setMesh(decoded.mesh, decoded.ids);
-          if (isWebGlRenderer()) {
-            $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
-            updateRendererStatus(`${rendererName()} · GPU 실시간`);
-            return true;
-          }
-        } catch (error) {
-          const message = error?.message || String(error);
-          failures.push(`${version === 2 ? 'WebGL2' : 'WebGL1'}: ${message}`);
-          console.warn(`${version === 2 ? 'WebGL2' : 'WebGL1'} renderer unavailable`, error);
-        }
-      }
-      if (gl) replaceCanvas();
-      activateCanvasFallback(failures.join(' / ') || 'WebGL을 사용할 수 없습니다.');
-      return false;
-    }
-
-    function setTerrainManifest(manifest) {
-      terrainManifest = manifest?.levels?.length ? manifest : null;
-      terrainLastLevel = -1;
-      if (terrainManifest && isWebGlRenderer()) {
-        for (const spec of visibleTerrainTileSpecs(terrainManifest.levels[0], true)) requestTerrainTile(spec);
-      }
-      render(currentRenderRevision);
-    }
-
-    function getStats() {
-      const sorted = [...frameTimes].sort((a, b) => a - b);
-      const p95 = sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] : 0;
-      return {
-        renderer: rendererMode,
-        countries: meshCountryIds.length,
-        renderVertices: mesh?.countryIndices?.length || 0,
-        triangleCount: (mesh?.triangleIndices?.length || 0) / 3,
-        lineSegmentCount: (mesh?.lineIndices?.length || 0) / 2,
-        p95CpuSubmitMs: Number(p95.toFixed(3)),
-        viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
-        canvasBackingPixels: [pixelWidth, pixelHeight],
-        layoutMismatchCssPx: Number(layoutMismatch().toFixed(3)),
-        requestedRevision: currentRenderRevision,
-        displayedRevision: displayedRenderRevision,
-        canvasWorkerBusy,
-        canvasWorkerHasPendingFrame: !!canvasWorkerPendingMessage,
-        webglContextLost,
-        webGlVersion: glVersion || null,
-        forcedRenderer: forcedRenderer || null,
-        fallbackReason,
-        terrainLevel: terrainLastLevel,
-        terrainTilesLoaded: terrainTiles.size,
-        terrainTilesLoading: terrainTileRequests.size,
-        hydroFeaturesLoaded: state.hydroFeatureCache?.size || 0,
-        hydroPacksLoaded: hydroPacks.size,
-        hydroPacksActive: hydroActivePackIds.size,
-        hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0),
-      };
-    }
-
-    return {
-      attach, initialize, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
-      rebuildFromCountries, applyCountryPatch, compactCountryOverrides, markCountryMeshStale, prioritizeLatest, getStats, setTerrainManifest,
-      setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
-      setHydroInteractionActive, setInteractionActive: setHydroInteractionActive, renderViewFrame: render,
-      invalidateHydroVisibility,
-    };
-  })();
+  const gpuMapRenderer = createGpuMapRenderer({
+    $,
+    APP_VERSION,
+    ASSET_REVISION,
+    PHYSICAL_DATA_BASE_URL,
+    activeProjection,
+    countryColor,
+    countryFeatureById,
+    countryOutlineFeature,
+    d3,
+    deepClone,
+    defaultCountryColor,
+    flatProjection,
+    getSystemTheme: () => systemTheme,
+    globeProjection,
+    hydroDisplayColor,
+    hydroFeatureById,
+    hydroVisibilityThreshold,
+    isCountryVisibleById,
+    isHydroFeatureVisible,
+    isLayerItemVisible,
+    isMobile,
+    isSafeKoreanErrorMessage,
+    mapTheme,
+    mapWorkScheduler,
+    prepareHydroFeature,
+    queueMapResize,
+    renderViewFrame,
+    reportOperationError,
+    runtimeAssetUrl,
+    scheduleGpuMeshRebuild,
+    scheduleViewRender,
+    setActionStatus,
+    state,
+  });
 
   let gpuRebuildTimer = null;
   function scheduleGpuMeshRebuild(delay = 80) {
@@ -3394,15 +859,6 @@
       event.stopPropagation?.();
       return true;
     }
-    if (pendingMapClickRevision !== null) {
-      const staleInteraction = pendingMapClickRevision !== editInteractionRevision;
-      pendingMapClickRevision = null;
-      if (staleInteraction) {
-        event?.preventDefault?.();
-        event?.stopPropagation?.();
-        return true;
-      }
-    }
     const suppression = state.suppressNextMapClick;
     if (!suppression) return false;
     const eventPoint = Number.isFinite(event?.clientX) && Number.isFinite(event?.clientY)
@@ -3430,8 +886,7 @@
 
   function invalidateEditInteraction() {
     editInteractionRevision += 1;
-    if (mousePan) mousePan.cancelled = true;
-    if (touchTap) touchTap.cancelled = true;
+    mapInputController?.cancel();
     state.mapMoving = false;
     $('map')?.classList.remove('dragging');
   }
@@ -3738,10 +1193,6 @@
     countryLabelAnchorTimer = setTimeout(flushCountryLabelAnchorQueue, delay);
   }
 
-  function normalizeCountries(raw) {
-    const fc = raw?.type === 'FeatureCollection' ? deepClone(raw) : { type: 'FeatureCollection', features: [] };
-    return reindexCountries(fc, true);
-  }
 
   function countryFeatureById(id) {
     const idx = state.countryIndex.get(String(id));
@@ -3911,6 +1362,24 @@
 
     return { rebase, syncPatch, execute, commit, discard, cancel };
   })();
+
+  function transactCountryEdit({ operation, payload, snapshot, applyResult, onSuccess, onError }) {
+    return runCountryEditTransaction({
+      client: mapEditClient,
+      operation,
+      payload,
+      snapshot,
+      applyResult,
+      commitHistory: commitHistorySnapshot,
+      restore: (editableSnapshot, { rebaseWorker }) => {
+        restoreCountryEditSnapshot(editableSnapshot);
+        if (rebaseWorker) mapEditClient.rebase(state.countriesData?.features || []);
+      },
+      queueAutosave,
+      onSuccess,
+      onError,
+    });
+  }
 
   function geometryPolygonSets(geometry) {
     if (!geometry) return [];
@@ -4224,46 +1693,6 @@
     return { ...geometry, coordinates: snap(geometry.coordinates) };
   }
 
-  function countryGeometryBoundaryLength(geometry) {
-    let length = 0;
-    for (const polygon of geometryPolygonSets(geometry)) {
-      for (const rawRing of polygon) {
-        const ring = ensureClosedRing(rawRing);
-        for (let index = 0; index < ring.length - 1; index += 1) {
-          const dx = unwrapLongitudeNear(ring[index + 1][0], ring[index][0]) - ring[index][0];
-          length += Math.hypot(dx, ring[index + 1][1] - ring[index][1]);
-        }
-      }
-    }
-    return length;
-  }
-
-  function captureCountryGeometryBaseline(affectedIds) {
-    const clipper = window.polygonClipping;
-    const affected = new Set([...affectedIds].map(String));
-    const features = state.countriesData?.features || [];
-    const overlaps = new Map();
-    for (let leftIndex = 0; leftIndex < features.length; leftIndex += 1) {
-      const left = features[leftIndex];
-      const leftId = String(left.properties?.editor_id || '');
-      if (!affected.has(leftId)) continue;
-      for (let rightIndex = 0; rightIndex < features.length; rightIndex += 1) {
-        const right = features[rightIndex];
-        const rightId = String(right.properties?.editor_id || '');
-        if (!rightId || leftId === rightId || !boundsOverlap(geometryBounds(left.geometry), geometryBounds(right.geometry))) continue;
-        const key = leftId < rightId ? `${leftId}|${rightId}` : `${rightId}|${leftId}`;
-        if (overlaps.has(key)) continue;
-        overlaps.set(key, multiPolygonPlanarArea(clipper.intersection(left.geometry.coordinates, right.geometry.coordinates)));
-      }
-    }
-    return {
-      union: countryUnionFromFeatures(features, affected),
-      overlaps,
-      boundaryLength: features.filter(feature => affected.has(String(feature.properties?.editor_id || '')))
-        .reduce((sum, feature) => sum + countryGeometryBoundaryLength(feature.geometry), 0),
-    };
-  }
-
   function validateCountryGeometryEdit(affectedIds, baselineOrUnion = null) {
     const clipper = window.polygonClipping;
     const affected = new Set([...affectedIds].map(String));
@@ -4312,9 +1741,9 @@
 
   function restoreCountryEditSnapshot(snapshot) {
     const changedIds = new Set(state.historyDirtyCountryIds);
-    state.countryOverrides = deepClone(snapshot.countryOverrides || {});
+    applySharedProjectFields(snapshot, 'history');
     restoreCountriesFromSnapshot(snapshot);
-    state.drawings = normalizeDrawingCollection(deepClone(snapshot.drawings || []));
+    normalizeProjectDrawings();
     const restoredDirtyIds = new Set(state.historyDirtyCountryIds);
     for (const id of state.historyDirtyCountryIds) changedIds.add(String(id));
     markCountryGeometriesChanged(changedIds);
@@ -4332,31 +1761,6 @@
     while (lon < -180) lon += 360;
     return [lon, a[1] + (b[1] - a[1]) * t];
   }
-
-  function closestCoordinateOnSegment(screenPoint, a, b, sampleCount = 24) {
-    const projection = activeProjection();
-    let best = null;
-    for (let i = 0; i < sampleCount; i += 1) {
-      const t0 = i / sampleCount;
-      const t1 = (i + 1) / sampleCount;
-      const c0 = interpolateCoordinate(a, b, t0);
-      const c1 = interpolateCoordinate(a, b, t1);
-      const p0 = projection(c0);
-      const p1 = projection(c1);
-      if (!p0 || !p1) continue;
-      const vx = p1[0] - p0[0], vy = p1[1] - p0[1];
-      const length2 = vx * vx + vy * vy;
-      const local = length2
-        ? clamp(((screenPoint[0] - p0[0]) * vx + (screenPoint[1] - p0[1]) * vy) / length2, 0, 1)
-        : 0;
-      const px = p0[0] + vx * local, py = p0[1] + vy * local;
-      const distance = Math.hypot(screenPoint[0] - px, screenPoint[1] - py);
-      const t = t0 + (t1 - t0) * local;
-      if (!best || distance < best.distance) best = { coord: interpolateCoordinate(a, b, t), t, distance };
-    }
-    return best;
-  }
-
 
   function refreshCountryCentroids(ids = null) {
     const filter = ids ? new Set([...ids].map(String)) : null;
@@ -4552,85 +1956,7 @@
       : { type: 'MultiPolygon', coordinates: polygons };
   }
 
-  function clipDraftToCurrentLand(rawRing) {
-    const clipper = window.polygonClipping;
-    if (!clipper?.intersection || !clipper?.union) throw new Error('해안선 처리 엔진을 불러오지 못했습니다.');
 
-    const draftRing = ensureClosedRing(rawRing);
-    const subjectPolygon = [draftRing];
-    const draftBounds = coordinateBounds(subjectPolygon);
-    const currentFeatures = state.countriesData?.features || [];
-    const maskFeatures = currentFeatures.length
-      ? spatialFeatures(draftBounds)
-      : (PRISTINE_COUNTRIES.features || []);
-    const pieces = [];
-
-    for (const feature of maskFeatures) {
-      const geometry = feature?.geometry;
-      if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) continue;
-      if (!boundsOverlap(draftBounds, geometryBounds(geometry))) continue;
-      const clipped = clipper.intersection(subjectPolygon, geometry.coordinates);
-      if (clipped?.length) pieces.push(...clipped);
-    }
-
-    if (!pieces.length) return null;
-    const dissolved = pieces.length === 1 ? pieces : clipper.union(...pieces);
-    return normalizeClippedLandGeometry(dissolved);
-  }
-
-  function buildTerritoryTransferPlan(newGeometry) {
-    const clipper = window.polygonClipping;
-    if (!clipper?.intersection || !clipper?.difference) throw new Error('영토 이전 엔진을 불러오지 못했습니다.');
-    const newBounds = coordinateBounds(newGeometry.coordinates);
-    const updates = [];
-    const removedIds = [];
-
-    for (const feature of spatialFeatures(newBounds)) {
-      const geometry = feature?.geometry;
-      if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) continue;
-      const overlap = clipper.intersection(geometry.coordinates, newGeometry.coordinates);
-      if (!overlap?.length) continue;
-
-      const id = String(feature.properties?.editor_id || '');
-      const remainder = clipper.difference(geometry.coordinates, newGeometry.coordinates);
-      const normalized = normalizeClippedLandGeometry(remainder);
-      if (normalized) updates.push({ id, geometry: normalized });
-      else removedIds.push(id);
-    }
-
-    return { updates, removedIds, affectedCount: updates.length + removedIds.length };
-  }
-
-  function differenceGeometryByRegion(geometry, regionCoordinates) {
-    const clipper = window.polygonClipping;
-    const regionBounds = coordinateBounds(regionCoordinates);
-    const untouched = [];
-    const changed = [];
-    for (const polygon of geometryPolygonSets(geometry)) {
-      if (!boundsOverlap(geometryBounds({ coordinates: polygon }), regionBounds)) {
-        untouched.push(deepClone(polygon));
-        continue;
-      }
-      const result = clipper.difference([polygon], regionCoordinates);
-      if (result?.length) changed.push(...result);
-    }
-    return normalizeClippedLandGeometry([...untouched, ...changed]);
-  }
-
-  function unionGeometryWithRegion(geometry, regionCoordinates) {
-    const clipper = window.polygonClipping;
-    const regionBounds = coordinateBounds(regionCoordinates);
-    const untouched = [];
-    const impacted = [];
-    for (const polygon of geometryPolygonSets(geometry)) {
-      if (boundsOverlap(geometryBounds({ coordinates: polygon }), regionBounds)) impacted.push(polygon);
-      else untouched.push(deepClone(polygon));
-    }
-    const merged = impacted.length
-      ? clipper.union(...impacted.map(polygon => [polygon]), regionCoordinates)
-      : deepClone(regionCoordinates);
-    return normalizeClippedLandGeometry([...untouched, ...(merged || [])]);
-  }
 
   function pointOnRingBoundary(point, rawRing, tolerance = 1e-7) {
     const ring = ensureClosedRing(rawRing);
@@ -4666,24 +1992,6 @@
     return false;
   }
 
-  function closestDonorExteriorPoint(screenPoint, donor, componentIndex = null) {
-    let best = null;
-    const polygons = geometryPolygonSets(donor?.geometry);
-    polygons.forEach((polygon, polygonIndex) => {
-      if (componentIndex !== null && polygonIndex !== componentIndex) return;
-      const ring = ensureClosedRing(polygon?.[0] || []);
-      for (let segmentIndex = 0; segmentIndex < ring.length - 1; segmentIndex += 1) {
-        const candidate = closestCoordinateOnSegment(screenPoint, ring[segmentIndex], ring[segmentIndex + 1]);
-        if (!candidate || (best && candidate.distance >= best.distance)) continue;
-        let coord = candidate.coord.slice();
-        let t = candidate.t;
-        if (t <= 0.002) { coord = ring[segmentIndex].slice(); t = 0; }
-        else if (t >= 0.998) { coord = ring[segmentIndex + 1].slice(); t = 1; }
-        best = { polygonIndex, segmentIndex, coord, t, distance: candidate.distance };
-      }
-    });
-    return best;
-  }
 
   function unwrapLongitudeNear(longitude, reference) {
     let value = Number(longitude);
@@ -4935,50 +2243,6 @@
     return buildCutSplitCandidates(selectedCountryUnionGeometry(donorIds), rawLine);
   }
 
-  function buildAnnexationPlan(targetId, donorIds, transferredGeometry) {
-    const clipper = window.polygonClipping;
-    if (!clipper?.intersection || !clipper?.difference || !clipper?.union) throw new Error('영토 편입 엔진을 불러오지 못했습니다.');
-    const target = countryFeatureById(targetId);
-    const ids = new Set((donorIds || []).map(String).filter(id => id && id !== String(targetId)));
-    const donors = (state.countriesData?.features || [])
-      .filter(feature => ids.has(String(feature.properties?.editor_id || '')));
-    if (!target?.geometry || !donors.length) throw new Error('편입받을 국가 또는 영토를 가져올 국가를 찾을 수 없습니다.');
-    if (ids.size !== donors.length) throw new Error('영토를 가져올 국가 중 일부를 찾을 수 없습니다. 대상을 다시 선택하세요.');
-
-    const transferred = geometryMultiCoordinates(transferredGeometry);
-    const transferredArea = multiPolygonPlanarArea(transferred);
-    if (transferredArea <= 1e-14) throw new Error('편입할 유효한 영토가 없습니다.');
-    const donorUnion = clipper.union(...donors.map(feature => feature.geometry.coordinates));
-    const outsideDonor = clipper.difference(transferred, donorUnion);
-    if (multiPolygonPlanarArea(outsideDonor) > Math.max(1e-10, transferredArea * 1e-10)) {
-      throw new Error('선택 영역이 영토를 가져올 국가들의 영토 밖으로 벗어났습니다.');
-    }
-
-    const targetResultRaw = unionGeometryWithRegion(target.geometry, transferred);
-    const targetResult = targetResultRaw ? snapGeometryToGrid(targetResultRaw, 7) : null;
-    if (!targetResult) throw new Error('편입 후 편입받을 국가의 경계를 만들 수 없습니다.');
-    const updates = [{ id: String(targetId), geometry: targetResult }];
-    const removedIds = [];
-    const affectedDonorIds = [];
-    const tolerance = Math.max(1e-10, transferredArea * 1e-10);
-    for (const donor of donors) {
-      const donorId = String(donor.properties?.editor_id || '');
-      const overlap = clipper.intersection(donor.geometry.coordinates, transferred);
-      if (multiPolygonPlanarArea(overlap) <= tolerance) continue;
-      affectedDonorIds.push(donorId);
-      const donorRemainderRaw = differenceGeometryByRegion(donor.geometry, transferred);
-      const donorRemainder = donorRemainderRaw ? snapGeometryToGrid(donorRemainderRaw, 7) : null;
-      if (donorRemainder) updates.push({ id: donorId, geometry: donorRemainder });
-      else removedIds.push(donorId);
-    }
-    if (!affectedDonorIds.length) throw new Error('선택 영역과 겹치는 국가가 없습니다. 영토를 가져올 국가를 다시 선택하세요.');
-    return {
-      targetId: String(targetId), donorIds: [...ids], affectedDonorIds,
-      updates, removedIds,
-      affectedIds: [String(targetId), ...affectedDonorIds],
-      transferredArea,
-    };
-  }
 
   function selectedCountryUnionGeometry(sourceIds) {
     const ids = new Set((sourceIds || []).map(String));
@@ -4989,54 +2253,7 @@
     return geometry;
   }
 
-  function buildNewCountryTransferPlan(sourceIds, transferredGeometry) {
-    const clipper = window.polygonClipping;
-    if (!clipper?.intersection || !clipper?.difference || !clipper?.union) throw new Error('국가 분리 엔진을 불러오지 못했습니다.');
-    const ids = new Set((sourceIds || []).map(String));
-    const sourceFeatures = (state.countriesData?.features || [])
-      .filter(feature => ids.has(String(feature.properties?.editor_id || '')));
-    if (!sourceFeatures.length) throw new Error('영토를 가져올 국가를 찾을 수 없습니다.');
-    const transferred = geometryMultiCoordinates(transferredGeometry);
-    const transferredArea = multiPolygonPlanarArea(transferred);
-    if (transferredArea <= 1e-14) throw new Error('신생국으로 만들 유효한 영토가 없습니다.');
-    const sourceUnion = clipper.union(...sourceFeatures.map(feature => feature.geometry.coordinates));
-    const outsideSource = clipper.difference(transferred, sourceUnion);
-    if (multiPolygonPlanarArea(outsideSource) > Math.max(1e-10, transferredArea * 1e-10)) {
-      throw new Error('선택 영역이 영토를 가져올 국가들의 영토 밖으로 벗어났습니다.');
-    }
 
-    const updates = [];
-    const removedIds = [];
-    const affectedSourceIds = [];
-    const tolerance = Math.max(1e-10, transferredArea * 1e-10);
-    for (const feature of sourceFeatures) {
-      const id = String(feature.properties?.editor_id || '');
-      const overlap = clipper.intersection(feature.geometry.coordinates, transferred);
-      if (multiPolygonPlanarArea(overlap) <= tolerance) continue;
-      affectedSourceIds.push(id);
-      const remainderRaw = differenceGeometryByRegion(feature.geometry, transferred);
-      const remainder = remainderRaw ? snapGeometryToGrid(remainderRaw, 7) : null;
-      if (remainder) updates.push({ id, geometry: remainder });
-      else removedIds.push(id);
-    }
-    if (!affectedSourceIds.length) throw new Error('선택 영역과 겹치는 국가가 없습니다. 영토를 가져올 국가를 다시 선택하세요.');
-    return { updates, removedIds, affectedSourceIds, transferredArea };
-  }
-
-  function applyTerritoryTransferPlan(plan) {
-    const updates = new Map(plan.updates.map(item => [item.id, item.geometry]));
-    const removed = new Set(plan.removedIds);
-    state.countriesData.features = state.countriesData.features.filter(feature => {
-      const id = String(feature.properties?.editor_id || '');
-      if (removed.has(id)) {
-        delete state.countryOverrides[id];
-        return false;
-      }
-      if (updates.has(id)) feature.geometry = deepClone(updates.get(id));
-      return true;
-    });
-    markCountryGeometriesChanged(new Set([...updates.keys(), ...removed]));
-  }
 
   function applyWorkerCountryPatches(result) {
     const updates = new Map((result.features || []).map(feature => [String(feature.properties?.editor_id || ''), deepClone(feature)]));
@@ -5071,101 +2288,6 @@
     return [x / n, y / n];
   }
 
-  function mergeCountryGeometries(geometries) {
-    const edgeMap = new Map();
-    let cancelled = 0;
-    const addEdge = (a, b) => {
-      const ka = coordKey(a, 5), kb = coordKey(b, 5);
-      if (ka === kb) return;
-      const key = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
-      if (edgeMap.has(key)) { edgeMap.delete(key); cancelled += 1; }
-      else edgeMap.set(key, { a: a.slice(), b: b.slice(), ka, kb });
-    };
-    for (const geometry of geometries) {
-      for (const polygon of geometryPolygonSets(geometry)) {
-        for (const rawRing of polygon) {
-          const ring = ensureClosedRing(rawRing);
-          for (let i = 0; i < ring.length - 1; i += 1) addEdge(ring[i], ring[i + 1]);
-        }
-      }
-    }
-
-    if (!cancelled) {
-      const polygons = [];
-      for (const geometry of geometries) polygons.push(...geometryPolygonSets(geometry).map(p => deepClone(p)));
-      return polygons.length === 1
-        ? { geometry: { type: 'Polygon', coordinates: polygons[0] }, seamless: true }
-        : { geometry: { type: 'MultiPolygon', coordinates: polygons }, seamless: false };
-    }
-
-    const edges = [...edgeMap.values()].map((e, index) => ({ ...e, index, used: false }));
-    const adjacency = new Map();
-    const link = (key, index) => { if (!adjacency.has(key)) adjacency.set(key, []); adjacency.get(key).push(index); };
-    edges.forEach((e, i) => { link(e.ka, i); link(e.kb, i); });
-    const rings = [];
-    for (const start of edges) {
-      if (start.used) continue;
-      start.used = true;
-      const ring = [start.a.slice(), start.b.slice()];
-      let currentKey = start.kb;
-      const startKey = start.ka;
-      let guard = 0;
-      while (currentKey !== startKey && guard++ < edges.length + 10) {
-        const candidates = (adjacency.get(currentKey) || []).filter(i => !edges[i].used);
-        if (!candidates.length) break;
-        const edge = edges[candidates[0]];
-        edge.used = true;
-        if (edge.ka === currentKey) { ring.push(edge.b.slice()); currentKey = edge.kb; }
-        else { ring.push(edge.a.slice()); currentKey = edge.ka; }
-      }
-      if (currentKey === startKey && ring.length >= 4) {
-        if (!coordNear(ring[0], ring[ring.length - 1], 1e-7)) ring.push(ring[0].slice());
-        rings.push(ring);
-      }
-    }
-
-    if (!rings.length || edges.some(e => !e.used)) {
-      const polygons = [];
-      for (const geometry of geometries) polygons.push(...geometryPolygonSets(geometry).map(p => deepClone(p)));
-      return { geometry: { type: polygons.length === 1 ? 'Polygon' : 'MultiPolygon', coordinates: polygons.length === 1 ? polygons[0] : polygons }, seamless: false };
-    }
-
-    const items = rings
-      .map(ring => ({ ring: ensureClosedRing(ring), area: Math.abs(ringSignedArea(ring)), parent: -1, depth: 0 }))
-      .filter(item => item.area > 1e-9)
-      .sort((a, b) => b.area - a.area);
-    for (let i = 0; i < items.length; i += 1) {
-      const p = ringRepresentativePoint(items[i].ring);
-      let parent = -1;
-      let parentArea = Infinity;
-      for (let j = 0; j < i; j += 1) {
-        if (items[j].area < parentArea && pointInRing(p, items[j].ring)) { parent = j; parentArea = items[j].area; }
-      }
-      items[i].parent = parent;
-      items[i].depth = parent >= 0 ? items[parent].depth + 1 : 0;
-    }
-    const polygons = [];
-    const outerIndexToPolygon = new Map();
-    items.forEach((item, i) => {
-      if (item.depth % 2 === 0) {
-        const poly = [orientRing(item.ring, true)];
-        outerIndexToPolygon.set(i, poly);
-        polygons.push(poly);
-      }
-    });
-    items.forEach((item, i) => {
-      if (item.depth % 2 === 0) return;
-      let ancestor = item.parent;
-      while (ancestor >= 0 && items[ancestor].depth % 2 !== 0) ancestor = items[ancestor].parent;
-      const poly = outerIndexToPolygon.get(ancestor);
-      if (poly) poly.push(orientRing(item.ring, false));
-    });
-    if (!polygons.length) return { geometry: geometries[0], seamless: false };
-    return {
-      geometry: polygons.length === 1 ? { type: 'Polygon', coordinates: polygons[0] } : { type: 'MultiPolygon', coordinates: polygons },
-      seamless: true,
-    };
-  }
 
   function activeProjection() {
     return state.projection === 'globe' ? globeProjection : flatProjection;
@@ -5392,7 +2514,6 @@
 
   const LAYER_GROUP_KEYS = ['countries', 'drawings', 'labels', 'countryLabels'];
   const LAYER_FOLDER_KEYS = ['countries', 'terrain', 'drawings', 'labels', 'countryLabels'];
-  const layerGroupVisibilityKey = group => group === 'countryLabels' ? 'basemapLabels' : group;
   const layerGroupNames = { countries: '국가', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
@@ -6436,48 +3557,34 @@
     graticuleLayer.datum(graticule()).attr('d', path);
   }
 
-  function renderAll() {
+  function renderMapFrame({ viewOnly = false } = {}) {
     const revision = ++renderRevision;
     updateProjection();
     renderBase();
     renderCountries(revision);
-    renderHydro();
+    if (viewOnly) renderHydroSelectionPosition();
+    else renderHydro();
     renderBoundaryEditOverlay();
     renderDrawings();
-    renderCountryLabels();
-    renderUserLabels();
+    if (viewOnly) {
+      renderCountryLabelPositions();
+      renderUserLabelPositions();
+    } else {
+      renderCountryLabels();
+      renderUserLabels();
+    }
     renderVertices();
     renderDraft();
-    renderLayerTree();
+    if (!viewOnly) renderLayerTree();
     window.__ATLASWRIGHT_VIEW_REVISION__ = revision;
+  }
+
+  function renderAll() {
+    renderMapFrame();
   }
 
   function renderViewFrame() {
-    const revision = ++renderRevision;
-    updateProjection();
-    renderBase();
-    renderCountries(revision);
-    renderHydroSelectionPosition();
-    renderBoundaryEditOverlay();
-    renderDrawings();
-    renderCountryLabelPositions();
-    renderUserLabelPositions();
-    renderVertices();
-    renderDraft();
-    window.__ATLASWRIGHT_VIEW_REVISION__ = revision;
-  }
-
-  function renderSceneData() {
-    renderAll();
-  }
-
-  function renderUiState() {
-    renderLayerTree();
-    updateModeButtons();
-  }
-
-  function renderFinalFrame() {
-    renderAll();
+    renderMapFrame({ viewOnly: true });
   }
 
   function initSvg() {
@@ -6499,10 +3606,7 @@
 
     svg = map.append('svg').attr('class', 'map-svg map-overlay-svg');
     root = svg.append('g').attr('class', 'map-root');
-    mapInteractionLayer = root.append('rect')
-      .attr('class', 'map-hit-area')
-      .attr('x', 0)
-      .attr('y', 0);
+    mapInteractionLayer = root.append('rect').attr('class', 'map-hit-area').attr('x', 0).attr('y', 0);
     graticuleLayer = root.append('path').attr('class', 'map-graticule');
     countryLayer = root.append('g').attr('class', 'countries-layer');
     hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
@@ -6515,7 +3619,6 @@
     vertexLayer = root.append('g').attr('class', 'vertices-layer');
     draftLayer = root.append('g').attr('class', 'draft-layer');
 
-    const interactiveDragTarget = target => !!target?.closest?.('.vertex-handle, .user-label');
     const beginMapMovement = () => {
       state.mapMoving = true;
       mapWorkScheduler.setInteractionActive(true);
@@ -6532,41 +3635,37 @@
       gpuMapRenderer.setInteractionActive(false);
       mapEl.classList.remove('dragging');
       if (point) suppressNextMapClick(point);
-      renderFinalFrame();
+      renderAll();
       gpuMapRenderer.prioritizeLatest();
       queueViewAutosave();
     };
 
-    svg.node().addEventListener('mousedown', event => {
-      if (event.button !== 0 || !mapNavigationEnabled() || interactiveDragTarget(event.target)) return;
-      pendingMapClickRevision = null;
-      mousePan = {
-        startX: event.clientX, startY: event.clientY,
-        lastX: event.clientX, lastY: event.clientY,
-        moved: false, cancelled: false,
-        revision: editInteractionRevision,
-      };
-    });
-    window.addEventListener('mousemove', event => {
-      if (!mousePan || mousePan.cancelled || mousePan.revision !== editInteractionRevision) return;
-      if (!mousePan.moved && Math.hypot(event.clientX - mousePan.startX, event.clientY - mousePan.startY) <= 4) return;
-      if (!mousePan.moved) {
-        mousePan.moved = true;
-        beginMapMovement();
-      }
-      panMapBy(event.clientX - mousePan.lastX, event.clientY - mousePan.lastY);
-      mousePan.lastX = event.clientX;
-      mousePan.lastY = event.clientY;
-      scheduleViewRender();
-      event.preventDefault();
-    }, { passive: false });
-    window.addEventListener('mouseup', event => {
-      if (!mousePan) return;
-      const gesture = mousePan;
-      mousePan = null;
-      pendingMapClickRevision = gesture.revision;
-      if (gesture.cancelled || gesture.revision !== editInteractionRevision) return;
-      if (gesture.moved) finishMapMovement([event.clientX, event.clientY]);
+    mapInputController = createMapInputController({
+      element: svg.node(),
+      interactiveTarget: target => !!target?.closest?.('.vertex-handle, .user-label'),
+      canNavigate: mapNavigationEnabled,
+      getRevision: () => editInteractionRevision,
+      beginMovement: beginMapMovement,
+      finishMovement: finishMapMovement,
+      panBy: panMapBy,
+      scheduleViewRender,
+      getZoom: () => state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom,
+      setZoom: value => {
+        if (state.projection === 'globe') state.view.globeZoom = clamp(value, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
+        else state.view.flatZoom = clamp(value, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
+      },
+      zoomBy: factor => {
+        zoomBy(factor, false);
+        if (navigator.vibrate && isMobile()) navigator.vibrate(8);
+      },
+      canDirectTap: () => {
+        const annexLine = state.tool === 'annex-territory' && state.annexPhase === 'line';
+        const newCountryLine = state.tool === 'new-country' && state.newCountryPhase === 'line';
+        return state.labelPlacementMode || isDrawingDraftTool(state.tool) || state.tool === 'point' || newCountryLine || annexLine;
+      },
+      directTap: handleMapClick,
+      canDoubleTap: () => isMobile() && ['select', 'country-coast', 'merge-country'].includes(state.tool) && !state.labelPlacementMode,
+      suppressClick: suppressNextMapClick,
     });
 
     svg.on('click', function() {
@@ -6583,7 +3682,7 @@
     });
 
     svg.on('mousemove', function() {
-      if (mousePan?.moved || touchTap?.panned) {
+      if (mapInputController?.isPanning()) {
         if (state.draftHover) {
           state.draftHover = null;
           renderDraft();
@@ -6606,127 +3705,6 @@
         }
       }
     });
-
-    let wheelFinishTimer = 0;
-    mapEl.addEventListener('wheel', (event) => {
-      event.preventDefault();
-      if (!state.mapMoving) beginMapMovement();
-      const factor = Math.exp(-event.deltaY * 0.0013);
-      if (state.projection === 'globe') {
-        state.view.globeZoom = clamp(state.view.globeZoom * factor, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
-      } else {
-        state.view.flatZoom = clamp(state.view.flatZoom * factor, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
-      }
-      scheduleViewRender();
-      clearTimeout(wheelFinishTimer);
-      wheelFinishTimer = setTimeout(() => finishMapMovement(null), 120);
-      queueViewAutosave();
-    }, { passive: false });
-
-    // Mobile: 8px까지는 탭, 그 이상은 편집 상태를 유지한 지도 이동으로 판정한다.
-    mapEl.addEventListener('touchstart', event => {
-      if (event.touches.length !== 1) { touchTap = null; return; }
-      if (interactiveDragTarget(event.target)) { touchTap = null; return; }
-      const t = event.touches[0];
-      touchTap = {
-        x: t.clientX, y: t.clientY,
-        lastX: t.clientX, lastY: t.clientY,
-        moved: false, panned: false, cancelled: false,
-        navigable: mapNavigationEnabled(),
-        revision: editInteractionRevision,
-      };
-    }, { passive: true });
-    mapEl.addEventListener('touchmove', event => {
-      if (!touchTap || touchTap.cancelled || touchTap.revision !== editInteractionRevision || event.touches.length !== 1) return;
-      const t = event.touches[0];
-      if (!touchTap.moved && Math.hypot(t.clientX - touchTap.x, t.clientY - touchTap.y) > 8) {
-        touchTap.moved = true;
-        touchTap.panned = touchTap.navigable;
-        if (touchTap.panned) beginMapMovement();
-      }
-      if (!touchTap.panned) return;
-      panMapBy(t.clientX - touchTap.lastX, t.clientY - touchTap.lastY);
-      touchTap.lastX = t.clientX;
-      touchTap.lastY = t.clientY;
-      scheduleViewRender();
-      event.preventDefault();
-    }, { passive: false });
-    mapEl.addEventListener('touchend', event => {
-      if (touchTap && (touchTap.cancelled || touchTap.revision !== editInteractionRevision)) {
-        const endPoint = [touchTap.lastX, touchTap.lastY];
-        touchTap = null;
-        suppressNextMapClick(endPoint, 700);
-        return;
-      }
-      if (touchTap?.panned) {
-        const endPoint = [touchTap.lastX, touchTap.lastY];
-        touchTap = null;
-        finishMapMovement(endPoint);
-        return;
-      }
-      const directAnnexLineTap = state.tool === 'annex-territory' && state.annexPhase === 'line';
-      const directNewCountryLineTap = state.tool === 'new-country' && state.newCountryPhase === 'line';
-      if (!touchTap || touchTap.moved || !(state.labelPlacementMode || isDrawingDraftTool(state.tool) || state.tool === 'point' || directNewCountryLineTap || directAnnexLineTap)) {
-        touchTap = null;
-        return;
-      }
-      const rect = svg.node().getBoundingClientRect();
-      handleMapClick([touchTap.x - rect.left, touchTap.y - rect.top]);
-      suppressNextMapClick([touchTap.x, touchTap.y], 700);
-      touchTap = null;
-    }, { passive: true });
-
-    // 모바일 확대·축소: 두 손가락 핀치 감도를 높이고, 선택 모드에서는 두 번 탭 확대를 지원한다.
-    let pinch = null;
-    let lastTapAt = 0;
-    let lastTapPoint = null;
-    const touchDistance = touches => {
-      const dx = touches[0].clientX - touches[1].clientX;
-      const dy = touches[0].clientY - touches[1].clientY;
-      return Math.max(1, Math.hypot(dx, dy));
-    };
-    mapEl.addEventListener('touchstart', event => {
-      if (event.touches.length !== 2) return;
-      beginMapMovement();
-      pinch = {
-        distance: touchDistance(event.touches),
-        zoom: state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom,
-      };
-      touchTap = null;
-      event.preventDefault();
-      event.stopPropagation();
-    }, { passive: false, capture: true });
-    mapEl.addEventListener('touchmove', event => {
-      if (!pinch || event.touches.length !== 2) return;
-      const rawFactor = touchDistance(event.touches) / pinch.distance;
-      const factor = Math.pow(rawFactor, 1.18);
-      if (state.projection === 'globe') state.view.globeZoom = clamp(pinch.zoom * factor, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
-      else state.view.flatZoom = clamp(pinch.zoom * factor, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
-      scheduleViewRender();
-      event.preventDefault();
-      event.stopPropagation();
-    }, { passive: false, capture: true });
-    mapEl.addEventListener('touchend', event => {
-      if (pinch && event.touches.length < 2) {
-        pinch = null;
-        finishMapMovement(null);
-      }
-      if (touchTap?.moved) return;
-      if (!isMobile() || event.changedTouches.length !== 1 || !['select', 'country-coast', 'merge-country'].includes(state.tool) || state.labelPlacementMode) return;
-      const t = event.changedTouches[0];
-      const now = Date.now();
-      const point = [t.clientX, t.clientY];
-      if (lastTapPoint && now - lastTapAt < 320 && Math.hypot(point[0] - lastTapPoint[0], point[1] - lastTapPoint[1]) < 28) {
-        zoomBy(1.55, false);
-        lastTapAt = 0;
-        lastTapPoint = null;
-        suppressNextMapClick(point, 500);
-        if (navigator.vibrate) navigator.vibrate(8);
-      } else {
-        lastTapAt = now;
-        lastTapPoint = point;
-      }
-    }, { passive: true, capture: true });
   }
 
   function queueMapResize() {
@@ -6806,45 +3784,17 @@
   }
 
   function activeModeTaskDescriptor() {
-    const terrain = terrainToolConfig(state.tool);
-    if (state.labelPlacementMode || state.tool === 'label') return { name: '지명 추가', stage: '위치 선택' };
-    if (terrain) return { name: `${terrain.label} 추가`, stage: terrain.geometry === 'LineString' ? '경로 그리기' : '영역 그리기' };
-    if (state.tool === 'new-country') {
-      const stage = state.newCountryPhase === 'sources' ? '대상 국가 선택'
-        : state.newCountryPhase === 'components' ? '영토 선택'
-          : state.newCountryPhase === 'side' ? '영역 확인' : '경계 그리기';
-      return { name: '국가 추가', stage };
-    }
-    if (state.tool === 'annex-territory') {
-      const stage = state.annexPhase === 'donor' ? '대상 국가 선택'
-        : state.annexPhase === 'components' ? '영토 선택'
-          : state.annexPhase === 'side' ? '영역 확인' : '경계 그리기';
-      return { name: '영토 편입', stage };
-    }
-    if (state.tool === 'merge-country') return { name: '국가 합병', stage: '대상 국가 선택' };
-    if (state.tool === 'merge-drawing') return { name: '영역 합치기', stage: '대상 영역 선택' };
-    if (state.tool === 'split-drawing') return { name: '영역 나누기', stage: '경계 그리기' };
-    if (state.tool === 'country-coast') return { name: '해안선 수정', stage: '꼭짓점 이동' };
-    return { name: '지도 편집', stage: '작업 진행' };
+    return describeTool(state.tool, state, { labelPlacement: state.labelPlacementMode });
   }
 
   function syncMapCursorMode() {
     const map = $('map');
     if (!map) return;
-    const countryPickMode = (state.tool === 'new-country' && state.newCountryPhase === 'sources')
-      || (state.tool === 'annex-territory' && state.annexPhase === 'donor')
-      || (state.tool === 'merge-country' && !!state.mergeSourceCountryId)
-      || state.tool === 'merge-drawing';
-    const drawingMode = state.labelPlacementMode
-      || isDrawingDraftTool(state.tool)
-      || (state.tool === 'new-country' && state.newCountryPhase === 'line')
-      || (state.tool === 'annex-territory' && state.annexPhase === 'line');
-    const candidatePickMode = (state.tool === 'new-country' && ['side', 'components'].includes(state.newCountryPhase))
-      || (state.tool === 'annex-territory' && ['side', 'components'].includes(state.annexPhase));
-    map.classList.toggle('country-pick-mode', countryPickMode);
-    map.classList.toggle('drawing-mode', drawingMode);
-    map.classList.toggle('candidate-pick-mode', candidatePickMode);
-    map.classList.toggle('select-mode', !countryPickMode && !drawingMode && !candidatePickMode);
+    const mode = toolCursorMode(state.tool, state, { labelPlacement: state.labelPlacementMode });
+    map.classList.toggle('country-pick-mode', mode.country);
+    map.classList.toggle('drawing-mode', mode.drawing);
+    map.classList.toggle('candidate-pick-mode', mode.candidate);
+    map.classList.toggle('select-mode', mode.select);
   }
 
   function updateModeButtons() {
@@ -6866,7 +3816,7 @@
       : state.newCountrySelectionMethod;
     const labelMode = state.labelPlacementMode || state.tool === 'label';
     const terrainMode = !!terrainToolConfig(state.tool);
-    const specialMode = labelMode || terrainMode || ['new-country', 'annex-territory', 'merge-country', 'merge-drawing', 'split-drawing', 'country-coast'].includes(state.tool);
+    const specialMode = labelMode || terrainMode || isSpecialTool(state.tool);
     const task = activeModeTaskDescriptor();
     const bar = $('modeActionBar');
     const methodSwitch = $('modeMethodSwitch');
@@ -7020,19 +3970,7 @@
     if (tool !== 'annex-territory') resetAnnexState();
     if (tool !== 'new-country') resetNewCountryState();
     state.tool = tool;
-    const names = {
-      select: '국가 선택',
-      'new-country': '국가 추가',
-      'annex-territory': '영토 편입',
-      'merge-country': '국가 합병',
-      'merge-drawing': '영역 합치기',
-      'split-drawing': '영역 나누기',
-      'country-coast': '해안선 수정',
-      label: '지명 배치',
-      river: '강 추가', lake: '호수 추가',
-      polygon: '영역 그리기', line: '선 그리기', point: '점 찍기',
-    };
-    setCurrentTool(names[tool] || tool);
+    setCurrentTool(toolLabel(tool));
     setModeBanner();
     renderCountries();
     renderBoundaryEditOverlay();
@@ -7436,118 +4374,96 @@
     if (state.tool === 'select') clearSelection();
   }
 
-  function finishDraft() {
-    if (!(isDrawingDraftTool(state.tool) || ['new-country', 'annex-territory'].includes(state.tool))) {
-      setActionStatus('완료할 형상이 없습니다. 지도에서 점을 먼저 입력하세요.', 'error');
+  function finishSplitDrawingDraft() {
+    const source = state.drawings.find(item => String(item.id) === String(state.drawingSplitSourceId));
+    if (!source || drawingGeometryKind(source) !== 'polygon') {
+      setActionStatus('나눌 영역을 찾을 수 없습니다. 영역을 다시 선택하세요.', 'error', 3400);
       return;
     }
-    const polygonMode = isPolygonDraftTool(state.tool);
-    const min = polygonMode ? 3 : 2;
-    if (state.draftCoords.length < min) {
-      setActionStatus(`완료하려면 점이 최소 ${min}개 필요합니다. 지도에서 점을 더 입력하세요.`, 'error');
+    try {
+      const split = buildCutSplitCandidates(source.geometry, state.draftCoords);
+      const untouchedComponents = geometryPolygonSets(source.geometry)
+        .filter((_, index) => index !== split.componentIndex)
+        .map(polygon => deepClone(polygon));
+      const retainedGeometry = normalizeClippedLandGeometry([
+        ...geometryMultiCoordinates(split.candidates[0].geometry),
+        ...untouchedComponents,
+      ]);
+      if (!retainedGeometry) throw new Error('나누지 않은 영토 조각을 보존할 수 없습니다.');
+      recordHistory();
+      const baseName = drawingName(source);
+      source.geometry = retainedGeometry;
+      source.properties.name = `${baseName} 1`;
+      const sibling = normalizeDrawingSemantics({
+        type: 'Feature',
+        id: uid('area'),
+        geometry: deepClone(split.candidates[1].geometry),
+        properties: { ...deepClone(source.properties), name: `${baseName} 2` },
+      }, { inferOwner: false });
+      state.drawings.push(sibling);
+      state.draftCoords = [];
+      state.draftHover = null;
+      setTool('select', false);
+      selectDrawing(String(source.id), true);
+      renderAll();
+      queueAutosave();
+      setActionStatus(`${baseName} 영역을 두 영역으로 나눴습니다.`, 'success', 3200);
+    } catch (error) {
+      reportOperationError(error, '영역을 나누지 못했습니다. 영역을 한 번만 관통하도록 경계를 다시 그리세요.', 'AW-LAND-003', 4200);
+    }
+  }
+
+  function prepareAnnexDraftCandidates() {
+    const targetId = String(state.annexTargetCountryId || '');
+    const target = countryFeatureById(targetId);
+    if (state.annexPhase !== 'line' || !target || !state.annexDonorCountryIds.length) {
+      setActionStatus('편입을 진행할 수 없습니다. 편입받을 국가와 영토를 가져올 국가를 먼저 선택하세요.', 'error', 3800);
       return;
     }
+    try {
+      const split = buildAnnexSplitCandidates(state.annexDonorCountryIds, state.draftCoords);
+      state.annexComponentIndex = split.componentIndex;
+      state.draftCoords = split.cutLine.map(coord => coord.slice());
+      state.draftHover = null;
+      state.annexCandidates = split.candidates;
+      state.annexSelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
+      state.annexPhase = 'side';
+      setModeBanner('작은 영역을 자동으로 선택했습니다. 편입할 영역을 확인하거나 반대쪽 영역을 선택하세요.', 'annex-mode');
+      updateModeButtons();
+      renderAll();
+    } catch (error) {
+      reportOperationError(error, '새 경계를 사용할 수 없습니다. 영토를 가져올 국가를 한 번만 관통하도록 선을 다시 그리세요.', 'AW-ANNEX-003');
+    }
+  }
 
-    if (state.tool === 'split-drawing') {
-      const source = state.drawings.find(item => String(item.id) === String(state.drawingSplitSourceId));
-      if (!source || drawingGeometryKind(source) !== 'polygon') {
-        setActionStatus('나눌 영역을 찾을 수 없습니다. 영역을 다시 선택하세요.', 'error', 3400);
-        return;
-      }
-      try {
-        const split = buildCutSplitCandidates(source.geometry, state.draftCoords);
-        const untouchedComponents = geometryPolygonSets(source.geometry)
-          .filter((_, index) => index !== split.componentIndex)
-          .map(polygon => deepClone(polygon));
-        const retainedGeometry = normalizeClippedLandGeometry([
-          ...geometryMultiCoordinates(split.candidates[0].geometry),
-          ...untouchedComponents,
-        ]);
-        if (!retainedGeometry) throw new Error('나누지 않은 영토 조각을 보존할 수 없습니다.');
-        recordHistory();
-        const baseName = drawingName(source);
-        source.geometry = retainedGeometry;
-        source.properties.name = `${baseName} 1`;
-        const sibling = normalizeDrawingSemantics({
-          type: 'Feature',
-          id: uid('area'),
-          geometry: deepClone(split.candidates[1].geometry),
-          properties: { ...deepClone(source.properties), name: `${baseName} 2` },
-        }, { inferOwner: false });
-        state.drawings.push(sibling);
-        state.draftCoords = [];
-        state.draftHover = null;
-        setTool('select', false);
-        selectDrawing(String(source.id), true);
-        renderAll();
-        queueAutosave();
-        setActionStatus(`${baseName} 영역을 두 영역으로 나눴습니다.`, 'success', 3200);
-      } catch (error) {
-        reportOperationError(error, '영역을 나누지 못했습니다. 영역을 한 번만 관통하도록 경계를 다시 그리세요.', 'AW-LAND-003', 4200);
-      }
+  function prepareNewCountryDraftCandidates() {
+    if (state.newCountryPhase !== 'line') {
+      setActionStatus('새 국가를 만들 수 없습니다. 영토를 가져올 국가 선택을 먼저 완료하세요.', 'error', 3600);
       return;
     }
-
-    if (state.tool === 'annex-territory') {
-      const targetId = String(state.annexTargetCountryId || '');
-      const target = countryFeatureById(targetId);
-      if (state.annexPhase !== 'line' || !target || !state.annexDonorCountryIds.length) {
-        setActionStatus('편입을 진행할 수 없습니다. 편입받을 국가와 영토를 가져올 국가를 먼저 선택하세요.', 'error', 3800);
-        return;
-      }
-
-      try {
-        const split = buildAnnexSplitCandidates(state.annexDonorCountryIds, state.draftCoords);
-        state.annexComponentIndex = split.componentIndex;
-        state.draftCoords = split.cutLine.map(coord => coord.slice());
-        state.draftHover = null;
-        state.annexCandidates = split.candidates;
-        state.annexSelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-        state.annexPhase = 'side';
-        setModeBanner('작은 영역을 자동으로 선택했습니다. 편입할 영역을 확인하거나 반대쪽 영역을 선택하세요.', 'annex-mode');
-        updateModeButtons();
-        renderAll();
-      } catch (error) {
-        reportOperationError(error, '새 경계를 사용할 수 없습니다. 영토를 가져올 국가를 한 번만 관통하도록 선을 다시 그리세요.', 'AW-ANNEX-003');
-        return;
-      }
-      return;
+    try {
+      const sourceGeometry = selectedCountryUnionGeometry(state.newCountrySourceIds);
+      const split = buildCutSplitCandidates(sourceGeometry, state.draftCoords);
+      state.draftCoords = split.cutLine.map(coord => coord.slice());
+      state.draftHover = null;
+      state.newCountryCandidates = split.candidates;
+      state.newCountrySelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
+      state.newCountryPhase = 'side';
+      setModeBanner('작은 영역을 자동으로 선택했습니다. 초록색 영역을 확인하거나 보라색 영역을 선택해 전환한 뒤 완료하세요.', 'add-country-mode');
+      updateModeButtons();
+      renderAll();
+    } catch (error) {
+      reportOperationError(error, '신생국 국경선을 사용할 수 없습니다. 선택 영토를 한 번만 관통하도록 선을 다시 그리세요.', 'AW-COUNTRY-003');
     }
+  }
 
-    if (state.tool === 'new-country') {
-      if (state.newCountryPhase !== 'line') {
-        setActionStatus('새 국가를 만들 수 없습니다. 영토를 가져올 국가 선택을 먼저 완료하세요.', 'error', 3600);
-        return;
-      }
-      try {
-        const sourceGeometry = selectedCountryUnionGeometry(state.newCountrySourceIds);
-        const split = buildCutSplitCandidates(sourceGeometry, state.draftCoords);
-        state.draftCoords = split.cutLine.map(coord => coord.slice());
-        state.draftHover = null;
-        state.newCountryCandidates = split.candidates;
-        state.newCountrySelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-        state.newCountryPhase = 'side';
-        setModeBanner('작은 영역을 자동으로 선택했습니다. 초록색 영역을 확인하거나 보라색 영역을 선택해 전환한 뒤 완료하세요.', 'add-country-mode');
-        updateModeButtons();
-        renderAll();
-      } catch (error) {
-        reportOperationError(error, '신생국 국경선을 사용할 수 없습니다. 선택 영토를 한 번만 관통하도록 선을 다시 그리세요.', 'AW-COUNTRY-003');
-        return;
-      }
-      return;
-    }
-
-    // 기존 프로젝트, GeoJSON과 지형지물 편집이 공유하는 도형 처리.
+  function finishDrawingFeatureDraft(polygonMode) {
     recordHistory();
     const terrain = terrainToolConfig(state.tool);
     const id = uid(terrain?.prefix || (polygonMode ? 'poly' : 'line'));
-    let geometry;
-    if (polygonMode) {
-      const ring = orientRing(state.draftCoords, true);
-      geometry = { type: 'Polygon', coordinates: [ring] };
-    } else {
-      geometry = { type: 'LineString', coordinates: state.draftCoords.map(c => c.slice()) };
-    }
+    const geometry = polygonMode
+      ? { type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] }
+      : { type: 'LineString', coordinates: state.draftCoords.map(coord => coord.slice()) };
     const feature = {
       type: 'Feature', id, geometry,
       properties: {
@@ -7569,11 +4485,29 @@
     setActionStatus(`${createdObjectLabel} 추가했습니다.`, 'success');
   }
 
+  function finishDraft() {
+    if (!(isDrawingDraftTool(state.tool) || ['new-country', 'annex-territory'].includes(state.tool))) {
+      setActionStatus('완료할 형상이 없습니다. 지도에서 점을 먼저 입력하세요.', 'error');
+      return;
+    }
+    const polygonMode = isPolygonDraftTool(state.tool);
+    const minimumPoints = polygonMode ? 3 : 2;
+    if (state.draftCoords.length < minimumPoints) {
+      setActionStatus(`완료하려면 점이 최소 ${minimumPoints}개 필요합니다. 지도에서 점을 더 입력하세요.`, 'error');
+      return;
+    }
+    dispatchTool(state.tool, {
+      'split-drawing': finishSplitDrawingDraft,
+      'annex-territory': prepareAnnexDraftCandidates,
+      'new-country': prepareNewCountryDraftCandidates,
+    }, () => finishDrawingFeatureDraft(polygonMode));
+  }
+
   async function completeLinearAnnexation(candidateIndex) {
     if (state.tool !== 'annex-territory' || !['side', 'components'].includes(state.annexPhase)) return;
     const targetId = String(state.annexTargetCountryId || '');
     const donorIds = state.annexDonorCountryIds.map(String);
-    let candidate = null;
+    let candidate;
     if (state.annexPhase === 'components') {
       try { candidate = { geometry: selectedTerritoryComponentGeometry() }; }
       catch (error) {
@@ -7582,9 +4516,7 @@
       }
     } else {
       const selectedIndex = candidateIndex === null ? NaN : Number(candidateIndex);
-      candidate = Number.isInteger(selectedIndex) && selectedIndex >= 0
-        ? state.annexCandidates[selectedIndex]
-        : null;
+      candidate = Number.isInteger(selectedIndex) && selectedIndex >= 0 ? state.annexCandidates[selectedIndex] : null;
     }
     const targetBefore = countryFeatureById(targetId);
     const donorsBefore = donorIds.map(countryFeatureById).filter(Boolean);
@@ -7594,42 +4526,36 @@
     }
     const targetName = countryName(targetBefore);
     const snapshot = snapshotEditable();
-    let workerRequestId = 0;
-    try {
-      setActionStatus('선택한 영토를 편입하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
-      const response = await mapEditClient.execute('annex', { targetId, donorIds, transferredGeometry: candidate.geometry });
-      workerRequestId = response.requestId;
-      const plan = response.result;
-      const affectedIds = new Set(plan.affectedIds);
-      applyWorkerCountryPatches(plan);
-      reindexCountries(state.countriesData, true);
-      transferLandDependents(candidate.geometry, donorIds, targetId);
-      refreshCountryCentroids(affectedIds);
-      state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-      const targetAfter = countryFeatureById(targetId);
-      if (!targetAfter) throw new Error('편입받을 국가가 편입 결과에서 사라졌습니다.');
-
-      state.draftCoords = [];
-      state.draftHover = null;
-      setTool('select', false);
-      selectCountry(targetId, false, false);
-      renderAll();
-      commitHistorySnapshot(snapshot);
-      mapEditClient.commit(workerRequestId);
-      queueAutosave();
-      const removedText = plan.removedIds.length ? ` · ${plan.removedIds.length}개국 완전 흡수` : '';
-      setActionStatus(`선택한 ${plan.affectedDonorIds.length}개국의 영토를 ${targetName}에 편입했습니다${removedText}.`, 'success', 4000);
-    } catch (error) {
-      if (workerRequestId) mapEditClient.discard(workerRequestId);
-      restoreCountryEditSnapshot(snapshot);
-      if (error?.cancelled) return;
-      reportOperationError(error, '영토를 편입하지 못해 변경을 되돌렸습니다. 편입 범위를 조정한 뒤 다시 시도하세요.', 'AW-ANNEX-002');
-    }
+    setActionStatus('선택한 영토를 편입하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
+    await transactCountryEdit({
+      operation: 'annex',
+      payload: { targetId, donorIds, transferredGeometry: candidate.geometry },
+      snapshot,
+      applyResult: plan => {
+        const affectedIds = new Set(plan.affectedIds);
+        applyWorkerCountryPatches(plan);
+        reindexCountries(state.countriesData, true);
+        transferLandDependents(candidate.geometry, donorIds, targetId);
+        refreshCountryCentroids(affectedIds);
+        state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+        if (!countryFeatureById(targetId)) throw new Error('편입받을 국가가 편입 결과에서 사라졌습니다.');
+        state.draftCoords = [];
+        state.draftHover = null;
+        setTool('select', false);
+        selectCountry(targetId, false, false);
+        renderAll();
+      },
+      onSuccess: plan => {
+        const removedText = plan.removedIds.length ? ` · ${plan.removedIds.length}개국 완전 흡수` : '';
+        setActionStatus(`선택한 ${plan.affectedDonorIds.length}개국의 영토를 ${targetName}에 편입했습니다${removedText}.`, 'success', 4000);
+      },
+      onError: error => reportOperationError(error, '영토를 편입하지 못해 변경을 되돌렸습니다. 편입 범위를 조정한 뒤 다시 시도하세요.', 'AW-ANNEX-002'),
+    });
   }
 
   async function completeNewCountryCreation(candidateIndex) {
     if (state.tool !== 'new-country' || !['side', 'components'].includes(state.newCountryPhase)) return;
-    let candidate = null;
+    let candidate;
     if (state.newCountryPhase === 'components') {
       try { candidate = { geometry: selectedTerritoryComponentGeometry() }; }
       catch (error) {
@@ -7638,9 +4564,7 @@
       }
     } else {
       const selectedIndex = candidateIndex === null ? NaN : Number(candidateIndex);
-      candidate = Number.isInteger(selectedIndex) && selectedIndex >= 0
-        ? state.newCountryCandidates[selectedIndex]
-        : null;
+      candidate = Number.isInteger(selectedIndex) && selectedIndex >= 0 ? state.newCountryCandidates[selectedIndex] : null;
     }
     if (!candidate?.geometry) {
       setActionStatus('신생국 영토 후보를 찾을 수 없습니다.', 'error', 3800);
@@ -7650,44 +4574,36 @@
     if (nameInput === null) return;
     const sourceIds = state.newCountrySourceIds.map(String);
     const snapshot = snapshotEditable();
-    let workerRequestId = 0;
-    try {
-      const feature = createCountryFeature(
-        nameInput.trim() || '새 국가',
-        state.draftCoords,
-        null,
-        snapGeometryToGrid(candidate.geometry, 7),
-      );
-      setActionStatus('새 국가의 영토를 계산하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
-      const response = await mapEditClient.execute('new-country', {
-        sourceIds,
-        transferredGeometry: candidate.geometry,
-        newFeature: feature,
-      });
-      workerRequestId = response.requestId;
-      const transferPlan = response.result;
-      const affectedIds = new Set(transferPlan.affectedIds);
-      applyWorkerCountryPatches(transferPlan);
-      reindexCountries(state.countriesData, true);
-      transferLandDependents(candidate.geometry, sourceIds, feature.properties.editor_id);
-      refreshCountryCentroids(affectedIds);
-      state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-      state.draftCoords = [];
-      state.draftHover = null;
-      setTool('select', false);
-      selectCountry(feature.properties.editor_id, false, false);
-      renderAll();
-      commitHistorySnapshot(snapshot);
-      mapEditClient.commit(workerRequestId);
-      queueAutosave();
-      const removedText = transferPlan.removedIds.length ? ` · 원본 ${transferPlan.removedIds.length}개국 완전 흡수` : '';
-      setActionStatus(`${countryName(feature)} 국가를 추가했습니다. 선택한 ${transferPlan.affectedSourceIds.length}개국의 영토만 이전했습니다${removedText}.`, 'success', 4200);
-    } catch (error) {
-      if (workerRequestId) mapEditClient.discard(workerRequestId);
-      restoreCountryEditSnapshot(snapshot);
-      if (error?.cancelled) return;
-      reportOperationError(error, '국가를 추가하지 못해 변경을 되돌렸습니다. 선택 범위를 조정한 뒤 다시 시도하세요.', 'AW-COUNTRY-002');
-    }
+    const feature = createCountryFeature(
+      nameInput.trim() || '새 국가',
+      state.draftCoords,
+      null,
+      snapGeometryToGrid(candidate.geometry, 7),
+    );
+    setActionStatus('새 국가의 영토를 계산하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
+    await transactCountryEdit({
+      operation: 'new-country',
+      payload: { sourceIds, transferredGeometry: candidate.geometry, newFeature: feature },
+      snapshot,
+      applyResult: transferPlan => {
+        const affectedIds = new Set(transferPlan.affectedIds);
+        applyWorkerCountryPatches(transferPlan);
+        reindexCountries(state.countriesData, true);
+        transferLandDependents(candidate.geometry, sourceIds, feature.properties.editor_id);
+        refreshCountryCentroids(affectedIds);
+        state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+        state.draftCoords = [];
+        state.draftHover = null;
+        setTool('select', false);
+        selectCountry(feature.properties.editor_id, false, false);
+        renderAll();
+      },
+      onSuccess: transferPlan => {
+        const removedText = transferPlan.removedIds.length ? ` · 원본 ${transferPlan.removedIds.length}개국 완전 흡수` : '';
+        setActionStatus(`${countryName(feature)} 국가를 추가했습니다. 선택한 ${transferPlan.affectedSourceIds.length}개국의 영토만 이전했습니다${removedText}.`, 'success', 4200);
+      },
+      onError: error => reportOperationError(error, '국가를 추가하지 못해 변경을 되돌렸습니다. 선택 범위를 조정한 뒤 다시 시도하세요.', 'AW-COUNTRY-002'),
+    });
   }
 
   async function completeCountryMerge() {
@@ -7705,34 +4621,26 @@
     }
     const sourceName = countryName(source);
     const snapshot = snapshotEditable();
-    let workerRequestId = 0;
-    try {
-      setActionStatus('선택한 국가를 합병하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
-      const response = await mapEditClient.execute('merge', { sourceId, targetIds });
-      workerRequestId = response.requestId;
-      const result = response.result;
-      applyWorkerCountryPatches(result);
-      const affectedIds = new Set(result.affectedIds);
-      state.countryOverrides[sourceId] = { ...(state.countryOverrides[sourceId] || {}), name: sourceName };
-      for (const targetId of targetIds) delete state.countryOverrides[targetId];
-      reindexCountries(state.countriesData, true);
-      reassignLandDependents(targetIds, sourceId);
-      refreshCountryCentroids(new Set([sourceId]));
-      state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-
-      setTool('select', false);
-      selectCountry(sourceId, false, false);
-      renderAll();
-      commitHistorySnapshot(snapshot);
-      mapEditClient.commit(workerRequestId);
-      queueAutosave();
-      setActionStatus(`${targetIds.length}개국을 ${sourceName}에 합병했습니다.`, 'success', 3200);
-    } catch (error) {
-      if (workerRequestId) mapEditClient.discard(workerRequestId);
-      restoreCountryEditSnapshot(snapshot);
-      if (error?.cancelled) return;
-      reportOperationError(error, '국가를 합병하지 못해 변경을 되돌렸습니다. 대상을 다시 확인하세요.', 'AW-MERGE-001');
-    }
+    setActionStatus('선택한 국가를 합병하는 중입니다. 지도는 계속 조작할 수 있습니다.', 'working', 0);
+    await transactCountryEdit({
+      operation: 'merge',
+      payload: { sourceId, targetIds },
+      snapshot,
+      applyResult: result => {
+        applyWorkerCountryPatches(result);
+        state.countryOverrides[sourceId] = { ...(state.countryOverrides[sourceId] || {}), name: sourceName };
+        for (const targetId of targetIds) delete state.countryOverrides[targetId];
+        reindexCountries(state.countriesData, true);
+        reassignLandDependents(targetIds, sourceId);
+        refreshCountryCentroids(new Set([sourceId]));
+        state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+        setTool('select', false);
+        selectCountry(sourceId, false, false);
+        renderAll();
+      },
+      onSuccess: () => setActionStatus(`${targetIds.length}개국을 ${sourceName}에 합병했습니다.`, 'success', 3200),
+      onError: error => reportOperationError(error, '국가를 합병하지 못해 변경을 되돌렸습니다. 대상을 다시 확인하세요.', 'AW-MERGE-001'),
+    });
   }
 
   function countryIdsOverlappingGeometry(geometry, excludeIds = []) {
@@ -7788,27 +4696,23 @@
       return;
     }
     const snapshot = snapshotEditable();
-    let requestId = 0;
-    try {
-      setActionStatus('영역을 국가 영토에 반영하는 중입니다.', 'working', 0);
-      const response = await mapEditClient.execute('annex', { targetId: ownerId, donorIds, transferredGeometry });
-      requestId = response.requestId;
-      applyWorkerCountryPatches(response.result);
-      reindexCountries(state.countriesData, true);
-      transferLandDependents(transferredGeometry, donorIds, ownerId);
-      normalizeDrawingSemantics(feature, { inferOwner: false });
-      refreshCountryCentroids(new Set(response.result.affectedIds));
-      selectDrawing(String(feature.id), true);
-      renderAll();
-      commitHistorySnapshot(snapshot);
-      mapEditClient.commit(requestId);
-      queueAutosave();
-      setActionStatus(`${drawingName(feature)} 영역을 ${countryName(countryFeatureById(ownerId))} 영토에 반영했습니다.`, 'success', 3800);
-    } catch (error) {
-      if (requestId) mapEditClient.discard(requestId);
-      restoreCountryEditSnapshot(snapshot);
-      reportOperationError(error, '영역을 국가 영토에 반영하지 못했습니다. 소유 국가와 겹치는 범위를 확인하세요.', 'AW-LAND-001', 4600);
-    }
+    setActionStatus('영역을 국가 영토에 반영하는 중입니다.', 'working', 0);
+    await transactCountryEdit({
+      operation: 'annex',
+      payload: { targetId: ownerId, donorIds, transferredGeometry },
+      snapshot,
+      applyResult: result => {
+        applyWorkerCountryPatches(result);
+        reindexCountries(state.countriesData, true);
+        transferLandDependents(transferredGeometry, donorIds, ownerId);
+        normalizeDrawingSemantics(feature, { inferOwner: false });
+        refreshCountryCentroids(new Set(result.affectedIds));
+        selectDrawing(String(feature.id), true);
+        renderAll();
+      },
+      onSuccess: () => setActionStatus(`${drawingName(feature)} 영역을 ${countryName(countryFeatureById(ownerId))} 영토에 반영했습니다.`, 'success', 3800),
+      onError: error => reportOperationError(error, '영역을 국가 영토에 반영하지 못했습니다. 소유 국가와 겹치는 범위를 확인하세요.', 'AW-LAND-001', 4600),
+    });
   }
 
   async function promoteSelectedDrawingToCountry() {
@@ -7830,28 +4734,24 @@
       return;
     }
     const snapshot = snapshotEditable();
-    let requestId = 0;
-    try {
-      const country = createCountryFeature(name, [], feature.properties?.editorColor || null, snapGeometryToGrid(transferredGeometry, 7));
-      setActionStatus('영역을 국가로 전환하는 중입니다.', 'working', 0);
-      const response = await mapEditClient.execute('new-country', { sourceIds, transferredGeometry, newFeature: country });
-      requestId = response.requestId;
-      applyWorkerCountryPatches(response.result);
-      transferLandDependents(transferredGeometry, sourceIds, country.properties.editor_id, [feature.id]);
-      state.drawings = state.drawings.filter(item => String(item.id) !== String(feature.id));
-      reindexCountries(state.countriesData, true);
-      refreshCountryCentroids(new Set(response.result.affectedIds));
-      selectCountry(country.properties.editor_id, false, false);
-      renderAll();
-      commitHistorySnapshot(snapshot);
-      mapEditClient.commit(requestId);
-      queueAutosave();
-      setActionStatus(`${name} 영역을 독립 국가로 전환했습니다.`, 'success', 3600);
-    } catch (error) {
-      if (requestId) mapEditClient.discard(requestId);
-      restoreCountryEditSnapshot(snapshot);
-      reportOperationError(error, '영역을 국가로 전환하지 못했습니다. 다른 국가와의 중첩과 형상을 확인하세요.', 'AW-LAND-002', 4600);
-    }
+    const country = createCountryFeature(name, [], feature.properties?.editorColor || null, snapGeometryToGrid(transferredGeometry, 7));
+    setActionStatus('영역을 국가로 전환하는 중입니다.', 'working', 0);
+    await transactCountryEdit({
+      operation: 'new-country',
+      payload: { sourceIds, transferredGeometry, newFeature: country },
+      snapshot,
+      applyResult: result => {
+        applyWorkerCountryPatches(result);
+        transferLandDependents(transferredGeometry, sourceIds, country.properties.editor_id, [feature.id]);
+        state.drawings = state.drawings.filter(item => String(item.id) !== String(feature.id));
+        reindexCountries(state.countriesData, true);
+        refreshCountryCentroids(new Set(result.affectedIds));
+        selectCountry(country.properties.editor_id, false, false);
+        renderAll();
+      },
+      onSuccess: () => setActionStatus(`${name} 영역을 독립 국가로 전환했습니다.`, 'success', 3600),
+      onError: error => reportOperationError(error, '영역을 국가로 전환하지 못했습니다. 다른 국가와의 중첩과 형상을 확인하세요.', 'AW-LAND-002', 4600),
+    });
   }
 
   function alignSelectedDrawingToOwnerLand() {
@@ -8476,13 +5376,30 @@
     return {
       countryDelta: buildCountryDelta(),
       historyDirtyCountryIds: [...state.historyDirtyCountryIds],
-      countryOverrides: deepClone(state.countryOverrides),
-      sourceInfo: deepClone(state.sourceInfo),
-      labels: deepClone(state.labels),
-      drawings: deepClone(state.drawings),
-      physicalSettings: deepClone(state.physicalSettings),
-      removedLayerItems: deepClone(state.removedLayerItems),
+      ...pickProjectFields(state, { scope: 'history', clone: deepClone }),
     };
+  }
+
+  function applySharedProjectFields(source, scope = 'project') {
+    return applyProjectFields(state, source, {
+      scope,
+      clone: deepClone,
+      normalizers: {
+        drawings: value => deepClone(value || []),
+        physicalSettings: (value, current) => normalizePhysicalSettings(value || current),
+        projection: (value, current, project) => value || project.view?.projection || current || 'globe',
+        layerVisibility: (value, current) => ({ ...(current || {}), ...(value || {}) }),
+        itemVisibility: value => normalizeLayerItemState(value),
+        removedLayerItems: value => normalizeRemovedLayerItems(value),
+        layerFolders: value => normalizeLayerFolderState(value),
+        countriesLocked: value => !!value,
+        view: (value, current) => clampViewZooms({ ...(current || {}), ...(value || {}) }),
+      },
+    });
+  }
+
+  function normalizeProjectDrawings() {
+    state.drawings = normalizeDrawingCollection(state.drawings || []);
   }
 
   function commitHistorySnapshot(snapshot) {
@@ -8498,15 +5415,11 @@
 
   function restoreEditable(snapshot) {
     const changedCountryIds = new Set(state.historyDirtyCountryIds);
-    state.countryOverrides = deepClone(snapshot.countryOverrides || {});
-    state.sourceInfo = deepClone(snapshot.sourceInfo || null);
-    state.labels = deepClone(snapshot.labels || []);
-    state.physicalSettings = normalizePhysicalSettings(snapshot.physicalSettings || state.physicalSettings);
-    state.removedLayerItems = normalizeRemovedLayerItems(snapshot.removedLayerItems);
+    applySharedProjectFields(snapshot, 'history');
     gpuMapRenderer.invalidateHydroVisibility();
     syncPhysicalControls();
     restoreCountriesFromSnapshot(snapshot);
-    state.drawings = normalizeDrawingCollection(deepClone(snapshot.drawings || []));
+    normalizeProjectDrawings();
     const restoredDirtyIds = new Set(state.historyDirtyCountryIds);
     for (const id of state.historyDirtyCountryIds) changedCountryIds.add(String(id));
     pruneLayerItemVisibility();
@@ -8584,19 +5497,8 @@
       version: APP_VERSION,
       savedAt: new Date().toISOString(),
       countriesData: state.countriesData,
-      countryOverrides: state.countryOverrides,
-      labels: state.labels,
-      drawings: state.drawings,
-      physicalSettings: state.physicalSettings,
-      projection: state.projection,
-      layerVisibility: state.layerVisibility,
-      itemVisibility: state.itemVisibility,
-      removedLayerItems: state.removedLayerItems,
-      layerFolders: state.layerFolders,
-      countriesLocked: state.countriesLocked,
-      view: state.view,
+      ...pickProjectFields(state, { clone: value => value }),
       baseDataset: BASE_DATASET,
-      sourceInfo: state.sourceInfo,
       landObjectModel: {
         schemaVersion: DRAWING_SCHEMA_VERSION,
         coastlineAuthority: 'countries',
@@ -8625,19 +5527,8 @@
       version: APP_VERSION,
       savedAt: new Date().toISOString(),
       countryDelta: buildCountryDelta(),
-      countryOverrides: state.countryOverrides,
-      labels: state.labels,
-      drawings: state.drawings,
-      physicalSettings: state.physicalSettings,
-      projection: state.projection,
-      layerVisibility: state.layerVisibility,
-      itemVisibility: state.itemVisibility,
-      removedLayerItems: state.removedLayerItems,
-      layerFolders: state.layerFolders,
-      countriesLocked: state.countriesLocked,
-      view: state.view,
+      ...pickProjectFields(state, { clone: value => value }),
       baseDataset: BASE_DATASET,
-      sourceInfo: state.sourceInfo,
       landObjectModel: {
         schemaVersion: DRAWING_SCHEMA_VERSION,
         coastlineAuthority: 'countries',
@@ -8805,24 +5696,13 @@
   function applyAtlasState(project, manual = false) {
     if (!project || typeof project !== 'object') throw new Error('프로젝트 형식이 올바르지 않습니다.');
     resetCountryLabelAnchorRuntime();
-    state.countryOverrides = deepClone(project.countryOverrides || {});
-    state.labels = deepClone(project.labels || []);
-    state.drawings = deepClone(project.drawings || []);
-    state.physicalSettings = normalizePhysicalSettings(project.physicalSettings);
-    state.projection = project.projection || project.view?.projection || 'globe';
-    state.layerVisibility = { ...state.layerVisibility, ...(project.layerVisibility || {}) };
-    state.itemVisibility = normalizeLayerItemState(project.itemVisibility);
-    state.removedLayerItems = normalizeRemovedLayerItems(project.removedLayerItems);
+    applySharedProjectFields(project);
     gpuMapRenderer.invalidateHydroVisibility();
-    state.layerFolders = normalizeLayerFolderState(project.layerFolders);
     state.layerSearch = '';
-    state.countriesLocked = !!project.countriesLocked;
-    state.sourceInfo = deepClone(project.sourceInfo || null);
-    state.view = clampViewZooms({ ...state.view, ...(project.view || {}) });
     state.countriesData = project.countriesData
       ? reindexCountries(deepClone(project.countriesData), true)
       : freshPristineCountries(true);
-    state.drawings = normalizeDrawingCollection(state.drawings);
+    normalizeProjectDrawings();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -9497,7 +6377,6 @@
         return;
       }
       if (key.startsWith('hydro-layer:')) {
-        const layerId = key.slice('hydro-layer:'.length);
         if (!state.hydroManifest) loadHydroData(true);
         else {
           const cacheState = state.physicalLoadState.hydroCache;
@@ -9574,7 +6453,7 @@
     });
   }
 
-  function bindUI() {
+  function bindNavigationUI() {
     document.addEventListener('pointerdown', event => {
       if (!event.target.closest('#notificationCloseBtn')) clearErrorNotification();
     }, true);
@@ -9620,7 +6499,7 @@
     $('createMenu')?.addEventListener('keydown', event => {
       const items = [...event.currentTarget.querySelectorAll('[role="menuitem"]')];
       const index = items.indexOf(document.activeElement);
-      let nextIndex = index;
+      let nextIndex;
       if (event.key === 'ArrowDown') nextIndex = (index + 1 + items.length) % items.length;
       else if (event.key === 'ArrowUp') nextIndex = (index - 1 + items.length) % items.length;
       else if (event.key === 'Home') nextIndex = 0;
@@ -9630,6 +6509,9 @@
       items[nextIndex]?.focus();
     });
 
+  }
+
+  function bindLayerUI() {
     $('countriesVisible').addEventListener('change', e => setLayerVisibility('countries', e.target.checked));
     $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
     $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
@@ -9703,6 +6585,9 @@
       queueAutosave();
     });
 
+  }
+
+  function bindToolUI() {
     $('addCountryBtn')?.addEventListener('click', () => {
       closeCreateMenu();
       enterNewCountryMode();
@@ -9754,10 +6639,31 @@
     });
     $('resetViewBtn').addEventListener('click', resetView);
 
-    $('countryNameInput').addEventListener('change', e => commitCountryEdit('name', e.target.value.trim()));
-    $('countryColorInput').addEventListener('change', e => commitCountryEdit('color', e.target.value));
-    $('capitalInput').addEventListener('change', e => commitCountryEdit('capital', e.target.value.trim()));
-    $('notesInput').addEventListener('change', e => commitCountryEdit('notes', e.target.value));
+  }
+
+  function bindChangeFields(definitions) {
+    for (const { id, field, commit, transform = value => value } of definitions) {
+      $(id).addEventListener('change', event => commit(field, transform(event.target.value)));
+    }
+  }
+
+  function bindEditorFields() {
+    bindChangeFields([
+      { id: 'countryNameInput', field: 'name', commit: commitCountryEdit, transform: value => value.trim() },
+      { id: 'countryColorInput', field: 'color', commit: commitCountryEdit },
+      { id: 'capitalInput', field: 'capital', commit: commitCountryEdit, transform: value => value.trim() },
+      { id: 'notesInput', field: 'notes', commit: commitCountryEdit },
+      { id: 'drawingNameInput', field: 'name', commit: commitDrawingMeta, transform: value => value.trim() },
+      { id: 'drawingColorInput', field: 'editorColor', commit: commitDrawingMeta },
+      { id: 'drawingCategoryInput', field: 'category', commit: commitDrawingMeta },
+      { id: 'drawingOwnerInput', field: 'aw_owner_id', commit: commitDrawingMeta },
+      { id: 'drawingParentInput', field: 'aw_parent_id', commit: commitDrawingMeta },
+      { id: 'drawingLandBindingInput', field: 'aw_land_binding', commit: commitDrawingMeta },
+      { id: 'drawingNotesInput', field: 'notes', commit: commitDrawingMeta },
+      { id: 'labelNameInput', field: 'name', commit: commitLabelEdit, transform: value => value.trim() },
+      { id: 'labelKindInput', field: 'kind', commit: commitLabelEdit },
+      { id: 'labelNotesInput', field: 'notes', commit: commitLabelEdit },
+    ]);
     $('flagUploadBtn').addEventListener('click', () => $('flagFileInput').click());
     $('flagFileInput').addEventListener('change', e => {
       const file = e.target.files?.[0];
@@ -9769,13 +6675,6 @@
     });
     $('flagRemoveBtn').addEventListener('click', () => commitCountryEdit('flagDataUrl', null));
 
-    $('drawingNameInput').addEventListener('change', e => commitDrawingMeta('name', e.target.value.trim()));
-    $('drawingColorInput').addEventListener('change', e => commitDrawingMeta('editorColor', e.target.value));
-    $('drawingCategoryInput').addEventListener('change', e => commitDrawingMeta('category', e.target.value));
-    $('drawingOwnerInput').addEventListener('change', e => commitDrawingMeta('aw_owner_id', e.target.value));
-    $('drawingParentInput').addEventListener('change', e => commitDrawingMeta('aw_parent_id', e.target.value));
-    $('drawingLandBindingInput').addEventListener('change', e => commitDrawingMeta('aw_land_binding', e.target.value));
-    $('drawingNotesInput').addEventListener('change', e => commitDrawingMeta('notes', e.target.value));
     $('splitDrawingBtn').addEventListener('click', () => state.selected?.type === 'drawing' && enterDrawingSplitMode(state.selected.id));
     $('mergeDrawingBtn').addEventListener('click', () => state.selected?.type === 'drawing' && enterDrawingMergeMode(state.selected.id));
     $('syncDrawingCoastBtn').addEventListener('click', alignSelectedDrawingToOwnerLand);
@@ -9799,9 +6698,6 @@
       onConfirm: promoteSelectedDrawingToCountry,
     }));
 
-    $('labelNameInput').addEventListener('change', e => commitLabelEdit('name', e.target.value.trim()));
-    $('labelKindInput').addEventListener('change', e => commitLabelEdit('kind', e.target.value));
-    $('labelNotesInput').addEventListener('change', e => commitLabelEdit('notes', e.target.value));
     $('deleteLabelBtn').addEventListener('click', deleteSelected);
     $('copyHydroBtn').addEventListener('click', copySelectedHydroForEditing);
     $('deleteDrawingInlineBtn')?.addEventListener('click', deleteSelected);
@@ -9813,6 +6709,9 @@
 
     $('togglePanelBtn').addEventListener('click', toggleEditorPanel);
 
+  }
+
+  function bindFileAndGisUI() {
     $('saveProjectBtn').addEventListener('click', saveGeoPackageFile);
     $('openGisBtn').addEventListener('click', () => {
       $('gisFileInput').click();
@@ -9853,6 +6752,9 @@
       }, 80);
     });
 
+  }
+
+  function bindGlobalInputUI() {
     document.addEventListener('keydown', e => {
       const tag = document.activeElement?.tagName;
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
@@ -9948,6 +6850,15 @@
     });
   }
 
+  function bindUI() {
+    bindNavigationUI();
+    bindLayerUI();
+    bindToolUI();
+    bindEditorFields();
+    bindFileAndGisUI();
+    bindGlobalInputUI();
+  }
+
   async function init() {
     assertRuntimeCompatibility();
     if (!window.d3) {
@@ -9962,20 +6873,7 @@
 
     const autosaveRestore = await restoreAutosavedProject();
     const restored = autosaveRestore.project;
-    if (restored) {
-      state.countryOverrides = deepClone(restored.countryOverrides || {});
-      state.sourceInfo = deepClone(restored.sourceInfo || null);
-      state.labels = deepClone(restored.labels || []);
-      state.drawings = deepClone(restored.drawings || []);
-      state.physicalSettings = normalizePhysicalSettings(restored.physicalSettings);
-      state.projection = restored.projection || 'globe';
-      state.layerVisibility = { ...state.layerVisibility, ...(restored.layerVisibility || {}) };
-      state.itemVisibility = normalizeLayerItemState(restored.itemVisibility);
-      state.removedLayerItems = normalizeRemovedLayerItems(restored.removedLayerItems);
-      state.layerFolders = normalizeLayerFolderState(restored.layerFolders);
-      state.countriesLocked = !!restored.countriesLocked;
-      state.view = clampViewZooms({ ...state.view, ...(restored.view || {}) });
-    }
+    if (restored) applySharedProjectFields(restored);
 
     const restoredDelta = restored?.format === 'atlaswright-autosave-delta';
     state.countriesData = restoredDelta
@@ -9983,7 +6881,7 @@
       : restored?.countriesData
         ? reindexCountries(deepClone(restored.countriesData), true)
         : freshPristineCountries(true);
-    state.drawings = normalizeDrawingCollection(state.drawings);
+    normalizeProjectDrawings();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();

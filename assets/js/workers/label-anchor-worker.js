@@ -20,7 +20,7 @@ if (typeof importScripts === 'function' && !self.d3) importScripts('../vendor/d3
     let best = null;
     let bestArea = -Infinity;
     for (const coordinates of polygonComponents(geometry)) {
-      let area = 0;
+      let area;
       try { area = self.d3.geo.area({ type: 'Polygon', coordinates }); }
       catch (_) { area = 0; }
       if (area > bestArea) {

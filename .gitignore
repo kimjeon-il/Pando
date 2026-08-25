@@ -1,3 +1,6 @@
 __pycache__/
 *.py[cod]
 reports/hydro-calibration/.cache/
+node_modules/
+playwright-report/
+test-results/
