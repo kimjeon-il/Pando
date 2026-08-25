@@ -14,7 +14,7 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertIn('class="sidebar right-panel editor-panel editor-shell map-sheet-surface"', INDEX)
         self.assertIn('id="editorScrollBody" class="editor-scroll-body"', INDEX)
         self.assertIn('id="editorObjectHeader" class="editor-object-header hidden"', INDEX)
-        for view_id in ("countryProperties", "drawingProperties", "labelProperties", "hydroProperties"):
+        for view_id in ("countryProperties", "regionProperties", "administrativeProperties", "drawingProperties", "labelProperties", "hydroProperties"):
             self.assertRegex(INDEX, rf'id="{view_id}" class="editor-view hidden"')
         for component in (
             "editor-section", "editor-section-title", "editor-field", "editor-action-grid",
@@ -49,7 +49,7 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertIsNotNone(function)
         source = function.group(0)
         for element_id in (
-            "emptyProperties", "editorObjectHeader", "countryProperties", "drawingProperties",
+            "emptyProperties", "editorObjectHeader", "countryProperties", "regionProperties", "administrativeProperties", "drawingProperties",
             "labelProperties", "hydroProperties", "propertyTitle", "editorScrollBody",
         ):
             self.assertIn(element_id, source)

@@ -5,6 +5,10 @@ export const TOOL_DEFINITIONS = Object.freeze({
   'merge-country': Object.freeze({ label: '국가 합병', task: '국가 합병', stage: '대상 국가 선택', cursor: 'country', special: true }),
   'merge-drawing': Object.freeze({ label: '영역 합치기', task: '영역 합치기', stage: '대상 영역 선택', cursor: 'country', special: true }),
   'split-drawing': Object.freeze({ label: '영역 나누기', task: '영역 나누기', stage: '경계 그리기', cursor: 'drawing', special: true }),
+  'merge-country-region': Object.freeze({ label: '지역 합치기', task: '지역 합치기', stage: '인접 영역 선택', cursor: 'country', special: true }),
+  'split-country-region': Object.freeze({ label: '지역 나누기', task: '지역 나누기', stage: '경계 그리기', cursor: 'drawing', special: true }),
+  'redraw-country-region': Object.freeze({ label: '영역 다시 지정', task: '영역 다시 지정', stage: '영역 그리기', cursor: 'drawing', special: true }),
+  'draw-country-region': Object.freeze({ label: '영역 직접 지정', task: '지역 추가', stage: '영역 그리기', cursor: 'drawing', special: true }),
   'country-coast': Object.freeze({ label: '해안선 수정', task: '해안선 수정', stage: '꼭짓점 이동', cursor: 'select', special: true }),
   label: Object.freeze({ label: '지명 배치', task: '지명 추가', stage: '위치 선택', cursor: 'drawing', special: true }),
   river: Object.freeze({ label: '강 추가', task: '강 추가', stage: '경로 그리기', cursor: 'drawing', special: true }),
@@ -31,9 +35,10 @@ export function toolCursorMode(tool, state, { labelPlacement = false } = {}) {
   const country = (tool === 'new-country' && state.newCountryPhase === 'sources')
     || (tool === 'annex-territory' && state.annexPhase === 'donor')
     || (tool === 'merge-country' && !!state.mergeSourceCountryId)
-    || tool === 'merge-drawing';
+    || tool === 'merge-drawing'
+    || tool === 'merge-country-region';
   const drawing = labelPlacement
-    || ['polygon', 'line', 'river', 'lake', 'split-drawing'].includes(tool)
+    || ['polygon', 'line', 'river', 'lake', 'split-drawing', 'split-country-region', 'redraw-country-region', 'draw-country-region'].includes(tool)
     || (tool === 'new-country' && state.newCountryPhase === 'line')
     || (tool === 'annex-territory' && state.annexPhase === 'line');
   const candidate = (tool === 'new-country' && ['side', 'components'].includes(state.newCountryPhase))

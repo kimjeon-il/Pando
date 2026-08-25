@@ -14,8 +14,8 @@ APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 class V0192LayerControlTests(unittest.TestCase):
     def test_layer_groups_use_one_folder_icon(self):
         self.assertIn('symbol id="icon-folder"', INDEX)
-        self.assertEqual(INDEX.count('class="ui-icon layer-folder-icon"'), 5)
-        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 6)
+        self.assertEqual(INDEX.count('class="ui-icon layer-folder-icon"'), 7)
+        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 9)
         self.assertNotIn('class="layer-icon', INDEX)
         self.assertNotIn(".layer-icon", CSS)
         self.assertNotIn("layer-child-swatch", APP)

@@ -3,6 +3,7 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'sourceInfo', history: true, fallback: () => null }),
   Object.freeze({ name: 'labels', history: true, fallback: () => [] }),
   Object.freeze({ name: 'drawings', history: true, fallback: () => [] }),
+  Object.freeze({ name: 'countryRegions', history: true, fallback: () => [] }),
   Object.freeze({ name: 'drawingFolders', history: true, fallback: () => [] }),
   Object.freeze({ name: 'physicalSettings', history: true, fallback: current => current || {} }),
   Object.freeze({ name: 'removedLayerItems', history: true, fallback: () => ({}) }),
