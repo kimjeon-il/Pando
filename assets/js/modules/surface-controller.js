@@ -117,8 +117,16 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     const layout = getLayout();
     if (layout === previousLayout) return;
     if (layout === 'mobile') {
-      activeMobileSheet = state.editorOpen ? 'edit' : state.layersOpen ? 'map' : null;
+      activeMobileSheet = state.activeSurface === 'create' ? 'create' : state.editorOpen ? 'edit' : state.layersOpen ? 'map' : null;
       state.activeSurface = activeMobileSheet ? MOBILE_TO_SURFACE[activeMobileSheet] : null;
+      state.layersOpen = activeMobileSheet === 'map';
+      state.editorOpen = activeMobileSheet === 'edit';
+    } else if (layout === 'compact') {
+      activeMobileSheet = null;
+      const compactSurface = state.activeSurface === 'create' ? 'create' : state.editorOpen ? 'editor' : state.layersOpen ? 'layers' : null;
+      state.activeSurface = compactSurface;
+      state.layersOpen = compactSurface === 'layers';
+      state.editorOpen = compactSurface === 'editor';
     } else {
       activeMobileSheet = null;
       if (layout === 'wide') state.layersOpen = true;

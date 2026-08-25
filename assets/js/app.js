@@ -49,6 +49,12 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   const DARK_DEFAULT_COLOR = '#63758a';
   const LIGHT_DEFAULT_COLOR = '#cccccc';
   const DEFAULT_DRAWING_COLOR = '#8c68d8';
+  const COLOR_PRESETS = Object.freeze([
+    '#000000', '#4b5563', '#9ca3af', '#ffffff', '#7f1d1d', '#dc2626',
+    '#f97316', '#f59e0b', '#facc15', '#166534', '#22c55e', '#14b8a6',
+    '#0ea5e9', '#2563eb', '#4338ca', '#7c3aed', '#a855f7', '#db2777',
+    '#f43f5e', '#8b5e3c', '#cda95d', '#63758a', '#cccccc', '#8c68d8',
+  ]);
   const ZOOM_LIMITS = Object.freeze({
     globe: Object.freeze({ min: 0.72, max: 32 }),
     flat: Object.freeze({ min: 0.75, max: 64 }),
@@ -130,6 +136,11 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
       const feature = countryFeatureById(id);
       const hasExplicitColor = !!(state.countryOverrides[id]?.color || feature?.properties?.editor_color);
       if (!hasExplicitColor && $('countryColorInput')) $('countryColorInput').value = defaultCountryColor();
+      syncColorPicker('country', {
+        value: state.countryOverrides[id]?.color || feature?.properties?.editor_color || defaultCountryColor(),
+        defaultColor: defaultCountryColor(),
+        isDefault: !hasExplicitColor,
+      });
     }
     if (svg) {
       markLayerTreeDirty();
@@ -205,8 +216,9 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   const surfaceState = surfaceController.state;
   const SHEET_SNAP_RATIOS = Object.freeze([0.35, 0.6, 0.9]);
   const SHEET_SNAP_LABELS = Object.freeze(['기본 높이', '중간 높이', '최대 높이']);
+  const MOBILE_SHEET_DEFAULT_SNAP = 1;
   const MOBILE_SHEET_IDS = Object.freeze({ map: 'leftPanel', create: 'createMenu', edit: 'rightPanel' });
-  const sheetSnapIndex = new Map([['leftPanel', 0], ['rightPanel', 0], ['createMenu', 1]]);
+  const sheetSnapIndex = new Map(Object.values(MOBILE_SHEET_IDS).map(id => [id, MOBILE_SHEET_DEFAULT_SNAP]));
   const sheetSnapTouched = new Set();
   let activeSheetDrag = null;
 
@@ -251,6 +263,13 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     return height;
   }
 
+  function resetMobileSheetSession(panel, { applyHeight = true } = {}) {
+    if (!panel) return;
+    sheetSnapTouched.delete(panel.id);
+    sheetSnapIndex.set(panel.id, MOBILE_SHEET_DEFAULT_SNAP);
+    if (applyHeight) setMobileSheetHeight(panel, MOBILE_SHEET_DEFAULT_SNAP);
+  }
+
 
   function refreshMapSheetMetrics() {
     const panels = Object.values(MOBILE_SHEET_IDS).map(id => $(id)).filter(Boolean);
@@ -260,7 +279,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
       return;
     }
     panels.forEach(panel => {
-      if (activeSheetDrag?.panel !== panel) setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
+      if (activeSheetDrag?.panel !== panel) setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP);
     });
   }
 
@@ -275,8 +294,9 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     const edge = $('togglePanelBtn');
     edge?.classList.toggle('active', surfaceState.editorOpen);
     edge?.setAttribute('aria-expanded', String(surfaceState.editorOpen));
-    edge?.setAttribute('aria-label', '편집창 열기');
-    edge?.setAttribute('title', '편집창 열기');
+    const edgeLabel = surfaceState.editorOpen ? '편집창 닫기' : '편집창 열기';
+    edge?.setAttribute('aria-label', edgeLabel);
+    edge?.setAttribute('title', edgeLabel);
     const headerToggle = $('mobileCloseRightBtn');
     if (!headerToggle) return;
     const label = layoutMode === 'wide' ? '편집창 접기' : '편집창 닫기';
@@ -324,37 +344,20 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
 
   function closeCreateMenu({ restoreFocus = false } = {}) {
     if (!isCreateMenuOpen()) return;
-    surfaceController.close('create');
-    syncOverlayState();
-    const trigger = isMobile() ? lastOverlayTrigger : createMenuTrigger;
-    if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
-    if (restoreFocus) lastOverlayTrigger = null;
-    createMenuTrigger = null;
+    closeSurface('create', { restoreFocus });
   }
 
   function toggleCreateMenu(trigger) {
-    if (isCreateMenuOpen()) {
-      closeCreateMenu({ restoreFocus: true });
-      return;
-    }
-    closeFileMenu();
-    const activeTrigger = trigger instanceof HTMLElement ? trigger : null;
-    if (isMobile()) lastOverlayTrigger = activeTrigger;
-    else createMenuTrigger = activeTrigger;
-    surfaceController.open('create');
-    const panel = $('createMenu');
-    if (isMobile() && panel) {
-      if (!sheetSnapTouched.has(panel.id)) sheetSnapIndex.set(panel.id, 1);
-      setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 1);
-    }
-    syncOverlayState();
-    if (layoutMode === 'wide') requestAnimationFrame(() => panel?.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
+    toggleSurface('create', trigger);
   }
 
   function closeActiveMobileSheet({ restoreFocus = false } = {}) {
     if (!isMobile() || !surfaceController.activeMobileSheet) return;
-    const surface = { map: 'layers', create: 'create', edit: 'editor' }[surfaceController.activeMobileSheet];
+    const kind = surfaceController.activeMobileSheet;
+    const surface = { map: 'layers', create: 'create', edit: 'editor' }[kind];
+    const panel = mobileSheetPanel(kind);
     surfaceController.close(surface);
+    resetMobileSheetSession(panel);
     syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
@@ -408,7 +411,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
         event.preventDefault();
         return;
       }
-      const current = sheetSnapIndex.get(panel.id) ?? 0;
+      const current = sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP;
       const target = current === SHEET_SNAP_RATIOS.length - 1 ? 1 : current + 1;
       sheetSnapTouched.add(panel.id);
       setMobileSheetHeight(panel, target);
@@ -416,7 +419,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     });
     handle.addEventListener('keydown', event => {
       if (!isMobile()) return;
-      const current = sheetSnapIndex.get(panel.id) ?? 0;
+      const current = sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP;
       let target;
       if (event.key === 'ArrowUp' || event.key === 'PageUp') target = Math.min(SHEET_SNAP_RATIOS.length - 1, current + 1);
       else if (event.key === 'ArrowDown' || event.key === 'PageDown') target = Math.max(0, current - 1);
@@ -434,14 +437,14 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     });
     handle.addEventListener('pointerdown', event => {
       if (!isMobile() || event.button > 0) return;
-      const currentHeight = Number.parseFloat(getComputedStyle(panel).height) || setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
+      const currentHeight = Number.parseFloat(getComputedStyle(panel).height) || setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP);
       activeSheetDrag = {
         panel,
         handle,
         pointerId: event.pointerId,
         startY: event.clientY,
         startHeight: currentHeight,
-        startIndex: sheetSnapIndex.get(panel.id) ?? 0,
+        startIndex: sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP,
         startTime: performance.now(),
         moved: false,
       };
@@ -502,11 +505,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     if (isMobile()) {
       const kind = { layers: 'map', create: 'create', editor: 'edit' }[surface];
       const panel = mobileSheetPanel(kind);
-      if (panel && !sheetSnapTouched.has(panel.id)) {
-        const initialIndex = kind === 'create' ? 1 : kind === 'edit' && state?.selected ? 1 : 0;
-        sheetSnapIndex.set(panel.id, initialIndex);
-      }
-      if (panel) setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? 0);
+      resetMobileSheetSession(panel);
     }
     syncOverlayState();
     if (surface === 'create' && layoutMode === 'wide') {
@@ -515,12 +514,26 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   }
 
   function closeSurface(surface, { manual = false, restoreFocus = false } = {}) {
+    const mobileKind = isMobile() ? { layers: 'map', create: 'create', editor: 'edit' }[surface] : null;
+    const mobilePanel = mobileKind ? mobileSheetPanel(mobileKind) : null;
     if (!surfaceController.close(surface, { manual, selected: !!state?.selected })) return;
+    if (mobilePanel) resetMobileSheetSession(mobilePanel);
+    if (surface === 'editor') closeAllColorPickers();
     syncOverlayState();
     const trigger = surface === 'create' && !isMobile() ? createMenuTrigger : lastOverlayTrigger;
     if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
     if (surface === 'create') createMenuTrigger = null;
+  }
+
+  function returnToMapAfterMobileAction(started, { fromCreate = false } = {}) {
+    if (!started) return false;
+    if (fromCreate && isCreateMenuOpen()) closeCreateMenu();
+    if (isMobile()) {
+      closeActiveMobileSheet();
+      requestAnimationFrame(() => $('map')?.focus({ preventScroll: true }));
+    }
+    return true;
   }
 
   function toggleSurface(surface, trigger = null) {
@@ -2370,8 +2383,12 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     return [lon, lat];
   }
 
+  function defaultDrawingColor(feature) {
+    return TERRAIN_TOOL_CONFIG[feature?.properties?.category]?.color || DEFAULT_DRAWING_COLOR;
+  }
+
   function drawingColor(feature) {
-    return feature.properties?.editorColor || DEFAULT_DRAWING_COLOR;
+    return feature.properties?.editorColor || defaultDrawingColor(feature);
   }
 
   function drawingCategoryLabel(feature) {
@@ -2523,6 +2540,9 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   };
   const layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
   let renderedLayerTreeRevision = -1;
+  let renderedLayerSearch = '';
+  let layerSearchScrollTop = 0;
+  const layerGroupScrollTop = new Map();
 
   function normalizePhysicalSettings(value) {
     const previousLayers = value?.hydroLayers || {};
@@ -2737,15 +2757,33 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   const LAYER_VIRTUAL_OVERSCAN = 5;
   const layerVirtualItems = new Map();
 
+  function isLayerTreeItemSelected(group, id) {
+    const key = String(id);
+    if (group === 'countries' || group === 'countryLabels') return state.selected?.type === 'country' && state.selected.id === key;
+    if (group === 'drawings') return state.selected?.type === 'drawing' && state.selected.id === key;
+    if (group === 'labels') return state.selected?.type === 'label' && state.selected.id === key;
+    return false;
+  }
+
+  function syncLayerSelectionRows() {
+    document.querySelectorAll('[data-layer-group][data-item-id]').forEach(row => {
+      const selected = isLayerTreeItemSelected(row.dataset.layerGroup, row.dataset.itemId);
+      row.classList.toggle('is-selected', selected);
+      if (row.matches('.layer-search-result')) row.setAttribute('aria-selected', String(selected));
+    });
+  }
+
   function createLayerItemRow(group, item, { searchResult = false } = {}) {
     const row = document.createElement(searchResult ? 'button' : 'div');
-    row.className = `ui-row ${searchResult ? 'layer-search-result' : 'layer-child'}${item.selected ? ' is-selected' : ''}`;
+    const selected = isLayerTreeItemSelected(group, item.id);
+    row.className = `ui-row ${searchResult ? 'ui-selectable-row layer-search-result' : 'layer-child'}${selected ? ' is-selected' : ''}`;
     row.dataset.layerGroup = group;
     row.dataset.itemId = item.id;
     if (searchResult) {
       row.type = 'button';
       row.dataset.layerItemSelect = group;
       row.setAttribute('role', 'option');
+      row.setAttribute('aria-selected', String(selected));
       row.innerHTML = `<span>${layerGroupNames[group] || '지형 음영'}</span><strong></strong>`;
       row.querySelector('strong').textContent = item.name;
       return row;
@@ -2783,10 +2821,11 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     return row;
   }
 
-  function renderVirtualizedLayerGroup(group, container, items) {
+  function renderVirtualizedLayerGroup(group, container, items, { scrollTop = container.scrollTop } = {}) {
     layerVirtualItems.set(group, items);
+    const desiredScrollTop = Math.max(0, Number(scrollTop) || 0);
     const viewportHeight = Math.max(144, container.clientHeight || 235);
-    const start = Math.max(0, Math.floor(container.scrollTop / LAYER_VIRTUAL_ROW_HEIGHT) - LAYER_VIRTUAL_OVERSCAN);
+    const start = Math.max(0, Math.floor(desiredScrollTop / LAYER_VIRTUAL_ROW_HEIGHT) - LAYER_VIRTUAL_OVERSCAN);
     const count = Math.ceil(viewportHeight / LAYER_VIRTUAL_ROW_HEIGHT) + LAYER_VIRTUAL_OVERSCAN * 2;
     const end = Math.min(items.length, start + count);
     const fragment = document.createDocumentFragment();
@@ -2801,6 +2840,9 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     fragment.appendChild(bottom);
     container.replaceChildren(fragment);
     container.dataset.virtualized = 'true';
+    const restoredScrollTop = Math.min(desiredScrollTop, Math.max(0, container.scrollHeight - container.clientHeight));
+    container.scrollTop = restoredScrollTop;
+    layerGroupScrollTop.set(group, restoredScrollTop);
   }
 
   function renderTerrainLayerFolder(search = '') {
@@ -2823,11 +2865,13 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     if (!force && renderedLayerTreeRevision === state.layerTreeRevision) return;
     pruneLayerItemVisibility();
     const search = String(state.layerSearch || '').trim().toLocaleLowerCase('ko');
+    const searchChanged = search !== renderedLayerSearch;
     const searchResults = $('layerSearchResults');
     const layerList = document.querySelector('.layer-list');
     searchResults?.classList.toggle('hidden', !search);
     layerList?.classList.toggle('hidden', !!search);
     if (search) {
+      if (!searchChanged && searchResults) layerSearchScrollTop = searchResults.scrollTop;
       const matches = [];
       for (const group of LAYER_GROUP_KEYS) {
         for (const item of layerTreeItems(group)) {
@@ -2845,8 +2889,14 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
         fragment.appendChild(empty);
       }
       searchResults?.replaceChildren(fragment);
+      if (searchResults) {
+        const nextSearchScrollTop = searchChanged ? 0 : Math.min(layerSearchScrollTop, Math.max(0, searchResults.scrollHeight - searchResults.clientHeight));
+        searchResults.scrollTop = nextSearchScrollTop;
+        layerSearchScrollTop = nextSearchScrollTop;
+      }
     } else {
       searchResults?.replaceChildren();
+      layerSearchScrollTop = 0;
     }
     renderTerrainLayerFolder(search);
     for (const group of LAYER_GROUP_KEYS) {
@@ -2856,30 +2906,39 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
       const allItems = layerTreeItems(group).sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
       const filtered = allItems;
       const expanded = !search && !!state.layerFolders[group];
+      if (!container.hidden) layerGroupScrollTop.set(group, container.scrollTop);
+      const savedScrollTop = layerGroupScrollTop.get(group) ?? 0;
       folder.classList.toggle('is-expanded', expanded);
       folder.querySelectorAll('[data-layer-folder-toggle]').forEach(button => {
         button.setAttribute('aria-expanded', String(expanded));
         button.setAttribute('aria-label', `${layerGroupNames[group]} 폴더 ${expanded ? '접기' : '펼치기'}`);
       });
       container.hidden = !expanded;
-      container.replaceChildren();
-      if (!expanded) continue;
+      if (!expanded) {
+        container.replaceChildren();
+        continue;
+      }
       if (!filtered.length) {
+        container.replaceChildren();
         const empty = document.createElement('div');
         empty.className = 'layer-empty';
         empty.textContent = search ? '검색 결과 없음' : '항목 없음';
         container.appendChild(empty);
         continue;
       }
-      if (filtered.length > 80) renderVirtualizedLayerGroup(group, container, filtered);
+      if (filtered.length > 80) renderVirtualizedLayerGroup(group, container, filtered, { scrollTop: savedScrollTop });
       else {
         container.removeAttribute('data-virtualized');
         const fragment = document.createDocumentFragment();
         for (const item of filtered) fragment.appendChild(createLayerItemRow(group, item));
-        container.appendChild(fragment);
+        container.replaceChildren(fragment);
+        const restoredScrollTop = Math.min(savedScrollTop, Math.max(0, container.scrollHeight - container.clientHeight));
+        container.scrollTop = restoredScrollTop;
+        layerGroupScrollTop.set(group, restoredScrollTop);
       }
     }
     renderedLayerTreeRevision = state.layerTreeRevision;
+    renderedLayerSearch = search;
   }
 
   function currentMapZoom() {
@@ -3982,7 +4041,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
 
   function enterTerrainDrawingMode(tool) {
     const config = terrainToolConfig(tool);
-    if (!config) return;
+    if (!config) return false;
     clearNotification();
     clearSelection(false);
     resetTerritoryEditingState(true);
@@ -3993,13 +4052,14 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
       ? '강의 흐름을 따라 점을 연결하세요. 완료하면 하나의 선으로 저장합니다.'
       : '호수의 경계를 따라 점을 연결하세요. 완료하면 영역을 자동으로 닫습니다.');
     updateModeButtons();
+    return true;
   }
 
   function enterNewCountryMode() {
     clearNotification();
     if (state.countriesLocked) {
       setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return;
+      return false;
     }
     clearSelection(false);
     state.draftCoords = [];
@@ -4008,6 +4068,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     state.newCountryPhase = 'sources';
     setTool('new-country', false);
     setModeBanner('새 국가로 분리할 영토가 있는 국가를 선택하세요.');
+    return true;
   }
 
   function toggleNewCountrySource(id) {
@@ -4046,10 +4107,10 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   function enterAnnexTerritoryMode(id) {
     clearNotification();
     const feature = countryFeatureById(id);
-    if (!feature) return;
+    if (!feature) return false;
     if (state.countriesLocked) {
       setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return;
+      return false;
     }
     state.draftCoords = [];
     state.draftHover = null;
@@ -4067,6 +4128,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     renderCountries();
     setModeBanner(`${countryName(feature)}로 영토를 이전할 국가를 선택하세요.`);
     updateModeButtons();
+    return true;
   }
 
   function toggleAnnexDonor(id) {
@@ -4115,10 +4177,10 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   function enterCountryCoastEdit(id, { scopeDrawingId = null, returnSelection = null } = {}) {
     clearNotification();
     const feature = countryFeatureById(id);
-    if (!feature) return;
+    if (!feature) return false;
     if (state.countriesLocked) {
       setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return;
+      return false;
     }
     rebuildBoundaryTopology(id);
     state.coastEditCountryId = String(id);
@@ -4133,6 +4195,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     setModeBanner(scopeDrawingId
       ? `${countryName(feature)}의 선택 영역과 맞닿은 해안선 꼭짓점을 드래그하세요. 국가 해안선과 연결된 영역이 함께 변경됩니다.`
       : `${countryName(feature)}의 해안선 꼭짓점을 드래그하세요. 연결된 영토·행정구역은 함께 변경되며 육상 국경은 유지됩니다.`, 'coast-mode');
+    return true;
   }
 
   function finishCountryCoastEdit() {
@@ -4153,10 +4216,10 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   function enterMergeCountryMode(id) {
     clearNotification();
     const feature = countryFeatureById(id);
-    if (!feature) return;
+    if (!feature) return false;
     if (state.countriesLocked) {
       setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return;
+      return false;
     }
     state.mergeSourceCountryId = String(id);
     state.mergeTargetCountryIds = [];
@@ -4166,6 +4229,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     setModeBanner(`${countryName(feature)}에 합병할 국가를 선택하세요.`);
     syncCountryActionButtons();
     updateModeButtons();
+    return true;
   }
 
   function toggleMergeTarget(id) {
@@ -4226,6 +4290,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     setModeBanner('지도에서 지명을 배치할 위치를 선택하세요. Esc 키로 취소할 수 있습니다.');
     syncMobileNavigation();
     updateModeButtons();
+    return true;
   }
 
   function exitLabelMode(announce = true) {
@@ -4780,21 +4845,23 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
 
   function enterDrawingSplitMode(id) {
     const feature = state.drawings.find(item => String(item.id) === String(id));
-    if (!feature || drawingGeometryKind(feature) !== 'polygon') return;
+    if (!feature || drawingGeometryKind(feature) !== 'polygon') return false;
     state.drawingSplitSourceId = String(id);
     setTool('split-drawing', false);
     state.drawingSplitSourceId = String(id);
     setModeBanner(`${drawingName(feature)} 영역을 가로지르는 새 경계를 그리세요.`);
+    return true;
   }
 
   function enterDrawingMergeMode(id) {
     const feature = state.drawings.find(item => String(item.id) === String(id));
-    if (!feature || drawingGeometryKind(feature) !== 'polygon') return;
+    if (!feature || drawingGeometryKind(feature) !== 'polygon') return false;
     state.drawingMergeSourceId = String(id);
     state.drawingMergeTargetIds = [];
     setTool('merge-drawing', false);
     state.drawingMergeSourceId = String(id);
     setModeBanner(`${drawingName(feature)}과 합칠 같은 역할의 영역을 선택하세요.`);
+    return true;
   }
 
   function toggleDrawingMergeTarget(id) {
@@ -5045,7 +5112,9 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     showPropertyForm('country', displayName, { resetScroll: !refreshOnly });
     $('countryNameInput').value = override.name || p.editor_name || p.editor_original_name || '';
     $('countryCodeInput').textContent = id;
-    $('countryColorInput').value = override.color || p.editor_color || defaultCountryColor();
+    const explicitColor = override.color || p.editor_color || '';
+    $('countryColorInput').value = explicitColor || defaultCountryColor();
+    syncColorPicker('country', { value: explicitColor || defaultCountryColor(), defaultColor: defaultCountryColor(), isDefault: !explicitColor });
     $('capitalInput').value = override.capital || p.capital || '';
     $('notesInput').value = override.notes || p.notes || '';
     $('originalNameValue').textContent = p.editor_original_name || p.editor_name || '—';
@@ -5053,7 +5122,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     $('selectionStatus').textContent = `국가 · ${displayName}`;
     syncStatusBar();
     syncCountryActionButtons();
-    markLayerTreeDirty();
+    syncLayerSelectionRows();
     if (shouldRender) renderAll();
     if (!refreshOnly) openSelectionEditor();
   }
@@ -5125,14 +5194,16 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     showPropertyForm('drawing', displayName, { resetScroll: !refreshOnly });
     $('drawingNameInput').value = meta.name || '';
     $('drawingIdInput').textContent = String(id);
-    $('drawingColorInput').value = meta.editorColor || DEFAULT_DRAWING_COLOR;
+    const defaultColor = defaultDrawingColor(feature);
+    $('drawingColorInput').value = meta.editorColor || defaultColor;
+    syncColorPicker('drawing', { value: meta.editorColor || defaultColor, defaultColor, isDefault: !meta.editorColor });
     $('drawingCategoryInput').value = meta.category || 'custom';
     $('drawingNotesInput').value = meta.notes || '';
     $('deleteDrawingInlineBtn').textContent = `${typeLabel} 삭제`;
     syncDrawingSemanticEditor(feature);
     $('selectionStatus').textContent = `${typeLabel} · ${meta.name || String(id).slice(0, 8)}`;
     syncStatusBar();
-    markLayerTreeDirty();
+    syncLayerSelectionRows();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
   }
@@ -5147,7 +5218,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     $('labelNotesInput').value = label.notes || '';
     $('selectionStatus').textContent = `지명 · ${label.name}`;
     syncStatusBar();
-    markLayerTreeDirty();
+    syncLayerSelectionRows();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
   }
@@ -5176,7 +5247,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     $('hydroSourceValue').textContent = properties.source || 'AtlasWright 내장 수계';
     $('selectionStatus').textContent = `${category} · ${displayName}`;
     syncStatusBar();
-    markLayerTreeDirty();
+    syncLayerSelectionRows();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
     if (!feature.geometry && !feature.__geometryLoading) {
@@ -5246,12 +5317,173 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     showPropertyForm(null);
     syncCountryActionButtons();
     syncMobileNavigation();
-    markLayerTreeDirty();
+    syncLayerSelectionRows();
     renderAll();
     if (layoutMode === 'wide') {
       surfaceState.editorManuallyCollapsed = false;
       if (surfaceState.editorOpen) closeSurface('editor');
     }
+  }
+
+  function normalizeEditorColor(value, fallback) {
+    const color = String(value || '').trim().toLowerCase();
+    return /^#[0-9a-f]{6}$/.test(color) ? color : fallback;
+  }
+
+  function syncColorPicker(kind, { value, defaultColor, isDefault }) {
+    const picker = document.querySelector(`[data-color-picker="${kind}"]`);
+    if (!picker) return;
+    const fallback = kind === 'country' ? defaultCountryColor() : DEFAULT_DRAWING_COLOR;
+    const resolvedDefault = normalizeEditorColor(defaultColor, fallback);
+    const resolvedValue = normalizeEditorColor(value, resolvedDefault);
+    const input = picker.querySelector('.ui-native-color-input');
+    const triggerPreview = picker.querySelector('.ui-color-trigger .ui-color-preview');
+    const valueLabel = picker.querySelector('.ui-color-value');
+    const defaultButton = picker.querySelector('[data-color-default]');
+    const defaultPreview = defaultButton?.querySelector('.ui-color-preview');
+    if (input) input.value = resolvedValue;
+    triggerPreview?.style.setProperty('--swatch-color', resolvedValue);
+    defaultPreview?.style.setProperty('--swatch-color', resolvedDefault);
+    if (valueLabel) valueLabel.textContent = isDefault ? '기본 색상' : resolvedValue.toUpperCase();
+    defaultButton?.setAttribute('aria-pressed', String(!!isDefault));
+    picker.querySelectorAll('[data-color-value]').forEach(button => {
+      button.setAttribute('aria-pressed', String(!isDefault && button.dataset.colorValue === resolvedValue));
+    });
+    picker.dataset.colorDefault = resolvedDefault;
+    picker.dataset.colorValue = resolvedValue;
+    picker.dataset.colorIsDefault = String(!!isDefault);
+  }
+
+  function closeColorPicker(picker, { restoreFocus = false } = {}) {
+    if (!picker) return;
+    const popover = picker.querySelector('.ui-color-popover');
+    const trigger = picker.querySelector('.ui-color-trigger');
+    if (popover?.classList.contains('hidden')) return;
+    popover.classList.add('hidden');
+    picker.classList.remove('is-open');
+    trigger?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) trigger?.focus({ preventScroll: true });
+  }
+
+  function closeAllColorPickers(except = null, options = {}) {
+    document.querySelectorAll('[data-color-picker]').forEach(picker => {
+      if (picker !== except) closeColorPicker(picker, options);
+    });
+  }
+
+  function openColorPicker(picker) {
+    if (!picker) return;
+    const popover = picker.querySelector('.ui-color-popover');
+    const trigger = picker.querySelector('.ui-color-trigger');
+    if (!popover || !trigger) return;
+    const opening = popover.classList.contains('hidden');
+    closeAllColorPickers(picker);
+    popover.classList.toggle('hidden', !opening);
+    picker.classList.toggle('is-open', opening);
+    trigger.setAttribute('aria-expanded', String(opening));
+    if (opening) requestAnimationFrame(() => popover.querySelector('button:not(:disabled)')?.focus({ preventScroll: true }));
+  }
+
+  function resetCountryColor() {
+    if (state.selected?.type !== 'country') return false;
+    const id = state.selected.id;
+    const idx = state.countryIndex.get(id);
+    const feature = idx === undefined ? null : state.countriesData.features[idx];
+    const override = state.countryOverrides[id] || {};
+    if (!override.color && !feature?.properties?.editor_color) {
+      syncColorPicker('country', { value: defaultCountryColor(), defaultColor: defaultCountryColor(), isDefault: true });
+      return true;
+    }
+    recordHistory();
+    delete override.color;
+    state.countryOverrides[id] = override;
+    if (feature?.properties) delete feature.properties.editor_color;
+    selectCountry(id, true);
+    queueAutosave();
+    setActionStatus('국가 색상을 기본값으로 되돌렸습니다.', 'success');
+    return true;
+  }
+
+  function resetDrawingColor() {
+    if (state.selected?.type !== 'drawing') return false;
+    const feature = state.drawings.find(item => String(item.id) === String(state.selected.id));
+    if (!feature) return false;
+    feature.properties ||= {};
+    if (!feature.properties.editorColor) {
+      const defaultColor = defaultDrawingColor(feature);
+      syncColorPicker('drawing', { value: defaultColor, defaultColor, isDefault: true });
+      return true;
+    }
+    recordHistory();
+    delete feature.properties.editorColor;
+    drawingLandClipCache.delete(feature);
+    selectDrawing(String(feature.id), true);
+    queueAutosave();
+    setActionStatus('지형지물 색상을 기본값으로 되돌렸습니다.', 'success');
+    return true;
+  }
+
+  function applyColorPickerSelection(kind, value, isDefault = false) {
+    if (isDefault) return kind === 'country' ? resetCountryColor() : resetDrawingColor();
+    const color = normalizeEditorColor(value, kind === 'country' ? defaultCountryColor() : DEFAULT_DRAWING_COLOR);
+    if (kind === 'country') {
+      if (state.selected?.type !== 'country') return false;
+      commitCountryEdit('color', color);
+      return true;
+    }
+    if (state.selected?.type !== 'drawing') return false;
+    commitDrawingMeta('editorColor', color);
+    return true;
+  }
+
+  function bindColorPickers() {
+    document.querySelectorAll('[data-color-picker]').forEach(picker => {
+      const kind = picker.dataset.colorPicker;
+      const trigger = picker.querySelector('.ui-color-trigger');
+      const input = picker.querySelector('.ui-native-color-input');
+      const swatches = picker.querySelector('.ui-color-swatches');
+      const defaultButton = picker.querySelector('[data-color-default]');
+      const customButton = picker.querySelector('[data-color-custom]');
+      if (swatches && !swatches.children.length) {
+        for (const color of COLOR_PRESETS) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'ui-button ui-color-swatch';
+          button.dataset.colorValue = color;
+          button.setAttribute('aria-label', `${color.toUpperCase()} 색상`);
+          button.setAttribute('aria-pressed', 'false');
+          button.style.setProperty('--swatch-color', color);
+          swatches.appendChild(button);
+        }
+      }
+      trigger?.addEventListener('click', () => openColorPicker(picker));
+      defaultButton?.addEventListener('click', () => {
+        if (applyColorPickerSelection(kind, '', true)) closeColorPicker(picker, { restoreFocus: true });
+      });
+      swatches?.addEventListener('click', event => {
+        const button = event.target.closest('[data-color-value]');
+        if (!button) return;
+        if (applyColorPickerSelection(kind, button.dataset.colorValue)) closeColorPicker(picker, { restoreFocus: true });
+      });
+      customButton?.addEventListener('click', () => {
+        closeColorPicker(picker);
+        input?.click();
+      });
+      input?.addEventListener('change', event => {
+        applyColorPickerSelection(kind, event.target.value);
+        trigger?.focus({ preventScroll: true });
+      });
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!event.target.closest('[data-color-picker]')) closeAllColorPickers();
+    }, true);
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      const openPicker = document.querySelector('[data-color-picker].is-open');
+      if (!openPicker) return;
+      closeColorPicker(openPicker, { restoreFocus: true });
+      event.preventDefault();
+    });
   }
 
   function commitCountryEdit(field, value) {
@@ -5267,7 +5499,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
       if (explicitColor) f.properties.editor_color = explicitColor;
       else delete f.properties.editor_color;
     }
-    markLayerTreeDirty();
+    if (field === 'name') markLayerTreeDirty();
     selectCountry(id, true);
     queueAutosave();
     setActionStatus('국가 정보를 변경했습니다.', 'success');
@@ -5288,7 +5520,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     if (field === 'category') normalizeDrawingSemantics(f);
     if (field === 'aw_owner_id' || field === 'aw_parent_id' || field === 'aw_land_binding') normalizeDrawingSemantics(f, { inferOwner: false });
     drawingLandClipCache.delete(f);
-    markLayerTreeDirty();
+    if (field === 'name' || field === 'category') markLayerTreeDirty();
     selectDrawing(state.selected.id, true);
     queueAutosave();
     setActionStatus('지형지물 정보를 변경했습니다.', 'success');
@@ -5300,7 +5532,7 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     if (!label) return;
     recordHistory();
     label[field] = value;
-    markLayerTreeDirty();
+    if (field === 'name' || field === 'kind') markLayerTreeDirty();
     selectLabel(label.id, true);
     queueAutosave();
     setActionStatus('지명 정보를 변경했습니다.', 'success');
@@ -6367,14 +6599,15 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     const key = String(id);
     if (group === 'countries' || group === 'countryLabels') {
       const feature = countryFeatureById(key);
-      if (!feature) return;
+      if (!feature) return false;
       if (!state.countriesLocked) selectCountry(key);
       const primary = largestCountryComponentFeature(feature) || feature;
       focusCountry(primary, { maxZoom: isMobile() ? 10 : 9 });
       if (state.countriesLocked) setActionStatus('국가 레이어가 잠겨 있어 위치만 이동했습니다.', 'error', 2600);
+      return true;
     } else if (group === 'drawings') {
       if (key === 'user-terrain') {
-        return;
+        return false;
       }
       if (key.startsWith('hydro-layer:')) {
         if (!state.hydroManifest) loadHydroData(true);
@@ -6388,19 +6621,21 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
             setActionStatus(suffix, 'success', 3200);
           }
         }
-        return;
+        return false;
       }
       const feature = state.drawings.find(item => String(item.id) === key);
-      if (!feature) return;
+      if (!feature) return false;
       selectDrawing(key);
       focusCountry(feature, { maxZoom: isMobile() ? 12 : 10 });
+      return true;
     } else if (group === 'labels') {
       const label = state.labels.find(item => String(item.id) === key);
-      if (!label) return;
+      if (!label) return false;
       selectLabel(key);
       focusCoordinate(label.coordinates);
+      return true;
     }
-    markLayerTreeDirty();
+    return false;
   }
 
   function resetView() {
@@ -6562,15 +6797,26 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
         return;
       }
       const itemButton = event.target.closest('[data-layer-item-select]');
-      if (itemButton) selectLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId);
+      if (itemButton) {
+        const focusedMap = selectLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId);
+        returnToMapAfterMobileAction(focusedMap);
+      }
     });
     $('layerSection')?.addEventListener('scroll', event => {
+      if (event.target === $('layerSearchResults')) {
+        layerSearchScrollTop = event.target.scrollTop;
+        return;
+      }
       const container = event.target.closest?.('.layer-children[data-virtualized="true"]');
       if (!container) return;
       const folder = container.closest('.layer-folder');
       const group = folder?.dataset.layerGroup;
       const items = layerVirtualItems.get(group);
-      if (group && items) renderVirtualizedLayerGroup(group, container, items);
+      if (group && items) {
+        const scrollTop = container.scrollTop;
+        layerGroupScrollTop.set(group, scrollTop);
+        renderVirtualizedLayerGroup(group, container, items, { scrollTop });
+      }
     }, true);
     $('layerSection')?.addEventListener('change', event => {
       const checkbox = event.target.closest('[data-layer-item-visibility]');
@@ -6589,20 +6835,16 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
 
   function bindToolUI() {
     $('addCountryBtn')?.addEventListener('click', () => {
-      closeCreateMenu();
-      enterNewCountryMode();
+      returnToMapAfterMobileAction(enterNewCountryMode(), { fromCreate: true });
     });
     $('addLabelBtn')?.addEventListener('click', () => {
-      closeCreateMenu();
-      enterLabelMode();
+      returnToMapAfterMobileAction(enterLabelMode(), { fromCreate: true });
     });
     $('addRiverBtn')?.addEventListener('click', () => {
-      closeCreateMenu();
-      enterTerrainDrawingMode('river');
+      returnToMapAfterMobileAction(enterTerrainDrawingMode('river'), { fromCreate: true });
     });
     $('addLakeBtn')?.addEventListener('click', () => {
-      closeCreateMenu();
-      enterTerrainDrawingMode('lake');
+      returnToMapAfterMobileAction(enterTerrainDrawingMode('lake'), { fromCreate: true });
     });
     $('modePrimaryBtn')?.addEventListener('click', () => {
       if (state.tool === 'country-coast') finishCountryCoastEdit();
@@ -6626,16 +6868,16 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     $('annexTerritoryBtn')?.addEventListener('click', () => {
       if (state.selected?.type !== 'country') return;
       if (state.tool === 'annex-territory' && state.annexTargetCountryId === state.selected.id) cancelActiveMode();
-      else enterAnnexTerritoryMode(state.selected.id);
+      else returnToMapAfterMobileAction(enterAnnexTerritoryMode(state.selected.id));
     });
     $('editCoastBtn')?.addEventListener('click', () => {
       if (state.selected?.type !== 'country') return;
       if (state.tool === 'country-coast' && state.coastEditCountryId === state.selected.id) finishCountryCoastEdit();
-      else enterCountryCoastEdit(state.selected.id);
+      else returnToMapAfterMobileAction(enterCountryCoastEdit(state.selected.id));
     });
     $('deleteCountryBtn')?.addEventListener('click', deleteSelectedCountry);
     $('mergeCountryBtn')?.addEventListener('click', () => {
-      if (state.selected?.type === 'country') enterMergeCountryMode(state.selected.id);
+      if (state.selected?.type === 'country') returnToMapAfterMobileAction(enterMergeCountryMode(state.selected.id));
     });
     $('resetViewBtn').addEventListener('click', resetView);
 
@@ -6648,13 +6890,12 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
   }
 
   function bindEditorFields() {
+    bindColorPickers();
     bindChangeFields([
       { id: 'countryNameInput', field: 'name', commit: commitCountryEdit, transform: value => value.trim() },
-      { id: 'countryColorInput', field: 'color', commit: commitCountryEdit },
       { id: 'capitalInput', field: 'capital', commit: commitCountryEdit, transform: value => value.trim() },
       { id: 'notesInput', field: 'notes', commit: commitCountryEdit },
       { id: 'drawingNameInput', field: 'name', commit: commitDrawingMeta, transform: value => value.trim() },
-      { id: 'drawingColorInput', field: 'editorColor', commit: commitDrawingMeta },
       { id: 'drawingCategoryInput', field: 'category', commit: commitDrawingMeta },
       { id: 'drawingOwnerInput', field: 'aw_owner_id', commit: commitDrawingMeta },
       { id: 'drawingParentInput', field: 'aw_parent_id', commit: commitDrawingMeta },
@@ -6675,15 +6916,19 @@ const { createGpuMapRenderer } = gpuMapRendererModule;
     });
     $('flagRemoveBtn').addEventListener('click', () => commitCountryEdit('flagDataUrl', null));
 
-    $('splitDrawingBtn').addEventListener('click', () => state.selected?.type === 'drawing' && enterDrawingSplitMode(state.selected.id));
-    $('mergeDrawingBtn').addEventListener('click', () => state.selected?.type === 'drawing' && enterDrawingMergeMode(state.selected.id));
+    $('splitDrawingBtn').addEventListener('click', () => {
+      if (state.selected?.type === 'drawing') returnToMapAfterMobileAction(enterDrawingSplitMode(state.selected.id));
+    });
+    $('mergeDrawingBtn').addEventListener('click', () => {
+      if (state.selected?.type === 'drawing') returnToMapAfterMobileAction(enterDrawingMergeMode(state.selected.id));
+    });
     $('syncDrawingCoastBtn').addEventListener('click', alignSelectedDrawingToOwnerLand);
     $('editDrawingCoastBtn').addEventListener('click', () => {
       if (state.selected?.type !== 'drawing') return;
       const feature = state.drawings.find(item => String(item.id) === String(state.selected.id));
       const ownerId = String(feature?.properties?.aw_owner_id || '');
       if (!countryFeatureById(ownerId)) return;
-      enterCountryCoastEdit(ownerId, { scopeDrawingId: feature.id, returnSelection: { type: 'drawing', id: String(feature.id) } });
+      returnToMapAfterMobileAction(enterCountryCoastEdit(ownerId, { scopeDrawingId: feature.id, returnSelection: { type: 'drawing', id: String(feature.id) } }));
     });
     $('applyDrawingToCountryBtn').addEventListener('click', () => openConfirmModal({
       title: '국가 영토에 반영',

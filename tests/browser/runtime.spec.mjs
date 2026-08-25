@@ -194,6 +194,83 @@ test('opening a sheet does not shift the compact map projection safe area', asyn
   expect(after).toEqual(before);
 });
 
+test('compact primary navigation and history controls share one horizontal top axis', async ({ page }) => {
+  await page.setViewportSize(layouts[1].viewport);
+  const errors = await openApp(page);
+  const geometry = await page.evaluate(() => {
+    const box = selector => document.querySelector(selector).getBoundingClientRect();
+    const nav = box('.adaptive-nav');
+    const history = box('#mapCommandToolbar');
+    const view = box('.map-view-toolbar');
+    const buttons = [...document.querySelectorAll('.adaptive-nav button')].map(button => button.getBoundingClientRect());
+    return {
+      nav: { top: nav.top, right: nav.right, height: nav.height },
+      history: { top: history.top, left: history.left, height: history.height },
+      view: { top: view.top, height: view.height },
+      buttonTops: buttons.map(button => button.top),
+      buttonLefts: buttons.map(button => button.left),
+    };
+  });
+  expect(geometry.nav.top).toBe(geometry.history.top);
+  expect(geometry.history.top).toBe(geometry.view.top);
+  expect(geometry.nav.height).toBe(geometry.history.height);
+  expect(geometry.history.height).toBe(geometry.view.height);
+  expect(geometry.history.left - geometry.nav.right).toBe(8);
+  expect(new Set(geometry.buttonTops).size).toBe(1);
+  expect(geometry.buttonLefts).toEqual([...geometry.buttonLefts].sort((a, b) => a - b));
+  await page.locator('#mobileMapBtn').click();
+  await expect.poll(async () => {
+    const panel = await page.locator('#leftPanel').boundingBox();
+    const workspace = await page.locator('.workspace').boundingBox();
+    return Math.round(panel.x - workspace.x);
+  }).toBe(8);
+  const panel = await page.locator('#leftPanel').boundingBox();
+  const workspace = await page.locator('.workspace').boundingBox();
+  expect(panel.x - workspace.x).toBe(8);
+  expect(panel.y - workspace.y).toBe(74);
+  expect(errors).toEqual([]);
+});
+
+test('wide editor toggle stays attached to the viewport and open drawer edge', async ({ page }) => {
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  const trigger = page.locator('#togglePanelBtn');
+  const workspace = page.locator('.workspace');
+  const closedTrigger = await trigger.boundingBox();
+  const workspaceBox = await workspace.boundingBox();
+  expect(Math.abs(closedTrigger.x + closedTrigger.width - (workspaceBox.x + workspaceBox.width))).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(closedTrigger.y + closedTrigger.height / 2 - (workspaceBox.y + workspaceBox.height / 2))).toBeLessThanOrEqual(0.5);
+  await trigger.click();
+  await expect(page.locator('#rightPanel')).toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-label', '편집창 닫기');
+  await expect.poll(async () => {
+    const openTrigger = await trigger.boundingBox();
+    const panel = await page.locator('#rightPanel').boundingBox();
+    return Math.abs(openTrigger.x + openTrigger.width - panel.x);
+  }).toBeLessThanOrEqual(0.5);
+  const openTrigger = await trigger.boundingBox();
+  const panel = await page.locator('#rightPanel').boundingBox();
+  expect(Math.abs(openTrigger.x + openTrigger.width - panel.x)).toBeLessThanOrEqual(0.5);
+  await trigger.click();
+  await expect(page.locator('#rightPanel')).not.toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-label', '편집창 열기');
+  expect(errors).toEqual([]);
+});
+
+test('wide editor remains the only active surface after switching to compact', async ({ page }) => {
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  await page.locator('#togglePanelBtn').click();
+  await expect(page.locator('#rightPanel')).toBeVisible();
+  await page.setViewportSize(layouts[1].viewport);
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'compact');
+  await expect(page.locator('#rightPanel')).toBeVisible();
+  await expect(page.locator('#leftPanel')).not.toBeVisible();
+  await expect(page.locator('.adaptive-nav button.sheet-open')).toHaveCount(1);
+  await expect(page.locator('#mobileEditBtn')).toHaveAttribute('aria-expanded', 'true');
+  expect(errors).toEqual([]);
+});
+
 test('common row buttons, headers, cards, and checkboxes keep their component geometry', async ({ page }) => {
   test.setTimeout(120_000);
   for (const layout of layouts) {
@@ -261,6 +338,52 @@ test('compact layer, create, and editor headers share one 74px rule', async ({ p
   expect(measurements.map(value => value.padding)).toEqual(['16px', '16px', '16px']);
   for (const value of measurements) expect(Math.abs(value.titleCenter - value.closeCenter)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
+});
+
+test('sheet titles match object titles and mobile zoom dock has symmetric insets', async ({ page }) => {
+  await page.setViewportSize(layouts[2].viewport);
+  const errors = await openApp(page);
+  const metrics = await page.evaluate(() => {
+    const fontSize = selector => getComputedStyle(document.querySelector(selector)).fontSize;
+    const dock = document.querySelector('.mobile-zoom-dock').getBoundingClientRect();
+    const button = document.querySelector('.mobile-zoom-dock button').getBoundingClientRect();
+    return {
+      fontSizes: [fontSize('#mapSheetTitle'), fontSize('#editSheetTitle'), fontSize('#propertyTitle')],
+      leftInset: button.left - dock.left,
+      rightInset: dock.right - button.right,
+    };
+  });
+  expect(metrics.fontSizes).toEqual(['18px', '18px', '18px']);
+  expect(Math.abs(metrics.leftInset - metrics.rightInset)).toBeLessThanOrEqual(0.5);
+  expect(errors).toEqual([]);
+});
+
+test('terrain retries a transient high-resolution tile failure and reaches the target level', async ({ page }) => {
+  await page.setViewportSize(layouts[0].viewport);
+  let failedUrl = '';
+  const attempts = new Map();
+  await page.route('**/terrain/v0.12.6/**/*.webp*', async route => {
+    const url = route.request().url();
+    const count = (attempts.get(url) || 0) + 1;
+    attempts.set(url, count);
+    const level = Number(/\/v0\.12\.6\/(\d+)\//.exec(url)?.[1] || 0);
+    if (!failedUrl && level > 0) {
+      failedUrl = url;
+      await route.abort('failed');
+      return;
+    }
+    await route.continue();
+  });
+  const errors = await openApp(page);
+  await expect.poll(async () => page.evaluate(() => {
+    const metrics = window.__ATLASWRIGHT_GPU_METRICS__ || {};
+    return metrics.terrainTargetTileCount > 0
+      && metrics.terrainTargetTilesLoaded === metrics.terrainTargetTileCount
+      && metrics.terrainRenderedLevel === metrics.terrainLevel;
+  }), { timeout: 30_000 }).toBe(true);
+  expect(failedUrl).not.toBe('');
+  expect(attempts.get(failedUrl)).toBeGreaterThanOrEqual(2);
+  expect(errors.filter(message => !message.includes('net::ERR_FAILED'))).toEqual([]);
 });
 
 test('mouse, wheel, touch pan, pinch, and double tap all advance map frames', async ({ page }) => {
@@ -332,5 +455,104 @@ test('virtualized country deletion honors lock, undo, and autosave restore', asy
   const countryFolderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await countryFolderToggle.getAttribute('aria-expanded') !== 'true') await countryFolderToggle.click();
   await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('virtualized layer selection and search results preserve scroll and accessible selection state', async ({ page }) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
+  if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
+  await page.locator('#countriesLocked').uncheck({ force: true });
+  const list = page.locator('#countriesLayerChildren');
+  await list.evaluate(element => { element.scrollTop = 2400; });
+  await expect.poll(() => list.evaluate(element => element.scrollTop)).toBeGreaterThan(2000);
+  const target = list.locator('.layer-child-name').nth(6);
+  const targetName = (await target.textContent()).trim();
+  const before = await list.evaluate(element => element.scrollTop);
+  await target.click();
+  const after = await list.evaluate(element => element.scrollTop);
+  expect(Math.abs(after - before)).toBeLessThanOrEqual(1);
+  await expect(page.locator('#countriesLayerChildren .layer-child.is-selected .layer-child-name')).toHaveText(targetName);
+
+  const search = page.locator('#layerSearchInput');
+  await search.fill(targetName);
+  const result = page.locator('.layer-search-result').first();
+  await result.click();
+  await expect(result).toHaveAttribute('aria-selected', 'true');
+  const colors = await result.evaluate(element => ({
+    row: getComputedStyle(element).color,
+    name: getComputedStyle(element.querySelector('strong')).color,
+    group: getComputedStyle(element.querySelector('span')).color,
+    background: getComputedStyle(element).backgroundColor,
+  }));
+  expect(colors.name).toBe(colors.row);
+  expect(colors.group).not.toBe('rgb(102, 113, 125)');
+  expect(colors.background).not.toBe('rgba(0, 0, 0, 0)');
+  expect(errors).toEqual([]);
+});
+
+test('shared color picker applies presets, restores defaults, and participates in undo', async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
+  if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
+  await page.locator('#countriesLocked').uncheck({ force: true });
+  await page.locator('#countriesLayerChildren .layer-child-name').first().click();
+  await page.locator('#countryColorTrigger').click();
+  await expect(page.locator('#countryColorPopover')).toBeVisible();
+  await page.locator('#countryColorPopover [data-color-value="#dc2626"]').click();
+  await expect(page.locator('#countryColorInput')).toHaveValue('#dc2626');
+  await expect(page.locator('#countryColorValue')).toHaveText('#DC2626');
+  await page.locator('#countryColorTrigger').click();
+  await page.locator('#countryColorPopover [data-color-default]').click();
+  await expect(page.locator('#countryColorValue')).toHaveText('기본 색상');
+  await page.locator('#undoBtn').click();
+  await expect(page.locator('#redoBtn')).toBeEnabled();
+  await expect(page.locator('#countryProperties')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test('mobile sheets share one default snap, reset on reopen, and map actions dismiss them', async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.setViewportSize(layouts[2].viewport);
+  const errors = await openApp(page);
+  const openSheet = async (button, panel) => {
+    if (await page.locator(button).getAttribute('aria-expanded') !== 'true') await page.locator(button).click();
+    await expect(page.locator(panel)).toBeVisible();
+    return page.locator(panel).evaluate(element => element.getBoundingClientRect().height);
+  };
+  const layerHeight = await openSheet('#mobileMapBtn', '#leftPanel');
+  const createHeight = await openSheet('#mobileCreateBtn', '#createMenu');
+  const editHeight = await openSheet('#mobileEditBtn', '#rightPanel');
+  expect(Math.max(layerHeight, createHeight, editHeight) - Math.min(layerHeight, createHeight, editHeight)).toBeLessThanOrEqual(1);
+  expect(editHeight).toBeGreaterThan(500);
+
+  await page.getByRole('slider', { name: '편집창 높이 조절' }).press('ArrowUp');
+  const raisedHeight = await page.locator('#rightPanel').evaluate(element => element.getBoundingClientRect().height);
+  expect(raisedHeight).toBeGreaterThan(editHeight);
+  await page.locator('#mobileCloseRightBtn').click();
+  const reopenedHeight = await openSheet('#mobileEditBtn', '#rightPanel');
+  expect(Math.abs(reopenedHeight - editHeight)).toBeLessThanOrEqual(1);
+
+  await openSheet('#mobileMapBtn', '#leftPanel');
+  await page.locator('#countriesLocked').uncheck({ force: true });
+  const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
+  if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
+  await page.locator('#countriesLayerChildren .layer-child-name').first().click();
+  await expect(page.locator('#leftPanel')).not.toBeVisible();
+  await expect(page.locator('#mobileMapBtn')).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#map')).toBeFocused();
+
+  await openSheet('#mobileMapBtn', '#leftPanel');
+  await page.locator('#countriesVisible').click();
+  await expect(page.locator('#leftPanel')).toBeVisible();
+
+  await openSheet('#mobileCreateBtn', '#createMenu');
+  await page.locator('#addRiverBtn').click();
+  await expect(page.locator('#createMenu')).not.toBeVisible();
+  await expect(page.locator('#map')).toBeFocused();
   expect(errors).toEqual([]);
 });

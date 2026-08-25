@@ -28,7 +28,9 @@ class V0171AlignmentTests(unittest.TestCase):
 
     def test_toolbar_and_scroll_gutters_are_symmetric(self):
         self.assertIn("scrollbar-gutter: stable both-edges", CSS)
-        self.assertIn('#app[data-layout="compact"] .map-command-toolbar { left: calc(var(--map-safe-left) + 12px); gap: 0; }', CSS)
+        self.assertIn('#app[data-layout="compact"] .compact-primary-controls {', CSS)
+        self.assertIn('#app[data-layout="compact"] .map-command-toolbar { position: relative; inset: auto; flex: 0 0 auto; gap: 0; }', CSS)
+        self.assertIn('#app[data-layout="compact"] .map-command-toolbar { left: auto; }', CSS)
         self.assertIn('#app[data-layout="compact"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }', CSS)
         self.assertIn('#app[data-layout="mobile"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }', CSS)
 
