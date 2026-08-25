@@ -63,3 +63,23 @@ test('mobile tracks one active sheet and clears it when closed', () => {
   controller.close('editor');
   assert.equal(controller.render().activeMobileSheet, null);
 });
+
+test('layout changes preserve one relevant transient surface', () => {
+  const wideEditor = fixture('wide');
+  wideEditor.controller.open('editor');
+  wideEditor.controller.render();
+  wideEditor.setLayout('compact');
+  wideEditor.controller.syncLayout('wide');
+  assert.deepEqual(wideEditor.controller.render(), {
+    layersOpen: false, editorOpen: true, createOpen: false, activeMobileSheet: null,
+  });
+
+  const compactCreate = fixture('compact');
+  compactCreate.controller.open('create');
+  compactCreate.controller.render();
+  compactCreate.setLayout('mobile');
+  compactCreate.controller.syncLayout('compact');
+  assert.deepEqual(compactCreate.controller.render(), {
+    layersOpen: false, editorOpen: false, createOpen: true, activeMobileSheet: 'create',
+  });
+});

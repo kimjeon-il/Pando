@@ -9,6 +9,7 @@ function canvasFallbackWorkerMain() {
     let terrainManifestUrl = '';
     const terrainTiles = new Map();
     const terrainRequests = new Map();
+    const terrainFailures = new Map();
     const hydroPacks = new Map();
     let hydroActivePackIds = new Set();
     let hydroPort = null;
@@ -76,6 +77,8 @@ function canvasFallbackWorkerMain() {
 
     function requestTerrainTile(spec) {
       if (!terrainManifest || terrainTiles.has(spec.key) || terrainRequests.has(spec.key)) return;
+      const previousFailure = terrainFailures.get(spec.key);
+      if (previousFailure?.retryAt > performance.now()) return;
       const request = fetch(terrainTileUrl(spec))
         .then(response => {
           if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
@@ -83,6 +86,7 @@ function canvasFallbackWorkerMain() {
         })
         .then(prepareTerrainBitmap)
         .then(images => {
+          terrainFailures.delete(spec.key);
           terrainTiles.set(spec.key, { ...images, lastUsed: performance.now() });
           while (terrainTiles.size > 40) {
             const oldest = [...terrainTiles.entries()].sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
@@ -91,7 +95,13 @@ function canvasFallbackWorkerMain() {
           }
           self.postMessage({ type: 'terrain-ready', count: terrainTiles.size, key: spec.key });
         })
-        .catch(error => self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) }))
+        .catch(error => {
+          const attempts = Number(previousFailure?.attempts || 0) + 1;
+          const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
+          terrainFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
+          if (attempts <= 3) setTimeout(() => requestTerrainTile(spec), retryDelay);
+          self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) });
+        })
         .finally(() => terrainRequests.delete(spec.key));
       terrainRequests.set(spec.key, request);
     }
@@ -241,11 +251,17 @@ function canvasFallbackWorkerMain() {
 
     function renderTerrain(message, projection, width, height, dpr) {
       if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return;
-      const baseLevel = terrainManifest.levels[0];
+      const levels = terrainManifest.levels;
+      const baseLevel = levels[0];
       const targetLevel = terrainLevelForView(projection, dpr) || baseLevel;
-      const baseSpecs = visibleTerrainTileSpecs(baseLevel, message, projection, width, height, true);
-      const targetSpecs = Number(targetLevel.id) === Number(baseLevel.id) ? [] : visibleTerrainTileSpecs(targetLevel, message, projection, width, height);
-      for (const spec of [...baseSpecs, ...targetSpecs]) requestTerrainTile(spec);
+      const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
+      const specsByLevel = levels.slice(0, targetIndex + 1).map((level, index) => ({
+        level,
+        specs: visibleTerrainTileSpecs(level, message, projection, width, height, index === 0),
+      }));
+      for (let index = specsByLevel.length - 1; index >= 0; index -= 1) {
+        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec);
+      }
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
       context.globalAlpha = 1;
@@ -264,14 +280,14 @@ function canvasFallbackWorkerMain() {
         context.clip();
         context.setTransform(1, 0, 0, 1, 0, 0);
       }
-      for (const [specs, isBase] of [[baseSpecs, true], [targetSpecs, false]]) {
-        for (const spec of specs) {
+      for (let levelIndex = 0; levelIndex < specsByLevel.length; levelIndex += 1) {
+        for (const spec of specsByLevel[levelIndex].specs) {
           const tile = terrainTiles.get(spec.key);
           if (!tile) continue;
           tile.lastUsed = performance.now();
           const image = tile[style];
           if (message.projection === 'flat') drawFlatTerrainTile(spec, image, projection, dpr);
-          else drawGlobeTerrainTile(spec, image, projection, message, dpr, isBase);
+          else drawGlobeTerrainTile(spec, image, projection, message, dpr, levelIndex === 0);
         }
       }
       context.restore();

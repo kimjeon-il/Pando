@@ -28,9 +28,11 @@ class ResponsiveUiV0160Tests(unittest.TestCase):
         self.assertIn(".workspace.editor-drawer-open", CSS)
         self.assertIn(".workspace.layers-drawer-open", CSS)
 
-    def test_compact_uses_rail_and_mobile_keeps_bottom_navigation(self):
+    def test_compact_uses_horizontal_primary_controls_and_mobile_keeps_bottom_navigation(self):
         self.assertIn('class="adaptive-nav mobile-bottom-bar"', INDEX)
+        self.assertIn('class="compact-primary-controls"', INDEX)
         self.assertIn('#app[data-layout="compact"] .adaptive-nav', CSS)
+        self.assertIn('flex-direction: row', CSS)
         self.assertIn('#app[data-layout="mobile"] .adaptive-nav', CSS)
         self.assertIn("if (layoutMode === 'wide')", APP)
 

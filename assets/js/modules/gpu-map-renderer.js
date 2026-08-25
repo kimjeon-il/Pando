@@ -95,11 +95,15 @@ export function createGpuMapRenderer(deps) {
     let terrainManifest = null;
     const terrainTiles = new Map();
     const terrainTileRequests = new Map();
+    const terrainTileFailures = new Map();
     const terrainTileQueuedKeys = new Set();
     const terrainUploadQueue = [];
     let terrainUploadFrame = 0;
     const terrainGridMeshes = new Map();
     let terrainLastLevel = -1;
+    let terrainRenderedLevel = -1;
+    let terrainTargetTileCount = 0;
+    let terrainTargetTilesLoaded = 0;
     let mesh = null;
     let meshCountryIds = [];
     let pixelWidth = 0;
@@ -702,6 +706,7 @@ export function createGpuMapRenderer(deps) {
       terrainTileQueuedKeys.clear();
       terrainTiles.clear();
       terrainTileRequests.clear();
+      terrainTileFailures.clear();
       terrainGridMeshes.clear();
       for (const entry of hydroPacks.values()) {
         entry.resources = null;
@@ -1837,6 +1842,8 @@ export function createGpuMapRenderer(deps) {
 
     async function requestTerrainTile(spec) {
       if (!gl || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key) || terrainTileQueuedKeys.has(spec.key)) return;
+      const previousFailure = terrainTileFailures.get(spec.key);
+      if (previousFailure?.retryAt > performance.now()) return;
       const request = (async () => {
         const response = await fetch(terrainTileUrl(spec));
         if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
@@ -1848,10 +1855,20 @@ export function createGpuMapRenderer(deps) {
           bitmap.close?.();
           return;
         }
+        terrainTileFailures.delete(spec.key);
         terrainTileQueuedKeys.add(spec.key);
         terrainUploadQueue.push({ spec, bitmap });
         scheduleTerrainUpload();
       })().catch(error => {
+        const attempts = Number(previousFailure?.attempts || 0) + 1;
+        const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
+        terrainTileFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
+        if (attempts <= 3) {
+          setTimeout(() => {
+            requestTerrainTile(spec);
+            scheduleViewRender();
+          }, retryDelay);
+        }
         console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
       }).finally(() => terrainTileRequests.delete(spec.key));
       terrainTileRequests.set(spec.key, request);
@@ -1965,14 +1982,28 @@ export function createGpuMapRenderer(deps) {
 
     function renderTerrain() {
       if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return;
-      const baseLevel = terrainManifest.levels[0];
+      const levels = terrainManifest.levels;
+      const baseLevel = levels[0];
       const targetLevel = terrainLevelForView() || baseLevel;
+      const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
+      const activeLevels = levels.slice(0, targetIndex + 1);
+      const specsByLevel = activeLevels.map((level, index) => ({
+        level,
+        specs: visibleTerrainTileSpecs(level, index === 0),
+      }));
+      const targetSpecs = specsByLevel[specsByLevel.length - 1].specs;
       terrainLastLevel = Number(targetLevel.id);
-      const baseSpecs = visibleTerrainTileSpecs(baseLevel, true);
-      const targetSpecs = Number(targetLevel.id) === Number(baseLevel.id) ? [] : visibleTerrainTileSpecs(targetLevel);
-      for (const spec of [...baseSpecs, ...targetSpecs]) requestTerrainTile(spec);
-      for (const spec of baseSpecs) drawTerrainTile(spec);
-      for (const spec of targetSpecs) drawTerrainTile(spec);
+      terrainTargetTileCount = targetSpecs.length;
+      terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
+      for (let index = specsByLevel.length - 1; index >= 0; index -= 1) {
+        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec);
+      }
+      terrainRenderedLevel = -1;
+      for (const entry of specsByLevel) {
+        let rendered = false;
+        for (const spec of entry.specs) rendered = drawTerrainTile(spec) || rendered;
+        if (rendered) terrainRenderedLevel = Number(entry.level.id);
+      }
     }
 
     function renderWebGl() {
@@ -2407,6 +2438,9 @@ export function createGpuMapRenderer(deps) {
         forcedRenderer: forcedRenderer || null,
         fallbackReason,
         terrainLevel: terrainLastLevel,
+        terrainRenderedLevel,
+        terrainTargetTileCount,
+        terrainTargetTilesLoaded,
         terrainTilesLoaded: terrainTiles.size,
         terrainTilesLoading: terrainTileRequests.size,
         hydroFeaturesLoaded: state.hydroFeatureCache?.size || 0,

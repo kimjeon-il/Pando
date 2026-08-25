@@ -13,9 +13,9 @@ CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 
 class StatusLayoutV0191Tests(unittest.TestCase):
     def test_status_content_uses_one_ordered_inner_row(self):
-        inner = re.search(r'<div class="status-inner">([\s\S]+?)\n\s*</div>\n\s*</div>\n\s*\n\s*<nav', INDEX)
-        self.assertIsNotNone(inner)
-        markup = inner.group(1)
+        inner_start = INDEX.index('<div class="status-inner">')
+        status_end = INDEX.index('</main>', inner_start)
+        markup = INDEX[inner_start:status_end]
         self.assertLess(markup.index('id="statusView"'), markup.index('id="statusPrimary"'))
         self.assertLess(markup.index('id="statusPrimary"'), markup.index('id="statusSelection"'))
 

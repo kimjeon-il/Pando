@@ -75,6 +75,15 @@ class V0126RuntimeTests(unittest.TestCase):
         self.assertIn("automaticWaterColor", APP)
         self.assertIn("automaticWaterColor", CANVAS)
 
+    def test_terrain_quality_uses_progressive_levels_and_transient_retry(self):
+        self.assertIn("levels.slice(0, targetIndex + 1)", RENDERER)
+        self.assertIn("terrainTileFailures", RENDERER)
+        self.assertIn("terrainRenderedLevel", RENDERER)
+        self.assertIn("levels.slice(0, targetIndex + 1)", CANVAS)
+        self.assertIn("terrainFailures", CANVAS)
+        self.assertIn("attempts <= 3", RENDERER)
+        self.assertIn("attempts <= 3", CANVAS)
+
 
 if __name__ == "__main__":
     unittest.main()
