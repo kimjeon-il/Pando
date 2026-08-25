@@ -34,7 +34,7 @@ class V0171AlignmentTests(unittest.TestCase):
 
     def test_version_is_updated(self):
         self.assertIn('data-app-version="0.24.0"', INDEX)
-        self.assertIn("app.css?v=0.24.0", INDEX)
+        self.assertIn("app.css?v=0.24.0-r2", INDEX)
 
 
 if __name__ == "__main__":

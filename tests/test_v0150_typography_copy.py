@@ -21,9 +21,11 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn('data-app-version="0.24.0"', INDEX)
         self.assertIn("const APP_VERSION = '0.24.0'", APP)
         self.assertIn("const BUILD_ID = '0.24.0'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.24.0'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.24.0", INDEX)
-        self.assertIn("bootstrap.js?v=0.24.0", INDEX)
+        self.assertIn("const ASSET_REVISION = '0.24.0-r2'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.24.0-r2", INDEX)
+        self.assertIn("bootstrap.js?v=0.24.0-r2", INDEX)
+        self.assertIn("recoverCacheMismatch()", BOOTSTRAP)
+        self.assertIn("location.replace(recoveryUrl.href)", BOOTSTRAP)
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())
