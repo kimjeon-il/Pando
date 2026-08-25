@@ -1,11 +1,10 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import zlib from 'node:zlib';
-import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-const require = createRequire(import.meta.url);
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
@@ -13,8 +12,16 @@ const outputPath = path.resolve(
   projectRoot,
   process.argv[2] || path.join('assets', 'data', 'world-mesh-v0.12.6.bin.gz'),
 );
-const earcut = require(path.join(projectRoot, 'assets', 'js', 'vendor', 'earcut.min.js'));
-const meshCore = require(path.join(projectRoot, 'assets', 'js', 'workers', 'gpu-mesh-core.js'));
+function loadClassicScript(relativePath, globalName) {
+  const filePath = path.join(projectRoot, relativePath);
+  vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), { filename: filePath });
+  const value = globalThis[globalName];
+  if (!value) throw new Error(`${relativePath}에서 ${globalName}을 불러오지 못했습니다.`);
+  return value;
+}
+
+const earcut = loadClassicScript(path.join('assets', 'js', 'vendor', 'earcut.min.js'), 'earcut');
+const meshCore = loadClassicScript(path.join('assets', 'js', 'workers', 'gpu-mesh-core.js'), 'AtlasWrightGpuMeshCore');
 
 function countCoordinates(value) {
   if (Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') return 1;
@@ -88,7 +95,7 @@ if (countries?.type !== 'FeatureCollection' || countries.features?.length !== 25
 const ids = countries.features.map((feature, index) => String(feature.properties?.editor_id || feature.properties?.iso_a3 || index));
 if (new Set(ids).size !== ids.length) throw new Error('국가 ID가 중복되었습니다.');
 const sourceCoordinateCount = countCoordinates(countries.features.map(feature => feature.geometry?.coordinates));
-if (sourceCoordinateCount !== 548471) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);
+if (sourceCoordinateCount !== 548466) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);
 
 const startedAt = performance.now();
 const mesh = meshCore.buildGpuMeshFeatures(countries.features, earcut, { validate: true });

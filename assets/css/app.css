@@ -525,8 +525,6 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .layer-child-meta { color: #7a8590; }
   .layer-folder-toggle,
   .layer-child { color: #46515c; }
-  .layer-child:hover,
-  .layer-child.is-selected { background: #e8edf1; }
   .field-group label { color: #46515c; }
   .field-group input[readonly] { color: #74808b; }
   .fatal-noscript { border-color: #c97979; background: #fff0f0; color: #8b2929; }
@@ -1951,7 +1949,7 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 2px s
 .layer-lock-control:has(.lock-toggle:checked) { color: var(--accent-2); }
 html.keyboard-navigation .layer-lock-control:has(.lock-toggle:focus-visible) {
   outline: 2px solid color-mix(in srgb, var(--accent-2) 78%, transparent);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 .layer-folder-name,
 .layer-child-name {
@@ -1973,10 +1971,12 @@ html.keyboard-navigation .layer-lock-control:has(.lock-toggle:focus-visible) {
 }
 .layer-children {
   max-height: min(38vh, 340px);
+  margin-left: var(--ui-space-3);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--ui-space-1) 2px var(--ui-space-2) calc(var(--ui-space-3) + 2px);
+  padding: var(--ui-space-1) 2px var(--ui-space-2);
   border: 0;
+  border-left: 1px solid color-mix(in srgb, var(--ui-control-border) 68%, transparent);
   background: transparent;
   scrollbar-width: thin;
   contain: layout paint;
@@ -1992,9 +1992,16 @@ html.keyboard-navigation .layer-lock-control:has(.lock-toggle:focus-visible) {
   color: var(--text-soft);
   transition: background-color .14s ease;
 }
-.layer-child:hover { background: var(--ui-control-bg-hover); }
+.layer-child:hover:not(:has(.layer-child-delete:hover)) { background: var(--ui-control-bg-hover); }
 .layer-child.is-selected { background: var(--accent-surface); color: var(--accent-text); }
+.layer-child.is-selected:hover:not(:has(.layer-child-delete:hover)) { background: var(--accent-surface-hover); }
 .layer-child > input { grid-column: 1; }
+.layer-child.is-selected > input[type="checkbox"]:checked,
+.layer-child.is-selected > input[type="checkbox"]:checked:hover:not(:disabled) {
+  border-color: var(--accent-text);
+  background: var(--accent-text);
+  color: var(--accent-surface);
+}
 .layer-child-name { grid-column: 2; }
 .layer-child-meta { grid-column: 3; color: var(--muted); font-size: var(--ui-font-caption); font-variant-numeric: tabular-nums; }
 .layer-child.is-selected .layer-child-meta { color: color-mix(in srgb, var(--accent-text) 78%, transparent); }
@@ -2005,15 +2012,39 @@ html.keyboard-navigation .layer-lock-control:has(.lock-toggle:focus-visible) {
   height: var(--ui-control-height);
   display: grid;
   place-items: center;
+  position: relative;
+  isolation: isolate;
   padding: 0;
   border: 0;
   border-radius: var(--ui-radius-control);
   background: transparent;
   color: var(--muted);
+  transition: color .14s ease;
 }
-.layer-child-delete:hover:not(:disabled) { background: var(--danger-surface); color: var(--danger-text); }
+.layer-child-delete::before {
+  content: "";
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  z-index: 0;
+  border-radius: calc(var(--ui-radius-control) - 2px);
+  background: transparent;
+  pointer-events: none;
+  transition: background-color .14s ease;
+}
+.layer-child-delete:hover:not(:disabled) { background: transparent; color: var(--danger-text); }
+.layer-child-delete:hover:not(:disabled)::before { background: var(--danger-surface); }
+.layer-child.is-selected .layer-child-delete { color: color-mix(in srgb, var(--accent-text) 78%, transparent); }
+.layer-child.is-selected .layer-child-delete:hover:not(:disabled) { color: var(--accent-text); }
+.layer-child.is-selected .layer-child-delete:hover:not(:disabled)::before {
+  background: color-mix(in srgb, var(--accent-text) 14%, transparent);
+}
 .layer-child-delete:disabled { opacity: .32; }
-.layer-child-delete .ui-icon { width: 18px; height: 18px; }
+.layer-child-delete .ui-icon { width: 18px; height: 18px; position: relative; z-index: 1; }
+html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-child-name, .layer-child-delete):focus-visible {
+  border-radius: var(--ui-radius-control);
+  outline-offset: -2px;
+}
 .terrain-mode-option {
   min-height: var(--ui-control-height);
   display: flex;

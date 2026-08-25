@@ -21,13 +21,24 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
 
     def test_each_supported_layer_type_has_a_delete_path(self):
         delete_logic = APP[APP.index("function deleteLayerTreeItem"):APP.index("function deleteSelected()")]
+        common_delete = APP[APP.index("function removeDrawingById"):APP.index("function deleteLayerTreeItem")]
         self.assertIn("requestDeleteCountry(key)", delete_logic)
         self.assertIn("state.removedLayerItems.drawings[key] = true", delete_logic)
         self.assertIn("state.removedLayerItems.countryLabels[key] = true", delete_logic)
-        self.assertIn("state.drawings = state.drawings.filter", delete_logic)
-        self.assertIn("state.labels = state.labels.filter", delete_logic)
-        self.assertGreaterEqual(delete_logic.count("recordHistory();"), 4)
-        self.assertGreaterEqual(delete_logic.count("queueAutosave();"), 4)
+        self.assertIn("removeDrawingById(key", delete_logic)
+        self.assertIn("removeLabelById(key", delete_logic)
+        self.assertIn("state.drawings = state.drawings.filter", common_delete)
+        self.assertIn("state.labels = state.labels.filter", common_delete)
+        self.assertIn("pruneAutoDrawingFolders();", common_delete)
+        self.assertGreaterEqual(delete_logic.count("recordHistory();") + common_delete.count("recordHistory();"), 4)
+        self.assertGreaterEqual(delete_logic.count("queueAutosave();") + common_delete.count("queueAutosave();"), 4)
+
+    def test_selected_deletion_marks_the_tree_dirty_before_clearing_selection(self):
+        common_delete = APP[APP.index("function removeDrawingById"):APP.index("function deleteLayerTreeItem")]
+        drawing_delete = common_delete[common_delete.index("function removeDrawingById"):common_delete.index("function removeLabelById")]
+        label_delete = common_delete[common_delete.index("function removeLabelById"):]
+        for block in (drawing_delete, label_delete):
+            self.assertLess(block.index("markLayerTreeDirty();"), block.index("clearSelection(false)"))
 
     def test_country_lock_blocks_row_delete(self):
         country_delete = APP[APP.index("function requestDeleteCountry"):APP.index("function deleteSelectedCountry")]
