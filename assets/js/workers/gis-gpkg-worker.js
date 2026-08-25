@@ -177,6 +177,7 @@ function writeAtlasTables(db, payload) {
   const state = payload.projectState || {};
   const labels = state.labels || [];
   const drawings = state.drawings || [];
+  const countryRegions = state.countryRegions || [];
   const places = labels.map(label => ({
     geometry: { type: 'Point', coordinates: label.coordinates || [0, 0] },
     id: label.id || '',
@@ -189,6 +190,21 @@ function writeAtlasTables(db, payload) {
   const points = drawings.filter(item => item.geometry?.type === 'Point').map(drawingRow);
   const lines = drawings.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(drawingRow);
   const polygons = drawings.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(drawingRow);
+  const countryRegionRow = item => ({
+    geometry: item.geometry,
+    id: item.id || '',
+    name: item.properties?.name || '',
+    country_id: item.properties?.countryId || '',
+    parent_region_id: item.properties?.parentRegionId || '',
+    level: item.properties?.level ?? null,
+    status: item.properties?.status || 'assigned',
+    color: item.properties?.color || '',
+    notes: item.properties?.notes || '',
+    source_folder_id: item.properties?.sourceFolderId || '',
+    properties_json: JSON.stringify(item.properties || {}),
+  });
+  const territories = countryRegions.filter(item => item.properties?.kind === 'region').map(countryRegionRow);
+  const administrativeAreas = countryRegions.filter(item => item.properties?.kind === 'administrative').map(countryRegionRow);
   const drawingColumns = [
     { name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'category' }, { name: 'aw_role' },
     { name: 'aw_owner_id' }, { name: 'aw_parent_id' }, { name: 'aw_topology_group' }, { name: 'aw_land_binding' },
@@ -198,6 +214,13 @@ function writeAtlasTables(db, payload) {
   createFeatureTable(db, { tableName: 'drawings_point', geometryType: 'POINT', rows: points, columns: drawingColumns, description: 'AtlasWright point drawings' });
   createFeatureTable(db, { tableName: 'drawings_line', geometryType: 'MULTILINESTRING', rows: lines, columns: drawingColumns, description: 'AtlasWright line drawings' });
   createFeatureTable(db, { tableName: 'drawings_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: drawingColumns, description: 'AtlasWright polygon drawings' });
+  const countryRegionColumns = [
+    { name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'country_id' }, { name: 'parent_region_id' },
+    { name: 'level', type: 'INTEGER' }, { name: 'status' }, { name: 'color' }, { name: 'notes' },
+    { name: 'source_folder_id' }, { name: 'properties_json' },
+  ];
+  createFeatureTable(db, { tableName: 'territories', geometryType: 'MULTIPOLYGON', rows: territories, columns: countryRegionColumns, description: 'AtlasWright country regions' });
+  createFeatureTable(db, { tableName: 'administrative_areas', geometryType: 'MULTIPOLYGON', rows: administrativeAreas, columns: countryRegionColumns, description: 'AtlasWright administrative areas' });
 
   createAttributeTable(db, 'aw_project_settings', 'setting_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'AtlasWright project settings');
   const settings = { ...state };

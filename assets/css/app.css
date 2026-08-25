@@ -325,6 +325,25 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 }
 .country-label { fill: var(--map-label); font-size: var(--ui-font-map); font-weight: var(--ui-weight-semibold); text-anchor: middle; paint-order: stroke; stroke: var(--map-label-halo); stroke-width: 2.3px; stroke-linejoin: round; pointer-events: auto; cursor: pointer; }
 .country-label.major { font-size: var(--ui-font-caption); }
+.country-region-shape {
+  fill-opacity: 0;
+  stroke: currentColor;
+  stroke-opacity: .78;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  cursor: pointer;
+  vector-effect: non-scaling-stroke;
+  transition: fill-opacity .12s ease, stroke-width .12s ease;
+}
+.country-region-shape.is-region { stroke-width: 2px; }
+.country-region-shape.is-administrative { stroke-width: 1.1px; stroke-dasharray: 3 2; }
+.country-region-shape.has-explicit-color { fill-opacity: .24; }
+.country-region-shape:not(.has-explicit-color):hover { fill-opacity: .12; }
+.country-region-shape.has-explicit-color:hover { fill-opacity: .32; }
+.country-region-shape.selected { fill-opacity: .22; stroke: var(--accent-2); stroke-width: 3px; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent-2) 30%, transparent)); }
+.country-region-shape.selected.has-explicit-color { fill-opacity: .36; }
+.country-region-shape.country-region-merge-source { stroke: var(--accent-2); stroke-width: 3px; }
+.country-region-shape.country-region-merge-target { fill-opacity: .28; stroke: var(--accent); stroke-width: 3px; }
 .drawing-shape { stroke-width: 1.8px; stroke-linejoin: round; stroke-linecap: round; cursor: pointer; vector-effect: non-scaling-stroke; }
 .drawing-shape.selected { stroke: #ffe099 !important; stroke-width: 3px; filter: drop-shadow(0 0 3px rgba(255,224,153,.24)); }
 .drawing-shape.drawing-merge-source { stroke-width: 3px; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 30%, transparent)); }
@@ -552,6 +571,9 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .gis-progress span,
   .bootstrap-progress span { background: var(--accent); }
 }
+
+.geojson-target-card { width: min(460px, calc(100vw - 32px)); }
+.geojson-target-fields { display: grid; gap: var(--ui-space-3); margin: var(--ui-space-4) 0; }
 
 /* ===== AtlasWright v0.11.1: canonical responsive UI ===== */
 .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
@@ -1992,6 +2014,33 @@ html.keyboard-navigation .layer-lock-control:has(.lock-toggle:focus-visible) {
   color: var(--text-soft);
   transition: background-color .14s ease;
 }
+.layer-subfolder-row {
+  min-height: var(--ui-control-height);
+  display: grid;
+  grid-template-columns: 18px 18px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: 0 var(--ui-space-3);
+  color: var(--text-strong);
+  font-size: var(--ui-font-body);
+  text-align: left;
+  width: 100%;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+}
+.layer-subfolder-row:hover { background: var(--ui-control-bg-hover); }
+.layer-subfolder-row[aria-expanded="false"] .disclosure-icon { transform: rotate(-90deg); }
+.layer-subfolder-row.is-level {
+  grid-template-columns: 18px minmax(0, 1fr);
+  min-height: var(--ui-control-height);
+  padding-left: calc(var(--ui-space-3) + 18px + var(--ui-space-2));
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+}
+.layer-subfolder-row.is-level:hover { background: transparent; }
+.layer-subfolder-row.is-level .layer-folder-icon { display: none; }
+.layer-subfolder-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .layer-child:hover:not(:has(.layer-child-delete:hover)) { background: var(--ui-control-bg-hover); }
 .layer-child.is-selected { background: var(--accent-surface); color: var(--accent-text); }
 .layer-child.is-selected:hover:not(:has(.layer-child-delete:hover)) { background: var(--accent-surface-hover); }

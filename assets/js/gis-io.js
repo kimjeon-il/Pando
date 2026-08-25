@@ -498,6 +498,7 @@
     const layerNames = new Set((dataset.info?.layers || []).map(layer => layer.name));
     const hasPlaces = layerNames.has('places');
     const drawingLayerNames = ['drawings_point', 'drawings_line', 'drawings_polygon'].filter(name => layerNames.has(name));
+    const countryRegionLayerNames = ['territories', 'administrative_areas'].filter(name => layerNames.has(name));
     const state = {};
     if (hasPlaces) {
       const collection = await layerAsGeoJson(gdal, dataset, 'places', 'places');
@@ -533,6 +534,36 @@
               aw_land_binding: basic.aw_land_binding ?? properties.aw_land_binding ?? '',
               editorColor: basic.color ?? properties.editorColor ?? properties.color ?? '#8c68d8',
               notes: basic.notes ?? properties.notes ?? '',
+            },
+            geometry: feature.geometry,
+          });
+        }
+      }
+    }
+    if (countryRegionLayerNames.length) {
+      state.countryRegions = [];
+      for (const layerName of countryRegionLayerNames) {
+        const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
+        const kind = layerName === 'administrative_areas' ? 'administrative' : 'region';
+        for (let index = 0; index < (collection.features || []).length; index += 1) {
+          const feature = collection.features[index];
+          const basic = feature.properties || {};
+          let properties = {};
+          try { properties = basic.properties_json ? JSON.parse(basic.properties_json) : {}; } catch (_) {}
+          state.countryRegions.push({
+            type: 'Feature',
+            id: String(basic.aw_id || feature.id || `${layerName}_${index + 1}`),
+            properties: {
+              ...properties,
+              kind,
+              name: basic.name ?? properties.name ?? '',
+              countryId: basic.country_id ?? properties.countryId ?? '',
+              parentRegionId: basic.parent_region_id ?? properties.parentRegionId ?? '',
+              level: kind === 'administrative' ? Number(basic.level ?? properties.level ?? 1) : null,
+              status: basic.status ?? properties.status ?? 'assigned',
+              color: basic.color ?? properties.color ?? '',
+              notes: basic.notes ?? properties.notes ?? '',
+              sourceFolderId: basic.source_folder_id ?? properties.sourceFolderId ?? '',
             },
             geometry: feature.geometry,
           });

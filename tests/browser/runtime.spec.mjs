@@ -82,7 +82,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.24.0-r5')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.24.0-r6')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -90,7 +90,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.24.0-r5');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.24.0-r6');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -593,6 +593,9 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
       mimeType: 'application/geo+json',
       buffer: Buffer.from(featureCollection(name)),
     });
+    await expect(page.locator('#geoJsonTargetModal')).toBeVisible();
+    await expect(page.locator('#geoJsonTargetType')).toHaveValue('drawing');
+    await page.locator('#geoJsonTargetConfirmBtn').click();
     const folder = page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: name });
     await expect(folder).toHaveCount(1);
     await expect(folder.locator('.layer-child-name')).toHaveText(name);
@@ -616,5 +619,56 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
   }
   await expect(updatedTarget.locator('.layer-child-name')).toHaveCount(2);
   await expect(page.locator('#drawingFolderInput option')).toHaveText(['지형지물', '이동대상']);
+  expect(errors).toEqual([]);
+});
+
+test('GeoJSON polygon imports create dedicated country regions with inferred ownership', async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  const polygon = JSON.stringify({
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      id: 'region-import-smoke',
+      properties: { name: '시험 지역' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[19, 50], [19, 51], [20, 51], [20, 50], [19, 50]]],
+      },
+    }],
+  });
+
+  await page.locator('#geoJsonFileInput').setInputFiles({
+    name: 'region-smoke.geojson',
+    mimeType: 'application/geo+json',
+    buffer: Buffer.from(polygon),
+  });
+  await page.locator('#geoJsonTargetType').selectOption('region');
+  await page.locator('#geoJsonTargetConfirmBtn').click();
+
+  const regionToggle = page.locator('[data-layer-folder-toggle="regions"]').first();
+  if (await regionToggle.getAttribute('aria-expanded') !== 'true') await regionToggle.click();
+  const importedName = page.locator('#regionsLayerChildren .layer-child-name').filter({ hasText: '시험 지역' });
+  await expect(importedName).toHaveCount(1);
+  await expect(page.locator('#regionsLayerChildren .layer-subfolder-row')).toHaveCount(1);
+  await expect(page.locator('#regionsLayerChildren')).toContainText('미지정 지역');
+  const countrySubfolder = page.locator('#regionsLayerChildren [data-country-region-folder-toggle]');
+  await countrySubfolder.click();
+  await expect(countrySubfolder).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#regionsLayerChildren .layer-child')).toHaveCount(0);
+  await countrySubfolder.click();
+  await expect(page.locator('#regionsLayerChildren .layer-child')).toHaveCount(2);
+
+  const importedRow = page.locator('#regionsLayerChildren .layer-child').filter({ hasText: '시험 지역' });
+  await importedRow.locator('.layer-child-delete').click();
+  await expect(page.locator('#confirmModalChoice')).toHaveValue('unassigned');
+  await expect(page.locator('#confirmModalChoice option')).toHaveText(['미지정 영역으로 전환', '이 단계의 영역 구분 전체 해제']);
+  await page.locator('#confirmModalOkBtn').click();
+  await expect(page.locator('#regionsLayerChildren .layer-child-name').filter({ hasText: '시험 지역' })).toHaveCount(0);
+  await expect(page.locator('#regionsLayerChildren .layer-child-name').filter({ hasText: '미지정 지역' })).toHaveCount(1);
+
+  await page.locator('#undoBtn').click();
+  await expect(page.locator('#regionsLayerChildren .layer-child-name').filter({ hasText: '시험 지역' })).toHaveCount(1);
   expect(errors).toEqual([]);
 });
