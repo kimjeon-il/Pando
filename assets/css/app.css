@@ -253,7 +253,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 
 
 .layer-search input::placeholder { color: #77818c; }
-.layer-folder.is-expanded { background: rgba(29,36,45,.62); }
 .layer-folder-row:has(> input:nth-of-type(1):not(:checked)) { opacity: .62; }
 .layer-child:has(> input:not(:checked)) { opacity: .5; }
 .layer-empty { padding: 10px 8px; color: var(--muted); font-size: var(--ui-font-caption); text-align: center; }
@@ -524,8 +523,6 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .layer-search { background: #ffffff; }
   .layer-search input::placeholder,
   .layer-child-meta { color: #7a8590; }
-  .layer-folder { background: #f7f8fa; }
-  .layer-folder.is-expanded { background: #ffffff; }
   .layer-folder-toggle,
   .layer-child { color: #46515c; }
   .layer-child:hover,
@@ -1636,7 +1633,12 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
   border-radius: calc(var(--ui-radius-control) + 2px);
   background: var(--ui-segment-bg);
 }
-.projection-control { width: calc(var(--ui-control-height) * 2); height: var(--ui-control-height); }
+.projection-control {
+  width: calc(var(--ui-control-height) * 2);
+  height: var(--ui-control-height);
+  padding: 1px;
+  gap: 0;
+}
 .mode-method-switch { width: 248px; height: var(--ui-control-height); flex: 0 0 auto; }
 .ui-segment-option {
   width: 100%;
@@ -1732,7 +1734,7 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
   color: var(--muted);
   font-size: 0;
 }
-.layer-folder-toggle:hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.layer-folder-toggle:hover { background: transparent; color: var(--text-strong); }
 .layer-folder.is-expanded .layer-folder-toggle { transform: none; }
 .layer-folder.is-expanded .layer-folder-toggle .disclosure-icon { transform: rotate(180deg); }
 /* Native inputs keep semantics, but no longer leak operating-system visuals. */
@@ -1899,14 +1901,15 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 2px s
   gap: var(--ui-space-1);
   padding: 3px var(--ui-space-2) 3px 2px;
   border-radius: var(--ui-radius-control);
-  background: var(--surface-subtle);
+  background: transparent;
   transition: background-color .14s ease;
 }
 .layer-folder-row:has(.layer-lock-control) {
   grid-template-columns: var(--ui-control-height) 18px 18px minmax(0, 1fr) var(--ui-control-height);
 }
-.layer-folder-row:hover { background: var(--ui-control-bg-hover); }
-.layer-folder.is-expanded .layer-folder-row { background: color-mix(in srgb, var(--surface-subtle) 72%, var(--surface-hover)); }
+.layer-folder-row:has(.layer-folder-toggle:hover, .layer-folder-name:hover) {
+  background: var(--ui-control-bg-hover);
+}
 .layer-folder-icon {
   width: 18px;
   height: 18px;
