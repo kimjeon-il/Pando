@@ -976,7 +976,7 @@ export function createGpuMapRenderer(deps) {
       if (!(buffer instanceof ArrayBuffer)) throw new Error('외부 GPU 메시가 준비되지 않았습니다.');
       window.ATLASWRIGHT_GPU_MESH_BUFFER = null;
       const header = new Uint32Array(buffer, 0, 8);
-      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548471 || header[7] !== 3) {
+      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548466 || header[7] !== 3) {
         throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
       }
       const countryCount = header[2];

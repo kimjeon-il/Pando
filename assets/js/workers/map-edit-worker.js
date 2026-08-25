@@ -1,6 +1,22 @@
 'use strict';
 
-importScripts('../vendor/polygon-clipping.min.js');
+function versionedWorkerAssetUrl(relativePath) {
+  const url = new URL(relativePath, self.location.href);
+  const revision = new URL(self.location.href).searchParams.get('v');
+  if (revision) url.searchParams.set('v', revision);
+  return url.href;
+}
+
+importScripts(
+  versionedWorkerAssetUrl('../modules/country-geometry.js'),
+  versionedWorkerAssetUrl('../vendor/polygon-clipping.min.js'),
+);
+
+const {
+  hasCanonicalCountryWinding,
+  normalizeCountryGeometry,
+  ringSignedArea,
+} = self.AtlasWrightCountryGeometry;
 
 const countries = new Map();
 const pendingResults = new Map();
@@ -15,26 +31,10 @@ function multiCoordinates(geometry) {
   return geometry.type === 'MultiPolygon' ? geometry.coordinates || [] : [];
 }
 
-function normalizeGeometry(value) {
-  const polygons = Array.isArray(value) ? value.filter(polygon => Array.isArray(polygon) && polygon.length) : [];
-  if (!polygons.length) return null;
-  return polygons.length === 1
-    ? { type: 'Polygon', coordinates: polygons[0] }
-    : { type: 'MultiPolygon', coordinates: polygons };
-}
-
-function ringArea(ring) {
-  let area = 0;
-  for (let index = 0; index < (ring?.length || 0) - 1; index += 1) {
-    area += Number(ring[index][0]) * Number(ring[index + 1][1]) - Number(ring[index + 1][0]) * Number(ring[index][1]);
-  }
-  return area / 2;
-}
-
 function area(value) {
   const polygons = value?.type ? multiCoordinates(value) : (Array.isArray(value) ? value : []);
   return polygons.reduce((total, polygon) => total + Math.max(0,
-    Math.abs(ringArea(polygon[0] || [])) - (polygon || []).slice(1).reduce((sum, ring) => sum + Math.abs(ringArea(ring)), 0),
+    Math.abs(ringSignedArea(polygon[0] || [])) - (polygon || []).slice(1).reduce((sum, ring) => sum + Math.abs(ringSignedArea(ring)), 0),
   ), 0);
 }
 
@@ -89,7 +89,7 @@ function subtractRegionFromGeometry(geometry, region, tolerance) {
     affected = true;
     polygons.push(...self.polygonClipping.difference(source, region));
   }
-  return { affected, geometry: normalizeGeometry(polygons) };
+  return { affected, geometry: normalizeCountryGeometry(polygons) };
 }
 
 function unionRegionWithGeometry(geometry, region) {
@@ -101,7 +101,7 @@ function unionRegionWithGeometry(geometry, region) {
     else untouched.push(clone(polygon));
   }
   const merged = nearby.length ? self.polygonClipping.union(...nearby, region) : clone(region);
-  return normalizeGeometry([...untouched, ...merged]);
+  return normalizeCountryGeometry([...untouched, ...merged]);
 }
 
 function boundaryLength(geometry) {
@@ -119,13 +119,13 @@ function boundaryLength(geometry) {
 
 function geometryValid(geometry) {
   const polygons = multiCoordinates(geometry);
-  if (!polygons.length) return false;
+  if (!polygons.length || !hasCanonicalCountryWinding(geometry)) return false;
   return polygons.every(polygon => polygon?.length && polygon.every(ring => {
     if (!Array.isArray(ring) || ring.length < 4) return false;
     const first = ring[0], last = ring[ring.length - 1];
     if (!first || !last || Math.abs(first[0] - last[0]) > 1e-7 || Math.abs(first[1] - last[1]) > 1e-7) return false;
     return new Set(ring.slice(0, -1).map(coord => `${Number(coord[0]).toFixed(8)},${Number(coord[1]).toFixed(8)}`)).size >= 3
-      && Math.abs(ringArea(ring)) > 1e-14;
+      && Math.abs(ringSignedArea(ring)) > 1e-14;
   }));
 }
 
@@ -241,7 +241,7 @@ function executeMerge(message, working) {
   const affectedIds = new Set([sourceId, ...targetIds]);
   const baseline = captureBaseline(working, affectedIds);
   const next = clone(source);
-  next.geometry = normalizeGeometry(self.polygonClipping.union(source.geometry.coordinates, ...targets.map(feature => feature.geometry.coordinates)));
+  next.geometry = normalizeCountryGeometry(self.polygonClipping.union(source.geometry.coordinates, ...targets.map(feature => feature.geometry.coordinates)));
   next.properties.pop_est = Number(source.properties?.pop_est || 0) + targets.reduce((sum, feature) => sum + Number(feature.properties?.pop_est || 0), 0);
   next.properties.gdp_md_est = Number(source.properties?.gdp_md_est || 0) + targets.reduce((sum, feature) => sum + Number(feature.properties?.gdp_md_est || 0), 0);
   applyPatch(working, [next], targetIds);
@@ -281,7 +281,7 @@ function executeNewCountry(message, working) {
   }
   if (!affectedSourceIds.length) throw new Error('선택 영역과 겹치는 국가가 없습니다.');
   const baseline = captureBaseline(working, new Set(affectedSourceIds));
-  newFeature.geometry = normalizeGeometry(transferred);
+  newFeature.geometry = normalizeCountryGeometry(transferred);
   updates.push(newFeature);
   applyPatch(working, updates, removedIds);
   const affectedIds = new Set([...affectedSourceIds, newId]);

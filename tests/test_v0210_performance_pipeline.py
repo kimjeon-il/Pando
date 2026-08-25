@@ -11,6 +11,7 @@ CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js")
 TRANSACTION = (ROOT / "assets" / "js" / "modules" / "country-edit-transaction.js").read_text(encoding="utf-8")
 MAP_INPUT = (ROOT / "assets" / "js" / "modules" / "map-input-controller.js").read_text(encoding="utf-8")
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
+COUNTRY_GEOMETRY = (ROOT / "assets" / "js" / "modules" / "country-geometry.js").read_text(encoding="utf-8")
 
 
 class V0210PerformancePipelineTests(unittest.TestCase):
@@ -31,6 +32,10 @@ class V0210PerformancePipelineTests(unittest.TestCase):
         self.assertIn("executeNewCountry", EDIT_WORKER)
         self.assertIn("subtractRegionFromGeometry", EDIT_WORKER)
         self.assertIn("regionPolygonsNearFeatures", EDIT_WORKER)
+        self.assertIn("normalizeCountryGeometry", EDIT_WORKER)
+        self.assertIn("hasCanonicalCountryWinding", EDIT_WORKER)
+        self.assertIn("root.AtlasWrightCountryGeometry", COUNTRY_GEOMETRY)
+        self.assertIn("normalizeCountryGeometry(feature.geometry)", APP)
         self.assertIn("client.execute(operation, payload)", TRANSACTION)
         for operation in ("operation: 'annex'", "operation: 'merge'", "operation: 'new-country'"):
             self.assertIn(operation, APP)

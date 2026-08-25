@@ -7,6 +7,8 @@ import struct
 import unittest
 from pathlib import Path
 
+from shapely.geometry import shape
+
 
 ROOT = Path(__file__).parents[1]
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
@@ -48,7 +50,7 @@ class V0126RuntimeTests(unittest.TestCase):
         raw = gzip.decompress((ROOT / "assets" / "data" / "world-mesh-v0.12.6.bin.gz").read_bytes())
         magic, _fmt, _countries, vertex_count, triangle_count, line_count, source_count, revision = struct.unpack_from("<8I", raw, 0)
         self.assertEqual(magic, 0x434D4731)
-        self.assertEqual((source_count, revision), (548471, 3))
+        self.assertEqual((source_count, revision), (548466, 3))
         positions = struct.unpack_from(f"<{vertex_count * 2}i", raw, 32)
         country_bytes = vertex_count * 2
         offset = 32 + vertex_count * 8 + ((country_bytes + 3) & ~3) + triangle_count * 4
@@ -59,6 +61,17 @@ class V0126RuntimeTests(unittest.TestCase):
             self.assertFalse(abs(abs(a[1]) - 90) <= 1e-7 or abs(abs(b[1]) - 90) <= 1e-7)
             self.assertFalse(abs(abs(a[0]) - 180) <= 1e-7 and abs(abs(b[0]) - 180) <= 1e-7)
             self.assertLessEqual(abs(a[0] - b[0]), 180)
+
+    def test_egypt_country_geometry_has_no_self_intersecting_border_gap(self):
+        countries = json.loads((ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson").read_text(encoding="utf-8"))
+        egypt = next(feature for feature in countries["features"] if feature["properties"]["iso_a3"] == "EGY")
+        self.assertTrue(shape(egypt["geometry"]).is_valid)
+        main_ring = egypt["geometry"]["coordinates"][0][0]
+        self.assertNotIn([35.429207, 22.97833], main_ring)
+
+    def test_data_assets_inherit_the_bootstrap_cache_revision(self):
+        self.assertIn("function versionedDataUrl(relativePath)", LOADER)
+        self.assertIn("url.searchParams.set('v', revision)", LOADER)
 
     def test_land_only_relief_and_automatic_water_colours(self):
         manifest = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))

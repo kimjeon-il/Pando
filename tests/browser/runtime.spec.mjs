@@ -82,7 +82,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.24.0-r2')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.24.0-r5')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -90,10 +90,21 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.24.0-r2');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.24.0-r5');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
-    const ring = (left, right) => [[left, 0], [right, 0], [right, 2], [left, 2], [left, 0]];
+    const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
+    const ringArea = coordinates => coordinates.slice(0, -1).reduce((sum, coordinate, index) => {
+      const next = coordinates[index + 1];
+      return sum + coordinate[0] * next[1] - next[0] * coordinate[1];
+    }, 0) / 2;
+    const hasCanonicalWinding = geometry => {
+      const polygons = geometry?.type === 'Polygon' ? [geometry.coordinates] : geometry?.coordinates || [];
+      return polygons.length > 0 && polygons.every(polygon => polygon.every((coordinates, index) => {
+        const signedArea = ringArea(coordinates);
+        return index === 0 ? signedArea < 0 : signedArea > 0;
+      }));
+    };
     const feature = (id, left, right) => ({
       type: 'Feature',
       properties: { editor_id: id, editor_name: id, pop_est: 1, gdp_md_est: 1 },
@@ -141,6 +152,10 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
       });
       return {
         mergeDiscarded, annexAfterDiscard, newCountry, mergeCommitted, mergeAfterCommit, invalid,
+        canonicalWinding: [mergeDiscarded, annexAfterDiscard, newCountry, mergeCommitted]
+          .filter(message => message.ok)
+          .every(message => message.result.features.every(feature => hasCanonicalWinding(feature.geometry))),
+        mergedSphericalArea: window.d3.geo.area(mergeDiscarded.result.features[0]),
       };
     } finally {
       worker.terminate();
@@ -153,6 +168,8 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   expect(result.mergeCommitted.ok).toBe(true);
   expect(result.mergeAfterCommit.ok).toBe(false);
   expect(result.invalid.ok).toBe(false);
+  expect(result.canonicalWinding).toBe(true);
+  expect(result.mergedSphericalArea).toBeLessThan(2 * Math.PI);
   expect(errors).toEqual([]);
 });
 
@@ -554,5 +571,50 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
   await page.locator('#addRiverBtn').click();
   await expect(page.locator('#createMenu')).not.toBeVisible();
   await expect(page.locator('#map')).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
+test('GeoJSON imports use file folders, move between drawing folders, and disappear immediately after deletion', async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  const featureCollection = name => JSON.stringify({
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      id: `${name}-feature`,
+      properties: { name, category: 'river' },
+      geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] },
+    }],
+  });
+  const importFile = async name => {
+    await page.locator('#geoJsonFileInput').setInputFiles({
+      name: `${name}.geojson`,
+      mimeType: 'application/geo+json',
+      buffer: Buffer.from(featureCollection(name)),
+    });
+    const folder = page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: name });
+    await expect(folder).toHaveCount(1);
+    await expect(folder.locator('.layer-child-name')).toHaveText(name);
+    return folder;
+  };
+
+  const disposable = await importFile('삭제확인');
+  await disposable.locator('.layer-child-name').click();
+  await disposable.locator('.layer-child-delete').click();
+  await expect(page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: '삭제확인' })).toHaveCount(0);
+
+  const target = await importFile('이동대상');
+  const source = await importFile('이동원본');
+  const targetId = await target.getAttribute('data-drawing-folder-id');
+  await source.locator('.layer-child-name').click();
+  await page.locator('#drawingFolderInput').selectOption(targetId);
+  await expect(page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: '이동원본' })).toHaveCount(0);
+  const updatedTarget = page.locator(`.layer-folder[data-drawing-folder-id="${targetId}"]`);
+  if (await updatedTarget.locator('.layer-folder-toggle').getAttribute('aria-expanded') !== 'true') {
+    await updatedTarget.locator('.layer-folder-toggle').click();
+  }
+  await expect(updatedTarget.locator('.layer-child-name')).toHaveCount(2);
+  await expect(page.locator('#drawingFolderInput option')).toHaveText(['지형지물', '이동대상']);
   expect(errors).toEqual([]);
 });

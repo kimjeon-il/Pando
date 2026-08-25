@@ -111,7 +111,7 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertGreater(self.manifest["stats"]["borderChangedCoordinateCount"], 0)
         self.assertGreater(self.manifest["stats"]["osmWaterwayMatchCount"], 0)
 
-    def test_country_source_geometry_is_unchanged(self):
+    def test_country_source_geometry_has_expected_shape(self):
         countries = json.loads((ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson").read_text(encoding="utf-8"))
         self.assertEqual(len(countries["features"]), 258)
 
@@ -122,7 +122,7 @@ class V0130RuntimeTests(unittest.TestCase):
                 return 1
             return sum(count_coordinates(item) for item in value)
 
-        self.assertEqual(sum(count_coordinates(row["geometry"]["coordinates"]) for row in countries["features"]), 548_471)
+        self.assertEqual(sum(count_coordinates(row["geometry"]["coordinates"]) for row in countries["features"]), 548_466)
 
 
 if __name__ == "__main__":
