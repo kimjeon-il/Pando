@@ -18,7 +18,7 @@ class ResponsiveUiV0160Tests(unittest.TestCase):
 
     def test_map_controls_are_split_without_changing_existing_ids(self):
         self.assertIn('id="mapCommandToolbar"', INDEX)
-        self.assertIn('id="mapViewToolbar"', INDEX)
+        self.assertIn('class="map-view-toolbar floating-toolbar"', INDEX)
         for element_id in ("createMenuBtn", "undoBtn", "redoBtn", "zoomOutBtn", "zoomInBtn", "resetViewBtn", "projectionControl", "togglePanelBtn"):
             self.assertEqual(INDEX.count(f'id="{element_id}"'), 1)
 

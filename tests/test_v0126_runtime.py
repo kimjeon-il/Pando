@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
 CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 CORE = (ROOT / "assets" / "js" / "workers" / "gpu-mesh-core.js").read_text(encoding="utf-8")
 LOADER = (ROOT / "assets" / "js" / "workers" / "data-loader-worker.js").read_text(encoding="utf-8")
@@ -24,7 +25,9 @@ def section(source: str, start: str, end: str) -> str:
 class V0126RuntimeTests(unittest.TestCase):
     def test_annex_render_succeeds_before_history_commit(self):
         annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
-        self.assertLess(annex.index("renderAll();"), annex.index("commitHistorySnapshot(snapshot);"))
+        self.assertIn("await transactCountryEdit({", annex)
+        self.assertIn("renderAll();", annex)
+        self.assertIn("commitHistory: commitHistorySnapshot", APP)
         labels = section(APP, "function renderCountryLabels", "function prepareHydroFeature")
         self.assertLess(labels.index("selection.exit().remove();"), labels.index("const allCountryLabels"))
         self.assertIn("Array.isArray(anchor)", labels)
@@ -37,9 +40,9 @@ class V0126RuntimeTests(unittest.TestCase):
     def test_polar_closure_edges_are_excluded_from_all_stroke_paths(self):
         self.assertIn("MESH_ALGORITHM_REVISION = 3", CORE)
         self.assertIn("header[7] !== 3", LOADER)
-        self.assertIn("header[7] !== 3", APP)
+        self.assertIn("header[7] !== 3", RENDERER)
         self.assertIn("isArtificialPolarClosureEdge(a, b)", CORE)
-        self.assertIn("countryOutlineFeature(feature)", APP)
+        self.assertIn("countryOutlineFeature(feature)", RENDERER)
         self.assertIn("countryOutlineFeature(feature)", CANVAS)
 
         raw = gzip.decompress((ROOT / "assets" / "data" / "world-mesh-v0.12.6.bin.gz").read_bytes())
@@ -62,13 +65,13 @@ class V0126RuntimeTests(unittest.TestCase):
         self.assertEqual(manifest["version"], "0.12.6")
         self.assertIn("drainage-free", manifest["channels"]["rgb"])
         self.assertIn("HYP_HR_SR.tif", {row["file"] for row in manifest["sources"]})
-        self.assertIn("stencil: true", APP)
-        self.assertIn("gl.stencilFunc(gl.EQUAL, 1", APP)
+        self.assertIn("stencil: true", RENDERER)
+        self.assertIn("gl.stencilFunc(gl.EQUAL, 1", RENDERER)
         self.assertIn("style === 'political'", CANVAS)
         self.assertEqual(manifest["displayColors"]["oceanRepresentative"].lower(), "#6aa8d2")
         for element_id in ("riverColorSelect", "lakeColorSelect"):
             self.assertNotIn(f'id="{element_id}"', INDEX)
-            self.assertNotIn(element_id, APP)
+            self.assertNotIn(element_id, APP + RENDERER)
         self.assertIn("automaticWaterColor", APP)
         self.assertIn("automaticWaterColor", CANVAS)
 

@@ -55,7 +55,7 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertNotIn("confirm(", merge)
         self.assertNotIn("합병 후 국명을 입력하세요", APP)
         self.assertIn("state.mergeTargetCountryIds", merge)
-        self.assertIn("commitHistorySnapshot(snapshot)", merge)
+        self.assertIn("await transactCountryEdit({", merge)
 
     def test_annex_and_merge_support_multiple_targets(self):
         self.assertIn("annexDonorCountryIds: []", APP)
@@ -63,8 +63,8 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertIn("function toggleAnnexDonor", APP)
         self.assertIn("function beginAnnexSelection", APP)
         self.assertIn("function toggleMergeTarget", APP)
-        self.assertIn("buildAnnexationPlan(targetId, donorIds", APP)
-        self.assertIn("clipper.union(...donors.map", APP)
+        self.assertIn("operation: 'annex'", APP)
+        self.assertIn("operation: 'merge'", APP)
         self.assertIn("if (clickedCountry) toggleMergeTarget", APP)
         self.assertIn("else if (state.tool === 'merge-country') completeCountryMerge()", APP)
 

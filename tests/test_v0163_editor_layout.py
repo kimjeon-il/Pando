@@ -12,7 +12,7 @@ class EditorLayoutV0163Tests(unittest.TestCase):
     def test_active_work_uses_one_task_dock_and_the_continuous_status_line(self):
         self.assertIn('id="currentToolStatus" class="current-tool-status"', INDEX)
         self.assertIn("$('currentToolStatus').textContent = currentName", APP)
-        self.assertIn('id="modeTaskContext" class="mode-task-context"', INDEX)
+        self.assertIn('class="mode-task-context"', INDEX)
         self.assertNotIn('id="currentTool"', INDEX)
         self.assertNotIn("map-context-panel", CSS + APP)
 

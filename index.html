@@ -12,7 +12,6 @@
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
-    <symbol id="icon-cursor" viewBox="0 0 24 24"><path d="M5 3l14 8-6 2.5-2.5 6L5 3Z"/></symbol>
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="icon-type" viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M8 20h8"/></symbol>
     <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
@@ -25,7 +24,6 @@
     <symbol id="icon-map" viewBox="0 0 24 24"><path d="m4 6 5-2 6 2 5-2v14l-5 2-6-2-5 2V6ZM9 4v14M15 6v14"/></symbol>
     <symbol id="icon-fit-map" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/><path d="M8 9.5 12 8l4 1.5v5L12 16l-4-1.5v-5Z"/></symbol>
     <symbol id="icon-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
-    <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
     <symbol id="icon-transfer" viewBox="0 0 24 24"><path d="M4 8h13m0 0-3-3m3 3-3 3M20 16H7m0 0 3 3m-3-3 3-3"/></symbol>
     <symbol id="icon-river" viewBox="0 0 24 24"><path d="M4 4c6 2 2 6 8 8s2 6 8 8"/></symbol>
     <symbol id="icon-lake" viewBox="0 0 24 24"><path d="M5 8c2-3 5-4 8-2 3-1 6 1 6 4 2 3-1 7-4 7-2 2-6 1-7-1-4 0-5-5-3-8Z"/></symbol>
@@ -50,7 +48,7 @@
         <div><strong>AtlasWright</strong></div>
       </div>
 
-      <div id="notificationCenter" class="topbar-center notification-center" aria-live="polite" aria-atomic="true">
+      <div class="topbar-center" aria-live="polite" aria-atomic="true">
         <div id="actionStatus" class="action-status ready hidden" role="status">
           <span class="status-dot" aria-hidden="true"></span>
           <strong>준비</strong>
@@ -147,13 +145,13 @@
       <main class="map-wrap">
         <div id="map" aria-label="지도 편집 영역"></div>
 
-        <div id="mapCommandToolbar" class="map-toolbar map-command-toolbar floating-toolbar history-empty" aria-label="지도 명령">
+        <div id="mapCommandToolbar" class="map-command-toolbar floating-toolbar history-empty" aria-label="지도 명령">
           <div class="create-menu-wrap">
             <button id="createMenuBtn" class="ui-button create-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
             <div id="createMenu" class="create-menu map-sheet-surface hidden" role="menu" aria-label="지도 객체 추가">
               <div class="create-sheet-header mobile-sheet-header map-sheet-header">
                 <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="createMenu" aria-label="추가 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
-                <strong id="createSheetTitle">추가</strong>
+                <strong>추가</strong>
                 <button id="mobileCloseCreateBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="추가 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
               </div>
               <div class="map-sheet-body create-sheet-body">
@@ -169,7 +167,7 @@
           <button id="redoBtn" class="ui-button icon-btn" title="다시실행" aria-label="다시실행"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></button>
         </div>
 
-        <div id="mapViewToolbar" class="map-toolbar map-view-toolbar floating-toolbar" aria-label="지도 보기">
+        <div class="map-view-toolbar floating-toolbar" aria-label="지도 보기">
           <button id="zoomOutBtn" class="ui-button icon-btn" title="축소" aria-label="축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
           <button id="zoomInBtn" class="ui-button icon-btn" title="확대" aria-label="확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="resetViewBtn" class="ui-button icon-btn" title="전체 지도 맞춤" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
@@ -181,19 +179,19 @@
           </div>
         </div>
 
-        <div id="editorEdgeSlot" class="editor-edge-slot">
+        <div class="editor-edge-slot">
           <button id="togglePanelBtn" class="ui-button icon-btn editor-edge-trigger" type="button" title="편집창 열기" aria-label="편집창 열기" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></button>
         </div>
 
 
-        <div id="mobileZoomDock" class="mobile-zoom-dock" aria-label="모바일 지도 보기">
+        <div class="mobile-zoom-dock" aria-label="모바일 지도 보기">
           <button id="mobileZoomInBtn" class="ui-button icon-btn" type="button" aria-label="지도 확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="mobileZoomOutBtn" class="ui-button icon-btn" type="button" aria-label="지도 축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
-          <button id="mobileWorldBtn" class="ui-button icon-btn mobile-world-btn" type="button" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
+          <button id="mobileWorldBtn" class="ui-button icon-btn" type="button" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
         <div id="modeActionBar" class="mode-action-bar hidden" aria-label="지도 편집 작업">
-          <div id="modeTaskContext" class="mode-task-context">
+          <div class="mode-task-context">
             <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span></div>
             <p id="modeTaskInstruction" class="mode-task-instruction" aria-live="polite"></p>
           </div>
@@ -224,9 +222,9 @@
         </div>
 
         <nav class="adaptive-nav mobile-bottom-bar" aria-label="지도 탐색">
-          <button id="mobileMapBtn" class="ui-button nav-button" type="button" aria-controls="leftPanel" aria-label="레이어" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg></span><strong>레이어</strong></button>
-          <button id="mobileCreateBtn" class="ui-button nav-button" type="button" aria-controls="createMenu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>추가</strong></button>
-          <button id="mobileEditBtn" class="ui-button nav-button" type="button" aria-controls="rightPanel" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
+          <button id="mobileMapBtn" class="ui-button" type="button" aria-controls="leftPanel" aria-label="레이어" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg></span><strong>레이어</strong></button>
+          <button id="mobileCreateBtn" class="ui-button" type="button" aria-controls="createMenu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>추가</strong></button>
+          <button id="mobileEditBtn" class="ui-button" type="button" aria-controls="rightPanel" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
         </nav>
       </main>
 
@@ -247,7 +245,7 @@
           </section>
 
           <form id="countryProperties" class="editor-view hidden" onsubmit="return false;">
-            <section class="editor-section editor-section-primary">
+            <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">기본 정보</h3>
               <div class="editor-field-grid editor-field-grid-color">
                 <div class="ui-field field-group editor-field"><label for="countryNameInput">국명</label><input id="countryNameInput" type="text" autocomplete="off" /></div>
@@ -256,7 +254,7 @@
               <div class="ui-field field-group editor-field"><label for="capitalInput">수도</label><input id="capitalInput" type="text" placeholder="예: 아테네" autocomplete="off" /></div>
             </section>
 
-            <section class="editor-section">
+            <section class="ui-card editor-section">
               <h3 class="editor-section-title">국기</h3>
               <div class="editor-flag-layout">
                 <div id="flagPreview" class="editor-flag-preview">국기 없음</div>
@@ -268,7 +266,7 @@
               </div>
             </section>
 
-            <section class="editor-section">
+            <section class="ui-card editor-section">
               <h3 class="editor-section-title">영토 작업</h3>
               <div class="editor-action-grid editor-action-grid-two">
                 <button id="annexTerritoryBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></button>
@@ -287,7 +285,7 @@
               </div>
             </details>
 
-            <details class="ui-disclosure editor-disclosure" id="countryAdvancedDetails">
+            <details class="ui-disclosure editor-disclosure">
               <summary><span>고급 작업</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
                 <div class="editor-inline-action">
@@ -300,14 +298,14 @@
               </div>
             </details>
 
-            <section class="editor-danger-zone">
+            <section class="ui-card editor-danger-zone">
               <h3 class="editor-section-title">위험 작업</h3>
               <button id="deleteCountryBtn" type="button" class="ui-button danger-btn editor-delete-btn">국가 삭제</button>
             </section>
           </form>
 
           <form id="drawingProperties" class="editor-view hidden" onsubmit="return false;">
-            <section class="editor-section editor-section-primary">
+            <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">기본 정보</h3>
               <div class="ui-field field-group editor-field"><label for="drawingNameInput">이름</label><input id="drawingNameInput" type="text" placeholder="예: 라인강" /></div>
               <div class="editor-field-grid editor-field-grid-color">
@@ -323,7 +321,7 @@
               <p class="editor-help">꼭짓점을 드래그해 형상을 수정할 수 있습니다.</p>
             </section>
 
-            <section id="drawingLandRelationSection" class="editor-section hidden">
+            <section id="drawingLandRelationSection" class="ui-card editor-section hidden">
               <h3 class="editor-section-title">육지 관계</h3>
               <div id="drawingOwnerField" class="ui-field field-group editor-field">
                 <label for="drawingOwnerInput">소유 국가</label>
@@ -344,7 +342,7 @@
               <p id="drawingRoleHelp" class="editor-help"></p>
             </section>
 
-            <section id="drawingLandActionsSection" class="editor-section hidden">
+            <section id="drawingLandActionsSection" class="ui-card editor-section hidden">
               <h3 class="editor-section-title">영역 작업</h3>
               <div class="editor-action-grid editor-action-grid-two">
                 <button id="splitDrawingBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></button>
@@ -368,14 +366,14 @@
               </div>
             </details>
 
-            <section class="editor-danger-zone">
+            <section class="ui-card editor-danger-zone">
               <h3 class="editor-section-title">위험 작업</h3>
               <button id="deleteDrawingInlineBtn" type="button" class="ui-button danger-btn editor-delete-btn">지형지물 삭제</button>
             </section>
           </form>
 
           <form id="labelProperties" class="editor-view hidden" onsubmit="return false;">
-            <section class="editor-section editor-section-primary">
+            <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">기본 정보</h3>
               <div class="ui-field field-group editor-field"><label for="labelNameInput">이름</label><input id="labelNameInput" type="text" /></div>
               <div class="ui-field field-group editor-field">
@@ -391,14 +389,14 @@
               </div>
             </details>
 
-            <section class="editor-danger-zone">
+            <section class="ui-card editor-danger-zone">
               <h3 class="editor-section-title">위험 작업</h3>
               <button id="deleteLabelBtn" type="button" class="ui-button danger-btn editor-delete-btn">지명 삭제</button>
             </section>
           </form>
 
           <section id="hydroProperties" class="editor-view hidden">
-            <section class="editor-section editor-section-primary">
+            <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">수계 정보</h3>
               <div class="ui-info-list editor-info-list">
                 <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
@@ -408,7 +406,7 @@
 
             <button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button>
 
-            <details class="ui-disclosure editor-disclosure hydro-data-details">
+            <details class="ui-disclosure editor-disclosure">
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
                 <div class="ui-info-list editor-info-list">
@@ -423,7 +421,7 @@
         </div>
       </aside>
     </div>
-    <div id="overlayRoot" class="overlay-root">
+    <div class="overlay-root">
       <div id="mobileBackdrop" class="mobile-backdrop" aria-hidden="true"></div>
       <nav class="top-actions" aria-label="프로젝트 도구">
         <button id="newProjectBtn" type="button" class="ui-button btn ghost" title="새 프로젝트" aria-pressed="false">새 프로젝트</button>

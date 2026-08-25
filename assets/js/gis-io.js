@@ -26,7 +26,7 @@
   let activeSession = null;
 
   function extension(name) {
-    const match = String(name || '').toLowerCase().match(/\.([^.\/]+)$/);
+    const match = String(name || '').toLowerCase().match(/\.([^./]+)$/);
     return match ? match[1] : '';
   }
 
@@ -198,9 +198,9 @@
       if (!datasource || (provider && !['ogr', 'gdal'].includes(provider))) continue;
       let sourcePath = datasource.split('|')[0];
       let sourceLayer = datasource.match(/(?:^|\|)layername=([^|]+)/i)?.[1] || '';
-      const dbMatch = datasource.match(/dbname=['\"]([^'\"]+)['\"]/i);
+      const dbMatch = datasource.match(/dbname=['"]([^'"]+)['"]/i);
       if (dbMatch) sourcePath = dbMatch[1];
-      const tableMatch = datasource.match(/table=['\"]?([^'\"\s(]+)['\"]?/i);
+      const tableMatch = datasource.match(/table=['"]?([^'"\s(]+)['"]?/i);
       if (!sourceLayer && tableMatch) sourceLayer = tableMatch[1];
       try { sourcePath = decodeURIComponent(sourcePath); } catch (_) {}
       const renderer = mapLayer.querySelector('renderer-v2');

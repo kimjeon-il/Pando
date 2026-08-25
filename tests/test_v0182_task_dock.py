@@ -5,6 +5,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+TOOLS = (ROOT / "assets" / "js" / "modules" / "tool-controller.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 
 
@@ -18,14 +19,16 @@ class TaskDockV0182Tests(unittest.TestCase):
 
     def test_task_name_stage_instruction_and_actions_share_one_dock(self):
         for element_id in (
-            "modeActionBar", "modeTaskContext", "modeTaskName",
+            "modeActionBar", "modeTaskName",
             "modeTaskStage", "modeTaskInstruction", "modePrimaryBtn",
             "modeCancelBtn",
         ):
             self.assertIn(f'id="{element_id}"', INDEX)
+        self.assertEqual(INDEX.count('class="mode-task-context"'), 1)
         self.assertIn("function activeModeTaskDescriptor()", APP)
-        self.assertIn("{ name: '영토 편입', stage }", APP)
-        self.assertIn("{ name: '국가 합병', stage: '대상 국가 선택' }", APP)
+        self.assertIn("'annex-territory': Object.freeze({ label: '영토 편입'", TOOLS)
+        self.assertIn("'merge-country': Object.freeze({ label: '국가 합병'", TOOLS)
+        self.assertIn("stage: '대상 국가 선택'", TOOLS)
 
     def test_selection_counts_live_in_primary_action_labels(self):
         self.assertIn("`선택 완료 (${state.annexDonorCountryIds.length})`", APP)

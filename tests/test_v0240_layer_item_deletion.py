@@ -8,15 +8,15 @@ ROOT = Path(__file__).parents[1]
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
+PROJECT_STATE = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
 
 
 class V0240LayerItemDeletionTests(unittest.TestCase):
     def test_removed_items_are_optional_persisted_project_state(self):
         self.assertIn("function normalizeRemovedLayerItems(value)", APP)
-        self.assertIn("removedLayerItems: state.removedLayerItems", APP)
-        self.assertIn("removedLayerItems: deepClone(state.removedLayerItems)", APP)
-        self.assertIn("normalizeRemovedLayerItems(project.removedLayerItems)", APP)
-        self.assertIn("normalizeRemovedLayerItems(restored.removedLayerItems)", APP)
+        self.assertIn("name: 'removedLayerItems', history: true", PROJECT_STATE)
+        self.assertIn("...pickProjectFields(state", APP)
+        self.assertIn("removedLayerItems: value => normalizeRemovedLayerItems(value)", APP)
         self.assertIn("normalizeRemovedLayerItems(null)", APP)
 
     def test_each_supported_layer_type_has_a_delete_path(self):
