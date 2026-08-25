@@ -38,7 +38,35 @@ for (const layout of layouts) {
   }
 }
 
-test('retired DOM hooks stay absent and every app module uses revision 0.24.0', async ({ page }) => {
+test('a stale HTML shell recovers once through the current asset revision', async ({ page }) => {
+  let shellRequests = 0;
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.route('**/*stale-shell=1*', async route => {
+    if (route.request().resourceType() !== 'document') {
+      await route.continue();
+      return;
+    }
+    shellRequests += 1;
+    const response = await route.fetch();
+    const freshHtml = await response.text();
+    const body = shellRequests === 1
+      ? freshHtml.replace('data-app-version="0.24.0"', 'data-app-version="0.23.0"')
+      : freshHtml;
+    await route.fulfill({ response, body });
+  });
+  await page.goto('/?stale-shell=1');
+  await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
+  await expect(page.locator('#map .map-svg')).toBeVisible();
+  expect(shellRequests).toBe(2);
+  expect(new URL(page.url()).searchParams.has('_aw_cache')).toBe(false);
+  expect(errors).toEqual([]);
+});
+
+test('retired DOM hooks stay absent and every app module uses the current revision', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const audit = await page.evaluate(() => ({
@@ -54,7 +82,7 @@ test('retired DOM hooks stay absent and every app module uses revision 0.24.0', 
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.24.0')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.24.0-r2')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -62,7 +90,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.24.0');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.24.0-r2');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [right, 0], [right, 2], [left, 2], [left, 0]];
