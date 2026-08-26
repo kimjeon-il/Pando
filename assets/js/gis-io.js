@@ -12,7 +12,7 @@
   const gdalScriptUrl = new URL('vendor/gdal/gdal3.js', baseUrl).href;
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.24.0');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.25.0-r1');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
@@ -541,7 +541,7 @@
       }
     }
     if (countryRegionLayerNames.length) {
-      state.countryRegions = [];
+      state.territorialUnits = [];
       for (const layerName of countryRegionLayerNames) {
         const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
         const kind = layerName === 'administrative_areas' ? 'administrative' : 'region';
@@ -550,18 +550,19 @@
           const basic = feature.properties || {};
           let properties = {};
           try { properties = basic.properties_json ? JSON.parse(basic.properties_json) : {}; } catch (_) {}
-          state.countryRegions.push({
+          state.territorialUnits.push({
             type: 'Feature',
             id: String(basic.aw_id || feature.id || `${layerName}_${index + 1}`),
             properties: {
               ...properties,
-              kind,
+              unitType: kind === 'administrative' ? 'admin' : 'territory',
               name: basic.name ?? properties.name ?? '',
-              countryId: basic.country_id ?? properties.countryId ?? '',
-              parentRegionId: basic.parent_region_id ?? properties.parentRegionId ?? '',
-              level: kind === 'administrative' ? Number(basic.level ?? properties.level ?? 1) : null,
+              sovereignId: basic.country_id ?? properties.sovereignId ?? properties.countryId ?? '',
+              parentId: basic.parent_region_id ?? properties.parentId ?? properties.parentRegionId ?? basic.country_id ?? properties.countryId ?? '',
+              adminLevel: kind === 'administrative' ? Number(basic.level ?? properties.adminLevel ?? properties.level ?? 1) : null,
+              coverageMode: 'partition',
               status: basic.status ?? properties.status ?? 'assigned',
-              color: basic.color ?? properties.color ?? '',
+              style: { color: basic.color ?? properties.style?.color ?? properties.color ?? '' },
               notes: basic.notes ?? properties.notes ?? '',
               sourceFolderId: basic.source_folder_id ?? properties.sourceFolderId ?? '',
             },

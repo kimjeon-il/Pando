@@ -1,42 +1,75 @@
-/* AtlasWright v0.24.0
+/* AtlasWright v0.25.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.24.0';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.25.0';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, countryRegionsModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
-  import(versionedModuleUrl('./modules/country-regions.js')),
+  import(versionedModuleUrl('./modules/territorial-units.js')),
   import(versionedModuleUrl('./modules/surface-controller.js')),
   import(versionedModuleUrl('./modules/tool-controller.js')),
   import(versionedModuleUrl('./modules/map-input-controller.js')),
   import(versionedModuleUrl('./modules/gpu-map-renderer.js')),
+  import(versionedModuleUrl('./modules/territorial-geometry.js')),
   import(versionedModuleUrl('./modules/country-geometry.js')),
 ]);
 const { applyProjectFields, pickProjectFields } = projectStateModule;
 const { runCountryEditTransaction } = countryEditTransactionModule;
 const {
-  COUNTRY_REGION_KINDS,
-  COUNTRY_REGION_STATUS,
-  countryRegionChildren,
-  countryRegionSiblings,
-  createCountryRegionFeature,
-  normalizeCountryRegions,
-  runCountryRegionTransaction,
-  validateCountryRegionRelations,
-} = countryRegionsModule;
+  TERRITORIAL_COVERAGE_MODES,
+  TERRITORIAL_STATUS,
+  TERRITORIAL_UNIT_TYPES,
+  changeParent,
+  changeSovereign,
+  changeUnitType,
+  createTerritorialFeature,
+  createTerritorialRepository,
+  migrateLegacyCountryRegions,
+  normalizeTerritorialRelations,
+  normalizeTerritorialUnits,
+  runTerritorialTransaction,
+  territorialChildren,
+  territorialSiblings,
+  validateTerritorialRelations,
+} = territorialUnitsModule;
+const COUNTRY_REGION_KINDS = Object.freeze({
+  REGION: TERRITORIAL_UNIT_TYPES.TERRITORY,
+  ADMINISTRATIVE: TERRITORIAL_UNIT_TYPES.ADMIN,
+});
+const COUNTRY_REGION_STATUS = TERRITORIAL_STATUS;
+const countryRegionChildren = territorialChildren;
+const countryRegionSiblings = territorialSiblings;
+const normalizeCountryRegions = normalizeTerritorialUnits;
+const runCountryRegionTransaction = runTerritorialTransaction;
+const validateCountryRegionRelations = validateTerritorialRelations;
+const createCountryRegionFeature = options => createTerritorialFeature({
+  id: options.id,
+  unitType: options.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? TERRITORIAL_UNIT_TYPES.ADMIN : TERRITORIAL_UNIT_TYPES.TERRITORY,
+  parentId: options.parentRegionId || options.countryId || '',
+  sovereignId: options.countryId || '',
+  status: options.status,
+  coverageMode: TERRITORIAL_COVERAGE_MODES.PARTITION,
+  adminLevel: options.level,
+  name: options.name,
+  color: options.color,
+  notes: options.notes,
+  sourceFolderId: options.sourceFolderId,
+  geometry: options.geometry,
+});
 const { createSurfaceController } = surfaceControllerModule;
 const { describeTool, dispatchTool, isSpecialTool, toolCursorMode, toolLabel } = toolControllerModule;
 const { createMapInputController } = mapInputControllerModule;
 const { createGpuMapRenderer } = gpuMapRendererModule;
+const { createTerritorialGeometryKernel } = territorialGeometryModule;
 const countryGeometry = globalThis.AtlasWrightCountryGeometry;
 if (!countryGeometry) throw new Error('국가 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 const {
@@ -51,8 +84,9 @@ const {
   'use strict';
 
   const d3 = window.d3;
+  const territorialGeometry = createTerritorialGeometryKernel(window.polygonClipping);
 
-  const APP_VERSION = '0.24.0';
+  const APP_VERSION = '0.25.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -176,7 +210,7 @@ const {
   }
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection',
-    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
     'drawingNameInput', 'drawingFolderInput', 'drawingColorInput', 'drawingCategoryInput', 'drawingNotesInput',
@@ -184,7 +218,7 @@ const {
     'drawingLandActionsSection', 'splitDrawingBtn', 'mergeDrawingBtn', 'syncDrawingCoastBtn', 'editDrawingCoastBtn', 'applyDrawingToCountryBtn', 'promoteDrawingToCountryBtn', 'drawingRoleValue', 'drawingTopologyValue',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'deleteLabelBtn',
     'editorScrollBody', 'editorObjectHeader', 'emptyProperties', 'propertyTitle',
-    'countryProperties', 'regionProperties', 'administrativeProperties', 'regionNameConflict', 'administrativeNameConflict', 'drawingProperties', 'labelProperties', 'hydroProperties',
+    'countryProperties', 'regionProperties', 'administrativeProperties', 'historicalRegionProperties', 'regionNameConflict', 'administrativeNameConflict', 'historicalRegionNameConflict', 'regionLockedInput', 'administrativeLockedInput', 'historicalRegionLockedInput', 'historicalRegionNameInput', 'historicalRegionCountryInput', 'historicalRegionParentInput', 'historicalRegionColorInput', 'historicalRegionValidFromInput', 'historicalRegionValidToInput', 'historicalRegionNotesInput', 'deleteHistoricalRegionBtn', 'drawingProperties', 'labelProperties', 'hydroProperties',
     'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
     'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
@@ -640,7 +674,8 @@ const {
     sourceInfo: null,
     labels: [],
     drawings: [],
-    countryRegions: [],
+    territorialUnits: [],
+    territorialRelations: [],
     drawingFolders: [],
     selected: null,
     projection: 'globe',
@@ -648,6 +683,7 @@ const {
       countries: true,
       regions: true,
       administrative: true,
+      historicalRegions: true,
       drawings: true,
       labels: true,
       basemapLabels: true,
@@ -674,6 +710,7 @@ const {
       countries: {},
       regions: {},
       administrative: {},
+      historicalRegions: {},
       drawings: {},
       labels: {},
       countryLabels: {},
@@ -682,6 +719,7 @@ const {
       countries: {},
       regions: {},
       administrative: {},
+      historicalRegions: {},
       drawings: {},
       labels: {},
       countryLabels: {},
@@ -690,6 +728,7 @@ const {
       countries: false,
       regions: false,
       administrative: false,
+      historicalRegions: false,
       terrain: false,
       drawings: false,
       labels: false,
@@ -1873,17 +1912,18 @@ const {
   }
 
   function partitionGroupMatches(feature, { kind, countryId, parentRegionId = '', level = null }) {
-    return feature.properties?.kind === kind
-      && String(feature.properties?.countryId || '') === String(countryId || '')
-      && String(feature.properties?.parentRegionId || '') === String(parentRegionId || '')
-      && (kind !== COUNTRY_REGION_KINDS.ADMINISTRATIVE || Number(feature.properties?.level || 1) === Number(level || 1));
+    const expectedParentId = String(parentRegionId || countryId || '');
+    return feature.properties?.unitType === kind
+      && String(feature.properties?.sovereignId || '') === String(countryId || '')
+      && String(feature.properties?.parentId || '') === expectedParentId
+      && (kind !== COUNTRY_REGION_KINDS.ADMINISTRATIVE || Number(feature.properties?.adminLevel || 1) === Number(level || 1));
   }
 
   function addUnassignedCountryRegionGeometry(context, geometry) {
     const clipper = window.polygonClipping;
     const normalized = normalizeClippedLandGeometry(geometry?.coordinates || geometry);
     if (!normalized) return null;
-    let target = state.countryRegions.find(feature => partitionGroupMatches(feature, context)
+    let target = state.territorialUnits.find(feature => partitionGroupMatches(feature, context)
       && feature.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED);
     if (target) {
       target.geometry = normalizeClippedLandGeometry(clipper.union(target.geometry.coordinates, normalized.coordinates)) || target.geometry;
@@ -1895,7 +1935,7 @@ const {
       status: COUNTRY_REGION_STATUS.UNASSIGNED,
       geometry: normalized,
     });
-    state.countryRegions.push(target);
+    state.territorialUnits.push(target);
     return target;
   }
 
@@ -1903,8 +1943,8 @@ const {
     const clipper = window.polygonClipping;
     if (!clipper?.intersection || !clipper?.difference || !clipper?.union) return;
     const wanted = new Set([...countryIds].map(String));
-    state.countryRegions = state.countryRegions.flatMap(feature => {
-      const countryId = String(feature.properties?.countryId || '');
+    state.territorialUnits = state.territorialUnits.flatMap(feature => {
+      const countryId = String(feature.properties?.sovereignId || '');
       if (!wanted.has(countryId)) return [feature];
       const container = countryRegionContainer(feature);
       if (!container?.geometry) return [];
@@ -1917,7 +1957,7 @@ const {
     for (const countryId of wanted) {
       const country = countryFeatureById(countryId);
       if (!country) continue;
-      const regionGroup = state.countryRegions.filter(feature => partitionGroupMatches(feature, {
+      const regionGroup = state.territorialUnits.filter(feature => partitionGroupMatches(feature, {
         kind: COUNTRY_REGION_KINDS.REGION, countryId,
       }));
       if (regionGroup.length) {
@@ -1928,32 +1968,32 @@ const {
     }
 
     const groupContexts = new Map();
-    for (const feature of state.countryRegions) {
-      if (feature.properties?.kind !== COUNTRY_REGION_KINDS.ADMINISTRATIVE || !wanted.has(String(feature.properties?.countryId || ''))) continue;
+    for (const feature of state.territorialUnits) {
+      if (feature.properties?.unitType !== COUNTRY_REGION_KINDS.ADMINISTRATIVE || !wanted.has(String(feature.properties?.sovereignId || ''))) continue;
       const context = {
         kind: COUNTRY_REGION_KINDS.ADMINISTRATIVE,
-        countryId: String(feature.properties.countryId || ''),
-        parentRegionId: String(feature.properties.parentRegionId || ''),
-        level: Number(feature.properties.level) || 1,
+        countryId: String(feature.properties.sovereignId || ''),
+        parentRegionId: String(feature.properties.parentId || ''),
+        level: Number(feature.properties.adminLevel) || 1,
       };
       groupContexts.set(`${context.countryId}|${context.parentRegionId}|${context.level}`, context);
     }
     for (const context of [...groupContexts.values()].sort((left, right) => left.level - right.level)) {
       const parent = context.parentRegionId ? countryRegionById(context.parentRegionId) : countryFeatureById(context.countryId);
       if (!parent?.geometry) continue;
-      const siblings = state.countryRegions.filter(feature => partitionGroupMatches(feature, context));
+      const siblings = state.territorialUnits.filter(feature => partitionGroupMatches(feature, context));
       const covered = clipper.union(...siblings.map(feature => feature.geometry.coordinates));
       const remainder = normalizeClippedLandGeometry(clipper.difference(parent.geometry.coordinates, covered));
       if (remainder) addUnassignedCountryRegionGeometry(context, remainder);
     }
-    state.countryRegions = normalizeCountryRegions(state.countryRegions, { countryExists: id => !!countryFeatureById(id) });
+    state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
   }
 
   function syncHardLandDependents(ownerId, _ownerBeforeGeometry, _ownerAfterGeometry, _changedAnchor = null) {
-    const beforeIds = new Set(state.countryRegions.map(feature => String(feature.id)));
+    const beforeIds = new Set(state.territorialUnits.map(feature => String(feature.id)));
     reconcileCountryRegionCompleteness([ownerId]);
     markLayerTreeDirty();
-    return state.countryRegions.filter(feature => !beforeIds.has(String(feature.id))).map(feature => String(feature.id));
+    return state.territorialUnits.filter(feature => !beforeIds.has(String(feature.id))).map(feature => String(feature.id));
   }
 
   function transferLandDependents(regionGeometry, sourceOwnerIds, targetOwnerId) {
@@ -1961,15 +2001,15 @@ const {
     if (!regionGeometry || !clipper?.difference) return [];
     const sources = new Set(sourceOwnerIds.map(String));
     const changedIds = [];
-    state.countryRegions = state.countryRegions.flatMap(feature => {
-      if (!sources.has(String(feature.properties?.countryId || ''))) return [feature];
+    state.territorialUnits = state.territorialUnits.flatMap(feature => {
+      if (!sources.has(String(feature.properties?.sovereignId || ''))) return [feature];
       const remainder = normalizeClippedLandGeometry(clipper.difference(feature.geometry.coordinates, regionGeometry.coordinates));
       changedIds.push(String(feature.id));
       if (!remainder) return [];
       feature.geometry = remainder;
       return [feature];
     });
-    const targetHasRegions = state.countryRegions.some(feature => partitionGroupMatches(feature, {
+    const targetHasRegions = state.territorialUnits.some(feature => partitionGroupMatches(feature, {
       kind: COUNTRY_REGION_KINDS.REGION, countryId: targetOwnerId,
     }));
     if (targetHasRegions) addUnassignedCountryRegionGeometry({
@@ -1982,12 +2022,12 @@ const {
 
   function reassignLandDependents(removedOwnerIds, targetOwnerId) {
     const removed = new Set(removedOwnerIds.map(String));
-    for (const feature of state.countryRegions) {
-      if (!removed.has(String(feature.properties?.countryId || ''))) continue;
-      feature.properties.countryId = String(targetOwnerId);
+    for (const feature of state.territorialUnits) {
+      if (!removed.has(String(feature.properties?.sovereignId || ''))) continue;
+      feature.properties.sovereignId = String(targetOwnerId);
       feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
     }
-    state.countryRegions = normalizeCountryRegions(state.countryRegions, { countryExists: id => !!countryFeatureById(id) });
+    state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
     reconcileCountryRegionCompleteness([targetOwnerId]);
     markLayerTreeDirty();
   }
@@ -2563,26 +2603,48 @@ const {
   }
 
   function countryRegionById(id) {
-    return state.countryRegions.find(feature => String(feature.id) === String(id)) || null;
+    return state.territorialUnits.find(feature => String(feature.id) === String(id)) || null;
+  }
+
+  const territorialRepository = createTerritorialRepository({
+    getCountries: () => state.countriesData,
+    getUnits: () => state.territorialUnits,
+    getCountryOverride: id => state.countryOverrides[id] || {},
+  });
+
+  function territorialUnitById(id) {
+    return territorialRepository.get(id);
+  }
+
+  function territorialStyleColor(feature) {
+    return feature?.properties?.style?.color || '';
+  }
+
+  function setTerritorialStyleColor(feature, color) {
+    if (!feature?.properties) return;
+    feature.properties.style = { ...(feature.properties.style || {}) };
+    if (color) feature.properties.style.color = color;
+    else delete feature.properties.style.color;
   }
 
   function countryRegionName(feature) {
     const properties = feature?.properties || {};
     if (properties.name) return properties.name;
+    if (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 역사·지리 지역';
     return properties.status === COUNTRY_REGION_STATUS.UNASSIGNED
-      ? (properties.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '미지정 행정구역' : '미지정 지역')
-      : (properties.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '이름 없는 행정구역' : '이름 없는 지역');
+      ? (properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '미지정 행정구역' : '미지정 지역')
+      : (properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '이름 없는 행정구역' : '이름 없는 지역');
   }
 
   function countryRegionColor(feature) {
-    const explicit = feature?.properties?.color;
+    const explicit = territorialStyleColor(feature);
     if (explicit) return explicit;
-    const country = countryFeatureById(feature?.properties?.countryId);
+    const country = countryFeatureById(feature?.properties?.sovereignId);
     return country ? countryColor(country) : DEFAULT_DRAWING_COLOR;
   }
 
   function countryRegionCountryName(feature) {
-    const country = countryFeatureById(feature?.properties?.countryId);
+    const country = countryFeatureById(feature?.properties?.sovereignId);
     return country ? countryName(country) : '소속 국가 미지정';
   }
 
@@ -2597,12 +2659,13 @@ const {
   const DEFAULT_DRAWING_FOLDER_ID = 'drawings-default';
   const DRAWING_FOLDER_STATE_PREFIX = 'drawing-folder:';
   const COUNTRY_REGION_FOLDER_STATE_PREFIX = 'country-region-folder:';
-  const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'drawings', 'labels', 'countryLabels'];
-  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
+  const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'drawings', 'labels', 'countryLabels'];
+  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
     regions: 'regionsLayerChildren',
     administrative: 'administrativeLayerChildren',
+    historicalRegions: 'historicalRegionsLayerChildren',
     drawings: 'drawingsLayerChildren',
     labels: 'labelsLayerChildren',
     countryLabels: 'countryLabelsLayerChildren',
@@ -2655,8 +2718,8 @@ const {
     const countryRegionKeys = [];
     for (const group of ['regions', 'administrative']) {
       const kind = group === 'regions' ? COUNTRY_REGION_KINDS.REGION : COUNTRY_REGION_KINDS.ADMINISTRATIVE;
-      for (const countryId of new Set(state.countryRegions.filter(feature => feature.properties?.kind === kind)
-        .map(feature => String(feature.properties?.countryId || '')))) {
+      for (const countryId of new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === kind)
+        .map(feature => String(feature.properties?.sovereignId || '')))) {
         countryRegionKeys.push(countryRegionFolderStateKey(group, countryId));
       }
     }
@@ -2664,6 +2727,7 @@ const {
       'countries',
       'regions',
       'administrative',
+      'historicalRegions',
       ...countryRegionKeys,
       'terrain',
       'drawings',
@@ -2889,11 +2953,15 @@ const {
         };
       }).filter(item => !isLayerItemRemoved(group, item.id));
     }
-    if (group === 'regions' || group === 'administrative') {
-      const kind = group === 'regions' ? COUNTRY_REGION_KINDS.REGION : COUNTRY_REGION_KINDS.ADMINISTRATIVE;
-      return state.countryRegions.filter(feature => feature.properties?.kind === kind).map(feature => {
+    if (group === 'regions' || group === 'administrative' || group === 'historicalRegions') {
+      const kind = group === 'regions'
+        ? COUNTRY_REGION_KINDS.REGION
+        : group === 'administrative'
+          ? COUNTRY_REGION_KINDS.ADMINISTRATIVE
+          : TERRITORIAL_UNIT_TYPES.REGION;
+      return state.territorialUnits.filter(feature => feature.properties?.unitType === kind).map(feature => {
         const countryLabel = countryRegionCountryName(feature);
-        const levelLabel = kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? `${Number(feature.properties?.level) || 1}급` : '';
+        const levelLabel = kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? `${Number(feature.properties?.adminLevel) || 1}급` : '';
         return {
           id: String(feature.id),
           name: countryRegionName(feature),
@@ -2902,9 +2970,11 @@ const {
           searchText: `${countryLabel} ${levelLabel}`,
           folderName: kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE
             ? `행정구역 · ${countryLabel} · ${levelLabel}`
-            : `지역 · ${countryLabel}`,
-          countryId: String(feature.properties?.countryId || ''),
-          level: Number(feature.properties?.level) || null,
+            : kind === TERRITORIAL_UNIT_TYPES.REGION
+              ? `역사·지리 지역${feature.properties?.sovereignId ? ` · ${countryLabel}` : ''}`
+              : `지역 · ${countryLabel}`,
+          countryId: String(feature.properties?.sovereignId || ''),
+          level: Number(feature.properties?.adminLevel) || null,
           selected: state.selected?.type === 'countryRegion' && state.selected.id === String(feature.id),
         };
       }).filter(item => !isLayerItemRemoved(group, item.id));
@@ -2948,8 +3018,9 @@ const {
     const valid = {
       countries: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
       countryLabels: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
-      regions: new Set(state.countryRegions.filter(feature => feature.properties?.kind === COUNTRY_REGION_KINDS.REGION).map(feature => String(feature.id))),
-      administrative: new Set(state.countryRegions.filter(feature => feature.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE).map(feature => String(feature.id))),
+      regions: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === COUNTRY_REGION_KINDS.REGION).map(feature => String(feature.id))),
+      administrative: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE).map(feature => String(feature.id))),
+      historicalRegions: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION).map(feature => String(feature.id))),
       drawings: new Set([...Object.keys(HYDRO_LAYER_META).map(id => `hydro-layer:${id}`), ...state.drawings.map(feature => String(feature.id))]),
       labels: new Set(state.labels.map(label => String(label.id))),
     };
@@ -2972,7 +3043,7 @@ const {
   function isLayerTreeItemSelected(group, id) {
     const key = String(id);
     if (group === 'countries' || group === 'countryLabels') return state.selected?.type === 'country' && state.selected.id === key;
-    if (group === 'regions' || group === 'administrative') return state.selected?.type === 'countryRegion' && state.selected.id === key;
+    if (group === 'regions' || group === 'administrative' || group === 'historicalRegions') return state.selected?.type === 'countryRegion' && state.selected.id === key;
     if (group === 'drawings') return state.selected?.type === 'drawing' && state.selected.id === key;
     if (group === 'labels') return state.selected?.type === 'label' && state.selected.id === key;
     return false;
@@ -3443,7 +3514,7 @@ const {
         if (state.tool !== 'select' || state.labelPlacementMode) return;
         d3.event.stopPropagation();
         if (state.countriesLocked) return;
-        selectCountry(d.properties.editor_id);
+        selectTerritorialUnit(TERRITORIAL_UNIT_TYPES.COUNTRY, d.properties.editor_id);
       });
 
     const allCountryLabels = countryLabelLayer.selectAll('text.country-label');
@@ -3653,8 +3724,12 @@ const {
   }
 
   function renderCountryRegions() {
-    const data = state.countryRegions.filter(feature => {
-      const group = feature.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'regions';
+    const data = state.territorialUnits.filter(feature => {
+      const group = feature.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE
+        ? 'administrative'
+        : feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION
+          ? 'historicalRegions'
+          : 'regions';
       return state.layerVisibility[group] !== false && isLayerItemVisible(group, feature.id);
     });
     const selection = countryRegionLayer.selectAll('path.country-region-shape')
@@ -3671,14 +3746,15 @@ const {
         }
         if (state.tool !== 'select' || state.labelPlacementMode) return;
         d3.event.stopPropagation();
-        selectCountryRegion(String(feature.id));
+        selectTerritorialUnit(feature.properties?.unitType, String(feature.id));
       });
 
     selection
       .attr('d', path)
-      .classed('is-region', feature => feature.properties?.kind === COUNTRY_REGION_KINDS.REGION)
-      .classed('is-administrative', feature => feature.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE)
-      .classed('has-explicit-color', feature => !!feature.properties?.color)
+      .classed('is-region', feature => feature.properties?.unitType === COUNTRY_REGION_KINDS.REGION)
+      .classed('is-administrative', feature => feature.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE)
+      .classed('is-historical-region', feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION)
+      .classed('has-explicit-color', feature => !!territorialStyleColor(feature))
       .classed('selected', feature => state.selected?.type === 'countryRegion' && state.selected.id === String(feature.id))
       .classed('country-region-merge-source', feature => state.tool === 'merge-country-region' && state.countryRegionMergeSourceId === String(feature.id))
       .classed('country-region-merge-target', feature => state.tool === 'merge-country-region' && state.countryRegionMergeTargetIds.includes(String(feature.id)))
@@ -5499,6 +5575,7 @@ const {
     $('countryProperties').classList.toggle('hidden', type !== 'country');
     $('regionProperties').classList.toggle('hidden', type !== 'region');
     $('administrativeProperties').classList.toggle('hidden', type !== 'administrative');
+    $('historicalRegionProperties').classList.toggle('hidden', type !== 'historicalRegion');
     $('drawingProperties').classList.toggle('hidden', type !== 'drawing');
     $('labelProperties').classList.toggle('hidden', type !== 'label');
     $('hydroProperties').classList.toggle('hidden', type !== 'hydro');
@@ -5527,7 +5604,7 @@ const {
     const p = feature.properties || {};
     const override = state.countryOverrides[id] || {};
     const displayName = override.name || p.editor_name || p.editor_original_name || id;
-    state.selected = { type: 'country', id: String(id) };
+    state.selected = { domain: 'territorial', type: 'country', unitType: TERRITORIAL_UNIT_TYPES.COUNTRY, id: String(id) };
     showPropertyForm('country', displayName, { resetScroll: !refreshOnly });
     $('countryNameInput').value = override.name || p.editor_name || p.editor_original_name || '';
     $('countryCodeInput').textContent = id;
@@ -5568,26 +5645,49 @@ const {
   }
 
   function countryRegionParentOptions(feature) {
-    const countryId = String(feature?.properties?.countryId || '');
+    const countryId = String(feature?.properties?.sovereignId || '');
     const excluded = new Set([String(feature?.id || '')]);
     const queue = [...excluded];
     while (queue.length) {
       const current = queue.shift();
-      for (const child of countryRegionChildren(state.countryRegions, current)) {
+      for (const child of countryRegionChildren(state.territorialUnits, current)) {
         if (excluded.has(String(child.id))) continue;
         excluded.add(String(child.id));
         queue.push(String(child.id));
       }
     }
     return [
-      { value: '', label: '국가 직속' },
-      ...state.countryRegions.filter(candidate => !excluded.has(String(candidate.id))
-        && String(candidate.properties?.countryId || '') === countryId)
+      { value: countryId, label: '국가 직속' },
+      ...state.territorialUnits.filter(candidate => !excluded.has(String(candidate.id))
+        && String(candidate.properties?.sovereignId || '') === countryId)
         .map(candidate => ({
           value: String(candidate.id),
-          label: `${countryRegionName(candidate)}${candidate.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? ` · ${candidate.properties.level}급` : ' · 지역'}`,
+          label: `${countryRegionName(candidate)}${candidate.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? ` · ${candidate.properties.adminLevel}급` : ' · 지역'}`,
         }))
         .sort((a, b) => layerNameCollator.compare(a.label, b.label)),
+    ];
+  }
+
+  function territorialParentOptions(feature) {
+    const excluded = new Set([String(feature?.id || '')]);
+    const queue = [...excluded];
+    while (queue.length) {
+      const current = queue.shift();
+      for (const child of territorialChildren(state.territorialUnits, current)) {
+        if (excluded.has(String(child.id))) continue;
+        excluded.add(String(child.id));
+        queue.push(String(child.id));
+      }
+    }
+    return [
+      { value: '', label: '상위 영역 없음' },
+      ...territorialRepository.list()
+        .filter(candidate => !excluded.has(String(candidate.id)))
+        .map(candidate => ({
+          value: String(candidate.id),
+          label: `${candidate.properties?.name || countryRegionName(candidate)} · ${candidate.properties?.unitType === 'country' ? '국가' : candidate.properties?.unitType === 'admin' ? '행정구역' : candidate.properties?.unitType === 'territory' ? '지역' : '역사·지리 지역'}`,
+        }))
+        .sort((left, right) => layerNameCollator.compare(left.label, right.label)),
     ];
   }
 
@@ -5595,36 +5695,102 @@ const {
     const feature = countryRegionById(id);
     if (!feature) return;
     const properties = feature.properties || {};
-    const administrative = properties.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE;
-    const formType = administrative ? 'administrative' : 'region';
+    const administrative = properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE;
+    const historical = properties.unitType === TERRITORIAL_UNIT_TYPES.REGION;
+    const formType = administrative ? 'administrative' : historical ? 'historicalRegion' : 'region';
     const displayName = countryRegionName(feature);
-    state.selected = { type: 'countryRegion', id: String(feature.id) };
+    state.selected = { domain: 'territorial', type: 'countryRegion', unitType: properties.unitType, id: String(feature.id) };
     showPropertyForm(formType, displayName, { resetScroll: !refreshOnly });
-    const prefix = administrative ? 'administrative' : 'region';
+    const prefix = administrative ? 'administrative' : historical ? 'historicalRegion' : 'region';
     const normalizedName = String(properties.name || '').trim().toLocaleLowerCase('ko');
-    const hasNameConflict = !!normalizedName && state.countryRegions.some(candidate => candidate.id !== feature.id
-      && candidate.properties?.kind === properties.kind
-      && String(candidate.properties?.countryId || '') === String(properties.countryId || '')
+    const hasNameConflict = !!normalizedName && state.territorialUnits.some(candidate => candidate.id !== feature.id
+      && candidate.properties?.unitType === properties.unitType
+      && String(candidate.properties?.sovereignId || '') === String(properties.sovereignId || '')
       && String(candidate.properties?.name || '').trim().toLocaleLowerCase('ko') === normalizedName);
     $(`${prefix}NameConflict`).classList.toggle('hidden', !hasNameConflict);
     $(`${prefix}NameInput`).value = properties.name || '';
-    replaceSelectOptions($(`${prefix}CountryInput`), countryRegionCountryOptions(), properties.countryId);
-    const inheritedColor = countryRegionColor({ ...feature, properties: { ...properties, color: '' } });
-    $(`${prefix}ColorInput`).value = properties.color || inheritedColor;
-    syncColorPicker(prefix, { value: properties.color || inheritedColor, defaultColor: inheritedColor, isDefault: !properties.color });
+    replaceSelectOptions($(`${prefix}CountryInput`), countryRegionCountryOptions(), properties.sovereignId);
+    const explicitColor = territorialStyleColor(feature);
+    const inheritedColor = countryRegionColor({ ...feature, properties: { ...properties, style: {} } });
+    $(`${prefix}ColorInput`).value = explicitColor || inheritedColor;
+    syncColorPicker(prefix, { value: explicitColor || inheritedColor, defaultColor: inheritedColor, isDefault: !explicitColor });
     $(`${prefix}NotesInput`).value = properties.notes || '';
+    $(`${prefix}LockedInput`).checked = properties.locked === true;
+    const actionIds = historical
+      ? ['deleteHistoricalRegionBtn']
+      : administrative
+      ? ['splitAdministrativeBtn', 'mergeAdministrativeBtn', 'reassignAdministrativeShapeBtn', 'transferAdministrativeBtn', 'promoteAdministrativeBtn', 'removeAdministrativeDivisionBtn']
+      : ['splitRegionBtn', 'mergeRegionBtn', 'reassignRegionShapeBtn', 'transferRegionBtn', 'promoteRegionBtn', 'removeRegionDivisionBtn'];
+    for (const actionId of actionIds) $(actionId).disabled = properties.locked === true;
     if (administrative) {
-      replaceSelectOptions($('administrativeParentInput'), countryRegionParentOptions(feature), properties.parentRegionId);
-      $('administrativeLevelValue').textContent = `${Number(properties.level) || 1}급`;
+      replaceSelectOptions($('administrativeParentInput'), countryRegionParentOptions(feature), properties.parentId);
+      $('administrativeLevelValue').textContent = `${Number(properties.adminLevel) || 1}급`;
+    } else if (historical) {
+      replaceSelectOptions($('historicalRegionParentInput'), territorialParentOptions(feature), properties.parentId);
+      $('historicalRegionValidFromInput').value = properties.validFrom || '';
+      $('historicalRegionValidToInput').value = properties.validTo || '';
     }
     $('selectionStatus').textContent = administrative
-      ? `행정구역 · ${countryRegionCountryName(feature)} · ${Number(properties.level) || 1}급 · ${displayName}`
-      : `지역 · ${countryRegionCountryName(feature)} · ${displayName}`;
+      ? `행정구역 · ${countryRegionCountryName(feature)} · ${Number(properties.adminLevel) || 1}급 · ${displayName}`
+      : historical
+        ? `역사·지리 지역 · ${displayName}`
+        : `지역 · ${countryRegionCountryName(feature)} · ${displayName}`;
     syncStatusBar();
     syncLayerSelectionRows();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
   }
+
+  function selectTerritorialUnit(type, id, refreshOnly = false, shouldRender = true) {
+    const unitType = String(type || territorialUnitById(id)?.properties?.unitType || '');
+    if (unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      selectCountry(id, refreshOnly, shouldRender);
+      return true;
+    }
+    const unit = countryRegionById(id);
+    if (!unit || unit.properties?.unitType !== unitType) return false;
+    selectCountryRegion(id, refreshOnly);
+    return true;
+  }
+
+  function setTerritorialUnitName(type, id, name) {
+    if (!selectTerritorialUnit(type, id, true, false)) return false;
+    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) commitCountryEdit('name', name);
+    else commitCountryRegionMeta('name', name);
+    return true;
+  }
+
+  function setTerritorialUnitColor(type, id, color) {
+    if (!selectTerritorialUnit(type, id, true, false)) return false;
+    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) commitCountryEdit('color', color);
+    else commitCountryRegionMeta('color', color);
+    return true;
+  }
+
+  function setTerritorialUnitLocked(type, id, locked) {
+    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      state.countriesLocked = !!locked;
+      $('countriesLocked').checked = state.countriesLocked;
+      queueAutosave();
+      return true;
+    }
+    const feature = countryRegionById(id);
+    if (!feature || feature.properties?.unitType !== type) return false;
+    recordHistory();
+    feature.properties.locked = !!locked;
+    selectCountryRegion(id, true);
+    queueAutosave();
+    return true;
+  }
+
+  window.ATLASWRIGHT_TERRITORIAL = Object.freeze({
+    get: id => territorialRepository.get(id),
+    list: options => territorialRepository.list(options),
+    select: selectTerritorialUnit,
+    setName: setTerritorialUnitName,
+    setColor: setTerritorialUnitColor,
+    setLocked: setTerritorialUnitLocked,
+  });
 
   function syncDrawingFolderInput(feature) {
     const options = [
@@ -5803,34 +5969,34 @@ const {
     const selectedRegion = state.selected?.type === 'countryRegion' ? countryRegionById(state.selected.id) : null;
     const selectedCountry = state.selected?.type === 'country' ? countryFeatureById(state.selected.id) : null;
     if (kind === COUNTRY_REGION_KINDS.REGION) {
-      const countryId = String(selectedRegion?.properties?.countryId || selectedCountry?.properties?.editor_id || '');
+      const countryId = String(selectedRegion?.properties?.sovereignId || selectedCountry?.properties?.editor_id || '');
       const country = countryFeatureById(countryId);
       if (!country) return null;
-      const existing = selectedRegion?.properties?.kind === COUNTRY_REGION_KINDS.REGION
+      const existing = selectedRegion?.properties?.unitType === COUNTRY_REGION_KINDS.REGION
         ? selectedRegion
-        : state.countryRegions.find(feature => feature.properties?.kind === kind
-          && String(feature.properties?.countryId || '') === countryId
+        : state.territorialUnits.find(feature => feature.properties?.unitType === kind
+          && String(feature.properties?.sovereignId || '') === countryId
           && feature.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED)
-          || state.countryRegions.find(feature => feature.properties?.kind === kind && String(feature.properties?.countryId || '') === countryId);
+          || state.territorialUnits.find(feature => feature.properties?.unitType === kind && String(feature.properties?.sovereignId || '') === countryId);
       return { countryId, parentRegionId: '', level: null, container: country, source: existing || null };
     }
-    const countryId = String(selectedRegion?.properties?.countryId || selectedCountry?.properties?.editor_id || '');
+    const countryId = String(selectedRegion?.properties?.sovereignId || selectedCountry?.properties?.editor_id || '');
     const country = countryFeatureById(countryId);
     if (!country) return null;
     const parent = selectedRegion || null;
     const parentRegionId = String(parent?.id || '');
-    const level = parent?.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE
-      ? Math.max(1, Number(parent.properties.level) || 1) + 1
-      : parent?.properties?.kind === COUNTRY_REGION_KINDS.REGION ? 2 : 1;
-    const existing = state.countryRegions.find(feature => feature.properties?.kind === kind
-      && String(feature.properties?.countryId || '') === countryId
-      && String(feature.properties?.parentRegionId || '') === parentRegionId
-      && Number(feature.properties?.level || 1) === level
+    const level = parent?.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE
+      ? Math.max(1, Number(parent.properties.adminLevel) || 1) + 1
+      : parent?.properties?.unitType === COUNTRY_REGION_KINDS.REGION ? 2 : 1;
+    const existing = state.territorialUnits.find(feature => feature.properties?.unitType === kind
+      && String(feature.properties?.sovereignId || '') === countryId
+      && String(feature.properties?.parentId || '') === parentRegionId
+      && Number(feature.properties?.adminLevel || 1) === level
       && feature.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED)
-      || state.countryRegions.find(feature => feature.properties?.kind === kind
-        && String(feature.properties?.countryId || '') === countryId
-        && String(feature.properties?.parentRegionId || '') === parentRegionId
-        && Number(feature.properties?.level || 1) === level);
+      || state.territorialUnits.find(feature => feature.properties?.unitType === kind
+        && String(feature.properties?.sovereignId || '') === countryId
+        && String(feature.properties?.parentId || '') === parentRegionId
+        && Number(feature.properties?.adminLevel || 1) === level);
     return { countryId, parentRegionId, level, container: parent || country, source: existing || null };
   }
 
@@ -5921,7 +6087,7 @@ const {
       const smallerIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       const otherIndex = smallerIndex === 0 ? 1 : 0;
       const wasUnassigned = source.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED;
-      const typeLabel = source.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역';
+      const typeLabel = source.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역';
       const baseName = countryRegionName(source).replace(/^미지정\s*/, '') || typeLabel;
       const newName = prompt(`새 ${typeLabel} 이름을 입력하세요.`, `새 ${typeLabel}`);
       if (newName === null) return;
@@ -5943,21 +6109,21 @@ const {
       retained.properties.name = retainedName;
       retained.properties.status = wasUnassigned ? COUNTRY_REGION_STATUS.UNASSIGNED : COUNTRY_REGION_STATUS.ASSIGNED;
       const sibling = createCountryRegionFeature({
-        id: uid(source.properties.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region'),
-        kind: source.properties.kind,
-        countryId: source.properties.countryId,
-        parentRegionId: source.properties.parentRegionId,
-        level: source.properties.level,
+        id: uid(source.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region'),
+        kind: source.properties.unitType,
+        countryId: source.properties.sovereignId,
+        parentRegionId: source.properties.parentId,
+        level: source.properties.adminLevel,
         status: COUNTRY_REGION_STATUS.ASSIGNED,
         name: newName.trim() || `새 ${typeLabel}`,
-        color: source.properties.color || '',
+        color: territorialStyleColor(source),
         notes: '',
         sourceFolderId: source.properties.sourceFolderId || '',
         geometry: siblingGeometry,
       });
-      if (!state.countryRegionSplitSourceId) state.countryRegions.push(retained);
-      state.countryRegions.push(sibling);
-      state.countryRegions = normalizeCountryRegions(state.countryRegions, { countryExists: id => !!countryFeatureById(id) });
+      if (!state.countryRegionSplitSourceId) state.territorialUnits.push(retained);
+      state.territorialUnits.push(sibling);
+      state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
       clearDraftInput(true);
       setTool('select', false);
       markLayerTreeDirty();
@@ -5971,18 +6137,7 @@ const {
   }
 
   function countryRegionsAreAdjacent(left, right) {
-    const points = new Set();
-    for (const polygon of geometryPolygonSets(left?.geometry)) {
-      for (const ring of polygon || []) {
-        for (const coord of ring || []) if (pointOnGeometryBoundary(coord, right?.geometry, 0.000001)) points.add(coordKey(coord, 6));
-      }
-    }
-    for (const polygon of geometryPolygonSets(right?.geometry)) {
-      for (const ring of polygon || []) {
-        for (const coord of ring || []) if (pointOnGeometryBoundary(coord, left?.geometry, 0.000001)) points.add(coordKey(coord, 6));
-      }
-    }
-    return points.size >= 2;
+    return territorialGeometry.areAdjacent(left, right);
   }
 
   function enterCountryRegionMergeMode(id) {
@@ -6002,7 +6157,7 @@ const {
     const source = countryRegionById(state.countryRegionMergeSourceId);
     const target = countryRegionById(id);
     if (!source || !target || String(source.id) === String(target.id)) return;
-    if (!countryRegionSiblings(state.countryRegions, source).some(candidate => String(candidate.id) === String(target.id))) {
+    if (!countryRegionSiblings(state.territorialUnits, source).some(candidate => String(candidate.id) === String(target.id))) {
       setActionStatus('같은 국가·부모·단계의 영역만 합칠 수 있습니다.', 'error', 3400);
       return;
     }
@@ -6022,22 +6177,21 @@ const {
     const targets = state.countryRegionMergeTargetIds.map(countryRegionById).filter(Boolean);
     if (!source || !targets.length) return;
     try {
-      const merged = normalizeClippedLandGeometry(window.polygonClipping.union(source.geometry.coordinates, ...targets.map(item => item.geometry.coordinates)));
-      if (!merged) throw new Error('선택한 영역의 합집합을 만들 수 없습니다.');
+      const mergeResult = territorialGeometry.mergeUnits(source, targets);
       recordHistory();
-      source.geometry = merged;
-      const removed = new Set(targets.map(item => String(item.id)));
-      for (const child of state.countryRegions) {
-        if (removed.has(String(child.properties?.parentRegionId || ''))) child.properties.parentRegionId = String(source.id);
+      source.geometry = mergeResult.survivor.geometry;
+      const removed = new Set(mergeResult.removedIds);
+      for (const child of state.territorialUnits) {
+        if (removed.has(String(child.properties?.parentId || ''))) child.properties.parentId = String(source.id);
       }
-      state.countryRegions = state.countryRegions.filter(item => !removed.has(String(item.id)));
-      state.countryRegions = normalizeCountryRegions(state.countryRegions, { countryExists: id => !!countryFeatureById(id) });
+      state.territorialUnits = state.territorialUnits.filter(item => !removed.has(String(item.id)));
+      state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
       setTool('select', false);
       markLayerTreeDirty();
       selectCountryRegion(source.id, true);
       renderAll();
       queueAutosave();
-      setActionStatus(`${targets.length + 1}개 ${source.properties.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'}을 하나로 합쳤습니다.`, 'success', 3400);
+      setActionStatus(`${targets.length + 1}개 ${source.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'}을 하나로 합쳤습니다.`, 'success', 3400);
     } catch (error) {
       reportOperationError(error, '영역을 합치지 못했습니다.', 'AW-REGION-MERGE-001', 4200);
     }
@@ -6062,7 +6216,7 @@ const {
       const drawn = { type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] };
       const nextGeometry = normalizeClippedLandGeometry(clipper.intersection(drawn.coordinates, container.geometry.coordinates));
       if (!nextGeometry) throw new Error('그린 영역이 부모 영역 안에 없습니다.');
-      const siblings = countryRegionSiblings(state.countryRegions, source);
+      const siblings = countryRegionSiblings(state.territorialUnits, source);
       for (const sibling of siblings) {
         if (sibling.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED) continue;
         const overlap = clipper.intersection(nextGeometry.coordinates, sibling.geometry.coordinates);
@@ -6076,15 +6230,15 @@ const {
       for (const sibling of siblings.filter(item => item.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED)) {
         const remainder = normalizeClippedLandGeometry(clipper.difference(sibling.geometry.coordinates, nextGeometry.coordinates));
         if (remainder) sibling.geometry = remainder;
-        else state.countryRegions = state.countryRegions.filter(item => String(item.id) !== String(sibling.id));
+        else state.territorialUnits = state.territorialUnits.filter(item => String(item.id) !== String(sibling.id));
       }
       if (released && source.properties?.status !== COUNTRY_REGION_STATUS.UNASSIGNED) addUnassignedCountryRegionGeometry({
-        kind: source.properties.kind,
-        countryId: source.properties.countryId,
-        parentRegionId: source.properties.parentRegionId,
-        level: source.properties.level,
+        kind: source.properties.unitType,
+        countryId: source.properties.sovereignId,
+        parentRegionId: source.properties.parentId,
+        level: source.properties.adminLevel,
       }, released);
-      reconcileCountryRegionCompleteness([source.properties.countryId]);
+      reconcileCountryRegionCompleteness([source.properties.sovereignId]);
       clearDraftInput(true);
       setTool('select', false);
       markLayerTreeDirty();
@@ -6119,7 +6273,7 @@ const {
       }, '직접 지정');
       clearDraftInput(true);
       setTool('select', false);
-      const created = [...state.countryRegions].reverse().find(feature => feature.properties?.name === (name.trim() || `새 ${typeLabel}`));
+      const created = [...state.territorialUnits].reverse().find(feature => feature.properties?.name === (name.trim() || `새 ${typeLabel}`));
       if (created) selectCountryRegion(created.id, true);
       renderAll();
     } catch (error) {
@@ -6232,7 +6386,7 @@ const {
     if (state.selected?.type !== 'countryRegion') return false;
     const feature = countryRegionById(state.selected.id);
     if (!feature) return false;
-    if (!feature.properties?.color) {
+    if (!territorialStyleColor(feature)) {
       const inherited = countryRegionColor(feature);
       syncColorPicker(kind, { value: inherited, defaultColor: inherited, isDefault: true });
       return true;
@@ -6244,7 +6398,7 @@ const {
   function applyColorPickerSelection(kind, value, isDefault = false) {
     if (isDefault) {
       if (kind === 'country') return resetCountryColor();
-      if (kind === 'region' || kind === 'administrative') return resetCountryRegionColor(kind);
+      if (kind === 'region' || kind === 'administrative' || kind === 'historicalRegion') return resetCountryRegionColor(kind);
       return resetDrawingColor();
     }
     const color = normalizeEditorColor(value, kind === 'country' ? defaultCountryColor() : DEFAULT_DRAWING_COLOR);
@@ -6253,7 +6407,7 @@ const {
       commitCountryEdit('color', color);
       return true;
     }
-    if (kind === 'region' || kind === 'administrative') {
+    if (kind === 'region' || kind === 'administrative' || kind === 'historicalRegion') {
       if (state.selected?.type !== 'countryRegion') return false;
       commitCountryRegionMeta('color', color);
       return true;
@@ -6361,8 +6515,10 @@ const {
     setActionStatus(field === 'aw_folder_id' ? '지형지물을 다른 폴더로 이동했습니다.' : '지형지물 정보를 변경했습니다.', 'success');
   }
 
-  function countryRegionContainer(feature, { countryId = feature?.properties?.countryId, parentRegionId = feature?.properties?.parentRegionId } = {}) {
-    if (feature?.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE && parentRegionId) return countryRegionById(parentRegionId);
+  function countryRegionContainer(feature, { countryId = feature?.properties?.sovereignId, parentRegionId = feature?.properties?.parentId } = {}) {
+    if (feature?.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE && parentRegionId) {
+      return territorialUnitById(parentRegionId);
+    }
     return countryFeatureById(countryId);
   }
 
@@ -6377,14 +6533,30 @@ const {
     if (state.selected?.type !== 'countryRegion') return;
     const feature = countryRegionById(state.selected.id);
     if (!feature) return;
-    if (field === 'countryId' && String(value) !== String(feature.properties.countryId || '')) {
+    if (feature.properties?.locked) {
+      setActionStatus('잠금을 해제한 뒤 영역 정보를 변경할 수 있습니다.', 'error', 3200);
+      selectCountryRegion(feature.id, true);
+      return;
+    }
+    const explicitCoverage = feature.properties?.coverageMode === TERRITORIAL_COVERAGE_MODES.EXPLICIT;
+    if (field === 'countryId' && explicitCoverage && String(value) !== String(feature.properties.sovereignId || '')) {
+      recordHistory();
+      Object.assign(feature, changeSovereign(feature, value));
+      state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
+      markLayerTreeDirty();
+      selectCountryRegion(feature.id, true);
+      queueAutosave();
+      setActionStatus('역사·지리 지역의 주권 관계를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
+      return;
+    }
+    if (field === 'countryId' && String(value) !== String(feature.properties.sovereignId || '')) {
       const nextCountry = countryFeatureById(value);
-      const prefix = feature.properties.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region';
-      $(`${prefix}CountryInput`).value = String(feature.properties.countryId || '');
+      const prefix = feature.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region';
+      $(`${prefix}CountryInput`).value = String(feature.properties.sovereignId || '');
       if (!nextCountry) {
         recordHistory();
-        feature.properties.countryId = '';
-        feature.properties.parentRegionId = '';
+        feature.properties.sovereignId = '';
+        feature.properties.parentId = '';
         feature.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
         normalizeProjectDrawings();
         selectCountryRegion(feature.id, true);
@@ -6396,28 +6568,43 @@ const {
       requestCountryRegionTransfer(feature.id, String(value));
       return;
     }
-    if (field === 'parentRegionId') {
-      const parent = value ? countryRegionById(value) : countryFeatureById(feature.properties.countryId);
+    if (field === 'parentRegionId' && !explicitCoverage) {
+      const parent = value ? territorialUnitById(value) : countryFeatureById(feature.properties.sovereignId);
       if (!parent || !countryRegionInsideContainer(feature, parent)) {
-        $('administrativeParentInput').value = String(feature.properties.parentRegionId || '');
+        $('administrativeParentInput').value = String(feature.properties.parentId || '');
         setActionStatus('행정구역 전체가 새 부모 안에 들어갈 때만 상위 영역을 변경할 수 있습니다.', 'error', 4200);
         return;
       }
     }
+    const canonicalField = field === 'countryId'
+      ? 'sovereignId'
+      : field === 'parentRegionId'
+        ? 'parentId'
+        : field === 'level'
+          ? 'adminLevel'
+          : field;
     recordHistory();
-    if (field === 'color' && !value) delete feature.properties.color;
-    else feature.properties[field] = value;
+    if (field === 'color') setTerritorialStyleColor(feature, value);
+    else if (canonicalField === 'parentId') Object.assign(feature, changeParent(feature, value));
+    else if (canonicalField === 'sovereignId') Object.assign(feature, changeSovereign(feature, value));
+    else if (canonicalField === 'unitType') Object.assign(feature, changeUnitType(feature, value));
+    else feature.properties[canonicalField] = value;
     if (field === 'name' && value) feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
-    state.countryRegions = normalizeCountryRegions(state.countryRegions, { countryExists: id => !!countryFeatureById(id) });
+    state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
     markLayerTreeDirty();
     selectCountryRegion(feature.id, true);
     queueAutosave();
-    setActionStatus(`${feature.properties.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} 정보를 변경했습니다.`, 'success');
+    const unitLabel = feature.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE
+      ? '행정구역'
+      : feature.properties.unitType === TERRITORIAL_UNIT_TYPES.REGION
+        ? '역사·지리 지역'
+        : '지역';
+    setActionStatus(`${unitLabel} 정보를 변경했습니다.`, 'success');
   }
 
   async function transferCountryRegionToCountry(regionId, targetCountryId) {
     const source = countryRegionById(regionId);
-    const donor = countryFeatureById(source?.properties?.countryId);
+    const donor = countryFeatureById(source?.properties?.sovereignId);
     const target = countryFeatureById(targetCountryId);
     const clipper = window.polygonClipping;
     if (!source || !donor || !target || donor === target || !clipper?.difference || !clipper?.union) return false;
@@ -6425,7 +6612,7 @@ const {
     const queue = [String(source.id)];
     while (queue.length) {
       const parentId = queue.shift();
-      for (const child of countryRegionChildren(state.countryRegions, parentId)) {
+      for (const child of countryRegionChildren(state.territorialUnits, parentId)) {
         if (movedIds.has(String(child.id))) continue;
         movedIds.add(String(child.id));
         queue.push(String(child.id));
@@ -6440,14 +6627,14 @@ const {
           const targetGeometry = normalizeClippedLandGeometry(clipper.union(target.geometry.coordinates, sourceGeometry.coordinates));
           if (!donorGeometry) throw new Error('이전하면 기존 국가의 국토가 남지 않습니다. 새 국가로 독립을 사용하세요.');
           if (!targetGeometry) throw new Error('대상 국가에 지역을 결합하지 못했습니다.');
-          const nextRegions = deepClone(state.countryRegions).flatMap(feature => {
+          const nextRegions = deepClone(state.territorialUnits).flatMap(feature => {
             if (movedIds.has(String(feature.id))) {
-              feature.properties.countryId = String(targetCountryId);
+              feature.properties.sovereignId = String(targetCountryId);
               feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
-              if (String(feature.id) === String(source.id)) feature.properties.parentRegionId = '';
+              if (String(feature.id) === String(source.id)) feature.properties.parentId = '';
               return [feature];
             }
-            if (String(feature.properties?.countryId || '') !== String(donor.properties.editor_id)) return [feature];
+            if (String(feature.properties?.sovereignId || '') !== String(donor.properties.editor_id)) return [feature];
             const remainder = normalizeClippedLandGeometry(clipper.difference(feature.geometry.coordinates, sourceGeometry.coordinates));
             if (!remainder) return [];
             feature.geometry = remainder;
@@ -6466,7 +6653,7 @@ const {
         apply: async result => {
           donor.geometry = result.donorGeometry;
           target.geometry = result.targetGeometry;
-          state.countryRegions = result.nextRegions;
+          state.territorialUnits = result.nextRegions;
           reindexCountries(state.countriesData, true);
           reconcileCountryRegionCompleteness([donor.properties.editor_id, target.properties.editor_id]);
           markCountryGeometriesChanged([donor.properties.editor_id, target.properties.editor_id]);
@@ -6502,7 +6689,7 @@ const {
 
   async function promoteCountryRegionToCountry(regionId) {
     const source = countryRegionById(regionId);
-    const sourceCountryId = String(source?.properties?.countryId || '');
+    const sourceCountryId = String(source?.properties?.sovereignId || '');
     const sourceCountry = countryFeatureById(sourceCountryId);
     const name = String(source?.properties?.name || '').trim();
     if (!source || !sourceCountry || !name) {
@@ -6513,13 +6700,13 @@ const {
     const queue = [String(source.id)];
     while (queue.length) {
       const parentId = queue.shift();
-      for (const child of countryRegionChildren(state.countryRegions, parentId)) {
+      for (const child of countryRegionChildren(state.territorialUnits, parentId)) {
         if (descendantIds.has(String(child.id))) continue;
         descendantIds.add(String(child.id));
         queue.push(String(child.id));
       }
     }
-    const country = createCountryFeature(name, [], source.properties.color || null, snapGeometryToGrid(source.geometry, 7));
+    const country = createCountryFeature(name, [], territorialStyleColor(source) || null, snapGeometryToGrid(source.geometry, 7));
     const snapshot = snapshotEditable();
     setActionStatus('선택한 지역을 새 국가로 독립시키는 중입니다.', 'working', 0);
     const result = await transactCountryEdit({
@@ -6529,21 +6716,21 @@ const {
       applyResult: plan => {
         applyWorkerCountryPatches(plan);
         reindexCountries(state.countriesData, true);
-        state.countryRegions = state.countryRegions.flatMap(feature => {
+        state.territorialUnits = state.territorialUnits.flatMap(feature => {
           if (String(feature.id) === String(source.id)) return [];
           if (descendantIds.has(String(feature.id))) {
-            feature.properties.countryId = String(country.properties.editor_id);
+            feature.properties.sovereignId = String(country.properties.editor_id);
             feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
-            if (String(feature.properties.parentRegionId || '') === String(source.id)) feature.properties.parentRegionId = '';
+            if (String(feature.properties.parentId || '') === String(source.id)) feature.properties.parentId = '';
             return [feature];
           }
-          if (String(feature.properties?.countryId || '') !== sourceCountryId) return [feature];
+          if (String(feature.properties?.sovereignId || '') !== sourceCountryId) return [feature];
           const remainder = normalizeClippedLandGeometry(window.polygonClipping.difference(feature.geometry.coordinates, source.geometry.coordinates));
           if (!remainder) return [];
           feature.geometry = remainder;
           return [feature];
         });
-        state.countryRegions = normalizeCountryRegions(state.countryRegions, { countryExists: id => !!countryFeatureById(id) });
+        state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
         reconcileCountryRegionCompleteness([sourceCountryId, country.properties.editor_id]);
         refreshCountryCentroids(new Set(plan.affectedIds));
         markLayerTreeDirty();
@@ -6655,12 +6842,20 @@ const {
   }
 
   function applySharedProjectFields(source, scope = 'project') {
-    return applyProjectFields(state, source, {
+    const migratedSource = source && typeof source === 'object'
+      ? {
+        ...source,
+        territorialUnits: source.territorialUnits ?? migrateLegacyCountryRegions(source.countryRegions || []),
+        territorialRelations: source.territorialRelations || [],
+      }
+      : source;
+    return applyProjectFields(state, migratedSource, {
       scope,
       clone: deepClone,
       normalizers: {
         drawings: value => deepClone(value || []),
-        countryRegions: value => deepClone(value || []),
+        territorialUnits: value => deepClone(value || []),
+        territorialRelations: value => deepClone(value || []),
         drawingFolders: value => normalizeDrawingFolders(value),
         physicalSettings: (value, current) => normalizePhysicalSettings(value || current),
         projection: (value, current, project) => value || project.view?.projection || current || 'globe',
@@ -6677,10 +6872,18 @@ const {
   function normalizeProjectDrawings() {
     state.drawingFolders = normalizeDrawingFolders(state.drawingFolders);
     state.drawings = normalizeDrawingCollection(state.drawings || []);
-    state.countryRegions = normalizeCountryRegions(state.countryRegions, {
+    state.territorialUnits = normalizeCountryRegions(state.territorialUnits, {
       countryExists: id => !!countryFeatureById(id),
-      makeId: kind => uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region'),
+      makeId: kind => uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : kind === TERRITORIAL_UNIT_TYPES.REGION ? 'historical_region' : 'territory'),
     });
+    state.territorialRelations = normalizeTerritorialRelations(state.territorialRelations, {
+      makeId: () => uid('territorial_relation'),
+    });
+    const relationValidation = validateTerritorialRelations(state.territorialUnits, {
+      countryExists: id => !!countryFeatureById(id),
+      relations: state.territorialRelations,
+    });
+    if (!relationValidation.ok) console.warn('Territorial relation normalization issues', relationValidation.issues);
     for (const feature of state.drawings) {
       const folderId = String(feature.properties?.aw_folder_id || '');
       if (folderId && !drawingFolderById(folderId)) delete feature.properties.aw_folder_id;
@@ -6792,7 +6995,13 @@ const {
         coastlineAuthority: 'countries',
         roles: ['hydro', 'thematic', 'custom'],
       },
-      countryRegionModel: { schemaVersion: 1, coastlineAuthority: 'countries', kinds: ['region', 'administrative'] },
+      territorialModel: {
+        schemaVersion: 1,
+        coastlineAuthority: 'countriesData',
+        countryStorage: 'countriesData-adapter',
+        types: ['country', 'territory', 'admin', 'region'],
+        coverageModes: ['partition', 'explicit'],
+      },
     };
     project.physicalSourceInfo = {
       terrain: {
@@ -6822,7 +7031,13 @@ const {
         schemaVersion: DRAWING_SCHEMA_VERSION,
         coastlineAuthority: 'countries',
       },
-      countryRegionModel: { schemaVersion: 1, coastlineAuthority: 'countries', kinds: ['region', 'administrative'] },
+      territorialModel: {
+        schemaVersion: 1,
+        coastlineAuthority: 'countriesData',
+        countryStorage: 'countriesData-adapter',
+        types: ['country', 'territory', 'admin', 'region'],
+        coverageModes: ['partition', 'explicit'],
+      },
     };
   }
 
@@ -7008,6 +7223,7 @@ const {
     $('countriesVisible').checked = state.layerVisibility.countries;
     $('regionsVisible').checked = state.layerVisibility.regions !== false;
     $('administrativeVisible').checked = state.layerVisibility.administrative !== false;
+    $('historicalRegionsVisible').checked = state.layerVisibility.historicalRegions !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
@@ -7069,11 +7285,12 @@ const {
     state.sourceInfo = null;
     state.labels = [];
     state.drawings = [];
-    state.countryRegions = [];
+    state.territorialUnits = [];
+    state.territorialRelations = [];
     state.drawingFolders = [];
     state.physicalSettings = normalizePhysicalSettings(null);
     state.projection = 'globe';
-    state.layerVisibility = { countries: true, regions: true, administrative: true, drawings: true, labels: true, basemapLabels: true };
+    state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, drawings: true, labels: true, basemapLabels: true };
     state.itemVisibility = normalizeLayerItemState(null);
     state.removedLayerItems = normalizeRemovedLayerItems(null);
     gpuMapRenderer.invalidateHydroVisibility();
@@ -7119,6 +7336,7 @@ const {
     $('countriesVisible').checked = true;
     $('regionsVisible').checked = true;
     $('administrativeVisible').checked = true;
+    $('historicalRegionsVisible').checked = true;
     $('drawingsVisible').checked = true;
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
@@ -7172,6 +7390,11 @@ const {
     }
     const feature = countryFeatureById(key);
     if (!feature) return;
+    const children = territorialRepository.children(key);
+    if (children.length) {
+      setActionStatus(`하위 영역 ${children.length}개를 먼저 다른 부모로 옮기거나 삭제해야 국가를 삭제할 수 있습니다.`, 'error', 4400);
+      return;
+    }
     const name = countryName(feature);
     openConfirmModal({
       title: '국가 삭제',
@@ -7180,10 +7403,10 @@ const {
       danger: true,
       onConfirm: () => {
         recordHistory();
-        for (const region of state.countryRegions) {
-          if (String(region.properties?.countryId || '') !== key) continue;
-          region.properties.countryId = '';
-          region.properties.parentRegionId = '';
+        for (const region of state.territorialUnits) {
+          if (String(region.properties?.sovereignId || '') !== key) continue;
+          region.properties.sovereignId = '';
+          region.properties.parentId = '';
           region.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
         }
         state.countriesData.features = state.countriesData.features.filter(f => String(f.properties?.editor_id) !== key);
@@ -7533,12 +7756,12 @@ const {
     return countryFeatureById(key) || (state.countriesData?.features || []).find(feature => countryName(feature).toLocaleLowerCase('ko') === key.toLocaleLowerCase('ko')) || null;
   }
 
-  function countryRegionFromImportedValue(value, countryId = '', regions = state.countryRegions) {
+  function countryRegionFromImportedValue(value, countryId = '', regions = state.territorialUnits) {
     const key = String(value ?? '').trim();
     if (!key) return null;
     return regions.find(feature => String(feature.id) === key)
       || regions.find(feature => countryRegionName(feature).toLocaleLowerCase('ko') === key.toLocaleLowerCase('ko')
-      && (!countryId || String(feature.properties?.countryId || '') === String(countryId))) || null;
+      && (!countryId || String(feature.properties?.sovereignId || '') === String(countryId))) || null;
   }
 
   function importedCountryRegionFeature(raw, index, kind, mapping, sourceFolderId, knownRegions) {
@@ -7550,9 +7773,9 @@ const {
       ? countryRegionFromImportedValue(properties[mapping.parentField], countryId, knownRegions)
       : null;
     const level = kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE
-      ? (parent?.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE
-        ? Math.max(1, Number(parent.properties.level) || 1) + 1
-        : parent?.properties?.kind === COUNTRY_REGION_KINDS.REGION
+      ? (parent?.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE
+        ? Math.max(1, Number(parent.properties.adminLevel) || 1) + 1
+        : parent?.properties?.unitType === COUNTRY_REGION_KINDS.REGION
           ? 2
           : Math.max(1, Number.parseInt(properties[mapping.levelField], 10) || 1))
       : null;
@@ -7574,19 +7797,19 @@ const {
   function importGeoJsonCountryRegions(features, kind, mapping, fileName) {
     const clipper = window.polygonClipping;
     const sourceFolderId = `geojson:${uid('source')}`;
-    const nextRegions = deepClone(state.countryRegions);
+    const nextRegions = deepClone(state.territorialUnits);
     let importedCount = 0;
     for (let index = 0; index < features.length; index += 1) {
       const feature = importedCountryRegionFeature(features[index], index, kind, mapping, sourceFolderId, nextRegions);
       if (!feature) continue;
-      const country = countryFeatureById(feature.properties.countryId);
-      const parent = feature.properties.parentRegionId
-        ? nextRegions.find(candidate => String(candidate.id) === String(feature.properties.parentRegionId))
+      const country = countryFeatureById(feature.properties.sovereignId);
+      const parent = feature.properties.parentId
+        ? nextRegions.find(candidate => String(candidate.id) === String(feature.properties.parentId))
         : null;
       const container = parent || country;
       if (!container?.geometry) {
-        feature.properties.countryId = '';
-        feature.properties.parentRegionId = '';
+        feature.properties.sovereignId = '';
+        feature.properties.parentId = '';
         feature.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
         nextRegions.push(feature);
         importedCount += 1;
@@ -7597,9 +7820,9 @@ const {
       feature.geometry = clipped;
       const context = {
         kind,
-        countryId: feature.properties.countryId,
-        parentRegionId: feature.properties.parentRegionId,
-        level: feature.properties.level,
+        countryId: feature.properties.sovereignId,
+        parentRegionId: feature.properties.parentId,
+        level: feature.properties.adminLevel,
       };
       const siblings = nextRegions.filter(candidate => partitionGroupMatches(candidate, context));
       for (const sibling of siblings.filter(candidate => candidate.properties?.status !== COUNTRY_REGION_STATUS.UNASSIGNED)) {
@@ -7629,8 +7852,8 @@ const {
     }
     if (!importedCount) throw new Error('가져올 Polygon 또는 MultiPolygon 객체가 없습니다.');
     recordHistory();
-    state.countryRegions = normalizeCountryRegions(nextRegions, { countryExists: id => !!countryFeatureById(id) });
-    reconcileCountryRegionCompleteness(new Set(state.countryRegions.map(feature => String(feature.properties?.countryId || '')).filter(Boolean)));
+    state.territorialUnits = normalizeCountryRegions(nextRegions, { countryExists: id => !!countryFeatureById(id) });
+    reconcileCountryRegionCompleteness(new Set(state.territorialUnits.map(feature => String(feature.properties?.sovereignId || '')).filter(Boolean)));
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
@@ -7711,13 +7934,13 @@ const {
   function performCountryRegionDivisionRemoval(id, action = 'unassigned') {
     const feature = countryRegionById(id);
     if (!feature) return false;
-    const children = countryRegionChildren(state.countryRegions, feature.id);
+    const children = countryRegionChildren(state.territorialUnits, feature.id);
     if (children.length) {
       setActionStatus(`하위 행정구역 ${children.length}개를 먼저 다른 부모로 옮기거나 구분 해제하세요.`, 'error', 4200);
       return false;
     }
-    const siblings = countryRegionSiblings(state.countryRegions, feature);
-    const countryId = String(feature.properties?.countryId || '');
+    const siblings = countryRegionSiblings(state.territorialUnits, feature);
+    const countryId = String(feature.properties?.sovereignId || '');
     let mergeTarget = null;
     let mergedGeometry = null;
     if (action.startsWith('merge:')) {
@@ -7735,7 +7958,7 @@ const {
     }
     if (action === 'clear-all') {
       const groupIds = new Set([feature, ...siblings].map(candidate => String(candidate.id)));
-      if (state.countryRegions.some(candidate => groupIds.has(String(candidate.properties?.parentRegionId || '')))) {
+      if (state.territorialUnits.some(candidate => groupIds.has(String(candidate.properties?.parentId || '')))) {
         setActionStatus('하위 행정구역이 있는 단계는 전체 구분을 해제할 수 없습니다.', 'error', 4200);
         return false;
       }
@@ -7743,50 +7966,83 @@ const {
     recordHistory();
     if (action.startsWith('merge:')) {
       mergeTarget.geometry = mergedGeometry;
-      state.countryRegions = state.countryRegions.filter(candidate => String(candidate.id) !== String(feature.id));
+      state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
       selectCountryRegion(mergeTarget.id, true);
     } else if (action === 'clear-all') {
       const groupIds = new Set([feature, ...siblings].map(candidate => String(candidate.id)));
-      state.countryRegions = state.countryRegions.filter(candidate => !groupIds.has(String(candidate.id)));
+      state.territorialUnits = state.territorialUnits.filter(candidate => !groupIds.has(String(candidate.id)));
       clearSelection(false);
     } else if (!siblings.length) {
-      state.countryRegions = state.countryRegions.filter(candidate => String(candidate.id) !== String(feature.id));
+      state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
       clearSelection(false);
     } else {
       const unassigned = siblings.find(candidate => candidate.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED);
       if (unassigned) {
         unassigned.geometry = normalizeClippedLandGeometry(window.polygonClipping.union(unassigned.geometry.coordinates, feature.geometry.coordinates));
-        state.countryRegions = state.countryRegions.filter(candidate => String(candidate.id) !== String(feature.id));
+        state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
         selectCountryRegion(unassigned.id, true);
       } else {
         feature.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
         feature.properties.name = '';
         feature.properties.notes = '';
-        delete feature.properties.color;
+        setTerritorialStyleColor(feature, '');
         selectCountryRegion(feature.id, true);
       }
     }
     if (countryId) reconcileCountryRegionCompleteness([countryId]);
-    state.countryRegions = normalizeCountryRegions(state.countryRegions, { countryExists: key => !!countryFeatureById(key) });
+    state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: key => !!countryFeatureById(key) });
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
-    setActionStatus(`${feature.properties.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} 구분을 안전하게 해제했습니다.`, 'success', 3600);
+    setActionStatus(`${feature.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} 구분을 안전하게 해제했습니다.`, 'success', 3600);
+    return true;
+  }
+
+  function requestExplicitTerritorialUnitDelete(feature) {
+    const children = territorialChildren(state.territorialUnits, feature.id);
+    if (children.length) {
+      setActionStatus(`하위 영역 ${children.length}개를 먼저 다른 부모로 옮기거나 삭제해야 합니다.`, 'error', 4200);
+      return false;
+    }
+    openConfirmModal({
+      title: '역사·지리 지역 삭제',
+      message: `${countryRegionName(feature)}을(를) 프로젝트에서 삭제합니다. 국가나 다른 영역의 형상은 변경하지 않습니다.`,
+      confirmText: '지역 삭제',
+      danger: true,
+      onConfirm: () => {
+        recordHistory();
+        state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
+        state.territorialRelations = state.territorialRelations.filter(relation => String(relation.unitId) !== String(feature.id));
+        markLayerTreeDirty();
+        if (state.selected?.type === 'countryRegion' && String(state.selected.id) === String(feature.id)) clearSelection(false);
+        else renderAll();
+        queueAutosave();
+        setActionStatus(`${countryRegionName(feature)} 역사·지리 지역을 삭제했습니다.`, 'success');
+      },
+    });
     return true;
   }
 
   function requestCountryRegionDivisionRemoval(id) {
     const feature = countryRegionById(id);
     if (!feature) return;
-    const children = countryRegionChildren(state.countryRegions, feature.id);
+    if (feature.properties?.locked) {
+      setActionStatus('잠금을 해제한 뒤 영역을 삭제할 수 있습니다.', 'error', 3200);
+      return;
+    }
+    if (feature.properties?.coverageMode === TERRITORIAL_COVERAGE_MODES.EXPLICIT) {
+      requestExplicitTerritorialUnitDelete(feature);
+      return;
+    }
+    const children = countryRegionChildren(state.territorialUnits, feature.id);
     if (children.length) {
       setActionStatus(`하위 행정구역 ${children.length}개가 있어 구분을 해제할 수 없습니다.`, 'error', 4200);
       return;
     }
-    const label = feature.properties?.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역';
-    const siblings = countryRegionSiblings(state.countryRegions, feature);
+    const label = feature.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역';
+    const siblings = countryRegionSiblings(state.territorialUnits, feature);
     const groupIds = new Set([feature, ...siblings].map(candidate => String(candidate.id)));
-    const groupHasChildren = state.countryRegions.some(candidate => groupIds.has(String(candidate.properties?.parentRegionId || '')));
+    const groupHasChildren = state.territorialUnits.some(candidate => groupIds.has(String(candidate.properties?.parentId || '')));
     const choices = [];
     if (siblings.length && feature.properties?.status !== COUNTRY_REGION_STATUS.UNASSIGNED) {
       choices.push({ value: 'unassigned', label: '미지정 영역으로 전환' });
@@ -7811,12 +8067,27 @@ const {
     });
   }
 
+  function deleteTerritorialUnit(type, id) {
+    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      requestDeleteCountry(id);
+      return true;
+    }
+    const feature = countryRegionById(id);
+    if (!feature || feature.properties?.unitType !== type) return false;
+    if (countryRegionChildren(state.territorialUnits, feature.id).length) {
+      setActionStatus('하위 영역을 먼저 다른 부모로 옮기거나 삭제해야 합니다.', 'error', 4200);
+      return false;
+    }
+    requestCountryRegionDivisionRemoval(id);
+    return true;
+  }
+
   function deleteLayerTreeItem(group, id) {
     const key = String(id);
     const item = layerTreeItems(group).find(candidate => String(candidate.id) === key);
     if (!item) return;
     if (group === 'countries') {
-      requestDeleteCountry(key);
+      deleteTerritorialUnit(TERRITORIAL_UNIT_TYPES.COUNTRY, key);
       return;
     }
 
@@ -7849,8 +8120,8 @@ const {
       return;
     }
 
-    if (group === 'regions' || group === 'administrative') {
-      requestCountryRegionDivisionRemoval(key);
+    if (group === 'regions' || group === 'administrative' || group === 'historicalRegions') {
+      deleteTerritorialUnit(group === 'administrative' ? TERRITORIAL_UNIT_TYPES.ADMIN : countryRegionById(key)?.properties?.unitType, key);
       return;
     }
 
@@ -7865,7 +8136,7 @@ const {
       return;
     }
     if (state.selected.type === 'country') {
-      setActionStatus('선택한 국가는 이 방법으로 삭제할 수 없습니다. 편집 패널의 국가 삭제 또는 합병 기능을 사용하세요.', 'error', 3500);
+      deleteTerritorialUnit(TERRITORIAL_UNIT_TYPES.COUNTRY, state.selected.id);
       return;
     }
     if (state.selected.type === 'hydro') {
@@ -7875,7 +8146,7 @@ const {
     if (state.selected.type === 'drawing') {
       removeDrawingById(state.selected.id, '선택한 객체를 삭제했습니다.');
     } else if (state.selected.type === 'countryRegion') {
-      requestCountryRegionDivisionRemoval(state.selected.id);
+      deleteTerritorialUnit(state.selected.unitType || countryRegionById(state.selected.id)?.properties?.unitType, state.selected.id);
     } else if (state.selected.type === 'label') {
       removeLabelById(state.selected.id, '선택한 객체를 삭제했습니다.');
     }
@@ -7942,7 +8213,7 @@ const {
     if (group === 'countries' || group === 'countryLabels') {
       const feature = countryFeatureById(key);
       if (!feature) return false;
-      if (!state.countriesLocked) selectCountry(key);
+      if (!state.countriesLocked) selectTerritorialUnit(TERRITORIAL_UNIT_TYPES.COUNTRY, key);
       const primary = largestCountryComponentFeature(feature) || feature;
       focusCountry(primary, { maxZoom: isMobile() ? 10 : 9 });
       if (state.countriesLocked) setActionStatus('국가 레이어가 잠겨 있어 위치만 이동했습니다.', 'error', 2600);
@@ -7973,7 +8244,7 @@ const {
     } else if (group === 'regions' || group === 'administrative') {
       const feature = countryRegionById(key);
       if (!feature) return false;
-      selectCountryRegion(key);
+      selectTerritorialUnit(feature.properties?.unitType, key);
       focusCountry(feature, { maxZoom: isMobile() ? 12 : 10 });
       return true;
     } else if (group === 'labels') {
@@ -8098,6 +8369,7 @@ const {
     $('countriesVisible').addEventListener('change', e => setLayerVisibility('countries', e.target.checked));
     $('regionsVisible').addEventListener('change', e => setLayerVisibility('regions', e.target.checked));
     $('administrativeVisible').addEventListener('change', e => setLayerVisibility('administrative', e.target.checked));
+    $('historicalRegionsVisible').addEventListener('change', e => setLayerVisibility('historicalRegions', e.target.checked));
     $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
     $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
     $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
@@ -8301,10 +8573,25 @@ const {
       { id: 'administrativeCountryInput', field: 'countryId', commit: commitCountryRegionMeta },
       { id: 'administrativeParentInput', field: 'parentRegionId', commit: commitCountryRegionMeta },
       { id: 'administrativeNotesInput', field: 'notes', commit: commitCountryRegionMeta },
+      { id: 'historicalRegionNameInput', field: 'name', commit: commitCountryRegionMeta, transform: value => value.trim() },
+      { id: 'historicalRegionCountryInput', field: 'countryId', commit: commitCountryRegionMeta },
+      { id: 'historicalRegionParentInput', field: 'parentRegionId', commit: commitCountryRegionMeta },
+      { id: 'historicalRegionValidFromInput', field: 'validFrom', commit: commitCountryRegionMeta, transform: value => value.trim() },
+      { id: 'historicalRegionValidToInput', field: 'validTo', commit: commitCountryRegionMeta, transform: value => value.trim() },
+      { id: 'historicalRegionNotesInput', field: 'notes', commit: commitCountryRegionMeta },
       { id: 'labelNameInput', field: 'name', commit: commitLabelEdit, transform: value => value.trim() },
       { id: 'labelKindInput', field: 'kind', commit: commitLabelEdit },
       { id: 'labelNotesInput', field: 'notes', commit: commitLabelEdit },
     ]);
+    $('regionLockedInput').addEventListener('change', event => {
+      if (state.selected?.type === 'countryRegion') setTerritorialUnitLocked(state.selected.unitType, state.selected.id, event.target.checked);
+    });
+    $('administrativeLockedInput').addEventListener('change', event => {
+      if (state.selected?.type === 'countryRegion') setTerritorialUnitLocked(state.selected.unitType, state.selected.id, event.target.checked);
+    });
+    $('historicalRegionLockedInput').addEventListener('change', event => {
+      if (state.selected?.type === 'countryRegion') setTerritorialUnitLocked(state.selected.unitType, state.selected.id, event.target.checked);
+    });
     $('flagUploadBtn').addEventListener('click', () => $('flagFileInput').click());
     $('flagFileInput').addEventListener('change', e => {
       const file = e.target.files?.[0];
@@ -8317,6 +8604,7 @@ const {
     $('flagRemoveBtn').addEventListener('click', () => commitCountryEdit('flagDataUrl', null));
     $('removeRegionDivisionBtn').addEventListener('click', () => state.selected?.type === 'countryRegion' && requestCountryRegionDivisionRemoval(state.selected.id));
     $('removeAdministrativeDivisionBtn').addEventListener('click', () => state.selected?.type === 'countryRegion' && requestCountryRegionDivisionRemoval(state.selected.id));
+    $('deleteHistoricalRegionBtn').addEventListener('click', () => state.selected?.type === 'countryRegion' && requestCountryRegionDivisionRemoval(state.selected.id));
     $('splitRegionBtn').addEventListener('click', () => state.selected?.type === 'countryRegion' && returnToMapAfterMobileAction(enterCountryRegionSplitMode(state.selected.id)));
     $('splitAdministrativeBtn').addEventListener('click', () => state.selected?.type === 'countryRegion' && returnToMapAfterMobileAction(enterCountryRegionSplitMode(state.selected.id)));
     $('mergeRegionBtn').addEventListener('click', () => state.selected?.type === 'countryRegion' && returnToMapAfterMobileAction(enterCountryRegionMergeMode(state.selected.id)));
@@ -8591,6 +8879,7 @@ const {
     $('countriesVisible').checked = state.layerVisibility.countries;
     $('regionsVisible').checked = state.layerVisibility.regions !== false;
     $('administrativeVisible').checked = state.layerVisibility.administrative !== false;
+    $('historicalRegionsVisible').checked = state.layerVisibility.historicalRegions !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;

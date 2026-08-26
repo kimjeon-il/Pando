@@ -4,7 +4,7 @@ import { PROJECT_STATE_FIELDS, applyProjectFields, pickProjectFields } from '../
 
 const state = {
   countryOverrides: { KOR: { name: '대한민국' } }, sourceInfo: null, labels: [{ id: 'label-1' }], drawings: [],
-  countryRegions: [{ id: 'region-1' }],
+  territorialUnits: [{ id: 'territory-1' }], territorialRelations: [{ id: 'relation-1' }],
   drawingFolders: [{ id: 'folder-1', name: '가져온 경계', origin: 'geojson', autoPrune: true }],
   physicalSettings: { terrainVisible: true }, removedLayerItems: { countries: ['A'] }, projection: 'flat',
   layerVisibility: { countries: true }, itemVisibility: { A: false }, layerFolders: { countries: true },
@@ -21,7 +21,8 @@ test('history snapshots preserve removed layer items through the shared schema',
   const history = pickProjectFields(state, { scope: 'history' });
   assert.deepEqual(history.removedLayerItems, state.removedLayerItems);
   assert.deepEqual(history.drawingFolders, state.drawingFolders);
-  assert.deepEqual(history.countryRegions, state.countryRegions);
+  assert.deepEqual(history.territorialUnits, state.territorialUnits);
+  assert.deepEqual(history.territorialRelations, state.territorialRelations);
   assert.equal('projection' in history, false);
 });
 
@@ -30,7 +31,8 @@ test('legacy projects receive defaults without sharing mutable values', () => {
   assert.deepEqual(restored.removedLayerItems, {});
   assert.deepEqual(restored.labels, []);
   assert.deepEqual(restored.drawingFolders, []);
-  assert.deepEqual(restored.countryRegions, []);
+  assert.deepEqual(restored.territorialUnits, []);
+  assert.deepEqual(restored.territorialRelations, []);
   restored.labels.push({ id: 'new' });
   assert.deepEqual(applyProjectFields({}, {}).labels, []);
 });

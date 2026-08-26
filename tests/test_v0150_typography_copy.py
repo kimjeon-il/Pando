@@ -18,12 +18,12 @@ LICENSE = ROOT / "assets" / "fonts" / "pretendard-v1.3.9" / "LICENSE.txt"
 
 class V0150TypographyCopyTests(unittest.TestCase):
     def test_versioned_shell_and_cache_keys_match(self):
-        self.assertIn('data-app-version="0.24.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.24.0'", APP)
-        self.assertIn("const BUILD_ID = '0.24.0'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.24.0-r6'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.24.0-r6", INDEX)
-        self.assertIn("bootstrap.js?v=0.24.0-r6", INDEX)
+        self.assertIn('data-app-version="0.25.0"', INDEX)
+        self.assertIn("const APP_VERSION = '0.25.0'", APP)
+        self.assertIn("const BUILD_ID = '0.25.0'", BOOTSTRAP)
+        self.assertIn("const ASSET_REVISION = '0.25.0-r1'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.25.0-r1", INDEX)
+        self.assertIn("bootstrap.js?v=0.25.0-r1", INDEX)
         self.assertIn("recoverCacheMismatch()", BOOTSTRAP)
         self.assertIn("location.replace(recoveryUrl.href)", BOOTSTRAP)
 

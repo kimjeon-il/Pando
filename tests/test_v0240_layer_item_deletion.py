@@ -22,7 +22,8 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
     def test_each_supported_layer_type_has_a_delete_path(self):
         delete_logic = APP[APP.index("function deleteLayerTreeItem"):APP.index("function deleteSelected()")]
         common_delete = APP[APP.index("function removeDrawingById"):APP.index("function deleteLayerTreeItem")]
-        self.assertIn("requestDeleteCountry(key)", delete_logic)
+        self.assertIn("deleteTerritorialUnit(TERRITORIAL_UNIT_TYPES.COUNTRY, key)", delete_logic)
+        self.assertIn("group === 'historicalRegions'", delete_logic)
         self.assertIn("state.removedLayerItems.drawings[key] = true", delete_logic)
         self.assertIn("state.removedLayerItems.countryLabels[key] = true", delete_logic)
         self.assertIn("removeDrawingById(key", delete_logic)

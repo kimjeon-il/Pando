@@ -177,7 +177,7 @@ function writeAtlasTables(db, payload) {
   const state = payload.projectState || {};
   const labels = state.labels || [];
   const drawings = state.drawings || [];
-  const countryRegions = state.countryRegions || [];
+  const territorialUnits = state.territorialUnits || state.countryRegions || [];
   const places = labels.map(label => ({
     geometry: { type: 'Point', coordinates: label.coordinates || [0, 0] },
     id: label.id || '',
@@ -194,17 +194,19 @@ function writeAtlasTables(db, payload) {
     geometry: item.geometry,
     id: item.id || '',
     name: item.properties?.name || '',
-    country_id: item.properties?.countryId || '',
-    parent_region_id: item.properties?.parentRegionId || '',
-    level: item.properties?.level ?? null,
+    country_id: item.properties?.sovereignId || item.properties?.countryId || '',
+    parent_region_id: item.properties?.parentId || item.properties?.parentRegionId || '',
+    level: item.properties?.adminLevel ?? item.properties?.level ?? null,
     status: item.properties?.status || 'assigned',
-    color: item.properties?.color || '',
+    color: item.properties?.style?.color || item.properties?.color || '',
     notes: item.properties?.notes || '',
     source_folder_id: item.properties?.sourceFolderId || '',
     properties_json: JSON.stringify(item.properties || {}),
   });
-  const territories = countryRegions.filter(item => item.properties?.kind === 'region').map(countryRegionRow);
-  const administrativeAreas = countryRegions.filter(item => item.properties?.kind === 'administrative').map(countryRegionRow);
+  const territories = territorialUnits.filter(item => item.properties?.unitType === 'territory'
+    || (!item.properties?.unitType && item.properties?.kind === 'region')).map(countryRegionRow);
+  const administrativeAreas = territorialUnits.filter(item => item.properties?.unitType === 'admin'
+    || (!item.properties?.unitType && item.properties?.kind === 'administrative')).map(countryRegionRow);
   const drawingColumns = [
     { name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'category' }, { name: 'aw_role' },
     { name: 'aw_owner_id' }, { name: 'aw_parent_id' }, { name: 'aw_topology_group' }, { name: 'aw_land_binding' },
