@@ -5,13 +5,13 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.28.0-r1';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.28.0-r3';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -22,9 +22,11 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/map-input-controller.js')),
   import(versionedModuleUrl('./modules/gpu-map-renderer.js')),
   import(versionedModuleUrl('./modules/territorial-geometry.js')),
+  import(versionedModuleUrl('./modules/select-controller.js')),
   import(versionedModuleUrl('./modules/country-geometry.js')),
 ]);
 const { applyProjectFields, pickProjectFields } = projectStateModule;
+const { createSelectController } = selectControllerModule;
 const { runCountryEditTransaction } = countryEditTransactionModule;
 const {
   TERRITORIAL_COVERAGE_MODES,
@@ -229,6 +231,8 @@ const {
   }
 
   const $ = (id) => document.getElementById(id);
+  const selectController = createSelectController({ document, window });
+  selectController.enhanceAll();
   function runtimeAssetUrl(relativePath) {
     const url = new URL(relativePath, ATLASWRIGHT_ASSET_BASE_URL);
     url.searchParams.set('v', ASSET_REVISION);
@@ -3284,11 +3288,11 @@ const {
 
   function renderDynamicDrawingFolderElements() {
     document.querySelectorAll('.layer-folder[data-drawing-folder-id]').forEach(folder => folder.remove());
-    const labelsFolder = document.querySelector('.layer-folder[data-layer-group="labels"]');
-    if (!labelsFolder?.parentElement) return [];
+    const mapElementsContainer = $('mapElementsLayerItems');
+    if (!mapElementsContainer) return [];
     return state.drawingFolders.map(folder => {
       const descriptor = createDynamicDrawingFolderElement(folder);
-      labelsFolder.parentElement.insertBefore(descriptor.folder, labelsFolder);
+      mapElementsContainer.appendChild(descriptor.folder);
       return descriptor;
     });
   }
@@ -5787,6 +5791,7 @@ const {
       const element = document.createElement('option');
       element.value = String(option.value ?? '');
       element.textContent = String(option.label ?? option.value ?? '');
+      if (option.searchText) element.dataset.searchText = String(option.searchText);
       return element;
     }));
     select.value = String(selectedValue || '');
@@ -5795,10 +5800,14 @@ const {
   function countryRegionCountryOptions() {
     return [
       { value: '', label: '소속 국가 미지정' },
-      ...(state.countriesData?.features || []).map(feature => ({
-        value: String(feature.properties?.editor_id || ''),
-        label: countryName(feature),
-      })).sort((a, b) => layerNameCollator.compare(a.label, b.label)),
+      ...(state.countriesData?.features || []).map(feature => {
+        const properties = feature.properties || {};
+        return {
+          value: String(properties.editor_id || ''),
+          label: countryName(feature),
+          searchText: [properties.editor_original_name, properties.name, properties.iso_a3, properties.editor_id].filter(Boolean).join(' '),
+        };
+      }).sort((a, b) => layerNameCollator.compare(a.label, b.label)),
     ];
   }
 
