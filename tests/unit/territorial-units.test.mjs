@@ -5,6 +5,7 @@ import {
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_STATUS,
   TERRITORIAL_UNIT_TYPES,
+  changeUnitType,
   createCountryTerritorialAdapter,
   createTerritorialFeature,
   createTerritorialRepository,
@@ -46,6 +47,23 @@ test('administrative levels follow parent depth and invalid parents recover to s
   assert.equal(units.find(item => item.id === 'a3').properties.adminLevel, 1);
   assert.equal(units.find(item => item.id === 'a3').properties.parentId, 'PL');
   assert.equal(validateTerritorialRelations(units, { countryExists: id => id === 'PL' }).ok, true);
+});
+
+test('territory and administrative type changes preserve identity and geometry', () => {
+  const territory = createTerritorialFeature({
+    id: 'ireland', unitType: 'territory', name: '아일랜드', sovereignId: 'GBR', parentId: 'GBR', color: '#169b62', geometry: square(),
+  });
+  const administrative = changeUnitType(territory, TERRITORIAL_UNIT_TYPES.ADMIN);
+  assert.equal(administrative.id, territory.id);
+  assert.equal(administrative.properties.unitType, TERRITORIAL_UNIT_TYPES.ADMIN);
+  assert.equal(administrative.properties.adminLevel, 1);
+  assert.equal(administrative.properties.style.color, '#169b62');
+  assert.deepEqual(administrative.geometry, territory.geometry);
+  const restored = changeUnitType(administrative, TERRITORIAL_UNIT_TYPES.TERRITORY);
+  assert.equal(restored.id, territory.id);
+  assert.equal(restored.properties.unitType, TERRITORIAL_UNIT_TYPES.TERRITORY);
+  assert.equal(restored.properties.adminLevel, null);
+  assert.deepEqual(restored.geometry, territory.geometry);
 });
 
 test('explicit regions keep independent parent and sovereignty relationships', () => {
