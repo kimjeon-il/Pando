@@ -1,6 +1,6 @@
 'use strict';
 
-importScripts('../vendor/earcut.min.js', './gpu-mesh-core.js?v=0.24.0');
+importScripts('../vendor/earcut.min.js', './gpu-mesh-core.js?v=0.25.0-r1');
 
 self.onmessage = event => {
   const token = event.data?.token;

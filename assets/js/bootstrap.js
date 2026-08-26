@@ -1,8 +1,8 @@
 'use strict';
 
 (() => {
-  const BUILD_ID = '0.24.0';
-  const ASSET_REVISION = '0.24.0-r6';
+  const BUILD_ID = '0.25.0';
+  const ASSET_REVISION = '0.25.0-r1';
   const CACHE_RECOVERY_PARAM = '_aw_cache';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);

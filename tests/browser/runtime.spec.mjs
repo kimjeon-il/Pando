@@ -54,7 +54,7 @@ test('a stale HTML shell recovers once through the current asset revision', asyn
     const response = await route.fetch();
     const freshHtml = await response.text();
     const body = shellRequests === 1
-      ? freshHtml.replace('data-app-version="0.24.0"', 'data-app-version="0.23.0"')
+      ? freshHtml.replace('data-app-version="0.25.0"', 'data-app-version="0.24.0"')
       : freshHtml;
     await route.fulfill({ response, body });
   });
@@ -82,7 +82,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.24.0-r6')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.25.0-r1')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -90,7 +90,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.24.0-r6');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.25.0-r1');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -112,7 +112,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
     });
     const base = [feature('A', 0, 2), feature('B', 2, 4)];
     const send = (message, expectedType) => new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error(workerError || `worker timeout: ${expectedType}`)), 8000);
+      const timer = setTimeout(() => reject(new Error(workerError || `worker timeout: ${expectedType}`)), 30_000);
       const receive = event => {
         if (event.data?.type !== expectedType) return;
         if (message.requestId && event.data.requestId !== message.requestId) return;

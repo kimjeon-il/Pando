@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.24.0-r6" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.25.0-r1" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -41,7 +41,7 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.24.0" data-layout="wide">
+  <div id="app" data-app-version="0.25.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
@@ -108,6 +108,15 @@
                 <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="administrative">행정구역</button>
               </div>
               <div id="administrativeLayerChildren" class="layer-children" role="group" aria-label="행정구역 항목" hidden></div>
+            </div>
+            <div class="layer-folder" data-layer-group="historicalRegions">
+              <div class="ui-row layer-folder-row">
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="historicalRegions" aria-expanded="false" aria-label="역사·지리 지역 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <input id="historicalRegionsVisible" type="checkbox" checked aria-label="역사·지리 지역 레이어 표시" />
+                <svg class="ui-icon layer-folder-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg>
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="historicalRegions">역사·지리 지역</button>
+              </div>
+              <div id="historicalRegionsLayerChildren" class="layer-children" role="group" aria-label="역사·지리 지역 항목" hidden></div>
             </div>
             <div class="layer-folder" data-layer-group="terrain">
               <div class="ui-row layer-folder-row">
@@ -344,6 +353,7 @@
               <div class="ui-field field-group editor-field"><label for="regionNameInput">지역명</label><input id="regionNameInput" type="text" placeholder="예: 마조프셰" /></div>
               <p id="regionNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 지역이 있습니다. 구분할 수 있도록 이름을 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="regionCountryInput">소속 국가</label><select id="regionCountryInput"><option value="">소속 국가 미지정</option></select></div>
+              <label class="ui-choice-row editor-lock-row" for="regionLockedInput"><input id="regionLockedInput" type="checkbox" /><span>지역 잠금</span></label>
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="region">
                 <label id="regionColorLabel">지역 색상</label>
                 <button id="regionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="regionColorPopover" aria-labelledby="regionColorLabel regionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="regionColorValue" class="ui-color-value">국가색 상속</span></button>
@@ -375,6 +385,7 @@
               <p id="administrativeNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 행정구역이 있습니다. 단계와 상위 영역을 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="administrativeCountryInput">소속 국가</label><select id="administrativeCountryInput"><option value="">소속 국가 미지정</option></select></div>
               <div class="ui-field field-group editor-field"><label for="administrativeParentInput">상위 지역·행정구역</label><select id="administrativeParentInput"><option value="">국가 직속</option></select></div>
+              <label class="ui-choice-row editor-lock-row" for="administrativeLockedInput"><input id="administrativeLockedInput" type="checkbox" /><span>행정구역 잠금</span></label>
               <div class="ui-info-list editor-info-list"><div><span>행정 단계</span><output id="administrativeLevelValue">1급</output></div></div>
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="administrative">
                 <label id="administrativeColorLabel">행정구역 색상</label>
@@ -397,6 +408,30 @@
             <section class="ui-card editor-danger-zone">
               <h3 class="editor-section-title">구분 관리</h3>
               <button id="removeAdministrativeDivisionBtn" type="button" class="ui-button danger-btn editor-delete-btn">행정구역 구분 해제</button>
+            </section>
+          </form>
+
+          <form id="historicalRegionProperties" class="editor-view hidden" onsubmit="return false;">
+            <section class="ui-card editor-section editor-section-primary">
+              <h3 class="editor-section-title">역사·지리 지역 정보</h3>
+              <div class="ui-field field-group editor-field"><label for="historicalRegionNameInput">지역명</label><input id="historicalRegionNameInput" type="text" placeholder="예: 실레시아" /></div>
+              <p id="historicalRegionNameConflict" class="editor-help hidden">이름이 같은 역사·지리 지역이 있습니다. 시대와 상위 영역을 확인하세요.</p>
+              <div class="ui-field field-group editor-field"><label for="historicalRegionCountryInput">주권 국가</label><select id="historicalRegionCountryInput"><option value="">주권 국가 없음</option></select></div>
+              <div class="ui-field field-group editor-field"><label for="historicalRegionParentInput">상위 영역</label><select id="historicalRegionParentInput"><option value="">상위 영역 없음</option></select></div>
+              <label class="ui-choice-row editor-lock-row" for="historicalRegionLockedInput"><input id="historicalRegionLockedInput" type="checkbox" /><span>지역 잠금</span></label>
+              <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="historicalRegion">
+                <label id="historicalRegionColorLabel">지역 색상</label>
+                <button id="historicalRegionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="historicalRegionColorPopover" aria-labelledby="historicalRegionColorLabel historicalRegionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="historicalRegionColorValue" class="ui-color-value">기본 색상</span></button>
+                <input id="historicalRegionColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
+                <div id="historicalRegionColorPopover" class="ui-color-popover hidden" role="dialog" aria-label="역사·지리 지역 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
+              </div>
+              <div class="ui-field field-group editor-field"><label for="historicalRegionValidFromInput">유효 시작일</label><input id="historicalRegionValidFromInput" type="text" inputmode="numeric" placeholder="예: 1910-01-01" /></div>
+              <div class="ui-field field-group editor-field"><label for="historicalRegionValidToInput">유효 종료일</label><input id="historicalRegionValidToInput" type="text" inputmode="numeric" placeholder="현재까지면 비워 둠" /></div>
+              <div class="ui-field field-group editor-field"><label for="historicalRegionNotesInput">메모</label><textarea id="historicalRegionNotesInput" rows="4"></textarea></div>
+            </section>
+            <section class="ui-card editor-danger-zone">
+              <h3 class="editor-section-title">위험 작업</h3>
+              <button id="deleteHistoricalRegionBtn" type="button" class="ui-button danger-btn editor-delete-btn">역사·지리 지역 삭제</button>
             </section>
           </form>
 
@@ -631,7 +666,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.24.0-r6" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.24.0-r6" defer></script>
+  <script src="assets/js/gis-io.js?v=0.25.0-r1" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.25.0-r1" defer></script>
 </body>
 </html>
