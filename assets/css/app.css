@@ -385,7 +385,23 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
 .vertex-handle:hover { r: 6px; }
 .draft-shape { fill: rgba(205,169,93,.14); stroke: #e2c982; stroke-width: 2px; stroke-dasharray: 5 4; pointer-events: none; }
-.draft-vertex { fill: #ffe099; stroke: #6f5520; stroke-width: 1.2px; pointer-events: none; }
+.draft-interactive { pointer-events: all; }
+.draft-vertex { cursor: move; }
+.draft-vertex-hit { fill: transparent; stroke: none; }
+.draft-vertex-dot { fill: #ffe099; stroke: #6f5520; stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
+.draft-vertex.selected .draft-vertex-dot { fill: #fff; stroke: var(--accent); stroke-width: 2.5px; }
+.draft-segment-hit { fill: none; stroke: transparent; stroke-width: 18px; vector-effect: non-scaling-stroke; cursor: copy; }
+.draft-insert-handle { cursor: copy; }
+.draft-insert-hit { fill: transparent; stroke: none; }
+.draft-insert-dot { fill: var(--surface-elevated); stroke: var(--accent); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.draft-insert-plus { fill: none; stroke: var(--accent); stroke-width: 1.8px; stroke-linecap: round; vector-effect: non-scaling-stroke; pointer-events: none; }
+.draft-split-preview { pointer-events: none; vector-effect: non-scaling-stroke; stroke-width: 1.4px; }
+.draft-split-preview.side-a { fill: rgba(66,163,107,.18); stroke: rgba(66,163,107,.72); }
+.draft-split-preview.side-b { fill: rgba(139,100,196,.16); stroke: rgba(139,100,196,.68); }
+.draft-issue-marker { pointer-events: none; }
+.draft-issue-marker circle { fill: var(--surface-elevated); stroke: #d45656; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.draft-issue-marker path { fill: none; stroke: #d45656; stroke-width: 2px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.space-pan-active .draft-interactive { pointer-events: none !important; }
 .globe-shadow { fill: none; stroke: var(--globe-shadow); stroke-opacity: var(--globe-shadow-opacity); stroke-width: 1px; filter: none; pointer-events: none; }
 /* ===== 시험판 0.7 mobile/touch fixes ===== */
 .mobile-bottom-bar, .mobile-sheet-header, .create-sheet-header { display: none; }
@@ -592,7 +608,7 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .vertex-handle,
   .vertex-handle.country-vertex { fill: #dbe8f8; stroke: var(--accent-border); }
   .draft-shape { fill: rgba(49,94,157,.14); stroke: var(--accent); }
-  .draft-vertex { fill: #dbe8f8; stroke: var(--accent-border); }
+  .draft-vertex-dot { fill: #dbe8f8; stroke: var(--accent-border); }
   .country-shape.new-country-source { stroke: var(--accent) !important; }
   .confirm-modal-actions .danger-confirm { background: #b84444 !important; border-color: #923535 !important; color: #ffffff !important; }
   .gis-modal-kicker,
@@ -604,6 +620,20 @@ body.is-loading #app { pointer-events: none; user-select: none; }
 
 .geojson-target-card { width: min(460px, calc(100vw - 32px)); }
 .geojson-target-fields { display: grid; gap: var(--ui-space-3); margin: var(--ui-space-4) 0; }
+.territorial-type-card { width: min(500px, calc(100vw - 32px)); }
+.territorial-type-fields { display: grid; gap: var(--ui-space-3); margin: var(--ui-space-4) 0 0; }
+.territorial-type-impact {
+  min-height: 3.2em;
+  margin: 0;
+  padding: var(--ui-space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+  white-space: pre-line;
+}
 
 /* ===== AtlasWright v0.11.1: canonical responsive UI ===== */
 .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
@@ -2418,6 +2448,30 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   width: min(560px, calc(100% - var(--map-safe-left) - var(--map-safe-right) - 24px));
   grid-template-columns: minmax(200px, 1fr) auto;
 }
+.mode-action-bar.has-draft-actions {
+  width: min(720px, calc(100% - var(--map-safe-left) - var(--map-safe-right) - 24px));
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "context context"
+    "method primary"
+    "draft primary";
+}
+.mode-action-bar.has-draft-actions:not(.has-method-switch) {
+  width: min(660px, calc(100% - var(--map-safe-left) - var(--map-safe-right) - 24px));
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "context context"
+    "draft primary";
+}
+.mode-action-bar.has-draft-actions .mode-task-context { grid-area: context; }
+.mode-action-bar.has-draft-actions .mode-method-switch { grid-area: method; justify-self: start; }
+.mode-action-bar.has-draft-actions .mode-draft-actions { grid-area: draft; justify-self: start; }
+.mode-action-bar.has-draft-actions .mode-action-buttons { grid-area: primary; align-self: center; }
+#app[data-layout="wide"] .workspace.editor-drawer-open .mode-action-bar.has-draft-actions {
+  left: calc(var(--map-safe-left) + (100% - var(--map-safe-left) - var(--panel-right-width) - 24px) / 2);
+  width: min(660px, calc(100% - var(--map-safe-left) - var(--panel-right-width) - 48px));
+  max-width: calc(100% - var(--map-safe-left) - var(--panel-right-width) - 48px);
+}
 .mode-task-context {
   min-width: 0;
   display: grid;
@@ -2457,6 +2511,27 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 }
 .mode-action-bar .mode-method-switch { width: 224px; }
 .mode-action-bar .mode-action-buttons { justify-self: end; }
+.mode-draft-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-toolbar-gap);
+}
+.mode-draft-actions.hidden { display: none !important; }
+.mode-draft-action-btn {
+  min-height: var(--ui-control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 9px;
+  border-color: var(--border);
+  background: var(--panel-2);
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+.mode-draft-action-btn .ui-icon { width: 16px; height: 16px; }
+.mode-draft-action-btn.danger:not(:disabled) { color: var(--danger-text); }
 
 #app[data-layout="compact"] .mode-action-bar,
 #app[data-layout="compact"] .mode-action-bar.has-method-switch,
@@ -2490,6 +2565,31 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   grid-column: 1 / -1;
   justify-self: end;
 }
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions,
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions,
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions:not(.has-method-switch),
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions:not(.has-method-switch) {
+  width: min(620px, calc(100% - var(--map-safe-left) - var(--map-safe-right) - 16px));
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: none;
+}
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions > *,
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions > * { grid-area: auto; }
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions .mode-task-context,
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions .mode-task-context,
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions .mode-method-switch,
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions .mode-method-switch,
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions .mode-draft-actions,
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions .mode-draft-actions,
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions .mode-action-buttons,
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions .mode-action-buttons {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+}
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions .mode-draft-actions,
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions .mode-draft-actions { flex-wrap: wrap; }
+#app[data-layout="compact"] .mode-action-bar.has-draft-actions .mode-action-buttons,
+#app[data-layout="mobile"] .mode-action-bar.has-draft-actions .mode-action-buttons { justify-content: flex-end; }
 
 #app[data-layout="mobile"] .mode-action-bar,
 #app[data-layout="mobile"] .mode-action-bar.has-method-switch,
@@ -2501,6 +2601,40 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 #app[data-layout="mobile"] .mode-task-context { padding-inline: 2px; }
 #app[data-layout="mobile"] .mode-task-heading strong { font-size: var(--ui-font-body); }
 #app[data-layout="mobile"] .mode-task-stage { font-size: var(--ui-font-caption); }
+#app[data-layout="mobile"] .mode-draft-action-btn { min-width: var(--ui-touch-height); min-height: var(--ui-touch-height); padding: 0 8px; }
+#app[data-layout="mobile"] .mode-draft-action-btn:not(#modeDraftRemoveLastBtn):not(#modeDraftDeleteBtn) span { display: none; }
+
+/* Boundary-cut feedback: shared by area, territorial, annexation, and new-country splits. */
+.draft-shape.cut-pending {
+  fill: rgba(216, 155, 50, .10) !important;
+  stroke: #d89b32 !important;
+}
+.draft-shape.cut-valid {
+  fill: rgba(66, 163, 107, .13) !important;
+  stroke: #42a36b !important;
+  stroke-dasharray: none;
+}
+.draft-shape.cut-invalid {
+  fill: rgba(212, 86, 86, .10) !important;
+  stroke: #d45656 !important;
+}
+.draft-shape.draft-invalid {
+  fill: rgba(212, 86, 86, .10) !important;
+  stroke: #d45656 !important;
+}
+.draft-snap-point {
+  fill: var(--surface-elevated);
+  stroke: #42a36b;
+  stroke-width: 2.5px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.mode-task-instruction.cut-pending { color: #b97712; }
+.mode-task-instruction.cut-valid { color: #278653; font-weight: var(--ui-weight-semibold); }
+.mode-task-instruction.cut-invalid { color: #c44343; font-weight: var(--ui-weight-semibold); }
+[data-theme="dark"] .mode-task-instruction.cut-pending { color: #f0bd62; }
+[data-theme="dark"] .mode-task-instruction.cut-valid { color: #77d39a; }
+[data-theme="dark"] .mode-task-instruction.cut-invalid { color: #ff8d8d; }
 
 /* ===== AtlasWright v0.19.0: shared editor shell and components ===== */
 .editor-shell {
