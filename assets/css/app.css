@@ -346,6 +346,13 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .country-region-shape.country-region-merge-source { stroke: var(--accent-2); stroke-width: 3px; }
 .country-region-shape.country-region-merge-target { fill-opacity: .28; stroke: var(--accent); stroke-width: 3px; }
 .drawing-shape { stroke-width: 1.8px; stroke-linejoin: round; stroke-linecap: round; cursor: pointer; vector-effect: non-scaling-stroke; }
+.distribution-shape { stroke-width: 1.4px; stroke-linejoin: round; cursor: pointer; vector-effect: non-scaling-stroke; }
+.distribution-shape.selected { stroke: var(--accent-2) !important; stroke-width: 3px; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent-2) 28%, transparent)); }
+.distribution-entry-list { display: grid; gap: var(--ui-space-2); margin-bottom: var(--ui-space-4); }
+.distribution-entry-row { grid-template-columns: minmax(0, 1fr) var(--ui-control-height); gap: var(--ui-space-2); align-items: center; padding: var(--ui-space-2); border-radius: var(--ui-radius-control); background: var(--surface-muted); }
+.distribution-entry-row > span { min-width: 0; display: grid; gap: 2px; }
+.distribution-entry-row small { color: var(--muted); }
+.distribution-entry-add { display: grid; gap: var(--ui-space-3); }
 .drawing-shape.selected { stroke: #ffe099 !important; stroke-width: 3px; filter: drop-shadow(0 0 3px rgba(255,224,153,.24)); }
 .drawing-shape.drawing-merge-source { stroke-width: 3px; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 30%, transparent)); }
 .drawing-shape.drawing-merge-target { fill-opacity: .48 !important; stroke: var(--accent) !important; stroke-width: 3px; }

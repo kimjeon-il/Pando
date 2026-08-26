@@ -1,20 +1,21 @@
-/* AtlasWright v0.25.0
+/* AtlasWright v0.26.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.25.0';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.26.0-r1';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
+  import(versionedModuleUrl('./modules/distribution-model.js')),
   import(versionedModuleUrl('./modules/surface-controller.js')),
   import(versionedModuleUrl('./modules/tool-controller.js')),
   import(versionedModuleUrl('./modules/map-input-controller.js')),
@@ -41,6 +42,20 @@ const {
   territorialSiblings,
   validateTerritorialRelations,
 } = territorialUnitsModule;
+const {
+  DISTRIBUTION_SCHEMA_VERSION,
+  DISTRIBUTION_MODES,
+  DISTRIBUTION_RENDER_MODES,
+  DISTRIBUTION_TYPES,
+  createDistributionEntry,
+  createDistributionLayer,
+  distributionEntriesForLayer,
+  dominantDistributionEntries,
+  migrateThematicDrawings,
+  normalizeDistributionEntries,
+  normalizeDistributionLayers,
+  validateDistributionModel,
+} = distributionModelModule;
 const COUNTRY_REGION_KINDS = Object.freeze({
   REGION: TERRITORIAL_UNIT_TYPES.TERRITORY,
   ADMINISTRATIVE: TERRITORIAL_UNIT_TYPES.ADMIN,
@@ -86,7 +101,7 @@ const {
   const d3 = window.d3;
   const territorialGeometry = createTerritorialGeometryKernel(window.polygonClipping);
 
-  const APP_VERSION = '0.25.0';
+  const APP_VERSION = '0.26.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -210,7 +225,7 @@ const {
   }
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection',
-    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
     'drawingNameInput', 'drawingFolderInput', 'drawingColorInput', 'drawingCategoryInput', 'drawingNotesInput',
@@ -218,7 +233,7 @@ const {
     'drawingLandActionsSection', 'splitDrawingBtn', 'mergeDrawingBtn', 'syncDrawingCoastBtn', 'editDrawingCoastBtn', 'applyDrawingToCountryBtn', 'promoteDrawingToCountryBtn', 'drawingRoleValue', 'drawingTopologyValue',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'deleteLabelBtn',
     'editorScrollBody', 'editorObjectHeader', 'emptyProperties', 'propertyTitle',
-    'countryProperties', 'regionProperties', 'administrativeProperties', 'historicalRegionProperties', 'regionNameConflict', 'administrativeNameConflict', 'historicalRegionNameConflict', 'regionLockedInput', 'administrativeLockedInput', 'historicalRegionLockedInput', 'historicalRegionNameInput', 'historicalRegionCountryInput', 'historicalRegionParentInput', 'historicalRegionColorInput', 'historicalRegionValidFromInput', 'historicalRegionValidToInput', 'historicalRegionNotesInput', 'deleteHistoricalRegionBtn', 'drawingProperties', 'labelProperties', 'hydroProperties',
+    'countryProperties', 'regionProperties', 'administrativeProperties', 'historicalRegionProperties', 'distributionProperties', 'regionNameConflict', 'administrativeNameConflict', 'historicalRegionNameConflict', 'regionLockedInput', 'administrativeLockedInput', 'historicalRegionLockedInput', 'historicalRegionNameInput', 'historicalRegionCountryInput', 'historicalRegionParentInput', 'historicalRegionColorInput', 'historicalRegionValidFromInput', 'historicalRegionValidToInput', 'historicalRegionNotesInput', 'deleteHistoricalRegionBtn', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionRegionInput', 'distributionShareInput', 'addRegionDistributionBtn', 'addGeometryDistributionBtn', 'deleteDistributionBtn', 'drawingProperties', 'labelProperties', 'hydroProperties',
     'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
     'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
@@ -676,6 +691,9 @@ const {
     drawings: [],
     territorialUnits: [],
     territorialRelations: [],
+    distributionLayers: [],
+    distributionEntries: [],
+    distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, selectedLayerId: '' },
     drawingFolders: [],
     selected: null,
     projection: 'globe',
@@ -684,6 +702,9 @@ const {
       regions: true,
       administrative: true,
       historicalRegions: true,
+      languages: true,
+      ethnicities: true,
+      religions: true,
       drawings: true,
       labels: true,
       basemapLabels: true,
@@ -711,6 +732,9 @@ const {
       regions: {},
       administrative: {},
       historicalRegions: {},
+      languages: {},
+      ethnicities: {},
+      religions: {},
       drawings: {},
       labels: {},
       countryLabels: {},
@@ -720,6 +744,9 @@ const {
       regions: {},
       administrative: {},
       historicalRegions: {},
+      languages: {},
+      ethnicities: {},
+      religions: {},
       drawings: {},
       labels: {},
       countryLabels: {},
@@ -729,6 +756,9 @@ const {
       regions: false,
       administrative: false,
       historicalRegions: false,
+      languages: false,
+      ethnicities: false,
+      religions: false,
       terrain: false,
       drawings: false,
       labels: false,
@@ -746,6 +776,7 @@ const {
     drawingMergeSourceId: null,
     drawingMergeTargetIds: [],
     drawingSplitSourceId: null,
+    distributionDraft: null,
     countryRegionMergeSourceId: null,
     countryRegionMergeTargetIds: [],
     countryRegionSplitSourceId: null,
@@ -798,6 +829,7 @@ const {
   let countryLayer;
   let boundaryEditLayer;
   let countryRegionLayer;
+  let distributionLayer;
   let drawingLayer;
   let hydroLakeLayer;
   let hydroRiverLayer;
@@ -2659,13 +2691,23 @@ const {
   const DEFAULT_DRAWING_FOLDER_ID = 'drawings-default';
   const DRAWING_FOLDER_STATE_PREFIX = 'drawing-folder:';
   const COUNTRY_REGION_FOLDER_STATE_PREFIX = 'country-region-folder:';
-  const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'drawings', 'labels', 'countryLabels'];
-  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
+  const DISTRIBUTION_GROUP_TYPES = Object.freeze({
+    languages: DISTRIBUTION_TYPES.LANGUAGE,
+    ethnicities: DISTRIBUTION_TYPES.ETHNICITY,
+    religions: DISTRIBUTION_TYPES.RELIGION,
+  });
+  const DISTRIBUTION_TYPE_GROUPS = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_GROUP_TYPES).map(([group, type]) => [type, group])));
+  const DISTRIBUTION_TYPE_LABELS = Object.freeze({ language: '언어', ethnicity: '민족', religion: '종교' });
+  const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'languages', 'ethnicities', 'religions', 'drawings', 'labels', 'countryLabels'];
+  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', languages: '언어', ethnicities: '민족', religions: '종교', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
     regions: 'regionsLayerChildren',
     administrative: 'administrativeLayerChildren',
     historicalRegions: 'historicalRegionsLayerChildren',
+    languages: 'languagesLayerChildren',
+    ethnicities: 'ethnicitiesLayerChildren',
+    religions: 'religionsLayerChildren',
     drawings: 'drawingsLayerChildren',
     labels: 'labelsLayerChildren',
     countryLabels: 'countryLabelsLayerChildren',
@@ -2728,6 +2770,9 @@ const {
       'regions',
       'administrative',
       'historicalRegions',
+      'languages',
+      'ethnicities',
+      'religions',
       ...countryRegionKeys,
       'terrain',
       'drawings',
@@ -2979,6 +3024,17 @@ const {
         };
       }).filter(item => !isLayerItemRemoved(group, item.id));
     }
+    if (DISTRIBUTION_GROUP_TYPES[group]) {
+      const type = DISTRIBUTION_GROUP_TYPES[group];
+      return state.distributionLayers.filter(layer => layer.type === type).map(layer => ({
+        id: layer.id,
+        name: layer.name,
+        color: layer.color,
+        meta: `${distributionEntriesForLayer(state.distributionEntries, layer.id).length}개 분포`,
+        folderName: layerGroupNames[group],
+        selected: state.selected?.type === 'distribution' && state.selected.id === layer.id,
+      })).filter(item => !isLayerItemRemoved(group, item.id));
+    }
     if (group === 'drawings') {
       const builtIns = Object.entries(HYDRO_LAYER_META).map(([id, meta]) => ({
           id: `hydro-layer:${id}`,
@@ -3021,6 +3077,9 @@ const {
       regions: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === COUNTRY_REGION_KINDS.REGION).map(feature => String(feature.id))),
       administrative: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE).map(feature => String(feature.id))),
       historicalRegions: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION).map(feature => String(feature.id))),
+      languages: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.LANGUAGE).map(layer => layer.id)),
+      ethnicities: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.ETHNICITY).map(layer => layer.id)),
+      religions: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.RELIGION).map(layer => layer.id)),
       drawings: new Set([...Object.keys(HYDRO_LAYER_META).map(id => `hydro-layer:${id}`), ...state.drawings.map(feature => String(feature.id))]),
       labels: new Set(state.labels.map(label => String(label.id))),
     };
@@ -3044,6 +3103,7 @@ const {
     const key = String(id);
     if (group === 'countries' || group === 'countryLabels') return state.selected?.type === 'country' && state.selected.id === key;
     if (group === 'regions' || group === 'administrative' || group === 'historicalRegions') return state.selected?.type === 'countryRegion' && state.selected.id === key;
+    if (DISTRIBUTION_GROUP_TYPES[group]) return state.selected?.type === 'distribution' && state.selected.id === key;
     if (group === 'drawings') return state.selected?.type === 'drawing' && state.selected.id === key;
     if (group === 'labels') return state.selected?.type === 'label' && state.selected.id === key;
     return false;
@@ -3723,6 +3783,58 @@ const {
     selection.exit().remove();
   }
 
+  function distributionRenderRows() {
+    const visibleLayers = state.distributionLayers.filter(layer => {
+      const group = DISTRIBUTION_TYPE_GROUPS[layer.type];
+      return state.layerVisibility[group] !== false && isLayerItemVisible(group, layer.id);
+    });
+    const visibleIds = new Set(visibleLayers.map(layer => layer.id));
+    let entries;
+    if (state.distributionSettings.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY) {
+      const selectedId = String(state.distributionSettings.selectedLayerId || state.selected?.type === 'distribution' && state.selected.id || '');
+      entries = visibleIds.has(selectedId) ? distributionEntriesForLayer(state.distributionEntries, selectedId) : [];
+    } else {
+      entries = Object.values(DISTRIBUTION_TYPES).flatMap(type => {
+        const typeLayers = visibleLayers.filter(layer => layer.type === type);
+        const typeIds = new Set(typeLayers.map(layer => layer.id));
+        return dominantDistributionEntries(typeLayers, state.distributionEntries.filter(entry => typeIds.has(entry.layerId)));
+      });
+    }
+    const byLayer = new Map(visibleLayers.map(layer => [layer.id, layer]));
+    return entries.map(entry => {
+      const layer = byLayer.get(entry.layerId);
+      const geometry = entry.mode === DISTRIBUTION_MODES.REGION
+        ? territorialRepository.get(entry.regionId)?.geometry
+        : entry.geometry;
+      if (!layer || !geometry) return null;
+      return {
+        id: entry.id,
+        layer,
+        entry,
+        geometry,
+        type: 'Feature',
+      };
+    }).filter(Boolean);
+  }
+
+  function renderDistributions() {
+    if (!distributionLayer) return;
+    const data = distributionRenderRows();
+    const selection = distributionLayer.selectAll('path.distribution-shape').data(data, row => row.id);
+    selection.enter().append('path').attr('class', 'distribution-shape').on('click', function(row) {
+      if (mapClickBlocked() || state.tool !== 'select' || state.labelPlacementMode) return;
+      d3.event.stopPropagation();
+      selectDistributionLayer(row.layer.id);
+    });
+    selection
+      .attr('d', row => path({ type: 'Feature', properties: {}, geometry: row.geometry }))
+      .style('fill', row => row.layer.color)
+      .style('stroke', row => row.layer.color)
+      .style('fill-opacity', row => 0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58)
+      .classed('selected', row => state.selected?.type === 'distribution' && state.selected.id === row.layer.id);
+    selection.exit().remove();
+  }
+
   function renderCountryRegions() {
     const data = state.territorialUnits.filter(feature => {
       const group = feature.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE
@@ -4070,6 +4182,7 @@ const {
     else renderHydro();
     renderBoundaryEditOverlay();
     renderCountryRegions();
+    renderDistributions();
     renderDrawings();
     if (viewOnly) {
       renderCountryLabelPositions();
@@ -4119,6 +4232,7 @@ const {
     hydroSelectionLayer = root.append('g').attr('class', 'hydro-selection-layer');
     boundaryEditLayer = root.append('g').attr('class', 'boundary-edit-layer');
     countryRegionLayer = root.append('g').attr('class', 'country-regions-layer');
+    distributionLayer = root.append('g').attr('class', 'distributions-layer');
     drawingLayer = root.append('g').attr('class', 'drawings-layer');
     countryLabelLayer = root.append('g').attr('class', 'country-label-layer');
     labelLayer = root.append('g').attr('class', 'labels-layer');
@@ -5014,6 +5128,31 @@ const {
     const geometry = polygonMode
       ? { type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] }
       : { type: 'LineString', coordinates: state.draftCoords.map(coord => coord.slice()) };
+    if (polygonMode && state.distributionDraft) {
+      const draft = state.distributionDraft;
+      const layer = distributionLayerById(draft.layerId);
+      if (!layer) {
+        state.distributionDraft = null;
+        setTool('select', false);
+        setActionStatus('분포 항목을 찾을 수 없어 자유 영역을 추가하지 않았습니다.', 'error', 3600);
+        return;
+      }
+      state.distributionEntries.push(createDistributionEntry({
+        id: uid('distribution_entry'),
+        layerId: layer.id,
+        mode: DISTRIBUTION_MODES.GEOMETRY,
+        geometry,
+        share: draft.share,
+      }));
+      state.distributionDraft = null;
+      state.draftCoords = [];
+      state.draftHover = null;
+      setTool('select', false);
+      selectDistributionLayer(layer.id);
+      queueAutosave();
+      setActionStatus(`${layer.name} 자유 분포 영역을 추가했습니다.`, 'success');
+      return;
+    }
     const feature = {
       type: 'Feature', id, geometry,
       properties: {
@@ -5403,13 +5542,16 @@ const {
     const regionSplitSourceId = state.tool === 'split-country-region' ? state.countryRegionSplitSourceId : null;
     const regionRedrawSourceId = state.tool === 'redraw-country-region' ? state.countryRegionRedrawSourceId : null;
     const directCountryRegion = state.tool === 'draw-country-region';
+    const distributionDraft = state.distributionDraft;
+    state.distributionDraft = null;
     clearDraftInput(true);
     setTool('select', false);
     if (splitSourceId && state.drawings.some(item => String(item.id) === String(splitSourceId))) selectDrawing(String(splitSourceId), true);
     else if (regionSplitSourceId && countryRegionById(regionSplitSourceId)) selectCountryRegion(regionSplitSourceId, true);
     else if (regionRedrawSourceId && countryRegionById(regionRedrawSourceId)) selectCountryRegion(regionRedrawSourceId, true);
     renderAll();
-    if (showMessage) setActionStatus(splitSourceId || regionSplitSourceId || regionRedrawSourceId || directCountryRegion ? '영역 작업을 취소했습니다.' : `${terrain?.label || '지형지물'} 추가를 취소했습니다.`, 'success');
+    if (distributionDraft?.layerId && distributionLayerById(distributionDraft.layerId)) selectDistributionLayer(distributionDraft.layerId, true);
+    if (showMessage) setActionStatus(distributionDraft ? '자유 분포 그리기를 취소했습니다.' : splitSourceId || regionSplitSourceId || regionRedrawSourceId || directCountryRegion ? '영역 작업을 취소했습니다.' : `${terrain?.label || '지형지물'} 추가를 취소했습니다.`, 'success');
   }
 
   function addLabelAt(coord) {
@@ -5576,6 +5718,7 @@ const {
     $('regionProperties').classList.toggle('hidden', type !== 'region');
     $('administrativeProperties').classList.toggle('hidden', type !== 'administrative');
     $('historicalRegionProperties').classList.toggle('hidden', type !== 'historicalRegion');
+    $('distributionProperties').classList.toggle('hidden', type !== 'distribution');
     $('drawingProperties').classList.toggle('hidden', type !== 'drawing');
     $('labelProperties').classList.toggle('hidden', type !== 'label');
     $('hydroProperties').classList.toggle('hidden', type !== 'hydro');
@@ -5741,6 +5884,230 @@ const {
     if (!refreshOnly) openSelectionEditor();
   }
 
+  function distributionLayerById(id) {
+    return state.distributionLayers.find(layer => layer.id === String(id)) || null;
+  }
+
+  function distributionRegionOptions() {
+    return territorialRepository.list().map(unit => ({
+      value: unit.id,
+      label: `${unit.properties?.name || unit.id} · ${unit.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? '국가' : unit.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN ? '행정구역' : unit.properties?.unitType === TERRITORIAL_UNIT_TYPES.TERRITORY ? '지역' : '역사·지리 지역'}`,
+    })).sort((left, right) => layerNameCollator.compare(left.label, right.label));
+  }
+
+  function distributionParentOptions(layer) {
+    const descendants = new Set();
+    const queue = [layer.id];
+    while (queue.length) {
+      const parentId = queue.shift();
+      for (const candidate of state.distributionLayers) {
+        if (candidate.parentId !== parentId || descendants.has(candidate.id)) continue;
+        descendants.add(candidate.id);
+        queue.push(candidate.id);
+      }
+    }
+    return [
+      { value: '', label: '상위 분류 없음' },
+      ...state.distributionLayers.filter(candidate => candidate.type === layer.type && candidate.id !== layer.id && !descendants.has(candidate.id)).map(candidate => ({
+        value: candidate.id,
+        label: candidate.name,
+      })).sort((left, right) => layerNameCollator.compare(left.label, right.label)),
+    ];
+  }
+
+  function distributionEntryLabel(entry) {
+    if (entry.mode === DISTRIBUTION_MODES.REGION) return territorialRepository.get(entry.regionId)?.properties?.name || entry.regionId;
+    return '자유 영역';
+  }
+
+  function renderDistributionEntryList(layer) {
+    const container = $('distributionEntryList');
+    const entries = distributionEntriesForLayer(state.distributionEntries, layer.id);
+    if (!entries.length) {
+      const empty = document.createElement('p');
+      empty.className = 'editor-help';
+      empty.textContent = '아직 분포가 없습니다. 기준 영역을 선택하거나 자유 영역을 그리세요.';
+      container.replaceChildren(empty);
+      return;
+    }
+    const fragment = document.createDocumentFragment();
+    for (const entry of entries) {
+      const row = document.createElement('div');
+      row.className = 'ui-row distribution-entry-row';
+      const label = document.createElement('span');
+      label.innerHTML = '<strong></strong><small></small>';
+      label.querySelector('strong').textContent = distributionEntryLabel(entry);
+      label.querySelector('small').textContent = `${entry.mode === DISTRIBUTION_MODES.REGION ? '영역 참조' : '자유 형상'} · ${Math.round(entry.share)}%`;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'ui-button icon-btn distribution-entry-delete';
+      remove.dataset.distributionEntryDelete = entry.id;
+      remove.setAttribute('aria-label', `${distributionEntryLabel(entry)} 분포 삭제`);
+      remove.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg>';
+      remove.disabled = layer.locked;
+      row.append(label, remove);
+      fragment.appendChild(row);
+    }
+    container.replaceChildren(fragment);
+  }
+
+  function selectDistributionLayer(id, refreshOnly = false) {
+    const layer = distributionLayerById(id);
+    if (!layer) return false;
+    state.selected = { domain: 'distribution', type: 'distribution', distributionType: layer.type, id: layer.id };
+    state.distributionSettings.selectedLayerId = layer.id;
+    showPropertyForm('distribution', layer.name, { resetScroll: !refreshOnly });
+    $('distributionNameInput').value = layer.name;
+    $('distributionTypeValue').textContent = DISTRIBUTION_TYPE_LABELS[layer.type] || layer.type;
+    $('distributionColorInput').value = normalizeEditorColor(layer.color, DEFAULT_DRAWING_COLOR);
+    syncColorPicker('distribution', { value: layer.color, defaultColor: DEFAULT_DRAWING_COLOR, isDefault: false });
+    replaceSelectOptions($('distributionParentInput'), distributionParentOptions(layer), layer.parentId);
+    replaceSelectOptions($('distributionRegionInput'), distributionRegionOptions(), $('distributionRegionInput').value);
+    $('distributionLockedInput').checked = layer.locked;
+    $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
+    for (const idValue of ['distributionNameInput', 'distributionColorTrigger', 'distributionParentInput', 'addRegionDistributionBtn', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
+    renderDistributionEntryList(layer);
+    $('selectionStatus').textContent = `${DISTRIBUTION_TYPE_LABELS[layer.type]} · ${layer.name}`;
+    syncStatusBar();
+    syncLayerSelectionRows();
+    renderAll();
+    if (!refreshOnly) openSelectionEditor();
+    return true;
+  }
+
+  function commitDistributionMeta(field, value) {
+    if (state.selected?.type !== 'distribution') return false;
+    const layer = distributionLayerById(state.selected.id);
+    if (!layer) return false;
+    if (layer.locked && field !== 'locked') {
+      setActionStatus('잠금을 해제한 뒤 분포 항목을 변경할 수 있습니다.', 'error', 3200);
+      selectDistributionLayer(layer.id, true);
+      return false;
+    }
+    if (field === 'parentId') {
+      const parent = distributionLayerById(value);
+      const visited = new Set([layer.id]);
+      let cursor = parent;
+      while (cursor && !visited.has(cursor.id)) {
+        visited.add(cursor.id);
+        cursor = distributionLayerById(cursor.parentId);
+      }
+      if (value && (!parent || parent.type !== layer.type || parent.id === layer.id || cursor)) {
+        setActionStatus('자기 자신이나 하위 분류를 상위 분류로 설정할 수 없습니다.', 'error', 3600);
+        selectDistributionLayer(layer.id, true);
+        return false;
+      }
+    }
+    recordHistory();
+    layer[field] = field === 'color' ? normalizeEditorColor(value, DEFAULT_DRAWING_COLOR) : value;
+    markLayerTreeDirty();
+    selectDistributionLayer(layer.id, true);
+    queueAutosave();
+    setActionStatus(`${DISTRIBUTION_TYPE_LABELS[layer.type]} 정보를 변경했습니다.`, 'success');
+    return true;
+  }
+
+  function createDistributionLayerFromPrompt(type) {
+    const label = DISTRIBUTION_TYPE_LABELS[type];
+    const name = prompt(`새 ${label} 항목의 이름을 입력하세요.`, `새 ${label}`);
+    if (name === null) return false;
+    recordHistory();
+    const layer = createDistributionLayer({
+      id: uid(`distribution_${type}`),
+      type,
+      name: name.trim() || `새 ${label}`,
+      color: COLOR_PRESETS[state.distributionLayers.length % COLOR_PRESETS.length] || DEFAULT_DRAWING_COLOR,
+    });
+    state.distributionLayers.push(layer);
+    state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === DISTRIBUTION_TYPE_GROUPS[type]]));
+    markLayerTreeDirty();
+    renderLayerTree(true);
+    selectDistributionLayer(layer.id);
+    queueAutosave();
+    setActionStatus(`${layer.name} ${label} 항목을 추가했습니다. 분포를 이어서 입력하세요.`, 'success', 3600);
+    return true;
+  }
+
+  function addRegionDistributionEntry() {
+    const layer = state.selected?.type === 'distribution' ? distributionLayerById(state.selected.id) : null;
+    const regionId = $('distributionRegionInput').value;
+    if (!layer || layer.locked || !territorialRepository.get(regionId)) return false;
+    recordHistory();
+    state.distributionEntries.push(createDistributionEntry({
+      id: uid('distribution_entry'),
+      layerId: layer.id,
+      mode: DISTRIBUTION_MODES.REGION,
+      regionId,
+      share: Number($('distributionShareInput').value),
+    }));
+    selectDistributionLayer(layer.id, true);
+    queueAutosave();
+    setActionStatus(`${distributionEntryLabel(state.distributionEntries.at(-1))}에 ${layer.name} 분포를 추가했습니다.`, 'success');
+    return true;
+  }
+
+  function startGeometryDistributionDraft() {
+    const layer = state.selected?.type === 'distribution' ? distributionLayerById(state.selected.id) : null;
+    if (!layer || layer.locked) return false;
+    state.distributionDraft = { layerId: layer.id, share: Math.max(0, Math.min(100, Number($('distributionShareInput').value) || 0)) };
+    setTool('polygon', false);
+    setModeBanner(`${layer.name}의 자유 분포 영역을 그린 뒤 완료하세요.`);
+    return true;
+  }
+
+  function removeDistributionEntry(id) {
+    const entry = state.distributionEntries.find(candidate => candidate.id === String(id));
+    const layer = entry ? distributionLayerById(entry.layerId) : null;
+    if (!entry || !layer || layer.locked) return false;
+    recordHistory();
+    state.distributionEntries = state.distributionEntries.filter(candidate => candidate.id !== entry.id);
+    selectDistributionLayer(layer.id, true);
+    queueAutosave();
+    setActionStatus('분포 엔트리를 삭제했습니다.', 'success');
+    return true;
+  }
+
+  function deleteDistributionLayer(id) {
+    const layer = distributionLayerById(id);
+    if (!layer) return false;
+    if (layer.locked) {
+      setActionStatus('잠금을 해제한 뒤 분포 항목을 삭제할 수 있습니다.', 'error', 3200);
+      return false;
+    }
+    openConfirmModal({
+      title: `${DISTRIBUTION_TYPE_LABELS[layer.type]} 삭제`,
+      message: `${layer.name}과 연결된 분포 ${distributionEntriesForLayer(state.distributionEntries, layer.id).length}개를 함께 삭제합니다.`,
+      confirmText: '분포 항목 삭제',
+      danger: true,
+      onConfirm: () => {
+        recordHistory();
+        state.distributionLayers = state.distributionLayers.filter(candidate => candidate.id !== layer.id);
+        state.distributionEntries = state.distributionEntries.filter(entry => entry.layerId !== layer.id);
+        for (const child of state.distributionLayers) if (child.parentId === layer.id) child.parentId = '';
+        if (state.distributionSettings.selectedLayerId === layer.id) state.distributionSettings.selectedLayerId = '';
+        markLayerTreeDirty();
+        clearSelection(false);
+        queueAutosave();
+        setActionStatus(`${layer.name} ${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
+      },
+    });
+    return true;
+  }
+
+  function setDistributionLayerVisible(id, visible) {
+    const layer = distributionLayerById(id);
+    if (!layer) return false;
+    recordHistory();
+    layer.visible = visible !== false;
+    const group = DISTRIBUTION_TYPE_GROUPS[layer.type];
+    if (!state.itemVisibility[group]) state.itemVisibility[group] = {};
+    state.itemVisibility[group][layer.id] = layer.visible;
+    markLayerTreeDirty();
+    renderAll();
+    queueAutosave();
+    return true;
+  }
+
   function selectTerritorialUnit(type, id, refreshOnly = false, shouldRender = true) {
     const unitType = String(type || territorialUnitById(id)?.properties?.unitType || '');
     if (unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) {
@@ -5790,6 +6157,14 @@ const {
     setName: setTerritorialUnitName,
     setColor: setTerritorialUnitColor,
     setLocked: setTerritorialUnitLocked,
+  });
+
+  window.ATLASWRIGHT_DISTRIBUTIONS = Object.freeze({
+    getLayer: id => distributionLayerById(id),
+    listLayers: type => state.distributionLayers.filter(layer => !type || layer.type === type),
+    listEntries: layerId => distributionEntriesForLayer(state.distributionEntries, layerId),
+    select: selectDistributionLayer,
+    setVisible: setDistributionLayerVisible,
   });
 
   function syncDrawingFolderInput(feature) {
@@ -6412,6 +6787,10 @@ const {
       commitCountryRegionMeta('color', color);
       return true;
     }
+    if (kind === 'distribution') {
+      if (state.selected?.type !== 'distribution') return false;
+      return commitDistributionMeta('color', color);
+    }
     if (state.selected?.type !== 'drawing') return false;
     commitDrawingMeta('editorColor', color);
     return true;
@@ -6856,6 +7235,12 @@ const {
         drawings: value => deepClone(value || []),
         territorialUnits: value => deepClone(value || []),
         territorialRelations: value => deepClone(value || []),
+        distributionLayers: value => deepClone(value || []),
+        distributionEntries: value => deepClone(value || []),
+        distributionSettings: value => ({
+          renderMode: value?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
+          selectedLayerId: String(value?.selectedLayerId || ''),
+        }),
         drawingFolders: value => normalizeDrawingFolders(value),
         physicalSettings: (value, current) => normalizePhysicalSettings(value || current),
         projection: (value, current, project) => value || project.view?.projection || current || 'globe',
@@ -6872,6 +7257,21 @@ const {
   function normalizeProjectDrawings() {
     state.drawingFolders = normalizeDrawingFolders(state.drawingFolders);
     state.drawings = normalizeDrawingCollection(state.drawings || []);
+    const migratedDistributions = migrateThematicDrawings(state.drawings, {
+      existingLayers: state.distributionLayers,
+      existingEntries: state.distributionEntries,
+    });
+    state.drawings = migratedDistributions.remainingDrawings;
+    state.distributionLayers = normalizeDistributionLayers(migratedDistributions.layers, { makeId: type => uid(`distribution_${type}`) });
+    const distributionLayerIds = new Set(state.distributionLayers.map(layer => layer.id));
+    state.distributionEntries = normalizeDistributionEntries(migratedDistributions.entries, {
+      layerExists: id => distributionLayerIds.has(id),
+      makeId: () => uid('distribution_entry'),
+    });
+    state.distributionSettings = {
+      renderMode: state.distributionSettings?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
+      selectedLayerId: distributionLayerIds.has(String(state.distributionSettings?.selectedLayerId || '')) ? String(state.distributionSettings.selectedLayerId) : '',
+    };
     state.territorialUnits = normalizeCountryRegions(state.territorialUnits, {
       countryExists: id => !!countryFeatureById(id),
       makeId: kind => uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : kind === TERRITORIAL_UNIT_TYPES.REGION ? 'historical_region' : 'territory'),
@@ -6884,6 +7284,10 @@ const {
       relations: state.territorialRelations,
     });
     if (!relationValidation.ok) console.warn('Territorial relation normalization issues', relationValidation.issues);
+    const distributionValidation = validateDistributionModel(state.distributionLayers, state.distributionEntries, {
+      territorialExists: id => !!territorialRepository.get(id),
+    });
+    if (!distributionValidation.ok) console.warn('Distribution model normalization issues', distributionValidation.issues);
     for (const feature of state.drawings) {
       const folderId = String(feature.properties?.aw_folder_id || '');
       if (folderId && !drawingFolderById(folderId)) delete feature.properties.aw_folder_id;
@@ -7002,6 +7406,13 @@ const {
         types: ['country', 'territory', 'admin', 'region'],
         coverageModes: ['partition', 'explicit'],
       },
+      distributionModel: {
+        schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
+        types: Object.values(DISTRIBUTION_TYPES),
+        sourceModes: Object.values(DISTRIBUTION_MODES),
+        shareRange: [0, 100],
+        sharesAreIndependent: true,
+      },
     };
     project.physicalSourceInfo = {
       terrain: {
@@ -7037,6 +7448,13 @@ const {
         countryStorage: 'countriesData-adapter',
         types: ['country', 'territory', 'admin', 'region'],
         coverageModes: ['partition', 'explicit'],
+      },
+      distributionModel: {
+        schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
+        types: Object.values(DISTRIBUTION_TYPES),
+        sourceModes: Object.values(DISTRIBUTION_MODES),
+        shareRange: [0, 100],
+        sharesAreIndependent: true,
       },
     };
   }
@@ -7224,6 +7642,9 @@ const {
     $('regionsVisible').checked = state.layerVisibility.regions !== false;
     $('administrativeVisible').checked = state.layerVisibility.administrative !== false;
     $('historicalRegionsVisible').checked = state.layerVisibility.historicalRegions !== false;
+    $('languagesVisible').checked = state.layerVisibility.languages !== false;
+    $('ethnicitiesVisible').checked = state.layerVisibility.ethnicities !== false;
+    $('religionsVisible').checked = state.layerVisibility.religions !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
@@ -7287,10 +7708,14 @@ const {
     state.drawings = [];
     state.territorialUnits = [];
     state.territorialRelations = [];
+    state.distributionLayers = [];
+    state.distributionEntries = [];
+    state.distributionSettings = { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, selectedLayerId: '' };
+    state.distributionDraft = null;
     state.drawingFolders = [];
     state.physicalSettings = normalizePhysicalSettings(null);
     state.projection = 'globe';
-    state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, drawings: true, labels: true, basemapLabels: true };
+    state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, languages: true, ethnicities: true, religions: true, drawings: true, labels: true, basemapLabels: true };
     state.itemVisibility = normalizeLayerItemState(null);
     state.removedLayerItems = normalizeRemovedLayerItems(null);
     gpuMapRenderer.invalidateHydroVisibility();
@@ -7337,6 +7762,9 @@ const {
     $('regionsVisible').checked = true;
     $('administrativeVisible').checked = true;
     $('historicalRegionsVisible').checked = true;
+    $('languagesVisible').checked = true;
+    $('ethnicitiesVisible').checked = true;
+    $('religionsVisible').checked = true;
     $('drawingsVisible').checked = true;
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
@@ -7354,6 +7782,7 @@ const {
     countryLabelLayer?.selectAll('*').remove();
     boundaryEditLayer?.selectAll('*').remove();
     countryRegionLayer?.selectAll('*').remove();
+    distributionLayer?.selectAll('*').remove();
     vertexLayer?.selectAll('*').remove();
     drawingLayer?.selectAll('*').remove();
     labelLayer?.selectAll('*').remove();
@@ -8120,6 +8549,11 @@ const {
       return;
     }
 
+    if (DISTRIBUTION_GROUP_TYPES[group]) {
+      deleteDistributionLayer(key);
+      return;
+    }
+
     if (group === 'regions' || group === 'administrative' || group === 'historicalRegions') {
       deleteTerritorialUnit(group === 'administrative' ? TERRITORIAL_UNIT_TYPES.ADMIN : countryRegionById(key)?.properties?.unitType, key);
       return;
@@ -8145,6 +8579,8 @@ const {
     }
     if (state.selected.type === 'drawing') {
       removeDrawingById(state.selected.id, '선택한 객체를 삭제했습니다.');
+    } else if (state.selected.type === 'distribution') {
+      deleteDistributionLayer(state.selected.id);
     } else if (state.selected.type === 'countryRegion') {
       deleteTerritorialUnit(state.selected.unitType || countryRegionById(state.selected.id)?.properties?.unitType, state.selected.id);
     } else if (state.selected.type === 'label') {
@@ -8241,12 +8677,21 @@ const {
       selectDrawing(key);
       focusCountry(feature, { maxZoom: isMobile() ? 12 : 10 });
       return true;
-    } else if (group === 'regions' || group === 'administrative') {
+    } else if (group === 'regions' || group === 'administrative' || group === 'historicalRegions') {
       const feature = countryRegionById(key);
       if (!feature) return false;
       selectTerritorialUnit(feature.properties?.unitType, key);
       focusCountry(feature, { maxZoom: isMobile() ? 12 : 10 });
       return true;
+    } else if (DISTRIBUTION_GROUP_TYPES[group]) {
+      const layer = distributionLayerById(key);
+      if (!layer) return false;
+      selectDistributionLayer(layer.id);
+      const first = distributionEntriesForLayer(state.distributionEntries, layer.id).find(entry => entry.mode === DISTRIBUTION_MODES.GEOMETRY)
+        || distributionEntriesForLayer(state.distributionEntries, layer.id)[0];
+      const geometry = first?.mode === DISTRIBUTION_MODES.REGION ? territorialRepository.get(first.regionId) : first;
+      if (geometry?.geometry) focusCountry(geometry, { maxZoom: isMobile() ? 12 : 10 });
+      return !!first;
     } else if (group === 'labels') {
       const label = state.labels.find(item => String(item.id) === key);
       if (!label) return false;
@@ -8370,6 +8815,9 @@ const {
     $('regionsVisible').addEventListener('change', e => setLayerVisibility('regions', e.target.checked));
     $('administrativeVisible').addEventListener('change', e => setLayerVisibility('administrative', e.target.checked));
     $('historicalRegionsVisible').addEventListener('change', e => setLayerVisibility('historicalRegions', e.target.checked));
+    $('languagesVisible').addEventListener('change', e => setLayerVisibility('languages', e.target.checked));
+    $('ethnicitiesVisible').addEventListener('change', e => setLayerVisibility('ethnicities', e.target.checked));
+    $('religionsVisible').addEventListener('change', e => setLayerVisibility('religions', e.target.checked));
     $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
     $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
     $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
@@ -8485,6 +8933,16 @@ const {
     $('addAdministrativeBtn')?.addEventListener('click', () => {
       openCountryRegionCreateModal(COUNTRY_REGION_KINDS.ADMINISTRATIVE);
     });
+    for (const [id, type] of [
+      ['addLanguageBtn', DISTRIBUTION_TYPES.LANGUAGE],
+      ['addEthnicityBtn', DISTRIBUTION_TYPES.ETHNICITY],
+      ['addReligionBtn', DISTRIBUTION_TYPES.RELIGION],
+    ]) $(id)?.addEventListener('click', () => {
+      const created = createDistributionLayerFromPrompt(type);
+      if (!created) return;
+      closeCreateMenu();
+      if (layoutMode !== 'wide') openSurface('editor');
+    });
     $('countryRegionCreateCancelBtn')?.addEventListener('click', closeCountryRegionCreateModal);
     $('countryRegionCreateModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeCountryRegionCreateModal);
     $('countryRegionCreateConfirmBtn')?.addEventListener('click', () => {
@@ -8579,6 +9037,8 @@ const {
       { id: 'historicalRegionValidFromInput', field: 'validFrom', commit: commitCountryRegionMeta, transform: value => value.trim() },
       { id: 'historicalRegionValidToInput', field: 'validTo', commit: commitCountryRegionMeta, transform: value => value.trim() },
       { id: 'historicalRegionNotesInput', field: 'notes', commit: commitCountryRegionMeta },
+      { id: 'distributionNameInput', field: 'name', commit: commitDistributionMeta, transform: value => value.trim() },
+      { id: 'distributionParentInput', field: 'parentId', commit: commitDistributionMeta },
       { id: 'labelNameInput', field: 'name', commit: commitLabelEdit, transform: value => value.trim() },
       { id: 'labelKindInput', field: 'kind', commit: commitLabelEdit },
       { id: 'labelNotesInput', field: 'notes', commit: commitLabelEdit },
@@ -8592,6 +9052,22 @@ const {
     $('historicalRegionLockedInput').addEventListener('change', event => {
       if (state.selected?.type === 'countryRegion') setTerritorialUnitLocked(state.selected.unitType, state.selected.id, event.target.checked);
     });
+    $('distributionLockedInput').addEventListener('change', event => commitDistributionMeta('locked', event.target.checked));
+    $('distributionRenderModeInput').addEventListener('change', event => {
+      recordHistory();
+      state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY
+        ? DISTRIBUTION_RENDER_MODES.INTENSITY
+        : DISTRIBUTION_RENDER_MODES.DOMINANT;
+      renderDistributions();
+      queueAutosave();
+    });
+    $('distributionEntryList').addEventListener('click', event => {
+      const button = event.target.closest('[data-distribution-entry-delete]');
+      if (button) removeDistributionEntry(button.dataset.distributionEntryDelete);
+    });
+    $('addRegionDistributionBtn').addEventListener('click', addRegionDistributionEntry);
+    $('addGeometryDistributionBtn').addEventListener('click', () => returnToMapAfterMobileAction(startGeometryDistributionDraft()));
+    $('deleteDistributionBtn').addEventListener('click', () => state.selected?.type === 'distribution' && deleteDistributionLayer(state.selected.id));
     $('flagUploadBtn').addEventListener('click', () => $('flagFileInput').click());
     $('flagFileInput').addEventListener('change', e => {
       const file = e.target.files?.[0];
@@ -8880,6 +9356,9 @@ const {
     $('regionsVisible').checked = state.layerVisibility.regions !== false;
     $('administrativeVisible').checked = state.layerVisibility.administrative !== false;
     $('historicalRegionsVisible').checked = state.layerVisibility.historicalRegions !== false;
+    $('languagesVisible').checked = state.layerVisibility.languages !== false;
+    $('ethnicitiesVisible').checked = state.layerVisibility.ethnicities !== false;
+    $('religionsVisible').checked = state.layerVisibility.religions !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;

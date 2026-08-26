@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.25.0-r1" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.26.0-r1" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -41,7 +41,7 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.25.0" data-layout="wide">
+  <div id="app" data-app-version="0.26.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
@@ -118,6 +118,33 @@
               </div>
               <div id="historicalRegionsLayerChildren" class="layer-children" role="group" aria-label="역사·지리 지역 항목" hidden></div>
             </div>
+            <div class="layer-folder" data-layer-group="languages">
+              <div class="ui-row layer-folder-row">
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="languages" aria-expanded="false" aria-label="언어 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <input id="languagesVisible" type="checkbox" checked aria-label="언어 레이어 표시" />
+                <svg class="ui-icon layer-folder-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg>
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="languages">언어</button>
+              </div>
+              <div id="languagesLayerChildren" class="layer-children" role="group" aria-label="언어 항목" hidden></div>
+            </div>
+            <div class="layer-folder" data-layer-group="ethnicities">
+              <div class="ui-row layer-folder-row">
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="ethnicities" aria-expanded="false" aria-label="민족 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <input id="ethnicitiesVisible" type="checkbox" checked aria-label="민족 레이어 표시" />
+                <svg class="ui-icon layer-folder-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg>
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="ethnicities">민족</button>
+              </div>
+              <div id="ethnicitiesLayerChildren" class="layer-children" role="group" aria-label="민족 항목" hidden></div>
+            </div>
+            <div class="layer-folder" data-layer-group="religions">
+              <div class="ui-row layer-folder-row">
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="religions" aria-expanded="false" aria-label="종교 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <input id="religionsVisible" type="checkbox" checked aria-label="종교 레이어 표시" />
+                <svg class="ui-icon layer-folder-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg>
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="religions">종교</button>
+              </div>
+              <div id="religionsLayerChildren" class="layer-children" role="group" aria-label="종교 항목" hidden></div>
+            </div>
             <div class="layer-folder" data-layer-group="terrain">
               <div class="ui-row layer-folder-row">
                 <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="terrain" aria-expanded="false" aria-label="지형 음영 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -192,6 +219,9 @@
                   <button id="addCountryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><span><strong>국가 추가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
                   <button id="addRegionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><span><strong>지역 추가</strong><small>국가 안의 지역을 나누거나 지정하기</small></span></button>
                   <button id="addAdministrativeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg></span><span><strong>행정구역 추가</strong><small>부모 영역 안에 행정 단위 만들기</small></span></button>
+                  <button id="addLanguageBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><span><strong>언어 추가</strong><small>언어 항목을 만들고 분포 입력하기</small></span></button>
+                  <button id="addEthnicityBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-atlas"/></svg></span><span><strong>민족 추가</strong><small>민족 항목을 만들고 분포 입력하기</small></span></button>
+                  <button id="addReligionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg></span><span><strong>종교 추가</strong><small>종교 항목을 만들고 분포 입력하기</small></span></button>
                   <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><span><strong>지명 추가</strong><small>지도에 도시·지명 배치하기</small></span></button>
                   <button id="addRiverBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강 추가</strong><small>강의 흐름을 선으로 그리기</small></span></button>
                   <button id="addLakeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수 추가</strong><small>호수의 경계를 영역으로 그리기</small></span></button>
@@ -435,6 +465,41 @@
             </section>
           </form>
 
+          <form id="distributionProperties" class="editor-view hidden" onsubmit="return false;">
+            <section class="ui-card editor-section editor-section-primary">
+              <h3 class="editor-section-title">분포 항목 정보</h3>
+              <div class="ui-field field-group editor-field"><label for="distributionNameInput">이름</label><input id="distributionNameInput" type="text" /></div>
+              <div class="editor-field-grid editor-field-grid-color">
+                <div class="ui-field field-group editor-field"><label for="distributionTypeValue">종류</label><output id="distributionTypeValue">—</output></div>
+                <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="distribution">
+                  <label id="distributionColorLabel">색상</label>
+                  <button id="distributionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="distributionColorPopover" aria-labelledby="distributionColorLabel distributionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="distributionColorValue" class="ui-color-value">색상</span></button>
+                  <input id="distributionColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
+                  <div id="distributionColorPopover" class="ui-color-popover hidden" role="dialog" aria-label="분포 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
+                </div>
+              </div>
+              <div class="ui-field field-group editor-field"><label for="distributionParentInput">상위 분류</label><select id="distributionParentInput"><option value="">상위 분류 없음</option></select></div>
+              <label class="ui-choice-row editor-lock-row" for="distributionLockedInput"><input id="distributionLockedInput" type="checkbox" /><span>분포 항목 잠금</span></label>
+              <div class="ui-field field-group editor-field"><label for="distributionRenderModeInput">표시 방식</label><select id="distributionRenderModeInput"><option value="dominant">지배적 분포</option><option value="intensity">선택 항목 비율 농도</option></select></div>
+            </section>
+            <section class="ui-card editor-section">
+              <h3 class="editor-section-title">분포</h3>
+              <div id="distributionEntryList" class="distribution-entry-list"></div>
+              <div class="distribution-entry-add">
+                <div class="ui-field field-group editor-field"><label for="distributionRegionInput">기준 영역</label><select id="distributionRegionInput"></select></div>
+                <div class="ui-field field-group editor-field"><label for="distributionShareInput">비율 (%)</label><input id="distributionShareInput" type="number" min="0" max="100" step="1" value="100" /></div>
+                <div class="editor-action-grid editor-action-grid-two">
+                  <button id="addRegionDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>영역 분포 추가</strong><small>국가·지역·행정구역 참조</small></button>
+                  <button id="addGeometryDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>자유 영역 그리기</strong><small>행정경계와 무관한 분포</small></button>
+                </div>
+              </div>
+            </section>
+            <section class="ui-card editor-danger-zone">
+              <h3 class="editor-section-title">위험 작업</h3>
+              <button id="deleteDistributionBtn" type="button" class="ui-button danger-btn editor-delete-btn">분포 항목 삭제</button>
+            </section>
+          </form>
+
           <form id="drawingProperties" class="editor-view hidden" onsubmit="return false;">
             <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">기본 정보</h3>
@@ -448,7 +513,7 @@
                   <label for="drawingCategoryInput">분류</label>
                   <select id="drawingCategoryInput">
                     <option value="river">강</option><option value="lake">호수</option>
-                    <option value="ethnicity">민족</option><option value="religion">종교</option><option value="language">언어</option><option value="custom">사용자 정의</option>
+                    <option value="custom">사용자 정의</option>
                   </select>
                 </div>
                 <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="drawing">
@@ -666,7 +731,7 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.25.0-r1" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.25.0-r1" defer></script>
+  <script src="assets/js/gis-io.js?v=0.26.0-r1" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.26.0-r1" defer></script>
 </body>
 </html>
