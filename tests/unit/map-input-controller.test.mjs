@@ -89,3 +89,21 @@ test('pointer capture begins only after navigation crosses the drag threshold', 
   assert.deepEqual(pans, [[10, 4]]);
   controller.destroy();
 });
+
+test('interactive draft handles do not begin map panning', () => {
+  const surface = new PointerSurface();
+  surface.isDraftHandle = true;
+  const pans = [];
+  const controller = createController(surface, {
+    interactiveTarget: target => target.isDraftHandle === true,
+    panBy: (dx, dy) => pans.push([dx, dy]),
+  });
+
+  surface.dispatchEvent(pointerEvent('pointerdown'));
+  surface.dispatchEvent(pointerEvent('pointermove', { clientX: 50, clientY: 50 }));
+  surface.dispatchEvent(pointerEvent('pointerup', { clientX: 50, clientY: 50 }));
+
+  assert.deepEqual(surface.captured, []);
+  assert.deepEqual(pans, []);
+  controller.destroy();
+});
