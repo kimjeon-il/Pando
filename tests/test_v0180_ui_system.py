@@ -13,10 +13,10 @@ APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 
 class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
-        self.assertIn('data-app-version="0.27.0"', INDEX)
+        self.assertIn('data-app-version="0.28.0"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.27.0-r1", INDEX)
-        self.assertIn("const APP_VERSION = '0.27.0'", APP)
+            self.assertIn(f"{asset}?v=0.28.0-r1", INDEX)
+        self.assertIn("const APP_VERSION = '0.28.0'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
         toggles = re.findall(r'class="ui-button layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)

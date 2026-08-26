@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.27.0-r1" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.28.0-r1" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -41,7 +41,7 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.27.0" data-layout="wide">
+  <div id="app" data-app-version="0.28.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
@@ -219,6 +219,7 @@
                   <button id="addCountryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><span><strong>국가 추가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
                   <button id="addRegionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><span><strong>지역 추가</strong><small>국가 안의 지역을 나누거나 지정하기</small></span></button>
                   <button id="addAdministrativeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg></span><span><strong>행정구역 추가</strong><small>부모 영역 안에 행정 단위 만들기</small></span></button>
+                  <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-atlas"/></svg></span><span><strong>라이브러리에서 추가</strong><small>현존·과거 국가와 역사 지역 검색하기</small></span></button>
                   <button id="addLanguageBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><span><strong>언어 추가</strong><small>언어 항목을 만들고 분포 입력하기</small></span></button>
                   <button id="addEthnicityBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-atlas"/></svg></span><span><strong>민족 추가</strong><small>민족 항목을 만들고 분포 입력하기</small></span></button>
                   <button id="addReligionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg></span><span><strong>종교 추가</strong><small>종교 항목을 만들고 분포 입력하기</small></span></button>
@@ -688,6 +689,35 @@
       </div>
     </section>
   </div>
+  <div id="historicalLibraryModal" class="gis-modal historical-library-modal hidden" role="dialog" aria-modal="true" aria-labelledby="historicalLibraryTitle">
+    <div class="gis-modal-dim"></div>
+    <section class="gis-modal-card historical-library-card">
+      <header class="gis-modal-header">
+        <div><span class="gis-modal-kicker">원본과 프로젝트 인스턴스 분리</span><h2 id="historicalLibraryTitle">역사 지리 라이브러리</h2></div>
+        <button id="historicalLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+      </header>
+      <div class="historical-library-toolbar">
+        <label class="ui-field field-group historical-library-search"><span>검색</span><input id="historicalLibrarySearchInput" type="search" placeholder="이름·별칭·다국어 이름" autocomplete="off" /></label>
+        <label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="territory">지역</option><option value="admin">행정구역</option><option value="region">역사·지리 지역</option></select></label>
+        <label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label>
+        <label class="ui-field field-group"><span>기준 연도</span><input id="historicalLibraryYearInput" type="number" min="-5000" max="9999" step="1" placeholder="예: 1910" /></label>
+        <label class="ui-field field-group"><span>권역</span><select id="historicalLibraryRegionInput"><option value="">전체</option></select></label>
+      </div>
+      <div class="historical-library-layout">
+        <div id="historicalLibraryResults" class="historical-library-results" role="listbox" aria-label="라이브러리 검색 결과"></div>
+        <aside id="historicalLibraryPreview" class="ui-card historical-library-preview">
+          <p class="editor-help">항목을 선택하면 시대·경계 버전·출처를 확인할 수 있습니다.</p>
+        </aside>
+      </div>
+      <footer class="historical-library-footer">
+        <label class="ui-field field-group"><span>WorldSnapshot</span><select id="historicalLibrarySnapshotInput"><option value="">스냅샷 선택</option></select></label>
+        <button id="historicalLibrarySnapshotBtn" type="button" class="ui-button btn ghost" disabled>없는 항목 추가</button>
+        <span class="historical-library-footer-spacer"></span>
+        <label class="ui-field field-group"><span>하위 항목</span><select id="historicalLibraryChildDepthInput"><option value="none">포함 안 함</option><option value="level1">1단계 포함</option><option value="all">전체 포함</option></select></label>
+        <button id="historicalLibraryAddBtn" type="button" class="ui-button btn" disabled>프로젝트에 추가</button>
+      </footer>
+    </section>
+  </div>
   <div id="gisImportModal" class="gis-modal hidden" role="dialog" aria-modal="true" aria-labelledby="gisImportTitle">
     <div class="gis-modal-dim"></div>
     <section class="gis-modal-card">
@@ -731,8 +761,8 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.27.0-r1" defer></script>
-  <script src="assets/js/gis-io.js?v=0.27.0-r1" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.27.0-r1" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.28.0-r1" defer></script>
+  <script src="assets/js/gis-io.js?v=0.28.0-r1" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.28.0-r1" defer></script>
 </body>
 </html>

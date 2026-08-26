@@ -1,21 +1,22 @@
-/* AtlasWright v0.27.0
+/* AtlasWright v0.28.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.27.0-r1';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.28.0-r1';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
   import(versionedModuleUrl('./modules/distribution-model.js')),
+  import(versionedModuleUrl('./modules/historical-library.js')),
   import(versionedModuleUrl('./modules/surface-controller.js')),
   import(versionedModuleUrl('./modules/tool-controller.js')),
   import(versionedModuleUrl('./modules/map-input-controller.js')),
@@ -56,6 +57,14 @@ const {
   normalizeDistributionLayers,
   validateDistributionModel,
 } = distributionModelModule;
+const {
+  LIBRARY_ENTITY_TYPES,
+  createCurrentCountryLibraryEntities,
+  createHistoricalLibrary,
+  instantiateLibraryEntity,
+  materializePilotEntities,
+  selectGeometryVersion,
+} = historicalLibraryModule;
 const COUNTRY_REGION_KINDS = Object.freeze({
   REGION: TERRITORIAL_UNIT_TYPES.TERRITORY,
   ADMINISTRATIVE: TERRITORIAL_UNIT_TYPES.ADMIN,
@@ -101,11 +110,13 @@ const {
   const d3 = window.d3;
   const territorialGeometry = createTerritorialGeometryKernel(window.polygonClipping);
 
-  const APP_VERSION = '0.27.0';
+  const APP_VERSION = '0.28.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', ATLASWRIGHT_ASSET_BASE_URL);
+  const HISTORICAL_LIBRARY_DATA_URL = new URL('historical-library-pilot.json', PHYSICAL_DATA_BASE_URL);
+  HISTORICAL_LIBRARY_DATA_URL.searchParams.set('v', ASSET_REVISION);
   const PHYSICAL_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · raster 3.2.0';
   const TERRAIN_DATASET = 'Natural Earth raster 3.2.0 1:10m';
   const HYDRO_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 1:10m lakes';
@@ -240,6 +251,7 @@ const {
     'modeMethodSwitch', 'modeLineMethodBtn', 'modeComponentsMethodBtn', 'modePrimaryBtn', 'modeCancelBtn',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn',
     'importGeoJsonBtn', 'geoJsonFileInput', 'exportGeoJsonBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
+    'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
   ]);
   const CACHE_MISMATCH_MESSAGE = '화면 파일과 스크립트 버전이 다릅니다. 페이지를 강력 새로고침하세요. PC에서는 Ctrl+F5를 사용할 수 있습니다.';
 
@@ -694,6 +706,9 @@ const {
     distributionLayers: [],
     distributionEntries: [],
     distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, selectedLayerId: '' },
+    historicalLibrary: null,
+    historicalLibrarySelectedId: '',
+    historicalLibraryLoadState: 'idle',
     drawingFolders: [],
     selected: null,
     projection: 'globe',
@@ -8142,6 +8157,304 @@ const {
     }
   }
 
+  const LIBRARY_TYPE_LABELS = Object.freeze({
+    [LIBRARY_ENTITY_TYPES.COUNTRY]: '국가',
+    [LIBRARY_ENTITY_TYPES.TERRITORY]: '지역',
+    [LIBRARY_ENTITY_TYPES.ADMIN]: '행정구역',
+    [LIBRARY_ENTITY_TYPES.REGION]: '역사·지리 지역',
+  });
+
+  function combineHistoricalLibraryGeometries(geometries) {
+    const coordinates = geometries.filter(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type)).map(geometry => geometry.coordinates);
+    if (!coordinates.length) return null;
+    const union = coordinates.length === 1 ? coordinates[0] : window.polygonClipping.union(...coordinates);
+    return normalizeClippedLandGeometry(union);
+  }
+
+  async function loadHistoricalLibrary() {
+    if (state.historicalLibrary) return state.historicalLibrary;
+    if (state.historicalLibraryLoadState === 'loading') {
+      await new Promise(resolve => document.addEventListener('atlaswright:historical-library-ready', resolve, { once: true }));
+      return state.historicalLibrary;
+    }
+    state.historicalLibraryLoadState = 'loading';
+    try {
+      const response = await fetch(HISTORICAL_LIBRARY_DATA_URL, { cache: 'force-cache' });
+      if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
+      const pilot = await response.json();
+      const currentEntities = createCurrentCountryLibraryEntities(state.countriesData, { displayName: countryName });
+      const pilotEntities = materializePilotEntities(pilot.entities, state.countriesData, combineHistoricalLibraryGeometries);
+      const currentSnapshot = {
+        id: 'current-world',
+        name: '현재 세계',
+        referenceDate: String(new Date().getFullYear()),
+        entityRefs: currentEntities.map(entity => entity.libraryId),
+        metadata: { current: true },
+        sourceInfo: { title: 'Natural Earth 5.1.1 Admin 0 Countries', license: 'Public domain' },
+      };
+      state.historicalLibrary = createHistoricalLibrary({
+        entities: [...currentEntities, ...pilotEntities],
+        snapshots: [currentSnapshot, ...(pilot.snapshots || [])],
+      });
+      state.historicalLibraryLoadState = 'ready';
+      syncHistoricalLibraryFilterOptions();
+      document.dispatchEvent(new CustomEvent('atlaswright:historical-library-ready'));
+      return state.historicalLibrary;
+    } catch (error) {
+      state.historicalLibraryLoadState = 'error';
+      document.dispatchEvent(new CustomEvent('atlaswright:historical-library-ready'));
+      throw error;
+    }
+  }
+
+  function historicalLibraryPeriod(entity) {
+    if (!entity.startDate && !entity.endDate) return '현존';
+    return `${entity.startDate || '?'}–${entity.endDate || '현재'}`;
+  }
+
+  function syncHistoricalLibraryFilterOptions() {
+    const library = state.historicalLibrary;
+    if (!library) return;
+    const regions = [...new Set(library.list().map(entity => String(entity.metadata?.region || '')).filter(Boolean))].sort(layerNameCollator.compare);
+    replaceSelectOptions($('historicalLibraryRegionInput'), [{ value: '', label: '전체' }, ...regions.map(region => ({ value: region, label: region }))], $('historicalLibraryRegionInput').value);
+    replaceSelectOptions($('historicalLibrarySnapshotInput'), [
+      { value: '', label: '스냅샷 선택' },
+      ...library.snapshots().map(snapshot => ({ value: snapshot.id, label: `${snapshot.name}${snapshot.metadata?.partial ? ' · 부분' : ''}` })),
+    ], $('historicalLibrarySnapshotInput').value);
+  }
+
+  function historicalLibrarySearchResults() {
+    return state.historicalLibrary?.search({
+      query: $('historicalLibrarySearchInput').value,
+      type: $('historicalLibraryTypeInput').value,
+      status: $('historicalLibraryStatusInput').value,
+      referenceDate: $('historicalLibraryYearInput').value,
+      region: $('historicalLibraryRegionInput').value,
+    }) || [];
+  }
+
+  function renderHistoricalLibraryResults() {
+    const results = historicalLibrarySearchResults();
+    const container = $('historicalLibraryResults');
+    const fragment = document.createDocumentFragment();
+    for (const entity of results) {
+      const button = document.createElement('button');
+      const selected = state.historicalLibrarySelectedId === entity.libraryId;
+      button.type = 'button';
+      button.className = `ui-button ui-selectable-row historical-library-result${selected ? ' is-selected' : ''}`;
+      button.dataset.libraryEntityId = entity.libraryId;
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', String(selected));
+      const strong = document.createElement('strong');
+      strong.textContent = entity.displayNames?.ko || entity.canonicalName;
+      const small = document.createElement('small');
+      small.textContent = `${LIBRARY_TYPE_LABELS[entity.type]} · ${historicalLibraryPeriod(entity)}${entity.metadata?.pilot ? ' · 시험 데이터' : ''}`;
+      button.append(strong, small);
+      fragment.appendChild(button);
+    }
+    if (!results.length) {
+      const empty = document.createElement('p');
+      empty.className = 'editor-help';
+      empty.textContent = '조건에 맞는 라이브러리 항목이 없습니다.';
+      fragment.appendChild(empty);
+    }
+    container.replaceChildren(fragment);
+    if (state.historicalLibrarySelectedId && !results.some(entity => entity.libraryId === state.historicalLibrarySelectedId)) {
+      state.historicalLibrarySelectedId = '';
+      renderHistoricalLibraryPreview();
+    }
+  }
+
+  function historicalLibraryPreviewSvg(entity, version) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'historical-library-preview-map';
+    const svgNode = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgNode.setAttribute('viewBox', '0 0 420 190');
+    svgNode.setAttribute('aria-label', `${entity.displayNames?.ko || entity.canonicalName} 경계 미리보기`);
+    const projection = d3.geo.equirectangular().scale(1).translate([0, 0]);
+    const previewPath = d3.geo.path().projection(projection);
+    const feature = { type: 'Feature', properties: {}, geometry: version.geometry };
+    const bounds = previewPath.bounds(feature);
+    const width = Math.max(1, bounds[1][0] - bounds[0][0]);
+    const height = Math.max(1, bounds[1][1] - bounds[0][1]);
+    const scale = 0.86 / Math.max(width / 420, height / 190);
+    const center = [(bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2];
+    projection.scale(scale).translate([210 - scale * center[0], 95 - scale * center[1]]);
+    const pathNode = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathNode.setAttribute('d', previewPath(feature) || '');
+    pathNode.setAttribute('fill', 'var(--accent-surface)');
+    pathNode.setAttribute('stroke', 'var(--accent-border)');
+    pathNode.setAttribute('stroke-width', '1.5');
+    pathNode.setAttribute('vector-effect', 'non-scaling-stroke');
+    svgNode.appendChild(pathNode);
+    wrapper.appendChild(svgNode);
+    return wrapper;
+  }
+
+  function renderHistoricalLibraryPreview() {
+    const preview = $('historicalLibraryPreview');
+    const entity = state.historicalLibrary?.get(state.historicalLibrarySelectedId);
+    const year = $('historicalLibraryYearInput').value;
+    const version = entity ? selectGeometryVersion(entity, year) : null;
+    if (!entity || !version) {
+      const help = document.createElement('p');
+      help.className = 'editor-help';
+      help.textContent = '항목을 선택하면 시대·경계 버전·출처를 확인할 수 있습니다.';
+      preview.replaceChildren(help);
+      $('historicalLibraryAddBtn').disabled = true;
+      return;
+    }
+    const title = document.createElement('h3');
+    title.textContent = entity.displayNames?.ko || entity.canonicalName;
+    const meta = document.createElement('p');
+    meta.className = 'editor-help';
+    meta.textContent = `${LIBRARY_TYPE_LABELS[entity.type]} · ${historicalLibraryPeriod(entity)} · ${version.datePrecision} · 신뢰도 ${version.certainty}`;
+    const source = document.createElement('p');
+    source.className = 'editor-help';
+    source.textContent = `출처: ${entity.sourceInfo?.title || version.sourceId || '미지정'}${entity.sourceInfo?.license ? ` · ${entity.sourceInfo.license}` : ''}`;
+    const notes = document.createElement('p');
+    notes.className = 'editor-help';
+    notes.textContent = version.notes || entity.sourceInfo?.notes || '';
+    preview.replaceChildren(title, historicalLibraryPreviewSvg(entity, version), meta, source, notes);
+    $('historicalLibraryAddBtn').disabled = false;
+  }
+
+  function selectHistoricalLibraryEntity(id) {
+    state.historicalLibrarySelectedId = String(id || '');
+    renderHistoricalLibraryResults();
+    renderHistoricalLibraryPreview();
+  }
+
+  function closeHistoricalLibrary() {
+    $('historicalLibraryModal').classList.add('hidden');
+  }
+
+  async function openHistoricalLibrary() {
+    closeCreateMenu();
+    $('historicalLibraryModal').classList.remove('hidden');
+    $('historicalLibraryResults').replaceChildren(Object.assign(document.createElement('p'), { className: 'editor-help', textContent: '라이브러리를 불러오는 중입니다.' }));
+    try {
+      await loadHistoricalLibrary();
+      renderHistoricalLibraryResults();
+      renderHistoricalLibraryPreview();
+      $('historicalLibrarySearchInput').focus();
+    } catch (error) {
+      reportOperationError(error, '역사 지리 라이브러리를 불러오지 못했습니다.', 'AW-LIB-001', 4800);
+    }
+  }
+
+  function libraryInstanceId(libraryId) {
+    const entity = state.historicalLibrary?.get(libraryId);
+    const currentCountryId = String(entity?.metadata?.currentCountryId || '');
+    if (currentCountryId && countryFeatureById(currentCountryId)) return currentCountryId;
+    const country = state.countriesData?.features?.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
+    if (country) return String(country.properties.editor_id);
+    const unit = state.territorialUnits.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
+    return unit ? String(unit.id) : '';
+  }
+
+  function libraryEntityRefsWithChildren(rootIds, depth) {
+    const selected = new Set(rootIds.map(String));
+    if (depth === 'none') return [...selected];
+    let frontier = [...selected];
+    while (frontier.length) {
+      const next = [];
+      for (const entity of state.historicalLibrary?.list() || []) {
+        if (!frontier.includes(entity.parentLibraryId) || selected.has(entity.libraryId)) continue;
+        selected.add(entity.libraryId);
+        next.push(entity.libraryId);
+      }
+      if (depth === 'level1') break;
+      frontier = next;
+    }
+    return [...selected];
+  }
+
+  function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none') {
+    const refs = libraryEntityRefsWithChildren(rootIds, childDepth);
+    const descriptors = refs.map(id => state.historicalLibrary?.get(id)).filter(Boolean).map(entity => instantiateLibraryEntity(entity, referenceDate));
+    const pending = descriptors.filter(descriptor => !libraryInstanceId(descriptor.libraryId));
+    if (!pending.length) return 0;
+    recordHistory();
+    let countriesAdded = 0;
+    for (const descriptor of pending) {
+      if (descriptor.type === LIBRARY_ENTITY_TYPES.COUNTRY) {
+        const feature = createCountryFeature(descriptor.name, [], nextCountryColor(), descriptor.geometry);
+        feature.properties.sourceLibraryId = descriptor.libraryId;
+        feature.properties.sourceGeometryVersion = descriptor.geometryVersionId;
+        feature.properties.validFrom = descriptor.validFrom;
+        feature.properties.validTo = descriptor.validTo;
+        feature.properties.libraryMetadata = descriptor.metadata;
+        state.countriesData.features.push(feature);
+        countriesAdded += 1;
+        continue;
+      }
+      const parentId = libraryInstanceId(descriptor.parentLibraryId);
+      const sovereignId = libraryInstanceId(descriptor.sovereignLibraryId);
+      state.territorialUnits.push(createTerritorialFeature({
+        id: uid(`library_${descriptor.type}`),
+        unitType: descriptor.type,
+        name: descriptor.name,
+        geometry: descriptor.geometry,
+        parentId,
+        sovereignId,
+        adminLevel: descriptor.adminLevel,
+        coverageMode: descriptor.type === LIBRARY_ENTITY_TYPES.REGION ? TERRITORIAL_COVERAGE_MODES.EXPLICIT : TERRITORIAL_COVERAGE_MODES.PARTITION,
+        status: sovereignId ? TERRITORIAL_STATUS.ASSIGNED : TERRITORIAL_STATUS.UNASSIGNED,
+        validFrom: descriptor.validFrom,
+        validTo: descriptor.validTo,
+        metadata: descriptor.metadata,
+        sourceLibraryId: descriptor.libraryId,
+        sourceGeometryVersion: descriptor.geometryVersionId,
+      }));
+    }
+    if (countriesAdded) {
+      reindexCountries(state.countriesData, true);
+      mapEditClient.rebase(state.countriesData.features);
+      scheduleGpuMeshRebuild(0);
+    }
+    normalizeProjectDrawings();
+    markLayerTreeDirty();
+    renderAll();
+    queueAutosave();
+    return pending.length;
+  }
+
+  function addSelectedHistoricalLibraryEntity() {
+    const id = state.historicalLibrarySelectedId;
+    if (!id) return;
+    const count = instantiateHistoricalLibraryEntities([id], $('historicalLibraryYearInput').value, $('historicalLibraryChildDepthInput').value);
+    if (!count) setActionStatus('이미 현재 프로젝트에 있는 항목입니다.', 'success', 2800);
+    else setActionStatus(`라이브러리 항목 ${count}개를 독립 프로젝트 인스턴스로 추가했습니다.`, 'success', 4200);
+    closeHistoricalLibrary();
+  }
+
+  function requestHistoricalSnapshot() {
+    const snapshot = state.historicalLibrary?.getSnapshot($('historicalLibrarySnapshotInput').value);
+    if (!snapshot) return;
+    openConfirmModal({
+      title: `${snapshot.name} 스냅샷`,
+      message: snapshot.metadata?.partial
+        ? '이 스냅샷은 라이브러리 기능 시험용 부분 구성입니다. 현재 프로젝트에 없는 항목만 추가합니다.'
+        : '현재 프로젝트에 없는 스냅샷 항목만 추가합니다.',
+      confirmText: '없는 항목 추가',
+      onConfirm: () => {
+        const count = instantiateHistoricalLibraryEntities(snapshot.entityRefs, snapshot.referenceDate, 'all');
+        setActionStatus(`${snapshot.name}에서 ${count}개 항목을 추가했습니다.`, 'success', 4200);
+        closeHistoricalLibrary();
+      },
+    });
+  }
+
+  window.ATLASWRIGHT_HISTORICAL_LIBRARY = Object.freeze({
+    load: loadHistoricalLibrary,
+    get: id => state.historicalLibrary?.get(id) || null,
+    list: () => state.historicalLibrary?.list() || [],
+    search: options => state.historicalLibrary?.search(options) || [],
+    snapshots: () => state.historicalLibrary?.snapshots() || [],
+    instantiate: (id, referenceDate = '', childDepth = 'none') => instantiateHistoricalLibraryEntities([id], referenceDate, childDepth),
+  });
+
   let pendingGeoJsonImport = null;
   let requestedGeoJsonTarget = 'drawing';
 
@@ -9233,6 +9546,24 @@ const {
   }
 
   function bindFileAndGisUI() {
+    $('addFromLibraryBtn').addEventListener('click', openHistoricalLibrary);
+    $('historicalLibraryCloseBtn').addEventListener('click', closeHistoricalLibrary);
+    $('historicalLibraryModal').querySelector('.gis-modal-dim')?.addEventListener('click', closeHistoricalLibrary);
+    for (const id of ['historicalLibrarySearchInput', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput']) {
+      $(id).addEventListener(['historicalLibrarySearchInput', 'historicalLibraryYearInput'].includes(id) ? 'input' : 'change', () => {
+        renderHistoricalLibraryResults();
+        if (id === 'historicalLibraryYearInput') renderHistoricalLibraryPreview();
+      });
+    }
+    $('historicalLibraryResults').addEventListener('click', event => {
+      const button = event.target.closest('[data-library-entity-id]');
+      if (button) selectHistoricalLibraryEntity(button.dataset.libraryEntityId);
+    });
+    $('historicalLibraryAddBtn').addEventListener('click', addSelectedHistoricalLibraryEntity);
+    $('historicalLibrarySnapshotInput').addEventListener('change', event => {
+      $('historicalLibrarySnapshotBtn').disabled = !event.target.value;
+    });
+    $('historicalLibrarySnapshotBtn').addEventListener('click', requestHistoricalSnapshot);
     $('saveProjectBtn').addEventListener('click', saveGeoPackageFile);
     $('openGisBtn').addEventListener('click', () => {
       $('gisFileInput').click();
@@ -9309,6 +9640,7 @@ const {
         }
       }
       if (e.key === 'Escape') {
+        if (!$('historicalLibraryModal')?.classList.contains('hidden')) { closeHistoricalLibrary(); return; }
         if (!$('countryRegionCreateModal')?.classList.contains('hidden')) { closeCountryRegionCreateModal(); return; }
         if (!$('geoJsonTargetModal')?.classList.contains('hidden')) { closeGeoJsonTargetModal(); return; }
         if (!$('gisImportModal')?.classList.contains('hidden')) { $('gisImportCancelBtn')?.click(); return; }
