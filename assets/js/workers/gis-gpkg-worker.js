@@ -1,5 +1,10 @@
 'use strict';
 
+const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.27.0-r1';
+const GIS_ADAPTER_URL = new URL('../gis-adapters.js', self.location.href);
+GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION);
+importScripts(GIS_ADAPTER_URL.href);
+
 const SQL_SCRIPT_URL = new URL('../vendor/sql/sql-wasm.js', self.location.href).href;
 const SQL_WASM_URL = new URL('../vendor/sql/sql-wasm.wasm', self.location.href).href;
 let sqlPromise = null;
@@ -177,7 +182,6 @@ function writeAtlasTables(db, payload) {
   const state = payload.projectState || {};
   const labels = state.labels || [];
   const drawings = state.drawings || [];
-  const territorialUnits = state.territorialUnits || state.countryRegions || [];
   const places = labels.map(label => ({
     geometry: { type: 'Point', coordinates: label.coordinates || [0, 0] },
     id: label.id || '',
@@ -190,23 +194,8 @@ function writeAtlasTables(db, payload) {
   const points = drawings.filter(item => item.geometry?.type === 'Point').map(drawingRow);
   const lines = drawings.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(drawingRow);
   const polygons = drawings.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(drawingRow);
-  const countryRegionRow = item => ({
-    geometry: item.geometry,
-    id: item.id || '',
-    name: item.properties?.name || '',
-    country_id: item.properties?.sovereignId || item.properties?.countryId || '',
-    parent_region_id: item.properties?.parentId || item.properties?.parentRegionId || '',
-    level: item.properties?.adminLevel ?? item.properties?.level ?? null,
-    status: item.properties?.status || 'assigned',
-    color: item.properties?.style?.color || item.properties?.color || '',
-    notes: item.properties?.notes || '',
-    source_folder_id: item.properties?.sourceFolderId || '',
-    properties_json: JSON.stringify(item.properties || {}),
-  });
-  const territories = territorialUnits.filter(item => item.properties?.unitType === 'territory'
-    || (!item.properties?.unitType && item.properties?.kind === 'region')).map(countryRegionRow);
-  const administrativeAreas = territorialUnits.filter(item => item.properties?.unitType === 'admin'
-    || (!item.properties?.unitType && item.properties?.kind === 'administrative')).map(countryRegionRow);
+  const territorialRows = self.AtlasWrightGisAdapters.territorialRows(state);
+  const distributionRows = self.AtlasWrightGisAdapters.distributionRows(state);
   const drawingColumns = [
     { name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'category' }, { name: 'aw_role' },
     { name: 'aw_owner_id' }, { name: 'aw_parent_id' }, { name: 'aw_topology_group' }, { name: 'aw_land_binding' },
@@ -216,13 +205,24 @@ function writeAtlasTables(db, payload) {
   createFeatureTable(db, { tableName: 'drawings_point', geometryType: 'POINT', rows: points, columns: drawingColumns, description: 'AtlasWright point drawings' });
   createFeatureTable(db, { tableName: 'drawings_line', geometryType: 'MULTILINESTRING', rows: lines, columns: drawingColumns, description: 'AtlasWright line drawings' });
   createFeatureTable(db, { tableName: 'drawings_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: drawingColumns, description: 'AtlasWright polygon drawings' });
-  const countryRegionColumns = [
-    { name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'country_id' }, { name: 'parent_region_id' },
-    { name: 'level', type: 'INTEGER' }, { name: 'status' }, { name: 'color' }, { name: 'notes' },
-    { name: 'source_folder_id' }, { name: 'properties_json' },
+  const territorialColumns = [
+    { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
+    { name: 'admin_level', type: 'INTEGER' }, { name: 'status' }, { name: 'valid_from' }, { name: 'valid_to' },
+    { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
+    { name: 'metadata_json' }, { name: 'properties_json' },
   ];
-  createFeatureTable(db, { tableName: 'territories', geometryType: 'MULTIPOLYGON', rows: territories, columns: countryRegionColumns, description: 'AtlasWright country regions' });
-  createFeatureTable(db, { tableName: 'administrative_areas', geometryType: 'MULTIPOLYGON', rows: administrativeAreas, columns: countryRegionColumns, description: 'AtlasWright administrative areas' });
+  for (const [unitType, tableName] of Object.entries(self.AtlasWrightGisAdapters.TERRITORIAL_TABLES)) {
+    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: territorialRows[tableName] || [], columns: territorialColumns, description: `AtlasWright ${unitType} territorial units` });
+  }
+  const distributionColumns = [
+    { name: 'entry_id' }, { name: 'layer_id' }, { name: 'name' }, { name: 'distribution_type' },
+    { name: 'parent_layer_id' }, { name: 'color' }, { name: 'layer_visible', type: 'INTEGER' }, { name: 'layer_locked', type: 'INTEGER' },
+    { name: 'source_mode' }, { name: 'region_id' }, { name: 'share', type: 'REAL' }, { name: 'certainty' },
+    { name: 'valid_from' }, { name: 'valid_to' }, { name: 'layer_metadata_json' }, { name: 'entry_metadata_json' },
+  ];
+  for (const [distributionType, tableName] of Object.entries(self.AtlasWrightGisAdapters.DISTRIBUTION_TABLES)) {
+    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: distributionRows[tableName] || [], columns: distributionColumns, description: `AtlasWright ${distributionType} distribution entries` });
+  }
 
   createAttributeTable(db, 'aw_project_settings', 'setting_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'AtlasWright project settings');
   const settings = { ...state };

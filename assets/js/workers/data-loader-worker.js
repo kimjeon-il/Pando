@@ -1,6 +1,6 @@
 'use strict';
 
-const BUILD_ID = '0.26.0';
+const BUILD_ID = '0.27.0';
 function versionedDataUrl(relativePath) {
   const url = new URL(relativePath, self.location.href);
   const revision = new URL(self.location.href).searchParams.get('v');

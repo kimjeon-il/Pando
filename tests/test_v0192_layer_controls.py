@@ -55,8 +55,8 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertIn(".layer-child-delete", CSS)
 
     def test_build_version_is_updated(self):
-        self.assertIn('data-app-version="0.26.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.26.0'", APP)
+        self.assertIn('data-app-version="0.27.0"', INDEX)
+        self.assertIn("const APP_VERSION = '0.27.0'", APP)
 
 
 if __name__ == "__main__":

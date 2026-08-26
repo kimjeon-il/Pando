@@ -1,11 +1,11 @@
-/* AtlasWright v0.26.0
+/* AtlasWright v0.27.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.26.0-r1';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.27.0-r1';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -101,7 +101,7 @@ const {
   const d3 = window.d3;
   const territorialGeometry = createTerritorialGeometryKernel(window.polygonClipping);
 
-  const APP_VERSION = '0.26.0';
+  const APP_VERSION = '0.27.0';
   const HYDRO_DATA_VERSION = '0.13.0';
   const ASSET_REVISION = window.ATLASWRIGHT_ASSET_REVISION || APP_VERSION;
   const ATLASWRIGHT_ASSET_BASE_URL = window.ATLASWRIGHT_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
@@ -8156,7 +8156,8 @@ const {
 
   function syncGeoJsonTargetFields() {
     const target = $('geoJsonTargetType').value;
-    $('geoJsonCountryFieldRow').classList.toggle('hidden', target === 'drawing');
+    const countryMapped = target === 'region' || target === 'administrative';
+    $('geoJsonCountryFieldRow').classList.toggle('hidden', !countryMapped);
     $('geoJsonParentFieldRow').classList.toggle('hidden', target !== 'administrative');
     $('geoJsonLevelFieldRow').classList.toggle('hidden', target !== 'administrative');
   }
@@ -8289,11 +8290,104 @@ const {
     setActionStatus(`${fileName}에서 ${importedCount}개 ${kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'}을 가져왔습니다.`, 'success', 3800);
   }
 
+  function importGeoJsonHistoricalRegions(features, mapping, fileName) {
+    const imported = [];
+    const existingIds = new Set(state.territorialUnits.map(feature => String(feature.id)));
+    for (let index = 0; index < features.length; index += 1) {
+      const raw = features[index];
+      if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
+      const properties = raw.properties || {};
+      const id = String(raw.id || properties.id || uid('historical_region'));
+      if (existingIds.has(id)) throw new Error(`영역 ID 충돌: ${id}`);
+      existingIds.add(id);
+      imported.push(createTerritorialFeature({
+        id,
+        unitType: TERRITORIAL_UNIT_TYPES.REGION,
+        name: String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || `가져온 역사·지리 지역 ${index + 1}`,
+        parentId: '',
+        sovereignId: '',
+        coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
+        validFrom: properties.valid_from || properties.validFrom || null,
+        validTo: properties.valid_to || properties.validTo || null,
+        color: properties.color || properties.editorColor || '',
+        geometry: raw.geometry,
+      }));
+    }
+    if (!imported.length) throw new Error('가져올 Polygon 또는 MultiPolygon 역사·지리 지역이 없습니다.');
+    recordHistory();
+    state.territorialUnits.push(...imported);
+    normalizeProjectDrawings();
+    markLayerTreeDirty();
+    renderAll();
+    queueAutosave();
+    setActionStatus(`${fileName}에서 역사·지리 지역 ${imported.length}개를 가져왔습니다.`, 'success', 3800);
+  }
+
+  function importGeoJsonDistributions(features, type, mapping, fileName) {
+    const layerMap = new Map(state.distributionLayers.map(layer => [layer.id, layer]));
+    const entryIds = new Set(state.distributionEntries.map(entry => entry.id));
+    const newLayers = [];
+    const newEntries = [];
+    const generatedLayerIds = new Map();
+    const fallbackName = fileName.replace(/\.[^.]+$/, '') || DISTRIBUTION_TYPE_LABELS[type];
+    for (let index = 0; index < features.length; index += 1) {
+      const raw = features[index];
+      if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
+      const properties = raw.properties || {};
+      const name = String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || fallbackName;
+      let layerId = String(properties.layer_id || '').trim();
+      if (!layerId) {
+        if (!generatedLayerIds.has(name)) generatedLayerIds.set(name, uid(`distribution_${type}`));
+        layerId = generatedLayerIds.get(name);
+      }
+      let layer = layerMap.get(layerId);
+      if (layer && layer.type !== type) throw new Error(`분포 레이어 ID 충돌: ${layerId}`);
+      if (!layer) {
+        layer = createDistributionLayer({ id: layerId, type, name, color: properties.color || DEFAULT_DRAWING_COLOR });
+        layerMap.set(layerId, layer);
+        newLayers.push(layer);
+      }
+      const entryId = String(properties.entry_id || raw.id || uid('distribution_entry'));
+      if (entryIds.has(entryId)) throw new Error(`분포 엔트리 ID 충돌: ${entryId}`);
+      entryIds.add(entryId);
+      const regionId = String(properties.region_id || properties.regionId || '').trim();
+      const useRegion = !!regionId && !!territorialRepository.get(regionId);
+      newEntries.push(createDistributionEntry({
+        id: entryId,
+        layerId,
+        mode: useRegion ? DISTRIBUTION_MODES.REGION : DISTRIBUTION_MODES.GEOMETRY,
+        regionId: useRegion ? regionId : '',
+        geometry: useRegion ? null : raw.geometry,
+        share: properties.share ?? 100,
+        certainty: properties.certainty || 'unknown',
+        validFrom: properties.valid_from || properties.validFrom || null,
+        validTo: properties.valid_to || properties.validTo || null,
+      }));
+    }
+    if (!newEntries.length) throw new Error('가져올 Polygon 또는 MultiPolygon 분포가 없습니다.');
+    recordHistory();
+    state.distributionLayers.push(...newLayers);
+    state.distributionEntries.push(...newEntries);
+    normalizeProjectDrawings();
+    markLayerTreeDirty();
+    renderAll();
+    queueAutosave();
+    setActionStatus(`${fileName}에서 ${DISTRIBUTION_TYPE_LABELS[type]} 분포 ${newEntries.length}개를 가져왔습니다.`, 'success', 3800);
+  }
+
   async function importGeoJson(file, { parsed = null, target = 'drawing', mapping = {} } = {}) {
     parsed ||= JSON.parse(await file.text());
     const features = parsed.type === 'FeatureCollection' ? parsed.features : parsed.type === 'Feature' ? [parsed] : [];
     if (target === 'region' || target === 'administrative') {
       importGeoJsonCountryRegions(features, target === 'administrative' ? COUNTRY_REGION_KINDS.ADMINISTRATIVE : COUNTRY_REGION_KINDS.REGION, mapping, file.name);
+      return;
+    }
+    if (target === 'historicalRegion') {
+      importGeoJsonHistoricalRegions(features, mapping, file.name);
+      return;
+    }
+    if (Object.values(DISTRIBUTION_TYPES).includes(target)) {
+      importGeoJsonDistributions(features, target, mapping, file.name);
       return;
     }
     const supported = [];

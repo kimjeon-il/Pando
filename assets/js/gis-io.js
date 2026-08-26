@@ -12,10 +12,12 @@
   const gdalScriptUrl = new URL('vendor/gdal/gdal3.js', baseUrl).href;
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.26.0-r1');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.27.0-r1');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
+  const gisAdapters = window.AtlasWrightGisAdapters;
+  if (!gisAdapters) throw new Error('GIS 교환 어댑터를 불러오지 못했습니다.');
   const inputLimit = 512 * 1024 * 1024;
   const extractedLimit = 1024 * 1024 * 1024;
   const archiveEntryLimit = 10000;
@@ -494,11 +496,12 @@
     return JSON.parse(new TextDecoder().decode(await gdal.getFileBytes(output)));
   }
 
-  async function readAtlasVectorState(gdal, dataset) {
+  async function readAtlasVectorState(gdal, dataset, baseState = {}) {
     const layerNames = new Set((dataset.info?.layers || []).map(layer => layer.name));
     const hasPlaces = layerNames.has('places');
     const drawingLayerNames = ['drawings_point', 'drawings_line', 'drawings_polygon'].filter(name => layerNames.has(name));
-    const countryRegionLayerNames = ['territories', 'administrative_areas'].filter(name => layerNames.has(name));
+    const territorialLayerNames = Object.keys(gisAdapters.TERRITORIAL_TYPES_BY_TABLE).filter(name => layerNames.has(name));
+    const distributionLayerNames = Object.keys(gisAdapters.DISTRIBUTION_TYPES_BY_TABLE).filter(name => layerNames.has(name));
     const state = {};
     if (hasPlaces) {
       const collection = await layerAsGeoJson(gdal, dataset, 'places', 'places');
@@ -540,36 +543,29 @@
         }
       }
     }
-    if (countryRegionLayerNames.length) {
+    if (territorialLayerNames.length) {
       state.territorialUnits = [];
-      for (const layerName of countryRegionLayerNames) {
+      const unitIds = new Set();
+      for (const layerName of territorialLayerNames) {
         const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
-        const kind = layerName === 'administrative_areas' ? 'administrative' : 'region';
         for (let index = 0; index < (collection.features || []).length; index += 1) {
-          const feature = collection.features[index];
-          const basic = feature.properties || {};
-          let properties = {};
-          try { properties = basic.properties_json ? JSON.parse(basic.properties_json) : {}; } catch (_) {}
-          state.territorialUnits.push({
-            type: 'Feature',
-            id: String(basic.aw_id || feature.id || `${layerName}_${index + 1}`),
-            properties: {
-              ...properties,
-              unitType: kind === 'administrative' ? 'admin' : 'territory',
-              name: basic.name ?? properties.name ?? '',
-              sovereignId: basic.country_id ?? properties.sovereignId ?? properties.countryId ?? '',
-              parentId: basic.parent_region_id ?? properties.parentId ?? properties.parentRegionId ?? basic.country_id ?? properties.countryId ?? '',
-              adminLevel: kind === 'administrative' ? Number(basic.level ?? properties.adminLevel ?? properties.level ?? 1) : null,
-              coverageMode: 'partition',
-              status: basic.status ?? properties.status ?? 'assigned',
-              style: { color: basic.color ?? properties.style?.color ?? properties.color ?? '' },
-              notes: basic.notes ?? properties.notes ?? '',
-              sourceFolderId: basic.source_folder_id ?? properties.sourceFolderId ?? '',
-            },
-            geometry: feature.geometry,
-          });
+          const unit = gisAdapters.importTerritorialFeature(collection.features[index], layerName, index);
+          if (!unit) continue;
+          if (unitIds.has(unit.id)) throw new Error(`영역 ID 충돌: ${unit.id}`);
+          unitIds.add(unit.id);
+          state.territorialUnits.push(unit);
         }
       }
+    }
+    if (distributionLayerNames.length) {
+      const collections = [];
+      for (const layerName of distributionLayerNames) {
+        const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
+        collections.push({ tableName: layerName, features: collection.features || [] });
+      }
+      const imported = gisAdapters.mergeDistributionFeatures(collections, baseState.distributionLayers || []);
+      state.distributionLayers = imported.layers;
+      state.distributionEntries = imported.entries;
     }
     return state;
   }
@@ -595,7 +591,7 @@
       || prepared.dataFiles.find(file => withoutExtension(file.name).toLowerCase() === withoutExtension(descriptor.datasetPath).toLowerCase());
     const atlasMetadata = sourceFile && extension(sourceFile.name) === 'gpkg' ? await readAtlasMetadata(sourceFile) : null;
     if (atlasMetadata?.projectState) {
-      const vectorState = await readAtlasVectorState(gdal, dataset);
+      const vectorState = await readAtlasVectorState(gdal, dataset, atlasMetadata.projectState);
       atlasMetadata.projectState = { ...atlasMetadata.projectState, ...vectorState };
     }
     const fileHashes = [];
@@ -734,6 +730,17 @@
     output.aw_color = override.color || source.editor_color || '#63758a';
     output.aw_capital = override.capital || source.capital || '';
     output.aw_notes = override.notes || source.notes || '';
+    output.id = id;
+    output.name = output.aw_name;
+    output.type = 'country';
+    output.parent_id = '';
+    output.sovereign_id = id;
+    output.valid_from = source.validFrom || source.valid_from || '';
+    output.valid_to = source.validTo || source.valid_to || '';
+    output.color = output.aw_color;
+    output.style_key = source.style_key || '';
+    output.source_library_id = source.sourceLibraryId || source.source_library_id || '';
+    output.source_geometry_version = source.sourceGeometryVersion || source.source_geometry_version || '';
     if (Object.keys(nested).length) output.aw_source_properties = JSON.stringify(nested);
     if (Object.keys(renamed).length) output.aw_field_map = JSON.stringify(renamed);
     return output;
@@ -786,7 +793,6 @@
         physicalDatasets: projectState.physicalSourceInfo || null,
       },
     };
-    delete stateForPackage.countriesData;
     const exactBytes = bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice();
     const result = await callGpkgWorker('write', exactBytes.buffer, { projectState: stateForPackage });
     progress('GeoPackage 저장 준비를 마쳤습니다.', 100);

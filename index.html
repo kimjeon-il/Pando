@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.26.0-r1" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.27.0-r1" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -41,7 +41,7 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.26.0" data-layout="wide">
+  <div id="app" data-app-version="0.27.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
@@ -664,7 +664,7 @@
     <section class="confirm-modal-card geojson-target-card">
       <h2 id="geoJsonTargetTitle">GeoJSON 가져오기</h2>
       <div class="geojson-target-fields">
-        <label class="ui-field field-group"><span>대상 유형</span><select id="geoJsonTargetType"><option value="drawing">기존 지형지물</option><option value="region">지역</option><option value="administrative">행정구역</option></select></label>
+        <label class="ui-field field-group"><span>대상 유형</span><select id="geoJsonTargetType"><option value="drawing">기존 지형지물</option><option value="region">지역</option><option value="administrative">행정구역</option><option value="historicalRegion">역사·지리 지역</option><option value="language">언어 분포</option><option value="ethnicity">민족 분포</option><option value="religion">종교 분포</option></select></label>
         <label class="ui-field field-group"><span>이름 필드</span><select id="geoJsonNameField"></select></label>
         <label id="geoJsonCountryFieldRow" class="ui-field field-group hidden"><span>소속 국가 필드</span><select id="geoJsonCountryField"></select><small>선택하지 않으면 최대 교차 면적으로 추론합니다.</small></label>
         <label id="geoJsonParentFieldRow" class="ui-field field-group hidden"><span>상위 영역 필드</span><select id="geoJsonParentField"></select></label>
@@ -731,7 +731,8 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-io.js?v=0.26.0-r1" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.26.0-r1" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.27.0-r1" defer></script>
+  <script src="assets/js/gis-io.js?v=0.27.0-r1" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.27.0-r1" defer></script>
 </body>
 </html>
