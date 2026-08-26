@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.28.0-r3" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.28.0-r5" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -287,6 +287,12 @@
             <button id="modeLineMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="경계를 그려 영토 일부 선택" aria-pressed="true">경계 그리기</button>
             <button id="modeComponentsMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false">영토 선택</button>
           </div>
+          <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
+            <button id="modeDraftUndoBtn" type="button" class="ui-button mode-draft-action-btn" title="작성 중 실행 취소 (Ctrl+Z)" aria-label="작성 중 실행 취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></button>
+            <button id="modeDraftRedoBtn" type="button" class="ui-button mode-draft-action-btn" title="작성 중 다시 실행 (Ctrl+Y)" aria-label="작성 중 다시 실행"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></button>
+            <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" title="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
+            <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" title="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
+          </div>
           <div class="mode-action-buttons">
             <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span></button>
             <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
@@ -365,6 +371,7 @@
               <div class="editor-action-grid editor-action-grid-two">
                 <button id="annexTerritoryBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></button>
                 <button id="mergeCountryBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>국가 합병</strong><small>여러 국가를 하나로 합치기</small></button>
+                <button id="changeCountryTypeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>종류 변경</strong><small>지역·행정구역으로 전환</small></button>
               </div>
             </section>
 
@@ -416,11 +423,12 @@
             <section class="ui-card editor-section">
               <h3 class="editor-section-title">지역 작업</h3>
               <div class="editor-action-grid editor-action-grid-two">
-                <button id="splitRegionBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>지역 나누기</strong><small>새 경계로 두 지역 만들기</small></button>
-                <button id="mergeRegionBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>인접 지역과 합치기</strong><small>같은 국가의 인접 지역 선택</small></button>
-                <button id="reassignRegionShapeBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>영역 다시 지정</strong><small>부모 안에서 안전하게 재구성</small></button>
-                <button id="transferRegionBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>다른 국가로 이전</strong><small>실제 국경도 함께 변경</small></button>
-                <button id="promoteRegionBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>새 국가로 독립</strong><small>선택 지역을 국가로 만들기</small></button>
+                <button id="splitRegionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>지역 나누기</strong><small>새 경계로 두 지역 만들기</small></button>
+                <button id="mergeRegionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>인접 지역과 합치기</strong><small>같은 국가의 인접 지역 선택</small></button>
+                <button id="reassignRegionShapeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>영역 다시 지정</strong><small>부모 안에서 안전하게 재구성</small></button>
+                <button id="transferRegionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>다른 국가로 이전</strong><small>실제 국경도 함께 변경</small></button>
+                <button id="promoteRegionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>새 국가로 독립</strong><small>선택 지역을 국가로 만들기</small></button>
+                <button id="changeRegionTypeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><strong>종류 변경</strong><small>국가·행정구역으로 전환</small></button>
               </div>
             </section>
             <section class="ui-card editor-danger-zone">
@@ -449,11 +457,12 @@
             <section class="ui-card editor-section">
               <h3 class="editor-section-title">행정구역 작업</h3>
               <div class="editor-action-grid editor-action-grid-two">
-                <button id="splitAdministrativeBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>행정구역 나누기</strong><small>부모 영역 안에서 분할</small></button>
-                <button id="mergeAdministrativeBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>인접 구역과 합치기</strong><small>같은 부모·단계만 선택</small></button>
-                <button id="reassignAdministrativeShapeBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>영역 다시 지정</strong><small>부모 밖 형상을 차단</small></button>
-                <button id="transferAdministrativeBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>다른 국가로 이전</strong><small>실제 국경도 함께 변경</small></button>
-                <button id="promoteAdministrativeBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>새 국가로 독립</strong><small>선택 구역을 국가로 만들기</small></button>
+                <button id="splitAdministrativeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>행정구역 나누기</strong><small>부모 영역 안에서 분할</small></button>
+                <button id="mergeAdministrativeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>인접 구역과 합치기</strong><small>같은 부모·단계만 선택</small></button>
+                <button id="reassignAdministrativeShapeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>영역 다시 지정</strong><small>부모 밖 형상을 차단</small></button>
+                <button id="transferAdministrativeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg></span><strong>다른 국가로 이전</strong><small>실제 국경도 함께 변경</small></button>
+                <button id="promoteAdministrativeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>새 국가로 독립</strong><small>선택 구역을 국가로 만들기</small></button>
+                <button id="changeAdministrativeTypeBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><strong>종류 변경</strong><small>국가·지역으로 전환</small></button>
               </div>
             </section>
             <section class="ui-card editor-danger-zone">
@@ -510,8 +519,8 @@
                 <div class="ui-field field-group editor-field"><label for="distributionRegionInput">기준 영역</label><select id="distributionRegionInput"></select></div>
                 <div class="ui-field field-group editor-field"><label for="distributionShareInput">비율 (%)</label><input id="distributionShareInput" type="number" min="0" max="100" step="1" value="100" /></div>
                 <div class="editor-action-grid editor-action-grid-two">
-                  <button id="addRegionDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>영역 분포 추가</strong><small>국가·지역·행정구역 참조</small></button>
-                  <button id="addGeometryDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><strong>자유 영역 그리기</strong><small>행정경계와 무관한 분포</small></button>
+                  <button id="addRegionDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영역 분포 추가</strong><small>국가·지역·행정구역 참조</small></button>
+                  <button id="addGeometryDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>자유 영역 그리기</strong><small>행정경계와 무관한 분포</small></button>
                 </div>
               </div>
             </section>
@@ -709,6 +718,23 @@
       </div>
     </section>
   </div>
+  <div id="territorialTypeModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="territorialTypeTitle">
+    <div class="confirm-modal-dim"></div>
+    <section class="confirm-modal-card territorial-type-card">
+      <h2 id="territorialTypeTitle">종류 변경</h2>
+      <p id="territorialTypeContext"></p>
+      <div class="territorial-type-fields">
+        <label class="ui-field field-group"><span>새 종류</span><select id="territorialTypeInput"><option value="country">국가</option><option value="territory">지역</option><option value="admin">행정구역</option></select></label>
+        <label id="territorialTypeSovereignRow" class="ui-field field-group hidden"><span>소속 국가</span><select id="territorialTypeSovereignInput"></select><small>국가를 지역·행정구역으로 바꾸면 영토가 이 국가에 합쳐집니다.</small></label>
+        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 지역·행정구역</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 영역에 맞춰 자동으로 정해집니다.</small></label>
+        <p id="territorialTypeImpact" class="territorial-type-impact"></p>
+      </div>
+      <div class="confirm-modal-actions">
+        <button id="territorialTypeCancelBtn" type="button" class="ui-button btn ghost">취소</button>
+        <button id="territorialTypeConfirmBtn" type="button" class="ui-button btn">종류 변경</button>
+      </div>
+    </section>
+  </div>
   <div id="historicalLibraryModal" class="gis-modal historical-library-modal hidden" role="dialog" aria-modal="true" aria-labelledby="historicalLibraryTitle">
     <div class="gis-modal-dim"></div>
     <section class="gis-modal-card historical-library-card">
@@ -781,8 +807,8 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.28.0-r3" defer></script>
-  <script src="assets/js/gis-io.js?v=0.28.0-r3" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.28.0-r3" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.28.0-r5" defer></script>
+  <script src="assets/js/gis-io.js?v=0.28.0-r5" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.28.0-r5" defer></script>
 </body>
 </html>
