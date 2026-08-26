@@ -82,7 +82,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.28.0-r1')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.28.0-r3')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -90,7 +90,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.28.0-r1');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.28.0-r3');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -475,6 +475,73 @@ test('virtualized country deletion honors lock, undo, and autosave restore', asy
   expect(errors).toEqual([]);
 });
 
+test('layer folders are grouped into scan-friendly non-collapsible categories', async ({ page }) => {
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  const categories = page.locator('.layer-category');
+  await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지도 요소', '라벨']);
+  await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '지역', '행정구역', '역사·지리 지역']);
+  await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
+  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형 음영', '지형지물']);
+  await expect(categories.nth(3).locator('.layer-folder-name')).toHaveText(['도시·지명', '국가명 라벨']);
+  await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('themed dropdowns preserve native values and search long dynamic option lists', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  const nativeSelectCount = await page.locator('select').count();
+  await expect(page.locator('.ui-select-shell')).toHaveCount(nativeSelectCount);
+  await expect(page.locator('select.ui-native-select')).toHaveCount(nativeSelectCount);
+
+  const shortControl = page.locator('#labelKindInput').locator('..').locator('.ui-select-control');
+  await expect(shortControl).toHaveJSProperty('readOnly', true);
+
+  const properties = Object.fromEntries([
+    'aw_capital', 'aw_color', 'aw_id', 'aw_name', 'aw_notes', 'aw_object_class', 'continent',
+    'editor_color', 'editor_custom', 'editor_id', 'editor_name', 'editor_original_name', 'gdp_md_est',
+    'id', 'iso_a3', 'map_date', 'name', 'name_long', 'object_class', 'pop_est',
+  ].map((key, index) => [key, index]));
+  await page.locator('#geoJsonFileInput').setInputFiles({
+    name: 'searchable-fields.geojson',
+    mimeType: 'application/geo+json',
+    buffer: Buffer.from(JSON.stringify({
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        properties,
+        geometry: { type: 'Point', coordinates: [0, 0] },
+      }],
+    })),
+  });
+  await expect(page.locator('#geoJsonTargetModal')).toBeVisible();
+
+  const nameSelect = page.locator('#geoJsonNameField');
+  const nameControl = nameSelect.locator('..').locator('.ui-select-control');
+  await expect(nameControl).toHaveJSProperty('readOnly', false);
+  await nameControl.click();
+  await nameControl.fill('name');
+  const openPopover = page.locator('.ui-select-popover:not([hidden])');
+  await expect(openPopover.getByRole('option')).toHaveText(['name', 'name_long', 'aw_name', 'editor_name', 'editor_original_name']);
+  await openPopover.getByRole('option', { name: 'name', exact: true }).click();
+  await expect(nameSelect).toHaveValue('name');
+
+  const targetSelect = page.locator('#geoJsonTargetType');
+  const targetControl = targetSelect.locator('..').locator('.ui-select-control');
+  await expect(targetControl).toHaveJSProperty('readOnly', true);
+  await targetControl.click();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#geoJsonTargetModal')).toBeVisible();
+  await expect(page.locator('.ui-select-popover:not([hidden])')).toHaveCount(0);
+  await targetControl.click();
+  await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '지역', exact: true }).click();
+  await expect(targetSelect).toHaveValue('region');
+  await expect(page.locator('#geoJsonCountryFieldRow')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('virtualized layer selection and search results preserve scroll and accessible selection state', async ({ page }) => {
   test.setTimeout(240_000);
   await page.setViewportSize(layouts[0].viewport);
@@ -598,6 +665,7 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
     await page.locator('#geoJsonTargetConfirmBtn').click();
     const folder = page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: name });
     await expect(folder).toHaveCount(1);
+    expect(await folder.evaluate(element => element.parentElement?.id)).toBe('mapElementsLayerItems');
     await expect(folder.locator('.layer-child-name')).toHaveText(name);
     return folder;
   };

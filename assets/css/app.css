@@ -805,13 +805,13 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   font-weight: var(--ui-weight-semibold);
 }
 
-:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body) {
+:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body, .ui-select-listbox) {
   scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
-:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body)::-webkit-scrollbar { width: 10px; height: 10px; }
-:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body)::-webkit-scrollbar-thumb {
+:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar { width: 10px; height: 10px; }
+:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar-thumb {
   border: 3px solid transparent; border-radius: 999px; background: var(--border-strong); background-clip: padding-box;
 }
 
@@ -1522,6 +1522,9 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
 #app[data-layout="mobile"] .editor-field input[type="text"],
 #app[data-layout="mobile"] .editor-field textarea,
 #app[data-layout="mobile"] .editor-field select { min-height: 48px; font-size: 16px; }
+#app[data-layout="mobile"] .ui-select-control,
+body[data-layout="mobile"] .ui-select-control { min-height: 48px; font-size: 16px; }
+body[data-layout="mobile"] .ui-select-option { min-height: var(--ui-touch-height); padding-block: 9px; font-size: 16px; }
 
 body[data-layout="mobile"] .confirm-modal { padding: 12px; }
 body[data-layout="mobile"] .confirm-modal-card { padding: 18px 16px; border-radius: 16px; }
@@ -1865,6 +1868,125 @@ select {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .field-group input[readonly] { color: var(--muted); background-color: var(--surface-subtle); }
+.ui-select-shell {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+.ui-native-select {
+  position: absolute !important;
+  width: 1px !important;
+  min-width: 1px !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.ui-select-control,
+.field-group .ui-select-control,
+.gis-form-grid .ui-select-control {
+  width: 100%;
+  min-height: var(--ui-control-height);
+  padding: 8px 40px 8px 11px;
+  border: 1px solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  outline: 0;
+  background: var(--surface-input);
+  color: var(--text);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-regular);
+  line-height: var(--ui-line-tight);
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease, color .14s ease;
+}
+.ui-select-shell.is-searchable .ui-select-control { cursor: text; }
+.field-group .ui-select-control[readonly],
+.gis-form-grid .ui-select-control[readonly] { background: var(--surface-input); color: var(--text); }
+.ui-select-control:hover:not(:disabled) { border-color: var(--border-strong); background: color-mix(in srgb, var(--surface-input) 82%, var(--surface-hover)); }
+.ui-select-control:focus,
+.ui-select-shell.is-open .ui-select-control {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.ui-select-control:disabled { cursor: not-allowed; color: var(--muted); background: var(--surface-subtle); opacity: .58; }
+.ui-select-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.ui-select-toggle .ui-icon { width: 18px; height: 18px; transition: transform .14s ease; }
+.ui-select-shell.is-open .ui-select-toggle { color: var(--accent-2); }
+.ui-select-shell.is-open .ui-select-toggle .ui-icon { transform: rotate(180deg); }
+.ui-select-shell.is-disabled .ui-select-toggle { opacity: .44; }
+.ui-select-popover {
+  --ui-select-list-max-height: 320px;
+  position: fixed;
+  z-index: 13050;
+  padding: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--ui-radius-panel);
+  background: var(--surface-elevated);
+  box-shadow: var(--control-shadow);
+}
+.ui-select-popover[hidden] { display: none !important; }
+.ui-select-listbox {
+  max-height: var(--ui-select-list-max-height);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.ui-select-option {
+  min-height: 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: 7px 9px;
+  border-radius: 7px;
+  color: var(--text-soft);
+  font-size: var(--ui-font-body);
+  line-height: var(--ui-line-tight);
+  cursor: pointer;
+  user-select: none;
+}
+.ui-select-option:hover,
+.ui-select-option.is-active { background: var(--surface-hover); color: var(--text-strong); }
+.ui-select-option.is-selected {
+  background: color-mix(in srgb, var(--accent-surface) 22%, transparent);
+  color: var(--text-strong);
+  font-weight: var(--ui-weight-semibold);
+}
+.ui-select-option.is-selected.is-active,
+.ui-select-option.is-selected:hover { background: color-mix(in srgb, var(--accent-surface) 34%, var(--surface-hover)); }
+.ui-select-option[aria-disabled="true"] { cursor: not-allowed; opacity: .42; }
+.ui-select-option-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-select-check { width: 18px; height: 18px; color: var(--accent-2); }
+.ui-select-empty,
+.ui-select-status {
+  margin: 0;
+  padding: 12px 10px;
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-normal);
+  text-align: center;
+}
+.ui-select-status { border-top: 1px solid var(--border); }
+.gis-modal-card .is-busy .ui-select-toggle { opacity: .58; }
 input[type="range"] {
   appearance: none;
   width: 100%;
@@ -1931,9 +2053,26 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 2px s
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--ui-space-3);
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+.layer-category {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+.layer-category-title {
+  margin: 0;
+  padding: 0 var(--ui-space-2) var(--ui-space-1);
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  font-weight: var(--ui-weight-semibold);
+  line-height: var(--ui-line-tight);
+}
+.layer-category-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 .layer-folder {
   flex: 0 0 auto;

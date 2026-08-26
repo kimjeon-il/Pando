@@ -25,6 +25,11 @@ export function createMapInputController({
 
   const distance = (left, right) => Math.max(1, Math.hypot(left.x - right.x, left.y - right.y));
 
+  function capturePointer(pointerId) {
+    try { element.setPointerCapture?.(pointerId); }
+    catch (_) { /* The pointer may already have ended outside the document. */ }
+  }
+
   function startMovement() {
     if (moving) return;
     moving = true;
@@ -41,8 +46,8 @@ export function createMapInputController({
     if (event.button > 0 || interactiveTarget(event.target)) return;
     const point = { x: event.clientX, y: event.clientY, pointerType: event.pointerType };
     pointers.set(event.pointerId, point);
-    element.setPointerCapture?.(event.pointerId);
     if (event.pointerType === 'touch' && pointers.size === 2) {
+      for (const pointerId of pointers.keys()) capturePointer(pointerId);
       const pair = [...pointers.values()];
       gesture = null;
       startMovement();
@@ -81,7 +86,10 @@ export function createMapInputController({
     if (!gesture.moved && Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) > threshold) {
       gesture.moved = true;
       gesture.panned = gesture.navigable;
-      if (gesture.panned) startMovement();
+      if (gesture.panned) {
+        capturePointer(event.pointerId);
+        startMovement();
+      }
     }
     if (!gesture.panned) return;
     panBy(event.clientX - gesture.lastX, event.clientY - gesture.lastY);
