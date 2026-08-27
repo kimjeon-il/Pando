@@ -69,8 +69,8 @@
     </header>
 
     <div class="workspace">
-      <aside id="leftPanel" class="sidebar left-panel map-sheet-surface" aria-labelledby="mapSheetTitle">
-        <div class="mobile-sheet-header map-sheet-header layer-panel-header">
+      <aside id="leftPanel" class="sidebar left-panel map-sheet-surface ui-sheet" aria-labelledby="mapSheetTitle">
+        <div class="mobile-sheet-header map-sheet-header ui-sheet-header layer-panel-header">
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="leftPanel" aria-label="레이어 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
           <strong id="mapSheetTitle">레이어</strong>
           <button id="mobileCloseLeftBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="레이어 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
@@ -78,7 +78,7 @@
         <div class="map-sheet-body map-sheet-body-layers">
           <div id="mobileProjectionSlot" class="mobile-projection-slot" aria-label="모바일 지도 투영법"></div>
 
-        <section id="layerSection" class="panel-section layer-panel-section">
+        <section id="layerSection" class="panel-section ui-panel--dense layer-panel-section">
           <label class="layer-search" for="layerSearchInput">
             <svg class="ui-icon layer-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
             <input id="layerSearchInput" type="search" placeholder="레이어 검색" autocomplete="off" />
@@ -237,8 +237,8 @@
           <div id="mapCommandToolbar" class="map-command-toolbar floating-toolbar history-empty" aria-label="지도 명령">
             <div class="create-menu-wrap">
               <button id="createMenuBtn" class="ui-button create-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
-              <div id="createMenu" class="create-menu map-sheet-surface hidden" role="menu" aria-label="지도 객체 추가">
-                <div class="create-sheet-header mobile-sheet-header map-sheet-header">
+              <div id="createMenu" class="create-menu map-sheet-surface ui-sheet ui-menu ui-popover hidden" role="menu" aria-label="지도 객체 추가">
+                <div class="create-sheet-header mobile-sheet-header map-sheet-header ui-sheet-header">
                   <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="createMenu" aria-label="추가 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
                   <strong>추가</strong>
                   <button id="mobileCloseCreateBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="추가 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
@@ -326,8 +326,8 @@
 
       </main>
 
-      <aside id="rightPanel" class="sidebar right-panel editor-panel editor-shell map-sheet-surface" aria-labelledby="editSheetTitle">
-        <header class="mobile-sheet-header editor-shell-header map-sheet-header">
+      <aside id="rightPanel" class="sidebar right-panel editor-panel editor-shell map-sheet-surface ui-sheet" aria-labelledby="editSheetTitle">
+        <header class="mobile-sheet-header editor-shell-header map-sheet-header ui-sheet-header">
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="rightPanel" aria-label="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
           <strong id="editSheetTitle">편집</strong>
           <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon editor-close-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><svg class="ui-icon editor-collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -686,21 +686,21 @@
     </div>
   </div>
   <div id="startupProbe" class="startup-probe">지도 엔진을 시작하는 중입니다. 이 문구가 계속 남아 있으면 정적 서버가 자바스크립트 또는 Worker 실행을 차단한 것입니다.</div>
-  <div id="confirmModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+  <div id="confirmModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
     <div class="confirm-modal-dim"></div>
-    <section class="confirm-modal-card">
+    <section class="confirm-modal-card ui-card">
       <h2 id="confirmModalTitle">확인</h2>
       <p id="confirmModalMessage"></p>
       <label id="confirmModalChoiceRow" class="ui-field field-group hidden"><span>처리 방식</span><select id="confirmModalChoice"></select></label>
-      <div class="confirm-modal-actions">
+      <div class="confirm-modal-actions ui-dialog-actions">
         <button id="confirmModalCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="confirmModalOkBtn" type="button" class="ui-button btn">확인</button>
       </div>
     </section>
   </div>
-  <div id="geoJsonTargetModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="geoJsonTargetTitle">
+  <div id="geoJsonTargetModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="geoJsonTargetTitle">
     <div class="confirm-modal-dim"></div>
-    <section class="confirm-modal-card geojson-target-card">
+    <section class="confirm-modal-card ui-card geojson-target-card">
       <h2 id="geoJsonTargetTitle">GeoJSON 가져오기</h2>
       <div class="geojson-target-fields">
         <label class="ui-field field-group"><span>대상 유형</span><select id="geoJsonTargetType"><option value="drawing">기존 지형지물</option><option value="region">지역</option><option value="administrative">행정구역</option><option value="historicalRegion">역사·지리 지역</option><option value="language">언어 분포</option><option value="ethnicity">민족 분포</option><option value="religion">종교 분포</option></select></label>
@@ -709,27 +709,27 @@
         <label id="geoJsonParentFieldRow" class="ui-field field-group hidden"><span>상위 영역 필드</span><select id="geoJsonParentField"></select></label>
         <label id="geoJsonLevelFieldRow" class="ui-field field-group hidden"><span>행정 단계 필드</span><select id="geoJsonLevelField"></select></label>
       </div>
-      <div class="confirm-modal-actions">
+      <div class="confirm-modal-actions ui-dialog-actions">
         <button id="geoJsonTargetCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="geoJsonTargetConfirmBtn" type="button" class="ui-button btn">가져오기</button>
       </div>
     </section>
   </div>
-  <div id="countryRegionCreateModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="countryRegionCreateTitle">
+  <div id="countryRegionCreateModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="countryRegionCreateTitle">
     <div class="confirm-modal-dim"></div>
-    <section class="confirm-modal-card">
+    <section class="confirm-modal-card ui-card">
       <h2 id="countryRegionCreateTitle">지역 추가</h2>
       <p id="countryRegionCreateContext"></p>
       <label class="ui-field field-group"><span>생성 방법</span><select id="countryRegionCreateMethod"><option value="split">기존 영역 나누기</option><option value="draw">영역 직접 지정</option><option value="geojson">GeoJSON에서 가져오기</option></select></label>
-      <div class="confirm-modal-actions">
+      <div class="confirm-modal-actions ui-dialog-actions">
         <button id="countryRegionCreateCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="countryRegionCreateConfirmBtn" type="button" class="ui-button btn">시작</button>
       </div>
     </section>
   </div>
-  <div id="territorialTypeModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="territorialTypeTitle">
+  <div id="territorialTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="territorialTypeTitle">
     <div class="confirm-modal-dim"></div>
-    <section class="confirm-modal-card territorial-type-card">
+    <section class="confirm-modal-card ui-card territorial-type-card">
       <h2 id="territorialTypeTitle">종류 변경</h2>
       <p id="territorialTypeContext"></p>
       <div class="territorial-type-fields">
@@ -738,15 +738,15 @@
         <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 지역·행정구역</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 영역에 맞춰 자동으로 정해집니다.</small></label>
         <p id="territorialTypeImpact" class="territorial-type-impact"></p>
       </div>
-      <div class="confirm-modal-actions">
+      <div class="confirm-modal-actions ui-dialog-actions">
         <button id="territorialTypeCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="territorialTypeConfirmBtn" type="button" class="ui-button btn">종류 변경</button>
       </div>
     </section>
   </div>
-  <div id="historicalLibraryModal" class="gis-modal historical-library-modal hidden" role="dialog" aria-modal="true" aria-labelledby="historicalLibraryTitle">
+  <div id="historicalLibraryModal" class="gis-modal ui-dialog historical-library-modal hidden" role="dialog" aria-modal="true" aria-labelledby="historicalLibraryTitle">
     <div class="gis-modal-dim"></div>
-    <section class="gis-modal-card historical-library-card">
+    <section class="gis-modal-card ui-card historical-library-card">
       <header class="gis-modal-header">
         <div><span class="gis-modal-kicker">원본과 프로젝트 인스턴스 분리</span><h2 id="historicalLibraryTitle">역사 지리 라이브러리</h2></div>
         <button id="historicalLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
@@ -773,9 +773,9 @@
       </footer>
     </section>
   </div>
-  <div id="gisImportModal" class="gis-modal hidden" role="dialog" aria-modal="true" aria-labelledby="gisImportTitle">
+  <div id="gisImportModal" class="gis-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="gisImportTitle">
     <div class="gis-modal-dim"></div>
-    <section class="gis-modal-card">
+    <section class="gis-modal-card ui-card">
       <header class="gis-modal-header">
         <div>
           <span class="gis-modal-kicker">QGIS 벡터 가져오기</span>
@@ -799,7 +799,7 @@
           <label id="gisMergeStrategyRow" class="ui-field field-group hidden"><span>병합 방식</span><select id="gisMergeStrategy"><option value="id-replace">ID 기준 교체</option><option value="imported-wins">가져온 영토 우선</option></select></label>
         </div>
         <p class="gis-security-note">QGS/QGZ의 매크로·스크립트·플러그인은 실행하지 않습니다. 원격·DB·래스터 레이어는 제외됩니다.</p>
-        <div class="gis-modal-actions">
+        <div class="gis-modal-actions ui-dialog-actions">
           <button type="button" class="ui-button btn ghost" data-gis-cancel="true">취소</button>
           <button id="gisImportConfirmBtn" type="button" class="ui-button btn" disabled>선택 레이어 열기</button>
         </div>

@@ -51,7 +51,7 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
     def test_virtualized_rows_share_the_same_delete_button_factory(self):
         virtualized = APP[APP.index("function renderVirtualizedLayerGroup"):APP.index("function renderTerrainLayerFolder")]
         self.assertIn("createLayerItemRow(group, items[index])", virtualized)
-        self.assertIn("grid-template-columns: 18px minmax(0, 1fr) auto var(--ui-control-height)", CSS)
+        self.assertIn("grid-template-columns: var(--ui-tree-check-size) minmax(0, 1fr) auto var(--ui-tree-action-size)", CSS)
         self.assertIn("#app[data-layout=\"mobile\"] .layer-child-delete", CSS)
         self.assertIn('symbol id="icon-trash"', INDEX)
 

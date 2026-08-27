@@ -21,17 +21,18 @@ class EditorLayoutV0163Tests(unittest.TestCase):
         self.assertIn("right: 0;", CSS)
         self.assertIn("left: 0;", CSS)
         self.assertIn(".status-inner {", CSS)
-        self.assertGreaterEqual(CSS.count("bottom: 42px;"), 3)
+        self.assertGreaterEqual(CSS.count("bottom: var(--ui-control-height);"), 2)
         self.assertIn("bottom: var(--mobile-nav-height);", CSS)
-        self.assertIn("border-radius: 16px 16px 0 0;", CSS)
+        self.assertIn("border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;", CSS)
 
     def test_editor_density_is_compact_without_shrinking_controls(self):
         self.assertIn(".editor-view {", CSS)
-        self.assertIn("gap: 12px;", CSS)
-        self.assertIn("padding: 0 16px 16px;", CSS)
+        self.assertIn("gap: var(--ui-field-gap);", CSS)
+        self.assertIn("padding: 0 var(--ui-panel-padding) var(--ui-panel-padding);", CSS)
         self.assertIn(".editor-section,\n.editor-danger-zone {", CSS)
         self.assertIn(".editor-action-button {", CSS)
-        self.assertIn('#app[data-layout="mobile"] .editor-field input[type="text"]', CSS)
+        self.assertIn('--ui-control-height: 42px;', CSS)
+        self.assertIn('--ui-touch-height: 48px;', CSS)
 
 
 if __name__ == "__main__":

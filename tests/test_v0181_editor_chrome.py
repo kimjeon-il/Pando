@@ -43,8 +43,8 @@ class EditorChromeTests(unittest.TestCase):
     def test_close_control_keeps_side_spacing_and_adds_top_spacing(self):
         self.assertIn('.editor-shell-header {', CSS)
         editor_header_rules = CSS[CSS.index('\n.editor-shell-header {'):]
-        self.assertIn('min-height: 74px;', editor_header_rules[:260])
-        self.assertIn('padding: 16px;', editor_header_rules[:260])
+        self.assertIn('min-height: var(--ui-sheet-header-height-compact);', editor_header_rules[:320])
+        self.assertIn('padding: var(--ui-panel-padding);', editor_header_rules[:320])
         self.assertIn('.editor-shell-header .sheet-close-btn {', CSS)
         self.assertNotIn('right: calc(-1 * var(--ui-space-3));', CSS)
 
