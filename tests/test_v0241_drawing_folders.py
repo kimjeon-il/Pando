@@ -19,14 +19,14 @@ class V0241DrawingFolderTests(unittest.TestCase):
     def test_geojson_import_creates_a_file_folder_and_assigns_every_feature(self):
         importer = APP[APP.index("async function importGeoJson"):APP.index("function exportDrawingsGeoJson")]
         self.assertIn("createImportedDrawingFolder(file.name)", importer)
-        self.assertIn("aw_folder_id: folder.id", importer)
+        self.assertIn("pandolab_folder_id: folder.id", importer)
         self.assertIn("state.drawingFolders.push(folder)", importer)
         self.assertIn("state.drawings.push(...supported)", importer)
 
     def test_editor_can_move_drawings_between_drawing_folders(self):
         self.assertIn('id="drawingFolderInput"', INDEX)
-        self.assertIn("{ id: 'drawingFolderInput', field: 'aw_folder_id', commit: commitDrawingMeta }", APP)
-        self.assertIn("if (value === DEFAULT_DRAWING_FOLDER_ID) delete f.properties.aw_folder_id", APP)
+        self.assertIn("{ id: 'drawingFolderInput', field: 'pandolab_folder_id', commit: commitDrawingMeta }", APP)
+        self.assertIn("if (value === DEFAULT_DRAWING_FOLDER_ID) delete f.properties.pandolab_folder_id", APP)
         self.assertIn("pruneAutoDrawingFolders();", APP)
 
     def test_dynamic_folders_reuse_the_common_layer_folder_components(self):

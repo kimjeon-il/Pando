@@ -8,6 +8,7 @@ async function openApp(page) {
   });
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   return errors;
 }
@@ -31,8 +32,8 @@ test('a language layer stores a region share and survives undo and redo', async 
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
   const stored = await page.evaluate(() => {
-    const layer = window.ATLASWRIGHT_DISTRIBUTIONS.listLayers('language')[0];
-    return { layer, entries: window.ATLASWRIGHT_DISTRIBUTIONS.listEntries(layer.id) };
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers('language')[0];
+    return { layer, entries: window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id) };
   });
   expect(stored.layer.name).toBe('그리스어');
   expect(stored.entries).toHaveLength(1);

@@ -2,11 +2,9 @@
 
 ((scope) => {
   const MAX_RENDER_EDGE_DEGREES = 0.499;
-  const REFINEMENT_EDGE_DEGREES = MAX_RENDER_EDGE_DEGREES - 0.000002;
   const MAX_REFINEMENT_PASSES = 40;
   const MESH_ALGORITHM_REVISION = 3;
   const DEG_TO_RAD = Math.PI / 180;
-  const MIN_EDGE_DOT = Math.cos(REFINEMENT_EDGE_DEGREES * DEG_TO_RAD);
   const PARAM_EPSILON = 1e-12;
   const AREA_EPSILON = 1e-20;
 
@@ -148,8 +146,9 @@
     return cleanGeo.length >= 3 ? { geo: cleanGeo, parameter } : null;
   }
 
-  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate) {
+  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate, maxEdgeDegrees = MAX_RENDER_EDGE_DEGREES) {
     const vectors = geoPoints.map(unitVector);
+    const minimumEdgeDot = Math.cos(Math.max(0.01, Number(maxEdgeDegrees) - 0.000002) * DEG_TO_RAD);
     let triangles = [];
     for (let index = 0; index < sourceTriangles.length; index += 3) {
       const a = sourceTriangles[index];
@@ -165,7 +164,7 @@
       const vb = vectors[b];
       return va[0] * vb[0] + va[1] * vb[1] + va[2] * vb[2];
     };
-    const edgeNeedsSplit = (a, b) => edgeDot(a, b) < MIN_EDGE_DOT - 1e-14;
+    const edgeNeedsSplit = (a, b) => edgeDot(a, b) < minimumEdgeDot - 1e-14;
 
     for (let pass = 0; pass < MAX_REFINEMENT_PASSES; pass += 1) {
       const splitEdges = new Map();
@@ -353,6 +352,9 @@
   function buildGpuMeshFeatures(features, earcutImpl, options = {}) {
     if (typeof earcutImpl !== 'function') throw new Error('GPU 삼각분할 엔진이 없습니다.');
     const validate = !!options.validate;
+    const maxEdgeDegrees = Number.isFinite(Number(options.maxEdgeDegrees))
+      ? Math.max(MAX_RENDER_EDGE_DEGREES, Number(options.maxEdgeDegrees))
+      : MAX_RENDER_EDGE_DEGREES;
     const positions = [];
     const countryIndices = [];
     const triangleIndices = [];
@@ -409,6 +411,7 @@
           earcutImpl(parameterFlat, holes, 2),
           parameterSpace,
           validate,
+          maxEdgeDegrees,
         );
         localTriangles = unwrapTriangleLongitudes(geoPoints, localTriangles);
         const packedTriangles = removePackedDegenerateTriangles(geoPoints, localTriangles, parameterSpace);
@@ -449,7 +452,7 @@
       }
     }
 
-    if (stats.maxEdgeDegrees > MAX_RENDER_EDGE_DEGREES + 1e-9) {
+    if (stats.maxEdgeDegrees > maxEdgeDegrees + 1e-9) {
       throw new Error(`GPU 메시 최대 구면 변 길이 초과: ${stats.maxEdgeDegrees.toFixed(6)}°`);
     }
 
@@ -469,6 +472,6 @@
     isArtificialPolarClosureEdge,
     buildGpuMeshFeatures,
   };
-  scope.AtlasWrightGpuMeshCore = api;
+  scope.PandoLabGpuMeshCore = api;
   if (typeof module === 'object' && module?.exports) module.exports = api;
 })(typeof self !== 'undefined' ? self : globalThis);

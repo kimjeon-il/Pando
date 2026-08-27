@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Calibrate HydroRIVERS/HydroLAKES to AtlasWright's Natural Earth density.
+"""Calibrate HydroRIVERS/HydroLAKES to PandoLab's Natural Earth density.
 
 This is an analysis-only tool. It never writes into ``assets/data``.  The
 selected Hydro geometries retain every source vertex; the only object-count
@@ -946,9 +946,9 @@ def write_report(results: dict[str, Any], output: Path) -> None:
     river_formula = results["formula"]["rivers"]
     lake_formula = results["formula"]["lakes"]
     chain = results["worldEstimate"]["riverChaining"]
-    report = f"""# AtlasWright 수계 자료 캘리브레이션 보고서
+    report = f"""# 판도연구소 수계 자료 캘리브레이션 보고서
 
-이 보고서는 Natural Earth 전 세계 기본 수계를 유지한 상태에서 HydroRIVERS/HydroLAKES 보충 후보를 유럽·북미·호주의 Natural Earth 1:10m 보충 레이어와 같은 화면 밀도로 맞춘 분석 결과입니다. AtlasWright 실행 자산은 교체하지 않았습니다.
+이 보고서는 Natural Earth 전 세계 기본 수계를 유지한 상태에서 HydroRIVERS/HydroLAKES 보충 후보를 유럽·북미·호주의 Natural Earth 1:10m 보충 레이어와 같은 화면 밀도로 맞춘 분석 결과입니다. 판도연구소 실행 자산은 교체하지 않았습니다.
 
 ## 결론
 
@@ -1048,7 +1048,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--hydrorivers-root", type=Path, action="append", required=True, help="Repeatable root containing continental HydroRIVERS shapefiles")
     parser.add_argument("--hydrolakes", type=Path, required=True, help="HydroLAKES_polys_v10.shp or its parent directory")
-    parser.add_argument("--natural-earth-root", type=Path, required=True, help="AtlasWright assets/data/hydro directory")
+    parser.add_argument("--natural-earth-root", type=Path, required=True, help="PandoLab assets/data/hydro directory")
     parser.add_argument("--output", type=Path, required=True, help="Analysis output directory (must not be inside assets/data)")
     return parser.parse_args()
 
@@ -1126,7 +1126,7 @@ def main() -> None:
 
     results: dict[str, Any] = {
         "schemaVersion": 1,
-        "purpose": "analysis-only; AtlasWright runtime hydro assets are not modified",
+        "purpose": "analysis-only; PandoLab runtime hydro assets are not modified",
         "stages": STAGES,
         "formula": {
             "rivers": {

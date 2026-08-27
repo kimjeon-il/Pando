@@ -6,7 +6,7 @@ const layouts = [
   { name: 'mobile', viewport: { width: 390, height: 844 } },
 ];
 
-async function openApp(page) {
+async function openApp(page, { waitForCanonical = true } = {}) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -23,6 +23,7 @@ async function openApp(page) {
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
+  if (waitForCanonical) await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 30_000 });
   return errors;
 }
 
@@ -54,7 +55,7 @@ test('a stale HTML shell recovers once through the current asset revision', asyn
     const response = await route.fetch();
     const freshHtml = await response.text();
     const body = shellRequests === 1
-      ? freshHtml.replace('data-app-version="0.28.0"', 'data-app-version="0.24.0"')
+      ? freshHtml.replace('data-app-version="0.29.0"', 'data-app-version="0.24.0"')
       : freshHtml;
     await route.fulfill({ response, body });
   });
@@ -62,7 +63,7 @@ test('a stale HTML shell recovers once through the current asset revision', asyn
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   expect(shellRequests).toBe(2);
-  expect(new URL(page.url()).searchParams.has('_aw_cache')).toBe(false);
+  expect(new URL(page.url()).searchParams.has('_pandolab_cache')).toBe(false);
   expect(errors).toEqual([]);
 });
 
@@ -82,7 +83,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.28.0-r5')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.29.0-r2')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -90,7 +91,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.28.0-r5');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.29.0-r2');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -180,6 +181,31 @@ test('wide keeps layers visible while the add popover opens', async ({ page }) =
   await expect(page.locator('#createMenu')).not.toHaveClass(/hidden/);
   await expect(page.locator('#leftPanel')).toBeVisible();
   await expect(page.locator('#createMenuBtn')).toHaveAttribute('aria-expanded', 'true');
+  expect(errors).toEqual([]);
+});
+
+test('brand frame stays empty and every add action renders a unique icon', async ({ page }) => {
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  await expect(page).toHaveTitle('판도연구소 — 국가와 국경을 만드는 세계지도 편집기');
+  await expect(page.locator('.brand > div:last-child strong')).toHaveText('판도연구소');
+  const brandMark = page.locator('.brand-mark');
+  await expect(brandMark).toBeVisible();
+  expect(await brandMark.evaluate(element => element.childElementCount)).toBe(0);
+  const brandBox = await brandMark.boundingBox();
+  expect(brandBox?.width).toBe(34);
+  expect(brandBox?.height).toBe(34);
+
+  await page.locator('#createMenuBtn').click();
+  const iconHrefs = await page.locator('#createMenu .create-menu-item use').evaluateAll(elements => (
+    elements.map(element => element.getAttribute('href'))
+  ));
+  expect(iconHrefs).toHaveLength(10);
+  expect(new Set(iconHrefs).size).toBe(10);
+  for (const href of iconHrefs) {
+    expect(href).toMatch(/^#icon-/);
+    await expect(page.locator(`symbol${href}`)).toHaveCount(1);
+  }
   expect(errors).toEqual([]);
 });
 
@@ -288,6 +314,74 @@ test('wide editor remains the only active surface after switching to compact', a
   expect(errors).toEqual([]);
 });
 
+test('toolbar projection segments fill the common icon-button geometry while mobile keeps its segmented frame', async ({ page }) => {
+  for (const pattern of ['**/countries-ne-5.1.1.geojson*', '**/world-mesh-v0.12.6.bin.gz*']) {
+    await page.route(pattern, route => route.abort('failed'));
+  }
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page, { waitForCanonical: false });
+  const measureToolbar = () => page.evaluate(() => {
+    const reference = document.querySelector('#zoomOutBtn').getBoundingClientRect();
+    const control = document.querySelector('#projectionControl');
+    const controlBox = control.getBoundingClientRect();
+    const controlStyle = getComputedStyle(control);
+    const segments = ['#globeBtn', '#flatBtn'].map(selector => {
+      const button = document.querySelector(selector);
+      const box = button.getBoundingClientRect();
+      return {
+        width: box.width,
+        height: box.height,
+        borderRadius: getComputedStyle(button).borderRadius,
+      };
+    });
+    return {
+      reference: { width: reference.width, height: reference.height },
+      control: {
+        width: controlBox.width,
+        height: controlBox.height,
+        borderWidth: controlStyle.borderTopWidth,
+        padding: controlStyle.padding,
+      },
+      segments,
+    };
+  });
+
+  for (const layout of layouts.slice(0, 2)) {
+    await page.setViewportSize(layout.viewport);
+    await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name);
+    for (const colorScheme of ['light', 'dark']) {
+      await page.emulateMedia({ colorScheme });
+      const geometry = await measureToolbar();
+      expect(geometry.control.borderWidth).toBe('0px');
+      expect(geometry.control.padding).toBe('0px');
+      expect(Math.abs(geometry.control.width - geometry.reference.width * 2)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(geometry.control.height - geometry.reference.height)).toBeLessThanOrEqual(0.5);
+      for (const segment of geometry.segments) {
+        expect(Math.abs(segment.width - geometry.reference.width)).toBeLessThanOrEqual(0.5);
+        expect(Math.abs(segment.height - geometry.reference.height)).toBeLessThanOrEqual(0.5);
+        expect(segment.borderRadius).toBe('8px');
+      }
+    }
+  }
+
+  await page.locator('#flatBtn').click();
+  await expect(page.locator('#flatBtn')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#globeBtn')).toHaveAttribute('aria-pressed', 'false');
+
+  await page.setViewportSize(layouts[2].viewport);
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  const mobile = await page.locator('#projectionControl').evaluate(control => {
+    const style = getComputedStyle(control);
+    return {
+      host: control.parentElement?.id,
+      borderWidth: style.borderTopWidth,
+      padding: style.padding,
+    };
+  });
+  expect(mobile).toEqual({ host: 'mobileProjectionSlot', borderWidth: '1px', padding: '3px' });
+  expect(errors).toEqual([]);
+});
+
 test('common row buttons, headers, cards, and checkboxes keep their component geometry', async ({ page }) => {
   test.setTimeout(120_000);
   for (const layout of layouts) {
@@ -393,7 +487,7 @@ test('terrain retries a transient high-resolution tile failure and reaches the t
   });
   const errors = await openApp(page);
   await expect.poll(async () => page.evaluate(() => {
-    const metrics = window.__ATLASWRIGHT_GPU_METRICS__ || {};
+    const metrics = window.__PANDOLAB_GPU_METRICS__ || {};
     return metrics.terrainTargetTileCount > 0
       && metrics.terrainTargetTilesLoaded === metrics.terrainTargetTileCount
       && metrics.terrainRenderedLevel === metrics.terrainLevel;
@@ -409,7 +503,7 @@ test('mouse, wheel, touch pan, pinch, and double tap all advance map frames', as
   const errors = await openApp(page);
   const svg = page.locator('#map .map-svg');
   const box = await svg.boundingBox();
-  const revision = () => page.evaluate(() => window.__ATLASWRIGHT_VIEW_REVISION__ || 0);
+  const revision = () => page.evaluate(() => window.__PANDOLAB_VIEW_REVISION__ || 0);
   let before = await revision();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
@@ -447,12 +541,13 @@ test('mouse, wheel, touch pan, pinch, and double tap all advance map frames', as
 });
 
 test('virtualized country deletion honors lock, undo, and autosave restore', async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   await page.locator('[data-layer-folder-toggle="countries"]').first().click();
   const firstRow = page.locator('#countriesLayerChildren .layer-child').first();
   const name = await firstRow.locator('.layer-child-name').textContent();
+  const countryId = await firstRow.getAttribute('data-item-id');
   await page.locator('#countriesLocked').check({ force: true });
   await expect(firstRow.locator('.layer-child-delete')).toBeDisabled();
   await page.locator('#countriesLocked').uncheck({ force: true });
@@ -466,9 +561,27 @@ test('virtualized country deletion honors lock, undo, and autosave restore', asy
   await page.locator('#undoBtn').click();
   await expect(page.getByRole('button', { name, exact: true })).toBeVisible();
   await deleteCountry();
-  await page.waitForTimeout(900);
+  await expect.poll(() => page.evaluate(async expectedId => {
+    const database = await new Promise((resolve, reject) => {
+      const request = indexedDB.open('pandolab-editor-v010', 2);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      const project = await new Promise((resolve, reject) => {
+        const transaction = database.transaction('projects', 'readonly');
+        const request = transaction.objectStore('projects').get('active-project');
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+      return project?.countryDelta?.removedIds?.map(String).includes(String(expectedId)) === true;
+    } finally {
+      database.close();
+    }
+  }, countryId), { message: 'country deletion should reach autosave before reload', timeout: 10_000 }).toBe(true);
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 90_000 });
   const countryFolderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await countryFolderToggle.getAttribute('aria-expanded') !== 'true') await countryFolderToggle.click();
   await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
@@ -500,7 +613,7 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   await expect(shortControl).toHaveJSProperty('readOnly', true);
 
   const properties = Object.fromEntries([
-    'aw_capital', 'aw_color', 'aw_id', 'aw_name', 'aw_notes', 'aw_object_class', 'continent',
+    'pandolab_capital', 'pandolab_color', 'pandolab_id', 'pandolab_name', 'pandolab_notes', 'pandolab_object_class', 'continent',
     'editor_color', 'editor_custom', 'editor_id', 'editor_name', 'editor_original_name', 'gdp_md_est',
     'id', 'iso_a3', 'map_date', 'name', 'name_long', 'object_class', 'pop_est',
   ].map((key, index) => [key, index]));
@@ -524,7 +637,7 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   await nameControl.click();
   await nameControl.fill('name');
   const openPopover = page.locator('.ui-select-popover:not([hidden])');
-  await expect(openPopover.getByRole('option')).toHaveText(['name', 'name_long', 'aw_name', 'editor_name', 'editor_original_name']);
+  await expect(openPopover.getByRole('option')).toHaveText(['name', 'name_long', 'editor_name', 'editor_original_name', 'pandolab_name']);
   await openPopover.getByRole('option', { name: 'name', exact: true }).click();
   await expect(nameSelect).toHaveValue('name');
 

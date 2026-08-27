@@ -183,7 +183,7 @@ def decode_pack(raw: bytes, pack_id: int, metadata: dict[int, dict]):
             "width": width,
             "flags": flags,
             "bounds": bounds,
-            "aw_id": meta["awId"],
+            "pandolab_id": meta["awId"],
             "name": meta["name"],
             "source": meta["source"],
             "layer_id": meta["layerId"],
@@ -226,7 +226,7 @@ class HydroTileTests(unittest.TestCase):
 
     def test_manifest_index_and_shards_stay_within_limits(self):
         self.assertEqual(self.manifest["version"], "0.12.6")
-        self.assertEqual(self.manifest["schema"], "atlaswright-water-shards-v4")
+        self.assertEqual(self.manifest["schema"], "pandolab-water-shards-v4")
         self.assertLess(self.manifest_path.stat().st_size, 100 * 1024)
         self.assertLess((DATA / self.manifest["index"]["url"]).stat().st_size, 100 * 1024)
         self.assertEqual(self.manifest["metadata"]["featureCount"], self.manifest["stats"]["featureCount"])
@@ -259,7 +259,7 @@ class HydroTileTests(unittest.TestCase):
         self.assertEqual(sum(feature["coordinate_count"] for feature in lakes), 162852)
         self.assertEqual({feature["layer_id"] for feature in lakes}, {"lakes_natural_earth"})
         self.assertTrue(all(feature["source"] == "Natural Earth 5.0.0 1:10m" for feature in lakes))
-        self.assertTrue(all(not feature["aw_id"].startswith("hydro-lake:") for feature in lakes))
+        self.assertTrue(all(not feature["pandolab_id"].startswith("hydro-lake:") for feature in lakes))
         source = ROOT / "assets" / "data" / "hydro" / "lakes_base.geojson"
         self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), self.manifest["sources"]["naturalEarthLakes"]["sha256"])
 
@@ -272,7 +272,7 @@ class HydroTileTests(unittest.TestCase):
             groups[feature["logical_fid"]].append(feature)
             self.assertEqual(feature["stage"], feature["pack_stage"])
         for logical_fid, fragments in groups.items():
-            self.assertEqual({row["aw_id"] for row in fragments}, {fragments[0]["aw_id"]})
+            self.assertEqual({row["pandolab_id"] for row in fragments}, {fragments[0]["pandolab_id"]})
             self.assertEqual(sorted(row["fragment_index"] for row in fragments), list(range(fragments[0]["fragment_count"])))
             self.assertIn(logical_fid, self.logical_index)
 

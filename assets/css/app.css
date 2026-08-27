@@ -385,6 +385,9 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
 .vertex-handle:hover { r: 6px; }
 .draft-shape { fill: rgba(205,169,93,.14); stroke: #e2c982; stroke-width: 2px; stroke-dasharray: 5 4; pointer-events: none; }
+.draft-shape.draft-raw-stroke { fill: none; stroke: var(--accent); stroke-width: 2.5px; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.draft-auto-close-preview { fill: none; stroke: var(--accent); stroke-width: 1.8px; stroke-dasharray: 4 4; opacity: .72; pointer-events: none; vector-effect: non-scaling-stroke; }
+#map.draft-stroke-active { cursor: crosshair; touch-action: none; }
 .draft-interactive { pointer-events: all; }
 .draft-vertex { cursor: move; }
 .draft-vertex-hit { fill: transparent; stroke: none; }
@@ -556,8 +559,14 @@ body.modal-open { overflow: hidden; }
 .floating-toolbar #resetViewBtn { font-size: 14px; }
 
 
-/* AtlasWright split-site bootstrap */
+/* PandoLab split-site bootstrap */
 body.is-loading #app { pointer-events: none; user-select: none; }
+#app[data-readiness="preview"] [aria-disabled="true"],
+#app[data-readiness="error"] [aria-disabled="true"] {
+  cursor: progress;
+  opacity: 0.52;
+}
+#app[data-readiness="error"] [aria-disabled="true"] { cursor: not-allowed; }
 .bootstrap-loading {
   position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center;
   background: var(--bootstrap-backdrop); backdrop-filter: blur(3px);
@@ -635,7 +644,7 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   white-space: pre-line;
 }
 
-/* ===== AtlasWright v0.11.1: canonical responsive UI ===== */
+/* ===== PandoLab v0.11.1: canonical responsive UI ===== */
 .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
 .ui-icon {
   width: 18px; height: 18px; display: block; flex: 0 0 auto;
@@ -779,7 +788,7 @@ body { font-size: var(--ui-font-body); }
 }
 .gis-modal-kicker, .gis-form-grid .field-group > span, .gis-check { font-size: var(--ui-font-body); }
 .gis-source-report, .gis-form-grid small, .gis-security-note { font-size: var(--ui-font-caption); }
-/* ===== AtlasWright v0.15.0: semantic typography, controls, and stable scroll layout ===== */
+/* ===== PandoLab v0.15.0: semantic typography, controls, and stable scroll layout ===== */
 body {
   font-family: var(--ui-font-family);
   font-size: var(--ui-font-md);
@@ -881,7 +890,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   color: var(--text-strong);
 }
 
-/* ===== AtlasWright v0.14.4: unified segmented controls ===== */
+/* ===== PandoLab v0.14.4: unified segmented controls ===== */
 .mode-action-bar.has-method-switch { justify-content: center; }
 .mode-method-switch.hidden { display: none !important; }
 .mode-method-btn {
@@ -903,7 +912,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .mode-action-buttons .ui-icon { width: 17px; height: 17px; }
 .mode-action-bar:not(.has-method-switch) .mode-action-buttons { justify-content: center; }
 
-/* ===== AtlasWright v0.14.2: projection controls and renderer status placement ===== */
+/* ===== PandoLab v0.14.2: projection controls and renderer status placement ===== */
 .projection-toolbar-slot { display: flex; align-items: center; }
 .projection-btn {
   width: 100%;
@@ -962,7 +971,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 #app[data-layout="mobile"] .projection-btn > span { display: inline; }
 #app[data-layout="mobile"] .map-bottom-status .engine-status { display: none; }
 
-/* ===== AtlasWright v0.15.1: compact projection, search icon, and mobile controls ===== */
+/* ===== PandoLab v0.15.1: compact projection, search icon, and mobile controls ===== */
 #app[data-layout="mobile"] .mobile-zoom-dock button,
 #app[data-layout="mobile"] .mobile-sheet-header button {
   appearance: none;
@@ -996,7 +1005,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 #app[data-layout="mobile"] .mobile-sheet-header .sheet-close-btn .ui-icon { width: 20px; height: 20px; }
 
-/* ===== AtlasWright v0.18.1: map-first responsive workspace ===== */
+/* ===== PandoLab v0.18.1: map-first responsive workspace ===== */
 .workspace {
   --panel-left-width: clamp(296px, 20vw, 336px);
   --panel-right-width: clamp(360px, 28vw, 420px);
@@ -1566,7 +1575,7 @@ body[data-layout="mobile"] .gis-modal-header .icon-btn { width: var(--ui-touch-h
 body[data-layout="mobile"] .gis-form-grid { grid-template-columns: 1fr; }
 body[data-layout="mobile"] .gis-wide { grid-column: 1; }
 
-/* ===== AtlasWright v0.18.1: unified interaction and component system ===== */
+/* ===== PandoLab v0.18.1: unified interaction and component system ===== */
 :root {
   --ui-icon-size: 20px;
   --ui-icon-size-sm: 16px;
@@ -1722,6 +1731,13 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
   padding: 1px;
   gap: 0;
 }
+.map-view-toolbar .projection-control {
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+}
+.map-view-toolbar .projection-btn { border-radius: var(--ui-radius-control) !important; }
 .mode-method-switch { width: 248px; height: var(--ui-control-height); flex: 0 0 auto; }
 .ui-segment-option {
   width: 100%;
@@ -2636,7 +2652,7 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 [data-theme="dark"] .mode-task-instruction.cut-valid { color: #77d39a; }
 [data-theme="dark"] .mode-task-instruction.cut-invalid { color: #ff8d8d; }
 
-/* ===== AtlasWright v0.19.0: shared editor shell and components ===== */
+/* ===== PandoLab v0.19.0: shared editor shell and components ===== */
 .editor-shell {
   display: flex;
   flex-direction: column;
@@ -2978,7 +2994,7 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   .editor-inline-action-button { width: 100%; }
 }
 
-/* ===== AtlasWright v0.23.0: unified navigation surfaces ===== */
+/* ===== PandoLab v0.23.0: unified navigation surfaces ===== */
 .layer-panel-header { display: flex; }
 .layer-panel-section,
 .map-sheet-body-layers {

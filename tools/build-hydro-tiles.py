@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.13.0 connected river systems and Natural Earth lake shards.
+"""Build PandoLab v0.13.0 connected river systems and Natural Earth lake shards.
 
 HydroRIVERS provides canonical river geometry. Natural Earth provides the
 global 1:10m lake geometry and enriches matched river names. Optional OSM
@@ -71,7 +71,7 @@ def remove_readonly(function, path: str, _error: object) -> None:
 class BuiltFeature:
     fid: int
     logical_fid: int
-    aw_id: str
+    pandolab_id: str
     layer_id: str
     category: str
     stage: int
@@ -351,7 +351,7 @@ def merge_ne_river_parts(features: list[dict[str, Any]]) -> list[dict[str, Any]]
     groups: dict[str, dict[str, Any]] = {}
     for index, raw in enumerate(features):
         properties = dict(raw.get("properties") or {})
-        key = str(properties.get("aw_id") or raw.get("id") or f"ne-river-row:{index}")
+        key = str(properties.get("pandolab_id") or raw.get("id") or f"ne-river-row:{index}")
         if key not in groups:
             groups[key] = {
                 "feature": {"type": "Feature", "id": key, "properties": properties, "geometry": None},
@@ -1509,11 +1509,11 @@ def encode_width_profile(feature: BuiltFeature) -> bytes:
     parts = feature.width_profile or []
     geometry_parts = line_parts(feature.geometry)
     if len(parts) != len(geometry_parts):
-        raise ValueError(f"{feature.aw_id}: 강 너비 part 수가 지오메트리와 다릅니다.")
+        raise ValueError(f"{feature.pandolab_id}: 강 너비 part 수가 지오메트리와 다릅니다.")
     output = bytearray(encode_uvarint(len(parts)))
     for widths, points in zip(parts, geometry_parts):
         if len(widths) != len(points):
-            raise ValueError(f"{feature.aw_id}: 강 너비 꼭짓점 수가 지오메트리와 다릅니다.")
+            raise ValueError(f"{feature.pandolab_id}: 강 너비 꼭짓점 수가 지오메트리와 다릅니다.")
         output.extend(encode_uvarint(len(widths)))
         quantized = [round(max(0.0, min(65.535, width)) * 1000) for width in widths]
         if quantized:
@@ -1588,7 +1588,7 @@ class PackBuilder:
         self.stage_counts[(feature.category, feature.stage)] += 1
         self.metadata.append({
             "fid": feature.fid, "logicalFid": feature.logical_fid,
-            "awId": feature.aw_id, "name": feature.name,
+            "awId": feature.pandolab_id, "name": feature.name,
             "sourceId": feature.source_id, "source": feature.source,
             "layerId": feature.layer_id, "category": feature.category,
             "bounds": [round(value * MICRO) for value in feature.bounds],
@@ -1864,7 +1864,7 @@ def main() -> None:
             fragment_rows: list[tuple[int, list[RiverReach]]] = []
             for chain_index in system["chainIndexes"]:
                 fragment_rows.extend((chain_index, fragment) for fragment in stage_fragments(chains[chain_index]))
-            aw_id = f"hydro-system:{system_id}"
+            pandolab_id = f"hydro-system:{system_id}"
             fragment_count = len(fragment_rows)
             for fragment_index, (chain_index, fragment) in enumerate(fragment_rows):
                 connection_changed_count += normalize_chain_connections(
@@ -1878,7 +1878,7 @@ def main() -> None:
                 builder.add(BuiltFeature(
                     fid=fid,
                     logical_fid=logical_fid,
-                    aw_id=aw_id,
+                    pandolab_id=pandolab_id,
                     layer_id="rivers_hydro",
                     category="river",
                     stage=start.stage,
@@ -1938,11 +1938,11 @@ def main() -> None:
             "lake", hydronym_overrides,
         )
         source_id = str(properties.get("source_id") or raw_feature.get("id") or index)
-        aw_id = str(properties.get("aw_id") or raw_feature.get("id") or f"lakes_base:{source_id}")
+        pandolab_id = str(properties.get("pandolab_id") or raw_feature.get("id") or f"lakes_base:{source_id}")
         builder.add(BuiltFeature(
             fid=fid,
             logical_fid=logical_fid,
-            aw_id=aw_id,
+            pandolab_id=pandolab_id,
             layer_id="lakes_natural_earth",
             category="lake",
             stage=stage,
@@ -1981,7 +1981,7 @@ def main() -> None:
     stats["osmWaterwayMatchCount"] = osm_name_matches
     manifest = {
         "version": VERSION,
-        "schema": "atlaswright-water-shards-v5",
+        "schema": "pandolab-water-shards-v5",
         "dataset": "HydroRIVERS 1.0 systems · OSM waterway names · Natural Earth 5.0.0 1:10m lakes · Natural Earth 5.1.1 border alignment",
         "crs": "EPSG:4326",
         "coordinatePolicy": (
@@ -2030,7 +2030,7 @@ def main() -> None:
         "metadata": layout["metadata"],
         "shards": layout["shards"],
         "cache": {
-            "name": f"atlaswright-water-v0.13.0-{layout['index']['sha256'][:12]}",
+            "name": f"pandolab-water-v0.13.0-{layout['index']['sha256'][:12]}",
             "backgroundDownload": True,
             "rangeRequests": True,
         },

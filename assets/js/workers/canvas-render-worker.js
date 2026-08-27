@@ -9,7 +9,11 @@ function canvasFallbackWorkerMain() {
     let terrainManifestUrl = '';
     const terrainTiles = new Map();
     const terrainRequests = new Map();
+    const terrainFetchQueue = [];
+    const terrainQueuedKeys = new Set();
     const terrainFailures = new Map();
+    let terrainActiveFetches = 0;
+    let terrainFetchConcurrency = 2;
     const hydroPacks = new Map();
     let hydroActivePackIds = new Set();
     let hydroPort = null;
@@ -75,10 +79,27 @@ function canvasFallbackWorkerMain() {
       return { physical, political };
     }
 
-    function requestTerrainTile(spec) {
-      if (!terrainManifest || terrainTiles.has(spec.key) || terrainRequests.has(spec.key)) return;
+    function requestTerrainTile(spec, priority = 0) {
+      if (!terrainManifest || terrainTiles.has(spec.key) || terrainRequests.has(spec.key) || terrainQueuedKeys.has(spec.key)) return;
       const previousFailure = terrainFailures.get(spec.key);
       if (previousFailure?.retryAt > performance.now()) return;
+      terrainQueuedKeys.add(spec.key);
+      terrainFetchQueue.push({ spec, priority: Number(priority || 0) });
+      terrainFetchQueue.sort((left, right) => right.priority - left.priority || left.spec.key.localeCompare(right.spec.key));
+      pumpTerrainFetchQueue();
+    }
+
+    function pumpTerrainFetchQueue() {
+      while (terrainActiveFetches < terrainFetchConcurrency && terrainFetchQueue.length) {
+        const next = terrainFetchQueue.shift();
+        terrainQueuedKeys.delete(next.spec.key);
+        startTerrainTileRequest(next.spec, next.priority);
+      }
+    }
+
+    function startTerrainTileRequest(spec, priority) {
+      const previousFailure = terrainFailures.get(spec.key);
+      terrainActiveFetches += 1;
       const request = fetch(terrainTileUrl(spec))
         .then(response => {
           if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
@@ -99,10 +120,14 @@ function canvasFallbackWorkerMain() {
           const attempts = Number(previousFailure?.attempts || 0) + 1;
           const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
           terrainFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
-          if (attempts <= 3) setTimeout(() => requestTerrainTile(spec), retryDelay);
+          if (attempts <= 3) setTimeout(() => requestTerrainTile(spec, priority), retryDelay);
           self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) });
         })
-        .finally(() => terrainRequests.delete(spec.key));
+        .finally(() => {
+          terrainRequests.delete(spec.key);
+          terrainActiveFetches = Math.max(0, terrainActiveFetches - 1);
+          pumpTerrainFetchQueue();
+        });
       terrainRequests.set(spec.key, request);
     }
 
@@ -115,9 +140,7 @@ function canvasFallbackWorkerMain() {
         terrainManifest = await response.json();
         const base = terrainManifest.levels?.[0];
         if (!base) throw new Error('지형 타일 단계가 없습니다.');
-        for (let row = 0; row < base.rows; row += 1) {
-          for (let column = 0; column < base.columns; column += 1) requestTerrainTile(terrainTileSpec(base, column, row));
-        }
+        self.postMessage({ type: 'terrain-ready', count: 0, key: 'manifest' });
       } catch (error) {
         self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) });
       }
@@ -255,12 +278,14 @@ function canvasFallbackWorkerMain() {
       const baseLevel = levels[0];
       const targetLevel = terrainLevelForView(projection, dpr) || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      const specsByLevel = levels.slice(0, targetIndex + 1).map((level, index) => ({
+      const activeTargetIndex = message.dataReadiness === 'canonical' ? targetIndex : 0;
+      const specsByLevel = levels.slice(0, activeTargetIndex + 1).map((level, index) => ({
         level,
-        specs: visibleTerrainTileSpecs(level, message, projection, width, height, index === 0),
+        specs: visibleTerrainTileSpecs(level, message, projection, width, height, false),
       }));
-      for (let index = specsByLevel.length - 1; index >= 0; index -= 1) {
-        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec);
+      for (let index = 0; index < specsByLevel.length; index += 1) {
+        const priority = index === 0 ? 10_000 : 1_000 - index;
+        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
       }
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
@@ -324,7 +349,7 @@ function canvasFallbackWorkerMain() {
       if (!message.hydroVisible) return false;
       const properties = feature.properties || {};
       if (message.physicalSettings?.hydroLayers?.[properties.layer_id] === false) return false;
-      if (message.physicalSettings?.hiddenHydroIds?.[String(properties.aw_id || feature.id)] === true) return false;
+      if (message.physicalSettings?.hiddenHydroIds?.[String(properties.pandolab_id || feature.id)] === true) return false;
       return true;
     }
 
@@ -551,13 +576,14 @@ function canvasFallbackWorkerMain() {
       const message = event.data || {};
       if (message.type === 'init') {
         features = message.features || [];
+        terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || 2)));
         loadTerrainManifest(message.terrainManifestUrl);
         self.postMessage({ type: 'ready' });
       } else if (message.type === 'hydro-port') {
         connectHydroPort(message.port);
       } else if (message.type === 'hydro-pick') {
         self.postMessage({ type: 'hydro-pick', requestId: message.requestId, fid: pickHydroFeature(message.point) });
-      } else if (message.type === 'data') {
+      } else if (message.type === 'data' || message.type === 'replace-data') {
         features = message.features || [];
         self.postMessage({ type: 'data-ready', revision: Number(message.revision || 0), ids: message.ids || [] });
       } else if (message.type === 'patch') {
@@ -577,6 +603,8 @@ function canvasFallbackWorkerMain() {
         self.postMessage({ type: 'data-ready', revision: Number(message.revision || 0), ids: message.ids || [] });
       } else if (message.type === 'render') {
         try {
+          terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || terrainFetchConcurrency)));
+          pumpTerrainFetchQueue();
           render(message);
         } catch (error) {
           self.postMessage({ type: 'error', message: error?.message || String(error) });
