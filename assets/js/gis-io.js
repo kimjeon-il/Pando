@@ -1,4 +1,4 @@
-/* AtlasWright GIS I/O
+/* PandoLab GIS I/O
  * QGIS-compatible vector import and GeoPackage export.
  * Heavy GDAL/SQLite assets are loaded only when file I/O is requested.
  */
@@ -12,11 +12,11 @@
   const gdalScriptUrl = new URL('vendor/gdal/gdal3.js', baseUrl).href;
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.28.0-r1');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.29.0-r2');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
-  const gisAdapters = window.AtlasWrightGisAdapters;
+  const gisAdapters = window.PandoLabGisAdapters;
   if (!gisAdapters) throw new Error('GIS 교환 어댑터를 불러오지 못했습니다.');
   const inputLimit = 512 * 1024 * 1024;
   const extractedLimit = 1024 * 1024 * 1024;
@@ -94,7 +94,7 @@
 
   function getGpkgWorker() {
     if (gpkgWorker) return gpkgWorker;
-    gpkgWorker = new Worker(gpkgWorkerUrl, { name: 'atlaswright-gpkg' });
+    gpkgWorker = new Worker(gpkgWorkerUrl, { name: 'pandolab-gpkg' });
     gpkgWorker.onmessage = event => {
       const pending = workerPending.get(event.data?.id);
       if (!pending) return;
@@ -127,7 +127,7 @@
       const result = await callGpkgWorker('read', buffer);
       return result.metadata || null;
     } catch (error) {
-      console.debug('AtlasWright GeoPackage metadata not found:', error);
+      console.debug('PandoLab GeoPackage metadata not found:', error);
       return null;
     }
   }
@@ -331,7 +331,7 @@
       const dataset = opened.datasets[datasetIndex];
       let info = dataset.info;
       try { info = await gdal.ogrinfo(dataset, ['-so', '-al']); }
-      catch (error) { console.warn('AtlasWright layer inspection failed', error); }
+      catch (error) { console.warn('PandoLab layer inspection failed', error); }
       const layers = info?.layers || dataset.info?.layers || [];
       for (const layer of layers) {
         if (Number(layer.featureCount) === 0) continue;
@@ -386,9 +386,9 @@
 
   function updateWizardFields(descriptor) {
     const fields = descriptor.fields || [];
-    populateFieldSelect(document.getElementById('gisIdField'), fields, { includeFid: true, selected: autoField(fields, ['aw_id', 'editor_id', 'ADM0_A3', 'ISO_A3', 'id']) || '__fid__' });
-    populateFieldSelect(document.getElementById('gisNameField'), fields, { selected: autoField(fields, ['aw_name', 'NAME_KO', 'name_ko', 'NAME', 'name', descriptor.qgsLabelField]) });
-    populateFieldSelect(document.getElementById('gisColorField'), fields, { includeStyle: true, selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['aw_color', 'editorColor', 'color', 'fill']) });
+    populateFieldSelect(document.getElementById('gisIdField'), fields, { includeFid: true, selected: autoField(fields, ['pandolab_id', 'editor_id', 'ADM0_A3', 'ISO_A3', 'id']) || '__fid__' });
+    populateFieldSelect(document.getElementById('gisNameField'), fields, { selected: autoField(fields, ['pandolab_name', 'NAME_KO', 'name_ko', 'NAME', 'name', descriptor.qgsLabelField]) });
+    populateFieldSelect(document.getElementById('gisColorField'), fields, { includeStyle: true, selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill']) });
     const crsInput = document.getElementById('gisCrsInput');
     crsInput.value = descriptor.crs.source || '';
     crsInput.disabled = descriptor.crs.hasCrs;
@@ -457,8 +457,8 @@
       const coordinates = geometryAsMultiPolygon(raw.geometry);
       if (!validateMultiPolygon(coordinates)) { invalid.push(raw.id ?? index); continue; }
       let properties = { ...(raw.properties || {}) };
-      if (properties.aw_source_properties) {
-        try { properties = { ...JSON.parse(properties.aw_source_properties), ...properties }; } catch (_) {}
+      if (properties.pandolab_source_properties) {
+        try { properties = { ...JSON.parse(properties.pandolab_source_properties), ...properties }; } catch (_) {}
       }
       const rawId = mapping.idField === '__fid__' ? (raw.id ?? index + 1) : properties[mapping.idField];
       const id = String(rawId ?? '').trim();
@@ -484,7 +484,7 @@
       if (values.length === 1) { features.push(values[0]); continue; }
       const first = values[0];
       first.geometry.coordinates = values.flatMap(value => value.geometry.coordinates);
-      first.properties.aw_source_rows = JSON.stringify(values.map(value => value.properties));
+      first.properties.pandolab_source_rows = JSON.stringify(values.map(value => value.properties));
       first.properties.editor_id = id;
       features.push(first);
     }
@@ -492,7 +492,7 @@
   }
 
   async function layerAsGeoJson(gdal, dataset, layerName, outputTag) {
-    const output = await gdal.ogr2ogr(dataset, ['-f', 'GeoJSON', '-t_srs', 'EPSG:4326', '-dim', 'XY', layerName], `atlaswright_${outputTag}_${Date.now()}`);
+    const output = await gdal.ogr2ogr(dataset, ['-f', 'GeoJSON', '-t_srs', 'EPSG:4326', '-dim', 'XY', layerName], `pandolab_${outputTag}_${Date.now()}`);
     return JSON.parse(new TextDecoder().decode(await gdal.getFileBytes(output)));
   }
 
@@ -506,7 +506,7 @@
     if (hasPlaces) {
       const collection = await layerAsGeoJson(gdal, dataset, 'places', 'places');
       state.labels = (collection.features || []).filter(feature => feature.geometry?.type === 'Point').map((feature, index) => ({
-        id: String(feature.properties?.aw_id || feature.id || `place_${index + 1}`),
+        id: String(feature.properties?.pandolab_id || feature.id || `place_${index + 1}`),
         name: String(feature.properties?.name || ''),
         kind: String(feature.properties?.kind || 'custom'),
         countryId: String(feature.properties?.country_id || ''),
@@ -525,16 +525,16 @@
           try { properties = basic.properties_json ? JSON.parse(basic.properties_json) : {}; } catch (_) {}
           state.drawings.push({
             type: 'Feature',
-            id: String(basic.aw_id || feature.id || `${layerName}_${index + 1}`),
+            id: String(basic.pandolab_id || feature.id || `${layerName}_${index + 1}`),
             properties: {
               ...properties,
               name: basic.name ?? properties.name ?? '',
               category: basic.category ?? properties.category ?? 'custom',
-              aw_role: basic.aw_role ?? properties.aw_role ?? '',
-              aw_owner_id: basic.aw_owner_id ?? properties.aw_owner_id ?? '',
-              aw_parent_id: basic.aw_parent_id ?? properties.aw_parent_id ?? '',
-              aw_topology_group: basic.aw_topology_group ?? properties.aw_topology_group ?? '',
-              aw_land_binding: basic.aw_land_binding ?? properties.aw_land_binding ?? '',
+              pandolab_role: basic.pandolab_role ?? properties.pandolab_role ?? '',
+              pandolab_owner_id: basic.pandolab_owner_id ?? properties.pandolab_owner_id ?? '',
+              pandolab_parent_id: basic.pandolab_parent_id ?? properties.pandolab_parent_id ?? '',
+              pandolab_topology_group: basic.pandolab_topology_group ?? properties.pandolab_topology_group ?? '',
+              pandolab_land_binding: basic.pandolab_land_binding ?? properties.pandolab_land_binding ?? '',
               editorColor: basic.color ?? properties.editorColor ?? properties.color ?? '#8c68d8',
               notes: basic.notes ?? properties.notes ?? '',
             },
@@ -582,7 +582,7 @@
     }
     options.push(descriptor.layerName);
     progress('국가 경계를 EPSG:4326으로 변환하는 중입니다.', 55);
-    const output = await gdal.ogr2ogr(dataset, options, `atlaswright_import_${Date.now()}`);
+    const output = await gdal.ogr2ogr(dataset, options, `pandolab_import_${Date.now()}`);
     const bytes = await gdal.getFileBytes(output);
     const parsed = JSON.parse(new TextDecoder().decode(bytes));
     const countriesData = normalizeCountryFeatures(parsed, descriptor, mapping);
@@ -691,7 +691,7 @@
     }
   }
 
-  const atlasReservedFields = ['aw_id', 'aw_name', 'aw_color', 'aw_capital', 'aw_notes', 'aw_source_properties', 'aw_field_map'];
+  const atlasReservedFields = ['pandolab_id', 'pandolab_name', 'pandolab_color', 'pandolab_capital', 'pandolab_notes', 'pandolab_source_properties', 'pandolab_field_map'];
 
   function reservedFieldMapping(collection) {
     const keys = new Set((collection?.features || []).flatMap(feature => Object.keys(feature.properties || {})));
@@ -725,24 +725,24 @@
       } else if (value == null || ['string', 'number', 'boolean'].includes(typeof value)) output[key] = value;
       else nested[key] = value;
     }
-    output.aw_id = id;
-    output.aw_name = override.name || source.editor_name || source.editor_original_name || source.name || id;
-    output.aw_color = override.color || source.editor_color || '#63758a';
-    output.aw_capital = override.capital || source.capital || '';
-    output.aw_notes = override.notes || source.notes || '';
+    output.pandolab_id = id;
+    output.pandolab_name = override.name || source.editor_name || source.editor_original_name || source.name || id;
+    output.pandolab_color = override.color || source.editor_color || '#63758a';
+    output.pandolab_capital = override.capital || source.capital || '';
+    output.pandolab_notes = override.notes || source.notes || '';
     output.id = id;
-    output.name = output.aw_name;
+    output.name = output.pandolab_name;
     output.type = 'country';
     output.parent_id = '';
     output.sovereign_id = id;
     output.valid_from = source.validFrom || source.valid_from || '';
     output.valid_to = source.validTo || source.valid_to || '';
-    output.color = output.aw_color;
+    output.color = output.pandolab_color;
     output.style_key = source.style_key || '';
     output.source_library_id = source.sourceLibraryId || source.source_library_id || '';
     output.source_geometry_version = source.sourceGeometryVersion || source.source_geometry_version || '';
-    if (Object.keys(nested).length) output.aw_source_properties = JSON.stringify(nested);
-    if (Object.keys(renamed).length) output.aw_field_map = JSON.stringify(renamed);
+    if (Object.keys(nested).length) output.pandolab_source_properties = JSON.stringify(nested);
+    if (Object.keys(renamed).length) output.pandolab_field_map = JSON.stringify(renamed);
     return output;
   }
 
@@ -765,13 +765,13 @@
     const reservedMap = reservedFieldMapping(projectState.countriesData);
     countries.features = (projectState.countriesData?.features || []).map(feature => ({ type: 'Feature', id: String(feature.properties?.editor_id || feature.id || ''), properties: exportCountryProperties(feature, projectState.countryOverrides, reservedMap), geometry: feature.geometry }));
     if (!countries.features.length) throw new Error('저장할 국가 레이어가 없습니다.');
-    const source = new File([JSON.stringify(countries)], `atlaswright_export_${Date.now()}.geojson`, { type: 'application/geo+json' });
+    const source = new File([JSON.stringify(countries)], `pandolab_export_${Date.now()}.geojson`, { type: 'application/geo+json' });
     const opened = await gdal.open(source);
     const dataset = opened.datasets?.[0];
     if (!dataset) throw new Error('GeoPackage 변환용 국가 데이터를 열 수 없습니다.');
     let bytes;
     try {
-      const output = await gdal.ogr2ogr(dataset, ['-f', 'GPKG', '-nln', 'countries', '-nlt', 'PROMOTE_TO_MULTI', '-t_srs', 'EPSG:4326'], `AtlasWright_${Date.now()}`);
+      const output = await gdal.ogr2ogr(dataset, ['-f', 'GPKG', '-nln', 'countries', '-nlt', 'PROMOTE_TO_MULTI', '-t_srs', 'EPSG:4326'], `PandoLab_${Date.now()}`);
       bytes = await gdal.getFileBytes(output);
     } finally {
       await gdal.close(dataset);
@@ -799,7 +799,7 @@
     return new Blob([result.buffer], { type: 'application/geopackage+sqlite3' });
   }
 
-  window.AtlasWrightGIS = Object.freeze({
+  window.PandoLabGIS = Object.freeze({
     supportedExtensions: [...supportedExtensions],
     openImportWizard,
     exportGeoPackage,

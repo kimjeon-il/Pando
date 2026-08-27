@@ -23,7 +23,7 @@ ROOT = Path(__file__).parents[1]
 
 def load_builder_module():
     path = ROOT / "tools" / "build-hydro-tiles.py"
-    spec = importlib.util.spec_from_file_location("atlaswright_build_water", path)
+    spec = importlib.util.spec_from_file_location("pandolab_build_water", path)
     if not spec or not spec.loader:
         raise RuntimeError("수계 빌더를 불러올 수 없습니다.")
     module = importlib.util.module_from_spec(spec)
@@ -174,7 +174,7 @@ def decode_v3_pack(raw: bytes, builder_module):
         source_id = decode_source_ids(source_payload) or strings[2]
         if kind == 1:
             yield builder_module.BuiltFeature(
-                fid=fid, logical_fid=logical_fid, aw_id=strings[0], layer_id="rivers_hydro",
+                fid=fid, logical_fid=logical_fid, pandolab_id=strings[0], layer_id="rivers_hydro",
                 category="river", stage=stage, name=strings[1], source_id=source_id,
                 source=strings[3], width=width, geometry=geometry, bounds=bounds,
                 width_profile=decode_widths(width_payload, geometry), fragment_index=fragment_index,
@@ -216,9 +216,9 @@ def main() -> None:
         fid = max_fid + 1 + index
         logical_fid = max_logical + 1 + index
         source_id = str(properties.get("source_id") or raw.get("id") or index)
-        aw_id = str(properties.get("aw_id") or raw.get("id") or f"lakes_base:{source_id}")
+        pandolab_id = str(properties.get("pandolab_id") or raw.get("id") or f"lakes_base:{source_id}")
         builder.add(module.BuiltFeature(
-            fid=fid, logical_fid=logical_fid, aw_id=aw_id,
+            fid=fid, logical_fid=logical_fid, pandolab_id=pandolab_id,
             layer_id="lakes_natural_earth", category="lake",
             stage=module.min_zoom_stage(float(properties.get("min_zoom") or 7.5)),
             name=str(properties.get("name_ko") or properties.get("name_en") or properties.get("name") or "").strip(),
@@ -237,7 +237,7 @@ def main() -> None:
     selection["lakeSelection"] = "Natural Earth 5.0.0 1:10m global lakes and reservoirs; no regional supplements"
     manifest = {
         "version": "0.12.5",
-        "schema": "atlaswright-water-shards-v4",
+        "schema": "pandolab-water-shards-v4",
         "dataset": "HydroRIVERS 1.0 · Natural Earth 5.0.0 1:10m lakes · Natural Earth 5.1.1 border alignment",
         "crs": "EPSG:4326",
         "coordinatePolicy": old_manifest.get("coordinatePolicy"),
@@ -245,7 +245,7 @@ def main() -> None:
         "stages": old_manifest["stages"],
         "format": {"pack": 4, "index": 4, "metadata": 4, "fragmentLogicalIds": True, "featureFlags": {"borderAligned": 1}},
         "index": layout["index"], "metadata": layout["metadata"], "shards": layout["shards"],
-        "cache": {"name": f"atlaswright-water-v0.12.5-{layout['index']['sha256'][:12]}", "backgroundDownload": True, "rangeRequests": True},
+        "cache": {"name": f"pandolab-water-v0.12.5-{layout['index']['sha256'][:12]}", "backgroundDownload": True, "rangeRequests": True},
         "layers": [
             {"id": "rivers_hydro", "category": "river", "label": "강 · Hydro", "locked": True},
             {"id": "lakes_natural_earth", "category": "lake", "label": "호수 · Natural Earth", "locked": True},

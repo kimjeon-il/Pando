@@ -37,7 +37,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             "historicalLibraryChildDepthInput", "historicalLibraryAddBtn",
         ):
             self.assertIn(f'id="{element_id}"', INDEX)
-        self.assertIn("window.ATLASWRIGHT_HISTORICAL_LIBRARY", APP)
+        self.assertIn("window.PANDOLAB_HISTORICAL_LIBRARY", APP)
 
     def test_project_instances_track_but_do_not_mutate_library_sources(self):
         self.assertIn("sourceLibraryId", APP)

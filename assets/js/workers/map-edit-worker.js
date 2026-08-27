@@ -16,7 +16,7 @@ const {
   hasCanonicalCountryWinding,
   normalizeCountryGeometry,
   ringSignedArea,
-} = self.AtlasWrightCountryGeometry;
+} = self.PandoLabCountryGeometry;
 
 const countries = new Map();
 const pendingResults = new Map();

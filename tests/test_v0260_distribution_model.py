@@ -52,7 +52,7 @@ class V0260DistributionModelTests(unittest.TestCase):
             "addGeometryDistributionBtn",
         ):
             self.assertIn(f'id="{element_id}"', INDEX)
-        self.assertIn("window.ATLASWRIGHT_DISTRIBUTIONS", APP)
+        self.assertIn("window.PANDOLAB_DISTRIBUTIONS", APP)
 
     def test_old_thematic_drawing_categories_are_not_exposed_for_new_drawings(self):
         drawing_categories = INDEX[
@@ -66,7 +66,7 @@ class V0260DistributionModelTests(unittest.TestCase):
         self.assertIn("DOMINANT: 'dominant'", MODEL)
         self.assertIn("INTENSITY: 'intensity'", MODEL)
         self.assertIn("function renderDistributions", APP)
-        self.assertNotIn("distributionEntries", APP[APP.index("function setTerritorialUnitName"):APP.index("window.ATLASWRIGHT_TERRITORIAL")])
+        self.assertNotIn("distributionEntries", APP[APP.index("function setTerritorialUnitName"):APP.index("window.PANDOLAB_TERRITORIAL")])
 
 
 if __name__ == "__main__":

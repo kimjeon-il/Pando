@@ -196,7 +196,7 @@ if (typeof importScripts === 'function' && !self.d3) importScripts('../vendor/d3
   }
 
   const core = { computeFeatureLabelAnchor, largestPolygon, pointToPolygonDist };
-  self.AtlasWrightLabelAnchorCore = core;
+  self.PandoLabLabelAnchorCore = core;
 
   if (typeof self.addEventListener === 'function') {
     self.addEventListener('message', event => {

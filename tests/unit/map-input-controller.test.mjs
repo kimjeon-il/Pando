@@ -25,6 +25,10 @@ class PointerSurface {
   setPointerCapture(pointerId) {
     this.captured.push(pointerId);
   }
+
+  getBoundingClientRect() {
+    return { left: 5, top: 10 };
+  }
 }
 
 function pointerEvent(type, overrides = {}) {
@@ -105,5 +109,62 @@ test('interactive draft handles do not begin map panning', () => {
 
   assert.deepEqual(surface.captured, []);
   assert.deepEqual(pans, []);
+  controller.destroy();
+});
+
+test('drawing owns a drag, emits local coalesced samples, and does not pan', () => {
+  const surface = new PointerSurface();
+  const events = [];
+  const pans = [];
+  const controller = createController(surface, {
+    canDrawStroke: () => true,
+    beginStroke: (point, event) => { events.push(['begin', point, event.pointerType]); return true; },
+    moveStroke: points => events.push(['move', points]),
+    endStroke: point => events.push(['end', point]),
+    panBy: (dx, dy) => pans.push([dx, dy]),
+  });
+
+  surface.dispatchEvent(pointerEvent('pointerdown', { clientX: 20, clientY: 30 }));
+  surface.dispatchEvent(pointerEvent('pointermove', {
+    clientX: 35,
+    clientY: 45,
+    getCoalescedEvents: () => [
+      { clientX: 28, clientY: 38 },
+      { clientX: 35, clientY: 45 },
+    ],
+  }));
+  surface.dispatchEvent(pointerEvent('pointerup', { clientX: 40, clientY: 50 }));
+
+  assert.deepEqual(surface.captured, [7]);
+  assert.deepEqual(events, [
+    ['begin', [15, 20], 'mouse'],
+    ['move', [[23, 28], [30, 35]]],
+    ['end', [35, 40]],
+  ]);
+  assert.deepEqual(pans, []);
+  controller.destroy();
+});
+
+test('a second touch cancels an unfinished stroke and starts centroid pan and pinch', () => {
+  const surface = new PointerSurface();
+  let cancelled = 0;
+  const pans = [];
+  const zooms = [];
+  const controller = createController(surface, {
+    canDrawStroke: () => true,
+    beginStroke: () => true,
+    cancelStroke: () => { cancelled += 1; },
+    panBy: (dx, dy) => pans.push([dx, dy]),
+    setZoom: value => zooms.push(value),
+  });
+
+  surface.dispatchEvent(pointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: 10, clientY: 20 }));
+  surface.dispatchEvent(pointerEvent('pointermove', { pointerId: 1, pointerType: 'touch', clientX: 20, clientY: 20 }));
+  surface.dispatchEvent(pointerEvent('pointerdown', { pointerId: 2, pointerType: 'touch', clientX: 40, clientY: 20 }));
+  surface.dispatchEvent(pointerEvent('pointermove', { pointerId: 2, pointerType: 'touch', clientX: 50, clientY: 30 }));
+
+  assert.equal(cancelled, 1);
+  assert.deepEqual(pans, [[5, 5]]);
+  assert.equal(zooms.length, 1);
   controller.destroy();
 });

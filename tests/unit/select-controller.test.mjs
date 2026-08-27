@@ -10,7 +10,7 @@ test('select search normalizes width case and whitespace', () => {
 
 test('select search ranks exact prefix and contained matches', () => {
   const options = [
-    { value: 'aw_name', label: 'aw_name', searchText: '' },
+    { value: 'pandolab_name', label: 'pandolab_name', searchText: '' },
     { value: 'editor_name', label: 'editor_name', searchText: '' },
     { value: 'name', label: 'name', searchText: '' },
     { value: 'name_long', label: 'name_long', searchText: '' },
@@ -19,8 +19,8 @@ test('select search ranks exact prefix and contained matches', () => {
   assert.deepEqual(filterSelectOptions(options, 'name').map(option => option.value), [
     'name',
     'name_long',
-    'aw_name',
     'editor_name',
+    'pandolab_name',
   ]);
 });
 

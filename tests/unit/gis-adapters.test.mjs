@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 await import('../../assets/js/gis-adapters.js');
-const adapters = globalThis.AtlasWrightGisAdapters;
+const adapters = globalThis.PandoLabGisAdapters;
 
 const polygon = (left = 0, right = 2) => ({
   type: 'Polygon',

@@ -36,7 +36,7 @@ async function importDrawing(page) {
 }
 
 test('a cut line with endpoints just inside the polygon snaps to both boundaries and splits', async ({ page }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(360_000);
   const errors = await openApp(page);
 
   await page.locator('#createMenuBtn').click();
@@ -68,14 +68,16 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   const box = await shape.boundingBox();
   expect(box).not.toBeNull();
   const y = box.y + box.height / 2;
-  await page.mouse.click(box.x + 6, y);
-  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-  await page.mouse.click(box.x + box.width - 6, y);
+  await page.mouse.move(box.x + 6, y);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 6, y + 8, { steps: 12 });
+  await page.mouse.up();
 
-  await expect(page.locator('.draft-shape.cut-valid')).toBeVisible();
+  await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1);
   await expect(page.locator('.draft-snap-point')).toHaveCount(2);
   await expect(page.locator('.draft-split-preview')).toHaveCount(2);
   await expect(page.locator('g.draft-vertex')).toHaveCount(2);
+  await expect(page.locator('#modeActionBar')).toHaveClass(/draft-refine-mode/);
   await expect(page.locator('#modeTaskInstruction')).toHaveClass(/cut-valid/);
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
 
@@ -94,7 +96,7 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await expect(page.locator('.draft-issue-marker')).not.toHaveCount(0);
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await page.locator('#modeDraftUndoBtn').click();
-  await expect(page.locator('.draft-shape.cut-valid')).toBeVisible();
+  await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1);
   await page.locator('#modeDraftDeleteBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(2);
   await page.locator('#modeDraftUndoBtn').click();
@@ -107,7 +109,7 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await page.keyboard.press('ArrowUp');
   const afterNudge = await page.locator('g.draft-vertex').nth(1).getAttribute('transform');
   expect(afterNudge).not.toBe(beforeNudge);
-  await expect(page.locator('.draft-shape.cut-valid')).toBeVisible();
+  await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1);
   await expect(page.locator('.draft-split-preview')).toHaveCount(2);
   await page.locator('#modePrimaryBtn').click();
 

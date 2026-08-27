@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 SCRIPT = Path(__file__).parents[1] / "tools" / "calibrate-hydro.py"
-SPEC = importlib.util.spec_from_file_location("atlaswright_hydro_calibration", SCRIPT)
+SPEC = importlib.util.spec_from_file_location("pandolab_hydro_calibration", SCRIPT)
 assert SPEC and SPEC.loader
 calibration = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = calibration
