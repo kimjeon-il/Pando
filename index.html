@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.29.0-r3" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r3" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -41,6 +41,9 @@
     <symbol id="icon-lock-closed" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
     <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></symbol>
     <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path d="m7 9 5 5 5-5"/></symbol>
+    <symbol id="icon-ruler" viewBox="0 0 24 24"><path d="m4 17 13-13 3 3L7 20H4v-3Z"/><path d="m12 9 3 3M9 12l2 2M15 6l3 3"/></symbol>
+    <symbol id="icon-audit" viewBox="0 0 24 24"><path d="M9 4h6l1 2h3v14H5V6h3l1-2Z"/><path d="m8 12 2 2 5-5M8 17h8"/></symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1A7 7 0 0 0 15 6l-.3-2.6h-4L10.4 6A7 7 0 0 0 9 7.1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1A7 7 0 0 0 10.4 18l.3 2.6h4L15 18a7 7 0 0 0 1.5-1.1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1Z"/></symbol>
   </svg>
   <div id="bootstrapLoading" class="bootstrap-loading" role="status" aria-live="polite">
     <div class="bootstrap-loading-card">
@@ -49,7 +52,7 @@
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.29.0" data-layout="wide">
+  <div id="app" data-app-version="0.30.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"></div>
@@ -61,6 +64,14 @@
           <span class="status-dot" aria-hidden="true"></span>
           <strong>준비</strong>
           <button id="notificationCloseBtn" class="ui-button notification-close" type="button" aria-label="알림 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+        </div>
+        <button id="projectSaveStatus" class="ui-button project-save-status" type="button" aria-label="프로젝트 저장 상태" aria-haspopup="dialog" aria-controls="projectSaveStatusPopover" aria-expanded="false">
+          <span class="project-save-status-dot" aria-hidden="true"></span><span id="projectSaveStatusText">파일에 저장하지 않음</span>
+        </button>
+        <div id="projectSaveStatusPopover" class="ui-popover project-save-popover hidden" role="dialog" aria-label="프로젝트 저장 상태 상세">
+          <strong id="projectFileSaveDetail">프로젝트 파일에 저장하지 않았습니다.</strong>
+          <span id="projectAutosaveDetail">자동저장 준비 중</span>
+          <button id="projectSaveNowBtn" class="ui-button btn" type="button">GeoPackage 저장</button>
         </div>
       </div>
 
@@ -79,6 +90,9 @@
           <div id="mobileProjectionSlot" class="mobile-projection-slot" aria-label="모바일 지도 투영법"></div>
 
         <section id="layerSection" class="panel-section ui-panel--dense layer-panel-section">
+          <div class="layer-panel-tools ui-toolbar" aria-label="레이어 표시 도구">
+            <button id="layerPresentationBtn" class="ui-button btn ghost compact" type="button" aria-haspopup="dialog" aria-controls="layerPresentationModal"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-settings"/></svg><span>순서·스타일</span></button>
+          </div>
           <label class="layer-search" for="layerSearchInput">
             <svg class="ui-icon layer-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
             <input id="layerSearchInput" type="search" placeholder="레이어 검색" autocomplete="off" />
@@ -267,6 +281,10 @@
           <button id="zoomOutBtn" class="ui-button icon-btn" title="축소" aria-label="축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
           <button id="zoomInBtn" class="ui-button icon-btn" title="확대" aria-label="확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="resetViewBtn" class="ui-button icon-btn" title="전체 지도 맞춤" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
+          <button id="measureDistanceBtn" class="ui-button icon-btn" type="button" title="거리 측정" aria-label="거리 측정" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-ruler"/></svg></button>
+          <button id="measureAreaBtn" class="ui-button icon-btn" type="button" title="면적 측정" aria-label="면적 측정" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></button>
+          <button id="mapAuditBtn" class="ui-button icon-btn" type="button" title="지도 검사" aria-label="지도 검사" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-audit"/></svg></button>
+          <button id="snapSettingsBtn" class="ui-button icon-btn" type="button" title="스냅 설정" aria-label="스냅 설정" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-settings"/></svg></button>
           <div id="projectionToolbarSlot" class="projection-toolbar-slot">
             <div id="projectionControl" class="ui-segmented projection-control" role="group" aria-label="지도 투영법">
               <button id="globeBtn" class="ui-button ui-segment-option projection-btn active" type="button" title="지구본" aria-label="지구본 투영" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg><span>지구본</span></button>
@@ -284,6 +302,10 @@
           <button id="mobileZoomInBtn" class="ui-button icon-btn" type="button" aria-label="지도 확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="mobileZoomOutBtn" class="ui-button icon-btn" type="button" aria-label="지도 축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
           <button id="mobileWorldBtn" class="ui-button icon-btn" type="button" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
+          <button id="measureDistanceMobileBtn" class="ui-button icon-btn" type="button" title="거리 측정" aria-label="거리 측정" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-ruler"/></svg></button>
+          <button id="measureAreaMobileBtn" class="ui-button icon-btn" type="button" title="면적 측정" aria-label="면적 측정" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></button>
+          <button id="mapAuditMobileBtn" class="ui-button icon-btn" type="button" title="지도 검사" aria-label="지도 검사" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-audit"/></svg></button>
+          <button id="snapSettingsMobileBtn" class="ui-button icon-btn" type="button" title="스냅 설정" aria-label="스냅 설정" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-settings"/></svg></button>
         </div>
 
         <div id="modeActionBar" class="mode-action-bar hidden" aria-label="지도 편집 작업">
@@ -302,10 +324,46 @@
             <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" title="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
             <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" title="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
           </div>
+          <div id="geometryPreviewSummary" class="geometry-preview-summary hidden" aria-live="polite"></div>
           <div class="mode-action-buttons">
             <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span></button>
             <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
           </div>
+        </div>
+
+        <section id="snapSettingsPanel" class="map-utility-panel snap-settings-panel hidden" aria-labelledby="snapSettingsTitle">
+          <header><strong id="snapSettingsTitle">스냅 설정</strong><button id="snapSettingsCloseBtn" type="button" class="ui-button icon-btn" aria-label="스냅 설정 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
+          <div class="map-utility-body">
+            <label class="ui-choice-row"><input id="snapVertexInput" type="checkbox" checked /><span>기존 꼭짓점</span></label>
+            <label class="ui-choice-row"><input id="snapEdgeInput" type="checkbox" checked /><span>기존 경계선</span></label>
+            <label class="ui-choice-row"><input id="snapBoundaryInput" type="checkbox" checked /><span>현재 대상 경계</span></label>
+            <label class="ui-choice-row"><input id="snapIntersectionInput" type="checkbox" checked /><span>교차점</span></label>
+            <label class="ui-choice-row"><input id="snapNeighborInput" type="checkbox" checked /><span>인접 영역 경계</span></label>
+            <label class="ui-field field-group"><span>감도</span><select id="snapSensitivityInput"><option value="low">낮음</option><option value="normal">보통</option><option value="high">높음</option></select></label>
+          </div>
+        </section>
+
+        <section id="mapAuditPanel" class="map-utility-panel map-audit-panel hidden" aria-labelledby="mapAuditTitle">
+          <header><div><strong id="mapAuditTitle">지도 검사</strong><span id="mapAuditStatus">검사를 실행하세요.</span></div><button id="mapAuditCloseBtn" type="button" class="ui-button icon-btn" aria-label="지도 검사 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
+          <div id="mapAuditSummary" class="map-audit-summary"></div>
+          <div id="mapAuditIssues" class="map-audit-issues" role="list"></div>
+          <footer><button id="mapAuditRunBtn" type="button" class="ui-button btn">전체 지도 검사</button><button id="mapAuditClearBtn" type="button" class="ui-button btn ghost">표시 지우기</button></footer>
+        </section>
+
+        <section id="distributionInspect" class="distribution-inspect hidden" aria-live="polite"></section>
+        <section id="debugMapPanel" class="debug-map-panel hidden" aria-label="지도 렌더러 진단"></section>
+        <div id="objectChooser" class="ui-popover object-chooser hidden" role="dialog" aria-labelledby="objectChooserTitle">
+          <header><strong id="objectChooserTitle">이 위치의 객체</strong><button id="objectChooserCloseBtn" class="ui-button icon-btn compact" type="button" aria-label="선택 목록 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
+          <div id="objectChooserList" class="object-chooser-list" role="listbox" aria-multiselectable="true"></div>
+        </div>
+        <div id="cursorToolHelper" class="cursor-tool-helper hidden" aria-hidden="true"></div>
+        <div id="multiSelectionBar" class="multi-selection-bar hidden" role="region" aria-label="다중 선택 작업">
+          <strong id="multiSelectionCount">0개 선택됨</strong>
+          <button id="multiVisibilityBtn" class="ui-button btn ghost compact" type="button">표시/숨김</button>
+          <button id="multiLockBtn" class="ui-button btn ghost compact" type="button">잠금</button>
+          <label class="multi-color-control" aria-label="선택 색상"><input id="multiColorInput" type="color" value="#3f6fae" /></label>
+          <button id="multiDeleteBtn" class="ui-button danger-btn compact" type="button">삭제</button>
+          <button id="clearMultiSelectionBtn" class="ui-button icon-btn compact" type="button" aria-label="다중 선택 해제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
         </div>
 
         <div class="map-bottom-status" aria-label="지도 상태">
@@ -333,13 +391,32 @@
           <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon editor-close-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><svg class="ui-icon editor-collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
         </header>
 
-        <div id="editorScrollBody" class="editor-scroll-body">
+        <nav class="editor-view-tabs" role="tablist" aria-label="편집창 보기">
+          <button id="editorTabBtn" class="ui-button active" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="true">편집</button>
+          <button id="historyTabBtn" class="ui-button" type="button" role="tab" aria-controls="historyPanel" aria-selected="false" tabindex="-1">작업 이력</button>
+        </nav>
+
+        <div id="editorScrollBody" class="editor-scroll-body" role="tabpanel" aria-labelledby="editorTabBtn">
           <section id="editorObjectHeader" class="editor-object-header hidden">
             <h2 id="propertyTitle"></h2>
+            <button id="focusSelectedObjectBtn" class="ui-button btn ghost compact" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg><span>지도에서 보기</span></button>
           </section>
 
           <section id="emptyProperties" class="empty-state editor-empty">
-            <p>지도에서 편집할 대상을 선택하세요.</p>
+            <strong>선택한 객체가 없습니다.</strong><p>지도나 레이어 목록에서 편집할 대상을 선택하세요.</p>
+          </section>
+
+          <section id="multiProperties" class="editor-view multi-properties hidden">
+            <section class="ui-card editor-section editor-section-primary">
+              <h3 class="editor-section-title"><span id="multiPropertiesCount">여러 객체 선택됨</span></h3>
+              <p id="multiPropertiesTypes" class="editor-help"></p>
+              <div class="multi-properties-actions">
+                <button id="multiPropertiesVisibilityBtn" class="ui-button btn ghost" type="button">표시/숨김</button>
+                <button id="multiPropertiesLockBtn" class="ui-button btn ghost" type="button">잠금</button>
+                <label class="ui-field field-group"><span>공통 색상</span><input id="multiPropertiesColorInput" type="color" value="#3f6fae" /></label>
+              </div>
+            </section>
+            <section class="ui-card editor-danger-zone"><button id="multiPropertiesDeleteBtn" class="ui-button danger-btn editor-delete-btn" type="button">선택한 객체 삭제</button></section>
           </section>
 
           <form id="countryProperties" class="editor-view hidden" onsubmit="return false;">
@@ -361,6 +438,12 @@
                 </div>
               </div>
               <div class="ui-field field-group editor-field"><label for="capitalInput">수도</label><input id="capitalInput" type="text" placeholder="예: 아테네" autocomplete="off" /></div>
+              <div class="ui-info-list editor-info-list"><div><span>면적</span><strong id="countryAreaValue">—</strong></div></div>
+            </section>
+
+            <section id="countryComponentsSection" class="ui-card editor-section hidden">
+              <h3 class="editor-section-title">영토 구성</h3>
+              <div id="countryComponentList" class="country-component-list"></div>
             </section>
 
             <section class="ui-card editor-section">
@@ -400,10 +483,10 @@
               <div class="editor-disclosure-body">
                 <div class="editor-inline-action">
                   <div class="editor-inline-copy">
-                    <strong>해안선 수정</strong>
+                    <strong>국경·해안선 수정</strong>
                     <span>간척·매립·해수면 변화가 필요한 경우에만 사용하세요.</span>
                   </div>
-                  <button id="editCoastBtn" type="button" class="ui-button btn ghost editor-inline-action-button">해안선 수정</button>
+                  <button id="editCoastBtn" type="button" class="ui-button btn ghost editor-inline-action-button">국경·해안선 수정</button>
                 </div>
               </div>
             </details>
@@ -630,6 +713,15 @@
                 <label for="labelKindInput">종류</label>
                 <select id="labelKindInput"><option value="capital">수도</option><option value="city">도시</option><option value="town">마을</option><option value="region">지역명</option><option value="mountain">산</option><option value="water">수역</option><option value="custom">기타</option></select>
               </div>
+              <div class="editor-field-grid">
+                <div class="ui-field field-group editor-field"><label for="labelPriorityInput">우선순위</label><input id="labelPriorityInput" type="number" min="0" max="1000" step="1" /></div>
+                <div class="ui-field field-group editor-field"><label for="labelCollisionGroupInput">충돌 그룹</label><input id="labelCollisionGroupInput" type="text" value="map" /></div>
+              </div>
+              <div class="editor-field-grid">
+                <div class="ui-field field-group editor-field"><label for="labelMinZoomInput">최소 확대</label><input id="labelMinZoomInput" type="number" min="0" step="0.1" /></div>
+                <div class="ui-field field-group editor-field"><label for="labelMaxZoomInput">최대 확대</label><input id="labelMaxZoomInput" type="number" min="0" step="0.1" /></div>
+              </div>
+              <label class="ui-choice-row"><input id="labelPinnedInput" type="checkbox" checked /><span>수동 위치 고정</span></label>
             </section>
 
             <details class="ui-disclosure editor-disclosure">
@@ -669,6 +761,10 @@
             </details>
           </section>
         </div>
+        <section id="historyPanel" class="history-panel hidden" role="tabpanel" aria-labelledby="historyTabBtn">
+          <header><strong id="historyPanelTitle">작업 이력</strong><span id="historyPanelSummary">기록 없음</span></header>
+          <ol id="historyList" class="history-list"></ol>
+        </section>
       </aside>
     </div>
     <div class="overlay-root">
@@ -682,6 +778,7 @@
         <button id="importGeoJsonBtn" class="ui-button btn ghost">GeoJSON 가져오기</button>
         <input id="geoJsonFileInput" type="file" accept="application/geo+json,application/json,.geojson,.json" hidden />
         <button id="exportGeoJsonBtn" class="ui-button btn ghost">GeoJSON 내보내기</button>
+        <button id="shortcutHelpBtn" class="ui-button btn ghost" type="button">단축키</button>
       </nav>
     </div>
   </div>
@@ -691,12 +788,33 @@
     <section class="confirm-modal-card ui-card">
       <h2 id="confirmModalTitle">확인</h2>
       <p id="confirmModalMessage"></p>
+      <section id="confirmModalImpactSection" class="confirm-impact hidden" aria-labelledby="confirmModalImpactTitle"><strong id="confirmModalImpactTitle">영향</strong><ul id="confirmModalImpactList"></ul></section>
       <label id="confirmModalChoiceRow" class="ui-field field-group hidden"><span>처리 방식</span><select id="confirmModalChoice"></select></label>
       <div class="confirm-modal-actions ui-dialog-actions">
         <button id="confirmModalCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="confirmModalOkBtn" type="button" class="ui-button btn">확인</button>
       </div>
     </section>
+  </div>
+  <div id="layerPresentationModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="layerPresentationTitle">
+    <div class="confirm-modal-dim"></div>
+    <section class="confirm-modal-card ui-card layer-presentation-card">
+      <header class="ui-dialog-header"><div><h2 id="layerPresentationTitle">레이어 순서·스타일</h2><p>목록에서 위에 있는 오버레이가 지도에서도 위에 표시됩니다.</p></div><button id="layerPresentationCloseBtn" class="ui-button icon-btn" type="button" aria-label="레이어 표시 설정 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
+      <div id="layerPresentationList" class="layer-presentation-list" role="list" aria-label="오버레이 렌더 순서"></div>
+      <section class="layer-style-editor" aria-labelledby="layerStyleEditorTitle">
+        <strong id="layerStyleEditorTitle">그룹 표시 스타일</strong>
+        <label class="ui-field field-group"><span>대상 그룹</span><select id="layerStyleGroupInput"></select></label>
+        <label class="ui-field field-group"><span>투명도 <output id="layerStyleOpacityValue">100%</output></span><input id="layerStyleOpacityInput" type="range" min="0" max="100" value="100" /></label>
+        <label class="ui-choice-row"><input id="layerStyleBoundaryVisibleInput" type="checkbox" checked /><span>경계선 표시</span></label>
+        <label class="ui-field field-group"><span>경계선 두께</span><input id="layerStyleBoundaryWidthInput" type="number" min="0.5" max="4" step="0.5" value="1" /></label>
+        <label class="ui-choice-row"><input id="layerStyleLabelsVisibleInput" type="checkbox" checked /><span>라벨 표시</span></label>
+      </section>
+      <div class="ui-dialog-actions"><button id="layerPresentationDoneBtn" class="ui-button btn" type="button">완료</button></div>
+    </section>
+  </div>
+  <div id="shortcutHelpModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="shortcutHelpTitle">
+    <div class="confirm-modal-dim"></div>
+    <section class="confirm-modal-card ui-card shortcut-help-card"><h2 id="shortcutHelpTitle">키보드 단축키</h2><dl><div><dt>Ctrl/Cmd + 클릭</dt><dd>선택 추가·해제</dd></div><div><dt>Shift + 클릭</dt><dd>같은 목록 범위 선택</dd></div><div><dt>Alt + 클릭</dt><dd>겹친 객체 순환</dd></div><div><dt>Ctrl/Cmd + Z</dt><dd>실행취소</dd></div><div><dt>Esc</dt><dd>팝오버 또는 현재 작업 닫기</dd></div></dl><div class="ui-dialog-actions"><button id="shortcutHelpCloseBtn" class="ui-button btn" type="button">닫기</button></div></section>
   </div>
   <div id="geoJsonTargetModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="geoJsonTargetTitle">
     <div class="confirm-modal-dim"></div>
@@ -816,8 +934,8 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.29.0-r3" defer></script>
-  <script src="assets/js/gis-io.js?v=0.29.0-r3" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.29.0-r3" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r3" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r3" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r3" defer></script>
 </body>
 </html>

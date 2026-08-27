@@ -37,7 +37,8 @@ class InformationHierarchyV0170Tests(unittest.TestCase):
     def test_editor_uses_minimal_primary_information(self):
         self.assertNotIn("변경사항 자동 저장", INDEX)
         self.assertNotIn("countryActionHint", INDEX + APP)
-        self.assertIn("지도에서 편집할 대상을 선택하세요.", INDEX)
+        self.assertIn("지도나 레이어 목록에서 편집할 대상을 선택하세요.", INDEX)
+        self.assertIn('id="focusSelectedObjectBtn"', INDEX)
         copy_index = INDEX.index('id="copyHydroBtn"')
         self.assertGreater(INDEX.index('class="ui-disclosure editor-disclosure"', copy_index), copy_index)
         self.assertNotIn('propertyType', INDEX + APP)

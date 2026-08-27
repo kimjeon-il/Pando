@@ -9,7 +9,7 @@ async function openApp(page) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 90_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;
 }
 
@@ -111,6 +111,8 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   expect(afterNudge).not.toBe(beforeNudge);
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1);
   await expect(page.locator('.draft-split-preview')).toHaveCount(2);
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용');
   await page.locator('#modePrimaryBtn').click();
 
   await expect(page.locator('path.drawing-shape')).toHaveCount(2);

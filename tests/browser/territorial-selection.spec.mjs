@@ -10,7 +10,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 90_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#basemapLabelsVisible').evaluate(input => {
     if (!input.checked) return;
     input.checked = false;
@@ -68,7 +68,7 @@ test('a region above a visible country remains clickable and does not block map 
 
   const afterDrag = await territorialShapeCenter(page, name);
   await page.mouse.click(afterDrag.x, afterDrag.y);
-  await expect(page.locator('#selectionStatus')).toHaveText(`지역 · 독일 · ${name}`);
+  await expect(page.locator('#selectionStatus')).toContainText(`지역 · 독일 · ${name}`);
   await expect(page.locator('#regionProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -86,7 +86,7 @@ test('an administrative area above a visible country wins the physical map click
   const point = await territorialShapeCenter(page, name);
   expect(point).not.toBeNull();
   await page.mouse.click(point.x, point.y);
-  await expect(page.locator('#selectionStatus')).toHaveText(`행정구역 · 독일 · 1급 · ${name}`);
+  await expect(page.locator('#selectionStatus')).toContainText(`행정구역 · 독일 · 1급 · ${name}`);
   await expect(page.locator('#administrativeProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -108,7 +108,7 @@ test('a mobile touch tap selects the territorial overlay above its country', asy
     const point = await territorialShapeCenter(page, name);
     expect(point).not.toBeNull();
     await page.touchscreen.tap(point.x, point.y);
-    await expect(page.locator('#selectionStatus')).toHaveText(`지역 · 독일 · ${name}`);
+    await expect(page.locator('#selectionStatus')).toContainText(`지역 · 독일 · ${name}`);
     await expect(page.locator('#regionProperties')).not.toHaveClass(/hidden/);
     expect(errors).toEqual([]);
   } finally {

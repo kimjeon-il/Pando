@@ -11,10 +11,14 @@ import { presimplify, quantile, simplify } from 'topojson-simplify';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
+const APP_VERSION = '0.30.0';
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
-const previewCountriesPath = path.join(projectRoot, 'assets', 'data', 'countries-preview-v0.29.0.geojson.gz');
-const previewMeshPath = path.join(projectRoot, 'assets', 'data', 'world-mesh-preview-v0.29.0.bin.gz');
-const previewManifestPath = path.join(projectRoot, 'assets', 'data', 'world-preview-v0.29.0.json');
+const canonicalCountriesGzipPath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson.gz');
+const canonicalMeshPath = path.join(projectRoot, 'assets', 'data', 'world-mesh-v0.12.6.bin.gz');
+const labelAnchorsPath = path.join(projectRoot, 'assets', 'data', 'country-label-anchors-v0.10.1.json');
+const previewCountriesPath = path.join(projectRoot, 'assets', 'data', `countries-preview-v${APP_VERSION}.geojson.gz`);
+const previewMeshPath = path.join(projectRoot, 'assets', 'data', `world-mesh-preview-v${APP_VERSION}.bin.gz`);
+const previewManifestPath = path.join(projectRoot, 'assets', 'data', `world-preview-v${APP_VERSION}.json`);
 const checkOnly = process.argv.includes('--check');
 
 const MAX_COORDINATES = 60_000;
@@ -43,6 +47,10 @@ function countCoordinates(value) {
 
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function meshHeader(value) {
+  return Array.from(new Uint32Array(value.buffer, value.byteOffset, 8));
 }
 
 function minimalFeature(featureValue, index) {
@@ -111,7 +119,7 @@ function packMesh(mesh, sourceCoordinateCount) {
 function buildPreview(source) {
   const minimal = {
     type: 'FeatureCollection',
-    name: 'pandolab-world-preview-v0.29.0',
+    name: `pandolab-world-preview-v${APP_VERSION}`,
     features: source.features.map(minimalFeature),
   };
   const originalIds = minimal.features.map(featureValue => featureValue.properties.editor_id);
@@ -160,6 +168,9 @@ function compareOrWrite(filePath, bytes) {
 }
 
 const sourceBytes = fs.readFileSync(sourcePath);
+const canonicalMeshBytes = fs.readFileSync(canonicalMeshPath);
+const canonicalMeshDecoded = zlib.gunzipSync(canonicalMeshBytes);
+const labelAnchorBytes = fs.readFileSync(labelAnchorsPath);
 const source = JSON.parse(sourceBytes.toString('utf8'));
 if (source?.type !== 'FeatureCollection' || source.features?.length !== 258) {
   throw new Error('Natural Earth 국가 데이터는 정확히 258개여야 합니다.');
@@ -169,6 +180,7 @@ const startedAt = performance.now();
 const preview = buildPreview(source);
 const previewJson = Buffer.from(JSON.stringify(preview.collection));
 const previewCountries = zlib.gzipSync(previewJson, { level: 9, mtime: 0 });
+const canonicalCountries = zlib.gzipSync(sourceBytes, { level: 9, mtime: 0 });
 const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, earcut, { validate: true, maxEdgeDegrees: 2 });
 const packedMesh = packMesh(mesh, preview.coordinateCount);
 const combinedCompressedBytes = previewCountries.length + packedMesh.compressed.length;
@@ -177,7 +189,7 @@ if (combinedCompressedBytes > MAX_COMPRESSED_BYTES) {
 }
 
 const manifest = {
-  version: '0.29.0',
+  version: APP_VERSION,
   source: 'countries-ne-5.1.1.geojson',
   sourceSha256: sha256(sourceBytes),
   countries: preview.collection.features.length,
@@ -192,11 +204,51 @@ const manifest = {
   combinedCompressedBytes,
   countriesSha256: sha256(previewCountries),
   meshSha256: sha256(packedMesh.compressed),
+  assets: {
+    previewCountries: {
+      url: `countries-preview-v${APP_VERSION}.geojson.gz`,
+      encoding: 'gzip',
+      compressedBytes: previewCountries.length,
+      decodedBytes: previewJson.length,
+      sha256: sha256(previewCountries),
+    },
+    previewMesh: {
+      url: `world-mesh-preview-v${APP_VERSION}.bin.gz`,
+      encoding: 'gzip',
+      compressedBytes: packedMesh.compressed.length,
+      decodedBytes: packedMesh.raw.length,
+      sha256: sha256(packedMesh.compressed),
+      header: meshHeader(packedMesh.raw),
+    },
+    labelAnchors: {
+      url: 'country-label-anchors-v0.10.1.json',
+      encoding: 'identity',
+      compressedBytes: labelAnchorBytes.length,
+      decodedBytes: labelAnchorBytes.length,
+      sha256: sha256(labelAnchorBytes),
+    },
+    canonicalCountries: {
+      url: 'countries-ne-5.1.1.geojson.gz',
+      encoding: 'gzip',
+      compressedBytes: canonicalCountries.length,
+      decodedBytes: sourceBytes.length,
+      sha256: sha256(canonicalCountries),
+    },
+    canonicalMesh: {
+      url: 'world-mesh-v0.12.6.bin.gz',
+      encoding: 'gzip',
+      compressedBytes: canonicalMeshBytes.length,
+      decodedBytes: canonicalMeshDecoded.length,
+      sha256: sha256(canonicalMeshBytes),
+      header: meshHeader(canonicalMeshDecoded),
+    },
+  },
 };
 const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
 
 compareOrWrite(previewCountriesPath, previewCountries);
 compareOrWrite(previewMeshPath, packedMesh.compressed);
+compareOrWrite(canonicalCountriesGzipPath, canonicalCountries);
 compareOrWrite(previewManifestPath, manifestBytes);
 
 console.log(JSON.stringify({

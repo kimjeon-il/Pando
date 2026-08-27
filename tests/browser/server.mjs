@@ -21,7 +21,14 @@ createServer((request, response) => {
   try {
     if (!statSync(file).isFile()) throw new Error('Not a file');
     response.writeHead(200, { 'Content-Type': mime[extname(file).toLowerCase()] || 'application/octet-stream' });
-    createReadStream(file).pipe(response);
+    const stream = createReadStream(file);
+    response.on('close', () => stream.destroy());
+    response.on('error', () => stream.destroy());
+    stream.on('error', () => {
+      if (!response.headersSent) response.writeHead(500).end('Read error');
+      else response.destroy();
+    });
+    stream.pipe(response);
   } catch {
     response.writeHead(404).end('Not found');
   }

@@ -5,6 +5,7 @@ function canvasFallbackWorkerMain() {
     let canvas = null;
     let context = null;
     let features = [];
+    let geometryRevision = 0;
     let terrainManifest = null;
     let terrainManifestUrl = '';
     const terrainTiles = new Map();
@@ -278,7 +279,7 @@ function canvasFallbackWorkerMain() {
       const baseLevel = levels[0];
       const targetLevel = terrainLevelForView(projection, dpr) || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      const activeTargetIndex = message.dataReadiness === 'canonical' ? targetIndex : 0;
+      const activeTargetIndex = message.dataReadiness === 'enhanced' ? targetIndex : 0;
       const specsByLevel = levels.slice(0, activeTargetIndex + 1).map((level, index) => ({
         level,
         specs: visibleTerrainTileSpecs(level, message, projection, width, height, false),
@@ -539,7 +540,7 @@ function canvasFallbackWorkerMain() {
         const border = theme.border || '#323c46';
         const borderAlpha = Number.isFinite(theme.borderAlpha) ? theme.borderAlpha : 0.92;
         context.lineJoin = 'round';
-        context.lineWidth = 0.72;
+        context.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
         for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
           if (hiddenCountryIds.has(countryId(feature, index))) continue;
@@ -567,6 +568,7 @@ function canvasFallbackWorkerMain() {
       self.postMessage({
         type: 'frame',
         revision: Number(message.revision || 0),
+        geometryRevision,
         bitmap,
         width: pixelWidth,
         height: pixelHeight,
@@ -576,6 +578,7 @@ function canvasFallbackWorkerMain() {
       const message = event.data || {};
       if (message.type === 'init') {
         features = message.features || [];
+        geometryRevision = Number(message.geometryRevision || 0);
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || 2)));
         loadTerrainManifest(message.terrainManifestUrl);
         self.postMessage({ type: 'ready' });
@@ -584,9 +587,35 @@ function canvasFallbackWorkerMain() {
       } else if (message.type === 'hydro-pick') {
         self.postMessage({ type: 'hydro-pick', requestId: message.requestId, fid: pickHydroFeature(message.point) });
       } else if (message.type === 'data' || message.type === 'replace-data') {
+        const incomingGeometryRevision = Number(message.geometryRevision || 0);
+        if (incomingGeometryRevision < geometryRevision) {
+          self.postMessage({
+            type: 'data-ready', revision: Number(message.revision || 0), geometryRevision,
+            taskToken: Number(message.taskToken || 0), ids: message.ids || [],
+            replaceAll: true, stale: true,
+          });
+          return;
+        }
         features = message.features || [];
-        self.postMessage({ type: 'data-ready', revision: Number(message.revision || 0), ids: message.ids || [] });
+        geometryRevision = incomingGeometryRevision;
+        self.postMessage({
+          type: 'data-ready',
+          revision: Number(message.revision || 0),
+          geometryRevision,
+          taskToken: Number(message.taskToken || 0),
+          ids: message.ids || [],
+          replaceAll: true,
+        });
       } else if (message.type === 'patch') {
+        const incomingGeometryRevision = Number(message.geometryRevision || 0);
+        if (incomingGeometryRevision < geometryRevision) {
+          self.postMessage({
+            type: 'data-ready', revision: Number(message.revision || 0), geometryRevision,
+            taskToken: Number(message.taskToken || 0), ids: message.ids || [],
+            replaceAll: false, stale: true,
+          });
+          return;
+        }
         const updates = new Map((message.features || []).map(feature => [countryId(feature), feature]));
         const removed = new Set((message.removedIds || []).map(String));
         const seen = new Set();
@@ -600,7 +629,15 @@ function canvasFallbackWorkerMain() {
           return [feature];
         });
         for (const [id, feature] of updates) if (!seen.has(id)) features.push(feature);
-        self.postMessage({ type: 'data-ready', revision: Number(message.revision || 0), ids: message.ids || [] });
+        geometryRevision = incomingGeometryRevision;
+        self.postMessage({
+          type: 'data-ready',
+          revision: Number(message.revision || 0),
+          geometryRevision,
+          taskToken: Number(message.taskToken || 0),
+          ids: message.ids || [],
+          replaceAll: false,
+        });
       } else if (message.type === 'render') {
         try {
           terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || terrainFetchConcurrency)));
