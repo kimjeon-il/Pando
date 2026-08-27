@@ -1241,7 +1241,7 @@ const {
     if (!box) {
       box = document.createElement('div');
       box.id = 'fatalErrorBox';
-      box.style.cssText = 'position:fixed;z-index:99999;left:10px;right:10px;top:70px;padding:14px;border:1px solid #8a4f4f;border-radius:10px;background:#3b2525;color:#ffd1d1;font:500 13px/1.55 var(--ui-font-family);white-space:pre-wrap;';
+      box.className = 'fatal-runtime-message';
       document.body.appendChild(box);
     }
     box.textContent = `판도연구소를 시작할 수 없습니다.\n${message}\n\n페이지를 새로고침하세요. 문제가 계속되면 오류 코드를 확인하세요.`;
@@ -3381,9 +3381,14 @@ const {
     }
   }
 
-  const LAYER_VIRTUAL_ROW_HEIGHT = 48;
+  const LAYER_VIRTUAL_ROW_HEIGHT_FALLBACK = 48;
   const LAYER_VIRTUAL_OVERSCAN = 5;
   const layerVirtualItems = new Map();
+
+  function resolveLayerVirtualRowHeight() {
+    const value = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-tree-row-height'));
+    return Number.isFinite(value) && value > 0 ? value : LAYER_VIRTUAL_ROW_HEIGHT_FALLBACK;
+  }
 
   function isLayerTreeItemSelected(group, id) {
     const key = String(id);
@@ -3474,20 +3479,21 @@ const {
 
   function renderVirtualizedLayerGroup(group, container, items, { scrollTop = container.scrollTop, folderKey = group } = {}) {
     layerVirtualItems.set(folderKey, items);
+    const rowHeight = resolveLayerVirtualRowHeight();
     const desiredScrollTop = Math.max(0, Number(scrollTop) || 0);
     const viewportHeight = Math.max(144, container.clientHeight || 235);
-    const start = Math.max(0, Math.floor(desiredScrollTop / LAYER_VIRTUAL_ROW_HEIGHT) - LAYER_VIRTUAL_OVERSCAN);
-    const count = Math.ceil(viewportHeight / LAYER_VIRTUAL_ROW_HEIGHT) + LAYER_VIRTUAL_OVERSCAN * 2;
+    const start = Math.max(0, Math.floor(desiredScrollTop / rowHeight) - LAYER_VIRTUAL_OVERSCAN);
+    const count = Math.ceil(viewportHeight / rowHeight) + LAYER_VIRTUAL_OVERSCAN * 2;
     const end = Math.min(items.length, start + count);
     const fragment = document.createDocumentFragment();
     const top = document.createElement('div');
     top.className = 'layer-virtual-spacer';
-    top.style.height = `${start * LAYER_VIRTUAL_ROW_HEIGHT}px`;
+    top.style.height = `${start * rowHeight}px`;
     fragment.appendChild(top);
     for (let index = start; index < end; index += 1) fragment.appendChild(createLayerItemRow(group, items[index]));
     const bottom = document.createElement('div');
     bottom.className = 'layer-virtual-spacer';
-    bottom.style.height = `${Math.max(0, items.length - end) * LAYER_VIRTUAL_ROW_HEIGHT}px`;
+    bottom.style.height = `${Math.max(0, items.length - end) * rowHeight}px`;
     fragment.appendChild(bottom);
     container.replaceChildren(fragment);
     container.dataset.virtualized = 'true';
