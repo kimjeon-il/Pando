@@ -14,6 +14,11 @@ export function createMapInputController({
   directTap,
   canDoubleTap,
   suppressClick,
+  canDrawStroke = () => false,
+  beginStroke = () => false,
+  moveStroke = () => {},
+  endStroke = () => {},
+  cancelStroke = () => {},
 }) {
   const pointers = new Map();
   let gesture = null;
@@ -24,6 +29,15 @@ export function createMapInputController({
   let moving = false;
 
   const distance = (left, right) => Math.max(1, Math.hypot(left.x - right.x, left.y - right.y));
+  const center = (left, right) => ({ x: (left.x + right.x) / 2, y: (left.y + right.y) / 2 });
+  const localPoint = event => {
+    const rect = element.getBoundingClientRect?.() || { left: 0, top: 0 };
+    return [event.clientX - rect.left, event.clientY - rect.top];
+  };
+  const localSamples = event => {
+    const events = event.getCoalescedEvents?.() || [event];
+    return events.length ? events.map(localPoint) : [localPoint(event)];
+  };
 
   function capturePointer(pointerId) {
     try { element.setPointerCapture?.(pointerId); }
@@ -47,16 +61,20 @@ export function createMapInputController({
     const point = { x: event.clientX, y: event.clientY, pointerType: event.pointerType };
     pointers.set(event.pointerId, point);
     if (event.pointerType === 'touch' && pointers.size === 2) {
+      if (gesture?.kind === 'draw') cancelStroke(event);
       for (const pointerId of pointers.keys()) capturePointer(pointerId);
       const pair = [...pointers.values()];
       gesture = null;
       startMovement();
-      pinch = { distance: distance(pair[0], pair[1]), zoom: getZoom() };
+      pinch = { distance: distance(pair[0], pair[1]), zoom: getZoom(), center: center(pair[0], pair[1]) };
       event.preventDefault();
       return;
     }
     if (pointers.size !== 1) return;
+    const drawing = !!canDrawStroke(event) && beginStroke(localPoint(event), event) !== false;
+    if (drawing) capturePointer(event.pointerId);
     gesture = {
+      kind: drawing ? 'draw' : 'navigate',
       pointerId: event.pointerId,
       pointerType: event.pointerType,
       startX: event.clientX,
@@ -69,6 +87,7 @@ export function createMapInputController({
       revision: getRevision(),
       cancelled: false,
     };
+    if (drawing) event.preventDefault();
   }
 
   function pointerMove(event) {
@@ -76,6 +95,9 @@ export function createMapInputController({
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, pointerType: event.pointerType });
     if (pinch && pointers.size >= 2) {
       const pair = [...pointers.values()].slice(0, 2);
+      const nextCenter = center(pair[0], pair[1]);
+      panBy(nextCenter.x - pinch.center.x, nextCenter.y - pinch.center.y);
+      pinch.center = nextCenter;
       setZoom(pinch.zoom * Math.pow(distance(pair[0], pair[1]) / pinch.distance, 1.18));
       scheduleViewRender();
       event.preventDefault();
@@ -85,11 +107,18 @@ export function createMapInputController({
     const threshold = gesture.pointerType === 'touch' ? 8 : 4;
     if (!gesture.moved && Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) > threshold) {
       gesture.moved = true;
-      gesture.panned = gesture.navigable;
+      gesture.panned = gesture.kind === 'navigate' && gesture.navigable;
       if (gesture.panned) {
         capturePointer(event.pointerId);
         startMovement();
       }
+    }
+    if (gesture.kind === 'draw') {
+      if (gesture.moved) moveStroke(localSamples(event), event);
+      gesture.lastX = event.clientX;
+      gesture.lastY = event.clientY;
+      event.preventDefault();
+      return;
     }
     if (!gesture.panned) return;
     panBy(event.clientX - gesture.lastX, event.clientY - gesture.lastY);
@@ -115,8 +144,22 @@ export function createMapInputController({
     gesture = null;
     const point = [event.clientX, event.clientY];
     if (cancelled || completed.cancelled || completed.revision !== getRevision()) {
+      if (completed.kind === 'draw') cancelStroke(event);
       suppressClick(point, 700);
       endMovement(null);
+      return;
+    }
+    if (completed.kind === 'draw') {
+      if (completed.moved) {
+        endStroke(localPoint(event), event);
+        suppressClick(point, 700);
+      } else {
+        cancelStroke(event);
+        if (completed.pointerType === 'touch' && canDirectTap()) {
+          directTap(localPoint(event));
+          suppressClick(point, 700);
+        }
+      }
       return;
     }
     if (completed.panned) {
@@ -153,6 +196,7 @@ export function createMapInputController({
   const pointerCancel = event => finishPointer(event, true);
 
   function cancel() {
+    if (gesture?.kind === 'draw') cancelStroke();
     if (gesture) gesture.cancelled = true;
     gesture = null;
     pinch = null;
@@ -169,6 +213,7 @@ export function createMapInputController({
 
   return {
     cancel,
+    isDrawing: () => gesture?.kind === 'draw',
     isPanning: () => !!gesture?.panned || !!pinch,
     destroy() {
       cancel();

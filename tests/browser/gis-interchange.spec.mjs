@@ -11,6 +11,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 30_000 });
 
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept('스모크 언어'));
@@ -26,7 +27,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     page.waitForEvent('download', { timeout: 240_000 }),
     page.locator('#saveProjectBtn').click(),
   ]);
-  expect(download.suggestedFilename()).toBe('AtlasWright-프로젝트.gpkg');
+  expect(download.suggestedFilename()).toBe('판도연구소-프로젝트.gpkg');
   const filePath = await download.path();
   const db = new DatabaseSync(filePath, { readOnly: true });
   try {

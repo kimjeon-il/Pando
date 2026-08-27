@@ -25,4 +25,4 @@ createServer((request, response) => {
   } catch {
     response.writeHead(404).end('Not found');
   }
-}).listen(port, '127.0.0.1', () => console.log(`AtlasWright test server: http://127.0.0.1:${port}`));
+}).listen(port, '127.0.0.1', () => console.log(`PandoLab test server: http://127.0.0.1:${port}`));

@@ -112,7 +112,7 @@
     const geometry = polygonGeometry(feature?.geometry);
     if (!unitType || !geometry) return null;
     const legacyProperties = parseJson(properties.properties_json);
-    const id = text(properties.id || properties.aw_id || feature.id || `${unitType}_${index + 1}`);
+    const id = text(properties.id || properties.pandolab_id || feature.id || `${unitType}_${index + 1}`);
     return {
       type: 'Feature',
       id,
@@ -193,7 +193,7 @@
     return { layers: [...layerMap.values()], entries };
   }
 
-  global.AtlasWrightGisAdapters = Object.freeze({
+  global.PandoLabGisAdapters = Object.freeze({
     TERRITORIAL_TABLES,
     TERRITORIAL_TYPES_BY_TABLE,
     DISTRIBUTION_TABLES,

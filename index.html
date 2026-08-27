@@ -6,9 +6,9 @@
   <meta name="color-scheme" content="dark light" />
   <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
   <link rel="icon" href="data:," />
-  <title>AtlasWright — 국가와 국경을 만드는 세계지도 편집기</title>
+  <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.28.0-r5" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.29.0-r2" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -18,6 +18,7 @@
     <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
     <symbol id="icon-undo" viewBox="0 0 24 24"><path d="m9 7-5 5 5 5M5 12h8a6 6 0 0 1 6 6"/></symbol>
     <symbol id="icon-redo" viewBox="0 0 24 24"><path d="m15 7 5 5-5 5M19 12h-8a6 6 0 0 0-6 6"/></symbol>
+    <symbol id="icon-pencil" viewBox="0 0 24 24"><path d="m4 20 4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"/><path d="m13.5 7.5 3 3M5.5 16.5l3 3"/></symbol>
     <symbol id="icon-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
     <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></symbol>
     <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
@@ -27,25 +28,32 @@
     <symbol id="icon-transfer" viewBox="0 0 24 24"><path d="M4 8h13m0 0-3-3m3 3-3 3M20 16H7m0 0 3 3m-3-3 3-3"/></symbol>
     <symbol id="icon-river" viewBox="0 0 24 24"><path d="M4 4c6 2 2 6 8 8s2 6 8 8"/></symbol>
     <symbol id="icon-lake" viewBox="0 0 24 24"><path d="M5 8c2-3 5-4 8-2 3-1 6 1 6 4 2 3-1 7-4 7-2 2-6 1-7-1-4 0-5-5-3-8Z"/></symbol>
+    <symbol id="icon-country" viewBox="0 0 24 24"><path d="M5 21V4m0 1h11l-2 4 2 4H5"/></symbol>
+    <symbol id="icon-region" viewBox="0 0 24 24"><path d="m5 6 5-2 3 3 5-1 2 5-3 3 1 5-6 1-3-3-5 1-1-6 2-6Z"/></symbol>
+    <symbol id="icon-administrative" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></symbol>
+    <symbol id="icon-library" viewBox="0 0 24 24"><path d="M4 4h5v16H4zM10 4h5v16h-5zM16.5 5.5l3.5-1 3.5 14-3.5 1-3.5-14Z"/></symbol>
+    <symbol id="icon-language" viewBox="0 0 24 24"><path d="M4 5h11a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H9l-4 3v-3H4a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path d="M10 16h5l4 3v-3h1a3 3 0 0 0 3-3v-2"/></symbol>
+    <symbol id="icon-ethnicity" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><circle cx="5" cy="10" r="2"/><circle cx="19" cy="10" r="2"/><path d="M6 20v-2a6 6 0 0 1 12 0v2M1 20v-2a4 4 0 0 1 5-4M23 20v-2a4 4 0 0 0-5-4"/></symbol>
+    <symbol id="icon-religion" viewBox="0 0 24 24"><path d="m3 9 9-5 9 5M5 10h14M6 10v8M10 10v8M14 10v8M18 10v8M4 18h16M3 21h18"/></symbol>
+    <symbol id="icon-place" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
     <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M3.5 6.5h6l2 2h9v9.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6.5Z"/><path d="M3.5 9h17"/></symbol>
     <symbol id="icon-lock-open" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M9 10V7a4 4 0 0 1 7.5-2"/></symbol>
     <symbol id="icon-lock-closed" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
     <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></symbol>
     <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path d="m7 9 5 5 5-5"/></symbol>
-    <symbol id="icon-atlas" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m12 6 2.2 5.8L18 14l-5.8 2.2L10 20l-2.2-5.8L4 12l5.8-2.2L12 6Z"/></symbol>
   </svg>
   <div id="bootstrapLoading" class="bootstrap-loading" role="status" aria-live="polite">
     <div class="bootstrap-loading-card">
-      <strong>AtlasWright 지도를 준비하는 중입니다.</strong>
+      <strong>판도연구소 지도를 준비하는 중입니다.</strong>
       <p id="bootstrapLoadingText">고해상도 국가 데이터와 GPU 메시를 불러오고 있습니다.</p>
       <div class="bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.28.0" data-layout="wide">
+  <div id="app" data-app-version="0.29.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#icon-atlas"/></svg></div>
-        <div><strong>AtlasWright</strong></div>
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div><strong>판도연구소</strong></div>
       </div>
 
       <div class="topbar-center" aria-live="polite" aria-atomic="true">
@@ -236,14 +244,14 @@
                   <button id="mobileCloseCreateBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="추가 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
                 </div>
                 <div class="map-sheet-body create-sheet-body">
-                  <button id="addCountryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><span><strong>국가 추가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
-                  <button id="addRegionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><span><strong>지역 추가</strong><small>국가 안의 지역을 나누거나 지정하기</small></span></button>
-                  <button id="addAdministrativeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg></span><span><strong>행정구역 추가</strong><small>부모 영역 안에 행정 단위 만들기</small></span></button>
-                  <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-atlas"/></svg></span><span><strong>라이브러리에서 추가</strong><small>현존·과거 국가와 역사 지역 검색하기</small></span></button>
-                  <button id="addLanguageBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><span><strong>언어 추가</strong><small>언어 항목을 만들고 분포 입력하기</small></span></button>
-                  <button id="addEthnicityBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-atlas"/></svg></span><span><strong>민족 추가</strong><small>민족 항목을 만들고 분포 입력하기</small></span></button>
-                  <button id="addReligionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg></span><span><strong>종교 추가</strong><small>종교 항목을 만들고 분포 입력하기</small></span></button>
-                  <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg></span><span><strong>지명 추가</strong><small>지도에 도시·지명 배치하기</small></span></button>
+                  <button id="addCountryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가 추가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
+                  <button id="addRegionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>지역 추가</strong><small>국가 안의 지역을 나누거나 지정하기</small></span></button>
+                  <button id="addAdministrativeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-administrative"/></svg></span><span><strong>행정구역 추가</strong><small>부모 영역 안에 행정 단위 만들기</small></span></button>
+                  <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리에서 추가</strong><small>현존·과거 국가와 역사 지역 검색하기</small></span></button>
+                  <button id="addLanguageBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>언어 추가</strong><small>언어 항목을 만들고 분포 입력하기</small></span></button>
+                  <button id="addEthnicityBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-ethnicity"/></svg></span><span><strong>민족 추가</strong><small>민족 항목을 만들고 분포 입력하기</small></span></button>
+                  <button id="addReligionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-religion"/></svg></span><span><strong>종교 추가</strong><small>종교 항목을 만들고 분포 입력하기</small></span></button>
+                  <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명 추가</strong><small>지도에 도시·지명 배치하기</small></span></button>
                   <button id="addRiverBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강 추가</strong><small>강의 흐름을 선으로 그리기</small></span></button>
                   <button id="addLakeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수 추가</strong><small>호수의 경계를 영역으로 그리기</small></span></button>
                 </div>
@@ -290,6 +298,7 @@
           <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
             <button id="modeDraftUndoBtn" type="button" class="ui-button mode-draft-action-btn" title="작성 중 실행 취소 (Ctrl+Z)" aria-label="작성 중 실행 취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></button>
             <button id="modeDraftRedoBtn" type="button" class="ui-button mode-draft-action-btn" title="작성 중 다시 실행 (Ctrl+Y)" aria-label="작성 중 다시 실행"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></button>
+            <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" title="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
             <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" title="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
             <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" title="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
           </div>
@@ -797,7 +806,7 @@
       </form>
     </section>
   </div>
-  <noscript><div class="fatal-noscript">AtlasWright를 사용하려면 브라우저에서 자바스크립트 실행을 허용하세요.</div></noscript>
+  <noscript><div class="fatal-noscript">판도연구소를 사용하려면 브라우저에서 자바스크립트 실행을 허용하세요.</div></noscript>
 
   
   
@@ -807,8 +816,8 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.28.0-r5" defer></script>
-  <script src="assets/js/gis-io.js?v=0.28.0-r5" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.28.0-r5" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.29.0-r2" defer></script>
+  <script src="assets/js/gis-io.js?v=0.29.0-r2" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.29.0-r2" defer></script>
 </body>
 </html>

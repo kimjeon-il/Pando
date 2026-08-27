@@ -1,11 +1,11 @@
 'use strict';
 
-importScripts('../vendor/earcut.min.js', './gpu-mesh-core.js?v=0.28.0-r1');
+importScripts('../vendor/earcut.min.js', './gpu-mesh-core.js?v=0.29.0-r2');
 
 self.onmessage = event => {
   const token = event.data?.token;
   try {
-    const mesh = self.AtlasWrightGpuMeshCore.buildGpuMeshFeatures(
+    const mesh = self.PandoLabGpuMeshCore.buildGpuMeshFeatures(
       event.data?.features || [],
       self.earcut,
       { validate: false },

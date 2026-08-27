@@ -42,6 +42,7 @@ test('draft undo and redo stay local and a new mutation clears redo', () => {
   recordDraftSnapshot(editState, coords);
   coords = [[0, 0]];
   editState.selectedVertexIndex = 0;
+  editState.inputPhase = 'refine';
   recordDraftSnapshot(editState, coords);
   coords = [[0, 0], [10, 0]];
   editState.selectedVertexIndex = 1;
@@ -50,11 +51,13 @@ test('draft undo and redo stay local and a new mutation clears redo', () => {
   coords = snapshot.coords;
   assert.deepEqual(coords, [[0, 0]]);
   assert.equal(snapshot.selectedVertexIndex, 0);
+  assert.equal(snapshot.inputPhase, 'refine');
 
   snapshot = redoDraftSnapshot(editState, coords);
   coords = snapshot.coords;
   assert.deepEqual(coords, [[0, 0], [10, 0]]);
   assert.equal(snapshot.selectedVertexIndex, 1);
+  assert.equal(snapshot.inputPhase, 'refine');
 
   snapshot = undoDraftSnapshot(editState, coords);
   coords = snapshot.coords;

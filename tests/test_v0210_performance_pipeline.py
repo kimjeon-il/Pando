@@ -16,7 +16,7 @@ COUNTRY_GEOMETRY = (ROOT / "assets" / "js" / "modules" / "country-geometry.js").
 
 class V0210PerformancePipelineTests(unittest.TestCase):
     def test_version_and_incremental_country_renderer(self):
-        self.assertIn("const APP_VERSION = '0.28.0'", APP)
+        self.assertIn("const APP_VERSION = '0.29.0'", APP)
         for interface in ("applyCountryPatch", "setInteractionActive", "renderViewFrame", "compactCountryOverrides"):
             self.assertIn(interface, RENDERER)
         self.assertIn("countryOverrideIds", RENDERER)
@@ -34,7 +34,7 @@ class V0210PerformancePipelineTests(unittest.TestCase):
         self.assertIn("regionPolygonsNearFeatures", EDIT_WORKER)
         self.assertIn("normalizeCountryGeometry", EDIT_WORKER)
         self.assertIn("hasCanonicalCountryWinding", EDIT_WORKER)
-        self.assertIn("root.AtlasWrightCountryGeometry", COUNTRY_GEOMETRY)
+        self.assertIn("root.PandoLabCountryGeometry", COUNTRY_GEOMETRY)
         self.assertIn("normalizeCountryGeometry(feature.geometry)", APP)
         self.assertIn("client.execute(operation, payload)", TRANSACTION)
         for operation in ("operation: 'annex'", "operation: 'merge'", "operation: 'new-country'"):
