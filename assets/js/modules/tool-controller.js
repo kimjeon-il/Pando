@@ -9,7 +9,9 @@ export const TOOL_DEFINITIONS = Object.freeze({
   'split-country-region': Object.freeze({ label: '지역 나누기', task: '지역 나누기', stage: '경계 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),
   'redraw-country-region': Object.freeze({ label: '영역 다시 지정', task: '영역 다시 지정', stage: '영역 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
   'draw-country-region': Object.freeze({ label: '영역 직접 지정', task: '지역 추가', stage: '영역 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
-  'country-coast': Object.freeze({ label: '해안선 수정', task: '해안선 수정', stage: '꼭짓점 이동', cursor: 'select', special: true }),
+  'country-coast': Object.freeze({ label: '국경·해안선 수정', task: '국경·해안선 수정', stage: '공유 꼭짓점 이동', cursor: 'select', special: true }),
+  'measure-distance': Object.freeze({ label: '거리 측정', task: '거리 측정', stage: '점을 선택하세요', cursor: 'drawing', special: true }),
+  'measure-area': Object.freeze({ label: '면적 측정', task: '면적 측정', stage: '영역을 그리세요', cursor: 'drawing', special: true }),
   label: Object.freeze({ label: '지명 배치', task: '지명 추가', stage: '위치 선택', cursor: 'drawing', special: true }),
   river: Object.freeze({ label: '강 추가', task: '강 추가', stage: '경로 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'line', profile: 'river' }) }),
   lake: Object.freeze({ label: '호수 추가', task: '호수 추가', stage: '영역 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
@@ -38,7 +40,7 @@ export function toolCursorMode(tool, state, { labelPlacement = false } = {}) {
     || tool === 'merge-drawing'
     || tool === 'merge-country-region';
   const drawing = labelPlacement
-    || ['polygon', 'line', 'river', 'lake', 'split-drawing', 'split-country-region', 'redraw-country-region', 'draw-country-region'].includes(tool)
+    || ['polygon', 'line', 'river', 'lake', 'split-drawing', 'split-country-region', 'redraw-country-region', 'draw-country-region', 'measure-distance', 'measure-area'].includes(tool)
     || (tool === 'new-country' && state.newCountryPhase === 'line')
     || (tool === 'annex-territory' && state.annexPhase === 'line');
   const candidate = (tool === 'new-country' && ['side', 'components'].includes(state.newCountryPhase))

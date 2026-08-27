@@ -16,13 +16,17 @@ COUNTRY_GEOMETRY = (ROOT / "assets" / "js" / "modules" / "country-geometry.js").
 
 class V0210PerformancePipelineTests(unittest.TestCase):
     def test_version_and_incremental_country_renderer(self):
-        self.assertIn("const APP_VERSION = '0.29.0'", APP)
+        self.assertIn("const APP_VERSION = '0.30.0'", APP)
         for interface in ("applyCountryPatch", "setInteractionActive", "renderViewFrame", "compactCountryOverrides"):
             self.assertIn(interface, RENDERER)
         self.assertIn("countryOverrideIds", RENDERER)
         self.assertIn("overridePaletteTexture", RENDERER)
         self.assertIn("country-patch-preview", APP)
         self.assertIn("markCountryGeometriesChanged(new Set(result.affectedIds", APP)
+        self.assertIn("createCountryGeometryRevisionTracker", RENDERER)
+        self.assertIn("committedGeometryRevision", RENDERER)
+        self.assertIn("displayedGeometryRevision", RENDERER)
+        self.assertIn("geometryRevision >= geometryRevisionTracker.committedRevision()", RENDERER)
 
     def test_edit_worker_protocol_and_operations(self):
         for message_type in ("execute", "commit", "discard", "cancel", "sync-patch", "rebase"):
@@ -56,6 +60,7 @@ class V0210PerformancePipelineTests(unittest.TestCase):
         self.assertIn("mapWorkScheduler.scheduleIdle('autosave'", APP)
         self.assertIn("mapWorkScheduler.scheduleIdle('view-autosave'", APP)
         self.assertIn("message.type === 'patch'", CANVAS_WORKER)
+        self.assertIn("incomingGeometryRevision < geometryRevision", CANVAS_WORKER)
 
 
 if __name__ == "__main__":

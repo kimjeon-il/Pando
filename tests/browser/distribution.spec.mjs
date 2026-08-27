@@ -8,7 +8,7 @@ async function openApp(page) {
   });
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 30_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   return errors;
 }

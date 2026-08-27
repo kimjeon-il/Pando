@@ -10,7 +10,7 @@ test('historical library search previews and instantiates an independent sourced
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 30_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
 
   await page.locator('#createMenuBtn').click();
   await page.locator('#addFromLibraryBtn').click();
