@@ -83,18 +83,6 @@
   --confirm-dim: rgba(5,8,12,.68);
   --modal-title: #f0f3f6;
   --modal-text: #aeb8c2;
-  --gis-card-bg: #1a2027;
-  --gis-card-shadow: 0 28px 90px rgba(0,0,0,.62);
-  --gis-dim: rgba(5,8,12,.76);
-  --gis-title: #f1f4f7;
-  --gis-progress-bg: #10151a;
-  --gis-status-text: #bbc5ce;
-  --gis-report-border: #313c47;
-  --gis-report-bg: #141a20;
-  --gis-report-text: #91a0ab;
-  --gis-field-title: #cbd4dc;
-  --gis-check-border: #303b45;
-  --gis-check-text: #aeb9c2;
   --bootstrap-backdrop: rgba(12,16,21,.78);
   --bootstrap-card-border: #3d4652;
   --bootstrap-card-shadow: 0 18px 60px rgba(0,0,0,.42);
@@ -280,18 +268,6 @@
     --confirm-dim: rgba(50,58,66,.28);
     --modal-title: #11161c;
     --modal-text: #66717d;
-    --gis-card-bg: #ffffff;
-    --gis-card-shadow: 0 28px 90px rgba(37,45,53,.18);
-    --gis-dim: rgba(50,58,66,.28);
-    --gis-title: #11161c;
-    --gis-progress-bg: #e1e5e9;
-    --gis-status-text: #46515c;
-    --gis-report-border: #c9d0d7;
-    --gis-report-bg: #f1f3f5;
-    --gis-report-text: #66717d;
-    --gis-field-title: #46515c;
-    --gis-check-border: #c9d0d7;
-    --gis-check-text: #66717d;
     --bootstrap-backdrop: rgba(238,241,244,.86);
     --bootstrap-card-border: #c9d0d7;
     --bootstrap-card-shadow: 0 18px 60px rgba(37,45,53,.16);
@@ -352,15 +328,12 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 
 .map-wrap { position: relative; min-width: 0; min-height: 0; background: var(--map-wrap-bg); }
 #map { position: absolute; inset: 0; }
-.floating-toolbar { position: absolute; top: var(--ui-map-edge); right: var(--ui-map-edge); z-index: 8; display: flex; gap: var(--ui-toolbar-gap); padding: var(--ui-toolbar-padding); border: 1px solid var(--toolbar-border); border-radius: var(--ui-radius-panel); background: var(--toolbar-bg); box-shadow: var(--shadow); backdrop-filter: none; }
+.floating-toolbar { position: absolute; top: var(--ui-map-edge); right: var(--ui-map-edge); z-index: 8; }
 body.create-menu-open .floating-toolbar { z-index: 130; }
 .create-menu-wrap { position: relative; display: flex; }
-.create-menu-btn { min-width: 78px; height: var(--ui-control-height); display: inline-flex; align-items: center; justify-content: center; gap: var(--ui-control-gap); padding: 0 var(--ui-control-padding-x); border: 1px solid var(--accent-border); border-radius: var(--ui-radius-control); background: var(--accent-surface); color: var(--accent-text); font-size: var(--ui-font-body); font-weight: var(--ui-weight-bold); }
-.create-menu-btn:hover, .create-menu-btn.active, .create-menu-btn[aria-expanded="true"] { background: var(--accent-surface-hover); }
+.create-menu-btn { min-width: 78px; height: var(--ui-control-height); display: inline-flex; align-items: center; justify-content: center; gap: var(--ui-control-gap); font-weight: var(--ui-weight-bold); }
 .create-menu-btn .ui-icon { width: 16px; height: 16px; }
-.create-menu { position: absolute; top: calc(100% + var(--ui-menu-padding)); left: 0; z-index: 40; width: 270px; display: grid; gap: var(--ui-menu-gap); padding: var(--ui-menu-padding); border: 1px solid var(--border); border-radius: var(--ui-radius-panel); background: var(--surface-elevated); box-shadow: var(--control-shadow); }
-.create-menu-item:hover, .create-menu-item:focus-visible { border-color: transparent; background: var(--surface-hover); }
-.create-menu-item.active { border-color: transparent; background: var(--accent-surface); color: var(--accent-text); }
+.create-menu { position: absolute; top: calc(100% + var(--ui-menu-padding)); left: 0; z-index: 40; width: 270px; }
 .create-menu-item.active .create-menu-icon { background: rgba(255,255,255,.1); color: currentColor; }
 .create-menu-item > span:last-child { min-width: 0; display: grid; gap: var(--ui-space-1); }
 .create-menu-item.active small { color: inherit; opacity: .78; }
@@ -369,7 +342,6 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .empty-state p { font-size: var(--ui-font-body); line-height: 1.7; }
 .field-group { display: flex; flex-direction: column; gap: var(--ui-field-label-gap); min-width: 0; }
 .field-group label { color: #aeb7c1; font-size: var(--ui-font-label); }
-.field-group textarea { resize: vertical; }
 
 .hidden { display: none !important; }
 
@@ -499,7 +471,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .distribution-shape { stroke-width: 1.4px; stroke-linejoin: round; cursor: pointer; vector-effect: non-scaling-stroke; }
 .distribution-shape.selected { stroke: var(--accent-2) !important; stroke-width: 3px; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent-2) 28%, transparent)); }
 .distribution-entry-list { display: grid; gap: var(--ui-space-2); margin-bottom: var(--ui-space-4); }
-.distribution-entry-row { grid-template-columns: minmax(0, 1fr) var(--ui-control-height); gap: var(--ui-space-2); align-items: center; padding: var(--ui-space-2); border-radius: var(--ui-radius-control); background: var(--surface-muted); }
+.distribution-entry-row { grid-template-columns: minmax(0, 1fr) var(--ui-control-height); gap: var(--ui-space-2); align-items: center; padding: var(--ui-space-2); }
 .distribution-entry-row > span { min-width: 0; display: grid; gap: var(--ui-space-0-5); }
 .distribution-entry-row small { color: var(--muted); }
 .distribution-entry-add { display: grid; gap: var(--ui-space-3); }
@@ -512,7 +484,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
   overflow: hidden;
   padding: 0;
 }
-.historical-library-card > .gis-modal-header {
+.historical-library-card > .ui-dialog-header {
   margin: 0;
   padding: var(--ui-dialog-padding) var(--ui-dialog-padding) 0;
 }
@@ -530,7 +502,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .historical-library-footer-spacer { flex: 1; }
 @media (max-width: 720px) {
   .historical-library-card { width: 100%; height: 100%; max-height: none; border-radius: 0; }
-  .historical-library-card > .gis-modal-header { padding: var(--ui-dialog-padding-compact) var(--ui-dialog-padding-compact) 0; }
+  .historical-library-card > .ui-dialog-header { padding: var(--ui-dialog-padding-compact) var(--ui-dialog-padding-compact) 0; }
   .historical-library-toolbar { grid-template-columns: 1fr 1fr; }
   .historical-library-search { grid-column: 1 / -1; }
   .historical-library-layout { grid-template-columns: 1fr; overflow: auto; }
@@ -641,16 +613,10 @@ body.file-menu-open .mobile-backdrop {
   right: auto;
   bottom: auto;
   left: calc(var(--map-safe-left) + (100% - var(--map-safe-left) - var(--map-safe-right)) / 2);
-  border: 1px solid var(--mode-bar-border);
-  border-radius: var(--ui-radius-panel);
-  background: var(--mode-bar-bg);
-  box-shadow: var(--shadow);
-  backdrop-filter: none;
   transform: translateX(-50%);
   transition: left 170ms ease, top 170ms ease;
 }
 .mode-action-bar.hidden { display: none !important; }
-.mode-cancel-btn { background: var(--surface-elevated); color: var(--text-soft); }
 
 
 /* ===== v0.10.2: 매개평면 GPU 메시, QGIS 벡터 호환, 계층형 레이어 ===== */
@@ -670,48 +636,30 @@ body.file-menu-open .mobile-backdrop {
 .boundary-edit-segment.shared { stroke: var(--map-snap); stroke-width: 3.4px; stroke-dasharray: 6 3; }
 .vertex-handle.country-vertex.coast-vertex { fill: #c5efff; stroke: #256681; }
 .vertex-handle.country-vertex.shared-boundary-vertex { fill: var(--surface-elevated); stroke: var(--map-snap); }
-/* 프로젝트/삭제 확인창: 모바일 시트와 달리 실제 확인이 필요한 경우에만 화면을 어둡게 한다. 블러는 사용하지 않는다. */
-.confirm-modal { position: fixed; inset: 0; z-index: 12000; display: grid; place-items: center; padding: var(--ui-dialog-edge); }
-.confirm-modal.hidden { display: none !important; }
-.confirm-modal-dim { position: absolute; inset: 0; background: var(--confirm-dim); backdrop-filter: none; }
-.confirm-modal-card {
-  position: relative; z-index: 1; width: min(430px, 100%); padding: var(--ui-dialog-padding);
-  border: 1px solid var(--modal-card-border); border-radius: var(--ui-radius-panel); background: var(--modal-card-bg); box-shadow: var(--modal-card-shadow);
-}
-.confirm-modal-card h2 { margin: 0 0 var(--ui-dialog-title-gap); color: var(--modal-title); font-size: var(--ui-font-modal-title); }
-.confirm-modal-card p { margin: 0; color: var(--modal-text); font-size: var(--ui-font-body); line-height: 1.65; white-space: pre-line; }
-.confirm-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ui-dialog-actions-gap); margin-top: var(--ui-dialog-actions-top); }
-.confirm-modal-actions .danger-confirm { background: #6c3434; border-color: #945050; color: #ffe2e2; }
-
-/* QGIS/GDAL 가져오기 마법사 */
+/* Shared modal grammar. Feature classes below only constrain content layout. */
 body.modal-open { overflow: hidden; }
-.gis-modal { position: fixed; inset: 0; z-index: 12500; display: grid; place-items: center; padding: var(--ui-dialog-edge); }
-.gis-modal.hidden { display: none !important; }
-.gis-modal-dim { position: absolute; inset: 0; background: var(--gis-dim); }
-.gis-modal-card {
-  position: relative; z-index: 1; width: min(760px, 100%); max-height: min(820px, calc(100dvh - var(--ui-dialog-edge) * 2));
-  overflow: auto; padding: var(--ui-dialog-padding); border: 1px solid var(--modal-card-border); border-radius: var(--ui-radius-panel);
-  background: var(--gis-card-bg); box-shadow: var(--gis-card-shadow);
+.confirm-modal-card { width: min(430px, 100%); }
+.confirm-modal-card h2 { margin: 0 0 var(--ui-dialog-title-gap); }
+.confirm-modal-card p { margin: 0; line-height: 1.65; white-space: pre-line; }
+.confirm-modal-actions { display: grid; grid-template-columns: 1fr 1fr; }
+.confirm-modal-actions .danger-confirm { background: #6c3434; border-color: #945050; color: #ffe2e2; }
+.historical-library-card,
+#gisImportModal .ui-dialog-card {
+  width: min(760px, 100%);
+  max-height: min(820px, calc(100dvh - var(--ui-dialog-edge) * 2));
+  overflow: auto;
 }
-.gis-modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ui-dialog-section-gap); margin-bottom: var(--ui-dialog-title-gap); }
-.gis-modal-header h2 { margin: 0; color: var(--gis-title); font-size: var(--ui-font-modal-title); }
-.gis-modal-kicker { color: #d8bc75; font-size: var(--ui-font-body); font-weight: var(--ui-weight-bold); letter-spacing: .08em; text-transform: uppercase; }
-.gis-progress { height: 6px; overflow: hidden; border-radius: 999px; background: var(--gis-progress-bg); }
-.gis-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: #d6b563; transition: width .18s ease; }
-.gis-import-status { min-height: 20px; margin: var(--ui-space-2) 0 var(--ui-space-3); color: var(--gis-status-text); font-size: var(--ui-font-caption); }
-.gis-import-status.error { color: #ff9b9b; }
-.gis-source-report { margin-bottom: var(--ui-space-4); padding: var(--ui-space-2) var(--ui-space-3); border: 1px solid var(--gis-report-border); border-radius: var(--ui-radius-control); background: var(--gis-report-bg); color: var(--gis-report-text); font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
-.gis-source-report strong { color: #e4c779; }
+.gis-import-status { min-height: 20px; margin: var(--ui-space-2) 0 var(--ui-space-3); }
+.gis-import-status.error { color: var(--danger-text); }
 .gis-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ui-field-gap); }
 .gis-form-grid .field-group { margin: 0; }
-.gis-form-grid .field-group > span { color: var(--gis-field-title); font-size: var(--ui-font-label); font-weight: var(--ui-weight-medium); }
-.gis-form-grid small { margin-top: var(--ui-field-helper-gap); color: #7f8d98; font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
+.gis-form-grid small { margin-top: var(--ui-field-helper-gap); }
 .gis-wide { grid-column: 1 / -1; }
-.gis-check { min-height: var(--ui-control-height); display: flex; align-items: center; gap: var(--ui-control-gap); padding: var(--ui-control-padding-y) var(--ui-control-padding-x); border: 1px solid var(--gis-check-border); border-radius: var(--ui-radius-control); color: var(--gis-check-text); font-size: var(--ui-font-body); }
+.gis-check { min-height: var(--ui-control-height); }
 .gis-check input { margin: 0; }
-.gis-security-note { margin: var(--ui-space-4) 0 0; color: #7f8e99; font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
-.gis-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ui-dialog-actions-gap); margin-top: var(--ui-dialog-actions-top); }
-.gis-modal-card .is-busy select, .gis-modal-card .is-busy input, .gis-modal-card .is-busy .gis-modal-actions button { pointer-events: none; opacity: .58; }
+#gisImportModal .is-busy select,
+#gisImportModal .is-busy input,
+#gisImportModal .is-busy .ui-dialog-actions button { pointer-events: none; opacity: .58; }
 #newProjectBtn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
 
@@ -719,7 +667,6 @@ body.modal-open { overflow: hidden; }
 
 .left-panel .panel-section { padding: var(--ui-panel-padding-dense); }
 #layerSection { order: 2; }
-.floating-toolbar #resetViewBtn { font-size: 14px; }
 
 
 /* PandoLab split-site bootstrap */
@@ -783,10 +730,8 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .draft-vertex-dot { fill: #dbe8f8; stroke: var(--accent-border); }
   .country-shape.new-country-source { stroke: var(--accent) !important; }
   .confirm-modal-actions .danger-confirm { background: #b84444 !important; border-color: #923535 !important; color: #ffffff !important; }
-  .gis-modal-kicker,
-  .gis-source-report strong { color: var(--accent-2); }
   .gis-import-status.error { color: #a32f2f; }
-  .gis-progress span,
+  .ui-progress span,
   .bootstrap-progress span { background: var(--accent); }
 }
 
@@ -828,17 +773,13 @@ body { font-size: var(--ui-font-body); }
 .file-menu-btn.sheet-open .ui-icon { transform: rotate(180deg); }
 .file-menu-btn:hover, .file-menu-btn.sheet-open { background: var(--accent-surface-hover); }
 .top-actions {
-  display: none; position: fixed; z-index: 2000; top: calc(var(--ui-topbar-height) + 8px); right: 12px;
+  position: fixed; z-index: 2000; top: calc(var(--ui-topbar-height) + 8px); right: 12px;
   width: 280px; max-height: calc(100dvh - var(--ui-topbar-height) - 20px); overflow-y: auto;
-  padding: var(--ui-space-2); gap: var(--ui-space-2); flex-direction: column; align-items: stretch;
-  border: 1px solid var(--border); border-radius: var(--ui-radius-panel); background: var(--surface-elevated);
-  box-shadow: var(--control-shadow);
 }
-.top-actions.mobile-open { display: flex; }
+.top-actions:not(.mobile-open) { display: none; pointer-events: none; }
+.top-actions.mobile-open { display: grid; }
 .top-actions .btn, .top-actions .btn:not(.ghost) {
-  width: 100%; min-width: 0; height: var(--ui-control-height); flex: 0 0 var(--ui-control-height);
-  padding: 0 var(--ui-control-padding-x); border-radius: var(--ui-radius-control);
-  font-size: var(--ui-font-body); text-align: left; white-space: nowrap;
+  width: 100%; min-width: 0; text-align: left; white-space: nowrap;
 }
 .top-actions .divider { width: 100%; height: 1px; margin: 0; }
 
@@ -951,8 +892,8 @@ body { font-size: var(--ui-font-body); }
 .current-tool-status { min-width: 0; overflow: hidden; color: var(--text); font-weight: var(--ui-weight-semibold); text-overflow: ellipsis; white-space: nowrap; }
 .map-bottom-status .engine-status::before { content: none; margin: 0; }
 
-.gis-modal-kicker, .gis-form-grid .field-group > span, .gis-check { font-size: var(--ui-font-body); }
-.gis-source-report, .gis-form-grid small, .gis-security-note { font-size: var(--ui-font-caption); }
+.ui-dialog-kicker, .gis-form-grid .field-group > span, .gis-check { font-size: var(--ui-font-body); }
+.ui-callout, .gis-form-grid small, .ui-alert { font-size: var(--ui-font-caption); }
 /* ===== PandoLab v0.15.0: semantic typography, controls, and stable scroll layout ===== */
 body {
   font-family: var(--ui-font-family);
@@ -979,7 +920,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   font-weight: var(--ui-weight-bold);
   line-height: var(--ui-line-tight);
 }
-.confirm-modal-card h2, .gis-modal-header h2 {
+.ui-dialog-card h2 {
   font-size: var(--ui-font-modal-title);
   font-weight: var(--ui-weight-bold);
   line-height: var(--ui-line-tight);
@@ -991,7 +932,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 .layer-child-meta, .layer-empty, .mode-task-instruction, .map-bottom-status,
 .editor-help, .editor-info-list, .editor-inline-copy span,
-.gis-source-report, .gis-form-grid small, .gis-security-note,
+.ui-callout, .gis-form-grid small, .ui-alert,
 .gis-import-status { font-size: var(--ui-font-sm); line-height: var(--ui-line-normal); }
 .btn, .icon-btn, .danger-btn, .create-menu-btn,
 .create-menu-item, .editor-action-button, .editor-inline-action-button, .mode-action-bar button,
@@ -1009,19 +950,19 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   font-weight: var(--ui-weight-semibold);
 }
 
-:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body, .ui-select-listbox) {
+:where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox) {
   scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
-:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar { width: 10px; height: 10px; }
-:where(.sidebar, .layer-children, .top-actions, .gis-modal-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar-thumb {
+:where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar { width: 10px; height: 10px; }
+:where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar-thumb {
   border: 3px solid transparent; border-radius: 999px; background: var(--border-strong); background-clip: padding-box;
 }
 
 .panel-section, .editor-view { min-width: 0; }
 .layer-search, .editor-section, .editor-disclosure, .editor-danger-zone,
-.editor-flag-preview, .create-menu, .top-actions, .confirm-modal-card, .gis-modal-card {
+.editor-flag-preview, .create-menu, .top-actions, .ui-dialog-card {
   border-radius: var(--ui-radius-panel);
 }
 .layer-folder, .create-menu-item, .editor-action-button, .terrain-mode-option {
@@ -1135,30 +1076,8 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 #app[data-layout="mobile"] .map-bottom-status .engine-status { display: none; }
 
 /* ===== PandoLab v0.15.1: compact projection, search icon, and mobile controls ===== */
-#app[data-layout="mobile"] .mobile-zoom-dock button,
-#app[data-layout="mobile"] .mobile-sheet-header button {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: var(--panel-2);
-  color: var(--text-soft);
-  box-shadow: none;
-  transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease;
-}
-#app[data-layout="mobile"] .mobile-zoom-dock button:hover,
-#app[data-layout="mobile"] .mobile-sheet-header button:hover {
-  border-color: var(--surface-hover-border);
-  background: var(--surface-hover);
-  color: var(--text-strong);
-}
-#app[data-layout="mobile"] .mobile-zoom-dock button:active,
-#app[data-layout="mobile"] .mobile-sheet-header button:active {
-  border-color: var(--accent-border);
-  background: var(--accent-surface);
-  color: var(--accent-text);
-}
 #app[data-layout="mobile"] .mobile-sheet-header button {
   padding: 0;
-  border-radius: var(--ui-radius-control);
 }
 /* ===== PandoLab v0.18.1: map-first responsive workspace ===== */
 .workspace {
@@ -1225,27 +1144,22 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   position: absolute;
   z-index: 18;
   width: min(360px, calc(100% - 24px));
-  border: 1px solid var(--overlay-border);
-  border-radius: var(--ui-radius-panel);
-  background: var(--overlay-panel);
   color: var(--text);
-  box-shadow: var(--control-shadow);
   backdrop-filter: blur(16px);
 }
+.debug-map-panel { border: 1px solid var(--overlay-border); border-radius: var(--ui-radius-panel); background: var(--overlay-panel); box-shadow: var(--control-shadow); }
 .map-utility-panel { top: 76px; right: calc(var(--map-safe-right) + var(--ui-map-edge)); }
-.map-utility-panel > header { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); padding: var(--ui-space-2) var(--ui-space-3); border-bottom: 1px solid var(--overlay-border); }
+.map-utility-panel > header { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); padding: var(--ui-space-2) var(--ui-space-3); }
 .map-utility-panel > header > div { display: grid; gap: 2px; }
 .map-utility-panel > header span { color: var(--muted); font-size: var(--ui-font-caption); }
 .map-utility-body { display: grid; gap: var(--ui-space-2); padding: var(--ui-space-3); }
 .map-audit-panel { max-height: min(620px, calc(100% - 130px)); }
 .map-audit-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); padding: var(--ui-space-3); }
-.map-audit-summary > div { display: grid; gap: 2px; padding: var(--ui-space-2); border: 1px solid var(--component-card-border); border-radius: var(--ui-radius-control); background: var(--surface-subtle); }
+.map-audit-summary > div { display: grid; gap: 2px; padding: var(--ui-space-2); }
 .map-audit-summary span { color: var(--muted); font-size: var(--ui-font-caption); }
 .map-audit-summary strong { font-variant-numeric: tabular-nums; }
 .map-audit-issues { max-height: 320px; overflow: auto; display: grid; gap: 2px; padding: 0 var(--ui-space-3); }
-.map-audit-issue { width: 100%; display: grid; gap: 3px; padding: var(--ui-space-2); border: 1px solid transparent; border-radius: var(--ui-radius-control); background: transparent; color: var(--text); text-align: left; }
-.map-audit-issue:hover,
-.map-audit-issue[aria-current="true"] { border-color: var(--ui-control-border-hover); background: var(--ui-control-bg-hover); }
+.map-audit-issue { width: 100%; display: grid; gap: 3px; padding: var(--ui-space-2); text-align: left; }
 .map-audit-issue small { color: var(--muted); }
 .map-audit-panel > footer { display: flex; gap: var(--ui-space-2); padding: var(--ui-space-3); border-top: 1px solid var(--overlay-border); }
 .distribution-inspect { max-width: 300px; padding: var(--ui-space-3); pointer-events: none; }
@@ -1258,9 +1172,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .geometry-preview-summary { min-width: 180px; display: flex; flex-wrap: wrap; gap: 4px var(--ui-space-3); color: var(--text-soft); font-size: var(--ui-font-caption); }
 .geometry-preview-summary strong { color: var(--text-strong); }
 .country-component-list { display: grid; gap: var(--ui-space-2); }
-.country-component-item { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--ui-space-2); padding: var(--ui-space-2); border: 1px solid var(--component-card-border); border-radius: var(--ui-radius-control); background: var(--ui-control-bg); color: var(--text); text-align: left; }
-.country-component-item:hover,
-.country-component-item[aria-pressed="true"] { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
+.country-component-item { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--ui-space-2); padding: var(--ui-space-2); text-align: left; }
 .country-component-item small { grid-column: 1 / -1; color: var(--muted); }
 
 @media (max-width: 799px) {
@@ -1673,10 +1585,6 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   z-index: 18;
   right: var(--ui-popover-screen-edge);
   bottom: calc(112px + env(safe-area-inset-bottom));
-  border: 1px solid var(--toolbar-border);
-  border-radius: var(--ui-radius-panel);
-  background: var(--toolbar-bg);
-  box-shadow: var(--shadow);
 }
 #app[data-layout="mobile"] .mobile-zoom-dock button { width: var(--ui-touch-height); height: var(--ui-touch-height); display: grid; place-items: center; padding: 0; border-radius: var(--ui-radius-control); }
 #app[data-layout="mobile"] .mode-action-bar {
@@ -1763,13 +1671,10 @@ body[data-layout="mobile"] :where(.field-group, .gis-form-grid) :is(input[type="
 body[data-layout="mobile"] .ui-select-control { min-height: var(--ui-touch-height); font-size: var(--ui-font-section); }
 body[data-layout="mobile"] .ui-select-option { min-height: var(--ui-touch-height); font-size: var(--ui-font-section); }
 
-body[data-layout="mobile"] .confirm-modal { padding: var(--ui-dialog-edge); }
-body[data-layout="mobile"] .confirm-modal-card { padding: var(--ui-dialog-padding-compact); border-radius: var(--ui-radius-sheet); }
-body[data-layout="mobile"] .confirm-modal-actions .btn,
-body[data-layout="mobile"] .gis-modal-actions .btn { min-height: var(--ui-touch-height); }
-body[data-layout="mobile"] .gis-modal { padding: var(--ui-dialog-edge); }
-body[data-layout="mobile"] .gis-modal-card { max-height: calc(100dvh - var(--ui-dialog-edge) * 2); padding: var(--ui-dialog-padding-compact); }
-body[data-layout="mobile"] .gis-modal-header .icon-btn { width: var(--ui-touch-height); height: var(--ui-touch-height); }
+body[data-layout="mobile"] .ui-dialog { padding: var(--ui-dialog-edge); }
+body[data-layout="mobile"] .ui-dialog-card { max-height: calc(100dvh - var(--ui-dialog-edge) * 2); padding: var(--ui-dialog-padding-compact); border-radius: var(--ui-radius-sheet); }
+body[data-layout="mobile"] .ui-dialog-actions .btn { min-height: var(--ui-touch-height); }
+body[data-layout="mobile"] .ui-dialog-header .icon-btn { width: var(--ui-touch-height); height: var(--ui-touch-height); }
 body[data-layout="mobile"] .gis-form-grid { grid-template-columns: 1fr; }
 body[data-layout="mobile"] .gis-wide { grid-column: 1; }
 
@@ -1809,8 +1714,7 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
 .danger-btn,
 .mode-primary-btn,
 .mode-cancel-btn,
-.sheet-close-btn,
-.mobile-zoom-dock button {
+.sheet-close-btn {
   min-height: var(--ui-control-height);
   border: 1px solid var(--ui-control-border);
   border-radius: var(--ui-radius-control);
@@ -1825,8 +1729,7 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
 .mode-cancel-btn { padding: 0 var(--ui-control-padding-x); }
 .icon-btn,
 .ui-icon-button,
-.sheet-close-btn,
-.mobile-zoom-dock button {
+.sheet-close-btn {
   width: var(--ui-control-height);
   min-width: var(--ui-control-height);
   height: var(--ui-control-height);
@@ -1915,13 +1818,12 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
   padding: 1px;
   gap: 0;
 }
-.map-view-toolbar .projection-control {
+.ui-segment-host--flush .ui-segmented {
   padding: 0;
   border: 0;
-  border-radius: var(--ui-radius-control);
   background: transparent;
 }
-.map-view-toolbar .projection-btn { border-radius: var(--ui-radius-control) !important; }
+.map-view-toolbar .projection-btn { border-radius: var(--ui-radius-control); }
 .mode-method-switch { width: 248px; height: var(--ui-control-height); flex: 0 0 auto; }
 .ui-segment-option {
   width: 100%;
@@ -1982,6 +1884,10 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
 }
 .ui-row-button:hover,
 .ui-card-button:hover { border-color: var(--ui-control-border-hover); background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.ui-row-button.active,
+.ui-row-button[aria-pressed="true"],
+.ui-card-button.active,
+.ui-card-button[aria-pressed="true"] { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
 .ui-choice-row { display: flex; align-items: center; gap: var(--ui-control-gap); border: 1px solid transparent; border-radius: var(--ui-radius-control); }
 .ui-field { min-width: 0; }
 .ui-panel { padding: var(--ui-panel-padding); }
@@ -1989,13 +1895,127 @@ html.keyboard-navigation :where(button, a[href], summary, input, textarea, selec
 .ui-section { display: grid; gap: var(--ui-field-gap); }
 .ui-menu { display: grid; gap: var(--ui-menu-gap); padding: var(--ui-menu-padding); }
 .ui-popover { border: 1px solid var(--overlay-border); border-radius: var(--ui-radius-panel); background: var(--surface-elevated); box-shadow: var(--control-shadow); }
-.ui-dialog { padding: var(--ui-dialog-edge); }
-.ui-dialog-actions { gap: var(--ui-dialog-actions-gap); margin-top: var(--ui-dialog-actions-top); }
+.ui-floating-surface {
+  border: 1px solid var(--overlay-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--surface-elevated);
+  box-shadow: var(--control-shadow);
+  backdrop-filter: blur(16px);
+}
+.ui-floating-surface > header { border-bottom: 1px solid var(--overlay-border); }
+.ui-floating-toolbar,
+.ui-context-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-toolbar-gap);
+  padding: var(--ui-toolbar-padding);
+}
+.ui-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--ui-space-1); }
+.ui-tab {
+  min-height: var(--ui-control-height);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--muted);
+}
+.ui-tab:hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.ui-tab.active,
+.ui-tab[aria-selected="true"] { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
+.ui-nav { display: flex; }
+.ui-nav-item {
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--muted);
+}
+.ui-nav-item:hover { border-color: var(--ui-control-border); background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.ui-nav-item.active,
+.ui-nav-item.sheet-open,
+.ui-nav-item[aria-current="page"] { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
+.ui-icon-toggle {
+  min-width: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--muted);
+}
+.ui-icon-toggle:hover { border-color: var(--ui-control-border); background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.ui-search-field {
+  min-width: 0;
+  min-height: var(--ui-control-height);
+  display: grid;
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-control-height);
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding-left: var(--ui-control-padding-x);
+  border: 1px solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-input);
+  color: var(--muted);
+}
+.ui-search-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent); }
+.ui-search-field > input[type="search"] {
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.ui-search-field > input[type="search"]:focus { outline: 0; box-shadow: none; }
+.ui-search-clear { align-self: stretch; width: var(--ui-control-height); height: auto; border: 0; border-radius: 0 var(--ui-radius-control) var(--ui-radius-control) 0; background: transparent; }
+.ui-status { color: var(--text-soft); font-size: var(--ui-font-caption); }
+.ui-progress { height: 6px; overflow: hidden; border-radius: 999px; background: var(--bootstrap-progress-bg); }
+.ui-progress > span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .18s ease; }
+.ui-callout,
+.ui-alert { padding: var(--ui-space-3); border: 1px solid var(--ui-card-border); border-radius: var(--ui-radius-control); background: var(--surface-subtle); color: var(--text-soft); line-height: var(--ui-line-normal); }
+.ui-alert { border-color: var(--danger-border); background: var(--danger-surface); color: var(--danger-text); }
+.ui-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 12500;
+  display: grid;
+  place-items: center;
+  padding: var(--ui-dialog-edge);
+}
+.ui-dialog.hidden { display: none !important; }
+.ui-dialog-backdrop { position: absolute; inset: 0; background: var(--confirm-dim); backdrop-filter: none; }
+.ui-dialog-card {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  padding: var(--ui-dialog-padding);
+  border: 1px solid var(--modal-card-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--modal-card-bg);
+  box-shadow: var(--modal-card-shadow);
+  color: var(--modal-text);
+}
+.ui-dialog-card h2 { color: var(--modal-title); font-size: var(--ui-font-modal-title); }
+.ui-dialog-actions { display: flex; justify-content: flex-end; gap: var(--ui-dialog-actions-gap); margin-top: var(--ui-dialog-actions-top); }
+.ui-dialog-kicker { color: var(--accent-2); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-bold); letter-spacing: .06em; }
 .ui-sheet { min-width: 0; min-height: 0; }
 .ui-sheet-header { min-width: 0; display: flex; align-items: center; gap: var(--ui-control-gap); }
 .ui-toolbar { display: flex; gap: var(--ui-toolbar-gap); padding: var(--ui-toolbar-padding); }
 .ui-disclosure { border: 1px solid var(--ui-card-border); background: var(--ui-card-bg); }
 .ui-info-list { border: 1px solid var(--ui-card-border); background: var(--ui-card-bg); }
+.ui-tooltip {
+  position: fixed;
+  z-index: 20000;
+  max-width: min(280px, calc(100vw - var(--ui-space-4) * 2));
+  padding: var(--ui-space-1-5) var(--ui-space-2);
+  border: 1px solid var(--overlay-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--text-strong);
+  color: var(--surface-elevated);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-normal);
+  box-shadow: var(--control-shadow);
+  pointer-events: none;
+}
 .map-sheet-surface { min-width: 0; background: var(--surface-elevated); }
 .map-sheet-header {
   min-width: 0;
@@ -2105,6 +2125,12 @@ select {
 .field-group > select:not(.ui-native-select),
 .gis-form-grid .field-group > select:not(.ui-native-select) { padding-right: var(--ui-select-indicator-space); }
 .field-group textarea { min-height: var(--ui-textarea-min-height); line-height: var(--ui-line-normal); }
+textarea { resize: none; }
+input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { margin: 0; appearance: none; -webkit-appearance: none; }
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration { appearance: none; -webkit-appearance: none; }
 :is(.field-group input, .field-group textarea, .field-group select, .gis-form-grid input, .gis-form-grid select):focus {
   border-color: var(--accent-border);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
@@ -2228,7 +2254,7 @@ select {
   text-align: center;
 }
 .ui-select-status { border-top: 1px solid var(--border); }
-.gis-modal-card .is-busy .ui-select-toggle { opacity: .58; }
+#gisImportModal .is-busy .ui-select-toggle { opacity: .58; }
 
 /* Direct-touch UI should not expose browser text-selection or callout chrome. */
 @media (any-pointer: coarse) {
@@ -2280,35 +2306,14 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 2px s
 /* Search and form controls share the same field boundary and focus treatment. */
 .layer-search {
   flex: 0 0 auto;
-  display: grid;
-  align-items: center;
-  min-height: var(--ui-control-height);
   margin: 0 0 var(--ui-space-2);
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
-  gap: var(--ui-space-2);
-  padding: 0 var(--ui-space-3);
-  border: 1px solid var(--component-field-border);
-  border-radius: var(--ui-radius-control);
-  background: var(--surface-input);
-}
-.layer-search:focus-within {
-  border-color: var(--accent-border);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .layer-search input {
-  min-width: 0;
-  width: 100%;
   height: calc(var(--ui-control-height) - 2px);
   min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--text);
   font: inherit;
   font-size: var(--ui-font-body);
   font-weight: var(--ui-weight-regular);
-  outline: 0;
 }
 .layer-search-icon {
   width: var(--ui-icon-size);
@@ -2385,11 +2390,7 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 2px s
   display: grid;
   place-items: center;
   position: relative;
-  border-radius: var(--ui-radius-control);
-  color: var(--muted);
-  transition: background-color .14s ease, color .14s ease;
 }
-.layer-lock-control:hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
 .layer-lock-control .lock-toggle {
   position: absolute;
   width: 1px;
@@ -2452,9 +2453,6 @@ html.keyboard-navigation .layer-lock-control:has(.lock-toggle:focus-visible) {
   grid-template-columns: var(--ui-tree-check-size) minmax(0, 1fr) auto var(--ui-tree-action-size);
   gap: var(--ui-row-gap);
   padding: 0 var(--ui-row-padding-x);
-  border-radius: var(--ui-radius-control);
-  color: var(--text-soft);
-  transition: background-color .14s ease;
 }
 .layer-subfolder-row {
   min-height: var(--ui-tree-row-height);
@@ -2463,15 +2461,10 @@ html.keyboard-navigation .layer-lock-control:has(.lock-toggle:focus-visible) {
   align-items: center;
   gap: var(--ui-row-gap);
   padding: 0 var(--ui-row-padding-x);
-  color: var(--text-strong);
   font-size: var(--ui-font-body);
   text-align: left;
   width: 100%;
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
 }
-.layer-subfolder-row:hover { background: var(--ui-control-bg-hover); }
 .layer-subfolder-row[aria-expanded="false"] .disclosure-icon { transform: rotate(-90deg); }
 .layer-subfolder-row.is-level {
   grid-template-columns: var(--ui-tree-folder-icon-size) minmax(0, 1fr);
@@ -2483,9 +2476,6 @@ html.keyboard-navigation .layer-lock-control:has(.lock-toggle:focus-visible) {
 .layer-subfolder-row.is-level:hover { background: transparent; }
 .layer-subfolder-row.is-level .layer-folder-icon { display: none; }
 .layer-subfolder-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.layer-child:hover:not(:has(.layer-child-delete:hover)) { background: var(--ui-control-bg-hover); }
-.layer-child.is-selected { background: var(--accent-surface); color: var(--accent-text); }
-.layer-child.is-selected:hover:not(:has(.layer-child-delete:hover)) { background: var(--accent-surface-hover); }
 .layer-child > input { grid-column: 1; }
 .layer-child.is-selected > input[type="checkbox"]:checked,
 .layer-child.is-selected > input[type="checkbox"]:checked:hover:not(:disabled) {
@@ -2579,17 +2569,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .create-menu-icon .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 .create-menu-item strong { font-size: var(--ui-font-body); }
 .create-menu-item small { color: var(--muted); font-size: var(--ui-font-caption); line-height: 1.35; }
-.floating-toolbar,
-.mode-action-bar,
-.create-menu,
-.top-actions,
-.confirm-modal-card,
-.gis-modal-card {
-  border-color: var(--overlay-border);
-  background: var(--surface-elevated);
-  box-shadow: var(--control-shadow);
-}
-.floating-toolbar { gap: var(--ui-toolbar-gap); padding: var(--ui-toolbar-padding); border-radius: var(--ui-radius-panel); }
 .mode-action-buttons { display: flex; flex: 0 0 auto; justify-content: flex-end; gap: var(--ui-toolbar-gap); }
 .mode-action-buttons button {
   min-height: var(--ui-control-height);
@@ -2599,21 +2578,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   gap: var(--ui-control-gap);
   padding: 0 var(--ui-control-padding-x);
 }
-.confirm-modal-card,
-.gis-modal-card { border-radius: var(--ui-radius-panel); }
-
-/* Navigation keeps its layout-specific shape while sharing control states. */
-.adaptive-nav button {
-  appearance: none;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--muted);
-  font-weight: var(--ui-weight-semibold);
-  transition: background-color .14s ease, border-color .14s ease, color .14s ease;
-}
-.adaptive-nav button:hover { border-color: var(--ui-control-border); background: var(--ui-control-bg-hover); color: var(--text-strong); }
-.adaptive-nav button.active,
-.adaptive-nav button.sheet-open { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
+/* Navigation feature selectors only define responsive placement. */
 .adaptive-nav .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 
 /* Responsive sizing changes hit targets, never the component language. */
@@ -2668,11 +2633,12 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   padding: var(--ui-toolbar-padding);
 }
 #app[data-layout="mobile"] .mobile-zoom-dock .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
+#app[data-layout="mobile"] .ui-floating-toolbar:has(.map-sheet-surface) { backdrop-filter: none; }
 #app[data-layout="mobile"] .adaptive-nav button { border: 1px solid transparent; border-radius: var(--ui-radius-control); }
 #app[data-layout="mobile"] .top-actions .btn,
 #app[data-layout="mobile"] .top-actions .btn:not(.ghost) { height: var(--ui-touch-height); flex-basis: var(--ui-touch-height); }
 #app[data-layout="mobile"] :is(.left-panel, .right-panel, .right-panel.collapsed) { border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0; }
-body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-empty {
+body.create-menu-open #app[data-layout="mobile"] #mapCommandToolbar.history-empty {
   display: block;
   width: 0;
   height: 0;
@@ -3310,31 +3276,18 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   bottom: calc(var(--ui-map-status-height) + var(--ui-space-3));
   min-height: var(--ui-control-height);
   max-width: calc(100% - var(--ui-space-6));
-  display: flex;
-  align-items: center;
-  gap: var(--ui-toolbar-gap);
-  padding: var(--ui-toolbar-padding);
-  border: 1px solid var(--toolbar-border);
-  border-radius: var(--ui-radius-panel);
-  background: var(--toolbar-bg);
-  box-shadow: var(--shadow);
   transform: translateX(-50%);
 }
 .multi-selection-bar > strong { padding-inline: var(--ui-space-2); white-space: nowrap; }
-.multi-color-control { width: var(--ui-control-height); height: var(--ui-control-height); padding: var(--ui-space-1); }
-.multi-color-control input { width: 100%; height: 100%; padding: 0; border: 0; background: transparent; }
+.multi-color-control { width: var(--ui-control-height); height: var(--ui-control-height); }
+.multi-color-control .ui-color-trigger { height: 100%; padding: var(--ui-space-1); }
+.multi-color-control .ui-color-popover { right: auto; left: 0; }
 
 .editor-view-tabs {
   flex: 0 0 auto;
-  display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--ui-space-1);
   padding: var(--ui-space-1) var(--ui-panel-padding);
-  border-bottom: 1px solid var(--border);
 }
-.editor-view-tabs .ui-button { min-height: var(--ui-control-height); border-radius: var(--ui-radius-control); color: var(--muted); }
-.editor-view-tabs .ui-button:hover { background: var(--surface-hover); color: var(--text); }
-.editor-view-tabs .ui-button.active { background: var(--accent-surface); color: var(--accent-text); }
 .editor-object-header { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--ui-space-2); }
 .editor-object-header #focusSelectedObjectBtn { white-space: nowrap; }
 .multi-properties-actions { display: grid; gap: var(--ui-field-gap); }
@@ -3348,9 +3301,6 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--ui-space-2);
   padding: var(--ui-card-padding);
-  border: 1px solid var(--ui-card-border);
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-card-bg);
 }
 .history-entry time { color: var(--muted); font-size: var(--ui-font-caption); }
 .history-entry > span { min-width: 0; display: grid; gap: var(--ui-space-1); }
@@ -3380,9 +3330,6 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   align-items: center;
   gap: var(--ui-space-1);
   padding-left: var(--ui-control-padding-x);
-  border: 1px solid var(--ui-card-border);
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-card-bg);
 }
 .layer-presentation-row .is-up .ui-icon { transform: rotate(180deg); }
 .layer-style-editor { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-field-gap); margin-top: var(--ui-dialog-section-gap); padding-top: var(--ui-dialog-section-gap); border-top: 1px solid var(--border); }

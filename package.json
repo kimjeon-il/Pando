@@ -10,10 +10,11 @@
     "lint": "eslint assets/js tests/browser tests/unit scripts playwright.config.js eslint.config.js",
     "check:js": "node scripts/check-js.mjs",
     "check:ui-spacing": "node scripts/check-ui-spacing.mjs",
+    "check:ui-components": "node scripts/check-ui-components.mjs",
     "test:python": "python -m unittest discover -s tests -p \"test_*.py\"",
     "test:unit": "node --test \"tests/unit/*.test.mjs\"",
     "test:browser": "playwright test",
-    "test": "eslint assets/js tests/browser tests/unit scripts playwright.config.js eslint.config.js && node scripts/check-js.mjs && python -m unittest discover -s tests -p \"test_*.py\" && node scripts/check-ui-spacing.mjs && node --test \"tests/unit/*.test.mjs\" && playwright test"
+    "test": "eslint assets/js tests/browser tests/unit scripts playwright.config.js eslint.config.js && node scripts/check-js.mjs && python -m unittest discover -s tests -p \"test_*.py\" && node scripts/check-ui-spacing.mjs && node scripts/check-ui-components.mjs && node --test \"tests/unit/*.test.mjs\" && playwright test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

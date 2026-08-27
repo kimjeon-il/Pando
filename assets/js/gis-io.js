@@ -12,7 +12,7 @@
   const gdalScriptUrl = new URL('vendor/gdal/gdal3.js', baseUrl).href;
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r3');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r5');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
@@ -655,7 +655,7 @@
         };
         cancelButton.onclick = cancel;
         document.querySelector('[data-gis-cancel="true"]').onclick = cancel;
-        document.querySelector('#gisImportModal .gis-modal-dim').onclick = cancel;
+        document.querySelector('#gisImportModal .ui-dialog-backdrop').onclick = cancel;
         confirmButton.onclick = async () => {
           try {
             form.classList.add('is-busy');

@@ -26,17 +26,18 @@ class V0151ControlStyleTests(unittest.TestCase):
         self.assertIn("width: 20px;", CSS)
 
     def test_mobile_auxiliary_buttons_use_theme_tokens(self):
-        self.assertIn('#app[data-layout="mobile"] .mobile-zoom-dock button,', CSS)
-        self.assertIn('#app[data-layout="mobile"] .mobile-sheet-header button {', CSS)
-        self.assertIn("border: 1px solid var(--border);", CSS)
-        self.assertIn("background: var(--panel-2);", CSS)
+        for element_id in ("mobileZoomInBtn", "mobileZoomOutBtn", "mobileWorldBtn"):
+            self.assertRegex(INDEX, rf'id="{element_id}" class="[^"]*ui-button[^"]*icon-btn')
+        self.assertIn("border: 1px solid var(--ui-control-border);", CSS)
+        self.assertIn("background: var(--ui-control-bg);", CSS)
+        self.assertNotIn('#app[data-layout="mobile"] .mobile-zoom-dock button,', CSS)
 
     def test_mobile_zoom_dock_uses_shared_shell_without_duplicate_scale(self):
         self.assertNotIn('id="mobileZoomValue"', INDEX)
         self.assertNotIn("mobileZoomValue", (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8"))
         self.assertIn("grid-template-rows: repeat(3, var(--ui-touch-height));", CSS)
-        self.assertIn("padding: 3px;", CSS)
-        self.assertIn("background: var(--toolbar-bg);", CSS)
+        self.assertIn("padding: var(--ui-toolbar-padding);", CSS)
+        self.assertIn('class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-zoom-dock"', INDEX)
 
     def test_mobile_sheet_close_buttons_use_shared_icons(self):
         self.assertEqual(INDEX.count('class="ui-button icon-btn sheet-close-btn"'), 3)

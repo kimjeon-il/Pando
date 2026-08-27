@@ -749,7 +749,7 @@ export function createGpuMapRenderer(deps) {
       const status = $('engineStatus');
       if (!status) return;
       status.textContent = reason ? `${label} · ${reason}` : label;
-      status.title = status.textContent;
+      status.dataset.tooltip = status.textContent;
     }
 
     function createWebGlResources() {
