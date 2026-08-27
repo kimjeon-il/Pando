@@ -27,9 +27,11 @@ def section(source: str, start: str, end: str) -> str:
 class V0126RuntimeTests(unittest.TestCase):
     def test_annex_render_succeeds_before_history_commit(self):
         annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
-        self.assertIn("await transactCountryEdit({", annex)
+        self.assertIn("await beginWorkerGeometryPreview({", annex)
         self.assertIn("renderAll();", annex)
-        self.assertIn("commitHistory: commitHistorySnapshot", APP)
+        preview = section(APP, "async function beginWorkerGeometryPreview", "function beginLocalGeometryPreview")
+        self.assertLess(preview.index("await applyResult(result);"), preview.index("mapEditClient.commit(requestId);"))
+        self.assertLess(preview.index("mapEditClient.commit(requestId);"), preview.index("commitHistorySnapshot(snapshot);"))
         labels = section(APP, "function renderCountryLabels", "function prepareHydroFeature")
         self.assertLess(labels.index("selection.exit().remove();"), labels.index("const allCountryLabels"))
         self.assertIn("Array.isArray(anchor)", labels)
@@ -41,7 +43,7 @@ class V0126RuntimeTests(unittest.TestCase):
 
     def test_polar_closure_edges_are_excluded_from_all_stroke_paths(self):
         self.assertIn("MESH_ALGORITHM_REVISION = 3", CORE)
-        self.assertIn("header[7] !== 3", LOADER)
+        self.assertIn("expected.some((value, index) => header[index] !== value)", LOADER)
         self.assertIn("header[7] !== 3", RENDERER)
         self.assertIn("isArtificialPolarClosureEdge(a, b)", CORE)
         self.assertIn("countryOutlineFeature(feature)", RENDERER)
@@ -71,7 +73,7 @@ class V0126RuntimeTests(unittest.TestCase):
 
     def test_data_assets_inherit_the_bootstrap_cache_revision(self):
         self.assertIn("function versionedDataUrl(relativePath)", LOADER)
-        self.assertIn("url.searchParams.set('v', revision)", LOADER)
+        self.assertIn("url.searchParams.set('v', ASSET_REVISION)", LOADER)
 
     def test_land_only_relief_and_automatic_water_colours(self):
         manifest = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))
@@ -89,11 +91,11 @@ class V0126RuntimeTests(unittest.TestCase):
         self.assertIn("automaticWaterColor", CANVAS)
 
     def test_terrain_quality_uses_progressive_levels_and_transient_retry(self):
-        self.assertIn("state.dataReadiness === 'canonical' ? targetIndex : 0", RENDERER)
+        self.assertIn("state.dataReadiness === 'enhanced' ? targetIndex : 0", RENDERER)
         self.assertIn("terrainFetchQueue", RENDERER)
         self.assertIn("terrainTileFailures", RENDERER)
         self.assertIn("terrainRenderedLevel", RENDERER)
-        self.assertIn("message.dataReadiness === 'canonical' ? targetIndex : 0", CANVAS)
+        self.assertIn("message.dataReadiness === 'enhanced' ? targetIndex : 0", CANVAS)
         self.assertIn("terrainFetchQueue", CANVAS)
         self.assertIn("terrainFailures", CANVAS)
         self.assertIn("attempts <= 3", RENDERER)

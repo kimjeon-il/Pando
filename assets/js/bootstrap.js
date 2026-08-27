@@ -1,8 +1,8 @@
 'use strict';
 
 (() => {
-  const BUILD_ID = '0.29.0';
-  const ASSET_REVISION = '0.29.0-r3';
+  const BUILD_ID = '0.30.0';
+  const ASSET_REVISION = '0.30.0-r3';
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
@@ -15,22 +15,32 @@
     : window.matchMedia('(max-width: 1199px)').matches
       ? 'compact'
       : 'wide';
-  const constrainedProfile = initialLayout === 'mobile'
-    || Number(navigator.deviceMemory || 8) <= 4
-    || Number(navigator.hardwareConcurrency || 8) <= 4;
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+  const startupSignals = {
+    layout: initialLayout,
+    deviceMemory: Number.isFinite(Number(navigator.deviceMemory)) ? Number(navigator.deviceMemory) : null,
+    hardwareConcurrency: Number.isFinite(Number(navigator.hardwareConcurrency)) ? Number(navigator.hardwareConcurrency) : null,
+    effectiveType: connection?.effectiveType || null,
+    saveData: !!connection?.saveData,
+  };
   const bootStartedAt = performance.now();
   const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__ = {
     buildId: BUILD_ID,
     assetRevision: ASSET_REVISION,
-    profile: constrainedProfile ? 'constrained' : 'standard',
+    signals: startupSignals,
+    loadPolicy: null,
     startedAt: bootStartedAt,
     preview: null,
+    geometry: null,
+    mesh: null,
     canonical: null,
     interactiveMs: null,
+    editableMs: null,
     readyMs: null,
-    canonicalError: '',
+    geometryError: '',
+    meshError: '',
   };
-  document.getElementById('app')?.setAttribute('data-layout', initialLayout);
+  appRoot?.setAttribute('data-layout', initialLayout);
   document.body.dataset.layout = initialLayout;
 
   function setProgress(text, percent = 0) {
@@ -94,15 +104,32 @@
   window.PANDOLAB_BUILD_ID = BUILD_ID;
   window.PANDOLAB_ASSET_REVISION = ASSET_REVISION;
   const loaderUrl = versionedAsset('./workers/data-loader-worker.js');
-  loaderUrl.searchParams.set('profile', constrainedProfile ? 'constrained' : 'standard');
-  const loader = new Worker(loaderUrl, {
-    name: 'pandolab-data-loader',
-  });
+  for (const [key, value] of Object.entries(startupSignals)) {
+    if (value !== null && value !== '') loaderUrl.searchParams.set(key, String(value));
+  }
+  const loader = new Worker(loaderUrl, { name: 'pandolab-data-loader', type: 'module' });
   let previewReady = false;
-  let canonicalFailed = false;
+  let geometryReady = false;
+  let meshReady = false;
+  let geometryFailed = false;
+  let meshFailed = false;
   let appInjected = false;
-  let resolveCanonicalData;
-  window.PANDOLAB_CANONICAL_DATA_PROMISE = new Promise(resolve => { resolveCanonicalData = resolve; });
+  let resolveGeometry;
+  let resolveMesh;
+  window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE = new Promise(resolve => { resolveGeometry = resolve; });
+  window.PANDOLAB_CANONICAL_MESH_PROMISE = new Promise(resolve => { resolveMesh = resolve; });
+  window.PANDOLAB_CANONICAL_DATA_PROMISE = Promise.all([
+    window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE,
+    window.PANDOLAB_CANONICAL_MESH_PROMISE,
+  ]).then(([geometry, mesh]) => {
+    const canonical = {
+      ...geometry,
+      meshBuffer: mesh.meshBuffer,
+      metrics: { geometry: geometry.metrics || null, mesh: mesh.metrics || null },
+    };
+    startupMetrics.canonical = canonical.metrics;
+    return canonical;
+  });
 
   const onRuntimeError = event => fail(event?.detail || event?.reason?.message || event?.message || '애플리케이션 실행 오류');
   window.addEventListener('pandolab:error', onRuntimeError, { once: true });
@@ -111,15 +138,27 @@
     startupMetrics.previewDisplayMs = Math.max(0, startupMetrics.interactiveMs - Number(startupMetrics.previewReceivedMs || 0));
     finish();
   }, { once: true });
+  window.addEventListener('pandolab:editable', event => {
+    startupMetrics.editableMs = performance.now() - bootStartedAt;
+    startupMetrics.geometryDisplayMs = Math.max(0, startupMetrics.editableMs - Number(startupMetrics.geometryReceivedMs || 0));
+    if (event?.detail?.useBuiltInMesh === false) loader.postMessage({ type: 'cancel-mesh' });
+    else loader.postMessage({ type: 'geometry-applied' });
+  }, { once: true });
   window.addEventListener('pandolab:ready', () => {
     startupMetrics.readyMs = performance.now() - bootStartedAt;
-    startupMetrics.canonicalDisplayMs = Math.max(0, startupMetrics.readyMs - Number(startupMetrics.canonicalReceivedMs || 0));
+    startupMetrics.meshDisplayMs = Math.max(0, startupMetrics.readyMs - Number(startupMetrics.meshReceivedMs || 0));
     loader.terminate();
   }, { once: true });
   window.addEventListener('online', () => {
-    if (!previewReady || !canonicalFailed) return;
-    canonicalFailed = false;
-    loader.postMessage({ type: 'retry-canonical' });
+    if (!previewReady) return;
+    if (geometryFailed && !geometryReady) {
+      geometryFailed = false;
+      loader.postMessage({ type: 'retry-geometry' });
+    }
+    if (meshFailed && geometryReady && !meshReady) {
+      meshFailed = false;
+      loader.postMessage({ type: 'retry-mesh' });
+    }
   });
 
   loader.onmessage = event => {
@@ -133,38 +172,59 @@
       fail(data.message || '지도 데이터를 불러오지 못했습니다.');
       return;
     }
-    if (data.type === 'canonical-progress') {
-      window.dispatchEvent(new CustomEvent('pandolab:canonical-progress', { detail: data }));
+    if (data.type === 'geometry-progress') {
+      window.dispatchEvent(new CustomEvent('pandolab:geometry-progress', { detail: data }));
       return;
     }
-    if (data.type === 'canonical-error') {
-      canonicalFailed = true;
-      startupMetrics.canonicalError = data.message || '무손실 데이터를 준비하지 못했습니다.';
-      window.dispatchEvent(new CustomEvent('pandolab:canonical-error', { detail: startupMetrics.canonicalError }));
+    if (data.type === 'mesh-progress') {
+      window.dispatchEvent(new CustomEvent('pandolab:mesh-progress', { detail: data }));
       return;
     }
-    if (!['preview-ready', 'canonical-ready'].includes(data.type)) return;
+    if (data.type === 'geometry-error') {
+      geometryFailed = true;
+      startupMetrics.geometryError = data.message || '무손실 국가 데이터를 준비하지 못했습니다.';
+      window.dispatchEvent(new CustomEvent('pandolab:geometry-error', { detail: startupMetrics.geometryError }));
+      return;
+    }
+    if (data.type === 'mesh-error') {
+      meshFailed = true;
+      startupMetrics.meshError = data.message || '고화질 지도를 준비하지 못했습니다.';
+      window.dispatchEvent(new CustomEvent('pandolab:mesh-error', { detail: startupMetrics.meshError }));
+      return;
+    }
+    if (!['preview-ready', 'geometry-ready', 'mesh-ready'].includes(data.type)) return;
     if (data.buildId !== BUILD_ID) {
       loader.terminate();
       if (!recoverCacheMismatch()) fail(cacheMismatchMessage());
       return;
     }
-    if (data.type === 'canonical-ready') {
-      startupMetrics.canonical = data.metrics || null;
-      startupMetrics.canonicalReceivedMs = performance.now() - bootStartedAt;
-      startupMetrics.canonicalMainThreadTransferMs = Number.isFinite(Number(data.postedEpochMs))
+    if (data.type === 'geometry-ready') {
+      geometryReady = true;
+      geometryFailed = false;
+      startupMetrics.geometry = data.metrics || null;
+      startupMetrics.loadPolicy = data.metrics?.policy || startupMetrics.loadPolicy;
+      startupMetrics.geometryReceivedMs = performance.now() - bootStartedAt;
+      startupMetrics.geometryMainThreadTransferMs = Number.isFinite(Number(data.postedEpochMs))
         ? Math.max(0, performance.timeOrigin + performance.now() - Number(data.postedEpochMs))
         : null;
-      resolveCanonicalData({
-        countries: data.countries,
-        countriesSourceBuffer: data.countriesSourceBuffer,
-        meshBuffer: data.meshBuffer,
-        metrics: data.metrics || null,
-      });
+      resolveGeometry({ countries: data.countries, countriesSourceBuffer: data.countriesSourceBuffer, metrics: data.metrics || null });
+      return;
+    }
+    if (data.type === 'mesh-ready') {
+      meshReady = true;
+      meshFailed = false;
+      startupMetrics.mesh = data.metrics || null;
+      startupMetrics.loadPolicy = data.metrics?.policy || startupMetrics.loadPolicy;
+      startupMetrics.meshReceivedMs = performance.now() - bootStartedAt;
+      startupMetrics.meshMainThreadTransferMs = Number.isFinite(Number(data.postedEpochMs))
+        ? Math.max(0, performance.timeOrigin + performance.now() - Number(data.postedEpochMs))
+        : null;
+      resolveMesh({ meshBuffer: data.meshBuffer, metrics: data.metrics || null });
       return;
     }
     previewReady = true;
     startupMetrics.preview = data.metrics || null;
+    startupMetrics.loadPolicy = data.metrics?.policy || null;
     startupMetrics.previewReceivedMs = performance.now() - bootStartedAt;
     startupMetrics.previewMainThreadTransferMs = Number.isFinite(Number(data.postedEpochMs))
       ? Math.max(0, performance.timeOrigin + performance.now() - Number(data.postedEpochMs))
@@ -188,8 +248,15 @@
       fail(event.message || '데이터 Worker 실행 오류');
       return;
     }
-    canonicalFailed = true;
-    startupMetrics.canonicalError = event.message || '무손실 데이터 Worker 오류';
-    window.dispatchEvent(new CustomEvent('pandolab:canonical-error', { detail: startupMetrics.canonicalError }));
+    const detail = event.message || '데이터 Worker 실행 오류';
+    if (!geometryReady) {
+      geometryFailed = true;
+      startupMetrics.geometryError = detail;
+      window.dispatchEvent(new CustomEvent('pandolab:geometry-error', { detail }));
+    } else {
+      meshFailed = true;
+      startupMetrics.meshError = detail;
+      window.dispatchEvent(new CustomEvent('pandolab:mesh-error', { detail }));
+    }
   };
 })();

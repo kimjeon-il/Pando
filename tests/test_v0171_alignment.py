@@ -35,8 +35,8 @@ class V0171AlignmentTests(unittest.TestCase):
         self.assertIn('#app[data-layout="mobile"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }', CSS)
 
     def test_version_is_updated(self):
-        self.assertIn('data-app-version="0.29.0"', INDEX)
-        self.assertIn("app.css?v=0.29.0-r3", INDEX)
+        self.assertIn('data-app-version="0.30.0"', INDEX)
+        self.assertIn("app.css?v=0.30.0-r3", INDEX)
 
 
 if __name__ == "__main__":
