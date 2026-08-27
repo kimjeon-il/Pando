@@ -18,7 +18,7 @@ def source_section(source: str, start: str, end: str) -> str:
 class V0140UiFlowTests(unittest.TestCase):
     def test_scroll_containers_reserve_scrollbar_space(self):
         self.assertIn("scrollbar-gutter: stable both-edges", CSS)
-        for selector in (".sidebar", ".layer-children", ".top-actions", ".gis-modal-card"):
+        for selector in (".sidebar", ".layer-children", ".top-actions", ".ui-dialog-card"):
             self.assertIn(selector, CSS)
 
     def test_typography_uses_semantic_scale(self):

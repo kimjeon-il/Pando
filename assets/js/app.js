@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r3';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r5';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -318,13 +318,79 @@ const {
   }
   const selectController = createSelectController({ document, window });
   selectController.enhanceAll();
+
+  function hideUiTooltip() {
+    const tooltip = $('uiTooltip');
+    if (!tooltip) return;
+    const ownerId = tooltip.dataset.ownerId;
+    if (ownerId) $(ownerId)?.removeAttribute('aria-describedby');
+    tooltip.classList.add('hidden');
+    tooltip.setAttribute('aria-hidden', 'true');
+    tooltip.textContent = '';
+    delete tooltip.dataset.ownerId;
+  }
+
+  function showUiTooltip(target) {
+    if (!target || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    const text = String(target.dataset.tooltip || '').trim();
+    const tooltip = $('uiTooltip');
+    if (!text || !tooltip) return;
+    if (!target.id) target.id = `ui-tooltip-owner-${Math.random().toString(36).slice(2, 9)}`;
+    tooltip.textContent = text;
+    tooltip.dataset.ownerId = target.id;
+    tooltip.classList.remove('hidden');
+    tooltip.setAttribute('aria-hidden', 'false');
+    target.setAttribute('aria-describedby', 'uiTooltip');
+    const targetRect = target.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const edge = 8;
+    const left = clamp(targetRect.left + targetRect.width / 2 - tooltipRect.width / 2, edge, window.innerWidth - tooltipRect.width - edge);
+    const preferredTop = targetRect.bottom + edge;
+    const top = preferredTop + tooltipRect.height <= window.innerHeight - edge
+      ? preferredTop
+      : Math.max(edge, targetRect.top - tooltipRect.height - edge);
+    tooltip.style.left = `${Math.round(left)}px`;
+    tooltip.style.top = `${Math.round(top)}px`;
+  }
+
+  function bindUiTooltips() {
+    document.addEventListener('pointerover', event => {
+      if (event.pointerType && event.pointerType !== 'mouse') return;
+      const target = event.target.closest?.('[data-tooltip]');
+      if (target && !target.contains(event.relatedTarget)) showUiTooltip(target);
+    });
+    document.addEventListener('pointerout', event => {
+      const target = event.target.closest?.('[data-tooltip]');
+      if (target && !target.contains(event.relatedTarget)) hideUiTooltip();
+    });
+    document.addEventListener('focusin', event => {
+      const target = event.target.closest?.('[data-tooltip]');
+      if (target && document.documentElement.classList.contains('keyboard-navigation')) showUiTooltip(target);
+    });
+    document.addEventListener('focusout', event => {
+      if (event.target.closest?.('[data-tooltip]')) hideUiTooltip();
+    });
+    document.addEventListener('scroll', hideUiTooltip, true);
+    window.addEventListener('resize', hideUiTooltip);
+  }
+
+  function syncSearchClearButton(input, button) {
+    button?.classList.toggle('hidden', !String(input?.value || '').length);
+  }
+
+  function syncCountriesLockControl() {
+    const input = $('countriesLocked');
+    const control = input?.closest('.ui-icon-toggle');
+    control?.setAttribute('aria-pressed', String(!!input?.checked));
+    if (control) control.dataset.tooltip = input?.checked ? '국가 레이어 잠금 해제' : '국가 레이어 잠금';
+  }
   function runtimeAssetUrl(relativePath) {
     const url = new URL(relativePath, PANDOLAB_ASSET_BASE_URL);
     url.searchParams.set('v', ASSET_REVISION);
     return url;
   }
   const REQUIRED_UI_IDS = Object.freeze([
-    'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection',
+    'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection', 'uiTooltip',
     'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'measureDistanceBtn', 'measureAreaBtn', 'measureDistanceMobileBtn', 'measureAreaMobileBtn', 'mapAuditBtn', 'mapAuditMobileBtn', 'snapSettingsBtn', 'snapSettingsMobileBtn', 'snapSettingsPanel', 'mapAuditPanel', 'distributionInspect', 'debugMapPanel', 'countryAreaValue', 'countryComponentsSection', 'countryComponentList',
@@ -343,7 +409,7 @@ const {
     'modeMethodSwitch', 'modeLineMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftUndoBtn', 'modeDraftRedoBtn', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn',
     'importGeoJsonBtn', 'geoJsonFileInput', 'exportGeoJsonBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
-    'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
+    'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibrarySearchClearBtn', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
   ]);
   const CACHE_MISMATCH_MESSAGE = '화면 파일과 스크립트 버전이 다릅니다. 페이지를 강력 새로고침하세요. PC에서는 Ctrl+F5를 사용할 수 있습니다.';
 
@@ -504,12 +570,12 @@ const {
     edge?.setAttribute('aria-expanded', String(surfaceState.editorOpen));
     const edgeLabel = surfaceState.editorOpen ? '편집창 닫기' : '편집창 열기';
     edge?.setAttribute('aria-label', edgeLabel);
-    edge?.setAttribute('title', edgeLabel);
+    if (edge) edge.dataset.tooltip = edgeLabel;
     const headerToggle = $('mobileCloseRightBtn');
     if (!headerToggle) return;
     const label = layoutMode === 'wide' ? '편집창 접기' : '편집창 닫기';
     headerToggle.setAttribute('aria-label', label);
-    headerToggle.setAttribute('title', label);
+    headerToggle.dataset.tooltip = label;
   }
 
   function applyLayoutMode({ initial = false } = {}) {
@@ -1389,7 +1455,10 @@ const {
     const capabilities = commonBatchCapabilities(refs);
     for (const id of ['multiVisibilityBtn', 'multiPropertiesVisibilityBtn']) if ($(id)) $(id).disabled = !capabilities.has('visible');
     for (const id of ['multiLockBtn', 'multiPropertiesLockBtn']) if ($(id)) $(id).disabled = !capabilities.has('lock');
-    for (const id of ['multiColorInput', 'multiPropertiesColorInput']) if ($(id)) $(id).disabled = !capabilities.has('color');
+    for (const [inputId, triggerId] of [['multiColorInput', 'multiColorTrigger'], ['multiPropertiesColorInput', 'multiPropertiesColorTrigger']]) {
+      if ($(inputId)) $(inputId).disabled = !capabilities.has('color');
+      if ($(triggerId)) $(triggerId).disabled = !capabilities.has('color');
+    }
     for (const id of ['multiDeleteBtn', 'multiPropertiesDeleteBtn']) if ($(id)) $(id).disabled = !capabilities.has('delete');
   }
 
@@ -2970,6 +3039,18 @@ const {
     return { union: countryUnionFromFeatures(features, ids), overlaps, boundaryLength };
   }
 
+  function structuredGeometryIssueKey(issue = {}) {
+    const entityRefs = [...(issue.entityRefs || [])].map(String).sort().join('|');
+    return [
+      issue.kind || 'geometry',
+      entityRefs,
+      issue.polygonIndex ?? '',
+      issue.ringIndex ?? '',
+      issue.vertexIndex ?? '',
+      issue.segmentIndex ?? '',
+    ].join(':');
+  }
+
   function restoreCountryEditSnapshot(snapshot) {
     const changedIds = new Set(state.historyDirtyCountryIds);
     applySharedProjectFields(snapshot, 'history');
@@ -4386,7 +4467,7 @@ const {
       if (!item.levelHeader) {
         const header = document.createElement('button');
         header.type = 'button';
-        header.className = 'ui-button layer-subfolder-row';
+        header.className = 'ui-button ui-selectable-row layer-subfolder-row';
         header.dataset.countryRegionFolderToggle = item.folderKey;
         header.setAttribute('aria-expanded', String(item.expanded));
         header.setAttribute('aria-label', `${item.name} 하위 폴더 ${item.expanded ? '접기' : '펼치기'}`);
@@ -4395,7 +4476,7 @@ const {
         return header;
       }
       const header = document.createElement('div');
-      header.className = 'layer-subfolder-row is-level';
+      header.className = 'ui-row layer-subfolder-row is-level';
       header.setAttribute('role', 'heading');
       header.setAttribute('aria-level', '4');
       header.innerHTML = '<svg class="ui-icon layer-folder-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder"/></svg><strong></strong>';
@@ -4406,7 +4487,7 @@ const {
     const selected = isLayerTreeItemSelected(group, item.id);
     const ref = layerItemObjectRef(group, item.id);
     const primary = !!ref && objectSelection.snapshot().primaryKey === ref.key;
-    row.className = `ui-row ${searchResult ? 'ui-selectable-row layer-search-result' : 'layer-child'}${selected ? ' is-selected' : ''}${selected && objectSelection.size() > 1 ? ' is-multi-selected' : ''}${primary && objectSelection.size() > 1 ? ' is-primary-selected' : ''}`;
+    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${selected ? ' is-selected' : ''}${selected && objectSelection.size() > 1 ? ' is-multi-selected' : ''}${primary && objectSelection.size() > 1 ? ' is-primary-selected' : ''}`;
     row.dataset.layerGroup = group;
     row.dataset.itemId = item.id;
     if (searchResult) {
@@ -4431,14 +4512,14 @@ const {
     name.dataset.layerItemSelect = group;
     name.dataset.itemId = item.id;
     name.textContent = item.name;
-    name.title = item.title || `${item.name} 선택`;
+    name.dataset.tooltip = item.title || `${item.name} 선택`;
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
     deleteButton.className = 'ui-button layer-child-delete';
     deleteButton.dataset.layerItemDelete = group;
     deleteButton.dataset.itemId = item.id;
     deleteButton.setAttribute('aria-label', `${item.name} 삭제`);
-    deleteButton.title = group === 'countries' && state.countriesLocked ? '국가 레이어 잠금을 해제한 뒤 삭제할 수 있습니다.' : `${item.name} 삭제`;
+    deleteButton.dataset.tooltip = group === 'countries' && state.countriesLocked ? '국가 레이어 잠금을 해제한 뒤 삭제할 수 있습니다.' : `${item.name} 삭제`;
     deleteButton.disabled = group === 'countries' && state.countriesLocked;
     deleteButton.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg>';
     row.append(visibility, name);
@@ -4638,6 +4719,7 @@ const {
 
   function renderLayerTree(force = false) {
     if (!force && renderedLayerTreeRevision === state.layerTreeRevision) return;
+    syncCountriesLockControl();
     pruneLayerItemVisibility();
     const search = String(state.layerSearch || '').trim().toLocaleLowerCase('ko');
     const searchChanged = search !== renderedLayerSearch;
@@ -6129,6 +6211,7 @@ const {
         ['관계 오류', counts.relation],
       ].map(([label, count]) => {
         const row = document.createElement('div');
+        row.className = 'ui-row ui-card map-audit-summary-row';
         const span = document.createElement('span');
         const strong = document.createElement('strong');
         span.textContent = label;
@@ -6141,7 +6224,7 @@ const {
       list.replaceChildren(...(report?.issues || []).map(issue => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'map-audit-issue';
+        button.className = `ui-button ui-row ui-card ui-selectable-row map-audit-issue${state.audit.selectedIssueId === issue.id ? ' is-selected' : ''}`;
         button.dataset.auditIssueId = issue.id;
         button.setAttribute('role', 'listitem');
         button.setAttribute('aria-current', String(state.audit.selectedIssueId === issue.id));
@@ -7618,7 +7701,7 @@ const {
       const info = objectDisplayInfo(ref);
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = `ui-button ui-selectable-row object-chooser-item${objectSelection.has(ref) ? ' is-selected' : ''}`;
+      button.className = `ui-button ui-row ui-card ui-selectable-row object-chooser-item${objectSelection.has(ref) ? ' is-selected' : ''}`;
       button.dataset.objectChooserIndex = String(index);
       button.setAttribute('role', 'option');
       button.setAttribute('aria-selected', String(objectSelection.has(ref)));
@@ -8426,6 +8509,7 @@ const {
     let changed = false;
     let ownerBeforeGeometries = new Map();
     let validationBaseline = null;
+    let structuredValidationBaseline = new Set();
     let activeNodeKey = null;
     return d3.behavior.drag()
       .on('dragstart', function(vertex) {
@@ -8439,6 +8523,9 @@ const {
         const selectedId = String(state.coastEditCountryId || feature.properties.editor_id);
         affectedIds = new Set([...node.ownerIds].map(String));
         ownerBeforeGeometries = new Map([...affectedIds].map(id => [id, deepClone(countryFeatureById(id)?.geometry)]));
+        structuredValidationBaseline = new Set([...affectedIds]
+          .flatMap(id => validateStructuredGeometry(countryFeatureById(id)).filter(Boolean))
+          .map(structuredGeometryIssueKey));
         validationBaseline = affectedIds.size > 1 ? captureCountryGeometryValidationBaseline(affectedIds) : null;
         const featureMap = new Map([...affectedIds].map(id => [id, countryFeatureById(id)]).filter(([, country]) => country));
         moveTopologyNode(featureMap, node, startCoord);
@@ -8494,7 +8581,9 @@ const {
           markCountryGeometriesChanged(affectedIds);
           refreshCountryCentroids(affectedIds);
           rebuildBoundaryTopology(state.coastEditCountryId);
-          const structuredIssues = [...affectedIds].flatMap(id => validateStructuredGeometry(countryFeatureById(id))).filter(Boolean);
+          const structuredIssues = [...affectedIds]
+            .flatMap(id => validateStructuredGeometry(countryFeatureById(id)).filter(Boolean))
+            .filter(issue => !structuredValidationBaseline.has(structuredGeometryIssueKey(issue)));
           if (structuredIssues.length) throw new Error(structuredIssues[0].message);
           const validation = validateCountryGeometryEdit(affectedIds, validationBaseline);
           if (!validation.ok) throw new Error(validation.message);
@@ -8611,7 +8700,7 @@ const {
     list.replaceChildren(...components.map((component, order) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'country-component-item';
+      button.className = `ui-button ui-row ui-card ui-selectable-row country-component-item${state.selectedComponentKey === component.key ? ' is-selected' : ''}`;
       button.dataset.countryComponentKey = component.key;
       button.setAttribute('aria-pressed', String(state.selectedComponentKey === component.key));
       const name = document.createElement('span');
@@ -8661,7 +8750,7 @@ const {
     renderFlag(override.flagDataUrl || p.flagDataUrl || null);
     if (!refreshOnly) state.selectedComponentKey = null;
     $('countryAreaValue').textContent = formatArea(sphericalGeometryAreaKm2(feature.geometry));
-    $('countryAreaValue').title = '구면 근사 면적이며 고정밀 GIS 측정값과 차이가 날 수 있습니다.';
+    $('countryAreaValue').dataset.tooltip = '구면 근사 면적이며 고정밀 GIS 측정값과 차이가 날 수 있습니다.';
     renderCountryComponentList(feature);
     $('selectionStatus').textContent = `국가 · ${displayName}${geometryAreaStatusSuffix(feature.geometry)}`;
     syncStatusBar();
@@ -8842,7 +8931,7 @@ const {
     const fragment = document.createDocumentFragment();
     for (const entry of entries) {
       const row = document.createElement('div');
-      row.className = 'ui-row distribution-entry-row';
+      row.className = 'ui-row ui-card distribution-entry-row';
       const label = document.createElement('span');
       label.innerHTML = '<strong></strong><small></small>';
       label.querySelector('strong').textContent = distributionEntryLabel(entry);
@@ -9735,6 +9824,14 @@ const {
   }
 
   function applyColorPickerSelection(kind, value, isDefault = false) {
+    if (kind === 'multi' || kind === 'multiProperties') {
+      const color = normalizeEditorColor(value, '#3f6fae');
+      for (const pickerKind of ['multi', 'multiProperties']) {
+        syncColorPicker(pickerKind, { value: color, defaultColor: color, isDefault: false });
+      }
+      batchSetColor(color);
+      return true;
+    }
     if (isDefault) {
       if (kind === 'country') return resetCountryColor();
       if (kind === 'region' || kind === 'administrative' || kind === 'historicalRegion') return resetCountryRegionColor(kind);
@@ -10630,7 +10727,7 @@ const {
     }
     list.replaceChildren(...entries.map(entry => {
       const item = document.createElement('li');
-      item.className = 'history-entry';
+      item.className = 'ui-row ui-card history-entry';
       const time = document.createElement('time');
       time.dateTime = entry.timestamp;
       time.textContent = new Date(entry.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
@@ -10743,8 +10840,8 @@ const {
     const redoAvailable = draftMode ? state.draftEdit.future.length > 0 : state.future.length > 0;
     $('undoBtn').disabled = !undoAvailable;
     $('redoBtn').disabled = !redoAvailable;
-    $('undoBtn').title = draftMode ? '작성 중 실행 취소' : '실행 취소';
-    $('redoBtn').title = draftMode ? '작성 중 다시 실행' : '다시 실행';
+    $('undoBtn').dataset.tooltip = draftMode ? '작성 중 실행 취소' : '실행 취소';
+    $('redoBtn').dataset.tooltip = draftMode ? '작성 중 다시 실행' : '다시 실행';
     $('undoBtn').setAttribute('aria-label', draftMode ? '작성 중 실행 취소' : '실행 취소');
     $('redoBtn').setAttribute('aria-label', draftMode ? '작성 중 다시 실행' : '다시 실행');
     $('mapCommandToolbar')?.classList.toggle('history-empty', !undoAvailable && !redoAvailable);
@@ -10787,7 +10884,7 @@ const {
     const list = $('layerPresentationList');
     if (list) list.replaceChildren(...state.layerPresentation.overlayOrder.map((group, index) => {
       const row = document.createElement('div');
-      row.className = 'layer-presentation-row';
+      row.className = 'ui-row ui-card layer-presentation-row';
       row.dataset.presentationGroup = group;
       row.setAttribute('role', 'listitem');
       const name = document.createElement('strong');
@@ -11771,7 +11868,7 @@ const {
       const button = document.createElement('button');
       const selected = state.historicalLibrarySelectedId === entity.libraryId;
       button.type = 'button';
-      button.className = `ui-button ui-selectable-row historical-library-result${selected ? ' is-selected' : ''}`;
+      button.className = `ui-button ui-row ui-card ui-selectable-row historical-library-result${selected ? ' is-selected' : ''}`;
       button.dataset.libraryEntityId = entity.libraryId;
       button.setAttribute('role', 'option');
       button.setAttribute('aria-selected', String(selected));
@@ -12787,11 +12884,19 @@ const {
     $('terrainStrengthInput').addEventListener('change', () => queueAutosave());
     $('layerSearchInput')?.addEventListener('input', event => {
       state.layerSearch = event.target.value || '';
+      syncSearchClearButton(event.target, $('layerSearchClearBtn'));
       clearTimeout(layerSearchTimer);
       layerSearchTimer = window.setTimeout(() => {
         markLayerTreeDirty();
         renderLayerTree();
       }, 120);
+    });
+    $('layerSearchClearBtn')?.addEventListener('click', () => {
+      const input = $('layerSearchInput');
+      if (!input) return;
+      input.value = '';
+      input.dispatchEvent(new window.Event('input', { bubbles: true }));
+      input.focus({ preventScroll: true });
     });
     let layerLongPress = null;
     let suppressLayerClickUntil = 0;
@@ -12899,6 +13004,7 @@ const {
     });
     $('countriesLocked').addEventListener('change', e => {
       state.countriesLocked = e.target.checked;
+      syncCountriesLockControl();
       markLayerTreeDirty();
       renderLayerTree();
       renderCountries();
@@ -13221,10 +13327,6 @@ const {
     for (const id of ['multiVisibilityBtn', 'multiPropertiesVisibilityBtn']) $(id)?.addEventListener('click', batchSetVisibility);
     for (const id of ['multiLockBtn', 'multiPropertiesLockBtn']) $(id)?.addEventListener('click', batchToggleLocked);
     for (const id of ['multiDeleteBtn', 'multiPropertiesDeleteBtn']) $(id)?.addEventListener('click', requestBatchDelete);
-    for (const [id, siblingId] of [['multiColorInput', 'multiPropertiesColorInput'], ['multiPropertiesColorInput', 'multiColorInput']]) $(id)?.addEventListener('change', event => {
-      if ($(siblingId)) $(siblingId).value = event.target.value;
-      batchSetColor(event.target.value);
-    });
     $('clearMultiSelectionBtn')?.addEventListener('click', () => clearSelection(false));
 
   }
@@ -13242,13 +13344,20 @@ const {
     $('shortcutHelpModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeShortcutHelp);
     $('addFromLibraryBtn').addEventListener('click', openHistoricalLibrary);
     $('historicalLibraryCloseBtn').addEventListener('click', closeHistoricalLibrary);
-    $('historicalLibraryModal').querySelector('.gis-modal-dim')?.addEventListener('click', closeHistoricalLibrary);
+    $('historicalLibraryModal').querySelector('.ui-dialog-backdrop')?.addEventListener('click', closeHistoricalLibrary);
     for (const id of ['historicalLibrarySearchInput', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput']) {
       $(id).addEventListener(['historicalLibrarySearchInput', 'historicalLibraryYearInput'].includes(id) ? 'input' : 'change', () => {
+        if (id === 'historicalLibrarySearchInput') syncSearchClearButton($(id), $('historicalLibrarySearchClearBtn'));
         renderHistoricalLibraryResults();
         if (id === 'historicalLibraryYearInput') renderHistoricalLibraryPreview();
       });
     }
+    $('historicalLibrarySearchClearBtn')?.addEventListener('click', () => {
+      const input = $('historicalLibrarySearchInput');
+      input.value = '';
+      input.dispatchEvent(new window.Event('input', { bubbles: true }));
+      input.focus({ preventScroll: true });
+    });
     $('historicalLibraryResults').addEventListener('click', event => {
       const button = event.target.closest('[data-library-entity-id]');
       if (button) selectHistoricalLibraryEntity(button.dataset.libraryEntityId);
@@ -13494,12 +13603,18 @@ const {
   }
 
   function bindUI() {
+    bindUiTooltips();
     bindNavigationUI();
     bindLayerUI();
     bindToolUI();
     bindEditorFields();
     bindFileAndGisUI();
     bindGlobalInputUI();
+    syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn'));
+    syncSearchClearButton($('historicalLibrarySearchInput'), $('historicalLibrarySearchClearBtn'));
+    syncCountriesLockControl();
+    syncColorPicker('multi', { value: $('multiColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
+    syncColorPicker('multiProperties', { value: $('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
     syncProjectSaveStatus(saveState.snapshot());
     renderHistoryPanel();
   }

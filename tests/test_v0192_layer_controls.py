@@ -24,10 +24,10 @@ class V0192LayerControlTests(unittest.TestCase):
     def test_country_lock_uses_open_and_closed_icons(self):
         self.assertIn('symbol id="icon-lock-open"', INDEX)
         self.assertIn('symbol id="icon-lock-closed"', INDEX)
-        self.assertIn('class="layer-lock-control"', INDEX)
+        self.assertIn('class="ui-icon-toggle layer-lock-control"', INDEX)
         self.assertIn('id="countriesLocked" type="checkbox" class="lock-toggle"', INDEX)
-        self.assertIn(".lock-toggle:checked ~ .lock-open-icon", CSS)
-        self.assertIn(".lock-toggle:checked ~ .lock-closed-icon", CSS)
+        self.assertIn(".layer-lock-control .lock-toggle:checked ~ .lock-open-icon", CSS)
+        self.assertIn(".layer-lock-control .lock-toggle:checked ~ .lock-closed-icon", CSS)
         self.assertNotIn(".layer-folder-name::after", CSS)
         self.assertNotRegex(CSS, r'content:\s*["\']\s*잠금')
         self.assertIn("$('countriesLocked').addEventListener('change'", APP)
