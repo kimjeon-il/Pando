@@ -18,7 +18,7 @@ class ResponsiveUiV0160Tests(unittest.TestCase):
 
     def test_map_controls_are_split_without_changing_existing_ids(self):
         self.assertIn('id="mapCommandToolbar"', INDEX)
-        self.assertIn('class="map-view-toolbar floating-toolbar"', INDEX)
+        self.assertRegex(INDEX, r'class="[^"]*map-view-toolbar[^"]*floating-toolbar[^"]*"')
         for element_id in ("createMenuBtn", "undoBtn", "redoBtn", "zoomOutBtn", "zoomInBtn", "resetViewBtn", "projectionControl", "togglePanelBtn"):
             self.assertEqual(INDEX.count(f'id="{element_id}"'), 1)
 
@@ -29,7 +29,7 @@ class ResponsiveUiV0160Tests(unittest.TestCase):
         self.assertIn(".workspace.layers-drawer-open", CSS)
 
     def test_compact_uses_horizontal_primary_controls_and_mobile_keeps_bottom_navigation(self):
-        self.assertIn('class="adaptive-nav mobile-bottom-bar"', INDEX)
+        self.assertRegex(INDEX, r'class="[^"]*adaptive-nav[^"]*mobile-bottom-bar[^"]*"')
         self.assertIn('class="compact-primary-controls"', INDEX)
         self.assertIn('#app[data-layout="compact"] .adaptive-nav', CSS)
         self.assertIn('flex-direction: row', CSS)
