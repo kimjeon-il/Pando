@@ -111,8 +111,13 @@ export function createSelectController({
     const viewportHeight = viewport?.height || windowRef.innerHeight;
     const viewportLeft = viewport?.offsetLeft || 0;
     const viewportTop = viewport?.offsetTop || 0;
-    const margin = 8;
-    const gap = 6;
+    const rootStyle = windowRef.getComputedStyle(documentRef.documentElement);
+    const readMetric = (name, fallback) => {
+      const value = Number.parseFloat(rootStyle.getPropertyValue(name));
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const margin = readMetric('--ui-popover-screen-edge', 8);
+    const gap = readMetric('--ui-select-popover-gap', 6);
     const width = Math.min(Math.max(rect.width, 180), Math.max(180, viewportWidth - margin * 2));
     const below = viewportTop + viewportHeight - rect.bottom - margin - gap;
     const above = rect.top - viewportTop - margin - gap;
