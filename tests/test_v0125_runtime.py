@@ -39,8 +39,10 @@ class V0125RuntimeTests(unittest.TestCase):
         self.assertIn("await ensureDetailMetadata()", load_feature)
 
     def test_country_mesh_and_annex_validation_are_revision_safe(self):
-        self.assertIn("basePixels[index * 4 + 3] = countryOverrideIds.has(id) ? 0 : visible", RENDERER)
-        self.assertIn("gpuMapRenderer.applyCountryPatch(changed)", APP)
+        self.assertIn("const pending = geometryRevisionTracker.isPending(id)", RENDERER)
+        self.assertIn("basePixels[index * 4 + 3] = overridden ? 0 : visible", RENDERER)
+        self.assertIn("overridePixels[index * 4 + 3] = overridden && !pending ? visible : 0", RENDERER)
+        self.assertIn("gpuMapRenderer.applyCountryPatch({ ids: [...changed], features, removedIds })", APP)
         annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
         self.assertIn("operation: 'annex'", annex)
         self.assertIn("client.execute(operation, payload)", TRANSACTION)

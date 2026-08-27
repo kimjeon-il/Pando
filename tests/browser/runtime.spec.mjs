@@ -23,7 +23,7 @@ async function openApp(page, { waitForCanonical = true } = {}) {
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
-  if (waitForCanonical) await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 30_000 });
+  if (waitForCanonical) await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   return errors;
 }
 
@@ -55,7 +55,7 @@ test('a stale HTML shell recovers once through the current asset revision', asyn
     const response = await route.fetch();
     const freshHtml = await response.text();
     const body = shellRequests === 1
-      ? freshHtml.replace('data-app-version="0.29.0"', 'data-app-version="0.24.0"')
+      ? freshHtml.replace('data-app-version="0.30.0"', 'data-app-version="0.24.0"')
       : freshHtml;
     await route.fulfill({ response, body });
   });
@@ -83,7 +83,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.29.0-r3')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r3')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -91,7 +91,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.29.0-r3');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r3');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -382,14 +382,16 @@ test('toolbar projection segments fill the common icon-button geometry while mob
   expect(errors).toEqual([]);
 });
 
-test('common row buttons, headers, cards, and checkboxes keep their component geometry', async ({ page }) => {
+test('common row buttons, headers, cards, and checkboxes keep their component geometry', async ({ browser }) => {
   test.setTimeout(120_000);
   for (const layout of layouts) {
-    await page.setViewportSize(layout.viewport);
-    const errors = await openApp(page);
-    const createTrigger = layout.name === 'wide' ? '#createMenuBtn' : '#mobileCreateBtn';
-    await page.locator(createTrigger).click();
-    const geometry = await page.evaluate(() => {
+    const context = await browser.newContext({ viewport: layout.viewport });
+    const page = await context.newPage();
+    try {
+      const errors = await openApp(page, { waitForCanonical: false });
+      const createTrigger = layout.name === 'wide' ? '#createMenuBtn' : '#mobileCreateBtn';
+      await page.locator(createTrigger).click();
+      const geometry = await page.evaluate(() => {
       const item = document.querySelector('#addCountryBtn');
       const body = document.querySelector('#createMenu .map-sheet-body');
       const checkbox = document.querySelector('#countriesVisible');
@@ -408,16 +410,19 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
         checkBorderColor: checkStyle.borderTopColor,
         cardsUseBase: [...document.querySelectorAll('.editor-section, .editor-danger-zone')].every(card => card.classList.contains('ui-card')),
       };
-    });
-    if (layout.name !== 'mobile') expect(Math.abs(geometry.itemWidth - geometry.bodyInnerWidth)).toBeLessThanOrEqual(1);
-    expect(geometry.itemHeight).toBe(layout.name === 'mobile' ? 68 : 64);
-    expect(geometry.itemBoxSizing).toBe('border-box');
-    expect(geometry.checkSize).toEqual([18, 18]);
-    expect(geometry.checkBorder).toBe('1px');
-    expect(geometry.checkShadow).toBe('none');
-    expect(geometry.checkBackground).toBe(geometry.checkBorderColor);
-    expect(geometry.cardsUseBase).toBe(true);
-    expect(errors).toEqual([]);
+      });
+      if (layout.name !== 'mobile') expect(Math.abs(geometry.itemWidth - geometry.bodyInnerWidth)).toBeLessThanOrEqual(1);
+      expect(geometry.itemHeight).toBe(layout.name === 'mobile' ? 68 : 64);
+      expect(geometry.itemBoxSizing).toBe('border-box');
+      expect(geometry.checkSize).toEqual([18, 18]);
+      expect(geometry.checkBorder).toBe('1px');
+      expect(geometry.checkShadow).toBe('none');
+      expect(geometry.checkBackground).toBe(geometry.checkBorderColor);
+      expect(geometry.cardsUseBase).toBe(true);
+      expect(errors).toEqual([]);
+    } finally {
+      await context.close();
+    }
   }
 });
 
@@ -581,7 +586,7 @@ test('virtualized country deletion honors lock, undo, and autosave restore', asy
   }, countryId), { message: 'country deletion should reach autosave before reload', timeout: 10_000 }).toBe(true);
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 90_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const countryFolderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await countryFolderToggle.getAttribute('aria-expanded') !== 'true') await countryFolderToggle.click();
   await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
@@ -730,7 +735,7 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
   await page.getByRole('slider', { name: '편집창 높이 조절' }).press('ArrowUp');
   const raisedHeight = await page.locator('#rightPanel').evaluate(element => element.getBoundingClientRect().height);
   expect(raisedHeight).toBeGreaterThan(editHeight);
-  await page.locator('#mobileCloseRightBtn').click();
+  await page.locator('#mobileEditBtn').click();
   const reopenedHeight = await openSheet('#mobileEditBtn', '#rightPanel');
   expect(Math.abs(reopenedHeight - editHeight)).toBeLessThanOrEqual(1);
 

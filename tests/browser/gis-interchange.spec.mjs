@@ -8,10 +8,13 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   page.on('console', message => {
     if (message.type() === 'error') errors.push(message.text());
   });
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'canonical', { timeout: 30_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
 
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept('스모크 언어'));

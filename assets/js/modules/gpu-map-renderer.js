@@ -3,6 +3,67 @@ export function resolveRenderPixelRatioValue(devicePixelRatio, mobileLayout = fa
   return Math.min(mobileLayout ? 2 : 3, deviceRatio);
 }
 
+export function createCountryGeometryRevisionTracker() {
+  let committedRevision = 0;
+  let displayedRevision = 0;
+  let taskToken = 0;
+  const pendingRevisions = new Map();
+
+  const normalizedIds = ids => [...new Set([...(ids || [])].map(String).filter(Boolean))];
+
+  function beginCommit(ids) {
+    committedRevision += 1;
+    taskToken += 1;
+    const normalized = normalizedIds(ids);
+    for (const id of normalized) pendingRevisions.set(id, committedRevision);
+    return { ids: normalized, revision: committedRevision, token: taskToken };
+  }
+
+  function beginTask(revision = committedRevision) {
+    taskToken += 1;
+    return { revision: Number(revision || 0), token: taskToken };
+  }
+
+  function isCurrent(token, revision) {
+    return Number(token) === taskToken && Number(revision) === committedRevision;
+  }
+
+  function markDisplayed(ids, revision) {
+    const numericRevision = Number(revision || 0);
+    if (numericRevision < committedRevision) return [];
+    const cleared = [];
+    for (const id of normalizedIds(ids)) {
+      const pendingRevision = pendingRevisions.get(id);
+      if (pendingRevision === undefined || pendingRevision > numericRevision) continue;
+      pendingRevisions.delete(id);
+      cleared.push(id);
+    }
+    displayedRevision = Math.max(displayedRevision, numericRevision);
+    return cleared;
+  }
+
+  function reset() {
+    taskToken += 1;
+    pendingRevisions.clear();
+    committedRevision += 1;
+    return committedRevision;
+  }
+
+  return Object.freeze({
+    beginCommit,
+    beginTask,
+    isCurrent,
+    markDisplayed,
+    reset,
+    committedRevision: () => committedRevision,
+    displayedRevision: () => displayedRevision,
+    taskToken: () => taskToken,
+    pendingIds: () => [...pendingRevisions.keys()],
+    pendingRevision: id => pendingRevisions.get(String(id)),
+    isPending: id => pendingRevisions.has(String(id)),
+  });
+}
+
 export function createGpuMapRenderer(deps) {
   const {
     $,
@@ -31,6 +92,7 @@ export function createGpuMapRenderer(deps) {
     mapWorkScheduler,
     prepareHydroFeature,
     queueMapResize,
+    renderPendingCountryOverlays,
     renderViewFrame,
     reportOperationError,
     runtimeAssetUrl,
@@ -95,8 +157,11 @@ export function createGpuMapRenderer(deps) {
     let overrideWebGl1PositionData = null;
     let overrideWebGl1CountryData = null;
     const countryOverrideIds = new Set();
+    const overrideFeatureSnapshots = new Map();
+    const geometryRevisionTracker = createCountryGeometryRevisionTracker();
+    let pendingOldMeshVisibleCount = 0;
     let patchWorker = null;
-    let patchWorkerToken = 0;
+    const patchRequests = new Map();
     let terrainManifest = null;
     const terrainTiles = new Map();
     const terrainTileRequests = new Map();
@@ -124,6 +189,7 @@ export function createGpuMapRenderer(deps) {
     let pickFramebuffer = null;
     let pickTexture = null;
     let worker = null;
+    let workerCompletionResolver = null;
     let canvasWorker = null;
     let canvasWorkerUrl = null;
     let canvasWorkerBitmapContext = null;
@@ -135,7 +201,6 @@ export function createGpuMapRenderer(deps) {
     let canvasWorkerDisplayedRevision = 0;
     let canvasHydroPickRequestId = 0;
     const canvasHydroPickRequests = new Map();
-    let rebuildToken = 0;
     let fallbackReason = '';
     let layoutMismatchCount = 0;
     let layoutVerificationFrame = 0;
@@ -147,6 +212,7 @@ export function createGpuMapRenderer(deps) {
     let webGl1CountryData = null;
     const frameTimes = [];
     let canvasDataReplacementResolver = null;
+    let lastGeometryCommitTimings = null;
     const forcedRenderer = (() => {
       try {
         const value = new URLSearchParams(location.search).get('renderer');
@@ -293,6 +359,7 @@ export function createGpuMapRenderer(deps) {
       uniform vec2 uFlatCenter;
       uniform float uWorldOffset;
       uniform float uWidthBoost;
+      uniform float uWidthScale;
       uniform int uMode;
       out float vDepth;
       flat out uint vCountry;
@@ -319,7 +386,7 @@ export function createGpuMapRenderer(deps) {
         float segmentLength = length(direction);
         direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
         vec2 normal = vec2(-direction.y, direction.x);
-        float width = mix(aStartWidth, aEndWidth, aCorner.x);
+        float width = mix(aStartWidth, aEndWidth, aCorner.x) * uWidthScale;
         vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (width + uWidthBoost) * 0.5;
         vDepth = mix(startDepth, endDepth, aCorner.x);
         vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
@@ -344,6 +411,7 @@ export function createGpuMapRenderer(deps) {
       uniform vec2 uFlatCenter;
       uniform float uWorldOffset;
       uniform float uWidthBoost;
+      uniform float uWidthScale;
       uniform int uMode;
       varying float vDepth;
       varying float vCountry;
@@ -370,7 +438,7 @@ export function createGpuMapRenderer(deps) {
         float segmentLength = length(direction);
         direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
         vec2 normal = vec2(-direction.y, direction.x);
-        float width = mix(aStartWidth, aEndWidth, aCorner.x);
+        float width = mix(aStartWidth, aEndWidth, aCorner.x) * uWidthScale;
         vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (width + uWidthBoost) * 0.5;
         vDepth = mix(startDepth, endDepth, aCorner.x);
         vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
@@ -815,7 +883,7 @@ export function createGpuMapRenderer(deps) {
       rendererMode = version === 2 ? 'webgl2' : 'webgl1';
     }
 
-    function setMesh(nextMesh, countryIds) {
+    function setMesh(nextMesh, countryIds, { renderFrame = true } = {}) {
       mesh = nextMesh;
       meshCountryIds = [...countryIds];
       webGl1PositionData = null;
@@ -867,10 +935,10 @@ export function createGpuMapRenderer(deps) {
         gl.bindVertexArray(null);
       }
       window.__PANDOLAB_GPU_METRICS__ = getStats();
-      render(currentRenderRevision);
+      if (renderFrame) render(currentRenderRevision);
     }
 
-    function setOverrideMesh(nextMesh) {
+    function setOverrideMesh(nextMesh, { renderFrame = true } = {}) {
       overrideMesh = nextMesh;
       overrideWebGl1PositionData = null;
       overrideWebGl1CountryData = null;
@@ -911,7 +979,7 @@ export function createGpuMapRenderer(deps) {
         overrideLineVao = createVao(overrideLineIndexBuffer);
       }
       updatePalette();
-      render(currentRenderRevision);
+      if (renderFrame) render(currentRenderRevision);
     }
 
     function remapOverrideMesh(rawMesh, localIds) {
@@ -935,11 +1003,84 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
+    function settleStalePatchRequests() {
+      for (const [token, request] of patchRequests) {
+        if (geometryRevisionTracker.isCurrent(token, request.geometryRevision)) continue;
+        patchRequests.delete(token);
+        request.resolve(false);
+      }
+    }
+
+    function completeGeometryDisplay(ids, geometryRevision, { renderFrame = true } = {}) {
+      const cleared = geometryRevisionTracker.markDisplayed(ids, geometryRevision);
+      if (renderFrame) {
+        updatePalette();
+        render(currentRenderRevision);
+      }
+      for (const id of cleared) state.pendingCountryRenderIds.delete(String(id));
+      renderPendingCountryOverlays?.();
+      if (lastGeometryCommitTimings && Number(geometryRevision) === geometryRevisionTracker.committedRevision()) {
+        lastGeometryCommitTimings.gpuPatchDisplayedAt ||= performance.now();
+        if (!geometryRevisionTracker.pendingIds().length) lastGeometryCommitTimings.overlayRemovedAt ||= performance.now();
+      }
+      window.__PANDOLAB_GPU_METRICS__ = getStats();
+      return cleared;
+    }
+
+    function normalizeCountryPatchRequest(rawRequest) {
+      if (rawRequest && !Array.isArray(rawRequest) && typeof rawRequest === 'object' && rawRequest.ids) {
+        const ids = [...new Set([...(rawRequest.ids || [])].map(String).filter(Boolean))];
+        const byId = new Map((rawRequest.features || []).map(feature => [
+          String(feature?.properties?.editor_id || feature?.properties?.iso_a3 || ''),
+          feature,
+        ]).filter(([id]) => id));
+        const removed = new Set((rawRequest.removedIds || []).map(String));
+        return {
+          ids,
+          features: ids.filter(id => !removed.has(id) && byId.has(id)).map(id => byId.get(id)),
+          removedIds: ids.filter(id => removed.has(id) || !byId.has(id)),
+        };
+      }
+      const ids = [...new Set([...(rawRequest || [])].map(String).filter(Boolean))];
+      const features = [];
+      const removedIds = [];
+      for (const id of ids) {
+        const feature = countryFeatureById(id);
+        if (feature && String(feature.properties?.editor_id || '') === id) features.push(feature);
+        else removedIds.push(id);
+      }
+      return { ids, features, removedIds };
+    }
+
     function ensurePatchWorker() {
       if (patchWorker) return patchWorker;
       patchWorker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-country-patch-mesh' });
+      patchWorker.onmessage = event => {
+        const token = Number(event.data?.token || 0);
+        const request = patchRequests.get(token);
+        if (!request) return;
+        patchRequests.delete(token);
+        if (!geometryRevisionTracker.isCurrent(token, request.geometryRevision)) {
+          request.resolve(false);
+          return;
+        }
+        if (!event.data?.ok) {
+          request.reject(new Error(event.data?.message || '변경 국가 메시를 만들지 못했습니다.'));
+          return;
+        }
+        lastGeometryCommitTimings && (lastGeometryCommitTimings.patchWorkerCompletedAt = performance.now());
+        const next = event.data.mesh;
+        setOverrideMesh(remapOverrideMesh(next, next.countryIds || []), { renderFrame: false });
+        completeGeometryDisplay(request.snapshotIds, request.geometryRevision);
+        if (countryOverrideIds.size > 48 || (overrideMesh?.countryIndices?.length || 0) > (mesh?.countryIndices?.length || 1) * 0.25) {
+          mapWorkScheduler.scheduleIdle('country-mesh-compaction', compactCountryOverrides, 2000);
+        }
+        request.resolve(true);
+      };
       patchWorker.onerror = event => {
         console.error('[PL-GPU-PATCH-001]', event.message || event);
+        for (const request of patchRequests.values()) request.reject(new Error(event.message || '변경 국가 메시 Worker 오류'));
+        patchRequests.clear();
         patchWorker?.terminate();
         patchWorker = null;
         scheduleGpuMeshRebuild(0);
@@ -947,52 +1088,106 @@ export function createGpuMapRenderer(deps) {
       return patchWorker;
     }
 
-    function applyCountryPatch(rawIds) {
-      const ids = [...new Set([...rawIds].map(String).filter(Boolean))];
+    function applyCountryPatch(rawRequest) {
+      const { ids, features, removedIds } = normalizeCountryPatchRequest(rawRequest);
+      if (!ids.length) return Promise.resolve(true);
+      mapWorkScheduler.cancel('country-mesh-compaction');
+      const commit = geometryRevisionTracker.beginCommit(ids);
+      settleStalePatchRequests();
+      lastGeometryCommitTimings = {
+        geometryRevision: commit.revision,
+        editCommitAt: performance.now(),
+        baseHiddenAt: 0,
+        optimisticOverlayShownAt: 0,
+        patchWorkerRequestedAt: 0,
+        patchWorkerCompletedAt: 0,
+        gpuPatchDisplayedAt: 0,
+        overlayRemovedAt: 0,
+      };
       for (const id of ids) countryOverrideIds.add(id);
+      for (const feature of features) {
+        const id = String(feature?.properties?.editor_id || '');
+        if (id) overrideFeatureSnapshots.set(id, deepClone(feature));
+      }
+      for (const id of removedIds) overrideFeatureSnapshots.delete(String(id));
+      for (const id of ids) state.pendingCountryRenderIds.add(id);
+      renderPendingCountryOverlays?.();
+      lastGeometryCommitTimings.optimisticOverlayShownAt = performance.now();
       if (rendererMode === 'canvas-worker' && canvasWorker) {
-        const features = ids.map(countryFeatureById).filter(Boolean).map(deepClone);
-        const removedIds = ids.filter(id => !countryFeatureById(id));
-        canvasWorker.postMessage({ type: 'patch', features, removedIds, ids, revision: currentRenderRevision });
-        renderCanvasWorker();
-        return Promise.resolve();
+        canvasWorker.postMessage({
+          type: 'patch',
+          features: features.map(deepClone),
+          removedIds,
+          ids,
+          revision: currentRenderRevision,
+          geometryRevision: commit.revision,
+          taskToken: commit.token,
+        });
+        lastGeometryCommitTimings.patchWorkerRequestedAt = performance.now();
+        renderViewFrame();
+        lastGeometryCommitTimings.baseHiddenAt = performance.now();
+        return Promise.resolve(true);
       }
       if (!isWebGlRenderer()) {
-        render();
-        return Promise.resolve();
+        renderViewFrame();
+        lastGeometryCommitTimings.baseHiddenAt = performance.now();
+        completeGeometryDisplay(ids, commit.revision, { renderFrame: false });
+        return Promise.resolve(true);
       }
       updatePalette();
-      const features = [...countryOverrideIds].map(countryFeatureById).filter(Boolean).map(deepClone);
-      const token = ++patchWorkerToken;
+      renderViewFrame();
+      lastGeometryCommitTimings.baseHiddenAt = performance.now();
+      const patchFeatures = [...overrideFeatureSnapshots.values()].map(deepClone);
+      const snapshotIds = [...countryOverrideIds];
+      const token = commit.token;
       return new Promise((resolve, reject) => {
-        let currentWorker;
-        try { currentWorker = ensurePatchWorker(); }
-        catch (error) { reject(error); return; }
-        currentWorker.onmessage = event => {
-          if (event.data?.token !== token || token !== patchWorkerToken) return;
-          if (!event.data?.ok) {
-            reject(new Error(event.data?.message || '변경 국가 메시를 만들지 못했습니다.'));
+        requestAnimationFrame(() => {
+          if (!geometryRevisionTracker.isCurrent(token, commit.revision)) {
+            resolve(false);
             return;
           }
-          const next = event.data.mesh;
-          setOverrideMesh(remapOverrideMesh(next, next.countryIds || []));
-          for (const id of ids) state.pendingCountryRenderIds.delete(id);
-          renderViewFrame();
-          if (countryOverrideIds.size > 48 || (overrideMesh?.countryIndices?.length || 0) > (mesh?.countryIndices?.length || 1) * 0.25) {
-            mapWorkScheduler.scheduleIdle('country-mesh-compaction', compactCountryOverrides, 2000);
-          }
-          resolve();
-        };
-        currentWorker.postMessage({ token, features });
+          let currentWorker;
+          try { currentWorker = ensurePatchWorker(); }
+          catch (error) { reject(error); return; }
+          patchRequests.set(token, { resolve, reject, geometryRevision: commit.revision, snapshotIds });
+          lastGeometryCommitTimings.patchWorkerRequestedAt = performance.now();
+          currentWorker.postMessage({ token, geometryRevision: commit.revision, features: patchFeatures });
+        });
       }).catch(error => {
+        if (!geometryRevisionTracker.isCurrent(token, commit.revision)) return false;
         console.error('[PL-GPU-PATCH-002]', error);
         scheduleGpuMeshRebuild(0);
+        return false;
       });
     }
 
     function compactCountryOverrides() {
       if (!countryOverrideIds.size) return;
-      rebuildFromCountries(state.countriesData?.features || []);
+      rebuildFromCountries(state.countriesData?.features || [], {
+        geometryRevision: geometryRevisionTracker.committedRevision(),
+        reason: 'compaction',
+      });
+    }
+
+    function resetCountryGeometryVisualState({ renderFrame = false } = {}) {
+      mapWorkScheduler.cancel('country-mesh-compaction');
+      geometryRevisionTracker.reset();
+      settleStalePatchRequests();
+      worker?.terminate();
+      worker = null;
+      workerCompletionResolver?.(false);
+      workerCompletionResolver = null;
+      countryOverrideIds.clear();
+      overrideFeatureSnapshots.clear();
+      overrideMesh = null;
+      state.pendingCountryRenderIds.clear();
+      lastGeometryCommitTimings = null;
+      if (renderFrame) {
+        updatePalette();
+        render(currentRenderRevision);
+      }
+      renderPendingCountryOverlays?.();
+      window.__PANDOLAB_GPU_METRICS__ = getStats();
     }
 
     async function decodeBuiltInMesh(rawBuffer = null, features = null) {
@@ -1021,63 +1216,104 @@ export function createGpuMapRenderer(deps) {
     }
 
     function createWorker() {
-      if (worker) worker.terminate();
+      if (worker) {
+        worker.terminate();
+        workerCompletionResolver?.(false);
+        workerCompletionResolver = null;
+      }
       worker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), {
         name: 'pandolab-gpu-mesh',
       });
       return worker;
     }
 
-    function rebuildFromCountries(features) {
+    function rebuildFromCountries(features, {
+      geometryRevision = geometryRevisionTracker.committedRevision(),
+      reason = 'full-rebuild',
+    } = {}) {
+      const task = geometryRevisionTracker.beginTask(geometryRevision);
+      settleStalePatchRequests();
+      const pendingIds = geometryRevisionTracker.pendingIds();
       if (rendererMode === 'canvas-worker' && canvasWorker) {
-        countryOverrideIds.clear();
-        overrideMesh = null;
-        const ids = [...state.pendingCountryRenderIds];
-        canvasWorker.postMessage({ type: 'data', features, ids, revision: currentRenderRevision });
-        renderCanvasWorker();
-        return;
+        meshQuality = 'canonical';
+        canonicalMeshReady = true;
+        canvasWorker.postMessage({
+          type: 'data', features, ids: pendingIds,
+          revision: currentRenderRevision,
+          geometryRevision: task.revision,
+          taskToken: task.token,
+          reason,
+        });
+        renderCanvasWorker(currentRenderRevision);
+        return Promise.resolve(true);
       }
       if (!isWebGlRenderer()) {
-        render();
-        return;
+        meshQuality = 'canonical';
+        canonicalMeshReady = true;
+        countryOverrideIds.clear();
+        overrideFeatureSnapshots.clear();
+        overrideMesh = null;
+        renderViewFrame();
+        completeGeometryDisplay(pendingIds, task.revision, { renderFrame: false });
+        return Promise.resolve(true);
       }
-      const token = ++rebuildToken;
+      const token = task.token;
       let currentWorker;
       try { currentWorker = createWorker(); }
       catch (error) {
         console.error('[PL-GPU-001]', error);
         activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
-        return;
+        return Promise.resolve(false);
       }
       $('engineStatus').textContent = `${rendererName()} · 편집 메시를 계산하는 중입니다.`;
-      currentWorker.onmessage = event => {
-        if (event.data?.token !== token || token !== rebuildToken) return;
-        currentWorker.terminate();
-        worker = null;
-        if (!event.data?.ok) {
-          console.error('[PL-GPU-003]', event.data?.message || event.data);
-          activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
-          return;
-        }
-        const next = event.data.mesh;
-        countryOverrideIds.clear();
-        overrideMesh = null;
-        state.pendingCountryRenderIds.clear();
-        setMesh({
-          positions: new Int32Array(next.positions),
-          countryIndices: new Uint16Array(next.countryIndices),
-          triangleIndices: new Uint32Array(next.triangleIndices),
-          lineIndices: new Uint32Array(next.lineIndices),
-        }, next.countryIds || []);
-        $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
-        updateRendererStatus(`${rendererName()} · GPU 실시간`);
-      };
-      currentWorker.onerror = event => {
-        if (token !== rebuildToken) return;
-        console.error('[PL-GPU-004]', event.message || event);
-        activateCanvasFallback('동적 지도 메시 Worker를 사용할 수 없습니다.');
-      };
-      currentWorker.postMessage({ token, features });
+      return new Promise(resolve => {
+        const settle = value => {
+          if (workerCompletionResolver === settle) workerCompletionResolver = null;
+          resolve(value);
+        };
+        workerCompletionResolver = settle;
+        currentWorker.onmessage = event => {
+          if (event.data?.token !== token || !geometryRevisionTracker.isCurrent(token, task.revision)) {
+            currentWorker.terminate();
+            settle(false);
+            return;
+          }
+          currentWorker.terminate();
+          if (worker === currentWorker) worker = null;
+          if (!event.data?.ok) {
+            console.error('[PL-GPU-003]', event.data?.message || event.data);
+            activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
+            settle(false);
+            return;
+          }
+          const next = event.data.mesh;
+          countryOverrideIds.clear();
+          overrideFeatureSnapshots.clear();
+          overrideMesh = null;
+          setMesh({
+            positions: new Int32Array(next.positions),
+            countryIndices: new Uint16Array(next.countryIndices),
+            triangleIndices: new Uint32Array(next.triangleIndices),
+            lineIndices: new Uint32Array(next.lineIndices),
+          }, next.countryIds || [], { renderFrame: false });
+          completeGeometryDisplay(pendingIds, task.revision);
+          meshQuality = 'canonical';
+          canonicalMeshReady = true;
+          $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
+          updateRendererStatus(`${rendererName()} · GPU 실시간`);
+          settle(true);
+        };
+        currentWorker.onerror = event => {
+          if (!geometryRevisionTracker.isCurrent(token, task.revision)) {
+            settle(false);
+            return;
+          }
+          console.error('[PL-GPU-004]', event.message || event);
+          activateCanvasFallback('동적 지도 메시 Worker를 사용할 수 없습니다.');
+          settle(false);
+        };
+        currentWorker.postMessage({ token, geometryRevision: task.revision, features });
+      });
     }
 
     function parseColor(value) {
@@ -1102,6 +1338,7 @@ export function createGpuMapRenderer(deps) {
       if (!gl || !meshCountryIds.length) return;
       const basePixels = new Uint8Array(meshCountryIds.length * 4);
       const overridePixels = new Uint8Array(meshCountryIds.length * 4);
+      pendingOldMeshVisibleCount = 0;
       for (let index = 0; index < meshCountryIds.length; index += 1) {
         const id = meshCountryIds[index];
         const feature = countryFeatureById(id);
@@ -1112,8 +1349,11 @@ export function createGpuMapRenderer(deps) {
           pixels[index * 4 + 2] = color[2];
         }
         const visible = feature && isCountryVisibleById(id) ? mapTheme().fillAlphaByte : 0;
-        basePixels[index * 4 + 3] = countryOverrideIds.has(id) ? 0 : visible;
-        overridePixels[index * 4 + 3] = countryOverrideIds.has(id) ? visible : 0;
+        const overridden = countryOverrideIds.has(id);
+        const pending = geometryRevisionTracker.isPending(id);
+        basePixels[index * 4 + 3] = overridden ? 0 : visible;
+        overridePixels[index * 4 + 3] = overridden && !pending ? visible : 0;
+        if (pending && (basePixels[index * 4 + 3] || overridePixels[index * 4 + 3])) pendingOldMeshVisibleCount += 1;
       }
       uploadPalette(paletteTexture, basePixels);
       uploadPalette(overridePaletteTexture, overridePixels);
@@ -1247,6 +1487,7 @@ export function createGpuMapRenderer(deps) {
       }
       if (program === lineProgram) {
         const theme = mapTheme();
+        gl.lineWidth(Math.max(1, Number(theme.borderWidth) || 1));
         gl.uniform4f(gl.getUniformLocation(program, 'uBorderColor'), theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha);
       }
       const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer, resources);
@@ -1436,6 +1677,8 @@ export function createGpuMapRenderer(deps) {
       const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources, borderAligned);
       const widthBoostLocation = gl.getUniformLocation(program, 'uWidthBoost');
       if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 : 0);
+      const widthScaleLocation = gl.getUniformLocation(program, 'uWidthScale');
+      if (widthScaleLocation) gl.uniform1f(widthScaleLocation, Math.max(0.5, Number(mapTheme().hydroBoundaryWidth) || 1));
       const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
       for (const offset of offsets) {
         setViewUniforms(program, offset);
@@ -1471,12 +1714,14 @@ export function createGpuMapRenderer(deps) {
 
     function drawHydro(category, picking = false) {
       if (!hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return;
+      const theme = mapTheme();
+      if (Number(theme.hydroOpacity) <= 0 || (category !== 'lake' && theme.hydroBoundaryVisible === false)) return;
       updateHydroVisibility();
       const program = category === 'river' || category === 'border-river'
         ? (picking ? hydroLinePickProgram : hydroLineProgram)
         : (picking ? hydroPickProgram : hydroFillProgram);
       const rgb = hydroDisplayColor(category === 'lake' ? 'lake' : 'river', true);
-      const color = [...rgb, category === 'lake' ? 0.92 : 0.96];
+      const color = [...rgb, (category === 'lake' ? 0.92 : 0.96) * Math.max(0, Math.min(1, Number(theme.hydroOpacity) || 0))];
       for (const packId of hydroActivePackIds) {
         const entry = hydroPacks.get(packId);
         if (entry) drawHydroEntry(program, entry, category, color, picking);
@@ -2033,7 +2278,7 @@ export function createGpuMapRenderer(deps) {
       const baseLevel = levels[0];
       const targetLevel = terrainLevelForView() || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      const activeLevels = levels.slice(0, (state.dataReadiness === 'canonical' ? targetIndex : 0) + 1);
+      const activeLevels = levels.slice(0, (state.dataReadiness === 'enhanced' ? targetIndex : 0) + 1);
       const specsByLevel = activeLevels.map((level, index) => ({
         level,
         specs: visibleTerrainTileSpecs(level, false),
@@ -2116,7 +2361,7 @@ export function createGpuMapRenderer(deps) {
       const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
       const theme = mapTheme();
       ctx2d.lineJoin = 'round';
-      ctx2d.lineWidth = 0.72;
+      ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
       for (const feature of state.countriesData?.features || []) {
         if (!isLayerItemVisible('countries', feature.properties?.editor_id || '')) continue;
         ctx2d.beginPath();
@@ -2147,6 +2392,7 @@ export function createGpuMapRenderer(deps) {
         projection: state.projection,
         view: deepClone(state.view),
         revision: Number(revision || 0),
+        geometryRevision: geometryRevisionTracker.committedRevision(),
         visible: !!state.layerVisibility.countries,
         hydroVisible: !!state.layerVisibility.drawings,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
@@ -2222,6 +2468,11 @@ export function createGpuMapRenderer(deps) {
       setActionStatus(`${meshQualityLabel()} Canvas 렌더러로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
+      completeGeometryDisplay(
+        geometryRevisionTracker.pendingIds(),
+        geometryRevisionTracker.committedRevision(),
+        { renderFrame: false },
+      );
     }
 
     function receiveCanvasWorkerMessage(event) {
@@ -2242,10 +2493,20 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       if (message.type === 'data-ready') {
-        for (const id of message.ids || []) state.pendingCountryRenderIds.delete(String(id));
+        const geometryRevision = Number(message.geometryRevision || 0);
+        const taskToken = Number(message.taskToken || 0);
+        if (taskToken && !geometryRevisionTracker.isCurrent(taskToken, geometryRevision)) return;
+        if (lastGeometryCommitTimings && geometryRevision === geometryRevisionTracker.committedRevision()) {
+          lastGeometryCommitTimings.patchWorkerCompletedAt ||= performance.now();
+        }
+        if (message.replaceAll) {
+          countryOverrideIds.clear();
+          overrideFeatureSnapshots.clear();
+          overrideMesh = null;
+        }
         canvasDataReplacementResolver?.();
         canvasDataReplacementResolver = null;
-        renderViewFrame();
+        renderCanvasWorker(currentRenderRevision);
         return;
       }
       if (message.type === 'hydro-pick') {
@@ -2263,7 +2524,10 @@ export function createGpuMapRenderer(deps) {
       if (message.type !== 'frame') return;
       canvasWorkerBusy = false;
       const revision = Number(message.revision || 0);
-      const canDisplay = revision >= canvasWorkerDisplayedRevision;
+      const geometryRevision = Number(message.geometryRevision || 0);
+      const canDisplay = revision >= canvasWorkerDisplayedRevision
+        && revision >= canvasWorkerLatestRequestedRevision
+        && geometryRevision >= geometryRevisionTracker.committedRevision();
       if (canDisplay && message.bitmap) {
         if (canvasWorkerBitmapContext) {
           canvasWorkerBitmapContext.transferFromImageBitmap(message.bitmap);
@@ -2275,6 +2539,7 @@ export function createGpuMapRenderer(deps) {
         }
         canvasWorkerDisplayedRevision = revision;
         displayedRenderRevision = revision;
+        completeGeometryDisplay(geometryRevisionTracker.pendingIds(), geometryRevision, { renderFrame: false });
       } else {
         message.bitmap?.close?.();
       }
@@ -2341,6 +2606,11 @@ export function createGpuMapRenderer(deps) {
       setActionStatus(`GPU를 사용할 수 없어 ${meshQualityLabel()} Canvas 렌더러로 전환했습니다.`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
+      completeGeometryDisplay(
+        geometryRevisionTracker.pendingIds(),
+        geometryRevisionTracker.committedRevision(),
+        { renderFrame: false },
+      );
       window.__PANDOLAB_GPU_METRICS__ = getStats();
     }
 
@@ -2466,7 +2736,7 @@ export function createGpuMapRenderer(deps) {
 
     async function replaceBuiltInMesh({ meshBuffer, features, quality = 'canonical' }) {
       const decoded = await decodeBuiltInMesh(meshBuffer, features);
-      setMesh(decoded.mesh, decoded.ids);
+      setMesh(decoded.mesh, decoded.ids, { renderFrame: false });
       meshQuality = quality;
       canonicalMeshReady = quality === 'canonical';
       if (rendererMode === 'canvas-worker' && canvasWorker) {
@@ -2483,11 +2753,15 @@ export function createGpuMapRenderer(deps) {
           canvasWorker.postMessage({
             type: 'replace-data',
             revision: Number(currentRenderRevision || 0),
+            geometryRevision: geometryRevisionTracker.committedRevision(),
             features: features || state.countriesData?.features || [],
           });
         });
       } else {
-        render(currentRenderRevision);
+        completeGeometryDisplay(
+          geometryRevisionTracker.pendingIds(),
+          geometryRevisionTracker.committedRevision(),
+        );
       }
       updateRendererStatus(isWebGlRenderer()
         ? `${rendererName()} · GPU ${meshQualityLabel()}`
@@ -2524,6 +2798,12 @@ export function createGpuMapRenderer(deps) {
         layoutMismatchCssPx: Number(layoutMismatch().toFixed(3)),
         requestedRevision: currentRenderRevision,
         displayedRevision: displayedRenderRevision,
+        committedGeometryRevision: geometryRevisionTracker.committedRevision(),
+        displayedGeometryRevision: geometryRevisionTracker.displayedRevision(),
+        pendingCountryCount: geometryRevisionTracker.pendingIds().length,
+        pendingOldMeshVisibleCount,
+        geometryRenderTaskToken: geometryRevisionTracker.taskToken(),
+        lastGeometryCommitTimings: lastGeometryCommitTimings ? { ...lastGeometryCommitTimings } : null,
         canvasWorkerBusy,
         canvasWorkerHasPendingFrame: !!canvasWorkerPendingMessage,
         webglContextLost,
@@ -2549,7 +2829,7 @@ export function createGpuMapRenderer(deps) {
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, setTerrainManifest,
       setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
       setHydroInteractionActive, setInteractionActive: setHydroInteractionActive, renderViewFrame: render,
-      invalidateHydroVisibility,
+      invalidateHydroVisibility, resetCountryGeometryVisualState,
     };
   })();
 }

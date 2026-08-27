@@ -214,8 +214,23 @@ export function createSelectController({
     });
   }
 
+  function scheduleQueryRender(component) {
+    if (!component.open || !component.searchable || component.queryFrame) return;
+    component.queryFrame = windowRef.requestAnimationFrame(() => {
+      component.queryFrame = 0;
+      if (!component.open || !component.searchable) return;
+      const nextQuery = component.control.value;
+      if (nextQuery === component.query) return;
+      component.query = nextQuery;
+      renderOptions(component);
+      schedulePosition(component);
+    });
+  }
+
   function close(component, { restoreFocus = false } = {}) {
     if (!component?.open) return;
+    if (component.queryFrame) windowRef.cancelAnimationFrame(component.queryFrame);
+    component.queryFrame = 0;
     component.open = false;
     component.query = '';
     component.popover.hidden = true;
@@ -231,7 +246,7 @@ export function createSelectController({
     if (activeComponent) close(activeComponent, options);
   }
 
-  function open(component, { selectText = false } = {}) {
+  function open(component, { selectText = false, clearText = false } = {}) {
     if (component.control.disabled || component.open) return;
     closeActive();
     component.open = true;
@@ -239,7 +254,7 @@ export function createSelectController({
     component.shell.classList.add('is-open');
     component.popover.hidden = false;
     component.control.setAttribute('aria-expanded', 'true');
-    component.control.value = selectedLabel(component);
+    component.control.value = clearText && component.searchable ? '' : selectedLabel(component);
     activeComponent = component;
     renderOptions(component);
     positionPopover(component);
@@ -383,9 +398,10 @@ export function createSelectController({
       renderedOptions: [],
       activeIndex: -1,
       query: '',
+      queryFrame: 0,
       searchable: false,
-      composing: false,
       open: false,
+      activationPointerType: '',
       observer: null,
     };
     components.set(select, component);
@@ -402,25 +418,26 @@ export function createSelectController({
       });
     }
 
-    control.addEventListener('click', () => {
+    control.addEventListener('pointerdown', event => {
+      component.activationPointerType = String(event.pointerType || '');
+    });
+    control.addEventListener('pointercancel', () => {
+      component.activationPointerType = '';
+    });
+    control.addEventListener('click', event => {
+      const pointerType = String(event.pointerType || component.activationPointerType || '');
+      const directTouch = pointerType === 'touch' || pointerType === 'pen';
+      component.activationPointerType = '';
       if (component.open && !component.searchable) close(component);
-      else open(component, { selectText: component.searchable });
+      else open(component, {
+        selectText: component.searchable && !directTouch,
+        clearText: component.searchable && directTouch,
+      });
     });
     control.addEventListener('keydown', event => handleKeydown(component, event));
-    control.addEventListener('input', () => {
-      if (!component.open || component.composing || !component.searchable) return;
-      component.query = control.value;
-      renderOptions(component);
-      schedulePosition(component);
-    });
-    control.addEventListener('compositionstart', () => { component.composing = true; });
-    control.addEventListener('compositionend', () => {
-      component.composing = false;
-      if (!component.open || !component.searchable) return;
-      component.query = control.value;
-      renderOptions(component);
-      schedulePosition(component);
-    });
+    control.addEventListener('input', () => scheduleQueryRender(component));
+    control.addEventListener('compositionupdate', () => scheduleQueryRender(component));
+    control.addEventListener('compositionend', () => scheduleQueryRender(component));
     select.addEventListener('input', () => sync(select));
     select.addEventListener('change', () => sync(select));
     select.addEventListener('focus', () => control.focus({ preventScroll: true }));
