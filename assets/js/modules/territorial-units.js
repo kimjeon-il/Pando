@@ -94,7 +94,7 @@ function normalizedProperties(feature, type) {
 export function normalizeTerritorialFeature(feature, { makeId } = {}) {
   const type = territorialUnitType(feature);
   if (!type || !POLYGON_TYPES.has(feature?.geometry?.type)) return null;
-  const id = text(feature.id || feature.properties?.id || feature.properties?.aw_id)
+  const id = text(feature.id || feature.properties?.id || feature.properties?.pandolab_id)
     || (typeof makeId === 'function' ? text(makeId(type)) : '');
   if (!id) return null;
   return {

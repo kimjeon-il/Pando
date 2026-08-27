@@ -15,7 +15,7 @@ class V0192LayerControlTests(unittest.TestCase):
     def test_layer_groups_use_one_folder_icon(self):
         self.assertIn('symbol id="icon-folder"', INDEX)
         self.assertEqual(INDEX.count('class="ui-icon layer-folder-icon"'), 11)
-        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 13)
+        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 12)
         self.assertNotIn('class="layer-icon', INDEX)
         self.assertNotIn(".layer-icon", CSS)
         self.assertNotIn("layer-child-swatch", APP)
@@ -55,8 +55,8 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertIn(".layer-child-delete", CSS)
 
     def test_build_version_is_updated(self):
-        self.assertIn('data-app-version="0.28.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.28.0'", APP)
+        self.assertIn('data-app-version="0.29.0"', INDEX)
+        self.assertIn("const APP_VERSION = '0.29.0'", APP)
 
 
 if __name__ == "__main__":

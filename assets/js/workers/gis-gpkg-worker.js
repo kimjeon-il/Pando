@@ -1,6 +1,6 @@
 'use strict';
 
-const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.28.0-r1';
+const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.29.0-r2';
 const GIS_ADAPTER_URL = new URL('../gis-adapters.js', self.location.href);
 GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION);
 importScripts(GIS_ADAPTER_URL.href);
@@ -190,29 +190,29 @@ function writeAtlasTables(db, payload) {
     country_id: label.countryId || label.country_id || '',
     notes: label.notes || '',
   }));
-  const drawingRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', category: item.properties?.category || 'custom', aw_role: item.properties?.aw_role || 'custom', aw_owner_id: item.properties?.aw_owner_id || '', aw_parent_id: item.properties?.aw_parent_id || '', aw_topology_group: item.properties?.aw_topology_group || '', aw_land_binding: item.properties?.aw_land_binding || 'none', color: item.properties?.editorColor || item.properties?.color || '', notes: item.properties?.notes || '', properties_json: JSON.stringify(item.properties || {}) });
+  const drawingRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', category: item.properties?.category || 'custom', pandolab_role: item.properties?.pandolab_role || 'custom', pandolab_owner_id: item.properties?.pandolab_owner_id || '', pandolab_parent_id: item.properties?.pandolab_parent_id || '', pandolab_topology_group: item.properties?.pandolab_topology_group || '', pandolab_land_binding: item.properties?.pandolab_land_binding || 'none', color: item.properties?.editorColor || item.properties?.color || '', notes: item.properties?.notes || '', properties_json: JSON.stringify(item.properties || {}) });
   const points = drawings.filter(item => item.geometry?.type === 'Point').map(drawingRow);
   const lines = drawings.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(drawingRow);
   const polygons = drawings.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(drawingRow);
-  const territorialRows = self.AtlasWrightGisAdapters.territorialRows(state);
-  const distributionRows = self.AtlasWrightGisAdapters.distributionRows(state);
+  const territorialRows = self.PandoLabGisAdapters.territorialRows(state);
+  const distributionRows = self.PandoLabGisAdapters.distributionRows(state);
   const drawingColumns = [
-    { name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'category' }, { name: 'aw_role' },
-    { name: 'aw_owner_id' }, { name: 'aw_parent_id' }, { name: 'aw_topology_group' }, { name: 'aw_land_binding' },
+    { name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'category' }, { name: 'pandolab_role' },
+    { name: 'pandolab_owner_id' }, { name: 'pandolab_parent_id' }, { name: 'pandolab_topology_group' }, { name: 'pandolab_land_binding' },
     { name: 'color' }, { name: 'notes' }, { name: 'properties_json' },
   ];
-  createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'aw_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'AtlasWright places' });
-  createFeatureTable(db, { tableName: 'drawings_point', geometryType: 'POINT', rows: points, columns: drawingColumns, description: 'AtlasWright point drawings' });
-  createFeatureTable(db, { tableName: 'drawings_line', geometryType: 'MULTILINESTRING', rows: lines, columns: drawingColumns, description: 'AtlasWright line drawings' });
-  createFeatureTable(db, { tableName: 'drawings_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: drawingColumns, description: 'AtlasWright polygon drawings' });
+  createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'PandoLab places' });
+  createFeatureTable(db, { tableName: 'drawings_point', geometryType: 'POINT', rows: points, columns: drawingColumns, description: 'PandoLab point drawings' });
+  createFeatureTable(db, { tableName: 'drawings_line', geometryType: 'MULTILINESTRING', rows: lines, columns: drawingColumns, description: 'PandoLab line drawings' });
+  createFeatureTable(db, { tableName: 'drawings_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: drawingColumns, description: 'PandoLab polygon drawings' });
   const territorialColumns = [
     { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
     { name: 'admin_level', type: 'INTEGER' }, { name: 'status' }, { name: 'valid_from' }, { name: 'valid_to' },
     { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
     { name: 'metadata_json' }, { name: 'properties_json' },
   ];
-  for (const [unitType, tableName] of Object.entries(self.AtlasWrightGisAdapters.TERRITORIAL_TABLES)) {
-    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: territorialRows[tableName] || [], columns: territorialColumns, description: `AtlasWright ${unitType} territorial units` });
+  for (const [unitType, tableName] of Object.entries(self.PandoLabGisAdapters.TERRITORIAL_TABLES)) {
+    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: territorialRows[tableName] || [], columns: territorialColumns, description: `PandoLab ${unitType} territorial units` });
   }
   const distributionColumns = [
     { name: 'entry_id' }, { name: 'layer_id' }, { name: 'name' }, { name: 'distribution_type' },
@@ -220,27 +220,27 @@ function writeAtlasTables(db, payload) {
     { name: 'source_mode' }, { name: 'region_id' }, { name: 'share', type: 'REAL' }, { name: 'certainty' },
     { name: 'valid_from' }, { name: 'valid_to' }, { name: 'layer_metadata_json' }, { name: 'entry_metadata_json' },
   ];
-  for (const [distributionType, tableName] of Object.entries(self.AtlasWrightGisAdapters.DISTRIBUTION_TABLES)) {
-    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: distributionRows[tableName] || [], columns: distributionColumns, description: `AtlasWright ${distributionType} distribution entries` });
+  for (const [distributionType, tableName] of Object.entries(self.PandoLabGisAdapters.DISTRIBUTION_TABLES)) {
+    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: distributionRows[tableName] || [], columns: distributionColumns, description: `PandoLab ${distributionType} distribution entries` });
   }
 
-  createAttributeTable(db, 'aw_project_settings', 'setting_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'AtlasWright project settings');
+  createAttributeTable(db, 'pandolab_project_settings', 'setting_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'PandoLab project settings');
   const settings = { ...state };
   delete settings.countriesData;
   delete settings.countryAssets;
   delete settings.hydroCollections;
-  db.run('INSERT INTO aw_project_settings (setting_key, json_value) VALUES (?, ?)', ['project_state', JSON.stringify(settings)]);
+  db.run('INSERT INTO pandolab_project_settings (setting_key, json_value) VALUES (?, ?)', ['project_state', JSON.stringify(settings)]);
 
-  createAttributeTable(db, 'aw_country_assets', 'country_id TEXT PRIMARY KEY NOT NULL, mime_type TEXT NOT NULL, image_data BLOB NOT NULL', 'AtlasWright country flag assets');
-  const assetInsert = db.prepare('INSERT INTO aw_country_assets (country_id, mime_type, image_data) VALUES (?, ?, ?)');
+  createAttributeTable(db, 'pandolab_country_assets', 'country_id TEXT PRIMARY KEY NOT NULL, mime_type TEXT NOT NULL, image_data BLOB NOT NULL', 'PandoLab country flag assets');
+  const assetInsert = db.prepare('INSERT INTO pandolab_country_assets (country_id, mime_type, image_data) VALUES (?, ?, ?)');
   for (const asset of state.countryAssets || []) {
     if (!asset?.countryId || !asset?.base64) continue;
     assetInsert.run([String(asset.countryId), String(asset.mimeType || 'application/octet-stream'), base64ToBytes(asset.base64)]);
   }
   assetInsert.free();
 
-  createAttributeTable(db, 'aw_source_info', 'info_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'AtlasWright source provenance');
-  db.run('INSERT INTO aw_source_info (info_key, json_value) VALUES (?, ?)', ['source', JSON.stringify(state.sourceInfo || {})]);
+  createAttributeTable(db, 'pandolab_source_info', 'info_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'PandoLab source provenance');
+  db.run('INSERT INTO pandolab_source_info (info_key, json_value) VALUES (?, ?)', ['source', JSON.stringify(state.sourceInfo || {})]);
 }
 
 async function writeGeoPackage(buffer, projectState) {
@@ -272,20 +272,20 @@ async function readAtlasTables(buffer) {
   const db = new SQL.Database(new Uint8Array(buffer));
   try {
     const result = { projectState: null, countryAssets: [], sourceInfo: null };
-    if (tableExists(db, 'aw_project_settings')) {
-      const rows = db.exec("SELECT json_value FROM aw_project_settings WHERE setting_key='project_state' LIMIT 1");
+    if (tableExists(db, 'pandolab_project_settings')) {
+      const rows = db.exec("SELECT json_value FROM pandolab_project_settings WHERE setting_key='project_state' LIMIT 1");
       if (rows[0]?.values?.[0]?.[0]) result.projectState = JSON.parse(rows[0].values[0][0]);
     }
-    if (tableExists(db, 'aw_country_assets')) {
-      const statement = db.prepare('SELECT country_id, mime_type, image_data FROM aw_country_assets');
+    if (tableExists(db, 'pandolab_country_assets')) {
+      const statement = db.prepare('SELECT country_id, mime_type, image_data FROM pandolab_country_assets');
       while (statement.step()) {
         const row = statement.get();
         result.countryAssets.push({ countryId: String(row[0]), mimeType: String(row[1]), base64: bytesToBase64(new Uint8Array(row[2])) });
       }
       statement.free();
     }
-    if (tableExists(db, 'aw_source_info')) {
-      const rows = db.exec("SELECT json_value FROM aw_source_info WHERE info_key='source' LIMIT 1");
+    if (tableExists(db, 'pandolab_source_info')) {
+      const rows = db.exec("SELECT json_value FROM pandolab_source_info WHERE info_key='source' LIMIT 1");
       if (rows[0]?.values?.[0]?.[0]) result.sourceInfo = JSON.parse(rows[0].values[0][0]);
     }
     return result;

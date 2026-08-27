@@ -2,6 +2,7 @@ const cloneCoords = coords => (coords || []).map(coord => [Number(coord[0]), Num
 
 export function createDraftEditState() {
   return {
+    inputPhase: 'draw',
     selectedVertexIndex: null,
     insertTarget: null,
     history: [],
@@ -13,14 +14,16 @@ export function createDraftEditState() {
   };
 }
 
-export function snapshotDraft(coords, selectedVertexIndex = null) {
+export function snapshotDraft(coords, selectedVertexIndex = null, inputPhase = 'draw') {
   return {
     coords: cloneCoords(coords),
     selectedVertexIndex: Number.isInteger(selectedVertexIndex) ? selectedVertexIndex : null,
+    inputPhase: inputPhase === 'refine' ? 'refine' : 'draw',
   };
 }
 
 export function resetDraftEditState(editState) {
+  editState.inputPhase = 'draw';
   editState.selectedVertexIndex = null;
   editState.insertTarget = null;
   editState.history = [];
@@ -33,29 +36,31 @@ export function resetDraftEditState(editState) {
 }
 
 export function recordDraftSnapshot(editState, coords, selectedVertexIndex = editState.selectedVertexIndex, maxHistory = 100) {
-  editState.history.push(snapshotDraft(coords, selectedVertexIndex));
+  editState.history.push(snapshotDraft(coords, selectedVertexIndex, editState.inputPhase));
   if (editState.history.length > maxHistory) editState.history.shift();
   editState.future = [];
 }
 
 export function undoDraftSnapshot(editState, coords) {
   if (!editState.history.length) return null;
-  editState.future.push(snapshotDraft(coords, editState.selectedVertexIndex));
+  editState.future.push(snapshotDraft(coords, editState.selectedVertexIndex, editState.inputPhase));
   const snapshot = editState.history.pop();
   editState.selectedVertexIndex = snapshot.selectedVertexIndex;
+  editState.inputPhase = snapshot.inputPhase;
   editState.insertTarget = null;
   editState.revision += 1;
-  return snapshotDraft(snapshot.coords, snapshot.selectedVertexIndex);
+  return snapshotDraft(snapshot.coords, snapshot.selectedVertexIndex, snapshot.inputPhase);
 }
 
 export function redoDraftSnapshot(editState, coords) {
   if (!editState.future.length) return null;
-  editState.history.push(snapshotDraft(coords, editState.selectedVertexIndex));
+  editState.history.push(snapshotDraft(coords, editState.selectedVertexIndex, editState.inputPhase));
   const snapshot = editState.future.pop();
   editState.selectedVertexIndex = snapshot.selectedVertexIndex;
+  editState.inputPhase = snapshot.inputPhase;
   editState.insertTarget = null;
   editState.revision += 1;
-  return snapshotDraft(snapshot.coords, snapshot.selectedVertexIndex);
+  return snapshotDraft(snapshot.coords, snapshot.selectedVertexIndex, snapshot.inputPhase);
 }
 
 export function moveDraftVertex(coords, vertexIndex, coordinate) {

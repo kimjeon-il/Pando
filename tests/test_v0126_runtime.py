@@ -37,7 +37,7 @@ class V0126RuntimeTests(unittest.TestCase):
     def test_notifications_do_not_append_raw_internal_messages(self):
         self.assertNotRegex(APP, r"setActionStatus\([^\n]*(?:error|message)\.message")
         self.assertIn("reportOperationError", APP)
-        self.assertIn("오류 코드 AW-RUNTIME-001", APP)
+        self.assertIn("오류 코드 PL-RUNTIME-001", APP)
 
     def test_polar_closure_edges_are_excluded_from_all_stroke_paths(self):
         self.assertIn("MESH_ALGORITHM_REVISION = 3", CORE)
@@ -89,10 +89,12 @@ class V0126RuntimeTests(unittest.TestCase):
         self.assertIn("automaticWaterColor", CANVAS)
 
     def test_terrain_quality_uses_progressive_levels_and_transient_retry(self):
-        self.assertIn("levels.slice(0, targetIndex + 1)", RENDERER)
+        self.assertIn("state.dataReadiness === 'canonical' ? targetIndex : 0", RENDERER)
+        self.assertIn("terrainFetchQueue", RENDERER)
         self.assertIn("terrainTileFailures", RENDERER)
         self.assertIn("terrainRenderedLevel", RENDERER)
-        self.assertIn("levels.slice(0, targetIndex + 1)", CANVAS)
+        self.assertIn("message.dataReadiness === 'canonical' ? targetIndex : 0", CANVAS)
+        self.assertIn("terrainFetchQueue", CANVAS)
         self.assertIn("terrainFailures", CANVAS)
         self.assertIn("attempts <= 3", RENDERER)
         self.assertIn("attempts <= 3", CANVAS)

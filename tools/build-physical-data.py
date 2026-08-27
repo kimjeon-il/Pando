@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build AtlasWright v0.12.6 physical-map assets from official Natural Earth files.
+"""Build PandoLab v0.12.6 physical-map assets from official Natural Earth files.
 
 The source directory must contain the eight extracted 1:10m hydrography
 shapefiles and the GRAY_HR_SR_OB / HYP_HR_SR / HYP_HR_SR_OB_DR
@@ -80,7 +80,7 @@ def hydro_properties(record: dict[str, Any], layer_id: str, category: str, index
     except (TypeError, ValueError):
         stroke_width = max(0.35, 2.7 - scale_rank * 0.18)
     return {
-        "aw_id": f"{layer_id}:{source_id}",
+        "pandolab_id": f"{layer_id}:{source_id}",
         "layer_id": layer_id,
         "category": category,
         "name": display_name,

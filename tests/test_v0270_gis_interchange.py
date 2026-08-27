@@ -15,7 +15,7 @@ WORKER = (ROOT / "assets" / "js" / "workers" / "gis-gpkg-worker.js").read_text(e
 class V0270GisInterchangeTests(unittest.TestCase):
     def test_gis_adapter_is_loaded_before_io_and_reused_by_worker(self):
         self.assertLess(INDEX.index("assets/js/gis-adapters.js"), INDEX.index("assets/js/gis-io.js"))
-        self.assertIn("window.AtlasWrightGisAdapters", GIS)
+        self.assertIn("window.PandoLabGisAdapters", GIS)
         self.assertIn("importScripts(GIS_ADAPTER_URL.href)", WORKER)
         self.assertIn("GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION)", WORKER)
 

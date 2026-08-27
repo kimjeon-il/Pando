@@ -1,10 +1,12 @@
 {
-  "name": "atlaswright",
-  "version": "0.28.0",
+  "name": "pandolab",
+  "version": "0.29.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.19.0",
   "scripts": {
+    "build:preview": "node tools/build-world-preview.mjs",
+    "check:preview": "node tools/build-world-preview.mjs --check",
     "lint": "eslint assets/js tests/browser tests/unit scripts playwright.config.js eslint.config.js",
     "check:js": "node scripts/check-js.mjs",
     "test:python": "python -m unittest discover -s tests -p \"test_*.py\"",
@@ -15,6 +17,9 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.62.1",
-    "eslint": "10.9.1"
+    "eslint": "10.9.1",
+    "topojson-client": "3.1.0",
+    "topojson-server": "3.0.1",
+    "topojson-simplify": "3.0.3"
   }
 }

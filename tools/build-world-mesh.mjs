@@ -21,7 +21,7 @@ function loadClassicScript(relativePath, globalName) {
 }
 
 const earcut = loadClassicScript(path.join('assets', 'js', 'vendor', 'earcut.min.js'), 'earcut');
-const meshCore = loadClassicScript(path.join('assets', 'js', 'workers', 'gpu-mesh-core.js'), 'AtlasWrightGpuMeshCore');
+const meshCore = loadClassicScript(path.join('assets', 'js', 'workers', 'gpu-mesh-core.js'), 'PandoLabGpuMeshCore');
 
 function countCoordinates(value) {
   if (Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') return 1;

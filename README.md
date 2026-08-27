@@ -1,4 +1,4 @@
-# AtlasWright v0.28.0
+# 판도연구소 v0.29.0
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
@@ -42,9 +42,9 @@ v0.19.0에서는 국가·지명·지형지물·수계 편집창을 하나의 공
 
 v0.21.0에서는 변경 국가만 교체하는 증분 GPU 메시와 영구 지도 편집 Worker를 도입했습니다. 합병·편입·국가 추가 계산 중에도 지도를 조작할 수 있으며, 지도 이동 중에는 데이터와 UI를 다시 만들지 않고 투영과 오버레이만 갱신합니다. 지형·수계 GPU 업로드와 자동저장은 프레임·유휴 예산에 맞춰 처리합니다.
 
-v0.28.0에서는 프로젝트 레이어와 분리된 역사 지리 라이브러리를 추가했습니다. 안정적 `libraryId`, 다국어 이름·별칭, 존속 기간, 시대별 `GeometryVersion`, 출처·불확실성을 검색·미리보기하고 독립 프로젝트 인스턴스로 추가할 수 있습니다. 현존 국가는 기존 Natural Earth 데이터를 어댑터로 공급하며, 과거 국가 시험 항목은 근사 경계·낮은 신뢰도를 명시합니다. `WorldSnapshot`은 원본을 변경하지 않는 템플릿으로 등록됩니다.
+v0.29.0에서는 프로젝트 레이어와 분리된 역사 지리 라이브러리를 추가했습니다. 안정적 `libraryId`, 다국어 이름·별칭, 존속 기간, 시대별 `GeometryVersion`, 출처·불확실성을 검색·미리보기하고 독립 프로젝트 인스턴스로 추가할 수 있습니다. 현존 국가는 기존 Natural Earth 데이터를 어댑터로 공급하며, 과거 국가 시험 항목은 근사 경계·낮은 신뢰도를 명시합니다. `WorldSnapshot`은 원본을 변경하지 않는 템플릿으로 등록됩니다.
 
-v0.27.0에서는 AtlasWright 프로젝트와 GIS 교환 형식을 분리하는 어댑터 계층을 추가했습니다. GeoPackage는 `countries`, `territories`, `administrative_units`, `historical_regions`와 언어·민족·종교 분포를 독립 레이어로 내보내며, 안정적 ID·관계·기간·비율·불확실성을 속성으로 보존합니다. 영역 참조 분포는 내보내기 시에만 표준 Polygon/MultiPolygon으로 펼쳐지며 CRS는 EPSG:4326으로 명시됩니다.
+v0.27.0에서는 판도연구소 프로젝트와 GIS 교환 형식을 분리하는 어댑터 계층을 추가했습니다. GeoPackage는 `countries`, `territories`, `administrative_units`, `historical_regions`와 언어·민족·종교 분포를 독립 레이어로 내보내며, 안정적 ID·관계·기간·비율·불확실성을 속성으로 보존합니다. 영역 참조 분포는 내보내기 시에만 표준 Polygon/MultiPolygon으로 펼쳐지며 CRS는 EPSG:4326으로 명시됩니다.
 
 v0.26.0에서는 언어·민족·종교를 `DistributionLayer`/​`DistributionEntry` 공통 모델로 관리합니다. 하나의 지역에 여러 분포를 독립적인 0~100% 비율로 기록할 수 있고, `TerritorialUnit` 참조와 자유 Polygon/MultiPolygon을 모두 지원합니다. 지배적 분포와 선택 항목 비율 농도 렌더링을 제공하며, 국경·주권 편집은 문화 분포를 자동으로 변경하지 않습니다.
 
@@ -74,7 +74,7 @@ v0.13.0에서는 UI 본문을 14px, 보조 문구를 최소 12px로 통일하고
 
 ## 레이어 폴더
 
-`국가`, `지역`, `행정구역`, `지형 음영`, `지형지물`, `도시·지명`, `국가명 라벨` 폴더를 펼쳐 개별 항목을 표시하거나 숨길 수 있습니다. 지역과 행정구역은 국가별로 묶이고 행정구역은 다시 단계별로 표시됩니다. `지형지물`에는 Hydro 강, Natural Earth 호수와 사용자가 만든 범용 지형지물만 표시됩니다. 내장 수계는 잠겨 있으며 선택 후 `편집용 복사 만들기`를 사용하면 원본을 숨기고 같은 형상의 편집 객체를 만들 수 있습니다. 개별 표시 상태와 폴더 열림 상태는 자동저장 및 GeoPackage의 `aw_project_settings`에 보존됩니다.
+`국가`, `지역`, `행정구역`, `지형 음영`, `지형지물`, `도시·지명`, `국가명 라벨` 폴더를 펼쳐 개별 항목을 표시하거나 숨길 수 있습니다. 지역과 행정구역은 국가별로 묶이고 행정구역은 다시 단계별로 표시됩니다. `지형지물`에는 Hydro 강, Natural Earth 호수와 사용자가 만든 범용 지형지물만 표시됩니다. 내장 수계는 잠겨 있으며 선택 후 `편집용 복사 만들기`를 사용하면 원본을 숨기고 같은 형상의 편집 객체를 만들 수 있습니다. 개별 표시 상태와 폴더 열림 상태는 자동저장 및 GeoPackage의 `pandolab_project_settings`에 보존됩니다.
 
 국가명은 해외 영토를 포함한 전체 중심점 대신 가장 큰 연결 영토 내부의 최적 지점에 자동 배치됩니다.
 
@@ -84,9 +84,9 @@ v0.13.0에서는 UI 본문을 14px, 보조 문구를 최소 12px로 통일하고
 
 ## 시스템 테마
 
-AtlasWright는 운영체제·브라우저의 `prefers-color-scheme` 설정을 따라 밝은 테마와 어두운 테마를 자동 전환합니다. 실행 중 시스템 설정이 바뀌어도 현재 카메라, 선택 객체와 편집 중인 선은 유지되며 테마는 프로젝트나 GeoPackage에 저장되지 않습니다.
+판도연구소는 운영체제·브라우저의 `prefers-color-scheme` 설정을 따라 밝은 테마와 어두운 테마를 자동 전환합니다. 실행 중 시스템 설정이 바뀌어도 현재 카메라, 선택 객체와 편집 중인 선은 유지되며 테마는 프로젝트나 GeoPackage에 저장되지 않습니다.
 
-밝은 지도의 바다 `#FFFFFF`, 기본 육지 `#CCCCCC`, 국경 `#FFFFFF`, 지구본 외곽선 `#000000`, 격자 `#AAAAAA` 배색은 Milenioscuro의 Wikimedia Commons 파일 [Russian Empire (orthographic projection).svg](https://commons.wikimedia.org/wiki/File:Russian_Empire_(orthographic_projection).svg)를 참조했습니다. 해당 SVG는 [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)으로 제공됩니다. AtlasWright는 색상 토큰만 참조했으며 사용자 지정 및 GIS에서 가져온 국가 색상은 두 테마에서 그대로 유지됩니다.
+밝은 지도의 바다 `#FFFFFF`, 기본 육지 `#CCCCCC`, 국경 `#FFFFFF`, 지구본 외곽선 `#000000`, 격자 `#AAAAAA` 배색은 Milenioscuro의 Wikimedia Commons 파일 [Russian Empire (orthographic projection).svg](https://commons.wikimedia.org/wiki/File:Russian_Empire_(orthographic_projection).svg)를 참조했습니다. 해당 SVG는 [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)으로 제공됩니다. 판도연구소는 색상 토큰만 참조했으며 사용자 지정 및 GIS에서 가져온 국가 색상은 두 테마에서 그대로 유지됩니다.
 
 ## GPU 메시
 
@@ -172,18 +172,18 @@ QGS/QGZ는 데이터 자체를 항상 포함하지 않으므로, 프로젝트가
 
 ## 저장
 
-`GeoPackage 저장`은 원본 입력 파일을 수정하지 않고 `AtlasWright-프로젝트.gpkg`를 새로 만듭니다.
+`GeoPackage 저장`은 원본 입력 파일을 수정하지 않고 `판도연구소-프로젝트.gpkg`를 새로 만듭니다.
 
 - `countries`: EPSG:4326 MultiPolygon 국가와 원본 속성
 - `places`: 사용자 지명 Point
 - `drawings_point`, `drawings_line`, `drawings_polygon`: 지형지물과 기존 사용자 도형
 - `territories`: 국가별 지역 MultiPolygon과 소속·상태 관계
 - `administrative_areas`: 단계별 행정구역 MultiPolygon과 부모 관계
-- `aw_country_assets`: 국기 이미지 BLOB
-- `aw_project_settings`: 투영법, 카메라, 레이어 상태와 내장 수계 데이터 버전
-- `aw_source_info`: 원본 파일·드라이버·CRS·필드 매핑·SHA-256
+- `pandolab_country_assets`: 국기 이미지 BLOB
+- `pandolab_project_settings`: 투영법, 카메라, 레이어 상태와 내장 수계 데이터 버전
+- `pandolab_source_info`: 원본 파일·드라이버·CRS·필드 매핑·SHA-256
 
-내장 전 세계 수계는 파일 용량이 중복되지 않도록 GeoPackage에 넣지 않습니다. 사용자가 만든 강·호수와 `편집용 복사`로 만든 객체만 `drawings_line`·`drawings_polygon`에 저장됩니다. QGIS에서는 이 사용자 벡터를 일반 레이어로 열어 편집할 수 있고, AtlasWright로 다시 열면 국기·메모·화면 상태와 내장 수계 버전도 복원됩니다. 자동저장은 별도의 AtlasWright 전용 IndexedDB에만 저장되며 공개 프로젝트 파일로 노출되지 않습니다.
+내장 전 세계 수계는 파일 용량이 중복되지 않도록 GeoPackage에 넣지 않습니다. 사용자가 만든 강·호수와 `편집용 복사`로 만든 객체만 `drawings_line`·`drawings_polygon`에 저장됩니다. QGIS에서는 이 사용자 벡터를 일반 레이어로 열어 편집할 수 있고, 판도연구소로 다시 열면 국기·메모·화면 상태와 내장 수계 버전도 복원됩니다. 자동저장은 별도의 판도연구소 전용 IndexedDB에만 저장되며 공개 프로젝트 파일로 노출되지 않습니다.
 
 ## 지도 데이터와 라이선스
 

@@ -1,9 +1,9 @@
 'use strict';
 
 (() => {
-  const BUILD_ID = '0.28.0';
-  const ASSET_REVISION = '0.28.0-r5';
-  const CACHE_RECOVERY_PARAM = '_aw_cache';
+  const BUILD_ID = '0.29.0';
+  const ASSET_REVISION = '0.29.0-r2';
+  const CACHE_RECOVERY_PARAM = '_pandolab_cache';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
   const overlay = document.getElementById('bootstrapLoading');
@@ -15,6 +15,21 @@
     : window.matchMedia('(max-width: 1199px)').matches
       ? 'compact'
       : 'wide';
+  const constrainedProfile = initialLayout === 'mobile'
+    || Number(navigator.deviceMemory || 8) <= 4
+    || Number(navigator.hardwareConcurrency || 8) <= 4;
+  const bootStartedAt = performance.now();
+  const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__ = {
+    buildId: BUILD_ID,
+    assetRevision: ASSET_REVISION,
+    profile: constrainedProfile ? 'constrained' : 'standard',
+    startedAt: bootStartedAt,
+    preview: null,
+    canonical: null,
+    interactiveMs: null,
+    readyMs: null,
+    canonicalError: '',
+  };
   document.getElementById('app')?.setAttribute('data-layout', initialLayout);
   document.body.dataset.layout = initialLayout;
 
@@ -27,8 +42,8 @@
     const rawReason = String(reason || '');
     const safeReason = /[가-힣]/.test(rawReason) && !/(Cannot read|undefined|null is not|is not a function|TypeError|ReferenceError|SyntaxError|RangeError|failed\b|\bat\s+\S+\s*\()/i.test(rawReason)
       ? rawReason
-      : '내부 오류가 발생했습니다. 오류 코드 AW-BOOT-001을 확인하세요.';
-    if (safeReason !== rawReason) console.error('[AW-BOOT-001]', rawReason);
+      : '내부 오류가 발생했습니다. 오류 코드 PL-BOOT-001을 확인하세요.';
+    if (safeReason !== rawReason) console.error('[PL-BOOT-001]', rawReason);
     overlay?.classList.add('error');
     setProgress(`지도를 불러올 수 없습니다. ${safeReason}`, 100);
     document.body.classList.add('is-loading');
@@ -75,50 +90,106 @@
     return;
   }
 
-  window.ATLASWRIGHT_ASSET_BASE_URL = assetBaseUrl.href;
-  window.ATLASWRIGHT_BUILD_ID = BUILD_ID;
-  window.ATLASWRIGHT_ASSET_REVISION = ASSET_REVISION;
-  const loader = new Worker(versionedAsset('./workers/data-loader-worker.js'), {
-    name: 'atlaswright-data-loader',
+  window.PANDOLAB_ASSET_BASE_URL = assetBaseUrl.href;
+  window.PANDOLAB_BUILD_ID = BUILD_ID;
+  window.PANDOLAB_ASSET_REVISION = ASSET_REVISION;
+  const loaderUrl = versionedAsset('./workers/data-loader-worker.js');
+  loaderUrl.searchParams.set('profile', constrainedProfile ? 'constrained' : 'standard');
+  const loader = new Worker(loaderUrl, {
+    name: 'pandolab-data-loader',
   });
+  let previewReady = false;
+  let canonicalFailed = false;
+  let appInjected = false;
+  let resolveCanonicalData;
+  window.PANDOLAB_CANONICAL_DATA_PROMISE = new Promise(resolve => { resolveCanonicalData = resolve; });
 
   const onRuntimeError = event => fail(event?.detail || event?.reason?.message || event?.message || '애플리케이션 실행 오류');
-  window.addEventListener('atlaswright:error', onRuntimeError, { once: true });
-  window.addEventListener('atlaswright:ready', () => {
-    loader.terminate();
+  window.addEventListener('pandolab:error', onRuntimeError, { once: true });
+  window.addEventListener('pandolab:interactive', () => {
+    startupMetrics.interactiveMs = performance.now() - bootStartedAt;
+    startupMetrics.previewDisplayMs = Math.max(0, startupMetrics.interactiveMs - Number(startupMetrics.previewReceivedMs || 0));
     finish();
   }, { once: true });
+  window.addEventListener('pandolab:ready', () => {
+    startupMetrics.readyMs = performance.now() - bootStartedAt;
+    startupMetrics.canonicalDisplayMs = Math.max(0, startupMetrics.readyMs - Number(startupMetrics.canonicalReceivedMs || 0));
+    loader.terminate();
+  }, { once: true });
+  window.addEventListener('online', () => {
+    if (!previewReady || !canonicalFailed) return;
+    canonicalFailed = false;
+    loader.postMessage({ type: 'retry-canonical' });
+  });
 
   loader.onmessage = event => {
     const data = event.data || {};
-    if (data.type === 'progress') {
+    if (data.type === 'preview-progress') {
       setProgress(data.message || '지도 데이터를 준비하는 중입니다.', data.percent || 0);
       return;
     }
-    if (data.type === 'error') {
+    if (data.type === 'preview-error') {
       loader.terminate();
       fail(data.message || '지도 데이터를 불러오지 못했습니다.');
       return;
     }
-    if (data.type !== 'ready') return;
+    if (data.type === 'canonical-progress') {
+      window.dispatchEvent(new CustomEvent('pandolab:canonical-progress', { detail: data }));
+      return;
+    }
+    if (data.type === 'canonical-error') {
+      canonicalFailed = true;
+      startupMetrics.canonicalError = data.message || '무손실 데이터를 준비하지 못했습니다.';
+      window.dispatchEvent(new CustomEvent('pandolab:canonical-error', { detail: startupMetrics.canonicalError }));
+      return;
+    }
+    if (!['preview-ready', 'canonical-ready'].includes(data.type)) return;
     if (data.buildId !== BUILD_ID) {
       loader.terminate();
       if (!recoverCacheMismatch()) fail(cacheMismatchMessage());
       return;
     }
-    window.ATLASWRIGHT_COUNTRIES = data.countries;
-    window.ATLASWRIGHT_GPU_MESH_BUFFER = data.meshBuffer;
-    window.ATLASWRIGHT_LABEL_ANCHORS = data.labelAnchors || {};
-    setProgress('지도 편집기를 시작하는 중입니다.', 97);
+    if (data.type === 'canonical-ready') {
+      startupMetrics.canonical = data.metrics || null;
+      startupMetrics.canonicalReceivedMs = performance.now() - bootStartedAt;
+      startupMetrics.canonicalMainThreadTransferMs = Number.isFinite(Number(data.postedEpochMs))
+        ? Math.max(0, performance.timeOrigin + performance.now() - Number(data.postedEpochMs))
+        : null;
+      resolveCanonicalData({
+        countries: data.countries,
+        countriesSourceBuffer: data.countriesSourceBuffer,
+        meshBuffer: data.meshBuffer,
+        metrics: data.metrics || null,
+      });
+      return;
+    }
+    previewReady = true;
+    startupMetrics.preview = data.metrics || null;
+    startupMetrics.previewReceivedMs = performance.now() - bootStartedAt;
+    startupMetrics.previewMainThreadTransferMs = Number.isFinite(Number(data.postedEpochMs))
+      ? Math.max(0, performance.timeOrigin + performance.now() - Number(data.postedEpochMs))
+      : null;
+    window.PANDOLAB_COUNTRIES = data.countries;
+    window.PANDOLAB_GPU_MESH_BUFFER = data.meshBuffer;
+    window.PANDOLAB_LABEL_ANCHORS = data.labelAnchors || {};
+    setProgress('빠른 미리보기 지도를 시작하는 중입니다.', 99);
+    if (appInjected) return;
+    appInjected = true;
     const app = document.createElement('script');
     app.type = 'module';
     app.src = versionedAsset('./app.js').href;
-    app.onload = () => setProgress('GPU 지도를 준비하는 중입니다.', 99);
+    app.onload = () => setProgress('빠른 지도를 표시하는 중입니다.', 99);
     app.onerror = () => fail('애플리케이션 파일을 불러오지 못했습니다.');
     document.body.appendChild(app);
   };
   loader.onerror = event => {
-    loader.terminate();
-    fail(event.message || '데이터 Worker 실행 오류');
+    if (!previewReady) {
+      loader.terminate();
+      fail(event.message || '데이터 Worker 실행 오류');
+      return;
+    }
+    canonicalFailed = true;
+    startupMetrics.canonicalError = event.message || '무손실 데이터 Worker 오류';
+    window.dispatchEvent(new CustomEvent('pandolab:canonical-error', { detail: startupMetrics.canonicalError }));
   };
 })();

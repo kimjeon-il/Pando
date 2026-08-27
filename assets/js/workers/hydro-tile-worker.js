@@ -1,4 +1,4 @@
-/* AtlasWright v0.24.0 water-system shard, Range, and persistent-cache worker. */
+/* PandoLab v0.24.0 water-system shard, Range, and persistent-cache worker. */
 'use strict';
 
 importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js');
@@ -106,7 +106,7 @@ async function ensureDetailMetadata() {
 
 async function openHydroCache() {
   if (!('caches' in self)) return null;
-  try { return await caches.open(manifest.cache?.name || `atlaswright-hydro-v${manifest.version}`); }
+  try { return await caches.open(manifest.cache?.name || `pandolab-hydro-v${manifest.version}`); }
   catch (_) { return null; }
 }
 
@@ -326,7 +326,7 @@ function readPack(bytes, packId) {
       properties: {
         __fid: fid, __logicalFid: logicalFid, __flags: flags, border_aligned: (flags & 1) !== 0,
         fragment_index: fragmentIndex, fragment_count: fragmentCount,
-        aw_id: metadata.awId, layer_id: metadata.layerId, category: kind === 1 ? 'river' : 'lake', name: metadata.name || '', name_ko: metadata.name || '',
+        pandolab_id: metadata.awId, layer_id: metadata.layerId, category: kind === 1 ? 'river' : 'lake', name: metadata.name || '', name_ko: metadata.name || '',
         source_id: metadata.sourceId || '', source: metadata.source || '',
         system_id: metadata.systemId || '', mainstem_name_ko: metadata.mainstemNameKo || metadata.name || '',
         role: metadata.role || '', aliases: metadata.aliases || [], tributary_names: metadata.tributaryNames || [],

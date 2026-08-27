@@ -1,3 +1,8 @@
+export function resolveRenderPixelRatioValue(devicePixelRatio, mobileLayout = false) {
+  const deviceRatio = Math.max(1, Number(devicePixelRatio || 1));
+  return Math.min(mobileLayout ? 2 : 3, deviceRatio);
+}
+
 export function createGpuMapRenderer(deps) {
   const {
     $,
@@ -95,6 +100,9 @@ export function createGpuMapRenderer(deps) {
     let terrainManifest = null;
     const terrainTiles = new Map();
     const terrainTileRequests = new Map();
+    const terrainFetchQueue = [];
+    const terrainFetchQueuedKeys = new Set();
+    let terrainActiveFetches = 0;
     const terrainTileFailures = new Map();
     const terrainTileQueuedKeys = new Set();
     const terrainUploadQueue = [];
@@ -106,6 +114,9 @@ export function createGpuMapRenderer(deps) {
     let terrainTargetTilesLoaded = 0;
     let mesh = null;
     let meshCountryIds = [];
+    let meshQuality = 'preview';
+    let canonicalMeshReady = false;
+    let effectivePixelRatio = 1;
     let pixelWidth = 0;
     let pixelHeight = 0;
     let cssWidth = 0;
@@ -135,12 +146,18 @@ export function createGpuMapRenderer(deps) {
     let webGl1PositionData = null;
     let webGl1CountryData = null;
     const frameTimes = [];
+    let canvasDataReplacementResolver = null;
     const forcedRenderer = (() => {
       try {
         const value = new URLSearchParams(location.search).get('renderer');
         return ['webgl2', 'webgl1', 'canvas'].includes(value) ? value : '';
       } catch (_) { return ''; }
     })();
+
+    function resolveRenderPixelRatio() {
+      effectivePixelRatio = resolveRenderPixelRatioValue(window.devicePixelRatio, isMobile());
+      return effectivePixelRatio;
+    }
 
     const vertexShaderSourceWebGl2 = `#version 300 es
       precision highp float;
@@ -656,6 +673,10 @@ export function createGpuMapRenderer(deps) {
       return glVersion === 2 ? 'WebGL2' : glVersion === 1 ? 'WebGL1' : 'Canvas';
     }
 
+    function meshQualityLabel() {
+      return canonicalMeshReady ? '무손실' : '빠른 미리보기';
+    }
+
     function updateRendererStatus(label, reason = '') {
       const status = $('engineStatus');
       if (!status) return;
@@ -706,6 +727,9 @@ export function createGpuMapRenderer(deps) {
       terrainTileQueuedKeys.clear();
       terrainTiles.clear();
       terrainTileRequests.clear();
+      terrainFetchQueue.length = 0;
+      terrainFetchQueuedKeys.clear();
+      terrainActiveFetches = 0;
       terrainTileFailures.clear();
       terrainGridMeshes.clear();
       for (const entry of hydroPacks.values()) {
@@ -751,12 +775,12 @@ export function createGpuMapRenderer(deps) {
         if (mesh) setMesh(mesh, meshCountryIds);
         if (overrideMesh) setOverrideMesh(overrideMesh);
         else render(currentRenderRevision);
-        $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
+        $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} ${meshQualityLabel()}`;
         updateRendererStatus(`${rendererName()} · GPU 실시간`);
         setActionStatus('지도 GPU를 복구했습니다.', 'success', 2200);
       } catch (error) {
         webglContextLost = false;
-        console.error('[AW-GPU-002]', error);
+        console.error('[PL-GPU-002]', error);
         activateCanvasFallback('WebGL 컨텍스트를 복구하지 못했습니다.');
       }
     }
@@ -842,7 +866,7 @@ export function createGpuMapRenderer(deps) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
         gl.bindVertexArray(null);
       }
-      window.__ATLASWRIGHT_GPU_METRICS__ = getStats();
+      window.__PANDOLAB_GPU_METRICS__ = getStats();
       render(currentRenderRevision);
     }
 
@@ -913,9 +937,9 @@ export function createGpuMapRenderer(deps) {
 
     function ensurePatchWorker() {
       if (patchWorker) return patchWorker;
-      patchWorker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'atlaswright-country-patch-mesh' });
+      patchWorker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-country-patch-mesh' });
       patchWorker.onerror = event => {
-        console.error('[AW-GPU-PATCH-001]', event.message || event);
+        console.error('[PL-GPU-PATCH-001]', event.message || event);
         patchWorker?.terminate();
         patchWorker = null;
         scheduleGpuMeshRebuild(0);
@@ -961,7 +985,7 @@ export function createGpuMapRenderer(deps) {
         };
         currentWorker.postMessage({ token, features });
       }).catch(error => {
-        console.error('[AW-GPU-PATCH-002]', error);
+        console.error('[PL-GPU-PATCH-002]', error);
         scheduleGpuMeshRebuild(0);
       });
     }
@@ -971,12 +995,12 @@ export function createGpuMapRenderer(deps) {
       rebuildFromCountries(state.countriesData?.features || []);
     }
 
-    async function decodeBuiltInMesh() {
-      const buffer = window.ATLASWRIGHT_GPU_MESH_BUFFER;
+    async function decodeBuiltInMesh(rawBuffer = null, features = null) {
+      const buffer = rawBuffer || window.PANDOLAB_GPU_MESH_BUFFER;
       if (!(buffer instanceof ArrayBuffer)) throw new Error('외부 GPU 메시가 준비되지 않았습니다.');
-      window.ATLASWRIGHT_GPU_MESH_BUFFER = null;
+      if (!rawBuffer) window.PANDOLAB_GPU_MESH_BUFFER = null;
       const header = new Uint32Array(buffer, 0, 8);
-      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] !== 548466 || header[7] !== 3) {
+      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] < 1 || header[7] !== 3) {
         throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
       }
       const countryCount = header[2];
@@ -991,15 +1015,15 @@ export function createGpuMapRenderer(deps) {
       const triangleIndices = new Uint32Array(buffer, offset, triangleIndexCount);
       offset += triangleIndices.byteLength;
       const lineIndices = new Uint32Array(buffer, offset, lineIndexCount);
-      const ids = (window.ATLASWRIGHT_COUNTRIES?.features || []).slice(0, countryCount)
+      const ids = (features || window.PANDOLAB_COUNTRIES?.features || []).slice(0, countryCount)
         .map((feature, index) => String(feature.properties?.editor_id || feature.properties?.iso_a3 || index));
-      return { mesh: { positions, countryIndices, triangleIndices, lineIndices }, ids, sourceCoordinateCount: header[6] };
+      return { mesh: { positions, countryIndices, triangleIndices, lineIndices }, ids, sourceCoordinateCount: header[6], buffer };
     }
 
     function createWorker() {
       if (worker) worker.terminate();
       worker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), {
-        name: 'atlaswright-gpu-mesh',
+        name: 'pandolab-gpu-mesh',
       });
       return worker;
     }
@@ -1021,7 +1045,7 @@ export function createGpuMapRenderer(deps) {
       let currentWorker;
       try { currentWorker = createWorker(); }
       catch (error) {
-        console.error('[AW-GPU-001]', error);
+        console.error('[PL-GPU-001]', error);
         activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
         return;
       }
@@ -1031,7 +1055,7 @@ export function createGpuMapRenderer(deps) {
         currentWorker.terminate();
         worker = null;
         if (!event.data?.ok) {
-          console.error('[AW-GPU-003]', event.data?.message || event.data);
+          console.error('[PL-GPU-003]', event.data?.message || event.data);
           activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
           return;
         }
@@ -1050,7 +1074,7 @@ export function createGpuMapRenderer(deps) {
       };
       currentWorker.onerror = event => {
         if (token !== rebuildToken) return;
-        console.error('[AW-GPU-004]', event.message || event);
+        console.error('[PL-GPU-004]', event.message || event);
         activateCanvasFallback('동적 지도 메시 Worker를 사용할 수 없습니다.');
       };
       currentWorker.postMessage({ token, features });
@@ -1135,7 +1159,7 @@ export function createGpuMapRenderer(deps) {
       if (!canvas) return;
       cssWidth = Math.max(1, state.size.width);
       cssHeight = Math.max(1, state.size.height);
-      const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+      const dpr = resolveRenderPixelRatio();
       const nextWidth = Math.max(1, Math.round(cssWidth * dpr));
       const nextHeight = Math.max(1, Math.round(cssHeight * dpr));
       if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
@@ -1520,7 +1544,7 @@ export function createGpuMapRenderer(deps) {
           aggregate = {
             type: 'Feature', id: logicalId, geometry: null,
             properties: {
-              aw_id: logicalId, __logicalFid: Number(row.logicalFid),
+              pandolab_id: logicalId, __logicalFid: Number(row.logicalFid),
               category: row.category, layer_id: row.layerId,
               name: row.name || '', name_ko: row.name || '', source: row.source || '',
               system_id: row.systemId || '', mainstem_name_ko: row.mainstemNameKo || row.name || '', role: row.role || '',
@@ -1593,7 +1617,7 @@ export function createGpuMapRenderer(deps) {
     function registerHydroFragments(features) {
       const logicalIds = new Set();
       for (const fragment of features) {
-        const logicalId = String(fragment.properties?.aw_id || fragment.id);
+        const logicalId = String(fragment.properties?.pandolab_id || fragment.id);
         if (!state.hydroFragmentsByLogicalId.has(logicalId)) state.hydroFragmentsByLogicalId.set(logicalId, new Map());
         state.hydroFragmentsByLogicalId.get(logicalId).set(Number(fragment.properties?.__fid), fragment);
         logicalIds.add(logicalId);
@@ -1605,7 +1629,7 @@ export function createGpuMapRenderer(deps) {
     function unregisterHydroFragments(features) {
       const logicalIds = new Set();
       for (const fragment of features || []) {
-        const logicalId = String(fragment.properties?.aw_id || fragment.id);
+        const logicalId = String(fragment.properties?.pandolab_id || fragment.id);
         state.hydroFragmentsByLogicalId.get(logicalId)?.delete(Number(fragment.properties?.__fid));
         state.hydroFeatureByFid.delete(Number(fragment.properties?.__fid));
         logicalIds.add(logicalId);
@@ -1704,7 +1728,7 @@ export function createGpuMapRenderer(deps) {
       }
       if (message.type === 'error') {
         console.warn('Hydro tile worker failed', message.message);
-        reportOperationError(new Error(message.message || ''), '현재 화면의 수계 데이터를 불러오지 못했습니다. 지도를 조금 이동하거나 다시 시도하세요.', 'AW-WATER-003', 0);
+        reportOperationError(new Error(message.message || ''), '현재 화면의 수계 데이터를 불러오지 못했습니다. 지도를 조금 이동하거나 다시 시도하세요.', 'PL-WATER-003', 0);
       }
     }
 
@@ -1748,7 +1772,7 @@ export function createGpuMapRenderer(deps) {
       hydroFeatureRequests.clear();
       state.hydroFragmentsByLogicalId = new Map();
       if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') return;
-      hydroWorker = new Worker(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'atlaswright-hydro-tiles' });
+      hydroWorker = new Worker(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'pandolab-hydro-tiles' });
       hydroWorker.onmessage = receiveHydroWorkerMessage;
       hydroWorker.onerror = event => receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '수계 Worker 실행 오류' } });
       const hydroRevision = `${ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
@@ -1771,7 +1795,7 @@ export function createGpuMapRenderer(deps) {
     function terrainLevelForView() {
       if (!terrainManifest?.levels?.length) return null;
       const scale = activeProjection().scale();
-      const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+      const dpr = resolveRenderPixelRatio();
       const desiredWidth = Math.max(1, 2 * PI * scale * dpr);
       return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
         || terrainManifest.levels[terrainManifest.levels.length - 1];
@@ -1840,10 +1864,29 @@ export function createGpuMapRenderer(deps) {
       return url;
     }
 
-    async function requestTerrainTile(spec) {
-      if (!gl || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key) || terrainTileQueuedKeys.has(spec.key)) return;
+    function requestTerrainTile(spec, priority = 0) {
+      if (!gl || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key)
+          || terrainTileQueuedKeys.has(spec.key) || terrainFetchQueuedKeys.has(spec.key)) return;
       const previousFailure = terrainTileFailures.get(spec.key);
       if (previousFailure?.retryAt > performance.now()) return;
+      terrainFetchQueuedKeys.add(spec.key);
+      terrainFetchQueue.push({ spec, priority: Number(priority || 0) });
+      terrainFetchQueue.sort((left, right) => right.priority - left.priority || left.spec.key.localeCompare(right.spec.key));
+      pumpTerrainFetchQueue();
+    }
+
+    function pumpTerrainFetchQueue() {
+      const concurrency = isMobile() ? 2 : 4;
+      while (terrainActiveFetches < concurrency && terrainFetchQueue.length) {
+        const next = terrainFetchQueue.shift();
+        terrainFetchQueuedKeys.delete(next.spec.key);
+        startTerrainTileRequest(next.spec, next.priority);
+      }
+    }
+
+    function startTerrainTileRequest(spec, priority = 0) {
+      const previousFailure = terrainTileFailures.get(spec.key);
+      terrainActiveFetches += 1;
       const request = (async () => {
         const response = await fetch(terrainTileUrl(spec));
         if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
@@ -1865,12 +1908,16 @@ export function createGpuMapRenderer(deps) {
         terrainTileFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
         if (attempts <= 3) {
           setTimeout(() => {
-            requestTerrainTile(spec);
+            requestTerrainTile(spec, priority);
             scheduleViewRender();
           }, retryDelay);
         }
         console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
-      }).finally(() => terrainTileRequests.delete(spec.key));
+      }).finally(() => {
+        terrainTileRequests.delete(spec.key);
+        terrainActiveFetches = Math.max(0, terrainActiveFetches - 1);
+        pumpTerrainFetchQueue();
+      });
       terrainTileRequests.set(spec.key, request);
     }
 
@@ -1986,17 +2033,18 @@ export function createGpuMapRenderer(deps) {
       const baseLevel = levels[0];
       const targetLevel = terrainLevelForView() || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      const activeLevels = levels.slice(0, targetIndex + 1);
+      const activeLevels = levels.slice(0, (state.dataReadiness === 'canonical' ? targetIndex : 0) + 1);
       const specsByLevel = activeLevels.map((level, index) => ({
         level,
-        specs: visibleTerrainTileSpecs(level, index === 0),
+        specs: visibleTerrainTileSpecs(level, false),
       }));
       const targetSpecs = specsByLevel[specsByLevel.length - 1].specs;
-      terrainLastLevel = Number(targetLevel.id);
+      terrainLastLevel = Number(activeLevels[activeLevels.length - 1].id);
       terrainTargetTileCount = targetSpecs.length;
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
-      for (let index = specsByLevel.length - 1; index >= 0; index -= 1) {
-        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec);
+      for (let index = 0; index < specsByLevel.length; index += 1) {
+        const priority = index === 0 ? 10_000 : 1_000 - index;
+        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
       }
       terrainRenderedLevel = -1;
       for (const entry of specsByLevel) {
@@ -2054,7 +2102,7 @@ export function createGpuMapRenderer(deps) {
       displayedRenderRevision = currentRenderRevision;
       frameTimes.push(performance.now() - started);
       if (frameTimes.length > 240) frameTimes.shift();
-      window.__ATLASWRIGHT_GPU_METRICS__ = getStats();
+      window.__PANDOLAB_GPU_METRICS__ = getStats();
     }
 
     function renderCanvasFallback() {
@@ -2095,7 +2143,7 @@ export function createGpuMapRenderer(deps) {
         type,
         width: Math.max(1, state.size.width),
         height: Math.max(1, state.size.height),
-        dpr: Math.min(3, Math.max(1, window.devicePixelRatio || 1)),
+        dpr: resolveRenderPixelRatio(),
         projection: state.projection,
         view: deepClone(state.view),
         revision: Number(revision || 0),
@@ -2106,6 +2154,8 @@ export function createGpuMapRenderer(deps) {
         theme: mapTheme(),
         physicalSettings: deepClone(state.physicalSettings),
         darkTheme: getSystemTheme() === 'dark',
+        dataReadiness: state.dataReadiness,
+        terrainFetchConcurrency: isMobile() ? 2 : 4,
         terrainManifestUrl: new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL).href,
       };
     }
@@ -2137,6 +2187,7 @@ export function createGpuMapRenderer(deps) {
       if (isWebGlRenderer()) renderWebGl();
       else if (rendererMode === 'canvas-worker') renderCanvasWorker(currentRenderRevision);
       else if (rendererMode === 'canvas2d') renderCanvasFallback();
+      window.__PANDOLAB_GPU_METRICS__ = getStats();
     }
 
     function prioritizeLatest() {
@@ -2166,9 +2217,9 @@ export function createGpuMapRenderer(deps) {
       resize();
       ctx2d = canvas.getContext('2d', { alpha: true });
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
-      $('engineStatus').textContent = `Canvas 무손실 대체 · ${fallbackReason}`;
-      updateRendererStatus('Canvas · 무손실 대체', fallbackReason);
-      setActionStatus(`무손실 Canvas 렌더러로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
+      $('engineStatus').textContent = `Canvas ${meshQualityLabel()} 대체 · ${fallbackReason}`;
+      updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
+      setActionStatus(`${meshQualityLabel()} Canvas 렌더러로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
     }
@@ -2192,6 +2243,8 @@ export function createGpuMapRenderer(deps) {
       }
       if (message.type === 'data-ready') {
         for (const id of message.ids || []) state.pendingCountryRenderIds.delete(String(id));
+        canvasDataReplacementResolver?.();
+        canvasDataReplacementResolver = null;
         renderViewFrame();
         return;
       }
@@ -2232,7 +2285,7 @@ export function createGpuMapRenderer(deps) {
 
     function activateCanvasFallback(reason) {
       const rawReason = String(reason || '');
-      if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[AW-GPU-005]', rawReason);
+      if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[PL-GPU-005]', rawReason);
       fallbackReason = isSafeKoreanErrorMessage({ message: rawReason }) ? rawReason : 'GPU 렌더러를 사용할 수 없습니다.';
       clearTimeout(webglRecoveryTimer);
       webglContextLost = false;
@@ -2251,7 +2304,7 @@ export function createGpuMapRenderer(deps) {
           const canvasRuntimeUrl = runtimeAssetUrl('workers/canvas-render-worker.js');
           canvasRuntimeUrl.searchParams.set('physical', '1');
           canvasWorker = new Worker(canvasRuntimeUrl, {
-            name: 'atlaswright-canvas-renderer',
+            name: 'pandolab-canvas-renderer',
           });
           canvasWorkerReady = false;
           canvasWorkerBusy = false;
@@ -2268,9 +2321,10 @@ export function createGpuMapRenderer(deps) {
           canvasWorker.onerror = event => failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
           if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
           else connectHydroCanvasWorkers();
-          $('engineStatus').textContent = `Canvas Worker 무손실 · ${fallbackReason}`;
+          $('engineStatus').textContent = `Canvas Worker ${meshQualityLabel()} · ${fallbackReason}`;
           updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
-          setActionStatus(`무손실 Canvas Worker로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
+          setActionStatus(`${meshQualityLabel()} Canvas Worker로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
+          window.__PANDOLAB_GPU_METRICS__ = getStats();
           return;
         } catch (error) {
           console.warn('Canvas worker unavailable', error);
@@ -2282,11 +2336,12 @@ export function createGpuMapRenderer(deps) {
       rendererMode = 'canvas2d';
       ctx2d = canvas.getContext('2d', { alpha: true });
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
-      $('engineStatus').textContent = `Canvas 무손실 대체 · ${fallbackReason}`;
-      updateRendererStatus('Canvas · 무손실 대체', fallbackReason);
-      setActionStatus('GPU를 사용할 수 없어 무손실 Canvas 렌더러로 전환했습니다.', 'working', 4200);
+      $('engineStatus').textContent = `Canvas ${meshQualityLabel()} 대체 · ${fallbackReason}`;
+      updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
+      setActionStatus(`GPU를 사용할 수 없어 ${meshQualityLabel()} Canvas 렌더러로 전환했습니다.`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
+      window.__PANDOLAB_GPU_METRICS__ = getStats();
     }
 
     function ensurePickTarget() {
@@ -2387,13 +2442,15 @@ export function createGpuMapRenderer(deps) {
         if (index > 0 || gl) replaceCanvas();
         try {
           initWebGl(version);
-          $('engineStatus').textContent = `${rendererName()} · 원본 메시를 준비하는 중입니다.`;
-          updateRendererStatus(`${rendererName()} · GPU를 준비하는 중입니다.`);
+          $('engineStatus').textContent = `${rendererName()} · 빠른 미리보기 메시를 준비하는 중입니다.`;
+          updateRendererStatus(`${rendererName()} · 빠른 GPU 지도를 준비하는 중입니다.`);
           if (!decoded) decoded = await decodeBuiltInMesh();
           setMesh(decoded.mesh, decoded.ids);
+          meshQuality = 'preview';
+          canonicalMeshReady = false;
           if (isWebGlRenderer()) {
-            $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
-            updateRendererStatus(`${rendererName()} · GPU 실시간`);
+            $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 빠른 미리보기`;
+            updateRendererStatus(`${rendererName()} · 빠른 GPU 미리보기`);
             return true;
           }
         } catch (error) {
@@ -2407,11 +2464,43 @@ export function createGpuMapRenderer(deps) {
       return false;
     }
 
+    async function replaceBuiltInMesh({ meshBuffer, features, quality = 'canonical' }) {
+      const decoded = await decodeBuiltInMesh(meshBuffer, features);
+      setMesh(decoded.mesh, decoded.ids);
+      meshQuality = quality;
+      canonicalMeshReady = quality === 'canonical';
+      if (rendererMode === 'canvas-worker' && canvasWorker) {
+        await new Promise(resolve => {
+          const timeout = setTimeout(() => {
+            if (canvasDataReplacementResolver === complete) canvasDataReplacementResolver = null;
+            resolve();
+          }, 3000);
+          const complete = () => {
+            clearTimeout(timeout);
+            resolve();
+          };
+          canvasDataReplacementResolver = complete;
+          canvasWorker.postMessage({
+            type: 'replace-data',
+            revision: Number(currentRenderRevision || 0),
+            features: features || state.countriesData?.features || [],
+          });
+        });
+      } else {
+        render(currentRenderRevision);
+      }
+      updateRendererStatus(isWebGlRenderer()
+        ? `${rendererName()} · GPU ${meshQualityLabel()}`
+        : `${rendererMode === 'canvas-worker' ? 'Canvas Worker' : 'Canvas'} · ${meshQualityLabel()}`,
+      fallbackReason);
+      return decoded;
+    }
+
     function setTerrainManifest(manifest) {
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainLastLevel = -1;
       if (terrainManifest && isWebGlRenderer()) {
-        for (const spec of visibleTerrainTileSpecs(terrainManifest.levels[0], true)) requestTerrainTile(spec);
+        for (const spec of visibleTerrainTileSpecs(terrainManifest.levels[0], false)) requestTerrainTile(spec, 10_000);
       }
       render(currentRenderRevision);
     }
@@ -2421,6 +2510,10 @@ export function createGpuMapRenderer(deps) {
       const p95 = sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] : 0;
       return {
         renderer: rendererMode,
+        effectivePixelRatio,
+        devicePixelRatio: Math.max(1, Number(window.devicePixelRatio || 1)),
+        meshQuality,
+        canonicalMeshReady,
         countries: meshCountryIds.length,
         renderVertices: mesh?.countryIndices?.length || 0,
         triangleCount: (mesh?.triangleIndices?.length || 0) / 3,
@@ -2442,7 +2535,8 @@ export function createGpuMapRenderer(deps) {
         terrainTargetTileCount,
         terrainTargetTilesLoaded,
         terrainTilesLoaded: terrainTiles.size,
-        terrainTilesLoading: terrainTileRequests.size,
+        terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length,
+        terrainFetchConcurrency: isMobile() ? 2 : 4,
         hydroFeaturesLoaded: state.hydroFeatureCache?.size || 0,
         hydroPacksLoaded: hydroPacks.size,
         hydroPacksActive: hydroActivePackIds.size,
@@ -2451,7 +2545,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     return {
-      attach, initialize, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
+      attach, initialize, replaceBuiltInMesh, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, setTerrainManifest,
       setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
       setHydroInteractionActive, setInteractionActive: setHydroInteractionActive, renderViewFrame: render,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create the AtlasWright v0.12.4 Korean main-stem/alignment report."""
+"""Create the PandoLab v0.12.4 Korean main-stem/alignment report."""
 
 from __future__ import annotations
 
