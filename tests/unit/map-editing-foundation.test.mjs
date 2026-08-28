@@ -142,6 +142,23 @@ test('full audit trusts the canonical baseline and clips only dirty countries ex
   assert.equal(edited.issues.some(issue => issue.kind === 'overlap'), true);
 });
 
+test('full audit structurally validates only dirty countries when a canonical baseline exists', () => {
+  const invalidUnchanged = feature('UNCHANGED', [[0, 0], [2, 2], [0, 2], [2, 0], [0, 0]]);
+  const validDirty = feature('DIRTY', [[3, 0], [4, 0], [4, 1], [3, 1], [3, 0]]);
+  const trusted = runMapAudit({
+    countries: [invalidUnchanged, validDirty],
+    coarseCountries: [invalidUnchanged, validDirty],
+    preciseAffectedIds: ['DIRTY'],
+  });
+  assert.equal(trusted.issues.some(issue => issue.entityRefs?.includes('UNCHANGED')), false);
+  const checked = runMapAudit({
+    countries: [invalidUnchanged, validDirty],
+    coarseCountries: [invalidUnchanged, validDirty],
+    preciseAffectedIds: ['UNCHANGED'],
+  });
+  assert.equal(checked.issues.some(issue => issue.kind === 'self-intersection'), true);
+});
+
 test('preview sessions never mutate their source and become stale by revision', () => {
   const state = createGeometryPreviewState();
   const source = [feature('A', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]])];

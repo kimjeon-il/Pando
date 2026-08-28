@@ -407,7 +407,12 @@ export function runMapAudit({
 } = {}) {
   const startedAt = globalThis.performance?.now?.() || Date.now();
   const diagnostics = {};
-  const structuralIssues = validateTerritorialGeometry(countries, { clipper: null, affectedIds, baselineUnion });
+  const structuralAffectedIds = coarseCountries.length ? preciseAffectedIds : affectedIds;
+  const structuralIssues = validateTerritorialGeometry(countries, {
+    clipper: null,
+    affectedIds: structuralAffectedIds,
+    baselineUnion,
+  });
   let overlapIssues;
   if (clipper && coarseCountries.length) {
     // The bundled canonical world is the validated baseline. Preview geometry

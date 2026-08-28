@@ -126,17 +126,21 @@ function featureId(feature, index) {
   return String(properties.editor_id || properties.pandolab_id || properties.ADM0_A3 || properties.ISO_A3 || feature?.id || index + 1);
 }
 
-function validateCollection(collection) {
+function validateCollection(collection, affectedIds = null) {
   const features = collection?.features || [];
   const ids = features.map(featureId);
   if (ids.some(id => !id) || new Set(ids).size !== ids.length) throw new Error('국가 ID가 비어 있거나 중복되었습니다.');
+  const affected = Array.isArray(affectedIds) && affectedIds.length ? new Set(affectedIds.map(String)) : null;
   const componentBounds = [];
   for (let index = 0; index < features.length; index += 1) {
-    if (!validGeometry(features[index].geometry)) throw new Error(`${featureName(features[index])}의 Polygon 경계가 유효하지 않습니다.`);
+    if ((!affected || affected.has(ids[index])) && !validGeometry(features[index].geometry)) {
+      throw new Error(`${featureName(features[index])}의 Polygon 경계가 유효하지 않습니다.`);
+    }
     componentBounds.push(polygonBounds(features[index].geometry));
   }
   for (let i = 0; i < features.length; i += 1) {
     for (let j = i + 1; j < features.length; j += 1) {
+      if (affected && !affected.has(ids[i]) && !affected.has(ids[j])) continue;
       if (!canOverlap(componentBounds[i], componentBounds[j])) continue;
       const overlap = self.polygonClipping.intersection(polygonSets(features[i].geometry), polygonSets(features[j].geometry));
       if (planarArea(overlap) <= 1e-8) continue;
@@ -149,10 +153,10 @@ function validateCollection(collection) {
 }
 
 self.onmessage = event => {
-  const { id, action, collection } = event.data || {};
+  const { id, action, collection, affectedIds } = event.data || {};
   try {
     if (action !== 'validate') throw new Error('알 수 없는 GIS 지오메트리 작업입니다.');
-    self.postMessage({ id, ok: true, ...validateCollection(collection) });
+    self.postMessage({ id, ok: true, ...validateCollection(collection, affectedIds) });
   } catch (error) {
     self.postMessage({ id, ok: false, error: error?.message || String(error) });
   }
