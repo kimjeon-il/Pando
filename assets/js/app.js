@@ -39,6 +39,10 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/save-state-controller.js')),
 ]);
 const { applyProjectFields, pickProjectFields } = projectStateModule;
+const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
+const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
+const { createDiagnosticLog, fetchWithRetry } = reliabilityCoreModule;
+const { assertProjectReferenceIntegrity } = projectInvariantsModule;
 const { createSelectController } = selectControllerModule;
 const { DATA_READINESS, READINESS_EVENTS, canMutateProject, transitionDataReadiness } = startupReadinessModule;
 const { runCountryEditTransaction } = countryEditTransactionModule;
@@ -420,6 +424,8 @@ const {
   }
 
   const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+  const reliabilityDiagnostic = createDiagnosticLog({ limit: 250 });
+  window.__PANDOLAB_RELIABILITY_LOG__ = reliabilityDiagnostic;
   // 내장 원본은 읽기 전용 기준 지도다. 렌더링 메시와 편집 사본을 분리해 원본 좌표를 보존한다.
   let pristineCountriesFallback = window.PANDOLAB_COUNTRIES || { type: 'FeatureCollection', features: [] };
   let pristineCountriesSourceBuffer = null;
@@ -2502,6 +2508,16 @@ const {
     return { rebase, syncPatch, execute, commit, discard, cancel };
   })();
 
+  function assertCurrentProjectReferences() {
+    return assertProjectReferenceIntegrity({
+      countries: state.countriesData?.features || [],
+      territorialUnits: state.territorialUnits || [],
+      territorialRelations: state.territorialRelations || [],
+      distributionLayers: state.distributionLayers || [],
+      distributionEntries: state.distributionEntries || [],
+    });
+  }
+
   function transactCountryEdit({ operation, payload, snapshot, applyResult, onSuccess, onError }) {
     return runCountryEditTransaction({
       client: mapEditClient,
@@ -2509,12 +2525,14 @@ const {
       payload,
       snapshot,
       applyResult,
+      validateCanonical: assertCurrentProjectReferences,
       commitHistory: commitHistorySnapshot,
       restore: (editableSnapshot, { rebaseWorker }) => {
         restoreCountryEditSnapshot(editableSnapshot);
         if (rebaseWorker) mapEditClient.rebase(state.countriesData?.features || []);
       },
       queueAutosave,
+      diagnostic: reliabilityDiagnostic,
       onSuccess,
       onError,
     });
@@ -2709,6 +2727,7 @@ const {
         activeGeometryPreviewDiscard = null;
         try {
           await applyResult(result);
+          assertCurrentProjectReferences();
           mapEditClient.commit(requestId);
           commitHistorySnapshot(snapshot);
           queueAutosave();
@@ -2782,6 +2801,7 @@ const {
       activeGeometryPreviewDiscard = null;
       try {
         await applyResult();
+        assertCurrentProjectReferences();
         state.stateRevision += 1;
         queueAutosave();
         renderAll();
@@ -5026,23 +5046,35 @@ const {
   async function loadTerrainManifest(force = false) {
     if (!force && ['loading', 'ready'].includes(state.physicalLoadState.terrain)) return;
     state.physicalLoadState.terrain = 'loading';
+    state.physicalLoadState.terrainManifest = 'loading';
     markLayerTreeDirty();
     renderLayerTree();
     try {
       const url = new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL);
       url.searchParams.set('v', ASSET_REVISION);
-      const response = await fetch(url);
+      const response = await fetchWithRetry(url, {}, {
+        maxAttempts: 3,
+        baseDelay: 400,
+        maxDelay: 2400,
+        timeoutMs: 15000,
+        onRetry: ({ attempt }) => reliabilityDiagnostic.push({
+          category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
+        }),
+      });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
       if (!manifest.levels?.length) throw new Error('지형 타일 manifest가 올바르지 않습니다.');
       state.terrainManifest = manifest;
+      state.physicalLoadState.terrainManifest = 'ready';
       state.physicalLoadState.terrain = 'ready';
       gpuMapRenderer.setTerrainManifest(manifest);
       markLayerTreeDirty();
       renderLayerTree();
       renderAll();
     } catch (error) {
+      state.physicalLoadState.terrainManifest = 'error';
       state.physicalLoadState.terrain = 'error';
+      reliabilityDiagnostic.push({ category: 'asset', operation: 'terrain-manifest', result: 'failed', errorCode: 'PL-TERRAIN-001' });
       markLayerTreeDirty();
       renderLayerTree();
       console.warn('Terrain load failed', error);
@@ -5053,12 +5085,23 @@ const {
   async function loadHydroData(force = false) {
     if (!force && ['loading', 'ready'].includes(state.physicalLoadState.hydro)) return;
     state.physicalLoadState.hydro = 'loading';
+    state.physicalLoadState.hydroManifest = 'loading';
+    state.physicalLoadState.hydroWorker = 'starting';
+    state.physicalLoadState.hydroView = 'idle';
     markLayerTreeDirty();
     renderLayerTree();
     try {
       const manifestUrl = new URL(`hydro/v${HYDRO_DATA_VERSION}/manifest.json`, PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
-      const response = await fetch(manifestUrl);
+      const response = await fetchWithRetry(manifestUrl, {}, {
+        maxAttempts: 3,
+        baseDelay: 400,
+        maxDelay: 2400,
+        timeoutMs: 15000,
+        onRetry: ({ attempt }) => reliabilityDiagnostic.push({
+          category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
+        }),
+      });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const manifest = await response.json();
       if (manifest.version !== HYDRO_DATA_VERSION || manifest.schema !== 'pandolab-water-shards-v5') throw new Error('수계 타일 버전이 맞지 않습니다.');
@@ -5067,15 +5110,21 @@ const {
       state.hydroFeatureCache = new Map();
       state.hydroFeatureByFid = new Map();
       state.hydroFragmentsByLogicalId = new Map();
+      state.physicalLoadState.hydroManifest = 'ready';
       state.physicalLoadState.hydroCache = 'idle';
       state.physicalLoadState.hydroCachePercent = 0;
-      gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
+      const workerReady = await gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
+      if (!workerReady) throw new Error('수계 Worker 초기화에 실패했습니다.');
+      state.physicalLoadState.hydroWorker = 'ready';
       state.physicalLoadState.hydro = 'ready';
       markLayerTreeDirty();
       renderLayerTree();
       renderHydro();
     } catch (error) {
+      if (state.physicalLoadState.hydroManifest !== 'ready') state.physicalLoadState.hydroManifest = 'error';
+      state.physicalLoadState.hydroWorker = 'error';
       state.physicalLoadState.hydro = 'error';
+      reliabilityDiagnostic.push({ category: 'asset', operation: 'hydro-init', result: 'failed', errorCode: 'PL-WATER-001' });
       markLayerTreeDirty();
       renderLayerTree();
       console.warn('Hydro load failed', error);
