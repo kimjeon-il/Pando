@@ -51,8 +51,8 @@ class ShellFileSaveContractTests(unittest.TestCase):
         self.assertIn("hasUnsavedChanges: false", SAVE_STATE)
         self.assertIn("cleanContentToken", SAVE_STATE)
         self.assertIn("status.hidden = !snapshot.hasUnsavedChanges", APP)
-        self.assertIn("자동저장에 실패했습니다. 파일에 직접 저장하는 것을 권장합니다.", APP)
-        self.assertIn("프로젝트를 저장하지 못했습니다. 다시 저장해 주세요.", APP)
+        self.assertIn("자동저장 실패. 파일로 저장하세요.", APP)
+        self.assertIn("프로젝트 저장에 실패했습니다.", APP)
         self.assertNotIn("자동저장 용량을 초과했습니다", APP)
         self.assertNotIn("saveStatusNeutralTimer", APP)
 
