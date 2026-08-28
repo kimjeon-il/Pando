@@ -31,9 +31,9 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
   await expect(page.locator('#map .map-svg')).toBeVisible();
 
-  const zoomBefore = await page.locator('#zoomStatus').textContent();
+  const viewRevisionBefore = await page.evaluate(() => window.__PANDOLAB_VIEW_REVISION__ || 0);
   await page.locator('#mobileZoomInBtn').click();
-  await expect.poll(() => page.locator('#zoomStatus').textContent()).not.toBe(zoomBefore);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_REVISION__ || 0)).toBeGreaterThan(viewRevisionBefore);
   await page.locator('#mobileMapBtn').click();
   const countryFolder = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await countryFolder.getAttribute('aria-expanded') !== 'true') await countryFolder.click();
@@ -41,7 +41,6 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   const selectedCountryName = (await previewCountry.textContent()).trim();
   await previewCountry.click();
   await expect(page.locator('#selectionStatus')).toContainText(selectedCountryName);
-  const previewZoom = await page.locator('#zoomStatus').textContent();
   await page.locator('#mobileCreateBtn').click();
   await expect(page.locator('#createMenu .create-menu-item').first()).toBeDisabled();
   await expect(page.locator('#newProjectBtn')).toBeDisabled();
@@ -60,7 +59,6 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   await expect(page.locator('#saveProjectBtn')).toBeEnabled();
   await expect(page.locator('#openGisBtn')).toBeEnabled();
   await expect(page.locator('#selectionStatus')).toContainText(selectedCountryName);
-  await expect(page.locator('#zoomStatus')).toHaveText(previewZoom);
   expect(await page.evaluate(() => window.__PANDOLAB_STARTUP_EVENTS__)).toEqual(['interactive', 'editable']);
   expect((await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {})).meshQuality).toBe('preview');
 

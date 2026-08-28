@@ -2,6 +2,81 @@ import { geometryAreaKm2, percentChange } from './geometry-metrics.js';
 
 const clone = value => value == null ? value : structuredClone(value);
 const idOf = feature => String(feature?.properties?.editor_id || feature?.id || '');
+const STROKE_EPSILON = 1e-7;
+
+function normalizeLongitude(value) {
+  let longitude = Number(value || 0);
+  while (longitude > 180) longitude -= 360;
+  while (longitude < -180) longitude += 360;
+  return longitude;
+}
+
+function isArtificialPolygonClosureEdge(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  const aLongitude = normalizeLongitude(a[0]);
+  const bLongitude = normalizeLongitude(b[0]);
+  const atPole = point => Math.abs(Math.abs(Number(point[1])) - 90) <= STROKE_EPSILON;
+  const atDateLine = longitude => Math.abs(Math.abs(longitude) - 180) <= STROKE_EPSILON;
+  return atPole(a)
+    || atPole(b)
+    || (atDateLine(aLongitude) && atDateLine(bLongitude))
+    || Math.abs(aLongitude - bLongitude) > 180;
+}
+
+function appendPolygonStrokeLines(polygon, lines) {
+  for (const ring of polygon || []) {
+    if (!Array.isArray(ring) || ring.length < 2) continue;
+    const first = ring[0];
+    const last = ring.at(-1);
+    const explicitlyClosed = Number(first?.[0]) === Number(last?.[0]) && Number(first?.[1]) === Number(last?.[1]);
+    const edgeCount = explicitlyClosed ? ring.length - 1 : ring.length;
+    for (let index = 0; index < edgeCount; index += 1) {
+      const a = ring[index];
+      const b = ring[(index + 1) % ring.length];
+      if (!Array.isArray(a) || !Array.isArray(b) || isArtificialPolygonClosureEdge(a, b)) continue;
+      lines.push([a, b]);
+    }
+  }
+}
+
+function appendStrokeLines(geometry, lines) {
+  if (!geometry) return;
+  if (geometry.type === 'Polygon') appendPolygonStrokeLines(geometry.coordinates, lines);
+  else if (geometry.type === 'MultiPolygon') {
+    for (const polygon of geometry.coordinates || []) appendPolygonStrokeLines(polygon, lines);
+  } else if (geometry.type === 'LineString') {
+    if (geometry.coordinates?.length >= 2) lines.push(geometry.coordinates);
+  } else if (geometry.type === 'MultiLineString') {
+    for (const part of geometry.coordinates || []) if (part?.length >= 2) lines.push(part);
+  } else if (geometry.type === 'GeometryCollection') {
+    for (const child of geometry.geometries || []) appendStrokeLines(child, lines);
+  }
+}
+
+function geometryHasArea(geometry) {
+  if (!geometry) return false;
+  if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') return true;
+  return geometry.type === 'GeometryCollection' && (geometry.geometries || []).some(geometryHasArea);
+}
+
+export function hasAreaGeometry(value) {
+  if (value?.type === 'FeatureCollection') return (value.features || []).some(hasAreaGeometry);
+  return geometryHasArea(value?.type === 'Feature' ? value.geometry : value);
+}
+
+export function buildRenderableStrokeFeature(value) {
+  const lines = [];
+  if (value?.type === 'FeatureCollection') {
+    for (const feature of value.features || []) appendStrokeLines(feature?.geometry, lines);
+  } else {
+    appendStrokeLines(value?.type === 'Feature' ? value.geometry : value, lines);
+  }
+  return {
+    type: 'Feature',
+    properties: value?.type === 'Feature' ? (value.properties || {}) : {},
+    geometry: { type: 'MultiLineString', coordinates: lines },
+  };
+}
 
 export function createGeometryPreviewState() {
   return { revision: 0, session: null };

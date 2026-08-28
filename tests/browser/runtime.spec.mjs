@@ -200,8 +200,8 @@ test('brand frame stays empty and every add action renders a unique icon', async
   const iconHrefs = await page.locator('#createMenu .create-menu-item use').evaluateAll(elements => (
     elements.map(element => element.getAttribute('href'))
   ));
-  expect(iconHrefs).toHaveLength(10);
-  expect(new Set(iconHrefs).size).toBe(10);
+  expect(iconHrefs).toHaveLength(8);
+  expect(new Set(iconHrefs).size).toBe(8);
   for (const href of iconHrefs) {
     expect(href).toMatch(/^#icon-/);
     await expect(page.locator(`symbol${href}`)).toHaveCount(1);
@@ -408,7 +408,8 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
         checkShadow: checkStyle.boxShadow,
         checkBackground: checkStyle.backgroundColor,
         checkBorderColor: checkStyle.borderTopColor,
-        cardsUseBase: [...document.querySelectorAll('.editor-section, .editor-danger-zone')].every(card => card.classList.contains('ui-card')),
+        flatObjectSections: [...document.querySelectorAll('.editor-object-form > .editor-section')].every(section => !section.classList.contains('ui-card')),
+        legacyCardsUseBase: [...document.querySelectorAll('.editor-view:not(.editor-object-form) .editor-section')].every(card => card.classList.contains('ui-card')),
       };
       });
       if (layout.name !== 'mobile') expect(Math.abs(geometry.itemWidth - geometry.bodyInnerWidth)).toBeLessThanOrEqual(1);
@@ -418,7 +419,8 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
       expect(geometry.checkBorder).toBe('1px');
       expect(geometry.checkShadow).toBe('none');
       expect(geometry.checkBackground).toBe(geometry.checkBorderColor);
-      expect(geometry.cardsUseBase).toBe(true);
+      expect(geometry.flatObjectSections).toBe(true);
+      expect(geometry.legacyCardsUseBase).toBe(true);
       expect(errors).toEqual([]);
     } finally {
       await context.close();
@@ -554,11 +556,14 @@ test('virtualized country deletion honors lock, undo, and autosave restore', asy
   const name = await firstRow.locator('.layer-child-name').textContent();
   const countryId = await firstRow.getAttribute('data-item-id');
   await page.locator('#countriesLocked').check({ force: true });
-  await expect(firstRow.locator('.layer-child-delete')).toBeDisabled();
+  await firstRow.locator('.layer-child-menu').click();
+  await expect(page.locator('#objectDeleteMenuBtn')).toBeDisabled();
   await page.locator('#countriesLocked').uncheck({ force: true });
 
   const deleteCountry = async () => {
-    await page.getByRole('button', { name: `${name} 삭제`, exact: true }).click();
+    const row = page.getByRole('button', { name, exact: true }).locator('..');
+    if (await page.locator('#objectActionsMenu').isHidden()) await row.locator('.layer-child-menu').click();
+    await page.locator('#objectDeleteMenuBtn').click();
     await page.locator('#confirmModalOkBtn').click();
     await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
   };
@@ -600,8 +605,9 @@ test('layer folders are grouped into scan-friendly non-collapsible categories', 
   await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지도 요소', '라벨']);
   await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '지역', '행정구역', '역사·지리 지역']);
   await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형 음영', '지형지물']);
-  await expect(categories.nth(3).locator('.layer-folder-name')).toHaveText(['도시·지명', '국가명 라벨']);
+  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형지물']);
+  await expect(categories.nth(2).locator('.layer-display-option')).toContainText('지형 음영');
+  await expect(categories.nth(3).locator('.layer-display-option')).toHaveText(['도시·지명', '국가명 라벨']);
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
@@ -622,7 +628,7 @@ test('themed dropdowns preserve native values and search long dynamic option lis
     'editor_color', 'editor_custom', 'editor_id', 'editor_name', 'editor_original_name', 'gdp_md_est',
     'id', 'iso_a3', 'map_date', 'name', 'name_long', 'object_class', 'pop_est',
   ].map((key, index) => [key, index]));
-  await page.locator('#geoJsonFileInput').setInputFiles({
+  await page.locator('#gisFileInput').setInputFiles({
     name: 'searchable-fields.geojson',
     mimeType: 'application/geo+json',
     buffer: Buffer.from(JSON.stringify({
@@ -634,9 +640,11 @@ test('themed dropdowns preserve native values and search long dynamic option lis
       }],
     })),
   });
-  await expect(page.locator('#geoJsonTargetModal')).toBeVisible();
+  await expect(page.locator('#gisImportModal')).toBeVisible();
+  await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
+  await page.locator('#gisAdvancedMapping summary').click();
 
-  const nameSelect = page.locator('#geoJsonNameField');
+  const nameSelect = page.locator('#gisNameField');
   const nameControl = nameSelect.locator('..').locator('.ui-select-control');
   await expect(nameControl).toHaveJSProperty('readOnly', false);
   await nameControl.click();
@@ -646,17 +654,17 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   await openPopover.getByRole('option', { name: 'name', exact: true }).click();
   await expect(nameSelect).toHaveValue('name');
 
-  const targetSelect = page.locator('#geoJsonTargetType');
+  const targetSelect = page.locator('#gisTargetType');
   const targetControl = targetSelect.locator('..').locator('.ui-select-control');
   await expect(targetControl).toHaveJSProperty('readOnly', true);
   await targetControl.click();
   await page.keyboard.press('Escape');
-  await expect(page.locator('#geoJsonTargetModal')).toBeVisible();
+  await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('.ui-select-popover:not([hidden])')).toHaveCount(0);
   await targetControl.click();
   await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '지역', exact: true }).click();
   await expect(targetSelect).toHaveValue('region');
-  await expect(page.locator('#geoJsonCountryFieldRow')).toBeVisible();
+  await expect(page.locator('#gisCountryFieldRow')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -773,14 +781,15 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
     }],
   });
   const importFile = async name => {
-    await page.locator('#geoJsonFileInput').setInputFiles({
+    await page.locator('#gisFileInput').setInputFiles({
       name: `${name}.geojson`,
       mimeType: 'application/geo+json',
       buffer: Buffer.from(featureCollection(name)),
     });
-    await expect(page.locator('#geoJsonTargetModal')).toBeVisible();
-    await expect(page.locator('#geoJsonTargetType')).toHaveValue('drawing');
-    await page.locator('#geoJsonTargetConfirmBtn').click();
+    await expect(page.locator('#gisImportModal')).toBeVisible();
+    await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
+    await expect(page.locator('#gisTargetType')).toHaveValue('drawing');
+    await page.locator('#gisImportConfirmBtn').click();
     const folder = page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: name });
     await expect(folder).toHaveCount(1);
     expect(await folder.evaluate(element => element.parentElement?.id)).toBe('mapElementsLayerItems');
@@ -789,14 +798,16 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
   };
 
   const disposable = await importFile('삭제확인');
-  await disposable.locator('.layer-child-name').click();
-  await disposable.locator('.layer-child-delete').click();
+  await disposable.locator('.layer-child-menu').click();
+  await page.locator('#objectDeleteMenuBtn').click();
+  await page.locator('#confirmModalOkBtn').click();
   await expect(page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: '삭제확인' })).toHaveCount(0);
 
   const target = await importFile('이동대상');
   const source = await importFile('이동원본');
   const targetId = await target.getAttribute('data-drawing-folder-id');
   await source.locator('.layer-child-name').click();
+  await page.locator('#drawingProperties details').first().locator('summary').click();
   await page.locator('#drawingFolderInput').selectOption(targetId);
   await expect(page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: '이동원본' })).toHaveCount(0);
   const updatedTarget = page.locator(`.layer-folder[data-drawing-folder-id="${targetId}"]`);
@@ -825,13 +836,15 @@ test('GeoJSON polygon imports create dedicated country regions with inferred own
     }],
   });
 
-  await page.locator('#geoJsonFileInput').setInputFiles({
+  await page.locator('#gisFileInput').setInputFiles({
     name: 'region-smoke.geojson',
     mimeType: 'application/geo+json',
     buffer: Buffer.from(polygon),
   });
-  await page.locator('#geoJsonTargetType').selectOption('region');
-  await page.locator('#geoJsonTargetConfirmBtn').click();
+  await expect(page.locator('#gisImportModal')).toBeVisible();
+  await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
+  await page.locator('#gisTargetType').selectOption('region');
+  await page.locator('#gisImportConfirmBtn').click();
 
   const regionToggle = page.locator('[data-layer-folder-toggle="regions"]').first();
   if (await regionToggle.getAttribute('aria-expanded') !== 'true') await regionToggle.click();
@@ -847,7 +860,8 @@ test('GeoJSON polygon imports create dedicated country regions with inferred own
   await expect(page.locator('#regionsLayerChildren .layer-child')).toHaveCount(2);
 
   const importedRow = page.locator('#regionsLayerChildren .layer-child').filter({ hasText: '시험 지역' });
-  await importedRow.locator('.layer-child-delete').click();
+  await importedRow.locator('.layer-child-menu').click();
+  await page.locator('#objectDeleteMenuBtn').click();
   await expect(page.locator('#confirmModalChoice')).toHaveValue('unassigned');
   await expect(page.locator('#confirmModalChoice option')).toHaveText(['미지정 영역으로 전환', '이 단계의 영역 구분 전체 해제']);
   await page.locator('#confirmModalOkBtn').click();
