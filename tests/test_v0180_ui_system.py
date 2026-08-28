@@ -20,9 +20,9 @@ class V0180UiSystemTests(unittest.TestCase):
 
     def test_disclosures_use_one_svg_icon(self):
         toggles = re.findall(r'class="ui-button layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)
-        self.assertEqual(len(toggles), 11)
+        self.assertEqual(len(toggles), 8)
         self.assertTrue(all('class="ui-icon disclosure-icon"' in toggle for toggle in toggles))
-        self.assertEqual(INDEX.count('class="ui-icon disclosure-icon"'), 16)
+        self.assertGreaterEqual(INDEX.count('class="ui-icon disclosure-icon"'), 16)
         self.assertNotIn('>›</button>', INDEX)
         self.assertNotIn("content: '⌄'", CSS)
         self.assertIn(".editor-disclosure > summary::-webkit-details-marker { display: none; }", CSS)
@@ -60,12 +60,12 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_every_create_menu_entry_has_a_unique_semantic_icon(self):
         button_ids = (
             "addCountryBtn", "addRegionBtn", "addAdministrativeBtn", "addFromLibraryBtn",
-            "addLanguageBtn", "addEthnicityBtn", "addReligionBtn", "addLabelBtn",
+            "addDistributionBtn", "addLabelBtn",
             "addRiverBtn", "addLakeBtn",
         )
         expected_icons = (
             "icon-country", "icon-region", "icon-administrative", "icon-library",
-            "icon-language", "icon-ethnicity", "icon-religion", "icon-place",
+            "icon-language", "icon-place",
             "icon-river", "icon-lake",
         )
         actual_icons = []

@@ -35,7 +35,7 @@ class StatusLayoutV0191Tests(unittest.TestCase):
     def test_separators_and_mobile_coordinate_priority_follow_visibility(self):
         self.assertIn(".status-group:not(.hidden) ~ .status-group:not(.hidden)::before", CSS)
         self.assertIn(".status-item:not(.hidden) ~ .status-item:not(.hidden)::before", CSS)
-        self.assertIn(".status-view.coordinates-active #zoomStatus { display: none; }", CSS)
+        self.assertNotIn("#zoomStatus", INDEX + APP + CSS)
         self.assertIn("$('statusView')?.classList.toggle('coordinates-active', showCoordinates);", APP)
 
     def test_version_is_updated(self):

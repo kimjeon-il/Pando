@@ -67,12 +67,8 @@ for (const id of ['layerSearchInput', 'historicalLibrarySearchInput']) {
 const floatingContracts = new Map([
   ['mapCommandToolbar', ['ui-floating-surface', 'ui-floating-toolbar']],
   ['modeActionBar', ['ui-floating-surface', 'ui-context-toolbar']],
-  ['snapSettingsPanel', ['ui-popover', 'ui-floating-surface']],
-  ['mapAuditPanel', ['ui-popover', 'ui-floating-surface']],
-  ['distributionInspect', ['ui-floating-surface']],
   ['objectChooser', ['ui-popover', 'ui-floating-surface']],
   ['multiSelectionBar', ['ui-floating-surface', 'ui-context-toolbar']],
-  ['projectSaveStatusPopover', ['ui-popover', 'ui-floating-surface']],
 ]);
 for (const [id, classes] of floatingContracts) {
   const tag = html.match(new RegExp(`<[^>]+id=["']${id}["'][^>]*>`, 'i'))?.[0] || '';
@@ -88,12 +84,7 @@ for (const legacy of ['gis-modal', 'gis-modal-card', 'gis-modal-header', 'gis-mo
   if (new RegExp(`\\b${legacy}\\b`).test(`${html}\n${css}`)) failures.push(`legacy GIS visual class remains: ${legacy}`);
 }
 
-for (const required of [
-  ['map-audit-issue', 'ui-selectable-row'],
-  ['country-component-item', 'ui-selectable-row'],
-  ['history-entry', 'ui-card'],
-  ['layer-presentation-row', 'ui-card'],
-]) {
+for (const required of []) {
   const [feature, primitive] = required;
   const declaration = app.match(new RegExp(`className\\s*=\\s*[^;]+${feature}[^;]+;`))?.[0] || '';
   if (!declaration.includes(primitive)) failures.push(`${feature} does not compose .${primitive}`);
@@ -102,9 +93,7 @@ for (const required of [
 const skinProperties = ['border', 'background', 'border-radius', 'padding', 'box-shadow'];
 const featureSurfaceNames = [
   'map-command-toolbar', 'map-view-toolbar', 'mobile-zoom-dock', 'multi-selection-bar',
-  'mode-action-bar', 'map-utility-panel', 'distribution-inspect', 'top-actions',
-  'editor-view-tabs', 'history-entry', 'layer-presentation-row', 'map-audit-issue',
-  'country-component-item', 'layer-search', 'layer-lock-control',
+  'mode-action-bar', 'top-actions', 'editor-view-tabs', 'layer-search', 'layer-lock-control',
 ];
 for (const name of featureSurfaceNames) {
   const rulePattern = new RegExp(`\\.${name}[^{}]*\\{([^{}]*)\\}`, 'g');

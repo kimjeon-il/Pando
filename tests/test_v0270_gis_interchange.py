@@ -37,12 +37,16 @@ class V0270GisInterchangeTests(unittest.TestCase):
         self.assertIn("region_id", ADAPTERS)
         self.assertIn("assert.deepEqual(state, before)", (ROOT / "tests" / "unit" / "gis-adapters.test.mjs").read_text(encoding="utf-8"))
 
-    def test_geojson_targets_cover_all_new_domains(self):
-        target = INDEX[INDEX.index('id="geoJsonTargetType"'):INDEX.index('</select>', INDEX.index('id="geoJsonTargetType"'))]
-        for value in ("region", "administrative", "historicalRegion", "language", "ethnicity", "religion"):
+    def test_unified_vector_targets_cover_all_new_domains(self):
+        target = INDEX[INDEX.index('id="gisTargetType"'):INDEX.index('</select>', INDEX.index('id="gisTargetType"'))]
+        for value in ("country", "drawing", "region", "administrative", "historicalRegion", "distribution"):
             self.assertIn(f'<option value="{value}">', target)
+        subtype = INDEX[INDEX.index('id="gisDistributionType"'):INDEX.index('</select>', INDEX.index('id="gisDistributionType"'))]
+        for value in ("language", "ethnicity", "religion"):
+            self.assertIn(f'<option value="{value}">', subtype)
         self.assertIn("function importGeoJsonHistoricalRegions", APP)
         self.assertIn("function importGeoJsonDistributions", APP)
+        self.assertIn("normalizeImportPlan", GIS)
 
     def test_stable_ids_are_preserved_and_duplicate_ids_are_rejected(self):
         self.assertIn("properties.entry_id", ADAPTERS)
