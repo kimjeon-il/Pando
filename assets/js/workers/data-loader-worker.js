@@ -1,7 +1,7 @@
-import { resolveStartupLoadPolicy } from '../modules/startup-readiness.js?v=0.30.0-r5';
+import { resolveStartupLoadPolicy } from '../modules/startup-readiness.js?v=0.30.0-r8';
 
 const BUILD_ID = '0.30.0';
-const ASSET_REVISION = '0.30.0-r5';
+const ASSET_REVISION = '0.30.0-r8';
 const CORE_CACHE_PREFIX = 'pandolab-core-';
 const CORE_CACHE_NAME = `${CORE_CACHE_PREFIX}${ASSET_REVISION}`;
 const params = new URL(self.location.href).searchParams;
@@ -145,9 +145,12 @@ function resolveAssetUrl(spec) {
 
 function validateAssetLength(result, spec, label) {
   const expected = Number(spec.decodedBytes || 0);
-  if (expected > 0 && result.buffer.byteLength !== expected) {
-    throw new Error(`${label} 압축 해제 크기가 올바르지 않습니다.`);
+  if (expected <= 0 || result.buffer.byteLength === expected) return;
+  if (spec.encoding === 'identity') {
+    const normalized = new TextDecoder().decode(result.buffer).replaceAll('\r\n', '\n');
+    if (new TextEncoder().encode(normalized).byteLength === expected) return;
   }
+  throw new Error(`${label} 압축 해제 크기가 올바르지 않습니다.`);
 }
 
 async function loadAsset(spec, phase, key, label, validate, signal = null) {

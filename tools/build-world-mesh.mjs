@@ -58,6 +58,24 @@ function validatePackedGeometry(mesh) {
       vectors[a * 3 + 2] * vectors[b * 3 + 2]));
     return Math.acos(dot) * 180 / Math.PI;
   };
+  const triangleNormalSquared = (a, b, c) => {
+    const ab = [
+      vectors[b * 3] - vectors[a * 3],
+      vectors[b * 3 + 1] - vectors[a * 3 + 1],
+      vectors[b * 3 + 2] - vectors[a * 3 + 2],
+    ];
+    const ac = [
+      vectors[c * 3] - vectors[a * 3],
+      vectors[c * 3 + 1] - vectors[a * 3 + 1],
+      vectors[c * 3 + 2] - vectors[a * 3 + 2],
+    ];
+    const cross = [
+      ab[1] * ac[2] - ab[2] * ac[1],
+      ab[2] * ac[0] - ab[0] * ac[2],
+      ab[0] * ac[1] - ab[1] * ac[0],
+    ];
+    return cross[0] ** 2 + cross[1] ** 2 + cross[2] ** 2;
+  };
   let maximumTriangleEdge = 0;
   const triangleKeys = new Set();
   for (let index = 0; index < mesh.triangleIndices.length; index += 3) {
@@ -67,6 +85,7 @@ function validatePackedGeometry(mesh) {
     if (a === b || b === c || c === a) throw new Error(`영면적 삼각형 인덱스가 있습니다: ${index / 3}`);
     const coordinateKeys = [a, b, c].map(vertex => `${mesh.positions[vertex * 2]},${mesh.positions[vertex * 2 + 1]}`);
     if (new Set(coordinateKeys).size < 3) throw new Error(`패킹 후 겹친 꼭짓점이 있습니다: ${index / 3}`);
+    if (triangleNormalSquared(a, b, c) <= 1e-32) throw new Error(`패킹 후 영면적 삼각형이 있습니다: ${index / 3}`);
     const triangleKey = [a, b, c].sort((left, right) => left - right).join(':');
     if (triangleKeys.has(triangleKey)) throw new Error(`중복 삼각형이 있습니다: ${index / 3}`);
     triangleKeys.add(triangleKey);
@@ -82,12 +101,16 @@ function validatePackedGeometry(mesh) {
     const a = mesh.lineIndices[index];
     const b = mesh.lineIndices[index + 1];
     if (a === b) throw new Error(`영길이 국경선 인덱스가 있습니다: ${index / 2}`);
+    if (mesh.positions[a * 2] === mesh.positions[b * 2]
+        && mesh.positions[a * 2 + 1] === mesh.positions[b * 2 + 1]) {
+      throw new Error(`패킹 후 영길이 국경선이 있습니다: ${index / 2}`);
+    }
     if (mesh.countryIndices[a] !== mesh.countryIndices[b]) throw new Error(`서로 다른 국가를 잇는 국경선이 있습니다: ${index / 2}`);
   }
   return maximumTriangleEdge;
 }
 
-const sourceBytes = fs.readFileSync(sourcePath);
+const sourceBytes = Buffer.from(fs.readFileSync(sourcePath, 'utf8').replaceAll('\r\n', '\n'));
 const countries = JSON.parse(sourceBytes.toString('utf8'));
 if (countries?.type !== 'FeatureCollection' || countries.features?.length !== 258) {
   throw new Error('Natural Earth 국가 데이터는 정확히 258개여야 합니다.');
@@ -95,7 +118,7 @@ if (countries?.type !== 'FeatureCollection' || countries.features?.length !== 25
 const ids = countries.features.map((feature, index) => String(feature.properties?.editor_id || feature.properties?.iso_a3 || index));
 if (new Set(ids).size !== ids.length) throw new Error('국가 ID가 중복되었습니다.');
 const sourceCoordinateCount = countCoordinates(countries.features.map(feature => feature.geometry?.coordinates));
-if (sourceCoordinateCount !== 548466) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);
+if (sourceCoordinateCount !== 548464) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);
 
 const startedAt = performance.now();
 const mesh = meshCore.buildGpuMeshFeatures(countries.features, earcut, { validate: true });

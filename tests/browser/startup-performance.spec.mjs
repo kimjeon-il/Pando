@@ -1,5 +1,60 @@
 import { expect, test } from '@playwright/test';
 
+// The canonical map contains more than half a million coordinates. Retained
+// Playwright DOM snapshots can stall for minutes after the enhanced handoff;
+// explicit screenshots still preserve visual evidence for geometry regressions.
+test.use({ trace: 'off' });
+
+async function runDebugAudit(page) {
+  const panel = page.locator('#debugMapPanel');
+  await panel.getByRole('button', { name: '전체 지도 검사' }).evaluateAll(buttons => buttons.at(-1)?.click());
+  await expect.poll(
+    () => panel.locator('pre').evaluateAll(nodes => nodes.at(-1)?.textContent || ''),
+    { timeout: 120_000 },
+  ).toContain('audit: ready / 0 issues');
+}
+
+async function prepareCountryInLayerSearch(page, name) {
+  if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
+  await page.locator('#layerSearchInput').fill(name);
+  const result = page.getByRole('option').filter({ hasText: name }).first();
+  await expect(result).toBeVisible();
+  return result;
+}
+
+async function focusCountryFromLayerSearch(page, name) {
+  const result = await prepareCountryInLayerSearch(page, name);
+  await result.dblclick();
+}
+
+async function attachMapSnapshot(page, testInfo, name) {
+  const body = await page.locator('#map').screenshot({ animations: 'disabled' });
+  await testInfo.attach(name, { body, contentType: 'image/png' });
+}
+
+function trackBrowserErrors(page) {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => {
+    const value = message.text();
+    if (message.type() === 'warning' && /^\[\.WebGL-.*GPU stall due to ReadPixels/.test(value)) return;
+    if (['warning', 'warn', 'error'].includes(message.type())) errors.push(`${message.type()}: ${value}`);
+  });
+  return errors;
+}
+
+async function gateCanonicalAssets(page) {
+  let releaseCanonical;
+  const canonicalGate = new Promise(resolve => { releaseCanonical = resolve; });
+  for (const pattern of ['**/countries-ne-5.1.1.geojson.gz*', '**/world-mesh-v0.12.6.bin.gz*']) {
+    await page.route(pattern, async route => {
+      await canonicalGate;
+      await route.continue();
+    });
+  }
+  return releaseCanonical;
+}
+
 test('geometry becomes editable while the high-quality mesh is delayed, then upgrades in place', async ({ page }) => {
   test.setTimeout(240_000);
   const errors = [];
@@ -82,6 +137,54 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   expect(errors).toEqual([]);
 });
 
+test.describe('canonical handoff geometry regression', () => {
+  test('preview map keeps Egypt and Borneo valid while canonical assets are delayed', async ({ page }, testInfo) => {
+    test.setTimeout(180_000);
+    const errors = trackBrowserErrors(page);
+    await gateCanonicalAssets(page);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/?debug');
+    await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
+    await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
+    await page.locator('#flatBtn').click();
+    await runDebugAudit(page);
+
+    await focusCountryFromLayerSearch(page, '이집트');
+    await attachMapSnapshot(page, testInfo, 'egypt-preview');
+    await focusCountryFromLayerSearch(page, '브루나이');
+    await attachMapSnapshot(page, testInfo, 'borneo-preview');
+    expect(errors).toEqual([]);
+  });
+
+  test('enhanced map audit stays valid after canonical handoff', async ({ page }) => {
+    test.setTimeout(240_000);
+    const errors = trackBrowserErrors(page);
+    const releaseCanonical = await gateCanonicalAssets(page);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/?debug');
+    await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
+    await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
+    await page.locator('#flatBtn').click();
+
+    releaseCanonical();
+    await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.pendingCountryCount || 0), {
+      timeout: 45_000,
+    }).toBe(0);
+    await expect.poll(() => page.evaluate(() => {
+      const metrics = window.__PANDOLAB_GPU_METRICS__ || {};
+      return metrics.displayedRevision === metrics.requestedRevision;
+    }), {
+      timeout: 45_000,
+    }).toBe(true);
+
+    await runDebugAudit(page);
+    expect(errors).toEqual([]);
+  });
+});
+
 test('Android-density mobile viewport caps the map backing store at DPR two', async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -123,8 +226,8 @@ test('a damaged cached country asset is deleted and recovered from the network',
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(async () => {
-    const cache = await caches.open('pandolab-core-0.30.0-r5');
-    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r5', location.href);
+    const cache = await caches.open('pandolab-core-0.30.0-r8');
+    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r8', location.href);
     await cache.put(url, new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'Content-Type': 'application/gzip' } }));
   });
   let recoveryRequests = 0;

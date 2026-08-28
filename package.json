@@ -5,8 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@11.19.0",
   "scripts": {
-    "build:preview": "node tools/build-world-preview.mjs",
-    "check:preview": "node tools/build-world-preview.mjs --check",
+    "build:mesh": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-mesh.mjs",
+    "build:preview": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-preview.mjs && python tools/validate-country-geometry.py",
+    "build:map-assets": "pnpm build:mesh && pnpm build:preview",
+    "check:preview": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-preview.mjs --check && python tools/validate-country-geometry.py",
     "lint": "eslint assets/js tests/browser tests/unit scripts playwright.config.js eslint.config.js",
     "check:js": "node scripts/check-js.mjs",
     "check:ui-spacing": "node scripts/check-ui-spacing.mjs",
