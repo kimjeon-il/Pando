@@ -11847,6 +11847,7 @@ const {
   let gisGeometryWorker = null;
   let gisGeometrySequence = 0;
   const gisGeometryPending = new Map();
+  const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
 
   function getGisGeometryWorker() {
     if (gisGeometryWorker) return gisGeometryWorker;
@@ -11855,12 +11856,16 @@ const {
       const pending = gisGeometryPending.get(event.data?.id);
       if (!pending) return;
       gisGeometryPending.delete(event.data.id);
+      clearTimeout(pending.timeoutId);
       if (event.data.ok) pending.resolve(event.data);
       else pending.reject(new Error(event.data.error || 'GIS 지오메트리 검증에 실패했습니다.'));
     };
     gisGeometryWorker.onerror = event => {
       const error = new Error(event.message || 'GIS 지오메트리 Worker 오류');
-      for (const pending of gisGeometryPending.values()) pending.reject(error);
+      for (const pending of gisGeometryPending.values()) {
+        clearTimeout(pending.timeoutId);
+        pending.reject(error);
+      }
       gisGeometryPending.clear();
       gisGeometryWorker?.terminate();
       gisGeometryWorker = null;
@@ -11868,12 +11873,32 @@ const {
     return gisGeometryWorker;
   }
 
-  function validateGisCountryCollection(collection) {
+  function validateGisCountryCollection(collection, affectedIds = null) {
     return new Promise((resolve, reject) => {
       const worker = getGisGeometryWorker();
       const id = ++gisGeometrySequence;
-      gisGeometryPending.set(id, { resolve, reject });
-      worker.postMessage({ id, action: 'validate', collection });
+      const scopedIds = affectedIds
+        ? [...new Set([...affectedIds].map(String).filter(Boolean))]
+        : null;
+      const timeoutId = setTimeout(() => {
+        if (!gisGeometryPending.delete(id)) return;
+        reject(new Error('GIS 국가 경계 검사가 제한 시간 안에 끝나지 않았습니다.'));
+        const timeoutError = new Error('GIS 국가 경계 Worker가 응답하지 않아 검사를 중단했습니다.');
+        for (const pending of gisGeometryPending.values()) {
+          clearTimeout(pending.timeoutId);
+          pending.reject(timeoutError);
+        }
+        gisGeometryPending.clear();
+        gisGeometryWorker?.terminate();
+        gisGeometryWorker = null;
+      }, GIS_GEOMETRY_TIMEOUT_MS);
+      gisGeometryPending.set(id, { resolve, reject, timeoutId });
+      worker.postMessage({
+        id,
+        action: 'validate',
+        collection,
+        affectedIds: scopedIds?.length ? scopedIds : null,
+      });
     });
   }
 
@@ -11891,6 +11916,7 @@ const {
     const currentById = new Map(current.map(feature => [String(feature.properties?.editor_id || ''), feature]));
     const importedById = new Map(imported.map(feature => [String(feature.properties?.editor_id || ''), feature]));
     const importedIds = new Set(importedById.keys());
+    const affectedIds = new Set(importedIds);
     const matched = [...importedIds].filter(id => currentById.has(id)).length;
     const added = imported.length - matched;
     const counts = { matched, added, replaced: 0, subtracted: 0, deleted: 0, overlapAreaKm2: 0, residualOverlapAreaKm2: 0 };
@@ -11909,7 +11935,12 @@ const {
           counts.overlapAreaKm2 += geometryAreaKm2(overlap);
         }
       }
-      return { countriesData: { type: 'FeatureCollection', features: result }, counts, canCommit: counts.overlapAreaKm2 <= 0.001 };
+      return {
+        countriesData: { type: 'FeatureCollection', features: result },
+        counts,
+        affectedIds: [...affectedIds],
+        canCommit: counts.overlapAreaKm2 <= 0.001,
+      };
     }
 
     const importedRawUnion = normalizeClippedLandGeometry(clipper.union(...imported.map(feature => feature.geometry.coordinates)));
@@ -11929,6 +11960,7 @@ const {
       }
       counts.overlapAreaKm2 += geometryAreaKm2(overlap);
       const remainder = normalizeClippedLandGeometry(clipper.difference(existing.geometry.coordinates, importedRawUnion.coordinates));
+      affectedIds.add(id);
       counts.subtracted += 1;
       if (!remainder) { counts.deleted += 1; continue; }
       existing.geometry = remainder;
@@ -11944,8 +11976,8 @@ const {
       result.push(mergeImportedCountryProperties(existing, incoming, geometry));
     }
     const countriesData = { type: 'FeatureCollection', features: result };
-    counts.residualOverlapAreaKm2 = (await validateGisCountryCollection(countriesData)).overlapAreaKm2;
-    return { countriesData, counts, canCommit: counts.residualOverlapAreaKm2 <= 0.001 };
+    counts.residualOverlapAreaKm2 = (await validateGisCountryCollection(countriesData, affectedIds)).overlapAreaKm2;
+    return { countriesData, counts, affectedIds: [...affectedIds], canCommit: counts.residualOverlapAreaKm2 <= 0.001 };
   }
 
   function applyGpkgAssets(metadata, overrides) {
@@ -12006,7 +12038,6 @@ const {
 
   function commitGisMerge(result, plan) {
     const before = snapshotEditable();
-    const beforeIds = (state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''));
     state.sourceInfo = appendSourceInfo(state.sourceInfo, result.sourceInfo);
     const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || '')));
     const packagedOverrides = applyGpkgAssets(result.atlasMetadata, {
@@ -12024,7 +12055,7 @@ const {
     state.countriesData = reindexCountries(deepClone(plan.countriesData), true);
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
-    markCountryGeometriesChanged([...beforeIds, ...importedIds, ...state.countriesData.features.map(feature => String(feature.properties?.editor_id || ''))]);
+    markCountryGeometriesChanged(plan.affectedIds || importedIds);
     commitHistorySnapshot(before);
     clearSelection(false);
     renderAll();
@@ -12073,7 +12104,11 @@ const {
       setActionStatus('국가 경계 확인 중…', 'working', 0);
       const structuredIssues = (result.countriesData?.features || []).flatMap(validateStructuredGeometry);
       if (structuredIssues.length) throw new Error(`가져온 geometry가 올바르지 않습니다. ${structuredIssues[0].message}`);
-      const importedOverlapAreaKm2 = (await validateGisCountryCollection(result.countriesData)).overlapAreaKm2;
+      const importedFeatures = result.countriesData?.features || [];
+      const importedOverlapAreaKm2 = (await validateGisCountryCollection(
+        result.countriesData,
+        importedFeatures.map(featureCountryId),
+      )).overlapAreaKm2;
       if (importedOverlapAreaKm2 > 0.001) throw new Error(`가져온 레이어 안에서 서로 다른 국가가 ${Math.round(importedOverlapAreaKm2).toLocaleString()} km² 겹칩니다.`);
       if (result.openMode === 'replace') {
         applyImportedReplacement(result);
