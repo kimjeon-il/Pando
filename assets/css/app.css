@@ -3236,6 +3236,7 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
   min-height: var(--ui-control-height);
 }
 .multi-selection-bar > strong { padding-inline: var(--ui-space-2); white-space: nowrap; }
+#multiSelectionModeBtn { display: none; }
 
 .editor-view-tabs {
   flex: 0 0 auto;
@@ -3331,6 +3332,11 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 }
 #app[data-layout="mobile"] .multi-selection-bar > button,
 #app[data-layout="mobile"] .multi-selection-bar > label { flex: 0 0 auto; min-height: var(--ui-touch-height); }
+#app[data-layout="mobile"] #multiSelectionModeBtn { display: inline-flex; }
+#app[data-layout="mobile"] #multiSelectionModeBtn[aria-pressed="true"] {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
 #app[data-layout="mobile"] .object-chooser {
   position: fixed;
   top: auto;

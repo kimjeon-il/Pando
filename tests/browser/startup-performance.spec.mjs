@@ -24,7 +24,8 @@ async function prepareCountryInLayerSearch(page, name) {
 
 async function focusCountryFromLayerSearch(page, name) {
   const result = await prepareCountryInLayerSearch(page, name);
-  await result.dblclick();
+  await result.click();
+  await page.locator('#focusSelectedObjectBtn').click();
 }
 
 async function attachMapSnapshot(page, testInfo, name) {

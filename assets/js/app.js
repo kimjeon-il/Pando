@@ -414,7 +414,7 @@ const {
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
-    'multiSelectionBar', 'multiSelectionCount', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
+    'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn',
     'gisTargetCountry', 'gisParentRegion', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibrarySearchClearBtn', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
@@ -1070,7 +1070,7 @@ const {
     historicalLibraryLoadState: 'idle',
     drawingFolders: [],
     selected: null,
-    selectionMode: false,
+    addSelectionMode: false,
     projection: 'globe',
     layerVisibility: {
       countries: true,
@@ -1229,14 +1229,13 @@ const {
     onChange: selection => {
       const primary = selection.items.find(item => item.key === selection.primaryKey) || null;
       state.selected = primary ? legacySelectionFromObjectRef(primary) : null;
-      state.selectionMode = selection.items.length > 1 || state.selectionMode && selection.items.length > 0;
+      if (!selection.items.length) state.addSelectionMode = false;
       syncSelectionSummary(selection);
     },
   });
   const saveState = createSaveStateController({ onChange: syncProjectSaveStatus });
 
   let objectChooserCandidates = [];
-  let overlapCycle = { signature: '', index: -1, point: null };
   let layerSearchTimer = 0;
 
   function legacySelectionFromObjectRef(value) {
@@ -1358,6 +1357,12 @@ const {
     const count = selection.items.length;
     const multiple = count > 1;
     for (const id of ['multiSelectionCount', 'multiPropertiesCount']) if ($(id)) $(id).textContent = `${count}개 선택됨`;
+    const modeButton = $('multiSelectionModeBtn');
+    if (modeButton) {
+      modeButton.textContent = state.addSelectionMode ? '선택 완료' : '추가 선택';
+      modeButton.setAttribute('aria-pressed', String(state.addSelectionMode));
+      modeButton.disabled = count === 0;
+    }
     document.body.classList.toggle('multi-selection-active', multiple);
     if (multiple) {
       const types = [...new Set(selection.items.map(item => objectDisplayInfo(item).type))];
@@ -1711,7 +1716,7 @@ const {
         objectSelection.clear();
         objectSelectionSyncing = false;
         state.selected = null;
-        state.selectionMode = false;
+        state.addSelectionMode = false;
         showPropertyForm(null);
         markLayerTreeDirty();
         renderAll();
@@ -2118,7 +2123,7 @@ const {
   const CANONICAL_CONTROL_SELECTOR = [
     '#createMenu .create-menu-item',
     '#rightPanel input', '#rightPanel select', '#rightPanel textarea',
-    '#rightPanel button:not(.sheet-close-btn)',
+    '#rightPanel button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
     '.top-actions button', '.top-actions input',
     '#undoBtn', '#redoBtn',
     '.layer-child-menu', '.layer-folder-lock',
@@ -5635,8 +5640,7 @@ const {
       .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }))
       .classed('coast', d => d.kind === 'coast')
       .classed('shared', d => d.kind === 'shared')
-      .on('click.vertex-add', null)
-      .on('dblclick.vertex-add', null);
+      .on('click.vertex-add', null);
   }
 
   function thinVisibleCoastHandles(handles) {
@@ -5843,10 +5847,6 @@ const {
         d3.event.preventDefault();
         d3.event.stopPropagation();
         insertDraftPoint();
-      })
-      .on('dblclick', function() {
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
       });
   }
 
@@ -6002,10 +6002,6 @@ const {
         d3.event.preventDefault();
         d3.event.stopPropagation();
         showDraftInsertTarget(row, d3.mouse(svg.node()));
-      })
-      .on('dblclick', function() {
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
       });
     segmentHits.append('title').text('선분에 꼭짓점 삽입');
     const visible = fixedDisplayCoords.map((coord, index) => ({ coord, index })).filter(item => isCoordVisible(item.coord));
@@ -6024,10 +6020,6 @@ const {
         state.draftEdit.insertTarget = null;
         renderDraft();
         updateModeButtons();
-      })
-      .on('dblclick', function() {
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
       });
     vertices.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile() ? 16 : 10);
     vertices.append('circle').attr('class', 'draft-vertex-dot').attr('r', isMobile() ? 6.5 : 4.5);
@@ -6527,17 +6519,6 @@ const {
       handleMapClick(d3.mouse(this));
     });
 
-    svg.on('dblclick', function() {
-      const newCountryLineMode = state.tool === 'new-country' && state.newCountryPhase === 'line';
-      if ((isDrawingDraftTool(state.tool) || newCountryLineMode || (state.tool === 'annex-territory' && state.annexPhase === 'line')) && state.draftCoords.length) {
-        d3.event.preventDefault();
-        finishDraft();
-      } else if (state.tool === 'select' && !isMobile() && objectSelection.primary()) {
-        d3.event.preventDefault();
-        focusObjectRef(objectSelection.primary());
-      }
-    });
-
     svg.on('mousemove', function() {
       if (state.draftStroke.active) return;
       if (d3.event.target?.closest?.('.draft-interactive') || state.draftEdit.dragging) {
@@ -6586,34 +6567,6 @@ const {
         renderHoverOverlay();
       }
     });
-
-    let mapLongPress = null;
-    svg.node().addEventListener('pointerdown', event => {
-      if (!isMobile() || event.pointerType === 'mouse' || state.tool !== 'select' || event.isPrimary === false) return;
-      const rect = svg.node().getBoundingClientRect();
-      const point = [event.clientX - rect.left, event.clientY - rect.top];
-      const timer = window.setTimeout(() => {
-        state.selectionMode = true;
-        suppressNextMapClick(point);
-        handleObjectSelectionAt(point, { sourceEvent: { ctrlKey: true } });
-        navigator.vibrate?.(16);
-        mapLongPress = null;
-      }, 450);
-      mapLongPress = { pointerId: event.pointerId, point, timer };
-    }, { passive: true });
-    svg.node().addEventListener('pointermove', event => {
-      if (!mapLongPress || mapLongPress.pointerId !== event.pointerId) return;
-      const rect = svg.node().getBoundingClientRect();
-      const point = [event.clientX - rect.left, event.clientY - rect.top];
-      if (projectedPointDistance(point, mapLongPress.point) <= 8) return;
-      clearTimeout(mapLongPress.timer);
-      mapLongPress = null;
-    }, { passive: true });
-    for (const type of ['pointerup', 'pointercancel']) svg.node().addEventListener(type, event => {
-      if (!mapLongPress || mapLongPress.pointerId !== event.pointerId) return;
-      clearTimeout(mapLongPress.timer);
-      mapLongPress = null;
-    }, { passive: true });
 
     svg.on('mouseleave', function() {
       state.draftHover = null;
@@ -6800,9 +6753,10 @@ const {
 
   function syncMapContextSurfaces() {
     const editing = mapModeContextActive();
-    const multiple = objectSelection.snapshot().items.length > 1;
+    const selectionCount = objectSelection.snapshot().items.length;
+    const showSelection = selectionCount > 1 || (isMobile() && selectionCount > 0);
     $('modeEditingContext')?.classList.toggle('hidden', !editing);
-    $('multiSelectionBar')?.classList.toggle('hidden', editing || !multiple);
+    $('multiSelectionBar')?.classList.toggle('hidden', editing || !showSelection);
     requestAnimationFrame(syncMapHudBounds);
   }
 
@@ -7986,18 +7940,14 @@ const {
       clearSelection();
       return false;
     }
-    const signature = candidates.map(candidate => candidate.key).join('|');
     const event = sourceEvent?.sourceEvent || sourceEvent || {};
-    let target = normalizedForced || candidates[0];
-    if (event.altKey && candidates.length > 1) {
-      const samePlace = overlapCycle.point && projectedPointDistance(overlapCycle.point, screenPoint) <= 8;
-      const index = overlapCycle.signature === signature && samePlace ? (overlapCycle.index + 1) % candidates.length : 0;
-      overlapCycle = { signature, index, point: screenPoint.slice() };
-      target = candidates[index];
+    if (candidates.length > 1) {
+      openObjectChooser(candidates, screenPoint);
+      return true;
     }
-    const mode = event.ctrlKey || event.metaKey || state.selectionMode ? 'toggle' : 'replace';
+    const target = normalizedForced || candidates[0];
+    const mode = event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace';
     applyObjectSelection(target, { mode, scope: 'map' });
-    if (candidates.length > 1) openObjectChooser(candidates, screenPoint);
     return true;
   }
 
@@ -9608,7 +9558,7 @@ const {
   function clearSelection(announce = true) {
     if (!objectSelectionSyncing) objectSelection.clear();
     state.selected = null;
-    state.selectionMode = false;
+    state.addSelectionMode = false;
     $('selectionStatus').textContent = '';
     showPropertyForm(null);
     syncCountryActionButtons();
@@ -13280,11 +13230,6 @@ const {
     return applyObjectSelection(ref, { mode: range ? 'range' : mode, orderedRefs, scope: `layer:${group}` });
   }
 
-  function focusLayerTreeItem(group, id) {
-    const ref = layerItemObjectRef(group, id);
-    return ref ? focusObjectRef(ref) : false;
-  }
-
   function resetView() {
     if (state.projection === 'globe') {
       state.view.globeRotation = [-15, -25, 0];
@@ -13351,7 +13296,7 @@ const {
       const button = event.target.closest('[data-object-chooser-index]');
       const ref = button ? objectChooserCandidates[Number(button.dataset.objectChooserIndex)] : null;
       if (!ref) return;
-      applyObjectSelection(ref, { mode: event.ctrlKey || event.metaKey || state.selectionMode ? 'toggle' : 'replace', scope: 'map' });
+      applyObjectSelection(ref, { mode: event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace', scope: 'map' });
     });
     $('objectChooserList')?.addEventListener('keydown', event => {
       const items = [...event.currentTarget.querySelectorAll('[data-object-chooser-index]')];
@@ -13459,33 +13404,6 @@ const {
       input.dispatchEvent(new window.Event('input', { bubbles: true }));
       input.focus({ preventScroll: true });
     });
-    let layerLongPress = null;
-    let suppressLayerClickUntil = 0;
-    $('layerSection')?.addEventListener('pointerdown', event => {
-      if (!isMobile() || event.pointerType === 'mouse') return;
-      const button = event.target.closest('[data-layer-item-select]');
-      if (!button) return;
-      const origin = [event.clientX, event.clientY];
-      const timer = window.setTimeout(() => {
-        state.selectionMode = true;
-        suppressLayerClickUntil = performance.now() + 700;
-        selectLayerTreeItem(button.dataset.layerItemSelect, button.dataset.itemId, { mode: 'toggle' });
-        navigator.vibrate?.(16);
-        layerLongPress = null;
-      }, 450);
-      layerLongPress = { timer, pointerId: event.pointerId, origin };
-    });
-    $('layerSection')?.addEventListener('pointermove', event => {
-      if (!layerLongPress || layerLongPress.pointerId !== event.pointerId) return;
-      if (Math.hypot(event.clientX - layerLongPress.origin[0], event.clientY - layerLongPress.origin[1]) <= 8) return;
-      clearTimeout(layerLongPress.timer);
-      layerLongPress = null;
-    });
-    for (const type of ['pointerup', 'pointercancel']) $('layerSection')?.addEventListener(type, event => {
-      if (!layerLongPress || layerLongPress.pointerId !== event.pointerId) return;
-      clearTimeout(layerLongPress.timer);
-      layerLongPress = null;
-    });
     $('layerSection')?.addEventListener('click', event => {
       const menuButton = event.target.closest('[data-layer-item-menu]');
       if (menuButton) {
@@ -13522,20 +13440,10 @@ const {
       }
       const itemButton = event.target.closest('[data-layer-item-select]');
       if (itemButton) {
-        if (performance.now() < suppressLayerClickUntil) {
-          event.preventDefault();
-          return;
-        }
-        const mode = event.ctrlKey || event.metaKey || (isMobile() && state.selectionMode) ? 'toggle' : 'replace';
+        const mode = event.ctrlKey || event.metaKey || (isMobile() && state.addSelectionMode) ? 'toggle' : 'replace';
         const selected = selectLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId, { mode, range: event.shiftKey });
         if (selected && isMobile() && mode === 'replace' && !event.shiftKey) returnToMapAfterMobileAction(true);
       }
-    });
-    $('layerSection')?.addEventListener('dblclick', event => {
-      const itemButton = event.target.closest('[data-layer-item-select]');
-      if (!itemButton || isMobile()) return;
-      event.preventDefault();
-      focusLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId);
     });
     $('layerSection')?.addEventListener('scroll', event => {
       if (event.target === $('layerSearchResults')) {
@@ -13869,6 +13777,12 @@ const {
     $('multiPropertiesVisibilityInput')?.addEventListener('change', event => batchSetVisibility(event.target.checked));
     $('multiPropertiesLockInput')?.addEventListener('change', event => batchSetLocked(event.target.checked));
     $('multiBorderEditBtn')?.addEventListener('click', () => requestDraftDiscard(() => returnToMapAfterMobileAction(enterCountryBorderEditFromSelection())));
+    $('multiSelectionModeBtn')?.addEventListener('click', () => {
+      if (!isMobile() || objectSelection.size() === 0) return;
+      state.addSelectionMode = !state.addSelectionMode;
+      syncSelectionSummary();
+      syncMapContextSurfaces();
+    });
     $('clearMultiSelectionBtn')?.addEventListener('click', () => clearSelection(false));
     $('multiEditBtn')?.addEventListener('click', () => { setEditorShellView('info'); openSelectionEditor(); });
 
