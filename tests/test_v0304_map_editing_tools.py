@@ -11,6 +11,32 @@ TOOLS = (ROOT / "assets" / "js" / "modules" / "tool-controller.js").read_text(en
 
 
 class MapEditingToolsV0304Tests(unittest.TestCase):
+    def test_object_actions_are_visible_and_border_coast_tools_are_separate(self):
+        self.assertNotIn("고급 작업", INDEX)
+        self.assertIn("고급 설정 · 속성 연결", INDEX)
+        country_order = [
+            INDEX.index('id="annexTerritoryBtn"'),
+            INDEX.index('id="mergeCountryBtn"'),
+            INDEX.index('id="editBorderBtn"'),
+            INDEX.index('id="editCoastBtn"'),
+            INDEX.index('id="changeCountryTypeBtn"'),
+        ]
+        self.assertEqual(country_order, sorted(country_order))
+        self.assertIn('id="regionGeometryActionsTitle"', INDEX)
+        self.assertIn('id="regionRelationActionsTitle"', INDEX)
+        self.assertIn('id="administrativeGeometryActionsTitle"', INDEX)
+        self.assertIn('id="administrativeRelationActionsTitle"', INDEX)
+        for ids in (
+            ("reassignRegionShapeBtn", "mergeRegionBtn", "splitRegionBtn", "transferRegionBtn", "changeRegionTypeBtn", "promoteRegionBtn", "removeRegionDivisionBtn"),
+            ("reassignAdministrativeShapeBtn", "mergeAdministrativeBtn", "splitAdministrativeBtn", "transferAdministrativeBtn", "changeAdministrativeTypeBtn", "promoteAdministrativeBtn", "removeAdministrativeDivisionBtn"),
+            ("editDrawingBoundaryBtn", "mergeDrawingBtn", "splitDrawingBtn", "syncDrawingCoastBtn", "editDrawingCoastBtn", "applyDrawingToCountryBtn", "promoteDrawingToCountryBtn"),
+        ):
+            positions = [INDEX.index(f'id="{element_id}"') for element_id in ids]
+            self.assertEqual(positions, sorted(positions))
+        self.assertIn("'country-border'", TOOLS)
+        self.assertIn("'country-coast'", TOOLS)
+        self.assertIn("boundaryEditCountryIds", APP)
+
     def test_removed_user_tools_and_ghost_controls_are_absent(self):
         removed_ids = (
             "measureDistanceBtn", "measureAreaBtn", "mapAuditBtn", "snapSettingsBtn",

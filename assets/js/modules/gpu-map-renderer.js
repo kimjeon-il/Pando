@@ -2605,7 +2605,7 @@ export function createGpuMapRenderer(deps) {
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
       $('engineStatus').textContent = `Canvas ${meshQualityLabel()} 대체 · ${fallbackReason}`;
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
-      setActionStatus(`${meshQualityLabel()} Canvas 렌더러로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
+      setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
       completeGeometryDisplay(
@@ -2728,7 +2728,7 @@ export function createGpuMapRenderer(deps) {
           else connectHydroCanvasWorkers();
           $('engineStatus').textContent = `Canvas Worker ${meshQualityLabel()} · ${fallbackReason}`;
           updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
-          setActionStatus(`${meshQualityLabel()} Canvas Worker로 전환했습니다. 사유: ${fallbackReason}`, 'working', 4200);
+          setActionStatus(`${meshQualityLabel()} Canvas Worker로 전환했습니다.`, 'working', 4200);
           window.__PANDOLAB_GPU_METRICS__ = getStats();
           return;
         } catch (error) {
@@ -2743,7 +2743,7 @@ export function createGpuMapRenderer(deps) {
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
       $('engineStatus').textContent = `Canvas ${meshQualityLabel()} 대체 · ${fallbackReason}`;
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
-      setActionStatus(`GPU를 사용할 수 없어 ${meshQualityLabel()} Canvas 렌더러로 전환했습니다.`, 'working', 4200);
+      setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
       renderCanvasFallback();
       completeGeometryDisplay(

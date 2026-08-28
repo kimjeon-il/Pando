@@ -9,7 +9,8 @@ export const TOOL_DEFINITIONS = Object.freeze({
   'split-country-region': Object.freeze({ label: '지역 나누기', task: '지역 나누기', stage: '경계 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),
   'redraw-country-region': Object.freeze({ label: '영역 다시 지정', task: '영역 다시 지정', stage: '영역 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
   'draw-country-region': Object.freeze({ label: '영역 직접 지정', task: '지역 추가', stage: '영역 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
-  'country-coast': Object.freeze({ label: '국경·해안선 수정', task: '국경·해안선 수정', stage: '공유 꼭짓점 이동', cursor: 'select', special: true }),
+  'country-border': Object.freeze({ label: '국경 조정', task: '국경 조정', stage: '공유국경 편집', cursor: 'phased', special: true }),
+  'country-coast': Object.freeze({ label: '해안선 조정', task: '해안선 조정', stage: '외곽선 편집', cursor: 'select', special: true }),
   label: Object.freeze({ label: '지명 배치', task: '지명 추가', stage: '위치 선택', cursor: 'drawing', special: true }),
   river: Object.freeze({ label: '강 추가', task: '강 추가', stage: '경로 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'line', profile: 'river' }) }),
   lake: Object.freeze({ label: '호수 추가', task: '호수 추가', stage: '영역 그리기', cursor: 'drawing', special: true, draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
@@ -28,6 +29,7 @@ export function describeTool(tool, state, { labelPlacement = false } = {}) {
   const definition = TOOL_DEFINITIONS[tool] || TOOL_DEFINITIONS.select;
   if (tool === 'new-country') return { name: definition.task, stage: phaseStage(state.newCountryPhase) };
   if (tool === 'annex-territory') return { name: definition.task, stage: phaseStage(state.annexPhase) };
+  if (tool === 'country-border') return { name: definition.task, stage: state.boundaryEditPhase === 'selecting' ? '대상 선택' : '공유국경 편집' };
   return { name: definition.task, stage: definition.stage || '작업 진행' };
 }
 
@@ -35,6 +37,7 @@ export function toolCursorMode(tool, state, { labelPlacement = false } = {}) {
   const country = (tool === 'new-country' && state.newCountryPhase === 'sources')
     || (tool === 'annex-territory' && state.annexPhase === 'donor')
     || (tool === 'merge-country' && !!state.mergeSourceCountryId)
+    || (tool === 'country-border' && state.boundaryEditPhase === 'selecting')
     || tool === 'merge-drawing'
     || tool === 'merge-country-region';
   const drawing = labelPlacement

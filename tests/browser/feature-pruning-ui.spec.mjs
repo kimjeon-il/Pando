@@ -48,7 +48,7 @@ for (const viewport of viewports) {
     await expect(page.locator('#focusSelectedObjectBtn')).toHaveAttribute('aria-label', '지도에서 보기');
     await expect(page.locator('#objectActionsBtn')).toHaveAttribute('aria-haspopup', 'menu');
     await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'nowrap');
-    await expect(page.locator('#countryProperties .editor-action-row')).toHaveCount(4);
+    await expect(page.locator('#countryProperties .editor-action-row')).toHaveCount(5);
     await expect(page.locator('#countryProperties .editor-action-grid')).toHaveCount(0);
     await page.locator('#objectActionsBtn').click();
     await expect(page.locator('#objectLockMenuBtn')).toHaveText(/국가 레이어 (잠금|잠금 해제)/);

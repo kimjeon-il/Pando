@@ -40,11 +40,11 @@ class ShellFileSaveContractTests(unittest.TestCase):
         self.assertIsNotNone(menu)
         markup = menu.group(1)
         self.assertIn('role="menu"', menu.group(0))
-        for label in ("새 프로젝트", "열기", "저장", "가져오기", "내보내기", "단축키"):
+        for label in ("새 프로젝트", "불러오기…", "프로젝트 저장", "데이터 내보내기…", "키보드 도움말"):
             self.assertIn(label, markup)
-        for old_label in ("GeoPackage 저장", "GIS 파일 열기", "GeoJSON 가져오기", "GeoJSON 내보내기"):
+        for old_label in ("GeoPackage 저장", "GIS 파일 열기", "GeoJSON 가져오기", "GeoJSON 내보내기", "벡터 데이터 가져오기"):
             self.assertNotIn(old_label, markup)
-        self.assertGreaterEqual(markup.count('role="menuitem"'), 8)
+        self.assertEqual(markup.count('role="menuitem"'), 5)
         self.assertNotIn('id="keyboardHelpBtn"', re.search(r'<header class="topbar">(.*?)</header>', HTML, re.S).group(1))
 
     def test_dirty_state_is_separate_from_autosave_and_transient_notifications(self):
@@ -56,12 +56,18 @@ class ShellFileSaveContractTests(unittest.TestCase):
         self.assertNotIn("자동저장 용량을 초과했습니다", APP)
         self.assertNotIn("saveStatusNeutralTimer", APP)
 
-    def test_open_and_import_intents_share_the_engine_without_sharing_semantics(self):
-        self.assertIn("options.intent === 'open' ? 'open' : 'import'", GIS_IO)
-        self.assertIn("openMode: importIntent === 'open' ? 'replace' : 'merge'", GIS_IO)
-        self.assertIn("targetSelect.value = 'country'", GIS_IO)
-        self.assertIn("dataset.fileIntent = 'open'", APP)
-        self.assertIn("dataset.fileIntent = 'import'", APP)
+    def test_one_loader_classifies_projects_from_real_project_state_metadata(self):
+        self.assertIn("importSourceKind = session.projectMetadata?.projectState ? 'project' : 'vector'", GIS_IO)
+        self.assertIn("importStepRoute = importSourceKind === 'project' ? [0, 4] : [0, 1, 2, 3, 4]", GIS_IO)
+        self.assertIn("result.sourceKind === 'project'", APP)
+        self.assertNotIn("dataset.fileIntent", APP)
+
+    def test_project_save_and_gis_data_export_are_separate_commands(self):
+        self.assertIn('id="saveProjectBtn"', HTML)
+        self.assertIn('id="dataExportBtn"', HTML)
+        self.assertIn("mode: 'gis'", APP)
+        self.assertIn("exportGeoJsonBundle", GIS_IO)
+        self.assertIn("pandolab_project_settings", GIS_IO + (ROOT / "assets/js/workers/gis-gpkg-worker.js").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

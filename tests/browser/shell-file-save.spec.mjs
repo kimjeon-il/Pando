@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 async function installTestAnimationFrame(page) {
   await page.addInitScript(() => {
@@ -48,7 +49,7 @@ const vectorFixture = {
 };
 
 test('desktop shell keeps a stable three-zone topbar and an accessible file menu', async ({ page }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
   const errors = await openApp(page);
   const topbar = page.locator('.topbar');
   await expect(topbar).toHaveCSS('height', '60px');
@@ -58,7 +59,7 @@ test('desktop shell keeps a stable three-zone topbar and an accessible file menu
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#fileMenu')).toBeVisible();
   await expect(page.locator('#mobileFileBtn')).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '열기', '저장', '가져오기 ›', '내보내기 ›', '단축키']);
+  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '불러오기…', '프로젝트 저장', '데이터 내보내기…', '키보드 도움말']);
   const centerAfter = await page.locator('.topbar-center').boundingBox();
   expect(Math.abs(centerAfter.x - centerBefore.x)).toBeLessThanOrEqual(1);
 
@@ -77,33 +78,44 @@ test('desktop shell keeps a stable three-zone topbar and an accessible file menu
   expect(errors).toEqual([]);
 });
 
-test('file open and import commands pass distinct replacement and merge intents', async ({ page }) => {
-  test.setTimeout(180_000);
+test('one load command automatically classifies vector data and PandoLab projects', async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
+  });
   const errors = await openApp(page, { width: 1024, height: 800 });
+
+  await page.locator('#mobileFileBtn').click();
+  const [projectDownload] = await Promise.all([
+    page.waitForEvent('download', { timeout: 120_000 }),
+    page.locator('#saveProjectBtn').click(),
+  ]);
+  const projectPath = await projectDownload.path();
+  const projectBuffer = await readFile(projectPath);
 
   await page.locator('#mobileFileBtn').click();
   let chooserPromise = page.waitForEvent('filechooser');
   await page.locator('#openGisBtn').click();
   await (await chooserPromise).setFiles(vectorFixture);
   await expect(page.locator('#gisImportModal')).toBeVisible();
-  await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 파일 열기');
+  await expect(page.locator('#gisImportTitle')).toHaveText('벡터 데이터 불러오기');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/5 · 파일 확인');
+  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
+  await expect(page.locator('#gisTargetTypeRow')).toBeHidden();
+  await page.locator('#gisImportNextBtn').click();
+  await expect(page.locator('#gisStepIndicator')).toHaveText('2/5 · 가져올 내용');
+  await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
+  await page.locator('#gisImportCancelBtn').click();
+  await expect(page.locator('#openGisBtn')).toBeFocused();
+
+  chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('#openGisBtn').click();
+  await (await chooserPromise).setFiles({ name: 'saved-project.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: projectBuffer });
+  await expect(page.locator('#gisImportModal')).toBeVisible();
+  await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 불러오기');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/2 · 파일 확인');
   await expect(page.locator('#gisTargetTypeRow')).toBeHidden();
   await expect(page.locator('#gisOpenMode')).toHaveValue('replace');
-  await expect(page.locator('#gisFixedOpenModeNote')).toContainText('새 프로젝트로 열기');
-  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
-  await page.locator('#gisImportCancelBtn').click();
-  await expect(page.locator('#mobileFileBtn')).toBeFocused();
-
-  await page.locator('#mobileFileBtn').click();
-  await page.locator('#fileImportMenuBtn').click();
-  chooserPromise = page.waitForEvent('filechooser');
-  await page.locator('#importVectorBtn').click();
-  await (await chooserPromise).setFiles(vectorFixture);
-  await expect(page.locator('#gisImportModal')).toBeVisible();
-  await expect(page.locator('#gisImportTitle')).toHaveText('벡터 데이터 가져오기');
-  await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
-  await expect(page.locator('#gisOpenMode')).toHaveValue('merge');
-  await expect(page.locator('#gisFixedOpenModeNote')).toContainText('현재 프로젝트에 가져오기');
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
   await page.locator('#gisImportCancelBtn').click();
   expect(errors).toEqual([]);

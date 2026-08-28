@@ -1,6 +1,6 @@
 'use strict';
 
-const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r8';
+const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r9';
 const GIS_ADAPTER_URL = new URL('../gis-adapters.js', self.location.href);
 GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION);
 importScripts(GIS_ADAPTER_URL.href);
@@ -178,10 +178,20 @@ function createAttributeTable(db, tableName, schema, description) {
   insertContents(db, tableName, 'attributes', description, null);
 }
 
+function removeTable(db, tableName) {
+  db.run(`DROP TABLE IF EXISTS "${tableName}"`);
+  db.run('DELETE FROM gpkg_geometry_columns WHERE table_name = ?', [tableName]);
+  db.run('DELETE FROM gpkg_contents WHERE table_name = ?', [tableName]);
+}
+
 function writeAtlasTables(db, payload) {
   const state = payload.projectState || {};
-  const labels = state.labels || [];
-  const drawings = state.drawings || [];
+  const gisMode = payload.exportMode === 'gis';
+  const selected = new Set(payload.selectedLayers || []);
+  const includes = layer => !gisMode || selected.has(layer);
+  if (gisMode) removeTable(db, 'pandolab_export_seed');
+  const labels = includes('labels') ? state.labels || [] : [];
+  const drawings = includes('drawings') ? state.drawings || [] : [];
   const places = labels.map(label => ({
     geometry: { type: 'Point', coordinates: label.coordinates || [0, 0] },
     id: label.id || '',
@@ -201,10 +211,39 @@ function writeAtlasTables(db, payload) {
     { name: 'pandolab_owner_id' }, { name: 'pandolab_parent_id' }, { name: 'pandolab_topology_group' }, { name: 'pandolab_land_binding' },
     { name: 'color' }, { name: 'notes' }, { name: 'properties_json' },
   ];
-  createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'PandoLab places' });
-  createFeatureTable(db, { tableName: 'drawings_point', geometryType: 'POINT', rows: points, columns: drawingColumns, description: 'PandoLab point drawings' });
-  createFeatureTable(db, { tableName: 'drawings_line', geometryType: 'MULTILINESTRING', rows: lines, columns: drawingColumns, description: 'PandoLab line drawings' });
-  createFeatureTable(db, { tableName: 'drawings_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: drawingColumns, description: 'PandoLab polygon drawings' });
+  if (gisMode && includes('countries')) {
+    const overrides = state.countryOverrides || {};
+    const countryRows = (state.countriesData?.features || []).map(feature => {
+      const properties = feature.properties || {};
+      const id = String(properties.editor_id || feature.id || '');
+      return {
+        geometry: feature.geometry,
+        id,
+        name: overrides[id]?.name || properties.editor_name || properties.editor_original_name || properties.name || id,
+        type: 'country',
+        parent_id: '', sovereign_id: id, admin_level: null,
+        status: 'assigned', valid_from: properties.validFrom || properties.valid_from || '', valid_to: properties.validTo || properties.valid_to || '',
+        color: overrides[id]?.color || properties.editor_color || '', style_key: properties.style_key || '',
+        source_library_id: properties.sourceLibraryId || properties.source_library_id || '',
+        source_geometry_version: properties.sourceGeometryVersion || properties.source_geometry_version || '',
+        metadata_json: JSON.stringify(properties.metadata || {}),
+        properties_json: JSON.stringify(properties),
+      };
+    });
+    const countryColumns = [
+      { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
+      { name: 'admin_level', type: 'INTEGER' }, { name: 'status' }, { name: 'valid_from' }, { name: 'valid_to' },
+      { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
+      { name: 'metadata_json' }, { name: 'properties_json' },
+    ];
+    createFeatureTable(db, { tableName: 'countries', geometryType: 'MULTIPOLYGON', rows: countryRows, columns: countryColumns, description: 'PandoLab GIS countries' });
+  }
+  if (includes('labels')) createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'PandoLab places' });
+  if (includes('drawings')) {
+    createFeatureTable(db, { tableName: 'drawings_point', geometryType: 'POINT', rows: points, columns: drawingColumns, description: 'PandoLab point drawings' });
+    createFeatureTable(db, { tableName: 'drawings_line', geometryType: 'MULTILINESTRING', rows: lines, columns: drawingColumns, description: 'PandoLab line drawings' });
+    createFeatureTable(db, { tableName: 'drawings_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: drawingColumns, description: 'PandoLab polygon drawings' });
+  }
   const territorialColumns = [
     { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
     { name: 'admin_level', type: 'INTEGER' }, { name: 'status' }, { name: 'valid_from' }, { name: 'valid_to' },
@@ -212,6 +251,8 @@ function writeAtlasTables(db, payload) {
     { name: 'metadata_json' }, { name: 'properties_json' },
   ];
   for (const [unitType, tableName] of Object.entries(self.PandoLabGisAdapters.TERRITORIAL_TABLES)) {
+    const logicalLayer = unitType === 'territory' ? 'regions' : unitType === 'admin' ? 'administrative' : 'historicalRegions';
+    if (!includes(logicalLayer)) continue;
     createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: territorialRows[tableName] || [], columns: territorialColumns, description: `PandoLab ${unitType} territorial units` });
   }
   const distributionColumns = [
@@ -220,10 +261,13 @@ function writeAtlasTables(db, payload) {
     { name: 'source_mode' }, { name: 'region_id' }, { name: 'share', type: 'REAL' }, { name: 'certainty' },
     { name: 'valid_from' }, { name: 'valid_to' }, { name: 'layer_metadata_json' }, { name: 'entry_metadata_json' },
   ];
-  for (const [distributionType, tableName] of Object.entries(self.PandoLabGisAdapters.DISTRIBUTION_TABLES)) {
-    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: distributionRows[tableName] || [], columns: distributionColumns, description: `PandoLab ${distributionType} distribution entries` });
+  if (includes('distributions')) {
+    for (const [distributionType, tableName] of Object.entries(self.PandoLabGisAdapters.DISTRIBUTION_TABLES)) {
+      createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: distributionRows[tableName] || [], columns: distributionColumns, description: `PandoLab ${distributionType} distribution entries` });
+    }
   }
 
+  if (gisMode) return;
   createAttributeTable(db, 'pandolab_project_settings', 'setting_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'PandoLab project settings');
   const settings = { ...state };
   delete settings.countriesData;
@@ -243,12 +287,12 @@ function writeAtlasTables(db, payload) {
   db.run('INSERT INTO pandolab_source_info (info_key, json_value) VALUES (?, ?)', ['source', JSON.stringify(state.sourceInfo || {})]);
 }
 
-async function writeGeoPackage(buffer, projectState) {
+async function writeGeoPackage(buffer, projectState, options = {}) {
   const SQL = await getSql();
   const db = new SQL.Database(new Uint8Array(buffer));
   try {
     db.run('BEGIN IMMEDIATE');
-    writeAtlasTables(db, { projectState });
+    writeAtlasTables(db, { projectState, ...options });
     db.run('COMMIT');
     return db.export();
   } catch (error) {
@@ -295,10 +339,10 @@ async function readAtlasTables(buffer) {
 }
 
 self.onmessage = async event => {
-  const { id, action, buffer, projectState } = event.data || {};
+  const { id, action, buffer, projectState, exportMode, selectedLayers } = event.data || {};
   try {
     if (action === 'write') {
-      const output = await writeGeoPackage(buffer, projectState);
+      const output = await writeGeoPackage(buffer, projectState, { exportMode, selectedLayers });
       self.postMessage({ id, ok: true, buffer: output.buffer }, [output.buffer]);
       return;
     }

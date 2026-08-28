@@ -45,5 +45,5 @@ test('app waits for actual hydro worker readiness and retries manifests', () => 
 
 test('bootstrap cache revision is advanced for the reliability build', () => {
   const source = read('assets/js/bootstrap.js');
-  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r8';"));
+  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r9';"));
 });
