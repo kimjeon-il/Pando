@@ -20,7 +20,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
 }
 
 async function importTerritorialPolygon(page, { name, target, coordinates }) {
-  await page.locator('#geoJsonFileInput').setInputFiles({
+  await page.locator('#gisFileInput').setInputFiles({
     name: `${name}.geojson`,
     mimeType: 'application/geo+json',
     buffer: Buffer.from(JSON.stringify({
@@ -33,8 +33,15 @@ async function importTerritorialPolygon(page, { name, target, coordinates }) {
       }],
     })),
   });
-  await page.locator('#geoJsonTargetType').selectOption(target);
-  await page.locator('#geoJsonTargetConfirmBtn').click();
+  await expect(page.locator('#gisImportModal')).toBeVisible();
+  await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
+  const mobile = await page.locator('#app').getAttribute('data-layout') === 'mobile';
+  if (mobile) await page.locator('#gisImportNextBtn').click();
+  await page.locator('#gisTargetType').selectOption(target);
+  if (mobile) {
+    for (let step = 0; step < 3; step += 1) await page.locator('#gisImportNextBtn').click();
+  }
+  await page.locator('#gisImportConfirmBtn').click();
   const shape = page.locator('path.country-region-shape');
   await expect.poll(async () => shape.evaluateAll((nodes, expectedName) => nodes.some(node => node.__data__?.properties?.name === expectedName), name)).toBe(true);
 }

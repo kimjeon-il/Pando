@@ -40,13 +40,13 @@ test('freehand river becomes one editable draft history step', async ({ page }) 
   await expect(page.locator('.draft-raw-stroke')).toHaveCount(0);
   await expect(page.locator('#modeActionBar')).toHaveClass(/draft-refine-mode/);
   await expect(page.locator('#modeTaskInstruction')).toContainText('미세조정');
-  await expect(page.locator('#modeDraftUndoBtn')).toBeEnabled();
+  await expect(page.locator('#undoBtn')).toBeEnabled();
   await expect(page.locator('#modeDraftRedrawBtn')).toBeEnabled();
 
   const countBeforeRedraw = await vertices.count();
   await page.locator('#modeDraftRedrawBtn').click();
   await expect(vertices).toHaveCount(0);
-  await page.locator('#modeDraftUndoBtn').click();
+  await page.locator('#undoBtn').click();
   await expect(vertices).toHaveCount(countBeforeRedraw);
   await expect(page.locator('#modeActionBar')).toHaveClass(/draft-refine-mode/);
 

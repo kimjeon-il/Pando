@@ -24,14 +24,14 @@ class InformationHierarchyV0170Tests(unittest.TestCase):
             self.assertNotIn(element_id, APP)
         self.assertNotIn("layer-child-count", APP)
 
-    def test_status_bar_defaults_to_zoom_and_reveals_context_conditionally(self):
-        self.assertIn('<span id="zoomStatus" class="status-item">×1.0</span>', INDEX)
+    def test_status_bar_reveals_precision_context_conditionally(self):
+        self.assertNotIn('id="zoomStatus"', INDEX + APP)
         self.assertIn('id="coordStatus" class="status-item hidden"', INDEX)
         self.assertIn('id="statusPrimary" class="status-group status-primary hidden"', INDEX)
         self.assertIn('id="statusSelection" class="status-group status-selection hidden"', INDEX)
         self.assertIn("function shouldShowCoordinates()", APP)
         self.assertIn("function syncStatusBar()", APP)
-        self.assertIn("$('zoomStatus').textContent = `×${zoom.toFixed(1)}`", APP)
+        self.assertIn("$('statusView')?.classList.toggle('coordinates-active', showCoordinates);", APP)
         self.assertNotIn("#app[data-layout=\"mobile\"] #coordStatus { display: none !important; }", CSS)
 
     def test_editor_uses_minimal_primary_information(self):
@@ -41,7 +41,9 @@ class InformationHierarchyV0170Tests(unittest.TestCase):
         self.assertIn('id="focusSelectedObjectBtn"', INDEX)
         copy_index = INDEX.index('id="copyHydroBtn"')
         self.assertGreater(INDEX.index('class="ui-disclosure editor-disclosure"', copy_index), copy_index)
-        self.assertNotIn('propertyType', INDEX + APP)
+        self.assertIn('id="propertyTypeLabel"', INDEX)
+        self.assertNotIn('id="propertyAreaValue"', INDEX)
+        self.assertIn('id="countryAreaValue"', INDEX)
 
 
 if __name__ == "__main__":

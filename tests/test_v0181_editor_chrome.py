@@ -10,9 +10,10 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 
 
 class EditorChromeTests(unittest.TestCase):
-    def test_selected_object_type_badges_are_completely_removed(self):
+    def test_selected_object_type_is_plain_header_metadata(self):
         combined = INDEX + APP + CSS
-        for obsolete in ('propertyType', 'type-chip', 'offline-chip'):
+        self.assertIn('id="propertyTypeLabel"', INDEX)
+        for obsolete in ('type-chip', 'offline-chip'):
             self.assertNotIn(obsolete, combined)
 
     def test_every_static_and_dynamic_button_uses_the_common_primitive(self):
@@ -44,7 +45,7 @@ class EditorChromeTests(unittest.TestCase):
         self.assertIn('.editor-shell-header {', CSS)
         editor_header_rules = CSS[CSS.index('\n.editor-shell-header {'):]
         self.assertIn('min-height: var(--ui-sheet-header-height-compact);', editor_header_rules[:320])
-        self.assertIn('padding: var(--ui-panel-padding);', editor_header_rules[:320])
+        self.assertIn('padding: 0 var(--ui-panel-padding);', editor_header_rules[:320])
         self.assertIn('.editor-shell-header .sheet-close-btn {', CSS)
         self.assertNotIn('right: calc(-1 * var(--ui-space-3));', CSS)
 

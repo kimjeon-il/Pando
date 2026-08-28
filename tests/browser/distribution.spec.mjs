@@ -19,9 +19,12 @@ test('a language layer stores a region share and survives undo and redo', async 
 
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept('그리스어'));
-  await page.locator('#addLanguageBtn').click();
+  await page.locator('#addDistributionBtn').click();
+  await page.locator('#distributionTypeInput').selectOption('language');
+  await page.locator('#distributionTypeConfirmBtn').click();
   await expect(page.locator('#distributionProperties')).toBeVisible();
   await expect(page.locator('#distributionTypeValue')).toHaveText('언어');
+  await page.locator('#actionsTabBtn').click();
 
   const regionId = await page.locator('#distributionRegionInput option').nth(1).getAttribute('value');
   expect(regionId).toBeTruthy();

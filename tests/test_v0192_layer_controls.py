@@ -12,22 +12,20 @@ APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 
 
 class V0192LayerControlTests(unittest.TestCase):
-    def test_layer_groups_use_one_folder_icon(self):
+    def test_layer_groups_do_not_repeat_folder_icons(self):
         self.assertIn('symbol id="icon-folder"', INDEX)
-        self.assertEqual(INDEX.count('class="ui-icon layer-folder-icon"'), 11)
-        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 12)
+        self.assertEqual(INDEX.count('class="ui-icon layer-folder-icon"'), 0)
+        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 1)
         self.assertNotIn('class="layer-icon', INDEX)
         self.assertNotIn(".layer-icon", CSS)
         self.assertNotIn("layer-child-swatch", APP)
         self.assertNotIn(".layer-child-swatch", CSS)
 
-    def test_country_lock_uses_open_and_closed_icons(self):
+    def test_country_lock_is_an_internal_hook_and_object_menu_action(self):
         self.assertIn('symbol id="icon-lock-open"', INDEX)
         self.assertIn('symbol id="icon-lock-closed"', INDEX)
-        self.assertIn('class="ui-icon-toggle layer-lock-control"', INDEX)
-        self.assertIn('id="countriesLocked" type="checkbox" class="lock-toggle"', INDEX)
-        self.assertIn(".layer-lock-control .lock-toggle:checked ~ .lock-open-icon", CSS)
-        self.assertIn(".layer-lock-control .lock-toggle:checked ~ .lock-closed-icon", CSS)
+        self.assertIn('id="countriesLocked" type="checkbox" class="lock-toggle" aria-label="국가 레이어 잠금" hidden', INDEX)
+        self.assertIn('id="objectLockMenuBtn"', INDEX)
         self.assertNotIn(".layer-folder-name::after", CSS)
         self.assertNotRegex(CSS, r'content:\s*["\']\s*잠금')
         self.assertIn("$('countriesLocked').addEventListener('change'", APP)
@@ -44,15 +42,15 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertIn("box-shadow: inset 0 0 0 1px var(--inset-highlight)", CSS)
         self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-border\)')
 
-    def test_layer_children_have_delete_actions_without_duplicate_copy(self):
+    def test_layer_children_use_context_menus_without_duplicate_copy(self):
         tree_items = APP[APP.index("function layerTreeItems"):APP.index("function pruneLayerItemVisibility")]
         self.assertNotIn("사용자 지형지물", tree_items)
         self.assertNotIn("'국명'", tree_items)
         self.assertIn("'계산 중'", tree_items)
-        self.assertIn('symbol id="icon-trash"', INDEX)
-        self.assertIn("deleteButton.className = 'ui-button layer-child-delete'", APP)
-        self.assertIn("deleteLayerTreeItem(deleteButton.dataset.layerItemDelete", APP)
-        self.assertIn(".layer-child-delete", CSS)
+        self.assertIn('symbol id="icon-more"', INDEX)
+        self.assertIn("menuButton.className = 'ui-button layer-child-menu'", APP)
+        self.assertIn("openObjectActionsMenu();", APP)
+        self.assertIn(".layer-child-menu", CSS)
 
     def test_build_version_is_updated(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)

@@ -14,7 +14,7 @@ async function openApp(page) {
 }
 
 async function importDrawing(page) {
-  await page.locator('#geoJsonFileInput').setInputFiles({
+  await page.locator('#gisFileInput').setInputFiles({
     name: 'boundary-snap-area.geojson',
     mimeType: 'application/geo+json',
     buffer: Buffer.from(JSON.stringify({
@@ -30,8 +30,10 @@ async function importDrawing(page) {
       }],
     })),
   });
-  await page.locator('#geoJsonTargetType').selectOption('drawing');
-  await page.locator('#geoJsonTargetConfirmBtn').click();
+  await expect(page.locator('#gisImportModal')).toBeVisible();
+  await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
+  await page.locator('#gisTargetType').selectOption('drawing');
+  await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('path.drawing-shape')).toHaveCount(1);
 }
 
@@ -62,6 +64,8 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await page.getByRole('button', { name: '경계 스냅 실제 시험 영역', exact: true }).click();
   await expect(page.locator('#drawingProperties')).toBeVisible();
   const shape = page.locator('path.drawing-shape.selected');
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#drawingProperties details.drawing-advanced-actions summary').click();
   await page.locator('#splitDrawingBtn').click();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
 
@@ -95,15 +99,15 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await expect(page.locator('.draft-shape.cut-invalid')).toBeVisible();
   await expect(page.locator('.draft-issue-marker')).not.toHaveCount(0);
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-  await page.locator('#modeDraftUndoBtn').click();
+  await page.locator('#undoBtn').click();
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1);
   await page.locator('#modeDraftDeleteBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(2);
-  await page.locator('#modeDraftUndoBtn').click();
+  await page.locator('#undoBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(3);
-  await page.locator('#modeDraftRedoBtn').click();
+  await page.locator('#redoBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(2);
-  await page.locator('#modeDraftUndoBtn').click();
+  await page.locator('#undoBtn').click();
   await page.locator('g.draft-vertex').nth(1).click();
   const beforeNudge = await page.locator('g.draft-vertex').nth(1).getAttribute('transform');
   await page.keyboard.press('ArrowUp');

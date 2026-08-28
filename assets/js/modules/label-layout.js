@@ -1,5 +1,16 @@
 export const LABEL_PRIORITIES = Object.freeze({ country: 100, capital: 90, majorCity: 70, administrative: 60, place: 40 });
 
+const AUTOMATIC_LABEL_POLICIES = Object.freeze({
+  country: Object.freeze({ priority: LABEL_PRIORITIES.country, minZoom: 0, maxZoom: Infinity, collisionGroup: 'country' }),
+  capital: Object.freeze({ priority: LABEL_PRIORITIES.capital, minZoom: 0, maxZoom: Infinity, collisionGroup: 'place' }),
+  city: Object.freeze({ priority: LABEL_PRIORITIES.majorCity, minZoom: 1.25, maxZoom: Infinity, collisionGroup: 'place' }),
+  region: Object.freeze({ priority: LABEL_PRIORITIES.administrative, minZoom: 1, maxZoom: Infinity, collisionGroup: 'place' }),
+  town: Object.freeze({ priority: LABEL_PRIORITIES.place, minZoom: 2.5, maxZoom: Infinity, collisionGroup: 'place' }),
+  mountain: Object.freeze({ priority: LABEL_PRIORITIES.place, minZoom: 2, maxZoom: Infinity, collisionGroup: 'place' }),
+  water: Object.freeze({ priority: LABEL_PRIORITIES.place, minZoom: 1.5, maxZoom: Infinity, collisionGroup: 'place' }),
+  custom: Object.freeze({ priority: LABEL_PRIORITIES.place, minZoom: 1.5, maxZoom: Infinity, collisionGroup: 'place' }),
+});
+
 function normalizedBox(candidate) {
   const width = Math.max(1, Number(candidate.width || 1));
   const height = Math.max(1, Number(candidate.height || 1));
@@ -27,6 +38,19 @@ export function normalizeLabelSettings(raw = {}) {
     manualPosition,
     pinned: raw.pinned === true,
     collisionGroup: String(raw.collisionGroup || 'map'),
+  };
+}
+
+export function automaticLabelSettings(kind, raw = {}) {
+  const normalized = normalizeLabelSettings(raw);
+  const policy = AUTOMATIC_LABEL_POLICIES[String(kind || 'custom')] || AUTOMATIC_LABEL_POLICIES.custom;
+  return {
+    ...normalized,
+    priority: policy.priority,
+    minZoom: policy.minZoom,
+    maxZoom: policy.maxZoom,
+    collisionGroup: policy.collisionGroup,
+    pinned: normalized.pinned === true || !!normalized.manualPosition,
   };
 }
 
