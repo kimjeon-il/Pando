@@ -17,7 +17,8 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world-preview-v0.30.0.json'), 'utf8'));
 const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/countries-preview-v0.30.0.geojson.gz'))));
-const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
+const canonicalSource = fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8').replaceAll('\r\n', '\n');
+const canonical = JSON.parse(canonicalSource);
 const canonicalGzip = fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson.gz'));
 const previewMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/world-mesh-preview-v0.30.0.bin.gz')));
 const previewMeshHeader = new Uint32Array(previewMeshBytes.buffer, previewMeshBytes.byteOffset, 8);
@@ -83,14 +84,14 @@ test('preview assets preserve country identity within the fixed size and geometr
   assert.equal(previewMeshHeader[6], manifest.coordinateCount);
   assert.equal(canonicalMeshHeader[2], 258);
   assert.equal(canonicalMeshHeader[3], 1_028_628);
-  assert.equal(canonicalMeshHeader[6], 548_466);
+  assert.equal(canonicalMeshHeader[6], 548_464);
   for (const feature of preview.features) {
     assert.ok(['Polygon', 'MultiPolygon'].includes(feature.geometry?.type));
     assert.ok(feature.geometry.coordinates.length > 0);
   }
   assert.deepEqual(JSON.parse(zlib.gunzipSync(canonicalGzip)), canonical);
   assert.equal(manifest.assets.canonicalCountries.compressedBytes, canonicalGzip.length);
-  assert.equal(manifest.assets.canonicalCountries.decodedBytes, fs.statSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson')).size);
+  assert.equal(manifest.assets.canonicalCountries.decodedBytes, Buffer.byteLength(canonicalSource));
   assert.deepEqual(manifest.assets.previewMesh.header, [...previewMeshHeader]);
   assert.deepEqual(manifest.assets.canonicalMesh.header, [...canonicalMeshHeader]);
 });
@@ -100,6 +101,8 @@ test('staged loader separates editable geometry from the high-quality mesh and s
   assert.match(workerSource, /type: 'mesh-ready'/);
   assert.match(workerSource, /type === 'geometry-applied'/);
   assert.match(workerSource, /pipeThrough\(new DecompressionStream\('gzip'\)\)/);
+  assert.match(workerSource, /spec\.encoding === 'identity'/);
+  assert.match(workerSource, /replaceAll\('\\r\\n', '\\n'\)/);
   assert.doesNotMatch(workerSource, /const chunks = \[\]/);
   assert.doesNotMatch(workerSource, /const merged = new Uint8Array/);
   assert.match(appSource, /reindexCountries\(geometry\.countries, true\)/);

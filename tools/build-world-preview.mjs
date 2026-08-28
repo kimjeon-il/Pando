@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { feature as topologyFeature } from 'topojson-client';
 import { topology } from 'topojson-server';
 import { presimplify, quantile, simplify } from 'topojson-simplify';
+import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
@@ -24,7 +25,7 @@ const checkOnly = process.argv.includes('--check');
 const MAX_COORDINATES = 60_000;
 const MAX_COMPRESSED_BYTES = 2 * 1024 * 1024;
 const MAX_GLOBAL_AREA_ERROR = 0.005;
-const QUANTIZATION = 1_000_000;
+const QUANTIZATION = 0;
 
 function loadClassicScript(relativePath, globalName) {
   const filePath = path.join(projectRoot, relativePath);
@@ -36,8 +37,11 @@ function loadClassicScript(relativePath, globalName) {
 
 const d3 = loadClassicScript(path.join('assets', 'js', 'vendor', 'd3.min.js'), 'd3');
 const earcut = loadClassicScript(path.join('assets', 'js', 'vendor', 'earcut.min.js'), 'earcut');
+const polygonClipping = loadClassicScript(path.join('assets', 'js', 'vendor', 'polygon-clipping.min.js'), 'polygonClipping');
+const countryGeometry = loadClassicScript(path.join('assets', 'js', 'modules', 'country-geometry.js'), 'PandoLabCountryGeometry');
 const meshCore = loadClassicScript(path.join('assets', 'js', 'workers', 'gpu-mesh-core.js'), 'PandoLabGpuMeshCore');
 const sphericalArea = value => (typeof d3.geoArea === 'function' ? d3.geoArea(value) : d3.geo.area(value));
+const MAX_PRESERVATION_ATTEMPTS = 3;
 
 function countCoordinates(value) {
   if (Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') return 1;
@@ -69,20 +73,177 @@ function minimalFeature(featureValue, index) {
   };
 }
 
-function validGeometry(geometry) {
-  if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) return false;
-  const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
-  if (!polygons.length) return false;
-  return polygons.every(polygon => Array.isArray(polygon)
-    && polygon.length
-    && polygon.every(ring => Array.isArray(ring)
-      && ring.length >= 4
-      && ring.every(point => Array.isArray(point)
-        && point.length >= 2
-        && Number.isFinite(point[0])
-        && Number.isFinite(point[1])
-        && point[0] >= -180 && point[0] <= 180
-        && point[1] >= -90 && point[1] <= 90)));
+function canonicalFeatureIssues(featureValue) {
+  const issues = validateGeometry(featureValue);
+  if (!countryGeometry.hasCanonicalCountryWinding(featureValue?.geometry)) {
+    issues.push({ kind: 'noncanonical-winding', message: '국가 고리 방향 또는 구조가 canonical 규격과 다릅니다.' });
+  }
+  return issues;
+}
+
+function polygonCoordinatesAsMultiPolygon(geometry) {
+  if (geometry?.type === 'Polygon') return [geometry.coordinates];
+  if (geometry?.type === 'MultiPolygon') return geometry.coordinates;
+  return [];
+}
+
+function geometryBounds(geometry) {
+  let minimumX = Infinity;
+  let minimumY = Infinity;
+  let maximumX = -Infinity;
+  let maximumY = -Infinity;
+  const visit = value => {
+    if (Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') {
+      minimumX = Math.min(minimumX, value[0]);
+      minimumY = Math.min(minimumY, value[1]);
+      maximumX = Math.max(maximumX, value[0]);
+      maximumY = Math.max(maximumY, value[1]);
+      return;
+    }
+    if (Array.isArray(value)) value.forEach(visit);
+  };
+  visit(geometry?.coordinates);
+  return [minimumX, minimumY, maximumX, maximumY];
+}
+
+function ringArea(ring) {
+  let sum = 0;
+  for (let index = 0; index < (ring?.length || 0) - 1; index += 1) {
+    sum += ring[index][0] * ring[index + 1][1] - ring[index + 1][0] * ring[index][1];
+  }
+  return sum / 2;
+}
+
+function hasPolygonArea(multiPolygon) {
+  return (multiPolygon || []).some(polygon => polygon.some(ring => Math.abs(ringArea(ring)) > 1e-14));
+}
+
+function overlappingFeaturePairs(collection) {
+  const entries = collection.features.map((featureValue, index) => ({
+    index,
+    id: String(featureValue.properties?.editor_id || index),
+    geometry: featureValue.geometry,
+    bounds: geometryBounds(featureValue.geometry),
+  })).sort((left, right) => left.bounds[0] - right.bounds[0]);
+  const overlaps = [];
+  for (let leftIndex = 0; leftIndex < entries.length; leftIndex += 1) {
+    const left = entries[leftIndex];
+    for (let rightIndex = leftIndex + 1; rightIndex < entries.length; rightIndex += 1) {
+      const right = entries[rightIndex];
+      if (right.bounds[0] > left.bounds[2]) break;
+      if (right.bounds[1] > left.bounds[3] || right.bounds[3] < left.bounds[1]) continue;
+      const intersection = polygonClipping.intersection(
+        polygonCoordinatesAsMultiPolygon(left.geometry),
+        polygonCoordinatesAsMultiPolygon(right.geometry),
+      );
+      if (hasPolygonArea(intersection)) overlaps.push({ left, right });
+    }
+  }
+  return overlaps;
+}
+
+function normalizeAndRepairPreviewGeometry(value) {
+  const normalized = countryGeometry.normalizeCountryGeometry(value);
+  if (!normalized) return null;
+  try {
+    const multiPolygon = normalized.type === 'Polygon' ? [normalized.coordinates] : normalized.coordinates;
+    const repaired = polygonClipping.union(multiPolygon);
+    return countryGeometry.normalizeCountryGeometry(repaired);
+  } catch (_) {
+    return null;
+  }
+}
+
+function referencedArcIds(geometry) {
+  const arcIds = new Set();
+  const visit = value => {
+    if (Number.isInteger(value)) {
+      arcIds.add(value < 0 ? ~value : value);
+      return;
+    }
+    if (Array.isArray(value)) value.forEach(visit);
+  };
+  visit(geometry.arcs);
+  return arcIds;
+}
+
+function preserveFeatureArcs(prepared, featureIndex) {
+  const geometry = prepared.objects?.countries?.geometries?.[featureIndex];
+  if (!geometry) return 0;
+  const arcIds = referencedArcIds(geometry);
+  let changed = 0;
+  for (const arcId of arcIds) {
+    for (const point of prepared.arcs[arcId] || []) {
+      if (Number.isFinite(point[2])) {
+        point[2] = Infinity;
+        changed += 1;
+      }
+    }
+  }
+  return changed;
+}
+
+function materializePreviewCandidate(prepared, originalFeatures, originalIds, percentile) {
+  const working = structuredClone(prepared);
+  const preservedIds = new Set();
+  const canonicalFallbackIds = new Set();
+  const arcUsage = new Map();
+  for (const geometry of working.objects?.countries?.geometries || []) {
+    for (const arcId of referencedArcIds(geometry)) arcUsage.set(arcId, (arcUsage.get(arcId) || 0) + 1);
+  }
+  for (let attempt = 0; attempt <= MAX_PRESERVATION_ATTEMPTS; attempt += 1) {
+    const threshold = quantile(working, Math.min(0.999999, percentile));
+    const candidateTopology = simplify(structuredClone(working), threshold);
+    const candidate = topologyFeature(candidateTopology, candidateTopology.objects.countries);
+    const invalidByIndex = new Map();
+    candidate.features = candidate.features.map((featureValue, index) => {
+      const geometry = normalizeAndRepairPreviewGeometry(featureValue.geometry);
+      if (!geometry) {
+        invalidByIndex.set(index, { index, id: originalIds[index], kinds: ['empty-geometry'] });
+        return featureValue;
+      }
+      const normalized = { ...featureValue, geometry };
+      const issues = canonicalFeatureIssues(normalized);
+      if (issues.length) invalidByIndex.set(index, { index, id: originalIds[index], kinds: [...new Set(issues.map(issue => issue.kind))] });
+      return normalized;
+    });
+    for (const pair of overlappingFeaturePairs(candidate)) {
+      for (const [entry, neighbor] of [[pair.left, pair.right], [pair.right, pair.left]]) {
+        const item = invalidByIndex.get(entry.index) || { index: entry.index, id: entry.id, kinds: [] };
+        item.kinds.push(`country-overlap:${neighbor.id}`);
+        item.kinds = [...new Set(item.kinds)];
+        invalidByIndex.set(entry.index, item);
+      }
+    }
+    const invalid = [...invalidByIndex.values()];
+    if (!invalid.length) return { collection: candidate, preservedIds: [...preservedIds], canonicalFallbackIds: [...canonicalFallbackIds] };
+    let changed = 0;
+    for (const item of invalid) {
+      preservedIds.add(item.id);
+      changed += preserveFeatureArcs(working, item.index);
+    }
+    if (changed && attempt < MAX_PRESERVATION_ATTEMPTS) continue;
+
+    const unresolved = [];
+    for (const item of invalid) {
+      const topologyGeometry = working.objects?.countries?.geometries?.[item.index];
+      const isolated = topologyGeometry && [...referencedArcIds(topologyGeometry)].every(arcId => arcUsage.get(arcId) === 1);
+      const geometry = isolated ? normalizeAndRepairPreviewGeometry(originalFeatures[item.index]?.geometry) : null;
+      const replacement = geometry ? { ...candidate.features[item.index], geometry } : null;
+      const issues = replacement ? canonicalFeatureIssues(replacement) : [{ kind: 'shared-or-invalid-canonical-fallback' }];
+      if (replacement && !issues.length) {
+        candidate.features[item.index] = replacement;
+        canonicalFallbackIds.add(item.id);
+      } else {
+        unresolved.push(item);
+      }
+    }
+    if (!unresolved.length) {
+      return { collection: candidate, preservedIds: [...preservedIds], canonicalFallbackIds: [...canonicalFallbackIds] };
+    }
+    throw new Error(`미리보기 국가 도형을 ${MAX_PRESERVATION_ATTEMPTS}회 보존 재시도 후에도 복구하지 못했습니다: ${JSON.stringify(unresolved)}`);
+  }
+  throw new Error('미리보기 국가 도형 보존 반복이 비정상적으로 종료되었습니다.');
 }
 
 function packMesh(mesh, sourceCoordinateCount) {
@@ -116,6 +277,55 @@ function packMesh(mesh, sourceCoordinateCount) {
   return { raw, compressed: zlib.gzipSync(raw, { level: 9, mtime: 0 }) };
 }
 
+function validatePackedMeshGeometry(mesh) {
+  const vertexCount = mesh.positions.length / 2;
+  if (!Number.isInteger(vertexCount) || mesh.countryIndices.length !== vertexCount || mesh.countryIds.length !== 258) {
+    throw new Error('미리보기 GPU 메시 꼭짓점 또는 국가 메타데이터 길이가 올바르지 않습니다.');
+  }
+  const coordinateKey = index => `${mesh.positions[index * 2]},${mesh.positions[index * 2 + 1]}`;
+  const vector = index => {
+    const longitude = mesh.positions[index * 2] * 1e-6 * Math.PI / 180;
+    const latitude = mesh.positions[index * 2 + 1] * 1e-6 * Math.PI / 180;
+    const cosine = Math.cos(latitude);
+    return [cosine * Math.cos(longitude), cosine * Math.sin(longitude), Math.sin(latitude)];
+  };
+  const vectors = Array.from({ length: vertexCount }, (_, index) => vector(index));
+  const assertIndex = (index, label) => {
+    if (index >= vertexCount) throw new Error(`${label} 인덱스가 꼭짓점 범위를 벗어났습니다: ${index}`);
+  };
+  for (let index = 0; index < mesh.triangleIndices.length; index += 3) {
+    const indices = Array.from(mesh.triangleIndices.slice(index, index + 3));
+    if (indices.length !== 3) throw new Error('미리보기 삼각형 인덱스 길이가 올바르지 않습니다.');
+    indices.forEach(value => assertIndex(value, '미리보기 삼각형'));
+    if (new Set(indices.map(coordinateKey)).size < 3) throw new Error(`미리보기 메시의 삼각형 꼭짓점이 겹칩니다: ${index / 3}`);
+    const [a, b, c] = indices.map(value => vectors[value]);
+    const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    const cross = [
+      ab[1] * ac[2] - ab[2] * ac[1],
+      ab[2] * ac[0] - ab[0] * ac[2],
+      ab[0] * ac[1] - ab[1] * ac[0],
+    ];
+    if (cross[0] ** 2 + cross[1] ** 2 + cross[2] ** 2 <= 1e-32) {
+      throw new Error(`미리보기 메시의 영면적 삼각형이 있습니다: ${index / 3}`);
+    }
+    if (new Set(indices.map(value => mesh.countryIndices[value])).size !== 1) {
+      throw new Error(`미리보기 메시의 삼각형이 서로 다른 국가를 잇습니다: ${index / 3}`);
+    }
+  }
+  for (let index = 0; index < mesh.lineIndices.length; index += 2) {
+    const a = mesh.lineIndices[index];
+    const b = mesh.lineIndices[index + 1];
+    if (b === undefined) throw new Error('미리보기 국경선 인덱스 길이가 올바르지 않습니다.');
+    assertIndex(a, '미리보기 국경선');
+    assertIndex(b, '미리보기 국경선');
+    if (coordinateKey(a) === coordinateKey(b)) throw new Error(`미리보기 메시의 영길이 국경선이 있습니다: ${index / 2}`);
+    if (mesh.countryIndices[a] !== mesh.countryIndices[b]) {
+      throw new Error(`미리보기 메시의 국경선이 서로 다른 국가를 잇습니다: ${index / 2}`);
+    }
+  }
+}
+
 function buildPreview(source) {
   const minimal = {
     type: 'FeatureCollection',
@@ -124,28 +334,43 @@ function buildPreview(source) {
   };
   const originalIds = minimal.features.map(featureValue => featureValue.properties.editor_id);
   if (new Set(originalIds).size !== 258) throw new Error('원본 국가 ID가 정확히 258개여야 합니다.');
-  const prepared = presimplify(topology({ countries: minimal }, QUANTIZATION));
+  const canonicalErrors = minimal.features.flatMap((featureValue, index) => {
+    const issues = canonicalFeatureIssues(featureValue);
+    return issues.length ? [{ id: originalIds[index], kinds: [...new Set(issues.map(issue => issue.kind))] }] : [];
+  });
+  if (canonicalErrors.length) {
+    throw new Error(`canonical 국가 원본에 구조 오류가 있습니다: ${JSON.stringify(canonicalErrors)}`);
+  }
+  const prepared = presimplify(topology({ countries: minimal }));
   const originalArea = sphericalArea(minimal);
   let selected = null;
   const diagnostics = [];
-  for (const percentile of [0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2]) {
-    const candidateTopology = simplify(structuredClone(prepared), quantile(prepared, Math.min(0.999999, percentile)));
-    const candidate = topologyFeature(candidateTopology, candidateTopology.objects.countries);
-    let invalidGeometryCount = 0;
-    candidate.features = candidate.features.map((featureValue, index) => {
-      if (validGeometry(featureValue.geometry)) return featureValue;
-      invalidGeometryCount += 1;
-      return structuredClone(minimal.features[index]);
-    });
+  for (const percentile of [0.022, 0.025, 0.03, 0.04, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2]) {
+    const materialized = materializePreviewCandidate(prepared, minimal.features, originalIds, percentile);
+    const candidate = materialized.collection;
     const coordinateCount = countCoordinates(candidate.features.map(featureValue => featureValue.geometry?.coordinates));
     const areaError = Math.abs(sphericalArea(candidate) - originalArea) / originalArea;
     const ids = candidate.features.map(featureValue => String(featureValue.properties?.editor_id || ''));
-    const geometriesValid = invalidGeometryCount === 0
-      && candidate.features.every(featureValue => validGeometry(featureValue.geometry));
-    diagnostics.push({ percentile, coordinateCount, areaError, geometriesValid });
+    const invalidGeometryCount = candidate.features.filter(featureValue => canonicalFeatureIssues(featureValue).length).length;
+    const geometriesValid = invalidGeometryCount === 0;
+    diagnostics.push({
+      percentile,
+      coordinateCount,
+      areaError,
+      geometriesValid,
+      preservedCountries: materialized.preservedIds.length,
+      canonicalFallbackCountries: materialized.canonicalFallbackIds.length,
+    });
     if (coordinateCount <= MAX_COORDINATES && areaError <= MAX_GLOBAL_AREA_ERROR
         && geometriesValid && ids.length === 258 && ids.every((id, index) => id === originalIds[index])) {
-      selected = { collection: candidate, coordinateCount, areaError, percentile };
+      selected = {
+        collection: candidate,
+        coordinateCount,
+        areaError,
+        percentile,
+        preservedCountries: materialized.preservedIds.length,
+        canonicalFallbackCountries: materialized.canonicalFallbackIds.length,
+      };
       break;
     }
   }
@@ -158,7 +383,14 @@ function buildPreview(source) {
 
 function compareOrWrite(filePath, bytes) {
   if (checkOnly) {
-    if (!fs.existsSync(filePath) || !fs.readFileSync(filePath).equals(bytes)) {
+    const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath) : null;
+    const comparableExisting = existing && path.extname(filePath) === '.json'
+      ? Buffer.from(existing.toString('utf8').replaceAll('\r\n', '\n'))
+      : existing;
+    const comparableBytes = path.extname(filePath) === '.json'
+      ? Buffer.from(bytes.toString('utf8').replaceAll('\r\n', '\n'))
+      : bytes;
+    if (!comparableExisting?.equals(comparableBytes)) {
       throw new Error(`${path.relative(projectRoot, filePath)} 미리보기 자산이 최신 빌드와 다릅니다.`);
     }
     return;
@@ -167,10 +399,10 @@ function compareOrWrite(filePath, bytes) {
   fs.writeFileSync(filePath, bytes);
 }
 
-const sourceBytes = fs.readFileSync(sourcePath);
+const sourceBytes = Buffer.from(fs.readFileSync(sourcePath, 'utf8').replaceAll('\r\n', '\n'));
 const canonicalMeshBytes = fs.readFileSync(canonicalMeshPath);
 const canonicalMeshDecoded = zlib.gunzipSync(canonicalMeshBytes);
-const labelAnchorBytes = fs.readFileSync(labelAnchorsPath);
+const labelAnchorBytes = Buffer.from(fs.readFileSync(labelAnchorsPath, 'utf8').replaceAll('\r\n', '\n'));
 const source = JSON.parse(sourceBytes.toString('utf8'));
 if (source?.type !== 'FeatureCollection' || source.features?.length !== 258) {
   throw new Error('Natural Earth 국가 데이터는 정확히 258개여야 합니다.');
@@ -182,6 +414,7 @@ const previewJson = Buffer.from(JSON.stringify(preview.collection));
 const previewCountries = zlib.gzipSync(previewJson, { level: 9, mtime: 0 });
 const canonicalCountries = zlib.gzipSync(sourceBytes, { level: 9, mtime: 0 });
 const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, earcut, { validate: true, maxEdgeDegrees: 2 });
+validatePackedMeshGeometry(mesh);
 const packedMesh = packMesh(mesh, preview.coordinateCount);
 const combinedCompressedBytes = previewCountries.length + packedMesh.compressed.length;
 if (combinedCompressedBytes > MAX_COMPRESSED_BYTES) {
