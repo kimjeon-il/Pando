@@ -13,7 +13,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   return errors;
 }
 
-test('layer selection supports additive selection, batch UI, render order, history, and explicit focusing', async ({ page }) => {
+test('layer selection supports additive selection, compact batch UI, fixed presentation policy, and explicit focusing', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
   const search = page.locator('#layerSearchInput');
@@ -32,22 +32,24 @@ test('layer selection supports additive selection, batch UI, render order, histo
   await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
   await expect(page.locator('#multiSelectionBar')).toBeVisible();
   await expect(page.locator('#multiProperties')).toBeVisible();
-  await expect(page.locator('#multiDeleteBtn')).toBeDisabled();
+  await expect(page.locator('#multiPropertiesDeleteBtn')).toBeVisible();
+  await expect(page.locator('#multiSelectionBar button')).toHaveCount(2);
 
   await page.locator('#clearMultiSelectionBtn').click();
   await expect(page.locator('#multiSelectionBar')).toBeHidden();
 
   await page.locator('#layerPresentationBtn').click();
-  const rows = page.locator('#layerPresentationList .layer-presentation-row');
-  await expect(rows).toHaveCount(7);
-  await expect(rows.first()).toContainText('사용자 지형지물');
-  await rows.first().locator('[data-layer-order-direction="down"]').click();
-  await expect(rows.nth(1)).toContainText('사용자 지형지물');
+  await expect(page.locator('#layerPresentationModal')).toBeVisible();
+  await expect(page.locator('[data-layer-order-direction]')).toHaveCount(0);
+  await page.locator('#layerStyleGroupInput').selectOption('userDrawings');
+  await page.locator('#layerStyleOpacityInput').fill('80');
+  await page.locator('#layerStyleOpacityInput').dispatchEvent('change');
+  await expect(page.locator('#layerStyleOpacityValue')).toHaveText('80%');
   await page.locator('#layerPresentationDoneBtn').click();
 
   if (!await page.locator('#rightPanel').isVisible()) await page.locator('#togglePanelBtn').click();
-  await page.locator('#historyTabBtn').click();
-  await expect(page.locator('#historyList')).toContainText('렌더 순서 변경');
+  await expect(page.locator('#historyTabBtn')).toHaveCount(0);
+  await expect(page.locator('#undoBtn')).toBeEnabled();
   await expect(page.locator('#projectSaveStatusText')).toContainText('미저장');
   expect(errors).toEqual([]);
 });
@@ -55,6 +57,7 @@ test('layer selection supports additive selection, batch UI, render order, histo
 test('overlapping map objects open the compact chooser and expose disambiguating type labels', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
+  await page.locator('#basemapLabelsVisible').uncheck();
   await page.locator('#createMenuBtn').click();
   await page.locator('#addLabelBtn').click();
 
@@ -63,6 +66,7 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   const point = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
   page.once('dialog', dialog => dialog.accept('겹침 테스트'));
   await page.mouse.click(point.x, point.y);
+  await page.locator('#labelKindInput').selectOption('capital');
   await expect(page.locator('.user-label')).toContainText('겹침 테스트');
 
   await page.mouse.click(point.x, point.y);

@@ -6,7 +6,7 @@ import { geometryAreaKm2, lineDistanceKm, percentChange } from '../../assets/js/
 import { beginGeometryPreview, clearGeometryPreview, createGeometryPreviewState, previewIsCurrent } from '../../assets/js/modules/geometry-preview.js';
 import { resolveSnap, snapThreshold } from '../../assets/js/modules/geometry-snap.js';
 import { runMapAudit, validateGeometry } from '../../assets/js/modules/geometry-validation.js';
-import { LABEL_PRIORITIES, layoutLabels } from '../../assets/js/modules/label-layout.js';
+import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from '../../assets/js/modules/label-layout.js';
 import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';
 
 const feature = (id, coordinates) => ({
@@ -127,6 +127,24 @@ test('label layout respects priority and pinned labels', () => {
     { ...common, key: 'pinned', priority: 1, pinned: true },
   ], { zoom: 2 });
   assert.deepEqual(output.map(item => item.key), ['pinned']);
+});
+
+test('label policies override legacy tuning while preserving established manual placement', () => {
+  const settings = automaticLabelSettings('city', {
+    priority: 999,
+    minZoom: 0,
+    maxZoom: 1,
+    collisionGroup: 'legacy',
+    manualPosition: [127, 37],
+    pinned: false,
+  });
+
+  assert.equal(settings.priority, LABEL_PRIORITIES.majorCity);
+  assert.equal(settings.minZoom, 1.25);
+  assert.equal(settings.maxZoom, Infinity);
+  assert.equal(settings.collisionGroup, 'place');
+  assert.deepEqual(settings.manualPosition, [127, 37]);
+  assert.equal(settings.pinned, true);
 });
 
 test('atomic map state rejects stale snapshots', () => {

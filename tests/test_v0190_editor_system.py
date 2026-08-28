@@ -14,11 +14,13 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertIn('class="sidebar right-panel editor-panel editor-shell map-sheet-surface ui-sheet"', INDEX)
         self.assertIn('id="editorScrollBody" class="editor-scroll-body"', INDEX)
         self.assertIn('id="editorObjectHeader" class="editor-object-header hidden"', INDEX)
-        for view_id in ("countryProperties", "regionProperties", "administrativeProperties", "drawingProperties", "labelProperties", "hydroProperties"):
+        for view_id in ("countryProperties", "regionProperties", "administrativeProperties"):
+            self.assertRegex(INDEX, rf'id="{view_id}" class="editor-view editor-object-form hidden"')
+        for view_id in ("drawingProperties", "labelProperties", "hydroProperties"):
             self.assertRegex(INDEX, rf'id="{view_id}" class="editor-view hidden"')
         for component in (
-            "editor-section", "editor-section-title", "editor-field", "editor-action-grid",
-            "editor-info-list", "editor-disclosure", "editor-danger-zone",
+            "editor-section", "editor-section-title", "editor-field", "editor-action-list",
+            "editor-info-list", "editor-disclosure",
         ):
             self.assertIn(component, INDEX)
 
@@ -36,10 +38,11 @@ class EditorSystemV0190Tests(unittest.TestCase):
         for obsolete in ("데이터 유형", "지도색", "편집용 복사 만들기", "내장 수계 정보", "이 국가 삭제", "상세 정보"):
             self.assertNotIn(obsolete, INDEX)
         for expected in (
-            "국가 색상", "영토 작업", "추가 정보", "고급 작업", "위험 작업",
+            "영토 편입", "국가 합병", "경계 수정", "추가 정보", "고급 작업",
             "복사하여 편집", "국가에 관한 메모를 입력하세요.",
         ):
             self.assertIn(expected, INDEX)
+        self.assertNotIn("위험 작업", INDEX)
         self.assertIn('id="countryCodeInput"', INDEX)
         self.assertIn('id="drawingIdInput"', INDEX)
         self.assertIn('id="hydroIdValue"', INDEX)

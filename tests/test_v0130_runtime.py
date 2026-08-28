@@ -42,10 +42,10 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertLess(self.manifest["stats"]["compressedBytes"], 48 * 1024 * 1024)
         self.assertTrue(all(row["bytes"] <= 4 * 1024 * 1024 for row in self.manifest["shards"]))
 
-    def test_terrain_folder_and_automatic_water_colour(self):
-        self.assertIn('data-layer-group="terrain"', INDEX)
-        self.assertLess(INDEX.index('data-layer-group="countries"'), INDEX.index('data-layer-group="terrain"'))
-        self.assertLess(INDEX.index('data-layer-group="terrain"'), INDEX.index('data-layer-group="drawings"'))
+    def test_terrain_toggle_settings_and_automatic_water_colour(self):
+        self.assertNotIn('data-layer-group="terrain"', INDEX)
+        self.assertIn('id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시"', INDEX)
+        self.assertIn('id="terrainLayerSettingsTitle">지형 음영</strong>', INDEX)
         for element_id in ("terrainVisible", "terrainPoliticalRadio", "terrainPhysicalRadio", "terrainStrengthControl"):
             self.assertIn(f'id="{element_id}"', INDEX)
         for removed_id in ("terrainStyleSelect", "riverColorSelect", "lakeColorSelect"):

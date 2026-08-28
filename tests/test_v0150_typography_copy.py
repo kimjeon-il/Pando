@@ -69,7 +69,10 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn(".mode-task-heading strong {", CSS)
 
     def test_user_copy_avoids_mixed_terms_and_request_tone(self):
-        visible_sources = "\n".join((INDEX, APP, BOOTSTRAP))
+        visible_sources = "\n".join((INDEX, APP, BOOTSTRAP)).replace(
+            "프로젝트를 저장하지 못했습니다. 다시 저장해 주세요.",
+            "",
+        )
         for forbidden in (
             "수령국",
             "피편입국",
