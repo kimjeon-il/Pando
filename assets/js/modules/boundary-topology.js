@@ -214,3 +214,70 @@ export function topologySnapCandidates(topology, { activeOwnerIds = [] } = {}) {
   }
   return output;
 }
+
+function selectedTopologySegmentKeys(topology, predicate) {
+  const keys = new Set();
+  for (const segment of topology?.segments?.values?.() || []) {
+    if (predicate(segment)) keys.add(segment.key);
+  }
+  return keys;
+}
+
+function endpointNodeKeys(topology, segmentKeys) {
+  const keys = new Set();
+  for (const key of segmentKeys) {
+    const segment = topology?.segments?.get?.(key);
+    if (!segment) continue;
+    keys.add(topologyNodeKey(segment.a, topology.precision));
+    keys.add(topologyNodeKey(segment.b, topology.precision));
+  }
+  return keys;
+}
+
+export function planSharedBoundaryEdit(topology, selectedCountryIds = []) {
+  const selectedIds = [...new Set(selectedCountryIds.map(String).filter(Boolean))];
+  const selected = new Set(selectedIds);
+  const segmentKeys = selectedTopologySegmentKeys(topology, segment => segment.kind === 'shared'
+    && segment.ownerIds.size >= 2
+    && [...segment.ownerIds].every(ownerId => selected.has(String(ownerId))));
+  const nodeKeys = endpointNodeKeys(topology, segmentKeys);
+  const editableNodeKeys = new Set();
+  const fixedNodeKeys = new Set();
+  const participantIds = new Set();
+
+  for (const key of segmentKeys) {
+    for (const ownerId of topology.segments.get(key)?.ownerIds || []) participantIds.add(String(ownerId));
+  }
+  for (const key of nodeKeys) {
+    const node = topology?.nodes?.get?.(key);
+    const editable = node?.ownerIds?.size >= 2 && [...node.ownerIds].every(ownerId => selected.has(String(ownerId)));
+    (editable ? editableNodeKeys : fixedNodeKeys).add(key);
+  }
+
+  const isolatedIds = selectedIds.filter(id => !participantIds.has(id));
+  return {
+    selectedIds,
+    segmentKeys,
+    editableNodeKeys,
+    fixedNodeKeys,
+    participantIds,
+    isolatedIds,
+    valid: selectedIds.length >= 2 && segmentKeys.size > 0 && isolatedIds.length === 0,
+  };
+}
+
+export function planCoastEdit(topology, countryId) {
+  const ownerId = String(countryId || '');
+  const segmentKeys = selectedTopologySegmentKeys(topology, segment => segment.kind === 'coast'
+    && segment.ownerIds.size === 1
+    && segment.ownerIds.has(ownerId));
+  const nodeKeys = endpointNodeKeys(topology, segmentKeys);
+  const editableNodeKeys = new Set();
+  const fixedNodeKeys = new Set();
+  for (const key of nodeKeys) {
+    const node = topology?.nodes?.get?.(key);
+    const editable = node?.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(ownerId);
+    (editable ? editableNodeKeys : fixedNodeKeys).add(key);
+  }
+  return { countryId: ownerId, segmentKeys, editableNodeKeys, fixedNodeKeys };
+}

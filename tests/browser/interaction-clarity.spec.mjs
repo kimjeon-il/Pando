@@ -51,9 +51,40 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#multiPropertiesLockInput')).not.toBeChecked();
   await expect(page.locator('#multiPropertiesDeleteBtn')).toHaveCount(0);
   await expect(page.locator('#multiSelectionBar button')).toHaveCount(2);
+  await page.locator('#actionsTabBtn').click();
+  await expect(page.locator('#multiCountryActions')).toBeVisible();
+  await expect(page.locator('#multiBorderEditBtn')).toBeEnabled();
+  await page.locator('#multiBorderEditBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('국경 조정');
+  await expect(page.locator('#modeTaskStage')).toHaveText('공유국경 편집');
+  await expect(page.locator('path.boundary-edit-segment.shared')).not.toHaveCount(0);
+  await expect(page.locator('path.boundary-edit-segment.coast')).toHaveCount(0);
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
 
   await page.locator('#clearMultiSelectionBtn').click();
   await expect(page.locator('#multiSelectionBar')).toBeHidden();
+
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#editBorderBtn').click();
+  await expect(page.locator('#modeTaskStage')).toHaveText('대상 선택');
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await page.locator('text.country-label').filter({ hasText: '폴란드' }).click();
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeTaskStage')).toHaveText('공유국경 편집');
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#multiSelectionBar')).toBeHidden();
+
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'IRL'));
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#editCoastBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('해안선 조정');
+  await expect(page.locator('#modeTaskStage')).toHaveText('외곽선 편집');
+  await expect(page.locator('path.boundary-edit-segment.coast')).not.toHaveCount(0);
+  await expect(page.locator('path.boundary-edit-segment.shared')).toHaveCount(0);
+  await page.locator('#modeCancelBtn').click();
 
   await page.locator('#layerPresentationBtn').click();
   await expect(page.locator('#layerPresentationModal')).toBeVisible();
@@ -134,5 +165,22 @@ test('mobile long press enters additive selection without shrinking the touch ta
   await germany.dispatchEvent('pointerup', { pointerId: 41, pointerType: 'touch', isPrimary: true, clientX: touchBox.x + 12, clientY: touchBox.y + 12 });
   await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
   await expect(page.locator('#multiSelectionBar')).not.toHaveClass(/hidden/);
+  expect(errors).toEqual([]);
+});
+
+test('mobile notifications show complete short copy and retain the full accessible message', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page, { width: 390, height: 844 });
+  const detail = '편집 데이터를 네트워크에서 불러오지 못했습니다';
+  await page.evaluate(value => {
+    window.dispatchEvent(new CustomEvent('pandolab:geometry-error', { detail: value }));
+  }, detail);
+
+  const notice = page.locator('#actionStatus');
+  await expect(notice).toBeVisible();
+  await expect(notice.locator('strong')).toHaveText('파일 작업 실패');
+  expect((await notice.locator('strong').textContent()).length).toBeLessThanOrEqual(22);
+  await expect(notice).toHaveAttribute('aria-label', `${detail} 미리보기 오류. 자동 재시도합니다.`);
+  await expect(notice).toHaveAttribute('data-tooltip', `${detail} 미리보기 오류. 자동 재시도합니다.`);
   expect(errors).toEqual([]);
 });

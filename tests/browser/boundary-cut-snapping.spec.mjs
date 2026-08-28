@@ -65,7 +65,6 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await expect(page.locator('#drawingProperties')).toBeVisible();
   const shape = page.locator('path.drawing-shape.selected');
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#drawingProperties details.drawing-advanced-actions summary').click();
   await page.locator('#splitDrawingBtn').click();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
 
