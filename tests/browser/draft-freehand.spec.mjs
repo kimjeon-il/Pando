@@ -57,6 +57,25 @@ test('freehand river becomes one editable draft history step', async ({ page }) 
   expect(errors).toEqual([]);
 });
 
+test('double click never completes a draft implicitly', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page);
+  await page.locator('#createMenuBtn').click();
+  await page.locator('#addRiverBtn').click();
+  const box = await page.locator('#map').boundingBox();
+  expect(box).not.toBeNull();
+
+  await page.mouse.click(box.x + box.width * 0.42, box.y + box.height * 0.44);
+  await page.mouse.dblclick(box.x + box.width * 0.58, box.y + box.height * 0.52);
+
+  await expect(page.locator('#modeEditingHud')).toBeVisible();
+  await expect(page.locator('#modeTaskName')).toHaveText('강 추가');
+  await expect(page.locator('path.drawing-shape.selected')).toHaveCount(0);
+  expect(await page.locator('g.draft-vertex').count()).toBeGreaterThanOrEqual(2);
+  await page.locator('#modeCancelBtn').click();
+  expect(errors).toEqual([]);
+});
+
 test('mobile touch stroke draws, while a second touch cancels raw input for map gestures', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
