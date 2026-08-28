@@ -128,7 +128,17 @@ export function createGpuMapRenderer(deps) {
     let hydroManifestUrl = null;
     let hydroWorker = null;
     let hydroWorkerReady = false;
-    let hydroViewKey = '';
+    let hydroWorkerGeneration = 0;
+    let hydroWorkerIncludesGeometry = false;
+    let hydroWorkerReadyPromise = Promise.resolve(false);
+    let hydroWorkerReadyResolve = null;
+    let hydroWorkerReadyTimer = 0;
+    let hydroViewRequestedKey = '';
+    let hydroViewLoadedKey = '';
+    let hydroViewRequestedRevision = 0;
+    let hydroViewRetryAttempts = 0;
+    let hydroViewRetryKey = '';
+    let hydroViewRetryTimer = 0;
     let hydroRequestRevision = 0;
     let hydroAcceptedRevision = 0;
     let hydroActivePackIds = new Set();
@@ -1765,10 +1775,20 @@ export function createGpuMapRenderer(deps) {
       if (!hydroWorker || !hydroWorkerReady || !hydroManifest) return;
       const tiles = hydroVisibleTileSpecs();
       const key = tiles.map(spec => `${spec.stage}/${spec.x}-${spec.y}`).join('|');
-      if (key === hydroViewKey) return;
-      hydroViewKey = key;
-      const message = { type: 'view', revision: ++hydroRequestRevision, tiles, mobile: isMobile() };
-      hydroWorker.postMessage(message);
+      if (key === hydroViewLoadedKey || key === hydroViewRequestedKey) return;
+      if (key !== hydroViewRetryKey) {
+        hydroViewRetryKey = key;
+        hydroViewRetryAttempts = 0;
+      }
+      hydroViewRequestedKey = key;
+      hydroViewRequestedRevision = ++hydroRequestRevision;
+      state.physicalLoadState.hydroView = 'loading';
+      hydroWorker.postMessage({
+        type: 'view',
+        revision: hydroViewRequestedRevision,
+        tiles,
+        mobile: isMobile(),
+      });
     }
 
     let hydroRenderFrame = 0;
@@ -1900,8 +1920,68 @@ export function createGpuMapRenderer(deps) {
       const message = event.data || {};
       if (message.type === 'ready') {
         hydroWorkerReady = true;
-        hydroViewKey = '';
+        hydroViewRequestedKey = '';
+        hydroViewLoadedKey = '';
+        hydroViewRetryAttempts = 0;
+        state.physicalLoadState.hydroWorker = 'ready';
+        if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
+        hydroWorkerReadyTimer = 0;
+        hydroWorkerReadyResolve?.(true);
+        hydroWorkerReadyResolve = null;
         requestHydroView();
+        return;
+      }
+      if (message.type === 'init-error') {
+        hydroWorkerReady = false;
+        state.physicalLoadState.hydroWorker = 'error';
+        if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
+        hydroWorkerReadyTimer = 0;
+        hydroWorkerReadyResolve?.(false);
+        hydroWorkerReadyResolve = null;
+        hydroWorker?.terminate();
+        hydroWorker = null;
+        console.warn('Hydro worker initialization failed', message.message);
+        return;
+      }
+      if (message.type === 'view-ready') {
+        const revision = Number(message.revision || 0);
+        if (revision < hydroViewRequestedRevision) return;
+        hydroViewLoadedKey = hydroViewRequestedKey;
+        hydroViewRequestedKey = '';
+        hydroViewRetryAttempts = 0;
+        hydroViewRetryKey = '';
+        state.physicalLoadState.hydroView = 'ready';
+        if (hydroViewRetryTimer) clearTimeout(hydroViewRetryTimer);
+        hydroViewRetryTimer = 0;
+        return;
+      }
+      if (message.type === 'view-error') {
+        const revision = Number(message.revision || 0);
+        if (revision < hydroViewRequestedRevision) return;
+        const failedKey = hydroViewRequestedKey || hydroViewRetryKey;
+        hydroViewRequestedKey = '';
+        if (failedKey !== hydroViewRetryKey) {
+          hydroViewRetryKey = failedKey;
+          hydroViewRetryAttempts = 0;
+        }
+        hydroViewRetryAttempts += 1;
+        if (message.retryable !== false && hydroViewRetryAttempts <= 3) {
+          state.physicalLoadState.hydroView = 'retrying';
+          const delay = Math.min(2400, 400 * (2 ** (hydroViewRetryAttempts - 1)));
+          if (hydroViewRetryTimer) clearTimeout(hydroViewRetryTimer);
+          hydroViewRetryTimer = setTimeout(() => {
+            hydroViewRetryTimer = 0;
+            requestHydroView();
+          }, delay);
+        } else {
+          state.physicalLoadState.hydroView = 'error';
+          reportOperationError(
+            new Error(message.message || ''),
+            '현재 화면의 수계 데이터를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 이동하거나 시도하세요.',
+            'PL-WATER-003',
+            4200,
+          );
+        }
         return;
       }
       if (message.type === 'active') {
@@ -1966,14 +2046,23 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       if (message.type === 'cache-unavailable') {
-        state.physicalLoadState.hydroCache = 'error';
+        state.physicalLoadState.hydroCache = 'unavailable';
         console.warn('Hydro persistent cache unavailable', message.message);
-        setActionStatus('전 세계 수계 자료를 오프라인 저장소에 준비하지 못했습니다. 현재 화면은 계속 사용할 수 있으며, 강 또는 호수 레이어를 선택하면 다시 시도합니다.', 'error', 0);
         return;
       }
       if (message.type === 'error') {
         console.warn('Hydro tile worker failed', message.message);
-        reportOperationError(new Error(message.message || ''), '현재 화면의 수계 데이터를 불러오지 못했습니다. 지도를 조금 이동하거나 다시 시도하세요.', 'PL-WATER-003', 0);
+        if (!hydroWorkerReady) {
+          state.physicalLoadState.hydroWorker = 'error';
+          if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
+          hydroWorkerReadyTimer = 0;
+          hydroWorkerReadyResolve?.(false);
+          hydroWorkerReadyResolve = null;
+          hydroWorker?.terminate();
+          hydroWorker = null;
+        } else {
+          reportOperationError(new Error(message.message || ''), '수계 처리 중 오류가 발생했습니다. 현재 지도는 계속 사용할 수 있습니다.', 'PL-WATER-003', 4200);
+        }
       }
     }
 
@@ -1999,12 +2088,32 @@ export function createGpuMapRenderer(deps) {
     }
 
     function setHydroManifest(nextManifest, sourceUrl) {
-      hydroManifest = nextManifest?.stages?.length ? nextManifest : null;
-      hydroManifestUrl = sourceUrl ? new URL(sourceUrl) : null;
+      const normalizedManifest = nextManifest?.stages?.length ? nextManifest : null;
+      const normalizedUrl = sourceUrl ? new URL(sourceUrl) : null;
+      const wantedIncludeGeometry = rendererMode === 'canvas2d';
+      const sameManifest = hydroManifest === normalizedManifest
+        && String(hydroManifestUrl || '') === String(normalizedUrl || '');
+
+      if (sameManifest && hydroWorker && hydroWorkerIncludesGeometry === wantedIncludeGeometry) {
+        connectHydroCanvasWorkers();
+        return hydroWorkerReady ? Promise.resolve(true) : hydroWorkerReadyPromise;
+      }
+
+      hydroManifest = normalizedManifest;
+      hydroManifestUrl = normalizedUrl;
+      hydroWorkerGeneration += 1;
+      const generation = hydroWorkerGeneration;
       hydroWorker?.terminate();
       hydroWorker = null;
       hydroWorkerReady = false;
-      hydroViewKey = '';
+      hydroWorkerIncludesGeometry = wantedIncludeGeometry;
+      hydroViewRequestedKey = '';
+      hydroViewLoadedKey = '';
+      hydroViewRequestedRevision = 0;
+      hydroViewRetryAttempts = 0;
+      hydroViewRetryKey = '';
+      if (hydroViewRetryTimer) clearTimeout(hydroViewRetryTimer);
+      hydroViewRetryTimer = 0;
       hydroAcceptedRevision = 0;
       hydroActivePackIds.clear();
       hydroUploadQueue.length = 0;
@@ -2016,16 +2125,47 @@ export function createGpuMapRenderer(deps) {
       for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('수계 로더가 다시 시작되었습니다.'));
       hydroFeatureRequests.clear();
       state.hydroFragmentsByLogicalId = new Map();
-      if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') return;
+
+      if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
+      hydroWorkerReadyTimer = 0;
+      hydroWorkerReadyResolve?.(false);
+      hydroWorkerReadyResolve = null;
+
+      if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') {
+        hydroWorkerReadyPromise = Promise.resolve(false);
+        return hydroWorkerReadyPromise;
+      }
+
+      state.physicalLoadState.hydroWorker = 'starting';
+      hydroWorkerReadyPromise = new Promise(resolve => { hydroWorkerReadyResolve = resolve; });
       hydroWorker = new Worker(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'pandolab-hydro-tiles' });
-      hydroWorker.onmessage = receiveHydroWorkerMessage;
-      hydroWorker.onerror = event => receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '수계 Worker 실행 오류' } });
+      hydroWorker.onmessage = event => {
+        if (generation !== hydroWorkerGeneration) return;
+        receiveHydroWorkerMessage(event);
+      };
+      hydroWorker.onerror = event => {
+        if (generation !== hydroWorkerGeneration) return;
+        receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '수계 Worker 실행 오류' } });
+      };
       const hydroRevision = `${ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
       hydroWorker.postMessage({
-        type: 'init', manifest: hydroManifest, baseUrl: new URL('./', hydroManifestUrl).href,
-        assetRevision: hydroRevision, includeGeometry: rendererMode === 'canvas2d',
+        type: 'init',
+        manifest: hydroManifest,
+        baseUrl: new URL('./', hydroManifestUrl).href,
+        assetRevision: hydroRevision,
+        includeGeometry: wantedIncludeGeometry,
       });
+      hydroWorkerReadyTimer = setTimeout(() => {
+        if (generation !== hydroWorkerGeneration || hydroWorkerReady) return;
+        state.physicalLoadState.hydroWorker = 'error';
+        hydroWorker?.terminate();
+        hydroWorker = null;
+        hydroWorkerGeneration += 1;
+        hydroWorkerReadyResolve?.(false);
+        hydroWorkerReadyResolve = null;
+      }, 15000);
       connectHydroCanvasWorkers();
+      return hydroWorkerReadyPromise;
     }
 
     function setHydroInteractionActive(active) {

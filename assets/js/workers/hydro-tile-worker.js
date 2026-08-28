@@ -27,6 +27,10 @@ let cacheProgressAt = 0;
 const featureMetadata = new Map();
 let detailMetadataPromise = null;
 let canvasPort = null;
+let mobileSession = false;
+let backgroundCacheController = null;
+let backgroundCacheTimer = 0;
+let cacheCompleted = false;
 
 function resolveUrl(path) {
   const url = new URL(path, baseUrl);
@@ -34,9 +38,60 @@ function resolveUrl(path) {
   return url.href;
 }
 
+const retryableStatus = status => [408, 425, 429, 500, 502, 503, 504].includes(Number(status));
+function responseError(label, response) {
+  const error = new Error(`${label} HTTP ${response.status}`);
+  error.httpStatus = Number(response.status);
+  error.retryable = retryableStatus(response.status);
+  return error;
+}
+const sleep = (ms, signal = null) => new Promise((resolve, reject) => {
+  let settled = false;
+  const onAbort = () => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    reject(signal.reason || new DOMException('Aborted', 'AbortError'));
+  };
+  const timer = setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    signal?.removeEventListener('abort', onAbort);
+    resolve();
+  }, Math.max(0, Number(ms || 0)));
+  signal?.addEventListener('abort', onAbort, { once: true });
+});
+
+async function fetchWithRetry(input, init = {}, {
+  attempts = 3,
+  baseDelay = 400,
+  signal = init.signal || null,
+} = {}) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    if (signal?.aborted) throw signal.reason || new DOMException('Aborted', 'AbortError');
+    try {
+      const response = await fetch(input, { ...init, signal });
+      if (!response.ok && retryableStatus(response.status)) {
+        const error = new Error(`HTTP ${response.status}`);
+        error.httpStatus = response.status;
+        throw error;
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (error?.name === 'AbortError' || attempt >= attempts) throw error;
+      if (Number.isFinite(Number(error?.httpStatus)) && !retryableStatus(error.httpStatus)) throw error;
+      if (!(error instanceof TypeError) && !retryableStatus(error?.httpStatus)) throw error;
+      await sleep(Math.min(2400, baseDelay * (2 ** (attempt - 1))), signal);
+    }
+  }
+  throw lastError;
+}
+
 async function fetchGzip(path) {
-  const response = await fetch(resolveUrl(path));
-  if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
+  const response = await fetchWithRetry(resolveUrl(path));
+  if (!response.ok) throw responseError(path, response);
   return self.fflate.gunzipSync(new Uint8Array(await response.arrayBuffer()));
 }
 
@@ -130,7 +185,7 @@ async function fetchPackBytes(packId) {
   const cached = await cachedFullShard(shard);
   if (cached) return self.fflate.gunzipSync(cached.subarray(pack.offset, pack.offset + pack.length));
   const url = resolveUrl(shard.url);
-  const response = await fetch(url, { headers: { Range: `bytes=${pack.offset}-${pack.offset + pack.length - 1}` } });
+  const response = await fetchWithRetry(url, { headers: { Range: `bytes=${pack.offset}-${pack.offset + pack.length - 1}` } });
   if (!response.ok) throw new Error(`${shard.url} HTTP ${response.status}`);
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (response.status === 206) return self.fflate.gunzipSync(bytes);
@@ -140,6 +195,8 @@ async function fetchPackBytes(packId) {
     try { await cache.put(url, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } })); }
     catch (_) { /* quota errors leave streaming mode available */ }
   }
+  fullShardMemory.set(shard.id, bytes);
+  if (fullShardMemory.size > 2) fullShardMemory.delete(fullShardMemory.keys().next().value);
   return self.fflate.gunzipSync(bytes.subarray(pack.offset, pack.offset + pack.length));
 }
 
@@ -147,9 +204,23 @@ async function detectRangeSupport() {
   const first = [...shardSpecs.values()][0];
   if (!first) return false;
   try {
-    const response = await fetch(resolveUrl(first.url), { method: 'HEAD' });
-    return response.ok && /bytes/i.test(response.headers.get('Accept-Ranges') || '');
-  } catch (_) { return false; }
+    const url = resolveUrl(first.url);
+    const response = await fetchWithRetry(url, { headers: { Range: 'bytes=0-0' } }, { attempts: 2 });
+    if (!response.ok) return false;
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (response.status === 206 && /^bytes\s+0-0\//i.test(response.headers.get('Content-Range') || '')) return true;
+    if (response.status === 200 && bytes.length) {
+      fullShardMemory.set(first.id, bytes);
+      const cache = await openHydroCache();
+      if (cache) {
+        try { await cache.put(url, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } })); }
+        catch (_) {}
+      }
+    }
+    return false;
+  } catch (_) {
+    return false;
+  }
 }
 
 function readUVarint(bytes, cursor) {
@@ -391,7 +462,7 @@ async function loadPackRangeGroup(group) {
   let baseOffset = 0;
   if (!bytes) {
     const url = resolveUrl(shard.url);
-    const response = await fetch(url, { headers: { Range: `bytes=${group.start}-${group.end - 1}` } });
+    const response = await fetchWithRetry(url, { headers: { Range: `bytes=${group.start}-${group.end - 1}` } });
     if (!response.ok) throw new Error(`${shard.url} HTTP ${response.status}`);
     bytes = new Uint8Array(await response.arrayBuffer());
     if (response.status === 206) baseOffset = group.start;
@@ -439,8 +510,18 @@ function postActive(revision, packIds) {
   canvasPort?.postMessage({ type: 'active', revision, packIds });
 }
 
+function abortBackgroundCache() {
+  if (backgroundCacheTimer) clearTimeout(backgroundCacheTimer);
+  backgroundCacheTimer = 0;
+  backgroundCacheController?.abort();
+  backgroundCacheController = null;
+  cacheStarted = false;
+}
+
 async function processView(message) {
   latestRevision = Math.max(latestRevision, Number(message.revision || 0));
+  mobileSession = message.mobile === true;
+  abortBackgroundCache();
   const packIds = [...new Set((message.tiles || []).flatMap(spec => tilePacks.get(`${spec.stage}/${spec.x}-${spec.y}`) || []))].sort((a, b) => a - b);
   const needed = packIds.filter(packId => !postedPacks.has(packId));
   let activated = needed.length === 0 || packIds.some(packId => postedPacks.has(packId));
@@ -448,55 +529,56 @@ async function processView(message) {
   const supportsRange = await (rangeSupportPromise || Promise.resolve(false));
   const concurrency = message.mobile ? 2 : 4;
   foregroundActive = true;
-  if (supportsRange) {
-    const groups = coalescePackRanges(needed);
-    let groupCursor = 0;
-    await Promise.all(Array.from({ length: Math.min(concurrency, groups.length) }, async () => {
-      while (groupCursor < groups.length) {
-        if (message.revision < latestRevision) return;
-        const group = groups[groupCursor++];
-        const rows = await loadPackRangeGroup(group);
-        if (message.revision < latestRevision) return;
-        for (const [packId, pack] of rows) postPack(packId, pack, message.revision);
-        if (!activated && rows.length) {
-          activated = true;
-          postActive(message.revision, packIds);
-        }
-      }
-    }));
-  } else {
-    const groups = new Map();
-    for (const packId of needed) {
-      const shardId = packSpecs.get(packId)?.shard;
-      if (!groups.has(shardId)) groups.set(shardId, []);
-      groups.get(shardId).push(packId);
-    }
-    const shardGroups = [...groups.values()];
-    let cursor = 0;
-    await Promise.all(Array.from({ length: Math.min(concurrency, shardGroups.length) }, async () => {
-      while (cursor < shardGroups.length) {
-        const packIdsForShard = shardGroups[cursor++];
-        for (const packId of packIdsForShard) {
+  try {
+    if (supportsRange) {
+      const groups = coalescePackRanges(needed);
+      let groupCursor = 0;
+      await Promise.all(Array.from({ length: Math.min(concurrency, groups.length) }, async () => {
+        while (groupCursor < groups.length) {
           if (message.revision < latestRevision) return;
-          const pack = await loadPack(packId);
+          const group = groups[groupCursor++];
+          const rows = await loadPackRangeGroup(group);
           if (message.revision < latestRevision) return;
-          postPack(packId, pack, message.revision);
-          if (!activated) {
+          for (const [packId, pack] of rows) postPack(packId, pack, message.revision);
+          if (!activated && rows.length) {
             activated = true;
             postActive(message.revision, packIds);
           }
         }
+      }));
+    } else {
+      const groups = new Map();
+      for (const packId of needed) {
+        const shardId = packSpecs.get(packId)?.shard;
+        if (!groups.has(shardId)) groups.set(shardId, []);
+        groups.get(shardId).push(packId);
       }
-    }));
+      const shardGroups = [...groups.values()];
+      let cursor = 0;
+      await Promise.all(Array.from({ length: Math.min(concurrency, shardGroups.length) }, async () => {
+        while (cursor < shardGroups.length) {
+          const packIdsForShard = shardGroups[cursor++];
+          for (const packId of packIdsForShard) {
+            if (message.revision < latestRevision) return;
+            const pack = await loadPack(packId);
+            if (message.revision < latestRevision) return;
+            postPack(packId, pack, message.revision);
+            if (!activated) {
+              activated = true;
+              postActive(message.revision, packIds);
+            }
+          }
+        }
+      }));
+    }
+  } finally {
+    foregroundActive = false;
   }
-  foregroundActive = false;
   if (message.revision < latestRevision) return;
   if (!activated) postActive(message.revision, packIds);
   postMessage({ type: 'view-ready', revision: message.revision, packIds });
-  if (!firstViewReady) {
-    firstViewReady = true;
-    scheduleBackgroundCache();
-  }
+  firstViewReady = true;
+  scheduleBackgroundCache();
 }
 
 async function drain(message) {
@@ -510,47 +592,75 @@ async function drain(message) {
   try {
     while (current) {
       pendingView = null;
-      await processView(current);
+      try {
+        await processView(current);
+      } catch (error) {
+        if (current.revision >= latestRevision) {
+          postMessage({
+            type: 'view-error',
+            message: error?.message || String(error),
+            revision: Number(current.revision || 0),
+            retryable: error?.name !== 'AbortError' && error?.retryable !== false,
+          });
+        }
+      }
       current = pendingView;
     }
-  } catch (error) {
-    postMessage({ type: 'error', message: error?.message || String(error), revision: current?.revision || 0 });
-  } finally { busy = false; foregroundActive = false; }
-}
-
-function scheduleBackgroundCache(force = false) {
-  if (cacheStarted && !force) return;
-  cacheStarted = true;
-  setTimeout(() => backgroundCacheShards(force).catch(error => postMessage({ type: 'cache-unavailable', message: error?.message || String(error) })), force ? 0 : 2000);
-}
-
-async function waitForCacheIdle() {
-  while (interactionActive || foregroundActive || busy) {
-    await new Promise(resolve => setTimeout(resolve, 250));
+  } finally {
+    busy = false;
+    foregroundActive = false;
   }
 }
 
-async function backgroundCacheShards(force = false) {
+function scheduleBackgroundCache(force = false) {
+  if (mobileSession && !force) return;
+  if (cacheCompleted && !force) return;
+  if (cacheStarted) return;
+  cacheStarted = true;
+  backgroundCacheTimer = setTimeout(() => {
+    backgroundCacheTimer = 0;
+    backgroundCacheController = new AbortController();
+    backgroundCacheShards(force, backgroundCacheController.signal)
+      .then(completed => { if (completed) cacheCompleted = true; })
+      .catch(error => {
+        if (error?.name !== 'AbortError') postMessage({ type: 'cache-unavailable', message: error?.message || String(error) });
+      })
+      .finally(() => {
+        backgroundCacheController = null;
+        cacheStarted = false;
+      });
+  }, force ? 0 : 2000);
+}
+
+async function waitForCacheIdle(signal) {
+  while (interactionActive || foregroundActive || busy) {
+    if (signal?.aborted) throw signal.reason || new DOMException('Aborted', 'AbortError');
+    await sleep(250, signal);
+  }
+}
+
+async function backgroundCacheShards(force = false, signal = null) {
   const cache = await openHydroCache();
   if (!cache) {
     postMessage({ type: 'cache-unavailable', message: '이 브라우저에서는 수계 영구 저장소를 사용할 수 없습니다.' });
-    return;
+    return false;
   }
   const shards = [...shardSpecs.values()];
   const totalBytes = shards.reduce((sum, shard) => sum + Number(shard.bytes || 0), 0);
   let loadedBytes = 0;
   let loadedShards = 0;
   for (const shard of shards) {
-    await waitForCacheIdle();
+    await waitForCacheIdle(signal);
+    if (signal?.aborted) throw signal.reason || new DOMException('Aborted', 'AbortError');
     const url = resolveUrl(shard.url);
     let response = force ? null : await cache.match(url);
     if (!response) {
-      response = await fetch(url);
-      if (!response.ok) throw new Error(`${shard.url} HTTP ${response.status}`);
+      response = await fetchWithRetry(url, { signal }, { signal });
+      if (!response.ok) throw responseError(shard.url, response);
       try { await cache.put(url, response.clone()); }
       catch (error) {
         postMessage({ type: 'cache-unavailable', message: `수계 저장 공간이 부족합니다. ${error?.message || ''}` });
-        return;
+        return false;
       }
     }
     loadedBytes += Number(shard.bytes || 0);
@@ -560,9 +670,10 @@ async function backgroundCacheShards(force = false) {
       cacheProgressAt = now;
       postMessage({ type: 'cache-progress', loadedBytes, totalBytes, loadedShards, totalShards: shards.length, percent: totalBytes ? Math.round(loadedBytes / totalBytes * 100) : 100 });
     }
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await sleep(0, signal);
   }
   postMessage({ type: 'cache-complete', loadedBytes, totalBytes, loadedShards, totalShards: shards.length, percent: 100 });
+  return true;
 }
 
 function mergeLogicalFragments(features) {
@@ -600,13 +711,23 @@ onmessage = async event => {
       baseUrl = message.baseUrl;
       assetRevision = message.assetRevision || manifest.version || '';
       includeGeometry = message.includeGeometry === true;
+      tilePacks.clear();
+      logicalPacks.clear();
+      packSpecs.clear();
+      shardSpecs.clear();
+      featureMetadata.clear();
+      postedPacks.clear();
+      inFlightPacks.clear();
+      fullShardMemory.clear();
+      cacheCompleted = false;
+      firstViewReady = false;
       for (const shard of manifest.shards || []) shardSpecs.set(Number(shard.id), shard);
       readGlobalIndex(await fetchGzip(manifest.index.url));
       readFeatureMetadata(await fetchGzip(manifest.metadata?.core?.url || manifest.metadata?.url));
       rangeSupportPromise = detectRangeSupport();
       postMessage({ type: 'ready' });
     } catch (error) {
-      postMessage({ type: 'error', message: error?.message || String(error) });
+      postMessage({ type: 'init-error', message: error?.message || String(error) });
     }
     return;
   }
@@ -621,6 +742,14 @@ onmessage = async event => {
     canvasPort?.start?.();
   }
   else if (message.type === 'load-feature') loadLogicalFeature(message);
-  else if (message.type === 'interaction') interactionActive = message.active === true;
-  else if (message.type === 'retry-cache') scheduleBackgroundCache(true);
+  else if (message.type === 'interaction') {
+    interactionActive = message.active === true;
+    if (interactionActive) abortBackgroundCache();
+    else if (firstViewReady) scheduleBackgroundCache();
+  }
+  else if (message.type === 'retry-cache') {
+    cacheCompleted = false;
+    abortBackgroundCache();
+    scheduleBackgroundCache(true);
+  }
 };
