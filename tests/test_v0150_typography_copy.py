@@ -14,6 +14,15 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 FONT = ROOT / "assets" / "fonts" / "pretendard-v1.3.9" / "PretendardVariable.woff2"
 LICENSE = ROOT / "assets" / "fonts" / "pretendard-v1.3.9" / "LICENSE.txt"
+REVISION_FILES = [
+    ROOT / "index.html",
+    ROOT / "assets" / "js" / "app.js",
+    ROOT / "assets" / "js" / "bootstrap.js",
+    ROOT / "assets" / "js" / "gis-io.js",
+    ROOT / "assets" / "js" / "workers" / "data-loader-worker.js",
+    ROOT / "assets" / "js" / "workers" / "gis-gpkg-worker.js",
+    ROOT / "assets" / "js" / "workers" / "gpu-mesh-worker.js",
+]
 
 
 class V0150TypographyCopyTests(unittest.TestCase):
@@ -21,11 +30,18 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
         self.assertIn("const BUILD_ID = '0.30.0'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.30.0-r5'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.30.0-r5", INDEX)
-        self.assertIn("bootstrap.js?v=0.30.0-r5", INDEX)
+        self.assertIn("const ASSET_REVISION = '0.30.0-r8'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.30.0-r8", INDEX)
+        self.assertIn("bootstrap.js?v=0.30.0-r8", INDEX)
         self.assertIn("recoverCacheMismatch()", BOOTSTRAP)
         self.assertIn("location.replace(recoveryUrl.href)", BOOTSTRAP)
+
+        revisions = {
+            match
+            for file_path in REVISION_FILES
+            for match in re.findall(r"0\.30\.0-r\d+", file_path.read_text(encoding="utf-8"))
+        }
+        self.assertEqual(revisions, {"0.30.0-r8"})
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())

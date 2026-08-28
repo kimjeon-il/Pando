@@ -25,7 +25,8 @@ class V0125RuntimeTests(unittest.TestCase):
 
     def test_webgl_receives_mesh_descriptors_not_geojson(self):
         self.assertIn("features: includeGeometry ? pack.features : null", WORKER)
-        self.assertIn("includeGeometry: rendererMode === 'canvas2d'", RENDERER)
+        self.assertIn("const wantedIncludeGeometry = rendererMode === 'canvas2d'", RENDERER)
+        self.assertIn("includeGeometry: wantedIncludeGeometry", RENDERER)
         self.assertIn("descriptors", section(WORKER, "function postPack", "async function processView"))
         self.assertIn("new MessageChannel()", RENDERER)
         self.assertIn("canvasPort?.postMessage({ type: 'pack'", WORKER)

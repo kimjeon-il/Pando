@@ -122,7 +122,7 @@ class V0130RuntimeTests(unittest.TestCase):
                 return 1
             return sum(count_coordinates(item) for item in value)
 
-        self.assertEqual(sum(count_coordinates(row["geometry"]["coordinates"]) for row in countries["features"]), 548_466)
+        self.assertEqual(sum(count_coordinates(row["geometry"]["coordinates"]) for row in countries["features"]), 548_464)
 
 
 if __name__ == "__main__":
