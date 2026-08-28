@@ -151,7 +151,6 @@ const {
   previewIsCurrent,
 } = geometryPreviewModule;
 const {
-  normalizeSnapSettings,
   resolveSnap,
   snapIndicator,
 } = geometrySnapModule;
@@ -406,8 +405,9 @@ const {
     'changeCountryTypeBtn', 'changeRegionTypeBtn', 'changeAdministrativeTypeBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
     'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
-    'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
+    'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
+    'multiSelectionBar', 'multiSelectionCount', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn',
     'exportGeoJsonBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibrarySearchClearBtn', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
@@ -600,6 +600,7 @@ const {
     refreshMapSheetMetrics();
     syncEditorPanelControls();
     syncMobileNavigation();
+    requestAnimationFrame(syncMapHudBounds);
     if (!initial && previous !== layoutMode) queueMapResize();
     return previous !== layoutMode;
   }
@@ -610,6 +611,7 @@ const {
     syncEditorPanelControls();
     refreshMapSheetMetrics();
     syncMobileNavigation();
+    requestAnimationFrame(syncMapHudBounds);
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     else $('app')?.style.removeProperty('--file-menu-notification-top');
     return view;
@@ -1180,8 +1182,7 @@ const {
     draftEdit: createDraftEditState(),
     draftStroke: createDraftStrokeState(),
     geometryPreview: createGeometryPreviewState(),
-    // 사용자 설정 없이 모든 편집 경로에서 동일한 자동 스냅 정책을 사용한다.
-    snapSettings: normalizeSnapSettings(),
+    modeProcessing: false,
     activeSnap: null,
     audit: { status: 'idle', revision: 0, report: null, selectedIssueId: null },
     hovered: null,
@@ -1325,7 +1326,6 @@ const {
   function syncSelectionSummary(selection = objectSelection.snapshot()) {
     const count = selection.items.length;
     const multiple = count > 1;
-    for (const id of ['multiSelectionBar']) $(id)?.classList.toggle('hidden', !multiple);
     for (const id of ['multiSelectionCount', 'multiPropertiesCount']) if ($(id)) $(id).textContent = `${count}개 선택됨`;
     document.body.classList.toggle('multi-selection-active', multiple);
     if (multiple) {
@@ -1334,6 +1334,7 @@ const {
       renderMultiSelectionEditor(selection);
     }
     syncBatchActionAvailability();
+    syncMapContextSurfaces();
     syncLayerSelectionRows();
   }
 
@@ -1453,39 +1454,61 @@ const {
     return false;
   }
 
+  function objectRefVisible(value) {
+    const ref = normalizeObjectRef(value);
+    const group = layerGroupForObjectRef(ref);
+    return !!(ref && group && isLayerItemVisible(group, ref.id));
+  }
+
+  function syncBatchBooleanInput(input, values, enabled) {
+    if (!input) return;
+    const activeCount = values.filter(Boolean).length;
+    input.disabled = !enabled;
+    input.checked = enabled && values.length > 0 && activeCount === values.length;
+    input.indeterminate = enabled && activeCount > 0 && activeCount < values.length;
+    input.setAttribute('aria-checked', input.indeterminate ? 'mixed' : String(input.checked));
+    const option = input.closest('.multi-property-option');
+    if (option) {
+      if (enabled) delete option.dataset.tooltip;
+      else option.dataset.tooltip = '선택한 모든 객체에 공통으로 적용할 수 없습니다.';
+    }
+  }
+
   function syncBatchActionAvailability() {
     const refs = objectSelection.items();
     const capabilities = commonBatchCapabilities(refs);
-    for (const id of ['multiVisibilityBtn', 'multiPropertiesVisibilityBtn']) if ($(id)) $(id).disabled = !capabilities.has('visible');
-    for (const id of ['multiLockBtn', 'multiPropertiesLockBtn']) if ($(id)) $(id).disabled = !capabilities.has('lock');
-    for (const [inputId, triggerId] of [['multiColorInput', 'multiColorTrigger'], ['multiPropertiesColorInput', 'multiPropertiesColorTrigger']]) {
-      if ($(inputId)) $(inputId).disabled = !capabilities.has('color');
-      if ($(triggerId)) $(triggerId).disabled = !capabilities.has('color');
-    }
-    for (const id of ['multiDeleteBtn', 'multiPropertiesDeleteBtn']) if ($(id)) $(id).disabled = !capabilities.has('delete');
+    syncBatchBooleanInput($('multiPropertiesVisibilityInput'), refs.map(objectRefVisible), capabilities.has('visible'));
+    syncBatchBooleanInput($('multiPropertiesLockInput'), refs.map(objectRefLocked), capabilities.has('lock'));
+    if ($('multiPropertiesColorInput')) $('multiPropertiesColorInput').disabled = !capabilities.has('color');
+    if ($('multiPropertiesColorTrigger')) $('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
+    syncObjectActionsMenu();
   }
 
-  function batchSetVisibility() {
+  function batchSetVisibility(nextVisible = null) {
     const refs = objectSelection.items();
     if (!refs.length || !commonBatchCapabilities(refs).has('visible')) return;
     const allVisible = refs.every(ref => isLayerItemVisible(layerGroupForObjectRef(ref), ref.id));
-    recordHistory({ type: 'batch-visibility', description: `${refs.length}개 객체 ${allVisible ? '숨김' : '표시'}`, affectedIds: refs.map(ref => ref.id) });
+    const visible = typeof nextVisible === 'boolean' ? nextVisible : !allVisible;
+    if (refs.every(ref => objectRefVisible(ref) === visible)) return;
+    recordHistory({ type: 'batch-visibility', description: `${refs.length}개 객체 ${visible ? '표시' : '숨김'}`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
       const group = layerGroupForObjectRef(ref);
       if (!group) continue;
       state.itemVisibility[group] ||= {};
-      if (allVisible) state.itemVisibility[group][ref.id] = false;
-      else delete state.itemVisibility[group][ref.id];
+      if (visible) delete state.itemVisibility[group][ref.id];
+      else state.itemVisibility[group][ref.id] = false;
     }
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
+    syncBatchActionAvailability();
   }
 
-  function batchToggleLocked() {
+  function batchSetLocked(nextLocked = null) {
     const refs = objectSelection.items();
     if (!refs.length || !commonBatchCapabilities(refs).has('lock')) return;
-    const locked = !refs.every(objectRefLocked);
+    const locked = typeof nextLocked === 'boolean' ? nextLocked : !refs.every(objectRefLocked);
+    if (refs.every(ref => objectRefLocked(ref) === locked)) return;
     recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
     if (refs.every(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) {
       state.countriesLocked = locked;
@@ -1503,6 +1526,11 @@ const {
     queueAutosave();
     const primary = objectSelection.primary();
     if (primary) selectObjectRef(primary, true);
+    syncBatchActionAvailability();
+  }
+
+  function batchToggleLocked() {
+    return batchSetLocked();
   }
 
   function closeObjectActionsMenu({ restoreFocus = false } = {}) {
@@ -1590,6 +1618,7 @@ const {
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
+    syncBatchActionAvailability();
   }
 
   function requestBatchDelete() {
@@ -1876,7 +1905,7 @@ const {
     if (sourceGeometry) appendLocalGeometryCandidates(candidates, sourceGeometry, coordinate, margin * 2, {
       ownerId: activeSnapOwnerIds()[0] || 'source', segmentKind: 'boundary', maxCandidates: 2200,
     });
-    const segments = state.snapSettings.intersection === false ? [] : candidates.filter(candidate => candidate.a && candidate.b).slice(0, 80);
+    const segments = candidates.filter(candidate => candidate.a && candidate.b).slice(0, 80);
     for (let left = 0; left < segments.length; left += 1) {
       for (let right = left + 1; right < segments.length; right += 1) {
         if (segments[left].segmentKey === segments[right].segmentKey) continue;
@@ -1902,7 +1931,6 @@ const {
       candidates: localSnapCandidates(coordinate).filter(candidate => (!excludeNodeKey || candidate.nodeKey !== excludeNodeKey)
         && (!excludeCoordinate || !candidate.coordinate || !coordNear(candidate.coordinate, excludeCoordinate, 1e-9))),
       project: activeProjection(),
-      settings: state.snapSettings,
       pointerType,
     });
     state.activeSnap = snapIndicator(result);
@@ -2744,7 +2772,9 @@ const {
       };
       renderAll();
       updateModeButtons();
-      setModeBanner('변경될 영역과 새 국경을 확인한 뒤 ‘변경 적용’을 선택합니다. 취소하면 원본은 바뀌지 않습니다.');
+      const blockingIssue = validationIssues.find(issue => issue.severity !== 'warning');
+      setModeBanner(blockingIssue?.message || '변경될 영역과 새 국경을 확인한 뒤 ‘변경 적용’을 선택합니다. 취소하면 원본은 바뀌지 않습니다.');
+      if (blockingIssue) $('modeTaskInstruction')?.classList.add('cut-invalid');
       setActionStatus(validationIssues.length
         ? `미리보기에서 geometry 문제 ${validationIssues.length}건을 찾았습니다.`
         : '변경 결과 미리보기를 준비했습니다.', validationIssues.length ? 'error' : 'success', 3600);
@@ -2816,7 +2846,9 @@ const {
     };
     renderAll();
     updateModeButtons();
-    setModeBanner('변경될 영역과 경계를 확인한 뒤 ‘변경 적용’을 선택합니다. 취소하면 원본은 바뀌지 않습니다.');
+    const blockingIssue = issues.find(issue => issue.severity !== 'warning');
+    setModeBanner(blockingIssue?.message || '변경될 영역과 경계를 확인한 뒤 ‘변경 적용’을 선택합니다. 취소하면 원본은 바뀌지 않습니다.');
+    if (blockingIssue) $('modeTaskInstruction')?.classList.add('cut-invalid');
     return true;
   }
 
@@ -5618,6 +5650,7 @@ const {
         if (!draftInputActive() || state.spacePanActive) return;
         moved = false;
         state.draftEdit.selectedVertexIndex = vertex.index;
+        state.draftEdit.inputPhase = 'refine';
         state.draftEdit.insertTarget = null;
         state.draftEdit.dragging = true;
         state.draftEdit.splitPreview = null;
@@ -5897,6 +5930,7 @@ const {
         d3.event.preventDefault();
         d3.event.stopPropagation();
         state.draftEdit.selectedVertexIndex = item.index;
+        state.draftEdit.inputPhase = 'refine';
         state.draftEdit.insertTarget = null;
         renderDraft();
         updateModeButtons();
@@ -6435,19 +6469,6 @@ const {
         return;
       }
       const screenPoint = d3.mouse(this);
-      const helper = $('cursorToolHelper');
-      if (helper) {
-        const preciseDraft = ['split-drawing', 'split-country-region', 'redraw-country-region', 'draw-country-region'].includes(state.tool)
-          || (state.tool === 'new-country' && state.newCountryPhase === 'line')
-          || (state.tool === 'annex-territory' && state.annexPhase === 'line');
-        const showHelper = !isMobile() && preciseDraft && draftInputActive() && state.draftEdit.inputPhase === 'draw' && !state.mapMoving;
-        helper.classList.toggle('hidden', !showHelper);
-        if (showHelper) {
-          helper.textContent = defaultDraftInstruction();
-          helper.style.left = `${screenPoint[0] + 16}px`;
-          helper.style.top = `${screenPoint[1] + 16}px`;
-        }
-      }
       const coord = screenToGeo(screenPoint);
       if (coord) {
         $('coordStatus').textContent = `경도 ${coord[0].toFixed(4)} · 위도 ${coord[1].toFixed(4)}`;
@@ -6563,6 +6584,7 @@ const {
       .attr('height', state.size.height);
     gpuMapRenderer.resize();
     renderAll();
+    syncMapHudBounds();
     requestAnimationFrame(() => gpuMapRenderer.verifyLayout());
   }
 
@@ -6623,9 +6645,11 @@ const {
     const element = $('geometryPreviewSummary');
     if (!element) return;
     const session = state.geometryPreview.session;
-    element.classList.toggle('hidden', !session);
-    if (!session) {
-      element.replaceChildren();
+    const blocking = session?.validation?.blocking === true;
+    element.classList.toggle('hidden', !session || blocking);
+    if (!session || blocking) {
+      element.textContent = '';
+      element.removeAttribute('aria-label');
       return;
     }
     const metrics = session.metrics || {};
@@ -6639,12 +6663,55 @@ const {
       const percent = row.percent == null ? '' : ` (${sign}${row.percent.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}%)`;
       fragments.push(`${row.id} ${sign}${formatArea(Math.abs(row.delta), 'ko-KR', { approximate: false })}${percent}`);
     }
-    if (session.validation?.blocking) fragments.push(`수정 필요 ${session.validation.issues?.length || 0}건`);
-    element.replaceChildren(...(fragments.length ? fragments : ['변경 결과를 지도에서 확인하세요.']).map(text => {
-      const span = document.createElement('span');
-      span.textContent = text;
-      return span;
-    }));
+    const text = (fragments.length ? fragments : ['변경 결과를 지도에서 확인하세요.']).join(' · ');
+    element.textContent = text;
+    element.setAttribute('aria-label', text);
+  }
+
+  function mapModeContextActive() {
+    const labelMode = state.labelPlacementMode || state.tool === 'label';
+    return !!(labelMode || terrainToolConfig(state.tool) || state.geometryPreview.session || isSpecialTool(state.tool) || draftInputActive());
+  }
+
+  function elementHasLayout(element) {
+    if (!element || element.classList.contains('hidden')) return false;
+    const bounds = element.getBoundingClientRect();
+    return bounds.width > 0 && bounds.height > 0;
+  }
+
+  function syncMapHudBounds() {
+    const slot = $('mapTopContextSlot');
+    const map = $('map');
+    if (!slot || !map) return;
+    const bounds = map.getBoundingClientRect();
+    if (!bounds.width) return;
+    const edge = 12;
+    let left = edge;
+    let right = bounds.width - edge;
+    if (layoutMode === 'wide') {
+      const leftPanel = $('leftPanel');
+      const rightPanel = $('rightPanel');
+      if (elementHasLayout(leftPanel)) left = Math.max(left, leftPanel.getBoundingClientRect().right - bounds.left + edge);
+      if (elementHasLayout(rightPanel)) right = Math.min(right, rightPanel.getBoundingClientRect().left - bounds.left - edge);
+    }
+    const command = $('mapCommandToolbar');
+    const view = document.querySelector('.map-view-toolbar');
+    if (elementHasLayout(command)) left = Math.max(left, command.getBoundingClientRect().right - bounds.left + 8);
+    if (elementHasLayout(view)) right = Math.min(right, view.getBoundingClientRect().left - bounds.left - 8);
+    if (right <= left) {
+      left = edge;
+      right = bounds.width - edge;
+    }
+    slot.style.setProperty('--map-context-center', `${Math.round((left + right) / 2)}px`);
+    slot.style.setProperty('--map-context-width', `${Math.max(0, Math.floor(right - left))}px`);
+  }
+
+  function syncMapContextSurfaces() {
+    const editing = mapModeContextActive();
+    const multiple = objectSelection.snapshot().items.length > 1;
+    $('modeEditingContext')?.classList.toggle('hidden', !editing);
+    $('multiSelectionBar')?.classList.toggle('hidden', editing || !multiple);
+    requestAnimationFrame(syncMapHudBounds);
   }
 
   function syncMapCursorMode() {
@@ -6705,24 +6772,30 @@ const {
     if (bar) {
       bar.classList.toggle('hidden', !specialMode);
       bar.classList.toggle('single-action', labelMode);
-      bar.classList.toggle('has-method-switch', methodSwitchAvailable);
-      bar.classList.toggle('has-draft-actions', draftMode);
-      bar.classList.toggle('draft-refine-mode', draftMode && state.draftEdit.inputPhase === 'refine');
+      bar.classList.toggle('is-processing', state.modeProcessing);
+      bar.setAttribute('aria-busy', String(state.modeProcessing));
     }
     methodSwitch?.classList.toggle('hidden', !methodSwitchAvailable);
-    draftActions?.classList.toggle('hidden', !draftMode);
-    if (draftRedraw) draftRedraw.disabled = state.draftStroke.active || !state.draftCoords.length;
-    if (draftRemoveLast) draftRemoveLast.disabled = state.draftStroke.active || !state.draftCoords.length;
-    if (draftDelete) draftDelete.disabled = state.draftStroke.active || !Number.isInteger(state.draftEdit.selectedVertexIndex);
+    const refineSelection = draftMode && state.draftEdit.inputPhase === 'refine' && Number.isInteger(state.draftEdit.selectedVertexIndex);
+    const draftActionsVisible = draftMode && state.draftCoords.length > 0;
+    draftActions?.classList.toggle('hidden', !draftActionsVisible);
+    draftRedraw?.classList.toggle('hidden', refineSelection);
+    draftRemoveLast?.classList.toggle('hidden', refineSelection);
+    draftDelete?.classList.toggle('hidden', !refineSelection);
+    if (draftRedraw) draftRedraw.disabled = state.modeProcessing || state.draftStroke.active || !state.draftCoords.length;
+    if (draftRemoveLast) draftRemoveLast.disabled = state.modeProcessing || state.draftStroke.active || !state.draftCoords.length;
+    if (draftDelete) draftDelete.disabled = state.modeProcessing || state.draftStroke.active || !refineSelection;
     for (const [button, method] of [[lineMethod, 'line'], [componentsMethod, 'components']]) {
       if (!button) continue;
       const active = activeMethod === method;
       button.classList.toggle('active', active);
       button.setAttribute('aria-pressed', String(active));
+      button.disabled = state.modeProcessing;
     }
     if (primary) {
       primary.classList.toggle('hidden', labelMode);
-      primary.disabled = (draftMode && (state.draftStroke.active || state.draftCoords.length < draftMinimumPoints() || state.draftEdit.issues.length > 0 || (cutLineMode && !cutLineReady)))
+      primary.disabled = state.modeProcessing
+        || (draftMode && (state.draftStroke.active || state.draftCoords.length < draftMinimumPoints() || state.draftEdit.issues.length > 0 || (cutLineMode && !cutLineReady)))
         || (terrainMode && state.draftCoords.length < (isPolygonDraftTool(state.tool) ? 3 : 2))
         || (newCountrySourceMode && !state.newCountrySourceIds.length)
         || (annexDonorMode && !state.annexDonorCountryIds.length)
@@ -6760,18 +6833,52 @@ const {
       if (primaryLabelNode) primaryLabelNode.textContent = primaryLabel;
       else primary.textContent = primaryLabel;
       primary.setAttribute('aria-label', primaryLabel);
+      primary.setAttribute('aria-busy', String(state.modeProcessing));
     }
     if (cancel) {
       const cancelLabelNode = cancel.querySelector('.mode-button-label');
       if (cancelLabelNode) cancelLabelNode.textContent = '취소';
       else cancel.textContent = '취소';
       cancel.setAttribute('aria-label', '작업 취소');
+      cancel.disabled = state.modeProcessing;
     }
     syncGeometryPreviewSummary();
+    syncMapContextSurfaces();
     syncMapCursorMode();
     syncCountryActionButtons();
     updateHistoryButtons();
     syncStatusBar();
+  }
+
+  function dispatchModePrimaryAction() {
+    if (state.geometryPreview.session) return applyActiveGeometryPreview();
+    if (state.tool === 'country-coast') return finishCountryCoastEdit();
+    if (state.tool === 'merge-drawing') return completeDrawingMerge();
+    if (state.tool === 'merge-country-region') return completeCountryRegionMerge();
+    if (state.tool === 'new-country' && state.newCountryPhase === 'sources') return beginNewCountryLine();
+    if (state.tool === 'annex-territory' && state.annexPhase === 'donor') return beginAnnexSelection();
+    if (state.tool === 'merge-country') return completeCountryMerge();
+    if (state.tool === 'new-country' && state.newCountryPhase === 'side') return completeNewCountryCreation(state.newCountrySelectedCandidateIndex);
+    if (state.tool === 'new-country' && state.newCountryPhase === 'components') return completeNewCountryCreation(null);
+    if (state.tool === 'annex-territory' && state.annexPhase === 'side') return completeLinearAnnexation(state.annexSelectedCandidateIndex);
+    if (state.tool === 'annex-territory' && state.annexPhase === 'components') return completeLinearAnnexation(null);
+    if (isDrawingDraftTool(state.tool) || ['new-country', 'annex-territory'].includes(state.tool)) return finishDraft();
+    return false;
+  }
+
+  async function runModePrimaryAction(action = dispatchModePrimaryAction) {
+    if (state.modeProcessing) return false;
+    state.modeProcessing = true;
+    updateModeButtons();
+    try {
+      return await action();
+    } catch (error) {
+      reportOperationError(error, '지도 작업을 완료하지 못했습니다. 현재 상태를 확인한 뒤 다시 시도하세요.', 'PL-MODE-001', 4200);
+      return false;
+    } finally {
+      state.modeProcessing = false;
+      updateModeButtons();
+    }
   }
 
   function resetAnnexState() {
@@ -7589,6 +7696,7 @@ const {
     const chooser = $('objectChooser');
     const list = $('objectChooserList');
     if (!chooser || !list || candidates.length < 2) return closeObjectChooser();
+    if (isMobile() && surfaceController.activeMobileSheet) closeActiveMobileSheet();
     objectChooserCandidates = candidates.slice();
     list.replaceChildren(...candidates.map((ref, index) => {
       const info = objectDisplayInfo(ref);
@@ -7606,6 +7714,11 @@ const {
       return button;
     }));
     chooser.classList.remove('hidden');
+    if (isMobile()) {
+      chooser.removeAttribute('style');
+      requestAnimationFrame(() => list.querySelector('[role="option"]')?.focus({ preventScroll: true }));
+      return;
+    }
     const bounds = $('map')?.getBoundingClientRect();
     if (!bounds) return;
     const edge = 8;
@@ -9673,11 +9786,9 @@ const {
   }
 
   function applyColorPickerSelection(kind, value, isDefault = false) {
-    if (kind === 'multi' || kind === 'multiProperties') {
+    if (kind === 'multiProperties') {
       const color = normalizeEditorColor(value, '#3f6fae');
-      for (const pickerKind of ['multi', 'multiProperties']) {
-        syncColorPicker(pickerKind, { value: color, defaultColor: color, isDefault: false });
-      }
+      syncColorPicker('multiProperties', { value: color, defaultColor: color, isDefault: false });
       batchSetColor(color);
       return true;
     }
@@ -10654,6 +10765,7 @@ const {
 
   function undo() {
     if (!requireCanonicalData()) return;
+    if (state.modeProcessing) return;
     if (state.geometryPreview.session) {
       discardActiveGeometryPreview();
       return;
@@ -10674,6 +10786,7 @@ const {
 
   function redo() {
     if (!requireCanonicalData()) return;
+    if (state.modeProcessing) return;
     if (state.geometryPreview.session) {
       setActionStatus('변경 미리보기를 먼저 적용하거나 취소하세요.', 'error', 2600);
       return;
@@ -10696,8 +10809,8 @@ const {
     const draftMode = draftInputActive();
     const undoAvailable = draftMode ? state.draftEdit.history.length > 0 : state.history.length > 0;
     const redoAvailable = draftMode ? state.draftEdit.future.length > 0 : state.future.length > 0;
-    $('undoBtn').disabled = !undoAvailable;
-    $('redoBtn').disabled = !redoAvailable;
+    $('undoBtn').disabled = state.modeProcessing || !undoAvailable;
+    $('redoBtn').disabled = state.modeProcessing || !redoAvailable;
     $('undoBtn').dataset.tooltip = draftMode ? '작성 중 실행 취소' : '실행 취소';
     $('redoBtn').dataset.tooltip = draftMode ? '작성 중 다시 실행' : '다시 실행';
     $('undoBtn').setAttribute('aria-label', draftMode ? '작성 중 실행 취소' : '실행 취소');
@@ -10741,7 +10854,17 @@ const {
     const groupInput = $('layerStyleGroupInput');
     if (groupInput && !groupInput.options.length) replaceSelectOptions(groupInput, STYLE_PRESENTATION_GROUPS.map(group => ({ value: group, label: LAYER_PRESENTATION_LABELS[group] || group })), STYLE_PRESENTATION_GROUPS[0]);
     if ($('distributionLayerModeInput')) $('distributionLayerModeInput').value = state.distributionSettings.renderMode;
+    syncDistributionLayerModeHint();
     syncLayerStyleFields();
+  }
+
+  function syncDistributionLayerModeHint() {
+    const hint = $('distributionLayerModeHint');
+    if (!hint) return;
+    const mode = $('distributionLayerModeInput')?.value || state.distributionSettings.renderMode;
+    hint.textContent = mode === DISTRIBUTION_RENDER_MODES.INTENSITY
+      ? '선택한 분포를 비율이 높을수록 진하게 표시합니다.'
+      : '각 영역에서 비율이 가장 높은 분포만 표시합니다.';
   }
 
   function syncLayerStyleFields() {
@@ -10779,6 +10902,9 @@ const {
     renderLayerPresentationList();
     $('layerPresentationModal').classList.remove('hidden');
     $('layerPresentationBtn')?.setAttribute('aria-expanded', 'true');
+    $('layerPresentationBtn')?.classList.add('hidden');
+    $('layerPresentationCloseBtn')?.classList.remove('hidden');
+    $('mapSheetTitle').textContent = '레이어 표시 설정';
     $('layerSection')?.classList.add('is-settings-open');
     requestAnimationFrame(() => $('layerPresentationCloseBtn').focus());
   }
@@ -10786,8 +10912,11 @@ const {
   function closeLayerPresentation() {
     $('layerPresentationModal').classList.add('hidden');
     $('layerPresentationBtn')?.setAttribute('aria-expanded', 'false');
+    $('layerPresentationCloseBtn')?.classList.add('hidden');
+    $('layerPresentationBtn')?.classList.remove('hidden');
+    $('mapSheetTitle').textContent = '레이어';
     $('layerSection')?.classList.remove('is-settings-open');
-    $('layerPresentationBtn')?.focus();
+    requestAnimationFrame(() => $('layerPresentationBtn')?.focus());
   }
 
   function buildAtlasState() {
@@ -12935,20 +13064,7 @@ const {
     $('addLakeBtn')?.addEventListener('click', () => {
       requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerrainDrawingMode('lake'), { fromCreate: true }));
     });
-    $('modePrimaryBtn')?.addEventListener('click', () => {
-      if (state.geometryPreview.session) applyActiveGeometryPreview();
-      else if (state.tool === 'country-coast') finishCountryCoastEdit();
-      else if (state.tool === 'merge-drawing') completeDrawingMerge();
-      else if (state.tool === 'merge-country-region') completeCountryRegionMerge();
-      else if (state.tool === 'new-country' && state.newCountryPhase === 'sources') beginNewCountryLine();
-      else if (state.tool === 'annex-territory' && state.annexPhase === 'donor') beginAnnexSelection();
-      else if (state.tool === 'merge-country') completeCountryMerge();
-      else if (state.tool === 'new-country' && state.newCountryPhase === 'side') completeNewCountryCreation(state.newCountrySelectedCandidateIndex);
-      else if (state.tool === 'new-country' && state.newCountryPhase === 'components') completeNewCountryCreation(null);
-      else if (state.tool === 'annex-territory' && state.annexPhase === 'side') completeLinearAnnexation(state.annexSelectedCandidateIndex);
-      else if (state.tool === 'annex-territory' && state.annexPhase === 'components') completeLinearAnnexation(null);
-      else if (isDrawingDraftTool(state.tool) || ['new-country', 'annex-territory'].includes(state.tool)) finishDraft();
-    });
+    $('modePrimaryBtn')?.addEventListener('click', () => { void runModePrimaryAction(); });
     $('modeLineMethodBtn')?.addEventListener('click', () => requestDraftDiscard(() => switchTerritorySelectionMethod('line')));
     $('modeComponentsMethodBtn')?.addEventListener('click', () => requestDraftDiscard(() => switchTerritorySelectionMethod('components')));
     $('modeDraftRedrawBtn')?.addEventListener('click', redrawDraftInput);
@@ -13031,7 +13147,6 @@ const {
     });
     $('layerPresentationBtn')?.addEventListener('click', openLayerPresentation);
     $('layerPresentationCloseBtn')?.addEventListener('click', closeLayerPresentation);
-    $('layerPresentationDoneBtn')?.addEventListener('click', closeLayerPresentation);
     $('layerStyleGroupInput')?.addEventListener('change', syncLayerStyleFields);
     $('layerStyleOpacityInput')?.addEventListener('input', event => { $('layerStyleOpacityValue').textContent = `${event.target.value}%`; });
     for (const id of ['layerStyleOpacityInput', 'layerStyleBoundaryVisibleInput', 'layerStyleLabelsVisibleInput']) $(id)?.addEventListener('change', updateLayerStyleFromFields);
@@ -13039,6 +13154,7 @@ const {
       recordHistory({ type: 'distribution-style', description: '분포 표시 방식 변경', affectedIds: [] });
       state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT;
       if ($('distributionRenderModeInput')) $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
+      syncDistributionLayerModeHint();
       renderDistributions();
       queueAutosave();
     });
@@ -13168,9 +13284,8 @@ const {
       event.preventDefault();
       items[(current + delta + items.length) % items.length]?.focus();
     });
-    for (const id of ['multiVisibilityBtn', 'multiPropertiesVisibilityBtn']) $(id)?.addEventListener('click', batchSetVisibility);
-    for (const id of ['multiLockBtn', 'multiPropertiesLockBtn']) $(id)?.addEventListener('click', batchToggleLocked);
-    for (const id of ['multiDeleteBtn', 'multiPropertiesDeleteBtn']) $(id)?.addEventListener('click', requestBatchDelete);
+    $('multiPropertiesVisibilityInput')?.addEventListener('change', event => batchSetVisibility(event.target.checked));
+    $('multiPropertiesLockInput')?.addEventListener('change', event => batchSetLocked(event.target.checked));
     $('clearMultiSelectionBtn')?.addEventListener('click', () => clearSelection(false));
     $('multiEditBtn')?.addEventListener('click', () => { setEditorShellView('info'); openSelectionEditor(); });
 
@@ -13339,6 +13454,7 @@ const {
         return;
       }
       if (e.key === 'Escape') {
+        if (state.modeProcessing) { e.preventDefault(); return; }
         if (!$('shortcutHelpModal')?.classList.contains('hidden')) { $('shortcutHelpCloseBtn')?.click(); return; }
         if (!$('layerPresentationModal')?.classList.contains('hidden')) { closeLayerPresentation(); return; }
         if (!$('objectChooser')?.classList.contains('hidden')) { closeObjectChooser({ restoreFocus: true }); return; }
@@ -13500,7 +13616,6 @@ const {
     syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn'));
     syncSearchClearButton($('historicalLibrarySearchInput'), $('historicalLibrarySearchClearBtn'));
     syncCountriesLockControl();
-    syncColorPicker('multi', { value: $('multiColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
     syncColorPicker('multiProperties', { value: $('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
     syncProjectSaveStatus(saveState.snapshot());
   }

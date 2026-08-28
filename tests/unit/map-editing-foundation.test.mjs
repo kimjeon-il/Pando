@@ -31,7 +31,6 @@ test('snap resolution uses screen-space thresholds and nearest candidates', () =
     coordinate: [5, 5],
     screenPoint: [5, 5],
     project,
-    settings: { sensitivity: 'normal' },
     candidates: [
       { kind: 'edge', a: [0, 4], b: [10, 4], segmentKey: 'edge' },
       { kind: 'vertex', coordinate: [5, 5.5], nodeKey: 'vertex' },
@@ -39,7 +38,8 @@ test('snap resolution uses screen-space thresholds and nearest candidates', () =
   });
   assert.equal(result.kind, 'vertex');
   assert.equal(result.nodeKey, 'vertex');
-  assert.equal(snapThreshold({ sensitivity: 'high' }, 'touch'), 28);
+  assert.equal(snapThreshold('mouse'), 10);
+  assert.equal(snapThreshold('touch'), 18);
 });
 
 test('topology materializes a vertex into the opposite owner and moves both countries', () => {

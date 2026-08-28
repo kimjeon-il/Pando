@@ -38,17 +38,19 @@ test('freehand river becomes one editable draft history step', async ({ page }) 
   const vertices = page.locator('g.draft-vertex');
   expect(await vertices.count()).toBeGreaterThan(2);
   await expect(page.locator('.draft-raw-stroke')).toHaveCount(0);
-  await expect(page.locator('#modeActionBar')).toHaveClass(/draft-refine-mode/);
+  await expect(page.locator('#modeEditingHud')).toBeVisible();
   await expect(page.locator('#modeTaskInstruction')).toContainText('미세조정');
   await expect(page.locator('#undoBtn')).toBeEnabled();
   await expect(page.locator('#modeDraftRedrawBtn')).toBeEnabled();
+  await expect(page.locator('#modeDraftRemoveLastBtn')).toBeVisible();
+  await expect(page.locator('#modeDraftDeleteBtn')).toBeHidden();
 
   const countBeforeRedraw = await vertices.count();
   await page.locator('#modeDraftRedrawBtn').click();
   await expect(vertices).toHaveCount(0);
   await page.locator('#undoBtn').click();
   await expect(vertices).toHaveCount(countBeforeRedraw);
-  await expect(page.locator('#modeActionBar')).toHaveClass(/draft-refine-mode/);
+  await expect(page.locator('#modeDraftRedrawBtn')).toBeVisible();
 
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('path.drawing-shape.selected')).toBeVisible();
@@ -88,7 +90,7 @@ test('mobile touch stroke draws, while a second touch cancels raw input for map 
   }, points);
 
   expect(await page.locator('g.draft-vertex').count()).toBeGreaterThanOrEqual(3);
-  await expect(page.locator('#modeActionBar')).toHaveClass(/draft-refine-mode/);
+  await expect(page.locator('#modeEditingHud')).toBeVisible();
   await page.locator('#modeDraftRedrawBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(0);
 

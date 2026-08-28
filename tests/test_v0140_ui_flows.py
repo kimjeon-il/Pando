@@ -45,7 +45,7 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertIn(">경계 그리기</button>", INDEX)
         self.assertIn(">영토 선택</button>", INDEX)
         self.assertNotIn("개 점 연결", APP)
-        self.assertIn(".mode-action-bar .mode-method-switch { width: 224px; }", CSS)
+        self.assertIn(".mode-method-switch { width: min(100%, 320px); }", CSS)
         self.assertIn('id="modeTaskInstruction"', INDEX)
         self.assertNotIn("mode-command-visible", APP + CSS)
 
@@ -66,7 +66,7 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertIn("operation: 'annex'", APP)
         self.assertIn("operation: 'merge'", APP)
         self.assertIn("if (clickedCountry) toggleMergeTarget", APP)
-        self.assertIn("else if (state.tool === 'merge-country') completeCountryMerge()", APP)
+        self.assertIn("if (state.tool === 'merge-country') return completeCountryMerge()", APP)
 
     def test_buttons_use_css_pressed_state_without_transient_flash(self):
         self.assertNotIn("function flashButton", APP)

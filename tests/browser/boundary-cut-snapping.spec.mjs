@@ -81,7 +81,10 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await expect(page.locator('.draft-snap-point')).toHaveCount(2);
   await expect(page.locator('.draft-split-preview')).toHaveCount(2);
   await expect(page.locator('g.draft-vertex')).toHaveCount(2);
-  await expect(page.locator('#modeActionBar')).toHaveClass(/draft-refine-mode/);
+  await expect(page.locator('#modeEditingHud')).toBeVisible();
+  await expect(page.locator('#modeDraftRedrawBtn')).toBeVisible();
+  await expect(page.locator('#modeDraftRemoveLastBtn')).toBeVisible();
+  await expect(page.locator('#modeDraftDeleteBtn')).toBeHidden();
   await expect(page.locator('#modeTaskInstruction')).toHaveClass(/cut-valid/);
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
 
@@ -89,6 +92,9 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await expect(page.locator('.draft-insert-handle')).toBeVisible();
   await page.locator('.draft-insert-handle').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(3);
+  await expect(page.locator('#modeDraftRedrawBtn')).toBeHidden();
+  await expect(page.locator('#modeDraftRemoveLastBtn')).toBeHidden();
+  await expect(page.locator('#modeDraftDeleteBtn')).toBeVisible();
   await expect(page.locator('#modeDraftDeleteBtn')).toBeEnabled();
   const middleVertexBox = await page.locator('g.draft-vertex').nth(1).boundingBox();
   expect(middleVertexBox).not.toBeNull();
@@ -136,6 +142,8 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   const modeBarBox = await page.locator('#modeActionBar').boundingBox();
   expect(modeBarBox.x).toBeGreaterThanOrEqual(0);
   expect(modeBarBox.x + modeBarBox.width).toBeLessThanOrEqual(390);
+  const mobileButtons = await page.locator('#modeActionBar .mode-action-buttons > button').evaluateAll(buttons => buttons.map(button => button.getBoundingClientRect().width));
+  expect(Math.abs(mobileButtons[0] - mobileButtons[1])).toBeLessThanOrEqual(1);
   const mobileVertexBefore = await page.locator('g.draft-vertex').first().getAttribute('transform');
   await page.mouse.move(touchHitBox.x + touchHitBox.width / 2, touchHitBox.y + touchHitBox.height / 2);
   await page.mouse.down();

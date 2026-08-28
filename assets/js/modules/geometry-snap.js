@@ -1,49 +1,13 @@
-export const SNAP_STORAGE_KEY = 'atlaswright.snap-settings.v1';
-
-export const DEFAULT_SNAP_SETTINGS = Object.freeze({
-  vertex: true,
-  edge: true,
-  boundary: true,
-  intersection: true,
-  neighbor: true,
-  sensitivity: 'normal',
-});
-
 export const SNAP_THRESHOLDS = Object.freeze({
-  low: Object.freeze({ mouse: 6, touch: 12 }),
-  normal: Object.freeze({ mouse: 10, touch: 18 }),
-  high: Object.freeze({ mouse: 16, touch: 28 }),
+  mouse: 10,
+  touch: 18,
 });
 
 const TYPES = new Set(['vertex', 'edge', 'boundary', 'intersection', 'neighbor']);
 const TIE_PRIORITY = Object.freeze({ vertex: 0, intersection: 1, boundary: 2, edge: 3, neighbor: 4 });
 
-export function normalizeSnapSettings(raw = {}) {
-  const sensitivity = Object.hasOwn(SNAP_THRESHOLDS, raw?.sensitivity) ? raw.sensitivity : DEFAULT_SNAP_SETTINGS.sensitivity;
-  return {
-    vertex: raw?.vertex !== false,
-    edge: raw?.edge !== false,
-    boundary: raw?.boundary !== false,
-    intersection: raw?.intersection !== false,
-    neighbor: raw?.neighbor !== false,
-    sensitivity,
-  };
-}
-
-export function snapThreshold(settings, pointerType = 'mouse') {
-  const normalized = normalizeSnapSettings(settings);
-  return SNAP_THRESHOLDS[normalized.sensitivity][pointerType === 'touch' ? 'touch' : 'mouse'];
-}
-
-export function loadSnapSettings(storage = globalThis.localStorage) {
-  try { return normalizeSnapSettings(JSON.parse(storage?.getItem(SNAP_STORAGE_KEY) || '{}')); }
-  catch (_) { return normalizeSnapSettings(); }
-}
-
-export function saveSnapSettings(settings, storage = globalThis.localStorage) {
-  const normalized = normalizeSnapSettings(settings);
-  try { storage?.setItem(SNAP_STORAGE_KEY, JSON.stringify(normalized)); } catch (_) { /* storage is optional */ }
-  return normalized;
+export function snapThreshold(pointerType = 'mouse') {
+  return SNAP_THRESHOLDS[pointerType === 'touch' ? 'touch' : 'mouse'];
 }
 
 function nearestOnProjectedSegment(point, a, b) {
@@ -78,12 +42,10 @@ function candidateResult(candidate, screenPoint, project) {
   };
 }
 
-export function resolveSnap({ coordinate, screenPoint, candidates = [], project, settings, pointerType = 'mouse' }) {
+export function resolveSnap({ coordinate, screenPoint, candidates = [], project, pointerType = 'mouse' }) {
   if (!coordinate || !screenPoint || typeof project !== 'function') return null;
-  const normalized = normalizeSnapSettings(settings);
-  const threshold = snapThreshold(normalized, pointerType);
+  const threshold = snapThreshold(pointerType);
   const results = candidates
-    .filter(candidate => normalized[candidate.kind] !== false)
     .map(candidate => candidateResult(candidate, screenPoint, project))
     .filter(result => result && result.distancePx <= threshold)
     .sort((left, right) => left.distancePx - right.distancePx
