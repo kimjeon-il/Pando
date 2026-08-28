@@ -2,7 +2,7 @@
 
 (() => {
   const BUILD_ID = '0.30.0';
-  const ASSET_REVISION = '0.30.0-r5';
+  const ASSET_REVISION = '0.30.0-r6';
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
@@ -78,6 +78,20 @@
     return url;
   }
 
+  function installPhaseOneUiCleanup() {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = versionedAsset('../css/phase1-ui-cleanup.css').href;
+    style.dataset.pandolabPhase = 'ui-cleanup-1';
+    document.head.appendChild(style);
+
+    window.addEventListener('pandolab:interactive', () => {
+      import(versionedAsset('./modules/phase1-ui-cleanup.js').href)
+        .then(module => module.applyPhase1UiCleanup?.())
+        .catch(error => console.error('[PL-UI-CLEANUP-001]', error));
+    }, { once: true });
+  }
+
   function cacheMismatchMessage() {
     return '화면 파일과 스크립트 버전이 다릅니다. 페이지를 강력 새로고침하세요. PC에서는 Ctrl+F5를 사용할 수 있습니다.';
   }
@@ -99,6 +113,8 @@
     if (!recoverCacheMismatch()) fail(cacheMismatchMessage());
     return;
   }
+
+  installPhaseOneUiCleanup();
 
   window.PANDOLAB_ASSET_BASE_URL = assetBaseUrl.href;
   window.PANDOLAB_BUILD_ID = BUILD_ID;
