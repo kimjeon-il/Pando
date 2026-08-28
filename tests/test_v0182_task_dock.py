@@ -17,14 +17,22 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertNotIn('>현재 작업<', INDEX)
         self.assertNotIn('map-context-panel', combined)
 
-    def test_task_name_stage_instruction_and_actions_share_one_dock(self):
+    def test_task_context_and_commit_actions_use_separate_surfaces(self):
         for element_id in (
-            "modeActionBar", "modeTaskName",
+            "mapTopContextSlot", "modeEditingContext", "modeEditingHud", "modeActionBar", "modeTaskName",
             "modeTaskStage", "modeTaskInstruction", "modePrimaryBtn",
             "modeCancelBtn",
         ):
             self.assertIn(f'id="{element_id}"', INDEX)
         self.assertEqual(INDEX.count('class="mode-task-context"'), 1)
+        context_start = INDEX.index('id="modeEditingContext"')
+        context_end = INDEX.index('id="modeDraftActions"')
+        action_start = INDEX.index('id="modeActionBar"')
+        self.assertLess(context_start, context_end)
+        self.assertLess(context_end, action_start)
+        self.assertNotIn('id="modePrimaryBtn"', INDEX[context_start:context_end])
+        self.assertNotIn('id="modeCancelBtn"', INDEX[context_start:context_end])
+        self.assertLess(INDEX.index('id="modeCancelBtn"'), INDEX.index('id="modePrimaryBtn"'))
         self.assertIn("function activeModeTaskDescriptor()", APP)
         self.assertIn("'annex-territory': Object.freeze({ label: '영토 편입'", TOOLS)
         self.assertIn("'merge-country': Object.freeze({ label: '국가 합병'", TOOLS)
@@ -43,11 +51,15 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertNotIn("편입할 영토를 가져올 국가", APP)
         self.assertNotIn("국가 합병 대상 선택", APP)
 
-    def test_responsive_task_dock_has_wide_and_stacked_layouts(self):
-        self.assertIn("grid-template-columns: minmax(180px, 1fr) auto auto;", CSS)
-        self.assertIn('#app[data-layout="compact"] .mode-action-bar.has-method-switch .mode-task-context', CSS)
-        self.assertIn('#app[data-layout="mobile"] .mode-action-bar.has-method-switch .mode-task-context', CSS)
-        self.assertIn("grid-column: 1 / -1;", CSS)
+    def test_responsive_task_surfaces_follow_top_and_bottom_contract(self):
+        self.assertIn(".map-top-context-slot {", CSS)
+        self.assertIn("width: min(100%, 460px);", CSS)
+        self.assertIn(".mode-method-switch { width: min(100%, 320px); }", CSS)
+        self.assertIn("bottom: calc(var(--ui-map-status-height) + var(--ui-map-edge));", CSS)
+        self.assertIn('#app[data-layout="mobile"] .mode-action-buttons > button { flex: 1 1 0; }', CSS)
+        self.assertIn("function syncMapHudBounds()", APP)
+        self.assertIn("function syncMapContextSurfaces()", APP)
+        self.assertNotIn("active guidance and actions share one task dock", CSS)
 
 
 if __name__ == "__main__":

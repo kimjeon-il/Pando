@@ -1,13 +1,28 @@
 import { expect, test } from '@playwright/test';
 
+async function installTestAnimationFrame(page) {
+  await page.addInitScript(() => {
+    let frameId = 0;
+    const timers = new Map();
+    globalThis.requestAnimationFrame = callback => {
+      const id = ++frameId;
+      const timer = setTimeout(() => { timers.delete(id); callback(performance.now()); }, 16);
+      timers.set(id, timer);
+      return id;
+    };
+    globalThis.cancelAnimationFrame = id => { clearTimeout(timers.get(id)); timers.delete(id); };
+  });
+}
+
 async function openApp(page, viewport = { width: 1440, height: 900 }) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
     if (message.type() === 'error') errors.push(message.text());
   });
+  await installTestAnimationFrame(page);
   await page.setViewportSize(viewport);
-  await page.goto('/');
+  await page.goto('/?renderer=canvas');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;
@@ -32,7 +47,9 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
   await expect(page.locator('#multiSelectionBar')).toBeVisible();
   await expect(page.locator('#multiProperties')).toBeVisible();
-  await expect(page.locator('#multiPropertiesDeleteBtn')).toBeVisible();
+  await expect(page.locator('#multiPropertiesVisibilityInput')).toBeChecked();
+  await expect(page.locator('#multiPropertiesLockInput')).not.toBeChecked();
+  await expect(page.locator('#multiPropertiesDeleteBtn')).toHaveCount(0);
   await expect(page.locator('#multiSelectionBar button')).toHaveCount(2);
 
   await page.locator('#clearMultiSelectionBtn').click();
@@ -40,12 +57,24 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 
   await page.locator('#layerPresentationBtn').click();
   await expect(page.locator('#layerPresentationModal')).toBeVisible();
+  await expect(page.locator('#mapSheetTitle')).toHaveText('레이어 표시 설정');
+  await expect(page.locator('#layerPresentationBtn')).toBeHidden();
+  await expect(page.locator('#layerPresentationCloseBtn')).toBeVisible();
+  await expect(page.locator('#layerPresentationCloseBtn')).toBeFocused();
+  await expect(page.locator('#layerPresentationDoneBtn, .layer-subview-header')).toHaveCount(0);
+  await expect(page.locator('#layerStyleEditorTitle')).toHaveText('레이어별 표시');
+  await expect(page.locator('label:has(#layerStyleGroupInput)')).toContainText('설정할 레이어');
   await expect(page.locator('[data-layer-order-direction]')).toHaveCount(0);
   await page.locator('#layerStyleGroupInput').selectOption('userDrawings');
   await page.locator('#layerStyleOpacityInput').fill('80');
   await page.locator('#layerStyleOpacityInput').dispatchEvent('change');
   await expect(page.locator('#layerStyleOpacityValue')).toHaveText('80%');
-  await page.locator('#layerPresentationDoneBtn').click();
+  await page.locator('#distributionLayerModeInput').selectOption('intensity');
+  await expect(page.locator('#distributionLayerModeInput')).toHaveValue('intensity');
+  await expect(page.locator('#distributionLayerModeHint')).toHaveText('선택한 분포를 비율이 높을수록 진하게 표시합니다.');
+  await page.locator('#layerPresentationCloseBtn').click();
+  await expect(page.locator('#mapSheetTitle')).toHaveText('레이어');
+  await expect(page.locator('#layerPresentationBtn')).toBeFocused();
 
   if (!await page.locator('#rightPanel').isVisible()) await page.locator('#togglePanelBtn').click();
   await expect(page.locator('#historyTabBtn')).toHaveCount(0);

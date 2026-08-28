@@ -1,11 +1,26 @@
 import { expect, test } from '@playwright/test';
 
+async function installTestAnimationFrame(page) {
+  await page.addInitScript(() => {
+    let frameId = 0;
+    const timers = new Map();
+    globalThis.requestAnimationFrame = callback => {
+      const id = ++frameId;
+      const timer = setTimeout(() => { timers.delete(id); callback(performance.now()); }, 16);
+      timers.set(id, timer);
+      return id;
+    };
+    globalThis.cancelAnimationFrame = id => { clearTimeout(timers.get(id)); timers.delete(id); };
+  });
+}
+
 async function openApp(page, viewport = { width: 1440, height: 900 }) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  await installTestAnimationFrame(page);
   await page.setViewportSize(viewport);
-  await page.goto('/');
+  await page.goto('/?renderer=canvas');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;
@@ -16,7 +31,7 @@ async function makeProjectDirty(page) {
   await page.locator('#layerPresentationBtn').click();
   await page.locator('#layerStyleOpacityInput').fill('80');
   await page.locator('#layerStyleOpacityInput').dispatchEvent('change');
-  await page.locator('#layerPresentationDoneBtn').click();
+  await page.locator('#layerPresentationCloseBtn').click();
 }
 
 const vectorFixture = {

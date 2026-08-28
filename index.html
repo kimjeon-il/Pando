@@ -79,16 +79,17 @@
       <aside id="leftPanel" class="sidebar left-panel map-sheet-surface ui-sheet" aria-labelledby="mapSheetTitle">
         <div class="mobile-sheet-header map-sheet-header ui-sheet-header layer-panel-header">
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="leftPanel" aria-label="레이어 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
-          <strong id="mapSheetTitle">레이어</strong>
+          <div class="layer-header-title-group">
+            <button id="layerPresentationCloseBtn" class="ui-button layer-header-icon layer-header-back hidden" type="button" data-tooltip="레이어로 돌아가기" aria-label="레이어로 돌아가기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+            <strong id="mapSheetTitle">레이어</strong>
+            <button id="layerPresentationBtn" class="ui-button layer-header-icon" type="button" data-tooltip="레이어 표시 설정" aria-label="레이어 표시 설정" aria-controls="layerPresentationModal" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-settings"/></svg></button>
+          </div>
           <button id="mobileCloseLeftBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="레이어 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
         </div>
         <div class="map-sheet-body map-sheet-body-layers">
           <div id="mobileProjectionSlot" class="mobile-projection-slot" aria-label="모바일 지도 투영법"></div>
 
         <section id="layerSection" class="panel-section ui-panel--dense layer-panel-section">
-          <div class="layer-panel-tools ui-toolbar" aria-label="레이어 표시 도구">
-            <button id="layerPresentationBtn" class="ui-button btn ghost compact" type="button" aria-controls="layerPresentationModal" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-settings"/></svg><span>표시 설정</span></button>
-          </div>
           <div class="ui-search-field layer-search">
             <svg class="ui-icon layer-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
             <input id="layerSearchInput" type="search" placeholder="레이어 검색" autocomplete="off" aria-label="레이어 검색" />
@@ -188,18 +189,16 @@
               </div>
             </section>
           </div>
-          <section id="layerPresentationModal" class="layer-presentation-subview hidden" aria-labelledby="layerPresentationTitle">
-            <header class="layer-subview-header"><button id="layerPresentationCloseBtn" class="ui-button icon-btn compact" type="button" aria-label="레이어 설정에서 돌아가기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><div><h2 id="layerPresentationTitle">레이어 표시 설정</h2><p>렌더 순서는 지형, 국가, 지역·행정구역, 분포, 수계, 라벨 순으로 자동 적용됩니다.</p></div></header>
+          <section id="layerPresentationModal" class="layer-presentation-subview hidden" aria-labelledby="mapSheetTitle">
             <section class="layer-style-editor" aria-labelledby="layerStyleEditorTitle">
-              <strong id="layerStyleEditorTitle">그룹 표시</strong>
-              <label class="ui-field field-group"><span>대상 그룹</span><select id="layerStyleGroupInput"></select></label>
+              <strong id="layerStyleEditorTitle">레이어별 표시</strong>
+              <label class="ui-field field-group"><span>설정할 레이어</span><select id="layerStyleGroupInput"></select></label>
               <label class="ui-field field-group"><span>투명도 <output id="layerStyleOpacityValue">100%</output></span><input id="layerStyleOpacityInput" type="range" min="0" max="100" value="100" /></label>
               <label class="ui-choice-row"><input id="layerStyleBoundaryVisibleInput" type="checkbox" checked /><span>경계 표시</span></label>
               <label class="ui-choice-row"><input id="layerStyleLabelsVisibleInput" type="checkbox" checked /><span>라벨 표시</span></label>
             </section>
-            <section class="layer-style-editor" aria-labelledby="distributionLayerSettingsTitle"><strong id="distributionLayerSettingsTitle">분포 표시</strong><label class="ui-field field-group"><span>표시 방식</span><select id="distributionLayerModeInput"><option value="dominant">지배적 분포</option><option value="intensity">비율 농도</option></select></label></section>
+            <section class="layer-style-editor" aria-labelledby="distributionLayerSettingsTitle"><strong id="distributionLayerSettingsTitle">분포가 겹칠 때</strong><label class="ui-field field-group"><span>표시 기준</span><select id="distributionLayerModeInput" aria-describedby="distributionLayerModeHint"><option value="dominant">영역별 가장 높은 비율</option><option value="intensity">선택한 분포의 비율</option></select><small id="distributionLayerModeHint" class="layer-setting-hint">각 영역에서 비율이 가장 높은 분포만 표시합니다.</small></label></section>
             <section class="layer-style-editor" aria-labelledby="terrainLayerSettingsTitle"><strong id="terrainLayerSettingsTitle">지형 음영</strong><div class="terrain-mode-options" role="radiogroup" aria-label="지형 음영 모드"><label class="ui-choice-row terrain-mode-option" for="terrainPoliticalRadio"><input id="terrainPoliticalRadio" type="radio" name="terrainStyle" value="political" checked /><span>국가색과 결합</span></label><label class="ui-choice-row terrain-mode-option" for="terrainPhysicalRadio"><input id="terrainPhysicalRadio" type="radio" name="terrainStyle" value="physical" /><span>지형색 강조</span></label><div id="terrainStrengthControl" class="terrain-strength-control"><div class="terrain-strength-heading"><span>음영 강도</span><strong id="terrainStrengthValue">32%</strong></div><input id="terrainStrengthInput" type="range" min="0" max="100" step="1" value="32" aria-label="음영 강도" /></div></div></section>
-            <button id="layerPresentationDoneBtn" class="ui-button btn wide" type="button">레이어로 돌아가기</button>
           </section>
           </section>
         </div>
@@ -269,24 +268,39 @@
           <button id="mobileWorldBtn" class="ui-button icon-btn" type="button" aria-label="전체 지도 맞춤"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
-        <div id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden" aria-label="지도 편집 작업">
-          <div class="mode-task-context">
-            <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span></div>
-            <p id="modeTaskInstruction" class="mode-task-instruction" aria-live="polite"></p>
+        <div id="mapTopContextSlot" class="map-top-context-slot" aria-live="polite">
+          <div id="modeEditingContext" class="mode-editing-context hidden">
+            <div id="modeEditingHud" class="ui-floating-surface mode-editing-hud" aria-label="지도 편집 작업">
+              <div class="mode-task-context">
+                <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span></div>
+                <div class="mode-task-detail">
+                  <p id="modeTaskInstruction" class="mode-task-instruction"></p>
+                  <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
+                </div>
+              </div>
+            </div>
+            <div id="modeMethodSwitch" class="ui-segmented mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
+              <button id="modeLineMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="경계를 그려 영토 일부 선택" aria-pressed="true">경계 그리기</button>
+              <button id="modeComponentsMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false">영토 선택</button>
+            </div>
           </div>
-          <div id="modeMethodSwitch" class="ui-segmented mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
-            <button id="modeLineMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="경계를 그려 영토 일부 선택" aria-pressed="true">경계 그리기</button>
-            <button id="modeComponentsMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false">영토 선택</button>
+          <div id="multiSelectionBar" class="ui-context-toolbar ui-floating-surface multi-selection-bar hidden" role="region" aria-label="다중 선택 작업">
+            <strong id="multiSelectionCount">0개 선택됨</strong>
+            <button id="multiEditBtn" class="ui-button btn ghost compact" type="button">편집</button>
+            <button id="clearMultiSelectionBtn" class="ui-button icon-btn compact" type="button" aria-label="다중 선택 해제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
           </div>
-          <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
-            <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
-            <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
-            <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
-          </div>
-          <div id="geometryPreviewSummary" class="ui-status geometry-preview-summary hidden" aria-live="polite"></div>
+        </div>
+
+        <div id="modeDraftActions" class="ui-context-toolbar ui-floating-surface mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
+          <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
+          <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
+          <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
+        </div>
+
+        <div id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden" aria-label="지도 편집 작업 실행">
           <div class="mode-action-buttons">
-            <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span></button>
             <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
+            <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn" aria-describedby="modeTaskInstruction"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span><span class="mode-button-busy" aria-hidden="true">처리 중…</span></button>
           </div>
         </div>
 
@@ -294,12 +308,6 @@
         <div id="objectChooser" class="ui-popover ui-floating-surface object-chooser hidden" role="dialog" aria-labelledby="objectChooserTitle">
           <header><strong id="objectChooserTitle">이 위치의 객체</strong><button id="objectChooserCloseBtn" class="ui-button icon-btn compact" type="button" aria-label="선택 목록 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
           <div id="objectChooserList" class="object-chooser-list" role="listbox" aria-multiselectable="true"></div>
-        </div>
-        <div id="cursorToolHelper" class="cursor-tool-helper hidden" aria-hidden="true"></div>
-        <div id="multiSelectionBar" class="ui-context-toolbar ui-floating-surface multi-selection-bar hidden" role="region" aria-label="다중 선택 작업">
-          <strong id="multiSelectionCount">0개 선택됨</strong>
-          <button id="multiEditBtn" class="ui-button btn ghost compact" type="button">편집</button>
-          <button id="clearMultiSelectionBtn" class="ui-button icon-btn compact" type="button" aria-label="다중 선택 해제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
         </div>
 
         <div class="ui-status map-bottom-status" aria-label="지도 상태">
@@ -350,19 +358,21 @@
           </section>
 
           <section id="multiProperties" class="editor-view multi-properties hidden">
-            <section class="ui-card editor-section editor-section-primary">
-              <h3 class="editor-section-title"><span id="multiPropertiesCount">여러 객체 선택됨</span></h3>
+            <div class="multi-properties-summary">
+              <strong id="multiPropertiesCount">여러 객체 선택됨</strong>
               <p id="multiPropertiesTypes" class="editor-help"></p>
+            </div>
+            <section class="editor-section editor-section-primary" aria-labelledby="multiPropertiesCommonTitle">
+              <h3 id="multiPropertiesCommonTitle" class="editor-section-title">공통 속성</h3>
               <div class="multi-properties-actions">
-                <button id="multiPropertiesVisibilityBtn" class="ui-button btn ghost" type="button">표시/숨김</button>
-                <button id="multiPropertiesLockBtn" class="ui-button btn ghost" type="button">잠금</button>
+                <label class="ui-choice-row multi-property-option" for="multiPropertiesVisibilityInput"><input id="multiPropertiesVisibilityInput" type="checkbox" /><span>표시</span></label>
+                <label class="ui-choice-row multi-property-option" for="multiPropertiesLockInput"><input id="multiPropertiesLockInput" type="checkbox" /><span>잠금</span></label>
                 <div class="ui-field field-group editor-field ui-color-picker" data-color-picker="multiProperties">
                   <label id="multiPropertiesColorLabel">공통 색상</label>
                   <button id="multiPropertiesColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="multiPropertiesColorPopover" aria-labelledby="multiPropertiesColorLabel multiPropertiesColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="multiPropertiesColorValue" class="ui-color-value">#3F6FAE</span></button>
                   <input id="multiPropertiesColorInput" class="ui-native-color-input" type="color" value="#3f6fae" tabindex="-1" aria-hidden="true" />
                   <div id="multiPropertiesColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="공통 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
                 </div>
-                <button id="multiPropertiesDeleteBtn" class="ui-button danger-btn" type="button">삭제</button>
               </div>
             </section>
           </section>
