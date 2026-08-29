@@ -6301,6 +6301,20 @@ const {
     if (issue) $('modeTaskInstruction')?.classList.add('cut-invalid');
   }
 
+  function renderAnnexRiverEmphasis() {
+    if (!draftLayer || state.tool !== 'annex-territory' || !['river', 'side'].includes(state.annexPhase)) return;
+    for (const section of state.annexRiverSections || []) {
+      if (!Array.isArray(section?.coordinates) || section.coordinates.length < 2) continue;
+      draftLayer.append('path')
+        .datum(featureFromGeometry({ type: 'LineString', coordinates: section.coordinates }))
+        .attr('class', 'annex-river-emphasis')
+        .attr('d', path)
+        .attr('stroke', SELECTION_STYLE.color)
+        .attr('stroke-width', SELECTION_STYLE.primaryWidth)
+        .attr('stroke-opacity', SELECTION_STYLE.primaryAlpha);
+    }
+  }
+
   function renderDraft() {
     draftLayer.selectAll('*').remove();
     const annexSide = state.tool === 'annex-territory' && ['side', 'polygon-preview'].includes(state.annexPhase);
@@ -6360,6 +6374,7 @@ const {
             .attr('d', path);
         }
       }
+      renderAnnexRiverEmphasis();
       return;
     }
     const cutSourceGeometry = activeCutDraftSourceGeometry();
@@ -6464,6 +6479,7 @@ const {
         const point = activeProjection()(snap.coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
+    renderAnnexRiverEmphasis();
   }
 
   function selectTerritoryCandidate(candidateIndex) {
@@ -8491,7 +8507,7 @@ const {
       }
       if (country) add({ domain: 'territorial', type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: country.properties?.editor_id });
     }
-    if (state.layerVisibility.hydro && (!country || state.hovered?.type === 'hydro')) {
+    if (state.layerVisibility.hydro) {
       const hydro = await hydroAtScreenPoint(screenPoint, coord);
       if (hydro) add({ domain: 'hydro', type: hydro.properties?.category || 'river', id: hydro.properties?.pandolab_id || hydro.id });
     }
