@@ -8,6 +8,8 @@ PERSISTENCE = (ROOT / "assets/js/modules/persistence-service.js").read_text(enco
 SERIALIZER = (ROOT / "assets/js/modules/project-serializer.js").read_text(encoding="utf-8")
 PHYSICAL = (ROOT / "assets/js/modules/physical-layer-service.js").read_text(encoding="utf-8")
 TERRITORIAL_SERVICE = (ROOT / "assets/js/modules/territorial-service.js").read_text(encoding="utf-8")
+DISTRIBUTION_SERVICE = (ROOT / "assets/js/modules/distribution-service.js").read_text(encoding="utf-8")
+DRAWING_SERVICE = (ROOT / "assets/js/modules/drawing-service.js").read_text(encoding="utf-8")
 
 
 class RefactorBoundaryTests(unittest.TestCase):
@@ -19,7 +21,7 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("localStorage.setItem(fallbackKey", PERSISTENCE)
 
     def test_persistence_and_serializer_are_dom_free(self):
-        for source in (PERSISTENCE, SERIALIZER, PHYSICAL, TERRITORIAL_SERVICE):
+        for source in (PERSISTENCE, SERIALIZER, PHYSICAL, TERRITORIAL_SERVICE, DISTRIBUTION_SERVICE, DRAWING_SERVICE):
             self.assertNotIn("document.", source)
             self.assertNotIn("querySelector", source)
             self.assertNotIn("getElementById", source)
@@ -44,6 +46,16 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("territorialApplicationService.replaceUnits", APP)
         self.assertIn("runDocumentMutation", TERRITORIAL_SERVICE)
         self.assertIn("runGeometryTransaction", TERRITORIAL_SERVICE)
+
+    def test_distribution_and_drawing_crud_are_behind_services(self):
+        self.assertIn("createDistributionService({", APP)
+        self.assertIn("distributionService.updateLayer", APP)
+        self.assertIn("distributionService.addEntry", APP)
+        self.assertIn("createDrawingService({", APP)
+        self.assertIn("drawingApplicationService.updateMetadata", APP)
+        self.assertIn("drawingApplicationService.remove", APP)
+        self.assertIn("runDocumentMutation", DISTRIBUTION_SERVICE)
+        self.assertIn("runDocumentMutation", DRAWING_SERVICE)
 
 
 if __name__ == "__main__":
