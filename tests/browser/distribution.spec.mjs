@@ -56,6 +56,10 @@ test('a language layer stores a region share and survives undo and redo', async 
   await page.locator('#distributionTypeConfirmBtn').click();
   await expect(page.locator('#distributionProperties')).toBeVisible();
   await expect(page.locator('#distributionTypeValue')).toHaveText('언어');
+  await page.locator('#distributionColorTrigger').click();
+  await page.locator('#distributionColorPopover [data-color-value="#2563eb"]').click();
+  await expect(page.locator('#distributionColorInput')).toHaveValue('#2563eb');
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers('language')[0]?.color)).toBe('#2563eb');
   await page.locator('#actionsTabBtn').click();
 
   const regionId = await page.locator('#distributionRegionInput option').nth(1).getAttribute('value');

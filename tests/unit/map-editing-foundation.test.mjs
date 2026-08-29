@@ -180,6 +180,15 @@ test('label layout respects priority and pinned labels', () => {
   assert.deepEqual(output.map(item => item.key), ['pinned']);
 });
 
+test('a selected label wins a collision without persisting a raw priority override', () => {
+  const common = { point: [50, 50], width: 40, height: 15, collisionGroup: 'country', minZoom: 0, maxZoom: 10 };
+  const output = layoutLabels([
+    { ...common, key: 'ordinary', priority: LABEL_PRIORITIES.country },
+    { ...common, key: 'selected', priority: LABEL_PRIORITIES.country, selected: true },
+  ], { zoom: 1 });
+  assert.deepEqual(output.map(item => item.key), ['selected']);
+});
+
 test('label policies override legacy tuning while preserving established manual placement', () => {
   const settings = automaticLabelSettings('city', {
     priority: 999,

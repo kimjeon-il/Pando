@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -37,8 +37,10 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/object-selection-controller.js')),
   import(versionedModuleUrl('./modules/layer-presentation.js')),
   import(versionedModuleUrl('./modules/save-state-controller.js')),
+  import(versionedModuleUrl('./modules/color-adapter.js')),
 ]);
 const { applyProjectFields, pickProjectFields } = projectStateModule;
+const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -291,12 +293,12 @@ const {
     if (state?.selected?.type === 'country') {
       const id = String(state.selected.id);
       const feature = countryFeatureById(id);
-      const hasExplicitColor = !!(state.countryOverrides[id]?.color || feature?.properties?.editor_color);
-      if (!hasExplicitColor && $('countryColorInput')) $('countryColorInput').value = defaultCountryColor();
+      const color = readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override: state.countryOverrides[id] }, { fallback: defaultCountryColor() });
+      if (color.isDefault && $('countryColorInput')) $('countryColorInput').value = color.value;
       syncColorPicker('country', {
-        value: state.countryOverrides[id]?.color || feature?.properties?.editor_color || defaultCountryColor(),
+        value: color.value,
         defaultColor: defaultCountryColor(),
-        isDefault: !hasExplicitColor,
+        isDefault: color.isDefault,
       });
     }
     if (svg) {
@@ -1670,16 +1672,18 @@ const {
     for (const ref of refs) {
       if (ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
         state.countryOverrides[ref.id] ||= {};
-        state.countryOverrides[ref.id].color = normalizedColor;
+        writeDomainColor(COLOR_DOMAINS.COUNTRY, {
+          feature: countryFeatureById(ref.id), override: state.countryOverrides[ref.id],
+        }, normalizedColor, { fallback: defaultCountryColor() });
       } else if (ref.domain === 'territorial') {
         const feature = countryRegionById(ref.id);
-        if (feature) feature.properties.style = { ...(feature.properties.style || {}), color: normalizedColor };
+        if (feature) writeDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, normalizedColor, { fallback: DEFAULT_DRAWING_COLOR });
       } else if (ref.domain === 'distribution') {
         const layer = distributionLayerById(ref.id);
-        if (layer) layer.color = normalizedColor;
+        if (layer) writeDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }, normalizedColor, { fallback: DEFAULT_DRAWING_COLOR });
       } else if (ref.domain === 'drawing') {
         const feature = state.drawings.find(item => String(item.id) === ref.id);
-        if (feature) feature.properties.editorColor = normalizedColor;
+        if (feature) writeDomainColor(COLOR_DOMAINS.DRAWING, { feature }, normalizedColor, { fallback: defaultDrawingColor(feature) });
       } else if (ref.domain === 'hydro') {
         const feature = hydroEditById(ref.id);
         if (feature) feature.properties.editorColor = normalizedColor;
@@ -1783,6 +1787,7 @@ const {
   let countryLandRevision = 0;
   const pendingCountryLabelAnchors = new Set();
   const countryLabelAnchorVersions = new Map();
+  const countryLabelScreenAreas = new Map();
   let countryLabelAnchorWorker = null;
   let countryLabelAnchorTimer = 0;
   let countryLabelAnchorRequestId = 0;
@@ -4170,7 +4175,7 @@ const {
   }
 
   function drawingColor(feature) {
-    return feature.properties?.editorColor || defaultDrawingColor(feature);
+    return readDomainColor(COLOR_DOMAINS.DRAWING, { feature }, { fallback: defaultDrawingColor(feature) }).value;
   }
 
   function drawingCategoryLabel(feature) {
@@ -4272,14 +4277,12 @@ const {
   }
 
   function territorialStyleColor(feature) {
-    return feature?.properties?.style?.color || '';
+    return readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }).explicit;
   }
 
   function setTerritorialStyleColor(feature, color) {
-    if (!feature?.properties) return;
-    feature.properties.style = { ...(feature.properties.style || {}) };
-    if (color) feature.properties.style.color = color;
-    else delete feature.properties.style.color;
+    if (!feature?.properties) return '';
+    return writeDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, color, { clear: !color, fallback: DEFAULT_DRAWING_COLOR });
   }
 
   function countryRegionName(feature) {
@@ -4292,10 +4295,11 @@ const {
   }
 
   function countryRegionColor(feature) {
-    const explicit = territorialStyleColor(feature);
-    if (explicit) return explicit;
     const country = countryFeatureById(feature?.properties?.sovereignId);
-    return country ? countryColor(country) : DEFAULT_DRAWING_COLOR;
+    return readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, {
+      inherited: country ? countryColor(country) : '',
+      fallback: DEFAULT_DRAWING_COLOR,
+    }).value;
   }
 
   function countryRegionCountryName(feature) {
@@ -4304,7 +4308,12 @@ const {
   }
 
   function countryColor(feature) {
-    return feature.properties?.editor_color || defaultCountryColor();
+    const id = String(feature?.properties?.editor_id || '');
+    return readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override: state.countryOverrides[id] }, { fallback: defaultCountryColor() }).value;
+  }
+
+  function distributionColor(layer) {
+    return readDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: DEFAULT_DRAWING_COLOR }).value;
   }
 
   function countryName(feature) {
@@ -4588,7 +4597,7 @@ const {
       return state.distributionLayers.filter(layer => layer.type === type).map(layer => ({
         id: layer.id,
         name: layer.name,
-        color: layer.color,
+        color: distributionColor(layer),
         meta: `${distributionEntriesForLayer(state.distributionEntries, layer.id).length}개 분포`,
         folderName: layerGroupNames[group],
         selected: state.selected?.type === 'distribution' && state.selected.id === layer.id,
@@ -4956,20 +4965,35 @@ const {
     return outline;
   }
 
-  function shouldShowCountryLabel(feature) {
+  function countryLabelScreenMetrics(feature, fontSize = isMobile() ? 8 : 9, projectedExtent = null) {
+    let width = Number(projectedExtent?.width);
+    let height = Number(projectedExtent?.height);
+    if (!Number.isFinite(width) || !Number.isFinite(height)) {
+      let bounds;
+      try { bounds = path.bounds(feature); } catch (_) { bounds = null; }
+      width = bounds ? Math.max(0, Number(bounds[1]?.[0]) - Number(bounds[0]?.[0])) : 0;
+      height = bounds ? Math.max(0, Number(bounds[1]?.[1]) - Number(bounds[0]?.[1])) : 0;
+    }
+    const textWidth = Math.max(20, [...countryName(feature)].length * fontSize * 1.02 + 8);
+    return {
+      width: Number.isFinite(width) ? width : 0,
+      height: Number.isFinite(height) ? height : 0,
+      area: Number.isFinite(width * height) ? width * height : 0,
+      textWidth,
+      textHeight: fontSize * 1.65 + 4,
+    };
+  }
+
+  function shouldShowCountryLabel(feature, metrics = countryLabelScreenMetrics(feature)) {
     if (!state.layerVisibility.basemapLabels) return false;
     if (!layerStyle(state.layerPresentation, 'countryLabels').labelsVisible) return false;
     const id = String(feature.properties?.editor_id || '');
     if (!isLayerItemVisible('countryLabels', id) || pendingCountryLabelAnchors.has(id)) return false;
-    const pop = Number(feature.properties?.pop_est || 0);
-    const z = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
-    let threshold = isMobile() ? 120_000_000 : 30_000_000;
-    if (z >= 1.4) threshold = isMobile() ? 25_000_000 : 12_000_000;
-    if (z >= 2) threshold = 4_000_000;
-    if (z >= 3) threshold = 1_000_000;
-    if (z >= 4.5) threshold = 0;
-    if (state.selected?.type === 'country' && state.selected.id === feature.properties?.editor_id) return true;
-    return pop >= threshold;
+    if (state.selected?.type === 'country' && state.selected.id === id) return true;
+    const widthFit = metrics.width >= Math.min(34, metrics.textWidth * (isMobile() ? 0.48 : 0.42));
+    const heightFit = metrics.height >= metrics.textHeight * 0.52;
+    const areaFit = metrics.area >= Math.max(isMobile() ? 72 : 58, metrics.textWidth * metrics.textHeight * 0.32);
+    return widthFit && heightFit && areaFit;
   }
 
   function renderPendingCountryOverlays() {
@@ -5045,19 +5069,22 @@ const {
 
   function visibleLabelLayout() {
     const candidates = [];
+    countryLabelScreenAreas.clear();
     for (const feature of state.countriesData?.features || []) {
       const id = String(feature.properties?.editor_id || '');
       const anchor = feature.properties?.editor_label_anchor;
       const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', id)] || {});
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : anchor;
-      if (!shouldShowCountryLabel(feature) || !isCoordVisible(coordinate)) continue;
+      const baseMetrics = countryLabelScreenMetrics(feature);
+      const fontSize = baseMetrics.area >= (isMobile() ? 3200 : 2200) ? (isMobile() ? 10 : 12) : isMobile() ? 8 : 9;
+      const metrics = countryLabelScreenMetrics(feature, fontSize, baseMetrics);
+      countryLabelScreenAreas.set(id, metrics.area);
+      if (!shouldShowCountryLabel(feature, metrics) || !isCoordVisible(coordinate)) continue;
       const point = activeProjection()(coordinate);
       if (!point) continue;
-      const population = Number(feature.properties?.pop_est || 0);
-      const fontSize = population >= 50_000_000 ? 10 : isMobile() ? 8 : 9;
       candidates.push({
         key: labelKey('country', id), sourceType: 'country', source: feature, point,
-        width: Math.max(20, [...countryName(feature)].length * fontSize * 1.02 + 8), height: fontSize * 1.65 + 4,
+        width: metrics.textWidth, height: metrics.textHeight,
         priority: settings.priority ?? LABEL_PRIORITIES.country, minZoom: settings.minZoom, maxZoom: settings.maxZoom,
         pinned: settings.pinned, collisionGroup: settings.collisionGroup,
         selected: state.selected?.type === 'country' && state.selected.id === id,
@@ -5126,7 +5153,7 @@ const {
     allCountryLabels
       .text(countryName)
       .style('opacity', layerStyle(state.layerPresentation, 'countryLabels').opacity)
-      .classed('major', d => Number(d.properties?.pop_est || 0) >= 50_000_000)
+      .classed('major', d => (countryLabelScreenAreas.get(String(d.properties?.editor_id || '')) || 0) >= (isMobile() ? 3200 : 2200))
       .attr('transform', d => {
         const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', d.properties?.editor_id)] || {});
         const anchor = settings.pinned && settings.manualPosition ? settings.manualPosition : d.properties?.editor_label_anchor;
@@ -5447,8 +5474,8 @@ const {
       });
     selection
       .attr('d', row => path({ type: 'Feature', properties: {}, geometry: row.geometry }))
-      .style('fill', row => row.layer.color)
-      .style('stroke', row => row.layer.color)
+      .style('fill', row => distributionColor(row.layer))
+      .style('stroke', row => distributionColor(row.layer))
       .style('fill-opacity', row => (0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58) * layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).opacity)
       .style('stroke-opacity', row => {
         const style = layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
@@ -9026,9 +9053,9 @@ const {
     showPropertyForm('country', displayName, { resetScroll: !refreshOnly });
     $('countryNameInput').value = override.name || p.editor_name || p.editor_original_name || '';
     $('countryCodeInput').textContent = id;
-    const explicitColor = override.color || p.editor_color || '';
-    $('countryColorInput').value = explicitColor || defaultCountryColor();
-    syncColorPicker('country', { value: explicitColor || defaultCountryColor(), defaultColor: defaultCountryColor(), isDefault: !explicitColor });
+    const color = readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: defaultCountryColor() });
+    $('countryColorInput').value = color.value;
+    syncColorPicker('country', { value: color.value, defaultColor: defaultCountryColor(), isDefault: color.isDefault });
     $('capitalInput').value = override.capital || p.capital || '';
     $('notesInput').value = override.notes || p.notes || '';
     $('originalNameValue').textContent = p.editor_original_name || p.editor_name || '—';
@@ -9136,10 +9163,10 @@ const {
     $(`${prefix}NameConflict`).classList.toggle('hidden', !hasNameConflict);
     $(`${prefix}NameInput`).value = properties.name || '';
     replaceSelectOptions($(`${prefix}CountryInput`), countryRegionCountryOptions(), properties.sovereignId);
-    const explicitColor = territorialStyleColor(feature);
     const inheritedColor = countryRegionColor({ ...feature, properties: { ...properties, style: {} } });
-    $(`${prefix}ColorInput`).value = explicitColor || inheritedColor;
-    syncColorPicker(prefix, { value: explicitColor || inheritedColor, defaultColor: inheritedColor, isDefault: !explicitColor });
+    const color = readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, { inherited: inheritedColor, fallback: DEFAULT_DRAWING_COLOR });
+    $(`${prefix}ColorInput`).value = color.value;
+    syncColorPicker(prefix, { value: color.value, defaultColor: inheritedColor, isDefault: color.isDefault });
     $(`${prefix}NotesInput`).value = properties.notes || '';
     const actionIds = historical
       ? ['reassignHistoricalRegionShapeBtn', 'mergeHistoricalRegionBtn', 'transferHistoricalRegionBtn']
@@ -9240,8 +9267,9 @@ const {
     showPropertyForm('distribution', layer.name, { resetScroll: !refreshOnly });
     $('distributionNameInput').value = layer.name;
     $('distributionTypeValue').textContent = DISTRIBUTION_TYPE_LABELS[layer.type] || layer.type;
-    $('distributionColorInput').value = normalizeEditorColor(layer.color, DEFAULT_DRAWING_COLOR);
-    syncColorPicker('distribution', { value: layer.color, defaultColor: DEFAULT_DRAWING_COLOR, isDefault: false });
+    const color = readDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: DEFAULT_DRAWING_COLOR });
+    $('distributionColorInput').value = color.value;
+    syncColorPicker('distribution', { value: color.value, defaultColor: DEFAULT_DRAWING_COLOR, isDefault: color.isDefault });
     replaceSelectOptions($('distributionParentInput'), distributionParentOptions(layer), layer.parentId);
     replaceSelectOptions($('distributionRegionInput'), distributionRegionOptions(), $('distributionRegionInput').value);
     $('distributionLockedInput').checked = layer.locked;
@@ -9280,7 +9308,8 @@ const {
       }
     }
     recordHistory();
-    layer[field] = field === 'color' ? normalizeEditorColor(value, DEFAULT_DRAWING_COLOR) : value;
+    if (field === 'color') writeDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }, value, { fallback: DEFAULT_DRAWING_COLOR });
+    else layer[field] = value;
     markLayerTreeDirty();
     selectDistributionLayer(layer.id, true);
     queueAutosave();
@@ -9500,8 +9529,9 @@ const {
     $('drawingNameInput').value = meta.name || '';
     $('drawingIdInput').textContent = String(id);
     const defaultColor = defaultDrawingColor(feature);
-    $('drawingColorInput').value = meta.editorColor || defaultColor;
-    syncColorPicker('drawing', { value: meta.editorColor || defaultColor, defaultColor, isDefault: !meta.editorColor });
+    const color = readDomainColor(COLOR_DOMAINS.DRAWING, { feature }, { fallback: defaultColor });
+    $('drawingColorInput').value = color.value;
+    syncColorPicker('drawing', { value: color.value, defaultColor, isDefault: color.isDefault });
     $('drawingNotesInput').value = meta.notes || '';
     $('deleteDrawingInlineBtn').textContent = `${typeLabel} 삭제`;
     syncDrawingSemanticEditor(feature);
@@ -10002,8 +10032,7 @@ const {
   }
 
   function normalizeEditorColor(value, fallback) {
-    const color = String(value || '').trim().toLowerCase();
-    return /^#[0-9a-f]{6}$/.test(color) ? color : fallback;
+    return normalizeColorValue(value, fallback);
   }
 
   function syncColorPicker(kind, { value, defaultColor, isDefault }) {
@@ -10069,14 +10098,14 @@ const {
     const idx = state.countryIndex.get(id);
     const feature = idx === undefined ? null : state.countriesData.features[idx];
     const override = state.countryOverrides[id] || {};
-    if (!override.color && !feature?.properties?.editor_color) {
+    const color = readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: defaultCountryColor() });
+    if (color.isDefault) {
       syncColorPicker('country', { value: defaultCountryColor(), defaultColor: defaultCountryColor(), isDefault: true });
       return true;
     }
     recordHistory();
-    delete override.color;
     state.countryOverrides[id] = override;
-    if (feature?.properties) delete feature.properties.editor_color;
+    writeDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, '', { clear: true, fallback: defaultCountryColor() });
     selectCountry(id, true);
     queueAutosave();
     setActionStatus('국가 색상을 기본값으로 되돌렸습니다.', 'success');
@@ -10088,13 +10117,14 @@ const {
     const feature = state.drawings.find(item => String(item.id) === String(state.selected.id));
     if (!feature) return false;
     feature.properties ||= {};
-    if (!feature.properties.editorColor) {
+    const color = readDomainColor(COLOR_DOMAINS.DRAWING, { feature }, { fallback: defaultDrawingColor(feature) });
+    if (color.isDefault) {
       const defaultColor = defaultDrawingColor(feature);
       syncColorPicker('drawing', { value: defaultColor, defaultColor, isDefault: true });
       return true;
     }
     recordHistory();
-    delete feature.properties.editorColor;
+    writeDomainColor(COLOR_DOMAINS.DRAWING, { feature }, '', { clear: true, fallback: defaultDrawingColor(feature) });
     drawingLandClipCache.delete(feature);
     selectDrawing(String(feature.id), true);
     queueAutosave();
@@ -10206,14 +10236,16 @@ const {
     if (state.selected?.type !== 'country') return;
     recordHistory();
     const id = state.selected.id;
-    state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}), [field]: value };
+    state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}) };
+    if (field === 'color') {
+      writeDomainColor(COLOR_DOMAINS.COUNTRY, {
+        feature: countryFeatureById(id), override: state.countryOverrides[id],
+      }, value, { fallback: defaultCountryColor() });
+    } else state.countryOverrides[id][field] = value;
     const idx = state.countryIndex.get(id);
     if (idx !== undefined) {
       const f = state.countriesData.features[idx];
       f.properties.editor_name = state.countryOverrides[id].name || f.properties.editor_original_name;
-      const explicitColor = state.countryOverrides[id].color || f.properties.editor_color;
-      if (explicitColor) f.properties.editor_color = explicitColor;
-      else delete f.properties.editor_color;
     }
     if (field === 'name') markLayerTreeDirty();
     selectCountry(id, true);
@@ -10227,7 +10259,8 @@ const {
     if (!f) return;
     f.properties = f.properties || {};
     recordHistory();
-    f.properties[field] = value;
+    if (field === 'editorColor') writeDomainColor(COLOR_DOMAINS.DRAWING, { feature: f }, value, { fallback: defaultDrawingColor(f) });
+    else f.properties[field] = value;
     if (field === 'category') normalizeDrawingSemantics(f);
     if (field === 'pandolab_owner_id' || field === 'pandolab_parent_id' || field === 'pandolab_land_binding') normalizeDrawingSemantics(f, { inferOwner: false });
     drawingLandClipCache.delete(f);
