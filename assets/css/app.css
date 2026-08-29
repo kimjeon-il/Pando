@@ -154,6 +154,7 @@
   --ui-menu-padding: var(--ui-space-2);
   --ui-menu-gap: var(--ui-space-1);
   --ui-menu-item-padding-x: var(--ui-space-3);
+  --ui-scrollbar-gutter-size: 10px;
   --ui-popover-screen-edge: var(--ui-space-2);
   --ui-dialog-edge: var(--ui-space-4);
   --ui-dialog-padding: var(--ui-space-6);
@@ -1018,7 +1019,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
-:where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar { width: 10px; height: 10px; }
+:where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar { width: var(--ui-scrollbar-gutter-size); height: var(--ui-scrollbar-gutter-size); }
 :where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar-thumb {
   border: 3px solid transparent; border-radius: 999px; background: var(--border-strong); background-clip: padding-box;
 }
@@ -2303,6 +2304,8 @@ input[type="search"]::-webkit-search-decoration { appearance: none; -webkit-appe
 .ui-select-popover[hidden] { display: none !important; }
 .ui-select-listbox {
   max-height: var(--ui-select-list-max-height);
+  padding-block: var(--ui-scrollbar-gutter-size);
+  scroll-padding-block: var(--ui-scrollbar-gutter-size);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -3396,7 +3399,6 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .object-actions-menu .ui-icon { width: 18px; height: 18px; flex: 0 0 18px; }
 .object-actions-menu .object-actions-delete:hover:not(:disabled),
 .object-actions-menu .object-actions-delete:focus-visible:not(:disabled) { background: var(--danger-surface); color: var(--danger-text); }
-.object-actions-separator { height: 1px; margin: var(--ui-space-1) 0; background: var(--border); }
 .editor-object-header #focusSelectedObjectBtn { white-space: nowrap; }
 .multi-properties-summary { display: grid; gap: var(--ui-space-1); }
 .multi-properties-summary > strong { color: var(--text-strong); }
