@@ -12,12 +12,10 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'layerPresentation', history: true, fallback: () => ({}) }),
   Object.freeze({ name: 'drawingFolders', history: true, fallback: () => [] }),
   Object.freeze({ name: 'physicalSettings', history: true, fallback: current => current || {} }),
-  Object.freeze({ name: 'removedLayerItems', history: true, fallback: () => ({}) }),
   Object.freeze({ name: 'projection', history: false, fallback: () => 'globe' }),
   Object.freeze({ name: 'layerVisibility', history: false, fallback: current => current || {} }),
   Object.freeze({ name: 'itemVisibility', history: false, fallback: () => ({}) }),
   Object.freeze({ name: 'layerFolders', history: false, fallback: () => ({}) }),
-  Object.freeze({ name: 'countriesLocked', history: false, fallback: () => false }),
   Object.freeze({ name: 'view', history: false, fallback: current => current || {} }),
 ]);
 
