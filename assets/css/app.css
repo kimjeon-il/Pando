@@ -837,6 +837,7 @@ body { font-size: var(--ui-font-body); }
   width: 280px; max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-space-5)); overflow-y: auto;
 }
 .top-actions:not(.mobile-open) { display: none; pointer-events: none; }
+#fileMenu { padding-block: var(--ui-menu-padding); padding-inline: 0; }
 .top-actions.mobile-open { display: grid; }
 .top-actions .btn, .top-actions .btn:not(.ghost) {
   width: 100%; min-width: 0; text-align: left; white-space: nowrap;
@@ -3219,7 +3220,8 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 }
 .editor-primary-action { width: 100%; }
 .editor-object-form > .editor-info-section,
-.editor-object-form > .editor-action-section.editor-section {
+.editor-object-form > .editor-action-section.editor-section,
+.multi-properties > .editor-action-section.editor-section {
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -3337,10 +3339,17 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .object-chooser-item.is-selected > small { color: var(--selection-strong-muted); }
 
 .multi-selection-bar {
-  width: min(100%, 360px);
+  width: auto;
+  max-width: calc(100% - var(--ui-space-4));
   min-height: var(--ui-control-height);
 }
-.multi-selection-bar > strong { padding-inline: var(--ui-space-2); white-space: nowrap; }
+.multi-selection-bar > strong {
+  padding-inline: var(--ui-space-2);
+  color: var(--text);
+  font-size: var(--ui-font-caption);
+  font-weight: var(--ui-weight-semibold);
+  white-space: nowrap;
+}
 #multiSelectionModeBtn { display: none; }
 
 .editor-view-tabs,
@@ -3475,7 +3484,8 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 #app[data-layout="mobile"] .editor-view { padding-inline: var(--ui-sheet-body-padding-x); }
 #app[data-layout="mobile"] #projectSaveStatusText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #app[data-layout="mobile"] .multi-selection-bar {
-  width: min(100%, 360px);
+  width: auto;
+  max-width: calc(100% - var(--ui-space-4));
   overflow-x: auto;
 }
 #app[data-layout="mobile"] .multi-selection-bar > button,

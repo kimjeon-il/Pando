@@ -3072,7 +3072,7 @@ const {
       renderAll();
       updateModeButtons();
       const blockingIssue = validationIssues.find(issue => issue.severity !== 'warning');
-      setModeBanner(blockingIssue?.message || '변경될 영역과 새 국경을 확인한 뒤 ‘변경 적용’을 선택합니다. 취소하면 원본은 바뀌지 않습니다.');
+      setModeBanner(blockingIssue?.message || '변경 결과를 확인한 뒤 적용하세요.');
       if (blockingIssue) $('modeTaskInstruction')?.classList.add('cut-invalid');
       setActionStatus(validationIssues.length
         ? `미리보기에서 geometry 문제 ${validationIssues.length}건을 찾았습니다.`
@@ -3146,7 +3146,7 @@ const {
     renderAll();
     updateModeButtons();
     const blockingIssue = issues.find(issue => issue.severity !== 'warning');
-    setModeBanner(blockingIssue?.message || '변경될 영역과 경계를 확인한 뒤 ‘변경 적용’을 선택합니다. 취소하면 원본은 바뀌지 않습니다.');
+    setModeBanner(blockingIssue?.message || '변경 결과를 확인한 뒤 적용하세요.');
     if (blockingIssue) $('modeTaskInstruction')?.classList.add('cut-invalid');
     return true;
   }
@@ -3847,14 +3847,14 @@ const {
     let events;
     try { events = collectCutBoundaryEvents(line, polygons); }
     catch (_) { return fallback; }
-    if (events.length > 2) return '경계선이 선택 영역의 경계를 여러 번 가로지릅니다. 한 번만 관통하도록 다시 그리세요.';
+    if (events.length > 2) return '경계를 여러 번 가로지릅니다. 한 번만 관통하세요.';
     const startInside = interiorComponentIndex(line[0], polygons) !== null;
     const endInside = interiorComponentIndex(line[line.length - 1], polygons) !== null;
-    if (startInside && endInside) return '시작점과 끝점이 영역 안에 있습니다. 양 끝점을 경계 근처나 영역 밖에 놓으세요.';
-    if (startInside) return '시작점을 선택 영역의 경계 근처나 영역 밖에 놓으세요.';
-    if (endInside) return '끝점을 선택 영역의 경계 근처나 영역 밖에 놓으세요.';
-    if (events.length === 0) return '경계선이 선택 영역을 통과하지 않습니다. 영역의 한쪽 바깥에서 반대쪽 바깥까지 그리세요.';
-    if (events.length === 1) return '경계선이 한쪽 경계에만 연결됐습니다. 반대쪽 끝점을 경계 근처나 영역 밖에 놓으세요.';
+    if (startInside && endInside) return '시작점과 끝점을 영역 밖에 놓으세요.';
+    if (startInside) return '시작점을 영역 밖에 놓으세요.';
+    if (endInside) return '끝점을 영역 밖에 놓으세요.';
+    if (events.length === 0) return '영역을 통과하지 않습니다. 양쪽 경계를 가로지르세요.';
+    if (events.length === 1) return '한쪽 경계만 연결됐습니다. 반대쪽 경계까지 그리세요.';
     return fallback;
   }
 
@@ -6199,27 +6199,23 @@ const {
     if (state.draftEdit.inputPhase === 'refine' && state.draftCoords.length) {
       return '꼭짓점을 드래그해 미세조정한 뒤 완료하세요.';
     }
-    const inputHint = isMobile()
-      ? '한 손가락으로 그리세요. 두 손가락으로 지도를 이동하거나 확대할 수 있습니다.'
-      : '드래그해 그리세요. 클릭으로 점을 정밀하게 추가하고 Space+드래그로 지도를 이동할 수 있습니다.';
+    const inputHint = isMobile() ? '한 손가락으로 그리세요.' : '드래그하거나 클릭해 그리세요.';
     const hydro = hydroToolConfig(state.tool);
     if (hydro) return `${hydro.label}의 ${isPolygonDraftTool(state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
     if (state.tool === 'split-drawing') {
-      const source = state.drawings.find(item => String(item.id) === String(state.drawingSplitSourceId));
-      return `${source ? drawingName(source) : '선택한 영역'}을 가로질러 ${inputHint}`;
+      return '영역을 가로질러 경계를 그리세요.';
     }
     if (state.tool === 'split-country-region') {
-      const source = countryRegionById(state.countryRegionSplitSourceId) || state.countryRegionSplitVirtualSource;
-      return `${source ? countryRegionName(source) : '선택한 영역'}을 가로질러 ${inputHint}`;
+      return '영역을 가로질러 경계를 그리세요.';
     }
-    if (state.tool === 'redraw-country-region') return `부모 영역 안에서 ${inputHint}`;
-    if (state.tool === 'draw-country-region') return `추가할 영역의 경계를 따라 ${inputHint}`;
-    if (state.tool === 'annex-territory' && state.annexPhase === 'polygon') return `편입할 영역을 둘러 ${inputHint}`;
+    if (state.tool === 'redraw-country-region') return '부모 영역 안에 새 영역을 그리세요.';
+    if (state.tool === 'draw-country-region') return '추가할 영역을 그리세요.';
+    if (state.tool === 'annex-territory' && state.annexPhase === 'polygon') return '편입할 영역을 그리세요.';
     if ((state.tool === 'new-country' && state.newCountryPhase === 'line') || (state.tool === 'annex-territory' && state.annexPhase === 'line')) {
-      return `선택한 영토를 가로질러 ${inputHint}`;
+      return '선택한 영토를 가로질러 경계를 그리세요.';
     }
-    if (state.tool === 'annex-territory' && state.annexPhase === 'river') return '편입할 영토를 가로지르는 하천을 지도에서 선택하세요.';
-    if (state.distributionDraft && isPolygonDraftTool(state.tool)) return `${state.distributionDraft.layerName || '분포'} 영역의 경계를 따라 ${inputHint}`;
+    if (state.tool === 'annex-territory' && state.annexPhase === 'river') return '새 국경으로 사용할 강을 선택하세요.';
+    if (state.distributionDraft && isPolygonDraftTool(state.tool)) return '분포 영역을 그리세요.';
     return inputHint;
   }
 
@@ -6399,10 +6395,10 @@ const {
     const index = Number(candidateIndex);
     if (state.tool === 'annex-territory' && state.annexPhase === 'side' && state.annexCandidates[index]?.geometry) {
       state.annexSelectedCandidateIndex = index;
-      setModeBanner('편입할 영역을 확인하세요. 반대쪽 영역을 선택해 변경할 수도 있습니다.', 'annex-mode');
+      setModeBanner('편입할 영역을 선택하세요.', 'annex-mode');
     } else if (state.tool === 'new-country' && state.newCountryPhase === 'side' && state.newCountryCandidates[index]?.geometry) {
       state.newCountrySelectedCandidateIndex = index;
-      setModeBanner('초록색 신생국 영역을 확인하세요. 반대 영역을 선택하려면 보라색 영역을 선택한 뒤 완료하세요.', 'add-country-mode');
+      setModeBanner('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
     } else {
       return;
     }
@@ -7183,9 +7179,7 @@ const {
         ? '이 위치에 놓으면 유효한 경계가 됩니다. 경계 근처 끝점은 자동으로 연결됩니다.'
         : '유효한 경계입니다. 영역 나누기를 눌러 완료하세요.';
     } else if (assessment.status === 'pending') {
-      message = assessment.snaps.start
-        ? '시작점이 경계에 연결됐습니다. 선택 영역을 가로질러 반대쪽까지 선을 그으세요.'
-        : '선택 영역을 가로질러 반대쪽까지 선을 그으세요. 경계 근처 끝점은 자동으로 연결됩니다.';
+      message = '선택 영역을 가로질러 반대쪽까지 그리세요.';
     } else {
       message = assessment.message;
     }
@@ -7521,7 +7515,7 @@ const {
       state.annexSelectionMethod = annexMethods.has(method) ? method : 'line';
       state.annexPhase = useComponents ? 'components' : usePolygon ? 'polygon' : useRiver ? 'river' : 'line';
       if (useComponents) updateTerritoryComponentSelectionFeedback();
-      else if (useRiver) setModeBanner('편입할 영토를 가로지르는 하천을 지도에서 선택하세요.', 'annex-mode');
+      else if (useRiver) setModeBanner('새 국경으로 사용할 강을 선택하세요.', 'annex-mode');
       else {
         setModeBanner(defaultDraftInstruction());
       }
@@ -7956,7 +7950,7 @@ const {
     state.annexTargetCountryId = String(id);
     syncCountryActionButtons();
     renderCountries();
-    setModeBanner(`${countryName(feature)}로 영토를 이전할 국가를 선택하세요.`);
+    setModeBanner('영토를 가져올 국가를 선택하세요.');
     updateModeButtons();
     return true;
   }
@@ -7979,7 +7973,7 @@ const {
     else selected.add(donorId);
     state.annexDonorCountryIds = [...selected];
     renderCountries();
-    setModeBanner(`${countryName(countryFeatureById(targetId))}로 영토를 이전할 국가를 선택하세요.`);
+    setModeBanner('영토를 가져올 국가를 선택하세요.');
     updateModeButtons();
   }
 
@@ -8028,7 +8022,7 @@ const {
     state.boundaryEditSeedCountryId = String(id);
     setCountryObjectSelection(state.boundaryEditCountryIds, id, { refreshEditor: false });
     rebuildBoundaryTopology(state.boundaryEditCountryIds);
-    setModeBanner(`${countryName(feature)}와 국경을 맞댄 국가를 선택하세요. 시작 국가는 고정되며 선택 완료 후 대상 범위가 잠깁니다.`);
+    setModeBanner(`${countryName(feature)}와 접한 국가를 선택하세요.`);
     renderAll();
     updateModeButtons();
     return true;
@@ -8056,7 +8050,7 @@ const {
     state.boundaryEditSeedCountryId = analysis.selectedIds[0];
     setCountryObjectSelection(analysis.selectedIds, analysis.selectedIds.at(-1), { refreshEditor: false });
     rebuildBoundaryTopology(analysis.selectedIds);
-    setModeBanner(`선택한 ${analysis.selectedIds.length}개 국가 사이의 공유국경 꼭짓점을 드래그하세요. 선택 밖 국가와 연결된 접경점은 고정됩니다.`);
+    setModeBanner('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
     renderAll();
     updateModeButtons();
     return true;
@@ -8097,7 +8091,7 @@ const {
     setCountryObjectSelection(state.boundaryEditCountryIds, countryId, { refreshEditor: false });
     const analysis = boundaryEditSelectionAnalysis(state.boundaryEditCountryIds, { rebuild: true });
     setModeBanner(analysis.valid
-      ? `${analysis.selectedIds.length}개 국가가 선택되었습니다. 선택 완료를 누르면 이 집합 내부의 공유국경만 편집합니다.`
+      ? `${analysis.selectedIds.length}개 국가 선택됨 · 완료하면 공유국경을 편집합니다.`
       : analysis.message);
     renderAll();
     updateModeButtons();
@@ -8115,7 +8109,7 @@ const {
     state.boundaryEditCountryIds = analysis.selectedIds;
     state.boundaryEditPhase = 'editing';
     rebuildBoundaryTopology(analysis.selectedIds);
-    setModeBanner(`선택한 ${analysis.selectedIds.length}개 국가 사이의 공유국경 꼭짓점을 드래그하세요. 선택 밖 국가와 연결된 접경점은 고정됩니다.`);
+    setModeBanner('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
     renderAll();
     updateModeButtons();
     return true;
@@ -8150,8 +8144,8 @@ const {
     rebuildBoundaryTopology(id);
     syncCountryActionButtons();
     setModeBanner(scopeDrawingId
-      ? `${countryName(feature)}의 선택 영역과 맞닿은 해안선 꼭짓점을 드래그하세요. 국가 해안선과 연결된 영역이 함께 변경됩니다.`
-      : `${countryName(feature)}의 외곽 해안선 꼭짓점을 드래그하세요. 국경과 만나는 접경점은 고정됩니다.`);
+      ? '해안선 꼭짓점을 드래그하세요. 연결 영역도 함께 변경됩니다.'
+      : '해안선 꼭짓점을 드래그하세요. 국경 접점은 고정됩니다.');
     return true;
   }
 
@@ -8181,7 +8175,7 @@ const {
     setTool('merge-country', false);
     state.mergeSourceCountryId = String(id);
     state.mergeTargetCountryIds = [];
-    setModeBanner(`${countryName(feature)}에 합병할 국가를 선택하세요.`);
+    setModeBanner('합병할 국가를 선택하세요.');
     syncCountryActionButtons();
     updateModeButtons();
     return true;
@@ -8204,7 +8198,7 @@ const {
     else selected.add(targetId);
     state.mergeTargetCountryIds = [...selected];
     renderCountries();
-    setModeBanner(`${countryName(countryFeatureById(sourceId))}에 합병할 국가를 선택하세요.`);
+    setModeBanner('합병할 국가를 선택하세요.');
     updateModeButtons();
   }
 
@@ -8251,7 +8245,7 @@ const {
     setCurrentTool('지명 추가');
     $('map').classList.add('drawing-mode');
     $('map').classList.remove('select-mode');
-    setModeBanner('지도에서 지명을 배치할 위치를 선택하세요. Esc 키로 취소할 수 있습니다.');
+    setModeBanner('지명을 배치할 위치를 선택하세요.');
     syncMobileNavigation();
     updateModeButtons();
     return true;
@@ -8676,7 +8670,7 @@ const {
       state.annexCandidates = split.candidates;
       state.annexSelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       state.annexPhase = 'side';
-      setModeBanner('작은 영역을 자동으로 선택했습니다. 편입할 영역을 확인하거나 반대쪽 영역을 선택하세요.', 'annex-mode');
+      setModeBanner('편입할 영역을 선택하세요.', 'annex-mode');
       updateModeButtons();
       renderAll();
     } catch (error) {
@@ -8697,7 +8691,7 @@ const {
       state.newCountryCandidates = split.candidates;
       state.newCountrySelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       state.newCountryPhase = 'side';
-      setModeBanner('작은 영역을 자동으로 선택했습니다. 초록색 영역을 확인하거나 보라색 영역을 선택해 전환한 뒤 완료하세요.', 'add-country-mode');
+      setModeBanner('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
       updateModeButtons();
       renderAll();
     } catch (error) {
@@ -8722,7 +8716,7 @@ const {
     state.annexCandidates = [{ geometry: plan.transferGeometry }];
     state.annexSelectedCandidateIndex = 0;
     state.annexPhase = 'polygon-preview';
-    setModeBanner('그린 영역에서 편입할 영토를 확인한 뒤 완료하세요.', 'annex-mode');
+    setModeBanner('편입할 영역을 선택하세요.', 'annex-mode');
     updateModeButtons();
     renderAll();
   }
@@ -8753,7 +8747,7 @@ const {
     state.annexCandidates = candidates;
     state.annexSelectedCandidateIndex = candidates.reduce((best, item, index) => item.area < candidates[best].area ? index : best, 0);
     state.annexPhase = 'side';
-    setModeBanner('하천 기준으로 나눈 영역을 확인하거나 다른 영역을 선택한 뒤 완료하세요.', 'annex-mode');
+    setModeBanner('편입할 영역을 선택하세요.', 'annex-mode');
     updateModeButtons();
     renderAll();
   }
@@ -9169,7 +9163,7 @@ const {
     state.drawingMergeTargetIds = [];
     setTool('merge-drawing', false);
     state.drawingMergeSourceId = String(id);
-    setModeBanner(`${drawingName(feature)}과 합칠 같은 역할의 영역을 선택하세요.`);
+    setModeBanner('합칠 영역을 선택하세요.');
     return true;
   }
 
@@ -9485,12 +9479,12 @@ const {
           renderAll();
           queueAutosave();
           if (borderMode) {
-            setModeBanner(`선택한 ${state.boundaryEditCountryIds.length}개 국가 사이의 공유국경 꼭짓점을 드래그하세요. 고정 표시는 선택 밖 국가와 연결된 접경점입니다.`);
+            setModeBanner('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
             setActionStatus(`${affectedIds.size}개 국가의 공유국경을 함께 수정했습니다.`, 'success');
           } else {
             setModeBanner(state.coastEditScopeDrawingId
-              ? `${editedFeature ? countryName(editedFeature) : '국가'}의 선택 영역과 맞닿은 해안선 꼭짓점을 드래그하세요. 연결된 영역이 함께 변경됩니다.`
-              : `${editedFeature ? countryName(editedFeature) : '국가'}의 외곽 해안선 꼭짓점을 드래그하세요. 국경 접점은 고정됩니다.`);
+              ? '해안선 꼭짓점을 드래그하세요. 연결 영역도 함께 변경됩니다.'
+              : '해안선 꼭짓점을 드래그하세요. 국경 접점은 고정됩니다.');
             setActionStatus('해안선을 수정했습니다.', 'success');
           }
         } catch (error) {
@@ -9947,7 +9941,7 @@ const {
     }
     state.distributionDraft = { layerId: layer.id, share };
     setTool('polygon', false);
-    setModeBanner(`${layer.name}의 자유 분포 영역을 그린 뒤 완료하세요.`);
+    setModeBanner('분포 영역을 그리세요.');
     return true;
   }
 
@@ -10450,7 +10444,7 @@ const {
     setTool('merge-country-region', false);
     state.countryRegionMergeSourceId = String(source.id);
     state.countryRegionMergeTargetIds = [];
-    setModeBanner(`${countryRegionName(source)}과 합칠 인접한 같은 단계 영역을 선택하세요.`);
+    setModeBanner('합칠 인접 영역을 선택하세요.');
     updateModeButtons();
     renderCountryRegions();
     return true;
