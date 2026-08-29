@@ -417,7 +417,7 @@ const {
     'drawingLandRelationSection', 'drawingOwnerField', 'drawingOwnerInput', 'drawingParentField', 'drawingParentInput', 'drawingLandBindingField', 'drawingLandBindingInput', 'drawingRoleHelp',
     'drawingLandActionsSection', 'splitDrawingBtn', 'mergeDrawingBtn', 'syncDrawingCoastBtn', 'editDrawingCoastBtn', 'applyDrawingToCountryBtn', 'promoteDrawingToCountryBtn', 'drawingRoleValue', 'drawingTopologyValue',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue', 'deleteLabelBtn',
-    'editorScrollBody', 'editorObjectHeader', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'actionsTabBtn', 'objectActionsBtn', 'objectActionsMenu',
+    'editorScrollBody', 'editorObjectHeader', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'actionsTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu',
     'countryProperties', 'regionProperties', 'administrativeProperties', 'historicalRegionProperties', 'distributionProperties', 'regionNameConflict', 'administrativeNameConflict', 'historicalRegionNameConflict', 'historicalRegionNameInput', 'historicalRegionCountryInput', 'historicalRegionParentInput', 'historicalRegionColorInput', 'historicalRegionValidFromInput', 'historicalRegionValidToInput', 'historicalRegionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionRegionInput', 'distributionShareInput', 'addRegionDistributionBtn', 'addGeometryDistributionBtn', 'deleteDistributionBtn', 'drawingProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeRegionTypeBtn', 'changeAdministrativeTypeBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
     'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn', 'deleteHydroEditBtn',
@@ -1524,13 +1524,19 @@ const {
     return batchSetLocked();
   }
 
+  let objectActionsMenuTrigger = null;
+
   function closeObjectActionsMenu({ restoreFocus = false } = {}) {
     const menu = $('objectActionsMenu');
     if (!menu) return;
     const wasOpen = !menu.classList.contains('hidden');
+    const trigger = objectActionsMenuTrigger;
     menu.classList.add('hidden');
-    $('objectActionsBtn')?.setAttribute('aria-expanded', 'false');
-    if (restoreFocus && wasOpen) $('objectActionsBtn')?.focus();
+    menu.style.removeProperty('left');
+    menu.style.removeProperty('top');
+    trigger?.setAttribute('aria-expanded', 'false');
+    objectActionsMenuTrigger = null;
+    if (restoreFocus && wasOpen && trigger?.isConnected) trigger.focus({ preventScroll: true });
   }
 
   function syncObjectActionsMenu() {
@@ -1538,27 +1544,87 @@ const {
     const primary = objectSelection.primary();
     const capabilities = commonBatchCapabilities(refs);
     const locked = refs.length > 0 && refs.every(objectRefLocked);
-    if ($('objectLockMenuBtn')) {
-      $('objectLockMenuBtn').textContent = locked ? '잠금 해제' : '잠금';
-      $('objectLockMenuBtn').classList.toggle('hidden', !capabilities.has('lock'));
-      $('objectLockMenuBtn').disabled = !capabilities.has('lock');
+    const canLock = refs.length > 0 && capabilities.has('lock');
+    const canDelete = refs.length > 1
+      ? capabilities.has('delete')
+      : !!primary && (primary.domain !== 'hydro' || !!hydroEditById(primary.id));
+    const deleteDisabled = !canDelete || !!(primary && objectRefLocked(primary));
+    const lockLabel = locked ? '잠금 해제' : '잠금';
+
+    const lockMenuButton = $('objectLockMenuBtn');
+    if (lockMenuButton) {
+      $('objectLockMenuLabel').textContent = lockLabel;
+      $('objectLockMenuIcon')?.setAttribute('href', locked ? '#icon-lock-open' : '#icon-lock-closed');
+      lockMenuButton.classList.toggle('hidden', !canLock);
+      lockMenuButton.disabled = !canLock;
+      lockMenuButton.setAttribute('aria-label', lockLabel);
     }
-    if ($('objectDeleteMenuBtn')) {
-      const canDelete = refs.length > 1 ? capabilities.has('delete') : primary?.domain !== 'hydro' || !!hydroEditById(primary.id);
-      $('objectDeleteMenuBtn').classList.toggle('hidden', !canDelete);
-      $('objectDeleteMenuBtn').disabled = !canDelete || (primary && objectRefLocked(primary));
+
+    const deleteMenuButton = $('objectDeleteMenuBtn');
+    if (deleteMenuButton) {
+      deleteMenuButton.classList.toggle('hidden', !canDelete);
+      deleteMenuButton.disabled = deleteDisabled;
+      deleteMenuButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
+      deleteMenuButton.setAttribute('aria-label', deleteMenuButton.dataset.tooltip);
+    }
+
+    const lockButton = $('objectLockBtn');
+    if (lockButton) {
+      lockButton.classList.toggle('hidden', !canLock);
+      lockButton.disabled = !canLock;
+      lockButton.setAttribute('aria-pressed', String(locked));
+      lockButton.setAttribute('aria-label', lockLabel);
+      lockButton.dataset.tooltip = lockLabel;
+      $('objectLockIcon')?.setAttribute('href', locked ? '#icon-lock-closed' : '#icon-lock-open');
+    }
+
+    const deleteButton = $('objectDeleteBtn');
+    if (deleteButton) {
+      deleteButton.classList.toggle('hidden', !canDelete);
+      deleteButton.disabled = deleteDisabled;
+      deleteButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
+      deleteButton.setAttribute('aria-label', deleteButton.dataset.tooltip);
     }
   }
 
-  function openObjectActionsMenu() {
+  function positionObjectActionsMenu(trigger) {
     const menu = $('objectActionsMenu');
-    if (!menu || !objectSelection.primary()) return;
-    const open = menu.classList.contains('hidden');
+    if (!menu || !trigger?.isConnected || menu.classList.contains('hidden')) return;
+    const rootStyle = getComputedStyle(document.documentElement);
+    const edge = Number.parseFloat(rootStyle.getPropertyValue('--ui-popover-screen-edge')) || 8;
+    const gap = Number.parseFloat(rootStyle.getPropertyValue('--ui-space-1')) || 4;
+    const viewport = window.visualViewport;
+    const viewportLeft = viewport?.offsetLeft || 0;
+    const viewportTop = viewport?.offsetTop || 0;
+    const viewportRight = viewportLeft + (viewport?.width || window.innerWidth);
+    const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
+    const triggerRect = trigger.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    const minLeft = viewportLeft + edge;
+    const maxLeft = Math.max(minLeft, viewportRight - menuRect.width - edge);
+    const left = clamp(triggerRect.right - menuRect.width, minLeft, maxLeft);
+    const belowTop = triggerRect.bottom + gap;
+    const aboveTop = triggerRect.top - gap - menuRect.height;
+    const preferredTop = belowTop + menuRect.height <= viewportBottom - edge || aboveTop < viewportTop + edge
+      ? belowTop
+      : aboveTop;
+    const minTop = viewportTop + edge;
+    const maxTop = Math.max(minTop, viewportBottom - menuRect.height - edge);
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(clamp(preferredTop, minTop, maxTop))}px`;
+  }
+
+  function openObjectActionsMenu(trigger) {
+    const menu = $('objectActionsMenu');
+    if (!menu || !trigger || !objectSelection.primary()) return;
+    const toggleClosed = objectActionsMenuTrigger === trigger && !menu.classList.contains('hidden');
     closeObjectActionsMenu();
-    if (!open) return;
+    if (toggleClosed) return;
     syncObjectActionsMenu();
+    objectActionsMenuTrigger = trigger;
+    trigger.setAttribute('aria-expanded', 'true');
     menu.classList.remove('hidden');
-    $('objectActionsBtn')?.setAttribute('aria-expanded', 'true');
+    positionObjectActionsMenu(trigger);
     requestAnimationFrame(() => menu.querySelector('[role="menuitem"]:not(.hidden):not(:disabled)')?.focus());
   }
 
@@ -4700,6 +4766,8 @@ const {
     menuButton.dataset.itemId = item.id;
     menuButton.setAttribute('aria-label', `${item.name} 메뉴`);
     menuButton.setAttribute('aria-haspopup', 'menu');
+    menuButton.setAttribute('aria-controls', 'objectActionsMenu');
+    menuButton.setAttribute('aria-expanded', 'false');
     menuButton.dataset.tooltip = `${item.name} 메뉴`;
     menuButton.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-more"/></svg>';
     row.append(visibility, name);
@@ -12911,7 +12979,7 @@ const {
       if (!e.target.closest('.top-actions') && !e.target.closest('#mobileFileBtn')) {
         closeFileMenu();
       }
-      if (!e.target.closest('#objectActionsMenu') && !e.target.closest('#objectActionsBtn')) closeObjectActionsMenu();
+      if (!e.target.closest('#objectActionsMenu') && !e.target.closest('[data-layer-item-menu]')) closeObjectActionsMenu();
       if (!e.target.closest('#objectChooser')) closeObjectChooser();
     });
     $('objectChooserCloseBtn')?.addEventListener('click', () => closeObjectChooser({ restoreFocus: true }));
@@ -13033,10 +13101,9 @@ const {
           markLayerTreeDirty();
           renderLayerTree();
         },
-        openItemMenu: (group, id) => {
+        openItemMenu: (group, id, trigger) => {
           selectLayerTreeItem(group, id, { mode: 'replace' });
-          openSelectionEditor();
-          openObjectActionsMenu();
+          openObjectActionsMenu(trigger);
         },
         toggleRegionFolder: folderKey => {
           if (!folderKey.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) return;
@@ -13067,6 +13134,7 @@ const {
           if (selected && isMobile() && mode === 'replace' && !range) returnToMapAfterMobileAction(true);
         },
         handleScroll: event => {
+          closeObjectActionsMenu();
           if (event.target === $('layerSearchResults')) {
             layerSearchScrollTop = event.target.scrollTop;
             if (event.target.dataset.virtualized === 'true' && layerSearchVirtualMatches.length) renderVirtualizedLayerSearch(event.target, layerSearchVirtualMatches, layerSearchScrollTop);
@@ -13360,7 +13428,8 @@ const {
       $(actions ? 'actionsTabBtn' : 'editorTabBtn')?.focus();
     });
     $('focusSelectedObjectBtn')?.addEventListener('click', () => objectSelection.primary() && focusObjectRef(objectSelection.primary()));
-    $('objectActionsBtn')?.addEventListener('click', event => { event.stopPropagation(); openObjectActionsMenu(); });
+    $('objectLockBtn')?.addEventListener('click', batchToggleLocked);
+    $('objectDeleteBtn')?.addEventListener('click', deleteSelectedFromObjectMenu);
     $('objectLockMenuBtn')?.addEventListener('click', () => { closeObjectActionsMenu(); batchToggleLocked(); });
     $('objectDeleteMenuBtn')?.addEventListener('click', deleteSelectedFromObjectMenu);
     $('objectActionsMenu')?.addEventListener('keydown', event => {
@@ -13604,12 +13673,14 @@ const {
     });
 
     window.addEventListener('resize', () => {
+      closeObjectActionsMenu();
       const layoutChanged = applyLayoutMode();
       if (!layoutChanged) {
         refreshMapSheetMetrics();
         queueMapResize();
       }
     });
+    window.visualViewport?.addEventListener?.('resize', closeObjectActionsMenu);
     const onSystemThemeChange = event => applySystemTheme(!!event.matches);
     if (typeof systemThemeQuery.addEventListener === 'function') systemThemeQuery.addEventListener('change', onSystemThemeChange);
     else if (typeof systemThemeQuery.addListener === 'function') systemThemeQuery.addListener(onSystemThemeChange);
