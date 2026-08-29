@@ -33,7 +33,7 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         self.assertIn("state.selected.type === 'label'", selected_delete)
         self.assertIn("state.drawings = state.drawings.filter", common_delete)
         self.assertIn("state.labels = state.labels.filter", common_delete)
-        self.assertIn("pruneAutoDrawingFolders();", common_delete)
+        self.assertNotIn("pruneAutoDrawingFolders", common_delete)
         self.assertGreaterEqual(common_delete.count("recordHistory();"), 2)
         self.assertGreaterEqual(common_delete.count("queueAutosave();"), 2)
 

@@ -11,7 +11,6 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'distributionEntries', history: true, fallback: () => [] }),
   Object.freeze({ name: 'distributionSettings', history: true, fallback: current => current || { renderMode: 'dominant', selectedLayerId: '' } }),
   Object.freeze({ name: 'layerPresentation', history: true, fallback: () => ({}) }),
-  Object.freeze({ name: 'drawingFolders', history: true, fallback: () => [] }),
   Object.freeze({ name: 'physicalSettings', history: true, fallback: current => current || {} }),
   Object.freeze({ name: 'projection', history: false, fallback: () => 'globe' }),
   Object.freeze({ name: 'layerVisibility', history: false, fallback: current => current || {} }),

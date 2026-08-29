@@ -768,7 +768,7 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
   expect(errors).toEqual([]);
 });
 
-test('GeoJSON imports use file folders, move between drawing folders, and disappear immediately after deletion', async ({ page }) => {
+test('GeoJSON imports custom drawings into one flat list and deletes them immediately', async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
@@ -793,32 +793,26 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
     for (let step = 0; step < 4; step += 1) await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisImportConfirmBtn')).toBeVisible();
     await page.locator('#gisImportConfirmBtn').click();
-    const folder = page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: name });
-    await expect(folder).toHaveCount(1);
-    expect(await folder.evaluate(element => element.parentElement?.id)).toBe('mapElementsLayerItems');
-    await expect(folder.locator('.layer-child-name')).toHaveText(name);
-    return folder;
+    const drawingsFolder = page.locator('.layer-folder[data-layer-group="drawings"]');
+    if (await drawingsFolder.locator('.layer-folder-toggle').getAttribute('aria-expanded') !== 'true') {
+      await drawingsFolder.locator('.layer-folder-toggle').click();
+    }
+    const row = page.locator('#drawingsLayerChildren .layer-child', { hasText: name });
+    await expect(row).toHaveCount(1);
+    return row;
   };
 
   const disposable = await importFile('삭제확인');
   await disposable.locator('.layer-child-menu').click();
   await page.locator('#objectDeleteMenuBtn').click();
   await page.locator('#confirmModalOkBtn').click();
-  await expect(page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: '삭제확인' })).toHaveCount(0);
+  await expect(page.locator('#drawingsLayerChildren .layer-child', { hasText: '삭제확인' })).toHaveCount(0);
 
-  const target = await importFile('이동대상');
-  const source = await importFile('이동원본');
-  const targetId = await target.getAttribute('data-drawing-folder-id');
-  await source.locator('.layer-child-name').click();
-  await page.locator('#drawingProperties details').first().locator('summary').click();
-  await page.locator('#drawingFolderInput').selectOption(targetId);
-  await expect(page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: '이동원본' })).toHaveCount(0);
-  const updatedTarget = page.locator(`.layer-folder[data-drawing-folder-id="${targetId}"]`);
-  if (await updatedTarget.locator('.layer-folder-toggle').getAttribute('aria-expanded') !== 'true') {
-    await updatedTarget.locator('.layer-folder-toggle').click();
-  }
-  await expect(updatedTarget.locator('.layer-child-name')).toHaveCount(2);
-  await expect(page.locator('#drawingFolderInput option')).toHaveText(['지형지물', '이동대상']);
+  await importFile('첫번째 객체');
+  await importFile('두번째 객체');
+  await expect(page.locator('#drawingsLayerChildren .layer-child-name')).toContainText(['두번째 객체', '첫번째 객체']);
+  await expect(page.locator('.layer-folder[data-drawing-folder-id]')).toHaveCount(0);
+  await expect(page.locator('#drawingFolderInput')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

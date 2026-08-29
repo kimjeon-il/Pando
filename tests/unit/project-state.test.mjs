@@ -5,7 +5,6 @@ import { PROJECT_STATE_FIELDS, applyProjectFields, pickProjectFields } from '../
 const state = {
   countryOverrides: { KOR: { name: '대한민국' } }, sourceInfo: null, labels: [{ id: 'label-1' }], drawings: [], hydroEdits: [{ id: 'river-1' }],
   territorialUnits: [{ id: 'territory-1' }], territorialRelations: [{ id: 'relation-1' }],
-  drawingFolders: [{ id: 'folder-1', name: '가져온 경계', origin: 'geojson', autoPrune: true }],
   physicalSettings: { terrainVisible: true }, projection: 'flat',
   layerVisibility: { countries: true }, itemVisibility: { A: false }, layerFolders: { countries: true },
   view: { flatZoom: 2 },
@@ -21,7 +20,6 @@ test('project and autosave share one declared field set', () => {
 test('history snapshots preserve editable object state through the shared schema', () => {
   const history = pickProjectFields(state, { scope: 'history' });
   assert.deepEqual(history.countryOverrides, state.countryOverrides);
-  assert.deepEqual(history.drawingFolders, state.drawingFolders);
   assert.deepEqual(history.hydroEdits, state.hydroEdits);
   assert.deepEqual(history.territorialUnits, state.territorialUnits);
   assert.deepEqual(history.territorialRelations, state.territorialRelations);
@@ -31,7 +29,6 @@ test('history snapshots preserve editable object state through the shared schema
 test('legacy projects receive defaults without sharing mutable values', () => {
   const restored = applyProjectFields({ physicalSettings: { terrainVisible: false }, layerVisibility: { countries: true }, view: {} }, {});
   assert.deepEqual(restored.labels, []);
-  assert.deepEqual(restored.drawingFolders, []);
   assert.deepEqual(restored.hydroEdits, []);
   assert.deepEqual(restored.territorialUnits, []);
   assert.deepEqual(restored.territorialRelations, []);
