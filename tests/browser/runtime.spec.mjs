@@ -866,6 +866,13 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
   await page.locator('#gisImportConfirmBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'territory' })
     .some(feature => feature.properties?.name === '시험 지역')), { timeout: 60_000 }).toBe(true);
+  const importedIdentity = await page.evaluate(() => {
+    const feature = window.PANDOLAB_TERRITORIAL.list({ type: 'territory' })
+      .find(item => item.properties?.name === '시험 지역');
+    return { id: feature?.id, sourceId: feature?.properties?.metadata?.sourceId };
+  });
+  expect(importedIdentity.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  expect(importedIdentity.sourceId).toBe('region-import-smoke');
 
   const regionToggle = page.locator('[data-layer-folder-toggle="regions"]').first();
   if (await regionToggle.getAttribute('aria-expanded') !== 'true') await regionToggle.click();

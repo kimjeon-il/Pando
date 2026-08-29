@@ -66,12 +66,13 @@ test('GIS distribution import keeps stable IDs and reports collisions', () => {
   );
 });
 
-test('legacy and current administrative tables import through the same adapter', () => {
-  for (const table of ['administrative_areas', 'administrative_units']) {
-    const imported = adapters.importTerritorialFeature({
-      type: 'Feature', geometry: polygon(), properties: { id: 'admin-1', name: '아티키', sovereign_id: 'GR', parent_id: 'GR', admin_level: 1 },
-    }, table);
-    assert.equal(imported.properties.unitType, 'admin');
-    assert.equal(imported.properties.sovereignId, 'GR');
-  }
+test('only the current administrative table imports through the adapter', () => {
+  const source = {
+    type: 'Feature', geometry: polygon(), properties: { id: 'admin-1', name: '아티키', sovereign_id: 'GR', parent_id: 'GR', admin_level: 1 },
+  };
+  const imported = adapters.importTerritorialFeature(source, 'administrative_units');
+  assert.equal(imported.properties.schemaVersion, 1);
+  assert.equal(imported.properties.unitType, 'admin');
+  assert.equal(imported.properties.sovereignId, 'GR');
+  assert.equal(adapters.importTerritorialFeature(source, 'administrative_areas'), null);
 });

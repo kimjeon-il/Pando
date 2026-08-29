@@ -41,6 +41,9 @@ test('historical library search previews and instantiates an independent sourced
   await expect(page.locator('#historicalLibraryModal')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
     .filter(unit => unit.properties.sourceLibraryId === 'historical-country:soviet-union').length)).toBe(1);
+  const instanceId = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+    .find(unit => unit.properties.sourceLibraryId === 'historical-country:soviet-union')?.id);
+  expect(instanceId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   const sourceAfterEdit = await page.evaluate(() => JSON.stringify(
     window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union').geometryVersions[0].geometry,
   ));

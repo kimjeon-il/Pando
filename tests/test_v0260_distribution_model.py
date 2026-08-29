@@ -25,7 +25,6 @@ class V0260DistributionModelTests(unittest.TestCase):
             "normalizeDistributionEntry",
             "validateDistributionModel",
             "dominantDistributionEntries",
-            "migrateThematicDrawings",
         ):
             self.assertIn(f"function {symbol}", MODEL)
         self.assertIn("groups:", MODEL)
