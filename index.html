@@ -8,6 +8,7 @@
   <link rel="icon" href="data:," />
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences-v1')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
   <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r11" />
 </head>
 <body class="is-loading">
@@ -705,6 +706,7 @@
         <input id="gisFileInput" type="file" multiple accept=".gpkg,.qgz,.qgs,.shp,.shx,.dbf,.prj,.cpg,.shz,.zip,.geojson,.json,.kml,.kmz,.gml,.xml,.fgb,application/geopackage+sqlite3,application/geo+json,application/json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden />
         <button id="dataExportBtn" class="ui-button btn ghost" type="button" role="menuitem">데이터 내보내기…</button>
         <span class="divider" role="separator"></span>
+        <button id="preferencesBtn" class="ui-button btn ghost" type="button" role="menuitem">환경설정…</button>
         <button id="keyboardHelpBtn" class="ui-button btn ghost file-help-menu-item" type="button" role="menuitem">키보드 도움말</button>
       </nav>
       <div id="objectActionsMenu" class="ui-menu ui-popover object-actions-menu hidden" role="menu" aria-label="레이어 작업">
@@ -714,6 +716,18 @@
       </div>
       <div id="uiTooltip" class="ui-tooltip hidden" role="tooltip" aria-hidden="true"></div>
     </div>
+  </div>
+  <div id="preferencesModal" class="ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="preferencesTitle">
+    <div class="ui-dialog-backdrop"></div>
+    <section class="ui-dialog-card preferences-card">
+      <header class="ui-dialog-header"><div><span class="ui-dialog-kicker">개인 설정</span><h2 id="preferencesTitle">환경설정</h2></div><button id="preferencesCloseBtn" class="ui-button icon-btn" type="button" aria-label="환경설정 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
+      <div class="preferences-fields">
+        <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
+        <label class="ui-field field-group"><span>선택 표시</span><select id="preferencesSelectionModeInput"><option value="outline">외곽선만</option><option value="outline-soft-fill">외곽선 + 옅은 채움</option><option value="strong-fill">강한 채움</option></select></label>
+        <label class="ui-field field-group"><span>선택 색상</span><input id="preferencesSelectionColorInput" type="color" value="#346733" /></label>
+      </div>
+      <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>
+    </section>
   </div>
   <div id="startupProbe" class="ui-callout startup-probe">지도 엔진을 시작하는 중입니다. 이 문구가 계속 남아 있으면 정적 서버가 자바스크립트 또는 Worker 실행을 차단한 것입니다.</div>
   <div id="confirmModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
