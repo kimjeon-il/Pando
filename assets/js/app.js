@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule, historicalLibraryControllerModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule, historicalLibraryControllerModule, mapEditWorkerClientModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -52,6 +52,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/historical-library-service.js')),
   import(versionedModuleUrl('./modules/import-service.js')),
   import(versionedModuleUrl('./modules/historical-library-controller.js')),
+  import(versionedModuleUrl('./modules/map-edit-worker-client.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -92,6 +93,7 @@ const {
   importedCountryOverrides,
 } = importServiceModule;
 const { createHistoricalLibraryController } = historicalLibraryControllerModule;
+const { createMapEditWorkerClient } = mapEditWorkerClientModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -2571,115 +2573,12 @@ const {
 
   let applyingMapEditWorkerResult = false;
 
-  const mapEditClient = (() => {
-    let worker = null;
-    let sequence = 0;
-    let dataRevision = 0;
-    let ready = false;
-    let activeRequestId = 0;
-    const pending = new Map();
-
-    function stopWorker(error = null) {
-      if (error) for (const request of pending.values()) request.reject(error);
-      pending.clear();
-      worker?.terminate();
-      worker = null;
-      ready = false;
-      activeRequestId = 0;
-    }
-
-    function ensureWorker() {
-      if (worker) return worker;
-      worker = new Worker(runtimeAssetUrl('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' });
-      worker.onmessage = event => {
-        const message = event.data || {};
-        if (message.type === 'ready') {
-          ready = true;
-          return;
-        }
-        if (message.type !== 'result') return;
-        const request = pending.get(Number(message.requestId));
-        if (!request) return;
-        pending.delete(Number(message.requestId));
-        if (activeRequestId === Number(message.requestId)) activeRequestId = 0;
-        if (Number(message.dataRevision) !== dataRevision) {
-          request.reject(Object.assign(new Error('지도 상태가 바뀌어 오래된 계산 결과를 폐기했습니다.'), { cancelled: true }));
-          return;
-        }
-        if (message.ok) request.resolve(message.result);
-        else if (message.cancelled) request.reject(Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true }));
-        else request.reject(new Error(message.message || '지도 편집 계산에 실패했습니다.'));
-      };
-      worker.onerror = event => {
-        const error = new Error(event.message || '지도 편집 Worker를 사용할 수 없습니다.');
-        stopWorker(error);
-      };
-      return worker;
-    }
-
-    function rebase(features = state.countriesData?.features || []) {
-      if (activeRequestId || pending.size) {
-        stopWorker(Object.assign(new Error('지도 상태가 바뀌어 이전 계산을 취소했습니다.'), { cancelled: true }));
-      }
-      dataRevision += 1;
-      ready = false;
-      ensureWorker().postMessage({ type: 'rebase', dataRevision, features });
-    }
-
-    function syncPatch(rawIds) {
-      if (!worker || !ready) return;
-      const ids = [...new Set([...rawIds].map(String).filter(Boolean))];
-      const features = ids.map(countryFeatureById).filter(Boolean).map(deepClone);
-      const removedIds = ids.filter(id => !countryFeatureById(id));
-      dataRevision += 1;
-      worker.postMessage({ type: 'sync-patch', dataRevision, features, removedIds });
-    }
-
-    async function execute(operation, payload) {
-      if (!worker || !ready) {
-        rebase();
-        await new Promise(resolve => {
-          const started = performance.now();
-          const poll = () => ready || performance.now() - started > 3000 ? resolve() : setTimeout(poll, 16);
-          poll();
-        });
-      }
-      if (!ready) throw new Error('지도 편집 Worker를 준비하지 못했습니다. 잠시 후 다시 시도하세요.');
-      if (activeRequestId) {
-        stopWorker(Object.assign(new Error('새 작업을 시작해 이전 계산을 취소했습니다.'), { cancelled: true }));
-        rebase();
-        await new Promise(resolve => {
-          const started = performance.now();
-          const poll = () => ready || performance.now() - started > 3000 ? resolve() : setTimeout(poll, 16);
-          poll();
-        });
-        if (!ready) throw new Error('지도 편집 Worker를 다시 준비하지 못했습니다. 잠시 후 다시 시도하세요.');
-      }
-      const requestId = ++sequence;
-      activeRequestId = requestId;
-      const promise = new Promise((resolve, reject) => pending.set(requestId, { resolve, reject }));
-      worker.postMessage({ type: 'execute', operation, requestId, dataRevision, ...payload });
-      const result = await promise;
-      return { requestId, result };
-    }
-
-    function commit(requestId) {
-      worker?.postMessage({ type: 'commit', requestId });
-      dataRevision += 1;
-    }
-
-    function discard(requestId) {
-      worker?.postMessage({ type: 'discard', requestId });
-    }
-
-    function cancel() {
-      if (!activeRequestId && !pending.size) return;
-      stopWorker(Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true }));
-      rebase();
-    }
-
-    return { rebase, syncPatch, execute, commit, discard, cancel };
-  })();
+  const mapEditClient = createMapEditWorkerClient({
+    createWorker: () => new Worker(runtimeAssetUrl('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' }),
+    getFeatures: () => state.countriesData?.features || [],
+    getFeatureById: countryFeatureById,
+    clone: deepClone,
+  });
 
   function assertCurrentProjectReferences() {
     return assertProjectReferenceIntegrity({
