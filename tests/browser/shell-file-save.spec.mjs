@@ -28,11 +28,11 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
 }
 
 async function makeProjectDirty(page) {
-  if (!await page.locator('#layerPresentationBtn').isVisible()) await page.locator('#mobileMapBtn').click();
-  await page.locator('#layerPresentationBtn').click();
+  if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
+  await page.locator('#mapViewTabBtn').click();
   await page.locator('#layerStyleOpacityInput').fill('80');
   await page.locator('#layerStyleOpacityInput').dispatchEvent('change');
-  await page.locator('#layerPresentationCloseBtn').click();
+  await page.locator('#mapLayersTabBtn').click();
 }
 
 const vectorFixture = {

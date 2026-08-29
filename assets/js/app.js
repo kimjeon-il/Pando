@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r9';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r11';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -209,6 +209,37 @@ const {
     '#0ea5e9', '#2563eb', '#4338ca', '#7c3aed', '#a855f7', '#db2777',
     '#f43f5e', '#8b5e3c', '#cda95d', '#63758a', '#cccccc', '#8c68d8',
   ]);
+  const COLOR_PALETTE_TONES = Object.freeze(['아주 밝음', '밝음', '기본', '어두움', '아주 어두움']);
+  const COLOR_PALETTE_NEUTRALS = Object.freeze([
+    Object.freeze({ color: '#ffffff', label: '흰색' }),
+    Object.freeze({ color: '#e5e7eb', label: '연회색' }),
+    Object.freeze({ color: '#9ca3af', label: '회색' }),
+    Object.freeze({ color: '#4b5563', label: '진회색' }),
+    Object.freeze({ color: '#1f2937', label: '먹색' }),
+    Object.freeze({ color: '#000000', label: '검정' }),
+  ]);
+  const COLOR_PALETTE_HUES = Object.freeze([
+    Object.freeze({ name: '빨강', colors: Object.freeze(['#fee2e2', '#fca5a5', '#ef4444', '#b91c1c', '#7f1d1d']) }),
+    Object.freeze({ name: '주황', colors: Object.freeze(['#ffedd5', '#fdba74', '#f97316', '#c2410c', '#7c2d12']) }),
+    Object.freeze({ name: '황금', colors: Object.freeze(['#fef3c7', '#fcd34d', '#f59e0b', '#b45309', '#78350f']) }),
+    Object.freeze({ name: '노랑', colors: Object.freeze(['#fef9c3', '#fde047', '#eab308', '#a16207', '#713f12']) }),
+    Object.freeze({ name: '연두', colors: Object.freeze(['#ecfccb', '#bef264', '#84cc16', '#4d7c0f', '#365314']) }),
+    Object.freeze({ name: '초록', colors: Object.freeze(['#dcfce7', '#86efac', '#22c55e', '#15803d', '#14532d']) }),
+    Object.freeze({ name: '청록', colors: Object.freeze(['#ccfbf1', '#5eead4', '#14b8a6', '#0f766e', '#134e4a']) }),
+    Object.freeze({ name: '시안', colors: Object.freeze(['#cffafe', '#67e8f9', '#06b6d4', '#0e7490', '#164e63']) }),
+    Object.freeze({ name: '파랑', colors: Object.freeze(['#dbeafe', '#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a8a']) }),
+    Object.freeze({ name: '인디고', colors: Object.freeze(['#e0e7ff', '#a5b4fc', '#6366f1', '#4338ca', '#312e81']) }),
+    Object.freeze({ name: '보라', colors: Object.freeze(['#ede9fe', '#c4b5fd', '#8b5cf6', '#6d28d9', '#4c1d95']) }),
+    Object.freeze({ name: '분홍', colors: Object.freeze(['#fce7f3', '#f9a8d4', '#ec4899', '#be185d', '#831843']) }),
+  ]);
+  const COLOR_PALETTE_COLORS = Object.freeze(COLOR_PALETTE_TONES.flatMap((tone, toneIndex) => (
+    COLOR_PALETTE_HUES.map(hue => Object.freeze({
+      color: hue.colors[toneIndex],
+      label: `${hue.name} ${tone}`,
+      family: hue.name,
+      tone,
+    }))
+  )));
   const ZOOM_LIMITS = Object.freeze({
     globe: Object.freeze({ min: 0.72, max: 32 }),
     flat: Object.freeze({ min: 0.75, max: 64 }),
@@ -399,6 +430,7 @@ const {
   }
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection', 'uiTooltip',
+    'mapPanelTabs', 'mapLayersTabBtn', 'mapViewTabBtn', 'layerSection', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
     'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'debugMapPanel', 'countryAreaValue',
@@ -471,6 +503,7 @@ const {
   const uid = (prefix = 'obj') => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
   const detectLayoutMode = () => LAYOUT_QUERIES.mobile.matches ? 'mobile' : LAYOUT_QUERIES.compact.matches ? 'compact' : 'wide';
   let layoutMode = detectLayoutMode();
+  let mapPanelView = 'layers';
   const isMobile = () => layoutMode === 'mobile';
   let lastOverlayTrigger = null;
   let fileMenuTrigger = null;
@@ -485,7 +518,6 @@ const {
   const sheetSnapIndex = new Map(Object.values(MOBILE_SHEET_IDS).map(id => [id, MOBILE_SHEET_DEFAULT_SNAP]));
   const sheetSnapTouched = new Set();
   let activeSheetDrag = null;
-  let activeSheetTouch = null;
   const MOBILE_SHEET_HISTORY_KEY = '__atlaswrightMobileSheet';
   let ignoreNextMobileSheetPopstate = false;
 
@@ -568,13 +600,6 @@ const {
     });
   }
 
-  function placeProjectionControl() {
-    const control = $('projectionControl');
-    const host = isMobile() ? $('mobileProjectionSlot') : $('projectionToolbarSlot');
-    if (control && host && control.parentElement !== host) host.appendChild(control);
-  }
-
-
   function syncEditorPanelControls() {
     const edge = $('togglePanelBtn');
     edge?.classList.toggle('active', surfaceState.editorOpen);
@@ -595,7 +620,6 @@ const {
     const app = $('app');
     if (app) app.dataset.layout = layoutMode;
     document.body.dataset.layout = layoutMode;
-    placeProjectionControl();
     surfaceController.syncLayout(previous);
     if (previous === 'mobile' && layoutMode !== 'mobile') releaseMobileSheetHistory();
     else if (layoutMode === 'mobile' && previous !== 'mobile' && surfaceController.activeMobileSheet) {
@@ -760,25 +784,6 @@ const {
     return drag;
   }
 
-  function sheetScrollableAncestor(target, panel) {
-    let element = target instanceof window.Element ? target : target?.parentElement;
-    while (element && element !== panel) {
-      const style = getComputedStyle(element);
-      if (/(auto|scroll)/.test(style.overflowY) && element.scrollHeight > element.clientHeight + 1) return element;
-      element = element.parentElement;
-    }
-    return panel.querySelector('.map-sheet-body, .editor-scroll-body');
-  }
-
-  function sheetGestureStartsInEditable(target) {
-    return !!target?.closest?.('input, textarea, select, [contenteditable="true"], .ui-select-control, input[type="range"]');
-  }
-
-  function suppressNextSheetClick(panel) {
-    panel.dataset.suppressSheetClick = 'true';
-    window.setTimeout(() => { delete panel.dataset.suppressSheetClick; }, 420);
-  }
-
   function bindSheetDragHandle(handle) {
     const panel = $(handle?.dataset?.sheetHandle);
     if (!handle || !panel) return;
@@ -835,7 +840,6 @@ const {
   function bindMobileSheetSurface(panel) {
     if (!panel) return;
     const header = panel.querySelector('.map-sheet-header');
-    const body = panel.querySelector('.map-sheet-body, .editor-scroll-body');
     const handle = panel.querySelector('[data-sheet-handle]');
     if (handle) bindSheetDragHandle(handle);
 
@@ -857,64 +861,6 @@ const {
       header.addEventListener('pointerup', event => finishHeader(event));
       header.addEventListener('pointercancel', event => finishHeader(event, true));
     }
-
-    if (!body) return;
-    body.addEventListener('touchstart', event => {
-      if (!isMobile() || event.touches.length !== 1 || sheetGestureStartsInEditable(event.target)) return;
-      const touch = event.touches[0];
-      activeSheetTouch = {
-        panel,
-        body,
-        identifier: touch.identifier,
-        startX: touch.clientX,
-        startY: touch.clientY,
-        scrollElement: sheetScrollableAncestor(event.target, panel),
-        dragging: false,
-      };
-    }, { passive: true });
-    body.addEventListener('touchmove', event => {
-      const candidate = activeSheetTouch;
-      if (!candidate || candidate.panel !== panel || candidate.body !== body) return;
-      const touch = [...event.touches].find(item => item.identifier === candidate.identifier);
-      if (!touch) return;
-      const deltaX = touch.clientX - candidate.startX;
-      const deltaY = touch.clientY - candidate.startY;
-      if (!candidate.dragging) {
-        if (Math.abs(deltaY) < 8) return;
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-          activeSheetTouch = null;
-          return;
-        }
-        const scrollTop = Math.max(0, candidate.scrollElement?.scrollTop || 0);
-        const currentIndex = sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP;
-        const canResize = deltaY > 0 ? scrollTop <= 0 : scrollTop <= 0 && currentIndex < SHEET_SNAP_RATIOS.length - 1;
-        if (!canResize) {
-          activeSheetTouch = null;
-          return;
-        }
-        candidate.dragging = beginMobileSheetDrag(panel, body, candidate.identifier, candidate.startY);
-      }
-      if (!candidate.dragging) return;
-      if (event.cancelable) event.preventDefault();
-      moveMobileSheetDrag(panel, body, candidate.identifier, touch.clientY);
-    }, { passive: false });
-    const finishTouch = (event, cancelled = false) => {
-      const candidate = activeSheetTouch;
-      if (!candidate || candidate.panel !== panel || candidate.body !== body) return;
-      const touch = [...event.changedTouches].find(item => item.identifier === candidate.identifier);
-      activeSheetTouch = null;
-      if (!candidate.dragging || !touch) return;
-      const drag = finishMobileSheetDrag(panel, body, candidate.identifier, touch.clientY, { cancelled });
-      if (drag?.moved) suppressNextSheetClick(panel);
-    };
-    body.addEventListener('touchend', event => finishTouch(event));
-    body.addEventListener('touchcancel', event => finishTouch(event, true));
-    panel.addEventListener('click', event => {
-      if (panel.dataset.suppressSheetClick !== 'true') return;
-      delete panel.dataset.suppressSheetClick;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    }, true);
   }
 
   function openSelectionEditor() {
@@ -2125,6 +2071,16 @@ const {
     '.layer-folder input[type="checkbox"]',
   ].join(',');
 
+  function syncLayerVisibilityToggle(input) {
+    if (!input?.classList?.contains('layer-visibility-toggle')) return;
+    const label = input.dataset.visibilityLabel || '레이어';
+    input.dataset.tooltip = input.checked ? `${label} 숨기기` : `${label} 표시`;
+  }
+
+  function syncLayerVisibilityToggles(scope = document) {
+    scope?.querySelectorAll?.('input.layer-visibility-toggle').forEach(syncLayerVisibilityToggle);
+  }
+
   function syncCanonicalControls() {
     const unavailable = !canMutateProject(state.dataReadiness);
     $('app')?.setAttribute('data-readiness', state.dataReadiness);
@@ -2150,6 +2106,7 @@ const {
         delete element.dataset.readinessAriaDisabled;
       }
     }
+    syncLayerVisibilityToggles($('layerSection'));
   }
 
   function setDataReadiness(value) {
@@ -4210,6 +4167,7 @@ const {
   const DEFAULT_DRAWING_FOLDER_ID = 'drawings-default';
   const DRAWING_FOLDER_STATE_PREFIX = 'drawing-folder:';
   const COUNTRY_REGION_FOLDER_STATE_PREFIX = 'country-region-folder:';
+  const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:';
   const DISTRIBUTION_GROUP_TYPES = Object.freeze({
     languages: DISTRIBUTION_TYPES.LANGUAGE,
     ethnicities: DISTRIBUTION_TYPES.ETHNICITY,
@@ -4218,6 +4176,7 @@ const {
   const DISTRIBUTION_TYPE_GROUPS = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_GROUP_TYPES).map(([group, type]) => [type, group])));
   const DISTRIBUTION_TYPE_LABELS = Object.freeze({ language: '언어', ethnicity: '민족', religion: '종교' });
   const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'languages', 'ethnicities', 'religions', 'drawings', 'labels', 'countryLabels'];
+  const LAYER_TREE_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['labels', 'countryLabels'].includes(group));
   const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', languages: '언어', ethnicities: '민족', religions: '종교', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
@@ -4228,8 +4187,6 @@ const {
     ethnicities: 'ethnicitiesLayerChildren',
     religions: 'religionsLayerChildren',
     drawings: 'drawingsLayerChildren',
-    labels: 'labelsLayerChildren',
-    countryLabels: 'countryLabelsLayerChildren',
   };
   const layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
   let renderedLayerTreeRevision = -1;
@@ -4243,6 +4200,10 @@ const {
 
   function countryRegionFolderStateKey(group, countryId) {
     return `${COUNTRY_REGION_FOLDER_STATE_PREFIX}${group}:${String(countryId || 'unassigned')}`;
+  }
+
+  function hydroFolderStateKey(layerId) {
+    return `${HYDRO_FOLDER_STATE_PREFIX}${String(layerId)}`;
   }
 
   function normalizeDrawingFolders(value) {
@@ -4294,6 +4255,7 @@ const {
       'religions',
       ...countryRegionKeys,
       'drawings',
+      ...Object.keys(HYDRO_LAYER_META).map(hydroFolderStateKey),
       ...state.drawingFolders.map(folder => drawingFolderStateKey(folder.id)),
     ];
   }
@@ -4356,13 +4318,28 @@ const {
     };
   }
 
+  function syncRangeProgress(input) {
+    if (!input) return;
+    const min = Number(input.min || 0);
+    const max = Number(input.max || 100);
+    const value = Number(input.value || min);
+    const progress = max > min ? clamp(((value - min) / (max - min)) * 100, 0, 100) : 0;
+    input.style.setProperty('--ui-range-progress', `${progress}%`);
+  }
+
   function syncPhysicalControls() {
-    if ($('terrainVisible')) $('terrainVisible').checked = state.physicalSettings.terrainVisible;
+    const terrainVisible = state.physicalSettings.terrainVisible !== false;
+    if ($('terrainVisible')) {
+      $('terrainVisible').checked = terrainVisible;
+      $('terrainVisible').setAttribute('aria-expanded', String(terrainVisible));
+    }
+    if ($('terrainDisplayOptions')) $('terrainDisplayOptions').hidden = !terrainVisible;
     if ($('terrainPoliticalRadio')) $('terrainPoliticalRadio').checked = state.physicalSettings.terrainStyle === 'political';
     if ($('terrainPhysicalRadio')) $('terrainPhysicalRadio').checked = state.physicalSettings.terrainStyle === 'physical';
     if ($('terrainStrengthInput')) $('terrainStrengthInput').value = String(Math.round(state.physicalSettings.terrainStrength * 100));
     if ($('terrainStrengthValue')) $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
-    if ($('terrainStrengthControl')) $('terrainStrengthControl').hidden = state.physicalSettings.terrainStyle !== 'political';
+    if ($('terrainStrengthControl')) $('terrainStrengthControl').hidden = !terrainVisible || state.physicalSettings.terrainStyle !== 'political';
+    syncRangeProgress($('terrainStrengthInput'));
   }
 
   function parseHexRgb(value, fallback = TERRAIN_OCEAN_REPRESENTATIVE) {
@@ -4440,6 +4417,7 @@ const {
     let expandedFound = false;
     return Object.fromEntries(activeLayerFolderKeys().map(key => {
       if (key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) return [key, value?.[key] !== false];
+      if (key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) return [key, value?.[key] === true];
       const expanded = !expandedFound && !!value?.[key];
       if (expanded) expandedFound = true;
       return [key, expanded];
@@ -4554,13 +4532,15 @@ const {
     if (group === 'drawings') {
       const builtIns = Object.entries(HYDRO_LAYER_META).map(([id, meta]) => ({
           id: `hydro-layer:${id}`,
-          name: meta.shortLabel,
-          searchText: meta.label,
-          title: `${meta.label} 상태 보기`,
+          name: meta.sourceLabel,
+          searchText: `${meta.label} ${meta.sourceLabel}`,
+          title: `${meta.sourceLabel} 상태 보기`,
           color: hydroDisplayColor(meta.category),
           count: state.hydroManifest?.stats?.layerCounts?.[id] ?? null,
           folderId: DEFAULT_DRAWING_FOLDER_ID,
-          folderName: drawingFolderName(DEFAULT_DRAWING_FOLDER_ID),
+          folderName: `${drawingFolderName(DEFAULT_DRAWING_FOLDER_ID)} · ${meta.label}`,
+          hydroFolderKey: hydroFolderStateKey(id),
+          hydroFolderName: meta.label,
           selected: false,
         })).filter(item => !isLayerItemRemoved(group, item.id));
       const userItems = state.drawings.map(feature => {
@@ -4607,7 +4587,9 @@ const {
     }
     const activeFolderKeys = new Set(activeLayerFolderKeys());
     for (const key of Object.keys(state.layerFolders || {})) {
-      if (key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX) && !activeFolderKeys.has(key)) delete state.layerFolders[key];
+      if ((key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX) || key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) && !activeFolderKeys.has(key)) {
+        delete state.layerFolders[key];
+      }
     }
     objectSelection?.prune?.(objectRefExists);
   }
@@ -4641,6 +4623,35 @@ const {
 
   function createLayerItemRow(group, item, { searchResult = false } = {}) {
     if (item.groupHeader && !searchResult) {
+      if (item.hydroHeader) {
+        const header = document.createElement('div');
+        header.className = 'ui-row ui-selectable-row layer-subfolder-row layer-hydro-folder-row';
+        header.dataset.hydroFolderKey = item.folderKey;
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'ui-button layer-hydro-folder-toggle';
+        toggle.dataset.hydroFolderToggle = item.folderKey;
+        toggle.setAttribute('aria-expanded', String(item.expanded));
+        toggle.setAttribute('aria-label', `${item.name} 폴더 ${item.expanded ? '접기' : '펼치기'}`);
+        toggle.dataset.tooltip = `${item.name} 폴더 ${item.expanded ? '접기' : '펼치기'}`;
+        toggle.innerHTML = '<svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg>';
+        const visibility = document.createElement('input');
+        visibility.type = 'checkbox';
+        visibility.className = 'layer-visibility-toggle';
+        visibility.checked = isLayerItemVisible(group, item.layerItemId);
+        visibility.dataset.layerItemVisibility = group;
+        visibility.dataset.itemId = item.layerItemId;
+        visibility.dataset.visibilityLabel = item.name;
+        visibility.setAttribute('aria-label', `${item.name} 레이어 표시`);
+        const name = document.createElement('button');
+        name.type = 'button';
+        name.className = 'ui-button layer-hydro-folder-name';
+        name.dataset.hydroFolderToggle = item.folderKey;
+        name.setAttribute('aria-expanded', String(item.expanded));
+        name.textContent = item.name;
+        header.append(toggle, visibility, name);
+        return header;
+      }
       if (!item.levelHeader) {
         const header = document.createElement('button');
         header.type = 'button';
@@ -4664,7 +4675,8 @@ const {
     const selected = isLayerTreeItemSelected(group, item.id);
     const ref = layerItemObjectRef(group, item.id);
     const primary = !!ref && objectSelection.snapshot().primaryKey === ref.key;
-    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${selected ? ' is-selected' : ''}${selected && objectSelection.size() > 1 ? ' is-multi-selected' : ''}${primary && objectSelection.size() > 1 ? ' is-primary-selected' : ''}`;
+    const hasMenu = group !== 'countryLabels' && !!ref;
+    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${item.hydroSource ? ' is-hydro-source' : ''}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${selected ? ' is-selected' : ''}${selected && objectSelection.size() > 1 ? ' is-multi-selected' : ''}${primary && objectSelection.size() > 1 ? ' is-primary-selected' : ''}`;
     row.dataset.layerGroup = group;
     row.dataset.itemId = item.id;
     if (searchResult) {
@@ -4679,9 +4691,11 @@ const {
     }
     const visibility = document.createElement('input');
     visibility.type = 'checkbox';
+    visibility.className = 'layer-visibility-toggle';
     visibility.checked = isLayerItemVisible(group, item.id);
     visibility.dataset.layerItemVisibility = group;
     visibility.dataset.itemId = item.id;
+    visibility.dataset.visibilityLabel = item.name;
     visibility.setAttribute('aria-label', `${item.name} 표시`);
     const name = document.createElement('button');
     name.type = 'button';
@@ -4706,7 +4720,7 @@ const {
       detail.textContent = item.meta;
       row.append(detail);
     }
-    if (group !== 'countryLabels' && layerItemObjectRef(group, item.id)) row.append(menuButton);
+    if (hasMenu) row.append(menuButton);
     return row;
   }
 
@@ -4760,22 +4774,6 @@ const {
     container.scrollTop = Math.min(desiredScrollTop, Math.max(0, container.scrollHeight - container.clientHeight));
   }
 
-  function renderTerrainLayerFolder(search = '') {
-    const folder = document.querySelector('.layer-folder[data-layer-group="terrain"]');
-    const container = $('terrainLayerChildren');
-    if (!folder || !container) return;
-    const matchesSearch = !search || '지형 음영 국가색 지형색 강조'.includes(search);
-    folder.hidden = !matchesSearch;
-    const expanded = matchesSearch && !search && !!state.layerFolders.terrain;
-    folder.classList.toggle('is-expanded', expanded);
-    folder.querySelectorAll('[data-layer-folder-toggle="terrain"]').forEach(button => {
-      button.setAttribute('aria-expanded', String(expanded));
-      button.setAttribute('aria-label', `지형 음영 폴더 ${expanded ? '접기' : '펼치기'}`);
-    });
-    container.hidden = !expanded;
-    syncPhysicalControls();
-  }
-
   function createDynamicDrawingFolderElement(folder) {
     const folderKey = drawingFolderStateKey(folder.id);
     const element = document.createElement('div');
@@ -4793,7 +4791,9 @@ const {
     toggle.innerHTML = '<svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg>';
     const visibility = document.createElement('input');
     visibility.type = 'checkbox';
+    visibility.className = 'layer-visibility-toggle';
     visibility.dataset.drawingFolderVisibility = folder.id;
+    visibility.dataset.visibilityLabel = folder.name;
     visibility.setAttribute('aria-label', `${folder.name} 폴더 표시`);
     const name = document.createElement('button');
     name.className = 'ui-button layer-folder-name';
@@ -4846,6 +4846,25 @@ const {
       return;
     }
     let displayItems = items;
+    if (group === 'drawings') {
+      const builtIns = items.filter(item => item.hydroFolderKey);
+      const userItems = items.filter(item => !item.hydroFolderKey);
+      displayItems = [];
+      for (const item of builtIns) {
+        const expanded = state.layerFolders[item.hydroFolderKey] === true;
+        displayItems.push({
+          groupHeader: true,
+          hydroHeader: true,
+          id: `header:${item.id}`,
+          name: item.hydroFolderName,
+          folderKey: item.hydroFolderKey,
+          layerItemId: item.id,
+          expanded,
+        });
+        if (expanded) displayItems.push({ ...item, hydroSource: true });
+      }
+      displayItems.push(...userItems);
+    }
     if (group === 'regions' || group === 'administrative') {
       displayItems = [];
       let previousCountry = null;
@@ -4902,7 +4921,7 @@ const {
     if (search) {
       if (!searchChanged && searchResults) layerSearchScrollTop = searchResults.scrollTop;
       const matches = [];
-      for (const group of LAYER_GROUP_KEYS) {
+      for (const group of LAYER_TREE_GROUP_KEYS) {
         for (const item of layerTreeItems(group)) {
           const haystack = `${item.name} ${item.searchText || ''} ${item.id} ${item.meta || ''}`.toLocaleLowerCase('ko');
           if (haystack.includes(search)) matches.push({ group, item });
@@ -4933,9 +4952,8 @@ const {
       layerSearchVirtualMatches = [];
       layerSearchScrollTop = 0;
     }
-    renderTerrainLayerFolder(search);
     const dynamicDrawingFolders = renderDynamicDrawingFolderElements();
-    for (const group of LAYER_GROUP_KEYS) {
+    for (const group of LAYER_TREE_GROUP_KEYS) {
       const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]:not([data-drawing-folder-id])`);
       const container = $(layerGroupTargetIds[group]);
       if (!folder || !container) continue;
@@ -4972,9 +4990,8 @@ const {
 
   function shouldShowCountryLabel(feature) {
     if (!state.layerVisibility.basemapLabels) return false;
-    if (!layerStyle(state.layerPresentation, 'countryLabels').labelsVisible) return false;
     const id = String(feature.properties?.editor_id || '');
-    if (!isLayerItemVisible('countryLabels', id) || pendingCountryLabelAnchors.has(id)) return false;
+    if (pendingCountryLabelAnchors.has(id)) return false;
     const pop = Number(feature.properties?.pop_est || 0);
     const z = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
     let threshold = isMobile() ? 120_000_000 : 30_000_000;
@@ -5078,7 +5095,6 @@ const {
       });
     }
     if (state.layerVisibility.labels) for (const label of state.labels) {
-      if (!isLayerItemVisible('labels', label.id)) continue;
       const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
       if (!isCoordVisible(coordinate)) continue;
@@ -5324,13 +5340,13 @@ const {
       const lakes = hydroRenderGroups('lake');
       const lakeSelection = hydroLakeLayer.selectAll('path.hydro-lake-group').data(lakes, item => item.key);
       lakeSelection.enter().append('path').attr('class', 'hydro-lake-group');
-      lakeSelection.attr('d', item => path(item.collection)).style('fill', hydroDisplayColor('lake')).style('stroke', hydroDisplayColor('lake')).style('opacity', hydroStyle.opacity).style('stroke-opacity', hydroStyle.boundaryVisible ? hydroStyle.opacity : 0).style('stroke-width', hydroStyle.boundaryWidth);
+      lakeSelection.attr('d', item => path(item.collection)).style('fill', hydroDisplayColor('lake')).style('stroke', hydroDisplayColor('lake')).style('opacity', null).style('fill-opacity', hydroStyle.opacity).style('stroke-opacity', hydroStyle.boundaryVisible ? hydroStyle.opacity : 0).style('stroke-width', hydroStyle.boundaryWidth);
       lakeSelection.exit().remove();
 
       const rivers = hydroRenderGroups('river');
       const riverSelection = hydroRiverLayer.selectAll('path.hydro-river-group').data(rivers, item => item.key);
       riverSelection.enter().append('path').attr('class', 'hydro-river-group');
-      riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width * hydroStyle.boundaryWidth}px`).style('stroke', hydroDisplayColor('river')).style('opacity', hydroStyle.boundaryVisible ? hydroStyle.opacity : 0);
+      riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width * hydroStyle.boundaryWidth}px`).style('stroke', hydroDisplayColor('river')).style('opacity', null).style('stroke-opacity', hydroStyle.boundaryVisible ? hydroStyle.opacity : 0);
       riverSelection.exit().remove();
     }
 
@@ -5521,7 +5537,7 @@ const {
 
   function renderUserLabels() {
     const labelStyle = layerStyle(state.layerPresentation, 'labels');
-    const data = state.layerVisibility.labels && labelStyle.labelsVisible
+    const data = state.layerVisibility.labels
       ? visibleLabelLayout().filter(item => item.sourceType === 'label').map(item => item.source)
       : [];
 
@@ -7903,7 +7919,6 @@ const {
       if (normalized && !candidates.some(candidate => candidate.key === normalized.key)) candidates.push(normalized);
     };
     if (state.layerVisibility.labels) for (const label of state.labels) {
-      if (!isLayerItemVisible('labels', label.id)) continue;
       const projected = activeProjection()(label.coordinates);
       if (projected && projectedPointDistance(projected, screenPoint) <= (isMobile() ? 18 : 11)) add({ domain: 'label', type: label.kind || 'label', id: label.id });
     }
@@ -10023,6 +10038,29 @@ const {
     });
   }
 
+  function alignColorPopoverToViewport(popover) {
+    if (!popover || popover.classList.contains('hidden')) return;
+    popover.style.removeProperty('--ui-color-popover-shift-x');
+    popover.style.removeProperty('--ui-color-popover-shift-y');
+    delete popover.dataset.placement;
+    const rootStyle = getComputedStyle(document.documentElement);
+    const screenEdge = Number.parseFloat(rootStyle.getPropertyValue('--ui-popover-screen-edge')) || 8;
+    const pickerBounds = popover.closest('.ui-color-picker')?.getBoundingClientRect();
+    let bounds = popover.getBoundingClientRect();
+    if (pickerBounds && bounds.bottom > window.innerHeight - screenEdge && pickerBounds.top - screenEdge >= bounds.height) {
+      popover.dataset.placement = 'top';
+      bounds = popover.getBoundingClientRect();
+    }
+    let shiftX = 0;
+    let shiftY = 0;
+    if (bounds.left < screenEdge) shiftX = screenEdge - bounds.left;
+    if (bounds.right + shiftX > window.innerWidth - screenEdge) shiftX += (window.innerWidth - screenEdge) - (bounds.right + shiftX);
+    if (bounds.top < screenEdge) shiftY = screenEdge - bounds.top;
+    if (bounds.bottom + shiftY > window.innerHeight - screenEdge) shiftY += (window.innerHeight - screenEdge) - (bounds.bottom + shiftY);
+    if (shiftX) popover.style.setProperty('--ui-color-popover-shift-x', `${shiftX}px`);
+    if (shiftY) popover.style.setProperty('--ui-color-popover-shift-y', `${shiftY}px`);
+  }
+
   function openColorPicker(picker) {
     if (!picker) return;
     const popover = picker.querySelector('.ui-color-popover');
@@ -10033,7 +10071,10 @@ const {
     popover.classList.toggle('hidden', !opening);
     picker.classList.toggle('is-open', opening);
     trigger.setAttribute('aria-expanded', String(opening));
-    if (opening) requestAnimationFrame(() => popover.querySelector('button:not(:disabled)')?.focus({ preventScroll: true }));
+    if (opening) requestAnimationFrame(() => {
+      alignColorPopoverToViewport(popover);
+      popover.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
+    });
   }
 
   function resetCountryColor() {
@@ -10120,6 +10161,50 @@ const {
     return true;
   }
 
+  function colorSwatchCheckTone(color) {
+    const normalized = normalizeEditorColor(color, '#000000').slice(1);
+    const red = Number.parseInt(normalized.slice(0, 2), 16) / 255;
+    const green = Number.parseInt(normalized.slice(2, 4), 16) / 255;
+    const blue = Number.parseInt(normalized.slice(4, 6), 16) / 255;
+    const luminance = (red * 0.2126) + (green * 0.7152) + (blue * 0.0722);
+    return luminance >= 0.62 ? 'dark' : 'light';
+  }
+
+  function createColorSwatch({ color, label, family = '', tone = '' }) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'ui-button ui-color-swatch';
+    button.dataset.colorValue = color;
+    button.dataset.checkTone = colorSwatchCheckTone(color);
+    if (family) button.dataset.colorFamily = family;
+    if (tone) button.dataset.colorTone = tone;
+    button.setAttribute('aria-label', `${label} (${color.toUpperCase()}) 색상`);
+    button.setAttribute('aria-pressed', 'false');
+    button.style.setProperty('--swatch-color', color);
+    return button;
+  }
+
+  function appendColorPaletteSection(container, label, colors, modifier) {
+    const section = document.createElement('section');
+    section.className = 'ui-color-palette-section';
+    const heading = document.createElement('span');
+    heading.className = 'ui-color-palette-label';
+    heading.textContent = label;
+    const grid = document.createElement('div');
+    grid.className = `ui-color-swatch-grid ui-color-swatch-grid--${modifier}`;
+    grid.setAttribute('role', 'group');
+    grid.setAttribute('aria-label', `${label} 색상`);
+    colors.forEach(color => grid.appendChild(createColorSwatch(color)));
+    section.append(heading, grid);
+    container.appendChild(section);
+  }
+
+  function populateColorPalette(container) {
+    if (!container || container.children.length) return;
+    appendColorPaletteSection(container, '무채색', COLOR_PALETTE_NEUTRALS, 'neutral');
+    appendColorPaletteSection(container, '색상', COLOR_PALETTE_COLORS, 'chromatic');
+  }
+
   function bindColorPickers() {
     document.querySelectorAll('[data-color-picker]').forEach(picker => {
       const kind = picker.dataset.colorPicker;
@@ -10128,18 +10213,7 @@ const {
       const swatches = picker.querySelector('.ui-color-swatches');
       const defaultButton = picker.querySelector('[data-color-default]');
       const customButton = picker.querySelector('[data-color-custom]');
-      if (swatches && !swatches.children.length) {
-        for (const color of COLOR_PRESETS) {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'ui-button ui-color-swatch';
-          button.dataset.colorValue = color;
-          button.setAttribute('aria-label', `${color.toUpperCase()} 색상`);
-          button.setAttribute('aria-pressed', 'false');
-          button.style.setProperty('--swatch-color', color);
-          swatches.appendChild(button);
-        }
-      }
+      populateColorPalette(swatches);
       trigger?.addEventListener('click', () => openColorPicker(picker));
       defaultButton?.addEventListener('click', () => {
         if (applyColorPickerSelection(kind, '', true)) closeColorPicker(picker, { restoreFocus: true });
@@ -10167,6 +10241,9 @@ const {
       if (!openPicker) return;
       closeColorPicker(openPicker, { restoreFocus: true });
       event.preventDefault();
+    });
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('[data-color-picker].is-open .ui-color-popover').forEach(alignColorPopoverToViewport);
     });
   }
 
@@ -11152,7 +11229,7 @@ const {
     administrative: '행정구역', regions: '지역', historicalRegions: '역사·지리 지역',
     labels: '도시·지명', countryLabels: '국가명 라벨', hydro: '수계', countries: '국가', terrain: '지형 음영',
   });
-  const STYLE_PRESENTATION_GROUPS = Object.freeze(['countries', 'hydro', ...OVERLAY_GROUPS, 'countryLabels', 'labels']);
+  const STYLE_PRESENTATION_GROUPS = Object.freeze(['countries', 'hydro', ...OVERLAY_GROUPS]);
 
   function renderLayerPresentationList() {
     state.layerPresentation = normalizeLayerPresentation(state.layerPresentation);
@@ -11161,6 +11238,7 @@ const {
     if ($('distributionLayerModeInput')) $('distributionLayerModeInput').value = state.distributionSettings.renderMode;
     syncDistributionLayerModeHint();
     syncLayerStyleFields();
+    syncPhysicalControls();
   }
 
   function syncDistributionLayerModeHint() {
@@ -11178,13 +11256,11 @@ const {
     $('layerStyleOpacityInput').value = String(Math.round(style.opacity * 100));
     $('layerStyleOpacityValue').textContent = `${Math.round(style.opacity * 100)}%`;
     $('layerStyleBoundaryVisibleInput').checked = style.boundaryVisible;
-    $('layerStyleLabelsVisibleInput').checked = style.labelsVisible;
-    $('layerStyleLabelsVisibleInput').closest('.ui-choice-row').classList.toggle('hidden', !['labels', 'countryLabels'].includes(group));
-    $('layerStyleBoundaryVisibleInput').closest('.ui-choice-row').classList.toggle('hidden', ['labels', 'countryLabels'].includes(group));
   }
 
   function updateLayerStyleFromFields() {
     const group = $('layerStyleGroupInput').value;
+    const currentStyle = layerStyle(state.layerPresentation, group);
     recordHistory({ type: 'layer-style', description: `${LAYER_PRESENTATION_LABELS[group] || group} 표시 스타일 변경`, affectedIds: [group] });
     state.layerPresentation = normalizeLayerPresentation({
       ...state.layerPresentation,
@@ -11194,7 +11270,7 @@ const {
           opacity: Number($('layerStyleOpacityInput').value) / 100,
           boundaryVisible: $('layerStyleBoundaryVisibleInput').checked,
           boundaryWidth: 1,
-          labelsVisible: $('layerStyleLabelsVisibleInput').checked,
+          labelsVisible: currentStyle.labelsVisible,
         },
       },
     });
@@ -11203,25 +11279,19 @@ const {
     queueAutosave();
   }
 
-  function openLayerPresentation() {
-    renderLayerPresentationList();
-    $('layerPresentationModal').classList.remove('hidden');
-    $('layerPresentationBtn')?.setAttribute('aria-expanded', 'true');
-    $('layerPresentationBtn')?.classList.add('hidden');
-    $('layerPresentationCloseBtn')?.classList.remove('hidden');
-    $('mapSheetTitle').textContent = '레이어 표시 설정';
-    $('layerSection')?.classList.add('is-settings-open');
-    requestAnimationFrame(() => $('layerPresentationCloseBtn').focus());
-  }
-
-  function closeLayerPresentation() {
-    $('layerPresentationModal').classList.add('hidden');
-    $('layerPresentationBtn')?.setAttribute('aria-expanded', 'false');
-    $('layerPresentationCloseBtn')?.classList.add('hidden');
-    $('layerPresentationBtn')?.classList.remove('hidden');
-    $('mapSheetTitle').textContent = '레이어';
-    $('layerSection')?.classList.remove('is-settings-open');
-    requestAnimationFrame(() => $('layerPresentationBtn')?.focus());
+  function setMapPanelView(view, { focus = false } = {}) {
+    mapPanelView = view === 'view' ? 'view' : 'layers';
+    const showingView = mapPanelView === 'view';
+    $('layerSection')?.classList.toggle('hidden', showingView);
+    $('mapViewSection')?.classList.toggle('hidden', !showingView);
+    $('mapLayersTabBtn')?.classList.toggle('active', !showingView);
+    $('mapViewTabBtn')?.classList.toggle('active', showingView);
+    $('mapLayersTabBtn')?.setAttribute('aria-selected', String(!showingView));
+    $('mapViewTabBtn')?.setAttribute('aria-selected', String(showingView));
+    if ($('mapLayersTabBtn')) $('mapLayersTabBtn').tabIndex = showingView ? -1 : 0;
+    if ($('mapViewTabBtn')) $('mapViewTabBtn').tabIndex = showingView ? 0 : -1;
+    if (showingView) renderLayerPresentationList();
+    if (focus) requestAnimationFrame(() => $(showingView ? 'mapViewTabBtn' : 'mapLayersTabBtn')?.focus());
   }
 
   function buildAtlasState() {
@@ -13411,6 +13481,13 @@ const {
   }
 
   function bindLayerUI() {
+    $('mapLayersTabBtn')?.addEventListener('click', () => setMapPanelView('layers'));
+    $('mapViewTabBtn')?.addEventListener('click', () => setMapPanelView('view'));
+    $('mapPanelTabs')?.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      setMapPanelView(event.key === 'ArrowRight' || event.key === 'End' ? 'view' : 'layers', { focus: true });
+    });
     $('countriesVisible').addEventListener('change', e => setLayerVisibility('countries', e.target.checked));
     $('regionsVisible').addEventListener('change', e => setLayerVisibility('regions', e.target.checked));
     $('administrativeVisible').addEventListener('change', e => setLayerVisibility('administrative', e.target.checked));
@@ -13423,16 +13500,14 @@ const {
     $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
     $('terrainVisible').addEventListener('change', event => {
       state.physicalSettings.terrainVisible = !!event.target.checked;
-      markLayerTreeDirty();
-      renderLayerTree();
+      syncPhysicalControls();
       renderAll();
       queueAutosave();
     });
     for (const id of ['terrainPoliticalRadio', 'terrainPhysicalRadio']) $(id).addEventListener('change', event => {
       if (!event.target.checked) return;
       state.physicalSettings.terrainStyle = event.target.value === 'physical' ? 'physical' : 'political';
-      markLayerTreeDirty();
-      renderLayerTree();
+      syncPhysicalControls();
       renderAll();
       queueAutosave();
       setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
@@ -13440,6 +13515,7 @@ const {
     $('terrainStrengthInput').addEventListener('input', event => {
       state.physicalSettings.terrainStrength = clamp(Number(event.target.value) / 100, 0, 1);
       $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
+      syncRangeProgress(event.target);
       scheduleRender();
     });
     $('terrainStrengthInput').addEventListener('change', () => queueAutosave());
@@ -13505,6 +13581,16 @@ const {
         queueAutosave();
         return;
       }
+      const hydroFolderButton = event.target.closest('[data-hydro-folder-toggle]');
+      if (hydroFolderButton) {
+        const folderKey = hydroFolderButton.dataset.hydroFolderToggle;
+        if (!folderKey.startsWith(HYDRO_FOLDER_STATE_PREFIX)) return;
+        state.layerFolders[folderKey] = state.layerFolders[folderKey] !== true;
+        markLayerTreeDirty();
+        renderLayerTree();
+        queueAutosave();
+        return;
+      }
       const folderButton = event.target.closest('[data-layer-folder-toggle]');
       if (folderButton) {
         const group = folderButton.dataset.layerFolderToggle;
@@ -13512,7 +13598,7 @@ const {
         if (!folderKeys.includes(group)) return;
         const willExpand = !state.layerFolders[group];
         for (const key of folderKeys) {
-          if (!key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
+          if (!key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX) && !key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
         }
         state.layerFolders[group] = willExpand;
         markLayerTreeDirty();
@@ -13557,6 +13643,7 @@ const {
       }
     }, true);
     $('layerSection')?.addEventListener('change', event => {
+      syncLayerVisibilityToggle(event.target);
       const folderVisibility = event.target.closest('[data-drawing-folder-visibility]');
       if (folderVisibility) {
         setDrawingFolderVisibility(folderVisibility.dataset.drawingFolderVisibility, folderVisibility.checked);
@@ -13727,11 +13814,9 @@ const {
       renderDistributions();
       queueAutosave();
     });
-    $('layerPresentationBtn')?.addEventListener('click', openLayerPresentation);
-    $('layerPresentationCloseBtn')?.addEventListener('click', closeLayerPresentation);
     $('layerStyleGroupInput')?.addEventListener('change', syncLayerStyleFields);
     $('layerStyleOpacityInput')?.addEventListener('input', event => { $('layerStyleOpacityValue').textContent = `${event.target.value}%`; });
-    for (const id of ['layerStyleOpacityInput', 'layerStyleBoundaryVisibleInput', 'layerStyleLabelsVisibleInput']) $(id)?.addEventListener('change', updateLayerStyleFromFields);
+    for (const id of ['layerStyleOpacityInput', 'layerStyleBoundaryVisibleInput']) $(id)?.addEventListener('change', updateLayerStyleFromFields);
     $('distributionLayerModeInput')?.addEventListener('change', event => {
       recordHistory({ type: 'distribution-style', description: '분포 표시 방식 변경', affectedIds: [] });
       state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT;
@@ -14021,7 +14106,6 @@ const {
       if (e.key === 'Escape') {
         if (state.modeProcessing) { e.preventDefault(); return; }
         if (!$('shortcutHelpModal')?.classList.contains('hidden')) { $('shortcutHelpCloseBtn')?.click(); return; }
-        if (!$('layerPresentationModal')?.classList.contains('hidden')) { closeLayerPresentation(); return; }
         if (!$('objectChooser')?.classList.contains('hidden')) { closeObjectChooser({ restoreFocus: true }); return; }
         if (!$('objectActionsMenu')?.classList.contains('hidden')) { closeObjectActionsMenu({ restoreFocus: true }); return; }
         if (!$('historicalLibraryModal')?.classList.contains('hidden')) { closeHistoricalLibrary(); return; }

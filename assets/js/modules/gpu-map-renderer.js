@@ -1725,13 +1725,16 @@ export function createGpuMapRenderer(deps) {
     function drawHydro(category, picking = false) {
       if (!hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return;
       const theme = mapTheme();
-      if (Number(theme.hydroOpacity) <= 0 || (category !== 'lake' && theme.hydroBoundaryVisible === false)) return;
+      const hydroOpacity = Number.isFinite(Number(theme.hydroOpacity))
+        ? Math.max(0, Math.min(1, Number(theme.hydroOpacity)))
+        : 1;
+      if (hydroOpacity <= 0 || (category !== 'lake' && theme.hydroBoundaryVisible === false)) return;
       updateHydroVisibility();
       const program = category === 'river' || category === 'border-river'
         ? (picking ? hydroLinePickProgram : hydroLineProgram)
         : (picking ? hydroPickProgram : hydroFillProgram);
       const rgb = hydroDisplayColor(category === 'lake' ? 'lake' : 'river', true);
-      const color = [...rgb, (category === 'lake' ? 0.92 : 0.96) * Math.max(0, Math.min(1, Number(theme.hydroOpacity) || 0))];
+      const color = [...rgb, hydroOpacity];
       for (const packId of hydroActivePackIds) {
         const entry = hydroPacks.get(packId);
         if (entry) drawHydroEntry(program, entry, category, color, picking);
