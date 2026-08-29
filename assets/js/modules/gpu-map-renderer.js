@@ -66,7 +66,6 @@ export function createCountryGeometryRevisionTracker() {
 
 export function createGpuMapRenderer(deps) {
   const {
-    $,
     APP_VERSION,
     ASSET_REVISION,
     PHYSICAL_DATA_BASE_URL,
@@ -95,6 +94,7 @@ export function createGpuMapRenderer(deps) {
     renderPendingCountryOverlays,
     renderViewFrame,
     reportOperationError,
+    rendererUi,
     runtimeAssetUrl,
     scheduleGpuMeshRebuild,
     scheduleViewRender,
@@ -722,7 +722,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function replaceCanvas() {
-      const replacement = document.createElement('canvas');
+      const replacement = rendererUi.createCanvas();
       canvas?.replaceWith(replacement);
       attach(replacement);
       gl = null;
@@ -756,10 +756,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function updateRendererStatus(label, reason = '') {
-      const status = $('engineStatus');
-      if (!status) return;
-      status.textContent = reason ? `${label} · ${reason}` : label;
-      status.dataset.tooltip = status.textContent;
+      rendererUi.setEngineStatus(reason ? `${label} · ${reason}` : label);
     }
 
     function createWebGlResources() {
@@ -825,7 +822,6 @@ export function createGpuMapRenderer(deps) {
       webglContextLost = true;
       rendererMode = 'webgl-recovering';
       clearTimeout(webglRecoveryTimer);
-      $('engineStatus').textContent = `${rendererName()} · 컨텍스트를 복구하는 중입니다.`;
       updateRendererStatus(`${rendererName()} · GPU를 복구하는 중입니다.`);
       setActionStatus('지도 GPU를 복구하는 중입니다.', 'working', 0);
       webglRecoveryTimer = setTimeout(() => {
@@ -853,7 +849,6 @@ export function createGpuMapRenderer(deps) {
         if (mesh) setMesh(mesh, meshCountryIds);
         if (overrideMesh) setOverrideMesh(overrideMesh);
         else render(currentRenderRevision);
-        $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} ${meshQualityLabel()}`;
         updateRendererStatus(`${rendererName()} · GPU 실시간`);
         setActionStatus('지도 GPU를 복구했습니다.', 'success', 2200);
       } catch (error) {
@@ -1275,7 +1270,7 @@ export function createGpuMapRenderer(deps) {
         activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
         return Promise.resolve(false);
       }
-      $('engineStatus').textContent = `${rendererName()} · 편집 메시를 계산하는 중입니다.`;
+      updateRendererStatus(`${rendererName()} · 편집 메시지를 계산하는 중입니다.`);
       return new Promise(resolve => {
         const settle = value => {
           if (workerCompletionResolver === settle) workerCompletionResolver = null;
@@ -1309,7 +1304,6 @@ export function createGpuMapRenderer(deps) {
           completeGeometryDisplay(pendingIds, task.revision);
           meshQuality = 'canonical';
           canonicalMeshReady = true;
-          $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 무손실`;
           updateRendererStatus(`${rendererName()} · GPU 실시간`);
           settle(true);
         };
@@ -1425,7 +1419,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function layoutMismatch() {
-      const mapElement = $('map');
+      const mapElement = rendererUi.getMapElement();
       if (!canvas || !mapElement?.isConnected || !canvas.isConnected) return 0;
       const mapRect = mapElement.getBoundingClientRect();
       const canvasRect = canvas.getBoundingClientRect();
@@ -2603,7 +2597,6 @@ export function createGpuMapRenderer(deps) {
       resize();
       ctx2d = canvas.getContext('2d', { alpha: true });
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
-      $('engineStatus').textContent = `Canvas ${meshQualityLabel()} 대체 · ${fallbackReason}`;
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
       setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
@@ -2726,7 +2719,6 @@ export function createGpuMapRenderer(deps) {
           canvasWorker.onerror = event => failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
           if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
           else connectHydroCanvasWorkers();
-          $('engineStatus').textContent = `Canvas Worker ${meshQualityLabel()} · ${fallbackReason}`;
           updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
           setActionStatus(`${meshQualityLabel()} Canvas Worker로 전환했습니다.`, 'working', 4200);
           window.__PANDOLAB_GPU_METRICS__ = getStats();
@@ -2741,7 +2733,6 @@ export function createGpuMapRenderer(deps) {
       rendererMode = 'canvas2d';
       ctx2d = canvas.getContext('2d', { alpha: true });
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
-      $('engineStatus').textContent = `Canvas ${meshQualityLabel()} 대체 · ${fallbackReason}`;
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
       setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
       if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
@@ -2852,14 +2843,12 @@ export function createGpuMapRenderer(deps) {
         if (index > 0 || gl) replaceCanvas();
         try {
           initWebGl(version);
-          $('engineStatus').textContent = `${rendererName()} · 빠른 미리보기 메시를 준비하는 중입니다.`;
           updateRendererStatus(`${rendererName()} · 빠른 GPU 지도를 준비하는 중입니다.`);
           if (!decoded) decoded = await decodeBuiltInMesh();
           setMesh(decoded.mesh, decoded.ids);
           meshQuality = 'preview';
           canonicalMeshReady = false;
           if (isWebGlRenderer()) {
-            $('engineStatus').textContent = `Natural Earth 5.1.1 · ${rendererName()} 빠른 미리보기`;
             updateRendererStatus(`${rendererName()} · 빠른 GPU 미리보기`);
             return true;
           }

@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -44,6 +44,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/territorial-service.js')),
   import(versionedModuleUrl('./modules/distribution-service.js')),
   import(versionedModuleUrl('./modules/drawing-service.js')),
+  import(versionedModuleUrl('./modules/map-render-coordinator.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -69,6 +70,7 @@ const {
   normalizeDrawingCollection,
   normalizeDrawingSemantics,
 } = drawingServiceModule;
+const { createMapRenderCoordinator } = mapRenderCoordinatorModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -997,24 +999,13 @@ const {
     $('mobileEditBtn')?.classList.toggle('needs-attention', !!state?.selected && !surfaceState.editorOpen);
   }
 
-  let renderQueued = false;
-  let viewRenderQueued = false;
+  let mapRenderCoordinator = null;
   function scheduleRender() {
-    if (renderQueued) return;
-    renderQueued = true;
-    requestAnimationFrame(() => {
-      renderQueued = false;
-      renderAll();
-    });
+    return mapRenderCoordinator?.scheduleFull() || false;
   }
 
   function scheduleViewRender() {
-    if (viewRenderQueued) return;
-    viewRenderQueued = true;
-    requestAnimationFrame(() => {
-      viewRenderQueued = false;
-      renderViewFrame();
-    });
+    return mapRenderCoordinator?.scheduleView() || false;
   }
 
   const mapWorkScheduler = (() => {
@@ -1799,7 +1790,6 @@ const {
   let mapResizeObserver = null;
   let mapResizeFrame = 0;
   let resolutionQuery = null;
-  let renderRevision = 0;
   let viewRevision = 0;
   let renderedViewSignature = '';
   let editInteractionRevision = 0;
@@ -1829,7 +1819,6 @@ const {
 
 
   const gpuMapRenderer = createGpuMapRenderer({
-    $,
     APP_VERSION,
     ASSET_REVISION,
     PHYSICAL_DATA_BASE_URL,
@@ -1858,6 +1847,16 @@ const {
     renderPendingCountryOverlays,
     renderViewFrame,
     reportOperationError,
+    rendererUi: {
+      createCanvas: () => document.createElement('canvas'),
+      getMapElement: () => $('map'),
+      setEngineStatus: text => {
+        const status = $('engineStatus');
+        if (!status) return;
+        status.textContent = text;
+        status.dataset.tooltip = text;
+      },
+    },
     runtimeAssetUrl,
     scheduleGpuMeshRebuild,
     scheduleViewRender,
@@ -6372,7 +6371,7 @@ const {
     const metrics = gpuMapRenderer.getStats?.() || {};
     const lines = [
       `renderer: ${metrics.renderer || 'unknown'}`,
-      `render revision: ${renderRevision}`,
+      `render revision: ${mapRenderCoordinator?.revision() || 0}`,
       `view revision: ${viewRevision}`,
       `state revision: ${state.stateRevision}`,
       `pending country patches: ${state.pendingCountryRenderIds.size}`,
@@ -6526,44 +6525,45 @@ const {
     return viewRevision;
   }
 
-  function renderMapFrame({ viewOnly = false } = {}) {
-    renderRevision += 1;
-    updateProjection();
-    const revision = syncViewRevision();
-    renderBase();
-    renderCountries(revision);
-    if (viewOnly) renderHydroSelectionPosition();
-    else renderHydro();
-    renderHydroEdits();
-    renderBoundaryEditOverlay();
-    renderCountryRegions();
-    renderDistributions();
-    renderDrawings();
-    applyOverlayStackOrder();
-    renderGeometryPreview();
-    renderHoverOverlay();
-    renderSelectionOverlay();
-    renderValidationOverlay();
-    if (viewOnly) {
-      renderCountryLabelPositions();
-      renderUserLabelPositions();
-    } else {
-      renderCountryLabels();
-      renderUserLabels();
-    }
-    renderVertices();
-    renderDraft();
-    renderSnapIndicator();
-    renderDebugMapPanel();
-    if (!viewOnly) renderLayerTree();
-  }
+  mapRenderCoordinator = createMapRenderCoordinator({
+    requestFrame: callback => requestAnimationFrame(callback),
+    prepareView: () => {
+      updateProjection();
+      return syncViewRevision();
+    },
+    renderers: {
+      base: renderBase,
+      countries: renderCountries,
+      hydroSelectionPosition: renderHydroSelectionPosition,
+      hydro: renderHydro,
+      hydroEdits: renderHydroEdits,
+      boundaryEdit: renderBoundaryEditOverlay,
+      territorialUnits: renderCountryRegions,
+      distributions: renderDistributions,
+      drawings: renderDrawings,
+      stackOverlays: applyOverlayStackOrder,
+      geometryPreview: renderGeometryPreview,
+      hover: renderHoverOverlay,
+      selection: renderSelectionOverlay,
+      validation: renderValidationOverlay,
+      countryLabelPositions: renderCountryLabelPositions,
+      userLabelPositions: renderUserLabelPositions,
+      countryLabels: renderCountryLabels,
+      userLabels: renderUserLabels,
+      vertices: renderVertices,
+      draft: renderDraft,
+      snapIndicator: renderSnapIndicator,
+      debug: renderDebugMapPanel,
+      layerTree: renderLayerTree,
+    },
+  });
 
   function renderAll() {
-    renderMapFrame();
+    return mapRenderCoordinator.renderFull();
   }
 
   function renderViewFrame() {
-    renderMapFrame({ viewOnly: true });
+    return mapRenderCoordinator.renderView();
   }
 
   function initSvg() {
@@ -8949,7 +8949,7 @@ const {
         for (const ref of activeRefs) setCountryVertexCoord(ref.feature, ref.vertex, coord);
         moveBoundaryTopologyPreviewTargets(activePreviewTargets, coord);
         countryLayer.selectAll('path.country-shape').attr('d', path);
-        renderRevision += 1;
+        mapRenderCoordinator.advanceRevision();
         gpuMapRenderer.render(viewRevision);
         boundaryEditLayer.selectAll('path.boundary-edit-segment')
           .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }));

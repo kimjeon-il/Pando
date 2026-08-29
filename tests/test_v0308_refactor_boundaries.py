@@ -10,6 +10,8 @@ PHYSICAL = (ROOT / "assets/js/modules/physical-layer-service.js").read_text(enco
 TERRITORIAL_SERVICE = (ROOT / "assets/js/modules/territorial-service.js").read_text(encoding="utf-8")
 DISTRIBUTION_SERVICE = (ROOT / "assets/js/modules/distribution-service.js").read_text(encoding="utf-8")
 DRAWING_SERVICE = (ROOT / "assets/js/modules/drawing-service.js").read_text(encoding="utf-8")
+RENDER_COORDINATOR = (ROOT / "assets/js/modules/map-render-coordinator.js").read_text(encoding="utf-8")
+GPU_RENDERER = (ROOT / "assets/js/modules/gpu-map-renderer.js").read_text(encoding="utf-8")
 
 
 class RefactorBoundaryTests(unittest.TestCase):
@@ -56,6 +58,15 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("drawingApplicationService.remove", APP)
         self.assertIn("runDocumentMutation", DISTRIBUTION_SERVICE)
         self.assertIn("runDocumentMutation", DRAWING_SERVICE)
+
+    def test_render_order_is_coordinated_and_renderer_is_dom_free(self):
+        self.assertIn("createMapRenderCoordinator({", APP)
+        self.assertIn("mapRenderCoordinator.renderFull()", APP)
+        self.assertIn("mapRenderCoordinator.renderView()", APP)
+        self.assertIn("renderers.territorialUnits()", RENDER_COORDINATOR)
+        self.assertIn("rendererUi.setEngineStatus", GPU_RENDERER)
+        self.assertNotIn("document.", GPU_RENDERER)
+        self.assertNotIn("$('engineStatus')", GPU_RENDERER)
 
 
 if __name__ == "__main__":
