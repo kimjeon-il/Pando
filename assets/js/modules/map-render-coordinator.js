@@ -1,61 +1,192 @@
+const DIRTY_BITS = {
+  VIEW: 1 << 0,
+  GPU_COUNTRIES: 1 << 1,
+  BASE: 1 << 2,
+  STATIC_OVERLAYS: 1 << 3,
+  DYNAMIC_OVERLAYS: 1 << 4,
+  EDITING_OVERLAYS: 1 << 5,
+  LABEL_POSITIONS: 1 << 6,
+  LABEL_LAYOUT: 1 << 7,
+  LAYER_TREE: 1 << 8,
+  HUD: 1 << 9,
+};
+
+export const MAP_RENDER_DIRTY = Object.freeze({
+  ...DIRTY_BITS,
+  FULL: Object.values(DIRTY_BITS).reduce((mask, value) => mask | value, 0),
+});
+
+const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
+  | MAP_RENDER_DIRTY.GPU_COUNTRIES
+  | MAP_RENDER_DIRTY.EDITING_OVERLAYS
+  | MAP_RENDER_DIRTY.LABEL_POSITIONS;
+
+const STRING_MASKS = Object.freeze({
+  full: MAP_RENDER_DIRTY.FULL,
+  view: INTERACTION_MASK,
+  countries: MAP_RENDER_DIRTY.GPU_COUNTRIES,
+  'static-overlays': MAP_RENDER_DIRTY.STATIC_OVERLAYS,
+  'dynamic-overlays': MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS,
+  labels: MAP_RENDER_DIRTY.LABEL_LAYOUT,
+  'layer-tree': MAP_RENDER_DIRTY.LAYER_TREE,
+});
+
+function normalizedMask(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value | 0;
+  if (typeof value === 'string') return STRING_MASKS[value] || MAP_RENDER_DIRTY.FULL;
+  if (Array.isArray(value) || value instanceof Set) return [...value].reduce((mask, entry) => mask | normalizedMask(entry), 0);
+  return MAP_RENDER_DIRTY.FULL;
+}
+
 export function createMapRenderCoordinator({
   requestFrame,
   prepareView,
   renderers,
+  now = () => globalThis.performance?.now?.() ?? Date.now(),
 }) {
   let renderRevision = 0;
-  let fullQueued = false;
-  let viewQueued = false;
+  let frameQueued = false;
+  let rendering = false;
+  let pendingMask = 0;
+  let interactionActive = false;
+  let settleTimer = 0;
+  const pendingReasons = new Set();
+  const metrics = {
+    fullRenderCount: 0,
+    viewRenderCount: 0,
+    requestCount: 0,
+    mergedRequestCount: 0,
+    labelLayoutCount: 0,
+    lastRenderMs: 0,
+    lastMode: '',
+    lastDirtyMask: 0,
+    lastReasons: [],
+    lastRendererTimes: {},
+    recentFrames: [],
+  };
 
-  function render({ viewOnly = false } = {}) {
-    renderRevision += 1;
-    const viewRevision = prepareView();
-    renderers.base();
-    renderers.countries(viewRevision);
-    if (viewOnly) renderers.hydroSelectionPosition();
-    else renderers.hydro();
-    renderers.hydroEdits();
-    renderers.boundaryEdit();
-    renderers.territorialUnits();
-    renderers.distributions();
-    renderers.drawings();
-    renderers.stackOverlays();
-    renderers.geometryPreview();
-    renderers.hover();
-    renderers.selection();
-    renderers.validation();
-    if (viewOnly) {
-      renderers.countryLabelPositions();
-      renderers.userLabelPositions();
-    } else {
-      renderers.countryLabels();
-      renderers.userLabels();
-    }
-    renderers.vertices();
-    renderers.draft();
-    renderers.snapIndicator();
-    renderers.debug();
-    if (!viewOnly) renderers.layerTree();
-    return { renderRevision, viewRevision, viewOnly };
+  function callRenderer(name, rendererTimes, ...args) {
+    const renderer = renderers[name];
+    if (typeof renderer !== 'function') return undefined;
+    const startedAt = now();
+    const value = renderer(...args);
+    rendererTimes[name] = Math.max(0, now() - startedAt);
+    return value;
   }
 
-  function scheduleFull() {
-    if (fullQueued) return false;
-    fullQueued = true;
+  function render({ dirtyMask = MAP_RENDER_DIRTY.FULL, reasons = [] } = {}) {
+    const mask = normalizedMask(dirtyMask);
+    const startedAt = now();
+    const rendererTimes = {};
+    const full = (mask & MAP_RENDER_DIRTY.FULL) === MAP_RENDER_DIRTY.FULL;
+    rendering = true;
+    renderRevision += 1;
+    try {
+      const needsView = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_COUNTRIES
+        | MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.STATIC_OVERLAYS | MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS
+        | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT));
+      const viewRevision = needsView ? prepareView() : undefined;
+
+      if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes);
+      if (mask & MAP_RENDER_DIRTY.GPU_COUNTRIES) callRenderer('countries', rendererTimes, viewRevision);
+
+      if (mask & MAP_RENDER_DIRTY.STATIC_OVERLAYS) {
+        callRenderer('hydro', rendererTimes);
+        callRenderer('hydroEdits', rendererTimes);
+        callRenderer('territorialUnits', rendererTimes);
+        callRenderer('distributions', rendererTimes);
+        callRenderer('drawings', rendererTimes);
+        callRenderer('stackOverlays', rendererTimes);
+      }
+
+      if (mask & MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS) {
+        callRenderer('geometryPreview', rendererTimes);
+        callRenderer('hover', rendererTimes);
+        callRenderer('selection', rendererTimes);
+        callRenderer('validation', rendererTimes);
+      }
+
+      if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {
+        if (!(mask & MAP_RENDER_DIRTY.STATIC_OVERLAYS)) callRenderer('hydroEdits', rendererTimes);
+        callRenderer('boundaryEdit', rendererTimes);
+        callRenderer('vertices', rendererTimes);
+        callRenderer('draft', rendererTimes);
+        callRenderer('snapIndicator', rendererTimes);
+      }
+
+      if (mask & MAP_RENDER_DIRTY.LABEL_LAYOUT) {
+        const labelLayout = callRenderer('labelLayout', rendererTimes);
+        if (renderers.labelLayout) metrics.labelLayoutCount += 1;
+        callRenderer('countryLabels', rendererTimes, labelLayout);
+        callRenderer('userLabels', rendererTimes, labelLayout);
+      } else if (mask & MAP_RENDER_DIRTY.LABEL_POSITIONS) {
+        callRenderer('countryLabelPositions', rendererTimes);
+        callRenderer('userLabelPositions', rendererTimes);
+      }
+
+      if (mask & MAP_RENDER_DIRTY.LAYER_TREE) callRenderer('layerTree', rendererTimes);
+      metrics.lastRenderMs = Math.max(0, now() - startedAt);
+      metrics.lastMode = full ? 'full' : 'partial';
+      metrics.lastDirtyMask = mask;
+      metrics.lastReasons = [...reasons];
+      metrics.lastRendererTimes = rendererTimes;
+      if (mask & MAP_RENDER_DIRTY.HUD) callRenderer('debug', rendererTimes);
+      metrics.recentFrames.push({ revision: renderRevision, mode: metrics.lastMode, dirtyMask: mask, reasons: [...reasons] });
+      if (metrics.recentFrames.length > 20) metrics.recentFrames.splice(0, metrics.recentFrames.length - 20);
+      if (full) metrics.fullRenderCount += 1;
+      else metrics.viewRenderCount += 1;
+      return { renderRevision, viewRevision, viewOnly: mask === INTERACTION_MASK };
+    } finally {
+      rendering = false;
+      if (pendingMask && !frameQueued) queueFrame();
+    }
+  }
+
+  function queueFrame() {
+    if (frameQueued) return false;
+    frameQueued = true;
     requestFrame(() => {
-      fullQueued = false;
-      render();
+      frameQueued = false;
+      const dirtyMask = pendingMask || INTERACTION_MASK;
+      const reasons = [...pendingReasons];
+      pendingMask = 0;
+      pendingReasons.clear();
+      render({ dirtyMask, reasons });
     });
     return true;
   }
 
-  function scheduleView() {
-    if (viewQueued) return false;
-    viewQueued = true;
-    requestFrame(() => {
-      viewQueued = false;
-      render({ viewOnly: true });
-    });
+  function invalidate(mask = MAP_RENDER_DIRTY.FULL, reason = '') {
+    const nextMask = normalizedMask(mask);
+    metrics.requestCount += 1;
+    if (pendingMask || frameQueued || rendering) metrics.mergedRequestCount += 1;
+    pendingMask |= nextMask;
+    if (reason) pendingReasons.add(String(reason));
+    return queueFrame();
+  }
+
+  function scheduleFull(reason = 'full') {
+    return invalidate(MAP_RENDER_DIRTY.FULL, reason);
+  }
+
+  function scheduleView(reason = 'view') {
+    return invalidate(INTERACTION_MASK, reason);
+  }
+
+  function beginInteraction(reason = 'interaction') {
+    interactionActive = true;
+    clearTimeout(settleTimer);
+    settleTimer = 0;
+    if (reason) pendingReasons.add(String(reason));
+  }
+
+  function endInteraction(reason = 'interaction-end') {
+    interactionActive = false;
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      settleTimer = 0;
+      scheduleFull(reason);
+    }, 120);
     return true;
   }
 
@@ -65,11 +196,30 @@ export function createMapRenderCoordinator({
   }
 
   return Object.freeze({
-    renderFull: () => render(),
-    renderView: () => render({ viewOnly: true }),
+    renderFull: () => render({ dirtyMask: MAP_RENDER_DIRTY.FULL }),
+    renderView: () => render({ dirtyMask: INTERACTION_MASK }),
+    renderFrame: ({ mode = 'full', dirtyMask = null, reasons = [] } = {}) => render({
+      dirtyMask: dirtyMask == null ? (mode === 'view' ? INTERACTION_MASK : MAP_RENDER_DIRTY.FULL) : dirtyMask,
+      reasons,
+    }),
+    invalidate,
     scheduleFull,
     scheduleView,
+    beginInteraction,
+    endInteraction,
+    isInteractionActive: () => interactionActive,
     advanceRevision,
     revision: () => renderRevision,
+    getStats: () => ({
+      ...metrics,
+      lastReasons: [...metrics.lastReasons],
+      lastRendererTimes: { ...metrics.lastRendererTimes },
+      recentFrames: metrics.recentFrames.map(frame => ({ ...frame, reasons: [...frame.reasons] })),
+      pendingMask,
+      pendingMode: pendingMask === MAP_RENDER_DIRTY.FULL ? 'full' : pendingMask ? 'partial' : null,
+      frameQueued,
+      interactionActive,
+      settlePending: !!settleTimer,
+    }),
   });
 }

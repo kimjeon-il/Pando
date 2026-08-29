@@ -157,6 +157,10 @@ export function createGpuMapRenderer(deps) {
     let lineIndexBuffer = null;
     let paletteTexture = null;
     let overridePaletteTexture = null;
+    let emphasisPaletteTexture = null;
+    let overrideEmphasisPaletteTexture = null;
+    let countryEmphasis = { primaryId: '', selectedIds: new Set(), hoveredId: '' };
+    let countryEmphasisRevision = 0;
     let overridePositionBuffer = null;
     let overrideCountryBuffer = null;
     let overrideFillIndexBuffer = null;
@@ -190,7 +194,16 @@ export function createGpuMapRenderer(deps) {
     let mesh = null;
     let meshCountryIds = [];
     let meshQuality = 'preview';
+    let activeMeshQuality = 'preview';
     let canonicalMeshReady = false;
+    const meshVariants = new Map();
+    let meshRestoreTimer = 0;
+    let meshInteractionActive = false;
+    let pickCount = 0;
+    let pickReadPixelsMs = 0;
+    let pickLastReadPixelsMs = 0;
+    let pickSceneKey = '';
+    let pickSceneRenderCount = 0;
     let effectivePixelRatio = 1;
     let pixelWidth = 0;
     let pixelHeight = 0;
@@ -218,8 +231,6 @@ export function createGpuMapRenderer(deps) {
     let webglContextLost = false;
     let currentRenderRevision = 0;
     let displayedRenderRevision = 0;
-    let webGl1PositionData = null;
-    let webGl1CountryData = null;
     const frameTimes = [];
     let canvasDataReplacementResolver = null;
     let lastGeometryCommitTimings = null;
@@ -781,14 +792,16 @@ export function createGpuMapRenderer(deps) {
       );
       paletteTexture = gl.createTexture();
       overridePaletteTexture = gl.createTexture();
+      emphasisPaletteTexture = gl.createTexture();
+      overrideEmphasisPaletteTexture = gl.createTexture();
       hydroVisibilityTexture = gl.createTexture();
       hydroCornerBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, -1, 0, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
-      positionBuffer = gl.createBuffer();
-      countryBuffer = gl.createBuffer();
-      fillIndexBuffer = gl.createBuffer();
-      lineIndexBuffer = gl.createBuffer();
+      positionBuffer = null;
+      countryBuffer = null;
+      fillIndexBuffer = null;
+      lineIndexBuffer = null;
       overridePositionBuffer = gl.createBuffer();
       overrideCountryBuffer = gl.createBuffer();
       overrideFillIndexBuffer = gl.createBuffer();
@@ -798,6 +811,7 @@ export function createGpuMapRenderer(deps) {
       gl.disable(gl.DEPTH_TEST);
       pickFramebuffer = null;
       pickTexture = null;
+      pickSceneKey = '';
       for (const pending of terrainUploadQueue.splice(0)) pending.bitmap?.close?.();
       terrainTileQueuedKeys.clear();
       terrainTiles.clear();
@@ -814,6 +828,8 @@ export function createGpuMapRenderer(deps) {
         scheduleHydroUpload(entry);
       }
       hydroVisibilityDirty = true;
+      for (const entry of meshVariants.values()) entry.resources = uploadMeshResources(entry.mesh);
+      activateMeshVariant(activeMeshQuality, { renderFrame: false });
     }
 
     function handleWebGlContextLost(event) {
@@ -846,7 +862,6 @@ export function createGpuMapRenderer(deps) {
         createWebGlResources();
         webglContextLost = false;
         rendererMode = glVersion === 2 ? 'webgl2' : 'webgl1';
-        if (mesh) setMesh(mesh, meshCountryIds);
         if (overrideMesh) setOverrideMesh(overrideMesh);
         else render(currentRenderRevision);
         updateRendererStatus(`${rendererName()} · GPU 실시간`);
@@ -888,59 +903,103 @@ export function createGpuMapRenderer(deps) {
       rendererMode = version === 2 ? 'webgl2' : 'webgl1';
     }
 
-    function setMesh(nextMesh, countryIds, { renderFrame = true } = {}) {
-      mesh = nextMesh;
-      meshCountryIds = [...countryIds];
-      webGl1PositionData = null;
-      webGl1CountryData = null;
-      if (!gl || !isWebGlRenderer()) return;
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    function disposeMeshResources(resources) {
+      if (!gl || !resources) return;
       if (glVersion === 2) {
-        gl.bufferData(gl.ARRAY_BUFFER, mesh.positions, gl.STATIC_DRAW);
-      } else {
-        webGl1PositionData = new Float32Array(mesh.positions.length);
-        for (let index = 0; index < mesh.positions.length; index += 1) webGl1PositionData[index] = mesh.positions[index];
-        gl.bufferData(gl.ARRAY_BUFFER, webGl1PositionData, gl.STATIC_DRAW);
+        if (resources.fillVao) gl.deleteVertexArray(resources.fillVao);
+        if (resources.lineVao) gl.deleteVertexArray(resources.lineVao);
       }
-      gl.bindBuffer(gl.ARRAY_BUFFER, countryBuffer);
-      if (glVersion === 2) {
-        gl.bufferData(gl.ARRAY_BUFFER, mesh.countryIndices, gl.STATIC_DRAW);
-      } else {
-        webGl1CountryData = new Float32Array(mesh.countryIndices.length);
-        for (let index = 0; index < mesh.countryIndices.length; index += 1) webGl1CountryData[index] = mesh.countryIndices[index];
-        gl.bufferData(gl.ARRAY_BUFFER, webGl1CountryData, gl.STATIC_DRAW);
+      for (const buffer of [resources.positionBuffer, resources.countryBuffer, resources.fillIndexBuffer, resources.lineIndexBuffer]) {
+        if (buffer) gl.deleteBuffer(buffer);
       }
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, fillIndexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.triangleIndices, gl.STATIC_DRAW);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.lineIndices, gl.STATIC_DRAW);
+    }
 
-      fillVao = null;
-      lineVao = null;
-      if (glVersion === 2) {
-        fillVao = gl.createVertexArray();
-        gl.bindVertexArray(fillVao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribIPointer(0, 2, gl.INT, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, countryBuffer);
-        gl.enableVertexAttribArray(1);
-        gl.vertexAttribIPointer(1, 1, gl.UNSIGNED_SHORT, 0, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, fillIndexBuffer);
-
-        lineVao = gl.createVertexArray();
-        gl.bindVertexArray(lineVao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribIPointer(0, 2, gl.INT, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, countryBuffer);
-        gl.enableVertexAttribArray(1);
-        gl.vertexAttribIPointer(1, 1, gl.UNSIGNED_SHORT, 0, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
-        gl.bindVertexArray(null);
+    function uploadMeshResources(nextMesh) {
+      if (!gl || !nextMesh) return null;
+      const resources = {
+        positionBuffer: gl.createBuffer(),
+        countryBuffer: gl.createBuffer(),
+        fillIndexBuffer: gl.createBuffer(),
+        lineIndexBuffer: gl.createBuffer(),
+        fillVao: null,
+        lineVao: null,
+      };
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.positionBuffer);
+      if (glVersion === 2) gl.bufferData(gl.ARRAY_BUFFER, nextMesh.positions, gl.STATIC_DRAW);
+      else {
+        const positionData = Float32Array.from(nextMesh.positions);
+        gl.bufferData(gl.ARRAY_BUFFER, positionData, gl.STATIC_DRAW);
       }
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.countryBuffer);
+      if (glVersion === 2) gl.bufferData(gl.ARRAY_BUFFER, nextMesh.countryIndices, gl.STATIC_DRAW);
+      else {
+        const countryData = Float32Array.from(nextMesh.countryIndices);
+        gl.bufferData(gl.ARRAY_BUFFER, countryData, gl.STATIC_DRAW);
+      }
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resources.fillIndexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nextMesh.triangleIndices, gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resources.lineIndexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nextMesh.lineIndices, gl.STATIC_DRAW);
+      if (glVersion === 2) {
+        const createVao = indexBuffer => {
+          const vao = gl.createVertexArray();
+          gl.bindVertexArray(vao);
+          gl.bindBuffer(gl.ARRAY_BUFFER, resources.positionBuffer);
+          gl.enableVertexAttribArray(0);
+          gl.vertexAttribIPointer(0, 2, gl.INT, 0, 0);
+          gl.bindBuffer(gl.ARRAY_BUFFER, resources.countryBuffer);
+          gl.enableVertexAttribArray(1);
+          gl.vertexAttribIPointer(1, 1, gl.UNSIGNED_SHORT, 0, 0);
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+          gl.bindVertexArray(null);
+          return vao;
+        };
+        resources.fillVao = createVao(resources.fillIndexBuffer);
+        resources.lineVao = createVao(resources.lineIndexBuffer);
+      }
+      return resources;
+    }
+
+    function activateMeshVariant(quality, { renderFrame = true } = {}) {
+      const entry = meshVariants.get(quality) || meshVariants.get('canonical') || meshVariants.get('preview');
+      if (!entry) return false;
+      activeMeshQuality = entry.quality;
+      meshQuality = entry.quality;
+      mesh = entry.mesh;
+      meshCountryIds = entry.countryIds;
+      const resources = entry.resources;
+      positionBuffer = resources?.positionBuffer || null;
+      countryBuffer = resources?.countryBuffer || null;
+      fillIndexBuffer = resources?.fillIndexBuffer || null;
+      lineIndexBuffer = resources?.lineIndexBuffer || null;
+      fillVao = resources?.fillVao || null;
+      lineVao = resources?.lineVao || null;
+      pickSceneKey = '';
       window.__PANDOLAB_GPU_METRICS__ = getStats();
       if (renderFrame) render(currentRenderRevision);
+      return true;
+    }
+
+    function setMesh(nextMesh, countryIds, {
+      renderFrame = true,
+      quality = meshQuality,
+      preserveOtherVariants = false,
+    } = {}) {
+      const variantQuality = quality === 'preview' ? 'preview' : 'canonical';
+      if (!preserveOtherVariants) {
+        for (const entry of meshVariants.values()) disposeMeshResources(entry.resources);
+        meshVariants.clear();
+      } else if (meshVariants.has(variantQuality)) {
+        disposeMeshResources(meshVariants.get(variantQuality).resources);
+      }
+      const entry = {
+        quality: variantQuality,
+        mesh: nextMesh,
+        countryIds: [...countryIds],
+        resources: uploadMeshResources(nextMesh),
+      };
+      meshVariants.set(variantQuality, entry);
+      activateMeshVariant(variantQuality, { renderFrame });
     }
 
     function setOverrideMesh(nextMesh, { renderFrame = true } = {}) {
@@ -1300,7 +1359,7 @@ export function createGpuMapRenderer(deps) {
             countryIndices: new Uint16Array(next.countryIndices),
             triangleIndices: new Uint32Array(next.triangleIndices),
             lineIndices: new Uint32Array(next.lineIndices),
-          }, next.countryIds || [], { renderFrame: false });
+          }, next.countryIds || [], { renderFrame: false, quality: 'canonical', preserveOtherVariants: false });
           completeGeometryDisplay(pendingIds, task.revision);
           meshQuality = 'canonical';
           canonicalMeshReady = true;
@@ -1327,6 +1386,31 @@ export function createGpuMapRenderer(deps) {
       return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
     }
 
+    function colorHex(values) {
+      return `#${values.map(value => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0')).join('')}`;
+    }
+
+    function countryEmphasisStyle(id) {
+      const normalizedId = String(id || '');
+      const kind = normalizedId === countryEmphasis.primaryId ? 'primary'
+        : countryEmphasis.selectedIds.has(normalizedId) ? 'secondary'
+          : normalizedId === countryEmphasis.hoveredId ? 'hover' : '';
+      if (!kind) return null;
+      const darkTheme = getSystemTheme() === 'dark';
+      const styles = darkTheme
+        ? {
+          primary: { color: [226, 201, 130], alphaByte: 36 },
+          secondary: { color: [226, 201, 130], alphaByte: 23 },
+          hover: { color: [255, 255, 255], alphaByte: 20 },
+        }
+        : {
+          primary: { color: [49, 94, 157], alphaByte: 26 },
+          secondary: { color: [49, 94, 157], alphaByte: 18 },
+          hover: { color: [36, 72, 112], alphaByte: 20 },
+        };
+      return { kind, ...styles[kind] };
+    }
+
     function uploadPalette(texture, pixels) {
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -1342,6 +1426,8 @@ export function createGpuMapRenderer(deps) {
       if (!gl || !meshCountryIds.length) return;
       const basePixels = new Uint8Array(meshCountryIds.length * 4);
       const overridePixels = new Uint8Array(meshCountryIds.length * 4);
+      const emphasisPixels = new Uint8Array(meshCountryIds.length * 4);
+      const overrideEmphasisPixels = new Uint8Array(meshCountryIds.length * 4);
       pendingOldMeshVisibleCount = 0;
       for (let index = 0; index < meshCountryIds.length; index += 1) {
         const id = meshCountryIds[index];
@@ -1357,10 +1443,22 @@ export function createGpuMapRenderer(deps) {
         const pending = geometryRevisionTracker.isPending(id);
         basePixels[index * 4 + 3] = overridden ? 0 : visible;
         overridePixels[index * 4 + 3] = overridden && !pending ? visible : 0;
+        const emphasis = countryEmphasisStyle(id);
+        const emphasisColor = emphasis?.color || [0, 0, 0];
+        const emphasisAlpha = visible && emphasis ? emphasis.alphaByte : 0;
+        for (const pixels of [emphasisPixels, overrideEmphasisPixels]) {
+          pixels[index * 4] = emphasisColor[0];
+          pixels[index * 4 + 1] = emphasisColor[1];
+          pixels[index * 4 + 2] = emphasisColor[2];
+        }
+        emphasisPixels[index * 4 + 3] = overridden ? 0 : emphasisAlpha;
+        overrideEmphasisPixels[index * 4 + 3] = overridden && !pending ? emphasisAlpha : 0;
         if (pending && (basePixels[index * 4 + 3] || overridePixels[index * 4 + 3])) pendingOldMeshVisibleCount += 1;
       }
       uploadPalette(paletteTexture, basePixels);
       uploadPalette(overridePaletteTexture, overridePixels);
+      uploadPalette(emphasisPaletteTexture, emphasisPixels);
+      uploadPalette(overrideEmphasisPaletteTexture, overrideEmphasisPixels);
     }
 
     function rotationRows() {
@@ -1411,6 +1509,7 @@ export function createGpuMapRenderer(deps) {
         canvas.height = nextHeight;
         pickFramebuffer = null;
         pickTexture = null;
+        pickSceneKey = '';
       }
       pixelWidth = nextWidth;
       pixelHeight = nextHeight;
@@ -1480,7 +1579,7 @@ export function createGpuMapRenderer(deps) {
       return [coordLocation, countryLocation];
     }
 
-    function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture) {
+    function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture, lineColor = null) {
       gl.useProgram(program);
       if (program === fillProgram || program === lineProgram || program === pickProgram) {
         gl.uniform1i(gl.getUniformLocation(program, 'uPalette'), 0);
@@ -1492,7 +1591,8 @@ export function createGpuMapRenderer(deps) {
       if (program === lineProgram) {
         const theme = mapTheme();
         gl.lineWidth(Math.max(1, Number(theme.borderWidth) || 1));
-        gl.uniform4f(gl.getUniformLocation(program, 'uBorderColor'), theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha);
+        const color = lineColor || [theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha];
+        gl.uniform4f(gl.getUniformLocation(program, 'uBorderColor'), color[0], color[1], color[2], color[3]);
       }
       const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer, resources);
       if (glVersion === 2) gl.bindVertexArray(vao);
@@ -2169,6 +2269,24 @@ export function createGpuMapRenderer(deps) {
       hydroWorker?.postMessage({ type: 'interaction', active: active === true });
     }
 
+    function setInteractionActive(active) {
+      const interactionActive = active === true;
+      meshInteractionActive = interactionActive;
+      setHydroInteractionActive(interactionActive);
+      clearTimeout(meshRestoreTimer);
+      meshRestoreTimer = 0;
+      if (interactionActive) {
+        if (meshVariants.has('preview')) activateMeshVariant('preview', { renderFrame: false });
+        return;
+      }
+      if (!canonicalMeshReady || !meshVariants.has('canonical')) return;
+      meshRestoreTimer = setTimeout(() => {
+        meshRestoreTimer = 0;
+        activateMeshVariant('canonical', { renderFrame: false });
+        renderViewFrame();
+      }, 120);
+    }
+
     function invalidateHydroVisibility() {
       hydroVisibilityDirty = true;
       queueHydroRender();
@@ -2472,6 +2590,8 @@ export function createGpuMapRenderer(deps) {
       if (state.layerVisibility.countries) {
         drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
         if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture);
+        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, emphasisPaletteTexture);
+        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overrideEmphasisPaletteTexture);
       }
       drawHydro('lake');
       drawHydro('river');
@@ -2500,12 +2620,21 @@ export function createGpuMapRenderer(deps) {
       ctx2d.lineJoin = 'round';
       ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
       for (const feature of state.countriesData?.features || []) {
-        if (!isLayerItemVisible('countries', feature.properties?.editor_id || '')) continue;
+        const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+        if (!isLayerItemVisible('countries', id)) continue;
         ctx2d.beginPath();
         canvasPath(feature);
         ctx2d.globalAlpha = theme.fillAlpha;
         ctx2d.fillStyle = countryColor(feature);
         ctx2d.fill();
+        const emphasis = countryEmphasisStyle(id);
+        if (emphasis) {
+          ctx2d.beginPath();
+          canvasPath(feature);
+          ctx2d.globalAlpha = emphasis.alphaByte / 255;
+          ctx2d.fillStyle = colorHex(emphasis.color);
+          ctx2d.fill();
+        }
         ctx2d.beginPath();
         canvasPath(countryOutlineFeature(feature));
         ctx2d.globalAlpha = theme.borderAlpha;
@@ -2521,6 +2650,7 @@ export function createGpuMapRenderer(deps) {
       for (const feature of state.countriesData?.features || []) {
         colors[String(feature.properties?.editor_id || feature.properties?.iso_a3 || '')] = countryColor(feature);
       }
+      const darkTheme = getSystemTheme() === 'dark';
       return {
         type,
         width: Math.max(1, state.size.width),
@@ -2534,6 +2664,17 @@ export function createGpuMapRenderer(deps) {
         hydroVisible: !!state.layerVisibility.hydro,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
+        countryEmphasis: {
+          primaryId: countryEmphasis.primaryId,
+          selectedIds: [...countryEmphasis.selectedIds],
+          hoveredId: countryEmphasis.hoveredId,
+          primaryColor: colorHex(darkTheme ? [226, 201, 130] : [49, 94, 157]),
+          secondaryColor: colorHex(darkTheme ? [226, 201, 130] : [49, 94, 157]),
+          hoverColor: colorHex(darkTheme ? [255, 255, 255] : [36, 72, 112]),
+          primaryAlpha: (darkTheme ? 36 : 26) / 255,
+          secondaryAlpha: (darkTheme ? 23 : 18) / 255,
+          hoverAlpha: 20 / 255,
+        },
         theme: mapTheme(),
         physicalSettings: deepClone(state.physicalSettings),
         darkTheme: getSystemTheme() === 'dark',
@@ -2767,32 +2908,58 @@ export function createGpuMapRenderer(deps) {
       if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.countries) return null;
       resize();
       try { ensurePickTarget(); } catch (_) { return null; }
+      const pickEntry = meshVariants.get('preview') || meshVariants.get(activeMeshQuality);
+      const pickMesh = pickEntry?.mesh || mesh;
+      const pickResources = pickEntry?.resources;
+      const nextSceneKey = [
+        Number(window.__PANDOLAB_VIEW_REVISION__ || 0),
+        geometryRevisionTracker.displayedRevision(),
+        Number(state.layerTreeRevision || 0),
+        pixelWidth,
+        pixelHeight,
+        pickEntry?.quality || activeMeshQuality,
+      ].join(':');
       gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
       gl.viewport(0, 0, pixelWidth, pixelHeight);
-      gl.disable(gl.BLEND);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      drawProgram(pickProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
-      if (overrideMesh?.triangleIndices?.length) {
+      if (nextSceneKey !== pickSceneKey) {
+        gl.disable(gl.BLEND);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
         drawProgram(
           pickProgram,
-          overrideFillVao,
-          overrideFillIndexBuffer,
-          overrideMesh.triangleIndices.length,
+          pickResources?.fillVao || fillVao,
+          pickResources?.fillIndexBuffer || fillIndexBuffer,
+          pickMesh.triangleIndices.length,
           gl.TRIANGLES,
-          { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer },
-          overridePaletteTexture,
+          pickResources ? { positionBuffer: pickResources.positionBuffer, countryBuffer: pickResources.countryBuffer } : null,
         );
+        if (overrideMesh?.triangleIndices?.length) {
+          drawProgram(
+            pickProgram,
+            overrideFillVao,
+            overrideFillIndexBuffer,
+            overrideMesh.triangleIndices.length,
+            gl.TRIANGLES,
+            { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer },
+            overridePaletteTexture,
+          );
+        }
+        pickSceneKey = nextSceneKey;
+        pickSceneRenderCount += 1;
       }
       const dpr = pixelWidth / cssWidth;
       const x = Math.max(0, Math.min(pixelWidth - 1, Math.round(screenPoint[0] * dpr)));
       const y = Math.max(0, Math.min(pixelHeight - 1, Math.round(pixelHeight - 1 - screenPoint[1] * dpr)));
       const pixel = new Uint8Array(4);
+      const readStartedAt = performance.now();
       gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+      pickLastReadPixelsMs = performance.now() - readStartedAt;
+      pickReadPixelsMs += pickLastReadPixelsMs;
+      pickCount += 1;
       gl.enable(gl.BLEND);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       const index = (pixel[0] | (pixel[1] << 8) | (pixel[2] << 16)) - 1;
-      return index >= 0 ? meshCountryIds[index] || null : null;
+      return index >= 0 ? pickEntry?.countryIds?.[index] || meshCountryIds[index] || null : null;
     }
 
     function pickHydro(screenPoint) {
@@ -2848,7 +3015,7 @@ export function createGpuMapRenderer(deps) {
           initWebGl(version);
           updateRendererStatus(`${rendererName()} · 빠른 GPU 지도를 준비하는 중입니다.`);
           if (!decoded) decoded = await decodeBuiltInMesh();
-          setMesh(decoded.mesh, decoded.ids);
+          setMesh(decoded.mesh, decoded.ids, { quality: 'preview', preserveOtherVariants: false });
           meshQuality = 'preview';
           canonicalMeshReady = false;
           if (isWebGlRenderer()) {
@@ -2868,9 +3035,14 @@ export function createGpuMapRenderer(deps) {
 
     async function replaceBuiltInMesh({ meshBuffer, features, quality = 'canonical' }) {
       const decoded = await decodeBuiltInMesh(meshBuffer, features);
-      setMesh(decoded.mesh, decoded.ids, { renderFrame: false });
+      setMesh(decoded.mesh, decoded.ids, {
+        renderFrame: false,
+        quality,
+        preserveOtherVariants: quality === 'canonical' && meshVariants.has('preview'),
+      });
       meshQuality = quality;
       canonicalMeshReady = quality === 'canonical';
+      if (meshInteractionActive && meshVariants.has('preview')) activateMeshVariant('preview', { renderFrame: false });
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         await new Promise(resolve => {
           const timeout = setTimeout(() => {
@@ -2902,6 +3074,30 @@ export function createGpuMapRenderer(deps) {
       return decoded;
     }
 
+    function setCountryEmphasis({ primaryId = '', selectedIds = [], hoveredId = '' } = {}) {
+      const nextSelected = new Set((selectedIds || []).map(String).filter(Boolean));
+      const nextPrimary = String(primaryId || '');
+      const nextHovered = String(hoveredId || '');
+      const unchanged = countryEmphasis.primaryId === nextPrimary
+        && countryEmphasis.hoveredId === nextHovered
+        && countryEmphasis.selectedIds.size === nextSelected.size
+        && [...nextSelected].every(id => countryEmphasis.selectedIds.has(id));
+      if (unchanged) return false;
+      countryEmphasis = { primaryId: nextPrimary, selectedIds: nextSelected, hoveredId: nextHovered };
+      countryEmphasisRevision += 1;
+      if (isWebGlRenderer() && gl && meshCountryIds.length) renderViewFrame();
+      else if (rendererMode !== 'pending') render(currentRenderRevision);
+      return true;
+    }
+
+    function clearCountryEmphasis() {
+      return setCountryEmphasis();
+    }
+
+    function supportsCountryEmphasis() {
+      return isWebGlRenderer();
+    }
+
     function setTerrainManifest(manifest) {
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainLastLevel = -1;
@@ -2919,12 +3115,22 @@ export function createGpuMapRenderer(deps) {
         effectivePixelRatio,
         devicePixelRatio: Math.max(1, Number(window.devicePixelRatio || 1)),
         meshQuality,
+        activeMeshQuality,
         canonicalMeshReady,
+        availableMeshQualities: [...meshVariants.keys()],
+        meshInteractionActive,
+        meshRestorePending: !!meshRestoreTimer,
         countries: meshCountryIds.length,
         renderVertices: mesh?.countryIndices?.length || 0,
         triangleCount: (mesh?.triangleIndices?.length || 0) / 3,
         lineSegmentCount: (mesh?.lineIndices?.length || 0) / 2,
         p95CpuSubmitMs: Number(p95.toFixed(3)),
+        pickCount,
+        pickReadPixelsMs: Number(pickReadPixelsMs.toFixed(3)),
+        pickLastReadPixelsMs: Number(pickLastReadPixelsMs.toFixed(3)),
+        pickSceneRenderCount,
+        countryEmphasisRevision,
+        emphasizedCountryCount: countryEmphasis.selectedIds.size + (countryEmphasis.hoveredId && !countryEmphasis.selectedIds.has(countryEmphasis.hoveredId) ? 1 : 0),
         viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
         canvasBackingPixels: [pixelWidth, pixelHeight],
         layoutMismatchCssPx: Number(layoutMismatch().toFixed(3)),
@@ -2960,8 +3166,9 @@ export function createGpuMapRenderer(deps) {
       attach, initialize, replaceBuiltInMesh, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, setTerrainManifest,
       setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
-      setHydroInteractionActive, setInteractionActive: setHydroInteractionActive, renderViewFrame: render,
+      setHydroInteractionActive, setInteractionActive, renderViewFrame: render,
       invalidateHydroVisibility, resetCountryGeometryVisualState,
+      setCountryEmphasis, clearCountryEmphasis, supportsCountryEmphasis,
     };
   })();
 }

@@ -53,7 +53,7 @@ test('freehand river becomes one editable draft history step', async ({ page }) 
   await expect(page.locator('#modeDraftRedrawBtn')).toBeVisible();
 
   await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('path.hydro-edit-shape.selected')).toBeVisible();
+  await expect(page.locator('.selection-overlay-layer .map-selection-outline')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -70,7 +70,7 @@ test('double click never completes a draft implicitly', async ({ page }) => {
 
   await expect(page.locator('#modeEditingHud')).toBeVisible();
   await expect(page.locator('#modeTaskName')).toHaveText('강 추가');
-  await expect(page.locator('path.hydro-edit-shape.selected')).toHaveCount(0);
+  await expect(page.locator('.selection-overlay-layer .map-selection-outline')).toHaveCount(0);
   expect(await page.locator('g.draft-vertex').count()).toBeGreaterThanOrEqual(2);
   await page.locator('#modeCancelBtn').click();
   expect(errors).toEqual([]);
