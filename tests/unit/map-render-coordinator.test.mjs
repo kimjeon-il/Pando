@@ -6,6 +6,7 @@ import { createMapRenderCoordinator } from '../../assets/js/modules/map-render-c
 function fixture() {
   const calls = [];
   const frames = [];
+  const viewState = Object.freeze({ revision: 7, projection: 'globe' });
   const names = [
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
     'territorialUnits', 'distributions', 'drawings', 'stackOverlays', 'geometryPreview',
@@ -18,31 +19,34 @@ function fixture() {
   }]));
   const coordinator = createMapRenderCoordinator({
     requestFrame: callback => frames.push(callback),
-    prepareView: () => { calls.push(['prepare']); return 7; },
+    prepareView: () => { calls.push(['prepare']); return viewState; },
     renderers,
   });
-  return { calls, frames, coordinator };
+  return { calls, frames, coordinator, viewState };
 }
 
 test('full render preserves canonical layer order and revision', () => {
-  const { calls, coordinator } = fixture();
-  assert.deepEqual(coordinator.renderFull(), { renderRevision: 1, viewRevision: 7, viewOnly: false });
+  const { calls, coordinator, viewState } = fixture();
+  assert.deepEqual(coordinator.renderFull(), { renderRevision: 1, viewRevision: 7, viewState, viewOnly: false });
   assert.deepEqual(calls.map(call => call[0]), [
-    'prepare', 'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit', 'territorialUnits',
+    'prepare', 'base', 'countries', 'hydro', 'hydroEdits', 'territorialUnits',
     'distributions', 'drawings', 'stackOverlays', 'geometryPreview', 'hover', 'selection',
-    'validation', 'labelLayout', 'countryLabels', 'userLabels', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
+    'validation', 'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'layerTree', 'debug',
   ]);
-  assert.deepEqual(calls.find(call => call[0] === 'countries'), ['countries', 7]);
+  assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
+  assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'countryLabels', 'userLabels', 'debug', 'layerTree'].includes(call[0])).every(call => call[1] === viewState), true);
+  assert.equal(calls.find(call => call[0] === 'countryLabels')[2], viewState);
+  assert.equal(calls.find(call => call[0] === 'userLabels')[2], viewState);
   assert.equal(calls.filter(call => call[0] === 'labelLayout').length, 1);
   assert.deepEqual(calls.find(call => call[0] === 'countryLabels')[1], { countryLabels: [], userLabels: [] });
 });
 
-test('view render skips static and dynamic SVG while refreshing GPU and label positions', () => {
+test('view render refreshes projection-dependent layers with the shared view state', () => {
   const { calls, coordinator } = fixture();
   coordinator.renderView();
-  assert.equal(calls.some(call => call[0] === 'hydro'), false);
+  assert.equal(calls.some(call => call[0] === 'hydro'), true);
   assert.equal(calls.some(call => call[0] === 'layerTree'), false);
-  assert.equal(calls.some(call => call[0] === 'selection'), false);
+  assert.equal(calls.some(call => call[0] === 'selection'), true);
   assert.equal(calls.some(call => call[0] === 'countries'), true);
   assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), true);
 });

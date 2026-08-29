@@ -4485,6 +4485,10 @@ const {
   function hydroFolderStateKey(layerId) {
     return `${HYDRO_FOLDER_STATE_PREFIX}${String(layerId)}`;
   }
+
+  function currentMapDevicePixelRatio() {
+    return Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1)));
+  }
   function activeLayerFolderKeys() {
     const countryRegionKeys = [];
     for (const group of ['regions', 'administrative']) {
@@ -5255,8 +5259,16 @@ const {
     patchOutline.exit().remove();
   }
 
-  function renderCountries(revision = viewRevision) {
-    gpuMapRenderer.render(revision);
+  function renderCountries(viewStateOrRevision = viewRevision) {
+    let revision = viewRevision;
+    let renderViewState = null;
+    if (typeof viewStateOrRevision === 'number' && Number.isFinite(viewStateOrRevision)) {
+      revision = Number(viewStateOrRevision);
+    } else if (viewStateOrRevision && typeof viewStateOrRevision === 'object') {
+      renderViewState = viewStateOrRevision;
+      revision = Number(viewStateOrRevision?.revision || revision);
+    }
+    gpuMapRenderer.render(revision, renderViewState);
     renderPendingCountryOverlays();
     const highlighted = state.layerVisibility.countries && state.countriesData
       ? state.countriesData.features.filter(feature => {
@@ -6739,10 +6751,16 @@ const {
     return {
       projection: state.projection,
       size: { width: state.size.width, height: state.size.height },
+      dpr: currentMapDevicePixelRatio(),
+      safeInset: currentMapSafeInsets(),
       translate,
       scale: Number(projection.scale()),
       rotation: state.projection === 'globe' ? state.view.globeRotation.map(Number) : null,
       projectionCenter: state.projection === 'flat' ? state.view.flatCenter.map(Number) : null,
+      flatCenter: state.view.flatCenter.map(Number),
+      globeRotation: state.view.globeRotation.map(Number),
+      flatZoom: Number(state.view.flatZoom),
+      globeZoom: Number(state.view.globeZoom),
       geographicCenter: center ? center.map(Number) : null,
       zoom: state.projection === 'globe' ? Number(state.view.globeZoom) : Number(state.view.flatZoom),
     };
@@ -6756,8 +6774,9 @@ const {
       viewRevision += 1;
     }
     window.__PANDOLAB_VIEW_REVISION__ = viewRevision;
-    window.__PANDOLAB_VIEW_STATE__ = { ...snapshot, revision: viewRevision };
-    return viewRevision;
+    const viewState = { ...snapshot, revision: viewRevision };
+    window.__PANDOLAB_VIEW_STATE__ = viewState;
+    return viewState;
   }
 
   mapRenderCoordinator = createMapRenderCoordinator({
