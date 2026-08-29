@@ -56,7 +56,12 @@ export function assertCurrentProjectSchema(project) {
   requireSchemaVersion(project.landObjectModel?.schemaVersion, '지형지물 모델');
   requireSchemaVersion(project.territorialModel?.schemaVersion, '영토 모델');
   requireSchemaVersion(project.distributionModel?.schemaVersion, '분포 모델');
-  rejectAliases(project, ['countryRegions', 'countriesLocked'], '프로젝트');
+  rejectAliases(project, [
+    'countryRegions', 'countriesLocked',
+    'projection', 'view', 'layerFolders', 'selectedDistributionLayerId',
+    'selected', 'tool', 'draftCoords',
+  ], '프로젝트');
+  rejectAliases(project.distributionSettings, ['selectedLayerId'], '분포 표시 설정');
 
   const countries = project.countriesData?.features || [];
   const countryIds = new Set();
@@ -82,14 +87,14 @@ export function assertCurrentProjectSchema(project) {
     requireSchemaVersion(feature?.properties?.schemaVersion, `영역 ${text(feature?.id)}`);
     rejectAliases(feature?.properties, [
       'kind', 'type', 'status', 'countryId', 'country_id', 'sovereign_id', 'parentRegionId', 'parent_id', 'parent_region_id',
-      'valid_from', 'valid_to', 'source_folder_id', 'source_library_id', 'source_geometry_version', 'editorColor', 'color',
+      'valid_from', 'valid_to', 'source_folder_id', 'source_library_id', 'source_geometry_version', 'editorColor', 'color', 'visible',
     ], `영역 ${text(feature?.id)}`);
     if (typeof feature?.properties?.isRemainder !== 'boolean') throw schemaError(`영역 ${text(feature?.id)}에 isRemainder가 없습니다.`, 'PL-SCHEMA-REMAINDER');
   }
   for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`);
   for (const layer of project.distributionLayers || []) {
     requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`);
-    rejectAliases(layer, ['distributionType', 'parent_id', 'valid_from', 'valid_to'], `분포 레이어 ${text(layer?.id)}`);
+    rejectAliases(layer, ['distributionType', 'parent_id', 'valid_from', 'valid_to', 'visible'], `분포 레이어 ${text(layer?.id)}`);
   }
   for (const entry of project.distributionEntries || []) {
     requireSchemaVersion(entry?.schemaVersion, `분포 엔트리 ${text(entry?.id)}`);
@@ -97,35 +102,39 @@ export function assertCurrentProjectSchema(project) {
   }
   for (const feature of [...(project.drawings || []), ...(project.hydroEdits || [])]) {
     requireSchemaVersion(feature?.properties?.pandolab_schema_version, `지도 객체 ${text(feature?.id)}`);
-    rejectAliases(feature?.properties, ['pandolab_folder_id'], `지도 객체 ${text(feature?.id)}`);
+    rejectAliases(feature?.properties, ['pandolab_folder_id', 'visible'], `지도 객체 ${text(feature?.id)}`);
   }
   return project;
 }
 
 export const PROJECT_STATE_FIELDS = Object.freeze([
-  Object.freeze({ name: 'countryOverrides', history: true, fallback: () => ({}) }),
-  Object.freeze({ name: 'sourceInfo', history: true, fallback: () => null }),
-  Object.freeze({ name: 'labels', history: true, fallback: () => [] }),
-  Object.freeze({ name: 'labelSettings', history: true, fallback: () => ({}) }),
-  Object.freeze({ name: 'drawings', history: true, fallback: () => [] }),
-  Object.freeze({ name: 'hydroEdits', history: true, fallback: () => [] }),
-  Object.freeze({ name: 'territorialUnits', history: true, fallback: () => [] }),
-  Object.freeze({ name: 'territorialRelations', history: true, fallback: () => [] }),
-  Object.freeze({ name: 'distributionLayers', history: true, fallback: () => [] }),
-  Object.freeze({ name: 'distributionEntries', history: true, fallback: () => [] }),
-  Object.freeze({ name: 'distributionSettings', history: true, fallback: current => current || { renderMode: 'dominant', selectedLayerId: '' } }),
-  Object.freeze({ name: 'layerPresentation', history: true, fallback: () => ({}) }),
-  Object.freeze({ name: 'physicalSettings', history: true, fallback: current => current || {} }),
-  Object.freeze({ name: 'projection', history: false, fallback: () => 'globe' }),
-  Object.freeze({ name: 'layerVisibility', history: false, fallback: current => current || {} }),
-  Object.freeze({ name: 'itemVisibility', history: false, fallback: () => ({}) }),
-  Object.freeze({ name: 'layerFolders', history: false, fallback: () => ({}) }),
-  Object.freeze({ name: 'view', history: false, fallback: current => current || {} }),
+  Object.freeze({ name: 'countryOverrides', scope: 'document', fallback: () => ({}) }),
+  Object.freeze({ name: 'sourceInfo', scope: 'document', fallback: () => null }),
+  Object.freeze({ name: 'labels', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'drawings', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'hydroEdits', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'territorialUnits', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'territorialRelations', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'distributionLayers', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'distributionEntries', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'labelSettings', scope: 'presentation', fallback: () => ({}) }),
+  Object.freeze({ name: 'distributionSettings', scope: 'presentation', fallback: current => current || { renderMode: 'dominant' } }),
+  Object.freeze({ name: 'layerPresentation', scope: 'presentation', fallback: () => ({}) }),
+  Object.freeze({ name: 'physicalSettings', scope: 'presentation', fallback: current => current || {} }),
+  Object.freeze({ name: 'layerVisibility', scope: 'presentation', fallback: current => current || {} }),
+  Object.freeze({ name: 'itemVisibility', scope: 'presentation', fallback: () => ({}) }),
+  Object.freeze({ name: 'projection', scope: 'session', fallback: () => 'globe' }),
+  Object.freeze({ name: 'layerFolders', scope: 'session', fallback: () => ({}) }),
+  Object.freeze({ name: 'view', scope: 'session', fallback: current => current || {} }),
 ]);
 
-const fieldsFor = scope => scope === 'history'
-  ? PROJECT_STATE_FIELDS.filter(field => field.history)
-  : PROJECT_STATE_FIELDS;
+const fieldsFor = scope => {
+  if (scope === 'project') return PROJECT_STATE_FIELDS.filter(field => ['document', 'presentation'].includes(field.scope));
+  if (scope === 'history' || scope === 'document') return PROJECT_STATE_FIELDS.filter(field => field.scope === 'document');
+  if (scope === 'presentation') return PROJECT_STATE_FIELDS.filter(field => field.scope === 'presentation');
+  if (scope === 'session') return PROJECT_STATE_FIELDS.filter(field => field.scope === 'session');
+  throw new Error(`알 수 없는 프로젝트 상태 범위입니다: ${scope}`);
+};
 
 export function pickProjectFields(state, { scope = 'project', clone = structuredClone } = {}) {
   return Object.fromEntries(fieldsFor(scope).map(field => [field.name, clone(state[field.name])]));

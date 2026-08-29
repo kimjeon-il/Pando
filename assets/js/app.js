@@ -1058,7 +1058,8 @@ const {
     territorialRelations: [],
     distributionLayers: [],
     distributionEntries: [],
-    distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, selectedLayerId: '' },
+    distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT },
+    selectedDistributionLayerId: '',
     layerPresentation: normalizeLayerPresentation(),
     historicalLibrary: null,
     historicalLibrarySelectedId: '',
@@ -1567,7 +1568,6 @@ const {
     const allVisible = refs.every(ref => isLayerItemVisible(layerGroupForObjectRef(ref), ref.id));
     const visible = typeof nextVisible === 'boolean' ? nextVisible : !allVisible;
     if (refs.every(ref => objectRefVisible(ref) === visible)) return;
-    recordHistory({ type: 'batch-visibility', description: `${refs.length}개 객체 ${visible ? '표시' : '숨김'}`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
       const group = layerGroupForObjectRef(ref);
       if (!group) continue;
@@ -1577,7 +1577,7 @@ const {
     }
     markLayerTreeDirty();
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
     syncBatchActionAvailability();
   }
 
@@ -4232,6 +4232,7 @@ const {
     if (!feature) return feature;
     feature.properties ||= {};
     const properties = feature.properties;
+    delete properties.visible;
     let category = DRAWING_CATEGORY_RULES[properties.category] ? properties.category : 'custom';
     if (!drawingCategoryCompatible(feature, category)) category = 'custom';
     const rule = drawingCategoryRule(category);
@@ -4489,6 +4490,7 @@ const {
       notes: String(feature.properties.notes || ''),
       editorColor: normalizeEditorColor(feature.properties.editorColor, HYDRO_TOOL_CONFIG[category].color),
     };
+    delete feature.properties.visible;
     return feature;
   }
 
@@ -4586,7 +4588,7 @@ const {
       gpuMapRenderer.invalidateHydroVisibility();
       markLayerTreeDirty();
       renderAll();
-      queueAutosave();
+      queuePresentationAutosave();
       return;
     }
     state.itemVisibility[group] ||= {};
@@ -4594,7 +4596,7 @@ const {
     else state.itemVisibility[group][key] = false;
     markLayerTreeDirty();
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
   }
 
   function layerTreeItems(group) {
@@ -5479,7 +5481,7 @@ const {
     const visibleIds = new Set(visibleLayers.map(layer => layer.id));
     let entries;
     if (state.distributionSettings.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY) {
-      const selectedId = String(state.distributionSettings.selectedLayerId || state.selected?.type === 'distribution' && state.selected.id || '');
+      const selectedId = String(state.selectedDistributionLayerId || state.selected?.type === 'distribution' && state.selected.id || '');
       entries = visibleIds.has(selectedId) ? distributionEntriesForLayer(state.distributionEntries, selectedId) : [];
     } else {
       entries = Object.values(DISTRIBUTION_TYPES).flatMap(type => {
@@ -9308,7 +9310,7 @@ const {
     if (!layer) return false;
     state.selected = { domain: 'distribution', type: 'distribution', distributionType: layer.type, id: layer.id };
     syncObjectSelectionFromLegacy(state.selected);
-    state.distributionSettings.selectedLayerId = layer.id;
+    state.selectedDistributionLayerId = layer.id;
     showPropertyForm('distribution', layer.name, { resetScroll: !refreshOnly });
     $('distributionNameInput').value = layer.name;
     $('distributionTypeValue').textContent = DISTRIBUTION_TYPE_LABELS[layer.type] || layer.type;
@@ -9397,7 +9399,8 @@ const {
         share: Number($('distributionShareInput').value),
       });
     } catch (error) {
-      setActionStatus(error.message, 'error', 0);
+      const validationMessage = compactNotificationMessage(error?.message || '분포 정보를 검증하지 못했습니다.', { tone: 'error', maxLength: 52 });
+      setActionStatus(validationMessage, 'error', 0);
       return false;
     }
     recordHistory();
@@ -9446,7 +9449,7 @@ const {
       state.distributionLayers = state.distributionLayers.filter(candidate => candidate.id !== layer.id);
       state.distributionEntries = state.distributionEntries.filter(entry => entry.layerId !== layer.id);
       for (const child of state.distributionLayers) if (child.parentId === layer.id) child.parentId = '';
-      if (state.distributionSettings.selectedLayerId === layer.id) state.distributionSettings.selectedLayerId = '';
+      if (state.selectedDistributionLayerId === layer.id) state.selectedDistributionLayerId = '';
       markLayerTreeDirty();
       clearSelection(false);
       queueAutosave();
@@ -9470,14 +9473,13 @@ const {
   function setDistributionLayerVisible(id, visible) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
-    recordHistory();
-    layer.visible = visible !== false;
     const group = DISTRIBUTION_TYPE_GROUPS[layer.type];
     if (!state.itemVisibility[group]) state.itemVisibility[group] = {};
-    state.itemVisibility[group][layer.id] = layer.visible;
+    if (visible === false) state.itemVisibility[group][layer.id] = false;
+    else delete state.itemVisibility[group][layer.id];
     markLayerTreeDirty();
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
     return true;
   }
 
@@ -10424,7 +10426,8 @@ const {
       normalizedUnits = normalizeCountryRegions(candidateUnits, { countryExists: id => !!countryFeatureById(id) });
     } catch (error) {
       selectCountryRegion(feature.id, true);
-      setActionStatus(error.message || '영역 정보를 검증하지 못했습니다.', 'error', 0);
+      const validationMessage = compactNotificationMessage(error?.message || '영역 정보를 검증하지 못했습니다.', { tone: 'error', maxLength: 52 });
+      setActionStatus(validationMessage, 'error', 0);
       return;
     }
     recordHistory();
@@ -11092,15 +11095,11 @@ const {
         distributionEntries: value => deepClone(value || []),
         distributionSettings: value => ({
           renderMode: value?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
-          selectedLayerId: String(value?.selectedLayerId || ''),
         }),
         physicalSettings: (value, current) => normalizePhysicalSettings(value || current),
-        projection: (value, current, project) => value || project.view?.projection || current || 'globe',
         layerVisibility: (value, current) => ({ ...(current || {}), ...(value || {}) }),
         itemVisibility: value => normalizeLayerItemState(value),
         layerPresentation: value => normalizeLayerPresentation(value),
-        layerFolders: value => normalizeLayerFolderState(value),
-        view: (value, current) => clampViewZooms({ ...(current || {}), ...(value || {}) }),
       },
     });
   }
@@ -11115,8 +11114,10 @@ const {
     });
     state.distributionSettings = {
       renderMode: state.distributionSettings?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
-      selectedLayerId: distributionLayerIds.has(String(state.distributionSettings?.selectedLayerId || '')) ? String(state.distributionSettings.selectedLayerId) : '',
     };
+    state.selectedDistributionLayerId = distributionLayerIds.has(String(state.selectedDistributionLayerId || ''))
+      ? String(state.selectedDistributionLayerId)
+      : '';
     state.territorialUnits = normalizeCountryRegions(state.territorialUnits, {
       countryExists: id => !!countryFeatureById(id),
     });
@@ -11303,7 +11304,7 @@ const {
     state.layerVisibility[key] = visible;
     if (key === 'hydro') gpuMapRenderer.invalidateHydroVisibility();
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
   }
 
   const LAYER_PRESENTATION_LABELS = Object.freeze({
@@ -11344,7 +11345,6 @@ const {
 
   function updateLayerStyleFromFields() {
     const group = $('layerStyleGroupInput').value;
-    recordHistory({ type: 'layer-style', description: `${LAYER_PRESENTATION_LABELS[group] || group} 표시 스타일 변경`, affectedIds: [group] });
     state.layerPresentation = normalizeLayerPresentation({
       ...state.layerPresentation,
       styles: {
@@ -11359,7 +11359,7 @@ const {
     });
     $('layerStyleOpacityValue').textContent = `${Math.round(layerStyle(state.layerPresentation, group).opacity * 100)}%`;
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
   }
 
   function openLayerPresentation() {
@@ -11504,15 +11504,18 @@ const {
       const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readonly');
       const store = transaction.objectStore(AUTOSAVE_STORE_NAME);
       const projectRequest = store.get(AUTOSAVE_RECORD_KEY);
-      const viewRequest = store.get(AUTOSAVE_VIEW_KEY);
-      transaction.oncomplete = () => {
-        const project = projectRequest.result || null;
-        const viewRecord = viewRequest.result || null;
-        resolve(project && viewRecord
-          ? { ...project, projection: viewRecord.projection || project.projection, view: { ...(project.view || {}), ...(viewRecord.view || {}) } }
-          : project);
-      };
+      transaction.oncomplete = () => resolve(projectRequest.result || null);
       transaction.onerror = () => reject(transaction.error || new Error('자동저장 읽기 실패'));
+    });
+  }
+
+  async function readIndexedDbView() {
+    const db = await openAutosaveDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readonly');
+      const request = transaction.objectStore(AUTOSAVE_STORE_NAME).get(AUTOSAVE_VIEW_KEY);
+      transaction.oncomplete = () => resolve(request.result || null);
+      transaction.onerror = () => reject(transaction.error || new Error('보기 위치 읽기 실패'));
     });
   }
 
@@ -11591,12 +11594,17 @@ const {
     }
   }
 
-  function queueAutosave(delay = 650) {
+  function queueAutosave(delay = 650, { scope = 'document' } = {}) {
     if (!canMutateProject(state.dataReadiness)) return;
-    saveState.markContentChanged();
+    if (scope === 'presentation') saveState.markPresentationChanged();
+    else saveState.markDocumentChanged();
     saveState.setAutosave(AUTOSAVE_STATES.QUEUED);
     clearTimeout(state.autosaveTimer);
     mapWorkScheduler.scheduleIdle('autosave', () => persistAutosave(), delay);
+  }
+
+  function queuePresentationAutosave(delay = 650) {
+    queueAutosave(delay, { scope: 'presentation' });
   }
 
   function restoreLocalAutosave() {
@@ -11610,29 +11618,44 @@ const {
 
   async function restoreAutosavedProject() {
     let rejectedError = null;
+    let view = null;
+    try {
+      view = await readIndexedDbView();
+    } catch (error) {
+      console.warn('IndexedDB view restore failed', error);
+    }
     try {
       const project = await readIndexedDbProject();
       if (project) {
         assertCurrentProjectSchema(project);
-        return { project, source: 'indexeddb' };
+        return { project, source: 'indexeddb', view };
       }
     } catch (error) {
       console.warn('IndexedDB autosave rejected', error);
       rejectedError = error;
     }
     const local = restoreLocalAutosave();
-    if (!local) return { project: null, source: null, error: rejectedError };
+    if (!local) return { project: null, source: null, error: rejectedError, view };
     try {
       assertCurrentProjectSchema(local);
     } catch (error) {
       console.warn('Local autosave rejected', error);
-      return { project: null, source: null, error };
+      return { project: null, source: null, error, view };
     }
     try {
       await writeIndexedDbProject(local);
       localStorage.removeItem(STORAGE_KEY);
     } catch (_) {}
-    return { project: local, source: 'localstorage' };
+    return { project: local, source: 'localstorage', view };
+  }
+
+  function applyAutosavedView(viewRecord) {
+    if (!viewRecord || typeof viewRecord !== 'object') return false;
+    if (viewRecord.projection === 'globe' || viewRecord.projection === 'flat') state.projection = viewRecord.projection;
+    if (viewRecord.view && typeof viewRecord.view === 'object') {
+      state.view = clampViewZooms({ ...state.view, ...deepClone(viewRecord.view) });
+    }
+    return true;
   }
 
   function applyAtlasState(project, manual = false) {
@@ -11759,7 +11782,8 @@ const {
     state.territorialRelations = [];
     state.distributionLayers = [];
     state.distributionEntries = [];
-    state.distributionSettings = { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, selectedLayerId: '' };
+    state.distributionSettings = { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT };
+    state.selectedDistributionLayerId = '';
     state.distributionDraft = null;
     clearGeometryPreview(state.geometryPreview);
     state.activeSnap = null;
@@ -13640,7 +13664,7 @@ const {
       markLayerTreeDirty();
       renderLayerTree();
       renderAll();
-      queueAutosave();
+      queuePresentationAutosave();
     });
     for (const id of ['terrainPoliticalRadio', 'terrainPhysicalRadio']) $(id).addEventListener('change', event => {
       if (!event.target.checked) return;
@@ -13648,7 +13672,7 @@ const {
       markLayerTreeDirty();
       renderLayerTree();
       renderAll();
-      queueAutosave();
+      queuePresentationAutosave();
       setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
     });
     $('terrainStrengthInput').addEventListener('input', event => {
@@ -13656,7 +13680,7 @@ const {
       $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
       scheduleRender();
     });
-    $('terrainStrengthInput').addEventListener('change', () => queueAutosave());
+    $('terrainStrengthInput').addEventListener('change', () => queuePresentationAutosave());
     $('layerSearchInput')?.addEventListener('input', event => {
       state.layerSearch = event.target.value || '';
       syncSearchClearButton(event.target, $('layerSearchClearBtn'));
@@ -13689,7 +13713,6 @@ const {
         state.layerFolders[folderKey] = state.layerFolders[folderKey] === false;
         markLayerTreeDirty();
         renderLayerTree();
-        queueAutosave();
         return;
       }
       const folderButton = event.target.closest('[data-layer-folder-toggle]');
@@ -13704,7 +13727,6 @@ const {
         state.layerFolders[group] = willExpand;
         markLayerTreeDirty();
         renderLayerTree();
-        queueAutosave();
         return;
       }
       const itemButton = event.target.closest('[data-layer-item-select]');
@@ -13882,12 +13904,11 @@ const {
     ]);
     $('distributionLockedInput').addEventListener('change', event => commitDistributionMeta('locked', event.target.checked));
     $('distributionRenderModeInput').addEventListener('change', event => {
-      recordHistory();
       state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY
         ? DISTRIBUTION_RENDER_MODES.INTENSITY
         : DISTRIBUTION_RENDER_MODES.DOMINANT;
       renderDistributions();
-      queueAutosave();
+      queuePresentationAutosave();
     });
     $('layerPresentationBtn')?.addEventListener('click', openLayerPresentation);
     $('layerPresentationCloseBtn')?.addEventListener('click', closeLayerPresentation);
@@ -13895,12 +13916,11 @@ const {
     $('layerStyleOpacityInput')?.addEventListener('input', event => { $('layerStyleOpacityValue').textContent = `${event.target.value}%`; });
     for (const id of ['layerStyleOpacityInput', 'layerStyleBoundaryVisibleInput', 'layerStyleLabelsVisibleInput']) $(id)?.addEventListener('change', updateLayerStyleFromFields);
     $('distributionLayerModeInput')?.addEventListener('change', event => {
-      recordHistory({ type: 'distribution-style', description: '분포 표시 방식 변경', affectedIds: [] });
       state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT;
       if ($('distributionRenderModeInput')) $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
       syncDistributionLayerModeHint();
       renderDistributions();
-      queueAutosave();
+      queuePresentationAutosave();
     });
     $('distributionEntryList').addEventListener('click', event => {
       const button = event.target.closest('[data-distribution-entry-delete]');
@@ -14434,6 +14454,8 @@ const {
     if (navigationChanged) {
       state.view = navigationView;
       state.projection = navigationProjection;
+    } else {
+      applyAutosavedView(autosaveRestore.view);
     }
     state.layerSearch = previewSearch;
     normalizeProjectObjects();
@@ -14473,9 +14495,10 @@ const {
       setActionStatus(`${restoredLabel} 복원 완료. 고화질 지도 준비 중…`, 'success', 3600);
     } else {
       saveState.markNewProject('content:0');
-      setActionStatus(autosaveRestore.error
-        ? `이전 자동저장은 현재 스키마와 달라 열지 않았습니다. ${autosaveRestore.error.message}`
-        : '편집 준비 완료. 고화질 지도 준비 중…', autosaveRestore.error ? 'error' : 'success', autosaveRestore.error ? 0 : 3200);
+      const restoreMessage = autosaveRestore.error
+        ? compactNotificationMessage(autosaveRestore.error?.message || '현재 스키마와 다른 자동저장입니다.', { tone: 'error', maxLength: 52 })
+        : '편집 준비 완료. 고화질 지도 준비 중…';
+      setActionStatus(restoreMessage, autosaveRestore.error ? 'error' : 'success', autosaveRestore.error ? 0 : 3200);
     }
     $('engineStatus').textContent = useBuiltInMesh ? '빠른 미리보기 · 고화질 지도 준비 중' : '프로젝트 지도를 다시 구성하는 중입니다.';
     window.dispatchEvent(new CustomEvent('pandolab:editable', { detail: { useBuiltInMesh } }));
@@ -14615,6 +14638,7 @@ const {
     const autosaveRestore = await restoreAutosavedProject();
     const restored = autosaveRestore.project;
     if (restored) applySharedProjectFields(restored);
+    applyAutosavedView(autosaveRestore.view);
     state.auditPreviewCountries = window.PANDOLAB_COUNTRIES;
 
     const restoredDelta = restored?.format === 'pandolab-autosave-delta';
@@ -14684,7 +14708,8 @@ const {
     } else {
       saveState.markNewProject('content:0');
       if (autosaveRestore.error) {
-        setActionStatus(`이전 자동저장은 현재 스키마와 달라 열지 않았습니다. ${autosaveRestore.error.message}`, 'error', 0);
+        const restoreMessage = compactNotificationMessage(autosaveRestore.error?.message || '현재 스키마와 다른 자동저장입니다.', { tone: 'error', maxLength: 52 });
+        setActionStatus(restoreMessage, 'error', 0);
       } else if (gpuReady) {
         setActionStatus('고해상도 지도를 준비했습니다.', 'success');
       } else {
