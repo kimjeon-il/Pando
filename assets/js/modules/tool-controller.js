@@ -21,6 +21,8 @@ export const TOOL_DEFINITIONS = Object.freeze({
 
 const phaseStage = phase => phase === 'sources' || phase === 'donor' ? '대상 국가 선택'
   : phase === 'components' ? '영토 선택'
+    : phase === 'polygon' || phase === 'polygon-preview' ? '영역 지정'
+      : phase === 'river' ? '하천 경계'
     : phase === 'side' ? '영역 확인'
       : '경계 그리기';
 
@@ -43,9 +45,9 @@ export function toolCursorMode(tool, state, { labelPlacement = false } = {}) {
   const drawing = labelPlacement
     || ['polygon', 'line', 'river', 'lake', 'split-drawing', 'split-country-region', 'redraw-country-region', 'draw-country-region'].includes(tool)
     || (tool === 'new-country' && state.newCountryPhase === 'line')
-    || (tool === 'annex-territory' && state.annexPhase === 'line');
+    || (tool === 'annex-territory' && ['line', 'polygon'].includes(state.annexPhase));
   const candidate = (tool === 'new-country' && ['side', 'components'].includes(state.newCountryPhase))
-    || (tool === 'annex-territory' && ['side', 'components'].includes(state.annexPhase));
+    || (tool === 'annex-territory' && ['side', 'polygon-preview', 'components'].includes(state.annexPhase));
   return { country, drawing, candidate, select: !country && !drawing && !candidate };
 }
 
@@ -57,6 +59,10 @@ export function toolDraftDefinition(tool, state = {}) {
   if (!definition?.draft) return null;
   if (definition.draftPhase) {
     const phase = tool === 'new-country' ? state.newCountryPhase : tool === 'annex-territory' ? state.annexPhase : null;
+    if (tool === 'annex-territory') {
+      if (!['line', 'polygon'].includes(phase)) return null;
+      return phase === 'polygon' ? Object.freeze({ shape: 'polygon', profile: 'area' }) : definition.draft;
+    }
     if (phase !== definition.draftPhase) return null;
   }
   return definition.draft;
