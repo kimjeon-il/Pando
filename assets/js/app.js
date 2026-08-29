@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -50,6 +50,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/layer-panel-controller.js')),
   import(versionedModuleUrl('./modules/history-service.js')),
   import(versionedModuleUrl('./modules/historical-library-service.js')),
+  import(versionedModuleUrl('./modules/import-service.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -81,6 +82,14 @@ const { createConfirmModalController } = confirmModalControllerModule;
 const { createLayerPanelController } = layerPanelControllerModule;
 const { createHistoryService } = historyServiceModule;
 const { createHistoricalLibraryService } = historicalLibraryServiceModule;
+const {
+  appendImportedSourceInfo,
+  applyImportedPackageAssets,
+  createCountryImportMergePlanner,
+  createGisGeometryValidator,
+  createImportService,
+  importedCountryOverrides,
+} = importServiceModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -11774,195 +11783,23 @@ const {
     });
   }
 
-  function mergeImportedCountryProperties(existing, imported, geometry) {
-    const importedId = String(imported.properties?.editor_id || imported.id || '');
-    return {
-      type: 'Feature',
-      id: importedId,
-      properties: {
-        ...(existing?.properties || {}),
-        ...(imported.properties || {}),
-        editor_id: importedId,
-      },
-      geometry,
-    };
-  }
-
-  let gisGeometryWorker = null;
-  let gisGeometrySequence = 0;
-  const gisGeometryPending = new Map();
-  const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
-
-  function getGisGeometryWorker() {
-    if (gisGeometryWorker) return gisGeometryWorker;
-    gisGeometryWorker = new Worker(runtimeAssetUrl('workers/gis-geometry-worker.js'), { name: 'pandolab-gis-geometry' });
-    gisGeometryWorker.onmessage = event => {
-      const pending = gisGeometryPending.get(event.data?.id);
-      if (!pending) return;
-      gisGeometryPending.delete(event.data.id);
-      clearTimeout(pending.timeoutId);
-      if (event.data.ok) pending.resolve(event.data);
-      else pending.reject(new Error(event.data.error || 'GIS 지오메트리 검증에 실패했습니다.'));
-    };
-    gisGeometryWorker.onerror = event => {
-      const error = new Error(event.message || 'GIS 지오메트리 Worker 오류');
-      for (const pending of gisGeometryPending.values()) {
-        clearTimeout(pending.timeoutId);
-        pending.reject(error);
-      }
-      gisGeometryPending.clear();
-      gisGeometryWorker?.terminate();
-      gisGeometryWorker = null;
-    };
-    return gisGeometryWorker;
-  }
-
-  function validateGisCountryCollection(collection, affectedIds = null) {
-    return new Promise((resolve, reject) => {
-      const worker = getGisGeometryWorker();
-      const id = ++gisGeometrySequence;
-      const scopedIds = affectedIds
-        ? [...new Set([...affectedIds].map(String).filter(Boolean))]
-        : null;
-      const timeoutId = setTimeout(() => {
-        if (!gisGeometryPending.delete(id)) return;
-        reject(new Error('GIS 국가 경계 검사가 제한 시간 안에 끝나지 않았습니다.'));
-        const timeoutError = new Error('GIS 국가 경계 Worker가 응답하지 않아 검사를 중단했습니다.');
-        for (const pending of gisGeometryPending.values()) {
-          clearTimeout(pending.timeoutId);
-          pending.reject(timeoutError);
-        }
-        gisGeometryPending.clear();
-        gisGeometryWorker?.terminate();
-        gisGeometryWorker = null;
-      }, GIS_GEOMETRY_TIMEOUT_MS);
-      gisGeometryPending.set(id, { resolve, reject, timeoutId });
-      worker.postMessage({
-        id,
-        action: 'validate',
-        collection,
-        affectedIds: scopedIds?.length ? scopedIds : null,
-      });
-    });
-  }
-
-  async function planGisMerge(importedCountries, strategy) {
-    const clipper = window.polygonClipping;
-    if (!clipper?.union || !clipper?.difference || !clipper?.intersection) throw new Error('국가 병합 연산 엔진을 불러오지 못했습니다.');
-    const current = (state.countriesData?.features || []).map(deepClone);
-    const imported = (deepClone(importedCountries)?.features || []).map((feature, index) => {
-      feature.properties = feature.properties || {};
-      feature.properties.editor_id = featureCountryId(feature, index);
-      return feature;
-    });
-    if (!imported.length) throw new Error('병합할 국가 객체가 없습니다.');
-
-    const currentById = new Map(current.map(feature => [String(feature.properties?.editor_id || ''), feature]));
-    const importedById = new Map(imported.map(feature => [String(feature.properties?.editor_id || ''), feature]));
-    const importedIds = new Set(importedById.keys());
-    const affectedIds = new Set(importedIds);
-    const matched = [...importedIds].filter(id => currentById.has(id)).length;
-    const added = imported.length - matched;
-    const counts = { matched, added, replaced: 0, subtracted: 0, deleted: 0, overlapAreaKm2: 0, residualOverlapAreaKm2: 0 };
-    let result;
-
-    if (strategy === 'id-replace') {
-      counts.replaced = matched;
-      result = current.filter(feature => !importedIds.has(String(feature.properties?.editor_id || '')));
-      result.push(...imported.map(deepClone));
-      const unaffected = result.filter(feature => !importedIds.has(String(feature.properties?.editor_id || '')));
-      for (const incoming of imported) {
-        for (const other of unaffected) {
-          if (!boundsOverlap(geometryBounds(incoming.geometry), geometryBounds(other.geometry))) continue;
-          const overlap = normalizeClippedLandGeometry(clipper.intersection(incoming.geometry.coordinates, other.geometry.coordinates));
-          if (!overlap || multiPolygonPlanarArea(geometryMultiCoordinates(overlap)) <= 1e-8) continue;
-          counts.overlapAreaKm2 += geometryAreaKm2(overlap);
-        }
-      }
-      return {
-        countriesData: { type: 'FeatureCollection', features: result },
-        counts,
-        affectedIds: [...affectedIds],
-        canCommit: counts.overlapAreaKm2 <= 0.001,
-      };
-    }
-
-    const importedRawUnion = normalizeClippedLandGeometry(clipper.union(...imported.map(feature => feature.geometry.coordinates)));
-    if (!importedRawUnion) throw new Error('가져온 영토를 결합할 수 없습니다.');
-    result = [];
-    for (const existing of current) {
-      const id = String(existing.properties?.editor_id || '');
-      if (importedIds.has(id)) continue;
-      if (!boundsOverlap(geometryBounds(existing.geometry), geometryBounds(importedRawUnion))) {
-        result.push(existing);
-        continue;
-      }
-      const overlap = normalizeClippedLandGeometry(clipper.intersection(existing.geometry.coordinates, importedRawUnion.coordinates));
-      if (!overlap || multiPolygonPlanarArea(geometryMultiCoordinates(overlap)) <= 1e-8) {
-        result.push(existing);
-        continue;
-      }
-      counts.overlapAreaKm2 += geometryAreaKm2(overlap);
-      const remainder = normalizeClippedLandGeometry(clipper.difference(existing.geometry.coordinates, importedRawUnion.coordinates));
-      affectedIds.add(id);
-      counts.subtracted += 1;
-      if (!remainder) { counts.deleted += 1; continue; }
-      existing.geometry = remainder;
-      result.push(existing);
-    }
-    for (const incoming of imported) {
-      const id = String(incoming.properties?.editor_id || '');
-      const existing = currentById.get(id);
-      const geometry = existing
-        ? normalizeClippedLandGeometry(clipper.union(existing.geometry.coordinates, incoming.geometry.coordinates))
-        : deepClone(incoming.geometry);
-      if (!geometry) throw new Error(`${countryName(incoming)} 영토를 결합할 수 없습니다.`);
-      result.push(mergeImportedCountryProperties(existing, incoming, geometry));
-    }
-    const countriesData = { type: 'FeatureCollection', features: result };
-    counts.residualOverlapAreaKm2 = (await validateGisCountryCollection(countriesData, affectedIds)).overlapAreaKm2;
-    return { countriesData, counts, affectedIds: [...affectedIds], canCommit: counts.residualOverlapAreaKm2 <= 0.001 };
-  }
-
-  function applyGpkgAssets(metadata, overrides) {
-    const output = deepClone(overrides || {});
-    for (const asset of metadata?.countryAssets || []) {
-      if (!asset?.countryId || !asset?.base64) continue;
-      const id = String(asset.countryId);
-      output[id] = { ...(output[id] || {}), flagDataUrl: `data:${asset.mimeType || 'application/octet-stream'};base64,${asset.base64}` };
-    }
-    return output;
-  }
-
-  function importedCountryOverrides(collection) {
-    const output = {};
-    for (const feature of collection?.features || []) {
-      const properties = feature.properties || {};
-      const id = String(properties.editor_id || feature.id || '');
-      if (!id) continue;
-      const mapped = {
-        name: properties.pandolab_name || properties.editor_name || properties.editor_original_name || properties.name || id,
-        capital: properties.pandolab_capital || properties.capital || '',
-        notes: properties.pandolab_notes || properties.notes || '',
-      };
-      const explicitColor = properties.pandolab_color || properties.editor_color;
-      if (explicitColor) mapped.color = explicitColor;
-      output[id] = mapped;
-    }
-    return output;
-  }
-
-  function appendSourceInfo(previous, next) {
-    const imports = [];
-    const append = value => {
-      if (!value) return;
-      if (Array.isArray(value.imports)) imports.push(...value.imports);
-      else imports.push(value);
-    };
-    append(previous);
-    append(next);
-    return { mergedAt: new Date().toISOString(), imports };
-  }
+  const gisGeometryValidator = createGisGeometryValidator({
+    createWorker: () => new Worker(runtimeAssetUrl('workers/gis-geometry-worker.js'), { name: 'pandolab-gis-geometry' }),
+  });
+  const validateGisCountryCollection = (collection, affectedIds = null) => gisGeometryValidator.validate(collection, affectedIds);
+  const planGisMerge = createCountryImportMergePlanner({
+    clipper: window.polygonClipping,
+    clone: deepClone,
+    featureCountryId,
+    countryName,
+    geometryBounds,
+    boundsOverlap,
+    normalizeGeometry: normalizeClippedLandGeometry,
+    geometryCoordinates: geometryMultiCoordinates,
+    planarArea: multiPolygonPlanarArea,
+    areaKm2: geometryAreaKm2,
+    validateCountryCollection: validateGisCountryCollection,
+  });
 
   function applyImportedReplacement(result) {
     const packageState = result.atlasMetadata?.projectState || {};
@@ -11973,7 +11810,7 @@ const {
     const mergedState = {
       ...packageState,
       countriesData: result.countriesData,
-      countryOverrides: applyGpkgAssets(result.atlasMetadata, restoredOverrides),
+      countryOverrides: applyImportedPackageAssets(result.atlasMetadata, restoredOverrides),
       sourceInfo: result.atlasMetadata?.sourceInfo || result.sourceInfo,
     };
     applyAtlasState(mergedState, true);
@@ -11982,9 +11819,9 @@ const {
 
   function commitGisMerge(result, plan) {
     const before = snapshotEditable();
-    state.sourceInfo = appendSourceInfo(state.sourceInfo, result.sourceInfo);
+    state.sourceInfo = appendImportedSourceInfo(state.sourceInfo, result.sourceInfo);
     const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || '')));
-    const packagedOverrides = applyGpkgAssets(result.atlasMetadata, {
+    const packagedOverrides = applyImportedPackageAssets(result.atlasMetadata, {
       ...importedCountryOverrides(result.countriesData),
       ...(result.atlasMetadata?.projectState?.countryOverrides || {}),
     });
@@ -12009,60 +11846,38 @@ const {
 
   let requestedVectorTarget = '';
 
+  const importService = createImportService({
+    openImportWizard: (files, options) => {
+      if (!window.PandoLabGIS?.openImportWizard) throw new Error('GIS 가져오기 모듈을 불러오지 못했습니다.');
+      return window.PandoLabGIS.openImportWizard(files, options);
+    },
+    getWizardOptions: () => ({
+      countryOptions: gisImportCountryOptions(),
+      parentOptions: gisImportParentOptions(),
+      hasUnsavedChanges: saveState.snapshot().hasUnsavedChanges,
+      planImpact: planTerritorialImportImpact,
+    }),
+    validateStructuredGeometry,
+    featureCountryId,
+    validateCountryCollection: validateGisCountryCollection,
+    getCurrentCountries: () => state.countriesData,
+    planCountryMerge: planGisMerge,
+    materializers: {
+      replaceProject: applyImportedReplacement,
+      territorial: commitTerritorialImportWithTransfer,
+      geoJson: importGeoJson,
+      mergeCountries: commitGisMerge,
+    },
+    onStage: message => setActionStatus(message, 'working', 0),
+  });
+
   async function openGisFiles(files) {
     if (!files?.length) return;
-    if (!window.PandoLabGIS?.openImportWizard) throw new Error('GIS 가져오기 모듈을 불러오지 못했습니다.');
     const requestedTarget = requestedVectorTarget;
     requestedVectorTarget = '';
     setActionStatus('파일 확인 중…', 'working', 0);
     try {
-      const result = await window.PandoLabGIS.openImportWizard(files, {
-        targetType: requestedTarget,
-        countryOptions: gisImportCountryOptions(),
-        parentOptions: gisImportParentOptions(),
-        hasUnsavedChanges: saveState.snapshot().hasUnsavedChanges,
-        planImpact: planTerritorialImportImpact,
-      });
-      if (result.sourceKind === 'project' || result.importPlan?.sourceKind === 'project') {
-        applyImportedReplacement(result);
-        return;
-      }
-      if (['region', 'administrative'].includes(result.targetType)) {
-        await commitTerritorialImportWithTransfer(result, files[0]?.name || '벡터 파일');
-        return;
-      }
-      if (!['country', 'project'].includes(result.importPlan?.targetType || result.targetType)) {
-        const target = result.targetType === 'distribution' ? result.distributionType : result.targetType;
-        await importGeoJson(files[0], {
-          parsed: result.collection,
-          target,
-          mapping: {
-            nameField: result.mapping?.nameField || '',
-            countryField: result.mapping?.countryField || '',
-            parentField: result.mapping?.parentField || '',
-            levelField: result.mapping?.levelField || '',
-          },
-        });
-        return;
-      }
-      setActionStatus('국가 경계 확인 중…', 'working', 0);
-      const structuredIssues = (result.countriesData?.features || []).flatMap(validateStructuredGeometry);
-      if (structuredIssues.length) throw new Error(`가져온 geometry가 올바르지 않습니다. ${structuredIssues[0].message}`);
-      const importedFeatures = result.countriesData?.features || [];
-      const importedOverlapAreaKm2 = (await validateGisCountryCollection(
-        result.countriesData,
-        importedFeatures.map(featureCountryId),
-      )).overlapAreaKm2;
-      if (importedOverlapAreaKm2 > 0.001) throw new Error(`가져온 레이어 안에서 서로 다른 국가가 ${Math.round(importedOverlapAreaKm2).toLocaleString()} km² 겹칩니다.`);
-      if (result.openMode === 'replace') {
-        applyImportedReplacement(result);
-      } else {
-        const plan = await planGisMerge(result.countriesData, result.mergeStrategy);
-        if (!plan.canCommit) throw new Error(plan.counts.residualOverlapAreaKm2 > 0.001
-          ? '자동 차감 후에도 국가 간 중첩이 남아 가져올 수 없습니다.'
-          : 'ID 기준 교체 후 다른 국가와 영토가 겹쳐 가져올 수 없습니다.');
-        commitGisMerge(result, plan);
-      }
+      await importService.openFiles(files, { targetType: requestedTarget });
     } catch (error) {
       if (error?.name === 'AbortError') {
         setActionStatus('파일 불러오기를 취소했습니다.', 'ready');

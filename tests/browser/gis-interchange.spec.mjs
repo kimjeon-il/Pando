@@ -221,7 +221,7 @@ test('East Prussia imports as a complete German administrative unit and undo tre
         request.onsuccess = () => resolve(request.result || null);
         request.onerror = () => reject(request.error);
       });
-      const feature = project?.territorialUnits?.find(item => String(item.id) === 'HIST_DEU_OSTPREUSSEN_1900');
+      const feature = project?.territorialUnits?.find(item => String(item.properties?.metadata?.sourceId) === 'HIST_DEU_OSTPREUSSEN_1900');
       if (!feature) return null;
       const polygons = feature.geometry?.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry?.coordinates || [];
       const area = polygons.reduce((sum, polygon) => {

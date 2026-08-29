@@ -1,0 +1,108 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import {
+  appendImportedSourceInfo,
+  applyImportedPackageAssets,
+  createCountryImportMergePlanner,
+  createGisGeometryValidator,
+  createImportService,
+  importedCountryOverrides,
+} from '../../assets/js/modules/import-service.js';
+
+const country = (id, name = id) => ({
+  type: 'Feature',
+  id,
+  properties: { editor_id: id, editor_name: name },
+  geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] },
+});
+
+test('GIS geometry validator scopes IDs and resolves worker responses', async () => {
+  const messages = [];
+  const worker = {
+    onmessage: null,
+    onerror: null,
+    postMessage(message) {
+      messages.push(message);
+      Promise.resolve().then(() => this.onmessage({ data: { id: message.id, ok: true, overlapAreaKm2: 0 } }));
+    },
+    terminate() {},
+  };
+  const validator = createGisGeometryValidator({ createWorker: () => worker, timeoutMs: 100 });
+  const result = await validator.validate({ type: 'FeatureCollection', features: [] }, ['AAA', 'AAA', '']);
+  assert.equal(result.overlapAreaKm2, 0);
+  assert.deepEqual(messages[0].affectedIds, ['AAA']);
+  validator.dispose();
+});
+
+test('country merge planner replaces matching IDs without mutating inputs', async () => {
+  const current = { type: 'FeatureCollection', features: [country('AAA', 'Old'), country('BBB')] };
+  const imported = { type: 'FeatureCollection', features: [country('AAA', 'New')] };
+  const planner = createCountryImportMergePlanner({
+    clipper: { union() {}, difference() {}, intersection() {} },
+    clone: value => JSON.parse(JSON.stringify(value)),
+    featureCountryId: feature => feature.properties.editor_id,
+    countryName: feature => feature.properties.editor_name,
+    geometryBounds: () => [[0, 0], [1, 1]],
+    boundsOverlap: () => false,
+    normalizeGeometry: value => value,
+    geometryCoordinates: geometry => geometry?.coordinates || [],
+    planarArea: () => 0,
+    areaKm2: () => 0,
+    validateCountryCollection: async () => ({ overlapAreaKm2: 0 }),
+  });
+  const plan = await planner(current, imported, 'id-replace');
+  assert.equal(plan.canCommit, true);
+  assert.deepEqual(plan.counts, {
+    matched: 1,
+    added: 0,
+    replaced: 1,
+    subtracted: 0,
+    deleted: 0,
+    overlapAreaKm2: 0,
+    residualOverlapAreaKm2: 0,
+  });
+  assert.equal(plan.countriesData.features.find(feature => feature.id === 'AAA').properties.editor_name, 'New');
+  assert.equal(current.features[0].properties.editor_name, 'Old');
+});
+
+test('import service validates countries then delegates one materialization path', async () => {
+  const calls = [];
+  const result = {
+    targetType: 'country',
+    importPlan: { targetType: 'country' },
+    openMode: 'merge',
+    mergeStrategy: 'id-replace',
+    countriesData: { type: 'FeatureCollection', features: [country('AAA')] },
+  };
+  const service = createImportService({
+    openImportWizard: async (_files, options) => { calls.push(['wizard', options.targetType]); return result; },
+    getWizardOptions: () => ({ countryOptions: [] }),
+    validateStructuredGeometry: () => [],
+    featureCountryId: feature => feature.properties.editor_id,
+    validateCountryCollection: async (_collection, ids) => { calls.push(['validate', [...ids]]); return { overlapAreaKm2: 0 }; },
+    getCurrentCountries: () => ({ type: 'FeatureCollection', features: [] }),
+    planCountryMerge: async () => ({ canCommit: true, counts: { residualOverlapAreaKm2: 0 } }),
+    materializers: {
+      replaceProject: async () => calls.push(['replace']),
+      territorial: async () => calls.push(['territorial']),
+      geoJson: async () => calls.push(['geojson']),
+      mergeCountries: async (_imported, plan) => calls.push(['merge', plan.canCommit]),
+    },
+  });
+  const opened = await service.openFiles([{ name: 'countries.geojson' }], { targetType: 'country' });
+  assert.equal(opened.status, 'countries-merged');
+  assert.deepEqual(calls, [['wizard', 'country'], ['validate', ['AAA']], ['merge', true]]);
+});
+
+test('import package helpers preserve metadata and source history', () => {
+  const collection = { type: 'FeatureCollection', features: [country('AAA', 'Alpha')] };
+  assert.equal(importedCountryOverrides(collection).AAA.name, 'Alpha');
+  assert.equal(applyImportedPackageAssets({
+    countryAssets: [{ countryId: 'AAA', mimeType: 'image/png', base64: 'abc' }],
+  }, {}).AAA.flagDataUrl, 'data:image/png;base64,abc');
+  assert.deepEqual(appendImportedSourceInfo({ id: 'old' }, { id: 'new' }, () => 'now'), {
+    mergedAt: 'now',
+    imports: [{ id: 'old' }, { id: 'new' }],
+  });
+});

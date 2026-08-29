@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const workerSource = fs.readFileSync(path.join(root, 'assets/js/workers/gis-geometry-worker.js'), 'utf8');
 const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+const importServiceSource = fs.readFileSync(path.join(root, 'assets/js/modules/import-service.js'), 'utf8');
 
 function feature(id, coordinates) {
   return {
@@ -59,11 +60,11 @@ test('an empty scope falls back to full validation instead of silently trusting 
 });
 
 test('country import validation has a timeout and validates imported IDs before a scoped merge', () => {
-  assert.match(appSource, /const GIS_GEOMETRY_TIMEOUT_MS = 60_000/);
-  assert.match(appSource, /affectedIds: scopedIds\?\.length \? scopedIds : null/);
-  assert.match(appSource, /affectedIds\.add\(id\)/);
-  assert.match(appSource, /affectedIds: \[\.\.\.affectedIds\]/);
+  assert.match(importServiceSource, /GIS_GEOMETRY_TIMEOUT_MS = 60_000/);
+  assert.match(importServiceSource, /affectedIds: scopedIds\?\.length \? scopedIds : null/);
+  assert.match(importServiceSource, /affectedIds\.add\(id\)/);
+  assert.match(importServiceSource, /affectedIds: \[\.\.\.affectedIds\]/);
   assert.match(appSource, /markCountryGeometriesChanged\(plan\.affectedIds \|\| importedIds\)/);
-  assert.match(appSource, /importedFeatures\.map\(featureCountryId\)/);
-  assert.doesNotMatch(appSource, /importedFeatures\.length > 1/);
+  assert.match(importServiceSource, /importedFeatures\.map\(featureCountryId\)/);
+  assert.doesNotMatch(importServiceSource, /importedFeatures\.length > 1/);
 });
