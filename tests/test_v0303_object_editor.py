@@ -43,7 +43,9 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         body_index = INDEX.index('id="editorScrollBody"')
         self.assertLess(header_index, tabs_index)
         self.assertLess(tabs_index, body_index)
-        self.assertIn('class="editor-object-separator" aria-hidden="true">·</span>', INDEX)
+        self.assertNotIn('class="editor-object-separator"', INDEX)
+        self.assertIn('.editor-object-heading {', CSS)
+        self.assertIn('gap: var(--ui-space-1-5);', CSS)
         self.assertIn("document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type)", APP)
         self.assertIn("$('editSheetTitle')?.classList.toggle('hidden', !!type)", APP)
 
