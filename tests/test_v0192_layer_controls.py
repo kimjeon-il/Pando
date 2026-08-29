@@ -45,10 +45,12 @@ class V0192LayerControlTests(unittest.TestCase):
 
     def test_layer_visibility_uses_eye_icons_without_changing_checkbox_state(self):
         self.assertEqual(INDEX.count('class="layer-visibility-toggle"'), 8)
-        self.assertIn('input[type="checkbox"].layer-visibility-toggle::before', CSS)
-        self.assertIn('input[type="checkbox"].layer-visibility-toggle:checked::before', CSS)
-        self.assertIn('mask-image: url("data:image/svg+xml', CSS)
+        self.assertEqual(INDEX.count('class="layer-visibility-control"'), 8)
+        self.assertIn('symbol id="icon-eye"', INDEX)
+        self.assertIn('symbol id="icon-eye-off"', INDEX)
+        self.assertIn('.layer-visibility-control:has(.layer-visibility-toggle:not(:checked))', CSS)
         self.assertIn("visibility.className = 'layer-visibility-toggle'", APP)
+        self.assertIn("createSvgIcon(document, 'icon-eye'", APP)
         self.assertIn('function syncLayerVisibilityToggle(input)', APP)
         self.assertIn("input.dataset.tooltip = input.checked ? `${label} 숨기기` : `${label} 표시`", APP)
 

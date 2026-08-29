@@ -55,6 +55,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/map-edit-worker-client.js')),
   import(versionedModuleUrl('./modules/map-object-spatial-index.js')),
 ]);
+const { createSvgIcon } = await import(versionedModuleUrl('./modules/icon-utils.js'));
 const {
   PROJECT_SCHEMA_VERSION,
   applyProjectFields,
@@ -4978,6 +4979,25 @@ const {
     return !!ref && objectSelection.has(ref);
   }
 
+  function createLayerVisibilityControl({ group, itemId, label, checked, ariaLabel }) {
+    const control = document.createElement('label');
+    control.className = 'layer-visibility-control';
+    const visibility = document.createElement('input');
+    visibility.type = 'checkbox';
+    visibility.className = 'layer-visibility-toggle';
+    visibility.checked = checked;
+    visibility.dataset.layerItemVisibility = group;
+    visibility.dataset.itemId = itemId;
+    visibility.dataset.visibilityLabel = label;
+    visibility.setAttribute('aria-label', ariaLabel || `${label} 표시`);
+    control.append(
+      visibility,
+      createSvgIcon(document, 'icon-eye', 'ui-icon layer-visibility-icon layer-visibility-eye'),
+      createSvgIcon(document, 'icon-eye-off', 'ui-icon layer-visibility-icon layer-visibility-eye-off'),
+    );
+    return control;
+  }
+
   function syncLayerSelectionRows() {
     document.querySelectorAll('[data-layer-group][data-item-id]').forEach(row => {
       const selected = isLayerTreeItemSelected(row.dataset.layerGroup, row.dataset.itemId);
@@ -5004,15 +5024,14 @@ const {
         toggle.setAttribute('aria-expanded', String(item.expanded));
         toggle.setAttribute('aria-label', `${item.name} 폴더 ${item.expanded ? '접기' : '펼치기'}`);
         toggle.dataset.tooltip = `${item.name} 폴더 ${item.expanded ? '접기' : '펼치기'}`;
-        toggle.innerHTML = '<svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg>';
-        const visibility = document.createElement('input');
-        visibility.type = 'checkbox';
-        visibility.className = 'layer-visibility-toggle';
-        visibility.checked = isLayerItemVisible(itemGroup, item.layerItemId);
-        visibility.dataset.layerItemVisibility = itemGroup;
-        visibility.dataset.itemId = item.layerItemId;
-        visibility.dataset.visibilityLabel = item.name;
-        visibility.setAttribute('aria-label', `${item.name} 레이어 표시`);
+        toggle.append(createSvgIcon(document, 'icon-chevron-down', 'ui-icon disclosure-icon'));
+        const visibility = createLayerVisibilityControl({
+          group: itemGroup,
+          itemId: item.layerItemId,
+          label: item.name,
+          checked: isLayerItemVisible(itemGroup, item.layerItemId),
+          ariaLabel: `${item.name} 레이어 표시`,
+        });
         const name = document.createElement('button');
         name.type = 'button';
         name.className = 'ui-button layer-hydro-folder-name';
@@ -5028,7 +5047,7 @@ const {
       header.dataset.countryRegionFolderToggle = item.folderKey;
       header.setAttribute('aria-expanded', String(item.expanded));
       header.setAttribute('aria-label', `${item.name} 하위 폴더 ${item.expanded ? '접기' : '펼치기'}`);
-      header.innerHTML = '<svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg><strong></strong>';
+      header.append(createSvgIcon(document, 'icon-chevron-down', 'ui-icon disclosure-icon'), document.createElement('strong'));
       header.querySelector('strong').textContent = item.name;
       return header;
     }
@@ -5050,14 +5069,13 @@ const {
       row.querySelector('strong').textContent = item.name;
       return row;
     }
-    const visibility = document.createElement('input');
-    visibility.type = 'checkbox';
-    visibility.className = 'layer-visibility-toggle';
-    visibility.checked = isLayerItemVisible(itemGroup, item.id);
-    visibility.dataset.layerItemVisibility = itemGroup;
-    visibility.dataset.itemId = item.id;
-    visibility.dataset.visibilityLabel = item.name;
-    visibility.setAttribute('aria-label', `${item.name} 표시`);
+    const visibility = createLayerVisibilityControl({
+      group: itemGroup,
+      itemId: item.id,
+      label: item.name,
+      checked: isLayerItemVisible(itemGroup, item.id),
+      ariaLabel: `${item.name} 표시`,
+    });
     const name = document.createElement('button');
     name.type = 'button';
     name.className = 'ui-button layer-child-name';
@@ -5075,7 +5093,7 @@ const {
     menuButton.setAttribute('aria-controls', 'objectActionsMenu');
     menuButton.setAttribute('aria-expanded', 'false');
     menuButton.dataset.tooltip = `${item.name} 메뉴`;
-    menuButton.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-more"/></svg>';
+    menuButton.append(createSvgIcon(document, 'icon-more'));
     row.append(visibility, name);
     if (item.meta) {
       const detail = document.createElement('span');
@@ -10018,7 +10036,7 @@ const {
       remove.className = 'ui-button icon-btn distribution-entry-delete';
       remove.dataset.distributionEntryDelete = entry.id;
       remove.setAttribute('aria-label', `${distributionEntryLabel(entry)} 분포 삭제`);
-      remove.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg>';
+      remove.append(createSvgIcon(document, 'icon-trash'));
       remove.disabled = layer.locked;
       row.append(label, remove);
       fragment.appendChild(row);
