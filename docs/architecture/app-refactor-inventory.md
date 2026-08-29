@@ -32,3 +32,35 @@ This inventory fixes the Phase 06 extraction boundaries before code is moved. It
 6. Keep `app.js` as the composition root and remove wrappers only after all call sites use the new boundary.
 
 The following dependencies are intentionally one-way: UI controller → application service → scoped state command → pure model/geometry utility. Persistence and renderer orchestration receive selectors, never the mutable project object as an ambient global.
+
+## Phase 06 implemented boundaries
+
+The inventory above records the pre-extraction responsibility map. Phase 06 keeps `app.js` as the browser composition root, but the following behavior now lives behind explicit, independently tested boundaries.
+
+| Boundary | Owns | Does not own |
+| --- | --- | --- |
+| `project-serializer.js` | current project and autosave materialization | browser storage, UI |
+| `persistence-service.js` | IndexedDB/local fallback, autosave queues, view record | document mutation, DOM |
+| `physical-layer-service.js` | terrain and hydro manifest/retry lifecycle | renderer internals, project objects |
+| `territorial-service.js` | territorial metadata and geometry transaction commands | form values, DOM |
+| `distribution-service.js` | distribution layer/entry CRUD and validation | drawing objects, UI rendering |
+| `drawing-service.js` | custom drawing CRUD and semantics | hydro objects, UI rendering |
+| `history-service.js` | bounded document undo/redo snapshots and metadata | draft-local history, project serialization |
+| `import-service.js` | GIS staging result routing, strict country validation, merge planning | wizard DOM, status presentation |
+| `historical-library-service.js` | load/query/descendant expansion/instance descriptors | modal DOM, canonical project mutation |
+| `map-render-coordinator.js` | full/view render order and render revision scheduling | canonical document mutation |
+| `map-edit-worker-client.js` | rebase/patch/execute protocol, revision rejection, cancellation | applying results to the document |
+| UI controllers | tooltip, confirm modal, layer panel, historical-library modal lifecycle | raw workers, geometry/domain mutation rules |
+
+The composition root wires selectors and commands into these boundaries, owns startup and fatal error handling, and retains the existing high-coupling interaction/editor workflows that were not safe to rewrite in a behavior-neutral packet. Between the Phase 05 checkpoint (`3eee576`) and the completed Phase 06 extraction, `app.js` dropped from 14,735 to about 13,940 lines while moving 1,400 existing lines out of the file; dependency wiring added roughly 600 explicit lines in their place.
+
+## Enforced dependency checks
+
+`pnpm check:architecture` now fails when:
+
+- an `assets/js/modules` static-import cycle is introduced;
+- a domain/application service starts querying the DOM;
+- IndexedDB or localStorage writes bypass `persistence-service.js`;
+- `app.js` reintroduces the raw map-edit Worker execute protocol.
+
+The remaining direct Worker calls in `app.js` are intentionally limited to the country-label anchor and map-audit application facades. GIS country validation is confined to `import-service.js`; political mesh and hydro Worker traffic remains inside the renderer. The debug-only `localStorage.getItem('atlaswright.debug-map')` read is a session preference and is not project persistence.
