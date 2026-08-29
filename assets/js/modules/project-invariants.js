@@ -1,3 +1,5 @@
+import { normalizeTemporalInterval } from './temporal.js';
+
 const text = value => String(value ?? '').trim();
 const POLYGON_TYPES = new Set(['Polygon', 'MultiPolygon']);
 const DISTRIBUTION_MODES = new Set(['region', 'geometry']);
@@ -100,6 +102,8 @@ export function validateProjectReferenceIntegrity({
     if (parentCycle(id, unitById, row => row?.properties?.parentId)) {
       issues.push(issue('PL-INV-PARENT-CYCLE', `${id}의 상위 영역 관계가 순환합니다.`, [id], 'parentId'));
     }
+    try { normalizeTemporalInterval(feature?.properties?.validFrom, feature?.properties?.validTo); }
+    catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }
   }
 
   for (const relation of territorialRelations || []) {
@@ -116,6 +120,8 @@ export function validateProjectReferenceIntegrity({
     if (sovereignId && !countryIds.has(sovereignId)) {
       issues.push(issue('PL-INV-MISSING-RELATION-SOVEREIGN', `${id || unitId}의 주권 국가 ${sovereignId}이 존재하지 않습니다.`, [id, unitId, sovereignId], 'sovereignId'));
     }
+    try { normalizeTemporalInterval(relation?.validFrom, relation?.validTo); }
+    catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id || unitId}의 유효기간이 올바르지 않습니다. ${error.message}`, [id, unitId], 'validFrom')); }
   }
 
   const layerById = new Map((distributionLayers || []).map(layer => [text(layer?.id), layer]).filter(([id]) => id));
@@ -135,6 +141,8 @@ export function validateProjectReferenceIntegrity({
     if (parentCycle(id, layerById, row => row?.parentId)) {
       issues.push(issue('PL-INV-DIST-PARENT-CYCLE', `${id}의 분포 레이어 상위 관계가 순환합니다.`, [id], 'parentId'));
     }
+    try { normalizeTemporalInterval(layer?.validFrom, layer?.validTo); }
+    catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }
   }
 
   for (const entry of distributionEntries || []) {
@@ -152,6 +160,8 @@ export function validateProjectReferenceIntegrity({
     if (!Number.isFinite(share) || share < 0 || share > 100) {
       issues.push(issue('PL-INV-DIST-SHARE', `${id}의 비율이 0~100 범위를 벗어났습니다.`, [id], 'share'));
     }
+    try { normalizeTemporalInterval(entry?.validFrom, entry?.validTo); }
+    catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }
     if (mode === 'region') {
       const regionId = text(entry?.regionId);
       if (!territorialIds.has(regionId)) {

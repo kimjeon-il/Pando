@@ -18,6 +18,11 @@
   const clone = value => value == null ? value : structuredClone(value);
   const text = value => String(value ?? '').trim();
   const polygonGeometry = geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type) ? clone(geometry) : null;
+  const distributionShare = value => {
+    const share = Number(value);
+    if (!Number.isFinite(share) || share < 0 || share > 100) throw new Error('분포 비율은 0~100 범위의 숫자여야 합니다.');
+    return share;
+  };
   const parseJson = (value, fallback = {}) => {
     if (!value) return clone(fallback);
     try {
@@ -57,7 +62,7 @@
         parent_id: text(properties.parentId),
         sovereign_id: text(properties.sovereignId),
         admin_level: unitType === 'admin' ? Number(properties.adminLevel ?? 1) : null,
-        status: text(properties.status) || 'assigned',
+        is_remainder: properties.isRemainder === true ? 1 : 0,
         valid_from: text(properties.validFrom),
         valid_to: text(properties.validTo),
         color: text(properties.style?.color),
@@ -93,7 +98,7 @@
         layer_locked: layer.locked === true ? 1 : 0,
         source_mode: sourceMode,
         region_id: sourceMode === 'region' ? text(entry.regionId) : '',
-        share: Math.max(0, Math.min(100, Number(entry.share) || 0)),
+        share: distributionShare(entry.share),
         certainty: text(entry.certainty) || 'unknown',
         valid_from: text(entry.validFrom),
         valid_to: text(entry.validTo),
@@ -124,7 +129,7 @@
         sovereignId: text(properties.sovereign_id ?? currentProperties.sovereignId),
         adminLevel: unitType === 'admin' ? Math.max(1, Number(properties.admin_level ?? currentProperties.adminLevel ?? 1)) : null,
         coverageMode: unitType === 'region' ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
-        status: text(properties.status ?? currentProperties.status) || 'assigned',
+        isRemainder: Number(properties.is_remainder ?? (currentProperties.isRemainder ? 1 : 0)) === 1,
         validFrom: text(properties.valid_from ?? currentProperties.validFrom) || null,
         validTo: text(properties.valid_to ?? currentProperties.validTo) || null,
         style: {
@@ -167,7 +172,7 @@
         mode: sourceMode,
         regionId: sourceMode === 'region' ? text(properties.region_id) : '',
         geometry: sourceMode === 'geometry' ? geometry : null,
-        share: Math.max(0, Math.min(100, Number(properties.share) || 0)),
+        share: distributionShare(properties.share),
         certainty: text(properties.certainty) || 'unknown',
         validFrom: text(properties.valid_from) || null,
         validTo: text(properties.valid_to) || null,

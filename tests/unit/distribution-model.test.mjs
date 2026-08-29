@@ -44,3 +44,11 @@ test('distribution normalization rejects legacy aliases and duplicate IDs', () =
     id: 'entry', schemaVersion: DISTRIBUTION_SCHEMA_VERSION, layer_id: 'same', mode: 'geometry', geometry: square,
   }]), /레이어 ID가 비어/);
 });
+
+test('invalid distribution shares fail instead of being clamped or defaulted', () => {
+  const base = { id: 'entry', layerId: 'layer', mode: DISTRIBUTION_MODES.GEOMETRY, geometry: square };
+  assert.throws(() => createDistributionEntry({ ...base, share: Number.NaN }), /유한한 숫자/);
+  assert.throws(() => createDistributionEntry({ ...base, share: -0.1 }), /0~100/);
+  assert.throws(() => createDistributionEntry({ ...base, share: 100.1 }), /0~100/);
+  assert.equal(createDistributionEntry({ ...base, share: 0 }).share, 0);
+});

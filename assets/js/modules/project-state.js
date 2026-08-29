@@ -81,9 +81,10 @@ export function assertCurrentProjectSchema(project) {
   for (const feature of project.territorialUnits || []) {
     requireSchemaVersion(feature?.properties?.schemaVersion, `영역 ${text(feature?.id)}`);
     rejectAliases(feature?.properties, [
-      'kind', 'type', 'countryId', 'country_id', 'sovereign_id', 'parentRegionId', 'parent_id', 'parent_region_id',
+      'kind', 'type', 'status', 'countryId', 'country_id', 'sovereign_id', 'parentRegionId', 'parent_id', 'parent_region_id',
       'valid_from', 'valid_to', 'source_folder_id', 'source_library_id', 'source_geometry_version', 'editorColor', 'color',
     ], `영역 ${text(feature?.id)}`);
+    if (typeof feature?.properties?.isRemainder !== 'boolean') throw schemaError(`영역 ${text(feature?.id)}에 isRemainder가 없습니다.`, 'PL-SCHEMA-REMAINDER');
   }
   for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`);
   for (const layer of project.distributionLayers || []) {

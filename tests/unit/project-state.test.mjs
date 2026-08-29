@@ -52,7 +52,7 @@ const currentProject = () => ({
   distributionModel: { schemaVersion: 1 },
   territorialUnits: [{
     type: 'Feature', id: uuid(1),
-    properties: { schemaVersion: 1, unitType: 'territory' },
+    properties: { schemaVersion: 1, unitType: 'territory', isRemainder: false },
     geometry: { type: 'Polygon', coordinates: [] },
   }],
   territorialRelations: [{ id: uuid(2), schemaVersion: 1 }],
@@ -87,4 +87,7 @@ test('missing duplicate and legacy object identifiers are rejected', () => {
   const legacy = currentProject();
   legacy.territorialUnits[0].properties.country_id = 'PL';
   assert.throws(() => assertCurrentProjectSchema(legacy), /과거 필드 country_id/);
+  const statusAlias = currentProject();
+  statusAlias.territorialUnits[0].properties.status = 'unassigned';
+  assert.throws(() => assertCurrentProjectSchema(statusAlias), /과거 필드 status/);
 });
