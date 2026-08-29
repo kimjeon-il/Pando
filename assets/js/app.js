@@ -1273,7 +1273,7 @@ const {
     const types = [...new Set(selection.items.map(item => objectDisplayInfo(item).type))];
     showPropertyForm('multi', `${selection.items.length}개 선택됨`, { resetScroll: false });
     if ($('multiPropertiesCount')) $('multiPropertiesCount').textContent = `${selection.items.length}개 선택됨`;
-    if ($('multiPropertiesTypes')) $('multiPropertiesTypes').textContent = types.join(' · ');
+    if ($('multiPropertiesTypes')) $('multiPropertiesTypes').textContent = types.join(', ');
   }
 
   function syncSelectionSummary(selection = objectSelection.snapshot()) {
@@ -1289,7 +1289,7 @@ const {
     document.body.classList.toggle('multi-selection-active', multiple);
     if (multiple) {
       const types = [...new Set(selection.items.map(item => objectDisplayInfo(item).type))];
-      if ($('selectionStatus')) $('selectionStatus').textContent = `${count}개 선택됨 · ${types.join(', ')}`;
+      if ($('selectionStatus')) $('selectionStatus').textContent = `${count}개 선택됨 ${types.join(', ')}`;
       renderMultiSelectionEditor(selection);
     }
     syncBatchActionAvailability();
@@ -9574,7 +9574,7 @@ const {
     $('multiProperties')?.classList.toggle('hidden', type !== 'multi');
     $('propertyTitle').textContent = type ? String(title || '') : '';
     if ($('propertyTypeLabel')) $('propertyTypeLabel').textContent = type ? PROPERTY_TYPE_LABELS[type] || type : '';
-    const fullTitle = type ? `${String(title || '')} · ${PROPERTY_TYPE_LABELS[type] || type}` : '';
+    const fullTitle = type ? `${String(title || '')}, ${PROPERTY_TYPE_LABELS[type] || type}` : '';
     document.querySelector('.editor-object-heading')?.setAttribute('aria-label', fullTitle);
     if (type) syncObjectActionsMenu();
     else closeObjectActionsMenu();

@@ -3386,7 +3386,7 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 :is(.editor-view-tabs, .map-panel-tabs) .ui-tab.active::after,
 :is(.editor-view-tabs, .map-panel-tabs) .ui-tab[aria-selected="true"]::after { opacity: 1; transform: translateX(-50%) scaleX(1); }
 .editor-object-header { display: flex; align-items: center; gap: var(--ui-space-2); }
-.editor-object-heading { min-width: 0; flex: 1 1 auto; display: flex; align-items: baseline; gap: var(--ui-space-1); overflow: hidden; }
+.editor-object-heading { min-width: 0; flex: 1 1 auto; display: flex; align-items: baseline; gap: var(--ui-space-1-5); overflow: hidden; }
 .editor-object-heading h2 { min-width: 0; flex: 0 1 auto; }
 .editor-object-heading > span { flex: 0 0 auto; color: var(--muted); font-size: var(--ui-font-md); }
 .editor-object-actions { display: flex; gap: var(--ui-space-1); }
