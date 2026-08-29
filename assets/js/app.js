@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule, historicalLibraryControllerModule, mapEditWorkerClientModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -37,8 +37,63 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/object-selection-controller.js')),
   import(versionedModuleUrl('./modules/layer-presentation.js')),
   import(versionedModuleUrl('./modules/save-state-controller.js')),
+  import(versionedModuleUrl('./modules/color-adapter.js')),
+  import(versionedModuleUrl('./modules/project-serializer.js')),
+  import(versionedModuleUrl('./modules/persistence-service.js')),
+  import(versionedModuleUrl('./modules/physical-layer-service.js')),
+  import(versionedModuleUrl('./modules/territorial-service.js')),
+  import(versionedModuleUrl('./modules/distribution-service.js')),
+  import(versionedModuleUrl('./modules/drawing-service.js')),
+  import(versionedModuleUrl('./modules/map-render-coordinator.js')),
+  import(versionedModuleUrl('./modules/tooltip-controller.js')),
+  import(versionedModuleUrl('./modules/confirm-modal-controller.js')),
+  import(versionedModuleUrl('./modules/layer-panel-controller.js')),
+  import(versionedModuleUrl('./modules/history-service.js')),
+  import(versionedModuleUrl('./modules/historical-library-service.js')),
+  import(versionedModuleUrl('./modules/import-service.js')),
+  import(versionedModuleUrl('./modules/historical-library-controller.js')),
+  import(versionedModuleUrl('./modules/map-edit-worker-client.js')),
 ]);
-const { applyProjectFields, pickProjectFields } = projectStateModule;
+const {
+  PROJECT_SCHEMA_VERSION,
+  applyProjectFields,
+  assertCurrentProjectSchema,
+  createProjectObjectId,
+  pickProjectFields,
+} = projectStateModule;
+const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
+const { createProjectSerializer, restoreCountriesFromDelta } = projectSerializerModule;
+const { createBrowserProjectStorage, createPersistenceService } = persistenceServiceModule;
+const { createHydroService, createTerrainService } = physicalLayerServiceModule;
+const { createTerritorialApplicationService } = territorialServiceModule;
+const { createDistributionService } = distributionServiceModule;
+const {
+  DRAWING_CATEGORY_RULES,
+  DRAWING_ROLE_LABELS,
+  DRAWING_SCHEMA_VERSION,
+  createDrawingService,
+  drawingGeometryKind,
+  drawingLandBinding,
+  drawingRole,
+  normalizeDrawingCollection,
+  normalizeDrawingSemantics,
+} = drawingServiceModule;
+const { createMapRenderCoordinator } = mapRenderCoordinatorModule;
+const { createTooltipController } = tooltipControllerModule;
+const { createConfirmModalController } = confirmModalControllerModule;
+const { createLayerPanelController } = layerPanelControllerModule;
+const { createHistoryService } = historyServiceModule;
+const { createHistoricalLibraryService } = historicalLibraryServiceModule;
+const {
+  appendImportedSourceInfo,
+  applyImportedPackageAssets,
+  createCountryImportMergePlanner,
+  createGisGeometryValidator,
+  createImportService,
+  importedCountryOverrides,
+} = importServiceModule;
+const { createHistoricalLibraryController } = historicalLibraryControllerModule;
+const { createMapEditWorkerClient } = mapEditWorkerClientModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -52,20 +107,16 @@ const { DATA_READINESS, READINESS_EVENTS, canMutateProject, transitionDataReadin
 const { runCountryEditTransaction } = countryEditTransactionModule;
 const {
   TERRITORIAL_COVERAGE_MODES,
-  TERRITORIAL_STATUS,
   TERRITORIAL_UNIT_TYPES,
   changeParent,
   changeSovereign,
   changeUnitType,
   createTerritorialFeature,
   createTerritorialRepository,
-  migrateLegacyCountryRegions,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
-  runTerritorialTransaction,
   territorialChildren,
   territorialSiblings,
-  validateTerritorialRelations,
 } = territorialUnitsModule;
 const {
   DISTRIBUTION_SCHEMA_VERSION,
@@ -76,40 +127,33 @@ const {
   createDistributionLayer,
   distributionEntriesForLayer,
   dominantDistributionEntries,
-  migrateThematicDrawings,
   normalizeDistributionEntries,
   normalizeDistributionLayers,
   validateDistributionModel,
 } = distributionModelModule;
 const {
   LIBRARY_ENTITY_TYPES,
-  createCurrentCountryLibraryEntities,
-  createHistoricalLibrary,
-  instantiateLibraryEntity,
-  materializePilotEntities,
   selectGeometryVersion,
 } = historicalLibraryModule;
 const COUNTRY_REGION_KINDS = Object.freeze({
   REGION: TERRITORIAL_UNIT_TYPES.TERRITORY,
   ADMINISTRATIVE: TERRITORIAL_UNIT_TYPES.ADMIN,
 });
-const COUNTRY_REGION_STATUS = TERRITORIAL_STATUS;
 const countryRegionChildren = territorialChildren;
 const countryRegionSiblings = territorialSiblings;
 const normalizeCountryRegions = normalizeTerritorialUnits;
-const runCountryRegionTransaction = runTerritorialTransaction;
-const validateCountryRegionRelations = validateTerritorialRelations;
 const createCountryRegionFeature = options => createTerritorialFeature({
   id: options.id,
   unitType: options.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? TERRITORIAL_UNIT_TYPES.ADMIN : TERRITORIAL_UNIT_TYPES.TERRITORY,
   parentId: options.parentRegionId || options.countryId || '',
   sovereignId: options.countryId || '',
-  status: options.status,
+  isRemainder: options.isRemainder === true,
   coverageMode: TERRITORIAL_COVERAGE_MODES.PARTITION,
   adminLevel: options.level,
   name: options.name,
   color: options.color,
   notes: options.notes,
+  metadata: options.metadata,
   sourceFolderId: options.sourceFolderId,
   geometry: options.geometry,
 });
@@ -244,21 +288,9 @@ const {
     globe: Object.freeze({ min: 0.72, max: 32 }),
     flat: Object.freeze({ min: 0.75, max: 64 }),
   });
-  const TERRAIN_TOOL_CONFIG = Object.freeze({
+  const HYDRO_TOOL_CONFIG = Object.freeze({
     river: Object.freeze({ geometry: 'LineString', category: 'river', label: '강', color: '#3b82c4', prefix: 'river' }),
     lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
-  });
-  const DRAWING_SCHEMA_VERSION = 1;
-  const DRAWING_CATEGORY_RULES = Object.freeze({
-    river: Object.freeze({ role: 'hydro', geometry: 'line', binding: 'none', label: '강' }),
-    lake: Object.freeze({ role: 'hydro', geometry: 'polygon', binding: 'none', label: '호수' }),
-    ethnicity: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '민족' }),
-    religion: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '종교' }),
-    language: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '언어' }),
-    custom: Object.freeze({ role: 'custom', geometry: 'any', binding: 'none', label: '사용자 정의' }),
-  });
-  const DRAWING_ROLE_LABELS = Object.freeze({
-    hydro: '수계', thematic: '주제 영역', custom: '사용자 정의',
   });
   const HYDRO_LAYER_META = Object.freeze({
     rivers_hydro: Object.freeze({ label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS', category: 'river', color: '#3b82c4' }),
@@ -328,12 +360,12 @@ const {
     if (state?.selected?.type === 'country') {
       const id = String(state.selected.id);
       const feature = countryFeatureById(id);
-      const hasExplicitColor = !!(state.countryOverrides[id]?.color || feature?.properties?.editor_color);
-      if (!hasExplicitColor && $('countryColorInput')) $('countryColorInput').value = defaultCountryColor();
+      const color = readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override: state.countryOverrides[id] }, { fallback: defaultCountryColor() });
+      if (color.isDefault && $('countryColorInput')) $('countryColorInput').value = color.value;
       syncColorPicker('country', {
-        value: state.countryOverrides[id]?.color || feature?.properties?.editor_color || defaultCountryColor(),
+        value: color.value,
         defaultColor: defaultCountryColor(),
-        isDefault: !hasExplicitColor,
+        isDefault: color.isDefault,
       });
     }
     if (svg) {
@@ -357,72 +389,18 @@ const {
   }
   const selectController = createSelectController({ document, window });
   selectController.enhanceAll();
-
-  function hideUiTooltip() {
-    const tooltip = $('uiTooltip');
-    if (!tooltip) return;
-    const ownerId = tooltip.dataset.ownerId;
-    if (ownerId) $(ownerId)?.removeAttribute('aria-describedby');
-    tooltip.classList.add('hidden');
-    tooltip.setAttribute('aria-hidden', 'true');
-    tooltip.textContent = '';
-    delete tooltip.dataset.ownerId;
-  }
-
-  function showUiTooltip(target) {
-    if (!target || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    const text = String(target.dataset.tooltip || '').trim();
-    const tooltip = $('uiTooltip');
-    if (!text || !tooltip) return;
-    if (!target.id) target.id = `ui-tooltip-owner-${Math.random().toString(36).slice(2, 9)}`;
-    tooltip.textContent = text;
-    tooltip.dataset.ownerId = target.id;
-    tooltip.classList.remove('hidden');
-    tooltip.setAttribute('aria-hidden', 'false');
-    target.setAttribute('aria-describedby', 'uiTooltip');
-    const targetRect = target.getBoundingClientRect();
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const edge = 8;
-    const left = clamp(targetRect.left + targetRect.width / 2 - tooltipRect.width / 2, edge, window.innerWidth - tooltipRect.width - edge);
-    const preferredTop = targetRect.bottom + edge;
-    const top = preferredTop + tooltipRect.height <= window.innerHeight - edge
-      ? preferredTop
-      : Math.max(edge, targetRect.top - tooltipRect.height - edge);
-    tooltip.style.left = `${Math.round(left)}px`;
-    tooltip.style.top = `${Math.round(top)}px`;
-  }
-
-  function bindUiTooltips() {
-    document.addEventListener('pointerover', event => {
-      if (event.pointerType && event.pointerType !== 'mouse') return;
-      const target = event.target.closest?.('[data-tooltip]');
-      if (target && !target.contains(event.relatedTarget)) showUiTooltip(target);
-    });
-    document.addEventListener('pointerout', event => {
-      const target = event.target.closest?.('[data-tooltip]');
-      if (target && !target.contains(event.relatedTarget)) hideUiTooltip();
-    });
-    document.addEventListener('focusin', event => {
-      const target = event.target.closest?.('[data-tooltip]');
-      if (target && document.documentElement.classList.contains('keyboard-navigation')) showUiTooltip(target);
-    });
-    document.addEventListener('focusout', event => {
-      if (event.target.closest?.('[data-tooltip]')) hideUiTooltip();
-    });
-    document.addEventListener('scroll', hideUiTooltip, true);
-    window.addEventListener('resize', hideUiTooltip);
-  }
+  const tooltipController = createTooltipController({
+    document,
+    window,
+    tooltip: $('uiTooltip'),
+    clamp: (value, minimum, maximum) => clamp(value, minimum, maximum),
+  });
+  const bindUiTooltips = () => tooltipController.bind();
 
   function syncSearchClearButton(input, button) {
     button?.classList.toggle('hidden', !String(input?.value || '').length);
   }
 
-  function syncCountriesLockControl() {
-    const input = $('countriesLocked');
-    const control = input?.closest('.ui-icon-toggle');
-    control?.setAttribute('aria-pressed', String(!!input?.checked));
-    if (control) control.dataset.tooltip = input?.checked ? '국가 레이어 잠금 해제' : '국가 레이어 잠금';
-  }
   function runtimeAssetUrl(relativePath) {
     const url = new URL(relativePath, PANDOLAB_ASSET_BASE_URL);
     url.searchParams.set('v', ASSET_REVISION);
@@ -431,22 +409,22 @@ const {
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection', 'uiTooltip',
     'mapPanelTabs', 'mapLayersTabBtn', 'mapViewTabBtn', 'layerSection', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
-    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'debugMapPanel', 'countryAreaValue',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
-    'drawingNameInput', 'drawingFolderInput', 'drawingColorInput', 'drawingCategoryInput', 'drawingNotesInput',
+    'drawingNameInput', 'drawingColorInput', 'drawingNotesInput',
     'drawingLandRelationSection', 'drawingOwnerField', 'drawingOwnerInput', 'drawingParentField', 'drawingParentInput', 'drawingLandBindingField', 'drawingLandBindingInput', 'drawingRoleHelp',
     'drawingLandActionsSection', 'splitDrawingBtn', 'mergeDrawingBtn', 'syncDrawingCoastBtn', 'editDrawingCoastBtn', 'applyDrawingToCountryBtn', 'promoteDrawingToCountryBtn', 'drawingRoleValue', 'drawingTopologyValue',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue', 'deleteLabelBtn',
     'editorScrollBody', 'editorObjectHeader', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'actionsTabBtn', 'objectActionsBtn', 'objectActionsMenu',
     'countryProperties', 'regionProperties', 'administrativeProperties', 'historicalRegionProperties', 'distributionProperties', 'regionNameConflict', 'administrativeNameConflict', 'historicalRegionNameConflict', 'historicalRegionNameInput', 'historicalRegionCountryInput', 'historicalRegionParentInput', 'historicalRegionColorInput', 'historicalRegionValidFromInput', 'historicalRegionValidToInput', 'historicalRegionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionRegionInput', 'distributionShareInput', 'addRegionDistributionBtn', 'addGeometryDistributionBtn', 'deleteDistributionBtn', 'drawingProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeRegionTypeBtn', 'changeAdministrativeTypeBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
-    'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'copyHydroBtn',
+    'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn', 'deleteHydroEditBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
-    'multiSelectionBar', 'multiSelectionCount', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
+    'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn',
     'gisTargetCountry', 'gisParentRegion', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibrarySearchClearBtn', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
@@ -489,7 +467,7 @@ const {
     return countries;
   }
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-  const terrainToolConfig = tool => TERRAIN_TOOL_CONFIG[tool] || null;
+  const hydroToolConfig = tool => HYDRO_TOOL_CONFIG[tool] || null;
   const draftToolConfig = tool => toolDraftDefinition(tool, state);
   const isPolygonDraftTool = tool => draftToolConfig(tool)?.shape === 'polygon';
   const isLineDraftTool = tool => draftToolConfig(tool)?.shape === 'line';
@@ -500,7 +478,7 @@ const {
     view.flatZoom = clamp(Number(view.flatZoom) || 1, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
     return view;
   };
-  const uid = (prefix = 'obj') => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const uid = () => createProjectObjectId();
   const detectLayoutMode = () => LAYOUT_QUERIES.mobile.matches ? 'mobile' : LAYOUT_QUERIES.compact.matches ? 'compact' : 'wide';
   let layoutMode = detectLayoutMode();
   let mapPanelView = 'layers';
@@ -928,7 +906,7 @@ const {
   }
 
   function syncMobileNavigation() {
-    const adding = state?.tool === 'new-country' || !!terrainToolConfig(state?.tool) || state?.labelPlacementMode || state?.tool === 'label';
+    const adding = state?.tool === 'new-country' || !!hydroToolConfig(state?.tool) || state?.labelPlacementMode || state?.tool === 'label';
     $('mobileCreateBtn')?.classList.toggle('active', !!adding || isCreateMenuOpen());
     $('createMenuBtn')?.classList.toggle('active', !!adding);
     $('addCountryBtn')?.classList.toggle('active', state?.tool === 'new-country');
@@ -938,24 +916,13 @@ const {
     $('mobileEditBtn')?.classList.toggle('needs-attention', !!state?.selected && !surfaceState.editorOpen);
   }
 
-  let renderQueued = false;
-  let viewRenderQueued = false;
+  let mapRenderCoordinator = null;
   function scheduleRender() {
-    if (renderQueued) return;
-    renderQueued = true;
-    requestAnimationFrame(() => {
-      renderQueued = false;
-      renderAll();
-    });
+    return mapRenderCoordinator?.scheduleFull() || false;
   }
 
   function scheduleViewRender() {
-    if (viewRenderQueued) return;
-    viewRenderQueued = true;
-    requestAnimationFrame(() => {
-      viewRenderQueued = false;
-      renderViewFrame();
-    });
+    return mapRenderCoordinator?.scheduleView() || false;
   }
 
   const mapWorkScheduler = (() => {
@@ -1005,18 +972,16 @@ const {
     labels: [],
     labelSettings: {},
     drawings: [],
+    hydroEdits: [],
     territorialUnits: [],
     territorialRelations: [],
     distributionLayers: [],
     distributionEntries: [],
-    distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, selectedLayerId: '' },
+    distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT },
+    selectedDistributionLayerId: '',
     layerPresentation: normalizeLayerPresentation(),
-    historicalLibrary: null,
-    historicalLibrarySelectedId: '',
-    historicalLibraryLoadState: 'idle',
-    drawingFolders: [],
     selected: null,
-    selectionMode: false,
+    addSelectionMode: false,
     projection: 'globe',
     layerVisibility: {
       countries: true,
@@ -1026,6 +991,7 @@ const {
       languages: true,
       ethnicities: true,
       religions: true,
+      hydro: true,
       drawings: true,
       labels: true,
       basemapLabels: true,
@@ -1056,18 +1022,7 @@ const {
       languages: {},
       ethnicities: {},
       religions: {},
-      drawings: {},
-      labels: {},
-      countryLabels: {},
-    },
-    removedLayerItems: {
-      countries: {},
-      regions: {},
-      administrative: {},
-      historicalRegions: {},
-      languages: {},
-      ethnicities: {},
-      religions: {},
+      hydro: {},
       drawings: {},
       labels: {},
       countryLabels: {},
@@ -1081,12 +1036,12 @@ const {
       ethnicities: false,
       religions: false,
       terrain: false,
+      hydro: false,
       drawings: false,
       labels: false,
       countryLabels: false,
     },
     layerSearch: '',
-    countriesLocked: false,
     tool: 'select',
     labelPlacementMode: false,
     coastEditCountryId: null,
@@ -1149,7 +1104,6 @@ const {
     future: [],
     historyMeta: [],
     futureMeta: [],
-    autosaveTimer: null,
     lastSavedAt: null,
     contentToken: 'content:0',
     view: {
@@ -1175,15 +1129,13 @@ const {
     onChange: selection => {
       const primary = selection.items.find(item => item.key === selection.primaryKey) || null;
       state.selected = primary ? legacySelectionFromObjectRef(primary) : null;
-      state.selectionMode = selection.items.length > 1 || state.selectionMode && selection.items.length > 0;
+      if (!selection.items.length) state.addSelectionMode = false;
       syncSelectionSummary(selection);
     },
   });
   const saveState = createSaveStateController({ onChange: syncProjectSaveStatus });
 
   let objectChooserCandidates = [];
-  let overlapCycle = { signature: '', index: -1, point: null };
-  let layerSearchTimer = 0;
 
   function legacySelectionFromObjectRef(value) {
     const ref = normalizeObjectRef(value);
@@ -1238,7 +1190,8 @@ const {
       return normalizeObjectRef({ domain: 'territorial', type: countryRegionById(key)?.properties?.unitType || fallback, id: key });
     }
     if (DISTRIBUTION_GROUP_TYPES[group]) return normalizeObjectRef({ domain: 'distribution', type: distributionLayerById(key)?.type || DISTRIBUTION_GROUP_TYPES[group], id: key });
-    if (group === 'drawings' && !key.startsWith('hydro-layer:')) return normalizeObjectRef({ domain: 'drawing', type: state.drawings.find(item => String(item.id) === key)?.properties?.category || 'custom', id: key });
+    if (group === 'hydro' && hydroEditById(key)) return normalizeObjectRef({ domain: 'hydro', type: hydroEditById(key)?.properties?.category || 'river', id: key });
+    if (group === 'drawings') return normalizeObjectRef({ domain: 'drawing', type: state.drawings.find(item => String(item.id) === key)?.properties?.category || 'custom', id: key });
     if (group === 'labels') return normalizeObjectRef({ domain: 'label', type: state.labels.find(item => String(item.id) === key)?.kind || 'label', id: key });
     return null;
   }
@@ -1273,12 +1226,12 @@ const {
     }
     if (ref.domain === 'drawing') {
       const feature = state.drawings.find(item => String(item.id) === ref.id);
-      return { name: feature ? drawingName(feature) : ref.id, type: feature ? drawingCategoryLabel(feature) : '지형지물', detail: feature ? drawingFolderName(drawingFolderId(feature)) : '' };
+      return { name: feature ? drawingName(feature) : ref.id, type: feature ? drawingCategoryLabel(feature) : '지형지물', detail: '' };
     }
     if (ref.domain === 'hydro') {
       const feature = hydroFeatureById(ref.id);
       const lake = (feature?.properties?.category || ref.type) === 'lake';
-      return { name: hydroEditorName(feature?.properties?.name, lake ? '이름 없는 호수' : '이름 없는 강'), type: lake ? '호수' : '강', detail: '내장 수계' };
+      return { name: hydroEditorName(feature?.properties?.name, lake ? '이름 없는 호수' : '이름 없는 강'), type: lake ? '호수' : '강', detail: hydroEditById(ref.id) ? '사용자 수계' : '내장 수계' };
     }
     const label = state.labels.find(item => String(item.id) === ref.id);
     const labelKind = { capital: '수도', city: '도시', town: '마을', region: '지역명', mountain: '산', water: '수역', custom: '기타' };
@@ -1304,6 +1257,12 @@ const {
     const count = selection.items.length;
     const multiple = count > 1;
     for (const id of ['multiSelectionCount', 'multiPropertiesCount']) if ($(id)) $(id).textContent = `${count}개 선택됨`;
+    const modeButton = $('multiSelectionModeBtn');
+    if (modeButton) {
+      modeButton.textContent = state.addSelectionMode ? '선택 완료' : '추가 선택';
+      modeButton.setAttribute('aria-pressed', String(state.addSelectionMode));
+      modeButton.disabled = count === 0;
+    }
     document.body.classList.toggle('multi-selection-active', multiple);
     if (multiple) {
       const types = [...new Set(selection.items.map(item => objectDisplayInfo(item).type))];
@@ -1389,6 +1348,7 @@ const {
     if (!ref) return '';
     if (ref.domain === 'territorial') return ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries' : ref.type === TERRITORIAL_UNIT_TYPES.ADMIN ? 'administrative' : ref.type === TERRITORIAL_UNIT_TYPES.REGION ? 'historicalRegions' : 'regions';
     if (ref.domain === 'distribution') return DISTRIBUTION_TYPE_GROUPS[ref.type] || '';
+    if (ref.domain === 'hydro' && hydroEditById(ref.id)) return 'hydro';
     if (ref.domain === 'drawing') return 'drawings';
     if (ref.domain === 'label') return 'labels';
     return '';
@@ -1397,7 +1357,7 @@ const {
   function objectBatchCapabilities(value) {
     const ref = normalizeObjectRef(value);
     if (!ref) return new Set();
-    if (ref.domain === 'hydro') return new Set();
+    if (ref.domain === 'hydro' && !hydroEditById(ref.id)) return new Set();
     const values = new Set(['visible']);
     if (ref.domain === 'territorial') {
       values.add('color');
@@ -1405,7 +1365,7 @@ const {
       if (ref.type !== TERRITORIAL_UNIT_TYPES.COUNTRY && !countryRegionChildren(state.territorialUnits, ref.id).length) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
-    } else if (ref.domain === 'drawing') {
+    } else if (ref.domain === 'drawing' || ref.domain === 'hydro') {
       values.add('color'); values.add('lock'); values.add('delete');
     } else if (ref.domain === 'label') values.add('delete');
     return values;
@@ -1422,12 +1382,41 @@ const {
     return common;
   }
 
+  function isCountryLocked(id) {
+    return state.countryOverrides?.[String(id)]?.locked === true;
+  }
+
+  function setCountryLockedState(id, locked) {
+    const key = String(id || '');
+    if (!key || !countryFeatureById(key)) return false;
+    const override = { ...(state.countryOverrides[key] || {}) };
+    if (locked) override.locked = true;
+    else delete override.locked;
+    if (Object.keys(override).length) state.countryOverrides[key] = override;
+    else delete state.countryOverrides[key];
+    return true;
+  }
+
+  function lockedCountryIds(ids = []) {
+    return [...new Set(ids.map(String).filter(Boolean))].filter(isCountryLocked);
+  }
+
+  function requireCountriesUnlocked(ids, action = '편집') {
+    const lockedIds = lockedCountryIds(ids);
+    if (!lockedIds.length) return true;
+    const names = lockedIds.slice(0, 3).map(id => countryFeatureById(id)).filter(Boolean).map(countryName);
+    const suffix = lockedIds.length > names.length ? ` 외 ${lockedIds.length - names.length}개국` : '';
+    setActionStatus(`${names.join(', ')}${suffix} 잠금을 해제한 뒤 ${action}할 수 있습니다.`, 'error', 3800);
+    return false;
+  }
+
   function objectRefLocked(value) {
     const ref = normalizeObjectRef(value);
     if (!ref) return false;
-    if (ref.domain === 'territorial') return ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? state.countriesLocked : countryRegionById(ref.id)?.properties?.locked === true;
+    if (ref.domain === 'territorial') return ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? isCountryLocked(ref.id) : countryRegionById(ref.id)?.properties?.locked === true;
     if (ref.domain === 'distribution') return distributionLayerById(ref.id)?.locked === true;
     if (ref.domain === 'drawing') return state.drawings.find(item => String(item.id) === ref.id)?.properties?.locked === true;
+    if (ref.domain === 'hydro') return hydroEditById(ref.id)?.properties?.locked === true;
     return false;
   }
 
@@ -1464,12 +1453,13 @@ const {
     const borderHelp = $('multiBorderEditHelp');
     if (countryOnly) {
       const analysis = boundaryEditSelectionAnalysis(refs.map(ref => ref.id), { rebuild: true });
+      const lockedIds = refs.map(ref => ref.id).filter(isCountryLocked);
       if (borderButton) {
-        borderButton.disabled = state.countriesLocked || !analysis.valid;
-        borderButton.dataset.tooltip = state.countriesLocked ? '국가 레이어 잠금을 해제하세요.' : analysis.message;
+        borderButton.disabled = lockedIds.length > 0 || !analysis.valid;
+        borderButton.dataset.tooltip = lockedIds.length ? '잠긴 국가를 해제한 뒤 국경을 조정하세요.' : analysis.message;
       }
       if (borderHelp) {
-        const message = state.countriesLocked ? '국가 레이어 잠금을 해제해야 국경을 조정할 수 있습니다.' : analysis.message;
+        const message = lockedIds.length ? `잠긴 국가 ${lockedIds.length}개를 해제해야 국경을 조정할 수 있습니다.` : analysis.message;
         borderHelp.textContent = message;
         borderHelp.classList.toggle('hidden', !message);
       }
@@ -1492,7 +1482,6 @@ const {
     const allVisible = refs.every(ref => isLayerItemVisible(layerGroupForObjectRef(ref), ref.id));
     const visible = typeof nextVisible === 'boolean' ? nextVisible : !allVisible;
     if (refs.every(ref => objectRefVisible(ref) === visible)) return;
-    recordHistory({ type: 'batch-visibility', description: `${refs.length}개 객체 ${visible ? '표시' : '숨김'}`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
       const group = layerGroupForObjectRef(ref);
       if (!group) continue;
@@ -1502,7 +1491,7 @@ const {
     }
     markLayerTreeDirty();
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
     syncBatchActionAvailability();
   }
 
@@ -1512,15 +1501,15 @@ const {
     const locked = typeof nextLocked === 'boolean' ? nextLocked : !refs.every(objectRefLocked);
     if (refs.every(ref => objectRefLocked(ref) === locked)) return;
     recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
-    if (refs.every(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) {
-      state.countriesLocked = locked;
-      $('countriesLocked').checked = locked;
-    }
     for (const ref of refs) {
-      if (ref.domain === 'territorial' && ref.type !== TERRITORIAL_UNIT_TYPES.COUNTRY) countryRegionById(ref.id).properties.locked = locked;
+      if (ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY) setCountryLockedState(ref.id, locked);
+      else if (ref.domain === 'territorial') countryRegionById(ref.id).properties.locked = locked;
       else if (ref.domain === 'distribution') distributionLayerById(ref.id).locked = locked;
       else if (ref.domain === 'drawing') {
         const feature = state.drawings.find(item => String(item.id) === ref.id);
+        if (feature) feature.properties.locked = locked;
+      } else if (ref.domain === 'hydro') {
+        const feature = hydroEditById(ref.id);
         if (feature) feature.properties.locked = locked;
       }
     }
@@ -1550,15 +1539,12 @@ const {
     const capabilities = commonBatchCapabilities(refs);
     const locked = refs.length > 0 && refs.every(objectRefLocked);
     if ($('objectLockMenuBtn')) {
-      const countryLayerLock = refs.length > 0 && refs.every(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY);
-      $('objectLockMenuBtn').textContent = countryLayerLock
-        ? `국가 레이어 ${locked ? '잠금 해제' : '잠금'}`
-        : (locked ? '잠금 해제' : '잠금');
+      $('objectLockMenuBtn').textContent = locked ? '잠금 해제' : '잠금';
       $('objectLockMenuBtn').classList.toggle('hidden', !capabilities.has('lock'));
       $('objectLockMenuBtn').disabled = !capabilities.has('lock');
     }
     if ($('objectDeleteMenuBtn')) {
-      const canDelete = refs.length > 1 ? capabilities.has('delete') : primary?.domain !== 'hydro';
+      const canDelete = refs.length > 1 ? capabilities.has('delete') : primary?.domain !== 'hydro' || !!hydroEditById(primary.id);
       $('objectDeleteMenuBtn').classList.toggle('hidden', !canDelete);
       $('objectDeleteMenuBtn').disabled = !canDelete || (primary && objectRefLocked(primary));
     }
@@ -1604,15 +1590,20 @@ const {
     for (const ref of refs) {
       if (ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
         state.countryOverrides[ref.id] ||= {};
-        state.countryOverrides[ref.id].color = normalizedColor;
+        writeDomainColor(COLOR_DOMAINS.COUNTRY, {
+          feature: countryFeatureById(ref.id), override: state.countryOverrides[ref.id],
+        }, normalizedColor, { fallback: defaultCountryColor() });
       } else if (ref.domain === 'territorial') {
         const feature = countryRegionById(ref.id);
-        if (feature) feature.properties.style = { ...(feature.properties.style || {}), color: normalizedColor };
+        if (feature) writeDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, normalizedColor, { fallback: DEFAULT_DRAWING_COLOR });
       } else if (ref.domain === 'distribution') {
         const layer = distributionLayerById(ref.id);
-        if (layer) layer.color = normalizedColor;
+        if (layer) writeDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }, normalizedColor, { fallback: DEFAULT_DRAWING_COLOR });
       } else if (ref.domain === 'drawing') {
         const feature = state.drawings.find(item => String(item.id) === ref.id);
+        if (feature) writeDomainColor(COLOR_DOMAINS.DRAWING, { feature }, normalizedColor, { fallback: defaultDrawingColor(feature) });
+      } else if (ref.domain === 'hydro') {
+        const feature = hydroEditById(ref.id);
         if (feature) feature.properties.editorColor = normalizedColor;
       }
     }
@@ -1640,24 +1631,40 @@ const {
       onConfirm: () => {
         recordHistory({ type: 'batch-delete', description: `${refs.length}개 객체 삭제`, affectedIds: refs.map(ref => ref.id) });
         const removedDistributionIds = new Set(refs.filter(ref => ref.domain === 'distribution').map(ref => ref.id));
+        const removedHydroEditIds = new Set(refs.filter(ref => ref.domain === 'hydro').map(ref => ref.id));
         const removedDrawingIds = new Set(refs.filter(ref => ref.domain === 'drawing').map(ref => ref.id));
         const removedLabelIds = new Set(refs.filter(ref => ref.domain === 'label').map(ref => ref.id));
         const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && ref.type !== TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id));
+        let expanded = true;
+        while (expanded) {
+          expanded = false;
+          for (const feature of state.territorialUnits) {
+            if (!removedUnitIds.has(String(feature.properties?.parentId)) || removedUnitIds.has(String(feature.id))) continue;
+            removedUnitIds.add(String(feature.id));
+            expanded = true;
+          }
+        }
         state.distributionLayers = state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
-        state.distributionEntries = state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId)));
+        state.distributionEntries = state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId))
+          && (entry.mode !== DISTRIBUTION_MODES.REGION || !removedUnitIds.has(String(entry.regionId))));
+        const restoredHydroSourceIds = state.hydroEdits.filter(feature => removedHydroEditIds.has(String(feature.id))).map(feature => String(feature.properties?.sourceFeatureId || '')).filter(Boolean);
+        state.hydroEdits = state.hydroEdits.filter(feature => !removedHydroEditIds.has(String(feature.id)));
+        for (const sourceId of restoredHydroSourceIds) {
+          if (!state.hydroEdits.some(feature => String(feature.properties?.sourceFeatureId || '') === sourceId)) delete state.physicalSettings.hiddenHydroIds[sourceId];
+        }
+        if (restoredHydroSourceIds.length) gpuMapRenderer.invalidateHydroVisibility();
         for (const layer of state.distributionLayers) if (removedDistributionIds.has(String(layer.parentId))) layer.parentId = '';
         reassignDrawingParents([...removedDrawingIds]);
         state.drawings = state.drawings.filter(feature => !removedDrawingIds.has(String(feature.id)));
         state.labels = state.labels.filter(label => !removedLabelIds.has(String(label.id)));
         for (const id of removedLabelIds) delete state.labelSettings[labelKey('label', id)];
         state.territorialUnits = state.territorialUnits.filter(feature => !removedUnitIds.has(String(feature.id)));
-        state.territorialRelations = state.territorialRelations.filter(relation => !removedUnitIds.has(String(relation.unitId)));
-        pruneAutoDrawingFolders();
+        state.territorialRelations = state.territorialRelations.filter(relation => !removedUnitIds.has(String(relation.unitId)) && !removedUnitIds.has(String(relation.parentId)));
         objectSelectionSyncing = true;
         objectSelection.clear();
         objectSelectionSyncing = false;
         state.selected = null;
-        state.selectionMode = false;
+        state.addSelectionMode = false;
         showPropertyForm(null);
         markLayerTreeDirty();
         renderAll();
@@ -1686,6 +1693,7 @@ const {
   let drawingLayer;
   let hydroLakeLayer;
   let hydroRiverLayer;
+  let hydroEditLayer;
   let hydroSelectionLayer;
   let countryLabelLayer;
   let labelLayer;
@@ -1695,7 +1703,8 @@ const {
   let mapResizeObserver = null;
   let mapResizeFrame = 0;
   let resolutionQuery = null;
-  let renderRevision = 0;
+  let viewRevision = 0;
+  let renderedViewSignature = '';
   let editInteractionRevision = 0;
   let mapInputController = null;
   let draftStrokeRenderFrame = 0;
@@ -1705,6 +1714,7 @@ const {
   let countryLandRevision = 0;
   const pendingCountryLabelAnchors = new Set();
   const countryLabelAnchorVersions = new Map();
+  const countryLabelScreenAreas = new Map();
   let countryLabelAnchorWorker = null;
   let countryLabelAnchorTimer = 0;
   let countryLabelAnchorRequestId = 0;
@@ -1722,7 +1732,6 @@ const {
 
 
   const gpuMapRenderer = createGpuMapRenderer({
-    $,
     APP_VERSION,
     ASSET_REVISION,
     PHYSICAL_DATA_BASE_URL,
@@ -1751,6 +1760,16 @@ const {
     renderPendingCountryOverlays,
     renderViewFrame,
     reportOperationError,
+    rendererUi: {
+      createCanvas: () => document.createElement('canvas'),
+      getMapElement: () => $('map'),
+      setEngineStatus: text => {
+        const status = $('engineStatus');
+        if (!status) return;
+        status.textContent = text;
+        status.dataset.tooltip = text;
+      },
+    },
     runtimeAssetUrl,
     scheduleGpuMeshRebuild,
     scheduleViewRender,
@@ -1795,13 +1814,17 @@ const {
   }
 
   async function hydroAtScreenPoint(screenPoint, coord) {
-    if (!state.layerVisibility.drawings || state.tool !== 'select') return null;
+    if (!state.layerVisibility.hydro || state.tool !== 'select') return null;
+    for (const feature of [...state.hydroEdits].reverse()) {
+      if (!isHydroFeatureVisible(feature) || !geometryHitsScreenPoint(feature.geometry, coord, screenPoint, isMobile() ? 14 : 8)) continue;
+      return feature;
+    }
     const picked = gpuMapRenderer.pickHydro(screenPoint) || await gpuMapRenderer.pickHydroAsync(screenPoint);
     if (picked && isHydroFeatureVisible(picked) && hydroFeatureInView(picked)) return picked;
     const projection = activeProjection();
     const toleranceDegrees = 9 / Math.max(1, projection.scale()) * 180 / Math.PI;
     let nearest = null;
-    for (const feature of allHydroFeatures()) {
+    for (const feature of allBuiltInHydroFeatures()) {
       if (!feature.geometry) continue;
       if (!hydroFeatureInView(feature)) continue;
       const bounds = feature.__awBounds || [-180, -90, 180, 90];
@@ -1847,6 +1870,7 @@ const {
     if (state.selected?.type === 'country') return [String(state.selected.id)];
     if (state.selected?.type === 'countryRegion') return [String(state.selected.id)];
     if (state.selected?.type === 'drawing') return [String(state.selected.id)];
+    if (state.selected?.type === 'hydro' && hydroEditById(state.selected.id)) return [String(state.selected.id)];
     return [];
   }
 
@@ -1887,7 +1911,7 @@ const {
     const tileSize = margin;
     const cacheKey = [
       state.stateRevision, countryLandRevision, state.tool, state.selected?.type || '', state.selected?.id || '', state.boundaryEditCountryIds.join('|'),
-      state.territorialUnits.length, state.drawings.length, margin.toFixed(4),
+      state.territorialUnits.length, state.drawings.length, state.hydroEdits.length, margin.toFixed(4),
       Math.floor(coordinate[0] / tileSize), Math.floor(coordinate[1] / tileSize),
     ].join(':');
     if (snapCandidateCache.key === cacheKey) return snapCandidateCache.candidates;
@@ -1999,6 +2023,64 @@ const {
     state.view.flatCenter[0] = ((state.view.flatCenter[0] + 540) % 360) - 180;
   }
 
+  function wrappedLongitudeDelta(value) {
+    return ((Number(value || 0) + 540) % 360) - 180;
+  }
+
+  function setMapZoomValue(value) {
+    if (state.projection === 'globe') {
+      const next = clamp(Number(value || state.view.globeZoom), ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
+      const changed = Math.abs(next - state.view.globeZoom) > 1e-9;
+      state.view.globeZoom = next;
+      return changed;
+    }
+    const next = clamp(Number(value || state.view.flatZoom), ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
+    const changed = Math.abs(next - state.view.flatZoom) > 1e-9;
+    state.view.flatZoom = next;
+    return changed;
+  }
+
+  function alignGeographicAnchor(coordinate, screenPoint) {
+    if (!coordinate || !screenPoint) return false;
+    let changed = false;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      updateProjection();
+      const targetCoordinate = screenToGeo(screenPoint);
+      if (!targetCoordinate) return changed;
+      const longitudeDelta = wrappedLongitudeDelta(coordinate[0] - targetCoordinate[0]);
+      const latitudeDelta = Number(coordinate[1]) - Number(targetCoordinate[1]);
+      if (Math.abs(longitudeDelta) < 1e-7 && Math.abs(latitudeDelta) < 1e-7) break;
+      if (state.projection === 'globe') {
+        state.view.globeRotation[0] -= longitudeDelta;
+        state.view.globeRotation[1] = clamp(state.view.globeRotation[1] - latitudeDelta, -89, 89);
+      } else {
+        state.view.flatCenter[0] = wrappedLongitudeDelta(state.view.flatCenter[0] + longitudeDelta);
+        state.view.flatCenter[1] = clamp(state.view.flatCenter[1] + latitudeDelta, -85, 85);
+      }
+      changed = true;
+    }
+    updateProjection();
+    return changed;
+  }
+
+  function transformMapView({ zoom, fromPoint, toPoint }) {
+    const source = Array.isArray(fromPoint) ? fromPoint : null;
+    const target = Array.isArray(toPoint) ? toPoint : source;
+    updateProjection();
+    const anchor = source ? screenToGeo(source) : null;
+    let changed = setMapZoomValue(zoom);
+    if (anchor && target) {
+      changed = alignGeographicAnchor(anchor, target) || changed;
+    } else if (source && target && (source[0] !== target[0] || source[1] !== target[1])) {
+      panMapBy(target[0] - source[0], target[1] - source[1]);
+      updateProjection();
+      changed = true;
+    } else {
+      updateProjection();
+    }
+    return changed;
+  }
+
   function setCurrentTool(name) {
     const currentName = name || '선택·편집';
     if ($('currentToolStatus')) $('currentToolStatus').textContent = currentName;
@@ -2064,7 +2146,7 @@ const {
   const CANONICAL_CONTROL_SELECTOR = [
     '#createMenu .create-menu-item',
     '#rightPanel input', '#rightPanel select', '#rightPanel textarea',
-    '#rightPanel button:not(.sheet-close-btn)',
+    '#rightPanel button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
     '.top-actions button', '.top-actions input',
     '#undoBtn', '#redoBtn',
     '.layer-child-menu', '.layer-folder-lock',
@@ -2448,115 +2530,12 @@ const {
 
   let applyingMapEditWorkerResult = false;
 
-  const mapEditClient = (() => {
-    let worker = null;
-    let sequence = 0;
-    let dataRevision = 0;
-    let ready = false;
-    let activeRequestId = 0;
-    const pending = new Map();
-
-    function stopWorker(error = null) {
-      if (error) for (const request of pending.values()) request.reject(error);
-      pending.clear();
-      worker?.terminate();
-      worker = null;
-      ready = false;
-      activeRequestId = 0;
-    }
-
-    function ensureWorker() {
-      if (worker) return worker;
-      worker = new Worker(runtimeAssetUrl('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' });
-      worker.onmessage = event => {
-        const message = event.data || {};
-        if (message.type === 'ready') {
-          ready = true;
-          return;
-        }
-        if (message.type !== 'result') return;
-        const request = pending.get(Number(message.requestId));
-        if (!request) return;
-        pending.delete(Number(message.requestId));
-        if (activeRequestId === Number(message.requestId)) activeRequestId = 0;
-        if (Number(message.dataRevision) !== dataRevision) {
-          request.reject(Object.assign(new Error('지도 상태가 바뀌어 오래된 계산 결과를 폐기했습니다.'), { cancelled: true }));
-          return;
-        }
-        if (message.ok) request.resolve(message.result);
-        else if (message.cancelled) request.reject(Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true }));
-        else request.reject(new Error(message.message || '지도 편집 계산에 실패했습니다.'));
-      };
-      worker.onerror = event => {
-        const error = new Error(event.message || '지도 편집 Worker를 사용할 수 없습니다.');
-        stopWorker(error);
-      };
-      return worker;
-    }
-
-    function rebase(features = state.countriesData?.features || []) {
-      if (activeRequestId || pending.size) {
-        stopWorker(Object.assign(new Error('지도 상태가 바뀌어 이전 계산을 취소했습니다.'), { cancelled: true }));
-      }
-      dataRevision += 1;
-      ready = false;
-      ensureWorker().postMessage({ type: 'rebase', dataRevision, features });
-    }
-
-    function syncPatch(rawIds) {
-      if (!worker || !ready) return;
-      const ids = [...new Set([...rawIds].map(String).filter(Boolean))];
-      const features = ids.map(countryFeatureById).filter(Boolean).map(deepClone);
-      const removedIds = ids.filter(id => !countryFeatureById(id));
-      dataRevision += 1;
-      worker.postMessage({ type: 'sync-patch', dataRevision, features, removedIds });
-    }
-
-    async function execute(operation, payload) {
-      if (!worker || !ready) {
-        rebase();
-        await new Promise(resolve => {
-          const started = performance.now();
-          const poll = () => ready || performance.now() - started > 3000 ? resolve() : setTimeout(poll, 16);
-          poll();
-        });
-      }
-      if (!ready) throw new Error('지도 편집 Worker를 준비하지 못했습니다. 잠시 후 다시 시도하세요.');
-      if (activeRequestId) {
-        stopWorker(Object.assign(new Error('새 작업을 시작해 이전 계산을 취소했습니다.'), { cancelled: true }));
-        rebase();
-        await new Promise(resolve => {
-          const started = performance.now();
-          const poll = () => ready || performance.now() - started > 3000 ? resolve() : setTimeout(poll, 16);
-          poll();
-        });
-        if (!ready) throw new Error('지도 편집 Worker를 다시 준비하지 못했습니다. 잠시 후 다시 시도하세요.');
-      }
-      const requestId = ++sequence;
-      activeRequestId = requestId;
-      const promise = new Promise((resolve, reject) => pending.set(requestId, { resolve, reject }));
-      worker.postMessage({ type: 'execute', operation, requestId, dataRevision, ...payload });
-      const result = await promise;
-      return { requestId, result };
-    }
-
-    function commit(requestId) {
-      worker?.postMessage({ type: 'commit', requestId });
-      dataRevision += 1;
-    }
-
-    function discard(requestId) {
-      worker?.postMessage({ type: 'discard', requestId });
-    }
-
-    function cancel() {
-      if (!activeRequestId && !pending.size) return;
-      stopWorker(Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true }));
-      rebase();
-    }
-
-    return { rebase, syncPatch, execute, commit, discard, cancel };
-  })();
+  const mapEditClient = createMapEditWorkerClient({
+    createWorker: () => new Worker(runtimeAssetUrl('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' }),
+    getFeatures: () => state.countriesData?.features || [],
+    getFeatureById: countryFeatureById,
+    clone: deepClone,
+  });
 
   function assertCurrentProjectReferences() {
     return assertProjectReferenceIntegrity({
@@ -3221,7 +3200,7 @@ const {
     const changedIds = new Set(state.historyDirtyCountryIds);
     applySharedProjectFields(snapshot, 'history');
     restoreCountriesFromSnapshot(snapshot);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     const restoredDirtyIds = new Set(state.historyDirtyCountryIds);
     for (const id of state.historyDirtyCountryIds) changedIds.add(String(id));
     markCountryGeometriesChanged(changedIds);
@@ -3310,7 +3289,7 @@ const {
     const normalized = normalizeClippedLandGeometry(geometry?.coordinates || geometry);
     if (!normalized) return null;
     let target = state.territorialUnits.find(feature => partitionGroupMatches(feature, context)
-      && feature.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED);
+      && feature.properties?.isRemainder === true);
     if (target) {
       target.geometry = normalizeClippedLandGeometry(clipper.union(target.geometry.coordinates, normalized.coordinates)) || target.geometry;
       return target;
@@ -3318,7 +3297,7 @@ const {
     target = createCountryRegionFeature({
       id: uid(context.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region'),
       ...context,
-      status: COUNTRY_REGION_STATUS.UNASSIGNED,
+      isRemainder: true,
       geometry: normalized,
     });
     state.territorialUnits.push(target);
@@ -3411,7 +3390,14 @@ const {
     for (const feature of state.territorialUnits) {
       if (!removed.has(String(feature.properties?.sovereignId || ''))) continue;
       feature.properties.sovereignId = String(targetOwnerId);
-      feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
+      if (removed.has(String(feature.properties?.parentId || ''))) feature.properties.parentId = String(targetOwnerId);
+    }
+    for (const relation of state.territorialRelations) {
+      if (removed.has(String(relation.sovereignId || ''))) relation.sovereignId = String(targetOwnerId);
+      if (removed.has(String(relation.parentId || ''))) relation.parentId = String(targetOwnerId);
+    }
+    for (const entry of state.distributionEntries) {
+      if (entry.mode === DISTRIBUTION_MODES.REGION && removed.has(String(entry.regionId))) entry.regionId = String(targetOwnerId);
     }
     state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
     reconcileCountryRegionCompleteness([targetOwnerId]);
@@ -3956,7 +3942,7 @@ const {
     };
   }
 
-  function updateProjection() {
+  function projectionLayoutMetrics() {
     const { width, height } = state.size;
     const safe = currentMapSafeInsets();
     const contentWidth = Math.max(1, width - safe.left - safe.right);
@@ -3966,19 +3952,40 @@ const {
       : contentHeight;
     const centerX = safe.left + contentWidth / 2;
     const centerY = safe.top + contentHeight / 2;
+    return {
+      width,
+      height,
+      safe,
+      contentWidth,
+      contentHeight,
+      centerX,
+      centerY,
+      globeBaseScale: Math.max(60, Math.min(contentWidth, scaleContentHeight) * 0.455),
+      flatBaseScale: Math.max(30, contentWidth / (2 * Math.PI)),
+    };
+  }
+
+  function updateProjection() {
+    const {
+      width,
+      height,
+      safe,
+      centerX,
+      centerY,
+      globeBaseScale,
+      flatBaseScale,
+    } = projectionLayoutMetrics();
     if (state.projection === 'globe') {
-      const base = Math.max(60, Math.min(contentWidth, scaleContentHeight) * 0.455);
       globeProjection
         .translate([centerX, centerY])
-        .scale(base * state.view.globeZoom)
+        .scale(globeBaseScale * state.view.globeZoom)
         .rotate(state.view.globeRotation)
         .clipAngle(90);
       path.projection(globeProjection);
     } else {
-      const base = Math.max(30, contentWidth / (2 * Math.PI));
       flatProjection
         .translate([centerX, centerY])
-        .scale(base * state.view.flatZoom)
+        .scale(flatBaseScale * state.view.flatZoom)
         .center(state.view.flatCenter)
         .rotate([0, 0, 0])
         .clipExtent([[safe.left, safe.top], [width - safe.right, height - safe.bottom]]);
@@ -4015,71 +4022,18 @@ const {
   }
 
   function defaultDrawingColor(feature) {
-    return TERRAIN_TOOL_CONFIG[feature?.properties?.category]?.color || DEFAULT_DRAWING_COLOR;
+    return DEFAULT_DRAWING_COLOR;
   }
 
   function drawingColor(feature) {
-    return feature.properties?.editorColor || defaultDrawingColor(feature);
+    return readDomainColor(COLOR_DOMAINS.DRAWING, { feature }, { fallback: defaultDrawingColor(feature) }).value;
   }
 
   function drawingCategoryLabel(feature) {
     return DRAWING_CATEGORY_RULES[feature?.properties?.category]?.label || '지형지물';
   }
 
-  function drawingGeometryKind(feature) {
-    const type = feature?.geometry?.type || '';
-    if (type === 'Polygon' || type === 'MultiPolygon') return 'polygon';
-    if (type === 'LineString' || type === 'MultiLineString') return 'line';
-    if (type === 'Point' || type === 'MultiPoint') return 'point';
-    return 'unknown';
-  }
-
-  function drawingCategoryRule(category) {
-    return DRAWING_CATEGORY_RULES[category] || DRAWING_CATEGORY_RULES.custom;
-  }
-
-  function drawingCategoryCompatible(feature, category) {
-    const expected = drawingCategoryRule(category).geometry;
-    return expected === 'any' || expected === drawingGeometryKind(feature);
-  }
-
-  function drawingRole(feature) {
-    return feature?.properties?.pandolab_role || drawingCategoryRule(feature?.properties?.category).role;
-  }
-
-  function drawingLandBinding(feature) {
-    return feature?.properties?.pandolab_land_binding || drawingCategoryRule(feature?.properties?.category).binding;
-  }
-
-  function normalizeDrawingSemantics(feature) {
-    if (!feature) return feature;
-    feature.properties ||= {};
-    const properties = feature.properties;
-    let category = DRAWING_CATEGORY_RULES[properties.category] ? properties.category : 'custom';
-    if (!drawingCategoryCompatible(feature, category)) category = 'custom';
-    const rule = drawingCategoryRule(category);
-    properties.category = category;
-    properties.pandolab_schema_version = DRAWING_SCHEMA_VERSION;
-    properties.pandolab_role = rule.role;
-    const allowedBindings = rule.role === 'custom' ? new Set(['none', 'clip'])
-      : rule.role === 'thematic' ? new Set(['clip', 'none'])
-        : new Set(['none']);
-    const requestedBinding = String(properties.pandolab_land_binding || rule.binding);
-    properties.pandolab_land_binding = allowedBindings.has(requestedBinding) ? requestedBinding : rule.binding;
-    properties.pandolab_owner_id = '';
-    properties.pandolab_parent_id = '';
-    properties.pandolab_topology_group = rule.role === 'thematic' ? 'land-mask:world' : `${rule.role}:${category}`;
-    return feature;
-  }
-
-  function normalizeDrawingCollection(drawings, options = {}) {
-    return (Array.isArray(drawings) ? drawings : []).map(feature => normalizeDrawingSemantics(feature, options));
-  }
-
   function drawingRoleHelp(feature) {
-    const role = drawingRole(feature);
-    if (role === 'thematic') return '민족·종교·언어 분포는 국가 소유권과 분리하며 육지 안에서만 표시합니다.';
-    if (role === 'hydro') return '강과 호수는 수계 형상으로 관리하며 영토 작업에는 사용하지 않습니다.';
     return '사용자 정의 객체는 육지 결합 방식을 직접 선택할 수 있습니다.';
   }
 
@@ -4120,35 +4074,108 @@ const {
     getCountryOverride: id => state.countryOverrides[id] || {},
   });
 
+  const territorialApplicationService = createTerritorialApplicationService({
+    repository: territorialRepository,
+    runDocumentMutation: (meta, mutate) => {
+      recordHistory(meta);
+      return mutate();
+    },
+    countryCommands: {
+      isLocked: id => isCountryLocked(id),
+      setLocked: (id, locked) => setCountryLockedState(id, locked),
+      setField: (id, field, value) => {
+        state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}) };
+        if (field === 'color') {
+          writeDomainColor(COLOR_DOMAINS.COUNTRY, {
+            feature: countryFeatureById(id), override: state.countryOverrides[id],
+          }, value, { fallback: defaultCountryColor() });
+        } else state.countryOverrides[id][field] = value;
+        const index = state.countryIndex.get(id);
+        if (index !== undefined && field === 'name') {
+          const feature = state.countriesData.features[index];
+          feature.properties.editor_name = state.countryOverrides[id].name || feature.properties.editor_original_name;
+        }
+      },
+    },
+    unitCommands: {
+      setField: (id, field, value) => {
+        const feature = countryRegionById(id);
+        if (!feature) return;
+        if (field === 'color') setTerritorialStyleColor(feature, value);
+        else feature.properties[field] = value;
+      },
+      replaceAll: units => { state.territorialUnits = units; },
+    },
+  });
+  const runCountryRegionTransaction = options => territorialApplicationService.runGeometryTransaction(options);
+  const validateCountryRegionRelations = (units, options) => territorialApplicationService.validateRelations(units, options);
+  const distributionService = createDistributionService({
+    documentStore: {
+      readLayers: () => state.distributionLayers,
+      replaceLayers: layers => { state.distributionLayers = layers; },
+      readEntries: () => state.distributionEntries,
+      replaceEntries: entries => { state.distributionEntries = entries; },
+    },
+    presentationStore: {
+      setRenderMode: mode => { state.distributionSettings.renderMode = mode; },
+    },
+    runDocumentMutation: (meta, mutate) => {
+      recordHistory(meta);
+      return mutate();
+    },
+    writeLayerColor: (layer, color) => writeDomainColor(
+      COLOR_DOMAINS.DISTRIBUTION,
+      { layer },
+      color,
+      { fallback: DEFAULT_DRAWING_COLOR },
+    ),
+    territorialExists: id => !!territorialRepository.get(id),
+  });
+  const drawingApplicationService = createDrawingService({
+    documentStore: {
+      readDrawings: () => state.drawings,
+      replaceDrawings: drawings => { state.drawings = drawings; },
+    },
+    runDocumentMutation: (meta, mutate) => {
+      recordHistory(meta);
+      return mutate();
+    },
+    writeColor: (feature, color) => writeDomainColor(
+      COLOR_DOMAINS.DRAWING,
+      { feature },
+      color,
+      { fallback: defaultDrawingColor(feature) },
+    ),
+  });
+
   function territorialUnitById(id) {
-    return territorialRepository.get(id);
+    return territorialApplicationService.get(id);
   }
 
   function territorialStyleColor(feature) {
-    return feature?.properties?.style?.color || '';
+    return readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }).explicit;
   }
 
   function setTerritorialStyleColor(feature, color) {
-    if (!feature?.properties) return;
-    feature.properties.style = { ...(feature.properties.style || {}) };
-    if (color) feature.properties.style.color = color;
-    else delete feature.properties.style.color;
+    if (!feature?.properties) return '';
+    return writeDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, color, { clear: !color, fallback: DEFAULT_DRAWING_COLOR });
   }
 
   function countryRegionName(feature) {
     const properties = feature?.properties || {};
     if (properties.name) return properties.name;
     if (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 역사·지리 지역';
-    return properties.status === COUNTRY_REGION_STATUS.UNASSIGNED
+    return properties.isRemainder === true
       ? (properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '미지정 행정구역' : '미지정 지역')
       : (properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '이름 없는 행정구역' : '이름 없는 지역');
   }
 
   function countryRegionColor(feature) {
-    const explicit = territorialStyleColor(feature);
-    if (explicit) return explicit;
     const country = countryFeatureById(feature?.properties?.sovereignId);
-    return country ? countryColor(country) : DEFAULT_DRAWING_COLOR;
+    return readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, {
+      inherited: country ? countryColor(country) : '',
+      fallback: DEFAULT_DRAWING_COLOR,
+    }).value;
   }
 
   function countryRegionCountryName(feature) {
@@ -4157,15 +4184,18 @@ const {
   }
 
   function countryColor(feature) {
-    return feature.properties?.editor_color || defaultCountryColor();
+    const id = String(feature?.properties?.editor_id || '');
+    return readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override: state.countryOverrides[id] }, { fallback: defaultCountryColor() }).value;
+  }
+
+  function distributionColor(layer) {
+    return readDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: DEFAULT_DRAWING_COLOR }).value;
   }
 
   function countryName(feature) {
     return feature.properties?.editor_name || feature.properties?.editor_original_name || feature.properties?.name || '국가';
   }
 
-  const DEFAULT_DRAWING_FOLDER_ID = 'drawings-default';
-  const DRAWING_FOLDER_STATE_PREFIX = 'drawing-folder:';
   const COUNTRY_REGION_FOLDER_STATE_PREFIX = 'country-region-folder:';
   const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:';
   const DISTRIBUTION_GROUP_TYPES = Object.freeze({
@@ -4175,9 +4205,10 @@ const {
   });
   const DISTRIBUTION_TYPE_GROUPS = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_GROUP_TYPES).map(([group, type]) => [type, group])));
   const DISTRIBUTION_TYPE_LABELS = Object.freeze({ language: '언어', ethnicity: '민족', religion: '종교' });
-  const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'languages', 'ethnicities', 'religions', 'drawings', 'labels', 'countryLabels'];
-  const LAYER_TREE_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['labels', 'countryLabels'].includes(group));
-  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', languages: '언어', ethnicities: '민족', religions: '종교', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
+  const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'languages', 'ethnicities', 'religions', 'hydro', 'drawings', 'labels', 'countryLabels'];
+  const LAYER_TREE_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['hydro', 'labels', 'countryLabels'].includes(group));
+  const LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['labels', 'countryLabels'].includes(group));
+  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', languages: '언어', ethnicities: '민족', religions: '종교', hydro: '수계', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
     regions: 'regionsLayerChildren',
@@ -4186,6 +4217,7 @@ const {
     languages: 'languagesLayerChildren',
     ethnicities: 'ethnicitiesLayerChildren',
     religions: 'religionsLayerChildren',
+    hydro: 'hydroLayerChildren',
     drawings: 'drawingsLayerChildren',
   };
   const layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
@@ -4194,10 +4226,6 @@ const {
   let layerSearchScrollTop = 0;
   const layerGroupScrollTop = new Map();
 
-  function drawingFolderStateKey(id) {
-    return `${DRAWING_FOLDER_STATE_PREFIX}${String(id)}`;
-  }
-
   function countryRegionFolderStateKey(group, countryId) {
     return `${COUNTRY_REGION_FOLDER_STATE_PREFIX}${group}:${String(countryId || 'unassigned')}`;
   }
@@ -4205,37 +4233,6 @@ const {
   function hydroFolderStateKey(layerId) {
     return `${HYDRO_FOLDER_STATE_PREFIX}${String(layerId)}`;
   }
-
-  function normalizeDrawingFolders(value) {
-    const folders = [];
-    const seen = new Set();
-    for (const raw of Array.isArray(value) ? value : []) {
-      const id = String(raw?.id || '').trim();
-      if (!id || id === DEFAULT_DRAWING_FOLDER_ID || seen.has(id)) continue;
-      seen.add(id);
-      folders.push({
-        id,
-        name: String(raw?.name || '가져온 지형지물').trim() || '가져온 지형지물',
-        origin: raw?.origin === 'user' ? 'user' : 'geojson',
-        autoPrune: raw?.autoPrune !== false,
-      });
-    }
-    return folders;
-  }
-
-  function drawingFolderById(id) {
-    return state.drawingFolders.find(folder => folder.id === String(id)) || null;
-  }
-
-  function drawingFolderId(feature) {
-    const id = String(feature?.properties?.pandolab_folder_id || '');
-    return drawingFolderById(id) ? id : DEFAULT_DRAWING_FOLDER_ID;
-  }
-
-  function drawingFolderName(id) {
-    return id === DEFAULT_DRAWING_FOLDER_ID ? '지형지물' : drawingFolderById(id)?.name || '지형지물';
-  }
-
   function activeLayerFolderKeys() {
     const countryRegionKeys = [];
     for (const group of ['regions', 'administrative']) {
@@ -4256,42 +4253,7 @@ const {
       ...countryRegionKeys,
       'drawings',
       ...Object.keys(HYDRO_LAYER_META).map(hydroFolderStateKey),
-      ...state.drawingFolders.map(folder => drawingFolderStateKey(folder.id)),
     ];
-  }
-
-  function uniqueDrawingFolderName(value) {
-    const base = String(value || '가져온 지형지물').trim() || '가져온 지형지물';
-    const used = new Set(state.drawingFolders.map(folder => folder.name.toLocaleLowerCase('ko')));
-    if (!used.has(base.toLocaleLowerCase('ko'))) return base;
-    let suffix = 2;
-    while (used.has(`${base} (${suffix})`.toLocaleLowerCase('ko'))) suffix += 1;
-    return `${base} (${suffix})`;
-  }
-
-  function createImportedDrawingFolder(fileName) {
-    const baseName = String(fileName || '').replace(/\.(?:geo)?json$/i, '').trim();
-    return {
-      id: uid('drawing_folder'),
-      name: uniqueDrawingFolderName(baseName || '가져온 지형지물'),
-      origin: 'geojson',
-      autoPrune: true,
-    };
-  }
-
-  function pruneAutoDrawingFolders() {
-    const occupied = new Set(state.drawings.map(feature => String(feature.properties?.pandolab_folder_id || '')));
-    const removed = state.drawingFolders.filter(folder => folder.autoPrune && !occupied.has(folder.id));
-    if (!removed.length) return false;
-    const removedIds = new Set(removed.map(folder => folder.id));
-    state.drawingFolders = state.drawingFolders.filter(folder => !removedIds.has(folder.id));
-    for (const id of removedIds) {
-      const key = drawingFolderStateKey(id);
-      delete state.layerFolders[key];
-      layerGroupScrollTop.delete(key);
-      layerVirtualItems.delete(key);
-    }
-    return true;
   }
 
   function normalizePhysicalSettings(value) {
@@ -4367,30 +4329,81 @@ const {
     return automaticWaterColor(gpu);
   }
 
+  function normalizeHydroEdit(feature) {
+    if (!feature?.geometry || !Array.isArray(feature.geometry.coordinates) || !feature.geometry.coordinates.length) return null;
+    feature.properties ||= {};
+    const geometryKind = drawingGeometryKind(feature);
+    const category = feature.properties.category === 'lake' && geometryKind === 'polygon' ? 'lake'
+      : feature.properties.category === 'river' && geometryKind === 'line' ? 'river'
+        : geometryKind === 'polygon' ? 'lake'
+          : geometryKind === 'line' ? 'river' : '';
+    if (!category) return null;
+    feature.id = String(feature.id || '').trim();
+    if (!feature.id) throw new Error('편집 수계 ID가 비어 있습니다.');
+    feature.properties = {
+      ...feature.properties,
+      category,
+      pandolab_domain: 'hydro',
+      pandolab_schema_version: DRAWING_SCHEMA_VERSION,
+      pandolab_id: feature.id,
+      name: String(feature.properties.name || ''),
+      notes: String(feature.properties.notes || ''),
+      editorColor: normalizeEditorColor(feature.properties.editorColor, HYDRO_TOOL_CONFIG[category].color),
+    };
+    delete feature.properties.visible;
+    return feature;
+  }
+
+  function normalizeHydroEditCollection(value) {
+    const output = [];
+    const seen = new Set();
+    for (const feature of Array.isArray(value) ? value : []) {
+      const normalized = normalizeHydroEdit(feature);
+      if (!normalized) throw new Error('편집 수계 형식이 올바르지 않습니다.');
+      if (seen.has(normalized.id)) throw new Error(`편집 수계 ID가 중복되었습니다: ${normalized.id}`);
+      seen.add(normalized.id);
+      output.push(normalized);
+    }
+    return output;
+  }
+
+  function hydroEditById(id) {
+    const key = String(id);
+    return state.hydroEdits.find(feature => String(feature.id) === key) || null;
+  }
+
+  function isHydroEditFeature(feature) {
+    return !!feature && (feature.properties?.pandolab_domain === 'hydro' || state.hydroEdits.includes(feature));
+  }
+
   function hydroLayerVisible(layerId) {
-    return !!state.layerVisibility.drawings &&
-      !isLayerItemRemoved('drawings', `hydro-layer:${layerId}`) &&
+    return !!state.layerVisibility.hydro &&
       state.physicalSettings.hydroLayers?.[layerId] !== false;
   }
 
   function isHydroFeatureVisible(feature) {
     const id = String(feature?.properties?.pandolab_id || feature?.id || '');
+    if (isHydroEditFeature(feature)) return !!state.layerVisibility.hydro && isLayerItemVisible('hydro', id);
     return hydroLayerVisible(feature?.properties?.layer_id) && state.physicalSettings.hiddenHydroIds?.[id] !== true;
   }
 
-  function allHydroFeatures() {
+  function allBuiltInHydroFeatures() {
     const tiled = state.hydroFeatureCache instanceof Map ? [...state.hydroFeatureCache.values()] : [];
     const legacy = Object.values(state.hydroCollections || {}).flatMap(collection => collection?.features || []);
     return [...tiled, ...legacy];
   }
 
-  function hydroFeatureById(id) {
+  function builtInHydroFeatureById(id) {
     const key = String(id);
     if (state.hydroFeatureCache instanceof Map && state.hydroFeatureCache.has(key)) return state.hydroFeatureCache.get(key);
-    for (const feature of allHydroFeatures()) {
+    for (const feature of allBuiltInHydroFeatures()) {
       if (String(feature.properties?.pandolab_id || feature.id || '') === key) return feature;
     }
     return null;
+  }
+
+  function hydroFeatureById(id) {
+    return hydroEditById(id) || builtInHydroFeatureById(id);
   }
 
   function normalizeLayerItemState(value) {
@@ -4398,17 +4411,6 @@ const {
     for (const group of LAYER_GROUP_KEYS) {
       const source = value?.[group];
       output[group] = source && typeof source === 'object' && !Array.isArray(source) ? { ...source } : {};
-    }
-    return output;
-  }
-
-  function normalizeRemovedLayerItems(value) {
-    const output = {};
-    for (const group of LAYER_GROUP_KEYS) {
-      const source = value?.[group];
-      output[group] = source && typeof source === 'object' && !Array.isArray(source)
-        ? Object.fromEntries(Object.entries(source).filter(([, removed]) => removed === true))
-        : {};
     }
     return output;
   }
@@ -4428,14 +4430,9 @@ const {
     state.layerTreeRevision += 1;
   }
 
-  function isLayerItemRemoved(group, id) {
-    return state.removedLayerItems?.[group]?.[String(id)] === true;
-  }
-
   function isLayerItemVisible(group, id) {
-    if (isLayerItemRemoved(group, id)) return false;
-    if (group === 'drawings' && String(id).startsWith('hydro-layer:')) {
-      return state.physicalSettings.hydroLayers?.[String(id).slice('hydro-layer:'.length)] !== false;
+    if (group === 'hydro' && HYDRO_LAYER_META[String(id)]) {
+      return state.physicalSettings.hydroLayers?.[String(id)] !== false;
     }
     return state.itemVisibility?.[group]?.[String(id)] !== false;
   }
@@ -4447,12 +4444,12 @@ const {
   function setLayerItemVisibility(group, id, visible) {
     if (!LAYER_GROUP_KEYS.includes(group)) return;
     const key = String(id);
-    if (group === 'drawings' && key.startsWith('hydro-layer:')) {
-      state.physicalSettings.hydroLayers[key.slice('hydro-layer:'.length)] = !!visible;
+    if (group === 'hydro' && HYDRO_LAYER_META[key]) {
+      state.physicalSettings.hydroLayers[key] = !!visible;
       gpuMapRenderer.invalidateHydroVisibility();
       markLayerTreeDirty();
       renderAll();
-      queueAutosave();
+      queuePresentationAutosave();
       return;
     }
     state.itemVisibility[group] ||= {};
@@ -4460,22 +4457,7 @@ const {
     else state.itemVisibility[group][key] = false;
     markLayerTreeDirty();
     renderAll();
-    queueAutosave();
-  }
-
-  function setDrawingFolderVisibility(folderId, visible) {
-    const itemIds = state.drawings
-      .filter(feature => drawingFolderId(feature) === String(folderId))
-      .map(feature => String(feature.id));
-    if (!itemIds.length) return;
-    state.itemVisibility.drawings ||= {};
-    for (const id of itemIds) {
-      if (visible) delete state.itemVisibility.drawings[id];
-      else state.itemVisibility.drawings[id] = false;
-    }
-    markLayerTreeDirty();
-    renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
   }
 
   function layerTreeItems(group) {
@@ -4490,7 +4472,7 @@ const {
           meta: group === 'countryLabels' && pendingCountryLabelAnchors.has(id) ? '계산 중' : '',
           selected: state.selected?.type === 'country' && state.selected.id === id,
         };
-      }).filter(item => !isLayerItemRemoved(group, item.id));
+      });
     }
     if (group === 'regions' || group === 'administrative' || group === 'historicalRegions') {
       const kind = group === 'regions'
@@ -4516,46 +4498,53 @@ const {
           level: Number(feature.properties?.adminLevel) || null,
           selected: state.selected?.type === 'countryRegion' && state.selected.id === String(feature.id),
         };
-      }).filter(item => !isLayerItemRemoved(group, item.id));
+      });
     }
     if (DISTRIBUTION_GROUP_TYPES[group]) {
       const type = DISTRIBUTION_GROUP_TYPES[group];
       return state.distributionLayers.filter(layer => layer.type === type).map(layer => ({
         id: layer.id,
         name: layer.name,
-        color: layer.color,
+        color: distributionColor(layer),
         meta: `${distributionEntriesForLayer(state.distributionEntries, layer.id).length}개 분포`,
         folderName: layerGroupNames[group],
         selected: state.selected?.type === 'distribution' && state.selected.id === layer.id,
-      })).filter(item => !isLayerItemRemoved(group, item.id));
+      }));
     }
-    if (group === 'drawings') {
+    if (group === 'hydro') {
       const builtIns = Object.entries(HYDRO_LAYER_META).map(([id, meta]) => ({
-          id: `hydro-layer:${id}`,
+          id,
           name: meta.sourceLabel,
           searchText: `${meta.label} ${meta.sourceLabel}`,
           title: `${meta.sourceLabel} 상태 보기`,
           color: hydroDisplayColor(meta.category),
           count: state.hydroManifest?.stats?.layerCounts?.[id] ?? null,
-          folderId: DEFAULT_DRAWING_FOLDER_ID,
-          folderName: `${drawingFolderName(DEFAULT_DRAWING_FOLDER_ID)} · ${meta.label}`,
+          folderName: `지형지물 · ${meta.label}`,
           hydroFolderKey: hydroFolderStateKey(id),
           hydroFolderName: meta.label,
+          layerGroup: 'hydro',
           selected: false,
-        })).filter(item => !isLayerItemRemoved(group, item.id));
-      const userItems = state.drawings.map(feature => {
-        const folderId = drawingFolderId(feature);
-        return {
-          id: String(feature.id),
-          name: drawingName(feature),
-          color: drawingColor(feature),
-          meta: `${drawingCategoryLabel(feature)} · 사용자`,
-          folderId,
-          folderName: drawingFolderName(folderId),
-          selected: state.selected?.type === 'drawing' && state.selected.id === String(feature.id),
-        };
-      }).filter(item => !isLayerItemRemoved(group, item.id));
+        }));
+      const userItems = state.hydroEdits.map(feature => ({
+        id: String(feature.id),
+        name: hydroEditorName(feature.properties?.name, feature.properties?.category === 'lake' ? '이름 없는 호수' : '이름 없는 강'),
+        color: feature.properties?.editorColor || HYDRO_TOOL_CONFIG[feature.properties?.category || 'river'].color,
+        meta: `${feature.properties?.category === 'lake' ? '호수' : '강'} · 사용자`,
+        folderName: '지형지물',
+        layerGroup: 'hydro',
+        selected: state.selected?.type === 'hydro' && state.selected.id === String(feature.id),
+      }));
       return [...builtIns, ...userItems];
+    }
+    if (group === 'drawings') {
+      return state.drawings.map(feature => ({
+        id: String(feature.id),
+        name: drawingName(feature),
+        color: drawingColor(feature),
+        meta: `${drawingCategoryLabel(feature)} · 사용자`,
+        layerGroup: 'drawings',
+        selected: state.selected?.type === 'drawing' && state.selected.id === String(feature.id),
+      }));
     }
     return state.labels.map(label => ({
       id: String(label.id),
@@ -4563,7 +4552,7 @@ const {
       color: '#d6b969',
       meta: label.kind || '지명',
       selected: state.selected?.type === 'label' && state.selected.id === String(label.id),
-    })).filter(item => !isLayerItemRemoved(group, item.id));
+    }));
   }
 
   function pruneLayerItemVisibility() {
@@ -4576,14 +4565,13 @@ const {
       languages: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.LANGUAGE).map(layer => layer.id)),
       ethnicities: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.ETHNICITY).map(layer => layer.id)),
       religions: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.RELIGION).map(layer => layer.id)),
-      drawings: new Set([...Object.keys(HYDRO_LAYER_META).map(id => `hydro-layer:${id}`), ...state.drawings.map(feature => String(feature.id))]),
+      hydro: new Set([...Object.keys(HYDRO_LAYER_META), ...state.hydroEdits.map(feature => String(feature.id))]),
+      drawings: new Set(state.drawings.map(feature => String(feature.id))),
       labels: new Set(state.labels.map(label => String(label.id))),
     };
-    state.removedLayerItems = normalizeRemovedLayerItems(state.removedLayerItems);
     for (const group of LAYER_GROUP_KEYS) {
       state.itemVisibility[group] ||= {};
       for (const id of Object.keys(state.itemVisibility[group])) if (!valid[group].has(id)) delete state.itemVisibility[group][id];
-      for (const id of Object.keys(state.removedLayerItems[group])) if (!valid[group].has(id)) delete state.removedLayerItems[group][id];
     }
     const activeFolderKeys = new Set(activeLayerFolderKeys());
     for (const key of Object.keys(state.layerFolders || {})) {
@@ -4622,6 +4610,7 @@ const {
   }
 
   function createLayerItemRow(group, item, { searchResult = false } = {}) {
+    const itemGroup = item.layerGroup || group;
     if (item.groupHeader && !searchResult) {
       if (item.hydroHeader) {
         const header = document.createElement('div');
@@ -4638,8 +4627,8 @@ const {
         const visibility = document.createElement('input');
         visibility.type = 'checkbox';
         visibility.className = 'layer-visibility-toggle';
-        visibility.checked = isLayerItemVisible(group, item.layerItemId);
-        visibility.dataset.layerItemVisibility = group;
+        visibility.checked = isLayerItemVisible(itemGroup, item.layerItemId);
+        visibility.dataset.layerItemVisibility = itemGroup;
         visibility.dataset.itemId = item.layerItemId;
         visibility.dataset.visibilityLabel = item.name;
         visibility.setAttribute('aria-label', `${item.name} 레이어 표시`);
@@ -4672,42 +4661,42 @@ const {
       return header;
     }
     const row = document.createElement(searchResult ? 'button' : 'div');
-    const selected = isLayerTreeItemSelected(group, item.id);
-    const ref = layerItemObjectRef(group, item.id);
+    const selected = isLayerTreeItemSelected(itemGroup, item.id);
+    const ref = layerItemObjectRef(itemGroup, item.id);
     const primary = !!ref && objectSelection.snapshot().primaryKey === ref.key;
-    const hasMenu = group !== 'countryLabels' && !!ref;
+    const hasMenu = itemGroup !== 'countryLabels' && !!ref;
     row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${item.hydroSource ? ' is-hydro-source' : ''}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${selected ? ' is-selected' : ''}${selected && objectSelection.size() > 1 ? ' is-multi-selected' : ''}${primary && objectSelection.size() > 1 ? ' is-primary-selected' : ''}`;
-    row.dataset.layerGroup = group;
+    row.dataset.layerGroup = itemGroup;
     row.dataset.itemId = item.id;
     if (searchResult) {
       row.type = 'button';
-      row.dataset.layerItemSelect = group;
+      row.dataset.layerItemSelect = itemGroup;
       row.setAttribute('role', 'option');
       row.setAttribute('aria-selected', String(selected));
       row.innerHTML = `<span></span><strong></strong>`;
-      row.querySelector('span').textContent = item.folderName || layerGroupNames[group] || '지형 음영';
+      row.querySelector('span').textContent = item.folderName || layerGroupNames[itemGroup] || '지형 음영';
       row.querySelector('strong').textContent = item.name;
       return row;
     }
     const visibility = document.createElement('input');
     visibility.type = 'checkbox';
     visibility.className = 'layer-visibility-toggle';
-    visibility.checked = isLayerItemVisible(group, item.id);
-    visibility.dataset.layerItemVisibility = group;
+    visibility.checked = isLayerItemVisible(itemGroup, item.id);
+    visibility.dataset.layerItemVisibility = itemGroup;
     visibility.dataset.itemId = item.id;
     visibility.dataset.visibilityLabel = item.name;
     visibility.setAttribute('aria-label', `${item.name} 표시`);
     const name = document.createElement('button');
     name.type = 'button';
     name.className = 'ui-button layer-child-name';
-    name.dataset.layerItemSelect = group;
+    name.dataset.layerItemSelect = itemGroup;
     name.dataset.itemId = item.id;
     name.textContent = item.name;
     name.dataset.tooltip = item.title || `${item.name} 선택`;
     const menuButton = document.createElement('button');
     menuButton.type = 'button';
     menuButton.className = 'ui-button layer-child-menu';
-    menuButton.dataset.layerItemMenu = group;
+    menuButton.dataset.layerItemMenu = itemGroup;
     menuButton.dataset.itemId = item.id;
     menuButton.setAttribute('aria-label', `${item.name} 메뉴`);
     menuButton.setAttribute('aria-haspopup', 'menu');
@@ -4774,55 +4763,6 @@ const {
     container.scrollTop = Math.min(desiredScrollTop, Math.max(0, container.scrollHeight - container.clientHeight));
   }
 
-  function createDynamicDrawingFolderElement(folder) {
-    const folderKey = drawingFolderStateKey(folder.id);
-    const element = document.createElement('div');
-    element.className = 'layer-folder';
-    element.dataset.layerGroup = 'drawings';
-    element.dataset.drawingFolderId = folder.id;
-    element.dataset.layerFolderKey = folderKey;
-
-    const row = document.createElement('div');
-    row.className = 'ui-row layer-folder-row';
-    const toggle = document.createElement('button');
-    toggle.className = 'ui-button layer-folder-toggle';
-    toggle.type = 'button';
-    toggle.dataset.layerFolderToggle = folderKey;
-    toggle.innerHTML = '<svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg>';
-    const visibility = document.createElement('input');
-    visibility.type = 'checkbox';
-    visibility.className = 'layer-visibility-toggle';
-    visibility.dataset.drawingFolderVisibility = folder.id;
-    visibility.dataset.visibilityLabel = folder.name;
-    visibility.setAttribute('aria-label', `${folder.name} 폴더 표시`);
-    const name = document.createElement('button');
-    name.className = 'ui-button layer-folder-name';
-    name.type = 'button';
-    name.dataset.layerFolderToggle = folderKey;
-    name.textContent = folder.name;
-    row.append(toggle, visibility, name);
-
-    const children = document.createElement('div');
-    children.className = 'layer-children';
-    children.dataset.layerFolderKey = folderKey;
-    children.setAttribute('role', 'group');
-    children.setAttribute('aria-label', `${folder.name} 항목`);
-    children.hidden = true;
-    element.append(row, children);
-    return { folder: element, container: children, folderKey, folderId: folder.id, name: folder.name, visibility };
-  }
-
-  function renderDynamicDrawingFolderElements() {
-    document.querySelectorAll('.layer-folder[data-drawing-folder-id]').forEach(folder => folder.remove());
-    const mapElementsContainer = $('mapElementsLayerItems');
-    if (!mapElementsContainer) return [];
-    return state.drawingFolders.map(folder => {
-      const descriptor = createDynamicDrawingFolderElement(folder);
-      mapElementsContainer.appendChild(descriptor.folder);
-      return descriptor;
-    });
-  }
-
   function renderLayerFolderContents({ group, folderKey, name, folder, container, items, search }) {
     const expanded = !search && !!state.layerFolders[folderKey];
     if (!container.hidden) layerGroupScrollTop.set(folderKey, container.scrollTop);
@@ -4859,6 +4799,7 @@ const {
           name: item.hydroFolderName,
           folderKey: item.hydroFolderKey,
           layerItemId: item.id,
+          layerGroup: 'hydro',
           expanded,
         });
         if (expanded) displayItems.push({ ...item, hydroSource: true });
@@ -4910,7 +4851,6 @@ const {
 
   function renderLayerTree(force = false) {
     if (!force && renderedLayerTreeRevision === state.layerTreeRevision) return;
-    syncCountriesLockControl();
     pruneLayerItemVisibility();
     const search = String(state.layerSearch || '').trim().toLocaleLowerCase('ko');
     const searchChanged = search !== renderedLayerSearch;
@@ -4921,7 +4861,7 @@ const {
     if (search) {
       if (!searchChanged && searchResults) layerSearchScrollTop = searchResults.scrollTop;
       const matches = [];
-      for (const group of LAYER_TREE_GROUP_KEYS) {
+      for (const group of LAYER_SEARCH_GROUP_KEYS) {
         for (const item of layerTreeItems(group)) {
           const haystack = `${item.name} ${item.searchText || ''} ${item.id} ${item.meta || ''}`.toLocaleLowerCase('ko');
           if (haystack.includes(search)) matches.push({ group, item });
@@ -4952,24 +4892,15 @@ const {
       layerSearchVirtualMatches = [];
       layerSearchScrollTop = 0;
     }
-    const dynamicDrawingFolders = renderDynamicDrawingFolderElements();
     for (const group of LAYER_TREE_GROUP_KEYS) {
-      const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]:not([data-drawing-folder-id])`);
+      const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]`);
       const container = $(layerGroupTargetIds[group]);
       if (!folder || !container) continue;
-      const allItems = layerTreeItems(group).sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
-      const items = group === 'drawings'
-        ? allItems.filter(item => item.folderId === DEFAULT_DRAWING_FOLDER_ID)
-        : allItems;
-      renderLayerFolderContents({ group, folderKey: group, name: layerGroupNames[group], folder, container, items, search });
-    }
-    const drawingItems = layerTreeItems('drawings').sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
-    for (const descriptor of dynamicDrawingFolders) {
-      const items = drawingItems.filter(item => item.folderId === descriptor.folderId);
-      const visibleCount = items.filter(item => isLayerItemVisible('drawings', item.id)).length;
-      descriptor.visibility.checked = !!items.length && visibleCount === items.length;
-      descriptor.visibility.indeterminate = visibleCount > 0 && visibleCount < items.length;
-      renderLayerFolderContents({ group: 'drawings', ...descriptor, items, search });
+      const allItems = (group === 'drawings'
+        ? [...layerTreeItems('hydro'), ...layerTreeItems('drawings')]
+        : layerTreeItems(group))
+        .sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
+      renderLayerFolderContents({ group, folderKey: group, name: layerGroupNames[group], folder, container, items: allItems, search });
     }
     renderedLayerTreeRevision = state.layerTreeRevision;
     renderedLayerSearch = search;
@@ -4988,19 +4919,34 @@ const {
     return outline;
   }
 
-  function shouldShowCountryLabel(feature) {
+  function countryLabelScreenMetrics(feature, fontSize = isMobile() ? 8 : 9, projectedExtent = null) {
+    let width = Number(projectedExtent?.width);
+    let height = Number(projectedExtent?.height);
+    if (!Number.isFinite(width) || !Number.isFinite(height)) {
+      let bounds;
+      try { bounds = path.bounds(feature); } catch (_) { bounds = null; }
+      width = bounds ? Math.max(0, Number(bounds[1]?.[0]) - Number(bounds[0]?.[0])) : 0;
+      height = bounds ? Math.max(0, Number(bounds[1]?.[1]) - Number(bounds[0]?.[1])) : 0;
+    }
+    const textWidth = Math.max(20, [...countryName(feature)].length * fontSize * 1.02 + 8);
+    return {
+      width: Number.isFinite(width) ? width : 0,
+      height: Number.isFinite(height) ? height : 0,
+      area: Number.isFinite(width * height) ? width * height : 0,
+      textWidth,
+      textHeight: fontSize * 1.65 + 4,
+    };
+  }
+
+  function shouldShowCountryLabel(feature, metrics = countryLabelScreenMetrics(feature)) {
     if (!state.layerVisibility.basemapLabels) return false;
     const id = String(feature.properties?.editor_id || '');
-    if (pendingCountryLabelAnchors.has(id)) return false;
-    const pop = Number(feature.properties?.pop_est || 0);
-    const z = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
-    let threshold = isMobile() ? 120_000_000 : 30_000_000;
-    if (z >= 1.4) threshold = isMobile() ? 25_000_000 : 12_000_000;
-    if (z >= 2) threshold = 4_000_000;
-    if (z >= 3) threshold = 1_000_000;
-    if (z >= 4.5) threshold = 0;
-    if (state.selected?.type === 'country' && state.selected.id === feature.properties?.editor_id) return true;
-    return pop >= threshold;
+    if (!isLayerItemVisible('countryLabels', id) || pendingCountryLabelAnchors.has(id)) return false;
+    if (state.selected?.type === 'country' && state.selected.id === id) return true;
+    const widthFit = metrics.width >= Math.min(34, metrics.textWidth * (isMobile() ? 0.48 : 0.42));
+    const heightFit = metrics.height >= metrics.textHeight * 0.52;
+    const areaFit = metrics.area >= Math.max(isMobile() ? 72 : 58, metrics.textWidth * metrics.textHeight * 0.32);
+    return widthFit && heightFit && areaFit;
   }
 
   function renderPendingCountryOverlays() {
@@ -5030,7 +4976,7 @@ const {
     patchOutline.exit().remove();
   }
 
-  function renderCountries(revision = ++renderRevision) {
+  function renderCountries(revision = viewRevision) {
     gpuMapRenderer.render(revision);
     renderPendingCountryOverlays();
     const highlighted = state.layerVisibility.countries && state.countriesData
@@ -5076,19 +5022,22 @@ const {
 
   function visibleLabelLayout() {
     const candidates = [];
+    countryLabelScreenAreas.clear();
     for (const feature of state.countriesData?.features || []) {
       const id = String(feature.properties?.editor_id || '');
       const anchor = feature.properties?.editor_label_anchor;
       const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', id)] || {});
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : anchor;
-      if (!shouldShowCountryLabel(feature) || !isCoordVisible(coordinate)) continue;
+      const baseMetrics = countryLabelScreenMetrics(feature);
+      const fontSize = baseMetrics.area >= (isMobile() ? 3200 : 2200) ? (isMobile() ? 10 : 12) : isMobile() ? 8 : 9;
+      const metrics = countryLabelScreenMetrics(feature, fontSize, baseMetrics);
+      countryLabelScreenAreas.set(id, metrics.area);
+      if (!shouldShowCountryLabel(feature, metrics) || !isCoordVisible(coordinate)) continue;
       const point = activeProjection()(coordinate);
       if (!point) continue;
-      const population = Number(feature.properties?.pop_est || 0);
-      const fontSize = population >= 50_000_000 ? 10 : isMobile() ? 8 : 9;
       candidates.push({
         key: labelKey('country', id), sourceType: 'country', source: feature, point,
-        width: Math.max(20, [...countryName(feature)].length * fontSize * 1.02 + 8), height: fontSize * 1.65 + 4,
+        width: metrics.textWidth, height: metrics.textHeight,
         priority: settings.priority ?? LABEL_PRIORITIES.country, minZoom: settings.minZoom, maxZoom: settings.maxZoom,
         pinned: settings.pinned, collisionGroup: settings.collisionGroup,
         selected: state.selected?.type === 'country' && state.selected.id === id,
@@ -5156,7 +5105,7 @@ const {
     allCountryLabels
       .text(countryName)
       .style('opacity', layerStyle(state.layerPresentation, 'countryLabels').opacity)
-      .classed('major', d => Number(d.properties?.pop_est || 0) >= 50_000_000)
+      .classed('major', d => (countryLabelScreenAreas.get(String(d.properties?.editor_id || '')) || 0) >= (isMobile() ? 3200 : 2200))
       .attr('transform', d => {
         const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', d.properties?.editor_id)] || {});
         const anchor = settings.pinned && settings.manualPosition ? settings.manualPosition : d.properties?.editor_label_anchor;
@@ -5174,27 +5123,24 @@ const {
     return feature;
   }
 
-  async function loadTerrainManifest(force = false) {
-    if (!force && ['loading', 'ready'].includes(state.physicalLoadState.terrain)) return;
-    state.physicalLoadState.terrain = 'loading';
-    state.physicalLoadState.terrainManifest = 'loading';
-    markLayerTreeDirty();
-    renderLayerTree();
-    try {
+  const terrainService = createTerrainService({
+    fetchWithRetry,
+    manifestUrl: () => {
       const url = new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL);
       url.searchParams.set('v', ASSET_REVISION);
-      const response = await fetchWithRetry(url, {}, {
-        maxAttempts: 3,
-        baseDelay: 400,
-        maxDelay: 2400,
-        timeoutMs: 15000,
-        onRetry: ({ attempt }) => reliabilityDiagnostic.push({
-          category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
-        }),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const manifest = await response.json();
-      if (!manifest.levels?.length) throw new Error('지형 타일 manifest가 올바르지 않습니다.');
+      return url;
+    },
+    getLoadState: () => state.physicalLoadState.terrain,
+    onLoading: () => {
+      state.physicalLoadState.terrain = 'loading';
+      state.physicalLoadState.terrainManifest = 'loading';
+      markLayerTreeDirty();
+      renderLayerTree();
+    },
+    onRetry: (_operation, attempt) => reliabilityDiagnostic.push({
+      category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
+    }),
+    acceptManifest: manifest => {
       state.terrainManifest = manifest;
       state.physicalLoadState.terrainManifest = 'ready';
       state.physicalLoadState.terrain = 'ready';
@@ -5202,7 +5148,8 @@ const {
       markLayerTreeDirty();
       renderLayerTree();
       renderAll();
-    } catch (error) {
+    },
+    onFailure: error => {
       state.physicalLoadState.terrainManifest = 'error';
       state.physicalLoadState.terrain = 'error';
       reliabilityDiagnostic.push({ category: 'asset', operation: 'terrain-manifest', result: 'failed', errorCode: 'PL-TERRAIN-001' });
@@ -5210,32 +5157,34 @@ const {
       renderLayerTree();
       console.warn('Terrain load failed', error);
       reportOperationError(error, '지형 음영을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0);
-    }
+    },
+  });
+
+  async function loadTerrainManifest(force = false) {
+    return terrainService.load(force);
   }
 
-  async function loadHydroData(force = false) {
-    if (!force && ['loading', 'ready'].includes(state.physicalLoadState.hydro)) return;
-    state.physicalLoadState.hydro = 'loading';
-    state.physicalLoadState.hydroManifest = 'loading';
-    state.physicalLoadState.hydroWorker = 'starting';
-    state.physicalLoadState.hydroView = 'idle';
-    markLayerTreeDirty();
-    renderLayerTree();
-    try {
+  const hydroService = createHydroService({
+    fetchWithRetry,
+    dataVersion: HYDRO_DATA_VERSION,
+    manifestUrl: () => {
       const manifestUrl = new URL(`hydro/v${HYDRO_DATA_VERSION}/manifest.json`, PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
-      const response = await fetchWithRetry(manifestUrl, {}, {
-        maxAttempts: 3,
-        baseDelay: 400,
-        maxDelay: 2400,
-        timeoutMs: 15000,
-        onRetry: ({ attempt }) => reliabilityDiagnostic.push({
-          category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
-        }),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const manifest = await response.json();
-      if (manifest.version !== HYDRO_DATA_VERSION || manifest.schema !== 'pandolab-water-shards-v5') throw new Error('수계 타일 버전이 맞지 않습니다.');
+      return manifestUrl;
+    },
+    getLoadState: () => state.physicalLoadState.hydro,
+    onLoading: () => {
+      state.physicalLoadState.hydro = 'loading';
+      state.physicalLoadState.hydroManifest = 'loading';
+      state.physicalLoadState.hydroWorker = 'starting';
+      state.physicalLoadState.hydroView = 'idle';
+      markLayerTreeDirty();
+      renderLayerTree();
+    },
+    onRetry: (_operation, attempt) => reliabilityDiagnostic.push({
+      category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
+    }),
+    acceptManifest: async (manifest, manifestUrl) => {
       state.hydroManifest = manifest;
       state.hydroCollections = {};
       state.hydroFeatureCache = new Map();
@@ -5245,13 +5194,15 @@ const {
       state.physicalLoadState.hydroCache = 'idle';
       state.physicalLoadState.hydroCachePercent = 0;
       const workerReady = await gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
-      if (!workerReady) throw new Error('수계 Worker 초기화에 실패했습니다.');
+      if (!workerReady) return false;
       state.physicalLoadState.hydroWorker = 'ready';
       state.physicalLoadState.hydro = 'ready';
       markLayerTreeDirty();
       renderLayerTree();
       renderHydro();
-    } catch (error) {
+      return true;
+    },
+    onFailure: error => {
       if (state.physicalLoadState.hydroManifest !== 'ready') state.physicalLoadState.hydroManifest = 'error';
       state.physicalLoadState.hydroWorker = 'error';
       state.physicalLoadState.hydro = 'error';
@@ -5260,7 +5211,11 @@ const {
       renderLayerTree();
       console.warn('Hydro load failed', error);
       reportOperationError(error, '수계 목록을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도하세요.', 'PL-WATER-001', 0);
-    }
+    },
+  });
+
+  async function loadHydroData(force = false) {
+    return hydroService.load(force);
   }
 
   function loadPhysicalData() {
@@ -5300,7 +5255,7 @@ const {
       if (!groups.has(key)) groups.set(key, { key, layerId, width: widthBucket, features: [] });
       groups.get(key).features.push(feature);
     };
-    for (const feature of allHydroFeatures()) {
+    for (const feature of allBuiltInHydroFeatures()) {
       if (!feature.geometry) continue;
       const layerId = feature.properties?.layer_id;
       if (HYDRO_LAYER_META[layerId]?.category !== category || !hydroLayerVisible(layerId) || !hydroFeatureInView(feature)) continue;
@@ -5350,10 +5305,42 @@ const {
       riverSelection.exit().remove();
     }
 
-    const selected = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
+    const selected = state.selected?.type === 'hydro' && !hydroEditById(state.selected.id) ? builtInHydroFeatureById(state.selected.id) : null;
     const selection = hydroSelectionLayer.selectAll('path.hydro-selected').data(selected?.geometry && hydroFeatureInView(selected) ? [selected] : [], item => item.properties.pandolab_id);
     selection.enter().append('path').attr('class', 'hydro-selected');
     selection.attr('d', path).classed('is-lake', item => item.properties.category === 'lake');
+    selection.exit().remove();
+  }
+
+  function hydroEditColor(feature) {
+    const category = feature?.properties?.category === 'lake' ? 'lake' : 'river';
+    return feature?.properties?.editorColor || HYDRO_TOOL_CONFIG[category].color;
+  }
+
+  function renderHydroEdits() {
+    if (!hydroEditLayer) return;
+    const style = layerStyle(state.layerPresentation, 'hydro');
+    const data = state.layerVisibility.hydro
+      ? state.hydroEdits.filter(feature => isLayerItemVisible('hydro', feature.id) && feature.geometry)
+      : [];
+    const selection = hydroEditLayer.selectAll('path.hydro-edit-shape').data(data, feature => String(feature.id));
+    selection.enter().append('path')
+      .attr('class', 'hydro-edit-shape')
+      .on('mouseenter.hover', feature => setMapHover('hydro', feature.id, feature))
+      .on('mouseleave.hover', () => setMapHover('', '', null))
+      .on('click', function(feature) {
+        if (mapClickBlocked() || state.tool !== 'select' || state.labelPlacementMode) return;
+        d3.event.stopPropagation();
+        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id } });
+      });
+    selection
+      .attr('d', path)
+      .style('fill', feature => feature.properties?.category === 'lake' ? hydroEditColor(feature) : 'none')
+      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? 0.34 * style.opacity : 0)
+      .style('stroke', hydroEditColor)
+      .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
+      .style('stroke-width', style.boundaryWidth)
+      .classed('selected', feature => objectSelection.has(normalizeObjectRef({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id })));
     selection.exit().remove();
   }
 
@@ -5405,7 +5392,7 @@ const {
     const visibleIds = new Set(visibleLayers.map(layer => layer.id));
     let entries;
     if (state.distributionSettings.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY) {
-      const selectedId = String(state.distributionSettings.selectedLayerId || state.selected?.type === 'distribution' && state.selected.id || '');
+      const selectedId = String(state.selectedDistributionLayerId || state.selected?.type === 'distribution' && state.selected.id || '');
       entries = visibleIds.has(selectedId) ? distributionEntriesForLayer(state.distributionEntries, selectedId) : [];
     } else {
       entries = Object.values(DISTRIBUTION_TYPES).flatMap(type => {
@@ -5445,8 +5432,8 @@ const {
       });
     selection
       .attr('d', row => path({ type: 'Feature', properties: {}, geometry: row.geometry }))
-      .style('fill', row => row.layer.color)
-      .style('stroke', row => row.layer.color)
+      .style('fill', row => distributionColor(row.layer))
+      .style('stroke', row => distributionColor(row.layer))
       .style('fill-opacity', row => (0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58) * layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).opacity)
       .style('stroke-opacity', row => {
         const style = layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
@@ -5613,7 +5600,7 @@ const {
     return [];
   }
 
-  function setDrawingVertexCoord(feature, vertex, coord) {
+  function setEditableVertexCoord(feature, vertex, coord) {
     const type = feature?.geometry?.type;
     if (type === 'LineString') feature.geometry.coordinates[vertex.index] = coord.slice();
     else if (type === 'MultiLineString') feature.geometry.coordinates[vertex.partIndex][vertex.index] = coord.slice();
@@ -5651,8 +5638,7 @@ const {
       .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }))
       .classed('coast', d => d.kind === 'coast')
       .classed('shared', d => d.kind === 'shared')
-      .on('click.vertex-add', null)
-      .on('dblclick.vertex-add', null);
+      .on('click.vertex-add', null);
   }
 
   function thinVisibleCoastHandles(handles) {
@@ -5688,6 +5674,9 @@ const {
     if (state.tool === 'select' && state.selected?.type === 'drawing') {
       feature = state.drawings.find(f => String(f.id) === state.selected.id);
       if (feature) data = getEditableVertices(feature).filter(v => isCoordVisible(v.coord));
+    } else if (state.tool === 'select' && state.selected?.type === 'hydro') {
+      feature = hydroEditById(state.selected.id);
+      if (feature) data = getEditableVertices(feature).filter(vertex => isCoordVisible(vertex.coord));
     } else if ((state.tool === 'country-coast' && state.coastEditCountryId)
       || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing')) {
       const primaryId = state.tool === 'country-border' ? state.boundaryEditCountryIds[0] : state.coastEditCountryId;
@@ -5859,10 +5848,6 @@ const {
         d3.event.preventDefault();
         d3.event.stopPropagation();
         insertDraftPoint();
-      })
-      .on('dblclick', function() {
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
       });
   }
 
@@ -5873,8 +5858,8 @@ const {
     const inputHint = isMobile()
       ? '한 손가락으로 그리세요. 두 손가락으로 지도를 이동하거나 확대할 수 있습니다.'
       : '드래그해 그리세요. 클릭으로 점을 정밀하게 추가하고 Space+드래그로 지도를 이동할 수 있습니다.';
-    const terrain = terrainToolConfig(state.tool);
-    if (terrain) return `${terrain.label}의 ${isPolygonDraftTool(state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
+    const hydro = hydroToolConfig(state.tool);
+    if (hydro) return `${hydro.label}의 ${isPolygonDraftTool(state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
     if (state.tool === 'split-drawing') {
       const source = state.drawings.find(item => String(item.id) === String(state.drawingSplitSourceId));
       return `${source ? drawingName(source) : '선택한 영역'}을 가로질러 ${inputHint}`;
@@ -6018,10 +6003,6 @@ const {
         d3.event.preventDefault();
         d3.event.stopPropagation();
         showDraftInsertTarget(row, d3.mouse(svg.node()));
-      })
-      .on('dblclick', function() {
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
       });
     segmentHits.append('title').text('선분에 꼭짓점 삽입');
     const visible = fixedDisplayCoords.map((coord, index) => ({ coord, index })).filter(item => isCoordVisible(item.coord));
@@ -6040,10 +6021,6 @@ const {
         state.draftEdit.insertTarget = null;
         renderDraft();
         updateModeButtons();
-      })
-      .on('dblclick', function() {
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
       });
     vertices.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile() ? 16 : 10);
     vertices.append('circle').attr('class', 'draft-vertex-dot').attr('r', isMobile() ? 6.5 : 4.5);
@@ -6279,7 +6256,8 @@ const {
     const metrics = gpuMapRenderer.getStats?.() || {};
     const lines = [
       `renderer: ${metrics.renderer || 'unknown'}`,
-      `render revision: ${renderRevision}`,
+      `render revision: ${mapRenderCoordinator?.revision() || 0}`,
+      `view revision: ${viewRevision}`,
       `state revision: ${state.stateRevision}`,
       `pending country patches: ${state.pendingCountryRenderIds.size}`,
       `affected country ids: ${[...state.pendingCountryRenderIds].join(', ') || '—'}`,
@@ -6404,49 +6382,94 @@ const {
     renderValidationOverlay();
   }
 
-  function renderMapFrame({ viewOnly = false } = {}) {
-    const revision = ++renderRevision;
-    updateProjection();
-    renderBase();
-    renderCountries(revision);
-    if (viewOnly) renderHydroSelectionPosition();
-    else renderHydro();
-    renderBoundaryEditOverlay();
-    renderCountryRegions();
-    renderDistributions();
-    renderDrawings();
-    applyOverlayStackOrder();
-    renderGeometryPreview();
-    renderHoverOverlay();
-    renderSelectionOverlay();
-    renderValidationOverlay();
-    if (viewOnly) {
-      renderCountryLabelPositions();
-      renderUserLabelPositions();
-    } else {
-      renderCountryLabels();
-      renderUserLabels();
-    }
-    renderVertices();
-    renderDraft();
-    renderSnapIndicator();
-    renderDebugMapPanel();
-    if (!viewOnly) renderLayerTree();
-    window.__PANDOLAB_VIEW_REVISION__ = revision;
+  function projectionViewSnapshot() {
+    const projection = activeProjection();
+    const translate = projection.translate().map(Number);
+    const center = screenToGeo(translate);
+    return {
+      projection: state.projection,
+      size: { width: state.size.width, height: state.size.height },
+      translate,
+      scale: Number(projection.scale()),
+      rotation: state.projection === 'globe' ? state.view.globeRotation.map(Number) : null,
+      projectionCenter: state.projection === 'flat' ? state.view.flatCenter.map(Number) : null,
+      geographicCenter: center ? center.map(Number) : null,
+      zoom: state.projection === 'globe' ? Number(state.view.globeZoom) : Number(state.view.flatZoom),
+    };
   }
 
+  function syncViewRevision() {
+    const snapshot = projectionViewSnapshot();
+    const signature = JSON.stringify(snapshot);
+    if (signature !== renderedViewSignature) {
+      renderedViewSignature = signature;
+      viewRevision += 1;
+    }
+    window.__PANDOLAB_VIEW_REVISION__ = viewRevision;
+    window.__PANDOLAB_VIEW_STATE__ = { ...snapshot, revision: viewRevision };
+    return viewRevision;
+  }
+
+  mapRenderCoordinator = createMapRenderCoordinator({
+    requestFrame: callback => requestAnimationFrame(callback),
+    prepareView: () => {
+      updateProjection();
+      return syncViewRevision();
+    },
+    renderers: {
+      base: renderBase,
+      countries: renderCountries,
+      hydroSelectionPosition: renderHydroSelectionPosition,
+      hydro: renderHydro,
+      hydroEdits: renderHydroEdits,
+      boundaryEdit: renderBoundaryEditOverlay,
+      territorialUnits: renderCountryRegions,
+      distributions: renderDistributions,
+      drawings: renderDrawings,
+      stackOverlays: applyOverlayStackOrder,
+      geometryPreview: renderGeometryPreview,
+      hover: renderHoverOverlay,
+      selection: renderSelectionOverlay,
+      validation: renderValidationOverlay,
+      countryLabelPositions: renderCountryLabelPositions,
+      userLabelPositions: renderUserLabelPositions,
+      countryLabels: renderCountryLabels,
+      userLabels: renderUserLabels,
+      vertices: renderVertices,
+      draft: renderDraft,
+      snapIndicator: renderSnapIndicator,
+      debug: renderDebugMapPanel,
+      layerTree: renderLayerTree,
+    },
+  });
+
   function renderAll() {
-    renderMapFrame();
+    return mapRenderCoordinator.renderFull();
   }
 
   function renderViewFrame() {
-    renderMapFrame({ viewOnly: true });
+    return mapRenderCoordinator.renderView();
   }
 
   function initSvg() {
     const mapEl = $('map');
     const map = d3.select(mapEl);
     map.selectAll('*').remove();
+    if (new URLSearchParams(location.search).has('debug')) {
+      window.__PANDOLAB_VIEW_DEBUG__ = Object.freeze({
+        snapshot: () => {
+          updateProjection();
+          return deepClone({ ...projectionViewSnapshot(), revision: viewRevision });
+        },
+        screenToGeo: point => {
+          updateProjection();
+          const coordinate = screenToGeo(point);
+          return coordinate ? coordinate.slice() : null;
+        },
+      });
+    } else {
+      delete window.__PANDOLAB_VIEW_DEBUG__;
+    }
 
     baseSvg = map.append('svg')
       .attr('class', 'map-base-svg')
@@ -6467,6 +6490,7 @@ const {
     countryLayer = root.append('g').attr('class', 'countries-layer');
     hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
     hydroRiverLayer = root.append('g').attr('class', 'hydro-rivers-layer');
+    hydroEditLayer = root.append('g').attr('class', 'hydro-edit-layer');
     hydroSelectionLayer = root.append('g').attr('class', 'hydro-selection-layer');
     boundaryEditLayer = root.append('g').attr('class', 'boundary-edit-layer');
     overlayStackLayer = root.append('g').attr('class', 'overlay-stack-layer');
@@ -6514,10 +6538,7 @@ const {
       panBy: panMapBy,
       scheduleViewRender,
       getZoom: () => state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom,
-      setZoom: value => {
-        if (state.projection === 'globe') state.view.globeZoom = clamp(value, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
-        else state.view.flatZoom = clamp(value, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
-      },
+      transformView: transformMapView,
       zoomBy: factor => {
         zoomBy(factor, false);
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
@@ -6541,17 +6562,6 @@ const {
     svg.on('click', function() {
       if (mapClickBlocked()) return;
       handleMapClick(d3.mouse(this));
-    });
-
-    svg.on('dblclick', function() {
-      const newCountryLineMode = state.tool === 'new-country' && state.newCountryPhase === 'line';
-      if ((isDrawingDraftTool(state.tool) || newCountryLineMode || (state.tool === 'annex-territory' && state.annexPhase === 'line')) && state.draftCoords.length) {
-        d3.event.preventDefault();
-        finishDraft();
-      } else if (state.tool === 'select' && !isMobile() && objectSelection.primary()) {
-        d3.event.preventDefault();
-        focusObjectRef(objectSelection.primary());
-      }
     });
 
     svg.on('mousemove', function() {
@@ -6602,34 +6612,6 @@ const {
         renderHoverOverlay();
       }
     });
-
-    let mapLongPress = null;
-    svg.node().addEventListener('pointerdown', event => {
-      if (!isMobile() || event.pointerType === 'mouse' || state.tool !== 'select' || event.isPrimary === false) return;
-      const rect = svg.node().getBoundingClientRect();
-      const point = [event.clientX - rect.left, event.clientY - rect.top];
-      const timer = window.setTimeout(() => {
-        state.selectionMode = true;
-        suppressNextMapClick(point);
-        handleObjectSelectionAt(point, { sourceEvent: { ctrlKey: true } });
-        navigator.vibrate?.(16);
-        mapLongPress = null;
-      }, 450);
-      mapLongPress = { pointerId: event.pointerId, point, timer };
-    }, { passive: true });
-    svg.node().addEventListener('pointermove', event => {
-      if (!mapLongPress || mapLongPress.pointerId !== event.pointerId) return;
-      const rect = svg.node().getBoundingClientRect();
-      const point = [event.clientX - rect.left, event.clientY - rect.top];
-      if (projectedPointDistance(point, mapLongPress.point) <= 8) return;
-      clearTimeout(mapLongPress.timer);
-      mapLongPress = null;
-    }, { passive: true });
-    for (const type of ['pointerup', 'pointercancel']) svg.node().addEventListener(type, event => {
-      if (!mapLongPress || mapLongPress.pointerId !== event.pointerId) return;
-      clearTimeout(mapLongPress.timer);
-      mapLongPress = null;
-    }, { passive: true });
 
     svg.on('mouseleave', function() {
       state.draftHover = null;
@@ -6778,7 +6760,7 @@ const {
 
   function mapModeContextActive() {
     const labelMode = state.labelPlacementMode || state.tool === 'label';
-    return !!(labelMode || terrainToolConfig(state.tool) || state.geometryPreview.session || isSpecialTool(state.tool) || draftInputActive());
+    return !!(labelMode || hydroToolConfig(state.tool) || state.geometryPreview.session || isSpecialTool(state.tool) || draftInputActive());
   }
 
   function elementHasLayout(element) {
@@ -6816,9 +6798,10 @@ const {
 
   function syncMapContextSurfaces() {
     const editing = mapModeContextActive();
-    const multiple = objectSelection.snapshot().items.length > 1;
+    const selectionCount = objectSelection.snapshot().items.length;
+    const showSelection = selectionCount > 1 || (isMobile() && selectionCount > 0);
     $('modeEditingContext')?.classList.toggle('hidden', !editing);
-    $('multiSelectionBar')?.classList.toggle('hidden', editing || !multiple);
+    $('multiSelectionBar')?.classList.toggle('hidden', editing || !showSelection);
     requestAnimationFrame(syncMapHudBounds);
   }
 
@@ -6857,7 +6840,7 @@ const {
       ? state.annexSelectionMethod
       : state.newCountrySelectionMethod;
     const labelMode = state.labelPlacementMode || state.tool === 'label';
-    const terrainMode = !!terrainToolConfig(state.tool);
+    const terrainMode = !!hydroToolConfig(state.tool);
     const draftMode = draftInputActive();
     const previewMode = !!state.geometryPreview.session;
     const specialMode = labelMode || terrainMode || previewMode || isSpecialTool(state.tool) || draftMode;
@@ -7403,7 +7386,7 @@ const {
   }
 
   function enterTerrainDrawingMode(tool) {
-    const config = terrainToolConfig(tool);
+    const config = hydroToolConfig(tool);
     if (!config) return false;
     clearNotification();
     clearSelection(false);
@@ -7418,10 +7401,6 @@ const {
 
   function enterNewCountryMode() {
     clearNotification();
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
     clearSelection(false);
     state.draftCoords = [];
     state.draftHover = null;
@@ -7447,6 +7426,7 @@ const {
 
   function beginNewCountryLine() {
     if (state.tool !== 'new-country' || state.newCountryPhase !== 'sources') return;
+    if (!requireCountriesUnlocked(state.newCountrySourceIds, '새 국가 분리 작업을 시작')) return;
     let sourceGeometry;
     try {
       sourceGeometry = selectedCountryUnionGeometry(state.newCountrySourceIds);
@@ -7471,10 +7451,7 @@ const {
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked([id], '영토 편입을 시작')) return false;
     state.draftCoords = [];
     state.draftHover = null;
     state.annexTargetCountryId = String(id);
@@ -7518,6 +7495,7 @@ const {
 
   function beginAnnexSelection() {
     if (state.tool !== 'annex-territory' || state.annexPhase !== 'donor') return;
+    if (!requireCountriesUnlocked([state.annexTargetCountryId, ...state.annexDonorCountryIds], '영토 편입을 시작')) return;
     let sourceGeometry;
     try {
       sourceGeometry = selectedCountryUnionGeometry(state.annexDonorCountryIds);
@@ -7551,10 +7529,7 @@ const {
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked([id], '국경 조정 대상을 선택')) return false;
     const initialSelection = selectionSessionSnapshot();
     if (!setTool('country-border', false)) return false;
     state.boundaryEditCountryIds = [String(id)];
@@ -7578,10 +7553,7 @@ const {
       setActionStatus('국경 조정은 국가를 2개 이상 선택했을 때 시작할 수 있습니다.', 'error', 3200);
       return false;
     }
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked(ids, '국경 조정을 시작')) return false;
     const analysis = boundaryEditSelectionAnalysis(ids, { rebuild: true });
     if (!analysis.valid) {
       setActionStatus(analysis.message, 'error', 3800);
@@ -7644,6 +7616,7 @@ const {
 
   function beginCountryBorderEditing() {
     if (state.tool !== 'country-border' || state.boundaryEditPhase !== 'selecting') return false;
+    if (!requireCountriesUnlocked(state.boundaryEditCountryIds, '국경 조정을 시작')) return false;
     const analysis = boundaryEditSelectionAnalysis(state.boundaryEditCountryIds, { rebuild: true });
     if (!analysis.valid) {
       setActionStatus(analysis.message, 'error', 3400);
@@ -7675,10 +7648,7 @@ const {
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked([id], '해안선 조정을 시작')) return false;
     rebuildBoundaryTopology(id);
     state.coastEditCountryId = String(id);
     state.coastEditScopeDrawingId = scopeDrawingId ? String(scopeDrawingId) : null;
@@ -7715,10 +7685,7 @@ const {
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked([id], '국가 합병을 시작')) return false;
     state.mergeSourceCountryId = String(id);
     state.mergeTargetCountryIds = [];
     setTool('merge-country', false);
@@ -8001,18 +7968,14 @@ const {
       clearSelection();
       return false;
     }
-    const signature = candidates.map(candidate => candidate.key).join('|');
     const event = sourceEvent?.sourceEvent || sourceEvent || {};
-    let target = normalizedForced || candidates[0];
-    if (event.altKey && candidates.length > 1) {
-      const samePlace = overlapCycle.point && projectedPointDistance(overlapCycle.point, screenPoint) <= 8;
-      const index = overlapCycle.signature === signature && samePlace ? (overlapCycle.index + 1) % candidates.length : 0;
-      overlapCycle = { signature, index, point: screenPoint.slice() };
-      target = candidates[index];
+    if (candidates.length > 1) {
+      openObjectChooser(candidates, screenPoint);
+      return true;
     }
-    const mode = event.ctrlKey || event.metaKey || state.selectionMode ? 'toggle' : 'replace';
+    const target = normalizedForced || candidates[0];
+    const mode = event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace';
     applyObjectSelection(target, { mode, scope: 'map' });
-    if (candidates.length > 1) openObjectChooser(candidates, screenPoint);
     return true;
   }
 
@@ -8079,13 +8042,12 @@ const {
       return;
     }
     if (state.tool === 'point') {
-      recordHistory();
       const feature = {
         type: 'Feature', id: uid('point'),
         geometry: { type: 'Point', coordinates: coord },
         properties: { name: '', editorColor: DEFAULT_DRAWING_COLOR, category: 'custom', notes: '', pandolab_role: 'custom', pandolab_land_binding: 'none', pandolab_schema_version: DRAWING_SCHEMA_VERSION },
       };
-      state.drawings.push(feature);
+      drawingApplicationService.add(feature);
       setTool('select');
       selectDrawing(String(feature.id));
       renderAll();
@@ -8189,8 +8151,8 @@ const {
   }
 
   function finishDrawingFeatureDraft(polygonMode) {
-    const terrain = terrainToolConfig(state.tool);
-    const id = uid(terrain?.prefix || (polygonMode ? 'poly' : 'line'));
+    const hydro = hydroToolConfig(state.tool);
+    const id = uid(hydro?.prefix || (polygonMode ? 'poly' : 'line'));
     const geometry = polygonMode
       ? { type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] }
       : { type: 'LineString', coordinates: state.draftCoords.map(coord => coord.slice()) };
@@ -8211,14 +8173,17 @@ const {
         setActionStatus('분포 항목을 찾을 수 없습니다. 그린 영역은 유지했으니 분포 항목을 확인하세요.', 'error', 3600);
         return;
       }
-      recordHistory();
-      state.distributionEntries.push(createDistributionEntry({
+      const result = distributionService.addEntry({
         id: uid('distribution_entry'),
         layerId: layer.id,
         mode: DISTRIBUTION_MODES.GEOMETRY,
         geometry,
         share: draft.share,
-      }));
+      });
+      if (!result.ok) {
+        setActionStatus(result.error?.message || '자유 분포 영역을 저장하지 못했습니다.', 'error', 3600);
+        return;
+      }
       state.distributionDraft = null;
       state.draftCoords = [];
       state.draftHover = null;
@@ -8232,21 +8197,27 @@ const {
       type: 'Feature', id, geometry,
       properties: {
         name: '',
-        editorColor: terrain?.color || DEFAULT_DRAWING_COLOR,
-        category: terrain?.category || 'custom',
+        editorColor: hydro?.color || DEFAULT_DRAWING_COLOR,
+        category: hydro?.category || 'custom',
         notes: '',
       },
     };
-    normalizeDrawingSemantics(feature);
-    recordHistory();
-    state.drawings.push(feature);
+    if (hydro) {
+      recordHistory();
+      normalizeHydroEdit(feature);
+      state.hydroEdits.push(feature);
+    } else {
+      drawingApplicationService.add(feature);
+    }
     state.draftCoords = [];
     state.draftHover = null;
     setTool('select', false);
-    selectDrawing(String(id));
+    markLayerTreeDirty();
+    if (hydro) selectHydro(String(id));
+    else selectDrawing(String(id));
     renderAll();
     queueAutosave();
-    const createdObjectLabel = terrain?.category === 'river' ? '강을' : terrain?.category === 'lake' ? '호수를' : '지형지물을';
+    const createdObjectLabel = hydro?.category === 'river' ? '강을' : hydro?.category === 'lake' ? '호수를' : '지형지물을';
     setActionStatus(`${createdObjectLabel} 추가했습니다.`, 'success');
   }
 
@@ -8298,6 +8269,7 @@ const {
     if (state.tool !== 'annex-territory' || !['side', 'components'].includes(state.annexPhase)) return;
     const targetId = String(state.annexTargetCountryId || '');
     const donorIds = state.annexDonorCountryIds.map(String);
+    if (!requireCountriesUnlocked([targetId, ...donorIds], '영토를 편입')) return;
     let candidate;
     if (state.annexPhase === 'components') {
       try { candidate = { geometry: selectedTerritoryComponentGeometry() }; }
@@ -8361,6 +8333,7 @@ const {
       setActionStatus('신생국 영토 후보를 찾을 수 없습니다.', 'error', 3800);
       return;
     }
+    if (!requireCountriesUnlocked(state.newCountrySourceIds, '새 국가를 분리')) return;
     const nameInput = prompt('새 국가의 국명을 입력하세요.', '새 국가');
     if (nameInput === null) return;
     const sourceIds = state.newCountrySourceIds.map(String);
@@ -8404,6 +8377,7 @@ const {
       setActionStatus('합병할 국가를 하나 이상 선택하세요.', 'error', 3200);
       return;
     }
+    if (!requireCountriesUnlocked([sourceId, ...targetIds], '국가를 합병')) return;
     const source = countryFeatureById(sourceId);
     const targets = targetIds.map(countryFeatureById).filter(Boolean);
     if (!source || targets.length !== targetIds.length) {
@@ -8475,6 +8449,7 @@ const {
       return;
     }
     const donorIds = countryIdsOverlappingGeometry(transferredGeometry, [ownerId]);
+    if (!requireCountriesUnlocked([ownerId, ...donorIds], '국가 영토에 반영')) return;
     if (!donorIds.length) {
       recordHistory();
       feature.geometry = normalizeClippedLandGeometry(window.polygonClipping.intersection(feature.geometry.coordinates, owner.geometry.coordinates)) || feature.geometry;
@@ -8518,6 +8493,7 @@ const {
       setActionStatus('국가로 전환할 육지 영역이 없습니다. 객체가 현재 국가 영토와 겹치는지 확인하세요.', 'error', 4000);
       return;
     }
+    if (!requireCountriesUnlocked(sourceIds, '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim();
     if (!name) {
       setActionStatus('국가로 전환하기 전에 객체 이름을 입력하세요.', 'error', 3400);
@@ -8666,7 +8642,7 @@ const {
   }
 
   function cancelDraft(showMessage = true) {
-    const terrain = terrainToolConfig(state.tool);
+    const terrain = hydroToolConfig(state.tool);
     const splitSourceId = state.tool === 'split-drawing' ? state.drawingSplitSourceId : null;
     const regionSplitSourceId = state.tool === 'split-country-region' ? state.countryRegionSplitSourceId : null;
     const regionRedrawSourceId = state.tool === 'redraw-country-region' ? state.countryRegionRedrawSourceId : null;
@@ -8700,11 +8676,18 @@ const {
   function vertexDragBehavior(feature) {
     let blockedByCanonicalCoast = false;
     let beforeGeometry = null;
+    const hydroEdit = isHydroEditFeature(feature);
     return d3.behavior.drag()
       .on('dragstart', function(vertex) {
         if (!feature || state.tool !== 'select') return;
-        const owner = countryFeatureById(feature.properties?.pandolab_owner_id);
-        blockedByCanonicalCoast = drawingLandBinding(feature) === 'hard' && owner
+        if (feature.properties?.locked === true) {
+          blockedByCanonicalCoast = true;
+          d3.event.sourceEvent?.stopPropagation?.();
+          setActionStatus('잠금을 해제한 뒤 꼭짓점을 이동하세요.', 'error', 3200);
+          return;
+        }
+        const owner = hydroEdit ? null : countryFeatureById(feature.properties?.pandolab_owner_id);
+        blockedByCanonicalCoast = !hydroEdit && drawingLandBinding(feature) === 'hard' && owner
           ? pointOnGeometryBoundary(vertex.coord, owner.geometry, 0.00012)
           : false;
         if (blockedByCanonicalCoast) {
@@ -8723,13 +8706,14 @@ const {
         if (!rawCoord) return;
         const pointerType = d3.event.sourceEvent?.pointerType === 'touch' || d3.event.sourceEvent?.touches ? 'touch' : 'mouse';
         const coord = snapCoordinateForInput(rawCoord, screenPoint, pointerType, { excludeCoordinate: vertex.coord });
-        setDrawingVertexCoord(feature, vertex, coord);
-        drawingLayer.selectAll('path.drawing-shape').attr('d', bound => {
+        setEditableVertexCoord(feature, vertex, coord);
+        if (hydroEdit) hydroEditLayer.selectAll('path.hydro-edit-shape').attr('d', bound => path(bound));
+        else drawingLayer.selectAll('path.drawing-shape').attr('d', bound => {
           const source = state.drawings.find(item => String(item.id) === String(bound.id));
           return source ? path(drawingDisplayFeature(source)) : '';
         });
         vertexLayer.selectAll('circle.vertex-handle').attr('transform', d => {
-          const f = state.drawings.find(x => String(x.id) === state.selected?.id);
+          const f = hydroEdit ? hydroEditById(state.selected?.id) : state.drawings.find(x => String(x.id) === state.selected?.id);
           const verts = getEditableVertices(f);
           const fresh = verts.find(v => v.key === d.key) || d;
           const p = activeProjection()(fresh.coord);
@@ -8738,15 +8722,15 @@ const {
       })
       .on('dragend', function() {
         if (!feature || blockedByCanonicalCoast) return;
-        const owner = countryFeatureById(feature.properties?.pandolab_owner_id);
-        if (drawingLandBinding(feature) === 'hard' && owner && drawingGeometryKind(feature) === 'polygon') {
+        const owner = hydroEdit ? null : countryFeatureById(feature.properties?.pandolab_owner_id);
+        if (!hydroEdit && drawingLandBinding(feature) === 'hard' && owner && drawingGeometryKind(feature) === 'polygon') {
           const clipped = normalizeClippedLandGeometry(window.polygonClipping.intersection(feature.geometry.coordinates, owner.geometry.coordinates));
           if (clipped) feature.geometry = clipped;
         }
         const issues = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? validateStructuredGeometry(feature) : [];
         if (issues.length && beforeGeometry) {
           feature.geometry = beforeGeometry;
-          state.history.pop();
+          historyService.discardLast();
           beforeGeometry = null;
           clearActiveSnap();
           renderAll();
@@ -8811,11 +8795,13 @@ const {
           ? node.ownerIds.size >= 2 && [...node.ownerIds].every(id => selectedIds.has(String(id)))
           : node.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(coastId);
         if (!allowed) return;
+        const nextAffectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
+        if (!requireCountriesUnlocked([...nextAffectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return;
         transactionSnapshot = snapshotEditable();
         startCoord = node.coordinate.slice();
         changed = false;
         const selectedId = borderMode ? String(state.boundaryEditCountryIds[0] || feature.properties.editor_id) : coastId;
-        affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
+        affectedIds = nextAffectedIds;
         ownerBeforeGeometries = new Map([...affectedIds].map(id => [id, deepClone(countryFeatureById(id)?.geometry)]));
         structuredValidationBaseline = new Set([...affectedIds]
           .flatMap(id => validateStructuredGeometry(countryFeatureById(id)).filter(Boolean))
@@ -8847,7 +8833,8 @@ const {
         for (const ref of activeRefs) setCountryVertexCoord(ref.feature, ref.vertex, coord);
         moveBoundaryTopologyPreviewTargets(activePreviewTargets, coord);
         countryLayer.selectAll('path.country-shape').attr('d', path);
-        gpuMapRenderer.render(++renderRevision);
+        mapRenderCoordinator.advanceRevision();
+        gpuMapRenderer.render(viewRevision);
         boundaryEditLayer.selectAll('path.boundary-edit-segment')
           .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }));
         vertexLayer.selectAll('circle.vertex-handle').attr('transform', d => {
@@ -8948,7 +8935,7 @@ const {
 
   const PROPERTY_TYPE_LABELS = Object.freeze({
     country: '국가', region: '지역', administrative: '행정구역', historicalRegion: '역사·지리 지역',
-    distribution: '분포', drawing: '지형지물', label: '라벨', hydro: '내장 수계', multi: '다중선택',
+    distribution: '분포', drawing: '지형지물', label: '라벨', hydro: '수계', multi: '다중선택',
   });
 
   function activePropertyForm(type) {
@@ -9025,9 +9012,9 @@ const {
     showPropertyForm('country', displayName, { resetScroll: !refreshOnly });
     $('countryNameInput').value = override.name || p.editor_name || p.editor_original_name || '';
     $('countryCodeInput').textContent = id;
-    const explicitColor = override.color || p.editor_color || '';
-    $('countryColorInput').value = explicitColor || defaultCountryColor();
-    syncColorPicker('country', { value: explicitColor || defaultCountryColor(), defaultColor: defaultCountryColor(), isDefault: !explicitColor });
+    const color = readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: defaultCountryColor() });
+    $('countryColorInput').value = color.value;
+    syncColorPicker('country', { value: color.value, defaultColor: defaultCountryColor(), isDefault: color.isDefault });
     $('capitalInput').value = override.capital || p.capital || '';
     $('notesInput').value = override.notes || p.notes || '';
     $('originalNameValue').textContent = p.editor_original_name || p.editor_name || '—';
@@ -9135,10 +9122,10 @@ const {
     $(`${prefix}NameConflict`).classList.toggle('hidden', !hasNameConflict);
     $(`${prefix}NameInput`).value = properties.name || '';
     replaceSelectOptions($(`${prefix}CountryInput`), countryRegionCountryOptions(), properties.sovereignId);
-    const explicitColor = territorialStyleColor(feature);
     const inheritedColor = countryRegionColor({ ...feature, properties: { ...properties, style: {} } });
-    $(`${prefix}ColorInput`).value = explicitColor || inheritedColor;
-    syncColorPicker(prefix, { value: explicitColor || inheritedColor, defaultColor: inheritedColor, isDefault: !explicitColor });
+    const color = readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, { inherited: inheritedColor, fallback: DEFAULT_DRAWING_COLOR });
+    $(`${prefix}ColorInput`).value = color.value;
+    syncColorPicker(prefix, { value: color.value, defaultColor: inheritedColor, isDefault: color.isDefault });
     $(`${prefix}NotesInput`).value = properties.notes || '';
     const actionIds = historical
       ? ['reassignHistoricalRegionShapeBtn', 'mergeHistoricalRegionBtn', 'transferHistoricalRegionBtn']
@@ -9167,7 +9154,7 @@ const {
   }
 
   function distributionLayerById(id) {
-    return state.distributionLayers.find(layer => layer.id === String(id)) || null;
+    return distributionService.getLayer(id);
   }
 
   function distributionRegionOptions() {
@@ -9178,19 +9165,9 @@ const {
   }
 
   function distributionParentOptions(layer) {
-    const descendants = new Set();
-    const queue = [layer.id];
-    while (queue.length) {
-      const parentId = queue.shift();
-      for (const candidate of state.distributionLayers) {
-        if (candidate.parentId !== parentId || descendants.has(candidate.id)) continue;
-        descendants.add(candidate.id);
-        queue.push(candidate.id);
-      }
-    }
     return [
       { value: '', label: '상위 분류 없음' },
-      ...state.distributionLayers.filter(candidate => candidate.type === layer.type && candidate.id !== layer.id && !descendants.has(candidate.id)).map(candidate => ({
+      ...distributionService.parentCandidates(layer.id).map(candidate => ({
         value: candidate.id,
         label: candidate.name,
       })).sort((left, right) => layerNameCollator.compare(left.label, right.label)),
@@ -9235,12 +9212,13 @@ const {
     if (!layer) return false;
     state.selected = { domain: 'distribution', type: 'distribution', distributionType: layer.type, id: layer.id };
     syncObjectSelectionFromLegacy(state.selected);
-    state.distributionSettings.selectedLayerId = layer.id;
+    state.selectedDistributionLayerId = layer.id;
     showPropertyForm('distribution', layer.name, { resetScroll: !refreshOnly });
     $('distributionNameInput').value = layer.name;
     $('distributionTypeValue').textContent = DISTRIBUTION_TYPE_LABELS[layer.type] || layer.type;
-    $('distributionColorInput').value = normalizeEditorColor(layer.color, DEFAULT_DRAWING_COLOR);
-    syncColorPicker('distribution', { value: layer.color, defaultColor: DEFAULT_DRAWING_COLOR, isDefault: false });
+    const color = readDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: DEFAULT_DRAWING_COLOR });
+    $('distributionColorInput').value = color.value;
+    syncColorPicker('distribution', { value: color.value, defaultColor: DEFAULT_DRAWING_COLOR, isDefault: color.isDefault });
     replaceSelectOptions($('distributionParentInput'), distributionParentOptions(layer), layer.parentId);
     replaceSelectOptions($('distributionRegionInput'), distributionRegionOptions(), $('distributionRegionInput').value);
     $('distributionLockedInput').checked = layer.locked;
@@ -9264,22 +9242,12 @@ const {
       selectDistributionLayer(layer.id, true);
       return false;
     }
-    if (field === 'parentId') {
-      const parent = distributionLayerById(value);
-      const visited = new Set([layer.id]);
-      let cursor = parent;
-      while (cursor && !visited.has(cursor.id)) {
-        visited.add(cursor.id);
-        cursor = distributionLayerById(cursor.parentId);
-      }
-      if (value && (!parent || parent.type !== layer.type || parent.id === layer.id || cursor)) {
-        setActionStatus('자기 자신이나 하위 분류를 상위 분류로 설정할 수 없습니다.', 'error', 3600);
-        selectDistributionLayer(layer.id, true);
-        return false;
-      }
+    const result = distributionService.updateLayer(layer.id, field, value);
+    if (!result.ok) {
+      if (result.code === 'invalid') setActionStatus('자기 자신이나 하위 분류를 상위 분류로 설정할 수 없습니다.', 'error', 3600);
+      selectDistributionLayer(layer.id, true);
+      return false;
     }
-    recordHistory();
-    layer[field] = field === 'color' ? normalizeEditorColor(value, DEFAULT_DRAWING_COLOR) : value;
     markLayerTreeDirty();
     selectDistributionLayer(layer.id, true);
     queueAutosave();
@@ -9291,14 +9259,12 @@ const {
     const label = DISTRIBUTION_TYPE_LABELS[type];
     const name = prompt(`새 ${label} 항목의 이름을 입력하세요.`, `새 ${label}`);
     if (name === null) return false;
-    recordHistory();
-    const layer = createDistributionLayer({
+    const layer = distributionService.createLayer({
       id: uid(`distribution_${type}`),
       type,
       name: name.trim() || `새 ${label}`,
       color: COLOR_PRESETS[state.distributionLayers.length % COLOR_PRESETS.length] || DEFAULT_DRAWING_COLOR,
     });
-    state.distributionLayers.push(layer);
     state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === DISTRIBUTION_TYPE_GROUPS[type]]));
     markLayerTreeDirty();
     renderLayerTree(true);
@@ -9312,24 +9278,37 @@ const {
     const layer = state.selected?.type === 'distribution' ? distributionLayerById(state.selected.id) : null;
     const regionId = $('distributionRegionInput').value;
     if (!layer || layer.locked || !territorialRepository.get(regionId)) return false;
-    recordHistory();
-    state.distributionEntries.push(createDistributionEntry({
-      id: uid('distribution_entry'),
-      layerId: layer.id,
-      mode: DISTRIBUTION_MODES.REGION,
-      regionId,
-      share: Number($('distributionShareInput').value),
-    }));
+    let entry;
+    try {
+      entry = createDistributionEntry({
+        id: uid(),
+        layerId: layer.id,
+        mode: DISTRIBUTION_MODES.REGION,
+        regionId,
+        share: Number($('distributionShareInput').value),
+      });
+    } catch (error) {
+      const validationMessage = compactNotificationMessage(error?.message || '분포 정보를 검증하지 못했습니다.', { tone: 'error', maxLength: 52 });
+      setActionStatus(validationMessage, 'error', 0);
+      return false;
+    }
+    const result = distributionService.addEntry(entry);
+    if (!result.ok) return false;
     selectDistributionLayer(layer.id, true);
     queueAutosave();
-    setActionStatus(`${distributionEntryLabel(state.distributionEntries.at(-1))}에 ${layer.name} 분포를 추가했습니다.`, 'success');
+    setActionStatus(`${distributionEntryLabel(result.entry)}에 ${layer.name} 분포를 추가했습니다.`, 'success');
     return true;
   }
 
   function startGeometryDistributionDraft() {
     const layer = state.selected?.type === 'distribution' ? distributionLayerById(state.selected.id) : null;
     if (!layer || layer.locked) return false;
-    state.distributionDraft = { layerId: layer.id, share: Math.max(0, Math.min(100, Number($('distributionShareInput').value) || 0)) };
+    const share = Number($('distributionShareInput').value);
+    if (!Number.isFinite(share) || share < 0 || share > 100) {
+      setActionStatus('분포 비율은 0~100 범위의 숫자여야 합니다.', 'error', 0);
+      return false;
+    }
+    state.distributionDraft = { layerId: layer.id, share };
     setTool('polygon', false);
     setModeBanner(`${layer.name}의 자유 분포 영역을 그린 뒤 완료하세요.`);
     return true;
@@ -9339,20 +9318,34 @@ const {
     const entry = state.distributionEntries.find(candidate => candidate.id === String(id));
     const layer = entry ? distributionLayerById(entry.layerId) : null;
     if (!entry || !layer || layer.locked) return false;
-    recordHistory();
-    state.distributionEntries = state.distributionEntries.filter(candidate => candidate.id !== entry.id);
+    const result = distributionService.removeEntry(entry.id);
+    if (!result.ok) return false;
     selectDistributionLayer(layer.id, true);
     queueAutosave();
     setActionStatus('분포 엔트리를 삭제했습니다.', 'success');
     return true;
   }
 
-  function deleteDistributionLayer(id) {
+  function deleteDistributionLayer(id, { confirm = true } = {}) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
     if (layer.locked) {
       setActionStatus('잠금을 해제한 뒤 분포 항목을 삭제할 수 있습니다.', 'error', 3200);
       return false;
+    }
+    const performDelete = () => {
+      const result = distributionService.deleteLayer(layer.id);
+      if (!result.ok) return false;
+      if (state.selectedDistributionLayerId === layer.id) state.selectedDistributionLayerId = '';
+      markLayerTreeDirty();
+      clearSelection(false);
+      queueAutosave();
+      setActionStatus(`${layer.name} ${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
+      return true;
+    };
+    if (!confirm) {
+      performDelete();
+      return true;
     }
     openConfirmModal({
       title: `${DISTRIBUTION_TYPE_LABELS[layer.type]} 삭제`,
@@ -9360,17 +9353,7 @@ const {
       impacts: [`${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목 1개 삭제`, `연결된 분포 ${distributionEntriesForLayer(state.distributionEntries, layer.id).length}개 삭제`],
       confirmText: '분포 항목 삭제',
       danger: true,
-      onConfirm: () => {
-        recordHistory();
-        state.distributionLayers = state.distributionLayers.filter(candidate => candidate.id !== layer.id);
-        state.distributionEntries = state.distributionEntries.filter(entry => entry.layerId !== layer.id);
-        for (const child of state.distributionLayers) if (child.parentId === layer.id) child.parentId = '';
-        if (state.distributionSettings.selectedLayerId === layer.id) state.distributionSettings.selectedLayerId = '';
-        markLayerTreeDirty();
-        clearSelection(false);
-        queueAutosave();
-        setActionStatus(`${layer.name} ${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
-      },
+      onConfirm: performDelete,
     });
     return true;
   }
@@ -9378,14 +9361,13 @@ const {
   function setDistributionLayerVisible(id, visible) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
-    recordHistory();
-    layer.visible = visible !== false;
     const group = DISTRIBUTION_TYPE_GROUPS[layer.type];
     if (!state.itemVisibility[group]) state.itemVisibility[group] = {};
-    state.itemVisibility[group][layer.id] = layer.visible;
+    if (visible === false) state.itemVisibility[group][layer.id] = false;
+    else delete state.itemVisibility[group][layer.id];
     markLayerTreeDirty();
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
     return true;
   }
 
@@ -9416,50 +9398,44 @@ const {
   }
 
   function setTerritorialUnitLocked(type, id, locked) {
+    const key = String(id || '');
+    const result = territorialApplicationService.setLocked(type, key, locked, {
+      history: type === TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? { description: `${countryName(countryFeatureById(key))} ${locked ? '잠금' : '잠금 해제'}` }
+        : {},
+    });
+    if (!result.ok) return false;
+    if (!result.changed) return true;
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      state.countriesLocked = !!locked;
-      $('countriesLocked').checked = state.countriesLocked;
-      queueAutosave();
-      return true;
-    }
-    const feature = countryRegionById(id);
-    if (!feature || feature.properties?.unitType !== type) return false;
-    recordHistory();
-    feature.properties.locked = !!locked;
-    selectCountryRegion(id, true);
+      if (state.selected?.type === 'country' && String(state.selected.id) === key) selectCountry(key, true);
+      syncBatchActionAvailability();
+    } else selectCountryRegion(key, true);
     queueAutosave();
     return true;
   }
 
   window.PANDOLAB_TERRITORIAL = Object.freeze({
-    get: id => territorialRepository.get(id),
-    list: options => territorialRepository.list(options),
+    get: id => territorialApplicationService.get(id),
+    list: options => territorialApplicationService.list(options),
     select: selectTerritorialUnit,
     setName: setTerritorialUnitName,
     setColor: setTerritorialUnitColor,
     setLocked: setTerritorialUnitLocked,
+    isLocked: (type, id) => territorialApplicationService.isLocked(type, id),
   });
 
   window.PANDOLAB_DISTRIBUTIONS = Object.freeze({
     getLayer: id => distributionLayerById(id),
-    listLayers: type => state.distributionLayers.filter(layer => !type || layer.type === type),
-    listEntries: layerId => distributionEntriesForLayer(state.distributionEntries, layerId),
+    listLayers: type => distributionService.listLayers(type),
+    listEntries: layerId => distributionService.listEntries(layerId),
     select: selectDistributionLayer,
     setVisible: setDistributionLayerVisible,
   });
 
-  function syncDrawingFolderInput(feature) {
-    const options = [
-      { value: DEFAULT_DRAWING_FOLDER_ID, label: '지형지물' },
-      ...state.drawingFolders.map(folder => ({ value: folder.id, label: folder.name })),
-    ];
-    replaceSelectOptions($('drawingFolderInput'), options, drawingFolderId(feature));
-  }
-
   function syncDrawingSemanticEditor(feature) {
     const geometryKind = drawingGeometryKind(feature);
     const role = drawingRole(feature);
-    const editableArea = geometryKind === 'polygon' && (role === 'thematic' || role === 'custom');
+    const editableArea = geometryKind === 'polygon' && role === 'custom';
     const hasOwnerCountry = !!countryFeatureById(feature?.properties?.pandolab_owner_id);
     $('drawingLandRelationSection').classList.toggle('hidden', !editableArea);
     $('drawingLandActionsSection').classList.toggle('hidden', !editableArea);
@@ -9476,10 +9452,6 @@ const {
       else delete button.dataset.tooltip;
     }
     $('promoteDrawingToCountryBtn').disabled = !editableArea;
-    for (const option of $('drawingCategoryInput').options) {
-      const expected = drawingCategoryRule(option.value).geometry;
-      option.disabled = expected !== 'any' && expected !== geometryKind;
-    }
     $('drawingLandBindingInput').value = drawingLandBinding(feature);
     $('drawingRoleHelp').textContent = drawingRoleHelp(feature);
     $('drawingRoleValue').textContent = DRAWING_ROLE_LABELS[role] || role;
@@ -9498,11 +9470,10 @@ const {
     showPropertyForm('drawing', displayName, { resetScroll: !refreshOnly });
     $('drawingNameInput').value = meta.name || '';
     $('drawingIdInput').textContent = String(id);
-    syncDrawingFolderInput(feature);
     const defaultColor = defaultDrawingColor(feature);
-    $('drawingColorInput').value = meta.editorColor || defaultColor;
-    syncColorPicker('drawing', { value: meta.editorColor || defaultColor, defaultColor, isDefault: !meta.editorColor });
-    $('drawingCategoryInput').value = meta.category || 'custom';
+    const color = readDomainColor(COLOR_DOMAINS.DRAWING, { feature }, { fallback: defaultColor });
+    $('drawingColorInput').value = color.value;
+    syncColorPicker('drawing', { value: color.value, defaultColor, isDefault: color.isDefault });
     $('drawingNotesInput').value = meta.notes || '';
     $('deleteDrawingInlineBtn').textContent = `${typeLabel} 삭제`;
     syncDrawingSemanticEditor(feature);
@@ -9541,11 +9512,24 @@ const {
     const feature = hydroFeatureById(id);
     if (!feature || !isHydroFeatureVisible(feature)) return;
     const properties = feature.properties || {};
+    const editable = !!hydroEditById(id);
     const category = properties.category === 'lake' ? '호수' : '강';
     const displayName = hydroEditorName(properties.name, `이름 없는 ${category}`);
-    state.selected = { type: 'hydro', id: String(properties.pandolab_id || feature.id) };
+    state.selected = { type: 'hydro', id: String(editable ? feature.id : properties.pandolab_id || feature.id) };
     syncObjectSelectionFromLegacy(state.selected);
     showPropertyForm('hydro', displayName, { resetScroll: !refreshOnly });
+    $('hydroEditFields').classList.toggle('hidden', !editable);
+    $('hydroBuiltinHelp').classList.toggle('hidden', editable);
+    const copyActionSection = $('copyHydroBtn').closest('.editor-action-section');
+    if (copyActionSection) copyActionSection.hidden = editable;
+    $('deleteHydroEditBtn').hidden = !editable;
+    syncEditorActionTab('hydro');
+    if (editable) {
+      $('hydroNameInput').value = properties.name || '';
+      $('hydroColorInput').value = properties.editorColor || HYDRO_TOOL_CONFIG[properties.category].color;
+      syncColorPicker('hydro', { value: $('hydroColorInput').value, defaultColor: HYDRO_TOOL_CONFIG[properties.category].color, isDefault: false });
+      $('hydroNotesInput').value = properties.notes || '';
+    }
     const systemName = hydroEditorName(properties.mainstem_name_ko || properties.name, '미명명 수계');
     const hydroId = String(properties.system_id || properties.pandolab_id || feature.id || '').replace(/^hydro-system:/, '');
     $('hydroCategoryValue').textContent = category;
@@ -9559,7 +9543,7 @@ const {
     syncLayerSelectionRows();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
-    if (!feature.geometry && !feature.__geometryLoading) {
+    if (!editable && !feature.geometry && !feature.__geometryLoading) {
       feature.__geometryLoading = true;
       gpuMapRenderer.loadHydroLogicalFeature(Number(properties.__logicalFid)).then(full => {
         if (!full) return;
@@ -9576,7 +9560,7 @@ const {
 
   async function copySelectedHydroForEditing() {
     if (state.selected?.type !== 'hydro') return;
-    let source = hydroFeatureById(state.selected.id);
+    let source = builtInHydroFeatureById(state.selected.id);
     if (!source) {
       setActionStatus('복사할 수계 객체를 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
       return;
@@ -9603,18 +9587,18 @@ const {
       properties: {
         name: source.properties?.name || '',
         category,
-        editorColor: TERRAIN_TOOL_CONFIG[category].color,
+        editorColor: HYDRO_TOOL_CONFIG[category].color,
         notes: `판도연구소 내장 수계 편집용 복사본 · 원본 ${source.properties?.pandolab_id || source.id}`,
         source: source.properties?.source || '판도연구소 내장 수계',
         sourceFeatureId: source.properties?.pandolab_id || source.id,
       },
     };
-    normalizeDrawingSemantics(copy, { inferOwner: false });
-    state.drawings.push(copy);
+    normalizeHydroEdit(copy);
+    state.hydroEdits.push(copy);
     state.physicalSettings.hiddenHydroIds[String(source.properties?.pandolab_id || source.id)] = true;
     gpuMapRenderer.invalidateHydroVisibility();
     markLayerTreeDirty();
-    selectDrawing(String(copy.id));
+    selectHydro(String(copy.id));
     renderAll();
     queueAutosave();
     setActionStatus(`${source.properties?.name || (category === 'lake' ? '호수' : '강')} 편집 복사본을 만들었습니다.`, 'success', 3600);
@@ -9623,7 +9607,7 @@ const {
   function clearSelection(announce = true) {
     if (!objectSelectionSyncing) objectSelection.clear();
     state.selected = null;
-    state.selectionMode = false;
+    state.addSelectionMode = false;
     $('selectionStatus').textContent = '';
     showPropertyForm(null);
     syncCountryActionButtons();
@@ -9647,7 +9631,7 @@ const {
         ? selectedRegion
         : state.territorialUnits.find(feature => feature.properties?.unitType === kind
           && String(feature.properties?.sovereignId || '') === countryId
-          && feature.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED)
+          && feature.properties?.isRemainder === true)
           || state.territorialUnits.find(feature => feature.properties?.unitType === kind && String(feature.properties?.sovereignId || '') === countryId);
       return { countryId, parentRegionId: '', level: null, container: country, source: existing || null };
     }
@@ -9663,7 +9647,7 @@ const {
       && String(feature.properties?.sovereignId || '') === countryId
       && String(feature.properties?.parentId || '') === parentRegionId
       && Number(feature.properties?.adminLevel || 1) === level
-      && feature.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED)
+      && feature.properties?.isRemainder === true)
       || state.territorialUnits.find(feature => feature.properties?.unitType === kind
         && String(feature.properties?.sovereignId || '') === countryId
         && String(feature.properties?.parentId || '') === parentRegionId
@@ -9696,7 +9680,7 @@ const {
       countryId: context.countryId,
       parentRegionId: context.parentRegionId,
       level: context.level,
-      status: COUNTRY_REGION_STATUS.UNASSIGNED,
+      isRemainder: true,
       geometry: deepClone(context.container.geometry),
     });
     return enterCountryRegionSplitMode(source, { virtual: !context.source });
@@ -9757,34 +9741,34 @@ const {
         .map(polygon => deepClone(polygon));
       const smallerIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       const otherIndex = smallerIndex === 0 ? 1 : 0;
-      const wasUnassigned = source.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED;
+      const wasRemainder = source.properties?.isRemainder === true;
       const typeLabel = source.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역';
       const baseName = countryRegionName(source).replace(/^미지정\s*/, '') || typeLabel;
       const newName = prompt(`새 ${typeLabel} 이름을 입력하세요.`, `새 ${typeLabel}`);
       if (newName === null) return;
       let retainedName = source.properties?.name || '';
-      if (!wasUnassigned) {
+      if (!wasRemainder) {
         const entered = prompt(`기존 쪽 ${typeLabel} 이름을 입력하세요.`, `${baseName} 1`);
         if (entered === null) return;
         retainedName = entered.trim() || `${baseName} 1`;
       }
-      const retainedCoordinates = wasUnassigned
+      const retainedCoordinates = wasRemainder
         ? [...geometryMultiCoordinates(split.candidates[otherIndex].geometry), ...untouched]
         : [...geometryMultiCoordinates(split.candidates[0].geometry), ...untouched];
       const retainedGeometry = normalizeClippedLandGeometry(retainedCoordinates);
-      const siblingGeometry = deepClone(split.candidates[wasUnassigned ? smallerIndex : 1].geometry);
+      const siblingGeometry = deepClone(split.candidates[wasRemainder ? smallerIndex : 1].geometry);
       if (!retainedGeometry || !siblingGeometry) throw new Error('나누지 않은 섬과 월경지를 보존할 수 없습니다.');
       const retainedAfter = deepClone(source);
       retainedAfter.geometry = retainedGeometry;
       retainedAfter.properties.name = retainedName;
-      retainedAfter.properties.status = wasUnassigned ? COUNTRY_REGION_STATUS.UNASSIGNED : COUNTRY_REGION_STATUS.ASSIGNED;
+      retainedAfter.properties.isRemainder = wasRemainder;
       const sibling = createCountryRegionFeature({
         id: uid(source.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region'),
         kind: source.properties.unitType,
         countryId: source.properties.sovereignId,
         parentRegionId: source.properties.parentId,
         level: source.properties.adminLevel,
-        status: COUNTRY_REGION_STATUS.ASSIGNED,
+        isRemainder: false,
         name: newName.trim() || `새 ${typeLabel}`,
         color: territorialStyleColor(source),
         notes: '',
@@ -9809,7 +9793,7 @@ const {
           markLayerTreeDirty();
           selectCountryRegion(sibling.id, true);
         },
-        successMessage: `${typeLabel}을(를) 나누고 나머지 면적을 ${wasUnassigned ? '미지정 영역으로 ' : ''}보존했습니다.`,
+        successMessage: `${typeLabel}을(를) 나누고 나머지 면적을 ${wasRemainder ? '미지정 영역으로 ' : ''}보존했습니다.`,
         errorMessage: '영역 나누기 결과를 적용하지 못했습니다.',
       });
     } catch (error) {
@@ -9908,7 +9892,7 @@ const {
       if (!nextGeometry) throw new Error('그린 영역이 부모 영역 안에 없습니다.');
       const siblings = countryRegionSiblings(state.territorialUnits, source);
       for (const sibling of siblings) {
-        if (sibling.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED) continue;
+        if (sibling.properties?.isRemainder === true) continue;
         const overlap = clipper.intersection(nextGeometry.coordinates, sibling.geometry.coordinates);
         if (multiPolygonPlanarArea(overlap) > Math.max(1e-9, multiPolygonPlanarArea(nextGeometry.coordinates) * 1e-9)) {
           throw new Error(`${countryRegionName(sibling)}과(와) 겹칩니다. 이름 있는 형제 영역은 침범할 수 없습니다.`);
@@ -9924,12 +9908,12 @@ const {
         applyResult: () => {
           recordHistory();
           source.geometry = deepClone(nextGeometry);
-          for (const sibling of siblings.filter(item => item.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED)) {
+          for (const sibling of siblings.filter(item => item.properties?.isRemainder === true)) {
             const remainder = normalizeClippedLandGeometry(clipper.difference(sibling.geometry.coordinates, nextGeometry.coordinates));
             if (remainder) sibling.geometry = remainder;
             else state.territorialUnits = state.territorialUnits.filter(item => String(item.id) !== String(sibling.id));
           }
-          if (released && source.properties?.status !== COUNTRY_REGION_STATUS.UNASSIGNED) addUnassignedCountryRegionGeometry({
+          if (released && source.properties?.isRemainder !== true) addUnassignedCountryRegionGeometry({
             kind: source.properties.unitType,
             countryId: source.properties.sovereignId,
             parentRegionId: source.properties.parentId,
@@ -9990,8 +9974,7 @@ const {
   }
 
   function normalizeEditorColor(value, fallback) {
-    const color = String(value || '').trim().toLowerCase();
-    return /^#[0-9a-f]{6}$/.test(color) ? color : fallback;
+    return normalizeColorValue(value, fallback);
   }
 
   function syncColorPicker(kind, { value, defaultColor, isDefault }) {
@@ -10083,14 +10066,14 @@ const {
     const idx = state.countryIndex.get(id);
     const feature = idx === undefined ? null : state.countriesData.features[idx];
     const override = state.countryOverrides[id] || {};
-    if (!override.color && !feature?.properties?.editor_color) {
+    const color = readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: defaultCountryColor() });
+    if (color.isDefault) {
       syncColorPicker('country', { value: defaultCountryColor(), defaultColor: defaultCountryColor(), isDefault: true });
       return true;
     }
     recordHistory();
-    delete override.color;
     state.countryOverrides[id] = override;
-    if (feature?.properties) delete feature.properties.editor_color;
+    writeDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, '', { clear: true, fallback: defaultCountryColor() });
     selectCountry(id, true);
     queueAutosave();
     setActionStatus('국가 색상을 기본값으로 되돌렸습니다.', 'success');
@@ -10102,13 +10085,14 @@ const {
     const feature = state.drawings.find(item => String(item.id) === String(state.selected.id));
     if (!feature) return false;
     feature.properties ||= {};
-    if (!feature.properties.editorColor) {
+    const color = readDomainColor(COLOR_DOMAINS.DRAWING, { feature }, { fallback: defaultDrawingColor(feature) });
+    if (color.isDefault) {
       const defaultColor = defaultDrawingColor(feature);
       syncColorPicker('drawing', { value: defaultColor, defaultColor, isDefault: true });
       return true;
     }
     recordHistory();
-    delete feature.properties.editorColor;
+    writeDomainColor(COLOR_DOMAINS.DRAWING, { feature }, '', { clear: true, fallback: defaultDrawingColor(feature) });
     drawingLandClipCache.delete(feature);
     selectDrawing(String(feature.id), true);
     queueAutosave();
@@ -10155,6 +10139,11 @@ const {
     if (kind === 'distribution') {
       if (state.selected?.type !== 'distribution') return false;
       return commitDistributionMeta('color', color);
+    }
+    if (kind === 'hydro') {
+      const feature = state.selected?.type === 'hydro' ? hydroEditById(state.selected.id) : null;
+      if (!feature) return false;
+      return commitHydroEdit('editorColor', normalizeEditorColor(value, HYDRO_TOOL_CONFIG[feature.properties.category].color));
     }
     if (state.selected?.type !== 'drawing') return false;
     commitDrawingMeta('editorColor', color);
@@ -10249,17 +10238,9 @@ const {
 
   function commitCountryEdit(field, value) {
     if (state.selected?.type !== 'country') return;
-    recordHistory();
     const id = state.selected.id;
-    state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}), [field]: value };
-    const idx = state.countryIndex.get(id);
-    if (idx !== undefined) {
-      const f = state.countriesData.features[idx];
-      f.properties.editor_name = state.countryOverrides[id].name || f.properties.editor_original_name;
-      const explicitColor = state.countryOverrides[id].color || f.properties.editor_color;
-      if (explicitColor) f.properties.editor_color = explicitColor;
-      else delete f.properties.editor_color;
-    }
+    const result = territorialApplicationService.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, id, field, value);
+    if (!result.ok) return;
     if (field === 'name') markLayerTreeDirty();
     selectCountry(id, true);
     queueAutosave();
@@ -10270,29 +10251,30 @@ const {
     if (state.selected?.type !== 'drawing') return;
     const f = state.drawings.find(x => String(x.id) === state.selected.id);
     if (!f) return;
-    f.properties = f.properties || {};
-    if (field === 'category' && !drawingCategoryCompatible(f, value)) {
-      $('drawingCategoryInput').value = f.properties.category || 'custom';
-      setActionStatus('면은 주제 영역, 선은 강으로 분류하세요.', 'error', 4400);
-      return;
-    }
-    if (field === 'pandolab_folder_id' && value !== DEFAULT_DRAWING_FOLDER_ID && !drawingFolderById(value)) {
-      syncDrawingFolderInput(f);
+    const result = drawingApplicationService.updateMetadata(f.id, field, value);
+    if (!result.ok) return;
+    drawingLandClipCache.delete(f);
+    if (field === 'name') markLayerTreeDirty();
+    selectDrawing(state.selected.id, true);
+    queueAutosave();
+    setActionStatus('지형지물 정보를 변경했습니다.', 'success');
+  }
+
+  function commitHydroEdit(field, value) {
+    if (state.selected?.type !== 'hydro') return;
+    const feature = hydroEditById(state.selected.id);
+    if (!feature || feature.properties?.locked === true) {
+      if (feature?.properties?.locked === true) setActionStatus('잠금을 해제한 뒤 수계 정보를 변경하세요.', 'error', 3200);
       return;
     }
     recordHistory();
-    if (field === 'pandolab_folder_id') {
-      if (value === DEFAULT_DRAWING_FOLDER_ID) delete f.properties.pandolab_folder_id;
-      else f.properties.pandolab_folder_id = value;
-      pruneAutoDrawingFolders();
-    } else f.properties[field] = value;
-    if (field === 'category') normalizeDrawingSemantics(f);
-    if (field === 'pandolab_owner_id' || field === 'pandolab_parent_id' || field === 'pandolab_land_binding') normalizeDrawingSemantics(f, { inferOwner: false });
-    drawingLandClipCache.delete(f);
-    if (field === 'name' || field === 'category' || field === 'pandolab_folder_id') markLayerTreeDirty();
-    selectDrawing(state.selected.id, true);
+    feature.properties[field] = field === 'editorColor'
+      ? normalizeEditorColor(value, HYDRO_TOOL_CONFIG[feature.properties.category].color)
+      : value;
+    if (field === 'name') markLayerTreeDirty();
+    selectHydro(String(feature.id), true);
     queueAutosave();
-    setActionStatus(field === 'pandolab_folder_id' ? '지형지물을 다른 폴더로 이동했습니다.' : '지형지물 정보를 변경했습니다.', 'success');
+    setActionStatus('수계 정보를 변경했습니다.', 'success');
   }
 
   function countryRegionContainer(feature, { countryId = feature?.properties?.sovereignId, parentRegionId = feature?.properties?.parentId } = {}) {
@@ -10320,9 +10302,13 @@ const {
     }
     const explicitCoverage = feature.properties?.coverageMode === TERRITORIAL_COVERAGE_MODES.EXPLICIT;
     if (field === 'countryId' && explicitCoverage && String(value) !== String(feature.properties.sovereignId || '')) {
-      recordHistory();
-      Object.assign(feature, changeSovereign(feature, value));
-      state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
+      const candidateUnits = deepClone(state.territorialUnits);
+      const candidateFeature = candidateUnits.find(item => String(item.id) === String(feature.id));
+      Object.assign(candidateFeature, changeSovereign(candidateFeature, value));
+      const normalizedUnits = normalizeCountryRegions(candidateUnits, { countryExists: id => !!countryFeatureById(id) });
+      territorialApplicationService.replaceUnits(normalizedUnits, {
+        type: 'territorial-sovereign', affectedIds: [feature.id],
+      });
       markLayerTreeDirty();
       selectCountryRegion(feature.id, true);
       queueAutosave();
@@ -10337,8 +10323,8 @@ const {
         recordHistory();
         feature.properties.sovereignId = '';
         feature.properties.parentId = '';
-        feature.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
-        normalizeProjectDrawings();
+        feature.properties.isRemainder = false;
+        normalizeProjectObjects();
         selectCountryRegion(feature.id, true);
         markLayerTreeDirty();
         renderAll();
@@ -10363,14 +10349,25 @@ const {
         : field === 'level'
           ? 'adminLevel'
           : field;
-    recordHistory();
-    if (field === 'color') setTerritorialStyleColor(feature, value);
-    else if (canonicalField === 'parentId') Object.assign(feature, changeParent(feature, value));
-    else if (canonicalField === 'sovereignId') Object.assign(feature, changeSovereign(feature, value));
-    else if (canonicalField === 'unitType') Object.assign(feature, changeUnitType(feature, value));
-    else feature.properties[canonicalField] = value;
-    if (field === 'name' && value) feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
-    state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
+    const candidateUnits = deepClone(state.territorialUnits);
+    const candidateFeature = candidateUnits.find(item => String(item.id) === String(feature.id));
+    if (field === 'color') setTerritorialStyleColor(candidateFeature, value);
+    else if (canonicalField === 'parentId') Object.assign(candidateFeature, changeParent(candidateFeature, value));
+    else if (canonicalField === 'sovereignId') Object.assign(candidateFeature, changeSovereign(candidateFeature, value));
+    else if (canonicalField === 'unitType') Object.assign(candidateFeature, changeUnitType(candidateFeature, value));
+    else candidateFeature.properties[canonicalField] = value;
+    let normalizedUnits;
+    try {
+      normalizedUnits = normalizeCountryRegions(candidateUnits, { countryExists: id => !!countryFeatureById(id) });
+    } catch (error) {
+      selectCountryRegion(feature.id, true);
+      const validationMessage = compactNotificationMessage(error?.message || '영역 정보를 검증하지 못했습니다.', { tone: 'error', maxLength: 52 });
+      setActionStatus(validationMessage, 'error', 0);
+      return;
+    }
+    territorialApplicationService.replaceUnits(normalizedUnits, {
+      type: 'territorial-metadata', affectedIds: [feature.id],
+    });
     markLayerTreeDirty();
     selectCountryRegion(feature.id, true);
     queueAutosave();
@@ -10388,6 +10385,11 @@ const {
     const target = countryFeatureById(targetCountryId);
     const clipper = window.polygonClipping;
     if (!source || !donor || !target || donor === target || !clipper?.difference || !clipper?.union) return false;
+    if (source.properties?.locked) {
+      setActionStatus('영역 잠금을 해제한 뒤 소속과 국경을 변경하세요.', 'error', 3600);
+      return false;
+    }
+    if (!requireCountriesUnlocked([donor.properties?.editor_id, targetCountryId], '지역과 국경을 이전')) return false;
     const movedIds = new Set([String(source.id)]);
     const queue = [String(source.id)];
     while (queue.length) {
@@ -10410,8 +10412,7 @@ const {
           const nextRegions = deepClone(state.territorialUnits).flatMap(feature => {
             if (movedIds.has(String(feature.id))) {
               feature.properties.sovereignId = String(targetCountryId);
-              feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
-              if (String(feature.id) === String(source.id)) feature.properties.parentId = '';
+              if (String(feature.id) === String(source.id)) feature.properties.parentId = String(targetCountryId);
               return [feature];
             }
             if (String(feature.properties?.sovereignId || '') !== String(donor.properties.editor_id)) return [feature];
@@ -10483,6 +10484,11 @@ const {
       setActionStatus('새 국가로 독립하려면 이름과 소속 국가가 있는 지역을 선택하세요.', 'error', 3800);
       return false;
     }
+    if (source.properties?.locked) {
+      setActionStatus('영역 잠금을 해제한 뒤 국가로 전환하세요.', 'error', 3400);
+      return false;
+    }
+    if (!requireCountriesUnlocked([sourceCountryId], '지역을 국가로 전환')) return false;
     if (countryFeatureById(source.id)) {
       setActionStatus('영역 ID가 국가 ID와 겹칩니다. ID를 바꾸세요.', 'error', 4200);
       return false;
@@ -10533,7 +10539,7 @@ const {
           if (String(feature.id) === String(source.id)) return [];
           if (descendantIds.has(String(feature.id))) {
             feature.properties.sovereignId = String(country.properties.editor_id);
-            feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
+            if (String(feature.properties?.parentId || '') === String(source.id)) feature.properties.parentId = String(country.properties.editor_id);
             return [feature];
           }
           if (String(feature.properties?.sovereignId || '') !== sourceCountryId) return [feature];
@@ -10542,9 +10548,14 @@ const {
           feature.geometry = remainder;
           return [feature];
         });
+        state.territorialRelations = state.territorialRelations.filter(relation => String(relation.unitId || '') !== String(source.id));
         for (const relation of state.territorialRelations) {
           const related = String(relation.unitId || '') === String(source.id) || descendantIds.has(String(relation.unitId || ''));
           if (related && String(relation.sovereignId || '') === sourceCountryId) relation.sovereignId = String(country.properties.editor_id);
+          if (String(relation.parentId || '') === String(source.id)) relation.parentId = String(country.properties.editor_id);
+        }
+        for (const entry of state.distributionEntries) {
+          if (entry.mode === DISTRIBUTION_MODES.REGION && String(entry.regionId) === String(source.id)) entry.regionId = String(country.properties.editor_id);
         }
         state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
         reconcileCountryRegionCompleteness([sourceCountryId, country.properties.editor_id]);
@@ -10740,8 +10751,9 @@ const {
     const source = unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? countryFeatureById(id) : countryRegionById(id);
     if (!source || ![TERRITORIAL_UNIT_TYPES.COUNTRY, TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN].includes(unitType)) return;
     if (!requireCanonicalData()) return;
-    if (state.countriesLocked || source.properties?.locked) {
-      setActionStatus(state.countriesLocked ? '국가 레이어 잠금을 해제한 뒤 종류를 변경하세요.' : '영역 잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3400);
+    const sourceLocked = unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? isCountryLocked(id) : source.properties?.locked === true;
+    if (sourceLocked) {
+      setActionStatus('잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3400);
       return;
     }
     territorialTypeSource = { unitType, id: String(id) };
@@ -10768,7 +10780,7 @@ const {
   async function convertCountryRegionType(regionId, targetType, parentId = '') {
     const source = countryRegionById(regionId);
     if (!source || ![TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN].includes(targetType)) return false;
-    if (source.properties?.locked || state.countriesLocked) {
+    if (source.properties?.locked) {
       setActionStatus('잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3200);
       return false;
     }
@@ -10825,8 +10837,9 @@ const {
       setActionStatus('종류를 변경할 국가와 소속 국가를 다시 선택하세요.', 'error', 3800);
       return false;
     }
-    if (state.countriesLocked || countryRegionById(countryId)) {
-      setActionStatus(state.countriesLocked ? '국가 레이어 잠금을 해제한 뒤 종류를 변경하세요.' : '같은 ID의 영역이 이미 있어 종류를 변경할 수 없습니다.', 'error', 4000);
+    if (!requireCountriesUnlocked([countryId, targetCountryId], '국가 종류를 변경')) return false;
+    if (countryRegionById(countryId)) {
+      setActionStatus('같은 ID의 영역이 이미 있어 종류를 변경할 수 없습니다.', 'error', 4000);
       return false;
     }
     const parent = targetType === TERRITORIAL_UNIT_TYPES.ADMIN ? territorialUnitById(parentId || targetCountryId) : target;
@@ -10839,13 +10852,13 @@ const {
     const name = countryName(source);
     const sourceGeometry = deepClone(source.geometry);
     const converted = createTerritorialFeature({
-      id: String(countryId),
+      id: uid(),
       unitType: targetType,
       name,
       geometry: sourceGeometry,
       parentId: targetType === TERRITORIAL_UNIT_TYPES.ADMIN ? String(parentId || targetCountryId) : String(targetCountryId),
       sovereignId: String(targetCountryId),
-      status: TERRITORIAL_STATUS.ASSIGNED,
+      isRemainder: false,
       coverageMode: TERRITORIAL_COVERAGE_MODES.PARTITION,
       adminLevel: targetType === TERRITORIAL_UNIT_TYPES.ADMIN ? 1 : null,
       color: String(sourceOverride.color || sourceProperties.editor_color || ''),
@@ -10864,10 +10877,14 @@ const {
         for (const feature of state.territorialUnits) {
           if (String(feature.properties?.sovereignId || '') !== String(countryId)) continue;
           feature.properties.sovereignId = String(targetCountryId);
-          feature.properties.status = COUNTRY_REGION_STATUS.ASSIGNED;
+          if (String(feature.properties?.parentId || '') === String(countryId)) feature.properties.parentId = String(converted.id);
         }
         for (const relation of state.territorialRelations) {
           if (String(relation.sovereignId || '') === String(countryId)) relation.sovereignId = String(targetCountryId);
+          if (String(relation.parentId || '') === String(countryId)) relation.parentId = String(converted.id);
+        }
+        for (const entry of state.distributionEntries) {
+          if (entry.mode === DISTRIBUTION_MODES.REGION && String(entry.regionId) === String(countryId)) entry.regionId = String(converted.id);
         }
         for (const drawing of state.drawings) {
           if (String(drawing.properties?.pandolab_owner_id || '') !== String(countryId)) continue;
@@ -11001,80 +11018,55 @@ const {
   }
 
   function applySharedProjectFields(source, scope = 'project') {
-    const migratedSource = source && typeof source === 'object'
-      ? {
-        ...source,
-        territorialUnits: source.territorialUnits ?? migrateLegacyCountryRegions(source.countryRegions || []),
-        territorialRelations: source.territorialRelations || [],
-      }
-      : source;
-    return applyProjectFields(state, migratedSource, {
+    return applyProjectFields(state, source, {
       scope,
       clone: deepClone,
       normalizers: {
         labelSettings: value => deepClone(value || {}),
         drawings: value => deepClone(value || []),
+        hydroEdits: value => deepClone(value || []),
         territorialUnits: value => deepClone(value || []),
         territorialRelations: value => deepClone(value || []),
         distributionLayers: value => deepClone(value || []),
         distributionEntries: value => deepClone(value || []),
         distributionSettings: value => ({
           renderMode: value?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
-          selectedLayerId: String(value?.selectedLayerId || ''),
         }),
-        drawingFolders: value => normalizeDrawingFolders(value),
         physicalSettings: (value, current) => normalizePhysicalSettings(value || current),
-        projection: (value, current, project) => value || project.view?.projection || current || 'globe',
         layerVisibility: (value, current) => ({ ...(current || {}), ...(value || {}) }),
         itemVisibility: value => normalizeLayerItemState(value),
-        removedLayerItems: value => normalizeRemovedLayerItems(value),
         layerPresentation: value => normalizeLayerPresentation(value),
-        layerFolders: value => normalizeLayerFolderState(value),
-        countriesLocked: value => !!value,
-        view: (value, current) => clampViewZooms({ ...(current || {}), ...(value || {}) }),
       },
     });
   }
 
-  function normalizeProjectDrawings() {
-    state.drawingFolders = normalizeDrawingFolders(state.drawingFolders);
+  function normalizeProjectObjects() {
+    state.hydroEdits = normalizeHydroEditCollection(state.hydroEdits);
     state.drawings = normalizeDrawingCollection(state.drawings || []);
-    const migratedDistributions = migrateThematicDrawings(state.drawings, {
-      existingLayers: state.distributionLayers,
-      existingEntries: state.distributionEntries,
-    });
-    state.drawings = migratedDistributions.remainingDrawings;
-    state.distributionLayers = normalizeDistributionLayers(migratedDistributions.layers, { makeId: type => uid(`distribution_${type}`) });
+    state.distributionLayers = normalizeDistributionLayers(state.distributionLayers);
     const distributionLayerIds = new Set(state.distributionLayers.map(layer => layer.id));
-    state.distributionEntries = normalizeDistributionEntries(migratedDistributions.entries, {
+    state.distributionEntries = normalizeDistributionEntries(state.distributionEntries, {
       layerExists: id => distributionLayerIds.has(id),
-      makeId: () => uid('distribution_entry'),
     });
     state.distributionSettings = {
       renderMode: state.distributionSettings?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
-      selectedLayerId: distributionLayerIds.has(String(state.distributionSettings?.selectedLayerId || '')) ? String(state.distributionSettings.selectedLayerId) : '',
     };
+    state.selectedDistributionLayerId = distributionLayerIds.has(String(state.selectedDistributionLayerId || ''))
+      ? String(state.selectedDistributionLayerId)
+      : '';
     state.territorialUnits = normalizeCountryRegions(state.territorialUnits, {
       countryExists: id => !!countryFeatureById(id),
-      makeId: kind => uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : kind === TERRITORIAL_UNIT_TYPES.REGION ? 'historical_region' : 'territory'),
     });
-    state.territorialRelations = normalizeTerritorialRelations(state.territorialRelations, {
-      makeId: () => uid('territorial_relation'),
-    });
-    const relationValidation = validateTerritorialRelations(state.territorialUnits, {
+    state.territorialRelations = normalizeTerritorialRelations(state.territorialRelations);
+    const relationValidation = territorialApplicationService.validateRelations(state.territorialUnits, {
       countryExists: id => !!countryFeatureById(id),
       relations: state.territorialRelations,
     });
-    if (!relationValidation.ok) console.warn('Territorial relation normalization issues', relationValidation.issues);
+    if (!relationValidation.ok) throw new Error(relationValidation.issues[0] || '영역 관계가 올바르지 않습니다.');
     const distributionValidation = validateDistributionModel(state.distributionLayers, state.distributionEntries, {
       territorialExists: id => !!territorialRepository.get(id),
     });
-    if (!distributionValidation.ok) console.warn('Distribution model normalization issues', distributionValidation.issues);
-    for (const feature of state.drawings) {
-      const folderId = String(feature.properties?.pandolab_folder_id || '');
-      if (folderId && !drawingFolderById(folderId)) delete feature.properties.pandolab_folder_id;
-    }
-    pruneAutoDrawingFolders();
+    if (!distributionValidation.ok) throw new Error(distributionValidation.issues[0] || '분포 참조가 올바르지 않습니다.');
     state.layerFolders = normalizeLayerFolderState(state.layerFolders);
   }
 
@@ -11091,21 +11083,32 @@ const {
     };
   }
 
+  const historyStore = {
+    get history() { return state.history; },
+    set history(value) { state.history = value; },
+    get historyMeta() { return state.historyMeta; },
+    set historyMeta(value) { state.historyMeta = value; },
+    get future() { return state.future; },
+    set future(value) { state.future = value; },
+    get futureMeta() { return state.futureMeta; },
+    set futureMeta(value) { state.futureMeta = value; },
+  };
+  const historyService = createHistoryService({
+    store: historyStore,
+    maxEntries: MAX_HISTORY,
+    snapshot: snapshotEditable,
+    restore: restoreEditable,
+    normalizeMetadata: normalizeHistoryMetadata,
+    onRecord: () => saveState.markContentChanged(),
+    onChange: updateHistoryButtons,
+  });
+
   function commitHistorySnapshot(snapshot, meta = {}) {
-    state.history.push(snapshot);
-    state.historyMeta.push(normalizeHistoryMetadata(meta));
-    if (state.history.length > MAX_HISTORY) {
-      state.history.shift();
-      state.historyMeta.shift();
-    }
-    state.future = [];
-    state.futureMeta = [];
-    saveState.markContentChanged();
-    updateHistoryButtons();
+    historyService.commitSnapshot(snapshot, meta);
   }
 
   function recordHistory(meta = {}) {
-    commitHistorySnapshot(snapshotEditable(), meta);
+    historyService.record(meta);
   }
 
   function restoreEditable(snapshot) {
@@ -11114,7 +11117,7 @@ const {
     gpuMapRenderer.invalidateHydroVisibility();
     syncPhysicalControls();
     restoreCountriesFromSnapshot(snapshot);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     const restoredDirtyIds = new Set(state.historyDirtyCountryIds);
     for (const id of state.historyDirtyCountryIds) changedCountryIds.add(String(id));
     pruneLayerItemVisibility();
@@ -11156,13 +11159,7 @@ const {
       performDraftUndo();
       return;
     }
-    if (!state.history.length) return;
-    state.future.push(snapshotEditable());
-    state.futureMeta.push(state.historyMeta.at(-1) || normalizeHistoryMetadata({ description: '작업 실행취소' }));
-    const prev = state.history.pop();
-    state.historyMeta.pop();
-    restoreEditable(prev);
-    updateHistoryButtons();
+    if (!historyService.undo({ description: '작업 실행취소' })) return;
     setActionStatus('이전 작업을 실행 취소했습니다.', 'success');
   }
 
@@ -11177,20 +11174,14 @@ const {
       performDraftRedo();
       return;
     }
-    if (!state.future.length) return;
-    state.history.push(snapshotEditable());
-    state.historyMeta.push(state.futureMeta.at(-1) || normalizeHistoryMetadata({ description: '작업 다시 실행' }));
-    const next = state.future.pop();
-    state.futureMeta.pop();
-    restoreEditable(next);
-    updateHistoryButtons();
+    if (!historyService.redo({ description: '작업 다시 실행' })) return;
     setActionStatus('작업을 다시 실행했습니다.', 'success');
   }
 
   function updateHistoryButtons() {
     const draftMode = draftInputActive();
-    const undoAvailable = draftMode ? state.draftEdit.history.length > 0 : state.history.length > 0;
-    const redoAvailable = draftMode ? state.draftEdit.future.length > 0 : state.future.length > 0;
+    const undoAvailable = draftMode ? state.draftEdit.history.length > 0 : historyService.canUndo();
+    const redoAvailable = draftMode ? state.draftEdit.future.length > 0 : historyService.canRedo();
     $('undoBtn').disabled = state.modeProcessing || !undoAvailable;
     $('redoBtn').disabled = state.modeProcessing || !redoAvailable;
     $('undoBtn').dataset.tooltip = draftMode ? '작성 중 실행 취소' : '실행 취소';
@@ -11211,17 +11202,44 @@ const {
   }
 
   function setProjection(type) {
-    const token = atomicMapStateController.begin({ kind: 'projection', type });
-    atomicMapStateController.commit(token, { projection: type === 'globe' ? 'globe' : 'flat', view: state.view });
+    const targetProjection = type === 'globe' ? 'globe' : 'flat';
+    if (targetProjection === state.projection) return false;
+    updateProjection();
+    const currentProjection = activeProjection();
+    const currentCenter = screenToGeo(currentProjection.translate()) || (state.projection === 'globe'
+      ? [-state.view.globeRotation[0], -state.view.globeRotation[1]]
+      : state.view.flatCenter.slice());
+    const currentScale = Number(currentProjection.scale()) || 1;
+    const layout = projectionLayoutMetrics();
+    const nextView = deepClone(state.view);
+    if (targetProjection === 'globe') {
+      nextView.globeRotation = [
+        -wrappedLongitudeDelta(currentCenter[0]),
+        -clamp(Number(currentCenter[1]), -89, 89),
+        0,
+      ];
+      nextView.globeZoom = clamp(currentScale / layout.globeBaseScale, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
+    } else {
+      nextView.flatCenter = [
+        wrappedLongitudeDelta(currentCenter[0]),
+        clamp(Number(currentCenter[1]), -85, 85),
+      ];
+      nextView.flatZoom = clamp(currentScale / layout.flatBaseScale, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
+    }
+    const token = atomicMapStateController.begin({ kind: 'projection', type: targetProjection });
+    if (!atomicMapStateController.commit(token, { projection: targetProjection, view: nextView })) return false;
+    invalidateEditInteraction();
     syncProjectionButtons();
     renderAll();
     queueViewAutosave();
+    return true;
   }
 
   function setLayerVisibility(key, visible) {
     state.layerVisibility[key] = visible;
+    if (key === 'hydro') gpuMapRenderer.invalidateHydroVisibility();
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
   }
 
   const LAYER_PRESENTATION_LABELS = Object.freeze({
@@ -11261,7 +11279,6 @@ const {
   function updateLayerStyleFromFields() {
     const group = $('layerStyleGroupInput').value;
     const currentStyle = layerStyle(state.layerPresentation, group);
-    recordHistory({ type: 'layer-style', description: `${LAYER_PRESENTATION_LABELS[group] || group} 표시 스타일 변경`, affectedIds: [group] });
     state.layerPresentation = normalizeLayerPresentation({
       ...state.layerPresentation,
       styles: {
@@ -11276,7 +11293,7 @@ const {
     });
     $('layerStyleOpacityValue').textContent = `${Math.round(layerStyle(state.layerPresentation, group).opacity * 100)}%`;
     renderAll();
-    queueAutosave();
+    queuePresentationAutosave();
   }
 
   function setMapPanelView(view, { focus = false } = {}) {
@@ -11294,247 +11311,115 @@ const {
     if (focus) requestAnimationFrame(() => $(showingView ? 'mapViewTabBtn' : 'mapLayersTabBtn')?.focus());
   }
 
-  function buildAtlasState() {
-    const project = {
-      format: 'pandolab-project-state',
-      version: APP_VERSION,
-      savedAt: new Date().toISOString(),
+  const projectSerializer = createProjectSerializer({
+    schemaVersion: PROJECT_SCHEMA_VERSION,
+    appVersion: APP_VERSION,
+    baseDataset: BASE_DATASET,
+    drawingSchemaVersion: DRAWING_SCHEMA_VERSION,
+    distributionSchemaVersion: DISTRIBUTION_SCHEMA_VERSION,
+    distributionTypes: Object.values(DISTRIBUTION_TYPES),
+    distributionModes: Object.values(DISTRIBUTION_MODES),
+    terrainDataset: TERRAIN_DATASET,
+    hydroDataset: HYDRO_DATASET,
+    readSnapshot: () => ({
       countriesData: state.countriesData,
-      ...pickProjectFields(state, { clone: value => value }),
-      baseDataset: BASE_DATASET,
-      landObjectModel: {
-        schemaVersion: DRAWING_SCHEMA_VERSION,
-        coastlineAuthority: 'countries',
-        roles: ['hydro', 'thematic', 'custom'],
-      },
-      territorialModel: {
-        schemaVersion: 1,
-        coastlineAuthority: 'countriesData',
-        countryStorage: 'countriesData-adapter',
-        types: ['country', 'territory', 'admin', 'region'],
-        coverageModes: ['partition', 'explicit'],
-      },
-      distributionModel: {
-        schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
-        types: Object.values(DISTRIBUTION_TYPES),
-        sourceModes: Object.values(DISTRIBUTION_MODES),
-        shareRange: [0, 100],
-        sharesAreIndependent: true,
-      },
-    };
-    project.physicalSourceInfo = {
-      terrain: {
-        dataset: state.terrainManifest?.dataset || TERRAIN_DATASET,
-        version: state.terrainManifest?.version || '0.12.6',
-      },
-      hydro: {
-        dataset: state.hydroManifest?.dataset || HYDRO_DATASET,
-        version: state.hydroManifest?.version || APP_VERSION,
-        coordinatePolicy: state.hydroManifest?.coordinatePolicy || 'selected source coordinates retained without simplification',
-        selection: deepClone(state.hydroManifest?.selection || {}),
-      },
-    };
-    return project;
+      projectFields: pickProjectFields(state, { clone: value => value }),
+      countryDelta: buildCountryDelta(),
+      fullAutosave: !!state.sessionBaseCountriesJson,
+      terrainManifest: state.terrainManifest,
+      hydroManifest: state.hydroManifest,
+    }),
+  });
+
+  function buildAtlasState() {
+    return projectSerializer.buildProject();
   }
 
   function buildAutosaveData() {
-    if (state.sessionBaseCountriesJson) return { ...buildAtlasState(), format: 'pandolab-autosave-full' };
-    return {
-      format: 'pandolab-autosave-delta',
-      version: APP_VERSION,
-      savedAt: new Date().toISOString(),
-      countryDelta: buildCountryDelta(),
-      ...pickProjectFields(state, { clone: value => value }),
-      baseDataset: BASE_DATASET,
-      landObjectModel: {
-        schemaVersion: DRAWING_SCHEMA_VERSION,
-        coastlineAuthority: 'countries',
-      },
-      territorialModel: {
-        schemaVersion: 1,
-        coastlineAuthority: 'countriesData',
-        countryStorage: 'countriesData-adapter',
-        types: ['country', 'territory', 'admin', 'region'],
-        coverageModes: ['partition', 'explicit'],
-      },
-      distributionModel: {
-        schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
-        types: Object.values(DISTRIBUTION_TYPES),
-        sourceModes: Object.values(DISTRIBUTION_MODES),
-        shareRange: [0, 100],
-        sharesAreIndependent: true,
-      },
-    };
+    return projectSerializer.buildAutosave();
   }
 
   function countriesFromAutosaveDelta(project, suppliedBase = null) {
-    const base = suppliedBase || parsePristineCountries();
-    const delta = project?.countryDelta || { changed: [], removedIds: [] };
-    const changed = new Map((delta.changed || []).map(feature => [String(feature.properties?.editor_id || feature.properties?.iso_a3 || ''), feature]));
-    const removed = new Set((delta.removedIds || []).map(String));
-    const seen = new Set();
-    base.features = (base.features || []).filter(feature => {
-      const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
-      return !removed.has(id);
-    }).map(feature => {
-      const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
-      if (!changed.has(id)) return feature;
-      seen.add(id);
-      return deepClone(changed.get(id));
-    });
-    for (const [id, feature] of changed) if (!seen.has(id) && !removed.has(id)) base.features.push(deepClone(feature));
-    const result = reindexCountries(base, true);
-    const unchangedIds = (result.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(id => !changed.has(id));
-    applyPristineLabelAnchors(result, unchangedIds);
-    return result;
-  }
-
-  let autosaveDbPromise = null;
-
-  function openAutosaveDatabase() {
-    if (!window.indexedDB) return Promise.reject(new Error('IndexedDB를 지원하지 않는 브라우저입니다.'));
-    if (autosaveDbPromise) return autosaveDbPromise;
-    autosaveDbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open(AUTOSAVE_DB_NAME, 2);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(AUTOSAVE_STORE_NAME)) db.createObjectStore(AUTOSAVE_STORE_NAME);
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error || new Error('IndexedDB 열기 실패'));
-      request.onblocked = () => reject(new Error('다른 창에서 자동저장 DB를 사용 중입니다.'));
-    });
-    return autosaveDbPromise;
-  }
-
-  async function readIndexedDbProject() {
-    const db = await openAutosaveDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readonly');
-      const store = transaction.objectStore(AUTOSAVE_STORE_NAME);
-      const projectRequest = store.get(AUTOSAVE_RECORD_KEY);
-      const viewRequest = store.get(AUTOSAVE_VIEW_KEY);
-      transaction.oncomplete = () => {
-        const project = projectRequest.result || null;
-        const viewRecord = viewRequest.result || null;
-        resolve(project && viewRecord
-          ? { ...project, projection: viewRecord.projection || project.projection, view: { ...(project.view || {}), ...(viewRecord.view || {}) } }
-          : project);
-      };
-      transaction.onerror = () => reject(transaction.error || new Error('자동저장 읽기 실패'));
-    });
-  }
-
-  async function writeIndexedDbProject(project) {
-    const db = await openAutosaveDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readwrite');
-      transaction.objectStore(AUTOSAVE_STORE_NAME).put(project, AUTOSAVE_RECORD_KEY);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error || new Error('자동저장 쓰기 실패'));
-      transaction.onabort = () => reject(transaction.error || new Error('자동저장 쓰기 취소'));
-    });
-  }
-
-  async function writeIndexedDbView() {
-    const db = await openAutosaveDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readwrite');
-      transaction.objectStore(AUTOSAVE_STORE_NAME).put({ projection: state.projection, view: deepClone(state.view), savedAt: new Date().toISOString() }, AUTOSAVE_VIEW_KEY);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error || new Error('보기 위치 저장 실패'));
+    return restoreCountriesFromDelta(project, {
+      base: suppliedBase || parsePristineCountries(),
+      clone: deepClone,
+      reindex: base => reindexCountries(base, true),
+      applyPristineLabelAnchors,
     });
   }
 
   async function deleteAutosavedProject() {
-    clearTimeout(state.autosaveTimer);
-    mapWorkScheduler.cancel('autosave');
-    state.autosaveTimer = null;
-    try {
-      const db = await openAutosaveDatabase();
-      await new Promise((resolve, reject) => {
-        const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readwrite');
-        const store = transaction.objectStore(AUTOSAVE_STORE_NAME);
-        store.delete(AUTOSAVE_RECORD_KEY);
-        store.delete(AUTOSAVE_VIEW_KEY);
-        transaction.oncomplete = () => resolve();
-        transaction.onerror = () => reject(transaction.error || new Error('자동저장 삭제 실패'));
-      });
-    } catch (_) {}
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (_) {}
-  }
-
-  function saveLocalStorageFallback(project) {
-    const serialized = JSON.stringify(project);
-    if (serialized.length > 4_500_000) throw new Error('고해상도 프로젝트가 localStorage 용량을 초과합니다.');
-    localStorage.setItem(STORAGE_KEY, serialized);
+    return persistenceService.clear();
   }
 
   function queueViewAutosave(delay = 120) {
-    clearTimeout(state.viewAutosaveTimer);
-    mapWorkScheduler.scheduleIdle('view-autosave', () => {
-      writeIndexedDbView().catch(error => console.warn('View autosave failed', error));
-    }, delay);
+    persistenceService.queueView(delay);
   }
 
   async function persistAutosave(project = null) {
-    if (!canMutateProject(state.dataReadiness)) return;
-    const autosaveProject = project || buildAutosaveData();
-    saveState.setAutosave(AUTOSAVE_STATES.SAVING);
-    try {
-      await writeIndexedDbProject(autosaveProject);
-      state.lastSavedAt = new Date();
-      saveState.setAutosave(AUTOSAVE_STATES.SAVED);
-    } catch (error) {
-      try {
-        saveLocalStorageFallback(autosaveProject);
-        state.lastSavedAt = new Date();
-        saveState.setAutosave(AUTOSAVE_STATES.SAVED, { fallback: '브라우저 로컬 저장소' });
-      } catch (fallbackError) {
-        console.warn('Autosave failed', error, fallbackError);
-        saveState.setAutosave(AUTOSAVE_STATES.ERROR);
-        setActionStatus('자동저장 실패. 파일로 저장하세요.', 'error', 0);
-      }
-    }
+    return persistenceService.persist(project);
   }
 
-  function queueAutosave(delay = 650) {
-    if (!canMutateProject(state.dataReadiness)) return;
-    saveState.markContentChanged();
-    saveState.setAutosave(AUTOSAVE_STATES.QUEUED);
-    clearTimeout(state.autosaveTimer);
-    mapWorkScheduler.scheduleIdle('autosave', () => persistAutosave(), delay);
+  function queueAutosave(delay = 650, { scope = 'document' } = {}) {
+    persistenceService.queueProject(delay, { scope });
   }
 
-  function restoreLocalAutosave() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (_) {
-      return null;
-    }
+  function queuePresentationAutosave(delay = 650) {
+    persistenceService.queuePresentation(delay);
   }
 
   async function restoreAutosavedProject() {
-    try {
-      const project = await readIndexedDbProject();
-      if (project) return { project, source: 'indexeddb' };
-    } catch (error) {
-      console.warn('IndexedDB restore failed', error);
-    }
-    const local = restoreLocalAutosave();
-    if (!local) return { project: null, source: null };
-    try {
-      await writeIndexedDbProject(local);
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (_) {}
-    return { project: local, source: 'localstorage' };
+    return persistenceService.restore();
   }
 
+  function applyAutosavedView(viewRecord) {
+    if (!viewRecord || typeof viewRecord !== 'object') return false;
+    if (viewRecord.projection === 'globe' || viewRecord.projection === 'flat') state.projection = viewRecord.projection;
+    if (viewRecord.view && typeof viewRecord.view === 'object') {
+      state.view = clampViewZooms({ ...state.view, ...deepClone(viewRecord.view) });
+    }
+    return true;
+  }
+
+  const browserProjectStorage = createBrowserProjectStorage({
+    indexedDB: window.indexedDB,
+    localStorage: window.localStorage,
+    databaseName: AUTOSAVE_DB_NAME,
+    storeName: AUTOSAVE_STORE_NAME,
+    projectKey: AUTOSAVE_RECORD_KEY,
+    viewKey: AUTOSAVE_VIEW_KEY,
+    fallbackKey: STORAGE_KEY,
+  });
+  const persistenceService = createPersistenceService({
+    storage: browserProjectStorage,
+    scheduler: mapWorkScheduler,
+    canPersist: () => canMutateProject(state.dataReadiness),
+    buildAutosave: buildAutosaveData,
+    readView: () => ({ projection: state.projection, view: deepClone(state.view) }),
+    validateProject: assertCurrentProjectSchema,
+    onDirty: scope => {
+      if (scope === 'presentation') saveState.markPresentationChanged();
+      else saveState.markDocumentChanged();
+    },
+    onAutosaveState: (value, options) => saveState.setAutosave(value, options),
+    onSaved: savedAt => {
+      state.lastSavedAt = savedAt;
+    },
+    onFailure: () => setActionStatus('자동저장 실패. 파일로 저장하세요.', 'error', 0),
+    onWarning: (...args) => console.warn(...args),
+  });
+
   function applyAtlasState(project, manual = false) {
-    if (!project || typeof project !== 'object') throw new Error('프로젝트 형식이 올바르지 않습니다.');
+    assertCurrentProjectSchema(project);
+    if (project.countriesData?.features) {
+      assertProjectReferenceIntegrity({
+        countries: project.countriesData.features,
+        territorialUnits: project.territorialUnits || [],
+        territorialRelations: project.territorialRelations || [],
+        distributionLayers: project.distributionLayers || [],
+        distributionEntries: project.distributionEntries || [],
+      });
+    }
     resetCountryLabelAnchorRuntime();
     gpuMapRenderer.resetCountryGeometryVisualState();
     applySharedProjectFields(project);
@@ -11543,16 +11428,13 @@ const {
     state.countriesData = project.countriesData
       ? reindexCountries(deepClone(project.countriesData), true)
       : freshPristineCountries(true);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
     configureDatasetSession(project);
     const externalGeometry = !!project.countriesData && project.baseDataset !== BASE_DATASET;
-    state.history = [];
-    state.future = [];
-    state.historyMeta = [];
-    state.futureMeta = [];
+    historyService.reset();
     state.selected = null;
     objectSelectionSyncing = true;
     objectSelection.clear();
@@ -11571,7 +11453,6 @@ const {
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
-    $('countriesLocked').checked = state.countriesLocked;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
@@ -11589,45 +11470,26 @@ const {
       : '프로젝트를 불러왔습니다.', 'success', 3200);
   }
 
-  let confirmModalAction = null;
-
-  function openConfirmModal({ title = '확인', message = '', confirmText = '확인', cancelText = '취소', danger = false, choices = [], impacts = [], onConfirm = null } = {}) {
-    const modal = $('confirmModal');
-    if (!modal) return;
-    clearNotification();
-    $('confirmModalTitle').textContent = title;
-    $('confirmModalMessage').textContent = message;
-    const impactSection = $('confirmModalImpactSection');
-    const impactItems = (impacts || []).map(value => String(value || '').trim()).filter(Boolean);
-    impactSection?.classList.toggle('hidden', !impactItems.length);
-    if ($('confirmModalImpactList')) $('confirmModalImpactList').replaceChildren(...impactItems.map(value => {
-      const item = document.createElement('li');
-      item.textContent = value;
-      return item;
-    }));
-    const ok = $('confirmModalOkBtn');
-    ok.textContent = confirmText;
-    ok.classList.toggle('danger-confirm', !!danger);
-    const cancel = $('confirmModalCancelBtn');
-    if (cancel) cancel.textContent = cancelText;
-    const choiceRow = $('confirmModalChoiceRow');
-    const choiceInput = $('confirmModalChoice');
-    const hasChoices = Array.isArray(choices) && choices.length > 0;
-    choiceRow.classList.toggle('hidden', !hasChoices);
-    if (hasChoices) replaceSelectOptions(choiceInput, choices, choices[0].value);
-    confirmModalAction = typeof onConfirm === 'function'
-      ? () => onConfirm(hasChoices ? choiceInput.value : undefined)
-      : null;
-    modal.classList.remove('hidden');
-    requestAnimationFrame(() => (hasChoices ? choiceInput : ok).focus());
-  }
-
-  function closeConfirmModal() {
-    $('confirmModal')?.classList.add('hidden');
-    $('confirmModalChoiceRow')?.classList.add('hidden');
-    $('confirmModalImpactSection')?.classList.add('hidden');
-    confirmModalAction = null;
-  }
+  const confirmModalController = createConfirmModalController({
+    document,
+    window,
+    elements: {
+      modal: $('confirmModal'),
+      backdrop: $('confirmModal')?.querySelector('.confirm-modal-dim'),
+      title: $('confirmModalTitle'),
+      message: $('confirmModalMessage'),
+      impactSection: $('confirmModalImpactSection'),
+      impactList: $('confirmModalImpactList'),
+      ok: $('confirmModalOkBtn'),
+      cancel: $('confirmModalCancelBtn'),
+      choiceRow: $('confirmModalChoiceRow'),
+      choice: $('confirmModalChoice'),
+    },
+    setChoices: replaceSelectOptions,
+    beforeOpen: clearNotification,
+  });
+  const openConfirmModal = options => confirmModalController.open(options);
+  const closeConfirmModal = () => confirmModalController.close();
 
   async function resetProjectInPlace() {
     closeConfirmModal();
@@ -11643,27 +11505,26 @@ const {
     state.labels = [];
     state.labelSettings = {};
     state.drawings = [];
+    state.hydroEdits = [];
     state.territorialUnits = [];
     state.territorialRelations = [];
     state.distributionLayers = [];
     state.distributionEntries = [];
-    state.distributionSettings = { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, selectedLayerId: '' };
+    state.distributionSettings = { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT };
+    state.selectedDistributionLayerId = '';
     state.distributionDraft = null;
     clearGeometryPreview(state.geometryPreview);
     state.activeSnap = null;
     state.audit = { status: 'idle', revision: state.audit.revision + 1, report: null, selectedIssueId: null };
     state.hovered = null;
-    state.drawingFolders = [];
     state.physicalSettings = normalizePhysicalSettings(null);
     state.projection = 'globe';
-    state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, languages: true, ethnicities: true, religions: true, drawings: true, labels: true, basemapLabels: true };
+    state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, languages: true, ethnicities: true, religions: true, hydro: true, drawings: true, labels: true, basemapLabels: true };
     state.itemVisibility = normalizeLayerItemState(null);
-    state.removedLayerItems = normalizeRemovedLayerItems(null);
     state.layerPresentation = normalizeLayerPresentation();
     gpuMapRenderer.invalidateHydroVisibility();
     state.layerFolders = normalizeLayerFolderState(null);
     state.layerSearch = '';
-    state.countriesLocked = false;
     state.tool = 'select';
     state.labelPlacementMode = false;
     state.coastEditCountryId = null;
@@ -11676,10 +11537,7 @@ const {
     resetCountryRegionEditState();
     resetMergeState();
     resetTerritoryEditingState(true);
-    state.history = [];
-    state.future = [];
-    state.historyMeta = [];
-    state.futureMeta = [];
+    historyService.reset();
     state.selected = null;
     objectSelectionSyncing = true;
     objectSelection.clear();
@@ -11716,7 +11574,6 @@ const {
     $('drawingsVisible').checked = true;
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
-    $('countriesLocked').checked = false;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = '';
     renderLayerTree(true);
@@ -11764,10 +11621,7 @@ const {
 
   function requestDeleteCountry(id) {
     const key = String(id);
-    if (state.countriesLocked) {
-      setActionStatus('국가 레이어 잠금을 해제한 뒤 삭제할 수 있습니다.', 'error', 3000);
-      return;
-    }
+    if (!requireCountriesUnlocked([key], '삭제')) return;
     const feature = countryFeatureById(key);
     if (!feature) return;
     const children = territorialRepository.children(key);
@@ -11788,7 +11642,7 @@ const {
           if (String(region.properties?.sovereignId || '') !== key) continue;
           region.properties.sovereignId = '';
           region.properties.parentId = '';
-          region.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
+          region.properties.isRemainder = false;
         }
         state.countriesData.features = state.countriesData.features.filter(f => String(f.properties?.editor_id) !== key);
         delete state.countryOverrides[key];
@@ -11900,195 +11754,23 @@ const {
     });
   }
 
-  function mergeImportedCountryProperties(existing, imported, geometry) {
-    const importedId = String(imported.properties?.editor_id || imported.id || '');
-    return {
-      type: 'Feature',
-      id: importedId,
-      properties: {
-        ...(existing?.properties || {}),
-        ...(imported.properties || {}),
-        editor_id: importedId,
-      },
-      geometry,
-    };
-  }
-
-  let gisGeometryWorker = null;
-  let gisGeometrySequence = 0;
-  const gisGeometryPending = new Map();
-  const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
-
-  function getGisGeometryWorker() {
-    if (gisGeometryWorker) return gisGeometryWorker;
-    gisGeometryWorker = new Worker(runtimeAssetUrl('workers/gis-geometry-worker.js'), { name: 'pandolab-gis-geometry' });
-    gisGeometryWorker.onmessage = event => {
-      const pending = gisGeometryPending.get(event.data?.id);
-      if (!pending) return;
-      gisGeometryPending.delete(event.data.id);
-      clearTimeout(pending.timeoutId);
-      if (event.data.ok) pending.resolve(event.data);
-      else pending.reject(new Error(event.data.error || 'GIS 지오메트리 검증에 실패했습니다.'));
-    };
-    gisGeometryWorker.onerror = event => {
-      const error = new Error(event.message || 'GIS 지오메트리 Worker 오류');
-      for (const pending of gisGeometryPending.values()) {
-        clearTimeout(pending.timeoutId);
-        pending.reject(error);
-      }
-      gisGeometryPending.clear();
-      gisGeometryWorker?.terminate();
-      gisGeometryWorker = null;
-    };
-    return gisGeometryWorker;
-  }
-
-  function validateGisCountryCollection(collection, affectedIds = null) {
-    return new Promise((resolve, reject) => {
-      const worker = getGisGeometryWorker();
-      const id = ++gisGeometrySequence;
-      const scopedIds = affectedIds
-        ? [...new Set([...affectedIds].map(String).filter(Boolean))]
-        : null;
-      const timeoutId = setTimeout(() => {
-        if (!gisGeometryPending.delete(id)) return;
-        reject(new Error('GIS 국가 경계 검사가 제한 시간 안에 끝나지 않았습니다.'));
-        const timeoutError = new Error('GIS 국가 경계 Worker가 응답하지 않아 검사를 중단했습니다.');
-        for (const pending of gisGeometryPending.values()) {
-          clearTimeout(pending.timeoutId);
-          pending.reject(timeoutError);
-        }
-        gisGeometryPending.clear();
-        gisGeometryWorker?.terminate();
-        gisGeometryWorker = null;
-      }, GIS_GEOMETRY_TIMEOUT_MS);
-      gisGeometryPending.set(id, { resolve, reject, timeoutId });
-      worker.postMessage({
-        id,
-        action: 'validate',
-        collection,
-        affectedIds: scopedIds?.length ? scopedIds : null,
-      });
-    });
-  }
-
-  async function planGisMerge(importedCountries, strategy) {
-    const clipper = window.polygonClipping;
-    if (!clipper?.union || !clipper?.difference || !clipper?.intersection) throw new Error('국가 병합 연산 엔진을 불러오지 못했습니다.');
-    const current = (state.countriesData?.features || []).map(deepClone);
-    const imported = (deepClone(importedCountries)?.features || []).map((feature, index) => {
-      feature.properties = feature.properties || {};
-      feature.properties.editor_id = featureCountryId(feature, index);
-      return feature;
-    });
-    if (!imported.length) throw new Error('병합할 국가 객체가 없습니다.');
-
-    const currentById = new Map(current.map(feature => [String(feature.properties?.editor_id || ''), feature]));
-    const importedById = new Map(imported.map(feature => [String(feature.properties?.editor_id || ''), feature]));
-    const importedIds = new Set(importedById.keys());
-    const affectedIds = new Set(importedIds);
-    const matched = [...importedIds].filter(id => currentById.has(id)).length;
-    const added = imported.length - matched;
-    const counts = { matched, added, replaced: 0, subtracted: 0, deleted: 0, overlapAreaKm2: 0, residualOverlapAreaKm2: 0 };
-    let result;
-
-    if (strategy === 'id-replace') {
-      counts.replaced = matched;
-      result = current.filter(feature => !importedIds.has(String(feature.properties?.editor_id || '')));
-      result.push(...imported.map(deepClone));
-      const unaffected = result.filter(feature => !importedIds.has(String(feature.properties?.editor_id || '')));
-      for (const incoming of imported) {
-        for (const other of unaffected) {
-          if (!boundsOverlap(geometryBounds(incoming.geometry), geometryBounds(other.geometry))) continue;
-          const overlap = normalizeClippedLandGeometry(clipper.intersection(incoming.geometry.coordinates, other.geometry.coordinates));
-          if (!overlap || multiPolygonPlanarArea(geometryMultiCoordinates(overlap)) <= 1e-8) continue;
-          counts.overlapAreaKm2 += geometryAreaKm2(overlap);
-        }
-      }
-      return {
-        countriesData: { type: 'FeatureCollection', features: result },
-        counts,
-        affectedIds: [...affectedIds],
-        canCommit: counts.overlapAreaKm2 <= 0.001,
-      };
-    }
-
-    const importedRawUnion = normalizeClippedLandGeometry(clipper.union(...imported.map(feature => feature.geometry.coordinates)));
-    if (!importedRawUnion) throw new Error('가져온 영토를 결합할 수 없습니다.');
-    result = [];
-    for (const existing of current) {
-      const id = String(existing.properties?.editor_id || '');
-      if (importedIds.has(id)) continue;
-      if (!boundsOverlap(geometryBounds(existing.geometry), geometryBounds(importedRawUnion))) {
-        result.push(existing);
-        continue;
-      }
-      const overlap = normalizeClippedLandGeometry(clipper.intersection(existing.geometry.coordinates, importedRawUnion.coordinates));
-      if (!overlap || multiPolygonPlanarArea(geometryMultiCoordinates(overlap)) <= 1e-8) {
-        result.push(existing);
-        continue;
-      }
-      counts.overlapAreaKm2 += geometryAreaKm2(overlap);
-      const remainder = normalizeClippedLandGeometry(clipper.difference(existing.geometry.coordinates, importedRawUnion.coordinates));
-      affectedIds.add(id);
-      counts.subtracted += 1;
-      if (!remainder) { counts.deleted += 1; continue; }
-      existing.geometry = remainder;
-      result.push(existing);
-    }
-    for (const incoming of imported) {
-      const id = String(incoming.properties?.editor_id || '');
-      const existing = currentById.get(id);
-      const geometry = existing
-        ? normalizeClippedLandGeometry(clipper.union(existing.geometry.coordinates, incoming.geometry.coordinates))
-        : deepClone(incoming.geometry);
-      if (!geometry) throw new Error(`${countryName(incoming)} 영토를 결합할 수 없습니다.`);
-      result.push(mergeImportedCountryProperties(existing, incoming, geometry));
-    }
-    const countriesData = { type: 'FeatureCollection', features: result };
-    counts.residualOverlapAreaKm2 = (await validateGisCountryCollection(countriesData, affectedIds)).overlapAreaKm2;
-    return { countriesData, counts, affectedIds: [...affectedIds], canCommit: counts.residualOverlapAreaKm2 <= 0.001 };
-  }
-
-  function applyGpkgAssets(metadata, overrides) {
-    const output = deepClone(overrides || {});
-    for (const asset of metadata?.countryAssets || []) {
-      if (!asset?.countryId || !asset?.base64) continue;
-      const id = String(asset.countryId);
-      output[id] = { ...(output[id] || {}), flagDataUrl: `data:${asset.mimeType || 'application/octet-stream'};base64,${asset.base64}` };
-    }
-    return output;
-  }
-
-  function importedCountryOverrides(collection) {
-    const output = {};
-    for (const feature of collection?.features || []) {
-      const properties = feature.properties || {};
-      const id = String(properties.editor_id || feature.id || '');
-      if (!id) continue;
-      const mapped = {
-        name: properties.pandolab_name || properties.editor_name || properties.editor_original_name || properties.name || id,
-        capital: properties.pandolab_capital || properties.capital || '',
-        notes: properties.pandolab_notes || properties.notes || '',
-      };
-      const explicitColor = properties.pandolab_color || properties.editor_color;
-      if (explicitColor) mapped.color = explicitColor;
-      output[id] = mapped;
-    }
-    return output;
-  }
-
-  function appendSourceInfo(previous, next) {
-    const imports = [];
-    const append = value => {
-      if (!value) return;
-      if (Array.isArray(value.imports)) imports.push(...value.imports);
-      else imports.push(value);
-    };
-    append(previous);
-    append(next);
-    return { mergedAt: new Date().toISOString(), imports };
-  }
+  const gisGeometryValidator = createGisGeometryValidator({
+    createWorker: () => new Worker(runtimeAssetUrl('workers/gis-geometry-worker.js'), { name: 'pandolab-gis-geometry' }),
+  });
+  const validateGisCountryCollection = (collection, affectedIds = null) => gisGeometryValidator.validate(collection, affectedIds);
+  const planGisMerge = createCountryImportMergePlanner({
+    clipper: window.polygonClipping,
+    clone: deepClone,
+    featureCountryId,
+    countryName,
+    geometryBounds,
+    boundsOverlap,
+    normalizeGeometry: normalizeClippedLandGeometry,
+    geometryCoordinates: geometryMultiCoordinates,
+    planarArea: multiPolygonPlanarArea,
+    areaKm2: geometryAreaKm2,
+    validateCountryCollection: validateGisCountryCollection,
+  });
 
   function applyImportedReplacement(result) {
     const packageState = result.atlasMetadata?.projectState || {};
@@ -12099,7 +11781,7 @@ const {
     const mergedState = {
       ...packageState,
       countriesData: result.countriesData,
-      countryOverrides: applyGpkgAssets(result.atlasMetadata, restoredOverrides),
+      countryOverrides: applyImportedPackageAssets(result.atlasMetadata, restoredOverrides),
       sourceInfo: result.atlasMetadata?.sourceInfo || result.sourceInfo,
     };
     applyAtlasState(mergedState, true);
@@ -12108,9 +11790,9 @@ const {
 
   function commitGisMerge(result, plan) {
     const before = snapshotEditable();
-    state.sourceInfo = appendSourceInfo(state.sourceInfo, result.sourceInfo);
+    state.sourceInfo = appendImportedSourceInfo(state.sourceInfo, result.sourceInfo);
     const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || '')));
-    const packagedOverrides = applyGpkgAssets(result.atlasMetadata, {
+    const packagedOverrides = applyImportedPackageAssets(result.atlasMetadata, {
       ...importedCountryOverrides(result.countriesData),
       ...(result.atlasMetadata?.projectState?.countryOverrides || {}),
     });
@@ -12135,60 +11817,38 @@ const {
 
   let requestedVectorTarget = '';
 
+  const importService = createImportService({
+    openImportWizard: (files, options) => {
+      if (!window.PandoLabGIS?.openImportWizard) throw new Error('GIS 가져오기 모듈을 불러오지 못했습니다.');
+      return window.PandoLabGIS.openImportWizard(files, options);
+    },
+    getWizardOptions: () => ({
+      countryOptions: gisImportCountryOptions(),
+      parentOptions: gisImportParentOptions(),
+      hasUnsavedChanges: saveState.snapshot().hasUnsavedChanges,
+      planImpact: planTerritorialImportImpact,
+    }),
+    validateStructuredGeometry,
+    featureCountryId,
+    validateCountryCollection: validateGisCountryCollection,
+    getCurrentCountries: () => state.countriesData,
+    planCountryMerge: planGisMerge,
+    materializers: {
+      replaceProject: applyImportedReplacement,
+      territorial: commitTerritorialImportWithTransfer,
+      geoJson: importGeoJson,
+      mergeCountries: commitGisMerge,
+    },
+    onStage: message => setActionStatus(message, 'working', 0),
+  });
+
   async function openGisFiles(files) {
     if (!files?.length) return;
-    if (!window.PandoLabGIS?.openImportWizard) throw new Error('GIS 가져오기 모듈을 불러오지 못했습니다.');
     const requestedTarget = requestedVectorTarget;
     requestedVectorTarget = '';
     setActionStatus('파일 확인 중…', 'working', 0);
     try {
-      const result = await window.PandoLabGIS.openImportWizard(files, {
-        targetType: requestedTarget,
-        countryOptions: gisImportCountryOptions(),
-        parentOptions: gisImportParentOptions(),
-        hasUnsavedChanges: saveState.snapshot().hasUnsavedChanges,
-        planImpact: planTerritorialImportImpact,
-      });
-      if (result.sourceKind === 'project' || result.importPlan?.sourceKind === 'project') {
-        applyImportedReplacement(result);
-        return;
-      }
-      if (['region', 'administrative'].includes(result.targetType)) {
-        await commitTerritorialImportWithTransfer(result, files[0]?.name || '벡터 파일');
-        return;
-      }
-      if (!['country', 'project'].includes(result.importPlan?.targetType || result.targetType)) {
-        const target = result.targetType === 'distribution' ? result.distributionType : result.targetType;
-        await importGeoJson(files[0], {
-          parsed: result.collection,
-          target,
-          mapping: {
-            nameField: result.mapping?.nameField || '',
-            countryField: result.mapping?.countryField || '',
-            parentField: result.mapping?.parentField || '',
-            levelField: result.mapping?.levelField || '',
-          },
-        });
-        return;
-      }
-      setActionStatus('국가 경계 확인 중…', 'working', 0);
-      const structuredIssues = (result.countriesData?.features || []).flatMap(validateStructuredGeometry);
-      if (structuredIssues.length) throw new Error(`가져온 geometry가 올바르지 않습니다. ${structuredIssues[0].message}`);
-      const importedFeatures = result.countriesData?.features || [];
-      const importedOverlapAreaKm2 = (await validateGisCountryCollection(
-        result.countriesData,
-        importedFeatures.map(featureCountryId),
-      )).overlapAreaKm2;
-      if (importedOverlapAreaKm2 > 0.001) throw new Error(`가져온 레이어 안에서 서로 다른 국가가 ${Math.round(importedOverlapAreaKm2).toLocaleString()} km² 겹칩니다.`);
-      if (result.openMode === 'replace') {
-        applyImportedReplacement(result);
-      } else {
-        const plan = await planGisMerge(result.countriesData, result.mergeStrategy);
-        if (!plan.canCommit) throw new Error(plan.counts.residualOverlapAreaKm2 > 0.001
-          ? '자동 차감 후에도 국가 간 중첩이 남아 가져올 수 없습니다.'
-          : 'ID 기준 교체 후 다른 국가와 영토가 겹쳐 가져올 수 없습니다.');
-        commitGisMerge(result, plan);
-      }
+      await importService.openFiles(files, { targetType: requestedTarget });
     } catch (error) {
       if (error?.name === 'AbortError') {
         setActionStatus('파일 불러오기를 취소했습니다.', 'ready');
@@ -12212,96 +11872,17 @@ const {
     return normalizeClippedLandGeometry(union);
   }
 
-  async function loadHistoricalLibrary() {
-    if (state.historicalLibrary) return state.historicalLibrary;
-    if (state.historicalLibraryLoadState === 'loading') {
-      await new Promise(resolve => document.addEventListener('pandolab:historical-library-ready', resolve, { once: true }));
-      return state.historicalLibrary;
-    }
-    state.historicalLibraryLoadState = 'loading';
-    try {
-      const response = await fetch(HISTORICAL_LIBRARY_DATA_URL, { cache: 'force-cache' });
+  const historicalLibraryService = createHistoricalLibraryService({
+    dataUrl: HISTORICAL_LIBRARY_DATA_URL,
+    fetchJson: async url => {
+      const response = await fetch(url, { cache: 'force-cache' });
       if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
-      const pilot = await response.json();
-      const currentEntities = createCurrentCountryLibraryEntities(state.countriesData, { displayName: countryName });
-      const pilotEntities = materializePilotEntities(pilot.entities, state.countriesData, combineHistoricalLibraryGeometries);
-      const currentSnapshot = {
-        id: 'current-world',
-        name: '현재 세계',
-        referenceDate: String(new Date().getFullYear()),
-        entityRefs: currentEntities.map(entity => entity.libraryId),
-        metadata: { current: true },
-        sourceInfo: { title: 'Natural Earth 5.1.1 Admin 0 Countries', license: 'Public domain' },
-      };
-      state.historicalLibrary = createHistoricalLibrary({
-        entities: [...currentEntities, ...pilotEntities],
-        snapshots: [currentSnapshot, ...(pilot.snapshots || [])],
-      });
-      state.historicalLibraryLoadState = 'ready';
-      syncHistoricalLibraryFilterOptions();
-      document.dispatchEvent(new CustomEvent('pandolab:historical-library-ready'));
-      return state.historicalLibrary;
-    } catch (error) {
-      state.historicalLibraryLoadState = 'error';
-      document.dispatchEvent(new CustomEvent('pandolab:historical-library-ready'));
-      throw error;
-    }
-  }
-
-  function historicalLibraryPeriod(entity) {
-    if (!entity.startDate && !entity.endDate) return '현존';
-    return `${entity.startDate || '?'}–${entity.endDate || '현재'}`;
-  }
-
-  function syncHistoricalLibraryFilterOptions() {
-    const library = state.historicalLibrary;
-    if (!library) return;
-    const regions = [...new Set(library.list().map(entity => String(entity.metadata?.region || '')).filter(Boolean))].sort(layerNameCollator.compare);
-    replaceSelectOptions($('historicalLibraryRegionInput'), [{ value: '', label: '전체' }, ...regions.map(region => ({ value: region, label: region }))], $('historicalLibraryRegionInput').value);
-    replaceSelectOptions($('historicalLibrarySnapshotInput'), [
-      { value: '', label: '스냅샷 선택' },
-      ...library.snapshots().map(snapshot => ({ value: snapshot.id, label: `${snapshot.name}${snapshot.metadata?.partial ? ' · 부분' : ''}` })),
-    ], $('historicalLibrarySnapshotInput').value);
-  }
-
-  function historicalLibrarySearchResults() {
-    return state.historicalLibrary?.search({
-      query: $('historicalLibrarySearchInput').value,
-      type: $('historicalLibraryTypeInput').value,
-      status: $('historicalLibraryStatusInput').value,
-      referenceDate: $('historicalLibraryYearInput').value,
-      region: $('historicalLibraryRegionInput').value,
-    }) || [];
-  }
-
-  function renderHistoricalLibraryResults() {
-    const results = historicalLibrarySearchResults();
-    const container = $('historicalLibraryResults');
-    const fragment = document.createDocumentFragment();
-    for (const entity of results) {
-      const button = document.createElement('button');
-      const selected = state.historicalLibrarySelectedId === entity.libraryId;
-      button.type = 'button';
-      button.className = `ui-button ui-row ui-card ui-selectable-row historical-library-result${selected ? ' is-selected' : ''}`;
-      button.dataset.libraryEntityId = entity.libraryId;
-      button.setAttribute('role', 'option');
-      button.setAttribute('aria-selected', String(selected));
-      const strong = document.createElement('strong');
-      strong.textContent = entity.displayNames?.ko || entity.canonicalName;
-      const small = document.createElement('small');
-      small.textContent = `${LIBRARY_TYPE_LABELS[entity.type]} · ${historicalLibraryPeriod(entity)}${entity.metadata?.pilot ? ' · 시험 데이터' : ''}`;
-      button.append(strong, small);
-      fragment.appendChild(button);
-    }
-    if (!results.length) {
-      fragment.appendChild(createEmptyState('조건에 맞는 항목이 없습니다.', '검색어, 종류, 상태 또는 기준 연도를 바꿔 보세요.', { compact: true }));
-    }
-    container.replaceChildren(fragment);
-    if (state.historicalLibrarySelectedId && !results.some(entity => entity.libraryId === state.historicalLibrarySelectedId)) {
-      state.historicalLibrarySelectedId = '';
-      renderHistoricalLibraryPreview();
-    }
-  }
+      return response.json();
+    },
+    getCountriesData: () => state.countriesData,
+    displayName: countryName,
+    combineGeometries: combineHistoricalLibraryGeometries,
+  });
 
   function historicalLibraryPreviewSvg(entity, version) {
     const wrapper = document.createElement('div');
@@ -12329,95 +11910,8 @@ const {
     return wrapper;
   }
 
-  function renderHistoricalLibraryPreview() {
-    const preview = $('historicalLibraryPreview');
-    const entity = state.historicalLibrary?.get(state.historicalLibrarySelectedId);
-    const year = $('historicalLibraryYearInput').value;
-    const version = entity ? selectGeometryVersion(entity, year) : null;
-    if (!entity || !version) {
-      const help = document.createElement('p');
-      help.className = 'editor-help';
-      help.textContent = '항목을 선택하면 시대·경계 버전·출처를 확인할 수 있습니다.';
-      preview.replaceChildren(help);
-      $('historicalLibraryAddBtn').disabled = true;
-      $('historicalLibraryAddOptions')?.classList.add('hidden');
-      $('historicalLibraryOptionsBackBtn')?.classList.add('hidden');
-      document.querySelector('.historical-library-card')?.classList.remove('is-detail', 'is-options');
-      return;
-    }
-    const back = document.createElement('button');
-    back.type = 'button';
-    back.className = 'ui-button btn ghost historical-library-back';
-    back.textContent = '검색 결과로 돌아가기';
-    back.addEventListener('click', () => {
-      document.querySelector('.historical-library-card')?.classList.remove('is-detail');
-      requestAnimationFrame(() => $('historicalLibraryResults')?.querySelector('[aria-selected="true"]')?.focus());
-    });
-    const title = document.createElement('h3');
-    title.textContent = entity.displayNames?.ko || entity.canonicalName;
-    const meta = document.createElement('p');
-    meta.className = 'editor-help';
-    meta.textContent = `${LIBRARY_TYPE_LABELS[entity.type]} · ${historicalLibraryPeriod(entity)}`;
-    const source = document.createElement('p');
-    source.className = 'editor-help';
-    source.textContent = `출처: ${entity.sourceInfo?.title || version.sourceId || '미지정'}`;
-    const advanced = document.createElement('details');
-    advanced.className = 'ui-disclosure';
-    const summary = document.createElement('summary');
-    summary.textContent = '고급 정보';
-    const advancedBody = document.createElement('dl');
-    advancedBody.className = 'historical-library-advanced';
-    const addAdvanced = (term, value) => {
-      const dt = document.createElement('dt');
-      const dd = document.createElement('dd');
-      dt.textContent = term;
-      dd.textContent = String(value || '—');
-      advancedBody.append(dt, dd);
-    };
-    const alternativeNames = [...new Set([...(entity.aliases || []), ...Object.values(entity.displayNames || {})].filter(Boolean))].join(' · ');
-    addAdvanced('별칭·다국어 이름', alternativeNames);
-    addAdvanced('GeometryVersion', version.id || version.geometryVersionId);
-    addAdvanced('날짜 정밀도', version.datePrecision);
-    addAdvanced('신뢰도', version.certainty);
-    addAdvanced('상세 출처', `${entity.sourceInfo?.title || version.sourceId || '미지정'}${entity.sourceInfo?.license ? ` · ${entity.sourceInfo.license}` : ''}${version.notes || entity.sourceInfo?.notes ? ` · ${version.notes || entity.sourceInfo.notes}` : ''}`);
-    advanced.append(summary, advancedBody);
-    preview.replaceChildren(back, title, historicalLibraryPreviewSvg(entity, version), meta, source, advanced);
-    $('historicalLibraryAddBtn').disabled = false;
-    $('historicalLibraryAddOptions')?.classList.add('hidden');
-    $('historicalLibraryOptionsBackBtn')?.classList.add('hidden');
-    $('historicalLibraryAddBtn').textContent = '프로젝트에 추가';
-    document.querySelector('.historical-library-card')?.classList.remove('is-options');
-  }
-
-  function selectHistoricalLibraryEntity(id) {
-    state.historicalLibrarySelectedId = String(id || '');
-    renderHistoricalLibraryResults();
-    renderHistoricalLibraryPreview();
-    if (isMobile()) document.querySelector('.historical-library-card')?.classList.add('is-detail');
-  }
-
-  function closeHistoricalLibrary() {
-    $('historicalLibraryModal').classList.add('hidden');
-    document.querySelector('.historical-library-card')?.classList.remove('is-detail', 'is-options');
-    $('addFromLibraryBtn')?.focus();
-  }
-
-  async function openHistoricalLibrary() {
-    closeCreateMenu();
-    $('historicalLibraryModal').classList.remove('hidden');
-    $('historicalLibraryResults').replaceChildren(Object.assign(document.createElement('p'), { className: 'editor-help', textContent: '라이브러리를 불러오는 중입니다.' }));
-    try {
-      await loadHistoricalLibrary();
-      renderHistoricalLibraryResults();
-      renderHistoricalLibraryPreview();
-      $('historicalLibrarySearchInput').focus();
-    } catch (error) {
-      reportOperationError(error, '역사 지리 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);
-    }
-  }
-
   function libraryInstanceId(libraryId) {
-    const entity = state.historicalLibrary?.get(libraryId);
+    const entity = historicalLibraryService.get(libraryId);
     const currentCountryId = String(entity?.metadata?.currentCountryId || '');
     if (currentCountryId && countryFeatureById(currentCountryId)) return currentCountryId;
     const country = state.countriesData?.features?.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
@@ -12426,26 +11920,8 @@ const {
     return unit ? String(unit.id) : '';
   }
 
-  function libraryEntityRefsWithChildren(rootIds, depth) {
-    const selected = new Set(rootIds.map(String));
-    if (depth === 'none') return [...selected];
-    let frontier = [...selected];
-    while (frontier.length) {
-      const next = [];
-      for (const entity of state.historicalLibrary?.list() || []) {
-        if (!frontier.includes(entity.parentLibraryId) || selected.has(entity.libraryId)) continue;
-        selected.add(entity.libraryId);
-        next.push(entity.libraryId);
-      }
-      if (depth === 'level1') break;
-      frontier = next;
-    }
-    return [...selected];
-  }
-
   function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none') {
-    const refs = libraryEntityRefsWithChildren(rootIds, childDepth);
-    const descriptors = refs.map(id => state.historicalLibrary?.get(id)).filter(Boolean).map(entity => instantiateLibraryEntity(entity, referenceDate));
+    const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth);
     const pending = descriptors.filter(descriptor => !libraryInstanceId(descriptor.libraryId));
     if (!pending.length) return 0;
     recordHistory();
@@ -12473,7 +11949,7 @@ const {
         sovereignId,
         adminLevel: descriptor.adminLevel,
         coverageMode: descriptor.type === LIBRARY_ENTITY_TYPES.REGION ? TERRITORIAL_COVERAGE_MODES.EXPLICIT : TERRITORIAL_COVERAGE_MODES.PARTITION,
-        status: sovereignId ? TERRITORIAL_STATUS.ASSIGNED : TERRITORIAL_STATUS.UNASSIGNED,
+        isRemainder: false,
         validFrom: descriptor.validFrom,
         validTo: descriptor.validTo,
         metadata: descriptor.metadata,
@@ -12486,7 +11962,7 @@ const {
       mapEditClient.rebase(state.countriesData.features);
       scheduleGpuMeshRebuild(0);
     }
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
@@ -12494,61 +11970,50 @@ const {
     return pending.length;
   }
 
-  function addSelectedHistoricalLibraryEntity() {
-    const id = state.historicalLibrarySelectedId;
-    if (!id) return;
-    const count = instantiateHistoricalLibraryEntities([id], $('historicalLibraryYearInput').value, $('historicalLibraryChildDepthInput').value);
-    if (!count) setActionStatus('이미 현재 프로젝트에 있는 항목입니다.', 'success', 2800);
-    else setActionStatus(`라이브러리 항목 ${count}개를 독립 프로젝트 인스턴스로 추가했습니다.`, 'success', 4200);
-    closeHistoricalLibrary();
-  }
-
-  function advanceHistoricalLibraryAdd() {
-    if (!state.historicalLibrarySelectedId) return;
-    const options = $('historicalLibraryAddOptions');
-    if (options?.classList.contains('hidden')) {
-      options.classList.remove('hidden');
-      options.open = true;
-      $('historicalLibraryOptionsBackBtn')?.classList.remove('hidden');
-      $('historicalLibraryAddBtn').textContent = '추가 확정';
-      document.querySelector('.historical-library-card')?.classList.add('is-options');
-      requestAnimationFrame(() => $('historicalLibraryChildDepthInput')?.focus());
-      return;
-    }
-    addSelectedHistoricalLibraryEntity();
-  }
-
-  function returnToHistoricalLibraryDetail() {
-    $('historicalLibraryAddOptions')?.classList.add('hidden');
-    $('historicalLibraryOptionsBackBtn')?.classList.add('hidden');
-    $('historicalLibraryAddBtn').textContent = '프로젝트에 추가';
-    document.querySelector('.historical-library-card')?.classList.remove('is-options');
-    requestAnimationFrame(() => $('historicalLibraryAddBtn')?.focus());
-  }
-
-  function requestHistoricalSnapshot() {
-    const snapshot = state.historicalLibrary?.getSnapshot($('historicalLibrarySnapshotInput').value);
-    if (!snapshot) return;
-    openConfirmModal({
-      title: `${snapshot.name} 스냅샷`,
-      message: snapshot.metadata?.partial
-        ? '이 스냅샷은 라이브러리 기능 시험용 부분 구성입니다. 현재 프로젝트에 없는 항목만 추가합니다.'
-        : '현재 프로젝트에 없는 스냅샷 항목만 추가합니다.',
-      confirmText: '없는 항목 추가',
-      onConfirm: () => {
-        const count = instantiateHistoricalLibraryEntities(snapshot.entityRefs, snapshot.referenceDate, 'all');
-        setActionStatus(`${snapshot.name}에서 ${count}개 항목을 추가했습니다.`, 'success', 4200);
-        closeHistoricalLibrary();
-      },
-    });
-  }
+  const historicalLibraryController = createHistoricalLibraryController({
+    document,
+    elements: {
+      open: $('addFromLibraryBtn'),
+      modal: $('historicalLibraryModal'),
+      card: document.querySelector('.historical-library-card'),
+      close: $('historicalLibraryCloseBtn'),
+      backdrop: $('historicalLibraryModal').querySelector('.ui-dialog-backdrop'),
+      search: $('historicalLibrarySearchInput'),
+      clearSearch: $('historicalLibrarySearchClearBtn'),
+      type: $('historicalLibraryTypeInput'),
+      status: $('historicalLibraryStatusInput'),
+      year: $('historicalLibraryYearInput'),
+      region: $('historicalLibraryRegionInput'),
+      results: $('historicalLibraryResults'),
+      preview: $('historicalLibraryPreview'),
+      snapshot: $('historicalLibrarySnapshotInput'),
+      snapshotButton: $('historicalLibrarySnapshotBtn'),
+      childDepth: $('historicalLibraryChildDepthInput'),
+      add: $('historicalLibraryAddBtn'),
+      addOptions: $('historicalLibraryAddOptions'),
+      optionsBack: $('historicalLibraryOptionsBackBtn'),
+    },
+    service: historicalLibraryService,
+    typeLabels: LIBRARY_TYPE_LABELS,
+    selectGeometryVersion,
+    renderMapPreview: historicalLibraryPreviewSvg,
+    createEmptyState,
+    replaceSelectOptions,
+    collator: layerNameCollator,
+    isMobile,
+    closeCreateMenu,
+    instantiate: instantiateHistoricalLibraryEntities,
+    confirm: openConfirmModal,
+    setStatus: setActionStatus,
+    reportError: reportOperationError,
+  });
 
   window.PANDOLAB_HISTORICAL_LIBRARY = Object.freeze({
-    load: loadHistoricalLibrary,
-    get: id => state.historicalLibrary?.get(id) || null,
-    list: () => state.historicalLibrary?.list() || [],
-    search: options => state.historicalLibrary?.search(options) || [],
-    snapshots: () => state.historicalLibrary?.snapshots() || [],
+    load: historicalLibraryService.load,
+    get: historicalLibraryService.get,
+    list: historicalLibraryService.list,
+    search: historicalLibraryService.search,
+    snapshots: historicalLibraryService.snapshots,
     instantiate: (id, referenceDate = '', childDepth = 'none') => instantiateHistoricalLibraryEntities([id], referenceDate, childDepth),
   });
 
@@ -12583,17 +12048,19 @@ const {
           : 1)
       : null;
     const mappedId = mapping.idField === '__fid__' ? raw.id : properties[mapping.idField];
+    const sourceId = String(mappedId ?? raw.id ?? '').trim();
     return createCountryRegionFeature({
-      id: String(mappedId || raw.id || uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region')),
+      id: uid(),
       kind,
       countryId,
       parentRegionId: parent?.id || '',
       level,
-      status: countryId ? COUNTRY_REGION_STATUS.ASSIGNED : COUNTRY_REGION_STATUS.UNASSIGNED,
+      isRemainder: false,
       name: String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || `가져온 ${kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} ${index + 1}`,
       color: properties.color || properties.editorColor || '',
       notes: properties.notes || '',
       sourceFolderId,
+      metadata: { sourceId },
       geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
     });
   }
@@ -12637,14 +12104,14 @@ const {
         level: feature.properties.adminLevel,
       };
       const siblings = nextRegions.filter(candidate => partitionGroupMatches(candidate, context));
-      for (const sibling of siblings.filter(candidate => candidate.properties?.status !== COUNTRY_REGION_STATUS.UNASSIGNED)) {
+      for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder !== true)) {
         const overlap = clipper.intersection(feature.geometry.coordinates, sibling.geometry.coordinates);
         if (multiPolygonPlanarArea(overlap) > Math.max(1e-9, multiPolygonPlanarArea(feature.geometry.coordinates) * 1e-9)) {
           throw new Error(`${countryRegionName(feature)}이(가) 기존 ${countryRegionName(sibling)}과(와) 겹칩니다.`);
         }
       }
       const hadPartition = siblings.length > 0;
-      for (const sibling of siblings.filter(candidate => candidate.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED)) {
+      for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder === true)) {
         const remainder = normalizeClippedLandGeometry(clipper.difference(sibling.geometry.coordinates, feature.geometry.coordinates));
         const siblingIndex = nextRegions.findIndex(candidate => String(candidate.id) === String(sibling.id));
         if (remainder) nextRegions[siblingIndex].geometry = remainder;
@@ -12655,7 +12122,7 @@ const {
         if (remainder) nextRegions.push(createCountryRegionFeature({
           id: uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region'),
           ...context,
-          status: COUNTRY_REGION_STATUS.UNASSIGNED,
+          isRemainder: true,
           geometry: remainder,
         }));
       }
@@ -12698,7 +12165,7 @@ const {
       }
       const importedCountries = appendPreparedCountryRegions(imported, kind);
       for (const id of importedCountries) affectedCountryIds.add(String(id));
-      normalizeProjectDrawings();
+      normalizeProjectObjects();
       assertCurrentProjectReferences();
       refreshCountryCentroids(affectedCountryIds);
       markLayerTreeDirty();
@@ -12734,7 +12201,7 @@ const {
       if (!container?.geometry) {
         feature.properties.sovereignId = '';
         feature.properties.parentId = '';
-        feature.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
+        feature.properties.isRemainder = false;
         nextRegions.push(feature);
         importedCount += 1;
         continue;
@@ -12749,14 +12216,14 @@ const {
         level: feature.properties.adminLevel,
       };
       const siblings = nextRegions.filter(candidate => partitionGroupMatches(candidate, context));
-      for (const sibling of siblings.filter(candidate => candidate.properties?.status !== COUNTRY_REGION_STATUS.UNASSIGNED)) {
+      for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder !== true)) {
         const overlap = clipper.intersection(feature.geometry.coordinates, sibling.geometry.coordinates);
         if (multiPolygonPlanarArea(overlap) > Math.max(1e-9, multiPolygonPlanarArea(feature.geometry.coordinates) * 1e-9)) {
           throw new Error(`${countryRegionName(feature)}이(가) 기존 ${countryRegionName(sibling)}과(와) 겹칩니다.`);
         }
       }
       const hadPartition = siblings.length > 0;
-      for (const sibling of siblings.filter(candidate => candidate.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED)) {
+      for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder === true)) {
         const remainder = normalizeClippedLandGeometry(clipper.difference(sibling.geometry.coordinates, feature.geometry.coordinates));
         const siblingIndex = nextRegions.findIndex(candidate => String(candidate.id) === String(sibling.id));
         if (remainder) nextRegions[siblingIndex].geometry = remainder;
@@ -12767,7 +12234,7 @@ const {
         if (remainder) nextRegions.push(createCountryRegionFeature({
           id: uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region'),
           ...context,
-          status: COUNTRY_REGION_STATUS.UNASSIGNED,
+          isRemainder: true,
           geometry: remainder,
         }));
       }
@@ -12791,7 +12258,8 @@ const {
       const raw = features[index];
       if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
       const properties = raw.properties || {};
-      const id = String(raw.id || properties.id || uid('historical_region'));
+      const sourceId = String(raw.id ?? properties.id ?? '').trim();
+      const id = uid();
       if (existingIds.has(id)) throw new Error(`영역 ID 충돌: ${id}`);
       existingIds.add(id);
       imported.push(createTerritorialFeature({
@@ -12804,13 +12272,14 @@ const {
         validFrom: properties.valid_from || properties.validFrom || null,
         validTo: properties.valid_to || properties.validTo || null,
         color: properties.color || properties.editorColor || '',
+        metadata: { sourceId },
         geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
       }));
     }
     if (!imported.length) throw new Error('가져올 Polygon 또는 MultiPolygon 역사·지리 지역이 없습니다.');
     recordHistory();
     state.territorialUnits.push(...imported);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
@@ -12829,19 +12298,26 @@ const {
       if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
       const properties = raw.properties || {};
       const name = String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || fallbackName;
-      let layerId = String(properties.layer_id || '').trim();
-      if (!layerId) {
-        if (!generatedLayerIds.has(name)) generatedLayerIds.set(name, uid(`distribution_${type}`));
-        layerId = generatedLayerIds.get(name);
-      }
+      const sourceLayerId = String(properties.layer_id || '').trim();
+      const layerKey = sourceLayerId || `name:${name}`;
+      if (!generatedLayerIds.has(layerKey)) generatedLayerIds.set(layerKey, uid());
+      const layerId = generatedLayerIds.get(layerKey);
       let layer = layerMap.get(layerId);
       if (layer && layer.type !== type) throw new Error(`분포 레이어 ID 충돌: ${layerId}`);
       if (!layer) {
-        layer = createDistributionLayer({ id: layerId, type, name, color: properties.color || DEFAULT_DRAWING_COLOR });
+        layer = createDistributionLayer({
+          id: layerId,
+          type,
+          name,
+          color: properties.color || DEFAULT_DRAWING_COLOR,
+          metadata: { sourceId: sourceLayerId },
+        });
         layerMap.set(layerId, layer);
         newLayers.push(layer);
       }
-      const entryId = String(properties.entry_id || raw.id || uid('distribution_entry'));
+      const sourceEntryId = String(properties.entry_id ?? raw.id ?? '').trim();
+      if (sourceEntryId && newEntries.some(entry => entry.metadata?.sourceId === sourceEntryId)) throw new Error(`외부 분포 엔트리 ID가 중복되었습니다: ${sourceEntryId}`);
+      const entryId = uid();
       if (entryIds.has(entryId)) throw new Error(`분포 엔트리 ID 충돌: ${entryId}`);
       entryIds.add(entryId);
       const regionId = String(properties.region_id || properties.regionId || '').trim();
@@ -12856,13 +12332,12 @@ const {
         certainty: properties.certainty || 'unknown',
         validFrom: properties.valid_from || properties.validFrom || null,
         validTo: properties.valid_to || properties.validTo || null,
+        metadata: { sourceId: sourceEntryId },
       }));
     }
     if (!newEntries.length) throw new Error('가져올 Polygon 또는 MultiPolygon 분포가 없습니다.');
-    recordHistory();
-    state.distributionLayers.push(...newLayers);
-    state.distributionEntries.push(...newEntries);
-    normalizeProjectDrawings();
+    distributionService.append({ layers: newLayers, entries: newEntries });
+    normalizeProjectObjects();
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
@@ -12887,32 +12362,30 @@ const {
       return;
     }
     const supported = [];
-    const folder = createImportedDrawingFolder(file.name);
     for (const raw of features) {
       if (!['Point', 'LineString', 'Polygon', 'MultiLineString', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
       const f = deepClone(raw);
-      f.id = String(f.id || uid('import'));
+      const sourceId = String(f.id ?? f.properties?.id ?? '').trim();
+      f.id = uid();
       if (['Polygon', 'MultiPolygon'].includes(f.geometry?.type)) f.geometry = normalizeCountryGeometry(f.geometry) || f.geometry;
       const p = f.properties || {};
       f.properties = {
         ...p,
         name: p.name || '',
         editorColor: p.editorColor || p.color || DEFAULT_DRAWING_COLOR,
-        category: p.category || 'custom',
+        category: 'custom',
         notes: p.notes || '',
-        pandolab_folder_id: folder.id,
+        metadata: { ...(p.metadata && typeof p.metadata === 'object' ? p.metadata : {}), sourceId },
       };
       supported.push(normalizeDrawingSemantics(f));
     }
     if (!supported.length) throw new Error('지원되는 점·선·면 지도 객체가 없습니다.');
-    recordHistory();
-    state.drawingFolders.push(folder);
-    state.drawings.push(...supported);
-    state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === drawingFolderStateKey(folder.id)]));
+    drawingApplicationService.addMany(supported);
+    state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === 'drawings']));
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
-    setActionStatus(`GeoJSON ${supported.length}개 객체를 ${folder.name} 폴더로 가져왔습니다.`, 'success', 3200);
+    setActionStatus(`GeoJSON 지형지물 ${supported.length}개를 가져왔습니다.`, 'success', 3200);
   }
 
   let gisExportStep = 0;
@@ -13022,17 +12495,37 @@ const {
 
   function removeDrawingById(id, statusText = '') {
     const key = String(id);
-    const feature = state.drawings.find(candidate => String(candidate.id) === key);
+    const feature = drawingApplicationService.get(key);
     if (!feature) return false;
-    recordHistory();
-    reassignDrawingParents([key]);
-    state.drawings = state.drawings.filter(candidate => String(candidate.id) !== key);
-    pruneAutoDrawingFolders();
+    const result = drawingApplicationService.remove(key, {
+      beforeRemove: () => reassignDrawingParents([key]),
+    });
+    if (!result.ok) return false;
     markLayerTreeDirty();
     if (state.selected?.type === 'drawing' && String(state.selected.id) === key) clearSelection(false);
     else renderAll();
     queueAutosave();
     setActionStatus(statusText || `${drawingName(feature)} 지형지물을 삭제했습니다.`, 'success');
+    return true;
+  }
+
+  function removeHydroEditById(id, statusText = '') {
+    const key = String(id);
+    const feature = hydroEditById(key);
+    if (!feature) return false;
+    recordHistory();
+    state.hydroEdits = state.hydroEdits.filter(candidate => String(candidate.id) !== key);
+    const sourceId = String(feature.properties?.sourceFeatureId || '');
+    if (sourceId && !state.hydroEdits.some(candidate => String(candidate.properties?.sourceFeatureId || '') === sourceId)) {
+      delete state.physicalSettings.hiddenHydroIds[sourceId];
+      gpuMapRenderer.invalidateHydroVisibility();
+    }
+    markLayerTreeDirty();
+    if (state.selected?.type === 'hydro' && String(state.selected.id) === key) clearSelection(false);
+    else renderAll();
+    queueAutosave();
+    const fallback = feature.properties?.category === 'lake' ? '호수' : '강';
+    setActionStatus(statusText || `${hydroEditorName(feature.properties?.name, fallback)} 수계를 삭제했습니다.`, 'success');
     return true;
   }
 
@@ -13086,23 +12579,35 @@ const {
     recordHistory();
     if (action.startsWith('merge:')) {
       mergeTarget.geometry = mergedGeometry;
+      for (const entry of state.distributionEntries) if (entry.mode === DISTRIBUTION_MODES.REGION && String(entry.regionId) === String(feature.id)) entry.regionId = String(mergeTarget.id);
+      state.territorialRelations = state.territorialRelations
+        .filter(relation => String(relation.unitId) !== String(feature.id))
+        .map(relation => String(relation.parentId) === String(feature.id) ? { ...relation, parentId: String(mergeTarget.id) } : relation);
       state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
       selectCountryRegion(mergeTarget.id, true);
     } else if (action === 'clear-all') {
       const groupIds = new Set([feature, ...siblings].map(candidate => String(candidate.id)));
+      state.distributionEntries = state.distributionEntries.filter(entry => entry.mode !== DISTRIBUTION_MODES.REGION || !groupIds.has(String(entry.regionId)));
+      state.territorialRelations = state.territorialRelations.filter(relation => !groupIds.has(String(relation.unitId)) && !groupIds.has(String(relation.parentId)));
       state.territorialUnits = state.territorialUnits.filter(candidate => !groupIds.has(String(candidate.id)));
       clearSelection(false);
     } else if (!siblings.length) {
+      state.distributionEntries = state.distributionEntries.filter(entry => entry.mode !== DISTRIBUTION_MODES.REGION || String(entry.regionId) !== String(feature.id));
+      state.territorialRelations = state.territorialRelations.filter(relation => String(relation.unitId) !== String(feature.id) && String(relation.parentId) !== String(feature.id));
       state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
       clearSelection(false);
     } else {
-      const unassigned = siblings.find(candidate => candidate.properties?.status === COUNTRY_REGION_STATUS.UNASSIGNED);
+      const unassigned = siblings.find(candidate => candidate.properties?.isRemainder === true);
       if (unassigned) {
         unassigned.geometry = normalizeClippedLandGeometry(window.polygonClipping.union(unassigned.geometry.coordinates, feature.geometry.coordinates));
+        for (const entry of state.distributionEntries) if (entry.mode === DISTRIBUTION_MODES.REGION && String(entry.regionId) === String(feature.id)) entry.regionId = String(unassigned.id);
+        state.territorialRelations = state.territorialRelations
+          .filter(relation => String(relation.unitId) !== String(feature.id))
+          .map(relation => String(relation.parentId) === String(feature.id) ? { ...relation, parentId: String(unassigned.id) } : relation);
         state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
         selectCountryRegion(unassigned.id, true);
       } else {
-        feature.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
+        feature.properties.isRemainder = true;
         feature.properties.name = '';
         feature.properties.notes = '';
         setTerritorialStyleColor(feature, '');
@@ -13133,7 +12638,8 @@ const {
       onConfirm: () => {
         recordHistory();
         state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
-        state.territorialRelations = state.territorialRelations.filter(relation => String(relation.unitId) !== String(feature.id));
+        state.territorialRelations = state.territorialRelations.filter(relation => String(relation.unitId) !== String(feature.id) && String(relation.parentId) !== String(feature.id));
+        state.distributionEntries = state.distributionEntries.filter(entry => entry.mode !== DISTRIBUTION_MODES.REGION || String(entry.regionId) !== String(feature.id));
         markLayerTreeDirty();
         if (state.selected?.type === 'countryRegion' && String(state.selected.id) === String(feature.id)) clearSelection(false);
         else renderAll();
@@ -13165,10 +12671,10 @@ const {
     const groupIds = new Set([feature, ...siblings].map(candidate => String(candidate.id)));
     const groupHasChildren = state.territorialUnits.some(candidate => groupIds.has(String(candidate.properties?.parentId || '')));
     const choices = [];
-    if (siblings.length && feature.properties?.status !== COUNTRY_REGION_STATUS.UNASSIGNED) {
+    if (siblings.length && feature.properties?.isRemainder !== true) {
       choices.push({ value: 'unassigned', label: '미지정 영역으로 전환' });
     }
-    for (const sibling of siblings.filter(candidate => candidate.properties?.status !== COUNTRY_REGION_STATUS.UNASSIGNED && countryRegionsAreAdjacent(feature, candidate))) {
+    for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder !== true && countryRegionsAreAdjacent(feature, candidate))) {
       choices.push({ value: `merge:${sibling.id}`, label: `${countryRegionName(sibling)}에 합치기` });
     }
     if (siblings.length && !groupHasChildren) choices.push({ value: 'clear-all', label: '이 단계의 영역 구분 전체 해제' });
@@ -13214,13 +12720,14 @@ const {
       return;
     }
     if (state.selected.type === 'hydro') {
-      setActionStatus('내장 수계는 삭제할 수 없습니다. 편집용 복사본을 만들어 수정하세요.', 'error', 3400);
+      if (hydroEditById(state.selected.id)) removeHydroEditById(state.selected.id, '선택한 수계를 삭제했습니다.');
+      else setActionStatus('내장 수계는 삭제할 수 없습니다. 편집용 복사본을 만들어 수정하세요.', 'error', 3400);
       return;
     }
     if (state.selected.type === 'drawing') {
       removeDrawingById(state.selected.id, '선택한 객체를 삭제했습니다.');
     } else if (state.selected.type === 'distribution') {
-      deleteDistributionLayer(state.selected.id);
+      deleteDistributionLayer(state.selected.id, { confirm: false });
     } else if (state.selected.type === 'countryRegion') {
       deleteTerritorialUnit(state.selected.unitType || countryRegionById(state.selected.id)?.properties?.unitType, state.selected.id);
     } else if (state.selected.type === 'label') {
@@ -13229,10 +12736,11 @@ const {
   }
 
   function zoomBy(factor, announce = true) {
-    if (state.projection === 'globe') state.view.globeZoom = clamp(state.view.globeZoom * factor, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
-    else state.view.flatZoom = clamp(state.view.flatZoom * factor, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
+    const current = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
+    if (!setMapZoomValue(current * factor)) return false;
     renderAll();
     queueViewAutosave();
+    return true;
   }
 
   function currentObjectFitInsets() {
@@ -13307,7 +12815,7 @@ const {
     const projectionCenterY = projectionSafe.top + Math.max(1, height - projectionSafe.top - projectionSafe.bottom) / 2;
     panMapBy(safeCenterX - projectionCenterX, safeCenterY - projectionCenterY);
     renderAll();
-    queueAutosave();
+    queueViewAutosave();
   }
 
   function focusCoordinate(coord, zoom = null) {
@@ -13325,11 +12833,7 @@ const {
 
   function selectLayerTreeItem(group, id, { mode = 'replace', range = false } = {}) {
     const key = String(id);
-    if (group === 'drawings') {
-      if (key === 'user-terrain') {
-        return false;
-      }
-      if (key.startsWith('hydro-layer:')) {
+    if (group === 'hydro' && HYDRO_LAYER_META[key]) {
         if (!state.hydroManifest) loadHydroData(true);
         else {
           const cacheState = state.physicalLoadState.hydroCache;
@@ -13342,17 +12846,11 @@ const {
           }
         }
         return false;
-      }
     }
     const ref = layerItemObjectRef(group, key);
     if (!ref || !objectRefExists(ref)) return false;
     const orderedRefs = range ? layerTreeItems(group).sort((left, right) => layerNameCollator.compare(left.name, right.name) || layerNameCollator.compare(left.id, right.id)).map(item => layerItemObjectRef(group, item.id)).filter(Boolean) : [];
     return applyObjectSelection(ref, { mode: range ? 'range' : mode, orderedRefs, scope: `layer:${group}` });
-  }
-
-  function focusLayerTreeItem(group, id) {
-    const ref = layerItemObjectRef(group, id);
-    return ref ? focusObjectRef(ref) : false;
   }
 
   function resetView() {
@@ -13364,7 +12862,7 @@ const {
       state.view.flatZoom = 1;
     }
     renderAll();
-    queueAutosave();
+    queueViewAutosave();
   }
 
   function bindHoldZoom(button, factor) {
@@ -13376,7 +12874,7 @@ const {
     const clear = () => {
       clearTimeout(timer); clearInterval(repeater); timer = repeater = null;
       if (repeated) {
-        queueAutosave();
+        queueViewAutosave();
         suppressNextClick = true;
       }
       repeated = false;
@@ -13421,7 +12919,7 @@ const {
       const button = event.target.closest('[data-object-chooser-index]');
       const ref = button ? objectChooserCandidates[Number(button.dataset.objectChooserIndex)] : null;
       if (!ref) return;
-      applyObjectSelection(ref, { mode: event.ctrlKey || event.metaKey || state.selectionMode ? 'toggle' : 'replace', scope: 'map' });
+      applyObjectSelection(ref, { mode: event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace', scope: 'map' });
     });
     $('objectChooserList')?.addEventListener('keydown', event => {
       const items = [...event.currentTarget.querySelectorAll('[data-object-chooser-index]')];
@@ -13481,188 +12979,114 @@ const {
   }
 
   function bindLayerUI() {
-    $('mapLayersTabBtn')?.addEventListener('click', () => setMapPanelView('layers'));
-    $('mapViewTabBtn')?.addEventListener('click', () => setMapPanelView('view'));
-    $('mapPanelTabs')?.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-      event.preventDefault();
-      setMapPanelView(event.key === 'ArrowRight' || event.key === 'End' ? 'view' : 'layers', { focus: true });
-    });
-    $('countriesVisible').addEventListener('change', e => setLayerVisibility('countries', e.target.checked));
-    $('regionsVisible').addEventListener('change', e => setLayerVisibility('regions', e.target.checked));
-    $('administrativeVisible').addEventListener('change', e => setLayerVisibility('administrative', e.target.checked));
-    $('historicalRegionsVisible').addEventListener('change', e => setLayerVisibility('historicalRegions', e.target.checked));
-    $('languagesVisible').addEventListener('change', e => setLayerVisibility('languages', e.target.checked));
-    $('ethnicitiesVisible').addEventListener('change', e => setLayerVisibility('ethnicities', e.target.checked));
-    $('religionsVisible').addEventListener('change', e => setLayerVisibility('religions', e.target.checked));
-    $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
-    $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
-    $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
-    $('terrainVisible').addEventListener('change', event => {
-      state.physicalSettings.terrainVisible = !!event.target.checked;
-      syncPhysicalControls();
-      renderAll();
-      queueAutosave();
-    });
-    for (const id of ['terrainPoliticalRadio', 'terrainPhysicalRadio']) $(id).addEventListener('change', event => {
-      if (!event.target.checked) return;
-      state.physicalSettings.terrainStyle = event.target.value === 'physical' ? 'physical' : 'political';
-      syncPhysicalControls();
-      renderAll();
-      queueAutosave();
-      setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
-    });
-    $('terrainStrengthInput').addEventListener('input', event => {
-      state.physicalSettings.terrainStrength = clamp(Number(event.target.value) / 100, 0, 1);
-      $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
-      syncRangeProgress(event.target);
-      scheduleRender();
-    });
-    $('terrainStrengthInput').addEventListener('change', () => queueAutosave());
-    $('layerSearchInput')?.addEventListener('input', event => {
-      state.layerSearch = event.target.value || '';
-      syncSearchClearButton(event.target, $('layerSearchClearBtn'));
-      clearTimeout(layerSearchTimer);
-      layerSearchTimer = window.setTimeout(() => {
-        markLayerTreeDirty();
-        renderLayerTree();
-      }, 120);
-    });
-    $('layerSearchClearBtn')?.addEventListener('click', () => {
-      const input = $('layerSearchInput');
-      if (!input) return;
-      input.value = '';
-      input.dispatchEvent(new window.Event('input', { bubbles: true }));
-      input.focus({ preventScroll: true });
-    });
-    let layerLongPress = null;
-    let suppressLayerClickUntil = 0;
-    $('layerSection')?.addEventListener('pointerdown', event => {
-      if (!isMobile() || event.pointerType === 'mouse') return;
-      const button = event.target.closest('[data-layer-item-select]');
-      if (!button) return;
-      const origin = [event.clientX, event.clientY];
-      const timer = window.setTimeout(() => {
-        state.selectionMode = true;
-        suppressLayerClickUntil = performance.now() + 700;
-        selectLayerTreeItem(button.dataset.layerItemSelect, button.dataset.itemId, { mode: 'toggle' });
-        navigator.vibrate?.(16);
-        layerLongPress = null;
-      }, 450);
-      layerLongPress = { timer, pointerId: event.pointerId, origin };
-    });
-    $('layerSection')?.addEventListener('pointermove', event => {
-      if (!layerLongPress || layerLongPress.pointerId !== event.pointerId) return;
-      if (Math.hypot(event.clientX - layerLongPress.origin[0], event.clientY - layerLongPress.origin[1]) <= 8) return;
-      clearTimeout(layerLongPress.timer);
-      layerLongPress = null;
-    });
-    for (const type of ['pointerup', 'pointercancel']) $('layerSection')?.addEventListener(type, event => {
-      if (!layerLongPress || layerLongPress.pointerId !== event.pointerId) return;
-      clearTimeout(layerLongPress.timer);
-      layerLongPress = null;
-    });
-    $('layerSection')?.addEventListener('click', event => {
-      const menuButton = event.target.closest('[data-layer-item-menu]');
-      if (menuButton) {
-        event.stopPropagation();
-        selectLayerTreeItem(menuButton.dataset.layerItemMenu, menuButton.dataset.itemId, { mode: 'replace' });
-        openSelectionEditor();
-        openObjectActionsMenu();
-        return;
-      }
-      const countryRegionFolderButton = event.target.closest('[data-country-region-folder-toggle]');
-      if (countryRegionFolderButton) {
-        const folderKey = countryRegionFolderButton.dataset.countryRegionFolderToggle;
-        if (!folderKey.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) return;
-        state.layerFolders[folderKey] = state.layerFolders[folderKey] === false;
-        markLayerTreeDirty();
-        renderLayerTree();
-        queueAutosave();
-        return;
-      }
-      const hydroFolderButton = event.target.closest('[data-hydro-folder-toggle]');
-      if (hydroFolderButton) {
-        const folderKey = hydroFolderButton.dataset.hydroFolderToggle;
-        if (!folderKey.startsWith(HYDRO_FOLDER_STATE_PREFIX)) return;
-        state.layerFolders[folderKey] = state.layerFolders[folderKey] !== true;
-        markLayerTreeDirty();
-        renderLayerTree();
-        queueAutosave();
-        return;
-      }
-      const folderButton = event.target.closest('[data-layer-folder-toggle]');
-      if (folderButton) {
-        const group = folderButton.dataset.layerFolderToggle;
-        const folderKeys = activeLayerFolderKeys();
-        if (!folderKeys.includes(group)) return;
-        const willExpand = !state.layerFolders[group];
-        for (const key of folderKeys) {
-          if (!key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX) && !key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
-        }
-        state.layerFolders[group] = willExpand;
-        markLayerTreeDirty();
-        renderLayerTree();
-        queueAutosave();
-        return;
-      }
-      const itemButton = event.target.closest('[data-layer-item-select]');
-      if (itemButton) {
-        if (performance.now() < suppressLayerClickUntil) {
-          event.preventDefault();
-          return;
-        }
-        const mode = event.ctrlKey || event.metaKey || (isMobile() && state.selectionMode) ? 'toggle' : 'replace';
-        const selected = selectLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId, { mode, range: event.shiftKey });
-        if (selected && isMobile() && mode === 'replace' && !event.shiftKey) returnToMapAfterMobileAction(true);
-      }
-    });
-    $('layerSection')?.addEventListener('dblclick', event => {
-      const itemButton = event.target.closest('[data-layer-item-select]');
-      if (!itemButton || isMobile()) return;
-      event.preventDefault();
-      focusLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId);
-    });
-    $('layerSection')?.addEventListener('scroll', event => {
-      if (event.target === $('layerSearchResults')) {
-        layerSearchScrollTop = event.target.scrollTop;
-        if (event.target.dataset.virtualized === 'true' && layerSearchVirtualMatches.length) renderVirtualizedLayerSearch(event.target, layerSearchVirtualMatches, layerSearchScrollTop);
-        return;
-      }
-      const container = event.target.closest?.('.layer-children');
-      if (!container) return;
-      const folder = container.closest('.layer-folder');
-      const group = folder?.dataset.layerGroup;
-      const folderKey = folder?.dataset.layerFolderKey || group;
-      if (group && folderKey) {
-        const scrollTop = container.scrollTop;
-        layerGroupScrollTop.set(folderKey, scrollTop);
-        const items = layerVirtualItems.get(folderKey);
-        if (!items || container.dataset.virtualized !== 'true') return;
-        renderVirtualizedLayerGroup(group, container, items, { scrollTop, folderKey });
-      }
-    }, true);
-    $('layerSection')?.addEventListener('change', event => {
-      syncLayerVisibilityToggle(event.target);
-      const folderVisibility = event.target.closest('[data-drawing-folder-visibility]');
-      if (folderVisibility) {
-        setDrawingFolderVisibility(folderVisibility.dataset.drawingFolderVisibility, folderVisibility.checked);
-        return;
-      }
-      const checkbox = event.target.closest('[data-layer-item-visibility]');
-      if (!checkbox) return;
-      setLayerItemVisibility(checkbox.dataset.layerItemVisibility, checkbox.dataset.itemId, checkbox.checked);
-    });
-    $('countriesLocked').addEventListener('change', e => {
-      state.countriesLocked = e.target.checked;
-      syncCountriesLockControl();
-      markLayerTreeDirty();
-      renderLayerTree();
-      renderCountries();
-      syncBatchActionAvailability();
-      queueAutosave();
-    });
-
+    createLayerPanelController({
+      window,
+      elements: {
+        visibilityInputs: Object.fromEntries([
+          ['countries', 'countriesVisible'], ['regions', 'regionsVisible'], ['administrative', 'administrativeVisible'],
+          ['historicalRegions', 'historicalRegionsVisible'], ['languages', 'languagesVisible'], ['ethnicities', 'ethnicitiesVisible'],
+          ['religions', 'religionsVisible'], ['drawings', 'drawingsVisible'],
+          ['labels', 'labelsVisible'], ['basemapLabels', 'basemapLabelsVisible'],
+        ].map(([group, id]) => [group, $(id)])),
+        panelTabs: $('mapPanelTabs'),
+        layersTab: $('mapLayersTabBtn'),
+        viewTab: $('mapViewTabBtn'),
+        terrainVisible: $('terrainVisible'),
+        terrainStyleInputs: [$('terrainPoliticalRadio'), $('terrainPhysicalRadio')],
+        terrainStrength: $('terrainStrengthInput'),
+        search: $('layerSearchInput'),
+        searchClear: $('layerSearchClearBtn'),
+        section: $('layerSection'),
+      },
+      commands: {
+        setLayerVisibility,
+        setPanelView: setMapPanelView,
+        setTerrainVisible: visible => {
+          state.physicalSettings.terrainVisible = !!visible;
+          syncPhysicalControls();
+          markLayerTreeDirty();
+          renderLayerTree();
+          renderAll();
+          queuePresentationAutosave();
+        },
+        setTerrainStyle: value => {
+          state.physicalSettings.terrainStyle = value === 'physical' ? 'physical' : 'political';
+          syncPhysicalControls();
+          markLayerTreeDirty();
+          renderLayerTree();
+          renderAll();
+          queuePresentationAutosave();
+          setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
+        },
+        previewTerrainStrength: value => {
+          state.physicalSettings.terrainStrength = clamp(Number(value) / 100, 0, 1);
+          $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
+          syncRangeProgress($('terrainStrengthInput'));
+          scheduleRender();
+        },
+        commitTerrainStrength: queuePresentationAutosave,
+        setSearchValue: value => {
+          state.layerSearch = value;
+          syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn'));
+        },
+        commitSearch: () => {
+          markLayerTreeDirty();
+          renderLayerTree();
+        },
+        openItemMenu: (group, id) => {
+          selectLayerTreeItem(group, id, { mode: 'replace' });
+          openSelectionEditor();
+          openObjectActionsMenu();
+        },
+        toggleRegionFolder: folderKey => {
+          if (!folderKey.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) return;
+          state.layerFolders[folderKey] = state.layerFolders[folderKey] === false;
+          markLayerTreeDirty();
+          renderLayerTree();
+        },
+        toggleHydroFolder: folderKey => {
+          if (!folderKey.startsWith(HYDRO_FOLDER_STATE_PREFIX)) return;
+          state.layerFolders[folderKey] = state.layerFolders[folderKey] !== true;
+          markLayerTreeDirty();
+          renderLayerTree();
+        },
+        toggleFolder: group => {
+          const folderKeys = activeLayerFolderKeys();
+          if (!folderKeys.includes(group)) return;
+          const willExpand = !state.layerFolders[group];
+          for (const key of folderKeys) {
+            if (!key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX) && !key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
+          }
+          state.layerFolders[group] = willExpand;
+          markLayerTreeDirty();
+          renderLayerTree();
+        },
+        selectItem: ({ group, id, additive, range }) => {
+          const mode = additive || (isMobile() && state.addSelectionMode) ? 'toggle' : 'replace';
+          const selected = selectLayerTreeItem(group, id, { mode, range });
+          if (selected && isMobile() && mode === 'replace' && !range) returnToMapAfterMobileAction(true);
+        },
+        handleScroll: event => {
+          if (event.target === $('layerSearchResults')) {
+            layerSearchScrollTop = event.target.scrollTop;
+            if (event.target.dataset.virtualized === 'true' && layerSearchVirtualMatches.length) renderVirtualizedLayerSearch(event.target, layerSearchVirtualMatches, layerSearchScrollTop);
+            return;
+          }
+          const container = event.target.closest?.('.layer-children');
+          if (!container) return;
+          const folder = container.closest('.layer-folder');
+          const group = folder?.dataset.layerGroup;
+          const folderKey = folder?.dataset.layerFolderKey || group;
+          if (!group || !folderKey) return;
+          const scrollTop = container.scrollTop;
+          layerGroupScrollTop.set(folderKey, scrollTop);
+          const items = layerVirtualItems.get(folderKey);
+          if (items && container.dataset.virtualized === 'true') renderVirtualizedLayerGroup(group, container, items, { scrollTop, folderKey });
+        },
+        syncVisibilityToggle: syncLayerVisibilityToggle,
+        setItemVisibility: setLayerItemVisibility,
+      },
+    }).bind();
   }
 
   function bindToolUI() {
@@ -13780,12 +13204,12 @@ const {
       { id: 'capitalInput', field: 'capital', commit: commitCountryEdit, transform: value => value.trim() },
       { id: 'notesInput', field: 'notes', commit: commitCountryEdit },
       { id: 'drawingNameInput', field: 'name', commit: commitDrawingMeta, transform: value => value.trim() },
-      { id: 'drawingFolderInput', field: 'pandolab_folder_id', commit: commitDrawingMeta },
-      { id: 'drawingCategoryInput', field: 'category', commit: commitDrawingMeta },
       { id: 'drawingOwnerInput', field: 'pandolab_owner_id', commit: commitDrawingMeta },
       { id: 'drawingParentInput', field: 'pandolab_parent_id', commit: commitDrawingMeta },
       { id: 'drawingLandBindingInput', field: 'pandolab_land_binding', commit: commitDrawingMeta },
       { id: 'drawingNotesInput', field: 'notes', commit: commitDrawingMeta },
+      { id: 'hydroNameInput', field: 'name', commit: commitHydroEdit, transform: value => value.trim() },
+      { id: 'hydroNotesInput', field: 'notes', commit: commitHydroEdit },
       { id: 'regionNameInput', field: 'name', commit: commitCountryRegionMeta, transform: value => value.trim() },
       { id: 'regionCountryInput', field: 'countryId', commit: commitCountryRegionMeta },
       { id: 'regionNotesInput', field: 'notes', commit: commitCountryRegionMeta },
@@ -13807,23 +13231,19 @@ const {
     ]);
     $('distributionLockedInput').addEventListener('change', event => commitDistributionMeta('locked', event.target.checked));
     $('distributionRenderModeInput').addEventListener('change', event => {
-      recordHistory();
-      state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY
-        ? DISTRIBUTION_RENDER_MODES.INTENSITY
-        : DISTRIBUTION_RENDER_MODES.DOMINANT;
+      distributionService.setRenderMode(event.target.value);
       renderDistributions();
-      queueAutosave();
+      queuePresentationAutosave();
     });
     $('layerStyleGroupInput')?.addEventListener('change', syncLayerStyleFields);
     $('layerStyleOpacityInput')?.addEventListener('input', event => { $('layerStyleOpacityValue').textContent = `${event.target.value}%`; });
     for (const id of ['layerStyleOpacityInput', 'layerStyleBoundaryVisibleInput']) $(id)?.addEventListener('change', updateLayerStyleFromFields);
     $('distributionLayerModeInput')?.addEventListener('change', event => {
-      recordHistory({ type: 'distribution-style', description: '분포 표시 방식 변경', affectedIds: [] });
-      state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT;
+      distributionService.setRenderMode(event.target.value);
       if ($('distributionRenderModeInput')) $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
       syncDistributionLayerModeHint();
       renderDistributions();
-      queueAutosave();
+      queuePresentationAutosave();
     });
     $('distributionEntryList').addEventListener('click', event => {
       const button = event.target.closest('[data-distribution-entry-delete]');
@@ -13921,6 +13341,7 @@ const {
 
     $('deleteLabelBtn').addEventListener('click', deleteSelected);
     $('copyHydroBtn').addEventListener('click', copySelectedHydroForEditing);
+    $('deleteHydroEditBtn').addEventListener('click', deleteSelected);
     $('deleteDrawingInlineBtn')?.addEventListener('click', deleteSelected);
 
     $('undoBtn').addEventListener('click', undo);
@@ -13954,6 +13375,12 @@ const {
     $('multiPropertiesVisibilityInput')?.addEventListener('change', event => batchSetVisibility(event.target.checked));
     $('multiPropertiesLockInput')?.addEventListener('change', event => batchSetLocked(event.target.checked));
     $('multiBorderEditBtn')?.addEventListener('click', () => requestDraftDiscard(() => returnToMapAfterMobileAction(enterCountryBorderEditFromSelection())));
+    $('multiSelectionModeBtn')?.addEventListener('click', () => {
+      if (!isMobile() || objectSelection.size() === 0) return;
+      state.addSelectionMode = !state.addSelectionMode;
+      syncSelectionSummary();
+      syncMapContextSurfaces();
+    });
     $('clearMultiSelectionBtn')?.addEventListener('click', () => clearSelection(false));
     $('multiEditBtn')?.addEventListener('click', () => { setEditorShellView('info'); openSelectionEditor(); });
 
@@ -13977,32 +13404,7 @@ const {
     };
     $('shortcutHelpCloseBtn')?.addEventListener('click', closeShortcutHelp);
     $('shortcutHelpModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeShortcutHelp);
-    $('addFromLibraryBtn').addEventListener('click', openHistoricalLibrary);
-    $('historicalLibraryCloseBtn').addEventListener('click', closeHistoricalLibrary);
-    $('historicalLibraryModal').querySelector('.ui-dialog-backdrop')?.addEventListener('click', closeHistoricalLibrary);
-    for (const id of ['historicalLibrarySearchInput', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput']) {
-      $(id).addEventListener(['historicalLibrarySearchInput', 'historicalLibraryYearInput'].includes(id) ? 'input' : 'change', () => {
-        if (id === 'historicalLibrarySearchInput') syncSearchClearButton($(id), $('historicalLibrarySearchClearBtn'));
-        renderHistoricalLibraryResults();
-        if (id === 'historicalLibraryYearInput') renderHistoricalLibraryPreview();
-      });
-    }
-    $('historicalLibrarySearchClearBtn')?.addEventListener('click', () => {
-      const input = $('historicalLibrarySearchInput');
-      input.value = '';
-      input.dispatchEvent(new window.Event('input', { bubbles: true }));
-      input.focus({ preventScroll: true });
-    });
-    $('historicalLibraryResults').addEventListener('click', event => {
-      const button = event.target.closest('[data-library-entity-id]');
-      if (button) selectHistoricalLibraryEntity(button.dataset.libraryEntityId);
-    });
-    $('historicalLibraryAddBtn').addEventListener('click', advanceHistoricalLibraryAdd);
-    $('historicalLibraryOptionsBackBtn')?.addEventListener('click', returnToHistoricalLibraryDetail);
-    $('historicalLibrarySnapshotInput').addEventListener('change', event => {
-      $('historicalLibrarySnapshotBtn').disabled = !event.target.value;
-    });
-    $('historicalLibrarySnapshotBtn').addEventListener('click', requestHistoricalSnapshot);
+    historicalLibraryController.connect();
     $('saveProjectBtn').addEventListener('click', saveGeoPackageFile);
     $('openGisBtn').addEventListener('click', () => {
       $('gisFileInput').dataset.returnFocusId = 'openGisBtn';
@@ -14015,13 +13417,7 @@ const {
     });
 
     $('newProjectBtn').addEventListener('click', requestNewProject);
-    $('confirmModalCancelBtn')?.addEventListener('click', closeConfirmModal);
-    $('confirmModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeConfirmModal);
-    $('confirmModalOkBtn')?.addEventListener('click', () => {
-      const action = confirmModalAction;
-      closeConfirmModal();
-      if (action) action();
-    });
+    confirmModalController.bind();
 
     $('dataExportBtn').addEventListener('click', openGisDataExport);
     $('gisExportCloseBtn').addEventListener('click', closeGisDataExport);
@@ -14095,7 +13491,7 @@ const {
         $('keyboardHelpBtn')?.click();
         return;
       }
-      if (e.code === 'Space' && !editingText && (draftInputActive() || ['country-border', 'country-coast'].includes(state.tool) || state.selected?.type === 'drawing')) {
+      if (e.code === 'Space' && !editingText && (draftInputActive() || ['country-border', 'country-coast'].includes(state.tool) || state.selected?.type === 'drawing' || (state.selected?.type === 'hydro' && hydroEditById(state.selected.id)))) {
         state.spacePanActive = true;
         $('map')?.classList.add('space-pan-active');
         state.draftEdit.insertTarget = null;
@@ -14108,13 +13504,13 @@ const {
         if (!$('shortcutHelpModal')?.classList.contains('hidden')) { $('shortcutHelpCloseBtn')?.click(); return; }
         if (!$('objectChooser')?.classList.contains('hidden')) { closeObjectChooser({ restoreFocus: true }); return; }
         if (!$('objectActionsMenu')?.classList.contains('hidden')) { closeObjectActionsMenu({ restoreFocus: true }); return; }
-        if (!$('historicalLibraryModal')?.classList.contains('hidden')) { closeHistoricalLibrary(); return; }
+        if (historicalLibraryController.isOpen()) { historicalLibraryController.close(); return; }
         if (!$('territorialTypeModal')?.classList.contains('hidden')) { closeTerritorialTypeModal(); return; }
         if (!$('distributionTypeModal')?.classList.contains('hidden')) { $('distributionTypeCancelBtn')?.click(); return; }
         if (!$('countryRegionCreateModal')?.classList.contains('hidden')) { closeCountryRegionCreateModal(); return; }
         if (!$('gisImportModal')?.classList.contains('hidden')) { $('gisImportCancelBtn')?.click(); return; }
         if (!$('gisExportModal')?.classList.contains('hidden')) { closeGisDataExport(); return; }
-        if (!$('confirmModal')?.classList.contains('hidden')) { closeConfirmModal(); return; }
+        if (confirmModalController.isOpen()) { closeConfirmModal(); return; }
         if (document.body.classList.contains('file-menu-open')) { closeFileMenu({ restoreFocus: true }); return; }
         if (isCreateMenuOpen()) { closeCreateMenu({ restoreFocus: true }); return; }
         if (state.geometryPreview.session) { discardActiveGeometryPreview(); return; }
@@ -14226,7 +13622,7 @@ const {
     });
     window.addEventListener('beforeunload', () => {
       if (!canMutateProject(state.dataReadiness)) return;
-      try { writeIndexedDbProject(buildAutosaveData()).catch(() => {}); } catch (_) {}
+      try { persistenceService.writeProject(buildAutosaveData()).catch(() => {}); } catch (_) {}
     });
     window.addEventListener('popstate', event => {
       if (ignoreNextMobileSheetPopstate) {
@@ -14267,7 +13663,6 @@ const {
     bindGlobalInputUI();
     syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn'));
     syncSearchClearButton($('historicalLibrarySearchInput'), $('historicalLibrarySearchClearBtn'));
-    syncCountriesLockControl();
     syncColorPicker('multiProperties', { value: $('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
     syncProjectSaveStatus(saveState.snapshot());
   }
@@ -14283,7 +13678,6 @@ const {
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
-    $('countriesLocked').checked = state.countriesLocked;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
@@ -14350,9 +13744,11 @@ const {
     if (navigationChanged) {
       state.view = navigationView;
       state.projection = navigationProjection;
+    } else {
+      applyAutosavedView(autosaveRestore.view);
     }
     state.layerSearch = previewSearch;
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -14389,7 +13785,10 @@ const {
       setActionStatus(`${restoredLabel} 복원 완료. 고화질 지도 준비 중…`, 'success', 3600);
     } else {
       saveState.markNewProject('content:0');
-      setActionStatus('편집 준비 완료. 고화질 지도 준비 중…', 'success', 3200);
+      const restoreMessage = autosaveRestore.error
+        ? compactNotificationMessage(autosaveRestore.error?.message || '현재 스키마와 다른 자동저장입니다.', { tone: 'error', maxLength: 52 })
+        : '편집 준비 완료. 고화질 지도 준비 중…';
+      setActionStatus(restoreMessage, autosaveRestore.error ? 'error' : 'success', autosaveRestore.error ? 0 : 3200);
     }
     $('engineStatus').textContent = useBuiltInMesh ? '빠른 미리보기 · 고화질 지도 준비 중' : '프로젝트 지도를 다시 구성하는 중입니다.';
     window.dispatchEvent(new CustomEvent('pandolab:editable', { detail: { useBuiltInMesh } }));
@@ -14435,7 +13834,7 @@ const {
 
     const autosavePromise = restoreAutosavedProject();
     state.countriesData = reindexCountries(window.PANDOLAB_COUNTRIES, true);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -14529,6 +13928,7 @@ const {
     const autosaveRestore = await restoreAutosavedProject();
     const restored = autosaveRestore.project;
     if (restored) applySharedProjectFields(restored);
+    applyAutosavedView(autosaveRestore.view);
     state.auditPreviewCountries = window.PANDOLAB_COUNTRIES;
 
     const restoredDelta = restored?.format === 'pandolab-autosave-delta';
@@ -14537,7 +13937,7 @@ const {
       : restored?.countriesData
         ? reindexCountries(deepClone(restored.countriesData), true)
         : freshPristineCountries(true);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -14572,7 +13972,6 @@ const {
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
-    $('countriesLocked').checked = state.countriesLocked;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
@@ -14597,7 +13996,10 @@ const {
       }
     } else {
       saveState.markNewProject('content:0');
-      if (gpuReady) {
+      if (autosaveRestore.error) {
+        const restoreMessage = compactNotificationMessage(autosaveRestore.error?.message || '현재 스키마와 다른 자동저장입니다.', { tone: 'error', maxLength: 52 });
+        setActionStatus(restoreMessage, 'error', 0);
+      } else if (gpuReady) {
         setActionStatus('고해상도 지도를 준비했습니다.', 'success');
       } else {
         setActionStatus('무손실 렌더러 준비 완료.', 'success', 4200);

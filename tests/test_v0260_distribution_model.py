@@ -9,13 +9,16 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 MODEL = (ROOT / "assets" / "js" / "modules" / "distribution-model.js").read_text(encoding="utf-8")
 PROJECT_STATE = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
+DRAWING_SERVICE = (ROOT / "assets" / "js" / "modules" / "drawing-service.js").read_text(encoding="utf-8")
 
 
 class V0260DistributionModelTests(unittest.TestCase):
     def test_distribution_state_uses_shared_project_history_schema(self):
-        for field in ("distributionLayers", "distributionEntries", "distributionSettings"):
-            self.assertIn(f"name: '{field}', history: true", PROJECT_STATE)
+        for field in ("distributionLayers", "distributionEntries"):
+            self.assertIn(f"name: '{field}', scope: 'document'", PROJECT_STATE)
             self.assertIn(f"{field}:", APP)
+        self.assertIn("name: 'distributionSettings', scope: 'presentation'", PROJECT_STATE)
+        self.assertIn("distributionSettings:", APP)
 
     def test_language_ethnicity_and_religion_share_one_model(self):
         for value in ("language", "ethnicity", "religion"):
@@ -25,9 +28,9 @@ class V0260DistributionModelTests(unittest.TestCase):
             "normalizeDistributionEntry",
             "validateDistributionModel",
             "dominantDistributionEntries",
-            "migrateThematicDrawings",
         ):
             self.assertIn(f"function {symbol}", MODEL)
+        self.assertIn("groups:", MODEL)
 
     def test_region_reference_and_free_geometry_modes_are_supported(self):
         self.assertIn("REGION: 'region'", MODEL)
@@ -54,12 +57,12 @@ class V0260DistributionModelTests(unittest.TestCase):
         self.assertIn("window.PANDOLAB_DISTRIBUTIONS", APP)
 
     def test_old_thematic_drawing_categories_are_not_exposed_for_new_drawings(self):
-        drawing_categories = INDEX[
-            INDEX.index('id="drawingCategoryInput"'):
-            INDEX.index('</select>', INDEX.index('id="drawingCategoryInput"'))
-        ]
+        rules = DRAWING_SERVICE[DRAWING_SERVICE.index("export const DRAWING_CATEGORY_RULES"):DRAWING_SERVICE.index("export const DRAWING_ROLE_LABELS")]
+        self.assertNotIn('id="drawingCategoryInput"', INDEX)
         for value in ("language", "ethnicity", "religion"):
-            self.assertNotIn(f'<option value="{value}">', drawing_categories)
+            self.assertNotIn(f"{value}:", rules)
+        normalizer = APP[APP.index("function normalizeProjectObjects"):APP.index("function normalizeHistoryMetadata")]
+        self.assertNotIn("migrateThematicDrawings", normalizer)
 
     def test_render_modes_are_data_driven_and_territorial_changes_are_independent(self):
         self.assertIn("DOMINANT: 'dominant'", MODEL)

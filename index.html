@@ -101,7 +101,6 @@
                 <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="countries" aria-expanded="false" aria-label="국가 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <input id="countriesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="국가" aria-label="국가 레이어 표시" />
                 <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="countries">국가</button>
-                <input id="countriesLocked" type="checkbox" class="lock-toggle" aria-label="국가 레이어 잠금" hidden />
               </div>
               <div id="countriesLayerChildren" class="layer-children" role="group" aria-label="국가 항목" hidden></div>
             </div>
@@ -293,6 +292,7 @@
           </div>
           <div id="multiSelectionBar" class="ui-context-toolbar ui-floating-surface multi-selection-bar hidden" role="region" aria-label="다중 선택 작업">
             <strong id="multiSelectionCount">0개 선택됨</strong>
+            <button id="multiSelectionModeBtn" class="ui-button btn ghost compact" type="button" aria-pressed="false">추가 선택</button>
             <button id="multiEditBtn" class="ui-button btn ghost compact" type="button">편집</button>
             <button id="clearMultiSelectionBtn" class="ui-button icon-btn compact" type="button" aria-label="다중 선택 해제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
           </div>
@@ -575,15 +575,7 @@
             <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">기본 정보</h3>
               <div class="ui-field field-group editor-field"><label for="drawingNameInput">이름</label><input id="drawingNameInput" type="text" placeholder="예: 라인강" /></div>
-              <div class="editor-field-grid editor-field-grid-color">
-                <div class="ui-field field-group editor-field">
-                  <label for="drawingCategoryInput">분류</label>
-                  <select id="drawingCategoryInput">
-                    <option value="river">강</option><option value="lake">호수</option>
-                    <option value="custom">사용자 정의</option>
-                  </select>
-                </div>
-                <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="drawing">
+              <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="drawing">
                   <label id="drawingColorLabel">색상</label>
                   <button id="drawingColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="drawingColorPopover" aria-labelledby="drawingColorLabel drawingColorValue">
                     <span class="ui-color-preview" aria-hidden="true"></span><span id="drawingColorValue" class="ui-color-value">기본 색상</span>
@@ -594,7 +586,6 @@
                     <div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div>
                     <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button>
                   </div>
-                </div>
               </div>
               <div class="ui-field field-group editor-field"><label for="drawingNotesInput">메모</label><textarea id="drawingNotesInput" rows="5"></textarea></div>
               <p class="editor-help">경계를 수정하려면 지도 위 꼭짓점을 드래그하세요.</p>
@@ -640,20 +631,11 @@
               </div>
             </section>
 
-            <details class="ui-disclosure editor-disclosure">
-              <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
-              <div class="editor-disclosure-body">
-                <div class="ui-field field-group editor-field">
-                  <label for="drawingFolderInput">폴더</label>
-                  <select id="drawingFolderInput"></select>
-                </div>
-                <div class="ui-info-list editor-info-list" hidden>
-                  <div><span>객체 ID</span><output id="drawingIdInput">—</output></div>
-                  <div><span>역할</span><output id="drawingRoleValue">—</output></div>
-                  <div><span>토폴로지 그룹</span><output id="drawingTopologyValue">—</output></div>
-                </div>
-              </div>
-            </details>
+            <div class="ui-info-list editor-info-list" hidden>
+              <div><span>객체 ID</span><output id="drawingIdInput">—</output></div>
+              <div><span>역할</span><output id="drawingRoleValue">—</output></div>
+              <div><span>토폴로지 그룹</span><output id="drawingTopologyValue">—</output></div>
+            </div>
 
             <button id="deleteDrawingInlineBtn" class="ui-button" type="button" hidden>지형지물 삭제</button>
           </form>
@@ -682,13 +664,25 @@
           <section id="hydroProperties" class="editor-view hidden">
             <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">수계 정보</h3>
+              <div id="hydroEditFields" class="hidden">
+                <div class="ui-field field-group editor-field"><label for="hydroNameInput">이름</label><input id="hydroNameInput" type="text" placeholder="예: 라인강" autocomplete="off" /></div>
+                <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="hydro">
+                  <label id="hydroColorLabel">색상</label>
+                  <button id="hydroColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="hydroColorPopover" aria-labelledby="hydroColorLabel hydroColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="hydroColorValue" class="ui-color-value">색상</span></button>
+                  <input id="hydroColorInput" class="ui-native-color-input" type="color" value="#3b82c4" tabindex="-1" aria-hidden="true" />
+                  <div id="hydroColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="수계 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
+                </div>
+                <div class="ui-field field-group editor-field"><label for="hydroNotesInput">메모</label><textarea id="hydroNotesInput" rows="5"></textarea></div>
+                <p class="editor-help">경계를 수정하려면 지도 위 꼭짓점을 드래그하세요.</p>
+              </div>
               <div class="ui-info-list editor-info-list">
                 <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
               </div>
-              <p class="editor-help"><span id="hydroSourceValue">Natural Earth 5.0.0 1:10m</span> 기반 내장 수계입니다. 직접 수정하려면 복사본을 만드세요.</p>
+              <p id="hydroBuiltinHelp" class="editor-help"><span id="hydroSourceValue">Natural Earth 5.0.0 1:10m</span> 기반 내장 수계입니다. 직접 수정하려면 복사본을 만드세요.</p>
             </section>
 
             <section class="ui-card editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
+            <button id="deleteHydroEditBtn" class="ui-button" type="button" hidden>수계 삭제</button>
 
             <details class="ui-disclosure editor-disclosure" hidden>
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>

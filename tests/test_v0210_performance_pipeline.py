@@ -12,6 +12,7 @@ TRANSACTION = (ROOT / "assets" / "js" / "modules" / "country-edit-transaction.js
 MAP_INPUT = (ROOT / "assets" / "js" / "modules" / "map-input-controller.js").read_text(encoding="utf-8")
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
 COUNTRY_GEOMETRY = (ROOT / "assets" / "js" / "modules" / "country-geometry.js").read_text(encoding="utf-8")
+PERSISTENCE = (ROOT / "assets" / "js" / "modules" / "persistence-service.js").read_text(encoding="utf-8")
 
 
 class V0210PerformancePipelineTests(unittest.TestCase):
@@ -57,8 +58,8 @@ class V0210PerformancePipelineTests(unittest.TestCase):
         self.assertIn("scheduleTerrainUpload", RENDERER)
         self.assertIn("const byteBudget = 2 * 1024 * 1024", RENDERER)
         self.assertIn("entry.uploadState.tasks.shift()", RENDERER)
-        self.assertIn("mapWorkScheduler.scheduleIdle('autosave'", APP)
-        self.assertIn("mapWorkScheduler.scheduleIdle('view-autosave'", APP)
+        self.assertIn("scheduler.scheduleIdle('autosave'", PERSISTENCE)
+        self.assertIn("scheduler.scheduleIdle('view-autosave'", PERSISTENCE)
         self.assertIn("message.type === 'patch'", CANVAS_WORKER)
         self.assertIn("incomingGeometryRevision < geometryRevision", CANVAS_WORKER)
 

@@ -35,15 +35,28 @@ async function importTerritorialPolygon(page, { name, target, coordinates }) {
   });
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-  const mobile = await page.locator('#app').getAttribute('data-layout') === 'mobile';
-  if (mobile) await page.locator('#gisImportNextBtn').click();
-  await page.locator('#gisTargetType').selectOption(target);
-  if (mobile) {
-    for (let step = 0; step < 3; step += 1) await page.locator('#gisImportNextBtn').click();
+  await page.locator('#gisImportNextBtn').click();
+  await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
+  await page.locator('#gisTargetType').evaluate((select, value) => {
+    select.value = value;
+    select.dispatchEvent(new select.ownerDocument.defaultView.Event('change', { bubbles: true }));
+  }, target);
+  await page.locator('#gisTargetCountry').evaluate(select => {
+    const germany = [...select.options].find(option => option.textContent?.includes('독일'));
+    if (!germany) throw new Error('독일 소속 국가 옵션을 찾지 못했습니다.');
+    select.value = germany.value;
+    select.dispatchEvent(new select.ownerDocument.defaultView.Event('change', { bubbles: true }));
+  });
+  for (const step of ['3/5', '4/5', '5/5']) {
+    await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisStepIndicator')).toContainText(step, { timeout: 30_000 });
   }
   await page.locator('#gisImportConfirmBtn').click();
   const shape = page.locator('path.country-region-shape');
-  await expect.poll(async () => shape.evaluateAll((nodes, expectedName) => nodes.some(node => node.__data__?.properties?.name === expectedName), name)).toBe(true);
+  await expect.poll(
+    async () => shape.evaluateAll((nodes, expectedName) => nodes.some(node => node.__data__?.properties?.name === expectedName), name),
+    { timeout: 60_000 },
+  ).toBe(true);
 }
 
 async function territorialShapeCenter(page, name) {
@@ -55,7 +68,19 @@ async function territorialShapeCenter(page, name) {
   }, name);
 }
 
-test('a region above a visible country remains clickable and does not block map dragging', async ({ page }) => {
+async function chooseTerritorialObject(page, point, name, { touch = false } = {}) {
+  if (touch) await page.touchscreen.tap(point.x, point.y);
+  else await page.mouse.click(point.x, point.y);
+  const chooser = page.locator('#objectChooser');
+  await expect(chooser).toBeVisible();
+  const option = chooser.getByRole('option').filter({ hasText: name });
+  await expect(option).toHaveCount(1);
+  if (touch) await option.tap();
+  else await option.click();
+  await expect(chooser).toBeHidden();
+}
+
+test('a region above a visible country opens the chooser and does not block map dragging', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
   const name = '지도 선택 시험 지역';
@@ -74,13 +99,13 @@ test('a region above a visible country remains clickable and does not block map 
   await expect.poll(async () => (await territorialShapeCenter(page, name))?.x).toBeGreaterThan(beforeDrag.x + 20);
 
   const afterDrag = await territorialShapeCenter(page, name);
-  await page.mouse.click(afterDrag.x, afterDrag.y);
+  await chooseTerritorialObject(page, afterDrag, name);
   await expect(page.locator('#selectionStatus')).toContainText(`지역 · 독일 · ${name}`);
   await expect(page.locator('#regionProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
-test('an administrative area above a visible country wins the physical map click', async ({ page }) => {
+test('an administrative area above a visible country is chosen explicitly', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
   const name = '지도 선택 시험 행정구역';
@@ -92,7 +117,7 @@ test('an administrative area above a visible country wins the physical map click
 
   const point = await territorialShapeCenter(page, name);
   expect(point).not.toBeNull();
-  await page.mouse.click(point.x, point.y);
+  await chooseTerritorialObject(page, point, name);
   await expect(page.locator('#selectionStatus')).toContainText(`행정구역 · 독일 · 1급 · ${name}`);
   await expect(page.locator('#administrativeProperties')).toBeVisible();
   expect(errors).toEqual([]);
@@ -114,7 +139,7 @@ test('a mobile touch tap selects the territorial overlay above its country', asy
 
     const point = await territorialShapeCenter(page, name);
     expect(point).not.toBeNull();
-    await page.touchscreen.tap(point.x, point.y);
+    await chooseTerritorialObject(page, point, name, { touch: true });
     await expect(page.locator('#selectionStatus')).toContainText(`지역 · 독일 · ${name}`);
     await expect(page.locator('#regionProperties')).not.toHaveClass(/hidden/);
     expect(errors).toEqual([]);
