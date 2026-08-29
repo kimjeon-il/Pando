@@ -14563,6 +14563,7 @@ const {
       if (e.key === 'Escape') {
         if (state.modeProcessing) { e.preventDefault(); return; }
         if (!$('shortcutHelpModal')?.classList.contains('hidden')) { $('shortcutHelpCloseBtn')?.click(); return; }
+        if (!$('preferencesModal')?.classList.contains('hidden')) { $('preferencesCancelBtn')?.click(); return; }
         if (!$('objectChooser')?.classList.contains('hidden')) { closeObjectChooser({ restoreFocus: true }); return; }
         if (!$('objectActionsMenu')?.classList.contains('hidden')) { closeObjectActionsMenu({ restoreFocus: true }); return; }
         if (historicalLibraryController.isOpen()) { historicalLibraryController.close(); return; }
