@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
+TERRITORIAL_SERVICE = (ROOT / "assets/js/modules/territorial-service.js").read_text(encoding="utf-8")
 
 
 class ObjectEditorV0303Tests(unittest.TestCase):
@@ -98,7 +99,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertIn("const MAX_HISTORY = 30", APP)
         self.assertIn("untouchedComponents", APP)
         self.assertIn("MultiPolygon", APP)
-        self.assertIn("runTerritorialTransaction", APP)
+        self.assertIn("runTerritorialTransaction", TERRITORIAL_SERVICE)
 
 
 if __name__ == "__main__":

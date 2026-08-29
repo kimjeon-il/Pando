@@ -9,6 +9,7 @@ ROOT = Path(__file__).parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 MODEL = (ROOT / "assets" / "js" / "modules" / "historical-library.js").read_text(encoding="utf-8")
+CONTROLLER = (ROOT / "assets" / "js" / "modules" / "historical-library-controller.js").read_text(encoding="utf-8")
 PILOT = json.loads((ROOT / "assets" / "data" / "historical-library-pilot.json").read_text(encoding="utf-8"))
 
 
@@ -57,7 +58,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
     def test_world_snapshot_is_a_template(self):
         self.assertIn("normalizeWorldSnapshot", MODEL)
         self.assertTrue(PILOT["snapshots"])
-        self.assertIn("instantiateHistoricalLibraryEntities(snapshot.entityRefs", APP)
+        self.assertIn("instantiate(snapshot.entityRefs", CONTROLLER)
 
 
 if __name__ == "__main__":
