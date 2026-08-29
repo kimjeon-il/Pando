@@ -56,7 +56,9 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         row_factory = APP[APP.index("function createLayerItemRow"):APP.index("function renderVirtualizedLayerGroup")]
         self.assertIn("layerItemObjectRef(group, item.id)", row_factory)
         self.assertIn("if (group !== 'countryLabels' && layerItemObjectRef(group, item.id)) row.append(menuButton)", row_factory)
-        self.assertIn("key.startsWith('hydro-layer:')", APP)
+        self.assertIn("group === 'hydro' && HYDRO_LAYER_META[key]", APP)
+        self.assertIn("group === 'hydro' && hydroEditById(key)", APP)
+        self.assertNotIn("hydro-layer:", APP)
 
     def test_virtualized_rows_share_the_same_context_menu_factory(self):
         virtualized = APP[APP.index("function renderVirtualizedLayerGroup"):APP.index("function renderTerrainLayerFolder")]

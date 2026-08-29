@@ -4,6 +4,7 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'labels', history: true, fallback: () => [] }),
   Object.freeze({ name: 'labelSettings', history: true, fallback: () => ({}) }),
   Object.freeze({ name: 'drawings', history: true, fallback: () => [] }),
+  Object.freeze({ name: 'hydroEdits', history: true, fallback: () => [] }),
   Object.freeze({ name: 'territorialUnits', history: true, fallback: () => [] }),
   Object.freeze({ name: 'territorialRelations', history: true, fallback: () => [] }),
   Object.freeze({ name: 'distributionLayers', history: true, fallback: () => [] }),

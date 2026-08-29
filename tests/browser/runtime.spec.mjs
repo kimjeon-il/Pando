@@ -609,7 +609,7 @@ test('layer folders are grouped into scan-friendly non-collapsible categories', 
   await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지도 요소', '라벨']);
   await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '지역', '행정구역', '역사·지리 지역']);
   await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형지물']);
+  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['수계', '지형지물']);
   await expect(categories.nth(2).locator('.layer-display-option')).toContainText('지형 음영');
   await expect(categories.nth(3).locator('.layer-display-option')).toHaveText(['도시·지명', '국가명 라벨']);
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
@@ -777,7 +777,7 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
     features: [{
       type: 'Feature',
       id: `${name}-feature`,
-      properties: { name, category: 'river' },
+      properties: { name, category: 'custom' },
       geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] },
     }],
   });
@@ -790,6 +790,8 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
     await expect(page.locator('#gisImportModal')).toBeVisible();
     await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
     await expect(page.locator('#gisTargetType')).toHaveValue('drawing');
+    for (let step = 0; step < 4; step += 1) await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisImportConfirmBtn')).toBeVisible();
     await page.locator('#gisImportConfirmBtn').click();
     const folder = page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: name });
     await expect(folder).toHaveCount(1);
