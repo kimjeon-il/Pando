@@ -2779,6 +2779,8 @@ export function createGpuMapRenderer(deps) {
           boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
           primaryBoundaryColor: SELECTION_STYLE.color,
           secondaryBoundaryColor: SELECTION_STYLE.color,
+          primaryBoundaryAlpha: SELECTION_STYLE.primaryAlpha,
+          secondaryBoundaryAlpha: SELECTION_STYLE.secondaryAlpha,
         },
         theme: mapTheme(),
         physicalSettings: deepClone(state.physicalSettings),
