@@ -103,6 +103,7 @@ const coastReconciliationModule = await import(versionedModuleUrl('./modules/coa
 const coastReconciliationControllerModule = await import(versionedModuleUrl('./modules/coast-reconciliation-controller.js'));
 const annexGeometryModule = await import(versionedModuleUrl('./modules/annex-geometry.js'));
 const selectionEmphasisModule = await import(versionedModuleUrl('./modules/selection-emphasis.js'));
+const userPreferencesModule = await import(versionedModuleUrl('./modules/user-preferences.js'));
 const notificationCopyModule = await import(versionedModuleUrl('./modules/notification-copy.js'));
 const { createDiagnosticLog, fetchWithRetry } = reliabilityCoreModule;
 const { assertProjectReferenceIntegrity } = projectInvariantsModule;
@@ -114,7 +115,8 @@ const {
 } = coastReconciliationModule;
 const { createCoastReconciliationController } = coastReconciliationControllerModule;
 const { planDrawnTerritoryAnnex, extractRiverAnnexSections } = annexGeometryModule;
-const { SELECTION_STYLE, buildSelectionBoundarySegments, createSelectionEmphasisRenderer } = selectionEmphasisModule;
+const { SELECTION_STYLE, setSelectionColor, buildSelectionBoundarySegments, createSelectionEmphasisRenderer } = selectionEmphasisModule;
+const { loadUserPreferences, saveUserPreferences, effectiveTheme, defaultUserPreferences } = userPreferencesModule;
 const { compactNotificationMessage } = notificationCopyModule;
 const { createSelectController } = selectControllerModule;
 const { DATA_READINESS, READINESS_EVENTS, canMutateProject, transitionDataReadiness } = startupReadinessModule;
@@ -328,9 +330,14 @@ const {
 
   const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
   let systemTheme = systemThemeQuery.matches ? 'dark' : 'light';
+  let userPreferences = loadUserPreferences();
   let runtimeReady = false;
   document.documentElement.dataset.systemTheme = systemTheme;
-  window.__PANDOLAB_THEME__ = systemTheme;
+  document.documentElement.dataset.theme = effectiveTheme(userPreferences, systemTheme === 'dark');
+  setSelectionColor(userPreferences.selection.color);
+  document.documentElement.dataset.selectionMode = userPreferences.selection.mode;
+  document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
+  window.__PANDOLAB_THEME__ = effectiveTheme(userPreferences, systemTheme === 'dark');
 
   function enableKeyboardNavigation(event) {
     if (event.key === 'Tab') document.documentElement.classList.add('keyboard-navigation');
@@ -356,7 +363,7 @@ const {
       : null;
     const countryStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'countries') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const hydroStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'hydro') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
-    const base = systemTheme === 'light'
+    const base = (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light'
       ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1, ocean: '#ffffff', oceanGpu: [1, 1, 1] }
       : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92, ocean: '#0d2837', oceanGpu: [0.051, 0.157, 0.216] };
     base.fillAlpha *= countryStyle.opacity;
@@ -375,10 +382,11 @@ const {
 
   function applySystemTheme(matchesDark) {
     const nextTheme = matchesDark ? 'dark' : 'light';
-    if (nextTheme === systemTheme) return;
+    if (nextTheme === systemTheme && userPreferences.appearance.theme !== 'system') return;
     systemTheme = nextTheme;
     document.documentElement.dataset.systemTheme = systemTheme;
-    window.__PANDOLAB_THEME__ = systemTheme;
+    document.documentElement.dataset.theme = effectiveTheme(userPreferences, systemTheme === 'dark');
+    window.__PANDOLAB_THEME__ = effectiveTheme(userPreferences, systemTheme === 'dark');
     if (state?.selected?.type === 'country') {
       const id = String(state.selected.id);
       const feature = countryFeatureById(id);
@@ -447,7 +455,7 @@ const {
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeRiverMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
-    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn',
+    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesSelectionModeInput', 'preferencesSelectionColorInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
     'gisTargetCountry', 'gisParentRegion', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
     'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibrarySearchClearBtn', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
@@ -990,6 +998,7 @@ const {
     meshProgress: 0,
     countriesData: null,
     auditPreviewCountries: null,
+    countryVisualPhase: 'preview',
     countryIndex: new Map(),
     countryOverrides: {},
     sourceInfo: null,
@@ -1878,7 +1887,7 @@ const {
     deepClone,
     defaultCountryColor,
     flatProjection,
-    getSystemTheme: () => systemTheme,
+    getSystemTheme: () => document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme,
     globeProjection,
     hydroDisplayColor,
     hydroFeatureById,
@@ -4645,7 +4654,7 @@ const {
     if (state.physicalSettings.terrainVisible && state.physicalSettings.terrainStyle === 'physical') {
       const representative = state.terrainManifest?.displayColors?.oceanRepresentative || TERRAIN_OCEAN_REPRESENTATIVE;
       let rgb = parseHexRgb(representative);
-      if (systemTheme === 'dark') rgb = rgb.map((value, index) => value * [0.808, 0.8464, 0.8848][index]);
+      if ((document.documentElement.dataset.theme || systemTheme) === 'dark') rgb = rgb.map((value, index) => value * [0.808, 0.8464, 0.8848][index]);
       return gpu ? rgb.map(value => value / 255) : formatHexRgb(rgb);
     }
     const theme = mapTheme();
@@ -5012,22 +5021,13 @@ const {
         header.append(toggle, visibility, name);
         return header;
       }
-      if (!item.levelHeader) {
-        const header = document.createElement('button');
-        header.type = 'button';
-        header.className = 'ui-button ui-selectable-row layer-subfolder-row';
-        header.dataset.countryRegionFolderToggle = item.folderKey;
-        header.setAttribute('aria-expanded', String(item.expanded));
-        header.setAttribute('aria-label', `${item.name} 하위 폴더 ${item.expanded ? '접기' : '펼치기'}`);
-        header.innerHTML = '<svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg><strong></strong>';
-        header.querySelector('strong').textContent = item.name;
-        return header;
-      }
-      const header = document.createElement('div');
-      header.className = 'ui-row layer-subfolder-row is-level';
-      header.setAttribute('role', 'heading');
-      header.setAttribute('aria-level', '4');
-      header.innerHTML = '<strong></strong>';
+      const header = document.createElement('button');
+      header.type = 'button';
+      header.className = 'ui-button ui-selectable-row layer-subfolder-row';
+      header.dataset.countryRegionFolderToggle = item.folderKey;
+      header.setAttribute('aria-expanded', String(item.expanded));
+      header.setAttribute('aria-label', `${item.name} 하위 폴더 ${item.expanded ? '접기' : '펼치기'}`);
+      header.innerHTML = '<svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg><strong></strong>';
       header.querySelector('strong').textContent = item.name;
       return header;
     }
@@ -5187,7 +5187,6 @@ const {
     if (group === 'regions' || group === 'administrative') {
       displayItems = [];
       let previousCountry = null;
-      let previousLevel = null;
       for (const item of items.sort((left, right) => {
         const orphanOrder = Number(!left.countryId) - Number(!right.countryId);
         if (orphanOrder) return orphanOrder;
@@ -5204,13 +5203,8 @@ const {
           const expanded = state.layerFolders[folderKey] !== false;
           displayItems.push({ groupHeader: true, id: `header:${group}:${countryKey}`, name: countryLabel, folderKey, expanded });
           previousCountry = countryKey;
-          previousLevel = null;
         }
         if (state.layerFolders[countryRegionFolderStateKey(group, item.countryId)] === false) continue;
-        if (group === 'administrative' && item.level !== previousLevel) {
-          displayItems.push({ groupHeader: true, levelHeader: true, id: `header:${group}:${item.countryId || 'unassigned'}:${item.level}`, name: `${item.level || 1}급` });
-          previousLevel = item.level;
-        }
         displayItems.push(item);
       }
     }
@@ -5308,10 +5302,28 @@ const {
   }
 
   function countryDisplayFeature(feature) {
+    if (state.countryVisualPhase === 'canonical') return feature;
     const id = String(feature?.properties?.editor_id || feature?.id || '');
-    if (!id || state.sessionBaseCountriesJson || state.historyDirtyCountryIds.has(id) || state.pendingCountryRenderIds.has(id)) return feature;
+    if (!id) return feature;
     refreshCountryDisplayIndex();
     return countryDisplayIndex.get(id) || feature;
+  }
+
+  function applyUserPreferences(nextPreferences, { persist = true, rerender = true } = {}) {
+    userPreferences = persist ? saveUserPreferences(nextPreferences) : nextPreferences;
+    const resolvedTheme = effectiveTheme(userPreferences, systemTheme === 'dark');
+    document.documentElement.dataset.theme = resolvedTheme;
+    document.documentElement.dataset.selectionMode = userPreferences.selection.mode;
+    document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
+    setSelectionColor(userPreferences.selection.color);
+    syncGpuCountryEmphasis();
+    window.__PANDOLAB_THEME__ = resolvedTheme;
+    if (rerender && svg) {
+      markLayerTreeDirty();
+      renderLayerTree();
+      renderAll();
+    }
+    return userPreferences;
   }
 
   function countryLabelScreenMetrics(feature, fontSize = isMobile() ? 8 : 9, projectedExtent = null, labelFeature = feature) {
@@ -6704,6 +6716,7 @@ const {
       primaryId: primary?.domain === 'territorial' && primary.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? primary.id : '',
       selectedIds: countryIds,
       hoveredId: state.hovered?.type === 'country' ? state.hovered.id : '',
+      selectionMode: userPreferences.selection.mode,
     });
   }
 
@@ -7137,7 +7150,6 @@ const {
       state.mapMoving = true;
       mapRenderCoordinator.beginInteraction('map-movement');
       mapWorkScheduler.setInteractionActive(true);
-      gpuMapRenderer.setInteractionActive(true);
       cancelCountryHoverPick({ clear: true });
       mapEl.classList.add('dragging');
       if (state.draftHover) {
@@ -7148,7 +7160,6 @@ const {
     const finishMapMovement = point => {
       state.mapMoving = false;
       mapWorkScheduler.setInteractionActive(false);
-      gpuMapRenderer.setInteractionActive(false);
       mapEl.classList.remove('dragging');
       if (point) suppressNextMapClick(point);
       mapRenderCoordinator.endInteraction('map-movement-end');
@@ -14438,6 +14449,38 @@ const {
     coastReconciliationController.bind();
 
     $('dataExportBtn').addEventListener('click', openGisDataExport);
+    const preferencesModal = $('preferencesModal');
+    const syncPreferencesForm = () => {
+      $('preferencesThemeInput').value = userPreferences.appearance.theme;
+      $('preferencesSelectionModeInput').value = userPreferences.selection.mode;
+      $('preferencesSelectionColorInput').value = userPreferences.selection.color;
+    };
+    const closePreferences = ({ restoreFocus = true } = {}) => {
+      if (!preferencesModal || preferencesModal.classList.contains('hidden')) return;
+      preferencesModal.classList.add('hidden');
+      if (restoreFocus) $('preferencesBtn')?.focus({ preventScroll: true });
+    };
+    const openPreferences = () => {
+      syncPreferencesForm();
+      preferencesModal?.classList.remove('hidden');
+      $('preferencesThemeInput')?.focus({ preventScroll: true });
+    };
+    $('preferencesBtn')?.addEventListener('click', openPreferences);
+    $('preferencesCloseBtn')?.addEventListener('click', () => closePreferences());
+    $('preferencesCancelBtn')?.addEventListener('click', () => closePreferences());
+    preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences());
+    $('preferencesResetBtn')?.addEventListener('click', () => {
+      applyUserPreferences(defaultUserPreferences());
+      syncPreferencesForm();
+    });
+    $('preferencesApplyBtn')?.addEventListener('click', () => {
+      applyUserPreferences({
+        version: 1,
+        appearance: { theme: $('preferencesThemeInput').value },
+        selection: { mode: $('preferencesSelectionModeInput').value, color: $('preferencesSelectionColorInput').value },
+      });
+      closePreferences();
+    });
     $('gisExportCloseBtn').addEventListener('click', closeGisDataExport);
     $('gisExportCancelBtn').addEventListener('click', closeGisDataExport);
     $('gisExportModal').querySelector('.ui-dialog-backdrop')?.addEventListener('click', closeGisDataExport);
@@ -14819,19 +14862,28 @@ const {
 
   async function completeMeshEnhancement(mesh, context) {
     const meshReplaceStartedAt = performance.now();
+    let meshApplied = false;
     if (!context.useBuiltInMesh || state.sessionBaseCountriesJson) {
-      await gpuMapRenderer.rebuildFromCountries(state.countriesData?.features || []);
+      meshApplied = (await gpuMapRenderer.rebuildFromCountries(state.countriesData?.features || [])) !== false;
     } else {
-      await gpuMapRenderer.replaceBuiltInMesh({
+      meshApplied = (await gpuMapRenderer.replaceBuiltInMesh({
         meshBuffer: mesh.meshBuffer,
         features: state.countriesData?.features || [],
         quality: 'canonical',
-      });
+      })) !== false;
       const dirtyIds = new Set([...state.historyDirtyCountryIds, ...state.pendingCountryRenderIds]);
       if (dirtyIds.size) {
         for (const id of dirtyIds) state.pendingCountryRenderIds.add(String(id));
         await gpuMapRenderer.applyCountryPatch(dirtyIds);
       }
+    }
+    // Once the canonical mesh is successfully displayed, every country SVG
+    // path must use the same source. This prevents edit/selection state from
+    // mixing preview and canonical geometries on a single frame.
+    if (meshApplied) {
+      state.countryVisualPhase = 'canonical';
+      countryDisplaySource = null;
+      countryDisplayIndex = new Map();
     }
     applyDataReadinessEvent(READINESS_EVENTS.MESH_READY);
     state.meshProgress = 100;
@@ -14959,6 +15011,7 @@ const {
       : restored?.countriesData
         ? reindexCountries(deepClone(restored.countriesData), true)
         : freshPristineCountries(true);
+    state.countryVisualPhase = 'canonical';
     normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
@@ -14975,6 +15028,11 @@ const {
     mapEditClient.rebase(state.countriesData?.features || []);
     await new Promise(resolve => requestAnimationFrame(resolve));
     const gpuReady = await gpuMapRenderer.initialize();
+    if (gpuReady) {
+      state.countryVisualPhase = 'canonical';
+      countryDisplaySource = null;
+      countryDisplayIndex = new Map();
+    }
     startMapResizeObserver();
     if (restored && gpuReady) {
       if (externalGeometry || state.sessionBaseCountriesJson) scheduleGpuMeshRebuild(0);
