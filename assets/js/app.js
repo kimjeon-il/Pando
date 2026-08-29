@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -40,6 +40,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/color-adapter.js')),
   import(versionedModuleUrl('./modules/project-serializer.js')),
   import(versionedModuleUrl('./modules/persistence-service.js')),
+  import(versionedModuleUrl('./modules/physical-layer-service.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -51,6 +52,7 @@ const {
 const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
 const { createProjectSerializer, restoreCountriesFromDelta } = projectSerializerModule;
 const { createBrowserProjectStorage, createPersistenceService } = persistenceServiceModule;
+const { createHydroService, createTerrainService } = physicalLayerServiceModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -5221,27 +5223,24 @@ const {
     return feature;
   }
 
-  async function loadTerrainManifest(force = false) {
-    if (!force && ['loading', 'ready'].includes(state.physicalLoadState.terrain)) return;
-    state.physicalLoadState.terrain = 'loading';
-    state.physicalLoadState.terrainManifest = 'loading';
-    markLayerTreeDirty();
-    renderLayerTree();
-    try {
+  const terrainService = createTerrainService({
+    fetchWithRetry,
+    manifestUrl: () => {
       const url = new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL);
       url.searchParams.set('v', ASSET_REVISION);
-      const response = await fetchWithRetry(url, {}, {
-        maxAttempts: 3,
-        baseDelay: 400,
-        maxDelay: 2400,
-        timeoutMs: 15000,
-        onRetry: ({ attempt }) => reliabilityDiagnostic.push({
-          category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
-        }),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const manifest = await response.json();
-      if (!manifest.levels?.length) throw new Error('지형 타일 manifest가 올바르지 않습니다.');
+      return url;
+    },
+    getLoadState: () => state.physicalLoadState.terrain,
+    onLoading: () => {
+      state.physicalLoadState.terrain = 'loading';
+      state.physicalLoadState.terrainManifest = 'loading';
+      markLayerTreeDirty();
+      renderLayerTree();
+    },
+    onRetry: (_operation, attempt) => reliabilityDiagnostic.push({
+      category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
+    }),
+    acceptManifest: manifest => {
       state.terrainManifest = manifest;
       state.physicalLoadState.terrainManifest = 'ready';
       state.physicalLoadState.terrain = 'ready';
@@ -5249,7 +5248,8 @@ const {
       markLayerTreeDirty();
       renderLayerTree();
       renderAll();
-    } catch (error) {
+    },
+    onFailure: error => {
       state.physicalLoadState.terrainManifest = 'error';
       state.physicalLoadState.terrain = 'error';
       reliabilityDiagnostic.push({ category: 'asset', operation: 'terrain-manifest', result: 'failed', errorCode: 'PL-TERRAIN-001' });
@@ -5257,32 +5257,34 @@ const {
       renderLayerTree();
       console.warn('Terrain load failed', error);
       reportOperationError(error, '지형 음영을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0);
-    }
+    },
+  });
+
+  async function loadTerrainManifest(force = false) {
+    return terrainService.load(force);
   }
 
-  async function loadHydroData(force = false) {
-    if (!force && ['loading', 'ready'].includes(state.physicalLoadState.hydro)) return;
-    state.physicalLoadState.hydro = 'loading';
-    state.physicalLoadState.hydroManifest = 'loading';
-    state.physicalLoadState.hydroWorker = 'starting';
-    state.physicalLoadState.hydroView = 'idle';
-    markLayerTreeDirty();
-    renderLayerTree();
-    try {
+  const hydroService = createHydroService({
+    fetchWithRetry,
+    dataVersion: HYDRO_DATA_VERSION,
+    manifestUrl: () => {
       const manifestUrl = new URL(`hydro/v${HYDRO_DATA_VERSION}/manifest.json`, PHYSICAL_DATA_BASE_URL);
       manifestUrl.searchParams.set('v', ASSET_REVISION);
-      const response = await fetchWithRetry(manifestUrl, {}, {
-        maxAttempts: 3,
-        baseDelay: 400,
-        maxDelay: 2400,
-        timeoutMs: 15000,
-        onRetry: ({ attempt }) => reliabilityDiagnostic.push({
-          category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
-        }),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const manifest = await response.json();
-      if (manifest.version !== HYDRO_DATA_VERSION || manifest.schema !== 'pandolab-water-shards-v5') throw new Error('수계 타일 버전이 맞지 않습니다.');
+      return manifestUrl;
+    },
+    getLoadState: () => state.physicalLoadState.hydro,
+    onLoading: () => {
+      state.physicalLoadState.hydro = 'loading';
+      state.physicalLoadState.hydroManifest = 'loading';
+      state.physicalLoadState.hydroWorker = 'starting';
+      state.physicalLoadState.hydroView = 'idle';
+      markLayerTreeDirty();
+      renderLayerTree();
+    },
+    onRetry: (_operation, attempt) => reliabilityDiagnostic.push({
+      category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
+    }),
+    acceptManifest: async (manifest, manifestUrl) => {
       state.hydroManifest = manifest;
       state.hydroCollections = {};
       state.hydroFeatureCache = new Map();
@@ -5292,13 +5294,15 @@ const {
       state.physicalLoadState.hydroCache = 'idle';
       state.physicalLoadState.hydroCachePercent = 0;
       const workerReady = await gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
-      if (!workerReady) throw new Error('수계 Worker 초기화에 실패했습니다.');
+      if (!workerReady) return false;
       state.physicalLoadState.hydroWorker = 'ready';
       state.physicalLoadState.hydro = 'ready';
       markLayerTreeDirty();
       renderLayerTree();
       renderHydro();
-    } catch (error) {
+      return true;
+    },
+    onFailure: error => {
       if (state.physicalLoadState.hydroManifest !== 'ready') state.physicalLoadState.hydroManifest = 'error';
       state.physicalLoadState.hydroWorker = 'error';
       state.physicalLoadState.hydro = 'error';
@@ -5307,7 +5311,11 @@ const {
       renderLayerTree();
       console.warn('Hydro load failed', error);
       reportOperationError(error, '수계 목록을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도하세요.', 'PL-WATER-001', 0);
-    }
+    },
+  });
+
+  async function loadHydroData(force = false) {
+    return hydroService.load(force);
   }
 
   function loadPhysicalData() {

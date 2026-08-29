@@ -35,12 +35,14 @@ test('renderer separates requested and loaded hydro views and treats cache failu
 });
 
 test('app waits for actual hydro worker readiness and retries manifests', () => {
-  const source = read('assets/js/app.js');
-  assert.ok(source.includes('await gpuMapRenderer.setHydroManifest(manifest, manifestUrl)'));
-  assert.ok(source.includes("state.physicalLoadState.hydroWorker = 'starting';"));
-  assert.ok(source.includes("state.physicalLoadState.hydroManifest = 'loading';"));
-  assert.ok(source.includes('fetchWithRetry(manifestUrl'));
-  assert.ok(source.includes('fetchWithRetry(url'));
+  const app = read('assets/js/app.js');
+  const service = read('assets/js/modules/physical-layer-service.js');
+  assert.ok(app.includes('await gpuMapRenderer.setHydroManifest(manifest, manifestUrl)'));
+  assert.ok(app.includes("state.physicalLoadState.hydroWorker = 'starting';"));
+  assert.ok(app.includes("state.physicalLoadState.hydroManifest = 'loading';"));
+  assert.ok(service.includes('fetchWithRetry(url'));
+  assert.ok(service.includes('maxAttempts: 3'));
+  assert.ok(service.includes('timeoutMs: 15000'));
 });
 
 test('bootstrap cache revision is advanced for the reliability build', () => {

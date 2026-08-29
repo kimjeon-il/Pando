@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
 PERSISTENCE = (ROOT / "assets/js/modules/persistence-service.js").read_text(encoding="utf-8")
 SERIALIZER = (ROOT / "assets/js/modules/project-serializer.js").read_text(encoding="utf-8")
+PHYSICAL = (ROOT / "assets/js/modules/physical-layer-service.js").read_text(encoding="utf-8")
 
 
 class RefactorBoundaryTests(unittest.TestCase):
@@ -17,7 +18,7 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("localStorage.setItem(fallbackKey", PERSISTENCE)
 
     def test_persistence_and_serializer_are_dom_free(self):
-        for source in (PERSISTENCE, SERIALIZER):
+        for source in (PERSISTENCE, SERIALIZER, PHYSICAL):
             self.assertNotIn("document.", source)
             self.assertNotIn("querySelector", source)
             self.assertNotIn("getElementById", source)
@@ -27,6 +28,14 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("createBrowserProjectStorage({", APP)
         self.assertIn("createPersistenceService({", APP)
         self.assertIn("persistenceService.writeProject(buildAutosaveData())", APP)
+
+    def test_physical_manifest_lifecycle_is_behind_services(self):
+        self.assertIn("createTerrainService({", APP)
+        self.assertIn("createHydroService({", APP)
+        self.assertIn("return terrainService.load(force)", APP)
+        self.assertIn("return hydroService.load(force)", APP)
+        self.assertIn("maxAttempts: 3", PHYSICAL)
+        self.assertIn("timeoutMs: 15000", PHYSICAL)
 
 
 if __name__ == "__main__":
