@@ -13,9 +13,9 @@ APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 
 class V0192LayerControlTests(unittest.TestCase):
     def test_layer_groups_do_not_repeat_folder_icons(self):
-        self.assertIn('symbol id="icon-folder"', INDEX)
+        self.assertNotIn('symbol id="icon-folder"', INDEX)
         self.assertEqual(INDEX.count('class="ui-icon layer-folder-icon"'), 0)
-        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 1)
+        self.assertEqual(INDEX.count('<use href="#icon-folder"/>'), 0)
         self.assertNotIn('class="layer-icon', INDEX)
         self.assertNotIn(".layer-icon", CSS)
         self.assertNotIn("layer-child-swatch", APP)
@@ -42,6 +42,15 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertIn("background: var(--accent-surface)", rule)
         self.assertIn("box-shadow: inset 0 0 0 1px var(--inset-highlight)", CSS)
         self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-border\)')
+
+    def test_layer_visibility_uses_eye_icons_without_changing_checkbox_state(self):
+        self.assertEqual(INDEX.count('class="layer-visibility-toggle"'), 8)
+        self.assertIn('input[type="checkbox"].layer-visibility-toggle::before', CSS)
+        self.assertIn('input[type="checkbox"].layer-visibility-toggle:checked::before', CSS)
+        self.assertIn('mask-image: url("data:image/svg+xml', CSS)
+        self.assertIn("visibility.className = 'layer-visibility-toggle'", APP)
+        self.assertIn('function syncLayerVisibilityToggle(input)', APP)
+        self.assertIn("input.dataset.tooltip = input.checked ? `${label} 숨기기` : `${label} 표시`", APP)
 
     def test_layer_children_use_context_menus_without_duplicate_copy(self):
         tree_items = APP[APP.index("function layerTreeItems"):APP.index("function pruneLayerItemVisibility")]

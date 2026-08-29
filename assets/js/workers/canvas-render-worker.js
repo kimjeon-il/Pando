@@ -381,6 +381,13 @@ function canvasFallbackWorkerMain() {
       context.lineCap = 'round';
       context.lineJoin = 'round';
       const waterColor = automaticWaterColor(message);
+      const hydroOpacity = Number.isFinite(Number(message.theme?.hydroOpacity))
+        ? Math.max(0, Math.min(1, Number(message.theme.hydroOpacity)))
+        : 1;
+      if (hydroOpacity <= 0) {
+        context.restore();
+        return;
+      }
       for (const feature of features) {
         if (!hydroFeatureVisible(feature, message)) continue;
         const properties = feature.properties || {};
@@ -390,16 +397,17 @@ function canvasFallbackWorkerMain() {
           if (borderAligned) continue;
           context.beginPath();
           geoPath(feature);
-          context.globalAlpha = 0.92;
+          context.globalAlpha = hydroOpacity;
           context.fillStyle = waterColor;
           context.fill();
           continue;
         }
+        if (message.theme?.hydroBoundaryVisible === false) continue;
         if (isBorder !== borderAligned) continue;
         const parts = lineParts(feature.geometry);
         const profiles = properties.stroke_widths || [];
         const fallback = Math.max(0.55, Math.min(2.6, Number(properties.stroke_width || 0.8)));
-        context.globalAlpha = 0.96;
+        context.globalAlpha = hydroOpacity;
         context.strokeStyle = waterColor;
         for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
           const part = parts[partIndex];

@@ -45,6 +45,8 @@ class V0130RuntimeTests(unittest.TestCase):
     def test_terrain_toggle_settings_and_automatic_water_colour(self):
         self.assertNotIn('data-layer-group="terrain"', INDEX)
         self.assertIn('id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시"', INDEX)
+        self.assertIn('id="terrainDisplayOptions" class="terrain-display-options"', INDEX)
+        self.assertIn('class="ui-range-progress" type="range"', INDEX)
         self.assertIn('id="terrainLayerSettingsTitle">지형 음영</strong>', INDEX)
         for element_id in ("terrainVisible", "terrainPoliticalRadio", "terrainPhysicalRadio", "terrainStrengthControl"):
             self.assertIn(f'id="{element_id}"', INDEX)
@@ -79,6 +81,22 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertNotIn("label: '호수 · Natural Earth'", APP)
         self.assertIn("label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS'", APP)
         self.assertIn("label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth'", APP)
+        self.assertIn("const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:'", APP)
+        self.assertIn("name: meta.sourceLabel", APP)
+        self.assertIn("folderName: `지형지물 · ${meta.label}`", APP)
+
+    def test_hydro_uses_the_current_ocean_colour_without_intrinsic_alpha(self):
+        lake_rule = source_section(CSS, ".hydro-lake-group {", "}")
+        river_rule = source_section(CSS, ".hydro-river-group {", "}")
+        self.assertIn("fill: var(--map-ocean)", lake_rule)
+        self.assertIn("stroke: var(--map-ocean)", lake_rule)
+        self.assertIn("fill-opacity: 1", lake_rule)
+        self.assertIn("stroke: var(--map-ocean)", river_rule)
+        self.assertIn("stroke-opacity: 1", river_rule)
+        self.assertNotIn(".hydro-lake-group { fill: #376f91", CSS)
+        self.assertNotIn(".hydro-river-group { stroke: #66b5e5", CSS)
+        self.assertIn(".style('fill-opacity', hydroStyle.opacity)", APP)
+        self.assertIn(".style('stroke-opacity', hydroStyle.boundaryVisible ? hydroStyle.opacity : 0)", APP)
 
     def test_hydro_fragments_share_system_identity_and_roles(self):
         rivers = [row for row in self.core if row["category"] == "river"]

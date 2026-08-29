@@ -15,14 +15,14 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.30.0-r9", INDEX)
+            self.assertIn(f"{asset}?v=0.30.0-r11", INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
         toggles = re.findall(r'class="ui-button layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)
-        self.assertEqual(len(toggles), 9)
+        self.assertEqual(len(toggles), 8)
         self.assertTrue(all('class="ui-icon disclosure-icon"' in toggle for toggle in toggles))
-        self.assertGreaterEqual(INDEX.count('class="ui-icon disclosure-icon"'), 16)
+        self.assertGreaterEqual(INDEX.count('class="ui-icon disclosure-icon"'), 15)
         self.assertNotIn('>›</button>', INDEX)
         self.assertNotIn("content: '⌄'", CSS)
         self.assertIn(".editor-disclosure > summary::-webkit-details-marker { display: none; }", CSS)
