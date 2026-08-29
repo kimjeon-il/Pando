@@ -460,17 +460,22 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .country-label.major { font-size: var(--ui-font-caption); }
 .country-region-shape {
   fill-opacity: 0;
-  stroke: currentColor;
-  stroke-opacity: .78;
-  stroke-linejoin: round;
-  stroke-linecap: round;
+  stroke: none;
   cursor: pointer;
   vector-effect: non-scaling-stroke;
   transition: fill-opacity .12s ease, stroke-width .12s ease;
 }
-.country-region-shape.is-region { stroke-width: 2px; }
-.country-region-shape.is-administrative { stroke-width: 1.1px; stroke-dasharray: 3 2; }
-.country-region-shape.is-historical-region { stroke-width: 1.5px; stroke-dasharray: 7 3; }
+.territorial-internal-boundary {
+  fill: none;
+  stroke-opacity: .78;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+.territorial-internal-boundary--region { stroke-width: 2px; }
+.territorial-internal-boundary--administrative { stroke-width: 1.1px; stroke-dasharray: 3 2; }
+.territorial-internal-boundary--historical { stroke-width: 1.5px; stroke-dasharray: 7 3; }
 .country-region-shape.has-explicit-color { fill-opacity: .24; }
 .country-region-shape:not(.has-explicit-color):hover { fill-opacity: .12; }
 .country-region-shape.has-explicit-color:hover { fill-opacity: .32; }
@@ -3172,6 +3177,7 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   gap: var(--ui-control-gap);
   padding: 0 var(--ui-control-padding-x);
   border: 0;
+  border-radius: inherit;
   background: transparent;
   color: var(--text);
   font-size: var(--ui-font-md);
@@ -3181,6 +3187,7 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 }
 .editor-disclosure > summary::-webkit-details-marker { display: none; }
 .editor-disclosure > summary:hover { background: var(--ui-control-bg-hover); }
+.editor-disclosure[open] > summary { border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0; }
 .editor-disclosure > summary .disclosure-icon {
   width: 18px;
   height: 18px;

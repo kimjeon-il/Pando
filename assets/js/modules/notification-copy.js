@@ -37,7 +37,7 @@ function fallbackCopy(value, tone, code) {
   }
   if (/저장/u.test(value)) return '저장했습니다.';
   if (/행정구역.*가져|가져.*행정구역/u.test(value)) return '행정구역을 가져왔습니다.';
-  if (/지역.*가져|가져.*지역/u.test(value)) return '지역을 가져왔습니다.';
+  if (/(?:권역|지역).*가져|가져.*(?:권역|지역)/u.test(value)) return '권역을 가져왔습니다.';
   if (/불러|가져/u.test(value)) return '가져왔습니다.';
   if (/내보|GeoJSON|GeoPackage|다운로드|파일.*만들/u.test(value)) return '파일을 만들었습니다.';
   if (/삭제/u.test(value)) return '삭제했습니다.';

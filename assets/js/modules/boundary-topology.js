@@ -281,3 +281,88 @@ export function planCoastEdit(topology, countryId) {
   }
   return { countryId: ownerId, segmentKeys, editableNodeKeys, fixedNodeKeys };
 }
+
+function topologyFeature(feature, prefix, index) {
+  const id = featureId(feature, index);
+  return {
+    ...feature,
+    properties: { ...(feature?.properties || {}), editor_id: `${prefix}:${id}` },
+  };
+}
+
+function pointSegmentDistance(point, a, b) {
+  const dx = Number(b[0]) - Number(a[0]);
+  const dy = Number(b[1]) - Number(a[1]);
+  const length2 = dx * dx + dy * dy;
+  if (!length2) return Math.hypot(Number(point[0]) - Number(a[0]), Number(point[1]) - Number(a[1]));
+  const t = Math.max(0, Math.min(1, ((Number(point[0]) - Number(a[0])) * dx + (Number(point[1]) - Number(a[1])) * dy) / length2));
+  return Math.hypot(Number(point[0]) - (Number(a[0]) + dx * t), Number(point[1]) - (Number(a[1]) + dy * t));
+}
+
+export function buildTerritorialInternalBoundarySegments(countries = [], units = [], { precision = 7, epsilon = 1e-7 } = {}) {
+  const countryFeatures = (countries || [])
+    .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
+    .map((feature, index) => topologyFeature(feature, 'country', index));
+  const unitFeatures = (units || [])
+    .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
+    .map((feature, index) => topologyFeature(feature, 'unit', index));
+  const unitMeta = new Map(unitFeatures.map(feature => [feature.properties.editor_id, {
+    id: featureId(feature).replace(/^unit:/, ''),
+    type: feature.properties?.unitType || '',
+  }]));
+  const topology = buildBoundaryTopology([...countryFeatures, ...unitFeatures], { precision, epsilon });
+  const countryEdges = [...topology.segments.values()].filter(segment => [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')));
+  const boundaryTolerance = Math.max(1e-4, epsilon * 1000);
+  const bucketSize = 1;
+  const countryBuckets = new Map();
+  const bucketKey = (x, y) => `${x}:${y}`;
+  for (const edge of countryEdges) {
+    const minX = Math.floor(Math.min(edge.a[0], edge.b[0]) / bucketSize);
+    const maxX = Math.floor(Math.max(edge.a[0], edge.b[0]) / bucketSize);
+    const minY = Math.floor(Math.min(edge.a[1], edge.b[1]) / bucketSize);
+    const maxY = Math.floor(Math.max(edge.a[1], edge.b[1]) / bucketSize);
+    if ((maxX - minX + 1) * (maxY - minY + 1) > 4096) continue;
+    for (let x = minX; x <= maxX; x += 1) for (let y = minY; y <= maxY; y += 1) {
+      const key = bucketKey(x, y);
+      if (!countryBuckets.has(key)) countryBuckets.set(key, []);
+      countryBuckets.get(key).push(edge);
+    }
+  }
+  const nearCountryExterior = segment => {
+    const minX = Math.floor((Math.min(segment.a[0], segment.b[0]) - boundaryTolerance) / bucketSize);
+    const maxX = Math.floor((Math.max(segment.a[0], segment.b[0]) + boundaryTolerance) / bucketSize);
+    const minY = Math.floor((Math.min(segment.a[1], segment.b[1]) - boundaryTolerance) / bucketSize);
+    const maxY = Math.floor((Math.max(segment.a[1], segment.b[1]) + boundaryTolerance) / bucketSize);
+    const candidates = [];
+    const seen = new Set();
+    for (let x = minX; x <= maxX; x += 1) for (let y = minY; y <= maxY; y += 1) {
+      for (const edge of countryBuckets.get(bucketKey(x, y)) || []) {
+        if (seen.has(edge.key)) continue;
+        seen.add(edge.key);
+        candidates.push(edge);
+      }
+    }
+    return candidates.some(edge => pointSegmentDistance(segment.a, edge.a, edge.b) <= boundaryTolerance
+      && pointSegmentDistance(segment.b, edge.a, edge.b) <= boundaryTolerance);
+  };
+  const output = [];
+  for (const segment of topology.segments.values()) {
+    const unitOwners = [...segment.ownerIds].filter(ownerId => ownerId.startsWith('unit:'));
+    if (!unitOwners.length || [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')) || nearCountryExterior(segment)) continue;
+    const metadata = unitOwners.map(ownerId => unitMeta.get(ownerId)).filter(Boolean);
+    if (!metadata.length) continue;
+    const styleType = metadata.some(item => item.type === 'admin')
+      ? 'administrative'
+      : metadata.some(item => item.type === 'region')
+        ? 'historical'
+        : 'region';
+    output.push({
+      key: segment.key,
+      a: segment.a,
+      b: segment.b,
+      unitIds: metadata.map(item => item.id),
+      styleType,
+    });
+  }
+  return output;
+}
