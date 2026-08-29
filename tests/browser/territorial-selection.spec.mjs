@@ -100,7 +100,7 @@ test('a region above a visible country opens the chooser and does not block map 
 
   const afterDrag = await territorialShapeCenter(page, name);
   await chooseTerritorialObject(page, afterDrag, name);
-  await expect(page.locator('#selectionStatus')).toContainText(`지역 · 독일 · ${name}`);
+  await expect(page.locator('#selectionStatus')).toContainText(`권역 · 독일 · ${name}`);
   await expect(page.locator('#regionProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -140,7 +140,7 @@ test('a mobile touch tap selects the territorial overlay above its country', asy
     const point = await territorialShapeCenter(page, name);
     expect(point).not.toBeNull();
     await chooseTerritorialObject(page, point, name, { touch: true });
-    await expect(page.locator('#selectionStatus')).toContainText(`지역 · 독일 · ${name}`);
+    await expect(page.locator('#selectionStatus')).toContainText(`권역 · 독일 · ${name}`);
     await expect(page.locator('#regionProperties')).not.toHaveClass(/hidden/);
     expect(errors).toEqual([]);
   } finally {

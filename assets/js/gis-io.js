@@ -443,23 +443,33 @@
     return '';
   }
 
-  function populateFieldSelect(select, fields, { includeFid = false, includeStyle = false, selected = '' } = {}) {
+  function fieldExampleText(field, fieldExamples = {}) {
+    const value = fieldExamples?.[field];
+    if (value == null || value === '') return '예시 없음';
+    return String(value).slice(0, 48);
+  }
+
+  function populateFieldSelect(select, fields, { includeFid = false, includeStyle = false, selected = '', roleLabel = '속성', fieldExamples = {} } = {}) {
     select.replaceChildren();
     if (includeFid) select.add(new Option('원본 FID', '__fid__'));
     else select.add(new Option('사용 안 함', ''));
     if (includeStyle) select.add(new Option('QGIS 기본 스타일', '__qgis_style__'));
-    fields.forEach(field => select.add(new Option(field, field)));
+    fields.forEach(field => {
+      const fieldName = String(field);
+      select.add(new Option(`${roleLabel} — ${fieldExampleText(fieldName, fieldExamples)}`, fieldName));
+    });
     select.value = selected || (includeFid ? '__fid__' : '');
   }
 
   function updateWizardFields(descriptor) {
     const fields = descriptor.fields || [];
-    populateFieldSelect(document.getElementById('gisIdField'), fields, { includeFid: true, selected: autoField(fields, ['pandolab_id', 'editor_id', 'ADM0_A3', 'ISO_A3', 'id']) || '__fid__' });
-    populateFieldSelect(document.getElementById('gisNameField'), fields, { selected: autoField(fields, ['pandolab_name', 'NAME_KO', 'name_ko', 'NAME', 'name', descriptor.qgsLabelField]) });
-    populateFieldSelect(document.getElementById('gisColorField'), fields, { includeStyle: true, selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill']) });
-    populateFieldSelect(document.getElementById('gisCountryField'), fields, { selected: autoField(fields, ['sovereign_id', 'country_id', 'countryId', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
-    populateFieldSelect(document.getElementById('gisParentField'), fields, { selected: autoField(fields, ['parent_id', 'parentRegionId', 'parent', 'region_id']) });
-    populateFieldSelect(document.getElementById('gisLevelField'), fields, { selected: autoField(fields, ['admin_level', 'level', 'adm_level']) });
+    const fieldOptions = { fieldExamples: descriptor.fieldExamples || {} };
+    populateFieldSelect(document.getElementById('gisIdField'), fields, { ...fieldOptions, roleLabel: 'ID', includeFid: true, selected: autoField(fields, ['pandolab_id', 'editor_id', 'ADM0_A3', 'ISO_A3', 'id']) || '__fid__' });
+    populateFieldSelect(document.getElementById('gisNameField'), fields, { ...fieldOptions, roleLabel: '이름', selected: autoField(fields, ['pandolab_name', 'NAME_KO', 'name_ko', 'NAME', 'name', descriptor.qgsLabelField]) });
+    populateFieldSelect(document.getElementById('gisColorField'), fields, { ...fieldOptions, roleLabel: '색상', includeStyle: true, selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill']) });
+    populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['sovereign_id', 'country_id', 'countryId', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
+    populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 영역', selected: autoField(fields, ['parent_id', 'parentRegionId', 'parent', 'region_id']) });
+    populateFieldSelect(document.getElementById('gisLevelField'), fields, { ...fieldOptions, roleLabel: '행정 단계', selected: autoField(fields, ['admin_level', 'level', 'adm_level']) });
     const crsInput = document.getElementById('gisCrsInput');
     crsInput.value = descriptor.crs.source || '';
     crsInput.classList.toggle('hidden', descriptor.crs.hasCrs);
@@ -544,7 +554,7 @@
     const ownerId = document.getElementById('gisTargetCountry')?.value || '';
     select.replaceChildren(new Option('국가 직속', ''));
     for (const region of (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId))) {
-      select.add(new Option(`${region.name}${region.type === 'administrative' ? ` · ${region.level || 1}단계` : ' · 지역'}`, region.id));
+      select.add(new Option(`${region.name}${region.type === 'administrative' ? ` · ${region.level || 1}단계` : ' · 권역'}`, region.id));
     }
     if ([...select.options].some(option => option.value === selected)) select.value = selected;
   }
@@ -937,7 +947,7 @@
     const ownerNames = new Map((wizardOptions.countryOptions || []).map(country => [String(country.id), country.name || country.id]));
     const formatArea = value => `${Math.round(Number(value) || 0).toLocaleString()} km²`;
     container.append(Object.assign(document.createElement('p'), {
-      textContent: `${impact.featureCount.toLocaleString()}개 ${mapping.targetType === 'administrative' ? '행정구역' : '지역'} · 전체 ${formatArea(impact.totalAreaKm2)}`,
+      textContent: `${impact.featureCount.toLocaleString()}개 ${mapping.targetType === 'administrative' ? '행정구역' : '권역'} · 전체 ${formatArea(impact.totalAreaKm2)}`,
     }));
     const list = document.createElement('ul');
     for (const group of impact.groups || []) {
@@ -1043,7 +1053,7 @@
         const descriptor = session.descriptors[Number(layerSelect.value) || 0];
         const mapping = importMappingFromUi();
         if (['region', 'administrative'].includes(mapping.targetType) && !mapping.targetCountryId) {
-          throw new Error('지역·행정구역을 가져오려면 소속 국가를 선택해야 합니다.');
+          throw new Error('권역·행정구역을 가져오려면 소속 국가를 선택해야 합니다.');
         }
         if (mapping.useFeatureCountryField && !mapping.countryField) throw new Error('객체별 소속 국가에 사용할 속성을 선택하세요.');
         const crsInput = document.getElementById('gisCrsInput');

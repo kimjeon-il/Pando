@@ -106,11 +106,11 @@
             </div>
             <div class="layer-folder" data-layer-group="regions">
               <div class="ui-row layer-folder-row">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="regions" aria-expanded="false" aria-label="지역 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <input id="regionsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="지역" aria-label="지역 레이어 표시" />
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="regions">지역</button>
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="regions" aria-expanded="false" aria-label="권역 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <input id="regionsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="권역" aria-label="권역 레이어 표시" />
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="regions">권역</button>
               </div>
-              <div id="regionsLayerChildren" class="layer-children" role="group" aria-label="지역 항목" hidden></div>
+              <div id="regionsLayerChildren" class="layer-children" role="group" aria-label="권역 항목" hidden></div>
             </div>
             <div class="layer-folder" data-layer-group="administrative">
               <div class="ui-row layer-folder-row">
@@ -122,11 +122,11 @@
             </div>
             <div class="layer-folder" data-layer-group="historicalRegions">
               <div class="ui-row layer-folder-row">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="historicalRegions" aria-expanded="false" aria-label="역사·지리 지역 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <input id="historicalRegionsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="역사·지리 지역" aria-label="역사·지리 지역 레이어 표시" />
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="historicalRegions">역사·지리 지역</button>
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="historicalRegions" aria-expanded="false" aria-label="지방 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <input id="historicalRegionsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="지방" aria-label="지방 레이어 표시" />
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="historicalRegions">지방</button>
               </div>
-              <div id="historicalRegionsLayerChildren" class="layer-children" role="group" aria-label="역사·지리 지역 항목" hidden></div>
+              <div id="historicalRegionsLayerChildren" class="layer-children" role="group" aria-label="지방 항목" hidden></div>
             </div>
               </div>
             </section>
@@ -239,10 +239,10 @@
                 <div class="map-sheet-body create-sheet-body">
                   <div class="create-menu-group"><span>영토</span></div>
                   <button id="addCountryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
-                  <button id="addRegionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>지역</strong><small>국가 안의 지역 만들기</small></span></button>
+                  <button id="addRegionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>권역</strong><small>국가 안의 권역 만들기</small></span></button>
                   <button id="addAdministrativeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-administrative"/></svg></span><span><strong>행정구역</strong><small>부모 영역 안에 행정 단위 만들기</small></span></button>
                   <div class="create-menu-group"><span>자료</span></div>
-                  <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong><small>현존·과거 국가와 역사 지역 검색</small></span></button>
+                  <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong><small>현존·과거 국가와 지방 검색</small></span></button>
                   <button id="addDistributionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem" aria-haspopup="dialog" aria-controls="distributionTypeModal"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>분포</strong><small>언어·민족·종교 분포 만들기</small></span></button>
                   <div class="create-menu-group"><span>지도 요소</span></div>
                   <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong><small>지도에 도시·지명 배치하기</small></span></button>
@@ -438,21 +438,21 @@
                 <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row"><span><strong>국가 합병</strong><small>여러 국가를 하나로 합치기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <button id="editBorderBtn" type="button" class="ui-button editor-action-row"><span><strong>국경 조정</strong><small>선택한 접경국 사이의 공유국경 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <button id="editCoastBtn" type="button" class="ui-button editor-action-row"><span><strong>해안선 조정</strong><small>선택 국가의 외곽 해안선 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가를 지역 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가를 권역 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
               </div>
             </section>
           </form>
 
           <form id="regionProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <section class="editor-section editor-info-section editor-section-primary">
-              <div class="ui-field field-group editor-field"><label for="regionNameInput">지역명</label><input id="regionNameInput" type="text" placeholder="예: 마조프셰" /></div>
-              <p id="regionNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 지역이 있습니다. 구분할 수 있도록 이름을 확인하세요.</p>
+              <div class="ui-field field-group editor-field"><label for="regionNameInput">권역명</label><input id="regionNameInput" type="text" placeholder="예: 마조프셰" /></div>
+              <p id="regionNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 권역이 있습니다. 구분할 수 있도록 이름을 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="regionCountryInput">소속 국가</label><select id="regionCountryInput"><option value="">소속 국가 미지정</option></select></div>
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="region">
                 <label id="regionColorLabel">색상</label>
                 <button id="regionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="regionColorPopover" aria-labelledby="regionColorLabel regionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="regionColorValue" class="ui-color-value">국가색 상속</span></button>
                 <input id="regionColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
-                <div id="regionColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="지역 색상 팔레트"><button id="regionInheritColorBtn" class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>국가색 상속</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
+                <div id="regionColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="권역 색상 팔레트"><button id="regionInheritColorBtn" class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>국가색 상속</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
               </div>
               <div class="ui-field field-group editor-field"><label for="regionNotesInput">메모</label><textarea id="regionNotesInput" rows="4"></textarea></div>
             </section>
@@ -503,7 +503,7 @@
               <h3 id="administrativeRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
                 <button id="transferAdministrativeBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <button id="changeAdministrativeTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가 또는 지역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <button id="changeAdministrativeTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가 또는 권역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <button id="promoteAdministrativeBtn" type="button" class="ui-button editor-action-row"><span><strong>국가로 전환</strong><small>선택 구역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <button id="removeAdministrativeDivisionBtn" type="button" class="ui-button editor-action-row"><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
               </div>
@@ -512,15 +512,15 @@
 
           <form id="historicalRegionProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <section class="editor-section editor-info-section editor-section-primary">
-              <div class="ui-field field-group editor-field"><label for="historicalRegionNameInput">지역명</label><input id="historicalRegionNameInput" type="text" placeholder="예: 실레시아" /></div>
-              <p id="historicalRegionNameConflict" class="editor-help hidden">이름이 같은 역사·지리 지역이 있습니다. 시대와 상위 영역을 확인하세요.</p>
+              <div class="ui-field field-group editor-field"><label for="historicalRegionNameInput">지방명</label><input id="historicalRegionNameInput" type="text" placeholder="예: 실레시아" /></div>
+              <p id="historicalRegionNameConflict" class="editor-help hidden">이름이 같은 지방이 있습니다. 시대와 상위 영역을 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="historicalRegionCountryInput">주권 국가</label><select id="historicalRegionCountryInput"><option value="">주권 국가 없음</option></select></div>
               <div class="ui-field field-group editor-field"><label for="historicalRegionParentInput">상위 영역</label><select id="historicalRegionParentInput"><option value="">상위 영역 없음</option></select></div>
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="historicalRegion">
                 <label id="historicalRegionColorLabel">색상</label>
                 <button id="historicalRegionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="historicalRegionColorPopover" aria-labelledby="historicalRegionColorLabel historicalRegionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="historicalRegionColorValue" class="ui-color-value">기본 색상</span></button>
                 <input id="historicalRegionColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
-                <div id="historicalRegionColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="역사·지리 지역 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
+                <div id="historicalRegionColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="지방 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
               </div>
               <fieldset class="editor-period-group"><legend>유효 기간</legend><div class="editor-period-fields">
                 <div class="ui-field field-group editor-field"><label for="historicalRegionValidFromInput">시작일</label><input id="historicalRegionValidFromInput" type="text" inputmode="numeric" placeholder="예: 1910-01-01" /></div>
@@ -531,7 +531,7 @@
             <section class="editor-section editor-action-section">
               <div class="editor-action-list">
                 <button id="reassignHistoricalRegionShapeBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 수정</strong><small>상위 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <button id="mergeHistoricalRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 합치기</strong><small>인접한 역사·지리 지역 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <button id="mergeHistoricalRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>지방 합치기</strong><small>인접한 지방 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <button id="transferHistoricalRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>주권 국가와 상위 영역 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
               </div>
             </section>
@@ -561,7 +561,7 @@
                 <div class="ui-field field-group editor-field"><label for="distributionRegionInput">기준 영역</label><select id="distributionRegionInput"></select></div>
                 <div class="ui-field field-group editor-field"><label for="distributionShareInput">비율 (%)</label><input id="distributionShareInput" type="number" min="0" max="100" step="1" value="100" /></div>
                 <div class="editor-action-grid editor-action-grid-two">
-                  <button id="addRegionDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영역 분포 추가</strong><small>국가·지역·행정구역 참조</small></button>
+                  <button id="addRegionDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>영역 분포 추가</strong><small>국가·권역·행정구역 참조</small></button>
                   <button id="addGeometryDistributionBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>자유 영역 그리기</strong><small>행정경계와 무관한 분포</small></button>
                 </div>
               </div>
@@ -751,7 +751,7 @@
   <div id="countryRegionCreateModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="countryRegionCreateTitle">
     <div class="ui-dialog-backdrop confirm-modal-dim"></div>
     <section class="ui-dialog-card confirm-modal-card">
-      <h2 id="countryRegionCreateTitle">지역 추가</h2>
+      <h2 id="countryRegionCreateTitle">권역 추가</h2>
       <p id="countryRegionCreateContext"></p>
       <label class="ui-field field-group"><span>생성 방법</span><select id="countryRegionCreateMethod"><option value="split">기존 영역 나누기</option><option value="draw">영역 직접 지정</option><option value="geojson">GeoJSON에서 가져오기</option></select></label>
       <div class="confirm-modal-actions ui-dialog-actions">
@@ -766,9 +766,9 @@
       <h2 id="territorialTypeTitle">종류 변경</h2>
       <p id="territorialTypeContext"></p>
       <div class="territorial-type-fields">
-        <label class="ui-field field-group"><span>새 종류</span><select id="territorialTypeInput"><option value="country">국가</option><option value="territory">지역</option><option value="admin">행정구역</option></select></label>
-        <label id="territorialTypeSovereignRow" class="ui-field field-group hidden"><span>소속 국가</span><select id="territorialTypeSovereignInput"></select><small>국가를 지역·행정구역으로 바꾸면 영토가 이 국가에 합쳐집니다.</small></label>
-        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 지역·행정구역</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 영역에 맞춰 자동으로 정해집니다.</small></label>
+        <label class="ui-field field-group"><span>새 종류</span><select id="territorialTypeInput"><option value="country">국가</option><option value="territory">권역</option><option value="admin">행정구역</option></select></label>
+        <label id="territorialTypeSovereignRow" class="ui-field field-group hidden"><span>소속 국가</span><select id="territorialTypeSovereignInput"></select><small>국가를 권역·행정구역으로 바꾸면 영토가 이 국가에 합쳐집니다.</small></label>
+        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 권역·행정구역</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 영역에 맞춰 자동으로 정해집니다.</small></label>
         <section id="territorialTypeImpact" class="territorial-type-impact" aria-live="polite">
           <strong id="territorialTypeImpactSummary"></strong>
           <ul id="territorialTypeImpactList"></ul>
@@ -790,7 +790,7 @@
       <div class="historical-library-toolbar">
         <div class="ui-field field-group historical-library-search"><label for="historicalLibrarySearchInput">검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="historicalLibrarySearchInput" type="search" placeholder="이름·별칭·다국어 이름" autocomplete="off" /><button id="historicalLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
         <label class="ui-field field-group"><span>기준 연도</span><input id="historicalLibraryYearInput" type="number" min="-5000" max="9999" step="1" placeholder="예: 1910" /></label>
-        <details class="ui-disclosure historical-library-filters"><summary><span>필터</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="territory">지역</option><option value="admin">행정구역</option><option value="region">역사·지리 지역</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>권역</span><select id="historicalLibraryRegionInput"><option value="">전체</option></select></label></div></details>
+        <details class="ui-disclosure historical-library-filters"><summary><span>필터</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="territory">권역</option><option value="admin">행정구역</option><option value="region">지방</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>권역</span><select id="historicalLibraryRegionInput"><option value="">전체</option></select></label></div></details>
       </div>
       <div class="historical-library-layout">
         <div id="historicalLibraryResults" class="historical-library-results" role="listbox" aria-label="라이브러리 검색 결과"></div>
@@ -826,10 +826,10 @@
 
         <div class="gis-form-grid">
           <label id="gisLayerRow" class="ui-field field-group gis-wide" data-gis-step="0" data-gis-active="true"><span>가져올 레이어</span><select id="gisLayerSelect"></select><small id="gisLayerDetails">레이어 정보를 불러오는 중입니다.</small></label>
-          <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="country">국가</option><option value="drawing">지형지물</option><option value="region">지역</option><option value="administrative">행정구역</option><option value="historicalRegion">역사·지리 지역</option><option value="distribution">분포</option></select></label>
+          <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="country">국가</option><option value="drawing">지형지물</option><option value="region">권역</option><option value="administrative">행정구역</option><option value="historicalRegion">지방</option><option value="distribution">분포</option></select></label>
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
           <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">교차 면적은 추천 정보일 뿐이며, 여기서 선택한 국가가 최종 소속입니다.</small></label>
-          <label id="gisParentRegionRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentRegion"><option value="">국가 직속</option></select><small>선택한 국가의 기존 지역·행정구역만 표시합니다. 행정 단계는 상위 영역에서 자동 계산합니다.</small></label>
+          <label id="gisParentRegionRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentRegion"><option value="">국가 직속</option></select><small>선택한 국가의 기존 권역·행정구역만 표시합니다. 행정 단계는 상위 영역에서 자동 계산합니다.</small></label>
           <div class="ui-callout gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
           <details id="gisAdvancedMapping" class="ui-disclosure editor-disclosure gis-wide" data-gis-step="2"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body gis-form-grid">
             <label class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
@@ -869,9 +869,9 @@
         <div class="gis-export-step" data-gis-export-step="0" data-gis-active="true">
           <fieldset class="gis-export-layers"><legend>내보낼 데이터</legend>
             <label class="ui-check"><input type="checkbox" value="countries" checked /><span>국가</span></label>
-            <label class="ui-check"><input type="checkbox" value="regions" checked /><span>지역</span></label>
+            <label class="ui-check"><input type="checkbox" value="regions" checked /><span>권역</span></label>
             <label class="ui-check"><input type="checkbox" value="administrative" checked /><span>행정구역</span></label>
-            <label class="ui-check"><input type="checkbox" value="historicalRegions" checked /><span>역사·지리 지역</span></label>
+            <label class="ui-check"><input type="checkbox" value="historicalRegions" checked /><span>지방</span></label>
             <label class="ui-check"><input type="checkbox" value="drawings" checked /><span>지형지물</span></label>
             <label class="ui-check"><input type="checkbox" value="distributions" checked /><span>분포</span></label>
             <label class="ui-check"><input type="checkbox" value="labels" checked /><span>사용자 라벨</span></label>

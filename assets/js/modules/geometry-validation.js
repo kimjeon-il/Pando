@@ -359,7 +359,7 @@ export function validateAdministrativeContainment(units = [], countries = [], { 
   for (const [unitIndex, unit] of units.entries()) {
     const id = String(unit.id || '');
     const properties = unit.properties || {};
-    if (id && seenIds.has(id)) issues.push(issue('duplicate-id', `중복 행정·지역 ID ${id}가 있습니다.`, {
+    if (id && seenIds.has(id)) issues.push(issue('duplicate-id', `중복 행정·권역 ID ${id}가 있습니다.`, {
       entityRefs: [id], bounds: bounds(unit.geometry), sequence: unitIndex,
     }));
     if (id) seenIds.add(id);

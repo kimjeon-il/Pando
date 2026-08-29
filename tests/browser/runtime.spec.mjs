@@ -602,7 +602,7 @@ test('layer folders stay spatial while global name visibility lives in the map v
   const errors = await openApp(page);
   const categories = page.locator('.layer-category');
   await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지도 요소']);
-  await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '지역', '행정구역', '역사·지리 지역']);
+  await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '권역', '행정구역', '지방']);
   await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
   await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형지물']);
   await expect(page.locator('#layerSection #terrainVisible')).toHaveCount(0);
@@ -742,8 +742,15 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   await nameControl.click();
   await nameControl.fill('name');
   const openPopover = page.locator('.ui-select-popover:not([hidden])');
-  await expect(openPopover.getByRole('option')).toHaveText(['name', 'name_long', 'editor_name', 'editor_original_name', 'pandolab_name']);
-  await openPopover.getByRole('option', { name: 'name', exact: true }).click();
+  const optionLabels = await openPopover.getByRole('option').allTextContents();
+  expect(optionLabels).toEqual(expect.arrayContaining([
+    '이름 — 16',
+    '이름 — 17',
+    '이름 — 10',
+    '이름 — 11',
+    '이름 — 3',
+  ]));
+  await openPopover.getByRole('option', { name: '이름 — 16', exact: true }).click();
   await expect(nameSelect).toHaveValue('name');
 
   const targetSelect = page.locator('#gisTargetType');
@@ -754,7 +761,7 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('.ui-select-popover:not([hidden])')).toHaveCount(0);
   await targetControl.click();
-  await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '지역', exact: true }).click();
+  await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '권역', exact: true }).click();
   await expect(targetSelect).toHaveValue('region');
   await expect(page.locator('#gisCountryFieldRow')).toBeVisible();
   expect(errors).toEqual([]);
@@ -964,7 +971,7 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
   await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
   const targetSelect = page.locator('#gisTargetType');
   await targetSelect.locator('..').locator('.ui-select-control').click();
-  await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '지역', exact: true }).click();
+  await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '권역', exact: true }).click();
   await expect(targetSelect).toHaveValue('region');
   await page.locator('#gisTargetCountry').evaluate(select => {
     const poland = [...select.options].find(option => option.textContent?.includes('폴란드'));
@@ -998,7 +1005,7 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'territory' })
     .find(feature => feature.properties?.name === '시험 지역')?.properties?.style?.color)).toBe('#dc2626');
   await expect(page.locator('#regionsLayerChildren .layer-subfolder-row')).toHaveCount(1);
-  await expect(page.locator('#regionsLayerChildren')).toContainText('미지정 지역');
+  await expect(page.locator('#regionsLayerChildren')).toContainText('미지정 권역');
   const countrySubfolder = page.locator('#regionsLayerChildren [data-country-region-folder-toggle]');
   await countrySubfolder.click();
   await expect(countrySubfolder).toHaveAttribute('aria-expanded', 'false');
@@ -1013,7 +1020,7 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
   await expect(page.locator('#confirmModalChoice option')).toHaveText(['미지정 영역으로 전환', '이 단계의 영역 구분 전체 해제']);
   await page.locator('#confirmModalOkBtn').click();
   await expect(page.getByRole('button', { name: '시험 지역', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '미지정 지역', exact: true })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: '미지정 권역', exact: true })).toHaveCount(1);
 
   await page.locator('#undoBtn').click();
   await expect(page.getByRole('button', { name: '시험 지역', exact: true })).toHaveCount(1);
