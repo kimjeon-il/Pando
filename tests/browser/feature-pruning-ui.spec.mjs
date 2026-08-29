@@ -63,7 +63,7 @@ for (const viewport of viewports) {
     }
     await page.locator('#focusSelectedObjectBtn').click();
     const fitGeometry = await page.evaluate(() => {
-      const selection = document.querySelector('.selection-overlay-layer .map-selection-fill')?.getBoundingClientRect();
+      const selection = document.querySelector('.selection-overlay-layer .map-selection-shape')?.getBoundingClientRect();
       const panel = document.querySelector('#rightPanel')?.getBoundingClientRect();
       return selection && panel ? {
         selection: { left: selection.left, top: selection.top, right: selection.right, bottom: selection.bottom },

@@ -30,9 +30,9 @@ class StyleLabelCleanupTests(unittest.TestCase):
         self.assertIn("metrics.area", block)
         self.assertNotIn("pop_est", block)
         layout = APP[APP.index("function visibleLabelLayout"):APP.index("function renderCountryLabels")]
-        self.assertIn("countryLabelScreenMetrics(feature", layout)
+        self.assertIn("countryLabelScreenMetrics(displayFeature", layout)
         self.assertIn("layoutLabels(candidates", layout)
-        self.assertIn("selected:", layout)
+        self.assertIn("selected,", layout)
 
     def test_editable_domains_use_the_common_color_adapter(self):
         for domain in ("COUNTRY", "TERRITORIAL", "DRAWING", "DISTRIBUTION"):
