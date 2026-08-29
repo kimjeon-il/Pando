@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -42,6 +42,8 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/persistence-service.js')),
   import(versionedModuleUrl('./modules/physical-layer-service.js')),
   import(versionedModuleUrl('./modules/territorial-service.js')),
+  import(versionedModuleUrl('./modules/distribution-service.js')),
+  import(versionedModuleUrl('./modules/drawing-service.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -55,6 +57,18 @@ const { createProjectSerializer, restoreCountriesFromDelta } = projectSerializer
 const { createBrowserProjectStorage, createPersistenceService } = persistenceServiceModule;
 const { createHydroService, createTerrainService } = physicalLayerServiceModule;
 const { createTerritorialApplicationService } = territorialServiceModule;
+const { createDistributionService } = distributionServiceModule;
+const {
+  DRAWING_CATEGORY_RULES,
+  DRAWING_ROLE_LABELS,
+  DRAWING_SCHEMA_VERSION,
+  createDrawingService,
+  drawingGeometryKind,
+  drawingLandBinding,
+  drawingRole,
+  normalizeDrawingCollection,
+  normalizeDrawingSemantics,
+} = drawingServiceModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -225,13 +239,6 @@ const {
   const HYDRO_TOOL_CONFIG = Object.freeze({
     river: Object.freeze({ geometry: 'LineString', category: 'river', label: '강', color: '#3b82c4', prefix: 'river' }),
     lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
-  });
-  const DRAWING_SCHEMA_VERSION = 1;
-  const DRAWING_CATEGORY_RULES = Object.freeze({
-    custom: Object.freeze({ role: 'custom', geometry: 'any', binding: 'none', label: '사용자 정의' }),
-  });
-  const DRAWING_ROLE_LABELS = Object.freeze({
-    custom: '사용자 정의',
   });
   const HYDRO_LAYER_META = Object.freeze({
     rivers_hydro: Object.freeze({ label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS', category: 'river', color: '#3b82c4' }),
@@ -4206,69 +4213,6 @@ const {
     return DRAWING_CATEGORY_RULES[feature?.properties?.category]?.label || '지형지물';
   }
 
-  function drawingGeometryKind(feature) {
-    const type = feature?.geometry?.type || '';
-    if (type === 'Polygon' || type === 'MultiPolygon') return 'polygon';
-    if (type === 'LineString' || type === 'MultiLineString') return 'line';
-    if (type === 'Point' || type === 'MultiPoint') return 'point';
-    return 'unknown';
-  }
-
-  function drawingCategoryRule(category) {
-    return DRAWING_CATEGORY_RULES[category] || DRAWING_CATEGORY_RULES.custom;
-  }
-
-  function drawingCategoryCompatible(feature, category) {
-    const expected = drawingCategoryRule(category).geometry;
-    return expected === 'any' || expected === drawingGeometryKind(feature);
-  }
-
-  function drawingRole(feature) {
-    return feature?.properties?.pandolab_role || drawingCategoryRule(feature?.properties?.category).role;
-  }
-
-  function drawingLandBinding(feature) {
-    return feature?.properties?.pandolab_land_binding || drawingCategoryRule(feature?.properties?.category).binding;
-  }
-
-  function normalizeDrawingSemantics(feature) {
-    if (!feature) return feature;
-    feature.properties ||= {};
-    const properties = feature.properties;
-    delete properties.visible;
-    let category = DRAWING_CATEGORY_RULES[properties.category] ? properties.category : 'custom';
-    if (!drawingCategoryCompatible(feature, category)) category = 'custom';
-    const rule = drawingCategoryRule(category);
-    properties.category = category;
-    delete properties.pandolab_folder_id;
-    properties.pandolab_schema_version = DRAWING_SCHEMA_VERSION;
-    properties.pandolab_role = rule.role;
-    const allowedBindings = new Set(['none', 'clip']);
-    const requestedBinding = String(properties.pandolab_land_binding || rule.binding);
-    properties.pandolab_land_binding = allowedBindings.has(requestedBinding) ? requestedBinding : rule.binding;
-    properties.pandolab_owner_id = '';
-    properties.pandolab_parent_id = '';
-    properties.pandolab_topology_group = `${rule.role}:${category}`;
-    return feature;
-  }
-
-  function normalizeDrawingCollection(drawings) {
-    const output = [];
-    const seen = new Set();
-    for (const feature of Array.isArray(drawings) ? drawings : []) {
-      const id = String(feature?.id || '').trim();
-      if (!id) throw new Error('지형지물 ID가 비어 있습니다.');
-      if (seen.has(id)) throw new Error(`지형지물 ID가 중복되었습니다: ${id}`);
-      if (!['Point', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'].includes(feature?.geometry?.type)
-        || !Array.isArray(feature.geometry.coordinates) || !feature.geometry.coordinates.length) {
-        throw new Error(`${id}의 지형지물 geometry가 비어 있거나 지원되지 않습니다.`);
-      }
-      seen.add(id);
-      output.push(normalizeDrawingSemantics(feature));
-    }
-    return output;
-  }
-
   function drawingRoleHelp(feature) {
     return '사용자 정의 객체는 육지 결합 방식을 직접 선택할 수 있습니다.';
   }
@@ -4345,6 +4289,44 @@ const {
   });
   const runCountryRegionTransaction = options => territorialApplicationService.runGeometryTransaction(options);
   const validateCountryRegionRelations = (units, options) => territorialApplicationService.validateRelations(units, options);
+  const distributionService = createDistributionService({
+    documentStore: {
+      readLayers: () => state.distributionLayers,
+      replaceLayers: layers => { state.distributionLayers = layers; },
+      readEntries: () => state.distributionEntries,
+      replaceEntries: entries => { state.distributionEntries = entries; },
+    },
+    presentationStore: {
+      setRenderMode: mode => { state.distributionSettings.renderMode = mode; },
+    },
+    runDocumentMutation: (meta, mutate) => {
+      recordHistory(meta);
+      return mutate();
+    },
+    writeLayerColor: (layer, color) => writeDomainColor(
+      COLOR_DOMAINS.DISTRIBUTION,
+      { layer },
+      color,
+      { fallback: DEFAULT_DRAWING_COLOR },
+    ),
+    territorialExists: id => !!territorialRepository.get(id),
+  });
+  const drawingApplicationService = createDrawingService({
+    documentStore: {
+      readDrawings: () => state.drawings,
+      replaceDrawings: drawings => { state.drawings = drawings; },
+    },
+    runDocumentMutation: (meta, mutate) => {
+      recordHistory(meta);
+      return mutate();
+    },
+    writeColor: (feature, color) => writeDomainColor(
+      COLOR_DOMAINS.DRAWING,
+      { feature },
+      color,
+      { fallback: defaultDrawingColor(feature) },
+    ),
+  });
 
   function territorialUnitById(id) {
     return territorialApplicationService.get(id);
@@ -8176,13 +8158,12 @@ const {
       return;
     }
     if (state.tool === 'point') {
-      recordHistory();
       const feature = {
         type: 'Feature', id: uid('point'),
         geometry: { type: 'Point', coordinates: coord },
         properties: { name: '', editorColor: DEFAULT_DRAWING_COLOR, category: 'custom', notes: '', pandolab_role: 'custom', pandolab_land_binding: 'none', pandolab_schema_version: DRAWING_SCHEMA_VERSION },
       };
-      state.drawings.push(feature);
+      drawingApplicationService.add(feature);
       setTool('select');
       selectDrawing(String(feature.id));
       renderAll();
@@ -8308,14 +8289,17 @@ const {
         setActionStatus('분포 항목을 찾을 수 없습니다. 그린 영역은 유지했으니 분포 항목을 확인하세요.', 'error', 3600);
         return;
       }
-      recordHistory();
-      state.distributionEntries.push(createDistributionEntry({
+      const result = distributionService.addEntry({
         id: uid('distribution_entry'),
         layerId: layer.id,
         mode: DISTRIBUTION_MODES.GEOMETRY,
         geometry,
         share: draft.share,
-      }));
+      });
+      if (!result.ok) {
+        setActionStatus(result.error?.message || '자유 분포 영역을 저장하지 못했습니다.', 'error', 3600);
+        return;
+      }
       state.distributionDraft = null;
       state.draftCoords = [];
       state.draftHover = null;
@@ -8334,13 +8318,12 @@ const {
         notes: '',
       },
     };
-    recordHistory();
     if (hydro) {
+      recordHistory();
       normalizeHydroEdit(feature);
       state.hydroEdits.push(feature);
     } else {
-      normalizeDrawingSemantics(feature);
-      state.drawings.push(feature);
+      drawingApplicationService.add(feature);
     }
     state.draftCoords = [];
     state.draftHover = null;
@@ -9287,7 +9270,7 @@ const {
   }
 
   function distributionLayerById(id) {
-    return state.distributionLayers.find(layer => layer.id === String(id)) || null;
+    return distributionService.getLayer(id);
   }
 
   function distributionRegionOptions() {
@@ -9298,19 +9281,9 @@ const {
   }
 
   function distributionParentOptions(layer) {
-    const descendants = new Set();
-    const queue = [layer.id];
-    while (queue.length) {
-      const parentId = queue.shift();
-      for (const candidate of state.distributionLayers) {
-        if (candidate.parentId !== parentId || descendants.has(candidate.id)) continue;
-        descendants.add(candidate.id);
-        queue.push(candidate.id);
-      }
-    }
     return [
       { value: '', label: '상위 분류 없음' },
-      ...state.distributionLayers.filter(candidate => candidate.type === layer.type && candidate.id !== layer.id && !descendants.has(candidate.id)).map(candidate => ({
+      ...distributionService.parentCandidates(layer.id).map(candidate => ({
         value: candidate.id,
         label: candidate.name,
       })).sort((left, right) => layerNameCollator.compare(left.label, right.label)),
@@ -9385,23 +9358,12 @@ const {
       selectDistributionLayer(layer.id, true);
       return false;
     }
-    if (field === 'parentId') {
-      const parent = distributionLayerById(value);
-      const visited = new Set([layer.id]);
-      let cursor = parent;
-      while (cursor && !visited.has(cursor.id)) {
-        visited.add(cursor.id);
-        cursor = distributionLayerById(cursor.parentId);
-      }
-      if (value && (!parent || parent.type !== layer.type || parent.id === layer.id || cursor)) {
-        setActionStatus('자기 자신이나 하위 분류를 상위 분류로 설정할 수 없습니다.', 'error', 3600);
-        selectDistributionLayer(layer.id, true);
-        return false;
-      }
+    const result = distributionService.updateLayer(layer.id, field, value);
+    if (!result.ok) {
+      if (result.code === 'invalid') setActionStatus('자기 자신이나 하위 분류를 상위 분류로 설정할 수 없습니다.', 'error', 3600);
+      selectDistributionLayer(layer.id, true);
+      return false;
     }
-    recordHistory();
-    if (field === 'color') writeDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }, value, { fallback: DEFAULT_DRAWING_COLOR });
-    else layer[field] = value;
     markLayerTreeDirty();
     selectDistributionLayer(layer.id, true);
     queueAutosave();
@@ -9413,14 +9375,12 @@ const {
     const label = DISTRIBUTION_TYPE_LABELS[type];
     const name = prompt(`새 ${label} 항목의 이름을 입력하세요.`, `새 ${label}`);
     if (name === null) return false;
-    recordHistory();
-    const layer = createDistributionLayer({
+    const layer = distributionService.createLayer({
       id: uid(`distribution_${type}`),
       type,
       name: name.trim() || `새 ${label}`,
       color: COLOR_PRESETS[state.distributionLayers.length % COLOR_PRESETS.length] || DEFAULT_DRAWING_COLOR,
     });
-    state.distributionLayers.push(layer);
     state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === DISTRIBUTION_TYPE_GROUPS[type]]));
     markLayerTreeDirty();
     renderLayerTree(true);
@@ -9448,11 +9408,11 @@ const {
       setActionStatus(validationMessage, 'error', 0);
       return false;
     }
-    recordHistory();
-    state.distributionEntries.push(entry);
+    const result = distributionService.addEntry(entry);
+    if (!result.ok) return false;
     selectDistributionLayer(layer.id, true);
     queueAutosave();
-    setActionStatus(`${distributionEntryLabel(state.distributionEntries.at(-1))}에 ${layer.name} 분포를 추가했습니다.`, 'success');
+    setActionStatus(`${distributionEntryLabel(result.entry)}에 ${layer.name} 분포를 추가했습니다.`, 'success');
     return true;
   }
 
@@ -9474,8 +9434,8 @@ const {
     const entry = state.distributionEntries.find(candidate => candidate.id === String(id));
     const layer = entry ? distributionLayerById(entry.layerId) : null;
     if (!entry || !layer || layer.locked) return false;
-    recordHistory();
-    state.distributionEntries = state.distributionEntries.filter(candidate => candidate.id !== entry.id);
+    const result = distributionService.removeEntry(entry.id);
+    if (!result.ok) return false;
     selectDistributionLayer(layer.id, true);
     queueAutosave();
     setActionStatus('분포 엔트리를 삭제했습니다.', 'success');
@@ -9490,15 +9450,14 @@ const {
       return false;
     }
     const performDelete = () => {
-      recordHistory();
-      state.distributionLayers = state.distributionLayers.filter(candidate => candidate.id !== layer.id);
-      state.distributionEntries = state.distributionEntries.filter(entry => entry.layerId !== layer.id);
-      for (const child of state.distributionLayers) if (child.parentId === layer.id) child.parentId = '';
+      const result = distributionService.deleteLayer(layer.id);
+      if (!result.ok) return false;
       if (state.selectedDistributionLayerId === layer.id) state.selectedDistributionLayerId = '';
       markLayerTreeDirty();
       clearSelection(false);
       queueAutosave();
       setActionStatus(`${layer.name} ${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
+      return true;
     };
     if (!confirm) {
       performDelete();
@@ -9583,8 +9542,8 @@ const {
 
   window.PANDOLAB_DISTRIBUTIONS = Object.freeze({
     getLayer: id => distributionLayerById(id),
-    listLayers: type => state.distributionLayers.filter(layer => !type || layer.type === type),
-    listEntries: layerId => distributionEntriesForLayer(state.distributionEntries, layerId),
+    listLayers: type => distributionService.listLayers(type),
+    listEntries: layerId => distributionService.listEntries(layerId),
     select: selectDistributionLayer,
     setVisible: setDistributionLayerVisible,
   });
@@ -10346,12 +10305,8 @@ const {
     if (state.selected?.type !== 'drawing') return;
     const f = state.drawings.find(x => String(x.id) === state.selected.id);
     if (!f) return;
-    f.properties = f.properties || {};
-    recordHistory();
-    if (field === 'editorColor') writeDomainColor(COLOR_DOMAINS.DRAWING, { feature: f }, value, { fallback: defaultDrawingColor(f) });
-    else f.properties[field] = value;
-    if (field === 'category') normalizeDrawingSemantics(f);
-    if (field === 'pandolab_owner_id' || field === 'pandolab_parent_id' || field === 'pandolab_land_binding') normalizeDrawingSemantics(f, { inferOwner: false });
+    const result = drawingApplicationService.updateMetadata(f.id, field, value);
+    if (!result.ok) return;
     drawingLandClipCache.delete(f);
     if (field === 'name') markLayerTreeDirty();
     selectDrawing(state.selected.id, true);
@@ -12861,9 +12816,7 @@ const {
       }));
     }
     if (!newEntries.length) throw new Error('가져올 Polygon 또는 MultiPolygon 분포가 없습니다.');
-    recordHistory();
-    state.distributionLayers.push(...newLayers);
-    state.distributionEntries.push(...newEntries);
+    distributionService.append({ layers: newLayers, entries: newEntries });
     normalizeProjectObjects();
     markLayerTreeDirty();
     renderAll();
@@ -12907,8 +12860,7 @@ const {
       supported.push(normalizeDrawingSemantics(f));
     }
     if (!supported.length) throw new Error('지원되는 점·선·면 지도 객체가 없습니다.');
-    recordHistory();
-    state.drawings.push(...supported);
+    drawingApplicationService.addMany(supported);
     state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === 'drawings']));
     markLayerTreeDirty();
     renderAll();
@@ -13023,11 +12975,12 @@ const {
 
   function removeDrawingById(id, statusText = '') {
     const key = String(id);
-    const feature = state.drawings.find(candidate => String(candidate.id) === key);
+    const feature = drawingApplicationService.get(key);
     if (!feature) return false;
-    recordHistory();
-    reassignDrawingParents([key]);
-    state.drawings = state.drawings.filter(candidate => String(candidate.id) !== key);
+    const result = drawingApplicationService.remove(key, {
+      beforeRemove: () => reassignDrawingParents([key]),
+    });
+    if (!result.ok) return false;
     markLayerTreeDirty();
     if (state.selected?.type === 'drawing' && String(state.selected.id) === key) clearSelection(false);
     else renderAll();
@@ -13762,9 +13715,7 @@ const {
     ]);
     $('distributionLockedInput').addEventListener('change', event => commitDistributionMeta('locked', event.target.checked));
     $('distributionRenderModeInput').addEventListener('change', event => {
-      state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY
-        ? DISTRIBUTION_RENDER_MODES.INTENSITY
-        : DISTRIBUTION_RENDER_MODES.DOMINANT;
+      distributionService.setRenderMode(event.target.value);
       renderDistributions();
       queuePresentationAutosave();
     });
@@ -13774,7 +13725,7 @@ const {
     $('layerStyleOpacityInput')?.addEventListener('input', event => { $('layerStyleOpacityValue').textContent = `${event.target.value}%`; });
     for (const id of ['layerStyleOpacityInput', 'layerStyleBoundaryVisibleInput', 'layerStyleLabelsVisibleInput']) $(id)?.addEventListener('change', updateLayerStyleFromFields);
     $('distributionLayerModeInput')?.addEventListener('change', event => {
-      state.distributionSettings.renderMode = event.target.value === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT;
+      distributionService.setRenderMode(event.target.value);
       if ($('distributionRenderModeInput')) $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
       syncDistributionLayerModeHint();
       renderDistributions();
