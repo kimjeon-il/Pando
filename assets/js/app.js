@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule, historicalLibraryControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -51,6 +51,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/history-service.js')),
   import(versionedModuleUrl('./modules/historical-library-service.js')),
   import(versionedModuleUrl('./modules/import-service.js')),
+  import(versionedModuleUrl('./modules/historical-library-controller.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -90,6 +91,7 @@ const {
   createImportService,
   importedCountryOverrides,
 } = importServiceModule;
+const { createHistoricalLibraryController } = historicalLibraryControllerModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -1030,9 +1032,6 @@ const {
     distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT },
     selectedDistributionLayerId: '',
     layerPresentation: normalizeLayerPresentation(),
-    historicalLibrary: null,
-    historicalLibrarySelectedId: '',
-    historicalLibraryLoadState: 'idle',
     selected: null,
     addSelectionMode: false,
     projection: 'globe',
@@ -11913,75 +11912,6 @@ const {
     combineGeometries: combineHistoricalLibraryGeometries,
   });
 
-  async function loadHistoricalLibrary() {
-    if (state.historicalLibrary) return state.historicalLibrary;
-    state.historicalLibraryLoadState = 'loading';
-    try {
-      state.historicalLibrary = await historicalLibraryService.load();
-      state.historicalLibraryLoadState = 'ready';
-      syncHistoricalLibraryFilterOptions();
-      return state.historicalLibrary;
-    } catch (error) {
-      state.historicalLibraryLoadState = 'error';
-      throw error;
-    }
-  }
-
-  function historicalLibraryPeriod(entity) {
-    if (!entity.startDate && !entity.endDate) return '현존';
-    return `${entity.startDate || '?'}–${entity.endDate || '현재'}`;
-  }
-
-  function syncHistoricalLibraryFilterOptions() {
-    const library = state.historicalLibrary;
-    if (!library) return;
-    const regions = [...new Set(library.list().map(entity => String(entity.metadata?.region || '')).filter(Boolean))].sort(layerNameCollator.compare);
-    replaceSelectOptions($('historicalLibraryRegionInput'), [{ value: '', label: '전체' }, ...regions.map(region => ({ value: region, label: region }))], $('historicalLibraryRegionInput').value);
-    replaceSelectOptions($('historicalLibrarySnapshotInput'), [
-      { value: '', label: '스냅샷 선택' },
-      ...library.snapshots().map(snapshot => ({ value: snapshot.id, label: `${snapshot.name}${snapshot.metadata?.partial ? ' · 부분' : ''}` })),
-    ], $('historicalLibrarySnapshotInput').value);
-  }
-
-  function historicalLibrarySearchResults() {
-    return state.historicalLibrary?.search({
-      query: $('historicalLibrarySearchInput').value,
-      type: $('historicalLibraryTypeInput').value,
-      status: $('historicalLibraryStatusInput').value,
-      referenceDate: $('historicalLibraryYearInput').value,
-      region: $('historicalLibraryRegionInput').value,
-    }) || [];
-  }
-
-  function renderHistoricalLibraryResults() {
-    const results = historicalLibrarySearchResults();
-    const container = $('historicalLibraryResults');
-    const fragment = document.createDocumentFragment();
-    for (const entity of results) {
-      const button = document.createElement('button');
-      const selected = state.historicalLibrarySelectedId === entity.libraryId;
-      button.type = 'button';
-      button.className = `ui-button ui-row ui-card ui-selectable-row historical-library-result${selected ? ' is-selected' : ''}`;
-      button.dataset.libraryEntityId = entity.libraryId;
-      button.setAttribute('role', 'option');
-      button.setAttribute('aria-selected', String(selected));
-      const strong = document.createElement('strong');
-      strong.textContent = entity.displayNames?.ko || entity.canonicalName;
-      const small = document.createElement('small');
-      small.textContent = `${LIBRARY_TYPE_LABELS[entity.type]} · ${historicalLibraryPeriod(entity)}${entity.metadata?.pilot ? ' · 시험 데이터' : ''}`;
-      button.append(strong, small);
-      fragment.appendChild(button);
-    }
-    if (!results.length) {
-      fragment.appendChild(createEmptyState('조건에 맞는 항목이 없습니다.', '검색어, 종류, 상태 또는 기준 연도를 바꿔 보세요.', { compact: true }));
-    }
-    container.replaceChildren(fragment);
-    if (state.historicalLibrarySelectedId && !results.some(entity => entity.libraryId === state.historicalLibrarySelectedId)) {
-      state.historicalLibrarySelectedId = '';
-      renderHistoricalLibraryPreview();
-    }
-  }
-
   function historicalLibraryPreviewSvg(entity, version) {
     const wrapper = document.createElement('div');
     wrapper.className = 'historical-library-preview-map';
@@ -12008,95 +11938,8 @@ const {
     return wrapper;
   }
 
-  function renderHistoricalLibraryPreview() {
-    const preview = $('historicalLibraryPreview');
-    const entity = state.historicalLibrary?.get(state.historicalLibrarySelectedId);
-    const year = $('historicalLibraryYearInput').value;
-    const version = entity ? selectGeometryVersion(entity, year) : null;
-    if (!entity || !version) {
-      const help = document.createElement('p');
-      help.className = 'editor-help';
-      help.textContent = '항목을 선택하면 시대·경계 버전·출처를 확인할 수 있습니다.';
-      preview.replaceChildren(help);
-      $('historicalLibraryAddBtn').disabled = true;
-      $('historicalLibraryAddOptions')?.classList.add('hidden');
-      $('historicalLibraryOptionsBackBtn')?.classList.add('hidden');
-      document.querySelector('.historical-library-card')?.classList.remove('is-detail', 'is-options');
-      return;
-    }
-    const back = document.createElement('button');
-    back.type = 'button';
-    back.className = 'ui-button btn ghost historical-library-back';
-    back.textContent = '검색 결과로 돌아가기';
-    back.addEventListener('click', () => {
-      document.querySelector('.historical-library-card')?.classList.remove('is-detail');
-      requestAnimationFrame(() => $('historicalLibraryResults')?.querySelector('[aria-selected="true"]')?.focus());
-    });
-    const title = document.createElement('h3');
-    title.textContent = entity.displayNames?.ko || entity.canonicalName;
-    const meta = document.createElement('p');
-    meta.className = 'editor-help';
-    meta.textContent = `${LIBRARY_TYPE_LABELS[entity.type]} · ${historicalLibraryPeriod(entity)}`;
-    const source = document.createElement('p');
-    source.className = 'editor-help';
-    source.textContent = `출처: ${entity.sourceInfo?.title || version.sourceId || '미지정'}`;
-    const advanced = document.createElement('details');
-    advanced.className = 'ui-disclosure';
-    const summary = document.createElement('summary');
-    summary.textContent = '고급 정보';
-    const advancedBody = document.createElement('dl');
-    advancedBody.className = 'historical-library-advanced';
-    const addAdvanced = (term, value) => {
-      const dt = document.createElement('dt');
-      const dd = document.createElement('dd');
-      dt.textContent = term;
-      dd.textContent = String(value || '—');
-      advancedBody.append(dt, dd);
-    };
-    const alternativeNames = [...new Set([...(entity.aliases || []), ...Object.values(entity.displayNames || {})].filter(Boolean))].join(' · ');
-    addAdvanced('별칭·다국어 이름', alternativeNames);
-    addAdvanced('GeometryVersion', version.id || version.geometryVersionId);
-    addAdvanced('날짜 정밀도', version.datePrecision);
-    addAdvanced('신뢰도', version.certainty);
-    addAdvanced('상세 출처', `${entity.sourceInfo?.title || version.sourceId || '미지정'}${entity.sourceInfo?.license ? ` · ${entity.sourceInfo.license}` : ''}${version.notes || entity.sourceInfo?.notes ? ` · ${version.notes || entity.sourceInfo.notes}` : ''}`);
-    advanced.append(summary, advancedBody);
-    preview.replaceChildren(back, title, historicalLibraryPreviewSvg(entity, version), meta, source, advanced);
-    $('historicalLibraryAddBtn').disabled = false;
-    $('historicalLibraryAddOptions')?.classList.add('hidden');
-    $('historicalLibraryOptionsBackBtn')?.classList.add('hidden');
-    $('historicalLibraryAddBtn').textContent = '프로젝트에 추가';
-    document.querySelector('.historical-library-card')?.classList.remove('is-options');
-  }
-
-  function selectHistoricalLibraryEntity(id) {
-    state.historicalLibrarySelectedId = String(id || '');
-    renderHistoricalLibraryResults();
-    renderHistoricalLibraryPreview();
-    if (isMobile()) document.querySelector('.historical-library-card')?.classList.add('is-detail');
-  }
-
-  function closeHistoricalLibrary() {
-    $('historicalLibraryModal').classList.add('hidden');
-    document.querySelector('.historical-library-card')?.classList.remove('is-detail', 'is-options');
-    $('addFromLibraryBtn')?.focus();
-  }
-
-  async function openHistoricalLibrary() {
-    closeCreateMenu();
-    $('historicalLibraryModal').classList.remove('hidden');
-    $('historicalLibraryResults').replaceChildren(Object.assign(document.createElement('p'), { className: 'editor-help', textContent: '라이브러리를 불러오는 중입니다.' }));
-    try {
-      await loadHistoricalLibrary();
-      renderHistoricalLibraryResults();
-      renderHistoricalLibraryPreview();
-      $('historicalLibrarySearchInput').focus();
-    } catch (error) {
-      reportOperationError(error, '역사 지리 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);
-    }
-  }
-
   function libraryInstanceId(libraryId) {
-    const entity = state.historicalLibrary?.get(libraryId);
+    const entity = historicalLibraryService.get(libraryId);
     const currentCountryId = String(entity?.metadata?.currentCountryId || '');
     if (currentCountryId && countryFeatureById(currentCountryId)) return currentCountryId;
     const country = state.countriesData?.features?.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
@@ -12155,61 +11998,50 @@ const {
     return pending.length;
   }
 
-  function addSelectedHistoricalLibraryEntity() {
-    const id = state.historicalLibrarySelectedId;
-    if (!id) return;
-    const count = instantiateHistoricalLibraryEntities([id], $('historicalLibraryYearInput').value, $('historicalLibraryChildDepthInput').value);
-    if (!count) setActionStatus('이미 현재 프로젝트에 있는 항목입니다.', 'success', 2800);
-    else setActionStatus(`라이브러리 항목 ${count}개를 독립 프로젝트 인스턴스로 추가했습니다.`, 'success', 4200);
-    closeHistoricalLibrary();
-  }
-
-  function advanceHistoricalLibraryAdd() {
-    if (!state.historicalLibrarySelectedId) return;
-    const options = $('historicalLibraryAddOptions');
-    if (options?.classList.contains('hidden')) {
-      options.classList.remove('hidden');
-      options.open = true;
-      $('historicalLibraryOptionsBackBtn')?.classList.remove('hidden');
-      $('historicalLibraryAddBtn').textContent = '추가 확정';
-      document.querySelector('.historical-library-card')?.classList.add('is-options');
-      requestAnimationFrame(() => $('historicalLibraryChildDepthInput')?.focus());
-      return;
-    }
-    addSelectedHistoricalLibraryEntity();
-  }
-
-  function returnToHistoricalLibraryDetail() {
-    $('historicalLibraryAddOptions')?.classList.add('hidden');
-    $('historicalLibraryOptionsBackBtn')?.classList.add('hidden');
-    $('historicalLibraryAddBtn').textContent = '프로젝트에 추가';
-    document.querySelector('.historical-library-card')?.classList.remove('is-options');
-    requestAnimationFrame(() => $('historicalLibraryAddBtn')?.focus());
-  }
-
-  function requestHistoricalSnapshot() {
-    const snapshot = state.historicalLibrary?.getSnapshot($('historicalLibrarySnapshotInput').value);
-    if (!snapshot) return;
-    openConfirmModal({
-      title: `${snapshot.name} 스냅샷`,
-      message: snapshot.metadata?.partial
-        ? '이 스냅샷은 라이브러리 기능 시험용 부분 구성입니다. 현재 프로젝트에 없는 항목만 추가합니다.'
-        : '현재 프로젝트에 없는 스냅샷 항목만 추가합니다.',
-      confirmText: '없는 항목 추가',
-      onConfirm: () => {
-        const count = instantiateHistoricalLibraryEntities(snapshot.entityRefs, snapshot.referenceDate, 'all');
-        setActionStatus(`${snapshot.name}에서 ${count}개 항목을 추가했습니다.`, 'success', 4200);
-        closeHistoricalLibrary();
-      },
-    });
-  }
+  const historicalLibraryController = createHistoricalLibraryController({
+    document,
+    elements: {
+      open: $('addFromLibraryBtn'),
+      modal: $('historicalLibraryModal'),
+      card: document.querySelector('.historical-library-card'),
+      close: $('historicalLibraryCloseBtn'),
+      backdrop: $('historicalLibraryModal').querySelector('.ui-dialog-backdrop'),
+      search: $('historicalLibrarySearchInput'),
+      clearSearch: $('historicalLibrarySearchClearBtn'),
+      type: $('historicalLibraryTypeInput'),
+      status: $('historicalLibraryStatusInput'),
+      year: $('historicalLibraryYearInput'),
+      region: $('historicalLibraryRegionInput'),
+      results: $('historicalLibraryResults'),
+      preview: $('historicalLibraryPreview'),
+      snapshot: $('historicalLibrarySnapshotInput'),
+      snapshotButton: $('historicalLibrarySnapshotBtn'),
+      childDepth: $('historicalLibraryChildDepthInput'),
+      add: $('historicalLibraryAddBtn'),
+      addOptions: $('historicalLibraryAddOptions'),
+      optionsBack: $('historicalLibraryOptionsBackBtn'),
+    },
+    service: historicalLibraryService,
+    typeLabels: LIBRARY_TYPE_LABELS,
+    selectGeometryVersion,
+    renderMapPreview: historicalLibraryPreviewSvg,
+    createEmptyState,
+    replaceSelectOptions,
+    collator: layerNameCollator,
+    isMobile,
+    closeCreateMenu,
+    instantiate: instantiateHistoricalLibraryEntities,
+    confirm: openConfirmModal,
+    setStatus: setActionStatus,
+    reportError: reportOperationError,
+  });
 
   window.PANDOLAB_HISTORICAL_LIBRARY = Object.freeze({
-    load: loadHistoricalLibrary,
-    get: id => state.historicalLibrary?.get(id) || null,
-    list: () => state.historicalLibrary?.list() || [],
-    search: options => state.historicalLibrary?.search(options) || [],
-    snapshots: () => state.historicalLibrary?.snapshots() || [],
+    load: historicalLibraryService.load,
+    get: historicalLibraryService.get,
+    list: historicalLibraryService.list,
+    search: historicalLibraryService.search,
+    snapshots: historicalLibraryService.snapshots,
     instantiate: (id, referenceDate = '', childDepth = 'none') => instantiateHistoricalLibraryEntities([id], referenceDate, childDepth),
   });
 
@@ -13586,32 +13418,7 @@ const {
     };
     $('shortcutHelpCloseBtn')?.addEventListener('click', closeShortcutHelp);
     $('shortcutHelpModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeShortcutHelp);
-    $('addFromLibraryBtn').addEventListener('click', openHistoricalLibrary);
-    $('historicalLibraryCloseBtn').addEventListener('click', closeHistoricalLibrary);
-    $('historicalLibraryModal').querySelector('.ui-dialog-backdrop')?.addEventListener('click', closeHistoricalLibrary);
-    for (const id of ['historicalLibrarySearchInput', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryRegionInput']) {
-      $(id).addEventListener(['historicalLibrarySearchInput', 'historicalLibraryYearInput'].includes(id) ? 'input' : 'change', () => {
-        if (id === 'historicalLibrarySearchInput') syncSearchClearButton($(id), $('historicalLibrarySearchClearBtn'));
-        renderHistoricalLibraryResults();
-        if (id === 'historicalLibraryYearInput') renderHistoricalLibraryPreview();
-      });
-    }
-    $('historicalLibrarySearchClearBtn')?.addEventListener('click', () => {
-      const input = $('historicalLibrarySearchInput');
-      input.value = '';
-      input.dispatchEvent(new window.Event('input', { bubbles: true }));
-      input.focus({ preventScroll: true });
-    });
-    $('historicalLibraryResults').addEventListener('click', event => {
-      const button = event.target.closest('[data-library-entity-id]');
-      if (button) selectHistoricalLibraryEntity(button.dataset.libraryEntityId);
-    });
-    $('historicalLibraryAddBtn').addEventListener('click', advanceHistoricalLibraryAdd);
-    $('historicalLibraryOptionsBackBtn')?.addEventListener('click', returnToHistoricalLibraryDetail);
-    $('historicalLibrarySnapshotInput').addEventListener('change', event => {
-      $('historicalLibrarySnapshotBtn').disabled = !event.target.value;
-    });
-    $('historicalLibrarySnapshotBtn').addEventListener('click', requestHistoricalSnapshot);
+    historicalLibraryController.connect();
     $('saveProjectBtn').addEventListener('click', saveGeoPackageFile);
     $('openGisBtn').addEventListener('click', () => {
       $('gisFileInput').dataset.returnFocusId = 'openGisBtn';
@@ -13712,7 +13519,7 @@ const {
         if (!$('layerPresentationModal')?.classList.contains('hidden')) { closeLayerPresentation(); return; }
         if (!$('objectChooser')?.classList.contains('hidden')) { closeObjectChooser({ restoreFocus: true }); return; }
         if (!$('objectActionsMenu')?.classList.contains('hidden')) { closeObjectActionsMenu({ restoreFocus: true }); return; }
-        if (!$('historicalLibraryModal')?.classList.contains('hidden')) { closeHistoricalLibrary(); return; }
+        if (historicalLibraryController.isOpen()) { historicalLibraryController.close(); return; }
         if (!$('territorialTypeModal')?.classList.contains('hidden')) { closeTerritorialTypeModal(); return; }
         if (!$('distributionTypeModal')?.classList.contains('hidden')) { $('distributionTypeCancelBtn')?.click(); return; }
         if (!$('countryRegionCreateModal')?.classList.contains('hidden')) { closeCountryRegionCreateModal(); return; }
