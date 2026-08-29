@@ -1,3 +1,5 @@
+import { SELECTION_STYLE } from './selection-emphasis.js';
+
 export function resolveRenderPixelRatioValue(devicePixelRatio, mobileLayout = false) {
   const deviceRatio = Math.max(1, Number(devicePixelRatio || 1));
   return Math.min(mobileLayout ? 2 : 3, deviceRatio);
@@ -2630,6 +2632,9 @@ export function createGpuMapRenderer(deps) {
       if (state.layerVisibility.countries) {
         drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
         if (overrideMesh?.lineIndices?.length) drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture);
+      }
+      drawHydro('border-river');
+      if (state.layerVisibility.countries) {
         const boundaryColor = [52 / 255, 103 / 255, 51 / 255];
         drawProgram(
           lineProgram,
@@ -2639,8 +2644,8 @@ export function createGpuMapRenderer(deps) {
           gl.LINES,
           null,
           primaryBoundaryPaletteTexture,
-          [...boundaryColor, 0.96],
-          2.5,
+          [...boundaryColor, SELECTION_STYLE.primaryAlpha],
+          SELECTION_STYLE.primaryWidth,
         );
         if (overrideMesh?.lineIndices?.length) drawProgram(
           lineProgram,
@@ -2650,8 +2655,8 @@ export function createGpuMapRenderer(deps) {
           gl.LINES,
           dynamicResources,
           overridePrimaryBoundaryPaletteTexture,
-          [...boundaryColor, 0.96],
-          2.5,
+          [...boundaryColor, SELECTION_STYLE.primaryAlpha],
+          SELECTION_STYLE.primaryWidth,
         );
         drawProgram(
           lineProgram,
@@ -2661,8 +2666,8 @@ export function createGpuMapRenderer(deps) {
           gl.LINES,
           null,
           secondaryBoundaryPaletteTexture,
-          [...boundaryColor, 0.72],
-          1.5,
+          [...boundaryColor, SELECTION_STYLE.secondaryAlpha],
+          SELECTION_STYLE.secondaryWidth,
         );
         if (overrideMesh?.lineIndices?.length) drawProgram(
           lineProgram,
@@ -2672,11 +2677,10 @@ export function createGpuMapRenderer(deps) {
           gl.LINES,
           dynamicResources,
           overrideSecondaryBoundaryPaletteTexture,
-          [...boundaryColor, 0.72],
-          1.5,
+          [...boundaryColor, SELECTION_STYLE.secondaryAlpha],
+          SELECTION_STYLE.secondaryWidth,
         );
       }
-      drawHydro('border-river');
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
       frameTimes.push(performance.now() - started);
@@ -2717,14 +2721,18 @@ export function createGpuMapRenderer(deps) {
         ctx2d.globalAlpha = theme.borderAlpha;
         ctx2d.strokeStyle = theme.border;
         ctx2d.stroke();
-        if (emphasis?.kind === 'primary' || emphasis?.kind === 'secondary') {
-          ctx2d.beginPath();
-          canvasPath(countryOutlineFeature(feature));
-          ctx2d.globalAlpha = emphasis.kind === 'primary' ? 0.96 : 0.72;
-          ctx2d.strokeStyle = '#346733';
-          ctx2d.lineWidth = emphasis.kind === 'primary' ? 2.5 : 1.5;
-          ctx2d.stroke();
-        }
+      }
+      for (const feature of state.countriesData?.features || []) {
+        const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+        if (!isLayerItemVisible('countries', id)) continue;
+        const emphasis = countryEmphasisStyle(id);
+        if (emphasis?.kind !== 'primary' && emphasis?.kind !== 'secondary') continue;
+        ctx2d.beginPath();
+        canvasPath(countryOutlineFeature(feature));
+        ctx2d.globalAlpha = emphasis.kind === 'primary' ? SELECTION_STYLE.primaryAlpha : SELECTION_STYLE.secondaryAlpha;
+        ctx2d.strokeStyle = SELECTION_STYLE.color;
+        ctx2d.lineWidth = emphasis.kind === 'primary' ? SELECTION_STYLE.primaryWidth : SELECTION_STYLE.secondaryWidth;
+        ctx2d.stroke();
       }
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
@@ -2762,15 +2770,15 @@ export function createGpuMapRenderer(deps) {
           primaryId: countryEmphasis.primaryId,
           selectedIds: [...countryEmphasis.selectedIds],
           hoveredId: countryEmphasis.hoveredId,
-          primaryColor: '#346733',
-          secondaryColor: '#346733',
+          primaryColor: SELECTION_STYLE.color,
+          secondaryColor: SELECTION_STYLE.color,
           hoverColor: colorHex(darkTheme ? [255, 255, 255] : [36, 72, 112]),
           primaryAlpha: 30 / 255,
           secondaryAlpha: 20 / 255,
           hoverAlpha: 20 / 255,
           boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
-          primaryBoundaryColor: '#346733',
-          secondaryBoundaryColor: '#346733',
+          primaryBoundaryColor: SELECTION_STYLE.color,
+          secondaryBoundaryColor: SELECTION_STYLE.color,
         },
         theme: mapTheme(),
         physicalSettings: deepClone(state.physicalSettings),
@@ -3234,8 +3242,8 @@ export function createGpuMapRenderer(deps) {
           primaryId: countryEmphasis.primaryId,
           selectedIds: [...countryEmphasis.selectedIds],
           boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
-          primaryBoundaryColor: '#346733',
-          secondaryBoundaryColor: '#346733',
+          primaryBoundaryColor: SELECTION_STYLE.color,
+          secondaryBoundaryColor: SELECTION_STYLE.color,
         },
         emphasizedCountryCount: countryEmphasis.selectedIds.size + (countryEmphasis.hoveredId && !countryEmphasis.selectedIds.has(countryEmphasis.hoveredId) ? 1 : 0),
         viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
