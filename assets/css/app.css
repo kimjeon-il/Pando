@@ -1994,6 +1994,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 .ui-icon-toggle:hover { border-color: var(--ui-control-border); background: var(--ui-control-bg-hover); color: var(--text-strong); }
 .ui-search-field {
   min-width: 0;
+  height: var(--ui-control-height);
   min-height: var(--ui-control-height);
   display: grid;
   grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-control-height);
@@ -2015,7 +2016,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   box-shadow: none;
 }
 .ui-search-field > input[type="search"]:focus { outline: 0; box-shadow: none; }
-.ui-search-clear { align-self: stretch; width: var(--ui-control-height); height: auto; border: 0; border-radius: 0 var(--ui-radius-control) var(--ui-radius-control) 0; background: transparent; }
+.ui-search-clear { align-self: stretch; width: var(--ui-control-height); min-height: 0; height: 100%; border: 0; border-radius: 0 var(--ui-radius-control) var(--ui-radius-control) 0; background: transparent; }
 .ui-status { color: var(--text-soft); font-size: var(--ui-font-caption); }
 .ui-progress { height: 6px; overflow: hidden; border-radius: 999px; background: var(--bootstrap-progress-bg); }
 .ui-progress > span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .18s ease; }
@@ -3026,7 +3027,7 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   top: calc(100% + var(--ui-select-popover-gap));
   right: 0;
   z-index: 80;
-  width: min(372px, calc(100vw - var(--ui-space-8)));
+  width: 100%;
   max-width: none;
   display: grid;
   gap: var(--ui-space-2);
@@ -3075,7 +3076,7 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   gap: var(--ui-space-0-5);
 }
 .ui-color-swatch-grid--neutral { grid-template-columns: repeat(6, 28px); }
-.ui-color-swatch-grid--chromatic { grid-template-columns: repeat(12, minmax(24px, 1fr)); }
+.ui-color-swatch-grid--chromatic { grid-template-columns: repeat(12, minmax(0, 1fr)); }
 .ui-color-swatch {
   aspect-ratio: 1;
   min-width: 0;
