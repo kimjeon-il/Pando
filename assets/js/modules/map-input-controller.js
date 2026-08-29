@@ -8,7 +8,7 @@ export function createMapInputController({
   panBy,
   scheduleViewRender,
   getZoom,
-  setZoom,
+  transformView,
   zoomBy,
   canDirectTap,
   directTap,
@@ -33,6 +33,10 @@ export function createMapInputController({
   const localPoint = event => {
     const rect = element.getBoundingClientRect?.() || { left: 0, top: 0 };
     return [event.clientX - rect.left, event.clientY - rect.top];
+  };
+  const localClientPoint = point => {
+    const rect = element.getBoundingClientRect?.() || { left: 0, top: 0 };
+    return [point.x - rect.left, point.y - rect.top];
   };
   const localSamples = event => {
     const events = event.getCoalescedEvents?.() || [event];
@@ -96,9 +100,14 @@ export function createMapInputController({
     if (pinch && pointers.size >= 2) {
       const pair = [...pointers.values()].slice(0, 2);
       const nextCenter = center(pair[0], pair[1]);
-      panBy(nextCenter.x - pinch.center.x, nextCenter.y - pinch.center.y);
+      const nextZoom = pinch.zoom * Math.pow(distance(pair[0], pair[1]) / pinch.distance, 1.18);
+      transformView({
+        zoom: nextZoom,
+        fromPoint: localClientPoint(pinch.center),
+        toPoint: localClientPoint(nextCenter),
+        source: 'pinch',
+      });
       pinch.center = nextCenter;
-      setZoom(pinch.zoom * Math.pow(distance(pair[0], pair[1]) / pinch.distance, 1.18));
       scheduleViewRender();
       event.preventDefault();
       return;
@@ -186,7 +195,13 @@ export function createMapInputController({
   function wheel(event) {
     event.preventDefault();
     startMovement();
-    setZoom(getZoom() * Math.exp(-event.deltaY * 0.0013));
+    const point = localPoint(event);
+    transformView({
+      zoom: getZoom() * Math.exp(-event.deltaY * 0.0013),
+      fromPoint: point,
+      toPoint: point,
+      source: 'wheel',
+    });
     scheduleViewRender();
     clearTimeout(wheelFinishTimer);
     wheelFinishTimer = setTimeout(() => endMovement(null), 120);

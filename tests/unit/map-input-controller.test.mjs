@@ -56,7 +56,7 @@ function createController(surface, overrides = {}) {
     panBy: () => {},
     scheduleViewRender: () => {},
     getZoom: () => 1,
-    setZoom: () => {},
+    transformView: () => {},
     zoomBy: () => {},
     canDirectTap: () => false,
     directTap: () => {},
@@ -148,14 +148,12 @@ test('drawing owns a drag, emits local coalesced samples, and does not pan', () 
 test('a second touch cancels an unfinished stroke and starts centroid pan and pinch', () => {
   const surface = new PointerSurface();
   let cancelled = 0;
-  const pans = [];
-  const zooms = [];
+  const transforms = [];
   const controller = createController(surface, {
     canDrawStroke: () => true,
     beginStroke: () => true,
     cancelStroke: () => { cancelled += 1; },
-    panBy: (dx, dy) => pans.push([dx, dy]),
-    setZoom: value => zooms.push(value),
+    transformView: value => transforms.push(value),
   });
 
   surface.dispatchEvent(pointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: 10, clientY: 20 }));
@@ -164,7 +162,30 @@ test('a second touch cancels an unfinished stroke and starts centroid pan and pi
   surface.dispatchEvent(pointerEvent('pointermove', { pointerId: 2, pointerType: 'touch', clientX: 50, clientY: 30 }));
 
   assert.equal(cancelled, 1);
-  assert.deepEqual(pans, [[5, 5]]);
-  assert.equal(zooms.length, 1);
+  assert.equal(transforms.length, 1);
+  assert.deepEqual(transforms[0].fromPoint, [25, 10]);
+  assert.deepEqual(transforms[0].toPoint, [30, 15]);
+  assert.equal(transforms[0].source, 'pinch');
+  assert.ok(transforms[0].zoom > 1);
+  controller.destroy();
+});
+
+test('wheel zoom uses the pointer as a stable focal point', () => {
+  const surface = new PointerSurface();
+  const transforms = [];
+  const controller = createController(surface, {
+    getZoom: () => 2,
+    transformView: value => transforms.push(value),
+  });
+
+  const event = pointerEvent('wheel', { clientX: 45, clientY: 70, deltaY: -120 });
+  surface.dispatchEvent(event);
+
+  assert.equal(event.defaultPrevented, true);
+  assert.equal(transforms.length, 1);
+  assert.deepEqual(transforms[0].fromPoint, [40, 60]);
+  assert.deepEqual(transforms[0].toPoint, [40, 60]);
+  assert.equal(transforms[0].source, 'wheel');
+  assert.ok(transforms[0].zoom > 2);
   controller.destroy();
 });

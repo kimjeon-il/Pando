@@ -107,6 +107,14 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   expect(previewMetrics.meshQuality).toBe('preview');
   expect(previewMetrics.renderVertices).toBeLessThan(100_000);
   expect(await page.evaluate(() => window.__PANDOLAB_STARTUP_EVENTS__)).toEqual(['interactive']);
+  await page.locator('#mobileCreateBtn').click();
+  await expect(page.locator('#createMenu')).not.toHaveClass(/mobile-open/);
+  const stableView = await page.evaluate(() => ({
+    revision: window.__PANDOLAB_VIEW_REVISION__,
+    projection: window.__PANDOLAB_VIEW_STATE__?.projection,
+    geographicCenter: window.__PANDOLAB_VIEW_STATE__?.geographicCenter,
+    zoom: window.__PANDOLAB_VIEW_STATE__?.zoom,
+  }));
 
   releaseGeometry();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'editable', { timeout: 30_000 });
@@ -117,6 +125,12 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   await expect(page.locator('#selectionStatus')).toContainText(selectedCountryName);
   expect(await page.evaluate(() => window.__PANDOLAB_STARTUP_EVENTS__)).toEqual(['interactive', 'editable']);
   expect((await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {})).meshQuality).toBe('preview');
+  expect(await page.evaluate(() => ({
+    revision: window.__PANDOLAB_VIEW_REVISION__,
+    projection: window.__PANDOLAB_VIEW_STATE__?.projection,
+    geographicCenter: window.__PANDOLAB_VIEW_STATE__?.geographicCenter,
+    zoom: window.__PANDOLAB_VIEW_STATE__?.zoom,
+  }))).toEqual(stableView);
 
   releaseMesh();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -124,6 +138,7 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
     () => page.evaluate(() => window.__PANDOLAB_STARTUP_EVENTS__),
     { timeout: 45_000 },
   ).toEqual(['interactive', 'editable', 'ready']);
+  expect(await page.evaluate(() => window.__PANDOLAB_VIEW_REVISION__)).toBe(stableView.revision);
 
   const canonicalMetrics = await page.evaluate(() => ({
     gpu: window.__PANDOLAB_GPU_METRICS__ || {},

@@ -1755,6 +1755,8 @@ const {
   let mapResizeFrame = 0;
   let resolutionQuery = null;
   let renderRevision = 0;
+  let viewRevision = 0;
+  let renderedViewSignature = '';
   let editInteractionRevision = 0;
   let mapInputController = null;
   let draftStrokeRenderFrame = 0;
@@ -2056,6 +2058,64 @@ const {
     state.view.flatCenter[1] += dy * 180 / (Math.PI * scale);
     state.view.flatCenter[1] = clamp(state.view.flatCenter[1], -85, 85);
     state.view.flatCenter[0] = ((state.view.flatCenter[0] + 540) % 360) - 180;
+  }
+
+  function wrappedLongitudeDelta(value) {
+    return ((Number(value || 0) + 540) % 360) - 180;
+  }
+
+  function setMapZoomValue(value) {
+    if (state.projection === 'globe') {
+      const next = clamp(Number(value || state.view.globeZoom), ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
+      const changed = Math.abs(next - state.view.globeZoom) > 1e-9;
+      state.view.globeZoom = next;
+      return changed;
+    }
+    const next = clamp(Number(value || state.view.flatZoom), ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
+    const changed = Math.abs(next - state.view.flatZoom) > 1e-9;
+    state.view.flatZoom = next;
+    return changed;
+  }
+
+  function alignGeographicAnchor(coordinate, screenPoint) {
+    if (!coordinate || !screenPoint) return false;
+    let changed = false;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      updateProjection();
+      const targetCoordinate = screenToGeo(screenPoint);
+      if (!targetCoordinate) return changed;
+      const longitudeDelta = wrappedLongitudeDelta(coordinate[0] - targetCoordinate[0]);
+      const latitudeDelta = Number(coordinate[1]) - Number(targetCoordinate[1]);
+      if (Math.abs(longitudeDelta) < 1e-7 && Math.abs(latitudeDelta) < 1e-7) break;
+      if (state.projection === 'globe') {
+        state.view.globeRotation[0] -= longitudeDelta;
+        state.view.globeRotation[1] = clamp(state.view.globeRotation[1] - latitudeDelta, -89, 89);
+      } else {
+        state.view.flatCenter[0] = wrappedLongitudeDelta(state.view.flatCenter[0] + longitudeDelta);
+        state.view.flatCenter[1] = clamp(state.view.flatCenter[1] + latitudeDelta, -85, 85);
+      }
+      changed = true;
+    }
+    updateProjection();
+    return changed;
+  }
+
+  function transformMapView({ zoom, fromPoint, toPoint }) {
+    const source = Array.isArray(fromPoint) ? fromPoint : null;
+    const target = Array.isArray(toPoint) ? toPoint : source;
+    updateProjection();
+    const anchor = source ? screenToGeo(source) : null;
+    let changed = setMapZoomValue(zoom);
+    if (anchor && target) {
+      changed = alignGeographicAnchor(anchor, target) || changed;
+    } else if (source && target && (source[0] !== target[0] || source[1] !== target[1])) {
+      panMapBy(target[0] - source[0], target[1] - source[1]);
+      updateProjection();
+      changed = true;
+    } else {
+      updateProjection();
+    }
+    return changed;
   }
 
   function setCurrentTool(name) {
@@ -4004,7 +4064,7 @@ const {
     };
   }
 
-  function updateProjection() {
+  function projectionLayoutMetrics() {
     const { width, height } = state.size;
     const safe = currentMapSafeInsets();
     const contentWidth = Math.max(1, width - safe.left - safe.right);
@@ -4014,19 +4074,40 @@ const {
       : contentHeight;
     const centerX = safe.left + contentWidth / 2;
     const centerY = safe.top + contentHeight / 2;
+    return {
+      width,
+      height,
+      safe,
+      contentWidth,
+      contentHeight,
+      centerX,
+      centerY,
+      globeBaseScale: Math.max(60, Math.min(contentWidth, scaleContentHeight) * 0.455),
+      flatBaseScale: Math.max(30, contentWidth / (2 * Math.PI)),
+    };
+  }
+
+  function updateProjection() {
+    const {
+      width,
+      height,
+      safe,
+      centerX,
+      centerY,
+      globeBaseScale,
+      flatBaseScale,
+    } = projectionLayoutMetrics();
     if (state.projection === 'globe') {
-      const base = Math.max(60, Math.min(contentWidth, scaleContentHeight) * 0.455);
       globeProjection
         .translate([centerX, centerY])
-        .scale(base * state.view.globeZoom)
+        .scale(globeBaseScale * state.view.globeZoom)
         .rotate(state.view.globeRotation)
         .clipAngle(90);
       path.projection(globeProjection);
     } else {
-      const base = Math.max(30, contentWidth / (2 * Math.PI));
       flatProjection
         .translate([centerX, centerY])
-        .scale(base * state.view.flatZoom)
+        .scale(flatBaseScale * state.view.flatZoom)
         .center(state.view.flatCenter)
         .rotate([0, 0, 0])
         .clipExtent([[safe.left, safe.top], [width - safe.right, height - safe.bottom]]);
@@ -5018,7 +5099,7 @@ const {
     patchOutline.exit().remove();
   }
 
-  function renderCountries(revision = ++renderRevision) {
+  function renderCountries(revision = viewRevision) {
     gpuMapRenderer.render(revision);
     renderPendingCountryOverlays();
     const highlighted = state.layerVisibility.countries && state.countriesData
@@ -6256,6 +6337,7 @@ const {
     const lines = [
       `renderer: ${metrics.renderer || 'unknown'}`,
       `render revision: ${renderRevision}`,
+      `view revision: ${viewRevision}`,
       `state revision: ${state.stateRevision}`,
       `pending country patches: ${state.pendingCountryRenderIds.size}`,
       `affected country ids: ${[...state.pendingCountryRenderIds].join(', ') || '—'}`,
@@ -6380,9 +6462,38 @@ const {
     renderValidationOverlay();
   }
 
+  function projectionViewSnapshot() {
+    const projection = activeProjection();
+    const translate = projection.translate().map(Number);
+    const center = screenToGeo(translate);
+    return {
+      projection: state.projection,
+      size: { width: state.size.width, height: state.size.height },
+      translate,
+      scale: Number(projection.scale()),
+      rotation: state.projection === 'globe' ? state.view.globeRotation.map(Number) : null,
+      projectionCenter: state.projection === 'flat' ? state.view.flatCenter.map(Number) : null,
+      geographicCenter: center ? center.map(Number) : null,
+      zoom: state.projection === 'globe' ? Number(state.view.globeZoom) : Number(state.view.flatZoom),
+    };
+  }
+
+  function syncViewRevision() {
+    const snapshot = projectionViewSnapshot();
+    const signature = JSON.stringify(snapshot);
+    if (signature !== renderedViewSignature) {
+      renderedViewSignature = signature;
+      viewRevision += 1;
+    }
+    window.__PANDOLAB_VIEW_REVISION__ = viewRevision;
+    window.__PANDOLAB_VIEW_STATE__ = { ...snapshot, revision: viewRevision };
+    return viewRevision;
+  }
+
   function renderMapFrame({ viewOnly = false } = {}) {
-    const revision = ++renderRevision;
+    renderRevision += 1;
     updateProjection();
+    const revision = syncViewRevision();
     renderBase();
     renderCountries(revision);
     if (viewOnly) renderHydroSelectionPosition();
@@ -6408,7 +6519,6 @@ const {
     renderSnapIndicator();
     renderDebugMapPanel();
     if (!viewOnly) renderLayerTree();
-    window.__PANDOLAB_VIEW_REVISION__ = revision;
   }
 
   function renderAll() {
@@ -6423,6 +6533,21 @@ const {
     const mapEl = $('map');
     const map = d3.select(mapEl);
     map.selectAll('*').remove();
+    if (new URLSearchParams(location.search).has('debug')) {
+      window.__PANDOLAB_VIEW_DEBUG__ = Object.freeze({
+        snapshot: () => {
+          updateProjection();
+          return deepClone({ ...projectionViewSnapshot(), revision: viewRevision });
+        },
+        screenToGeo: point => {
+          updateProjection();
+          const coordinate = screenToGeo(point);
+          return coordinate ? coordinate.slice() : null;
+        },
+      });
+    } else {
+      delete window.__PANDOLAB_VIEW_DEBUG__;
+    }
 
     baseSvg = map.append('svg')
       .attr('class', 'map-base-svg')
@@ -6490,10 +6615,7 @@ const {
       panBy: panMapBy,
       scheduleViewRender,
       getZoom: () => state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom,
-      setZoom: value => {
-        if (state.projection === 'globe') state.view.globeZoom = clamp(value, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
-        else state.view.flatZoom = clamp(value, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
-      },
+      transformView: transformMapView,
       zoomBy: factor => {
         zoomBy(factor, false);
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
@@ -8782,7 +8904,8 @@ const {
         for (const ref of activeRefs) setCountryVertexCoord(ref.feature, ref.vertex, coord);
         moveBoundaryTopologyPreviewTargets(activePreviewTargets, coord);
         countryLayer.selectAll('path.country-shape').attr('d', path);
-        gpuMapRenderer.render(++renderRevision);
+        renderRevision += 1;
+        gpuMapRenderer.render(viewRevision);
         boundaryEditLayer.selectAll('path.boundary-edit-segment')
           .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }));
         vertexLayer.selectAll('circle.vertex-handle').attr('transform', d => {
@@ -11084,11 +11207,37 @@ const {
   }
 
   function setProjection(type) {
-    const token = atomicMapStateController.begin({ kind: 'projection', type });
-    atomicMapStateController.commit(token, { projection: type === 'globe' ? 'globe' : 'flat', view: state.view });
+    const targetProjection = type === 'globe' ? 'globe' : 'flat';
+    if (targetProjection === state.projection) return false;
+    updateProjection();
+    const currentProjection = activeProjection();
+    const currentCenter = screenToGeo(currentProjection.translate()) || (state.projection === 'globe'
+      ? [-state.view.globeRotation[0], -state.view.globeRotation[1]]
+      : state.view.flatCenter.slice());
+    const currentScale = Number(currentProjection.scale()) || 1;
+    const layout = projectionLayoutMetrics();
+    const nextView = deepClone(state.view);
+    if (targetProjection === 'globe') {
+      nextView.globeRotation = [
+        -wrappedLongitudeDelta(currentCenter[0]),
+        -clamp(Number(currentCenter[1]), -89, 89),
+        0,
+      ];
+      nextView.globeZoom = clamp(currentScale / layout.globeBaseScale, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
+    } else {
+      nextView.flatCenter = [
+        wrappedLongitudeDelta(currentCenter[0]),
+        clamp(Number(currentCenter[1]), -85, 85),
+      ];
+      nextView.flatZoom = clamp(currentScale / layout.flatBaseScale, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
+    }
+    const token = atomicMapStateController.begin({ kind: 'projection', type: targetProjection });
+    if (!atomicMapStateController.commit(token, { projection: targetProjection, view: nextView })) return false;
+    invalidateEditInteraction();
     syncProjectionButtons();
     renderAll();
     queueViewAutosave();
+    return true;
   }
 
   function setLayerVisibility(key, visible) {
@@ -13109,10 +13258,11 @@ const {
   }
 
   function zoomBy(factor, announce = true) {
-    if (state.projection === 'globe') state.view.globeZoom = clamp(state.view.globeZoom * factor, ZOOM_LIMITS.globe.min, ZOOM_LIMITS.globe.max);
-    else state.view.flatZoom = clamp(state.view.flatZoom * factor, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
+    const current = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
+    if (!setMapZoomValue(current * factor)) return false;
     renderAll();
     queueViewAutosave();
+    return true;
   }
 
   function currentObjectFitInsets() {
@@ -13187,7 +13337,7 @@ const {
     const projectionCenterY = projectionSafe.top + Math.max(1, height - projectionSafe.top - projectionSafe.bottom) / 2;
     panMapBy(safeCenterX - projectionCenterX, safeCenterY - projectionCenterY);
     renderAll();
-    queueAutosave();
+    queueViewAutosave();
   }
 
   function focusCoordinate(coord, zoom = null) {
@@ -13239,7 +13389,7 @@ const {
       state.view.flatZoom = 1;
     }
     renderAll();
-    queueAutosave();
+    queueViewAutosave();
   }
 
   function bindHoldZoom(button, factor) {
@@ -13251,7 +13401,7 @@ const {
     const clear = () => {
       clearTimeout(timer); clearInterval(repeater); timer = repeater = null;
       if (repeated) {
-        queueAutosave();
+        queueViewAutosave();
         suppressNextClick = true;
       }
       repeated = false;
