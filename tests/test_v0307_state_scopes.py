@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
 PROJECT_STATE = (ROOT / "assets/js/modules/project-state.js").read_text(encoding="utf-8")
 SAVE_STATE = (ROOT / "assets/js/modules/save-state-controller.js").read_text(encoding="utf-8")
+PERSISTENCE = (ROOT / "assets/js/modules/persistence-service.js").read_text(encoding="utf-8")
 
 
 class StateScopeContractTests(unittest.TestCase):
@@ -24,11 +25,10 @@ class StateScopeContractTests(unittest.TestCase):
         self.assertIn("['distributionType', 'parent_id', 'valid_from', 'valid_to', 'visible']", PROJECT_STATE)
 
     def test_project_and_view_use_separate_indexeddb_records(self):
-        project_reader = APP[APP.index("async function readIndexedDbProject"):APP.index("async function readIndexedDbView")]
-        view_reader = APP[APP.index("async function readIndexedDbView"):APP.index("async function writeIndexedDbProject")]
-        self.assertIn("AUTOSAVE_RECORD_KEY", project_reader)
-        self.assertNotIn("AUTOSAVE_VIEW_KEY", project_reader)
-        self.assertIn("AUTOSAVE_VIEW_KEY", view_reader)
+        self.assertIn("readProject: () => readRecord(projectKey", PERSISTENCE)
+        self.assertIn("readView: () => readRecord(viewKey", PERSISTENCE)
+        self.assertIn("writeProject: project => writeRecord(projectKey", PERSISTENCE)
+        self.assertIn("writeView: view => writeRecord(viewKey", PERSISTENCE)
         self.assertIn("applyAutosavedView(autosaveRestore.view)", APP)
 
     def test_presentation_changes_do_not_record_document_history(self):
