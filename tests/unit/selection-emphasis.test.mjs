@@ -24,10 +24,10 @@ test('selection boundaries keep polygon holes and independent multipolygon rings
   assert.equal(buildSelectionBoundarySegments(multi).length, 11);
 });
 
-test('selection line geometries stay independent and dateline jumps are omitted', () => {
+test('selection line geometries stay independent and dateline crossings are split', () => {
   const line = { type: 'LineString', coordinates: [[170, 0], [179, 1], [-179, 2], [-170, 3]] };
   const multiLine = { type: 'MultiLineString', coordinates: [[[0, 0], [1, 1]], [[2, 2], [3, 3], [4, 4]]] };
-  assert.equal(buildSelectionBoundarySegments(line).length, 2);
+  assert.equal(buildSelectionBoundarySegments(line).length, 4);
   assert.equal(buildSelectionBoundarySegments(multiLine).length, 3);
 });
 

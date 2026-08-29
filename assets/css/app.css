@@ -492,6 +492,10 @@ html[data-selection-mode="strong-fill"] .map-selection-shape.is-secondary { fill
 .country-region-shape.has-explicit-color { fill-opacity: .24; }
 .country-region-shape.country-region-merge-source { stroke: var(--accent-2); stroke-width: 3px; }
 .country-region-shape.country-region-merge-target { fill-opacity: .28; stroke: var(--accent); stroke-width: 3px; }
+.country-region-operation-outline,
+.hydro-edit-boundary,
+.drawing-boundary,
+.distribution-boundary { stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .drawing-shape,
 .hydro-edit-shape { stroke-width: 1.8px; stroke-linejoin: round; stroke-linecap: round; cursor: pointer; vector-effect: non-scaling-stroke; }
 .drawing-shape.selected-point { stroke: var(--map-selection-halo); stroke-width: 2.5px; }
@@ -537,8 +541,9 @@ html[data-selection-mode="strong-fill"] .map-selection-shape.is-secondary { fill
   .historical-library-footer { align-items: stretch; flex-direction: column; }
   .historical-library-footer-spacer { display: none; }
 }
-.drawing-shape.drawing-merge-source { stroke-width: 3px; filter: none; }
-.drawing-shape.drawing-merge-target { fill-opacity: .48 !important; stroke: var(--accent) !important; stroke-width: 3px; }
+.drawing-boundary.drawing-merge-source { stroke-width: 3px; filter: none; }
+.drawing-shape.drawing-merge-target { fill-opacity: .48 !important; }
+.drawing-boundary.drawing-merge-target { stroke: var(--accent) !important; stroke-width: 3px; }
 .user-label-dot { fill: var(--user-label-dot); stroke: var(--user-label-dot-stroke); stroke-width: 1.5px; cursor: pointer; }
 .user-label-text { fill: var(--user-label-text); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-semibold); paint-order: stroke; stroke: var(--user-label-halo); stroke-width: 3px; stroke-linejoin: round; cursor: pointer; }
 .user-label.selected .user-label-dot { stroke: var(--map-selection-halo); stroke-width: 2.5px; }
@@ -1595,6 +1600,9 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
 }
 #app[data-layout="mobile"] #fileMenu {
   padding-inline: var(--ui-menu-padding);
+  scrollbar-gutter: auto;
+}
+#app[data-layout="mobile"] :is(.ui-select-listbox, .layer-search-results, .object-chooser-list) {
   scrollbar-gutter: auto;
 }
 #app[data-layout="mobile"] .top-actions .btn,
