@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -45,6 +45,9 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/distribution-service.js')),
   import(versionedModuleUrl('./modules/drawing-service.js')),
   import(versionedModuleUrl('./modules/map-render-coordinator.js')),
+  import(versionedModuleUrl('./modules/tooltip-controller.js')),
+  import(versionedModuleUrl('./modules/confirm-modal-controller.js')),
+  import(versionedModuleUrl('./modules/layer-panel-controller.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -71,6 +74,9 @@ const {
   normalizeDrawingSemantics,
 } = drawingServiceModule;
 const { createMapRenderCoordinator } = mapRenderCoordinatorModule;
+const { createTooltipController } = tooltipControllerModule;
+const { createConfirmModalController } = confirmModalControllerModule;
+const { createLayerPanelController } = layerPanelControllerModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -339,61 +345,13 @@ const {
   }
   const selectController = createSelectController({ document, window });
   selectController.enhanceAll();
-
-  function hideUiTooltip() {
-    const tooltip = $('uiTooltip');
-    if (!tooltip) return;
-    const ownerId = tooltip.dataset.ownerId;
-    if (ownerId) $(ownerId)?.removeAttribute('aria-describedby');
-    tooltip.classList.add('hidden');
-    tooltip.setAttribute('aria-hidden', 'true');
-    tooltip.textContent = '';
-    delete tooltip.dataset.ownerId;
-  }
-
-  function showUiTooltip(target) {
-    if (!target || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    const text = String(target.dataset.tooltip || '').trim();
-    const tooltip = $('uiTooltip');
-    if (!text || !tooltip) return;
-    if (!target.id) target.id = `ui-tooltip-owner-${Math.random().toString(36).slice(2, 9)}`;
-    tooltip.textContent = text;
-    tooltip.dataset.ownerId = target.id;
-    tooltip.classList.remove('hidden');
-    tooltip.setAttribute('aria-hidden', 'false');
-    target.setAttribute('aria-describedby', 'uiTooltip');
-    const targetRect = target.getBoundingClientRect();
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const edge = 8;
-    const left = clamp(targetRect.left + targetRect.width / 2 - tooltipRect.width / 2, edge, window.innerWidth - tooltipRect.width - edge);
-    const preferredTop = targetRect.bottom + edge;
-    const top = preferredTop + tooltipRect.height <= window.innerHeight - edge
-      ? preferredTop
-      : Math.max(edge, targetRect.top - tooltipRect.height - edge);
-    tooltip.style.left = `${Math.round(left)}px`;
-    tooltip.style.top = `${Math.round(top)}px`;
-  }
-
-  function bindUiTooltips() {
-    document.addEventListener('pointerover', event => {
-      if (event.pointerType && event.pointerType !== 'mouse') return;
-      const target = event.target.closest?.('[data-tooltip]');
-      if (target && !target.contains(event.relatedTarget)) showUiTooltip(target);
-    });
-    document.addEventListener('pointerout', event => {
-      const target = event.target.closest?.('[data-tooltip]');
-      if (target && !target.contains(event.relatedTarget)) hideUiTooltip();
-    });
-    document.addEventListener('focusin', event => {
-      const target = event.target.closest?.('[data-tooltip]');
-      if (target && document.documentElement.classList.contains('keyboard-navigation')) showUiTooltip(target);
-    });
-    document.addEventListener('focusout', event => {
-      if (event.target.closest?.('[data-tooltip]')) hideUiTooltip();
-    });
-    document.addEventListener('scroll', hideUiTooltip, true);
-    window.addEventListener('resize', hideUiTooltip);
-  }
+  const tooltipController = createTooltipController({
+    document,
+    window,
+    tooltip: $('uiTooltip'),
+    clamp: (value, minimum, maximum) => clamp(value, minimum, maximum),
+  });
+  const bindUiTooltips = () => tooltipController.bind();
 
   function syncSearchClearButton(input, button) {
     button?.classList.toggle('hidden', !String(input?.value || '').length);
@@ -1222,7 +1180,6 @@ const {
   const saveState = createSaveStateController({ onChange: syncProjectSaveStatus });
 
   let objectChooserCandidates = [];
-  let layerSearchTimer = 0;
 
   function legacySelectionFromObjectRef(value) {
     const ref = normalizeObjectRef(value);
@@ -11536,45 +11493,26 @@ const {
       : '프로젝트를 불러왔습니다.', 'success', 3200);
   }
 
-  let confirmModalAction = null;
-
-  function openConfirmModal({ title = '확인', message = '', confirmText = '확인', cancelText = '취소', danger = false, choices = [], impacts = [], onConfirm = null } = {}) {
-    const modal = $('confirmModal');
-    if (!modal) return;
-    clearNotification();
-    $('confirmModalTitle').textContent = title;
-    $('confirmModalMessage').textContent = message;
-    const impactSection = $('confirmModalImpactSection');
-    const impactItems = (impacts || []).map(value => String(value || '').trim()).filter(Boolean);
-    impactSection?.classList.toggle('hidden', !impactItems.length);
-    if ($('confirmModalImpactList')) $('confirmModalImpactList').replaceChildren(...impactItems.map(value => {
-      const item = document.createElement('li');
-      item.textContent = value;
-      return item;
-    }));
-    const ok = $('confirmModalOkBtn');
-    ok.textContent = confirmText;
-    ok.classList.toggle('danger-confirm', !!danger);
-    const cancel = $('confirmModalCancelBtn');
-    if (cancel) cancel.textContent = cancelText;
-    const choiceRow = $('confirmModalChoiceRow');
-    const choiceInput = $('confirmModalChoice');
-    const hasChoices = Array.isArray(choices) && choices.length > 0;
-    choiceRow.classList.toggle('hidden', !hasChoices);
-    if (hasChoices) replaceSelectOptions(choiceInput, choices, choices[0].value);
-    confirmModalAction = typeof onConfirm === 'function'
-      ? () => onConfirm(hasChoices ? choiceInput.value : undefined)
-      : null;
-    modal.classList.remove('hidden');
-    requestAnimationFrame(() => (hasChoices ? choiceInput : ok).focus());
-  }
-
-  function closeConfirmModal() {
-    $('confirmModal')?.classList.add('hidden');
-    $('confirmModalChoiceRow')?.classList.add('hidden');
-    $('confirmModalImpactSection')?.classList.add('hidden');
-    confirmModalAction = null;
-  }
+  const confirmModalController = createConfirmModalController({
+    document,
+    window,
+    elements: {
+      modal: $('confirmModal'),
+      backdrop: $('confirmModal')?.querySelector('.confirm-modal-dim'),
+      title: $('confirmModalTitle'),
+      message: $('confirmModalMessage'),
+      impactSection: $('confirmModalImpactSection'),
+      impactList: $('confirmModalImpactList'),
+      ok: $('confirmModalOkBtn'),
+      cancel: $('confirmModalCancelBtn'),
+      choiceRow: $('confirmModalChoiceRow'),
+      choice: $('confirmModalChoice'),
+    },
+    setChoices: replaceSelectOptions,
+    beforeOpen: clearNotification,
+  });
+  const openConfirmModal = options => confirmModalController.open(options);
+  const closeConfirmModal = () => confirmModalController.close();
 
   async function resetProjectInPlace() {
     closeConfirmModal();
@@ -13459,118 +13397,98 @@ const {
   }
 
   function bindLayerUI() {
-    $('countriesVisible').addEventListener('change', e => setLayerVisibility('countries', e.target.checked));
-    $('regionsVisible').addEventListener('change', e => setLayerVisibility('regions', e.target.checked));
-    $('administrativeVisible').addEventListener('change', e => setLayerVisibility('administrative', e.target.checked));
-    $('historicalRegionsVisible').addEventListener('change', e => setLayerVisibility('historicalRegions', e.target.checked));
-    $('languagesVisible').addEventListener('change', e => setLayerVisibility('languages', e.target.checked));
-    $('ethnicitiesVisible').addEventListener('change', e => setLayerVisibility('ethnicities', e.target.checked));
-    $('religionsVisible').addEventListener('change', e => setLayerVisibility('religions', e.target.checked));
-    $('hydroVisible').addEventListener('change', e => setLayerVisibility('hydro', e.target.checked));
-    $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
-    $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
-    $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
-    $('terrainVisible').addEventListener('change', event => {
-      state.physicalSettings.terrainVisible = !!event.target.checked;
-      markLayerTreeDirty();
-      renderLayerTree();
-      renderAll();
-      queuePresentationAutosave();
-    });
-    for (const id of ['terrainPoliticalRadio', 'terrainPhysicalRadio']) $(id).addEventListener('change', event => {
-      if (!event.target.checked) return;
-      state.physicalSettings.terrainStyle = event.target.value === 'physical' ? 'physical' : 'political';
-      markLayerTreeDirty();
-      renderLayerTree();
-      renderAll();
-      queuePresentationAutosave();
-      setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
-    });
-    $('terrainStrengthInput').addEventListener('input', event => {
-      state.physicalSettings.terrainStrength = clamp(Number(event.target.value) / 100, 0, 1);
-      $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
-      scheduleRender();
-    });
-    $('terrainStrengthInput').addEventListener('change', () => queuePresentationAutosave());
-    $('layerSearchInput')?.addEventListener('input', event => {
-      state.layerSearch = event.target.value || '';
-      syncSearchClearButton(event.target, $('layerSearchClearBtn'));
-      clearTimeout(layerSearchTimer);
-      layerSearchTimer = window.setTimeout(() => {
-        markLayerTreeDirty();
-        renderLayerTree();
-      }, 120);
-    });
-    $('layerSearchClearBtn')?.addEventListener('click', () => {
-      const input = $('layerSearchInput');
-      if (!input) return;
-      input.value = '';
-      input.dispatchEvent(new window.Event('input', { bubbles: true }));
-      input.focus({ preventScroll: true });
-    });
-    $('layerSection')?.addEventListener('click', event => {
-      const menuButton = event.target.closest('[data-layer-item-menu]');
-      if (menuButton) {
-        event.stopPropagation();
-        selectLayerTreeItem(menuButton.dataset.layerItemMenu, menuButton.dataset.itemId, { mode: 'replace' });
-        openSelectionEditor();
-        openObjectActionsMenu();
-        return;
-      }
-      const countryRegionFolderButton = event.target.closest('[data-country-region-folder-toggle]');
-      if (countryRegionFolderButton) {
-        const folderKey = countryRegionFolderButton.dataset.countryRegionFolderToggle;
-        if (!folderKey.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) return;
-        state.layerFolders[folderKey] = state.layerFolders[folderKey] === false;
-        markLayerTreeDirty();
-        renderLayerTree();
-        return;
-      }
-      const folderButton = event.target.closest('[data-layer-folder-toggle]');
-      if (folderButton) {
-        const group = folderButton.dataset.layerFolderToggle;
-        const folderKeys = activeLayerFolderKeys();
-        if (!folderKeys.includes(group)) return;
-        const willExpand = !state.layerFolders[group];
-        for (const key of folderKeys) {
-          if (!key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
-        }
-        state.layerFolders[group] = willExpand;
-        markLayerTreeDirty();
-        renderLayerTree();
-        return;
-      }
-      const itemButton = event.target.closest('[data-layer-item-select]');
-      if (itemButton) {
-        const mode = event.ctrlKey || event.metaKey || (isMobile() && state.addSelectionMode) ? 'toggle' : 'replace';
-        const selected = selectLayerTreeItem(itemButton.dataset.layerItemSelect, itemButton.dataset.itemId, { mode, range: event.shiftKey });
-        if (selected && isMobile() && mode === 'replace' && !event.shiftKey) returnToMapAfterMobileAction(true);
-      }
-    });
-    $('layerSection')?.addEventListener('scroll', event => {
-      if (event.target === $('layerSearchResults')) {
-        layerSearchScrollTop = event.target.scrollTop;
-        if (event.target.dataset.virtualized === 'true' && layerSearchVirtualMatches.length) renderVirtualizedLayerSearch(event.target, layerSearchVirtualMatches, layerSearchScrollTop);
-        return;
-      }
-      const container = event.target.closest?.('.layer-children');
-      if (!container) return;
-      const folder = container.closest('.layer-folder');
-      const group = folder?.dataset.layerGroup;
-      const folderKey = folder?.dataset.layerFolderKey || group;
-      if (group && folderKey) {
-        const scrollTop = container.scrollTop;
-        layerGroupScrollTop.set(folderKey, scrollTop);
-        const items = layerVirtualItems.get(folderKey);
-        if (!items || container.dataset.virtualized !== 'true') return;
-        renderVirtualizedLayerGroup(group, container, items, { scrollTop, folderKey });
-      }
-    }, true);
-    $('layerSection')?.addEventListener('change', event => {
-      const checkbox = event.target.closest('[data-layer-item-visibility]');
-      if (!checkbox) return;
-      setLayerItemVisibility(checkbox.dataset.layerItemVisibility, checkbox.dataset.itemId, checkbox.checked);
-    });
+    createLayerPanelController({
+      window,
+      elements: {
+        visibilityInputs: Object.fromEntries([
+          ['countries', 'countriesVisible'], ['regions', 'regionsVisible'], ['administrative', 'administrativeVisible'],
+          ['historicalRegions', 'historicalRegionsVisible'], ['languages', 'languagesVisible'], ['ethnicities', 'ethnicitiesVisible'],
+          ['religions', 'religionsVisible'], ['hydro', 'hydroVisible'], ['drawings', 'drawingsVisible'],
+          ['labels', 'labelsVisible'], ['basemapLabels', 'basemapLabelsVisible'],
+        ].map(([group, id]) => [group, $(id)])),
+        terrainVisible: $('terrainVisible'),
+        terrainStyleInputs: [$('terrainPoliticalRadio'), $('terrainPhysicalRadio')],
+        terrainStrength: $('terrainStrengthInput'),
+        search: $('layerSearchInput'),
+        searchClear: $('layerSearchClearBtn'),
+        section: $('layerSection'),
+      },
+      commands: {
+        setLayerVisibility,
+        setTerrainVisible: visible => {
+          state.physicalSettings.terrainVisible = !!visible;
+          markLayerTreeDirty();
+          renderLayerTree();
+          renderAll();
+          queuePresentationAutosave();
+        },
+        setTerrainStyle: value => {
+          state.physicalSettings.terrainStyle = value === 'physical' ? 'physical' : 'political';
+          markLayerTreeDirty();
+          renderLayerTree();
+          renderAll();
+          queuePresentationAutosave();
+          setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
+        },
+        previewTerrainStrength: value => {
+          state.physicalSettings.terrainStrength = clamp(Number(value) / 100, 0, 1);
+          $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
+          scheduleRender();
+        },
+        commitTerrainStrength: queuePresentationAutosave,
+        setSearchValue: value => {
+          state.layerSearch = value;
+          syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn'));
+        },
+        commitSearch: () => {
+          markLayerTreeDirty();
+          renderLayerTree();
+        },
+        openItemMenu: (group, id) => {
+          selectLayerTreeItem(group, id, { mode: 'replace' });
+          openSelectionEditor();
+          openObjectActionsMenu();
+        },
+        toggleRegionFolder: folderKey => {
+          if (!folderKey.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) return;
+          state.layerFolders[folderKey] = state.layerFolders[folderKey] === false;
+          markLayerTreeDirty();
+          renderLayerTree();
+        },
+        toggleFolder: group => {
+          const folderKeys = activeLayerFolderKeys();
+          if (!folderKeys.includes(group)) return;
+          const willExpand = !state.layerFolders[group];
+          for (const key of folderKeys) if (!key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
+          state.layerFolders[group] = willExpand;
+          markLayerTreeDirty();
+          renderLayerTree();
+        },
+        selectItem: ({ group, id, additive, range }) => {
+          const mode = additive || (isMobile() && state.addSelectionMode) ? 'toggle' : 'replace';
+          const selected = selectLayerTreeItem(group, id, { mode, range });
+          if (selected && isMobile() && mode === 'replace' && !range) returnToMapAfterMobileAction(true);
+        },
+        handleScroll: event => {
+          if (event.target === $('layerSearchResults')) {
+            layerSearchScrollTop = event.target.scrollTop;
+            if (event.target.dataset.virtualized === 'true' && layerSearchVirtualMatches.length) renderVirtualizedLayerSearch(event.target, layerSearchVirtualMatches, layerSearchScrollTop);
+            return;
+          }
+          const container = event.target.closest?.('.layer-children');
+          if (!container) return;
+          const folder = container.closest('.layer-folder');
+          const group = folder?.dataset.layerGroup;
+          const folderKey = folder?.dataset.layerFolderKey || group;
+          if (!group || !folderKey) return;
+          const scrollTop = container.scrollTop;
+          layerGroupScrollTop.set(folderKey, scrollTop);
+          const items = layerVirtualItems.get(folderKey);
+          if (items && container.dataset.virtualized === 'true') renderVirtualizedLayerGroup(group, container, items, { scrollTop, folderKey });
+        },
+        setItemVisibility: setLayerItemVisibility,
+      },
+    }).bind();
   }
 
   function bindToolUI() {
@@ -13928,13 +13846,7 @@ const {
     });
 
     $('newProjectBtn').addEventListener('click', requestNewProject);
-    $('confirmModalCancelBtn')?.addEventListener('click', closeConfirmModal);
-    $('confirmModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeConfirmModal);
-    $('confirmModalOkBtn')?.addEventListener('click', () => {
-      const action = confirmModalAction;
-      closeConfirmModal();
-      if (action) action();
-    });
+    confirmModalController.bind();
 
     $('dataExportBtn').addEventListener('click', openGisDataExport);
     $('gisExportCloseBtn').addEventListener('click', closeGisDataExport);
@@ -14028,7 +13940,7 @@ const {
         if (!$('countryRegionCreateModal')?.classList.contains('hidden')) { closeCountryRegionCreateModal(); return; }
         if (!$('gisImportModal')?.classList.contains('hidden')) { $('gisImportCancelBtn')?.click(); return; }
         if (!$('gisExportModal')?.classList.contains('hidden')) { closeGisDataExport(); return; }
-        if (!$('confirmModal')?.classList.contains('hidden')) { closeConfirmModal(); return; }
+        if (confirmModalController.isOpen()) { closeConfirmModal(); return; }
         if (document.body.classList.contains('file-menu-open')) { closeFileMenu({ restoreFocus: true }); return; }
         if (isCreateMenuOpen()) { closeCreateMenu({ restoreFocus: true }); return; }
         if (state.geometryPreview.session) { discardActiveGeometryPreview(); return; }

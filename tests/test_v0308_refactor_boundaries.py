@@ -12,6 +12,9 @@ DISTRIBUTION_SERVICE = (ROOT / "assets/js/modules/distribution-service.js").read
 DRAWING_SERVICE = (ROOT / "assets/js/modules/drawing-service.js").read_text(encoding="utf-8")
 RENDER_COORDINATOR = (ROOT / "assets/js/modules/map-render-coordinator.js").read_text(encoding="utf-8")
 GPU_RENDERER = (ROOT / "assets/js/modules/gpu-map-renderer.js").read_text(encoding="utf-8")
+TOOLTIP_CONTROLLER = (ROOT / "assets/js/modules/tooltip-controller.js").read_text(encoding="utf-8")
+CONFIRM_MODAL_CONTROLLER = (ROOT / "assets/js/modules/confirm-modal-controller.js").read_text(encoding="utf-8")
+LAYER_PANEL_CONTROLLER = (ROOT / "assets/js/modules/layer-panel-controller.js").read_text(encoding="utf-8")
 
 
 class RefactorBoundaryTests(unittest.TestCase):
@@ -67,6 +70,14 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("rendererUi.setEngineStatus", GPU_RENDERER)
         self.assertNotIn("document.", GPU_RENDERER)
         self.assertNotIn("$('engineStatus')", GPU_RENDERER)
+
+    def test_dom_event_lifecycle_is_behind_ui_controllers(self):
+        self.assertIn("createTooltipController({", APP)
+        self.assertIn("createConfirmModalController({", APP)
+        self.assertIn("createLayerPanelController({", APP)
+        self.assertIn("elements.cancel?.addEventListener", CONFIRM_MODAL_CONTROLLER)
+        self.assertIn("elements.section?.addEventListener('click'", LAYER_PANEL_CONTROLLER)
+        self.assertIn("document.addEventListener('pointerover'", TOOLTIP_CONTROLLER)
 
 
 if __name__ == "__main__":
