@@ -72,16 +72,17 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertNotIn("function flashButton", APP)
         self.assertNotIn("button-flash", CSS)
 
-    def test_projection_controls_move_between_toolbar_and_mobile_sheet(self):
+    def test_projection_controls_live_in_the_map_view_for_every_layout(self):
         self.assertNotIn('class="panel-section compact-view-section"', INDEX)
-        for element_id in ("projectionControl", "projectionToolbarSlot", "mobileProjectionSlot"):
+        for element_id in ("projectionControl", "mapViewProjectionSlot", "mapViewSection", "mapPanelTabs"):
             self.assertIn(f'id="{element_id}"', INDEX)
         self.assertIn('id="engineStatus"', INDEX)
         self.assertIn('class="status-item engine-status hidden"', INDEX)
-        self.assertIn("function placeProjectionControl()", APP)
-        self.assertIn("host.appendChild(control)", APP)
+        self.assertNotIn('id="projectionToolbarSlot"', INDEX)
+        self.assertNotIn('id="mobileProjectionSlot"', INDEX)
+        self.assertNotIn("function placeProjectionControl()", APP)
         self.assertIn("button.setAttribute('aria-pressed', String(active))", APP)
-        self.assertIn('#app[data-layout="mobile"] .mobile-projection-slot:not(:empty)', CSS)
+        self.assertIn('.map-view-projection-slot .projection-control', CSS)
 
 
 if __name__ == "__main__":
