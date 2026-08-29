@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 test('historical library search previews and instantiates an independent sourced country', async ({ page }) => {
   test.setTimeout(120_000);
@@ -19,7 +20,7 @@ test('historical library search previews and instantiates an independent sourced
 
   await page.locator('#historicalLibrarySearchInput').fill('USSR');
   await page.locator('.historical-library-filters summary').click();
-  await page.locator('#historicalLibraryStatusInput').selectOption('past');
+  await selectUiOption(page, '#historicalLibraryStatusInput', 'past');
   await page.locator('#historicalLibraryYearInput').fill('1991');
   const result = page.locator('[data-library-entity-id="historical-country:soviet-union"]');
   await expect(result).toBeVisible();

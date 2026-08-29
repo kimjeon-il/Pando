@@ -9,6 +9,7 @@ APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 PROJECT_STATE = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
+DRAWING_SERVICE = (ROOT / "assets" / "js" / "modules" / "drawing-service.js").read_text(encoding="utf-8")
 
 
 class V0240LayerItemDeletionTests(unittest.TestCase):
@@ -31,7 +32,8 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         self.assertIn("state.selected.type === 'drawing'", selected_delete)
         self.assertIn("state.selected.type === 'distribution'", selected_delete)
         self.assertIn("state.selected.type === 'label'", selected_delete)
-        self.assertIn("state.drawings = state.drawings.filter", common_delete)
+        self.assertIn("drawingApplicationService.remove", common_delete)
+        self.assertIn("documentStore.replaceDrawings(drawings().filter", DRAWING_SERVICE)
         self.assertIn("state.labels = state.labels.filter", common_delete)
         self.assertNotIn("pruneAutoDrawingFolders", common_delete)
         self.assertGreaterEqual(common_delete.count("recordHistory();"), 2)

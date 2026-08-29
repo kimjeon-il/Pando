@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { expect, test } from '@playwright/test';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 const eastPrussiaFixture = process.env.PANDOLAB_EAST_PRUSSIA_FILE || 'tests/fixtures/east-prussia-1900-import.geojson';
 const eastPrussiaGeometry = JSON.parse(readFileSync(eastPrussiaFixture, 'utf8')).features[0].geometry;
@@ -35,11 +36,11 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept('스모크 언어'));
   await page.locator('#addDistributionBtn').click();
-  await page.locator('#distributionTypeInput').selectOption('language');
+  await selectUiOption(page, '#distributionTypeInput', 'language');
   await page.locator('#distributionTypeConfirmBtn').click();
   await page.locator('#actionsTabBtn').click();
   const regionId = await page.locator('#distributionRegionInput option').nth(1).getAttribute('value');
-  await page.locator('#distributionRegionInput').selectOption(regionId);
+  await selectUiOption(page, '#distributionRegionInput', regionId);
   await page.locator('#distributionShareInput').fill('73');
   await page.locator('#addRegionDistributionBtn').click();
 
@@ -148,7 +149,7 @@ test('mobile vector import advances by stage and preserves detected choices when
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisStepIndicator')).toHaveText('2/5 · 가져올 내용');
   await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
-  await page.locator('#gisTargetType').selectOption('region');
+  await selectUiOption(page, '#gisTargetType', 'region');
   await expect(page.locator('#gisTargetCountryRow')).toBeVisible();
   await expect(page.locator('#gisTargetCountry')).toHaveValue('DEU');
   await page.locator('#gisImportNextBtn').click();
@@ -190,8 +191,8 @@ test('East Prussia imports as a complete German administrative unit and undo tre
   await (await chooserPromise).setFiles(eastPrussiaFixture);
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
   await page.locator('#gisImportNextBtn').click();
-  await page.locator('#gisTargetType').selectOption('administrative');
-  await page.locator('#gisTargetCountry').selectOption('DEU');
+  await selectUiOption(page, '#gisTargetType', 'administrative');
+  await selectUiOption(page, '#gisTargetCountry', 'DEU');
   await expect(page.locator('#gisParentRegion')).toHaveValue('');
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisNameField')).toHaveValue('pandolab_name');

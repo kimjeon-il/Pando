@@ -9,6 +9,7 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 MODEL = (ROOT / "assets" / "js" / "modules" / "distribution-model.js").read_text(encoding="utf-8")
 PROJECT_STATE = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
+DRAWING_SERVICE = (ROOT / "assets" / "js" / "modules" / "drawing-service.js").read_text(encoding="utf-8")
 
 
 class V0260DistributionModelTests(unittest.TestCase):
@@ -56,7 +57,7 @@ class V0260DistributionModelTests(unittest.TestCase):
         self.assertIn("window.PANDOLAB_DISTRIBUTIONS", APP)
 
     def test_old_thematic_drawing_categories_are_not_exposed_for_new_drawings(self):
-        rules = APP[APP.index("const DRAWING_CATEGORY_RULES"):APP.index("const DRAWING_ROLE_LABELS")]
+        rules = DRAWING_SERVICE[DRAWING_SERVICE.index("export const DRAWING_CATEGORY_RULES"):DRAWING_SERVICE.index("export const DRAWING_ROLE_LABELS")]
         self.assertNotIn('id="drawingCategoryInput"', INDEX)
         for value in ("language", "ethnicity", "religion"):
             self.assertNotIn(f"{value}:", rules)

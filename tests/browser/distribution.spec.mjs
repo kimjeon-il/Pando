@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 async function openApp(page) {
   const errors = [];
@@ -16,7 +17,7 @@ async function openApp(page) {
 async function createDistribution(page, type, name) {
   await page.locator('#createMenuBtn').click();
   await page.locator('#addDistributionBtn').click();
-  await page.locator('#distributionTypeInput').selectOption(type);
+  await selectUiOption(page, '#distributionTypeInput', type);
   page.once('dialog', dialog => dialog.accept(name));
   await page.locator('#distributionTypeConfirmBtn').click();
   await expect(page.locator('#distributionProperties')).toBeVisible();
@@ -52,7 +53,7 @@ test('a language layer stores a region share and survives undo and redo', async 
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept('그리스어'));
   await page.locator('#addDistributionBtn').click();
-  await page.locator('#distributionTypeInput').selectOption('language');
+  await selectUiOption(page, '#distributionTypeInput', 'language');
   await page.locator('#distributionTypeConfirmBtn').click();
   await expect(page.locator('#distributionProperties')).toBeVisible();
   await expect(page.locator('#distributionTypeValue')).toHaveText('언어');
@@ -64,7 +65,7 @@ test('a language layer stores a region share and survives undo and redo', async 
 
   const regionId = await page.locator('#distributionRegionInput option').nth(1).getAttribute('value');
   expect(regionId).toBeTruthy();
-  await page.locator('#distributionRegionInput').selectOption(regionId);
+  await selectUiOption(page, '#distributionRegionInput', regionId);
   await page.locator('#distributionShareInput').fill('95');
   await page.locator('#addRegionDistributionBtn').click();
 
