@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -48,6 +48,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/tooltip-controller.js')),
   import(versionedModuleUrl('./modules/confirm-modal-controller.js')),
   import(versionedModuleUrl('./modules/layer-panel-controller.js')),
+  import(versionedModuleUrl('./modules/history-service.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -77,6 +78,7 @@ const { createMapRenderCoordinator } = mapRenderCoordinatorModule;
 const { createTooltipController } = tooltipControllerModule;
 const { createConfirmModalController } = confirmModalControllerModule;
 const { createLayerPanelController } = layerPanelControllerModule;
+const { createHistoryService } = historyServiceModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -8803,7 +8805,7 @@ const {
         const issues = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? validateStructuredGeometry(feature) : [];
         if (issues.length && beforeGeometry) {
           feature.geometry = beforeGeometry;
-          state.history.pop();
+          historyService.discardLast();
           beforeGeometry = null;
           clearActiveSnap();
           renderAll();
@@ -11094,21 +11096,32 @@ const {
     };
   }
 
+  const historyStore = {
+    get history() { return state.history; },
+    set history(value) { state.history = value; },
+    get historyMeta() { return state.historyMeta; },
+    set historyMeta(value) { state.historyMeta = value; },
+    get future() { return state.future; },
+    set future(value) { state.future = value; },
+    get futureMeta() { return state.futureMeta; },
+    set futureMeta(value) { state.futureMeta = value; },
+  };
+  const historyService = createHistoryService({
+    store: historyStore,
+    maxEntries: MAX_HISTORY,
+    snapshot: snapshotEditable,
+    restore: restoreEditable,
+    normalizeMetadata: normalizeHistoryMetadata,
+    onRecord: () => saveState.markContentChanged(),
+    onChange: updateHistoryButtons,
+  });
+
   function commitHistorySnapshot(snapshot, meta = {}) {
-    state.history.push(snapshot);
-    state.historyMeta.push(normalizeHistoryMetadata(meta));
-    if (state.history.length > MAX_HISTORY) {
-      state.history.shift();
-      state.historyMeta.shift();
-    }
-    state.future = [];
-    state.futureMeta = [];
-    saveState.markContentChanged();
-    updateHistoryButtons();
+    historyService.commitSnapshot(snapshot, meta);
   }
 
   function recordHistory(meta = {}) {
-    commitHistorySnapshot(snapshotEditable(), meta);
+    historyService.record(meta);
   }
 
   function restoreEditable(snapshot) {
@@ -11159,13 +11172,7 @@ const {
       performDraftUndo();
       return;
     }
-    if (!state.history.length) return;
-    state.future.push(snapshotEditable());
-    state.futureMeta.push(state.historyMeta.at(-1) || normalizeHistoryMetadata({ description: '작업 실행취소' }));
-    const prev = state.history.pop();
-    state.historyMeta.pop();
-    restoreEditable(prev);
-    updateHistoryButtons();
+    if (!historyService.undo({ description: '작업 실행취소' })) return;
     setActionStatus('이전 작업을 실행 취소했습니다.', 'success');
   }
 
@@ -11180,20 +11187,14 @@ const {
       performDraftRedo();
       return;
     }
-    if (!state.future.length) return;
-    state.history.push(snapshotEditable());
-    state.historyMeta.push(state.futureMeta.at(-1) || normalizeHistoryMetadata({ description: '작업 다시 실행' }));
-    const next = state.future.pop();
-    state.futureMeta.pop();
-    restoreEditable(next);
-    updateHistoryButtons();
+    if (!historyService.redo({ description: '작업 다시 실행' })) return;
     setActionStatus('작업을 다시 실행했습니다.', 'success');
   }
 
   function updateHistoryButtons() {
     const draftMode = draftInputActive();
-    const undoAvailable = draftMode ? state.draftEdit.history.length > 0 : state.history.length > 0;
-    const redoAvailable = draftMode ? state.draftEdit.future.length > 0 : state.future.length > 0;
+    const undoAvailable = draftMode ? state.draftEdit.history.length > 0 : historyService.canUndo();
+    const redoAvailable = draftMode ? state.draftEdit.future.length > 0 : historyService.canRedo();
     $('undoBtn').disabled = state.modeProcessing || !undoAvailable;
     $('redoBtn').disabled = state.modeProcessing || !redoAvailable;
     $('undoBtn').dataset.tooltip = draftMode ? '작성 중 실행 취소' : '실행 취소';
@@ -11453,10 +11454,7 @@ const {
     markLayerTreeDirty();
     configureDatasetSession(project);
     const externalGeometry = !!project.countriesData && project.baseDataset !== BASE_DATASET;
-    state.history = [];
-    state.future = [];
-    state.historyMeta = [];
-    state.futureMeta = [];
+    historyService.reset();
     state.selected = null;
     objectSelectionSyncing = true;
     objectSelection.clear();
@@ -11560,10 +11558,7 @@ const {
     resetCountryRegionEditState();
     resetMergeState();
     resetTerritoryEditingState(true);
-    state.history = [];
-    state.future = [];
-    state.historyMeta = [];
-    state.futureMeta = [];
+    historyService.reset();
     state.selected = null;
     objectSelectionSyncing = true;
     objectSelection.clear();

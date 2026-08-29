@@ -15,6 +15,7 @@ GPU_RENDERER = (ROOT / "assets/js/modules/gpu-map-renderer.js").read_text(encodi
 TOOLTIP_CONTROLLER = (ROOT / "assets/js/modules/tooltip-controller.js").read_text(encoding="utf-8")
 CONFIRM_MODAL_CONTROLLER = (ROOT / "assets/js/modules/confirm-modal-controller.js").read_text(encoding="utf-8")
 LAYER_PANEL_CONTROLLER = (ROOT / "assets/js/modules/layer-panel-controller.js").read_text(encoding="utf-8")
+HISTORY_SERVICE = (ROOT / "assets/js/modules/history-service.js").read_text(encoding="utf-8")
 
 
 class RefactorBoundaryTests(unittest.TestCase):
@@ -78,6 +79,14 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("elements.cancel?.addEventListener", CONFIRM_MODAL_CONTROLLER)
         self.assertIn("elements.section?.addEventListener('click'", LAYER_PANEL_CONTROLLER)
         self.assertIn("document.addEventListener('pointerover'", TOOLTIP_CONTROLLER)
+
+    def test_document_history_is_behind_history_service(self):
+        self.assertIn("createHistoryService({", APP)
+        self.assertIn("historyService.record(meta)", APP)
+        self.assertIn("historyService.undo", APP)
+        self.assertIn("historyService.redo", APP)
+        self.assertNotIn("state.history.push(", APP)
+        self.assertIn("store.future = []", HISTORY_SERVICE)
 
 
 if __name__ == "__main__":
