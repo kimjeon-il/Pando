@@ -76,7 +76,6 @@ const {
   createDistributionLayer,
   distributionEntriesForLayer,
   dominantDistributionEntries,
-  migrateThematicDrawings,
   normalizeDistributionEntries,
   normalizeDistributionLayers,
   validateDistributionModel,
@@ -219,13 +218,10 @@ const {
   });
   const DRAWING_SCHEMA_VERSION = 1;
   const DRAWING_CATEGORY_RULES = Object.freeze({
-    ethnicity: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '민족' }),
-    religion: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '종교' }),
-    language: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '언어' }),
     custom: Object.freeze({ role: 'custom', geometry: 'any', binding: 'none', label: '사용자 정의' }),
   });
   const DRAWING_ROLE_LABELS = Object.freeze({
-    thematic: '주제 영역', custom: '사용자 정의',
+    custom: '사용자 정의',
   });
   const HYDRO_LAYER_META = Object.freeze({
     rivers_hydro: Object.freeze({ label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS', category: 'river', color: '#3b82c4' }),
@@ -395,7 +391,7 @@ const {
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'debugMapPanel', 'countryAreaValue',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
-    'drawingNameInput', 'drawingFolderInput', 'drawingColorInput', 'drawingCategoryInput', 'drawingNotesInput',
+    'drawingNameInput', 'drawingColorInput', 'drawingNotesInput',
     'drawingLandRelationSection', 'drawingOwnerField', 'drawingOwnerInput', 'drawingParentField', 'drawingParentInput', 'drawingLandBindingField', 'drawingLandBindingInput', 'drawingRoleHelp',
     'drawingLandActionsSection', 'splitDrawingBtn', 'mergeDrawingBtn', 'syncDrawingCoastBtn', 'editDrawingCoastBtn', 'applyDrawingToCountryBtn', 'promoteDrawingToCountryBtn', 'drawingRoleValue', 'drawingTopologyValue',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue', 'deleteLabelBtn',
@@ -1061,7 +1057,6 @@ const {
     historicalLibrary: null,
     historicalLibrarySelectedId: '',
     historicalLibraryLoadState: 'idle',
-    drawingFolders: [],
     selected: null,
     addSelectionMode: false,
     projection: 'globe',
@@ -1310,7 +1305,7 @@ const {
     }
     if (ref.domain === 'drawing') {
       const feature = state.drawings.find(item => String(item.id) === ref.id);
-      return { name: feature ? drawingName(feature) : ref.id, type: feature ? drawingCategoryLabel(feature) : '지형지물', detail: feature ? drawingFolderName(drawingFolderId(feature)) : '' };
+      return { name: feature ? drawingName(feature) : ref.id, type: feature ? drawingCategoryLabel(feature) : '지형지물', detail: '' };
     }
     if (ref.domain === 'hydro') {
       const feature = hydroFeatureById(ref.id);
@@ -1733,7 +1728,6 @@ const {
         for (const id of removedLabelIds) delete state.labelSettings[labelKey('label', id)];
         state.territorialUnits = state.territorialUnits.filter(feature => !removedUnitIds.has(String(feature.id)));
         state.territorialRelations = state.territorialRelations.filter(relation => !removedUnitIds.has(String(relation.unitId)));
-        pruneAutoDrawingFolders();
         objectSelectionSyncing = true;
         objectSelection.clear();
         objectSelectionSyncing = false;
@@ -4216,16 +4210,15 @@ const {
     if (!drawingCategoryCompatible(feature, category)) category = 'custom';
     const rule = drawingCategoryRule(category);
     properties.category = category;
+    delete properties.pandolab_folder_id;
     properties.pandolab_schema_version = DRAWING_SCHEMA_VERSION;
     properties.pandolab_role = rule.role;
-    const allowedBindings = rule.role === 'custom' ? new Set(['none', 'clip'])
-      : rule.role === 'thematic' ? new Set(['clip', 'none'])
-        : new Set(['none']);
+    const allowedBindings = new Set(['none', 'clip']);
     const requestedBinding = String(properties.pandolab_land_binding || rule.binding);
     properties.pandolab_land_binding = allowedBindings.has(requestedBinding) ? requestedBinding : rule.binding;
     properties.pandolab_owner_id = '';
     properties.pandolab_parent_id = '';
-    properties.pandolab_topology_group = rule.role === 'thematic' ? 'land-mask:world' : `${rule.role}:${category}`;
+    properties.pandolab_topology_group = `${rule.role}:${category}`;
     return feature;
   }
 
@@ -4234,8 +4227,6 @@ const {
   }
 
   function drawingRoleHelp(feature) {
-    const role = drawingRole(feature);
-    if (role === 'thematic') return '민족·종교·언어 분포는 국가 소유권과 분리하며 육지 안에서만 표시합니다.';
     return '사용자 정의 객체는 육지 결합 방식을 직접 선택할 수 있습니다.';
   }
 
@@ -4320,8 +4311,6 @@ const {
     return feature.properties?.editor_name || feature.properties?.editor_original_name || feature.properties?.name || '국가';
   }
 
-  const DEFAULT_DRAWING_FOLDER_ID = 'drawings-default';
-  const DRAWING_FOLDER_STATE_PREFIX = 'drawing-folder:';
   const COUNTRY_REGION_FOLDER_STATE_PREFIX = 'country-region-folder:';
   const DISTRIBUTION_GROUP_TYPES = Object.freeze({
     languages: DISTRIBUTION_TYPES.LANGUAGE,
@@ -4351,42 +4340,8 @@ const {
   let layerSearchScrollTop = 0;
   const layerGroupScrollTop = new Map();
 
-  function drawingFolderStateKey(id) {
-    return `${DRAWING_FOLDER_STATE_PREFIX}${String(id)}`;
-  }
-
   function countryRegionFolderStateKey(group, countryId) {
     return `${COUNTRY_REGION_FOLDER_STATE_PREFIX}${group}:${String(countryId || 'unassigned')}`;
-  }
-
-  function normalizeDrawingFolders(value) {
-    const folders = [];
-    const seen = new Set();
-    for (const raw of Array.isArray(value) ? value : []) {
-      const id = String(raw?.id || '').trim();
-      if (!id || id === DEFAULT_DRAWING_FOLDER_ID || seen.has(id)) continue;
-      seen.add(id);
-      folders.push({
-        id,
-        name: String(raw?.name || '가져온 지형지물').trim() || '가져온 지형지물',
-        origin: raw?.origin === 'user' ? 'user' : 'geojson',
-        autoPrune: raw?.autoPrune !== false,
-      });
-    }
-    return folders;
-  }
-
-  function drawingFolderById(id) {
-    return state.drawingFolders.find(folder => folder.id === String(id)) || null;
-  }
-
-  function drawingFolderId(feature) {
-    const id = String(feature?.properties?.pandolab_folder_id || '');
-    return drawingFolderById(id) ? id : DEFAULT_DRAWING_FOLDER_ID;
-  }
-
-  function drawingFolderName(id) {
-    return id === DEFAULT_DRAWING_FOLDER_ID ? '지형지물' : drawingFolderById(id)?.name || '지형지물';
   }
 
   function activeLayerFolderKeys() {
@@ -4409,42 +4364,7 @@ const {
       ...countryRegionKeys,
       'hydro',
       'drawings',
-      ...state.drawingFolders.map(folder => drawingFolderStateKey(folder.id)),
     ];
-  }
-
-  function uniqueDrawingFolderName(value) {
-    const base = String(value || '가져온 지형지물').trim() || '가져온 지형지물';
-    const used = new Set(state.drawingFolders.map(folder => folder.name.toLocaleLowerCase('ko')));
-    if (!used.has(base.toLocaleLowerCase('ko'))) return base;
-    let suffix = 2;
-    while (used.has(`${base} (${suffix})`.toLocaleLowerCase('ko'))) suffix += 1;
-    return `${base} (${suffix})`;
-  }
-
-  function createImportedDrawingFolder(fileName) {
-    const baseName = String(fileName || '').replace(/\.(?:geo)?json$/i, '').trim();
-    return {
-      id: uid('drawing_folder'),
-      name: uniqueDrawingFolderName(baseName || '가져온 지형지물'),
-      origin: 'geojson',
-      autoPrune: true,
-    };
-  }
-
-  function pruneAutoDrawingFolders() {
-    const occupied = new Set(state.drawings.map(feature => String(feature.properties?.pandolab_folder_id || '')));
-    const removed = state.drawingFolders.filter(folder => folder.autoPrune && !occupied.has(folder.id));
-    if (!removed.length) return false;
-    const removedIds = new Set(removed.map(folder => folder.id));
-    state.drawingFolders = state.drawingFolders.filter(folder => !removedIds.has(folder.id));
-    for (const id of removedIds) {
-      const key = drawingFolderStateKey(id);
-      delete state.layerFolders[key];
-      layerGroupScrollTop.delete(key);
-      layerVirtualItems.delete(key);
-    }
-    return true;
   }
 
   function normalizePhysicalSettings(value) {
@@ -4623,21 +4543,6 @@ const {
     queueAutosave();
   }
 
-  function setDrawingFolderVisibility(folderId, visible) {
-    const itemIds = state.drawings
-      .filter(feature => drawingFolderId(feature) === String(folderId))
-      .map(feature => String(feature.id));
-    if (!itemIds.length) return;
-    state.itemVisibility.drawings ||= {};
-    for (const id of itemIds) {
-      if (visible) delete state.itemVisibility.drawings[id];
-      else state.itemVisibility.drawings[id] = false;
-    }
-    markLayerTreeDirty();
-    renderAll();
-    queueAutosave();
-  }
-
   function layerTreeItems(group) {
     if (group === 'countries' || group === 'countryLabels') {
       return (state.countriesData?.features || []).map(feature => {
@@ -4711,18 +4616,13 @@ const {
       return [...builtIns, ...userItems];
     }
     if (group === 'drawings') {
-      return state.drawings.map(feature => {
-        const folderId = drawingFolderId(feature);
-        return {
-          id: String(feature.id),
-          name: drawingName(feature),
-          color: drawingColor(feature),
-          meta: `${drawingCategoryLabel(feature)} · 사용자`,
-          folderId,
-          folderName: drawingFolderName(folderId),
-          selected: state.selected?.type === 'drawing' && state.selected.id === String(feature.id),
-        };
-      });
+      return state.drawings.map(feature => ({
+        id: String(feature.id),
+        name: drawingName(feature),
+        color: drawingColor(feature),
+        meta: `${drawingCategoryLabel(feature)} · 사용자`,
+        selected: state.selected?.type === 'drawing' && state.selected.id === String(feature.id),
+      }));
     }
     return state.labels.map(label => ({
       id: String(label.id),
@@ -4922,53 +4822,6 @@ const {
     syncPhysicalControls();
   }
 
-  function createDynamicDrawingFolderElement(folder) {
-    const folderKey = drawingFolderStateKey(folder.id);
-    const element = document.createElement('div');
-    element.className = 'layer-folder';
-    element.dataset.layerGroup = 'drawings';
-    element.dataset.drawingFolderId = folder.id;
-    element.dataset.layerFolderKey = folderKey;
-
-    const row = document.createElement('div');
-    row.className = 'ui-row layer-folder-row';
-    const toggle = document.createElement('button');
-    toggle.className = 'ui-button layer-folder-toggle';
-    toggle.type = 'button';
-    toggle.dataset.layerFolderToggle = folderKey;
-    toggle.innerHTML = '<svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg>';
-    const visibility = document.createElement('input');
-    visibility.type = 'checkbox';
-    visibility.dataset.drawingFolderVisibility = folder.id;
-    visibility.setAttribute('aria-label', `${folder.name} 폴더 표시`);
-    const name = document.createElement('button');
-    name.className = 'ui-button layer-folder-name';
-    name.type = 'button';
-    name.dataset.layerFolderToggle = folderKey;
-    name.textContent = folder.name;
-    row.append(toggle, visibility, name);
-
-    const children = document.createElement('div');
-    children.className = 'layer-children';
-    children.dataset.layerFolderKey = folderKey;
-    children.setAttribute('role', 'group');
-    children.setAttribute('aria-label', `${folder.name} 항목`);
-    children.hidden = true;
-    element.append(row, children);
-    return { folder: element, container: children, folderKey, folderId: folder.id, name: folder.name, visibility };
-  }
-
-  function renderDynamicDrawingFolderElements() {
-    document.querySelectorAll('.layer-folder[data-drawing-folder-id]').forEach(folder => folder.remove());
-    const mapElementsContainer = $('mapElementsLayerItems');
-    if (!mapElementsContainer) return [];
-    return state.drawingFolders.map(folder => {
-      const descriptor = createDynamicDrawingFolderElement(folder);
-      mapElementsContainer.appendChild(descriptor.folder);
-      return descriptor;
-    });
-  }
-
   function renderLayerFolderContents({ group, folderKey, name, folder, container, items, search }) {
     const expanded = !search && !!state.layerFolders[folderKey];
     if (!container.hidden) layerGroupScrollTop.set(folderKey, container.scrollTop);
@@ -5079,24 +4932,12 @@ const {
       layerSearchScrollTop = 0;
     }
     renderTerrainLayerFolder(search);
-    const dynamicDrawingFolders = renderDynamicDrawingFolderElements();
     for (const group of LAYER_GROUP_KEYS) {
-      const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]:not([data-drawing-folder-id])`);
+      const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]`);
       const container = $(layerGroupTargetIds[group]);
       if (!folder || !container) continue;
       const allItems = layerTreeItems(group).sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
-      const items = group === 'drawings'
-        ? allItems.filter(item => item.folderId === DEFAULT_DRAWING_FOLDER_ID)
-        : allItems;
-      renderLayerFolderContents({ group, folderKey: group, name: layerGroupNames[group], folder, container, items, search });
-    }
-    const drawingItems = layerTreeItems('drawings').sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
-    for (const descriptor of dynamicDrawingFolders) {
-      const items = drawingItems.filter(item => item.folderId === descriptor.folderId);
-      const visibleCount = items.filter(item => isLayerItemVisible('drawings', item.id)).length;
-      descriptor.visibility.checked = !!items.length && visibleCount === items.length;
-      descriptor.visibility.indeterminate = visibleCount > 0 && visibleCount < items.length;
-      renderLayerFolderContents({ group: 'drawings', ...descriptor, items, search });
+      renderLayerFolderContents({ group, folderKey: group, name: layerGroupNames[group], folder, container, items: allItems, search });
     }
     renderedLayerTreeRevision = state.layerTreeRevision;
     renderedLayerSearch = search;
@@ -9507,12 +9348,27 @@ const {
     return true;
   }
 
-  function deleteDistributionLayer(id) {
+  function deleteDistributionLayer(id, { confirm = true } = {}) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
     if (layer.locked) {
       setActionStatus('잠금을 해제한 뒤 분포 항목을 삭제할 수 있습니다.', 'error', 3200);
       return false;
+    }
+    const performDelete = () => {
+      recordHistory();
+      state.distributionLayers = state.distributionLayers.filter(candidate => candidate.id !== layer.id);
+      state.distributionEntries = state.distributionEntries.filter(entry => entry.layerId !== layer.id);
+      for (const child of state.distributionLayers) if (child.parentId === layer.id) child.parentId = '';
+      if (state.distributionSettings.selectedLayerId === layer.id) state.distributionSettings.selectedLayerId = '';
+      markLayerTreeDirty();
+      clearSelection(false);
+      queueAutosave();
+      setActionStatus(`${layer.name} ${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
+    };
+    if (!confirm) {
+      performDelete();
+      return true;
     }
     openConfirmModal({
       title: `${DISTRIBUTION_TYPE_LABELS[layer.type]} 삭제`,
@@ -9520,17 +9376,7 @@ const {
       impacts: [`${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목 1개 삭제`, `연결된 분포 ${distributionEntriesForLayer(state.distributionEntries, layer.id).length}개 삭제`],
       confirmText: '분포 항목 삭제',
       danger: true,
-      onConfirm: () => {
-        recordHistory();
-        state.distributionLayers = state.distributionLayers.filter(candidate => candidate.id !== layer.id);
-        state.distributionEntries = state.distributionEntries.filter(entry => entry.layerId !== layer.id);
-        for (const child of state.distributionLayers) if (child.parentId === layer.id) child.parentId = '';
-        if (state.distributionSettings.selectedLayerId === layer.id) state.distributionSettings.selectedLayerId = '';
-        markLayerTreeDirty();
-        clearSelection(false);
-        queueAutosave();
-        setActionStatus(`${layer.name} ${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
-      },
+      onConfirm: performDelete,
     });
     return true;
   }
@@ -9615,18 +9461,10 @@ const {
     setVisible: setDistributionLayerVisible,
   });
 
-  function syncDrawingFolderInput(feature) {
-    const options = [
-      { value: DEFAULT_DRAWING_FOLDER_ID, label: '지형지물' },
-      ...state.drawingFolders.map(folder => ({ value: folder.id, label: folder.name })),
-    ];
-    replaceSelectOptions($('drawingFolderInput'), options, drawingFolderId(feature));
-  }
-
   function syncDrawingSemanticEditor(feature) {
     const geometryKind = drawingGeometryKind(feature);
     const role = drawingRole(feature);
-    const editableArea = geometryKind === 'polygon' && (role === 'thematic' || role === 'custom');
+    const editableArea = geometryKind === 'polygon' && role === 'custom';
     const hasOwnerCountry = !!countryFeatureById(feature?.properties?.pandolab_owner_id);
     $('drawingLandRelationSection').classList.toggle('hidden', !editableArea);
     $('drawingLandActionsSection').classList.toggle('hidden', !editableArea);
@@ -9643,10 +9481,6 @@ const {
       else delete button.dataset.tooltip;
     }
     $('promoteDrawingToCountryBtn').disabled = !editableArea;
-    for (const option of $('drawingCategoryInput').options) {
-      const expected = drawingCategoryRule(option.value).geometry;
-      option.disabled = expected !== 'any' && expected !== geometryKind;
-    }
     $('drawingLandBindingInput').value = drawingLandBinding(feature);
     $('drawingRoleHelp').textContent = drawingRoleHelp(feature);
     $('drawingRoleValue').textContent = DRAWING_ROLE_LABELS[role] || role;
@@ -9665,11 +9499,9 @@ const {
     showPropertyForm('drawing', displayName, { resetScroll: !refreshOnly });
     $('drawingNameInput').value = meta.name || '';
     $('drawingIdInput').textContent = String(id);
-    syncDrawingFolderInput(feature);
     const defaultColor = defaultDrawingColor(feature);
     $('drawingColorInput').value = meta.editorColor || defaultColor;
     syncColorPicker('drawing', { value: meta.editorColor || defaultColor, defaultColor, isDefault: !meta.editorColor });
-    $('drawingCategoryInput').value = meta.category || 'custom';
     $('drawingNotesInput').value = meta.notes || '';
     $('deleteDrawingInlineBtn').textContent = `${typeLabel} 삭제`;
     syncDrawingSemanticEditor(feature);
@@ -10394,28 +10226,15 @@ const {
     const f = state.drawings.find(x => String(x.id) === state.selected.id);
     if (!f) return;
     f.properties = f.properties || {};
-    if (field === 'category' && !drawingCategoryCompatible(f, value)) {
-      $('drawingCategoryInput').value = f.properties.category || 'custom';
-      setActionStatus('면은 주제 영역, 선은 강으로 분류하세요.', 'error', 4400);
-      return;
-    }
-    if (field === 'pandolab_folder_id' && value !== DEFAULT_DRAWING_FOLDER_ID && !drawingFolderById(value)) {
-      syncDrawingFolderInput(f);
-      return;
-    }
     recordHistory();
-    if (field === 'pandolab_folder_id') {
-      if (value === DEFAULT_DRAWING_FOLDER_ID) delete f.properties.pandolab_folder_id;
-      else f.properties.pandolab_folder_id = value;
-      pruneAutoDrawingFolders();
-    } else f.properties[field] = value;
+    f.properties[field] = value;
     if (field === 'category') normalizeDrawingSemantics(f);
     if (field === 'pandolab_owner_id' || field === 'pandolab_parent_id' || field === 'pandolab_land_binding') normalizeDrawingSemantics(f, { inferOwner: false });
     drawingLandClipCache.delete(f);
-    if (field === 'name' || field === 'category' || field === 'pandolab_folder_id') markLayerTreeDirty();
+    if (field === 'name') markLayerTreeDirty();
     selectDrawing(state.selected.id, true);
     queueAutosave();
-    setActionStatus(field === 'pandolab_folder_id' ? '지형지물을 다른 폴더로 이동했습니다.' : '지형지물 정보를 변경했습니다.', 'success');
+    setActionStatus('지형지물 정보를 변경했습니다.', 'success');
   }
 
   function commitHydroEdit(field, value) {
@@ -11184,7 +11003,6 @@ const {
           renderMode: value?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
           selectedLayerId: String(value?.selectedLayerId || ''),
         }),
-        drawingFolders: value => normalizeDrawingFolders(value),
         physicalSettings: (value, current) => normalizePhysicalSettings(value || current),
         projection: (value, current, project) => value || project.view?.projection || current || 'globe',
         layerVisibility: (value, current) => ({ ...(current || {}), ...(value || {}) }),
@@ -11198,16 +11016,10 @@ const {
 
   function normalizeProjectObjects() {
     state.hydroEdits = normalizeHydroEditCollection(state.hydroEdits);
-    state.drawingFolders = normalizeDrawingFolders(state.drawingFolders);
     state.drawings = normalizeDrawingCollection(state.drawings || []);
-    const migratedDistributions = migrateThematicDrawings(state.drawings, {
-      existingLayers: state.distributionLayers,
-      existingEntries: state.distributionEntries,
-    });
-    state.drawings = migratedDistributions.remainingDrawings;
-    state.distributionLayers = normalizeDistributionLayers(migratedDistributions.layers, { makeId: type => uid(`distribution_${type}`) });
+    state.distributionLayers = normalizeDistributionLayers(state.distributionLayers, { makeId: type => uid(`distribution_${type}`) });
     const distributionLayerIds = new Set(state.distributionLayers.map(layer => layer.id));
-    state.distributionEntries = normalizeDistributionEntries(migratedDistributions.entries, {
+    state.distributionEntries = normalizeDistributionEntries(state.distributionEntries, {
       layerExists: id => distributionLayerIds.has(id),
       makeId: () => uid('distribution_entry'),
     });
@@ -11231,11 +11043,6 @@ const {
       territorialExists: id => !!territorialRepository.get(id),
     });
     if (!distributionValidation.ok) console.warn('Distribution model normalization issues', distributionValidation.issues);
-    for (const feature of state.drawings) {
-      const folderId = String(feature.properties?.pandolab_folder_id || '');
-      if (folderId && !drawingFolderById(folderId)) delete feature.properties.pandolab_folder_id;
-    }
-    pruneAutoDrawingFolders();
     state.layerFolders = normalizeLayerFolderState(state.layerFolders);
   }
 
@@ -11849,7 +11656,6 @@ const {
     state.activeSnap = null;
     state.audit = { status: 'idle', revision: state.audit.revision + 1, report: null, selectedIssueId: null };
     state.hovered = null;
-    state.drawingFolders = [];
     state.physicalSettings = normalizePhysicalSettings(null);
     state.projection = 'globe';
     state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, languages: true, ethnicities: true, religions: true, hydro: true, drawings: true, labels: true, basemapLabels: true };
@@ -13078,7 +12884,6 @@ const {
       return;
     }
     const supported = [];
-    const folder = createImportedDrawingFolder(file.name);
     for (const raw of features) {
       if (!['Point', 'LineString', 'Polygon', 'MultiLineString', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
       const f = deepClone(raw);
@@ -13089,21 +12894,19 @@ const {
         ...p,
         name: p.name || '',
         editorColor: p.editorColor || p.color || DEFAULT_DRAWING_COLOR,
-        category: p.category || 'custom',
+        category: 'custom',
         notes: p.notes || '',
-        pandolab_folder_id: folder.id,
       };
       supported.push(normalizeDrawingSemantics(f));
     }
     if (!supported.length) throw new Error('지원되는 점·선·면 지도 객체가 없습니다.');
     recordHistory();
-    state.drawingFolders.push(folder);
     state.drawings.push(...supported);
-    state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === drawingFolderStateKey(folder.id)]));
+    state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === 'drawings']));
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
-    setActionStatus(`GeoJSON ${supported.length}개 객체를 ${folder.name} 폴더로 가져왔습니다.`, 'success', 3200);
+    setActionStatus(`GeoJSON 지형지물 ${supported.length}개를 가져왔습니다.`, 'success', 3200);
   }
 
   let gisExportStep = 0;
@@ -13218,7 +13021,6 @@ const {
     recordHistory();
     reassignDrawingParents([key]);
     state.drawings = state.drawings.filter(candidate => String(candidate.id) !== key);
-    pruneAutoDrawingFolders();
     markLayerTreeDirty();
     if (state.selected?.type === 'drawing' && String(state.selected.id) === key) clearSelection(false);
     else renderAll();
@@ -13432,7 +13234,7 @@ const {
     if (state.selected.type === 'drawing') {
       removeDrawingById(state.selected.id, '선택한 객체를 삭제했습니다.');
     } else if (state.selected.type === 'distribution') {
-      deleteDistributionLayer(state.selected.id);
+      deleteDistributionLayer(state.selected.id, { confirm: false });
     } else if (state.selected.type === 'countryRegion') {
       deleteTerritorialUnit(state.selected.unitType || countryRegionById(state.selected.id)?.properties?.unitType, state.selected.id);
     } else if (state.selected.type === 'label') {
@@ -13794,11 +13596,6 @@ const {
       }
     }, true);
     $('layerSection')?.addEventListener('change', event => {
-      const folderVisibility = event.target.closest('[data-drawing-folder-visibility]');
-      if (folderVisibility) {
-        setDrawingFolderVisibility(folderVisibility.dataset.drawingFolderVisibility, folderVisibility.checked);
-        return;
-      }
       const checkbox = event.target.closest('[data-layer-item-visibility]');
       if (!checkbox) return;
       setLayerItemVisibility(checkbox.dataset.layerItemVisibility, checkbox.dataset.itemId, checkbox.checked);
@@ -13920,8 +13717,6 @@ const {
       { id: 'capitalInput', field: 'capital', commit: commitCountryEdit, transform: value => value.trim() },
       { id: 'notesInput', field: 'notes', commit: commitCountryEdit },
       { id: 'drawingNameInput', field: 'name', commit: commitDrawingMeta, transform: value => value.trim() },
-      { id: 'drawingFolderInput', field: 'pandolab_folder_id', commit: commitDrawingMeta },
-      { id: 'drawingCategoryInput', field: 'category', commit: commitDrawingMeta },
       { id: 'drawingOwnerInput', field: 'pandolab_owner_id', commit: commitDrawingMeta },
       { id: 'drawingParentInput', field: 'pandolab_parent_id', commit: commitDrawingMeta },
       { id: 'drawingLandBindingInput', field: 'pandolab_land_binding', commit: commitDrawingMeta },

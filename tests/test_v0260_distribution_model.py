@@ -28,6 +28,7 @@ class V0260DistributionModelTests(unittest.TestCase):
             "migrateThematicDrawings",
         ):
             self.assertIn(f"function {symbol}", MODEL)
+        self.assertIn("groups:", MODEL)
 
     def test_region_reference_and_free_geometry_modes_are_supported(self):
         self.assertIn("REGION: 'region'", MODEL)
@@ -54,12 +55,12 @@ class V0260DistributionModelTests(unittest.TestCase):
         self.assertIn("window.PANDOLAB_DISTRIBUTIONS", APP)
 
     def test_old_thematic_drawing_categories_are_not_exposed_for_new_drawings(self):
-        drawing_categories = INDEX[
-            INDEX.index('id="drawingCategoryInput"'):
-            INDEX.index('</select>', INDEX.index('id="drawingCategoryInput"'))
-        ]
+        rules = APP[APP.index("const DRAWING_CATEGORY_RULES"):APP.index("const DRAWING_ROLE_LABELS")]
+        self.assertNotIn('id="drawingCategoryInput"', INDEX)
         for value in ("language", "ethnicity", "religion"):
-            self.assertNotIn(f'<option value="{value}">', drawing_categories)
+            self.assertNotIn(f"{value}:", rules)
+        normalizer = APP[APP.index("function normalizeProjectObjects"):APP.index("function normalizeHistoryMetadata")]
+        self.assertNotIn("migrateThematicDrawings", normalizer)
 
     def test_render_modes_are_data_driven_and_territorial_changes_are_independent(self):
         self.assertIn("DOMINANT: 'dominant'", MODEL)

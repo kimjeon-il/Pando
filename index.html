@@ -576,14 +576,7 @@
             <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">기본 정보</h3>
               <div class="ui-field field-group editor-field"><label for="drawingNameInput">이름</label><input id="drawingNameInput" type="text" placeholder="예: 라인강" /></div>
-              <div class="editor-field-grid editor-field-grid-color">
-                <div class="ui-field field-group editor-field">
-                  <label for="drawingCategoryInput">분류</label>
-                  <select id="drawingCategoryInput">
-                    <option value="custom">사용자 정의</option>
-                  </select>
-                </div>
-                <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="drawing">
+              <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="drawing">
                   <label id="drawingColorLabel">색상</label>
                   <button id="drawingColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="drawingColorPopover" aria-labelledby="drawingColorLabel drawingColorValue">
                     <span class="ui-color-preview" aria-hidden="true"></span><span id="drawingColorValue" class="ui-color-value">기본 색상</span>
@@ -594,7 +587,6 @@
                     <div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div>
                     <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button>
                   </div>
-                </div>
               </div>
               <div class="ui-field field-group editor-field"><label for="drawingNotesInput">메모</label><textarea id="drawingNotesInput" rows="5"></textarea></div>
               <p class="editor-help">경계를 수정하려면 지도 위 꼭짓점을 드래그하세요.</p>
@@ -640,20 +632,11 @@
               </div>
             </section>
 
-            <details class="ui-disclosure editor-disclosure">
-              <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
-              <div class="editor-disclosure-body">
-                <div class="ui-field field-group editor-field">
-                  <label for="drawingFolderInput">폴더</label>
-                  <select id="drawingFolderInput"></select>
-                </div>
-                <div class="ui-info-list editor-info-list" hidden>
-                  <div><span>객체 ID</span><output id="drawingIdInput">—</output></div>
-                  <div><span>역할</span><output id="drawingRoleValue">—</output></div>
-                  <div><span>토폴로지 그룹</span><output id="drawingTopologyValue">—</output></div>
-                </div>
-              </div>
-            </details>
+            <div class="ui-info-list editor-info-list" hidden>
+              <div><span>객체 ID</span><output id="drawingIdInput">—</output></div>
+              <div><span>역할</span><output id="drawingRoleValue">—</output></div>
+              <div><span>토폴로지 그룹</span><output id="drawingTopologyValue">—</output></div>
+            </div>
 
             <button id="deleteDrawingInlineBtn" class="ui-button" type="button" hidden>지형지물 삭제</button>
           </form>
