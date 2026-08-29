@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -41,6 +41,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/project-serializer.js')),
   import(versionedModuleUrl('./modules/persistence-service.js')),
   import(versionedModuleUrl('./modules/physical-layer-service.js')),
+  import(versionedModuleUrl('./modules/territorial-service.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -53,6 +54,7 @@ const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } 
 const { createProjectSerializer, restoreCountriesFromDelta } = projectSerializerModule;
 const { createBrowserProjectStorage, createPersistenceService } = persistenceServiceModule;
 const { createHydroService, createTerrainService } = physicalLayerServiceModule;
+const { createTerritorialApplicationService } = territorialServiceModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -74,10 +76,8 @@ const {
   createTerritorialRepository,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
-  runTerritorialTransaction,
   territorialChildren,
   territorialSiblings,
-  validateTerritorialRelations,
 } = territorialUnitsModule;
 const {
   DISTRIBUTION_SCHEMA_VERSION,
@@ -107,8 +107,6 @@ const COUNTRY_REGION_KINDS = Object.freeze({
 const countryRegionChildren = territorialChildren;
 const countryRegionSiblings = territorialSiblings;
 const normalizeCountryRegions = normalizeTerritorialUnits;
-const runCountryRegionTransaction = runTerritorialTransaction;
-const validateCountryRegionRelations = validateTerritorialRelations;
 const createCountryRegionFeature = options => createTerritorialFeature({
   id: options.id,
   unitType: options.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? TERRITORIAL_UNIT_TYPES.ADMIN : TERRITORIAL_UNIT_TYPES.TERRITORY,
@@ -4312,8 +4310,44 @@ const {
     getCountryOverride: id => state.countryOverrides[id] || {},
   });
 
+  const territorialApplicationService = createTerritorialApplicationService({
+    repository: territorialRepository,
+    runDocumentMutation: (meta, mutate) => {
+      recordHistory(meta);
+      return mutate();
+    },
+    countryCommands: {
+      isLocked: id => isCountryLocked(id),
+      setLocked: (id, locked) => setCountryLockedState(id, locked),
+      setField: (id, field, value) => {
+        state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}) };
+        if (field === 'color') {
+          writeDomainColor(COLOR_DOMAINS.COUNTRY, {
+            feature: countryFeatureById(id), override: state.countryOverrides[id],
+          }, value, { fallback: defaultCountryColor() });
+        } else state.countryOverrides[id][field] = value;
+        const index = state.countryIndex.get(id);
+        if (index !== undefined && field === 'name') {
+          const feature = state.countriesData.features[index];
+          feature.properties.editor_name = state.countryOverrides[id].name || feature.properties.editor_original_name;
+        }
+      },
+    },
+    unitCommands: {
+      setField: (id, field, value) => {
+        const feature = countryRegionById(id);
+        if (!feature) return;
+        if (field === 'color') setTerritorialStyleColor(feature, value);
+        else feature.properties[field] = value;
+      },
+      replaceAll: units => { state.territorialUnits = units; },
+    },
+  });
+  const runCountryRegionTransaction = options => territorialApplicationService.runGeometryTransaction(options);
+  const validateCountryRegionRelations = (units, options) => territorialApplicationService.validateRelations(units, options);
+
   function territorialUnitById(id) {
-    return territorialRepository.get(id);
+    return territorialApplicationService.get(id);
   }
 
   function territorialStyleColor(feature) {
@@ -9521,35 +9555,30 @@ const {
   }
 
   function setTerritorialUnitLocked(type, id, locked) {
+    const key = String(id || '');
+    const result = territorialApplicationService.setLocked(type, key, locked, {
+      history: type === TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? { description: `${countryName(countryFeatureById(key))} ${locked ? '잠금' : '잠금 해제'}` }
+        : {},
+    });
+    if (!result.ok) return false;
+    if (!result.changed) return true;
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      const key = String(id || '');
-      if (!countryFeatureById(key) || isCountryLocked(key) === !!locked) return !!countryFeatureById(key);
-      recordHistory({ type: 'country-lock', description: `${countryName(countryFeatureById(key))} ${locked ? '잠금' : '잠금 해제'}`, affectedIds: [key] });
-      setCountryLockedState(key, !!locked);
       if (state.selected?.type === 'country' && String(state.selected.id) === key) selectCountry(key, true);
       syncBatchActionAvailability();
-      queueAutosave();
-      return true;
-    }
-    const feature = countryRegionById(id);
-    if (!feature || feature.properties?.unitType !== type) return false;
-    recordHistory();
-    feature.properties.locked = !!locked;
-    selectCountryRegion(id, true);
+    } else selectCountryRegion(key, true);
     queueAutosave();
     return true;
   }
 
   window.PANDOLAB_TERRITORIAL = Object.freeze({
-    get: id => territorialRepository.get(id),
-    list: options => territorialRepository.list(options),
+    get: id => territorialApplicationService.get(id),
+    list: options => territorialApplicationService.list(options),
     select: selectTerritorialUnit,
     setName: setTerritorialUnitName,
     setColor: setTerritorialUnitColor,
     setLocked: setTerritorialUnitLocked,
-    isLocked: (type, id) => type === TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? isCountryLocked(id)
-      : countryRegionById(id)?.properties?.locked === true,
+    isLocked: (type, id) => territorialApplicationService.isLocked(type, id),
   });
 
   window.PANDOLAB_DISTRIBUTIONS = Object.freeze({
@@ -10304,19 +10333,9 @@ const {
 
   function commitCountryEdit(field, value) {
     if (state.selected?.type !== 'country') return;
-    recordHistory();
     const id = state.selected.id;
-    state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}) };
-    if (field === 'color') {
-      writeDomainColor(COLOR_DOMAINS.COUNTRY, {
-        feature: countryFeatureById(id), override: state.countryOverrides[id],
-      }, value, { fallback: defaultCountryColor() });
-    } else state.countryOverrides[id][field] = value;
-    const idx = state.countryIndex.get(id);
-    if (idx !== undefined) {
-      const f = state.countriesData.features[idx];
-      f.properties.editor_name = state.countryOverrides[id].name || f.properties.editor_original_name;
-    }
+    const result = territorialApplicationService.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, id, field, value);
+    if (!result.ok) return;
     if (field === 'name') markLayerTreeDirty();
     selectCountry(id, true);
     queueAutosave();
@@ -10382,9 +10401,13 @@ const {
     }
     const explicitCoverage = feature.properties?.coverageMode === TERRITORIAL_COVERAGE_MODES.EXPLICIT;
     if (field === 'countryId' && explicitCoverage && String(value) !== String(feature.properties.sovereignId || '')) {
-      recordHistory();
-      Object.assign(feature, changeSovereign(feature, value));
-      state.territorialUnits = normalizeCountryRegions(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
+      const candidateUnits = deepClone(state.territorialUnits);
+      const candidateFeature = candidateUnits.find(item => String(item.id) === String(feature.id));
+      Object.assign(candidateFeature, changeSovereign(candidateFeature, value));
+      const normalizedUnits = normalizeCountryRegions(candidateUnits, { countryExists: id => !!countryFeatureById(id) });
+      territorialApplicationService.replaceUnits(normalizedUnits, {
+        type: 'territorial-sovereign', affectedIds: [feature.id],
+      });
       markLayerTreeDirty();
       selectCountryRegion(feature.id, true);
       queueAutosave();
@@ -10441,8 +10464,9 @@ const {
       setActionStatus(validationMessage, 'error', 0);
       return;
     }
-    recordHistory();
-    state.territorialUnits = normalizedUnits;
+    territorialApplicationService.replaceUnits(normalizedUnits, {
+      type: 'territorial-metadata', affectedIds: [feature.id],
+    });
     markLayerTreeDirty();
     selectCountryRegion(feature.id, true);
     queueAutosave();
@@ -11133,7 +11157,7 @@ const {
       countryExists: id => !!countryFeatureById(id),
     });
     state.territorialRelations = normalizeTerritorialRelations(state.territorialRelations);
-    const relationValidation = validateTerritorialRelations(state.territorialUnits, {
+    const relationValidation = territorialApplicationService.validateRelations(state.territorialUnits, {
       countryExists: id => !!countryFeatureById(id),
       relations: state.territorialRelations,
     });
