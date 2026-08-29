@@ -166,7 +166,7 @@ test('mobile vector import advances by stage and preserves detected choices when
   await expect(page.locator('#gisImportImpactSummary')).toContainText('소속 국가:');
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisStepIndicator')).toHaveText('5/5 · 최종 확인');
-  await expect(page.locator('#gisFinalSummary')).toContainText('전체를 독일 소속 지역');
+  await expect(page.locator('#gisFinalSummary')).toContainText('전체를 독일 소속 권역');
   await expect(page.locator('#gisImportConfirmBtn')).toBeVisible();
 
   await page.locator('#gisImportCancelBtn').click();

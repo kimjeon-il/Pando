@@ -153,6 +153,13 @@ const COUNTRY_REGION_KINDS = Object.freeze({
   REGION: TERRITORIAL_UNIT_TYPES.TERRITORY,
   ADMINISTRATIVE: TERRITORIAL_UNIT_TYPES.ADMIN,
 });
+const TERRITORIAL_TYPE_LABELS = Object.freeze({
+  [TERRITORIAL_UNIT_TYPES.COUNTRY]: '국가',
+  [TERRITORIAL_UNIT_TYPES.TERRITORY]: '권역',
+  [TERRITORIAL_UNIT_TYPES.ADMIN]: '행정구역',
+  [TERRITORIAL_UNIT_TYPES.REGION]: '지방',
+});
+const territorialTypeLabel = unitType => TERRITORIAL_TYPE_LABELS[unitType] || '권역';
 const countryRegionChildren = territorialChildren;
 const countryRegionSiblings = territorialSiblings;
 const normalizeCountryRegions = normalizeTerritorialUnits;
@@ -197,6 +204,7 @@ const {
 } = draftStrokeModule;
 const {
   buildBoundaryTopology: buildSharedBoundaryTopology,
+  buildTerritorialInternalBoundarySegments,
   moveTopologyNode,
   planCoastEdit,
   planSharedBoundaryEdit,
@@ -1239,7 +1247,7 @@ const {
     }
     if (ref.domain === 'territorial') {
       const feature = countryRegionById(ref.id);
-      const type = ref.type === TERRITORIAL_UNIT_TYPES.ADMIN ? '행정구역' : ref.type === TERRITORIAL_UNIT_TYPES.REGION ? '역사·지리 지역' : '지역';
+      const type = territorialTypeLabel(ref.type);
       const context = ref.type === TERRITORIAL_UNIT_TYPES.REGION ? '' : countryRegionCountryName(feature);
       return { name: feature ? countryRegionName(feature) : ref.id, type, detail: [context, ref.type === TERRITORIAL_UNIT_TYPES.ADMIN ? `${Number(feature?.properties?.adminLevel) || 1}급` : ''].filter(Boolean).join(' · ') };
     }
@@ -1790,6 +1798,7 @@ const {
   let snapLayer;
   let boundaryEditLayer;
   let overlayStackLayer;
+  let territorialBoundaryLayer;
   let countryRegionLayer;
   let distributionLayer;
   let drawingLayer;
@@ -1801,6 +1810,7 @@ const {
   let vertexLayer;
   let draftLayer;
   let mapInteractionLayer;
+  let territorialBoundaryCache = { revision: -1, countries: null, units: null, segments: [] };
   let mapResizeObserver = null;
   let mapResizeFrame = 0;
   let mapResizeSignature = '';
@@ -4447,10 +4457,10 @@ const {
   function countryRegionName(feature) {
     const properties = feature?.properties || {};
     if (properties.name) return properties.name;
-    if (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 역사·지리 지역';
+    if (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
     return properties.isRemainder === true
-      ? (properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '미지정 행정구역' : '미지정 지역')
-      : (properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '이름 없는 행정구역' : '이름 없는 지역');
+      ? (properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '미지정 행정구역' : '미지정 권역')
+      : (properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '이름 없는 행정구역' : '이름 없는 권역');
   }
 
   function countryRegionColor(feature) {
@@ -4491,7 +4501,7 @@ const {
   const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'languages', 'ethnicities', 'religions', 'hydro', 'drawings', 'labels', 'countryLabels'];
   const LAYER_TREE_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['hydro', 'labels', 'countryLabels'].includes(group));
   const LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['labels', 'countryLabels'].includes(group));
-  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', languages: '언어', ethnicities: '민족', religions: '종교', hydro: '수계', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
+  const layerGroupNames = { countries: '국가', regions: '권역', administrative: '행정구역', historicalRegions: '지방', languages: '언어', ethnicities: '민족', religions: '종교', hydro: '수계', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
     regions: 'regionsLayerChildren',
@@ -4779,8 +4789,8 @@ const {
           folderName: kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE
             ? `행정구역 · ${countryLabel} · ${levelLabel}`
             : kind === TERRITORIAL_UNIT_TYPES.REGION
-              ? `역사·지리 지역${feature.properties?.sovereignId ? ` · ${countryLabel}` : ''}`
-              : `지역 · ${countryLabel}`,
+            ? `지방${feature.properties?.sovereignId ? ` · ${countryLabel}` : ''}`
+            : `권역 · ${countryLabel}`,
           countryId: String(feature.properties?.sovereignId || ''),
           level: Number(feature.properties?.adminLevel) || null,
           selected: state.selected?.type === 'countryRegion' && state.selected.id === String(feature.id),
@@ -5783,6 +5793,57 @@ const {
     selection.exit().remove();
   }
 
+  function territorialInternalBoundarySegments() {
+    const countries = state.countriesData?.features || [];
+    const units = state.territorialUnits || [];
+    if (territorialBoundaryCache.revision !== state.stateRevision
+      || territorialBoundaryCache.countries !== countries
+      || territorialBoundaryCache.units !== units) {
+      territorialBoundaryCache = {
+        revision: state.stateRevision,
+        countries,
+        units,
+        segments: buildTerritorialInternalBoundarySegments(countries, units),
+      };
+    }
+    return territorialBoundaryCache.segments;
+  }
+
+  function renderTerritorialInternalBoundaries(visibleFeatures) {
+    if (!territorialBoundaryLayer) return;
+    const visibleIds = new Set((visibleFeatures || []).map(feature => String(feature.id)));
+    const featuresById = new Map((state.territorialUnits || []).map(feature => [String(feature.id), feature]));
+    const groups = new Map();
+    for (const segment of territorialInternalBoundarySegments()) {
+      const visibleOwner = segment.unitIds.find(id => visibleIds.has(String(id)));
+      if (!visibleOwner) continue;
+      const owner = featuresById.get(String(visibleOwner));
+      const color = owner ? countryRegionColor(owner) : 'currentColor';
+      const presentationGroup = segment.styleType === 'historical'
+        ? 'historicalRegions'
+        : segment.styleType === 'administrative' ? 'administrative' : 'regions';
+      const style = layerStyle(state.layerPresentation, presentationGroup);
+      if (!style.boundaryVisible || !(style.opacity > 0)) continue;
+      const key = `${segment.styleType}:${color}:${style.opacity}`;
+      if (!groups.has(key)) groups.set(key, { key, styleType: segment.styleType, color, opacity: style.opacity, coordinates: [] });
+      groups.get(key).coordinates.push([segment.a, segment.b]);
+    }
+    const data = [...groups.values()].map(group => ({
+      ...group,
+      geometry: { type: 'MultiLineString', coordinates: group.coordinates },
+    }));
+    const selection = territorialBoundaryLayer.selectAll('path.territorial-internal-boundary')
+      .data(data, group => group.key);
+    selection.enter().append('path').attr('class', 'territorial-internal-boundary');
+    selection
+      .attr('class', group => `territorial-internal-boundary territorial-internal-boundary--${group.styleType}`)
+      .attr('d', group => path({ type: 'Feature', properties: {}, geometry: group.geometry }))
+      .style('color', group => group.color)
+      .style('stroke', group => group.color)
+      .style('stroke-opacity', group => group.opacity);
+    selection.exit().remove();
+  }
+
   function renderCountryRegions() {
     const data = state.territorialUnits.filter(feature => {
       const group = feature.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE
@@ -5830,15 +5891,29 @@ const {
       .style('color', countryRegionColor)
       .style('fill', countryRegionColor)
       .style('fill-opacity', feature => layerStyle(state.layerPresentation, presentationGroupForTerritorialFeature(feature)).opacity)
-      .style('stroke-opacity', feature => {
-        const style = layerStyle(state.layerPresentation, presentationGroupForTerritorialFeature(feature));
-        return style.boundaryVisible ? style.opacity : 0;
+      .style('stroke', feature => {
+        const source = state.countryRegionMergeSourceId === String(feature.id);
+        const target = state.countryRegionMergeTargetIds.includes(String(feature.id));
+        return source ? 'var(--accent-2)' : target ? 'var(--accent)' : 'none';
       })
-      .style('stroke-width', feature => layerStyle(state.layerPresentation, presentationGroupForTerritorialFeature(feature)).boundaryWidth)
+      .style('stroke-opacity', feature => {
+        const source = state.countryRegionMergeSourceId === String(feature.id);
+        const target = state.countryRegionMergeTargetIds.includes(String(feature.id));
+        if (source || target) return 1;
+        return 0;
+      })
+      .style('stroke-width', feature => {
+        const source = state.countryRegionMergeSourceId === String(feature.id);
+        const target = state.countryRegionMergeTargetIds.includes(String(feature.id));
+        if (source || target) return 3;
+        return 0;
+      })
+      .style('stroke-dasharray', 'none')
       .style('mix-blend-mode', feature => layerStyle(state.layerPresentation, presentationGroupForTerritorialFeature(feature)).blendMode)
       .attr('data-presentation-group', presentationGroupForTerritorialFeature);
 
     selection.exit().remove();
+    renderTerritorialInternalBoundaries(data);
   }
 
   function presentationGroupForTerritorialFeature(feature) {
@@ -6552,7 +6627,6 @@ const {
       const primary = selection.primaryKey === ref.key;
       const canonicalFeature = mapFeatureForObjectRef(ref);
       const isCountry = ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY;
-      if (isCountry && gpuMapRenderer.supportsCountryEmphasis?.()) continue;
       const feature = isCountry
         ? countryDisplayFeature(canonicalFeature)
         : canonicalFeature;
@@ -6560,12 +6634,12 @@ const {
       const geometries = feature.type === 'FeatureCollection'
         ? (feature.features || []).map(item => item.geometry)
         : [feature.geometry];
-      const geometrySegmentCount = geometries.reduce((count, geometry) => count + buildSelectionBoundarySegments(geometry).length, 0);
-      boundarySegmentCount += geometrySegmentCount;
-      if (!isCountry && genericGpuAvailable && geometrySegmentCount > 0) {
+      const hasBoundaryGeometry = geometries.some(geometry => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(geometry?.type));
+      if (genericGpuAvailable && hasBoundaryGeometry) {
         (primary ? genericPrimary : genericSecondary).push({ key: ref.key, geometry: feature });
         continue;
       }
+      if (!genericGpuAvailable) boundarySegmentCount += geometries.reduce((count, geometry) => count + buildSelectionBoundarySegments(geometry).length, 0);
       const priorityClass = primary ? ' is-primary' : ' is-secondary';
       const d = path(feature);
       if (!d) continue;
@@ -6581,6 +6655,7 @@ const {
     if (genericGpuAvailable) {
       selectionEmphasisRenderer.setSelection({ primary: genericPrimary, secondary: genericSecondary, revision: state.stateRevision });
       selectionEmphasisRenderer.render(viewState || window.__PANDOLAB_VIEW_STATE__ || {});
+      boundarySegmentCount = selectionEmphasisRenderer.stats().segmentCount;
     }
     window.__PANDOLAB_SELECTION_RENDER_METRICS__ = {
       pathCount,
@@ -6947,6 +7022,7 @@ const {
     hydroEditLayer = root.append('g').attr('class', 'hydro-edit-layer');
     boundaryEditLayer = root.append('g').attr('class', 'boundary-edit-layer');
     overlayStackLayer = root.append('g').attr('class', 'overlay-stack-layer');
+    territorialBoundaryLayer = root.append('g').attr('class', 'territorial-boundary-layer');
     countryRegionLayer = overlayStackLayer;
     distributionLayer = overlayStackLayer;
     drawingLayer = overlayStackLayer;
@@ -7206,16 +7282,9 @@ const {
     }
     const metrics = session.metrics || {};
     const fragments = [];
-    if (metrics.removedCountryCount) fragments.push(`삭제 국가 ${Number(metrics.removedCountryCount).toLocaleString('ko-KR')}`);
-    if (metrics.transferredAreaKm2 > 0) fragments.push(`이동 면적 ${formatArea(metrics.transferredAreaKm2)}`);
-    if (metrics.finalAreaKm2 > 0) fragments.push(`최종 면적 ${formatArea(metrics.finalAreaKm2)}`);
-    for (const row of metrics.perEntity || []) {
-      if (!Math.abs(row.delta || 0)) continue;
-      const sign = row.delta > 0 ? '+' : '';
-      const percent = row.percent == null ? '' : ` (${sign}${row.percent.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}%)`;
-      fragments.push(`${row.id} ${sign}${formatArea(Math.abs(row.delta), 'ko-KR', { approximate: false })}${percent}`);
-    }
-    const text = (fragments.length ? fragments : ['변경 결과를 지도에서 확인하세요.']).join(' · ');
+    if (metrics.transferredAreaKm2 > 0) fragments.push(`이동 ${formatArea(metrics.transferredAreaKm2)}`);
+    if (metrics.finalAreaKm2 > 0) fragments.push(`최종 ${formatArea(metrics.finalAreaKm2)}`);
+    const text = fragments.length ? fragments.join(' · ') : '변경 결과를 확인하세요.';
     element.textContent = text;
     element.setAttribute('aria-label', text);
   }
@@ -8231,7 +8300,7 @@ const {
     else if (selectedCountryRegionId && countryRegionById(selectedCountryRegionId)) selectCountryRegion(String(selectedCountryRegionId), true);
     else if (selectedId && countryFeatureById(selectedId)) selectCountry(selectedId, true);
     renderDraft();
-    const labels = { 'new-country': '국가 추가', 'annex-territory': '영토 편입', 'merge-country': '국가 합병', 'merge-drawing': '영역 합치기', 'split-drawing': '영역 나누기', 'merge-country-region': '지역 합치기', 'split-country-region': '지역 나누기', 'country-border': '국경 조정', 'country-coast': '해안선 조정' };
+    const labels = { 'new-country': '국가 추가', 'annex-territory': '영토 편입', 'merge-country': '국가 합병', 'merge-drawing': '영역 합치기', 'split-drawing': '영역 나누기', 'merge-country-region': '권역 합치기', 'split-country-region': '권역 나누기', 'country-border': '국경 조정', 'country-coast': '해안선 조정' };
     if (announce) setActionStatus(`${labels[cancelledTool] || '지도 작업'}을 취소했습니다.`, 'success');
   }
 
@@ -9536,7 +9605,7 @@ const {
   }
 
   const PROPERTY_TYPE_LABELS = Object.freeze({
-    country: '국가', region: '지역', administrative: '행정구역', historicalRegion: '역사·지리 지역',
+    country: '국가', region: '권역', administrative: '행정구역', historicalRegion: '지방',
     distribution: '분포', drawing: '지형지물', label: '라벨', hydro: '수계', multi: '다중선택',
   });
 
@@ -9704,7 +9773,7 @@ const {
         && String(candidate.properties?.sovereignId || '') === countryId)
         .map(candidate => ({
           value: String(candidate.id),
-          label: `${countryRegionName(candidate)}${candidate.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? ` · ${candidate.properties.adminLevel}급` : ' · 지역'}`,
+          label: `${countryRegionName(candidate)}${candidate.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? ` · ${candidate.properties.adminLevel}급` : ' · 권역'}`,
         }))
         .sort((a, b) => layerNameCollator.compare(a.label, b.label)),
     ];
@@ -9727,7 +9796,7 @@ const {
         .filter(candidate => !excluded.has(String(candidate.id)))
         .map(candidate => ({
           value: String(candidate.id),
-          label: `${candidate.properties?.name || countryRegionName(candidate)} · ${candidate.properties?.unitType === 'country' ? '국가' : candidate.properties?.unitType === 'admin' ? '행정구역' : candidate.properties?.unitType === 'territory' ? '지역' : '역사·지리 지역'}`,
+          label: `${candidate.properties?.name || countryRegionName(candidate)} · ${territorialTypeLabel(candidate.properties?.unitType)}`,
         }))
         .sort((left, right) => layerNameCollator.compare(left.label, right.label)),
     ];
@@ -9775,8 +9844,8 @@ const {
     $('selectionStatus').textContent = administrative
       ? `행정구역 · ${countryRegionCountryName(feature)} · ${Number(properties.adminLevel) || 1}급 · ${displayName}`
       : historical
-        ? `역사·지리 지역 · ${displayName}`
-        : `지역 · ${countryRegionCountryName(feature)} · ${displayName}`;
+        ? `지방 · ${displayName}`
+        : `권역 · ${countryRegionCountryName(feature)} · ${displayName}`;
     $('selectionStatus').textContent += geometryAreaStatusSuffix(feature.geometry);
     syncStatusBar();
     syncLayerSelectionRows();
@@ -9791,7 +9860,7 @@ const {
   function distributionRegionOptions() {
     return territorialRepository.list().map(unit => ({
       value: unit.id,
-      label: `${unit.properties?.name || unit.id} · ${unit.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? '국가' : unit.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN ? '행정구역' : unit.properties?.unitType === TERRITORIAL_UNIT_TYPES.TERRITORY ? '지역' : '역사·지리 지역'}`,
+      label: `${unit.properties?.name || unit.id} · ${territorialTypeLabel(unit.properties?.unitType)}`,
     })).sort((left, right) => layerNameCollator.compare(left.label, right.label));
   }
 
@@ -10303,8 +10372,8 @@ const {
     const context = countryRegionPartitionContext(kind);
     if (!context) {
       setActionStatus(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE
-        ? '행정구역의 부모로 사용할 국가·지역·행정구역을 먼저 선택하세요.'
-        : '지역을 만들 국가를 먼저 선택하세요.', 'error', 3900);
+        ? '행정구역의 부모로 사용할 국가·권역·행정구역을 먼저 선택하세요.'
+        : '권역을 만들 국가를 먼저 선택하세요.', 'error', 3900);
       return false;
     }
     const source = context.source || createCountryRegionFeature({
@@ -10330,13 +10399,13 @@ const {
     const context = countryRegionPartitionContext(kind);
     if (!context) {
       setActionStatus(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE
-        ? '행정구역의 부모로 사용할 국가·지역·행정구역을 먼저 선택하세요.'
-        : '지역을 만들 국가를 먼저 선택하세요.', 'error', 3900);
+        ? '행정구역의 부모로 사용할 국가·권역·행정구역을 먼저 선택하세요.'
+        : '권역을 만들 국가를 먼저 선택하세요.', 'error', 3900);
       return false;
     }
     const administrative = kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE;
     pendingCountryRegionCreateKind = kind;
-    $('countryRegionCreateTitle').textContent = administrative ? '행정구역 추가' : '지역 추가';
+    $('countryRegionCreateTitle').textContent = administrative ? '행정구역 추가' : '권역 추가';
     $('countryRegionCreateContext').textContent = administrative
       ? `부모: ${countryRegionName(context.container) || countryName(context.container)} · 자동 ${context.level}급`
       : `소속 국가: ${countryName(context.container)}`;
@@ -10364,7 +10433,7 @@ const {
   function finishCountryRegionSplitDraft() {
     const source = countryRegionById(state.countryRegionSplitSourceId) || state.countryRegionSplitVirtualSource;
     if (!source?.geometry) {
-      setActionStatus('나눌 지역을 찾을 수 없습니다. 지역을 다시 선택하세요.', 'error', 3400);
+      setActionStatus('나눌 권역을 찾을 수 없습니다. 권역을 다시 선택하세요.', 'error', 3400);
       return;
     }
     try {
@@ -10375,7 +10444,7 @@ const {
       const smallerIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       const otherIndex = smallerIndex === 0 ? 1 : 0;
       const wasRemainder = source.properties?.isRemainder === true;
-      const typeLabel = source.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역';
+      const typeLabel = territorialTypeLabel(source.properties?.unitType);
       const baseName = countryRegionName(source).replace(/^미지정\s*/, '') || typeLabel;
       const newName = prompt(`새 ${typeLabel} 이름을 입력하세요.`, `새 ${typeLabel}`);
       if (newName === null) return;
@@ -10496,7 +10565,7 @@ const {
           markLayerTreeDirty();
           selectCountryRegion(source.id, true);
         },
-        successMessage: `${targets.length + 1}개 ${source.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'}을 하나로 합쳤습니다.`,
+        successMessage: `${targets.length + 1}개 ${territorialTypeLabel(source.properties.unitType)}을 하나로 합쳤습니다.`,
         errorMessage: '영역 합치기 결과를 적용하지 못했습니다.',
       });
     } catch (error) {
@@ -10602,7 +10671,7 @@ const {
   function finishCountryRegionDirectDraft() {
     const context = state.countryRegionCreateContext;
     if (!context) return;
-    const typeLabel = context.kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역';
+    const typeLabel = territorialTypeLabel(context.kind);
     const name = prompt(`새 ${typeLabel} 이름을 입력하세요.`, `새 ${typeLabel}`);
     if (name === null) return;
     const geometry = { type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] };
@@ -10978,7 +11047,7 @@ const {
       markLayerTreeDirty();
       selectCountryRegion(feature.id, true);
       queueAutosave();
-      setActionStatus('역사·지리 지역의 주권 관계를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
+      setActionStatus('지방의 주권 관계를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
       return;
     }
     if (field === 'countryId' && String(value) !== String(feature.properties.sovereignId || '')) {
@@ -11040,8 +11109,8 @@ const {
     const unitLabel = feature.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE
       ? '행정구역'
       : feature.properties.unitType === TERRITORIAL_UNIT_TYPES.REGION
-        ? '역사·지리 지역'
-        : '지역';
+        ? '지방'
+        : '권역';
     setActionStatus(`${unitLabel} 정보를 변경했습니다.`, 'success');
   }
 
@@ -11055,7 +11124,7 @@ const {
       setActionStatus('영역 잠금을 해제한 뒤 소속과 국경을 변경하세요.', 'error', 3600);
       return false;
     }
-    if (!requireCountriesUnlocked([donor.properties?.editor_id, targetCountryId], '지역과 국경을 이전')) return false;
+    if (!requireCountriesUnlocked([donor.properties?.editor_id, targetCountryId], '권역과 국경을 이전')) return false;
     const movedIds = new Set([String(source.id)]);
     const queue = [String(source.id)];
     while (queue.length) {
@@ -11074,7 +11143,7 @@ const {
           const donorGeometry = normalizeClippedLandGeometry(clipper.difference(donor.geometry.coordinates, sourceGeometry.coordinates));
           const targetGeometry = normalizeClippedLandGeometry(clipper.union(target.geometry.coordinates, sourceGeometry.coordinates));
           if (!donorGeometry) throw new Error('이전하면 기존 국가의 국토가 남지 않습니다. 새 국가로 독립을 사용하세요.');
-          if (!targetGeometry) throw new Error('대상 국가에 지역을 결합하지 못했습니다.');
+          if (!targetGeometry) throw new Error('대상 국가에 권역을 결합하지 못했습니다.');
           const nextRegions = deepClone(state.territorialUnits).flatMap(feature => {
             if (movedIds.has(String(feature.id))) {
               feature.properties.sovereignId = String(targetCountryId);
@@ -11118,7 +11187,7 @@ const {
       return true;
         } catch (error) {
           clearActiveSnap();
-      reportOperationError(error, '지역을 다른 국가로 이전하지 못해 변경을 되돌렸습니다.', 'PL-REGION-TRANSFER-001', 4800);
+      reportOperationError(error, '권역을 다른 국가로 이전하지 못해 변경을 되돌렸습니다.', 'PL-REGION-TRANSFER-001', 4800);
       return false;
     }
   }
@@ -11135,7 +11204,7 @@ const {
         `${countryRegionName(feature)} 소속 국가 변경`,
         `하위 영역 ${countryRegionChildren(state.territorialUnits, feature.id).length}개 함께 이전`,
       ],
-      confirmText: '지역과 국경 이전',
+      confirmText: '권역과 국경 이전',
       danger: true,
       onConfirm: () => transferCountryRegionToCountry(feature.id, targetCountryId),
     });
@@ -11147,14 +11216,14 @@ const {
     const sourceCountry = countryFeatureById(sourceCountryId);
     const name = String(source?.properties?.name || '').trim();
     if (!source || !sourceCountry || !name) {
-      setActionStatus('새 국가로 독립하려면 이름과 소속 국가가 있는 지역을 선택하세요.', 'error', 3800);
+      setActionStatus('새 국가로 독립하려면 이름과 소속 국가가 있는 권역을 선택하세요.', 'error', 3800);
       return false;
     }
     if (source.properties?.locked) {
       setActionStatus('영역 잠금을 해제한 뒤 국가로 전환하세요.', 'error', 3400);
       return false;
     }
-    if (!requireCountriesUnlocked([sourceCountryId], '지역을 국가로 전환')) return false;
+    if (!requireCountriesUnlocked([sourceCountryId], '권역을 국가로 전환')) return false;
     if (countryFeatureById(source.id)) {
       setActionStatus('영역 ID가 국가 ID와 겹칩니다. ID를 바꾸세요.', 'error', 4200);
       return false;
@@ -11187,7 +11256,7 @@ const {
       ? deepClone(convertedMetadata.override)
       : {};
     const snapshot = snapshotEditable();
-    setActionStatus('선택한 지역을 새 국가로 독립시키는 중입니다.', 'working', 0);
+    setActionStatus('선택한 권역을 새 국가로 독립시키는 중입니다.', 'working', 0);
     const result = await transactCountryEdit({
       operation: 'new-country',
       payload: { sourceIds: [sourceCountryId], transferredGeometry: source.geometry, newFeature: country },
@@ -11230,8 +11299,8 @@ const {
         selectCountry(country.properties.editor_id, false, false);
         renderAll();
       },
-      onSuccess: () => setActionStatus(`${name} 지역을 새 국가로 독립시켰습니다. 하위 행정구역은 유지했습니다.`, 'success', 4000),
-      onError: error => reportOperationError(error, '지역을 새 국가로 독립시키지 못했습니다.', 'PL-REGION-PROMOTE-001', 4700),
+      onSuccess: () => setActionStatus(`${name} 권역을 새 국가로 독립시켰습니다. 하위 행정구역은 유지했습니다.`, 'success', 4000),
+      onError: error => reportOperationError(error, '권역을 새 국가로 독립시키지 못했습니다.', 'PL-REGION-PROMOTE-001', 4700),
     });
     return result.ok;
   }
@@ -11241,8 +11310,8 @@ const {
     const sourceName = territorialTypeSourceName(source);
     const sourceLabel = TERRITORIAL_TYPE_LABELS[sourceType] || '영역';
     const targetLabel = TERRITORIAL_TYPE_LABELS[targetType] || '영역';
-    const subjectLabel = ({ 국가: '국가를', 지역: '지역을', 행정구역: '행정구역을' })[sourceLabel] || `${sourceLabel}을`;
-    const directionLabel = ({ 국가: '국가로', 지역: '지역으로', 행정구역: '행정구역으로' })[targetLabel] || `${targetLabel}으로`;
+    const subjectLabel = ({ 국가: '국가를', 권역: '권역을', 지방: '지방을', 행정구역: '행정구역을' })[sourceLabel] || `${sourceLabel}을`;
+    const directionLabel = ({ 국가: '국가로', 권역: '권역으로', 지방: '지방으로', 행정구역: '행정구역으로' })[targetLabel] || `${targetLabel}으로`;
     const sourceIsCountry = sourceType === TERRITORIAL_UNIT_TYPES.COUNTRY;
     const targetIsCountry = targetType === TERRITORIAL_UNIT_TYPES.COUNTRY;
     const childCount = sourceIsCountry
@@ -11309,11 +11378,6 @@ const {
     });
   }
 
-  const TERRITORIAL_TYPE_LABELS = Object.freeze({
-    [TERRITORIAL_UNIT_TYPES.COUNTRY]: '국가',
-    [TERRITORIAL_UNIT_TYPES.TERRITORY]: '지역',
-    [TERRITORIAL_UNIT_TYPES.ADMIN]: '행정구역',
-  });
   let territorialTypeSource = null;
 
   function territorialTypeSourceFeature() {
@@ -11350,7 +11414,7 @@ const {
           && countryRegionInsideContainer(source, candidate))
         .map(candidate => ({
           value: String(candidate.id),
-          label: `${countryRegionName(candidate)} · ${candidate.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN ? `${Number(candidate.properties.adminLevel) || 1}급 행정구역` : '지역'}`,
+          label: `${countryRegionName(candidate)} · ${candidate.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN ? `${Number(candidate.properties.adminLevel) || 1}급 행정구역` : territorialTypeLabel(candidate.properties?.unitType)}`,
         }))
         .sort((left, right) => layerNameCollator.compare(left.label, right.label)),
     ];
@@ -11424,7 +11488,7 @@ const {
     }
     territorialTypeSource = { unitType, id: String(id) };
     const options = Object.entries(TERRITORIAL_TYPE_LABELS)
-      .filter(([type]) => type !== unitType)
+      .filter(([type]) => [TERRITORIAL_UNIT_TYPES.COUNTRY, TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN].includes(type) && type !== unitType)
       .map(([value, label]) => ({ value, label }));
     const preferred = unitType === TERRITORIAL_UNIT_TYPES.ADMIN ? TERRITORIAL_UNIT_TYPES.TERRITORY
       : unitType === TERRITORIAL_UNIT_TYPES.TERRITORY ? TERRITORIAL_UNIT_TYPES.ADMIN
@@ -11910,7 +11974,7 @@ const {
 
   const LAYER_PRESENTATION_LABELS = Object.freeze({
     userDrawings: '사용자 지형지물', religions: '종교', ethnicities: '민족', languages: '언어',
-    administrative: '행정구역', regions: '지역', historicalRegions: '역사·지리 지역',
+    administrative: '행정구역', regions: '권역', historicalRegions: '지방',
     labels: '도시·지명', countryLabels: '국가명 라벨', hydro: '수계', countries: '국가', terrain: '지형 음영',
   });
   const STYLE_PRESENTATION_GROUPS = Object.freeze(['countries', 'hydro', ...OVERLAY_GROUPS]);
@@ -12624,9 +12688,9 @@ const {
 
   const LIBRARY_TYPE_LABELS = Object.freeze({
     [LIBRARY_ENTITY_TYPES.COUNTRY]: '국가',
-    [LIBRARY_ENTITY_TYPES.TERRITORY]: '지역',
+    [LIBRARY_ENTITY_TYPES.TERRITORY]: '권역',
     [LIBRARY_ENTITY_TYPES.ADMIN]: '행정구역',
-    [LIBRARY_ENTITY_TYPES.REGION]: '역사·지리 지역',
+    [LIBRARY_ENTITY_TYPES.REGION]: '지방',
   });
 
   function combineHistoricalLibraryGeometries(geometries) {
@@ -12820,7 +12884,7 @@ const {
       parentRegionId: parent?.id || '',
       level,
       isRemainder: false,
-      name: String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || `가져온 ${kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} ${index + 1}`,
+      name: String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || `가져온 ${territorialTypeLabel(kind)} ${index + 1}`,
       color: properties.color || properties.editorColor || '',
       notes: properties.notes || '',
       sourceFolderId,
@@ -12955,12 +13019,12 @@ const {
       markLayerTreeDirty();
       commitHistorySnapshot(snapshot, {
         type: 'gis-import',
-        description: `${fileName} 영토 이전 및 ${kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} 가져오기`,
+        description: `${fileName} 영토 이전 및 ${territorialTypeLabel(kind)} 가져오기`,
         affectedIds: [...affectedCountryIds, ...imported.map(feature => String(feature.id))],
       });
       renderAll();
       queueAutosave();
-      setActionStatus(`${kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} ${imported.length}개를 전체 형상으로 가져왔습니다.`, 'success', 4400);
+      setActionStatus(`${territorialTypeLabel(kind)} ${imported.length}개를 전체 형상으로 가져왔습니다.`, 'success', 4400);
     } catch (error) {
       if (activeRequestId != null) mapEditClient.discard(activeRequestId);
       restoreCountryEditSnapshot(snapshot);
@@ -13077,7 +13141,7 @@ const {
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
-    setActionStatus(`${kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} ${importedCount}개를 가져왔습니다.`, 'success', 3800);
+    setActionStatus(`${territorialTypeLabel(kind)} ${importedCount}개를 가져왔습니다.`, 'success', 3800);
   }
 
   function importGeoJsonHistoricalRegions(features, mapping) {
@@ -13094,7 +13158,7 @@ const {
       imported.push(createTerritorialFeature({
         id,
         unitType: TERRITORIAL_UNIT_TYPES.REGION,
-        name: String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || `가져온 역사·지리 지역 ${index + 1}`,
+        name: String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || `가져온 지방 ${index + 1}`,
         parentId: '',
         sovereignId: '',
         coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
@@ -13105,14 +13169,14 @@ const {
         geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
       }));
     }
-    if (!imported.length) throw new Error('가져올 Polygon 또는 MultiPolygon 역사·지리 지역이 없습니다.');
+    if (!imported.length) throw new Error('가져올 Polygon 또는 MultiPolygon 지방이 없습니다.');
     recordHistory();
     state.territorialUnits.push(...imported);
     normalizeProjectObjects();
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
-    setActionStatus(`역사·지리 지역 ${imported.length}개를 가져왔습니다.`, 'success', 3800);
+    setActionStatus(`지방 ${imported.length}개를 가져왔습니다.`, 'success', 3800);
   }
 
   function importGeoJsonDistributions(features, type, mapping, fileName) {
@@ -13239,7 +13303,7 @@ const {
 
   function updateGisExportSummary() {
     const labels = {
-      countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역',
+      countries: '국가', regions: '권역', administrative: '행정구역', historicalRegions: '지방',
       drawings: '지형지물', distributions: '분포', labels: '사용자 라벨',
     };
     const counts = gisExportCounts();
@@ -13448,7 +13512,7 @@ const {
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
-    setActionStatus(`${feature.properties.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역'} 구분을 안전하게 해제했습니다.`, 'success', 3600);
+    setActionStatus(`${territorialTypeLabel(feature.properties.unitType)} 구분을 안전하게 해제했습니다.`, 'success', 3600);
     return true;
   }
 
@@ -13459,10 +13523,10 @@ const {
       return false;
     }
     openConfirmModal({
-      title: '역사·지리 지역 삭제',
+      title: '지방 삭제',
       message: `${countryRegionName(feature)}을(를) 프로젝트에서 삭제합니다. 국가나 다른 영역의 형상은 변경하지 않습니다.`,
-      impacts: ['역사·지리 지역 1개 삭제', '국가 및 다른 영역 형상 변경 없음'],
-      confirmText: '지역 삭제',
+      impacts: ['지방 1개 삭제', '국가 및 다른 영역 형상 변경 없음'],
+      confirmText: '지방 삭제',
       danger: true,
       onConfirm: () => {
         recordHistory();
@@ -13473,7 +13537,7 @@ const {
         if (state.selected?.type === 'countryRegion' && String(state.selected.id) === String(feature.id)) clearSelection(false);
         else renderAll();
         queueAutosave();
-        setActionStatus(`${countryRegionName(feature)} 역사·지리 지역을 삭제했습니다.`, 'success');
+        setActionStatus(`${countryRegionName(feature)} 지방을 삭제했습니다.`, 'success');
       },
     });
     return true;
@@ -13495,7 +13559,7 @@ const {
       setActionStatus(`하위 행정구역 ${children.length}개가 있어 구분을 해제할 수 없습니다.`, 'error', 4200);
       return;
     }
-    const label = feature.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? '행정구역' : '지역';
+    const label = territorialTypeLabel(feature.properties?.unitType);
     const siblings = countryRegionSiblings(state.territorialUnits, feature);
     const groupIds = new Set([feature, ...siblings].map(candidate => String(candidate.id)));
     const groupHasChildren = state.territorialUnits.some(candidate => groupIds.has(String(candidate.properties?.parentId || '')));
