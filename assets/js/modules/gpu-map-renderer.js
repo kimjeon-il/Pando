@@ -161,7 +161,7 @@ export function createGpuMapRenderer(deps) {
     let overridePaletteTexture = null;
     let emphasisPaletteTexture = null;
     let overrideEmphasisPaletteTexture = null;
-    let countryEmphasis = { primaryId: '', selectedIds: new Set(), hoveredId: '' };
+    let countryEmphasis = { primaryId: '', selectedIds: new Set(), hoveredId: '', selectionMode: 'outline-soft-fill' };
     let countryEmphasisRevision = 0;
     let overridePositionBuffer = null;
     let overrideCountryBuffer = null;
@@ -199,7 +199,6 @@ export function createGpuMapRenderer(deps) {
     let activeMeshQuality = 'preview';
     let canonicalMeshReady = false;
     const meshVariants = new Map();
-    let meshInteractionActive = false;
     let pickCount = 0;
     let pickReadPixelsMs = 0;
     let pickLastReadPixelsMs = 0;
@@ -1399,9 +1398,15 @@ export function createGpuMapRenderer(deps) {
           : normalizedId === countryEmphasis.hoveredId ? 'hover' : '';
       if (!kind) return null;
       const darkTheme = getSystemTheme() === 'dark';
+      const fillAlpha = countryEmphasis.selectionMode === 'strong-fill'
+        ? { primary: 92, secondary: 51 }
+        : countryEmphasis.selectionMode === 'outline'
+          ? { primary: 0, secondary: 0 }
+          : { primary: 30, secondary: 20 };
+      const selectionRgb = parseColor(SELECTION_STYLE.color);
       const styles = {
-        primary: { color: [52, 103, 51], alphaByte: 30 },
-        secondary: { color: [52, 103, 51], alphaByte: 20 },
+        primary: { color: selectionRgb, alphaByte: fillAlpha.primary },
+        secondary: { color: selectionRgb, alphaByte: fillAlpha.secondary },
         hover: darkTheme
           ? { color: [255, 255, 255], alphaByte: 20 }
           : { color: [36, 72, 112], alphaByte: 20 },
@@ -2287,12 +2292,6 @@ export function createGpuMapRenderer(deps) {
       hydroWorker?.postMessage({ type: 'interaction', active: active === true });
     }
 
-    function setInteractionActive(active) {
-      const interactionActive = active === true;
-      meshInteractionActive = interactionActive;
-      setHydroInteractionActive(interactionActive);
-    }
-
     function invalidateHydroVisibility() {
       hydroVisibilityDirty = true;
       queueHydroRender();
@@ -2698,14 +2697,15 @@ export function createGpuMapRenderer(deps) {
           primaryColor: SELECTION_STYLE.color,
           secondaryColor: SELECTION_STYLE.color,
           hoverColor: colorHex(darkTheme ? [255, 255, 255] : [36, 72, 112]),
-          primaryAlpha: 30 / 255,
-          secondaryAlpha: 20 / 255,
+          primaryAlpha: countryEmphasis.selectionMode === 'strong-fill' ? 92 / 255 : countryEmphasis.selectionMode === 'outline' ? 0 : 30 / 255,
+          secondaryAlpha: countryEmphasis.selectionMode === 'strong-fill' ? 51 / 255 : countryEmphasis.selectionMode === 'outline' ? 0 : 20 / 255,
           hoverAlpha: 20 / 255,
           boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
           primaryBoundaryColor: SELECTION_STYLE.color,
           secondaryBoundaryColor: SELECTION_STYLE.color,
           primaryBoundaryAlpha: SELECTION_STYLE.primaryAlpha,
           secondaryBoundaryAlpha: SELECTION_STYLE.secondaryAlpha,
+          selectionMode: countryEmphasis.selectionMode,
         },
         theme: mapTheme(),
         physicalSettings: deepClone(state.physicalSettings),
@@ -3109,16 +3109,18 @@ export function createGpuMapRenderer(deps) {
       return decoded;
     }
 
-    function setCountryEmphasis({ primaryId = '', selectedIds = [], hoveredId = '' } = {}) {
+    function setCountryEmphasis({ primaryId = '', selectedIds = [], hoveredId = '', selectionMode = 'outline-soft-fill' } = {}) {
       const nextSelected = new Set((selectedIds || []).map(String).filter(Boolean));
       const nextPrimary = String(primaryId || '');
       const nextHovered = String(hoveredId || '');
+      const nextSelectionMode = ['outline', 'outline-soft-fill', 'strong-fill'].includes(selectionMode) ? selectionMode : 'outline-soft-fill';
       const unchanged = countryEmphasis.primaryId === nextPrimary
         && countryEmphasis.hoveredId === nextHovered
+        && countryEmphasis.selectionMode === nextSelectionMode
         && countryEmphasis.selectedIds.size === nextSelected.size
         && [...nextSelected].every(id => countryEmphasis.selectedIds.has(id));
       if (unchanged) return false;
-      countryEmphasis = { primaryId: nextPrimary, selectedIds: nextSelected, hoveredId: nextHovered };
+      countryEmphasis = { primaryId: nextPrimary, selectedIds: nextSelected, hoveredId: nextHovered, selectionMode: nextSelectionMode };
       countryEmphasisRevision += 1;
       if (isWebGlRenderer() && gl && meshCountryIds.length) renderViewFrame();
       else if (rendererMode !== 'pending') render(currentRenderRevision);
@@ -3153,7 +3155,6 @@ export function createGpuMapRenderer(deps) {
         activeMeshQuality,
         canonicalMeshReady,
         availableMeshQualities: [...meshVariants.keys()],
-        meshInteractionActive,
         meshRestorePending: false,
         countries: meshCountryIds.length,
         renderVertices: mesh?.countryIndices?.length || 0,
@@ -3208,7 +3209,7 @@ export function createGpuMapRenderer(deps) {
       attach, initialize, replaceBuiltInMesh, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, setTerrainManifest,
       setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
-      setHydroInteractionActive, setInteractionActive, renderViewFrame: render,
+      setHydroInteractionActive, renderViewFrame: render,
       invalidateHydroVisibility, resetCountryGeometryVisualState,
       setCountryEmphasis, clearCountryEmphasis, supportsCountryEmphasis,
     };
