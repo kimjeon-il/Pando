@@ -16,6 +16,7 @@ TOOLTIP_CONTROLLER = (ROOT / "assets/js/modules/tooltip-controller.js").read_tex
 CONFIRM_MODAL_CONTROLLER = (ROOT / "assets/js/modules/confirm-modal-controller.js").read_text(encoding="utf-8")
 LAYER_PANEL_CONTROLLER = (ROOT / "assets/js/modules/layer-panel-controller.js").read_text(encoding="utf-8")
 HISTORY_SERVICE = (ROOT / "assets/js/modules/history-service.js").read_text(encoding="utf-8")
+HISTORICAL_LIBRARY_SERVICE = (ROOT / "assets/js/modules/historical-library-service.js").read_text(encoding="utf-8")
 
 
 class RefactorBoundaryTests(unittest.TestCase):
@@ -87,6 +88,12 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("historyService.redo", APP)
         self.assertNotIn("state.history.push(", APP)
         self.assertIn("store.future = []", HISTORY_SERVICE)
+
+    def test_historical_library_loading_and_queries_are_behind_service(self):
+        self.assertIn("createHistoricalLibraryService({", APP)
+        self.assertIn("historicalLibraryService.load()", APP)
+        self.assertIn("instantiateDescriptors", HISTORICAL_LIBRARY_SERVICE)
+        self.assertNotIn("pandolab:historical-library-ready", APP)
 
 
 if __name__ == "__main__":

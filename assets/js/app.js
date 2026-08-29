@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, drawingServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -49,6 +49,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/confirm-modal-controller.js')),
   import(versionedModuleUrl('./modules/layer-panel-controller.js')),
   import(versionedModuleUrl('./modules/history-service.js')),
+  import(versionedModuleUrl('./modules/historical-library-service.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -79,6 +80,7 @@ const { createTooltipController } = tooltipControllerModule;
 const { createConfirmModalController } = confirmModalControllerModule;
 const { createLayerPanelController } = layerPanelControllerModule;
 const { createHistoryService } = historyServiceModule;
+const { createHistoricalLibraryService } = historicalLibraryServiceModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -118,10 +120,6 @@ const {
 } = distributionModelModule;
 const {
   LIBRARY_ENTITY_TYPES,
-  createCurrentCountryLibraryEntities,
-  createHistoricalLibrary,
-  instantiateLibraryEntity,
-  materializePilotEntities,
   selectGeometryVersion,
 } = historicalLibraryModule;
 const COUNTRY_REGION_KINDS = Object.freeze({
@@ -12088,40 +12086,28 @@ const {
     return normalizeClippedLandGeometry(union);
   }
 
+  const historicalLibraryService = createHistoricalLibraryService({
+    dataUrl: HISTORICAL_LIBRARY_DATA_URL,
+    fetchJson: async url => {
+      const response = await fetch(url, { cache: 'force-cache' });
+      if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
+      return response.json();
+    },
+    getCountriesData: () => state.countriesData,
+    displayName: countryName,
+    combineGeometries: combineHistoricalLibraryGeometries,
+  });
+
   async function loadHistoricalLibrary() {
     if (state.historicalLibrary) return state.historicalLibrary;
-    if (state.historicalLibraryLoadState === 'loading') {
-      await new Promise(resolve => document.addEventListener('pandolab:historical-library-ready', resolve, { once: true }));
-      return state.historicalLibrary;
-    }
     state.historicalLibraryLoadState = 'loading';
     try {
-      const response = await fetch(HISTORICAL_LIBRARY_DATA_URL, { cache: 'force-cache' });
-      if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
-      const pilot = await response.json();
-      if (Number(pilot.schemaVersion) !== 1) throw new Error('역사 라이브러리 schemaVersion이 현재 형식과 일치하지 않습니다.');
-      const currentEntities = createCurrentCountryLibraryEntities(state.countriesData, { displayName: countryName });
-      const pilotEntities = materializePilotEntities(pilot.entities, state.countriesData, combineHistoricalLibraryGeometries);
-      const currentSnapshot = {
-        id: 'current-world',
-        name: '현재 세계',
-        referenceDate: String(new Date().getFullYear()),
-        entityRefs: currentEntities.map(entity => entity.libraryId),
-        metadata: { current: true },
-        sourceInfo: { title: 'Natural Earth 5.1.1 Admin 0 Countries', license: 'Public domain' },
-      };
-      state.historicalLibrary = createHistoricalLibrary({
-        schemaVersion: pilot.schemaVersion,
-        entities: [...currentEntities, ...pilotEntities],
-        snapshots: [currentSnapshot, ...(pilot.snapshots || [])],
-      });
+      state.historicalLibrary = await historicalLibraryService.load();
       state.historicalLibraryLoadState = 'ready';
       syncHistoricalLibraryFilterOptions();
-      document.dispatchEvent(new CustomEvent('pandolab:historical-library-ready'));
       return state.historicalLibrary;
     } catch (error) {
       state.historicalLibraryLoadState = 'error';
-      document.dispatchEvent(new CustomEvent('pandolab:historical-library-ready'));
       throw error;
     }
   }
@@ -12304,26 +12290,8 @@ const {
     return unit ? String(unit.id) : '';
   }
 
-  function libraryEntityRefsWithChildren(rootIds, depth) {
-    const selected = new Set(rootIds.map(String));
-    if (depth === 'none') return [...selected];
-    let frontier = [...selected];
-    while (frontier.length) {
-      const next = [];
-      for (const entity of state.historicalLibrary?.list() || []) {
-        if (!frontier.includes(entity.parentLibraryId) || selected.has(entity.libraryId)) continue;
-        selected.add(entity.libraryId);
-        next.push(entity.libraryId);
-      }
-      if (depth === 'level1') break;
-      frontier = next;
-    }
-    return [...selected];
-  }
-
   function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none') {
-    const refs = libraryEntityRefsWithChildren(rootIds, childDepth);
-    const descriptors = refs.map(id => state.historicalLibrary?.get(id)).filter(Boolean).map(entity => instantiateLibraryEntity(entity, referenceDate));
+    const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth);
     const pending = descriptors.filter(descriptor => !libraryInstanceId(descriptor.libraryId));
     if (!pending.length) return 0;
     recordHistory();
