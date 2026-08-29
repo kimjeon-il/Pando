@@ -168,6 +168,14 @@
               <div id="mapElementsLayerItems" class="layer-category-items">
             <label class="ui-choice-row layer-display-option"><input id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시" /><span>지형 음영</span></label>
             <div id="terrainLayerChildren" hidden></div>
+            <div class="layer-folder" data-layer-group="hydro">
+              <div class="ui-row layer-folder-row">
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="hydro" aria-expanded="false" aria-label="수계 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <input id="hydroVisible" type="checkbox" checked aria-label="수계 레이어 표시" />
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="hydro">수계</button>
+              </div>
+              <div id="hydroLayerChildren" class="layer-children" role="group" aria-label="수계 항목" hidden></div>
+            </div>
             <div class="layer-folder" data-layer-group="drawings">
               <div class="ui-row layer-folder-row">
                 <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="drawings" aria-expanded="false" aria-label="지형지물 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -572,7 +580,6 @@
                 <div class="ui-field field-group editor-field">
                   <label for="drawingCategoryInput">분류</label>
                   <select id="drawingCategoryInput">
-                    <option value="river">강</option><option value="lake">호수</option>
                     <option value="custom">사용자 정의</option>
                   </select>
                 </div>
@@ -675,13 +682,25 @@
           <section id="hydroProperties" class="editor-view hidden">
             <section class="ui-card editor-section editor-section-primary">
               <h3 class="editor-section-title">수계 정보</h3>
+              <div id="hydroEditFields" class="hidden">
+                <div class="ui-field field-group editor-field"><label for="hydroNameInput">이름</label><input id="hydroNameInput" type="text" placeholder="예: 라인강" autocomplete="off" /></div>
+                <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="hydro">
+                  <label id="hydroColorLabel">색상</label>
+                  <button id="hydroColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="hydroColorPopover" aria-labelledby="hydroColorLabel hydroColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="hydroColorValue" class="ui-color-value">색상</span></button>
+                  <input id="hydroColorInput" class="ui-native-color-input" type="color" value="#3b82c4" tabindex="-1" aria-hidden="true" />
+                  <div id="hydroColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="수계 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
+                </div>
+                <div class="ui-field field-group editor-field"><label for="hydroNotesInput">메모</label><textarea id="hydroNotesInput" rows="5"></textarea></div>
+                <p class="editor-help">경계를 수정하려면 지도 위 꼭짓점을 드래그하세요.</p>
+              </div>
               <div class="ui-info-list editor-info-list">
                 <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
               </div>
-              <p class="editor-help"><span id="hydroSourceValue">Natural Earth 5.0.0 1:10m</span> 기반 내장 수계입니다. 직접 수정하려면 복사본을 만드세요.</p>
+              <p id="hydroBuiltinHelp" class="editor-help"><span id="hydroSourceValue">Natural Earth 5.0.0 1:10m</span> 기반 내장 수계입니다. 직접 수정하려면 복사본을 만드세요.</p>
             </section>
 
             <section class="ui-card editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
+            <button id="deleteHydroEditBtn" class="ui-button" type="button" hidden>수계 삭제</button>
 
             <details class="ui-disclosure editor-disclosure" hidden>
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>

@@ -213,21 +213,19 @@ const {
     globe: Object.freeze({ min: 0.72, max: 32 }),
     flat: Object.freeze({ min: 0.75, max: 64 }),
   });
-  const TERRAIN_TOOL_CONFIG = Object.freeze({
+  const HYDRO_TOOL_CONFIG = Object.freeze({
     river: Object.freeze({ geometry: 'LineString', category: 'river', label: '강', color: '#3b82c4', prefix: 'river' }),
     lake: Object.freeze({ geometry: 'Polygon', category: 'lake', label: '호수', color: '#5aa9d6', prefix: 'lake' }),
   });
   const DRAWING_SCHEMA_VERSION = 1;
   const DRAWING_CATEGORY_RULES = Object.freeze({
-    river: Object.freeze({ role: 'hydro', geometry: 'line', binding: 'none', label: '강' }),
-    lake: Object.freeze({ role: 'hydro', geometry: 'polygon', binding: 'none', label: '호수' }),
     ethnicity: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '민족' }),
     religion: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '종교' }),
     language: Object.freeze({ role: 'thematic', geometry: 'polygon', binding: 'clip', label: '언어' }),
     custom: Object.freeze({ role: 'custom', geometry: 'any', binding: 'none', label: '사용자 정의' }),
   });
   const DRAWING_ROLE_LABELS = Object.freeze({
-    hydro: '수계', thematic: '주제 영역', custom: '사용자 정의',
+    thematic: '주제 영역', custom: '사용자 정의',
   });
   const HYDRO_LAYER_META = Object.freeze({
     rivers_hydro: Object.freeze({ label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS', category: 'river', color: '#3b82c4' }),
@@ -393,7 +391,7 @@ const {
   }
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection', 'uiTooltip',
-    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'hydroVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'debugMapPanel', 'countryAreaValue',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
@@ -404,7 +402,7 @@ const {
     'editorScrollBody', 'editorObjectHeader', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'actionsTabBtn', 'objectActionsBtn', 'objectActionsMenu',
     'countryProperties', 'regionProperties', 'administrativeProperties', 'historicalRegionProperties', 'distributionProperties', 'regionNameConflict', 'administrativeNameConflict', 'historicalRegionNameConflict', 'historicalRegionNameInput', 'historicalRegionCountryInput', 'historicalRegionParentInput', 'historicalRegionColorInput', 'historicalRegionValidFromInput', 'historicalRegionValidToInput', 'historicalRegionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionRegionInput', 'distributionShareInput', 'addRegionDistributionBtn', 'addGeometryDistributionBtn', 'deleteDistributionBtn', 'drawingProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeRegionTypeBtn', 'changeAdministrativeTypeBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
-    'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'copyHydroBtn',
+    'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn', 'deleteHydroEditBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
@@ -451,7 +449,7 @@ const {
     return countries;
   }
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-  const terrainToolConfig = tool => TERRAIN_TOOL_CONFIG[tool] || null;
+  const hydroToolConfig = tool => HYDRO_TOOL_CONFIG[tool] || null;
   const draftToolConfig = tool => toolDraftDefinition(tool, state);
   const isPolygonDraftTool = tool => draftToolConfig(tool)?.shape === 'polygon';
   const isLineDraftTool = tool => draftToolConfig(tool)?.shape === 'line';
@@ -976,7 +974,7 @@ const {
   }
 
   function syncMobileNavigation() {
-    const adding = state?.tool === 'new-country' || !!terrainToolConfig(state?.tool) || state?.labelPlacementMode || state?.tool === 'label';
+    const adding = state?.tool === 'new-country' || !!hydroToolConfig(state?.tool) || state?.labelPlacementMode || state?.tool === 'label';
     $('mobileCreateBtn')?.classList.toggle('active', !!adding || isCreateMenuOpen());
     $('createMenuBtn')?.classList.toggle('active', !!adding);
     $('addCountryBtn')?.classList.toggle('active', state?.tool === 'new-country');
@@ -1053,6 +1051,7 @@ const {
     labels: [],
     labelSettings: {},
     drawings: [],
+    hydroEdits: [],
     territorialUnits: [],
     territorialRelations: [],
     distributionLayers: [],
@@ -1074,6 +1073,7 @@ const {
       languages: true,
       ethnicities: true,
       religions: true,
+      hydro: true,
       drawings: true,
       labels: true,
       basemapLabels: true,
@@ -1104,6 +1104,7 @@ const {
       languages: {},
       ethnicities: {},
       religions: {},
+      hydro: {},
       drawings: {},
       labels: {},
       countryLabels: {},
@@ -1117,6 +1118,7 @@ const {
       ethnicities: false,
       religions: false,
       terrain: false,
+      hydro: false,
       drawings: false,
       labels: false,
       countryLabels: false,
@@ -1272,7 +1274,8 @@ const {
       return normalizeObjectRef({ domain: 'territorial', type: countryRegionById(key)?.properties?.unitType || fallback, id: key });
     }
     if (DISTRIBUTION_GROUP_TYPES[group]) return normalizeObjectRef({ domain: 'distribution', type: distributionLayerById(key)?.type || DISTRIBUTION_GROUP_TYPES[group], id: key });
-    if (group === 'drawings' && !key.startsWith('hydro-layer:')) return normalizeObjectRef({ domain: 'drawing', type: state.drawings.find(item => String(item.id) === key)?.properties?.category || 'custom', id: key });
+    if (group === 'hydro' && hydroEditById(key)) return normalizeObjectRef({ domain: 'hydro', type: hydroEditById(key)?.properties?.category || 'river', id: key });
+    if (group === 'drawings') return normalizeObjectRef({ domain: 'drawing', type: state.drawings.find(item => String(item.id) === key)?.properties?.category || 'custom', id: key });
     if (group === 'labels') return normalizeObjectRef({ domain: 'label', type: state.labels.find(item => String(item.id) === key)?.kind || 'label', id: key });
     return null;
   }
@@ -1312,7 +1315,7 @@ const {
     if (ref.domain === 'hydro') {
       const feature = hydroFeatureById(ref.id);
       const lake = (feature?.properties?.category || ref.type) === 'lake';
-      return { name: hydroEditorName(feature?.properties?.name, lake ? '이름 없는 호수' : '이름 없는 강'), type: lake ? '호수' : '강', detail: '내장 수계' };
+      return { name: hydroEditorName(feature?.properties?.name, lake ? '이름 없는 호수' : '이름 없는 강'), type: lake ? '호수' : '강', detail: hydroEditById(ref.id) ? '사용자 수계' : '내장 수계' };
     }
     const label = state.labels.find(item => String(item.id) === ref.id);
     const labelKind = { capital: '수도', city: '도시', town: '마을', region: '지역명', mountain: '산', water: '수역', custom: '기타' };
@@ -1429,6 +1432,7 @@ const {
     if (!ref) return '';
     if (ref.domain === 'territorial') return ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries' : ref.type === TERRITORIAL_UNIT_TYPES.ADMIN ? 'administrative' : ref.type === TERRITORIAL_UNIT_TYPES.REGION ? 'historicalRegions' : 'regions';
     if (ref.domain === 'distribution') return DISTRIBUTION_TYPE_GROUPS[ref.type] || '';
+    if (ref.domain === 'hydro' && hydroEditById(ref.id)) return 'hydro';
     if (ref.domain === 'drawing') return 'drawings';
     if (ref.domain === 'label') return 'labels';
     return '';
@@ -1437,7 +1441,7 @@ const {
   function objectBatchCapabilities(value) {
     const ref = normalizeObjectRef(value);
     if (!ref) return new Set();
-    if (ref.domain === 'hydro') return new Set();
+    if (ref.domain === 'hydro' && !hydroEditById(ref.id)) return new Set();
     const values = new Set(['visible']);
     if (ref.domain === 'territorial') {
       values.add('color');
@@ -1445,7 +1449,7 @@ const {
       if (ref.type !== TERRITORIAL_UNIT_TYPES.COUNTRY && !countryRegionChildren(state.territorialUnits, ref.id).length) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
-    } else if (ref.domain === 'drawing') {
+    } else if (ref.domain === 'drawing' || ref.domain === 'hydro') {
       values.add('color'); values.add('lock'); values.add('delete');
     } else if (ref.domain === 'label') values.add('delete');
     return values;
@@ -1496,6 +1500,7 @@ const {
     if (ref.domain === 'territorial') return ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? isCountryLocked(ref.id) : countryRegionById(ref.id)?.properties?.locked === true;
     if (ref.domain === 'distribution') return distributionLayerById(ref.id)?.locked === true;
     if (ref.domain === 'drawing') return state.drawings.find(item => String(item.id) === ref.id)?.properties?.locked === true;
+    if (ref.domain === 'hydro') return hydroEditById(ref.id)?.properties?.locked === true;
     return false;
   }
 
@@ -1588,6 +1593,9 @@ const {
       else if (ref.domain === 'drawing') {
         const feature = state.drawings.find(item => String(item.id) === ref.id);
         if (feature) feature.properties.locked = locked;
+      } else if (ref.domain === 'hydro') {
+        const feature = hydroEditById(ref.id);
+        if (feature) feature.properties.locked = locked;
       }
     }
     renderAll();
@@ -1621,7 +1629,7 @@ const {
       $('objectLockMenuBtn').disabled = !capabilities.has('lock');
     }
     if ($('objectDeleteMenuBtn')) {
-      const canDelete = refs.length > 1 ? capabilities.has('delete') : primary?.domain !== 'hydro';
+      const canDelete = refs.length > 1 ? capabilities.has('delete') : primary?.domain !== 'hydro' || !!hydroEditById(primary.id);
       $('objectDeleteMenuBtn').classList.toggle('hidden', !canDelete);
       $('objectDeleteMenuBtn').disabled = !canDelete || (primary && objectRefLocked(primary));
     }
@@ -1677,6 +1685,9 @@ const {
       } else if (ref.domain === 'drawing') {
         const feature = state.drawings.find(item => String(item.id) === ref.id);
         if (feature) feature.properties.editorColor = normalizedColor;
+      } else if (ref.domain === 'hydro') {
+        const feature = hydroEditById(ref.id);
+        if (feature) feature.properties.editorColor = normalizedColor;
       }
     }
     gpuMapRenderer.updatePalette();
@@ -1703,11 +1714,18 @@ const {
       onConfirm: () => {
         recordHistory({ type: 'batch-delete', description: `${refs.length}개 객체 삭제`, affectedIds: refs.map(ref => ref.id) });
         const removedDistributionIds = new Set(refs.filter(ref => ref.domain === 'distribution').map(ref => ref.id));
+        const removedHydroEditIds = new Set(refs.filter(ref => ref.domain === 'hydro').map(ref => ref.id));
         const removedDrawingIds = new Set(refs.filter(ref => ref.domain === 'drawing').map(ref => ref.id));
         const removedLabelIds = new Set(refs.filter(ref => ref.domain === 'label').map(ref => ref.id));
         const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && ref.type !== TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id));
         state.distributionLayers = state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
         state.distributionEntries = state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId)));
+        const restoredHydroSourceIds = state.hydroEdits.filter(feature => removedHydroEditIds.has(String(feature.id))).map(feature => String(feature.properties?.sourceFeatureId || '')).filter(Boolean);
+        state.hydroEdits = state.hydroEdits.filter(feature => !removedHydroEditIds.has(String(feature.id)));
+        for (const sourceId of restoredHydroSourceIds) {
+          if (!state.hydroEdits.some(feature => String(feature.properties?.sourceFeatureId || '') === sourceId)) delete state.physicalSettings.hiddenHydroIds[sourceId];
+        }
+        if (restoredHydroSourceIds.length) gpuMapRenderer.invalidateHydroVisibility();
         for (const layer of state.distributionLayers) if (removedDistributionIds.has(String(layer.parentId))) layer.parentId = '';
         reassignDrawingParents([...removedDrawingIds]);
         state.drawings = state.drawings.filter(feature => !removedDrawingIds.has(String(feature.id)));
@@ -1749,6 +1767,7 @@ const {
   let drawingLayer;
   let hydroLakeLayer;
   let hydroRiverLayer;
+  let hydroEditLayer;
   let hydroSelectionLayer;
   let countryLabelLayer;
   let labelLayer;
@@ -1860,13 +1879,17 @@ const {
   }
 
   async function hydroAtScreenPoint(screenPoint, coord) {
-    if (!state.layerVisibility.drawings || state.tool !== 'select') return null;
+    if (!state.layerVisibility.hydro || state.tool !== 'select') return null;
+    for (const feature of [...state.hydroEdits].reverse()) {
+      if (!isHydroFeatureVisible(feature) || !geometryHitsScreenPoint(feature.geometry, coord, screenPoint, isMobile() ? 14 : 8)) continue;
+      return feature;
+    }
     const picked = gpuMapRenderer.pickHydro(screenPoint) || await gpuMapRenderer.pickHydroAsync(screenPoint);
     if (picked && isHydroFeatureVisible(picked) && hydroFeatureInView(picked)) return picked;
     const projection = activeProjection();
     const toleranceDegrees = 9 / Math.max(1, projection.scale()) * 180 / Math.PI;
     let nearest = null;
-    for (const feature of allHydroFeatures()) {
+    for (const feature of allBuiltInHydroFeatures()) {
       if (!feature.geometry) continue;
       if (!hydroFeatureInView(feature)) continue;
       const bounds = feature.__awBounds || [-180, -90, 180, 90];
@@ -1912,6 +1935,7 @@ const {
     if (state.selected?.type === 'country') return [String(state.selected.id)];
     if (state.selected?.type === 'countryRegion') return [String(state.selected.id)];
     if (state.selected?.type === 'drawing') return [String(state.selected.id)];
+    if (state.selected?.type === 'hydro' && hydroEditById(state.selected.id)) return [String(state.selected.id)];
     return [];
   }
 
@@ -1952,7 +1976,7 @@ const {
     const tileSize = margin;
     const cacheKey = [
       state.stateRevision, countryLandRevision, state.tool, state.selected?.type || '', state.selected?.id || '', state.boundaryEditCountryIds.join('|'),
-      state.territorialUnits.length, state.drawings.length, margin.toFixed(4),
+      state.territorialUnits.length, state.drawings.length, state.hydroEdits.length, margin.toFixed(4),
       Math.floor(coordinate[0] / tileSize), Math.floor(coordinate[1] / tileSize),
     ].join(':');
     if (snapCandidateCache.key === cacheKey) return snapCandidateCache.candidates;
@@ -3333,7 +3357,7 @@ const {
     const changedIds = new Set(state.historyDirtyCountryIds);
     applySharedProjectFields(snapshot, 'history');
     restoreCountriesFromSnapshot(snapshot);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     const restoredDirtyIds = new Set(state.historyDirtyCountryIds);
     for (const id of state.historyDirtyCountryIds) changedIds.add(String(id));
     markCountryGeometriesChanged(changedIds);
@@ -4148,7 +4172,7 @@ const {
   }
 
   function defaultDrawingColor(feature) {
-    return TERRAIN_TOOL_CONFIG[feature?.properties?.category]?.color || DEFAULT_DRAWING_COLOR;
+    return DEFAULT_DRAWING_COLOR;
   }
 
   function drawingColor(feature) {
@@ -4212,7 +4236,6 @@ const {
   function drawingRoleHelp(feature) {
     const role = drawingRole(feature);
     if (role === 'thematic') return '민족·종교·언어 분포는 국가 소유권과 분리하며 육지 안에서만 표시합니다.';
-    if (role === 'hydro') return '강과 호수는 수계 형상으로 관리하며 영토 작업에는 사용하지 않습니다.';
     return '사용자 정의 객체는 육지 결합 방식을 직접 선택할 수 있습니다.';
   }
 
@@ -4307,8 +4330,8 @@ const {
   });
   const DISTRIBUTION_TYPE_GROUPS = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_GROUP_TYPES).map(([group, type]) => [type, group])));
   const DISTRIBUTION_TYPE_LABELS = Object.freeze({ language: '언어', ethnicity: '민족', religion: '종교' });
-  const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'languages', 'ethnicities', 'religions', 'drawings', 'labels', 'countryLabels'];
-  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', languages: '언어', ethnicities: '민족', religions: '종교', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
+  const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'languages', 'ethnicities', 'religions', 'hydro', 'drawings', 'labels', 'countryLabels'];
+  const layerGroupNames = { countries: '국가', regions: '지역', administrative: '행정구역', historicalRegions: '역사·지리 지역', languages: '언어', ethnicities: '민족', religions: '종교', hydro: '수계', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
     regions: 'regionsLayerChildren',
@@ -4317,6 +4340,7 @@ const {
     languages: 'languagesLayerChildren',
     ethnicities: 'ethnicitiesLayerChildren',
     religions: 'religionsLayerChildren',
+    hydro: 'hydroLayerChildren',
     drawings: 'drawingsLayerChildren',
     labels: 'labelsLayerChildren',
     countryLabels: 'countryLabelsLayerChildren',
@@ -4383,6 +4407,7 @@ const {
       'ethnicities',
       'religions',
       ...countryRegionKeys,
+      'hydro',
       'drawings',
       ...state.drawingFolders.map(folder => drawingFolderStateKey(folder.id)),
     ];
@@ -4480,29 +4505,69 @@ const {
     return automaticWaterColor(gpu);
   }
 
+  function normalizeHydroEdit(feature) {
+    if (!feature?.geometry) return null;
+    feature.properties ||= {};
+    const geometryKind = drawingGeometryKind(feature);
+    const category = feature.properties.category === 'lake' && geometryKind === 'polygon' ? 'lake'
+      : feature.properties.category === 'river' && geometryKind === 'line' ? 'river'
+        : geometryKind === 'polygon' ? 'lake'
+          : geometryKind === 'line' ? 'river' : '';
+    if (!category) return null;
+    feature.id = String(feature.id || uid(category));
+    feature.properties = {
+      ...feature.properties,
+      category,
+      pandolab_domain: 'hydro',
+      pandolab_id: feature.id,
+      name: String(feature.properties.name || ''),
+      notes: String(feature.properties.notes || ''),
+      editorColor: normalizeEditorColor(feature.properties.editorColor, HYDRO_TOOL_CONFIG[category].color),
+    };
+    return feature;
+  }
+
+  function normalizeHydroEditCollection(value) {
+    return (Array.isArray(value) ? value : []).map(feature => normalizeHydroEdit(feature)).filter(Boolean);
+  }
+
+  function hydroEditById(id) {
+    const key = String(id);
+    return state.hydroEdits.find(feature => String(feature.id) === key) || null;
+  }
+
+  function isHydroEditFeature(feature) {
+    return !!feature && (feature.properties?.pandolab_domain === 'hydro' || state.hydroEdits.includes(feature));
+  }
+
   function hydroLayerVisible(layerId) {
-    return !!state.layerVisibility.drawings &&
+    return !!state.layerVisibility.hydro &&
       state.physicalSettings.hydroLayers?.[layerId] !== false;
   }
 
   function isHydroFeatureVisible(feature) {
     const id = String(feature?.properties?.pandolab_id || feature?.id || '');
+    if (isHydroEditFeature(feature)) return !!state.layerVisibility.hydro && isLayerItemVisible('hydro', id);
     return hydroLayerVisible(feature?.properties?.layer_id) && state.physicalSettings.hiddenHydroIds?.[id] !== true;
   }
 
-  function allHydroFeatures() {
+  function allBuiltInHydroFeatures() {
     const tiled = state.hydroFeatureCache instanceof Map ? [...state.hydroFeatureCache.values()] : [];
     const legacy = Object.values(state.hydroCollections || {}).flatMap(collection => collection?.features || []);
     return [...tiled, ...legacy];
   }
 
-  function hydroFeatureById(id) {
+  function builtInHydroFeatureById(id) {
     const key = String(id);
     if (state.hydroFeatureCache instanceof Map && state.hydroFeatureCache.has(key)) return state.hydroFeatureCache.get(key);
-    for (const feature of allHydroFeatures()) {
+    for (const feature of allBuiltInHydroFeatures()) {
       if (String(feature.properties?.pandolab_id || feature.id || '') === key) return feature;
     }
     return null;
+  }
+
+  function hydroFeatureById(id) {
+    return hydroEditById(id) || builtInHydroFeatureById(id);
   }
 
   function normalizeLayerItemState(value) {
@@ -4529,8 +4594,8 @@ const {
   }
 
   function isLayerItemVisible(group, id) {
-    if (group === 'drawings' && String(id).startsWith('hydro-layer:')) {
-      return state.physicalSettings.hydroLayers?.[String(id).slice('hydro-layer:'.length)] !== false;
+    if (group === 'hydro' && HYDRO_LAYER_META[String(id)]) {
+      return state.physicalSettings.hydroLayers?.[String(id)] !== false;
     }
     return state.itemVisibility?.[group]?.[String(id)] !== false;
   }
@@ -4542,8 +4607,8 @@ const {
   function setLayerItemVisibility(group, id, visible) {
     if (!LAYER_GROUP_KEYS.includes(group)) return;
     const key = String(id);
-    if (group === 'drawings' && key.startsWith('hydro-layer:')) {
-      state.physicalSettings.hydroLayers[key.slice('hydro-layer:'.length)] = !!visible;
+    if (group === 'hydro' && HYDRO_LAYER_META[key]) {
+      state.physicalSettings.hydroLayers[key] = !!visible;
       gpuMapRenderer.invalidateHydroVisibility();
       markLayerTreeDirty();
       renderAll();
@@ -4624,19 +4689,29 @@ const {
         selected: state.selected?.type === 'distribution' && state.selected.id === layer.id,
       }));
     }
-    if (group === 'drawings') {
+    if (group === 'hydro') {
       const builtIns = Object.entries(HYDRO_LAYER_META).map(([id, meta]) => ({
-          id: `hydro-layer:${id}`,
+          id,
           name: meta.shortLabel,
           searchText: meta.label,
           title: `${meta.label} 상태 보기`,
           color: hydroDisplayColor(meta.category),
           count: state.hydroManifest?.stats?.layerCounts?.[id] ?? null,
-          folderId: DEFAULT_DRAWING_FOLDER_ID,
-          folderName: drawingFolderName(DEFAULT_DRAWING_FOLDER_ID),
+          folderName: layerGroupNames.hydro,
           selected: false,
         }));
-      const userItems = state.drawings.map(feature => {
+      const userItems = state.hydroEdits.map(feature => ({
+        id: String(feature.id),
+        name: hydroEditorName(feature.properties?.name, feature.properties?.category === 'lake' ? '이름 없는 호수' : '이름 없는 강'),
+        color: feature.properties?.editorColor || HYDRO_TOOL_CONFIG[feature.properties?.category || 'river'].color,
+        meta: `${feature.properties?.category === 'lake' ? '호수' : '강'} · 사용자`,
+        folderName: layerGroupNames.hydro,
+        selected: state.selected?.type === 'hydro' && state.selected.id === String(feature.id),
+      }));
+      return [...builtIns, ...userItems];
+    }
+    if (group === 'drawings') {
+      return state.drawings.map(feature => {
         const folderId = drawingFolderId(feature);
         return {
           id: String(feature.id),
@@ -4648,7 +4723,6 @@ const {
           selected: state.selected?.type === 'drawing' && state.selected.id === String(feature.id),
         };
       });
-      return [...builtIns, ...userItems];
     }
     return state.labels.map(label => ({
       id: String(label.id),
@@ -4669,7 +4743,8 @@ const {
       languages: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.LANGUAGE).map(layer => layer.id)),
       ethnicities: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.ETHNICITY).map(layer => layer.id)),
       religions: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.RELIGION).map(layer => layer.id)),
-      drawings: new Set([...Object.keys(HYDRO_LAYER_META).map(id => `hydro-layer:${id}`), ...state.drawings.map(feature => String(feature.id))]),
+      hydro: new Set([...Object.keys(HYDRO_LAYER_META), ...state.hydroEdits.map(feature => String(feature.id))]),
+      drawings: new Set(state.drawings.map(feature => String(feature.id))),
       labels: new Set(state.labels.map(label => String(label.id))),
     };
     for (const group of LAYER_GROUP_KEYS) {
@@ -5354,7 +5429,7 @@ const {
       if (!groups.has(key)) groups.set(key, { key, layerId, width: widthBucket, features: [] });
       groups.get(key).features.push(feature);
     };
-    for (const feature of allHydroFeatures()) {
+    for (const feature of allBuiltInHydroFeatures()) {
       if (!feature.geometry) continue;
       const layerId = feature.properties?.layer_id;
       if (HYDRO_LAYER_META[layerId]?.category !== category || !hydroLayerVisible(layerId) || !hydroFeatureInView(feature)) continue;
@@ -5404,10 +5479,42 @@ const {
       riverSelection.exit().remove();
     }
 
-    const selected = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
+    const selected = state.selected?.type === 'hydro' && !hydroEditById(state.selected.id) ? builtInHydroFeatureById(state.selected.id) : null;
     const selection = hydroSelectionLayer.selectAll('path.hydro-selected').data(selected?.geometry && hydroFeatureInView(selected) ? [selected] : [], item => item.properties.pandolab_id);
     selection.enter().append('path').attr('class', 'hydro-selected');
     selection.attr('d', path).classed('is-lake', item => item.properties.category === 'lake');
+    selection.exit().remove();
+  }
+
+  function hydroEditColor(feature) {
+    const category = feature?.properties?.category === 'lake' ? 'lake' : 'river';
+    return feature?.properties?.editorColor || HYDRO_TOOL_CONFIG[category].color;
+  }
+
+  function renderHydroEdits() {
+    if (!hydroEditLayer) return;
+    const style = layerStyle(state.layerPresentation, 'hydro');
+    const data = state.layerVisibility.hydro
+      ? state.hydroEdits.filter(feature => isLayerItemVisible('hydro', feature.id) && feature.geometry)
+      : [];
+    const selection = hydroEditLayer.selectAll('path.hydro-edit-shape').data(data, feature => String(feature.id));
+    selection.enter().append('path')
+      .attr('class', 'hydro-edit-shape')
+      .on('mouseenter.hover', feature => setMapHover('hydro', feature.id, feature))
+      .on('mouseleave.hover', () => setMapHover('', '', null))
+      .on('click', function(feature) {
+        if (mapClickBlocked() || state.tool !== 'select' || state.labelPlacementMode) return;
+        d3.event.stopPropagation();
+        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id } });
+      });
+    selection
+      .attr('d', path)
+      .style('fill', feature => feature.properties?.category === 'lake' ? hydroEditColor(feature) : 'none')
+      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? 0.34 * style.opacity : 0)
+      .style('stroke', hydroEditColor)
+      .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
+      .style('stroke-width', style.boundaryWidth)
+      .classed('selected', feature => objectSelection.has(normalizeObjectRef({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id })));
     selection.exit().remove();
   }
 
@@ -5667,7 +5774,7 @@ const {
     return [];
   }
 
-  function setDrawingVertexCoord(feature, vertex, coord) {
+  function setEditableVertexCoord(feature, vertex, coord) {
     const type = feature?.geometry?.type;
     if (type === 'LineString') feature.geometry.coordinates[vertex.index] = coord.slice();
     else if (type === 'MultiLineString') feature.geometry.coordinates[vertex.partIndex][vertex.index] = coord.slice();
@@ -5741,6 +5848,9 @@ const {
     if (state.tool === 'select' && state.selected?.type === 'drawing') {
       feature = state.drawings.find(f => String(f.id) === state.selected.id);
       if (feature) data = getEditableVertices(feature).filter(v => isCoordVisible(v.coord));
+    } else if (state.tool === 'select' && state.selected?.type === 'hydro') {
+      feature = hydroEditById(state.selected.id);
+      if (feature) data = getEditableVertices(feature).filter(vertex => isCoordVisible(vertex.coord));
     } else if ((state.tool === 'country-coast' && state.coastEditCountryId)
       || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing')) {
       const primaryId = state.tool === 'country-border' ? state.boundaryEditCountryIds[0] : state.coastEditCountryId;
@@ -5922,8 +6032,8 @@ const {
     const inputHint = isMobile()
       ? '한 손가락으로 그리세요. 두 손가락으로 지도를 이동하거나 확대할 수 있습니다.'
       : '드래그해 그리세요. 클릭으로 점을 정밀하게 추가하고 Space+드래그로 지도를 이동할 수 있습니다.';
-    const terrain = terrainToolConfig(state.tool);
-    if (terrain) return `${terrain.label}의 ${isPolygonDraftTool(state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
+    const hydro = hydroToolConfig(state.tool);
+    if (hydro) return `${hydro.label}의 ${isPolygonDraftTool(state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
     if (state.tool === 'split-drawing') {
       const source = state.drawings.find(item => String(item.id) === String(state.drawingSplitSourceId));
       return `${source ? drawingName(source) : '선택한 영역'}을 가로질러 ${inputHint}`;
@@ -6482,6 +6592,7 @@ const {
     renderCountries(revision);
     if (viewOnly) renderHydroSelectionPosition();
     else renderHydro();
+    renderHydroEdits();
     renderBoundaryEditOverlay();
     renderCountryRegions();
     renderDistributions();
@@ -6552,6 +6663,7 @@ const {
     countryLayer = root.append('g').attr('class', 'countries-layer');
     hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
     hydroRiverLayer = root.append('g').attr('class', 'hydro-rivers-layer');
+    hydroEditLayer = root.append('g').attr('class', 'hydro-edit-layer');
     hydroSelectionLayer = root.append('g').attr('class', 'hydro-selection-layer');
     boundaryEditLayer = root.append('g').attr('class', 'boundary-edit-layer');
     overlayStackLayer = root.append('g').attr('class', 'overlay-stack-layer');
@@ -6821,7 +6933,7 @@ const {
 
   function mapModeContextActive() {
     const labelMode = state.labelPlacementMode || state.tool === 'label';
-    return !!(labelMode || terrainToolConfig(state.tool) || state.geometryPreview.session || isSpecialTool(state.tool) || draftInputActive());
+    return !!(labelMode || hydroToolConfig(state.tool) || state.geometryPreview.session || isSpecialTool(state.tool) || draftInputActive());
   }
 
   function elementHasLayout(element) {
@@ -6901,7 +7013,7 @@ const {
       ? state.annexSelectionMethod
       : state.newCountrySelectionMethod;
     const labelMode = state.labelPlacementMode || state.tool === 'label';
-    const terrainMode = !!terrainToolConfig(state.tool);
+    const terrainMode = !!hydroToolConfig(state.tool);
     const draftMode = draftInputActive();
     const previewMode = !!state.geometryPreview.session;
     const specialMode = labelMode || terrainMode || previewMode || isSpecialTool(state.tool) || draftMode;
@@ -7447,7 +7559,7 @@ const {
   }
 
   function enterTerrainDrawingMode(tool) {
-    const config = terrainToolConfig(tool);
+    const config = hydroToolConfig(tool);
     if (!config) return false;
     clearNotification();
     clearSelection(false);
@@ -8214,8 +8326,8 @@ const {
   }
 
   function finishDrawingFeatureDraft(polygonMode) {
-    const terrain = terrainToolConfig(state.tool);
-    const id = uid(terrain?.prefix || (polygonMode ? 'poly' : 'line'));
+    const hydro = hydroToolConfig(state.tool);
+    const id = uid(hydro?.prefix || (polygonMode ? 'poly' : 'line'));
     const geometry = polygonMode
       ? { type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] }
       : { type: 'LineString', coordinates: state.draftCoords.map(coord => coord.slice()) };
@@ -8257,21 +8369,28 @@ const {
       type: 'Feature', id, geometry,
       properties: {
         name: '',
-        editorColor: terrain?.color || DEFAULT_DRAWING_COLOR,
-        category: terrain?.category || 'custom',
+        editorColor: hydro?.color || DEFAULT_DRAWING_COLOR,
+        category: hydro?.category || 'custom',
         notes: '',
       },
     };
-    normalizeDrawingSemantics(feature);
     recordHistory();
-    state.drawings.push(feature);
+    if (hydro) {
+      normalizeHydroEdit(feature);
+      state.hydroEdits.push(feature);
+    } else {
+      normalizeDrawingSemantics(feature);
+      state.drawings.push(feature);
+    }
     state.draftCoords = [];
     state.draftHover = null;
     setTool('select', false);
-    selectDrawing(String(id));
+    markLayerTreeDirty();
+    if (hydro) selectHydro(String(id));
+    else selectDrawing(String(id));
     renderAll();
     queueAutosave();
-    const createdObjectLabel = terrain?.category === 'river' ? '강을' : terrain?.category === 'lake' ? '호수를' : '지형지물을';
+    const createdObjectLabel = hydro?.category === 'river' ? '강을' : hydro?.category === 'lake' ? '호수를' : '지형지물을';
     setActionStatus(`${createdObjectLabel} 추가했습니다.`, 'success');
   }
 
@@ -8696,7 +8815,7 @@ const {
   }
 
   function cancelDraft(showMessage = true) {
-    const terrain = terrainToolConfig(state.tool);
+    const terrain = hydroToolConfig(state.tool);
     const splitSourceId = state.tool === 'split-drawing' ? state.drawingSplitSourceId : null;
     const regionSplitSourceId = state.tool === 'split-country-region' ? state.countryRegionSplitSourceId : null;
     const regionRedrawSourceId = state.tool === 'redraw-country-region' ? state.countryRegionRedrawSourceId : null;
@@ -8730,11 +8849,18 @@ const {
   function vertexDragBehavior(feature) {
     let blockedByCanonicalCoast = false;
     let beforeGeometry = null;
+    const hydroEdit = isHydroEditFeature(feature);
     return d3.behavior.drag()
       .on('dragstart', function(vertex) {
         if (!feature || state.tool !== 'select') return;
-        const owner = countryFeatureById(feature.properties?.pandolab_owner_id);
-        blockedByCanonicalCoast = drawingLandBinding(feature) === 'hard' && owner
+        if (feature.properties?.locked === true) {
+          blockedByCanonicalCoast = true;
+          d3.event.sourceEvent?.stopPropagation?.();
+          setActionStatus('잠금을 해제한 뒤 꼭짓점을 이동하세요.', 'error', 3200);
+          return;
+        }
+        const owner = hydroEdit ? null : countryFeatureById(feature.properties?.pandolab_owner_id);
+        blockedByCanonicalCoast = !hydroEdit && drawingLandBinding(feature) === 'hard' && owner
           ? pointOnGeometryBoundary(vertex.coord, owner.geometry, 0.00012)
           : false;
         if (blockedByCanonicalCoast) {
@@ -8753,13 +8879,14 @@ const {
         if (!rawCoord) return;
         const pointerType = d3.event.sourceEvent?.pointerType === 'touch' || d3.event.sourceEvent?.touches ? 'touch' : 'mouse';
         const coord = snapCoordinateForInput(rawCoord, screenPoint, pointerType, { excludeCoordinate: vertex.coord });
-        setDrawingVertexCoord(feature, vertex, coord);
-        drawingLayer.selectAll('path.drawing-shape').attr('d', bound => {
+        setEditableVertexCoord(feature, vertex, coord);
+        if (hydroEdit) hydroEditLayer.selectAll('path.hydro-edit-shape').attr('d', bound => path(bound));
+        else drawingLayer.selectAll('path.drawing-shape').attr('d', bound => {
           const source = state.drawings.find(item => String(item.id) === String(bound.id));
           return source ? path(drawingDisplayFeature(source)) : '';
         });
         vertexLayer.selectAll('circle.vertex-handle').attr('transform', d => {
-          const f = state.drawings.find(x => String(x.id) === state.selected?.id);
+          const f = hydroEdit ? hydroEditById(state.selected?.id) : state.drawings.find(x => String(x.id) === state.selected?.id);
           const verts = getEditableVertices(f);
           const fresh = verts.find(v => v.key === d.key) || d;
           const p = activeProjection()(fresh.coord);
@@ -8768,8 +8895,8 @@ const {
       })
       .on('dragend', function() {
         if (!feature || blockedByCanonicalCoast) return;
-        const owner = countryFeatureById(feature.properties?.pandolab_owner_id);
-        if (drawingLandBinding(feature) === 'hard' && owner && drawingGeometryKind(feature) === 'polygon') {
+        const owner = hydroEdit ? null : countryFeatureById(feature.properties?.pandolab_owner_id);
+        if (!hydroEdit && drawingLandBinding(feature) === 'hard' && owner && drawingGeometryKind(feature) === 'polygon') {
           const clipped = normalizeClippedLandGeometry(window.polygonClipping.intersection(feature.geometry.coordinates, owner.geometry.coordinates));
           if (clipped) feature.geometry = clipped;
         }
@@ -8981,7 +9108,7 @@ const {
 
   const PROPERTY_TYPE_LABELS = Object.freeze({
     country: '국가', region: '지역', administrative: '행정구역', historicalRegion: '역사·지리 지역',
-    distribution: '분포', drawing: '지형지물', label: '라벨', hydro: '내장 수계', multi: '다중선택',
+    distribution: '분포', drawing: '지형지물', label: '라벨', hydro: '수계', multi: '다중선택',
   });
 
   function activePropertyForm(type) {
@@ -9581,11 +9708,24 @@ const {
     const feature = hydroFeatureById(id);
     if (!feature || !isHydroFeatureVisible(feature)) return;
     const properties = feature.properties || {};
+    const editable = !!hydroEditById(id);
     const category = properties.category === 'lake' ? '호수' : '강';
     const displayName = hydroEditorName(properties.name, `이름 없는 ${category}`);
-    state.selected = { type: 'hydro', id: String(properties.pandolab_id || feature.id) };
+    state.selected = { type: 'hydro', id: String(editable ? feature.id : properties.pandolab_id || feature.id) };
     syncObjectSelectionFromLegacy(state.selected);
     showPropertyForm('hydro', displayName, { resetScroll: !refreshOnly });
+    $('hydroEditFields').classList.toggle('hidden', !editable);
+    $('hydroBuiltinHelp').classList.toggle('hidden', editable);
+    const copyActionSection = $('copyHydroBtn').closest('.editor-action-section');
+    if (copyActionSection) copyActionSection.hidden = editable;
+    $('deleteHydroEditBtn').hidden = !editable;
+    syncEditorActionTab('hydro');
+    if (editable) {
+      $('hydroNameInput').value = properties.name || '';
+      $('hydroColorInput').value = properties.editorColor || HYDRO_TOOL_CONFIG[properties.category].color;
+      syncColorPicker('hydro', { value: $('hydroColorInput').value, defaultColor: HYDRO_TOOL_CONFIG[properties.category].color, isDefault: false });
+      $('hydroNotesInput').value = properties.notes || '';
+    }
     const systemName = hydroEditorName(properties.mainstem_name_ko || properties.name, '미명명 수계');
     const hydroId = String(properties.system_id || properties.pandolab_id || feature.id || '').replace(/^hydro-system:/, '');
     $('hydroCategoryValue').textContent = category;
@@ -9599,7 +9739,7 @@ const {
     syncLayerSelectionRows();
     renderAll();
     if (!refreshOnly) openSelectionEditor();
-    if (!feature.geometry && !feature.__geometryLoading) {
+    if (!editable && !feature.geometry && !feature.__geometryLoading) {
       feature.__geometryLoading = true;
       gpuMapRenderer.loadHydroLogicalFeature(Number(properties.__logicalFid)).then(full => {
         if (!full) return;
@@ -9616,7 +9756,7 @@ const {
 
   async function copySelectedHydroForEditing() {
     if (state.selected?.type !== 'hydro') return;
-    let source = hydroFeatureById(state.selected.id);
+    let source = builtInHydroFeatureById(state.selected.id);
     if (!source) {
       setActionStatus('복사할 수계 객체를 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
       return;
@@ -9643,18 +9783,18 @@ const {
       properties: {
         name: source.properties?.name || '',
         category,
-        editorColor: TERRAIN_TOOL_CONFIG[category].color,
+        editorColor: HYDRO_TOOL_CONFIG[category].color,
         notes: `판도연구소 내장 수계 편집용 복사본 · 원본 ${source.properties?.pandolab_id || source.id}`,
         source: source.properties?.source || '판도연구소 내장 수계',
         sourceFeatureId: source.properties?.pandolab_id || source.id,
       },
     };
-    normalizeDrawingSemantics(copy, { inferOwner: false });
-    state.drawings.push(copy);
+    normalizeHydroEdit(copy);
+    state.hydroEdits.push(copy);
     state.physicalSettings.hiddenHydroIds[String(source.properties?.pandolab_id || source.id)] = true;
     gpuMapRenderer.invalidateHydroVisibility();
     markLayerTreeDirty();
-    selectDrawing(String(copy.id));
+    selectHydro(String(copy.id));
     renderAll();
     queueAutosave();
     setActionStatus(`${source.properties?.name || (category === 'lake' ? '호수' : '강')} 편집 복사본을 만들었습니다.`, 'success', 3600);
@@ -10170,6 +10310,11 @@ const {
       if (state.selected?.type !== 'distribution') return false;
       return commitDistributionMeta('color', color);
     }
+    if (kind === 'hydro') {
+      const feature = state.selected?.type === 'hydro' ? hydroEditById(state.selected.id) : null;
+      if (!feature) return false;
+      return commitHydroEdit('editorColor', normalizeEditorColor(value, HYDRO_TOOL_CONFIG[feature.properties.category].color));
+    }
     if (state.selected?.type !== 'drawing') return false;
     commitDrawingMeta('editorColor', color);
     return true;
@@ -10273,6 +10418,23 @@ const {
     setActionStatus(field === 'pandolab_folder_id' ? '지형지물을 다른 폴더로 이동했습니다.' : '지형지물 정보를 변경했습니다.', 'success');
   }
 
+  function commitHydroEdit(field, value) {
+    if (state.selected?.type !== 'hydro') return;
+    const feature = hydroEditById(state.selected.id);
+    if (!feature || feature.properties?.locked === true) {
+      if (feature?.properties?.locked === true) setActionStatus('잠금을 해제한 뒤 수계 정보를 변경하세요.', 'error', 3200);
+      return;
+    }
+    recordHistory();
+    feature.properties[field] = field === 'editorColor'
+      ? normalizeEditorColor(value, HYDRO_TOOL_CONFIG[feature.properties.category].color)
+      : value;
+    if (field === 'name') markLayerTreeDirty();
+    selectHydro(String(feature.id), true);
+    queueAutosave();
+    setActionStatus('수계 정보를 변경했습니다.', 'success');
+  }
+
   function countryRegionContainer(feature, { countryId = feature?.properties?.sovereignId, parentRegionId = feature?.properties?.parentId } = {}) {
     if (feature?.properties?.unitType === COUNTRY_REGION_KINDS.ADMINISTRATIVE && parentRegionId) {
       return territorialUnitById(parentRegionId);
@@ -10316,7 +10478,7 @@ const {
         feature.properties.sovereignId = '';
         feature.properties.parentId = '';
         feature.properties.status = COUNTRY_REGION_STATUS.UNASSIGNED;
-        normalizeProjectDrawings();
+        normalizeProjectObjects();
         selectCountryRegion(feature.id, true);
         markLayerTreeDirty();
         renderAll();
@@ -11013,6 +11175,7 @@ const {
       normalizers: {
         labelSettings: value => deepClone(value || {}),
         drawings: value => deepClone(value || []),
+        hydroEdits: value => deepClone(value || []),
         territorialUnits: value => deepClone(value || []),
         territorialRelations: value => deepClone(value || []),
         distributionLayers: value => deepClone(value || []),
@@ -11033,7 +11196,8 @@ const {
     });
   }
 
-  function normalizeProjectDrawings() {
+  function normalizeProjectObjects() {
+    state.hydroEdits = normalizeHydroEditCollection(state.hydroEdits);
     state.drawingFolders = normalizeDrawingFolders(state.drawingFolders);
     state.drawings = normalizeDrawingCollection(state.drawings || []);
     const migratedDistributions = migrateThematicDrawings(state.drawings, {
@@ -11111,7 +11275,7 @@ const {
     gpuMapRenderer.invalidateHydroVisibility();
     syncPhysicalControls();
     restoreCountriesFromSnapshot(snapshot);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     const restoredDirtyIds = new Set(state.historyDirtyCountryIds);
     for (const id of state.historyDirtyCountryIds) changedCountryIds.add(String(id));
     pruneLayerItemVisibility();
@@ -11243,6 +11407,7 @@ const {
 
   function setLayerVisibility(key, visible) {
     state.layerVisibility[key] = visible;
+    if (key === 'hydro') gpuMapRenderer.invalidateHydroVisibility();
     renderAll();
     queueAutosave();
   }
@@ -11573,7 +11738,7 @@ const {
     state.countriesData = project.countriesData
       ? reindexCountries(deepClone(project.countriesData), true)
       : freshPristineCountries(true);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -11598,6 +11763,7 @@ const {
     $('languagesVisible').checked = state.layerVisibility.languages !== false;
     $('ethnicitiesVisible').checked = state.layerVisibility.ethnicities !== false;
     $('religionsVisible').checked = state.layerVisibility.religions !== false;
+    $('hydroVisible').checked = state.layerVisibility.hydro !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
@@ -11672,6 +11838,7 @@ const {
     state.labels = [];
     state.labelSettings = {};
     state.drawings = [];
+    state.hydroEdits = [];
     state.territorialUnits = [];
     state.territorialRelations = [];
     state.distributionLayers = [];
@@ -11685,7 +11852,7 @@ const {
     state.drawingFolders = [];
     state.physicalSettings = normalizePhysicalSettings(null);
     state.projection = 'globe';
-    state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, languages: true, ethnicities: true, religions: true, drawings: true, labels: true, basemapLabels: true };
+    state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, languages: true, ethnicities: true, religions: true, hydro: true, drawings: true, labels: true, basemapLabels: true };
     state.itemVisibility = normalizeLayerItemState(null);
     state.layerPresentation = normalizeLayerPresentation();
     gpuMapRenderer.invalidateHydroVisibility();
@@ -11740,6 +11907,7 @@ const {
     $('languagesVisible').checked = true;
     $('ethnicitiesVisible').checked = true;
     $('religionsVisible').checked = true;
+    $('hydroVisible').checked = true;
     $('drawingsVisible').checked = true;
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
@@ -12509,7 +12677,7 @@ const {
       mapEditClient.rebase(state.countriesData.features);
       scheduleGpuMeshRebuild(0);
     }
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
@@ -12721,7 +12889,7 @@ const {
       }
       const importedCountries = appendPreparedCountryRegions(imported, kind);
       for (const id of importedCountries) affectedCountryIds.add(String(id));
-      normalizeProjectDrawings();
+      normalizeProjectObjects();
       assertCurrentProjectReferences();
       refreshCountryCentroids(affectedCountryIds);
       markLayerTreeDirty();
@@ -12833,7 +13001,7 @@ const {
     if (!imported.length) throw new Error('가져올 Polygon 또는 MultiPolygon 역사·지리 지역이 없습니다.');
     recordHistory();
     state.territorialUnits.push(...imported);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
@@ -12885,7 +13053,7 @@ const {
     recordHistory();
     state.distributionLayers.push(...newLayers);
     state.distributionEntries.push(...newEntries);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
@@ -13056,6 +13224,26 @@ const {
     else renderAll();
     queueAutosave();
     setActionStatus(statusText || `${drawingName(feature)} 지형지물을 삭제했습니다.`, 'success');
+    return true;
+  }
+
+  function removeHydroEditById(id, statusText = '') {
+    const key = String(id);
+    const feature = hydroEditById(key);
+    if (!feature) return false;
+    recordHistory();
+    state.hydroEdits = state.hydroEdits.filter(candidate => String(candidate.id) !== key);
+    const sourceId = String(feature.properties?.sourceFeatureId || '');
+    if (sourceId && !state.hydroEdits.some(candidate => String(candidate.properties?.sourceFeatureId || '') === sourceId)) {
+      delete state.physicalSettings.hiddenHydroIds[sourceId];
+      gpuMapRenderer.invalidateHydroVisibility();
+    }
+    markLayerTreeDirty();
+    if (state.selected?.type === 'hydro' && String(state.selected.id) === key) clearSelection(false);
+    else renderAll();
+    queueAutosave();
+    const fallback = feature.properties?.category === 'lake' ? '호수' : '강';
+    setActionStatus(statusText || `${hydroEditorName(feature.properties?.name, fallback)} 수계를 삭제했습니다.`, 'success');
     return true;
   }
 
@@ -13237,7 +13425,8 @@ const {
       return;
     }
     if (state.selected.type === 'hydro') {
-      setActionStatus('내장 수계는 삭제할 수 없습니다. 편집용 복사본을 만들어 수정하세요.', 'error', 3400);
+      if (hydroEditById(state.selected.id)) removeHydroEditById(state.selected.id, '선택한 수계를 삭제했습니다.');
+      else setActionStatus('내장 수계는 삭제할 수 없습니다. 편집용 복사본을 만들어 수정하세요.', 'error', 3400);
       return;
     }
     if (state.selected.type === 'drawing') {
@@ -13349,11 +13538,7 @@ const {
 
   function selectLayerTreeItem(group, id, { mode = 'replace', range = false } = {}) {
     const key = String(id);
-    if (group === 'drawings') {
-      if (key === 'user-terrain') {
-        return false;
-      }
-      if (key.startsWith('hydro-layer:')) {
+    if (group === 'hydro' && HYDRO_LAYER_META[key]) {
         if (!state.hydroManifest) loadHydroData(true);
         else {
           const cacheState = state.physicalLoadState.hydroCache;
@@ -13366,7 +13551,6 @@ const {
           }
         }
         return false;
-      }
     }
     const ref = layerItemObjectRef(group, key);
     if (!ref || !objectRefExists(ref)) return false;
@@ -13507,6 +13691,7 @@ const {
     $('languagesVisible').addEventListener('change', e => setLayerVisibility('languages', e.target.checked));
     $('ethnicitiesVisible').addEventListener('change', e => setLayerVisibility('ethnicities', e.target.checked));
     $('religionsVisible').addEventListener('change', e => setLayerVisibility('religions', e.target.checked));
+    $('hydroVisible').addEventListener('change', e => setLayerVisibility('hydro', e.target.checked));
     $('drawingsVisible').addEventListener('change', e => setLayerVisibility('drawings', e.target.checked));
     $('labelsVisible').addEventListener('change', e => setLayerVisibility('labels', e.target.checked));
     $('basemapLabelsVisible').addEventListener('change', e => setLayerVisibility('basemapLabels', e.target.checked));
@@ -13741,6 +13926,8 @@ const {
       { id: 'drawingParentInput', field: 'pandolab_parent_id', commit: commitDrawingMeta },
       { id: 'drawingLandBindingInput', field: 'pandolab_land_binding', commit: commitDrawingMeta },
       { id: 'drawingNotesInput', field: 'notes', commit: commitDrawingMeta },
+      { id: 'hydroNameInput', field: 'name', commit: commitHydroEdit, transform: value => value.trim() },
+      { id: 'hydroNotesInput', field: 'notes', commit: commitHydroEdit },
       { id: 'regionNameInput', field: 'name', commit: commitCountryRegionMeta, transform: value => value.trim() },
       { id: 'regionCountryInput', field: 'countryId', commit: commitCountryRegionMeta },
       { id: 'regionNotesInput', field: 'notes', commit: commitCountryRegionMeta },
@@ -13878,6 +14065,7 @@ const {
 
     $('deleteLabelBtn').addEventListener('click', deleteSelected);
     $('copyHydroBtn').addEventListener('click', copySelectedHydroForEditing);
+    $('deleteHydroEditBtn').addEventListener('click', deleteSelected);
     $('deleteDrawingInlineBtn')?.addEventListener('click', deleteSelected);
 
     $('undoBtn').addEventListener('click', undo);
@@ -14058,7 +14246,7 @@ const {
         $('keyboardHelpBtn')?.click();
         return;
       }
-      if (e.code === 'Space' && !editingText && (draftInputActive() || ['country-border', 'country-coast'].includes(state.tool) || state.selected?.type === 'drawing')) {
+      if (e.code === 'Space' && !editingText && (draftInputActive() || ['country-border', 'country-coast'].includes(state.tool) || state.selected?.type === 'drawing' || (state.selected?.type === 'hydro' && hydroEditById(state.selected.id)))) {
         state.spacePanActive = true;
         $('map')?.classList.add('space-pan-active');
         state.draftEdit.insertTarget = null;
@@ -14243,6 +14431,7 @@ const {
     $('languagesVisible').checked = state.layerVisibility.languages !== false;
     $('ethnicitiesVisible').checked = state.layerVisibility.ethnicities !== false;
     $('religionsVisible').checked = state.layerVisibility.religions !== false;
+    $('hydroVisible').checked = state.layerVisibility.hydro !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
@@ -14314,7 +14503,7 @@ const {
       state.projection = navigationProjection;
     }
     state.layerSearch = previewSearch;
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -14397,7 +14586,7 @@ const {
 
     const autosavePromise = restoreAutosavedProject();
     state.countriesData = reindexCountries(window.PANDOLAB_COUNTRIES, true);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -14499,7 +14688,7 @@ const {
       : restored?.countriesData
         ? reindexCountries(deepClone(restored.countriesData), true)
         : freshPristineCountries(true);
-    normalizeProjectDrawings();
+    normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
@@ -14531,6 +14720,7 @@ const {
     $('languagesVisible').checked = state.layerVisibility.languages !== false;
     $('ethnicitiesVisible').checked = state.layerVisibility.ethnicities !== false;
     $('religionsVisible').checked = state.layerVisibility.religions !== false;
+    $('hydroVisible').checked = state.layerVisibility.hydro !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;

@@ -1723,7 +1723,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawHydro(category, picking = false) {
-      if (!hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return;
+      if (!hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.hydro) return;
       const theme = mapTheme();
       if (Number(theme.hydroOpacity) <= 0 || (category !== 'lake' && theme.hydroBoundaryVisible === false)) return;
       updateHydroVisibility();
@@ -2534,7 +2534,7 @@ export function createGpuMapRenderer(deps) {
         revision: Number(revision || 0),
         geometryRevision: geometryRevisionTracker.committedRevision(),
         visible: !!state.layerVisibility.countries,
-        hydroVisible: !!state.layerVisibility.drawings,
+        hydroVisible: !!state.layerVisibility.hydro,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
         theme: mapTheme(),
@@ -2802,7 +2802,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function pickHydro(screenPoint) {
-      if (!isWebGlRenderer() || !gl || !hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.drawings) return null;
+      if (!isWebGlRenderer() || !gl || !hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.hydro) return null;
       resize();
       try { ensurePickTarget(); } catch (_) { return null; }
       gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
