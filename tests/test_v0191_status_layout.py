@@ -41,7 +41,7 @@ class StatusLayoutV0191Tests(unittest.TestCase):
     def test_version_is_updated(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
-        self.assertIn("app.css?v=0.30.0-r8", INDEX)
+        self.assertIn("app.css?v=0.30.0-r9", INDEX)
 
 
 if __name__ == "__main__":

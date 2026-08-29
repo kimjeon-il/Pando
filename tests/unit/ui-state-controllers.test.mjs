@@ -55,6 +55,26 @@ test('save state distinguishes autosave, native writes, and download fallbacks',
   assert.equal(controller.snapshot().hasUnsavedChanges, false);
 });
 
+test('document and presentation dirty state are tracked independently', () => {
+  const documentController = createSaveStateController();
+  documentController.markOpenedFile('opened');
+  documentController.markDocumentChanged();
+  assert.equal(documentController.snapshot().documentDirty, true);
+  assert.equal(documentController.snapshot().presentationDirty, false);
+  assert.equal(documentController.snapshot().hasUnsavedChanges, true);
+
+  const presentationController = createSaveStateController();
+  presentationController.markOpenedFile('opened');
+  presentationController.markPresentationChanged();
+  assert.equal(presentationController.snapshot().documentDirty, false);
+  assert.equal(presentationController.snapshot().presentationDirty, true);
+  assert.equal(presentationController.snapshot().file, FILE_SAVE_STATES.DIRTY);
+  presentationController.markFileSaved();
+  assert.equal(presentationController.snapshot().documentDirty, false);
+  assert.equal(presentationController.snapshot().presentationDirty, false);
+  assert.equal(presentationController.snapshot().hasUnsavedChanges, false);
+});
+
 test('new projects keep an unsaved-file baseline without appearing dirty', () => {
   const controller = createSaveStateController();
   controller.markNewProject('initial-world');

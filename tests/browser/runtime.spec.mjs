@@ -547,7 +547,7 @@ test('mouse, wheel, touch pan, pinch, and double tap all advance map frames', as
   expect(errors).toEqual([]);
 });
 
-test('virtualized country deletion honors lock, undo, and autosave restore', async ({ page }) => {
+test('virtualized country deletion honors per-object lock, undo, and autosave restore', async ({ page }) => {
   test.setTimeout(240_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
@@ -555,10 +555,14 @@ test('virtualized country deletion honors lock, undo, and autosave restore', asy
   const firstRow = page.locator('#countriesLayerChildren .layer-child').first();
   const name = await firstRow.locator('.layer-child-name').textContent();
   const countryId = await firstRow.getAttribute('data-item-id');
-  await page.locator('#countriesLocked').check({ force: true });
+  await firstRow.locator('.layer-child-menu').click();
+  await page.locator('#objectLockMenuBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.isLocked('country', id), countryId)).toBe(true);
+  await expect(page.locator('#editorObjectHeader')).toBeVisible();
   await firstRow.locator('.layer-child-menu').click();
   await expect(page.locator('#objectDeleteMenuBtn')).toBeDisabled();
-  await page.locator('#countriesLocked').uncheck({ force: true });
+  await page.locator('#objectLockMenuBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.isLocked('country', id), countryId)).toBe(false);
 
   const deleteCountry = async () => {
     const row = page.getByRole('button', { name, exact: true }).locator('..');
@@ -605,7 +609,7 @@ test('layer folders are grouped into scan-friendly non-collapsible categories', 
   await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지도 요소', '라벨']);
   await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '지역', '행정구역', '역사·지리 지역']);
   await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형지물']);
+  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['수계', '지형지물']);
   await expect(categories.nth(2).locator('.layer-display-option')).toContainText('지형 음영');
   await expect(categories.nth(3).locator('.layer-display-option')).toHaveText(['도시·지명', '국가명 라벨']);
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
@@ -674,7 +678,6 @@ test('virtualized layer selection and search results preserve scroll and accessi
   const errors = await openApp(page);
   const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
-  await page.locator('#countriesLocked').uncheck({ force: true });
   const list = page.locator('#countriesLayerChildren');
   await list.evaluate(element => { element.scrollTop = 2400; });
   await expect.poll(() => list.evaluate(element => element.scrollTop)).toBeGreaterThan(2000);
@@ -706,19 +709,25 @@ test('virtualized layer selection and search results preserve scroll and accessi
 test('shared color picker applies presets, restores defaults, and participates in undo', async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize(layouts[0].viewport);
+  await page.emulateMedia({ colorScheme: 'light' });
   const errors = await openApp(page);
   const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
-  await page.locator('#countriesLocked').uncheck({ force: true });
   await page.locator('#countriesLayerChildren .layer-child-name').first().click();
+  await expect(page.locator('#countryColorInput')).toHaveValue('#cccccc');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('#countryColorInput')).toHaveValue('#63758a');
   await page.locator('#countryColorTrigger').click();
   await expect(page.locator('#countryColorPopover')).toBeVisible();
   await page.locator('#countryColorPopover [data-color-value="#dc2626"]').click();
   await expect(page.locator('#countryColorInput')).toHaveValue('#dc2626');
   await expect(page.locator('#countryColorValue')).toHaveText('#DC2626');
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(page.locator('#countryColorInput')).toHaveValue('#dc2626');
   await page.locator('#countryColorTrigger').click();
   await page.locator('#countryColorPopover [data-color-default]').click();
   await expect(page.locator('#countryColorValue')).toHaveText('기본 색상');
+  await expect(page.locator('#countryColorInput')).toHaveValue('#cccccc');
   await page.locator('#undoBtn').click();
   await expect(page.locator('#redoBtn')).toBeEnabled();
   await expect(page.locator('#countryProperties')).toBeHidden();
@@ -748,7 +757,6 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
   expect(Math.abs(reopenedHeight - editHeight)).toBeLessThanOrEqual(1);
 
   await openSheet('#mobileMapBtn', '#leftPanel');
-  await page.locator('#countriesLocked').uncheck({ force: true });
   const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
   await page.locator('#countriesLayerChildren .layer-child-name').first().click();
@@ -767,7 +775,7 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
   expect(errors).toEqual([]);
 });
 
-test('GeoJSON imports use file folders, move between drawing folders, and disappear immediately after deletion', async ({ page }) => {
+test('GeoJSON imports custom drawings into one flat list and deletes them immediately', async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
@@ -776,7 +784,7 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
     features: [{
       type: 'Feature',
       id: `${name}-feature`,
-      properties: { name, category: 'river' },
+      properties: { name, category: 'custom' },
       geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] },
     }],
   });
@@ -789,37 +797,33 @@ test('GeoJSON imports use file folders, move between drawing folders, and disapp
     await expect(page.locator('#gisImportModal')).toBeVisible();
     await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
     await expect(page.locator('#gisTargetType')).toHaveValue('drawing');
+    for (let step = 0; step < 4; step += 1) await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisImportConfirmBtn')).toBeVisible();
     await page.locator('#gisImportConfirmBtn').click();
-    const folder = page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: name });
-    await expect(folder).toHaveCount(1);
-    expect(await folder.evaluate(element => element.parentElement?.id)).toBe('mapElementsLayerItems');
-    await expect(folder.locator('.layer-child-name')).toHaveText(name);
-    return folder;
+    const drawingsFolder = page.locator('.layer-folder[data-layer-group="drawings"]');
+    if (await drawingsFolder.locator('.layer-folder-toggle').getAttribute('aria-expanded') !== 'true') {
+      await drawingsFolder.locator('.layer-folder-toggle').click();
+    }
+    const row = page.locator('#drawingsLayerChildren .layer-child', { hasText: name });
+    await expect(row).toHaveCount(1);
+    return row;
   };
 
   const disposable = await importFile('삭제확인');
   await disposable.locator('.layer-child-menu').click();
   await page.locator('#objectDeleteMenuBtn').click();
   await page.locator('#confirmModalOkBtn').click();
-  await expect(page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: '삭제확인' })).toHaveCount(0);
+  await expect(page.locator('#drawingsLayerChildren .layer-child', { hasText: '삭제확인' })).toHaveCount(0);
 
-  const target = await importFile('이동대상');
-  const source = await importFile('이동원본');
-  const targetId = await target.getAttribute('data-drawing-folder-id');
-  await source.locator('.layer-child-name').click();
-  await page.locator('#drawingProperties details').first().locator('summary').click();
-  await page.locator('#drawingFolderInput').selectOption(targetId);
-  await expect(page.locator('.layer-folder[data-drawing-folder-id]').filter({ hasText: '이동원본' })).toHaveCount(0);
-  const updatedTarget = page.locator(`.layer-folder[data-drawing-folder-id="${targetId}"]`);
-  if (await updatedTarget.locator('.layer-folder-toggle').getAttribute('aria-expanded') !== 'true') {
-    await updatedTarget.locator('.layer-folder-toggle').click();
-  }
-  await expect(updatedTarget.locator('.layer-child-name')).toHaveCount(2);
-  await expect(page.locator('#drawingFolderInput option')).toHaveText(['지형지물', '이동대상']);
+  await importFile('첫번째 객체');
+  await importFile('두번째 객체');
+  await expect(page.locator('#drawingsLayerChildren .layer-child-name')).toContainText(['두번째 객체', '첫번째 객체']);
+  await expect(page.locator('.layer-folder[data-drawing-folder-id]')).toHaveCount(0);
+  await expect(page.locator('#drawingFolderInput')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
-test('GeoJSON polygon imports create dedicated country regions with inferred ownership', async ({ page }) => {
+test('GeoJSON polygon imports create dedicated country regions with explicit ownership', async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
@@ -843,13 +847,43 @@ test('GeoJSON polygon imports create dedicated country regions with inferred own
   });
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-  await page.locator('#gisTargetType').selectOption('region');
+  await page.locator('#gisImportNextBtn').click();
+  await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
+  const targetSelect = page.locator('#gisTargetType');
+  await targetSelect.locator('..').locator('.ui-select-control').click();
+  await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '지역', exact: true }).click();
+  await expect(targetSelect).toHaveValue('region');
+  await page.locator('#gisTargetCountry').evaluate(select => {
+    const poland = [...select.options].find(option => option.textContent?.includes('폴란드'));
+    if (!poland) throw new Error('폴란드 소속 국가 옵션을 찾지 못했습니다.');
+    select.value = poland.value;
+    select.dispatchEvent(new select.ownerDocument.defaultView.Event('change', { bubbles: true }));
+  });
+  for (const step of ['3/5', '4/5', '5/5']) {
+    await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisStepIndicator')).toContainText(step, { timeout: 30_000 });
+  }
   await page.locator('#gisImportConfirmBtn').click();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'territory' })
+    .some(feature => feature.properties?.name === '시험 지역')), { timeout: 60_000 }).toBe(true);
+  const importedIdentity = await page.evaluate(() => {
+    const feature = window.PANDOLAB_TERRITORIAL.list({ type: 'territory' })
+      .find(item => item.properties?.name === '시험 지역');
+    return { id: feature?.id, sourceId: feature?.properties?.metadata?.sourceId };
+  });
+  expect(importedIdentity.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  expect(importedIdentity.sourceId).toBe('region-import-smoke');
 
   const regionToggle = page.locator('[data-layer-folder-toggle="regions"]').first();
   if (await regionToggle.getAttribute('aria-expanded') !== 'true') await regionToggle.click();
-  const importedName = page.locator('#regionsLayerChildren .layer-child-name').filter({ hasText: '시험 지역' });
+  const importedName = page.getByRole('button', { name: '시험 지역', exact: true });
   await expect(importedName).toHaveCount(1);
+  await importedName.click();
+  await page.locator('#regionColorTrigger').click();
+  await page.locator('#regionColorPopover [data-color-value="#dc2626"]').click();
+  await expect(page.locator('#regionColorInput')).toHaveValue('#dc2626');
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'territory' })
+    .find(feature => feature.properties?.name === '시험 지역')?.properties?.style?.color)).toBe('#dc2626');
   await expect(page.locator('#regionsLayerChildren .layer-subfolder-row')).toHaveCount(1);
   await expect(page.locator('#regionsLayerChildren')).toContainText('미지정 지역');
   const countrySubfolder = page.locator('#regionsLayerChildren [data-country-region-folder-toggle]');
@@ -865,10 +899,10 @@ test('GeoJSON polygon imports create dedicated country regions with inferred own
   await expect(page.locator('#confirmModalChoice')).toHaveValue('unassigned');
   await expect(page.locator('#confirmModalChoice option')).toHaveText(['미지정 영역으로 전환', '이 단계의 영역 구분 전체 해제']);
   await page.locator('#confirmModalOkBtn').click();
-  await expect(page.locator('#regionsLayerChildren .layer-child-name').filter({ hasText: '시험 지역' })).toHaveCount(0);
-  await expect(page.locator('#regionsLayerChildren .layer-child-name').filter({ hasText: '미지정 지역' })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: '시험 지역', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '미지정 지역', exact: true })).toHaveCount(1);
 
   await page.locator('#undoBtn').click();
-  await expect(page.locator('#regionsLayerChildren .layer-child-name').filter({ hasText: '시험 지역' })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: '시험 지역', exact: true })).toHaveCount(1);
   expect(errors).toEqual([]);
 });

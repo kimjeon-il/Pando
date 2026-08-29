@@ -9,6 +9,7 @@ APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 SAVE_STATE = (ROOT / "assets/js/modules/save-state-controller.js").read_text(encoding="utf-8")
 GIS_IO = (ROOT / "assets/js/gis-io.js").read_text(encoding="utf-8")
+IMPORT_SERVICE = (ROOT / "assets/js/modules/import-service.js").read_text(encoding="utf-8")
 
 
 class ShellFileSaveContractTests(unittest.TestCase):
@@ -59,7 +60,7 @@ class ShellFileSaveContractTests(unittest.TestCase):
     def test_one_loader_classifies_projects_from_real_project_state_metadata(self):
         self.assertIn("importSourceKind = session.projectMetadata?.projectState ? 'project' : 'vector'", GIS_IO)
         self.assertIn("importStepRoute = importSourceKind === 'project' ? [0, 4] : [0, 1, 2, 3, 4]", GIS_IO)
-        self.assertIn("result.sourceKind === 'project'", APP)
+        self.assertIn("result.sourceKind === 'project'", IMPORT_SERVICE)
         self.assertNotIn("dataset.fileIntent", APP)
 
     def test_project_save_and_gis_data_export_are_separate_commands(self):

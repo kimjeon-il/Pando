@@ -477,7 +477,8 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .country-region-shape.selected.has-explicit-color { fill-opacity: .36; }
 .country-region-shape.country-region-merge-source { stroke: var(--accent-2); stroke-width: 3px; }
 .country-region-shape.country-region-merge-target { fill-opacity: .28; stroke: var(--accent); stroke-width: 3px; }
-.drawing-shape { stroke-width: 1.8px; stroke-linejoin: round; stroke-linecap: round; cursor: pointer; vector-effect: non-scaling-stroke; }
+.drawing-shape,
+.hydro-edit-shape { stroke-width: 1.8px; stroke-linejoin: round; stroke-linecap: round; cursor: pointer; vector-effect: non-scaling-stroke; }
 .distribution-shape { stroke-width: 1.4px; stroke-linejoin: round; cursor: pointer; vector-effect: non-scaling-stroke; }
 .distribution-shape.selected { stroke: var(--accent-2) !important; stroke-width: 3px; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent-2) 28%, transparent)); }
 .distribution-entry-list { display: grid; gap: var(--ui-space-2); margin-bottom: var(--ui-space-4); }
@@ -873,6 +874,9 @@ body { font-size: var(--ui-font-body); }
 .hydro-lakes-layer,
 .hydro-rivers-layer,
 .hydro-selection-layer { pointer-events: none; }
+.hydro-edit-layer { pointer-events: none; }
+.hydro-edit-shape { pointer-events: auto; }
+.hydro-edit-shape.selected { stroke: var(--accent-2) !important; stroke-width: 3px; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent-2) 58%, transparent)); }
 .hydro-lake-group {
   fill: #5aa9d6; fill-opacity: .82; stroke: #3c83ad; stroke-width: .55px;
   vector-effect: non-scaling-stroke;
@@ -3236,6 +3240,7 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
   min-height: var(--ui-control-height);
 }
 .multi-selection-bar > strong { padding-inline: var(--ui-space-2); white-space: nowrap; }
+#multiSelectionModeBtn { display: none; }
 
 .editor-view-tabs {
   flex: 0 0 auto;
@@ -3331,6 +3336,11 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 }
 #app[data-layout="mobile"] .multi-selection-bar > button,
 #app[data-layout="mobile"] .multi-selection-bar > label { flex: 0 0 auto; min-height: var(--ui-touch-height); }
+#app[data-layout="mobile"] #multiSelectionModeBtn { display: inline-flex; }
+#app[data-layout="mobile"] #multiSelectionModeBtn[aria-pressed="true"] {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
 #app[data-layout="mobile"] .object-chooser {
   position: fixed;
   top: auto;

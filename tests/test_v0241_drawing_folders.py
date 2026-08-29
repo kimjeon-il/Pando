@@ -8,32 +8,28 @@ ROOT = Path(__file__).parents[1]
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 PROJECT_STATE = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
+DRAWING_SERVICE = (ROOT / "assets" / "js" / "modules" / "drawing-service.js").read_text(encoding="utf-8")
 
 
-class V0241DrawingFolderTests(unittest.TestCase):
-    def test_drawing_folders_are_optional_history_and_project_state(self):
-        self.assertIn("name: 'drawingFolders', history: true, fallback: () => []", PROJECT_STATE)
-        self.assertIn("drawingFolders: value => normalizeDrawingFolders(value)", APP)
-        self.assertIn("state.drawingFolders = []", APP)
+class V0241DrawingFlatListTests(unittest.TestCase):
+    def test_drawing_folder_state_is_removed(self):
+        self.assertNotIn("name: 'drawingFolders'", PROJECT_STATE)
+        self.assertNotIn("state.drawingFolders", APP)
+        self.assertNotIn("pandolab_folder_id", INDEX)
 
-    def test_geojson_import_creates_a_file_folder_and_assigns_every_feature(self):
-        importer = APP[APP.index("async function importGeoJson"):APP.index("function exportDrawingsGeoJson")]
-        self.assertIn("createImportedDrawingFolder(file.name)", importer)
-        self.assertIn("pandolab_folder_id: folder.id", importer)
-        self.assertIn("state.drawingFolders.push(folder)", importer)
-        self.assertIn("state.drawings.push(...supported)", importer)
+    def test_geojson_import_adds_custom_drawings_to_the_flat_list(self):
+        importer = APP[APP.index("async function importGeoJson"):APP.index("function gisExportCounts")]
+        self.assertIn("drawingApplicationService.addMany(supported)", importer)
+        self.assertIn("documentStore.replaceDrawings(normalizeDrawingCollection([...drawings(), ...normalized]))", DRAWING_SERVICE)
+        self.assertIn("category: 'custom'", importer)
+        self.assertIn("key === 'drawings'", importer)
+        self.assertNotIn("createImportedDrawingFolder", importer)
 
-    def test_editor_can_move_drawings_between_drawing_folders(self):
-        self.assertIn('id="drawingFolderInput"', INDEX)
-        self.assertIn("{ id: 'drawingFolderInput', field: 'pandolab_folder_id', commit: commitDrawingMeta }", APP)
-        self.assertIn("if (value === DEFAULT_DRAWING_FOLDER_ID) delete f.properties.pandolab_folder_id", APP)
-        self.assertIn("pruneAutoDrawingFolders();", APP)
-
-    def test_dynamic_folders_reuse_the_common_layer_folder_components(self):
-        dynamic_folder = APP[APP.index("function createDynamicDrawingFolderElement"):APP.index("function renderLayerTree")]
-        self.assertIn("element.className = 'layer-folder'", dynamic_folder)
-        self.assertIn("row.className = 'ui-row layer-folder-row'", dynamic_folder)
-        self.assertIn("children.className = 'layer-children'", dynamic_folder)
+    def test_editor_and_layer_tree_have_no_folder_controls(self):
+        self.assertNotIn('id="drawingFolderInput"', INDEX)
+        self.assertNotIn("data-drawing-folder-id", APP)
+        self.assertNotIn("createDynamicDrawingFolderElement", APP)
+        self.assertNotIn("drawingFolderStateKey", APP)
 
 
 if __name__ == "__main__":

@@ -3,18 +3,19 @@ import assert from 'node:assert/strict';
 
 import {
   TERRITORIAL_COVERAGE_MODES,
-  TERRITORIAL_STATUS,
+  TERRITORIAL_SCHEMA_VERSION,
   TERRITORIAL_UNIT_TYPES,
   changeUnitType,
   createCountryTerritorialAdapter,
   createTerritorialFeature,
   createTerritorialRepository,
-  migrateLegacyCountryRegions,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
+  reconcilePartitionRemainder,
   resolveTerritorialRelation,
   runTerritorialTransaction,
   validateTerritorialRelations,
+  validatePartitionRemainders,
 } from '../../assets/js/modules/territorial-units.js';
 
 const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
@@ -22,31 +23,26 @@ const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
   coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]],
 });
 
-test('legacy regions migrate to territory partitions without losing ids or geometry', () => {
-  const [territory] = migrateLegacyCountryRegions([{
-    type: 'Feature', id: 'r1', properties: { kind: 'region', countryId: 'PL', name: '지역' }, geometry: square(),
-  }], { countryExists: id => id === 'PL' });
-  assert.equal(territory.id, 'r1');
-  assert.equal(territory.properties.unitType, TERRITORIAL_UNIT_TYPES.TERRITORY);
-  assert.equal(territory.properties.parentId, 'PL');
-  assert.equal(territory.properties.sovereignId, 'PL');
-  assert.equal(territory.properties.coverageMode, TERRITORIAL_COVERAGE_MODES.PARTITION);
-  assert.equal(territory.properties.status, TERRITORIAL_STATUS.ASSIGNED);
-  assert.deepEqual(territory.geometry, square());
+test('territorial normalization rejects legacy aliases and duplicate IDs', () => {
+  assert.throws(() => normalizeTerritorialUnits([{
+    type: 'Feature', id: 'r1', properties: { kind: 'region', countryId: 'PL' }, geometry: square(),
+  }]), /영역 형식/);
+  const unit = createTerritorialFeature({ id: 'r1', unitType: 'territory', sovereignId: 'PL', parentId: 'PL', geometry: square() });
+  assert.throws(() => normalizeTerritorialUnits([unit, unit], { countryExists: id => id === 'PL' }), /중복/);
 });
 
-test('administrative levels follow parent depth and invalid parents recover to sovereign', () => {
+test('administrative levels are preserved and dangling parents fail instead of being rewritten', () => {
   const units = normalizeTerritorialUnits([
     createTerritorialFeature({ id: 't1', unitType: 'territory', sovereignId: 'PL', parentId: 'PL', geometry: square() }),
     createTerritorialFeature({ id: 'a1', unitType: 'admin', sovereignId: 'PL', parentId: 't1', adminLevel: 8, geometry: square(0, 0, 5, 5) }),
     createTerritorialFeature({ id: 'a2', unitType: 'admin', sovereignId: 'PL', parentId: 'a1', adminLevel: 8, geometry: square(0, 0, 2, 2) }),
-    createTerritorialFeature({ id: 'a3', unitType: 'admin', sovereignId: 'PL', parentId: 'missing', adminLevel: 8, geometry: square(2, 2, 3, 3) }),
   ], { countryExists: id => id === 'PL' });
-  assert.equal(units.find(item => item.id === 'a1').properties.adminLevel, 1);
-  assert.equal(units.find(item => item.id === 'a2').properties.adminLevel, 2);
-  assert.equal(units.find(item => item.id === 'a3').properties.adminLevel, 1);
-  assert.equal(units.find(item => item.id === 'a3').properties.parentId, 'PL');
+  assert.equal(units.find(item => item.id === 'a1').properties.adminLevel, 8);
+  assert.equal(units.find(item => item.id === 'a2').properties.adminLevel, 8);
   assert.equal(validateTerritorialRelations(units, { countryExists: id => id === 'PL' }).ok, true);
+  assert.throws(() => normalizeTerritorialUnits([
+    createTerritorialFeature({ id: 'a3', unitType: 'admin', sovereignId: 'PL', parentId: 'missing', geometry: square() }),
+  ], { countryExists: id => id === 'PL' }), /상위 영역 missing/);
 });
 
 test('territory and administrative type changes preserve identity and geometry', () => {
@@ -76,31 +72,42 @@ test('explicit regions keep independent parent and sovereignty relationships', (
   assert.equal(region.properties.sovereignId, '');
 });
 
-test('unassigned partition space keeps its sovereign and parent grouping', () => {
+test('partition remainder keeps sovereignty independent from its remainder meaning', () => {
   const [remainder] = normalizeTerritorialUnits([createTerritorialFeature({
-    id: 'remainder', unitType: 'territory', parentId: 'PL', sovereignId: 'PL', status: 'unassigned', geometry: square(),
+    id: 'remainder', unitType: 'territory', parentId: 'PL', sovereignId: 'PL', isRemainder: true, geometry: square(),
   })], { countryExists: id => id === 'PL' });
-  assert.equal(remainder.properties.status, TERRITORIAL_STATUS.UNASSIGNED);
+  assert.equal(remainder.properties.isRemainder, true);
   assert.equal(remainder.properties.sovereignId, 'PL');
   assert.equal(remainder.properties.parentId, 'PL');
+  const independent = createTerritorialFeature({ id: 'independent', unitType: 'region', sovereignId: '', isRemainder: false, geometry: square() });
+  assert.equal(independent.properties.sovereignId, '');
+  assert.equal(independent.properties.isRemainder, false);
 });
 
-test('deleted sovereigns become unassigned and circular parents are removed', () => {
-  const units = normalizeTerritorialUnits([
+test('dangling sovereigns and circular parents fail without automatic clearing', () => {
+  assert.throws(() => normalizeTerritorialUnits([
     createTerritorialFeature({ id: 'a1', unitType: 'admin', sovereignId: 'gone', parentId: 'a2', geometry: square() }),
     createTerritorialFeature({ id: 'a2', unitType: 'admin', sovereignId: 'gone', parentId: 'a1', geometry: square() }),
-  ], { countryExists: () => false });
-  for (const unit of units) {
-    assert.equal(unit.properties.sovereignId, '');
-    assert.equal(unit.properties.status, TERRITORIAL_STATUS.UNASSIGNED);
-    assert.equal(unit.properties.parentId, '');
-  }
+  ], { countryExists: () => false }), /주권 국가 gone|순환/);
+});
+
+test('one remainder per partition is enforced and reconciliation is explicit', () => {
+  const piece = createTerritorialFeature({ id: 'piece', unitType: 'territory', parentId: 'PL', sovereignId: 'PL', geometry: square(0, 0, 5, 5) });
+  const remainder = createTerritorialFeature({ id: 'remainder', unitType: 'territory', parentId: 'PL', sovereignId: 'PL', isRemainder: true, geometry: square(5, 0, 10, 10) });
+  const duplicate = createTerritorialFeature({ id: 'duplicate', unitType: 'territory', parentId: 'PL', sovereignId: 'PL', isRemainder: true, geometry: square() });
+  assert.equal(validatePartitionRemainders([piece, remainder]).ok, true);
+  assert.equal(validatePartitionRemainders([piece, remainder, duplicate]).ok, false);
+  assert.throws(() => normalizeTerritorialUnits([piece, remainder, duplicate], { countryExists: id => id === 'PL' }), /중복/);
+  const updatedGeometry = square(6, 0, 10, 10);
+  const reconciled = reconcilePartitionRemainder({ siblings: [piece, remainder], remainderGeometry: updatedGeometry });
+  assert.deepEqual(reconciled.find(item => item.properties.isRemainder).geometry, updatedGeometry);
+  assert.notDeepEqual(remainder.geometry, updatedGeometry);
 });
 
 test('dated relations resolve by reference date and overlapping ranges are rejected', () => {
   const unit = createTerritorialFeature({ id: 't1', unitType: 'territory', sovereignId: 'A', parentId: 'A', geometry: square() });
   const relations = normalizeTerritorialRelations([
-    { id: 'r1', unitId: 't1', parentId: 'B', sovereignId: 'B', validFrom: '1900-01-01', validTo: '1910-12-31' },
+    { id: 'r1', schemaVersion: TERRITORIAL_SCHEMA_VERSION, unitId: 't1', parentId: 'B', sovereignId: 'B', validFrom: '1900-01-01', validTo: '1910-12-31' },
   ]);
   const resolved = resolveTerritorialRelation(unit, relations, '1905-01-01');
   assert.equal(resolved.properties.parentId, 'B');
