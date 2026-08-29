@@ -13,7 +13,8 @@ TOOLS = (ROOT / "assets" / "js" / "modules" / "tool-controller.js").read_text(en
 class MapEditingToolsV0304Tests(unittest.TestCase):
     def test_object_actions_are_visible_and_border_coast_tools_are_separate(self):
         self.assertNotIn("고급 작업", INDEX)
-        self.assertIn("고급 설정 · 속성 연결", INDEX)
+        self.assertIn("고급 설정", INDEX)
+        self.assertNotIn("고급 설정 · 속성 연결", INDEX)
         country_order = [
             INDEX.index('id="annexTerritoryBtn"'),
             INDEX.index('id="mergeCountryBtn"'),
