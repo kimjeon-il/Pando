@@ -14,6 +14,7 @@ CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
+GPU = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
 TERRAIN_MANIFEST = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))
 DATA = ROOT / "assets" / "data" / "hydro" / "v0.13.0"
 
@@ -65,7 +66,10 @@ class V0130RuntimeTests(unittest.TestCase):
             "--ui-font-title: 18px",
         ):
             self.assertIn(token, CSS)
-        self.assertIn(".country-highlight-fill.selected", CSS)
+        self.assertIn(".map-selection-outline", CSS)
+        self.assertIn("syncGpuCountryEmphasis", APP)
+        self.assertIn("countryEmphasis", GPU)
+        self.assertNotIn("selectionUnderlayLayer", APP)
         self.assertIn("path.country-highlight-fill", APP)
         self.assertIn("feature => path(feature)", APP)
         annex_entry = source_section(APP, "function enterAnnexTerritoryMode", "function toggleAnnexDonor")

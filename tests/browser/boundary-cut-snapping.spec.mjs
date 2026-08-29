@@ -70,7 +70,7 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
 
   await page.getByRole('button', { name: '경계 스냅 실제 시험 영역', exact: true }).click();
   await expect(page.locator('#drawingProperties')).toBeVisible();
-  const shape = page.locator('path.drawing-shape.selected');
+  const shape = page.locator('path.drawing-shape');
   await page.locator('#actionsTabBtn').click();
   await page.locator('#splitDrawingBtn').click();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
