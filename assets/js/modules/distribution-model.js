@@ -1,3 +1,5 @@
+import { normalizeTemporalInterval } from './temporal.js';
+
 export const DISTRIBUTION_SCHEMA_VERSION = 1;
 
 export const DISTRIBUTION_TYPES = Object.freeze({
@@ -21,11 +23,11 @@ const MODES = new Set(Object.values(DISTRIBUTION_MODES));
 const POLYGON_TYPES = new Set(['Polygon', 'MultiPolygon']);
 const text = value => String(value ?? '').trim();
 const clone = value => structuredClone(value);
-const shareValue = value => Math.max(0, Math.min(100, Number.isFinite(Number(value)) ? Number(value) : 100));
-
-function normalizedDate(value) {
-  const source = text(value);
-  return /^[-+]?\d{4,6}(?:-\d{2}-\d{2})?$/.test(source) ? source : null;
+function shareValue(value) {
+  const share = Number(value);
+  if (!Number.isFinite(share)) throw new Error('분포 비율은 유한한 숫자여야 합니다.');
+  if (share < 0 || share > 100) throw new Error('분포 비율은 0~100 범위여야 합니다.');
+  return share;
 }
 
 export function normalizeDistributionLayer(raw) {
@@ -34,6 +36,7 @@ export function normalizeDistributionLayer(raw) {
   if (!TYPES.has(type)) return null;
   const id = text(raw?.id);
   if (!id) throw new Error('분포 레이어 ID가 비어 있습니다.');
+  const interval = normalizeTemporalInterval(raw.validFrom, raw.validTo);
   return {
     id,
     schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
@@ -44,8 +47,8 @@ export function normalizeDistributionLayer(raw) {
     locked: raw.locked === true,
     parentId: text(raw.parentId),
     groups: Array.isArray(raw.groups) ? [...new Set(raw.groups.map(text).filter(Boolean))] : [],
-    validFrom: normalizedDate(raw.validFrom),
-    validTo: normalizedDate(raw.validTo),
+    validFrom: interval.validFrom,
+    validTo: interval.validTo,
     metadata: raw.metadata && typeof raw.metadata === 'object' ? clone(raw.metadata) : {},
   };
 }
@@ -63,13 +66,14 @@ export function normalizeDistributionLayers(value) {
   const byId = new Map(output.map(layer => [layer.id, layer]));
   for (const layer of output) {
     const parent = byId.get(layer.parentId);
-    if (!parent || parent.type !== layer.type || parent.id === layer.id) layer.parentId = '';
+    if (layer.parentId && (!parent || parent.type !== layer.type || parent.id === layer.id)) {
+      throw new Error(`${layer.id}의 상위 분포 레이어가 존재하지 않거나 유형이 다릅니다.`);
+    }
     let cursor = parent;
     const visited = new Set([layer.id]);
     while (cursor) {
       if (visited.has(cursor.id)) {
-        layer.parentId = '';
-        break;
+        throw new Error(`${layer.id}의 상위 분포 레이어 관계가 순환합니다.`);
       }
       visited.add(cursor.id);
       cursor = byId.get(cursor.parentId);
@@ -88,9 +92,11 @@ export function normalizeDistributionEntry(raw) {
   const geometry = mode === DISTRIBUTION_MODES.GEOMETRY && POLYGON_TYPES.has(raw?.geometry?.type)
     ? clone(raw.geometry)
     : null;
-  if ((mode === DISTRIBUTION_MODES.REGION && !regionId) || (mode === DISTRIBUTION_MODES.GEOMETRY && !geometry)) return null;
+  if ((mode === DISTRIBUTION_MODES.REGION && !regionId)
+    || (mode === DISTRIBUTION_MODES.GEOMETRY && (!geometry || !Array.isArray(geometry.coordinates) || !geometry.coordinates.length))) return null;
   const id = text(raw.id);
   if (!id) throw new Error('분포 엔트리 ID가 비어 있습니다.');
+  const interval = normalizeTemporalInterval(raw.validFrom, raw.validTo);
   return {
     id,
     schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
@@ -98,10 +104,10 @@ export function normalizeDistributionEntry(raw) {
     mode,
     regionId,
     geometry,
-    share: shareValue(raw.share),
+    share: shareValue(raw.share ?? 100),
     certainty: text(raw.certainty) || 'unknown',
-    validFrom: normalizedDate(raw.validFrom),
-    validTo: normalizedDate(raw.validTo),
+    validFrom: interval.validFrom,
+    validTo: interval.validTo,
     metadata: raw.metadata && typeof raw.metadata === 'object' ? clone(raw.metadata) : {},
   };
 }
