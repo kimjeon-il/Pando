@@ -1404,6 +1404,36 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 #app[data-layout="compact"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }
 #app[data-layout="compact"] .mobile-backdrop { display: none !important; }
 
+/* Compact controls: the wrapper only positions the two intentional surfaces. */
+#app[data-layout="compact"] .compact-primary-controls {
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+#app[data-layout="compact"] .compact-primary-controls::before,
+#app[data-layout="compact"] .compact-primary-controls::after,
+#app[data-layout="compact"] .adaptive-nav::before,
+#app[data-layout="compact"] .adaptive-nav::after,
+#app[data-layout="compact"] .map-command-toolbar::before,
+#app[data-layout="compact"] .map-command-toolbar::after,
+#app[data-layout="compact"] .create-menu-wrap::before,
+#app[data-layout="compact"] .create-menu-wrap::after { content: none !important; display: none !important; }
+#app[data-layout="compact"] .create-menu-wrap { flex: 0 0 0; width: 0; min-width: 0; overflow: visible; }
+#app[data-layout="compact"] .create-menu-btn { display: none !important; }
+#app[data-layout="compact"] .adaptive-nav button:not(:hover):not(.active):not(.sheet-open) {
+  background: transparent;
+  box-shadow: none;
+}
+#app[data-layout="compact"] .map-command-toolbar {
+  border: 1px solid var(--overlay-border);
+  background: var(--surface-elevated);
+  box-shadow: var(--control-shadow);
+  backdrop-filter: blur(16px);
+}
+
 /* Mobile: modeless snap sheets over a stable full-width map. */
 body[data-layout="mobile"] {
   overscroll-behavior: none;
@@ -2141,7 +2171,7 @@ input[type="radio"] {
 }
 input[hidden] { display: none !important; }
 input[type="checkbox"] { border-radius: 5px; box-shadow: none; }
-input[type="radio"] { border-radius: 50%; }
+input[type="radio"] { border-radius: 50%; box-shadow: none; }
 input[type="checkbox"]::before {
   content: "";
   width: 10px;
@@ -2163,7 +2193,9 @@ input[type="radio"]::before {
 input[type="checkbox"]:hover:not(:disabled):not(:checked) { border-color: var(--accent-border); }
 input[type="checkbox"]:checked { border-color: var(--accent-surface); background: var(--accent-surface); }
 input[type="checkbox"]:checked:hover:not(:disabled) { border-color: var(--accent-surface-hover); background: var(--accent-surface-hover); }
-input[type="radio"]:checked { border-color: var(--accent-border); background: var(--accent-surface); }
+input[type="radio"]:hover:not(:disabled):not(:checked) { border-color: var(--accent-border); }
+input[type="radio"]:checked { border-color: var(--accent-surface); background: var(--accent-surface); color: var(--accent-text); }
+input[type="radio"]:checked:hover:not(:disabled) { border-color: var(--accent-surface-hover); background: var(--accent-surface-hover); color: var(--accent-text); }
 input[type="checkbox"]:checked::before,
 input[type="radio"]:checked::before { transform: translateY(-1px) rotate(-45deg) scale(1); }
 input[type="radio"]:checked::before { transform: scale(1); }
