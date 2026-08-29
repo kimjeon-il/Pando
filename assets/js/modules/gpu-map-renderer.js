@@ -161,10 +161,6 @@ export function createGpuMapRenderer(deps) {
     let overridePaletteTexture = null;
     let emphasisPaletteTexture = null;
     let overrideEmphasisPaletteTexture = null;
-    let primaryBoundaryPaletteTexture = null;
-    let secondaryBoundaryPaletteTexture = null;
-    let overridePrimaryBoundaryPaletteTexture = null;
-    let overrideSecondaryBoundaryPaletteTexture = null;
     let countryEmphasis = { primaryId: '', selectedIds: new Set(), hoveredId: '' };
     let countryEmphasisRevision = 0;
     let overridePositionBuffer = null;
@@ -800,10 +796,6 @@ export function createGpuMapRenderer(deps) {
       overridePaletteTexture = gl.createTexture();
       emphasisPaletteTexture = gl.createTexture();
       overrideEmphasisPaletteTexture = gl.createTexture();
-      primaryBoundaryPaletteTexture = gl.createTexture();
-      secondaryBoundaryPaletteTexture = gl.createTexture();
-      overridePrimaryBoundaryPaletteTexture = gl.createTexture();
-      overrideSecondaryBoundaryPaletteTexture = gl.createTexture();
       hydroVisibilityTexture = gl.createTexture();
       hydroCornerBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
@@ -1434,10 +1426,6 @@ export function createGpuMapRenderer(deps) {
       const overridePixels = new Uint8Array(meshCountryIds.length * 4);
       const emphasisPixels = new Uint8Array(meshCountryIds.length * 4);
       const overrideEmphasisPixels = new Uint8Array(meshCountryIds.length * 4);
-      const primaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
-      const secondaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
-      const overridePrimaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
-      const overrideSecondaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
       pendingOldMeshVisibleCount = 0;
       for (let index = 0; index < meshCountryIds.length; index += 1) {
         const id = meshCountryIds[index];
@@ -1463,28 +1451,12 @@ export function createGpuMapRenderer(deps) {
         }
         emphasisPixels[index * 4 + 3] = overridden ? 0 : emphasisAlpha;
         overrideEmphasisPixels[index * 4 + 3] = overridden && !pending ? emphasisAlpha : 0;
-        if (emphasis?.kind === 'primary' || emphasis?.kind === 'secondary') {
-          const boundaryPixels = emphasis.kind === 'primary' ? primaryBoundaryPixels : secondaryBoundaryPixels;
-          const overrideBoundaryPixels = emphasis.kind === 'primary' ? overridePrimaryBoundaryPixels : overrideSecondaryBoundaryPixels;
-          boundaryPixels[index * 4] = 52;
-          boundaryPixels[index * 4 + 1] = 103;
-          boundaryPixels[index * 4 + 2] = 51;
-          boundaryPixels[index * 4 + 3] = visible && !overridden && !pending ? 255 : 0;
-          overrideBoundaryPixels[index * 4] = 52;
-          overrideBoundaryPixels[index * 4 + 1] = 103;
-          overrideBoundaryPixels[index * 4 + 2] = 51;
-          overrideBoundaryPixels[index * 4 + 3] = visible && overridden && !pending ? 255 : 0;
-        }
         if (pending && (basePixels[index * 4 + 3] || overridePixels[index * 4 + 3])) pendingOldMeshVisibleCount += 1;
       }
       uploadPalette(paletteTexture, basePixels);
       uploadPalette(overridePaletteTexture, overridePixels);
       uploadPalette(emphasisPaletteTexture, emphasisPixels);
       uploadPalette(overrideEmphasisPaletteTexture, overrideEmphasisPixels);
-      uploadPalette(primaryBoundaryPaletteTexture, primaryBoundaryPixels);
-      uploadPalette(secondaryBoundaryPaletteTexture, secondaryBoundaryPixels);
-      uploadPalette(overridePrimaryBoundaryPaletteTexture, overridePrimaryBoundaryPixels);
-      uploadPalette(overrideSecondaryBoundaryPaletteTexture, overrideSecondaryBoundaryPixels);
     }
 
     function rotationRows() {
@@ -2634,53 +2606,6 @@ export function createGpuMapRenderer(deps) {
         if (overrideMesh?.lineIndices?.length) drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture);
       }
       drawHydro('border-river');
-      if (state.layerVisibility.countries) {
-        const boundaryColor = [52 / 255, 103 / 255, 51 / 255];
-        drawProgram(
-          lineProgram,
-          lineVao,
-          lineIndexBuffer,
-          mesh.lineIndices.length,
-          gl.LINES,
-          null,
-          primaryBoundaryPaletteTexture,
-          [...boundaryColor, SELECTION_STYLE.primaryAlpha],
-          SELECTION_STYLE.primaryWidth,
-        );
-        if (overrideMesh?.lineIndices?.length) drawProgram(
-          lineProgram,
-          overrideLineVao,
-          overrideLineIndexBuffer,
-          overrideMesh.lineIndices.length,
-          gl.LINES,
-          dynamicResources,
-          overridePrimaryBoundaryPaletteTexture,
-          [...boundaryColor, SELECTION_STYLE.primaryAlpha],
-          SELECTION_STYLE.primaryWidth,
-        );
-        drawProgram(
-          lineProgram,
-          lineVao,
-          lineIndexBuffer,
-          mesh.lineIndices.length,
-          gl.LINES,
-          null,
-          secondaryBoundaryPaletteTexture,
-          [...boundaryColor, SELECTION_STYLE.secondaryAlpha],
-          SELECTION_STYLE.secondaryWidth,
-        );
-        if (overrideMesh?.lineIndices?.length) drawProgram(
-          lineProgram,
-          overrideLineVao,
-          overrideLineIndexBuffer,
-          overrideMesh.lineIndices.length,
-          gl.LINES,
-          dynamicResources,
-          overrideSecondaryBoundaryPaletteTexture,
-          [...boundaryColor, SELECTION_STYLE.secondaryAlpha],
-          SELECTION_STYLE.secondaryWidth,
-        );
-      }
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
       frameTimes.push(performance.now() - started);
