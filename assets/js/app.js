@@ -11,7 +11,7 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -38,6 +38,8 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/layer-presentation.js')),
   import(versionedModuleUrl('./modules/save-state-controller.js')),
   import(versionedModuleUrl('./modules/color-adapter.js')),
+  import(versionedModuleUrl('./modules/project-serializer.js')),
+  import(versionedModuleUrl('./modules/persistence-service.js')),
 ]);
 const {
   PROJECT_SCHEMA_VERSION,
@@ -47,6 +49,8 @@ const {
   pickProjectFields,
 } = projectStateModule;
 const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
+const { createProjectSerializer, restoreCountriesFromDelta } = projectSerializerModule;
+const { createBrowserProjectStorage, createPersistenceService } = persistenceServiceModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
@@ -1188,7 +1192,6 @@ const {
     future: [],
     historyMeta: [],
     futureMeta: [],
-    autosaveTimer: null,
     lastSavedAt: null,
     contentToken: 'content:0',
     view: {
@@ -11383,270 +11386,65 @@ const {
     requestAnimationFrame(() => $('layerPresentationBtn')?.focus());
   }
 
-  function buildAtlasState() {
-    const project = {
-      format: 'pandolab-project-state',
-      schemaVersion: PROJECT_SCHEMA_VERSION,
-      version: APP_VERSION,
-      savedAt: new Date().toISOString(),
+  const projectSerializer = createProjectSerializer({
+    schemaVersion: PROJECT_SCHEMA_VERSION,
+    appVersion: APP_VERSION,
+    baseDataset: BASE_DATASET,
+    drawingSchemaVersion: DRAWING_SCHEMA_VERSION,
+    distributionSchemaVersion: DISTRIBUTION_SCHEMA_VERSION,
+    distributionTypes: Object.values(DISTRIBUTION_TYPES),
+    distributionModes: Object.values(DISTRIBUTION_MODES),
+    terrainDataset: TERRAIN_DATASET,
+    hydroDataset: HYDRO_DATASET,
+    readSnapshot: () => ({
       countriesData: state.countriesData,
-      ...pickProjectFields(state, { clone: value => value }),
-      baseDataset: BASE_DATASET,
-      landObjectModel: {
-        schemaVersion: DRAWING_SCHEMA_VERSION,
-        coastlineAuthority: 'countries',
-        roles: ['hydro', 'thematic', 'custom'],
-      },
-      territorialModel: {
-        schemaVersion: 1,
-        coastlineAuthority: 'countriesData',
-        countryStorage: 'countriesData-adapter',
-        types: ['country', 'territory', 'admin', 'region'],
-        coverageModes: ['partition', 'explicit'],
-      },
-      distributionModel: {
-        schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
-        types: Object.values(DISTRIBUTION_TYPES),
-        sourceModes: Object.values(DISTRIBUTION_MODES),
-        shareRange: [0, 100],
-        sharesAreIndependent: true,
-      },
-    };
-    project.physicalSourceInfo = {
-      terrain: {
-        dataset: state.terrainManifest?.dataset || TERRAIN_DATASET,
-        version: state.terrainManifest?.version || '0.12.6',
-      },
-      hydro: {
-        dataset: state.hydroManifest?.dataset || HYDRO_DATASET,
-        version: state.hydroManifest?.version || APP_VERSION,
-        coordinatePolicy: state.hydroManifest?.coordinatePolicy || 'selected source coordinates retained without simplification',
-        selection: deepClone(state.hydroManifest?.selection || {}),
-      },
-    };
-    return project;
+      projectFields: pickProjectFields(state, { clone: value => value }),
+      countryDelta: buildCountryDelta(),
+      fullAutosave: !!state.sessionBaseCountriesJson,
+      terrainManifest: state.terrainManifest,
+      hydroManifest: state.hydroManifest,
+    }),
+  });
+
+  function buildAtlasState() {
+    return projectSerializer.buildProject();
   }
 
   function buildAutosaveData() {
-    if (state.sessionBaseCountriesJson) return { ...buildAtlasState(), format: 'pandolab-autosave-full' };
-    return {
-      format: 'pandolab-autosave-delta',
-      schemaVersion: PROJECT_SCHEMA_VERSION,
-      version: APP_VERSION,
-      savedAt: new Date().toISOString(),
-      countryDelta: buildCountryDelta(),
-      ...pickProjectFields(state, { clone: value => value }),
-      baseDataset: BASE_DATASET,
-      landObjectModel: {
-        schemaVersion: DRAWING_SCHEMA_VERSION,
-        coastlineAuthority: 'countries',
-      },
-      territorialModel: {
-        schemaVersion: 1,
-        coastlineAuthority: 'countriesData',
-        countryStorage: 'countriesData-adapter',
-        types: ['country', 'territory', 'admin', 'region'],
-        coverageModes: ['partition', 'explicit'],
-      },
-      distributionModel: {
-        schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
-        types: Object.values(DISTRIBUTION_TYPES),
-        sourceModes: Object.values(DISTRIBUTION_MODES),
-        shareRange: [0, 100],
-        sharesAreIndependent: true,
-      },
-    };
+    return projectSerializer.buildAutosave();
   }
 
   function countriesFromAutosaveDelta(project, suppliedBase = null) {
-    const base = suppliedBase || parsePristineCountries();
-    const delta = project?.countryDelta || { changed: [], removedIds: [] };
-    const changed = new Map((delta.changed || []).map(feature => [String(feature.properties?.editor_id || feature.properties?.iso_a3 || ''), feature]));
-    const removed = new Set((delta.removedIds || []).map(String));
-    const seen = new Set();
-    base.features = (base.features || []).filter(feature => {
-      const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
-      return !removed.has(id);
-    }).map(feature => {
-      const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
-      if (!changed.has(id)) return feature;
-      seen.add(id);
-      return deepClone(changed.get(id));
-    });
-    for (const [id, feature] of changed) if (!seen.has(id) && !removed.has(id)) base.features.push(deepClone(feature));
-    const result = reindexCountries(base, true);
-    const unchangedIds = (result.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(id => !changed.has(id));
-    applyPristineLabelAnchors(result, unchangedIds);
-    return result;
-  }
-
-  let autosaveDbPromise = null;
-
-  function openAutosaveDatabase() {
-    if (!window.indexedDB) return Promise.reject(new Error('IndexedDB를 지원하지 않는 브라우저입니다.'));
-    if (autosaveDbPromise) return autosaveDbPromise;
-    autosaveDbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open(AUTOSAVE_DB_NAME, 2);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(AUTOSAVE_STORE_NAME)) db.createObjectStore(AUTOSAVE_STORE_NAME);
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error || new Error('IndexedDB 열기 실패'));
-      request.onblocked = () => reject(new Error('다른 창에서 자동저장 DB를 사용 중입니다.'));
-    });
-    return autosaveDbPromise;
-  }
-
-  async function readIndexedDbProject() {
-    const db = await openAutosaveDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readonly');
-      const store = transaction.objectStore(AUTOSAVE_STORE_NAME);
-      const projectRequest = store.get(AUTOSAVE_RECORD_KEY);
-      transaction.oncomplete = () => resolve(projectRequest.result || null);
-      transaction.onerror = () => reject(transaction.error || new Error('자동저장 읽기 실패'));
-    });
-  }
-
-  async function readIndexedDbView() {
-    const db = await openAutosaveDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readonly');
-      const request = transaction.objectStore(AUTOSAVE_STORE_NAME).get(AUTOSAVE_VIEW_KEY);
-      transaction.oncomplete = () => resolve(request.result || null);
-      transaction.onerror = () => reject(transaction.error || new Error('보기 위치 읽기 실패'));
-    });
-  }
-
-  async function writeIndexedDbProject(project) {
-    const db = await openAutosaveDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readwrite');
-      transaction.objectStore(AUTOSAVE_STORE_NAME).put(project, AUTOSAVE_RECORD_KEY);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error || new Error('자동저장 쓰기 실패'));
-      transaction.onabort = () => reject(transaction.error || new Error('자동저장 쓰기 취소'));
-    });
-  }
-
-  async function writeIndexedDbView() {
-    const db = await openAutosaveDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readwrite');
-      transaction.objectStore(AUTOSAVE_STORE_NAME).put({ projection: state.projection, view: deepClone(state.view), savedAt: new Date().toISOString() }, AUTOSAVE_VIEW_KEY);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error || new Error('보기 위치 저장 실패'));
+    return restoreCountriesFromDelta(project, {
+      base: suppliedBase || parsePristineCountries(),
+      clone: deepClone,
+      reindex: base => reindexCountries(base, true),
+      applyPristineLabelAnchors,
     });
   }
 
   async function deleteAutosavedProject() {
-    clearTimeout(state.autosaveTimer);
-    mapWorkScheduler.cancel('autosave');
-    state.autosaveTimer = null;
-    try {
-      const db = await openAutosaveDatabase();
-      await new Promise((resolve, reject) => {
-        const transaction = db.transaction(AUTOSAVE_STORE_NAME, 'readwrite');
-        const store = transaction.objectStore(AUTOSAVE_STORE_NAME);
-        store.delete(AUTOSAVE_RECORD_KEY);
-        store.delete(AUTOSAVE_VIEW_KEY);
-        transaction.oncomplete = () => resolve();
-        transaction.onerror = () => reject(transaction.error || new Error('자동저장 삭제 실패'));
-      });
-    } catch (_) {}
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (_) {}
-  }
-
-  function saveLocalStorageFallback(project) {
-    const serialized = JSON.stringify(project);
-    if (serialized.length > 4_500_000) throw new Error('고해상도 프로젝트가 localStorage 용량을 초과합니다.');
-    localStorage.setItem(STORAGE_KEY, serialized);
+    return persistenceService.clear();
   }
 
   function queueViewAutosave(delay = 120) {
-    clearTimeout(state.viewAutosaveTimer);
-    mapWorkScheduler.scheduleIdle('view-autosave', () => {
-      writeIndexedDbView().catch(error => console.warn('View autosave failed', error));
-    }, delay);
+    persistenceService.queueView(delay);
   }
 
   async function persistAutosave(project = null) {
-    if (!canMutateProject(state.dataReadiness)) return;
-    const autosaveProject = project || buildAutosaveData();
-    saveState.setAutosave(AUTOSAVE_STATES.SAVING);
-    try {
-      await writeIndexedDbProject(autosaveProject);
-      state.lastSavedAt = new Date();
-      saveState.setAutosave(AUTOSAVE_STATES.SAVED);
-    } catch (error) {
-      try {
-        saveLocalStorageFallback(autosaveProject);
-        state.lastSavedAt = new Date();
-        saveState.setAutosave(AUTOSAVE_STATES.SAVED, { fallback: '브라우저 로컬 저장소' });
-      } catch (fallbackError) {
-        console.warn('Autosave failed', error, fallbackError);
-        saveState.setAutosave(AUTOSAVE_STATES.ERROR);
-        setActionStatus('자동저장 실패. 파일로 저장하세요.', 'error', 0);
-      }
-    }
+    return persistenceService.persist(project);
   }
 
   function queueAutosave(delay = 650, { scope = 'document' } = {}) {
-    if (!canMutateProject(state.dataReadiness)) return;
-    if (scope === 'presentation') saveState.markPresentationChanged();
-    else saveState.markDocumentChanged();
-    saveState.setAutosave(AUTOSAVE_STATES.QUEUED);
-    clearTimeout(state.autosaveTimer);
-    mapWorkScheduler.scheduleIdle('autosave', () => persistAutosave(), delay);
+    persistenceService.queueProject(delay, { scope });
   }
 
   function queuePresentationAutosave(delay = 650) {
-    queueAutosave(delay, { scope: 'presentation' });
-  }
-
-  function restoreLocalAutosave() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (_) {
-      return null;
-    }
+    persistenceService.queuePresentation(delay);
   }
 
   async function restoreAutosavedProject() {
-    let rejectedError = null;
-    let view = null;
-    try {
-      view = await readIndexedDbView();
-    } catch (error) {
-      console.warn('IndexedDB view restore failed', error);
-    }
-    try {
-      const project = await readIndexedDbProject();
-      if (project) {
-        assertCurrentProjectSchema(project);
-        return { project, source: 'indexeddb', view };
-      }
-    } catch (error) {
-      console.warn('IndexedDB autosave rejected', error);
-      rejectedError = error;
-    }
-    const local = restoreLocalAutosave();
-    if (!local) return { project: null, source: null, error: rejectedError, view };
-    try {
-      assertCurrentProjectSchema(local);
-    } catch (error) {
-      console.warn('Local autosave rejected', error);
-      return { project: null, source: null, error, view };
-    }
-    try {
-      await writeIndexedDbProject(local);
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (_) {}
-    return { project: local, source: 'localstorage', view };
+    return persistenceService.restore();
   }
 
   function applyAutosavedView(viewRecord) {
@@ -11657,6 +11455,34 @@ const {
     }
     return true;
   }
+
+  const browserProjectStorage = createBrowserProjectStorage({
+    indexedDB: window.indexedDB,
+    localStorage: window.localStorage,
+    databaseName: AUTOSAVE_DB_NAME,
+    storeName: AUTOSAVE_STORE_NAME,
+    projectKey: AUTOSAVE_RECORD_KEY,
+    viewKey: AUTOSAVE_VIEW_KEY,
+    fallbackKey: STORAGE_KEY,
+  });
+  const persistenceService = createPersistenceService({
+    storage: browserProjectStorage,
+    scheduler: mapWorkScheduler,
+    canPersist: () => canMutateProject(state.dataReadiness),
+    buildAutosave: buildAutosaveData,
+    readView: () => ({ projection: state.projection, view: deepClone(state.view) }),
+    validateProject: assertCurrentProjectSchema,
+    onDirty: scope => {
+      if (scope === 'presentation') saveState.markPresentationChanged();
+      else saveState.markDocumentChanged();
+    },
+    onAutosaveState: (value, options) => saveState.setAutosave(value, options),
+    onSaved: savedAt => {
+      state.lastSavedAt = savedAt;
+    },
+    onFailure: () => setActionStatus('자동저장 실패. 파일로 저장하세요.', 'error', 0),
+    onWarning: (...args) => console.warn(...args),
+  });
 
   function applyAtlasState(project, manual = false) {
     assertCurrentProjectSchema(project);
@@ -14331,7 +14157,7 @@ const {
     });
     window.addEventListener('beforeunload', () => {
       if (!canMutateProject(state.dataReadiness)) return;
-      try { writeIndexedDbProject(buildAutosaveData()).catch(() => {}); } catch (_) {}
+      try { persistenceService.writeProject(buildAutosaveData()).catch(() => {}); } catch (_) {}
     });
     window.addEventListener('popstate', event => {
       if (ignoreNextMobileSheetPopstate) {
