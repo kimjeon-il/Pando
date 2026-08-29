@@ -31,28 +31,19 @@ function normalizedDate(value) {
 
 export function territorialUnitType(feature) {
   const properties = feature?.properties || {};
-  const value = text(properties.unitType || properties.type).toLowerCase();
-  if (UNIT_TYPES.has(value)) return value;
-  const legacy = text(properties.kind).toLowerCase();
-  if (legacy === 'administrative') return TERRITORIAL_UNIT_TYPES.ADMIN;
-  if (legacy === 'region') return TERRITORIAL_UNIT_TYPES.TERRITORY;
-  return '';
+  const value = text(properties.unitType).toLowerCase();
+  return UNIT_TYPES.has(value) ? value : '';
 }
 
 export function isTerritorialFeature(feature) {
   return !!territorialUnitType(feature) && POLYGON_TYPES.has(feature?.geometry?.type);
 }
 
-function legacyCountryId(source) {
-  return text(source.countryId || source.country_id || source.sovereignId || source.sovereign_id);
-}
-
 function normalizedProperties(feature, type) {
   const source = feature?.properties || {};
-  const legacyCountry = legacyCountryId(source);
-  const parentId = text(source.parentId || source.parent_id || source.parentRegionId || source.parent_region_id)
-    || ([TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN].includes(type) ? legacyCountry : '');
-  const sovereignId = text(source.sovereignId || source.sovereign_id) || legacyCountry;
+  if (Number(source.schemaVersion) !== TERRITORIAL_SCHEMA_VERSION) throw new Error('영역 schemaVersion이 현재 형식과 일치하지 않습니다.');
+  const parentId = text(source.parentId);
+  const sovereignId = text(source.sovereignId);
   const coverageMode = source.coverageMode === TERRITORIAL_COVERAGE_MODES.EXPLICIT
     ? TERRITORIAL_COVERAGE_MODES.EXPLICIT
     : source.coverageMode === TERRITORIAL_COVERAGE_MODES.PARTITION
@@ -64,7 +55,7 @@ function normalizedProperties(feature, type) {
     ? TERRITORIAL_STATUS.UNASSIGNED
     : TERRITORIAL_STATUS.ASSIGNED;
   const sourceStyle = source.style && typeof source.style === 'object' ? source.style : {};
-  const color = text(sourceStyle.color || source.color || source.editorColor);
+  const color = text(sourceStyle.color);
   const properties = {
     schemaVersion: TERRITORIAL_SCHEMA_VERSION,
     unitType: type,
@@ -73,30 +64,29 @@ function normalizedProperties(feature, type) {
     sovereignId,
     coverageMode,
     adminLevel: type === TERRITORIAL_UNIT_TYPES.ADMIN
-      ? Math.max(1, Number.parseInt(source.adminLevel ?? source.level, 10) || 1)
+      ? Math.max(1, Number.parseInt(source.adminLevel, 10) || 1)
       : null,
     style: color ? { ...sourceStyle, color } : { ...sourceStyle },
     visible: source.visible !== false,
     locked: source.locked === true,
-    validFrom: normalizedDate(source.validFrom ?? source.valid_from),
-    validTo: normalizedDate(source.validTo ?? source.valid_to),
+    validFrom: normalizedDate(source.validFrom),
+    validTo: normalizedDate(source.validTo),
     status,
     notes: text(source.notes),
     metadata: source.metadata && typeof source.metadata === 'object' ? clone(source.metadata) : {},
-    sourceFolderId: text(source.sourceFolderId || source.source_folder_id),
-    sourceLibraryId: text(source.sourceLibraryId || source.source_library_id),
-    sourceGeometryVersion: text(source.sourceGeometryVersion || source.source_geometry_version),
+    sourceFolderId: text(source.sourceFolderId),
+    sourceLibraryId: text(source.sourceLibraryId),
+    sourceGeometryVersion: text(source.sourceGeometryVersion),
   };
   if (!color) delete properties.style.color;
   return properties;
 }
 
-export function normalizeTerritorialFeature(feature, { makeId } = {}) {
+export function normalizeTerritorialFeature(feature) {
   const type = territorialUnitType(feature);
   if (!type || !POLYGON_TYPES.has(feature?.geometry?.type)) return null;
-  const id = text(feature.id || feature.properties?.id || feature.properties?.pandolab_id)
-    || (typeof makeId === 'function' ? text(makeId(type)) : '');
-  if (!id) return null;
+  const id = text(feature.id);
+  if (!id) throw new Error('영역 ID가 비어 있습니다.');
   return {
     type: 'Feature',
     id,
@@ -129,13 +119,14 @@ function resolveAdminLevel(feature, byId, cache) {
 
 export function normalizeTerritorialUnits(value, {
   countryExists = () => true,
-  makeId,
 } = {}) {
   const normalized = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    const feature = normalizeTerritorialFeature(raw, { makeId });
-    if (!feature || feature.properties.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY || seen.has(feature.id)) continue;
+    const feature = normalizeTerritorialFeature(raw);
+    if (!feature) throw new Error('영역 형식이 올바르지 않습니다.');
+    if (feature.properties.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) throw new Error('국가는 countriesData에 저장해야 합니다.');
+    if (seen.has(feature.id)) throw new Error(`영역 ID가 중복되었습니다: ${feature.id}`);
     seen.add(feature.id);
     normalized.push(feature);
   }
@@ -171,10 +162,6 @@ export function normalizeTerritorialUnits(value, {
     }
   }
   return normalized;
-}
-
-export function migrateLegacyCountryRegions(value, options = {}) {
-  return normalizeTerritorialUnits(value, options);
 }
 
 export function territorialChildren(units, id) {
@@ -232,17 +219,20 @@ export function validateTerritorialRelations(units, {
   return { ok: issues.length === 0, issues };
 }
 
-export function normalizeTerritorialRelations(value, { makeId } = {}) {
+export function normalizeTerritorialRelations(value) {
   const output = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
+    if (Number(raw?.schemaVersion) !== TERRITORIAL_SCHEMA_VERSION) throw new Error('기간별 관계 schemaVersion이 현재 형식과 일치하지 않습니다.');
     const unitId = text(raw?.unitId);
-    if (!unitId) continue;
-    const id = text(raw.id) || (typeof makeId === 'function' ? text(makeId('relation')) : `relation:${unitId}:${output.length + 1}`);
-    if (!id || seen.has(id)) continue;
+    if (!unitId) throw new Error('기간별 관계의 대상 영역 ID가 비어 있습니다.');
+    const id = text(raw.id);
+    if (!id) throw new Error('기간별 관계 ID가 비어 있습니다.');
+    if (seen.has(id)) throw new Error(`기간별 관계 ID가 중복되었습니다: ${id}`);
     seen.add(id);
     output.push({
       id,
+      schemaVersion: TERRITORIAL_SCHEMA_VERSION,
       unitId,
       parentId: text(raw.parentId),
       sovereignId: text(raw.sovereignId),
@@ -296,6 +286,7 @@ export function createTerritorialFeature({
     type: 'Feature',
     id,
     properties: {
+      schemaVersion: TERRITORIAL_SCHEMA_VERSION,
       unitType,
       name,
       parentId,

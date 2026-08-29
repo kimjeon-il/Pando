@@ -39,7 +39,13 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/save-state-controller.js')),
   import(versionedModuleUrl('./modules/color-adapter.js')),
 ]);
-const { applyProjectFields, pickProjectFields } = projectStateModule;
+const {
+  PROJECT_SCHEMA_VERSION,
+  applyProjectFields,
+  assertCurrentProjectSchema,
+  createProjectObjectId,
+  pickProjectFields,
+} = projectStateModule;
 const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
@@ -61,7 +67,6 @@ const {
   changeUnitType,
   createTerritorialFeature,
   createTerritorialRepository,
-  migrateLegacyCountryRegions,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
   runTerritorialTransaction,
@@ -111,6 +116,7 @@ const createCountryRegionFeature = options => createTerritorialFeature({
   name: options.name,
   color: options.color,
   notes: options.notes,
+  metadata: options.metadata,
   sourceFolderId: options.sourceFolderId,
   geometry: options.geometry,
 });
@@ -458,7 +464,7 @@ const {
     view.flatZoom = clamp(Number(view.flatZoom) || 1, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
     return view;
   };
-  const uid = (prefix = 'obj') => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const uid = () => createProjectObjectId();
   const detectLayoutMode = () => LAYOUT_QUERIES.mobile.matches ? 'mobile' : LAYOUT_QUERIES.compact.matches ? 'compact' : 'wide';
   let layoutMode = detectLayoutMode();
   const isMobile = () => layoutMode === 'mobile';
@@ -4227,8 +4233,17 @@ const {
     return feature;
   }
 
-  function normalizeDrawingCollection(drawings, options = {}) {
-    return (Array.isArray(drawings) ? drawings : []).map(feature => normalizeDrawingSemantics(feature, options));
+  function normalizeDrawingCollection(drawings) {
+    const output = [];
+    const seen = new Set();
+    for (const feature of Array.isArray(drawings) ? drawings : []) {
+      const id = String(feature?.id || '').trim();
+      if (!id) throw new Error('지형지물 ID가 비어 있습니다.');
+      if (seen.has(id)) throw new Error(`지형지물 ID가 중복되었습니다: ${id}`);
+      seen.add(id);
+      output.push(normalizeDrawingSemantics(feature));
+    }
+    return output;
   }
 
   function drawingRoleHelp(feature) {
@@ -4443,11 +4458,13 @@ const {
         : geometryKind === 'polygon' ? 'lake'
           : geometryKind === 'line' ? 'river' : '';
     if (!category) return null;
-    feature.id = String(feature.id || uid(category));
+    feature.id = String(feature.id || '').trim();
+    if (!feature.id) throw new Error('편집 수계 ID가 비어 있습니다.');
     feature.properties = {
       ...feature.properties,
       category,
       pandolab_domain: 'hydro',
+      pandolab_schema_version: DRAWING_SCHEMA_VERSION,
       pandolab_id: feature.id,
       name: String(feature.properties.name || ''),
       notes: String(feature.properties.notes || ''),
@@ -4457,7 +4474,16 @@ const {
   }
 
   function normalizeHydroEditCollection(value) {
-    return (Array.isArray(value) ? value : []).map(feature => normalizeHydroEdit(feature)).filter(Boolean);
+    const output = [];
+    const seen = new Set();
+    for (const feature of Array.isArray(value) ? value : []) {
+      const normalized = normalizeHydroEdit(feature);
+      if (!normalized) throw new Error('편집 수계 형식이 올바르지 않습니다.');
+      if (seen.has(normalized.id)) throw new Error(`편집 수계 ID가 중복되었습니다: ${normalized.id}`);
+      seen.add(normalized.id);
+      output.push(normalized);
+    }
+    return output;
   }
 
   function hydroEditById(id) {
@@ -11005,23 +11031,7 @@ const {
   }
 
   function applySharedProjectFields(source, scope = 'project') {
-    const migratedCountryOverrides = deepClone(source?.countryOverrides || {});
-    if (source?.countriesLocked === true) {
-      const countries = source?.countriesData?.features || state.countriesData?.features || [];
-      for (const feature of countries) {
-        const id = String(feature?.properties?.editor_id || feature?.id || '');
-        if (id) migratedCountryOverrides[id] = { ...(migratedCountryOverrides[id] || {}), locked: true };
-      }
-    }
-    const migratedSource = source && typeof source === 'object'
-      ? {
-        ...source,
-        countryOverrides: migratedCountryOverrides,
-        territorialUnits: source.territorialUnits ?? migrateLegacyCountryRegions(source.countryRegions || []),
-        territorialRelations: source.territorialRelations || [],
-      }
-      : source;
-    return applyProjectFields(state, migratedSource, {
+    return applyProjectFields(state, source, {
       scope,
       clone: deepClone,
       normalizers: {
@@ -11050,11 +11060,10 @@ const {
   function normalizeProjectObjects() {
     state.hydroEdits = normalizeHydroEditCollection(state.hydroEdits);
     state.drawings = normalizeDrawingCollection(state.drawings || []);
-    state.distributionLayers = normalizeDistributionLayers(state.distributionLayers, { makeId: type => uid(`distribution_${type}`) });
+    state.distributionLayers = normalizeDistributionLayers(state.distributionLayers);
     const distributionLayerIds = new Set(state.distributionLayers.map(layer => layer.id));
     state.distributionEntries = normalizeDistributionEntries(state.distributionEntries, {
       layerExists: id => distributionLayerIds.has(id),
-      makeId: () => uid('distribution_entry'),
     });
     state.distributionSettings = {
       renderMode: state.distributionSettings?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
@@ -11062,11 +11071,8 @@ const {
     };
     state.territorialUnits = normalizeCountryRegions(state.territorialUnits, {
       countryExists: id => !!countryFeatureById(id),
-      makeId: kind => uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : kind === TERRITORIAL_UNIT_TYPES.REGION ? 'historical_region' : 'territory'),
     });
-    state.territorialRelations = normalizeTerritorialRelations(state.territorialRelations, {
-      makeId: () => uid('territorial_relation'),
-    });
+    state.territorialRelations = normalizeTerritorialRelations(state.territorialRelations);
     const relationValidation = validateTerritorialRelations(state.territorialUnits, {
       countryExists: id => !!countryFeatureById(id),
       relations: state.territorialRelations,
@@ -11332,6 +11338,7 @@ const {
   function buildAtlasState() {
     const project = {
       format: 'pandolab-project-state',
+      schemaVersion: PROJECT_SCHEMA_VERSION,
       version: APP_VERSION,
       savedAt: new Date().toISOString(),
       countriesData: state.countriesData,
@@ -11376,6 +11383,7 @@ const {
     if (state.sessionBaseCountriesJson) return { ...buildAtlasState(), format: 'pandolab-autosave-full' };
     return {
       format: 'pandolab-autosave-delta',
+      schemaVersion: PROJECT_SCHEMA_VERSION,
       version: APP_VERSION,
       savedAt: new Date().toISOString(),
       countryDelta: buildCountryDelta(),
@@ -11553,14 +11561,25 @@ const {
   }
 
   async function restoreAutosavedProject() {
+    let rejectedError = null;
     try {
       const project = await readIndexedDbProject();
-      if (project) return { project, source: 'indexeddb' };
+      if (project) {
+        assertCurrentProjectSchema(project);
+        return { project, source: 'indexeddb' };
+      }
     } catch (error) {
-      console.warn('IndexedDB restore failed', error);
+      console.warn('IndexedDB autosave rejected', error);
+      rejectedError = error;
     }
     const local = restoreLocalAutosave();
-    if (!local) return { project: null, source: null };
+    if (!local) return { project: null, source: null, error: rejectedError };
+    try {
+      assertCurrentProjectSchema(local);
+    } catch (error) {
+      console.warn('Local autosave rejected', error);
+      return { project: null, source: null, error };
+    }
     try {
       await writeIndexedDbProject(local);
       localStorage.removeItem(STORAGE_KEY);
@@ -11569,7 +11588,7 @@ const {
   }
 
   function applyAtlasState(project, manual = false) {
-    if (!project || typeof project !== 'object') throw new Error('프로젝트 형식이 올바르지 않습니다.');
+    assertCurrentProjectSchema(project);
     resetCountryLabelAnchorRuntime();
     gpuMapRenderer.resetCountryGeometryVisualState();
     applySharedProjectFields(project);
@@ -12253,6 +12272,7 @@ const {
       const response = await fetch(HISTORICAL_LIBRARY_DATA_URL, { cache: 'force-cache' });
       if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
       const pilot = await response.json();
+      if (Number(pilot.schemaVersion) !== 1) throw new Error('역사 라이브러리 schemaVersion이 현재 형식과 일치하지 않습니다.');
       const currentEntities = createCurrentCountryLibraryEntities(state.countriesData, { displayName: countryName });
       const pilotEntities = materializePilotEntities(pilot.entities, state.countriesData, combineHistoricalLibraryGeometries);
       const currentSnapshot = {
@@ -12264,6 +12284,7 @@ const {
         sourceInfo: { title: 'Natural Earth 5.1.1 Admin 0 Countries', license: 'Public domain' },
       };
       state.historicalLibrary = createHistoricalLibrary({
+        schemaVersion: pilot.schemaVersion,
         entities: [...currentEntities, ...pilotEntities],
         snapshots: [currentSnapshot, ...(pilot.snapshots || [])],
       });
@@ -12613,8 +12634,9 @@ const {
           : 1)
       : null;
     const mappedId = mapping.idField === '__fid__' ? raw.id : properties[mapping.idField];
+    const sourceId = String(mappedId ?? raw.id ?? '').trim();
     return createCountryRegionFeature({
-      id: String(mappedId || raw.id || uid(kind === COUNTRY_REGION_KINDS.ADMINISTRATIVE ? 'administrative' : 'region')),
+      id: uid(),
       kind,
       countryId,
       parentRegionId: parent?.id || '',
@@ -12624,6 +12646,7 @@ const {
       color: properties.color || properties.editorColor || '',
       notes: properties.notes || '',
       sourceFolderId,
+      metadata: { sourceId },
       geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
     });
   }
@@ -12821,7 +12844,8 @@ const {
       const raw = features[index];
       if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
       const properties = raw.properties || {};
-      const id = String(raw.id || properties.id || uid('historical_region'));
+      const sourceId = String(raw.id ?? properties.id ?? '').trim();
+      const id = uid();
       if (existingIds.has(id)) throw new Error(`영역 ID 충돌: ${id}`);
       existingIds.add(id);
       imported.push(createTerritorialFeature({
@@ -12834,6 +12858,7 @@ const {
         validFrom: properties.valid_from || properties.validFrom || null,
         validTo: properties.valid_to || properties.validTo || null,
         color: properties.color || properties.editorColor || '',
+        metadata: { sourceId },
         geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
       }));
     }
@@ -12859,19 +12884,26 @@ const {
       if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
       const properties = raw.properties || {};
       const name = String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || fallbackName;
-      let layerId = String(properties.layer_id || '').trim();
-      if (!layerId) {
-        if (!generatedLayerIds.has(name)) generatedLayerIds.set(name, uid(`distribution_${type}`));
-        layerId = generatedLayerIds.get(name);
-      }
+      const sourceLayerId = String(properties.layer_id || '').trim();
+      const layerKey = sourceLayerId || `name:${name}`;
+      if (!generatedLayerIds.has(layerKey)) generatedLayerIds.set(layerKey, uid());
+      const layerId = generatedLayerIds.get(layerKey);
       let layer = layerMap.get(layerId);
       if (layer && layer.type !== type) throw new Error(`분포 레이어 ID 충돌: ${layerId}`);
       if (!layer) {
-        layer = createDistributionLayer({ id: layerId, type, name, color: properties.color || DEFAULT_DRAWING_COLOR });
+        layer = createDistributionLayer({
+          id: layerId,
+          type,
+          name,
+          color: properties.color || DEFAULT_DRAWING_COLOR,
+          metadata: { sourceId: sourceLayerId },
+        });
         layerMap.set(layerId, layer);
         newLayers.push(layer);
       }
-      const entryId = String(properties.entry_id || raw.id || uid('distribution_entry'));
+      const sourceEntryId = String(properties.entry_id ?? raw.id ?? '').trim();
+      if (sourceEntryId && newEntries.some(entry => entry.metadata?.sourceId === sourceEntryId)) throw new Error(`외부 분포 엔트리 ID가 중복되었습니다: ${sourceEntryId}`);
+      const entryId = uid();
       if (entryIds.has(entryId)) throw new Error(`분포 엔트리 ID 충돌: ${entryId}`);
       entryIds.add(entryId);
       const regionId = String(properties.region_id || properties.regionId || '').trim();
@@ -12886,6 +12918,7 @@ const {
         certainty: properties.certainty || 'unknown',
         validFrom: properties.valid_from || properties.validFrom || null,
         validTo: properties.valid_to || properties.validTo || null,
+        metadata: { sourceId: sourceEntryId },
       }));
     }
     if (!newEntries.length) throw new Error('가져올 Polygon 또는 MultiPolygon 분포가 없습니다.');
@@ -12920,7 +12953,8 @@ const {
     for (const raw of features) {
       if (!['Point', 'LineString', 'Polygon', 'MultiLineString', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
       const f = deepClone(raw);
-      f.id = String(f.id || uid('import'));
+      const sourceId = String(f.id ?? f.properties?.id ?? '').trim();
+      f.id = uid();
       if (['Polygon', 'MultiPolygon'].includes(f.geometry?.type)) f.geometry = normalizeCountryGeometry(f.geometry) || f.geometry;
       const p = f.properties || {};
       f.properties = {
@@ -12929,6 +12963,7 @@ const {
         editorColor: p.editorColor || p.color || DEFAULT_DRAWING_COLOR,
         category: 'custom',
         notes: p.notes || '',
+        metadata: { ...(p.metadata && typeof p.metadata === 'object' ? p.metadata : {}), sourceId },
       };
       supported.push(normalizeDrawingSemantics(f));
     }
@@ -14368,7 +14403,9 @@ const {
       setActionStatus(`${restoredLabel} 복원 완료. 고화질 지도 준비 중…`, 'success', 3600);
     } else {
       saveState.markNewProject('content:0');
-      setActionStatus('편집 준비 완료. 고화질 지도 준비 중…', 'success', 3200);
+      setActionStatus(autosaveRestore.error
+        ? `이전 자동저장은 현재 스키마와 달라 열지 않았습니다. ${autosaveRestore.error.message}`
+        : '편집 준비 완료. 고화질 지도 준비 중…', autosaveRestore.error ? 'error' : 'success', autosaveRestore.error ? 0 : 3200);
     }
     $('engineStatus').textContent = useBuiltInMesh ? '빠른 미리보기 · 고화질 지도 준비 중' : '프로젝트 지도를 다시 구성하는 중입니다.';
     window.dispatchEvent(new CustomEvent('pandolab:editable', { detail: { useBuiltInMesh } }));
@@ -14576,7 +14613,9 @@ const {
       }
     } else {
       saveState.markNewProject('content:0');
-      if (gpuReady) {
+      if (autosaveRestore.error) {
+        setActionStatus(`이전 자동저장은 현재 스키마와 달라 열지 않았습니다. ${autosaveRestore.error.message}`, 'error', 0);
+      } else if (gpuReady) {
         setActionStatus('고해상도 지도를 준비했습니다.', 'success');
       } else {
         setActionStatus('무손실 렌더러 준비 완료.', 'success', 4200);

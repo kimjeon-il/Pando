@@ -28,11 +28,12 @@ function normalizedDate(value) {
   return /^[-+]?\d{4,6}(?:-\d{2}-\d{2})?$/.test(source) ? source : null;
 }
 
-export function normalizeDistributionLayer(raw, { makeId } = {}) {
-  const type = text(raw?.type || raw?.distributionType).toLowerCase();
+export function normalizeDistributionLayer(raw) {
+  if (Number(raw?.schemaVersion) !== DISTRIBUTION_SCHEMA_VERSION) throw new Error('분포 레이어 schemaVersion이 현재 형식과 일치하지 않습니다.');
+  const type = text(raw?.type).toLowerCase();
   if (!TYPES.has(type)) return null;
-  const id = text(raw?.id) || text(typeof makeId === 'function' ? makeId(type) : '');
-  if (!id) return null;
+  const id = text(raw?.id);
+  if (!id) throw new Error('분포 레이어 ID가 비어 있습니다.');
   return {
     id,
     schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
@@ -41,20 +42,21 @@ export function normalizeDistributionLayer(raw, { makeId } = {}) {
     color: text(raw.color) || '#8c68d8',
     visible: raw.visible !== false,
     locked: raw.locked === true,
-    parentId: text(raw.parentId || raw.parent_id),
+    parentId: text(raw.parentId),
     groups: Array.isArray(raw.groups) ? [...new Set(raw.groups.map(text).filter(Boolean))] : [],
-    validFrom: normalizedDate(raw.validFrom ?? raw.valid_from),
-    validTo: normalizedDate(raw.validTo ?? raw.valid_to),
+    validFrom: normalizedDate(raw.validFrom),
+    validTo: normalizedDate(raw.validTo),
     metadata: raw.metadata && typeof raw.metadata === 'object' ? clone(raw.metadata) : {},
   };
 }
 
-export function normalizeDistributionLayers(value, options = {}) {
+export function normalizeDistributionLayers(value) {
   const output = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    const layer = normalizeDistributionLayer(raw, options);
-    if (!layer || seen.has(layer.id)) continue;
+    const layer = normalizeDistributionLayer(raw);
+    if (!layer) throw new Error('분포 레이어 형식이 올바르지 않습니다.');
+    if (seen.has(layer.id)) throw new Error(`분포 레이어 ID가 중복되었습니다: ${layer.id}`);
     seen.add(layer.id);
     output.push(layer);
   }
@@ -76,21 +78,19 @@ export function normalizeDistributionLayers(value, options = {}) {
   return output;
 }
 
-export function normalizeDistributionEntry(raw, { makeId } = {}) {
-  const layerId = text(raw?.layerId || raw?.layer_id);
-  if (!layerId) return null;
-  const mode = MODES.has(text(raw?.mode || raw?.sourceMode || raw?.source_mode))
-    ? text(raw.mode || raw.sourceMode || raw.source_mode)
-    : raw?.regionId || raw?.region_id
-      ? DISTRIBUTION_MODES.REGION
-      : DISTRIBUTION_MODES.GEOMETRY;
-  const regionId = mode === DISTRIBUTION_MODES.REGION ? text(raw.regionId || raw.region_id) : '';
+export function normalizeDistributionEntry(raw) {
+  if (Number(raw?.schemaVersion) !== DISTRIBUTION_SCHEMA_VERSION) throw new Error('분포 엔트리 schemaVersion이 현재 형식과 일치하지 않습니다.');
+  const layerId = text(raw?.layerId);
+  if (!layerId) throw new Error('분포 엔트리의 레이어 ID가 비어 있습니다.');
+  const mode = text(raw?.mode);
+  if (!MODES.has(mode)) return null;
+  const regionId = mode === DISTRIBUTION_MODES.REGION ? text(raw.regionId) : '';
   const geometry = mode === DISTRIBUTION_MODES.GEOMETRY && POLYGON_TYPES.has(raw?.geometry?.type)
     ? clone(raw.geometry)
     : null;
   if ((mode === DISTRIBUTION_MODES.REGION && !regionId) || (mode === DISTRIBUTION_MODES.GEOMETRY && !geometry)) return null;
-  const id = text(raw.id || raw.entryId || raw.entry_id) || text(typeof makeId === 'function' ? makeId('entry') : '');
-  if (!id) return null;
+  const id = text(raw.id);
+  if (!id) throw new Error('분포 엔트리 ID가 비어 있습니다.');
   return {
     id,
     schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
@@ -100,18 +100,20 @@ export function normalizeDistributionEntry(raw, { makeId } = {}) {
     geometry,
     share: shareValue(raw.share),
     certainty: text(raw.certainty) || 'unknown',
-    validFrom: normalizedDate(raw.validFrom ?? raw.valid_from),
-    validTo: normalizedDate(raw.validTo ?? raw.valid_to),
+    validFrom: normalizedDate(raw.validFrom),
+    validTo: normalizedDate(raw.validTo),
     metadata: raw.metadata && typeof raw.metadata === 'object' ? clone(raw.metadata) : {},
   };
 }
 
-export function normalizeDistributionEntries(value, { layerExists = () => true, makeId } = {}) {
+export function normalizeDistributionEntries(value, { layerExists = () => true } = {}) {
   const output = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    const entry = normalizeDistributionEntry(raw, { makeId });
-    if (!entry || seen.has(entry.id) || !layerExists(entry.layerId)) continue;
+    const entry = normalizeDistributionEntry(raw);
+    if (!entry) throw new Error('분포 엔트리 형식이 올바르지 않습니다.');
+    if (seen.has(entry.id)) throw new Error(`분포 엔트리 ID가 중복되었습니다: ${entry.id}`);
+    if (!layerExists(entry.layerId)) throw new Error(`${entry.id}의 분포 레이어가 존재하지 않습니다.`);
     seen.add(entry.id);
     output.push(entry);
   }
@@ -119,13 +121,13 @@ export function normalizeDistributionEntries(value, { layerExists = () => true, 
 }
 
 export function createDistributionLayer(options) {
-  const layer = normalizeDistributionLayer(options);
+  const layer = normalizeDistributionLayer({ ...options, schemaVersion: DISTRIBUTION_SCHEMA_VERSION });
   if (!layer) throw new Error('분포 레이어 형식이 올바르지 않습니다.');
   return layer;
 }
 
 export function createDistributionEntry(options) {
-  const entry = normalizeDistributionEntry(options);
+  const entry = normalizeDistributionEntry({ ...options, schemaVersion: DISTRIBUTION_SCHEMA_VERSION });
   if (!entry) throw new Error('분포 엔트리 형식이 올바르지 않습니다.');
   return entry;
 }
@@ -160,48 +162,4 @@ export function dominantDistributionEntries(layers, entries) {
     if (!current || entry.share > current.share) byRegion.set(entry.regionId, entry);
   }
   return [...byRegion.values(), ...geometryEntries];
-}
-
-export function migrateThematicDrawings(drawings, { existingLayers = [], existingEntries = [] } = {}) {
-  const layers = clone(existingLayers || []);
-  const entries = clone(existingEntries || []);
-  const remainingDrawings = [];
-  const layerKeys = new Map(layers.map(layer => [`${layer.type}\u0000${layer.name}\u0000${layer.color}`, layer.id]));
-  const layerIds = new Set(layers.map(layer => layer.id));
-  const entryIds = new Set(entries.map(entry => entry.id));
-  for (const drawing of Array.isArray(drawings) ? drawings : []) {
-    const type = text(drawing?.properties?.category).toLowerCase();
-    if (!TYPES.has(type) || !POLYGON_TYPES.has(drawing?.geometry?.type)) {
-      remainingDrawings.push(drawing);
-      continue;
-    }
-    const name = text(drawing.properties?.name) || `${type} 분포`;
-    const color = text(drawing.properties?.editorColor || drawing.properties?.color) || '#8c68d8';
-    const key = `${type}\u0000${name}\u0000${color}`;
-    let layerId = layerKeys.get(key);
-    if (!layerId) {
-      const baseId = `distribution-layer:${text(drawing.id) || layers.length + 1}`;
-      layerId = baseId;
-      let suffix = 2;
-      while (layerIds.has(layerId)) layerId = `${baseId}:${suffix++}`;
-      layers.push(createDistributionLayer({ id: layerId, type, name, color, metadata: { migratedFromDrawing: true } }));
-      layerIds.add(layerId);
-      layerKeys.set(key, layerId);
-    }
-    const baseEntryId = `distribution-entry:${text(drawing.id) || entries.length + 1}`;
-    let entryId = baseEntryId;
-    let suffix = 2;
-    while (entryIds.has(entryId)) entryId = `${baseEntryId}:${suffix++}`;
-    entries.push(createDistributionEntry({
-      id: entryId,
-      layerId,
-      mode: DISTRIBUTION_MODES.GEOMETRY,
-      geometry: drawing.geometry,
-      share: 100,
-      certainty: 'unknown',
-      metadata: { sourceDrawingId: text(drawing.id), notes: text(drawing.properties?.notes) },
-    }));
-    entryIds.add(entryId);
-  }
-  return { layers, entries, remainingDrawings };
 }

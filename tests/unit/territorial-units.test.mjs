@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 
 import {
   TERRITORIAL_COVERAGE_MODES,
+  TERRITORIAL_SCHEMA_VERSION,
   TERRITORIAL_STATUS,
   TERRITORIAL_UNIT_TYPES,
   changeUnitType,
   createCountryTerritorialAdapter,
   createTerritorialFeature,
   createTerritorialRepository,
-  migrateLegacyCountryRegions,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
   resolveTerritorialRelation,
@@ -22,17 +22,12 @@ const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
   coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]],
 });
 
-test('legacy regions migrate to territory partitions without losing ids or geometry', () => {
-  const [territory] = migrateLegacyCountryRegions([{
-    type: 'Feature', id: 'r1', properties: { kind: 'region', countryId: 'PL', name: '지역' }, geometry: square(),
-  }], { countryExists: id => id === 'PL' });
-  assert.equal(territory.id, 'r1');
-  assert.equal(territory.properties.unitType, TERRITORIAL_UNIT_TYPES.TERRITORY);
-  assert.equal(territory.properties.parentId, 'PL');
-  assert.equal(territory.properties.sovereignId, 'PL');
-  assert.equal(territory.properties.coverageMode, TERRITORIAL_COVERAGE_MODES.PARTITION);
-  assert.equal(territory.properties.status, TERRITORIAL_STATUS.ASSIGNED);
-  assert.deepEqual(territory.geometry, square());
+test('territorial normalization rejects legacy aliases and duplicate IDs', () => {
+  assert.throws(() => normalizeTerritorialUnits([{
+    type: 'Feature', id: 'r1', properties: { kind: 'region', countryId: 'PL' }, geometry: square(),
+  }]), /영역 형식/);
+  const unit = createTerritorialFeature({ id: 'r1', unitType: 'territory', sovereignId: 'PL', parentId: 'PL', geometry: square() });
+  assert.throws(() => normalizeTerritorialUnits([unit, unit], { countryExists: id => id === 'PL' }), /중복/);
 });
 
 test('administrative levels follow parent depth and invalid parents recover to sovereign', () => {
@@ -100,7 +95,7 @@ test('deleted sovereigns become unassigned and circular parents are removed', ()
 test('dated relations resolve by reference date and overlapping ranges are rejected', () => {
   const unit = createTerritorialFeature({ id: 't1', unitType: 'territory', sovereignId: 'A', parentId: 'A', geometry: square() });
   const relations = normalizeTerritorialRelations([
-    { id: 'r1', unitId: 't1', parentId: 'B', sovereignId: 'B', validFrom: '1900-01-01', validTo: '1910-12-31' },
+    { id: 'r1', schemaVersion: TERRITORIAL_SCHEMA_VERSION, unitId: 't1', parentId: 'B', sovereignId: 'B', validFrom: '1900-01-01', validTo: '1910-12-31' },
   ]);
   const resolved = resolveTerritorialRelation(unit, relations, '1905-01-01');
   assert.equal(resolved.properties.parentId, 'B');

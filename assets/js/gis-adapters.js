@@ -6,7 +6,6 @@
     admin: 'administrative_units',
     region: 'historical_regions',
   });
-  const LEGACY_TERRITORIAL_TABLES = Object.freeze({ administrative_areas: 'admin' });
   const DISTRIBUTION_TABLES = Object.freeze({
     language: 'language_distribution',
     ethnicity: 'ethnicity_distribution',
@@ -15,7 +14,6 @@
   const DISTRIBUTION_TYPES_BY_TABLE = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_TABLES).map(([type, table]) => [table, type])));
   const TERRITORIAL_TYPES_BY_TABLE = Object.freeze({
     ...Object.fromEntries(Object.entries(TERRITORIAL_TABLES).map(([type, table]) => [table, type])),
-    ...LEGACY_TERRITORIAL_TABLES,
   });
   const clone = value => value == null ? value : structuredClone(value);
   const text = value => String(value ?? '').trim();
@@ -36,7 +34,7 @@
       const id = text(feature?.properties?.editor_id || feature?.properties?.iso_a3 || feature?.id);
       if (id && polygonGeometry(feature?.geometry)) index.set(id, feature.geometry);
     }
-    for (const feature of state?.territorialUnits || state?.countryRegions || []) {
+    for (const feature of state?.territorialUnits || []) {
       const id = text(feature?.id);
       if (id && polygonGeometry(feature?.geometry)) index.set(id, feature.geometry);
     }
@@ -45,9 +43,9 @@
 
   function territorialRows(state) {
     const rows = Object.fromEntries(Object.values(TERRITORIAL_TABLES).map(table => [table, []]));
-    for (const item of state?.territorialUnits || state?.countryRegions || []) {
+    for (const item of state?.territorialUnits || []) {
       const properties = item?.properties || {};
-      const unitType = text(properties.unitType || (properties.kind === 'administrative' ? 'admin' : properties.kind === 'region' ? 'territory' : ''));
+      const unitType = text(properties.unitType);
       const table = TERRITORIAL_TABLES[unitType];
       const geometry = polygonGeometry(item?.geometry);
       if (!table || !geometry) continue;
@@ -56,13 +54,13 @@
         id: text(item.id),
         name: text(properties.name),
         type: unitType,
-        parent_id: text(properties.parentId || properties.parentRegionId),
-        sovereign_id: text(properties.sovereignId || properties.countryId),
-        admin_level: unitType === 'admin' ? Number(properties.adminLevel ?? properties.level ?? 1) : null,
+        parent_id: text(properties.parentId),
+        sovereign_id: text(properties.sovereignId),
+        admin_level: unitType === 'admin' ? Number(properties.adminLevel ?? 1) : null,
         status: text(properties.status) || 'assigned',
         valid_from: text(properties.validFrom),
         valid_to: text(properties.validTo),
-        color: text(properties.style?.color || properties.color),
+        color: text(properties.style?.color),
         style_key: text(properties.style?.key),
         source_library_id: text(properties.sourceLibraryId),
         source_geometry_version: text(properties.sourceGeometryVersion),
@@ -111,30 +109,32 @@
     const unitType = TERRITORIAL_TYPES_BY_TABLE[tableName];
     const geometry = polygonGeometry(feature?.geometry);
     if (!unitType || !geometry) return null;
-    const legacyProperties = parseJson(properties.properties_json);
-    const id = text(properties.id || properties.pandolab_id || feature.id || `${unitType}_${index + 1}`);
+    const currentProperties = parseJson(properties.properties_json);
+    const id = text(properties.id || feature.id);
+    if (!id) throw new Error(`영역 원본 ID가 비어 있습니다: ${unitType} ${index + 1}`);
     return {
       type: 'Feature',
       id,
       properties: {
-        ...legacyProperties,
+        ...currentProperties,
+        schemaVersion: 1,
         unitType,
-        name: text(properties.name ?? legacyProperties.name) || id,
-        parentId: text(properties.parent_id ?? properties.parent_region_id ?? legacyProperties.parentId ?? legacyProperties.parentRegionId),
-        sovereignId: text(properties.sovereign_id ?? properties.country_id ?? legacyProperties.sovereignId ?? legacyProperties.countryId),
-        adminLevel: unitType === 'admin' ? Math.max(1, Number(properties.admin_level ?? properties.level ?? legacyProperties.adminLevel ?? legacyProperties.level ?? 1)) : null,
-        coverageMode: unitType === 'region' ? 'explicit' : text(legacyProperties.coverageMode) || 'partition',
-        status: text(properties.status ?? legacyProperties.status) || 'assigned',
-        validFrom: text(properties.valid_from ?? legacyProperties.validFrom) || null,
-        validTo: text(properties.valid_to ?? legacyProperties.validTo) || null,
+        name: text(properties.name ?? currentProperties.name) || id,
+        parentId: text(properties.parent_id ?? currentProperties.parentId),
+        sovereignId: text(properties.sovereign_id ?? currentProperties.sovereignId),
+        adminLevel: unitType === 'admin' ? Math.max(1, Number(properties.admin_level ?? currentProperties.adminLevel ?? 1)) : null,
+        coverageMode: unitType === 'region' ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
+        status: text(properties.status ?? currentProperties.status) || 'assigned',
+        validFrom: text(properties.valid_from ?? currentProperties.validFrom) || null,
+        validTo: text(properties.valid_to ?? currentProperties.validTo) || null,
         style: {
-          ...(legacyProperties.style || {}),
-          color: text(properties.color ?? legacyProperties.style?.color ?? legacyProperties.color),
-          key: text(properties.style_key ?? legacyProperties.style?.key),
+          ...(currentProperties.style || {}),
+          color: text(properties.color ?? currentProperties.style?.color),
+          key: text(properties.style_key ?? currentProperties.style?.key),
         },
-        sourceLibraryId: text(properties.source_library_id ?? legacyProperties.sourceLibraryId),
-        sourceGeometryVersion: text(properties.source_geometry_version ?? legacyProperties.sourceGeometryVersion),
-        metadata: parseJson(properties.metadata_json, legacyProperties.metadata || {}),
+        sourceLibraryId: text(properties.source_library_id ?? currentProperties.sourceLibraryId),
+        sourceGeometryVersion: text(properties.source_geometry_version ?? currentProperties.sourceGeometryVersion),
+        metadata: parseJson(properties.metadata_json, currentProperties.metadata || {}),
       },
       geometry,
     };
@@ -151,6 +151,7 @@
     return {
       layer: {
         id: layerId,
+        schemaVersion: 1,
         type,
         name: text(properties.name) || layerId,
         color: text(properties.color) || '#8c68d8',
@@ -161,6 +162,7 @@
       },
       entry: {
         id: entryId,
+        schemaVersion: 1,
         layerId,
         mode: sourceMode,
         regionId: sourceMode === 'region' ? text(properties.region_id) : '',

@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 
 import {
   DISTRIBUTION_MODES,
+  DISTRIBUTION_SCHEMA_VERSION,
   createDistributionEntry,
   createDistributionLayer,
   dominantDistributionEntries,
-  migrateThematicDrawings,
   normalizeDistributionEntries,
   normalizeDistributionLayers,
   validateDistributionModel,
@@ -36,12 +36,11 @@ test('region and free geometry distribution modes normalize independently', () =
   assert.deepEqual(geometry.geometry, square);
 });
 
-test('thematic drawings migrate to one layer plus 100 percent geometry entries', () => {
-  const drawing = id => ({ type: 'Feature', id, properties: { category: 'ethnicity', name: '그리스인', editorColor: '#123456' }, geometry: square });
-  const migrated = migrateThematicDrawings([drawing('a'), drawing('b'), { type: 'Feature', id: 'river', properties: { category: 'river' }, geometry: { type: 'LineString', coordinates: [] } }]);
-  assert.equal(migrated.layers.length, 1);
-  assert.equal(migrated.entries.length, 2);
-  assert.ok(migrated.entries.every(entry => entry.share === 100 && entry.mode === 'geometry'));
-  assert.deepEqual(migrated.remainingDrawings.map(item => item.id), ['river']);
-  assert.equal(normalizeDistributionLayers(migrated.layers).length, 1);
+test('distribution normalization rejects legacy aliases and duplicate IDs', () => {
+  assert.throws(() => normalizeDistributionLayers([{ id: 'legacy', distributionType: 'language' }]), /schemaVersion/);
+  const layer = createDistributionLayer({ id: 'same', type: 'language' });
+  assert.throws(() => normalizeDistributionLayers([layer, layer]), /중복/);
+  assert.throws(() => normalizeDistributionEntries([{
+    id: 'entry', schemaVersion: DISTRIBUTION_SCHEMA_VERSION, layer_id: 'same', mode: 'geometry', geometry: square,
+  }]), /레이어 ID가 비어/);
 });
