@@ -565,8 +565,7 @@ function canvasFallbackWorkerMain() {
           const id = countryId(feature, index);
           if (hiddenCountryIds.has(id)) continue;
           const kind = id === String(emphasis.primaryId || '') ? 'primary'
-            : selectedCountryIds.has(id) ? 'secondary'
-              : id === String(emphasis.hoveredId || '') ? 'hover' : '';
+            : selectedCountryIds.has(id) ? 'secondary' : '';
           if (!kind) continue;
           context.beginPath();
           geoPath(feature);

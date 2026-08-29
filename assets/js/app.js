@@ -337,6 +337,7 @@ const {
   setSelectionColor(userPreferences.selection.color);
   document.documentElement.dataset.selectionMode = userPreferences.selection.mode;
   document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
+  syncMapHoverStyle();
   window.__PANDOLAB_THEME__ = effectiveTheme(userPreferences, systemTheme === 'dark');
 
   function enableKeyboardNavigation(event) {
@@ -5316,6 +5317,7 @@ const {
     document.documentElement.dataset.selectionMode = userPreferences.selection.mode;
     document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
     setSelectionColor(userPreferences.selection.color);
+    syncMapHoverStyle();
     syncGpuCountryEmphasis();
     window.__PANDOLAB_THEME__ = resolvedTheme;
     if (rerender && svg) {
@@ -5324,6 +5326,18 @@ const {
       renderAll();
     }
     return userPreferences;
+  }
+
+  function syncMapHoverStyle() {
+    const rootStyle = document.documentElement.style;
+    const mode = userPreferences?.selection?.mode || 'outline-soft-fill';
+    const fill = mode === 'outline'
+      ? 'transparent'
+      : mode === 'strong-fill'
+        ? 'color-mix(in srgb, var(--map-selection-halo) 36%, transparent)'
+        : 'color-mix(in srgb, var(--map-selection-halo) 12%, transparent)';
+    rootStyle.setProperty('--map-hover-stroke', 'var(--map-selection-halo)');
+    rootStyle.setProperty('--map-hover-fill', fill);
   }
 
   function countryLabelScreenMetrics(feature, fontSize = isMobile() ? 8 : 9, projectedExtent = null, labelFeature = feature) {
@@ -6689,7 +6703,6 @@ const {
     if (isMobile() || !state.hovered?.feature?.geometry || state.mapMoving || state.draftEdit.dragging) return;
     if (state.hovered.ref && objectSelection.has(state.hovered.ref)) return;
     const isCountry = state.hovered.type === 'country';
-    if (isCountry && gpuMapRenderer.supportsCountryEmphasis?.()) return;
     const feature = isCountry ? countryDisplayFeature(state.hovered.feature) : state.hovered.feature;
     hoverLayer.append('path').datum(feature)
       .attr('class', 'map-hover-shape map-hover-outline')
@@ -6715,7 +6728,6 @@ const {
     gpuMapRenderer.setCountryEmphasis({
       primaryId: primary?.domain === 'territorial' && primary.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? primary.id : '',
       selectedIds: countryIds,
-      hoveredId: state.hovered?.type === 'country' ? state.hovered.id : '',
       selectionMode: userPreferences.selection.mode,
     });
   }
