@@ -578,12 +578,23 @@ function canvasFallbackWorkerMain() {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
-          if (hiddenCountryIds.has(countryId(feature, index))) continue;
+          const id = countryId(feature, index);
+          if (hiddenCountryIds.has(id)) continue;
           context.beginPath();
           geoPath(countryOutlineFeature(feature));
           context.globalAlpha = borderAlpha;
           context.strokeStyle = border;
           context.stroke();
+          const kind = id === String(emphasis.primaryId || '') ? 'primary'
+            : selectedCountryIds.has(id) ? 'secondary' : '';
+          if (kind) {
+            context.beginPath();
+            geoPath(countryOutlineFeature(feature));
+            context.globalAlpha = kind === 'primary' ? 0.96 : 0.72;
+            context.strokeStyle = '#346733';
+            context.lineWidth = kind === 'primary' ? 2.5 : 1.5;
+            context.stroke();
+          }
         }
         renderHydroPass(message, projection, dpr, true);
         context.globalAlpha = 1;

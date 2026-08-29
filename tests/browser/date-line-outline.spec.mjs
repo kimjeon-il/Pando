@@ -18,6 +18,8 @@ test('date-line country selection stays lightweight during selection and navigat
     expect(after.selection.pathCount).toBe(0);
     expect(after.selection.pathCharacterCount).toBe(0);
     expect(after.gpu.emphasizedCountryCount).toBeGreaterThanOrEqual(1);
+    expect(after.gpu.countryEmphasis.boundaryEnabled).toBe(true);
+    expect(after.gpu.countryEmphasis.primaryBoundaryColor).toBe('#346733');
     expect(after.fullRenderCount - before.fullRenderCount, JSON.stringify({ before, after })).toBeLessThanOrEqual(1);
     expect(after.labelLayoutCount - before.labelLayoutCount).toBeLessThanOrEqual(1);
   }
@@ -27,7 +29,7 @@ test('date-line country selection stays lightweight during selection and navigat
   await page.mouse.move(mapBox.x + mapBox.width * 0.45, mapBox.y + mapBox.height * 0.5);
   await page.mouse.down();
   await page.mouse.move(mapBox.x + mapBox.width * 0.52, mapBox.y + mapBox.height * 0.55, { steps: 4 });
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.activeMeshQuality)).toBe('preview');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.activeMeshQuality)).toBe('canonical');
   await page.mouse.up();
   await page.waitForTimeout(400);
   const settled = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());

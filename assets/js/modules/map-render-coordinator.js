@@ -18,6 +18,9 @@ export const MAP_RENDER_DIRTY = Object.freeze({
 
 const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.GPU_COUNTRIES
+  | MAP_RENDER_DIRTY.BASE
+  | MAP_RENDER_DIRTY.STATIC_OVERLAYS
+  | MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS
   | MAP_RENDER_DIRTY.EDITING_OVERLAYS
   | MAP_RENDER_DIRTY.LABEL_POSITIONS;
 
@@ -85,43 +88,44 @@ export function createMapRenderCoordinator({
       const needsView = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_COUNTRIES
         | MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.STATIC_OVERLAYS | MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS
         | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT));
-      const viewRevision = needsView ? prepareView() : undefined;
+      const viewState = needsView ? prepareView() : undefined;
+      const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
 
-      if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes);
-      if (mask & MAP_RENDER_DIRTY.GPU_COUNTRIES) callRenderer('countries', rendererTimes, viewRevision);
+      if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes, viewState);
+      if (mask & MAP_RENDER_DIRTY.GPU_COUNTRIES) callRenderer('countries', rendererTimes, viewState);
 
       if (mask & MAP_RENDER_DIRTY.STATIC_OVERLAYS) {
-        callRenderer('hydro', rendererTimes);
-        callRenderer('hydroEdits', rendererTimes);
-        callRenderer('territorialUnits', rendererTimes);
-        callRenderer('distributions', rendererTimes);
-        callRenderer('drawings', rendererTimes);
-        callRenderer('stackOverlays', rendererTimes);
+        callRenderer('hydro', rendererTimes, viewState);
+        callRenderer('hydroEdits', rendererTimes, viewState);
+        callRenderer('territorialUnits', rendererTimes, viewState);
+        callRenderer('distributions', rendererTimes, viewState);
+        callRenderer('drawings', rendererTimes, viewState);
+        callRenderer('stackOverlays', rendererTimes, viewState);
       }
 
       if (mask & MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS) {
-        callRenderer('geometryPreview', rendererTimes);
-        callRenderer('hover', rendererTimes);
-        callRenderer('selection', rendererTimes);
-        callRenderer('validation', rendererTimes);
+        callRenderer('geometryPreview', rendererTimes, viewState);
+        callRenderer('hover', rendererTimes, viewState);
+        callRenderer('selection', rendererTimes, viewState);
+        callRenderer('validation', rendererTimes, viewState);
       }
 
       if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {
-        if (!(mask & MAP_RENDER_DIRTY.STATIC_OVERLAYS)) callRenderer('hydroEdits', rendererTimes);
-        callRenderer('boundaryEdit', rendererTimes);
-        callRenderer('vertices', rendererTimes);
-        callRenderer('draft', rendererTimes);
-        callRenderer('snapIndicator', rendererTimes);
+        if (!(mask & MAP_RENDER_DIRTY.STATIC_OVERLAYS)) callRenderer('hydroEdits', rendererTimes, viewState);
+        callRenderer('boundaryEdit', rendererTimes, viewState);
+        callRenderer('vertices', rendererTimes, viewState);
+        callRenderer('draft', rendererTimes, viewState);
+        callRenderer('snapIndicator', rendererTimes, viewState);
       }
 
       if (mask & MAP_RENDER_DIRTY.LABEL_LAYOUT) {
-        const labelLayout = callRenderer('labelLayout', rendererTimes);
+        const labelLayout = callRenderer('labelLayout', rendererTimes, viewState);
         if (renderers.labelLayout) metrics.labelLayoutCount += 1;
-        callRenderer('countryLabels', rendererTimes, labelLayout);
-        callRenderer('userLabels', rendererTimes, labelLayout);
+        callRenderer('countryLabels', rendererTimes, labelLayout, viewState);
+        callRenderer('userLabels', rendererTimes, labelLayout, viewState);
       } else if (mask & MAP_RENDER_DIRTY.LABEL_POSITIONS) {
-        callRenderer('countryLabelPositions', rendererTimes);
-        callRenderer('userLabelPositions', rendererTimes);
+        callRenderer('countryLabelPositions', rendererTimes, viewState);
+        callRenderer('userLabelPositions', rendererTimes, viewState);
       }
 
       if (mask & MAP_RENDER_DIRTY.LAYER_TREE) callRenderer('layerTree', rendererTimes);
@@ -135,7 +139,12 @@ export function createMapRenderCoordinator({
       if (metrics.recentFrames.length > 20) metrics.recentFrames.splice(0, metrics.recentFrames.length - 20);
       if (full) metrics.fullRenderCount += 1;
       else metrics.viewRenderCount += 1;
-      return { renderRevision, viewRevision, viewOnly: mask === INTERACTION_MASK };
+      return {
+        renderRevision,
+        viewRevision,
+        viewState,
+        viewOnly: mask === INTERACTION_MASK,
+      };
     } finally {
       rendering = false;
       if (pendingMask && !frameQueued) queueFrame();
