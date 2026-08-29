@@ -1,0 +1,88 @@
+import {
+  TERRITORIAL_UNIT_TYPES,
+  runTerritorialTransaction,
+  validateTerritorialRelations,
+} from './territorial-units.js';
+
+const text = value => String(value ?? '').trim();
+
+export function createTerritorialApplicationService({
+  repository,
+  runDocumentMutation,
+  countryCommands,
+  unitCommands,
+}) {
+  const country = id => {
+    const feature = repository.get(id);
+    return feature?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
+  };
+  const unit = (type, id) => {
+    const feature = repository.get(id);
+    return feature?.properties?.unitType === type && type !== TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
+  };
+
+  function get(id) {
+    return repository.get(id);
+  }
+
+  function list(options) {
+    return repository.list(options);
+  }
+
+  function isLocked(type, id) {
+    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) return !!country(id) && countryCommands.isLocked(id);
+    return unit(type, id)?.properties?.locked === true;
+  }
+
+  function updateMetadata(type, id, field, value) {
+    const key = text(id);
+    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      if (!country(key)) return { ok: false, code: 'not-found' };
+      runDocumentMutation({ type: 'country-metadata', affectedIds: [key] }, () => {
+        countryCommands.setField(key, field, value);
+      });
+      return { ok: true, unit: repository.get(key) };
+    }
+    const feature = unit(type, key);
+    if (!feature) return { ok: false, code: 'not-found' };
+    if (feature.properties?.locked === true && field !== 'locked') return { ok: false, code: 'locked', unit: feature };
+    runDocumentMutation({ type: 'territorial-metadata', affectedIds: [key] }, () => {
+      unitCommands.setField(key, field, value);
+    });
+    return { ok: true, unit: repository.get(key) };
+  }
+
+  function replaceUnits(units, { type = 'territorial-metadata', affectedIds = [] } = {}) {
+    runDocumentMutation({ type, affectedIds: affectedIds.map(text).filter(Boolean) }, () => {
+      unitCommands.replaceAll(units);
+    });
+    return { ok: true };
+  }
+
+  function setLocked(type, id, locked, { history = {} } = {}) {
+    const key = text(id);
+    const next = !!locked;
+    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      if (!country(key)) return { ok: false, code: 'not-found' };
+      if (countryCommands.isLocked(key) === next) return { ok: true, changed: false, unit: repository.get(key) };
+      runDocumentMutation({ ...history, type: 'country-lock', affectedIds: [key] }, () => countryCommands.setLocked(key, next));
+      return { ok: true, changed: true, unit: repository.get(key) };
+    }
+    const feature = unit(type, key);
+    if (!feature) return { ok: false, code: 'not-found' };
+    if (feature.properties?.locked === next) return { ok: true, changed: false, unit: feature };
+    runDocumentMutation({ ...history, type: 'territorial-lock', affectedIds: [key] }, () => unitCommands.setField(key, 'locked', next));
+    return { ok: true, changed: true, unit: repository.get(key) };
+  }
+
+  return Object.freeze({
+    get,
+    list,
+    isLocked,
+    updateMetadata,
+    replaceUnits,
+    setLocked,
+    runGeometryTransaction: options => runTerritorialTransaction(options),
+    validateRelations: (units, options) => validateTerritorialRelations(units, options),
+  });
+}
