@@ -442,7 +442,7 @@ const {
     'editorScrollBody', 'editorObjectHeader', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'actionsTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu', 'objectCoastReconcileMenuBtn',
     'countryProperties', 'regionProperties', 'administrativeProperties', 'historicalRegionProperties', 'distributionProperties', 'regionNameConflict', 'administrativeNameConflict', 'historicalRegionNameConflict', 'historicalRegionNameInput', 'historicalRegionCountryInput', 'historicalRegionParentInput', 'historicalRegionColorInput', 'historicalRegionValidFromInput', 'historicalRegionValidToInput', 'historicalRegionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionRegionInput', 'distributionShareInput', 'addRegionDistributionBtn', 'addGeometryDistributionBtn', 'deleteDistributionBtn', 'drawingProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeRegionTypeBtn', 'changeAdministrativeTypeBtn', 'reconcileAdministrativeCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
-    'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn', 'deleteHydroEditBtn',
+    'countryCodeInput', 'drawingIdInput', 'hydroPropertiesTitle', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn', 'deleteHydroEditBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeRiverMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
@@ -1261,8 +1261,8 @@ const {
     }
     if (ref.domain === 'hydro') {
       const feature = hydroFeatureById(ref.id);
-      const lake = (feature?.properties?.category || ref.type) === 'lake';
-      return { name: hydroEditorName(feature?.properties?.name, lake ? '이름 없는 호수' : '이름 없는 강'), type: lake ? '호수' : '강', detail: hydroEditById(ref.id) ? '사용자 수계' : '내장 수계' };
+      const category = hydroCategoryKey(feature?.properties?.category || ref.type);
+      return { name: hydroEditorName(feature?.properties?.name, hydroFallbackName(category)), type: hydroCategoryLabel(category), detail: hydroSourceLabel(category, { builtin: !hydroEditById(ref.id) }) };
     }
     const label = state.labels.find(item => String(item.id) === ref.id);
     const labelKind = { capital: '수도', city: '도시', town: '마을', region: '지역명', mountain: '산', water: '수역', custom: '기타' };
@@ -4489,8 +4489,33 @@ const {
     return feature.properties?.editor_name || feature.properties?.editor_original_name || feature.properties?.name || '국가';
   }
 
+  function hydroCategoryKey(value) {
+    return value === 'lake' ? 'lake' : 'river';
+  }
+
+  function hydroCategoryLabel(value) {
+    return hydroCategoryKey(value) === 'lake' ? '호수' : '강';
+  }
+
+  function hydroFallbackName(value) {
+    return `이름 없는 ${hydroCategoryLabel(value)}`;
+  }
+
+  function hydroSourceLabel(value, { builtin = false } = {}) {
+    return `${builtin ? '내장 ' : '사용자 '}${hydroCategoryLabel(value)}`;
+  }
+
+  function hydroAccusativeLabel(value) {
+    return hydroCategoryKey(value) === 'lake' ? '호수를' : '강을';
+  }
+
+  function hydroTopicLabel(value) {
+    return hydroCategoryKey(value) === 'lake' ? '호수는' : '강은';
+  }
+
   const COUNTRY_REGION_FOLDER_STATE_PREFIX = 'country-region-folder:';
   const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:';
+  const HYDRO_CATEGORY_FOLDER_STATE_PREFIX = 'hydro-category:';
   const DISTRIBUTION_GROUP_TYPES = Object.freeze({
     languages: DISTRIBUTION_TYPES.LANGUAGE,
     ethnicities: DISTRIBUTION_TYPES.ETHNICITY,
@@ -4501,7 +4526,7 @@ const {
   const LAYER_GROUP_KEYS = ['countries', 'regions', 'administrative', 'historicalRegions', 'languages', 'ethnicities', 'religions', 'hydro', 'drawings', 'labels', 'countryLabels'];
   const LAYER_TREE_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['hydro', 'labels', 'countryLabels'].includes(group));
   const LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['labels', 'countryLabels'].includes(group));
-  const layerGroupNames = { countries: '국가', regions: '권역', administrative: '행정구역', historicalRegions: '지방', languages: '언어', ethnicities: '민족', religions: '종교', hydro: '수계', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
+  const layerGroupNames = { countries: '국가', regions: '권역', administrative: '행정구역', historicalRegions: '지방', languages: '언어', ethnicities: '민족', religions: '종교', hydro: '강·호수', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
     regions: 'regionsLayerChildren',
@@ -4527,6 +4552,10 @@ const {
     return `${HYDRO_FOLDER_STATE_PREFIX}${String(layerId)}`;
   }
 
+  function hydroCategoryFolderStateKey(category) {
+    return `${HYDRO_CATEGORY_FOLDER_STATE_PREFIX}${hydroCategoryKey(category)}`;
+  }
+
   function currentMapDevicePixelRatio() {
     return Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1)));
   }
@@ -4549,6 +4578,7 @@ const {
       'religions',
       ...countryRegionKeys,
       'drawings',
+      ...['river', 'lake'].map(hydroCategoryFolderStateKey),
       ...Object.keys(HYDRO_LAYER_META).map(hydroFolderStateKey),
     ];
   }
@@ -4636,7 +4666,7 @@ const {
           : geometryKind === 'line' ? 'river' : '';
     if (!category) return null;
     feature.id = String(feature.id || '').trim();
-    if (!feature.id) throw new Error('편집 수계 ID가 비어 있습니다.');
+    if (!feature.id) throw new Error('편집 강/호수 ID가 비어 있습니다.');
     feature.properties = {
       ...feature.properties,
       category,
@@ -4656,8 +4686,8 @@ const {
     const seen = new Set();
     for (const feature of Array.isArray(value) ? value : []) {
       const normalized = normalizeHydroEdit(feature);
-      if (!normalized) throw new Error('편집 수계 형식이 올바르지 않습니다.');
-      if (seen.has(normalized.id)) throw new Error(`편집 수계 ID가 중복되었습니다: ${normalized.id}`);
+      if (!normalized) throw new Error('편집 강/호수 형식이 올바르지 않습니다.');
+      if (seen.has(normalized.id)) throw new Error(`편집 강/호수 ID가 중복되었습니다: ${normalized.id}`);
       seen.add(normalized.id);
       output.push(normalized);
     }
@@ -4716,6 +4746,12 @@ const {
     let expandedFound = false;
     return Object.fromEntries(activeLayerFolderKeys().map(key => {
       if (key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX)) return [key, value?.[key] !== false];
+      if (key.startsWith(HYDRO_CATEGORY_FOLDER_STATE_PREFIX)) {
+        const category = key.slice(HYDRO_CATEGORY_FOLDER_STATE_PREFIX.length);
+        const legacyLayerId = Object.entries(HYDRO_LAYER_META).find(([, meta]) => hydroCategoryKey(meta.category) === category)?.[0];
+        const legacyKey = legacyLayerId ? hydroFolderStateKey(legacyLayerId) : '';
+        return [key, Object.hasOwn(value || {}, key) ? value[key] !== false : legacyKey && Object.hasOwn(value || {}, legacyKey) ? value[legacyKey] === true : true];
+      }
       if (key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) return [key, value?.[key] === true];
       const expanded = !expandedFound && !!value?.[key];
       if (expanded) expandedFound = true;
@@ -4727,7 +4763,39 @@ const {
     state.layerTreeRevision += 1;
   }
 
+  function isHydroCategoryVisible(category) {
+    const key = hydroCategoryKey(category);
+    if (!state.layerVisibility.hydro) return false;
+    const builtInVisible = Object.entries(HYDRO_LAYER_META)
+      .filter(([, meta]) => hydroCategoryKey(meta.category) === key)
+      .some(([id]) => state.physicalSettings.hydroLayers?.[id] !== false);
+    const userVisible = state.hydroEdits
+      .filter(feature => hydroCategoryKey(feature.properties?.category) === key)
+      .some(feature => isLayerItemVisible('hydro', feature.id));
+    return builtInVisible || userVisible;
+  }
+
+  function setHydroCategoryVisibility(category, visible) {
+    const key = hydroCategoryKey(category);
+    for (const [id, meta] of Object.entries(HYDRO_LAYER_META)) {
+      if (hydroCategoryKey(meta.category) === key) state.physicalSettings.hydroLayers[id] = !!visible;
+    }
+    for (const feature of state.hydroEdits) {
+      if (hydroCategoryKey(feature.properties?.category) !== key) continue;
+      state.itemVisibility.hydro ||= {};
+      if (visible) delete state.itemVisibility.hydro[String(feature.id)];
+      else state.itemVisibility.hydro[String(feature.id)] = false;
+    }
+    gpuMapRenderer.invalidateHydroVisibility();
+    markLayerTreeDirty();
+    renderAll();
+    queuePresentationAutosave();
+  }
+
   function isLayerItemVisible(group, id) {
+    if (group === 'hydro' && String(id).startsWith('category:')) {
+      return isHydroCategoryVisible(String(id).slice('category:'.length));
+    }
     if (group === 'hydro' && HYDRO_LAYER_META[String(id)]) {
       return state.physicalSettings.hydroLayers?.[String(id)] !== false;
     }
@@ -4741,6 +4809,10 @@ const {
   function setLayerItemVisibility(group, id, visible) {
     if (!LAYER_GROUP_KEYS.includes(group)) return;
     const key = String(id);
+    if (group === 'hydro' && key.startsWith('category:')) {
+      setHydroCategoryVisibility(key.slice('category:'.length), visible);
+      return;
+    }
     if (group === 'hydro' && HYDRO_LAYER_META[key]) {
       state.physicalSettings.hydroLayers[key] = !!visible;
       gpuMapRenderer.invalidateHydroVisibility();
@@ -4816,18 +4888,20 @@ const {
           title: `${meta.sourceLabel} 상태 보기`,
           color: hydroDisplayColor(meta.category),
           count: state.hydroManifest?.stats?.layerCounts?.[id] ?? null,
-          folderName: `지형지물 · ${meta.label}`,
+          folderName: meta.label,
           hydroFolderKey: hydroFolderStateKey(id),
           hydroFolderName: meta.label,
+          hydroCategory: hydroCategoryKey(meta.category),
           layerGroup: 'hydro',
           selected: false,
         }));
       const userItems = state.hydroEdits.map(feature => ({
         id: String(feature.id),
-        name: hydroEditorName(feature.properties?.name, feature.properties?.category === 'lake' ? '이름 없는 호수' : '이름 없는 강'),
+        name: hydroEditorName(feature.properties?.name, hydroFallbackName(feature.properties?.category)),
         color: feature.properties?.editorColor || HYDRO_TOOL_CONFIG[feature.properties?.category || 'river'].color,
-        meta: `${feature.properties?.category === 'lake' ? '호수' : '강'} · 사용자`,
-        folderName: '지형지물',
+        meta: `${hydroCategoryLabel(feature.properties?.category)} · 사용자`,
+        folderName: hydroCategoryLabel(feature.properties?.category),
+        hydroCategory: hydroCategoryKey(feature.properties?.category),
         layerGroup: 'hydro',
         selected: state.selected?.type === 'hydro' && state.selected.id === String(feature.id),
       }));
@@ -5086,24 +5160,29 @@ const {
     }
     let displayItems = items;
     if (group === 'drawings') {
-      const builtIns = items.filter(item => item.hydroFolderKey);
-      const userItems = items.filter(item => !item.hydroFolderKey);
+      const hydroItems = items.filter(item => item.layerGroup === 'hydro');
+      const userDrawings = items.filter(item => item.layerGroup !== 'hydro');
       displayItems = [];
-      for (const item of builtIns) {
-        const expanded = state.layerFolders[item.hydroFolderKey] === true;
+      for (const category of ['river', 'lake']) {
+        const categoryItems = hydroItems.filter(item => hydroCategoryKey(item.hydroCategory || item.category) === category);
+        if (!categoryItems.length) continue;
+        const categoryFolderKey = hydroCategoryFolderStateKey(category);
+        const expanded = state.layerFolders[categoryFolderKey] !== false;
         displayItems.push({
           groupHeader: true,
           hydroHeader: true,
-          id: `header:${item.id}`,
-          name: item.hydroFolderName,
-          folderKey: item.hydroFolderKey,
-          layerItemId: item.id,
+          hydroCategoryHeader: true,
+          id: `header:hydro:${category}`,
+          name: hydroCategoryLabel(category),
+          folderKey: categoryFolderKey,
+          layerItemId: `category:${category}`,
+          hydroCategory: category,
           layerGroup: 'hydro',
           expanded,
         });
-        if (expanded) displayItems.push({ ...item, hydroSource: true });
+        if (expanded) displayItems.push(...categoryItems.map(item => ({ ...item, hydroSource: true })));
       }
-      displayItems.push(...userItems);
+      displayItems.push(...userDrawings);
     }
     if (group === 'regions' || group === 'administrative') {
       displayItems = [];
@@ -5553,7 +5632,7 @@ const {
       markLayerTreeDirty();
       renderLayerTree();
       console.warn('Hydro load failed', error);
-      reportOperationError(error, '수계 목록을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도하세요.', 'PL-WATER-001', 0);
+      reportOperationError(error, '강·호수 목록을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도하세요.', 'PL-WATER-001', 0);
     },
   });
 
@@ -9622,7 +9701,7 @@ const {
 
   const PROPERTY_TYPE_LABELS = Object.freeze({
     country: '국가', region: '권역', administrative: '행정구역', historicalRegion: '지방',
-    distribution: '분포', drawing: '지형지물', label: '라벨', hydro: '수계', multi: '다중선택',
+    distribution: '분포', drawing: '지형지물', label: '라벨', hydro: '강·호수', multi: '다중선택',
   });
 
   function activePropertyForm(type) {
@@ -9641,7 +9720,7 @@ const {
     if (!available) setEditorShellView('info');
   }
 
-  function showPropertyForm(type, title = '', { resetScroll = true } = {}) {
+  function showPropertyForm(type, title = '', { resetScroll = true, typeLabel = '' } = {}) {
     if (type && resetScroll) setEditorShellView('info');
     $('emptyProperties').classList.toggle('hidden', !!type);
     $('editorObjectHeader').classList.toggle('hidden', !type);
@@ -9658,8 +9737,9 @@ const {
     $('hydroProperties').classList.toggle('hidden', type !== 'hydro');
     $('multiProperties')?.classList.toggle('hidden', type !== 'multi');
     $('propertyTitle').textContent = type ? String(title || '') : '';
-    if ($('propertyTypeLabel')) $('propertyTypeLabel').textContent = type ? PROPERTY_TYPE_LABELS[type] || type : '';
-    const fullTitle = type ? `${String(title || '')}, ${PROPERTY_TYPE_LABELS[type] || type}` : '';
+    const visibleTypeLabel = typeLabel || (type ? PROPERTY_TYPE_LABELS[type] || type : '');
+    if ($('propertyTypeLabel')) $('propertyTypeLabel').textContent = visibleTypeLabel;
+    const fullTitle = type ? `${String(title || '')}, ${visibleTypeLabel}` : '';
     document.querySelector('.editor-object-heading')?.setAttribute('aria-label', fullTitle);
     if (type) syncObjectActionsMenu();
     else closeObjectActionsMenu();
@@ -10220,7 +10300,7 @@ const {
 
   function hydroEditorName(value, fallback) {
     const name = String(value || '').trim();
-    if (/^미명명 수계(?:\s+\d+)?$/.test(name)) return '미명명 수계';
+    if (/^미명명 수계(?:\s+\d+)?$/.test(name)) return fallback;
     return name || fallback;
   }
 
@@ -10229,16 +10309,20 @@ const {
     if (!feature || !isHydroFeatureVisible(feature)) return;
     const properties = feature.properties || {};
     const editable = !!hydroEditById(id);
-    const category = properties.category === 'lake' ? '호수' : '강';
-    const displayName = hydroEditorName(properties.name, `이름 없는 ${category}`);
+    const categoryKey = hydroCategoryKey(properties.category);
+    const category = hydroCategoryLabel(categoryKey);
+    const displayName = hydroEditorName(properties.name, hydroFallbackName(categoryKey));
     state.selected = { type: 'hydro', id: String(editable ? feature.id : properties.pandolab_id || feature.id) };
     syncObjectSelectionFromLegacy(state.selected);
-    showPropertyForm('hydro', displayName, { resetScroll: !refreshOnly });
+    showPropertyForm('hydro', displayName, { resetScroll: !refreshOnly, typeLabel: category });
+    $('hydroPropertiesTitle').textContent = `${category} 정보`;
+    $('hydroColorPopover').setAttribute('aria-label', `${category} 색상 팔레트`);
     $('hydroEditFields').classList.toggle('hidden', !editable);
     $('hydroBuiltinHelp').classList.toggle('hidden', editable);
     const copyActionSection = $('copyHydroBtn').closest('.editor-action-section');
     if (copyActionSection) copyActionSection.hidden = editable;
     $('deleteHydroEditBtn').hidden = !editable;
+    $('deleteHydroEditBtn').textContent = `${category} 삭제`;
     syncEditorActionTab('hydro');
     if (editable) {
       $('hydroNameInput').value = properties.name || '';
@@ -10246,14 +10330,19 @@ const {
       syncColorPicker('hydro', { value: $('hydroColorInput').value, defaultColor: HYDRO_TOOL_CONFIG[properties.category].color, isDefault: false });
       $('hydroNotesInput').value = properties.notes || '';
     }
-    const systemName = hydroEditorName(properties.mainstem_name_ko || properties.name, '미명명 수계');
+    const systemName = categoryKey === 'river'
+      ? hydroEditorName(properties.mainstem_name_ko || properties.name, hydroFallbackName(categoryKey))
+      : '';
     const hydroId = String(properties.system_id || properties.pandolab_id || feature.id || '').replace(/^hydro-system:/, '');
     $('hydroCategoryValue').textContent = category;
+    $('hydroIdLabel').textContent = `${category} ID`;
     $('hydroIdValue').textContent = hydroId || '—';
     $('hydroSystemValue').textContent = systemName;
-    $('hydroSystemRow').classList.toggle('hidden', systemName === displayName);
-    $('hydroTributaryValue').textContent = category === '강' ? '본류·표시 지류' : '호수';
-    $('hydroSourceValue').textContent = properties.source || '판도연구소 내장 수계';
+    $('hydroSystemRow').classList.toggle('hidden', !systemName || systemName === displayName);
+    $('hydroSystemValue').previousElementSibling.textContent = '대표 수계';
+    $('hydroTributaryValue').textContent = categoryKey === 'river' ? '본류·표시 지류' : '호수';
+    $('hydroSourceValue').textContent = properties.source || `판도연구소 내장 ${category}`;
+    $('hydroBuiltinHelp').lastChild.textContent = ` 기반 내장 ${category}입니다. 직접 수정하려면 복사본을 만드세요.`;
     $('selectionStatus').textContent = `${category} · ${displayName}`;
     syncStatusBar();
     syncLayerSelectionRows();
@@ -10270,7 +10359,7 @@ const {
           if (String(cached?.properties?.pandolab_id || cached?.id) === key) state.hydroFeatureByFid.set(fid, full);
         }
         if (state.selected?.type === 'hydro' && state.selected.id === key) selectHydro(key, true);
-      }).catch(error => console.warn('수계 선택 형상을 불러오지 못했습니다.', error)).finally(() => { feature.__geometryLoading = false; });
+      }).catch(error => console.warn('강·호수 선택 형상을 불러오지 못했습니다.', error)).finally(() => { feature.__geometryLoading = false; });
     }
   }
 
@@ -10278,19 +10367,19 @@ const {
     if (state.selected?.type !== 'hydro') return;
     let source = builtInHydroFeatureById(state.selected.id);
     if (!source) {
-      setActionStatus('복사할 수계 객체를 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
+      setActionStatus('복사할 강·호수 객체를 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
       return;
     }
     if (!source.geometry || (source.properties?.category === 'river' && Number(source.properties?.fragment_count || 1) > 1)) {
-      setActionStatus('수계 전체 형상을 준비하는 중입니다.', 'working', 0);
+      setActionStatus('강·호수 전체 형상을 준비하는 중입니다.', 'working', 0);
       try {
         source = await gpuMapRenderer.loadHydroLogicalFeature(Number(source.properties.__logicalFid));
       } catch (error) {
-        reportOperationError(error, '수계 전체 형상을 불러오지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-WATER-002', 0);
+        reportOperationError(error, '강·호수 전체 형상을 불러오지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-WATER-002', 0);
         return;
       }
       if (!source) {
-        setActionStatus('수계 전체 형상을 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
+        setActionStatus('강·호수 전체 형상을 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
         return;
       }
     }
@@ -10304,8 +10393,8 @@ const {
         name: source.properties?.name || '',
         category,
         editorColor: HYDRO_TOOL_CONFIG[category].color,
-        notes: `판도연구소 내장 수계 편집용 복사본 · 원본 ${source.properties?.pandolab_id || source.id}`,
-        source: source.properties?.source || '판도연구소 내장 수계',
+        notes: `판도연구소 내장 ${hydroCategoryLabel(category)} 편집용 복사본 · 원본 ${source.properties?.pandolab_id || source.id}`,
+        source: source.properties?.source || `판도연구소 내장 ${hydroCategoryLabel(category)}`,
         sourceFeatureId: source.properties?.pandolab_id || source.id,
       },
     };
@@ -11015,7 +11104,7 @@ const {
     if (state.selected?.type !== 'hydro') return;
     const feature = hydroEditById(state.selected.id);
     if (!feature || feature.properties?.locked === true) {
-      if (feature?.properties?.locked === true) setActionStatus('잠금을 해제한 뒤 수계 정보를 변경하세요.', 'error', 3200);
+      if (feature?.properties?.locked === true) setActionStatus(`잠금을 해제한 뒤 ${hydroCategoryLabel(feature.properties.category)} 정보를 변경하세요.`, 'error', 3200);
       return;
     }
     recordHistory();
@@ -11025,7 +11114,7 @@ const {
     if (field === 'name') markLayerTreeDirty();
     selectHydro(String(feature.id), true);
     queueAutosave();
-    setActionStatus('수계 정보를 변경했습니다.', 'success');
+    setActionStatus(`${hydroCategoryLabel(feature.properties.category)} 정보를 변경했습니다.`, 'success');
   }
 
   function countryRegionContainer(feature, { countryId = feature?.properties?.sovereignId, parentRegionId = feature?.properties?.parentId } = {}) {
@@ -11991,7 +12080,7 @@ const {
   const LAYER_PRESENTATION_LABELS = Object.freeze({
     userDrawings: '사용자 지형지물', religions: '종교', ethnicities: '민족', languages: '언어',
     administrative: '행정구역', regions: '권역', historicalRegions: '지방',
-    labels: '도시·지명', countryLabels: '국가명 라벨', hydro: '수계', countries: '국가', terrain: '지형 음영',
+    labels: '도시·지명', countryLabels: '국가명 라벨', hydro: '강·호수', countries: '국가', terrain: '지형 음영',
   });
   const STYLE_PRESENTATION_GROUPS = Object.freeze(['countries', 'hydro', ...OVERLAY_GROUPS]);
 
@@ -13433,8 +13522,9 @@ const {
     if (state.selected?.type === 'hydro' && String(state.selected.id) === key) clearSelection(false);
     else renderAll();
     queueAutosave();
-    const fallback = feature.properties?.category === 'lake' ? '호수' : '강';
-    setActionStatus(statusText || `${hydroEditorName(feature.properties?.name, fallback)} 수계를 삭제했습니다.`, 'success');
+    const category = hydroCategoryLabel(feature.properties?.category);
+    const fallback = hydroFallbackName(feature.properties?.category);
+    setActionStatus(statusText || `${hydroEditorName(feature.properties?.name, fallback)}${hydroAccusativeLabel(feature.properties?.category).slice(category.length)} 삭제했습니다.`, 'success');
     return true;
   }
 
@@ -13629,8 +13719,10 @@ const {
       return;
     }
     if (state.selected.type === 'hydro') {
-      if (hydroEditById(state.selected.id)) removeHydroEditById(state.selected.id, '선택한 수계를 삭제했습니다.');
-      else setActionStatus('내장 수계는 삭제할 수 없습니다. 편집용 복사본을 만들어 수정하세요.', 'error', 3400);
+      const feature = hydroFeatureById(state.selected.id);
+      const category = hydroCategoryLabel(feature?.properties?.category);
+      if (hydroEditById(state.selected.id)) removeHydroEditById(state.selected.id, `선택한 ${hydroAccusativeLabel(feature?.properties?.category)} 삭제했습니다.`);
+      else setActionStatus(`내장 ${category}는 삭제할 수 없습니다. 편집용 복사본을 만들어 수정하세요.`, 'error', 3400);
       return;
     }
     if (state.selected.type === 'drawing') {
@@ -13748,9 +13840,9 @@ const {
           const cacheState = state.physicalLoadState.hydroCache;
           if (cacheState === 'error') {
             gpuMapRenderer.retryHydroCache?.();
-            setActionStatus('전 세계 수계 자료의 오프라인 저장을 다시 시도합니다.', 'working', 0);
+            setActionStatus('전 세계 강·호수 자료의 오프라인 저장을 다시 시도합니다.', 'working', 0);
           } else {
-            const suffix = cacheState === 'ready' ? '오프라인에서도 바로 사용할 수 있습니다.' : `전 세계 자료를 백그라운드에서 준비하고 있습니다. ${Math.round(state.physicalLoadState.hydroCachePercent || 0)}%`;
+            const suffix = cacheState === 'ready' ? '오프라인에서도 바로 사용할 수 있습니다.' : `전 세계 강·호수 자료를 백그라운드에서 준비하고 있습니다. ${Math.round(state.physicalLoadState.hydroCachePercent || 0)}%`;
             setActionStatus(suffix, 'success', 3200);
           }
         }
@@ -13953,7 +14045,7 @@ const {
           renderLayerTree();
         },
         toggleHydroFolder: folderKey => {
-          if (!folderKey.startsWith(HYDRO_FOLDER_STATE_PREFIX)) return;
+          if (!folderKey.startsWith(HYDRO_FOLDER_STATE_PREFIX) && !folderKey.startsWith(HYDRO_CATEGORY_FOLDER_STATE_PREFIX)) return;
           state.layerFolders[folderKey] = state.layerFolders[folderKey] !== true;
           markLayerTreeDirty();
           renderLayerTree();
@@ -13963,7 +14055,7 @@ const {
           if (!folderKeys.includes(group)) return;
           const willExpand = !state.layerFolders[group];
           for (const key of folderKeys) {
-            if (!key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX) && !key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
+            if (!key.startsWith(COUNTRY_REGION_FOLDER_STATE_PREFIX) && !key.startsWith(HYDRO_FOLDER_STATE_PREFIX) && !key.startsWith(HYDRO_CATEGORY_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
           }
           state.layerFolders[group] = willExpand;
           markLayerTreeDirty();

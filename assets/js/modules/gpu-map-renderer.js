@@ -859,7 +859,7 @@ export function createGpuMapRenderer(deps) {
           uintIndexExtension = gl.getExtension('OES_element_index_uint');
           if (!uintIndexExtension) throw new Error('WebGL1 32비트 인덱스를 지원하지 않습니다.');
           instancedExtension = gl.getExtension('ANGLE_instanced_arrays');
-          if (!instancedExtension) throw new Error('WebGL1 인스턴스 수계 렌더링을 지원하지 않습니다.');
+          if (!instancedExtension) throw new Error('WebGL1 인스턴스 강·호수 렌더링을 지원하지 않습니다.');
         }
         createWebGlResources();
         webglContextLost = false;
@@ -2019,7 +2019,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function loadHydroLogicalFeature(logicalFid) {
-      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('수계 로더가 준비되지 않았습니다.'));
+      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
       const requestId = ++hydroFeatureRequestId;
       return new Promise((resolve, reject) => {
         hydroFeatureRequests.set(requestId, { resolve, reject });
@@ -2092,7 +2092,7 @@ export function createGpuMapRenderer(deps) {
           state.physicalLoadState.hydroView = 'error';
           reportOperationError(
             new Error(message.message || ''),
-            '현재 화면의 수계 데이터를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 이동하거나 시도하세요.',
+            '현재 화면의 강·호수 데이터를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 이동하거나 시도하세요.',
             'PL-WATER-003',
             4200,
           );
@@ -2142,7 +2142,7 @@ export function createGpuMapRenderer(deps) {
         const pending = hydroFeatureRequests.get(Number(message.requestId));
         if (!pending) return;
         hydroFeatureRequests.delete(Number(message.requestId));
-        if (message.type === 'feature-error') pending.reject(new Error(message.message || '수계 전체 형상을 불러오지 못했습니다.'));
+        if (message.type === 'feature-error') pending.reject(new Error(message.message || '강·호수 전체 형상을 불러오지 못했습니다.'));
         else pending.resolve(message.feature ? prepareHydroFeature(message.feature) : null);
         return;
       }
@@ -2156,7 +2156,7 @@ export function createGpuMapRenderer(deps) {
         state.physicalLoadState.hydroCachePercent = 100;
         if (!hydroCacheCompletionNotified) {
           hydroCacheCompletionNotified = true;
-          setActionStatus('전 세계 수계 데이터를 오프라인 저장소에 준비했습니다.', 'success', 3200);
+          setActionStatus('전 세계 강·호수 데이터를 오프라인 저장소에 준비했습니다.', 'success', 3200);
         }
         return;
       }
@@ -2176,7 +2176,7 @@ export function createGpuMapRenderer(deps) {
           hydroWorker?.terminate();
           hydroWorker = null;
         } else {
-          reportOperationError(new Error(message.message || ''), '수계 처리 중 오류가 발생했습니다. 현재 지도는 계속 사용할 수 있습니다.', 'PL-WATER-003', 4200);
+          reportOperationError(new Error(message.message || ''), '강·호수 처리 중 오류가 발생했습니다. 현재 지도는 계속 사용할 수 있습니다.', 'PL-WATER-003', 4200);
         }
       }
     }
@@ -2237,7 +2237,7 @@ export function createGpuMapRenderer(deps) {
       hydroVisibilityDirty = true;
       for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
       hydroPacks.clear();
-      for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('수계 로더가 다시 시작되었습니다.'));
+      for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('강·호수 로더가 다시 시작되었습니다.'));
       hydroFeatureRequests.clear();
       state.hydroFragmentsByLogicalId = new Map();
 
@@ -2260,7 +2260,7 @@ export function createGpuMapRenderer(deps) {
       };
       hydroWorker.onerror = event => {
         if (generation !== hydroWorkerGeneration) return;
-        receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '수계 Worker 실행 오류' } });
+        receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '강·호수 Worker 실행 오류' } });
       };
       const hydroRevision = `${ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
       hydroWorker.postMessage({
