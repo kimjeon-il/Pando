@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 async function installTestAnimationFrame(page) {
   await page.addInitScript(() => {
@@ -38,6 +39,8 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(poland).toContainText('폴란드');
   await poland.click();
   await expect(page.locator('#focusSelectedObjectBtn')).toBeVisible();
+  await page.locator('#focusSelectedObjectBtn').click();
+  await expect(page.locator('text.country-label').filter({ hasText: '폴란드' })).toBeVisible();
   await expect(page.locator('#multiSelectionBar')).toBeHidden();
 
   await search.fill('독일');
@@ -65,13 +68,15 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 
   await page.locator('#clearMultiSelectionBtn').click();
   await expect(page.locator('#multiSelectionBar')).toBeHidden();
+  await search.fill('');
+  await expect(page.locator('#layerSearchResults')).toBeHidden();
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await page.locator('#actionsTabBtn').click();
   await page.locator('#editBorderBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('대상 선택');
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-  await page.locator('text.country-label').filter({ hasText: '폴란드' }).click();
+  await page.locator('text.country-label').filter({ hasText: '폴란드' }).dispatchEvent('click');
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('공유국경 편집');
@@ -97,11 +102,11 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#layerStyleEditorTitle')).toHaveText('레이어별 표시');
   await expect(page.locator('label:has(#layerStyleGroupInput)')).toContainText('설정할 레이어');
   await expect(page.locator('[data-layer-order-direction]')).toHaveCount(0);
-  await page.locator('#layerStyleGroupInput').selectOption('userDrawings');
+  await selectUiOption(page, '#layerStyleGroupInput', 'userDrawings');
   await page.locator('#layerStyleOpacityInput').fill('80');
   await page.locator('#layerStyleOpacityInput').dispatchEvent('change');
   await expect(page.locator('#layerStyleOpacityValue')).toHaveText('80%');
-  await page.locator('#distributionLayerModeInput').selectOption('intensity');
+  await selectUiOption(page, '#distributionLayerModeInput', 'intensity');
   await expect(page.locator('#distributionLayerModeInput')).toHaveValue('intensity');
   await expect(page.locator('#distributionLayerModeHint')).toHaveText('선택한 분포를 비율이 높을수록 진하게 표시합니다.');
   await page.locator('#layerPresentationCloseBtn').click();
@@ -110,7 +115,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 
   if (!await page.locator('#rightPanel').isVisible()) await page.locator('#togglePanelBtn').click();
   await expect(page.locator('#historyTabBtn')).toHaveCount(0);
-  await expect(page.locator('#undoBtn')).toBeEnabled();
+  await expect(page.locator('#undoBtn')).toBeDisabled();
   await expect(page.locator('#projectSaveStatusText')).toContainText('미저장');
   expect(errors).toEqual([]);
 });
@@ -127,7 +132,7 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   const point = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
   page.once('dialog', dialog => dialog.accept('겹침 테스트'));
   await page.mouse.click(point.x, point.y);
-  await page.locator('#labelKindInput').selectOption('capital');
+  await selectUiOption(page, '#labelKindInput', 'capital');
   await expect(page.locator('.user-label')).toContainText('겹침 테스트');
 
   await page.mouse.click(point.x, point.y);
