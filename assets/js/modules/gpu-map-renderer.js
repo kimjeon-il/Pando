@@ -159,6 +159,10 @@ export function createGpuMapRenderer(deps) {
     let overridePaletteTexture = null;
     let emphasisPaletteTexture = null;
     let overrideEmphasisPaletteTexture = null;
+    let primaryBoundaryPaletteTexture = null;
+    let secondaryBoundaryPaletteTexture = null;
+    let overridePrimaryBoundaryPaletteTexture = null;
+    let overrideSecondaryBoundaryPaletteTexture = null;
     let countryEmphasis = { primaryId: '', selectedIds: new Set(), hoveredId: '' };
     let countryEmphasisRevision = 0;
     let overridePositionBuffer = null;
@@ -197,7 +201,6 @@ export function createGpuMapRenderer(deps) {
     let activeMeshQuality = 'preview';
     let canonicalMeshReady = false;
     const meshVariants = new Map();
-    let meshRestoreTimer = 0;
     let meshInteractionActive = false;
     let pickCount = 0;
     let pickReadPixelsMs = 0;
@@ -211,6 +214,7 @@ export function createGpuMapRenderer(deps) {
     let cssHeight = 0;
     let pickFramebuffer = null;
     let pickTexture = null;
+    let activeRenderViewState = null;
     let worker = null;
     let workerCompletionResolver = null;
     let canvasWorker = null;
@@ -794,6 +798,10 @@ export function createGpuMapRenderer(deps) {
       overridePaletteTexture = gl.createTexture();
       emphasisPaletteTexture = gl.createTexture();
       overrideEmphasisPaletteTexture = gl.createTexture();
+      primaryBoundaryPaletteTexture = gl.createTexture();
+      secondaryBoundaryPaletteTexture = gl.createTexture();
+      overridePrimaryBoundaryPaletteTexture = gl.createTexture();
+      overrideSecondaryBoundaryPaletteTexture = gl.createTexture();
       hydroVisibilityTexture = gl.createTexture();
       hydroCornerBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
@@ -1397,17 +1405,13 @@ export function createGpuMapRenderer(deps) {
           : normalizedId === countryEmphasis.hoveredId ? 'hover' : '';
       if (!kind) return null;
       const darkTheme = getSystemTheme() === 'dark';
-      const styles = darkTheme
-        ? {
-          primary: { color: [226, 201, 130], alphaByte: 36 },
-          secondary: { color: [226, 201, 130], alphaByte: 23 },
-          hover: { color: [255, 255, 255], alphaByte: 20 },
-        }
-        : {
-          primary: { color: [49, 94, 157], alphaByte: 26 },
-          secondary: { color: [49, 94, 157], alphaByte: 18 },
-          hover: { color: [36, 72, 112], alphaByte: 20 },
-        };
+      const styles = {
+        primary: { color: [52, 103, 51], alphaByte: 30 },
+        secondary: { color: [52, 103, 51], alphaByte: 20 },
+        hover: darkTheme
+          ? { color: [255, 255, 255], alphaByte: 20 }
+          : { color: [36, 72, 112], alphaByte: 20 },
+      };
       return { kind, ...styles[kind] };
     }
 
@@ -1428,6 +1432,10 @@ export function createGpuMapRenderer(deps) {
       const overridePixels = new Uint8Array(meshCountryIds.length * 4);
       const emphasisPixels = new Uint8Array(meshCountryIds.length * 4);
       const overrideEmphasisPixels = new Uint8Array(meshCountryIds.length * 4);
+      const primaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
+      const secondaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
+      const overridePrimaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
+      const overrideSecondaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
       pendingOldMeshVisibleCount = 0;
       for (let index = 0; index < meshCountryIds.length; index += 1) {
         const id = meshCountryIds[index];
@@ -1453,12 +1461,28 @@ export function createGpuMapRenderer(deps) {
         }
         emphasisPixels[index * 4 + 3] = overridden ? 0 : emphasisAlpha;
         overrideEmphasisPixels[index * 4 + 3] = overridden && !pending ? emphasisAlpha : 0;
+        if (emphasis?.kind === 'primary' || emphasis?.kind === 'secondary') {
+          const boundaryPixels = emphasis.kind === 'primary' ? primaryBoundaryPixels : secondaryBoundaryPixels;
+          const overrideBoundaryPixels = emphasis.kind === 'primary' ? overridePrimaryBoundaryPixels : overrideSecondaryBoundaryPixels;
+          boundaryPixels[index * 4] = 52;
+          boundaryPixels[index * 4 + 1] = 103;
+          boundaryPixels[index * 4 + 2] = 51;
+          boundaryPixels[index * 4 + 3] = visible && !overridden && !pending ? 255 : 0;
+          overrideBoundaryPixels[index * 4] = 52;
+          overrideBoundaryPixels[index * 4 + 1] = 103;
+          overrideBoundaryPixels[index * 4 + 2] = 51;
+          overrideBoundaryPixels[index * 4 + 3] = visible && overridden && !pending ? 255 : 0;
+        }
         if (pending && (basePixels[index * 4 + 3] || overridePixels[index * 4 + 3])) pendingOldMeshVisibleCount += 1;
       }
       uploadPalette(paletteTexture, basePixels);
       uploadPalette(overridePaletteTexture, overridePixels);
       uploadPalette(emphasisPaletteTexture, emphasisPixels);
       uploadPalette(overrideEmphasisPaletteTexture, overrideEmphasisPixels);
+      uploadPalette(primaryBoundaryPaletteTexture, primaryBoundaryPixels);
+      uploadPalette(secondaryBoundaryPaletteTexture, secondaryBoundaryPixels);
+      uploadPalette(overridePrimaryBoundaryPaletteTexture, overridePrimaryBoundaryPixels);
+      uploadPalette(overrideSecondaryBoundaryPaletteTexture, overrideSecondaryBoundaryPixels);
     }
 
     function rotationRows() {
@@ -1478,21 +1502,41 @@ export function createGpuMapRenderer(deps) {
       return { rowX, rowY, rowZ, translate, scale };
     }
 
+    function getRenderViewState() {
+      if (activeRenderViewState && typeof activeRenderViewState === 'object') return activeRenderViewState;
+      const projection = state.projection;
+      const active = projection === 'globe' ? globeProjection : flatProjection;
+      return {
+        revision: currentRenderRevision,
+        projection,
+        size: { width: state.size.width, height: state.size.height },
+        dpr: resolveRenderPixelRatio(),
+        translate: active.translate().map(Number),
+        scale: Number(active.scale()),
+        rotation: projection === 'globe' ? state.view.globeRotation.map(Number) : null,
+        projectionCenter: projection === 'flat' ? state.view.flatCenter.map(Number) : null,
+        zoom: Number(projection === 'globe' ? state.view.globeZoom : state.view.flatZoom),
+      };
+    }
+
     function setViewUniforms(program, worldOffset = 0) {
-      const mode = state.projection === 'globe' ? 0 : 1;
+      const viewState = getRenderViewState();
+      const mode = viewState.projection === 'globe' ? 0 : 1;
+      const globeRows = mode === 0 ? rotationRows() : null;
       const data = mode === 0
-        ? rotationRows()
+        ? { ...globeRows, translate: viewState.translate || globeRows.translate, scale: Number(viewState.scale || globeRows.scale) }
         : {
             rowX: [1, 0, 0], rowY: [0, 1, 0], rowZ: [0, 0, 1],
-            translate: flatProjection.translate(), scale: flatProjection.scale(),
+            translate: viewState.translate || flatProjection.translate(), scale: Number(viewState.scale || flatProjection.scale()),
           };
-      gl.uniform2f(gl.getUniformLocation(program, 'uViewport'), cssWidth, cssHeight);
+      gl.uniform2f(gl.getUniformLocation(program, 'uViewport'), Number(viewState.size?.width || cssWidth), Number(viewState.size?.height || cssHeight));
       gl.uniform2f(gl.getUniformLocation(program, 'uTranslate'), data.translate[0], data.translate[1]);
       gl.uniform1f(gl.getUniformLocation(program, 'uScale'), data.scale);
       gl.uniform3fv(gl.getUniformLocation(program, 'uRowX'), data.rowX);
       gl.uniform3fv(gl.getUniformLocation(program, 'uRowY'), data.rowY);
       gl.uniform3fv(gl.getUniformLocation(program, 'uRowZ'), data.rowZ);
-      gl.uniform2f(gl.getUniformLocation(program, 'uFlatCenter'), state.view.flatCenter[0] * PI / 180, state.view.flatCenter[1] * PI / 180);
+      const flatCenter = viewState.projectionCenter || viewState.flatCenter || state.view.flatCenter;
+      gl.uniform2f(gl.getUniformLocation(program, 'uFlatCenter'), flatCenter[0] * PI / 180, flatCenter[1] * PI / 180);
       gl.uniform1f(gl.getUniformLocation(program, 'uWorldOffset'), worldOffset);
       gl.uniform1i(gl.getUniformLocation(program, 'uMode'), mode);
     }
@@ -1579,7 +1623,7 @@ export function createGpuMapRenderer(deps) {
       return [coordLocation, countryLocation];
     }
 
-    function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture, lineColor = null) {
+    function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture, lineColor = null, lineWidth = null) {
       gl.useProgram(program);
       if (program === fillProgram || program === lineProgram || program === pickProgram) {
         gl.uniform1i(gl.getUniformLocation(program, 'uPalette'), 0);
@@ -1590,13 +1634,13 @@ export function createGpuMapRenderer(deps) {
       }
       if (program === lineProgram) {
         const theme = mapTheme();
-        gl.lineWidth(Math.max(1, Number(theme.borderWidth) || 1));
+        gl.lineWidth(Math.max(1, Number(lineWidth) || Number(theme.borderWidth) || 1));
         const color = lineColor || [theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha];
         gl.uniform4f(gl.getUniformLocation(program, 'uBorderColor'), color[0], color[1], color[2], color[3]);
       }
       const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer, resources);
       if (glVersion === 2) gl.bindVertexArray(vao);
-      const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
+      const offsets = getRenderViewState().projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
       for (const offset of offsets) {
         setViewUniforms(program, offset);
         gl.drawElements(primitive, indexCount, gl.UNSIGNED_INT, 0);
@@ -2273,18 +2317,6 @@ export function createGpuMapRenderer(deps) {
       const interactionActive = active === true;
       meshInteractionActive = interactionActive;
       setHydroInteractionActive(interactionActive);
-      clearTimeout(meshRestoreTimer);
-      meshRestoreTimer = 0;
-      if (interactionActive) {
-        if (meshVariants.has('preview')) activateMeshVariant('preview', { renderFrame: false });
-        return;
-      }
-      if (!canonicalMeshReady || !meshVariants.has('canonical')) return;
-      meshRestoreTimer = setTimeout(() => {
-        meshRestoreTimer = 0;
-        activateMeshVariant('canonical', { renderFrame: false });
-        renderViewFrame();
-      }, 120);
     }
 
     function invalidateHydroVisibility() {
@@ -2598,6 +2630,51 @@ export function createGpuMapRenderer(deps) {
       if (state.layerVisibility.countries) {
         drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
         if (overrideMesh?.lineIndices?.length) drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture);
+        const boundaryColor = [52 / 255, 103 / 255, 51 / 255];
+        drawProgram(
+          lineProgram,
+          lineVao,
+          lineIndexBuffer,
+          mesh.lineIndices.length,
+          gl.LINES,
+          null,
+          primaryBoundaryPaletteTexture,
+          [...boundaryColor, 0.96],
+          2.5,
+        );
+        if (overrideMesh?.lineIndices?.length) drawProgram(
+          lineProgram,
+          overrideLineVao,
+          overrideLineIndexBuffer,
+          overrideMesh.lineIndices.length,
+          gl.LINES,
+          dynamicResources,
+          overridePrimaryBoundaryPaletteTexture,
+          [...boundaryColor, 0.96],
+          2.5,
+        );
+        drawProgram(
+          lineProgram,
+          lineVao,
+          lineIndexBuffer,
+          mesh.lineIndices.length,
+          gl.LINES,
+          null,
+          secondaryBoundaryPaletteTexture,
+          [...boundaryColor, 0.72],
+          1.5,
+        );
+        if (overrideMesh?.lineIndices?.length) drawProgram(
+          lineProgram,
+          overrideLineVao,
+          overrideLineIndexBuffer,
+          overrideMesh.lineIndices.length,
+          gl.LINES,
+          dynamicResources,
+          overrideSecondaryBoundaryPaletteTexture,
+          [...boundaryColor, 0.72],
+          1.5,
+        );
       }
       drawHydro('border-river');
       gl.flush();
@@ -2640,24 +2717,41 @@ export function createGpuMapRenderer(deps) {
         ctx2d.globalAlpha = theme.borderAlpha;
         ctx2d.strokeStyle = theme.border;
         ctx2d.stroke();
+        if (emphasis?.kind === 'primary' || emphasis?.kind === 'secondary') {
+          ctx2d.beginPath();
+          canvasPath(countryOutlineFeature(feature));
+          ctx2d.globalAlpha = emphasis.kind === 'primary' ? 0.96 : 0.72;
+          ctx2d.strokeStyle = '#346733';
+          ctx2d.lineWidth = emphasis.kind === 'primary' ? 2.5 : 1.5;
+          ctx2d.stroke();
+        }
       }
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
     }
 
-    function canvasWorkerRenderMessage(type = 'render', revision = currentRenderRevision) {
+    function canvasWorkerRenderMessage(type = 'render', revision = currentRenderRevision, viewState = null) {
       const colors = {};
       for (const feature of state.countriesData?.features || []) {
         colors[String(feature.properties?.editor_id || feature.properties?.iso_a3 || '')] = countryColor(feature);
       }
       const darkTheme = getSystemTheme() === 'dark';
+      const view = viewState || getRenderViewState();
+      const workerView = {
+        ...deepClone(state.view),
+        ...deepClone(view),
+        flatCenter: view.projectionCenter || state.view.flatCenter,
+        globeRotation: view.rotation || state.view.globeRotation,
+        flatZoom: view.zoom ?? state.view.flatZoom,
+        globeZoom: view.zoom ?? state.view.globeZoom,
+      };
       return {
         type,
-        width: Math.max(1, state.size.width),
-        height: Math.max(1, state.size.height),
-        dpr: resolveRenderPixelRatio(),
-        projection: state.projection,
-        view: deepClone(state.view),
+        width: Math.max(1, Number(view.size?.width || state.size.width)),
+        height: Math.max(1, Number(view.size?.height || state.size.height)),
+        dpr: Number(view.dpr || resolveRenderPixelRatio()),
+        projection: view.projection || state.projection,
+        view: workerView,
         revision: Number(revision || 0),
         geometryRevision: geometryRevisionTracker.committedRevision(),
         visible: !!state.layerVisibility.countries,
@@ -2668,12 +2762,15 @@ export function createGpuMapRenderer(deps) {
           primaryId: countryEmphasis.primaryId,
           selectedIds: [...countryEmphasis.selectedIds],
           hoveredId: countryEmphasis.hoveredId,
-          primaryColor: colorHex(darkTheme ? [226, 201, 130] : [49, 94, 157]),
-          secondaryColor: colorHex(darkTheme ? [226, 201, 130] : [49, 94, 157]),
+          primaryColor: '#346733',
+          secondaryColor: '#346733',
           hoverColor: colorHex(darkTheme ? [255, 255, 255] : [36, 72, 112]),
-          primaryAlpha: (darkTheme ? 36 : 26) / 255,
-          secondaryAlpha: (darkTheme ? 23 : 18) / 255,
+          primaryAlpha: 30 / 255,
+          secondaryAlpha: 20 / 255,
           hoverAlpha: 20 / 255,
+          boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
+          primaryBoundaryColor: '#346733',
+          secondaryBoundaryColor: '#346733',
         },
         theme: mapTheme(),
         physicalSettings: deepClone(state.physicalSettings),
@@ -2693,10 +2790,10 @@ export function createGpuMapRenderer(deps) {
       canvasWorker.postMessage(message);
     }
 
-    function renderCanvasWorker(revision = currentRenderRevision) {
+    function renderCanvasWorker(revision = currentRenderRevision, viewState = null) {
       if (!canvasWorker) return;
       resize();
-      const message = canvasWorkerRenderMessage('render', revision);
+      const message = canvasWorkerRenderMessage('render', revision, viewState);
       canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
       if (!canvasWorkerReady || canvasWorkerBusy) {
         canvasWorkerPendingMessage = message;
@@ -2705,18 +2802,22 @@ export function createGpuMapRenderer(deps) {
       postCanvasWorkerFrame(message);
     }
 
-    function render(revision = currentRenderRevision) {
+    function render(revision = currentRenderRevision, viewState = null) {
       currentRenderRevision = Math.max(currentRenderRevision, Number(revision || 0));
+      activeRenderViewState = viewState && typeof viewState === 'object'
+        ? viewState
+        : null;
+      if (!activeRenderViewState) activeRenderViewState = getRenderViewState();
       requestHydroView();
-      if (isWebGlRenderer()) renderWebGl();
-      else if (rendererMode === 'canvas-worker') renderCanvasWorker(currentRenderRevision);
+      if (isWebGlRenderer()) renderWebGl(activeRenderViewState);
+      else if (rendererMode === 'canvas-worker') renderCanvasWorker(currentRenderRevision, activeRenderViewState);
       else if (rendererMode === 'canvas2d') renderCanvasFallback();
       window.__PANDOLAB_GPU_METRICS__ = getStats();
     }
 
     function prioritizeLatest() {
       if (rendererMode !== 'canvas-worker' || !canvasWorker) return;
-      const message = canvasWorkerRenderMessage('render', currentRenderRevision);
+      const message = canvasWorkerRenderMessage('render', currentRenderRevision, activeRenderViewState);
       canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
       if (!canvasWorkerReady || canvasWorkerBusy) {
         if (!canvasWorkerPendingMessage || canvasWorkerPendingMessage.revision <= message.revision) {
@@ -2908,7 +3009,7 @@ export function createGpuMapRenderer(deps) {
       if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.countries) return null;
       resize();
       try { ensurePickTarget(); } catch (_) { return null; }
-      const pickEntry = meshVariants.get('preview') || meshVariants.get(activeMeshQuality);
+      const pickEntry = meshVariants.get(activeMeshQuality) || meshVariants.get(meshQuality);
       const pickMesh = pickEntry?.mesh || mesh;
       const pickResources = pickEntry?.resources;
       const nextSceneKey = [
@@ -3038,11 +3139,10 @@ export function createGpuMapRenderer(deps) {
       setMesh(decoded.mesh, decoded.ids, {
         renderFrame: false,
         quality,
-        preserveOtherVariants: quality === 'canonical' && meshVariants.has('preview'),
+        preserveOtherVariants: false,
       });
       meshQuality = quality;
       canonicalMeshReady = quality === 'canonical';
-      if (meshInteractionActive && meshVariants.has('preview')) activateMeshVariant('preview', { renderFrame: false });
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         await new Promise(resolve => {
           const timeout = setTimeout(() => {
@@ -3119,7 +3219,7 @@ export function createGpuMapRenderer(deps) {
         canonicalMeshReady,
         availableMeshQualities: [...meshVariants.keys()],
         meshInteractionActive,
-        meshRestorePending: !!meshRestoreTimer,
+        meshRestorePending: false,
         countries: meshCountryIds.length,
         renderVertices: mesh?.countryIndices?.length || 0,
         triangleCount: (mesh?.triangleIndices?.length || 0) / 3,
@@ -3130,6 +3230,13 @@ export function createGpuMapRenderer(deps) {
         pickLastReadPixelsMs: Number(pickLastReadPixelsMs.toFixed(3)),
         pickSceneRenderCount,
         countryEmphasisRevision,
+        countryEmphasis: {
+          primaryId: countryEmphasis.primaryId,
+          selectedIds: [...countryEmphasis.selectedIds],
+          boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
+          primaryBoundaryColor: '#346733',
+          secondaryBoundaryColor: '#346733',
+        },
         emphasizedCountryCount: countryEmphasis.selectedIds.size + (countryEmphasis.hoveredId && !countryEmphasis.selectedIds.has(countryEmphasis.hoveredId) ? 1 : 0),
         viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
         canvasBackingPixels: [pixelWidth, pixelHeight],
