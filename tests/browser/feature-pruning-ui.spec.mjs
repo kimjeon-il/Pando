@@ -46,15 +46,12 @@ for (const viewport of viewports) {
     await expect(page.locator('.editor-view-tabs')).toHaveText(/정보\s*작업/);
     await expect(page.locator('#countryAreaValue')).toContainText('km²');
     await expect(page.locator('#focusSelectedObjectBtn')).toHaveAttribute('aria-label', '지도에서 보기');
-    await expect(page.locator('#objectActionsBtn')).toHaveAttribute('aria-haspopup', 'menu');
+    await expect(page.locator('#objectActionsBtn')).toHaveCount(0);
+    await expect(page.locator('#objectLockBtn')).toHaveAttribute('aria-pressed', /true|false/);
+    await expect(page.locator('#objectDeleteBtn')).toBeVisible();
     await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'nowrap');
     await expect(page.locator('#countryProperties .editor-action-row')).toHaveCount(5);
     await expect(page.locator('#countryProperties .editor-action-grid')).toHaveCount(0);
-    await page.locator('#objectActionsBtn').click();
-    await expect(page.locator('#objectLockMenuBtn')).toHaveText(/국가 레이어 (잠금|잠금 해제)/);
-    await expect(page.locator('#objectActionsMenu [role="separator"]')).toHaveCount(1);
-    await page.keyboard.press('Escape');
-    await expect(page.locator('#objectActionsBtn')).toBeFocused();
     const overflow = await page.evaluate(() => ({
       viewport: window.innerWidth,
       document: document.documentElement.scrollWidth,

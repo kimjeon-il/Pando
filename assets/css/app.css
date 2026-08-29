@@ -2314,7 +2314,7 @@ input[type="search"]::-webkit-search-decoration { appearance: none; -webkit-appe
   grid-template-columns: minmax(0, 1fr) var(--ui-icon-size);
   align-items: center;
   gap: var(--ui-space-2);
-  padding: 0 var(--ui-menu-item-padding-x);
+  padding: var(--ui-menu-item-padding-x);
   border-radius: var(--ui-radius-control);
   color: var(--text-soft);
   font-size: var(--ui-font-body);
@@ -3367,9 +3367,35 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .editor-object-heading { min-width: 0; flex: 1 1 auto; display: flex; align-items: baseline; gap: var(--ui-space-1); overflow: hidden; }
 .editor-object-heading h2 { min-width: 0; flex: 0 1 auto; }
 .editor-object-heading > span { flex: 0 0 auto; color: var(--muted); font-size: var(--ui-font-md); }
-.editor-object-actions { position: relative; display: flex; gap: var(--ui-space-1); }
-.object-actions-menu { position: absolute; z-index: 60; top: calc(100% + var(--ui-space-1)); right: 0; width: clamp(200px, 54vw, 240px); padding: var(--ui-menu-padding); }
-.object-actions-menu .ui-row-button { width: 100%; justify-content: flex-start; }
+.editor-object-actions { display: flex; gap: var(--ui-space-1); }
+.editor-object-lock[aria-pressed="true"] { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
+.editor-object-delete { color: var(--text-soft); }
+.editor-object-delete:hover:not(:disabled),
+.editor-object-delete:focus-visible:not(:disabled) { border-color: var(--danger-border); background: var(--danger-surface); color: var(--danger-text); }
+.object-actions-menu {
+  position: fixed;
+  z-index: 3;
+  width: min(168px, calc(100vw - var(--ui-popover-screen-edge) - var(--ui-popover-screen-edge)));
+  padding: var(--ui-menu-padding);
+  pointer-events: auto;
+}
+.object-actions-menu .ui-row-button {
+  width: 100%;
+  min-height: var(--ui-control-height);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ui-space-2);
+  padding: 0 var(--ui-menu-item-padding-x);
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-soft);
+}
+.object-actions-menu .ui-row-button:hover:not(:disabled),
+.object-actions-menu .ui-row-button:focus-visible:not(:disabled) { border-color: transparent; background: var(--surface-hover); color: var(--text-strong); }
+.object-actions-menu .ui-icon { width: 18px; height: 18px; flex: 0 0 18px; }
+.object-actions-menu .object-actions-delete:hover:not(:disabled),
+.object-actions-menu .object-actions-delete:focus-visible:not(:disabled) { background: var(--danger-surface); color: var(--danger-text); }
 .object-actions-separator { height: 1px; margin: var(--ui-space-1) 0; background: var(--border); }
 .editor-object-header #focusSelectedObjectBtn { white-space: nowrap; }
 .multi-properties-summary { display: grid; gap: var(--ui-space-1); }
@@ -3430,6 +3456,7 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 #app[data-layout="mobile"] .editor-shell-header { padding-top: var(--ui-space-4); }
 #app[data-layout="mobile"] .editor-object-header { width: 100%; }
 #app[data-layout="mobile"] .editor-object-heading > span { font-size: var(--ui-font-sm); }
+#app[data-layout="mobile"] .object-actions-menu .ui-row-button { min-height: var(--ui-touch-height); }
 #app[data-layout="mobile"] .editor-view { padding-inline: var(--ui-sheet-body-padding-x); }
 #app[data-layout="mobile"] #projectSaveStatusText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #app[data-layout="mobile"] .multi-selection-bar {

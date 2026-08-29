@@ -110,8 +110,7 @@ test('all distribution types stay in the distribution model and free geometry ro
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
 
   await createDistribution(page, 'religion', '종교 삭제');
-  await page.locator('#objectActionsBtn').click();
-  await page.locator('#objectDeleteMenuBtn').click();
+  await page.locator('#objectDeleteBtn').click();
   await page.locator('#confirmModalOkBtn').click();
 
   const current = await page.evaluate(() => ({
