@@ -13,9 +13,11 @@ PROJECT_STATE = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_t
 
 class V0260DistributionModelTests(unittest.TestCase):
     def test_distribution_state_uses_shared_project_history_schema(self):
-        for field in ("distributionLayers", "distributionEntries", "distributionSettings"):
-            self.assertIn(f"name: '{field}', history: true", PROJECT_STATE)
+        for field in ("distributionLayers", "distributionEntries"):
+            self.assertIn(f"name: '{field}', scope: 'document'", PROJECT_STATE)
             self.assertIn(f"{field}:", APP)
+        self.assertIn("name: 'distributionSettings', scope: 'presentation'", PROJECT_STATE)
+        self.assertIn("distributionSettings:", APP)
 
     def test_language_ethnicity_and_religion_share_one_model(self):
         for value in ("language", "ethnicity", "religion"):

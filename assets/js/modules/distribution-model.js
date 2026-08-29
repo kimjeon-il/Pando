@@ -43,7 +43,6 @@ export function normalizeDistributionLayer(raw) {
     type,
     name: text(raw.name) || id,
     color: text(raw.color) || '#8c68d8',
-    visible: raw.visible !== false,
     locked: raw.locked === true,
     parentId: text(raw.parentId),
     groups: Array.isArray(raw.groups) ? [...new Set(raw.groups.map(text).filter(Boolean))] : [],
@@ -155,7 +154,7 @@ export function validateDistributionModel(layers, entries, { territorialExists =
 }
 
 export function dominantDistributionEntries(layers, entries) {
-  const visible = new Set((layers || []).filter(layer => layer.visible !== false).map(layer => layer.id));
+  const visible = new Set((layers || []).map(layer => layer.id));
   const byRegion = new Map();
   const geometryEntries = [];
   for (const entry of entries || []) {

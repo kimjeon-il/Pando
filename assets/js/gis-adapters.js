@@ -80,6 +80,7 @@
     const rows = Object.fromEntries(Object.values(DISTRIBUTION_TABLES).map(table => [table, []]));
     const layers = new Map((state?.distributionLayers || []).map(layer => [text(layer.id), layer]));
     const geometryIndex = countryGeometryIndex(state);
+    const presentationGroup = type => ({ language: 'languages', ethnicity: 'ethnicities', religion: 'religions' })[type] || '';
     for (const entry of state?.distributionEntries || []) {
       const layer = layers.get(text(entry.layerId));
       const table = DISTRIBUTION_TABLES[layer?.type];
@@ -94,7 +95,7 @@
         distribution_type: text(layer.type),
         parent_layer_id: text(layer.parentId),
         color: text(layer.color),
-        layer_visible: layer.visible === false ? 0 : 1,
+        layer_visible: state?.itemVisibility?.[presentationGroup(layer.type)]?.[text(layer.id)] === false ? 0 : 1,
         layer_locked: layer.locked === true ? 1 : 0,
         source_mode: sourceMode,
         region_id: sourceMode === 'region' ? text(entry.regionId) : '',
@@ -160,7 +161,6 @@
         type,
         name: text(properties.name) || layerId,
         color: text(properties.color) || '#8c68d8',
-        visible: Number(properties.layer_visible ?? 1) !== 0,
         locked: Number(properties.layer_locked ?? 0) === 1,
         parentId: text(properties.parent_layer_id),
         metadata: parseJson(properties.layer_metadata_json),

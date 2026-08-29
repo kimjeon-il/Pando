@@ -12,16 +12,21 @@ import {
 const state = {
   countryOverrides: { KOR: { name: '대한민국' } }, sourceInfo: null, labels: [{ id: 'label-1' }], drawings: [], hydroEdits: [{ id: 'river-1' }],
   territorialUnits: [{ id: 'territory-1' }], territorialRelations: [{ id: 'relation-1' }],
+  distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'dominant' },
+  labelSettings: { 'country:KOR': { pinned: true } }, layerPresentation: { styles: {} },
   physicalSettings: { terrainVisible: true }, projection: 'flat',
   layerVisibility: { countries: true }, itemVisibility: { A: false }, layerFolders: { countries: true },
   view: { flatZoom: 2 },
 };
 
-test('project and autosave share one declared field set', () => {
+test('project serialization contains document and presentation fields only', () => {
   const project = pickProjectFields(state);
-  assert.deepEqual(Object.keys(project), PROJECT_STATE_FIELDS.map(field => field.name));
+  assert.deepEqual(Object.keys(project), PROJECT_STATE_FIELDS.filter(field => ['document', 'presentation'].includes(field.scope)).map(field => field.name));
   assert.equal('removedLayerItems' in project, false);
   assert.equal('countriesLocked' in project, false);
+  assert.equal('projection' in project, false);
+  assert.equal('view' in project, false);
+  assert.equal('layerFolders' in project, false);
 });
 
 test('history snapshots preserve editable object state through the shared schema', () => {
@@ -30,7 +35,23 @@ test('history snapshots preserve editable object state through the shared schema
   assert.deepEqual(history.hydroEdits, state.hydroEdits);
   assert.deepEqual(history.territorialUnits, state.territorialUnits);
   assert.deepEqual(history.territorialRelations, state.territorialRelations);
+  assert.equal('labelSettings' in history, false);
+  assert.equal('layerVisibility' in history, false);
   assert.equal('projection' in history, false);
+});
+
+test('presentation and session scopes stay independent', () => {
+  const presentation = pickProjectFields(state, { scope: 'presentation' });
+  assert.deepEqual(presentation.labelSettings, state.labelSettings);
+  assert.deepEqual(presentation.layerVisibility, state.layerVisibility);
+  assert.equal('countryOverrides' in presentation, false);
+  assert.equal('projection' in presentation, false);
+
+  const session = pickProjectFields(state, { scope: 'session' });
+  assert.equal(session.projection, 'flat');
+  assert.deepEqual(session.view, { flatZoom: 2 });
+  assert.deepEqual(session.layerFolders, { countries: true });
+  assert.equal('layerVisibility' in session, false);
 });
 
 test('shared project fields receive current defaults without sharing mutable values', () => {
@@ -90,4 +111,21 @@ test('missing duplicate and legacy object identifiers are rejected', () => {
   const statusAlias = currentProject();
   statusAlias.territorialUnits[0].properties.status = 'unassigned';
   assert.throws(() => assertCurrentProjectSchema(statusAlias), /과거 필드 status/);
+});
+
+test('session state and model visibility aliases are rejected from project files', () => {
+  for (const field of ['projection', 'view', 'layerFolders', 'selectedDistributionLayerId']) {
+    const project = currentProject();
+    project[field] = field === 'projection' ? 'flat' : {};
+    assert.throws(() => assertCurrentProjectSchema(project), new RegExp(`과거 필드 ${field}`));
+  }
+  const drawingVisible = currentProject();
+  drawingVisible.drawings[0].properties.visible = true;
+  assert.throws(() => assertCurrentProjectSchema(drawingVisible), /과거 필드 visible/);
+  const distributionVisible = currentProject();
+  distributionVisible.distributionLayers[0].visible = true;
+  assert.throws(() => assertCurrentProjectSchema(distributionVisible), /과거 필드 visible/);
+  const selectedDistribution = currentProject();
+  selectedDistribution.distributionSettings = { renderMode: 'dominant', selectedLayerId: uuid(3) };
+  assert.throws(() => assertCurrentProjectSchema(selectedDistribution), /과거 필드 selectedLayerId/);
 });

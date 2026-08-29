@@ -33,7 +33,8 @@ test('territorial GIS rows keep hierarchy sovereignty dates and multipart geomet
 test('region distributions materialize referenced geometry only in the GIS view', () => {
   const state = {
     countriesData: { type: 'FeatureCollection', features: [{ type: 'Feature', id: 'GR', properties: { editor_id: 'GR' }, geometry: polygon() }] },
-    distributionLayers: [{ id: 'greek', type: 'language', name: '그리스어', color: '#2474c6', visible: true, locked: false }],
+    distributionLayers: [{ id: 'greek', type: 'language', name: '그리스어', color: '#2474c6', locked: false }],
+    itemVisibility: { languages: { greek: false } },
     distributionEntries: [
       { id: 'entry-region', layerId: 'greek', mode: 'region', regionId: 'GR', geometry: null, share: 95, certainty: 'high' },
       { id: 'entry-free', layerId: 'greek', mode: 'geometry', regionId: '', geometry: polygon(4, 5), share: 40, certainty: 'medium' },
@@ -46,6 +47,7 @@ test('region distributions materialize referenced geometry only in the GIS view'
   assert.equal(rows[0].source_mode, 'region');
   assert.equal(rows[0].region_id, 'GR');
   assert.equal(rows[0].share, 95);
+  assert.equal(rows[0].layer_visible, 0);
   assert.deepEqual(rows[1].geometry, polygon(4, 5));
   assert.deepEqual(state, before);
 });
