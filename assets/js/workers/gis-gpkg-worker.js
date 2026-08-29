@@ -222,17 +222,17 @@ function writeAtlasTables(db, payload) {
         name: overrides[id]?.name || properties.editor_name || properties.editor_original_name || properties.name || id,
         type: 'country',
         parent_id: '', sovereign_id: id, admin_level: null,
-        status: 'assigned', valid_from: properties.validFrom || properties.valid_from || '', valid_to: properties.validTo || properties.valid_to || '',
+        is_remainder: 0, valid_from: properties.validFrom || '', valid_to: properties.validTo || '',
         color: overrides[id]?.color || properties.editor_color || '', style_key: properties.style_key || '',
-        source_library_id: properties.sourceLibraryId || properties.source_library_id || '',
-        source_geometry_version: properties.sourceGeometryVersion || properties.source_geometry_version || '',
+        source_library_id: properties.sourceLibraryId || '',
+        source_geometry_version: properties.sourceGeometryVersion || '',
         metadata_json: JSON.stringify(properties.metadata || {}),
         properties_json: JSON.stringify(properties),
       };
     });
     const countryColumns = [
       { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
-      { name: 'admin_level', type: 'INTEGER' }, { name: 'status' }, { name: 'valid_from' }, { name: 'valid_to' },
+      { name: 'admin_level', type: 'INTEGER' }, { name: 'is_remainder', type: 'INTEGER' }, { name: 'valid_from' }, { name: 'valid_to' },
       { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
       { name: 'metadata_json' }, { name: 'properties_json' },
     ];
@@ -246,7 +246,7 @@ function writeAtlasTables(db, payload) {
   }
   const territorialColumns = [
     { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
-    { name: 'admin_level', type: 'INTEGER' }, { name: 'status' }, { name: 'valid_from' }, { name: 'valid_to' },
+    { name: 'admin_level', type: 'INTEGER' }, { name: 'is_remainder', type: 'INTEGER' }, { name: 'valid_from' }, { name: 'valid_to' },
     { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
     { name: 'metadata_json' }, { name: 'properties_json' },
   ];

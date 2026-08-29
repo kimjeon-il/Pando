@@ -21,14 +21,15 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertNotIn("layer-child-swatch", APP)
         self.assertNotIn(".layer-child-swatch", CSS)
 
-    def test_country_lock_is_an_internal_hook_and_object_menu_action(self):
+    def test_country_lock_is_only_an_object_menu_action(self):
         self.assertIn('symbol id="icon-lock-open"', INDEX)
         self.assertIn('symbol id="icon-lock-closed"', INDEX)
-        self.assertIn('id="countriesLocked" type="checkbox" class="lock-toggle" aria-label="국가 레이어 잠금" hidden', INDEX)
+        self.assertNotIn('id="countriesLocked"', INDEX)
         self.assertIn('id="objectLockMenuBtn"', INDEX)
         self.assertNotIn(".layer-folder-name::after", CSS)
         self.assertNotRegex(CSS, r'content:\s*["\']\s*잠금')
-        self.assertIn("$('countriesLocked').addEventListener('change'", APP)
+        self.assertNotIn("state.countriesLocked", APP)
+        self.assertIn("function isCountryLocked(id)", APP)
 
     def test_checkbox_uses_one_border_and_matching_checked_fill(self):
         base_rule = re.search(r'input\[type="checkbox"\]\s*\{([^}]*)\}', CSS)
@@ -43,7 +44,7 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-border\)')
 
     def test_layer_visibility_uses_eye_icons_without_changing_checkbox_state(self):
-        self.assertEqual(INDEX.count('class="layer-visibility-toggle"'), 9)
+        self.assertEqual(INDEX.count('class="layer-visibility-toggle"'), 8)
         self.assertIn('input[type="checkbox"].layer-visibility-toggle::before', CSS)
         self.assertIn('input[type="checkbox"].layer-visibility-toggle:checked::before', CSS)
         self.assertIn('mask-image: url("data:image/svg+xml', CSS)

@@ -710,31 +710,44 @@
         try { properties = { ...JSON.parse(properties.pandolab_source_properties), ...properties }; } catch (_) {}
       }
       const rawId = mapping.idField === '__fid__' ? (raw.id ?? index + 1) : properties[mapping.idField];
-      const id = String(rawId ?? '').trim();
-      if (!id) throw new Error(`국가 ID가 비어 있는 객체가 있습니다: ${raw.id ?? index + 1}`);
-      const name = String(mapping.nameField ? (properties[mapping.nameField] ?? '') : '').trim() || `국가 ${id}`;
+      const sourceId = String(rawId ?? '').trim();
+      if (!sourceId) throw new Error(`국가 원본 ID가 비어 있는 객체가 있습니다: ${raw.id ?? index + 1}`);
+      const name = String(mapping.nameField ? (properties[mapping.nameField] ?? '') : '').trim() || `국가 ${sourceId}`;
       let color = '';
       if (mapping.colorField === '__qgis_style__') color = applyQgsColor(descriptor.qgsStyle, properties);
       else if (mapping.colorField) color = String(properties[mapping.colorField] || '');
       if (!/^#[0-9a-f]{6}$/i.test(color)) color = '#63758a';
       const feature = {
-        type: 'Feature', id,
-        properties: { ...properties, editor_id: id, iso_a3: properties.iso_a3 || properties.ISO_A3 || properties.ADM0_A3 || id, editor_original_name: name, editor_name: name, editor_color: color },
+        type: 'Feature', id: sourceId,
+        properties: {
+          ...properties,
+          editor_id: sourceId,
+          iso_a3: properties.iso_a3 || properties.ISO_A3 || properties.ADM0_A3 || sourceId,
+          editor_original_name: name,
+          editor_name: name,
+          editor_color: color,
+          editor_custom: true,
+          metadata: { ...(properties.metadata && typeof properties.metadata === 'object' ? properties.metadata : {}), sourceId },
+        },
         geometry: { type: 'MultiPolygon', coordinates },
       };
-      if (!groups.has(id)) groups.set(id, []);
-      groups.get(id).push(feature);
+      if (!groups.has(sourceId)) groups.set(sourceId, []);
+      groups.get(sourceId).push(feature);
     }
     if (invalid.length) throw new Error(`유효하지 않은 Polygon/MultiPolygon 객체가 있습니다: ${invalid.slice(0, 8).join(', ')}${invalid.length > 8 ? '…' : ''}`);
     const duplicates = [...groups.entries()].filter(([, values]) => values.length > 1);
     if (duplicates.length && !mapping.groupDuplicates) throw new Error(`중복 국가 ID가 있습니다: ${duplicates.slice(0, 8).map(([id]) => id).join(', ')}`);
     const features = [];
-    for (const [id, values] of groups) {
-      if (values.length === 1) { features.push(values[0]); continue; }
+    for (const [sourceId, values] of groups) {
       const first = values[0];
-      first.geometry.coordinates = values.flatMap(value => value.geometry.coordinates);
-      first.properties.pandolab_source_rows = JSON.stringify(values.map(value => value.properties));
-      first.properties.editor_id = id;
+      if (values.length > 1) {
+        first.geometry.coordinates = values.flatMap(value => value.geometry.coordinates);
+        first.properties.pandolab_source_rows = JSON.stringify(values.map(value => value.properties));
+      }
+      const projectId = globalThis.crypto.randomUUID();
+      first.id = projectId;
+      first.properties.editor_id = projectId;
+      first.properties.metadata = { ...(first.properties.metadata || {}), sourceId };
       features.push(first);
     }
     return { type: 'FeatureCollection', features };

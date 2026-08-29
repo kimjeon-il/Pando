@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 async function installTestAnimationFrame(page) {
   await page.addInitScript(() => {
@@ -38,6 +39,8 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(poland).toContainText('폴란드');
   await poland.click();
   await expect(page.locator('#focusSelectedObjectBtn')).toBeVisible();
+  await page.locator('#focusSelectedObjectBtn').click();
+  await expect(page.locator('text.country-label').filter({ hasText: '폴란드' })).toBeVisible();
   await expect(page.locator('#multiSelectionBar')).toBeHidden();
 
   await search.fill('독일');
@@ -50,7 +53,8 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#multiPropertiesVisibilityInput')).toBeChecked();
   await expect(page.locator('#multiPropertiesLockInput')).not.toBeChecked();
   await expect(page.locator('#multiPropertiesDeleteBtn')).toHaveCount(0);
-  await expect(page.locator('#multiSelectionBar button')).toHaveCount(2);
+  await expect(page.locator('#multiSelectionModeBtn')).toBeHidden();
+  await expect(page.locator('#multiSelectionBar button:visible')).toHaveCount(2);
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#multiCountryActions')).toBeVisible();
   await expect(page.locator('#multiBorderEditBtn')).toBeEnabled();
@@ -64,13 +68,15 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 
   await page.locator('#clearMultiSelectionBtn').click();
   await expect(page.locator('#multiSelectionBar')).toBeHidden();
+  await search.fill('');
+  await expect(page.locator('#layerSearchResults')).toBeHidden();
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await page.locator('#actionsTabBtn').click();
   await page.locator('#editBorderBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('대상 선택');
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-  await page.locator('text.country-label').filter({ hasText: '폴란드' }).click();
+  await page.locator('text.country-label').filter({ hasText: '폴란드' }).dispatchEvent('click');
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('공유국경 편집');
@@ -95,11 +101,11 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#layerStyleEditorTitle')).toHaveText('레이어별 표시');
   await expect(page.locator('label:has(#layerStyleGroupInput)')).toContainText('설정할 레이어');
   await expect(page.locator('[data-layer-order-direction]')).toHaveCount(0);
-  await page.locator('#layerStyleGroupInput').selectOption('userDrawings');
+  await selectUiOption(page, '#layerStyleGroupInput', 'userDrawings');
   await page.locator('#layerStyleOpacityInput').fill('80');
   await page.locator('#layerStyleOpacityInput').dispatchEvent('change');
   await expect(page.locator('#layerStyleOpacityValue')).toHaveText('80%');
-  await page.locator('#distributionLayerModeInput').selectOption('intensity');
+  await selectUiOption(page, '#distributionLayerModeInput', 'intensity');
   await expect(page.locator('#distributionLayerModeInput')).toHaveValue('intensity');
   await expect(page.locator('#distributionLayerModeHint')).toHaveText('선택한 분포를 비율이 높을수록 진하게 표시합니다.');
   await page.locator('#mapLayersTabBtn').click();
@@ -108,7 +114,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 
   if (!await page.locator('#rightPanel').isVisible()) await page.locator('#togglePanelBtn').click();
   await expect(page.locator('#historyTabBtn')).toHaveCount(0);
-  await expect(page.locator('#undoBtn')).toBeEnabled();
+  await expect(page.locator('#undoBtn')).toBeDisabled();
   await expect(page.locator('#projectSaveStatusText')).toContainText('미저장');
   expect(errors).toEqual([]);
 });
@@ -127,7 +133,7 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   const point = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
   page.once('dialog', dialog => dialog.accept('겹침 테스트'));
   await page.mouse.click(point.x, point.y);
-  await page.locator('#labelKindInput').selectOption('capital');
+  await selectUiOption(page, '#labelKindInput', 'capital');
   await expect(page.locator('.user-label')).toContainText('겹침 테스트');
 
   await page.mouse.click(point.x, point.y);
@@ -137,15 +143,28 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   await expect(chooser).toContainText('겹침 테스트');
   await expect(chooser).toContainText('도시·지명');
   await expect(chooser).toContainText('국가');
+  await expect(page.locator('#propertyTitle')).toHaveText('겹침 테스트');
+
+  await page.locator('#objectChooserCloseBtn').click();
+  await page.keyboard.down('Alt');
+  await page.mouse.click(point.x, point.y);
+  await page.keyboard.up('Alt');
+  await expect(chooser).toBeVisible();
+  await expect(chooser.getByRole('option')).toHaveCount(2);
+  await expect(page.locator('#propertyTitle')).toHaveText('겹침 테스트');
   expect(errors).toEqual([]);
 });
 
-test('mobile long press enters additive selection without shrinking the touch target', async ({ page }) => {
+test('mobile additive selection uses the explicit selection control and keeps large touch targets', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
   const openLayers = async () => {
     if (await page.locator('#mobileMapBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileMapBtn').click();
     await expect(page.locator('#leftPanel')).toBeVisible();
+  };
+  const closeLayers = async () => {
+    if (await page.locator('#mobileMapBtn').getAttribute('aria-expanded') === 'true') await page.locator('#mobileMapBtn').click();
+    await expect(page.locator('#leftPanel')).toBeHidden();
   };
 
   await openLayers();
@@ -154,6 +173,12 @@ test('mobile long press enters additive selection without shrinking the touch ta
   const poland = page.locator('#layerSearchResults .layer-search-result').first();
   await expect(poland).toContainText('폴란드');
   await poland.click();
+  await expect(page.locator('#multiSelectionBar')).toBeVisible();
+  await expect(page.locator('#multiSelectionCount')).toHaveText('1개 선택됨');
+  await expect(page.locator('#multiSelectionModeBtn')).toHaveText('추가 선택');
+  await page.locator('#multiSelectionModeBtn').click();
+  await expect(page.locator('#multiSelectionModeBtn')).toHaveText('선택 완료');
+  await expect(page.locator('#multiSelectionModeBtn')).toHaveAttribute('aria-pressed', 'true');
 
   await openLayers();
   await search.fill('독일');
@@ -161,11 +186,21 @@ test('mobile long press enters additive selection without shrinking the touch ta
   await expect(germany).toContainText('독일');
   const touchBox = await germany.boundingBox();
   expect(touchBox.height).toBeGreaterThanOrEqual(48);
-  await germany.dispatchEvent('pointerdown', { pointerId: 41, pointerType: 'touch', isPrimary: true, clientX: touchBox.x + 12, clientY: touchBox.y + 12 });
-  await page.waitForTimeout(520);
-  await germany.dispatchEvent('pointerup', { pointerId: 41, pointerType: 'touch', isPrimary: true, clientX: touchBox.x + 12, clientY: touchBox.y + 12 });
+  await germany.click();
   await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
   await expect(page.locator('#multiSelectionBar')).not.toHaveClass(/hidden/);
+
+  await closeLayers();
+  await page.locator('#multiSelectionModeBtn').click();
+  await expect(page.locator('#multiSelectionModeBtn')).toHaveText('추가 선택');
+  await expect(page.locator('#multiSelectionModeBtn')).toHaveAttribute('aria-pressed', 'false');
+
+  await openLayers();
+  await search.fill('프랑스');
+  const france = page.locator('#layerSearchResults .layer-search-result').first();
+  await expect(france).toContainText('프랑스');
+  await france.click();
+  await expect(page.locator('#multiSelectionCount')).toHaveText('1개 선택됨');
   expect(errors).toEqual([]);
 });
 

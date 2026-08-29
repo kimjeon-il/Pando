@@ -83,7 +83,7 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertIn("label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth'", APP)
         self.assertIn("const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:'", APP)
         self.assertIn("name: meta.sourceLabel", APP)
-        self.assertIn("folderName: `${drawingFolderName(DEFAULT_DRAWING_FOLDER_ID)} · ${meta.label}`", APP)
+        self.assertIn("folderName: `지형지물 · ${meta.label}`", APP)
 
     def test_hydro_uses_the_current_ocean_colour_without_intrinsic_alpha(self):
         lake_rule = source_section(CSS, ".hydro-lake-group {", "}")

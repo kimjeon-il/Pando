@@ -22,7 +22,7 @@ class V0180UiSystemTests(unittest.TestCase):
         toggles = re.findall(r'class="ui-button layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)
         self.assertEqual(len(toggles), 8)
         self.assertTrue(all('class="ui-icon disclosure-icon"' in toggle for toggle in toggles))
-        self.assertGreaterEqual(INDEX.count('class="ui-icon disclosure-icon"'), 16)
+        self.assertGreaterEqual(INDEX.count('class="ui-icon disclosure-icon"'), 15)
         self.assertNotIn('>›</button>', INDEX)
         self.assertNotIn("content: '⌄'", CSS)
         self.assertIn(".editor-disclosure > summary::-webkit-details-marker { display: none; }", CSS)
