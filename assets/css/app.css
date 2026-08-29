@@ -1403,6 +1403,8 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 #app[data-layout="compact"] .map-command-toolbar { position: relative; inset: auto; flex: 0 0 auto; gap: 0; }
 #app[data-layout="compact"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }
 #app[data-layout="compact"] .mobile-backdrop { display: none !important; }
+#app[data-layout="wide"] .mobile-zoom-dock,
+#app[data-layout="compact"] .mobile-zoom-dock { display: none !important; }
 
 /* Compact controls: the wrapper only positions the two intentional surfaces. */
 #app[data-layout="compact"] .compact-primary-controls {
