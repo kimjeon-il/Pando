@@ -5800,10 +5800,20 @@ const {
       .attr('d', path)
       .style('fill', feature => feature.properties?.category === 'lake' ? hydroEditColor(feature) : 'none')
       .style('fill-opacity', feature => feature.properties?.category === 'lake' ? 0.34 * style.opacity : 0)
+      .style('stroke', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 'none' : hydroEditColor(feature))
+      .style('stroke-opacity', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : style.boundaryVisible ? style.opacity : 0)
+      .style('stroke-width', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : style.boundaryWidth);
+    selection.exit().remove();
+    const polygonSelection = hydroEditLayer.selectAll('path.hydro-edit-boundary').data(
+      data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)),
+      feature => String(feature.id),
+    );
+    polygonSelection.enter().append('path').attr('class', 'hydro-edit-boundary').style('fill', 'none').style('pointer-events', 'none');
+    polygonSelection.attr('d', feature => path(buildRenderableStrokeFeature(feature)))
       .style('stroke', hydroEditColor)
       .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
       .style('stroke-width', style.boundaryWidth);
-    selection.exit().remove();
+    polygonSelection.exit().remove();
   }
 
   function renderDrawings() {
@@ -5843,15 +5853,28 @@ const {
       })
       .style('fill', d => d.geometry?.type?.includes('Polygon') ? drawingColor(d) : 'none')
       .style('fill-opacity', d => d.geometry?.type?.includes('Polygon') ? 0.34 * style.opacity : 0)
-      .style('stroke', drawingColor)
-      .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', style.boundaryWidth)
+      .style('stroke', d => d.geometry?.type?.includes('Polygon') ? 'none' : drawingColor(d))
+      .style('stroke-opacity', d => d.geometry?.type?.includes('Polygon') ? 0 : style.boundaryVisible ? style.opacity : 0)
+      .style('stroke-width', d => d.geometry?.type?.includes('Polygon') ? 0 : style.boundaryWidth)
       .style('mix-blend-mode', style.blendMode)
       .attr('data-presentation-group', 'userDrawings')
       .classed('drawing-merge-source', d => state.tool === 'merge-drawing' && state.drawingMergeSourceId === String(d.id))
       .classed('drawing-merge-target', d => state.tool === 'merge-drawing' && state.drawingMergeTargetIds.includes(String(d.id)));
 
     selection.exit().remove();
+    const polygonSelection = drawingLayer.selectAll('path.drawing-boundary').data(
+      data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)),
+      feature => String(feature.id),
+    );
+    polygonSelection.enter().append('path').attr('class', 'drawing-boundary').style('fill', 'none').style('pointer-events', 'none');
+    polygonSelection.attr('d', feature => path(buildRenderableStrokeFeature(feature)))
+      .style('stroke', drawingColor)
+      .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
+      .style('stroke-width', style.boundaryWidth)
+      .style('mix-blend-mode', style.blendMode)
+      .classed('drawing-merge-source', feature => state.tool === 'merge-drawing' && state.drawingMergeSourceId === String(feature.id))
+      .classed('drawing-merge-target', feature => state.tool === 'merge-drawing' && state.drawingMergeTargetIds.includes(String(feature.id)));
+    polygonSelection.exit().remove();
   }
 
   function distributionRenderRows({ cull = true } = {}) {
@@ -5904,16 +5927,31 @@ const {
     selection
       .attr('d', row => path({ type: 'Feature', properties: {}, geometry: row.geometry }))
       .style('fill', row => distributionColor(row.layer))
-      .style('stroke', row => distributionColor(row.layer))
+      .style('stroke', row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type) ? 'none' : distributionColor(row.layer))
       .style('fill-opacity', row => (0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58) * layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).opacity)
+      .style('stroke-opacity', row => {
+        if (['Polygon', 'MultiPolygon'].includes(row.geometry?.type)) return 0;
+        const style = layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
+        return style.boundaryVisible ? style.opacity : 0;
+      })
+      .style('stroke-width', row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type) ? 0 : layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).boundaryWidth)
+      .style('mix-blend-mode', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).blendMode)
+      .attr('data-presentation-group', row => DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
+    selection.exit().remove();
+    const polygonSelection = distributionLayer.selectAll('path.distribution-boundary').data(
+      data.filter(row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type)),
+      row => row.id,
+    );
+    polygonSelection.enter().append('path').attr('class', 'distribution-boundary').style('fill', 'none').style('pointer-events', 'none');
+    polygonSelection.attr('d', row => path(buildRenderableStrokeFeature({ type: 'Feature', properties: {}, geometry: row.geometry })))
+      .style('stroke', row => distributionColor(row.layer))
       .style('stroke-opacity', row => {
         const style = layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
         return style.boundaryVisible ? style.opacity : 0;
       })
       .style('stroke-width', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).boundaryWidth)
-      .style('mix-blend-mode', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).blendMode)
-      .attr('data-presentation-group', row => DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
-    selection.exit().remove();
+      .style('mix-blend-mode', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).blendMode);
+    polygonSelection.exit().remove();
   }
 
   function territorialInternalBoundarySegments() {
@@ -6014,28 +6052,29 @@ const {
       .style('color', countryRegionColor)
       .style('fill', countryRegionColor)
       .style('fill-opacity', feature => layerStyle(state.layerPresentation, presentationGroupForTerritorialFeature(feature)).opacity)
-      .style('stroke', feature => {
-        const source = state.countryRegionMergeSourceId === String(feature.id);
-        const target = state.countryRegionMergeTargetIds.includes(String(feature.id));
-        return source ? 'var(--accent-2)' : target ? 'var(--accent)' : 'none';
-      })
-      .style('stroke-opacity', feature => {
-        const source = state.countryRegionMergeSourceId === String(feature.id);
-        const target = state.countryRegionMergeTargetIds.includes(String(feature.id));
-        if (source || target) return 1;
-        return 0;
-      })
-      .style('stroke-width', feature => {
-        const source = state.countryRegionMergeSourceId === String(feature.id);
-        const target = state.countryRegionMergeTargetIds.includes(String(feature.id));
-        if (source || target) return 3;
-        return 0;
-      })
+      .style('stroke', 'none')
+      .style('stroke-opacity', 0)
+      .style('stroke-width', 0)
       .style('stroke-dasharray', 'none')
       .style('mix-blend-mode', feature => layerStyle(state.layerPresentation, presentationGroupForTerritorialFeature(feature)).blendMode)
       .attr('data-presentation-group', presentationGroupForTerritorialFeature);
 
     selection.exit().remove();
+    const operationOutlines = data.filter(feature => state.countryRegionMergeSourceId === String(feature.id)
+      || state.countryRegionMergeTargetIds.includes(String(feature.id)));
+    const outlineSelection = countryRegionLayer.selectAll('path.country-region-operation-outline')
+      .data(operationOutlines, feature => String(feature.id));
+    outlineSelection.enter().append('path')
+      .attr('class', 'country-region-operation-outline')
+      .style('fill', 'none')
+      .style('pointer-events', 'none');
+    outlineSelection
+      .attr('d', feature => path(buildRenderableStrokeFeature(feature)))
+      .style('stroke', feature => state.countryRegionMergeSourceId === String(feature.id) ? 'var(--accent-2)' : 'var(--accent)')
+      .style('stroke-opacity', 1)
+      .style('stroke-width', 3)
+      .style('stroke-dasharray', 'none');
+    outlineSelection.exit().remove();
     renderTerritorialInternalBoundaries(data);
   }
 
@@ -6722,7 +6761,10 @@ const {
     if (state.hovered.ref && objectSelection.has(state.hovered.ref)) return;
     const isCountry = state.hovered.type === 'country';
     const feature = isCountry ? countryDisplayFeature(state.hovered.feature) : state.hovered.feature;
-    hoverLayer.append('path').datum(feature)
+    const hoverFeature = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
+      ? buildRenderableStrokeFeature(feature)
+      : feature;
+    hoverLayer.append('path').datum(hoverFeature)
       .attr('class', 'map-hover-shape map-hover-outline')
       .attr('d', path);
   }
@@ -6773,15 +6815,19 @@ const {
         ? (feature.features || []).map(item => item.geometry)
         : [feature.geometry];
       const hasBoundaryGeometry = geometries.some(geometry => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(geometry?.type));
+      if (isCountry) continue;
+      const boundaryFeature = hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))
+        ? buildRenderableStrokeFeature(feature)
+        : feature;
       if (genericGpuAvailable && hasBoundaryGeometry) {
-        (primary ? genericPrimary : genericSecondary).push({ key: ref.key, geometry: feature });
+        (primary ? genericPrimary : genericSecondary).push({ key: ref.key, geometry: boundaryFeature });
         continue;
       }
-      if (!genericGpuAvailable) boundarySegmentCount += geometries.reduce((count, geometry) => count + buildSelectionBoundarySegments(geometry).length, 0);
+      if (!genericGpuAvailable) boundarySegmentCount += buildSelectionBoundarySegments(boundaryFeature.geometry).length;
       const priorityClass = primary ? ' is-primary' : ' is-secondary';
-      const d = path(feature);
+      const d = path(boundaryFeature);
       if (!d) continue;
-      selectionLayer.append('path').datum(feature)
+      selectionLayer.append('path').datum(boundaryFeature)
         .attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
         .attr('stroke', SELECTION_STYLE.color)
         .attr('stroke-width', primary ? SELECTION_STYLE.primaryWidth : SELECTION_STYLE.secondaryWidth)

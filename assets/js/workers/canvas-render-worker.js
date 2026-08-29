@@ -1,5 +1,5 @@
 'use strict';
-importScripts('../vendor/d3.min.js');
+importScripts('../vendor/d3.min.js', './geographic-boundary-core.js');
 
 function canvasFallbackWorkerMain() {
     let canvas = null;
@@ -490,30 +490,10 @@ function canvasFallbackWorkerMain() {
       return String(feature.properties?.editor_id || feature.properties?.iso_a3 || index);
     }
 
-    function isArtificialPolarClosureEdge(a, b) {
-      if (!a || !b) return false;
-      const atPole = point => Math.abs(Math.abs(Number(point[1])) - 90) <= 1e-7;
-      const atDateLine = point => Math.abs(Math.abs(Number(point[0])) - 180) <= 1e-7;
-      return atPole(a) || atPole(b) || (atDateLine(a) && atDateLine(b));
-    }
-
     function countryOutlineFeature(feature) {
       const geometry = feature?.geometry;
       if (geometry && countryOutlineCache.has(geometry)) return countryOutlineCache.get(geometry);
-      const polygons = feature?.geometry?.type === 'Polygon'
-        ? [feature.geometry.coordinates]
-        : feature?.geometry?.type === 'MultiPolygon' ? feature.geometry.coordinates : [];
-      const lines = [];
-      for (const polygon of polygons) {
-        for (const ring of polygon || []) {
-          for (let index = 0; index < ring.length - 1; index += 1) {
-            const a = ring[index];
-            const b = ring[index + 1];
-            if (Math.abs(Number(a?.[0]) - Number(b?.[0])) > 180 || isArtificialPolarClosureEdge(a, b)) continue;
-            lines.push([a, b]);
-          }
-        }
-      }
+      const lines = self.PandoLabGeographicBoundary.buildRenderableBoundarySegments(feature);
       const outline = { type: 'Feature', geometry: { type: 'MultiLineString', coordinates: lines }, properties: feature?.properties || {} };
       if (geometry) countryOutlineCache.set(geometry, outline);
       return outline;

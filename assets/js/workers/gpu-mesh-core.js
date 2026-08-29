@@ -13,16 +13,13 @@
   }
 
   function isArtificialPolarClosureEdge(a, b) {
-    if (!a || !b) return false;
-    const poleEpsilon = 1e-7;
-    const seamEpsilon = 1e-7;
-    const aAtPole = Math.abs(Math.abs(Number(a[1])) - 90) <= poleEpsilon;
-    const bAtPole = Math.abs(Math.abs(Number(b[1])) - 90) <= poleEpsilon;
-    if (aAtPole || bAtPole) return true;
-    const aAtSeam = Math.abs(Math.abs(normalizeLongitude(Number(a[0]))) - 180) <= seamEpsilon;
-    const bAtSeam = Math.abs(Math.abs(normalizeLongitude(Number(b[0]))) - 180) <= seamEpsilon;
-    const crossesDateLine = Math.abs(normalizeLongitude(Number(a[0])) - normalizeLongitude(Number(b[0]))) > 180;
-    return (aAtSeam && bAtSeam) || crossesDateLine;
+    if (scope.PandoLabGeographicBoundary?.isArtificialBoundaryEdge) {
+      return scope.PandoLabGeographicBoundary.isArtificialBoundaryEdge(a, b);
+    }
+    if (!a || !b) return true;
+    const atPole = point => Math.abs(Math.abs(Number(point[1])) - 90) <= 1e-7;
+    const atSeam = point => Math.abs(Math.abs(normalizeLongitude(Number(point[0]))) - 180) <= 1e-7;
+    return atPole(a) || atPole(b) || (atSeam(a) && atSeam(b));
   }
 
   function polygonsFor(geometry) {
@@ -431,7 +428,7 @@
             const next = (index + 1) % count;
             const a = geoPoints[ringStarts[ringIndex] + index];
             const b = geoPoints[ringStarts[ringIndex] + next];
-            if (Math.abs(a[0] - b[0]) > 180 || isArtificialPolarClosureEdge(a, b)) continue;
+            if (isArtificialPolarClosureEdge(a, b)) continue;
             lineIndices.push(start + index, start + next);
           }
         }
