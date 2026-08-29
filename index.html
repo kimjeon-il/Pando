@@ -342,12 +342,8 @@
             <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><span class="editor-object-separator" aria-hidden="true">·</span><span id="propertyTypeLabel"></span></div>
             <div class="editor-object-actions">
               <button id="focusSelectedObjectBtn" class="ui-button icon-btn compact" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
-              <button id="objectActionsBtn" class="ui-button icon-btn compact" type="button" data-tooltip="객체 메뉴" aria-label="객체 메뉴" aria-haspopup="menu" aria-controls="objectActionsMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-more"/></svg></button>
-              <div id="objectActionsMenu" class="ui-menu ui-popover object-actions-menu hidden" role="menu">
-                <button id="objectLockMenuBtn" class="ui-button ui-row-button" type="button" role="menuitem">잠금</button>
-                <div class="object-actions-separator" role="separator"></div>
-                <button id="objectDeleteMenuBtn" class="ui-button ui-row-button danger-text" type="button" role="menuitem">삭제</button>
-              </div>
+              <button id="objectLockBtn" class="ui-button icon-btn compact editor-object-lock" type="button" data-tooltip="잠금" aria-label="잠금" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
+              <button id="objectDeleteBtn" class="ui-button icon-btn compact editor-object-delete" type="button" data-tooltip="삭제" aria-label="삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
             </div>
           </section>
           <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon editor-close-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><svg class="ui-icon editor-collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -709,6 +705,11 @@
         <span class="divider" role="separator"></span>
         <button id="keyboardHelpBtn" class="ui-button btn ghost file-help-menu-item" type="button" role="menuitem">키보드 도움말</button>
       </nav>
+      <div id="objectActionsMenu" class="ui-menu ui-popover object-actions-menu hidden" role="menu" aria-label="레이어 작업">
+        <button id="objectLockMenuBtn" class="ui-button ui-row-button" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockMenuIcon" href="#icon-lock-closed"/></svg><span id="objectLockMenuLabel">잠금</span></button>
+        <div class="object-actions-separator" role="separator"></div>
+        <button id="objectDeleteMenuBtn" class="ui-button ui-row-button object-actions-delete" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>삭제</span></button>
+      </div>
       <div id="uiTooltip" class="ui-tooltip hidden" role="tooltip" aria-hidden="true"></div>
     </div>
   </div>
