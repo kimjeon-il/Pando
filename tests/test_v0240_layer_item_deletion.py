@@ -63,9 +63,9 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         self.assertNotIn("hydro-layer:", APP)
 
     def test_virtualized_rows_share_the_same_context_menu_factory(self):
-        virtualized = APP[APP.index("function renderVirtualizedLayerGroup"):APP.index("function renderTerrainLayerFolder")]
+        virtualized = APP[APP.index("function renderVirtualizedLayerGroup"):APP.index("function createDynamicDrawingFolderElement")]
         self.assertIn("createLayerItemRow(group, items[index])", virtualized)
-        self.assertIn("grid-template-columns: var(--ui-tree-check-size) minmax(0, 1fr) auto var(--ui-tree-action-size)", CSS)
+        self.assertIn("grid-template-columns: var(--ui-tree-action-size) minmax(0, 1fr) auto var(--ui-tree-action-size)", CSS)
         self.assertIn("#app[data-layout=\"mobile\"] .layer-child-menu", CSS)
         self.assertIn('symbol id="icon-more"', INDEX)
 

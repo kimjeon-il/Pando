@@ -92,13 +92,12 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('path.boundary-edit-segment.shared')).toHaveCount(0);
   await page.locator('#modeCancelBtn').click();
 
-  await page.locator('#layerPresentationBtn').click();
-  await expect(page.locator('#layerPresentationModal')).toBeVisible();
-  await expect(page.locator('#mapSheetTitle')).toHaveText('레이어 표시 설정');
-  await expect(page.locator('#layerPresentationBtn')).toBeHidden();
-  await expect(page.locator('#layerPresentationCloseBtn')).toBeVisible();
-  await expect(page.locator('#layerPresentationCloseBtn')).toBeFocused();
-  await expect(page.locator('#layerPresentationDoneBtn, .layer-subview-header')).toHaveCount(0);
+  await page.locator('#mapViewTabBtn').click();
+  await expect(page.locator('#mapViewSection')).toBeVisible();
+  await expect(page.locator('#layerSection')).toBeHidden();
+  await expect(page.locator('#mapSheetTitle')).toHaveText('지도');
+  await expect(page.locator('#mapViewTabBtn')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#layerPresentationBtn, #layerPresentationCloseBtn, #layerPresentationModal')).toHaveCount(0);
   await expect(page.locator('#layerStyleEditorTitle')).toHaveText('레이어별 표시');
   await expect(page.locator('label:has(#layerStyleGroupInput)')).toContainText('설정할 레이어');
   await expect(page.locator('[data-layer-order-direction]')).toHaveCount(0);
@@ -109,9 +108,9 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await selectUiOption(page, '#distributionLayerModeInput', 'intensity');
   await expect(page.locator('#distributionLayerModeInput')).toHaveValue('intensity');
   await expect(page.locator('#distributionLayerModeHint')).toHaveText('선택한 분포를 비율이 높을수록 진하게 표시합니다.');
-  await page.locator('#layerPresentationCloseBtn').click();
-  await expect(page.locator('#mapSheetTitle')).toHaveText('레이어');
-  await expect(page.locator('#layerPresentationBtn')).toBeFocused();
+  await page.locator('#mapLayersTabBtn').click();
+  await expect(page.locator('#layerSection')).toBeVisible();
+  await expect(page.locator('#mapLayersTabBtn')).toBeFocused();
 
   if (!await page.locator('#rightPanel').isVisible()) await page.locator('#togglePanelBtn').click();
   await expect(page.locator('#historyTabBtn')).toHaveCount(0);
@@ -123,7 +122,9 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 test('overlapping map objects open the compact chooser and expose disambiguating type labels', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
+  await page.locator('#mapViewTabBtn').click();
   await page.locator('#basemapLabelsVisible').uncheck();
+  await page.locator('#mapLayersTabBtn').click();
   await page.locator('#createMenuBtn').click();
   await page.locator('#addLabelBtn').click();
 

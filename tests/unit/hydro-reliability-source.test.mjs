@@ -45,7 +45,35 @@ test('app waits for actual hydro worker readiness and retries manifests', () => 
   assert.ok(service.includes('timeoutMs: 15000'));
 });
 
+test('built-in rivers and lakes use nested source folders without changing visibility storage', () => {
+  const source = read('assets/js/app.js');
+  assert.ok(source.includes("const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:';"));
+  assert.ok(source.includes('...Object.keys(HYDRO_LAYER_META).map(hydroFolderStateKey)'));
+  assert.ok(source.includes('name: meta.sourceLabel'));
+  assert.ok(source.includes('folderName: `지형지물 · ${meta.label}`'));
+  assert.ok(source.includes('visibility.dataset.layerItemVisibility = itemGroup'));
+  assert.ok(source.includes('state.physicalSettings.hydroLayers[key] = !!visible'));
+});
+
+test('all hydro renderers inherit ocean colour with only the configured layer opacity', () => {
+  const app = read('assets/js/app.js');
+  const css = read('assets/css/app.css');
+  const gpu = read('assets/js/modules/gpu-map-renderer.js');
+  const canvas = read('assets/js/workers/canvas-render-worker.js');
+  const canvasHydro = canvas.slice(canvas.indexOf('function renderHydroPass'), canvas.indexOf('function pickHydroFeature'));
+  assert.ok(css.includes('fill: var(--map-ocean); fill-opacity: 1; stroke: var(--map-ocean)'));
+  assert.ok(css.includes('fill: none; stroke: var(--map-ocean); stroke-opacity: 1'));
+  assert.ok(!css.includes('.hydro-lake-group { fill: #376f91'));
+  assert.ok(!css.includes('.hydro-river-group { stroke: #66b5e5'));
+  assert.ok(app.includes(".style('fill-opacity', hydroStyle.opacity)"));
+  assert.ok(gpu.includes('const color = [...rgb, hydroOpacity];'));
+  assert.ok(!gpu.includes("(category === 'lake' ? 0.92 : 0.96)"));
+  assert.ok(canvasHydro.includes('context.globalAlpha = hydroOpacity;'));
+  assert.ok(!canvasHydro.includes('context.globalAlpha = 0.92;'));
+  assert.ok(!canvasHydro.includes('context.globalAlpha = 0.96;'));
+});
+
 test('bootstrap cache revision is advanced for the reliability build', () => {
   const source = read('assets/js/bootstrap.js');
-  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r9';"));
+  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r11';"));
 });

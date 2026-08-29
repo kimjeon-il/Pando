@@ -83,7 +83,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r9')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r11')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -91,7 +91,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r9');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r11');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -314,14 +314,14 @@ test('wide editor remains the only active surface after switching to compact', a
   expect(errors).toEqual([]);
 });
 
-test('toolbar projection segments fill the common icon-button geometry while mobile keeps its segmented frame', async ({ page }) => {
+test('projection control stays in the map view and uses one segmented geometry in every layout', async ({ page }) => {
   for (const pattern of ['**/countries-ne-5.1.1.geojson*', '**/world-mesh-v0.12.6.bin.gz*']) {
     await page.route(pattern, route => route.abort('failed'));
   }
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { waitForCanonical: false });
-  const measureToolbar = () => page.evaluate(() => {
-    const reference = document.querySelector('#zoomOutBtn').getBoundingClientRect();
+  const measureProjection = () => page.evaluate(() => {
+    const host = document.querySelector('#mapViewProjectionSlot').getBoundingClientRect();
     const control = document.querySelector('#projectionControl');
     const controlBox = control.getBoundingClientRect();
     const controlStyle = getComputedStyle(control);
@@ -335,7 +335,7 @@ test('toolbar projection segments fill the common icon-button geometry while mob
       };
     });
     return {
-      reference: { width: reference.width, height: reference.height },
+      host: { width: host.width, height: host.height },
       control: {
         width: controlBox.width,
         height: controlBox.height,
@@ -346,20 +346,23 @@ test('toolbar projection segments fill the common icon-button geometry while mob
     };
   });
 
-  for (const layout of layouts.slice(0, 2)) {
+  for (const layout of layouts) {
     await page.setViewportSize(layout.viewport);
     await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name);
+    if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
+    await page.locator('#mapViewTabBtn').click();
+    await expect(page.locator('#mapViewSection')).toBeVisible();
+    await expect.poll(() => page.locator('#projectionControl').evaluate(control => control.parentElement?.id)).toBe('mapViewProjectionSlot');
     for (const colorScheme of ['light', 'dark']) {
       await page.emulateMedia({ colorScheme });
-      const geometry = await measureToolbar();
-      expect(geometry.control.borderWidth).toBe('0px');
-      expect(geometry.control.padding).toBe('0px');
-      expect(Math.abs(geometry.control.width - geometry.reference.width * 2)).toBeLessThanOrEqual(0.5);
-      expect(Math.abs(geometry.control.height - geometry.reference.height)).toBeLessThanOrEqual(0.5);
+      const geometry = await measureProjection();
+      expect(geometry.control.borderWidth).toBe('1px');
+      expect(geometry.control.width).toBeCloseTo(geometry.host.width, 0);
+      expect(geometry.control.height).toBeGreaterThanOrEqual(layout.name === 'mobile' ? 48 : 40);
       for (const segment of geometry.segments) {
-        expect(Math.abs(segment.width - geometry.reference.width)).toBeLessThanOrEqual(0.5);
-        expect(Math.abs(segment.height - geometry.reference.height)).toBeLessThanOrEqual(0.5);
-        expect(segment.borderRadius).toBe('8px');
+        expect(segment.width).toBeGreaterThan(0);
+        expect(segment.height).toBeGreaterThan(0);
+        expect(parseFloat(segment.borderRadius)).toBeGreaterThan(0);
       }
     }
   }
@@ -367,18 +370,6 @@ test('toolbar projection segments fill the common icon-button geometry while mob
   await page.locator('#flatBtn').click();
   await expect(page.locator('#flatBtn')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#globeBtn')).toHaveAttribute('aria-pressed', 'false');
-
-  await page.setViewportSize(layouts[2].viewport);
-  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
-  const mobile = await page.locator('#projectionControl').evaluate(control => {
-    const style = getComputedStyle(control);
-    return {
-      host: control.parentElement?.id,
-      borderWidth: style.borderTopWidth,
-      padding: style.padding,
-    };
-  });
-  expect(mobile).toEqual({ host: 'mobileProjectionSlot', borderWidth: '1px', padding: '3px' });
   expect(errors).toEqual([]);
 });
 
@@ -398,6 +389,7 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
       const itemStyle = getComputedStyle(item);
       const bodyStyle = getComputedStyle(body);
       const checkStyle = getComputedStyle(checkbox);
+      const checkIconStyle = getComputedStyle(checkbox, '::before');
       return {
         itemWidth: item.getBoundingClientRect().width,
         bodyInnerWidth: body.clientWidth - Number.parseFloat(bodyStyle.paddingLeft) - Number.parseFloat(bodyStyle.paddingRight),
@@ -407,18 +399,21 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
         checkBorder: checkStyle.borderTopWidth,
         checkShadow: checkStyle.boxShadow,
         checkBackground: checkStyle.backgroundColor,
-        checkBorderColor: checkStyle.borderTopColor,
+        checkIconWidth: checkIconStyle.width,
+        checkIconMask: checkIconStyle.maskImage || checkIconStyle.webkitMaskImage,
         flatObjectSections: [...document.querySelectorAll('.editor-object-form > .editor-section')].every(section => !section.classList.contains('ui-card')),
-        legacyCardsUseBase: [...document.querySelectorAll('.editor-view:not(.editor-object-form) .editor-section')].every(card => card.classList.contains('ui-card')),
+        legacyCardsUseBase: [...document.querySelectorAll('.editor-view:not(.editor-object-form):not(.multi-properties) .editor-section')].every(card => card.classList.contains('ui-card')),
       };
       });
       if (layout.name !== 'mobile') expect(Math.abs(geometry.itemWidth - geometry.bodyInnerWidth)).toBeLessThanOrEqual(1);
       expect(geometry.itemHeight).toBe(layout.name === 'mobile' ? 68 : 64);
       expect(geometry.itemBoxSizing).toBe('border-box');
-      expect(geometry.checkSize).toEqual([18, 18]);
-      expect(geometry.checkBorder).toBe('1px');
+      expect(geometry.checkSize).toEqual(layout.name === 'mobile' ? [48, 48] : [42, 42]);
+      expect(geometry.checkBorder).toBe('0px');
       expect(geometry.checkShadow).toBe('none');
-      expect(geometry.checkBackground).toBe(geometry.checkBorderColor);
+      expect(geometry.checkBackground).toBe('rgba(0, 0, 0, 0)');
+      expect(geometry.checkIconWidth).toBe('20px');
+      expect(geometry.checkIconMask).toContain('svg');
       expect(geometry.flatObjectSections).toBe(true);
       expect(geometry.legacyCardsUseBase).toBe(true);
       expect(errors).toEqual([]);
@@ -602,17 +597,110 @@ test('virtualized country deletion honors per-object lock, undo, and autosave re
   expect(errors).toEqual([]);
 });
 
-test('layer folders are grouped into scan-friendly non-collapsible categories', async ({ page }) => {
+test('layer folders stay spatial while global name visibility lives in the map view', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const categories = page.locator('.layer-category');
-  await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지도 요소', '라벨']);
+  await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지도 요소']);
   await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '지역', '행정구역', '역사·지리 지역']);
   await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['수계', '지형지물']);
-  await expect(categories.nth(2).locator('.layer-display-option')).toContainText('지형 음영');
-  await expect(categories.nth(3).locator('.layer-display-option')).toHaveText(['도시·지명', '국가명 라벨']);
+  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형지물']);
+  await expect(page.locator('#layerSection #terrainVisible')).toHaveCount(0);
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
+  await page.locator('#mapViewTabBtn').click();
+  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('이름 표시');
+  await expect(page.locator('label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
+  await expect(page.locator('label:has(#labelsVisible)')).toContainText('도시·지명 표시');
+  const terrainVisible = page.locator('#terrainVisible');
+  const terrainOptions = page.locator('#terrainDisplayOptions');
+  const terrainStrength = page.locator('#terrainStrengthInput');
+  await expect(page.locator('#mapViewSection #terrainVisible')).toHaveCount(1);
+  await expect(page.locator('label:has(#terrainVisible)')).toContainText('지형 음영 표시');
+  await expect(terrainVisible).toHaveAttribute('aria-expanded', 'true');
+  await expect(terrainOptions).toBeVisible();
+  await expect(terrainStrength).toHaveJSProperty('value', '32');
+  await expect.poll(() => terrainStrength.evaluate(input => getComputedStyle(input).getPropertyValue('--ui-range-progress').trim())).toBe('32%');
+  await terrainStrength.evaluate(input => {
+    input.value = '75';
+    input.dispatchEvent(new input.ownerDocument.defaultView.Event('input', { bubbles: true }));
+  });
+  await expect(page.locator('#terrainStrengthValue')).toHaveText('75%');
+  await expect.poll(() => terrainStrength.evaluate(input => getComputedStyle(input).getPropertyValue('--ui-range-progress').trim())).toBe('75%');
+  await terrainVisible.uncheck();
+  await expect(terrainVisible).toHaveAttribute('aria-expanded', 'false');
+  await expect(terrainOptions).toBeHidden();
+  await terrainVisible.check();
+  await expect(terrainOptions).toBeVisible();
+  await expect(page.locator('#terrainStrengthValue')).toHaveText('75%');
+  await page.locator('#terrainPhysicalRadio').check();
+  await expect(page.locator('#terrainStrengthControl')).toBeHidden();
+  await page.locator('#terrainPoliticalRadio').check();
+  await expect(page.locator('#terrainStrengthControl')).toBeVisible();
+  for (const layout of layouts.slice(1)) {
+    await page.setViewportSize(layout.viewport);
+    await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name);
+    if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
+    if (!await page.locator('#mapViewSection').isVisible()) await page.locator('#mapViewTabBtn').click();
+    await expect(page.locator('.terrain-settings')).toBeVisible();
+    const overflow = await page.locator('#leftPanel').evaluate(panel => ({
+      panel: panel.scrollWidth > panel.clientWidth + 1,
+      settings: panel.querySelector('.terrain-settings').scrollWidth > panel.querySelector('.terrain-settings').clientWidth + 1,
+    }));
+    expect(overflow).toEqual({ panel: false, settings: false });
+  }
+  expect(errors).toEqual([]);
+});
+
+test('built-in rivers and lakes are nested source folders with synchronized visibility', async ({ page }) => {
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page);
+  const expected = [
+    { key: 'hydro-folder:rivers_hydro', folder: '강', source: 'HydroRIVERS' },
+    { key: 'hydro-folder:lakes_natural_earth', folder: '호수', source: 'Natural Earth' },
+  ];
+
+  const drawingsToggle = page.locator('[data-layer-folder-toggle="drawings"]').first();
+  if (await drawingsToggle.getAttribute('aria-expanded') !== 'true') await drawingsToggle.click();
+  let folderRows = page.locator('#drawingsLayerChildren .layer-hydro-folder-row');
+  await expect(folderRows).toHaveCount(2);
+  await expect(folderRows.locator('.layer-hydro-folder-name')).toHaveText(expected.map(item => item.folder));
+
+  for (const item of expected) {
+    let folderRow = page.locator(`[data-hydro-folder-key="${item.key}"]`);
+    const toggle = folderRow.locator('[data-hydro-folder-toggle]').first();
+    if (await toggle.getAttribute('aria-expanded') === 'true') await toggle.click();
+    await expect(page.locator(`#drawingsLayerChildren .layer-child[data-item-id="hydro-layer:${item.key.slice('hydro-folder:'.length)}"]`)).toHaveCount(0);
+    await folderRow.locator('.layer-hydro-folder-name').click();
+    const sourceRow = page.locator(`#drawingsLayerChildren .layer-child[data-item-id="hydro-layer:${item.key.slice('hydro-folder:'.length)}"]`);
+    await expect(sourceRow.locator('.layer-child-name')).toHaveText(item.source);
+    await expect(sourceRow).toHaveClass(/is-hydro-source/);
+
+    folderRow = page.locator(`[data-hydro-folder-key="${item.key}"]`);
+    const folderVisibility = folderRow.locator('.layer-visibility-toggle');
+    const sourceVisibility = sourceRow.locator('.layer-visibility-toggle');
+    await folderVisibility.uncheck();
+    await expect(sourceVisibility).not.toBeChecked();
+    await sourceVisibility.check();
+    await expect(page.locator(`[data-hydro-folder-key="${item.key}"] .layer-visibility-toggle`)).toBeChecked();
+    await page.locator(`[data-hydro-folder-key="${item.key}"] .layer-hydro-folder-name`).click();
+    await expect(sourceRow).toHaveCount(0);
+  }
+
+  for (const layout of layouts.slice(1)) {
+    await page.setViewportSize(layout.viewport);
+    await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name);
+    if (layout.name === 'mobile' && !await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
+    folderRows = page.locator('#drawingsLayerChildren .layer-hydro-folder-row');
+    await expect(folderRows).toHaveCount(2);
+    await expect(folderRows.locator('.layer-hydro-folder-name')).toHaveText(expected.map(item => item.folder));
+    if (layout.name === 'mobile') {
+      const touchSize = await folderRows.first().locator('.layer-hydro-folder-toggle').evaluate(element => {
+        const rect = element.getBoundingClientRect();
+        return [Math.round(rect.width), Math.round(rect.height)];
+      });
+      expect(touchSize).toEqual([48, 48]);
+    }
+  }
   expect(errors).toEqual([]);
 });
 
@@ -718,16 +806,41 @@ test('shared color picker applies presets, restores defaults, and participates i
   await page.emulateMedia({ colorScheme: 'dark' });
   await expect(page.locator('#countryColorInput')).toHaveValue('#63758a');
   await page.locator('#countryColorTrigger').click();
-  await expect(page.locator('#countryColorPopover')).toBeVisible();
-  await page.locator('#countryColorPopover [data-color-value="#dc2626"]').click();
-  await expect(page.locator('#countryColorInput')).toHaveValue('#dc2626');
-  await expect(page.locator('#countryColorValue')).toHaveText('#DC2626');
+  const palette = page.locator('#countryColorPopover');
+  const neutrals = palette.locator('.ui-color-swatch-grid--neutral [data-color-value]');
+  const chromatic = palette.locator('.ui-color-swatch-grid--chromatic [data-color-value]');
+  await expect(palette).toBeVisible();
+  await expect(neutrals).toHaveCount(6);
+  await expect(chromatic).toHaveCount(60);
+  await expect(neutrals.first()).toHaveAttribute('aria-label', '흰색 (#FFFFFF) 색상');
+  await expect(chromatic.first()).toHaveAttribute('aria-label', '빨강 아주 밝음 (#FEE2E2) 색상');
+  expect(await chromatic.evaluateAll(elements => elements.slice(0, 12).map(element => element.dataset.colorFamily))).toEqual([
+    '빨강', '주황', '황금', '노랑', '연두', '초록', '청록', '시안', '파랑', '인디고', '보라', '분홍',
+  ]);
+  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(12);
+  await palette.locator('[data-color-value="#ef4444"]').click();
+  await expect(page.locator('#countryColorInput')).toHaveValue('#ef4444');
+  await expect(page.locator('#countryColorValue')).toHaveText('#EF4444');
   await page.emulateMedia({ colorScheme: 'light' });
-  await expect(page.locator('#countryColorInput')).toHaveValue('#dc2626');
+  await expect(page.locator('#countryColorInput')).toHaveValue('#ef4444');
   await page.locator('#countryColorTrigger').click();
   await page.locator('#countryColorPopover [data-color-default]').click();
   await expect(page.locator('#countryColorValue')).toHaveText('기본 색상');
   await expect(page.locator('#countryColorInput')).toHaveValue('#cccccc');
+  await page.setViewportSize(layouts[2].viewport);
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  if (await page.locator('#mobileEditBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileEditBtn').click();
+  await page.locator('#countryColorTrigger').click();
+  await expect(palette).toBeVisible();
+  const paletteBox = await palette.boundingBox();
+  expect(paletteBox.x).toBeGreaterThanOrEqual(0);
+  expect(paletteBox.x + paletteBox.width).toBeLessThanOrEqual(layouts[2].viewport.width);
+  expect(paletteBox.y).toBeGreaterThanOrEqual(0);
+  expect(paletteBox.y + paletteBox.height).toBeLessThanOrEqual(layouts[2].viewport.height);
+  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(12);
+  await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정…');
+  await expect(page.locator('#countryColorInput')).toHaveAttribute('type', 'color');
+  await page.keyboard.press('Escape');
   await page.locator('#undoBtn').click();
   await expect(page.locator('#redoBtn')).toBeEnabled();
   await expect(page.locator('#countryProperties')).toBeHidden();
