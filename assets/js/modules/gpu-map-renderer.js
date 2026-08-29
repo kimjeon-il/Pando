@@ -161,7 +161,7 @@ export function createGpuMapRenderer(deps) {
     let overridePaletteTexture = null;
     let emphasisPaletteTexture = null;
     let overrideEmphasisPaletteTexture = null;
-    let countryEmphasis = { primaryId: '', selectedIds: new Set(), hoveredId: '', selectionMode: 'outline-soft-fill' };
+    let countryEmphasis = { primaryId: '', selectedIds: new Set(), selectionMode: 'outline-soft-fill' };
     let countryEmphasisRevision = 0;
     let overridePositionBuffer = null;
     let overrideCountryBuffer = null;
@@ -1394,10 +1394,8 @@ export function createGpuMapRenderer(deps) {
     function countryEmphasisStyle(id) {
       const normalizedId = String(id || '');
       const kind = normalizedId === countryEmphasis.primaryId ? 'primary'
-        : countryEmphasis.selectedIds.has(normalizedId) ? 'secondary'
-          : normalizedId === countryEmphasis.hoveredId ? 'hover' : '';
+        : countryEmphasis.selectedIds.has(normalizedId) ? 'secondary' : '';
       if (!kind) return null;
-      const darkTheme = getSystemTheme() === 'dark';
       const fillAlpha = countryEmphasis.selectionMode === 'strong-fill'
         ? { primary: 92, secondary: 51 }
         : countryEmphasis.selectionMode === 'outline'
@@ -1407,9 +1405,6 @@ export function createGpuMapRenderer(deps) {
       const styles = {
         primary: { color: selectionRgb, alphaByte: fillAlpha.primary },
         secondary: { color: selectionRgb, alphaByte: fillAlpha.secondary },
-        hover: darkTheme
-          ? { color: [255, 255, 255], alphaByte: 20 }
-          : { color: [36, 72, 112], alphaByte: 20 },
       };
       return { kind, ...styles[kind] };
     }
@@ -2693,13 +2688,10 @@ export function createGpuMapRenderer(deps) {
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
           selectedIds: [...countryEmphasis.selectedIds],
-          hoveredId: countryEmphasis.hoveredId,
           primaryColor: SELECTION_STYLE.color,
           secondaryColor: SELECTION_STYLE.color,
-          hoverColor: colorHex(darkTheme ? [255, 255, 255] : [36, 72, 112]),
           primaryAlpha: countryEmphasis.selectionMode === 'strong-fill' ? 92 / 255 : countryEmphasis.selectionMode === 'outline' ? 0 : 30 / 255,
           secondaryAlpha: countryEmphasis.selectionMode === 'strong-fill' ? 51 / 255 : countryEmphasis.selectionMode === 'outline' ? 0 : 20 / 255,
-          hoverAlpha: 20 / 255,
           boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
           primaryBoundaryColor: SELECTION_STYLE.color,
           secondaryBoundaryColor: SELECTION_STYLE.color,
@@ -3109,18 +3101,16 @@ export function createGpuMapRenderer(deps) {
       return decoded;
     }
 
-    function setCountryEmphasis({ primaryId = '', selectedIds = [], hoveredId = '', selectionMode = 'outline-soft-fill' } = {}) {
+    function setCountryEmphasis({ primaryId = '', selectedIds = [], selectionMode = 'outline-soft-fill' } = {}) {
       const nextSelected = new Set((selectedIds || []).map(String).filter(Boolean));
       const nextPrimary = String(primaryId || '');
-      const nextHovered = String(hoveredId || '');
       const nextSelectionMode = ['outline', 'outline-soft-fill', 'strong-fill'].includes(selectionMode) ? selectionMode : 'outline-soft-fill';
       const unchanged = countryEmphasis.primaryId === nextPrimary
-        && countryEmphasis.hoveredId === nextHovered
         && countryEmphasis.selectionMode === nextSelectionMode
         && countryEmphasis.selectedIds.size === nextSelected.size
         && [...nextSelected].every(id => countryEmphasis.selectedIds.has(id));
       if (unchanged) return false;
-      countryEmphasis = { primaryId: nextPrimary, selectedIds: nextSelected, hoveredId: nextHovered, selectionMode: nextSelectionMode };
+      countryEmphasis = { primaryId: nextPrimary, selectedIds: nextSelected, selectionMode: nextSelectionMode };
       countryEmphasisRevision += 1;
       if (isWebGlRenderer() && gl && meshCountryIds.length) renderViewFrame();
       else if (rendererMode !== 'pending') render(currentRenderRevision);
@@ -3173,7 +3163,7 @@ export function createGpuMapRenderer(deps) {
           primaryBoundaryColor: SELECTION_STYLE.color,
           secondaryBoundaryColor: SELECTION_STYLE.color,
         },
-        emphasizedCountryCount: countryEmphasis.selectedIds.size + (countryEmphasis.hoveredId && !countryEmphasis.selectedIds.has(countryEmphasis.hoveredId) ? 1 : 0),
+        emphasizedCountryCount: countryEmphasis.selectedIds.size,
         viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
         canvasBackingPixels: [pixelWidth, pixelHeight],
         layoutMismatchCssPx: Number(layoutMismatch().toFixed(3)),

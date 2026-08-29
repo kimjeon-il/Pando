@@ -17,7 +17,7 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertNotIn('>현재 작업<', INDEX)
         self.assertNotIn('map-context-panel', combined)
 
-    def test_task_context_and_commit_actions_use_separate_surfaces(self):
+    def test_task_context_and_commit_actions_share_action_surface(self):
         for element_id in (
             "mapTopContextSlot", "modeEditingContext", "modeEditingHud", "modeActionBar", "modeTaskName",
             "modeTaskStage", "modeTaskInstruction", "modePrimaryBtn",
@@ -26,12 +26,14 @@ class TaskDockV0182Tests(unittest.TestCase):
             self.assertIn(f'id="{element_id}"', INDEX)
         self.assertEqual(INDEX.count('class="mode-task-context"'), 1)
         context_start = INDEX.index('id="modeEditingContext"')
-        context_end = INDEX.index('id="modeDraftActions"')
         action_start = INDEX.index('id="modeActionBar"')
-        self.assertLess(context_start, context_end)
-        self.assertLess(context_end, action_start)
-        self.assertNotIn('id="modePrimaryBtn"', INDEX[context_start:context_end])
-        self.assertNotIn('id="modeCancelBtn"', INDEX[context_start:context_end])
+        draft_start = INDEX.index('id="modeDraftActions"')
+        buttons_start = INDEX.index('class="mode-action-buttons"')
+        self.assertLess(context_start, action_start)
+        self.assertLess(action_start, draft_start)
+        self.assertLess(draft_start, buttons_start)
+        self.assertNotIn('id="modePrimaryBtn"', INDEX[context_start:action_start])
+        self.assertNotIn('id="modeCancelBtn"', INDEX[context_start:action_start])
         self.assertLess(INDEX.index('id="modeCancelBtn"'), INDEX.index('id="modePrimaryBtn"'))
         self.assertIn("function activeModeTaskDescriptor()", APP)
         self.assertIn("'annex-territory': Object.freeze({ label: '영토 편입'", TOOLS)

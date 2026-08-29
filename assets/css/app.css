@@ -436,7 +436,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
   stroke-linecap: round;
   filter: none;
 }
-.map-hover-outline { fill: none; stroke: color-mix(in srgb, var(--map-hover-stroke) 62%, transparent); stroke-width: 1.25px; }
+.map-hover-outline { fill: var(--map-hover-fill); stroke: var(--map-hover-stroke); stroke-width: 1.5px; stroke-opacity: 1; }
 .map-selection-outline { fill: none; stroke: var(--map-selection-halo); }
 .map-selection-shape.is-primary { fill: none; }
 .map-selection-shape.is-secondary { fill: none; }
@@ -468,7 +468,6 @@ html[data-selection-mode="strong-fill"] .map-selection-shape.is-secondary { fill
 .map-base-svg.flat-projection .globe-shadow { display: none; }
 .map-graticule { fill: none; stroke: var(--map-graticule); stroke-opacity: var(--map-graticule-opacity); stroke-width: .55px; pointer-events: none; }
 .country-shape { stroke: var(--map-border); stroke-width: .72px; stroke-linejoin: round; cursor: pointer; transition: fill-opacity .12s ease; }
-.country-shape:hover { fill-opacity: .82 !important; stroke: #75818d; }
 .country-label { fill: var(--map-label); font-size: var(--ui-font-map); font-weight: var(--ui-weight-semibold); text-anchor: middle; paint-order: stroke; stroke: var(--map-label-halo); stroke-width: 2.3px; stroke-linejoin: round; pointer-events: auto; cursor: pointer; }
 .country-label.major { font-size: var(--ui-font-caption); }
 .country-region-shape {
@@ -490,8 +489,6 @@ html[data-selection-mode="strong-fill"] .map-selection-shape.is-secondary { fill
 .territorial-internal-boundary--administrative { stroke-width: 1.1px; stroke-dasharray: 3 2; }
 .territorial-internal-boundary--historical { stroke-width: 1.5px; stroke-dasharray: 7 3; }
 .country-region-shape.has-explicit-color { fill-opacity: .24; }
-.country-region-shape:not(.has-explicit-color):hover { fill-opacity: .12; }
-.country-region-shape.has-explicit-color:hover { fill-opacity: .32; }
 .country-region-shape.country-region-merge-source { stroke: var(--accent-2); stroke-width: 3px; }
 .country-region-shape.country-region-merge-target { fill-opacity: .28; stroke: var(--accent); stroke-width: 3px; }
 .drawing-shape,
@@ -662,8 +659,7 @@ body.file-menu-open .mobile-backdrop {
 .mode-action-bar.hidden,
 .mode-draft-actions.hidden { display: none !important; }
 .mode-editing-hud { width: 100%; padding: var(--ui-space-2) var(--ui-space-3); }
-.mode-action-bar,
-.mode-draft-actions {
+.mode-action-bar {
   position: absolute;
   z-index: 62;
   right: auto;
@@ -671,7 +667,6 @@ body.file-menu-open .mobile-backdrop {
   transform: translateX(-50%);
 }
 .mode-action-bar { bottom: calc(var(--ui-map-status-height) + var(--ui-map-edge)); }
-.mode-draft-actions { bottom: calc(var(--ui-map-status-height) + var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-2)); }
 
 
 /* ===== v0.10.2: 매개평면 GPU 메시, QGIS 벡터 호환, 계층형 레이어 ===== */
@@ -1429,13 +1424,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   background: transparent;
   box-shadow: none;
 }
-#app[data-layout="compact"] .map-command-toolbar {
-  border: 1px solid var(--overlay-border);
-  background: var(--surface-elevated);
-  box-shadow: var(--control-shadow);
-  backdrop-filter: blur(16px);
-}
-
 /* Mobile: modeless snap sheets over a stable full-width map. */
 body[data-layout="mobile"] {
   overscroll-behavior: none;
@@ -1672,9 +1660,6 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   width: auto;
   transform: none;
 }
-#app[data-layout="mobile"] .mode-draft-actions {
-  bottom: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom) + var(--ui-map-edge) + var(--ui-touch-height) + var(--ui-space-2));
-}
 #app[data-layout="mobile"]:has(.mode-action-bar:not(.hidden)) .mobile-zoom-dock {
   bottom: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom) + var(--ui-map-edge) + var(--ui-touch-height) + var(--ui-space-2));
 }
@@ -1782,7 +1767,14 @@ label:has(> input[type="radio"]) {
   -webkit-tap-highlight-color: transparent;
 }
 .ui-button {
+  -webkit-appearance: none;
   appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   font-family: var(--ui-font-family);
   -webkit-tap-highlight-color: transparent;
   border-radius: var(--ui-radius-control);
@@ -2854,8 +2846,15 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 }
 .mode-method-switch { width: min(100%, 360px); }
 .mode-method-switch.annex-four-methods { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.mode-action-bar { padding: var(--ui-toolbar-padding); }
-.mode-action-bar .mode-action-buttons { justify-content: center; }
+.mode-action-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-toolbar-gap);
+  width: max-content;
+  max-width: calc(100% - var(--ui-map-edge) * 2);
+  padding: var(--ui-toolbar-padding);
+}
+.mode-action-bar .mode-action-buttons { justify-content: center; margin-left: auto; }
 .mode-action-bar.single-action .mode-action-buttons { justify-content: center; }
 .mode-primary-btn { position: relative; min-width: 112px; }
 .mode-button-busy {
@@ -2871,29 +2870,38 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 .mode-draft-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--ui-toolbar-gap);
-  padding: var(--ui-toolbar-padding);
+  min-width: 0;
+  padding: 0;
 }
 .mode-draft-action-btn {
+  min-width: 0;
   min-height: var(--ui-control-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--ui-space-1-5);
   padding: 0 var(--ui-space-2);
-  border-color: var(--border);
-  background: var(--panel-2);
-  color: var(--text-soft);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-bg);
+  color: var(--ui-control-text);
   white-space: nowrap;
 }
 .mode-draft-action-btn .ui-icon { width: 16px; height: 16px; }
+.mode-draft-action-btn:hover:not(:disabled) { border-color: var(--ui-control-border-hover); background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.mode-draft-action-btn:active:not(:disabled) { background: var(--ui-control-bg-pressed); }
 .mode-draft-action-btn.danger:not(:disabled) { color: var(--danger-text); }
+.mode-draft-action-btn.danger:hover:not(:disabled) { border-color: var(--danger-border); background: var(--danger-surface); color: var(--danger-text); }
+.mode-draft-action-btn.danger:active:not(:disabled) { background: color-mix(in srgb, var(--danger-surface) 76%, var(--danger)); }
 #app[data-layout="mobile"] .mode-task-context { padding-inline: var(--ui-space-0-5); }
 #app[data-layout="mobile"] .mode-task-heading strong { font-size: var(--ui-font-body); }
 #app[data-layout="mobile"] .mode-task-stage { font-size: var(--ui-font-caption); }
 #app[data-layout="mobile"] .mode-action-buttons { width: 100%; }
 #app[data-layout="mobile"] .mode-action-buttons > button { flex: 1 1 0; }
+#app[data-layout="mobile"] .mode-action-bar { flex-wrap: wrap; justify-content: stretch; }
+#app[data-layout="mobile"] .mode-draft-actions { flex: 1 1 100%; flex-wrap: wrap; }
 #app[data-layout="mobile"] .mode-draft-action-btn { min-width: var(--ui-touch-height); min-height: var(--ui-touch-height); padding: 0 var(--ui-space-2); }
 #app[data-layout="mobile"] .mode-draft-action-btn:not(#modeDraftRemoveLastBtn):not(#modeDraftDeleteBtn) span { display: none; }
 

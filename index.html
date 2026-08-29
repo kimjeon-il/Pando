@@ -301,13 +301,12 @@
           </div>
         </div>
 
-        <div id="modeDraftActions" class="ui-context-toolbar ui-floating-surface mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
-          <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
-          <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
-          <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
-        </div>
-
         <div id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden" aria-label="지도 편집 작업 실행">
+          <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
+            <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
+            <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
+            <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
+          </div>
           <div class="mode-action-buttons">
             <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
             <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn" aria-describedby="modeTaskInstruction"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span><span class="mode-button-busy" aria-hidden="true">처리 중…</span></button>
@@ -567,7 +566,7 @@
                 </div>
               </div>
             </section>
-            <button id="deleteDistributionBtn" class="ui-button" type="button" hidden>분포 항목 삭제</button>
+            <button id="deleteDistributionBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>분포 항목 삭제</button>
           </form>
 
           <form id="drawingProperties" class="editor-view hidden" onsubmit="return false;">
@@ -636,7 +635,7 @@
               <div><span>토폴로지 그룹</span><output id="drawingTopologyValue">—</output></div>
             </div>
 
-            <button id="deleteDrawingInlineBtn" class="ui-button" type="button" hidden>지형지물 삭제</button>
+            <button id="deleteDrawingInlineBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>지형지물 삭제</button>
           </form>
 
           <form id="labelProperties" class="editor-view hidden" onsubmit="return false;">
@@ -657,7 +656,7 @@
               </div>
             </details>
 
-            <button id="deleteLabelBtn" class="ui-button" type="button" hidden>지명 삭제</button>
+            <button id="deleteLabelBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>지명 삭제</button>
           </form>
 
           <section id="hydroProperties" class="editor-view hidden">
@@ -681,7 +680,7 @@
             </section>
 
             <section class="ui-card editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
-            <button id="deleteHydroEditBtn" class="ui-button" type="button" hidden>강 삭제</button>
+            <button id="deleteHydroEditBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>강 삭제</button>
 
             <details class="ui-disclosure editor-disclosure" hidden>
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
