@@ -597,7 +597,9 @@ function canvasFallbackWorkerMain() {
           if (!kind) continue;
           context.beginPath();
           geoPath(countryOutlineFeature(feature));
-          context.globalAlpha = kind === 'primary' ? 0.96 : 0.72;
+          context.globalAlpha = kind === 'primary'
+            ? Number(emphasis.primaryBoundaryAlpha ?? 1)
+            : Number(emphasis.secondaryBoundaryAlpha ?? 0.72);
           context.strokeStyle = '#346733';
           context.lineWidth = kind === 'primary' ? 2.5 : 1.5;
           context.stroke();
