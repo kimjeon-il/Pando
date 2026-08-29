@@ -1,3 +1,5 @@
+import { createSvgIcon } from './icon-utils.js';
+
 const DEFAULT_SEARCH_THRESHOLD = 12;
 const DEFAULT_RENDER_LIMIT = 240;
 
@@ -38,17 +40,6 @@ function associatedLabelText(select, documentRef) {
   const label = explicit || select.closest('label');
   const heading = label?.querySelector(':scope > span, :scope > label');
   return String(heading?.textContent || label?.textContent || select.getAttribute('aria-label') || select.name || select.id || '선택').trim();
-}
-
-function createSvgIcon(documentRef, symbolId, className = 'ui-icon') {
-  const icon = documentRef.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  icon.setAttribute('class', className);
-  icon.setAttribute('viewBox', '0 0 24 24');
-  icon.setAttribute('aria-hidden', 'true');
-  const use = documentRef.createElementNS('http://www.w3.org/2000/svg', 'use');
-  use.setAttribute('href', `#${symbolId}`);
-  icon.appendChild(use);
-  return icon;
 }
 
 export function createSelectController({

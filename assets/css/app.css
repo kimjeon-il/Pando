@@ -309,6 +309,7 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 }
 .brand { min-width: 0; display: flex; align-items: center; justify-self: start; gap: var(--ui-space-2); }
 .brand-mark { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid #705f3f; color: var(--accent-2); border-radius: var(--ui-radius-control); font-size: 21px; }
+.brand-mark .brand-logo { width: 22px; height: 22px; }
 .brand strong { display: block; font-size: var(--ui-font-title); line-height: 1.2; letter-spacing: .2px; }
 .topbar-center { min-width: 0; display: flex; align-items: center; justify-content: center; justify-self: center; padding: 0 var(--ui-space-2); pointer-events: none; }
 .action-status { min-width: 112px; max-width: 460px; height: 36px; display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px; align-items: center; padding: 0 var(--ui-control-padding-x); border-radius: 999px; border: 1px solid var(--status-border); background: var(--status-bg); color: var(--status-text); font-size: var(--ui-font-body); box-shadow: inset 0 0 0 1px var(--inset-highlight); pointer-events: auto; }
@@ -579,14 +580,6 @@ html[data-selection-mode="strong-fill"] .map-selection-shape.is-secondary { fill
 }
 
 
-.startup-probe {
-  position: fixed; z-index: 9998; left: 50%; top: 70px; transform: translateX(-50%);
-  width: min(560px, calc(100vw - var(--ui-space-6))); padding: var(--ui-space-2) var(--ui-space-3); border: 1px solid #806d40;
-  border-radius: 9px; background: #352f21; color: #ffe5a4; font-size: var(--ui-font-caption); line-height: 1.5; text-align: center;
-  box-shadow: var(--shadow); pointer-events: none;
-}
-
-
 /* ===== 시험판 0.7: 모바일 UI 전수 정리 ===== */
 .mobile-zoom-dock, .mobile-backdrop { display: none; }
 .overlay-root {
@@ -770,6 +763,19 @@ body.is-loading #app { pointer-events: none; user-select: none; }
 .bootstrap-progress { height: 6px; overflow: hidden; border-radius: 999px; background: var(--bootstrap-progress-bg); }
 .bootstrap-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: #d9bb70; transition: width .18s ease; }
 .bootstrap-loading.error .bootstrap-progress span { background: #db6c6c; }
+.startup-probe {
+  margin: var(--ui-space-3) 0 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-color: var(--bootstrap-card-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+  color: var(--bootstrap-text);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-normal);
+  text-align: center;
+  box-shadow: none;
+  pointer-events: none;
+}
 
 /* 시스템 밝은 테마: 지도는 Wikimedia 참조 SVG의 기본 배색을, UI는 고대비 표면 토큰을 사용한다. */
 @media (prefers-color-scheme: light) {
@@ -1587,6 +1593,10 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   right: var(--ui-popover-screen-edge);
   width: min(320px, calc(100vw - var(--ui-popover-screen-edge) * 2));
 }
+#app[data-layout="mobile"] #fileMenu {
+  padding-inline: var(--ui-menu-padding);
+  scrollbar-gutter: auto;
+}
 #app[data-layout="mobile"] .top-actions .btn,
 #app[data-layout="mobile"] .top-actions .btn:not(.ghost) {
   height: var(--ui-touch-height);
@@ -2196,49 +2206,38 @@ input[type="radio"]:checked::before { transform: scale(1); }
 input[type="checkbox"]:disabled,
 input[type="radio"]:disabled { cursor: not-allowed; opacity: .42; }
 
-/* Layer visibility is an on-map state, so it uses eye icons instead of form checkmarks. */
-input[type="checkbox"].layer-visibility-toggle {
+/* Layer visibility is an on-map state, so it uses shared SVG eye symbols. */
+.layer-visibility-control {
   width: var(--ui-control-height);
   min-width: var(--ui-control-height);
   height: var(--ui-control-height);
-  border: 0;
+  display: grid;
+  place-items: center;
+  position: relative;
   border-radius: var(--ui-radius-control);
   background: transparent;
   color: var(--accent-2);
-  box-shadow: none;
+  cursor: pointer;
 }
-input[type="checkbox"].layer-visibility-toggle::before {
-  width: 20px;
-  height: 20px;
-  border: 0;
-  background: currentColor;
-  transform: none;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3l18 18'/%3E%3Cpath d='M10.6 10.6a2 2 0 0 0 2.8 2.8'/%3E%3Cpath d='M9.9 4.2A10 10 0 0 1 12 4c6 0 9.5 8 9.5 8a16 16 0 0 1-2.1 3.2M6.6 6.6C3.9 8.4 2.5 12 2.5 12S6 20 12 20c1.8 0 3.4-.7 4.8-1.6'/%3E%3C/svg%3E");
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3l18 18'/%3E%3Cpath d='M10.6 10.6a2 2 0 0 0 2.8 2.8'/%3E%3Cpath d='M9.9 4.2A10 10 0 0 1 12 4c6 0 9.5 8 9.5 8a16 16 0 0 1-2.1 3.2M6.6 6.6C3.9 8.4 2.5 12 2.5 12S6 20 12 20c1.8 0 3.4-.7 4.8-1.6'/%3E%3C/svg%3E");
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
+.layer-visibility-control:hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.layer-visibility-control:has(.layer-visibility-toggle:disabled) { cursor: not-allowed; opacity: .42; }
+.layer-visibility-control:has(.layer-visibility-toggle:disabled):hover { background: transparent; }
+.layer-visibility-control .layer-visibility-toggle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
 }
-input[type="checkbox"].layer-visibility-toggle:checked {
-  border: 0;
-  background: transparent;
-  color: var(--accent-2);
-}
-input[type="checkbox"].layer-visibility-toggle:checked::before {
-  transform: none;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
-}
-input[type="checkbox"].layer-visibility-toggle:not(:checked) { color: var(--muted); }
-input[type="checkbox"].layer-visibility-toggle:hover:not(:disabled):not(:checked),
-input[type="checkbox"].layer-visibility-toggle:checked:hover:not(:disabled) {
-  border: 0;
-  background: var(--ui-control-bg-hover);
-  color: var(--text-strong);
-}
+.layer-visibility-icon { width: 20px; height: 20px; }
+.layer-visibility-eye-off { display: none; }
+.layer-visibility-control:has(.layer-visibility-toggle:not(:checked)) { color: var(--muted); }
+.layer-visibility-control:has(.layer-visibility-toggle:not(:checked)) .layer-visibility-eye { display: none; }
+.layer-visibility-control:has(.layer-visibility-toggle:not(:checked)) .layer-visibility-eye-off { display: block; }
+.layer-visibility-control:has(.layer-visibility-toggle:focus-visible) { outline: 2px solid var(--accent-border); outline-offset: -2px; }
 
 select {
   appearance: none;
@@ -2607,15 +2606,15 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 .layer-hydro-folder-toggle:hover { color: var(--text-strong); }
 .layer-hydro-folder-toggle[aria-expanded="false"] .disclosure-icon { transform: rotate(-90deg); }
 .layer-hydro-folder-name { min-width: 0; }
-.layer-folder-row:has(> .layer-visibility-toggle:not(:checked)) > .layer-folder-name,
-.layer-hydro-folder-row:has(> .layer-visibility-toggle:not(:checked)) > .layer-hydro-folder-name { color: var(--muted); }
+.layer-folder-row:has(> .layer-visibility-control > .layer-visibility-toggle:not(:checked)) > .layer-folder-name,
+.layer-hydro-folder-row:has(> .layer-visibility-control > .layer-visibility-toggle:not(:checked)) > .layer-hydro-folder-name { color: var(--muted); }
 .layer-child.is-hydro-source { padding-left: calc(var(--ui-row-padding-x) + var(--ui-tree-indent)); }
 .layer-subfolder-row[aria-expanded="false"] .disclosure-icon { transform: rotate(-90deg); }
 .layer-subfolder-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.layer-child > input { grid-column: 1; }
+.layer-child > .layer-visibility-control { grid-column: 1; }
 .layer-child-name { grid-column: 2; }
 .layer-child-meta { grid-column: 3; color: var(--muted); font-size: var(--ui-font-caption); font-variant-numeric: tabular-nums; }
-.layer-child:has(> .layer-visibility-toggle:not(:checked)):not(.is-selected) > .layer-child-name { color: var(--muted); }
+.layer-child:has(> .layer-visibility-control > .layer-visibility-toggle:not(:checked)):not(.is-selected) > .layer-child-name { color: var(--muted); }
 .layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) .layer-child-meta { color: var(--selection-strong-muted); }
 .layer-child-menu {
   grid-column: 4;
@@ -2659,9 +2658,9 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-hy
   border-radius: var(--ui-radius-control);
   outline-offset: -2px;
 }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > input[type="checkbox"].layer-visibility-toggle:checked { color: var(--selection-strong-fg); }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > input[type="checkbox"].layer-visibility-toggle:not(:checked) { color: var(--selection-strong-muted); }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > input[type="checkbox"].layer-visibility-toggle:hover:not(:disabled) {
+.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > .layer-visibility-control:has(.layer-visibility-toggle:checked) { color: var(--selection-strong-fg); }
+.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > .layer-visibility-control:has(.layer-visibility-toggle:not(:checked)) { color: var(--selection-strong-muted); }
+.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > .layer-visibility-control:hover {
   background: color-mix(in srgb, var(--selection-strong-fg) 14%, transparent);
   color: var(--selection-strong-fg);
 }
@@ -2767,7 +2766,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-hy
 #app[data-layout="mobile"] .terrain-mode-option { min-height: var(--ui-touch-height); }
 #app[data-layout="mobile"] .layer-child { height: var(--ui-tree-row-height); grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr) auto var(--ui-tree-action-size-touch); }
 #app[data-layout="mobile"] .layer-child.has-no-menu { grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr) auto; }
-#app[data-layout="mobile"] input[type="checkbox"].layer-visibility-toggle {
+#app[data-layout="mobile"] .layer-visibility-control {
   width: var(--ui-touch-height);
   min-width: var(--ui-touch-height);
   height: var(--ui-touch-height);
@@ -3352,7 +3351,7 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 }
 .editor-action-row strong { font-size: var(--ui-font-md); font-weight: var(--ui-weight-semibold); }
 .editor-action-row small { color: var(--muted); font-size: var(--ui-font-sm); line-height: var(--ui-line-normal); }
-.editor-action-row > .ui-icon { color: var(--muted); transform: rotate(-90deg); }
+.editor-action-row > .ui-icon { color: var(--muted); }
 
 /* Functional editor state: selection, save state, layer presentation, and history. */
 .project-save-status {
