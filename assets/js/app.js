@@ -386,12 +386,6 @@ const {
     button?.classList.toggle('hidden', !String(input?.value || '').length);
   }
 
-  function syncCountriesLockControl() {
-    const input = $('countriesLocked');
-    const control = input?.closest('.ui-icon-toggle');
-    control?.setAttribute('aria-pressed', String(!!input?.checked));
-    if (control) control.dataset.tooltip = input?.checked ? '국가 레이어 잠금 해제' : '국가 레이어 잠금';
-  }
   function runtimeAssetUrl(relativePath) {
     const url = new URL(relativePath, PANDOLAB_ASSET_BASE_URL);
     url.searchParams.set('v', ASSET_REVISION);
@@ -399,7 +393,7 @@ const {
   }
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection', 'uiTooltip',
-    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'countriesLocked',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'regionsVisible', 'administrativeVisible', 'historicalRegionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'debugMapPanel', 'countryAreaValue',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
@@ -1114,18 +1108,6 @@ const {
       labels: {},
       countryLabels: {},
     },
-    removedLayerItems: {
-      countries: {},
-      regions: {},
-      administrative: {},
-      historicalRegions: {},
-      languages: {},
-      ethnicities: {},
-      religions: {},
-      drawings: {},
-      labels: {},
-      countryLabels: {},
-    },
     layerFolders: {
       countries: false,
       regions: false,
@@ -1140,7 +1122,6 @@ const {
       countryLabels: false,
     },
     layerSearch: '',
-    countriesLocked: false,
     tool: 'select',
     labelPlacementMode: false,
     coastEditCountryId: null,
@@ -1481,10 +1462,38 @@ const {
     return common;
   }
 
+  function isCountryLocked(id) {
+    return state.countryOverrides?.[String(id)]?.locked === true;
+  }
+
+  function setCountryLockedState(id, locked) {
+    const key = String(id || '');
+    if (!key || !countryFeatureById(key)) return false;
+    const override = { ...(state.countryOverrides[key] || {}) };
+    if (locked) override.locked = true;
+    else delete override.locked;
+    if (Object.keys(override).length) state.countryOverrides[key] = override;
+    else delete state.countryOverrides[key];
+    return true;
+  }
+
+  function lockedCountryIds(ids = []) {
+    return [...new Set(ids.map(String).filter(Boolean))].filter(isCountryLocked);
+  }
+
+  function requireCountriesUnlocked(ids, action = '편집') {
+    const lockedIds = lockedCountryIds(ids);
+    if (!lockedIds.length) return true;
+    const names = lockedIds.slice(0, 3).map(id => countryFeatureById(id)).filter(Boolean).map(countryName);
+    const suffix = lockedIds.length > names.length ? ` 외 ${lockedIds.length - names.length}개국` : '';
+    setActionStatus(`${names.join(', ')}${suffix} 잠금을 해제한 뒤 ${action}할 수 있습니다.`, 'error', 3800);
+    return false;
+  }
+
   function objectRefLocked(value) {
     const ref = normalizeObjectRef(value);
     if (!ref) return false;
-    if (ref.domain === 'territorial') return ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? state.countriesLocked : countryRegionById(ref.id)?.properties?.locked === true;
+    if (ref.domain === 'territorial') return ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? isCountryLocked(ref.id) : countryRegionById(ref.id)?.properties?.locked === true;
     if (ref.domain === 'distribution') return distributionLayerById(ref.id)?.locked === true;
     if (ref.domain === 'drawing') return state.drawings.find(item => String(item.id) === ref.id)?.properties?.locked === true;
     return false;
@@ -1523,12 +1532,13 @@ const {
     const borderHelp = $('multiBorderEditHelp');
     if (countryOnly) {
       const analysis = boundaryEditSelectionAnalysis(refs.map(ref => ref.id), { rebuild: true });
+      const lockedIds = refs.map(ref => ref.id).filter(isCountryLocked);
       if (borderButton) {
-        borderButton.disabled = state.countriesLocked || !analysis.valid;
-        borderButton.dataset.tooltip = state.countriesLocked ? '국가 레이어 잠금을 해제하세요.' : analysis.message;
+        borderButton.disabled = lockedIds.length > 0 || !analysis.valid;
+        borderButton.dataset.tooltip = lockedIds.length ? '잠긴 국가를 해제한 뒤 국경을 조정하세요.' : analysis.message;
       }
       if (borderHelp) {
-        const message = state.countriesLocked ? '국가 레이어 잠금을 해제해야 국경을 조정할 수 있습니다.' : analysis.message;
+        const message = lockedIds.length ? `잠긴 국가 ${lockedIds.length}개를 해제해야 국경을 조정할 수 있습니다.` : analysis.message;
         borderHelp.textContent = message;
         borderHelp.classList.toggle('hidden', !message);
       }
@@ -1571,12 +1581,9 @@ const {
     const locked = typeof nextLocked === 'boolean' ? nextLocked : !refs.every(objectRefLocked);
     if (refs.every(ref => objectRefLocked(ref) === locked)) return;
     recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
-    if (refs.every(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) {
-      state.countriesLocked = locked;
-      $('countriesLocked').checked = locked;
-    }
     for (const ref of refs) {
-      if (ref.domain === 'territorial' && ref.type !== TERRITORIAL_UNIT_TYPES.COUNTRY) countryRegionById(ref.id).properties.locked = locked;
+      if (ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY) setCountryLockedState(ref.id, locked);
+      else if (ref.domain === 'territorial') countryRegionById(ref.id).properties.locked = locked;
       else if (ref.domain === 'distribution') distributionLayerById(ref.id).locked = locked;
       else if (ref.domain === 'drawing') {
         const feature = state.drawings.find(item => String(item.id) === ref.id);
@@ -1609,10 +1616,7 @@ const {
     const capabilities = commonBatchCapabilities(refs);
     const locked = refs.length > 0 && refs.every(objectRefLocked);
     if ($('objectLockMenuBtn')) {
-      const countryLayerLock = refs.length > 0 && refs.every(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY);
-      $('objectLockMenuBtn').textContent = countryLayerLock
-        ? `국가 레이어 ${locked ? '잠금 해제' : '잠금'}`
-        : (locked ? '잠금 해제' : '잠금');
+      $('objectLockMenuBtn').textContent = locked ? '잠금 해제' : '잠금';
       $('objectLockMenuBtn').classList.toggle('hidden', !capabilities.has('lock'));
       $('objectLockMenuBtn').disabled = !capabilities.has('lock');
     }
@@ -4478,7 +4482,6 @@ const {
 
   function hydroLayerVisible(layerId) {
     return !!state.layerVisibility.drawings &&
-      !isLayerItemRemoved('drawings', `hydro-layer:${layerId}`) &&
       state.physicalSettings.hydroLayers?.[layerId] !== false;
   }
 
@@ -4511,17 +4514,6 @@ const {
     return output;
   }
 
-  function normalizeRemovedLayerItems(value) {
-    const output = {};
-    for (const group of LAYER_GROUP_KEYS) {
-      const source = value?.[group];
-      output[group] = source && typeof source === 'object' && !Array.isArray(source)
-        ? Object.fromEntries(Object.entries(source).filter(([, removed]) => removed === true))
-        : {};
-    }
-    return output;
-  }
-
   function normalizeLayerFolderState(value) {
     let expandedFound = false;
     return Object.fromEntries(activeLayerFolderKeys().map(key => {
@@ -4536,12 +4528,7 @@ const {
     state.layerTreeRevision += 1;
   }
 
-  function isLayerItemRemoved(group, id) {
-    return state.removedLayerItems?.[group]?.[String(id)] === true;
-  }
-
   function isLayerItemVisible(group, id) {
-    if (isLayerItemRemoved(group, id)) return false;
     if (group === 'drawings' && String(id).startsWith('hydro-layer:')) {
       return state.physicalSettings.hydroLayers?.[String(id).slice('hydro-layer:'.length)] !== false;
     }
@@ -4598,7 +4585,7 @@ const {
           meta: group === 'countryLabels' && pendingCountryLabelAnchors.has(id) ? '계산 중' : '',
           selected: state.selected?.type === 'country' && state.selected.id === id,
         };
-      }).filter(item => !isLayerItemRemoved(group, item.id));
+      });
     }
     if (group === 'regions' || group === 'administrative' || group === 'historicalRegions') {
       const kind = group === 'regions'
@@ -4624,7 +4611,7 @@ const {
           level: Number(feature.properties?.adminLevel) || null,
           selected: state.selected?.type === 'countryRegion' && state.selected.id === String(feature.id),
         };
-      }).filter(item => !isLayerItemRemoved(group, item.id));
+      });
     }
     if (DISTRIBUTION_GROUP_TYPES[group]) {
       const type = DISTRIBUTION_GROUP_TYPES[group];
@@ -4635,7 +4622,7 @@ const {
         meta: `${distributionEntriesForLayer(state.distributionEntries, layer.id).length}개 분포`,
         folderName: layerGroupNames[group],
         selected: state.selected?.type === 'distribution' && state.selected.id === layer.id,
-      })).filter(item => !isLayerItemRemoved(group, item.id));
+      }));
     }
     if (group === 'drawings') {
       const builtIns = Object.entries(HYDRO_LAYER_META).map(([id, meta]) => ({
@@ -4648,7 +4635,7 @@ const {
           folderId: DEFAULT_DRAWING_FOLDER_ID,
           folderName: drawingFolderName(DEFAULT_DRAWING_FOLDER_ID),
           selected: false,
-        })).filter(item => !isLayerItemRemoved(group, item.id));
+        }));
       const userItems = state.drawings.map(feature => {
         const folderId = drawingFolderId(feature);
         return {
@@ -4660,7 +4647,7 @@ const {
           folderName: drawingFolderName(folderId),
           selected: state.selected?.type === 'drawing' && state.selected.id === String(feature.id),
         };
-      }).filter(item => !isLayerItemRemoved(group, item.id));
+      });
       return [...builtIns, ...userItems];
     }
     return state.labels.map(label => ({
@@ -4669,7 +4656,7 @@ const {
       color: '#d6b969',
       meta: label.kind || '지명',
       selected: state.selected?.type === 'label' && state.selected.id === String(label.id),
-    })).filter(item => !isLayerItemRemoved(group, item.id));
+    }));
   }
 
   function pruneLayerItemVisibility() {
@@ -4685,11 +4672,9 @@ const {
       drawings: new Set([...Object.keys(HYDRO_LAYER_META).map(id => `hydro-layer:${id}`), ...state.drawings.map(feature => String(feature.id))]),
       labels: new Set(state.labels.map(label => String(label.id))),
     };
-    state.removedLayerItems = normalizeRemovedLayerItems(state.removedLayerItems);
     for (const group of LAYER_GROUP_KEYS) {
       state.itemVisibility[group] ||= {};
       for (const id of Object.keys(state.itemVisibility[group])) if (!valid[group].has(id)) delete state.itemVisibility[group][id];
-      for (const id of Object.keys(state.removedLayerItems[group])) if (!valid[group].has(id)) delete state.removedLayerItems[group][id];
     }
     const activeFolderKeys = new Set(activeLayerFolderKeys());
     for (const key of Object.keys(state.layerFolders || {})) {
@@ -4977,7 +4962,6 @@ const {
 
   function renderLayerTree(force = false) {
     if (!force && renderedLayerTreeRevision === state.layerTreeRevision) return;
-    syncCountriesLockControl();
     pruneLayerItemVisibility();
     const search = String(state.layerSearch || '').trim().toLocaleLowerCase('ko');
     const searchChanged = search !== renderedLayerSearch;
@@ -7478,10 +7462,6 @@ const {
 
   function enterNewCountryMode() {
     clearNotification();
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
     clearSelection(false);
     state.draftCoords = [];
     state.draftHover = null;
@@ -7507,6 +7487,7 @@ const {
 
   function beginNewCountryLine() {
     if (state.tool !== 'new-country' || state.newCountryPhase !== 'sources') return;
+    if (!requireCountriesUnlocked(state.newCountrySourceIds, '새 국가 분리 작업을 시작')) return;
     let sourceGeometry;
     try {
       sourceGeometry = selectedCountryUnionGeometry(state.newCountrySourceIds);
@@ -7531,10 +7512,7 @@ const {
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked([id], '영토 편입을 시작')) return false;
     state.draftCoords = [];
     state.draftHover = null;
     state.annexTargetCountryId = String(id);
@@ -7578,6 +7556,7 @@ const {
 
   function beginAnnexSelection() {
     if (state.tool !== 'annex-territory' || state.annexPhase !== 'donor') return;
+    if (!requireCountriesUnlocked([state.annexTargetCountryId, ...state.annexDonorCountryIds], '영토 편입을 시작')) return;
     let sourceGeometry;
     try {
       sourceGeometry = selectedCountryUnionGeometry(state.annexDonorCountryIds);
@@ -7611,10 +7590,7 @@ const {
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked([id], '국경 조정 대상을 선택')) return false;
     const initialSelection = selectionSessionSnapshot();
     if (!setTool('country-border', false)) return false;
     state.boundaryEditCountryIds = [String(id)];
@@ -7638,10 +7614,7 @@ const {
       setActionStatus('국경 조정은 국가를 2개 이상 선택했을 때 시작할 수 있습니다.', 'error', 3200);
       return false;
     }
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked(ids, '국경 조정을 시작')) return false;
     const analysis = boundaryEditSelectionAnalysis(ids, { rebuild: true });
     if (!analysis.valid) {
       setActionStatus(analysis.message, 'error', 3800);
@@ -7704,6 +7677,7 @@ const {
 
   function beginCountryBorderEditing() {
     if (state.tool !== 'country-border' || state.boundaryEditPhase !== 'selecting') return false;
+    if (!requireCountriesUnlocked(state.boundaryEditCountryIds, '국경 조정을 시작')) return false;
     const analysis = boundaryEditSelectionAnalysis(state.boundaryEditCountryIds, { rebuild: true });
     if (!analysis.valid) {
       setActionStatus(analysis.message, 'error', 3400);
@@ -7735,10 +7709,7 @@ const {
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked([id], '해안선 조정을 시작')) return false;
     rebuildBoundaryTopology(id);
     state.coastEditCountryId = String(id);
     state.coastEditScopeDrawingId = scopeDrawingId ? String(scopeDrawingId) : null;
@@ -7775,10 +7746,7 @@ const {
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
-    if (state.countriesLocked) {
-      setActionStatus('국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.', 'error', 3200);
-      return false;
-    }
+    if (!requireCountriesUnlocked([id], '국가 합병을 시작')) return false;
     state.mergeSourceCountryId = String(id);
     state.mergeTargetCountryIds = [];
     setTool('merge-country', false);
@@ -8355,6 +8323,7 @@ const {
     if (state.tool !== 'annex-territory' || !['side', 'components'].includes(state.annexPhase)) return;
     const targetId = String(state.annexTargetCountryId || '');
     const donorIds = state.annexDonorCountryIds.map(String);
+    if (!requireCountriesUnlocked([targetId, ...donorIds], '영토를 편입')) return;
     let candidate;
     if (state.annexPhase === 'components') {
       try { candidate = { geometry: selectedTerritoryComponentGeometry() }; }
@@ -8418,6 +8387,7 @@ const {
       setActionStatus('신생국 영토 후보를 찾을 수 없습니다.', 'error', 3800);
       return;
     }
+    if (!requireCountriesUnlocked(state.newCountrySourceIds, '새 국가를 분리')) return;
     const nameInput = prompt('새 국가의 국명을 입력하세요.', '새 국가');
     if (nameInput === null) return;
     const sourceIds = state.newCountrySourceIds.map(String);
@@ -8461,6 +8431,7 @@ const {
       setActionStatus('합병할 국가를 하나 이상 선택하세요.', 'error', 3200);
       return;
     }
+    if (!requireCountriesUnlocked([sourceId, ...targetIds], '국가를 합병')) return;
     const source = countryFeatureById(sourceId);
     const targets = targetIds.map(countryFeatureById).filter(Boolean);
     if (!source || targets.length !== targetIds.length) {
@@ -8532,6 +8503,7 @@ const {
       return;
     }
     const donorIds = countryIdsOverlappingGeometry(transferredGeometry, [ownerId]);
+    if (!requireCountriesUnlocked([ownerId, ...donorIds], '국가 영토에 반영')) return;
     if (!donorIds.length) {
       recordHistory();
       feature.geometry = normalizeClippedLandGeometry(window.polygonClipping.intersection(feature.geometry.coordinates, owner.geometry.coordinates)) || feature.geometry;
@@ -8575,6 +8547,7 @@ const {
       setActionStatus('국가로 전환할 육지 영역이 없습니다. 객체가 현재 국가 영토와 겹치는지 확인하세요.', 'error', 4000);
       return;
     }
+    if (!requireCountriesUnlocked(sourceIds, '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim();
     if (!name) {
       setActionStatus('국가로 전환하기 전에 객체 이름을 입력하세요.', 'error', 3400);
@@ -8868,11 +8841,13 @@ const {
           ? node.ownerIds.size >= 2 && [...node.ownerIds].every(id => selectedIds.has(String(id)))
           : node.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(coastId);
         if (!allowed) return;
+        const nextAffectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
+        if (!requireCountriesUnlocked([...nextAffectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return;
         transactionSnapshot = snapshotEditable();
         startCoord = node.coordinate.slice();
         changed = false;
         const selectedId = borderMode ? String(state.boundaryEditCountryIds[0] || feature.properties.editor_id) : coastId;
-        affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
+        affectedIds = nextAffectedIds;
         ownerBeforeGeometries = new Map([...affectedIds].map(id => [id, deepClone(countryFeatureById(id)?.geometry)]));
         structuredValidationBaseline = new Set([...affectedIds]
           .flatMap(id => validateStructuredGeometry(countryFeatureById(id)).filter(Boolean))
@@ -9475,8 +9450,12 @@ const {
 
   function setTerritorialUnitLocked(type, id, locked) {
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      state.countriesLocked = !!locked;
-      $('countriesLocked').checked = state.countriesLocked;
+      const key = String(id || '');
+      if (!countryFeatureById(key) || isCountryLocked(key) === !!locked) return !!countryFeatureById(key);
+      recordHistory({ type: 'country-lock', description: `${countryName(countryFeatureById(key))} ${locked ? '잠금' : '잠금 해제'}`, affectedIds: [key] });
+      setCountryLockedState(key, !!locked);
+      if (state.selected?.type === 'country' && String(state.selected.id) === key) selectCountry(key, true);
+      syncBatchActionAvailability();
       queueAutosave();
       return true;
     }
@@ -9496,6 +9475,9 @@ const {
     setName: setTerritorialUnitName,
     setColor: setTerritorialUnitColor,
     setLocked: setTerritorialUnitLocked,
+    isLocked: (type, id) => type === TERRITORIAL_UNIT_TYPES.COUNTRY
+      ? isCountryLocked(id)
+      : countryRegionById(id)?.properties?.locked === true,
   });
 
   window.PANDOLAB_DISTRIBUTIONS = Object.freeze({
@@ -10384,6 +10366,11 @@ const {
     const target = countryFeatureById(targetCountryId);
     const clipper = window.polygonClipping;
     if (!source || !donor || !target || donor === target || !clipper?.difference || !clipper?.union) return false;
+    if (source.properties?.locked) {
+      setActionStatus('영역 잠금을 해제한 뒤 소속과 국경을 변경하세요.', 'error', 3600);
+      return false;
+    }
+    if (!requireCountriesUnlocked([donor.properties?.editor_id, targetCountryId], '지역과 국경을 이전')) return false;
     const movedIds = new Set([String(source.id)]);
     const queue = [String(source.id)];
     while (queue.length) {
@@ -10479,6 +10466,11 @@ const {
       setActionStatus('새 국가로 독립하려면 이름과 소속 국가가 있는 지역을 선택하세요.', 'error', 3800);
       return false;
     }
+    if (source.properties?.locked) {
+      setActionStatus('영역 잠금을 해제한 뒤 국가로 전환하세요.', 'error', 3400);
+      return false;
+    }
+    if (!requireCountriesUnlocked([sourceCountryId], '지역을 국가로 전환')) return false;
     if (countryFeatureById(source.id)) {
       setActionStatus('영역 ID가 국가 ID와 겹칩니다. ID를 바꾸세요.', 'error', 4200);
       return false;
@@ -10736,8 +10728,9 @@ const {
     const source = unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? countryFeatureById(id) : countryRegionById(id);
     if (!source || ![TERRITORIAL_UNIT_TYPES.COUNTRY, TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN].includes(unitType)) return;
     if (!requireCanonicalData()) return;
-    if (state.countriesLocked || source.properties?.locked) {
-      setActionStatus(state.countriesLocked ? '국가 레이어 잠금을 해제한 뒤 종류를 변경하세요.' : '영역 잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3400);
+    const sourceLocked = unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? isCountryLocked(id) : source.properties?.locked === true;
+    if (sourceLocked) {
+      setActionStatus('잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3400);
       return;
     }
     territorialTypeSource = { unitType, id: String(id) };
@@ -10764,7 +10757,7 @@ const {
   async function convertCountryRegionType(regionId, targetType, parentId = '') {
     const source = countryRegionById(regionId);
     if (!source || ![TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN].includes(targetType)) return false;
-    if (source.properties?.locked || state.countriesLocked) {
+    if (source.properties?.locked) {
       setActionStatus('잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3200);
       return false;
     }
@@ -10821,8 +10814,9 @@ const {
       setActionStatus('종류를 변경할 국가와 소속 국가를 다시 선택하세요.', 'error', 3800);
       return false;
     }
-    if (state.countriesLocked || countryRegionById(countryId)) {
-      setActionStatus(state.countriesLocked ? '국가 레이어 잠금을 해제한 뒤 종류를 변경하세요.' : '같은 ID의 영역이 이미 있어 종류를 변경할 수 없습니다.', 'error', 4000);
+    if (!requireCountriesUnlocked([countryId, targetCountryId], '국가 종류를 변경')) return false;
+    if (countryRegionById(countryId)) {
+      setActionStatus('같은 ID의 영역이 이미 있어 종류를 변경할 수 없습니다.', 'error', 4000);
       return false;
     }
     const parent = targetType === TERRITORIAL_UNIT_TYPES.ADMIN ? territorialUnitById(parentId || targetCountryId) : target;
@@ -10997,9 +10991,18 @@ const {
   }
 
   function applySharedProjectFields(source, scope = 'project') {
+    const migratedCountryOverrides = deepClone(source?.countryOverrides || {});
+    if (source?.countriesLocked === true) {
+      const countries = source?.countriesData?.features || state.countriesData?.features || [];
+      for (const feature of countries) {
+        const id = String(feature?.properties?.editor_id || feature?.id || '');
+        if (id) migratedCountryOverrides[id] = { ...(migratedCountryOverrides[id] || {}), locked: true };
+      }
+    }
     const migratedSource = source && typeof source === 'object'
       ? {
         ...source,
+        countryOverrides: migratedCountryOverrides,
         territorialUnits: source.territorialUnits ?? migrateLegacyCountryRegions(source.countryRegions || []),
         territorialRelations: source.territorialRelations || [],
       }
@@ -11023,10 +11026,8 @@ const {
         projection: (value, current, project) => value || project.view?.projection || current || 'globe',
         layerVisibility: (value, current) => ({ ...(current || {}), ...(value || {}) }),
         itemVisibility: value => normalizeLayerItemState(value),
-        removedLayerItems: value => normalizeRemovedLayerItems(value),
         layerPresentation: value => normalizeLayerPresentation(value),
         layerFolders: value => normalizeLayerFolderState(value),
-        countriesLocked: value => !!value,
         view: (value, current) => clampViewZooms({ ...(current || {}), ...(value || {}) }),
       },
     });
@@ -11600,7 +11601,6 @@ const {
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
-    $('countriesLocked').checked = state.countriesLocked;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
@@ -11687,12 +11687,10 @@ const {
     state.projection = 'globe';
     state.layerVisibility = { countries: true, regions: true, administrative: true, historicalRegions: true, languages: true, ethnicities: true, religions: true, drawings: true, labels: true, basemapLabels: true };
     state.itemVisibility = normalizeLayerItemState(null);
-    state.removedLayerItems = normalizeRemovedLayerItems(null);
     state.layerPresentation = normalizeLayerPresentation();
     gpuMapRenderer.invalidateHydroVisibility();
     state.layerFolders = normalizeLayerFolderState(null);
     state.layerSearch = '';
-    state.countriesLocked = false;
     state.tool = 'select';
     state.labelPlacementMode = false;
     state.coastEditCountryId = null;
@@ -11745,7 +11743,6 @@ const {
     $('drawingsVisible').checked = true;
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
-    $('countriesLocked').checked = false;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = '';
     renderLayerTree(true);
@@ -11793,10 +11790,7 @@ const {
 
   function requestDeleteCountry(id) {
     const key = String(id);
-    if (state.countriesLocked) {
-      setActionStatus('국가 레이어 잠금을 해제한 뒤 삭제할 수 있습니다.', 'error', 3000);
-      return;
-    }
+    if (!requireCountriesUnlocked([key], '삭제')) return;
     const feature = countryFeatureById(key);
     if (!feature) return;
     const children = territorialRepository.children(key);
@@ -13624,16 +13618,6 @@ const {
       if (!checkbox) return;
       setLayerItemVisibility(checkbox.dataset.layerItemVisibility, checkbox.dataset.itemId, checkbox.checked);
     });
-    $('countriesLocked').addEventListener('change', e => {
-      state.countriesLocked = e.target.checked;
-      syncCountriesLockControl();
-      markLayerTreeDirty();
-      renderLayerTree();
-      renderCountries();
-      syncBatchActionAvailability();
-      queueAutosave();
-    });
-
   }
 
   function bindToolUI() {
@@ -14247,7 +14231,6 @@ const {
     bindGlobalInputUI();
     syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn'));
     syncSearchClearButton($('historicalLibrarySearchInput'), $('historicalLibrarySearchClearBtn'));
-    syncCountriesLockControl();
     syncColorPicker('multiProperties', { value: $('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
     syncProjectSaveStatus(saveState.snapshot());
   }
@@ -14263,7 +14246,6 @@ const {
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
-    $('countriesLocked').checked = state.countriesLocked;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);
@@ -14552,7 +14534,6 @@ const {
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
-    $('countriesLocked').checked = state.countriesLocked;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     renderLayerTree(true);

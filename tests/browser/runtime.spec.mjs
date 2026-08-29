@@ -547,7 +547,7 @@ test('mouse, wheel, touch pan, pinch, and double tap all advance map frames', as
   expect(errors).toEqual([]);
 });
 
-test('virtualized country deletion honors lock, undo, and autosave restore', async ({ page }) => {
+test('virtualized country deletion honors per-object lock, undo, and autosave restore', async ({ page }) => {
   test.setTimeout(240_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
@@ -555,10 +555,14 @@ test('virtualized country deletion honors lock, undo, and autosave restore', asy
   const firstRow = page.locator('#countriesLayerChildren .layer-child').first();
   const name = await firstRow.locator('.layer-child-name').textContent();
   const countryId = await firstRow.getAttribute('data-item-id');
-  await page.locator('#countriesLocked').check({ force: true });
+  await firstRow.locator('.layer-child-menu').click();
+  await page.locator('#objectLockMenuBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.isLocked('country', id), countryId)).toBe(true);
+  await expect(page.locator('#editorObjectHeader')).toBeVisible();
   await firstRow.locator('.layer-child-menu').click();
   await expect(page.locator('#objectDeleteMenuBtn')).toBeDisabled();
-  await page.locator('#countriesLocked').uncheck({ force: true });
+  await page.locator('#objectLockMenuBtn').click();
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.isLocked('country', id), countryId)).toBe(false);
 
   const deleteCountry = async () => {
     const row = page.getByRole('button', { name, exact: true }).locator('..');
@@ -674,7 +678,6 @@ test('virtualized layer selection and search results preserve scroll and accessi
   const errors = await openApp(page);
   const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
-  await page.locator('#countriesLocked').uncheck({ force: true });
   const list = page.locator('#countriesLayerChildren');
   await list.evaluate(element => { element.scrollTop = 2400; });
   await expect.poll(() => list.evaluate(element => element.scrollTop)).toBeGreaterThan(2000);
@@ -709,7 +712,6 @@ test('shared color picker applies presets, restores defaults, and participates i
   const errors = await openApp(page);
   const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
-  await page.locator('#countriesLocked').uncheck({ force: true });
   await page.locator('#countriesLayerChildren .layer-child-name').first().click();
   await page.locator('#countryColorTrigger').click();
   await expect(page.locator('#countryColorPopover')).toBeVisible();
@@ -748,7 +750,6 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
   expect(Math.abs(reopenedHeight - editHeight)).toBeLessThanOrEqual(1);
 
   await openSheet('#mobileMapBtn', '#leftPanel');
-  await page.locator('#countriesLocked').uncheck({ force: true });
   const folderToggle = page.locator('[data-layer-folder-toggle="countries"]').first();
   if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
   await page.locator('#countriesLayerChildren .layer-child-name').first().click();
