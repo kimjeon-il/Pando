@@ -17,6 +17,7 @@ CONFIRM_MODAL_CONTROLLER = (ROOT / "assets/js/modules/confirm-modal-controller.j
 LAYER_PANEL_CONTROLLER = (ROOT / "assets/js/modules/layer-panel-controller.js").read_text(encoding="utf-8")
 HISTORY_SERVICE = (ROOT / "assets/js/modules/history-service.js").read_text(encoding="utf-8")
 HISTORICAL_LIBRARY_SERVICE = (ROOT / "assets/js/modules/historical-library-service.js").read_text(encoding="utf-8")
+IMPORT_SERVICE = (ROOT / "assets/js/modules/import-service.js").read_text(encoding="utf-8")
 
 
 class RefactorBoundaryTests(unittest.TestCase):
@@ -94,6 +95,14 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("historicalLibraryService.load()", APP)
         self.assertIn("instantiateDescriptors", HISTORICAL_LIBRARY_SERVICE)
         self.assertNotIn("pandolab:historical-library-ready", APP)
+
+    def test_gis_import_staging_validation_and_materialization_are_behind_service(self):
+        self.assertIn("createImportService({", APP)
+        self.assertIn("createGisGeometryValidator({", APP)
+        self.assertIn("await importService.openFiles", APP)
+        self.assertIn("async function openFiles", IMPORT_SERVICE)
+        self.assertIn("validateCountryCollection", IMPORT_SERVICE)
+        self.assertNotIn("gisGeometryPending", APP)
 
 
 if __name__ == "__main__":
