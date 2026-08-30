@@ -473,7 +473,7 @@ const {
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeRiverMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
-    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesSelectionModeInput', 'preferencesSelectionColorInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
+    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesSelectionModeInput', 'preferencesSelectionColorInput', 'preferencesSelectionColorTrigger', 'preferencesSelectionColorValue', 'preferencesSelectionColorPopover', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
     'addCountryBtn', 'addTerritoryBtn', 'addAdministrativeBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
     'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
@@ -11475,7 +11475,8 @@ const {
   function syncColorPicker(kind, { value, defaultColor, isDefault }) {
     const picker = document.querySelector(`[data-color-picker="${kind}"]`);
     if (!picker) return;
-    const fallback = kind === 'country' ? defaultCountryColor()
+    const fallback = kind === 'preferencesSelection' ? defaultUserPreferences().selection.color
+      : kind === 'country' ? defaultCountryColor()
       : (kind === 'territory' || kind === 'administrative') && (state.selected?.domain === 'territorial' && state.selected.type !== TERRITORIAL_UNIT_TYPES.COUNTRY)
         ? territorialUnitColor(territorialUnitById(state.selected.id))
         : DEFAULT_DRAWING_COLOR;
@@ -11609,6 +11610,16 @@ const {
   }
 
   function applyColorPickerSelection(kind, value, isDefault = false) {
+    if (kind === 'preferencesSelection') {
+      const defaultColor = defaultUserPreferences().selection.color;
+      const color = normalizeEditorColor(value, defaultColor);
+      applyUserPreferences({
+        ...userPreferences,
+        selection: { ...userPreferences.selection, color },
+      });
+      syncColorPicker('preferencesSelection', { value: color, defaultColor, isDefault: false });
+      return true;
+    }
     if (kind === 'multiProperties') {
       const color = normalizeEditorColor(value, '#3f6fae');
       syncColorPicker('multiProperties', { value: color, defaultColor: color, isDefault: false });
@@ -15213,6 +15224,11 @@ const {
       $('preferencesThemeInput').value = userPreferences.appearance.theme;
       $('preferencesSelectionModeInput').value = userPreferences.selection.mode;
       $('preferencesSelectionColorInput').value = userPreferences.selection.color;
+      syncColorPicker('preferencesSelection', {
+        value: userPreferences.selection.color,
+        defaultColor: defaultUserPreferences().selection.color,
+        isDefault: false,
+      });
     };
     const closePreferences = ({ restoreFocus = true } = {}) => {
       if (!preferencesModal || preferencesModal.classList.contains('hidden')) return;
