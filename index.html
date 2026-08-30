@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r25" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r26" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -342,39 +342,48 @@
 
         <div id="mapTopContextSlot" class="map-top-context-slot" aria-live="polite">
           <div id="modeEditingContext" class="mode-editing-context hidden">
-            <div id="modeEditingHud" class="ui-floating-surface mode-editing-hud" aria-label="지도 편집 작업">
-              <div class="mode-task-context">
+            <section id="modeEditingHud" class="ui-floating-surface mode-task-window" role="region" aria-label="지도 편집 작업">
+              <header class="mode-task-window-header">
                 <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span></div>
-                <div class="mode-task-detail">
-                  <p id="modeTaskInstruction" class="mode-task-instruction"></p>
-                  <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
+                <div class="mode-task-window-controls">
+                  <button id="modeTaskMinimizeBtn" class="ui-button icon-btn compact" type="button" aria-label="지도 작업창 최소화" aria-controls="modeTaskWindowContent" aria-expanded="true" data-tooltip="최소화"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
+                  <button id="modeTaskCloseBtn" class="ui-button icon-btn compact" type="button" aria-label="지도 작업 취소" data-tooltip="작업 취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
                 </div>
+              </header>
+              <div id="modeTaskWindowContent" class="mode-task-window-content">
+                <div class="mode-task-window-body">
+                  <div class="mode-task-context">
+                    <div class="mode-task-detail">
+                      <p id="modeTaskInstruction" class="mode-task-instruction"></p>
+                      <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
+                    </div>
+                  </div>
+                  <div id="modeMethodSwitch" class="ui-segmented mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
+                    <button id="modeLineMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="경계선을 그려 영토 일부 선택" aria-pressed="true">경계선 그리기</button>
+                    <button id="modePolygonMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="영역을 지정해 영토 편입" aria-pressed="false">영역 지정</button>
+                    <button id="modeRiverMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="하천을 기준으로 영토 편입" aria-pressed="false">하천 경계</button>
+                    <button id="modeComponentsMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false">영토 조각 선택</button>
+                  </div>
+                  <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
+                    <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
+                    <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
+                    <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
+                  </div>
+                </div>
+                <footer id="modeActionBar" class="mode-action-bar hidden" aria-label="지도 편집 작업 실행">
+                  <div class="mode-action-buttons">
+                    <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
+                    <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn" aria-describedby="modeTaskInstruction"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span><span class="mode-button-busy" aria-hidden="true">처리 중…</span></button>
+                  </div>
+                </footer>
               </div>
-            </div>
-            <div id="modeMethodSwitch" class="ui-segmented mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
-              <button id="modeLineMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="경계선을 그려 영토 일부 선택" aria-pressed="true">경계선 그리기</button>
-              <button id="modePolygonMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="영역을 지정해 영토 편입" aria-pressed="false">영역 지정</button>
-              <button id="modeRiverMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="하천을 기준으로 영토 편입" aria-pressed="false">하천 경계</button>
-              <button id="modeComponentsMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false">영토 조각 선택</button>
-            </div>
+            </section>
           </div>
           <div id="multiSelectionBar" class="ui-context-toolbar ui-floating-surface multi-selection-bar hidden" role="region" aria-label="다중 선택 작업">
             <strong id="multiSelectionCount">0개 선택됨</strong>
             <button id="multiSelectionModeBtn" class="ui-button btn ghost compact" type="button" aria-pressed="false">추가 선택</button>
             <button id="multiEditBtn" class="ui-button btn ghost compact" type="button">편집</button>
             <button id="clearMultiSelectionBtn" class="ui-button icon-btn compact" type="button" aria-label="다중 선택 해제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
-          </div>
-        </div>
-
-        <div id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden" aria-label="지도 편집 작업 실행">
-          <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
-            <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
-            <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
-            <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
-          </div>
-          <div class="mode-action-buttons">
-            <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
-            <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn" aria-describedby="modeTaskInstruction"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span><span class="mode-button-busy" aria-hidden="true">처리 중…</span></button>
           </div>
         </div>
 
@@ -971,8 +980,8 @@
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r25" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r25" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r25" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r26" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r26" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r26" defer></script>
 </body>
 </html>

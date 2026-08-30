@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r25';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r26';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -116,7 +116,15 @@ const {
   validateCoastReplacement,
 } = coastReconciliationModule;
 const { createCoastReconciliationController } = coastReconciliationControllerModule;
-const { planDrawnTerritoryAnnex, buildRiverAnnexCandidates, riverAnnexDiscoveryBounds } = annexGeometryModule;
+const {
+  planDrawnTerritoryAnnex,
+  buildRiverAnnexCandidates,
+  riverAnnexDiscoveryBounds,
+  expandRiverAnnexDiscoveryBounds,
+  RIVER_ANNEX_ALGORITHM_REVISION,
+  RIVER_ANNEX_CONFIG,
+  riverAnnexConfigFingerprint,
+} = annexGeometryModule;
 const { SELECTION_STYLE, setSelectionColor, setInteractionStyle: setSelectionInteractionStyle, buildSelectionBoundarySegments, createSelectionEmphasisRenderer } = selectionEmphasisModule;
 const { resolveMapInteractionStyle } = mapInteractionStyleModule;
 const { loadUserPreferences, saveUserPreferences, effectiveTheme, defaultUserPreferences } = userPreferencesModule;
@@ -470,7 +478,7 @@ const {
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeTerritoryTypeBtn', 'changeAdministrativeTypeBtn', 'reconcileAdministrativeCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
     'countryCodeInput', 'drawingIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn', 'deleteHydroEditBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
-    'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
+    'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeRiverMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesSelectionModeInput', 'preferencesSelectionColorInput', 'preferencesSelectionColorTrigger', 'preferencesSelectionColorValue', 'preferencesSelectionColorPopover', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
@@ -1164,6 +1172,7 @@ const {
     draftStroke: createDraftStrokeState(),
     geometryPreview: createGeometryPreviewState(),
     modeProcessing: false,
+    modeTaskMinimized: false,
     activeSnap: null,
     audit: { status: 'idle', revision: 0, report: null, selectedIssueId: null },
     hovered: null,
@@ -7863,9 +7872,28 @@ const {
     const editing = mapModeContextActive();
     const selectionCount = objectSelection.snapshot().items.length;
     const showSelection = selectionCount > 1 || (isMobile() && selectionCount > 0);
-    $('modeEditingContext')?.classList.toggle('hidden', !editing);
+    if (!editing) state.modeTaskMinimized = false;
+    const minimized = editing && state.modeTaskMinimized === true;
+    const context = $('modeEditingContext');
+    const content = $('modeTaskWindowContent');
+    const minimize = $('modeTaskMinimizeBtn');
+    context?.classList.toggle('hidden', !editing);
+    context?.classList.toggle('is-minimized', minimized);
+    if (content) content.hidden = minimized;
+    if (minimize) {
+      minimize.setAttribute('aria-expanded', String(!minimized));
+      minimize.setAttribute('aria-label', minimized ? '지도 작업창 복원' : '지도 작업창 최소화');
+      minimize.dataset.tooltip = minimized ? '복원' : '최소화';
+      minimize.querySelector('use')?.setAttribute('href', minimized ? '#icon-chevron-down' : '#icon-minus');
+    }
     $('multiSelectionBar')?.classList.toggle('hidden', editing || !showSelection);
     requestAnimationFrame(syncMapHudBounds);
+  }
+
+  function toggleMapTaskWindow() {
+    if (!mapModeContextActive()) return;
+    state.modeTaskMinimized = !state.modeTaskMinimized;
+    syncMapContextSurfaces();
   }
 
   function syncMapCursorMode() {
@@ -9343,13 +9371,10 @@ const {
       riverAnnexGeometrySignature(target),
       ...donors.map(riverAnnexGeometrySignature).sort(),
       riverAnnexHydroSignature(),
-      'river-areas-v1',
+      'annex-source-v1',
+      RIVER_ANNEX_ALGORITHM_REVISION,
+      riverAnnexConfigFingerprint(RIVER_ANNEX_CONFIG),
     ].join('::');
-  }
-
-  function expandRiverAnnexDiscoveryBounds(bounds, tolerance = 1e-5) {
-    if (!Array.isArray(bounds) || bounds.length !== 4 || !bounds.every(Number.isFinite)) return null;
-    return [bounds[0] - tolerance, bounds[1] - tolerance, bounds[2] + tolerance, bounds[3] + tolerance];
   }
 
   function riverAnnexBoundsOverlap(left, right) {
@@ -9357,9 +9382,15 @@ const {
   }
 
   async function loadRiverAnnexSourceFeatures(target, donors) {
-    const bounds = expandRiverAnnexDiscoveryBounds(riverAnnexDiscoveryBounds(target.geometry, donors.map(feature => feature.geometry)));
-    if (!bounds) return { features: [], bounds, failedLogicalIds: [] };
-    const logicalIds = await gpuMapRenderer.queryHydroLogicalFeatures(bounds, { category: 'river' });
+    const bounds = expandRiverAnnexDiscoveryBounds(
+      riverAnnexDiscoveryBounds(target.geometry, donors.map(feature => feature.geometry)),
+      RIVER_ANNEX_CONFIG.discoveryRadiusM,
+    );
+    if (!bounds) return {
+      features: [], bounds, failedLogicalIds: [],
+      diagnostics: { discoveredLogicalRivers: 0, loadedRivers: 0, failedRiverLoads: 0 },
+    };
+    const logicalIds = await gpuMapRenderer.queryHydroLogicalFeatures(bounds, { category: 'river', geometryRole: 'source' });
     const loaded = [];
     const failedLogicalIds = [];
     const queue = [...new Set(logicalIds)];
@@ -9369,7 +9400,7 @@ const {
       while (cursor < queue.length) {
         const logicalId = queue[cursor++];
         try {
-          const feature = await gpuMapRenderer.loadHydroLogicalFeature(logicalId);
+          const feature = await gpuMapRenderer.loadHydroLogicalFeature(logicalId, { geometryRole: 'source' });
           if (feature?.properties?.category === 'river' && feature.geometry) loaded.push(feature);
         } catch (_) {
           failedLogicalIds.push(logicalId);
@@ -9381,7 +9412,23 @@ const {
       && feature.geometry
       && riverAnnexBoundsOverlap(geometryBounds(feature.geometry), bounds)
     ));
-    return { features: [...loaded, ...editRivers], bounds, failedLogicalIds };
+    if (queue.length && !loaded.length && failedLogicalIds.length === queue.length) {
+      const error = new Error('관련 원본 하천 데이터를 불러오지 못했습니다.');
+      error.code = 'RIVER_ANNEX_SOURCE_ERROR';
+      error.failedLogicalIds = failedLogicalIds.slice();
+      throw error;
+    }
+    const features = [...loaded, ...editRivers];
+    return {
+      features,
+      bounds,
+      failedLogicalIds,
+      diagnostics: {
+        discoveredLogicalRivers: queue.length,
+        loadedRivers: features.length,
+        failedRiverLoads: failedLogicalIds.length,
+      },
+    };
   }
 
   function ensureRiverAnnexCandidateWorker() {
@@ -9413,7 +9460,7 @@ const {
 
   function computeRiverAnnexCandidatesAsync(payload) {
     const worker = ensureRiverAnnexCandidateWorker();
-    if (!worker) return Promise.resolve().then(() => buildRiverAnnexCandidates(payload));
+    if (!worker) return Promise.resolve().then(() => buildRiverAnnexCandidates({ ...payload, clipper: window.polygonClipping }));
     const requestId = ++riverAnnexCandidateWorkerRequestId;
     return new Promise((resolve, reject) => {
       riverAnnexCandidateRequests.set(requestId, { resolve, reject });
@@ -9490,11 +9537,16 @@ const {
         donorFeatures: donors,
         riverFeatures: sources.features,
         topologyRevision: signature,
+        config: RIVER_ANNEX_CONFIG,
+        algorithmRevision: RIVER_ANNEX_ALGORITHM_REVISION,
+        sourceDiagnostics: sources.diagnostics,
       });
       if (!current()) return;
       const candidates = (result.candidates || []).filter(candidate => candidate?.geometry && candidate.donorCountryId);
-      riverAnnexCandidateCache.set(signature, { candidates: structuredClone(candidates), diagnostics: result.diagnostics || {}, failedLogicalIds: sources.failedLogicalIds });
+      const diagnostics = result.diagnostics || sources.diagnostics || {};
+      riverAnnexCandidateCache.set(signature, { candidates: structuredClone(candidates), diagnostics, failedLogicalIds: sources.failedLogicalIds });
       if (riverAnnexCandidateCache.size > 8) riverAnnexCandidateCache.delete(riverAnnexCandidateCache.keys().next().value);
+      window.__PANDOLAB_RIVER_ANNEX_DIAGNOSTICS__ = structuredClone(diagnostics);
       state.annexRiverAreaCandidates = candidates;
       state.annexRiverAreaStatus = candidates.length ? 'ready' : 'empty';
       setModeBanner(candidates.length
@@ -9504,9 +9556,11 @@ const {
       renderAll();
     } catch (error) {
       if (!current()) return;
-      state.annexRiverAreaStatus = 'error';
+      state.annexRiverAreaStatus = error?.code === 'RIVER_ANNEX_SOURCE_ERROR' ? 'source-error' : 'error';
       state.annexRiverAreaCandidates = [];
-      setModeBanner('하천 경계 편입 가능 영역을 계산하지 못했습니다.', 'annex-mode');
+      setModeBanner(error?.code === 'RIVER_ANNEX_SOURCE_ERROR'
+        ? '관련 원본 하천 데이터를 불러오지 못했습니다.'
+        : '하천 경계 편입 가능 영역을 계산하지 못했습니다.', 'annex-mode');
       updateModeButtons();
       reportOperationError(error, '하천 경계 편입 가능 영역을 계산하지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-ANNEX-RIVER-001', 4200);
     }
@@ -14956,6 +15010,8 @@ const {
       requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerrainDrawingMode('lake'), { fromCreate: true }));
     });
     $('modePrimaryBtn')?.addEventListener('click', () => { void runModePrimaryAction(); });
+    $('modeTaskMinimizeBtn')?.addEventListener('click', toggleMapTaskWindow);
+    $('modeTaskCloseBtn')?.addEventListener('click', () => $('modeCancelBtn')?.click());
     $('modeLineMethodBtn')?.addEventListener('click', () => requestDraftDiscard(() => switchTerritorySelectionMethod('line')));
     $('modePolygonMethodBtn')?.addEventListener('click', () => requestDraftDiscard(() => switchTerritorySelectionMethod('polygon')));
     $('modeRiverMethodBtn')?.addEventListener('click', () => requestDraftDiscard(() => switchTerritorySelectionMethod('river')));

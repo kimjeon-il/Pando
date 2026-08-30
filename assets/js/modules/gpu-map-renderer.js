@@ -154,6 +154,10 @@ export function createGpuMapRenderer(deps) {
     const hydroFeatureRequests = new Map();
     const hydroLogicalQueryRequests = new Map();
     let hydroFeatureRequestId = 0;
+    let hydroAnnexSourceWorker = null;
+    let hydroAnnexSourceRequestId = 0;
+    const hydroAnnexSourceFeatureRequests = new Map();
+    const hydroAnnexSourceQueryRequests = new Map();
     let hydroCacheCompletionNotified = false;
     let fillVao = null;
     let lineVao = null;
@@ -2335,7 +2339,53 @@ export function createGpuMapRenderer(deps) {
       if (logicalIds.size) hydroVisibilityDirty = true;
     }
 
-    function loadHydroLogicalFeature(logicalFid) {
+    function ensureHydroAnnexSourceWorker() {
+      if (hydroAnnexSourceWorker || typeof Worker !== 'function') return hydroAnnexSourceWorker;
+      try {
+        hydroAnnexSourceWorker = new Worker(runtimeAssetUrl('workers/hydro-annex-source-worker.js'), { name: 'pandolab-hydro-annex-source' });
+        hydroAnnexSourceWorker.onmessage = event => {
+          const message = event.data || {};
+          if (message.type === 'feature' || message.type === 'feature-error') {
+            const pending = hydroAnnexSourceFeatureRequests.get(Number(message.requestId));
+            if (!pending) return;
+            hydroAnnexSourceFeatureRequests.delete(Number(message.requestId));
+            if (message.type === 'feature-error') pending.reject(new Error(message.message || '원본 하천 형상을 불러오지 못했습니다.'));
+            else pending.resolve(message.feature || null);
+            return;
+          }
+          if (message.type === 'logical-features' || message.type === 'logical-features-error') {
+            const pending = hydroAnnexSourceQueryRequests.get(Number(message.requestId));
+            if (!pending) return;
+            hydroAnnexSourceQueryRequests.delete(Number(message.requestId));
+            if (message.type === 'logical-features-error') pending.reject(new Error(message.message || '원본 하천 후보를 찾지 못했습니다.'));
+            else pending.resolve((message.logicalFids || []).map(String));
+          }
+        };
+        hydroAnnexSourceWorker.onerror = event => {
+          const error = new Error(event.message || '원본 하천 Worker 실행 오류');
+          for (const pending of hydroAnnexSourceFeatureRequests.values()) pending.reject(error);
+          for (const pending of hydroAnnexSourceQueryRequests.values()) pending.reject(error);
+          hydroAnnexSourceFeatureRequests.clear();
+          hydroAnnexSourceQueryRequests.clear();
+          hydroAnnexSourceWorker?.terminate();
+          hydroAnnexSourceWorker = null;
+        };
+      } catch (_) {
+        hydroAnnexSourceWorker = null;
+      }
+      return hydroAnnexSourceWorker;
+    }
+
+    function loadHydroLogicalFeature(logicalFid, { geometryRole = 'display' } = {}) {
+      if (geometryRole === 'source') {
+        const worker = ensureHydroAnnexSourceWorker();
+        if (!worker) return Promise.reject(new Error('원본 하천 로더를 사용할 수 없습니다.'));
+        const requestId = ++hydroAnnexSourceRequestId;
+        return new Promise((resolve, reject) => {
+          hydroAnnexSourceFeatureRequests.set(requestId, { resolve, reject });
+          worker.postMessage({ type: 'load-feature', requestId, logicalFid: String(logicalFid) });
+        });
+      }
       if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
       const requestId = ++hydroFeatureRequestId;
       return new Promise((resolve, reject) => {
@@ -2344,7 +2394,16 @@ export function createGpuMapRenderer(deps) {
       });
     }
 
-    function queryHydroLogicalFeatures(bounds, { category = 'river' } = {}) {
+    function queryHydroLogicalFeatures(bounds, { category = 'river', geometryRole = 'display' } = {}) {
+      if (geometryRole === 'source') {
+        const worker = ensureHydroAnnexSourceWorker();
+        if (!worker) return Promise.reject(new Error('원본 하천 로더를 사용할 수 없습니다.'));
+        const requestId = ++hydroAnnexSourceRequestId;
+        return new Promise((resolve, reject) => {
+          hydroAnnexSourceQueryRequests.set(requestId, { resolve, reject });
+          worker.postMessage({ type: 'query-logical-features', requestId, bounds, category });
+        });
+      }
       if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
       const requestId = ++hydroFeatureRequestId;
       return new Promise((resolve, reject) => {

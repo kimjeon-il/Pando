@@ -212,7 +212,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r25')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r26')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -220,7 +220,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r25');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r26');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -306,7 +306,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
 test('river annex candidate Worker returns independent canonical land pockets', async ({ page }) => {
   await page.goto('/');
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r25', { type: 'module' });
+    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r26', { type: 'module' });
     const polygon = (id, coordinates) => ({
       type: 'Feature', id,
       properties: { editor_id: id },

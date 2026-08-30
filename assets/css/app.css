@@ -662,23 +662,36 @@ body.file-menu-open .mobile-backdrop {
 }
 .map-top-context-slot > * { pointer-events: auto; }
 .mode-editing-context {
-  width: min(100%, 460px);
+  width: min(100%, 420px);
   display: grid;
   justify-items: center;
-  gap: var(--ui-space-2);
 }
 .mode-editing-context.hidden,
 .mode-action-bar.hidden,
 .mode-draft-actions.hidden { display: none !important; }
-.mode-editing-hud { width: 100%; padding: var(--ui-space-2) var(--ui-space-3); }
-.mode-action-bar {
-  position: absolute;
-  z-index: 62;
-  right: auto;
-  left: calc(var(--map-safe-left) + (100% - var(--map-safe-left) - var(--map-safe-right)) / 2);
-  transform: translateX(-50%);
+.mode-task-window { width: 100%; overflow: hidden; }
+.mode-task-window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  min-height: var(--ui-control-height);
+  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-2) var(--ui-space-3);
 }
-.mode-action-bar { bottom: calc(var(--ui-map-status-height) + var(--ui-map-edge)); }
+.mode-task-window-controls { display: flex; flex: 0 0 auto; gap: var(--ui-space-1); }
+.mode-task-window-content {
+  display: grid;
+  gap: var(--ui-space-2);
+  padding: 0 var(--ui-space-3) var(--ui-space-3);
+}
+
+.mode-task-window-body {
+  display: grid;
+  gap: var(--ui-space-2);
+  max-height: min(38dvh, 280px);
+  overflow-y: auto;
+}
+.mode-task-window-content[hidden] { display: none; }
 
 
 /* ===== v0.10.2: 매개평면 GPU 메시, QGIS 벡터 호환, 계층형 레이어 ===== */
@@ -1244,8 +1257,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.mode-task-instruction:not(.hidden) + .geometry-preview-summary:not(.hidden)::before { content: " · "; color: var(--border-strong); }
-
 @media (max-width: 799px) {
   .debug-map-panel { display: none !important; }
   .geometry-preview-summary { max-width: 58%; }
@@ -1692,19 +1703,8 @@ body[data-layout="mobile"] :is(
   bottom: calc(112px + env(safe-area-inset-bottom));
 }
 #app[data-layout="mobile"] .mobile-zoom-dock button { width: var(--ui-touch-height); height: var(--ui-touch-height); display: grid; place-items: center; padding: 0; border-radius: var(--ui-radius-control); }
-#app[data-layout="mobile"] .mode-action-bar {
-  right: var(--ui-map-edge);
-  bottom: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom) + var(--ui-map-edge));
-  left: var(--ui-map-edge);
-  width: auto;
-  transform: none;
-}
-#app[data-layout="mobile"]:has(.mode-action-bar:not(.hidden)) .mobile-zoom-dock {
-  bottom: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom) + var(--ui-map-edge) + var(--ui-touch-height) + var(--ui-space-2));
-}
-#app[data-layout="mobile"]:has(.mode-draft-actions:not(.hidden)) .mobile-zoom-dock {
-  bottom: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom) + var(--ui-map-edge) + var(--ui-touch-height) + var(--ui-space-2) + var(--ui-touch-height) + var(--ui-space-2));
-}
+#app[data-layout="mobile"] .mode-editing-context { width: min(100%, 420px); }
+#app[data-layout="mobile"] .mode-task-window-body { max-height: min(42dvh, 320px); }
 #app[data-layout="mobile"] .mode-method-switch { grid-column: 1 / -1; width: 100%; }
 #app[data-layout="mobile"] .mode-action-buttons { justify-self: center; }
 #app[data-layout="mobile"] .mode-method-btn { min-height: var(--ui-touch-height); padding: 0 var(--ui-control-padding-x); font-size: var(--ui-font-sm); }
@@ -2927,12 +2927,11 @@ body.create-menu-open #app[data-layout="mobile"] #mapCommandToolbar.history-empt
 }
 body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-empty > :not(.create-menu-wrap) { display: none; }
 
-/* Active editing context stays at the top; commit controls stay above the status/navigation area. */
+/* A single non-modal task window keeps map editing controls together. */
 .mode-task-context {
   min-width: 0;
   display: grid;
   gap: var(--ui-space-0-5);
-  padding-inline: var(--ui-space-1);
 }
 .mode-task-heading {
   min-width: 0;
@@ -2957,33 +2956,28 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 .mode-task-separator { color: var(--border-strong); }
 .mode-task-detail {
   min-width: 0;
-  display: flex;
-  align-items: baseline;
-  overflow: hidden;
-  white-space: nowrap;
+  display: grid;
+  gap: var(--ui-space-1);
 }
 .mode-task-instruction {
   min-width: 0;
-  flex: 0 1 auto;
   margin: 0;
-  overflow: hidden;
   color: var(--text-soft);
   font-size: var(--ui-font-caption);
   line-height: var(--ui-line-normal);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .mode-method-switch { width: min(100%, 360px); }
 .mode-method-switch.annex-four-methods { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .mode-action-bar {
   display: flex;
   align-items: center;
-  gap: var(--ui-toolbar-gap);
-  width: max-content;
-  max-width: calc(100% - var(--ui-map-edge) * 2);
-  padding: var(--ui-toolbar-padding);
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: var(--ui-space-1);
+  padding-top: var(--ui-space-2);
+  border-top: 1px solid var(--border);
 }
-.mode-action-bar .mode-action-buttons { justify-content: center; margin-left: auto; }
+.mode-action-bar .mode-action-buttons { justify-content: flex-end; margin-left: auto; }
 .mode-action-bar.single-action .mode-action-buttons { justify-content: center; }
 .mode-primary-btn { position: relative; min-width: 112px; }
 .mode-button-busy {
@@ -3004,6 +2998,7 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   min-width: 0;
   padding: 0;
 }
+.mode-draft-actions:not(.hidden) { padding-top: var(--ui-space-2); border-top: 1px solid var(--border); }
 .mode-draft-action-btn {
   min-width: 0;
   min-height: var(--ui-control-height);
@@ -3024,13 +3019,12 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 .mode-draft-action-btn.danger:not(:disabled) { color: var(--danger-text); }
 .mode-draft-action-btn.danger:hover:not(:disabled) { border-color: var(--danger-border); background: var(--danger-surface); color: var(--danger-text); }
 .mode-draft-action-btn.danger:active:not(:disabled) { background: color-mix(in srgb, var(--danger-surface) 76%, var(--danger)); }
-#app[data-layout="mobile"] .mode-task-context { padding-inline: var(--ui-space-0-5); }
 #app[data-layout="mobile"] .mode-task-heading strong { font-size: var(--ui-font-body); }
 #app[data-layout="mobile"] .mode-task-stage { font-size: var(--ui-font-caption); }
 #app[data-layout="mobile"] .mode-action-buttons { width: 100%; }
 #app[data-layout="mobile"] .mode-action-buttons > button { flex: 1 1 0; }
-#app[data-layout="mobile"] .mode-action-bar { flex-wrap: wrap; justify-content: stretch; }
-#app[data-layout="mobile"] .mode-draft-actions { flex: 1 1 100%; flex-wrap: wrap; }
+#app[data-layout="mobile"] .mode-action-bar { justify-content: stretch; }
+#app[data-layout="mobile"] .mode-draft-actions { flex-wrap: wrap; }
 #app[data-layout="mobile"] .mode-draft-action-btn { min-width: var(--ui-touch-height); min-height: var(--ui-touch-height); padding: 0 var(--ui-space-2); }
 #app[data-layout="mobile"] .mode-draft-action-btn:not(#modeDraftRemoveLastBtn):not(#modeDraftDeleteBtn) span { display: none; }
 
