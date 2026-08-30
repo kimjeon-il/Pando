@@ -354,8 +354,8 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
     const styleType = metadata.some(item => item.type === 'admin')
       ? 'administrative'
       : metadata.some(item => item.type === 'region')
-        ? 'historical'
-        : 'region';
+        ? 'region'
+        : 'territory';
     output.push({
       key: segment.key,
       a: segment.a,

@@ -27,9 +27,9 @@ class ObjectEditorV0303Tests(unittest.TestCase):
             "countryComponentList",
             "regionLockedInput",
             "administrativeLockedInput",
-            "historicalRegionLockedInput",
+            "regionLockedInput",
             "deleteCountryBtn",
-            "deleteHistoricalRegionBtn",
+            "deleteRegionBtn",
             "objectFocusMenuBtn",
             "propertyAreaValue",
         ):
@@ -63,7 +63,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         positions = [country.index(token) for token in order]
         self.assertEqual(positions, sorted(positions))
         for form_id in (
-            "countryProperties", "territoryProperties", "administrativeProperties", "historicalRegionProperties",
+            "countryProperties", "territoryProperties", "administrativeProperties", "regionProperties",
             "distributionProperties", "drawingProperties", "labelProperties",
         ):
             markup = self.form_markup(form_id)
@@ -73,8 +73,8 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertIsNotNone(hydro)
         self.assertIn("editor-object-form", hydro.group(0))
         self.assertNotIn('class="ui-card editor-section', hydro.group(0))
-        historical = self.form_markup("historicalRegionProperties")
-        self.assertIn('<fieldset class="editor-period-group"><legend>유효 기간</legend>', historical)
+        region = self.form_markup("regionProperties")
+        self.assertIn('<fieldset class="editor-period-group"><legend>유효 기간</legend>', region)
 
     def test_semantic_typography_roles_are_shared_by_every_object_editor(self):
         for duplicate_heading in ("분포 항목 정보", ">기본 정보<", "hydroPropertiesTitle"):
@@ -93,7 +93,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertRegex(country, r'id="flagUploadBtn"[^>]+aria-label="국기 변경"[^>]*><svg')
         self.assertRegex(country, r'id="flagRemoveBtn"[^>]+aria-label="국기 삭제"[^>]*><svg')
         self.assertNotRegex(country, r'>\s*국기 (?:변경|삭제)\s*</button>')
-        for form_id in ("countryProperties", "territoryProperties", "administrativeProperties", "historicalRegionProperties"):
+        for form_id in ("countryProperties", "territoryProperties", "administrativeProperties", "regionProperties"):
             markup = self.form_markup(form_id)
             self.assertIn("editor-action-row", markup)
             self.assertNotIn("editor-action-grid", markup)

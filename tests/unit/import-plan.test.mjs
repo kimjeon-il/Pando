@@ -38,17 +38,15 @@ test('partition object imports are constrained to the current project', () => {
   assert.equal(targetRequiresExistingProject('project'), false);
 });
 
-test('region imports keep explicit-area semantics and accept the legacy historicalRegion adapter', () => {
+test('region imports keep explicit-area semantics', () => {
   const region = normalizeImportPlan({
     targetType: 'region', targetCountryId: 'DEU', useFeatureCountryField: true,
   });
-  const legacy = normalizeImportPlan({ targetType: 'historicalRegion' });
 
   assert.equal(region.targetType, 'region');
   assert.equal(region.targetCountryId, '');
   assert.equal(region.useFeatureCountryField, false);
   assert.equal(region.landPolicy, 'preserve');
-  assert.equal(legacy.targetType, 'region');
 });
 
 test('real project markers classify the import plan without changing vector-only metadata behavior', () => {

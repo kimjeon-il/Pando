@@ -1,6 +1,6 @@
 'use strict';
 
-const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r13';
+const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r14';
 const GIS_ADAPTER_URL = new URL('../gis-adapters.js', self.location.href);
 GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION);
 importScripts(GIS_ADAPTER_URL.href);
@@ -251,14 +251,14 @@ function writeAtlasTables(db, payload) {
     { name: 'metadata_json' }, { name: 'properties_json' },
   ];
   for (const [unitType, tableName] of Object.entries(self.PandoLabGisAdapters.TERRITORIAL_TABLES)) {
-    const logicalLayer = unitType === 'territory' ? 'regions' : unitType === 'admin' ? 'administrative' : 'historicalRegions';
+    const logicalLayer = unitType === 'territory' ? 'territories' : unitType === 'admin' ? 'administrative' : 'regions';
     if (!includes(logicalLayer)) continue;
     createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: territorialRows[tableName] || [], columns: territorialColumns, description: `PandoLab ${unitType} territorial units` });
   }
   const distributionColumns = [
     { name: 'entry_id' }, { name: 'layer_id' }, { name: 'name' }, { name: 'distribution_type' },
     { name: 'parent_layer_id' }, { name: 'color' }, { name: 'layer_visible', type: 'INTEGER' }, { name: 'layer_locked', type: 'INTEGER' },
-    { name: 'source_mode' }, { name: 'region_id' }, { name: 'share', type: 'REAL' }, { name: 'certainty' },
+    { name: 'source_mode' }, { name: 'territorial_unit_id' }, { name: 'share', type: 'REAL' }, { name: 'certainty' },
     { name: 'valid_from' }, { name: 'valid_to' }, { name: 'layer_metadata_json' }, { name: 'entry_metadata_json' },
   ];
   if (includes('distributions')) {

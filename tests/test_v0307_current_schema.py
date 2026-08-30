@@ -16,7 +16,7 @@ class CurrentSchemaPolicyTests(unittest.TestCase):
     def test_project_save_and_load_use_one_required_schema(self):
         self.assertIn("schemaVersion: PROJECT_SCHEMA_VERSION", APP)
         self.assertIn("assertCurrentProjectSchema(project)", APP)
-        self.assertIn("export const PROJECT_SCHEMA_VERSION = 1", PROJECT)
+        self.assertIn("export const PROJECT_SCHEMA_VERSION = 2", PROJECT)
         self.assertIn("createProjectObjectId", PROJECT)
         self.assertIn("crypto.randomUUID", PROJECT)
 
@@ -29,7 +29,7 @@ class CurrentSchemaPolicyTests(unittest.TestCase):
     def test_external_gis_columns_do_not_restore_internal_aliases(self):
         self.assertIn("parent_id", GIS_ADAPTERS)
         self.assertIn("sovereign_id", GIS_ADAPTERS)
-        self.assertNotIn("parent_region_id", GIS_ADAPTERS)
+        self.assertNotIn("parent_territorial_unit_id", GIS_ADAPTERS)
         self.assertNotIn("countryRegions", GIS_ADAPTERS)
 
 

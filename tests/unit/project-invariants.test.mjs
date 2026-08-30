@@ -19,7 +19,7 @@ test('valid project references pass', () => {
     countries: [country('A')],
     territorialUnits: [unit('R', 'A')],
     distributionLayers: [{ id: 'L', type: 'language', parentId: '' }],
-    distributionEntries: [{ id: 'E', layerId: 'L', mode: 'region', regionId: 'R', share: 100 }],
+    distributionEntries: [{ id: 'E', layerId: 'L', mode: 'territorial', territorialUnitId: 'R', share: 100 }],
   });
   assert.equal(result.ok, true);
 });
@@ -29,11 +29,11 @@ test('dangling references are reported instead of silently ignored', () => {
     countries: [country('A')],
     territorialUnits: [unit('R', 'MISSING', 'A')],
     distributionLayers: [{ id: 'L', type: 'language', parentId: '' }],
-    distributionEntries: [{ id: 'E', layerId: 'L', mode: 'region', regionId: 'NOPE', share: 100 }],
+    distributionEntries: [{ id: 'E', layerId: 'L', mode: 'territorial', territorialUnitId: 'NOPE', share: 100 }],
   });
   assert.equal(result.ok, false);
   assert.ok(result.issues.some(row => row.code === 'PL-INV-MISSING-PARENT'));
-  assert.ok(result.issues.some(row => row.code === 'PL-INV-MISSING-DIST-REGION'));
+  assert.ok(result.issues.some(row => row.code === 'PL-INV-MISSING-DIST-TERRITORIAL'));
   assert.throws(() => assertProjectReferenceIntegrity({
     countries: [country('A')],
     territorialUnits: [unit('R', 'MISSING', 'A')],

@@ -80,8 +80,8 @@ export function createDistributionService({
     const layer = layerById(options?.layerId);
     if (!layer) return { ok: false, code: 'layer-not-found' };
     if (layer.locked) return { ok: false, code: 'locked', layer };
-    if (options?.mode === DISTRIBUTION_MODES.REGION && !territorialExists(options.regionId)) {
-      return { ok: false, code: 'region-not-found', layer };
+    if (options?.mode === DISTRIBUTION_MODES.TERRITORIAL && !territorialExists(options.territorialUnitId)) {
+      return { ok: false, code: 'territorial-unit-not-found', layer };
     }
     let entry;
     try {

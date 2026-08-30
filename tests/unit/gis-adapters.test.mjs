@@ -21,31 +21,31 @@ test('territorial GIS rows keep hierarchy sovereignty dates and multipart geomet
     }],
   };
   const rows = adapters.territorialRows(state);
-  assert.equal(rows.administrative_units.length, 1);
-  assert.deepEqual(rows.administrative_units[0].geometry, geometry);
-  assert.deepEqual(rows.administrative_units[0], {
-    ...rows.administrative_units[0],
+  assert.equal(rows.administrative.length, 1);
+  assert.deepEqual(rows.administrative[0].geometry, geometry);
+  assert.deepEqual(rows.administrative[0], {
+    ...rows.administrative[0],
     id: 'admin-a', type: 'admin', parent_id: 'country-gr', sovereign_id: 'country-gr',
     admin_level: 1, valid_from: '1900', valid_to: '2000', source_library_id: 'lib-admin-a',
   });
 });
 
-test('region distributions materialize referenced geometry only in the GIS view', () => {
+test('territorial distributions materialize referenced geometry only in the GIS view', () => {
   const state = {
     countriesData: { type: 'FeatureCollection', features: [{ type: 'Feature', id: 'GR', properties: { editor_id: 'GR' }, geometry: polygon() }] },
     distributionLayers: [{ id: 'greek', type: 'language', name: '그리스어', color: '#2474c6', locked: false }],
     itemVisibility: { languages: { greek: false } },
     distributionEntries: [
-      { id: 'entry-region', layerId: 'greek', mode: 'region', regionId: 'GR', geometry: null, share: 95, certainty: 'high' },
-      { id: 'entry-free', layerId: 'greek', mode: 'geometry', regionId: '', geometry: polygon(4, 5), share: 40, certainty: 'medium' },
+      { id: 'entry-territorial', layerId: 'greek', mode: 'territorial', territorialUnitId: 'GR', geometry: null, share: 95, certainty: 'high' },
+      { id: 'entry-free', layerId: 'greek', mode: 'geometry', territorialUnitId: '', geometry: polygon(4, 5), share: 40, certainty: 'medium' },
     ],
   };
   const before = JSON.parse(JSON.stringify(state));
   const rows = adapters.distributionRows(state).language_distribution;
   assert.equal(rows.length, 2);
   assert.deepEqual(rows[0].geometry, polygon());
-  assert.equal(rows[0].source_mode, 'region');
-  assert.equal(rows[0].region_id, 'GR');
+  assert.equal(rows[0].source_mode, 'territorial');
+  assert.equal(rows[0].territorial_unit_id, 'GR');
   assert.equal(rows[0].share, 95);
   assert.equal(rows[0].layer_visible, 0);
   assert.deepEqual(rows[1].geometry, polygon(4, 5));
@@ -55,12 +55,12 @@ test('region distributions materialize referenced geometry only in the GIS view'
 test('GIS distribution import keeps stable IDs and reports collisions', () => {
   const feature = id => ({
     type: 'Feature', geometry: polygon(),
-    properties: { entry_id: id, layer_id: 'greek', name: '그리스어', share: 80, source_mode: 'region', region_id: 'GR' },
+    properties: { entry_id: id, layer_id: 'greek', name: '그리스어', share: 80, source_mode: 'territorial', territorial_unit_id: 'GR' },
   });
   const imported = adapters.mergeDistributionFeatures([{ tableName: 'language_distribution', features: [feature('entry-1')] }]);
   assert.equal(imported.layers[0].id, 'greek');
   assert.deepEqual(imported.entries[0], {
-    ...imported.entries[0], id: 'entry-1', layerId: 'greek', mode: 'region', regionId: 'GR', geometry: null, share: 80,
+    ...imported.entries[0], id: 'entry-1', layerId: 'greek', mode: 'territorial', territorialUnitId: 'GR', geometry: null, share: 80,
   });
   assert.throws(
     () => adapters.mergeDistributionFeatures([{ tableName: 'language_distribution', features: [feature('duplicate'), feature('duplicate')] }]),
@@ -68,13 +68,13 @@ test('GIS distribution import keeps stable IDs and reports collisions', () => {
   );
 });
 
-test('only the current administrative table imports through the adapter', () => {
+test('the canonical administrative table imports through the adapter', () => {
   const source = {
     type: 'Feature', geometry: polygon(), properties: { id: 'admin-1', name: '아티키', sovereign_id: 'GR', parent_id: 'GR', admin_level: 1 },
   };
-  const imported = adapters.importTerritorialFeature(source, 'administrative_units');
+  const imported = adapters.importTerritorialFeature(source, 'administrative');
   assert.equal(imported.properties.schemaVersion, 1);
   assert.equal(imported.properties.unitType, 'admin');
   assert.equal(imported.properties.sovereignId, 'GR');
-  assert.equal(adapters.importTerritorialFeature(source, 'administrative_areas'), null);
+  assert.equal(adapters.TERRITORIAL_TABLES.admin, 'administrative');
 });

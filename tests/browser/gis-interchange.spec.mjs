@@ -39,10 +39,10 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await selectUiOption(page, '#distributionTypeInput', 'language');
   await page.locator('#distributionTypeConfirmBtn').click();
   await page.locator('#actionsTabBtn').click();
-  const regionId = await page.locator('#distributionRegionInput option').nth(1).getAttribute('value');
-  await selectUiOption(page, '#distributionRegionInput', regionId);
+  const territorialUnitId = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
+  await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
   await page.locator('#distributionShareInput').fill('73');
-  await page.locator('#addRegionDistributionBtn').click();
+  await page.locator('#addTerritorialDistributionBtn').click();
 
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#saveProjectBtn')).toBeVisible();
@@ -56,7 +56,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   try {
     const tables = new Set(db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(row => row.name));
     for (const table of [
-      'countries', 'territories', 'administrative_units', 'historical_regions',
+      'countries', 'territories', 'administrative', 'regions',
       'language_distribution', 'ethnicity_distribution', 'religion_distribution',
     ]) expect(tables.has(table)).toBe(true);
 
@@ -65,11 +65,11 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
       expect(countryColumns.has(field)).toBe(true);
     }
     const distributionColumns = new Set(db.prepare('PRAGMA table_info(language_distribution)').all().map(row => row.name));
-    for (const field of ['entry_id', 'layer_id', 'source_mode', 'region_id', 'share', 'certainty']) {
+    for (const field of ['entry_id', 'layer_id', 'source_mode', 'territorial_unit_id', 'share', 'certainty']) {
       expect(distributionColumns.has(field)).toBe(true);
     }
-    const row = db.prepare('SELECT source_mode, region_id, share, typeof(geom) AS geometry_type FROM language_distribution').get();
-    expect(row).toMatchObject({ source_mode: 'region', region_id: regionId, share: 73, geometry_type: 'blob' });
+    const row = db.prepare('SELECT source_mode, territorial_unit_id, share, typeof(geom) AS geometry_type FROM language_distribution').get();
+    expect(row).toMatchObject({ source_mode: 'territorial', territorial_unit_id: territorialUnitId, share: 73, geometry_type: 'blob' });
     const crs = db.prepare("SELECT srs_id FROM gpkg_geometry_columns WHERE table_name='language_distribution'").get();
     expect(crs.srs_id).toBe(4326);
   } finally {
@@ -106,7 +106,7 @@ test('GIS data export writes only selected layers and omits project-only metadat
     const tables = new Set(db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(row => row.name));
     expect(tables.has('countries')).toBe(true);
     expect(tables.has('territories')).toBe(false);
-    expect(tables.has('administrative_units')).toBe(false);
+    expect(tables.has('administrative')).toBe(false);
     expect(tables.has('pandolab_project_settings')).toBe(false);
     expect(tables.has('pandolab_country_assets')).toBe(false);
   } finally {
@@ -211,7 +211,7 @@ test('East Prussia imports as a complete German administrative unit and undo tre
 
   const readImported = () => page.evaluate(async () => {
     const database = await new Promise((resolve, reject) => {
-      const request = indexedDB.open('pandolab-editor-v010', 2);
+      const request = indexedDB.open('pandolab-editor', 2);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });

@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'pandolab-user-preferences-v1';
+const STORAGE_KEY = 'pandolab-user-preferences';
 const DEFAULTS = Object.freeze({
   version: 1,
   appearance: Object.freeze({ theme: 'system' }),

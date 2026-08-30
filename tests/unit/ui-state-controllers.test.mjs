@@ -19,7 +19,7 @@ test('object selection preserves a primary item and supports toggle and ranges',
   assert.deepEqual(controller.items().map(item => item.id), ['B', 'D']);
 });
 
-test('layer presentation accepts legacy fields but applies the fixed runtime policy', () => {
+test('layer presentation applies the fixed v2 runtime policy', () => {
   const normalized = normalizeLayerPresentation({
     overlayOrder: ['languages', 'languages', 'unknown'],
     styles: { countries: { boundaryWidth: 8, opacity: 0.4 } },

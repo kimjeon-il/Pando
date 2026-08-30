@@ -70,15 +70,16 @@ const currentProject = () => ({
   schemaVersion: PROJECT_SCHEMA_VERSION,
   landObjectModel: { schemaVersion: 1 },
   territorialModel: { schemaVersion: 1 },
-  distributionModel: { schemaVersion: 1 },
+  distributionModel: { schemaVersion: 2 },
+  layerPresentation: { schemaVersion: 2, overlayOrder: [], styles: {} },
   territorialUnits: [{
     type: 'Feature', id: uuid(1),
     properties: { schemaVersion: 1, unitType: 'territory', isRemainder: false },
     geometry: { type: 'Polygon', coordinates: [] },
   }],
   territorialRelations: [{ id: uuid(2), schemaVersion: 1 }],
-  distributionLayers: [{ id: uuid(3), schemaVersion: 1, type: 'language' }],
-  distributionEntries: [{ id: uuid(4), schemaVersion: 1, layerId: uuid(3) }],
+  distributionLayers: [{ id: uuid(3), schemaVersion: 2, type: 'language' }],
+  distributionEntries: [{ id: uuid(4), schemaVersion: 2, layerId: uuid(3) }],
   drawings: [{ type: 'Feature', id: uuid(5), properties: { pandolab_schema_version: 1 } }],
   hydroEdits: [{ type: 'Feature', id: uuid(6), properties: { pandolab_schema_version: 1 } }],
   labels: [{ id: uuid(7) }],
@@ -98,34 +99,28 @@ test('missing and old schema versions are rejected instead of migrated', () => {
   assert.throws(() => assertCurrentProjectSchema(old), /지원하지 않습니다/);
 });
 
-test('missing duplicate and legacy object identifiers are rejected', () => {
+test('missing duplicate and unsupported object fields are rejected', () => {
   const missing = currentProject();
   missing.labels[0].id = '';
   assert.throws(() => assertCurrentProjectSchema(missing), /ID가 비어/);
   const duplicate = currentProject();
   duplicate.labels.push({ id: uuid(7) });
   assert.throws(() => assertCurrentProjectSchema(duplicate), /중복/);
-  const legacy = currentProject();
-  legacy.territorialUnits[0].properties.country_id = 'PL';
-  assert.throws(() => assertCurrentProjectSchema(legacy), /과거 필드 country_id/);
-  const statusAlias = currentProject();
-  statusAlias.territorialUnits[0].properties.status = 'unassigned';
-  assert.throws(() => assertCurrentProjectSchema(statusAlias), /과거 필드 status/);
+  const unsupported = currentProject();
+  unsupported.territorialUnits[0].properties.unknownField = 'PL';
+  assert.throws(() => assertCurrentProjectSchema(unsupported), /지원하지 않는 필드 unknownField/);
 });
 
-test('session state and model visibility aliases are rejected from project files', () => {
+test('session state and unsupported model fields are rejected from project files', () => {
   for (const field of ['projection', 'view', 'layerFolders', 'selectedDistributionLayerId']) {
     const project = currentProject();
     project[field] = field === 'projection' ? 'flat' : {};
-    assert.throws(() => assertCurrentProjectSchema(project), new RegExp(`과거 필드 ${field}`));
+    assert.throws(() => assertCurrentProjectSchema(project), new RegExp(`지원하지 않는 필드 ${field}`));
   }
-  const drawingVisible = currentProject();
-  drawingVisible.drawings[0].properties.visible = true;
-  assert.throws(() => assertCurrentProjectSchema(drawingVisible), /과거 필드 visible/);
-  const distributionVisible = currentProject();
-  distributionVisible.distributionLayers[0].visible = true;
-  assert.throws(() => assertCurrentProjectSchema(distributionVisible), /과거 필드 visible/);
-  const selectedDistribution = currentProject();
-  selectedDistribution.distributionSettings = { renderMode: 'dominant', selectedLayerId: uuid(3) };
-  assert.throws(() => assertCurrentProjectSchema(selectedDistribution), /과거 필드 selectedLayerId/);
+  const unsupportedLayer = currentProject();
+  unsupportedLayer.distributionLayers[0].unknownField = true;
+  assert.throws(() => assertCurrentProjectSchema(unsupportedLayer), /지원하지 않는 필드 unknownField/);
+  const unsupportedSettings = currentProject();
+  unsupportedSettings.distributionSettings = { renderMode: 'dominant', unknownField: uuid(3) };
+  assert.throws(() => assertCurrentProjectSchema(unsupportedSettings), /지원하지 않는 필드 unknownField/);
 });

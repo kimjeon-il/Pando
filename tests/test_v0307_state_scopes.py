@@ -18,11 +18,13 @@ class StateScopeContractTests(unittest.TestCase):
         self.assertIn("field.scope === 'presentation'", PROJECT_STATE)
         self.assertIn("field.scope === 'session'", PROJECT_STATE)
 
-    def test_project_schema_rejects_session_state_and_model_visibility(self):
+    def test_project_schema_uses_current_allowlists_and_keeps_session_state_out(self):
+        root_allowlist = PROJECT_STATE[PROJECT_STATE.index("assertAllowedKeys(project, new Set(["):PROJECT_STATE.index("]), '프로젝트'")]
         for field in ("projection", "view", "layerFolders", "selectedDistributionLayerId"):
-            self.assertIn(f"'{field}'", PROJECT_STATE)
-        self.assertIn("['pandolab_folder_id', 'visible']", PROJECT_STATE)
-        self.assertIn("['distributionType', 'parent_id', 'valid_from', 'valid_to', 'visible']", PROJECT_STATE)
+            self.assertNotIn(f"'{field}'", root_allowlist)
+        self.assertIn("assertAllowedKeys(project.layerVisibility, LAYER_GROUP_KEYS", PROJECT_STATE)
+        self.assertIn("assertAllowedKeys(project.itemVisibility, LAYER_GROUP_KEYS", PROJECT_STATE)
+        self.assertIn("'countries', 'territories', 'administrative', 'regions'", PROJECT_STATE)
 
     def test_project_and_view_use_separate_indexeddb_records(self):
         self.assertIn("readProject: () => readRecord(projectKey", PERSISTENCE)

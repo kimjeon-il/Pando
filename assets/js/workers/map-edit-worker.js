@@ -89,46 +89,46 @@ function polygonBounds(polygon) {
   return geometryBounds({ type: 'Polygon', coordinates: polygon });
 }
 
-function regionPolygonsNearFeatures(features, region) {
-  const regionBounds = geometryBounds({ type: 'MultiPolygon', coordinates: region });
+function areaPolygonsNearFeatures(features, areaCoordinates) {
+  const areaBounds = geometryBounds({ type: 'MultiPolygon', coordinates: areaCoordinates });
   const polygons = [];
   for (const feature of features) {
     for (const polygon of multiCoordinates(feature.geometry)) {
-      if (boundsOverlap(polygonBounds(polygon), regionBounds)) polygons.push([polygon]);
+      if (boundsOverlap(polygonBounds(polygon), areaBounds)) polygons.push([polygon]);
     }
   }
   return polygons;
 }
 
-function subtractRegionFromGeometry(geometry, region, tolerance) {
-  const regionBounds = geometryBounds({ type: 'MultiPolygon', coordinates: region });
+function subtractAreaFromGeometry(geometry, areaCoordinates, tolerance) {
+  const areaBounds = geometryBounds({ type: 'MultiPolygon', coordinates: areaCoordinates });
   const polygons = [];
   let affected = false;
   for (const polygon of multiCoordinates(geometry)) {
-    if (!boundsOverlap(polygonBounds(polygon), regionBounds)) {
+    if (!boundsOverlap(polygonBounds(polygon), areaBounds)) {
       polygons.push(clone(polygon));
       continue;
     }
     const source = [polygon];
-    if (area(clippingOperation('intersection', source, region)) <= tolerance) {
+    if (area(clippingOperation('intersection', source, areaCoordinates)) <= tolerance) {
       polygons.push(clone(polygon));
       continue;
     }
     affected = true;
-    polygons.push(...clippingOperation('difference', source, region));
+    polygons.push(...clippingOperation('difference', source, areaCoordinates));
   }
   return { affected, geometry: normalizeCountryGeometry(polygons) };
 }
 
-function unionRegionWithGeometry(geometry, region) {
-  const regionBounds = geometryBounds({ type: 'MultiPolygon', coordinates: region });
+function unionAreaWithGeometry(geometry, areaCoordinates) {
+  const areaBounds = geometryBounds({ type: 'MultiPolygon', coordinates: areaCoordinates });
   const untouched = [];
   const nearby = [];
   for (const polygon of multiCoordinates(geometry)) {
-    if (boundsOverlap(polygonBounds(polygon), regionBounds)) nearby.push([polygon]);
+    if (boundsOverlap(polygonBounds(polygon), areaBounds)) nearby.push([polygon]);
     else untouched.push(clone(polygon));
   }
-  const merged = nearby.length ? clippingOperation('union', ...nearby, region) : clone(region);
+  const merged = nearby.length ? clippingOperation('union', ...nearby, areaCoordinates) : clone(areaCoordinates);
   return normalizeCountryGeometry([...untouched, ...merged]);
 }
 
@@ -229,7 +229,7 @@ function executeAnnex(message, working) {
   const transferred = multiCoordinates(message.transferredGeometry);
   const transferredArea = area(transferred);
   if (transferredArea <= 1e-14) throw new Error('편입할 유효한 영토가 없습니다.');
-  const donorInputs = regionPolygonsNearFeatures(donors, transferred);
+  const donorInputs = areaPolygonsNearFeatures(donors, transferred);
   const donorUnion = donorInputs.length ? clippingOperation('union', ...donorInputs) : [];
   if (!allowUnclaimed && area(clippingOperation('difference', transferred, donorUnion)) > Math.max(1e-10, transferredArea * 1e-10)) {
     throw new Error('선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다. 범위를 다시 지정하세요.');
@@ -238,13 +238,13 @@ function executeAnnex(message, working) {
   const removedIds = [];
   const affectedDonorIds = [];
   const nextTarget = clone(target);
-  nextTarget.geometry = unionRegionWithGeometry(target.geometry, transferred);
+  nextTarget.geometry = unionAreaWithGeometry(target.geometry, transferred);
   updates.push(nextTarget);
   const tolerance = Math.max(1e-10, transferredArea * 1e-10);
   for (const donor of donors) {
     if (cancelled.has(message.requestId)) throw new Error('CANCELLED');
     const id = featureId(donor);
-    const subtraction = subtractRegionFromGeometry(donor.geometry, transferred, tolerance);
+    const subtraction = subtractAreaFromGeometry(donor.geometry, transferred, tolerance);
     if (!subtraction.affected) continue;
     affectedDonorIds.push(id);
     const remainder = subtraction.geometry;
@@ -288,7 +288,7 @@ function executeNewCountry(message, working) {
   if (!sources.length || sources.length !== sourceIds.length || !newFeature?.geometry || !newId) throw new Error('새 국가의 원본 국가 데이터를 찾을 수 없습니다.');
   const transferred = multiCoordinates(message.transferredGeometry);
   const transferredArea = area(transferred);
-  const sourceInputs = regionPolygonsNearFeatures(sources, transferred);
+  const sourceInputs = areaPolygonsNearFeatures(sources, transferred);
   const sourceUnion = sourceInputs.length ? clippingOperation('union', ...sourceInputs) : [];
   if (area(clippingOperation('difference', transferred, sourceUnion)) > Math.max(1e-10, transferredArea * 1e-10)) {
     throw new Error('선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다.');
@@ -299,7 +299,7 @@ function executeNewCountry(message, working) {
   const tolerance = Math.max(1e-10, transferredArea * 1e-10);
   for (const source of sources) {
     const id = featureId(source);
-    const subtraction = subtractRegionFromGeometry(source.geometry, transferred, tolerance);
+    const subtraction = subtractAreaFromGeometry(source.geometry, transferred, tolerance);
     if (!subtraction.affected) continue;
     affectedSourceIds.push(id);
     const remainder = subtraction.geometry;

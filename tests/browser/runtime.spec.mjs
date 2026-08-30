@@ -35,7 +35,7 @@ async function editorTypographySnapshot(page) {
       return [computed.fontSize, computed.fontWeight];
     };
     const formIds = [
-      'countryProperties', 'territoryProperties', 'administrativeProperties', 'historicalRegionProperties',
+      'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties',
       'distributionProperties', 'drawingProperties', 'labelProperties', 'hydroProperties',
     ];
     return {
@@ -60,7 +60,7 @@ async function editorTypographySnapshot(page) {
       propertyHeading: font('.editor-property-heading'),
       disclosure: font('#countryProperties > .editor-disclosure > summary'),
       periodHeading: font('.editor-period-group > legend'),
-      periodSubfield: font('label[for="historicalRegionValidFromInput"]'),
+      periodSubfield: font('label[for="regionValidFromInput"]'),
     };
   });
 }
@@ -157,7 +157,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r13')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r14')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -165,7 +165,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r13');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r14');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -647,7 +647,7 @@ test('virtualized country deletion honors per-object lock, undo, and autosave re
   await deleteCountry();
   await expect.poll(() => page.evaluate(async expectedId => {
     const database = await new Promise((resolve, reject) => {
-      const request = indexedDB.open('pandolab-editor-v010', 2);
+      const request = indexedDB.open('pandolab-editor', 2);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
@@ -1020,7 +1020,7 @@ test('GeoJSON imports custom drawings into one flat list and deletes them immedi
   expect(errors).toEqual([]);
 });
 
-test('GeoJSON polygon imports create dedicated country regions with explicit ownership', async ({ page }) => {
+test('GeoJSON polygon imports create canonical territories with explicit ownership', async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
@@ -1028,7 +1028,7 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
     type: 'FeatureCollection',
     features: [{
       type: 'Feature',
-      id: 'region-import-smoke',
+      id: 'territory-import-smoke',
       properties: { name: '시험 지역' },
       geometry: {
         type: 'Polygon',
@@ -1069,10 +1069,10 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
     return { id: feature?.id, sourceId: feature?.properties?.metadata?.sourceId };
   });
   expect(importedIdentity.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
-  expect(importedIdentity.sourceId).toBe('region-import-smoke');
+  expect(importedIdentity.sourceId).toBe('territory-import-smoke');
 
-  const regionToggle = page.locator('[data-layer-folder-toggle="regions"]').first();
-  if (await regionToggle.getAttribute('aria-expanded') !== 'true') await regionToggle.click();
+  const territoryToggle = page.locator('[data-layer-folder-toggle="territories"]').first();
+  if (await territoryToggle.getAttribute('aria-expanded') !== 'true') await territoryToggle.click();
   const importedName = page.getByRole('button', { name: '시험 지역', exact: true });
   await expect(importedName).toHaveCount(1);
   await importedName.click();
@@ -1081,16 +1081,16 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
   await expect(page.locator('#territoryColorInput')).toHaveValue('#dc2626');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'territory' })
     .find(feature => feature.properties?.name === '시험 지역')?.properties?.style?.color)).toBe('#dc2626');
-  await expect(page.locator('#regionsLayerChildren .layer-subfolder-row')).toHaveCount(1);
-  await expect(page.locator('#regionsLayerChildren')).toContainText('미지정 권역');
-  const countrySubfolder = page.locator('#regionsLayerChildren [data-territorial-unit-folder-toggle]');
+  await expect(page.locator('#territoriesLayerChildren .layer-subfolder-row')).toHaveCount(1);
+  await expect(page.locator('#territoriesLayerChildren')).toContainText('미지정 권역');
+  const countrySubfolder = page.locator('#territoriesLayerChildren [data-territorial-unit-folder-toggle]');
   await countrySubfolder.click();
   await expect(countrySubfolder).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('#regionsLayerChildren .layer-child')).toHaveCount(0);
+  await expect(page.locator('#territoriesLayerChildren .layer-child')).toHaveCount(0);
   await countrySubfolder.click();
-  await expect(page.locator('#regionsLayerChildren .layer-child')).toHaveCount(2);
+  await expect(page.locator('#territoriesLayerChildren .layer-child')).toHaveCount(2);
 
-  const importedRow = page.locator('#regionsLayerChildren .layer-child').filter({ hasText: '시험 지역' });
+  const importedRow = page.locator('#territoriesLayerChildren .layer-child').filter({ hasText: '시험 지역' });
   await importedRow.locator('.layer-child-menu').click();
   await page.locator('#objectDeleteMenuBtn').click();
   await expect(page.locator('#confirmModalChoice')).toHaveValue('unassigned');

@@ -34,6 +34,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         for element_id in (
             "addFromLibraryBtn", "historicalLibraryModal", "historicalLibrarySearchInput",
             "historicalLibraryTypeInput", "historicalLibraryStatusInput", "historicalLibraryYearInput",
+            "historicalLibraryGeographicRegionInput",
             "historicalLibraryResults", "historicalLibraryPreview", "historicalLibrarySnapshotInput",
             "historicalLibraryChildDepthInput", "historicalLibraryAddBtn",
         ):
@@ -47,6 +48,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertIn("geometry: clone(version.geometry)", MODEL)
 
     def test_pilot_data_discloses_approximation_and_sources(self):
+        self.assertEqual(PILOT["schemaVersion"], 2)
         self.assertGreaterEqual(len(PILOT["entities"]), 2)
         for entity in PILOT["entities"]:
             self.assertTrue(entity["metadata"]["pilot"])
