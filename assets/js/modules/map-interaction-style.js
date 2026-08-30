@@ -11,9 +11,19 @@ function unitInterval(value, fallback) {
   return Number.isFinite(numeric) ? Math.max(0, Math.min(1, numeric)) : fallback;
 }
 
+function mixWithWhite(value, amount = 0.2) {
+  const match = /^#([0-9a-f]{6})$/i.exec(String(value || ''));
+  if (!match) return value;
+  const numeric = Number.parseInt(match[1], 16);
+  const ratio = unitInterval(amount, 0.2);
+  const channels = [(numeric >> 16) & 255, (numeric >> 8) & 255, numeric & 255];
+  return `#${channels.map(channel => Math.round(channel * (1 - ratio) + 255 * ratio)
+    .toString(16).padStart(2, '0')).join('')}`;
+}
+
 export function resolveMapInteractionStyle({
   theme = 'dark',
-  selectionColor = '#346733',
+  selectionColor = null,
   outlineVisible = true,
   fillStrength = 0.35,
   tokens = {},
@@ -27,12 +37,14 @@ export function resolveMapInteractionStyle({
     primary: maxFill.primary * resolvedFillStrength,
     secondary: maxFill.secondary * resolvedFillStrength,
   };
-  const resolvedSelectionColor = color(selectionColor, '#346733');
+  const themeAccentFallback = dark ? '#cda95d' : '#315e9d';
+  const resolvedSelectionColor = color(selectionColor, color(tokens.accent, themeAccentFallback));
   const casingColor = color(tokens.textStrong, dark ? '#f2f4f6' : '#1c2229');
-  const hoverColor = color(dark ? tokens.accent2 : tokens.accent, dark ? '#e2c982' : '#315e9d');
+  const hoverColor = mixWithWhite(resolvedSelectionColor, 0.2);
+  const hoverFillAlpha = Math.max(0.05, Math.min(0.10, fill.primary * 0.55));
   return Object.freeze({
     theme: resolvedTheme,
-    hover: Object.freeze({ color: hoverColor, width: 1.5, alpha: 1, fillAlpha: dark ? 0.07 : 0.06 }),
+    hover: Object.freeze({ color: hoverColor, width: 1.5, alpha: 1, fillAlpha: hoverFillAlpha }),
     selection: Object.freeze({
       color: resolvedSelectionColor,
       casingColor,

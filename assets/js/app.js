@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r27';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r28';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -356,7 +356,6 @@ const {
     else root.removeProperty('--place-label-point-color');
   }
   applyMapLabelPreferences();
-  document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
   function resolveCurrentInteractionStyle() {
     const theme = effectiveTheme(userPreferences, systemTheme === 'dark');
     const computed = getComputedStyle(document.documentElement);
@@ -367,12 +366,12 @@ const {
       fillStrength: userPreferences.selection.fillStrength,
       tokens: {
         accent: computed.getPropertyValue('--accent').trim(),
-        accent2: computed.getPropertyValue('--accent-2').trim(),
         textStrong: computed.getPropertyValue('--text-strong').trim(),
       },
     });
   }
   let resolvedInteractionStyle = resolveCurrentInteractionStyle();
+  document.documentElement.style.setProperty('--map-selection-halo', resolvedInteractionStyle.selection.color);
   setSelectionColor(resolvedInteractionStyle.selection.color);
   setSelectionInteractionStyle(resolvedInteractionStyle);
   window.__PANDOLAB_THEME__ = effectiveTheme(userPreferences, systemTheme === 'dark');
@@ -5419,7 +5418,6 @@ const {
     const resolvedTheme = effectiveTheme(userPreferences, systemTheme === 'dark');
     document.documentElement.dataset.theme = resolvedTheme;
     applyMapLabelPreferences();
-    document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
     syncResolvedInteractionStyle();
     syncGpuCountryEmphasis();
     gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'user-preferences');
@@ -7001,18 +6999,6 @@ const {
           .attr('fill-opacity', resolvedInteractionStyle.hover.fillAlpha)
           .attr('d', path);
       }
-      if (!selectionEmphasisRenderer?.isAvailable?.() || pendingCountry) {
-        const hoverFeature = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
-          ? buildRenderableStrokeFeature(feature)
-          : feature;
-        hoverLayer.append('path').datum(hoverFeature)
-          .attr('class', 'map-hover-shape map-hover-outline')
-          .attr('fill', 'none')
-          .attr('stroke', resolvedInteractionStyle.hover.color)
-          .attr('stroke-width', resolvedInteractionStyle.hover.width)
-          .attr('stroke-opacity', resolvedInteractionStyle.hover.alpha)
-          .attr('d', path);
-      }
     }
     if (syncStrokes) renderSelectionOverlay(viewState);
   }
@@ -7048,29 +7034,40 @@ const {
   function renderSelectionOverlay(viewState = null) {
     if (!selectionLayer) return;
     selectionLayer.selectAll('*').remove();
+    hoverLayer?.selectAll('.map-hover-outline').remove();
     syncGpuCountryEmphasis();
     let pathCount = 0;
     let pathCharacterCount = 0;
     let boundarySegmentCount = 0;
+    const svgFallbackKeys = [];
     const selection = objectSelection.snapshot();
     const genericPrimary = [];
     const genericSecondary = [];
     const genericHover = [];
+    const fallbackRequests = { hover: [], primary: [], secondary: [] };
     let countryPrimaryId = '';
     const countrySecondaryIds = [];
     let countryHoverId = '';
     const genericGpuAvailable = !!selectionEmphasisRenderer?.isAvailable?.();
+    const selectionOutlinesVisible = resolvedInteractionStyle.selection.outlineVisible !== false;
     const hoverActive = !isMobile() && state.hovered?.feature?.geometry && !state.mapMoving && !state.draftEdit.dragging
       && !(state.hovered.ref && objectSelection.has(state.hovered.ref));
     if (hoverActive) {
       const isCountry = state.hovered.type === 'country';
-      if (isCountry) countryHoverId = String(state.hovered.id || '');
-      else {
-        const feature = state.hovered.feature;
-        const boundaryFeature = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
+      const feature = isCountry ? countryDisplayFeature(state.hovered.feature) : state.hovered.feature;
+      const boundaryFeature = isCountry
+        ? countryOutlineFeature(feature)
+        : ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
           ? buildRenderableStrokeFeature(feature)
           : feature;
-        genericHover.push({ key: `hover:${state.hovered.type}:${state.hovered.id}`, geometry: boundaryFeature });
+      const key = isCountry
+        ? `country:${String(state.hovered.id || '')}`
+        : `hover:${state.hovered.type}:${state.hovered.id}`;
+      fallbackRequests.hover.push({ key, feature: boundaryFeature });
+      if (isCountry) {
+        if (!state.pendingCountryRenderIds?.has(String(state.hovered.id || ''))) countryHoverId = String(state.hovered.id || '');
+      } else {
+        genericHover.push({ key, geometry: boundaryFeature });
       }
     }
     for (const ref of selection.items) {
@@ -7086,25 +7083,22 @@ const {
         : [feature.geometry];
       const hasBoundaryGeometry = geometries.some(geometry => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(geometry?.type));
       if (isCountry) {
-        if (state.pendingCountryRenderIds?.has(String(ref.id))) {
-          const style = primary ? resolvedInteractionStyle.selection.primary : resolvedInteractionStyle.selection.secondary;
+        const pendingCountry = state.pendingCountryRenderIds?.has(String(ref.id));
+        const style = primary ? resolvedInteractionStyle.selection.primary : resolvedInteractionStyle.selection.secondary;
+        if (pendingCountry) {
           const priorityClass = primary ? ' is-primary' : ' is-secondary';
           if (style.fillAlpha > 0) selectionLayer.append('path').datum(feature)
             .attr('class', `map-selection-shape map-selection-fill${priorityClass}`)
             .attr('fill', resolvedInteractionStyle.selection.color).attr('fill-opacity', style.fillAlpha).attr('stroke', 'none').attr('d', path);
-          const outline = countryOutlineFeature(feature);
-          const d = path(outline);
-          if (d) {
-            selectionLayer.append('path').datum(outline).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
-              .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.casingColor)
-              .attr('stroke-width', style.outerWidth).attr('stroke-opacity', style.casingAlpha).attr('d', d);
-            selectionLayer.append('path').datum(outline).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
-              .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.color)
-              .attr('stroke-width', style.innerWidth).attr('stroke-opacity', style.innerAlpha).attr('d', d);
-            pathCount += 2; pathCharacterCount += d.length * 2;
+        }
+        if (selectionOutlinesVisible) {
+          const channel = primary ? 'primary' : 'secondary';
+          fallbackRequests[channel].push({ key: `country:${ref.id}`, feature: countryOutlineFeature(feature) });
+          if (!pendingCountry) {
+            if (primary) countryPrimaryId = ref.id;
+            else countrySecondaryIds.push(ref.id);
           }
-        } else if (primary) countryPrimaryId = ref.id;
-        else countrySecondaryIds.push(ref.id);
+        }
         continue;
       }
       if (hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))) {
@@ -7121,32 +7115,15 @@ const {
       const boundaryFeature = hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))
         ? buildRenderableStrokeFeature(feature)
         : feature;
-      if (genericGpuAvailable && hasBoundaryGeometry) {
-        (primary ? genericPrimary : genericSecondary).push({ key: ref.key, geometry: boundaryFeature });
-        continue;
+      if (selectionOutlinesVisible) {
+        const channel = primary ? 'primary' : 'secondary';
+        fallbackRequests[channel].push({ key: ref.key, feature: boundaryFeature });
+        if (genericGpuAvailable && hasBoundaryGeometry) {
+          (primary ? genericPrimary : genericSecondary).push({ key: ref.key, geometry: boundaryFeature });
+        }
       }
-      if (!genericGpuAvailable) boundarySegmentCount += buildSelectionBoundarySegments(boundaryFeature.geometry).length;
-      const priorityClass = primary ? ' is-primary' : ' is-secondary';
-      const d = path(boundaryFeature);
-      if (!d) continue;
-      const style = primary ? resolvedInteractionStyle.selection.primary : resolvedInteractionStyle.selection.secondary;
-      selectionLayer.append('path').datum(boundaryFeature)
-        .attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
-        .attr('fill', 'none')
-        .attr('stroke', resolvedInteractionStyle.selection.casingColor)
-        .attr('stroke-width', style.outerWidth)
-        .attr('stroke-opacity', style.casingAlpha)
-        .attr('d', d);
-      selectionLayer.append('path').datum(boundaryFeature)
-        .attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
-        .attr('fill', 'none')
-        .attr('stroke', resolvedInteractionStyle.selection.color)
-        .attr('stroke-width', style.innerWidth)
-        .attr('stroke-opacity', style.innerAlpha)
-        .attr('d', d);
-      pathCount += 2;
-      pathCharacterCount += d.length * 2;
     }
+    let gpuSelectionStats = null;
     if (genericGpuAvailable) {
       selectionEmphasisRenderer.setCountryBoundaryMesh(gpuMapRenderer.getCountryInteractionBoundaryData?.());
       selectionEmphasisRenderer.setSelection({
@@ -7159,27 +7136,52 @@ const {
         revision: state.stateRevision,
       });
       selectionEmphasisRenderer.render(viewState || window.__PANDOLAB_VIEW_STATE__ || {});
-      boundarySegmentCount = selectionEmphasisRenderer.stats().segmentCount;
-    } else {
-      const countryRefs = selection.items.filter(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY
-        && !state.pendingCountryRenderIds?.has(String(ref.id)));
-      for (const ref of countryRefs) {
-        const feature = countryDisplayFeature(mapFeatureForObjectRef(ref));
-        if (!feature?.geometry) continue;
-        const outline = countryOutlineFeature(feature);
-        const primary = selection.primaryKey === ref.key;
+      gpuSelectionStats = selectionEmphasisRenderer.stats();
+      boundarySegmentCount = gpuSelectionStats.segmentCount;
+    }
+    const renderedKeys = {
+      hover: new Set(gpuSelectionStats?.coverage?.hover?.renderedKeys || []),
+      primary: new Set(gpuSelectionStats?.coverage?.primary?.renderedKeys || []),
+      secondary: new Set(gpuSelectionStats?.coverage?.secondary?.renderedKeys || []),
+    };
+    const countFallbackSegments = feature => {
+      try { return buildSelectionBoundarySegments(feature?.geometry).length; }
+      catch (_) { return 0; }
+    };
+    for (const request of fallbackRequests.hover) {
+      if (renderedKeys.hover.has(request.key)) continue;
+      const d = path(request.feature);
+      if (!d) continue;
+      hoverLayer?.append('path').datum(request.feature)
+        .attr('class', 'map-hover-shape map-hover-outline')
+        .attr('fill', 'none')
+        .attr('stroke', resolvedInteractionStyle.hover.color)
+        .attr('stroke-width', resolvedInteractionStyle.hover.width)
+        .attr('stroke-opacity', resolvedInteractionStyle.hover.alpha)
+        .attr('d', d);
+      svgFallbackKeys.push(request.key);
+      boundarySegmentCount += countFallbackSegments(request.feature);
+    }
+    if (selectionOutlinesVisible) {
+      for (const channel of ['secondary', 'primary']) {
+        const primary = channel === 'primary';
         const style = primary ? resolvedInteractionStyle.selection.primary : resolvedInteractionStyle.selection.secondary;
         const priorityClass = primary ? ' is-primary' : ' is-secondary';
-        const d = path(outline);
-        if (!d) continue;
-        selectionLayer.append('path').datum(outline).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
-          .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.casingColor)
-          .attr('stroke-width', style.outerWidth).attr('stroke-opacity', style.casingAlpha).attr('d', d);
-        selectionLayer.append('path').datum(outline).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
-          .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.color)
-          .attr('stroke-width', style.innerWidth).attr('stroke-opacity', style.innerAlpha).attr('d', d);
-        pathCount += 2;
-        pathCharacterCount += d.length * 2;
+        for (const request of fallbackRequests[channel]) {
+          if (renderedKeys[channel].has(request.key)) continue;
+          const d = path(request.feature);
+          if (!d) continue;
+          selectionLayer.append('path').datum(request.feature).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
+            .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.casingColor)
+            .attr('stroke-width', style.outerWidth).attr('stroke-opacity', style.casingAlpha).attr('d', d);
+          selectionLayer.append('path').datum(request.feature).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
+            .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.color)
+            .attr('stroke-width', style.innerWidth).attr('stroke-opacity', style.innerAlpha).attr('d', d);
+          pathCount += 2;
+          pathCharacterCount += d.length * 2;
+          svgFallbackKeys.push(request.key);
+          boundarySegmentCount += countFallbackSegments(request.feature);
+        }
       }
     }
     for (const selector of [
@@ -7191,7 +7193,9 @@ const {
       pathCharacterCount,
       selectionBoundarySegmentCount: boundarySegmentCount,
       viewRevision,
-      boundaryOwner: 'interaction-overlay',
+      boundaryOwner: svgFallbackKeys.length ? 'hybrid' : 'interaction-overlay',
+      svgFallbackKeys: [...new Set(svgFallbackKeys)],
+      gpuCoverage: gpuSelectionStats?.coverage || null,
       drawOrder: resolvedInteractionStyle.drawOrder,
     };
   }
@@ -11556,8 +11560,10 @@ const {
         ? '--user-label-text'
         : kind === 'preferencesPlacePoint'
           ? '--user-label-dot'
+          : kind === 'preferencesSelection'
+            ? '--accent'
           : '';
-    const fallback = kind === 'preferencesSelection' ? defaultUserPreferences().selection.color : '#346733';
+    const fallback = kind === 'preferencesSelection' ? resolvedInteractionStyle.selection.color : '#8c68d8';
     return token ? normalizeEditorColor(getComputedStyle(document.documentElement).getPropertyValue(token).trim(), fallback) : fallback;
   }
 
@@ -11704,7 +11710,7 @@ const {
       const color = normalizeEditorColor(value, defaultColor);
       const nextLabels = structuredClone(userPreferences.labels);
       const nextSelection = { ...userPreferences.selection };
-      if (kind === 'preferencesSelection') nextSelection.color = isDefault ? defaultUserPreferences().selection.color : color;
+      if (kind === 'preferencesSelection') nextSelection.color = isDefault ? null : color;
       if (kind === 'preferencesCountryLabel') nextLabels.country.color = isDefault ? null : color;
       if (kind === 'preferencesPlaceLabel') nextLabels.place.color = isDefault ? null : color;
       if (kind === 'preferencesPlacePoint') nextLabels.place.pointColor = isDefault ? null : color;
@@ -11717,7 +11723,7 @@ const {
         : kind === 'preferencesCountryLabel' ? userPreferences.labels.country.color
           : kind === 'preferencesPlaceLabel' ? userPreferences.labels.place.color
             : userPreferences.labels.place.pointColor;
-      syncColorPicker(kind, { value: resolvedValue || defaultColor, defaultColor, isDefault: !resolvedValue && kind !== 'preferencesSelection' });
+      syncColorPicker(kind, { value: resolvedValue || defaultColor, defaultColor, isDefault: !resolvedValue });
       return true;
     }
     if (kind === 'multiProperties') {
@@ -15330,14 +15336,14 @@ const {
       $('preferencesThemeInput').value = userPreferences.appearance.theme;
       $('preferencesCountryLabelFontInput').value = userPreferences.labels.country.font;
       $('preferencesPlaceLabelFontInput').value = userPreferences.labels.place.font;
-      $('preferencesSelectionColorInput').value = userPreferences.selection.color;
+      $('preferencesSelectionColorInput').value = resolvedInteractionStyle.selection.color;
       $('preferencesSelectionOutlineInput').checked = userPreferences.selection.outlineVisible;
       $('preferencesSelectionFillStrengthInput').value = String(Math.round(userPreferences.selection.fillStrength * 100));
       $('preferencesSelectionFillStrengthValue').value = `${Math.round(userPreferences.selection.fillStrength * 100)}%`;
       syncColorPicker('preferencesSelection', {
-        value: userPreferences.selection.color,
-        defaultColor: defaultUserPreferences().selection.color,
-        isDefault: false,
+        value: userPreferences.selection.color || resolvedInteractionStyle.selection.color,
+        defaultColor: preferenceDefaultColor('preferencesSelection'),
+        isDefault: !userPreferences.selection.color,
       });
       syncColorPicker('preferencesCountryLabel', {
         value: userPreferences.labels.country.color || preferenceDefaultColor('preferencesCountryLabel'),

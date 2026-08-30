@@ -176,9 +176,9 @@ export function createGpuMapRenderer(deps) {
     let attributeLocationCache = new WeakMap();
     let activeFrameContext = null;
     let interactionStyle = {
-      hover: { color: '#e2c982', fillAlpha: 0.07 },
+      hover: { color: '#d7ba7d', fillAlpha: 0.05775 },
       selection: {
-        color: '#346733', casingColor: '#f2f4f6',
+        color: '#cda95d', casingColor: '#f2f4f6',
         primary: { innerWidth: 2.5, innerAlpha: 1, outerWidth: 4, casingAlpha: 0.72, fillAlpha: 0.13 },
         secondary: { innerWidth: 1.5, innerAlpha: 0.72, outerWidth: 2.8, casingAlpha: 0.48, fillAlpha: 0.08 },
       },
