@@ -65,6 +65,61 @@ async function editorTypographySnapshot(page) {
   });
 }
 
+test('bootstrap loading card keeps fixed copy and only changes for real startup errors', async ({ page }) => {
+  let workerMode = 'pending';
+  await page.route('**/assets/js/workers/data-loader-worker.js*', route => {
+    const body = workerMode === 'error'
+      ? "self.postMessage({ type: 'preview-error', message: '테스트 시작 오류' });"
+      : 'setInterval(() => {}, 1000);';
+    return route.fulfill({ contentType: 'text/javascript', body });
+  });
+
+  for (const { viewport, colorScheme } of [
+    { viewport: layouts[0].viewport, colorScheme: 'light' },
+    { viewport: layouts[2].viewport, colorScheme: 'dark' },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ colorScheme });
+    await page.goto('/');
+    await expect(page.locator('#bootstrapLoading')).toBeVisible();
+    const card = await page.locator('.bootstrap-loading-card').evaluate(element => {
+      const text = element.querySelector('#bootstrapLoadingText');
+      const probe = element.querySelector('#startupProbe');
+      const progress = element.querySelector('.bootstrap-progress');
+      const style = node => getComputedStyle(node);
+      return {
+        order: [...element.children].map(child => child.id || child.className),
+        text: text.textContent,
+        probe: probe.textContent,
+        textAlign: style(text).textAlign,
+        probeAlign: style(probe).textAlign,
+        textFont: [style(text).fontSize, style(text).fontWeight],
+        probeFont: [style(probe).fontSize, style(probe).fontWeight],
+        progressHeight: style(progress).height,
+        progressBelowCopy: progress.getBoundingClientRect().top > probe.getBoundingClientRect().bottom,
+      };
+    });
+    expect(card.order).toEqual(['bootstrapLoadingText', 'startupProbe', 'ui-progress bootstrap-progress']);
+    expect(card.text).toBe('지도를 표시하는 중입니다');
+    expect(card.probe).toBe('잠시만 기다려 주세요');
+    expect(card.textAlign).toBe('center');
+    expect(card.probeAlign).toBe('center');
+    expect(card.textFont).toEqual(['15px', '600']);
+    expect(card.probeFont).toEqual(['13px', '400']);
+    expect(card.progressHeight).toBe('4px');
+    expect(card.progressBelowCopy).toBe(true);
+    await page.waitForTimeout(350);
+    await expect(page.locator('#bootstrapLoadingText')).toHaveText('지도를 표시하는 중입니다');
+    await expect(page.locator('#startupProbe')).toHaveText('잠시만 기다려 주세요');
+  }
+
+  workerMode = 'error';
+  await page.reload();
+  await expect(page.locator('#bootstrapLoading')).toHaveClass(/error/);
+  await expect(page.locator('#bootstrapLoadingText')).toHaveText('지도를 불러오지 못했습니다');
+  await expect(page.locator('#startupProbe')).toHaveText('페이지를 새로고침해 다시 시도해 주세요');
+});
+
 for (const layout of layouts) {
   for (const colorScheme of ['light', 'dark']) {
     test(`${layout.name} ${colorScheme} boots without runtime errors`, async ({ page }) => {
@@ -157,7 +212,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r22')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r23')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -165,7 +220,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r22');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r23');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -251,7 +306,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
 test('river annex candidate Worker returns independent canonical land pockets', async ({ page }) => {
   await page.goto('/');
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r22', { type: 'module' });
+    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r23', { type: 'module' });
     const polygon = (id, coordinates) => ({
       type: 'Feature', id,
       properties: { editor_id: id },

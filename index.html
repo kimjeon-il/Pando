@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r22" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r23" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -58,9 +58,9 @@
   </svg>
   <div id="bootstrapLoading" class="bootstrap-loading" role="status" aria-live="polite">
     <div class="bootstrap-loading-card">
-      <p id="bootstrapLoadingText">지도를 불러오고 있습니다.</p>
+      <p id="bootstrapLoadingText">지도를 표시하는 중입니다</p>
+      <p id="startupProbe" class="startup-probe">잠시만 기다려 주세요</p>
       <div class="ui-progress bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
-      <p id="startupProbe" class="startup-probe">오래 걸리면 JavaScript·Worker 실행을 확인하세요.</p>
     </div>
   </div>
   <div id="app" data-app-version="0.30.0" data-layout="wide">
@@ -970,8 +970,8 @@
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r22" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r22" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r22" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r23" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r23" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r23" defer></script>
 </body>
 </html>

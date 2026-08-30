@@ -2,12 +2,13 @@
 
 (() => {
   const BUILD_ID = '0.30.0';
-  const ASSET_REVISION = '0.30.0-r22';
+  const ASSET_REVISION = '0.30.0-r23';
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
   const overlay = document.getElementById('bootstrapLoading');
   const message = document.getElementById('bootstrapLoadingText');
+  const probe = document.getElementById('startupProbe');
   const progressBar = document.getElementById('bootstrapProgressBar');
   const appRoot = document.getElementById('app');
   const initialLayout = window.matchMedia('(max-width: 799px)').matches
@@ -47,7 +48,6 @@
   document.body.dataset.layout = initialLayout;
 
   function setProgress(text, percent = 0) {
-    if (message) message.textContent = text;
     if (progressBar) progressBar.style.width = `${Math.max(0, Math.min(100, Number(percent) || 0))}%`;
   }
 
@@ -58,7 +58,9 @@
       : '내부 오류가 발생했습니다. 오류 코드 PL-BOOT-001을 확인하세요.';
     if (safeReason !== rawReason) console.error('[PL-BOOT-001]', rawReason);
     overlay?.classList.add('error');
-    setProgress(`지도를 불러올 수 없습니다. ${safeReason}`, 100);
+    if (message) message.textContent = '지도를 불러오지 못했습니다';
+    if (probe) probe.textContent = '페이지를 새로고침해 다시 시도해 주세요';
+    setProgress('', 100);
     document.body.classList.add('is-loading');
     const actionText = document.querySelector('#actionStatus strong');
     if (actionText) actionText.textContent = '지도 데이터를 불러올 수 없습니다.';
