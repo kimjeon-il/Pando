@@ -773,23 +773,16 @@ body.is-loading #app { pointer-events: none; user-select: none; }
 }
 .bootstrap-loading[hidden] { display: none; }
 .bootstrap-loading-card {
-  width: min(390px, calc(100vw - var(--ui-space-8))); padding: var(--ui-space-5); border: 1px solid var(--bootstrap-card-border);
-  border-radius: var(--ui-radius-panel); background: var(--panel); box-shadow: var(--bootstrap-card-shadow);
+  width: min(350px, calc(100vw - var(--ui-space-8))); padding: var(--ui-space-5); border: 1px solid var(--bootstrap-card-border);
+  border-radius: var(--ui-radius-panel); background: var(--panel); box-shadow: var(--bootstrap-card-shadow); text-align: center;
 }
 .bootstrap-loading-card strong { display: block; margin-bottom: var(--ui-space-2); font-size: var(--ui-font-section); }
-.bootstrap-loading-card p { min-height: 18px; margin: 0 0 var(--ui-space-3); color: var(--bootstrap-text); font-size: var(--ui-font-body); line-height: 1.5; }
-.bootstrap-progress { height: 6px; overflow: hidden; border-radius: 999px; background: var(--bootstrap-progress-bg); }
+.bootstrap-loading-card p { margin: 0; text-align: center; }
+#bootstrapLoadingText { color: var(--text-strong); font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); line-height: var(--ui-line-normal); }
+.startup-probe { margin-top: var(--ui-space-1-5); color: var(--muted); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-regular); line-height: var(--ui-line-normal); pointer-events: none; }
+.ui-progress.bootstrap-progress { height: 4px; margin-top: var(--ui-space-4); overflow: hidden; border-radius: 999px; background: var(--bootstrap-progress-bg); }
 .bootstrap-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: #d9bb70; transition: width .18s ease; }
 .bootstrap-loading.error .bootstrap-progress span { background: #db6c6c; }
-.startup-probe {
-  margin: var(--ui-space-2) 0 0;
-  padding: 0;
-  color: var(--bootstrap-text);
-  font-size: var(--ui-font-caption);
-  line-height: var(--ui-line-normal);
-  text-align: center;
-  pointer-events: none;
-}
 
 /* 시스템 밝은 테마: 지도는 Wikimedia 참조 SVG의 기본 배색을, UI는 고대비 표면 토큰을 사용한다. */
 @media (prefers-color-scheme: light) {
@@ -814,7 +807,6 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .mobile-sheet-header::before { background: #b1bbc4; }
   .mobile-bottom-bar button.sheet-open { background: #e8edf1; color: #26313b; box-shadow: none; }
   .mobile-zoom-dock button:active { background: #dce8f7; border-color: #87a7cf; }
-  .startup-probe { color: #1f416d; }
   .mode-primary-btn { background: var(--accent-surface); border-color: var(--accent-border) !important; color: var(--accent-text); }
   .field-group input[type="text"]:focus,
   .field-group textarea:focus,

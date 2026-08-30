@@ -30,9 +30,9 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
         self.assertIn("const BUILD_ID = '0.30.0'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.30.0-r22'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.30.0-r22", INDEX)
-        self.assertIn("bootstrap.js?v=0.30.0-r22", INDEX)
+        self.assertIn("const ASSET_REVISION = '0.30.0-r23'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.30.0-r23", INDEX)
+        self.assertIn("bootstrap.js?v=0.30.0-r23", INDEX)
         self.assertIn("recoverCacheMismatch()", BOOTSTRAP)
         self.assertIn("location.replace(recoveryUrl.href)", BOOTSTRAP)
 
@@ -41,7 +41,7 @@ class V0150TypographyCopyTests(unittest.TestCase):
             for file_path in REVISION_FILES
             for match in re.findall(r"0\.30\.0-r\d+", file_path.read_text(encoding="utf-8"))
         }
-        self.assertEqual(revisions, {"0.30.0-r22"})
+        self.assertEqual(revisions, {"0.30.0-r23"})
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())
@@ -88,6 +88,9 @@ class V0150TypographyCopyTests(unittest.TestCase):
         visible_sources = "\n".join((INDEX, APP, BOOTSTRAP)).replace(
             "프로젝트를 저장하지 못했습니다. 다시 저장해 주세요.",
             "",
+        ).replace(
+            "페이지를 새로고침해 다시 시도해 주세요",
+            "",
         )
         for forbidden in (
             "수령국",
@@ -111,6 +114,21 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn("function handleUnexpectedRuntimeError", APP)
         self.assertIn("if (!runtimeReady)", APP)
         self.assertNotIn("GitHub Pages 또는 로컬 HTTP 서버에서 열었는지 확인", APP)
+
+    def test_bootstrap_loading_copy_and_hierarchy_are_fixed(self):
+        text_index = INDEX.index('id="bootstrapLoadingText"')
+        probe_index = INDEX.index('id="startupProbe"')
+        progress_index = INDEX.index('class="ui-progress bootstrap-progress"')
+        self.assertLess(text_index, probe_index)
+        self.assertLess(probe_index, progress_index)
+        self.assertIn('id="bootstrapLoadingText">지도를 표시하는 중입니다<', INDEX)
+        self.assertIn('id="startupProbe" class="startup-probe">잠시만 기다려 주세요<', INDEX)
+        self.assertNotIn("JavaScript·Worker 실행을 확인하세요", INDEX)
+        self.assertIn('#bootstrapLoadingText { color: var(--text-strong); font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold);', CSS)
+        self.assertIn('.startup-probe { margin-top: var(--ui-space-1-5); color: var(--muted); font-size: var(--ui-font-caption);', CSS)
+        self.assertIn('.ui-progress.bootstrap-progress { height: 4px; margin-top: var(--ui-space-4);', CSS)
+        self.assertIn("message.textContent = '지도를 불러오지 못했습니다'", BOOTSTRAP)
+        self.assertIn("probe.textContent = '페이지를 새로고침해 다시 시도해 주세요'", BOOTSTRAP)
 
 
 if __name__ == "__main__":

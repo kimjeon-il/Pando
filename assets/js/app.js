@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r22';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r23';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
