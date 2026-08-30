@@ -1,3 +1,11 @@
+import {
+  buildMetricRiverAnnexCandidates,
+  expandRiverAnnexDiscoveryBounds,
+  RIVER_ANNEX_ALGORITHM_REVISION,
+  RIVER_ANNEX_CONFIG,
+  riverAnnexConfigFingerprint,
+} from './river-annex-metric.js';
+
 const clone = value => value == null ? value : structuredClone(value);
 
 function polygonCoordinates(geometry) {
@@ -469,82 +477,34 @@ export function buildRiverAnnexCandidates({
   riverFeatures = [],
   topologyRevision = '',
   snapTolerance = RIVER_ANNEX_SNAP_TOLERANCE,
+  clipper = null,
+  config = null,
+  algorithmRevision = RIVER_ANNEX_ALGORITHM_REVISION,
+  sourceDiagnostics = {},
 } = {}) {
-  if (!targetFeature?.geometry || !polygonCoordinates(targetFeature.geometry).length) return { candidates: [], diagnostics: { reason: 'missing-target' } };
-  const candidates = [];
-  const topologyKey = stableTextHash(String(topologyRevision));
-  const diagnostics = { scannedDonors: 0, scannedRivers: 0, skippedRivers: 0, rawFaceCount: 0, rejectedFaceCount: 0 };
-  const seen = new Set();
-  for (const donorFeature of donorFeatures.filter(feature => polygonCoordinates(feature?.geometry).length)) {
-    const donorCountryId = String(donorFeature.properties?.editor_id || donorFeature.id || '');
-    if (!donorCountryId) continue;
-    const rawEdges = rawFrontierEdges(targetFeature, donorFeature, snapTolerance);
-    if (!rawEdges.length) continue;
-    diagnostics.scannedDonors += 1;
-    for (const river of riverFeatures) {
-      let riverEdges;
-      try {
-        riverEdges = rawRiverEdgesForDonor(river, donorFeature);
-      } catch (_) {
-        diagnostics.skippedRivers += 1;
-        continue;
-      }
-      if (!riverEdges.length) continue;
-      diagnostics.scannedRivers += 1;
-      rawEdges.push(...riverEdges);
-    }
-    const graph = buildFaces(rawEdges, snapTolerance);
-    diagnostics.rawFaceCount += graph.length;
-    for (const face of graph) {
-      const faceNodeKeys = face.ring.slice(0, -1).map(coordinateKey);
-      if (new Set(faceNodeKeys).size !== faceNodeKeys.length) {
-        diagnostics.rejectedFaceCount += 1;
-        continue;
-      }
-      const sourceKinds = new Set(face.edges.flatMap(edge => [...edge.sources]));
-      const frontierCount = face.edges.filter(edge => edge.sources.has('frontier')).length;
-      if (!sourceKinds.has('river') || !sourceKinds.has('frontier') || !frontierCount) {
-        diagnostics.rejectedFaceCount += 1;
-        continue;
-      }
-      if (!candidateSampleIsInside(face.ring, donorFeature.geometry, targetFeature.geometry)) {
-        diagnostics.rejectedFaceCount += 1;
-        continue;
-      }
-      const ringKey = canonicalRingKey(face.ring);
-      const riverIds = [...new Set(face.edges.flatMap(edge => [...edge.riverIds]))].sort();
-      const key = `${donorCountryId}:${riverIds.join(',')}:${ringKey}:${topologyKey}`;
-      if (seen.has(`${donorCountryId}:${ringKey}`)) continue;
-      seen.add(`${donorCountryId}:${ringKey}`);
-      const riverBoundarySegments = [];
-      const sharedBorderSegments = [];
-      for (let index = 0; index < face.edges.length; index += 1) {
-        const start = face.ring[index].slice();
-        const end = face.ring[index + 1].slice();
-        if (face.edges[index].sources.has('river')) riverBoundarySegments.push([start, end]);
-        if (face.edges[index].sources.has('frontier')) sharedBorderSegments.push([start, end]);
-      }
-      const riverBoundaryLength = riverBoundarySegments.reduce((sum, [a, b]) => sum + segmentLength(a, b), 0);
-      const sharedBorderLength = sharedBorderSegments.reduce((sum, [a, b]) => sum + segmentLength(a, b), 0);
-      if (riverBoundaryLength <= RIVER_ANNEX_MIN_EDGE_LENGTH || sharedBorderLength <= RIVER_ANNEX_MIN_EDGE_LENGTH) {
-        diagnostics.rejectedFaceCount += 1;
-        continue;
-      }
-      candidates.push({
-        key,
-        donorCountryId,
-        geometry: { type: 'Polygon', coordinates: [face.ring.map(point => point.slice())] },
-        area: Math.abs(ringSignedArea(face.ring)),
-        riverBoundarySegments,
-        sharedBorderSegments,
-        sourceRiverIds: riverIds,
-        sourceLogicalRiverIds: riverIds,
-        topologyRevision: topologyKey,
-      });
-    }
-  }
-  candidates.sort((left, right) => left.key.localeCompare(right.key));
-  return { candidates, diagnostics };
+  const donorFrontiers = donorFeatures
+    .filter(feature => polygonCoordinates(feature?.geometry).length)
+    .map(donorFeature => ({
+      donorFeature,
+      segments: sharedFrontierSegments(targetFeature?.geometry, donorFeature.geometry, { tolerance: snapTolerance }),
+    }))
+    .filter(row => row.segments.length);
+  return buildMetricRiverAnnexCandidates({
+    targetFeature,
+    donorFrontiers,
+    riverFeatures,
+    topologyRevision,
+    clipper,
+    config,
+    algorithmRevision,
+    sourceDiagnostics,
+  });
 }
 
-export { lineParts };
+export {
+  expandRiverAnnexDiscoveryBounds,
+  lineParts,
+  RIVER_ANNEX_ALGORITHM_REVISION,
+  RIVER_ANNEX_CONFIG,
+  riverAnnexConfigFingerprint,
+};
