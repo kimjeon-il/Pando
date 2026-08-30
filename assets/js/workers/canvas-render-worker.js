@@ -347,8 +347,8 @@ function canvasFallbackWorkerMain() {
     }
 
     function hydroFeatureVisible(feature, message) {
-      if (!message.hydroVisible) return false;
       const properties = feature.properties || {};
+      if (properties.category === 'lake' ? !message.lakesVisible : !message.riversVisible) return false;
       if (message.physicalSettings?.hydroLayers?.[properties.layer_id] === false) return false;
       if (message.physicalSettings?.hiddenHydroIds?.[String(properties.pandolab_id || feature.id)] === true) return false;
       return true;
@@ -381,17 +381,14 @@ function canvasFallbackWorkerMain() {
       context.lineCap = 'round';
       context.lineJoin = 'round';
       const waterColor = automaticWaterColor(message);
-      const hydroOpacity = Number.isFinite(Number(message.theme?.hydroOpacity))
-        ? Math.max(0, Math.min(1, Number(message.theme.hydroOpacity)))
-        : 1;
-      if (hydroOpacity <= 0) {
-        context.restore();
-        return;
-      }
       for (const feature of features) {
         if (!hydroFeatureVisible(feature, message)) continue;
         const properties = feature.properties || {};
         const isLake = properties.category === 'lake';
+        const hydroOpacity = Number.isFinite(Number(isLake ? message.theme?.lakeOpacity : message.theme?.riverOpacity))
+          ? Math.max(0, Math.min(1, Number(isLake ? message.theme?.lakeOpacity : message.theme?.riverOpacity)))
+          : 1;
+        if (hydroOpacity <= 0) continue;
         const isBorder = properties.border_aligned === true || (Number(properties.__flags || 0) & 1) !== 0;
         if (isLake) {
           if (borderAligned) continue;
@@ -400,9 +397,18 @@ function canvasFallbackWorkerMain() {
           context.globalAlpha = hydroOpacity;
           context.fillStyle = waterColor;
           context.fill();
+          if (message.theme?.lakeBoundaryVisible !== false) {
+            const boundary = self.PandoLabGeographicBoundary.buildRenderableBoundarySegments(feature);
+            if (boundary.length) {
+              context.beginPath();
+              geoPath({ type: 'MultiLineString', coordinates: boundary });
+              context.lineWidth = Math.max(0.5, Number(message.theme?.lakeBoundaryWidth) || 1);
+              context.strokeStyle = waterColor;
+              context.stroke();
+            }
+          }
           continue;
         }
-        if (message.theme?.hydroBoundaryVisible === false) continue;
         if (isBorder !== borderAligned) continue;
         const parts = lineParts(feature.geometry);
         const profiles = properties.stroke_widths || [];
@@ -417,7 +423,7 @@ function canvasFallbackWorkerMain() {
             geoPath({ type: 'LineString', coordinates: [part[index], part[index + 1]] });
             const start = Number(widths[index] ?? fallback);
             const end = Number(widths[index + 1] ?? start);
-            context.lineWidth = (start + end) / 2;
+            context.lineWidth = (start + end) / 2 * Math.max(0.5, Number(message.theme?.riverWidth) || 1);
             context.stroke();
           }
         }

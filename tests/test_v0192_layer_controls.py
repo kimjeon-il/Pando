@@ -44,8 +44,8 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-border\)')
 
     def test_layer_visibility_uses_eye_icons_without_changing_checkbox_state(self):
-        self.assertEqual(INDEX.count('class="layer-visibility-toggle"'), 8)
-        self.assertEqual(INDEX.count('class="layer-visibility-control"'), 8)
+        self.assertEqual(INDEX.count('class="layer-visibility-toggle"'), 10)
+        self.assertEqual(INDEX.count('class="layer-visibility-control"'), 10)
         self.assertIn('symbol id="icon-eye"', INDEX)
         self.assertIn('symbol id="icon-eye-off"', INDEX)
         self.assertIn('.layer-visibility-control:has(.layer-visibility-toggle:not(:checked))', CSS)
@@ -61,7 +61,7 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertIn("'계산 중'", tree_items)
         self.assertIn('symbol id="icon-more"', INDEX)
         self.assertIn("menuButton.className = 'ui-button layer-child-menu'", APP)
-        self.assertIn("openObjectActionsMenu();", APP)
+        self.assertIn("openObjectActionsMenu(trigger);", APP)
         self.assertIn(".layer-child-menu", CSS)
 
     def test_build_version_is_updated(self):

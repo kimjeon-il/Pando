@@ -157,7 +157,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r14')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r15')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -165,7 +165,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r14');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r15');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -676,18 +676,20 @@ test('layer folders expose presentation controls while global view settings stay
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const categories = page.locator('.layer-category');
-  await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지도 요소']);
+  await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지형지물']);
   await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '권역', '행정구역', '지방']);
   await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형지물']);
+  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['강', '호수', '사용자 지형지물']);
   await expect(page.locator('#layerSection #terrainVisible')).toHaveCount(0);
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
   await expect(page.locator('[data-layer-style-toggle="countries"]')).toHaveCount(1);
-  await expect(page.locator('[data-layer-style-toggle="labels"]')).toHaveCount(1);
-  await expect(page.locator('#layerSection .layer-presentation-row:has(#basemapLabelsVisible) .layer-presentation-name')).toHaveText('국가명 라벨');
-  await expect(page.locator('#layerSection .layer-presentation-row:has(#labelsVisible) .layer-presentation-name')).toHaveText('도시·지명');
+  await expect(page.locator('[data-layer-style-toggle="rivers"]')).toHaveCount(1);
+  await expect(page.locator('[data-layer-style-toggle="lakes"]')).toHaveCount(1);
+  await expect(page.locator('[data-layer-style-toggle="labels"], [data-layer-style-toggle="countryLabels"]')).toHaveCount(0);
   await page.locator('#mapViewTabBtn').click();
-  await expect(page.locator('#mapNameSettingsTitle')).toHaveCount(0);
+  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('이름 표시');
+  await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
+  await expect(page.locator('#mapViewSection label:has(#labelsVisible)')).toContainText('지명 표시');
   const terrainVisible = page.locator('#terrainVisible');
   const terrainOptions = page.locator('#terrainDisplayOptions');
   const terrainStrength = page.locator('#terrainStrengthInput');
@@ -728,50 +730,36 @@ test('layer folders expose presentation controls while global view settings stay
   expect(errors).toEqual([]);
 });
 
-test('built-in rivers and lakes are nested source folders with synchronized visibility', async ({ page }) => {
+test('built-in rivers and lakes use independent folders without overwriting source visibility', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?renderer=canvas' });
   const expected = [
-    { key: 'hydro-category:river', itemId: 'rivers_hydro', folder: '강', source: 'HydroRIVERS' },
-    { key: 'hydro-category:lake', itemId: 'lakes_natural_earth', folder: '호수', source: 'Natural Earth' },
+    { group: 'rivers', itemId: 'rivers_hydro', source: 'HydroRIVERS' },
+    { group: 'lakes', itemId: 'lakes_natural_earth', source: 'Natural Earth' },
   ];
 
-  const drawingsToggle = page.locator('[data-layer-folder-toggle="drawings"]').first();
-  if (await drawingsToggle.getAttribute('aria-expanded') !== 'true') await drawingsToggle.click();
-  let folderRows = page.locator('#drawingsLayerChildren .layer-hydro-folder-row');
-  await expect(folderRows).toHaveCount(2);
-  await expect(folderRows.locator('.layer-hydro-folder-name')).toHaveText(expected.map(item => item.folder));
-
   for (const item of expected) {
-    let folderRow = page.locator(`[data-hydro-folder-key="${item.key}"]`);
-    const toggle = folderRow.locator('[data-hydro-folder-toggle]').first();
-    if (await toggle.getAttribute('aria-expanded') === 'true') await toggle.click();
-    await expect(page.locator(`#drawingsLayerChildren .layer-child[data-item-id="${item.itemId}"]`)).toHaveCount(0);
-    await folderRow.locator('.layer-hydro-folder-name').click();
-    const sourceRow = page.locator(`#drawingsLayerChildren .layer-child[data-item-id="${item.itemId}"]`);
+    const folderRow = page.locator(`.layer-folder[data-layer-group="${item.group}"]`);
+    const toggle = folderRow.locator('[data-layer-folder-toggle]').first();
+    if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
+    const sourceRow = folderRow.locator(`.layer-child[data-item-id="${item.itemId}"]`);
     await expect(sourceRow.locator('.layer-child-name')).toHaveText(item.source);
-    await expect(sourceRow).toHaveClass(/is-hydro-source/);
-
-    folderRow = page.locator(`[data-hydro-folder-key="${item.key}"]`);
-    const folderVisibility = folderRow.locator('.layer-visibility-toggle');
+    const folderVisibility = folderRow.locator(`:scope > .layer-folder-row #${item.group}Visible`);
     const sourceVisibility = sourceRow.locator('.layer-visibility-toggle');
     await folderVisibility.uncheck();
-    await expect(sourceVisibility).not.toBeChecked();
-    await sourceVisibility.check();
-    await expect(page.locator(`[data-hydro-folder-key="${item.key}"] .layer-visibility-toggle`)).toBeChecked();
-    await page.locator(`[data-hydro-folder-key="${item.key}"] .layer-hydro-folder-name`).click();
-    await expect(sourceRow).toHaveCount(0);
+    await expect(sourceVisibility).toBeChecked();
+    await folderVisibility.check();
+    await expect(sourceVisibility).toBeChecked();
   }
 
   for (const layout of layouts.slice(1)) {
     await page.setViewportSize(layout.viewport);
     await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name);
     if (layout.name === 'mobile' && !await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
-    folderRows = page.locator('#drawingsLayerChildren .layer-hydro-folder-row');
-    await expect(folderRows).toHaveCount(2);
-    await expect(folderRows.locator('.layer-hydro-folder-name')).toHaveText(expected.map(item => item.folder));
+    const folderRows = page.locator('#featuresLayerItems > .layer-folder');
+    await expect(folderRows.locator('.layer-folder-name')).toHaveText(['강', '호수', '사용자 지형지물']);
     if (layout.name === 'mobile') {
-      const touchSize = await folderRows.first().locator('.layer-hydro-folder-toggle').evaluate(element => {
+      const touchSize = await folderRows.first().locator('.layer-folder-toggle').evaluate(element => {
         const rect = element.getBoundingClientRect();
         return [Math.round(rect.width), Math.round(rect.height)];
       });

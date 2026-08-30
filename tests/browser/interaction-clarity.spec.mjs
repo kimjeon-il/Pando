@@ -142,7 +142,7 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   await expect(chooser).toBeVisible();
   await expect(chooser.getByRole('option')).toHaveCount(2);
   await expect(chooser).toContainText('겹침 테스트');
-  await expect(chooser).toContainText('도시·지명');
+  await expect(chooser).toContainText('지명');
   await expect(chooser).toContainText('국가');
   await expect(page.locator('#propertyTitle')).toHaveText('겹침 테스트');
 

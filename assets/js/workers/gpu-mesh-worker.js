@@ -1,6 +1,6 @@
 'use strict';
 
-importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', './gpu-mesh-core.js?v=0.30.0-r14');
+importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', './gpu-mesh-core.js?v=0.30.0-r15');
 
 self.onmessage = event => {
   const token = event.data?.token;

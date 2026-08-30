@@ -1,7 +1,7 @@
 /* PandoLab v0.24.0 water-system shard, Range, and persistent-cache worker. */
 'use strict';
 
-importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js');
+importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js', 'geographic-boundary-core.js');
 
 const textDecoder = new TextDecoder('utf-8');
 let manifest = null;
@@ -315,6 +315,7 @@ function buildMesh(features) {
   const riverStarts = [], riverEnds = [], riverFeatureIds = [], riverStartWidths = [], riverEndWidths = [];
   const borderRiverStarts = [], borderRiverEnds = [], borderRiverFeatureIds = [], borderRiverStartWidths = [], borderRiverEndWidths = [];
   const lakePositions = [], lakeFeatureIds = [], lakeIndices = [];
+  const lakeBoundaryStarts = [], lakeBoundaryEnds = [], lakeBoundaryFeatureIds = [], lakeBoundaryWidths = [];
   for (const feature of features) {
     const fid = Number(feature.properties.__fid);
     if (feature.properties.category === 'river') {
@@ -357,6 +358,12 @@ function buildMesh(features) {
       }
       for (const triangle of triangles) lakeIndices.push(base + triangle);
     }
+    for (const [start, end] of self.PandoLabGeographicBoundary.buildRenderableBoundarySegments(feature.geometry)) {
+      lakeBoundaryStarts.push(Math.round(start[0] * 1e6), Math.round(start[1] * 1e6));
+      lakeBoundaryEnds.push(Math.round(end[0] * 1e6), Math.round(end[1] * 1e6));
+      lakeBoundaryFeatureIds.push(fid);
+      lakeBoundaryWidths.push(1);
+    }
   }
   return {
     riverStarts: new Int32Array(riverStarts), riverEnds: new Int32Array(riverEnds), riverFeatureIds: new Uint32Array(riverFeatureIds),
@@ -364,6 +371,8 @@ function buildMesh(features) {
     borderRiverStarts: new Int32Array(borderRiverStarts), borderRiverEnds: new Int32Array(borderRiverEnds), borderRiverFeatureIds: new Uint32Array(borderRiverFeatureIds),
     borderRiverStartWidths: new Float32Array(borderRiverStartWidths), borderRiverEndWidths: new Float32Array(borderRiverEndWidths),
     lakePositions: new Int32Array(lakePositions), lakeFeatureIds: new Uint32Array(lakeFeatureIds), lakeIndices: new Uint32Array(lakeIndices),
+    lakeBoundaryStarts: new Int32Array(lakeBoundaryStarts), lakeBoundaryEnds: new Int32Array(lakeBoundaryEnds),
+    lakeBoundaryFeatureIds: new Uint32Array(lakeBoundaryFeatureIds), lakeBoundaryWidths: new Float32Array(lakeBoundaryWidths),
   };
 }
 
@@ -494,12 +503,15 @@ function postPack(packId, pack, revision) {
       borderRiverStarts: mesh.borderRiverStarts.buffer, borderRiverEnds: mesh.borderRiverEnds.buffer, borderRiverFeatureIds: mesh.borderRiverFeatureIds.buffer,
       borderRiverStartWidths: mesh.borderRiverStartWidths.buffer, borderRiverEndWidths: mesh.borderRiverEndWidths.buffer,
       lakePositions: mesh.lakePositions.buffer, lakeFeatureIds: mesh.lakeFeatureIds.buffer, lakeIndices: mesh.lakeIndices.buffer,
+      lakeBoundaryStarts: mesh.lakeBoundaryStarts.buffer, lakeBoundaryEnds: mesh.lakeBoundaryEnds.buffer,
+      lakeBoundaryFeatureIds: mesh.lakeBoundaryFeatureIds.buffer, lakeBoundaryWidths: mesh.lakeBoundaryWidths.buffer,
     },
   }, [
     mesh.riverStarts.buffer, mesh.riverEnds.buffer, mesh.riverFeatureIds.buffer, mesh.riverStartWidths.buffer, mesh.riverEndWidths.buffer,
     mesh.borderRiverStarts.buffer, mesh.borderRiverEnds.buffer, mesh.borderRiverFeatureIds.buffer,
     mesh.borderRiverStartWidths.buffer, mesh.borderRiverEndWidths.buffer,
     mesh.lakePositions.buffer, mesh.lakeFeatureIds.buffer, mesh.lakeIndices.buffer,
+    mesh.lakeBoundaryStarts.buffer, mesh.lakeBoundaryEnds.buffer, mesh.lakeBoundaryFeatureIds.buffer, mesh.lakeBoundaryWidths.buffer,
   ]);
   canvasPort?.postMessage({ type: 'pack', revision, packId, features: pack.features });
   postedPacks.add(packId);

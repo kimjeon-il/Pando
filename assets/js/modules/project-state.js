@@ -7,8 +7,10 @@ export const PROJECT_FORMATS = Object.freeze(new Set([
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const text = value => String(value ?? '').trim();
-const LAYER_GROUP_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'drawings', 'labels', 'basemapLabels', 'countryLabels']);
-const PRESENTATION_GROUP_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'userDrawings', 'labels', 'countryLabels', 'terrain']);
+const LAYER_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'drawings', 'labels', 'basemapLabels']);
+const LEGACY_LAYER_VISIBILITY_INPUT_KEYS = new Set([...LAYER_VISIBILITY_KEYS, 'hydro']);
+const ITEM_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'drawings', 'labels', 'countryLabels']);
+const PRESENTATION_GROUP_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'userDrawings', 'labels', 'countryLabels', 'terrain']);
 
 export function createProjectObjectId() {
   if (typeof globalThis.crypto?.randomUUID !== 'function') throw new Error('이 환경에서는 안전한 프로젝트 ID를 만들 수 없습니다.');
@@ -68,8 +70,8 @@ export function assertCurrentProjectSchema(project) {
     'distributionModel', 'physicalSourceInfo',
   ]), '프로젝트');
   assertAllowedKeys(project.distributionSettings, new Set(['renderMode']), '분포 표시 설정');
-  assertAllowedKeys(project.layerVisibility, LAYER_GROUP_KEYS, '레이어 표시 상태');
-  assertAllowedKeys(project.itemVisibility, LAYER_GROUP_KEYS, '객체 표시 상태');
+  assertAllowedKeys(project.layerVisibility, LEGACY_LAYER_VISIBILITY_INPUT_KEYS, '레이어 표시 상태');
+  assertAllowedKeys(project.itemVisibility, ITEM_VISIBILITY_KEYS, '객체 표시 상태');
   assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles']), '레이어 표현');
   assertAllowedKeys(project.layerPresentation?.styles, PRESENTATION_GROUP_KEYS, '레이어 표현 스타일');
   for (const [group, style] of Object.entries(project.layerPresentation?.styles || {})) {
@@ -94,7 +96,7 @@ export function assertCurrentProjectSchema(project) {
   assertUniqueProjectIds(project.distributionEntries, '분포 엔트리');
   assertUniqueProjectIds(project.drawings, '지형지물');
   assertUniqueProjectIds(project.hydroEdits, '편집 수계');
-  assertUniqueProjectIds(project.labels, '라벨');
+  assertUniqueProjectIds(project.labels, '지명');
 
   for (const feature of project.territorialUnits || []) {
     requireSchemaVersion(feature?.properties?.schemaVersion, `영역 ${text(feature?.id)}`, 1);
