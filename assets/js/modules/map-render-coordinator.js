@@ -1,35 +1,46 @@
 const DIRTY_BITS = {
   VIEW: 1 << 0,
-  GPU_COUNTRIES: 1 << 1,
+  GPU_FRAME: 1 << 1,
   BASE: 1 << 2,
-  STATIC_OVERLAYS: 1 << 3,
-  DYNAMIC_OVERLAYS: 1 << 4,
+  PROJECTED_OVERLAYS: 1 << 3,
+  INTERACTION_OVERLAYS: 1 << 4,
   EDITING_OVERLAYS: 1 << 5,
   LABEL_POSITIONS: 1 << 6,
   LABEL_LAYOUT: 1 << 7,
   LAYER_TREE: 1 << 8,
   HUD: 1 << 9,
+  OVERLAY_DATA: 1 << 10,
 };
 
 export const MAP_RENDER_DIRTY = Object.freeze({
   ...DIRTY_BITS,
+  // Compatibility aliases for call sites that are progressively moving to
+  // the narrower rendering vocabulary.
+  GPU_COUNTRIES: DIRTY_BITS.GPU_FRAME,
+  STATIC_OVERLAYS: DIRTY_BITS.OVERLAY_DATA,
+  DYNAMIC_OVERLAYS: DIRTY_BITS.INTERACTION_OVERLAYS,
   FULL: Object.values(DIRTY_BITS).reduce((mask, value) => mask | value, 0),
 });
 
 const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
-  | MAP_RENDER_DIRTY.GPU_COUNTRIES
+  | MAP_RENDER_DIRTY.GPU_FRAME
   | MAP_RENDER_DIRTY.BASE
-  | MAP_RENDER_DIRTY.STATIC_OVERLAYS
-  | MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS
+  | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
+  | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
   | MAP_RENDER_DIRTY.EDITING_OVERLAYS
   | MAP_RENDER_DIRTY.LABEL_POSITIONS;
+
+const SETTLE_MASK = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
 
 const STRING_MASKS = Object.freeze({
   full: MAP_RENDER_DIRTY.FULL,
   view: INTERACTION_MASK,
-  countries: MAP_RENDER_DIRTY.GPU_COUNTRIES,
-  'static-overlays': MAP_RENDER_DIRTY.STATIC_OVERLAYS,
-  'dynamic-overlays': MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS,
+  countries: MAP_RENDER_DIRTY.GPU_FRAME,
+  'gpu-frame': MAP_RENDER_DIRTY.GPU_FRAME,
+  'static-overlays': MAP_RENDER_DIRTY.OVERLAY_DATA,
+  'projected-overlays': MAP_RENDER_DIRTY.PROJECTED_OVERLAYS,
+  'dynamic-overlays': MAP_RENDER_DIRTY.INTERACTION_OVERLAYS,
+  'interaction-overlays': MAP_RENDER_DIRTY.INTERACTION_OVERLAYS,
   labels: MAP_RENDER_DIRTY.LABEL_LAYOUT,
   'layer-tree': MAP_RENDER_DIRTY.LAYER_TREE,
 });
@@ -85,25 +96,28 @@ export function createMapRenderCoordinator({
     rendering = true;
     renderRevision += 1;
     try {
-      const needsView = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_COUNTRIES
-        | MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.STATIC_OVERLAYS | MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS
+      const needsView = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_FRAME
+        | MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
         | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT));
       const viewState = needsView ? prepareView() : undefined;
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
 
       if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes, viewState);
-      if (mask & MAP_RENDER_DIRTY.GPU_COUNTRIES) callRenderer('countries', rendererTimes, viewState);
+      if (mask & MAP_RENDER_DIRTY.GPU_FRAME) callRenderer('countries', rendererTimes, viewState);
 
-      if (mask & MAP_RENDER_DIRTY.STATIC_OVERLAYS) {
+      if (mask & MAP_RENDER_DIRTY.OVERLAY_DATA) {
         callRenderer('hydro', rendererTimes, viewState);
         callRenderer('hydroEdits', rendererTimes, viewState);
         callRenderer('territorialUnits', rendererTimes, viewState);
         callRenderer('distributions', rendererTimes, viewState);
         callRenderer('drawings', rendererTimes, viewState);
         callRenderer('stackOverlays', rendererTimes, viewState);
+      } else if (mask & MAP_RENDER_DIRTY.PROJECTED_OVERLAYS) {
+        callRenderer('projectedOverlays', rendererTimes, viewState);
+        callRenderer('stackOverlays', rendererTimes, viewState);
       }
 
-      if (mask & MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS) {
+      if (mask & MAP_RENDER_DIRTY.INTERACTION_OVERLAYS) {
         callRenderer('geometryPreview', rendererTimes, viewState);
         callRenderer('hover', rendererTimes, viewState);
         callRenderer('selection', rendererTimes, viewState);
@@ -111,7 +125,7 @@ export function createMapRenderCoordinator({
       }
 
       if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {
-        if (!(mask & MAP_RENDER_DIRTY.STATIC_OVERLAYS)) callRenderer('hydroEdits', rendererTimes, viewState);
+        if (!(mask & MAP_RENDER_DIRTY.OVERLAY_DATA)) callRenderer('hydroEdits', rendererTimes, viewState);
         callRenderer('boundaryEdit', rendererTimes, viewState);
         callRenderer('vertices', rendererTimes, viewState);
         callRenderer('draft', rendererTimes, viewState);
@@ -194,7 +208,7 @@ export function createMapRenderCoordinator({
     clearTimeout(settleTimer);
     settleTimer = setTimeout(() => {
       settleTimer = 0;
-      scheduleFull(reason);
+      invalidate(SETTLE_MASK, reason);
     }, 120);
     return true;
   }

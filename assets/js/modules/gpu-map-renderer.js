@@ -96,8 +96,8 @@ export function createGpuMapRenderer(deps) {
     reportOperationError,
     rendererUi,
     runtimeAssetUrl,
+    scheduleGpuFrame,
     scheduleGpuMeshRebuild,
-    scheduleViewRender,
     setActionStatus,
     state,
   } = deps;
@@ -140,6 +140,7 @@ export function createGpuMapRenderer(deps) {
     let hydroViewRetryKey = '';
     let hydroViewRetryTimer = 0;
     let hydroRequestRevision = 0;
+    let hydroVisibleTileCache = { signature: '', tiles: [], key: '' };
     let hydroAcceptedRevision = 0;
     let hydroActivePackIds = new Set();
     const hydroPacks = new Map();
@@ -148,6 +149,7 @@ export function createGpuMapRenderer(deps) {
     const hydroEditFeatureByFid = new Map();
     const hydroUploadQueue = [];
     let hydroUploadFrame = 0;
+    let interactionActive = false;
     let hydroVisibilityDirty = true;
     const hydroFeatureRequests = new Map();
     let hydroFeatureRequestId = 0;
@@ -162,6 +164,12 @@ export function createGpuMapRenderer(deps) {
     let overridePaletteTexture = null;
     let emphasisPaletteTexture = null;
     let overrideEmphasisPaletteTexture = null;
+    let paletteCapacity = 0;
+    let palettePixels = null;
+    const paletteDirty = { base: true, emphasis: true };
+    let uniformLocationCache = new WeakMap();
+    let attributeLocationCache = new WeakMap();
+    let activeFrameContext = null;
     let interactionStyle = {
       hover: { color: '#e2c982', fillAlpha: 0.07 },
       selection: {
@@ -173,6 +181,8 @@ export function createGpuMapRenderer(deps) {
     };
     let countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set(), selectionMode: 'outline-soft-fill' };
     let countryEmphasisRevision = 0;
+    let countryPaletteRevision = 0;
+    let physicalStyleStateRevision = 0;
     let overridePositionBuffer = null;
     let overrideCountryBuffer = null;
     let overrideFillIndexBuffer = null;
@@ -231,6 +241,10 @@ export function createGpuMapRenderer(deps) {
     let canvasWorkerReady = false;
     let canvasWorkerBusy = false;
     let canvasWorkerPendingMessage = null;
+    let canvasStyleRevision = 0;
+    let canvasPhysicalStyleRevision = 0;
+    let canvasLastStyleSignature = '';
+    let canvasLastPhysicalStyleSignature = '';
     let canvasWorkerLatestRequestedRevision = 0;
     let canvasWorkerDisplayedRevision = 0;
     let canvasHydroPickRequestId = 0;
@@ -243,6 +257,25 @@ export function createGpuMapRenderer(deps) {
     let currentRenderRevision = 0;
     let displayedRenderRevision = 0;
     const frameTimes = [];
+    const performanceMetrics = {
+      paletteRebuildCount: 0,
+      paletteUploadCount: 0,
+      paletteUploadBytes: 0,
+      uniformCacheHits: 0,
+      uniformCacheMisses: 0,
+      attributeCacheHits: 0,
+      attributeCacheMisses: 0,
+      frameContextBuildCount: 0,
+      hydroViewRequestCount: 0,
+      hydroUploadBytes: 0,
+      terrainUploadCount: 0,
+      canvasWorkerMessageCount: 0,
+      canvasWorkerMessageBytes: 0,
+      canvasWorkerViewMessageCount: 0,
+      canvasWorkerStateMessageCount: 0,
+      canvasWorkerMessagesByType: {},
+    };
+    let cachedDetailedStats = { at: 0, p95CpuSubmitMs: 0 };
     let canvasDataReplacementResolver = null;
     let lastGeometryCommitTimings = null;
     const forcedRenderer = (() => {
@@ -251,6 +284,11 @@ export function createGpuMapRenderer(deps) {
         return ['webgl2', 'webgl1', 'canvas'].includes(value) ? value : '';
       } catch (_) { return ''; }
     })();
+
+    function invalidateGpuFrame(reason = 'gpu-frame') {
+      if (typeof scheduleGpuFrame === 'function') return scheduleGpuFrame(reason);
+      return renderViewFrame?.(reason);
+    }
 
     function resolveRenderPixelRatio() {
       effectivePixelRatio = resolveRenderPixelRatioValue(window.devicePixelRatio, isMobile());
@@ -732,6 +770,43 @@ export function createGpuMapRenderer(deps) {
       return program;
     }
 
+    function cachedUniformLocation(program, name) {
+      let locations = uniformLocationCache.get(program);
+      if (!locations) {
+        locations = new Map();
+        uniformLocationCache.set(program, locations);
+      }
+      if (locations.has(name)) {
+        performanceMetrics.uniformCacheHits += 1;
+        return locations.get(name);
+      }
+      const location = gl.getUniformLocation(program, name);
+      locations.set(name, location);
+      performanceMetrics.uniformCacheMisses += 1;
+      return location;
+    }
+
+    function cachedAttributeLocation(program, name) {
+      let locations = attributeLocationCache.get(program);
+      if (!locations) {
+        locations = new Map();
+        attributeLocationCache.set(program, locations);
+      }
+      if (locations.has(name)) {
+        performanceMetrics.attributeCacheHits += 1;
+        return locations.get(name);
+      }
+      const location = gl.getAttribLocation(program, name);
+      locations.set(name, location);
+      performanceMetrics.attributeCacheMisses += 1;
+      return location;
+    }
+
+    function primeProgramLocations(program, uniforms = [], attributes = []) {
+      for (const name of uniforms) cachedUniformLocation(program, name);
+      for (const name of attributes) cachedAttributeLocation(program, name);
+    }
+
     function attach(nextCanvas) {
       canvas = nextCanvas;
       canvas.className = 'gpu-map-canvas';
@@ -782,6 +857,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function createWebGlResources() {
+      uniformLocationCache = new WeakMap();
+      attributeLocationCache = new WeakMap();
       const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
       landMaskProgram = createProgram(vertexSource, glVersion === 2 ? landMaskFragmentSourceWebGl2 : landMaskFragmentSourceWebGl1);
@@ -801,10 +878,24 @@ export function createGpuMapRenderer(deps) {
         glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
         glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1,
       );
+      const viewUniforms = ['uViewport', 'uTranslate', 'uScale', 'uRowX', 'uRowY', 'uRowZ', 'uFlatCenter', 'uWorldOffset', 'uMode'];
+      for (const program of [fillProgram, landMaskProgram, lineProgram, pickProgram, terrainProgram, hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram]) {
+        primeProgramLocations(program, viewUniforms);
+      }
+      for (const program of [fillProgram, lineProgram, pickProgram]) primeProgramLocations(program, ['uPalette', 'uPaletteWidth'], ['aCoord', 'aCountry']);
+      primeProgramLocations(lineProgram, ['uBorderColor']);
+      for (const program of [hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram]) {
+        primeProgramLocations(program, ['uHydroVisibility', 'uHydroVisibilitySize', 'uHydroColor', 'uWidthBoost', 'uWidthScale'], ['aCoord', 'aCountry', 'aCorner', 'aStart', 'aEnd', 'aStartWidth', 'aEndWidth']);
+      }
+      primeProgramLocations(terrainProgram, ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme'], ['aGrid']);
       paletteTexture = gl.createTexture();
       overridePaletteTexture = gl.createTexture();
       emphasisPaletteTexture = gl.createTexture();
       overrideEmphasisPaletteTexture = gl.createTexture();
+      paletteCapacity = 0;
+      palettePixels = null;
+      paletteDirty.base = true;
+      paletteDirty.emphasis = true;
       hydroVisibilityTexture = gl.createTexture();
       hydroCornerBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
@@ -1189,9 +1280,9 @@ export function createGpuMapRenderer(deps) {
       renderPendingCountryOverlays?.();
       lastGeometryCommitTimings.optimisticOverlayShownAt = performance.now();
       if (rendererMode === 'canvas-worker' && canvasWorker) {
-        canvasWorker.postMessage({
+        postCanvasWorkerMessage({
           type: 'patch',
-          features: features.map(deepClone),
+          features,
           removedIds,
           ids,
           revision: currentRenderRevision,
@@ -1312,7 +1403,7 @@ export function createGpuMapRenderer(deps) {
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         meshQuality = 'canonical';
         canonicalMeshReady = true;
-        canvasWorker.postMessage({
+        postCanvasWorkerMessage({
           type: 'data', features, ids: pendingIds,
           revision: currentRenderRevision,
           geometryRevision: task.revision,
@@ -1421,7 +1512,7 @@ export function createGpuMapRenderer(deps) {
       return { kind, ...styles[kind] };
     }
 
-    function uploadPalette(texture, pixels) {
+    function configurePaletteTexture(texture) {
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -1429,46 +1520,100 @@ export function createGpuMapRenderer(deps) {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       const internalFormat = glVersion === 2 ? gl.RGBA8 : gl.RGBA;
-      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, Math.max(1, meshCountryIds.length), 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, paletteCapacity, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     }
 
-    function updatePalette() {
-      if (!gl || !meshCountryIds.length) return;
-      const basePixels = new Uint8Array(meshCountryIds.length * 4);
-      const overridePixels = new Uint8Array(meshCountryIds.length * 4);
-      const emphasisPixels = new Uint8Array(meshCountryIds.length * 4);
-      const overrideEmphasisPixels = new Uint8Array(meshCountryIds.length * 4);
-      pendingOldMeshVisibleCount = 0;
-      for (let index = 0; index < meshCountryIds.length; index += 1) {
-        const id = meshCountryIds[index];
-        const feature = countryFeatureById(id);
-        const color = parseColor(feature ? countryColor(feature) : '#000000');
-        for (const pixels of [basePixels, overridePixels]) {
-          pixels[index * 4] = color[0];
-          pixels[index * 4 + 1] = color[1];
-          pixels[index * 4 + 2] = color[2];
+    function ensurePaletteStorage() {
+      const capacity = Math.max(1, meshCountryIds.length);
+      if (palettePixels && paletteCapacity === capacity) return;
+      paletteCapacity = capacity;
+      palettePixels = {
+        base: new Uint8Array(capacity * 4),
+        override: new Uint8Array(capacity * 4),
+        emphasis: new Uint8Array(capacity * 4),
+        overrideEmphasis: new Uint8Array(capacity * 4),
+      };
+      for (const texture of [paletteTexture, overridePaletteTexture, emphasisPaletteTexture, overrideEmphasisPaletteTexture]) configurePaletteTexture(texture);
+      paletteDirty.base = true;
+      paletteDirty.emphasis = true;
+    }
+
+    function uploadPalettePixels(texture, pixels) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, paletteCapacity, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      performanceMetrics.paletteUploadCount += 1;
+      performanceMetrics.paletteUploadBytes += pixels.byteLength;
+    }
+
+    function markPaletteDirty({ base = false, emphasis = false } = {}) {
+      paletteDirty.base ||= base;
+      paletteDirty.emphasis ||= emphasis;
+    }
+
+    function flushPaletteUpdates() {
+      if (!gl || !meshCountryIds.length || (!paletteDirty.base && !paletteDirty.emphasis)) return false;
+      ensurePaletteStorage();
+      const { base, override, emphasis, overrideEmphasis } = palettePixels;
+      if (paletteDirty.base) {
+        pendingOldMeshVisibleCount = 0;
+        for (let index = 0; index < meshCountryIds.length; index += 1) {
+          const id = meshCountryIds[index];
+          const feature = countryFeatureById(id);
+          const color = parseColor(feature ? countryColor(feature) : '#000000');
+          const offset = index * 4;
+          base[offset] = override[offset] = color[0];
+          base[offset + 1] = override[offset + 1] = color[1];
+          base[offset + 2] = override[offset + 2] = color[2];
+          const visible = feature && isCountryVisibleById(id) ? mapTheme().fillAlphaByte : 0;
+          const overridden = countryOverrideIds.has(id);
+          const pending = geometryRevisionTracker.isPending(id);
+          base[offset + 3] = overridden ? 0 : visible;
+          override[offset + 3] = overridden && !pending ? visible : 0;
+          if (pending && (base[offset + 3] || override[offset + 3])) pendingOldMeshVisibleCount += 1;
         }
-        const visible = feature && isCountryVisibleById(id) ? mapTheme().fillAlphaByte : 0;
-        const overridden = countryOverrideIds.has(id);
-        const pending = geometryRevisionTracker.isPending(id);
-        basePixels[index * 4 + 3] = overridden ? 0 : visible;
-        overridePixels[index * 4 + 3] = overridden && !pending ? visible : 0;
-        const emphasis = countryEmphasisStyle(id);
-        const emphasisColor = emphasis?.color || [0, 0, 0];
-        const emphasisAlpha = visible && emphasis ? emphasis.alphaByte : 0;
-        for (const pixels of [emphasisPixels, overrideEmphasisPixels]) {
-          pixels[index * 4] = emphasisColor[0];
-          pixels[index * 4 + 1] = emphasisColor[1];
-          pixels[index * 4 + 2] = emphasisColor[2];
-        }
-        emphasisPixels[index * 4 + 3] = overridden ? 0 : emphasisAlpha;
-        overrideEmphasisPixels[index * 4 + 3] = overridden && !pending ? emphasisAlpha : 0;
-        if (pending && (basePixels[index * 4 + 3] || overridePixels[index * 4 + 3])) pendingOldMeshVisibleCount += 1;
+        uploadPalettePixels(paletteTexture, base);
+        uploadPalettePixels(overridePaletteTexture, override);
+        paletteDirty.base = false;
+        performanceMetrics.paletteRebuildCount += 1;
       }
-      uploadPalette(paletteTexture, basePixels);
-      uploadPalette(overridePaletteTexture, overridePixels);
-      uploadPalette(emphasisPaletteTexture, emphasisPixels);
-      uploadPalette(overrideEmphasisPaletteTexture, overrideEmphasisPixels);
+      if (paletteDirty.emphasis) {
+        for (let index = 0; index < meshCountryIds.length; index += 1) {
+          const id = meshCountryIds[index];
+          const offset = index * 4;
+          const visible = base[offset + 3] || override[offset + 3];
+          const overridden = countryOverrideIds.has(id);
+          const pending = geometryRevisionTracker.isPending(id);
+          const entry = countryEmphasisStyle(id);
+          const color = entry?.color || [0, 0, 0];
+          emphasis[offset] = overrideEmphasis[offset] = color[0];
+          emphasis[offset + 1] = overrideEmphasis[offset + 1] = color[1];
+          emphasis[offset + 2] = overrideEmphasis[offset + 2] = color[2];
+          const alpha = visible && entry ? entry.alphaByte : 0;
+          emphasis[offset + 3] = overridden ? 0 : alpha;
+          overrideEmphasis[offset + 3] = overridden && !pending ? alpha : 0;
+        }
+        uploadPalettePixels(emphasisPaletteTexture, emphasis);
+        uploadPalettePixels(overrideEmphasisPaletteTexture, overrideEmphasis);
+        paletteDirty.emphasis = false;
+        performanceMetrics.paletteRebuildCount += 1;
+      }
+      return true;
+    }
+
+    function updatePalette(domains = null) {
+      const nextDomains = domains || { base: true, emphasis: true };
+      markPaletteDirty(nextDomains);
+      if (nextDomains.base) countryPaletteRevision += 1;
+      return flushPaletteUpdates();
+    }
+
+    function invalidateCountryPalette(domains = null, reason = 'country-palette') {
+      const nextDomains = domains || { base: true, emphasis: true };
+      markPaletteDirty(nextDomains);
+      if (nextDomains.base) countryPaletteRevision += 1;
+      if (rendererMode !== 'pending') invalidateGpuFrame(reason);
+      return true;
     }
 
     function rotationRows() {
@@ -1505,8 +1650,7 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
-    function setViewUniforms(program, worldOffset = 0) {
-      const viewState = getRenderViewState();
+    function createFrameContext(viewState = getRenderViewState()) {
       const mode = viewState.projection === 'globe' ? 0 : 1;
       const globeRows = mode === 0 ? rotationRows() : null;
       const data = mode === 0
@@ -1515,16 +1659,34 @@ export function createGpuMapRenderer(deps) {
             rowX: [1, 0, 0], rowY: [0, 1, 0], rowZ: [0, 0, 1],
             translate: viewState.translate || flatProjection.translate(), scale: Number(viewState.scale || flatProjection.scale()),
           };
-      gl.uniform2f(gl.getUniformLocation(program, 'uViewport'), Number(viewState.size?.width || cssWidth), Number(viewState.size?.height || cssHeight));
-      gl.uniform2f(gl.getUniformLocation(program, 'uTranslate'), data.translate[0], data.translate[1]);
-      gl.uniform1f(gl.getUniformLocation(program, 'uScale'), data.scale);
-      gl.uniform3fv(gl.getUniformLocation(program, 'uRowX'), data.rowX);
-      gl.uniform3fv(gl.getUniformLocation(program, 'uRowY'), data.rowY);
-      gl.uniform3fv(gl.getUniformLocation(program, 'uRowZ'), data.rowZ);
       const flatCenter = viewState.projectionCenter || viewState.flatCenter || state.view.flatCenter;
-      gl.uniform2f(gl.getUniformLocation(program, 'uFlatCenter'), flatCenter[0] * PI / 180, flatCenter[1] * PI / 180);
-      gl.uniform1f(gl.getUniformLocation(program, 'uWorldOffset'), worldOffset);
-      gl.uniform1i(gl.getUniformLocation(program, 'uMode'), mode);
+      performanceMetrics.frameContextBuildCount += 1;
+      return {
+        viewState,
+        mode,
+        viewport: [Number(viewState.size?.width || cssWidth), Number(viewState.size?.height || cssHeight)],
+        translate: data.translate,
+        scale: data.scale,
+        rowX: data.rowX,
+        rowY: data.rowY,
+        rowZ: data.rowZ,
+        flatCenter: [flatCenter[0] * PI / 180, flatCenter[1] * PI / 180],
+        worldOffsets: mode === 0 ? [0] : [-2 * PI, 0, 2 * PI],
+        dpr: Number(viewState.dpr || effectivePixelRatio || 1),
+        theme: mapTheme(),
+      };
+    }
+
+    function setViewUniforms(program, worldOffset = 0, frameContext = activeFrameContext || createFrameContext()) {
+      gl.uniform2f(cachedUniformLocation(program, 'uViewport'), frameContext.viewport[0], frameContext.viewport[1]);
+      gl.uniform2f(cachedUniformLocation(program, 'uTranslate'), frameContext.translate[0], frameContext.translate[1]);
+      gl.uniform1f(cachedUniformLocation(program, 'uScale'), frameContext.scale);
+      gl.uniform3fv(cachedUniformLocation(program, 'uRowX'), frameContext.rowX);
+      gl.uniform3fv(cachedUniformLocation(program, 'uRowY'), frameContext.rowY);
+      gl.uniform3fv(cachedUniformLocation(program, 'uRowZ'), frameContext.rowZ);
+      gl.uniform2f(cachedUniformLocation(program, 'uFlatCenter'), frameContext.flatCenter[0], frameContext.flatCenter[1]);
+      gl.uniform1f(cachedUniformLocation(program, 'uWorldOffset'), worldOffset);
+      gl.uniform1i(cachedUniformLocation(program, 'uMode'), frameContext.mode);
     }
 
     function resize() {
@@ -1593,8 +1755,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function bindWebGl1Attributes(program, indexBuffer, resources = null) {
-      const coordLocation = gl.getAttribLocation(program, 'aCoord');
-      const countryLocation = gl.getAttribLocation(program, 'aCountry');
+      const coordLocation = cachedAttributeLocation(program, 'aCoord');
+      const countryLocation = cachedAttributeLocation(program, 'aCountry');
       gl.bindBuffer(gl.ARRAY_BUFFER, resources?.positionBuffer || positionBuffer);
       if (coordLocation >= 0) {
         gl.enableVertexAttribArray(coordLocation);
@@ -1612,8 +1774,8 @@ export function createGpuMapRenderer(deps) {
     function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture, lineColor = null, lineWidth = null) {
       gl.useProgram(program);
       if (program === fillProgram || program === lineProgram || program === pickProgram) {
-        gl.uniform1i(gl.getUniformLocation(program, 'uPalette'), 0);
-        const paletteWidthLocation = gl.getUniformLocation(program, 'uPaletteWidth');
+        gl.uniform1i(cachedUniformLocation(program, 'uPalette'), 0);
+        const paletteWidthLocation = cachedUniformLocation(program, 'uPaletteWidth');
         if (paletteWidthLocation) gl.uniform1f(paletteWidthLocation, Math.max(1, meshCountryIds.length));
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, palette);
@@ -1622,13 +1784,13 @@ export function createGpuMapRenderer(deps) {
         const theme = mapTheme();
         gl.lineWidth(Math.max(1, Number(lineWidth) || Number(theme.borderWidth) || 1));
         const color = lineColor || [theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha];
-        gl.uniform4f(gl.getUniformLocation(program, 'uBorderColor'), color[0], color[1], color[2], color[3]);
+        gl.uniform4f(cachedUniformLocation(program, 'uBorderColor'), color[0], color[1], color[2], color[3]);
       }
       const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer, resources);
       if (glVersion === 2) gl.bindVertexArray(vao);
-      const offsets = getRenderViewState().projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
-      for (const offset of offsets) {
-        setViewUniforms(program, offset);
+      const frameContext = activeFrameContext || createFrameContext();
+      for (const offset of frameContext.worldOffsets) {
+        setViewUniforms(program, offset, frameContext);
         gl.drawElements(primitive, indexCount, gl.UNSIGNED_INT, 0);
       }
       if (glVersion === 2) gl.bindVertexArray(null);
@@ -1674,18 +1836,20 @@ export function createGpuMapRenderer(deps) {
         } else {
           gl.bindBuffer(task.target, task.buffer);
         }
-        const byteBudget = 2 * 1024 * 1024;
+        const byteBudget = interactionActive ? 512 * 1024 : 4 * 1024 * 1024;
         if (convertToFloat) {
           const start = Math.floor(task.offset / 4);
           const count = Math.min(task.data.length - start, Math.floor(byteBudget / 4));
           const chunk = Float32Array.from(task.data.subarray(start, start + count));
           gl.bufferSubData(task.target, task.offset, chunk);
           task.offset += chunk.byteLength;
+          performanceMetrics.hydroUploadBytes += chunk.byteLength;
         } else {
           const count = Math.min(outputBytes - task.offset, byteBudget);
           const chunk = new Uint8Array(task.data.buffer, task.data.byteOffset + task.offset, count);
           gl.bufferSubData(task.target, task.offset, chunk);
           task.offset += count;
+          performanceMetrics.hydroUploadBytes += count;
         }
         if (task.offset >= outputBytes) entry.uploadState.tasks.shift();
       }
@@ -1818,8 +1982,8 @@ export function createGpuMapRenderer(deps) {
       }
       hydroEditRevision = nextRevision;
       hydroVisibilityDirty = true;
-      if (rendererMode === 'canvas-worker' && canvasWorker) canvasWorker.postMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: deepClone(features || []) });
-      if (rendererMode !== 'pending') render(currentRenderRevision);
+      if (rendererMode === 'canvas-worker' && canvasWorker) postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: features || [] });
+      if (rendererMode !== 'pending') invalidateGpuFrame('hydro-edit-data');
       return true;
     }
 
@@ -1852,8 +2016,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function bindLakeAttributes(program, resources) {
-      const coordLocation = glVersion === 2 ? 0 : gl.getAttribLocation(program, 'aCoord');
-      const featureLocation = glVersion === 2 ? 1 : gl.getAttribLocation(program, 'aCountry');
+      const coordLocation = glVersion === 2 ? 0 : cachedAttributeLocation(program, 'aCoord');
+      const featureLocation = glVersion === 2 ? 1 : cachedAttributeLocation(program, 'aCountry');
       gl.bindBuffer(gl.ARRAY_BUFFER, resources.lakePositionBuffer);
       gl.enableVertexAttribArray(coordLocation);
       if (glVersion === 2) gl.vertexAttribIPointer(coordLocation, 2, gl.INT, 0, 0);
@@ -1870,11 +2034,11 @@ export function createGpuMapRenderer(deps) {
       gl.useProgram(program);
       gl.activeTexture(gl.TEXTURE2);
       gl.bindTexture(gl.TEXTURE_2D, hydroVisibilityTexture);
-      gl.uniform1i(gl.getUniformLocation(program, 'uHydroVisibility'), 2);
-      const sizeLocation = gl.getUniformLocation(program, 'uHydroVisibilitySize');
+      gl.uniform1i(cachedUniformLocation(program, 'uHydroVisibility'), 2);
+      const sizeLocation = cachedUniformLocation(program, 'uHydroVisibilitySize');
       if (glVersion === 2) gl.uniform2i(sizeLocation, hydroVisibilityWidth, hydroVisibilityHeight);
       else gl.uniform2f(sizeLocation, hydroVisibilityWidth, hydroVisibilityHeight);
-      const colorLocation = gl.getUniformLocation(program, 'uHydroColor');
+      const colorLocation = cachedUniformLocation(program, 'uHydroColor');
       if (colorLocation && color) gl.uniform4fv(colorLocation, color);
     }
 
@@ -1885,9 +2049,9 @@ export function createGpuMapRenderer(deps) {
 
     function bindRiverAttributes(program, resources, category = 'river') {
       const locations = glVersion === 2 ? [0, 1, 2, 3, 4, 5] : [
-        gl.getAttribLocation(program, 'aCorner'), gl.getAttribLocation(program, 'aStart'),
-        gl.getAttribLocation(program, 'aEnd'), gl.getAttribLocation(program, 'aCountry'),
-        gl.getAttribLocation(program, 'aStartWidth'), gl.getAttribLocation(program, 'aEndWidth'),
+        cachedAttributeLocation(program, 'aCorner'), cachedAttributeLocation(program, 'aStart'),
+        cachedAttributeLocation(program, 'aEnd'), cachedAttributeLocation(program, 'aCountry'),
+        cachedAttributeLocation(program, 'aStartWidth'), cachedAttributeLocation(program, 'aEndWidth'),
       ];
       const [corner, start, end, feature, startWidth, endWidth] = locations;
       const prefix = category === 'lake-boundary' ? 'lakeBoundary' : category === 'border-river' ? 'borderRiver' : 'river';
@@ -1929,17 +2093,17 @@ export function createGpuMapRenderer(deps) {
       if (!count) return;
       setHydroUniforms(program, color);
       const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources, category);
-      const widthBoostLocation = gl.getUniformLocation(program, 'uWidthBoost');
+      const widthBoostLocation = cachedUniformLocation(program, 'uWidthBoost');
       if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 : 0);
-      const widthScaleLocation = gl.getUniformLocation(program, 'uWidthScale');
+      const widthScaleLocation = cachedUniformLocation(program, 'uWidthScale');
       if (widthScaleLocation) {
         const theme = mapTheme();
         const width = category === 'lake-boundary' ? theme.lakeBoundaryWidth : theme.riverWidth;
         gl.uniform1f(widthScaleLocation, Math.max(0.5, Number(width) || 1));
       }
-      const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
-      for (const offset of offsets) {
-        setViewUniforms(program, offset);
+      const frameContext = activeFrameContext || createFrameContext();
+      for (const offset of frameContext.worldOffsets) {
+        setViewUniforms(program, offset, frameContext);
         if (category === 'lake') gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, 0);
         else if (glVersion === 2) gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
         else instancedExtension.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP, 0, 4, count);
@@ -1960,7 +2124,7 @@ export function createGpuMapRenderer(deps) {
         if (next) {
           next.uploadQueued = false;
           uploadHydroPack(next);
-          if (next.resources) render(currentRenderRevision);
+          if (next.resources) invalidateGpuFrame('hydro-upload-ready');
           else scheduleHydroUpload(next);
         }
         if (hydroUploadQueue.length) {
@@ -2028,10 +2192,19 @@ export function createGpuMapRenderer(deps) {
       return specs;
     }
 
-    function requestHydroView() {
+    function requestHydroView(viewState = getRenderViewState()) {
       if (!hydroWorker || !hydroWorkerReady || !hydroManifest) return;
-      const tiles = hydroVisibleTileSpecs();
-      const key = tiles.map(spec => `${spec.stage}/${spec.x}-${spec.y}`).join('|');
+      const threshold = hydroVisibilityThreshold();
+      const signature = [Number(viewState?.revision || currentRenderRevision), viewState?.projection || state.projection, threshold, state.size.width, state.size.height].join(':');
+      if (hydroVisibleTileCache.signature !== signature) {
+        const tiles = hydroVisibleTileSpecs();
+        hydroVisibleTileCache = {
+          signature,
+          tiles,
+          key: tiles.map(spec => `${spec.stage}/${spec.x}-${spec.y}`).join('|'),
+        };
+      }
+      const { tiles, key } = hydroVisibleTileCache;
       if (key === hydroViewLoadedKey || key === hydroViewRequestedKey) return;
       if (key !== hydroViewRetryKey) {
         hydroViewRetryKey = key;
@@ -2040,6 +2213,7 @@ export function createGpuMapRenderer(deps) {
       hydroViewRequestedKey = key;
       hydroViewRequestedRevision = ++hydroRequestRevision;
       state.physicalLoadState.hydroView = 'loading';
+      performanceMetrics.hydroViewRequestCount += 1;
       hydroWorker.postMessage({
         type: 'view',
         revision: hydroViewRequestedRevision,
@@ -2053,7 +2227,7 @@ export function createGpuMapRenderer(deps) {
       if (hydroRenderFrame) return;
       hydroRenderFrame = requestAnimationFrame(() => {
         hydroRenderFrame = 0;
-        render(currentRenderRevision);
+        invalidateGpuFrame('hydro-ready');
       });
     }
 
@@ -2435,12 +2609,23 @@ export function createGpuMapRenderer(deps) {
     }
 
     function setHydroInteractionActive(active) {
-      hydroWorker?.postMessage({ type: 'interaction', active: active === true });
+      interactionActive = active === true;
+      hydroWorker?.postMessage({ type: 'interaction', active: interactionActive });
+      if (!interactionActive) {
+        if (terrainUploadQueue.length) scheduleTerrainUpload();
+      }
     }
 
     function invalidateHydroVisibility() {
       hydroVisibilityDirty = true;
+      physicalStyleStateRevision += 1;
       queueHydroRender();
+    }
+
+    function invalidatePhysicalStyle(reason = 'physical-style') {
+      physicalStyleStateRevision += 1;
+      if (rendererMode !== 'pending') invalidateGpuFrame(reason);
+      return true;
     }
 
     function terrainLevelForView() {
@@ -2560,7 +2745,6 @@ export function createGpuMapRenderer(deps) {
         if (attempts <= 3) {
           setTimeout(() => {
             requestTerrainTile(spec, priority);
-            scheduleViewRender();
           }, retryDelay);
         }
         console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
@@ -2572,19 +2756,14 @@ export function createGpuMapRenderer(deps) {
       terrainTileRequests.set(spec.key, request);
     }
 
-    function scheduleTerrainUpload() {
-      if (terrainUploadFrame || !terrainUploadQueue.length) return;
-      terrainUploadFrame = requestAnimationFrame(() => {
-        terrainUploadFrame = 0;
-        const next = terrainUploadQueue.shift();
-        if (!next) return;
-        const { spec, bitmap } = next;
-        terrainTileQueuedKeys.delete(spec.key);
-        if (!gl || !isWebGlRenderer()) {
-          bitmap.close?.();
-          scheduleTerrainUpload();
-          return;
-        }
+    function uploadTerrainTile(next) {
+      if (!next) return false;
+      const { spec, bitmap } = next;
+      terrainTileQueuedKeys.delete(spec.key);
+      if (!gl || !isWebGlRenderer()) {
+        bitmap.close?.();
+        return false;
+      }
         const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
@@ -2595,6 +2774,7 @@ export function createGpuMapRenderer(deps) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
         bitmap.close?.();
         terrainTiles.set(spec.key, { texture, lastUsed: performance.now() });
+        performanceMetrics.terrainUploadCount += 1;
         while (terrainTiles.size > 96) {
           let oldest = null;
           for (const item of terrainTiles.entries()) if (!oldest || item[1].lastUsed < oldest[1].lastUsed) oldest = item;
@@ -2602,8 +2782,21 @@ export function createGpuMapRenderer(deps) {
           gl.deleteTexture(oldest[1].texture);
           terrainTiles.delete(oldest[0]);
         }
-        scheduleViewRender();
-        scheduleTerrainUpload();
+      return true;
+    }
+
+    function scheduleTerrainUpload() {
+      if (terrainUploadFrame || !terrainUploadQueue.length) return;
+      terrainUploadFrame = requestAnimationFrame(() => {
+        terrainUploadFrame = 0;
+        const startedAt = performance.now();
+        const limit = interactionActive ? 1 : 2;
+        let uploaded = 0;
+        while (terrainUploadQueue.length && uploaded < limit && (uploaded === 0 || performance.now() - startedAt < 4)) {
+          if (uploadTerrainTile(terrainUploadQueue.shift())) uploaded += 1;
+        }
+        if (uploaded) invalidateGpuFrame('terrain-upload-ready');
+        if (terrainUploadQueue.length) scheduleTerrainUpload();
       });
     }
 
@@ -2651,27 +2844,27 @@ export function createGpuMapRenderer(deps) {
       tile.lastUsed = performance.now();
       const grid = terrainGridMesh(spec);
       gl.useProgram(terrainProgram);
-      const gridLocation = glVersion === 2 ? 0 : gl.getAttribLocation(terrainProgram, 'aGrid');
+      const gridLocation = glVersion === 2 ? 0 : cachedAttributeLocation(terrainProgram, 'aGrid');
       gl.bindBuffer(gl.ARRAY_BUFFER, grid.vertexBuffer);
       gl.enableVertexAttribArray(gridLocation);
       gl.vertexAttribPointer(gridLocation, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, grid.indexBuffer);
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, tile.texture);
-      gl.uniform1i(gl.getUniformLocation(terrainProgram, 'uTerrain'), 1);
+      gl.uniform1i(cachedUniformLocation(terrainProgram, 'uTerrain'), 1);
       const [west, north, east, south] = spec.bounds;
-      gl.uniform4f(gl.getUniformLocation(terrainProgram, 'uGeoBounds'), west, north, east, south);
+      gl.uniform4f(cachedUniformLocation(terrainProgram, 'uGeoBounds'), west, north, east, south);
       const gutter = Number(terrainManifest.gutter || 0);
       const u0 = gutter / (spec.pixelWidth + gutter * 2);
       const v0 = gutter / (spec.pixelHeight + gutter * 2);
       const u1 = (gutter + spec.pixelWidth) / (spec.pixelWidth + gutter * 2);
       const v1 = (gutter + spec.pixelHeight) / (spec.pixelHeight + gutter * 2);
-      gl.uniform4f(gl.getUniformLocation(terrainProgram, 'uUvBounds'), u0, v0, u1, v1);
-      gl.uniform1f(gl.getUniformLocation(terrainProgram, 'uPhysicalStyle'), state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
-      gl.uniform1f(gl.getUniformLocation(terrainProgram, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
-      const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
-      for (const offset of offsets) {
-        setViewUniforms(terrainProgram, offset);
+      gl.uniform4f(cachedUniformLocation(terrainProgram, 'uUvBounds'), u0, v0, u1, v1);
+      gl.uniform1f(cachedUniformLocation(terrainProgram, 'uPhysicalStyle'), state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
+      gl.uniform1f(cachedUniformLocation(terrainProgram, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
+      const frameContext = activeFrameContext || createFrameContext();
+      for (const offset of frameContext.worldOffsets) {
+        setViewUniforms(terrainProgram, offset, frameContext);
         gl.drawElements(gl.TRIANGLES, grid.indexCount, gl.UNSIGNED_INT, 0);
       }
       gl.disableVertexAttribArray(gridLocation);
@@ -2705,10 +2898,10 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
-    function renderWebGl() {
+    function renderWebGl(viewState = getRenderViewState()) {
       if (!gl || !mesh) return;
       resize();
-      requestHydroView();
+      activeFrameContext = createFrameContext(viewState);
       const started = performance.now();
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, pixelWidth, pixelHeight);
@@ -2735,7 +2928,7 @@ export function createGpuMapRenderer(deps) {
       } else {
         renderTerrain();
       }
-      updatePalette();
+      flushPaletteUpdates();
       gl.enable(gl.BLEND);
       gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       if (state.layerVisibility.countries) {
@@ -2756,7 +2949,8 @@ export function createGpuMapRenderer(deps) {
       displayedRenderRevision = currentRenderRevision;
       frameTimes.push(performance.now() - started);
       if (frameTimes.length > 240) frameTimes.shift();
-      window.__PANDOLAB_GPU_METRICS__ = getStats();
+      activeFrameContext = null;
+      publishLightweightMetrics();
     }
 
     function renderCanvasHydro(canvasPath, theme) {
@@ -2843,32 +3037,15 @@ export function createGpuMapRenderer(deps) {
       displayedRenderRevision = currentRenderRevision;
     }
 
-    function canvasWorkerRenderMessage(type = 'render', revision = currentRenderRevision, viewState = null) {
+    function canvasWorkerStyleMessage() {
       const colors = {};
       for (const feature of state.countriesData?.features || []) {
         colors[String(feature.properties?.editor_id || feature.properties?.iso_a3 || '')] = countryColor(feature);
       }
-      const view = viewState || getRenderViewState();
-      const workerView = {
-        ...deepClone(state.view),
-        ...deepClone(view),
-        flatCenter: view.projectionCenter || state.view.flatCenter,
-        globeRotation: view.rotation || state.view.globeRotation,
-        flatZoom: view.zoom ?? state.view.flatZoom,
-        globeZoom: view.zoom ?? state.view.globeZoom,
-      };
       return {
-        type,
-        width: Math.max(1, Number(view.size?.width || state.size.width)),
-        height: Math.max(1, Number(view.size?.height || state.size.height)),
-        dpr: Number(view.dpr || resolveRenderPixelRatio()),
-        projection: view.projection || state.projection,
-        view: workerView,
-        revision: Number(revision || 0),
-        geometryRevision: geometryRevisionTracker.committedRevision(),
+        type: 'style',
+        styleRevision: ++canvasStyleRevision,
         visible: !!state.layerVisibility.countries,
-        riversVisible: !!state.layerVisibility.rivers,
-        lakesVisible: !!state.layerVisibility.lakes,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
         countryEmphasis: {
@@ -2886,12 +3063,92 @@ export function createGpuMapRenderer(deps) {
         },
         interactionStyle,
         theme: mapTheme(),
+        darkTheme: getSystemTheme() === 'dark',
+      };
+    }
+
+    function canvasWorkerPhysicalStyleMessage() {
+      return {
+        type: 'physical-style',
+        physicalStyleRevision: ++canvasPhysicalStyleRevision,
+        riversVisible: !!state.layerVisibility.rivers,
+        lakesVisible: !!state.layerVisibility.lakes,
         physicalSettings: deepClone(state.physicalSettings),
+        theme: mapTheme(),
         darkTheme: getSystemTheme() === 'dark',
         dataReadiness: state.dataReadiness,
         terrainFetchConcurrency: isMobile() ? 2 : 4,
+      };
+    }
+
+    function canvasWorkerViewMessage(revision = currentRenderRevision, viewState = null) {
+      const view = viewState || getRenderViewState();
+      const workerView = {
+        ...deepClone(state.view),
+        ...deepClone(view),
+        flatCenter: view.projectionCenter || state.view.flatCenter,
+        globeRotation: view.rotation || state.view.globeRotation,
+        flatZoom: view.zoom ?? state.view.flatZoom,
+        globeZoom: view.zoom ?? state.view.globeZoom,
+      };
+      return {
+        type: 'view',
+        width: Math.max(1, Number(view.size?.width || state.size.width)),
+        height: Math.max(1, Number(view.size?.height || state.size.height)),
+        dpr: Number(view.dpr || resolveRenderPixelRatio()),
+        projection: view.projection || state.projection,
+        view: workerView,
+        revision: Number(revision || 0),
+        viewRevision: Number(view.revision || revision || 0),
+        geometryRevision: geometryRevisionTracker.committedRevision(),
+      };
+    }
+
+    function canvasWorkerInitMessage() {
+      const message = {
+        ...canvasWorkerViewMessage(currentRenderRevision),
+        ...canvasWorkerStyleMessage(),
+        ...canvasWorkerPhysicalStyleMessage(),
+        geometryRevision: geometryRevisionTracker.committedRevision(),
         terrainManifestUrl: new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL).href,
       };
+      message.type = 'init';
+      return message;
+    }
+
+    function estimateCanvasMessageBytes(message) {
+      if (message?.type === 'view') return 192;
+      try { return new Blob([JSON.stringify(message)]).size; }
+      catch (_) { return 0; }
+    }
+
+    function postCanvasWorkerMessage(message) {
+      if (!canvasWorker) return false;
+      performanceMetrics.canvasWorkerMessageCount += 1;
+      performanceMetrics.canvasWorkerMessageBytes += estimateCanvasMessageBytes(message);
+      performanceMetrics.canvasWorkerMessagesByType[message.type] = Number(performanceMetrics.canvasWorkerMessagesByType[message.type] || 0) + 1;
+      if (message.type === 'view') performanceMetrics.canvasWorkerViewMessageCount += 1;
+      else performanceMetrics.canvasWorkerStateMessageCount += 1;
+      canvasWorker.postMessage(message);
+      return true;
+    }
+
+    function syncCanvasWorkerState() {
+      if (!canvasWorker || !canvasWorkerReady) return;
+      const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme()].join(':');
+      if (styleSignature !== canvasLastStyleSignature) {
+        canvasLastStyleSignature = styleSignature;
+        postCanvasWorkerMessage(canvasWorkerStyleMessage());
+      }
+      const theme = mapTheme();
+      const physicalSignature = [physicalStyleStateRevision, state.layerVisibility.rivers, state.layerVisibility.lakes,
+        theme.riverOpacity, theme.lakeOpacity, theme.lakeBoundaryVisible, theme.ocean,
+        state.physicalSettings.terrainVisible, state.physicalSettings.terrainStyle, state.physicalSettings.terrainStrength,
+        state.dataReadiness].join(':');
+      if (physicalSignature !== canvasLastPhysicalStyleSignature) {
+        canvasLastPhysicalStyleSignature = physicalSignature;
+        postCanvasWorkerMessage(canvasWorkerPhysicalStyleMessage());
+      }
     }
 
     function postCanvasWorkerFrame(message) {
@@ -2900,13 +3157,14 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       canvasWorkerBusy = true;
-      canvasWorker.postMessage(message);
+      postCanvasWorkerMessage(message);
     }
 
     function renderCanvasWorker(revision = currentRenderRevision, viewState = null) {
       if (!canvasWorker) return;
       resize();
-      const message = canvasWorkerRenderMessage('render', revision, viewState);
+      syncCanvasWorkerState();
+      const message = canvasWorkerViewMessage(revision, viewState);
       canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
       if (!canvasWorkerReady || canvasWorkerBusy) {
         canvasWorkerPendingMessage = message;
@@ -2921,16 +3179,17 @@ export function createGpuMapRenderer(deps) {
         ? viewState
         : null;
       if (!activeRenderViewState) activeRenderViewState = getRenderViewState();
-      requestHydroView();
+      requestHydroView(activeRenderViewState);
       if (isWebGlRenderer()) renderWebGl(activeRenderViewState);
       else if (rendererMode === 'canvas-worker') renderCanvasWorker(currentRenderRevision, activeRenderViewState);
       else if (rendererMode === 'canvas2d') renderCanvasFallback();
-      window.__PANDOLAB_GPU_METRICS__ = getStats();
+      publishLightweightMetrics();
     }
 
     function prioritizeLatest() {
       if (rendererMode !== 'canvas-worker' || !canvasWorker) return;
-      const message = canvasWorkerRenderMessage('render', currentRenderRevision, activeRenderViewState);
+      syncCanvasWorkerState();
+      const message = canvasWorkerViewMessage(currentRenderRevision, activeRenderViewState);
       canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
       if (!canvasWorkerReady || canvasWorkerBusy) {
         if (!canvasWorkerPendingMessage || canvasWorkerPendingMessage.revision <= message.revision) {
@@ -2970,14 +3229,17 @@ export function createGpuMapRenderer(deps) {
       const message = event.data || {};
       if (message.type === 'ready') {
         canvasWorkerReady = true;
-        canvasWorker.postMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: deepClone(state.hydroEdits || []) });
-        const pending = canvasWorkerPendingMessage || canvasWorkerRenderMessage('render', currentRenderRevision);
+        postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: state.hydroEdits || [] });
+        canvasLastStyleSignature = '';
+        canvasLastPhysicalStyleSignature = '';
+        syncCanvasWorkerState();
+        const pending = canvasWorkerPendingMessage || canvasWorkerViewMessage(currentRenderRevision);
         canvasWorkerPendingMessage = null;
         postCanvasWorkerFrame(pending);
         return;
       }
       if (message.type === 'terrain-ready') {
-        renderCanvasWorker(currentRenderRevision);
+        invalidateGpuFrame('canvas-terrain-ready');
         return;
       }
       if (message.type === 'terrain-warning') {
@@ -2998,7 +3260,7 @@ export function createGpuMapRenderer(deps) {
         }
         canvasDataReplacementResolver?.();
         canvasDataReplacementResolver = null;
-        renderCanvasWorker(currentRenderRevision);
+        invalidateGpuFrame('canvas-data-ready');
         return;
       }
       if (message.type === 'hydro-pick') {
@@ -3065,15 +3327,15 @@ export function createGpuMapRenderer(deps) {
           });
           canvasWorkerReady = false;
           canvasWorkerBusy = false;
-          canvasWorkerPendingMessage = canvasWorkerRenderMessage('render', currentRenderRevision);
+          canvasWorkerPendingMessage = canvasWorkerViewMessage(currentRenderRevision);
           canvasWorkerLatestRequestedRevision = currentRenderRevision;
           canvasWorkerDisplayedRevision = 0;
           canvasWorkerBitmapContext = canvas.getContext('bitmaprenderer');
           if (!canvasWorkerBitmapContext) canvasWorker2dContext = canvas.getContext('2d', { alpha: true });
           if (!canvasWorkerBitmapContext && !canvasWorker2dContext) throw new Error('Canvas 표시 컨텍스트를 만들 수 없습니다.');
-          const initMessage = canvasWorkerRenderMessage('init');
+          const initMessage = canvasWorkerInitMessage();
           initMessage.features = state.countriesData?.features || [];
-          canvasWorker.postMessage(initMessage);
+          postCanvasWorkerMessage(initMessage);
           canvasWorker.onmessage = receiveCanvasWorkerMessage;
           canvasWorker.onerror = event => failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
           if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
@@ -3205,7 +3467,7 @@ export function createGpuMapRenderer(deps) {
       const requestId = ++canvasHydroPickRequestId;
       return new Promise(resolve => {
         canvasHydroPickRequests.set(requestId, { resolve });
-        canvasWorker.postMessage({ type: 'hydro-pick', requestId, point: screenPoint });
+        postCanvasWorkerMessage({ type: 'hydro-pick', requestId, point: screenPoint });
         setTimeout(() => {
           const pending = canvasHydroPickRequests.get(requestId);
           if (!pending) return;
@@ -3268,7 +3530,7 @@ export function createGpuMapRenderer(deps) {
             resolve();
           };
           canvasDataReplacementResolver = complete;
-          canvasWorker.postMessage({
+          postCanvasWorkerMessage({
             type: 'replace-data',
             revision: Number(currentRenderRevision || 0),
             geometryRevision: geometryRevisionTracker.committedRevision(),
@@ -3301,8 +3563,8 @@ export function createGpuMapRenderer(deps) {
       if (unchanged) return false;
       countryEmphasis = { primaryId: nextPrimary, hoverId: nextHover, selectedIds: nextSelected, selectionMode: nextSelectionMode };
       countryEmphasisRevision += 1;
-      if (isWebGlRenderer() && gl && meshCountryIds.length) renderViewFrame();
-      else if (rendererMode !== 'pending') render(currentRenderRevision);
+      markPaletteDirty({ emphasis: true });
+      if (rendererMode !== 'pending') invalidateGpuFrame('country-emphasis');
       return true;
     }
 
@@ -3314,7 +3576,8 @@ export function createGpuMapRenderer(deps) {
       if (!nextStyle?.hover || !nextStyle?.selection) return false;
       interactionStyle = nextStyle;
       countryEmphasisRevision += 1;
-      if (rendererMode !== 'pending') render(currentRenderRevision);
+      markPaletteDirty({ emphasis: true });
+      if (rendererMode !== 'pending') invalidateGpuFrame('interaction-style');
       return true;
     }
 
@@ -3343,12 +3606,31 @@ export function createGpuMapRenderer(deps) {
       if (terrainManifest && isWebGlRenderer()) {
         for (const spec of visibleTerrainTileSpecs(terrainManifest.levels[0], false)) requestTerrainTile(spec, 10_000);
       }
-      render(currentRenderRevision);
+      invalidateGpuFrame('terrain-manifest');
     }
 
-    function getStats() {
-      const sorted = [...frameTimes].sort((a, b) => a - b);
-      const p95 = sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] : 0;
+    function publishLightweightMetrics() {
+      const target = window.__PANDOLAB_GPU_METRICS__ ||= {};
+      target.renderer = rendererMode;
+      target.requestedRevision = currentRenderRevision;
+      target.displayedRevision = displayedRenderRevision;
+      target.p95CpuSubmitMs = cachedDetailedStats.p95CpuSubmitMs;
+      target.paletteRebuildCount = performanceMetrics.paletteRebuildCount;
+      target.paletteUploadCount = performanceMetrics.paletteUploadCount;
+      target.paletteUploadBytes = performanceMetrics.paletteUploadBytes;
+      target.hydroViewRequestCount = performanceMetrics.hydroViewRequestCount;
+      target.canvasWorkerMessageCount = performanceMetrics.canvasWorkerMessageCount;
+      target.canvasWorkerMessageBytes = performanceMetrics.canvasWorkerMessageBytes;
+      target.pendingCountryCount = geometryRevisionTracker.pendingIds().length;
+      target.pendingOldMeshVisibleCount = pendingOldMeshVisibleCount;
+    }
+
+    function getStats({ detailed = true } = {}) {
+      if (detailed && performance.now() - cachedDetailedStats.at > 250) {
+        const sorted = [...frameTimes].sort((a, b) => a - b);
+        const p95 = sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] : 0;
+        cachedDetailedStats = { at: performance.now(), p95CpuSubmitMs: Number(p95.toFixed(3)) };
+      }
       return {
         renderer: rendererMode,
         effectivePixelRatio,
@@ -3362,7 +3644,7 @@ export function createGpuMapRenderer(deps) {
         renderVertices: mesh?.countryIndices?.length || 0,
         triangleCount: (mesh?.triangleIndices?.length || 0) / 3,
         lineSegmentCount: (mesh?.lineIndices?.length || 0) / 2,
-        p95CpuSubmitMs: Number(p95.toFixed(3)),
+        p95CpuSubmitMs: cachedDetailedStats.p95CpuSubmitMs,
         pickCount,
         pickReadPixelsMs: Number(pickReadPixelsMs.toFixed(3)),
         pickLastReadPixelsMs: Number(pickLastReadPixelsMs.toFixed(3)),
@@ -3408,6 +3690,10 @@ export function createGpuMapRenderer(deps) {
         hydroPacksLoaded: hydroPacks.size,
         hydroPacksActive: hydroActivePackIds.size,
         hydroEditRevision,
+        interactionActive,
+        paletteDirty: { ...paletteDirty },
+        ...performanceMetrics,
+        canvasWorkerMessagesByType: { ...performanceMetrics.canvasWorkerMessagesByType },
         hydroEditBatchCount: hydroEditEntries.length,
         hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0),
       };
@@ -3419,7 +3705,8 @@ export function createGpuMapRenderer(deps) {
       setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
       setHydroEdits,
       setHydroInteractionActive, renderViewFrame: render,
-      invalidateHydroVisibility, resetCountryGeometryVisualState,
+      invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
+      invalidateCountryPalette,
       setCountryEmphasis, clearCountryEmphasis, supportsCountryEmphasis,
       setInteractionStyle, getCountryInteractionBoundaryData,
     };

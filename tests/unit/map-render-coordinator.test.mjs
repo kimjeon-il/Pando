@@ -9,7 +9,7 @@ function fixture() {
   const viewState = Object.freeze({ revision: 7, projection: 'globe' });
   const names = [
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
-    'territorialUnits', 'distributions', 'drawings', 'stackOverlays', 'geometryPreview',
+    'territorialUnits', 'distributions', 'drawings', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
     'hover', 'selection', 'validation', 'countryLabelPositions', 'userLabelPositions',
     'labelLayout', 'countryLabels', 'userLabels', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
   ];
@@ -44,7 +44,8 @@ test('full render preserves canonical layer order and revision', () => {
 test('view render refreshes projection-dependent layers with the shared view state', () => {
   const { calls, coordinator } = fixture();
   coordinator.renderView();
-  assert.equal(calls.some(call => call[0] === 'hydro'), true);
+  assert.equal(calls.some(call => call[0] === 'hydro'), false);
+  assert.equal(calls.some(call => call[0] === 'projectedOverlays'), true);
   assert.equal(calls.some(call => call[0] === 'layerTree'), false);
   assert.equal(calls.some(call => call[0] === 'selection'), true);
   assert.equal(calls.some(call => call[0] === 'countries'), true);
@@ -77,6 +78,15 @@ test('interaction end schedules one delayed settle frame', async () => {
   assert.equal(frames.length, 1);
   frames.shift()();
   assert.equal(calls.filter(call => call[0] === 'labelLayout').length, 1);
-  assert.equal(coordinator.getStats().fullRenderCount, 1);
-  assert.equal(coordinator.getStats().viewRenderCount, 1);
+  assert.equal(coordinator.getStats().fullRenderCount, 0);
+  assert.equal(coordinator.getStats().viewRenderCount, 2);
+});
+
+test('GPU-only invalidation does not rebuild overlay data', () => {
+  const { calls, frames, coordinator } = fixture();
+  coordinator.invalidate('gpu-frame', 'tile-ready');
+  frames.shift()();
+  assert.equal(calls.some(call => call[0] === 'countries'), true);
+  assert.equal(calls.some(call => call[0] === 'hydro'), false);
+  assert.equal(calls.some(call => call[0] === 'projectedOverlays'), false);
 });

@@ -214,9 +214,9 @@ function validateResult(map, affectedIds, baseline, { allowAreaChange = false } 
   }
 }
 
-function applyPatch(map, features, removedIds) {
+function applyPatch(map, features, removedIds, { cloneValues = false } = {}) {
   for (const id of removedIds || []) map.delete(String(id));
-  for (const feature of features || []) map.set(featureId(feature), clone(feature));
+  for (const feature of features || []) map.set(featureId(feature), cloneValues ? clone(feature) : feature);
 }
 
 function executeAnnex(message, working) {
@@ -325,7 +325,7 @@ self.onmessage = event => {
   try {
     if (message.type === 'rebase') {
       countries.clear();
-      for (const feature of message.features || []) countries.set(featureId(feature), clone(feature));
+      for (const feature of message.features || []) countries.set(featureId(feature), feature);
       pendingResults.clear();
       self.postMessage({ type: 'ready', dataRevision: Number(message.dataRevision || 0) });
       return;
@@ -349,7 +349,7 @@ self.onmessage = event => {
       return;
     }
     if (message.type !== 'execute') return;
-    const working = new Map([...countries].map(([id, feature]) => [id, clone(feature)]));
+    const working = new Map(countries);
     const result = message.operation === 'merge'
       ? executeMerge(message, working)
       : message.operation === 'new-country'
