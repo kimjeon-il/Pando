@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r24" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r25" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -196,11 +196,6 @@
               <div id="layerStylePanel-religions" class="layer-inline-style-panel" data-layer-style-panel="religions" role="group" aria-label="종교 표시 설정" hidden></div>
               <div id="religionsLayerChildren" class="layer-children" role="group" aria-label="종교 항목" hidden></div>
             </div>
-            <div class="layer-presentation-row">
-              <span class="layer-presentation-name">분포 표시 설정</span>
-              <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="distribution" aria-label="분포 표시 설정" aria-controls="layerStylePanel-distribution" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-            </div>
-            <div id="layerStylePanel-distribution" class="layer-inline-style-panel" data-layer-style-panel="distribution" role="group" aria-label="분포 표시 설정" hidden></div>
               </div>
             </section>
             <section class="layer-category" aria-labelledby="featuresLayerCategoryTitle">
@@ -260,6 +255,12 @@
               <strong id="mapNameSettingsTitle">이름 표시</strong>
               <label class="ui-choice-row"><input id="basemapLabelsVisible" type="checkbox" checked aria-label="국가명 표시" /><span>국가명 표시</span></label>
               <label class="ui-choice-row"><input id="labelsVisible" type="checkbox" checked aria-label="지명 표시" /><span>지명 표시</span></label>
+            </section>
+            <section class="layer-style-editor distribution-view-settings" aria-labelledby="distributionViewSettingsTitle">
+              <strong id="distributionViewSettingsTitle">인문 분포</strong>
+              <label class="ui-field field-group"><span>표시 기준</span><select id="distributionLayerModeInput" aria-describedby="distributionLayerModeHint"><option value="dominant">영역별 대표 분포</option><option value="intensity">선택 분포 비율</option></select></label>
+              <small id="distributionLayerModeHint" class="layer-setting-hint"></small>
+              <label class="ui-choice-row"><input id="distributionBoundaryVisibleInput" type="checkbox" checked aria-label="분포 경계 표시" /><span>분포 경계 표시</span></label>
             </section>
             <section class="layer-style-editor terrain-settings" aria-labelledby="terrainLayerSettingsTitle">
               <strong id="terrainLayerSettingsTitle">지형 음영</strong>
@@ -970,8 +971,8 @@
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r24" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r24" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r24" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r25" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r25" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r25" defer></script>
 </body>
 </html>

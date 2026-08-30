@@ -90,6 +90,16 @@ test('current project schema accepts only explicit current versions and UUID obj
   assert.match(createProjectObjectId(), /^[0-9a-f-]{36}$/i);
 });
 
+test('distribution boundary visibility is a shared optional presentation setting', () => {
+  const current = currentProject();
+  current.distributionSettings = { renderMode: 'intensity', boundaryVisible: false };
+  assert.deepEqual(assertCurrentProjectSchema(current).distributionSettings, current.distributionSettings);
+
+  const prior = currentProject();
+  prior.distributionSettings = { renderMode: 'dominant' };
+  assert.deepEqual(assertCurrentProjectSchema(prior).distributionSettings, prior.distributionSettings);
+});
+
 test('current v2 hydro presentation input remains accepted beside canonical river and lake groups', () => {
   const legacyHydroInput = currentProject();
   legacyHydroInput.layerVisibility = { hydro: false };
