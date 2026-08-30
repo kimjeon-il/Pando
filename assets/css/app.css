@@ -186,8 +186,8 @@
   --ui-nav-icon-label-gap: var(--ui-space-1);
   --ui-status-padding-y: 5px;
   --ui-sheet-header-height-compact: 74px;
-  --ui-sheet-mobile-handle-space: var(--ui-space-4);
-  --ui-sheet-header-height-mobile: 72px;
+  --ui-sheet-mobile-handle-space: 20px;
+  --ui-sheet-header-height-mobile: 76px;
   --ui-sheet-body-padding-x: var(--ui-space-4);
   --ui-sheet-content-padding-x: var(--ui-panel-padding);
   --ui-sheet-content-padding-bottom: var(--ui-panel-padding);
@@ -3944,6 +3944,10 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 :where(.create-sheet-header, .editor-shell-header) > strong {
   display: block;
   min-width: 0;
+  line-height: var(--ui-line-tight);
+}
+:where(.create-sheet-header, .editor-shell-header) > :is(strong, .editor-object-header) {
+  align-self: center;
   line-height: var(--ui-line-tight);
 }
 #app:not([data-layout="mobile"]) :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) .sheet-close-btn {
