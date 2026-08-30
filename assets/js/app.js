@@ -109,6 +109,7 @@ const userPreferencesModule = await import(versionedModuleUrl('./modules/user-pr
 const notificationCopyModule = await import(versionedModuleUrl('./modules/notification-copy.js'));
 const {
   RELIABILITY_ERROR_CATEGORIES,
+  createCancellationError,
   createDiagnosticLog,
   createOperationalError,
   fetchWithRetry,
@@ -118,8 +119,8 @@ const { assertProjectReferenceIntegrity } = projectInvariantsModule;
 const { buildTerritorialImportTransactionPlan, resolveImportedCountryId } = territorialImportPlanModule;
 const {
   analyzeAdminCountryCoast,
+  normalizeCoastDecision,
   planCoastReconciliation,
-  requireImportCoastDecision,
   validateCoastReplacement,
 } = coastReconciliationModule;
 const { createCoastReconciliationController } = coastReconciliationControllerModule;
@@ -1334,15 +1335,16 @@ const {
     const multiple = selection.items.length > 1;
     if (!multiple) return;
     const types = [...new Set(selection.items.map(item => objectDisplayInfo(item).type))];
-    showPropertyForm('multi', `${selection.items.length}개 선택됨`, { resetScroll: false });
-    if ($('multiPropertiesCount')) $('multiPropertiesCount').textContent = `${selection.items.length}개 선택됨`;
-    if ($('multiPropertiesTypes')) $('multiPropertiesTypes').textContent = types.join(', ');
+    showPropertyForm('multi', `${selection.items.length}개 선택됨`, {
+      resetScroll: false,
+      typeLabel: types.length === 1 ? types[0] : '여러 유형',
+    });
   }
 
   function syncSelectionSummary(selection = objectSelection.snapshot()) {
     const count = selection.items.length;
     const multiple = count > 1;
-    for (const id of ['multiSelectionCount', 'multiPropertiesCount']) if ($(id)) $(id).textContent = `${count}개 선택됨`;
+    if ($('multiSelectionCount')) $('multiSelectionCount').textContent = `${count}개 선택됨`;
     const modeButton = $('multiSelectionModeBtn');
     if (modeButton) {
       modeButton.textContent = state.addSelectionMode ? '선택 완료' : '추가 선택';
@@ -5213,8 +5215,20 @@ const {
     name.className = 'ui-button layer-child-name';
     name.dataset.layerItemSelect = itemGroup;
     name.dataset.itemId = item.id;
-    name.textContent = item.name;
+    const nameLabel = document.createElement('span');
+    nameLabel.className = 'layer-child-name-label';
+    nameLabel.textContent = item.name;
+    name.append(nameLabel);
     name.dataset.tooltip = item.title || `${item.name} 선택`;
+    if (ref && objectRefLocked(ref)) {
+      name.classList.add('has-lock-indicator');
+      name.setAttribute('aria-label', `${item.name}, 잠김, 선택`);
+      const lockIndicator = document.createElement('span');
+      lockIndicator.className = 'layer-lock-indicator';
+      lockIndicator.title = '잠김';
+      lockIndicator.append(createSvgIcon(document, 'icon-lock-closed', 'ui-icon layer-lock-icon'));
+      name.append(lockIndicator);
+    }
     const menuButton = document.createElement('button');
     menuButton.type = 'button';
     menuButton.className = 'ui-button layer-child-menu';
@@ -11494,7 +11508,11 @@ const {
         const rawSourceAfter = deepClone(sourceAfter);
         rawSourceAfter.geometry = deepClone(drawn);
         const country = countryFeatureById(source.properties?.sovereignId);
-        const resolution = await resolveImportedTerritorialCoast(rawSourceAfter, country, coastGeometryOverrides);
+        const resolution = await resolveTerritorialCoast(rawSourceAfter, country, coastGeometryOverrides);
+        if (resolution.direction === 'cancel') {
+          setActionStatus('해안선 정합을 취소했습니다.', 'ready');
+          return;
+        }
         coastDirection = resolution.direction;
         if (coastDirection === 'country-to-admin') {
           nextGeometry = normalizeClippedLandGeometry(clipper.intersection(rawSourceAfter.geometry.coordinates, container.geometry.coordinates));
@@ -13276,7 +13294,7 @@ const {
       impact: $('coastReconciliationImpact'),
       impactList: $('coastReconciliationImpactList'),
       country: $('coastReconciliationCountryBtn'),
-      admin: $('coastReconciliationAdminBtn'),
+      subject: $('coastReconciliationAdminBtn'),
       independent: $('coastReconciliationIndependentBtn'),
       cancel: $('coastReconciliationCancelBtn'),
     },
@@ -13303,7 +13321,8 @@ const {
       return { ok: true, changed: false };
     }
     const decision = await coastReconciliationController.open({
-      adminName: territorialUnitName(analysis.admin),
+      subjectName: territorialUnitName(analysis.admin),
+      subjectActionLabel: '행정구역',
       countryName: countryName(analysis.country),
       conflicts: analysis.conflicts,
     });
@@ -14129,7 +14148,7 @@ const {
       if (kind === TERRITORIAL_UNIT_TYPES.ADMIN) {
         for (const feature of imported) {
           const country = countryFeatureById(feature.properties?.sovereignId);
-          const resolution = await resolveImportedTerritorialCoast(feature, country, countryGeometryOverrides);
+          const resolution = requireImportCoastResolution(await resolveTerritorialCoast(feature, country, countryGeometryOverrides));
           if (resolution.direction === 'admin-to-country' || resolution.direction === 'independent') preservedIds.add(String(feature.id));
         }
         for (const [countryId, geometry] of countryGeometryOverrides) {
@@ -14163,7 +14182,12 @@ const {
     }
   }
 
-  async function resolveImportedTerritorialCoast(feature, country, countryGeometryOverrides) {
+  function requireImportCoastResolution(resolution) {
+    if (resolution?.direction === 'cancel') throw createCancellationError('해안선 정합을 취소했습니다.');
+    return resolution;
+  }
+
+  async function resolveTerritorialCoast(feature, country, countryGeometryOverrides) {
     const unitType = feature?.properties?.unitType;
     if (![TERRITORIAL_UNIT_TYPES.ADMIN, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
     if (!country?.geometry) {
@@ -14181,11 +14205,13 @@ const {
     });
     if (!analysis.conflicts.length) return { direction: 'none' };
     const choice = await coastReconciliationController.open({
-      adminName: territorialUnitName(feature),
+      subjectName: territorialUnitName(feature),
+      subjectActionLabel: '가져온 영역',
       countryName: countryName(country),
       conflicts: analysis.conflicts,
     });
-    const direction = requireImportCoastDecision(choice);
+    const direction = normalizeCoastDecision(choice);
+    if (direction === 'cancel') return { direction };
     if (direction === 'independent') return { direction };
     let nextAdmin = deepClone(feature.geometry);
     let nextCountry = deepClone(countryGeometryOverrides.get(String(country.properties?.editor_id || '')) || country.geometry);
@@ -14218,7 +14244,7 @@ const {
       const feature = importedTerritorialUnitFeature(features[index], index, kind, mapping, sourceFolderId, nextUnits);
       if (!feature) continue;
       const country = countryFeatureById(feature.properties.sovereignId);
-      const coastResolution = await resolveImportedTerritorialCoast(feature, country, countryGeometryOverrides);
+      const coastResolution = requireImportCoastResolution(await resolveTerritorialCoast(feature, country, countryGeometryOverrides));
       if (coastResolution.direction === 'admin-to-country' || coastResolution.direction === 'independent') preservedIds.add(String(feature.id));
       const parent = feature.properties.parentId
         ? nextUnits.find(candidate => String(candidate.id) === String(feature.properties.parentId))
@@ -14343,7 +14369,7 @@ const {
           category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
           objectIds: [id, sovereignId],
         });
-        await resolveImportedTerritorialCoast(feature, country, countryGeometryOverrides);
+        requireImportCoastResolution(await resolveTerritorialCoast(feature, country, countryGeometryOverrides));
       }
       imported.push(feature);
     }

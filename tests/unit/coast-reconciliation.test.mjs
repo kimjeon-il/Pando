@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  normalizeCoastDecision,
   planCoastReconciliation,
-  requireImportCoastDecision,
   validateCoastReplacement,
 } from '../../assets/js/modules/coast-reconciliation.js';
 
@@ -17,13 +17,12 @@ const offsetSquare = () => ({
   coordinates: [[[0, 0.1], [2, 0.1], [2, 2], [0, 2], [0, 0.1]]],
 });
 
-test('import coast decisions share one cancellation contract', () => {
-  assert.equal(requireImportCoastDecision({ direction: 'independent' }), 'independent');
-  assert.equal(requireImportCoastDecision({ direction: 'country-to-admin' }), 'country-to-admin');
-  assert.equal(requireImportCoastDecision({ direction: 'admin-to-country' }), 'admin-to-country');
-  assert.throws(() => requireImportCoastDecision({ direction: 'cancel' }), error => (
-    error?.name === 'AbortError' && error?.cancelled === true && !error?.code
-  ));
+test('coast decisions preserve cancellation as a normal result', () => {
+  assert.equal(normalizeCoastDecision({ direction: 'independent' }), 'independent');
+  assert.equal(normalizeCoastDecision({ direction: 'country-to-admin' }), 'country-to-admin');
+  assert.equal(normalizeCoastDecision({ direction: 'admin-to-country' }), 'admin-to-country');
+  assert.equal(normalizeCoastDecision({ direction: 'cancel' }), 'cancel');
+  assert.throws(() => normalizeCoastDecision({ direction: 'unexpected' }));
 });
 
 test('country and imported-area choices update only their selected geometry', () => {

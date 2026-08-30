@@ -1245,6 +1245,15 @@ test('layer style hover is isolated and preferences reuse the shared color picke
   await styleToggle.click();
   await expect(styleToggle).toHaveAttribute('aria-expanded', 'true');
   await expect(styleToggle).toHaveClass(/active/);
+  const activeStyle = await styleToggle.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { background: style.backgroundColor, color: style.color };
+  });
+  await page.mouse.move(0, 0);
+  await expect.poll(() => styleToggle.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { background: style.backgroundColor, color: style.color };
+  })).toEqual(activeStyle);
 
   const folderToggle = row.locator('[data-layer-folder-toggle="countries"]').first();
   if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
