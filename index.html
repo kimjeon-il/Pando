@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r20" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r22" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -886,11 +886,12 @@
         <button id="gisImportCancelBtn" type="button" class="ui-button icon-btn" aria-label="가져오기 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
       <form id="gisImportForm" onsubmit="return false;">
-        <div id="gisImportProgress" class="gis-import-progress"><div class="ui-progress" aria-hidden="true"><span id="gisImportProgressBar"></span></div><p id="gisImportStatus" class="ui-status gis-import-status" aria-live="polite">선택한 파일을 확인하는 중입니다.</p></div>
-        <div id="gisImportError" class="ui-alert hidden" role="alert" aria-live="assertive"></div>
-        <div id="gisSourceReport" class="ui-callout" data-gis-step="0" data-gis-active="true">파일 참조를 확인하고 있습니다.</div>
+        <div class="gis-import-content-rail">
+          <div id="gisImportProgress" class="gis-import-progress"><div class="ui-progress" aria-hidden="true"><span id="gisImportProgressBar"></span></div><p id="gisImportStatus" class="ui-status gis-import-status" aria-live="polite">선택한 파일을 확인하는 중입니다.</p></div>
+          <div id="gisImportError" class="ui-alert hidden" role="alert" aria-live="assertive"></div>
+          <div id="gisSourceReport" class="ui-callout" data-gis-step="0" data-gis-active="true">파일 참조를 확인하고 있습니다.</div>
 
-        <div class="gis-form-grid">
+          <div class="gis-form-grid">
           <label id="gisLayerRow" class="ui-field field-group gis-wide" data-gis-step="0" data-gis-active="true"><span>가져올 레이어</span><select id="gisLayerSelect"></select><small id="gisLayerDetails">레이어 정보를 불러오는 중입니다.</small></label>
           <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="country">국가</option><option value="drawing">지형지물</option><option value="territory">권역</option><option value="administrative">행정구역</option><option value="region">지방</option><option value="distribution">분포</option></select></label>
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
@@ -913,8 +914,9 @@
           <div id="gisFixedOpenModeNote" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>현재 지도에 추가</strong><p>이 종류는 기존 국가·영역을 기준으로 하므로 현재 프로젝트에 추가됩니다.</p></div>
           <label id="gisMergeStrategyRow" class="ui-field field-group hidden" data-gis-step="3"><span>병합 방식</span><select id="gisMergeStrategy"><option value="id-replace">ID 기준 교체</option><option value="imported-wins">가져온 영토 우선</option></select></label>
           <div id="gisFinalSummary" class="ui-callout gis-wide" data-gis-step="4"><strong>최종 확인</strong><p>가져오기 설정을 확인하는 중입니다.</p></div>
+          </div>
+          <p id="gisSecurityNote" class="ui-alert hidden" data-gis-step="3">QGS/QGZ의 매크로·스크립트·플러그인은 실행하지 않습니다. 원격·DB·래스터 레이어는 제외됩니다.</p>
         </div>
-        <p id="gisSecurityNote" class="ui-alert hidden" data-gis-step="3">QGS/QGZ의 매크로·스크립트·플러그인은 실행하지 않습니다. 원격·DB·래스터 레이어는 제외됩니다.</p>
         <div class="ui-dialog-actions">
           <button type="button" class="ui-button btn ghost" data-gis-cancel="true">취소</button>
           <button id="gisImportBackBtn" type="button" class="ui-button btn ghost gis-mobile-nav" disabled>이전</button>
@@ -963,8 +965,8 @@
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r20" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r20" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r20" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r22" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r22" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r22" defer></script>
 </body>
 </html>

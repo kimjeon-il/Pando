@@ -637,6 +637,10 @@ body.file-menu-open .mobile-backdrop {
 .annex-candidate.selected-candidate { fill: rgba(104,190,126,.42); stroke: #d5ffde; stroke-width: 3.2px; opacity: 1; }
 .annex-candidate.alternate-candidate { fill: rgba(153,111,205,.16); stroke: #b998d5; opacity: .58; }
 .annex-candidate:hover { fill-opacity: .74; stroke-width: 3.2px; opacity: 1; }
+.annex-candidate.river-area { fill: color-mix(in srgb, var(--map-selection-halo) 18%, transparent); stroke: color-mix(in srgb, var(--map-selection-halo) 78%, var(--text-strong)); opacity: .72; }
+.annex-candidate.river-area.hovered-candidate { fill: color-mix(in srgb, var(--map-selection-halo) 30%, transparent); stroke-width: 3.2px; opacity: 1; }
+.annex-candidate.river-area.selected-candidate { fill: color-mix(in srgb, var(--map-selection-halo) 42%, transparent); stroke: var(--map-selection-halo); }
+.annex-transfer-preview { fill: color-mix(in srgb, var(--map-selection-halo) 16%, transparent); stroke: var(--map-selection-halo); stroke-width: 1.25px; stroke-dasharray: 4 3; opacity: .9; pointer-events: none; vector-effect: non-scaling-stroke; }
 .territory-component { vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: all; }
 .territory-component.available { fill: rgba(226,201,130,.08); stroke: rgba(255,224,153,.72); stroke-width: 1.4px; }
 .territory-component.selected-component { fill: rgba(104,190,126,.42); stroke: #d5ffde; stroke-width: 3px; }
@@ -720,6 +724,7 @@ body.modal-open { overflow: hidden; }
 .historical-library-advanced dd { margin: 0; overflow-wrap: anywhere; }
 .gis-import-status { min-height: 20px; margin: var(--ui-space-2) 0 var(--ui-space-3); }
 .gis-import-status.error { color: var(--danger-text); }
+.gis-import-content-rail { min-width: 0; }
 .gis-form-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ui-field-gap); }
 .gis-form-grid .field-group { margin: 0; }
 .gis-form-grid small { margin-top: var(--ui-field-helper-gap); }
@@ -731,7 +736,7 @@ body.modal-open { overflow: hidden; }
 .gis-mobile-nav { display: inline-flex; align-items: center; justify-content: center; }
 [data-gis-step]:not([data-gis-active="true"]),
 [data-gis-export-step]:not([data-gis-active="true"]) { display: none !important; }
-#gisImportForm > .gis-form-grid { min-height: 260px; align-content: start; }
+#gisImportForm > .gis-import-content-rail > .gis-form-grid { min-height: 260px; align-content: start; }
 #gisImportImpactSummary ul { margin: var(--ui-space-2) 0 0; padding-left: var(--ui-space-5); }
 #gisImportImpactSummary li + li { margin-top: var(--ui-space-1); }
 #gisTargetCountryRow b { color: var(--danger-text); }
@@ -1779,7 +1784,8 @@ body[data-layout="mobile"] #gisExportModal { align-items: stretch; padding: 0; }
 body[data-layout="mobile"] #gisImportModal .ui-dialog-card,
 body[data-layout="mobile"] #gisExportModal .ui-dialog-card { width: 100%; height: 100dvh; max-height: none; border-radius: 0; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
 body[data-layout="mobile"] #gisImportForm { min-height: 0; display: flex; flex-direction: column; gap: var(--ui-space-3); overflow: hidden; }
-body[data-layout="mobile"] #gisImportForm > .gis-form-grid { min-height: 0; flex: 1 1 auto; align-content: start; overflow: auto; }
+body[data-layout="mobile"] #gisImportForm > .gis-import-content-rail { min-height: 0; flex: 1 1 auto; overflow: auto; }
+body[data-layout="mobile"] #gisImportForm > .gis-import-content-rail > .gis-form-grid { min-height: 0; align-content: start; }
 body[data-layout="mobile"] #gisImportModal .ui-dialog-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display: none !important; }
 body[data-layout="mobile"] #gisExportForm { min-height: 0; display: flex; flex-direction: column; gap: var(--ui-space-3); overflow: hidden; }

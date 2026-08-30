@@ -152,6 +152,7 @@ export function createGpuMapRenderer(deps) {
     let interactionActive = false;
     let hydroVisibilityDirty = true;
     const hydroFeatureRequests = new Map();
+    const hydroLogicalQueryRequests = new Map();
     let hydroFeatureRequestId = 0;
     let hydroCacheCompletionNotified = false;
     let fillVao = null;
@@ -2343,6 +2344,15 @@ export function createGpuMapRenderer(deps) {
       });
     }
 
+    function queryHydroLogicalFeatures(bounds, { category = 'river' } = {}) {
+      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
+      const requestId = ++hydroFeatureRequestId;
+      return new Promise((resolve, reject) => {
+        hydroLogicalQueryRequests.set(requestId, { resolve, reject });
+        hydroWorker.postMessage({ type: 'query-logical-features', requestId, bounds, category });
+      });
+    }
+
     function retryHydroCache() {
       hydroWorker?.postMessage({ type: 'retry-cache' });
     }
@@ -2466,6 +2476,14 @@ export function createGpuMapRenderer(deps) {
         else pending.resolve(message.feature ? prepareHydroFeature(message.feature) : null);
         return;
       }
+      if (message.type === 'logical-features' || message.type === 'logical-features-error') {
+        const pending = hydroLogicalQueryRequests.get(Number(message.requestId));
+        if (!pending) return;
+        hydroLogicalQueryRequests.delete(Number(message.requestId));
+        if (message.type === 'logical-features-error') pending.reject(new Error(message.message || '수계 후보를 찾지 못했습니다.'));
+        else pending.resolve((message.logicalFids || []).map(Number).filter(Number.isFinite));
+        return;
+      }
       if (message.type === 'cache-progress') {
         state.physicalLoadState.hydroCache = 'loading';
         state.physicalLoadState.hydroCachePercent = Number(message.percent || 0);
@@ -2564,6 +2582,8 @@ export function createGpuMapRenderer(deps) {
       setHydroEdits(state.hydroEdits || [], Number(state.stateRevision || 0));
       for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('강·호수 로더가 다시 시작되었습니다.'));
       hydroFeatureRequests.clear();
+      for (const pending of hydroLogicalQueryRequests.values()) pending.reject(new Error('강·호수 로더가 다시 시작되었습니다.'));
+      hydroLogicalQueryRequests.clear();
       state.hydroFragmentsByLogicalId = new Map();
 
       if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
@@ -3702,7 +3722,7 @@ export function createGpuMapRenderer(deps) {
     return {
       attach, initialize, replaceBuiltInMesh, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, setTerrainManifest,
-      setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
+      setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
       setHydroEdits,
       setHydroInteractionActive, renderViewFrame: render,
       invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
