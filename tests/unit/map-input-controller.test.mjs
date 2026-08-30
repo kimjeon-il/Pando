@@ -77,6 +77,22 @@ test('a simple pointer click keeps its original overlay target', () => {
   controller.destroy();
 });
 
+test('native browser gestures are prevented only on the map surface', () => {
+  const surface = new PointerSurface();
+  const controller = createController(surface);
+
+  for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
+    const event = pointerEvent(type, { cancelable: true });
+    surface.dispatchEvent(event);
+    assert.equal(event.defaultPrevented, true);
+  }
+
+  controller.destroy();
+  const afterDestroy = pointerEvent('gesturestart', { cancelable: true });
+  surface.dispatchEvent(afterDestroy);
+  assert.equal(afterDestroy.defaultPrevented, false);
+});
+
 test('pointer capture begins only after navigation crosses the drag threshold', () => {
   const surface = new PointerSurface();
   const pans = [];

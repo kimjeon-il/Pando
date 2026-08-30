@@ -207,6 +207,14 @@ export function createMapInputController({
     wheelFinishTimer = setTimeout(() => endMovement(null), 120);
   }
 
+  // Keep browser-level pinch gestures scoped to the map. The map already
+  // owns its pointer-based zoom; preventing native gesture events here
+  // avoids mobile browsers zooming the entire page while leaving controls
+  // outside the map available for their normal interactions.
+  function preventNativeGesture(event) {
+    if (event.cancelable) event.preventDefault();
+  }
+
   const pointerUp = event => finishPointer(event);
   const pointerCancel = event => finishPointer(event, true);
 
@@ -225,6 +233,9 @@ export function createMapInputController({
   element.addEventListener('pointerup', pointerUp, { passive: true });
   element.addEventListener('pointercancel', pointerCancel, { passive: true });
   element.addEventListener('wheel', wheel, { passive: false });
+  element.addEventListener('gesturestart', preventNativeGesture, { passive: false });
+  element.addEventListener('gesturechange', preventNativeGesture, { passive: false });
+  element.addEventListener('gestureend', preventNativeGesture, { passive: false });
 
   return {
     cancel,
@@ -237,6 +248,9 @@ export function createMapInputController({
       element.removeEventListener('pointerup', pointerUp);
       element.removeEventListener('pointercancel', pointerCancel);
       element.removeEventListener('wheel', wheel);
+      element.removeEventListener('gesturestart', preventNativeGesture);
+      element.removeEventListener('gesturechange', preventNativeGesture);
+      element.removeEventListener('gestureend', preventNativeGesture);
     },
   };
 }

@@ -98,14 +98,15 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#mapSheetTitle')).toHaveText('지도');
   await expect(page.locator('#mapViewTabBtn')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#layerPresentationBtn, #layerPresentationCloseBtn, #layerPresentationModal')).toHaveCount(0);
-  await expect(page.locator('#layerStyleEditorTitle')).toHaveText('레이어별 표시');
-  await expect(page.locator('label:has(#layerStyleGroupInput)')).toContainText('설정할 레이어');
+  await expect(page.locator('#layerStyleEditorTitle')).toHaveCount(0);
+  await page.locator('#mapLayersTabBtn').click();
+  await page.locator('[data-layer-style-toggle="userDrawings"]').click();
   await expect(page.locator('[data-layer-order-direction]')).toHaveCount(0);
-  await selectUiOption(page, '#layerStyleGroupInput', 'userDrawings');
-  await page.locator('#layerStyleOpacityInput').fill('80');
-  await page.locator('#layerStyleOpacityInput').dispatchEvent('change');
-  await expect(page.locator('#layerStyleOpacityValue')).toHaveText('80%');
-  await selectUiOption(page, '#distributionLayerModeInput', 'intensity');
+  await page.locator('[data-layer-style-opacity="userDrawings"]').fill('80');
+  await page.locator('[data-layer-style-opacity="userDrawings"]').dispatchEvent('change');
+  await expect(page.locator('[data-layer-style-opacity-value="userDrawings"]')).toHaveText('80%');
+  await page.locator('[data-layer-style-toggle="distribution"]').click();
+  await page.locator('#distributionLayerModeInput').selectOption('intensity');
   await expect(page.locator('#distributionLayerModeInput')).toHaveValue('intensity');
   await expect(page.locator('#distributionLayerModeHint')).toHaveText('선택한 분포를 비율이 높을수록 진하게 표시합니다.');
   await page.locator('#mapLayersTabBtn').click();
@@ -122,7 +123,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 test('overlapping map objects open the compact chooser and expose disambiguating type labels', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
-  await page.locator('#mapViewTabBtn').click();
+  await page.locator('#mapLayersTabBtn').click();
   await page.locator('#basemapLabelsVisible').uncheck();
   await page.locator('#mapLayersTabBtn').click();
   await page.locator('#createMenuBtn').click();

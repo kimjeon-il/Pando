@@ -2329,8 +2329,9 @@ const {
     '#rightPanel button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
     '.top-actions button', '.top-actions input',
     '#undoBtn', '#redoBtn',
-    '.layer-child-menu', '.layer-folder-lock',
-    '.layer-folder input[type="checkbox"]',
+    '.layer-child-menu', '.layer-folder-lock', '.layer-style-toggle',
+    '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-distribution-mode]',
+    '.layer-folder input[type="checkbox"]', '#labelsVisible', '#basemapLabelsVisible',
   ].join(',');
 
   function syncLayerVisibilityToggle(input) {
@@ -4554,6 +4555,7 @@ const {
   let renderedLayerSearch = '';
   let layerSearchScrollTop = 0;
   const layerGroupScrollTop = new Map();
+  const expandedLayerStyleGroups = new Set();
 
   function countryRegionFolderStateKey(group, countryId) {
     return `${COUNTRY_REGION_FOLDER_STATE_PREFIX}${group}:${String(countryId || 'unassigned')}`;
@@ -5295,6 +5297,7 @@ const {
     }
     renderedLayerTreeRevision = state.layerTreeRevision;
     renderedLayerSearch = search;
+    syncLayerStylePanels();
     syncCanonicalControls();
   }
 
@@ -12164,20 +12167,138 @@ const {
     queuePresentationAutosave();
   }
 
-  const LAYER_PRESENTATION_LABELS = Object.freeze({
-    userDrawings: '사용자 지형지물', religions: '종교', ethnicities: '민족', languages: '언어',
-    administrative: '행정구역', regions: '권역', historicalRegions: '지방',
-    labels: '도시·지명', countryLabels: '국가명 라벨', hydro: '강·호수', countries: '국가', terrain: '지형 음영',
+  const LAYER_STYLE_TARGETS = Object.freeze({
+    countries: { presentationGroup: 'countries', label: '국가', opacity: true, boundary: true },
+    regions: { presentationGroup: 'regions', label: '권역', opacity: true, boundary: true },
+    administrative: { presentationGroup: 'administrative', label: '행정구역', opacity: true, boundary: true },
+    historicalRegions: { presentationGroup: 'historicalRegions', label: '지방', opacity: true, boundary: true },
+    languages: { presentationGroup: 'languages', label: '언어', opacity: true, boundary: true },
+    ethnicities: { presentationGroup: 'ethnicities', label: '민족', opacity: true, boundary: true },
+    religions: { presentationGroup: 'religions', label: '종교', opacity: true, boundary: true },
+    hydro: { presentationGroup: 'hydro', label: '강·호수', opacity: true, boundary: true },
+    userDrawings: { presentationGroup: 'userDrawings', label: '사용자 지형지물', opacity: true, boundary: true },
+    labels: { presentationGroup: 'labels', label: '도시·지명', opacity: true, boundary: false },
+    countryLabels: { presentationGroup: 'countryLabels', label: '국가명 라벨', opacity: true, boundary: false },
   });
-  const STYLE_PRESENTATION_GROUPS = Object.freeze(['countries', 'hydro', ...OVERLAY_GROUPS]);
+
+  function updateLayerPresentationStyle(group, patch) {
+    const target = LAYER_STYLE_TARGETS[group];
+    if (!target) return false;
+    const currentStyle = layerStyle(state.layerPresentation, target.presentationGroup);
+    state.layerPresentation = normalizeLayerPresentation({
+      ...state.layerPresentation,
+      styles: {
+        ...state.layerPresentation.styles,
+        [target.presentationGroup]: {
+          ...currentStyle,
+          ...patch,
+          boundaryWidth: 1,
+          labelsVisible: currentStyle.labelsVisible,
+        },
+      },
+    });
+    syncLayerStylePanels();
+    renderAll();
+    queuePresentationAutosave();
+    return true;
+  }
+
+  function createLayerInlineStylePanel(group) {
+    const panel = document.querySelector(`[data-layer-style-panel="${group}"]`);
+    const target = LAYER_STYLE_TARGETS[group];
+    if (!panel || panel.dataset.initialized === 'true') return panel;
+    panel.dataset.initialized = 'true';
+    if (group === 'distribution') {
+      const label = document.createElement('label');
+      label.className = 'ui-field field-group';
+      const title = document.createElement('span');
+      title.textContent = '표시 기준';
+      const select = document.createElement('select');
+      select.id = 'distributionLayerModeInput';
+      select.dataset.layerDistributionMode = 'true';
+      select.setAttribute('aria-describedby', 'distributionLayerModeHint');
+      select.innerHTML = '<option value="dominant">영역별 가장 높은 비율</option><option value="intensity">선택한 분포의 비율</option>';
+      label.append(title, select);
+      const hint = document.createElement('small');
+      hint.id = 'distributionLayerModeHint';
+      hint.className = 'layer-setting-hint';
+      panel.append(label, hint);
+      return panel;
+    }
+    if (!target) return panel;
+    const field = document.createElement('label');
+    field.className = 'ui-field field-group layer-inline-style-field';
+    const title = document.createElement('span');
+    title.textContent = '투명도';
+    const output = document.createElement('output');
+    output.dataset.layerStyleOpacityValue = group;
+    title.append(' ', output);
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = '0'; input.max = '100'; input.value = '100';
+    input.dataset.layerStyleOpacity = group;
+    input.setAttribute('aria-label', `${target.label} 투명도`);
+    field.append(title, input);
+    panel.append(field);
+    if (target.boundary) {
+      const choice = document.createElement('label');
+      choice.className = 'ui-choice-row';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.layerStyleBoundary = group;
+      checkbox.setAttribute('aria-label', `${target.label} 경계 표시`);
+      const text = document.createElement('span');
+      text.textContent = '경계 표시';
+      choice.append(checkbox, text);
+      panel.append(choice);
+    }
+    return panel;
+  }
+
+  function syncLayerStylePanels() {
+    state.layerPresentation = normalizeLayerPresentation(state.layerPresentation);
+    document.querySelectorAll('[data-layer-style-panel]').forEach(panel => {
+      const group = panel.dataset.layerStylePanel;
+      createLayerInlineStylePanel(group);
+      const expanded = expandedLayerStyleGroups.has(group);
+      panel.hidden = !expanded;
+      const toggle = document.querySelector(`[data-layer-style-toggle="${group}"]`);
+      toggle?.setAttribute('aria-expanded', String(expanded));
+      toggle?.classList.toggle('active', expanded);
+      if (group === 'distribution') {
+        const select = panel.querySelector('[data-layer-distribution-mode]');
+        if (select) select.value = state.distributionSettings.renderMode;
+        syncDistributionLayerModeHint();
+        return;
+      }
+      const target = LAYER_STYLE_TARGETS[group];
+      if (!target) return;
+      const style = layerStyle(state.layerPresentation, target.presentationGroup);
+      const input = panel.querySelector('[data-layer-style-opacity]');
+      if (input) { input.value = String(Math.round(style.opacity * 100)); syncRangeProgress(input); }
+      const output = panel.querySelector('[data-layer-style-opacity-value]');
+      if (output) output.textContent = `${Math.round(style.opacity * 100)}%`;
+      const boundary = panel.querySelector('[data-layer-style-boundary]');
+      if (boundary) boundary.checked = style.boundaryVisible;
+    });
+  }
+
+  function toggleLayerStylePanel(group) {
+    const panel = createLayerInlineStylePanel(group);
+    const toggle = document.querySelector(`[data-layer-style-toggle="${group}"]`);
+    if (!panel || !toggle) return;
+    const open = !expandedLayerStyleGroups.has(group);
+    if (open) expandedLayerStyleGroups.add(group); else expandedLayerStyleGroups.delete(group);
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.classList.toggle('active', open);
+    syncLayerStylePanels();
+  }
 
   function renderLayerPresentationList() {
     state.layerPresentation = normalizeLayerPresentation(state.layerPresentation);
-    const groupInput = $('layerStyleGroupInput');
-    if (groupInput && !groupInput.options.length) replaceSelectOptions(groupInput, STYLE_PRESENTATION_GROUPS.map(group => ({ value: group, label: LAYER_PRESENTATION_LABELS[group] || group })), STYLE_PRESENTATION_GROUPS[0]);
-    if ($('distributionLayerModeInput')) $('distributionLayerModeInput').value = state.distributionSettings.renderMode;
+    syncLayerStylePanels();
     syncDistributionLayerModeHint();
-    syncLayerStyleFields();
     syncPhysicalControls();
   }
 
@@ -12190,33 +12311,6 @@ const {
       : '각 영역에서 비율이 가장 높은 분포만 표시합니다.';
   }
 
-  function syncLayerStyleFields() {
-    const group = $('layerStyleGroupInput')?.value || STYLE_PRESENTATION_GROUPS[0];
-    const style = layerStyle(state.layerPresentation, group);
-    $('layerStyleOpacityInput').value = String(Math.round(style.opacity * 100));
-    $('layerStyleOpacityValue').textContent = `${Math.round(style.opacity * 100)}%`;
-    $('layerStyleBoundaryVisibleInput').checked = style.boundaryVisible;
-  }
-
-  function updateLayerStyleFromFields() {
-    const group = $('layerStyleGroupInput').value;
-    const currentStyle = layerStyle(state.layerPresentation, group);
-    state.layerPresentation = normalizeLayerPresentation({
-      ...state.layerPresentation,
-      styles: {
-        ...state.layerPresentation.styles,
-        [group]: {
-          opacity: Number($('layerStyleOpacityInput').value) / 100,
-          boundaryVisible: $('layerStyleBoundaryVisibleInput').checked,
-          boundaryWidth: 1,
-          labelsVisible: currentStyle.labelsVisible,
-        },
-      },
-    });
-    $('layerStyleOpacityValue').textContent = `${Math.round(layerStyle(state.layerPresentation, group).opacity * 100)}%`;
-    renderAll();
-    queuePresentationAutosave();
-  }
 
   function setMapPanelView(view, { focus = false } = {}) {
     mapPanelView = view === 'view' ? 'view' : 'layers';
@@ -14088,6 +14182,15 @@ const {
       },
       commands: {
         setLayerVisibility,
+        toggleLayerStyle: group => toggleLayerStylePanel(group),
+        updateLayerStyle: (group, patch) => updateLayerPresentationStyle(group, patch),
+        setDistributionRenderMode: mode => {
+          distributionService.setRenderMode(mode);
+          syncLayerStylePanels();
+          if ($('distributionRenderModeInput')) $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
+          renderDistributions();
+          queuePresentationAutosave();
+        },
         setPanelView: setMapPanelView,
         setTerrainVisible: visible => {
           state.physicalSettings.terrainVisible = !!visible;
@@ -14322,16 +14425,6 @@ const {
     $('distributionLockedInput').addEventListener('change', event => commitDistributionMeta('locked', event.target.checked));
     $('distributionRenderModeInput').addEventListener('change', event => {
       distributionService.setRenderMode(event.target.value);
-      renderDistributions();
-      queuePresentationAutosave();
-    });
-    $('layerStyleGroupInput')?.addEventListener('change', syncLayerStyleFields);
-    $('layerStyleOpacityInput')?.addEventListener('input', event => { $('layerStyleOpacityValue').textContent = `${event.target.value}%`; });
-    for (const id of ['layerStyleOpacityInput', 'layerStyleBoundaryVisibleInput']) $(id)?.addEventListener('change', updateLayerStyleFromFields);
-    $('distributionLayerModeInput')?.addEventListener('change', event => {
-      distributionService.setRenderMode(event.target.value);
-      if ($('distributionRenderModeInput')) $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
-      syncDistributionLayerModeHint();
       renderDistributions();
       queuePresentationAutosave();
     });

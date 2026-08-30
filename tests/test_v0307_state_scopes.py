@@ -32,8 +32,8 @@ class StateScopeContractTests(unittest.TestCase):
         self.assertIn("applyAutosavedView(autosaveRestore.view)", APP)
 
     def test_presentation_changes_do_not_record_document_history(self):
-        visibility = APP[APP.index("function setLayerVisibility"):APP.index("const LAYER_PRESENTATION_LABELS")]
-        style = APP[APP.index("function updateLayerStyleFromFields"):APP.index("function openLayerPresentation")]
+        visibility = APP[APP.index("function setLayerVisibility"):APP.index("const LAYER_STYLE_TARGETS")]
+        style = APP[APP.index("function updateLayerPresentationStyle"):APP.index("function setMapPanelView")]
         self.assertIn("queuePresentationAutosave()", visibility)
         self.assertNotIn("recordHistory", visibility)
         self.assertIn("queuePresentationAutosave()", style)

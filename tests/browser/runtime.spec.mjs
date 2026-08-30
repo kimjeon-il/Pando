@@ -597,7 +597,7 @@ test('virtualized country deletion honors per-object lock, undo, and autosave re
   expect(errors).toEqual([]);
 });
 
-test('layer folders stay spatial while global name visibility lives in the map view', async ({ page }) => {
+test('layer folders expose presentation controls while global view settings stay in the map view', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const categories = page.locator('.layer-category');
@@ -607,10 +607,12 @@ test('layer folders stay spatial while global name visibility lives in the map v
   await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['지형지물']);
   await expect(page.locator('#layerSection #terrainVisible')).toHaveCount(0);
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
+  await expect(page.locator('[data-layer-style-toggle="countries"]')).toHaveCount(1);
+  await expect(page.locator('[data-layer-style-toggle="labels"]')).toHaveCount(1);
+  await expect(page.locator('#layerSection label:has(#basemapLabelsVisible)')).toContainText('국가명 라벨');
+  await expect(page.locator('#layerSection label:has(#labelsVisible)')).toContainText('도시·지명');
   await page.locator('#mapViewTabBtn').click();
-  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('이름 표시');
-  await expect(page.locator('label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
-  await expect(page.locator('label:has(#labelsVisible)')).toContainText('도시·지명 표시');
+  await expect(page.locator('#mapNameSettingsTitle')).toHaveCount(0);
   const terrainVisible = page.locator('#terrainVisible');
   const terrainOptions = page.locator('#terrainDisplayOptions');
   const terrainStrength = page.locator('#terrainStrengthInput');
