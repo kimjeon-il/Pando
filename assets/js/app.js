@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r24';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r25';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -457,7 +457,7 @@ const {
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection', 'uiTooltip',
     'mapPanelTabs', 'mapLayersTabBtn', 'mapViewTabBtn', 'layerSection', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
-    'globeBtn', 'flatBtn', 'countriesVisible', 'territoriesVisible', 'administrativeVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'territoriesVisible', 'administrativeVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'debugMapPanel', 'countryAreaValue',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
@@ -1055,7 +1055,7 @@ const {
     territorialRelations: [],
     distributionLayers: [],
     distributionEntries: [],
-    distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT },
+    distributionSettings: { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, boundaryVisible: true },
     selectedDistributionLayerId: '',
     layerPresentation: normalizeLayerPresentation(),
     selected: null,
@@ -2391,7 +2391,7 @@ const {
     '.top-actions button', '.top-actions input',
     '#undoBtn', '#redoBtn',
     '.layer-child-menu', '.layer-folder-lock', '.layer-style-toggle',
-    '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-distribution-mode]',
+    '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-style-blend-mode]',
     '.layer-folder input[type="checkbox"]', '#labelsVisible', '#basemapLabelsVisible',
   ].join(',');
 
@@ -4527,6 +4527,10 @@ const {
         state.distributionSettings.renderMode = mode;
         distributionVisibilityRevision += 1;
       },
+      setBoundaryVisible: visible => {
+        state.distributionSettings.boundaryVisible = visible !== false;
+        distributionVisibilityRevision += 1;
+      },
     },
     runDocumentMutation: (meta, mutate) => {
       recordHistory(meta);
@@ -6027,6 +6031,7 @@ const {
   function renderDistributions() {
     if (!distributionLayer) return;
     const data = distributionRenderRows();
+    const boundaryVisible = state.distributionSettings?.boundaryVisible !== false;
     const selection = distributionLayer.selectAll('path.distribution-shape').data(data, row => row.id);
     selection.enter().append('path').attr('class', 'distribution-shape')
       .on('mouseenter.hover', row => setMapHover('distribution', row.id, featureFromGeometry(row.geometry), { domain: 'distribution', type: row.layer.type, id: row.layer.id }))
@@ -6044,7 +6049,7 @@ const {
       .style('stroke-opacity', row => {
         if (['Polygon', 'MultiPolygon'].includes(row.geometry?.type)) return 0;
         const style = layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
-        return style.boundaryVisible ? style.opacity : 0;
+        return boundaryVisible ? style.opacity : 0;
       })
       .style('stroke-width', row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type) ? 0 : layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).boundaryWidth)
       .style('mix-blend-mode', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).blendMode)
@@ -6059,7 +6064,7 @@ const {
       .style('stroke', row => distributionColor(row.layer))
       .style('stroke-opacity', row => {
         const style = layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
-        return style.boundaryVisible ? style.opacity : 0;
+        return boundaryVisible ? style.opacity : 0;
       })
       .style('stroke-width', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).boundaryWidth)
       .style('mix-blend-mode', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).blendMode);
@@ -12528,6 +12533,7 @@ const {
         distributionEntries: value => deepClone(value || []),
         distributionSettings: value => ({
           renderMode: value?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
+          boundaryVisible: value?.boundaryVisible !== false,
         }),
         physicalSettings: (value, current) => normalizePhysicalSettings(value || current),
         layerVisibility: (value, current) => normalizeLayerVisibility(value, current),
@@ -12547,6 +12553,7 @@ const {
     });
     state.distributionSettings = {
       renderMode: state.distributionSettings?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
+      boundaryVisible: state.distributionSettings?.boundaryVisible !== false,
     };
     state.selectedDistributionLayerId = distributionLayerIds.has(String(state.selectedDistributionLayerId || ''))
       ? String(state.selectedDistributionLayerId)
@@ -12742,16 +12749,16 @@ const {
   }
 
   const LAYER_STYLE_TARGETS = Object.freeze({
-    countries: { presentationGroup: 'countries', label: '국가', opacity: true, boundary: true },
+    countries: { presentationGroup: 'countries', label: '국가', opacity: true, boundary: true, boundaryLabel: '국경 표시' },
     territories: { presentationGroup: 'territories', label: '권역', opacity: true, boundary: true },
     administrative: { presentationGroup: 'administrative', label: '행정구역', opacity: true, boundary: true },
     regions: { presentationGroup: 'regions', label: '지방', opacity: true, boundary: true },
-    languages: { presentationGroup: 'languages', label: '언어', opacity: true, boundary: true },
-    ethnicities: { presentationGroup: 'ethnicities', label: '민족', opacity: true, boundary: true },
-    religions: { presentationGroup: 'religions', label: '종교', opacity: true, boundary: true },
-    rivers: { presentationGroup: 'rivers', label: '강', opacity: true, boundary: false },
-    lakes: { presentationGroup: 'lakes', label: '호수', opacity: true, boundary: true },
-    userDrawings: { presentationGroup: 'userDrawings', label: '사용자 지형지물', opacity: true, boundary: true },
+    languages: { presentationGroup: 'languages', label: '언어', opacity: true, blendMode: true },
+    ethnicities: { presentationGroup: 'ethnicities', label: '민족', opacity: true, blendMode: true },
+    religions: { presentationGroup: 'religions', label: '종교', opacity: true, blendMode: true },
+    rivers: { presentationGroup: 'rivers', label: '강', opacity: true },
+    lakes: { presentationGroup: 'lakes', label: '호수', opacity: true },
+    userDrawings: { presentationGroup: 'userDrawings', label: '사용자 지형지물', opacity: true, opacityLabel: '전체 투명도' },
   });
 
   function updateLayerPresentationStyle(group, patch) {
@@ -12787,47 +12794,44 @@ const {
     const target = LAYER_STYLE_TARGETS[group];
     if (!panel || panel.dataset.initialized === 'true') return panel;
     panel.dataset.initialized = 'true';
-    if (group === 'distribution') {
-      const label = document.createElement('label');
-      label.className = 'ui-field field-group';
-      const title = document.createElement('span');
-      title.textContent = '표시 기준';
-      const select = document.createElement('select');
-      select.id = 'distributionLayerModeInput';
-      select.dataset.layerDistributionMode = 'true';
-      select.setAttribute('aria-describedby', 'distributionLayerModeHint');
-      select.innerHTML = '<option value="dominant">영역별 대표 분포</option><option value="intensity">선택 분포 비율</option>';
-      label.append(title, select);
-      const hint = document.createElement('small');
-      hint.id = 'distributionLayerModeHint';
-      hint.className = 'layer-setting-hint';
-      panel.append(label, hint);
-      return panel;
-    }
     if (!target) return panel;
-    const field = document.createElement('label');
-    field.className = 'ui-field field-group layer-inline-style-field';
-    const title = document.createElement('span');
-    title.textContent = '투명도';
-    const output = document.createElement('output');
-    output.dataset.layerStyleOpacityValue = group;
-    title.append(' ', output);
-    const input = document.createElement('input');
-    input.type = 'range';
-    input.min = '0'; input.max = '100'; input.value = '100';
-    input.dataset.layerStyleOpacity = group;
-    input.setAttribute('aria-label', `${target.label} 투명도`);
-    field.append(title, input);
-    panel.append(field);
+    if (target.opacity) {
+      const field = document.createElement('label');
+      field.className = 'ui-field field-group layer-inline-style-field';
+      const title = document.createElement('span');
+      title.textContent = target.opacityLabel || '투명도';
+      const output = document.createElement('output');
+      output.dataset.layerStyleOpacityValue = group;
+      title.append(' ', output);
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.min = '0'; input.max = '100'; input.value = '100';
+      input.dataset.layerStyleOpacity = group;
+      input.setAttribute('aria-label', `${target.label} ${target.opacityLabel || '투명도'}`);
+      field.append(title, input);
+      panel.append(field);
+    }
+    if (target.blendMode) {
+      const field = document.createElement('label');
+      field.className = 'ui-field field-group layer-inline-style-field';
+      const title = document.createElement('span');
+      title.textContent = '겹침 방식';
+      const select = document.createElement('select');
+      select.dataset.layerStyleBlendMode = group;
+      select.setAttribute('aria-label', `${target.label} 겹침 방식`);
+      select.innerHTML = '<option value="normal">일반</option><option value="multiply">곱하기</option>';
+      field.append(title, select);
+      panel.append(field);
+    }
     if (target.boundary) {
       const choice = document.createElement('label');
       choice.className = 'ui-choice-row';
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.dataset.layerStyleBoundary = group;
-      checkbox.setAttribute('aria-label', `${target.label} 경계 표시`);
+      checkbox.setAttribute('aria-label', `${target.label} ${target.boundaryLabel || '경계 표시'}`);
       const text = document.createElement('span');
-      text.textContent = '경계 표시';
+      text.textContent = target.boundaryLabel || '경계 표시';
       choice.append(checkbox, text);
       panel.append(choice);
     }
@@ -12844,12 +12848,6 @@ const {
       const toggle = document.querySelector(`[data-layer-style-toggle="${group}"]`);
       toggle?.setAttribute('aria-expanded', String(expanded));
       toggle?.classList.toggle('active', expanded);
-      if (group === 'distribution') {
-        const select = panel.querySelector('[data-layer-distribution-mode]');
-        if (select) select.value = state.distributionSettings.renderMode;
-        syncDistributionLayerModeHint();
-        return;
-      }
       const target = LAYER_STYLE_TARGETS[group];
       if (!target) return;
       const style = layerStyle(state.layerPresentation, target.presentationGroup);
@@ -12859,6 +12857,8 @@ const {
       if (output) output.textContent = `${Math.round(style.opacity * 100)}%`;
       const boundary = panel.querySelector('[data-layer-style-boundary]');
       if (boundary) boundary.checked = style.boundaryVisible;
+      const blendMode = panel.querySelector('[data-layer-style-blend-mode]');
+      if (blendMode) blendMode.value = style.blendMode;
     });
   }
 
@@ -12877,14 +12877,20 @@ const {
   function renderLayerPresentationList() {
     state.layerPresentation = normalizeLayerPresentation(state.layerPresentation);
     syncLayerStylePanels();
-    syncDistributionLayerModeHint();
+    syncDistributionPresentationControls();
     syncPhysicalControls();
   }
 
-  function syncDistributionLayerModeHint() {
+  function syncDistributionPresentationControls() {
+    const mode = state.distributionSettings?.renderMode || DISTRIBUTION_RENDER_MODES.DOMINANT;
+    for (const id of ['distributionLayerModeInput', 'distributionRenderModeInput']) {
+      const input = $(id);
+      if (input) input.value = mode;
+    }
+    const boundary = $('distributionBoundaryVisibleInput');
+    if (boundary) boundary.checked = state.distributionSettings?.boundaryVisible !== false;
     const hint = $('distributionLayerModeHint');
     if (!hint) return;
-    const mode = $('distributionLayerModeInput')?.value || state.distributionSettings.renderMode;
     hint.textContent = mode === DISTRIBUTION_RENDER_MODES.INTENSITY
       ? '선택한 분포를 비율이 높을수록 진하게 표시합니다.'
       : '각 영역에서 비율이 가장 높은 분포만 표시합니다.';
@@ -13205,7 +13211,7 @@ const {
     state.territorialRelations = [];
     state.distributionLayers = [];
     state.distributionEntries = [];
-    state.distributionSettings = { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT };
+    state.distributionSettings = { renderMode: DISTRIBUTION_RENDER_MODES.DOMINANT, boundaryVisible: true };
     state.selectedDistributionLayerId = '';
     state.distributionDraft = null;
     clearGeometryPreview(state.geometryPreview);
@@ -14769,6 +14775,8 @@ const {
         terrainVisible: $('terrainVisible'),
         terrainStyleInputs: [$('terrainPoliticalRadio'), $('terrainPhysicalRadio')],
         terrainStrength: $('terrainStrengthInput'),
+        distributionModeInputs: [$('distributionLayerModeInput'), $('distributionRenderModeInput')],
+        distributionBoundaryVisible: $('distributionBoundaryVisibleInput'),
         search: $('layerSearchInput'),
         searchClear: $('layerSearchClearBtn'),
         section: $('layerSection'),
@@ -14779,8 +14787,13 @@ const {
         updateLayerStyle: (group, patch) => updateLayerPresentationStyle(group, patch),
         setDistributionRenderMode: mode => {
           distributionService.setRenderMode(mode);
-          syncLayerStylePanels();
-          if ($('distributionRenderModeInput')) $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
+          syncDistributionPresentationControls();
+          renderDistributions();
+          queuePresentationAutosave();
+        },
+        setDistributionBoundaryVisible: visible => {
+          distributionService.setBoundaryVisible(visible);
+          syncDistributionPresentationControls();
           renderDistributions();
           queuePresentationAutosave();
         },
@@ -15024,11 +15037,6 @@ const {
       { id: 'labelNotesInput', field: 'notes', commit: commitLabelEdit },
     ]);
     $('distributionLockedInput').addEventListener('change', event => commitDistributionMeta('locked', event.target.checked));
-    $('distributionRenderModeInput').addEventListener('change', event => {
-      distributionService.setRenderMode(event.target.value);
-      renderDistributions();
-      queuePresentationAutosave();
-    });
     $('distributionEntryList').addEventListener('click', event => {
       const button = event.target.closest('[data-distribution-entry-delete]');
       if (button) removeDistributionEntry(button.dataset.distributionEntryDelete);

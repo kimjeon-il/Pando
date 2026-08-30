@@ -146,6 +146,12 @@ export function createDistributionService({
     return mode;
   }
 
+  function setBoundaryVisible(value) {
+    const visible = value !== false;
+    presentationStore.setBoundaryVisible(visible);
+    return visible;
+  }
+
   return Object.freeze({
     getLayer: layerById,
     listLayers,
@@ -158,5 +164,6 @@ export function createDistributionService({
     deleteLayer,
     append,
     setRenderMode,
+    setBoundaryVisible,
   });
 }

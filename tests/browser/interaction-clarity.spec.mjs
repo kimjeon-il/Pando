@@ -105,10 +105,12 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await page.locator('[data-layer-style-opacity="userDrawings"]').fill('80');
   await page.locator('[data-layer-style-opacity="userDrawings"]').dispatchEvent('change');
   await expect(page.locator('[data-layer-style-opacity-value="userDrawings"]')).toHaveText('80%');
-  await page.locator('[data-layer-style-toggle="distribution"]').click();
+  await page.locator('#mapViewTabBtn').click();
   await page.locator('#distributionLayerModeInput').selectOption('intensity');
   await expect(page.locator('#distributionLayerModeInput')).toHaveValue('intensity');
   await expect(page.locator('#distributionLayerModeHint')).toHaveText('선택한 분포를 비율이 높을수록 진하게 표시합니다.');
+  await page.locator('#distributionBoundaryVisibleInput').uncheck();
+  await expect(page.locator('#distributionBoundaryVisibleInput')).not.toBeChecked();
   await page.locator('#mapLayersTabBtn').click();
   await expect(page.locator('#layerSection')).toBeVisible();
   await expect(page.locator('#mapLayersTabBtn')).toBeFocused();

@@ -69,7 +69,7 @@ export function assertCurrentProjectSchema(project) {
     'layerVisibility', 'itemVisibility', 'baseDataset', 'landObjectModel', 'territorialModel',
     'distributionModel', 'physicalSourceInfo',
   ]), '프로젝트');
-  assertAllowedKeys(project.distributionSettings, new Set(['renderMode']), '분포 표시 설정');
+  assertAllowedKeys(project.distributionSettings, new Set(['renderMode', 'boundaryVisible']), '분포 표시 설정');
   assertAllowedKeys(project.layerVisibility, LEGACY_LAYER_VISIBILITY_INPUT_KEYS, '레이어 표시 상태');
   assertAllowedKeys(project.itemVisibility, ITEM_VISIBILITY_KEYS, '객체 표시 상태');
   assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles']), '레이어 표현');
@@ -133,7 +133,7 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'distributionLayers', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'distributionEntries', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'labelSettings', scope: 'presentation', fallback: () => ({}) }),
-  Object.freeze({ name: 'distributionSettings', scope: 'presentation', fallback: current => current || { renderMode: 'dominant' } }),
+  Object.freeze({ name: 'distributionSettings', scope: 'presentation', fallback: current => current || { renderMode: 'dominant', boundaryVisible: true } }),
   Object.freeze({ name: 'layerPresentation', scope: 'presentation', fallback: () => ({}) }),
   Object.freeze({ name: 'physicalSettings', scope: 'presentation', fallback: current => current || {} }),
   Object.freeze({ name: 'layerVisibility', scope: 'presentation', fallback: current => current || {} }),
