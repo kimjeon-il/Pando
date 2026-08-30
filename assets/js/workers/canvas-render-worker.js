@@ -21,8 +21,16 @@ function canvasFallbackWorkerMain() {
     let hydroActivePackIds = new Set();
     let hydroPort = null;
     let lastRenderMessage = null;
+    let viewRevision = 0;
+    let styleRevision = 0;
+    let physicalStyleRevision = 0;
     let hydroRenderTimer = 0;
     const countryOutlineCache = new WeakMap();
+
+    function mergeRenderState(message) {
+      lastRenderMessage = { ...(lastRenderMessage || {}), ...message, type: 'render' };
+      return lastRenderMessage;
+    }
 
     function terrainTileSpec(level, column, row) {
       const x0 = column * level.tileSize;
@@ -594,6 +602,10 @@ function canvasFallbackWorkerMain() {
       if (message.type === 'init') {
         features = message.features || [];
         geometryRevision = Number(message.geometryRevision || 0);
+        viewRevision = Number(message.viewRevision || message.revision || 0);
+        styleRevision = Number(message.styleRevision || 0);
+        physicalStyleRevision = Number(message.physicalStyleRevision || 0);
+        mergeRenderState(message);
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || 2)));
         loadTerrainManifest(message.terrainManifestUrl);
         self.postMessage({ type: 'ready' });
@@ -660,11 +672,25 @@ function canvasFallbackWorkerMain() {
           ids: message.ids || [],
           replaceAll: false,
         });
-      } else if (message.type === 'render') {
+      } else if (message.type === 'style') {
+        const incomingRevision = Number(message.styleRevision || 0);
+        if (incomingRevision < styleRevision) return;
+        styleRevision = incomingRevision;
+        mergeRenderState(message);
+      } else if (message.type === 'physical-style') {
+        const incomingRevision = Number(message.physicalStyleRevision || 0);
+        if (incomingRevision < physicalStyleRevision) return;
+        physicalStyleRevision = incomingRevision;
+        terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || terrainFetchConcurrency)));
+        mergeRenderState(message);
+        pumpTerrainFetchQueue();
+      } else if (message.type === 'view' || message.type === 'render') {
         try {
-          terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || terrainFetchConcurrency)));
+          const incomingRevision = Number(message.viewRevision || message.revision || 0);
+          if (incomingRevision < viewRevision) return;
+          viewRevision = incomingRevision;
           pumpTerrainFetchQueue();
-          render(message);
+          render(mergeRenderState(message));
         } catch (error) {
           self.postMessage({ type: 'error', message: error?.message || String(error) });
         }

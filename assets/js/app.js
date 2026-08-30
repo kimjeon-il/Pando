@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r18';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r19';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -403,6 +403,8 @@ const {
     document.documentElement.dataset.theme = effectiveTheme(userPreferences, systemTheme === 'dark');
     window.__PANDOLAB_THEME__ = effectiveTheme(userPreferences, systemTheme === 'dark');
     syncResolvedInteractionStyle();
+    gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'system-theme');
+    gpuMapRenderer.invalidatePhysicalStyle('system-theme');
     if (state?.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       const id = String(state.selected.id);
       const feature = countryFeatureById(id);
@@ -1536,6 +1538,9 @@ const {
       if (visible) delete state.itemVisibility[group][ref.id];
       else state.itemVisibility[group][ref.id] = false;
     }
+    if (refs.some(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) {
+      gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-visibility');
+    }
     markLayerTreeDirty();
     renderAll();
     queuePresentationAutosave();
@@ -1733,7 +1738,9 @@ const {
         if (feature) feature.properties.editorColor = normalizedColor;
       }
     }
-    gpuMapRenderer.updatePalette();
+    if (refs.some(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) {
+      gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
+    }
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
@@ -1923,8 +1930,8 @@ const {
       },
     },
     runtimeAssetUrl,
+    scheduleGpuFrame: reason => mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, reason) || false,
     scheduleGpuMeshRebuild,
-    scheduleViewRender,
     setActionStatus,
     state,
   });
@@ -4810,6 +4817,7 @@ const {
     state.itemVisibility[group] ||= {};
     if (visible) delete state.itemVisibility[group][key];
     else state.itemVisibility[group][key] = false;
+    if (group === 'countries') gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-item-visibility');
     markLayerTreeDirty();
     renderAll();
     queuePresentationAutosave();
@@ -5304,6 +5312,8 @@ const {
     document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
     syncResolvedInteractionStyle();
     syncGpuCountryEmphasis();
+    gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'user-preferences');
+    gpuMapRenderer.invalidatePhysicalStyle('user-preferences');
     window.__PANDOLAB_THEME__ = resolvedTheme;
     if (rerender && svg) {
       markLayerTreeDirty();
@@ -5708,7 +5718,7 @@ const {
     if (!hydroLakeLayer || !hydroRiverLayer) return;
     const riverStyle = layerStyle(state.layerPresentation, 'rivers');
     const lakeStyle = layerStyle(state.layerPresentation, 'lakes');
-    const renderer = gpuMapRenderer.getStats().renderer;
+    const renderer = gpuMapRenderer.getStats({ detailed: false }).renderer;
     const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker' || renderer === 'canvas2d';
     if (nativeHydro) {
       hydroLakeLayer.selectAll('*').remove();
@@ -5736,7 +5746,7 @@ const {
 
   function renderHydroEdits() {
     if (!hydroEditLayer) return;
-    const renderer = gpuMapRenderer.getStats().renderer;
+    const renderer = gpuMapRenderer.getStats({ detailed: false }).renderer;
     const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker' || renderer === 'canvas2d';
     gpuMapRenderer.setHydroEdits?.(state.hydroEdits, state.stateRevision);
     const riverStyle = layerStyle(state.layerPresentation, 'rivers');
@@ -6983,6 +6993,12 @@ const {
     snapLayer.append('circle').attr('class', 'snap-indicator-point').attr('cx', point[0]).attr('cy', point[1]).attr('r', 6);
   }
 
+  function renderProjectedOverlays() {
+    for (const layer of [territorialBoundaryLayer, overlayStackLayer, hydroEditLayer]) {
+      layer?.selectAll?.('path')?.attr('d', path);
+    }
+  }
+
   function renderDebugMapPanel() {
     const panel = $('debugMapPanel');
     if (!panel) return;
@@ -7190,6 +7206,7 @@ const {
       distributions: renderDistributions,
       drawings: renderDrawings,
       stackOverlays: applyOverlayStackOrder,
+      projectedOverlays: renderProjectedOverlays,
       geometryPreview: renderGeometryPreview,
       hover: viewState => renderHoverOverlay(viewState, { syncStrokes: false }),
       selection: renderSelectionOverlay,
@@ -7304,6 +7321,7 @@ const {
       state.mapMoving = true;
       mapRenderCoordinator.beginInteraction('map-movement');
       mapWorkScheduler.setInteractionActive(true);
+      gpuMapRenderer.setHydroInteractionActive(true);
       cancelCountryHoverPick({ clear: true });
       mapEl.classList.add('dragging');
       if (state.draftHover) {
@@ -7314,6 +7332,7 @@ const {
     const finishMapMovement = point => {
       state.mapMoving = false;
       mapWorkScheduler.setInteractionActive(false);
+      gpuMapRenderer.setHydroInteractionActive(false);
       mapEl.classList.remove('dragging');
       if (point) suppressNextMapClick(point);
       mapRenderCoordinator.endInteraction('map-movement-end');
@@ -11300,6 +11319,7 @@ const {
     const id = state.selected.id;
     const result = territorialApplicationService.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, id, field, value);
     if (!result.ok) return;
+    if (field === 'color') gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-color');
     if (field === 'name') markLayerTreeDirty();
     selectCountry(id, true);
     queueAutosave();
@@ -12286,6 +12306,7 @@ const {
 
   function setLayerVisibility(key, visible) {
     state.layerVisibility[key] = visible;
+    if (key === 'countries') gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') gpuMapRenderer.invalidateHydroVisibility();
     renderAll();
     queuePresentationAutosave();
@@ -12321,6 +12342,12 @@ const {
       },
     });
     syncLayerStylePanels();
+    if (target.presentationGroup === 'countries') {
+      gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-presentation');
+    }
+    if (target.presentationGroup === 'rivers' || target.presentationGroup === 'lakes') {
+      gpuMapRenderer.invalidatePhysicalStyle('hydro-presentation');
+    }
     renderAll();
     queuePresentationAutosave();
     return true;
@@ -14056,7 +14083,8 @@ const {
   function zoomBy(factor, announce = true) {
     const current = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
     if (!setMapZoomValue(current * factor)) return false;
-    renderAll();
+    renderViewFrame();
+    mapRenderCoordinator.endInteraction('zoom-control-settle');
     queueViewAutosave();
     return true;
   }
@@ -14330,6 +14358,7 @@ const {
         setPanelView: setMapPanelView,
         setTerrainVisible: visible => {
           state.physicalSettings.terrainVisible = !!visible;
+          gpuMapRenderer.invalidatePhysicalStyle('terrain-visibility');
           syncPhysicalControls();
           markLayerTreeDirty();
           renderLayerTree();
@@ -14338,6 +14367,7 @@ const {
         },
         setTerrainStyle: value => {
           state.physicalSettings.terrainStyle = value === 'physical' ? 'physical' : 'political';
+          gpuMapRenderer.invalidatePhysicalStyle('terrain-style');
           syncPhysicalControls();
           markLayerTreeDirty();
           renderLayerTree();
@@ -14347,6 +14377,7 @@ const {
         },
         previewTerrainStrength: value => {
           state.physicalSettings.terrainStrength = clamp(Number(value) / 100, 0, 1);
+          gpuMapRenderer.invalidatePhysicalStyle('terrain-strength');
           $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
           syncRangeProgress($('terrainStrengthInput'));
           scheduleRender();

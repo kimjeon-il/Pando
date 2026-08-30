@@ -77,7 +77,7 @@ test('all hydro renderers inherit ocean colour with only the configured layer op
 
 test('bootstrap cache revision is advanced for the reliability build', () => {
   const source = read('assets/js/bootstrap.js');
-  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r18';"));
+  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r19';"));
 });
 
 test('completed hydro renders before canonical country boundaries in every native path', () => {
@@ -85,7 +85,7 @@ test('completed hydro renders before canonical country boundaries in every nativ
   const worker = read('assets/js/workers/canvas-render-worker.js');
   const webgl = gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro'));
   assert.ok(webgl.indexOf("drawHydro('border-river')") < webgl.indexOf('drawProgram(lineProgram'));
-  const canvas = gpu.slice(gpu.indexOf('function renderCanvasFallback'), gpu.indexOf('function canvasWorkerRenderMessage'));
+  const canvas = gpu.slice(gpu.indexOf('function renderCanvasFallback'), gpu.indexOf('function canvasWorkerStyleMessage'));
   assert.ok(canvas.indexOf('renderCanvasHydro(canvasPath, theme)') < canvas.indexOf('canvasPath(countryOutlineFeature(feature))'));
   const workerRender = worker.slice(worker.indexOf('function render(message)'), worker.indexOf('self.onmessage'));
   assert.ok(workerRender.indexOf('renderHydroPass(message, projection, dpr, true)') < workerRender.indexOf('geoPath(countryOutlineFeature(feature))'));

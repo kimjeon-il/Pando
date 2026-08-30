@@ -2,7 +2,6 @@ export function createMapEditWorkerClient({
   createWorker,
   getFeatures,
   getFeatureById,
-  clone,
   now = () => performance.now(),
   schedule = (callback, delay) => setTimeout(callback, delay),
   readyTimeoutMs = 3000,
@@ -64,7 +63,7 @@ export function createMapEditWorkerClient({
   function syncPatch(rawIds) {
     if (!worker || !ready) return;
     const ids = [...new Set([...rawIds].map(String).filter(Boolean))];
-    const features = ids.map(getFeatureById).filter(Boolean).map(feature => clone(feature));
+    const features = ids.map(getFeatureById).filter(Boolean);
     const removedIds = ids.filter(id => !getFeatureById(id));
     dataRevision += 1;
     worker.postMessage({ type: 'sync-patch', dataRevision, features, removedIds });

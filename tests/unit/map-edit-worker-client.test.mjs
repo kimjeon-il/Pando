@@ -37,7 +37,7 @@ test('map edit worker client rebases, executes and commits with one revision str
   assert.deepEqual(workers[0].messages.map(message => message.type), ['rebase', 'execute', 'commit']);
 });
 
-test('map edit worker client sends cloned scoped patches and removed IDs', async () => {
+test('map edit worker client relies on postMessage structured cloning for scoped patches', async () => {
   const worker = createFakeWorker();
   const feature = { type: 'Feature', properties: { editor_id: 'AAA' }, geometry: null };
   const client = createMapEditWorkerClient({
@@ -52,5 +52,19 @@ test('map edit worker client sends cloned scoped patches and removed IDs', async
   client.syncPatch(['AAA', 'MISSING', 'AAA']);
   assert.deepEqual(worker.messages[1].removedIds, ['MISSING']);
   assert.deepEqual(worker.messages[1].features, [feature]);
-  assert.notEqual(worker.messages[1].features[0], feature);
+  assert.equal(worker.messages[1].features[0], feature);
+});
+
+test('map edit worker client reuses one rebased worker for consecutive operations', async () => {
+  const worker = createFakeWorker();
+  const feature = { type: 'Feature', properties: { editor_id: 'AAA' }, geometry: null };
+  const client = createMapEditWorkerClient({
+    createWorker: () => worker,
+    getFeatures: () => [feature],
+    getFeatureById: () => feature,
+    schedule: callback => Promise.resolve().then(callback),
+  });
+  await client.execute('merge', { targetId: 'AAA' });
+  await client.execute('annex', { targetId: 'AAA' });
+  assert.deepEqual(worker.messages.map(message => message.type), ['rebase', 'execute', 'execute']);
 });
