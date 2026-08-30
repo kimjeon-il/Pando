@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r26';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r27';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -338,7 +338,24 @@ const {
   let runtimeReady = false;
   document.documentElement.dataset.systemTheme = systemTheme;
   document.documentElement.dataset.theme = effectiveTheme(userPreferences, systemTheme === 'dark');
-  document.documentElement.dataset.selectionMode = userPreferences.selection.mode;
+  const MAP_LABEL_FONT_STACKS = Object.freeze({
+    default: 'var(--ui-font-family)',
+    gothic: '"Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif',
+    serif: '"Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", serif',
+  });
+  function applyMapLabelPreferences() {
+    const root = document.documentElement.style;
+    const labels = userPreferences.labels;
+    root.setProperty('--country-label-font-family', MAP_LABEL_FONT_STACKS[labels.country.font] || MAP_LABEL_FONT_STACKS.default);
+    root.setProperty('--place-label-font-family', MAP_LABEL_FONT_STACKS[labels.place.font] || MAP_LABEL_FONT_STACKS.default);
+    if (labels.country.color) root.setProperty('--country-label-color', labels.country.color);
+    else root.removeProperty('--country-label-color');
+    if (labels.place.color) root.setProperty('--place-label-color', labels.place.color);
+    else root.removeProperty('--place-label-color');
+    if (labels.place.pointColor) root.setProperty('--place-label-point-color', labels.place.pointColor);
+    else root.removeProperty('--place-label-point-color');
+  }
+  applyMapLabelPreferences();
   document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
   function resolveCurrentInteractionStyle() {
     const theme = effectiveTheme(userPreferences, systemTheme === 'dark');
@@ -346,7 +363,8 @@ const {
     return resolveMapInteractionStyle({
       theme,
       selectionColor: userPreferences.selection.color,
-      selectionMode: userPreferences.selection.mode,
+      outlineVisible: userPreferences.selection.outlineVisible,
+      fillStrength: userPreferences.selection.fillStrength,
       tokens: {
         accent: computed.getPropertyValue('--accent').trim(),
         accent2: computed.getPropertyValue('--accent-2').trim(),
@@ -481,7 +499,7 @@ const {
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeRiverMethodBtn', 'modeComponentsMethodBtn', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
-    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesSelectionModeInput', 'preferencesSelectionColorInput', 'preferencesSelectionColorTrigger', 'preferencesSelectionColorValue', 'preferencesSelectionColorPopover', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
+    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesCountryLabelFontInput', 'preferencesCountryLabelColorInput', 'preferencesCountryLabelColorTrigger', 'preferencesCountryLabelColorValue', 'preferencesCountryLabelColorPopover', 'preferencesPlaceLabelFontInput', 'preferencesPlaceLabelColorInput', 'preferencesPlaceLabelColorTrigger', 'preferencesPlaceLabelColorValue', 'preferencesPlaceLabelColorPopover', 'preferencesPlacePointColorInput', 'preferencesPlacePointColorTrigger', 'preferencesPlacePointColorValue', 'preferencesPlacePointColorPopover', 'preferencesSelectionColorInput', 'preferencesSelectionColorTrigger', 'preferencesSelectionColorValue', 'preferencesSelectionColorPopover', 'preferencesSelectionOutlineInput', 'preferencesSelectionFillStrengthInput', 'preferencesSelectionFillStrengthValue', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
     'addCountryBtn', 'addTerritoryBtn', 'addAdministrativeBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
     'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
@@ -5400,7 +5418,7 @@ const {
     userPreferences = persist ? saveUserPreferences(nextPreferences) : nextPreferences;
     const resolvedTheme = effectiveTheme(userPreferences, systemTheme === 'dark');
     document.documentElement.dataset.theme = resolvedTheme;
-    document.documentElement.dataset.selectionMode = userPreferences.selection.mode;
+    applyMapLabelPreferences();
     document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
     syncResolvedInteractionStyle();
     syncGpuCountryEmphasis();
@@ -7024,7 +7042,6 @@ const {
       primaryId: primary?.domain === 'territorial' && primary.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? primary.id : '',
       hoverId: hoveredCountryId,
       selectedIds: countryIds,
-      selectionMode: userPreferences.selection.mode,
     });
   }
 
@@ -9517,6 +9534,7 @@ const {
     const cached = riverAnnexCandidateCache.get(signature);
     if (cached) {
       state.annexRiverAreaCandidates = structuredClone(cached.candidates);
+      window.__PANDOLAB_RIVER_ANNEX_DIAGNOSTICS__ = structuredClone(cached.diagnostics || {});
       state.annexRiverAreaStatus = cached.candidates.length ? 'ready' : 'empty';
       setModeBanner(cached.candidates.length
         ? '편입할 영역을 선택하세요. 여러 영역을 선택할 수 있습니다.'
@@ -11531,10 +11549,22 @@ const {
     return normalizeColorValue(value, fallback);
   }
 
+  function preferenceDefaultColor(kind) {
+    const token = kind === 'preferencesCountryLabel'
+      ? '--map-label'
+      : kind === 'preferencesPlaceLabel'
+        ? '--user-label-text'
+        : kind === 'preferencesPlacePoint'
+          ? '--user-label-dot'
+          : '';
+    const fallback = kind === 'preferencesSelection' ? defaultUserPreferences().selection.color : '#346733';
+    return token ? normalizeEditorColor(getComputedStyle(document.documentElement).getPropertyValue(token).trim(), fallback) : fallback;
+  }
+
   function syncColorPicker(kind, { value, defaultColor, isDefault }) {
     const picker = document.querySelector(`[data-color-picker="${kind}"]`);
     if (!picker) return;
-    const fallback = kind === 'preferencesSelection' ? defaultUserPreferences().selection.color
+    const fallback = kind.startsWith('preferences') ? preferenceDefaultColor(kind)
       : kind === 'country' ? defaultCountryColor()
       : (kind === 'territory' || kind === 'administrative') && (state.selected?.domain === 'territorial' && state.selected.type !== TERRITORIAL_UNIT_TYPES.COUNTRY)
         ? territorialUnitColor(territorialUnitById(state.selected.id))
@@ -11669,14 +11699,25 @@ const {
   }
 
   function applyColorPickerSelection(kind, value, isDefault = false) {
-    if (kind === 'preferencesSelection') {
-      const defaultColor = defaultUserPreferences().selection.color;
+    if (kind === 'preferencesSelection' || kind === 'preferencesCountryLabel' || kind === 'preferencesPlaceLabel' || kind === 'preferencesPlacePoint') {
+      const defaultColor = preferenceDefaultColor(kind);
       const color = normalizeEditorColor(value, defaultColor);
+      const nextLabels = structuredClone(userPreferences.labels);
+      const nextSelection = { ...userPreferences.selection };
+      if (kind === 'preferencesSelection') nextSelection.color = isDefault ? defaultUserPreferences().selection.color : color;
+      if (kind === 'preferencesCountryLabel') nextLabels.country.color = isDefault ? null : color;
+      if (kind === 'preferencesPlaceLabel') nextLabels.place.color = isDefault ? null : color;
+      if (kind === 'preferencesPlacePoint') nextLabels.place.pointColor = isDefault ? null : color;
       applyUserPreferences({
         ...userPreferences,
-        selection: { ...userPreferences.selection, color },
+        labels: nextLabels,
+        selection: nextSelection,
       });
-      syncColorPicker('preferencesSelection', { value: color, defaultColor, isDefault: false });
+      const resolvedValue = kind === 'preferencesSelection' ? userPreferences.selection.color
+        : kind === 'preferencesCountryLabel' ? userPreferences.labels.country.color
+          : kind === 'preferencesPlaceLabel' ? userPreferences.labels.place.color
+            : userPreferences.labels.place.pointColor;
+      syncColorPicker(kind, { value: resolvedValue || defaultColor, defaultColor, isDefault: !resolvedValue && kind !== 'preferencesSelection' });
       return true;
     }
     if (kind === 'multiProperties') {
@@ -15284,42 +15325,80 @@ const {
 
     $('dataExportBtn').addEventListener('click', openGisDataExport);
     const preferencesModal = $('preferencesModal');
+    let preferencesOrigin = null;
     const syncPreferencesForm = () => {
       $('preferencesThemeInput').value = userPreferences.appearance.theme;
-      $('preferencesSelectionModeInput').value = userPreferences.selection.mode;
+      $('preferencesCountryLabelFontInput').value = userPreferences.labels.country.font;
+      $('preferencesPlaceLabelFontInput').value = userPreferences.labels.place.font;
       $('preferencesSelectionColorInput').value = userPreferences.selection.color;
+      $('preferencesSelectionOutlineInput').checked = userPreferences.selection.outlineVisible;
+      $('preferencesSelectionFillStrengthInput').value = String(Math.round(userPreferences.selection.fillStrength * 100));
+      $('preferencesSelectionFillStrengthValue').value = `${Math.round(userPreferences.selection.fillStrength * 100)}%`;
       syncColorPicker('preferencesSelection', {
         value: userPreferences.selection.color,
         defaultColor: defaultUserPreferences().selection.color,
         isDefault: false,
       });
+      syncColorPicker('preferencesCountryLabel', {
+        value: userPreferences.labels.country.color || preferenceDefaultColor('preferencesCountryLabel'),
+        defaultColor: preferenceDefaultColor('preferencesCountryLabel'),
+        isDefault: !userPreferences.labels.country.color,
+      });
+      syncColorPicker('preferencesPlaceLabel', {
+        value: userPreferences.labels.place.color || preferenceDefaultColor('preferencesPlaceLabel'),
+        defaultColor: preferenceDefaultColor('preferencesPlaceLabel'),
+        isDefault: !userPreferences.labels.place.color,
+      });
+      syncColorPicker('preferencesPlacePoint', {
+        value: userPreferences.labels.place.pointColor || preferenceDefaultColor('preferencesPlacePoint'),
+        defaultColor: preferenceDefaultColor('preferencesPlacePoint'),
+        isDefault: !userPreferences.labels.place.pointColor,
+      });
     };
-    const closePreferences = ({ restoreFocus = true } = {}) => {
+    const preferencesFromForm = () => ({
+      version: userPreferences.version,
+      appearance: { theme: $('preferencesThemeInput').value },
+      labels: {
+        country: { ...userPreferences.labels.country, font: $('preferencesCountryLabelFontInput').value },
+        place: { ...userPreferences.labels.place, font: $('preferencesPlaceLabelFontInput').value },
+      },
+      selection: {
+        ...userPreferences.selection,
+        outlineVisible: $('preferencesSelectionOutlineInput').checked,
+        fillStrength: Number($('preferencesSelectionFillStrengthInput').value) / 100,
+      },
+    });
+    const applyPreferencesForm = () => {
+      applyUserPreferences(preferencesFromForm());
+      syncPreferencesForm();
+    };
+    const closePreferences = ({ restoreFocus = true, revert = false } = {}) => {
       if (!preferencesModal || preferencesModal.classList.contains('hidden')) return;
+      if (revert && preferencesOrigin) applyUserPreferences(preferencesOrigin);
+      preferencesOrigin = null;
       preferencesModal.classList.add('hidden');
       if (restoreFocus) $('preferencesBtn')?.focus({ preventScroll: true });
     };
     const openPreferences = () => {
       syncPreferencesForm();
+      preferencesOrigin = structuredClone(userPreferences);
       preferencesModal?.classList.remove('hidden');
       $('preferencesThemeInput')?.focus({ preventScroll: true });
     };
     $('preferencesBtn')?.addEventListener('click', openPreferences);
-    $('preferencesCloseBtn')?.addEventListener('click', () => closePreferences());
-    $('preferencesCancelBtn')?.addEventListener('click', () => closePreferences());
-    preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences());
+    $('preferencesCloseBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
+    $('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
+    preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences({ revert: true }));
     $('preferencesResetBtn')?.addEventListener('click', () => {
       applyUserPreferences(defaultUserPreferences());
       syncPreferencesForm();
     });
-    $('preferencesApplyBtn')?.addEventListener('click', () => {
-      applyUserPreferences({
-        version: 1,
-        appearance: { theme: $('preferencesThemeInput').value },
-        selection: { mode: $('preferencesSelectionModeInput').value, color: $('preferencesSelectionColorInput').value },
-      });
-      closePreferences();
-    });
+    $('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
+    $('preferencesCountryLabelFontInput')?.addEventListener('change', applyPreferencesForm);
+    $('preferencesPlaceLabelFontInput')?.addEventListener('change', applyPreferencesForm);
+    $('preferencesSelectionOutlineInput')?.addEventListener('change', applyPreferencesForm);
+    $('preferencesSelectionFillStrengthInput')?.addEventListener('input', applyPreferencesForm);
+    $('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
     $('gisExportCloseBtn').addEventListener('click', closeGisDataExport);
     $('gisExportCancelBtn').addEventListener('click', closeGisDataExport);
     $('gisExportModal').querySelector('.ui-dialog-backdrop')?.addEventListener('click', closeGisDataExport);

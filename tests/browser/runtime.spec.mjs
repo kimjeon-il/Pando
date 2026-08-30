@@ -212,7 +212,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r26')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r27')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -220,7 +220,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r26');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r27');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -306,7 +306,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
 test('river annex candidate Worker returns independent canonical land pockets', async ({ page }) => {
   await page.goto('/');
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r26', { type: 'module' });
+    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r27', { type: 'module' });
     const polygon = (id, coordinates) => ({
       type: 'Feature', id,
       properties: { editor_id: id },
@@ -314,11 +314,17 @@ test('river annex candidate Worker returns independent canonical land pockets', 
     });
     const river = {
       type: 'Feature', id: 'logical-river',
-      properties: { pandolab_id: 'logical-river', category: 'river' },
-      geometry: { type: 'LineString', coordinates: [[0, 1], [1, 2], [0, 3], [1, 4], [0, 5]] },
+      properties: { pandolab_id: 'logical-river', source_logical_id: 'logical-river', category: 'river' },
+      geometry: {
+        type: 'MultiLineString',
+        coordinates: [
+          [[0.002, 0.01], [0.002, 0.04]],
+          [[0.002, 0.06], [0.002, 0.09]],
+        ],
+      },
     };
-    const target = polygon('target', [[-5, 0], [0, 0], [0, 10], [-5, 10], [-5, 0]]);
-    const donor = polygon('donor', [[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]);
+    const target = polygon('target', [[-0.1, 0], [0, 0], [0, 0.1], [-0.1, 0.1], [-0.1, 0]]);
+    const donor = polygon('donor', [[0, 0], [0.1, 0], [0.1, 0.1], [0, 0.1], [0, 0]]);
     return await new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('river annex candidate Worker timeout')), 15_000);
       worker.addEventListener('error', event => {
@@ -337,6 +343,104 @@ test('river annex candidate Worker returns independent canonical land pockets', 
   expect(result.candidates).toHaveLength(2);
   expect(new Set(result.candidates.map(candidate => candidate.key)).size).toBe(2);
   expect(result.candidates.every(candidate => candidate.donorCountryId === 'donor')).toBe(true);
+  expect(result.candidates.every(candidate => candidate.algorithmRevision === 'river-areas-v2')).toBe(true);
+  expect(result.diagnostics.matchedParallelRuns).toBe(2);
+});
+
+test('river annex V2 finds Danube and Rhine pockets from source geometry in both directions', async ({ page }) => {
+  await page.goto('/');
+  const result = await page.evaluate(async () => {
+    const countries = await fetch('/assets/data/countries-ne-5.1.1.geojson').then(response => response.json());
+    const byId = new Map(countries.features.map(feature => [feature.properties.iso_a3, feature]));
+    const annex = await import('/assets/js/modules/annex-geometry.js?v=river-annex-v2-browser');
+    const sourceWorker = new Worker('/assets/js/workers/hydro-annex-source-worker.js?v=river-annex-v2-browser');
+    const candidateWorker = new Worker('/assets/js/workers/river-annex-worker.js?v=river-annex-v2-browser', { type: 'module' });
+    let requestId = 0;
+    const request = (worker, message, acceptedTypes) => new Promise((resolve, reject) => {
+      const id = ++requestId;
+      const timer = setTimeout(() => reject(new Error(`river annex worker timeout: ${message.type}`)), 30_000);
+      const onError = event => {
+        clearTimeout(timer);
+        worker.removeEventListener('message', onMessage);
+        reject(new Error(event.message || `river annex worker error: ${message.type}`));
+      };
+      const onMessage = event => {
+        if (Number(event.data?.requestId) !== id) return;
+        clearTimeout(timer);
+        worker.removeEventListener('message', onMessage);
+        worker.removeEventListener('error', onError);
+        if (!acceptedTypes.includes(event.data?.type) || event.data?.type?.endsWith('-error') || event.data?.type === 'error') {
+          reject(new Error(event.data?.message || `unexpected river annex response: ${event.data?.type}`));
+        } else resolve(event.data);
+      };
+      worker.addEventListener('message', onMessage);
+      worker.addEventListener('error', onError, { once: true });
+      worker.postMessage({ ...message, requestId: id });
+    });
+    const loadSources = async (target, donor) => {
+      const raw = annex.riverAnnexDiscoveryBounds(target.geometry, [donor.geometry]);
+      const bounds = annex.expandRiverAnnexDiscoveryBounds(raw, annex.RIVER_ANNEX_CONFIG.discoveryRadiusM);
+      const query = await request(sourceWorker, { type: 'query-logical-features', bounds, category: 'river' }, ['logical-features']);
+      return Promise.all(query.logicalFids.map(async logicalFid => (
+        await request(sourceWorker, { type: 'load-feature', logicalFid }, ['feature'])
+      ).feature));
+    };
+    const cases = [];
+    try {
+      for (const [name, leftId, rightId, expectedLogicalId, rejectedLogicalId] of [
+        ['danube', 'ROU', 'BGR', '2362', '2336'],
+        ['rhine', 'FRA', 'DEU', '2373', null],
+      ]) {
+        const left = byId.get(leftId);
+        const right = byId.get(rightId);
+        const rivers = await loadSources(left, right);
+        const directions = [];
+        for (const [targetFeature, donorFeature] of [[left, right], [right, left]]) {
+          const response = await request(candidateWorker, {
+            type: 'compute',
+            payload: {
+              targetFeature,
+              donorFeatures: [donorFeature],
+              riverFeatures: rivers,
+              topologyRevision: `${name}:${targetFeature.properties.iso_a3}`,
+              sourceDiagnostics: {
+                discoveredLogicalRivers: rivers.length,
+                loadedRivers: rivers.length,
+                failedRiverLoads: 0,
+              },
+            },
+          }, ['result']);
+          directions.push({
+            candidateCount: response.result.candidates.length,
+            sourceLogicalIds: [...new Set(response.result.candidates.flatMap(candidate => candidate.sourceLogicalRiverIds))],
+            diagnostics: response.result.diagnostics,
+          });
+        }
+        cases.push({
+          name,
+          discoveredLogicalIds: rivers.map(feature => feature.properties.source_logical_id),
+          expectedLogicalId,
+          rejectedLogicalId,
+          directions,
+        });
+      }
+      return cases;
+    } finally {
+      sourceWorker.terminate();
+      candidateWorker.terminate();
+    }
+  });
+  for (const item of result) {
+    expect(item.discoveredLogicalIds).toContain(item.expectedLogicalId);
+    for (const direction of item.directions) {
+      expect(direction.candidateCount).toBeGreaterThan(0);
+      expect(direction.sourceLogicalIds).toContain(item.expectedLogicalId);
+      if (item.rejectedLogicalId) expect(direction.sourceLogicalIds).not.toContain(item.rejectedLogicalId);
+      expect(direction.diagnostics.matchedParallelRuns).toBeGreaterThan(0);
+      expect(direction.diagnostics.computeMs).toBeLessThan(1000);
+      expect(direction.diagnostics.failedRiverLoads).toBe(0);
+    }
+  }
 });
 
 test('wide keeps layers visible while the add popover opens', async ({ page }) => {

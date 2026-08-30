@@ -1,28 +1,80 @@
 const STORAGE_KEY = 'pandolab-user-preferences';
-const DEFAULTS = Object.freeze({
-  version: 1,
-  appearance: Object.freeze({ theme: 'system' }),
-  selection: Object.freeze({ mode: 'outline-soft-fill', color: '#346733' }),
-});
 
 const THEMES = new Set(['system', 'light', 'dark']);
-const SELECTION_MODES = new Set(['outline', 'outline-soft-fill', 'strong-fill']);
+const LABEL_FONTS = new Set(['default', 'gothic', 'serif']);
+const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
-function normalizeColor(value, fallback) {
-  const text = String(value || '').trim();
-  return /^#[0-9a-f]{6}$/i.test(text) ? text.toLowerCase() : fallback;
+const DEFAULTS = Object.freeze({
+  version: 2,
+  appearance: Object.freeze({ theme: 'system' }),
+  labels: Object.freeze({
+    country: Object.freeze({ font: 'default', color: null }),
+    place: Object.freeze({ font: 'default', color: null, pointColor: null }),
+  }),
+  selection: Object.freeze({ color: '#346733', outlineVisible: true, fillStrength: 0.35 }),
+});
+
+function normalizeColor(value, fallback = null) {
+  if (value == null || value === '') return fallback;
+  const text = String(value).trim();
+  return COLOR_PATTERN.test(text) ? text.toLowerCase() : fallback;
+}
+
+function normalizeFillStrength(value, fallback) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? Math.max(0, Math.min(1, numeric)) : fallback;
+}
+
+function normalizeLabelFont(value, fallback) {
+  return LABEL_FONTS.has(value) ? value : fallback;
 }
 
 export function defaultUserPreferences() {
-  return { version: 1, appearance: { theme: 'system' }, selection: { mode: DEFAULTS.selection.mode, color: DEFAULTS.selection.color } };
+  return {
+    version: DEFAULTS.version,
+    appearance: { theme: DEFAULTS.appearance.theme },
+    labels: {
+      country: { font: DEFAULTS.labels.country.font, color: DEFAULTS.labels.country.color },
+      place: {
+        font: DEFAULTS.labels.place.font,
+        color: DEFAULTS.labels.place.color,
+        pointColor: DEFAULTS.labels.place.pointColor,
+      },
+    },
+    selection: {
+      color: DEFAULTS.selection.color,
+      outlineVisible: DEFAULTS.selection.outlineVisible,
+      fillStrength: DEFAULTS.selection.fillStrength,
+    },
+  };
 }
 
 export function normalizeUserPreferences(value) {
   const defaults = defaultUserPreferences();
-  const source = value && typeof value === 'object' ? value : {};
+  const source = value && typeof value === 'object' && Number(value.version) === DEFAULTS.version ? value : {};
   const theme = THEMES.has(source.appearance?.theme) ? source.appearance.theme : defaults.appearance.theme;
-  const mode = SELECTION_MODES.has(source.selection?.mode) ? source.selection.mode : defaults.selection.mode;
-  return { version: 1, appearance: { theme }, selection: { mode, color: normalizeColor(source.selection?.color, defaults.selection.color) } };
+  const fillStrength = normalizeFillStrength(source.selection?.fillStrength, defaults.selection.fillStrength);
+  const outlineVisible = source.selection?.outlineVisible !== false || fillStrength === 0;
+  return {
+    version: DEFAULTS.version,
+    appearance: { theme },
+    labels: {
+      country: {
+        font: normalizeLabelFont(source.labels?.country?.font, defaults.labels.country.font),
+        color: normalizeColor(source.labels?.country?.color),
+      },
+      place: {
+        font: normalizeLabelFont(source.labels?.place?.font, defaults.labels.place.font),
+        color: normalizeColor(source.labels?.place?.color),
+        pointColor: normalizeColor(source.labels?.place?.pointColor),
+      },
+    },
+    selection: {
+      color: normalizeColor(source.selection?.color, defaults.selection.color),
+      outlineVisible,
+      fillStrength,
+    },
+  };
 }
 
 export function loadUserPreferences(storage = globalThis.localStorage) {
@@ -41,4 +93,4 @@ export function effectiveTheme(preference, prefersDark = false) {
   return theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
 }
 
-export { STORAGE_KEY, DEFAULTS };
+export { STORAGE_KEY, DEFAULTS, LABEL_FONTS };

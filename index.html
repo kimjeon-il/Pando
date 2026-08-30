@@ -8,8 +8,8 @@
   <link rel="icon" href="data:," />
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r26" />
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r27" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -785,14 +785,48 @@
     <section class="ui-dialog-card preferences-card">
       <header class="ui-dialog-header"><div><span class="ui-dialog-kicker">개인 설정</span><h2 id="preferencesTitle">환경설정</h2></div><button id="preferencesCloseBtn" class="ui-button icon-btn" type="button" aria-label="환경설정 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
       <div class="preferences-fields">
-        <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
-        <label class="ui-field field-group"><span>선택 표시</span><select id="preferencesSelectionModeInput"><option value="outline">외곽선만</option><option value="outline-soft-fill">외곽선 + 옅은 채움</option><option value="strong-fill">강한 채움</option></select></label>
-        <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesSelection">
-          <label id="preferencesSelectionColorLabel">선택 색상</label>
-          <button id="preferencesSelectionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesSelectionColorPopover" aria-labelledby="preferencesSelectionColorLabel preferencesSelectionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesSelectionColorValue" class="ui-color-value">#346733</span></button>
-          <input id="preferencesSelectionColorInput" class="ui-native-color-input" type="color" value="#346733" tabindex="-1" aria-hidden="true" />
-          <div id="preferencesSelectionColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="선택 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
-        </div>
+        <section class="preferences-section" aria-labelledby="preferencesAppearanceTitle">
+          <h3 id="preferencesAppearanceTitle">화면</h3>
+          <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
+        </section>
+        <section class="preferences-section" aria-labelledby="preferencesLabelsTitle">
+          <h3 id="preferencesLabelsTitle">지도 글자</h3>
+          <fieldset class="preferences-subgroup"><legend>국가명</legend>
+            <label class="ui-field field-group"><span>글꼴</span><select id="preferencesCountryLabelFontInput"><option value="default">기본</option><option value="gothic">고딕</option><option value="serif">명조</option></select></label>
+            <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesCountryLabel">
+              <label id="preferencesCountryLabelColorLabel">글자 색상</label>
+              <button id="preferencesCountryLabelColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesCountryLabelColorPopover" aria-labelledby="preferencesCountryLabelColorLabel preferencesCountryLabelColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesCountryLabelColorValue" class="ui-color-value">기본 색상</span></button>
+              <input id="preferencesCountryLabelColorInput" class="ui-native-color-input" type="color" value="#d8dee5" tabindex="-1" aria-hidden="true" />
+              <div id="preferencesCountryLabelColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="국가명 글자 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
+            </div>
+          </fieldset>
+          <fieldset class="preferences-subgroup"><legend>지명</legend>
+            <label class="ui-field field-group"><span>글꼴</span><select id="preferencesPlaceLabelFontInput"><option value="default">기본</option><option value="gothic">고딕</option><option value="serif">명조</option></select></label>
+            <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesPlaceLabel">
+              <label id="preferencesPlaceLabelColorLabel">글자 색상</label>
+              <button id="preferencesPlaceLabelColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesPlaceLabelColorPopover" aria-labelledby="preferencesPlaceLabelColorLabel preferencesPlaceLabelColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesPlaceLabelColorValue" class="ui-color-value">기본 색상</span></button>
+              <input id="preferencesPlaceLabelColorInput" class="ui-native-color-input" type="color" value="#f1e4be" tabindex="-1" aria-hidden="true" />
+              <div id="preferencesPlaceLabelColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="지명 글자 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
+            </div>
+            <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesPlacePoint">
+              <label id="preferencesPlacePointColorLabel">지점 색상</label>
+              <button id="preferencesPlacePointColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesPlacePointColorPopover" aria-labelledby="preferencesPlacePointColorLabel preferencesPlacePointColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesPlacePointColorValue" class="ui-color-value">기본 색상</span></button>
+              <input id="preferencesPlacePointColorInput" class="ui-native-color-input" type="color" value="#e0c26f" tabindex="-1" aria-hidden="true" />
+              <div id="preferencesPlacePointColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="지명 지점 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
+            </div>
+          </fieldset>
+        </section>
+        <section class="preferences-section" aria-labelledby="preferencesSelectionTitle">
+          <h3 id="preferencesSelectionTitle">선택 표시</h3>
+          <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesSelection">
+            <label id="preferencesSelectionColorLabel">선택 색상</label>
+            <button id="preferencesSelectionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesSelectionColorPopover" aria-labelledby="preferencesSelectionColorLabel preferencesSelectionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesSelectionColorValue" class="ui-color-value">#346733</span></button>
+            <input id="preferencesSelectionColorInput" class="ui-native-color-input" type="color" value="#346733" tabindex="-1" aria-hidden="true" />
+            <div id="preferencesSelectionColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="선택 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
+          </div>
+          <label class="ui-choice-row"><input id="preferencesSelectionOutlineInput" type="checkbox" /><span>외곽선 표시</span></label>
+          <label class="ui-field field-group preferences-range-field"><span>채움 강도 <output id="preferencesSelectionFillStrengthValue" for="preferencesSelectionFillStrengthInput">35%</output></span><input id="preferencesSelectionFillStrengthInput" type="range" min="0" max="100" step="1" value="35" /></label>
+        </section>
       </div>
       <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>
     </section>
@@ -980,8 +1014,8 @@
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r26" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r26" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r26" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r27" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r27" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r27" defer></script>
 </body>
 </html>
