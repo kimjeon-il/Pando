@@ -15,7 +15,7 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.30.0-r15", INDEX)
+            self.assertIn(f"{asset}?v=0.30.0-r18", INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
@@ -30,6 +30,16 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_transient_button_flash_is_removed(self):
         self.assertNotIn("function flashButton", APP)
         self.assertNotIn("button-flash", CSS)
+
+    def test_layer_hydration_is_scoped_and_present_in_initial_markup(self):
+        self.assertIn('id="layerSection" class="panel-section ui-panel--dense layer-panel-section is-hydrating"', INDEX)
+        self.assertIn('aria-busy="true"', INDEX)
+        self.assertRegex(INDEX, r'id="layerSearchInput"[^>]*disabled')
+        self.assertEqual(INDEX.count('class="layer-skeleton-group"'), 3)
+        self.assertEqual(INDEX.count('class="layer-skeleton-row"'), 10)
+        self.assertIn('.layer-panel-section.is-hydrating .layer-real-items { display: none; }', CSS)
+        self.assertIn('async function completeLayerTreeHydration()', APP)
+        self.assertNotIn('body.is-hydrating', CSS)
 
     def test_native_selection_controls_are_visually_normalized(self):
         self.assertIn('input[type="checkbox"],\ninput[type="radio"]', CSS)

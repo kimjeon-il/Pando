@@ -91,12 +91,11 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   await page.locator('#mobileZoomInBtn').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_REVISION__ || 0)).toBeGreaterThan(viewRevisionBefore);
   await page.locator('#mobileMapBtn').click();
-  const countryFolder = page.locator('[data-layer-folder-toggle="countries"]').first();
-  if (await countryFolder.getAttribute('aria-expanded') !== 'true') await countryFolder.click();
-  const previewCountry = page.locator('#countriesLayerChildren .layer-child-name').first();
-  const selectedCountryName = (await previewCountry.textContent()).trim();
-  await previewCountry.click();
-  await expect(page.locator('#selectionStatus')).toContainText(selectedCountryName);
+  await expect(page.locator('#layerSection')).toHaveClass(/is-hydrating/);
+  await expect(page.locator('#layerSection')).toHaveAttribute('aria-busy', 'true');
+  await expect(page.locator('#layerSearchInput')).toBeDisabled();
+  await expect(page.locator('.layer-category > .layer-skeleton-group').first()).toBeVisible();
+  await expect(page.locator('.layer-real-items').first()).toBeHidden();
   await page.locator('#mobileCreateBtn').click();
   await expect(page.locator('#createMenu .create-menu-item').first()).toBeDisabled();
   await expect(page.locator('#newProjectBtn')).toBeDisabled();
@@ -122,6 +121,17 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   await expect(page.locator('#newProjectBtn')).toBeEnabled();
   await expect(page.locator('#saveProjectBtn')).toBeEnabled();
   await expect(page.locator('#openGisBtn')).toBeEnabled();
+  if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
+  await expect(page.locator('#layerSection')).not.toHaveClass(/is-hydrating/);
+  await expect(page.locator('#layerSection')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('#layerSearchInput')).toBeEnabled();
+  await expect(page.locator('.layer-category > .layer-skeleton-group').first()).toBeHidden();
+  await expect(page.locator('.layer-real-items').first()).toBeVisible();
+  const countryFolder = page.locator('[data-layer-folder-toggle="countries"]').first();
+  if (await countryFolder.getAttribute('aria-expanded') !== 'true') await countryFolder.click();
+  const country = page.locator('#countriesLayerChildren .layer-child-name').first();
+  const selectedCountryName = (await country.textContent()).trim();
+  await country.click();
   await expect(page.locator('#selectionStatus')).toContainText(selectedCountryName);
   expect(await page.evaluate(() => window.__PANDOLAB_STARTUP_EVENTS__)).toEqual(['interactive', 'editable']);
   expect((await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {})).meshQuality).toBe('preview');
@@ -242,8 +252,8 @@ test('a damaged cached country asset is deleted and recovered from the network',
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(async () => {
-    const cache = await caches.open('pandolab-core-0.30.0-r15');
-    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r15', location.href);
+    const cache = await caches.open('pandolab-core-0.30.0-r18');
+    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r18', location.href);
     await cache.put(url, new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'Content-Type': 'application/gzip' } }));
   });
   let recoveryRequests = 0;

@@ -1,5 +1,3 @@
-import { SELECTION_STYLE } from './selection-emphasis.js';
-
 export function resolveRenderPixelRatioValue(devicePixelRatio, mobileLayout = false) {
   const deviceRatio = Math.max(1, Number(devicePixelRatio || 1));
   return Math.min(mobileLayout ? 2 : 3, deviceRatio);
@@ -145,6 +143,9 @@ export function createGpuMapRenderer(deps) {
     let hydroAcceptedRevision = 0;
     let hydroActivePackIds = new Set();
     const hydroPacks = new Map();
+    let hydroEditEntries = [];
+    let hydroEditRevision = -1;
+    const hydroEditFeatureByFid = new Map();
     const hydroUploadQueue = [];
     let hydroUploadFrame = 0;
     let hydroVisibilityDirty = true;
@@ -161,11 +162,16 @@ export function createGpuMapRenderer(deps) {
     let overridePaletteTexture = null;
     let emphasisPaletteTexture = null;
     let overrideEmphasisPaletteTexture = null;
-    let primaryBoundaryPaletteTexture = null;
-    let secondaryBoundaryPaletteTexture = null;
-    let overridePrimaryBoundaryPaletteTexture = null;
-    let overrideSecondaryBoundaryPaletteTexture = null;
-    let countryEmphasis = { primaryId: '', selectedIds: new Set(), selectionMode: 'outline-soft-fill' };
+    let interactionStyle = {
+      hover: { color: '#e2c982', fillAlpha: 0.07 },
+      selection: {
+        color: '#346733', casingColor: '#f2f4f6',
+        primary: { innerWidth: 2.5, innerAlpha: 1, outerWidth: 4, casingAlpha: 0.72, fillAlpha: 0.13 },
+        secondary: { innerWidth: 1.5, innerAlpha: 0.72, outerWidth: 2.8, casingAlpha: 0.48, fillAlpha: 0.08 },
+      },
+      drawOrder: ['hover', 'secondary-casing', 'secondary-inner', 'primary-casing', 'primary-inner'],
+    };
+    let countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set(), selectionMode: 'outline-soft-fill' };
     let countryEmphasisRevision = 0;
     let overridePositionBuffer = null;
     let overrideCountryBuffer = null;
@@ -799,10 +805,6 @@ export function createGpuMapRenderer(deps) {
       overridePaletteTexture = gl.createTexture();
       emphasisPaletteTexture = gl.createTexture();
       overrideEmphasisPaletteTexture = gl.createTexture();
-      primaryBoundaryPaletteTexture = gl.createTexture();
-      secondaryBoundaryPaletteTexture = gl.createTexture();
-      overridePrimaryBoundaryPaletteTexture = gl.createTexture();
-      overrideSecondaryBoundaryPaletteTexture = gl.createTexture();
       hydroVisibilityTexture = gl.createTexture();
       hydroCornerBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
@@ -830,7 +832,7 @@ export function createGpuMapRenderer(deps) {
       terrainActiveFetches = 0;
       terrainTileFailures.clear();
       terrainGridMeshes.clear();
-      for (const entry of hydroPacks.values()) {
+      for (const entry of [...hydroPacks.values(), ...hydroEditEntries]) {
         entry.resources = null;
         entry.uploadState = null;
         entry.uploadQueued = false;
@@ -1402,17 +1404,19 @@ export function createGpuMapRenderer(deps) {
     function countryEmphasisStyle(id) {
       const normalizedId = String(id || '');
       const kind = normalizedId === countryEmphasis.primaryId ? 'primary'
-        : countryEmphasis.selectedIds.has(normalizedId) ? 'secondary' : '';
+        : countryEmphasis.selectedIds.has(normalizedId) ? 'secondary'
+          : normalizedId === countryEmphasis.hoverId ? 'hover' : '';
       if (!kind) return null;
-      const fillAlpha = countryEmphasis.selectionMode === 'strong-fill'
-        ? { primary: 92, secondary: 51 }
-        : countryEmphasis.selectionMode === 'outline'
-          ? { primary: 0, secondary: 0 }
-          : { primary: 30, secondary: 20 };
-      const selectionRgb = parseColor(SELECTION_STYLE.color);
+      const fillAlpha = {
+        primary: Math.round(Number(interactionStyle.selection.primary.fillAlpha || 0) * 255),
+        secondary: Math.round(Number(interactionStyle.selection.secondary.fillAlpha || 0) * 255),
+        hover: Math.round(Number(interactionStyle.hover.fillAlpha || 0) * 255),
+      };
+      const selectionRgb = parseColor(kind === 'hover' ? interactionStyle.hover.color : interactionStyle.selection.color);
       const styles = {
         primary: { color: selectionRgb, alphaByte: fillAlpha.primary },
         secondary: { color: selectionRgb, alphaByte: fillAlpha.secondary },
+        hover: { color: selectionRgb, alphaByte: fillAlpha.hover },
       };
       return { kind, ...styles[kind] };
     }
@@ -1434,10 +1438,6 @@ export function createGpuMapRenderer(deps) {
       const overridePixels = new Uint8Array(meshCountryIds.length * 4);
       const emphasisPixels = new Uint8Array(meshCountryIds.length * 4);
       const overrideEmphasisPixels = new Uint8Array(meshCountryIds.length * 4);
-      const primaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
-      const secondaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
-      const overridePrimaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
-      const overrideSecondaryBoundaryPixels = new Uint8Array(meshCountryIds.length * 4);
       pendingOldMeshVisibleCount = 0;
       for (let index = 0; index < meshCountryIds.length; index += 1) {
         const id = meshCountryIds[index];
@@ -1463,28 +1463,12 @@ export function createGpuMapRenderer(deps) {
         }
         emphasisPixels[index * 4 + 3] = overridden ? 0 : emphasisAlpha;
         overrideEmphasisPixels[index * 4 + 3] = overridden && !pending ? emphasisAlpha : 0;
-        const boundaryAlpha = visible && emphasis
-          ? Math.round((emphasis.kind === 'primary' ? SELECTION_STYLE.primaryAlpha : SELECTION_STYLE.secondaryAlpha) * 255)
-          : 0;
-        for (const pixels of [primaryBoundaryPixels, secondaryBoundaryPixels, overridePrimaryBoundaryPixels, overrideSecondaryBoundaryPixels]) {
-          pixels[index * 4] = emphasisColor[0];
-          pixels[index * 4 + 1] = emphasisColor[1];
-          pixels[index * 4 + 2] = emphasisColor[2];
-        }
-        primaryBoundaryPixels[index * 4 + 3] = !overridden && emphasis?.kind === 'primary' ? boundaryAlpha : 0;
-        secondaryBoundaryPixels[index * 4 + 3] = !overridden && emphasis?.kind === 'secondary' ? boundaryAlpha : 0;
-        overridePrimaryBoundaryPixels[index * 4 + 3] = overridden && !pending && emphasis?.kind === 'primary' ? boundaryAlpha : 0;
-        overrideSecondaryBoundaryPixels[index * 4 + 3] = overridden && !pending && emphasis?.kind === 'secondary' ? boundaryAlpha : 0;
         if (pending && (basePixels[index * 4 + 3] || overridePixels[index * 4 + 3])) pendingOldMeshVisibleCount += 1;
       }
       uploadPalette(paletteTexture, basePixels);
       uploadPalette(overridePaletteTexture, overridePixels);
       uploadPalette(emphasisPaletteTexture, emphasisPixels);
       uploadPalette(overrideEmphasisPaletteTexture, overrideEmphasisPixels);
-      uploadPalette(primaryBoundaryPaletteTexture, primaryBoundaryPixels);
-      uploadPalette(secondaryBoundaryPaletteTexture, secondaryBoundaryPixels);
-      uploadPalette(overridePrimaryBoundaryPaletteTexture, overridePrimaryBoundaryPixels);
-      uploadPalette(overrideSecondaryBoundaryPaletteTexture, overrideSecondaryBoundaryPixels);
     }
 
     function rotationRows() {
@@ -1731,15 +1715,128 @@ export function createGpuMapRenderer(deps) {
       entry.resources = null;
     }
 
+    function hydroLineParts(geometry) {
+      if (geometry?.type === 'LineString') return [geometry.coordinates || []];
+      if (geometry?.type === 'MultiLineString') return geometry.coordinates || [];
+      return [];
+    }
+
+    function hydroPolygonParts(geometry) {
+      if (geometry?.type === 'Polygon') return [geometry.coordinates || []];
+      if (geometry?.type === 'MultiPolygon') return geometry.coordinates || [];
+      return [];
+    }
+
+    function buildHydroEditMesh(features, firstFid) {
+      const riverStarts = [], riverEnds = [], riverFeatureIds = [], riverStartWidths = [], riverEndWidths = [];
+      const borderRiverStarts = [], borderRiverEnds = [], borderRiverFeatureIds = [], borderRiverStartWidths = [], borderRiverEndWidths = [];
+      const lakePositions = [], lakeFeatureIds = [], lakeIndices = [];
+      const lakeBoundaryStarts = [], lakeBoundaryEnds = [], lakeBoundaryFeatureIds = [], lakeBoundaryWidths = [];
+      for (let featureIndex = 0; featureIndex < features.length; featureIndex += 1) {
+        const feature = features[featureIndex];
+        const fid = firstFid + featureIndex;
+        hydroEditFeatureByFid.set(fid, feature);
+        if (feature.properties?.category !== 'lake') {
+          const aligned = feature.properties?.border_aligned === true;
+          const starts = aligned ? borderRiverStarts : riverStarts;
+          const ends = aligned ? borderRiverEnds : riverEnds;
+          const ids = aligned ? borderRiverFeatureIds : riverFeatureIds;
+          const startWidths = aligned ? borderRiverStartWidths : riverStartWidths;
+          const endWidths = aligned ? borderRiverEndWidths : riverEndWidths;
+          for (const part of hydroLineParts(feature.geometry)) for (let index = 0; index < part.length - 1; index += 1) {
+            starts.push(Math.round(part[index][0] * 1e6), Math.round(part[index][1] * 1e6));
+            ends.push(Math.round(part[index + 1][0] * 1e6), Math.round(part[index + 1][1] * 1e6));
+            ids.push(fid);
+            const width = Number(feature.properties?.stroke_width || 1);
+            startWidths.push(width); endWidths.push(width);
+          }
+          continue;
+        }
+        for (const polygon of hydroPolygonParts(feature.geometry)) {
+          const vertices = [], holes = [];
+          for (let ringIndex = 0; ringIndex < polygon.length; ringIndex += 1) {
+            const sourceRing = polygon[ringIndex] || [];
+            const last = sourceRing[sourceRing.length - 1];
+            const ring = sourceRing.length > 1 && sourceRing[0][0] === last?.[0] && sourceRing[0][1] === last?.[1]
+              ? sourceRing.slice(0, -1) : sourceRing;
+            if (ring.length < 3) continue;
+            if (ringIndex) holes.push(vertices.length / 2);
+            for (const point of ring) vertices.push(point[0], point[1]);
+          }
+          if (vertices.length < 6) continue;
+          const base = lakePositions.length / 2;
+          const triangles = globalThis.earcut?.(vertices, holes, 2) || [];
+          for (let index = 0; index < vertices.length; index += 2) {
+            lakePositions.push(Math.round(vertices[index] * 1e6), Math.round(vertices[index + 1] * 1e6));
+            lakeFeatureIds.push(fid);
+          }
+          for (const triangle of triangles) lakeIndices.push(base + triangle);
+        }
+        const outline = countryOutlineFeature(feature);
+        for (const line of outline?.geometry?.coordinates || []) for (let index = 0; index < line.length - 1; index += 1) {
+          const start = line[index], end = line[index + 1];
+          lakeBoundaryStarts.push(Math.round(start[0] * 1e6), Math.round(start[1] * 1e6));
+          lakeBoundaryEnds.push(Math.round(end[0] * 1e6), Math.round(end[1] * 1e6));
+          lakeBoundaryFeatureIds.push(fid); lakeBoundaryWidths.push(1);
+        }
+      }
+      return {
+        riverStarts: new Int32Array(riverStarts), riverEnds: new Int32Array(riverEnds), riverFeatureIds: new Uint32Array(riverFeatureIds),
+        riverStartWidths: new Float32Array(riverStartWidths), riverEndWidths: new Float32Array(riverEndWidths),
+        borderRiverStarts: new Int32Array(borderRiverStarts), borderRiverEnds: new Int32Array(borderRiverEnds), borderRiverFeatureIds: new Uint32Array(borderRiverFeatureIds),
+        borderRiverStartWidths: new Float32Array(borderRiverStartWidths), borderRiverEndWidths: new Float32Array(borderRiverEndWidths),
+        lakePositions: new Int32Array(lakePositions), lakeFeatureIds: new Uint32Array(lakeFeatureIds), lakeIndices: new Uint32Array(lakeIndices),
+        lakeBoundaryStarts: new Int32Array(lakeBoundaryStarts), lakeBoundaryEnds: new Int32Array(lakeBoundaryEnds),
+        lakeBoundaryFeatureIds: new Uint32Array(lakeBoundaryFeatureIds), lakeBoundaryWidths: new Float32Array(lakeBoundaryWidths),
+      };
+    }
+
+    function setHydroEdits(features = [], revision = 0) {
+      const nextRevision = Number(revision || 0);
+      if (nextRevision === hydroEditRevision) return false;
+      for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
+      hydroEditEntries = [];
+      hydroEditFeatureByFid.clear();
+      const baseFid = Math.max(0, Number(hydroManifest?.stats?.featureCount || 0));
+      let nextFid = baseFid;
+      const groups = new Map();
+      for (const feature of features || []) {
+        if (!feature?.geometry) continue;
+        const category = feature.properties?.category === 'lake' ? 'lake' : 'river';
+        const color = String(feature.properties?.editorColor || hydroDisplayColor(category));
+        const key = `${category}:${color}`;
+        if (!groups.has(key)) groups.set(key, { category, color, features: [] });
+        groups.get(key).features.push(feature);
+      }
+      for (const group of groups.values()) {
+        const meshData = buildHydroEditMesh(group.features, nextFid);
+        const entry = { id: `edit:${group.category}:${group.color}`, mesh: meshData, color: group.color, resources: null, uploadQueued: false, lastUsed: performance.now() };
+        entry.byteLength = Object.values(meshData).reduce((sum, value) => sum + value.byteLength, 0);
+        hydroEditEntries.push(entry);
+        nextFid += group.features.length;
+        if (isWebGlRenderer()) scheduleHydroUpload(entry);
+      }
+      hydroEditRevision = nextRevision;
+      hydroVisibilityDirty = true;
+      if (rendererMode === 'canvas-worker' && canvasWorker) canvasWorker.postMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: deepClone(features || []) });
+      if (rendererMode !== 'pending') render(currentRenderRevision);
+      return true;
+    }
+
     function updateHydroVisibility() {
-      if (!gl || !hydroVisibilityTexture || !hydroManifest || !hydroVisibilityDirty) return;
-      const count = Math.max(1, Number(hydroManifest.stats?.featureCount || 1));
+      if (!gl || !hydroVisibilityTexture || !hydroVisibilityDirty) return;
+      const count = Math.max(1, Number(hydroManifest?.stats?.featureCount || 0) + hydroEditFeatureByFid.size);
       hydroVisibilityWidth = Math.min(4096, Math.max(1, count));
       hydroVisibilityHeight = Math.ceil(count / hydroVisibilityWidth);
       const pixels = new Uint8Array(hydroVisibilityWidth * hydroVisibilityHeight * 4);
       for (const [fidValue, feature] of state.hydroFeatureByFid?.entries?.() || []) {
         const fid = Number(fidValue);
         if (!Number.isInteger(fid) || fid < 0 || fid >= count || !isHydroFeatureVisible(feature)) continue;
+        const offset = fid * 4;
+        pixels[offset] = pixels[offset + 1] = pixels[offset + 2] = pixels[offset + 3] = 255;
+      }
+      for (const [fid, feature] of hydroEditFeatureByFid) {
+        if (!isHydroFeatureVisible(feature)) continue;
         const offset = fid * 4;
         pixels[offset] = pixels[offset + 1] = pixels[offset + 2] = pixels[offset + 3] = 255;
       }
@@ -1874,7 +1971,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawHydro(category, picking = false) {
-      if (!hydroManifest || !hydroActivePackIds.size) return;
+      if ((!hydroManifest || !hydroActivePackIds.size) && !hydroEditEntries.length) return;
       const theme = mapTheme();
       const isLake = category === 'lake' || category === 'lake-boundary';
       if (state.layerVisibility[isLake ? 'lakes' : 'rivers'] === false) return;
@@ -1891,6 +1988,10 @@ export function createGpuMapRenderer(deps) {
       for (const packId of hydroActivePackIds) {
         const entry = hydroPacks.get(packId);
         if (entry) drawHydroEntry(program, entry, category, color, picking);
+      }
+      for (const entry of picking ? [] : hydroEditEntries) {
+        const editRgb = parseColor(entry.color).map(value => value / 255);
+        drawHydroEntry(program, entry, category, [...editRgb, hydroOpacity], picking);
       }
     }
 
@@ -2282,6 +2383,11 @@ export function createGpuMapRenderer(deps) {
       hydroVisibilityDirty = true;
       for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
       hydroPacks.clear();
+      for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
+      hydroEditEntries = [];
+      hydroEditFeatureByFid.clear();
+      hydroEditRevision = -1;
+      setHydroEdits(state.hydroEdits || [], Number(state.stateRevision || 0));
       for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('강·호수 로더가 다시 시작되었습니다.'));
       hydroFeatureRequests.clear();
       state.hydroFragmentsByLogicalId = new Map();
@@ -2641,25 +2747,55 @@ export function createGpuMapRenderer(deps) {
       drawHydro('lake');
       drawHydro('lake-boundary');
       drawHydro('river');
+      drawHydro('border-river');
       if (state.layerVisibility.countries) {
         drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
         if (overrideMesh?.lineIndices?.length) drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture);
-      }
-      drawHydro('border-river');
-      if (state.layerVisibility.countries) {
-        const rgb = parseColor(SELECTION_STYLE.color).map(value => value / 255);
-        drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES, null, primaryBoundaryPaletteTexture, [...rgb, SELECTION_STYLE.primaryAlpha], SELECTION_STYLE.primaryWidth);
-        drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES, null, secondaryBoundaryPaletteTexture, [...rgb, SELECTION_STYLE.secondaryAlpha], SELECTION_STYLE.secondaryWidth);
-        if (overrideMesh?.lineIndices?.length) {
-          drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePrimaryBoundaryPaletteTexture, [...rgb, SELECTION_STYLE.primaryAlpha], SELECTION_STYLE.primaryWidth);
-          drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overrideSecondaryBoundaryPaletteTexture, [...rgb, SELECTION_STYLE.secondaryAlpha], SELECTION_STYLE.secondaryWidth);
-        }
       }
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
       frameTimes.push(performance.now() - started);
       if (frameTimes.length > 240) frameTimes.shift();
       window.__PANDOLAB_GPU_METRICS__ = getStats();
+    }
+
+    function renderCanvasHydro(canvasPath, theme) {
+      const builtIn = [];
+      for (const packId of hydroActivePackIds) builtIn.push(...(hydroPacks.get(packId)?.features || []));
+      const features = [...builtIn, ...(state.hydroEdits || [])];
+      ctx2d.lineCap = 'round';
+      ctx2d.lineJoin = 'round';
+      for (const feature of features) {
+        if (!feature?.geometry || !isHydroFeatureVisible(feature)) continue;
+        const lake = feature.properties?.category === 'lake';
+        if (state.layerVisibility[lake ? 'lakes' : 'rivers'] === false) continue;
+        const opacity = lake ? theme.lakeOpacity : theme.riverOpacity;
+        if (Number(opacity) <= 0) continue;
+        const color = feature.properties?.editorColor || hydroDisplayColor(lake ? 'lake' : 'river');
+        if (lake) {
+          ctx2d.beginPath(); canvasPath(feature);
+          ctx2d.globalAlpha = opacity; ctx2d.fillStyle = color; ctx2d.fill();
+          if (theme.lakeBoundaryVisible !== false) {
+            ctx2d.beginPath(); canvasPath(countryOutlineFeature(feature));
+            ctx2d.strokeStyle = color; ctx2d.lineWidth = Math.max(0.5, Number(theme.lakeBoundaryWidth) || 1); ctx2d.stroke();
+          }
+          continue;
+        }
+        const profiles = feature.properties?.stroke_widths || [];
+        const fallback = Math.max(0.55, Math.min(2.6, Number(feature.properties?.stroke_width || 0.8)));
+        ctx2d.globalAlpha = opacity; ctx2d.strokeStyle = color;
+        for (const [partIndex, part] of hydroLineParts(feature.geometry).entries()) {
+          const widths = profiles[partIndex] || [];
+          for (let index = 0; index < part.length - 1; index += 1) {
+            ctx2d.beginPath();
+            canvasPath({ type: 'LineString', coordinates: [part[index], part[index + 1]] });
+            const start = Number(widths[index] ?? fallback);
+            const end = Number(widths[index + 1] ?? start);
+            ctx2d.lineWidth = (start + end) / 2 * Math.max(0.5, Number(theme.riverWidth) || 1);
+            ctx2d.stroke();
+          }
+        }
+      }
     }
 
     function renderCanvasFallback() {
@@ -2669,45 +2805,40 @@ export function createGpuMapRenderer(deps) {
       ctx2d.setTransform(1, 0, 0, 1, 0, 0);
       ctx2d.clearRect(0, 0, pixelWidth, pixelHeight);
       ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (!state.layerVisibility.countries) return;
       const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
       const theme = mapTheme();
       ctx2d.lineJoin = 'round';
       ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
-      for (const feature of state.countriesData?.features || []) {
-        const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
-        if (!isLayerItemVisible('countries', id)) continue;
-        ctx2d.beginPath();
-        canvasPath(feature);
-        ctx2d.globalAlpha = theme.fillAlpha;
-        ctx2d.fillStyle = countryColor(feature);
-        ctx2d.fill();
-        const emphasis = countryEmphasisStyle(id);
-        if (emphasis) {
+      if (state.layerVisibility.countries) {
+        for (const feature of state.countriesData?.features || []) {
+          const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+          if (!isLayerItemVisible('countries', id)) continue;
           ctx2d.beginPath();
           canvasPath(feature);
-          ctx2d.globalAlpha = emphasis.alphaByte / 255;
-          ctx2d.fillStyle = colorHex(emphasis.color);
+          ctx2d.globalAlpha = theme.fillAlpha;
+          ctx2d.fillStyle = countryColor(feature);
           ctx2d.fill();
+          const emphasis = countryEmphasisStyle(id);
+          if (emphasis) {
+            ctx2d.beginPath();
+            canvasPath(feature);
+            ctx2d.globalAlpha = emphasis.alphaByte / 255;
+            ctx2d.fillStyle = colorHex(emphasis.color);
+            ctx2d.fill();
+          }
         }
-        ctx2d.beginPath();
-        canvasPath(countryOutlineFeature(feature));
-        ctx2d.globalAlpha = theme.borderAlpha;
-        ctx2d.strokeStyle = theme.border;
-        ctx2d.stroke();
       }
-      for (const feature of state.countriesData?.features || []) {
-        const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
-        if (!isLayerItemVisible('countries', id)) continue;
-        const emphasis = countryEmphasisStyle(id);
-        if (emphasis?.kind !== 'primary' && emphasis?.kind !== 'secondary') continue;
-        ctx2d.beginPath();
-        canvasPath(countryOutlineFeature(feature));
-        ctx2d.globalAlpha = emphasis.kind === 'primary' ? SELECTION_STYLE.primaryAlpha : SELECTION_STYLE.secondaryAlpha;
-        ctx2d.strokeStyle = SELECTION_STYLE.color;
-        ctx2d.lineWidth = emphasis.kind === 'primary' ? SELECTION_STYLE.primaryWidth : SELECTION_STYLE.secondaryWidth;
-        ctx2d.stroke();
-      }
+      renderCanvasHydro(canvasPath, theme);
+      if (state.layerVisibility.countries) for (const feature of state.countriesData?.features || []) {
+          const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+          if (!isLayerItemVisible('countries', id)) continue;
+          ctx2d.beginPath();
+          canvasPath(countryOutlineFeature(feature));
+          ctx2d.globalAlpha = theme.borderAlpha;
+          ctx2d.strokeStyle = theme.border;
+          ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
+          ctx2d.stroke();
+        }
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
     }
@@ -2742,18 +2873,18 @@ export function createGpuMapRenderer(deps) {
         colors,
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
+          hoverId: countryEmphasis.hoverId,
           selectedIds: [...countryEmphasis.selectedIds],
-          primaryColor: SELECTION_STYLE.color,
-          secondaryColor: SELECTION_STYLE.color,
-          primaryAlpha: countryEmphasis.selectionMode === 'strong-fill' ? 92 / 255 : countryEmphasis.selectionMode === 'outline' ? 0 : 30 / 255,
-          secondaryAlpha: countryEmphasis.selectionMode === 'strong-fill' ? 51 / 255 : countryEmphasis.selectionMode === 'outline' ? 0 : 20 / 255,
-          boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
-          primaryBoundaryColor: SELECTION_STYLE.color,
-          secondaryBoundaryColor: SELECTION_STYLE.color,
-          primaryBoundaryAlpha: SELECTION_STYLE.primaryAlpha,
-          secondaryBoundaryAlpha: SELECTION_STYLE.secondaryAlpha,
+          primaryColor: interactionStyle.selection.color,
+          secondaryColor: interactionStyle.selection.color,
+          hoverColor: interactionStyle.hover.color,
+          primaryAlpha: interactionStyle.selection.primary.fillAlpha,
+          secondaryAlpha: interactionStyle.selection.secondary.fillAlpha,
+          hoverAlpha: interactionStyle.hover.fillAlpha,
+          boundaryEnabled: false,
           selectionMode: countryEmphasis.selectionMode,
         },
+        interactionStyle,
         theme: mapTheme(),
         physicalSettings: deepClone(state.physicalSettings),
         darkTheme: getSystemTheme() === 'dark',
@@ -2839,6 +2970,7 @@ export function createGpuMapRenderer(deps) {
       const message = event.data || {};
       if (message.type === 'ready') {
         canvasWorkerReady = true;
+        canvasWorker.postMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: deepClone(state.hydroEdits || []) });
         const pending = canvasWorkerPendingMessage || canvasWorkerRenderMessage('render', currentRenderRevision);
         canvasWorkerPendingMessage = null;
         postCanvasWorkerFrame(pending);
@@ -3156,16 +3288,18 @@ export function createGpuMapRenderer(deps) {
       return decoded;
     }
 
-    function setCountryEmphasis({ primaryId = '', selectedIds = [], selectionMode = 'outline-soft-fill' } = {}) {
+    function setCountryEmphasis({ primaryId = '', hoverId = '', selectedIds = [], selectionMode = 'outline-soft-fill' } = {}) {
       const nextSelected = new Set((selectedIds || []).map(String).filter(Boolean));
       const nextPrimary = String(primaryId || '');
+      const nextHover = String(hoverId || '');
       const nextSelectionMode = ['outline', 'outline-soft-fill', 'strong-fill'].includes(selectionMode) ? selectionMode : 'outline-soft-fill';
       const unchanged = countryEmphasis.primaryId === nextPrimary
+        && countryEmphasis.hoverId === nextHover
         && countryEmphasis.selectionMode === nextSelectionMode
         && countryEmphasis.selectedIds.size === nextSelected.size
         && [...nextSelected].every(id => countryEmphasis.selectedIds.has(id));
       if (unchanged) return false;
-      countryEmphasis = { primaryId: nextPrimary, selectedIds: nextSelected, selectionMode: nextSelectionMode };
+      countryEmphasis = { primaryId: nextPrimary, hoverId: nextHover, selectedIds: nextSelected, selectionMode: nextSelectionMode };
       countryEmphasisRevision += 1;
       if (isWebGlRenderer() && gl && meshCountryIds.length) renderViewFrame();
       else if (rendererMode !== 'pending') render(currentRenderRevision);
@@ -3174,6 +3308,29 @@ export function createGpuMapRenderer(deps) {
 
     function clearCountryEmphasis() {
       return setCountryEmphasis();
+    }
+
+    function setInteractionStyle(nextStyle) {
+      if (!nextStyle?.hover || !nextStyle?.selection) return false;
+      interactionStyle = nextStyle;
+      countryEmphasisRevision += 1;
+      if (rendererMode !== 'pending') render(currentRenderRevision);
+      return true;
+    }
+
+    function getCountryInteractionBoundaryData() {
+      const pendingIds = geometryRevisionTracker.pendingIds().map(String).sort();
+      const overriddenIds = [...countryOverrideIds].map(String).sort();
+      const visibleIds = meshCountryIds.filter(id => isCountryVisibleById(id));
+      return {
+        revision: [activeMeshQuality, geometryRevisionTracker.committedRevision(), geometryRevisionTracker.displayedRevision(), mesh?.lineIndices?.length || 0, overrideMesh?.lineIndices?.length || 0, pendingIds.join(','), overriddenIds.join(','), Number(state.layerTreeRevision || 0)].join(':'),
+        base: mesh,
+        override: overrideMesh,
+        countryIds: meshCountryIds,
+        pendingIds,
+        overriddenIds,
+        visibleIds,
+      };
     }
 
     function supportsCountryEmphasis() {
@@ -3213,11 +3370,15 @@ export function createGpuMapRenderer(deps) {
         countryEmphasisRevision,
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
+          hoverId: countryEmphasis.hoverId,
           selectedIds: [...countryEmphasis.selectedIds],
-          boundaryEnabled: Boolean(countryEmphasis.primaryId || countryEmphasis.selectedIds.size),
-          primaryBoundaryColor: SELECTION_STYLE.color,
-          secondaryBoundaryColor: SELECTION_STYLE.color,
+          boundaryEnabled: false,
+          primaryBoundaryColor: interactionStyle.selection.color,
+          secondaryBoundaryColor: interactionStyle.selection.color,
         },
+        interactionStyle,
+        boundaryOwner: 'interaction-overlay',
+        visualPassOrder: ['country-fill', 'lake', 'lake-boundary', 'river', 'border-river', 'country-boundary', 'hover', 'secondary-selection', 'primary-selection'],
         emphasizedCountryCount: countryEmphasis.selectedIds.size,
         viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
         canvasBackingPixels: [pixelWidth, pixelHeight],
@@ -3246,6 +3407,8 @@ export function createGpuMapRenderer(deps) {
         hydroFeaturesLoaded: state.hydroFeatureCache?.size || 0,
         hydroPacksLoaded: hydroPacks.size,
         hydroPacksActive: hydroActivePackIds.size,
+        hydroEditRevision,
+        hydroEditBatchCount: hydroEditEntries.length,
         hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0),
       };
     }
@@ -3254,9 +3417,11 @@ export function createGpuMapRenderer(deps) {
       attach, initialize, replaceBuiltInMesh, render, resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, setTerrainManifest,
       setHydroManifest, loadHydroLogicalFeature, retryHydroCache,
+      setHydroEdits,
       setHydroInteractionActive, renderViewFrame: render,
       invalidateHydroVisibility, resetCountryGeometryVisualState,
       setCountryEmphasis, clearCountryEmphasis, supportsCountryEmphasis,
+      setInteractionStyle, getCountryInteractionBoundaryData,
     };
   })();
 }

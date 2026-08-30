@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
+PHASE_CSS = (ROOT / "assets/css/phase1-ui-cleanup.css").read_text(encoding="utf-8")
 TERRITORIAL_SERVICE = (ROOT / "assets/js/modules/territorial-service.js").read_text(encoding="utf-8")
 
 
@@ -75,6 +76,24 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertNotIn('class="ui-card editor-section', hydro.group(0))
         region = self.form_markup("regionProperties")
         self.assertIn('<fieldset class="editor-period-group"><legend>유효 기간</legend>', region)
+        label = self.form_markup("labelProperties")
+        label_order = ['id="labelNameInput"', 'id="labelKindInput"', 'id="labelPositionValue"', 'id="labelNotesInput"']
+        label_positions = [label.index(token) for token in label_order]
+        self.assertEqual(label_positions, sorted(label_positions))
+        self.assertNotIn("editor-disclosure", label)
+
+    def test_identification_copy_and_flat_disclosure_are_canonical(self):
+        country = self.form_markup("countryProperties")
+        label = self.form_markup("labelProperties")
+        self.assertIn(">식별 정보<", country)
+        self.assertNotIn("추가 정보", country + label)
+        self.assertNotIn("국가명 라벨", INDEX + APP)
+        self.assertNotIn("도시·지명", INDEX + APP)
+        self.assertIn("countryLabels", APP)
+        self.assertIn(".editor-object-form > .editor-disclosure {", CSS)
+        self.assertIn(".editor-object-form > .editor-disclosure > summary,", CSS)
+        self.assertNotIn(".editor-object-form > .editor-disclosure", PHASE_CSS)
+        self.assertNotIn(".editor-disclosure > summary", PHASE_CSS)
 
     def test_semantic_typography_roles_are_shared_by_every_object_editor(self):
         for duplicate_heading in ("분포 항목 정보", ">기본 정보<", "hydroPropertiesTitle"):
