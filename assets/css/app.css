@@ -2664,7 +2664,8 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
   color: var(--muted);
 }
 .layer-style-toggle:hover { color: var(--text-strong); background: var(--ui-control-bg-hover); }
-.layer-style-toggle.active { color: var(--accent-text); background: color-mix(in srgb, var(--accent-surface) 18%, transparent); }
+.layer-style-toggle:is(.active, [aria-expanded="true"]) { color: var(--accent-text); background: color-mix(in srgb, var(--accent-surface) 18%, transparent); }
+.layer-style-toggle:is(.active, [aria-expanded="true"]):is(:hover, :focus-visible) { color: var(--accent-text); background: color-mix(in srgb, var(--accent-surface) 18%, transparent); }
 .layer-style-toggle .ui-icon { width: 18px; height: 18px; }
 .layer-presentation-row {
   min-height: var(--ui-tree-row-height);
@@ -2751,6 +2752,10 @@ html.keyboard-navigation .layer-style-toggle:focus-visible { border-radius: var(
 .layer-subfolder-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .layer-child > .layer-visibility-control { grid-column: 1; }
 .layer-child-name { grid-column: 2; }
+.layer-child-name-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.layer-child-name.has-lock-indicator { gap: var(--ui-space-1); }
+.layer-lock-indicator { flex: 0 0 16px; width: 16px; height: 16px; display: grid; place-items: center; color: inherit; }
+.layer-lock-indicator .layer-lock-icon { width: 16px; height: 16px; }
 .layer-child-meta { grid-column: 3; color: var(--muted); font-size: var(--ui-font-caption); font-variant-numeric: tabular-nums; }
 .layer-child:has(> .layer-visibility-control > .layer-visibility-toggle:not(:checked)):not(.is-selected) > .layer-child-name { color: var(--muted); }
 .layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) .layer-child-meta { color: var(--selection-strong-muted); }
@@ -3741,9 +3746,7 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .object-actions-menu .object-actions-delete:hover:not(:disabled),
 .object-actions-menu .object-actions-delete:focus-visible:not(:disabled) { background: var(--danger-surface); color: var(--danger-text); }
 .editor-object-header #focusSelectedObjectBtn { white-space: nowrap; }
-.multi-properties-summary { display: grid; gap: var(--ui-space-1); }
-.multi-properties-summary > strong { color: var(--text-strong); }
-.multi-properties-summary > p { margin: 0; }
+.multi-properties > .editor-section-primary { padding: 0; border: 0; border-radius: 0; background: transparent; }
 .multi-properties-actions { display: grid; gap: var(--ui-field-gap); }
 .multi-property-option { min-height: var(--ui-control-height); padding-inline: var(--ui-row-padding-x); }
 .multi-property-option:has(input:disabled) { opacity: .5; }

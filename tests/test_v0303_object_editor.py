@@ -50,6 +50,14 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertIn("document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type)", APP)
         self.assertIn("$('editSheetTitle')?.classList.toggle('hidden', !!type)", APP)
 
+    def test_multi_selection_uses_the_editor_header_without_a_card_surface(self):
+        self.assertNotIn('id="multiPropertiesCount"', INDEX)
+        self.assertNotIn('id="multiPropertiesTypes"', INDEX)
+        self.assertNotIn('class="multi-properties-summary"', INDEX)
+        self.assertIn("typeLabel: types.length === 1 ? types[0] : '여러 유형'", APP)
+        self.assertIn("showPropertyForm('multi', `${selection.items.length}개 선택됨`", APP)
+        self.assertIn('.multi-properties > .editor-section-primary { padding: 0; border: 0; border-radius: 0; background: transparent; }', CSS)
+
     def test_target_information_forms_are_flat_and_ordered(self):
         country = self.form_markup("countryProperties")
         order = [

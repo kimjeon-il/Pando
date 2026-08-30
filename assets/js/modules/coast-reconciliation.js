@@ -1,5 +1,3 @@
-import { createCancellationError } from './reliability-core.js';
-
 const EARTH_RADIUS_METERS = 6371008.8;
 
 export const COAST_RECONCILIATION_DEFAULTS = Object.freeze({
@@ -12,10 +10,9 @@ export const COAST_RECONCILIATION_DEFAULTS = Object.freeze({
 const clone = value => structuredClone(value);
 const text = value => String(value ?? '').trim();
 
-export function requireImportCoastDecision(choice) {
+export function normalizeCoastDecision(choice) {
   const direction = String(choice?.direction || 'cancel');
-  if (direction === 'cancel') throw createCancellationError('해안선 정합을 취소했습니다.');
-  if (!['country-to-admin', 'admin-to-country', 'independent'].includes(direction)) {
+  if (!['cancel', 'country-to-admin', 'admin-to-country', 'independent'].includes(direction)) {
     throw new Error('해안선 정합 선택이 올바르지 않습니다.');
   }
   return direction;
