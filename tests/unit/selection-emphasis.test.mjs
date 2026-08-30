@@ -58,3 +58,13 @@ test('country interaction boundaries are sourced from the canonical line index m
   assert.match(gpu, /boundaryOwner: 'interaction-overlay'/);
   assert.doesNotMatch(gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro')), /primaryBoundaryPaletteTexture/);
 });
+
+test('territorial persistent boundaries share the interaction GPU overlay without GL lines', async () => {
+  const selection = await readFile(new URL('../../assets/js/modules/selection-emphasis.js', import.meta.url), 'utf8');
+  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  assert.match(selection, /setTerritorialBoundaries/);
+  assert.match(selection, /territorialBoundaryBufferBytes/);
+  assert.match(app, /buildTerritorialInternalBoundarySegments/);
+  assert.match(app, /selectionEmphasisRenderer\?\.setTerritorialBoundaries/);
+  assert.match(app, /territorialBoundaryLayer\.selectAll\('path\.territorial-internal-boundary'\)\.remove\(\)/);
+});

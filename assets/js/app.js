@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r19';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r20';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -1823,6 +1823,7 @@ const {
   let boundaryEditLayer;
   let overlayStackLayer;
   let territorialBoundaryLayer;
+  let territorialOperationLayer;
   let territorialUnitLayer;
   let distributionLayer;
   let drawingLayer;
@@ -1834,7 +1835,8 @@ const {
   let vertexLayer;
   let draftLayer;
   let mapInteractionLayer;
-  let territorialBoundaryCache = { revision: -1, countries: null, units: null, segments: [] };
+  let territorialBoundaryCache = { countries: null, units: null, unitGeometryRevision: -1, segments: [], rebuildCount: 0 };
+  let territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
   let mapResizeObserver = null;
   let mapResizeFrame = 0;
   let mapResizeSignature = '';
@@ -1852,7 +1854,31 @@ const {
   let drawingLandClipCache = new WeakMap();
   const mapObjectSpatialIndex = createMapObjectSpatialIndex();
   const mapObjectDistributionRowCache = new Map();
-  let mapObjectSpatialIndexSignature = '';
+  const mapObjectSpatialIndexSources = new Map();
+  const mapObjectGeometryRevisions = { label: 0, drawing: 0, territorial: 0, hydro: 0 };
+  let distributionVisibilityRevision = 0;
+  let distributionRenderRowCache = {
+    layers: null,
+    entries: null,
+    countries: null,
+    countryGeometryRevision: -1,
+    territorialUnits: null,
+    renderMode: '',
+    selectedLayerId: '',
+    visibilityRevision: -1,
+    rows: [],
+    rebuildCount: 0,
+    buildMs: 0,
+  };
+  let labelLayoutMetrics = {};
+  const viewportCullingMetrics = {
+    queryCount: 0,
+    candidateCount: 0,
+    finalVisibleCount: 0,
+    projectedVerificationCount: 0,
+    projectedVerificationMs: 0,
+    lastByDomain: {},
+  };
   const selectionPerformanceMetrics = {
     inputToPresentMs: 0,
     handlerMs: 0,
@@ -2688,8 +2714,9 @@ const {
     if (!bounds.every(Number.isFinite)) return true;
     const longitudeSpan = bounds[2] - bounds[0];
     const latitudeSpan = bounds[3] - bounds[1];
-    // Large or date-line-spanning objects are kept conservatively. The culling
-    // path is intentionally limited to small off-screen overlays.
+    // The spatial tier query already removes large objects that cannot meet the
+    // current view. Keep the exact projected test conservative for the remaining
+    // large/date-line candidates so culling never creates a visible false negative.
     if (longitudeSpan > 40 || latitudeSpan > 40 || longitudeSpan < 0) return true;
     const samples = [
       [bounds[0], bounds[1]], [bounds[0], bounds[3]],
@@ -2707,16 +2734,57 @@ const {
       && Math.max(...ys) >= -overscan && Math.min(...ys) <= state.size.height + overscan;
   }
 
-  function mapObjectIndexSignature() {
-    return [
-      Number(state.stateRevision || 0),
-      Number(state.layerTreeRevision || 0),
-      state.territorialUnits?.length || 0,
-      state.distributionEntries?.length || 0,
-      state.drawings?.length || 0,
-      state.labels?.length || 0,
-      state.hydroEdits?.length || 0,
-    ].join(':');
+  function sameSourceParts(left = [], right = []) {
+    return left.length === right.length && left.every((value, index) => value === right[index]);
+  }
+
+  function replaceSpatialDomain(domain, sourceParts, buildRecords) {
+    const previous = mapObjectSpatialIndexSources.get(domain);
+    if (previous && sameSourceParts(previous, sourceParts)) return false;
+    mapObjectSpatialIndex.clearDomain(domain);
+    for (const record of buildRecords()) mapObjectSpatialIndex.upsert(record);
+    mapObjectSpatialIndexSources.set(domain, sourceParts.slice());
+    return true;
+  }
+
+  function visibleFlatGeographicBounds(overscan = 64) {
+    const width = Math.max(1, Number(state.size.width || 1));
+    const height = Math.max(1, Number(state.size.height || 1));
+    const center = screenToGeo([width / 2, height / 2]) || state.view.flatCenter || [0, 0];
+    const samples = [
+      [-overscan, -overscan], [width / 2, -overscan], [width + overscan, -overscan],
+      [-overscan, height / 2], [width / 2, height / 2], [width + overscan, height / 2],
+      [-overscan, height + overscan], [width / 2, height + overscan], [width + overscan, height + overscan],
+    ].map(screenToGeo).filter(Boolean);
+    if (!samples.length) return [-180, -90, 180, 90];
+    const longitudes = samples.map(coordinate => {
+      let longitude = Number(coordinate[0]);
+      while (longitude - center[0] > 180) longitude -= 360;
+      while (longitude - center[0] < -180) longitude += 360;
+      return longitude;
+    });
+    const latitudes = samples.map(coordinate => Number(coordinate[1]));
+    return [Math.min(...longitudes), Math.max(-90, Math.min(...latitudes)), Math.max(...longitudes), Math.min(90, Math.max(...latitudes))];
+  }
+
+  function visibleMapObjectCandidates(domains) {
+    rebuildMapObjectSpatialIndex();
+    const started = performance.now();
+    const records = state.projection === 'globe'
+      ? mapObjectSpatialIndex.querySphericalCap({
+          center: [-Number(state.view.globeRotation?.[0] || 0), -Number(state.view.globeRotation?.[1] || 0)],
+          radius: 91,
+          domains,
+        })
+      : mapObjectSpatialIndex.query(visibleFlatGeographicBounds(), { domains });
+    viewportCullingMetrics.queryCount += 1;
+    viewportCullingMetrics.candidateCount = records.length;
+    viewportCullingMetrics.queryMs = performance.now() - started;
+    viewportCullingMetrics.lastByDomain[domains.join(',')] = {
+      candidateCount: records.length,
+      queryMs: viewportCullingMetrics.queryMs,
+    };
+    return records;
   }
 
   function pointBounds(coordinate) {
@@ -2728,46 +2796,36 @@ const {
   }
 
   function rebuildMapObjectSpatialIndex(force = false) {
-    const signature = mapObjectIndexSignature();
-    if (!force && signature === mapObjectSpatialIndexSignature) return false;
-    for (const domain of ['label', 'drawing', 'distribution', 'territorial', 'hydro']) mapObjectSpatialIndex.clearDomain(domain);
-    mapObjectDistributionRowCache.clear();
-    for (const label of state.labels || []) {
+    if (force) mapObjectSpatialIndexSources.clear();
+    let changed = false;
+    changed = replaceSpatialDomain('label', [state.labels, state.labels?.length || 0, mapObjectGeometryRevisions.label], () => (state.labels || []).flatMap(label => {
       const bounds = pointBounds(label.coordinates);
-      if (bounds) mapObjectSpatialIndex.upsert({
+      return bounds ? [{
         key: `label:${label.id}`, domain: 'label', type: label.kind || 'label', id: label.id, bounds,
-      });
-    }
-    for (const feature of state.drawings || []) {
-      if (!feature?.geometry) continue;
-      mapObjectSpatialIndex.upsert({
+      }] : [];
+    })) || changed;
+    changed = replaceSpatialDomain('drawing', [state.drawings, state.drawings?.length || 0, mapObjectGeometryRevisions.drawing], () => (state.drawings || []).flatMap(feature => feature?.geometry ? [{
         key: `drawing:${feature.id}`, domain: 'drawing', type: feature.properties?.category || 'custom', id: feature.id,
-        bounds: geometryBounds(feature.geometry), geometryRevision: state.stateRevision,
-      });
-    }
-    for (const feature of state.territorialUnits || []) {
-      if (!feature?.geometry) continue;
-      mapObjectSpatialIndex.upsert({
+        bounds: geometryBounds(feature.geometry),
+      }] : [])) || changed;
+    changed = replaceSpatialDomain('territorial', [state.territorialUnits, state.territorialUnits?.length || 0, mapObjectGeometryRevisions.territorial], () => (state.territorialUnits || []).flatMap(feature => feature?.geometry ? [{
         key: `territorial:${feature.id}`, domain: 'territorial', type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY, id: feature.id,
-        bounds: geometryBounds(feature.geometry), geometryRevision: state.stateRevision,
-      });
-    }
-    for (const row of distributionRenderRows({ cull: false })) {
+        bounds: geometryBounds(feature.geometry),
+      }] : [])) || changed;
+    const distributionRows = buildDistributionRenderRows();
+    if (force || mapObjectSpatialIndexSources.get('distribution')?.[0] !== distributionRows) mapObjectDistributionRowCache.clear();
+    changed = replaceSpatialDomain('distribution', [distributionRows], () => distributionRows.map(row => {
       mapObjectDistributionRowCache.set(String(row.id), row);
-      mapObjectSpatialIndex.upsert({
+      return {
         key: `distribution:${row.id}`, domain: 'distribution', type: row.layer.type, id: row.id,
-        bounds: geometryBounds(row.geometry), geometryRevision: state.stateRevision,
-      });
-    }
-    for (const feature of state.hydroEdits || []) {
-      if (!feature?.geometry) continue;
-      mapObjectSpatialIndex.upsert({
+        bounds: row.bounds,
+      };
+    })) || changed;
+    changed = replaceSpatialDomain('hydro', [state.hydroEdits, state.hydroEdits?.length || 0, mapObjectGeometryRevisions.hydro], () => (state.hydroEdits || []).flatMap(feature => feature?.geometry ? [{
         key: `hydro:${feature.id}`, domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id,
-        bounds: geometryBounds(feature.geometry), geometryRevision: state.stateRevision,
-      });
-    }
-    mapObjectSpatialIndexSignature = signature;
-    return true;
+        bounds: geometryBounds(feature.geometry),
+      }] : [])) || changed;
+    return changed;
   }
 
   function selectionQueryBounds(screenPoint, tolerance = 8) {
@@ -2852,7 +2910,10 @@ const {
       else removedIds.push(id);
     }
     invalidateGeometryCaches(changed);
-    if (changed.size) state.stateRevision += 1;
+    if (changed.size) {
+      state.stateRevision += 1;
+      territorialBoundaryCache.countries = null;
+    }
     countryLandRevision += 1;
     drawingLandClipCache = new WeakMap();
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
@@ -4434,7 +4495,10 @@ const {
         if (field === 'color') setTerritorialStyleColor(feature, value);
         else feature.properties[field] = value;
       },
-      replaceAll: units => { state.territorialUnits = units; },
+      replaceAll: units => {
+        state.territorialUnits = units;
+        mapObjectGeometryRevisions.territorial += 1;
+      },
     },
   });
   const runTerritorialUnitTransaction = options => territorialApplicationService.runGeometryTransaction(options);
@@ -4442,12 +4506,21 @@ const {
   const distributionService = createDistributionService({
     documentStore: {
       readLayers: () => state.distributionLayers,
-      replaceLayers: layers => { state.distributionLayers = layers; },
+      replaceLayers: layers => {
+        state.distributionLayers = layers;
+        distributionVisibilityRevision += 1;
+      },
       readEntries: () => state.distributionEntries,
-      replaceEntries: entries => { state.distributionEntries = entries; },
+      replaceEntries: entries => {
+        state.distributionEntries = entries;
+        distributionVisibilityRevision += 1;
+      },
     },
     presentationStore: {
-      setRenderMode: mode => { state.distributionSettings.renderMode = mode; },
+      setRenderMode: mode => {
+        state.distributionSettings.renderMode = mode;
+        distributionVisibilityRevision += 1;
+      },
     },
     runDocumentMutation: (meta, mutate) => {
       recordHistory(meta);
@@ -5439,6 +5512,9 @@ const {
 
   function visibleLabelLayout() {
     const candidates = [];
+    const indexedLabelIds = state.layerVisibility.labels
+      ? new Set(visibleMapObjectCandidates(['label']).map(record => String(record.id)))
+      : new Set();
     countryLabelScreenAreas.clear();
     const zoom = currentMapZoom();
     if (state.layerVisibility.basemapLabels) for (const feature of state.countriesData?.features || []) {
@@ -5467,6 +5543,8 @@ const {
       });
     }
     if (state.layerVisibility.labels) for (const label of state.labels) {
+      const selected = state.selected?.domain === 'label' && String(state.selected.id) === String(label.id);
+      if (!selected && !indexedLabelIds.has(String(label.id))) continue;
       const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
       if (zoom < Number(settings.minZoom ?? -Infinity) || zoom > Number(settings.maxZoom ?? Infinity)) continue;
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
@@ -5479,10 +5557,13 @@ const {
         width: Math.max(22, [...String(label.name || '')].length * 9 + 16), height: 19,
         priority, minZoom: settings.minZoom, maxZoom: settings.maxZoom,
         pinned: settings.pinned, collisionGroup: settings.collisionGroup,
-        selected: state.selected?.domain === 'label' && state.selected.id === label.id,
+        selected,
       });
     }
-    const placed = layoutLabels(candidates, { zoom, padding: isMobile() ? 5 : 3 });
+    const nextLabelLayoutMetrics = {};
+    const placed = layoutLabels(candidates, { zoom, padding: isMobile() ? 5 : 3, metrics: nextLabelLayoutMetrics });
+    labelLayoutMetrics = nextLabelLayoutMetrics;
+    if (viewportCullingMetrics.lastByDomain.label) viewportCullingMetrics.lastByDomain.label.finalVisibleCount = placed.filter(item => item.sourceType === 'label').length;
     return {
       countryLabels: placed.filter(item => item.sourceType === 'country').map(item => item.source),
       userLabels: placed.filter(item => item.sourceType === 'label').map(item => item.source),
@@ -5751,9 +5832,11 @@ const {
     gpuMapRenderer.setHydroEdits?.(state.hydroEdits, state.stateRevision);
     const riverStyle = layerStyle(state.layerPresentation, 'rivers');
     const lakeStyle = layerStyle(state.layerPresentation, 'lakes');
+    const visibleHydroIds = new Set(visibleMapObjectCandidates(['hydro']).map(record => String(record.id)));
     const data = state.hydroEdits.filter(feature => isHydroFeatureVisible(feature) && feature.geometry
-        && (geometryMayIntersectViewport(feature.geometry)
+        && ((visibleHydroIds.has(String(feature.id)) && geometryMayIntersectViewport(feature.geometry))
           || objectSelection.has(normalizeObjectRef({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))));
+    if (viewportCullingMetrics.lastByDomain.hydro) viewportCullingMetrics.lastByDomain.hydro.finalVisibleCount = data.length;
     const selection = hydroEditLayer.selectAll('path.hydro-edit-shape').data(data, feature => String(feature.id));
     selection.enter().append('path')
       .attr('class', 'hydro-edit-shape')
@@ -5787,11 +5870,15 @@ const {
 
   function renderDrawings() {
     const style = layerStyle(state.layerPresentation, 'userDrawings');
+    const visibleDrawingIds = state.layerVisibility.drawings
+      ? new Set(visibleMapObjectCandidates(['drawing']).map(record => String(record.id)))
+      : new Set();
     const data = state.layerVisibility.drawings
       ? state.drawings.filter(feature => isLayerItemVisible('drawings', feature.id)).map(drawingDisplayFeature).filter(feature => feature.geometry
-        && (geometryMayIntersectViewport(feature.geometry)
+        && ((visibleDrawingIds.has(String(feature.id)) && geometryMayIntersectViewport(feature.geometry))
           || objectSelection.has(normalizeObjectRef({ domain: 'drawing', type: feature.properties?.category || 'custom', id: feature.id }))))
       : [];
+    if (viewportCullingMetrics.lastByDomain.drawing) viewportCullingMetrics.lastByDomain.drawing.finalVisibleCount = data.length;
     const selection = drawingLayer.selectAll('path.drawing-shape')
       .data(data, d => String(d.id));
 
@@ -5846,16 +5933,29 @@ const {
     polygonSelection.exit().remove();
   }
 
-  function distributionRenderRows({ cull = true } = {}) {
+  function buildDistributionRenderRows() {
+    const renderMode = state.distributionSettings.renderMode;
+    const selectedLayerId = renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY
+      ? String(state.selectedDistributionLayerId || state.selected?.domain === 'distribution' && state.selected.id || '')
+      : '';
+    const cacheCurrent = distributionRenderRowCache.layers === state.distributionLayers
+      && distributionRenderRowCache.entries === state.distributionEntries
+      && distributionRenderRowCache.countries === state.countriesData?.features
+      && distributionRenderRowCache.countryGeometryRevision === countryLandRevision
+      && distributionRenderRowCache.territorialUnits === state.territorialUnits
+      && distributionRenderRowCache.renderMode === renderMode
+      && distributionRenderRowCache.selectedLayerId === selectedLayerId
+      && distributionRenderRowCache.visibilityRevision === distributionVisibilityRevision;
+    if (cacheCurrent) return distributionRenderRowCache.rows;
+    const started = performance.now();
     const visibleLayers = state.distributionLayers.filter(layer => {
       const group = DISTRIBUTION_TYPE_GROUPS[layer.type];
       return state.layerVisibility[group] !== false && isLayerItemVisible(group, layer.id);
     });
     const visibleIds = new Set(visibleLayers.map(layer => layer.id));
     let entries;
-    if (state.distributionSettings.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY) {
-      const selectedId = String(state.selectedDistributionLayerId || state.selected?.domain === 'distribution' && state.selected.id || '');
-      entries = visibleIds.has(selectedId) ? distributionEntriesForLayer(state.distributionEntries, selectedId) : [];
+    if (renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY) {
+      entries = visibleIds.has(selectedLayerId) ? distributionEntriesForLayer(state.distributionEntries, selectedLayerId) : [];
     } else {
       entries = Object.values(DISTRIBUTION_TYPES).flatMap(type => {
         const typeLayers = visibleLayers.filter(layer => layer.type === type);
@@ -5864,21 +5964,58 @@ const {
       });
     }
     const byLayer = new Map(visibleLayers.map(layer => [layer.id, layer]));
-    return entries.map(entry => {
+    const rows = entries.map(entry => {
       const layer = byLayer.get(entry.layerId);
       const geometry = entry.mode === DISTRIBUTION_MODES.TERRITORIAL
         ? territorialRepository.get(entry.territorialUnitId)?.geometry
         : entry.geometry;
       if (!layer || !geometry) return null;
-      return {
+      return Object.freeze({
         id: entry.id,
         layer,
         entry,
         geometry,
+        bounds: geometryBounds(geometry),
         type: 'Feature',
-      };
-    }).filter(row => row && (!cull || geometryMayIntersectViewport(row.geometry)
-      || objectSelection.has(normalizeObjectRef({ domain: 'distribution', type: row.layer.type, id: row.layer.id }))));
+      });
+    }).filter(Boolean);
+    distributionRenderRowCache = {
+      layers: state.distributionLayers,
+      entries: state.distributionEntries,
+      countries: state.countriesData?.features,
+      countryGeometryRevision: countryLandRevision,
+      territorialUnits: state.territorialUnits,
+      renderMode,
+      selectedLayerId,
+      visibilityRevision: distributionVisibilityRevision,
+      rows: Object.freeze(rows),
+      rebuildCount: distributionRenderRowCache.rebuildCount + 1,
+      buildMs: performance.now() - started,
+    };
+    return distributionRenderRowCache.rows;
+  }
+
+  function visibleDistributionRenderRows() {
+    const rows = buildDistributionRenderRows();
+    const candidates = new Set(visibleMapObjectCandidates(['distribution']).map(record => String(record.id)));
+    const started = performance.now();
+    let verificationCount = 0;
+    const visible = rows.filter(row => {
+      const selected = objectSelection.has(normalizeObjectRef({ domain: 'distribution', type: row.layer.type, id: row.layer.id }));
+      if (selected) return true;
+      if (!candidates.has(String(row.id))) return false;
+      verificationCount += 1;
+      return geometryMayIntersectViewport(row.geometry);
+    });
+    viewportCullingMetrics.finalVisibleCount = visible.length;
+    if (viewportCullingMetrics.lastByDomain.distribution) viewportCullingMetrics.lastByDomain.distribution.finalVisibleCount = visible.length;
+    viewportCullingMetrics.projectedVerificationCount += verificationCount;
+    viewportCullingMetrics.projectedVerificationMs += performance.now() - started;
+    return visible;
+  }
+
+  function distributionRenderRows({ cull = true } = {}) {
+    return cull ? visibleDistributionRenderRows() : buildDistributionRenderRows();
   }
 
   function renderDistributions() {
@@ -5926,14 +6063,15 @@ const {
   function territorialInternalBoundarySegments() {
     const countries = state.countriesData?.features || [];
     const units = state.territorialUnits || [];
-    if (territorialBoundaryCache.revision !== state.stateRevision
-      || territorialBoundaryCache.countries !== countries
-      || territorialBoundaryCache.units !== units) {
+    if (territorialBoundaryCache.countries !== countries
+      || territorialBoundaryCache.units !== units
+      || territorialBoundaryCache.unitGeometryRevision !== mapObjectGeometryRevisions.territorial) {
       territorialBoundaryCache = {
-        revision: state.stateRevision,
         countries,
         units,
+        unitGeometryRevision: mapObjectGeometryRevisions.territorial,
         segments: buildTerritorialInternalBoundarySegments(countries, units),
+        rebuildCount: territorialBoundaryCache.rebuildCount + 1,
       };
     }
     return territorialBoundaryCache.segments;
@@ -5943,24 +6081,64 @@ const {
     if (!territorialBoundaryLayer) return;
     const visibleIds = new Set((visibleFeatures || []).map(feature => String(feature.id)));
     const featuresById = new Map((state.territorialUnits || []).map(feature => [String(feature.id), feature]));
-    const groups = new Map();
-    for (const segment of territorialInternalBoundarySegments()) {
-      const visibleOwner = segment.unitIds.find(id => visibleIds.has(String(id)));
-      if (!visibleOwner) continue;
-      const owner = featuresById.get(String(visibleOwner));
-      const color = owner ? territorialUnitColor(owner) : 'currentColor';
-      const presentationGroup = segment.styleType === 'region'
-        ? 'regions'
-        : segment.styleType === 'administrative' ? 'administrative' : 'territories';
-      const style = layerStyle(state.layerPresentation, presentationGroup);
-      if (!style.boundaryVisible || !(style.opacity > 0)) continue;
-      const key = `${segment.styleType}:${color}:${style.opacity}`;
-      if (!groups.has(key)) groups.set(key, { key, styleType: segment.styleType, color, opacity: style.opacity, coordinates: [] });
-      groups.get(key).coordinates.push([segment.a, segment.b]);
+    const styleByType = new Map([
+      ['territory', { presentationGroup: 'territories', width: 2, dash: [0, 0] }],
+      ['administrative', { presentationGroup: 'administrative', width: 1.1, dash: [3, 2] }],
+      ['region', { presentationGroup: 'regions', width: 1.5, dash: [7, 3] }],
+    ]);
+    const boundarySegments = territorialInternalBoundarySegments();
+    const visibleSignature = [...visibleIds].sort().map(id => `${id}:${territorialUnitColor(featuresById.get(id))}`).join('|');
+    const styleSignature = [...styleByType].map(([type, definition]) => {
+      const style = layerStyle(state.layerPresentation, definition.presentationGroup);
+      return `${type}:${style.opacity}:${style.boundaryVisible}`;
+    }).join('|');
+    const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature}`;
+    if (territorialBoundaryBatchCache.signature !== signature) {
+      const groups = new Map([...styleByType].map(([styleType, definition]) => [styleType, {
+        key: styleType,
+        styleType,
+        width: definition.width,
+        dash: definition.dash,
+        coordinates: [],
+        segments: [],
+      }]));
+      for (const segment of boundarySegments) {
+        const visibleOwner = segment.unitIds.find(id => visibleIds.has(String(id)));
+        if (!visibleOwner) continue;
+        const definition = styleByType.get(segment.styleType) || styleByType.get('territory');
+        const style = layerStyle(state.layerPresentation, definition.presentationGroup);
+        if (!style.boundaryVisible || !(style.opacity > 0)) continue;
+        const owner = featuresById.get(String(visibleOwner));
+        const color = owner ? territorialUnitColor(owner) : mapTheme().border;
+        const group = groups.get(segment.styleType) || groups.get('territory');
+        group.coordinates.push([segment.a, segment.b]);
+        group.segments.push({ a: segment.a, b: segment.b, color, opacity: style.opacity });
+      }
+      territorialBoundaryBatchCache = {
+        signature,
+        revision: `${territorialBoundaryCache.rebuildCount}:${signature}`,
+        groups: [...groups.values()].filter(group => group.segments.length),
+      };
     }
-    const data = [...groups.values()].map(group => ({
-      ...group,
-      geometry: { type: 'MultiLineString', coordinates: group.coordinates },
+    const gpuBoundaryAvailable = !!selectionEmphasisRenderer?.isAvailable?.();
+    selectionEmphasisRenderer?.setTerritorialBoundaries?.({
+      revision: territorialBoundaryBatchCache.revision,
+      batches: territorialBoundaryBatchCache.groups,
+    });
+    if (gpuBoundaryAvailable) {
+      territorialBoundaryLayer.selectAll('path.territorial-internal-boundary').remove();
+      return;
+    }
+    const fallbackGroups = new Map();
+    for (const group of territorialBoundaryBatchCache.groups) for (const segment of group.segments) {
+      const key = `${group.styleType}:${segment.color}:${segment.opacity}`;
+      if (!fallbackGroups.has(key)) fallbackGroups.set(key, {
+        key, styleType: group.styleType, color: segment.color, opacity: segment.opacity, coordinates: [],
+      });
+      fallbackGroups.get(key).coordinates.push([segment.a, segment.b]);
+    }
+    const data = [...fallbackGroups.values()].map(group => ({
+      ...group, geometry: { type: 'MultiLineString', coordinates: group.coordinates },
     }));
     const selection = territorialBoundaryLayer.selectAll('path.territorial-internal-boundary')
       .data(data, group => group.key);
@@ -5975,6 +6153,7 @@ const {
   }
 
   function renderTerritorialUnits() {
+    const visibleTerritorialIds = new Set(visibleMapObjectCandidates(['territorial']).map(record => String(record.id)));
     const data = state.territorialUnits.filter(feature => {
       const group = feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN
         ? 'administrative'
@@ -5987,10 +6166,13 @@ const {
         id: feature.id,
       }));
       const editing = state.territorialUnitMergeSourceId === String(feature.id)
-        || state.territorialUnitMergeTargetIds.includes(String(feature.id));
+        || state.territorialUnitMergeTargetIds.includes(String(feature.id))
+        || state.territorialUnitSplitSourceId === String(feature.id)
+        || state.territorialUnitRedrawSourceId === String(feature.id);
       return state.layerVisibility[group] !== false && isLayerItemVisible(group, feature.id)
-        && (selected || editing || geometryMayIntersectViewport(feature.geometry));
+        && (selected || editing || (visibleTerritorialIds.has(String(feature.id)) && geometryMayIntersectViewport(feature.geometry)));
     });
+    if (viewportCullingMetrics.lastByDomain.territorial) viewportCullingMetrics.lastByDomain.territorial.finalVisibleCount = data.length;
     const selection = territorialUnitLayer.selectAll('path.territorial-unit-shape')
       .data(data, feature => String(feature.id));
 
@@ -6031,7 +6213,7 @@ const {
     selection.exit().remove();
     const operationOutlines = data.filter(feature => state.territorialUnitMergeSourceId === String(feature.id)
       || state.territorialUnitMergeTargetIds.includes(String(feature.id)));
-    const outlineSelection = territorialUnitLayer.selectAll('path.territorial-unit-operation-outline')
+    const outlineSelection = territorialOperationLayer.selectAll('path.territorial-unit-operation-outline')
       .data(operationOutlines, feature => String(feature.id));
     outlineSelection.enter().append('path')
       .attr('class', 'territorial-unit-operation-outline')
@@ -6044,7 +6226,11 @@ const {
       .style('stroke-width', 3)
       .style('stroke-dasharray', 'none');
     outlineSelection.exit().remove();
-    renderTerritorialInternalBoundaries(data);
+    const boundaryFeatures = state.territorialUnits.filter(feature => {
+      const group = presentationGroupForTerritorialFeature(feature);
+      return state.layerVisibility[group] !== false && isLayerItemVisible(group, feature.id);
+    });
+    renderTerritorialInternalBoundaries(boundaryFeatures);
   }
 
   function presentationGroupForTerritorialFeature(feature) {
@@ -6994,7 +7180,7 @@ const {
   }
 
   function renderProjectedOverlays() {
-    for (const layer of [territorialBoundaryLayer, overlayStackLayer, hydroEditLayer]) {
+    for (const layer of [territorialBoundaryLayer, overlayStackLayer, hydroEditLayer, territorialOperationLayer]) {
       layer?.selectAll?.('path')?.attr('d', path);
     }
   }
@@ -7019,6 +7205,14 @@ const {
       selectionPathCharacterCount: selectionMetrics.pathCharacterCount || 0,
       selection: { ...selectionPerformanceMetrics },
       spatialIndex: mapObjectSpatialIndex.stats(),
+      viewportCulling: { ...viewportCullingMetrics },
+      distributionRows: {
+        rebuildCount: distributionRenderRowCache.rebuildCount,
+        rowCount: distributionRenderRowCache.rows.length,
+        buildMs: distributionRenderRowCache.buildMs,
+      },
+      labelLayout: { ...labelLayoutMetrics },
+      territorialBoundaryTopologyRebuildCount: territorialBoundaryCache.rebuildCount,
     };
     if (!enabled) return;
     const lines = [
@@ -7233,6 +7427,14 @@ const {
         selection: { ...(window.__PANDOLAB_SELECTION_RENDER_METRICS__ || {}) },
         selectionInput: { ...selectionPerformanceMetrics },
         spatialIndex: mapObjectSpatialIndex.stats(),
+        viewportCulling: { ...viewportCullingMetrics },
+        distributionRows: {
+          rebuildCount: distributionRenderRowCache.rebuildCount,
+          rowCount: distributionRenderRowCache.rows.length,
+          buildMs: distributionRenderRowCache.buildMs,
+        },
+        labelLayout: { ...labelLayoutMetrics },
+        territorialBoundaryTopologyRebuildCount: territorialBoundaryCache.rebuildCount,
       }),
     });
   }
@@ -7312,6 +7514,7 @@ const {
     vertexLayer = root.append('g').attr('class', 'vertices-layer');
     draftLayer = root.append('g').attr('class', 'draft-layer');
     snapLayer = root.append('g').attr('class', 'snap-indicator-layer');
+    territorialOperationLayer = interactionRoot.append('g').attr('class', 'territorial-operation-layer');
     countryLabelLayer = root.append('g').attr('class', 'country-label-layer');
     labelLayer = root.append('g').attr('class', 'labels-layer');
     [previewLayer, validationLayer, vertexLayer, draftLayer, snapLayer, countryLabelLayer, labelLayer]
@@ -7336,6 +7539,7 @@ const {
       mapEl.classList.remove('dragging');
       if (point) suppressNextMapClick(point);
       mapRenderCoordinator.endInteraction('map-movement-end');
+      mapRenderCoordinator.invalidate(MAP_RENDER_DIRTY.OVERLAY_DATA, 'viewport-culling-settle');
       gpuMapRenderer.prioritizeLatest();
       queueViewAutosave();
     };
@@ -9485,6 +9689,7 @@ const {
     }
     recordHistory();
     feature.geometry = next;
+    mapObjectGeometryRevisions.drawing += 1;
     feature.properties.pandolab_land_binding = 'hard';
     feature.properties.pandolab_topology_group = `land:${feature.properties.pandolab_owner_id}`;
     drawingLandClipCache.delete(feature);
@@ -9865,6 +10070,7 @@ const {
           manualPosition: label.coordinates,
           pinned: true,
         });
+        mapObjectGeometryRevisions.label += 1;
         renderAll();
         queueAutosave();
         setActionStatus(`${label.name} 지명을 이동했습니다.`, 'success');
@@ -10345,6 +10551,7 @@ const {
     if (!state.itemVisibility[group]) state.itemVisibility[group] = {};
     if (visible === false) state.itemVisibility[group][layer.id] = false;
     else delete state.itemVisibility[group][layer.id];
+    distributionVisibilityRevision += 1;
     markLayerTreeDirty();
     renderAll();
     queuePresentationAutosave();
@@ -12306,6 +12513,7 @@ const {
 
   function setLayerVisibility(key, visible) {
     state.layerVisibility[key] = visible;
+    if (DISTRIBUTION_GROUP_TYPES[key]) distributionVisibilityRevision += 1;
     if (key === 'countries') gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') gpuMapRenderer.invalidateHydroVisibility();
     renderAll();

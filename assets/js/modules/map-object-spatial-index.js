@@ -1,5 +1,7 @@
 const DEFAULT_CELL_SIZE = 5;
 const DEFAULT_MAX_CELLS = 256;
+const DEFAULT_COARSE_CELL_SIZE = 20;
+const DEFAULT_MAX_COARSE_CELLS = 180;
 
 function finiteBounds(value) {
   return Array.isArray(value) && value.length >= 4 && value.every(Number.isFinite);
@@ -12,7 +14,7 @@ function normalizeLongitude(value) {
   return longitude;
 }
 
-function splitBounds(value) {
+export function splitGeographicBounds(value) {
   if (!finiteBounds(value)) return [];
   const south = Math.max(-90, Math.min(90, Number(value[1])));
   const north = Math.max(-90, Math.min(90, Number(value[3])));
@@ -41,24 +43,45 @@ function bucketKey(x, y) {
   return `${x}:${y}`;
 }
 
+function angularDistanceDegrees(left, right) {
+  const radians = Math.PI / 180;
+  const leftLat = Number(left[1]) * radians;
+  const rightLat = Number(right[1]) * radians;
+  const longitudeDelta = (Number(left[0]) - Number(right[0])) * radians;
+  const cosine = Math.sin(leftLat) * Math.sin(rightLat)
+    + Math.cos(leftLat) * Math.cos(rightLat) * Math.cos(longitudeDelta);
+  return Math.acos(Math.max(-1, Math.min(1, cosine))) / radians;
+}
+
 export function createMapObjectSpatialIndex({
   cellSize = DEFAULT_CELL_SIZE,
   maxCellsPerEntry = DEFAULT_MAX_CELLS,
+  coarseCellSize = DEFAULT_COARSE_CELL_SIZE,
+  maxCoarseCellsPerEntry = DEFAULT_MAX_COARSE_CELLS,
 } = {}) {
   const resolvedCellSize = Math.max(0.25, Number(cellSize) || DEFAULT_CELL_SIZE);
   const resolvedMaxCells = Math.max(1, Number(maxCellsPerEntry) || DEFAULT_MAX_CELLS);
+  const resolvedCoarseCellSize = Math.max(resolvedCellSize, Number(coarseCellSize) || DEFAULT_COARSE_CELL_SIZE);
+  const resolvedMaxCoarseCells = Math.max(1, Number(maxCoarseCellsPerEntry) || DEFAULT_MAX_COARSE_CELLS);
   const entries = new Map();
-  const buckets = new Map();
-  const largeEntries = new Set();
+  const fineBuckets = new Map();
+  const coarseBuckets = new Map();
+  const globalEntries = new Set();
   let lastCandidateCount = 0;
+  let lastRawCandidateCount = 0;
+  let lastQueryMs = 0;
+
+  function tierBuckets(tier) {
+    return tier === 'fine' ? fineBuckets : coarseBuckets;
+  }
 
   function detach(record) {
     for (const key of record.bucketKeys || []) {
-      const values = buckets.get(key);
+      const values = tierBuckets(record.tier).get(key);
       values?.delete(record.key);
-      if (!values?.size) buckets.delete(key);
+      if (!values?.size) tierBuckets(record.tier).delete(key);
     }
-    largeEntries.delete(record.key);
+    globalEntries.delete(record.key);
   }
 
   function remove(key) {
@@ -72,7 +95,7 @@ export function createMapObjectSpatialIndex({
 
   function upsert(value) {
     const key = String(value?.key || '');
-    const boundsParts = splitBounds(value?.bounds);
+    const boundsParts = splitGeographicBounds(value?.bounds);
     if (!key || !boundsParts.length) return false;
     remove(key);
     const record = Object.freeze({
@@ -83,27 +106,32 @@ export function createMapObjectSpatialIndex({
       bounds: value.bounds.map(Number),
       boundsParts,
       geometryRevision: Number(value.geometryRevision || 0),
-      bucketKeys: [],
+      bucketKeys: [], tier: 'global',
     });
     const bucketKeys = [];
-    let occupiedCellCount = 0;
-    for (const part of boundsParts) occupiedCellCount += cellRange(part, resolvedCellSize).count;
-    if (occupiedCellCount > resolvedMaxCells) {
-      largeEntries.add(key);
+    const occupiedCellCount = boundsParts.reduce((sum, part) => sum + cellRange(part, resolvedCellSize).count, 0);
+    const occupiedCoarseCellCount = boundsParts.reduce((sum, part) => sum + cellRange(part, resolvedCoarseCellSize).count, 0);
+    const tier = occupiedCellCount <= resolvedMaxCells
+      ? 'fine'
+      : occupiedCoarseCellCount <= resolvedMaxCoarseCells ? 'coarse' : 'global';
+    if (tier === 'global') {
+      globalEntries.add(key);
     } else {
+      const targetBuckets = tierBuckets(tier);
+      const targetCellSize = tier === 'fine' ? resolvedCellSize : resolvedCoarseCellSize;
       for (const part of boundsParts) {
-        const range = cellRange(part, resolvedCellSize);
+        const range = cellRange(part, targetCellSize);
         for (let x = range.minX; x <= range.maxX; x += 1) {
           for (let y = range.minY; y <= range.maxY; y += 1) {
             const cell = bucketKey(x, y);
-            if (!buckets.has(cell)) buckets.set(cell, new Set());
-            buckets.get(cell).add(key);
+            if (!targetBuckets.has(cell)) targetBuckets.set(cell, new Set());
+            targetBuckets.get(cell).add(key);
             bucketKeys.push(cell);
           }
         }
       }
     }
-    const stored = Object.freeze({ ...record, bucketKeys: Object.freeze(bucketKeys) });
+    const stored = Object.freeze({ ...record, tier, bucketKeys: Object.freeze(bucketKeys) });
     entries.set(key, stored);
     return true;
   }
@@ -119,18 +147,22 @@ export function createMapObjectSpatialIndex({
   }
 
   function query(bounds, { domains = null } = {}) {
-    const parts = splitBounds(bounds);
+    const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const parts = splitGeographicBounds(bounds);
     if (!parts.length) return [];
     const allowed = domains ? new Set([...domains].map(String)) : null;
-    const keys = new Set(largeEntries);
-    for (const part of parts) {
-      const range = cellRange(part, resolvedCellSize);
-      for (let x = range.minX; x <= range.maxX; x += 1) {
-        for (let y = range.minY; y <= range.maxY; y += 1) {
-          for (const key of buckets.get(bucketKey(x, y)) || []) keys.add(key);
+    const keys = new Set(globalEntries);
+    for (const [targetBuckets, targetCellSize] of [[fineBuckets, resolvedCellSize], [coarseBuckets, resolvedCoarseCellSize]]) {
+      for (const part of parts) {
+        const range = cellRange(part, targetCellSize);
+        for (let x = range.minX; x <= range.maxX; x += 1) {
+          for (let y = range.minY; y <= range.maxY; y += 1) {
+            for (const key of targetBuckets.get(bucketKey(x, y)) || []) keys.add(key);
+          }
         }
       }
     }
+    lastRawCandidateCount = keys.size;
     const result = [];
     for (const key of keys) {
       const record = entries.get(key);
@@ -139,23 +171,63 @@ export function createMapObjectSpatialIndex({
       result.push(record);
     }
     lastCandidateCount = result.length;
+    lastQueryMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - started;
+    return result;
+  }
+
+  function querySphericalCap({ center = [0, 0], radius = 90, domains = null } = {}) {
+    const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const allowed = domains ? new Set([...domains].map(String)) : null;
+    const keys = new Set(globalEntries);
+    const resolvedRadius = Math.max(0, Math.min(180, Number(radius) || 90));
+    for (const [targetBuckets, targetCellSize] of [[fineBuckets, resolvedCellSize], [coarseBuckets, resolvedCoarseCellSize]]) {
+      const cellRadius = Math.SQRT2 * targetCellSize / 2;
+      for (const [key, values] of targetBuckets) {
+        const [x, y] = key.split(':').map(Number);
+        const cellCenter = [
+          Math.max(-180, Math.min(180, x * targetCellSize - 180 + targetCellSize / 2)),
+          Math.max(-90, Math.min(90, y * targetCellSize - 90 + targetCellSize / 2)),
+        ];
+        if (angularDistanceDegrees(center, cellCenter) > resolvedRadius + cellRadius) continue;
+        for (const entryKey of values) keys.add(entryKey);
+      }
+    }
+    lastRawCandidateCount = keys.size;
+    const result = [];
+    for (const key of keys) {
+      const record = entries.get(key);
+      if (!record || (allowed && !allowed.has(record.domain))) continue;
+      result.push(record);
+    }
+    lastCandidateCount = result.length;
+    lastQueryMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - started;
     return result;
   }
 
   function stats() {
     return {
       entryCount: entries.size,
-      bucketCount: buckets.size,
-      largeEntryCount: largeEntries.size,
+      bucketCount: fineBuckets.size + coarseBuckets.size,
+      fineBucketCount: fineBuckets.size,
+      coarseBucketCount: coarseBuckets.size,
+      fineEntryCount: [...entries.values()].filter(record => record.tier === 'fine').length,
+      coarseEntryCount: [...entries.values()].filter(record => record.tier === 'coarse').length,
+      globalEntryCount: globalEntries.size,
+      largeEntryCount: [...entries.values()].filter(record => record.tier !== 'fine').length,
       lastCandidateCount,
+      lastRawCandidateCount,
+      lastQueryMs,
       cellSize: resolvedCellSize,
+      coarseCellSize: resolvedCoarseCellSize,
     };
   }
 
-  return Object.freeze({ upsert, remove, clearDomain, query, stats });
+  return Object.freeze({ upsert, remove, clearDomain, query, querySphericalCap, stats });
 }
 
 export const MAP_OBJECT_INDEX_DEFAULTS = Object.freeze({
   cellSize: DEFAULT_CELL_SIZE,
   maxCellsPerEntry: DEFAULT_MAX_CELLS,
+  coarseCellSize: DEFAULT_COARSE_CELL_SIZE,
+  maxCoarseCellsPerEntry: DEFAULT_MAX_COARSE_CELLS,
 });
