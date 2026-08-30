@@ -3,8 +3,8 @@
 
   const TERRITORIAL_TABLES = Object.freeze({
     territory: 'territories',
-    admin: 'administrative_units',
-    region: 'historical_regions',
+    admin: 'administrative',
+    region: 'regions',
   });
   const DISTRIBUTION_TABLES = Object.freeze({
     language: 'language_distribution',
@@ -84,8 +84,8 @@
     for (const entry of state?.distributionEntries || []) {
       const layer = layers.get(text(entry.layerId));
       const table = DISTRIBUTION_TABLES[layer?.type];
-      const sourceMode = text(entry.mode) === 'region' ? 'region' : 'geometry';
-      const geometry = sourceMode === 'region' ? polygonGeometry(geometryIndex.get(text(entry.regionId))) : polygonGeometry(entry.geometry);
+      const sourceMode = text(entry.mode) === 'territorial' ? 'territorial' : 'geometry';
+      const geometry = sourceMode === 'territorial' ? polygonGeometry(geometryIndex.get(text(entry.territorialUnitId))) : polygonGeometry(entry.geometry);
       if (!table || !geometry) continue;
       rows[table].push({
         geometry,
@@ -98,7 +98,7 @@
         layer_visible: state?.itemVisibility?.[presentationGroup(layer.type)]?.[text(layer.id)] === false ? 0 : 1,
         layer_locked: layer.locked === true ? 1 : 0,
         source_mode: sourceMode,
-        region_id: sourceMode === 'region' ? text(entry.regionId) : '',
+        territorial_unit_id: sourceMode === 'territorial' ? text(entry.territorialUnitId) : '',
         share: distributionShare(entry.share),
         certainty: text(entry.certainty) || 'unknown',
         valid_from: text(entry.validFrom),
@@ -153,11 +153,11 @@
     if (!type || !geometry) return null;
     const layerId = text(properties.layer_id) || `${type}:${index + 1}`;
     const entryId = text(properties.entry_id || feature.id) || `${layerId}:entry:${index + 1}`;
-    const sourceMode = text(properties.source_mode) === 'region' && text(properties.region_id) ? 'region' : 'geometry';
+    const sourceMode = text(properties.source_mode) === 'territorial' && text(properties.territorial_unit_id) ? 'territorial' : 'geometry';
     return {
       layer: {
         id: layerId,
-        schemaVersion: 1,
+        schemaVersion: 2,
         type,
         name: text(properties.name) || layerId,
         color: text(properties.color) || '#8c68d8',
@@ -167,10 +167,10 @@
       },
       entry: {
         id: entryId,
-        schemaVersion: 1,
+        schemaVersion: 2,
         layerId,
         mode: sourceMode,
-        regionId: sourceMode === 'region' ? text(properties.region_id) : '',
+        territorialUnitId: sourceMode === 'territorial' ? text(properties.territorial_unit_id) : '',
         geometry: sourceMode === 'geometry' ? geometry : null,
         share: distributionShare(properties.share),
         certainty: text(properties.certainty) || 'unknown',

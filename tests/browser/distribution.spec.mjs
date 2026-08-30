@@ -26,7 +26,7 @@ async function createDistribution(page, type, name) {
 async function autosavedDistributions(page) {
   return page.evaluate(async () => {
     const database = await new Promise((resolve, reject) => {
-      const request = indexedDB.open('pandolab-editor-v010', 2);
+      const request = indexedDB.open('pandolab-editor', 2);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
@@ -46,7 +46,7 @@ async function autosavedDistributions(page) {
   });
 }
 
-test('a language layer stores a region share and survives undo and redo', async ({ page }) => {
+test('a language layer stores a territorial share and survives undo and redo', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await openApp(page);
 
@@ -63,11 +63,11 @@ test('a language layer stores a region share and survives undo and redo', async 
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers('language')[0]?.color)).toBe('#2563eb');
   await page.locator('#actionsTabBtn').click();
 
-  const regionId = await page.locator('#distributionRegionInput option').nth(1).getAttribute('value');
-  expect(regionId).toBeTruthy();
-  await selectUiOption(page, '#distributionRegionInput', regionId);
+  const territorialUnitId = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
+  expect(territorialUnitId).toBeTruthy();
+  await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
   await page.locator('#distributionShareInput').fill('95');
-  await page.locator('#addRegionDistributionBtn').click();
+  await page.locator('#addTerritorialDistributionBtn').click();
 
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
@@ -77,7 +77,7 @@ test('a language layer stores a region share and survives undo and redo', async 
   });
   expect(stored.layer.name).toBe('그리스어');
   expect(stored.entries).toHaveLength(1);
-  expect(stored.entries[0]).toMatchObject({ mode: 'region', regionId, share: 95 });
+  expect(stored.entries[0]).toMatchObject({ mode: 'territorial', territorialUnitId, share: 95 });
 
   await page.locator('#undoBtn').click();
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(0);
@@ -143,7 +143,7 @@ test('all distribution types stay in the distribution model and free geometry ro
   });
   expect(restored.languageNames).toContain('언어 수정');
   expect(restored.ethnicityName).toBe('민족 자유영역');
-  expect(restored.entries[0]).toMatchObject({ mode: 'geometry', regionId: '', share: 67 });
+  expect(restored.entries[0]).toMatchObject({ mode: 'geometry', territorialUnitId: '', share: 67 });
   expect(restored.entries[0].geometry?.type).toBe('Polygon');
   expect(errors).toEqual([]);
 });

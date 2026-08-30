@@ -13,7 +13,7 @@
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const importPlanModuleUrl = new URL('modules/import-plan.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r13');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r14');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
@@ -22,6 +22,7 @@
   const inputLimit = 512 * 1024 * 1024;
   const extractedLimit = 1024 * 1024 * 1024;
   const archiveEntryLimit = 10000;
+  const GIS_MANIFEST_SCHEMA_VERSION = 2;
   let gdalPromise = null;
   let gpkgWorker = null;
   let workerSequence = 0;
@@ -187,6 +188,9 @@
       }
       files.push(new File([bytes], basename(safeName), { type: 'application/octet-stream', lastModified: file.lastModified }));
       files[files.length - 1].__atlasArchivePath = safeName;
+    }
+    if (manifest?.pandolabExport === true && Number(manifest.schemaVersion) !== GIS_MANIFEST_SCHEMA_VERSION) {
+      throw new Error(`지원하지 않는 GIS manifest schemaVersion입니다. 현재 버전: ${GIS_MANIFEST_SCHEMA_VERSION}`);
     }
     files.__pandolabManifest = manifest;
     return files;
@@ -474,7 +478,7 @@
     populateFieldSelect(document.getElementById('gisNameField'), fields, { ...fieldOptions, roleLabel: '이름', selected: autoField(fields, ['pandolab_name', 'NAME_KO', 'name_ko', 'NAME', 'name', descriptor.qgsLabelField]) });
     populateFieldSelect(document.getElementById('gisColorField'), fields, { ...fieldOptions, roleLabel: '색상', includeStyle: true, selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill']) });
     populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['sovereign_id', 'country_id', 'countryId', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
-    populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 영역', selected: autoField(fields, ['parent_id', 'parentRegionId', 'parent', 'region_id']) });
+    populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 영역', selected: autoField(fields, ['parent_id', 'parent']) });
     populateFieldSelect(document.getElementById('gisLevelField'), fields, { ...fieldOptions, roleLabel: '행정 단계', selected: autoField(fields, ['admin_level', 'level', 'adm_level']) });
     const crsInput = document.getElementById('gisCrsInput');
     crsInput.value = descriptor.crs.source || '';
@@ -487,18 +491,9 @@
     updateTargetFields();
   }
 
-  function manifestTargetType(layer) {
-    const targetType = String(layer?.targetType || '');
-    if (targetType === 'historicalRegion') return TERRITORIAL_IMPORT_TARGETS.REGION;
-    if (targetType === 'region' && (layer?.category === 'regions' || /(?:^|\/)regions\.geojson$/i.test(String(layer?.file || '')))) {
-      return TERRITORIAL_IMPORT_TARGETS.TERRITORY;
-    }
-    return targetType;
-  }
-
   function suggestedTarget(descriptor, manifest = null) {
     const manifestLayer = (manifest?.layers || []).find(layer => [layer.file, layer.name].filter(Boolean).some(value => withoutExtension(value).toLowerCase() === withoutExtension(descriptor?.datasetPath || descriptor?.layerName).toLowerCase()));
-    if (manifestLayer?.targetType) return manifestTargetType(manifestLayer);
+    if (manifestLayer?.targetType) return String(manifestLayer.targetType);
     const hint = `${descriptor?.layerName || ''} ${descriptor?.geometryType || ''}`.toLowerCase();
     if (/country|countries|admin[_ ]?0|국가/.test(hint) && /polygon|surface/.test(hint)) return 'country';
     if (/admin|administrative|행정/.test(hint) && /polygon|surface/.test(hint)) return 'administrative';
@@ -563,14 +558,14 @@
     if ([...select.options].some(option => option.value === selected)) select.value = selected;
   }
 
-  function populateParentRegions() {
-    const select = document.getElementById('gisParentRegion');
+  function populateParentUnits() {
+    const select = document.getElementById('gisParentUnit');
     if (!select) return;
     const selected = select.value;
     const ownerId = document.getElementById('gisTargetCountry')?.value || '';
     select.replaceChildren(new Option('국가 직속', ''));
-    for (const region of (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId))) {
-      select.add(new Option(`${region.name}${region.type === 'administrative' ? ` · ${region.level || 1}단계` : ' · 권역'}`, region.id));
+    for (const unit of (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId))) {
+      select.add(new Option(`${unit.name}${unit.type === 'administrative' ? ` · ${unit.level || 1}단계` : ' · 권역'}`, unit.id));
     }
     if ([...select.options].some(option => option.value === selected)) select.value = selected;
   }
@@ -594,12 +589,12 @@
     }
     document.getElementById('gisDistributionTypeRow')?.classList.toggle('hidden', !distribution);
     document.getElementById('gisTargetCountryRow')?.classList.toggle('hidden', !territorial);
-    document.getElementById('gisParentRegionRow')?.classList.toggle('hidden', target !== 'administrative');
+    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'administrative');
     document.getElementById('gisUseCountryFieldRow')?.classList.toggle('hidden', !territorial);
     document.getElementById('gisCountryFieldRow')?.classList.toggle('hidden', !territorial || !useCountryField);
     document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'administrative' || !useCountryField);
     document.getElementById('gisLevelFieldRow')?.classList.toggle('hidden', target !== 'administrative');
-    populateParentRegions();
+    populateParentUnits();
     const modeSelect = document.getElementById('gisOpenMode');
     const modeRow = document.getElementById('gisOpenModeRow');
     if (importSourceKind === 'project') modeSelect.value = 'replace';
@@ -946,7 +941,7 @@
       groupDuplicates: true,
       targetCountryId: document.getElementById('gisTargetCountry').value,
       useFeatureCountryField: document.getElementById('gisUseCountryField').checked,
-      parentId: document.getElementById('gisParentRegion').value,
+      parentId: document.getElementById('gisParentUnit').value,
       openMode: importSourceKind === 'project' ? 'replace' : (targetType === 'country' ? document.getElementById('gisOpenMode').value : 'merge'),
     };
   }
@@ -1042,7 +1037,7 @@
       };
       layerSelect.onchange = refresh;
       targetSelect.onchange = () => { invalidatePrepared(); updateTargetFields(); };
-      for (const id of ['gisIdField', 'gisNameField', 'gisCountryField', 'gisParentField', 'gisLevelField', 'gisColorField', 'gisDistributionType', 'gisParentRegion']) {
+      for (const id of ['gisIdField', 'gisNameField', 'gisCountryField', 'gisParentField', 'gisLevelField', 'gisColorField', 'gisDistributionType', 'gisParentUnit']) {
         document.getElementById(id).onchange = () => { invalidatePrepared(); updateTargetFields(); };
       }
       document.getElementById('gisUseCountryField').onchange = () => { invalidatePrepared(); updateTargetFields(); };
@@ -1236,9 +1231,9 @@
         properties: exportCountryProperties(feature, projectState.countryOverrides, reservedMap), geometry: feature.geometry,
       })),
     });
-    add('regions', 'regions.geojson', 'region', rowsAsFeatureCollection(territorial.territories));
-    add('administrative', 'administrative_units.geojson', 'administrative', rowsAsFeatureCollection(territorial.administrative_units));
-    add('historicalRegions', 'historical_regions.geojson', 'historicalRegion', rowsAsFeatureCollection(territorial.historical_regions));
+    add('territories', 'territories.geojson', 'territory', rowsAsFeatureCollection(territorial.territories));
+    add('administrative', 'administrative.geojson', 'administrative', rowsAsFeatureCollection(territorial.administrative));
+    add('regions', 'regions.geojson', 'region', rowsAsFeatureCollection(territorial.regions));
     add('drawings', 'drawings.geojson', 'drawing', { type: 'FeatureCollection', features: structuredClone(projectState.drawings || []) });
     if (selected.has('distributions')) {
       for (const [distributionType, tableName] of Object.entries(gisAdapters.DISTRIBUTION_TABLES)) {
@@ -1264,7 +1259,7 @@
     const createdAt = new Date().toISOString();
     const manifest = {
       pandolabExport: true,
-      schemaVersion: 1,
+      schemaVersion: GIS_MANIFEST_SCHEMA_VERSION,
       crs: 'EPSG:4326',
       createdAt,
       layers: layers.map(layer => ({

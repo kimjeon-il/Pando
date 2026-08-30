@@ -140,7 +140,7 @@ test('a region import stays explicit, opens the region editor, and survives undo
     } : null;
   }, name);
   expect(snapshot).toMatchObject({ unitType: 'region', coverageMode: 'explicit', isRemainder: false });
-  await expect(page.locator('#historicalRegionProperties')).toBeVisible();
+  await expect(page.locator('#regionProperties')).toBeVisible();
   await expect(page.locator('#selectionStatus')).toContainText(`지방 · ${name}`);
 
   await page.locator('#undoBtn').click();

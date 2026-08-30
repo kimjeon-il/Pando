@@ -4,13 +4,13 @@ import test from 'node:test';
 import { createProjectSerializer, restoreCountriesFromDelta } from '../../assets/js/modules/project-serializer.js';
 
 const serializer = snapshot => createProjectSerializer({
-  schemaVersion: 1,
+  schemaVersion: 2,
   appVersion: '0.30.0',
   baseDataset: 'base',
   drawingSchemaVersion: 1,
-  distributionSchemaVersion: 1,
+  distributionSchemaVersion: 2,
   distributionTypes: ['language'],
-  distributionModes: ['region', 'geometry'],
+  distributionModes: ['territorial', 'geometry'],
   terrainDataset: 'terrain',
   hydroDataset: 'hydro',
   readSnapshot: () => snapshot,

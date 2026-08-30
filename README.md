@@ -46,11 +46,11 @@ v0.30.0에서는 시작 과정을 미리보기·편집 가능·고화질 지도�
 
 v0.29.0에서는 프로젝트 레이어와 분리된 국가·지역 라이브러리를 추가했습니다. 안정적 `libraryId`, 다국어 이름·별칭, 존속 기간, 시대별 `GeometryVersion`, 출처·불확실성을 검색·미리보기하고 독립 프로젝트 인스턴스로 추가할 수 있습니다. 현존 국가는 기존 Natural Earth 데이터를 어댑터로 공급하며, 과거 국가 시험 항목은 근사 경계·낮은 신뢰도를 명시합니다. `WorldSnapshot`은 원본을 변경하지 않는 템플릿으로 등록됩니다.
 
-v0.27.0에서는 판도연구소 프로젝트와 GIS 교환 형식을 분리하는 어댑터 계층을 추가했습니다. GeoPackage는 `countries`, `territories`, `administrative_units`, `historical_regions`와 언어·민족·종교 분포를 독립 레이어로 내보내며, 안정적 ID·관계·기간·비율·불확실성을 속성으로 보존합니다. 영역 참조 분포는 내보내기 시에만 표준 Polygon/MultiPolygon으로 펼쳐지며 CRS는 EPSG:4326으로 명시됩니다.
+v0.27.0에서는 판도연구소 프로젝트와 GIS 교환 형식을 분리하는 어댑터 계층을 추가했습니다. GeoPackage는 `countries`, `territories`, `administrative`, `regions`와 언어·민족·종교 분포를 독립 레이어로 내보내며, 안정적 ID·관계·기간·비율·불확실성을 속성으로 보존합니다. 영역 참조 분포는 내보내기 시에만 표준 Polygon/MultiPolygon으로 펼쳐지며 CRS는 EPSG:4326으로 명시됩니다.
 
 v0.26.0에서는 언어·민족·종교를 `DistributionLayer`/​`DistributionEntry` 공통 모델로 관리합니다. 하나의 지역에 여러 분포를 독립적인 0~100% 비율로 기록할 수 있고, `TerritorialUnit` 참조와 자유 Polygon/MultiPolygon을 모두 지원합니다. 지배적 분포와 선택 항목 비율 농도 렌더링을 제공하며, 국경·주권 편집은 문화 분포를 자동으로 변경하지 않습니다.
 
-v0.25.0에서는 국가·권역·행정구역·지방을 `TerritorialUnit` 공통 API로 조회·선택·편집합니다. 직접 상위 영역(`parentId`)과 최종 주권국(`sovereignId`)을 분리하고, 일반 영역 연산은 공통 geometry 커널을 사용합니다. canonical 값은 각각 `country`, `territory`, `admin`, `region`이며 기존 `countryRegions` 프로젝트는 불러올 때 새 모델로 변환됩니다.
+v0.25.0에서는 국가·권역·행정구역·지방을 `TerritorialUnit` 공통 API로 조회·선택·편집합니다. 직접 상위 영역(`parentId`)과 최종 주권국(`sovereignId`)을 분리하고, 일반 영역 연산은 공통 geometry 커널을 사용합니다. canonical 값은 각각 `country`, `territory`, `admin`, `region`입니다.
 
 v0.24.0에서는 레이어 하위 항목의 장식 아이콘과 중복 `국명` 문구를 제거하고, 각 항목 오른쪽에 실행취소 가능한 삭제 버튼을 추가했습니다. 권역·행정구역은 범용 지형지물과 분리된 국가 영역으로 관리하며 국가별·행정 단계별 레이어, 전용 편집창, 나누기·합치기·영역 다시 지정·국가 이전·독립 작업을 제공합니다. 국가 Polygon은 국경과 해안선의 단일 기준이고, 명시적 구분을 시작한 부모의 남는 면적은 미지정 영역으로 보존됩니다. 이 관계는 프로젝트 상태와 GeoJSON·GeoPackage 입출력에 포함됩니다.
 

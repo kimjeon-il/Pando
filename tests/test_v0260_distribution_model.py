@@ -32,10 +32,10 @@ class V0260DistributionModelTests(unittest.TestCase):
             self.assertIn(f"function {symbol}", MODEL)
         self.assertIn("groups:", MODEL)
 
-    def test_region_reference_and_free_geometry_modes_are_supported(self):
-        self.assertIn("REGION: 'region'", MODEL)
+    def test_territorial_reference_and_free_geometry_modes_are_supported(self):
+        self.assertIn("TERRITORIAL: 'territorial'", MODEL)
         self.assertIn("GEOMETRY: 'geometry'", MODEL)
-        self.assertIn("regionId", MODEL)
+        self.assertIn("territorialUnitId", MODEL)
         self.assertIn("share:", MODEL)
         self.assertIn("certainty:", MODEL)
         self.assertIn("validFrom:", MODEL)
@@ -50,7 +50,7 @@ class V0260DistributionModelTests(unittest.TestCase):
             "distributionTypeModal",
             "distributionProperties",
             "distributionEntryList",
-            "addRegionDistributionBtn",
+            "addTerritorialDistributionBtn",
             "addGeometryDistributionBtn",
         ):
             self.assertIn(f'id="{element_id}"', INDEX)

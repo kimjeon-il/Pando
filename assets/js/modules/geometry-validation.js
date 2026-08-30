@@ -392,9 +392,9 @@ export function validateDistributionReference(entries = [], units = []) {
       entityRefs: [id], sequence: entryIndex,
     }));
     if (id) seenIds.add(id);
-    if (entry.mode === 'region' && !unitIds.has(String(entry.regionId || ''))) {
-      issues.push(issue('missing-region-reference', `분포가 존재하지 않는 regionId ${entry.regionId || '—'}를 참조합니다.`, {
-        entityRefs: [id, String(entry.regionId || '')], severity: 'error', sequence: entryIndex,
+    if (entry.mode === 'territorial' && !unitIds.has(String(entry.territorialUnitId || ''))) {
+      issues.push(issue('missing-territorial-reference', `분포가 존재하지 않는 territorialUnitId ${entry.territorialUnitId || '—'}를 참조합니다.`, {
+        entityRefs: [id, String(entry.territorialUnitId || '')], severity: 'error', sequence: entryIndex,
       }));
     }
   });

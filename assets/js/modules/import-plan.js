@@ -14,8 +14,7 @@ function text(value, fallback = '') {
 }
 
 export function normalizeImportPlan(raw = {}) {
-  const requestedTarget = raw.targetType === 'historicalRegion' ? TERRITORIAL_IMPORT_TARGETS.REGION : raw.targetType;
-  const targetType = TARGET_TYPES.has(requestedTarget) ? requestedTarget : 'drawing';
+  const targetType = TARGET_TYPES.has(raw.targetType) ? raw.targetType : 'drawing';
   const sourceKind = SOURCE_KINDS.has(raw.sourceKind) ? raw.sourceKind : (targetType === 'project' ? 'project' : 'vector');
   const openMode = targetType === 'project'
     ? 'replace'
@@ -45,7 +44,7 @@ export function normalizeImportPlan(raw = {}) {
     targetCountryId: PARTITION_TARGETS.has(targetType) ? text(raw.targetCountryId) : '',
     useFeatureCountryField: PARTITION_TARGETS.has(targetType) && raw.useFeatureCountryField === true,
     fallbackCountryId: PARTITION_TARGETS.has(targetType) ? text(raw.fallbackCountryId, raw.targetCountryId) : '',
-    parentId: targetType === TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE ? text(raw.parentId, raw.parentRegionId) : '',
+    parentId: targetType === TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE ? text(raw.parentId) : '',
     landPolicy: PARTITION_TARGETS.has(targetType) ? 'transfer-to-owner' : 'preserve',
     openMode,
     mergePolicy: targetType === 'country' ? 'same-id-multipolygon' : text(raw.mergePolicy, 'preserve-features'),

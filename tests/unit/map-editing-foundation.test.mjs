@@ -112,13 +112,13 @@ test('geometry validation returns a located self-intersection issue and relation
       { type: 'Feature', id: 'orphan', properties: { name: '중복', sovereignId: 'A' }, geometry: feature('Y', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry },
     ],
     distributionEntries: [
-      { id: 'entry', mode: 'region', regionId: 'missing-region' },
+      { id: 'entry', mode: 'territorial', territorialUnitId: 'missing-unit' },
       { id: 'entry', mode: 'geometry', geometry: feature('Z', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry },
     ],
   });
   assert.ok(report.issues.some(issue => issue.kind === 'invalid-sovereign'));
   assert.ok(report.issues.some(issue => issue.kind === 'orphan-administrative'));
-  assert.ok(report.issues.some(issue => issue.kind === 'missing-region-reference'));
+  assert.ok(report.issues.some(issue => issue.kind === 'missing-territorial-reference'));
   assert.equal(report.issues.filter(issue => issue.kind === 'duplicate-id').length, 2);
 });
 

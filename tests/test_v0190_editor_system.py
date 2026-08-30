@@ -15,7 +15,7 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertIn('id="editorScrollBody" class="editor-scroll-body"', INDEX)
         self.assertIn('id="editorObjectHeader" class="editor-object-header hidden"', INDEX)
         for view_id in (
-            "countryProperties", "territoryProperties", "administrativeProperties", "historicalRegionProperties",
+            "countryProperties", "territoryProperties", "administrativeProperties", "regionProperties",
             "distributionProperties", "drawingProperties", "labelProperties", "hydroProperties",
         ):
             self.assertRegex(INDEX, rf'id="{view_id}" class="editor-view editor-object-form hidden"')

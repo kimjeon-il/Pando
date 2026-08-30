@@ -1,6 +1,6 @@
 import { normalizeTemporalInterval } from './temporal.js';
 
-export const DISTRIBUTION_SCHEMA_VERSION = 1;
+export const DISTRIBUTION_SCHEMA_VERSION = 2;
 
 export const DISTRIBUTION_TYPES = Object.freeze({
   LANGUAGE: 'language',
@@ -9,7 +9,7 @@ export const DISTRIBUTION_TYPES = Object.freeze({
 });
 
 export const DISTRIBUTION_MODES = Object.freeze({
-  REGION: 'region',
+  TERRITORIAL: 'territorial',
   GEOMETRY: 'geometry',
 });
 
@@ -21,8 +21,14 @@ export const DISTRIBUTION_RENDER_MODES = Object.freeze({
 const TYPES = new Set(Object.values(DISTRIBUTION_TYPES));
 const MODES = new Set(Object.values(DISTRIBUTION_MODES));
 const POLYGON_TYPES = new Set(['Polygon', 'MultiPolygon']);
+const LAYER_KEYS = new Set(['id', 'schemaVersion', 'type', 'name', 'color', 'locked', 'parentId', 'groups', 'validFrom', 'validTo', 'metadata']);
+const ENTRY_KEYS = new Set(['id', 'schemaVersion', 'layerId', 'mode', 'territorialUnitId', 'geometry', 'share', 'certainty', 'validFrom', 'validTo', 'metadata']);
 const text = value => String(value ?? '').trim();
 const clone = value => structuredClone(value);
+function assertAllowedKeys(value, allowed, label) {
+  const unsupported = Object.keys(value || {}).find(key => !allowed.has(key));
+  if (unsupported) throw new Error(`${label}에 지원하지 않는 필드 ${unsupported}가 있습니다.`);
+}
 function shareValue(value) {
   const share = Number(value);
   if (!Number.isFinite(share)) throw new Error('분포 비율은 유한한 숫자여야 합니다.');
@@ -32,6 +38,7 @@ function shareValue(value) {
 
 export function normalizeDistributionLayer(raw) {
   if (Number(raw?.schemaVersion) !== DISTRIBUTION_SCHEMA_VERSION) throw new Error('분포 레이어 schemaVersion이 현재 형식과 일치하지 않습니다.');
+  assertAllowedKeys(raw, LAYER_KEYS, '분포 레이어');
   const type = text(raw?.type).toLowerCase();
   if (!TYPES.has(type)) return null;
   const id = text(raw?.id);
@@ -83,15 +90,16 @@ export function normalizeDistributionLayers(value) {
 
 export function normalizeDistributionEntry(raw) {
   if (Number(raw?.schemaVersion) !== DISTRIBUTION_SCHEMA_VERSION) throw new Error('분포 엔트리 schemaVersion이 현재 형식과 일치하지 않습니다.');
+  assertAllowedKeys(raw, ENTRY_KEYS, '분포 엔트리');
   const layerId = text(raw?.layerId);
   if (!layerId) throw new Error('분포 엔트리의 레이어 ID가 비어 있습니다.');
   const mode = text(raw?.mode);
   if (!MODES.has(mode)) return null;
-  const regionId = mode === DISTRIBUTION_MODES.REGION ? text(raw.regionId) : '';
+  const territorialUnitId = mode === DISTRIBUTION_MODES.TERRITORIAL ? text(raw.territorialUnitId) : '';
   const geometry = mode === DISTRIBUTION_MODES.GEOMETRY && POLYGON_TYPES.has(raw?.geometry?.type)
     ? clone(raw.geometry)
     : null;
-  if ((mode === DISTRIBUTION_MODES.REGION && !regionId)
+  if ((mode === DISTRIBUTION_MODES.TERRITORIAL && !territorialUnitId)
     || (mode === DISTRIBUTION_MODES.GEOMETRY && (!geometry || !Array.isArray(geometry.coordinates) || !geometry.coordinates.length))) return null;
   const id = text(raw.id);
   if (!id) throw new Error('분포 엔트리 ID가 비어 있습니다.');
@@ -101,7 +109,7 @@ export function normalizeDistributionEntry(raw) {
     schemaVersion: DISTRIBUTION_SCHEMA_VERSION,
     layerId,
     mode,
-    regionId,
+    territorialUnitId,
     geometry,
     share: shareValue(raw.share ?? 100),
     certainty: text(raw.certainty) || 'unknown',
@@ -147,7 +155,7 @@ export function validateDistributionModel(layers, entries, { territorialExists =
   const layerIds = new Set((layers || []).map(layer => text(layer.id)));
   for (const entry of entries || []) {
     if (!layerIds.has(text(entry.layerId))) issues.push(`${entry.id}의 분포 항목이 존재하지 않습니다.`);
-    if (entry.mode === DISTRIBUTION_MODES.REGION && !territorialExists(entry.regionId)) issues.push(`${entry.id}의 참조 영역이 존재하지 않습니다.`);
+    if (entry.mode === DISTRIBUTION_MODES.TERRITORIAL && !territorialExists(entry.territorialUnitId)) issues.push(`${entry.id}의 참조 영역이 존재하지 않습니다.`);
     if (entry.share < 0 || entry.share > 100) issues.push(`${entry.id}의 비율이 0~100 범위를 벗어났습니다.`);
   }
   return { ok: issues.length === 0, issues };
@@ -155,7 +163,7 @@ export function validateDistributionModel(layers, entries, { territorialExists =
 
 export function dominantDistributionEntries(layers, entries) {
   const visible = new Set((layers || []).map(layer => layer.id));
-  const byRegion = new Map();
+  const byTerritorialUnit = new Map();
   const geometryEntries = [];
   for (const entry of entries || []) {
     if (!visible.has(entry.layerId)) continue;
@@ -163,8 +171,8 @@ export function dominantDistributionEntries(layers, entries) {
       geometryEntries.push(entry);
       continue;
     }
-    const current = byRegion.get(entry.regionId);
-    if (!current || entry.share > current.share) byRegion.set(entry.regionId, entry);
+    const current = byTerritorialUnit.get(entry.territorialUnitId);
+    if (!current || entry.share > current.share) byTerritorialUnit.set(entry.territorialUnitId, entry);
   }
-  return [...byRegion.values(), ...geometryEntries];
+  return [...byTerritorialUnit.values(), ...geometryEntries];
 }

@@ -2,7 +2,7 @@ import { normalizeTemporalInterval } from './temporal.js';
 
 const text = value => String(value ?? '').trim();
 const POLYGON_TYPES = new Set(['Polygon', 'MultiPolygon']);
-const DISTRIBUTION_MODES = new Set(['region', 'geometry']);
+const DISTRIBUTION_MODES = new Set(['territorial', 'geometry']);
 
 function issue(code, message, objectIds = [], field = '') {
   return Object.freeze({
@@ -162,10 +162,10 @@ export function validateProjectReferenceIntegrity({
     }
     try { normalizeTemporalInterval(entry?.validFrom, entry?.validTo); }
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }
-    if (mode === 'region') {
-      const regionId = text(entry?.regionId);
-      if (!territorialIds.has(regionId)) {
-        issues.push(issue('PL-INV-MISSING-DIST-REGION', `${id}의 참조 영역 ${regionId}이 존재하지 않습니다.`, [id, regionId], 'regionId'));
+    if (mode === 'territorial') {
+      const territorialUnitId = text(entry?.territorialUnitId);
+      if (!territorialIds.has(territorialUnitId)) {
+        issues.push(issue('PL-INV-MISSING-DIST-TERRITORIAL', `${id}의 참조 영역 ${territorialUnitId}이 존재하지 않습니다.`, [id, territorialUnitId], 'territorialUnitId'));
       }
     } else if (mode === 'geometry') {
       const geometry = entry?.geometry;

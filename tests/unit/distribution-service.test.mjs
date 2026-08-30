@@ -43,11 +43,11 @@ test('distribution service owns layer hierarchy and locked metadata rules', () =
   assert.equal(transactions.length, 3);
 });
 
-test('distribution entry CRUD validates region references and cascades layer deletion', () => {
+test('distribution entry CRUD validates territorial references and cascades layer deletion', () => {
   const { service, entries } = fixture();
   service.createLayer(layerInput('layer'));
-  assert.equal(service.addEntry({ id: 'bad', layerId: 'layer', mode: 'region', regionId: 'missing', share: 50 }).code, 'region-not-found');
-  const added = service.addEntry({ id: 'entry', layerId: 'layer', mode: 'region', regionId: 'region-a', share: 50 });
+  assert.equal(service.addEntry({ id: 'bad', layerId: 'layer', mode: 'territorial', territorialUnitId: 'missing', share: 50 }).code, 'territorial-unit-not-found');
+  const added = service.addEntry({ id: 'entry', layerId: 'layer', mode: 'territorial', territorialUnitId: 'region-a', share: 50 });
   assert.equal(added.ok, true);
   assert.equal(entries().length, 1);
   assert.equal(service.deleteLayer('layer').removedEntryCount, 1);

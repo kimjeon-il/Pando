@@ -21,20 +21,20 @@ class V0270GisInterchangeTests(unittest.TestCase):
 
     def test_territorial_and_distribution_tables_are_explicit(self):
         for table in (
-            "territories", "administrative_units", "historical_regions",
+            "territories", "administrative", "regions",
             "language_distribution", "ethnicity_distribution", "religion_distribution",
         ):
             self.assertIn(table, ADAPTERS)
         for field in (
             "parent_id", "sovereign_id", "valid_from", "valid_to", "source_library_id",
-            "entry_id", "layer_id", "source_mode", "region_id", "share", "certainty",
+            "entry_id", "layer_id", "source_mode", "territorial_unit_id", "share", "certainty",
         ):
             self.assertIn(field, ADAPTERS)
 
-    def test_region_distribution_export_materializes_geometry_without_mutating_project(self):
+    def test_territorial_distribution_export_materializes_geometry_without_mutating_project(self):
         self.assertIn("function countryGeometryIndex", ADAPTERS)
-        self.assertIn("sourceMode === 'region'", ADAPTERS)
-        self.assertIn("region_id", ADAPTERS)
+        self.assertIn("sourceMode === 'territorial'", ADAPTERS)
+        self.assertIn("territorial_unit_id", ADAPTERS)
         self.assertIn("assert.deepEqual(state, before)", (ROOT / "tests" / "unit" / "gis-adapters.test.mjs").read_text(encoding="utf-8"))
 
     def test_unified_vector_targets_cover_all_new_domains(self):

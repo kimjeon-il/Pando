@@ -487,9 +487,9 @@ html[data-selection-mode="strong-fill"] .map-selection-shape.is-secondary { fill
   pointer-events: none;
   vector-effect: non-scaling-stroke;
 }
-.territorial-internal-boundary--region { stroke-width: 2px; }
+.territorial-internal-boundary--territory { stroke-width: 2px; }
 .territorial-internal-boundary--administrative { stroke-width: 1.1px; stroke-dasharray: 3 2; }
-.territorial-internal-boundary--historical { stroke-width: 1.5px; stroke-dasharray: 7 3; }
+.territorial-internal-boundary--region { stroke-width: 1.5px; stroke-dasharray: 7 3; }
 .territorial-unit-shape.has-explicit-color { fill-opacity: .24; }
 .territorial-unit-shape.territorial-unit-merge-source { stroke: var(--accent-2); stroke-width: 3px; }
 .territorial-unit-shape.territorial-unit-merge-target { fill-opacity: .28; stroke: var(--accent); stroke-width: 3px; }

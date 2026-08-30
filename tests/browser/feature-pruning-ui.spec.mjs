@@ -12,8 +12,8 @@ const removedIds = [
   'layerPresentationList', 'labelPriorityInput', 'labelCollisionInput', 'labelMinZoomInput', 'labelMaxZoomInput', 'labelPinnedInput',
   'projectSavePopover', 'distributionInspectPanel',
   'countryComponentsSection', 'countryComponentList', 'propertyAreaValue',
-  'regionLockedInput', 'administrativeLockedInput', 'historicalRegionLockedInput',
-  'deleteCountryBtn', 'deleteHistoricalRegionBtn', 'objectFocusMenuBtn',
+  'regionLockedInput', 'administrativeLockedInput', 'regionLockedInput',
+  'deleteCountryBtn', 'deleteRegionBtn', 'objectFocusMenuBtn',
 ];
 
 async function openApp(page, viewport) {
