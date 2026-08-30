@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r15';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r18';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -104,6 +104,7 @@ const coastReconciliationModule = await import(versionedModuleUrl('./modules/coa
 const coastReconciliationControllerModule = await import(versionedModuleUrl('./modules/coast-reconciliation-controller.js'));
 const annexGeometryModule = await import(versionedModuleUrl('./modules/annex-geometry.js'));
 const selectionEmphasisModule = await import(versionedModuleUrl('./modules/selection-emphasis.js'));
+const mapInteractionStyleModule = await import(versionedModuleUrl('./modules/map-interaction-style.js'));
 const userPreferencesModule = await import(versionedModuleUrl('./modules/user-preferences.js'));
 const notificationCopyModule = await import(versionedModuleUrl('./modules/notification-copy.js'));
 const { createDiagnosticLog, fetchWithRetry } = reliabilityCoreModule;
@@ -116,7 +117,8 @@ const {
 } = coastReconciliationModule;
 const { createCoastReconciliationController } = coastReconciliationControllerModule;
 const { planDrawnTerritoryAnnex, extractRiverAnnexSections } = annexGeometryModule;
-const { SELECTION_STYLE, setSelectionColor, buildSelectionBoundarySegments, createSelectionEmphasisRenderer } = selectionEmphasisModule;
+const { SELECTION_STYLE, setSelectionColor, setInteractionStyle: setSelectionInteractionStyle, buildSelectionBoundarySegments, createSelectionEmphasisRenderer } = selectionEmphasisModule;
+const { resolveMapInteractionStyle } = mapInteractionStyleModule;
 const { loadUserPreferences, saveUserPreferences, effectiveTheme, defaultUserPreferences } = userPreferencesModule;
 const { compactNotificationMessage } = notificationCopyModule;
 const { createSelectController } = selectControllerModule;
@@ -328,10 +330,25 @@ const {
   let runtimeReady = false;
   document.documentElement.dataset.systemTheme = systemTheme;
   document.documentElement.dataset.theme = effectiveTheme(userPreferences, systemTheme === 'dark');
-  setSelectionColor(userPreferences.selection.color);
   document.documentElement.dataset.selectionMode = userPreferences.selection.mode;
   document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
-  syncMapHoverStyle();
+  function resolveCurrentInteractionStyle() {
+    const theme = effectiveTheme(userPreferences, systemTheme === 'dark');
+    const computed = getComputedStyle(document.documentElement);
+    return resolveMapInteractionStyle({
+      theme,
+      selectionColor: userPreferences.selection.color,
+      selectionMode: userPreferences.selection.mode,
+      tokens: {
+        accent: computed.getPropertyValue('--accent').trim(),
+        accent2: computed.getPropertyValue('--accent-2').trim(),
+        textStrong: computed.getPropertyValue('--text-strong').trim(),
+      },
+    });
+  }
+  let resolvedInteractionStyle = resolveCurrentInteractionStyle();
+  setSelectionColor(resolvedInteractionStyle.selection.color);
+  setSelectionInteractionStyle(resolvedInteractionStyle);
   window.__PANDOLAB_THEME__ = effectiveTheme(userPreferences, systemTheme === 'dark');
 
   function enableKeyboardNavigation(event) {
@@ -385,6 +402,7 @@ const {
     document.documentElement.dataset.systemTheme = systemTheme;
     document.documentElement.dataset.theme = effectiveTheme(userPreferences, systemTheme === 'dark');
     window.__PANDOLAB_THEME__ = effectiveTheme(userPreferences, systemTheme === 'dark');
+    syncResolvedInteractionStyle();
     if (state?.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       const id = String(state.selected.id);
       const feature = countryFeatureById(id);
@@ -1910,6 +1928,19 @@ const {
     setActionStatus,
     state,
   });
+
+  function syncResolvedInteractionStyle({ redraw = false } = {}) {
+    resolvedInteractionStyle = resolveCurrentInteractionStyle();
+    setSelectionInteractionStyle(resolvedInteractionStyle);
+    selectionEmphasisRenderer?.setInteractionStyle?.(resolvedInteractionStyle);
+    gpuMapRenderer.setInteractionStyle?.(resolvedInteractionStyle);
+    document.documentElement.style.setProperty('--map-selection-halo', resolvedInteractionStyle.selection.color);
+    window.__PANDOLAB_INTERACTION_STYLE__ = resolvedInteractionStyle;
+    if (redraw) {
+      renderHoverOverlay();
+    }
+    return resolvedInteractionStyle;
+  }
 
   let gpuRebuildTimer = null;
   function scheduleGpuMeshRebuild(delay = 80) {
@@ -4542,6 +4573,7 @@ const {
   let renderedLayerTreeRevision = -1;
   let renderedLayerSearch = '';
   let layerSearchScrollTop = 0;
+  let layerTreeHydrated = false;
   const layerGroupScrollTop = new Map();
   const expandedLayerStyleGroups = new Set();
 
@@ -4845,6 +4877,7 @@ const {
           folderName: meta.label,
           hydroCategory: hydroCategoryKey(meta.category),
           layerGroup: 'hydro',
+          isBuiltin: true,
           selected: false,
         }));
       const userItems = state.hydroEdits.map(feature => ({
@@ -4855,6 +4888,7 @@ const {
         folderName: hydroCategoryLabel(feature.properties?.category),
         hydroCategory: hydroCategoryKey(feature.properties?.category),
         layerGroup: 'hydro',
+        isBuiltin: false,
         selected: state.selected?.domain === 'hydro' && state.selected.id === String(feature.id),
       }));
       return [...builtIns, ...userItems];
@@ -5079,14 +5113,33 @@ const {
     });
     container.hidden = !expanded;
     if (!expanded) {
+      container.removeAttribute('aria-busy');
       container.replaceChildren();
       return;
     }
+    const hydroLoading = (group === 'rivers' || group === 'lakes')
+      && ['idle', 'loading'].includes(state.physicalLoadState.hydro);
+    if (hydroLoading) {
+      container.setAttribute('aria-busy', 'true');
+      const fragment = document.createDocumentFragment();
+      for (let index = 0; index < 4; index += 1) {
+        const row = document.createElement('div');
+        row.className = 'layer-child-skeleton';
+        row.setAttribute('aria-hidden', 'true');
+        row.append(document.createElement('span'), document.createElement('span'), document.createElement('span'));
+        fragment.appendChild(row);
+      }
+      container.replaceChildren(fragment);
+      return;
+    }
+    container.removeAttribute('aria-busy');
     if (!items.length) {
       container.replaceChildren();
       const empty = document.createElement('div');
       empty.className = 'layer-empty';
-      empty.textContent = '항목 없음';
+      empty.textContent = (group === 'rivers' || group === 'lakes') && state.physicalLoadState.hydro === 'error'
+        ? `${name} 목록을 불러오지 못했습니다.`
+        : '항목 없음';
       container.appendChild(empty);
       return;
     }
@@ -5142,6 +5195,7 @@ const {
       const matches = [];
       for (const group of LAYER_SEARCH_GROUP_KEYS) {
         for (const item of layerTreeItems(group)) {
+          if (group === 'hydro' && item.isBuiltin && state.physicalLoadState.hydro !== 'ready') continue;
           const haystack = `${item.name} ${item.searchText || ''} ${item.id} ${item.meta || ''}`.toLocaleLowerCase('ko');
           if (haystack.includes(search)) matches.push({ group, item });
         }
@@ -5179,6 +5233,7 @@ const {
       const category = group === 'rivers' ? 'river' : group === 'lakes' ? 'lake' : '';
       const allItems = layerTreeItems(sourceGroup)
         .filter(item => !category || hydroCategoryKey(item.hydroCategory) === category)
+        .filter(item => sourceGroup !== 'hydro' || !item.isBuiltin || state.physicalLoadState.hydro !== 'error')
         .sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
       renderLayerFolderContents({ group, folderKey: group, name: layerGroupNames[group], folder, container, items: allItems, search });
     }
@@ -5186,6 +5241,29 @@ const {
     renderedLayerSearch = search;
     syncLayerStylePanels();
     syncCanonicalControls();
+  }
+
+  function beginLayerTreeHydration() {
+    const metrics = window.__PANDOLAB_STARTUP_METRICS__;
+    if (metrics && metrics.layerHydrationStartedMs == null) {
+      metrics.layerHydrationStartedMs = performance.now() - metrics.startedAt;
+    }
+  }
+
+  async function completeLayerTreeHydration() {
+    if (layerTreeHydrated) return;
+    const section = $('layerSection');
+    const search = $('layerSearchInput');
+    const metrics = window.__PANDOLAB_STARTUP_METRICS__;
+    if (metrics) metrics.layerTreeRenderedMs = performance.now() - metrics.startedAt;
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    section?.classList.remove('is-hydrating');
+    section?.setAttribute('aria-busy', 'false');
+    if (search) search.disabled = false;
+    syncSearchClearButton(search, $('layerSearchClearBtn'));
+    layerTreeHydrated = true;
+    if (metrics) metrics.layerReadyMs = performance.now() - metrics.startedAt;
+    window.dispatchEvent(new CustomEvent('pandolab:layer-ready'));
   }
 
   function currentMapZoom() {
@@ -5224,8 +5302,7 @@ const {
     document.documentElement.dataset.theme = resolvedTheme;
     document.documentElement.dataset.selectionMode = userPreferences.selection.mode;
     document.documentElement.style.setProperty('--map-selection-halo', userPreferences.selection.color);
-    setSelectionColor(userPreferences.selection.color);
-    syncMapHoverStyle();
+    syncResolvedInteractionStyle();
     syncGpuCountryEmphasis();
     window.__PANDOLAB_THEME__ = resolvedTheme;
     if (rerender && svg) {
@@ -5234,18 +5311,6 @@ const {
       renderAll();
     }
     return userPreferences;
-  }
-
-  function syncMapHoverStyle() {
-    const rootStyle = document.documentElement.style;
-    const mode = userPreferences?.selection?.mode || 'outline-soft-fill';
-    const fill = mode === 'outline'
-      ? 'transparent'
-      : mode === 'strong-fill'
-        ? 'color-mix(in srgb, var(--map-selection-halo) 36%, transparent)'
-        : 'color-mix(in srgb, var(--map-selection-halo) 12%, transparent)';
-    rootStyle.setProperty('--map-hover-stroke', 'var(--map-selection-halo)');
-    rootStyle.setProperty('--map-hover-fill', fill);
   }
 
   function countryLabelScreenMetrics(feature, fontSize = isMobile() ? 8 : 9, projectedExtent = null, labelFeature = feature) {
@@ -5644,7 +5709,7 @@ const {
     const riverStyle = layerStyle(state.layerPresentation, 'rivers');
     const lakeStyle = layerStyle(state.layerPresentation, 'lakes');
     const renderer = gpuMapRenderer.getStats().renderer;
-    const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker';
+    const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker' || renderer === 'canvas2d';
     if (nativeHydro) {
       hydroLakeLayer.selectAll('*').remove();
       hydroRiverLayer.selectAll('*').remove();
@@ -5671,6 +5736,9 @@ const {
 
   function renderHydroEdits() {
     if (!hydroEditLayer) return;
+    const renderer = gpuMapRenderer.getStats().renderer;
+    const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker' || renderer === 'canvas2d';
+    gpuMapRenderer.setHydroEdits?.(state.hydroEdits, state.stateRevision);
     const riverStyle = layerStyle(state.layerPresentation, 'rivers');
     const lakeStyle = layerStyle(state.layerPresentation, 'lakes');
     const data = state.hydroEdits.filter(feature => isHydroFeatureVisible(feature) && feature.geometry
@@ -5688,14 +5756,15 @@ const {
       });
     selection
       .attr('d', path)
-      .style('fill', feature => feature.properties?.category === 'lake' ? hydroEditColor(feature) : 'none')
-      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? 0.34 * lakeStyle.opacity : 0)
-      .style('stroke', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 'none' : hydroEditColor(feature))
-      .style('stroke-opacity', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : riverStyle.opacity)
-      .style('stroke-width', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : riverStyle.boundaryWidth);
+      .classed('hydro-edit-native-hit', nativeHydro)
+      .style('fill', feature => feature.properties?.category === 'lake' ? (nativeHydro ? 'transparent' : hydroEditColor(feature)) : 'none')
+      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? (nativeHydro ? 0 : 0.34 * lakeStyle.opacity) : 0)
+      .style('stroke', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 'none' : (nativeHydro ? 'transparent' : hydroEditColor(feature)))
+      .style('stroke-opacity', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : (nativeHydro ? 0 : riverStyle.opacity))
+      .style('stroke-width', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : (nativeHydro ? Math.max(8, riverStyle.boundaryWidth) : riverStyle.boundaryWidth));
     selection.exit().remove();
     const polygonSelection = hydroEditLayer.selectAll('path.hydro-edit-boundary').data(
-      data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)),
+      nativeHydro ? [] : data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)),
       feature => String(feature.id),
     );
     polygonSelection.enter().append('path').attr('class', 'hydro-edit-boundary').style('fill', 'none').style('pointer-events', 'none');
@@ -6643,20 +6712,37 @@ const {
     }
   }
 
-  function renderHoverOverlay() {
+  function renderHoverOverlay(viewState = null, { syncStrokes = true } = {}) {
     if (!hoverLayer) return;
     hoverLayer.selectAll('*').remove();
     syncGpuCountryEmphasis();
-    if (isMobile() || !state.hovered?.feature?.geometry || state.mapMoving || state.draftEdit.dragging) return;
-    if (state.hovered.ref && objectSelection.has(state.hovered.ref)) return;
-    const isCountry = state.hovered.type === 'country';
-    const feature = isCountry ? countryDisplayFeature(state.hovered.feature) : state.hovered.feature;
-    const hoverFeature = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
-      ? buildRenderableStrokeFeature(feature)
-      : feature;
-    hoverLayer.append('path').datum(hoverFeature)
-      .attr('class', 'map-hover-shape map-hover-outline')
-      .attr('d', path);
+    const active = !isMobile() && state.hovered?.feature?.geometry && !state.mapMoving && !state.draftEdit.dragging
+      && !(state.hovered.ref && objectSelection.has(state.hovered.ref));
+    if (active) {
+      const isCountry = state.hovered.type === 'country';
+      const feature = isCountry ? countryDisplayFeature(state.hovered.feature) : state.hovered.feature;
+      const pendingCountry = isCountry && state.pendingCountryRenderIds?.has(String(state.hovered.id || ''));
+      if ((!isCountry || pendingCountry) && ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)) {
+        hoverLayer.append('path').datum(feature)
+          .attr('class', 'map-hover-shape map-hover-fill')
+          .attr('fill', resolvedInteractionStyle.hover.color)
+          .attr('fill-opacity', resolvedInteractionStyle.hover.fillAlpha)
+          .attr('d', path);
+      }
+      if (!selectionEmphasisRenderer?.isAvailable?.() || pendingCountry) {
+        const hoverFeature = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
+          ? buildRenderableStrokeFeature(feature)
+          : feature;
+        hoverLayer.append('path').datum(hoverFeature)
+          .attr('class', 'map-hover-shape map-hover-outline')
+          .attr('fill', 'none')
+          .attr('stroke', resolvedInteractionStyle.hover.color)
+          .attr('stroke-width', resolvedInteractionStyle.hover.width)
+          .attr('stroke-opacity', resolvedInteractionStyle.hover.alpha)
+          .attr('d', path);
+      }
+    }
+    if (syncStrokes) renderSelectionOverlay(viewState);
   }
 
   function setMapHover(type, id, feature, ref = null) {
@@ -6675,8 +6761,14 @@ const {
       .filter(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY)
       .map(ref => ref.id);
     const primary = selection.items.find(ref => ref.key === selection.primaryKey);
+    const hoveredCountryId = !isMobile()
+      && state.hovered?.type === 'country'
+      && !(state.hovered.ref && objectSelection.has(state.hovered.ref))
+      ? String(state.hovered.id || '')
+      : '';
     gpuMapRenderer.setCountryEmphasis({
       primaryId: primary?.domain === 'territorial' && primary.type === TERRITORIAL_UNIT_TYPES.COUNTRY ? primary.id : '',
+      hoverId: hoveredCountryId,
       selectedIds: countryIds,
       selectionMode: userPreferences.selection.mode,
     });
@@ -6692,7 +6784,24 @@ const {
     const selection = objectSelection.snapshot();
     const genericPrimary = [];
     const genericSecondary = [];
+    const genericHover = [];
+    let countryPrimaryId = '';
+    const countrySecondaryIds = [];
+    let countryHoverId = '';
     const genericGpuAvailable = !!selectionEmphasisRenderer?.isAvailable?.();
+    const hoverActive = !isMobile() && state.hovered?.feature?.geometry && !state.mapMoving && !state.draftEdit.dragging
+      && !(state.hovered.ref && objectSelection.has(state.hovered.ref));
+    if (hoverActive) {
+      const isCountry = state.hovered.type === 'country';
+      if (isCountry) countryHoverId = String(state.hovered.id || '');
+      else {
+        const feature = state.hovered.feature;
+        const boundaryFeature = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
+          ? buildRenderableStrokeFeature(feature)
+          : feature;
+        genericHover.push({ key: `hover:${state.hovered.type}:${state.hovered.id}`, geometry: boundaryFeature });
+      }
+    }
     for (const ref of selection.items) {
       const primary = selection.primaryKey === ref.key;
       const canonicalFeature = mapFeatureForObjectRef(ref);
@@ -6700,12 +6809,44 @@ const {
       const feature = isCountry
         ? countryDisplayFeature(canonicalFeature)
         : canonicalFeature;
-      if ((!feature?.geometry && feature?.type !== 'FeatureCollection') || feature.geometry?.type === 'Point') continue;
+      if (!feature?.geometry && feature?.type !== 'FeatureCollection') continue;
       const geometries = feature.type === 'FeatureCollection'
         ? (feature.features || []).map(item => item.geometry)
         : [feature.geometry];
       const hasBoundaryGeometry = geometries.some(geometry => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(geometry?.type));
-      if (isCountry) continue;
+      if (isCountry) {
+        if (state.pendingCountryRenderIds?.has(String(ref.id))) {
+          const style = primary ? resolvedInteractionStyle.selection.primary : resolvedInteractionStyle.selection.secondary;
+          const priorityClass = primary ? ' is-primary' : ' is-secondary';
+          if (style.fillAlpha > 0) selectionLayer.append('path').datum(feature)
+            .attr('class', `map-selection-shape map-selection-fill${priorityClass}`)
+            .attr('fill', resolvedInteractionStyle.selection.color).attr('fill-opacity', style.fillAlpha).attr('stroke', 'none').attr('d', path);
+          const outline = countryOutlineFeature(feature);
+          const d = path(outline);
+          if (d) {
+            selectionLayer.append('path').datum(outline).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
+              .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.casingColor)
+              .attr('stroke-width', style.outerWidth).attr('stroke-opacity', style.casingAlpha).attr('d', d);
+            selectionLayer.append('path').datum(outline).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
+              .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.color)
+              .attr('stroke-width', style.innerWidth).attr('stroke-opacity', style.innerAlpha).attr('d', d);
+            pathCount += 2; pathCharacterCount += d.length * 2;
+          }
+        } else if (primary) countryPrimaryId = ref.id;
+        else countrySecondaryIds.push(ref.id);
+        continue;
+      }
+      if (hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))) {
+        const fillAlpha = primary
+          ? resolvedInteractionStyle.selection.primary.fillAlpha
+          : resolvedInteractionStyle.selection.secondary.fillAlpha;
+        if (fillAlpha > 0) selectionLayer.append('path').datum(feature)
+          .attr('class', `map-selection-shape map-selection-fill${primary ? ' is-primary' : ' is-secondary'}`)
+          .attr('fill', resolvedInteractionStyle.selection.color)
+          .attr('fill-opacity', fillAlpha)
+          .attr('stroke', 'none')
+          .attr('d', path);
+      }
       const boundaryFeature = hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))
         ? buildRenderableStrokeFeature(feature)
         : feature;
@@ -6717,25 +6858,70 @@ const {
       const priorityClass = primary ? ' is-primary' : ' is-secondary';
       const d = path(boundaryFeature);
       if (!d) continue;
+      const style = primary ? resolvedInteractionStyle.selection.primary : resolvedInteractionStyle.selection.secondary;
+      selectionLayer.append('path').datum(boundaryFeature)
+        .attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
+        .attr('fill', 'none')
+        .attr('stroke', resolvedInteractionStyle.selection.casingColor)
+        .attr('stroke-width', style.outerWidth)
+        .attr('stroke-opacity', style.casingAlpha)
+        .attr('d', d);
       selectionLayer.append('path').datum(boundaryFeature)
         .attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
-        .attr('stroke', SELECTION_STYLE.color)
-        .attr('stroke-width', primary ? SELECTION_STYLE.primaryWidth : SELECTION_STYLE.secondaryWidth)
-        .attr('stroke-opacity', primary ? SELECTION_STYLE.primaryAlpha : SELECTION_STYLE.secondaryAlpha)
+        .attr('fill', 'none')
+        .attr('stroke', resolvedInteractionStyle.selection.color)
+        .attr('stroke-width', style.innerWidth)
+        .attr('stroke-opacity', style.innerAlpha)
         .attr('d', d);
-      pathCount += 1;
-      pathCharacterCount += d.length;
+      pathCount += 2;
+      pathCharacterCount += d.length * 2;
     }
     if (genericGpuAvailable) {
-      selectionEmphasisRenderer.setSelection({ primary: genericPrimary, secondary: genericSecondary, revision: state.stateRevision });
+      selectionEmphasisRenderer.setCountryBoundaryMesh(gpuMapRenderer.getCountryInteractionBoundaryData?.());
+      selectionEmphasisRenderer.setSelection({
+        hover: genericHover,
+        primary: genericPrimary,
+        secondary: genericSecondary,
+        countryHoverId,
+        countryPrimaryId,
+        countrySecondaryIds,
+        revision: state.stateRevision,
+      });
       selectionEmphasisRenderer.render(viewState || window.__PANDOLAB_VIEW_STATE__ || {});
       boundarySegmentCount = selectionEmphasisRenderer.stats().segmentCount;
+    } else {
+      const countryRefs = selection.items.filter(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY
+        && !state.pendingCountryRenderIds?.has(String(ref.id)));
+      for (const ref of countryRefs) {
+        const feature = countryDisplayFeature(mapFeatureForObjectRef(ref));
+        if (!feature?.geometry) continue;
+        const outline = countryOutlineFeature(feature);
+        const primary = selection.primaryKey === ref.key;
+        const style = primary ? resolvedInteractionStyle.selection.primary : resolvedInteractionStyle.selection.secondary;
+        const priorityClass = primary ? ' is-primary' : ' is-secondary';
+        const d = path(outline);
+        if (!d) continue;
+        selectionLayer.append('path').datum(outline).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
+          .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.casingColor)
+          .attr('stroke-width', style.outerWidth).attr('stroke-opacity', style.casingAlpha).attr('d', d);
+        selectionLayer.append('path').datum(outline).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
+          .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.color)
+          .attr('stroke-width', style.innerWidth).attr('stroke-opacity', style.innerAlpha).attr('d', d);
+        pathCount += 2;
+        pathCharacterCount += d.length * 2;
+      }
     }
+    for (const selector of [
+      '.map-selection-casing.is-secondary', '.map-selection-outline.is-secondary',
+      '.map-selection-casing.is-primary', '.map-selection-outline.is-primary',
+    ]) selectionLayer.selectAll(selector).each(function() { this.parentNode?.appendChild(this); });
     window.__PANDOLAB_SELECTION_RENDER_METRICS__ = {
       pathCount,
       pathCharacterCount,
       selectionBoundarySegmentCount: boundarySegmentCount,
       viewRevision,
+      boundaryOwner: 'interaction-overlay',
+      drawOrder: resolvedInteractionStyle.drawOrder,
     };
   }
 
@@ -7005,7 +7191,7 @@ const {
       drawings: renderDrawings,
       stackOverlays: applyOverlayStackOrder,
       geometryPreview: renderGeometryPreview,
-      hover: renderHoverOverlay,
+      hover: viewState => renderHoverOverlay(viewState, { syncStrokes: false }),
       selection: renderSelectionOverlay,
       validation: renderValidationOverlay,
       labelLayout: visibleLabelLayout,
@@ -7026,6 +7212,7 @@ const {
         ...mapRenderCoordinator.getStats(),
         gpu: gpuMapRenderer.getStats?.() || {},
         gpuSelection: selectionEmphasisRenderer?.stats?.() || {},
+        interactionStyle: resolvedInteractionStyle,
         selection: { ...(window.__PANDOLAB_SELECTION_RENDER_METRICS__ || {}) },
         selectionInput: { ...selectionPerformanceMetrics },
         spatialIndex: mapObjectSpatialIndex.stats(),
@@ -7085,6 +7272,7 @@ const {
       getDpr: () => window.devicePixelRatio || 1,
     });
     try { selectionEmphasisRenderer.init(); } catch (error) { console.warn('Generic selection overlay unavailable', error); }
+    syncResolvedInteractionStyle();
     const interactionSvg = map.append('svg').attr('class', 'map-interaction-svg');
     const interactionRoot = interactionSvg.append('g').attr('class', 'map-interaction-root');
     root = svg.append('g').attr('class', 'map-root');
@@ -14956,6 +15144,7 @@ const {
     renderAll();
     if (previewSelection && countryFeatureById(previewSelection)) selectCountry(previewSelection, true, false);
     loadHydroData();
+    await completeLayerTreeHydration();
     mapWorkScheduler.scheduleIdle('map-edit-warmup', () => mapEditClient.rebase(state.countriesData?.features || []), 1600);
 
     const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
@@ -15027,6 +15216,7 @@ const {
   }
 
   async function initProgressive() {
+    beginLayerTreeHydration();
     assertRuntimeCompatibility();
     if (!window.d3) throw new Error('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.');
     if (!window.PANDOLAB_COUNTRIES?.features?.length) throw new Error('미리보기 국가 데이터를 불러올 수 없습니다. 페이지를 새로고침하세요.');
@@ -15113,6 +15303,7 @@ const {
 
   async function init() {
     if (window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE instanceof Promise) return initProgressive();
+    beginLayerTreeHydration();
     assertRuntimeCompatibility();
     if (!window.d3) {
       $('engineStatus').textContent = '엔진 오류';
@@ -15188,6 +15379,7 @@ const {
     updateHistoryButtons();
     setTool('select');
     loadPhysicalData();
+    await completeLayerTreeHydration();
 
     $('startupProbe')?.remove();
 

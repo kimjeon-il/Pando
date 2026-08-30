@@ -48,3 +48,13 @@ test('selection emphasis renderer does not use GL_LINES or lineWidth', async () 
   assert.doesNotMatch(source, /gl\.LINES/);
   assert.doesNotMatch(source, /lineWidth/);
 });
+
+test('country interaction boundaries are sourced from the canonical line index mesh', async () => {
+  const selection = await readFile(new URL('../../assets/js/modules/selection-emphasis.js', import.meta.url), 'utf8');
+  const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+  assert.match(selection, /mesh\.lineIndices/);
+  assert.match(selection, /mesh\.countryIndices/);
+  assert.match(gpu, /getCountryInteractionBoundaryData/);
+  assert.match(gpu, /boundaryOwner: 'interaction-overlay'/);
+  assert.doesNotMatch(gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro')), /primaryBoundaryPaletteTexture/);
+});

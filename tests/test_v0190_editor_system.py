@@ -39,10 +39,11 @@ class EditorSystemV0190Tests(unittest.TestCase):
         for obsolete in ("데이터 유형", "지도색", "편집용 복사 만들기", "내장 수계 정보", "이 국가 삭제", "상세 정보"):
             self.assertNotIn(obsolete, INDEX)
         for expected in (
-            "영토 편입", "국가 합병", "국경 조정", "해안선 조정", "추가 정보",
+            "영토 편입", "국가 합병", "국경 조정", "해안선 조정", "식별 정보",
             "복사하여 편집", "국가에 관한 메모를 입력하세요.",
         ):
             self.assertIn(expected, INDEX)
+        self.assertNotIn("추가 정보", INDEX)
         self.assertNotIn("위험 작업", INDEX)
         self.assertIn('id="countryCodeInput"', INDEX)
         self.assertIn('id="drawingIdInput"', INDEX)

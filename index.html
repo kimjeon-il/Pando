@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r15" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r18" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -99,17 +99,23 @@
           <button id="mapViewTabBtn" class="ui-button ui-tab" type="button" role="tab" aria-controls="mapViewSection" aria-selected="false" tabindex="-1">보기</button>
         </nav>
         <div class="map-sheet-body map-sheet-body-layers">
-        <section id="layerSection" class="panel-section ui-panel--dense layer-panel-section" role="tabpanel" aria-labelledby="mapLayersTabBtn">
+        <section id="layerSection" class="panel-section ui-panel--dense layer-panel-section is-hydrating" role="tabpanel" aria-labelledby="mapLayersTabBtn" aria-busy="true">
           <div class="ui-search-field layer-search">
             <svg class="ui-icon layer-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
-            <input id="layerSearchInput" type="search" placeholder="레이어 검색" autocomplete="off" aria-label="레이어 검색" />
+            <input id="layerSearchInput" type="search" placeholder="레이어 검색" autocomplete="off" aria-label="레이어 검색" disabled />
             <button id="layerSearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="레이어 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
           </div>
           <div id="layerSearchResults" class="layer-search-results hidden" role="listbox" aria-label="레이어 검색 결과"></div>
           <div class="layer-list">
             <section class="layer-category" aria-labelledby="territoryLayerCategoryTitle">
               <h3 id="territoryLayerCategoryTitle" class="layer-category-title">영토·구역</h3>
-              <div class="layer-category-items">
+              <div class="layer-skeleton-group" aria-hidden="true">
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+              </div>
+              <div class="layer-category-items layer-real-items">
             <div class="layer-folder" data-layer-group="countries">
               <div class="ui-row layer-folder-row has-layer-style">
                 <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="countries" aria-expanded="false" aria-label="국가 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -154,7 +160,12 @@
             </section>
             <section class="layer-category" aria-labelledby="distributionLayerCategoryTitle">
               <h3 id="distributionLayerCategoryTitle" class="layer-category-title">인문 분포</h3>
-              <div class="layer-category-items">
+              <div class="layer-skeleton-group" aria-hidden="true">
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+              </div>
+              <div class="layer-category-items layer-real-items">
             <div class="layer-folder" data-layer-group="languages">
               <div class="ui-row layer-folder-row has-layer-style">
                 <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="languages" aria-expanded="false" aria-label="언어 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -194,7 +205,12 @@
             </section>
             <section class="layer-category" aria-labelledby="featuresLayerCategoryTitle">
               <h3 id="featuresLayerCategoryTitle" class="layer-category-title">지형지물</h3>
-              <div id="featuresLayerItems" class="layer-category-items">
+              <div class="layer-skeleton-group" aria-hidden="true">
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
+              </div>
+              <div id="featuresLayerItems" class="layer-category-items layer-real-items">
             <div class="layer-folder" data-layer-group="rivers">
               <div class="ui-row layer-folder-row has-layer-style">
                 <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="rivers" aria-expanded="false" aria-label="강 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -471,7 +487,7 @@
             </section>
 
             <details class="ui-disclosure editor-disclosure">
-              <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
+              <summary><span>식별 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
                 <div class="ui-info-list editor-info-list editor-meta-list">
                   <div><span>국가 코드</span><output id="countryCodeInput">—</output></div>
@@ -692,14 +708,8 @@
                 <select id="labelKindInput"><option value="capital">수도</option><option value="city">도시</option><option value="town">마을</option><option value="region">지역명</option><option value="mountain">산</option><option value="water">수역</option><option value="custom">기타</option></select>
               </div>
               <div class="ui-info-list editor-info-list editor-property-list"><div><span>위치</span><strong id="labelPositionValue">지도에서 자동 배치</strong></div></div>
+              <div class="ui-field field-group editor-field"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div>
             </section>
-
-            <details class="ui-disclosure editor-disclosure">
-              <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
-              <div class="editor-disclosure-body">
-                <div class="ui-field field-group editor-field"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div>
-              </div>
-            </details>
 
             <button id="deleteLabelBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>지명 삭제</button>
           </form>
@@ -952,8 +962,9 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r15" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r15" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r15" defer></script>
+  <script src="assets/js/vendor/earcut.min.js" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r18" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r18" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r18" defer></script>
 </body>
 </html>
