@@ -163,7 +163,9 @@
   --ui-menu-padding: var(--ui-space-2);
   --ui-menu-gap: var(--ui-space-1);
   --ui-menu-item-padding-x: var(--ui-space-3);
-  --ui-scrollbar-gutter-size: 10px;
+  --ui-scrollbar-size: 10px;
+  --ui-scrollbar-thumb-inset: 3px;
+  --ui-scrollbar-gutter-size: var(--ui-scrollbar-size);
   --ui-popover-screen-edge: var(--ui-space-2);
   --ui-dialog-edge: var(--ui-space-4);
   --ui-dialog-padding: var(--ui-space-6);
@@ -885,7 +887,7 @@ body { font-size: var(--ui-font-body); }
 .icon-btn .ui-icon { width: 19px; height: 19px; }
 .danger-btn { min-height: var(--ui-control-height); padding: 0 var(--ui-space-3); font-size: var(--ui-font-body); }
 
-.sidebar { min-width: 0; font-size: var(--ui-font-body); scrollbar-width: thin; }
+.sidebar { min-width: 0; font-size: var(--ui-font-body); }
 .left-panel { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
 .right-panel { border-left: 1px solid var(--border); background: var(--surface-elevated); }
 .terrain-display-options { display: grid; gap: var(--ui-space-1); }
@@ -1036,15 +1038,24 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   font-weight: var(--ui-weight-semibold);
 }
 
-:where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox) {
-  scrollbar-gutter: stable both-edges;
+/* Scrollbars belong to the element that owns scrolling, never its panel shell. */
+:where(.ui-scroll-surface, .layer-children, .ui-select-listbox) {
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
-:where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar { width: var(--ui-scrollbar-gutter-size); height: var(--ui-scrollbar-gutter-size); }
-:where(.sidebar, .layer-children, .top-actions, .ui-dialog-card, .editor-scroll-body, .ui-select-listbox)::-webkit-scrollbar-thumb {
-  border: 3px solid transparent; border-radius: 999px; background: var(--border-strong); background-clip: padding-box;
+:where(.ui-scroll-surface, .layer-children, .ui-select-listbox)::-webkit-scrollbar {
+  width: var(--ui-scrollbar-size);
+  height: var(--ui-scrollbar-size);
 }
+:where(.ui-scroll-surface, .layer-children, .ui-select-listbox)::-webkit-scrollbar-track { background: transparent; }
+:where(.ui-scroll-surface, .layer-children, .ui-select-listbox)::-webkit-scrollbar-thumb {
+  border: var(--ui-scrollbar-thumb-inset) solid transparent;
+  border-radius: 999px;
+  background: var(--border-strong);
+  background-clip: padding-box;
+}
+:where(.ui-scroll-surface, .layer-children, .ui-select-listbox)::-webkit-scrollbar-thumb:hover { background-color: var(--text-soft); }
 
 .panel-section, .editor-view { min-width: 0; }
 .layer-search, .editor-section, .editor-disclosure,
@@ -1569,7 +1580,7 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 #app[data-layout="mobile"] .map-sheet-body-layers {
   display: flex;
@@ -1591,7 +1602,7 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 #app[data-layout="mobile"] .top-actions {
@@ -1607,11 +1618,6 @@ body[data-layout="mobile"] :is(
   .ui-select-listbox,
   .layer-search-results,
   .object-chooser-list,
-  .map-sheet-body,
-  .map-sheet-body-layers .layer-list,
-  .layer-children,
-  .editor-scroll-body,
-  .map-view-panel-section,
   .historical-library-layout,
   .historical-library-results,
   .historical-library-preview,
@@ -2385,7 +2391,6 @@ input[type="search"]::-webkit-search-decoration { appearance: none; -webkit-appe
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
 }
 .ui-select-option {
   min-height: 40px;
@@ -2687,7 +2692,6 @@ html.keyboard-navigation .layer-style-toggle:focus-visible { border-radius: var(
   border: 0;
   border-left: 1px solid color-mix(in srgb, var(--ui-control-border) 68%, transparent);
   background: transparent;
-  scrollbar-width: thin;
   contain: layout paint;
 }
 .layer-child {
@@ -3095,7 +3099,6 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
 }
 .editor-object-header {
   flex: 1 1 auto;
@@ -3795,7 +3798,6 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
 }
 .layer-virtual-spacer { width: 1px; min-height: 0; pointer-events: none; }
 .layer-search-results {
