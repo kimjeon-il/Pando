@@ -263,6 +263,27 @@ function executeAnnex(message, working) {
   return { features: updates, removedIds, affectedIds: [targetId, ...affectedDonorIds], affectedDonorIds, transferredArea };
 }
 
+function executeAnnexBatch(message, working) {
+  const affectedIds = new Set();
+  const affectedDonorIds = new Set();
+  const transferredAreas = [];
+  for (const item of message.operations || []) {
+    const result = executeAnnex({ ...message, ...item }, working);
+    for (const id of result.affectedIds || []) affectedIds.add(String(id));
+    for (const id of result.affectedDonorIds || []) affectedDonorIds.add(String(id));
+    transferredAreas.push(Number(result.transferredArea || 0));
+  }
+  const features = [...affectedIds].map(id => working.get(id)).filter(Boolean).map(clone);
+  const removedIds = [...affectedIds].filter(id => !working.has(id));
+  return {
+    features,
+    removedIds,
+    affectedIds: [...affectedIds],
+    affectedDonorIds: [...affectedDonorIds],
+    transferredAreas,
+  };
+}
+
 function executeMerge(message, working) {
   const sourceId = String(message.sourceId || '');
   const targetIds = [...new Set((message.targetIds || []).map(String))].filter(id => id && id !== sourceId);
@@ -354,7 +375,9 @@ self.onmessage = event => {
       ? executeMerge(message, working)
       : message.operation === 'new-country'
         ? executeNewCountry(message, working)
-        : executeAnnex(message, working);
+        : message.operation === 'annex-batch'
+          ? executeAnnexBatch(message, working)
+          : executeAnnex(message, working);
     pendingResults.set(Number(message.requestId), result);
     self.postMessage({ type: 'result', ok: true, requestId: Number(message.requestId), dataRevision: Number(message.dataRevision || 0), result });
   } catch (error) {

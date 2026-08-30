@@ -49,16 +49,31 @@ test('a multipart administrative import transfers every donor intersection to th
   assert.equal(plan.groups[0].newAreaKm2, 1);
 });
 
-test('an unresolved per-feature country value falls back to the required common country', () => {
+test('a non-empty unresolved per-feature country value never falls back to the common country', () => {
   const countries = [rectangle('DEU', '독일', 0, 0, 4, 4)];
   const feature = rectangle('OST', '동프로이센', 1, 1, 2, 2, { sovereign_id: 'missing-historical-id' });
   const assignments = assignImportedCountries([feature], {
     countries, targetCountryId: 'DEU', useFeatureCountryField: true, countryField: 'sovereign_id',
   });
 
+  assert.equal(assignments[0].countryId, '');
+  assert.equal(assignments[0].usedFallback, false);
+  assert.equal(assignments[0].unresolvedValue, 'missing-historical-id');
+  assert.throws(() => buildTerritorialImportTransactionPlan({
+    features: [feature], countries, targetCountryId: 'DEU', useFeatureCountryField: true,
+    countryField: 'sovereign_id', clipper, areaKm2: planarArea,
+  }), /현재 지도에서 찾을 수 없습니다/);
+});
+
+test('an empty per-feature country value may use the explicit common country', () => {
+  const countries = [rectangle('DEU', '독일', 0, 0, 4, 4)];
+  const feature = rectangle('OST', '동프로이센', 1, 1, 2, 2, { sovereign_id: '' });
+  const assignments = assignImportedCountries([feature], {
+    countries, targetCountryId: 'DEU', useFeatureCountryField: true, countryField: 'sovereign_id',
+  });
   assert.equal(assignments[0].countryId, 'DEU');
   assert.equal(assignments[0].usedFallback, true);
-  assert.equal(assignments[0].unresolvedValue, 'missing-historical-id');
+  assert.equal(assignments[0].unresolvedValue, '');
 });
 
 test('overlapping imported objects are rejected before any country geometry changes', () => {

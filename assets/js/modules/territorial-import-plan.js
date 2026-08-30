@@ -27,7 +27,11 @@ function countryNames(feature) {
 export function resolveImportedCountryId(value, countries = []) {
   const wanted = text(value).toLocaleLowerCase('ko');
   if (!wanted) return '';
-  return countryId(countries.find(feature => countryNames(feature).includes(wanted)));
+  const matches = [...new Set((countries || [])
+    .filter(feature => countryNames(feature).includes(wanted))
+    .map(countryId)
+    .filter(Boolean))];
+  return matches.length === 1 ? matches[0] : '';
 }
 
 function importedName(feature, index) {
@@ -59,14 +63,15 @@ export function assignImportedCountries(features, {
   return (features || []).map((feature, index) => {
     const fieldValue = useFeatureCountryField && countryField ? feature?.properties?.[countryField] : '';
     const resolved = resolveImportedCountryId(fieldValue, countries);
-    const assignedCountryId = resolved || fallbackId;
+    const hasFieldValue = !!text(fieldValue);
+    const assignedCountryId = hasFieldValue ? resolved : fallbackId;
     return {
       feature,
       index,
       name: importedName(feature, index),
       countryId: assignedCountryId,
-      usedFallback: !!fieldValue && !resolved && !!fallbackId,
-      unresolvedValue: fieldValue && !resolved ? text(fieldValue) : '',
+      usedFallback: !hasFieldValue && !!fallbackId,
+      unresolvedValue: hasFieldValue && !resolved ? text(fieldValue) : '',
     };
   });
 }
@@ -80,7 +85,12 @@ export function buildTerritorialImportTransactionPlan({
   if (!polygonFeatures.length) throw new Error('가져올 Polygon 또는 MultiPolygon 객체가 없습니다.');
   const assignments = assignImportedCountries(polygonFeatures, { countries, targetCountryId, useFeatureCountryField, countryField });
   const unresolved = assignments.filter(item => !item.countryId);
-  if (unresolved.length) throw new Error(`소속 국가를 정하지 못한 객체가 ${unresolved.length}개 있습니다.`);
+  if (unresolved.length) {
+    const values = [...new Set(unresolved.map(item => item.unresolvedValue).filter(Boolean))];
+    throw new Error(values.length
+      ? `객체별 소속 국가 값 "${values.slice(0, 3).join(', ')}"을(를) 현재 지도에서 찾을 수 없습니다.`
+      : `소속 국가를 정하지 못한 객체가 ${unresolved.length}개 있습니다.`);
+  }
 
   for (let leftIndex = 0; leftIndex < assignments.length; leftIndex += 1) {
     for (let rightIndex = leftIndex + 1; rightIndex < assignments.length; rightIndex += 1) {

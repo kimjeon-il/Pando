@@ -3,7 +3,10 @@ export const TERRITORIAL_IMPORT_TARGETS = Object.freeze({
   ADMINISTRATIVE: 'administrative',
   REGION: 'region',
 });
-const PARTITION_TARGETS = new Set([TERRITORIAL_IMPORT_TARGETS.TERRITORY, TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE]);
+export const COAST_PREFLIGHT_TARGETS = Object.freeze(new Set(Object.values(TERRITORIAL_IMPORT_TARGETS)));
+export const SOVEREIGN_SELECTION_TARGETS = Object.freeze(new Set(Object.values(TERRITORIAL_IMPORT_TARGETS)));
+export const PARTITION_IMPORT_TARGETS = Object.freeze(new Set([TERRITORIAL_IMPORT_TARGETS.TERRITORY, TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE]));
+export const EXPLICIT_IMPORT_TARGETS = Object.freeze(new Set([TERRITORIAL_IMPORT_TARGETS.REGION]));
 const TARGET_TYPES = new Set(['project', 'country', 'drawing', ...Object.values(TERRITORIAL_IMPORT_TARGETS), 'distribution']);
 const OPEN_MODES = new Set(['replace', 'merge']);
 const SOURCE_KINDS = new Set(['project', 'vector']);
@@ -41,11 +44,11 @@ export function normalizeImportPlan(raw = {}) {
       id: text(mapping.id), name: text(mapping.name), country: text(mapping.country),
       parent: text(mapping.parent), level: text(mapping.level), color: text(mapping.color),
     },
-    targetCountryId: PARTITION_TARGETS.has(targetType) ? text(raw.targetCountryId) : '',
-    useFeatureCountryField: PARTITION_TARGETS.has(targetType) && raw.useFeatureCountryField === true,
-    fallbackCountryId: PARTITION_TARGETS.has(targetType) ? text(raw.fallbackCountryId, raw.targetCountryId) : '',
+    targetCountryId: SOVEREIGN_SELECTION_TARGETS.has(targetType) ? text(raw.targetCountryId) : '',
+    useFeatureCountryField: SOVEREIGN_SELECTION_TARGETS.has(targetType) && raw.useFeatureCountryField === true,
+    fallbackCountryId: SOVEREIGN_SELECTION_TARGETS.has(targetType) ? text(raw.fallbackCountryId, raw.targetCountryId) : '',
     parentId: targetType === TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE ? text(raw.parentId) : '',
-    landPolicy: PARTITION_TARGETS.has(targetType) ? 'transfer-to-owner' : 'preserve',
+    landPolicy: PARTITION_IMPORT_TARGETS.has(targetType) ? 'transfer-to-owner' : 'preserve',
     openMode,
     mergePolicy: targetType === 'country' ? 'same-id-multipolygon' : text(raw.mergePolicy, 'preserve-features'),
   };

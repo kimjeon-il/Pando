@@ -80,7 +80,7 @@ export function createCountryImportMergePlanner({
   validateCountryCollection,
 }) {
   function mergeImportedCountryProperties(existing, imported, geometry) {
-    const importedId = text(imported.properties?.editor_id || imported.id);
+    const importedId = text(existing?.properties?.editor_id || imported.properties?.editor_id || imported.id);
     return {
       type: 'Feature',
       id: importedId,
@@ -102,6 +102,10 @@ export function createCountryImportMergePlanner({
       return feature;
     });
     if (!imported.length) throw new Error('병합할 국가 객체가 없습니다.');
+    const incomingIds = imported.map(feature => text(feature.properties?.editor_id));
+    if (incomingIds.some(id => !id) || new Set(incomingIds).size !== incomingIds.length) {
+      throw new Error('가져온 국가 ID 연결 결과가 비어 있거나 중복되었습니다.');
+    }
 
     const currentById = new Map(current.map(feature => [text(feature.properties?.editor_id), feature]));
     const importedById = new Map(imported.map(feature => [text(feature.properties?.editor_id), feature]));
@@ -169,9 +173,7 @@ export function createCountryImportMergePlanner({
     for (const incoming of imported) {
       const id = text(incoming.properties?.editor_id);
       const existing = currentById.get(id);
-      const geometry = existing
-        ? normalizeGeometry(clipper.union(existing.geometry.coordinates, incoming.geometry.coordinates))
-        : clone(incoming.geometry);
+      const geometry = clone(incoming.geometry);
       if (!geometry) throw new Error(`${countryName(incoming)} 영토를 결합할 수 없습니다.`);
       result.push(mergeImportedCountryProperties(existing, incoming, geometry));
     }
@@ -228,6 +230,7 @@ export function createImportService({
   featureCountryId,
   validateCountryCollection,
   getCurrentCountries,
+  materializeCountryImport = null,
   planCountryMerge,
   materializers,
   onStage = () => {},
@@ -242,7 +245,7 @@ export function createImportService({
       await materializers.replaceProject(result);
       return { status: 'project-replaced', result };
     }
-    if ([TERRITORIAL_IMPORT_TARGETS.TERRITORY, TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE].includes(result.targetType)) {
+    if (Object.values(TERRITORIAL_IMPORT_TARGETS).includes(result.targetType)) {
       await materializers.territorial(result, files[0]?.name || '벡터 파일');
       return { status: 'territorial-imported', result };
     }
@@ -259,6 +262,13 @@ export function createImportService({
         },
       });
       return { status: 'object-imported', result };
+    }
+
+    if (result.targetType === 'country' && typeof materializeCountryImport === 'function') {
+      result.countriesData = materializeCountryImport(result.countriesData, {
+        manualMappings: result.identityMappings || {},
+        allowImplicitNew: result.openMode === 'replace',
+      });
     }
 
     onStage('국가 경계 확인 중…');

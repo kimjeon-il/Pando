@@ -66,6 +66,41 @@ test('country merge planner replaces matching IDs without mutating inputs', asyn
   assert.equal(current.features[0].properties.editor_name, 'Old');
 });
 
+test('imported-wins authoritatively replaces the same country instead of unioning its old geometry', async () => {
+  const unionArgumentCounts = [];
+  const clipper = {
+    union(...items) { unionArgumentCounts.push(items.length); return items[0]; },
+    difference(left) { return left; },
+    intersection() { return []; },
+  };
+  const current = { type: 'FeatureCollection', features: [country('DEU', 'Old Germany'), country('FRA')] };
+  const importedGermany = country('DEU', 'New Germany');
+  importedGermany.geometry.coordinates = [[[10, 10], [11, 10], [11, 11], [10, 10]]];
+  const planner = createCountryImportMergePlanner({
+    clipper,
+    clone: value => JSON.parse(JSON.stringify(value)),
+    featureCountryId: feature => feature.properties.editor_id,
+    countryName: feature => feature.properties.editor_name,
+    geometryBounds: geometry => geometry.coordinates.flat(3).reduce((bounds, value, index) => {
+      if (index % 2 === 0) { bounds[0][0] = Math.min(bounds[0][0], value); bounds[1][0] = Math.max(bounds[1][0], value); }
+      else { bounds[0][1] = Math.min(bounds[0][1], value); bounds[1][1] = Math.max(bounds[1][1], value); }
+      return bounds;
+    }, [[Infinity, Infinity], [-Infinity, -Infinity]]),
+    boundsOverlap: () => false,
+    normalizeGeometry: coordinates => Array.isArray(coordinates) && coordinates.length
+      ? { type: 'Polygon', coordinates }
+      : null,
+    geometryCoordinates: geometry => geometry.coordinates,
+    planarArea: () => 0,
+    areaKm2: () => 0,
+    validateCountryCollection: async () => ({ overlapAreaKm2: 0 }),
+  });
+  const plan = await planner(current, { type: 'FeatureCollection', features: [importedGermany] }, 'imported-wins');
+  assert.deepEqual(plan.countriesData.features.find(feature => feature.id === 'DEU').geometry, importedGermany.geometry);
+  assert.deepEqual(unionArgumentCounts, [1]);
+  assert.equal(current.features.find(feature => feature.id === 'DEU').properties.editor_name, 'Old Germany');
+});
+
 test('import service validates countries then delegates one materialization path', async () => {
   const calls = [];
   const result = {
