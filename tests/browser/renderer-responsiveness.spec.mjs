@@ -36,6 +36,8 @@ test('pan and zoom frames do not rebuild or upload country palettes', async ({ p
   expect(after.gpu.frameContextBuildCount).toBeGreaterThan(before.gpu.frameContextBuildCount);
   expect(after.fullRenderCount).toBe(before.fullRenderCount);
   expect(after.viewRenderCount).toBeGreaterThan(before.viewRenderCount);
+  expect(after.distributionRows.rebuildCount).toBe(before.distributionRows.rebuildCount);
+  expect(after.territorialBoundaryTopologyRebuildCount).toBe(before.territorialBoundaryTopologyRebuildCount);
   expect(errors).toEqual([]);
 });
 

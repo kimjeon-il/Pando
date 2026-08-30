@@ -27,8 +27,8 @@ test('WebGL locations and frame projection state are cached', () => {
   assert.ok(gpu.includes('activeFrameContext = createFrameContext(viewState);'));
   assert.equal((gpu.match(/gl\.getUniformLocation\(/g) || []).length, 1);
   assert.equal((gpu.match(/gl\.getAttribLocation\(/g) || []).length, 1);
-  assert.equal((selection.match(/gl\.getUniformLocation\(/g) || []).length, 1);
-  assert.equal((selection.match(/gl\.getAttribLocation\(/g) || []).length, 4);
+  assert.equal((selection.match(/gl\.getUniformLocation\(/g) || []).length, 2);
+  assert.equal((selection.match(/gl\.getAttribLocation\(/g) || []).length, 5);
 });
 
 test('hydro and terrain use bounded interaction-aware upload budgets', () => {
@@ -60,4 +60,16 @@ test('map edit worker clones only objects modified by the operation', () => {
   assert.ok(source.includes('const nextTarget = clone(target);'));
   assert.ok(source.includes('const next = clone(source);'));
   assert.ok(source.includes('const next = clone(donor);'));
+});
+
+test('large-data overlays use domain caches and multi-tier culling', () => {
+  const app = read('assets/js/app.js');
+  const index = read('assets/js/modules/map-object-spatial-index.js');
+  assert.ok(app.includes('function buildDistributionRenderRows()'));
+  assert.ok(app.includes('function visibleDistributionRenderRows()'));
+  assert.ok(app.includes('distributionRenderRowCache'));
+  assert.ok(!app.includes('territorialBoundaryCache.revision !== state.stateRevision'));
+  assert.ok(index.includes("? 'fine'"));
+  assert.ok(index.includes("? 'coarse' : 'global'"));
+  assert.ok(index.includes('querySphericalCap'));
 });

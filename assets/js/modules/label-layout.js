@@ -54,25 +54,126 @@ export function automaticLabelSettings(kind, raw = {}) {
   };
 }
 
-export function layoutLabels(candidates = [], { zoom = 1, padding = 3 } = {}) {
-  const visible = candidates
+function sortedVisibleCandidates(candidates, zoom) {
+  return candidates
     .filter(candidate => candidate?.point && zoom >= Number(candidate.minZoom ?? 0) && zoom <= Number(candidate.maxZoom ?? Infinity))
     .map(candidate => ({ ...candidate, box: normalizedBox(candidate), collisionGroup: String(candidate.collisionGroup || 'map') }))
     .sort((left, right) => Number(!!right.selected) - Number(!!left.selected)
       || Number(!!right.pinned) - Number(!!left.pinned)
       || Number(right.priority || 0) - Number(left.priority || 0)
       || String(left.key).localeCompare(String(right.key)));
+}
+
+export function layoutLabelsLegacy(candidates = [], { zoom = 1, padding = 3, metrics = null } = {}) {
+  const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const visible = sortedVisibleCandidates(candidates, zoom);
+  let collisionCheckCount = 0;
   const placedByGroup = new Map();
   const output = [];
   for (const candidate of visible) {
     const placed = placedByGroup.get(candidate.collisionGroup) || [];
-    const blocked = !candidate.selected && !candidate.pinned && placed.some(item => !item.pinned || collides(candidate.box, item.box, padding))
-      && placed.some(item => collides(candidate.box, item.box, padding));
+    const first = !candidate.selected && !candidate.pinned && placed.some(item => {
+      collisionCheckCount += 1;
+      return !item.pinned || collides(candidate.box, item.box, padding);
+    });
+    const blocked = first && placed.some(item => {
+      collisionCheckCount += 1;
+      return collides(candidate.box, item.box, padding);
+    });
     if (blocked) continue;
     output.push(candidate);
     placed.push(candidate);
     placedByGroup.set(candidate.collisionGroup, placed);
   }
+  if (metrics) Object.assign(metrics, {
+    candidateCount: candidates.length,
+    visibleByZoomCount: visible.length,
+    placedCount: output.length,
+    collisionCheckCount,
+    gridCellCount: 0,
+    averageCandidatesPerCollisionQuery: visible.length ? collisionCheckCount / visible.length : 0,
+    maxCandidatesPerCollisionQuery: Math.max(0, ...[...placedByGroup.values()].map(items => items.length)),
+    layoutMs: (typeof performance !== 'undefined' ? performance.now() : Date.now()) - started,
+    algorithm: 'legacy',
+  });
+  return output;
+}
+
+function screenCellRange(box, cellSize, padding = 0) {
+  return {
+    minX: Math.floor((box.left - padding) / cellSize),
+    maxX: Math.floor((box.right + padding) / cellSize),
+    minY: Math.floor((box.top - padding) / cellSize),
+    maxY: Math.floor((box.bottom + padding) / cellSize),
+  };
+}
+
+export function layoutLabels(candidates = [], { zoom = 1, padding = 3, cellSize = 64, metrics = null } = {}) {
+  const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const visible = sortedVisibleCandidates(candidates, zoom);
+  const resolvedCellSize = Math.max(16, Number(cellSize) || 64);
+  const gridsByGroup = new Map();
+  let collisionCheckCount = 0;
+  let collisionQueryCount = 0;
+  let collisionQueryCandidateCount = 0;
+  let maxCandidatesPerCollisionQuery = 0;
+  let gridCellCount = 0;
+  const output = [];
+
+  const groupGrid = group => {
+    if (!gridsByGroup.has(group)) gridsByGroup.set(group, new Map());
+    return gridsByGroup.get(group);
+  };
+  const nearby = candidate => {
+    const grid = groupGrid(candidate.collisionGroup);
+    const range = screenCellRange(candidate.box, resolvedCellSize, padding);
+    const indices = new Set();
+    for (let x = range.minX; x <= range.maxX; x += 1) for (let y = range.minY; y <= range.maxY; y += 1) {
+      for (const index of grid.get(`${x}:${y}`) || []) indices.add(index);
+    }
+    const ordered = [...indices].sort((left, right) => left - right).map(index => output[index]);
+    collisionQueryCount += 1;
+    collisionQueryCandidateCount += ordered.length;
+    maxCandidatesPerCollisionQuery = Math.max(maxCandidatesPerCollisionQuery, ordered.length);
+    return ordered;
+  };
+  const insert = (candidate, index) => {
+    const grid = groupGrid(candidate.collisionGroup);
+    const range = screenCellRange(candidate.box, resolvedCellSize);
+    for (let x = range.minX; x <= range.maxX; x += 1) for (let y = range.minY; y <= range.maxY; y += 1) {
+      const key = `${x}:${y}`;
+      if (!grid.has(key)) { grid.set(key, []); gridCellCount += 1; }
+      grid.get(key).push(index);
+    }
+  };
+
+  for (const candidate of visible) {
+    const placed = candidate.selected || candidate.pinned ? [] : nearby(candidate);
+    const first = !candidate.selected && !candidate.pinned && placed.some(item => {
+      collisionCheckCount += 1;
+      return !item.pinned || collides(candidate.box, item.box, padding);
+    });
+    const blocked = first && placed.some(item => {
+      collisionCheckCount += 1;
+      return collides(candidate.box, item.box, padding);
+    });
+    if (blocked) continue;
+    const outputIndex = output.length;
+    output.push(candidate);
+    insert(candidate, outputIndex);
+  }
+  if (metrics) Object.assign(metrics, {
+    candidateCount: candidates.length,
+    visibleByZoomCount: visible.length,
+    placedCount: output.length,
+    collisionCheckCount,
+    gridCellCount,
+    averageCandidatesPerCollisionQuery: collisionQueryCount ? collisionQueryCandidateCount / collisionQueryCount : 0,
+    maxCandidatesPerCollisionQuery,
+    layoutMs: (typeof performance !== 'undefined' ? performance.now() : Date.now()) - started,
+    algorithm: 'screen-grid',
+    cellSize: resolvedCellSize,
+  });
   return output;
 }
 
