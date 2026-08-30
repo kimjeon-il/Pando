@@ -30,6 +30,18 @@ test('layer presentation applies the fixed v2 runtime policy', () => {
   assert.deepEqual(moveOverlayGroup(normalized, 'languages', 'down'), normalized);
 });
 
+test('v2 hydro presentation input normalizes to canonical river and lake styles', () => {
+  const normalized = normalizeLayerPresentation({
+    schemaVersion: 2,
+    styles: { hydro: { opacity: 0.65, boundaryVisible: false } },
+  });
+  assert.equal('hydro' in normalized.styles, false);
+  assert.equal(normalized.styles.rivers.opacity, 0);
+  assert.equal(normalized.styles.rivers.boundaryVisible, true);
+  assert.equal(normalized.styles.lakes.opacity, 0.65);
+  assert.equal(normalized.styles.lakes.boundaryVisible, false);
+});
+
 test('save state distinguishes autosave, native writes, and download fallbacks', () => {
   const controller = createSaveStateController({ now: () => new Date('2026-08-27T00:00:00Z') });
   assert.equal(controller.snapshot().hasUnsavedChanges, false);

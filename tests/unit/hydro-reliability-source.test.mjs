@@ -45,13 +45,14 @@ test('app waits for actual hydro worker readiness and retries manifests', () => 
   assert.ok(service.includes('timeoutMs: 15000'));
 });
 
-test('built-in rivers and lakes use nested source folders without changing visibility storage', () => {
+test('built-in rivers and lakes use separate folders while retaining hydro item visibility', () => {
   const source = read('assets/js/app.js');
-  assert.ok(source.includes("const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:';"));
-  assert.ok(source.includes('...Object.keys(HYDRO_LAYER_META).map(hydroFolderStateKey)'));
+  assert.ok(!source.includes('HYDRO_FOLDER_STATE_PREFIX'));
+  assert.ok(source.includes("rivers: 'riversLayerChildren'"));
+  assert.ok(source.includes("lakes: 'lakesLayerChildren'"));
+  assert.ok(source.includes("const sourceGroup = group === 'rivers' || group === 'lakes' ? 'hydro' : group"));
   assert.ok(source.includes('name: meta.sourceLabel'));
-  assert.ok(source.includes('folderName: `지형지물 · ${meta.label}`'));
-  assert.ok(source.includes('visibility.dataset.layerItemVisibility = itemGroup'));
+  assert.ok(source.includes('visibility.dataset.layerItemVisibility = group'));
   assert.ok(source.includes('state.physicalSettings.hydroLayers[key] = !!visible'));
 });
 
@@ -65,7 +66,8 @@ test('all hydro renderers inherit ocean colour with only the configured layer op
   assert.ok(css.includes('fill: none; stroke: var(--map-ocean); stroke-opacity: 1'));
   assert.ok(!css.includes('.hydro-lake-group { fill: #376f91'));
   assert.ok(!css.includes('.hydro-river-group { stroke: #66b5e5'));
-  assert.ok(app.includes(".style('fill-opacity', hydroStyle.opacity)"));
+  assert.ok(app.includes(".style('fill-opacity', lakeStyle.opacity)"));
+  assert.ok(app.includes(".style('stroke-opacity', riverStyle.opacity)"));
   assert.ok(gpu.includes('const color = [...rgb, hydroOpacity];'));
   assert.ok(!gpu.includes("(category === 'lake' ? 0.92 : 0.96)"));
   assert.ok(canvasHydro.includes('context.globalAlpha = hydroOpacity;'));
@@ -75,5 +77,5 @@ test('all hydro renderers inherit ocean colour with only the configured layer op
 
 test('bootstrap cache revision is advanced for the reliability build', () => {
   const source = read('assets/js/bootstrap.js');
-  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r14';"));
+  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r15';"));
 });

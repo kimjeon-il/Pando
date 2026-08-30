@@ -85,9 +85,11 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertNotIn("label: '호수 · Natural Earth'", APP)
         self.assertIn("label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS'", APP)
         self.assertIn("label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth'", APP)
-        self.assertIn("const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:'", APP)
+        self.assertNotIn("HYDRO_FOLDER_STATE_PREFIX", APP)
+        self.assertIn("rivers: 'riversLayerChildren'", APP)
+        self.assertIn("lakes: 'lakesLayerChildren'", APP)
         self.assertIn("name: meta.sourceLabel", APP)
-        self.assertIn("folderName: `지형지물 · ${meta.label}`", APP)
+        self.assertIn("const sourceGroup = group === 'rivers' || group === 'lakes' ? 'hydro' : group", APP)
 
     def test_hydro_uses_the_current_ocean_colour_without_intrinsic_alpha(self):
         lake_rule = source_section(CSS, ".hydro-lake-group {", "}")
@@ -99,8 +101,9 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertIn("stroke-opacity: 1", river_rule)
         self.assertNotIn(".hydro-lake-group { fill: #376f91", CSS)
         self.assertNotIn(".hydro-river-group { stroke: #66b5e5", CSS)
-        self.assertIn(".style('fill-opacity', hydroStyle.opacity)", APP)
-        self.assertIn(".style('stroke-opacity', hydroStyle.boundaryVisible ? hydroStyle.opacity : 0)", APP)
+        self.assertIn(".style('fill-opacity', lakeStyle.opacity)", APP)
+        self.assertIn(".style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)", APP)
+        self.assertIn(".style('stroke-opacity', riverStyle.opacity)", APP)
 
     def test_hydro_fragments_share_system_identity_and_roles(self):
         rivers = [row for row in self.core if row["category"] == "river"]

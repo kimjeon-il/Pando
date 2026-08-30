@@ -1662,6 +1662,7 @@ export function createGpuMapRenderer(deps) {
             riverSegmentCount: meshData.riverFeatureIds.length,
             borderRiverSegmentCount: meshData.borderRiverFeatureIds.length,
             lakeIndexCount: meshData.lakeIndices.length,
+            lakeBoundarySegmentCount: meshData.lakeBoundaryFeatureIds.length,
           },
           tasks: [
             ['riverStartBuffer', meshData.riverStarts, gl.ARRAY_BUFFER, true], ['riverEndBuffer', meshData.riverEnds, gl.ARRAY_BUFFER, true],
@@ -1671,6 +1672,9 @@ export function createGpuMapRenderer(deps) {
             ['borderRiverStartWidthBuffer', meshData.borderRiverStartWidths, gl.ARRAY_BUFFER], ['borderRiverEndWidthBuffer', meshData.borderRiverEndWidths, gl.ARRAY_BUFFER],
             ['lakePositionBuffer', meshData.lakePositions, gl.ARRAY_BUFFER, true], ['lakeFeatureBuffer', meshData.lakeFeatureIds, gl.ARRAY_BUFFER, true],
             ['lakeIndexBuffer', meshData.lakeIndices, gl.ELEMENT_ARRAY_BUFFER],
+            ['lakeBoundaryStartBuffer', meshData.lakeBoundaryStarts, gl.ARRAY_BUFFER, true], ['lakeBoundaryEndBuffer', meshData.lakeBoundaryEnds, gl.ARRAY_BUFFER, true],
+            ['lakeBoundaryFeatureBuffer', meshData.lakeBoundaryFeatureIds, gl.ARRAY_BUFFER, true], ['lakeBoundaryStartWidthBuffer', meshData.lakeBoundaryWidths, gl.ARRAY_BUFFER],
+            ['lakeBoundaryEndWidthBuffer', meshData.lakeBoundaryWidths, gl.ARRAY_BUFFER],
           ].map(([key, data, target, webGl1Float]) => ({ key, data, target, webGl1Float, offset: 0, buffer: null })),
         };
       }
@@ -1720,6 +1724,7 @@ export function createGpuMapRenderer(deps) {
         'riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverStartWidthBuffer', 'riverEndWidthBuffer',
         'borderRiverStartBuffer', 'borderRiverEndBuffer', 'borderRiverFeatureBuffer', 'borderRiverStartWidthBuffer', 'borderRiverEndWidthBuffer',
         'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer',
+        'lakeBoundaryStartBuffer', 'lakeBoundaryEndBuffer', 'lakeBoundaryFeatureBuffer', 'lakeBoundaryStartWidthBuffer', 'lakeBoundaryEndWidthBuffer',
       ]) {
         if (entry.resources[key]) gl.deleteBuffer(entry.resources[key]);
       }
@@ -1781,14 +1786,14 @@ export function createGpuMapRenderer(deps) {
       else instancedExtension.vertexAttribDivisorANGLE(location, divisor);
     }
 
-    function bindRiverAttributes(program, resources, borderAligned = false) {
+    function bindRiverAttributes(program, resources, category = 'river') {
       const locations = glVersion === 2 ? [0, 1, 2, 3, 4, 5] : [
         gl.getAttribLocation(program, 'aCorner'), gl.getAttribLocation(program, 'aStart'),
         gl.getAttribLocation(program, 'aEnd'), gl.getAttribLocation(program, 'aCountry'),
         gl.getAttribLocation(program, 'aStartWidth'), gl.getAttribLocation(program, 'aEndWidth'),
       ];
       const [corner, start, end, feature, startWidth, endWidth] = locations;
-      const prefix = borderAligned ? 'borderRiver' : 'river';
+      const prefix = category === 'lake-boundary' ? 'lakeBoundary' : category === 'border-river' ? 'borderRiver' : 'river';
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
       gl.enableVertexAttribArray(corner);
       gl.vertexAttribPointer(corner, 2, gl.FLOAT, false, 0, 0);
@@ -1821,14 +1826,20 @@ export function createGpuMapRenderer(deps) {
       const borderAligned = category === 'border-river';
       const count = category === 'lake'
         ? resources.lakeIndexCount
-        : (borderAligned ? resources.borderRiverSegmentCount : resources.riverSegmentCount);
+        : category === 'lake-boundary'
+          ? resources.lakeBoundarySegmentCount
+          : (borderAligned ? resources.borderRiverSegmentCount : resources.riverSegmentCount);
       if (!count) return;
       setHydroUniforms(program, color);
-      const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources, borderAligned);
+      const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources, category);
       const widthBoostLocation = gl.getUniformLocation(program, 'uWidthBoost');
       if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 : 0);
       const widthScaleLocation = gl.getUniformLocation(program, 'uWidthScale');
-      if (widthScaleLocation) gl.uniform1f(widthScaleLocation, Math.max(0.5, Number(mapTheme().hydroBoundaryWidth) || 1));
+      if (widthScaleLocation) {
+        const theme = mapTheme();
+        const width = category === 'lake-boundary' ? theme.lakeBoundaryWidth : theme.riverWidth;
+        gl.uniform1f(widthScaleLocation, Math.max(0.5, Number(width) || 1));
+      }
       const offsets = state.projection === 'globe' ? [0] : [-2 * PI, 0, 2 * PI];
       for (const offset of offsets) {
         setViewUniforms(program, offset);
@@ -1863,17 +1874,19 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawHydro(category, picking = false) {
-      if (!hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.hydro) return;
+      if (!hydroManifest || !hydroActivePackIds.size) return;
       const theme = mapTheme();
-      const hydroOpacity = Number.isFinite(Number(theme.hydroOpacity))
-        ? Math.max(0, Math.min(1, Number(theme.hydroOpacity)))
+      const isLake = category === 'lake' || category === 'lake-boundary';
+      if (state.layerVisibility[isLake ? 'lakes' : 'rivers'] === false) return;
+      const hydroOpacity = Number.isFinite(Number(isLake ? theme.lakeOpacity : theme.riverOpacity))
+        ? Math.max(0, Math.min(1, Number(isLake ? theme.lakeOpacity : theme.riverOpacity)))
         : 1;
-      if (hydroOpacity <= 0 || (category !== 'lake' && theme.hydroBoundaryVisible === false)) return;
+      if (hydroOpacity <= 0 || (category === 'lake-boundary' && theme.lakeBoundaryVisible === false)) return;
       updateHydroVisibility();
-      const program = category === 'river' || category === 'border-river'
+      const program = category === 'river' || category === 'border-river' || category === 'lake-boundary'
         ? (picking ? hydroLinePickProgram : hydroLineProgram)
         : (picking ? hydroPickProgram : hydroFillProgram);
-      const rgb = hydroDisplayColor(category === 'lake' ? 'lake' : 'river', true);
+      const rgb = hydroDisplayColor(isLake ? 'lake' : 'river', true);
       const color = [...rgb, hydroOpacity];
       for (const packId of hydroActivePackIds) {
         const entry = hydroPacks.get(packId);
@@ -2156,6 +2169,10 @@ export function createGpuMapRenderer(deps) {
             lakePositions: new Int32Array(meshData.lakePositions || 0),
             lakeFeatureIds: new Uint32Array(meshData.lakeFeatureIds || 0),
             lakeIndices: new Uint32Array(meshData.lakeIndices || 0),
+            lakeBoundaryStarts: new Int32Array(meshData.lakeBoundaryStarts || 0),
+            lakeBoundaryEnds: new Int32Array(meshData.lakeBoundaryEnds || 0),
+            lakeBoundaryFeatureIds: new Uint32Array(meshData.lakeBoundaryFeatureIds || 0),
+            lakeBoundaryWidths: new Float32Array(meshData.lakeBoundaryWidths || 0),
           },
         };
         entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0);
@@ -2622,6 +2639,7 @@ export function createGpuMapRenderer(deps) {
         if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overrideEmphasisPaletteTexture);
       }
       drawHydro('lake');
+      drawHydro('lake-boundary');
       drawHydro('river');
       if (state.layerVisibility.countries) {
         drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
@@ -2718,7 +2736,8 @@ export function createGpuMapRenderer(deps) {
         revision: Number(revision || 0),
         geometryRevision: geometryRevisionTracker.committedRevision(),
         visible: !!state.layerVisibility.countries,
-        hydroVisible: !!state.layerVisibility.hydro,
+        riversVisible: !!state.layerVisibility.rivers,
+        lakesVisible: !!state.layerVisibility.lakes,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
         countryEmphasis: {
@@ -3027,7 +3046,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function pickHydro(screenPoint) {
-      if (!isWebGlRenderer() || !gl || !hydroManifest || !hydroActivePackIds.size || !state.layerVisibility.hydro) return null;
+      if (!isWebGlRenderer() || !gl || !hydroManifest || !hydroActivePackIds.size || !(state.layerVisibility.rivers || state.layerVisibility.lakes)) return null;
       resize();
       try { ensurePickTarget(); } catch (_) { return null; }
       gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);

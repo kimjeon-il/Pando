@@ -90,6 +90,20 @@ test('current project schema accepts only explicit current versions and UUID obj
   assert.match(createProjectObjectId(), /^[0-9a-f-]{36}$/i);
 });
 
+test('current v2 hydro presentation input remains accepted beside canonical river and lake groups', () => {
+  const legacyHydroInput = currentProject();
+  legacyHydroInput.layerVisibility = { hydro: false };
+  legacyHydroInput.itemVisibility = { hydro: {} };
+  legacyHydroInput.layerPresentation.styles = { hydro: { opacity: 0.5, boundaryVisible: false } };
+  assert.equal(assertCurrentProjectSchema(legacyHydroInput).schemaVersion, PROJECT_SCHEMA_VERSION);
+
+  const canonical = currentProject();
+  canonical.layerVisibility = { rivers: true, lakes: false };
+  canonical.itemVisibility = { hydro: {} };
+  canonical.layerPresentation.styles = { rivers: { opacity: 0.7 }, lakes: { opacity: 0.8, boundaryVisible: true } };
+  assert.equal(assertCurrentProjectSchema(canonical).schemaVersion, PROJECT_SCHEMA_VERSION);
+});
+
 test('missing and old schema versions are rejected instead of migrated', () => {
   const missing = currentProject();
   delete missing.schemaVersion;

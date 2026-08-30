@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r14" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r15" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -155,11 +155,6 @@
             <section class="layer-category" aria-labelledby="distributionLayerCategoryTitle">
               <h3 id="distributionLayerCategoryTitle" class="layer-category-title">인문 분포</h3>
               <div class="layer-category-items">
-            <div class="layer-presentation-row">
-              <span class="layer-presentation-name">인문 분포 표시 방식</span>
-              <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="distribution" aria-label="인문 분포 표시 설정" aria-controls="layerStylePanel-distribution" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-            </div>
-            <div id="layerStylePanel-distribution" class="layer-inline-style-panel" data-layer-style-panel="distribution" role="group" aria-label="인문 분포 표시 설정" hidden></div>
             <div class="layer-folder" data-layer-group="languages">
               <div class="ui-row layer-folder-row has-layer-style">
                 <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="languages" aria-expanded="false" aria-label="언어 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -190,40 +185,45 @@
               <div id="layerStylePanel-religions" class="layer-inline-style-panel" data-layer-style-panel="religions" role="group" aria-label="종교 표시 설정" hidden></div>
               <div id="religionsLayerChildren" class="layer-children" role="group" aria-label="종교 항목" hidden></div>
             </div>
+            <div class="layer-presentation-row">
+              <span class="layer-presentation-name">분포 표시 설정</span>
+              <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="distribution" aria-label="분포 표시 설정" aria-controls="layerStylePanel-distribution" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
+            </div>
+            <div id="layerStylePanel-distribution" class="layer-inline-style-panel" data-layer-style-panel="distribution" role="group" aria-label="분포 표시 설정" hidden></div>
               </div>
             </section>
-            <section class="layer-category" aria-labelledby="mapElementsLayerCategoryTitle">
-              <h3 id="mapElementsLayerCategoryTitle" class="layer-category-title">지도 요소</h3>
-              <div id="mapElementsLayerItems" class="layer-category-items">
-            <div class="layer-presentation-row">
-              <label class="layer-visibility-control"><input id="basemapLabelsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="국가명 라벨" aria-label="국가명 라벨 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-              <span class="layer-presentation-name">국가명 라벨</span>
-              <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="countryLabels" aria-label="국가명 라벨 표시 설정" aria-controls="layerStylePanel-countryLabels" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
+            <section class="layer-category" aria-labelledby="featuresLayerCategoryTitle">
+              <h3 id="featuresLayerCategoryTitle" class="layer-category-title">지형지물</h3>
+              <div id="featuresLayerItems" class="layer-category-items">
+            <div class="layer-folder" data-layer-group="rivers">
+              <div class="ui-row layer-folder-row has-layer-style">
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="rivers" aria-expanded="false" aria-label="강 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <label class="layer-visibility-control"><input id="riversVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="강" aria-label="강 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="rivers">강</button>
+                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="rivers" aria-label="강 표시 설정" aria-controls="layerStylePanel-rivers" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
+              </div>
+              <div id="layerStylePanel-rivers" class="layer-inline-style-panel" data-layer-style-panel="rivers" role="group" aria-label="강 표시 설정" hidden></div>
+              <div id="riversLayerChildren" class="layer-children" role="group" aria-label="강 항목" hidden></div>
             </div>
-            <div id="layerStylePanel-countryLabels" class="layer-inline-style-panel" data-layer-style-panel="countryLabels" role="group" aria-label="국가명 라벨 표시 설정" hidden></div>
-            <div class="layer-presentation-row">
-              <label class="layer-visibility-control"><input id="labelsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="도시·지명" aria-label="도시·지명 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-              <span class="layer-presentation-name">도시·지명</span>
-              <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="labels" aria-label="도시·지명 표시 설정" aria-controls="layerStylePanel-labels" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
+            <div class="layer-folder" data-layer-group="lakes">
+              <div class="ui-row layer-folder-row has-layer-style">
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="lakes" aria-expanded="false" aria-label="호수 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <label class="layer-visibility-control"><input id="lakesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="호수" aria-label="호수 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="lakes">호수</button>
+                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="lakes" aria-label="호수 표시 설정" aria-controls="layerStylePanel-lakes" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
+              </div>
+              <div id="layerStylePanel-lakes" class="layer-inline-style-panel" data-layer-style-panel="lakes" role="group" aria-label="호수 표시 설정" hidden></div>
+              <div id="lakesLayerChildren" class="layer-children" role="group" aria-label="호수 항목" hidden></div>
             </div>
-            <div id="layerStylePanel-labels" class="layer-inline-style-panel" data-layer-style-panel="labels" role="group" aria-label="도시·지명 표시 설정" hidden></div>
             <div class="layer-folder" data-layer-group="drawings">
-              <div class="ui-row layer-folder-row">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="drawings" aria-expanded="false" aria-label="지형지물 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="drawingsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="지형지물" aria-label="지형지물 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="drawings">지형지물</button>
-              </div>
-              <div class="layer-presentation-row layer-presentation-subrow">
-                <span class="layer-presentation-name">강·호수</span>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="hydro" aria-label="강·호수 표시 설정" aria-controls="layerStylePanel-hydro" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-hydro" class="layer-inline-style-panel" data-layer-style-panel="hydro" role="group" aria-label="강·호수 표시 설정" hidden></div>
-              <div class="layer-presentation-row layer-presentation-subrow">
-                <span class="layer-presentation-name">사용자 지형지물</span>
+              <div class="ui-row layer-folder-row has-layer-style">
+                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="drawings" aria-expanded="false" aria-label="사용자 지형지물 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+                <label class="layer-visibility-control"><input id="drawingsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="사용자 지형지물" aria-label="사용자 지형지물 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
+                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="drawings">사용자 지형지물</button>
                 <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="userDrawings" aria-label="사용자 지형지물 표시 설정" aria-controls="layerStylePanel-userDrawings" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
               </div>
               <div id="layerStylePanel-userDrawings" class="layer-inline-style-panel" data-layer-style-panel="userDrawings" role="group" aria-label="사용자 지형지물 표시 설정" hidden></div>
-              <div id="drawingsLayerChildren" class="layer-children" role="group" aria-label="지형지물 항목" hidden></div>
+              <div id="drawingsLayerChildren" class="layer-children" role="group" aria-label="사용자 지형지물 항목" hidden></div>
             </div>
               </div>
             </section>
@@ -239,6 +239,11 @@
                   <button id="flatBtn" class="ui-button ui-segment-option projection-btn" type="button" aria-label="평면 투영" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-projection-flat"/></svg><span>평면</span></button>
                 </div>
               </div>
+            </section>
+            <section class="layer-style-editor map-name-settings" aria-labelledby="mapNameSettingsTitle">
+              <strong id="mapNameSettingsTitle">이름 표시</strong>
+              <label class="ui-choice-row"><input id="basemapLabelsVisible" type="checkbox" checked aria-label="국가명 표시" /><span>국가명 표시</span></label>
+              <label class="ui-choice-row"><input id="labelsVisible" type="checkbox" checked aria-label="지명 표시" /><span>지명 표시</span></label>
             </section>
             <section class="layer-style-editor terrain-settings" aria-labelledby="terrainLayerSettingsTitle">
               <strong id="terrainLayerSettingsTitle">지형 음영</strong>
@@ -289,7 +294,7 @@
                   <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong><small>현존·과거 국가와 지역 검색</small></span></button>
                   <button id="addDistributionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem" aria-haspopup="dialog" aria-controls="distributionTypeModal"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>분포</strong><small>언어·민족·종교 분포 만들기</small></span></button>
                   <div class="create-menu-group"><span>지도 요소</span></div>
-                  <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong><small>지도에 도시·지명 배치하기</small></span></button>
+                  <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong><small>지도에 지명 배치하기</small></span></button>
                   <button id="addRiverBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강</strong><small>강의 흐름을 선으로 그리기</small></span></button>
                   <button id="addLakeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수</strong><small>호수의 경계를 영역으로 그리기</small></span></button>
                 </div>
@@ -594,7 +599,7 @@
               </div>
               <details class="ui-disclosure editor-disclosure"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="distributionParentInput">상위 분류</label><select id="distributionParentInput"><option value="">상위 분류 없음</option></select></div></div></details>
               <label class="ui-choice-row editor-lock-row" for="distributionLockedInput" hidden><input id="distributionLockedInput" type="checkbox" /><span>분포 항목 잠금</span></label>
-              <select id="distributionRenderModeInput" hidden><option value="dominant">지배적 분포</option><option value="intensity">선택 항목 비율 농도</option></select>
+              <select id="distributionRenderModeInput" hidden><option value="dominant">영역별 대표 분포</option><option value="intensity">선택 분포 비율</option></select>
             </section>
             <section class="editor-section editor-action-section">
               <h3 class="editor-section-title">분포</h3>
@@ -925,7 +930,7 @@
             <label class="ui-check"><input type="checkbox" value="regions" checked /><span>지방</span></label>
             <label class="ui-check"><input type="checkbox" value="drawings" checked /><span>지형지물</span></label>
             <label class="ui-check"><input type="checkbox" value="distributions" checked /><span>분포</span></label>
-            <label class="ui-check"><input type="checkbox" value="labels" checked /><span>사용자 라벨</span></label>
+            <label class="ui-check"><input type="checkbox" value="labels" checked /><span>사용자 지명</span></label>
           </fieldset>
         </div>
         <div class="gis-export-step" data-gis-export-step="1">
@@ -947,8 +952,8 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r14" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r14" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r14" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r15" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r15" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r15" defer></script>
 </body>
 </html>

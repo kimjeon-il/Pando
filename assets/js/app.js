@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r14';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r15';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -357,7 +357,8 @@ const {
       ? (terrainStyle === 'physical' ? 0.22 : 1 - terrainStrength)
       : null;
     const countryStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'countries') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
-    const hydroStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'hydro') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
+    const riverStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'rivers') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
+    const lakeStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'lakes') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const base = (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light'
       ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1, ocean: '#ffffff', oceanGpu: [1, 1, 1] }
       : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92, ocean: '#0d2837', oceanGpu: [0.051, 0.157, 0.216] };
@@ -365,9 +366,11 @@ const {
     base.fillAlphaByte = Math.round(base.fillAlpha * 255);
     base.borderAlpha = countryStyle.boundaryVisible ? base.borderAlpha * countryStyle.opacity : 0;
     base.borderWidth = countryStyle.boundaryWidth;
-    base.hydroOpacity = hydroStyle.opacity;
-    base.hydroBoundaryVisible = hydroStyle.boundaryVisible;
-    base.hydroBoundaryWidth = hydroStyle.boundaryWidth;
+    base.riverOpacity = riverStyle.opacity;
+    base.riverWidth = riverStyle.boundaryWidth;
+    base.lakeOpacity = lakeStyle.opacity;
+    base.lakeBoundaryVisible = lakeStyle.boundaryVisible;
+    base.lakeBoundaryWidth = lakeStyle.boundaryWidth;
     return base;
   }
 
@@ -434,7 +437,7 @@ const {
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'engineStatus', 'statusView', 'statusPrimary', 'statusSelection', 'uiTooltip',
     'mapPanelTabs', 'mapLayersTabBtn', 'mapViewTabBtn', 'layerSection', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
-    'globeBtn', 'flatBtn', 'countriesVisible', 'territoriesVisible', 'administrativeVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'territoriesVisible', 'administrativeVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'drawingsVisible', 'labelsVisible', 'basemapLabelsVisible',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
     'debugMapPanel', 'countryAreaValue',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
@@ -988,6 +991,32 @@ const {
     return { scheduleIdle, cancel, setInteractionActive, isInteractionActive: () => interactionActive };
   })();
 
+  const DEFAULT_LAYER_VISIBILITY = Object.freeze({
+    countries: true,
+    territories: true,
+    administrative: true,
+    regions: true,
+    languages: true,
+    ethnicities: true,
+    religions: true,
+    rivers: true,
+    lakes: true,
+    drawings: true,
+    labels: true,
+    basemapLabels: true,
+  });
+
+  function normalizeLayerVisibility(value = {}, current = DEFAULT_LAYER_VISIBILITY) {
+    const source = value && typeof value === 'object' ? value : {};
+    const fallback = current && typeof current === 'object' ? current : DEFAULT_LAYER_VISIBILITY;
+    const legacyHydroVisible = source.hydro !== false;
+    return Object.fromEntries(Object.keys(DEFAULT_LAYER_VISIBILITY).map(key => {
+      if (Object.hasOwn(source, key)) return [key, source[key] !== false];
+      if ((key === 'rivers' || key === 'lakes') && Object.hasOwn(source, 'hydro')) return [key, legacyHydroVisible];
+      return [key, fallback[key] !== false];
+    }));
+  }
+
   const state = {
     dataReadiness: DATA_READINESS.PREVIEW,
     geometryProgress: 0,
@@ -1012,19 +1041,7 @@ const {
     selected: null,
     addSelectionMode: false,
     projection: 'globe',
-    layerVisibility: {
-      countries: true,
-      territories: true,
-      administrative: true,
-      regions: true,
-      languages: true,
-      ethnicities: true,
-      religions: true,
-      hydro: true,
-      drawings: true,
-      labels: true,
-      basemapLabels: true,
-    },
+    layerVisibility: normalizeLayerVisibility(),
     physicalSettings: {
       terrainVisible: true,
       terrainStyle: 'political',
@@ -1248,7 +1265,7 @@ const {
     }
     const label = state.labels.find(item => String(item.id) === ref.id);
     const labelKind = { capital: '수도', city: '도시', town: '마을', region: '지역명', mountain: '산', water: '수역', custom: '기타' };
-    return { name: label?.name || ref.id, type: '도시·지명', detail: labelKind[label?.kind] || '지명' };
+    return { name: label?.name || ref.id, type: '지명', detail: labelKind[label?.kind] || '지명' };
   }
 
   function syncObjectSelection(selection) {
@@ -1965,7 +1982,10 @@ const {
   }
 
   async function hydroAtScreenPoint(screenPoint, coord) {
-    if (!state.layerVisibility.hydro || !(state.tool === 'select' || (state.tool === 'annex-territory' && state.annexPhase === 'river'))) return null;
+    const hydroCategoryVisible = state.tool === 'annex-territory' && state.annexPhase === 'river'
+      ? state.layerVisibility.rivers
+      : state.layerVisibility.rivers || state.layerVisibility.lakes;
+    if (!hydroCategoryVisible || !(state.tool === 'select' || (state.tool === 'annex-territory' && state.annexPhase === 'river'))) return null;
     for (const feature of [...state.hydroEdits].reverse()) {
       if (!isHydroFeatureVisible(feature) || !geometryHitsScreenPoint(feature.geometry, coord, screenPoint, isMobile() ? 14 : 8)) continue;
       return feature;
@@ -4489,8 +4509,6 @@ const {
   }
 
   const TERRITORIAL_UNIT_FOLDER_STATE_PREFIX = 'territorial-unit-folder:';
-  const HYDRO_FOLDER_STATE_PREFIX = 'hydro-folder:';
-  const HYDRO_CATEGORY_FOLDER_STATE_PREFIX = 'hydro-category:';
   const DISTRIBUTION_GROUP_TYPES = Object.freeze({
     languages: DISTRIBUTION_TYPES.LANGUAGE,
     ethnicities: DISTRIBUTION_TYPES.ETHNICITY,
@@ -4505,9 +4523,9 @@ const {
     REGIONS: 'regions',
   });
   const LAYER_GROUP_KEYS = [...Object.values(TERRITORIAL_LAYER_GROUPS), 'languages', 'ethnicities', 'religions', 'hydro', 'drawings', 'labels', 'countryLabels'];
-  const LAYER_TREE_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['hydro', 'labels', 'countryLabels'].includes(group));
+  const LAYER_TREE_GROUP_KEYS = [...Object.values(TERRITORIAL_LAYER_GROUPS), 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'drawings'];
   const LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['labels', 'countryLabels'].includes(group));
-  const layerGroupNames = { countries: '국가', territories: '권역', administrative: '행정구역', regions: '지방', languages: '언어', ethnicities: '민족', religions: '종교', hydro: '강·호수', drawings: '지형지물', labels: '도시·지명', countryLabels: '국가명 라벨' };
+  const layerGroupNames = { countries: '국가', territories: '권역', administrative: '행정구역', regions: '지방', languages: '언어', ethnicities: '민족', religions: '종교', rivers: '강', lakes: '호수', hydro: '강·호수', drawings: '사용자 지형지물', labels: '지명', countryLabels: '국가명' };
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
     territories: 'territoriesLayerChildren',
@@ -4516,7 +4534,8 @@ const {
     languages: 'languagesLayerChildren',
     ethnicities: 'ethnicitiesLayerChildren',
     religions: 'religionsLayerChildren',
-    hydro: 'hydroLayerChildren',
+    rivers: 'riversLayerChildren',
+    lakes: 'lakesLayerChildren',
     drawings: 'drawingsLayerChildren',
   };
   const layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
@@ -4528,14 +4547,6 @@ const {
 
   function territorialUnitFolderStateKey(group, countryId) {
     return `${TERRITORIAL_UNIT_FOLDER_STATE_PREFIX}${group}:${String(countryId || 'unassigned')}`;
-  }
-
-  function hydroFolderStateKey(layerId) {
-    return `${HYDRO_FOLDER_STATE_PREFIX}${String(layerId)}`;
-  }
-
-  function hydroCategoryFolderStateKey(category) {
-    return `${HYDRO_CATEGORY_FOLDER_STATE_PREFIX}${hydroCategoryKey(category)}`;
   }
 
   function currentMapDevicePixelRatio() {
@@ -4558,10 +4569,10 @@ const {
       'languages',
       'ethnicities',
       'religions',
+      'rivers',
+      'lakes',
       ...territorialUnitKeys,
       'drawings',
-      ...['river', 'lake'].map(hydroCategoryFolderStateKey),
-      ...Object.keys(HYDRO_LAYER_META).map(hydroFolderStateKey),
     ];
   }
 
@@ -4686,13 +4697,17 @@ const {
   }
 
   function hydroLayerVisible(layerId) {
-    return !!state.layerVisibility.hydro &&
-      state.physicalSettings.hydroLayers?.[layerId] !== false;
+    const category = hydroCategoryKey(HYDRO_LAYER_META[layerId]?.category);
+    return state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false
+      && state.physicalSettings.hydroLayers?.[layerId] !== false;
   }
 
   function isHydroFeatureVisible(feature) {
     const id = String(feature?.properties?.pandolab_id || feature?.id || '');
-    if (isHydroEditFeature(feature)) return !!state.layerVisibility.hydro && isLayerItemVisible('hydro', id);
+    if (isHydroEditFeature(feature)) {
+      const category = hydroCategoryKey(feature.properties?.category);
+      return state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && isLayerItemVisible('hydro', id);
+    }
     return hydroLayerVisible(feature?.properties?.layer_id) && state.physicalSettings.hiddenHydroIds?.[id] !== true;
   }
 
@@ -4728,13 +4743,6 @@ const {
     let expandedFound = false;
     return Object.fromEntries(activeLayerFolderKeys().map(key => {
       if (key.startsWith(TERRITORIAL_UNIT_FOLDER_STATE_PREFIX)) return [key, value?.[key] !== false];
-      if (key.startsWith(HYDRO_CATEGORY_FOLDER_STATE_PREFIX)) {
-        const category = key.slice(HYDRO_CATEGORY_FOLDER_STATE_PREFIX.length);
-        const legacyLayerId = Object.entries(HYDRO_LAYER_META).find(([, meta]) => hydroCategoryKey(meta.category) === category)?.[0];
-        const legacyKey = legacyLayerId ? hydroFolderStateKey(legacyLayerId) : '';
-        return [key, Object.hasOwn(value || {}, key) ? value[key] !== false : legacyKey && Object.hasOwn(value || {}, legacyKey) ? value[legacyKey] === true : true];
-      }
-      if (key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) return [key, value?.[key] === true];
       const expanded = !expandedFound && !!value?.[key];
       if (expanded) expandedFound = true;
       return [key, expanded];
@@ -4745,39 +4753,7 @@ const {
     state.layerTreeRevision += 1;
   }
 
-  function isHydroCategoryVisible(category) {
-    const key = hydroCategoryKey(category);
-    if (!state.layerVisibility.hydro) return false;
-    const builtInVisible = Object.entries(HYDRO_LAYER_META)
-      .filter(([, meta]) => hydroCategoryKey(meta.category) === key)
-      .some(([id]) => state.physicalSettings.hydroLayers?.[id] !== false);
-    const userVisible = state.hydroEdits
-      .filter(feature => hydroCategoryKey(feature.properties?.category) === key)
-      .some(feature => isLayerItemVisible('hydro', feature.id));
-    return builtInVisible || userVisible;
-  }
-
-  function setHydroCategoryVisibility(category, visible) {
-    const key = hydroCategoryKey(category);
-    for (const [id, meta] of Object.entries(HYDRO_LAYER_META)) {
-      if (hydroCategoryKey(meta.category) === key) state.physicalSettings.hydroLayers[id] = !!visible;
-    }
-    for (const feature of state.hydroEdits) {
-      if (hydroCategoryKey(feature.properties?.category) !== key) continue;
-      state.itemVisibility.hydro ||= {};
-      if (visible) delete state.itemVisibility.hydro[String(feature.id)];
-      else state.itemVisibility.hydro[String(feature.id)] = false;
-    }
-    gpuMapRenderer.invalidateHydroVisibility();
-    markLayerTreeDirty();
-    renderAll();
-    queuePresentationAutosave();
-  }
-
   function isLayerItemVisible(group, id) {
-    if (group === 'hydro' && String(id).startsWith('category:')) {
-      return isHydroCategoryVisible(String(id).slice('category:'.length));
-    }
     if (group === 'hydro' && HYDRO_LAYER_META[String(id)]) {
       return state.physicalSettings.hydroLayers?.[String(id)] !== false;
     }
@@ -4791,10 +4767,6 @@ const {
   function setLayerItemVisibility(group, id, visible) {
     if (!LAYER_GROUP_KEYS.includes(group)) return;
     const key = String(id);
-    if (group === 'hydro' && key.startsWith('category:')) {
-      setHydroCategoryVisibility(key.slice('category:'.length), visible);
-      return;
-    }
     if (group === 'hydro' && HYDRO_LAYER_META[key]) {
       state.physicalSettings.hydroLayers[key] = !!visible;
       gpuMapRenderer.invalidateHydroVisibility();
@@ -4871,8 +4843,6 @@ const {
           color: hydroDisplayColor(meta.category),
           count: state.hydroManifest?.stats?.layerCounts?.[id] ?? null,
           folderName: meta.label,
-          hydroFolderKey: hydroFolderStateKey(id),
-          hydroFolderName: meta.label,
           hydroCategory: hydroCategoryKey(meta.category),
           layerGroup: 'hydro',
           selected: false,
@@ -4928,7 +4898,7 @@ const {
     }
     const activeFolderKeys = new Set(activeLayerFolderKeys());
     for (const key of Object.keys(state.layerFolders || {})) {
-      if ((key.startsWith(TERRITORIAL_UNIT_FOLDER_STATE_PREFIX) || key.startsWith(HYDRO_FOLDER_STATE_PREFIX)) && !activeFolderKeys.has(key)) {
+      if (key.startsWith(TERRITORIAL_UNIT_FOLDER_STATE_PREFIX) && !activeFolderKeys.has(key)) {
         delete state.layerFolders[key];
       }
     }
@@ -4984,34 +4954,6 @@ const {
   function createLayerItemRow(group, item, { searchResult = false } = {}) {
     const itemGroup = item.layerGroup || group;
     if (item.groupHeader && !searchResult) {
-      if (item.hydroHeader) {
-        const header = document.createElement('div');
-        header.className = 'ui-row ui-selectable-row layer-subfolder-row layer-hydro-folder-row';
-        header.dataset.hydroFolderKey = item.folderKey;
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'ui-button layer-hydro-folder-toggle';
-        toggle.dataset.hydroFolderToggle = item.folderKey;
-        toggle.setAttribute('aria-expanded', String(item.expanded));
-        toggle.setAttribute('aria-label', `${item.name} 폴더 ${item.expanded ? '접기' : '펼치기'}`);
-        toggle.dataset.tooltip = `${item.name} 폴더 ${item.expanded ? '접기' : '펼치기'}`;
-        toggle.append(createSvgIcon(document, 'icon-chevron-down', 'ui-icon disclosure-icon'));
-        const visibility = createLayerVisibilityControl({
-          group: itemGroup,
-          itemId: item.layerItemId,
-          label: item.name,
-          checked: isLayerItemVisible(itemGroup, item.layerItemId),
-          ariaLabel: `${item.name} 레이어 표시`,
-        });
-        const name = document.createElement('button');
-        name.type = 'button';
-        name.className = 'ui-button layer-hydro-folder-name';
-        name.dataset.hydroFolderToggle = item.folderKey;
-        name.setAttribute('aria-expanded', String(item.expanded));
-        name.textContent = item.name;
-        header.append(toggle, visibility, name);
-        return header;
-      }
       const header = document.createElement('button');
       header.type = 'button';
       header.className = 'ui-button ui-selectable-row layer-subfolder-row';
@@ -5027,7 +4969,7 @@ const {
     const ref = layerItemObjectRef(itemGroup, item.id);
     const primary = !!ref && objectSelection.snapshot().primaryKey === ref.key;
     const hasMenu = itemGroup !== 'countryLabels' && !!ref;
-    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${item.hydroSource ? ' is-hydro-source' : ''}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${selected ? ' is-selected' : ''}${selected && objectSelection.size() > 1 ? ' is-multi-selected' : ''}${primary && objectSelection.size() > 1 ? ' is-primary-selected' : ''}`;
+    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${selected ? ' is-selected' : ''}${selected && objectSelection.size() > 1 ? ' is-multi-selected' : ''}${primary && objectSelection.size() > 1 ? ' is-primary-selected' : ''}`;
     row.dataset.layerGroup = itemGroup;
     row.dataset.itemId = item.id;
     if (searchResult) {
@@ -5149,31 +5091,6 @@ const {
       return;
     }
     let displayItems = items;
-    if (group === 'drawings') {
-      const hydroItems = items.filter(item => item.layerGroup === 'hydro');
-      const userDrawings = items.filter(item => item.layerGroup !== 'hydro');
-      displayItems = [];
-      for (const category of ['river', 'lake']) {
-        const categoryItems = hydroItems.filter(item => hydroCategoryKey(item.hydroCategory || item.category) === category);
-        if (!categoryItems.length) continue;
-        const categoryFolderKey = hydroCategoryFolderStateKey(category);
-        const expanded = state.layerFolders[categoryFolderKey] !== false;
-        displayItems.push({
-          groupHeader: true,
-          hydroHeader: true,
-          hydroCategoryHeader: true,
-          id: `header:hydro:${category}`,
-          name: hydroCategoryLabel(category),
-          folderKey: categoryFolderKey,
-          layerItemId: `category:${category}`,
-          hydroCategory: category,
-          layerGroup: 'hydro',
-          expanded,
-        });
-        if (expanded) displayItems.push(...categoryItems.map(item => ({ ...item, hydroSource: true })));
-      }
-      displayItems.push(...userDrawings);
-    }
     if (group === 'territories' || group === 'administrative') {
       displayItems = [];
       let previousCountry = null;
@@ -5258,9 +5175,10 @@ const {
       const folder = document.querySelector(`.layer-folder[data-layer-group="${group}"]`);
       const container = $(layerGroupTargetIds[group]);
       if (!folder || !container) continue;
-      const allItems = (group === 'drawings'
-        ? [...layerTreeItems('hydro'), ...layerTreeItems('drawings')]
-        : layerTreeItems(group))
+      const sourceGroup = group === 'rivers' || group === 'lakes' ? 'hydro' : group;
+      const category = group === 'rivers' ? 'river' : group === 'lakes' ? 'lake' : '';
+      const allItems = layerTreeItems(sourceGroup)
+        .filter(item => !category || hydroCategoryKey(item.hydroCategory) === category)
         .sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
       renderLayerFolderContents({ group, folderKey: group, name: layerGroupNames[group], folder, container, items: allItems, search });
     }
@@ -5723,23 +5641,24 @@ const {
 
   function renderHydro() {
     if (!hydroLakeLayer || !hydroRiverLayer) return;
-    const hydroStyle = layerStyle(state.layerPresentation, 'hydro');
+    const riverStyle = layerStyle(state.layerPresentation, 'rivers');
+    const lakeStyle = layerStyle(state.layerPresentation, 'lakes');
     const renderer = gpuMapRenderer.getStats().renderer;
     const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker';
     if (nativeHydro) {
       hydroLakeLayer.selectAll('*').remove();
       hydroRiverLayer.selectAll('*').remove();
     } else {
-      const lakes = hydroRenderGroups('lake');
+      const lakes = state.layerVisibility.lakes ? hydroRenderGroups('lake') : [];
       const lakeSelection = hydroLakeLayer.selectAll('path.hydro-lake-group').data(lakes, item => item.key);
       lakeSelection.enter().append('path').attr('class', 'hydro-lake-group');
-      lakeSelection.attr('d', item => path(item.collection)).style('fill', hydroDisplayColor('lake')).style('stroke', hydroDisplayColor('lake')).style('opacity', null).style('fill-opacity', hydroStyle.opacity).style('stroke-opacity', hydroStyle.boundaryVisible ? hydroStyle.opacity : 0).style('stroke-width', hydroStyle.boundaryWidth);
+      lakeSelection.attr('d', item => path(item.collection)).style('fill', hydroDisplayColor('lake')).style('stroke', hydroDisplayColor('lake')).style('opacity', null).style('fill-opacity', lakeStyle.opacity).style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0).style('stroke-width', lakeStyle.boundaryWidth);
       lakeSelection.exit().remove();
 
-      const rivers = hydroRenderGroups('river');
+      const rivers = state.layerVisibility.rivers ? hydroRenderGroups('river') : [];
       const riverSelection = hydroRiverLayer.selectAll('path.hydro-river-group').data(rivers, item => item.key);
       riverSelection.enter().append('path').attr('class', 'hydro-river-group');
-      riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width * hydroStyle.boundaryWidth}px`).style('stroke', hydroDisplayColor('river')).style('opacity', null).style('stroke-opacity', hydroStyle.boundaryVisible ? hydroStyle.opacity : 0);
+      riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width * riverStyle.boundaryWidth}px`).style('stroke', hydroDisplayColor('river')).style('opacity', null).style('stroke-opacity', riverStyle.opacity);
       riverSelection.exit().remove();
     }
 
@@ -5752,12 +5671,11 @@ const {
 
   function renderHydroEdits() {
     if (!hydroEditLayer) return;
-    const style = layerStyle(state.layerPresentation, 'hydro');
-    const data = state.layerVisibility.hydro
-      ? state.hydroEdits.filter(feature => isLayerItemVisible('hydro', feature.id) && feature.geometry
+    const riverStyle = layerStyle(state.layerPresentation, 'rivers');
+    const lakeStyle = layerStyle(state.layerPresentation, 'lakes');
+    const data = state.hydroEdits.filter(feature => isHydroFeatureVisible(feature) && feature.geometry
         && (geometryMayIntersectViewport(feature.geometry)
-          || objectSelection.has(normalizeObjectRef({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))))
-      : [];
+          || objectSelection.has(normalizeObjectRef({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))));
     const selection = hydroEditLayer.selectAll('path.hydro-edit-shape').data(data, feature => String(feature.id));
     selection.enter().append('path')
       .attr('class', 'hydro-edit-shape')
@@ -5771,10 +5689,10 @@ const {
     selection
       .attr('d', path)
       .style('fill', feature => feature.properties?.category === 'lake' ? hydroEditColor(feature) : 'none')
-      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? 0.34 * style.opacity : 0)
+      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? 0.34 * lakeStyle.opacity : 0)
       .style('stroke', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 'none' : hydroEditColor(feature))
-      .style('stroke-opacity', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : style.boundaryWidth);
+      .style('stroke-opacity', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : riverStyle.opacity)
+      .style('stroke-width', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : riverStyle.boundaryWidth);
     selection.exit().remove();
     const polygonSelection = hydroEditLayer.selectAll('path.hydro-edit-boundary').data(
       data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)),
@@ -5783,8 +5701,8 @@ const {
     polygonSelection.enter().append('path').attr('class', 'hydro-edit-boundary').style('fill', 'none').style('pointer-events', 'none');
     polygonSelection.attr('d', feature => path(buildRenderableStrokeFeature(feature)))
       .style('stroke', hydroEditColor)
-      .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', style.boundaryWidth);
+      .style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)
+      .style('stroke-width', lakeStyle.boundaryWidth);
     polygonSelection.exit().remove();
   }
 
@@ -8645,7 +8563,7 @@ const {
       }
       if (country) add({ domain: 'territorial', type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: country.properties?.editor_id });
     }
-    if (state.layerVisibility.hydro) {
+    if (state.layerVisibility.rivers || state.layerVisibility.lakes) {
       const hydro = await hydroAtScreenPoint(screenPoint, coord);
       if (hydro) add({ domain: 'hydro', type: hydro.properties?.category || 'river', id: hydro.properties?.pandolab_id || hydro.id });
     }
@@ -9759,7 +9677,7 @@ const {
 
   const PROPERTY_TYPE_LABELS = Object.freeze({
     country: '국가', territory: '권역', administrative: '행정구역', region: '지방',
-    distribution: '분포', drawing: '지형지물', label: '라벨', hydro: '강·호수', multi: '다중선택',
+    distribution: '분포', drawing: '지형지물', label: '지명', hydro: '강·호수', multi: '다중선택',
   });
 
   function activePropertyForm(type) {
@@ -10193,6 +10111,7 @@ const {
       if (state.selectedDistributionLayerId === layer.id) state.selectedDistributionLayerId = '';
       markLayerTreeDirty();
       clearSelection(false);
+      renderAll();
       queueAutosave();
       setActionStatus(`${layer.name} ${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
       return true;
@@ -11975,7 +11894,7 @@ const {
           renderMode: value?.renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY ? DISTRIBUTION_RENDER_MODES.INTENSITY : DISTRIBUTION_RENDER_MODES.DOMINANT,
         }),
         physicalSettings: (value, current) => normalizePhysicalSettings(value || current),
-        layerVisibility: (value, current) => ({ ...(current || {}), ...(value || {}) }),
+        layerVisibility: (value, current) => normalizeLayerVisibility(value, current),
         itemVisibility: value => normalizeLayerItemState(value),
         layerPresentation: value => normalizeLayerPresentation(value),
       },
@@ -12179,7 +12098,7 @@ const {
 
   function setLayerVisibility(key, visible) {
     state.layerVisibility[key] = visible;
-    if (key === 'hydro') gpuMapRenderer.invalidateHydroVisibility();
+    if (key === 'rivers' || key === 'lakes') gpuMapRenderer.invalidateHydroVisibility();
     renderAll();
     queuePresentationAutosave();
   }
@@ -12192,10 +12111,9 @@ const {
     languages: { presentationGroup: 'languages', label: '언어', opacity: true, boundary: true },
     ethnicities: { presentationGroup: 'ethnicities', label: '민족', opacity: true, boundary: true },
     religions: { presentationGroup: 'religions', label: '종교', opacity: true, boundary: true },
-    hydro: { presentationGroup: 'hydro', label: '강·호수', opacity: true, boundary: true },
+    rivers: { presentationGroup: 'rivers', label: '강', opacity: true, boundary: false },
+    lakes: { presentationGroup: 'lakes', label: '호수', opacity: true, boundary: true },
     userDrawings: { presentationGroup: 'userDrawings', label: '사용자 지형지물', opacity: true, boundary: true },
-    labels: { presentationGroup: 'labels', label: '도시·지명', opacity: true, boundary: false },
-    countryLabels: { presentationGroup: 'countryLabels', label: '국가명 라벨', opacity: true, boundary: false },
   });
 
   function updateLayerPresentationStyle(group, patch) {
@@ -12234,7 +12152,7 @@ const {
       select.id = 'distributionLayerModeInput';
       select.dataset.layerDistributionMode = 'true';
       select.setAttribute('aria-describedby', 'distributionLayerModeHint');
-      select.innerHTML = '<option value="dominant">영역별 가장 높은 비율</option><option value="intensity">선택한 분포의 비율</option>';
+      select.innerHTML = '<option value="dominant">영역별 대표 분포</option><option value="intensity">선택 분포 비율</option>';
       label.append(title, select);
       const hint = document.createElement('small');
       hint.id = 'distributionLayerModeHint';
@@ -12483,6 +12401,8 @@ const {
     $('languagesVisible').checked = state.layerVisibility.languages !== false;
     $('ethnicitiesVisible').checked = state.layerVisibility.ethnicities !== false;
     $('religionsVisible').checked = state.layerVisibility.religions !== false;
+    $('riversVisible').checked = state.layerVisibility.rivers !== false;
+    $('lakesVisible').checked = state.layerVisibility.lakes !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
@@ -12650,7 +12570,7 @@ const {
     state.hovered = null;
     state.physicalSettings = normalizePhysicalSettings(null);
     state.projection = 'globe';
-    state.layerVisibility = { countries: true, territories: true, administrative: true, regions: true, languages: true, ethnicities: true, religions: true, hydro: true, drawings: true, labels: true, basemapLabels: true };
+    state.layerVisibility = normalizeLayerVisibility();
     state.itemVisibility = normalizeLayerItemState(null);
     state.layerPresentation = normalizeLayerPresentation();
     gpuMapRenderer.invalidateHydroVisibility();
@@ -12702,6 +12622,8 @@ const {
     $('languagesVisible').checked = true;
     $('ethnicitiesVisible').checked = true;
     $('religionsVisible').checked = true;
+    $('riversVisible').checked = true;
+    $('lakesVisible').checked = true;
     $('drawingsVisible').checked = true;
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
@@ -12764,7 +12686,7 @@ const {
     openConfirmModal({
       title: '국가 삭제',
       message: `${name} 국가 객체를 지도에서 삭제합니다. 실행취소로 복구할 수 있습니다.`,
-      impacts: ['국가 1개 삭제', '국가명 라벨 제거', '하위 영역 없음'],
+      impacts: ['국가 1개 삭제', '국가명 제거', '하위 영역 없음'],
       confirmText: '국가 삭제',
       danger: true,
       onConfirm: () => {
@@ -13616,7 +13538,7 @@ const {
   function updateGisExportSummary() {
     const labels = {
       countries: '국가', territories: '권역', administrative: '행정구역', regions: '지방',
-      drawings: '지형지물', distributions: '분포', labels: '사용자 라벨',
+      drawings: '지형지물', distributions: '분포', labels: '사용자 지명',
     };
     const counts = gisExportCounts();
     const selected = selectedGisExportLayers();
@@ -13708,7 +13630,7 @@ const {
     if (!result.ok) return false;
     markLayerTreeDirty();
     if (state.selected?.domain === 'drawing' && String(state.selected.id) === key) clearSelection(false);
-    else renderAll();
+    renderAll();
     queueAutosave();
     setActionStatus(statusText || `${drawingName(feature)} 지형지물을 삭제했습니다.`, 'success');
     return true;
@@ -13727,7 +13649,7 @@ const {
     }
     markLayerTreeDirty();
     if (state.selected?.domain === 'hydro' && String(state.selected.id) === key) clearSelection(false);
-    else renderAll();
+    renderAll();
     queueAutosave();
     const category = hydroCategoryLabel(feature.properties?.category);
     const fallback = hydroFallbackName(feature.properties?.category);
@@ -13744,7 +13666,7 @@ const {
     delete state.labelSettings[labelKey('label', key)];
     markLayerTreeDirty();
     if (state.selected?.domain === 'label' && String(state.selected.id) === key) clearSelection(false);
-    else renderAll();
+    renderAll();
     queueAutosave();
     setActionStatus(statusText || `${label.name || '지명'} 지명을 삭제했습니다.`, 'success');
     return true;
@@ -14193,7 +14115,7 @@ const {
         visibilityInputs: Object.fromEntries([
           ['countries', 'countriesVisible'], ['territories', 'territoriesVisible'], ['administrative', 'administrativeVisible'],
           ['regions', 'regionsVisible'], ['languages', 'languagesVisible'], ['ethnicities', 'ethnicitiesVisible'],
-          ['religions', 'religionsVisible'], ['drawings', 'drawingsVisible'],
+          ['religions', 'religionsVisible'], ['rivers', 'riversVisible'], ['lakes', 'lakesVisible'], ['drawings', 'drawingsVisible'],
           ['labels', 'labelsVisible'], ['basemapLabels', 'basemapLabelsVisible'],
         ].map(([group, id]) => [group, $(id)])),
         panelTabs: $('mapPanelTabs'),
@@ -14260,18 +14182,12 @@ const {
           markLayerTreeDirty();
           renderLayerTree();
         },
-        toggleHydroFolder: folderKey => {
-          if (!folderKey.startsWith(HYDRO_FOLDER_STATE_PREFIX) && !folderKey.startsWith(HYDRO_CATEGORY_FOLDER_STATE_PREFIX)) return;
-          state.layerFolders[folderKey] = state.layerFolders[folderKey] !== true;
-          markLayerTreeDirty();
-          renderLayerTree();
-        },
         toggleFolder: group => {
           const folderKeys = activeLayerFolderKeys();
           if (!folderKeys.includes(group)) return;
           const willExpand = !state.layerFolders[group];
           for (const key of folderKeys) {
-            if (!key.startsWith(TERRITORIAL_UNIT_FOLDER_STATE_PREFIX) && !key.startsWith(HYDRO_FOLDER_STATE_PREFIX) && !key.startsWith(HYDRO_CATEGORY_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
+            if (!key.startsWith(TERRITORIAL_UNIT_FOLDER_STATE_PREFIX)) state.layerFolders[key] = false;
           }
           state.layerFolders[group] = willExpand;
           markLayerTreeDirty();
@@ -14947,6 +14863,8 @@ const {
     $('languagesVisible').checked = state.layerVisibility.languages !== false;
     $('ethnicitiesVisible').checked = state.layerVisibility.ethnicities !== false;
     $('religionsVisible').checked = state.layerVisibility.religions !== false;
+    $('riversVisible').checked = state.layerVisibility.rivers !== false;
+    $('lakesVisible').checked = state.layerVisibility.lakes !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
@@ -15256,6 +15174,8 @@ const {
     $('languagesVisible').checked = state.layerVisibility.languages !== false;
     $('ethnicitiesVisible').checked = state.layerVisibility.ethnicities !== false;
     $('religionsVisible').checked = state.layerVisibility.religions !== false;
+    $('riversVisible').checked = state.layerVisibility.rivers !== false;
+    $('lakesVisible').checked = state.layerVisibility.lakes !== false;
     $('drawingsVisible').checked = state.layerVisibility.drawings;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;

@@ -14,7 +14,8 @@ export const PRESENTATION_GROUPS = Object.freeze([
   'labels',
   'countryLabels',
   ...OVERLAY_GROUPS,
-  'hydro',
+  'rivers',
+  'lakes',
   'countries',
   'terrain',
 ]);
@@ -41,8 +42,24 @@ export function normalizeLayerStyle(value = {}) {
 
 export function normalizeLayerPresentation(value = {}) {
   const overlayOrder = [...OVERLAY_GROUPS];
+  const sourceStyles = value?.styles && typeof value.styles === 'object' ? value.styles : {};
+  const legacyHydroStyle = Object.hasOwn(sourceStyles, 'hydro') ? normalizeLayerStyle(sourceStyles.hydro) : null;
   const styles = {};
-  for (const group of PRESENTATION_GROUPS) styles[group] = normalizeLayerStyle(value.styles?.[group]);
+  for (const group of PRESENTATION_GROUPS) {
+    if (group === 'rivers' && !Object.hasOwn(sourceStyles, group) && legacyHydroStyle) {
+      styles[group] = normalizeLayerStyle({
+        ...legacyHydroStyle,
+        opacity: legacyHydroStyle.boundaryVisible ? legacyHydroStyle.opacity : 0,
+        boundaryVisible: true,
+      });
+      continue;
+    }
+    if (group === 'lakes' && !Object.hasOwn(sourceStyles, group) && legacyHydroStyle) {
+      styles[group] = normalizeLayerStyle(legacyHydroStyle);
+      continue;
+    }
+    styles[group] = normalizeLayerStyle(sourceStyles[group]);
+  }
   return { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder, styles };
 }
 
