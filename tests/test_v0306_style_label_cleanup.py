@@ -18,8 +18,8 @@ class StyleLabelCleanupTests(unittest.TestCase):
             "layerStyleBoundaryWidthInput", "layerStyleRenderOrderInput", "layerPresentationList",
         ):
             self.assertNotIn(f'id="{element_id}"', INDEX)
-        self.assertIn('id="layerStyleOpacityInput"', INDEX)
-        self.assertIn('id="layerStyleLabelsVisibleInput"', INDEX)
+        self.assertIn('data-layer-style-opacity', APP)
+        self.assertIn('data-layer-style-boundary', APP)
         self.assertIn("boundaryWidth: DEFAULT_STYLE.boundaryWidth", PRESENTATION)
         self.assertIn("const overlayOrder = [...OVERLAY_GROUPS]", PRESENTATION)
 
