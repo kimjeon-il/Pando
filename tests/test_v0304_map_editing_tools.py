@@ -23,12 +23,12 @@ class MapEditingToolsV0304Tests(unittest.TestCase):
             INDEX.index('id="changeCountryTypeBtn"'),
         ]
         self.assertEqual(country_order, sorted(country_order))
-        self.assertIn('id="regionGeometryActionsTitle"', INDEX)
-        self.assertIn('id="regionRelationActionsTitle"', INDEX)
+        self.assertIn('id="territoryGeometryActionsTitle"', INDEX)
+        self.assertIn('id="territoryRelationActionsTitle"', INDEX)
         self.assertIn('id="administrativeGeometryActionsTitle"', INDEX)
         self.assertIn('id="administrativeRelationActionsTitle"', INDEX)
         for ids in (
-            ("reassignRegionShapeBtn", "mergeRegionBtn", "splitRegionBtn", "transferRegionBtn", "changeRegionTypeBtn", "promoteRegionBtn", "removeRegionDivisionBtn"),
+            ("reassignTerritoryShapeBtn", "mergeTerritoryBtn", "splitTerritoryBtn", "transferTerritoryBtn", "changeTerritoryTypeBtn", "promoteTerritoryBtn", "removeTerritoryDivisionBtn"),
             ("reassignAdministrativeShapeBtn", "mergeAdministrativeBtn", "splitAdministrativeBtn", "transferAdministrativeBtn", "changeAdministrativeTypeBtn", "promoteAdministrativeBtn", "removeAdministrativeDivisionBtn"),
             ("editDrawingBoundaryBtn", "mergeDrawingBtn", "splitDrawingBtn", "syncDrawingCoastBtn", "editDrawingCoastBtn", "applyDrawingToCountryBtn", "promoteDrawingToCountryBtn"),
         ):

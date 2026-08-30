@@ -1,3 +1,5 @@
+import { TERRITORIAL_IMPORT_TARGETS } from './import-plan.js';
+
 export const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
 
 const text = value => String(value ?? '');
@@ -240,7 +242,7 @@ export function createImportService({
       await materializers.replaceProject(result);
       return { status: 'project-replaced', result };
     }
-    if (['region', 'administrative'].includes(result.targetType)) {
+    if ([TERRITORIAL_IMPORT_TARGETS.TERRITORY, TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE].includes(result.targetType)) {
       await materializers.territorial(result, files[0]?.name || '벡터 파일');
       return { status: 'territorial-imported', result };
     }

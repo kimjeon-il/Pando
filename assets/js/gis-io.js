@@ -13,7 +13,7 @@
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const importPlanModuleUrl = new URL('modules/import-plan.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r11');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r13');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
@@ -28,6 +28,12 @@
   const workerPending = new Map();
   let activeSession = null;
   let importPlanModulePromise = null;
+  const TERRITORIAL_IMPORT_TARGETS = Object.freeze({
+    TERRITORY: 'territory',
+    ADMINISTRATIVE: 'administrative',
+    REGION: 'region',
+  });
+  const PARTITION_IMPORT_TARGETS = new Set([TERRITORIAL_IMPORT_TARGETS.TERRITORY, TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE]);
   let wizardReturnFocus = null;
 
   function importPlanModule() {
@@ -481,13 +487,23 @@
     updateTargetFields();
   }
 
+  function manifestTargetType(layer) {
+    const targetType = String(layer?.targetType || '');
+    if (targetType === 'historicalRegion') return TERRITORIAL_IMPORT_TARGETS.REGION;
+    if (targetType === 'region' && (layer?.category === 'regions' || /(?:^|\/)regions\.geojson$/i.test(String(layer?.file || '')))) {
+      return TERRITORIAL_IMPORT_TARGETS.TERRITORY;
+    }
+    return targetType;
+  }
+
   function suggestedTarget(descriptor, manifest = null) {
     const manifestLayer = (manifest?.layers || []).find(layer => [layer.file, layer.name].filter(Boolean).some(value => withoutExtension(value).toLowerCase() === withoutExtension(descriptor?.datasetPath || descriptor?.layerName).toLowerCase()));
-    if (manifestLayer?.targetType) return manifestLayer.targetType;
+    if (manifestLayer?.targetType) return manifestTargetType(manifestLayer);
     const hint = `${descriptor?.layerName || ''} ${descriptor?.geometryType || ''}`.toLowerCase();
     if (/country|countries|admin[_ ]?0|국가/.test(hint) && /polygon|surface/.test(hint)) return 'country';
     if (/admin|administrative|행정/.test(hint) && /polygon|surface/.test(hint)) return 'administrative';
-    if (/region|territor|지역/.test(hint) && /polygon|surface/.test(hint)) return 'region';
+    if (/territor|권역/.test(hint) && /polygon|surface/.test(hint)) return 'territory';
+    if (/region|province|지방|지역/.test(hint) && /polygon|surface/.test(hint)) return 'region';
     return 'drawing';
   }
 
@@ -508,7 +524,7 @@
     if (importSourceKind === 'project') {
       const warning = wizardOptions.hasUnsavedChanges ? ' 파일에 저장하지 않은 현재 변경 사항은 사라집니다.' : '';
       summary.textContent = `PandoLab 프로젝트를 열어 현재 작업공간을 교체합니다.${warning}`;
-    } else if (['region', 'administrative'].includes(document.getElementById('gisTargetType')?.value)) {
+    } else if (PARTITION_IMPORT_TARGETS.has(document.getElementById('gisTargetType')?.value)) {
       summary.textContent = `${layer} 전체를 ${country || '선택한 국가'} 소속 ${target}(으)로 가져오고 필요한 영토를 이전합니다.`;
     } else {
       summary.textContent = `${layer}를 ${target}${distribution && target === '분포' ? ` · ${distribution}` : ''}(으)로 ${mode === 'replace' ? '새 프로젝트에서 엽니다' : '현재 프로젝트에 추가합니다'}.`;
@@ -564,7 +580,7 @@
     if (importSourceKind === 'project' && targetSelect) targetSelect.value = 'country';
     const target = targetSelect?.value || 'country';
     const distribution = target === 'distribution';
-    const territorial = ['region', 'administrative'].includes(target);
+    const territorial = PARTITION_IMPORT_TARGETS.has(target);
     const useCountryField = document.getElementById('gisUseCountryField')?.checked === true;
     const descriptor = activeSession?.descriptors?.[Number(document.getElementById('gisLayerSelect')?.value) || 0];
     const countrySelect = document.getElementById('gisTargetCountry');
@@ -889,7 +905,7 @@
         targetCountryId: mapping.targetCountryId,
         fallbackCountryId: mapping.targetCountryId,
         useFeatureCountryField: mapping.useFeatureCountryField,
-        parentRegionId: mapping.parentRegionId,
+        parentId: mapping.parentId,
         openMode: mapping.openMode,
         mergePolicy: mapping.targetType === 'country' ? 'same-id-multipolygon' : 'preserve-features',
       }),
@@ -930,7 +946,7 @@
       groupDuplicates: true,
       targetCountryId: document.getElementById('gisTargetCountry').value,
       useFeatureCountryField: document.getElementById('gisUseCountryField').checked,
-      parentRegionId: document.getElementById('gisParentRegion').value,
+      parentId: document.getElementById('gisParentRegion').value,
       openMode: importSourceKind === 'project' ? 'replace' : (targetType === 'country' ? document.getElementById('gisOpenMode').value : 'merge'),
     };
   }
@@ -939,7 +955,7 @@
     const container = document.getElementById('gisImportImpactSummary');
     if (!container) return;
     container.replaceChildren();
-    if (!['region', 'administrative'].includes(mapping.targetType) || !impact) {
+    if (!PARTITION_IMPORT_TARGETS.has(mapping.targetType) || !impact) {
       const mode = mapping.openMode === 'replace' ? '새 프로젝트' : '현재 지도';
       container.append(Object.assign(document.createElement('p'), { textContent: `${descriptor.featureCount.toLocaleString()}개 객체를 ${mode}에 적용합니다.` }));
       return;
@@ -1052,14 +1068,14 @@
       const prepareConverted = async () => {
         const descriptor = session.descriptors[Number(layerSelect.value) || 0];
         const mapping = importMappingFromUi();
-        if (['region', 'administrative'].includes(mapping.targetType) && !mapping.targetCountryId) {
+        if (PARTITION_IMPORT_TARGETS.has(mapping.targetType) && !mapping.targetCountryId) {
           throw new Error('권역·행정구역을 가져오려면 소속 국가를 선택해야 합니다.');
         }
         if (mapping.useFeatureCountryField && !mapping.countryField) throw new Error('객체별 소속 국가에 사용할 속성을 선택하세요.');
         const crsInput = document.getElementById('gisCrsInput');
         if (crsInput?.required && !/^EPSG:\d+$/i.test(crsInput.value.trim())) throw new Error('좌표계를 EPSG 코드로 입력하세요.');
         if (!convertedCache) convertedCache = await convertSelectedLayer(descriptor, mapping, setWizardProgress);
-        if (!impactCache && typeof options.planImpact === 'function' && ['region', 'administrative'].includes(mapping.targetType)) {
+        if (!impactCache && typeof options.planImpact === 'function' && PARTITION_IMPORT_TARGETS.has(mapping.targetType)) {
           setWizardProgress('영토 이전 영향을 계산하는 중입니다.', 88);
           impactCache = await options.planImpact(convertedCache.collection, mapping);
         }
@@ -1075,7 +1091,7 @@
       nextButton.onclick = async () => {
         try {
           clearWizardError();
-          if (importMobileStep === 1 && ['region', 'administrative'].includes(targetSelect.value) && !document.getElementById('gisTargetCountry').value) {
+          if (importMobileStep === 1 && PARTITION_IMPORT_TARGETS.has(targetSelect.value) && !document.getElementById('gisTargetCountry').value) {
             document.getElementById('gisTargetCountry').focus();
             throw new Error('소속 국가를 선택하세요. 교차 면적만으로 자동 확정하지 않습니다.');
           }

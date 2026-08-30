@@ -62,19 +62,38 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         ]
         positions = [country.index(token) for token in order]
         self.assertEqual(positions, sorted(positions))
-        for form_id in ("countryProperties", "regionProperties", "administrativeProperties", "historicalRegionProperties"):
+        for form_id in (
+            "countryProperties", "territoryProperties", "administrativeProperties", "historicalRegionProperties",
+            "distributionProperties", "drawingProperties", "labelProperties",
+        ):
             markup = self.form_markup(form_id)
             self.assertIn("editor-object-form", markup)
             self.assertNotIn('class="ui-card editor-section editor-section-primary"', markup)
+        hydro = re.search(r'<section id="hydroProperties"[\s\S]+?</section>\s*</div>\s*</aside>', INDEX)
+        self.assertIsNotNone(hydro)
+        self.assertIn("editor-object-form", hydro.group(0))
+        self.assertNotIn('class="ui-card editor-section', hydro.group(0))
         historical = self.form_markup("historicalRegionProperties")
         self.assertIn('<fieldset class="editor-period-group"><legend>유효 기간</legend>', historical)
+
+    def test_semantic_typography_roles_are_shared_by_every_object_editor(self):
+        for duplicate_heading in ("분포 항목 정보", ">기본 정보<", "hydroPropertiesTitle"):
+            self.assertNotIn(duplicate_heading, INDEX + APP)
+        for class_name in (
+            "editor-property-list", "editor-meta-list", "editor-readonly-value", "editor-property-heading",
+        ):
+            self.assertIn(class_name, INDEX + CSS)
+        self.assertNotIn(".editor-help, .editor-info-list,", CSS)
+        self.assertIn(".editor-object-form .editor-disclosure > summary", CSS)
+        self.assertIn("font-size: var(--ui-font-body);", CSS[CSS.index(".editor-property-list strong,"):])
+        self.assertNotIn('#app[data-layout="mobile"] .editor-object-heading > span', CSS)
 
     def test_flags_and_actions_use_the_compact_common_grammar(self):
         country = self.form_markup("countryProperties")
         self.assertRegex(country, r'id="flagUploadBtn"[^>]+aria-label="국기 변경"[^>]*><svg')
         self.assertRegex(country, r'id="flagRemoveBtn"[^>]+aria-label="국기 삭제"[^>]*><svg')
         self.assertNotRegex(country, r'>\s*국기 (?:변경|삭제)\s*</button>')
-        for form_id in ("countryProperties", "regionProperties", "administrativeProperties", "historicalRegionProperties"):
+        for form_id in ("countryProperties", "territoryProperties", "administrativeProperties", "historicalRegionProperties"):
             markup = self.form_markup(form_id)
             self.assertIn("editor-action-row", markup)
             self.assertNotIn("editor-action-grid", markup)

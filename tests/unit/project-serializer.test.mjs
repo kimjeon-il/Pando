@@ -53,6 +53,28 @@ test('autosave serializer preserves full and delta formats', () => {
   assert.deepEqual(full.countriesData, common.countriesData);
 });
 
+test('project serialization preserves the four canonical territorial unit types', () => {
+  const territorialUnits = ['country', 'territory', 'admin', 'region'].map(unitType => ({
+    type: 'Feature',
+    id: `${unitType}-1`,
+    properties: { unitType },
+    geometry: null,
+  }));
+  const project = serializer({
+    countriesData: { type: 'FeatureCollection', features: [] },
+    projectFields: { territorialUnits },
+    countryDelta: { changed: [], removedIds: [] },
+    fullAutosave: false,
+    terrainManifest: null,
+    hydroManifest: null,
+  }).buildProject();
+
+  assert.deepEqual(project.territorialModel.types, ['country', 'territory', 'admin', 'region']);
+  assert.deepEqual(project.territorialUnits.map(feature => feature.properties.unitType), [
+    'country', 'territory', 'admin', 'region',
+  ]);
+});
+
 test('country delta restoration replaces removes and appends without mutating the delta', () => {
   const feature = (id, value) => ({ type: 'Feature', properties: { editor_id: id, value }, geometry: null });
   const project = { countryDelta: { changed: [feature('A', 2), feature('C', 3)], removedIds: ['B'] } };

@@ -22,20 +22,33 @@ test('country import plans normalize formats, mappings, and merge policy', () =>
   });
 });
 
-test('dependent object imports are constrained to the current project', () => {
-  const region = normalizeImportPlan({
-    targetType: 'region', openMode: 'replace', targetCountryId: 'DEU',
+test('partition object imports are constrained to the current project', () => {
+  const territory = normalizeImportPlan({
+    targetType: 'territory', openMode: 'replace', targetCountryId: 'DEU',
     useFeatureCountryField: true, propertyMapping: { country: 'sovereign_id' },
   });
 
-  assert.equal(region.openMode, 'merge');
-  assert.equal(region.targetCountryId, 'DEU');
-  assert.equal(region.fallbackCountryId, 'DEU');
-  assert.equal(region.useFeatureCountryField, true);
-  assert.equal(region.landPolicy, 'transfer-to-owner');
-  assert.equal(targetRequiresExistingProject(region.targetType), true);
+  assert.equal(territory.openMode, 'merge');
+  assert.equal(territory.targetCountryId, 'DEU');
+  assert.equal(territory.fallbackCountryId, 'DEU');
+  assert.equal(territory.useFeatureCountryField, true);
+  assert.equal(territory.landPolicy, 'transfer-to-owner');
+  assert.equal(targetRequiresExistingProject(territory.targetType), true);
   assert.equal(targetRequiresExistingProject('country'), false);
   assert.equal(targetRequiresExistingProject('project'), false);
+});
+
+test('region imports keep explicit-area semantics and accept the legacy historicalRegion adapter', () => {
+  const region = normalizeImportPlan({
+    targetType: 'region', targetCountryId: 'DEU', useFeatureCountryField: true,
+  });
+  const legacy = normalizeImportPlan({ targetType: 'historicalRegion' });
+
+  assert.equal(region.targetType, 'region');
+  assert.equal(region.targetCountryId, '');
+  assert.equal(region.useFeatureCountryField, false);
+  assert.equal(region.landPolicy, 'preserve');
+  assert.equal(legacy.targetType, 'region');
 });
 
 test('real project markers classify the import plan without changing vector-only metadata behavior', () => {

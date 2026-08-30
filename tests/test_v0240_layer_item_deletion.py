@@ -26,7 +26,7 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         selected_delete = APP[APP.index("function deleteSelected()"):APP.index("function zoomBy")]
         self.assertIn("requestBatchDelete()", delete_logic)
         self.assertIn("deleteSelectedCountry()", delete_logic)
-        self.assertIn("requestCountryRegionDivisionRemoval", delete_logic)
+        self.assertIn("requestTerritorialUnitDivisionRemoval", delete_logic)
         self.assertIn("onConfirm: deleteSelected", delete_logic)
         self.assertIn("openConfirmModal", delete_logic)
         self.assertIn("state.selected.type === 'drawing'", selected_delete)
@@ -63,7 +63,7 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         self.assertNotIn("hydro-layer:", APP)
 
     def test_virtualized_rows_share_the_same_context_menu_factory(self):
-        virtualized = APP[APP.index("function renderVirtualizedLayerGroup"):APP.index("function createDynamicDrawingFolderElement")]
+        virtualized = APP[APP.index("function renderVirtualizedLayerGroup"):APP.index("function renderLayerFolderContents")]
         self.assertIn("createLayerItemRow(group, items[index])", virtualized)
         self.assertIn("grid-template-columns: var(--ui-tree-action-size) minmax(0, 1fr) auto var(--ui-tree-action-size)", CSS)
         self.assertIn("#app[data-layout=\"mobile\"] .layer-child-menu", CSS)

@@ -7,11 +7,11 @@ test('draft tools derive line and polygon behavior from one definition table', (
   assert.deepEqual(toolDraftDefinition('river'), { shape: 'line', profile: 'river' });
   assert.deepEqual(toolDraftDefinition('line'), { shape: 'line', profile: 'river' });
   assert.deepEqual(toolDraftDefinition('split-drawing'), { shape: 'line', profile: 'boundary' });
-  assert.deepEqual(toolDraftDefinition('split-country-region'), { shape: 'line', profile: 'boundary' });
+  assert.deepEqual(toolDraftDefinition('split-territorial-unit'), { shape: 'line', profile: 'boundary' });
   assert.deepEqual(toolDraftDefinition('lake'), { shape: 'polygon', profile: 'area' });
   assert.deepEqual(toolDraftDefinition('polygon'), { shape: 'polygon', profile: 'area' });
-  assert.deepEqual(toolDraftDefinition('draw-country-region'), { shape: 'polygon', profile: 'area' });
-  assert.deepEqual(toolDraftDefinition('redraw-country-region'), { shape: 'polygon', profile: 'area' });
+  assert.deepEqual(toolDraftDefinition('draw-territorial-unit'), { shape: 'polygon', profile: 'area' });
+  assert.deepEqual(toolDraftDefinition('redraw-territorial-unit'), { shape: 'polygon', profile: 'area' });
 });
 
 test('phased territorial tools expose draft input only during their line phase', () => {
