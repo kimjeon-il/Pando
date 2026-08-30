@@ -98,3 +98,17 @@ test('new projects keep an unsaved-file baseline without appearing dirty', () =>
   assert.equal(controller.snapshot().file, FILE_SAVE_STATES.NEVER_SAVED);
   assert.equal(controller.snapshot().hasUnsavedChanges, false);
 });
+
+test('save state checkpoints restore import rollback tokens and dirty state', () => {
+  const controller = createSaveStateController();
+  controller.markOpenedFile('opened-world');
+  controller.markContentChanged();
+  controller.markPresentationChanged();
+  controller.setAutosave(AUTOSAVE_STATES.SAVED);
+  const beforeImport = controller.checkpoint();
+  controller.markContentChanged();
+  controller.markFileError();
+  controller.setAutosave(AUTOSAVE_STATES.ERROR, { fallback: 'temporary import failure' });
+  controller.restore(beforeImport);
+  assert.deepEqual(controller.snapshot(), beforeImport.state);
+});

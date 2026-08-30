@@ -3,11 +3,23 @@ import test from 'node:test';
 
 import {
   createAssetState,
+  createCancellationError,
   createDiagnosticLog,
+  isAbortError,
   isRetryableHttpStatus,
   retryDelay,
   withRetry,
 } from '../../assets/js/modules/reliability-core.js';
+
+test('cancellation errors use the shared abort contract', () => {
+  const cancellation = createCancellationError('사용자가 취소했습니다.');
+  assert.equal(cancellation.name, 'AbortError');
+  assert.equal(cancellation.cancelled, true);
+  assert.equal(isAbortError(cancellation), true);
+  assert.equal(isAbortError(new globalThis.DOMException('cancelled', 'AbortError')), true);
+  assert.equal(isAbortError(Object.assign(new Error('stale'), { cancelled: true })), true);
+  assert.equal(isAbortError(new Error('geometry failed')), false);
+});
 
 test('retry classification only retries transient HTTP statuses', () => {
   for (const status of [408, 425, 429, 500, 502, 503, 504]) assert.equal(isRetryableHttpStatus(status), true);
@@ -59,6 +71,33 @@ test('diagnostic log is bounded', () => {
   log.push({ operation: 'b' });
   log.push({ operation: 'c' });
   assert.deepEqual(log.snapshot().map(row => row.operation), ['b', 'c']);
+});
+
+test('diagnostic log preserves GIS technical context', () => {
+  const log = createDiagnosticLog();
+  log.push({
+    category: 'geometry',
+    operation: 'gis-import',
+    objectIds: ['region-a', 'DEU'],
+    result: 'failed',
+    errorCode: 'PL-GIS-001',
+    technicalMessage: 'ring validation failed',
+    stack: 'Error: ring validation failed',
+    rollback: 'restored',
+  });
+  assert.deepEqual(log.snapshot()[0], {
+    timestamp: log.snapshot()[0].timestamp,
+    category: 'geometry',
+    operation: 'gis-import',
+    revision: 0,
+    objectIds: ['region-a', 'DEU'],
+    duration: 0,
+    result: 'failed',
+    errorCode: 'PL-GIS-001',
+    technicalMessage: 'ring validation failed',
+    stack: 'Error: ring validation failed',
+    rollback: 'restored',
+  });
 });
 
 test('retryDelay honors the maximum', () => {

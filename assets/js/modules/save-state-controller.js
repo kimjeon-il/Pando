@@ -29,6 +29,15 @@ export function createSaveStateController({ onChange = () => {}, now = () => new
   };
 
   const snapshot = () => Object.freeze({ ...state });
+  const checkpoint = () => Object.freeze({
+    state: { ...state },
+    sequence,
+    currentContentToken,
+    cleanContentToken,
+    savedContentToken,
+    currentPresentationToken,
+    cleanPresentationToken,
+  });
   const emit = reason => {
     onChange(snapshot(), reason);
     return snapshot();
@@ -123,8 +132,26 @@ export function createSaveStateController({ onChange = () => {}, now = () => new
     return emit(`autosave-${value}`);
   }
 
+  function restore(checkpointValue) {
+    if (!checkpointValue?.state) throw new Error('복구할 저장 상태가 없습니다.');
+    sequence = Math.max(sequence, Number(checkpointValue.sequence || 0));
+    currentContentToken = String(checkpointValue.currentContentToken || checkpointValue.state.currentContentToken || 'content:0');
+    cleanContentToken = String(checkpointValue.cleanContentToken || currentContentToken);
+    savedContentToken = checkpointValue.savedContentToken == null ? null : String(checkpointValue.savedContentToken);
+    currentPresentationToken = String(checkpointValue.currentPresentationToken || checkpointValue.state.currentPresentationToken || 'presentation:0');
+    cleanPresentationToken = String(checkpointValue.cleanPresentationToken || currentPresentationToken);
+    Object.assign(state, checkpointValue.state, {
+      currentContentToken,
+      currentPresentationToken,
+      savedContentToken,
+    });
+    return emit('restore');
+  }
+
   return Object.freeze({
     snapshot,
+    checkpoint,
+    restore,
     setContentToken,
     markContentChanged,
     markDocumentChanged: markContentChanged,

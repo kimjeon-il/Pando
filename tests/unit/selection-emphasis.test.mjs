@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import {
   SELECTION_STYLE,
+  buildSelectionBoundaryBufferData,
   buildSelectionBoundarySegments,
   buildSelectionRibbonVertices,
 } from '../../assets/js/modules/selection-emphasis.js';
@@ -47,6 +48,28 @@ test('selection emphasis renderer does not use GL_LINES or lineWidth', async () 
   const source = await readFile(new URL('../../assets/js/modules/selection-emphasis.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /gl\.LINES/);
   assert.doesNotMatch(source, /lineWidth/);
+});
+
+test('selection boundary buffer coverage tracks rendered and missing objects independently', () => {
+  const renderedGeometry = { type: 'LineString', coordinates: [[0, 0], [1, 0], [1, 1]] };
+  const ribbon = buildSelectionRibbonVertices(renderedGeometry);
+  const data = buildSelectionBoundaryBufferData([
+    { key: 'territorial:territory:rendered', geometry: renderedGeometry },
+    { key: 'territorial:admin:rendered', geometry: renderedGeometry },
+    { key: 'territorial:region:rendered', geometry: renderedGeometry },
+    { key: 'country:RUS', ribbonVertices: new Float32Array(ribbon), segmentCount: 2 },
+    { key: 'territorial:region:empty', geometry: { type: 'LineString', coordinates: [[0, 0]] } },
+    { key: 'country:missing', missing: true },
+  ]);
+  assert.deepEqual(data.renderedKeys, [
+    'territorial:territory:rendered',
+    'territorial:admin:rendered',
+    'territorial:region:rendered',
+    'country:RUS',
+  ]);
+  assert.deepEqual(data.missingKeys, ['territorial:region:empty', 'country:missing']);
+  assert.ok(data.segmentCount > 0);
+  assert.equal(data.values.length, data.segmentCount * 36);
 });
 
 test('country interaction boundaries are sourced from the canonical line index mesh', async () => {

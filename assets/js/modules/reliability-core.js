@@ -24,6 +24,13 @@ export function isAbortError(error) {
   return error?.name === 'AbortError' || error?.cancelled === true;
 }
 
+export function createCancellationError(message = '작업을 취소했습니다.') {
+  const error = new Error(String(message || '작업을 취소했습니다.'));
+  error.name = 'AbortError';
+  error.cancelled = true;
+  return error;
+}
+
 export function createOperationalError({
   code = 'PL-INTERNAL-001',
   category = RELIABILITY_ERROR_CATEGORIES.TRANSACTION,
@@ -195,6 +202,9 @@ export function createDiagnosticLog({ limit = 200, now = () => typeof performanc
       duration: Number(event.duration || 0),
       result: String(event.result || ''),
       errorCode: String(event.errorCode || ''),
+      technicalMessage: String(event.technicalMessage || ''),
+      stack: String(event.stack || ''),
+      rollback: String(event.rollback || ''),
     }));
     while (events.length > Math.max(1, Number(limit || 200))) events.shift();
     return events[events.length - 1];
