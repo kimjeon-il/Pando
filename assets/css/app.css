@@ -467,7 +467,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .map-base-svg.flat-projection .globe-shadow { display: none; }
 .map-graticule { fill: none; stroke: var(--map-graticule); stroke-opacity: var(--map-graticule-opacity); stroke-width: .55px; pointer-events: none; }
 .country-shape { stroke: var(--map-border); stroke-width: .72px; stroke-linejoin: round; cursor: pointer; transition: fill-opacity .12s ease; }
-.country-label { fill: var(--map-label); font-size: var(--ui-font-map); font-weight: var(--ui-weight-semibold); text-anchor: middle; paint-order: stroke; stroke: var(--map-label-halo); stroke-width: 2.3px; stroke-linejoin: round; pointer-events: auto; cursor: pointer; }
+.country-label { fill: var(--country-label-color, var(--map-label)); font-family: var(--country-label-font-family, var(--ui-font-family)); font-size: var(--ui-font-map); font-weight: var(--ui-weight-semibold); text-anchor: middle; paint-order: stroke; stroke: var(--map-label-halo); stroke-width: 2.3px; stroke-linejoin: round; pointer-events: auto; cursor: pointer; }
 .country-label.major { font-size: var(--ui-font-caption); }
 .territorial-unit-shape {
   fill-opacity: 0;
@@ -555,12 +555,25 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .drawing-boundary.drawing-merge-source { stroke-width: 3px; filter: none; }
 .drawing-shape.drawing-merge-target { fill-opacity: .48 !important; }
 .drawing-boundary.drawing-merge-target { stroke: var(--accent) !important; stroke-width: 3px; }
-.user-label-dot { fill: var(--user-label-dot); stroke: var(--user-label-dot-stroke); stroke-width: 1.5px; cursor: pointer; }
-.user-label-text { fill: var(--user-label-text); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-semibold); paint-order: stroke; stroke: var(--user-label-halo); stroke-width: 3px; stroke-linejoin: round; cursor: pointer; }
+.user-label-dot { fill: var(--place-label-point-color, var(--user-label-dot)); stroke: var(--user-label-dot-stroke); stroke-width: 1.5px; cursor: pointer; }
+.user-label-text { fill: var(--place-label-color, var(--user-label-text)); font-family: var(--place-label-font-family, var(--ui-font-family)); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-semibold); paint-order: stroke; stroke: var(--user-label-halo); stroke-width: 3px; stroke-linejoin: round; cursor: pointer; }
 .user-label.selected .user-label-dot { stroke: var(--map-selection-halo); stroke-width: 2.5px; }
 .user-label.selected.is-secondary-selection .user-label-dot { stroke-width: 1.8px; stroke-dasharray: 2 2; opacity: .72; }
-.preferences-card { width: min(520px, calc(100vw - var(--ui-dialog-edge) * 2)); }
-.preferences-fields { display: grid; gap: var(--ui-space-4); margin-top: var(--ui-space-4); }
+.preferences-card {
+  width: min(520px, calc(100vw - var(--ui-dialog-edge) * 2));
+  max-height: calc(100dvh - var(--ui-dialog-edge) * 2);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+.preferences-fields { min-height: 0; display: grid; align-content: start; gap: var(--ui-space-4); margin-top: var(--ui-space-4); overflow-y: auto; }
+.preferences-section { display: grid; gap: var(--ui-space-3); }
+.preferences-section + .preferences-section { padding-top: var(--ui-space-4); border-top: 1px solid var(--border); }
+.preferences-section > h3 { margin: 0; color: var(--text-strong); font-size: var(--ui-font-section); font-weight: var(--ui-weight-bold); line-height: var(--ui-line-tight); }
+.preferences-subgroup { display: grid; gap: var(--ui-space-3); min-width: 0; margin: 0; padding: var(--ui-space-3); border: 1px solid var(--border); border-radius: var(--ui-radius-control); }
+.preferences-subgroup > legend { padding: 0 var(--ui-space-1); color: var(--text-soft); font-size: var(--ui-font-label); font-weight: var(--ui-weight-medium); }
+.preferences-range-field > span { display: flex; justify-content: space-between; gap: var(--ui-space-2); }
+.preferences-range-field output { color: var(--text-strong); font-weight: var(--ui-weight-semibold); }
 .preferences-actions-spacer { flex: 1; }
 .vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
 .vertex-handle:hover { r: 6px; }

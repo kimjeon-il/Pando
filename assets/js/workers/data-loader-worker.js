@@ -1,7 +1,7 @@
-import { resolveStartupLoadPolicy } from '../modules/startup-readiness.js?v=0.30.0-r26';
+import { resolveStartupLoadPolicy } from '../modules/startup-readiness.js?v=0.30.0-r27';
 
 const BUILD_ID = '0.30.0';
-const ASSET_REVISION = '0.30.0-r26';
+const ASSET_REVISION = '0.30.0-r27';
 const CORE_CACHE_PREFIX = 'pandolab-core-';
 const CORE_CACHE_NAME = `${CORE_CACHE_PREFIX}${ASSET_REVISION}`;
 const params = new URL(self.location.href).searchParams;

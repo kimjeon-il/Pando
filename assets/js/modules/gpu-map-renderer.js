@@ -184,7 +184,7 @@ export function createGpuMapRenderer(deps) {
       },
       drawOrder: ['hover', 'secondary-casing', 'secondary-inner', 'primary-casing', 'primary-inner'],
     };
-    let countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set(), selectionMode: 'outline-soft-fill' };
+    let countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set() };
     let countryEmphasisRevision = 0;
     let countryPaletteRevision = 0;
     let physicalStyleStateRevision = 0;
@@ -3138,7 +3138,6 @@ export function createGpuMapRenderer(deps) {
           secondaryAlpha: interactionStyle.selection.secondary.fillAlpha,
           hoverAlpha: interactionStyle.hover.fillAlpha,
           boundaryEnabled: false,
-          selectionMode: countryEmphasis.selectionMode,
         },
         interactionStyle,
         theme: mapTheme(),
@@ -3629,18 +3628,16 @@ export function createGpuMapRenderer(deps) {
       return decoded;
     }
 
-    function setCountryEmphasis({ primaryId = '', hoverId = '', selectedIds = [], selectionMode = 'outline-soft-fill' } = {}) {
+    function setCountryEmphasis({ primaryId = '', hoverId = '', selectedIds = [] } = {}) {
       const nextSelected = new Set((selectedIds || []).map(String).filter(Boolean));
       const nextPrimary = String(primaryId || '');
       const nextHover = String(hoverId || '');
-      const nextSelectionMode = ['outline', 'outline-soft-fill', 'strong-fill'].includes(selectionMode) ? selectionMode : 'outline-soft-fill';
       const unchanged = countryEmphasis.primaryId === nextPrimary
         && countryEmphasis.hoverId === nextHover
-        && countryEmphasis.selectionMode === nextSelectionMode
         && countryEmphasis.selectedIds.size === nextSelected.size
         && [...nextSelected].every(id => countryEmphasis.selectedIds.has(id));
       if (unchanged) return false;
-      countryEmphasis = { primaryId: nextPrimary, hoverId: nextHover, selectedIds: nextSelected, selectionMode: nextSelectionMode };
+      countryEmphasis = { primaryId: nextPrimary, hoverId: nextHover, selectedIds: nextSelected };
       countryEmphasisRevision += 1;
       markPaletteDirty({ emphasis: true });
       if (rendererMode !== 'pending') invalidateGpuFrame('country-emphasis');
