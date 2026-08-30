@@ -49,7 +49,9 @@ test('GIS importer layout is available without the Phase 1 stylesheet', async ({
     }));
     await page.goto('/');
     await page.locator('#mobileFileBtn').click();
+    const chooser = page.waitForEvent('filechooser');
     await page.locator('#openGisBtn').click();
+    await (await chooser).setFiles('tests/fixtures/sample-countries.geojson');
 
     const card = page.locator('#gisImportModal .ui-dialog-card');
     const form = page.locator('#gisImportForm');
