@@ -2699,7 +2699,6 @@ export function createGpuMapRenderer(deps) {
       for (const feature of state.countriesData?.features || []) {
         colors[String(feature.properties?.editor_id || feature.properties?.iso_a3 || '')] = countryColor(feature);
       }
-      const darkTheme = getSystemTheme() === 'dark';
       const view = viewState || getRenderViewState();
       const workerView = {
         ...deepClone(state.view),

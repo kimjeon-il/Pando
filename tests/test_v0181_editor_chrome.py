@@ -50,7 +50,7 @@ class EditorChromeTests(unittest.TestCase):
         self.assertNotIn('right: calc(-1 * var(--ui-space-3));', CSS)
 
     def test_hydro_metadata_does_not_draw_nested_table_borders(self):
-        self.assertIn('class="ui-info-list editor-info-list"', INDEX)
+        self.assertIn('class="ui-info-list editor-info-list editor-meta-list"', INDEX)
         self.assertIn('.editor-info-list > div {', CSS)
         info_rules = CSS[CSS.rindex('.editor-info-list > div {'):]
         self.assertIn('border: 0;', info_rules[:420])

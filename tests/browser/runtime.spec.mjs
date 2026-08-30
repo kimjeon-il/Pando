@@ -6,7 +6,7 @@ const layouts = [
   { name: 'mobile', viewport: { width: 390, height: 844 } },
 ];
 
-async function openApp(page, { waitForCanonical = true } = {}) {
+async function openApp(page, { waitForCanonical = true, url = '/' } = {}) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -20,11 +20,49 @@ async function openApp(page, { waitForCanonical = true } = {}) {
       errors.push(`${response.status()} ${response.url()}`);
     }
   });
-  await page.goto('/');
+  await page.goto(url);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   if (waitForCanonical) await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   return errors;
+}
+
+async function editorTypographySnapshot(page) {
+  return page.evaluate(() => {
+    const style = selector => getComputedStyle(document.querySelector(selector));
+    const font = selector => {
+      const computed = style(selector);
+      return [computed.fontSize, computed.fontWeight];
+    };
+    const formIds = [
+      'countryProperties', 'territoryProperties', 'administrativeProperties', 'historicalRegionProperties',
+      'distributionProperties', 'drawingProperties', 'labelProperties', 'hydroProperties',
+    ];
+    return {
+      unifiedForms: formIds.every(id => document.getElementById(id)?.classList.contains('editor-object-form')),
+      flatSections: formIds.every(id => (
+        [...document.getElementById(id).children]
+          .filter(element => element.classList.contains('editor-section'))
+          .every(element => !element.classList.contains('ui-card'))
+      )),
+      objectTitle: font('#propertyTitle'),
+      objectType: font('#propertyTypeLabel'),
+      sectionTitle: font('#territoryGeometryActionsTitle'),
+      propertyLabel: font('label[for="countryNameInput"]'),
+      editableValue: font('#countryNameInput'),
+      readonlyLabel: font('.editor-property-list span'),
+      readonlyValue: font('#countryAreaValue'),
+      distributionType: font('#distributionTypeValue'),
+      metaLabel: font('.editor-meta-list span'),
+      metaValue: font('#countryCodeInput'),
+      helper: font('#territoryNameConflict'),
+      colorValue: font('#countryColorValue'),
+      propertyHeading: font('.editor-property-heading'),
+      disclosure: font('#countryProperties > .editor-disclosure > summary'),
+      periodHeading: font('.editor-period-group > legend'),
+      periodSubfield: font('label[for="historicalRegionValidFromInput"]'),
+    };
+  });
 }
 
 for (const layout of layouts) {
@@ -34,10 +72,46 @@ for (const layout of layouts) {
       await page.emulateMedia({ colorScheme });
       const errors = await openApp(page);
       await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name);
+      const typography = await editorTypographySnapshot(page);
+      expect(typography.unifiedForms).toBe(true);
+      expect(typography.flatSections).toBe(true);
+      expect(typography.objectTitle).toEqual(['18px', '700']);
+      expect(typography.objectType).toEqual(['15px', '400']);
+      expect(typography.sectionTitle).toEqual(['16px', '700']);
+      expect(typography.propertyLabel).toEqual(['14px', '500']);
+      expect(typography.editableValue).toEqual(['15px', '400']);
+      expect(typography.readonlyLabel).toEqual(['14px', '500']);
+      expect(typography.readonlyValue).toEqual(['15px', '600']);
+      expect(typography.distributionType).toEqual(['15px', '600']);
+      expect(typography.metaLabel).toEqual(['13px', '400']);
+      expect(typography.metaValue).toEqual(['13px', '600']);
+      expect(typography.helper).toEqual(['13px', '400']);
+      expect(typography.colorValue).toEqual(['15px', '400']);
+      expect(typography.propertyHeading).toEqual(['14px', '500']);
+      expect(typography.disclosure).toEqual(['14px', '500']);
+      expect(typography.periodHeading).toEqual(['14px', '500']);
+      expect(typography.periodSubfield).toEqual(['13px', '500']);
       expect(errors).toEqual([]);
     });
   }
 }
+
+test('narrow mobile widths keep the editor type scale instead of shrinking text', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const errors = await openApp(page, { waitForCanonical: false });
+  for (const width of [360, 320]) {
+    await page.setViewportSize({ width, height: 780 });
+    await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+    const typography = await editorTypographySnapshot(page);
+    expect(typography.objectTitle).toEqual(['18px', '700']);
+    expect(typography.objectType).toEqual(['15px', '400']);
+    expect(typography.propertyLabel).toEqual(['14px', '500']);
+    expect(typography.editableValue).toEqual(['15px', '400']);
+    expect(typography.readonlyValue).toEqual(['15px', '600']);
+    expect(typography.metaValue).toEqual(['13px', '600']);
+  }
+  expect(errors).toEqual([]);
+});
 
 test('a stale HTML shell recovers once through the current asset revision', async ({ page }) => {
   let shellRequests = 0;
@@ -83,7 +157,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r11')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r13')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -91,7 +165,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r11');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r13');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -379,30 +453,31 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
     const context = await browser.newContext({ viewport: layout.viewport });
     const page = await context.newPage();
     try {
-      const errors = await openApp(page, { waitForCanonical: false });
+      const errors = await openApp(page, { waitForCanonical: false, url: '/?renderer=canvas' });
       const createTrigger = layout.name === 'wide' ? '#createMenuBtn' : '#mobileCreateBtn';
       await page.locator(createTrigger).click();
       const geometry = await page.evaluate(() => {
       const item = document.querySelector('#addCountryBtn');
       const body = document.querySelector('#createMenu .map-sheet-body');
       const checkbox = document.querySelector('#countriesVisible');
+      const checkboxControl = checkbox.closest('.layer-visibility-control');
+      const checkboxIcon = checkboxControl.querySelector('.layer-visibility-eye');
       const itemStyle = getComputedStyle(item);
       const bodyStyle = getComputedStyle(body);
-      const checkStyle = getComputedStyle(checkbox);
-      const checkIconStyle = getComputedStyle(checkbox, '::before');
+      const checkStyle = getComputedStyle(checkboxControl);
       return {
         itemWidth: item.getBoundingClientRect().width,
         bodyInnerWidth: body.clientWidth - Number.parseFloat(bodyStyle.paddingLeft) - Number.parseFloat(bodyStyle.paddingRight),
         itemHeight: item.getBoundingClientRect().height,
         itemBoxSizing: itemStyle.boxSizing,
-        checkSize: [checkbox.getBoundingClientRect().width, checkbox.getBoundingClientRect().height],
+        checkSize: [checkboxControl.getBoundingClientRect().width, checkboxControl.getBoundingClientRect().height],
         checkBorder: checkStyle.borderTopWidth,
         checkShadow: checkStyle.boxShadow,
         checkBackground: checkStyle.backgroundColor,
-        checkIconWidth: checkIconStyle.width,
-        checkIconMask: checkIconStyle.maskImage || checkIconStyle.webkitMaskImage,
+        checkIconWidth: checkboxIcon.getBoundingClientRect().width,
+        checkIconHref: checkboxIcon.querySelector('use').getAttribute('href'),
         flatObjectSections: [...document.querySelectorAll('.editor-object-form > .editor-section')].every(section => !section.classList.contains('ui-card')),
-        legacyCardsUseBase: [...document.querySelectorAll('.editor-view:not(.editor-object-form):not(.multi-properties) .editor-section')].every(card => card.classList.contains('ui-card')),
+        unifiedObjectForms: [...document.querySelectorAll('.editor-view:not(.multi-properties)')].every(view => view.classList.contains('editor-object-form')),
       };
       });
       if (layout.name !== 'mobile') expect(Math.abs(geometry.itemWidth - geometry.bodyInnerWidth)).toBeLessThanOrEqual(1);
@@ -412,10 +487,10 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
       expect(geometry.checkBorder).toBe('0px');
       expect(geometry.checkShadow).toBe('none');
       expect(geometry.checkBackground).toBe('rgba(0, 0, 0, 0)');
-      expect(geometry.checkIconWidth).toBe('20px');
-      expect(geometry.checkIconMask).toContain('svg');
+      expect(geometry.checkIconWidth).toBe(20);
+      expect(geometry.checkIconHref).toBe('#icon-eye');
       expect(geometry.flatObjectSections).toBe(true);
-      expect(geometry.legacyCardsUseBase).toBe(true);
+      expect(geometry.unifiedObjectForms).toBe(true);
       expect(errors).toEqual([]);
     } finally {
       await context.close();
@@ -609,8 +684,8 @@ test('layer folders expose presentation controls while global view settings stay
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
   await expect(page.locator('[data-layer-style-toggle="countries"]')).toHaveCount(1);
   await expect(page.locator('[data-layer-style-toggle="labels"]')).toHaveCount(1);
-  await expect(page.locator('#layerSection label:has(#basemapLabelsVisible)')).toContainText('국가명 라벨');
-  await expect(page.locator('#layerSection label:has(#labelsVisible)')).toContainText('도시·지명');
+  await expect(page.locator('#layerSection .layer-presentation-row:has(#basemapLabelsVisible) .layer-presentation-name')).toHaveText('국가명 라벨');
+  await expect(page.locator('#layerSection .layer-presentation-row:has(#labelsVisible) .layer-presentation-name')).toHaveText('도시·지명');
   await page.locator('#mapViewTabBtn').click();
   await expect(page.locator('#mapNameSettingsTitle')).toHaveCount(0);
   const terrainVisible = page.locator('#terrainVisible');
@@ -655,10 +730,10 @@ test('layer folders expose presentation controls while global view settings stay
 
 test('built-in rivers and lakes are nested source folders with synchronized visibility', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
-  const errors = await openApp(page);
+  const errors = await openApp(page, { url: '/?renderer=canvas' });
   const expected = [
-    { key: 'hydro-folder:rivers_hydro', folder: '강', source: 'HydroRIVERS' },
-    { key: 'hydro-folder:lakes_natural_earth', folder: '호수', source: 'Natural Earth' },
+    { key: 'hydro-category:river', itemId: 'rivers_hydro', folder: '강', source: 'HydroRIVERS' },
+    { key: 'hydro-category:lake', itemId: 'lakes_natural_earth', folder: '호수', source: 'Natural Earth' },
   ];
 
   const drawingsToggle = page.locator('[data-layer-folder-toggle="drawings"]').first();
@@ -671,9 +746,9 @@ test('built-in rivers and lakes are nested source folders with synchronized visi
     let folderRow = page.locator(`[data-hydro-folder-key="${item.key}"]`);
     const toggle = folderRow.locator('[data-hydro-folder-toggle]').first();
     if (await toggle.getAttribute('aria-expanded') === 'true') await toggle.click();
-    await expect(page.locator(`#drawingsLayerChildren .layer-child[data-item-id="hydro-layer:${item.key.slice('hydro-folder:'.length)}"]`)).toHaveCount(0);
+    await expect(page.locator(`#drawingsLayerChildren .layer-child[data-item-id="${item.itemId}"]`)).toHaveCount(0);
     await folderRow.locator('.layer-hydro-folder-name').click();
-    const sourceRow = page.locator(`#drawingsLayerChildren .layer-child[data-item-id="hydro-layer:${item.key.slice('hydro-folder:'.length)}"]`);
+    const sourceRow = page.locator(`#drawingsLayerChildren .layer-child[data-item-id="${item.itemId}"]`);
     await expect(sourceRow.locator('.layer-child-name')).toHaveText(item.source);
     await expect(sourceRow).toHaveClass(/is-hydro-source/);
 
@@ -764,7 +839,7 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   await expect(page.locator('.ui-select-popover:not([hidden])')).toHaveCount(0);
   await targetControl.click();
   await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '권역', exact: true }).click();
-  await expect(targetSelect).toHaveValue('region');
+  await expect(targetSelect).toHaveValue('territory');
   await expect(page.locator('#gisCountryFieldRow')).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -963,7 +1038,7 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
   });
 
   await page.locator('#gisFileInput').setInputFiles({
-    name: 'region-smoke.geojson',
+    name: 'territory-smoke.geojson',
     mimeType: 'application/geo+json',
     buffer: Buffer.from(polygon),
   });
@@ -974,7 +1049,7 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
   const targetSelect = page.locator('#gisTargetType');
   await targetSelect.locator('..').locator('.ui-select-control').click();
   await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '권역', exact: true }).click();
-  await expect(targetSelect).toHaveValue('region');
+  await expect(targetSelect).toHaveValue('territory');
   await page.locator('#gisTargetCountry').evaluate(select => {
     const poland = [...select.options].find(option => option.textContent?.includes('폴란드'));
     if (!poland) throw new Error('폴란드 소속 국가 옵션을 찾지 못했습니다.');
@@ -1001,14 +1076,14 @@ test('GeoJSON polygon imports create dedicated country regions with explicit own
   const importedName = page.getByRole('button', { name: '시험 지역', exact: true });
   await expect(importedName).toHaveCount(1);
   await importedName.click();
-  await page.locator('#regionColorTrigger').click();
-  await page.locator('#regionColorPopover [data-color-value="#dc2626"]').click();
-  await expect(page.locator('#regionColorInput')).toHaveValue('#dc2626');
+  await page.locator('#territoryColorTrigger').click();
+  await page.locator('#territoryColorPopover [data-color-value="#dc2626"]').click();
+  await expect(page.locator('#territoryColorInput')).toHaveValue('#dc2626');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'territory' })
     .find(feature => feature.properties?.name === '시험 지역')?.properties?.style?.color)).toBe('#dc2626');
   await expect(page.locator('#regionsLayerChildren .layer-subfolder-row')).toHaveCount(1);
   await expect(page.locator('#regionsLayerChildren')).toContainText('미지정 권역');
-  const countrySubfolder = page.locator('#regionsLayerChildren [data-country-region-folder-toggle]');
+  const countrySubfolder = page.locator('#regionsLayerChildren [data-territorial-unit-folder-toggle]');
   await countrySubfolder.click();
   await expect(countrySubfolder).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#regionsLayerChildren .layer-child')).toHaveCount(0);

@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences-v1')||'null')||{};var t=p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r11" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r13" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -37,7 +37,8 @@
     <symbol id="icon-river" viewBox="0 0 24 24"><path d="M4 4c6 2 2 6 8 8s2 6 8 8"/></symbol>
     <symbol id="icon-lake" viewBox="0 0 24 24"><path d="M5 8c2-3 5-4 8-2 3-1 6 1 6 4 2 3-1 7-4 7-2 2-6 1-7-1-4 0-5-5-3-8Z"/></symbol>
     <symbol id="icon-country" viewBox="0 0 24 24"><path d="M5 21V4m0 1h11l-2 4 2 4H5"/></symbol>
-    <symbol id="icon-region" viewBox="0 0 24 24"><path d="m5 6 5-2 3 3 5-1 2 5-3 3 1 5-6 1-3-3-5 1-1-6 2-6Z"/></symbol>
+    <symbol id="icon-territory" viewBox="0 0 24 24"><path d="m5 6 5-2 3 3 5-1 2 5-3 3 1 5-6 1-3-3-5 1-1-6 2-6Z"/></symbol>
+    <symbol id="icon-region" viewBox="0 0 24 24"><path d="m5 5 6-2 4 3 4-1 2 5-3 4 1 5-6 2-4-3-5 1-1-6 2-8Z"/><path d="m7 13 4-2 3 2 4-1"/></symbol>
     <symbol id="icon-administrative" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></symbol>
     <symbol id="icon-library" viewBox="0 0 24 24"><path d="M4 4h5v16H4zM10 4h5v16h-5zM16.5 5.5l3.5-1 3.5 14-3.5 1-3.5-14Z"/></symbol>
     <symbol id="icon-language" viewBox="0 0 24 24"><path d="M4 5h11a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H9l-4 3v-3H4a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path d="M10 16h5l4 3v-3h1a3 3 0 0 0 3-3v-2"/></symbol>
@@ -281,10 +282,11 @@
                 <div class="map-sheet-body create-sheet-body">
                   <div class="create-menu-group"><span>영토</span></div>
                   <button id="addCountryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
-                  <button id="addRegionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>권역</strong><small>국가 안의 권역 만들기</small></span></button>
+                  <button id="addTerritoryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-territory"/></svg></span><span><strong>권역</strong><small>국가 안의 권역 만들기</small></span></button>
                   <button id="addAdministrativeBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-administrative"/></svg></span><span><strong>행정구역</strong><small>부모 영역 안에 행정 단위 만들기</small></span></button>
+                  <button id="addRegionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>지방</strong><small>역사·지리적 지방 만들기</small></span></button>
                   <div class="create-menu-group"><span>자료</span></div>
-                  <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong><small>현존·과거 국가와 지방 검색</small></span></button>
+                  <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong><small>현존·과거 국가와 지역 검색</small></span></button>
                   <button id="addDistributionBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem" aria-haspopup="dialog" aria-controls="distributionTypeModal"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>분포</strong><small>언어·민족·종교 분포 만들기</small></span></button>
                   <div class="create-menu-group"><span>지도 요소</span></div>
                   <button id="addLabelBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong><small>지도에 도시·지명 배치하기</small></span></button>
@@ -445,11 +447,11 @@
                   <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button>
                 </div>
               </div>
-              <div class="ui-info-list editor-info-list"><div><span>면적</span><strong id="countryAreaValue">—</strong></div></div>
+              <div class="ui-info-list editor-info-list editor-property-list"><div><span>면적</span><strong id="countryAreaValue">—</strong></div></div>
             </section>
 
             <section class="editor-section editor-info-section editor-flag-section">
-              <div class="editor-section-heading"><h3 class="editor-section-title">국기</h3><div class="editor-flag-actions">
+              <div class="editor-section-heading"><h3 class="editor-property-heading">국기</h3><div class="editor-flag-actions">
                 <button id="flagUploadBtn" type="button" class="ui-button icon-btn" data-tooltip="국기 변경" aria-label="국기 변경"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg></button>
                 <button id="flagRemoveBtn" type="button" class="ui-button icon-btn danger-ghost" data-tooltip="국기 삭제" aria-label="국기 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
               </div></div>
@@ -466,7 +468,7 @@
             <details class="ui-disclosure editor-disclosure">
               <summary><span>추가 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
-                <div class="ui-info-list editor-info-list">
+                <div class="ui-info-list editor-info-list editor-meta-list">
                   <div><span>국가 코드</span><output id="countryCodeInput">—</output></div>
                   <div><span>기본 국명</span><strong id="originalNameValue">—</strong></div>
                 </div>
@@ -484,34 +486,34 @@
             </section>
           </form>
 
-          <form id="regionProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
+          <form id="territoryProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <section class="editor-section editor-info-section editor-section-primary">
-              <div class="ui-field field-group editor-field"><label for="regionNameInput">권역명</label><input id="regionNameInput" type="text" placeholder="예: 마조프셰" /></div>
-              <p id="regionNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 권역이 있습니다. 구분할 수 있도록 이름을 확인하세요.</p>
-              <div class="ui-field field-group editor-field"><label for="regionCountryInput">소속 국가</label><select id="regionCountryInput"><option value="">소속 국가 미지정</option></select></div>
-              <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="region">
-                <label id="regionColorLabel">색상</label>
-                <button id="regionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="regionColorPopover" aria-labelledby="regionColorLabel regionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="regionColorValue" class="ui-color-value">국가색 상속</span></button>
-                <input id="regionColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
-                <div id="regionColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="권역 색상 팔레트"><button id="regionInheritColorBtn" class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>국가색 상속</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
+              <div class="ui-field field-group editor-field"><label for="territoryNameInput">권역명</label><input id="territoryNameInput" type="text" placeholder="예: 마조프셰" /></div>
+              <p id="territoryNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 권역이 있습니다. 구분할 수 있도록 이름을 확인하세요.</p>
+              <div class="ui-field field-group editor-field"><label for="territoryCountryInput">소속 국가</label><select id="territoryCountryInput"><option value="">소속 국가 미지정</option></select></div>
+              <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="territory">
+                <label id="territoryColorLabel">색상</label>
+                <button id="territoryColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="territoryColorPopover" aria-labelledby="territoryColorLabel territoryColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="territoryColorValue" class="ui-color-value">국가색 상속</span></button>
+                <input id="territoryColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
+                <div id="territoryColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="권역 색상 팔레트"><button id="territoryInheritColorBtn" class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>국가색 상속</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정…</button></div>
               </div>
-              <div class="ui-field field-group editor-field"><label for="regionNotesInput">메모</label><textarea id="regionNotesInput" rows="4"></textarea></div>
+              <div class="ui-field field-group editor-field"><label for="territoryNotesInput">메모</label><textarea id="territoryNotesInput" rows="4"></textarea></div>
             </section>
-            <section class="editor-section editor-action-section" aria-labelledby="regionGeometryActionsTitle">
-              <h3 id="regionGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
+            <section class="editor-section editor-action-section" aria-labelledby="territoryGeometryActionsTitle">
+              <h3 id="territoryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
-                <button id="reassignRegionShapeBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 수정</strong><small>부모 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="mergeRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 합치기</strong><small>같은 국가의 인접 영역 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="splitRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="reassignTerritoryShapeBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 수정</strong><small>부모 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="mergeTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 합치기</strong><small>같은 국가의 인접 영역 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="splitTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section" aria-labelledby="regionRelationActionsTitle">
-              <h3 id="regionRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
+            <section class="editor-section editor-action-section" aria-labelledby="territoryRelationActionsTitle">
+              <h3 id="territoryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
-                <button id="transferRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="changeRegionTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="promoteRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>국가로 전환</strong><small>선택 영역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="removeRegionDivisionBtn" type="button" class="ui-button editor-action-row"><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="transferTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="changeTerritoryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="promoteTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>국가로 전환</strong><small>선택 영역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="removeTerritoryDivisionBtn" type="button" class="ui-button editor-action-row"><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
           </form>
@@ -522,7 +524,7 @@
               <p id="administrativeNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 행정구역이 있습니다. 단계와 상위 영역을 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="administrativeCountryInput">소속 국가</label><select id="administrativeCountryInput"><option value="">소속 국가 미지정</option></select></div>
               <div class="ui-field field-group editor-field"><label for="administrativeParentInput">상위 영역</label><select id="administrativeParentInput"><option value="">국가 직속</option></select></div>
-              <div class="ui-info-list editor-info-list"><div><span>행정 단계</span><output id="administrativeLevelValue">1급</output></div></div>
+              <div class="ui-info-list editor-info-list editor-property-list"><div><span>행정 단계</span><output id="administrativeLevelValue">1급</output></div></div>
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="administrative">
                 <label id="administrativeColorLabel">색상</label>
                 <button id="administrativeColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="administrativeColorPopover" aria-labelledby="administrativeColorLabel administrativeColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="administrativeColorValue" class="ui-color-value">국가색 상속</span></button>
@@ -578,12 +580,11 @@
             </section>
           </form>
 
-          <form id="distributionProperties" class="editor-view hidden" onsubmit="return false;">
-            <section class="ui-card editor-section editor-section-primary">
-              <h3 class="editor-section-title">분포 항목 정보</h3>
+          <form id="distributionProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
+            <section class="editor-section editor-info-section editor-section-primary">
               <div class="ui-field field-group editor-field"><label for="distributionNameInput">이름</label><input id="distributionNameInput" type="text" /></div>
               <div class="editor-field-grid editor-field-grid-color">
-                <div class="ui-field field-group editor-field"><label for="distributionTypeValue">종류</label><output id="distributionTypeValue">—</output></div>
+                <div class="ui-field field-group editor-field"><label for="distributionTypeValue">종류</label><output id="distributionTypeValue" class="editor-readonly-value">—</output></div>
                 <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="distribution">
                   <label id="distributionColorLabel">색상</label>
                   <button id="distributionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="distributionColorPopover" aria-labelledby="distributionColorLabel distributionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="distributionColorValue" class="ui-color-value">색상</span></button>
@@ -595,7 +596,7 @@
               <label class="ui-choice-row editor-lock-row" for="distributionLockedInput" hidden><input id="distributionLockedInput" type="checkbox" /><span>분포 항목 잠금</span></label>
               <select id="distributionRenderModeInput" hidden><option value="dominant">지배적 분포</option><option value="intensity">선택 항목 비율 농도</option></select>
             </section>
-            <section class="ui-card editor-section editor-action-section">
+            <section class="editor-section editor-action-section">
               <h3 class="editor-section-title">분포</h3>
               <div id="distributionEntryList" class="distribution-entry-list"></div>
               <div class="distribution-entry-add">
@@ -610,9 +611,8 @@
             <button id="deleteDistributionBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>분포 항목 삭제</button>
           </form>
 
-          <form id="drawingProperties" class="editor-view hidden" onsubmit="return false;">
-            <section class="ui-card editor-section editor-section-primary">
-              <h3 class="editor-section-title">기본 정보</h3>
+          <form id="drawingProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
+            <section class="editor-section editor-info-section editor-section-primary">
               <div class="ui-field field-group editor-field"><label for="drawingNameInput">이름</label><input id="drawingNameInput" type="text" placeholder="예: 라인강" /></div>
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="drawing">
                   <label id="drawingColorLabel">색상</label>
@@ -630,7 +630,7 @@
               <p class="editor-help">경계를 수정하려면 지도 위 꼭짓점을 드래그하세요.</p>
             </section>
 
-            <section class="ui-card editor-section editor-action-section">
+            <section class="editor-section editor-action-section">
               <h3 class="editor-section-title">영역 편집</h3>
               <div class="editor-action-grid editor-action-grid-two">
                 <button id="editDrawingBoundaryBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg></span><strong>경계 수정</strong><small>지도 위 꼭짓점 편집</small></button>
@@ -639,7 +639,7 @@
               </div>
             </section>
 
-            <section id="drawingLandRelationSection" class="ui-card editor-section hidden">
+            <section id="drawingLandRelationSection" class="editor-section editor-info-section hidden">
               <h3 class="editor-section-title">육지 관계</h3>
               <div id="drawingOwnerField" class="ui-field field-group editor-field">
                 <label for="drawingOwnerInput">소유 국가</label>
@@ -660,7 +660,7 @@
               <p id="drawingRoleHelp" class="editor-help" hidden></p>
             </section>
 
-            <section id="drawingLandActionsSection" class="ui-card editor-section editor-action-section hidden">
+            <section id="drawingLandActionsSection" class="editor-section editor-action-section hidden">
               <h3 class="editor-section-title">국가 연동</h3>
               <div class="editor-action-grid editor-action-grid-two">
                 <button id="syncDrawingCoastBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg></span><strong>국가 육지에 맞춤</strong><small>소유 국가 밖 형상 정리</small></button>
@@ -670,7 +670,7 @@
               </div>
             </section>
 
-            <div class="ui-info-list editor-info-list" hidden>
+            <div class="ui-info-list editor-info-list editor-meta-list" hidden>
               <div><span>객체 ID</span><output id="drawingIdInput">—</output></div>
               <div><span>역할</span><output id="drawingRoleValue">—</output></div>
               <div><span>토폴로지 그룹</span><output id="drawingTopologyValue">—</output></div>
@@ -679,15 +679,14 @@
             <button id="deleteDrawingInlineBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>지형지물 삭제</button>
           </form>
 
-          <form id="labelProperties" class="editor-view hidden" onsubmit="return false;">
-            <section class="ui-card editor-section editor-section-primary">
-              <h3 class="editor-section-title">기본 정보</h3>
+          <form id="labelProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
+            <section class="editor-section editor-info-section editor-section-primary">
               <div class="ui-field field-group editor-field"><label for="labelNameInput">이름</label><input id="labelNameInput" type="text" /></div>
               <div class="ui-field field-group editor-field">
                 <label for="labelKindInput">종류</label>
                 <select id="labelKindInput"><option value="capital">수도</option><option value="city">도시</option><option value="town">마을</option><option value="region">지역명</option><option value="mountain">산</option><option value="water">수역</option><option value="custom">기타</option></select>
               </div>
-              <div class="ui-info-list editor-info-list"><div><span>위치</span><strong id="labelPositionValue">지도에서 자동 배치</strong></div></div>
+              <div class="ui-info-list editor-info-list editor-property-list"><div><span>위치</span><strong id="labelPositionValue">지도에서 자동 배치</strong></div></div>
             </section>
 
             <details class="ui-disclosure editor-disclosure">
@@ -700,10 +699,9 @@
             <button id="deleteLabelBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>지명 삭제</button>
           </form>
 
-          <section id="hydroProperties" class="editor-view hidden">
-            <section class="ui-card editor-section editor-section-primary">
-              <h3 id="hydroPropertiesTitle" class="editor-section-title">강 정보</h3>
-              <div id="hydroEditFields" class="hidden">
+          <section id="hydroProperties" class="editor-view editor-object-form hidden">
+            <section class="editor-section editor-info-section editor-section-primary">
+              <div id="hydroEditFields" class="editor-field-stack hidden">
                 <div class="ui-field field-group editor-field"><label for="hydroNameInput">이름</label><input id="hydroNameInput" type="text" placeholder="예: 라인강" autocomplete="off" /></div>
                 <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="hydro">
                   <label id="hydroColorLabel">색상</label>
@@ -714,19 +712,19 @@
                 <div class="ui-field field-group editor-field"><label for="hydroNotesInput">메모</label><textarea id="hydroNotesInput" rows="5"></textarea></div>
                 <p class="editor-help">경계를 수정하려면 지도 위 꼭짓점을 드래그하세요.</p>
               </div>
-              <div class="ui-info-list editor-info-list">
+              <div class="ui-info-list editor-info-list editor-property-list">
                 <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
               </div>
               <p id="hydroBuiltinHelp" class="editor-help"><span id="hydroSourceValue">Natural Earth 5.0.0 1:10m</span> 기반 내장 강입니다. 직접 수정하려면 복사본을 만드세요.</p>
             </section>
 
-            <section class="ui-card editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
+            <section class="editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
             <button id="deleteHydroEditBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>강 삭제</button>
 
             <details class="ui-disclosure editor-disclosure" hidden>
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
-                <div class="ui-info-list editor-info-list">
+                <div class="ui-info-list editor-info-list editor-meta-list">
                   <div><span id="hydroIdLabel">강 ID</span><strong id="hydroIdValue">—</strong></div>
                   <div id="hydroSystemRow"><span>대표 수계</span><strong id="hydroSystemValue">—</strong></div>
                   <div><span>구성</span><strong id="hydroTributaryValue">—</strong></div>
@@ -801,15 +799,15 @@
     <section class="ui-dialog-card confirm-modal-card shortcut-help-card"><h2 id="shortcutHelpTitle">키보드 단축키</h2><dl><div><dt>Ctrl/Cmd + 클릭</dt><dd>선택 추가·해제</dd></div><div><dt>Shift + 클릭</dt><dd>같은 목록 범위 선택</dd></div><div><dt>Alt + 클릭</dt><dd>겹친 객체 순환</dd></div><div><dt>Ctrl/Cmd + Z</dt><dd>실행취소</dd></div><div><dt>Esc</dt><dd>팝오버 또는 현재 작업 닫기</dd></div></dl><div class="ui-dialog-actions"><button id="shortcutHelpCloseBtn" class="ui-button btn" type="button">닫기</button></div></section>
   </div>
   <div id="distributionTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="distributionTypeTitle"><div class="ui-dialog-backdrop confirm-modal-dim"></div><section class="ui-dialog-card confirm-modal-card"><h2 id="distributionTypeTitle">분포 추가</h2><label class="ui-field field-group"><span>종류</span><select id="distributionTypeInput"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label><div class="ui-dialog-actions"><button id="distributionTypeCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="distributionTypeConfirmBtn" class="ui-button btn" type="button">다음</button></div></section></div>
-  <div id="countryRegionCreateModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="countryRegionCreateTitle">
+  <div id="territorialCreateModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="territorialCreateTitle">
     <div class="ui-dialog-backdrop confirm-modal-dim"></div>
     <section class="ui-dialog-card confirm-modal-card">
-      <h2 id="countryRegionCreateTitle">권역 추가</h2>
-      <p id="countryRegionCreateContext"></p>
-      <label class="ui-field field-group"><span>생성 방법</span><select id="countryRegionCreateMethod"><option value="split">기존 영역 나누기</option><option value="draw">영역 직접 지정</option><option value="geojson">GeoJSON에서 가져오기</option></select></label>
+      <h2 id="territorialCreateTitle">권역 추가</h2>
+      <p id="territorialCreateContext"></p>
+      <label class="ui-field field-group"><span>생성 방법</span><select id="territorialCreateMethod"></select></label>
       <div class="confirm-modal-actions ui-dialog-actions">
-        <button id="countryRegionCreateCancelBtn" type="button" class="ui-button btn ghost">취소</button>
-        <button id="countryRegionCreateConfirmBtn" type="button" class="ui-button btn">시작</button>
+        <button id="territorialCreateCancelBtn" type="button" class="ui-button btn ghost">취소</button>
+        <button id="territorialCreateConfirmBtn" type="button" class="ui-button btn">시작</button>
       </div>
     </section>
   </div>
@@ -837,13 +835,13 @@
     <div class="ui-dialog-backdrop"></div>
     <section class="ui-dialog-card historical-library-card">
       <header class="ui-dialog-header">
-        <div><span class="ui-dialog-kicker">원본과 프로젝트 인스턴스 분리</span><h2 id="historicalLibraryTitle">역사 지리 라이브러리</h2></div>
+        <div><span class="ui-dialog-kicker">원본과 프로젝트 인스턴스 분리</span><h2 id="historicalLibraryTitle">국가·지역 라이브러리</h2></div>
         <button id="historicalLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
       <div class="historical-library-toolbar">
         <div class="ui-field field-group historical-library-search"><label for="historicalLibrarySearchInput">검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="historicalLibrarySearchInput" type="search" placeholder="이름·별칭·다국어 이름" autocomplete="off" /><button id="historicalLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
         <label class="ui-field field-group"><span>기준 연도</span><input id="historicalLibraryYearInput" type="number" min="-5000" max="9999" step="1" placeholder="예: 1910" /></label>
-        <details class="ui-disclosure historical-library-filters"><summary><span>필터</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="territory">권역</option><option value="admin">행정구역</option><option value="region">지방</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>권역</span><select id="historicalLibraryRegionInput"><option value="">전체</option></select></label></div></details>
+        <details class="ui-disclosure historical-library-filters"><summary><span>필터</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="territory">권역</option><option value="admin">행정구역</option><option value="region">지방</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>지역</span><select id="historicalLibraryGeographicRegionInput"><option value="">전체</option></select></label></div></details>
       </div>
       <div class="historical-library-layout">
         <div id="historicalLibraryResults" class="historical-library-results" role="listbox" aria-label="라이브러리 검색 결과"></div>
@@ -879,7 +877,7 @@
 
         <div class="gis-form-grid">
           <label id="gisLayerRow" class="ui-field field-group gis-wide" data-gis-step="0" data-gis-active="true"><span>가져올 레이어</span><select id="gisLayerSelect"></select><small id="gisLayerDetails">레이어 정보를 불러오는 중입니다.</small></label>
-          <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="country">국가</option><option value="drawing">지형지물</option><option value="region">권역</option><option value="administrative">행정구역</option><option value="historicalRegion">지방</option><option value="distribution">분포</option></select></label>
+          <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="country">국가</option><option value="drawing">지형지물</option><option value="territory">권역</option><option value="administrative">행정구역</option><option value="region">지방</option><option value="distribution">분포</option></select></label>
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
           <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">교차 면적은 추천 정보일 뿐이며, 여기서 선택한 국가가 최종 소속입니다.</small></label>
           <label id="gisParentRegionRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentRegion"><option value="">국가 직속</option></select><small>선택한 국가의 기존 권역·행정구역만 표시합니다. 행정 단계는 상위 영역에서 자동 계산합니다.</small></label>
@@ -949,8 +947,8 @@
   
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r11" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r11" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r11" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r13" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r13" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r13" defer></script>
 </body>
 </html>

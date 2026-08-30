@@ -15,7 +15,7 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.30.0-r11", INDEX)
+            self.assertIn(f"{asset}?v=0.30.0-r13", INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
@@ -59,12 +59,12 @@ class V0180UiSystemTests(unittest.TestCase):
 
     def test_every_create_menu_entry_has_a_unique_semantic_icon(self):
         button_ids = (
-            "addCountryBtn", "addRegionBtn", "addAdministrativeBtn", "addFromLibraryBtn",
+            "addCountryBtn", "addTerritoryBtn", "addAdministrativeBtn", "addRegionBtn", "addFromLibraryBtn",
             "addDistributionBtn", "addLabelBtn",
             "addRiverBtn", "addLakeBtn",
         )
         expected_icons = (
-            "icon-country", "icon-region", "icon-administrative", "icon-library",
+            "icon-country", "icon-territory", "icon-administrative", "icon-region", "icon-library",
             "icon-language", "icon-place",
             "icon-river", "icon-lake",
         )

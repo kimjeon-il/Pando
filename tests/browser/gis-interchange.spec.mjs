@@ -149,7 +149,7 @@ test('mobile vector import advances by stage and preserves detected choices when
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisStepIndicator')).toHaveText('2/5 · 가져올 내용');
   await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
-  await selectUiOption(page, '#gisTargetType', 'region');
+  await selectUiOption(page, '#gisTargetType', 'territory');
   await expect(page.locator('#gisTargetCountryRow')).toBeVisible();
   await expect(page.locator('#gisTargetCountry')).toHaveValue('DEU');
   await page.locator('#gisImportNextBtn').click();
@@ -158,7 +158,7 @@ test('mobile vector import advances by stage and preserves detected choices when
   const detectedNameField = await page.locator('#gisNameField').inputValue();
 
   await page.locator('#gisImportBackBtn').click();
-  await expect(page.locator('#gisTargetType')).toHaveValue('region');
+  await expect(page.locator('#gisTargetType')).toHaveValue('territory');
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisNameField')).toHaveValue(detectedNameField);
   await page.locator('#gisImportNextBtn').click();

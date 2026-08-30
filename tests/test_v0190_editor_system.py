@@ -14,13 +14,14 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertIn('class="sidebar right-panel editor-panel editor-shell map-sheet-surface ui-sheet"', INDEX)
         self.assertIn('id="editorScrollBody" class="editor-scroll-body"', INDEX)
         self.assertIn('id="editorObjectHeader" class="editor-object-header hidden"', INDEX)
-        for view_id in ("countryProperties", "regionProperties", "administrativeProperties"):
+        for view_id in (
+            "countryProperties", "territoryProperties", "administrativeProperties", "historicalRegionProperties",
+            "distributionProperties", "drawingProperties", "labelProperties", "hydroProperties",
+        ):
             self.assertRegex(INDEX, rf'id="{view_id}" class="editor-view editor-object-form hidden"')
-        for view_id in ("drawingProperties", "labelProperties", "hydroProperties"):
-            self.assertRegex(INDEX, rf'id="{view_id}" class="editor-view hidden"')
         for component in (
             "editor-section", "editor-section-title", "editor-field", "editor-action-list",
-            "editor-info-list", "editor-disclosure",
+            "editor-info-list", "editor-property-list", "editor-meta-list", "editor-disclosure",
         ):
             self.assertIn(component, INDEX)
 
@@ -52,16 +53,17 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertIsNotNone(function)
         source = function.group(0)
         for element_id in (
-            "emptyProperties", "editorObjectHeader", "countryProperties", "regionProperties", "administrativeProperties", "drawingProperties",
+            "emptyProperties", "editorObjectHeader", "countryProperties", "territoryProperties", "administrativeProperties", "drawingProperties",
             "labelProperties", "hydroProperties", "propertyTitle", "editorScrollBody",
         ):
             self.assertIn(element_id, source)
 
-    def test_hydro_title_hides_numeric_id_and_redundant_mainstem(self):
+    def test_hydro_header_hides_numeric_id_and_redundant_mainstem(self):
         self.assertIn("function hydroEditorName", APP)
         self.assertIn("/^미명명 수계(?:\\s+\\d+)?$/", APP)
-        self.assertIn("$('hydroSystemRow').classList.toggle('hidden', systemName === displayName)", APP)
+        self.assertIn("$('hydroSystemRow').classList.toggle('hidden', !systemName || systemName === displayName)", APP)
         self.assertIn("'본류·표시 지류'", APP)
+        self.assertNotIn("hydroPropertiesTitle", INDEX + APP)
 
 
 if __name__ == "__main__":

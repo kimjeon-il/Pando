@@ -43,7 +43,7 @@ class StateScopeContractTests(unittest.TestCase):
         self.assertIn("presentationDirty: false", SAVE_STATE)
 
     def test_folder_expansion_is_session_only(self):
-        handler = APP[APP.index("toggleRegionFolder: folderKey => {"):APP.index("selectItem:", APP.index("toggleRegionFolder: folderKey => {"))]
+        handler = APP[APP.index("toggleTerritorialUnitFolder: folderKey => {"):APP.index("selectItem:", APP.index("toggleTerritorialUnitFolder: folderKey => {"))]
         self.assertIn("state.layerFolders", handler)
         self.assertNotIn("queueAutosave", handler)
         self.assertNotIn("queuePresentationAutosave", handler)
