@@ -157,7 +157,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r20')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r22')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -165,7 +165,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r20');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r22');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -246,6 +246,42 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   expect(result.canonicalWinding).toBe(true);
   expect(result.mergedSphericalArea).toBeLessThan(2 * Math.PI);
   expect(errors).toEqual([]);
+});
+
+test('river annex candidate Worker returns independent canonical land pockets', async ({ page }) => {
+  await page.goto('/');
+  const result = await page.evaluate(async () => {
+    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r22', { type: 'module' });
+    const polygon = (id, coordinates) => ({
+      type: 'Feature', id,
+      properties: { editor_id: id },
+      geometry: { type: 'Polygon', coordinates: [coordinates] },
+    });
+    const river = {
+      type: 'Feature', id: 'logical-river',
+      properties: { pandolab_id: 'logical-river', category: 'river' },
+      geometry: { type: 'LineString', coordinates: [[0, 1], [1, 2], [0, 3], [1, 4], [0, 5]] },
+    };
+    const target = polygon('target', [[-5, 0], [0, 0], [0, 10], [-5, 10], [-5, 0]]);
+    const donor = polygon('donor', [[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]);
+    return await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('river annex candidate Worker timeout')), 15_000);
+      worker.addEventListener('error', event => {
+        clearTimeout(timer);
+        reject(new Error(event.message || 'river annex candidate Worker error'));
+      });
+      worker.addEventListener('message', event => {
+        clearTimeout(timer);
+        worker.terminate();
+        if (event.data?.type === 'error') reject(new Error(event.data.message));
+        else resolve(event.data?.result || null);
+      }, { once: true });
+      worker.postMessage({ type: 'compute', requestId: 1, payload: { targetFeature: target, donorFeatures: [donor], riverFeatures: [river], topologyRevision: 'browser' } });
+    });
+  });
+  expect(result.candidates).toHaveLength(2);
+  expect(new Set(result.candidates.map(candidate => candidate.key)).size).toBe(2);
+  expect(result.candidates.every(candidate => candidate.donorCountryId === 'donor')).toBe(true);
 });
 
 test('wide keeps layers visible while the add popover opens', async ({ page }) => {
@@ -830,6 +866,80 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   await expect(targetSelect).toHaveValue('territory');
   await expect(page.locator('#gisCountryFieldRow')).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test('GIS import keeps every step on one content rail', async ({ page }) => {
+  test.setTimeout(240_000);
+  const importFile = JSON.stringify({
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      properties: { name: 'content rail' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[19, 50], [19, 51], [20, 51], [20, 50], [19, 50]]],
+      },
+    }],
+  });
+  const railMatches = async selectors => {
+    await page.locator(selectors[0]).scrollIntoViewIfNeeded();
+    const measurements = await page.evaluate(visibleSelectors => {
+      const rail = document.querySelector('.gis-import-content-rail');
+      const railRect = rail.getBoundingClientRect();
+      return {
+        left: Math.round(railRect.left),
+        right: Math.round(railRect.left + rail.clientWidth),
+        items: visibleSelectors.map(selector => {
+          const source = document.querySelector(selector);
+          const element = source?.matches('select, output') ? source.closest('.field-group') : source;
+          const rect = element?.getBoundingClientRect();
+          return [selector, Math.round(rect?.left ?? 0), Math.round(rect?.right ?? 0)];
+        }),
+      };
+    }, selectors);
+    for (const [selector, left, right] of measurements.items) {
+      expect(left, `${selector} left edge`).toBe(measurements.left);
+      expect(right, `${selector} right edge`).toBe(measurements.right);
+    }
+  };
+
+  for (const layout of [layouts[0], layouts[2]]) {
+    await page.setViewportSize(layout.viewport);
+    const errors = await openApp(page);
+    await page.locator('#gisFileInput').setInputFiles({
+      name: `content-rail-${layout.name}.geojson`,
+      mimeType: 'application/geo+json',
+      buffer: Buffer.from(importFile),
+    });
+    await expect(page.locator('#gisImportModal')).toBeVisible();
+    await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
+
+    await railMatches(['#gisSourceReport']);
+    await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
+    await railMatches(['#gisTargetTypeRow']);
+    await page.locator('#gisTargetType').evaluate(select => {
+      select.value = 'country';
+      select.dispatchEvent(new select.ownerDocument.defaultView.Event('change', { bubbles: true }));
+    });
+
+    await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisStepIndicator')).toContainText('3/5');
+    await railMatches(['#gisAdvancedMapping', '#gisCrsSummary']);
+    await page.locator('#gisAdvancedMapping summary').click();
+    await railMatches(['#gisAdvancedMapping']);
+
+    await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisStepIndicator')).toContainText('4/5');
+    await railMatches(['#gisImportImpact', '#gisOpenModeRow']);
+
+    await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisStepIndicator')).toContainText('5/5');
+    await railMatches(['#gisFinalSummary']);
+    await page.locator('#gisImportCancelBtn').click();
+    await expect(page.locator('#gisImportModal')).toBeHidden();
+    expect(errors).toEqual([]);
+  }
 });
 
 test('virtualized layer selection and search results preserve scroll and accessible selection state', async ({ page }) => {

@@ -715,6 +715,29 @@ async function loadLogicalFeature(message) {
   }
 }
 
+function boundsOverlap(left, right) {
+  return left[0] <= right[2] && left[2] >= right[0] && left[1] <= right[3] && left[3] >= right[1];
+}
+
+function queryLogicalFeatures(message) {
+  try {
+    const category = String(message.category || 'river');
+    const queryBounds = Array.isArray(message.bounds) && message.bounds.length === 4
+      ? message.bounds.map(Number)
+      : null;
+    if (!queryBounds?.every(Number.isFinite)) throw new Error('수계 후보 탐색 범위가 올바르지 않습니다.');
+    const logicalFids = new Set();
+    for (const metadata of featureMetadata.values()) {
+      if (metadata.category !== category || !Array.isArray(metadata.bounds) || metadata.bounds.length !== 4) continue;
+      const bounds = metadata.bounds.map(value => Number(value) / 1e6);
+      if (boundsOverlap(bounds, queryBounds)) logicalFids.add(Number(metadata.logicalFid));
+    }
+    postMessage({ type: 'logical-features', requestId: message.requestId, logicalFids: [...logicalFids].sort((left, right) => left - right) });
+  } catch (error) {
+    postMessage({ type: 'logical-features-error', requestId: message.requestId, message: error?.message || String(error) });
+  }
+}
+
 onmessage = async event => {
   const message = event.data || {};
   if (message.type === 'init') {
@@ -754,6 +777,7 @@ onmessage = async event => {
     canvasPort?.start?.();
   }
   else if (message.type === 'load-feature') loadLogicalFeature(message);
+  else if (message.type === 'query-logical-features') queryLogicalFeatures(message);
   else if (message.type === 'interaction') {
     interactionActive = message.active === true;
     if (interactionActive) abortBackgroundCache();
