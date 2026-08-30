@@ -430,6 +430,14 @@ test('river annex V2 finds Danube and Rhine pockets from source geometry in both
       candidateWorker.terminate();
     }
   });
+  console.log('river annex V2 actual diagnostics', JSON.stringify(result.map(item => ({
+    name: item.name,
+    directions: item.directions.map(direction => ({
+      candidateCount: direction.candidateCount,
+      computeMs: direction.diagnostics.computeMs,
+      matchedParallelRuns: direction.diagnostics.matchedParallelRuns,
+    })),
+  }))));
   for (const item of result) {
     expect(item.discoveredLogicalIds).toContain(item.expectedLogicalId);
     for (const direction of item.directions) {
