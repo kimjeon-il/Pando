@@ -40,7 +40,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
 
     def test_header_and_tabs_are_fixed_outside_the_scroll_body(self):
         header_index = INDEX.index('id="editorObjectHeader"')
-        tabs_index = INDEX.index('class="ui-tabs editor-view-tabs hidden"')
+        tabs_index = INDEX.index('class="ui-tabs ui-sheet-tabs editor-view-tabs hidden"')
         body_index = INDEX.index('id="editorScrollBody"')
         self.assertLess(header_index, tabs_index)
         self.assertLess(tabs_index, body_index)

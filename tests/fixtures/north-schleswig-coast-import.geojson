@@ -1,0 +1,26 @@
+{
+  "type": "FeatureCollection",
+  "name": "North-Schleswig-coast-reconciliation-regression",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "NORTH_SCHLESWIG_COAST_TEST",
+      "properties": {
+        "name": "북슐레스비히 해안 시험 영역",
+        "sovereign_id": "DEU"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [7.65204075199399, 53.688994499777706],
+            [7.95208975199399, 53.71393749977771],
+            [7.954740759969949, 53.68204749888854],
+            [7.65469175996995, 53.657104498888536],
+            [7.65204075199399, 53.688994499777706]
+          ]
+        ]
+      }
+    }
+  ]
+}

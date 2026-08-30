@@ -107,12 +107,19 @@ const selectionEmphasisModule = await import(versionedModuleUrl('./modules/selec
 const mapInteractionStyleModule = await import(versionedModuleUrl('./modules/map-interaction-style.js'));
 const userPreferencesModule = await import(versionedModuleUrl('./modules/user-preferences.js'));
 const notificationCopyModule = await import(versionedModuleUrl('./modules/notification-copy.js'));
-const { createDiagnosticLog, fetchWithRetry } = reliabilityCoreModule;
+const {
+  RELIABILITY_ERROR_CATEGORIES,
+  createDiagnosticLog,
+  createOperationalError,
+  fetchWithRetry,
+  isAbortError,
+} = reliabilityCoreModule;
 const { assertProjectReferenceIntegrity } = projectInvariantsModule;
 const { buildTerritorialImportTransactionPlan, resolveImportedCountryId } = territorialImportPlanModule;
 const {
   analyzeAdminCountryCoast,
   planCoastReconciliation,
+  requireImportCoastDecision,
   validateCoastReplacement,
 } = coastReconciliationModule;
 const { createCoastReconciliationController } = coastReconciliationControllerModule;
@@ -1636,6 +1643,7 @@ const {
       && primary.domain === 'territorial'
       && primary.type === TERRITORIAL_UNIT_TYPES.ADMIN
       && !!territorialUnitById(primary.id)?.properties?.sovereignId;
+    const separatorVisible = canDelete && (canLock || canReconcileCoast);
 
     const lockMenuButton = $('objectLockMenuBtn');
     if (lockMenuButton) {
@@ -1661,6 +1669,8 @@ const {
       coastMenuButton.dataset.tooltip = coastMenuButton.disabled ? '잠금 해제 후 해안선 정합' : '해안선 정합';
       coastMenuButton.setAttribute('aria-label', coastMenuButton.dataset.tooltip);
     }
+
+    $('objectActionsMenu')?.querySelector('.object-actions-separator')?.toggleAttribute('hidden', !separatorVisible);
 
     const lockButton = $('objectLockBtn');
     if (lockButton) {
@@ -2506,7 +2516,51 @@ const {
     setActionStatus(message, 'error', timeout);
   }
 
+  function createGisImportError(userMessage, {
+    category = RELIABILITY_ERROR_CATEGORIES.TRANSACTION,
+    objectIds = [],
+    technicalMessage = '',
+    cause = null,
+    code = 'PL-GIS-001',
+  } = {}) {
+    return createOperationalError({
+      code,
+      category,
+      userMessage,
+      technicalMessage: technicalMessage || cause?.message || userMessage,
+      objectIds,
+      operationType: 'gis-import',
+      cause,
+    });
+  }
+
+  function reportGisImportError(error, { rollback = '' } = {}) {
+    const code = String(error?.code || 'PL-GIS-001');
+    const objectIds = [...new Set((error?.objectIds || []).map(String).filter(Boolean))];
+    const technicalMessage = String(error?.message || error || 'GIS import failed');
+    console.error(`[${code}]`, {
+      operation: error?.operationType || 'gis-import',
+      objectIds,
+      rollback,
+    }, error);
+    reliabilityDiagnostic.push({
+      category: error?.category || 'gis',
+      operation: error?.operationType || 'gis-import',
+      objectIds,
+      result: 'failed',
+      errorCode: code,
+      technicalMessage,
+      stack: error?.stack || '',
+      rollback,
+    });
+    const hasSpecificUserMessage = !!String(error?.userMessage || '').trim() || isSafeKoreanErrorMessage(error);
+    const userMessage = String(error?.userMessage || '').trim()
+      || (isSafeKoreanErrorMessage(error) ? technicalMessage.trim() : '파일을 불러오지 못했습니다. 파일 형식과 구성을 확인하세요.');
+    setActionStatus(hasSpecificUserMessage ? userMessage : `${userMessage} · ${code}`, 'error', 5600);
+  }
+
   function showFatalError(error) {
+    if (isAbortError(error)) return;
     console.error('[PL-RUNTIME-001]', error);
     const message = isSafeKoreanErrorMessage(error)
       ? String(error.message).trim()
@@ -2523,6 +2577,7 @@ const {
   }
 
   function handleUnexpectedRuntimeError(error) {
+    if (isAbortError(error)) return;
     if (!runtimeReady) {
       showFatalError(error);
       return;
@@ -2531,8 +2586,21 @@ const {
     setActionStatus('작업 실패 · PL-RUNTIME-001', 'error', 0);
   }
 
-  window.addEventListener('error', event => handleUnexpectedRuntimeError(event.error || event.message));
-  window.addEventListener('unhandledrejection', event => handleUnexpectedRuntimeError(event.reason));
+  window.addEventListener('error', event => {
+    const error = event.error || event.message;
+    if (isAbortError(error)) {
+      event.preventDefault();
+      return;
+    }
+    handleUnexpectedRuntimeError(error);
+  });
+  window.addEventListener('unhandledrejection', event => {
+    if (isAbortError(event.reason)) {
+      event.preventDefault();
+      return;
+    }
+    handleUnexpectedRuntimeError(event.reason);
+  });
 
   function slugify(value) {
     return String(value || 'country')
@@ -7055,15 +7123,15 @@ const {
     if (hoverActive) {
       const isCountry = state.hovered.type === 'country';
       const feature = isCountry ? countryDisplayFeature(state.hovered.feature) : state.hovered.feature;
-      const boundaryFeature = isCountry
-        ? countryOutlineFeature(feature)
-        : ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
+      const boundaryFeature = !isCountry && ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
           ? buildRenderableStrokeFeature(feature)
           : feature;
       const key = isCountry
         ? `country:${String(state.hovered.id || '')}`
         : `hover:${state.hovered.type}:${state.hovered.id}`;
-      fallbackRequests.hover.push({ key, feature: boundaryFeature });
+      fallbackRequests.hover.push(isCountry
+        ? { key, resolveFeature: () => countryOutlineFeature(feature) }
+        : { key, feature: boundaryFeature });
       if (isCountry) {
         if (!state.pendingCountryRenderIds?.has(String(state.hovered.id || ''))) countryHoverId = String(state.hovered.id || '');
       } else {
@@ -7093,7 +7161,7 @@ const {
         }
         if (selectionOutlinesVisible) {
           const channel = primary ? 'primary' : 'secondary';
-          fallbackRequests[channel].push({ key: `country:${ref.id}`, feature: countryOutlineFeature(feature) });
+          fallbackRequests[channel].push({ key: `country:${ref.id}`, resolveFeature: () => countryOutlineFeature(feature) });
           if (!pendingCountry) {
             if (primary) countryPrimaryId = ref.id;
             else countrySecondaryIds.push(ref.id);
@@ -7150,9 +7218,10 @@ const {
     };
     for (const request of fallbackRequests.hover) {
       if (renderedKeys.hover.has(request.key)) continue;
-      const d = path(request.feature);
+      const fallbackFeature = request.feature || request.resolveFeature?.();
+      const d = path(fallbackFeature);
       if (!d) continue;
-      hoverLayer?.append('path').datum(request.feature)
+      hoverLayer?.append('path').datum(fallbackFeature)
         .attr('class', 'map-hover-shape map-hover-outline')
         .attr('fill', 'none')
         .attr('stroke', resolvedInteractionStyle.hover.color)
@@ -7160,7 +7229,7 @@ const {
         .attr('stroke-opacity', resolvedInteractionStyle.hover.alpha)
         .attr('d', d);
       svgFallbackKeys.push(request.key);
-      boundarySegmentCount += countFallbackSegments(request.feature);
+      boundarySegmentCount += countFallbackSegments(fallbackFeature);
     }
     if (selectionOutlinesVisible) {
       for (const channel of ['secondary', 'primary']) {
@@ -7169,18 +7238,19 @@ const {
         const priorityClass = primary ? ' is-primary' : ' is-secondary';
         for (const request of fallbackRequests[channel]) {
           if (renderedKeys[channel].has(request.key)) continue;
-          const d = path(request.feature);
+          const fallbackFeature = request.feature || request.resolveFeature?.();
+          const d = path(fallbackFeature);
           if (!d) continue;
-          selectionLayer.append('path').datum(request.feature).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
+          selectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
             .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.casingColor)
             .attr('stroke-width', style.outerWidth).attr('stroke-opacity', style.casingAlpha).attr('d', d);
-          selectionLayer.append('path').datum(request.feature).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
+          selectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
             .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.color)
             .attr('stroke-width', style.innerWidth).attr('stroke-opacity', style.innerAlpha).attr('d', d);
           pathCount += 2;
           pathCharacterCount += d.length * 2;
           svgFallbackKeys.push(request.key);
-          boundarySegmentCount += countFallbackSegments(request.feature);
+          boundarySegmentCount += countFallbackSegments(fallbackFeature);
         }
       }
     }
@@ -11424,7 +11494,7 @@ const {
         const rawSourceAfter = deepClone(sourceAfter);
         rawSourceAfter.geometry = deepClone(drawn);
         const country = countryFeatureById(source.properties?.sovereignId);
-        const resolution = await resolveAdministrativeImportCoast(rawSourceAfter, country, coastGeometryOverrides);
+        const resolution = await resolveImportedTerritorialCoast(rawSourceAfter, country, coastGeometryOverrides);
         coastDirection = resolution.direction;
         if (coastDirection === 'country-to-admin') {
           nextGeometry = normalizeClippedLandGeometry(clipper.intersection(rawSourceAfter.geometry.coordinates, container.geometry.coordinates));
@@ -13646,19 +13716,89 @@ const {
     onStage: message => setActionStatus(message, 'working', 0),
   });
 
+  function captureGisImportSnapshot() {
+    return {
+      projectFields: pickProjectFields(state, { scope: 'project', clone: deepClone }),
+      sessionFields: pickProjectFields(state, { scope: 'session', clone: deepClone }),
+      countries: {
+        countryDelta: buildCountryDelta(),
+        historyDirtyCountryIds: [...state.historyDirtyCountryIds],
+      },
+      history: deepClone(state.history),
+      historyMeta: deepClone(state.historyMeta),
+      future: deepClone(state.future),
+      futureMeta: deepClone(state.futureMeta),
+      selection: deepClone(objectSelection.snapshot()),
+      saveState: saveState.checkpoint(),
+    };
+  }
+
+  function restoreGisImportSnapshot(snapshot) {
+    if (!snapshot) throw new Error('GIS 가져오기 복구 snapshot이 없습니다.');
+    const changedCountryIds = new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(Boolean));
+    applySharedProjectFields(snapshot.projectFields, 'project');
+    applySharedProjectFields(snapshot.sessionFields, 'session');
+    restoreCountriesFromSnapshot(snapshot.countries);
+    for (const feature of state.countriesData?.features || []) changedCountryIds.add(String(feature.properties?.editor_id || ''));
+    state.history = deepClone(snapshot.history || []);
+    state.historyMeta = deepClone(snapshot.historyMeta || []);
+    state.future = deepClone(snapshot.future || []);
+    state.futureMeta = deepClone(snapshot.futureMeta || []);
+    normalizeProjectObjects();
+    gpuMapRenderer.invalidateHydroVisibility();
+    syncPhysicalControls();
+    pruneLayerItemVisibility();
+    scheduleCountryLabelAnchors(null, 10);
+    markLayerTreeDirty();
+    markCountryGeometriesChanged(changedCountryIds);
+    mapEditClient.rebase(state.countriesData?.features || []);
+    rebuildBoundaryTopology();
+    saveState.restore(snapshot.saveState);
+    updateHistoryButtons();
+    restoreObjectSelectionSnapshot(snapshot.selection);
+    renderAll();
+  }
+
   async function openGisFiles(files) {
     if (!files?.length) return;
     const requestedTarget = requestedVectorTarget;
     requestedVectorTarget = '';
+    const importSnapshot = captureGisImportSnapshot();
     setActionStatus('파일 확인 중…', 'working', 0);
     try {
       await importService.openFiles(files, { targetType: requestedTarget });
     } catch (error) {
-      if (error?.name === 'AbortError') {
+      let rollback = 'restored';
+      try {
+        restoreGisImportSnapshot(importSnapshot);
+      } catch (restoreError) {
+        rollback = 'failed';
+        console.error('[PL-GIS-ROLLBACK-001]', restoreError);
+        reliabilityDiagnostic.push({
+          category: 'transaction',
+          operation: 'gis-import-rollback',
+          result: 'failed',
+          errorCode: 'PL-GIS-ROLLBACK-001',
+          technicalMessage: restoreError?.message || String(restoreError),
+          stack: restoreError?.stack || '',
+          rollback,
+        });
+      }
+      if (isAbortError(error)) {
+        reliabilityDiagnostic.push({
+          category: 'gis',
+          operation: 'gis-import',
+          result: 'cancelled',
+          rollback,
+        });
+        if (rollback === 'failed') {
+          setActionStatus('파일 불러오기를 취소했지만 이전 상태를 복구하지 못했습니다. · PL-GIS-ROLLBACK-001', 'error', 0);
+          return;
+        }
         setActionStatus('파일 불러오기를 취소했습니다.', 'ready');
         return;
       }
-      reportOperationError(error, '파일을 불러오지 못했습니다. 파일 형식과 구성을 확인하세요.', 'PL-GIS-001', 5600);
+      reportGisImportError(error, { rollback });
     }
   }
 
@@ -13876,7 +14016,10 @@ const {
     for (let index = 0; index < features.length; index += 1) {
       const feature = importedTerritorialUnitFeature(features[index], index, kind, mapping, sourceFolderId, [...knownUnits, ...imported]);
       if (!feature) continue;
-      if (!feature.properties?.sovereignId) throw new Error(`${territorialUnitName(feature)}의 소속 국가를 정하지 못했습니다.`);
+      if (!feature.properties?.sovereignId) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가를 정하지 못했습니다.`, {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [feature.id],
+      });
       if (ids.has(String(feature.id))) throw new Error(`영역 ID 충돌: ${feature.id}`);
       ids.add(String(feature.id));
       imported.push(feature);
@@ -13897,7 +14040,18 @@ const {
         ? nextUnits.find(candidate => String(candidate.id) === String(feature.properties.parentId))
         : null;
       const container = parent || country;
-      if (!container?.geometry) throw new Error(`${territorialUnitName(feature)}의 소속 국가 또는 상위 영역을 찾을 수 없습니다.`);
+      if (!country?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가를 찾을 수 없습니다.`, {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [feature.id, countryId],
+      });
+      if (feature.properties.parentId && !parent?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 지정된 부모 영역을 찾을 수 없습니다.`, {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [feature.id, feature.properties.parentId],
+      });
+      if (!container?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가 또는 상위 영역을 찾을 수 없습니다.`, {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [feature.id, countryId, feature.properties.parentId],
+      });
       const outside = preserved.has(String(feature.id))
         ? null
         : normalizeClippedLandGeometry(clipper.difference(feature.geometry.coordinates, container.geometry.coordinates));
@@ -13975,7 +14129,7 @@ const {
       if (kind === TERRITORIAL_UNIT_TYPES.ADMIN) {
         for (const feature of imported) {
           const country = countryFeatureById(feature.properties?.sovereignId);
-          const resolution = await resolveAdministrativeImportCoast(feature, country, countryGeometryOverrides);
+          const resolution = await resolveImportedTerritorialCoast(feature, country, countryGeometryOverrides);
           if (resolution.direction === 'admin-to-country' || resolution.direction === 'independent') preservedIds.add(String(feature.id));
         }
         for (const [countryId, geometry] of countryGeometryOverrides) {
@@ -14009,8 +14163,16 @@ const {
     }
   }
 
-  async function resolveAdministrativeImportCoast(feature, country, countryGeometryOverrides) {
-    if (feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.ADMIN || !country?.geometry) return { direction: 'none' };
+  async function resolveImportedTerritorialCoast(feature, country, countryGeometryOverrides) {
+    const unitType = feature?.properties?.unitType;
+    if (![TERRITORIAL_UNIT_TYPES.ADMIN, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
+    if (!country?.geometry) {
+      if (!feature?.properties?.sovereignId && unitType === TERRITORIAL_UNIT_TYPES.REGION) return { direction: 'none' };
+      throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [feature?.id, feature?.properties?.sovereignId],
+      });
+    }
     const topology = buildSharedBoundaryTopology(state.countriesData?.features || []);
     const analysis = analyzeAdminCountryCoast({
       adminFeature: feature,
@@ -14023,21 +14185,25 @@ const {
       countryName: countryName(country),
       conflicts: analysis.conflicts,
     });
-    if (choice.direction === 'cancel') throw new Error('해안선 정합을 취소했습니다.');
-    if (choice.direction === 'independent') return { direction: choice.direction };
+    const direction = requireImportCoastDecision(choice);
+    if (direction === 'independent') return { direction };
     let nextAdmin = deepClone(feature.geometry);
     let nextCountry = deepClone(countryGeometryOverrides.get(String(country.properties?.editor_id || '')) || country.geometry);
     for (const conflict of analysis.conflicts) {
-      const planned = planCoastReconciliation({ conflict: { ...conflict, countryGeometry: nextCountry, adminGeometry: nextAdmin }, direction: choice.direction });
+      const planned = planCoastReconciliation({ conflict: { ...conflict, countryGeometry: nextCountry, adminGeometry: nextAdmin }, direction });
       nextAdmin = planned.adminGeometry;
       nextCountry = planned.countryGeometry;
     }
     const adminValidation = validateCoastReplacement(nextAdmin);
     const countryValidation = validateCoastReplacement(nextCountry);
-    if (!adminValidation.ok || !countryValidation.ok) throw new Error('해안선 정합 결과가 유효한 닫힌 영역이 아닙니다.');
-    if (choice.direction === 'country-to-admin') feature.geometry = nextAdmin;
+    if (!adminValidation.ok || !countryValidation.ok) throw createGisImportError('해안선 정합 결과가 유효한 닫힌 영역이 아닙니다.', {
+      category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
+      objectIds: [feature.id, country.properties?.editor_id],
+      technicalMessage: [...(adminValidation.issues || []), ...(countryValidation.issues || [])].join(' / '),
+    });
+    if (direction === 'country-to-admin') feature.geometry = nextAdmin;
     else countryGeometryOverrides.set(String(country.properties?.editor_id || ''), nextCountry);
-    return { direction: choice.direction };
+    return { direction };
   }
 
   async function importGeoJsonTerritorialUnits(features, kind, mapping) {
@@ -14052,7 +14218,7 @@ const {
       const feature = importedTerritorialUnitFeature(features[index], index, kind, mapping, sourceFolderId, nextUnits);
       if (!feature) continue;
       const country = countryFeatureById(feature.properties.sovereignId);
-      const coastResolution = await resolveAdministrativeImportCoast(feature, country, countryGeometryOverrides);
+      const coastResolution = await resolveImportedTerritorialCoast(feature, country, countryGeometryOverrides);
       if (coastResolution.direction === 'admin-to-country' || coastResolution.direction === 'independent') preservedIds.add(String(feature.id));
       const parent = feature.properties.parentId
         ? nextUnits.find(candidate => String(candidate.id) === String(feature.properties.parentId))
@@ -14123,10 +14289,11 @@ const {
     return importedIds;
   }
 
-  function importGeoJsonRegions(features, mapping) {
+  async function importGeoJsonRegions(features, mapping) {
     const imported = [];
     const defaultContext = explicitRegionCreateContext();
     const existingIds = new Set(state.territorialUnits.map(feature => String(feature.id)));
+    const countryGeometryOverrides = new Map();
     for (let index = 0; index < features.length; index += 1) {
       const raw = features[index];
       if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
@@ -14135,12 +14302,27 @@ const {
       const id = uid();
       if (existingIds.has(id)) throw new Error(`영역 ID 충돌: ${id}`);
       existingIds.add(id);
-      imported.push(createTerritorialFeature({
+      const rawCountry = String(mapping.countryField ? properties[mapping.countryField] ?? '' : properties.sovereign_id || properties.sovereignId || properties.country_id || '').trim();
+      const resolvedCountryId = resolveImportedCountryId(rawCountry, state.countriesData?.features || []);
+      if (rawCountry && !resolvedCountryId) throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [id, rawCountry],
+        technicalMessage: `Unresolved imported region country: ${rawCountry}`,
+      });
+      const parentValue = String(mapping.parentField ? properties[mapping.parentField] ?? '' : properties.parent_id || properties.parentId || '').trim();
+      const parent = parentValue ? territorialUnitFromImportedValue(parentValue, resolvedCountryId || defaultContext.sovereignId) : null;
+      if (parentValue && !parent) throw createGisImportError('지정된 부모 영역을 찾을 수 없습니다.', {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [id, parentValue],
+        technicalMessage: `Unresolved imported region parent: ${parentValue}`,
+      });
+      const sovereignId = String(resolvedCountryId || parent?.properties?.sovereignId || defaultContext.sovereignId || '');
+      const feature = createTerritorialFeature({
         id,
         unitType: TERRITORIAL_UNIT_TYPES.REGION,
         name: String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || `가져온 지방 ${index + 1}`,
-        parentId: String(properties.parent_id || properties.parentId || defaultContext.parentId || ''),
-        sovereignId: String(properties.sovereign_id || properties.sovereignId || properties.country_id || defaultContext.sovereignId || ''),
+        parentId: String(parent?.id || (!rawCountry ? defaultContext.parentId : '') || ''),
+        sovereignId,
         coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
         isRemainder: false,
         validFrom: properties.valid_from || properties.validFrom || null,
@@ -14148,12 +14330,39 @@ const {
         color: properties.color || properties.editorColor || '',
         metadata: { sourceId },
         geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
-      }));
+      });
+      const country = sovereignId ? countryFeatureById(sovereignId) : null;
+      if (sovereignId && !country?.geometry) throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [id, sovereignId],
+      });
+      if (country?.geometry) {
+        const countryGeometry = countryGeometryOverrides.get(sovereignId) || country.geometry;
+        const overlap = window.polygonClipping.intersection(feature.geometry.coordinates, countryGeometry.coordinates);
+        if (multiPolygonPlanarArea(overlap) <= 1e-12) throw createGisImportError('가져온 영역이 지정된 국가와 겹치지 않습니다.', {
+          category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
+          objectIds: [id, sovereignId],
+        });
+        await resolveImportedTerritorialCoast(feature, country, countryGeometryOverrides);
+      }
+      imported.push(feature);
     }
     if (!imported.length) throw new Error('가져올 Polygon 또는 MultiPolygon 지방이 없습니다.');
     recordHistory();
+    const changedCountryIds = new Set();
+    for (const [countryId, geometry] of countryGeometryOverrides) {
+      const country = countryFeatureById(countryId);
+      if (!country) continue;
+      country.geometry = geometry;
+      state.historyDirtyCountryIds.add(countryId);
+      changedCountryIds.add(countryId);
+    }
     state.territorialUnits.push(...imported);
     normalizeProjectObjects();
+    if (changedCountryIds.size) {
+      refreshCountryCentroids(changedCountryIds);
+      markCountryGeometriesChanged(changedCountryIds);
+    }
     state.layerVisibility.regions = true;
     for (const feature of imported) delete state.itemVisibility.regions?.[String(feature.id)];
     markLayerTreeDirty();
@@ -14232,7 +14441,7 @@ const {
       return;
     }
     if (target === 'region') {
-      importGeoJsonRegions(features, mapping);
+      await importGeoJsonRegions(features, mapping);
       return;
     }
     if (Object.values(DISTRIBUTION_TYPES).includes(target)) {
@@ -15873,7 +16082,6 @@ const {
     updateHistoryButtons();
     setTool('select', false);
     applyDataReadinessEvent(READINESS_EVENTS.PREVIEW_READY);
-    $('startupProbe')?.remove();
     runtimeReady = true;
     const previewStart = { projection: state.projection, viewJson: JSON.stringify(state.view) };
     setActionStatus('미리보기 표시 완료. 편집 데이터 준비 중…', 'working', 0);
@@ -15996,8 +16204,6 @@ const {
     setTool('select');
     loadPhysicalData();
     await completeLayerTreeHydration();
-
-    $('startupProbe')?.remove();
 
     if (restored) {
       saveState.markNewProject(`content:${Date.now()}`);
