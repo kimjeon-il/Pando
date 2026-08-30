@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMapRenderCoordinator } from '../../assets/js/modules/map-render-coordinator.js';
+import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
 
 function fixture() {
   const calls = [];
@@ -10,7 +10,7 @@ function fixture() {
   const names = [
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
     'territorialUnits', 'distributions', 'drawings', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
-    'hover', 'selection', 'validation', 'countryLabelPositions', 'userLabelPositions',
+    'selectionData', 'selectionView', 'selectionStyle', 'validation', 'countryLabelPositions', 'userLabelPositions',
     'labelLayout', 'countryLabels', 'userLabels', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
   ];
   const renderers = Object.fromEntries(names.map(name => [name, (...args) => {
@@ -30,8 +30,8 @@ test('full render preserves canonical layer order and revision', () => {
   assert.deepEqual(coordinator.renderFull(), { renderRevision: 1, viewRevision: 7, viewState, viewOnly: false });
   assert.deepEqual(calls.map(call => call[0]), [
     'prepare', 'base', 'countries', 'hydro', 'hydroEdits', 'territorialUnits',
-    'distributions', 'drawings', 'stackOverlays', 'geometryPreview', 'hover', 'selection',
-    'validation', 'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'layerTree', 'debug',
+    'distributions', 'drawings', 'stackOverlays', 'geometryPreview', 'validation', 'selectionData',
+    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'layerTree', 'debug',
   ]);
   assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
   assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'countryLabels', 'userLabels', 'debug', 'layerTree'].includes(call[0])).every(call => call[1] === viewState), true);
@@ -47,7 +47,8 @@ test('view render refreshes projection-dependent layers with the shared view sta
   assert.equal(calls.some(call => call[0] === 'hydro'), false);
   assert.equal(calls.some(call => call[0] === 'projectedOverlays'), true);
   assert.equal(calls.some(call => call[0] === 'layerTree'), false);
-  assert.equal(calls.some(call => call[0] === 'selection'), true);
+  assert.equal(calls.some(call => call[0] === 'selectionData'), false);
+  assert.equal(calls.some(call => call[0] === 'selectionView'), true);
   assert.equal(calls.some(call => call[0] === 'countries'), true);
   assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), true);
 });
@@ -89,4 +90,18 @@ test('GPU-only invalidation does not rebuild overlay data', () => {
   assert.equal(calls.some(call => call[0] === 'countries'), true);
   assert.equal(calls.some(call => call[0] === 'hydro'), false);
   assert.equal(calls.some(call => call[0] === 'projectedOverlays'), false);
+});
+
+test('selection data and view invalidations use independent render paths', () => {
+  const { calls, frames, coordinator } = fixture();
+  coordinator.invalidate(MAP_RENDER_DIRTY.SELECTION_DATA, 'selection-change');
+  frames.shift()();
+  assert.equal(calls.filter(call => call[0] === 'selectionData').length, 1);
+  assert.equal(calls.some(call => call[0] === 'selectionView'), false);
+
+  calls.length = 0;
+  coordinator.invalidate(MAP_RENDER_DIRTY.SELECTION_VIEW, 'selection-pan');
+  frames.shift()();
+  assert.equal(calls.filter(call => call[0] === 'selectionView').length, 1);
+  assert.equal(calls.some(call => call[0] === 'selectionData'), false);
 });

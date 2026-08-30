@@ -10,6 +10,7 @@ test('date-line country selection stays lightweight during selection and navigat
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.waitForTimeout(800);
 
+  let primaryRebuildCount = 0;
   for (const id of ['RUS']) {
     const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());
     await page.evaluate(countryId => window.PANDOLAB_TERRITORIAL.select('country', countryId), id);
@@ -24,6 +25,7 @@ test('date-line country selection stays lightweight during selection and navigat
     expect(after.selection.gpuCoverage.primary.renderedKeys, JSON.stringify({ selection: after.selection, style: after.gpu.interactionStyle?.selection })).toContain('country:RUS');
     expect(after.selection.svgFallbackKeys).toEqual([]);
     expect(after.gpu.countryEmphasis.primaryBoundaryColor).toBe('#315e9d');
+    primaryRebuildCount = after.gpuSelection.channels.primary.rebuildCount;
     expect(after.fullRenderCount - before.fullRenderCount, JSON.stringify({ before, after })).toBeLessThanOrEqual(1);
     expect(after.labelLayoutCount - before.labelLayoutCount).toBeLessThanOrEqual(1);
   }
@@ -38,4 +40,5 @@ test('date-line country selection stays lightweight during selection and navigat
   await page.waitForTimeout(400);
   const settled = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());
   expect(settled.gpu.activeMeshQuality, JSON.stringify(settled)).toBe('canonical');
+  expect(settled.gpuSelection.channels.primary.rebuildCount).toBe(primaryRebuildCount);
 });

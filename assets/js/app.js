@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r28';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r29';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -1238,7 +1238,7 @@ const {
       syncSelectionSummary(selection);
       syncGpuCountryEmphasis();
       mapRenderCoordinator?.invalidate(
-        MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
+        MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
         'object-selection',
       );
     },
@@ -1425,7 +1425,11 @@ const {
       }
     }
     if (!feature?.geometry && feature?.type !== 'FeatureCollection') return false;
-    focusCountry(feature, { maxZoom: isMobile() ? 12 : 10 });
+    const preferredAnchor = ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY
+      && validLabelAnchor(feature.properties?.editor_label_anchor)
+      ? feature.properties.editor_label_anchor
+      : null;
+    focusCountry(feature, { maxZoom: isMobile() ? 12 : 10, preferredAnchor });
     if (announce) setActionStatus(`${objectDisplayInfo(ref).name} 위치로 이동했습니다.`, 'success', 2200);
     return true;
   }
@@ -1603,6 +1607,7 @@ const {
         if (feature) feature.properties.locked = locked;
       }
     }
+    syncObjectLockStateChange(refs);
     renderAll();
     queueAutosave();
     const primary = objectSelection.primary();
@@ -1859,6 +1864,20 @@ const {
   let hoverLayer;
   let selectionLayer;
   let selectionEmphasisRenderer = null;
+  const selectionBoundaryGeometryCache = new Map();
+  const selectionProjectedPathCache = new Map();
+  const selectionOverlayDiagnostics = {
+    failureCount: 0,
+    lastFailureStage: '',
+    retainedPreviousFrame: false,
+    fallbackCount: 0,
+    fallbackPathMs: 0,
+    geometryCacheHits: 0,
+    geometryCacheMisses: 0,
+    projectedPathCacheHits: 0,
+    projectedPathCacheMisses: 0,
+  };
+  let selectionOverlayStage = '';
   let validationLayer;
   let snapLayer;
   let boundaryEditLayer;
@@ -2016,7 +2035,7 @@ const {
     document.documentElement.style.setProperty('--map-selection-halo', resolvedInteractionStyle.selection.color);
     window.__PANDOLAB_INTERACTION_STYLE__ = resolvedInteractionStyle;
     if (redraw) {
-      renderHoverOverlay();
+      mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.GPU_FRAME, 'selection-style');
     }
     return resolvedInteractionStyle;
   }
@@ -5172,6 +5191,47 @@ const {
     });
   }
 
+  function createLayerLockIndicator() {
+    const indicator = document.createElement('span');
+    indicator.className = 'layer-lock-indicator';
+    indicator.title = '잠김';
+    indicator.append(createSvgIcon(document, 'icon-lock-closed', 'ui-icon layer-lock-icon'));
+    return indicator;
+  }
+
+  function syncLayerItemLockIndicator(value) {
+    const ref = normalizeObjectRef(value);
+    if (!ref) return;
+    const locked = objectRefLocked(ref);
+    document.querySelectorAll('.layer-child[data-layer-group][data-item-id]').forEach(row => {
+      if (row.classList.contains('has-no-menu')) return;
+      const rowRef = layerItemObjectRef(row.dataset.layerGroup, row.dataset.itemId);
+      if (!rowRef || rowRef.key !== ref.key) return;
+      const name = row.querySelector('.layer-child-name');
+      const label = name?.querySelector('.layer-child-name-label');
+      if (!name || !label) return;
+      const indicator = name.querySelector('.layer-lock-indicator');
+      if (locked) {
+        name.classList.add('has-lock-indicator');
+        name.setAttribute('aria-label', `${label.textContent}, 잠김, 선택`);
+        if (!indicator) name.append(createLayerLockIndicator());
+      } else {
+        indicator?.remove();
+        name.classList.remove('has-lock-indicator');
+        name.removeAttribute('aria-label');
+      }
+    });
+  }
+
+  function syncObjectLockStateChange(refs = []) {
+    const uniqueRefs = new Map();
+    for (const value of refs) {
+      const ref = normalizeObjectRef(value);
+      if (ref) uniqueRefs.set(ref.key, ref);
+    }
+    uniqueRefs.forEach(syncLayerItemLockIndicator);
+  }
+
   function createLayerItemRow(group, item, { searchResult = false } = {}) {
     const itemGroup = item.layerGroup || group;
     if (item.groupHeader && !searchResult) {
@@ -5220,14 +5280,10 @@ const {
     nameLabel.textContent = item.name;
     name.append(nameLabel);
     name.dataset.tooltip = item.title || `${item.name} 선택`;
-    if (ref && objectRefLocked(ref)) {
+    if (hasMenu && ref && objectRefLocked(ref)) {
       name.classList.add('has-lock-indicator');
       name.setAttribute('aria-label', `${item.name}, 잠김, 선택`);
-      const lockIndicator = document.createElement('span');
-      lockIndicator.className = 'layer-lock-indicator';
-      lockIndicator.title = '잠김';
-      lockIndicator.append(createSvgIcon(document, 'icon-lock-closed', 'ui-icon layer-lock-icon'));
-      name.append(lockIndicator);
+      name.append(createLayerLockIndicator());
     }
     const menuButton = document.createElement('button');
     menuButton.type = 'button';
@@ -7064,25 +7120,53 @@ const {
     }
   }
 
-  function renderHoverOverlay(viewState = null, { syncStrokes = true } = {}) {
-    if (!hoverLayer) return;
-    hoverLayer.selectAll('*').remove();
-    syncGpuCountryEmphasis();
-    const active = !isMobile() && state.hovered?.feature?.geometry && !state.mapMoving && !state.draftEdit.dragging
-      && !(state.hovered.ref && objectSelection.has(state.hovered.ref));
-    if (active) {
-      const isCountry = state.hovered.type === 'country';
-      const feature = isCountry ? countryDisplayFeature(state.hovered.feature) : state.hovered.feature;
-      const pendingCountry = isCountry && state.pendingCountryRenderIds?.has(String(state.hovered.id || ''));
-      if ((!isCountry || pendingCountry) && ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)) {
-        hoverLayer.append('path').datum(feature)
-          .attr('class', 'map-hover-shape map-hover-fill')
-          .attr('fill', resolvedInteractionStyle.hover.color)
-          .attr('fill-opacity', resolvedInteractionStyle.hover.fillAlpha)
-          .attr('d', path);
-      }
+  function setLimitedSelectionCache(cache, key, value, limit = 160) {
+    if (cache.has(key)) cache.delete(key);
+    cache.set(key, value);
+    while (cache.size > limit) cache.delete(cache.keys().next().value);
+    return value;
+  }
+
+  function selectionGeometryRevision(key, role = 'outline') {
+    return `${key}:${role}:${state.stateRevision}:${countryLandRevision}`;
+  }
+
+  function cachedSelectionBoundaryFeature(key, feature, role = 'outline') {
+    const revision = selectionGeometryRevision(key, role);
+    const cached = selectionBoundaryGeometryCache.get(revision);
+    if (cached) {
+      selectionOverlayDiagnostics.geometryCacheHits += 1;
+      selectionBoundaryGeometryCache.delete(revision);
+      selectionBoundaryGeometryCache.set(revision, cached);
+      return { feature: cached, revision };
     }
-    if (syncStrokes) renderSelectionOverlay(viewState);
+    selectionOverlayDiagnostics.geometryCacheMisses += 1;
+    const boundary = buildRenderableStrokeFeature(feature);
+    return { feature: setLimitedSelectionCache(selectionBoundaryGeometryCache, revision, boundary), revision };
+  }
+
+  function cachedSelectionPath(cacheKey, feature) {
+    const key = `${cacheKey}:${state.projection}:${viewRevision}`;
+    if (selectionProjectedPathCache.has(key)) {
+      selectionOverlayDiagnostics.projectedPathCacheHits += 1;
+      return selectionProjectedPathCache.get(key);
+    }
+    selectionOverlayDiagnostics.projectedPathCacheMisses += 1;
+    return setLimitedSelectionCache(selectionProjectedPathCache, key, path(feature), 96);
+  }
+
+  function invalidateSelectionOverlay(reason = 'selection-overlay') {
+    syncGpuCountryEmphasis();
+    return mapRenderCoordinator?.invalidate(
+      MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.GPU_FRAME,
+      reason,
+    ) || false;
+  }
+
+  function renderHoverOverlay(viewState = null, { syncStrokes = true } = {}) {
+    if (!syncStrokes) return false;
+    if (viewState) return renderSelectionOverlay(viewState);
+    return invalidateSelectionOverlay('hover-overlay');
   }
 
   function setMapHover(type, id, feature, ref = null) {
@@ -7090,8 +7174,7 @@ const {
     const nextId = `${type}:${String(id || '')}`;
     if (`${state.hovered?.type || ''}:${state.hovered?.id || ''}` === nextId) return;
     state.hovered = feature?.geometry ? { type, id: String(id || ''), feature, ref: normalizeObjectRef(ref) } : null;
-    syncGpuCountryEmphasis();
-    renderHoverOverlay();
+    invalidateSelectionOverlay('map-hover');
   }
 
   function syncGpuCountryEmphasis() {
@@ -7113,10 +7196,15 @@ const {
     });
   }
 
-  function renderSelectionOverlay(viewState = null) {
-    if (!selectionLayer) return;
-    selectionLayer.selectAll('*').remove();
-    hoverLayer?.selectAll('.map-hover-outline').remove();
+  function renderSelectionOverlayFrame(viewState = null, { updateData = true } = {}) {
+    if (!selectionLayer) return false;
+    selectionOverlayStage = 'selection-data-prepare';
+    const selectionTarget = selectionLayer.node();
+    const hoverTarget = hoverLayer?.node?.();
+    const selectionStageNode = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const hoverStageNode = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const stagedSelectionLayer = d3.select(selectionStageNode);
+    const stagedHoverLayer = d3.select(hoverStageNode);
     syncGpuCountryEmphasis();
     let pathCount = 0;
     let pathCharacterCount = 0;
@@ -7137,19 +7225,28 @@ const {
     if (hoverActive) {
       const isCountry = state.hovered.type === 'country';
       const feature = isCountry ? countryDisplayFeature(state.hovered.feature) : state.hovered.feature;
-      const boundaryFeature = !isCountry && ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
-          ? buildRenderableStrokeFeature(feature)
-          : feature;
       const key = isCountry
         ? `country:${String(state.hovered.id || '')}`
         : `hover:${state.hovered.type}:${state.hovered.id}`;
+      const pendingCountry = isCountry && state.pendingCountryRenderIds?.has(String(state.hovered.id || ''));
+      if ((!isCountry || pendingCountry) && ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)) {
+        stagedHoverLayer.append('path').datum(feature)
+          .attr('class', 'map-hover-shape map-hover-fill')
+          .attr('fill', resolvedInteractionStyle.hover.color)
+          .attr('fill-opacity', resolvedInteractionStyle.hover.fillAlpha)
+          .attr('d', path);
+      }
+      const boundary = !isCountry && ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
+        ? cachedSelectionBoundaryFeature(key, feature, 'hover')
+        : { feature, revision: selectionGeometryRevision(key, 'hover') };
+      const boundaryFeature = boundary.feature;
       fallbackRequests.hover.push(isCountry
-        ? { key, resolveFeature: () => countryOutlineFeature(feature) }
-        : { key, feature: boundaryFeature });
+        ? { key, resolveFeature: () => countryOutlineFeature(feature), cacheKey: selectionGeometryRevision(key, 'hover-country') }
+        : { key, feature: boundaryFeature, cacheKey: boundary.revision });
       if (isCountry) {
         if (!state.pendingCountryRenderIds?.has(String(state.hovered.id || ''))) countryHoverId = String(state.hovered.id || '');
       } else {
-        genericHover.push({ key, geometry: boundaryFeature });
+        genericHover.push({ key, geometry: boundaryFeature, geometryRevision: boundary.revision });
       }
     }
     for (const ref of selection.items) {
@@ -7169,13 +7266,14 @@ const {
         const style = primary ? resolvedInteractionStyle.selection.primary : resolvedInteractionStyle.selection.secondary;
         if (pendingCountry) {
           const priorityClass = primary ? ' is-primary' : ' is-secondary';
-          if (style.fillAlpha > 0) selectionLayer.append('path').datum(feature)
+          if (style.fillAlpha > 0) stagedSelectionLayer.append('path').datum(feature)
             .attr('class', `map-selection-shape map-selection-fill${priorityClass}`)
             .attr('fill', resolvedInteractionStyle.selection.color).attr('fill-opacity', style.fillAlpha).attr('stroke', 'none').attr('d', path);
         }
         if (selectionOutlinesVisible) {
           const channel = primary ? 'primary' : 'secondary';
-          fallbackRequests[channel].push({ key: `country:${ref.id}`, resolveFeature: () => countryOutlineFeature(feature) });
+          const key = `country:${ref.id}`;
+          fallbackRequests[channel].push({ key, resolveFeature: () => countryOutlineFeature(feature), cacheKey: selectionGeometryRevision(key, 'country-outline') });
           if (!pendingCountry) {
             if (primary) countryPrimaryId = ref.id;
             else countrySecondaryIds.push(ref.id);
@@ -7187,45 +7285,54 @@ const {
         const fillAlpha = primary
           ? resolvedInteractionStyle.selection.primary.fillAlpha
           : resolvedInteractionStyle.selection.secondary.fillAlpha;
-        if (fillAlpha > 0) selectionLayer.append('path').datum(feature)
+        if (fillAlpha > 0) stagedSelectionLayer.append('path').datum(feature)
           .attr('class', `map-selection-shape map-selection-fill${primary ? ' is-primary' : ' is-secondary'}`)
           .attr('fill', resolvedInteractionStyle.selection.color)
           .attr('fill-opacity', fillAlpha)
           .attr('stroke', 'none')
           .attr('d', path);
       }
-      const boundaryFeature = hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))
-        ? buildRenderableStrokeFeature(feature)
-        : feature;
+      const boundary = hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))
+        ? cachedSelectionBoundaryFeature(ref.key, feature, 'selection-outline')
+        : { feature, revision: selectionGeometryRevision(ref.key, 'selection-outline') };
+      const boundaryFeature = boundary.feature;
       if (selectionOutlinesVisible) {
         const channel = primary ? 'primary' : 'secondary';
-        fallbackRequests[channel].push({ key: ref.key, feature: boundaryFeature });
+        fallbackRequests[channel].push({ key: ref.key, feature: boundaryFeature, cacheKey: boundary.revision });
         if (genericGpuAvailable && hasBoundaryGeometry) {
-          (primary ? genericPrimary : genericSecondary).push({ key: ref.key, geometry: boundaryFeature });
+          (primary ? genericPrimary : genericSecondary).push({ key: ref.key, geometry: boundaryFeature, geometryRevision: boundary.revision });
         }
       }
     }
     let gpuSelectionStats = null;
+    let gpuRenderResult = null;
     if (genericGpuAvailable) {
-      selectionEmphasisRenderer.setCountryBoundaryMesh(gpuMapRenderer.getCountryInteractionBoundaryData?.());
-      selectionEmphasisRenderer.setSelection({
-        hover: genericHover,
-        primary: genericPrimary,
-        secondary: genericSecondary,
-        countryHoverId,
-        countryPrimaryId,
-        countrySecondaryIds,
-        revision: state.stateRevision,
-      });
-      selectionEmphasisRenderer.render(viewState || window.__PANDOLAB_VIEW_STATE__ || {});
+      if (updateData) {
+        selectionEmphasisRenderer.setCountryBoundaryMesh(gpuMapRenderer.getCountryInteractionBoundaryData?.());
+        selectionOverlayStage = 'selection-buffer-build';
+        selectionEmphasisRenderer.updateSelectionData({
+          hover: genericHover,
+          primary: genericPrimary,
+          secondary: genericSecondary,
+          countryHoverId,
+          countryPrimaryId,
+          countrySecondaryIds,
+          revision: state.stateRevision,
+        });
+      }
+      selectionOverlayStage = 'selection-gpu-render';
+      gpuRenderResult = selectionEmphasisRenderer.render(viewState || window.__PANDOLAB_VIEW_STATE__ || {});
       gpuSelectionStats = selectionEmphasisRenderer.stats();
       boundarySegmentCount = gpuSelectionStats.segmentCount;
     }
+    if (!gpuSelectionStats) gpuSelectionStats = selectionEmphasisRenderer?.stats?.() || null;
     const renderedKeys = {
-      hover: new Set(gpuSelectionStats?.coverage?.hover?.renderedKeys || []),
-      primary: new Set(gpuSelectionStats?.coverage?.primary?.renderedKeys || []),
-      secondary: new Set(gpuSelectionStats?.coverage?.secondary?.renderedKeys || []),
+      hover: new Set(gpuRenderResult?.channels?.hover?.renderedKeys || []),
+      primary: new Set(gpuRenderResult?.channels?.primary?.renderedKeys || []),
+      secondary: new Set(gpuRenderResult?.channels?.secondary?.renderedKeys || []),
     };
+    selectionOverlayStage = 'selection-fallback-path';
+    const fallbackStartedAt = performance.now();
     const countFallbackSegments = feature => {
       try { return buildSelectionBoundarySegments(feature?.geometry).length; }
       catch (_) { return 0; }
@@ -7233,9 +7340,9 @@ const {
     for (const request of fallbackRequests.hover) {
       if (renderedKeys.hover.has(request.key)) continue;
       const fallbackFeature = request.feature || request.resolveFeature?.();
-      const d = path(fallbackFeature);
+      const d = cachedSelectionPath(request.cacheKey || request.key, fallbackFeature);
       if (!d) continue;
-      hoverLayer?.append('path').datum(fallbackFeature)
+      stagedHoverLayer.append('path').datum(fallbackFeature)
         .attr('class', 'map-hover-shape map-hover-outline')
         .attr('fill', 'none')
         .attr('stroke', resolvedInteractionStyle.hover.color)
@@ -7253,12 +7360,12 @@ const {
         for (const request of fallbackRequests[channel]) {
           if (renderedKeys[channel].has(request.key)) continue;
           const fallbackFeature = request.feature || request.resolveFeature?.();
-          const d = path(fallbackFeature);
+          const d = cachedSelectionPath(request.cacheKey || request.key, fallbackFeature);
           if (!d) continue;
-          selectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
+          stagedSelectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
             .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.casingColor)
             .attr('stroke-width', style.outerWidth).attr('stroke-opacity', style.casingAlpha).attr('d', d);
-          selectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
+          stagedSelectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
             .attr('fill', 'none').attr('stroke', resolvedInteractionStyle.selection.color)
             .attr('stroke-width', style.innerWidth).attr('stroke-opacity', style.innerAlpha).attr('d', d);
           pathCount += 2;
@@ -7271,7 +7378,14 @@ const {
     for (const selector of [
       '.map-selection-casing.is-secondary', '.map-selection-outline.is-secondary',
       '.map-selection-casing.is-primary', '.map-selection-outline.is-primary',
-    ]) selectionLayer.selectAll(selector).each(function() { this.parentNode?.appendChild(this); });
+    ]) stagedSelectionLayer.selectAll(selector).each(function() { this.parentNode?.appendChild(this); });
+    const fallbackPathMs = performance.now() - fallbackStartedAt;
+    selectionOverlayStage = 'selection-frame-commit';
+    selectionTarget?.replaceChildren(...selectionStageNode.childNodes);
+    hoverTarget?.replaceChildren(...hoverStageNode.childNodes);
+    selectionOverlayDiagnostics.retainedPreviousFrame = false;
+    selectionOverlayDiagnostics.fallbackCount = new Set(svgFallbackKeys).size;
+    selectionOverlayDiagnostics.fallbackPathMs = fallbackPathMs;
     window.__PANDOLAB_SELECTION_RENDER_METRICS__ = {
       pathCount,
       pathCharacterCount,
@@ -7279,9 +7393,45 @@ const {
       viewRevision,
       boundaryOwner: svgFallbackKeys.length ? 'hybrid' : 'interaction-overlay',
       svgFallbackKeys: [...new Set(svgFallbackKeys)],
-      gpuCoverage: gpuSelectionStats?.coverage || null,
+      fallbackCount: selectionOverlayDiagnostics.fallbackCount,
+      fallbackPathMs,
+      renderSucceeded: gpuRenderResult?.succeeded ?? !genericGpuAvailable,
+      contextLost: gpuSelectionStats?.contextLost || false,
+      retainedPreviousFrame: false,
+      gpuCoverage: gpuRenderResult?.channels || null,
+      channelBufferMetrics: gpuSelectionStats?.channels || null,
       drawOrder: resolvedInteractionStyle.drawOrder,
     };
+    selectionOverlayStage = '';
+    return true;
+  }
+
+  function renderSelectionOverlay(viewState = null, options = {}) {
+    try {
+      return renderSelectionOverlayFrame(viewState, options);
+    } catch (error) {
+      selectionOverlayDiagnostics.failureCount += 1;
+      selectionOverlayDiagnostics.lastFailureStage = selectionOverlayStage || 'selection-frame-prepare';
+      selectionOverlayDiagnostics.retainedPreviousFrame = true;
+      reliabilityDiagnostic.push({
+        category: 'render',
+        operation: 'selection-overlay-render',
+        result: 'recovered',
+        errorCode: '',
+        technicalMessage: String(error?.message || error),
+        stack: error?.stack || '',
+      });
+      console.warn('[selection-overlay-render] 직전 정상 선택 프레임을 유지합니다.', error);
+      window.__PANDOLAB_SELECTION_RENDER_METRICS__ = {
+        ...(window.__PANDOLAB_SELECTION_RENDER_METRICS__ || {}),
+        renderSucceeded: false,
+        retainedPreviousFrame: true,
+        failureCount: selectionOverlayDiagnostics.failureCount,
+        lastFailureStage: selectionOverlayDiagnostics.lastFailureStage,
+      };
+      selectionOverlayStage = '';
+      return false;
+    }
   }
 
   function issueCoordinate(issue) {
@@ -7565,8 +7715,9 @@ const {
       stackOverlays: applyOverlayStackOrder,
       projectedOverlays: renderProjectedOverlays,
       geometryPreview: renderGeometryPreview,
-      hover: viewState => renderHoverOverlay(viewState, { syncStrokes: false }),
-      selection: renderSelectionOverlay,
+      selectionData: renderSelectionOverlay,
+      selectionStyle: renderSelectionOverlay,
+      selectionView: viewState => renderSelectionOverlay(viewState, { updateData: false }),
       validation: renderValidationOverlay,
       labelLayout: visibleLabelLayout,
       countryLabelPositions: renderCountryLabelPositions,
@@ -7626,6 +7777,19 @@ const {
           const coordinate = screenToGeo(point);
           return coordinate ? coordinate.slice() : null;
         },
+        geoToScreen: coordinate => {
+          updateProjection();
+          const point = activeProjection()(coordinate);
+          return point ? point.slice() : null;
+        },
+        featureBounds: feature => {
+          updateProjection();
+          try { return deepClone(path.bounds(feature)); } catch (_) { return null; }
+        },
+        countryLabelAnchor: id => {
+          const anchor = countryFeatureById(id)?.properties?.editor_label_anchor;
+          return validLabelAnchor(anchor) ? [Number(anchor[0]), Number(anchor[1])] : null;
+        },
       });
     } else {
       delete window.__PANDOLAB_VIEW_DEBUG__;
@@ -7652,6 +7816,27 @@ const {
       projectionForView: () => activeProjection(),
       getSize: () => state.size,
       getDpr: () => window.devicePixelRatio || 1,
+      onContextChange: event => {
+        reliabilityDiagnostic.push({
+          category: 'render',
+          operation: 'selection-overlay-context',
+          result: event?.type || 'changed',
+        });
+        mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.SELECTION_DATA, `selection-context-${event?.type || 'change'}`);
+      },
+      onRenderError: ({ stage = 'selection-overlay-render', channel = '', error } = {}) => {
+        selectionOverlayDiagnostics.failureCount += 1;
+        selectionOverlayDiagnostics.lastFailureStage = stage;
+        reliabilityDiagnostic.push({
+          category: 'render',
+          operation: 'selection-overlay-render',
+          result: 'recovered',
+          channel,
+          technicalMessage: String(error?.message || error || stage),
+          stack: error?.stack || '',
+        });
+        console.warn(`[${stage}]`, error);
+      },
     });
     try { selectionEmphasisRenderer.init(); } catch (error) { console.warn('Generic selection overlay unavailable', error); }
     syncResolvedInteractionStyle();
@@ -10584,7 +10769,7 @@ const {
     syncCountryActionButtons();
     if (!refreshOnly) openSelectionEditor();
     if (shouldRender) mapRenderCoordinator.invalidate(
-      MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
+      MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
       'select-country',
     );
   }
@@ -10808,7 +10993,8 @@ const {
       selectDistributionLayer(layer.id, true);
       return false;
     }
-    markLayerTreeDirty();
+    if (field === 'locked') syncObjectLockStateChange([{ domain: 'distribution', type: layer.type, id: layer.id }]);
+    else markLayerTreeDirty();
     selectDistributionLayer(layer.id, true);
     queueAutosave();
     setActionStatus(`${DISTRIBUTION_TYPE_LABELS[layer.type]} 정보를 변경했습니다.`, 'success');
@@ -10968,6 +11154,7 @@ const {
     });
     if (!result.ok) return false;
     if (!result.changed) return true;
+    syncObjectLockStateChange([{ domain: 'territorial', type, id: key }]);
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       if ((state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) && String(state.selected.id) === key) selectCountry(key, true);
       syncBatchActionAvailability();
@@ -11183,7 +11370,7 @@ const {
     syncCountryActionButtons();
     syncMobileNavigation();
     mapRenderCoordinator.invalidate(
-      MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
+      MAP_RENDER_DIRTY.DYNAMIC_OVERLAYS | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
       'clear-selection',
     );
     if (layoutMode === 'wide') {
@@ -14889,21 +15076,21 @@ const {
     return insets;
   }
 
-  function focusCountry(feature, { announce = false, maxZoom = null } = {}) {
-    if (!feature?.geometry) return;
-    const center = d3.geo.centroid(feature);
-    if (!center || !Number.isFinite(center[0]) || !Number.isFinite(center[1])) return;
+  function focusCountry(feature, { announce = false, maxZoom = null, preferredAnchor = null } = {}) {
+    if (!feature?.geometry && feature?.type !== 'FeatureCollection') return;
+    const geometryCenter = d3.geo.centroid(feature);
+    const anchor = validLabelAnchor(preferredAnchor) ? preferredAnchor.map(Number) : geometryCenter;
+    if (!validLabelAnchor(anchor)) return;
     const { width, height } = state.size;
     const mobile = isMobile();
-    const projectionSafe = currentMapSafeInsets();
     const safe = currentObjectFitInsets();
     const contentWidth = Math.max(96, width - safe.left - safe.right);
     const contentHeight = Math.max(96, height - safe.top - safe.bottom);
     if (state.projection === 'globe') {
-      state.view.globeRotation = [-center[0], -center[1], 0];
+      state.view.globeRotation = [-anchor[0], -anchor[1], 0];
       state.view.globeZoom = 1;
     } else {
-      state.view.flatCenter = [center[0], center[1]];
+      state.view.flatCenter = [anchor[0], anchor[1]];
       state.view.flatZoom = 1;
     }
     updateProjection();
@@ -14926,11 +15113,26 @@ const {
       state.view.flatZoom = 5;
     }
     updateProjection();
-    const safeCenterX = safe.left + contentWidth / 2;
-    const safeCenterY = safe.top + contentHeight / 2;
-    const projectionCenterX = projectionSafe.left + Math.max(1, width - projectionSafe.left - projectionSafe.right) / 2;
-    const projectionCenterY = projectionSafe.top + Math.max(1, height - projectionSafe.top - projectionSafe.bottom) / 2;
-    panMapBy(safeCenterX - projectionCenterX, safeCenterY - projectionCenterY);
+    const viewportCenter = [width / 2, height / 2];
+    if (validLabelAnchor(preferredAnchor)) {
+      alignGeographicAnchor(preferredAnchor, viewportCenter);
+    } else {
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        let focusedBounds;
+        try { focusedBounds = path.bounds(feature); } catch (_) { focusedBounds = null; }
+        if (!focusedBounds?.[0] || !focusedBounds?.[1]) break;
+        const boundsCenter = [
+          (Number(focusedBounds[0][0]) + Number(focusedBounds[1][0])) / 2,
+          (Number(focusedBounds[0][1]) + Number(focusedBounds[1][1])) / 2,
+        ];
+        if (!boundsCenter.every(Number.isFinite)) break;
+        const offsetX = viewportCenter[0] - boundsCenter[0];
+        const offsetY = viewportCenter[1] - boundsCenter[1];
+        if (Math.abs(offsetX) < 0.25 && Math.abs(offsetY) < 0.25) break;
+        panMapBy(offsetX, offsetY);
+        updateProjection();
+      }
+    }
     renderAll();
     queueViewAutosave();
   }
@@ -14972,13 +15174,12 @@ const {
 
   function resetView() {
     if (state.projection === 'globe') {
-      state.view.globeRotation = [-15, -25, 0];
       state.view.globeZoom = 1;
     } else {
-      state.view.flatCenter = [0, 20];
       state.view.flatZoom = 1;
     }
-    renderAll();
+    renderViewFrame();
+    mapRenderCoordinator.endInteraction('world-view-settle');
     queueViewAutosave();
   }
 

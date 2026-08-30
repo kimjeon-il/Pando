@@ -10,6 +10,9 @@ const DIRTY_BITS = {
   LAYER_TREE: 1 << 8,
   HUD: 1 << 9,
   OVERLAY_DATA: 1 << 10,
+  SELECTION_DATA: 1 << 11,
+  SELECTION_VIEW: 1 << 12,
+  SELECTION_STYLE: 1 << 13,
 };
 
 export const MAP_RENDER_DIRTY = Object.freeze({
@@ -27,6 +30,7 @@ const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.BASE
   | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
   | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
+  | MAP_RENDER_DIRTY.SELECTION_VIEW
   | MAP_RENDER_DIRTY.EDITING_OVERLAYS
   | MAP_RENDER_DIRTY.LABEL_POSITIONS;
 
@@ -41,6 +45,9 @@ const STRING_MASKS = Object.freeze({
   'projected-overlays': MAP_RENDER_DIRTY.PROJECTED_OVERLAYS,
   'dynamic-overlays': MAP_RENDER_DIRTY.INTERACTION_OVERLAYS,
   'interaction-overlays': MAP_RENDER_DIRTY.INTERACTION_OVERLAYS,
+  'selection-data': MAP_RENDER_DIRTY.SELECTION_DATA,
+  'selection-view': MAP_RENDER_DIRTY.SELECTION_VIEW,
+  'selection-style': MAP_RENDER_DIRTY.SELECTION_STYLE,
   labels: MAP_RENDER_DIRTY.LABEL_LAYOUT,
   'layer-tree': MAP_RENDER_DIRTY.LAYER_TREE,
 });
@@ -98,6 +105,7 @@ export function createMapRenderCoordinator({
     try {
       const needsView = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_FRAME
         | MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
+        | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.SELECTION_STYLE
         | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT));
       const viewState = needsView ? prepareView() : undefined;
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
@@ -119,9 +127,15 @@ export function createMapRenderCoordinator({
 
       if (mask & MAP_RENDER_DIRTY.INTERACTION_OVERLAYS) {
         callRenderer('geometryPreview', rendererTimes, viewState);
-        callRenderer('hover', rendererTimes, viewState);
-        callRenderer('selection', rendererTimes, viewState);
         callRenderer('validation', rendererTimes, viewState);
+      }
+
+      if (mask & MAP_RENDER_DIRTY.SELECTION_DATA) {
+        callRenderer('selectionData', rendererTimes, viewState);
+      } else if (mask & MAP_RENDER_DIRTY.SELECTION_STYLE) {
+        callRenderer('selectionStyle', rendererTimes, viewState);
+      } else if (mask & MAP_RENDER_DIRTY.SELECTION_VIEW) {
+        callRenderer('selectionView', rendererTimes, viewState);
       }
 
       if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {
