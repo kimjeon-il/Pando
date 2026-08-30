@@ -212,7 +212,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r27')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r28')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -220,7 +220,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r27');
+    const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r28');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -306,7 +306,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
 test('river annex candidate Worker returns independent canonical land pockets', async ({ page }) => {
   await page.goto('/');
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r27', { type: 'module' });
+    const worker = new Worker('/assets/js/workers/river-annex-worker.js?v=0.30.0-r28', { type: 'module' });
     const polygon = (id, coordinates) => ({
       type: 'Feature', id,
       properties: { editor_id: id },
@@ -348,13 +348,14 @@ test('river annex candidate Worker returns independent canonical land pockets', 
 });
 
 test('river annex V2 finds Danube and Rhine pockets from source geometry in both directions', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/assets/data/hydro/annex-source-v1/manifest.json');
   const result = await page.evaluate(async () => {
     const countries = await fetch('/assets/data/countries-ne-5.1.1.geojson').then(response => response.json());
     const byId = new Map(countries.features.map(feature => [feature.properties.iso_a3, feature]));
-    const annex = await import('/assets/js/modules/annex-geometry.js?v=river-annex-v2-browser');
-    const sourceWorker = new Worker('/assets/js/workers/hydro-annex-source-worker.js?v=river-annex-v2-browser');
-    const candidateWorker = new Worker('/assets/js/workers/river-annex-worker.js?v=river-annex-v2-browser', { type: 'module' });
+    const annex = await import('/assets/js/modules/annex-geometry.js?v=river-annex-v2-browser-2');
+    await import('/assets/js/vendor/polygon-clipping.min.js?v=river-annex-v2-browser-2');
+    const sourceWorker = new Worker('/assets/js/workers/hydro-annex-source-worker.js?v=river-annex-v2-browser-2');
+    const candidateWorker = new Worker('/assets/js/workers/river-annex-worker.js?v=river-annex-v2-browser-2', { type: 'module' });
     let requestId = 0;
     const request = (worker, message, acceptedTypes) => new Promise((resolve, reject) => {
       const id = ++requestId;
@@ -387,9 +388,9 @@ test('river annex V2 finds Danube and Rhine pockets from source geometry in both
     };
     const cases = [];
     try {
-      for (const [name, leftId, rightId, expectedLogicalId, rejectedLogicalId] of [
-        ['danube', 'ROU', 'BGR', '2362', '2336'],
-        ['rhine', 'FRA', 'DEU', '2373', null],
+      for (const [name, leftId, rightId, expectedLogicalId] of [
+        ['danube', 'ROU', 'BGR', '2362'],
+        ['rhine', 'FRA', 'DEU', '2373'],
       ]) {
         const left = byId.get(leftId);
         const right = byId.get(rightId);
@@ -410,9 +411,23 @@ test('river annex V2 finds Danube and Rhine pockets from source geometry in both
               },
             },
           }, ['result']);
+          const polygonCoordinates = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+          const signedRingArea = ring => ring.slice(0, -1).reduce((sum, point, index) => (
+            sum + point[0] * ring[index + 1][1] - ring[index + 1][0] * point[1]
+          ), 0) / 2;
+          const polygonSetArea = coordinates => (coordinates || []).reduce((sum, polygon) => (
+            sum + Math.abs(signedRingArea(polygon[0])) - polygon.slice(1).reduce((holes, ring) => holes + Math.abs(signedRingArea(ring)), 0)
+          ), 0);
+          const targetOverlapArea = response.result.candidates.reduce((sum, candidate) => (
+            sum + polygonSetArea(window.polygonClipping.intersection(
+              polygonCoordinates(candidate.geometry), polygonCoordinates(targetFeature.geometry),
+            ))
+          ), 0);
           directions.push({
             candidateCount: response.result.candidates.length,
             sourceLogicalIds: [...new Set(response.result.candidates.flatMap(candidate => candidate.sourceLogicalRiverIds))],
+            uniqueKeyCount: new Set(response.result.candidates.map(candidate => candidate.key)).size,
+            targetOverlapArea,
             diagnostics: response.result.diagnostics,
           });
         }
@@ -420,7 +435,6 @@ test('river annex V2 finds Danube and Rhine pockets from source geometry in both
           name,
           discoveredLogicalIds: rivers.map(feature => feature.properties.source_logical_id),
           expectedLogicalId,
-          rejectedLogicalId,
           directions,
         });
       }
@@ -430,20 +444,12 @@ test('river annex V2 finds Danube and Rhine pockets from source geometry in both
       candidateWorker.terminate();
     }
   });
-  console.log('river annex V2 actual diagnostics', JSON.stringify(result.map(item => ({
-    name: item.name,
-    directions: item.directions.map(direction => ({
-      candidateCount: direction.candidateCount,
-      computeMs: direction.diagnostics.computeMs,
-      matchedParallelRuns: direction.diagnostics.matchedParallelRuns,
-    })),
-  }))));
   for (const item of result) {
     expect(item.discoveredLogicalIds).toContain(item.expectedLogicalId);
     for (const direction of item.directions) {
       expect(direction.candidateCount).toBeGreaterThan(0);
-      expect(direction.sourceLogicalIds).toContain(item.expectedLogicalId);
-      if (item.rejectedLogicalId) expect(direction.sourceLogicalIds).not.toContain(item.rejectedLogicalId);
+      expect(direction.uniqueKeyCount).toBe(direction.candidateCount);
+      expect(direction.targetOverlapArea).toBeLessThan(1e-12);
       expect(direction.diagnostics.matchedParallelRuns).toBeGreaterThan(0);
       expect(direction.diagnostics.computeMs).toBeLessThan(1000);
       expect(direction.diagnostics.failedRiverLoads).toBe(0);

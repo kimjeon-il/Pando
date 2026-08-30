@@ -11,7 +11,7 @@ const DEFAULTS = Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
     place: Object.freeze({ font: 'default', color: null, pointColor: null }),
   }),
-  selection: Object.freeze({ color: '#346733', outlineVisible: true, fillStrength: 0.35 }),
+  selection: Object.freeze({ color: null, outlineVisible: true, fillStrength: 0.35 }),
 });
 
 function normalizeColor(value, fallback = null) {

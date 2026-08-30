@@ -252,8 +252,8 @@ test('a damaged cached country asset is deleted and recovered from the network',
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(async () => {
-    const cache = await caches.open('pandolab-core-0.30.0-r27');
-    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r27', location.href);
+    const cache = await caches.open('pandolab-core-0.30.0-r28');
+    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r28', location.href);
     await cache.put(url, new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'Content-Type': 'application/gzip' } }));
   });
   let recoveryRequests = 0;
