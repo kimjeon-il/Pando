@@ -116,3 +116,27 @@ test('renderer fallback draws selection casing and inner outline in SVG', async 
   }
   expect(errors).toEqual([]);
 });
+
+test('selection WebGL context loss keeps a sparse SVG fallback until GPU recovery', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page);
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30_000 }).toContain('country:DEU');
+
+  const extensionAvailable = await page.evaluate(() => {
+    const canvas = document.querySelector('.gpu-selection-canvas');
+    const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
+    window.__PANDOLAB_SELECTION_CONTEXT_EXTENSION__ = gl?.getExtension('WEBGL_lose_context') || null;
+    window.__PANDOLAB_SELECTION_CONTEXT_EXTENSION__?.loseContext();
+    return !!window.__PANDOLAB_SELECTION_CONTEXT_EXTENSION__;
+  });
+  test.skip(!extensionAvailable, 'WEBGL_lose_context is unavailable');
+
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.contextLost), { timeout: 20_000 }).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toContain('country:DEU');
+  await page.evaluate(() => window.__PANDOLAB_SELECTION_CONTEXT_EXTENSION__?.restoreContext());
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.contextLost), { timeout: 30_000 }).toBe(false);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30_000 }).toContain('country:DEU');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toEqual([]);
+  expect(errors).toEqual([]);
+});

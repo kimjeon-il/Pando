@@ -41,23 +41,40 @@ test.describe('phase 1 residual UI cleanup', () => {
     expect(mobile.radius).toBe('0px');
   });
 
-  test('GIS importer stays compact on desktop and fullscreen on mobile', async ({ page }) => {
+test('GIS importer layout is available without the Phase 1 stylesheet', async ({ page }) => {
+    await page.route('**/phase1-ui-cleanup.css*', route => route.fulfill({
+      status: 200,
+      contentType: 'text/css',
+      body: '',
+    }));
     await page.goto('/');
-    await page.waitForFunction(() => document.documentElement.dataset.pandolabUiCleanupPhase1 === 'done');
+    await page.locator('#mobileFileBtn').click();
     await page.locator('#openGisBtn').click();
 
     const card = page.locator('#gisImportModal .ui-dialog-card');
+    const form = page.locator('#gisImportForm');
+    const rail = page.locator('#gisImportForm > .gis-import-content-rail');
+    const actions = page.locator('#gisImportModal .ui-dialog-actions');
     await expect(card).toBeVisible();
-    const desktopWidth = await card.evaluate(el => el.getBoundingClientRect().width);
-    expect(desktopWidth).toBeLessThanOrEqual(641);
+    const desktop = await card.evaluate(element => ({
+      width: element.getBoundingClientRect().width,
+      display: getComputedStyle(element).display,
+      overflowY: getComputedStyle(element).overflowY,
+    }));
+    expect(desktop).toEqual({ width: 640, display: 'grid', overflowY: 'hidden' });
+    await expect(form).toHaveCSS('display', 'flex');
+    await expect(rail).toHaveCSS('overflow-y', 'auto');
+    await expect(actions).toHaveCSS('margin-top', '0px');
 
     await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
     const mobile = await card.evaluate(el => ({
       width: el.getBoundingClientRect().width,
       height: el.getBoundingClientRect().height,
     }));
     expect(mobile.width).toBeGreaterThanOrEqual(389);
     expect(mobile.height).toBeGreaterThanOrEqual(843);
+    await expect(actions).toBeVisible();
   });
 
   test('file menu does not use the page-wide modal backdrop', async ({ page }) => {

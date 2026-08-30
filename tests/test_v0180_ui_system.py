@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
+PHASE_CSS = (ROOT / "assets" / "css" / "phase1-ui-cleanup.css").read_text(encoding="utf-8")
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 
 
@@ -15,7 +16,7 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.30.0-r28", INDEX)
+            self.assertIn(f"{asset}?v=0.30.0-r29", INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
@@ -30,6 +31,17 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_transient_button_flash_is_removed(self):
         self.assertNotIn("function flashButton", APP)
         self.assertNotIn("button-flash", CSS)
+
+    def test_gis_import_layout_is_owned_by_the_canonical_dialog_stylesheet(self):
+        for selector in ("#gisImportModal", "#gisImportForm"):
+            self.assertNotIn(selector, PHASE_CSS)
+        for selector in (
+            "#gisImportModal .ui-dialog-card {",
+            "#gisImportForm > .gis-import-content-rail {",
+            "#gisImportModal .ui-dialog-actions {",
+            "body[data-layout=\"mobile\"] #gisImportModal .ui-dialog-card {",
+        ):
+            self.assertIn(selector, CSS)
 
     def test_layer_hydration_is_scoped_and_present_in_initial_markup(self):
         self.assertIn('id="layerSection" class="panel-section ui-panel--dense layer-panel-section is-hydrating"', INDEX)

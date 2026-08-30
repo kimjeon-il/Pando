@@ -186,12 +186,14 @@
   --ui-nav-icon-label-gap: var(--ui-space-1);
   --ui-status-padding-y: 5px;
   --ui-sheet-header-height-compact: 74px;
-  --ui-sheet-header-height-mobile: 64px;
+  --ui-sheet-mobile-handle-space: var(--ui-space-4);
+  --ui-sheet-header-height-mobile: 72px;
   --ui-sheet-body-padding-x: var(--ui-space-4);
   --ui-sheet-content-padding-x: var(--ui-panel-padding);
   --ui-sheet-content-padding-bottom: var(--ui-panel-padding);
   --ui-sheet-scrollbar-compensation: var(--ui-scrollbar-size);
   --ui-sheet-visual-rail-x: calc(var(--ui-sheet-content-padding-x) + var(--ui-sheet-scrollbar-compensation));
+  --ui-sheet-header-control-inset: var(--ui-sheet-visual-rail-x);
   --ui-radius-sheet: 16px;
   --ui-control-bg: var(--panel-2);
   --ui-control-bg-hover: var(--surface-hover);
@@ -742,7 +744,6 @@ body.modal-open { overflow: hidden; }
 .confirm-modal-actions { display: grid; grid-template-columns: 1fr 1fr; }
 .confirm-modal-actions .danger-confirm { background: #6c3434; border-color: #945050; color: #ffe2e2; }
 .historical-library-card,
-#gisImportModal .ui-dialog-card,
 #gisExportModal .ui-dialog-card {
   width: min(760px, 100%);
   max-height: min(820px, calc(100dvh - var(--ui-dialog-edge) * 2));
@@ -767,7 +768,6 @@ body.modal-open { overflow: hidden; }
 .gis-mobile-nav { display: inline-flex; align-items: center; justify-content: center; }
 [data-gis-step]:not([data-gis-active="true"]),
 [data-gis-export-step]:not([data-gis-active="true"]) { display: none !important; }
-#gisImportForm > .gis-import-content-rail > .gis-form-grid { min-height: 260px; align-content: start; }
 #gisImportImpactSummary ul { margin: var(--ui-space-2) 0 0; padding-left: var(--ui-space-5); }
 #gisImportImpactSummary li + li { margin-top: var(--ui-space-1); }
 #gisTargetCountryRow b { color: var(--danger-text); }
@@ -1564,7 +1564,7 @@ body[data-layout="mobile"] {
   position: relative;
   flex: 0 0 var(--ui-sheet-header-height-mobile);
   min-height: var(--ui-sheet-header-height-mobile);
-  padding-block: var(--ui-space-2);
+  padding-block: calc(var(--ui-sheet-mobile-handle-space) + var(--ui-space-2)) var(--ui-space-2);
   touch-action: none;
   cursor: ns-resize;
 }
@@ -1799,15 +1799,8 @@ body[data-layout="mobile"] .ui-dialog-actions .btn { min-height: var(--ui-touch-
 body[data-layout="mobile"] .ui-dialog-header .icon-btn { width: var(--ui-touch-height); height: var(--ui-touch-height); }
 body[data-layout="mobile"] .gis-form-grid { grid-template-columns: 1fr; }
 body[data-layout="mobile"] .gis-wide { grid-column: 1; }
-body[data-layout="mobile"] #gisImportModal { align-items: stretch; padding: 0; }
 body[data-layout="mobile"] #gisExportModal { align-items: stretch; padding: 0; }
-body[data-layout="mobile"] #gisImportModal .ui-dialog-card,
 body[data-layout="mobile"] #gisExportModal .ui-dialog-card { width: 100%; height: 100dvh; max-height: none; border-radius: 0; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
-body[data-layout="mobile"] #gisImportForm { min-height: 0; display: flex; flex-direction: column; gap: var(--ui-space-3); overflow: hidden; }
-body[data-layout="mobile"] #gisImportForm > .gis-import-content-rail { min-height: 0; flex: 1 1 auto; overflow: auto; }
-body[data-layout="mobile"] #gisImportForm > .gis-import-content-rail > .gis-form-grid { min-height: 0; align-content: start; }
-body[data-layout="mobile"] #gisImportModal .ui-dialog-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display: none !important; }
 body[data-layout="mobile"] #gisExportForm { min-height: 0; display: flex; flex-direction: column; gap: var(--ui-space-3); overflow: hidden; }
 body[data-layout="mobile"] .gis-export-step { flex: 1 1 auto; align-content: start; overflow: auto; }
 body[data-layout="mobile"] .gis-export-layers { grid-template-columns: 1fr; }
@@ -3135,10 +3128,6 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   background: var(--surface-elevated);
   box-shadow: none;
 }
-.editor-shell-header .sheet-close-btn {
-  position: static;
-  margin-left: auto;
-}
 .editor-scroll-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -3775,6 +3764,59 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .ui-dialog-header h2,
 .ui-dialog-header p { margin: 0; }
 .ui-dialog-header p { color: var(--modal-text); }
+
+/* GIS import owns one dialog body scroll and fixed actions. */
+#gisImportModal .ui-dialog-card {
+  width: min(640px, calc(100vw - (var(--ui-dialog-edge) * 2)));
+  max-width: 640px;
+  max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+#gisImportModal .ui-dialog-header {
+  position: relative;
+  z-index: 2;
+  background: var(--modal-card-bg);
+}
+#gisImportForm {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#gisImportForm > .gis-import-content-rail {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-inline-start: var(--ui-scrollbar-size);
+}
+#gisImportForm > .gis-import-content-rail > .gis-form-grid {
+  min-height: 260px;
+  align-content: start;
+  overflow: visible;
+}
+#gisImportModal .ui-dialog-actions {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding-top: var(--ui-space-3);
+  background: var(--modal-card-bg);
+}
+body[data-layout="mobile"] #gisImportModal { align-items: stretch; padding: 0; }
+body[data-layout="mobile"] #gisImportModal .ui-dialog-card {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  border-radius: 0;
+}
+body[data-layout="mobile"] #gisImportForm { gap: var(--ui-space-3); }
+body[data-layout="mobile"] #gisImportForm > .gis-import-content-rail > .gis-form-grid { min-height: 0; }
+body[data-layout="mobile"] #gisImportModal .ui-dialog-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display: none !important; }
 .layer-style-editor { display: grid; grid-template-columns: 1fr; gap: var(--ui-field-gap); padding-top: var(--ui-field-gap); border-top: 1px solid var(--border); }
 .layer-style-editor > strong { grid-column: 1 / -1; }
 .layer-setting-hint { color: var(--muted); font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
@@ -3853,10 +3895,22 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 /* ===== PandoLab v0.23.0: unified navigation surfaces ===== */
 .layer-panel-header { display: flex; }
 :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) {
+  position: relative;
   align-items: center;
   gap: var(--ui-space-3);
   padding-block: var(--ui-space-3);
   padding-inline: var(--ui-sheet-visual-rail-x);
+}
+#app:not([data-layout="mobile"]) :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) .sheet-close-btn {
+  position: absolute;
+  z-index: 1;
+  top: var(--ui-sheet-header-control-inset);
+  right: var(--ui-sheet-header-control-inset);
+  margin: 0;
+}
+#app:not([data-layout="mobile"]) :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) > :is(strong, .editor-object-header) {
+  min-width: 0;
+  padding-inline-end: calc(var(--ui-control-height) + var(--ui-space-2));
 }
 #app[data-layout="mobile"] :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) {
   padding-block: var(--ui-space-2);
@@ -3967,14 +4021,37 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
   --map-safe-left: 0px;
   --map-safe-right: 0px;
 }
-#app[data-layout="compact"] .map-sheet-header .sheet-close-btn { margin-left: auto; }
 #app[data-layout="compact"] .editor-edge-slot { display: none; }
 #app[data-layout="compact"] .map-command-toolbar { left: auto; }
+body.create-menu-open #app[data-layout="compact"] .map-command-toolbar:has(.create-menu) { backdrop-filter: none; }
 #app[data-layout="compact"] .create-menu {
+  display: flex;
+  flex-direction: column;
   position: fixed;
-  z-index: 120;
-  top: calc(var(--ui-topbar-height) + 76px);
+  z-index: 36;
+  top: calc(var(--ui-topbar-height) + var(--ui-sheet-header-height-compact));
+  right: auto;
+  bottom: var(--ui-control-height);
   left: 8px;
+  width: var(--compact-drawer-width);
+  max-height: none;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--control-shadow);
+  transform: translateX(calc(-100% - 20px));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
+}
+#app[data-layout="compact"] .create-menu.hidden { display: flex !important; }
+body.create-menu-open #app[data-layout="compact"] .create-menu {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 #app[data-layout="mobile"] .workspace {
