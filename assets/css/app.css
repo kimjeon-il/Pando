@@ -2816,7 +2816,10 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .terrain-mode-option:has(input:checked) { border-color: var(--accent-border); background: color-mix(in srgb, var(--accent-surface) 18%, transparent); color: var(--text-strong); }
 
 /* Cards, clickable cards, popovers and modals use two deliberate elevation levels. */
-.create-menu { padding: 0; }
+.create-menu {
+  padding: 0;
+  overflow: hidden;
+}
 .create-sheet-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -3911,6 +3914,18 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 #app:not([data-layout="mobile"]) :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) > :is(strong, .editor-object-header) {
   min-width: 0;
   padding-inline-end: calc(var(--ui-control-height) + var(--ui-space-2));
+}
+#app:not([data-layout="mobile"]) .editor-shell-header > .editor-object-header {
+  padding-inline-end: calc(
+    (var(--ui-control-height) * 4)
+    + (var(--ui-space-1) * 2)
+    + var(--ui-space-2)
+  );
+}
+#app:not([data-layout="mobile"]) .editor-shell-header .editor-object-actions {
+  position: absolute;
+  top: var(--ui-sheet-header-control-inset);
+  right: calc(var(--ui-sheet-header-control-inset) + var(--ui-control-height) + var(--ui-space-2));
 }
 #app[data-layout="mobile"] :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) {
   padding-block: var(--ui-space-2);
