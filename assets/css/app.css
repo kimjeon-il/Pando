@@ -559,7 +559,6 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .user-label.selected.is-secondary-selection .user-label-dot { stroke-width: 1.8px; stroke-dasharray: 2 2; opacity: .72; }
 .preferences-card { width: min(520px, calc(100vw - var(--ui-dialog-edge) * 2)); }
 .preferences-fields { display: grid; gap: var(--ui-space-4); margin-top: var(--ui-space-4); }
-.preferences-fields input[type="color"] { width: 100%; height: var(--ui-control-height); padding: 4px; border: 1px solid var(--border); border-radius: var(--ui-radius-control); background: var(--surface-input); }
 .preferences-actions-spacer { flex: 1; }
 .vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
 .vertex-handle:hover { r: 6px; }
@@ -2622,7 +2621,7 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 .layer-folder-row.has-layer-style {
   grid-template-columns: var(--ui-tree-action-size) var(--ui-tree-action-size) minmax(0, 1fr) var(--ui-tree-action-size);
 }
-.layer-folder-row:has(.layer-folder-toggle:hover, .layer-folder-name:hover, .layer-style-toggle:hover) {
+.layer-folder-row:has(.layer-folder-toggle:hover, .layer-folder-name:hover) {
   background: var(--ui-control-bg-hover);
 }
 .layer-style-toggle {
@@ -2637,8 +2636,7 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
   background: transparent;
   color: var(--muted);
 }
-.layer-style-toggle:hover,
-.layer-style-toggle.active { color: var(--text-strong); background: var(--ui-control-bg-hover); }
+.layer-style-toggle:hover { color: var(--text-strong); background: var(--ui-control-bg-hover); }
 .layer-style-toggle.active { color: var(--accent-text); background: color-mix(in srgb, var(--accent-surface) 18%, transparent); }
 .layer-style-toggle .ui-icon { width: 18px; height: 18px; }
 .layer-presentation-row {
@@ -3340,6 +3338,9 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 .editor-section-heading { min-width: 0; display: flex; align-items: center; gap: var(--ui-space-2); }
 .editor-section-heading :is(.editor-section-title, .editor-property-heading) { min-width: 0; flex: 1; }
 .editor-flag-actions { min-width: 0; display: flex; gap: var(--ui-space-1); }
+.editor-flag-actions > .icon-btn { width: 30px; min-width: 30px; height: 30px; min-height: 30px; }
+.editor-flag-actions > .icon-btn .ui-icon { width: 16px; height: 16px; }
+#app[data-layout="mobile"] .editor-flag-actions > .icon-btn { width: 36px; min-width: 36px; height: 36px; min-height: 36px; }
 .editor-action-grid {
   display: grid;
   gap: var(--ui-control-gap);

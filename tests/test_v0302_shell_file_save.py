@@ -41,11 +41,11 @@ class ShellFileSaveContractTests(unittest.TestCase):
         self.assertIsNotNone(menu)
         markup = menu.group(1)
         self.assertIn('role="menu"', menu.group(0))
-        for label in ("새 프로젝트", "불러오기…", "프로젝트 저장", "데이터 내보내기…", "키보드 도움말"):
+        for label in ("새 프로젝트", "불러오기", "프로젝트 저장", "데이터 내보내기", "환경설정", "키보드 도움말"):
             self.assertIn(label, markup)
         for old_label in ("GeoPackage 저장", "GIS 파일 열기", "GeoJSON 가져오기", "GeoJSON 내보내기", "벡터 데이터 가져오기"):
             self.assertNotIn(old_label, markup)
-        self.assertEqual(markup.count('role="menuitem"'), 5)
+        self.assertEqual(markup.count('role="menuitem"'), 6)
         self.assertNotIn('id="keyboardHelpBtn"', re.search(r'<header class="topbar">(.*?)</header>', HTML, re.S).group(1))
 
     def test_dirty_state_is_separate_from_autosave_and_transient_notifications(self):

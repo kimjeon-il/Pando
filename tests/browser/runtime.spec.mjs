@@ -985,6 +985,14 @@ test('shared color picker applies presets, restores defaults, and participates i
   if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
   await page.locator('#countriesLayerChildren .layer-child-name').first().click();
   await expect(page.locator('#countryColorInput')).toHaveValue('#cccccc');
+  expect(await page.locator('.editor-flag-actions > .icon-btn').evaluateAll(buttons => buttons.map(button => {
+    const style = getComputedStyle(button);
+    const icon = button.querySelector('.ui-icon');
+    return [style.width, style.height, getComputedStyle(icon).width, getComputedStyle(icon).height];
+  }))).toEqual([
+    ['30px', '30px', '16px', '16px'],
+    ['30px', '30px', '16px', '16px'],
+  ]);
   await page.emulateMedia({ colorScheme: 'dark' });
   await expect(page.locator('#countryColorInput')).toHaveValue('#63758a');
   await page.locator('#countryColorTrigger').click();
@@ -1012,6 +1020,13 @@ test('shared color picker applies presets, restores defaults, and participates i
   await page.setViewportSize(layouts[2].viewport);
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
   if (await page.locator('#mobileEditBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileEditBtn').click();
+  expect(await page.locator('.editor-flag-actions > .icon-btn').evaluateAll(buttons => buttons.map(button => {
+    const style = getComputedStyle(button);
+    return [style.width, style.height];
+  }))).toEqual([
+    ['36px', '36px'],
+    ['36px', '36px'],
+  ]);
   await page.locator('#countryColorTrigger').click();
   await expect(palette).toBeVisible();
   const paletteBox = await palette.boundingBox();
@@ -1020,12 +1035,93 @@ test('shared color picker applies presets, restores defaults, and participates i
   expect(paletteBox.y).toBeGreaterThanOrEqual(0);
   expect(paletteBox.y + paletteBox.height).toBeLessThanOrEqual(layouts[2].viewport.height);
   expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(12);
-  await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정…');
+  await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
   await expect(page.locator('#countryColorInput')).toHaveAttribute('type', 'color');
   await page.keyboard.press('Escape');
   await page.locator('#undoBtn').click();
   await expect(page.locator('#redoBtn')).toBeEnabled();
   await expect(page.locator('#countryProperties')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test('layer style hover is isolated and preferences reuse the shared color picker', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize(layouts[0].viewport);
+  await page.emulateMedia({ colorScheme: 'light' });
+  const errors = await openApp(page, { waitForCanonical: false });
+  const folder = page.locator('.layer-folder[data-layer-group="countries"]');
+  const row = folder.locator(':scope > .layer-folder-row');
+  const visibility = row.locator('.layer-visibility-control');
+  const styleToggle = row.locator('[data-layer-style-toggle="countries"]');
+  const readHover = async locator => {
+    await locator.hover();
+    await page.waitForTimeout(200);
+    return locator.evaluate(element => {
+      const rowElement = element.closest('.layer-folder-row');
+      const style = getComputedStyle(element);
+      return { background: style.backgroundColor, color: style.color, rowBackground: getComputedStyle(rowElement).backgroundColor };
+    });
+  };
+  const baseRowBackground = await row.evaluate(element => getComputedStyle(element).backgroundColor);
+  const visibilityHover = await readHover(visibility);
+  await page.mouse.move(0, 0);
+  const styleHover = await readHover(styleToggle);
+  expect(styleHover.background).toBe(visibilityHover.background);
+  expect(styleHover.color).toBe(visibilityHover.color);
+  expect(styleHover.rowBackground).toBe(baseRowBackground);
+  await styleToggle.click();
+  await expect(styleToggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(styleToggle).toHaveClass(/active/);
+
+  const folderToggle = row.locator('[data-layer-folder-toggle="countries"]').first();
+  if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
+  await page.locator('#countriesLayerChildren .layer-child-name').first().click();
+  await expect(page.locator('#countryProperties')).toBeVisible();
+  expect(await page.locator('.editor-flag-actions > .icon-btn').evaluateAll(buttons => buttons.map(button => {
+    const style = getComputedStyle(button);
+    const icon = button.querySelector('.ui-icon');
+    return [style.width, style.height, getComputedStyle(icon).width, getComputedStyle(icon).height];
+  }))).toEqual([
+    ['30px', '30px', '16px', '16px'],
+    ['30px', '30px', '16px', '16px'],
+  ]);
+
+  await page.locator('#mobileFileBtn').click();
+  await page.locator('#preferencesBtn').click();
+  await expect(page.locator('#preferencesModal')).toBeVisible();
+  await page.locator('#preferencesSelectionColorTrigger').click();
+  const palette = page.locator('#preferencesSelectionColorPopover');
+  await expect(palette).toBeVisible();
+  await expect(palette.locator('.ui-color-swatch-grid--neutral [data-color-value]')).toHaveCount(6);
+  await expect(palette.locator('.ui-color-swatch-grid--chromatic [data-color-value]')).toHaveCount(60);
+  await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
+  await palette.locator('[data-color-value="#ef4444"]').click();
+  await expect(page.locator('#preferencesSelectionColorInput')).toHaveValue('#ef4444');
+  await expect(page.locator('#preferencesSelectionColorValue')).toHaveText('#EF4444');
+  await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--map-selection-halo'))).toBe('#ef4444');
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences') || '{}').selection?.color)).toBe('#ef4444');
+
+  await page.locator('#preferencesCloseBtn').click();
+  await page.setViewportSize(layouts[2].viewport);
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  if (await page.locator('#mobileEditBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileEditBtn').click();
+  expect(await page.locator('.editor-flag-actions > .icon-btn').evaluateAll(buttons => buttons.map(button => {
+    const style = getComputedStyle(button);
+    return [style.width, style.height];
+  }))).toEqual([
+    ['36px', '36px'],
+    ['36px', '36px'],
+  ]);
+  await page.locator('#mobileFileBtn').click();
+  await page.locator('#preferencesBtn').click();
+  await page.locator('#preferencesSelectionColorTrigger').click();
+  await expect(palette).toBeVisible();
+  const paletteBox = await palette.boundingBox();
+  expect(paletteBox.x).toBeGreaterThanOrEqual(0);
+  expect(paletteBox.x + paletteBox.width).toBeLessThanOrEqual(layouts[2].viewport.width);
+  expect(paletteBox.y).toBeGreaterThanOrEqual(0);
+  expect(paletteBox.y + paletteBox.height).toBeLessThanOrEqual(layouts[2].viewport.height);
   expect(errors).toEqual([]);
 });
 
