@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r30" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r32" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -944,13 +944,14 @@
           <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="country">국가</option><option value="drawing">지형지물</option><option value="territory">권역</option><option value="administrative">행정구역</option><option value="region">지방</option><option value="distribution">분포</option></select></label>
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
           <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">교차 면적은 추천 정보일 뿐이며, 여기서 선택한 국가가 최종 소속입니다.</small></label>
+          <label id="gisIndependentRegionRow" class="ui-check gis-wide hidden" data-gis-step="1"><input id="gisIndependentRegion" type="checkbox" /><span>국가에 속하지 않는 독립 지방으로 가져오기</span></label>
           <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentUnit"><option value="">국가 직속</option></select><small>선택한 국가의 기존 권역·행정구역만 표시합니다. 행정 단계는 상위 영역에서 자동 계산합니다.</small></label>
           <div class="ui-callout gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
           <details id="gisAdvancedMapping" class="ui-disclosure editor-disclosure gis-wide" data-gis-step="2"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body gis-form-grid">
             <label class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
             <label class="ui-field field-group"><span>이름 속성</span><select id="gisNameField"></select></label>
             <label id="gisUseCountryFieldRow" class="ui-check gis-wide hidden"><input id="gisUseCountryField" type="checkbox" /><span>객체별 소속 국가 속성 사용</span></label>
-            <label id="gisCountryFieldRow" class="ui-field field-group"><span>소속 국가 속성</span><select id="gisCountryField"></select><small>해석하지 못한 값은 위에서 선택한 공통 소속 국가를 사용합니다.</small></label>
+            <label id="gisCountryFieldRow" class="ui-field field-group"><span>소속 국가 속성</span><select id="gisCountryField"></select><small>값이 비어 있을 때만 공통 소속 국가를 사용합니다. 알 수 없는 값은 오류로 표시됩니다.</small></label>
             <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 영역 속성</span><select id="gisParentField"></select></label>
             <label id="gisLevelFieldRow" class="ui-field field-group"><span>행정 단계 속성</span><select id="gisLevelField"></select></label>
             <label class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
@@ -958,6 +959,7 @@
           <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary">감지 중</output><input id="gisCrsInput" class="hidden" type="text" inputmode="numeric" placeholder="EPSG:4326" /></div>
           <input id="gisGroupDuplicates" type="checkbox" checked hidden />
           <div id="gisImportImpact" class="ui-callout gis-wide" data-gis-step="3"><strong>적용 결과</strong><div id="gisImportImpactSummary"><p>적용할 내용을 계산하기 전입니다.</p></div></div>
+          <div id="gisCountryIdentityPanel" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>국가 ID 연결</strong><p class="gis-country-identity-help">자동으로 확정하지 못한 국가는 기존 국가와 직접 연결하거나 새 국가로 지정하세요.</p><div id="gisCountryIdentityRows" class="gis-country-identity-rows"></div></div>
           <div id="gisOpenModeRow" class="ui-field field-group gis-wide" data-gis-step="3"><span>적용 방식</span><div id="gisOpenModeControl" class="ui-segmented" role="radiogroup" aria-label="적용 방식"><button class="ui-button ui-segment-option active" type="button" data-gis-open-mode="replace" role="radio" aria-checked="true">새 프로젝트</button><button class="ui-button ui-segment-option" type="button" data-gis-open-mode="merge" role="radio" aria-checked="false">현재 지도에 추가</button></div><select id="gisOpenMode" hidden><option value="replace">새 프로젝트</option><option value="merge">현재 지도에 추가</option></select></div>
           <div id="gisFixedOpenModeNote" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>현재 지도에 추가</strong><p>이 종류는 기존 국가·영역을 기준으로 하므로 현재 프로젝트에 추가됩니다.</p></div>
           <label id="gisMergeStrategyRow" class="ui-field field-group hidden" data-gis-step="3"><span>병합 방식</span><select id="gisMergeStrategy"><option value="id-replace">ID 기준 교체</option><option value="imported-wins">가져온 영토 우선</option></select></label>
@@ -1013,8 +1015,8 @@
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r30" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r30" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r30" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r32" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r32" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r32" defer></script>
 </body>
 </html>

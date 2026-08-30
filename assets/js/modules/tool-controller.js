@@ -20,11 +20,11 @@ export const TOOL_DEFINITIONS = Object.freeze({
 });
 
 const phaseStage = phase => phase === 'sources' || phase === 'donor' ? '대상 국가 선택'
-  : phase === 'components' ? '영토 선택'
+  : phase === 'components' ? '영토 조각 선택'
     : phase === 'polygon' || phase === 'polygon-preview' ? '영역 지정'
       : phase === 'river' ? '하천 경계'
     : phase === 'side' ? '영역 확인'
-      : '경계 그리기';
+      : '경계선 그리기';
 
 export function describeTool(tool, state, { labelPlacement = false } = {}) {
   if (labelPlacement || tool === 'label') return { name: '지명 추가', stage: '위치 선택' };

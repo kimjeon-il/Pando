@@ -12,6 +12,7 @@ function createController() {
       addEventListener: (type, listener) => listeners.set(type, listener),
       click: () => listeners.get('click')?.(),
       focus() {},
+      setAttribute() {},
     };
   };
   const elements = {
@@ -23,6 +24,7 @@ function createController() {
     message: { textContent: '' },
     subject: createButton(),
     country: createButton(),
+    independent: createButton(),
     impact: null,
     impactList: null,
     cancel: createButton(),
@@ -51,4 +53,18 @@ test('coast reconciliation labels its subject for the active workflow', async ()
   assert.equal(elements.subject.textContent, '가져온 영역 기준');
   elements.cancel.click();
   assert.deepEqual(await imported, { direction: 'cancel' });
+});
+
+test('untrusted coastline disables automatic choices but keeps independent import available', async () => {
+  const { controller, elements } = createController();
+  controller.bind();
+  const pending = controller.open({
+    subjectName: '북슐레스비히', countryName: '독일', automaticAvailable: false,
+    unavailableReason: 'country-coast-not-found',
+  });
+  assert.equal(elements.country.disabled, true);
+  assert.equal(elements.subject.disabled, true);
+  assert.match(elements.message.textContent, /독립 유지/u);
+  elements.independent.click();
+  assert.deepEqual(await pending, { direction: 'independent' });
 });

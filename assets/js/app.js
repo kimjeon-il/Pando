@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r30';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r32';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -100,6 +100,7 @@ const { createMapObjectSpatialIndex } = mapObjectSpatialIndexModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
+const countryImportIdentityModule = await import(versionedModuleUrl('./modules/country-import-identity.js'));
 const coastReconciliationModule = await import(versionedModuleUrl('./modules/coast-reconciliation.js'));
 const coastReconciliationControllerModule = await import(versionedModuleUrl('./modules/coast-reconciliation-controller.js'));
 const annexGeometryModule = await import(versionedModuleUrl('./modules/annex-geometry.js'));
@@ -118,9 +119,14 @@ const {
 const { assertProjectReferenceIntegrity } = projectInvariantsModule;
 const { buildTerritorialImportTransactionPlan, resolveImportedCountryId } = territorialImportPlanModule;
 const {
+  identityResolutionSummary,
+  materializeResolvedCountries,
+  resolveCountryIdentities,
+} = countryImportIdentityModule;
+const {
   analyzeAdminCountryCoast,
   normalizeCoastDecision,
-  planCoastReconciliation,
+  planCoastReconciliations,
   validateCoastReplacement,
 } = coastReconciliationModule;
 const { createCoastReconciliationController } = coastReconciliationControllerModule;
@@ -3054,10 +3060,15 @@ const {
   function assertCurrentProjectReferences() {
     return assertProjectReferenceIntegrity({
       countries: state.countriesData?.features || [],
+      countryOverrides: state.countryOverrides || {},
       territorialUnits: state.territorialUnits || [],
       territorialRelations: state.territorialRelations || [],
       distributionLayers: state.distributionLayers || [],
       distributionEntries: state.distributionEntries || [],
+      labels: state.labels || [],
+      drawings: state.drawings || [],
+      itemVisibility: state.itemVisibility || {},
+      labelSettings: state.labelSettings || {},
     });
   }
 
@@ -6776,11 +6787,11 @@ const {
     }
     if (state.tool === 'redraw-territorial-unit') return '부모 영역 안에 새 영역을 그리세요.';
     if (state.tool === 'draw-territorial-unit') return '추가할 영역을 그리세요.';
-    if (state.tool === 'annex-territory' && state.annexPhase === 'polygon') return '편입할 영역을 그리세요.';
+    if (state.tool === 'annex-territory' && state.annexPhase === 'polygon') return '편입할 영역을 지도에서 지정하세요.';
     if ((state.tool === 'new-country' && state.newCountryPhase === 'line') || (state.tool === 'annex-territory' && state.annexPhase === 'line')) {
-      return '선택한 영토를 가로질러 경계를 그리세요.';
+      return '선택한 영토를 가로질러 새 경계를 완성하세요.';
     }
-    if (state.distributionDraft && isPolygonDraftTool(state.tool)) return '분포 영역을 그리세요.';
+    if (state.distributionDraft && isPolygonDraftTool(state.tool)) return '분포 영역을 지도에서 지정하세요.';
     return inputHint;
   }
 
@@ -7028,9 +7039,9 @@ const {
 
   function updateTerritoryComponentSelectionFeedback() {
     if (state.tool === 'annex-territory' && state.annexPhase === 'components') {
-      setModeBanner('편입할 영토 조각을 선택하세요.');
+      setModeBanner('편입할 영토 조각을 클릭해 선택하세요.');
     } else if (state.tool === 'new-country' && state.newCountryPhase === 'components') {
-      setModeBanner('새 국가로 만들 영토 조각을 선택하세요.');
+      setModeBanner('새 국가로 만들 영토 조각을 클릭해 선택하세요.');
     }
   }
 
@@ -8869,7 +8880,7 @@ const {
     state.annexTargetCountryId = String(id);
     syncCountryActionButtons();
     renderCountries();
-    setModeBanner('영토를 가져올 국가를 선택하세요.');
+    setModeBanner('편입 기준이 될 국가를 지도에서 고르세요.');
     updateModeButtons();
     return true;
   }
@@ -8892,7 +8903,7 @@ const {
     else selected.add(donorId);
     state.annexDonorCountryIds = [...selected];
     renderCountries();
-    setModeBanner('영토를 가져올 국가를 선택하세요.');
+    setModeBanner('편입 기준이 될 국가를 지도에서 고르세요.');
     updateModeButtons();
   }
 
@@ -13391,10 +13402,15 @@ const {
     if (project.countriesData?.features) {
       assertProjectReferenceIntegrity({
         countries: project.countriesData.features,
+        countryOverrides: project.countryOverrides || {},
         territorialUnits: project.territorialUnits || [],
         territorialRelations: project.territorialRelations || [],
         distributionLayers: project.distributionLayers || [],
         distributionEntries: project.distributionEntries || [],
+        labels: project.labels || [],
+        drawings: project.drawings || [],
+        itemVisibility: project.itemVisibility || {},
+        labelSettings: project.labelSettings || {},
       });
     }
     resetCountryLabelAnchorRuntime();
@@ -13491,10 +13507,10 @@ const {
     const admin = territorialUnitById(adminId);
     const countryId = String(admin?.properties?.sovereignId || '');
     const country = countryFeatureById(countryId);
-    if (!admin || admin.properties?.unitType !== TERRITORIAL_UNIT_TYPES.ADMIN || !country) return { admin, country, conflicts: [] };
+    if (!admin || admin.properties?.unitType !== TERRITORIAL_UNIT_TYPES.ADMIN || !country) return { admin, country, status: 'unavailable', conflicts: [] };
     const topology = buildSharedBoundaryTopology(state.countriesData?.features || []);
     const result = analyzeAdminCountryCoast({ adminFeature: admin, countryFeature: country, countryTopology: topology });
-    return { admin, country, conflicts: result.conflicts || [] };
+    return { admin, country, status: result.status, unavailableReason: result.unavailableReason, conflicts: result.conflicts || [] };
   }
 
   async function reconcileAdminCountryCoast(adminId, { manual = true } = {}) {
@@ -13502,6 +13518,10 @@ const {
     if (!analysis.admin || !analysis.country) {
       setActionStatus('소속 국가를 찾을 수 없어 해안선을 비교할 수 없습니다.', 'error', 3600);
       return { ok: false, code: 'missing-country' };
+    }
+    if (analysis.status === 'unavailable') {
+      setActionStatus('국가 해안선을 신뢰할 수 있게 판별하지 못해 자동 정합할 수 없습니다.', 'error', 4200);
+      return { ok: false, code: analysis.unavailableReason || 'coast-unavailable' };
     }
     if (!analysis.conflicts.length) {
       if (manual) setActionStatus('국가 해안선과 일치하는 불일치 구간이 없습니다.', 'success', 3000);
@@ -13525,20 +13545,11 @@ const {
     const countryBefore = deepClone(analysis.country.geometry);
     const adminBefore = deepClone(analysis.admin.geometry);
     try {
-      const nextCountry = deepClone(analysis.country.geometry);
-      const nextAdmin = deepClone(analysis.admin.geometry);
-      for (const sourceConflict of analysis.conflicts) {
-        const conflict = {
-          ...sourceConflict,
-          countryGeometry: nextCountry,
-          adminGeometry: nextAdmin,
-        };
-        const planned = planCoastReconciliation({ conflict, direction: decision.direction });
-        if (decision.direction === 'admin-to-country') Object.assign(nextCountry, planned.countryGeometry);
-        else Object.assign(nextAdmin, planned.adminGeometry);
-      }
-      const countryValidation = validateCoastReplacement(nextCountry);
-      const adminValidation = validateCoastReplacement(nextAdmin);
+      const planned = planCoastReconciliations({ conflicts: analysis.conflicts, direction: decision.direction });
+      const nextCountry = planned.countryGeometry;
+      const nextAdmin = planned.adminGeometry;
+      const countryValidation = validateCoastReplacement(nextCountry, { clipper: window.polygonClipping });
+      const adminValidation = validateCoastReplacement(nextAdmin, { clipper: window.polygonClipping });
       if (!countryValidation.ok || !adminValidation.ok) throw new Error('정합 결과 geometry가 올바르지 않습니다.');
       recordHistory({
         type: 'coast-reconciliation',
@@ -13834,6 +13845,44 @@ const {
     });
   }
 
+  function planCountryImportIdentity(collection, _mapping, manualMappings = {}) {
+    const resolutions = resolveCountryIdentities(
+      collection?.features || [],
+      state.countriesData?.features || [],
+      { manualMappings },
+    );
+    return {
+      summary: identityResolutionSummary(resolutions),
+      rows: resolutions.map(row => ({
+        status: row.status,
+        editorId: row.editorId,
+        name: row.name,
+        sourceKey: row.sourceKey,
+        sourceId: row.sourceIdentity.sourceId,
+        sourceIdField: row.sourceIdentity.sourceIdField,
+        sourceNamespace: row.sourceIdentity.sourceNamespace,
+        candidates: (row.candidates || []).map(candidate => ({
+          editorId: candidate.editorId,
+          reason: candidate.reason,
+          confidence: candidate.confidence,
+        })),
+        resolutionReason: row.resolutionReason,
+      })),
+    };
+  }
+
+  function materializeCountryImport(collection, { manualMappings = {}, allowImplicitNew = false } = {}) {
+    const resolutions = resolveCountryIdentities(
+      collection?.features || [],
+      allowImplicitNew ? [] : (state.countriesData?.features || []),
+      { manualMappings, allowImplicitNew },
+    );
+    return {
+      type: 'FeatureCollection',
+      features: materializeResolvedCountries(resolutions, { createId: createProjectObjectId }),
+    };
+  }
+
   const gisGeometryValidator = createGisGeometryValidator({
     createWorker: () => new Worker(runtimeAssetUrl('workers/gis-geometry-worker.js'), { name: 'pandolab-gis-geometry' }),
   });
@@ -13868,23 +13917,50 @@ const {
     setActionStatus(`국가 경계 ${state.countriesData.features.length}개를 새 프로젝트로 열었습니다.`, 'success', 3200);
   }
 
-  function commitGisMerge(result, plan) {
-    const before = snapshotEditable();
-    state.sourceInfo = appendImportedSourceInfo(state.sourceInfo, result.sourceInfo);
+  async function commitGisMerge(result, plan) {
     const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || '')));
     const packagedOverrides = applyImportedPackageAssets(result.atlasMetadata, {
       ...importedCountryOverrides(result.countriesData),
       ...(result.atlasMetadata?.projectState?.countryOverrides || {}),
     });
+    const draftCountries = deepClone(plan.countriesData);
+    const draftCountryIds = new Set((draftCountries.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(Boolean));
+    const draftOverrides = Object.fromEntries(Object.entries(deepClone(state.countryOverrides || {}))
+      .filter(([id]) => draftCountryIds.has(String(id))));
     for (const feature of result.countriesData?.features || []) {
       const id = String(feature.properties?.editor_id || '');
       if (!id) continue;
-      const next = { ...(state.countryOverrides[id] || {}), ...(packagedOverrides[id] || {}) };
-      if (feature.properties?.editor_name) next.name = feature.properties.editor_name;
-      if (feature.properties?.editor_color) next.color = feature.properties.editor_color;
-      state.countryOverrides[id] = next;
+      const existingOverride = draftOverrides[id] || {};
+      const next = { ...(packagedOverrides[id] || {}), ...existingOverride };
+      if (!Object.prototype.hasOwnProperty.call(existingOverride, 'name') && feature.properties?.editor_name) next.name = feature.properties.editor_name;
+      if (!Object.prototype.hasOwnProperty.call(existingOverride, 'color') && feature.properties?.editor_color) next.color = feature.properties.editor_color;
+      draftOverrides[id] = next;
     }
-    state.countriesData = reindexCountries(deepClone(plan.countriesData), true);
+    const validation = await validateGisCountryCollection(draftCountries, plan.affectedIds || importedIds);
+    if (Number(validation?.overlapAreaKm2 || 0) > 0.001) {
+      throw createGisImportError('가져온 국가가 다른 국가와 실제로 겹칩니다.', {
+        category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
+        objectIds: validation?.firstOverlap || [...importedIds],
+        technicalMessage: `Residual overlap: ${validation.overlapAreaKm2} km2`,
+      });
+    }
+    assertProjectReferenceIntegrity({
+      countries: draftCountries.features || [],
+      countryOverrides: draftOverrides,
+      territorialUnits: state.territorialUnits || [],
+      territorialRelations: state.territorialRelations || [],
+      distributionLayers: state.distributionLayers || [],
+      distributionEntries: state.distributionEntries || [],
+      labels: state.labels || [],
+      drawings: state.drawings || [],
+      itemVisibility: state.itemVisibility || {},
+      labelSettings: state.labelSettings || {},
+    });
+
+    const before = snapshotEditable();
+    state.sourceInfo = appendImportedSourceInfo(state.sourceInfo, result.sourceInfo);
+    state.countryOverrides = draftOverrides;
+    state.countriesData = reindexCountries(draftCountries, true);
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markCountryGeometriesChanged(plan.affectedIds || importedIds);
@@ -13907,11 +13983,13 @@ const {
       parentOptions: gisImportParentOptions(),
       hasUnsavedChanges: saveState.snapshot().hasUnsavedChanges,
       planImpact: planTerritorialImportImpact,
+      planCountryIdentity: planCountryImportIdentity,
     }),
     validateStructuredGeometry,
     featureCountryId,
     validateCountryCollection: validateGisCountryCollection,
     getCurrentCountries: () => state.countriesData,
+    materializeCountryImport,
     planCountryMerge: planGisMerge,
     materializers: {
       replaceProject: applyImportedReplacement,
@@ -14167,28 +14245,53 @@ const {
     instantiate: (id, referenceDate = '', childDepth = 'none') => instantiateHistoricalLibraryEntities([id], referenceDate, childDepth),
   });
 
-  function territorialUnitFromImportedValue(value, countryId = '', units = state.territorialUnits) {
+  function territorialUnitMatchesFromImportedValue(value, countryId = '', units = state.territorialUnits) {
     const key = String(value ?? '').trim();
-    if (!key) return null;
-    return units.find(feature => String(feature.id) === key)
-      || units.find(feature => territorialUnitName(feature).toLocaleLowerCase('ko') === key.toLocaleLowerCase('ko')
-      && (!countryId || String(feature.properties?.sovereignId || '') === String(countryId))) || null;
+    if (!key) return [];
+    const exact = units.filter(feature => String(feature.id) === key);
+    if (exact.length) return exact;
+    return units.filter(feature => territorialUnitName(feature).toLocaleLowerCase('ko') === key.toLocaleLowerCase('ko')
+      && (!countryId || String(feature.properties?.sovereignId || '') === String(countryId)));
+  }
+
+  function territorialUnitFromImportedValue(value, countryId = '', units = state.territorialUnits) {
+    const matches = territorialUnitMatchesFromImportedValue(value, countryId, units);
+    return matches.length === 1 ? matches[0] : null;
   }
 
   function importedTerritorialUnitFeature(raw, index, kind, mapping, sourceFolderId, knownUnits) {
     if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) return null;
     const properties = raw.properties || {};
-    const fieldCountry = mapping.useFeatureCountryField && mapping.countryField
-      ? resolveImportedCountryId(properties[mapping.countryField], state.countriesData?.features || [])
+    const rawCountryValue = mapping.useFeatureCountryField && mapping.countryField
+      ? String(properties[mapping.countryField] ?? '').trim()
       : '';
+    const fieldCountry = rawCountryValue
+      ? resolveImportedCountryId(rawCountryValue, state.countriesData?.features || [])
+      : '';
+    if (rawCountryValue && !fieldCountry) throw createGisImportError(`객체별 소속 국가 값 "${rawCountryValue}"을(를) 현재 지도에서 찾을 수 없습니다.`, {
+      category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+      objectIds: [String(raw.id ?? index + 1), rawCountryValue],
+    });
     const countryId = String(fieldCountry || resolveImportedCountryId(mapping.targetCountryId, state.countriesData?.features || []) || '');
     const commonParent = kind === TERRITORIAL_UNIT_TYPES.ADMIN && mapping.parentId
       ? knownUnits.find(candidate => String(candidate.id) === String(mapping.parentId)
         && String(candidate.properties?.sovereignId || '') === countryId)
       : null;
-    const mappedParent = kind === TERRITORIAL_UNIT_TYPES.ADMIN && mapping.useFeatureCountryField && mapping.parentField
-      ? territorialUnitFromImportedValue(properties[mapping.parentField], countryId, knownUnits)
-      : null;
+    const rawParentValue = kind === TERRITORIAL_UNIT_TYPES.ADMIN && mapping.useFeatureCountryField && mapping.parentField
+      ? String(properties[mapping.parentField] ?? '').trim()
+      : '';
+    const parentMatches = rawParentValue
+      ? territorialUnitMatchesFromImportedValue(rawParentValue, countryId, knownUnits)
+      : [];
+    const mappedParent = parentMatches.length === 1 ? parentMatches[0] : null;
+    if (rawParentValue && parentMatches.length > 1) throw createGisImportError(`객체별 상위 영역 값 "${rawParentValue}"이(가) 여러 영역과 일치합니다. 고유 ID로 직접 연결하세요.`, {
+      category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+      objectIds: [String(raw.id ?? index + 1), ...parentMatches.map(feature => String(feature.id))],
+    });
+    if (rawParentValue && !mappedParent) throw createGisImportError(`객체별 상위 영역 값 "${rawParentValue}"을(를) 현재 지도에서 찾을 수 없습니다.`, {
+      category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+      objectIds: [String(raw.id ?? index + 1), rawParentValue],
+    });
     const parent = commonParent || mappedParent;
     const level = kind === TERRITORIAL_UNIT_TYPES.ADMIN
       ? (parent?.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN
@@ -14199,7 +14302,7 @@ const {
       : null;
     const mappedId = mapping.idField === '__fid__' ? raw.id : properties[mapping.idField];
     const sourceId = String(mappedId ?? raw.id ?? '').trim();
-    return createPartitionTerritorialFeature({
+    const baseOptions = {
       id: uid(),
       unitType: kind,
       sovereignId: countryId,
@@ -14212,7 +14315,16 @@ const {
       sourceFolderId,
       metadata: { sourceId },
       geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
-    });
+    };
+    if (kind === TERRITORIAL_UNIT_TYPES.REGION) {
+      return createTerritorialFeature({
+        ...baseOptions,
+        coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
+        isRemainder: false,
+        adminLevel: null,
+      });
+    }
+    return createPartitionTerritorialFeature(baseOptions);
   }
 
   function prepareImportedTerritorialUnitFeatures(features, kind, mapping, sourceFolderId) {
@@ -14222,7 +14334,7 @@ const {
     for (let index = 0; index < features.length; index += 1) {
       const feature = importedTerritorialUnitFeature(features[index], index, kind, mapping, sourceFolderId, [...knownUnits, ...imported]);
       if (!feature) continue;
-      if (!feature.properties?.sovereignId) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가를 정하지 못했습니다.`, {
+      if (!feature.properties?.sovereignId && kind !== TERRITORIAL_UNIT_TYPES.REGION) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가를 정하지 못했습니다.`, {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id],
       });
@@ -14302,13 +14414,13 @@ const {
   }
 
   async function commitTerritorialImportWithTransfer(result, fileName) {
-    const kind = result.targetType === 'administrative' ? TERRITORIAL_UNIT_TYPES.ADMIN : TERRITORIAL_UNIT_TYPES.TERRITORY;
+    const kind = result.targetType === 'administrative'
+      ? TERRITORIAL_UNIT_TYPES.ADMIN
+      : result.targetType === 'region'
+        ? TERRITORIAL_UNIT_TYPES.REGION
+        : TERRITORIAL_UNIT_TYPES.TERRITORY;
     const mapping = result.mapping || {};
     const sourceFolderId = `gis:${uid('source')}`;
-    const impact = result.impactPlan || planTerritorialImportImpact(result.collection, mapping);
-    const targetIds = new Set((impact.groups || []).map(group => String(group.targetCountryId)));
-    const absorbedTarget = (impact.absorbedCountryIds || []).find(id => targetIds.has(String(id)));
-    if (absorbedTarget) throw new Error('한 가져오기 작업에서 소속 국가가 다른 대상 국가에 완전히 흡수됩니다. 객체별 소속 국가를 다시 확인하세요.');
     const imported = prepareImportedTerritorialUnitFeatures(result.collection?.features || [], kind, mapping, sourceFolderId);
     const snapshot = snapshotEditable();
     const affectedCountryIds = new Set();
@@ -14316,38 +14428,122 @@ const {
     const countryGeometryOverrides = new Map();
     let activeRequestId = null;
     try {
-      for (const group of impact.groups || []) {
-        const targetId = String(group.targetCountryId);
-        const donorIds = (group.donorIds || []).map(String).filter(id => id && id !== targetId && countryFeatureById(id));
-        const response = await mapEditClient.execute('annex', {
-          targetId,
-          donorIds,
+      // Coast decisions are made against a detached draft before any annex or
+      // canonical project mutation. Every later impact calculation uses the
+      // resulting geometry, not the raw import geometry.
+      for (const feature of imported) {
+        const country = countryFeatureById(feature.properties?.sovereignId);
+        const resolution = requireImportCoastResolution(await resolveTerritorialCoast(feature, country, countryGeometryOverrides));
+        if (resolution.direction === 'admin-to-country' || resolution.direction === 'independent') preservedIds.add(String(feature.id));
+      }
+
+      const draftCountries = deepClone(state.countriesData);
+      const draftById = new Map((draftCountries.features || []).map(feature => [String(feature.properties?.editor_id || ''), feature]));
+      for (const [countryId, geometry] of countryGeometryOverrides) {
+        const country = draftById.get(String(countryId));
+        if (country) country.geometry = deepClone(geometry);
+      }
+
+      let impact = { groups: [], absorbedCountryIds: [] };
+      let annexResponse = null;
+      if (kind !== TERRITORIAL_UNIT_TYPES.REGION) {
+        impact = buildTerritorialImportTransactionPlan({
+          features: imported,
+          countries: draftCountries.features || [],
+          targetCountryId: '',
+          useFeatureCountryField: true,
+          countryField: 'sovereignId',
+          clipper: window.polygonClipping,
+          areaKm2: geometryAreaKm2,
+        });
+        const targetIds = new Set((impact.groups || []).map(group => String(group.targetCountryId)));
+        const absorbedTarget = (impact.absorbedCountryIds || []).find(id => targetIds.has(String(id)));
+        if (absorbedTarget) throw new Error('한 가져오기 작업에서 소속 국가가 다른 대상 국가에 완전히 흡수됩니다. 객체별 소속 국가를 다시 확인하세요.');
+        const operations = (impact.groups || []).map(group => ({
+          targetId: String(group.targetCountryId),
+          donorIds: (group.donorIds || []).map(String).filter(id => id && id !== String(group.targetCountryId) && draftById.has(id)),
           transferredGeometry: group.importedGeometry,
           allowUnclaimed: true,
-        });
-        activeRequestId = response.requestId;
-        applyWorkerCountryPatches(response.result);
-        transferLandDependents(group.importedGeometry, donorIds, targetId);
-        mapEditClient.commit(response.requestId);
-        activeRequestId = null;
-        for (const id of response.result.affectedIds || []) affectedCountryIds.add(String(id));
-      }
-      if (kind === TERRITORIAL_UNIT_TYPES.ADMIN) {
-        for (const feature of imported) {
-          const country = countryFeatureById(feature.properties?.sovereignId);
-          const resolution = requireImportCoastResolution(await resolveTerritorialCoast(feature, country, countryGeometryOverrides));
-          if (resolution.direction === 'admin-to-country' || resolution.direction === 'independent') preservedIds.add(String(feature.id));
+        }));
+        mapEditClient.rebase(draftCountries.features || []);
+        annexResponse = await mapEditClient.execute('annex-batch', { operations });
+        activeRequestId = annexResponse.requestId;
+        const patchById = new Map((annexResponse.result.features || []).map(feature => [String(feature.properties?.editor_id || ''), feature]));
+        const removed = new Set((annexResponse.result.removedIds || []).map(String));
+        draftCountries.features = (draftCountries.features || [])
+          .filter(feature => !removed.has(String(feature.properties?.editor_id || '')))
+          .map(feature => patchById.get(String(feature.properties?.editor_id || '')) || feature);
+        for (const [id, feature] of patchById) {
+          if (!draftById.has(id)) draftCountries.features.push(feature);
         }
-        for (const [countryId, geometry] of countryGeometryOverrides) {
-          const country = countryFeatureById(countryId);
-          if (country) {
-            country.geometry = geometry;
-            state.historyDirtyCountryIds.add(countryId);
-            affectedCountryIds.add(countryId);
+        for (const id of annexResponse.result.affectedIds || []) affectedCountryIds.add(String(id));
+      }
+      for (const id of countryGeometryOverrides.keys()) affectedCountryIds.add(String(id));
+
+      const draftCountryById = new Map((draftCountries.features || [])
+        .map(feature => [String(feature.properties?.editor_id || ''), feature]));
+      for (const feature of imported) {
+        const sovereignId = String(feature.properties?.sovereignId || '');
+        if (!sovereignId && kind === TERRITORIAL_UNIT_TYPES.REGION) continue;
+        const country = draftCountryById.get(sovereignId);
+        const parentId = String(feature.properties?.parentId || '');
+        const parent = parentId ? state.territorialUnits.find(candidate => String(candidate.id) === parentId) : null;
+        if (!country?.geometry) throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
+          category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+          objectIds: [feature.id, sovereignId],
+        });
+        if (parentId && !parent?.geometry) throw createGisImportError('지정된 부모 영역을 찾을 수 없습니다.', {
+          category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+          objectIds: [feature.id, parentId],
+        });
+        const container = parent || country;
+        const overlap = normalizeClippedLandGeometry(window.polygonClipping.intersection(
+          feature.geometry.coordinates,
+          container.geometry.coordinates,
+        ));
+        if (!overlap || geometryAreaKm2(overlap) <= Math.max(0.000001, geometryAreaKm2(feature.geometry) * 1e-10)) {
+          throw createGisImportError('가져온 영역이 선택한 국가 또는 부모 영역과 겹치지 않습니다.', {
+            category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
+            objectIds: [feature.id, sovereignId, parentId],
+          });
+        }
+        if (parent) {
+          const outsideParent = normalizeClippedLandGeometry(window.polygonClipping.difference(
+            feature.geometry.coordinates,
+            parent.geometry.coordinates,
+          ));
+          if (outsideParent && geometryAreaKm2(outsideParent) > Math.max(0.0001, geometryAreaKm2(feature.geometry) * 1e-9)) {
+            throw createGisImportError('가져온 행정구역이 지정된 부모 영역 밖에 존재합니다.', {
+              category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
+              objectIds: [feature.id, parentId],
+            });
           }
         }
       }
-      const importedCountries = appendPreparedTerritorialUnits(imported, kind, { preserveIds: [...preservedIds] });
+
+      const draftValidation = await validateGisCountryCollection(draftCountries, affectedCountryIds);
+      if (Number(draftValidation?.overlapAreaKm2 || 0) > 0.001) throw createGisImportError('해안선 정합 및 영토 이전 결과에 국가 간 중첩이 남았습니다.', {
+        category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
+        objectIds: draftValidation?.firstOverlap || [...affectedCountryIds],
+      });
+
+      // Canonical mutation begins only after coast, impact, worker and geometry
+      // validation have all succeeded. The surrounding snapshot restores this
+      // short synchronous commit if project reference validation fails.
+      state.countriesData = reindexCountries(draftCountries, true);
+      for (const id of affectedCountryIds) state.historyDirtyCountryIds.add(id);
+      for (const group of impact.groups || []) {
+        const targetId = String(group.targetCountryId);
+        const donorIds = (group.donorIds || []).map(String).filter(id => id && id !== targetId);
+        transferLandDependents(group.importedGeometry, donorIds, targetId);
+      }
+      let importedCountries;
+      if (kind === TERRITORIAL_UNIT_TYPES.REGION) {
+        state.territorialUnits.push(...deepClone(imported));
+        importedCountries = new Set(imported.map(feature => String(feature.properties?.sovereignId || '')).filter(Boolean));
+      } else {
+        importedCountries = appendPreparedTerritorialUnits(imported, kind, { preserveIds: [...preservedIds] });
+      }
       for (const id of importedCountries) affectedCountryIds.add(String(id));
       normalizeProjectObjects();
       assertCurrentProjectReferences();
@@ -14361,6 +14557,9 @@ const {
       renderAll();
       queueAutosave();
       setActionStatus(`${territorialTypeLabel(kind)} ${imported.length}개를 전체 형상으로 가져왔습니다.`, 'success', 4400);
+      if (activeRequestId != null) mapEditClient.discard(activeRequestId);
+      activeRequestId = null;
+      mapEditClient.rebase(state.countriesData?.features || []);
     } catch (error) {
       if (activeRequestId != null) mapEditClient.discard(activeRequestId);
       restoreCountryEditSnapshot(snapshot);
@@ -14376,7 +14575,7 @@ const {
 
   async function resolveTerritorialCoast(feature, country, countryGeometryOverrides) {
     const unitType = feature?.properties?.unitType;
-    if (![TERRITORIAL_UNIT_TYPES.ADMIN, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
+    if (![TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
     if (!country?.geometry) {
       if (!feature?.properties?.sovereignId && unitType === TERRITORIAL_UNIT_TYPES.REGION) return { direction: 'none' };
       throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
@@ -14384,31 +14583,39 @@ const {
         objectIds: [feature?.id, feature?.properties?.sovereignId],
       });
     }
-    const topology = buildSharedBoundaryTopology(state.countriesData?.features || []);
+    const draftCountryFeatures = (state.countriesData?.features || []).map(candidate => {
+      const id = String(candidate.properties?.editor_id || '');
+      const geometry = countryGeometryOverrides.get(id);
+      return geometry ? { ...candidate, geometry } : candidate;
+    });
+    const topology = buildSharedBoundaryTopology(draftCountryFeatures);
     const analysis = analyzeAdminCountryCoast({
       adminFeature: feature,
       countryFeature: { ...country, geometry: countryGeometryOverrides.get(String(country.properties?.editor_id || '')) || country.geometry },
       countryTopology: topology,
     });
-    if (!analysis.conflicts.length) return { direction: 'none' };
+    if (analysis.status !== 'unavailable' && !analysis.conflicts.length) return { direction: 'none' };
     const choice = await coastReconciliationController.open({
       subjectName: territorialUnitName(feature),
       subjectActionLabel: '가져온 영역',
       countryName: countryName(country),
       conflicts: analysis.conflicts,
+      automaticAvailable: analysis.status !== 'unavailable',
+      unavailableReason: analysis.unavailableReason,
     });
     const direction = normalizeCoastDecision(choice);
     if (direction === 'cancel') return { direction };
     if (direction === 'independent') return { direction };
-    let nextAdmin = deepClone(feature.geometry);
-    let nextCountry = deepClone(countryGeometryOverrides.get(String(country.properties?.editor_id || '')) || country.geometry);
-    for (const conflict of analysis.conflicts) {
-      const planned = planCoastReconciliation({ conflict: { ...conflict, countryGeometry: nextCountry, adminGeometry: nextAdmin }, direction });
-      nextAdmin = planned.adminGeometry;
-      nextCountry = planned.countryGeometry;
-    }
-    const adminValidation = validateCoastReplacement(nextAdmin);
-    const countryValidation = validateCoastReplacement(nextCountry);
+    const baseCountryGeometry = deepClone(countryGeometryOverrides.get(String(country.properties?.editor_id || '')) || country.geometry);
+    const baseAdminGeometry = deepClone(feature.geometry);
+    const planned = planCoastReconciliations({
+      conflicts: analysis.conflicts.map(conflict => ({ ...conflict, countryGeometry: baseCountryGeometry, adminGeometry: baseAdminGeometry })),
+      direction,
+    });
+    const nextAdmin = planned.adminGeometry;
+    const nextCountry = planned.countryGeometry;
+    const adminValidation = validateCoastReplacement(nextAdmin, { clipper: window.polygonClipping });
+    const countryValidation = validateCoastReplacement(nextCountry, { clipper: window.polygonClipping });
     if (!adminValidation.ok || !countryValidation.ok) throw createGisImportError('해안선 정합 결과가 유효한 닫힌 영역이 아닙니다.', {
       category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
       objectIds: [feature.id, country.properties?.editor_id],
@@ -14504,7 +14711,7 @@ const {
 
   async function importGeoJsonRegions(features, mapping) {
     const imported = [];
-    const defaultContext = explicitRegionCreateContext();
+    const defaultContext = { sovereignId: '', parentId: '' };
     const existingIds = new Set(state.territorialUnits.map(feature => String(feature.id)));
     const countryGeometryOverrides = new Map();
     for (let index = 0; index < features.length; index += 1) {
@@ -14523,7 +14730,14 @@ const {
         technicalMessage: `Unresolved imported region country: ${rawCountry}`,
       });
       const parentValue = String(mapping.parentField ? properties[mapping.parentField] ?? '' : properties.parent_id || properties.parentId || '').trim();
-      const parent = parentValue ? territorialUnitFromImportedValue(parentValue, resolvedCountryId || defaultContext.sovereignId) : null;
+      const parentMatches = parentValue
+        ? territorialUnitMatchesFromImportedValue(parentValue, resolvedCountryId || defaultContext.sovereignId)
+        : [];
+      const parent = parentMatches.length === 1 ? parentMatches[0] : null;
+      if (parentValue && parentMatches.length > 1) throw createGisImportError('지정된 부모 이름이 여러 영역과 일치합니다. 고유 ID로 직접 연결하세요.', {
+        category: RELIABILITY_ERROR_CATEGORIES.RELATION,
+        objectIds: [id, ...parentMatches.map(feature => String(feature.id))],
+      });
       if (parentValue && !parent) throw createGisImportError('지정된 부모 영역을 찾을 수 없습니다.', {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [id, parentValue],

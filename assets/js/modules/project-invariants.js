@@ -52,10 +52,15 @@ function geometryIssue(row, id, label) {
 
 export function validateProjectReferenceIntegrity({
   countries = [],
+  countryOverrides = {},
   territorialUnits = [],
   territorialRelations = [],
   distributionLayers = [],
   distributionEntries = [],
+  labels = [],
+  drawings = [],
+  itemVisibility = {},
+  labelSettings = {},
 } = {}) {
   const issues = [];
 
@@ -69,6 +74,10 @@ export function validateProjectReferenceIntegrity({
   const unitIds = new Set((territorialUnits || []).map(row => text(row?.id)).filter(Boolean));
   const territorialIds = new Set([...countryIds, ...unitIds]);
   const unitById = new Map((territorialUnits || []).map(row => [text(row?.id), row]).filter(([id]) => id));
+
+  for (const id of Object.keys(countryOverrides || {})) {
+    if (!countryIds.has(text(id))) issues.push(issue('PL-INV-ORPHAN-COUNTRY-OVERRIDE', `존재하지 않는 국가 ${id}의 설정이 남아 있습니다.`, [id], 'countryOverrides'));
+  }
 
   for (const id of unitIds) {
     if (countryIds.has(id)) {
@@ -173,6 +182,39 @@ export function validateProjectReferenceIntegrity({
         issues.push(issue('PL-INV-DIST-GEOMETRY', `${id}의 자유 분포 geometry가 비어 있거나 올바르지 않습니다.`, [id], 'geometry'));
       }
     }
+  }
+
+  for (const label of labels || []) {
+    const id = text(label?.id);
+    const countryId = text(label?.countryId || label?.country_id);
+    if (countryId && !countryIds.has(countryId)) {
+      issues.push(issue('PL-INV-MISSING-LABEL-COUNTRY', `${id || '지명'}의 국가 ${countryId}이 존재하지 않습니다.`, [id, countryId], 'countryId'));
+    }
+  }
+
+  for (const drawing of drawings || []) {
+    const id = text(drawing?.id);
+    const ownerId = text(drawing?.properties?.pandolab_owner_id);
+    if (ownerId && !territorialIds.has(ownerId)) {
+      issues.push(issue('PL-INV-MISSING-DRAWING-OWNER', `${id || '지형지물'}의 소유 영역 ${ownerId}이 존재하지 않습니다.`, [id, ownerId], 'pandolab_owner_id'));
+    }
+    const topologyGroup = text(drawing?.properties?.pandolab_topology_group);
+    const landOwnerId = topologyGroup.startsWith('land:') ? topologyGroup.slice(5) : '';
+    if (landOwnerId && !territorialIds.has(landOwnerId)) {
+      issues.push(issue('PL-INV-MISSING-DRAWING-TOPOLOGY', `${id || '지형지물'}의 지형 연결 대상 ${landOwnerId}이 존재하지 않습니다.`, [id, landOwnerId], 'pandolab_topology_group'));
+    }
+  }
+
+  for (const group of ['countries', 'countryLabels']) {
+    for (const id of Object.keys(itemVisibility?.[group] || {})) {
+      if (!countryIds.has(text(id))) issues.push(issue('PL-INV-ORPHAN-COUNTRY-VISIBILITY', `존재하지 않는 국가 ${id}의 표시 설정이 남아 있습니다.`, [id], `itemVisibility.${group}`));
+    }
+  }
+
+  for (const key of Object.keys(labelSettings || {})) {
+    if (!key.startsWith('country:')) continue;
+    const id = key.slice('country:'.length);
+    if (id && !countryIds.has(id)) issues.push(issue('PL-INV-ORPHAN-COUNTRY-LABEL', `존재하지 않는 국가 ${id}의 라벨 설정이 남아 있습니다.`, [id], 'labelSettings'));
   }
 
   return Object.freeze({ ok: issues.length === 0, issues });

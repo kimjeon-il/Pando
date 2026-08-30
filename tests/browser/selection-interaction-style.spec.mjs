@@ -10,26 +10,52 @@ const storedPreferences = (theme = 'dark', selection = {}) => ({
   selection: { color: null, outlineVisible: true, fillStrength: 0.35, ...selection },
 });
 
-async function openApp(page, { theme = 'dark', selection = {}, query = '?debug=1', disableWebGl = false } = {}) {
+async function openApp(page, {
+  theme = 'dark', selection = {}, query = '?debug=1', disableWebGl = false,
+  preserveSelectionBuffer = false, selectionWebGl1 = false,
+} = {}) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
     if (message.type() === 'error') errors.push(message.text());
   });
-  await page.addInitScript(({ preferences, disableWebGl: blockWebGl }) => {
+  await page.addInitScript(({ preferences, disableWebGl: blockWebGl, preserveSelectionBuffer: preserve, selectionWebGl1: forceWebGl1 }) => {
     localStorage.setItem('pandolab-user-preferences', JSON.stringify(preferences));
-    if (!blockWebGl) return;
     const originalGetContext = globalThis.HTMLCanvasElement.prototype.getContext;
     globalThis.HTMLCanvasElement.prototype.getContext = function getContext(type, ...args) {
-      if (type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl') return null;
+      if (blockWebGl && (type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl')) return null;
+      const isSelectionCanvas = this.classList?.contains('gpu-selection-canvas');
+      if (isSelectionCanvas && forceWebGl1 && type === 'webgl2') return null;
+      if (isSelectionCanvas && preserve && (type === 'webgl' || type === 'webgl2')) {
+        return originalGetContext.call(this, type, { ...(args[0] || {}), preserveDrawingBuffer: true });
+      }
       return originalGetContext.call(this, type, ...args);
     };
-  }, { preferences: storedPreferences(theme, selection), disableWebGl });
+  }, {
+    preferences: storedPreferences(theme, selection), disableWebGl,
+    preserveSelectionBuffer, selectionWebGl1,
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/${query}`);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;
+}
+
+async function selectionColorPixelCount(page, expected = [205, 169, 93]) {
+  return page.evaluate(([red, green, blue]) => {
+    const canvas = document.querySelector('.gpu-selection-canvas');
+    const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
+    if (!gl) return -1;
+    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    let count = 0;
+    for (let offset = 0; offset < pixels.length; offset += 4) {
+      if (pixels[offset + 3] > 0 && Math.abs(pixels[offset] - red) <= 8
+        && Math.abs(pixels[offset + 1] - green) <= 8 && Math.abs(pixels[offset + 2] - blue) <= 8) count += 1;
+    }
+    return count;
+  }, expected);
 }
 
 test('theme defaults, custom selection colors, and reset stay synchronized', async ({ page }) => {
@@ -84,13 +110,33 @@ test('theme defaults, custom selection colors, and reset stay synchronized', asy
 
 test('WebGL1 keeps successful country outlines on the GPU coverage path', async ({ page }) => {
   test.setTimeout(180_000);
-  const errors = await openApp(page, { query: '?debug=1&renderer=webgl1' });
+  const errors = await openApp(page, {
+    query: '?debug=1&renderer=webgl1', preserveSelectionBuffer: true, selectionWebGl1: true,
+  });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer), { timeout: 30_000 }).toBe('webgl1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.canonicalMeshReady), { timeout: 60_000 }).toBe(true);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 20_000 }).toContain('country:DEU');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.selfTestPassed)).toBe(true);
+  await expect.poll(() => selectionColorPixelCount(page)).toBeGreaterThan(0);
   await expect(page.locator('.selection-overlay-layer .map-selection-casing')).toHaveCount(0);
   await expect(page.locator('.selection-overlay-layer .map-selection-outline')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('WebGL2 country selection produces real outline pixels before suppressing SVG fallback', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page, { preserveSelectionBuffer: true });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.gpuHealth), { timeout: 30_000 }).toBe('healthy');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || [])).toContain('country:DEU');
+  await expect.poll(() => selectionColorPixelCount(page)).toBeGreaterThan(0);
+  await expect(page.locator('.selection-overlay-layer .map-selection-casing')).toHaveCount(0);
+  await expect(page.locator('.selection-overlay-layer .map-selection-outline')).toHaveCount(0);
+  const selfTestCount = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.selfTestCount);
+  await page.mouse.wheel(0, -220);
+  await page.waitForTimeout(250);
+  expect(await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.selfTestCount)).toBe(selfTestCount);
   expect(errors).toEqual([]);
 });
 
