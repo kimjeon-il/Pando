@@ -586,7 +586,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .draft-shape { fill: rgba(205,169,93,.14); stroke: #e2c982; stroke-width: 2px; stroke-dasharray: 5 4; pointer-events: none; }
 .draft-shape.draft-raw-stroke { fill: none; stroke: var(--accent); stroke-width: 2.5px; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .draft-auto-close-preview { fill: none; stroke: var(--accent); stroke-width: 1.8px; stroke-dasharray: 4 4; opacity: .72; pointer-events: none; vector-effect: non-scaling-stroke; }
-.annex-river-emphasis { fill: none; stroke: var(--map-selection-halo); stroke-width: 2.5px; stroke-opacity: 1; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; vector-effect: non-scaling-stroke; }
+.river-partition-emphasis { fill: none; stroke: var(--map-selection-halo); stroke-width: 2.5px; stroke-opacity: 1; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; vector-effect: non-scaling-stroke; }
 #map.draft-stroke-active { cursor: crosshair; touch-action: none; }
 .draft-interactive { pointer-events: all; }
 .draft-vertex { cursor: move; }
@@ -657,9 +657,9 @@ body.file-menu-open .mobile-backdrop {
 .annex-candidate.selected-candidate { fill: rgba(104,190,126,.42); stroke: #d5ffde; stroke-width: 3.2px; opacity: 1; }
 .annex-candidate.alternate-candidate { fill: rgba(153,111,205,.16); stroke: #b998d5; opacity: .58; }
 .annex-candidate:hover { fill-opacity: .74; stroke-width: 3.2px; opacity: 1; }
-.annex-candidate.river-area { fill: color-mix(in srgb, var(--map-selection-halo) 18%, transparent); stroke: color-mix(in srgb, var(--map-selection-halo) 78%, var(--text-strong)); opacity: .72; }
-.annex-candidate.river-area.hovered-candidate { fill: color-mix(in srgb, var(--map-selection-halo) 30%, transparent); stroke-width: 3.2px; opacity: 1; }
-.annex-candidate.river-area.selected-candidate { fill: color-mix(in srgb, var(--map-selection-halo) 42%, transparent); stroke: var(--map-selection-halo); }
+.annex-candidate.river-partition { fill: color-mix(in srgb, var(--map-selection-halo) 18%, transparent); stroke: color-mix(in srgb, var(--map-selection-halo) 78%, var(--text-strong)); opacity: .72; }
+.annex-candidate.river-partition.hovered-candidate { fill: color-mix(in srgb, var(--map-selection-halo) 30%, transparent); stroke-width: 3.2px; opacity: 1; }
+.annex-candidate.river-partition.selected-candidate { fill: color-mix(in srgb, var(--map-selection-halo) 42%, transparent); stroke: var(--map-selection-halo); }
 .annex-transfer-preview { fill: color-mix(in srgb, var(--map-selection-halo) 16%, transparent); stroke: var(--map-selection-halo); stroke-width: 1.25px; stroke-dasharray: 4 3; opacity: .9; pointer-events: none; vector-effect: non-scaling-stroke; }
 .territory-component { vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: all; }
 .territory-component.available { fill: rgba(226,201,130,.08); stroke: rgba(255,224,153,.72); stroke-width: 1.4px; }

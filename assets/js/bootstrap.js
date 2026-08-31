@@ -2,7 +2,7 @@
 
 (() => {
   const BUILD_ID = '0.30.0';
-  const ASSET_REVISION = '0.30.0-r32';
+  const ASSET_REVISION = '0.30.0-r33';
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
