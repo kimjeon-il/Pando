@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r32';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r33';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -104,6 +104,7 @@ const countryImportIdentityModule = await import(versionedModuleUrl('./modules/c
 const coastReconciliationModule = await import(versionedModuleUrl('./modules/coast-reconciliation.js'));
 const coastReconciliationControllerModule = await import(versionedModuleUrl('./modules/coast-reconciliation-controller.js'));
 const annexGeometryModule = await import(versionedModuleUrl('./modules/annex-geometry.js'));
+const riverTerritoryPartitionModule = await import(versionedModuleUrl('./modules/river-territory-partition.js'));
 const selectionEmphasisModule = await import(versionedModuleUrl('./modules/selection-emphasis.js'));
 const mapInteractionStyleModule = await import(versionedModuleUrl('./modules/map-interaction-style.js'));
 const userPreferencesModule = await import(versionedModuleUrl('./modules/user-preferences.js'));
@@ -130,15 +131,13 @@ const {
   validateCoastReplacement,
 } = coastReconciliationModule;
 const { createCoastReconciliationController } = coastReconciliationControllerModule;
+const { planDrawnTerritoryAnnex } = annexGeometryModule;
 const {
-  planDrawnTerritoryAnnex,
-  buildRiverAnnexCandidates,
-  riverAnnexDiscoveryBounds,
-  expandRiverAnnexDiscoveryBounds,
-  RIVER_ANNEX_ALGORITHM_REVISION,
-  RIVER_ANNEX_CONFIG,
-  riverAnnexConfigFingerprint,
-} = annexGeometryModule;
+  buildRiverTerritoryPartitions,
+  RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
+  RIVER_TERRITORY_PARTITION_CONFIG,
+  riverTerritoryPartitionConfigFingerprint,
+} = riverTerritoryPartitionModule;
 const { SELECTION_STYLE, setSelectionColor, setInteractionStyle: setSelectionInteractionStyle, buildSelectionBoundarySegments, createSelectionEmphasisRenderer } = selectionEmphasisModule;
 const { resolveMapInteractionStyle } = mapInteractionStyleModule;
 const { loadUserPreferences, saveUserPreferences, effectiveTheme, defaultUserPreferences } = userPreferencesModule;
@@ -1177,11 +1176,11 @@ const {
     annexSelectedComponentKeys: [],
     annexSelectionMethod: 'line',
     annexSourceGeometry: null,
-    annexRiverAreaStatus: 'idle',
-    annexRiverAreaCandidates: [],
-    annexSelectedRiverAreaKeys: [],
-    annexHoveredRiverAreaKey: null,
-    annexRiverAreaPreviewGeometry: null,
+    annexRiverPartitionStatus: 'idle',
+    annexRiverPartitionCandidates: [],
+    annexSelectedRiverPartitionKeys: [],
+    annexHoveredRiverPartitionKey: null,
+    annexRiverPartitionPreviewGeometry: null,
     newCountryPhase: null,
     newCountrySourceIds: [],
     newCountryCandidates: [],
@@ -1971,11 +1970,11 @@ const {
   let countryLabelAnchorRequestId = 0;
   let geometryValidationWorker = null;
   let geometryValidationRequestId = 0;
-  let riverAnnexCandidateWorker = null;
-  let riverAnnexCandidateGeneration = 0;
-  let riverAnnexCandidateWorkerRequestId = 0;
-  const riverAnnexCandidateRequests = new Map();
-  const riverAnnexCandidateCache = new Map();
+  let riverPartitionWorker = null;
+  let riverPartitionGeneration = 0;
+  let riverPartitionWorkerRequestId = 0;
+  const riverPartitionRequests = new Map();
+  const riverPartitionCache = new Map();
   let activeGeometryPreviewApply = null;
   let activeGeometryPreviewDiscard = null;
   let snapCandidateCache = { key: '', candidates: [] };
@@ -6802,14 +6801,14 @@ const {
     if (issue) $('modeTaskInstruction')?.classList.add('cut-invalid');
   }
 
-  function renderAnnexRiverEmphasis() {
-    if (!draftLayer || state.tool !== 'annex-territory' || state.annexPhase !== 'river-areas') return;
-    const selected = new Set(state.annexSelectedRiverAreaKeys);
-    for (const candidate of state.annexRiverAreaCandidates || []) for (const section of candidate.riverBoundarySegments || []) {
+  function renderRiverPartitionEmphasis() {
+    if (!draftLayer || state.tool !== 'annex-territory' || state.annexPhase !== 'river-partitions') return;
+    const selected = new Set(state.annexSelectedRiverPartitionKeys);
+    for (const candidate of state.annexRiverPartitionCandidates || []) for (const section of candidate.riverBoundarySegments || []) {
       if (!Array.isArray(section) || section.length < 2) continue;
       draftLayer.append('path')
         .datum(featureFromGeometry({ type: 'LineString', coordinates: section }))
-        .attr('class', `annex-river-emphasis${selected.has(candidate.key) ? ' selected' : ''}`)
+        .attr('class', `river-partition-emphasis${selected.has(candidate.key) ? ' selected' : ''}`)
         .attr('d', path)
         .attr('stroke', SELECTION_STYLE.color)
         .attr('stroke-width', SELECTION_STYLE.primaryWidth)
@@ -6820,7 +6819,7 @@ const {
   function renderDraft() {
     draftLayer.selectAll('*').remove();
     const annexSide = state.tool === 'annex-territory' && ['side', 'polygon-preview'].includes(state.annexPhase);
-    const annexRiverAreas = state.tool === 'annex-territory' && state.annexPhase === 'river-areas';
+    const annexRiverPartitions = state.tool === 'annex-territory' && state.annexPhase === 'river-partitions';
     const newCountrySide = state.tool === 'new-country' && state.newCountryPhase === 'side';
     const annexComponents = state.tool === 'annex-territory' && state.annexPhase === 'components';
     const newCountryComponents = state.tool === 'new-country' && state.newCountryPhase === 'components';
@@ -6856,39 +6855,48 @@ const {
           selectTerritoryCandidate(d.properties.index);
         });
     }
-    if (annexRiverAreas) {
-      const selected = new Set(state.annexSelectedRiverAreaKeys);
-      const candidates = state.annexRiverAreaCandidates.map(candidate => ({
+    if (annexRiverPartitions) {
+      const selected = new Set(state.annexSelectedRiverPartitionKeys);
+      const candidates = state.annexRiverPartitionCandidates.map(candidate => ({
         type: 'Feature', geometry: candidate.geometry,
         properties: {
           key: candidate.key,
           selected: selected.has(candidate.key),
-          hovered: state.annexHoveredRiverAreaKey === candidate.key,
+          hovered: state.annexHoveredRiverPartitionKey === candidate.key,
+          riverBoundarySegments: candidate.riverBoundarySegments || [],
         },
       }));
-      const candidatePaths = draftLayer.selectAll('path.annex-candidate.river-area').data(candidates, item => item.properties.key).enter().append('path')
-        .attr('class', item => `annex-candidate river-area ${item.properties.selected ? 'selected-candidate' : 'alternate-candidate'}${item.properties.hovered && !item.properties.selected ? ' hovered-candidate' : ''}`)
+      const candidatePaths = draftLayer.selectAll('path.annex-candidate.river-partition').data(candidates, item => item.properties.key).enter().append('path')
+        .attr('class', item => `annex-candidate river-partition ${item.properties.selected ? 'selected-candidate' : 'alternate-candidate'}${item.properties.hovered && !item.properties.selected ? ' hovered-candidate' : ''}`)
         .attr('d', path)
         .on('mouseenter', function(item) {
-          if (state.annexHoveredRiverAreaKey === item.properties.key) return;
-          state.annexHoveredRiverAreaKey = item.properties.key;
+          if (state.annexHoveredRiverPartitionKey === item.properties.key) return;
+          state.annexHoveredRiverPartitionKey = item.properties.key;
           renderDraft();
         })
         .on('mouseleave', function(item) {
-          if (state.annexHoveredRiverAreaKey !== item.properties.key) return;
-          state.annexHoveredRiverAreaKey = null;
+          if (state.annexHoveredRiverPartitionKey !== item.properties.key) return;
+          state.annexHoveredRiverPartitionKey = null;
           renderDraft();
         })
         .on('click', function(item) {
           if (mapClickBlocked()) return;
           d3.event.preventDefault();
           d3.event.stopPropagation();
-          toggleRiverAnnexCandidate(item.properties.key);
+          const dividerDistance = projectedLineDistance({
+            type: 'MultiLineString',
+            coordinates: item.properties.riverBoundarySegments,
+          }, d3.mouse(svg.node()));
+          if (dividerDistance <= (isMobile() ? 14 : 8)) {
+            setActionStatus('영역 안쪽을 클릭하세요.', 'ready', 2200);
+            return;
+          }
+          toggleRiverPartitionCandidate(item.properties.key);
         });
       candidatePaths.append('title').text(item => `편입 후보 · ${item.properties.selected ? '선택 해제' : '선택 추가'}`);
-      if (state.annexRiverAreaPreviewGeometry) {
+      if (state.annexRiverPartitionPreviewGeometry) {
         draftLayer.append('path')
-          .datum(featureFromGeometry(state.annexRiverAreaPreviewGeometry))
+          .datum(featureFromGeometry(state.annexRiverPartitionPreviewGeometry))
           .attr('class', 'annex-transfer-preview')
           .attr('d', path);
       }
@@ -6914,7 +6922,7 @@ const {
             .attr('d', path);
         }
       }
-      renderAnnexRiverEmphasis();
+      renderRiverPartitionEmphasis();
       return;
     }
     const cutSourceGeometry = activeCutDraftSourceGeometry();
@@ -7019,7 +7027,7 @@ const {
         const point = activeProjection()(snap.coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
-    renderAnnexRiverEmphasis();
+    renderRiverPartitionEmphasis();
   }
 
   function selectTerritoryCandidate(candidateIndex) {
@@ -8210,7 +8218,7 @@ const {
   function updateModeButtons() {
     const annexLineMode = state.tool === 'annex-territory' && state.annexPhase === 'line';
     const annexPolygonMode = state.tool === 'annex-territory' && state.annexPhase === 'polygon';
-    const annexRiverAreaMode = state.tool === 'annex-territory' && state.annexPhase === 'river-areas';
+    const annexRiverPartitionMode = state.tool === 'annex-territory' && state.annexPhase === 'river-partitions';
     const annexPolygonPreviewMode = state.tool === 'annex-territory' && state.annexPhase === 'polygon-preview';
     const annexSideMode = state.tool === 'annex-territory' && state.annexPhase === 'side';
     const annexComponentsMode = state.tool === 'annex-territory' && state.annexPhase === 'components';
@@ -8229,7 +8237,7 @@ const {
     const boundarySelectMode = state.tool === 'country-border' && state.boundaryEditPhase === 'selecting';
     const boundaryEditMode = state.tool === 'country-border' && state.boundaryEditPhase === 'editing';
     const boundarySelectionReady = !boundarySelectMode || boundaryEditSelectionAnalysis(state.boundaryEditCountryIds).valid;
-    const methodSwitchAvailable = annexLineMode || annexPolygonMode || annexRiverAreaMode || annexPolygonPreviewMode || annexSideMode || annexComponentsMode
+    const methodSwitchAvailable = annexLineMode || annexPolygonMode || annexRiverPartitionMode || annexPolygonPreviewMode || annexSideMode || annexComponentsMode
       || newCountryLineMode || newCountrySideMode || newCountryComponentsMode;
     const activeMethod = state.tool === 'annex-territory'
       ? state.annexSelectionMethod
@@ -8293,7 +8301,7 @@ const {
         || (newCountrySourceMode && !state.newCountrySourceIds.length)
         || (annexDonorMode && !state.annexDonorCountryIds.length)
         || (annexPolygonMode && state.draftCoords.length < 3)
-        || (annexRiverAreaMode && (state.annexRiverAreaStatus !== 'ready' || !state.annexSelectedRiverAreaKeys.length || !state.annexRiverAreaPreviewGeometry))
+        || (annexRiverPartitionMode && (state.annexRiverPartitionStatus !== 'ready' || !state.annexSelectedRiverPartitionKeys.length || !state.annexRiverPartitionPreviewGeometry))
         || (annexPolygonPreviewMode && !state.annexCandidates[0]?.geometry)
         || (mergeTargetMode && !state.mergeTargetCountryIds.length)
         || (drawingMergeMode && !state.drawingMergeTargetIds.length)
@@ -8317,7 +8325,7 @@ const {
       else if (annexDonorMode) primaryLabel = `선택 완료 (${state.annexDonorCountryIds.length})`;
       else if (annexPolygonMode) primaryLabel = '영역 편입';
       else if (annexPolygonPreviewMode) primaryLabel = '영역 편입';
-      else if (annexRiverAreaMode) primaryLabel = `편입 (${state.annexSelectedRiverAreaKeys.length})`;
+      else if (annexRiverPartitionMode) primaryLabel = `편입 (${state.annexSelectedRiverPartitionKeys.length})`;
       else if (mergeTargetMode) primaryLabel = `합병 (${state.mergeTargetCountryIds.length})`;
       else if (drawingMergeMode) primaryLabel = `영역 합치기 (${state.drawingMergeTargetIds.length})`;
       else if (territorialUnitMergeMode) primaryLabel = `영역 합치기 (${state.territorialUnitMergeTargetIds.length})`;
@@ -8364,7 +8372,7 @@ const {
     if (state.tool === 'new-country' && state.newCountryPhase === 'side') return completeNewCountryCreation(state.newCountrySelectedCandidateIndex);
     if (state.tool === 'new-country' && state.newCountryPhase === 'components') return completeNewCountryCreation(null);
     if (state.tool === 'annex-territory' && state.annexPhase === 'side') return completeLinearAnnexation(state.annexSelectedCandidateIndex);
-    if (state.tool === 'annex-territory' && state.annexPhase === 'river-areas') return completeLinearAnnexation(null);
+    if (state.tool === 'annex-territory' && state.annexPhase === 'river-partitions') return completeLinearAnnexation(null);
     if (state.tool === 'annex-territory' && state.annexPhase === 'polygon-preview') return completeLinearAnnexation(0);
     if (state.tool === 'annex-territory' && state.annexPhase === 'components') return completeLinearAnnexation(null);
     if (isDrawingDraftTool(state.tool) || ['new-country', 'annex-territory'].includes(state.tool)) return finishDraft();
@@ -8396,7 +8404,7 @@ const {
     state.annexSelectedComponentKeys = [];
     state.annexSelectionMethod = 'line';
     state.annexSourceGeometry = null;
-    resetRiverAnnexAreaState();
+    resetRiverPartitionState();
   }
 
   function resetMergeState() {
@@ -8433,18 +8441,18 @@ const {
     const useComponents = method === 'components';
     const usePolygon = method === 'polygon';
     const useRiver = method === 'river';
-    if (state.tool === 'annex-territory' && ['line', 'polygon', 'river-areas', 'polygon-preview', 'side', 'components'].includes(state.annexPhase)) {
+    if (state.tool === 'annex-territory' && ['line', 'polygon', 'river-partitions', 'polygon-preview', 'side', 'components'].includes(state.annexPhase)) {
       if (!state.annexDonorCountryIds.length) return;
       clearDraftInput(true);
       state.annexComponentIndex = null;
       state.annexCandidates = [];
       state.annexSelectedCandidateIndex = null;
       state.annexSelectedComponentKeys = [];
-      resetRiverAnnexAreaState();
+      resetRiverPartitionState();
       state.annexSelectionMethod = annexMethods.has(method) ? method : 'line';
-      state.annexPhase = useComponents ? 'components' : usePolygon ? 'polygon' : useRiver ? 'river-areas' : 'line';
+      state.annexPhase = useComponents ? 'components' : usePolygon ? 'polygon' : useRiver ? 'river-partitions' : 'line';
       if (useComponents) updateTerritoryComponentSelectionFeedback();
-      else if (useRiver) prepareAnnexRiverAreaCandidates();
+      else if (useRiver) prepareRiverPartitionCandidates();
       else {
         setModeBanner(defaultDraftInstruction());
       }
@@ -8875,12 +8883,12 @@ const {
     state.annexSelectedCandidateIndex = null;
     state.annexSelectedComponentKeys = [];
     state.annexSelectionMethod = 'line';
-    resetRiverAnnexAreaState();
+    resetRiverPartitionState();
     setTool('annex-territory', false);
     state.annexTargetCountryId = String(id);
     syncCountryActionButtons();
     renderCountries();
-    setModeBanner('편입 기준이 될 국가를 지도에서 고르세요.');
+    setModeBanner('피편입국을 선택하세요. 여러 국가를 선택할 수 있습니다.');
     updateModeButtons();
     return true;
   }
@@ -8903,7 +8911,7 @@ const {
     else selected.add(donorId);
     state.annexDonorCountryIds = [...selected];
     renderCountries();
-    setModeBanner('편입 기준이 될 국가를 지도에서 고르세요.');
+    setModeBanner('피편입국을 선택하세요. 여러 국가를 선택할 수 있습니다.');
     updateModeButtons();
   }
 
@@ -8923,7 +8931,7 @@ const {
     state.annexSelectedCandidateIndex = null;
     state.annexSelectedComponentKeys = [];
     state.annexSelectionMethod = 'line';
-    resetRiverAnnexAreaState();
+    resetRiverPartitionState();
     state.annexSourceGeometry = sourceGeometry;
     state.draftCoords = [];
     state.draftHover = null;
@@ -9497,7 +9505,7 @@ const {
         setActionStatus('영토를 가져올 국가를 먼저 지도에서 선택하세요.', 'error', 3200);
         return;
       }
-      if (state.annexPhase === 'river-areas') return;
+      if (state.annexPhase === 'river-partitions') return;
       if (state.annexPhase !== 'line' && state.annexPhase !== 'polygon') return;
       if (!state.annexDonorCountryIds.length) {
         setActionStatus('선택한 국가를 찾을 수 없습니다. 영토를 가져올 국가를 다시 선택하세요.', 'error', 3400);
@@ -9644,64 +9652,102 @@ const {
     renderAll();
   }
 
-  function resetRiverAnnexAreaState({ preserveCache = true } = {}) {
-    riverAnnexCandidateGeneration += 1;
-    state.annexRiverAreaStatus = 'idle';
-    state.annexRiverAreaCandidates = [];
-    state.annexSelectedRiverAreaKeys = [];
-    state.annexHoveredRiverAreaKey = null;
-    state.annexRiverAreaPreviewGeometry = null;
-    if (!preserveCache) riverAnnexCandidateCache.clear();
+  function resetRiverPartitionState({ preserveCache = true } = {}) {
+    riverPartitionGeneration += 1;
+    state.annexRiverPartitionStatus = 'idle';
+    state.annexRiverPartitionCandidates = [];
+    state.annexSelectedRiverPartitionKeys = [];
+    state.annexHoveredRiverPartitionKey = null;
+    state.annexRiverPartitionPreviewGeometry = null;
+    if (!preserveCache) riverPartitionCache.clear();
   }
 
-  function riverAnnexGeometrySignature(feature) {
+  function riverPartitionGeometrySignature(feature) {
     if (!feature?.geometry) return '';
     return `${String(feature.properties?.editor_id || feature.id || '')}:${JSON.stringify(feature.geometry.coordinates || [])}`;
   }
 
-  function riverAnnexHydroSignature() {
+  function riverPartitionHydroSignature() {
     const edits = state.hydroEdits
       .filter(feature => feature?.properties?.category === 'river' && feature.geometry)
       .map(feature => `${String(feature.id)}:${JSON.stringify(feature.geometry.coordinates || [])}`)
       .sort();
-    return `${state.hydroManifest?.version || ''}:${edits.join('|')}`;
+    return `${state.hydroManifest?.version || ''}:${state.hydroManifest?.index?.sha256 || ''}:${edits.join('|')}`;
   }
 
-  function riverAnnexCandidateSignature(target, donors) {
+  function riverPartitionCandidateSignature(donors) {
     return [
-      riverAnnexGeometrySignature(target),
-      ...donors.map(riverAnnexGeometrySignature).sort(),
-      riverAnnexHydroSignature(),
-      'annex-source-v1',
-      RIVER_ANNEX_ALGORITHM_REVISION,
-      riverAnnexConfigFingerprint(RIVER_ANNEX_CONFIG),
+      ...donors.map(riverPartitionGeometrySignature).sort(),
+      riverPartitionHydroSignature(),
+      RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
+      riverTerritoryPartitionConfigFingerprint(RIVER_TERRITORY_PARTITION_CONFIG),
     ].join('::');
   }
 
-  function riverAnnexBoundsOverlap(left, right) {
+  function riverPartitionBoundsOverlap(left, right) {
     return !!left && !!right && left[0] <= right[2] && left[2] >= right[0] && left[1] <= right[3] && left[3] >= right[1];
   }
 
-  async function loadRiverAnnexSourceFeatures(target, donors) {
-    const bounds = expandRiverAnnexDiscoveryBounds(
-      riverAnnexDiscoveryBounds(target.geometry, donors.map(feature => feature.geometry)),
-      RIVER_ANNEX_CONFIG.discoveryRadiusM,
-    );
-    if (!bounds) return {
-      features: [], bounds, failedLogicalIds: [],
-      diagnostics: { discoveredLogicalRivers: 0, loadedRivers: 0, failedRiverLoads: 0 },
-    };
-    const logicalIds = await gpuMapRenderer.queryHydroLogicalFeatures(bounds, { category: 'river', geometryRole: 'source' });
+  function riverPartitionQueryBounds(geometry) {
+    const output = [];
+    for (const polygon of geometryPolygonSets(geometry)) {
+      const longitudes = [];
+      let minLatitude = Infinity;
+      let maxLatitude = -Infinity;
+      let minLongitude = Infinity;
+      let maxLongitude = -Infinity;
+      for (const ring of polygon || []) for (const point of ring || []) {
+        const longitude = Number(point?.[0]);
+        const latitude = Number(point?.[1]);
+        if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) continue;
+        longitudes.push(longitude);
+        minLatitude = Math.min(minLatitude, latitude);
+        maxLatitude = Math.max(maxLatitude, latitude);
+        minLongitude = Math.min(minLongitude, longitude);
+        maxLongitude = Math.max(maxLongitude, longitude);
+      }
+      if (!longitudes.length) continue;
+      if (maxLongitude - minLongitude <= 180) {
+        output.push([minLongitude, minLatitude, maxLongitude, maxLatitude]);
+        continue;
+      }
+      let eastMinimum = Infinity;
+      let westMaximum = -Infinity;
+      for (const longitude of longitudes) {
+        if (longitude >= 0) eastMinimum = Math.min(eastMinimum, longitude);
+        else westMaximum = Math.max(westMaximum, longitude);
+      }
+      if (Number.isFinite(eastMinimum)) output.push([eastMinimum, minLatitude, 180, maxLatitude]);
+      if (Number.isFinite(westMaximum)) output.push([-180, minLatitude, westMaximum, maxLatitude]);
+    }
+    return output;
+  }
+
+  function riverPartitionFeatureKey(feature) {
+    return String(feature?.properties?.pandolab_id ?? feature?.properties?.__logicalFid ?? feature?.id ?? '');
+  }
+
+  async function loadRiverPartitionFeatures(donors) {
+    if (state.physicalLoadState.hydro !== 'ready') {
+      const ready = await loadHydroData(state.physicalLoadState.hydro === 'error');
+      if (!ready) throw new Error('강·호수 데이터가 아직 준비되지 않았습니다.');
+    }
+    const boundsList = donors.flatMap(feature => riverPartitionQueryBounds(feature.geometry));
+    const logicalIds = new Map();
+    for (const bounds of boundsList) {
+      const ids = await gpuMapRenderer.queryHydroLogicalFeatures(bounds, { category: 'river' });
+      for (const logicalId of ids || []) logicalIds.set(String(logicalId), logicalId);
+    }
     const loaded = [];
     const failedLogicalIds = [];
-    const queue = [...new Set(logicalIds)];
+    const queue = [...logicalIds.values()];
     const concurrency = Math.min(4, queue.length);
     let cursor = 0;
     await Promise.all(Array.from({ length: concurrency }, async () => {
       while (cursor < queue.length) {
         const logicalId = queue[cursor++];
         try {
-          const feature = await gpuMapRenderer.loadHydroLogicalFeature(logicalId, { geometryRole: 'source' });
+          const feature = await gpuMapRenderer.loadHydroLogicalFeature(logicalId);
           if (feature?.properties?.category === 'river' && feature.geometry) loaded.push(feature);
         } catch (_) {
           failedLogicalIds.push(logicalId);
@@ -9711,73 +9757,75 @@ const {
     const editRivers = state.hydroEdits.filter(feature => (
       feature?.properties?.category === 'river'
       && feature.geometry
-      && riverAnnexBoundsOverlap(geometryBounds(feature.geometry), bounds)
+      && boundsList.some(bounds => riverPartitionBoundsOverlap(geometryBounds(feature.geometry), bounds))
     ));
     if (queue.length && !loaded.length && failedLogicalIds.length === queue.length) {
-      const error = new Error('관련 원본 하천 데이터를 불러오지 못했습니다.');
-      error.code = 'RIVER_ANNEX_SOURCE_ERROR';
+      const error = new Error('피편입국을 가로지르는 하천 데이터를 불러오지 못했습니다.');
+      error.code = 'RIVER_PARTITION_SOURCE_ERROR';
       error.failedLogicalIds = failedLogicalIds.slice();
       throw error;
     }
-    const features = [...loaded, ...editRivers];
+    const featuresByKey = new Map();
+    for (const feature of loaded) featuresByKey.set(riverPartitionFeatureKey(feature), feature);
+    for (const feature of editRivers) featuresByKey.set(riverPartitionFeatureKey(feature), feature);
     return {
-      features,
-      bounds,
+      features: [...featuresByKey.values()],
+      boundsList,
       failedLogicalIds,
       diagnostics: {
         discoveredLogicalRivers: queue.length,
-        loadedRivers: features.length,
+        loadedRivers: featuresByKey.size,
         failedRiverLoads: failedLogicalIds.length,
       },
     };
   }
 
-  function ensureRiverAnnexCandidateWorker() {
-    if (riverAnnexCandidateWorker || typeof Worker !== 'function') return riverAnnexCandidateWorker;
+  function ensureRiverPartitionWorker() {
+    if (riverPartitionWorker || typeof Worker !== 'function') return riverPartitionWorker;
     try {
-      riverAnnexCandidateWorker = new Worker(runtimeAssetUrl('workers/river-annex-worker.js'), {
-        type: 'module', name: 'pandolab-river-annex-candidates',
+      riverPartitionWorker = new Worker(runtimeAssetUrl('workers/river-territory-partition-worker.js'), {
+        type: 'module', name: 'pandolab-river-territory-partitions',
       });
-      riverAnnexCandidateWorker.onmessage = event => {
+      riverPartitionWorker.onmessage = event => {
         const message = event.data || {};
-        const pending = riverAnnexCandidateRequests.get(Number(message.requestId));
+        const pending = riverPartitionRequests.get(Number(message.requestId));
         if (!pending) return;
-        riverAnnexCandidateRequests.delete(Number(message.requestId));
-        if (message.type === 'error') pending.reject(new Error(message.message || '하천 경계 후보를 계산하지 못했습니다.'));
-        else if (message.type === 'result') pending.resolve(message.result || { candidates: [], diagnostics: {} });
+        riverPartitionRequests.delete(Number(message.requestId));
+        if (message.type === 'error') pending.reject(new Error(message.message || '하천 영토 조각을 계산하지 못했습니다.'));
+        else if (message.type === 'result') pending.resolve(message.result || { candidates: [], donorResults: [], diagnostics: {} });
       };
-      riverAnnexCandidateWorker.onerror = event => {
-        const error = new Error(event.message || '하천 경계 후보 Worker 실행 오류');
-        for (const pending of riverAnnexCandidateRequests.values()) pending.reject(error);
-        riverAnnexCandidateRequests.clear();
-        riverAnnexCandidateWorker?.terminate();
-        riverAnnexCandidateWorker = null;
+      riverPartitionWorker.onerror = event => {
+        const error = new Error(event.message || '하천 영토 분할 Worker 실행 오류');
+        for (const pending of riverPartitionRequests.values()) pending.reject(error);
+        riverPartitionRequests.clear();
+        riverPartitionWorker?.terminate();
+        riverPartitionWorker = null;
       };
     } catch (_) {
-      riverAnnexCandidateWorker = null;
+      riverPartitionWorker = null;
     }
-    return riverAnnexCandidateWorker;
+    return riverPartitionWorker;
   }
 
-  function computeRiverAnnexCandidatesAsync(payload) {
-    const worker = ensureRiverAnnexCandidateWorker();
-    if (!worker) return Promise.resolve().then(() => buildRiverAnnexCandidates({ ...payload, clipper: window.polygonClipping }));
-    const requestId = ++riverAnnexCandidateWorkerRequestId;
+  function computeRiverPartitionsAsync(payload) {
+    const worker = ensureRiverPartitionWorker();
+    if (!worker) return Promise.resolve().then(() => buildRiverTerritoryPartitions({ ...payload, clipper: window.polygonClipping }));
+    const requestId = ++riverPartitionWorkerRequestId;
     return new Promise((resolve, reject) => {
-      riverAnnexCandidateRequests.set(requestId, { resolve, reject });
+      riverPartitionRequests.set(requestId, { resolve, reject });
       worker.postMessage({ type: 'compute', requestId, payload });
     });
   }
 
-  function selectedRiverAnnexCandidates() {
-    const selected = new Set(state.annexSelectedRiverAreaKeys);
-    return state.annexRiverAreaCandidates.filter(candidate => selected.has(candidate.key));
+  function selectedRiverPartitionCandidates() {
+    const selected = new Set(state.annexSelectedRiverPartitionKeys);
+    return state.annexRiverPartitionCandidates.filter(candidate => selected.has(candidate.key));
   }
 
-  function refreshRiverAnnexPreview() {
-    const selected = selectedRiverAnnexCandidates();
+  function refreshRiverPartitionPreview() {
+    const selected = selectedRiverPartitionCandidates();
     if (!selected.length) {
-      state.annexRiverAreaPreviewGeometry = null;
+      state.annexRiverPartitionPreviewGeometry = null;
       return null;
     }
     const coordinateSets = selected.map(candidate => {
@@ -9785,18 +9833,18 @@ const {
       return candidate.geometry?.type === 'MultiPolygon' ? candidate.geometry.coordinates : null;
     }).filter(Boolean);
     const merged = coordinateSets.length === 1 ? coordinateSets[0] : window.polygonClipping?.union(...coordinateSets);
-    state.annexRiverAreaPreviewGeometry = normalizeClippedLandGeometry(merged);
-    return state.annexRiverAreaPreviewGeometry;
+    state.annexRiverPartitionPreviewGeometry = normalizeClippedLandGeometry(merged);
+    return state.annexRiverPartitionPreviewGeometry;
   }
 
-  function toggleRiverAnnexCandidate(candidateKey) {
-    if (state.tool !== 'annex-territory' || state.annexPhase !== 'river-areas') return;
-    if (!state.annexRiverAreaCandidates.some(candidate => candidate.key === candidateKey)) return;
-    const selected = new Set(state.annexSelectedRiverAreaKeys);
+  function toggleRiverPartitionCandidate(candidateKey) {
+    if (state.tool !== 'annex-territory' || state.annexPhase !== 'river-partitions') return;
+    if (!state.annexRiverPartitionCandidates.some(candidate => candidate.key === candidateKey)) return;
+    const selected = new Set(state.annexSelectedRiverPartitionKeys);
     if (selected.has(candidateKey)) selected.delete(candidateKey); else selected.add(candidateKey);
-    state.annexSelectedRiverAreaKeys = [...selected].sort();
-    refreshRiverAnnexPreview();
-    const count = state.annexSelectedRiverAreaKeys.length;
+    state.annexSelectedRiverPartitionKeys = [...selected].sort();
+    refreshRiverPartitionPreview();
+    const count = state.annexSelectedRiverPartitionKeys.length;
     setModeBanner(count
       ? `편입할 영역을 선택하세요. ${count}개 영역 선택됨.`
       : '편입할 영역을 선택하세요. 여러 영역을 선택할 수 있습니다.', 'annex-mode');
@@ -9804,67 +9852,77 @@ const {
     updateModeButtons();
   }
 
-  async function prepareAnnexRiverAreaCandidates({ targetCountryId = state.annexTargetCountryId, donorCountryIds = state.annexDonorCountryIds } = {}) {
+  function riverPartitionResultMessage(candidates, donorResults, donors) {
+    const invalidIds = new Set((donorResults || []).filter(result => result.status === 'invalid').map(result => String(result.donorCountryId)));
+    const invalidNames = donors.filter(feature => invalidIds.has(String(feature.properties?.editor_id || feature.id))).map(countryName);
+    if (candidates.length) {
+      const suffix = invalidNames.length ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외했습니다.` : '';
+      return `강으로 분리된 영토를 선택하세요. 여러 영역을 선택할 수 있습니다.${suffix}`;
+    }
+    const firstReason = (donorResults || []).find(result => result.reason)?.reason;
+    return firstReason || '피편입국 영토를 둘 이상으로 나누는 강이 없습니다.';
+  }
+
+  async function prepareRiverPartitionCandidates({ targetCountryId = state.annexTargetCountryId, donorCountryIds = state.annexDonorCountryIds } = {}) {
     const target = countryFeatureById(String(targetCountryId || ''));
     const donors = [...new Set((donorCountryIds || []).map(String))].map(countryFeatureById).filter(Boolean);
-    if (state.tool !== 'annex-territory' || state.annexPhase !== 'river-areas' || !target || !donors.length) return;
-    const signature = riverAnnexCandidateSignature(target, donors);
-    resetRiverAnnexAreaState();
-    const generation = riverAnnexCandidateGeneration;
+    if (state.tool !== 'annex-territory' || state.annexPhase !== 'river-partitions' || !target || !donors.length) return;
+    const signature = riverPartitionCandidateSignature(donors);
+    resetRiverPartitionState();
+    const generation = riverPartitionGeneration;
     const current = () => state.tool === 'annex-territory'
-      && state.annexPhase === 'river-areas'
-      && generation === riverAnnexCandidateGeneration
-      && signature === riverAnnexCandidateSignature(countryFeatureById(String(state.annexTargetCountryId || '')), state.annexDonorCountryIds.map(countryFeatureById).filter(Boolean));
-    const cached = riverAnnexCandidateCache.get(signature);
+      && state.annexPhase === 'river-partitions'
+      && generation === riverPartitionGeneration
+      && signature === riverPartitionCandidateSignature(state.annexDonorCountryIds.map(countryFeatureById).filter(Boolean));
+    const cached = riverPartitionCache.get(signature);
     if (cached) {
-      state.annexRiverAreaCandidates = structuredClone(cached.candidates);
-      window.__PANDOLAB_RIVER_ANNEX_DIAGNOSTICS__ = structuredClone(cached.diagnostics || {});
-      state.annexRiverAreaStatus = cached.candidates.length ? 'ready' : 'empty';
-      setModeBanner(cached.candidates.length
-        ? '편입할 영역을 선택하세요. 여러 영역을 선택할 수 있습니다.'
-        : '현재 국경과 하천으로 둘러싸인 편입 가능 영역이 없습니다.', 'annex-mode');
+      state.annexRiverPartitionCandidates = structuredClone(cached.candidates);
+      window.__PANDOLAB_RIVER_PARTITION_DIAGNOSTICS__ = structuredClone(cached.diagnostics || {});
+      state.annexRiverPartitionStatus = cached.candidates.length ? 'ready' : 'empty';
+      setModeBanner(riverPartitionResultMessage(cached.candidates, cached.donorResults, donors), 'annex-mode');
       updateModeButtons();
       renderAll();
       return;
     }
-    state.annexRiverAreaStatus = 'loading';
-    setModeBanner('현재 국경과 하천 사이의 편입 가능 영역을 계산하는 중입니다.', 'annex-mode');
+    state.annexRiverPartitionStatus = 'loading';
+    setModeBanner('피편입국을 가로지르는 강으로 영토 조각을 계산하는 중입니다.', 'annex-mode');
     updateModeButtons();
     renderAll();
     try {
-      const sources = await loadRiverAnnexSourceFeatures(target, donors);
+      const sources = await loadRiverPartitionFeatures(donors);
       if (!current()) return;
-      const result = await computeRiverAnnexCandidatesAsync({
-        targetFeature: target,
-        donorFeatures: donors,
+      const result = await computeRiverPartitionsAsync({
+        donors: donors.map(feature => ({
+          countryId: String(feature.properties?.editor_id || feature.id || ''),
+          geometry: feature.geometry,
+          geometryRevision: countryLandRevision,
+        })),
         riverFeatures: sources.features,
-        topologyRevision: signature,
-        config: RIVER_ANNEX_CONFIG,
-        algorithmRevision: RIVER_ANNEX_ALGORITHM_REVISION,
-        sourceDiagnostics: sources.diagnostics,
+        hydroRevision: riverPartitionHydroSignature(),
+        config: RIVER_TERRITORY_PARTITION_CONFIG,
+        algorithmRevision: RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
       });
       if (!current()) return;
       const candidates = (result.candidates || []).filter(candidate => candidate?.geometry && candidate.donorCountryId);
-      const diagnostics = result.diagnostics || sources.diagnostics || {};
-      riverAnnexCandidateCache.set(signature, { candidates: structuredClone(candidates), diagnostics, failedLogicalIds: sources.failedLogicalIds });
-      if (riverAnnexCandidateCache.size > 8) riverAnnexCandidateCache.delete(riverAnnexCandidateCache.keys().next().value);
-      window.__PANDOLAB_RIVER_ANNEX_DIAGNOSTICS__ = structuredClone(diagnostics);
-      state.annexRiverAreaCandidates = candidates;
-      state.annexRiverAreaStatus = candidates.length ? 'ready' : 'empty';
-      setModeBanner(candidates.length
-        ? '편입할 영역을 선택하세요. 여러 영역을 선택할 수 있습니다.'
-        : '현재 국경과 하천으로 둘러싸인 편입 가능 영역이 없습니다.', 'annex-mode');
+      const donorResults = result.donorResults || [];
+      const diagnostics = { ...sources.diagnostics, ...(result.diagnostics || {}) };
+      riverPartitionCache.set(signature, { candidates: structuredClone(candidates), donorResults: structuredClone(donorResults), diagnostics });
+      if (riverPartitionCache.size > 8) riverPartitionCache.delete(riverPartitionCache.keys().next().value);
+      window.__PANDOLAB_RIVER_PARTITION_DIAGNOSTICS__ = structuredClone(diagnostics);
+      state.annexRiverPartitionCandidates = candidates;
+      state.annexRiverPartitionStatus = candidates.length ? 'ready' : 'empty';
+      setModeBanner(riverPartitionResultMessage(candidates, donorResults, donors), 'annex-mode');
       updateModeButtons();
       renderAll();
     } catch (error) {
       if (!current()) return;
-      state.annexRiverAreaStatus = error?.code === 'RIVER_ANNEX_SOURCE_ERROR' ? 'source-error' : 'error';
-      state.annexRiverAreaCandidates = [];
-      setModeBanner(error?.code === 'RIVER_ANNEX_SOURCE_ERROR'
-        ? '관련 원본 하천 데이터를 불러오지 못했습니다.'
-        : '하천 경계 편입 가능 영역을 계산하지 못했습니다.', 'annex-mode');
+      state.annexRiverPartitionStatus = error?.code === 'RIVER_PARTITION_SOURCE_ERROR' ? 'source-error' : 'error';
+      state.annexRiverPartitionCandidates = [];
+      setModeBanner(error?.code === 'RIVER_PARTITION_SOURCE_ERROR'
+        ? '피편입국을 가로지르는 하천 데이터를 불러오지 못했습니다.'
+        : '강으로 분리되는 영토 조각을 계산하지 못했습니다.', 'annex-mode');
       updateModeButtons();
-      reportOperationError(error, '하천 경계 편입 가능 영역을 계산하지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-ANNEX-RIVER-001', 4200);
+      reportOperationError(error, '강으로 분리되는 영토 조각을 계산하지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-ANNEX-RIVER-001', 4200);
     }
   }
 
@@ -9984,17 +10042,17 @@ const {
   }
 
   async function completeLinearAnnexation(candidateIndex) {
-    if (state.tool !== 'annex-territory' || !['side', 'river-areas', 'polygon-preview', 'components'].includes(state.annexPhase)) return;
+    if (state.tool !== 'annex-territory' || !['side', 'river-partitions', 'polygon-preview', 'components'].includes(state.annexPhase)) return;
     const targetId = String(state.annexTargetCountryId || '');
-    const riverAreaMode = state.annexPhase === 'river-areas';
-    const selectedRiverCandidates = riverAreaMode ? selectedRiverAnnexCandidates() : [];
-    const donorIds = riverAreaMode
-      ? [...new Set(selectedRiverCandidates.map(candidate => String(candidate.donorCountryId)).filter(Boolean))]
+    const riverPartitionMode = state.annexPhase === 'river-partitions';
+    const selectedRiverPartitions = riverPartitionMode ? selectedRiverPartitionCandidates() : [];
+    const donorIds = riverPartitionMode
+      ? [...new Set(selectedRiverPartitions.map(candidate => String(candidate.donorCountryId)).filter(Boolean))]
       : state.annexDonorCountryIds.map(String);
     if (!requireCountriesUnlocked([targetId, ...donorIds], '영토를 편입')) return;
     let candidate;
-    if (riverAreaMode) {
-      candidate = state.annexRiverAreaPreviewGeometry ? { geometry: state.annexRiverAreaPreviewGeometry } : null;
+    if (riverPartitionMode) {
+      candidate = state.annexRiverPartitionPreviewGeometry ? { geometry: state.annexRiverPartitionPreviewGeometry } : null;
     } else if (state.annexPhase === 'components') {
       try { candidate = { geometry: selectedTerritoryComponentGeometry() }; }
       catch (error) {
@@ -10034,7 +10092,7 @@ const {
       },
       onSuccess: plan => {
         const removedText = plan.removedIds.length ? ` · ${plan.removedIds.length}개국 완전 흡수` : '';
-        const selectedText = riverAreaMode ? `선택한 ${selectedRiverCandidates.length}개 영역을 ` : '선택한 ';
+        const selectedText = riverPartitionMode ? `선택한 ${selectedRiverPartitions.length}개 영역을 ` : '선택한 ';
         setActionStatus(`${selectedText}${plan.affectedDonorIds.length}개국의 영토를 ${targetName}에 편입했습니다${removedText}.`, 'success', 4000);
       },
       onError: error => reportOperationError(error, '영토를 편입하지 못해 변경을 되돌렸습니다. 편입 범위를 조정한 뒤 다시 시도하세요.', 'PL-ANNEX-002'),
@@ -16167,7 +16225,7 @@ const {
       const newCountryComponentsMode = state.tool === 'new-country' && state.newCountryPhase === 'components';
       const annexDonorMode = state.tool === 'annex-territory' && state.annexPhase === 'donor';
       const annexSideMode = state.tool === 'annex-territory' && state.annexPhase === 'side';
-      const annexRiverAreaMode = state.tool === 'annex-territory' && state.annexPhase === 'river-areas';
+      const annexRiverPartitionMode = state.tool === 'annex-territory' && state.annexPhase === 'river-partitions';
       const annexPolygonPreviewMode = state.tool === 'annex-territory' && state.annexPhase === 'polygon-preview';
       const annexComponentsMode = state.tool === 'annex-territory' && state.annexPhase === 'components';
       const mergeTargetMode = state.tool === 'merge-country' && !!state.mergeSourceCountryId;
@@ -16185,12 +16243,12 @@ const {
         else beginCountryBorderEditing();
         return;
       }
-      if (e.key === 'Enter' && !editingText && (newCountrySideMode || annexSideMode || annexRiverAreaMode || annexPolygonPreviewMode || newCountryComponentsMode || annexComponentsMode)) {
+      if (e.key === 'Enter' && !editingText && (newCountrySideMode || annexSideMode || annexRiverPartitionMode || annexPolygonPreviewMode || newCountryComponentsMode || annexComponentsMode)) {
         e.preventDefault();
         if (newCountrySideMode) completeNewCountryCreation(state.newCountrySelectedCandidateIndex);
         else if (newCountryComponentsMode) completeNewCountryCreation(null);
         else if (annexSideMode) completeLinearAnnexation(state.annexSelectedCandidateIndex);
-        else if (annexRiverAreaMode) completeLinearAnnexation(null);
+        else if (annexRiverPartitionMode) completeLinearAnnexation(null);
         else if (annexPolygonPreviewMode) completeLinearAnnexation(0);
         else completeLinearAnnexation(null);
         return;
