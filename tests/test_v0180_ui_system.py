@@ -16,7 +16,7 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.30.0-r34", INDEX)
+            self.assertIn(f"{asset}?v=0.30.0-r35", INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
