@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r33';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r34';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -14200,6 +14200,8 @@ const {
     const entity = historicalLibraryService.get(libraryId);
     const currentCountryId = String(entity?.metadata?.currentCountryId || '');
     if (currentCountryId && countryFeatureById(currentCountryId)) return currentCountryId;
+    const preferredInstanceId = String(entity?.metadata?.preferredInstanceId || '');
+    if (preferredInstanceId && countryFeatureById(preferredInstanceId)) return preferredInstanceId;
     const country = state.countriesData?.features?.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
     if (country) return String(country.properties.editor_id);
     const unit = state.territorialUnits.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
@@ -14214,13 +14216,45 @@ const {
     let countriesAdded = 0;
     for (const descriptor of pending) {
       if (descriptor.type === LIBRARY_ENTITY_TYPES.COUNTRY) {
-        const feature = createCountryFeature(descriptor.name, [], nextCountryColor(), descriptor.geometry);
+        const preferredInstanceId = String(descriptor.metadata?.preferredInstanceId || '');
+        const feature = createCountryFeature(
+          descriptor.name,
+          [],
+          descriptor.metadata?.defaultColor || nextCountryColor(),
+          descriptor.geometry,
+        );
+        if (preferredInstanceId && !countryFeatureById(preferredInstanceId)) {
+          feature.properties.editor_id = preferredInstanceId;
+        }
         feature.properties.sourceLibraryId = descriptor.libraryId;
         feature.properties.sourceGeometryVersion = descriptor.geometryVersionId;
         feature.properties.validFrom = descriptor.validFrom;
         feature.properties.validTo = descriptor.validTo;
         feature.properties.libraryMetadata = descriptor.metadata;
+        if (descriptor.metadata?.territoryMerge === 'imported-priority') {
+          const overlappingCountryIds = new Set(countryIdsOverlappingGeometry(descriptor.geometry));
+          const donorIds = [];
+          const nextFeatures = [];
+          for (const candidate of state.countriesData.features || []) {
+            const donorId = String(candidate.properties?.editor_id || '');
+            if (!overlappingCountryIds.has(donorId)) {
+              nextFeatures.push(candidate);
+              continue;
+            }
+            if (donorId) donorIds.push(donorId);
+            const remainder = normalizeClippedLandGeometry(window.polygonClipping.difference(
+              candidate.geometry.coordinates,
+              descriptor.geometry.coordinates,
+            ));
+            if (!remainder || geometryAreaKm2(remainder) <= 0.000001) continue;
+            nextFeatures.push({ ...candidate, geometry: remainder });
+          }
+          state.countriesData.features = nextFeatures;
+          for (const donorId of donorIds) state.historyDirtyCountryIds.add(donorId);
+          if (preferredInstanceId) transferLandDependents(descriptor.geometry, donorIds, preferredInstanceId);
+        }
         state.countriesData.features.push(feature);
+        state.historyDirtyCountryIds.add(String(feature.properties.editor_id || ''));
         countriesAdded += 1;
         continue;
       }
@@ -14310,11 +14344,6 @@ const {
     if (exact.length) return exact;
     return units.filter(feature => territorialUnitName(feature).toLocaleLowerCase('ko') === key.toLocaleLowerCase('ko')
       && (!countryId || String(feature.properties?.sovereignId || '') === String(countryId)));
-  }
-
-  function territorialUnitFromImportedValue(value, countryId = '', units = state.territorialUnits) {
-    const matches = territorialUnitMatchesFromImportedValue(value, countryId, units);
-    return matches.length === 1 ? matches[0] : null;
   }
 
   function importedTerritorialUnitFeature(raw, index, kind, mapping, sourceFolderId, knownUnits) {
