@@ -49,15 +49,22 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
 
     def test_pilot_data_discloses_approximation_and_sources(self):
         self.assertEqual(PILOT["schemaVersion"], 2)
-        self.assertGreaterEqual(len(PILOT["entities"]), 2)
+        self.assertGreaterEqual(len(PILOT["entities"]), 4)
         pilot_entities = [entity for entity in PILOT["entities"] if entity["metadata"].get("pilot")]
-        self.assertGreaterEqual(len(pilot_entities), 2)
+        self.assertGreaterEqual(len(pilot_entities), 3)
         for entity in pilot_entities:
             self.assertTrue(entity["metadata"]["pilot"])
             self.assertTrue(entity["metadata"]["approximateGeometry"])
+            self.assertTrue(entity["sourceInfo"]["title"])
+        east_germany = next(entity for entity in PILOT["entities"] if entity["libraryId"] == "historical-country:east-germany")
+        self.assertEqual(east_germany["geometryVersions"][0]["datePrecision"], "reference-date")
+        self.assertEqual(east_germany["geometryVersions"][0]["certainty"], "medium")
+        self.assertEqual(east_germany["instantiation"]["mode"], "country-territory-priority")
+        for entity in pilot_entities:
+            if entity is east_germany:
+                continue
             self.assertEqual(entity["geometryVersions"][0]["datePrecision"], "approximate")
             self.assertEqual(entity["geometryVersions"][0]["certainty"], "low")
-            self.assertTrue(entity["sourceInfo"]["title"])
 
     def test_east_prussia_is_a_high_certainty_embedded_country(self):
         entity = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:east-prussia")
