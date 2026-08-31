@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r34';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r35';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -13994,6 +13994,13 @@ const {
       if (!Object.prototype.hasOwnProperty.call(existingOverride, 'color') && feature.properties?.editor_color) next.color = feature.properties.editor_color;
       draftOverrides[id] = next;
     }
+    for (const [countryId, update] of Object.entries(result.countryUpdates || {})) {
+      const id = String(countryId || '');
+      if (!id || !draftCountryIds.has(id) || !update || typeof update !== 'object') continue;
+      const next = { ...(draftOverrides[id] || {}) };
+      if (String(update.name || '').trim()) next.name = String(update.name).trim();
+      draftOverrides[id] = next;
+    }
     const validation = await validateGisCountryCollection(draftCountries, plan.affectedIds || importedIds);
     if (Number(validation?.overlapAreaKm2 || 0) > 0.001) {
       throw createGisImportError('가져온 국가가 다른 국가와 실제로 겹칩니다.', {
@@ -14026,7 +14033,13 @@ const {
     clearSelection(false);
     renderAll();
     queueAutosave();
-    setActionStatus('GIS 레이어를 한 번의 편집 작업으로 병합했습니다.', 'success', 3200);
+    setActionStatus(result.commitStatus || 'GIS 레이어를 한 번의 편집 작업으로 병합했습니다.', 'success', 3200);
+    return {
+      added: Number(plan.counts?.added || 0),
+      subtracted: Number(plan.counts?.subtracted || 0),
+      deleted: Number(plan.counts?.deleted || 0),
+      affectedIds: [...new Set(plan.affectedIds || [])],
+    };
   }
 
   let requestedVectorTarget = '';
@@ -14208,10 +14221,33 @@ const {
     return unit ? String(unit.id) : '';
   }
 
-  function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none') {
+  async function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none') {
     const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth);
     const pending = descriptors.filter(descriptor => !libraryInstanceId(descriptor.libraryId));
-    if (!pending.length) return 0;
+    if (!pending.length) return { added: 0, subtracted: 0, deleted: 0, affectedIds: [] };
+    const priority = pending.filter(descriptor => descriptor.instantiation?.mode === 'country-territory-priority');
+    if (priority.length) {
+      if (priority.length !== 1 || pending.length !== 1 || priority[0].type !== LIBRARY_ENTITY_TYPES.COUNTRY) {
+        throw new Error('영토 우선 라이브러리 항목은 한 번에 국가 1개만 추가할 수 있습니다.');
+      }
+      const descriptor = priority[0];
+      const feature = createCountryFeature(descriptor.name, [], nextCountryColor(), descriptor.geometry);
+      feature.properties.sourceLibraryId = descriptor.libraryId;
+      feature.properties.sourceGeometryVersion = descriptor.geometryVersionId;
+      feature.properties.validFrom = descriptor.validFrom;
+      feature.properties.validTo = descriptor.validTo;
+      feature.properties.libraryMetadata = descriptor.metadata;
+      const countriesData = { type: 'FeatureCollection', features: [feature] };
+      const plan = await planGisMerge(state.countriesData, countriesData, 'imported-territory-priority');
+      if (!plan.canCommit) throw new Error('자동 차감 후에도 국가 간 중첩이 남아 라이브러리 항목을 추가할 수 없습니다.');
+      if (plan.counts?.deleted) throw new Error('동독 영토 추가 과정에서 기존 국가가 삭제되어 작업을 중단했습니다.');
+      return commitGisMerge({
+        countriesData,
+        countryUpdates: descriptor.instantiation?.countryUpdates || {},
+        sourceInfo: descriptor.metadata?.librarySourceInfo || {},
+        commitStatus: '독일 민주 공화국을 추가하고 기존 독일 영토를 한 번의 작업으로 차감했습니다.',
+      }, plan);
+    }
     recordHistory();
     let countriesAdded = 0;
     for (const descriptor of pending) {
@@ -14287,7 +14323,12 @@ const {
     renderAll();
     queueAutosave();
     saveState.markNewProject('content:0');
-    return pending.length;
+    return {
+      added: pending.length,
+      subtracted: 0,
+      deleted: 0,
+      affectedIds: pending.map(descriptor => libraryInstanceId(descriptor.libraryId)).filter(Boolean),
+    };
   }
 
   const historicalLibraryController = createHistoricalLibraryController({
