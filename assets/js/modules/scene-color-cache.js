@@ -68,6 +68,8 @@ export function createSceneColorCache() {
   let dirty = true;
   let activeViewSignature = '';
   let stagingViewSignature = '';
+  let activeProjectGeneration = 0;
+  let stagingProjectGeneration = 0;
   let disabled = false;
   let generation = 0;
   let hitCount = 0;
@@ -97,6 +99,8 @@ export function createSceneColorCache() {
     dirty = true;
     activeViewSignature = '';
     stagingViewSignature = '';
+    activeProjectGeneration = 0;
+    stagingProjectGeneration = 0;
   }
 
   function deleteProgramResources() {
@@ -192,9 +196,10 @@ export function createSceneColorCache() {
     if (reason) lastInvalidationReason = String(reason);
   }
 
-  function canComposite(viewSignature = '') {
+  function canComposite(viewSignature = '', projectGeneration = 0) {
     return valid && !!activeTarget && !disabled
-      && activeViewSignature === String(viewSignature || '');
+      && activeViewSignature === String(viewSignature || '')
+      && activeProjectGeneration === Number(projectGeneration || 0);
   }
 
   function reset({ dropActive = false } = {}) {
@@ -208,23 +213,27 @@ export function createSceneColorCache() {
     return true;
   }
 
-  function beginScene(pixelWidth, pixelHeight, viewSignature = '') {
+  function beginScene(pixelWidth, pixelHeight, viewSignature = '', projectGeneration = 0) {
     missCount += 1;
     if (!createTarget(pixelWidth, pixelHeight)) return false;
     stagingViewSignature = String(viewSignature || '');
+    stagingProjectGeneration = Number(projectGeneration || 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, stagingTarget.framebuffer);
     gl.viewport(0, 0, stagingTarget.width, stagingTarget.height);
     return true;
   }
 
-  function finishScene(targetFramebuffer = null, viewSignature = stagingViewSignature) {
+  function finishScene(targetFramebuffer = null, viewSignature = stagingViewSignature, projectGeneration = stagingProjectGeneration) {
     if (!gl || !stagingTarget || disabled || gl.isContextLost?.()) return false;
     const previousActive = activeTarget;
     const previousActiveSignature = activeViewSignature;
+    const previousActiveProjectGeneration = activeProjectGeneration;
     activeTarget = stagingTarget;
     stagingTarget = previousActive;
     activeViewSignature = String(viewSignature || stagingViewSignature || '');
     stagingViewSignature = previousActiveSignature;
+    activeProjectGeneration = Number(projectGeneration || stagingProjectGeneration || 0);
+    stagingProjectGeneration = previousActive ? previousActiveProjectGeneration : 0;
     width = activeTarget.width;
     height = activeTarget.height;
     valid = true;
@@ -282,6 +291,8 @@ export function createSceneColorCache() {
     dirty = true;
     activeViewSignature = '';
     stagingViewSignature = '';
+    activeProjectGeneration = 0;
+    stagingProjectGeneration = 0;
     disabled = false;
     device = null;
     gl = null;
@@ -316,6 +327,8 @@ export function createSceneColorCache() {
       dirty,
       activeViewSignature,
       stagingViewSignature,
+      activeProjectGeneration,
+      stagingProjectGeneration,
       state: disabled ? 'unavailable' : (valid && !dirty ? 'valid' : (activeTarget ? 'rebuilding' : 'unavailable')),
       disabled,
       width,
