@@ -438,16 +438,8 @@
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="rightPanel" aria-label="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
           <div class="surface-header-title">
             <strong id="editSheetTitle">편집</strong>
-            <section id="editorObjectHeader" class="editor-object-header hidden">
-              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><span id="propertyTypeLabel"></span></div>
-            </section>
           </div>
           <div class="surface-header-actions">
-            <div class="editor-object-actions">
-              <button id="focusSelectedObjectBtn" class="ui-button icon-btn compact" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button>
-              <button id="objectLockBtn" class="ui-button icon-btn compact editor-object-lock" type="button" data-tooltip="잠금" aria-label="잠금" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
-              <button id="objectDeleteBtn" class="ui-button icon-btn compact editor-object-delete" type="button" data-tooltip="삭제" aria-label="삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
-            </div>
             <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon editor-close-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><svg class="ui-icon editor-collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
           </div>
         </header>
@@ -459,6 +451,20 @@
 
         <div id="editorScrollBody" class="surface-body editor-scroll-body ui-scroll-surface" role="tabpanel" aria-labelledby="editorTabBtn">
           <div class="surface-content surface-content-editor">
+
+          <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
+            <div class="editor-object-context-main">
+              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
+            </div>
+            <button id="focusSelectedObjectBtn" class="ui-button icon-btn compact" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button>
+          </section>
+
+          <section id="editorCommonActions" class="editor-section editor-action-section editor-common-actions hidden" aria-labelledby="editorCommonActionsTitle">
+            <h3 id="editorCommonActionsTitle" class="editor-section-title">객체 상태</h3>
+            <div class="editor-action-list">
+              <button id="objectLockBtn" class="ui-button editor-action-row editor-object-lock" type="button" data-tooltip="잠금" aria-label="잠금" aria-pressed="false"><span><strong data-editor-action-label>잠금</strong><small data-editor-action-help>선택한 객체를 잠급니다.</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
+            </div>
+          </section>
 
           <section id="emptyProperties" class="empty-state editor-empty">
             <strong>선택한 객체가 없습니다.</strong><p>지도나 레이어 목록에서 편집할 대상을 선택하세요.</p>
@@ -663,7 +669,6 @@
                 </div>
               </div>
             </section>
-            <button id="deleteDistributionBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>분포 항목 삭제</button>
           </form>
 
           <form id="genericFeatureProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
@@ -731,7 +736,6 @@
               <div><span>토폴로지 그룹</span><output id="genericFeatureTopologyValue">—</output></div>
             </div>
 
-            <button id="deleteGenericFeatureInlineBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>기타 객체 삭제</button>
           </form>
 
           <form id="labelProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
@@ -745,7 +749,6 @@
               <div class="ui-field field-group editor-field"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div>
             </section>
 
-            <button id="deleteLabelBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>지명 삭제</button>
           </form>
 
           <section id="hydroProperties" class="editor-view editor-object-form hidden">
@@ -768,8 +771,6 @@
             </section>
 
             <section class="editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
-            <button id="deleteHydroEditBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>강 삭제</button>
-
             <details class="ui-disclosure editor-disclosure" hidden>
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
@@ -780,6 +781,13 @@
                 </div>
               </div>
             </details>
+          </section>
+
+          <section id="editorDeleteActions" class="editor-section editor-action-section editor-common-actions editor-common-danger hidden" aria-labelledby="editorDeleteActionsTitle">
+            <h3 id="editorDeleteActionsTitle" class="editor-section-title">위험 작업</h3>
+            <div class="editor-action-list">
+              <button id="objectDeleteBtn" class="ui-button editor-action-row editor-object-delete" type="button" data-tooltip="삭제" aria-label="삭제"><span><strong>삭제</strong><small data-editor-action-help>선택한 객체를 삭제합니다.</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
+            </div>
           </section>
           </div>
         </div>

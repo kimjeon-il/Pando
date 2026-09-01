@@ -46,12 +46,14 @@ for (const viewport of viewports) {
     await expect(page.locator('.editor-view-tabs')).toHaveText(/정보\s*작업/);
     await expect(page.locator('#countryAreaValue')).toContainText('km²');
     await expect(page.locator('#focusSelectedObjectBtn')).toHaveAttribute('aria-label', '지도에서 보기');
+    await page.locator('#actionsTabBtn').click();
     await expect(page.locator('#objectActionsBtn')).toHaveCount(0);
     await expect(page.locator('#objectLockBtn')).toHaveAttribute('aria-pressed', /true|false/);
     await expect(page.locator('#objectDeleteBtn')).toBeVisible();
-    await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'nowrap');
+    await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'normal');
     await expect(page.locator('#countryProperties .editor-action-row')).toHaveCount(5);
     await expect(page.locator('#countryProperties .editor-action-grid')).toHaveCount(0);
+    await page.locator('#editorTabBtn').click();
     const overflow = await page.evaluate(() => ({
       viewport: window.innerWidth,
       document: document.documentElement.scrollWidth,
