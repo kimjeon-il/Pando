@@ -107,6 +107,38 @@ function canOverlap(a, b) {
   return a.some(first => b.some(second => boundsOverlap(first, second)));
 }
 
+function quantizePolygonCoordinates(value, precision) {
+  const factor = 10 ** precision;
+  const visit = item => {
+    if (Array.isArray(item) && item.length >= 2
+      && Number.isFinite(Number(item[0])) && Number.isFinite(Number(item[1]))) {
+      return [
+        Math.round(Number(item[0]) * factor) / factor,
+        Math.round(Number(item[1]) * factor) / factor,
+      ];
+    }
+    return Array.isArray(item) ? item.map(visit) : item;
+  };
+  return visit(value);
+}
+
+function robustPolygonIntersection(left, right) {
+  let originalError = null;
+  for (const precision of [null, 9, 8, 7, 6]) {
+    try {
+      const inputs = precision == null
+        ? [left, right]
+        : [left, right].map(value => quantizePolygonCoordinates(value, precision));
+      return self.polygonClipping.intersection(...inputs);
+    } catch (error) {
+      const message = String(error?.message || error || '');
+      if (!/SweepLine tree|Unable to find segment/i.test(message)) throw error;
+      originalError ||= error;
+    }
+  }
+  throw originalError || new Error('국가 경계 교차 검사를 완료하지 못했습니다.');
+}
+
 function planarArea(multiPolygon) {
   return (multiPolygon || []).reduce((total, polygon) => {
     if (!polygon?.length) return total;
@@ -142,8 +174,23 @@ function validateCollection(collection, affectedIds = null) {
     for (let j = i + 1; j < features.length; j += 1) {
       if (affected && !affected.has(ids[i]) && !affected.has(ids[j])) continue;
       if (!canOverlap(componentBounds[i], componentBounds[j])) continue;
-      const overlap = self.polygonClipping.intersection(polygonSets(features[i].geometry), polygonSets(features[j].geometry));
-      if (planarArea(overlap) <= 1e-8) continue;
+      const overlap = [];
+      let overlapPlanarArea = 0;
+      const leftPolygons = polygonSets(features[i].geometry);
+      const rightPolygons = polygonSets(features[j].geometry);
+      for (let leftIndex = 0; leftIndex < leftPolygons.length; leftIndex += 1) {
+        for (let rightIndex = 0; rightIndex < rightPolygons.length; rightIndex += 1) {
+          if (!boundsOverlap(componentBounds[i][leftIndex], componentBounds[j][rightIndex])) continue;
+          const componentOverlap = robustPolygonIntersection(
+            [leftPolygons[leftIndex]],
+            [rightPolygons[rightIndex]],
+          );
+          if (!componentOverlap?.length) continue;
+          overlap.push(...componentOverlap);
+          overlapPlanarArea += planarArea(componentOverlap);
+        }
+      }
+      if (overlapPlanarArea <= 1e-8) continue;
       const overlapGeometry = { type: 'MultiPolygon', coordinates: overlap };
       const areaKm2 = Math.max(0, self.d3.geo.area(overlapGeometry) * 6371.0088 * 6371.0088);
       return { overlapAreaKm2: areaKm2, firstOverlap: [ids[i], ids[j]] };

@@ -36,7 +36,7 @@ async function editorTypographySnapshot(page) {
     };
     const formIds = [
       'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties',
-      'distributionProperties', 'drawingProperties', 'labelProperties', 'hydroProperties',
+      'distributionProperties', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
     ];
     return {
       unifiedForms: formIds.every(id => document.getElementById(id)?.classList.contains('editor-object-form')),
@@ -151,6 +151,69 @@ for (const layout of layouts) {
   }
 }
 
+test('annex territory exposes river boundaries as a retained component-selection option', async ({ page }) => {
+  test.setTimeout(360_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page, { url: '/?debug=1', waitForCanonical: false });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexTerritoryBtn').click();
+  await expect(page.locator('#modeTaskStage')).toHaveText('대상 국가 선택');
+  const donorPoint = await page.evaluate(() => {
+    const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
+    return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
+  });
+  const mapBox = await page.locator('#map').boundingBox();
+  await page.mouse.click(mapBox.x + donorPoint[0], mapBox.y + donorPoint[1]);
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await page.locator('#modePrimaryBtn').click();
+
+  await expect(page.locator('#modeMethodSwitch .mode-method-btn')).toHaveCount(3);
+  await expect(page.locator('#modeRiverMethodBtn')).toHaveCount(0);
+  await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
+  await page.locator('#modeComponentsMethodBtn').click();
+  await expect(page.locator('#modeRiverBoundaryOption')).toBeVisible();
+  await expect(page.locator('#modeRiverBoundaryInput')).not.toBeChecked();
+  const components = page.locator('.draft-layer path.territory-component');
+  await expect(components.first()).toBeVisible();
+  await page.waitForTimeout(500);
+  await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
+    bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
+  })));
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+
+  await page.locator('#modeRiverBoundaryInput').check();
+  await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await expect(page.locator('#modeTaskInstruction')).toContainText('계산하는 중');
+  await expect(page.locator('#modeTaskInstruction')).not.toContainText('계산하는 중', { timeout: 120_000 });
+  await expect(components.first()).toBeVisible();
+  await page.waitForTimeout(500);
+  await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
+    bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
+  })));
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await page.locator('#modeLineMethodBtn').click();
+  await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
+  await page.locator('#modeComponentsMethodBtn').click();
+  await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
+  await expect(components.first()).toBeVisible({ timeout: 120_000 });
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await page.locator('#modeRiverBoundaryInput').uncheck();
+  await expect(page.locator('#modeTaskInstruction')).toContainText('편입할 영토 조각');
+  await page.waitForTimeout(500);
+  await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
+    bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
+  })));
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 120_000 });
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#modeActionBar')).toBeHidden({ timeout: 120_000 });
+  await expect(page.locator('#actionStatus')).toContainText('영토 조각');
+  expect(errors).toEqual([]);
+});
+
 test('narrow mobile widths keep the editor type scale instead of shrinking text', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const errors = await openApp(page, { waitForCanonical: false });
@@ -212,15 +275,22 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r33')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r41')).toBe(true);
   expect(errors).toEqual([]);
 });
 
 test('country edit worker executes annex, new-country, merge, commit, discard, and failure paths', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
-  const errors = await openApp(page);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  await page.route('**/__map-edit-worker-test.html', route => route.fulfill({
+    contentType: 'text/html',
+    body: '<!doctype html><meta charset="utf-8"><title>map edit worker test</title><script src="/assets/js/vendor/d3.min.js"></script>',
+  }));
+  await page.goto('/__map-edit-worker-test.html');
   const result = await page.evaluate(async () => {
-  const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r33');
+  const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r41');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -253,10 +323,20 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
       worker.addEventListener('message', receive);
       worker.postMessage(message);
     });
-    const rebase = revision => send({ type: 'rebase', features: base, dataRevision: revision }, 'ready');
+    let dataRevision = 0;
+    const rebase = async revision => {
+      const result = await send({ type: 'rebase', features: base, dataRevision: revision }, 'ready');
+      dataRevision = revision;
+      return result;
+    };
     const execute = (requestId, operation, payload) => send({
-      type: 'execute', requestId, dataRevision: requestId, operation, ...payload,
+      type: 'execute', requestId, jobKey: `test:${operation}`, dataRevision,
+      geometryRevision: dataRevision, targetRevision: dataRevision, operation, ...payload,
     }, 'result');
+    const commit = requestId => {
+      worker.postMessage({ type: 'commit', requestId, dataRevision, nextDataRevision: dataRevision + 1 });
+      dataRevision += 1;
+    };
     try {
       await rebase(1);
       const mergeDiscarded = await execute(1, 'merge', { sourceId: 'A', targetIds: ['B'] });
@@ -264,7 +344,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
       const annexAfterDiscard = await execute(2, 'annex', {
         targetId: 'B', donorIds: ['A'], transferredGeometry: { type: 'Polygon', coordinates: [ring(1, 2)] },
       });
-      worker.postMessage({ type: 'commit', requestId: 2 });
+      commit(2);
 
       await rebase(3);
       const newCountry = await execute(3, 'new-country', {
@@ -275,7 +355,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
 
       await rebase(4);
       const mergeCommitted = await execute(4, 'merge', { sourceId: 'A', targetIds: ['B'] });
-      worker.postMessage({ type: 'commit', requestId: 4 });
+      commit(4);
       const mergeAfterCommit = await execute(5, 'merge', { sourceId: 'A', targetIds: ['B'] });
       const invalid = await execute(6, 'annex', {
         targetId: 'missing', donorIds: ['A'], transferredGeometry: { type: 'Polygon', coordinates: [ring(0, 1)] },
@@ -283,15 +363,17 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
       return {
         mergeDiscarded, annexAfterDiscard, newCountry, mergeCommitted, mergeAfterCommit, invalid,
         canonicalWinding: [mergeDiscarded, annexAfterDiscard, newCountry, mergeCommitted]
-          .filter(message => message.ok)
+          .filter(message => message?.ok && message.result)
           .every(message => message.result.features.every(feature => hasCanonicalWinding(feature.geometry))),
-        mergedSphericalArea: window.d3.geo.area(mergeDiscarded.result.features[0]),
+        mergedSphericalArea: mergeDiscarded?.result?.features?.[0]
+          ? window.d3.geo.area(mergeDiscarded.result.features[0])
+          : null,
       };
     } finally {
       worker.terminate();
     }
   });
-  expect(result.mergeDiscarded.ok).toBe(true);
+  expect(result.mergeDiscarded.ok, JSON.stringify(result.mergeDiscarded)).toBe(true);
   expect(result.annexAfterDiscard.ok).toBe(true);
   expect(result.newCountry.ok).toBe(true);
   expect(result.newCountry.result.newCountryId).toBe('N');
@@ -306,7 +388,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
 test('river territory partition Worker returns disjoint donor cells', async ({ page }) => {
   await page.goto('/');
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/river-territory-partition-worker.js?v=0.30.0-r33', { type: 'module' });
+    const worker = new Worker('/assets/js/workers/river-territory-partition-worker.js?v=0.30.0-r41', { type: 'module' });
     const donor = {
       countryId: 'donor', geometryRevision: 1,
       geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] },
@@ -773,7 +855,7 @@ test('layer folders expose presentation controls while global view settings stay
   await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지형지물']);
   await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '권역', '행정구역', '지방']);
   await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['강', '호수', '사용자 지형지물']);
+  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['강', '호수', '기타 객체']);
   await expect(page.locator('#layerSection #terrainVisible')).toHaveCount(0);
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
   await expect(page.locator('[data-layer-style-toggle="countries"]')).toHaveCount(1);
@@ -851,7 +933,7 @@ test('built-in rivers and lakes use independent folders without overwriting sour
     await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name);
     if (layout.name === 'mobile' && !await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
     const folderRows = page.locator('#featuresLayerItems > .layer-folder');
-    await expect(folderRows.locator('.layer-folder-name')).toHaveText(['강', '호수', '사용자 지형지물']);
+    await expect(folderRows.locator('.layer-folder-name')).toHaveText(['강', '호수', '기타 객체']);
     if (layout.name === 'mobile') {
       const touchSize = await folderRows.first().locator('.layer-folder-toggle').evaluate(element => {
         const rect = element.getBoundingClientRect();
@@ -1233,7 +1315,7 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
   expect(errors).toEqual([]);
 });
 
-test('GeoJSON imports custom drawings into one flat list and deletes them immediately', async ({ page }) => {
+test('GeoJSON imports custom genericFeatures into one flat list and deletes them immediately', async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
@@ -1242,7 +1324,7 @@ test('GeoJSON imports custom drawings into one flat list and deletes them immedi
     features: [{
       type: 'Feature',
       id: `${name}-feature`,
-      properties: { name, category: 'custom' },
+      properties: { name, role: 'generic', color: '#8c68d8', schemaVersion: 1 },
       geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] },
     }],
   });
@@ -1254,15 +1336,15 @@ test('GeoJSON imports custom drawings into one flat list and deletes them immedi
     });
     await expect(page.locator('#gisImportModal')).toBeVisible();
     await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-    await expect(page.locator('#gisTargetType')).toHaveValue('drawing');
+    await expect(page.locator('#gisTargetType')).toHaveValue('generic');
     for (let step = 0; step < 4; step += 1) await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisImportConfirmBtn')).toBeVisible();
     await page.locator('#gisImportConfirmBtn').click();
-    const drawingsFolder = page.locator('.layer-folder[data-layer-group="drawings"]');
-    if (await drawingsFolder.locator('.layer-folder-toggle').getAttribute('aria-expanded') !== 'true') {
-      await drawingsFolder.locator('.layer-folder-toggle').click();
+    const genericFeaturesFolder = page.locator('.layer-folder[data-layer-group="genericFeatures"]');
+    if (await genericFeaturesFolder.locator('.layer-folder-toggle').getAttribute('aria-expanded') !== 'true') {
+      await genericFeaturesFolder.locator('.layer-folder-toggle').click();
     }
-    const row = page.locator('#drawingsLayerChildren .layer-child', { hasText: name });
+    const row = page.locator('#genericFeaturesLayerChildren .layer-child', { hasText: name });
     await expect(row).toHaveCount(1);
     return row;
   };
@@ -1271,13 +1353,13 @@ test('GeoJSON imports custom drawings into one flat list and deletes them immedi
   await disposable.locator('.layer-child-menu').click();
   await page.locator('#objectDeleteMenuBtn').click();
   await page.locator('#confirmModalOkBtn').click();
-  await expect(page.locator('#drawingsLayerChildren .layer-child', { hasText: '삭제확인' })).toHaveCount(0);
+  await expect(page.locator('#genericFeaturesLayerChildren .layer-child', { hasText: '삭제확인' })).toHaveCount(0);
 
   await importFile('첫번째 객체');
   await importFile('두번째 객체');
-  await expect(page.locator('#drawingsLayerChildren .layer-child-name')).toContainText(['두번째 객체', '첫번째 객체']);
-  await expect(page.locator('.layer-folder[data-drawing-folder-id]')).toHaveCount(0);
-  await expect(page.locator('#drawingFolderInput')).toHaveCount(0);
+  await expect(page.locator('#genericFeaturesLayerChildren .layer-child-name')).toContainText(['두번째 객체', '첫번째 객체']);
+  await expect(page.locator('.layer-folder[data-generic-feature-folder-id]')).toHaveCount(0);
+  await expect(page.locator('#genericFeatureFolderInput')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

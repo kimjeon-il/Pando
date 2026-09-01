@@ -14,7 +14,7 @@ async function openApp(page) {
   return errors;
 }
 
-async function importDrawing(page) {
+async function importGenericFeature(page) {
   await page.locator('#gisFileInput').setInputFiles({
     name: 'boundary-snap-area.geojson',
     mimeType: 'application/geo+json',
@@ -35,13 +35,13 @@ async function importDrawing(page) {
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
-  await selectUiOption(page, '#gisTargetType', 'drawing');
+  await selectUiOption(page, '#gisTargetType', 'generic');
   for (const step of ['3/5', '4/5', '5/5']) {
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText(step, { timeout: 30_000 });
   }
   await page.locator('#gisImportConfirmBtn').click();
-  await expect(page.locator('path.drawing-shape')).toHaveCount(1);
+  await expect(page.locator('path.generic-feature-shape')).toHaveCount(1);
 }
 
 test('a cut line with endpoints just inside the polygon snaps to both boundaries and splits', async ({ page }) => {
@@ -66,13 +66,17 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await page.locator('#confirmModalOkBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(0);
 
-  await importDrawing(page);
+  await importGenericFeature(page);
 
+  const genericFeaturesFolder = page.locator('.layer-folder[data-layer-group="genericFeatures"]');
+  if (await genericFeaturesFolder.locator('.layer-folder-toggle').getAttribute('aria-expanded') !== 'true') {
+    await genericFeaturesFolder.locator('.layer-folder-toggle').click();
+  }
   await page.getByRole('button', { name: '경계 스냅 실제 시험 영역', exact: true }).click();
-  await expect(page.locator('#drawingProperties')).toBeVisible();
-  const shape = page.locator('path.drawing-shape');
+  await expect(page.locator('#genericFeatureProperties')).toBeVisible();
+  const shape = page.locator('path.generic-feature-shape');
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#splitDrawingBtn').click();
+  await page.locator('#splitGenericFeatureBtn').click();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
 
   const box = await shape.boundingBox();
@@ -131,7 +135,7 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용');
   await page.locator('#modePrimaryBtn').click();
 
-  await expect(page.locator('path.drawing-shape')).toHaveCount(2);
+  await expect(page.locator('path.generic-feature-shape')).toHaveCount(2);
   await expect(page.locator('#propertyTitle')).toHaveText('경계 스냅 실제 시험 영역 1');
 
   await page.setViewportSize({ width: 390, height: 844 });

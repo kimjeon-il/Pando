@@ -18,7 +18,7 @@ PERSISTENCE = (ROOT / "assets" / "js" / "modules" / "persistence-service.js").re
 class V0210PerformancePipelineTests(unittest.TestCase):
     def test_version_and_incremental_country_renderer(self):
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
-        for interface in ("applyCountryPatch", "setInteractionActive", "renderViewFrame", "compactCountryOverrides"):
+        for interface in ("applyCountryPatch", "setHydroInteractionActive", "renderViewFrame", "compactCountryOverrides"):
             self.assertIn(interface, RENDERER)
         self.assertIn("countryOverrideIds", RENDERER)
         self.assertIn("overridePaletteTexture", RENDERER)
@@ -35,8 +35,8 @@ class V0210PerformancePipelineTests(unittest.TestCase):
         self.assertIn("executeAnnex", EDIT_WORKER)
         self.assertIn("executeMerge", EDIT_WORKER)
         self.assertIn("executeNewCountry", EDIT_WORKER)
-        self.assertIn("subtractRegionFromGeometry", EDIT_WORKER)
-        self.assertIn("regionPolygonsNearFeatures", EDIT_WORKER)
+        self.assertIn("subtractAreaFromGeometry", EDIT_WORKER)
+        self.assertIn("areaPolygonsNearFeatures", EDIT_WORKER)
         self.assertIn("normalizeCountryGeometry", EDIT_WORKER)
         self.assertIn("hasCanonicalCountryWinding", EDIT_WORKER)
         self.assertIn("root.PandoLabCountryGeometry", COUNTRY_GEOMETRY)
@@ -46,7 +46,7 @@ class V0210PerformancePipelineTests(unittest.TestCase):
             self.assertIn(operation, APP)
 
     def test_navigation_uses_view_only_frame(self):
-        self.assertIn("function scheduleViewRender()", APP)
+        self.assertIn("function scheduleViewRender(reason = 'view-change')", APP)
         self.assertIn("createMapInputController", APP)
         self.assertIn("scheduleViewRender();", MAP_INPUT)
         self.assertIn("renderCountryLabelPositions()", APP)
@@ -56,7 +56,8 @@ class V0210PerformancePipelineTests(unittest.TestCase):
     def test_background_work_is_budgeted(self):
         self.assertIn("terrainUploadQueue", RENDERER)
         self.assertIn("scheduleTerrainUpload", RENDERER)
-        self.assertIn("const byteBudget = 2 * 1024 * 1024", RENDERER)
+        self.assertIn("Number(renderQuality.uploadBudgetBytes)", RENDERER)
+        self.assertIn("const uploadBudget = Math.max(64 * 1024", RENDERER)
         self.assertIn("entry.uploadState.tasks.shift()", RENDERER)
         self.assertIn("scheduler.scheduleIdle('autosave'", PERSISTENCE)
         self.assertIn("scheduler.scheduleIdle('view-autosave'", PERSISTENCE)

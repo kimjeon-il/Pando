@@ -31,11 +31,12 @@ class StyleLabelCleanupTests(unittest.TestCase):
         self.assertNotIn("pop_est", block)
         layout = APP[APP.index("function visibleLabelLayout"):APP.index("function renderCountryLabels")]
         self.assertIn("countryLabelScreenMetrics(displayFeature", layout)
-        self.assertIn("layoutLabels(candidates", layout)
+        self.assertIn("layoutLabels(qualityCandidates", layout)
+        self.assertIn("protectedCandidates", layout)
         self.assertIn("selected,", layout)
 
     def test_editable_domains_use_the_common_color_adapter(self):
-        for domain in ("COUNTRY", "TERRITORIAL", "DRAWING", "DISTRIBUTION"):
+        for domain in ("COUNTRY", "TERRITORIAL", "GENERIC", "DISTRIBUTION"):
             self.assertIn(f"COLOR_DOMAINS.{domain}", APP)
         for symbol in ("readDomainColor", "writeDomainColor", "normalizeColorValue"):
             self.assertIn(f"function {symbol}", COLOR)

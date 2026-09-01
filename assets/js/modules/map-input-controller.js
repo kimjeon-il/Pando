@@ -75,10 +75,10 @@ export function createMapInputController({
       return;
     }
     if (pointers.size !== 1) return;
-    const drawing = !!canDrawStroke(event) && beginStroke(localPoint(event), event) !== false;
-    if (drawing) capturePointer(event.pointerId);
+    const genericFeature = !!canDrawStroke(event) && beginStroke(localPoint(event), event) !== false;
+    if (genericFeature) capturePointer(event.pointerId);
     gesture = {
-      kind: drawing ? 'draw' : 'navigate',
+      kind: genericFeature ? 'draw' : 'navigate',
       pointerId: event.pointerId,
       pointerType: event.pointerType,
       startX: event.clientX,
@@ -91,7 +91,7 @@ export function createMapInputController({
       revision: getRevision(),
       cancelled: false,
     };
-    if (drawing) event.preventDefault();
+    if (genericFeature) event.preventDefault();
   }
 
   function pointerMove(event) {
@@ -239,7 +239,7 @@ export function createMapInputController({
 
   return {
     cancel,
-    isDrawing: () => gesture?.kind === 'draw',
+    isGenericFeature: () => gesture?.kind === 'draw',
     isPanning: () => !!gesture?.panned || !!pinch,
     destroy() {
       cancel();

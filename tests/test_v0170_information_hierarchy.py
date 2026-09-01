@@ -16,7 +16,7 @@ class InformationHierarchyV0170Tests(unittest.TestCase):
         self.assertNotIn("표시 / 잠금", INDEX)
         for element_id in (
             "countriesLayerCount",
-            "drawingsLayerCount",
+            "genericFeaturesLayerCount",
             "labelsLayerCount",
             "countryLabelsLayerCount",
         ):

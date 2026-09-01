@@ -9,7 +9,7 @@ SERIALIZER = (ROOT / "assets/js/modules/project-serializer.js").read_text(encodi
 PHYSICAL = (ROOT / "assets/js/modules/physical-layer-service.js").read_text(encoding="utf-8")
 TERRITORIAL_SERVICE = (ROOT / "assets/js/modules/territorial-service.js").read_text(encoding="utf-8")
 DISTRIBUTION_SERVICE = (ROOT / "assets/js/modules/distribution-service.js").read_text(encoding="utf-8")
-DRAWING_SERVICE = (ROOT / "assets/js/modules/drawing-service.js").read_text(encoding="utf-8")
+GENERIC_FEATURE_SERVICE = (ROOT / "assets/js/modules/generic-feature-service.js").read_text(encoding="utf-8")
 RENDER_COORDINATOR = (ROOT / "assets/js/modules/map-render-coordinator.js").read_text(encoding="utf-8")
 GPU_RENDERER = (ROOT / "assets/js/modules/gpu-map-renderer.js").read_text(encoding="utf-8")
 TOOLTIP_CONTROLLER = (ROOT / "assets/js/modules/tooltip-controller.js").read_text(encoding="utf-8")
@@ -31,7 +31,7 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("localStorage.setItem(fallbackKey", PERSISTENCE)
 
     def test_persistence_and_serializer_are_dom_free(self):
-        for source in (PERSISTENCE, SERIALIZER, PHYSICAL, TERRITORIAL_SERVICE, DISTRIBUTION_SERVICE, DRAWING_SERVICE):
+        for source in (PERSISTENCE, SERIALIZER, PHYSICAL, TERRITORIAL_SERVICE, DISTRIBUTION_SERVICE, GENERIC_FEATURE_SERVICE):
             self.assertNotIn("document.", source)
             self.assertNotIn("querySelector", source)
             self.assertNotIn("getElementById", source)
@@ -57,21 +57,20 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("runDocumentMutation", TERRITORIAL_SERVICE)
         self.assertIn("runGeometryTransaction", TERRITORIAL_SERVICE)
 
-    def test_distribution_and_drawing_crud_are_behind_services(self):
+    def test_distribution_and_genericFeature_crud_are_behind_services(self):
         self.assertIn("createDistributionService({", APP)
         self.assertIn("distributionService.updateLayer", APP)
         self.assertIn("distributionService.addEntry", APP)
-        self.assertIn("createDrawingService({", APP)
-        self.assertIn("drawingApplicationService.updateMetadata", APP)
-        self.assertIn("drawingApplicationService.remove", APP)
+        self.assertIn("createGenericFeatureService({", APP)
+        self.assertIn("genericFeatureService.updateMetadata", APP)
+        self.assertIn("genericFeatureService.remove", APP)
         self.assertIn("runDocumentMutation", DISTRIBUTION_SERVICE)
-        self.assertIn("runDocumentMutation", DRAWING_SERVICE)
+        self.assertIn("runDocumentMutation", GENERIC_FEATURE_SERVICE)
 
     def test_render_order_is_coordinated_and_renderer_is_dom_free(self):
         self.assertIn("createMapRenderCoordinator({", APP)
-        self.assertIn("mapRenderCoordinator.renderFull()", APP)
-        self.assertIn("mapRenderCoordinator.renderView()", APP)
-        self.assertIn("renderers.territorialUnits()", RENDER_COORDINATOR)
+        self.assertIn("mapRenderCoordinator.invalidate", APP)
+        self.assertIn("callRenderer('territorialUnits'", RENDER_COORDINATOR)
         self.assertIn("rendererUi.setEngineStatus", GPU_RENDERER)
         self.assertNotIn("document.", GPU_RENDERER)
         self.assertNotIn("$('engineStatus')", GPU_RENDERER)
@@ -115,8 +114,11 @@ class RefactorBoundaryTests(unittest.TestCase):
 
     def test_map_edit_worker_protocol_is_behind_client(self):
         self.assertIn("createMapEditWorkerClient({", APP)
-        self.assertIn("worker.postMessage({ type: 'execute'", MAP_EDIT_WORKER_CLIENT)
-        self.assertIn("Number(message.dataRevision) !== dataRevision", MAP_EDIT_WORKER_CLIENT)
+        self.assertIn("ensureWorker().postMessage({", MAP_EDIT_WORKER_CLIENT)
+        self.assertIn("type: 'execute'", MAP_EDIT_WORKER_CLIENT)
+        self.assertIn("createLatestWorkerJobScheduler({", MAP_EDIT_WORKER_CLIENT)
+        self.assertIn("Number(entry.geometryRevision) === dataRevision", MAP_EDIT_WORKER_CLIENT)
+        self.assertIn("Number(entry.targetRevision) === currentTargetRevision()", MAP_EDIT_WORKER_CLIENT)
         self.assertNotIn("const mapEditClient = (() =>", APP)
 
 

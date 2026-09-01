@@ -12,11 +12,11 @@ CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 class EditorSystemV0190Tests(unittest.TestCase):
     def test_all_editor_views_share_one_shell_and_component_vocabulary(self):
         self.assertIn('class="sidebar right-panel editor-panel editor-shell map-sheet-surface ui-sheet"', INDEX)
-        self.assertIn('id="editorScrollBody" class="editor-scroll-body"', INDEX)
+        self.assertIn('id="editorScrollBody" class="editor-scroll-body ui-scroll-surface"', INDEX)
         self.assertIn('id="editorObjectHeader" class="editor-object-header hidden"', INDEX)
         for view_id in (
             "countryProperties", "territoryProperties", "administrativeProperties", "regionProperties",
-            "distributionProperties", "drawingProperties", "labelProperties", "hydroProperties",
+            "distributionProperties", "genericFeatureProperties", "labelProperties", "hydroProperties",
         ):
             self.assertRegex(INDEX, rf'id="{view_id}" class="editor-view editor-object-form hidden"')
         for component in (
@@ -46,7 +46,7 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertNotIn("추가 정보", INDEX)
         self.assertNotIn("위험 작업", INDEX)
         self.assertIn('id="countryCodeInput"', INDEX)
-        self.assertIn('id="drawingIdInput"', INDEX)
+        self.assertIn('id="genericFeatureIdInput"', INDEX)
         self.assertIn('id="hydroIdValue"', INDEX)
 
     def test_empty_and_active_states_are_managed_by_one_function(self):
@@ -54,7 +54,7 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertIsNotNone(function)
         source = function.group(0)
         for element_id in (
-            "emptyProperties", "editorObjectHeader", "countryProperties", "territoryProperties", "administrativeProperties", "drawingProperties",
+            "emptyProperties", "editorObjectHeader", "countryProperties", "territoryProperties", "administrativeProperties", "genericFeatureProperties",
             "labelProperties", "hydroProperties", "propertyTitle", "editorScrollBody",
         ):
             self.assertIn(element_id, source)

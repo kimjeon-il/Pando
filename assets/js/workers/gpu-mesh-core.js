@@ -356,6 +356,8 @@
     const countryIndices = [];
     const triangleIndices = [];
     const lineIndices = [];
+    const strokeStartsEnds = [];
+    const strokeOwnerRanges = {};
     const countryIds = [];
     const stats = {
       algorithmRevision: MESH_ALGORITHM_REVISION,
@@ -367,7 +369,9 @@
 
     for (let countryIndex = 0; countryIndex < features.length; countryIndex += 1) {
       const feature = features[countryIndex];
-      countryIds.push(String(feature.properties?.editor_id || feature.properties?.iso_a3 || countryIndex));
+      const countryId = String(feature.properties?.editor_id || feature.properties?.iso_a3 || countryIndex);
+      countryIds.push(countryId);
+      const countryStrokeStart = strokeStartsEnds.length / 4;
       for (const polygon of polygonsFor(feature.geometry)) {
         if (!polygon?.length) continue;
         const outer = unwrapRing(polygon[0]);
@@ -430,6 +434,7 @@
             const b = geoPoints[ringStarts[ringIndex] + next];
             if (isArtificialPolarClosureEdge(a, b)) continue;
             lineIndices.push(start + index, start + next);
+            strokeStartsEnds.push(a[0], a[1], b[0], b[1]);
           }
         }
 
@@ -447,6 +452,10 @@
         stats.polygonCount += 1;
         if (parameterSpace.kind !== 'unwrapped-lonlat') stats.polarPolygonCount += 1;
       }
+      strokeOwnerRanges[countryId] = Object.freeze({
+        first: countryStrokeStart,
+        count: strokeStartsEnds.length / 4 - countryStrokeStart,
+      });
     }
 
     if (stats.maxEdgeDegrees > maxEdgeDegrees + 1e-9) {
@@ -459,6 +468,8 @@
       countryIndices: new Uint16Array(countryIndices),
       triangleIndices: new Uint32Array(triangleIndices),
       lineIndices: new Uint32Array(lineIndices),
+      strokeStartsEnds: new Float32Array(strokeStartsEnds),
+      strokeOwnerRanges: Object.freeze(strokeOwnerRanges),
       stats,
     };
   }

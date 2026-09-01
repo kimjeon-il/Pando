@@ -10,7 +10,7 @@ This inventory fixes the Phase 06 extraction boundaries before code is moved. It
 | Selection, batch actions, object menu | 1226-1758 | document, presentation, editor DOM | selection/editor controllers plus commands |
 | Map input, snapping, navigation | 1814-2307 | projection, draft, renderer | existing interaction controllers plus view helpers |
 | Country indexing and geometry transactions | 2336-4097 | document geometry, workers, history, renderer | territorial service and render coordinator |
-| Domain normalization and layer model | 4194-4714 | drawing, hydro, territorial, distribution, presentation | domain services and selectors |
+| Domain normalization and layer model | 4194-4714 | generic, hydro, territorial, distribution, presentation | domain services and selectors |
 | Layer tree and map rendering | 4722-6766 | DOM/SVG, presentation, GPU renderer | layer controller and render coordinator |
 | Draft and tool workflows | 6767-9012 | interaction, geometry, document commands, HUD | tool application service and HUD controller |
 | Editor panels and domain CRUD | 9013-11008 | DOM forms, document commands, presentation | editor controller and domain services |
@@ -26,7 +26,7 @@ This inventory fixes the Phase 06 extraction boundaries before code is moved. It
 
 1. Move storage and autosave behind a DOM-free persistence service.
 2. Wrap terrain and hydro loading behind facades without rewriting workers or retry behavior.
-3. Move document mutation rules into territorial, distribution, and drawing services; UI retains only value collection and rendering.
+3. Move document mutation rules into territorial, distribution, and generic feature services; UI retains only value collection and rendering.
 4. Centralize render ordering and dirty/revision requests; renderer callbacks never write the document.
 5. Move modal, layer, editor, HUD, library, and GIS DOM behavior into controllers with narrow `selectors` and `commands` inputs.
 6. Keep `app.js` as the composition root and remove wrappers only after all call sites use the new boundary.
@@ -43,8 +43,8 @@ The inventory above records the pre-extraction responsibility map. Phase 06 keep
 | `persistence-service.js` | IndexedDB/local fallback, autosave queues, view record | document mutation, DOM |
 | `physical-layer-service.js` | terrain and hydro manifest/retry lifecycle | renderer internals, project objects |
 | `territorial-service.js` | territorial metadata and geometry transaction commands | form values, DOM |
-| `distribution-service.js` | distribution layer/entry CRUD and validation | drawing objects, UI rendering |
-| `drawing-service.js` | custom drawing CRUD and semantics | hydro objects, UI rendering |
+| `distribution-service.js` | distribution layer/entry CRUD and validation | generic feature objects, UI rendering |
+| `generic-feature-service.js` | generic feature CRUD and semantics | hydro objects, UI rendering |
 | `history-service.js` | bounded document undo/redo snapshots and metadata | draft-local history, project serialization |
 | `import-service.js` | GIS staging result routing, strict country validation, merge planning | wizard DOM, status presentation |
 | `historical-library-service.js` | load/query/descendant expansion/instance descriptors | modal DOM, canonical project mutation |

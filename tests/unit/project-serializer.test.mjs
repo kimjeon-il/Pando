@@ -7,7 +7,7 @@ const serializer = snapshot => createProjectSerializer({
   schemaVersion: 2,
   appVersion: '0.30.0',
   baseDataset: 'base',
-  drawingSchemaVersion: 1,
+  genericFeatureSchemaVersion: 1,
   distributionSchemaVersion: 2,
   distributionTypes: ['language'],
   distributionModes: ['territorial', 'geometry'],

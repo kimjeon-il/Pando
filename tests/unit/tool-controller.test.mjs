@@ -6,7 +6,7 @@ import { toolDraftDefinition } from '../../assets/js/modules/tool-controller.js'
 test('draft tools derive line and polygon behavior from one definition table', () => {
   assert.deepEqual(toolDraftDefinition('river'), { shape: 'line', profile: 'river' });
   assert.deepEqual(toolDraftDefinition('line'), { shape: 'line', profile: 'river' });
-  assert.deepEqual(toolDraftDefinition('split-drawing'), { shape: 'line', profile: 'boundary' });
+  assert.deepEqual(toolDraftDefinition('split-generic-feature'), { shape: 'line', profile: 'boundary' });
   assert.deepEqual(toolDraftDefinition('split-territorial-unit'), { shape: 'line', profile: 'boundary' });
   assert.deepEqual(toolDraftDefinition('lake'), { shape: 'polygon', profile: 'area' });
   assert.deepEqual(toolDraftDefinition('polygon'), { shape: 'polygon', profile: 'area' });

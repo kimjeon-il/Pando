@@ -58,7 +58,7 @@ export function validateProjectReferenceIntegrity({
   distributionLayers = [],
   distributionEntries = [],
   labels = [],
-  drawings = [],
+  genericFeatures = [],
   itemVisibility = {},
   labelSettings = {},
 } = {}) {
@@ -192,16 +192,16 @@ export function validateProjectReferenceIntegrity({
     }
   }
 
-  for (const drawing of drawings || []) {
-    const id = text(drawing?.id);
-    const ownerId = text(drawing?.properties?.pandolab_owner_id);
+  for (const genericFeature of genericFeatures || []) {
+    const id = text(genericFeature?.id);
+    const ownerId = text(genericFeature?.properties?.ownerId);
     if (ownerId && !territorialIds.has(ownerId)) {
-      issues.push(issue('PL-INV-MISSING-DRAWING-OWNER', `${id || '지형지물'}의 소유 영역 ${ownerId}이 존재하지 않습니다.`, [id, ownerId], 'pandolab_owner_id'));
+      issues.push(issue('PL-INV-MISSING-GENERIC-OWNER', `${id || '기타 객체'}의 소유 영역 ${ownerId}이 존재하지 않습니다.`, [id, ownerId], 'ownerId'));
     }
-    const topologyGroup = text(drawing?.properties?.pandolab_topology_group);
+    const topologyGroup = text(genericFeature?.properties?.topologyGroup);
     const landOwnerId = topologyGroup.startsWith('land:') ? topologyGroup.slice(5) : '';
     if (landOwnerId && !territorialIds.has(landOwnerId)) {
-      issues.push(issue('PL-INV-MISSING-DRAWING-TOPOLOGY', `${id || '지형지물'}의 지형 연결 대상 ${landOwnerId}이 존재하지 않습니다.`, [id, landOwnerId], 'pandolab_topology_group'));
+      issues.push(issue('PL-INV-MISSING-GENERIC-TOPOLOGY', `${id || '기타 객체'}의 지형 연결 대상 ${landOwnerId}이 존재하지 않습니다.`, [id, landOwnerId], 'topologyGroup'));
     }
   }
 

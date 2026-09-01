@@ -45,8 +45,9 @@ class EditorChromeTests(unittest.TestCase):
         self.assertIn('.editor-shell-header {', CSS)
         editor_header_rules = CSS[CSS.index('\n.editor-shell-header {'):]
         self.assertIn('min-height: var(--ui-sheet-header-height-compact);', editor_header_rules[:320])
-        self.assertIn('padding: 0 var(--ui-panel-padding);', editor_header_rules[:320])
-        self.assertIn('.editor-shell-header .sheet-close-btn {', CSS)
+        self.assertIn('padding-inline: var(--ui-sheet-visual-rail-x);', CSS)
+        self.assertIn(':where(.layer-panel-header, .create-sheet-header, .editor-shell-header) .sheet-close-btn {', CSS)
+        self.assertIn('right: var(--ui-sheet-header-control-inset);', CSS)
         self.assertNotIn('right: calc(-1 * var(--ui-space-3));', CSS)
 
     def test_hydro_metadata_does_not_draw_nested_table_borders(self):

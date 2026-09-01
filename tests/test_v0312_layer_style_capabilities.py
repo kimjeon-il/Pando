@@ -18,7 +18,7 @@ class LayerStyleCapabilityTests(unittest.TestCase):
             self.assertIn("blendMode: true", targets)
         self.assertIn("rivers: { presentationGroup: 'rivers', label: '강', opacity: true }", targets)
         self.assertIn("lakes: { presentationGroup: 'lakes', label: '호수', opacity: true }", targets)
-        self.assertIn("userDrawings: { presentationGroup: 'userDrawings', label: '사용자 지형지물', opacity: true, opacityLabel: '전체 투명도' }", targets)
+        self.assertIn("genericFeatures: { presentationGroup: 'genericFeatures', label: '기타 객체', opacity: true, opacityLabel: '전체 투명도' }", targets)
 
     def test_distribution_controls_live_in_view_not_layer_tree(self):
         self.assertIn('id="distributionViewSettingsTitle">인문 분포', HTML)

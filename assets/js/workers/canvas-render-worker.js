@@ -341,7 +341,7 @@ function canvasFallbackWorkerMain() {
           .precision(0.35);
       }
       const base = Math.max(30, width / (2 * Math.PI));
-      return self.d3.geo.equirectangular()
+      return self.d3.geo.mercator()
         .translate([width / 2, height / 2])
         .scale(base * Number(view.flatZoom || 1))
         .center(view.flatCenter || [0, 20])

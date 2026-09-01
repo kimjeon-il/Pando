@@ -36,12 +36,17 @@ class ResponsiveUiV0160Tests(unittest.TestCase):
         self.assertIn('#app[data-layout="mobile"] .adaptive-nav', CSS)
         self.assertIn("if (layoutMode === 'wide')", APP)
 
-    def test_selection_auto_opens_only_the_wide_editor(self):
+    def test_selection_auto_opens_editor_on_non_wide_layouts(self):
         selection_editor = APP[APP.index("function openSelectionEditor"):APP.index("function toggleEditorPanel")]
-        self.assertIn("layoutMode === 'wide'", selection_editor)
+        self.assertIn("layoutMode !== 'wide'", selection_editor)
         self.assertIn("editorManuallyCollapsed", selection_editor)
         self.assertIn("openSurface('editor', { automatic: true })", selection_editor)
         self.assertIn("needs-attention", APP)
+
+    def test_mobile_gesture_scope_keeps_map_gestures_separate(self):
+        self.assertIn('#app,', CSS)
+        self.assertIn('#bootstrapLoading { touch-action: pan-x pan-y; }', CSS)
+        self.assertIn('#map { overflow: hidden; touch-action: none;', CSS)
 
 
 if __name__ == "__main__":

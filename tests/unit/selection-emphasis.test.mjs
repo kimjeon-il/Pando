@@ -3,13 +3,13 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
-  SELECTION_STYLE,
   buildSelectionBoundaryBufferData,
   buildSelectionBoundarySegments,
   buildSelectionChannelSignature,
   buildSelectionRibbonVertices,
   validateSelectionRibbonVertices,
-} from '../../assets/js/modules/selection-emphasis.js';
+} from '../../assets/js/modules/selection-stroke-geometry.js';
+import { SELECTION_STYLE } from '../../assets/js/modules/selection-style.js';
 
 function projectedRibbonPoint(vertex, halfWidth = 1) {
   const [startX, startY, endX, endY, side, endpoint] = vertex;
@@ -98,7 +98,7 @@ test('ribbon validation rejects malformed, non-finite, and zero-length primitive
 });
 
 test('selection emphasis renderer does not use GL_LINES or lineWidth', async () => {
-  const source = await readFile(new URL('../../assets/js/modules/selection-emphasis.js', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /gl\.LINES/);
   assert.doesNotMatch(source, /lineWidth/);
 });
@@ -140,13 +140,13 @@ test('malformed precomputed ribbons are isolated as missing without suppressing 
   assert.equal(data.values.length, 36);
 });
 
-test('renderer includes a one-time offscreen ribbon health check and gates availability on it', async () => {
-  const source = await readFile(new URL('../../assets/js/modules/selection-emphasis.js', import.meta.url), 'utf8');
-  assert.match(source, /function runRibbonSelfTest\(\)/);
+test('shared stroke renderer includes a one-time offscreen health check and gates availability on it', async () => {
+  const source = await readFile(new URL('../../assets/js/modules/gpu-stroke-renderer.js', import.meta.url), 'utf8');
+  assert.match(source, /function runSelfTest\(\)/);
   assert.match(source, /gl\.readPixels\(0, 0, 16, 16/);
   assert.match(source, /gpuHealth === 'healthy'/);
   assert.match(source, /selfTestPassed/);
-  assert.match(source, /handleContextRestored[\s\S]*if \(!init\(\)\)/);
+  assert.match(source, /return runSelfTest\(\)/);
 });
 
 test('selection channel signatures use keys and geometry revisions instead of object identity', () => {
@@ -166,24 +166,77 @@ test('selection channel signatures use keys and geometry revisions instead of ob
   assert.notEqual(buildSelectionChannelSignature('hover', first), buildSelectionChannelSignature('primary', first));
 });
 
-test('country interaction boundaries are sourced from the canonical line index mesh', async () => {
-  const selection = await readFile(new URL('../../assets/js/modules/selection-emphasis.js', import.meta.url), 'utf8');
+test('country interaction boundaries reuse stable shared resources and draw only requested owners', async () => {
+  const selection = await readFile(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
   const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
-  assert.match(selection, /mesh\.lineIndices/);
-  assert.match(selection, /mesh\.countryIndices/);
+  const meshCore = await readFile(new URL('../../assets/js/workers/gpu-mesh-core.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(selection, /lineIndices|countryIndices/);
+  assert.match(selection, /snapshot\.strokeResources/);
+  assert.match(selection, /ownerIds:\s*\[id\]/);
+  assert.match(gpu, /function buildCountryStrokeResource/);
+  assert.match(gpu, /sourceMesh\.strokeStartsEnds/);
+  assert.match(gpu, /sourceMesh\.strokeOwnerRanges/);
+  assert.match(gpu, /function prewarmCountryStrokeResources/);
+  assert.match(gpu, /buildCountryStrokeResource\(canonicalMesh, canonicalCountryIds, 'canonical', canonicalRevision\)/);
+  assert.doesNotMatch(gpu, /const selectedOwnerIds = new Set/);
+  assert.doesNotMatch(gpu, /ownerFilter/);
+  assert.match(meshCore, /strokeStartsEnds/);
+  assert.match(meshCore, /strokeOwnerRanges/);
+  assert.doesNotMatch(gpu, /canonical-selection-boundary-gpu/);
+  assert.match(gpu, /ownerRanges/);
   assert.match(gpu, /getCountryInteractionBoundaryData/);
   assert.match(gpu, /boundaryOwner: 'interaction-overlay'/);
+  const baseStart = gpu.indexOf('function drawCountryBoundaryStrokes');
+  const baseEnd = gpu.indexOf('function drawBaseSceneContent', baseStart);
+  const baseBoundary = gpu.slice(baseStart, baseEnd);
+  assert.match(baseBoundary, /drawProgram\(lineProgram, lineVao, lineIndexBuffer/);
+  assert.doesNotMatch(baseBoundary, /currentCountryStrokeResources\(\)/);
   assert.doesNotMatch(gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro')), /primaryBoundaryPaletteTexture/);
 });
 
-test('territorial persistent boundaries share the interaction GPU overlay without GL lines', async () => {
-  const selection = await readFile(new URL('../../assets/js/modules/selection-emphasis.js', import.meta.url), 'utf8');
+test('country interaction fill composites the cached country-id scene before any geometry fallback', async () => {
+  const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+  const start = gpu.indexOf('function drawCountryInteractionFills');
+  const end = gpu.indexOf('function renderGpuSceneDomain', start);
+  const interactionFill = gpu.slice(start, end);
+  assert.match(gpu, /function ensureCountryIdScene/);
+  assert.match(interactionFill, /countryStateFillProgram && countryStateQuadBuffer && ensureCountryIdScene\(\)/);
+  assert.match(interactionFill, /gl\.drawArrays\(gl\.TRIANGLE_STRIP, 0, 4\)/);
+  assert.match(interactionFill, /performanceMetrics\.countryInteractionIndexCount = 0/);
+});
+
+test('territorial persistent boundaries use the shared GPU scene stroke domain', async () => {
   const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
-  assert.match(selection, /setTerritorialBoundaries/);
-  assert.match(selection, /territorialBoundaryBufferBytes/);
+  const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
   assert.match(app, /buildTerritorialInternalBoundarySegments/);
-  assert.match(app, /selectionEmphasisRenderer\?\.setTerritorialBoundaries/);
-  assert.match(app, /territorialBoundaryLayer\.selectAll\('path\.territorial-internal-boundary'\)\.remove\(\)/);
+  assert.match(app, /replaceGpuSceneDomain\('territorial-boundaries'/);
+  assert.match(gpu, /strokeRenderer\.drawBatches/);
+});
+
+test('SelectionPass is independent from canvas and shares the main renderer context lifecycle', async () => {
+  const selectionPass = await readFile(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
+  const renderer = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(selectionPass, /getContext\s*\(/);
+  assert.doesNotMatch(selectionPass, /addEventListener\s*\(/);
+  assert.doesNotMatch(selectionPass, /removeEventListener\s*\(/);
+  assert.doesNotMatch(selectionPass, /\bdocument\b/);
+  assert.match(renderer, /webglcontextlost/);
+  assert.match(renderer, /webglcontextrestored/);
+  assert.match(renderer, /handleSharedGpuContextLost/);
+  assert.match(selectionPass, /function initialize\(nextDevice, shared = \{\}\)/);
+});
+
+test('selection data travels through one packet contract and main-renderer interaction draw', async () => {
+  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const packet = await readFile(new URL('../../assets/js/modules/selection-packet.js', import.meta.url), 'utf8');
+  assert.match(packet, /countryBoundaryRevision/);
+  assert.match(packet, /territorialBoundaryRevision/);
+  assert.match(packet, /generic: Object\.freeze/);
+  assert.match(app, /currentSelectionPacket = createSelectionPacket\(/);
+  assert.match(app, /selectionPass\.updateData\(currentSelectionPacket\)/);
+  assert.match(app, /gpuMapRenderer\.renderInteraction\?\./);
+  assert.doesNotMatch(app, /selectionCanvasHost/);
+  assert.doesNotMatch(app, /createSelectionEmphasisRenderer/);
 });
 
 test('selection overlay commits staged SVG only after GPU draw coverage is known', async () => {

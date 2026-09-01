@@ -13,7 +13,7 @@
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const importPlanModuleUrl = new URL('modules/import-plan.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r33');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r41');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
@@ -500,7 +500,7 @@
     if (/admin|administrative|행정/.test(hint) && /polygon|surface/.test(hint)) return 'administrative';
     if (/territor|권역/.test(hint) && /polygon|surface/.test(hint)) return 'territory';
     if (/region|province|지방|지역/.test(hint) && /polygon|surface/.test(hint)) return 'region';
-    return 'drawing';
+    return 'generic';
   }
 
   const IMPORT_STEP_LABELS = Object.freeze(['파일 확인', '가져올 내용', '속성 연결', '적용 결과', '최종 확인']);
@@ -805,7 +805,7 @@
   async function readAtlasVectorState(gdal, dataset, baseState = {}) {
     const layerNames = new Set((dataset.info?.layers || []).map(layer => layer.name));
     const hasPlaces = layerNames.has('places');
-    const drawingLayerNames = ['drawings_point', 'drawings_line', 'drawings_polygon'].filter(name => layerNames.has(name));
+    const genericFeatureLayerNames = ['generic_features_point', 'generic_features_line', 'generic_features_polygon'].filter(name => layerNames.has(name));
     const territorialLayerNames = Object.keys(gisAdapters.TERRITORIAL_TYPES_BY_TABLE).filter(name => layerNames.has(name));
     const distributionLayerNames = Object.keys(gisAdapters.DISTRIBUTION_TYPES_BY_TABLE).filter(name => layerNames.has(name));
     const state = {};
@@ -820,29 +820,30 @@
         coordinates: feature.geometry.coordinates.slice(0, 2),
       }));
     }
-    if (drawingLayerNames.length) {
-      state.drawings = [];
-      for (const layerName of drawingLayerNames) {
+    if (genericFeatureLayerNames.length) {
+      state.genericFeatures = [];
+      for (const layerName of genericFeatureLayerNames) {
         const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
         for (let index = 0; index < (collection.features || []).length; index += 1) {
           const feature = collection.features[index];
           const basic = feature.properties || {};
           let properties = {};
           try { properties = basic.properties_json ? JSON.parse(basic.properties_json) : {}; } catch (_) {}
-          state.drawings.push({
+          state.genericFeatures.push({
             type: 'Feature',
-            id: String(basic.pandolab_id || feature.id || `${layerName}_${index + 1}`),
+            id: String(basic.id || feature.id || `${layerName}_${index + 1}`),
             properties: {
-              ...properties,
+              schemaVersion: 1,
               name: basic.name ?? properties.name ?? '',
-              category: basic.category ?? properties.category ?? 'custom',
-              pandolab_role: basic.pandolab_role ?? properties.pandolab_role ?? '',
-              pandolab_owner_id: basic.pandolab_owner_id ?? properties.pandolab_owner_id ?? '',
-              pandolab_parent_id: basic.pandolab_parent_id ?? properties.pandolab_parent_id ?? '',
-              pandolab_topology_group: basic.pandolab_topology_group ?? properties.pandolab_topology_group ?? '',
-              pandolab_land_binding: basic.pandolab_land_binding ?? properties.pandolab_land_binding ?? '',
-              editorColor: basic.color ?? properties.editorColor ?? properties.color ?? '#8c68d8',
+              role: basic.role ?? properties.role ?? 'generic',
+              ownerId: basic.owner_id ?? properties.ownerId ?? '',
+              parentId: basic.parent_id ?? properties.parentId ?? '',
+              topologyGroup: basic.topology_group ?? properties.topologyGroup ?? '',
+              landBinding: basic.land_binding ?? properties.landBinding ?? 'none',
+              color: basic.color ?? properties.color ?? '#8c68d8',
               notes: basic.notes ?? properties.notes ?? '',
+              locked: Number(basic.locked ?? properties.locked ?? 0) === 1,
+              ...(properties.source !== undefined ? { source: properties.source } : {}),
             },
             geometry: feature.geometry,
           });
@@ -1352,13 +1353,13 @@
     add('territories', 'territories.geojson', 'territory', rowsAsFeatureCollection(territorial.territories));
     add('administrative', 'administrative.geojson', 'administrative', rowsAsFeatureCollection(territorial.administrative));
     add('regions', 'regions.geojson', 'region', rowsAsFeatureCollection(territorial.regions));
-    add('drawings', 'drawings.geojson', 'drawing', { type: 'FeatureCollection', features: structuredClone(projectState.drawings || []) });
+    add('genericFeatures', 'generic_features.geojson', 'generic', { type: 'FeatureCollection', features: structuredClone(projectState.genericFeatures || []) });
     if (selected.has('distributions')) {
       for (const [distributionType, tableName] of Object.entries(gisAdapters.DISTRIBUTION_TABLES)) {
         add('distributions', `${distributionType}_distribution.geojson`, 'distribution', rowsAsFeatureCollection(distributions[tableName]), { distributionType });
       }
     }
-    add('labels', 'labels.geojson', 'drawing', {
+    add('labels', 'labels.geojson', 'label', {
       type: 'FeatureCollection',
       features: (projectState.labels || []).filter(label => Array.isArray(label.coordinates)).map(label => ({
         type: 'Feature', id: label.id,
@@ -1426,7 +1427,7 @@
     progress(exportMode === 'project' ? '지명·지형지물·국기와 프로젝트 설정을 기록하는 중입니다.' : '선택한 GIS 레이어를 기록하는 중입니다.', 72);
     const countryOverrides = Object.fromEntries(Object.entries(projectState.countryOverrides || {}).map(([id, override]) => {
       const copy = { ...(override || {}) };
-      delete copy.flagDataUrl;
+      if (copy.flagDataUrl !== null) delete copy.flagDataUrl;
       return [id, copy];
     }));
     const stateForPackage = {

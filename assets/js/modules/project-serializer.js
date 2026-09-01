@@ -2,12 +2,12 @@ function cloneCountryFeature(feature, clone) {
   return clone(feature);
 }
 
-function modelContracts({ drawingSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes }, compact = false) {
+function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes }, compact = false) {
   return {
     landObjectModel: {
-      schemaVersion: drawingSchemaVersion,
+      schemaVersion: genericFeatureSchemaVersion,
       coastlineAuthority: 'countries',
-      ...(compact ? {} : { roles: ['hydro', 'thematic', 'custom'] }),
+      ...(compact ? {} : { roles: ['hydro', 'thematic', 'generic'] }),
     },
     territorialModel: {
       schemaVersion: 1,
@@ -30,7 +30,7 @@ export function createProjectSerializer({
   schemaVersion,
   appVersion,
   baseDataset,
-  drawingSchemaVersion,
+  genericFeatureSchemaVersion,
   distributionSchemaVersion,
   distributionTypes,
   distributionModes,
@@ -39,7 +39,7 @@ export function createProjectSerializer({
   readSnapshot,
   now = () => new Date(),
 }) {
-  const contracts = { drawingSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes };
+  const contracts = { genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes };
 
   function buildProject(snapshot = readSnapshot()) {
     return {

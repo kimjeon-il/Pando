@@ -7,7 +7,7 @@ export const COAST_PREFLIGHT_TARGETS = Object.freeze(new Set(Object.values(TERRI
 export const SOVEREIGN_SELECTION_TARGETS = Object.freeze(new Set(Object.values(TERRITORIAL_IMPORT_TARGETS)));
 export const PARTITION_IMPORT_TARGETS = Object.freeze(new Set([TERRITORIAL_IMPORT_TARGETS.TERRITORY, TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE]));
 export const EXPLICIT_IMPORT_TARGETS = Object.freeze(new Set([TERRITORIAL_IMPORT_TARGETS.REGION]));
-const TARGET_TYPES = new Set(['project', 'country', 'drawing', ...Object.values(TERRITORIAL_IMPORT_TARGETS), 'distribution']);
+const TARGET_TYPES = new Set(['project', 'country', 'generic', ...Object.values(TERRITORIAL_IMPORT_TARGETS), 'distribution']);
 const OPEN_MODES = new Set(['replace', 'merge']);
 const SOURCE_KINDS = new Set(['project', 'vector']);
 
@@ -17,7 +17,7 @@ function text(value, fallback = '') {
 }
 
 export function normalizeImportPlan(raw = {}) {
-  const targetType = TARGET_TYPES.has(raw.targetType) ? raw.targetType : 'drawing';
+  const targetType = TARGET_TYPES.has(raw.targetType) ? raw.targetType : 'generic';
   const sourceKind = SOURCE_KINDS.has(raw.sourceKind) ? raw.sourceKind : (targetType === 'project' ? 'project' : 'vector');
   const openMode = targetType === 'project'
     ? 'replace'

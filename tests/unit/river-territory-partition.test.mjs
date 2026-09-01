@@ -4,6 +4,7 @@ import test from 'node:test';
 await import('../../assets/js/vendor/polygon-clipping.min.js');
 const {
   buildRiverTerritoryPartitions,
+  composeRiverBoundaryTerritoryComponents,
   createRiverPartitionWorkspace,
   RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
   RIVER_TERRITORY_PARTITION_CONFIG,
@@ -100,6 +101,47 @@ test('only the crossed MultiPolygon component becomes selectable', () => {
   const result = partition([multi], [river('crossing', [[0.5, -1], [0.5, 2]])]);
   assert.equal(result.candidates.length, 2);
   assert.ok(result.candidates.every(candidate => candidate.componentKey === 'multi:0'));
+});
+
+test('river boundary component composition retains unsplit original components', () => {
+  const result = partition([square], [river('vertical', [[0.5, -1], [0.5, 2]])]);
+  const components = [
+    { key: 'component:square:0', countryId: 'square', polygonIndex: 0, componentKey: 'square:0', geometry: square.geometry },
+    { key: 'component:square:1', countryId: 'square', polygonIndex: 1, componentKey: 'square:1', geometry: { type: 'Polygon', coordinates: [[[10, 10], [11, 10], [11, 11], [10, 11], [10, 10]]] } },
+  ];
+  const before = globalThis.structuredClone({ components, candidates: result.candidates, donorResults: result.donorResults });
+  const composed = composeRiverBoundaryTerritoryComponents({
+    components,
+    candidates: result.candidates,
+    donorResults: result.donorResults,
+  });
+  assert.equal(composed.items.length, 3);
+  assert.equal(composed.splitComponentCount, 1);
+  assert.equal(composed.riverCandidateCount, 2);
+  assert.equal(composed.items.filter(item => item.partitionKind === 'original').length, 1);
+  assert.equal(composed.items.find(item => item.partitionKind === 'original').key, 'component:square:1');
+  const sourceCoverage = clipper.union(...components.map(component => [component.geometry.coordinates]));
+  const composedCoverage = clipper.union(...composed.items.map(item => [item.geometry.coordinates]));
+  assert.deepEqual(clipper.difference(sourceCoverage, composedCoverage), []);
+  assert.deepEqual(clipper.difference(composedCoverage, sourceCoverage), []);
+  assert.deepEqual({ components, candidates: result.candidates, donorResults: result.donorResults }, before);
+});
+
+test('river boundary component composition excludes invalid donors without hiding valid unsplit donors', () => {
+  const components = [
+    { key: 'component:invalid:0', countryId: 'invalid', polygonIndex: 0, componentKey: 'invalid:0' },
+    { key: 'component:valid:0', countryId: 'valid', polygonIndex: 0, componentKey: 'valid:0' },
+  ];
+  const composed = composeRiverBoundaryTerritoryComponents({
+    components,
+    donorResults: [
+      { donorCountryId: 'invalid', status: 'invalid' },
+      { donorCountryId: 'valid', status: 'empty' },
+    ],
+  });
+  assert.deepEqual(composed.invalidDonorIds, ['invalid']);
+  assert.deepEqual(composed.items.map(item => item.key), ['component:valid:0']);
+  assert.equal(composed.items[0].partitionKind, 'original');
 });
 
 test('input order does not change candidate keys and inputs remain immutable', () => {

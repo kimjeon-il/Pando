@@ -29,7 +29,9 @@ class EditorLayoutV0163Tests(unittest.TestCase):
     def test_editor_density_is_compact_without_shrinking_controls(self):
         self.assertIn(".editor-view {", CSS)
         self.assertIn("gap: var(--ui-space-6);", CSS)
-        self.assertIn("padding: 0 var(--ui-panel-padding) var(--ui-panel-padding);", CSS)
+        self.assertIn("padding-inline-end: var(--ui-sheet-content-padding-x);", CSS)
+        self.assertIn("padding-inline-start: var(--ui-sheet-visual-rail-x);", CSS)
+        self.assertIn("padding-block: 0 var(--ui-sheet-content-padding-bottom);", CSS)
         self.assertIn(".editor-section {", CSS)
         self.assertIn(".editor-action-button {", CSS)
         self.assertIn('--ui-control-height: 42px;', CSS)

@@ -39,6 +39,7 @@ test('mobile DPR is capped at two while desktop retains the existing cap', () =>
   assert.equal(resolveRenderPixelRatioValue(1.5, true), 1.5);
   assert.equal(resolveRenderPixelRatioValue(4, false), 3);
   assert.equal(resolveRenderPixelRatioValue(2.5, false), 2.5);
+  assert.equal(resolveRenderPixelRatioValue(3, false, 1.25), 1.25);
 });
 
 test('readiness transitions enable mutations at geometry-ready and preserve them through enhancement', () => {

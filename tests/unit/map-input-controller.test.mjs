@@ -128,7 +128,7 @@ test('interactive draft handles do not begin map panning', () => {
   controller.destroy();
 });
 
-test('drawing owns a drag, emits local coalesced samples, and does not pan', () => {
+test('genericFeature owns a drag, emits local coalesced samples, and does not pan', () => {
   const surface = new PointerSurface();
   const events = [];
   const pans = [];

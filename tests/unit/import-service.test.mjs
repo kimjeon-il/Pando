@@ -133,9 +133,14 @@ test('import service validates countries then delegates one materialization path
 test('import package helpers preserve metadata and source history', () => {
   const collection = { type: 'FeatureCollection', features: [country('AAA', 'Alpha')] };
   assert.equal(importedCountryOverrides(collection).AAA.name, 'Alpha');
-  assert.equal(applyImportedPackageAssets({
+  const restored = applyImportedPackageAssets({
     countryAssets: [{ countryId: 'AAA', mimeType: 'image/png', base64: 'abc' }],
-  }, {}).AAA.flagDataUrl, 'data:image/png;base64,abc');
+  }, {
+    AAA: { flagDataUrl: null },
+    BBB: { flagDataUrl: null },
+  });
+  assert.equal(restored.AAA.flagDataUrl, 'data:image/png;base64,abc');
+  assert.equal(restored.BBB.flagDataUrl, null);
   assert.deepEqual(appendImportedSourceInfo({ id: 'old' }, { id: 'new' }, () => 'now'), {
     mergedAt: 'now',
     imports: [{ id: 'old' }, { id: 'new' }],

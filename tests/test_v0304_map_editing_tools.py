@@ -30,7 +30,7 @@ class MapEditingToolsV0304Tests(unittest.TestCase):
         for ids in (
             ("reassignTerritoryShapeBtn", "mergeTerritoryBtn", "splitTerritoryBtn", "transferTerritoryBtn", "changeTerritoryTypeBtn", "promoteTerritoryBtn", "removeTerritoryDivisionBtn"),
             ("reassignAdministrativeShapeBtn", "mergeAdministrativeBtn", "splitAdministrativeBtn", "transferAdministrativeBtn", "changeAdministrativeTypeBtn", "promoteAdministrativeBtn", "removeAdministrativeDivisionBtn"),
-            ("editDrawingBoundaryBtn", "mergeDrawingBtn", "splitDrawingBtn", "syncDrawingCoastBtn", "editDrawingCoastBtn", "applyDrawingToCountryBtn", "promoteDrawingToCountryBtn"),
+            ("editGenericFeatureBoundaryBtn", "mergeGenericFeatureBtn", "splitGenericFeatureBtn", "syncGenericFeatureCoastBtn", "editGenericFeatureCoastBtn", "applyGenericFeatureToCountryBtn", "promoteGenericFeatureToCountryBtn"),
         ):
             positions = [INDEX.index(f'id="{element_id}"') for element_id in ids]
             self.assertEqual(positions, sorted(positions))

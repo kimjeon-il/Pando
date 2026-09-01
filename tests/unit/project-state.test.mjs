@@ -10,7 +10,7 @@ import {
 } from '../../assets/js/modules/project-state.js';
 
 const state = {
-  countryOverrides: { KOR: { name: '대한민국' } }, sourceInfo: null, labels: [{ id: 'label-1' }], drawings: [], hydroEdits: [{ id: 'river-1' }],
+  countryOverrides: { KOR: { name: '대한민국' } }, sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
   territorialUnits: [{ id: 'territory-1' }], territorialRelations: [{ id: 'relation-1' }],
   distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'dominant' },
   labelSettings: { 'country:KOR': { pinned: true } }, layerPresentation: { styles: {} },
@@ -80,7 +80,7 @@ const currentProject = () => ({
   territorialRelations: [{ id: uuid(2), schemaVersion: 1 }],
   distributionLayers: [{ id: uuid(3), schemaVersion: 2, type: 'language' }],
   distributionEntries: [{ id: uuid(4), schemaVersion: 2, layerId: uuid(3) }],
-  drawings: [{ type: 'Feature', id: uuid(5), properties: { pandolab_schema_version: 1 } }],
+  genericFeatures: [{ type: 'Feature', id: uuid(5), properties: { schemaVersion: 1, role: 'generic', color: '#123456' } }],
   hydroEdits: [{ type: 'Feature', id: uuid(6), properties: { pandolab_schema_version: 1 } }],
   labels: [{ id: uuid(7) }],
 });
@@ -100,13 +100,12 @@ test('distribution boundary visibility is a shared optional presentation setting
   assert.deepEqual(assertCurrentProjectSchema(prior).distributionSettings, prior.distributionSettings);
 });
 
-test('current v2 hydro presentation input remains accepted beside canonical river and lake groups', () => {
+test('canonical river and lake presentation groups are accepted while hydro output is rejected', () => {
   const legacyHydroInput = currentProject();
   legacyHydroInput.layerVisibility = { hydro: false };
   legacyHydroInput.itemVisibility = { hydro: {} };
   legacyHydroInput.layerPresentation.styles = { hydro: { opacity: 0.5, boundaryVisible: false } };
-  assert.equal(assertCurrentProjectSchema(legacyHydroInput).schemaVersion, PROJECT_SCHEMA_VERSION);
-
+  assert.throws(() => assertCurrentProjectSchema(legacyHydroInput), /지원하지 않는 필드 hydro/);
   const canonical = currentProject();
   canonical.layerVisibility = { rivers: true, lakes: false };
   canonical.itemVisibility = { hydro: {} };
