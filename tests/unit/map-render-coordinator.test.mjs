@@ -69,7 +69,7 @@ test('scheduled view and full renders merge into one full frame', () => {
   assert.equal(coordinator.advanceRevision(), 2);
 });
 
-test('interaction end schedules one delayed settle frame', async () => {
+test('interaction end coalesces settle work into the pending frame', () => {
   const { calls, frames, coordinator } = fixture();
   coordinator.beginInteraction();
   coordinator.scheduleView('drag');
@@ -77,12 +77,8 @@ test('interaction end schedules one delayed settle frame', async () => {
   assert.equal(frames.length, 1);
   frames.shift()();
   assert.equal(coordinator.getStats().viewRenderCount, 1);
-  await new Promise(resolve => setTimeout(resolve, 140));
-  assert.equal(frames.length, 1);
-  frames.shift()();
   assert.equal(calls.filter(call => call[0] === 'labelLayout').length, 1);
   assert.equal(coordinator.getStats().fullRenderCount, 0);
-  assert.equal(coordinator.getStats().viewRenderCount, 2);
 });
 
 test('GPU-only invalidation does not rebuild overlay data', () => {
