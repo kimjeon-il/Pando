@@ -1,7 +1,10 @@
-import { resolveStartupLoadPolicy } from '../modules/startup-readiness.js?v=0.30.0-r44';
-
-const BUILD_ID = '0.30.0';
-  const ASSET_REVISION = '0.30.0-r47';
+const workerAssetRevision = new URL(self.location.href).searchParams.get('v') || '';
+await import(`../build-meta.js?v=${encodeURIComponent(workerAssetRevision)}`);
+const buildMeta = globalThis.PANDOLAB_BUILD_META;
+if (!buildMeta) throw new Error('빌드 메타데이터를 불러오지 못했습니다.');
+const APP_VERSION = String(buildMeta.appVersion || '');
+const ASSET_REVISION = String(buildMeta.assetRevision || workerAssetRevision);
+const { resolveStartupLoadPolicy } = await import(`../modules/startup-readiness.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const CORE_CACHE_PREFIX = 'pandolab-core-';
 const CORE_CACHE_NAME = `${CORE_CACHE_PREFIX}${ASSET_REVISION}`;
 const params = new URL(self.location.href).searchParams;
@@ -19,7 +22,7 @@ function versionedDataUrl(relativePath) {
   return url;
 }
 
-const MANIFEST_URL = versionedDataUrl('../../data/world-preview-v0.30.0.json');
+const MANIFEST_URL = versionedDataUrl(`../../data/world-preview-v${APP_VERSION}.json`);
 const phaseProgress = { preview: new Map(), geometry: new Map(), mesh: new Map() };
 let manifest = null;
 let previewReady = false;
@@ -246,7 +249,7 @@ async function loadManifest() {
   const response = await fetch(MANIFEST_URL, { cache: 'default' });
   if (!response.ok) throw new Error(`시작 데이터 manifest 요청에 실패했습니다. (${response.status})`);
   const value = await response.json();
-  if (value?.version !== BUILD_ID || !value.assets?.previewCountries || !value.assets?.canonicalMesh) {
+  if (value?.version !== APP_VERSION || !value.assets?.previewCountries || !value.assets?.canonicalMesh) {
     throw new Error('시작 데이터 manifest 버전이 올바르지 않습니다.');
   }
   return value;
@@ -283,7 +286,7 @@ async function loadPreview() {
   const meshBuffer = meshResult.buffer;
   previewReady = true;
   self.postMessage({
-    type: 'preview-ready', buildId: BUILD_ID, countries: countryResult.data, meshBuffer, labelAnchors: labelAnchors.anchors,
+    type: 'preview-ready', buildId: APP_VERSION, countries: countryResult.data, meshBuffer, labelAnchors: labelAnchors.anchors,
     postedEpochMs: performance.timeOrigin + performance.now(),
     metrics: {
       policy: loadPolicy,
@@ -310,7 +313,7 @@ async function loadGeometry() {
     const countriesSourceBuffer = result.buffer;
     geometryReady = true;
     self.postMessage({
-      type: 'geometry-ready', buildId: BUILD_ID, countries: result.data, countriesSourceBuffer,
+      type: 'geometry-ready', buildId: APP_VERSION, countries: result.data, countriesSourceBuffer,
       postedEpochMs: performance.timeOrigin + performance.now(),
       metrics: {
         policy: loadPolicy,
@@ -341,7 +344,7 @@ async function loadMesh() {
     const meshBuffer = result.buffer;
     meshReady = true;
     self.postMessage({
-      type: 'mesh-ready', buildId: BUILD_ID, meshBuffer,
+      type: 'mesh-ready', buildId: APP_VERSION, meshBuffer,
       postedEpochMs: performance.timeOrigin + performance.now(),
       metrics: {
         policy: loadPolicy,

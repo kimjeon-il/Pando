@@ -75,9 +75,11 @@ test('all hydro renderers inherit ocean colour with only the configured layer op
   assert.ok(!canvasHydro.includes('context.globalAlpha = 0.96;'));
 });
 
-test('bootstrap cache revision is advanced for the reliability build', () => {
-  const source = read('assets/js/bootstrap.js');
-  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r44';"));
+test('bootstrap cache revision comes from generated build metadata', () => {
+  const bootstrap = read('assets/js/bootstrap.js');
+  const metadata = read('assets/js/build-meta.js');
+  assert.ok(bootstrap.includes('buildMeta.assetRevision'));
+  assert.match(metadata, /"assetRevision":\s*"[0-9]+\.[0-9]+\.[0-9]+-build-[A-Za-z0-9._-]+"/);
 });
 
 test('completed hydro renders before canonical country boundaries in every native path', () => {

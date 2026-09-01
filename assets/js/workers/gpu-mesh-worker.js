@@ -1,6 +1,12 @@
 'use strict';
 
-importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', './gpu-mesh-core.js?v=0.30.0-r47');
+const buildMetaUrl = new URL('../build-meta.js', self.location.href);
+buildMetaUrl.searchParams.set('v', new URL(self.location.href).searchParams.get('v') || '');
+importScripts(buildMetaUrl.href);
+const assetRevision = globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
+const meshCoreUrl = new URL('./gpu-mesh-core.js', self.location.href);
+if (assetRevision) meshCoreUrl.searchParams.set('v', assetRevision);
+importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', meshCoreUrl.href);
 
 self.onmessage = event => {
   const token = event.data?.token;

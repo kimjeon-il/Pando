@@ -49,14 +49,17 @@ export function renderQualityProfile(tier, {
   const definitions = {
     [RENDER_QUALITY_TIERS.COARSE]: {
       backgroundLod: 'coarse', dprCap: 1.25, labelDensity: 0.52,
-      terrainResolutionScale: 0.5, terrainCacheBudgetBytes: 32 * MIB,
+      // Resolution is a data-quality decision, not an interaction budget.
+      // Once canonical data is available we keep the same target level while
+      // moving and only throttle requests/uploads in the renderer.
+      terrainResolutionScale: 1, terrainCacheBudgetBytes: 32 * MIB,
       hydroCacheBudgetBytes: 40 * MIB, overlayGpuBudgetBytes: 48 * MIB,
       renderPacketCacheBudgetBytes: 48 * MIB,
       interactionUploadBudgetBytes: 256 * 1024, settleUploadBudgetBytes: 2 * MIB,
     },
     [RENDER_QUALITY_TIERS.MEDIUM]: {
       backgroundLod: 'medium', dprCap: mobile ? 1.5 : 1.75, labelDensity: 0.76,
-      terrainResolutionScale: 0.72, terrainCacheBudgetBytes: 64 * MIB,
+      terrainResolutionScale: 1, terrainCacheBudgetBytes: 64 * MIB,
       hydroCacheBudgetBytes: 72 * MIB, overlayGpuBudgetBytes: 96 * MIB,
       renderPacketCacheBudgetBytes: 96 * MIB,
       interactionUploadBudgetBytes: 512 * 1024, settleUploadBudgetBytes: 4 * MIB,
@@ -74,7 +77,10 @@ export function renderQualityProfile(tier, {
     tier: normalized,
     phase: interaction ? 'interaction' : 'settle',
     revision: Number(revision || 0),
-    countryMeshQuality: interaction || normalized === RENDER_QUALITY_TIERS.COARSE ? 'preview' : 'canonical',
+    // Preview geometry is a one-way startup fallback.  Interaction quality
+    // may change cadence and upload budgets, but must never select the
+    // low-resolution country dataset again after canonical promotion.
+    countryMeshQuality: 'canonical',
     activeEditLod: 'high',
     selectedLod: 'high',
     ...selected,

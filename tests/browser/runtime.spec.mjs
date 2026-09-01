@@ -279,7 +279,8 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r44')).toBe(true);
+  const assetRevision = await page.evaluate(() => window.PANDOLAB_ASSET_REVISION);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === assetRevision)).toBe(true);
   expect(errors).toEqual([]);
 });
 

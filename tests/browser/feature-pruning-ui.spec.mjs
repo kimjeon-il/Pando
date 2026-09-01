@@ -81,16 +81,29 @@ for (const viewport of viewports) {
 test('country flag actions remain icon-only and preserve the existing data flow', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { name: 'wide', width: 1440, height: 900 });
+  const expectRenderedFlagRatio = async expected => {
+    const flag = page.locator('#flagPreview img');
+    await expect.poll(() => flag.evaluate(img => {
+      const box = img.getBoundingClientRect();
+      return box.height > 0 ? box.width / box.height : 0;
+    })).toBeGreaterThan(0);
+    expect(await flag.evaluate(img => {
+      const box = img.getBoundingClientRect();
+      return box.width / box.height;
+    })).toBeCloseTo(expected, 1);
+  };
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/pl\.svg\?v=0\.30\.0-r44$/);
   await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 국기');
+  await expectRenderedFlagRatio(1.6);
   await page.locator('#flagFileInput').setInputFiles({
     name: 'test-flag.svg',
     mimeType: 'image/svg+xml',
     buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><path fill="#fff" d="M0 0h60v20H0z"/><path fill="#d4213d" d="M0 20h60v20H0z"/></svg>'),
   });
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
+  await expectRenderedFlagRatio(1.5);
   await expect(page.locator('#flagRemoveBtn')).toBeVisible();
   await expect(page.locator('#flagUploadBtn')).toHaveAttribute('aria-label', '국기 변경');
   await expect(page.locator('#flagRemoveBtn')).toHaveAttribute('aria-label', '국기 삭제');
@@ -98,9 +111,11 @@ test('country flag actions remain icon-only and preserve the existing data flow'
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/de\.svg\?v=0\.30\.0-r44$/);
-  await page.locator('#layerSearchInput').fill('LAO');
-  await page.locator('#layerSearchResults .layer-search-result').first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/la\.svg\?v=0\.30\.0-r44$/);
+  await expectRenderedFlagRatio(5 / 3);
+  await page.locator('#layerSearchInput').fill('가봉');
+  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '가봉' }).first().click();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/ga\.svg\?v=0\.30\.0-r44$/);
+  await expectRenderedFlagRatio(4 / 3);
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
@@ -113,5 +128,6 @@ test('country flag actions remain icon-only and preserve the existing data flow'
   await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
   await expect(page.locator('#flagPreview img')).toHaveCount(0);
   await expect(page.locator('#flagRemoveBtn')).toBeHidden();
+
   expect(errors).toEqual([]);
 });
