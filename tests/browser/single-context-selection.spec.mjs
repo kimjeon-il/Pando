@@ -31,9 +31,8 @@ test('single WebGL context draws a country selection from the shared stroke reso
   expect(snapshot.gpuSelection.bufferBuildCount).toBe(0);
   expect(snapshot.selection.svgFallbackKeys || []).toEqual([]);
   expect(await page.locator('.gpu-selection-canvas').count()).toBe(0);
-  await expect(page.locator('body')).toHaveAttribute('data-map-host', 'maplibre');
-  expect(await page.locator('#map .maplibregl-canvas').count()).toBe(1);
-  expect(await page.locator('#map .gpu-map-canvas').count()).toBe(0);
+  await expect(page.locator('body')).toHaveAttribute('data-map-host', 'legacy');
+  expect(await page.locator('#map .gpu-map-canvas').count()).toBe(1);
   expect(warnings).toEqual([]);
   expect(errors).toEqual([]);
 });

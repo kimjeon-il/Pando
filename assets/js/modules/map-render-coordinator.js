@@ -34,7 +34,7 @@ export const MAP_RENDER_DIRTY = Object.freeze({
 });
 
 // A view gesture only changes uniforms/positions.  Scene geometry is rebuilt
-// by an explicit GPU_SCENE invalidation (or by the external MapLibre frame),
+// by an explicit GPU_SCENE invalidation,
 // so it must not be pulled into every interaction frame.
 const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.SELECTION_VIEW
@@ -126,8 +126,8 @@ export function createMapRenderCoordinator({
       const viewState = needsView ? prepareView() : undefined;
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
 
-      // Legacy WebGL/Canvas hosts still need a view draw. MapLibre owns its
-      // own custom-layer frame and therefore returns no-op from this hook.
+      // The legacy Pando host and its renderer share the coordinator frame.
+      // There is no second custom-layer render cycle.
       if (!full && (mask & MAP_RENDER_DIRTY.VIEW)) callRenderer('view', rendererTimes, viewState);
 
       if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes, viewState);
