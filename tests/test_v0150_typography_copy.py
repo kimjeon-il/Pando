@@ -30,9 +30,9 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
         self.assertIn("const BUILD_ID = '0.30.0'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.30.0-r33'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.30.0-r33", INDEX)
-        self.assertIn("bootstrap.js?v=0.30.0-r33", INDEX)
+        self.assertIn("const ASSET_REVISION = '0.30.0-r41'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.30.0-r41", INDEX)
+        self.assertIn("bootstrap.js?v=0.30.0-r41", INDEX)
         self.assertIn("recoverCacheMismatch()", BOOTSTRAP)
         self.assertIn("location.replace(recoveryUrl.href)", BOOTSTRAP)
 
@@ -41,7 +41,7 @@ class V0150TypographyCopyTests(unittest.TestCase):
             for file_path in REVISION_FILES
             for match in re.findall(r"0\.30\.0-r\d+", file_path.read_text(encoding="utf-8"))
         }
-        self.assertEqual(revisions, {"0.30.0-r33"})
+        self.assertEqual(revisions, {"0.30.0-r41"})
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())
@@ -94,9 +94,7 @@ class V0150TypographyCopyTests(unittest.TestCase):
         )
         for forbidden in (
             "수령국",
-            "피편입국",
             "원본 국가",
-            "클릭하세요",
             "누르세요",
             "해 주세요",
             "해주세요",
@@ -107,6 +105,8 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn("영토를 가져올 국가", APP)
         self.assertIn("기준 국가", APP)
         self.assertIn("합병할 국가", APP)
+        self.assertIn("피편입국을 선택하세요. 여러 국가를 선택할 수 있습니다.", APP)
+        self.assertIn("영역 안쪽을 클릭하세요.", APP)
 
     def test_fatal_initialization_and_runtime_errors_are_separate(self):
         self.assertIn("let runtimeReady = false", APP)

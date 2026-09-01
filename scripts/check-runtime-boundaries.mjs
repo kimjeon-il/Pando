@@ -46,12 +46,21 @@ const domFreeModules = [
   'physical-layer-service.js',
   'territorial-service.js',
   'distribution-service.js',
-  'drawing-service.js',
+  'generic-feature-service.js',
   'map-render-coordinator.js',
   'history-service.js',
   'historical-library-service.js',
   'import-service.js',
   'map-edit-worker-client.js',
+  'render-device.js',
+  'render-scene.js',
+  'scene-color-cache.js',
+  'gpu-polygon-overlay-pass.js',
+  'gpu-stroke-renderer.js',
+  'selection-coverage.js',
+  'selection-packet.js',
+  'selection-pass.js',
+  'selection-stroke-geometry.js',
 ];
 for (const name of domFreeModules) {
   const source = sourceByFile.get(path.join(modulesDirectory, name));
@@ -59,6 +68,23 @@ for (const name of domFreeModules) {
   for (const token of ['document.', 'querySelector(', 'getElementById(']) {
     if (source.includes(token)) throw new Error(`${name} must remain DOM-free: ${token}`);
   }
+}
+
+const selectionPassSource = sourceByFile.get(path.join(modulesDirectory, 'selection-pass.js')) || '';
+for (const token of ['getContext(', 'addEventListener(', 'removeEventListener(']) {
+  if (selectionPassSource.includes(token)) throw new Error(`selection-pass.js must not own canvas/context lifecycle: ${token}`);
+}
+if (sourceByFile.has(path.join(modulesDirectory, 'selection-canvas-host.js'))) {
+  throw new Error('selection-canvas-host.js must be removed after single-context integration');
+}
+for (const name of ['gpu-polygon-overlay-pass.js', 'gpu-stroke-renderer.js', 'selection-pass.js']) {
+  const source = sourceByFile.get(path.join(modulesDirectory, name)) || '';
+  if (source.includes('getContext(')) throw new Error(`${name} must receive the shared RenderDevice instead of creating a context`);
+}
+
+const gpuRendererSource = sourceByFile.get(path.join(modulesDirectory, 'gpu-map-renderer.js')) || '';
+for (const token of ['webglcontextlost', 'webglcontextrestored', 'createRenderDevice({']) {
+  if (!gpuRendererSource.includes(token)) throw new Error(`gpu-map-renderer.js must own the shared WebGL lifecycle: ${token}`);
 }
 
 const javascriptFiles = [path.join(root, 'assets/js/app.js'), ...moduleFiles];

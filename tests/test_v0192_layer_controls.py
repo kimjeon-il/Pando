@@ -41,7 +41,7 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertIn("border-color: var(--accent-surface)", rule)
         self.assertIn("background: var(--accent-surface)", rule)
         self.assertIn("box-shadow: inset 0 0 0 1px var(--inset-highlight)", CSS)
-        self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-border\)')
+        self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-surface\)')
 
     def test_layer_visibility_uses_eye_icons_without_changing_checkbox_state(self):
         self.assertEqual(INDEX.count('class="layer-visibility-toggle"'), 10)

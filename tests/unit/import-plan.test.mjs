@@ -44,8 +44,9 @@ test('region imports keep explicit-area semantics', () => {
   });
 
   assert.equal(region.targetType, 'region');
-  assert.equal(region.targetCountryId, '');
-  assert.equal(region.useFeatureCountryField, false);
+  assert.equal(region.targetCountryId, 'DEU');
+  assert.equal(region.fallbackCountryId, 'DEU');
+  assert.equal(region.useFeatureCountryField, true);
   assert.equal(region.landPolicy, 'preserve');
 });
 

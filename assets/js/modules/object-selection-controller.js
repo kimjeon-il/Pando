@@ -1,4 +1,4 @@
-const VALID_DOMAINS = new Set(['territorial', 'distribution', 'drawing', 'hydro', 'label']);
+const VALID_DOMAINS = new Set(['territorial', 'distribution', 'generic', 'hydro', 'label']);
 
 export function normalizeObjectRef(value) {
   if (!value || typeof value !== 'object') return null;

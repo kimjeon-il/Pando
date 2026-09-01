@@ -21,6 +21,7 @@ const {
 const countries = new Map();
 const pendingResults = new Map();
 const cancelled = new Set();
+let currentDataRevision = 0;
 
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const featureId = feature => String(feature?.properties?.editor_id || feature?.id || '');
@@ -348,11 +349,19 @@ self.onmessage = event => {
       countries.clear();
       for (const feature of message.features || []) countries.set(featureId(feature), feature);
       pendingResults.clear();
-      self.postMessage({ type: 'ready', dataRevision: Number(message.dataRevision || 0) });
+      currentDataRevision = Number(message.dataRevision || 0);
+      self.postMessage({
+        type: 'ready',
+        dataRevision: currentDataRevision,
+        geometryRevision: Number(message.geometryRevision || currentDataRevision),
+        targetRevision: Number(message.targetRevision || 0),
+      });
       return;
     }
     if (message.type === 'sync-patch') {
+      if (Number(message.dataRevision || 0) < currentDataRevision) return;
       applyPatch(countries, message.features || [], message.removedIds || []);
+      currentDataRevision = Number(message.dataRevision || currentDataRevision);
       return;
     }
     if (message.type === 'cancel') {
@@ -360,8 +369,11 @@ self.onmessage = event => {
       return;
     }
     if (message.type === 'commit') {
-      const result = pendingResults.get(Number(message.requestId));
-      if (result) applyPatch(countries, result.features, result.removedIds);
+      const pending = pendingResults.get(Number(message.requestId));
+      if (pending && Number(pending.dataRevision) === currentDataRevision) {
+        applyPatch(countries, pending.result.features, pending.result.removedIds);
+        currentDataRevision = Number(message.nextDataRevision || currentDataRevision + 1);
+      }
       pendingResults.delete(Number(message.requestId));
       return;
     }
@@ -370,6 +382,9 @@ self.onmessage = event => {
       return;
     }
     if (message.type !== 'execute') return;
+    if (Number(message.dataRevision || 0) !== currentDataRevision || cancelled.has(Number(message.requestId))) {
+      throw new Error('CANCELLED');
+    }
     const working = new Map(countries);
     const result = message.operation === 'merge'
       ? executeMerge(message, working)
@@ -378,13 +393,32 @@ self.onmessage = event => {
         : message.operation === 'annex-batch'
           ? executeAnnexBatch(message, working)
           : executeAnnex(message, working);
-    pendingResults.set(Number(message.requestId), result);
-    self.postMessage({ type: 'result', ok: true, requestId: Number(message.requestId), dataRevision: Number(message.dataRevision || 0), result });
+    if (cancelled.has(Number(message.requestId))) throw new Error('CANCELLED');
+    pendingResults.set(Number(message.requestId), {
+      result,
+      dataRevision: Number(message.dataRevision || 0),
+      geometryRevision: Number(message.geometryRevision || message.dataRevision || 0),
+      targetRevision: Number(message.targetRevision || 0),
+      jobKey: String(message.jobKey || ''),
+    });
+    self.postMessage({
+      type: 'result',
+      ok: true,
+      requestId: Number(message.requestId),
+      jobKey: String(message.jobKey || ''),
+      dataRevision: Number(message.dataRevision || 0),
+      geometryRevision: Number(message.geometryRevision || message.dataRevision || 0),
+      targetRevision: Number(message.targetRevision || 0),
+      result,
+    });
   } catch (error) {
     const cancelledRequest = error?.message === 'CANCELLED';
     self.postMessage({
       type: 'result', ok: false, cancelled: cancelledRequest,
-      requestId: Number(message.requestId || 0), dataRevision: Number(message.dataRevision || 0),
+      requestId: Number(message.requestId || 0), jobKey: String(message.jobKey || ''),
+      dataRevision: Number(message.dataRevision || 0),
+      geometryRevision: Number(message.geometryRevision || message.dataRevision || 0),
+      targetRevision: Number(message.targetRevision || 0),
       message: cancelledRequest ? '작업을 취소했습니다.' : (error?.message || String(error)),
     });
   } finally {

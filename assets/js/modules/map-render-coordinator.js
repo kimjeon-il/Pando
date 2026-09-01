@@ -13,6 +13,13 @@ const DIRTY_BITS = {
   SELECTION_DATA: 1 << 11,
   SELECTION_VIEW: 1 << 12,
   SELECTION_STYLE: 1 << 13,
+  GPU_INTERACTION: 1 << 14,
+  OVERLAY_GEOMETRY: 1 << 15,
+  OVERLAY_STYLE: 1 << 16,
+  COUNTRY_PATCH: 1 << 17,
+  GENERIC_PATCH: 1 << 18,
+  HYDRO_EDIT_PATCH: 1 << 19,
+  TERRITORIAL_PATCH: 1 << 20,
 };
 
 export const MAP_RENDER_DIRTY = Object.freeze({
@@ -20,6 +27,7 @@ export const MAP_RENDER_DIRTY = Object.freeze({
   // Compatibility aliases for call sites that are progressively moving to
   // the narrower rendering vocabulary.
   GPU_COUNTRIES: DIRTY_BITS.GPU_FRAME,
+  GPU_SCENE: DIRTY_BITS.GPU_FRAME,
   STATIC_OVERLAYS: DIRTY_BITS.OVERLAY_DATA,
   DYNAMIC_OVERLAYS: DIRTY_BITS.INTERACTION_OVERLAYS,
   FULL: Object.values(DIRTY_BITS).reduce((mask, value) => mask | value, 0),
@@ -48,6 +56,13 @@ const STRING_MASKS = Object.freeze({
   'selection-data': MAP_RENDER_DIRTY.SELECTION_DATA,
   'selection-view': MAP_RENDER_DIRTY.SELECTION_VIEW,
   'selection-style': MAP_RENDER_DIRTY.SELECTION_STYLE,
+  'gpu-interaction': MAP_RENDER_DIRTY.GPU_INTERACTION,
+  'overlay-geometry': MAP_RENDER_DIRTY.OVERLAY_GEOMETRY,
+  'overlay-style': MAP_RENDER_DIRTY.OVERLAY_STYLE,
+  'country-patch': MAP_RENDER_DIRTY.COUNTRY_PATCH,
+  'generic-patch': MAP_RENDER_DIRTY.GENERIC_PATCH,
+  'hydro-edit-patch': MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH,
+  'territorial-patch': MAP_RENDER_DIRTY.TERRITORIAL_PATCH,
   labels: MAP_RENDER_DIRTY.LABEL_LAYOUT,
   'layer-tree': MAP_RENDER_DIRTY.LAYER_TREE,
 });
@@ -63,6 +78,7 @@ export function createMapRenderCoordinator({
   requestFrame,
   prepareView,
   renderers,
+  onFrameComplete = null,
   now = () => globalThis.performance?.now?.() ?? Date.now(),
 }) {
   let renderRevision = 0;
@@ -103,26 +119,37 @@ export function createMapRenderCoordinator({
     rendering = true;
     renderRevision += 1;
     try {
-      const needsView = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_FRAME
+      const needsView = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.GPU_INTERACTION
         | MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
         | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.SELECTION_STYLE
-        | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT));
+        | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT
+        | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
+        | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH));
       const viewState = needsView ? prepareView() : undefined;
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
 
       if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes, viewState);
-      if (mask & MAP_RENDER_DIRTY.GPU_FRAME) callRenderer('countries', rendererTimes, viewState);
 
-      if (mask & MAP_RENDER_DIRTY.OVERLAY_DATA) {
+      if (mask & (MAP_RENDER_DIRTY.OVERLAY_DATA | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE)) {
         callRenderer('hydro', rendererTimes, viewState);
         callRenderer('hydroEdits', rendererTimes, viewState);
         callRenderer('territorialUnits', rendererTimes, viewState);
         callRenderer('distributions', rendererTimes, viewState);
-        callRenderer('drawings', rendererTimes, viewState);
+        callRenderer('genericFeatures', rendererTimes, viewState);
         callRenderer('stackOverlays', rendererTimes, viewState);
       } else if (mask & MAP_RENDER_DIRTY.PROJECTED_OVERLAYS) {
         callRenderer('projectedOverlays', rendererTimes, viewState);
         callRenderer('stackOverlays', rendererTimes, viewState);
+      } else {
+        if (mask & MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH) callRenderer('hydroEdits', rendererTimes, viewState);
+        if (mask & MAP_RENDER_DIRTY.TERRITORIAL_PATCH) callRenderer('territorialUnits', rendererTimes, viewState);
+        if (mask & MAP_RENDER_DIRTY.GENERIC_PATCH) callRenderer('genericFeatures', rendererTimes, viewState);
+      }
+
+      if (mask & (MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_DATA
+        | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE
+        | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH)) {
+        callRenderer('countries', rendererTimes, viewState);
       }
 
       if (mask & MAP_RENDER_DIRTY.INTERACTION_OVERLAYS) {
@@ -137,10 +164,20 @@ export function createMapRenderCoordinator({
       } else if (mask & MAP_RENDER_DIRTY.SELECTION_VIEW) {
         callRenderer('selectionView', rendererTimes, viewState);
       }
+      if ((mask & MAP_RENDER_DIRTY.GPU_INTERACTION)
+        && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW))) {
+        callRenderer('gpuInteraction', rendererTimes, viewState);
+      }
 
       if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {
-        if (!(mask & MAP_RENDER_DIRTY.OVERLAY_DATA)) callRenderer('hydroEdits', rendererTimes, viewState);
-        callRenderer('boundaryEdit', rendererTimes, viewState);
+        const domainPatch = mask & (MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
+          | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH);
+        if (!(mask & MAP_RENDER_DIRTY.OVERLAY_DATA) && !domainPatch) {
+          callRenderer('hydroEdits', rendererTimes, viewState);
+        }
+        if (!domainPatch || (mask & MAP_RENDER_DIRTY.COUNTRY_PATCH)) {
+          callRenderer('boundaryEdit', rendererTimes, viewState);
+        }
         callRenderer('vertices', rendererTimes, viewState);
         callRenderer('draft', rendererTimes, viewState);
         callRenderer('snapIndicator', rendererTimes, viewState);
@@ -167,6 +204,17 @@ export function createMapRenderCoordinator({
       if (metrics.recentFrames.length > 20) metrics.recentFrames.splice(0, metrics.recentFrames.length - 20);
       if (full) metrics.fullRenderCount += 1;
       else metrics.viewRenderCount += 1;
+      try {
+        onFrameComplete?.({
+          renderRevision,
+          durationMs: metrics.lastRenderMs,
+          dirtyMask: mask,
+          reasons: [...reasons],
+          rendererTimes: { ...rendererTimes },
+          interactionActive,
+          full,
+        });
+      } catch (_) {}
       return {
         renderRevision,
         viewRevision,

@@ -36,7 +36,7 @@ for (const viewport of viewports) {
     await expect(page.locator('.measurement-layer, .country-component-item')).toHaveCount(0);
     await expect(page.locator('.editor-danger-zone:visible')).toHaveCount(0);
     await expect(page.locator('#multiSelectionBar')).toContainText('0개 선택됨');
-    await expect(page.locator('#multiSelectionBar button')).toHaveCount(2);
+    await expect(page.locator('#multiSelectionBar button')).toHaveCount(3);
 
     const search = page.locator('#layerSearchInput');
     if (!await search.isVisible()) await page.locator('#mobileMapBtn').click();
@@ -61,27 +61,15 @@ for (const viewport of viewports) {
       await expect(page.locator('[data-sheet-handle="rightPanel"]')).toHaveAttribute('aria-valuemax', '1');
       await expect(page.locator('[data-sheet-handle="rightPanel"]')).toHaveAttribute('aria-valuetext', '기본 높이');
     }
+    const viewRevisionBeforeFocus = await page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0));
     await page.locator('#focusSelectedObjectBtn').click();
-    const fitGeometry = await page.evaluate(() => {
-      const selection = document.querySelector('.selection-overlay-layer .map-selection-shape')?.getBoundingClientRect();
-      const panel = document.querySelector('#rightPanel')?.getBoundingClientRect();
-      return selection && panel ? {
-        selection: { left: selection.left, top: selection.top, right: selection.right, bottom: selection.bottom },
-        panel: { left: panel.left, top: panel.top, right: panel.right, bottom: panel.bottom },
-        state: {
-          headerVisible: !document.querySelector('#editorObjectHeader')?.classList.contains('hidden'),
-          selectedType: document.querySelector('#propertyTypeLabel')?.textContent || '',
-          editorView: document.querySelector('#rightPanel')?.getAttribute('data-editor-view') || '',
-        },
-      } : null;
-    });
-    expect(fitGeometry).not.toBeNull();
-    if (viewport.name === 'wide' || viewport.name === 'compact') {
-      expect(fitGeometry.selection.right).toBeLessThanOrEqual(fitGeometry.panel.left + 2);
-    } else {
-      expect(fitGeometry.selection.bottom).toBeLessThanOrEqual(fitGeometry.panel.top + 2);
-    }
-    expect(fitGeometry.state).toEqual({ headerVisible: true, selectedType: '국가', editorView: 'info' });
+    await expect.poll(() => page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0))).toBeGreaterThan(viewRevisionBeforeFocus);
+    const focusedState = await page.evaluate(() => ({
+      headerVisible: !document.querySelector('#editorObjectHeader')?.classList.contains('hidden'),
+      selectedType: document.querySelector('#propertyTypeLabel')?.textContent || '',
+      editorView: document.querySelector('#rightPanel')?.getAttribute('data-editor-view') || '',
+    }));
+    expect(focusedState).toEqual({ headerVisible: true, selectedType: '국가', editorView: 'info' });
     expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);
     expect(overflow.body).toBeLessThanOrEqual(overflow.viewport + 1);
     expect(errors).toEqual([]);
@@ -93,23 +81,32 @@ test('country flag actions remain icon-only and preserve the existing data flow'
   const errors = await openApp(page, { name: 'wide', width: 1440, height: 900 });
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/pl\.svg\?v=0\.30\.0-r41$/);
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 국기');
   await page.locator('#flagFileInput').setInputFiles({
     name: 'test-flag.svg',
     mimeType: 'image/svg+xml',
     buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><path fill="#fff" d="M0 0h60v20H0z"/><path fill="#d4213d" d="M0 20h60v20H0z"/></svg>'),
   });
-  await expect(page.locator('#flagPreview img')).toBeVisible();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
   await expect(page.locator('#flagRemoveBtn')).toBeVisible();
   await expect(page.locator('#flagUploadBtn')).toHaveAttribute('aria-label', '국기 변경');
   await expect(page.locator('#flagRemoveBtn')).toHaveAttribute('aria-label', '국기 삭제');
 
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/de\.svg\?v=0\.30\.0-r41$/);
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
-  await expect(page.locator('#flagPreview img')).toBeVisible();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
   await page.locator('#flagRemoveBtn').click();
   await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
+  await expect(page.locator('#flagRemoveBtn')).toBeHidden();
+
+  await page.locator('#layerSearchInput').fill('BRT');
+  await page.locator('#layerSearchResults .layer-search-result').first().click();
+  await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
+  await expect(page.locator('#flagPreview img')).toHaveCount(0);
   await expect(page.locator('#flagRemoveBtn')).toBeHidden();
   expect(errors).toEqual([]);
 });

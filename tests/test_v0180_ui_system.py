@@ -16,7 +16,7 @@ class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.30.0-r33", INDEX)
+            self.assertIn(f"{asset}?v=0.30.0-r41", INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
 
     def test_disclosures_use_one_svg_icon(self):
@@ -102,6 +102,17 @@ class V0180UiSystemTests(unittest.TestCase):
             self.assertIn(f'<symbol id="{expected_icon}"', INDEX)
         self.assertEqual(tuple(actual_icons), expected_icons)
         self.assertEqual(len(actual_icons), len(set(actual_icons)))
+
+    def test_create_routes_and_shared_category_labels(self):
+        self.assertIn('id="createBuildTabBtn"', INDEX)
+        self.assertIn('id="createLibraryTabBtn"', INDEX)
+        self.assertEqual(
+            re.findall(r'class="create-menu-group-title">([^<]+)', INDEX),
+            ["영토·구역", "인문 분포", "지형지물", "라이브러리"],
+        )
+        self.assertNotIn('>영토</span>', INDEX)
+        self.assertNotIn('>자료</span>', INDEX)
+        self.assertNotIn('>지도 요소</span>', INDEX)
 
 
 if __name__ == "__main__":

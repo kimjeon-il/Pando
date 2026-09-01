@@ -19,6 +19,8 @@ test.describe('phase 1 residual UI cleanup', () => {
   test('historical library uses wide two-pane desktop and fullscreen mobile', async ({ page }) => {
     await page.goto('/');
     await page.waitForFunction(() => document.documentElement.dataset.pandolabUiCleanupPhase1 === 'done');
+    await page.locator('#createMenuBtn').click();
+    await page.locator('#createLibraryTabBtn').click();
     await page.locator('#addFromLibraryBtn').click();
 
     const card = page.locator('.historical-library-card');

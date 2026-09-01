@@ -1,4 +1,4 @@
-export const PROJECT_SCHEMA_VERSION = 2;
+export const PROJECT_SCHEMA_VERSION = 3;
 export const PROJECT_FORMATS = Object.freeze(new Set([
   'pandolab-project-state',
   'pandolab-autosave-full',
@@ -7,10 +7,9 @@ export const PROJECT_FORMATS = Object.freeze(new Set([
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const text = value => String(value ?? '').trim();
-const LAYER_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'drawings', 'labels', 'basemapLabels']);
-const LEGACY_LAYER_VISIBILITY_INPUT_KEYS = new Set([...LAYER_VISIBILITY_KEYS, 'hydro']);
-const ITEM_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'drawings', 'labels', 'countryLabels']);
-const PRESENTATION_GROUP_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'userDrawings', 'labels', 'countryLabels', 'terrain']);
+const LAYER_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels']);
+const ITEM_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
+const PRESENTATION_GROUP_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
 
 export function createProjectObjectId() {
   if (typeof globalThis.crypto?.randomUUID !== 'function') throw new Error('이 환경에서는 안전한 프로젝트 ID를 만들 수 없습니다.');
@@ -63,14 +62,14 @@ export function assertCurrentProjectSchema(project) {
   requireSchemaVersion(project.layerPresentation?.schemaVersion, '레이어 표현', 2);
   assertAllowedKeys(project, new Set([
     'format', 'schemaVersion', 'version', 'savedAt', 'countriesData', 'countryDelta',
-    'countryOverrides', 'sourceInfo', 'labels', 'drawings', 'hydroEdits',
+    'countryOverrides', 'sourceInfo', 'labels', 'genericFeatures', 'hydroEdits',
     'territorialUnits', 'territorialRelations', 'distributionLayers', 'distributionEntries',
     'labelSettings', 'distributionSettings', 'layerPresentation', 'physicalSettings',
     'layerVisibility', 'itemVisibility', 'baseDataset', 'landObjectModel', 'territorialModel',
     'distributionModel', 'physicalSourceInfo',
   ]), '프로젝트');
   assertAllowedKeys(project.distributionSettings, new Set(['renderMode', 'boundaryVisible']), '분포 표시 설정');
-  assertAllowedKeys(project.layerVisibility, LEGACY_LAYER_VISIBILITY_INPUT_KEYS, '레이어 표시 상태');
+  assertAllowedKeys(project.layerVisibility, LAYER_VISIBILITY_KEYS, '레이어 표시 상태');
   assertAllowedKeys(project.itemVisibility, ITEM_VISIBILITY_KEYS, '객체 표시 상태');
   assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles']), '레이어 표현');
   assertAllowedKeys(project.layerPresentation?.styles, PRESENTATION_GROUP_KEYS, '레이어 표현 스타일');
@@ -94,7 +93,7 @@ export function assertCurrentProjectSchema(project) {
   assertUniqueProjectIds(project.territorialRelations, '기간별 관계');
   assertUniqueProjectIds(project.distributionLayers, '분포 레이어');
   assertUniqueProjectIds(project.distributionEntries, '분포 엔트리');
-  assertUniqueProjectIds(project.drawings, '지형지물');
+  assertUniqueProjectIds(project.genericFeatures, '기타 객체');
   assertUniqueProjectIds(project.hydroEdits, '편집 수계');
   assertUniqueProjectIds(project.labels, '지명');
 
@@ -109,15 +108,19 @@ export function assertCurrentProjectSchema(project) {
   }
   for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 1);
   for (const layer of project.distributionLayers || []) {
-    requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`);
+    requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`, 2);
     assertAllowedKeys(layer, new Set(['id', 'schemaVersion', 'type', 'name', 'color', 'locked', 'parentId', 'groups', 'validFrom', 'validTo', 'metadata']), `분포 레이어 ${text(layer?.id)}`);
   }
   for (const entry of project.distributionEntries || []) {
-    requireSchemaVersion(entry?.schemaVersion, `분포 엔트리 ${text(entry?.id)}`);
+    requireSchemaVersion(entry?.schemaVersion, `분포 엔트리 ${text(entry?.id)}`, 2);
     assertAllowedKeys(entry, new Set(['id', 'schemaVersion', 'layerId', 'mode', 'territorialUnitId', 'geometry', 'share', 'certainty', 'validFrom', 'validTo', 'metadata']), `분포 엔트리 ${text(entry?.id)}`);
   }
-  for (const feature of [...(project.drawings || []), ...(project.hydroEdits || [])]) {
-    requireSchemaVersion(feature?.properties?.pandolab_schema_version, `지도 객체 ${text(feature?.id)}`, 1);
+  for (const feature of project.genericFeatures || []) {
+    requireSchemaVersion(feature?.properties?.schemaVersion, `일반 객체 ${text(feature?.id)}`, 1);
+    assertAllowedKeys(feature?.properties, new Set(['schemaVersion', 'name', 'notes', 'color', 'role', 'ownerId', 'parentId', 'landBinding', 'topologyGroup', 'locked', 'source']), `일반 객체 ${text(feature?.id)}`);
+  }
+  for (const feature of project.hydroEdits || []) {
+    requireSchemaVersion(feature?.properties?.pandolab_schema_version, `편집 수계 ${text(feature?.id)}`, 1);
   }
   return project;
 }
@@ -126,7 +129,7 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'countryOverrides', scope: 'document', fallback: () => ({}) }),
   Object.freeze({ name: 'sourceInfo', scope: 'document', fallback: () => null }),
   Object.freeze({ name: 'labels', scope: 'document', fallback: () => [] }),
-  Object.freeze({ name: 'drawings', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'genericFeatures', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'hydroEdits', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'territorialUnits', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'territorialRelations', scope: 'document', fallback: () => [] }),

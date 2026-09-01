@@ -9,7 +9,7 @@ function fixture() {
   const viewState = Object.freeze({ revision: 7, projection: 'globe' });
   const names = [
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
-    'territorialUnits', 'distributions', 'drawings', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
+    'territorialUnits', 'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
     'selectionData', 'selectionView', 'selectionStyle', 'validation', 'countryLabelPositions', 'userLabelPositions',
     'labelLayout', 'countryLabels', 'userLabels', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
   ];
@@ -29,8 +29,8 @@ test('full render preserves canonical layer order and revision', () => {
   const { calls, coordinator, viewState } = fixture();
   assert.deepEqual(coordinator.renderFull(), { renderRevision: 1, viewRevision: 7, viewState, viewOnly: false });
   assert.deepEqual(calls.map(call => call[0]), [
-    'prepare', 'base', 'countries', 'hydro', 'hydroEdits', 'territorialUnits',
-    'distributions', 'drawings', 'stackOverlays', 'geometryPreview', 'validation', 'selectionData',
+    'prepare', 'base', 'hydro', 'hydroEdits', 'territorialUnits',
+    'distributions', 'genericFeatures', 'stackOverlays', 'countries', 'geometryPreview', 'validation', 'selectionData',
     'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'layerTree', 'debug',
   ]);
   assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
@@ -104,4 +104,63 @@ test('selection data and view invalidations use independent render paths', () =>
   frames.shift()();
   assert.equal(calls.filter(call => call[0] === 'selectionView').length, 1);
   assert.equal(calls.some(call => call[0] === 'selectionData'), false);
+});
+
+test('domain geometry patches do not rebuild unrelated overlay domains', () => {
+  const { calls, frames, coordinator } = fixture();
+  coordinator.invalidate(MAP_RENDER_DIRTY.GENERIC_PATCH, 'generic-vertex-commit');
+  frames.shift()();
+  assert.equal(calls.filter(call => call[0] === 'genericFeatures').length, 1);
+  assert.equal(calls.filter(call => call[0] === 'countries').length, 1);
+  assert.equal(calls.some(call => call[0] === 'territorialUnits'), false);
+  assert.equal(calls.some(call => call[0] === 'distributions'), false);
+  assert.equal(calls.some(call => call[0] === 'hydroEdits'), false);
+
+  calls.length = 0;
+  coordinator.invalidate(MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH, 'hydro-vertex-commit');
+  frames.shift()();
+  assert.equal(calls.filter(call => call[0] === 'hydroEdits').length, 1);
+  assert.equal(calls.some(call => call[0] === 'countries'), false);
+  assert.equal(calls.some(call => call[0] === 'genericFeatures'), false);
+});
+
+test('domain edit commits refresh only their own persistent edit overlay', () => {
+  const { calls, frames, coordinator } = fixture();
+  coordinator.invalidate(MAP_RENDER_DIRTY.GENERIC_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS, 'generic-edit');
+  frames.shift()();
+  assert.equal(calls.filter(call => call[0] === 'genericFeatures').length, 1);
+  assert.equal(calls.filter(call => call[0] === 'vertices').length, 1);
+  assert.equal(calls.some(call => call[0] === 'hydroEdits'), false);
+  assert.equal(calls.some(call => call[0] === 'boundaryEdit'), false);
+
+  calls.length = 0;
+  coordinator.invalidate(MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS, 'hydro-edit');
+  frames.shift()();
+  assert.equal(calls.filter(call => call[0] === 'hydroEdits').length, 1);
+  assert.equal(calls.some(call => call[0] === 'boundaryEdit'), false);
+
+  calls.length = 0;
+  coordinator.invalidate(MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS, 'country-edit');
+  frames.shift()();
+  assert.equal(calls.filter(call => call[0] === 'boundaryEdit').length, 1);
+  assert.equal(calls.some(call => call[0] === 'hydroEdits'), false);
+});
+
+test('frame completion reports measured interaction state without changing render ownership', () => {
+  const frames = [];
+  const samples = [];
+  let clock = 0;
+  const coordinator = createMapRenderCoordinator({
+    requestFrame: callback => frames.push(callback),
+    prepareView: () => ({ revision: 1 }),
+    renderers: {},
+    now: () => ++clock,
+    onFrameComplete: sample => samples.push(sample),
+  });
+  coordinator.beginInteraction('drag');
+  coordinator.scheduleView('drag-frame');
+  frames.shift()();
+  assert.equal(samples.length, 1);
+  assert.equal(samples[0].interactionActive, true);
+  assert.ok(samples[0].durationMs > 0);
 });

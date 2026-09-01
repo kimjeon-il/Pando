@@ -1,6 +1,6 @@
 'use strict';
 
-const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r33';
+const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r41';
 const GIS_ADAPTER_URL = new URL('../gis-adapters.js', self.location.href);
 GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION);
 importScripts(GIS_ADAPTER_URL.href);
@@ -191,7 +191,7 @@ function writeAtlasTables(db, payload) {
   const includes = layer => !gisMode || selected.has(layer);
   if (gisMode) removeTable(db, 'pandolab_export_seed');
   const labels = includes('labels') ? state.labels || [] : [];
-  const drawings = includes('drawings') ? state.drawings || [] : [];
+  const genericFeatures = includes('genericFeatures') ? state.genericFeatures || [] : [];
   const places = labels.map(label => ({
     geometry: { type: 'Point', coordinates: label.coordinates || [0, 0] },
     id: label.id || '',
@@ -200,16 +200,15 @@ function writeAtlasTables(db, payload) {
     country_id: label.countryId || label.country_id || '',
     notes: label.notes || '',
   }));
-  const drawingRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', category: item.properties?.category || 'custom', pandolab_role: item.properties?.pandolab_role || 'custom', pandolab_owner_id: item.properties?.pandolab_owner_id || '', pandolab_parent_id: item.properties?.pandolab_parent_id || '', pandolab_topology_group: item.properties?.pandolab_topology_group || '', pandolab_land_binding: item.properties?.pandolab_land_binding || 'none', color: item.properties?.editorColor || item.properties?.color || '', notes: item.properties?.notes || '', properties_json: JSON.stringify(item.properties || {}) });
-  const points = drawings.filter(item => item.geometry?.type === 'Point').map(drawingRow);
-  const lines = drawings.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(drawingRow);
-  const polygons = drawings.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(drawingRow);
+  const genericFeatureRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', role: item.properties?.role || 'generic', owner_id: item.properties?.ownerId || '', parent_id: item.properties?.parentId || '', topology_group: item.properties?.topologyGroup || '', land_binding: item.properties?.landBinding || 'none', color: item.properties?.color || '', notes: item.properties?.notes || '', locked: item.properties?.locked === true ? 1 : 0, properties_json: JSON.stringify(item.properties || {}) });
+  const points = genericFeatures.filter(item => ['Point', 'MultiPoint'].includes(item.geometry?.type)).map(genericFeatureRow);
+  const lines = genericFeatures.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(genericFeatureRow);
+  const polygons = genericFeatures.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(genericFeatureRow);
   const territorialRows = self.PandoLabGisAdapters.territorialRows(state);
   const distributionRows = self.PandoLabGisAdapters.distributionRows(state);
-  const drawingColumns = [
-    { name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'category' }, { name: 'pandolab_role' },
-    { name: 'pandolab_owner_id' }, { name: 'pandolab_parent_id' }, { name: 'pandolab_topology_group' }, { name: 'pandolab_land_binding' },
-    { name: 'color' }, { name: 'notes' }, { name: 'properties_json' },
+  const genericFeatureColumns = [
+    { name: 'id' }, { name: 'name' }, { name: 'role' }, { name: 'owner_id' }, { name: 'parent_id' },
+    { name: 'topology_group' }, { name: 'land_binding' }, { name: 'color' }, { name: 'notes' }, { name: 'locked', type: 'INTEGER' }, { name: 'properties_json' },
   ];
   if (gisMode && includes('countries')) {
     const overrides = state.countryOverrides || {};
@@ -239,10 +238,10 @@ function writeAtlasTables(db, payload) {
     createFeatureTable(db, { tableName: 'countries', geometryType: 'MULTIPOLYGON', rows: countryRows, columns: countryColumns, description: 'PandoLab GIS countries' });
   }
   if (includes('labels')) createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'PandoLab places' });
-  if (includes('drawings')) {
-    createFeatureTable(db, { tableName: 'drawings_point', geometryType: 'POINT', rows: points, columns: drawingColumns, description: 'PandoLab point drawings' });
-    createFeatureTable(db, { tableName: 'drawings_line', geometryType: 'MULTILINESTRING', rows: lines, columns: drawingColumns, description: 'PandoLab line drawings' });
-    createFeatureTable(db, { tableName: 'drawings_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: drawingColumns, description: 'PandoLab polygon drawings' });
+  if (includes('genericFeatures')) {
+    createFeatureTable(db, { tableName: 'generic_features_point', geometryType: 'POINT', rows: points, columns: genericFeatureColumns, description: 'PandoLab point generic features' });
+    createFeatureTable(db, { tableName: 'generic_features_line', geometryType: 'MULTILINESTRING', rows: lines, columns: genericFeatureColumns, description: 'PandoLab line generic features' });
+    createFeatureTable(db, { tableName: 'generic_features_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: genericFeatureColumns, description: 'PandoLab polygon generic features' });
   }
   const territorialColumns = [
     { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },

@@ -1,6 +1,6 @@
 'use strict';
 
-importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', './gpu-mesh-core.js?v=0.30.0-r33');
+importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', './gpu-mesh-core.js?v=0.30.0-r41');
 
 self.onmessage = event => {
   const token = event.data?.token;
@@ -15,6 +15,7 @@ self.onmessage = event => {
       mesh.countryIndices.buffer,
       mesh.triangleIndices.buffer,
       mesh.lineIndices.buffer,
+      mesh.strokeStartsEnds.buffer,
     ]);
   } catch (error) {
     self.postMessage({ token, ok: false, message: error?.message || String(error) });

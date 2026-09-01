@@ -33,6 +33,21 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
 
+  await page.locator('#layerSearchInput').fill('폴란드');
+  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/flags\/4x3\/pl\.svg\?v=0\.30\.0-r41$/);
+  await page.locator('#flagRemoveBtn').click();
+  await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
+
+  await page.locator('#layerSearchInput').fill('독일');
+  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  await page.locator('#flagFileInput').setInputFiles({
+    name: 'custom-german-flag.svg',
+    mimeType: 'image/svg+xml',
+    buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><path fill="#111" d="M0 0h60v40H0z"/></svg>'),
+  });
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
+
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept('스모크 언어'));
   await page.locator('#addDistributionBtn').click();
@@ -72,9 +87,50 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     expect(row).toMatchObject({ source_mode: 'territorial', territorial_unit_id: territorialUnitId, share: 73, geometry_type: 'blob' });
     const crs = db.prepare("SELECT srs_id FROM gpkg_geometry_columns WHERE table_name='language_distribution'").get();
     expect(crs.srs_id).toBe(4326);
+    const savedState = JSON.parse(db.prepare("SELECT json_value FROM pandolab_project_settings WHERE setting_key='project_state'").get().json_value);
+    expect(savedState.countryOverrides.POL.flagDataUrl).toBeNull();
+    expect(Object.hasOwn(savedState.countryOverrides.DEU, 'flagDataUrl')).toBe(false);
+    const flagAssets = db.prepare('SELECT country_id, mime_type, length(image_data) AS byte_length FROM pandolab_country_assets').all();
+    expect(flagAssets).toHaveLength(1);
+    expect(flagAssets[0]).toMatchObject({ country_id: 'DEU', mime_type: 'image/svg+xml' });
+    expect(flagAssets[0].byte_length).toBeGreaterThan(0);
   } finally {
     db.close();
   }
+
+  await page.locator('#layerSearchInput').fill('독일');
+  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  await page.locator('#flagRemoveBtn').click();
+  await page.locator('#layerSearchInput').fill('폴란드');
+  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  await page.locator('#flagFileInput').setInputFiles({
+    name: 'temporary-polish-flag.svg',
+    mimeType: 'image/svg+xml',
+    buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><path fill="#00f" d="M0 0h60v40H0z"/></svg>'),
+  });
+
+  await page.locator('#mobileFileBtn').click();
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('#openGisBtn').click();
+  await (await chooserPromise).setFiles({
+    name: 'flag-roundtrip.gpkg',
+    mimeType: 'application/geopackage+sqlite3',
+    buffer: readFileSync(filePath),
+  });
+  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/2 · 파일 확인');
+  await page.locator('#gisImportNextBtn').click();
+  await expect(page.locator('#gisStepIndicator')).toHaveText('2/2 · 열기 확인');
+  await page.locator('#gisImportConfirmBtn').click();
+  await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 120_000 });
+  await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/, { timeout: 120_000 });
+
+  await page.locator('#layerSearchInput').fill('폴란드');
+  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
+  await page.locator('#layerSearchInput').fill('독일');
+  await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
   expect(errors).toEqual([]);
 });
 
@@ -193,7 +249,7 @@ test('East Prussia imports as a complete German administrative unit and undo tre
   await page.locator('#gisImportNextBtn').click();
   await selectUiOption(page, '#gisTargetType', 'administrative');
   await selectUiOption(page, '#gisTargetCountry', 'DEU');
-  await expect(page.locator('#gisParentRegion')).toHaveValue('');
+  await expect(page.locator('#gisParentUnit')).toHaveValue('');
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisNameField')).toHaveValue('pandolab_name');
   await expect(page.locator('#gisCountryField')).toHaveValue('sovereign_id');

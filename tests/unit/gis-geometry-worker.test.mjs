@@ -18,14 +18,14 @@ function feature(id, coordinates) {
   };
 }
 
-function runWorker(collection, affectedIds = null) {
+function runWorker(collection, affectedIds = null, { intersection = null } = {}) {
   const messages = [];
   let intersectionCalls = 0;
   const self = {
     polygonClipping: {
-      intersection() {
+      intersection(...args) {
         intersectionCalls += 1;
-        return [];
+        return intersection ? intersection(...args) : [];
       },
     },
     d3: { geo: { area: () => 0 } },
@@ -57,6 +57,25 @@ test('scoped GIS overlap checks only compare pairs that contain an affected coun
 test('an empty scope falls back to full validation instead of silently trusting every country', () => {
   const collection = { type: 'FeatureCollection', features: [feature('invalid', degenerate)] };
   assert.equal(runWorker(collection, []).message.ok, false);
+});
+
+test('GIS overlap validation isolates component pairs and retries polygon-clipping sweep failures', () => {
+  const secondSquare = [[[10, 10], [10, 12], [12, 12], [12, 10], [10, 10]]];
+  const left = feature('left', square);
+  left.geometry.coordinates.push(secondSquare);
+  const right = feature('right', square);
+  let attempts = 0;
+  const result = runWorker({ type: 'FeatureCollection', features: [left, right] }, ['left'], {
+    intersection(first, second) {
+      attempts += 1;
+      assert.equal(first.length, 1);
+      assert.equal(second.length, 1);
+      if (attempts === 1) throw new Error('Unable to find segment #1 in SweepLine tree.');
+      return [];
+    },
+  });
+  assert.equal(result.message.ok, true);
+  assert.equal(attempts, 2);
 });
 
 test('country import validation has a timeout and validates imported IDs before a scoped merge', () => {

@@ -14,6 +14,55 @@ export const RIVER_TERRITORY_PARTITION_CONFIG = Object.freeze({
 
 const clone = value => value == null ? value : structuredClone(value);
 
+export function composeRiverBoundaryTerritoryComponents({
+  components = [],
+  candidates = [],
+  donorResults = [],
+} = {}) {
+  const invalidDonorIds = [...new Set((donorResults || [])
+    .filter(result => result?.status === 'invalid')
+    .map(result => String(result.donorCountryId || ''))
+    .filter(Boolean))].sort();
+  const invalid = new Set(invalidDonorIds);
+  const candidatesByComponent = new Map();
+  for (const candidate of candidates || []) {
+    const donorCountryId = String(candidate?.donorCountryId || '');
+    const componentKey = String(candidate?.componentKey || '');
+    if (!donorCountryId || !componentKey || invalid.has(donorCountryId)) continue;
+    if (!candidatesByComponent.has(componentKey)) candidatesByComponent.set(componentKey, []);
+    candidatesByComponent.get(componentKey).push(candidate);
+  }
+  for (const rows of candidatesByComponent.values()) rows.sort((left, right) => String(left.key).localeCompare(String(right.key)));
+
+  const items = [];
+  let splitComponentCount = 0;
+  for (const component of components || []) {
+    const countryId = String(component?.countryId || component?.donorCountryId || '');
+    if (!countryId || invalid.has(countryId)) continue;
+    const polygonIndex = Number(component?.polygonIndex || 0);
+    const componentKey = String(component?.componentKey || `${countryId}:${polygonIndex}`);
+    const partitions = candidatesByComponent.get(componentKey) || [];
+    if (partitions.length) {
+      splitComponentCount += 1;
+      for (const candidate of partitions) items.push({
+        ...candidate,
+        countryId,
+        polygonIndex,
+        componentKey,
+        partitionKind: 'river',
+      });
+    } else {
+      items.push({ ...component, countryId, polygonIndex, componentKey, partitionKind: 'original' });
+    }
+  }
+  return {
+    items,
+    invalidDonorIds,
+    splitComponentCount,
+    riverCandidateCount: items.filter(item => item.partitionKind === 'river').length,
+  };
+}
+
 function finiteCoordinate(point) {
   return Array.isArray(point)
     && point.length >= 2

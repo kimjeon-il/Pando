@@ -1,7 +1,7 @@
 export const COLOR_DOMAINS = Object.freeze({
   COUNTRY: 'country',
   TERRITORIAL: 'territorial',
-  DRAWING: 'drawing',
+  GENERIC: 'generic',
   DISTRIBUTION: 'distribution',
 });
 
@@ -17,7 +17,7 @@ export function normalizeColorValue(value, fallback = '#8c68d8') {
 function explicitColor(domain, target) {
   if (domain === COLOR_DOMAINS.COUNTRY) return target?.override?.color || target?.feature?.properties?.editor_color || '';
   if (domain === COLOR_DOMAINS.TERRITORIAL) return target?.feature?.properties?.style?.color || '';
-  if (domain === COLOR_DOMAINS.DRAWING) return target?.feature?.properties?.editorColor || '';
+  if (domain === COLOR_DOMAINS.GENERIC) return target?.feature?.properties?.color || '';
   if (domain === COLOR_DOMAINS.DISTRIBUTION) return target?.layer?.color || '';
   return '';
 }
@@ -48,9 +48,9 @@ export function writeDomainColor(domain, target = {}, value, { clear = false, fa
     target.feature.properties.style = { ...(target.feature.properties.style || {}) };
     if (color) target.feature.properties.style.color = color;
     else delete target.feature.properties.style.color;
-  } else if (domain === COLOR_DOMAINS.DRAWING && target.feature?.properties) {
-    if (color) target.feature.properties.editorColor = color;
-    else delete target.feature.properties.editorColor;
+  } else if (domain === COLOR_DOMAINS.GENERIC && target.feature?.properties) {
+    if (color) target.feature.properties.color = color;
+    else delete target.feature.properties.color;
   } else if (domain === COLOR_DOMAINS.DISTRIBUTION && target.layer) {
     if (color) target.layer.color = color;
     else delete target.layer.color;

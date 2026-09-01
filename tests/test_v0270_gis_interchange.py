@@ -39,7 +39,7 @@ class V0270GisInterchangeTests(unittest.TestCase):
 
     def test_unified_vector_targets_cover_all_new_domains(self):
         target = INDEX[INDEX.index('id="gisTargetType"'):INDEX.index('</select>', INDEX.index('id="gisTargetType"'))]
-        for value in ("country", "drawing", "territory", "administrative", "region", "distribution"):
+        for value in ("country", "generic", "territory", "administrative", "region", "distribution"):
             self.assertIn(f'<option value="{value}">', target)
         subtype = INDEX[INDEX.index('id="gisDistributionType"'):INDEX.index('</select>', INDEX.index('id="gisDistributionType"'))]
         for value in ("language", "ethnicity", "religion"):

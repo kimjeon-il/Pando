@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
 
 const root = resolve(process.cwd());
-const port = 4173;
+const port = Number.parseInt(process.env.PANDOLAB_TEST_PORT || '4173', 10);
 const mime = {
   '.bin': 'application/octet-stream', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',

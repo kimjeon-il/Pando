@@ -7,7 +7,7 @@ export const OVERLAY_GROUPS = Object.freeze([
   'administrative',
   'territories',
   'regions',
-  'userDrawings',
+  'genericFeatures',
 ]);
 
 export const PRESENTATION_GROUPS = Object.freeze([

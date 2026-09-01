@@ -18,6 +18,22 @@ test('river partition flow uses current display hydro geometry', () => {
   assert.match(worker, /buildRiverTerritoryPartitions/);
 });
 
+test('river partition candidates are rewound before D3 renders their spherical paths', () => {
+  assert.match(
+    app,
+    /const candidates = \(result\.candidates \|\| \[\]\)\.map\(candidate => \(\{[\s\S]*?geometry: normalizeClippedLandGeometry\(candidate\?\.geometry\),[\s\S]*?\}\)\)\.filter\(candidate => candidate\.geometry && candidate\.donorCountryId\)/,
+  );
+});
+
+test('river boundaries extend the shared territory component selection flow', () => {
+  assert.match(app, /annexUseRiverBoundaries: false/);
+  assert.match(app, /composeRiverBoundaryTerritoryComponents/);
+  assert.match(app, /state\.annexSelectedComponentKeys/);
+  assert.doesNotMatch(app, /annexSelectedRiverPartitionKeys/);
+  assert.doesNotMatch(app, /annexRiverPartitionPreviewGeometry/);
+  assert.doesNotMatch(app, /annexPhase === 'river-partitions'/);
+});
+
 test('frontier pocket implementation and companion assets are completely removed', () => {
   for (const relative of [
     'assets/js/modules/river-annex-metric.js',

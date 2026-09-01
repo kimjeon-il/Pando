@@ -73,7 +73,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         for form_id in (
             "countryProperties", "territoryProperties", "administrativeProperties", "regionProperties",
-            "distributionProperties", "drawingProperties", "labelProperties",
+            "distributionProperties", "genericFeatureProperties", "labelProperties",
         ):
             markup = self.form_markup(form_id)
             self.assertIn("editor-object-form", markup)
@@ -130,7 +130,9 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertNotIn("지도에서 보기</button>", INDEX[INDEX.index('id="objectActionsMenu"'):INDEX.index('id="emptyProperties"')])
         self.assertIn('class="object-actions-separator" role="separator"', INDEX)
         self.assertIn("function currentObjectFitInsets()", APP)
-        self.assertIn("panMapBy(safeCenterX - projectionCenterX, safeCenterY - projectionCenterY)", APP)
+        self.assertIn("const viewportCenter = [width / 2, height / 2]", APP)
+        self.assertIn("syncMapHostFromState();", APP)
+        self.assertIn("panMapBy(offsetX, offsetY)", APP)
         self.assertIn("--map-safe-right: calc(var(--panel-right-width) + var(--ui-map-edge));", CSS)
         self.assertIn("top: var(--ui-map-edge);", CSS)
         self.assertIn("bottom: calc(30px + var(--ui-map-edge));", CSS)

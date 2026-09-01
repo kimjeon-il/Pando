@@ -6,11 +6,11 @@ import { createMapObjectSpatialIndex } from '../../assets/js/modules/map-object-
 test('queries only nearby map objects and updates entries', () => {
   const index = createMapObjectSpatialIndex({ cellSize: 5 });
   index.upsert({ key: 'territorial:a', domain: 'territorial', type: 'admin', id: 'a', bounds: [10, 10, 12, 12] });
-  index.upsert({ key: 'drawing:b', domain: 'drawing', type: 'polygon', id: 'b', bounds: [80, 30, 82, 32] });
+  index.upsert({ key: 'generic:b', domain: 'generic', type: 'feature', id: 'b', bounds: [80, 30, 82, 32] });
   assert.deepEqual(index.query([9, 9, 13, 13]).map(item => item.key), ['territorial:a']);
   index.upsert({ key: 'territorial:a', domain: 'territorial', type: 'admin', id: 'a', bounds: [81, 30, 83, 33], geometryRevision: 2 });
   assert.deepEqual(index.query([9, 9, 13, 13]), []);
-  assert.deepEqual(new Set(index.query([80, 29, 84, 34]).map(item => item.key)), new Set(['territorial:a', 'drawing:b']));
+  assert.deepEqual(new Set(index.query([80, 29, 84, 34]).map(item => item.key)), new Set(['territorial:a', 'generic:b']));
 });
 
 test('supports date-line bounds, domain filters, and large entries', () => {

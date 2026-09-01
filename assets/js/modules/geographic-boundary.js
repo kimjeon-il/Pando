@@ -52,7 +52,7 @@ function appendEdge(lines, a, b, { closingEdge = false } = {}) {
   if (!Number.isFinite(endLongitude)) return;
   const delta = endLongitude - start[0];
   // A legitimate antimeridian crossing is split into two short lines. This
-  // keeps SVG, Canvas and screen-space WebGL renderers from drawing a chord.
+  // keeps SVG, Canvas and screen-space WebGL renderers from genericFeature a chord.
   if (Math.abs(delta) > 180) return;
   if (endLongitude > 180 || endLongitude < -180) {
     const seam = delta > 0 ? 180 : -180;
