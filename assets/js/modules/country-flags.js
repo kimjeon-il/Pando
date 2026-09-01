@@ -64,11 +64,9 @@ function normalizedFlagUrl(value) {
 
 export function effectiveCountryFlagUrl({
   countryId,
-  properties = {},
   override = {},
   assetRevision = '',
 } = {}) {
   if (hasOwn(override, 'flagDataUrl')) return normalizedFlagUrl(override.flagDataUrl);
-  if (hasOwn(properties, 'flagDataUrl')) return normalizedFlagUrl(properties.flagDataUrl);
   return currentCountryFlagUrl(countryId, { assetRevision });
 }

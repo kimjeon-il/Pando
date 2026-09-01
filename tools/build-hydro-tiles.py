@@ -555,7 +555,7 @@ class BorderAligner:
         features = collection.get("features") or []
         countries = [shape(feature["geometry"]) for feature in features]
         country_ids = [
-            str((feature.get("properties") or {}).get("editor_id") or (feature.get("properties") or {}).get("iso_a3") or feature.get("id") or index)
+            str(feature.get("id") or index)
             for index, feature in enumerate(features)
         ]
         country_tree = STRtree(countries)

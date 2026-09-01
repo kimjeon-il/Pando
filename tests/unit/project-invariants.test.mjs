@@ -7,7 +7,7 @@ import {
 } from '../../assets/js/modules/project-invariants.js';
 
 const polygon = () => ({ type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] });
-const country = id => ({ type: 'Feature', properties: { editor_id: id }, geometry: polygon() });
+const country = id => ({ type: 'Feature', id, properties: { name: id }, geometry: polygon() });
 const unit = (id, parentId = '', sovereignId = 'A') => ({
   type: 'Feature', id,
   properties: { parentId, sovereignId },

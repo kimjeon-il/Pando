@@ -771,7 +771,7 @@ export function buildRiverTerritoryPartitions({
   const candidates = [];
   const donorResults = [];
   for (const donor of donors || []) {
-    const donorId = String(donor?.countryId ?? donor?.properties?.editor_id ?? donor?.id ?? '');
+    const donorId = String(donor?.countryId ?? donor?.id ?? '');
     const geometry = donor?.geometry;
     const donorRevision = String(donor?.geometryRevision ?? donor?.properties?.geometryRevision ?? '');
     const components = polygonCoordinates(geometry);

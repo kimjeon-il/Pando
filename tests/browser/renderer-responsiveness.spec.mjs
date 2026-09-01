@@ -17,6 +17,16 @@ async function openEnhanced(page, query = '?perf') {
 test('pan and zoom frames do not rebuild or upload country palettes', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openEnhanced(page);
+  await page.waitForFunction(() => {
+    const count = window.__PANDOLAB_RENDER_DEBUG__.snapshot().fullRenderCount;
+    const now = performance.now();
+    const prior = window.__PANDOLAB_TEST_FULL_RENDER_STABILITY__;
+    if (!prior || prior.count !== count) {
+      window.__PANDOLAB_TEST_FULL_RENDER_STABILITY__ = { count, changedAt: now };
+      return false;
+    }
+    return now - prior.changedAt >= 2500;
+  }, null, { timeout: 30_000 });
   const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());
   const mapBox = await page.locator('#map .map-svg').boundingBox();
   const cdp = await page.context().newCDPSession(page);

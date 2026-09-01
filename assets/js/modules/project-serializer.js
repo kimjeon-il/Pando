@@ -1,5 +1,24 @@
-function cloneCountryFeature(feature, clone) {
-  return clone(feature);
+import { normalizeCountryFeature, pruneCountryOverrides } from './country-feature.js';
+
+function cloneCountryFeature(feature, clone = structuredClone) {
+  const normalized = normalizeCountryFeature(feature);
+  normalized.geometry = clone(feature?.geometry);
+  return normalized;
+}
+
+function normalizeCountriesData(collection) {
+  return {
+    type: 'FeatureCollection',
+    features: (collection?.features || []).map(feature => cloneCountryFeature(feature)),
+  };
+}
+
+function normalizeProjectFields(fields, countriesData) {
+  const ids = new Set((countriesData.features || []).map(feature => String(feature.id)));
+  return {
+    ...(fields || {}),
+    countryOverrides: pruneCountryOverrides(fields?.countryOverrides, ids),
+  };
 }
 
 function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes }, compact = false) {
@@ -42,13 +61,14 @@ export function createProjectSerializer({
   const contracts = { genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes };
 
   function buildProject(snapshot = readSnapshot()) {
+    const countriesData = normalizeCountriesData(snapshot.countriesData);
     return {
       format: 'pandolab-project-state',
       schemaVersion,
       version: appVersion,
       savedAt: now().toISOString(),
-      countriesData: snapshot.countriesData,
-      ...snapshot.projectFields,
+      countriesData,
+      ...normalizeProjectFields(snapshot.projectFields, countriesData),
       baseDataset,
       ...modelContracts(contracts),
       physicalSourceInfo: {
@@ -69,13 +89,18 @@ export function createProjectSerializer({
   function buildAutosave() {
     const snapshot = readSnapshot();
     if (snapshot.fullAutosave) return { ...buildProject(snapshot), format: 'pandolab-autosave-full' };
+    const changed = normalizeCountriesData({ features: snapshot.countryDelta?.changed || [] }).features;
+    const currentIds = new Set((snapshot.countriesData?.features || []).map(feature => String(feature.id)));
     return {
       format: 'pandolab-autosave-delta',
       schemaVersion,
       version: appVersion,
       savedAt: now().toISOString(),
-      countryDelta: snapshot.countryDelta,
-      ...snapshot.projectFields,
+      countryDelta: { changed, removedIds: [...(snapshot.countryDelta?.removedIds || [])].map(String) },
+      ...{
+        ...(snapshot.projectFields || {}),
+        countryOverrides: pruneCountryOverrides(snapshot.projectFields?.countryOverrides, currentIds),
+      },
       baseDataset,
       ...modelContracts(contracts, true),
     };
@@ -91,21 +116,21 @@ export function restoreCountriesFromDelta(project, {
   applyPristineLabelAnchors,
 }) {
   const delta = project?.countryDelta || { changed: [], removedIds: [] };
-  const changed = new Map((delta.changed || []).map(feature => [String(feature.properties?.editor_id || feature.properties?.iso_a3 || ''), feature]));
+  const changed = new Map((delta.changed || []).map(feature => [String(feature?.id || ''), feature]));
   const removed = new Set((delta.removedIds || []).map(String));
   const seen = new Set();
   base.features = (base.features || []).filter(feature => {
-    const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+    const id = String(feature?.id || '');
     return !removed.has(id);
   }).map(feature => {
-    const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+    const id = String(feature?.id || '');
     if (!changed.has(id)) return feature;
     seen.add(id);
     return cloneCountryFeature(changed.get(id), clone);
   });
   for (const [id, feature] of changed) if (!seen.has(id) && !removed.has(id)) base.features.push(cloneCountryFeature(feature, clone));
   const result = reindex(base);
-  const unchangedIds = (result.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(id => !changed.has(id));
+  const unchangedIds = (result.features || []).map(feature => String(feature?.id || '')).filter(id => !changed.has(id));
   applyPristineLabelAnchors(result, unchangedIds);
   return result;
 }

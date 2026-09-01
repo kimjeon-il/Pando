@@ -66,7 +66,7 @@ class V0126RuntimeTests(unittest.TestCase):
 
     def test_egypt_country_geometry_has_no_self_intersecting_border_gap(self):
         countries = json.loads((ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson").read_text(encoding="utf-8"))
-        egypt = next(feature for feature in countries["features"] if feature["properties"]["iso_a3"] == "EGY")
+        egypt = next(feature for feature in countries["features"] if feature["id"] == "EGY")
         self.assertTrue(shape(egypt["geometry"]).is_valid)
         main_ring = egypt["geometry"]["coordinates"][0][0]
         self.assertNotIn([35.429207, 22.97833], main_ring)

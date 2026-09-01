@@ -20,7 +20,8 @@ const meshCore = loadClassic('assets/js/workers/gpu-mesh-core.js', 'PandoLabGpuM
 
 const square = (id, x) => ({
   type: 'Feature',
-  properties: { editor_id: id },
+  id,
+  properties: { name: id },
   geometry: {
     type: 'Polygon',
     coordinates: [[

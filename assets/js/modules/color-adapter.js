@@ -15,7 +15,7 @@ export function normalizeColorValue(value, fallback = '#8c68d8') {
 }
 
 function explicitColor(domain, target) {
-  if (domain === COLOR_DOMAINS.COUNTRY) return target?.override?.color || target?.feature?.properties?.editor_color || '';
+  if (domain === COLOR_DOMAINS.COUNTRY) return target?.override?.color || '';
   if (domain === COLOR_DOMAINS.TERRITORIAL) return target?.feature?.properties?.style?.color || '';
   if (domain === COLOR_DOMAINS.GENERIC) return target?.feature?.properties?.color || '';
   if (domain === COLOR_DOMAINS.DISTRIBUTION) return target?.layer?.color || '';
@@ -39,10 +39,6 @@ export function writeDomainColor(domain, target = {}, value, { clear = false, fa
     if (target.override) {
       if (color) target.override.color = color;
       else delete target.override.color;
-    }
-    if (target.feature?.properties) {
-      if (color) target.feature.properties.editor_color = color;
-      else delete target.feature.properties.editor_color;
     }
   } else if (domain === COLOR_DOMAINS.TERRITORIAL && target.feature?.properties) {
     target.feature.properties.style = { ...(target.feature.properties.style || {}) };

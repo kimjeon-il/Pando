@@ -32,7 +32,7 @@ test('territorial GIS rows keep hierarchy sovereignty dates and multipart geomet
 
 test('territorial distributions materialize referenced geometry only in the GIS view', () => {
   const state = {
-    countriesData: { type: 'FeatureCollection', features: [{ type: 'Feature', id: 'GR', properties: { editor_id: 'GR' }, geometry: polygon() }] },
+    countriesData: { type: 'FeatureCollection', features: [{ type: 'Feature', id: 'GR', properties: { name: 'GR' }, geometry: polygon() }] },
     distributionLayers: [{ id: 'greek', type: 'language', name: '그리스어', color: '#2474c6', locked: false }],
     itemVisibility: { languages: { greek: false } },
     distributionEntries: [

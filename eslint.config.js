@@ -18,7 +18,8 @@ const browserGlobals = {
 };
 
 const nodeGlobals = {
-  Buffer: 'readonly', Response: 'readonly', URL: 'readonly', console: 'readonly', process: 'readonly', setTimeout: 'readonly', clearTimeout: 'readonly',
+  Buffer: 'readonly', Response: 'readonly', URL: 'readonly', console: 'readonly', process: 'readonly', performance: 'readonly',
+  setTimeout: 'readonly', clearTimeout: 'readonly', structuredClone: 'readonly',
 };
 
 export default [
@@ -50,8 +51,9 @@ export default [
     languageOptions: { sourceType: 'module' },
   },
   {
-    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', '*.config.js'],
+    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', 'tools/**/*.mjs', '*.config.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: nodeGlobals },
+    rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
   },
   {
     files: ['tests/browser/**/*.mjs'],

@@ -71,10 +71,10 @@ test('adaptive load policy uses hardware and network signals instead of viewport
 test('preview assets preserve country identity within the fixed size and geometry budgets', () => {
   assert.equal(preview.type, 'FeatureCollection');
   assert.equal(preview.features.length, 258);
-  assert.equal(new Set(preview.features.map(feature => feature.properties.editor_id)).size, 258);
+  assert.equal(new Set(preview.features.map(feature => feature.id)).size, 258);
   assert.deepEqual(
-    preview.features.map(feature => String(feature.properties.editor_id)),
-    canonical.features.map(feature => String(feature.properties.editor_id)),
+    preview.features.map(feature => String(feature.id)),
+    canonical.features.map(feature => String(feature.id)),
   );
   assert.equal(countCoordinates(preview.features.map(feature => feature.geometry.coordinates)), manifest.coordinateCount);
   assert.ok(manifest.coordinateCount <= 60_000);

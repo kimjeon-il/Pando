@@ -132,7 +132,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertIn("function currentObjectFitInsets()", APP)
         self.assertIn("const viewportCenter = [width / 2, height / 2]", APP)
         self.assertIn("syncMapHostFromState();", APP)
-        self.assertIn("panMapBy(offsetX, offsetY)", APP)
+        self.assertNotIn("panMapBy(offsetX, offsetY)", APP)
         self.assertIn("--map-safe-right: calc(var(--panel-right-width) + var(--ui-map-edge));", CSS)
         self.assertIn("top: var(--ui-map-edge);", CSS)
         self.assertIn("bottom: calc(30px + var(--ui-map-edge));", CSS)

@@ -22,7 +22,7 @@ function createFakeWorker() {
 
 test('map edit worker client rebases, executes and commits with one revision stream', async () => {
   const workers = [];
-  const feature = { type: 'Feature', properties: { editor_id: 'AAA' }, geometry: null };
+  const feature = { type: 'Feature', id: 'AAA', properties: { name: 'AAA' }, geometry: null };
   const client = createMapEditWorkerClient({
     createWorker: () => { const worker = createFakeWorker(); workers.push(worker); return worker; },
     getFeatures: () => [feature],
@@ -39,7 +39,7 @@ test('map edit worker client rebases, executes and commits with one revision str
 
 test('map edit worker client relies on postMessage structured cloning for scoped patches', async () => {
   const worker = createFakeWorker();
-  const feature = { type: 'Feature', properties: { editor_id: 'AAA' }, geometry: null };
+  const feature = { type: 'Feature', id: 'AAA', properties: { name: 'AAA' }, geometry: null };
   const client = createMapEditWorkerClient({
     createWorker: () => worker,
     getFeatures: () => [feature],
@@ -57,7 +57,7 @@ test('map edit worker client relies on postMessage structured cloning for scoped
 
 test('map edit worker client reuses one rebased worker for consecutive operations', async () => {
   const worker = createFakeWorker();
-  const feature = { type: 'Feature', properties: { editor_id: 'AAA' }, geometry: null };
+  const feature = { type: 'Feature', id: 'AAA', properties: { name: 'AAA' }, geometry: null };
   const client = createMapEditWorkerClient({
     createWorker: () => worker,
     getFeatures: () => [feature],

@@ -36,7 +36,7 @@
     "canonicalCountries": {
       "path": "assets/data/countries-ne-5.1.1.geojson",
       "crs": "EPSG:4326",
-      "sha256": "B78FF2DAFF7D45AAC40980645892642941100D56A6649DE9EAEEE2E85E021290"
+      "sha256": "168286E9EE8E156CDBD19EBB026A13B66EBE2134CC89883834E32A4D58ABE416"
     }
   },
   "operations": [

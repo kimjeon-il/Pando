@@ -22,7 +22,7 @@ function polygonRings(feature) {
 }
 
 function featureId(feature, index = 0) {
-  return String(feature?.properties?.editor_id || feature?.id || index);
+  return String(feature?.id || index);
 }
 
 function pointOnSegment(point, a, b, epsilon) {
@@ -286,7 +286,7 @@ function topologyFeature(feature, prefix, index) {
   const id = featureId(feature, index);
   return {
     ...feature,
-    properties: { ...(feature?.properties || {}), editor_id: `${prefix}:${id}` },
+    id: `${prefix}:${id}`,
   };
 }
 
@@ -306,7 +306,7 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
   const unitFeatures = (units || [])
     .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
     .map((feature, index) => topologyFeature(feature, 'unit', index));
-  const unitMeta = new Map(unitFeatures.map(feature => [feature.properties.editor_id, {
+  const unitMeta = new Map(unitFeatures.map(feature => [feature.id, {
     id: featureId(feature).replace(/^unit:/, ''),
     type: feature.properties?.unitType || '',
   }]));

@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/vendor/maplibre-gl/6.6.0/maplibre-gl.css?v=0.30.0-r41" />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r41" />
+  <link rel="stylesheet" href="assets/vendor/maplibre-gl/6.6.0/maplibre-gl.css?v=0.30.0-r42" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-r42" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -975,7 +975,7 @@
             <label id="gisCountryFieldRow" class="ui-field field-group"><span>소속 국가 속성</span><select id="gisCountryField"></select><small>값이 비어 있을 때만 공통 소속 국가를 사용합니다. 알 수 없는 값은 오류로 표시됩니다.</small></label>
             <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 영역 속성</span><select id="gisParentField"></select></label>
             <label id="gisLevelFieldRow" class="ui-field field-group"><span>행정 단계 속성</span><select id="gisLevelField"></select></label>
-            <label class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
+            <label id="gisColorFieldRow" class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
           </div></details>
           <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary">감지 중</output><input id="gisCrsInput" class="hidden" type="text" inputmode="numeric" placeholder="EPSG:4326" /></div>
           <input id="gisGroupDuplicates" type="checkbox" checked hidden />
@@ -1036,8 +1036,8 @@
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-r41" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-r41" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-r41" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.30.0-r42" defer></script>
+  <script src="assets/js/gis-io.js?v=0.30.0-r42" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.30.0-r42" defer></script>
 </body>
 </html>

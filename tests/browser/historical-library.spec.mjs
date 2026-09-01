@@ -42,10 +42,10 @@ test('historical library search previews and instantiates an independent sourced
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .filter(unit => unit.properties.sourceLibraryId === 'historical-country:soviet-union').length)).toBe(1);
+    .filter(unit => unit.id === 'historical-country:soviet-union').length)).toBe(1);
   const instanceId = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .find(unit => unit.properties.sourceLibraryId === 'historical-country:soviet-union')?.id);
-  expect(instanceId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    .find(unit => unit.id === 'historical-country:soviet-union')?.id);
+  expect(instanceId).toBe('historical-country:soviet-union');
   const sourceAfterEdit = await page.evaluate(() => JSON.stringify(
     window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union').geometryVersions[0].geometry,
   ));
@@ -53,7 +53,7 @@ test('historical library search previews and instantiates an independent sourced
 
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .filter(unit => unit.properties.sourceLibraryId === 'historical-country:soviet-union').length)).toBe(0);
+    .filter(unit => unit.id === 'historical-country:soviet-union').length)).toBe(0);
   expect(errors).toEqual([]);
 });
 
@@ -75,7 +75,7 @@ async function autosaveContainsEastGermany(page) {
         ? (project.countryDelta?.changed || [])
         : (project?.countriesData?.features || []);
       return changedCountries.some(country => (
-        country?.properties?.sourceLibraryId === 'historical-country:east-germany'
+        country?.id === 'historical-country:east-germany'
       )) && project?.countryOverrides?.DEU?.name === '독일 연방공화국';
     } finally {
       database.close();
@@ -131,12 +131,12 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length)).toBe(before.count + 1);
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties?.name)).toBe('독일 연방공화국');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .filter(country => country.properties.sourceLibraryId === 'historical-country:east-germany').length)).toBe(1);
+    .filter(country => country.id === 'historical-country:east-germany').length)).toBe(1);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.pendingCountryCount || 0), { timeout: 60_000 }).toBe(0);
 
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .filter(country => country.properties.sourceLibraryId === 'historical-country:east-germany').length)).toBe(0);
+    .filter(country => country.id === 'historical-country:east-germany').length)).toBe(0);
   const afterUndo = await page.evaluate(() => {
     const countries = window.PANDOLAB_TERRITORIAL.list({ type: 'country' });
     const germany = countries.find(country => country.id === 'DEU');
@@ -162,7 +162,7 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties?.name)).toBe('독일 연방공화국');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .filter(country => country.properties.sourceLibraryId === 'historical-country:east-germany').length)).toBe(1);
+    .filter(country => country.id === 'historical-country:east-germany').length)).toBe(1);
   await runDebugAudit(page);
   expect(errors).toEqual([]);
 });

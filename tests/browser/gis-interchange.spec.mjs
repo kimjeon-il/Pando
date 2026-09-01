@@ -35,7 +35,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
 
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/flags\/4x3\/pl\.svg\?v=0\.30\.0-r41$/);
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/flags\/4x3\/pl\.svg\?v=0\.30\.0-r42$/);
   await page.locator('#flagRemoveBtn').click();
   await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
 
@@ -76,8 +76,11 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     ]) expect(tables.has(table)).toBe(true);
 
     const countryColumns = new Set(db.prepare('PRAGMA table_info(countries)').all().map(row => row.name));
-    for (const field of ['id', 'name', 'type', 'parent_id', 'sovereign_id', 'valid_from', 'valid_to', 'color']) {
+    for (const field of ['pandolab_id', 'pandolab_name']) {
       expect(countryColumns.has(field)).toBe(true);
+    }
+    for (const field of ['id', 'name', 'type', 'parent_id', 'sovereign_id', 'color']) {
+      expect(countryColumns.has(field)).toBe(false);
     }
     const distributionColumns = new Set(db.prepare('PRAGMA table_info(language_distribution)').all().map(row => row.name));
     for (const field of ['entry_id', 'layer_id', 'source_mode', 'territorial_unit_id', 'share', 'certainty']) {

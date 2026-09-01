@@ -51,11 +51,11 @@ test('East Prussia r2 library entry adds an exact overlap-free country', async (
   await expect(page.locator('#historicalLibraryModal')).toBeHidden();
 
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get(
-    'HIST_DEU_OSTPREUSSEN_1900',
-  )?.properties?.sourceGeometryVersion || '')).toBe('ostpreussen-1878-1920-r2');
+    'historical-country:east-prussia',
+  )?.id || '')).toBe('historical-country:east-prussia');
   const resultState = await page.evaluate(() => {
     const countries = window.PANDOLAB_TERRITORIAL.list({ type: 'country' });
-    const east = window.PANDOLAB_TERRITORIAL.get('HIST_DEU_OSTPREUSSEN_1900');
+    const east = window.PANDOLAB_TERRITORIAL.get('historical-country:east-prussia');
     const overlapIds = ['POL', 'RUS', 'LTU'].filter(id => {
       const country = window.PANDOLAB_TERRITORIAL.get(id);
       return window.polygonClipping.intersection(east.geometry.coordinates, country.geometry.coordinates).length;
@@ -63,8 +63,8 @@ test('East Prussia r2 library entry adds an exact overlap-free country', async (
     return {
       count: countries.length,
       color: east.properties.style.color,
-      sourceLibraryId: east.properties.sourceLibraryId,
-      sourceGeometryVersion: east.properties.sourceGeometryVersion,
+      id: east.id,
+      name: east.properties.name,
       validFrom: east.properties.validFrom,
       validTo: east.properties.validTo,
       components: east.geometry.coordinates.length,
@@ -77,8 +77,8 @@ test('East Prussia r2 library entry adds an exact overlap-free country', async (
   expect(resultState).toEqual({
     count: before.count + 1,
     color: '#53657A',
-    sourceLibraryId: 'historical-country:east-prussia',
-    sourceGeometryVersion: 'ostpreussen-1878-1920-r2',
+    id: 'historical-country:east-prussia',
+    name: '동프로이센주',
     validFrom: '1878-04-01',
     validTo: '1920-01-10',
     components: 2,
@@ -92,7 +92,7 @@ test('East Prussia r2 library entry adds an exact overlap-free country', async (
 
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get(
-    'HIST_DEU_OSTPREUSSEN_1900',
+    'historical-country:east-prussia',
   ))).toBeNull();
   const afterUndo = await page.evaluate(() => ({
     count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,

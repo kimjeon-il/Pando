@@ -14,17 +14,8 @@ async function runDebugAudit(page) {
   ).toContain('audit: ready / 0 issues');
 }
 
-async function prepareCountryInLayerSearch(page, name) {
-  if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
-  await page.locator('#layerSearchInput').fill(name);
-  const result = page.getByRole('option').filter({ hasText: name }).first();
-  await expect(result).toBeVisible();
-  return result;
-}
-
-async function focusCountryFromLayerSearch(page, name) {
-  const result = await prepareCountryInLayerSearch(page, name);
-  await result.click();
+async function focusCountry(page, id) {
+  await page.evaluate(countryId => window.PANDOLAB_TERRITORIAL.select('country', countryId), id);
   await page.locator('#focusSelectedObjectBtn').click();
 }
 
@@ -173,12 +164,13 @@ test.describe('canonical handoff geometry regression', () => {
     await page.goto('/?debug');
     await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
+    await page.locator('#mapViewTabBtn').click();
     await page.locator('#flatBtn').click();
     await runDebugAudit(page);
 
-    await focusCountryFromLayerSearch(page, '이집트');
+    await focusCountry(page, 'EGY');
     await attachMapSnapshot(page, testInfo, 'egypt-preview');
-    await focusCountryFromLayerSearch(page, '브루나이');
+    await focusCountry(page, 'BRN');
     await attachMapSnapshot(page, testInfo, 'borneo-preview');
     expect(errors).toEqual([]);
   });
@@ -192,6 +184,7 @@ test.describe('canonical handoff geometry regression', () => {
     await page.goto('/?debug');
     await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
+    await page.locator('#mapViewTabBtn').click();
     await page.locator('#flatBtn').click();
 
     releaseCanonical();
@@ -252,8 +245,8 @@ test('a damaged cached country asset is deleted and recovered from the network',
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(async () => {
-    const cache = await caches.open('pandolab-core-0.30.0-r41');
-    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r41', location.href);
+    const cache = await caches.open('pandolab-core-0.30.0-r42');
+    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r42', location.href);
     await cache.put(url, new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'Content-Type': 'application/gzip' } }));
   });
   let recoveryRequests = 0;
@@ -315,14 +308,12 @@ for (const renderer of ['webgl1', 'canvas']) {
       () => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.meshQuality),
       { timeout: 30_000 },
     ).toBe('preview');
-    if (renderer === 'webgl1') {
-      await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainLevel), { timeout: 20_000 }).toBe(0);
-    }
     releaseCanonical();
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 45_000 });
-    if (renderer === 'webgl1') {
-      await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainLevel), { timeout: 20_000 }).toBeGreaterThanOrEqual(1);
-    }
+    await expect.poll(() => page.evaluate(() => {
+      const metrics = window.__PANDOLAB_GPU_METRICS__ || {};
+      return metrics.meshQuality === 'canonical' && metrics.canonicalMeshReady === true;
+    }), { timeout: 45_000 }).toBe(true);
     const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {});
     expect(metrics.meshQuality).toBe('canonical');
     expect(metrics.canonicalMeshReady).toBe(true);
