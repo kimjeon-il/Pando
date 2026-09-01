@@ -50,11 +50,10 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
   assert.equal(packet.generic.primary[0].geometryRevision, 'region-5');
 });
 
-test('selection layer architecture uses one z1 MapLibre host with a legacy GPU fallback and z4 controls', async () => {
+test('selection layer architecture uses one legacy Pando host and z4 controls', async () => {
   const css = await readFile(new URL('../../assets/css/app.css', import.meta.url), 'utf8');
   const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
   assert.match(css, /\.map-base-svg\s*\{\s*z-index:\s*0/);
-  assert.match(css, /\.maplibre-host\s*\{\s*z-index:\s*1/);
   assert.match(css, /\.gpu-map-canvas\s*\{\s*z-index:\s*1/);
   assert.match(css, /\.map-interaction-svg\s*\{\s*z-index:\s*4/);
   assert.match(css, /\.map-svg,\s*\.map-overlay-svg\s*\{[\s\S]*?z-index:\s*2/);
@@ -63,8 +62,9 @@ test('selection layer architecture uses one z1 MapLibre host with a legacy GPU f
   const projectedSvg = app.indexOf("svg = map.append('svg').attr('class', 'map-svg map-overlay-svg')", mapHost);
   const interactionSvg = app.indexOf("map.append('svg').attr('class', 'map-interaction-svg')", projectedSvg);
   assert.ok(mapHost > 0 && mapHost < projectedSvg && projectedSvg < interactionSvg);
-  assert.match(app, /gpuMapRenderer\.attachExternalDevice\(device, \{ owner: 'maplibre' \}\)/);
+  assert.match(app, /function createPreferredMapHost\(mapEl\)\s*\{[\s\S]*createLegacyMapHost/);
   assert.doesNotMatch(app, /selectionCanvasHost|gpu-selection-canvas/);
+  assert.doesNotMatch(app, /create.*External.*Host|attachExternalDevice|externalFrame/);
 });
 
 test('main renderer owns the only RenderDevice and all shared GPU passes', async () => {

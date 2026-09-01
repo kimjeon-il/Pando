@@ -11,9 +11,6 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-const MAPLIBRE_VERSION = '6.6.0';
-const MAPLIBRE_MODULE_URL = versionedModuleUrl(`../vendor/maplibre-gl/${MAPLIBRE_VERSION}/maplibre-gl.mjs`);
-const MAPLIBRE_WORKER_URL = versionedModuleUrl(`../vendor/maplibre-gl/${MAPLIBRE_VERSION}/maplibre-gl-worker.mjs`);
 const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule, historicalLibraryControllerModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
@@ -127,11 +124,9 @@ const adaptiveRenderQualityModule = await import(versionedModuleUrl('./modules/a
 const editPreviewControllerModule = await import(versionedModuleUrl('./modules/edit-preview-controller.js'));
 const mapHostModule = await import(versionedModuleUrl('./modules/map-host.js'));
 const legacyMapHostModule = await import(versionedModuleUrl('./modules/legacy-map-host.js'));
-const mapLibreMapHostModule = await import(versionedModuleUrl('./modules/maplibre-map-host.js'));
-const mapLibreRuntimeModule = await import(versionedModuleUrl('./modules/maplibre-runtime.js'));
-const mapHostProjectionAdapterModule = await import(versionedModuleUrl('./modules/map-host-projection-adapter.js'));
 const mapInteractionGateModule = await import(versionedModuleUrl('./modules/map-interaction-gate.js'));
 const mapInteractionStyleModule = await import(versionedModuleUrl('./modules/map-interaction-style.js'));
+const graticuleGeometryModule = await import(versionedModuleUrl('./modules/graticule-geometry.js'));
 const userPreferencesModule = await import(versionedModuleUrl('./modules/user-preferences.js'));
 const notificationCopyModule = await import(versionedModuleUrl('./modules/notification-copy.js'));
 const countryFlagsModule = await import(versionedModuleUrl('./modules/country-flags.js'));
@@ -176,9 +171,7 @@ const { createAdaptiveRenderQualityController } = adaptiveRenderQualityModule;
 const { createEditPreviewController } = editPreviewControllerModule;
 const { MAP_HOST_KINDS, normalizeMapSurfaceDragDelta } = mapHostModule;
 const { createLegacyMapHost } = legacyMapHostModule;
-const { createMapLibreMapHost } = mapLibreMapHostModule;
-const { canUseMapLibreHost } = mapLibreRuntimeModule;
-const { pandoViewToMapHostView, mapHostViewToPandoView, pandoZoomToMapLibreZoom } = mapHostProjectionAdapterModule;
+const { buildGraticuleStrokeGeometryPacket } = graticuleGeometryModule;
 const { createMapInteractionGate } = mapInteractionGateModule;
 const { resolveMapInteractionStyle } = mapInteractionStyleModule;
 const { loadUserPreferences, saveUserPreferences, effectiveTheme, defaultUserPreferences } = userPreferencesModule;
@@ -311,9 +304,9 @@ const {
 
   const APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || '');
   const HYDRO_DATA_VERSION = '0.13.0';
-  // The flat map is intentionally equirectangular.  Keep this contract
-  // explicit because the native MapLibre host uses Mercator internally, but
-  // Pando's rendered scene and interaction coordinates do not.
+  // The flat map is intentionally equirectangular. Keep this contract
+  // explicit so no host or transport implementation can change Pando's
+  // rendered scene and interaction coordinates accidentally.
   const FLAT_PROJECTION_KIND = 'equirectangular';
   const FLAT_LATITUDE_LIMIT = 89.999;
   const ASSET_REVISION = String(window.PANDOLAB_ASSET_REVISION || globalThis.PANDOLAB_BUILD_META?.assetRevision || '');
@@ -2056,8 +2049,6 @@ const {
   let mapInputController = null;
   let mapHost = null;
   let mapHostReadyPromise = Promise.resolve(false);
-  let mapHostSyncing = false;
-  let externalSelectionCoverageSignature = '';
   const mapInteractionGate = createMapInteractionGate();
   let draftStrokeRenderFrame = 0;
   let geometryBoundsCache = new WeakMap();
@@ -2239,20 +2230,6 @@ const {
         `gpu-context-${phase}`,
       ) || false,
       requestHostRepaint: reason => mapHost?.requestRepaint?.(reason) || false,
-      onExternalFrame: ({ stage, result }) => {
-        if (stage === 'scene' || stage === 'prerender') applyGpuSceneCoverage(result);
-        if (stage === 'interaction') {
-          applyGpuInteractionCoverage(result);
-          const signature = gpuSelectionCoverageSignature(result?.selection || result?.interactionResult?.selection);
-          if (signature !== externalSelectionCoverageSignature) {
-            externalSelectionCoverageSignature = signature;
-            renderSelectionOverlay(window.__PANDOLAB_VIEW_STATE__ || null, {
-              updateData: false,
-              gpuFrameResult: result,
-            });
-          }
-        }
-      },
     },
     runtimeAssetUrl,
     scheduleGpuFrame: reason => mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, reason) || false,
@@ -2600,20 +2577,8 @@ const {
   }
 
   function dragMapBy(dx, dy) {
-    // The Pando flat scene is equirectangular while MapLibre's transport
-    // camera is Mercator. Keep Pando state authoritative in flat mode;
-    // round-tripping the host camera would introduce nonlinear latitude drift.
-    if (state.projection === 'flat' && mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
-      const changed = dragLegacyMapViewBy(dx, dy);
-      if (changed) syncMapHostFromState({ animate: false });
-      return changed;
-    }
     if (mapHost?.isReady?.() && typeof mapHost.dragBy === 'function') {
-      const changed = mapHost.dragBy(dx, dy, { animate: false });
-      if (mapHost.getKind?.() === MAP_HOST_KINDS.MAPLIBRE) {
-        if (state.projection === 'globe') syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
-      }
-      return changed;
+      return mapHost.dragBy(dx, dy, { animate: false });
     }
     return dragLegacyMapViewBy(dx, dy);
   }
@@ -2666,19 +2631,6 @@ const {
   function transformMapView({ zoom, fromPoint, toPoint }) {
     const source = Array.isArray(fromPoint) ? fromPoint : null;
     const target = Array.isArray(toPoint) ? toPoint : source;
-    if (state.projection === 'globe' && mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
-      const hostZoom = pandoZoomToMapLibreZoom(zoom, {
-        projection: state.projection,
-        size: state.size,
-        padding: currentMapSafeInsets(),
-      });
-      const changed = mapHost.zoomAround({ zoom: hostZoom, point: source, animate: false });
-      if (source && target && (source[0] !== target[0] || source[1] !== target[1])) {
-        mapHost.dragBy(target[0] - source[0], target[1] - source[1], { animate: false });
-      }
-      syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
-      return changed;
-    }
     updateProjection();
     const anchor = source ? screenToGeo(source) : null;
     let changed = setMapZoomValue(zoom);
@@ -2690,9 +2642,6 @@ const {
       changed = true;
     } else {
       updateProjection();
-    }
-    if (state.projection === 'flat' && mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
-      syncMapHostFromState({ animate: false });
     }
     return changed;
   }
@@ -7890,57 +7839,28 @@ const {
     updateModeButtons();
   }
 
-  function syncMapLibreGlobeShell() {
-    const mapLibreBaseOwned = mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost?.isReady?.();
-    if (!mapLibreBaseOwned || state.projection !== 'globe') return false;
-    const view = mapHost.getViewState?.();
-    const viewport = mapHost.getViewportSize?.() || {};
-    const center = view?.center && mapHost.project?.(view.center);
-    const probeCoordinate = view?.center
-      ? [Number(view.center[0]) + 90, Number(view.center[1])]
-      : null;
-    const probe = probeCoordinate && mapHost.project?.(probeCoordinate);
-    const width = Math.max(1, Number(viewport.width) || 1);
-    const height = Math.max(1, Number(viewport.height) || 1);
-    const cx = Number(center?.[0]);
-    const cy = Number(center?.[1]);
-    const measuredRadius = Math.hypot(Number(probe?.[0]) - cx, Number(probe?.[1]) - cy);
-    const radius = Number.isFinite(measuredRadius) && measuredRadius > 1
-      && measuredRadius < Math.max(width, height) * 1.5
-      ? measuredRadius
-      : Math.min(width, height) * 0.5;
-    if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isFinite(radius)) return false;
-    shadowLayer
-      .attr('display', null)
-      .attr('d', `M ${cx - radius},${cy} a ${radius},${radius} 0 1,0 ${radius * 2},0 a ${radius},${radius} 0 1,0 ${-radius * 2},0`);
-    return true;
+  function updatePandoGlobeShell() {
+    // The shell is intentionally updated from the same projection state that
+    // the LegacyMapHost and GPU renderer consume. This runs before every view
+    // draw, so the horizon never lags one frame behind the globe contents.
+    shadowLayer.attr('display', null);
+    oceanLayer.attr('display', null);
+    baseSvg.classed('flat-projection', state.projection !== 'globe');
+    shadowLayer.datum({ type: 'Sphere' }).attr('d', path);
+    oceanLayer.datum({ type: 'Sphere' }).attr('d', path);
   }
 
-  function renderBase() {
-    // MapLibre owns the globe camera and its framebuffer when the preferred
-    // host is active.  The legacy D3 sphere geometry cannot be reused as-is,
-    // because its orthographic camera differs from MapLibre's globe camera.
-    // The horizon is therefore rebuilt from the active MapLibre view below so
-    // the visible border remains present and follows the same camera.
-    const mapLibreBaseOwned = mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE
-      && mapHost?.isReady?.();
-    shadowLayer.attr('display', mapLibreBaseOwned ? 'none' : null);
-    oceanLayer.attr('display', mapLibreBaseOwned ? 'none' : null);
-    baseSvg.classed('flat-projection', state.projection !== 'globe');
-    if (mapLibreBaseOwned && state.projection === 'globe') {
-      // Keep the globe horizon visible, but derive it from the same camera as
-      // MapLibre instead of the legacy D3 orthographic projection.  Reusing
-      // the D3 Sphere path here produces the detached circular border seen
-      // after a globe rotation because the two projections have different
-      // horizon centers/radii.
-      if (!syncMapLibreGlobeShell()) shadowLayer.datum({ type: 'Sphere' }).attr('d', path).attr('display', 'none');
-    } else {
-      shadowLayer.datum({ type: 'Sphere' }).attr('d', path);
-    }
-    oceanLayer.datum({ type: 'Sphere' }).attr('d', path);
+  function renderBase(viewState = null) {
+    // LegacyMapHost and the Pando GPU renderer share the same D3 projection.
+    // Keep the shell in that projection too; no second camera is consulted.
+    updatePandoGlobeShell();
     const graticuleGeometry = graticule();
+    const gpuRenderer = gpuMapRenderer.getStats?.({ detailed: false })?.renderer;
+    const gpuOwnsGraticule = gpuRenderer === 'webgl2' || gpuRenderer === 'webgl1';
     graticuleLayer
-      .attr('display', mapLibreBaseOwned ? 'none' : null)
+      // WebGL gets the canonical high-density packet below. Keep the SVG
+      // path only for Canvas2D fallback so two rasterized grids never overlap.
+      .attr('display', gpuOwnsGraticule ? 'none' : null)
       .datum(graticuleGeometry)
       .attr('d', path)
       .attr('data-gpu-scene-key', 'base:graticule');
@@ -7948,8 +7868,12 @@ const {
     replaceGpuSceneDomain('base-graticule', {
       strokes: [{
         key: 'base:graticule',
-        geometryRevision: `${state.projection}:graticule-v1`,
-        geometry: graticuleGeometry,
+        geometryRevision: `${state.projection}:graticule-v2`,
+        ...buildGraticuleStrokeGeometryPacket(graticuleGeometry, { maxEdgeDegrees: 0.5 }),
+        // Reference geometry must never be simplified with overlay LOD. It is
+        // rebuilt only when the projection changes, not on view-only frames.
+        lodPolicy: 'exact',
+        protected: true,
         order: -10000,
         style: { color: light ? '#aaaaaa' : '#688091', alpha: light ? 0.34 : 0.20, width: 0.55, cap: 'butt', join: 'round' },
       }],
@@ -8088,9 +8012,9 @@ const {
     const qualitySignature = `${currentRenderQuality.revision}:${currentRenderQuality.backgroundLod}:${state.projection}`;
     // Selection protection is interaction state, not scene geometry.  Do not
     // advance the base-scene revision when the selected keys change: doing so
-    // invalidates SceneColorCache for every selection/hover update and makes
-    // MapLibre expose a partially rebuilt frame.  Render quality changes do
-    // affect the scene packets and remain an explicit geometry invalidation.
+    // invalidates SceneColorCache for every selection/hover update and exposes
+    // a partially rebuilt frame. Render quality changes do affect the scene
+    // packets and remain an explicit geometry invalidation.
     if (syncGpuRenderScene.protectedSignature !== protectedSignature) {
       syncGpuRenderScene.protectedSignature = protectedSignature;
     }
@@ -8270,27 +8194,6 @@ const {
       const key = this.getAttribute('data-gpu-scene-key') || '';
       return webGlReady && rendered.has(key) && !missing.has(key);
     });
-  }
-
-  function gpuSelectionCoverageSignature(selectionResult) {
-    if (!selectionResult) return 'none';
-    const channelSignature = channel => {
-      const coverage = selectionResult.channels?.[channel] || {};
-      return [
-        channel,
-        coverage.buildSucceeded === false ? 'build-failed' : 'build-ok',
-        coverage.drawSucceeded === false ? 'draw-failed' : 'draw-ok',
-        [...(coverage.renderedKeys || [])].map(String).sort().join(','),
-        [...(coverage.missingKeys || [])].map(String).sort().join(','),
-      ].join(':');
-    };
-    return [
-      selectionResult.succeeded === false ? 'failed' : 'ready',
-      selectionResult.contextLost ? 'context-lost' : 'context-ready',
-      channelSignature('hover'),
-      channelSignature('primary'),
-      channelSignature('secondary'),
-    ].join('|');
   }
 
   function applyGpuInteractionCoverage(frameResult) {
@@ -8953,16 +8856,22 @@ const {
     return viewState;
   }
 
+  // LegacyMapHost is the sole navigation authority.  Programmatic view
+  // updates already mutate `state.view`, so there is no external camera to
+  // synchronize back into the Pando state.
+  function syncMapHostFromState() {
+    return false;
+  }
+
   mapRenderCoordinator = createMapRenderCoordinator({
     requestFrame: callback => requestAnimationFrame(callback),
     prepareView: () => {
       updateProjection();
-      syncMapLibreGlobeShell();
       return syncViewRevision();
     },
     renderers: {
       view: viewState => {
-        if (mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE) return null;
+        updatePandoGlobeShell();
         return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState);
       },
       base: renderBase,
@@ -9051,56 +8960,6 @@ const {
     return mapRenderCoordinator.scheduleView('render-view');
   }
 
-  function mapHostViewFromState() {
-    return pandoViewToMapHostView({
-      projection: state.projection,
-      view: state.view,
-      size: state.size,
-      padding: currentMapSafeInsets(),
-    });
-  }
-
-  function syncStateFromMapHost(hostView, { invalidate = true } = {}) {
-    if (!hostView || mapHostSyncing) return false;
-    const nextProjection = hostView.projection === 'globe' ? 'globe' : 'flat';
-    const nextView = mapHostViewToPandoView(hostView, state.view, {
-      size: state.size,
-      padding: currentMapSafeInsets(),
-    });
-    const changed = state.projection !== nextProjection || JSON.stringify(state.view) !== JSON.stringify(nextView);
-    if (!changed) return false;
-    mapHostSyncing = true;
-    try {
-      state.projection = nextProjection;
-      state.view = nextView;
-      updateProjection();
-      syncMapLibreGlobeShell();
-      viewRevision += 1;
-      syncProjectionButtons();
-    } finally {
-      mapHostSyncing = false;
-    }
-    if (invalidate) {
-      mapRenderCoordinator?.invalidate(
-        MAP_RENDER_DIRTY.VIEW
-          | MAP_RENDER_DIRTY.SELECTION_VIEW
-          | MAP_RENDER_DIRTY.LABEL_POSITIONS,
-        'map-host-view',
-      );
-    }
-    return true;
-  }
-
-  function syncMapHostFromState({ animate = false } = {}) {
-    if (mapHost?.getKind?.() !== MAP_HOST_KINDS.MAPLIBRE || !mapHost.isReady?.() || mapHostSyncing) return false;
-    mapHostSyncing = true;
-    try {
-      return mapHost.setViewState(mapHostViewFromState(), { animate });
-    } finally {
-      mapHostSyncing = false;
-    }
-  }
-
   function beginMapMovement() {
     if (state.mapMoving) return;
     state.mapMoving = true;
@@ -9162,86 +9021,31 @@ const {
     };
   }
 
-  function shouldUseMapLibreHost() {
-    const params = new URLSearchParams(location.search);
-    if (params.get('maphost') === 'legacy') return false;
-    if (['canvas', 'webgl1'].includes(params.get('renderer'))) return false;
-    return canUseMapLibreHost();
-  }
-
   function createPreferredMapHost(mapEl) {
-    if (!shouldUseMapLibreHost()) {
-      const legacy = createLegacyMapHost(legacyHostOptions());
-      legacy.attach(mapEl);
-      return legacy;
-    }
-    const host = createMapLibreMapHost({
-      moduleUrl: MAPLIBRE_MODULE_URL,
-      workerUrl: MAPLIBRE_WORKER_URL,
-      initialProjection: state.projection,
-      initialViewState: mapHostViewFromState(),
-      getPandoViewState: () => {
-        // MapLibre owns the camera during its custom-layer frame.  Reconcile
-        // the app projection from that exact camera before building the
-        // renderer snapshot so scene, terrain and globe shell share one view.
-        const hostView = mapHost?.getViewState?.();
-        if (hostView && state.projection === 'globe') syncStateFromMapHost(hostView, { invalidate: false });
-        updateProjection();
-        return projectionViewSnapshot();
-      },
-      onViewStateChange: view => {
-        // Flat rendering is equirectangular and remains authoritative in the
-        // app state; MapLibre events only carry the Mercator transport camera.
-        if (state.projection === 'globe') syncStateFromMapHost(view);
-      },
-      onInteractionStart: ({ source } = {}) => {
-        if (source && source !== 'input') return;
-        if (!mapInputController?.isPanning?.()) beginMapMovement();
-      },
-      onInteractionEnd: ({ source } = {}) => {
-        if (source && !String(source).startsWith('input')) return;
-        if (!mapInputController?.isPanning?.()) finishMapMovement();
-      },
-      onDevice: device => gpuMapRenderer.attachExternalDevice(device, { owner: 'maplibre' }),
-      onDeviceRemoved: () => gpuMapRenderer.detachExternalDevice(),
-      onContextLost: () => {
-        externalSelectionCoverageSignature = '';
-        gpuMapRenderer.handleExternalContextLost();
-      },
-      onContextRestored: () => mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.FULL, 'maplibre-context-restored'),
-      prerenderScene: context => gpuMapRenderer.prerenderExternalScene(context),
-      renderScene: context => gpuMapRenderer.renderExternalSceneLayer(context),
-      renderInteraction: context => gpuMapRenderer.renderExternalInteractionLayer(context),
-      onRenderError: ({ stage, error }) => {
-        reliabilityDiagnostic.push({
-          category: 'render',
-          operation: stage || 'maplibre-host',
-          result: 'recovered',
-          technicalMessage: String(error?.message || error || stage),
-          stack: error?.stack || '',
-        });
-        console.warn(`[${stage || 'maplibre-host'}]`, error);
-      },
-    });
-    host.attach(mapEl);
-    return host;
+    const legacy = createLegacyMapHost(legacyHostOptions());
+    legacy.attach(mapEl);
+    return legacy;
   }
 
   async function activateLegacyMapHost(reason = '') {
     const mapEl = $('map');
     mapHost?.destroy?.();
-    gpuMapRenderer.detachExternalDevice?.();
-    const gpuCanvas = document.createElement('canvas');
-    const overlay = mapEl?.querySelector('.map-overlay-svg');
-    if (overlay) mapEl.insertBefore(gpuCanvas, overlay);
-    else mapEl?.appendChild(gpuCanvas);
+    // Reuse the Pando canvas created by initSvg when host initialization is
+    // retried. Creating another canvas here would create a second visible
+    // surface and, after a context failure, leave stale pixels underneath it.
+    const gpuCanvas = mapEl?.querySelector('.gpu-map-canvas') || document.createElement('canvas');
+    if (!gpuCanvas.parentNode) {
+      const overlay = mapEl?.querySelector('.map-overlay-svg');
+      if (overlay) mapEl.insertBefore(gpuCanvas, overlay);
+      else mapEl?.appendChild(gpuCanvas);
+    }
     gpuMapRenderer.attach(gpuCanvas);
     mapHost = createLegacyMapHost(legacyHostOptions());
     mapHost.attach(mapEl);
     await mapHost.initialize();
     document.body.dataset.mapHost = MAP_HOST_KINDS.LEGACY;
     window.__PANDOLAB_MAP_HOST__ = mapHost;
-    if (reason) console.warn('[maplibre-fallback]', reason);
+    if (reason) console.warn('[map-host]', reason);
     return false;
   }
 
@@ -9250,14 +9054,7 @@ const {
     try {
       await mapHost.initialize();
       applyAdaptiveRenderQuality({ refreshScene: false, reason: 'map-host-ready' });
-      document.body.dataset.mapHost = mapHost.getKind();
-      if (mapHost.getKind() === MAP_HOST_KINDS.MAPLIBRE) {
-        // Existing Pando pointer routing remains authoritative. Globe camera
-        // mutations can be reconciled from MapLibre; flat camera mutations
-        // stay in the equirectangular Pando state.
-        mapHost.setNavigationEnabled(false);
-        if (state.projection === 'globe') syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
-      }
+      document.body.dataset.mapHost = MAP_HOST_KINDS.LEGACY;
       window.__PANDOLAB_MAP_HOST__ = mapHost;
       return true;
     } catch (error) {
@@ -9271,8 +9068,6 @@ const {
     mapHost?.destroy?.();
     mapHost = null;
     mapHostReadyPromise = Promise.resolve(false);
-    externalSelectionCoverageSignature = '';
-    gpuMapRenderer.detachExternalDevice?.();
     gpuMapRenderer.setSelectionPass?.(null);
     selectionPass = null;
     map.selectAll('*').remove();
@@ -9314,11 +9109,10 @@ const {
     oceanLayer = baseRoot.append('path').attr('class', 'map-ocean');
 
     mapHost = createPreferredMapHost(mapEl);
-    if (mapHost.getKind() === MAP_HOST_KINDS.LEGACY) {
-      const gpuCanvas = document.createElement('canvas');
-      mapEl.appendChild(gpuCanvas);
-      gpuMapRenderer.attach(gpuCanvas);
-    }
+    const gpuCanvas = document.createElement('canvas');
+    gpuCanvas.className = 'gpu-map-canvas';
+    mapEl.appendChild(gpuCanvas);
+    gpuMapRenderer.attach(gpuCanvas);
 
     svg = map.append('svg').attr('class', 'map-svg map-overlay-svg');
     const handleSelectionRenderError = ({ stage = 'selection-overlay-render', channel = '', error } = {}) => {
@@ -16944,9 +16738,7 @@ const {
   function zoomBy(factor, announce = true) {
     const current = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
     const next = current * factor;
-    if (mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
-      if (!transformMapView({ zoom: next })) return false;
-    } else if (!setMapZoomValue(next)) return false;
+    if (!setMapZoomValue(next)) return false;
     renderViewFrame();
     mapRenderCoordinator.endInteraction('zoom-control-settle');
     queueViewAutosave();

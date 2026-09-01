@@ -387,13 +387,10 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 #map.candidate-pick-mode { cursor: pointer; }
 #map.select-mode { cursor: grab; }
 #map.dragging { cursor: grabbing !important; }
-.map-base-svg, .maplibre-host, .gpu-map-canvas, .map-overlay-svg, .map-interaction-svg {
+.map-base-svg, .gpu-map-canvas, .map-overlay-svg, .map-interaction-svg {
   position: absolute; inset: 0; display: block; width: 100%; height: 100%;
 }
 .map-base-svg { z-index: 0; pointer-events: none; background: var(--map-stage); }
-.maplibre-host { z-index: 1; pointer-events: none; background: transparent; }
-.maplibre-host .maplibregl-canvas,
-.maplibre-host .maplibregl-canvas-container { width: 100%; height: 100%; pointer-events: none; }
 .gpu-map-canvas { z-index: 1; pointer-events: none; background: transparent; }
 .map-interaction-svg { z-index: 4; background: transparent; pointer-events: none; }
 .map-svg, .map-overlay-svg {

@@ -1,4 +1,4 @@
-import { createRenderDevice, isRenderDevice } from './render-device.js';
+import { createRenderDevice } from './render-device.js';
 import { createSceneColorCache } from './scene-color-cache.js';
 import { createGpuPolygonOverlayPass } from './gpu-polygon-overlay-pass.js';
 import { createGpuStrokeRenderer } from './gpu-stroke-renderer.js';
@@ -133,20 +133,6 @@ export function createGpuMapRenderer(deps) {
     let glVersion = 0;
     let renderDevice = null;
     let renderDeviceContextRevision = 0;
-    let externalDeviceMode = false;
-    let externalDeviceOwner = '';
-    let externalSceneDirty = true;
-    let externalInteractionDirty = true;
-    let externalTargetFramebuffer = null;
-    let externalPrerenderCount = 0;
-    let externalSceneCompositeCount = 0;
-    let externalInteractionDrawCount = 0;
-    let externalContextAttachCount = 0;
-    let externalContextDetachCount = 0;
-    let externalViewSignature = '';
-    let externalFrameId = 0;
-    let externalContextFrameId = 0;
-    let externalContextFrameSignature = '';
     let projectGeneration = 0;
     let projectRenderBlocked = false;
     let renderScene = null;
@@ -976,8 +962,6 @@ export function createGpuMapRenderer(deps) {
     }
 
     function attach(nextCanvas) {
-      externalDeviceMode = false;
-      externalDeviceOwner = '';
       canvas = nextCanvas;
       canvas.className = 'gpu-map-canvas';
       canvas.setAttribute('aria-hidden', 'true');
@@ -1234,78 +1218,6 @@ export function createGpuMapRenderer(deps) {
       rendererMode = version === 2 ? 'webgl2' : 'webgl1';
     }
 
-    function attachExternalDevice(nextDevice, { owner = 'external' } = {}) {
-      if (!isRenderDevice(nextDevice) || ![1, 2].includes(Number(nextDevice.version))) return false;
-      if (renderDevice?.gl === nextDevice.gl
-        && renderDevice.contextRevision === nextDevice.contextRevision
-        && externalDeviceMode) return true;
-      if (!externalDeviceMode && canvas) {
-        canvas.removeEventListener?.('webglcontextlost', handleWebGlContextLost);
-        canvas.removeEventListener?.('webglcontextrestored', handleWebGlContextRestored);
-      }
-      if (renderDevice || gl) handleSharedGpuContextLost();
-      externalDeviceMode = true;
-      externalDeviceOwner = String(owner || 'external');
-      canvas = nextDevice.canvas || nextDevice.gl.canvas || canvas;
-      gl = nextDevice.gl;
-      glVersion = Number(nextDevice.version);
-      renderDeviceContextRevision = Math.max(renderDeviceContextRevision + 1, Number(nextDevice.contextRevision || 0));
-      renderDevice = createRenderDevice({
-        gl,
-        canvas,
-        version: glVersion,
-        contextRevision: renderDeviceContextRevision,
-      });
-      uintIndexExtension = glVersion === 2 ? true : gl.getExtension('OES_element_index_uint');
-      instancedExtension = glVersion === 2 ? true : gl.getExtension('ANGLE_instanced_arrays');
-      if (glVersion === 1 && (!uintIndexExtension || !instancedExtension)) return false;
-      webGlContextKind = glVersion === 2 ? 'webgl2-external' : 'webgl-external';
-      webglContextLost = false;
-      rendererMode = glVersion === 2 ? 'webgl2' : 'webgl1';
-      createWebGlResources();
-      initializeSharedGpuPasses();
-      externalSceneDirty = true;
-      externalInteractionDirty = true;
-      externalContextFrameId = 0;
-      externalContextFrameSignature = '';
-      lastBaseSceneResult = null;
-      externalContextAttachCount += 1;
-      updateRendererStatus('MapLibre · Pando GPU');
-      return true;
-    }
-
-    function handleExternalContextLost() {
-      if (!externalDeviceMode) return false;
-      handleSharedGpuContextLost();
-      webglContextLost = true;
-      rendererMode = 'webgl-recovering';
-      renderDevice = null;
-      externalSceneDirty = true;
-      externalInteractionDirty = true;
-      externalContextFrameId = 0;
-      externalContextFrameSignature = '';
-      rendererUi.onContextStateChange?.('lost');
-      return true;
-    }
-
-    function detachExternalDevice() {
-      if (!externalDeviceMode) return false;
-      handleSharedGpuContextLost();
-      externalDeviceMode = false;
-      externalDeviceOwner = '';
-      externalTargetFramebuffer = null;
-      renderDevice = null;
-      gl = null;
-      glVersion = 0;
-      canvas = null;
-      rendererMode = 'pending';
-      lastBaseSceneResult = null;
-      externalContextFrameId = 0;
-      externalContextFrameSignature = '';
-      externalContextDetachCount += 1;
-      return true;
-    }
-
     function disposeMeshResources(resources) {
       if (!gl || !resources) return;
       if (glVersion === 2) {
@@ -1424,8 +1336,6 @@ export function createGpuMapRenderer(deps) {
       prewarmCountryStrokeResources();
       projectRenderBlocked = false;
       sceneColorCache.invalidate('mesh-ready');
-      externalSceneDirty = true;
-      externalInteractionDirty = true;
     }
 
     function promoteCanonicalMesh({ frameId = 0 } = {}) {
@@ -1434,7 +1344,7 @@ export function createGpuMapRenderer(deps) {
       previewAllowed = false;
       meshQuality = 'canonical';
       canonicalPromotionCount += 1;
-      canonicalReadyFrameId = Number(frameId || externalFrameId || currentRenderRevision || 0);
+      canonicalReadyFrameId = Number(frameId || currentRenderRevision || 0);
       canonicalPromotionError = '';
       const previewEntry = meshVariants.get('preview');
       if (previewEntry) {
@@ -1456,8 +1366,6 @@ export function createGpuMapRenderer(deps) {
       // border behind after the patch is displayed.
       lastBaseSceneResult = null;
       sceneColorCache.invalidate('country-override-mesh');
-      externalSceneDirty = true;
-      externalInteractionDirty = true;
       countryStrokePacketCache.override.mesh = null;
       countryStrokePacketCache.override.resource = null;
       countryFillRangeCache.override.mesh = null;
@@ -1721,8 +1629,6 @@ export function createGpuMapRenderer(deps) {
       // draw so the removed border cannot remain in the framebuffer.
       lastBaseSceneResult = null;
       sceneColorCache.invalidate('country-override-cleared');
-      externalSceneDirty = true;
-      externalInteractionDirty = true;
       state.pendingCountryRenderIds.clear();
       lastGeometryCommitTimings = null;
       if (renderFrame) {
@@ -1752,11 +1658,6 @@ export function createGpuMapRenderer(deps) {
       lastSelectionRenderResult = null;
       lastBaseSceneResult = null;
       selectionPass?.clear?.();
-      externalViewSignature = '';
-      externalContextFrameId = 0;
-      externalContextFrameSignature = '';
-      externalSceneDirty = true;
-      externalInteractionDirty = true;
       countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set() };
       countryEmphasisRevision += 1;
       markPaletteDirty({ emphasis: true });
@@ -1781,9 +1682,8 @@ export function createGpuMapRenderer(deps) {
       terrainTargetTileCount = 0;
       terrainTargetTilesLoaded = 0;
       // The legacy renderer owns its default framebuffer, so clear the old
-      // project immediately. MapLibre's external framebuffer is repainted by
-      // the host on its next frame and must not be cleared from here.
-      if (gl && !externalDeviceMode && !gl.isContextLost?.()) {
+      // project immediately during a project reset.
+      if (gl && !gl.isContextLost?.()) {
         try {
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
           gl.viewport(0, 0, Math.max(1, pixelWidth), Math.max(1, pixelHeight));
@@ -1922,8 +1822,6 @@ export function createGpuMapRenderer(deps) {
           promoteCanonicalMesh({ frameId: currentRenderRevision });
           projectRenderBlocked = false;
           sceneColorCache.invalidate('project-mesh-ready');
-          externalSceneDirty = true;
-          externalInteractionDirty = true;
           invalidateGpuFrame('project-mesh-ready');
           updateRendererStatus(`${rendererName()} · GPU 실시간`);
           settle(true);
@@ -2117,6 +2015,7 @@ export function createGpuMapRenderer(deps) {
 
     function createFrameContext(viewState = getRenderViewState()) {
       const mode = viewState.projection === 'globe' ? 0 : 1;
+      const dpr = Number(viewState.dpr || effectivePixelRatio || resolveRenderPixelRatio() || 1);
       const globeRows = mode === 0 ? rotationRows(viewState) : null;
       const data = mode === 0
         ? { ...globeRows, translate: viewState.translate || globeRows.translate, scale: Number(viewState.scale || globeRows.scale) }
@@ -2125,20 +2024,27 @@ export function createGpuMapRenderer(deps) {
             translate: viewState.translate || flatProjection.translate(), scale: Number(viewState.scale || flatProjection.scale()),
           };
       const flatCenter = viewState.projectionCenter || viewState.flatCenter || state.view.flatCenter;
+      const cssViewport = [Number(viewState.size?.width || cssWidth), Number(viewState.size?.height || cssHeight)];
       performanceMetrics.frameContextBuildCount += 1;
       return {
         viewState,
         flatProjectionKind: viewState.flatProjectionKind || 'equirectangular',
         mode,
-        viewport: [Number(viewState.size?.width || cssWidth), Number(viewState.size?.height || cssHeight)],
-        translate: data.translate,
-        scale: data.scale,
+        // Projection values are expressed in CSS pixels by D3. GPU clip
+        // coordinates, however, use the physical backing store. Keep both
+        // forms so culling and diagnostics can remain explicit.
+        cssViewport,
+        cssTranslate: data.translate,
+        cssScale: data.scale,
+        viewport: [cssViewport[0] * dpr, cssViewport[1] * dpr],
+        translate: [data.translate[0] * dpr, data.translate[1] * dpr],
+        scale: data.scale * dpr,
         rowX: data.rowX,
         rowY: data.rowY,
         rowZ: data.rowZ,
         flatCenter: [flatCenter[0] * PI / 180, flatCenter[1] * PI / 180],
         worldOffsets: mode === 0 ? [0] : [-2 * PI, 0, 2 * PI],
-        dpr: Number(viewState.dpr || effectivePixelRatio || 1),
+        dpr,
         theme: mapTheme(),
       };
     }
@@ -2160,18 +2066,12 @@ export function createGpuMapRenderer(deps) {
       cssWidth = Math.max(1, state.size.width);
       cssHeight = Math.max(1, state.size.height);
       const dpr = resolveRenderPixelRatio();
-      const nextWidth = externalDeviceMode
-        ? Math.max(1, Number(gl?.drawingBufferWidth || canvas.width || Math.round(cssWidth * dpr)))
-        : Math.max(1, Math.round(cssWidth * dpr));
-      const nextHeight = externalDeviceMode
-        ? Math.max(1, Number(gl?.drawingBufferHeight || canvas.height || Math.round(cssHeight * dpr)))
-        : Math.max(1, Math.round(cssHeight * dpr));
+      const nextWidth = Math.max(1, Math.round(cssWidth * dpr));
+      const nextHeight = Math.max(1, Math.round(cssHeight * dpr));
       const backingChanged = pixelWidth !== nextWidth || pixelHeight !== nextHeight;
       if (backingChanged) {
-        if (!externalDeviceMode) {
-          canvas.width = nextWidth;
-          canvas.height = nextHeight;
-        }
+        canvas.width = nextWidth;
+        canvas.height = nextHeight;
         pickFramebuffer = null;
         pickTexture = null;
         pickSceneKey = '';
@@ -2179,10 +2079,8 @@ export function createGpuMapRenderer(deps) {
       }
       pixelWidth = nextWidth;
       pixelHeight = nextHeight;
-      if (!externalDeviceMode) {
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-      }
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
     }
 
     function layoutMismatch() {
@@ -2200,7 +2098,6 @@ export function createGpuMapRenderer(deps) {
 
     function verifyLayout() {
       if (!canvas) return true;
-      if (externalDeviceMode) return layoutMismatch() <= 0.5;
       const mismatch = layoutMismatch();
       if (mismatch <= 0.5) {
         layoutMismatchCount = 0;
@@ -3132,8 +3029,6 @@ export function createGpuMapRenderer(deps) {
       if (previousDprCap !== Number(renderQuality.dprCap || Infinity)) {
         effectivePixelRatio = 0;
         sceneColorCache.invalidate('quality-dpr');
-        externalSceneDirty = true;
-        externalInteractionDirty = true;
         queueMapResize?.('adaptive-render-quality');
       }
       // Adaptive quality only controls cadence, upload budgets and DPR. Mesh
@@ -3158,8 +3053,9 @@ export function createGpuMapRenderer(deps) {
     function terrainLevelForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
       const scale = Number(frameContext?.scale) || Number(activeProjection().scale()) || 1;
-      const dpr = Number(frameContext?.dpr) || resolveRenderPixelRatio();
-      const desiredWidth = Math.max(1, 2 * PI * scale * dpr);
+      // frameContext.scale is already in physical pixels; do not apply DPR a
+      // second time or movement/resize would spuriously request a lower LOD.
+      const desiredWidth = Math.max(1, 2 * PI * scale);
       return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
         || terrainManifest.levels[terrainManifest.levels.length - 1];
     }
@@ -3188,13 +3084,14 @@ export function createGpuMapRenderer(deps) {
     function visibleTerrainTileSpecs(level, includeAll = false, frameContext = activeFrameContext) {
       const specs = [];
       const projection = activeProjection();
+      const viewport = frameContext?.viewport || [cssWidth, cssHeight];
       const scale = Number(frameContext?.scale) || projection.scale();
-      const flatHalfLon = cssWidth / Math.max(1, scale) * 90 / PI;
-      const flatHalfLat = cssHeight / Math.max(1, scale) * 90 / PI;
+      const flatHalfLon = viewport[0] / Math.max(1, scale) * 90 / PI;
+      const flatHalfLat = viewport[1] / Math.max(1, scale) * 90 / PI;
       const rotation = frameContext?.viewState?.rotation || state.view.globeRotation;
       const flatCenter = frameContext?.viewState?.projectionCenter || state.view.flatCenter;
       const globeCenter = [-Number(rotation?.[0] || 0), -Number(rotation?.[1] || 0)];
-      const globeRadius = Math.asin(Math.min(1, Math.hypot(cssWidth, cssHeight) * 0.5 / Math.max(1, scale)));
+      const globeRadius = Math.asin(Math.min(1, Math.hypot(viewport[0], viewport[1]) * 0.5 / Math.max(1, scale)));
       for (let row = 0; row < level.rows; row += 1) {
         for (let column = 0; column < level.columns; column += 1) {
           const spec = terrainTileSpec(level, column, row);
@@ -3419,13 +3316,18 @@ export function createGpuMapRenderer(deps) {
       const frameContext = activeFrameContext || createFrameContext();
       const targetLevel = terrainLevelForView(frameContext) || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      const activeLevels = levels.slice(0, (state.dataReadiness === 'enhanced' ? targetIndex : 0) + 1);
-      const specsByLevel = activeLevels.map((level, index) => ({
+      // Never mix parent and child rasters in one frame. Pick the most
+      // detailed level whose visible tile set is complete; this prevents the
+      // rectangular low-resolution patches that appeared during movement.
+      const candidateLevels = levels.slice(0, (state.dataReadiness === 'enhanced' ? targetIndex : 0) + 1).reverse();
+      const specsByLevel = candidateLevels.map(level => ({
         level,
         specs: visibleTerrainTileSpecs(level, false, frameContext),
       }));
-      const targetSpecs = specsByLevel[specsByLevel.length - 1].specs;
-      terrainLastLevel = Number(activeLevels[activeLevels.length - 1].id);
+      const selected = specsByLevel.find(entry => entry.specs.length > 0 && entry.specs.every(spec => terrainTiles.has(spec.key)))
+        || specsByLevel.find(entry => entry.specs.length > 0 && entry.level === baseLevel && entry.specs.some(spec => terrainTiles.has(spec.key)));
+      const targetSpecs = specsByLevel[0]?.specs || [];
+      terrainLastLevel = Number(selected?.level?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
       for (let index = 0; index < specsByLevel.length; index += 1) {
@@ -3433,10 +3335,10 @@ export function createGpuMapRenderer(deps) {
         for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
       }
       terrainRenderedLevel = -1;
-      for (const entry of specsByLevel) {
-        let rendered = false;
-        for (const spec of entry.specs) rendered = drawTerrainTile(spec) || rendered;
-        if (rendered) terrainRenderedLevel = Number(entry.level.id);
+      if (selected) {
+        for (const spec of selected.specs) {
+          if (drawTerrainTile(spec)) terrainRenderedLevel = Number(selected.level.id);
+        }
       }
     }
 
@@ -3694,7 +3596,7 @@ export function createGpuMapRenderer(deps) {
       flushPaletteUpdates();
       const compositeStartedAt = performance.now();
       if (countryStateFillProgram && countryStateQuadBuffer && ensureCountryIdScene()) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, externalDeviceMode ? externalTargetFramebuffer : null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, pixelWidth, pixelHeight);
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -3792,11 +3694,21 @@ export function createGpuMapRenderer(deps) {
         if (interactionOnly) sceneCacheSelectionOnlyBaseDrawCount += 1;
         if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
           baseResult = drawBaseSceneContent();
-          if (baseResult !== false) sceneColorCache.finishScene(null, viewSignature, projectGeneration);
+          if (baseResult !== false) {
+            sceneColorCache.finishScene(null, viewSignature, projectGeneration);
+            lastBaseSceneResult = baseResult;
+          }
         } else {
           sceneCacheFallbackFrame = true;
-          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-          baseResult = drawBaseSceneContent();
+          // A failed staging allocation must not clear the only visible
+          // scene. Keep the last scene when it belongs to this exact view;
+          // direct redraw is only safe before the first scene exists.
+          if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
+            baseResult = lastBaseSceneResult;
+          } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            baseResult = drawBaseSceneContent();
+          }
         }
       } else {
         sceneCacheHit = true;
@@ -3806,22 +3718,29 @@ export function createGpuMapRenderer(deps) {
         // This canvas is owned by PandoLab. Clear before compositing so pixels
         // removed from the active scene (for example an edited border) cannot
         // survive in the default framebuffer as an afterimage.
-        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) {
+        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: false })) {
           sceneCacheFallbackFrame = true;
           // A failed composite does not make a same-view active scene stale.
           // Preserve the already displayed frame instead of clearing it and
           // exposing a partially redrawn/transparent framebuffer.
-          if (sceneColorCache.hasActive?.() && sceneColorCache.canComposite?.(viewSignature, projectGeneration)) {
+          if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
             baseResult = lastBaseSceneResult;
           } else {
+            // Do not expose a transparent failed composite. If there is no
+            // usable current-view cache, draw the scene directly as the only
+            // safe first-frame fallback.
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             baseResult = drawBaseSceneContent();
           }
         }
       } else if (!baseResult) {
         sceneCacheFallbackFrame = true;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        baseResult = drawBaseSceneContent();
+        if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
+          baseResult = lastBaseSceneResult;
+        } else {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          baseResult = drawBaseSceneContent();
+        }
       }
       const interactionResult = drawInteractionPasses(viewState);
       gl.flush();
@@ -3837,174 +3756,6 @@ export function createGpuMapRenderer(deps) {
         interactionResult,
         selection: interactionResult.selection,
       };
-    }
-
-    function externalFrameContext(context = {}) {
-      const viewState = context.viewState && typeof context.viewState === 'object'
-        ? context.viewState
-        : getRenderViewState();
-      const incomingFrameId = Number(context.frameId || 0);
-      const isNewExternalFrame = incomingFrameId > 0 && incomingFrameId !== externalContextFrameId;
-      if (isNewExternalFrame || !externalContextFrameSignature) {
-        externalContextFrameId = incomingFrameId || (externalContextFrameId + 1);
-        activeRenderViewState = viewState;
-        resize();
-        externalContextFrameSignature = sceneViewSignature(viewState);
-        if (externalContextFrameSignature !== externalViewSignature) {
-          externalViewSignature = externalContextFrameSignature;
-          externalFrameId += 1;
-          externalSceneDirty = true;
-          sceneColorCache.invalidate('external-view');
-        }
-      }
-      activeFrameContext = {
-        ...createFrameContext(viewState),
-        mapLibre: context.options || null,
-        externalFrameId: externalContextFrameId,
-        externalViewSignature: externalViewSignature,
-      };
-      externalTargetFramebuffer = context.targetFramebuffer ?? null;
-      return viewState;
-    }
-
-    function prerenderExternalScene(context = {}) {
-      if (!externalDeviceMode || !gl || !mesh || webglContextLost) return null;
-      const viewState = externalFrameContext(context);
-      requestHydroView(viewState);
-      externalPrerenderCount += 1;
-      let baseResult = null;
-      const viewSignature = externalViewSignature;
-      let prepared = sceneColorCache.canComposite?.(viewSignature, projectGeneration) && !externalSceneDirty;
-      if (!prepared && sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
-        baseResult = drawBaseSceneContent();
-        const built = baseResult !== false && sceneColorCache.finishScene(null, viewSignature, projectGeneration);
-        if (built) {
-          ensureCountryIdScene();
-          prepared = sceneColorCache.isValid();
-          externalSceneDirty = !prepared;
-        }
-      }
-      activeFrameContext = null;
-      externalTargetFramebuffer = null;
-      const result = {
-        succeeded: prepared,
-        baseResult: baseResult || lastBaseSceneResult,
-        viewRevision: Number(viewState.revision || 0),
-      };
-      rendererUi.onExternalFrame?.({ stage: 'prerender', result });
-      return result;
-    }
-
-    function renderExternalSceneLayer(context = {}) {
-      if (!externalDeviceMode || !gl || !mesh || webglContextLost) return null;
-      const viewState = externalFrameContext(context);
-      let baseResult = null;
-      const currentSignature = externalViewSignature;
-      // A valid texture can still be obsolete when a mesh/overlay update
-      // landed after prerender. Do not composite it just because its view
-      // signature matches; the dirty bit is part of the scene contract.
-      let compositeSucceeded = sceneColorCache.canComposite?.(currentSignature, projectGeneration)
-        && !externalSceneDirty
-        ? sceneColorCache.composite(pixelWidth, pixelHeight, {
-          targetFramebuffer: externalTargetFramebuffer,
-          // MapLibre uses a transparent blank style for this host.  Clear the
-          // custom-layer target before compositing a scene so pixels removed
-          // by a geometry patch (for example an old national border) cannot
-          // survive in the framebuffer as an afterimage.
-          // MapLibre clears its custom-layer target for the frame. Avoid
-          // clearing it here before the draw has succeeded; a transient
-          // composite failure must not expose a transparent framebuffer.
-          clearTarget: false,
-        })
-        : false;
-      if (!compositeSucceeded) {
-        sceneCacheFallbackFrame = true;
-        // Never clear and redraw the external MapLibre target directly here:
-        // drawBaseSceneContent() clears first, so an exception would expose a
-        // transparent frame. Build the current view in the staging cache and
-        // atomically swap it before compositing.
-        if (sceneColorCache.beginScene(pixelWidth, pixelHeight, currentSignature, projectGeneration)) {
-          const rebuilt = drawBaseSceneContent();
-          if (rebuilt !== false) {
-            const finished = sceneColorCache.finishScene(externalTargetFramebuffer, currentSignature, projectGeneration);
-            compositeSucceeded = finished && sceneColorCache.canComposite?.(currentSignature, projectGeneration)
-              && sceneColorCache.composite(pixelWidth, pixelHeight, {
-                targetFramebuffer: externalTargetFramebuffer,
-                clearTarget: false,
-              });
-            if (compositeSucceeded) {
-              externalSceneDirty = false;
-              baseResult = rebuilt;
-            }
-          }
-        }
-        const preserveActive = sceneColorCache.hasActiveFor?.(currentSignature, projectGeneration)
-          || (sceneColorCache.hasActive?.() && sceneColorCache.canComposite?.(currentSignature, projectGeneration));
-        if (!compositeSucceeded && preserveActive) {
-          // Retry the last known-good scene without clearing the target first.
-          // This keeps the previous pixels visible when a single composite
-          // call fails after validation but before draw completion.
-          compositeSucceeded = sceneColorCache.composite(pixelWidth, pixelHeight, {
-            targetFramebuffer: externalTargetFramebuffer,
-            clearTarget: false,
-          });
-          baseResult = lastBaseSceneResult;
-          if (!compositeSucceeded) sceneCacheFallbackFrame = true;
-        } else if (!compositeSucceeded) {
-          // A first-frame or cross-view failure has no safe scene to reuse.
-          // Keep the target opaque and stable instead of exposing a cleared
-          // transparent framebuffer; the next explicit scene invalidation
-          // will retry the staging build.
-          gl.bindFramebuffer(gl.FRAMEBUFFER, externalTargetFramebuffer);
-          gl.viewport(0, 0, pixelWidth, pixelHeight);
-          const theme = mapTheme();
-          const ocean = Array.isArray(theme?.oceanGpu) ? theme.oceanGpu : [1, 1, 1];
-          gl.disable(gl.BLEND);
-          gl.clearColor(Number(ocean[0]) || 0, Number(ocean[1]) || 0, Number(ocean[2]) || 0, 1);
-          gl.clear(gl.COLOR_BUFFER_BIT);
-          compositeSucceeded = true;
-        }
-      } else {
-        sceneCacheFallbackFrame = false;
-        externalSceneCompositeCount += 1;
-      }
-      displayedRenderRevision = currentRenderRevision;
-      activeFrameContext = null;
-      externalTargetFramebuffer = null;
-      const result = {
-        succeeded: compositeSucceeded,
-        sceneCacheHit: !!sceneColorCache.isValid(),
-        baseResult: baseResult || lastBaseSceneResult,
-        viewRevision: Number(viewState.revision || 0),
-      };
-      rendererUi.onExternalFrame?.({ stage: 'scene', result });
-      return result;
-    }
-
-    function renderExternalInteractionLayer(context = {}) {
-      if (!externalDeviceMode || !gl || !mesh || webglContextLost) return null;
-      const viewState = externalFrameContext(context);
-      const started = performance.now();
-      gl.bindFramebuffer(gl.FRAMEBUFFER, externalTargetFramebuffer);
-      gl.viewport(0, 0, pixelWidth, pixelHeight);
-      const interactionResult = drawInteractionPasses(viewState);
-      gl.flush();
-      externalInteractionDirty = false;
-      externalInteractionDrawCount += 1;
-      displayedRenderRevision = currentRenderRevision;
-      frameTimes.push(performance.now() - started);
-      if (frameTimes.length > 240) frameTimes.shift();
-      activeFrameContext = null;
-      externalTargetFramebuffer = null;
-      publishLightweightMetrics();
-      const result = {
-        succeeded: !webglContextLost,
-        interactionResult,
-        selection: interactionResult.selection,
-        viewRevision: Number(viewState.revision || 0),
-      };
-      rendererUi.onExternalFrame?.({ stage: 'interaction', result });
-      return result;
     }
 
     function renderCanvasHydro(canvasPath, theme) {
@@ -4233,12 +3984,6 @@ export function createGpuMapRenderer(deps) {
         : null;
       if (!activeRenderViewState) activeRenderViewState = getRenderViewState();
       requestHydroView(activeRenderViewState);
-      if (externalDeviceMode) {
-        externalInteractionDirty = true;
-        publishLightweightMetrics();
-        rendererUi.requestHostRepaint?.('gpu-interaction');
-        return { succeeded: true, queued: true, external: true };
-      }
       let result = null;
       if (isWebGlRenderer()) {
         result = renderWebGl(activeRenderViewState);
@@ -4254,12 +3999,6 @@ export function createGpuMapRenderer(deps) {
       activeRenderViewState = viewState && typeof viewState === 'object' ? viewState : getRenderViewState();
       if (!isWebGlRenderer()) return null;
       performanceMetrics.selectionOnlyFrameCount += 1;
-      if (externalDeviceMode) {
-        externalInteractionDirty = true;
-        rendererUi.requestHostRepaint?.('gpu-interaction');
-        publishLightweightMetrics();
-        return { succeeded: true, queued: true, external: true, selection: lastSelectionRenderResult };
-      }
       return renderWebGl(activeRenderViewState, { interactionOnly: true });
     }
 
@@ -4578,32 +4317,6 @@ export function createGpuMapRenderer(deps) {
         activateCanvasFallback('강제 Canvas 테스트');
         return false;
       }
-      if (externalDeviceMode && renderDevice && gl) {
-        try {
-          updateRendererStatus('MapLibre · Pando GPU 지도를 준비하는 중입니다.');
-          if ((!previewAllowed || canonicalMeshReady) && meshVariants.has('canonical')) {
-            qualityPhase = 'canonical-loading';
-            if (meshVariants.has('canonical')) activateMeshVariant('canonical', { renderFrame: false });
-            externalSceneDirty = true;
-            externalInteractionDirty = true;
-            invalidateGpuFrame('external-device-ready-canonical');
-            return true;
-          }
-          if (!previewAllowed || canonicalMeshReady) throw new Error('canonical mesh unavailable after startup preview');
-          const decoded = await decodeBuiltInMesh();
-          setMesh(decoded.mesh, decoded.ids, { quality: 'preview', preserveOtherVariants: false });
-          meshQuality = 'preview';
-          canonicalMeshReady = false;
-          externalSceneDirty = true;
-          externalInteractionDirty = true;
-          invalidateGpuFrame('external-device-ready');
-          updateRendererStatus('MapLibre · Pando GPU 미리보기');
-          return true;
-        } catch (error) {
-          console.warn('MapLibre Pando renderer unavailable', error);
-          return false;
-        }
-      }
       let decoded = null;
       const failures = [];
       const versions = forcedRenderer === 'webgl2' ? [2] : forcedRenderer === 'webgl1' ? [1] : [2, 1];
@@ -4680,8 +4393,6 @@ export function createGpuMapRenderer(deps) {
         fallbackReason);
       projectRenderBlocked = false;
       sceneColorCache.invalidate('built-in-mesh-ready');
-      externalSceneDirty = true;
-      externalInteractionDirty = true;
       return decoded;
     }
 
@@ -4800,7 +4511,6 @@ export function createGpuMapRenderer(deps) {
       if (previousBaseSignature !== nextBaseSignature) {
         lastBaseSceneResult = null;
         sceneColorCache.invalidate('render-scene');
-        externalSceneDirty = true;
       }
       return true;
     }
@@ -4814,14 +4524,11 @@ export function createGpuMapRenderer(deps) {
         draftPackets: Object.freeze([...(nextInteraction.draftPackets || [])]),
       });
       retainSceneResources();
-      externalInteractionDirty = true;
       return true;
     }
 
     function invalidateSceneCache(reason = 'explicit') {
       sceneColorCache.invalidate(reason);
-      externalSceneDirty = true;
-      if (externalDeviceMode) rendererUi.requestHostRepaint?.(reason);
     }
 
     function setTerrainManifest(manifest) {
@@ -4852,7 +4559,7 @@ export function createGpuMapRenderer(deps) {
       target.sceneCacheValid = sceneColorCache.isValid();
       target.projectGeneration = projectGeneration;
       target.projectRenderBlocked = projectRenderBlocked;
-      target.mapHost = externalDeviceMode ? externalDeviceOwner : 'legacy';
+      target.mapHost = 'legacy';
     }
 
     function getStats({ detailed = true } = {}) {
@@ -4868,16 +4575,7 @@ export function createGpuMapRenderer(deps) {
       }
       return {
         renderer: rendererMode,
-        mapHost: externalDeviceMode ? externalDeviceOwner : 'legacy',
-        externalDeviceMode,
-        externalSceneDirty,
-        externalInteractionDirty,
-        externalFrameId,
-        externalPrerenderCount,
-        externalSceneCompositeCount,
-        externalInteractionDrawCount,
-        externalContextAttachCount,
-        externalContextDetachCount,
+        mapHost: 'legacy',
         projectGeneration,
         projectRenderBlocked,
         activeWebGlContextCount: renderDevice && isWebGlRenderer() ? 1 : 0,
@@ -4974,9 +4672,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     return {
-      attach, attachExternalDevice, detachExternalDevice, handleExternalContextLost,
+      attach,
       initialize, replaceBuiltInMesh, render, renderInteraction,
-      prerenderExternalScene, renderExternalSceneLayer, renderExternalInteractionLayer,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, setTerrainManifest,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,

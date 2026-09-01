@@ -24,7 +24,7 @@ async function openApp(page, {
     const originalGetContext = globalThis.HTMLCanvasElement.prototype.getContext;
     globalThis.HTMLCanvasElement.prototype.getContext = function getContext(type, ...args) {
       if (blockWebGl && (type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl')) return null;
-      const isMapCanvas = this.classList?.contains('gpu-map-canvas') || this.classList?.contains('maplibregl-canvas');
+      const isMapCanvas = this.classList?.contains('gpu-map-canvas');
       if (isMapCanvas && forceWebGl1 && type === 'webgl2') return null;
       if (isMapCanvas && preserve && (type === 'webgl' || type === 'webgl2')) {
         return originalGetContext.call(this, type, { ...(args[0] || {}), preserveDrawingBuffer: true });
@@ -44,7 +44,7 @@ async function openApp(page, {
 
 async function selectionColorPixelCount(page, expected = [205, 169, 93]) {
   return page.evaluate(([red, green, blue]) => {
-    const canvas = document.querySelector('.maplibregl-canvas, .gpu-map-canvas');
+    const canvas = document.querySelector('.gpu-map-canvas');
     const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
     if (!gl) return -1;
     const pixels = new Uint8Array(canvas.width * canvas.height * 4);
@@ -170,7 +170,7 @@ test('shared WebGL context loss keeps a sparse SVG fallback until the single GPU
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30_000 }).toContain('country:DEU');
 
   const extensionAvailable = await page.evaluate(() => {
-    const canvas = document.querySelector('.maplibregl-canvas, .gpu-map-canvas');
+    const canvas = document.querySelector('.gpu-map-canvas');
     const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
     window.__PANDOLAB_SELECTION_CONTEXT_EXTENSION__ = gl?.getExtension('WEBGL_lose_context') || null;
     window.__PANDOLAB_SELECTION_CONTEXT_EXTENSION__?.loseContext();

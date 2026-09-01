@@ -32,14 +32,13 @@ test('single-context SelectionPass reuses scene and stroke buffers during select
 
   const layerOrder = await page.evaluate(() => Object.fromEntries([
     ['base', '.map-base-svg'],
-    ['main', '.maplibre-host'],
+    ['main', '.gpu-map-canvas'],
     ['projected', '.map-overlay-svg'],
     ['interaction', '.map-interaction-svg'],
   ].map(([key, selector]) => [key, Number(getComputedStyle(document.querySelector(selector)).zIndex)])));
   expect(layerOrder).toEqual({ base: 0, main: 1, projected: 2, interaction: 4 });
-  await expect(page.locator('body')).toHaveAttribute('data-map-host', 'maplibre');
-  expect(await page.locator('#map .maplibregl-canvas').count()).toBe(1);
-  expect(await page.locator('#map .gpu-map-canvas').count()).toBe(0);
+  await expect(page.locator('body')).toHaveAttribute('data-map-host', 'legacy');
+  expect(await page.locator('#map .gpu-map-canvas').count()).toBe(1);
   expect(await page.locator('#map .gpu-selection-canvas').count()).toBe(0);
   expect(await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.activeWebGlContextCount)).toBe(1);
 

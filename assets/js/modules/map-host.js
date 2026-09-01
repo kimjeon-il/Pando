@@ -1,6 +1,5 @@
 export const MAP_HOST_KINDS = Object.freeze({
   LEGACY: 'legacy',
-  MAPLIBRE: 'maplibre',
 });
 
 export const MAP_PROJECTION_KINDS = Object.freeze({
@@ -20,14 +19,6 @@ export function normalizeMapSurfaceDragDelta(dx, dy) {
     return Number.isFinite(number) ? number : 0;
   };
   return Object.freeze([normalize(dx), normalize(dy)]);
-}
-
-export function mapSurfaceDragDeltaToCameraOffset(dx, dy) {
-  const [dragX, dragY] = normalizeMapSurfaceDragDelta(dx, dy);
-  return Object.freeze([
-    dragX === 0 ? 0 : -dragX,
-    dragY === 0 ? 0 : -dragY,
-  ]);
 }
 
 export function createMapHostEventHub() {
