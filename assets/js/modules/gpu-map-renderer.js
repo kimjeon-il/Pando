@@ -145,6 +145,8 @@ export function createGpuMapRenderer(deps) {
     let externalContextDetachCount = 0;
     let externalViewSignature = '';
     let externalFrameId = 0;
+    let externalContextFrameId = 0;
+    let externalContextFrameSignature = '';
     let projectGeneration = 0;
     let projectRenderBlocked = false;
     let renderScene = null;
@@ -1258,6 +1260,8 @@ export function createGpuMapRenderer(deps) {
       initializeSharedGpuPasses();
       externalSceneDirty = true;
       externalInteractionDirty = true;
+      externalContextFrameId = 0;
+      externalContextFrameSignature = '';
       lastBaseSceneResult = null;
       externalContextAttachCount += 1;
       updateRendererStatus('MapLibre · Pando GPU');
@@ -1272,6 +1276,8 @@ export function createGpuMapRenderer(deps) {
       renderDevice = null;
       externalSceneDirty = true;
       externalInteractionDirty = true;
+      externalContextFrameId = 0;
+      externalContextFrameSignature = '';
       rendererUi.onContextStateChange?.('lost');
       return true;
     }
@@ -1288,6 +1294,8 @@ export function createGpuMapRenderer(deps) {
       canvas = null;
       rendererMode = 'pending';
       lastBaseSceneResult = null;
+      externalContextFrameId = 0;
+      externalContextFrameSignature = '';
       externalContextDetachCount += 1;
       return true;
     }
@@ -1689,6 +1697,8 @@ export function createGpuMapRenderer(deps) {
       lastBaseSceneResult = null;
       selectionPass?.clear?.();
       externalViewSignature = '';
+      externalContextFrameId = 0;
+      externalContextFrameSignature = '';
       externalSceneDirty = true;
       externalInteractionDirty = true;
       countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set() };
@@ -3706,12 +3716,12 @@ export function createGpuMapRenderer(deps) {
       let baseResult = null;
       sceneCacheFallbackFrame = false;
       const viewSignature = sceneViewSignature(viewState);
-      const needsBaseScene = !sceneColorCache.canComposite?.(viewSignature) || sceneColorCache.isDirty?.();
+      const needsBaseScene = !sceneColorCache.canComposite?.(viewSignature, projectGeneration) || sceneColorCache.isDirty?.();
       if (needsBaseScene) {
         if (interactionOnly) sceneCacheSelectionOnlyBaseDrawCount += 1;
-        if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature)) {
+        if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
           baseResult = drawBaseSceneContent();
-          if (baseResult !== false) sceneColorCache.finishScene(null, viewSignature);
+          if (baseResult !== false) sceneColorCache.finishScene(null, viewSignature, projectGeneration);
         } else {
           sceneCacheFallbackFrame = true;
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -3721,7 +3731,7 @@ export function createGpuMapRenderer(deps) {
         sceneCacheHit = true;
       }
       if (needsBaseScene) ensureCountryIdScene();
-      if (sceneColorCache.canComposite?.(viewSignature)) {
+      if (sceneColorCache.canComposite?.(viewSignature, projectGeneration)) {
         // Keep the previous framebuffer intact while compositing a validated
         // active scene so a transient draw failure cannot expose transparency.
         if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: false })) {
@@ -3729,7 +3739,7 @@ export function createGpuMapRenderer(deps) {
           // A failed composite does not make a same-view active scene stale.
           // Preserve the already displayed frame instead of clearing it and
           // exposing a partially redrawn/transparent framebuffer.
-          if (sceneColorCache.hasActive?.() && sceneColorCache.canComposite?.(viewSignature)) {
+          if (sceneColorCache.hasActive?.() && sceneColorCache.canComposite?.(viewSignature, projectGeneration)) {
             baseResult = lastBaseSceneResult;
           } else {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -3761,18 +3771,25 @@ export function createGpuMapRenderer(deps) {
       const viewState = context.viewState && typeof context.viewState === 'object'
         ? context.viewState
         : getRenderViewState();
-      activeRenderViewState = viewState;
-      resize();
-      const signature = sceneViewSignature(viewState);
-      if (signature !== externalViewSignature) {
-        externalViewSignature = signature;
-        externalFrameId += 1;
-        externalSceneDirty = true;
-        sceneColorCache.invalidate('external-view');
+      const incomingFrameId = Number(context.frameId || 0);
+      const isNewExternalFrame = incomingFrameId > 0 && incomingFrameId !== externalContextFrameId;
+      if (isNewExternalFrame || !externalContextFrameSignature) {
+        externalContextFrameId = incomingFrameId || (externalContextFrameId + 1);
+        activeRenderViewState = viewState;
+        resize();
+        externalContextFrameSignature = sceneViewSignature(viewState);
+        if (externalContextFrameSignature !== externalViewSignature) {
+          externalViewSignature = externalContextFrameSignature;
+          externalFrameId += 1;
+          externalSceneDirty = true;
+          sceneColorCache.invalidate('external-view');
+        }
       }
       activeFrameContext = {
         ...createFrameContext(viewState),
         mapLibre: context.options || null,
+        externalFrameId: externalContextFrameId,
+        externalViewSignature: externalViewSignature,
       };
       externalTargetFramebuffer = context.targetFramebuffer ?? null;
       return viewState;
@@ -3785,10 +3802,10 @@ export function createGpuMapRenderer(deps) {
       externalPrerenderCount += 1;
       let baseResult = null;
       const viewSignature = externalViewSignature;
-      let prepared = sceneColorCache.canComposite?.(viewSignature) && !externalSceneDirty;
-      if (!prepared && sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature)) {
+      let prepared = sceneColorCache.canComposite?.(viewSignature, projectGeneration) && !externalSceneDirty;
+      if (!prepared && sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
         baseResult = drawBaseSceneContent();
-        const built = baseResult !== false && sceneColorCache.finishScene(null, viewSignature);
+        const built = baseResult !== false && sceneColorCache.finishScene(null, viewSignature, projectGeneration);
         if (built) {
           ensureCountryIdScene();
           prepared = sceneColorCache.isValid();
@@ -3811,7 +3828,7 @@ export function createGpuMapRenderer(deps) {
       const viewState = externalFrameContext(context);
       let baseResult = null;
       const currentSignature = externalViewSignature;
-      let compositeSucceeded = sceneColorCache.canComposite?.(currentSignature)
+      let compositeSucceeded = sceneColorCache.canComposite?.(currentSignature, projectGeneration)
         ? sceneColorCache.composite(pixelWidth, pixelHeight, {
           targetFramebuffer: externalTargetFramebuffer,
           clearTarget: false,
@@ -3819,18 +3836,43 @@ export function createGpuMapRenderer(deps) {
         : false;
       if (!compositeSucceeded) {
         sceneCacheFallbackFrame = true;
-        // Keep the current MapLibre target untouched when the validated
-        // active scene matches this frame. Direct redraw is only safe when
-        // there is no usable scene to preserve.
+        // Never clear and redraw the external MapLibre target directly here:
+        // drawBaseSceneContent() clears first, so an exception would expose a
+        // transparent frame. Build the current view in the staging cache and
+        // atomically swap it before compositing.
+        if (sceneColorCache.beginScene(pixelWidth, pixelHeight, currentSignature, projectGeneration)) {
+          const rebuilt = drawBaseSceneContent();
+          if (rebuilt !== false) {
+            const finished = sceneColorCache.finishScene(externalTargetFramebuffer, currentSignature, projectGeneration);
+            compositeSucceeded = finished && sceneColorCache.canComposite?.(currentSignature, projectGeneration)
+              && sceneColorCache.composite(pixelWidth, pixelHeight, {
+                targetFramebuffer: externalTargetFramebuffer,
+                clearTarget: false,
+              });
+            if (compositeSucceeded) {
+              externalSceneDirty = false;
+              baseResult = rebuilt;
+            }
+          }
+        }
         const preserveActive = sceneColorCache.hasActive?.()
-          && sceneColorCache.canComposite?.(currentSignature);
-        if (preserveActive) {
+          && sceneColorCache.canComposite?.(currentSignature, projectGeneration);
+        if (!compositeSucceeded && preserveActive) {
           baseResult = lastBaseSceneResult;
           compositeSucceeded = true;
-        } else {
+        } else if (!compositeSucceeded) {
+          // A first-frame or cross-view failure has no safe scene to reuse.
+          // Keep the target opaque and stable instead of exposing a cleared
+          // transparent framebuffer; the next explicit scene invalidation
+          // will retry the staging build.
           gl.bindFramebuffer(gl.FRAMEBUFFER, externalTargetFramebuffer);
-          baseResult = drawBaseSceneContent();
-          compositeSucceeded = !!baseResult;
+          gl.viewport(0, 0, pixelWidth, pixelHeight);
+          const theme = mapTheme();
+          const ocean = Array.isArray(theme?.oceanGpu) ? theme.oceanGpu : [1, 1, 1];
+          gl.disable(gl.BLEND);
+          gl.clearColor(Number(ocean[0]) || 0, Number(ocean[1]) || 0, Number(ocean[2]) || 0, 1);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          compositeSucceeded = true;
         }
       } else {
         sceneCacheFallbackFrame = false;
