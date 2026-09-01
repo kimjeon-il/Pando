@@ -39,16 +39,19 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertNotIn("generated-advanced-actions", combined)
 
     def test_header_and_tabs_are_fixed_outside_the_scroll_body(self):
-        header_index = INDEX.index('id="editorObjectHeader"')
+        shell_header_index = INDEX.index('class="surface-header"')
         tabs_index = INDEX.index('class="ui-tabs surface-tabs editor-view-tabs hidden"')
         body_index = INDEX.index('id="editorScrollBody"')
-        self.assertLess(header_index, tabs_index)
+        context_index = INDEX.index('id="editorObjectHeader"')
+        self.assertLess(shell_header_index, tabs_index)
         self.assertLess(tabs_index, body_index)
+        self.assertGreater(context_index, body_index)
         self.assertNotIn('class="editor-object-separator"', INDEX)
         self.assertIn('.editor-object-heading {', CSS)
-        self.assertIn('gap: var(--ui-space-1-5);', CSS)
+        self.assertIn('-webkit-line-clamp: 2;', CSS)
         self.assertIn("document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type)", APP)
-        self.assertIn("$('editSheetTitle')?.classList.toggle('hidden', !!type)", APP)
+        self.assertIn("$('editSheetTitle')?.classList.remove('hidden')", APP)
+        self.assertIn("$('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle')", APP)
 
     def test_multi_selection_uses_the_editor_header_without_a_card_surface(self):
         self.assertNotIn('id="multiPropertiesCount"', INDEX)

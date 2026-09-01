@@ -3674,17 +3674,42 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 }
 #multiSelectionModeBtn { display: none; }
 
-.editor-object-header { display: flex; align-items: center; gap: var(--ui-space-2); }
-.editor-object-heading { min-width: 0; flex: 1 1 auto; display: flex; align-items: baseline; gap: var(--ui-space-1-5); overflow: hidden; }
-.editor-object-heading h2 { min-width: 0; flex: 0 1 auto; }
-.editor-object-heading > span {
+.editor-object-header[data-editor-context] {
+  width: 100%;
   flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  padding: 0 0 var(--ui-space-4);
+}
+.editor-object-context-main { min-width: 0; flex: 1 1 auto; }
+.editor-object-heading {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-1);
+  overflow: hidden;
+}
+.editor-object-heading h2 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+.editor-object-meta { min-width: 0; display: flex; align-items: center; gap: var(--ui-space-1-5); }
+.editor-object-meta > span {
+  min-width: 0;
   color: var(--muted);
   font-size: var(--ui-font-body);
   font-weight: var(--ui-weight-regular);
   line-height: var(--ui-line-tight);
 }
-.editor-object-actions { display: flex; gap: var(--ui-space-1); }
+.editor-object-status { color: var(--text-soft) !important; font-weight: var(--ui-weight-medium) !important; }
+.editor-object-header[data-editor-context] #focusSelectedObjectBtn { flex: 0 0 auto; align-self: flex-start; white-space: nowrap; }
 .editor-object-lock[aria-pressed="true"] { border-color: var(--accent-border); background: var(--selection-strong-bg); color: var(--selection-strong-fg); }
 .editor-object-delete { color: var(--text-soft); }
 .editor-object-delete:hover:not(:disabled),
@@ -3714,7 +3739,16 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .object-actions-separator { width: 100%; height: 1px; margin: var(--ui-menu-gap) 0; background: var(--border); }
 .object-actions-menu .object-actions-delete:hover:not(:disabled),
 .object-actions-menu .object-actions-delete:focus-visible:not(:disabled) { background: var(--danger-surface); color: var(--danger-text); }
-.editor-object-header #focusSelectedObjectBtn { white-space: nowrap; }
+.editor-common-actions {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.editor-common-actions .editor-action-list { width: 100%; }
+.editor-common-danger { margin-top: var(--ui-space-4); }
 .multi-properties > .editor-section-primary { padding: 0; border: 0; border-radius: 0; background: transparent; }
 .multi-properties-actions { display: grid; gap: var(--ui-field-gap); }
 .multi-property-option { min-height: var(--ui-control-height); padding-inline: var(--ui-row-padding-x); }
@@ -3723,6 +3757,8 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 #rightPanel[data-editor-view="actions"] .editor-view > :not(.editor-action-section):not([hidden]) { display: none !important; }
 #rightPanel[data-editor-view="actions"] .editor-view > .editor-action-section { display: grid; }
 #rightPanel[data-editor-view="actions"] details.editor-action-section { display: block; }
+#rightPanel[data-editor-view="info"] .editor-common-actions { display: none !important; }
+#rightPanel[data-editor-view="actions"] .editor-common-actions:not(.hidden) { display: grid; }
 
 .ui-empty-state,
 .empty-state { display: grid; justify-items: center; gap: var(--ui-space-2); padding: var(--ui-space-10) var(--ui-space-5); text-align: center; color: var(--muted); }
@@ -4072,16 +4108,6 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   gap: var(--ui-space-1);
 }
 
-.surface-header-actions .editor-object-actions {
-  display: flex;
-  gap: var(--ui-space-1);
-}
-#app .surface-header-actions .editor-object-actions {
-  position: static;
-  inset: auto;
-}
-
-.surface-editor:has(.editor-object-header.hidden) .editor-object-actions { display: none; }
 .surface-header .sheet-drag-handle { display: none; }
 
 .surface-tabs {

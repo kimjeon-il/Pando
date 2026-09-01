@@ -44,7 +44,7 @@ class EditorSystemV0190Tests(unittest.TestCase):
         ):
             self.assertIn(expected, INDEX)
         self.assertNotIn("추가 정보", INDEX)
-        self.assertNotIn("위험 작업", INDEX)
+        self.assertIn("위험 작업", INDEX)
         self.assertIn('id="countryCodeInput"', INDEX)
         self.assertIn('id="genericFeatureIdInput"', INDEX)
         self.assertIn('id="hydroIdValue"', INDEX)
@@ -58,6 +58,16 @@ class EditorSystemV0190Tests(unittest.TestCase):
             "labelProperties", "hydroProperties", "propertyTitle", "editorScrollBody",
         ):
             self.assertIn(element_id, source)
+
+    def test_object_actions_use_context_and_common_action_sections(self):
+        self.assertNotIn('class="editor-object-actions"', INDEX)
+        self.assertIn('id="focusSelectedObjectBtn"', INDEX[INDEX.index('id="editorObjectHeader"'):INDEX.index('id="editorCommonActions"')])
+        self.assertIn('id="objectLockBtn"', INDEX[INDEX.index('id="editorCommonActions"'):INDEX.index('id="editorDeleteActions"')])
+        self.assertIn('id="objectDeleteBtn"', INDEX[INDEX.index('id="editorDeleteActions"'):INDEX.index('id="objectActionsMenu"')])
+        for removed in ("deleteDistributionBtn", "deleteGenericFeatureInlineBtn", "deleteLabelBtn", "deleteHydroEditBtn"):
+            self.assertNotIn(removed, INDEX + APP)
+        self.assertIn("$('editorCommonActions')?.classList.toggle('hidden', !canLock)", APP)
+        self.assertIn("$('editorDeleteActions')?.classList.toggle('hidden', !canDelete)", APP)
 
     def test_hydro_header_hides_numeric_id_and_redundant_mainstem(self):
         self.assertIn("function hydroEditorName", APP)

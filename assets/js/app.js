@@ -543,11 +543,11 @@ const {
     'genericFeatureNameInput', 'genericFeatureColorInput', 'genericFeatureNotesInput',
     'genericFeatureLandRelationSection', 'genericFeatureOwnerField', 'genericFeatureOwnerInput', 'genericFeatureParentField', 'genericFeatureParentInput', 'genericFeatureLandBindingField', 'genericFeatureLandBindingInput', 'genericFeatureRoleHelp',
     'genericFeatureLandActionsSection', 'splitGenericFeatureBtn', 'mergeGenericFeatureBtn', 'syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn', 'promoteGenericFeatureToCountryBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',
-    'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue', 'deleteLabelBtn',
-    'editorScrollBody', 'editorObjectHeader', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'actionsTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu', 'objectCoastReconcileMenuBtn',
-    'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'territoryNameConflict', 'administrativeNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'deleteDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
+    'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue',
+    'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'editorCommonActions', 'editorDeleteActions', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'actionsTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu', 'objectCoastReconcileMenuBtn',
+    'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'territoryNameConflict', 'administrativeNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeTerritoryTypeBtn', 'changeAdministrativeTypeBtn', 'reconcileAdministrativeCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
-    'countryCodeInput', 'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn', 'deleteHydroEditBtn',
+    'countryCodeInput', 'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'togglePanelBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
@@ -1712,6 +1712,17 @@ const {
       : !!primary && (primary.domain !== 'hydro' || !!hydroEditById(primary.id));
     const deleteDisabled = !canDelete || !!(primary && objectRefLocked(primary));
     const lockLabel = locked ? '잠금 해제' : '잠금';
+    const status = $('editorObjectStatus');
+    if (status) {
+      const lockedCount = refs.filter(objectRefLocked).length;
+      const statusText = refs.length > 1
+        ? (lockedCount === refs.length ? '모두 잠김' : lockedCount ? '일부 잠김' : '')
+        : (primary && objectRefLocked(primary) ? '잠김' : '');
+      status.textContent = statusText;
+      status.classList.toggle('hidden', !statusText);
+    }
+    const focusButton = $('focusSelectedObjectBtn');
+    if (focusButton) focusButton.classList.toggle('hidden', refs.length !== 1 || !primary);
     const canReconcileCoast = refs.length === 1
       && !!primary
       && primary.domain === 'territorial'
@@ -1753,6 +1764,8 @@ const {
       lockButton.setAttribute('aria-pressed', String(locked));
       lockButton.setAttribute('aria-label', lockLabel);
       lockButton.dataset.tooltip = lockLabel;
+      lockButton.querySelector('[data-editor-action-label]')?.replaceChildren(document.createTextNode(lockLabel));
+      lockButton.querySelector('[data-editor-action-help]')?.replaceChildren(document.createTextNode(locked ? '선택한 객체의 잠금을 해제합니다.' : '선택한 객체를 잠급니다.'));
       $('objectLockIcon')?.setAttribute('href', locked ? '#icon-lock-closed' : '#icon-lock-open');
     }
 
@@ -1762,7 +1775,10 @@ const {
       deleteButton.disabled = deleteDisabled;
       deleteButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
       deleteButton.setAttribute('aria-label', deleteButton.dataset.tooltip);
+      deleteButton.querySelector('[data-editor-action-help]')?.replaceChildren(document.createTextNode(deleteDisabled && canDelete ? '잠금 해제 후 삭제할 수 있습니다.' : '선택한 객체를 삭제합니다.'));
     }
+    $('editorCommonActions')?.classList.toggle('hidden', !canLock);
+    $('editorDeleteActions')?.classList.toggle('hidden', !canDelete);
   }
 
   function positionObjectActionsMenu(trigger) {
@@ -12098,9 +12114,11 @@ const {
   function syncEditorActionTab(type) {
     const form = activePropertyForm(type);
     const available = !!form && [...form.children].some(element => element.matches?.('.editor-action-section') && !element.hidden);
-    $('actionsTabBtn').hidden = !available;
-    $('actionsTabBtn').setAttribute('aria-disabled', String(!available));
-    if (!available) setEditorShellView('info');
+    const commonAvailable = !!type && [...document.querySelectorAll('.editor-common-actions')].some(element => !element.classList.contains('hidden'));
+    const hasActions = available || commonAvailable;
+    $('actionsTabBtn').hidden = !hasActions;
+    $('actionsTabBtn').setAttribute('aria-disabled', String(!hasActions));
+    if (!hasActions) setEditorShellView('info');
   }
 
   function showPropertyForm(type, title = '', { resetScroll = true, typeLabel = '' } = {}) {
@@ -12108,8 +12126,8 @@ const {
     $('emptyProperties').classList.toggle('hidden', !!type);
     $('editorObjectHeader').classList.toggle('hidden', !type);
     document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type);
-    $('editSheetTitle')?.classList.toggle('hidden', !!type);
-    $('rightPanel')?.setAttribute('aria-labelledby', type ? 'editorObjectHeading' : 'editSheetTitle');
+    $('editSheetTitle')?.classList.remove('hidden');
+    $('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
     $('countryProperties').classList.toggle('hidden', type !== 'country');
     $('territoryProperties').classList.toggle('hidden', type !== 'territory');
     $('administrativeProperties').classList.toggle('hidden', type !== 'administrative');
@@ -12122,6 +12140,15 @@ const {
     $('propertyTitle').textContent = type ? String(title || '') : '';
     const visibleTypeLabel = typeLabel || (type ? PROPERTY_TYPE_LABELS[type] || type : '');
     if ($('propertyTypeLabel')) $('propertyTypeLabel').textContent = visibleTypeLabel;
+    if (!type && $('editorObjectStatus')) {
+      $('editorObjectStatus').textContent = '';
+      $('editorObjectStatus').classList.add('hidden');
+    }
+    if (!type) {
+      $('editorCommonActions')?.classList.add('hidden');
+      $('editorDeleteActions')?.classList.add('hidden');
+      $('focusSelectedObjectBtn')?.classList.add('hidden');
+    }
     const fullTitle = type ? `${String(title || '')}, ${visibleTypeLabel}` : '';
     document.querySelector('.editor-object-heading')?.setAttribute('aria-label', fullTitle);
     if (type) syncObjectActionsMenu();
@@ -12679,7 +12706,6 @@ const {
     $('genericFeatureColorInput').value = color.value;
     syncColorPicker('generic', { value: color.value, defaultColor, isDefault: color.isDefault });
     $('genericFeatureNotesInput').value = meta.notes || '';
-    $('deleteGenericFeatureInlineBtn').textContent = `${typeLabel} 삭제`;
     syncGenericFeatureSemanticEditor(feature);
     $('selectionStatus').textContent = `${typeLabel} · ${meta.name || String(id).slice(0, 8)}${geometryAreaStatusSuffix(feature.geometry)}`;
     syncStatusBar();
@@ -12728,8 +12754,6 @@ const {
     $('hydroBuiltinHelp').classList.toggle('hidden', editable);
     const copyActionSection = $('copyHydroBtn').closest('.editor-action-section');
     if (copyActionSection) copyActionSection.hidden = editable;
-    $('deleteHydroEditBtn').hidden = !editable;
-    $('deleteHydroEditBtn').textContent = `${category} 삭제`;
     syncEditorActionTab('hydro');
     if (editable) {
       $('hydroNameInput').value = properties.name || '';
@@ -17316,7 +17340,6 @@ const {
     });
     $('addTerritorialDistributionBtn').addEventListener('click', addTerritorialDistributionEntry);
     $('addGeometryDistributionBtn').addEventListener('click', () => requestDraftDiscard(() => returnToMapAfterMobileAction(startGeometryDistributionDraft())));
-    $('deleteDistributionBtn').addEventListener('click', () => state.selected?.domain === 'distribution' && deleteDistributionLayer(state.selected.id));
     $('flagUploadBtn').addEventListener('click', () => $('flagFileInput').click());
     $('flagFileInput').addEventListener('change', e => {
       const file = e.target.files?.[0];
@@ -17410,10 +17433,7 @@ const {
       onConfirm: promoteSelectedGenericFeatureToCountry,
     }));
 
-    $('deleteLabelBtn').addEventListener('click', deleteSelected);
     $('copyHydroBtn').addEventListener('click', copySelectedHydroForEditing);
-    $('deleteHydroEditBtn').addEventListener('click', deleteSelected);
-    $('deleteGenericFeatureInlineBtn')?.addEventListener('click', deleteSelected);
 
     $('undoBtn').addEventListener('click', undo);
     $('redoBtn').addEventListener('click', redo);
