@@ -36,7 +36,7 @@ function createProgram(device) {
     out float vDepth;out float vAlong;out float vAcross;out float vSegmentLength;out float vLocalAlong;
     vec3 project(vec2 coord){float lon=coord.x*0.017453292519943;float lat=coord.y*0.017453292519943;vec2 p;float depth;
       if(uMode==0){vec3 q=vec3(cos(lat)*cos(lon),cos(lat)*sin(lon),sin(lat));p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));depth=dot(uRowZ,q);}
-      else{float my=log(tan(0.7853981633974483+clamp(lat,-1.4844222297453324,1.4844222297453324)*0.5));float cy=log(tan(0.7853981633974483+clamp(uFlatCenter.y,-1.4844222297453324,1.4844222297453324)*0.5));p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(my-cy));depth=1.0;}return vec3(p,depth);}
+      else{p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(lat-uFlatCenter.y));depth=1.0;}return vec3(p,depth);}
     void main(){vec3 start=project(aSegment.xy);vec3 end=project(aSegment.zw);vec2 direction=end.xy-start.xy;float lengthPx=max(length(direction),0.0001);direction/=lengthPx;
       float side=aCorner.x;float endpoint=aCorner.y;vec2 normal=vec2(-direction.y,direction.x);float cap=uRoundCap==1?uHalfWidth:0.0;
       float local=mix(-cap,lengthPx+cap,endpoint);vec2 p=start.xy+direction*local+normal*side*uHalfWidth;
@@ -49,7 +49,7 @@ function createProgram(device) {
     varying float vDepth;varying float vAlong;varying float vAcross;varying float vSegmentLength;varying float vLocalAlong;
     vec3 project(vec2 coord){float lon=coord.x*0.017453292519943;float lat=coord.y*0.017453292519943;vec2 p;float depth;
       if(uMode==0){vec3 q=vec3(cos(lat)*cos(lon),cos(lat)*sin(lon),sin(lat));p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));depth=dot(uRowZ,q);}
-      else{float my=log(tan(0.7853981633974483+clamp(lat,-1.4844222297453324,1.4844222297453324)*0.5));float cy=log(tan(0.7853981633974483+clamp(uFlatCenter.y,-1.4844222297453324,1.4844222297453324)*0.5));p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(my-cy));depth=1.0;}return vec3(p,depth);}
+      else{p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(lat-uFlatCenter.y));depth=1.0;}return vec3(p,depth);}
     void main(){vec3 start=project(aSegment.xy);vec3 end=project(aSegment.zw);vec2 direction=end.xy-start.xy;float lengthPx=max(length(direction),0.0001);direction/=lengthPx;
       float side=aCorner.x;float endpoint=aCorner.y;vec2 normal=vec2(-direction.y,direction.x);float cap=uRoundCap==1?uHalfWidth:0.0;
       float local=mix(-cap,lengthPx+cap,endpoint);vec2 p=start.xy+direction*local+normal*side*uHalfWidth;

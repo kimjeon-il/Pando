@@ -53,7 +53,7 @@ export const CURRENT_COUNTRY_FLAG_CODES = Object.freeze({
   NIU: 'nu', ASM: 'as', PLW: 'pw', GUM: 'gu', MNP: 'mp', BHR: 'bh', MAC: 'mo',
 });
 
-const CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES = new Set(['la', 'mc', 'mu', 'mv']);
+const CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES = new Set(['cd', 'sm', 'ga', 'pg']);
 export const CURRENT_COUNTRY_FLAG_NATIVE_CODES = Object.freeze(
   Object.values(CURRENT_COUNTRY_FLAG_CODES).filter(code => !CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES.has(code)),
 );

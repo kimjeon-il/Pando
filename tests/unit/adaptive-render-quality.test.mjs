@@ -13,9 +13,10 @@ test('device hints choose a conservative initial quality without relying on user
   assert.equal(resolveInitialRenderQuality({ deviceMemory: 16, hardwareConcurrency: 12 }), 'high');
 });
 
-test('interaction quality always protects edits while lowering only background work', () => {
+test('interaction quality keeps canonical geometry while lowering only work budgets', () => {
   const profile = renderQualityProfile('high', { phase: 'interaction' });
-  assert.equal(profile.countryMeshQuality, 'preview');
+  assert.equal(profile.countryMeshQuality, 'canonical');
+  assert.equal(profile.terrainResolutionScale, 1);
   assert.equal(profile.backgroundLod, 'high');
   assert.equal(profile.activeEditLod, 'high');
   assert.equal(profile.selectedLod, 'high');

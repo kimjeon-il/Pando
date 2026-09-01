@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r47';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -309,9 +309,15 @@ const {
   const d3 = window.d3;
   const territorialGeometry = createTerritorialGeometryKernel(window.polygonClipping);
 
-  const APP_VERSION = '0.30.0';
+  const APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || '');
   const HYDRO_DATA_VERSION = '0.13.0';
-  const ASSET_REVISION = window.PANDOLAB_ASSET_REVISION || APP_VERSION;
+  // The flat map is intentionally equirectangular.  Keep this contract
+  // explicit because the native MapLibre host uses Mercator internally, but
+  // Pando's rendered scene and interaction coordinates do not.
+  const FLAT_PROJECTION_KIND = 'equirectangular';
+  const FLAT_LATITUDE_LIMIT = 89.999;
+  const ASSET_REVISION = String(window.PANDOLAB_ASSET_REVISION || globalThis.PANDOLAB_BUILD_META?.assetRevision || '');
+  if (!APP_VERSION || !ASSET_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
   const PANDOLAB_ASSET_BASE_URL = window.PANDOLAB_ASSET_BASE_URL || new URL('./assets/js/', location.href).href;
   const PHYSICAL_DATA_BASE_URL = new URL('../data/', PANDOLAB_ASSET_BASE_URL);
   const HISTORICAL_LIBRARY_DATA_URL = new URL('historical-library-pilot.json', PHYSICAL_DATA_BASE_URL);
@@ -562,7 +568,7 @@ const {
 
   function assertRuntimeCompatibility() {
     const htmlVersion = $('app')?.dataset.appVersion;
-    const bootstrapVersion = window.PANDOLAB_BUILD_ID;
+    const bootstrapVersion = window.PANDOLAB_APP_VERSION;
     if (htmlVersion !== APP_VERSION || bootstrapVersion !== APP_VERSION) throw new Error(CACHE_MISMATCH_MESSAGE);
     const missingIds = REQUIRED_UI_IDS.filter(id => !$(id));
     const missingSelectors = ['.workspace'].filter(selector => !document.querySelector(selector));
@@ -2184,7 +2190,7 @@ const {
   let snapCandidateCache = { key: '', candidates: [] };
 
   const globeProjection = d3.geo.orthographic().clipAngle(90).precision(isMobile() ? 0.9 : 0.35);
-  const flatProjection = d3.geo.mercator().precision(isMobile() ? 0.7 : 0.25);
+  const flatProjection = d3.geo.equirectangular().precision(isMobile() ? 0.7 : 0.25);
   const path = d3.geo.path().pointRadius(5);
   const graticule = d3.geo.graticule();
 
@@ -2259,6 +2265,18 @@ const {
 
   function applyAdaptiveRenderQuality({ refreshScene = false, reason = 'adaptive-render-quality' } = {}) {
     currentRenderQuality = renderQualityController.profile();
+    const gpuQuality = gpuMapRenderer.getStats?.() || {};
+    if (gpuQuality.canonicalMeshReady) {
+      // Background LOD is allowed to be coarse only while the initial
+      // preview is visible.  After canonical promotion, interaction may
+      // throttle work but must not replace visible geometry with preview LOD.
+      currentRenderQuality = Object.freeze({
+        ...currentRenderQuality,
+        backgroundLod: 'high',
+        countryMeshQuality: 'canonical',
+        terrainResolutionScale: 1,
+      });
+    }
     renderSceneBuilder.setCacheByteBudget(currentRenderQuality.renderPacketCacheBudgetBytes);
     gpuMapRenderer.setRenderQuality?.(currentRenderQuality);
     mapHost?.setRenderPixelRatio?.(Math.min(
@@ -2576,16 +2594,24 @@ const {
     const scale = flatProjection.scale();
     state.view.flatCenter[0] -= dragX * 180 / (Math.PI * scale);
     state.view.flatCenter[1] += dragY * 180 / (Math.PI * scale);
-    state.view.flatCenter[1] = clamp(state.view.flatCenter[1], -85, 85);
+    state.view.flatCenter[1] = clamp(state.view.flatCenter[1], -FLAT_LATITUDE_LIMIT, FLAT_LATITUDE_LIMIT);
     state.view.flatCenter[0] = ((state.view.flatCenter[0] + 540) % 360) - 180;
     return true;
   }
 
   function dragMapBy(dx, dy) {
+    // The Pando flat scene is equirectangular while MapLibre's transport
+    // camera is Mercator. Keep Pando state authoritative in flat mode;
+    // round-tripping the host camera would introduce nonlinear latitude drift.
+    if (state.projection === 'flat' && mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
+      const changed = dragLegacyMapViewBy(dx, dy);
+      if (changed) syncMapHostFromState({ animate: false });
+      return changed;
+    }
     if (mapHost?.isReady?.() && typeof mapHost.dragBy === 'function') {
       const changed = mapHost.dragBy(dx, dy, { animate: false });
       if (mapHost.getKind?.() === MAP_HOST_KINDS.MAPLIBRE) {
-        syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
+        if (state.projection === 'globe') syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
       }
       return changed;
     }
@@ -2612,11 +2638,9 @@ const {
   function alignGeographicAnchor(coordinate, screenPoint) {
     if (!coordinate || !screenPoint) return false;
     let changed = false;
-    // Mercator latitude and globe rotation are not linear in screen space.
-    // A handful of degree-delta iterations can still leave a visible offset at
-    // country-focus zoom levels, especially on the short mobile viewport.
-    // Iterate to a sub-pixel screen error while retaining the stable geographic
-    // anchor contract (rather than panning projected feature bounds).
+    // Keep the geographic anchor stable while preserving each projection's
+    // native screen mapping.  Flat equirectangular latitude is linear; the
+    // globe path still uses its rotational Jacobian and pole guard.
     for (let attempt = 0; attempt < 12; attempt += 1) {
       updateProjection();
       const projected = activeProjection()(coordinate);
@@ -2631,7 +2655,7 @@ const {
         state.view.globeRotation[1] = clamp(state.view.globeRotation[1] - latitudeDelta, -89, 89);
       } else {
         state.view.flatCenter[0] = wrappedLongitudeDelta(state.view.flatCenter[0] + longitudeDelta);
-        state.view.flatCenter[1] = clamp(state.view.flatCenter[1] + latitudeDelta, -85, 85);
+        state.view.flatCenter[1] = clamp(state.view.flatCenter[1] + latitudeDelta, -FLAT_LATITUDE_LIMIT, FLAT_LATITUDE_LIMIT);
       }
       changed = true;
     }
@@ -2642,7 +2666,7 @@ const {
   function transformMapView({ zoom, fromPoint, toPoint }) {
     const source = Array.isArray(fromPoint) ? fromPoint : null;
     const target = Array.isArray(toPoint) ? toPoint : source;
-    if (mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
+    if (state.projection === 'globe' && mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
       const hostZoom = pandoZoomToMapLibreZoom(zoom, {
         projection: state.projection,
         size: state.size,
@@ -2666,6 +2690,9 @@ const {
       changed = true;
     } else {
       updateProjection();
+    }
+    if (state.projection === 'flat' && mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
+      syncMapHostFromState({ animate: false });
     }
     return changed;
   }
@@ -7863,6 +7890,32 @@ const {
     updateModeButtons();
   }
 
+  function syncMapLibreGlobeShell() {
+    const mapLibreBaseOwned = mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost?.isReady?.();
+    if (!mapLibreBaseOwned || state.projection !== 'globe') return false;
+    const view = mapHost.getViewState?.();
+    const viewport = mapHost.getViewportSize?.() || {};
+    const center = view?.center && mapHost.project?.(view.center);
+    const probeCoordinate = view?.center
+      ? [Number(view.center[0]) + 90, Number(view.center[1])]
+      : null;
+    const probe = probeCoordinate && mapHost.project?.(probeCoordinate);
+    const width = Math.max(1, Number(viewport.width) || 1);
+    const height = Math.max(1, Number(viewport.height) || 1);
+    const cx = Number(center?.[0]);
+    const cy = Number(center?.[1]);
+    const measuredRadius = Math.hypot(Number(probe?.[0]) - cx, Number(probe?.[1]) - cy);
+    const radius = Number.isFinite(measuredRadius) && measuredRadius > 1
+      && measuredRadius < Math.max(width, height) * 1.5
+      ? measuredRadius
+      : Math.min(width, height) * 0.5;
+    if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isFinite(radius)) return false;
+    shadowLayer
+      .attr('display', null)
+      .attr('d', `M ${cx - radius},${cy} a ${radius},${radius} 0 1,0 ${radius * 2},0 a ${radius},${radius} 0 1,0 ${-radius * 2},0`);
+    return true;
+  }
+
   function renderBase() {
     // MapLibre owns the globe camera and its framebuffer when the preferred
     // host is active.  The legacy D3 sphere geometry cannot be reused as-is,
@@ -7880,29 +7933,7 @@ const {
       // the D3 Sphere path here produces the detached circular border seen
       // after a globe rotation because the two projections have different
       // horizon centers/radii.
-      const view = mapHost.getViewState?.();
-      const viewport = mapHost.getViewportSize?.() || {};
-      const center = view?.center && mapHost.project?.(view.center);
-      const probeCoordinate = view?.center
-        ? [Number(view.center[0]) + 90, Number(view.center[1])]
-        : null;
-      const probe = probeCoordinate && mapHost.project?.(probeCoordinate);
-      const width = Math.max(1, Number(viewport.width) || 1);
-      const height = Math.max(1, Number(viewport.height) || 1);
-      const cx = Number(center?.[0]);
-      const cy = Number(center?.[1]);
-      const measuredRadius = Math.hypot(Number(probe?.[0]) - cx, Number(probe?.[1]) - cy);
-      const radius = Number.isFinite(measuredRadius) && measuredRadius > 1
-        && measuredRadius < Math.max(width, height) * 1.5
-        ? measuredRadius
-        : Math.min(width, height) * 0.5;
-      if (Number.isFinite(cx) && Number.isFinite(cy) && Number.isFinite(radius)) {
-        shadowLayer
-          .attr('display', null)
-          .attr('d', `M ${cx - radius},${cy} a ${radius},${radius} 0 1,0 ${radius * 2},0 a ${radius},${radius} 0 1,0 ${-radius * 2},0`);
-      } else {
-        shadowLayer.datum({ type: 'Sphere' }).attr('d', path).attr('display', 'none');
-      }
+      if (!syncMapLibreGlobeShell()) shadowLayer.datum({ type: 'Sphere' }).attr('d', path).attr('display', 'none');
     } else {
       shadowLayer.datum({ type: 'Sphere' }).attr('d', path);
     }
@@ -8892,6 +8923,7 @@ const {
     const center = screenToGeo(translate);
     return {
       projection: state.projection,
+      flatProjectionKind: FLAT_PROJECTION_KIND,
       size: { width: state.size.width, height: state.size.height },
       dpr: currentMapDevicePixelRatio(),
       safeInset: currentMapSafeInsets(),
@@ -8925,6 +8957,7 @@ const {
     requestFrame: callback => requestAnimationFrame(callback),
     prepareView: () => {
       updateProjection();
+      syncMapLibreGlobeShell();
       return syncViewRevision();
     },
     renderers: {
@@ -9041,6 +9074,7 @@ const {
       state.projection = nextProjection;
       state.view = nextView;
       updateProjection();
+      syncMapLibreGlobeShell();
       viewRevision += 1;
       syncProjectionButtons();
     } finally {
@@ -9050,7 +9084,6 @@ const {
       mapRenderCoordinator?.invalidate(
         MAP_RENDER_DIRTY.VIEW
           | MAP_RENDER_DIRTY.SELECTION_VIEW
-          | MAP_RENDER_DIRTY.EDITING_OVERLAYS
           | MAP_RENDER_DIRTY.LABEL_POSITIONS,
         'map-host-view',
       );
@@ -9096,7 +9129,10 @@ const {
     $('map')?.classList.remove('dragging');
     if (point) suppressNextMapClick(point);
     mapRenderCoordinator.endInteraction('map-movement-end');
-    mapRenderCoordinator.invalidate(MAP_RENDER_DIRTY.OVERLAY_DATA, 'viewport-culling-settle');
+    mapRenderCoordinator.invalidate(
+      MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT,
+      'viewport-culling-settle',
+    );
     gpuMapRenderer.prioritizeLatest();
     queueViewAutosave();
   }
@@ -9145,14 +9181,25 @@ const {
       initialProjection: state.projection,
       initialViewState: mapHostViewFromState(),
       getPandoViewState: () => {
+        // MapLibre owns the camera during its custom-layer frame.  Reconcile
+        // the app projection from that exact camera before building the
+        // renderer snapshot so scene, terrain and globe shell share one view.
+        const hostView = mapHost?.getViewState?.();
+        if (hostView && state.projection === 'globe') syncStateFromMapHost(hostView, { invalidate: false });
         updateProjection();
         return projectionViewSnapshot();
       },
-      onViewStateChange: view => syncStateFromMapHost(view),
-      onInteractionStart: () => {
+      onViewStateChange: view => {
+        // Flat rendering is equirectangular and remains authoritative in the
+        // app state; MapLibre events only carry the Mercator transport camera.
+        if (state.projection === 'globe') syncStateFromMapHost(view);
+      },
+      onInteractionStart: ({ source } = {}) => {
+        if (source && source !== 'input') return;
         if (!mapInputController?.isPanning?.()) beginMapMovement();
       },
-      onInteractionEnd: () => {
+      onInteractionEnd: ({ source } = {}) => {
+        if (source && !String(source).startsWith('input')) return;
         if (!mapInputController?.isPanning?.()) finishMapMovement();
       },
       onDevice: device => gpuMapRenderer.attachExternalDevice(device, { owner: 'maplibre' }),
@@ -9205,10 +9252,11 @@ const {
       applyAdaptiveRenderQuality({ refreshScene: false, reason: 'map-host-ready' });
       document.body.dataset.mapHost = mapHost.getKind();
       if (mapHost.getKind() === MAP_HOST_KINDS.MAPLIBRE) {
-        // Existing Pando pointer routing remains authoritative during phase 3;
-        // all camera mutations are delegated to the MapLibre host below.
+        // Existing Pando pointer routing remains authoritative. Globe camera
+        // mutations can be reconciled from MapLibre; flat camera mutations
+        // stay in the equirectangular Pando state.
         mapHost.setNavigationEnabled(false);
-        syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
+        if (state.projection === 'globe') syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
       }
       window.__PANDOLAB_MAP_HOST__ = mapHost;
       return true;
@@ -14668,7 +14716,7 @@ const {
     } else {
       nextView.flatCenter = [
         wrappedLongitudeDelta(currentCenter[0]),
-        clamp(Number(currentCenter[1]), -85, 85),
+        clamp(Number(currentCenter[1]), -FLAT_LATITUDE_LIMIT, FLAT_LATITUDE_LIMIT),
       ];
       nextView.flatZoom = clamp(currentScale / layout.flatBaseScale, ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
     }
@@ -17881,6 +17929,7 @@ const {
       $('map')?.classList.remove('space-pan-active');
     });
     window.addEventListener('blur', () => {
+      mapInputController?.cancel?.();
       state.spacePanActive = false;
       mapInteractionGate.setForcedPan(false);
       mapHost?.setForcedPan?.(false);
@@ -17901,6 +17950,7 @@ const {
     else if (typeof systemThemeQuery.addListener === 'function') systemThemeQuery.addListener(onSystemThemeChange);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
+        mapInputController?.cancel?.();
         mapWorkScheduler.cancel('autosave');
         mapWorkScheduler.cancel('view-autosave');
         persistAutosave().catch(error => console.warn('Immediate autosave failed', error));
@@ -18020,7 +18070,11 @@ const {
     const previewSelection = (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) ? String(state.selected.id || '') : '';
     installPristineCountrySource(geometry.countriesSourceBuffer);
     const projectGeneration = gpuMapRenderer.resetProjectRenderState?.();
-    state.countryVisualPhase = 'preview';
+    // The low-resolution country source is a one-way startup aid.  After the
+    // first canonical promotion a project reset starts from canonical data or
+    // a neutral loading state and must not briefly re-expose preview geometry.
+    const previewAllowed = gpuMapRenderer.getStats?.().previewAllowed !== false;
+    state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
     countryDisplaySource = null;
     countryDisplayIndex = new Map();
 
@@ -18115,6 +18169,7 @@ const {
       state.countryVisualPhase = 'canonical';
       countryDisplaySource = null;
       countryDisplayIndex = new Map();
+      applyAdaptiveRenderQuality({ refreshScene: false, reason: 'canonical-ready' });
     }
     applyDataReadinessEvent(READINESS_EVENTS.MESH_READY);
     state.meshProgress = 100;
@@ -18219,7 +18274,7 @@ const {
       applyDataReadinessEvent(READINESS_EVENTS.GEOMETRY_ERROR);
       renderAll();
       handleGeometryError({ detail: '무손실 편집 지도를 적용하지 못했습니다.' });
-      await new Promise(() => {});
+      return;
     }
     if (!context.useBuiltInMesh) {
       await completeMeshEnhancement(null, context);
@@ -18234,7 +18289,7 @@ const {
     } catch (error) {
       console.error('[PL-MESH-APPLY-001]', error);
       handleMeshError({ detail: '고화질 지도를 적용하지 못했습니다.' });
-      await new Promise(() => {});
+      return;
     }
   }
 

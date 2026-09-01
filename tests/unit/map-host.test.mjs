@@ -60,6 +60,31 @@ test('MapHost projection adapter round-trips flat and globe camera state', () =>
   }
 });
 
+test('flat projection remains equirectangular and is not constrained by Mercator latitude', async () => {
+  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const gpuRenderer = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+  const polygonPass = await readFile(new URL('../../assets/js/modules/gpu-polygon-overlay-pass.js', import.meta.url), 'utf8');
+  const strokeRenderer = await readFile(new URL('../../assets/js/modules/gpu-stroke-renderer.js', import.meta.url), 'utf8');
+  const adapter = await readFile(new URL('../../assets/js/modules/map-host-projection-adapter.js', import.meta.url), 'utf8');
+  assert.match(app, /const FLAT_PROJECTION_KIND = 'equirectangular'/);
+  assert.match(app, /d3\.geo\.equirectangular\(\)/);
+  assert.doesNotMatch(app, /clamp\([^\n]*-85,\s*85\)/);
+  for (const source of [gpuRenderer, polygonPass, strokeRenderer]) {
+    assert.doesNotMatch(source, /log\(tan\(/);
+    assert.match(source, /lat\s*-\s*uFlatCenter\.y/);
+  }
+  assert.doesNotMatch(adapter, /MIN_MERCATOR_LATITUDE|MAX_MERCATOR_LATITUDE/);
+  const original = {
+    flatCenter: [12, 89.5],
+    flatZoom: 2,
+    globeRotation: [0, 0, 0],
+    globeZoom: 1,
+  };
+  const host = pandoViewToMapHostView({ projection: 'flat', view: original, size, padding });
+  const restored = mapHostViewToPandoView(host, original, { size, padding });
+  assert.equal(restored.flatCenter[1], original.flatCenter[1]);
+});
+
 test('MapInteractionGate keeps edit handles in Pando and Space pan in the host', () => {
   const gate = createMapInteractionGate();
   const handle = { closest: selector => selector.includes('.vertex-handle') ? {} : null };

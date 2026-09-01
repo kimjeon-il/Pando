@@ -1,8 +1,12 @@
 'use strict';
 
-const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r47';
+const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '';
+const buildMetaUrl = new URL('../build-meta.js', self.location.href);
+buildMetaUrl.searchParams.set('v', WORKER_REVISION);
+importScripts(buildMetaUrl.href);
+const resolvedWorkerRevision = globalThis.PANDOLAB_BUILD_META?.assetRevision || WORKER_REVISION;
 const GIS_ADAPTER_URL = new URL('../gis-adapters.js', self.location.href);
-GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION);
+if (resolvedWorkerRevision) GIS_ADAPTER_URL.searchParams.set('v', resolvedWorkerRevision);
 importScripts(GIS_ADAPTER_URL.href);
 
 const SQL_SCRIPT_URL = new URL('../vendor/sql/sql-wasm.js', self.location.href).href;

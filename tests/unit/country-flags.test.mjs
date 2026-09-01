@@ -21,7 +21,7 @@ const flagRoot = path.join(root, 'assets/vendor/flag-icons/7.5.0/flags/4x3');
 const nativeFlagRoot = path.join(root, 'assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg');
 
 function viewBoxDimensions(source) {
-  const match = source.match(/viewBox="([^\"]+)"/);
+  const match = source.match(/viewBox="([^"]+)"/);
   assert.ok(match, 'SVG must declare a viewBox');
   const values = match[1].trim().split(/\s+/).map(Number);
   assert.equal(values.length, 4);
@@ -78,10 +78,14 @@ test('representative and exceptional country IDs resolve to the intended flags',
   assert.equal(currentCountryFlagCode('FRA'), 'fr');
   assert.equal(currentCountryFlagCode('NOR'), 'no');
   assert.equal(currentCountryFlagCode('BRT'), '');
+  for (const [code, expectedRatio] of Object.entries({ kr: 3 / 2, de: 5 / 3, fr: 3 / 2, no: 22 / 16, np: 71.571 / 87.246 })) {
+    const { width, height } = viewBoxDimensions(readFileSync(path.join(nativeFlagRoot, `${code}.svg`), 'utf8'));
+    assert.ok(Math.abs((width / height) - expectedRatio) < 0.001, `${code} native ratio changed`);
+  }
   assert.match(currentCountryFlagUrl('KOR'), /country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/kr\.svg$/);
   assert.match(currentCountryFlagUrl('DEU'), /country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/de\.svg$/);
   assert.match(currentCountryFlagUrl('NOR'), /country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/no\.svg$/);
-  assert.match(currentCountryFlagUrl('LAO'), /flag-icons\/7\.5\.0\/flags\/4x3\/la\.svg$/);
+  assert.match(currentCountryFlagUrl('GAB'), /flag-icons\/7\.5\.0\/flags\/4x3\/ga\.svg$/);
 });
 
 test('effective flags honor project overrides, the built-in default, and explicit-none precedence', () => {
@@ -95,7 +99,7 @@ test('effective flags honor project overrides, the built-in default, and explici
   assert.match(effectiveCountryFlagUrl({ countryId: 'KOR' }), /\/kr\.svg$/);
   assert.equal(effectiveCountryFlagUrl({ countryId: 'BRT' }), null);
 
-  const bundled = new URL(currentCountryFlagUrl('KOR', { assetRevision: '0.30.0-r44' }));
+  const bundled = new URL(currentCountryFlagUrl('KOR', { assetRevision: 'test-build' }));
   assert.match(decodeURIComponent(bundled.pathname), /assets\/vendor\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/kr\.svg$/);
-  assert.equal(bundled.searchParams.get('v'), '0.30.0-r44');
+  assert.equal(bundled.searchParams.get('v'), 'test-build');
 });

@@ -38,7 +38,6 @@ export const MAP_RENDER_DIRTY = Object.freeze({
 // so it must not be pulled into every interaction frame.
 const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.SELECTION_VIEW
-  | MAP_RENDER_DIRTY.EDITING_OVERLAYS
   | MAP_RENDER_DIRTY.LABEL_POSITIONS;
 
 const SETTLE_MASK = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
@@ -271,10 +270,8 @@ export function createMapRenderCoordinator({
   function endInteraction(reason = 'interaction-end') {
     interactionActive = false;
     clearTimeout(settleTimer);
-    settleTimer = setTimeout(() => {
-      settleTimer = 0;
-      invalidate(SETTLE_MASK, reason);
-    }, 120);
+    settleTimer = 0;
+    invalidate(SETTLE_MASK, reason);
     return true;
   }
 

@@ -1,8 +1,12 @@
 'use strict';
 
 (() => {
-  const BUILD_ID = '0.30.0';
-  const ASSET_REVISION = '0.30.0-r47';
+  const buildMeta = globalThis.PANDOLAB_BUILD_META;
+  if (!buildMeta) throw new Error('빌드 메타데이터를 불러오지 못했습니다.');
+  const APP_VERSION = String(buildMeta.appVersion || '');
+  const BUILD_ID = String(buildMeta.buildId || '');
+  const ASSET_REVISION = String(buildMeta.assetRevision || '');
+  if (!APP_VERSION || !BUILD_ID || !ASSET_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
@@ -114,7 +118,7 @@
     return;
   }
 
-  if (appRoot?.dataset.appVersion !== BUILD_ID) {
+  if (appRoot?.dataset.appVersion !== APP_VERSION) {
     if (!recoverCacheMismatch()) fail(cacheMismatchMessage());
     return;
   }
@@ -122,6 +126,7 @@
   installPhaseOneUiCleanup();
 
   window.PANDOLAB_ASSET_BASE_URL = assetBaseUrl.href;
+  window.PANDOLAB_APP_VERSION = APP_VERSION;
   window.PANDOLAB_BUILD_ID = BUILD_ID;
   window.PANDOLAB_ASSET_REVISION = ASSET_REVISION;
   const loaderUrl = versionedAsset('./workers/data-loader-worker.js');
@@ -214,7 +219,7 @@
       return;
     }
     if (!['preview-ready', 'geometry-ready', 'mesh-ready'].includes(data.type)) return;
-    if (data.buildId !== BUILD_ID) {
+    if (data.buildId !== APP_VERSION) {
       loader.terminate();
       if (!recoverCacheMismatch()) fail(cacheMismatchMessage());
       return;

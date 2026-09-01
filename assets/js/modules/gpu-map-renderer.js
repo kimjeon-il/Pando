@@ -172,9 +172,17 @@ export function createGpuMapRenderer(deps) {
     let sceneCacheSelectionOnlyBaseDrawCount = 0;
     let lastRenderSceneRevision = 0;
     let renderQuality = DEFAULT_RENDER_QUALITY;
-    let meshRestoreTimer = 0;
     let meshSwitchCount = 0;
     let renderQualityChangeCount = 0;
+    // Preview data is a one-way startup fallback. Once canonical geometry is
+    // promoted it is never selected again for interaction or adaptive quality.
+    let qualityPhase = 'startup-preview';
+    let previewAllowed = true;
+    let previewActivationCount = 0;
+    let previewActivationAfterCanonical = 0;
+    let canonicalPromotionCount = 0;
+    let canonicalPromotionError = '';
+    let canonicalReadyFrameId = 0;
     let webGlContextKind = '';
     let uintIndexExtension = null;
     let ctx2d = null;
@@ -369,6 +377,7 @@ export function createGpuMapRenderer(deps) {
       hydroViewRequestCount: 0,
       hydroUploadBytes: 0,
       terrainUploadCount: 0,
+      terrainIncompleteFrameCount: 0,
       canvasWorkerMessageCount: 0,
       canvasWorkerMessageBytes: 0,
       canvasWorkerViewMessageCount: 0,
@@ -440,7 +449,7 @@ export function createGpuMapRenderer(deps) {
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           vDepth = dot(uRowZ, point);
         } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(log(tan(0.7853981633974483 + clamp(lat, -1.4844222297453324, 1.4844222297453324) * 0.5)) - log(tan(0.7853981633974483 + clamp(uFlatCenter.y, -1.4844222297453324, 1.4844222297453324) * 0.5))));
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
           vDepth = 1.0;
         }
         vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
@@ -544,7 +553,7 @@ export function createGpuMapRenderer(deps) {
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           vDepth = dot(uRowZ, point);
         } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(log(tan(0.7853981633974483 + clamp(lat, -1.4844222297453324, 1.4844222297453324) * 0.5)) - log(tan(0.7853981633974483 + clamp(uFlatCenter.y, -1.4844222297453324, 1.4844222297453324) * 0.5))));
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
           vDepth = 1.0;
         }
         vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
@@ -581,7 +590,7 @@ export function createGpuMapRenderer(deps) {
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           depth = dot(uRowZ, point);
         } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(log(tan(0.7853981633974483 + clamp(lat, -1.4844222297453324, 1.4844222297453324) * 0.5)) - log(tan(0.7853981633974483 + clamp(uFlatCenter.y, -1.4844222297453324, 1.4844222297453324) * 0.5))));
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
           depth = 1.0;
         }
       }
@@ -633,7 +642,7 @@ export function createGpuMapRenderer(deps) {
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           depth = dot(uRowZ, point);
         } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(log(tan(0.7853981633974483 + clamp(lat, -1.4844222297453324, 1.4844222297453324) * 0.5)) - log(tan(0.7853981633974483 + clamp(uFlatCenter.y, -1.4844222297453324, 1.4844222297453324) * 0.5))));
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
           depth = 1.0;
         }
       }
@@ -756,7 +765,7 @@ export function createGpuMapRenderer(deps) {
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           vDepth = dot(uRowZ, point);
         } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(log(tan(0.7853981633974483 + clamp(lat, -1.4844222297453324, 1.4844222297453324) * 0.5)) - log(tan(0.7853981633974483 + clamp(uFlatCenter.y, -1.4844222297453324, 1.4844222297453324) * 0.5))));
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
           vDepth = 1.0;
         }
         vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
@@ -807,7 +816,7 @@ export function createGpuMapRenderer(deps) {
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           vDepth = dot(uRowZ, point);
         } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(log(tan(0.7853981633974483 + clamp(lat, -1.4844222297453324, 1.4844222297453324) * 0.5)) - log(tan(0.7853981633974483 + clamp(uFlatCenter.y, -1.4844222297453324, 1.4844222297453324) * 0.5))));
+          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
           vDepth = 1.0;
         }
         vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
@@ -1012,7 +1021,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function meshQualityLabel() {
-      return canonicalMeshReady ? '무손실' : '빠른 미리보기';
+      return canonicalMeshReady ? '무손실' : previewAllowed ? '빠른 미리보기' : '고화질 지도 준비 중';
     }
 
     function updateRendererStatus(label, reason = '') {
@@ -1125,10 +1134,6 @@ export function createGpuMapRenderer(deps) {
     }
 
     function handleSharedGpuContextLost() {
-      if (meshRestoreTimer) {
-        clearTimeout(meshRestoreTimer);
-        meshRestoreTimer = 0;
-      }
       sceneColorCache.handleContextLost();
       polygonOverlayPass.handleContextLost();
       strokeRenderer.handleContextLost();
@@ -1230,7 +1235,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function attachExternalDevice(nextDevice, { owner = 'external' } = {}) {
-      if (!isRenderDevice(nextDevice) || Number(nextDevice.version) !== 2) return false;
+      if (!isRenderDevice(nextDevice) || ![1, 2].includes(Number(nextDevice.version))) return false;
       if (renderDevice?.gl === nextDevice.gl
         && renderDevice.contextRevision === nextDevice.contextRevision
         && externalDeviceMode) return true;
@@ -1251,11 +1256,12 @@ export function createGpuMapRenderer(deps) {
         version: glVersion,
         contextRevision: renderDeviceContextRevision,
       });
-      uintIndexExtension = true;
-      instancedExtension = true;
-      webGlContextKind = 'webgl2-external';
+      uintIndexExtension = glVersion === 2 ? true : gl.getExtension('OES_element_index_uint');
+      instancedExtension = glVersion === 2 ? true : gl.getExtension('ANGLE_instanced_arrays');
+      if (glVersion === 1 && (!uintIndexExtension || !instancedExtension)) return false;
+      webGlContextKind = glVersion === 2 ? 'webgl2-external' : 'webgl-external';
       webglContextLost = false;
-      rendererMode = 'webgl2';
+      rendererMode = glVersion === 2 ? 'webgl2' : 'webgl1';
       createWebGlResources();
       initializeSharedGpuPasses();
       externalSceneDirty = true;
@@ -1362,7 +1368,15 @@ export function createGpuMapRenderer(deps) {
     }
 
     function activateMeshVariant(quality, { renderFrame = true } = {}) {
-      const entry = meshVariants.get(quality) || meshVariants.get('canonical') || meshVariants.get('preview');
+      const requestedQuality = quality === 'preview' ? 'preview' : 'canonical';
+      if (requestedQuality === 'preview') {
+        previewActivationCount += 1;
+        if (!previewAllowed || canonicalMeshReady || qualityPhase === 'canonical-ready') {
+          previewActivationAfterCanonical += canonicalMeshReady || qualityPhase === 'canonical-ready' ? 1 : 0;
+          return false;
+        }
+      }
+      const entry = meshVariants.get(requestedQuality) || meshVariants.get('canonical');
       if (!entry) return false;
       const changed = activeMeshQuality !== entry.quality || mesh !== entry.mesh;
       activeMeshQuality = entry.quality;
@@ -1389,6 +1403,10 @@ export function createGpuMapRenderer(deps) {
       preserveOtherVariants = false,
     } = {}) {
       const variantQuality = quality === 'preview' ? 'preview' : 'canonical';
+      if (variantQuality === 'preview' && (!previewAllowed || canonicalMeshReady || qualityPhase === 'canonical-ready')) {
+        previewActivationAfterCanonical += 1;
+        return false;
+      }
       if (!preserveOtherVariants) {
         for (const entry of meshVariants.values()) disposeMeshResources(entry.resources);
         meshVariants.clear();
@@ -1408,6 +1426,26 @@ export function createGpuMapRenderer(deps) {
       sceneColorCache.invalidate('mesh-ready');
       externalSceneDirty = true;
       externalInteractionDirty = true;
+    }
+
+    function promoteCanonicalMesh({ frameId = 0 } = {}) {
+      canonicalMeshReady = true;
+      qualityPhase = 'canonical-ready';
+      previewAllowed = false;
+      meshQuality = 'canonical';
+      canonicalPromotionCount += 1;
+      canonicalReadyFrameId = Number(frameId || externalFrameId || currentRenderRevision || 0);
+      canonicalPromotionError = '';
+      const previewEntry = meshVariants.get('preview');
+      if (previewEntry) {
+        if (previewEntry !== meshVariants.get('canonical')) disposeMeshResources(previewEntry.resources);
+        meshVariants.delete('preview');
+      }
+      countryStrokePacketCache.preview.mesh = null;
+      countryStrokePacketCache.preview.countryIds = null;
+      countryStrokePacketCache.preview.revision = '';
+      countryStrokePacketCache.preview.resource = null;
+      return true;
     }
 
     function setOverrideMesh(nextMesh, { renderFrame = true } = {}) {
@@ -1726,8 +1764,22 @@ export function createGpuMapRenderer(deps) {
       meshVariants.clear();
       mesh = null;
       meshCountryIds = [];
-      activeMeshQuality = 'preview';
-      meshQuality = 'preview';
+      qualityPhase = previewAllowed ? 'startup-preview' : 'canonical-loading';
+      activeMeshQuality = previewAllowed ? 'preview' : 'canonical';
+      meshQuality = previewAllowed ? 'preview' : 'canonical';
+      canonicalMeshReady = false;
+      for (const pending of terrainUploadQueue.splice(0)) pending.bitmap?.close?.();
+      terrainFetchQueue.length = 0;
+      terrainFetchQueuedKeys.clear();
+      terrainTileQueuedKeys.clear();
+      terrainTileRequests.clear();
+      terrainTileFailures.clear();
+      for (const entry of terrainTiles.values()) if (entry.texture && gl) gl.deleteTexture(entry.texture);
+      terrainTiles.clear();
+      terrainLastLevel = -1;
+      terrainRenderedLevel = -1;
+      terrainTargetTileCount = 0;
+      terrainTargetTilesLoaded = 0;
       // The legacy renderer owns its default framebuffer, so clear the old
       // project immediately. MapLibre's external framebuffer is repainted by
       // the host on its next frame and must not be cleared from here.
@@ -1793,6 +1845,10 @@ export function createGpuMapRenderer(deps) {
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         meshQuality = 'canonical';
         canonicalMeshReady = true;
+        qualityPhase = 'canonical-ready';
+        previewAllowed = false;
+        canonicalPromotionCount += 1;
+        canonicalReadyFrameId = currentRenderRevision;
         projectRenderBlocked = false;
         postCanvasWorkerMessage({
           type: 'data', features, ids: pendingIds,
@@ -1807,6 +1863,10 @@ export function createGpuMapRenderer(deps) {
       if (!isWebGlRenderer()) {
         meshQuality = 'canonical';
         canonicalMeshReady = true;
+        qualityPhase = 'canonical-ready';
+        previewAllowed = false;
+        canonicalPromotionCount += 1;
+        canonicalReadyFrameId = currentRenderRevision;
         projectRenderBlocked = false;
         countryOverrideIds.clear();
         overrideFeatureSnapshots.clear();
@@ -1859,8 +1919,7 @@ export function createGpuMapRenderer(deps) {
             strokeOwnerRanges: next.strokeOwnerRanges || null,
           }, next.countryIds || [], { renderFrame: false, quality: 'canonical', preserveOtherVariants: false });
           completeGeometryDisplay(pendingIds, task.revision);
-          meshQuality = 'canonical';
-          canonicalMeshReady = true;
+          promoteCanonicalMesh({ frameId: currentRenderRevision });
           projectRenderBlocked = false;
           sceneColorCache.invalidate('project-mesh-ready');
           externalSceneDirty = true;
@@ -2018,8 +2077,11 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function rotationRows() {
-      const projection = globeProjection;
+    function rotationRows(viewState = null) {
+      const projection = typeof globeProjection.copy === 'function' ? globeProjection.copy() : globeProjection;
+      if (Array.isArray(viewState?.rotation) && typeof projection.rotate === 'function') projection.rotate(viewState.rotation);
+      if (Array.isArray(viewState?.translate) && typeof projection.translate === 'function') projection.translate(viewState.translate);
+      if (Number.isFinite(Number(viewState?.scale)) && typeof projection.scale === 'function') projection.scale(Number(viewState.scale));
       const translate = projection.translate();
       const scale = projection.scale();
       const basis = [[0, 0], [90, 0], [0, 90]].map(coord => projection(coord));
@@ -2042,6 +2104,7 @@ export function createGpuMapRenderer(deps) {
       return {
         revision: currentRenderRevision,
         projection,
+        flatProjectionKind: 'equirectangular',
         size: { width: state.size.width, height: state.size.height },
         dpr: resolveRenderPixelRatio(),
         translate: active.translate().map(Number),
@@ -2054,7 +2117,7 @@ export function createGpuMapRenderer(deps) {
 
     function createFrameContext(viewState = getRenderViewState()) {
       const mode = viewState.projection === 'globe' ? 0 : 1;
-      const globeRows = mode === 0 ? rotationRows() : null;
+      const globeRows = mode === 0 ? rotationRows(viewState) : null;
       const data = mode === 0
         ? { ...globeRows, translate: viewState.translate || globeRows.translate, scale: Number(viewState.scale || globeRows.scale) }
         : {
@@ -2065,6 +2128,7 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.frameContextBuildCount += 1;
       return {
         viewState,
+        flatProjectionKind: viewState.flatProjectionKind || 'equirectangular',
         mode,
         viewport: [Number(viewState.size?.width || cssWidth), Number(viewState.size?.height || cssHeight)],
         translate: data.translate,
@@ -3049,18 +3113,6 @@ export function createGpuMapRenderer(deps) {
     function setHydroInteractionActive(active) {
       interactionActive = active === true;
       hydroWorker?.postMessage({ type: 'interaction', active: interactionActive });
-      if (meshRestoreTimer) {
-        clearTimeout(meshRestoreTimer);
-        meshRestoreTimer = 0;
-      }
-      if (interactionActive) activateMeshVariant('preview', { renderFrame: false });
-      else {
-        meshRestoreTimer = setTimeout(() => {
-          meshRestoreTimer = 0;
-          activateMeshVariant(renderQuality.countryMeshQuality || 'canonical', { renderFrame: false });
-          invalidateGpuFrame('mesh-quality-settle');
-        }, 120);
-      }
       if (!interactionActive) {
         if (terrainUploadQueue.length) scheduleTerrainUpload();
       }
@@ -3084,18 +3136,10 @@ export function createGpuMapRenderer(deps) {
         externalInteractionDirty = true;
         queueMapResize?.('adaptive-render-quality');
       }
-      if (renderQuality.phase === 'interaction' || interactionActive) {
-        if (meshRestoreTimer) clearTimeout(meshRestoreTimer);
-        meshRestoreTimer = 0;
-        activateMeshVariant('preview', { renderFrame: false });
-      } else {
-        if (meshRestoreTimer) clearTimeout(meshRestoreTimer);
-        meshRestoreTimer = setTimeout(() => {
-          meshRestoreTimer = 0;
-          activateMeshVariant(renderQuality.countryMeshQuality || 'canonical', { renderFrame: false });
-          invalidateGpuFrame('adaptive-quality-settle');
-        }, 120);
-      }
+      // Adaptive quality only controls cadence, upload budgets and DPR. Mesh
+      // resolution is gated by canonical readiness and never changes during
+      // interaction.
+      renderQuality = Object.freeze({ ...renderQuality, countryMeshQuality: 'canonical', terrainResolutionScale: 1 });
       return renderQuality;
     }
 
@@ -3111,11 +3155,11 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function terrainLevelForView() {
+    function terrainLevelForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
-      const scale = activeProjection().scale();
-      const dpr = resolveRenderPixelRatio();
-      const desiredWidth = Math.max(1, 2 * PI * scale * dpr * Math.max(0.25, Number(renderQuality.terrainResolutionScale) || 1));
+      const scale = Number(frameContext?.scale) || Number(activeProjection().scale()) || 1;
+      const dpr = Number(frameContext?.dpr) || resolveRenderPixelRatio();
+      const desiredWidth = Math.max(1, 2 * PI * scale * dpr);
       return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
         || terrainManifest.levels[terrainManifest.levels.length - 1];
     }
@@ -3141,13 +3185,15 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
-    function visibleTerrainTileSpecs(level, includeAll = false) {
+    function visibleTerrainTileSpecs(level, includeAll = false, frameContext = activeFrameContext) {
       const specs = [];
       const projection = activeProjection();
-      const scale = projection.scale();
+      const scale = Number(frameContext?.scale) || projection.scale();
       const flatHalfLon = cssWidth / Math.max(1, scale) * 90 / PI;
       const flatHalfLat = cssHeight / Math.max(1, scale) * 90 / PI;
-      const globeCenter = [-Number(state.view.globeRotation?.[0] || 0), -Number(state.view.globeRotation?.[1] || 0)];
+      const rotation = frameContext?.viewState?.rotation || state.view.globeRotation;
+      const flatCenter = frameContext?.viewState?.projectionCenter || state.view.flatCenter;
+      const globeCenter = [-Number(rotation?.[0] || 0), -Number(rotation?.[1] || 0)];
       const globeRadius = Math.asin(Math.min(1, Math.hypot(cssWidth, cssHeight) * 0.5 / Math.max(1, scale)));
       for (let row = 0; row < level.rows; row += 1) {
         for (let column = 0; column < level.columns; column += 1) {
@@ -3160,9 +3206,10 @@ export function createGpuMapRenderer(deps) {
           const center = [(west + east) / 2, (north + south) / 2];
           const halfLon = (east - west) / 2;
           const halfLat = (north - south) / 2;
-          if (state.projection === 'flat') {
-            const deltaLon = Math.abs((((center[0] - state.view.flatCenter[0]) + 540) % 360) - 180);
-            const deltaLat = Math.abs(center[1] - state.view.flatCenter[1]);
+          const projectionKind = frameContext?.viewState?.projection || state.projection;
+          if (projectionKind === 'flat') {
+            const deltaLon = Math.abs((((center[0] - flatCenter[0]) + 540) % 360) - 180);
+            const deltaLat = Math.abs(center[1] - flatCenter[1]);
             if (deltaLon <= flatHalfLon + halfLon + 2 && deltaLat <= flatHalfLat + halfLat + 2) specs.push(spec);
           } else {
             const padding = Math.hypot(halfLon, halfLat) * PI / 180;
@@ -3205,6 +3252,7 @@ export function createGpuMapRenderer(deps) {
 
     function startTerrainTileRequest(spec, priority = 0) {
       const previousFailure = terrainTileFailures.get(spec.key);
+      const requestGeneration = projectGeneration;
       terrainActiveFetches += 1;
       const request = (async () => {
         const response = await fetch(terrainTileUrl(spec));
@@ -3213,6 +3261,10 @@ export function createGpuMapRenderer(deps) {
         let bitmap;
         try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
         catch (_) { bitmap = await createImageBitmap(blob); }
+        if (requestGeneration !== projectGeneration) {
+          bitmap.close?.();
+          return;
+        }
         if (!gl || !isWebGlRenderer()) {
           bitmap.close?.();
           return;
@@ -3232,7 +3284,7 @@ export function createGpuMapRenderer(deps) {
         }
         console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
       }).finally(() => {
-        terrainTileRequests.delete(spec.key);
+        if (terrainTileRequests.get(spec.key) === request) terrainTileRequests.delete(spec.key);
         terrainActiveFetches = Math.max(0, terrainActiveFetches - 1);
         pumpTerrainFetchQueue();
       });
@@ -3364,12 +3416,13 @@ export function createGpuMapRenderer(deps) {
       if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return;
       const levels = terrainManifest.levels;
       const baseLevel = levels[0];
-      const targetLevel = terrainLevelForView() || baseLevel;
+      const frameContext = activeFrameContext || createFrameContext();
+      const targetLevel = terrainLevelForView(frameContext) || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
       const activeLevels = levels.slice(0, (state.dataReadiness === 'enhanced' ? targetIndex : 0) + 1);
       const specsByLevel = activeLevels.map((level, index) => ({
         level,
-        specs: visibleTerrainTileSpecs(level, false),
+        specs: visibleTerrainTileSpecs(level, false, frameContext),
       }));
       const targetSpecs = specsByLevel[specsByLevel.length - 1].specs;
       terrainLastLevel = Number(activeLevels[activeLevels.length - 1].id);
@@ -3858,7 +3911,10 @@ export function createGpuMapRenderer(deps) {
           // custom-layer target before compositing a scene so pixels removed
           // by a geometry patch (for example an old national border) cannot
           // survive in the framebuffer as an afterimage.
-          clearTarget: true,
+          // MapLibre clears its custom-layer target for the frame. Avoid
+          // clearing it here before the draw has succeeded; a transient
+          // composite failure must not expose a transparent framebuffer.
+          clearTarget: false,
         })
         : false;
       if (!compositeSucceeded) {
@@ -3874,7 +3930,7 @@ export function createGpuMapRenderer(deps) {
             compositeSucceeded = finished && sceneColorCache.canComposite?.(currentSignature, projectGeneration)
               && sceneColorCache.composite(pixelWidth, pixelHeight, {
                 targetFramebuffer: externalTargetFramebuffer,
-                clearTarget: true,
+                clearTarget: false,
               });
             if (compositeSucceeded) {
               externalSceneDirty = false;
@@ -3882,11 +3938,18 @@ export function createGpuMapRenderer(deps) {
             }
           }
         }
-        const preserveActive = sceneColorCache.hasActive?.()
-          && sceneColorCache.canComposite?.(currentSignature, projectGeneration);
+        const preserveActive = sceneColorCache.hasActiveFor?.(currentSignature, projectGeneration)
+          || (sceneColorCache.hasActive?.() && sceneColorCache.canComposite?.(currentSignature, projectGeneration));
         if (!compositeSucceeded && preserveActive) {
+          // Retry the last known-good scene without clearing the target first.
+          // This keeps the previous pixels visible when a single composite
+          // call fails after validation but before draw completion.
+          compositeSucceeded = sceneColorCache.composite(pixelWidth, pixelHeight, {
+            targetFramebuffer: externalTargetFramebuffer,
+            clearTarget: false,
+          });
           baseResult = lastBaseSceneResult;
-          compositeSucceeded = true;
+          if (!compositeSucceeded) sceneCacheFallbackFrame = true;
         } else if (!compositeSucceeded) {
           // A first-frame or cross-view failure has no safe scene to reuse.
           // Keep the target opaque and stable instead of exposing a cleared
@@ -4297,7 +4360,7 @@ export function createGpuMapRenderer(deps) {
       const canDisplay = revision >= canvasWorkerDisplayedRevision
         && revision >= canvasWorkerLatestRequestedRevision
         && geometryRevision >= geometryRevisionTracker.committedRevision();
-      if (canDisplay && message.bitmap) {
+      if (canDisplay && message.bitmap && message.terrainComplete !== false) {
         if (canvasWorkerBitmapContext) {
           canvasWorkerBitmapContext.transferFromImageBitmap(message.bitmap);
         } else if (canvasWorker2dContext) {
@@ -4310,6 +4373,7 @@ export function createGpuMapRenderer(deps) {
         displayedRenderRevision = revision;
         completeGeometryDisplay(geometryRevisionTracker.pendingIds(), geometryRevision, { renderFrame: false });
       } else {
+        if (canDisplay && message.bitmap && message.terrainComplete === false) performanceMetrics.terrainIncompleteFrameCount += 1;
         message.bitmap?.close?.();
       }
       const pending = canvasWorkerPendingMessage;
@@ -4517,6 +4581,15 @@ export function createGpuMapRenderer(deps) {
       if (externalDeviceMode && renderDevice && gl) {
         try {
           updateRendererStatus('MapLibre · Pando GPU 지도를 준비하는 중입니다.');
+          if ((!previewAllowed || canonicalMeshReady) && meshVariants.has('canonical')) {
+            qualityPhase = 'canonical-loading';
+            if (meshVariants.has('canonical')) activateMeshVariant('canonical', { renderFrame: false });
+            externalSceneDirty = true;
+            externalInteractionDirty = true;
+            invalidateGpuFrame('external-device-ready-canonical');
+            return true;
+          }
+          if (!previewAllowed || canonicalMeshReady) throw new Error('canonical mesh unavailable after startup preview');
           const decoded = await decodeBuiltInMesh();
           setMesh(decoded.mesh, decoded.ids, { quality: 'preview', preserveOtherVariants: false });
           meshQuality = 'preview';
@@ -4540,6 +4613,12 @@ export function createGpuMapRenderer(deps) {
         try {
           initWebGl(version);
           updateRendererStatus(`${rendererName()} · 빠른 GPU 지도를 준비하는 중입니다.`);
+          if ((!previewAllowed || canonicalMeshReady) && meshVariants.has('canonical')) {
+            qualityPhase = 'canonical-loading';
+            if (meshVariants.has('canonical')) activateMeshVariant('canonical', { renderFrame: false });
+            return true;
+          }
+          if (!previewAllowed || canonicalMeshReady) throw new Error('canonical mesh unavailable after startup preview');
           if (!decoded) decoded = await decodeBuiltInMesh();
           setMesh(decoded.mesh, decoded.ids, { quality: 'preview', preserveOtherVariants: false });
           meshQuality = 'preview';
@@ -4569,8 +4648,7 @@ export function createGpuMapRenderer(deps) {
         preserveOtherVariants: quality === 'canonical' && meshVariants.has('preview'),
       });
       meshQuality = quality;
-      canonicalMeshReady = quality === 'canonical';
-      if (interactionActive && meshVariants.has('preview')) activateMeshVariant('preview', { renderFrame: false });
+      if (quality === 'canonical') promoteCanonicalMesh({ frameId: currentRenderRevision });
       prewarmCountryStrokeResources();
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         await new Promise(resolve => {
@@ -4821,7 +4899,14 @@ export function createGpuMapRenderer(deps) {
         canonicalMeshReady,
         availableMeshQualities: [...meshVariants.keys()],
         meshVariantBytes: Object.fromEntries([...meshVariants.entries()].map(([quality, entry]) => [quality, Number(entry.resources?.byteLength || 0)])),
-        meshRestorePending: !!meshRestoreTimer,
+        meshRestorePending: false,
+        qualityPhase,
+        previewAllowed,
+        previewActivationCount,
+        previewActivationAfterCanonical,
+        canonicalPromotionCount,
+        canonicalPromotionError,
+        canonicalReadyFrameId,
         meshSwitchCount,
         renderQualityChangeCount,
         renderQuality: { ...renderQuality },

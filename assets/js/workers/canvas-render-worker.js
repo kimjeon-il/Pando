@@ -284,7 +284,7 @@ function canvasFallbackWorkerMain() {
     }
 
     function renderTerrain(message, projection, width, height, dpr) {
-      if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return;
+      if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return true;
       const levels = terrainManifest.levels;
       const baseLevel = levels[0];
       const targetLevel = terrainLevelForView(projection, dpr) || baseLevel;
@@ -294,6 +294,8 @@ function canvasFallbackWorkerMain() {
         level,
         specs: visibleTerrainTileSpecs(level, message, projection, width, height, false),
       }));
+      const targetSpecs = specsByLevel[specsByLevel.length - 1]?.specs || [];
+      const terrainComplete = targetSpecs.every(spec => terrainTiles.has(spec.key));
       for (let index = 0; index < specsByLevel.length; index += 1) {
         const priority = index === 0 ? 10_000 : 1_000 - index;
         for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
@@ -327,6 +329,7 @@ function canvasFallbackWorkerMain() {
         }
       }
       context.restore();
+      return terrainComplete;
     }
 
     function createProjection(message, width, height) {
@@ -536,7 +539,7 @@ function canvasFallbackWorkerMain() {
       {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const projection = createProjection(message, width, height);
-        renderTerrain(message, projection, width, height, dpr);
+        const terrainComplete = renderTerrain(message, projection, width, height, dpr);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const geoPath = self.d3.geo.path().projection(projection).context(context);
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
@@ -595,6 +598,7 @@ function canvasFallbackWorkerMain() {
         bitmap,
         width: pixelWidth,
         height: pixelHeight,
+        terrainComplete,
       }, [bitmap]);
     }
     self.onmessage = event => {

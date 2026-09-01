@@ -206,6 +206,16 @@ export function createSceneColorCache() {
       && activeProjectGeneration === Number(projectGeneration || 0);
   }
 
+  // A failed rebuild must not blank a frame that was already valid for the
+  // exact same project/view. This deliberately ignores `dirty`, but still
+  // requires both signatures to match so stale geometry is never reused
+  // across a camera move or project reset.
+  function hasActiveFor(viewSignature = '', projectGeneration = 0) {
+    return valid && !!activeTarget && !disabled
+      && activeViewSignature === String(viewSignature || '')
+      && activeProjectGeneration === Number(projectGeneration || 0);
+  }
+
   function reset({ dropActive = false } = {}) {
     if (dropActive) {
       clearTargets();
@@ -324,6 +334,7 @@ export function createSceneColorCache() {
     isValid: () => valid && !!activeTarget && !disabled,
     isDirty: () => dirty,
     hasActive: () => !!activeTarget && valid && !disabled,
+    hasActiveFor,
     canComposite,
     isAvailable: () => !!gl && !!compositeProgram && !disabled,
     stats: () => Object.freeze({
