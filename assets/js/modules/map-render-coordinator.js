@@ -33,11 +33,10 @@ export const MAP_RENDER_DIRTY = Object.freeze({
   FULL: Object.values(DIRTY_BITS).reduce((mask, value) => mask | value, 0),
 });
 
+// A view gesture only changes uniforms/positions.  Scene geometry is rebuilt
+// by an explicit GPU_SCENE invalidation (or by the external MapLibre frame),
+// so it must not be pulled into every interaction frame.
 const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
-  | MAP_RENDER_DIRTY.GPU_FRAME
-  | MAP_RENDER_DIRTY.BASE
-  | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
-  | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
   | MAP_RENDER_DIRTY.SELECTION_VIEW
   | MAP_RENDER_DIRTY.EDITING_OVERLAYS
   | MAP_RENDER_DIRTY.LABEL_POSITIONS;
@@ -127,6 +126,10 @@ export function createMapRenderCoordinator({
         | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH));
       const viewState = needsView ? prepareView() : undefined;
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
+
+      // Legacy WebGL/Canvas hosts still need a view draw. MapLibre owns its
+      // own custom-layer frame and therefore returns no-op from this hook.
+      if (!full && (mask & MAP_RENDER_DIRTY.VIEW)) callRenderer('view', rendererTimes, viewState);
 
       if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes, viewState);
 

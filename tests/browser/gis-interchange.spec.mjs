@@ -35,7 +35,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
 
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/flags\/4x3\/pl\.svg\?v=0\.30\.0-r42$/);
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/pl\.svg\?v=0\.30\.0-r44$/);
   await page.locator('#flagRemoveBtn').click();
   await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
 

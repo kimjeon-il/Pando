@@ -58,14 +58,16 @@ function createCompositeProgram(device) {
 export function createSceneColorCache() {
   let device = null;
   let gl = null;
-  let framebuffer = null;
-  let colorTexture = null;
-  let stencilBuffer = null;
+  let activeTarget = null;
+  let stagingTarget = null;
   let quadBuffer = null;
   let compositeProgram = null;
   let width = 0;
   let height = 0;
   let valid = false;
+  let dirty = true;
+  let activeViewSignature = '';
+  let stagingViewSignature = '';
   let disabled = false;
   let generation = 0;
   let hitCount = 0;
@@ -77,19 +79,24 @@ export function createSceneColorCache() {
   let lastFailureReason = '';
   let lastInvalidationReason = '';
 
-  function deleteTarget() {
-    if (!gl || gl.isContextLost?.()) {
-      framebuffer = colorTexture = stencilBuffer = null;
-      width = height = 0;
-      valid = false;
-      return;
-    }
-    if (framebuffer) gl.deleteFramebuffer(framebuffer);
-    if (colorTexture) gl.deleteTexture(colorTexture);
-    if (stencilBuffer) gl.deleteRenderbuffer(stencilBuffer);
-    framebuffer = colorTexture = stencilBuffer = null;
+  function deleteTarget(target) {
+    if (!target) return;
+    if (!gl || gl.isContextLost?.()) return;
+    if (target.framebuffer) gl.deleteFramebuffer(target.framebuffer);
+    if (target.colorTexture) gl.deleteTexture(target.colorTexture);
+    if (target.stencilBuffer) gl.deleteRenderbuffer(target.stencilBuffer);
+  }
+
+  function clearTargets() {
+    deleteTarget(activeTarget);
+    deleteTarget(stagingTarget);
+    activeTarget = null;
+    stagingTarget = null;
     width = height = 0;
     valid = false;
+    dirty = true;
+    activeViewSignature = '';
+    stagingViewSignature = '';
   }
 
   function deleteProgramResources() {
@@ -128,8 +135,10 @@ export function createSceneColorCache() {
     if (!gl || disabled || gl.isContextLost?.()) return false;
     const nextWidth = Math.max(1, Math.round(Number(pixelWidth) || 1));
     const nextHeight = Math.max(1, Math.round(Number(pixelHeight) || 1));
-    if (framebuffer && width === nextWidth && height === nextHeight) return true;
-    deleteTarget();
+    if (stagingTarget && stagingTarget.width === nextWidth && stagingTarget.height === nextHeight) return true;
+    let colorTexture = null;
+    let framebuffer = null;
+    let stencilBuffer = null;
     try {
       colorTexture = gl.createTexture();
       framebuffer = gl.createFramebuffer();
@@ -155,16 +164,19 @@ export function createSceneColorCache() {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.bindTexture(gl.TEXTURE_2D, null);
       gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-      width = nextWidth;
-      height = nextHeight;
-      valid = false;
+      deleteTarget(stagingTarget);
+      stagingTarget = { framebuffer, colorTexture, stencilBuffer, width: nextWidth, height: nextHeight };
+      stagingViewSignature = '';
       recreateCount += 1;
       return true;
     } catch (error) {
       failureCount += 1;
       lastFailureReason = error?.message || String(error);
-      deleteTarget();
-      disabled = true;
+      deleteTarget({ framebuffer, colorTexture, stencilBuffer });
+      // Keep an already-rendered scene usable when only the staging target
+      // failed. A cache with no active target remains unavailable until the
+      // next explicit initialization/invalidation.
+      disabled = !activeTarget;
       try {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindTexture(gl.TEXTURE_2D, null);
@@ -175,23 +187,48 @@ export function createSceneColorCache() {
   }
 
   function invalidate(reason = '') {
-    valid = false;
+    dirty = true;
     generation += 1;
     if (reason) lastInvalidationReason = String(reason);
   }
 
-  function beginScene(pixelWidth, pixelHeight) {
-    missCount += 1;
-    if (!createTarget(pixelWidth, pixelHeight)) return false;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-    gl.viewport(0, 0, width, height);
-    valid = false;
+  function canComposite(viewSignature = '') {
+    return valid && !!activeTarget && !disabled
+      && activeViewSignature === String(viewSignature || '');
+  }
+
+  function reset({ dropActive = false } = {}) {
+    if (dropActive) {
+      clearTargets();
+      disabled = false;
+      generation += 1;
+      return true;
+    }
+    invalidate('reset');
     return true;
   }
 
-  function finishScene(targetFramebuffer = null) {
-    if (!gl || !framebuffer || disabled || gl.isContextLost?.()) return false;
+  function beginScene(pixelWidth, pixelHeight, viewSignature = '') {
+    missCount += 1;
+    if (!createTarget(pixelWidth, pixelHeight)) return false;
+    stagingViewSignature = String(viewSignature || '');
+    gl.bindFramebuffer(gl.FRAMEBUFFER, stagingTarget.framebuffer);
+    gl.viewport(0, 0, stagingTarget.width, stagingTarget.height);
+    return true;
+  }
+
+  function finishScene(targetFramebuffer = null, viewSignature = stagingViewSignature) {
+    if (!gl || !stagingTarget || disabled || gl.isContextLost?.()) return false;
+    const previousActive = activeTarget;
+    const previousActiveSignature = activeViewSignature;
+    activeTarget = stagingTarget;
+    stagingTarget = previousActive;
+    activeViewSignature = String(viewSignature || stagingViewSignature || '');
+    stagingViewSignature = previousActiveSignature;
+    width = activeTarget.width;
+    height = activeTarget.height;
     valid = true;
+    dirty = false;
     gl.bindFramebuffer(gl.FRAMEBUFFER, targetFramebuffer);
     return true;
   }
@@ -200,7 +237,7 @@ export function createSceneColorCache() {
     targetFramebuffer = null,
     clearTarget = true,
   } = {}) {
-    if (!gl || !valid || !colorTexture || !compositeProgram || disabled || gl.isContextLost?.()) return false;
+    if (!gl || !valid || !activeTarget?.colorTexture || !compositeProgram || disabled || gl.isContextLost?.()) return false;
     const started = performance.now();
     const targetWidth = Math.max(1, Math.round(Number(pixelWidth) || width || 1));
     const targetHeight = Math.max(1, Math.round(Number(pixelHeight) || height || 1));
@@ -221,7 +258,7 @@ export function createSceneColorCache() {
       gl.enableVertexAttribArray(compositeProgram.position);
       gl.vertexAttribPointer(compositeProgram.position, 2, gl.FLOAT, false, 0, 0);
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, colorTexture);
+      gl.bindTexture(gl.TEXTURE_2D, activeTarget.colorTexture);
       gl.uniform1i(compositeProgram.scene, 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       gl.disableVertexAttribArray(compositeProgram.position);
@@ -231,7 +268,6 @@ export function createSceneColorCache() {
     } catch (error) {
       failureCount += 1;
       lastFailureReason = error?.message || String(error);
-      valid = false;
       return false;
     } finally {
       compositeMs += performance.now() - started;
@@ -239,21 +275,26 @@ export function createSceneColorCache() {
   }
 
   function handleContextLost() {
-    framebuffer = colorTexture = stencilBuffer = quadBuffer = compositeProgram = null;
+    activeTarget = stagingTarget = null;
+    quadBuffer = compositeProgram = null;
     width = height = 0;
     valid = false;
+    dirty = true;
+    activeViewSignature = '';
+    stagingViewSignature = '';
     disabled = false;
     device = null;
     gl = null;
   }
 
   function dispose() {
-    deleteTarget();
+    clearTargets();
     deleteProgramResources();
     device = null;
     gl = null;
     disabled = false;
     valid = false;
+    dirty = true;
   }
 
   return Object.freeze({
@@ -262,12 +303,20 @@ export function createSceneColorCache() {
     finishScene,
     composite,
     invalidate,
+    reset,
     handleContextLost,
     dispose,
-    isValid: () => valid && !disabled,
+    isValid: () => valid && !!activeTarget && !disabled,
+    isDirty: () => dirty,
+    hasActive: () => !!activeTarget && valid && !disabled,
+    canComposite,
     isAvailable: () => !!gl && !!compositeProgram && !disabled,
     stats: () => Object.freeze({
       valid,
+      dirty,
+      activeViewSignature,
+      stagingViewSignature,
+      state: disabled ? 'unavailable' : (valid && !dirty ? 'valid' : (activeTarget ? 'rebuilding' : 'unavailable')),
       disabled,
       width,
       height,
