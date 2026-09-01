@@ -11,7 +11,7 @@ class V0171AlignmentTests(unittest.TestCase):
     def test_panel_internal_dividers_are_removed(self):
         self.assertRegex(CSS, r"\.panel-section\s*\{[^}]*border-bottom:\s*0;")
         self.assertRegex(CSS, r"\.editor-disclosure\s*>\s*summary\s*\{[^}]*border:\s*0;")
-        self.assertRegex(CSS, r"\.mobile-sheet-header\s*\{[^}]*border-bottom:\s*0;")
+        self.assertRegex(CSS, r"\.surface-header\s*\{[^}]*border-bottom:\s*0;")
 
     def test_status_groups_use_one_left_aligned_safe_area_row(self):
         self.assertIn('class="status-inner"', INDEX)

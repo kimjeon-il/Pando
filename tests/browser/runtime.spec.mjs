@@ -634,7 +634,7 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
       await page.locator(createTrigger).click();
       const geometry = await page.evaluate(() => {
       const item = document.querySelector('#addCountryBtn');
-      const body = document.querySelector('#createMenu .map-sheet-body');
+      const body = document.querySelector('#createMenu .surface-body');
       const itemStyle = getComputedStyle(item);
       const bodyStyle = getComputedStyle(body);
       return {
@@ -675,7 +675,7 @@ test('compact layer, create, and editor headers share the drawer header shell', 
     ['#mobileEditBtn', '#rightPanel'],
   ]) {
     await page.locator(trigger).click();
-    measurements.push(await page.locator(`${panel} .map-sheet-header`).evaluate(header => {
+    measurements.push(await page.locator(`${panel} .surface-header`).evaluate(header => {
       const title = header.querySelector('strong');
       const close = header.querySelector('.sheet-close-btn');
       const headerBox = header.getBoundingClientRect();
@@ -862,7 +862,8 @@ test('layer folders expose presentation controls while global view settings stay
   await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지형지물']);
   await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '권역', '행정구역', '지방']);
   await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder-name')).toHaveText(['강', '호수', '기타 객체']);
+  await expect(categories.nth(2).locator('.layer-folder:not([hidden]) .layer-folder-name')).toHaveText(['강', '호수']);
+  await expect(categories.nth(2).locator('.layer-folder[data-layer-group="genericFeatures"]')).toBeHidden();
   await expect(page.locator('#layerSection #terrainVisible')).toHaveCount(0);
   await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
   await expect(page.locator('[data-layer-style-toggle="countries"]')).toHaveCount(1);
@@ -941,8 +942,8 @@ test('built-in rivers and lakes use independent folders without overwriting sour
     await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
     await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name, { timeout: 30_000 });
     if (layout.name === 'mobile' && !await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
-    const folderRows = page.locator('#featuresLayerItems > .layer-folder');
-    await expect(folderRows.locator('.layer-folder-name')).toHaveText(['강', '호수', '기타 객체']);
+    const folderRows = page.locator('#featuresLayerItems > .layer-folder:not([hidden])');
+    await expect(folderRows.locator('.layer-folder-name')).toHaveText(['강', '호수']);
     if (layout.name === 'mobile') {
       const touchSize = await folderRows.first().locator('.layer-folder-toggle').evaluate(element => {
         const rect = element.getBoundingClientRect();

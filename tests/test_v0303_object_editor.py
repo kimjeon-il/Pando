@@ -40,7 +40,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
 
     def test_header_and_tabs_are_fixed_outside_the_scroll_body(self):
         header_index = INDEX.index('id="editorObjectHeader"')
-        tabs_index = INDEX.index('class="ui-tabs ui-sheet-tabs editor-view-tabs hidden"')
+        tabs_index = INDEX.index('class="ui-tabs surface-tabs editor-view-tabs hidden"')
         body_index = INDEX.index('id="editorScrollBody"')
         self.assertLess(header_index, tabs_index)
         self.assertLess(tabs_index, body_index)
@@ -78,7 +78,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
             markup = self.form_markup(form_id)
             self.assertIn("editor-object-form", markup)
             self.assertNotIn('class="ui-card editor-section editor-section-primary"', markup)
-        hydro = re.search(r'<section id="hydroProperties"[\s\S]+?</section>\s*</div>\s*</aside>', INDEX)
+        hydro = re.search(r'<section id="hydroProperties"[\s\S]+?</section>\s*</div>\s*</div>\s*</aside>', INDEX)
         self.assertIsNotNone(hydro)
         self.assertIn("editor-object-form", hydro.group(0))
         self.assertNotIn('class="ui-card editor-section', hydro.group(0))
@@ -133,6 +133,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertIn("const viewportCenter = [width / 2, height / 2]", APP)
         self.assertIn("syncMapHostFromState();", APP)
         self.assertNotIn("panMapBy(offsetX, offsetY)", APP)
+        self.assertIn("alignGeographicAnchor(anchor, viewportCenter)", APP)
         self.assertIn("--map-safe-right: calc(var(--panel-right-width) + var(--ui-map-edge));", CSS)
         self.assertIn("top: var(--ui-map-edge);", CSS)
         self.assertIn("bottom: calc(30px + var(--ui-map-edge));", CSS)

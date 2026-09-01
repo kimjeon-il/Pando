@@ -1,10 +1,10 @@
 export const GENERIC_FEATURE_SCHEMA_VERSION = 1;
 export const GENERIC_FEATURE_ROLE_RULES = Object.freeze({
-  generic: Object.freeze({ role: 'generic', geometry: 'any', binding: 'none', label: '일반 객체' }),
+  generic: Object.freeze({ role: 'generic', geometry: 'any', binding: 'none', label: '기타 객체' }),
   territory: Object.freeze({ role: 'territory', geometry: 'polygon', binding: 'none', label: '권역 객체' }),
   administrative: Object.freeze({ role: 'administrative', geometry: 'polygon', binding: 'none', label: '행정구역 객체' }),
 });
-export const GENERIC_FEATURE_ROLE_LABELS = Object.freeze({ generic: '일반 객체', territory: '권역 객체', administrative: '행정구역 객체' });
+export const GENERIC_FEATURE_ROLE_LABELS = Object.freeze({ generic: '기타 객체', territory: '권역 객체', administrative: '행정구역 객체' });
 
 const text = value => String(value ?? '').trim();
 const GENERIC_FEATURE_PROPERTY_KEYS = new Set([
@@ -42,14 +42,14 @@ export function normalizeGenericFeatureSemantics(feature) {
   feature.properties ||= {};
   const properties = feature.properties;
   const unsupported = Object.keys(properties).find(key => !GENERIC_FEATURE_PROPERTY_KEYS.has(key));
-  if (unsupported) throw new Error(`일반 객체에 지원하지 않는 필드 ${unsupported}가 있습니다.`);
+  if (unsupported) throw new Error(`기타 객체에 지원하지 않는 필드 ${unsupported}가 있습니다.`);
   if (properties.schemaVersion != null && Number(properties.schemaVersion) !== GENERIC_FEATURE_SCHEMA_VERSION) {
-    throw new Error(`일반 객체 schemaVersion ${properties.schemaVersion}은 지원하지 않습니다.`);
+    throw new Error(`기타 객체 schemaVersion ${properties.schemaVersion}은 지원하지 않습니다.`);
   }
   let role = properties.role == null || properties.role === '' ? 'generic' : properties.role;
-  if (!GENERIC_FEATURE_ROLE_RULES[role]) throw new Error(`일반 객체 역할 ${role}은 지원하지 않습니다.`);
+  if (!GENERIC_FEATURE_ROLE_RULES[role]) throw new Error(`기타 객체 역할 ${role}은 지원하지 않습니다.`);
   if (!genericFeatureRoleCompatible(feature, role)) {
-    throw new Error(`일반 객체 역할 ${role}은(는) ${genericFeatureGeometryKind(feature)} geometry와 함께 사용할 수 없습니다.`);
+    throw new Error(`기타 객체 역할 ${role}은(는) ${genericFeatureGeometryKind(feature)} geometry와 함께 사용할 수 없습니다.`);
   }
   const rule = genericFeatureRoleRule(role);
   properties.schemaVersion = GENERIC_FEATURE_SCHEMA_VERSION;
@@ -69,11 +69,11 @@ export function normalizeGenericFeatureCollection(genericFeatures) {
   const seen = new Set();
   for (const feature of Array.isArray(genericFeatures) ? genericFeatures : []) {
     const id = text(feature?.id);
-    if (!id) throw new Error('일반 객체 ID가 비어 있습니다.');
-    if (seen.has(id)) throw new Error(`일반 객체 ID가 중복되었습니다: ${id}`);
+    if (!id) throw new Error('기타 객체 ID가 비어 있습니다.');
+    if (seen.has(id)) throw new Error(`기타 객체 ID가 중복되었습니다: ${id}`);
     if (!['Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'].includes(feature?.geometry?.type)
       || !Array.isArray(feature.geometry.coordinates) || !feature.geometry.coordinates.length) {
-      throw new Error(`${id}의 일반 객체 geometry가 비어 있거나 지원되지 않습니다.`);
+      throw new Error(`${id}의 기타 객체 geometry가 비어 있거나 지원되지 않습니다.`);
     }
     seen.add(id);
     output.push(normalizeGenericFeatureSemantics(feature));
@@ -87,7 +87,7 @@ export function createGenericFeatureService({ documentStore, runDocumentMutation
 
   function add(feature) {
     const normalized = normalizeGenericFeatureSemantics(feature);
-    if (get(normalized.id)) throw new Error(`일반 객체 ID가 중복되었습니다: ${normalized.id}`);
+    if (get(normalized.id)) throw new Error(`기타 객체 ID가 중복되었습니다: ${normalized.id}`);
     runDocumentMutation({ type: 'generic-feature-create', affectedIds: [text(normalized.id)] }, () => {
       documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), normalized]));
     });

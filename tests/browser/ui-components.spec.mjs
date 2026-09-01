@@ -37,7 +37,7 @@ for (const viewport of viewports) {
           visibleNativeSelects: [...document.querySelectorAll('select')].filter(visible).length,
           titleTooltips: document.querySelectorAll('[title]').length,
           narrowTouchTargets: buttons
-            .filter(button => globalThis.matchMedia('(pointer: coarse)').matches && button.closest('.adaptive-nav, .mobile-zoom-dock, .mobile-sheet-header'))
+            .filter(button => globalThis.matchMedia('(pointer: coarse)').matches && button.closest('.adaptive-nav, .mobile-zoom-dock, .surface-header'))
             .filter(button => {
               const rect = button.getBoundingClientRect();
               return rect.width < 44 || rect.height < 44;

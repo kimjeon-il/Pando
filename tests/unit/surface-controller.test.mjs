@@ -50,16 +50,19 @@ test('compact surfaces are mutually exclusive and synchronize ARIA once rendered
 });
 
 test('wide keeps the layer surface open while the create popover is active', () => {
-  const { controller } = fixture('wide');
+  const { controller, elements } = fixture('wide');
   controller.open('create');
   assert.deepEqual(controller.render(), { layersOpen: true, editorOpen: false, createOpen: true, activeMobileSheet: null });
+  assert.equal(elements.createMenu.getAttribute('role'), 'dialog');
+  assert.equal(elements.createMenu.getAttribute('aria-modal'), 'false');
 });
 
 test('mobile tracks one active sheet and clears it when closed', () => {
-  const { controller } = fixture('mobile');
+  const { controller, elements } = fixture('mobile');
   controller.open('layers');
   controller.open('editor');
   assert.equal(controller.render().activeMobileSheet, 'edit');
+  assert.equal(elements.rightPanel.getAttribute('role'), 'dialog');
   controller.close('editor');
   assert.equal(controller.render().activeMobileSheet, null);
 });

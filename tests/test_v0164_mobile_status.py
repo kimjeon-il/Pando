@@ -24,11 +24,12 @@ class MobileStatusV0164Tests(unittest.TestCase):
         self.assertNotIn('#app[data-layout="compact"] .map-bottom-status { left: 0; right: 0; }', CSS)
 
     def test_mobile_sheet_header_uses_one_shared_row(self):
-        self.assertIn(".mobile-sheet-header {", CSS)
-        self.assertIn("flex: 0 0 var(--ui-sheet-header-height-mobile);", CSS)
-        self.assertIn("justify-content: space-between;", CSS)
-        self.assertIn("padding-block: var(--ui-space-2);", CSS)
-        self.assertIn("padding-inline: var(--ui-sheet-visual-rail-x);", CSS)
+        canonical = CSS[CSS.index('/* ===== Canonical workspace surfaces ===== */'):]
+        self.assertIn(".surface-header {", canonical)
+        self.assertIn("grid-template-columns: minmax(0, 1fr) auto;", canonical)
+        self.assertIn("flex-basis: var(--ui-surface-header-height-mobile);", canonical)
+        self.assertIn("padding-block: calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2)) var(--ui-space-2);", canonical)
+        self.assertIn("padding: 0 var(--ui-surface-visual-rail-x);", canonical)
         self.assertIn("calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height))", CSS)
 
     def test_empty_mobile_history_toolbar_is_hidden(self):

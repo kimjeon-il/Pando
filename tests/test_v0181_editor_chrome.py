@@ -41,13 +41,14 @@ class EditorChromeTests(unittest.TestCase):
         ):
             self.assertNotIn(obsolete, combined)
 
-    def test_close_control_keeps_side_spacing_and_adds_top_spacing(self):
-        self.assertIn('.editor-shell-header {', CSS)
-        editor_header_rules = CSS[CSS.index('\n.editor-shell-header {'):]
-        self.assertIn('min-height: var(--ui-sheet-header-height-compact);', editor_header_rules[:320])
-        self.assertIn('padding-inline: var(--ui-sheet-visual-rail-x);', CSS)
-        self.assertIn(':where(.layer-panel-header, .create-sheet-header, .editor-shell-header) .sheet-close-btn {', CSS)
-        self.assertIn('right: var(--ui-sheet-header-control-inset);', CSS)
+    def test_close_control_uses_the_common_surface_header_slot(self):
+        canonical = CSS[CSS.index('/* ===== Canonical workspace surfaces ===== */'):]
+        self.assertIn('.surface-header {', canonical)
+        self.assertIn('min-height: var(--ui-surface-header-height-compact);', canonical)
+        self.assertIn('padding: 0 var(--ui-surface-visual-rail-x);', canonical)
+        self.assertIn('.surface-header-actions {', canonical)
+        self.assertIn('.workspace-surface .surface-header-actions .sheet-close-btn {', canonical)
+        self.assertIn('position: static;', canonical)
         self.assertNotIn('right: calc(-1 * var(--ui-space-3));', CSS)
 
     def test_hydro_metadata_does_not_draw_nested_table_borders(self):

@@ -43,7 +43,7 @@ export const MAP_OBJECT_TYPES = Object.freeze({
   }),
   generic: freezeType({
     type: 'feature',
-    label: '일반 객체',
+    label: '기타 객체',
     icon: '',
     layerGroup: 'genericFeatures',
     createButton: null,
