@@ -65,7 +65,8 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
     def test_virtualized_rows_share_the_same_context_menu_factory(self):
         virtualized = APP[APP.index("function renderVirtualizedLayerGroup"):APP.index("function renderLayerFolderContents")]
         self.assertIn("createLayerItemRow(group, items[index])", virtualized)
-        self.assertIn("grid-template-columns: var(--ui-tree-action-size) minmax(0, 1fr) auto var(--ui-tree-action-size)", CSS)
+        self.assertIn("grid-template-columns: var(--ui-tree-action-size) minmax(64px, 1fr) minmax(0, 42%) var(--ui-tree-action-size)", CSS)
+        self.assertIn("grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr) auto var(--ui-tree-action-size-touch)", CSS)
         self.assertIn("#app[data-layout=\"mobile\"] .layer-child-menu", CSS)
         self.assertIn('symbol id="icon-more"', INDEX)
 

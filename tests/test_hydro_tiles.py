@@ -351,7 +351,7 @@ class HydroTileTests(unittest.TestCase):
         self.assertTrue(any("PRK/RUS" in feature["source"] for feature in korea_aligned))
 
         countries = json.loads((ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson").read_text(encoding="utf-8"))["features"]
-        by_id = {feature["properties"]["editor_id"]: shape(feature["geometry"]) for feature in countries}
+        by_id = {feature["id"]: shape(feature["geometry"]) for feature in countries}
         shared = {}
         for feature in aligned:
             pair = tuple(feature["source"].rsplit(" ", 1)[-1].split("/"))

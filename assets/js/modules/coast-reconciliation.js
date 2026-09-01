@@ -86,8 +86,8 @@ export function extractExteriorSegments(feature) {
       const nextIndex = (index + 1) % ring.length;
       if (ring.length < 3 || !ring[nextIndex]) continue;
       output.push({
-        id: `${text(feature?.id || feature?.properties?.editor_id)}:${polygonIndex}:0:${index}`,
-        featureId: text(feature?.id || feature?.properties?.editor_id),
+        id: `${text(feature?.id)}:${polygonIndex}:0:${index}`,
+        featureId: text(feature?.id),
         polygonIndex,
         ringIndex: 0,
         index,
@@ -101,7 +101,7 @@ export function extractExteriorSegments(feature) {
 }
 
 function countryCoastSegments(countryFeature, topology) {
-  const countryId = text(countryFeature?.properties?.editor_id || countryFeature?.id);
+  const countryId = text(countryFeature?.id);
   const segments = [...(topology?.segments?.values?.() || [])]
     .filter(segment => segment.kind === 'coast'
       && segment.ownerIds?.size === 1

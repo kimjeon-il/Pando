@@ -1,5 +1,5 @@
 const clone = value => value == null ? value : structuredClone(value);
-const featureId = (feature, fallback = '') => String(feature?.properties?.editor_id || feature?.id || fallback);
+const featureId = (feature, fallback = '') => String(feature?.id || fallback);
 
 function polygons(geometry) {
   if (geometry?.type === 'Polygon') return [geometry.coordinates || []];

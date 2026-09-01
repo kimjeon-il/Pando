@@ -1,3 +1,5 @@
+import { pruneCountryOverrides } from './country-feature.js';
+
 export const PROJECT_SCHEMA_VERSION = 3;
 export const PROJECT_FORMATS = Object.freeze(new Set([
   'pandolab-project-state',
@@ -52,6 +54,14 @@ function assertAllowedKeys(value, allowed, label) {
   }
 }
 
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 export function assertCurrentProjectSchema(project) {
   if (!project || typeof project !== 'object') throw schemaError('프로젝트 형식이 올바르지 않습니다.');
   if (!PROJECT_FORMATS.has(text(project.format))) throw schemaError(`지원하지 않는 프로젝트 형식입니다: ${text(project.format) || '(없음)'}`, 'PL-SCHEMA-FORMAT');
@@ -80,13 +90,17 @@ export function assertCurrentProjectSchema(project) {
   const countries = project.countriesData?.features || [];
   const countryIds = new Set();
   for (const feature of countries) {
-    const id = text(feature?.properties?.editor_id || feature?.id);
+    const id = text(feature?.id);
     if (!id) throw schemaError('국가 ID가 비어 있습니다.', 'PL-SCHEMA-ID-MISSING');
     if (countryIds.has(id)) throw schemaError(`국가 ID가 중복되었습니다: ${id}`, 'PL-SCHEMA-ID-DUPLICATE');
-    if (feature?.properties?.editor_custom === true && !isProjectObjectId(id)) {
-      throw schemaError(`프로젝트에서 만든 국가 ID가 UUID 형식이 아닙니다: ${id}`, 'PL-SCHEMA-ID-FORMAT');
-    }
+    assertAllowedKeys(feature?.properties, new Set(['name', 'validFrom', 'validTo']), `국가 ${id}`);
+    if (!text(feature?.properties?.name)) throw schemaError(`국가 ${id}의 이름이 비어 있습니다.`, 'PL-SCHEMA-NAME-MISSING');
     countryIds.add(id);
+  }
+  const overrideCountryIds = project.format === 'pandolab-autosave-delta' ? null : countryIds;
+  const prunedOverrides = pruneCountryOverrides(project.countryOverrides, overrideCountryIds);
+  if (stableJson(prunedOverrides) !== stableJson(project.countryOverrides || {})) {
+    throw schemaError('국가 설정에 빈 값, 알 수 없는 필드 또는 존재하지 않는 국가 ID가 있습니다.', 'PL-SCHEMA-COUNTRY-OVERRIDES');
   }
 
   assertUniqueProjectIds(project.territorialUnits, '영역');

@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r41';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r42';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -59,6 +59,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/map-object-spatial-index.js')),
 ]);
 const { createSvgIcon } = await import(versionedModuleUrl('./modules/icon-utils.js'));
+const { pruneCountryOverrides } = await import(versionedModuleUrl('./modules/country-feature.js'));
 const {
   PROJECT_SCHEMA_VERSION,
   applyProjectFields,
@@ -1369,7 +1370,7 @@ const {
     if (!ref) return { name: '알 수 없는 객체', type: '' };
     if (ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       const feature = countryFeatureById(ref.id);
-      return { name: feature ? countryName(feature) : ref.id, type: '국가', detail: feature?.properties?.editor_original_name || '' };
+      return { name: feature ? countryName(feature) : ref.id, type: '국가', detail: feature?.properties?.name || '' };
     }
     if (ref.domain === 'territorial') {
       const feature = territorialUnitById(ref.id);
@@ -1495,8 +1496,11 @@ const {
       }
     }
     if (!feature?.geometry && feature?.type !== 'FeatureCollection') return false;
-    const preferredAnchor = ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? stableCountryFocusAnchor(feature)
+    const runtimeAnchor = ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY
+      ? countryLabelAnchors.get(String(feature?.id || ''))
+      : null;
+    const preferredAnchor = validLabelAnchor(runtimeAnchor)
+      ? runtimeAnchor
       : null;
     focusCountry(feature, { maxZoom: isMobile() ? 12 : 10, preferredAnchor });
     if (announce) setActionStatus(`${objectDisplayInfo(ref).name} 위치로 이동했습니다.`, 'success', 2200);
@@ -2139,6 +2143,8 @@ const {
   let countryLandRevision = 0;
   const pendingCountryLabelAnchors = new Set();
   const countryLabelAnchorVersions = new Map();
+  const countryLabelAnchors = new Map();
+  const countryCentroids = new Map();
   const countryLabelScreenAreas = new Map();
   let countryDisplaySource = null;
   let countryDisplayIndex = new Map();
@@ -2291,7 +2297,7 @@ const {
       const b = item.bounds;
       if (coord[0] < b[0] || coord[0] > b[2] || coord[1] < b[1] || coord[1] > b[3]) continue;
       const feature = item.feature;
-      if (!isLayerItemVisible('countries', feature.properties?.editor_id || '')) continue;
+      if (!isLayerItemVisible('countries', feature?.id || '')) continue;
       if (pointInCountryFeature(coord, feature)) return feature;
     }
     return null;
@@ -2331,7 +2337,7 @@ const {
       const hoveredCountry = state.layerVisibility.countries
         ? countryAtScreenPoint(pending.screenPoint, pending.coord, { verify: false })
         : null;
-      const nextId = hoveredCountry ? String(hoveredCountry.properties?.editor_id || '') : '';
+      const nextId = hoveredCountry ? String(hoveredCountry?.id || '') : '';
       if (String(state.hovered?.id || '') === nextId && (!nextId || state.hovered?.type === 'country')) return;
       state.hovered = hoveredCountry ? { type: 'country', id: nextId, feature: hoveredCountry, ref: countryObjectRef(nextId) } : null;
       renderHoverOverlay();
@@ -2455,7 +2461,7 @@ const {
     const activeOwners = new Set(activeSnapOwnerIds());
     const candidates = [];
     for (const feature of [...countryFeatures, ...nearbyUnits, ...nearbyGenericFeatures]) {
-      const ownerId = String(feature.properties?.editor_id || feature.id || '');
+      const ownerId = String(feature?.id || '');
       const segmentKind = activeOwners.size && !activeOwners.has(ownerId) ? 'neighbor' : 'edge';
       appendLocalGeometryCandidates(candidates, feature.geometry, coordinate, margin * 2, { ownerId, segmentKind });
       if (candidates.length >= 1800) break;
@@ -2882,24 +2888,13 @@ const {
     handleUnexpectedRuntimeError(event.reason);
   });
 
-  function slugify(value) {
-    return String(value || 'country')
-      .normalize('NFKD')
-      .replace(/[^A-Za-z0-9가-힣]+/g, '_')
-      .replace(/^_+|_+$/g, '') || 'country';
-  }
-
   function featureCountryId(feature, index) {
-    const p = feature.properties || {};
-    if (p.editor_id) return String(p.editor_id);
-    const iso = p.iso_a3 || p.ISO_A3 || p.ADM0_A3;
-    if (iso && iso !== '-99') return String(iso);
-    return `${slugify(p.name || p.ADMIN || p.NAME)}_${index}`;
+    return String(feature?.id || `country_${index}`);
   }
 
   function featureCountryName(feature) {
     const p = feature.properties || {};
-    return p.name || p.ADMIN || p.NAME || p.NAME_LONG || '이름 없는 국가';
+    return p.name || '이름 없는 국가';
   }
 
   function reindexCountries(fc, applyOverrides = true) {
@@ -2912,18 +2907,16 @@ const {
       }
       feature.properties = feature.properties || {};
       const id = featureCountryId(feature, index);
-      const originalName = feature.properties.editor_original_name || featureCountryName(feature);
-      const override = applyOverrides ? (state.countryOverrides[id] || {}) : {};
-      feature.properties.editor_id = id;
-      feature.properties.editor_original_name = originalName;
-      feature.properties.editor_name = override.name || feature.properties.editor_name || originalName;
-      const explicitColor = override.color || feature.properties.editor_color;
-      if (explicitColor) feature.properties.editor_color = explicitColor;
-      else delete feature.properties.editor_color;
+      feature.id = id;
+      feature.properties = {
+        name: featureCountryName(feature),
+        ...(feature.properties.validFrom ? { validFrom: String(feature.properties.validFrom) } : {}),
+        ...(feature.properties.validTo ? { validTo: String(feature.properties.validTo) } : {}),
+      };
       try {
-        feature.properties.editor_centroid = d3.geo.centroid(feature);
+        countryCentroids.set(id, d3.geo.centroid(feature));
       } catch (_) {
-        feature.properties.editor_centroid = [0, 0];
+        countryCentroids.set(id, [0, 0]);
       }
       state.countryIndex.set(id, index);
     });
@@ -2939,12 +2932,11 @@ const {
   function applyPristineLabelAnchors(collection, onlyIds = null) {
     const filter = onlyIds ? new Set([...onlyIds].map(String)) : null;
     for (const feature of collection?.features || []) {
-      const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+      const id = String(feature?.id || '');
       if (filter && !filter.has(id)) continue;
       const anchor = PRISTINE_LABEL_ANCHORS[id];
       if (!validLabelAnchor(anchor)) continue;
-      feature.properties ||= {};
-      feature.properties.editor_label_anchor = [Number(anchor[0]), Number(anchor[1])];
+      countryLabelAnchors.set(id, [Number(anchor[0]), Number(anchor[1])]);
       pendingCountryLabelAnchors.delete(id);
     }
   }
@@ -2976,26 +2968,6 @@ const {
     return ringRepresentativePoint(ring);
   }
 
-  function stableCountryFocusAnchor(feature) {
-    const current = feature?.properties?.editor_label_anchor;
-    if (validLabelAnchor(current)) return [Number(current[0]), Number(current[1])];
-    const id = String(feature?.properties?.editor_id || feature?.properties?.iso_a3 || '');
-    const pristine = id && !state.sessionBaseCountriesJson && !state.historyDirtyCountryIds.has(id)
-      ? PRISTINE_LABEL_ANCHORS[id]
-      : null;
-    const anchor = validLabelAnchor(pristine) ? pristine : fallbackCountryLabelAnchor(feature);
-    if (!validLabelAnchor(anchor)) return null;
-    const resolved = [Number(anchor[0]), Number(anchor[1])];
-    feature.properties ||= {};
-    feature.properties.editor_label_anchor = resolved;
-    // A focus action must not depend on whether the asynchronous label worker
-    // happens to finish before the click. Invalidate any in-flight result so
-    // the label and camera keep using the same anchor for this geometry.
-    pendingCountryLabelAnchors.delete(id);
-    countryLabelAnchorVersions.set(id, (countryLabelAnchorVersions.get(id) || 0) + 1);
-    return resolved.slice();
-  }
-
   function ensureCountryLabelAnchorWorker() {
     if (countryLabelAnchorWorker) return countryLabelAnchorWorker;
     const worker = new Worker(runtimeAssetUrl('workers/label-anchor-worker.js'), {
@@ -3007,7 +2979,7 @@ const {
         console.warn('Country label anchor worker failed', message.message);
         for (const id of [...pendingCountryLabelAnchors]) {
           const feature = countryFeatureById(id);
-          if (feature) feature.properties.editor_label_anchor = fallbackCountryLabelAnchor(feature);
+          if (feature) countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature));
           pendingCountryLabelAnchors.delete(id);
         }
         markLayerTreeDirty();
@@ -3019,8 +2991,8 @@ const {
         const id = String(result.id || '');
         if (countryLabelAnchorVersions.get(id) !== Number(result.version || 0)) continue;
         const feature = countryFeatureById(id);
-        if (feature && validLabelAnchor(result.anchor)) feature.properties.editor_label_anchor = [Number(result.anchor[0]), Number(result.anchor[1])];
-        else if (feature) feature.properties.editor_label_anchor = fallbackCountryLabelAnchor(feature);
+        if (feature && validLabelAnchor(result.anchor)) countryLabelAnchors.set(id, [Number(result.anchor[0]), Number(result.anchor[1])]);
+        else if (feature) countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature));
         pendingCountryLabelAnchors.delete(id);
       }
       markLayerTreeDirty();
@@ -3032,7 +3004,7 @@ const {
       countryLabelAnchorWorker = null;
       for (const id of [...pendingCountryLabelAnchors]) {
         const feature = countryFeatureById(id);
-        if (feature) feature.properties.editor_label_anchor = fallbackCountryLabelAnchor(feature);
+        if (feature) countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature));
         pendingCountryLabelAnchors.delete(id);
       }
       markLayerTreeDirty();
@@ -3049,6 +3021,7 @@ const {
     countryLabelAnchorWorker = null;
     pendingCountryLabelAnchors.clear();
     countryLabelAnchorVersions.clear();
+    countryLabelAnchors.clear();
     countryLabelAnchorRequestId += 1;
   }
 
@@ -3072,7 +3045,7 @@ const {
       countryLabelAnchorWorker = null;
       for (const item of items) {
         const feature = countryFeatureById(item.id);
-        if (feature) feature.properties.editor_label_anchor = fallbackCountryLabelAnchor(feature);
+        if (feature) countryLabelAnchors.set(item.id, fallbackCountryLabelAnchor(feature));
         pendingCountryLabelAnchors.delete(item.id);
       }
     }
@@ -3081,10 +3054,10 @@ const {
   function scheduleCountryLabelAnchors(ids = null, delay = 30) {
     const requested = ids ? new Set([...ids].map(String)) : null;
     for (const feature of state.countriesData?.features || []) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature?.id || '');
       if (requested && !requested.has(id)) continue;
-      if (!requested && validLabelAnchor(feature.properties?.editor_label_anchor)) continue;
-      delete feature.properties.editor_label_anchor;
+      if (!requested && validLabelAnchor(countryLabelAnchors.get(id))) continue;
+      countryLabelAnchors.delete(id);
       countryLabelAnchorVersions.set(id, (countryLabelAnchorVersions.get(id) || 0) + 1);
       pendingCountryLabelAnchors.add(id);
     }
@@ -3263,7 +3236,7 @@ const {
 
   function rebuildSpatialIndex(features = state.countriesData?.features || []) {
     state.spatialIndex = (features || []).map(feature => ({
-      id: String(feature.properties?.editor_id || ''),
+      id: String(feature?.id || ''),
       feature,
       bounds: geometryBounds(feature.geometry),
     }));
@@ -3279,7 +3252,7 @@ const {
   function invalidateGeometryCaches(ids = []) {
     const wanted = new Set([...ids].map(String));
     for (const feature of state.countriesData?.features || []) {
-      if (!wanted.size || wanted.has(String(feature.properties?.editor_id || ''))) {
+      if (!wanted.size || wanted.has(String(feature?.id || ''))) {
         geometryBoundsCache.delete(feature.geometry);
         countryOutlineCache.delete(feature.geometry);
         geometryAreaDisplayCache.delete(feature.geometry);
@@ -3299,7 +3272,7 @@ const {
       state.pendingCountryRenderIds.add(id);
     }
     const currentFeatures = new Map((state.countriesData?.features || []).map(feature => [
-      String(feature.properties?.editor_id || ''),
+      String(feature?.id || ''),
       feature,
     ]));
     const features = [];
@@ -3428,12 +3401,12 @@ const {
     for (const target of targets) {
       const targetBounds = geometryBounds(target.geometry);
       const queryBounds = [targetBounds[0] - margin, targetBounds[1] - margin, targetBounds[2] + margin, targetBounds[3] + margin];
-      for (const feature of spatialFeatures(queryBounds)) nearby.set(String(feature.properties?.editor_id || ''), feature);
+      for (const feature of spatialFeatures(queryBounds)) nearby.set(String(feature?.id || ''), feature);
     }
     const features = [...nearby.values()];
 
     for (const feature of features) {
-      const countryId = String(feature.properties?.editor_id || '');
+      const countryId = String(feature?.id || '');
       const polygons = geometryPolygonSets(feature.geometry);
       polygons.forEach((polygon, polygonIndex) => {
         polygon.forEach((ring, ringIndex) => {
@@ -3511,12 +3484,12 @@ const {
       const affectedIds = new Set((result.affectedIds || []).map(String));
       const removedIds = new Set((result.removedIds || []).map(String));
       const beforeFeatures = [...affectedIds].map(countryFeatureById).filter(Boolean).map(deepClone);
-      const patchById = new Map((result.features || []).map(feature => [String(feature.properties?.editor_id || feature.id || ''), deepClone(feature)]));
+      const patchById = new Map((result.features || []).map(feature => [String(feature?.id || ''), deepClone(feature)]));
       const afterFeatures = [...affectedIds].filter(id => !removedIds.has(id))
         .map(id => patchById.get(id) || countryFeatureById(id))
         .filter(Boolean).map(deepClone);
       const proposedFeatures = (state.countriesData?.features || [])
-        .filter(feature => !affectedIds.has(String(feature.properties?.editor_id || '')))
+        .filter(feature => !affectedIds.has(String(feature?.id || '')))
         .map(feature => feature)
         .concat(afterFeatures);
       const baselineIssues = validateTerritorialGeometry(state.countriesData?.features || [], {
@@ -3621,7 +3594,7 @@ const {
     const session = beginGeometryPreview(state.geometryPreview, {
       operation,
       baseDataRevision,
-      affectedIds: [...new Set([...beforeFeatures, ...afterFeatures].map(feature => String(feature.properties?.editor_id || feature.id || '')).filter(Boolean))],
+      affectedIds: [...new Set([...beforeFeatures, ...afterFeatures].map(feature => String(feature?.id || '')).filter(Boolean))],
       beforeFeatures,
       afterFeatures,
       removedIds,
@@ -3767,14 +3740,14 @@ const {
       const donorIds = new Set(state.annexDonorCountryIds.map(String));
       return {
         selectedKeys: state.annexSelectedComponentKeys,
-        features: (state.countriesData?.features || []).filter(feature => donorIds.has(String(feature.properties?.editor_id || ''))),
+        features: (state.countriesData?.features || []).filter(feature => donorIds.has(String(feature?.id || ''))),
       };
     }
     if (state.tool === 'new-country') {
       const sourceIds = new Set(state.newCountrySourceIds.map(String));
       return {
         selectedKeys: state.newCountrySelectedComponentKeys,
-        features: (state.countriesData?.features || []).filter(feature => sourceIds.has(String(feature.properties?.editor_id || ''))),
+        features: (state.countriesData?.features || []).filter(feature => sourceIds.has(String(feature?.id || ''))),
       };
     }
     return { selectedKeys: [], features: [] };
@@ -3783,7 +3756,7 @@ const {
   function territoryBaseComponentItems(context = territoryComponentContext()) {
     const items = [];
     for (const feature of context.features) {
-      const countryId = String(feature.properties?.editor_id || '');
+      const countryId = String(feature?.id || '');
       geometryPolygonSets(feature.geometry).forEach((polygon, polygonIndex) => {
         const geometry = normalizeClippedLandGeometry([deepClone(polygon)]);
         if (!geometry) return;
@@ -3860,7 +3833,7 @@ const {
     const clipper = window.polygonClipping;
     const wanted = new Set([...ids].map(String));
     const pieces = (features || [])
-      .filter(feature => wanted.has(String(feature.properties?.editor_id || '')))
+      .filter(feature => wanted.has(String(feature?.id || '')))
       .map(feature => feature.geometry?.coordinates)
       .filter(Boolean);
     if (!pieces.length) return [];
@@ -3956,14 +3929,14 @@ const {
     const areaTolerance = Math.max(1e-8, Number(baseline.boundaryLength || 0) * 2e-7);
     const overrideMap = featureOverrides instanceof Map ? featureOverrides : new Map();
     const features = (state.countriesData?.features || []).map(feature => (
-      overrideMap.get(String(feature.properties?.editor_id || '')) || feature
+      overrideMap.get(String(feature?.id || '')) || feature
     ));
-    const ids = features.map(feature => String(feature.properties?.editor_id || ''));
+    const ids = features.map(feature => String(feature?.id || ''));
     if (ids.some(id => !id) || new Set(ids).size !== ids.length) {
       return { ok: false, message: '국가 ID가 비어 있거나 중복되었습니다.' };
     }
     for (const feature of features) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature?.id || '');
       if (affected.has(id) && !countryGeometryIsValid(feature.geometry)) {
         return { ok: false, message: `${countryName(feature)}의 경계가 유효하지 않습니다.` };
       }
@@ -3971,14 +3944,14 @@ const {
 
     const tested = new Set();
     for (const feature of features) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature?.id || '');
       if (!affected.has(id)) continue;
       const bounds = geometryBounds(feature.geometry);
       const nearby = overrideMap.size
         ? features.filter(other => boundsOverlap(bounds, geometryBounds(other.geometry)))
         : spatialFeatures(bounds);
       for (const other of nearby) {
-        const otherId = String(other.properties?.editor_id || '');
+        const otherId = String(other?.id || '');
         if (id === otherId) continue;
         const pairKey = id < otherId ? `${id}|${otherId}` : `${otherId}|${id}`;
         if (tested.has(pairKey)) continue;
@@ -4006,13 +3979,13 @@ const {
     const overlaps = new Map();
     let boundaryLength = 0;
     for (const feature of features) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature?.id || '');
       if (!ids.has(id)) continue;
       for (const polygon of geometryPolygonSets(feature.geometry)) for (const ring of polygon || []) {
         for (let index = 0; index < ring.length - 1; index += 1) boundaryLength += Math.hypot(ring[index + 1][0] - ring[index][0], ring[index + 1][1] - ring[index][1]);
       }
       for (const other of spatialFeatures(geometryBounds(feature.geometry))) {
-        const otherId = String(other.properties?.editor_id || '');
+        const otherId = String(other?.id || '');
         if (!otherId || otherId === id) continue;
         const pairKey = id < otherId ? `${id}|${otherId}` : `${otherId}|${id}`;
         if (overlaps.has(pairKey)) continue;
@@ -4060,10 +4033,10 @@ const {
   function refreshCountryCentroids(ids = null) {
     const filter = ids ? new Set([...ids].map(String)) : null;
     for (const feature of state.countriesData?.features || []) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature?.id || '');
       if (filter && !filter.has(id)) continue;
-      try { feature.properties.editor_centroid = d3.geo.centroid(feature); }
-      catch (_) { feature.properties.editor_centroid = [0, 0]; }
+      try { countryCentroids.set(id, d3.geo.centroid(feature)); }
+      catch (_) { countryCentroids.set(id, [0, 0]); }
     }
     scheduleCountryLabelAnchors(filter, 20);
   }
@@ -4729,13 +4702,13 @@ const {
     const updates = new Map((result.features || []).map(feature => {
       const next = deepClone(feature);
       const normalizedGeometry = normalizeCountryGeometry(next.geometry);
-      if (!normalizedGeometry) throw new Error(`${next.properties?.editor_name || '국가'}의 편집 결과가 유효하지 않습니다.`);
+      if (!normalizedGeometry) throw new Error(`${countryName(next)}의 편집 결과가 유효하지 않습니다.`);
       next.geometry = normalizedGeometry;
-      return [String(next.properties?.editor_id || ''), next];
+      return [String(next.id || ''), next];
     }));
     const removed = new Set((result.removedIds || []).map(String));
     state.countriesData.features = state.countriesData.features.flatMap(feature => {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature.id || '');
       if (removed.has(id)) {
         delete state.countryOverrides[id];
         return [];
@@ -4926,11 +4899,6 @@ const {
             feature: countryFeatureById(id), override: state.countryOverrides[id],
           }, value, { fallback: defaultCountryColor() });
         } else state.countryOverrides[id][field] = value;
-        const index = state.countryIndex.get(id);
-        if (index !== undefined && field === 'name') {
-          const feature = state.countriesData.features[index];
-          feature.properties.editor_name = state.countryOverrides[id].name || feature.properties.editor_original_name;
-        }
       },
     },
     unitCommands: {
@@ -5036,7 +5004,7 @@ const {
   }
 
   function countryColor(feature) {
-    const id = String(feature?.properties?.editor_id || '');
+    const id = String(feature?.id || '');
     return readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override: state.countryOverrides[id] }, { fallback: defaultCountryColor() }).value;
   }
 
@@ -5045,7 +5013,7 @@ const {
   }
 
   function countryName(feature) {
-    return feature.properties?.editor_name || feature.properties?.editor_original_name || feature.properties?.name || '국가';
+    return state.countryOverrides[String(feature?.id || '')]?.name || feature?.properties?.name || '국가';
   }
 
   function hydroCategoryKey(value) {
@@ -5386,7 +5354,7 @@ const {
   function layerTreeItems(group) {
     if (group === 'countries' || group === 'countryLabels') {
       return (state.countriesData?.features || []).map(feature => {
-        const id = String(feature.properties?.editor_id || '');
+        const id = String(feature.id || '');
         return {
           id,
           name: countryName(feature),
@@ -5482,8 +5450,8 @@ const {
 
   function pruneLayerItemVisibility() {
     const valid = {
-      countries: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
-      countryLabels: new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || ''))),
+      countries: new Set((state.countriesData?.features || []).map(feature => String(feature.id || ''))),
+      countryLabels: new Set((state.countriesData?.features || []).map(feature => String(feature.id || ''))),
       territories: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.TERRITORY).map(feature => String(feature.id))),
       administrative: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN).map(feature => String(feature.id))),
       regions: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION).map(feature => String(feature.id))),
@@ -5906,14 +5874,14 @@ const {
     if (source === countryDisplaySource) return;
     countryDisplaySource = source;
     countryDisplayIndex = new Map((source?.features || []).map(feature => [
-      String(feature.properties?.editor_id || feature.id || ''),
+      String(feature.id || ''),
       feature,
     ]));
   }
 
   function countryDisplayFeature(feature) {
     if (state.countryVisualPhase === 'canonical') return feature;
-    const id = String(feature?.properties?.editor_id || feature?.id || '');
+    const id = String(feature?.id || '');
     if (!id) return feature;
     refreshCountryDisplayIndex();
     return countryDisplayIndex.get(id) || feature;
@@ -5966,7 +5934,7 @@ const {
 
   function shouldShowCountryLabel(feature, metrics = countryLabelScreenMetrics(feature)) {
     if (!state.layerVisibility.basemapLabels) return false;
-    const id = String(feature.properties?.editor_id || '');
+    const id = String(feature.id || '');
     if (!isLayerItemVisible('countryLabels', id) || pendingCountryLabelAnchors.has(id)) return false;
     if ((state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) && state.selected.id === id) return true;
     const widthFit = metrics.width >= Math.min(34, metrics.textWidth * (isMobile() ? 0.48 : 0.42));
@@ -5980,24 +5948,24 @@ const {
     const pending = state.layerVisibility.countries && state.pendingCountryRenderIds?.size
       ? [...state.pendingCountryRenderIds]
         .map(countryFeatureById)
-        .filter(feature => feature && isCountryVisibleById(String(feature.properties?.editor_id || '')))
+        .filter(feature => feature && isCountryVisibleById(String(feature.id || '')))
       : [];
     const patchFill = countryLayer.selectAll('path.country-patch-preview-fill')
-      .data(pending, feature => feature.properties.editor_id);
+      .data(pending, feature => feature.id);
     patchFill.enter().append('path').attr('class', 'country-patch-preview country-patch-preview-fill');
     countryLayer.selectAll('path.country-patch-preview-fill')
       .attr('d', feature => path(feature))
-      .attr('data-gpu-scene-key', feature => `pending-country-fill:${feature.properties.editor_id}`)
+      .attr('data-gpu-scene-key', feature => `pending-country-fill:${feature.id}`)
       .style('fill', countryColor)
       .style('fill-opacity', mapTheme().fillAlpha)
       .style('stroke', 'none');
     patchFill.exit().remove();
     const patchOutline = countryLayer.selectAll('path.country-patch-preview-outline')
-      .data(pending, feature => feature.properties.editor_id);
+      .data(pending, feature => feature.id);
     patchOutline.enter().append('path').attr('class', 'country-patch-preview country-patch-preview-outline');
     countryLayer.selectAll('path.country-patch-preview-outline')
       .attr('d', feature => path(countryOutlineFeature(feature)))
-      .attr('data-gpu-scene-key', feature => `pending-country-outline:${feature.properties.editor_id}`)
+      .attr('data-gpu-scene-key', feature => `pending-country-outline:${feature.id}`)
       .style('fill', 'none')
       .style('stroke', mapTheme().border)
       .style('stroke-opacity', mapTheme().borderAlpha);
@@ -6016,7 +5984,7 @@ const {
     renderPendingCountryOverlays();
     const highlighted = state.layerVisibility.countries && state.countriesData
       ? state.countriesData.features.filter(feature => {
-          const id = String(feature.properties?.editor_id || '');
+          const id = String(feature.id || '');
           if (!isLayerItemVisible('countries', id)) return false;
           return (state.tool === 'country-coast' && state.coastEditCountryId === id) ||
             (state.tool === 'country-border' && state.boundaryEditCountryIds.includes(id)) ||
@@ -6026,31 +5994,31 @@ const {
         })
       : [];
     const fillSelection = countryLayer.selectAll('path.country-highlight-fill')
-      .data(highlighted, feature => feature.properties.editor_id);
+      .data(highlighted, feature => feature.id);
     fillSelection.enter().append('path').attr('class', 'country-highlight-fill');
     const allCountryFills = countryLayer.selectAll('path.country-highlight-fill');
     allCountryFills
       .attr('d', feature => path(feature))
-      .attr('data-gpu-scene-key', feature => `country-tool-fill:${feature.properties.editor_id}`)
-      .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds.includes(String(feature.properties.editor_id)))
-      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.properties.editor_id)
-      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryIds.includes(String(feature.properties.editor_id)))
-      .classed('merge-target', feature => state.tool === 'merge-country' && state.mergeTargetCountryIds.includes(String(feature.properties.editor_id)))
-      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds.includes(String(feature.properties.editor_id)));
+      .attr('data-gpu-scene-key', feature => `country-tool-fill:${feature.id}`)
+      .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds.includes(String(feature.id)))
+      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.id)
+      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryIds.includes(String(feature.id)))
+      .classed('merge-target', feature => state.tool === 'merge-country' && state.mergeTargetCountryIds.includes(String(feature.id)))
+      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds.includes(String(feature.id)));
     fillSelection.exit().remove();
     const selection = countryLayer.selectAll('path.country-shape')
-      .data(highlighted, feature => feature.properties.editor_id);
+      .data(highlighted, feature => feature.id);
     selection.enter().append('path').attr('class', 'country-shape gpu-country-highlight');
     const allCountries = countryLayer.selectAll('path.country-shape');
     allCountries
       .attr('d', feature => path(countryOutlineFeature(feature)))
-      .attr('data-gpu-scene-key', feature => `country-tool-outline:${feature.properties.editor_id}`)
-      .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds.includes(String(feature.properties.editor_id)))
-      .classed('coast-editing', feature => state.tool === 'country-coast' && state.coastEditCountryId === feature.properties.editor_id)
-      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.properties.editor_id)
-      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryIds.includes(String(feature.properties.editor_id)))
-      .classed('merge-target', feature => state.tool === 'merge-country' && state.mergeTargetCountryIds.includes(String(feature.properties.editor_id)))
-      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds.includes(String(feature.properties.editor_id)));
+      .attr('data-gpu-scene-key', feature => `country-tool-outline:${feature.id}`)
+      .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds.includes(String(feature.id)))
+      .classed('coast-editing', feature => state.tool === 'country-coast' && state.coastEditCountryId === feature.id)
+      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.id)
+      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryIds.includes(String(feature.id)))
+      .classed('merge-target', feature => state.tool === 'merge-country' && state.mergeTargetCountryIds.includes(String(feature.id)))
+      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds.includes(String(feature.id)));
     selection.exit().remove();
 
     const pending = state.layerVisibility.countries && state.pendingCountryRenderIds?.size
@@ -6059,7 +6027,7 @@ const {
     const polygons = [];
     const strokes = [];
     for (const feature of pending) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature.id || '');
       const geometryRevision = selectionGeometryRevision(`country:${id}`, 'pending-country', feature);
       polygons.push({
         key: `pending-country-fill:${id}`,
@@ -6077,7 +6045,7 @@ const {
       });
     }
     const highlightStyle = feature => {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature.id || '');
       if (state.tool === 'annex-territory' && state.annexTargetCountryId === id) return { color: '#68be7e', fillAlpha: 0.16, stroke: '#9ee0a9', width: 2.4 };
       if ((state.tool === 'annex-territory' && state.annexDonorCountryIds.includes(id))
         || (state.tool === 'merge-country' && state.mergeTargetCountryIds.includes(id))) {
@@ -6087,7 +6055,7 @@ const {
       return { color: resolvedInteractionStyle.selection.color, fillAlpha: 0.18, stroke: mapTheme().border, width: 0.72 };
     };
     for (const feature of highlighted) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature.id || '');
       const toolStyle = highlightStyle(feature);
       const geometryRevision = selectionGeometryRevision(`country:${id}`, 'tool-highlight', feature);
       polygons.push({
@@ -6121,11 +6089,11 @@ const {
     countryLabelScreenAreas.clear();
     const zoom = currentMapZoom();
     if (state.layerVisibility.basemapLabels) for (const feature of state.countriesData?.features || []) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature.id || '');
       if (!isLayerItemVisible('countryLabels', id) || pendingCountryLabelAnchors.has(id)) continue;
       const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', id)] || {});
       if (zoom < Number(settings.minZoom ?? -Infinity) || zoom > Number(settings.maxZoom ?? Infinity)) continue;
-      const anchor = feature.properties?.editor_label_anchor;
+      const anchor = countryLabelAnchors.get(id);
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : anchor;
       if (!Array.isArray(coordinate) || !isCoordVisible(coordinate)) continue;
       const point = activeProjection()(coordinate);
@@ -6196,7 +6164,7 @@ const {
     const data = resolvedLayout.countryLabels || [];
 
     const selection = countryLabelLayer.selectAll('text.country-label')
-      .data(data, d => d.properties.editor_id);
+      .data(data, d => d.id);
 
     // 사라진 국가와 기준점 계산 중인 라벨을 먼저 제거해야 이전 DOM이
     // undefined 기준점으로 한 프레임 더 투영되지 않는다.
@@ -6209,37 +6177,37 @@ const {
         if (mapClickBlocked()) return;
         if (state.tool === 'new-country' && state.newCountryPhase === 'sources') {
           d3.event.stopPropagation();
-          toggleNewCountrySource(d.properties.editor_id);
+          toggleNewCountrySource(d.id);
           return;
         }
         if (state.tool === 'annex-territory' && state.annexPhase === 'donor') {
           d3.event.stopPropagation();
-          toggleAnnexDonor(d.properties.editor_id);
+          toggleAnnexDonor(d.id);
           return;
         }
         if (state.tool === 'merge-country' && state.mergeSourceCountryId) {
           d3.event.stopPropagation();
-          toggleMergeTarget(d.properties.editor_id);
+          toggleMergeTarget(d.id);
           return;
         }
         if (state.tool === 'country-border' && state.boundaryEditPhase === 'selecting') {
           d3.event.stopPropagation();
-          toggleBoundaryEditCountry(d.properties.editor_id);
+          toggleBoundaryEditCountry(d.id);
           return;
         }
         if (state.tool !== 'select' || state.labelPlacementMode) return;
         d3.event.stopPropagation();
-        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'territorial', type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: d.properties.editor_id } });
+        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'territorial', type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: d.id } });
       });
 
     const allCountryLabels = countryLabelLayer.selectAll('text.country-label');
     allCountryLabels
       .text(countryName)
       .style('opacity', layerStyle(state.layerPresentation, 'countryLabels').opacity)
-      .classed('major', d => (countryLabelScreenAreas.get(String(d.properties?.editor_id || '')) || 0) >= (isMobile() ? 3200 : 2200))
+      .classed('major', d => (countryLabelScreenAreas.get(String(d.id || '')) || 0) >= (isMobile() ? 3200 : 2200))
       .attr('transform', d => {
-        const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', d.properties?.editor_id)] || {});
-        const anchor = settings.pinned && settings.manualPosition ? settings.manualPosition : d.properties?.editor_label_anchor;
+        const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', d.id)] || {});
+        const anchor = settings.pinned && settings.manualPosition ? settings.manualPosition : countryLabelAnchors.get(String(d.id || ''));
         const p = Array.isArray(anchor) && anchor.length >= 2 ? activeProjection()(anchor) : null;
         return p ? `translate(${p[0]},${p[1]})` : 'translate(-9999,-9999)';
       });
@@ -7042,8 +7010,8 @@ const {
 
   function renderCountryLabelPositions() {
     countryLabelLayer.selectAll('text.country-label').attr('transform', feature => {
-      const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', feature.properties?.editor_id)] || {});
-      const anchor = settings.pinned && settings.manualPosition ? settings.manualPosition : feature.properties?.editor_label_anchor;
+      const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', feature.id)] || {});
+      const anchor = settings.pinned && settings.manualPosition ? settings.manualPosition : countryLabelAnchors.get(String(feature.id || ''));
       const point = Array.isArray(anchor) && anchor.length >= 2 && isCoordVisible(anchor) ? activeProjection()(anchor) : null;
       return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
     });
@@ -7769,7 +7737,7 @@ const {
         .map(result => String(result.donorCountryId)));
       const invalidNames = state.annexDonorCountryIds
         .map(countryFeatureById)
-        .filter(feature => feature && invalidIds.has(String(feature.properties?.editor_id || feature.id)))
+        .filter(feature => feature && invalidIds.has(String(feature.id)))
         .map(countryName);
       const suffix = state.annexUseRiverBoundaries && invalidNames.length
         ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외됨.`
@@ -9146,7 +9114,7 @@ const {
           try { return deepClone(path.bounds(feature)); } catch (_) { return null; }
         },
         countryLabelAnchor: id => {
-          const anchor = countryFeatureById(id)?.properties?.editor_label_anchor;
+          const anchor = countryLabelAnchors.get(String(id));
           return validLabelAnchor(anchor) ? [Number(anchor[0]), Number(anchor[1])] : null;
         },
       });
@@ -10528,11 +10496,6 @@ const {
     if (announce) setActionStatus('지명 추가를 취소했습니다.', 'success');
   }
 
-  function nextCountryColor() {
-    const palette = ['#6f82a1', '#8a6f9e', '#668b78', '#a17962', '#777e9f', '#9a7d4f', '#5e8f97', '#936d78'];
-    return palette[(state.countriesData?.features?.length || 0) % palette.length];
-  }
-
   function createCountryFeature(name, rawRing, color = null, geometryOverride = null) {
     const id = uid('USR');
     const geometry = geometryOverride
@@ -10541,22 +10504,13 @@ const {
     const ring = ensureClosedRing(geometryPolygonSets(geometry)?.[0]?.[0] || rawRing || []);
     const feature = {
       type: 'Feature',
-      properties: {
-        name,
-        iso_a3: null,
-        continent: '사용자 지정',
-        pop_est: 0,
-        gdp_md_est: 0,
-        editor_id: id,
-        editor_original_name: name,
-        editor_name: name,
-        editor_color: color || nextCountryColor(),
-        editor_custom: true,
-      },
+      id,
+      properties: { name },
       geometry,
     };
-    try { feature.properties.editor_centroid = d3.geo.centroid(feature); }
-    catch (_) { feature.properties.editor_centroid = ringRepresentativePoint(ring); }
+    try { countryCentroids.set(id, d3.geo.centroid(feature)); }
+    catch (_) { countryCentroids.set(id, ringRepresentativePoint(ring)); }
+    if (color) state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}), color };
     return feature;
   }
 
@@ -10685,7 +10639,7 @@ const {
         country = countryAtScreenPoint(screenPoint, coord, { verify: false });
         selectionPerformanceMetrics.gpuPickMs = performance.now() - pickStartedAt;
       }
-      if (country) add({ domain: 'territorial', type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: country.properties?.editor_id });
+      if (country) add({ domain: 'territorial', type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: country.id });
     }
     if (state.layerVisibility.rivers || state.layerVisibility.lakes) {
       const hydro = await hydroAtScreenPoint(screenPoint, coord);
@@ -10805,22 +10759,22 @@ const {
       ? countryAtScreenPoint(screenPoint, coord)
       : null;
     if (state.tool === 'new-country' && state.newCountryPhase === 'sources') {
-      if (clickedCountry) toggleNewCountrySource(clickedCountry.properties.editor_id);
+      if (clickedCountry) toggleNewCountrySource(clickedCountry.id);
       else setActionStatus('영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
       return;
     }
     if (state.tool === 'annex-territory' && state.annexPhase === 'donor') {
-      if (clickedCountry) toggleAnnexDonor(clickedCountry.properties.editor_id);
+      if (clickedCountry) toggleAnnexDonor(clickedCountry.id);
       else setActionStatus('영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
       return;
     }
     if (state.tool === 'merge-country' && state.mergeSourceCountryId) {
-      if (clickedCountry) toggleMergeTarget(clickedCountry.properties.editor_id);
+      if (clickedCountry) toggleMergeTarget(clickedCountry.id);
       else setActionStatus('합병 대상을 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
       return;
     }
     if (state.tool === 'country-border' && state.boundaryEditPhase === 'selecting') {
-      if (clickedCountry) toggleBoundaryEditCountry(clickedCountry.properties.editor_id);
+      if (clickedCountry) toggleBoundaryEditCountry(clickedCountry.id);
       else setActionStatus('접경국을 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
       return;
     }
@@ -10987,7 +10941,7 @@ const {
 
   function riverPartitionGeometrySignature(feature) {
     if (!feature?.geometry) return '';
-    return `${String(feature.properties?.editor_id || feature.id || '')}:${JSON.stringify(feature.geometry.coordinates || [])}`;
+    return `${String(feature.id || '')}:${JSON.stringify(feature.geometry.coordinates || [])}`;
   }
 
   function riverPartitionHydroSignature() {
@@ -11156,7 +11110,7 @@ const {
 
   function riverPartitionResultMessage(candidates, donorResults, donors) {
     const invalidIds = new Set((donorResults || []).filter(result => result.status === 'invalid').map(result => String(result.donorCountryId)));
-    const invalidNames = donors.filter(feature => invalidIds.has(String(feature.properties?.editor_id || feature.id))).map(countryName);
+    const invalidNames = donors.filter(feature => invalidIds.has(String(feature.id))).map(countryName);
     const suffix = invalidNames.length ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외했습니다.` : '';
     const composition = annexRiverBoundaryComposition(territoryBaseComponentItems());
     if (candidates.length) return `하천을 경계로 나눈 영토 조각을 선택하세요. 여러 조각을 선택할 수 있습니다.${suffix}`;
@@ -11196,7 +11150,7 @@ const {
       if (!current()) return;
       const result = await computeRiverPartitionsAsync({
         donors: donors.map(feature => ({
-          countryId: String(feature.properties?.editor_id || feature.id || ''),
+          countryId: String(feature.id || ''),
           geometry: feature.geometry,
           geometryRevision: countryLandRevision,
         })),
@@ -11449,13 +11403,13 @@ const {
         const affectedIds = new Set(transferPlan.affectedIds);
         applyWorkerCountryPatches(transferPlan);
         reindexCountries(state.countriesData, true);
-        transferLandDependents(candidate.geometry, sourceIds, feature.properties.editor_id);
+        transferLandDependents(candidate.geometry, sourceIds, feature.id);
         refreshCountryCentroids(affectedIds);
         state.boundaryTopology = { edges: new Map(), nodes: new Map() };
         state.draftCoords = [];
         state.draftHover = null;
         setTool('select', false);
-        selectCountry(feature.properties.editor_id, false, false);
+        selectCountry(feature.id, false, false);
         renderAll();
       },
       onSuccess: transferPlan => {
@@ -11510,11 +11464,11 @@ const {
     const bounds = geometryBounds(geometry);
     return spatialFeatures(bounds)
       .filter(country => {
-        const id = String(country.properties?.editor_id || '');
+        const id = String(country.id || '');
         return id && !excluded.has(id)
           && multiPolygonPlanarArea(clipper.intersection(geometry.coordinates, country.geometry.coordinates)) > 1e-14;
       })
-      .map(country => String(country.properties.editor_id));
+      .map(country => String(country.id));
   }
 
   function geometryClippedToCurrentLand(geometry) {
@@ -11604,11 +11558,11 @@ const {
       snapshot,
       applyResult: result => {
         applyWorkerCountryPatches(result);
-        transferLandDependents(transferredGeometry, sourceIds, country.properties.editor_id, [feature.id]);
+        transferLandDependents(transferredGeometry, sourceIds, country.id, [feature.id]);
         state.genericFeatures = state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
         reindexCountries(state.countriesData, true);
         refreshCountryCentroids(new Set(result.affectedIds));
-        selectCountry(country.properties.editor_id, false, false);
+        selectCountry(country.id, false, false);
         renderAll();
       },
       onSuccess: () => setActionStatus(`${name} 영역을 독립 국가로 전환했습니다.`, 'success', 3600),
@@ -11935,7 +11889,7 @@ const {
         editTool = state.tool;
         const borderMode = editTool === 'country-border';
         const selectedIds = new Set(state.boundaryEditCountryIds.map(String));
-        const coastId = String(state.coastEditCountryId || feature.properties.editor_id);
+        const coastId = String(state.coastEditCountryId || feature.id);
         const allowed = borderMode
           ? node.ownerIds.size >= 2 && [...node.ownerIds].every(id => selectedIds.has(String(id)))
           : node.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(coastId);
@@ -11945,7 +11899,7 @@ const {
         transactionSnapshot = snapshotEditable();
         startCoord = node.coordinate.slice();
         changed = false;
-        const selectedId = borderMode ? String(state.boundaryEditCountryIds[0] || feature.properties.editor_id) : coastId;
+        const selectedId = borderMode ? String(state.boundaryEditCountryIds[0] || feature.id) : coastId;
         affectedIds = nextAffectedIds;
         ownerBeforeGeometries = new Map([...affectedIds].map(id => [id, deepClone(countryFeatureById(id)?.geometry)]));
         structuredValidationBaseline = new Set([...affectedIds]
@@ -12214,7 +12168,7 @@ const {
     const feature = state.countriesData.features[idx];
     const p = feature.properties || {};
     const override = state.countryOverrides[id] || {};
-    const displayName = override.name || p.editor_name || p.editor_original_name || id;
+    const displayName = override.name || p.name || id;
     state.selected = countryObjectRef(id);
     const controllerStartedAt = performance.now();
     syncObjectSelection(state.selected);
@@ -12223,14 +12177,14 @@ const {
     showPropertyForm('country', displayName, { resetScroll: !refreshOnly });
     selectionPerformanceMetrics.propertyPanelMs = performance.now() - panelStartedAt;
     const fieldsStartedAt = performance.now();
-    $('countryNameInput').value = override.name || p.editor_name || p.editor_original_name || '';
+    $('countryNameInput').value = override.name || p.name || '';
     $('countryCodeInput').textContent = id;
     const color = readDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: defaultCountryColor() });
     $('countryColorInput').value = color.value;
     syncColorPicker('country', { value: color.value, defaultColor: defaultCountryColor(), isDefault: color.isDefault });
-    $('capitalInput').value = override.capital || p.capital || '';
-    $('notesInput').value = override.notes || p.notes || '';
-    $('originalNameValue').textContent = p.editor_original_name || p.editor_name || '—';
+    $('capitalInput').value = override.capital || '';
+    $('notesInput').value = override.notes || '';
+    $('originalNameValue').textContent = p.name || '—';
     renderFlag(effectiveCountryFlagUrl({
       countryId: id,
       properties: p,
@@ -12274,9 +12228,9 @@ const {
       ...(state.countriesData?.features || []).map(feature => {
         const properties = feature.properties || {};
         return {
-          value: String(properties.editor_id || ''),
+          value: String(feature.id || ''),
           label: countryName(feature),
-          searchText: [properties.editor_original_name, properties.name, properties.iso_a3, properties.editor_id].filter(Boolean).join(' '),
+          searchText: [properties.name, feature.id].filter(Boolean).join(' '),
         };
       }).sort((a, b) => layerNameCollator.compare(a.label, b.label)),
     ];
@@ -12865,7 +12819,7 @@ const {
     const selectedUnit = (state.selected?.domain === 'territorial' && state.selected.type !== TERRITORIAL_UNIT_TYPES.COUNTRY) ? territorialUnitById(state.selected.id) : null;
     const selectedCountry = (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) ? countryFeatureById(state.selected.id) : null;
     if (unitType === TERRITORIAL_UNIT_TYPES.TERRITORY) {
-      const sovereignId = String(selectedUnit?.properties?.sovereignId || selectedCountry?.properties?.editor_id || '');
+      const sovereignId = String(selectedUnit?.properties?.sovereignId || selectedCountry?.id || '');
       const country = countryFeatureById(sovereignId);
       if (!country) return null;
       const existing = selectedUnit?.properties?.unitType === TERRITORIAL_UNIT_TYPES.TERRITORY
@@ -12876,7 +12830,7 @@ const {
           || state.territorialUnits.find(feature => feature.properties?.unitType === unitType && String(feature.properties?.sovereignId || '') === sovereignId);
       return { unitType, sovereignId, parentId: '', adminLevel: null, container: country, source: existing || null };
     }
-    const sovereignId = String(selectedUnit?.properties?.sovereignId || selectedCountry?.properties?.editor_id || '');
+    const sovereignId = String(selectedUnit?.properties?.sovereignId || selectedCountry?.id || '');
     const country = countryFeatureById(sovereignId);
     if (!country) return null;
     const parent = selectedUnit || null;
@@ -12901,7 +12855,7 @@ const {
     const selectedCountry = (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) ? countryFeatureById(state.selected.id) : null;
     return {
       unitType: TERRITORIAL_UNIT_TYPES.REGION,
-      sovereignId: String(selectedUnit?.properties?.sovereignId || selectedCountry?.properties?.editor_id || ''),
+      sovereignId: String(selectedUnit?.properties?.sovereignId || selectedCountry?.id || ''),
       parentId: String(selectedUnit?.id || ''),
       adminLevel: null,
       container: selectedUnit || selectedCountry || null,
@@ -13754,7 +13708,7 @@ const {
       setActionStatus('영역 잠금을 해제한 뒤 소속과 국경을 변경하세요.', 'error', 3600);
       return false;
     }
-    if (!requireCountriesUnlocked([donor.properties?.editor_id, targetCountryId], '권역과 국경을 이전')) return false;
+    if (!requireCountriesUnlocked([donor.id, targetCountryId], '권역과 국경을 이전')) return false;
     const movedIds = new Set([String(source.id)]);
     const queue = [String(source.id)];
     while (queue.length) {
@@ -13780,7 +13734,7 @@ const {
               if (String(feature.id) === String(source.id)) feature.properties.parentId = String(targetCountryId);
               return [feature];
             }
-            if (String(feature.properties?.sovereignId || '') !== String(donor.properties.editor_id)) return [feature];
+            if (String(feature.properties?.sovereignId || '') !== String(donor.id)) return [feature];
             const remainder = normalizeClippedLandGeometry(clipper.difference(feature.geometry.coordinates, sourceGeometry.coordinates));
             if (!remainder) return [];
             feature.geometry = remainder;
@@ -13801,9 +13755,9 @@ const {
           target.geometry = result.targetGeometry;
           state.territorialUnits = result.nextUnits;
           reindexCountries(state.countriesData, true);
-          reconcileTerritorialUnitCompleteness([donor.properties.editor_id, target.properties.editor_id]);
-          markCountryGeometriesChanged([donor.properties.editor_id, target.properties.editor_id]);
-          refreshCountryCentroids([donor.properties.editor_id, target.properties.editor_id]);
+          reconcileTerritorialUnitCompleteness([donor.id, target.id]);
+          markCountryGeometriesChanged([donor.id, target.id]);
+          refreshCountryCentroids([donor.id, target.id]);
           markLayerTreeDirty();
           selectTerritorialUnit(unitId, true);
           renderAll();
@@ -13869,19 +13823,9 @@ const {
       }
     }
     const convertedMetadata = source.properties?.metadata?.convertedFromCountry || {};
-    const restoredProperties = convertedMetadata.properties && typeof convertedMetadata.properties === 'object'
-      ? deepClone(convertedMetadata.properties)
-      : {};
     const country = createCountryFeature(name, [], territorialStyleColor(source) || null, snapGeometryToGrid(source.geometry, 7));
-    country.properties = {
-      ...country.properties,
-      ...restoredProperties,
-      editor_id: String(source.id),
-      editor_name: name,
-      editor_original_name: String(restoredProperties.editor_original_name || name),
-      editor_color: territorialStyleColor(source) || restoredProperties.editor_color || country.properties.editor_color,
-      notes: String(source.properties?.notes || restoredProperties.notes || ''),
-    };
+    country.id = String(source.id);
+    country.properties = { name };
     const restoredOverride = convertedMetadata.override && typeof convertedMetadata.override === 'object'
       ? deepClone(convertedMetadata.override)
       : {};
@@ -13903,8 +13847,8 @@ const {
         state.territorialUnits = state.territorialUnits.flatMap(feature => {
           if (String(feature.id) === String(source.id)) return [];
           if (descendantIds.has(String(feature.id))) {
-            feature.properties.sovereignId = String(country.properties.editor_id);
-            if (String(feature.properties?.parentId || '') === String(source.id)) feature.properties.parentId = String(country.properties.editor_id);
+            feature.properties.sovereignId = String(country.id);
+            if (String(feature.properties?.parentId || '') === String(source.id)) feature.properties.parentId = String(country.id);
             return [feature];
           }
           if (String(feature.properties?.sovereignId || '') !== sourceCountryId) return [feature];
@@ -13916,17 +13860,17 @@ const {
         state.territorialRelations = state.territorialRelations.filter(relation => String(relation.unitId || '') !== String(source.id));
         for (const relation of state.territorialRelations) {
           const related = String(relation.unitId || '') === String(source.id) || descendantIds.has(String(relation.unitId || ''));
-          if (related && String(relation.sovereignId || '') === sourceCountryId) relation.sovereignId = String(country.properties.editor_id);
-          if (String(relation.parentId || '') === String(source.id)) relation.parentId = String(country.properties.editor_id);
+          if (related && String(relation.sovereignId || '') === sourceCountryId) relation.sovereignId = String(country.id);
+          if (String(relation.parentId || '') === String(source.id)) relation.parentId = String(country.id);
         }
         for (const entry of state.distributionEntries) {
-          if (entry.mode === DISTRIBUTION_MODES.TERRITORIAL && String(entry.territorialUnitId) === String(source.id)) entry.territorialUnitId = String(country.properties.editor_id);
+          if (entry.mode === DISTRIBUTION_MODES.TERRITORIAL && String(entry.territorialUnitId) === String(source.id)) entry.territorialUnitId = String(country.id);
         }
         state.territorialUnits = normalizeTerritorialUnits(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
-        reconcileTerritorialUnitCompleteness([sourceCountryId, country.properties.editor_id]);
+        reconcileTerritorialUnitCompleteness([sourceCountryId, country.id]);
         refreshCountryCentroids(new Set(plan.affectedIds));
         markLayerTreeDirty();
-        selectCountry(country.properties.editor_id, false, false);
+        selectCountry(country.id, false, false);
         renderAll();
       },
       onSuccess: () => setActionStatus(`${name} 권역을 새 국가로 독립시켰습니다. 하위 행정구역은 유지했습니다.`, 'success', 4000),
@@ -13945,7 +13889,7 @@ const {
     const sourceIsCountry = sourceType === TERRITORIAL_UNIT_TYPES.COUNTRY;
     const targetIsCountry = targetType === TERRITORIAL_UNIT_TYPES.COUNTRY;
     const childCount = sourceIsCountry
-      ? state.territorialUnits.filter(candidate => String(candidate.properties?.sovereignId || '') === String(source.properties?.editor_id || source.id || '')).length
+      ? state.territorialUnits.filter(candidate => String(candidate.properties?.sovereignId || '') === String(source.id || '')).length
       : territorialChildren(state.territorialUnits, source.id).length;
     const targetCountry = countryFeatureById(sovereignId);
     const targetParent = territorialUnitById(parentId);
@@ -14026,7 +13970,7 @@ const {
   function territorialTypeParentOptions(source, sovereignId) {
     const country = countryFeatureById(sovereignId);
     if (!country) return [];
-    const excluded = new Set([String(source?.id || source?.properties?.editor_id || '')]);
+    const excluded = new Set([String(source?.id || '')]);
     const queue = [...excluded];
     while (queue.length) {
       const current = queue.shift();
@@ -14198,12 +14142,12 @@ const {
       return false;
     }
     if (!requireCountriesUnlocked([countryId, targetCountryId], '국가 종류를 변경')) return false;
-    if (territorialUnitById(countryId)) {
+    if (state.territorialUnits.some(feature => String(feature.id) === String(countryId))) {
       setActionStatus('같은 ID의 영역이 이미 있어 종류를 변경할 수 없습니다.', 'error', 4000);
       return false;
     }
     const parent = targetType === TERRITORIAL_UNIT_TYPES.ADMIN ? territorialUnitById(parentId || targetCountryId) : target;
-    if (!parent || (String(parent.id || parent.properties?.editor_id || '') !== String(targetCountryId) && !territorialUnitInsideContainer(source, parent))) {
+    if (!parent || (String(parent.id || '') !== String(targetCountryId) && !territorialUnitInsideContainer(source, parent))) {
       setActionStatus('국가 영역 전체를 포함하는 올바른 상위 영역을 선택하세요.', 'error', 3900);
       return false;
     }
@@ -14221,8 +14165,8 @@ const {
       isRemainder: false,
       coverageMode: TERRITORIAL_COVERAGE_MODES.PARTITION,
       adminLevel: targetType === TERRITORIAL_UNIT_TYPES.ADMIN ? 1 : null,
-      color: String(sourceOverride.color || sourceProperties.editor_color || ''),
-      notes: String(sourceOverride.notes || sourceProperties.notes || ''),
+      color: String(sourceOverride.color || ''),
+      notes: String(sourceOverride.notes || ''),
       metadata: { convertedFromCountry: { properties: sourceProperties, override: sourceOverride } },
     });
     const snapshot = snapshotEditable();
@@ -14262,7 +14206,7 @@ const {
         refreshCountryCentroids(new Set(plan.affectedIds));
         state.boundaryTopology = { edges: new Map(), nodes: new Map() };
         markLayerTreeDirty();
-        selectTerritorialUnit(countryId, true);
+        selectTerritorialUnit(converted.id, true);
         renderAll();
       },
       onSuccess: () => setActionStatus(`${name}을(를) ${countryName(target)} 소속 ${TERRITORIAL_TYPE_LABELS[targetType]}(으)로 변경했습니다.`, 'success', 4300),
@@ -14312,7 +14256,7 @@ const {
     if (deltaProject) {
       const delta = project.countryDelta || { changed: [], removedIds: [] };
       state.historyDirtyCountryIds = new Set([
-        ...(delta.changed || []).map(feature => String(feature.properties?.editor_id || '')),
+        ...(delta.changed || []).map(feature => String(feature.id || '')),
         ...(delta.removedIds || []).map(String),
       ].filter(Boolean));
       return;
@@ -14322,7 +14266,7 @@ const {
       const pristineById = new Map((pristine.features || []).map((feature, index) => [featureCountryId(feature, index), feature]));
       const currentIds = new Set();
       for (const feature of state.countriesData?.features || []) {
-        const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+        const id = String(feature.id || '');
         currentIds.add(id);
         const pristine = pristineById.get(id);
         if (!pristine || JSON.stringify(pristine.geometry) !== JSON.stringify(feature.geometry)) state.historyDirtyCountryIds.add(id);
@@ -14332,7 +14276,7 @@ const {
   }
 
   function buildCountryDelta() {
-    const current = new Map((state.countriesData?.features || []).map(feature => [String(feature.properties?.editor_id || ''), feature]));
+    const current = new Map((state.countriesData?.features || []).map(feature => [String(feature.id || ''), feature]));
     const changed = [];
     const removedIds = [];
     for (const id of state.historyDirtyCountryIds) {
@@ -14353,18 +14297,18 @@ const {
       ? JSON.parse(state.sessionBaseCountriesJson)
       : parsePristineCountries();
     const delta = snapshot.countryDelta || { changed: [], removedIds: [] };
-    const changed = new Map((delta.changed || []).map(feature => [String(feature.properties?.editor_id || ''), feature]));
+    const changed = new Map((delta.changed || []).map(feature => [String(feature.id || ''), feature]));
     const removed = new Set((delta.removedIds || []).map(String));
     const seen = new Set();
-    base.features = (base.features || []).filter(feature => !removed.has(String(feature.properties?.editor_id || feature.properties?.iso_a3 || ''))).map(feature => {
-      const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+    base.features = (base.features || []).filter(feature => !removed.has(String(feature.id || ''))).map(feature => {
+      const id = String(feature.id || '');
       if (!changed.has(id)) return feature;
       seen.add(id);
       return deepClone(changed.get(id));
     });
     for (const [id, feature] of changed) if (!seen.has(id)) base.features.push(deepClone(feature));
     state.countriesData = reindexCountries(base, true);
-    const unchangedIds = (state.countriesData.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(id => !changed.has(id));
+    const unchangedIds = (state.countriesData.features || []).map(feature => String(feature.id || '')).filter(id => !changed.has(id));
     if (!state.sessionBaseCountriesJson) applyPristineLabelAnchors(state.countriesData, unchangedIds);
     state.historyDirtyCountryIds = new Set(snapshot.historyDirtyCountryIds || [...changed.keys(), ...removed]);
   }
@@ -14402,6 +14346,8 @@ const {
   }
 
   function normalizeProjectObjects() {
+    const countryIds = new Set((state.countriesData?.features || []).map(feature => String(feature?.id || '')).filter(Boolean));
+    state.countryOverrides = pruneCountryOverrides(state.countryOverrides, countryIds);
     state.hydroEdits = normalizeHydroEditCollection(state.hydroEdits);
     state.genericFeatures = normalizeGenericFeatureCollection(state.genericFeatures || []);
     state.distributionLayers = normalizeDistributionLayers(state.distributionLayers);
@@ -15013,7 +14959,7 @@ const {
     }
 
     const snapshot = snapshotEditable();
-    const countryId = String(analysis.country.properties?.editor_id || '');
+    const countryId = String(analysis.country.id || '');
     const adminIdKey = String(analysis.admin.id);
     const countryBefore = deepClone(analysis.country.geometry);
     const adminBefore = deepClone(analysis.admin.geometry);
@@ -15115,10 +15061,10 @@ const {
     configureDatasetSession(null);
     scheduleGpuMeshRebuild(0);
     const restoredGeometrySignature = JSON.stringify(
-      state.countriesData.features.map(f => [String(f.properties?.editor_id || f.properties?.iso_a3 || ''), f.geometry])
+      state.countriesData.features.map(f => [String(f.id || ''), f.geometry])
     );
     const pristineGeometrySignature = JSON.stringify(
-      (parsePristineCountries().features || []).map(f => [String(f.properties?.editor_id || f.properties?.iso_a3 || ''), f.geometry])
+      (parsePristineCountries().features || []).map(f => [String(f.id || ''), f.geometry])
     );
     if (restoredGeometrySignature !== pristineGeometrySignature) {
       throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
@@ -15209,7 +15155,7 @@ const {
           unit.properties.parentId = '';
           unit.properties.isRemainder = false;
         }
-        state.countriesData.features = state.countriesData.features.filter(f => String(f.properties?.editor_id) !== key);
+        state.countriesData.features = state.countriesData.features.filter(f => String(f.id) !== key);
         delete state.countryOverrides[key];
         reindexCountries(state.countriesData, true);
         markCountryGeometriesChanged([key]);
@@ -15292,7 +15238,7 @@ const {
 
   function gisImportCountryOptions() {
     return (state.countriesData?.features || []).map(feature => ({
-      id: String(feature.properties?.editor_id || feature.id || ''),
+      id: String(feature.id || ''),
       name: countryName(feature),
     })).filter(country => country.id).sort((left, right) => layerNameCollator.compare(left.name, right.name));
   }
@@ -15392,22 +15338,20 @@ const {
   }
 
   async function commitGisMerge(result, plan) {
-    const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || '')));
+    const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.id || '')));
     const packagedOverrides = applyImportedPackageAssets(result.atlasMetadata, {
       ...importedCountryOverrides(result.countriesData),
       ...(result.atlasMetadata?.projectState?.countryOverrides || {}),
     });
     const draftCountries = deepClone(plan.countriesData);
-    const draftCountryIds = new Set((draftCountries.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(Boolean));
+    const draftCountryIds = new Set((draftCountries.features || []).map(feature => String(feature.id || '')).filter(Boolean));
     const draftOverrides = Object.fromEntries(Object.entries(deepClone(state.countryOverrides || {}))
       .filter(([id]) => draftCountryIds.has(String(id))));
     for (const feature of result.countriesData?.features || []) {
-      const id = String(feature.properties?.editor_id || '');
+      const id = String(feature.id || '');
       if (!id) continue;
       const existingOverride = draftOverrides[id] || {};
       const next = { ...(packagedOverrides[id] || {}), ...existingOverride };
-      if (!Object.prototype.hasOwnProperty.call(existingOverride, 'name') && feature.properties?.editor_name) next.name = feature.properties.editor_name;
-      if (!Object.prototype.hasOwnProperty.call(existingOverride, 'color') && feature.properties?.editor_color) next.color = feature.properties.editor_color;
       draftOverrides[id] = next;
     }
     for (const [countryId, update] of Object.entries(result.countryUpdates || {})) {
@@ -15506,11 +15450,11 @@ const {
 
   function restoreGisImportSnapshot(snapshot) {
     if (!snapshot) throw new Error('GIS 가져오기 복구 snapshot이 없습니다.');
-    const changedCountryIds = new Set((state.countriesData?.features || []).map(feature => String(feature.properties?.editor_id || '')).filter(Boolean));
+    const changedCountryIds = new Set((state.countriesData?.features || []).map(feature => String(feature.id || '')).filter(Boolean));
     applySharedProjectFields(snapshot.projectFields, 'project');
     applySharedProjectFields(snapshot.sessionFields, 'session');
     restoreCountriesFromSnapshot(snapshot.countries);
-    for (const feature of state.countriesData?.features || []) changedCountryIds.add(String(feature.properties?.editor_id || ''));
+    for (const feature of state.countriesData?.features || []) changedCountryIds.add(String(feature.id || ''));
     state.history = deepClone(snapshot.history || []);
     state.historyMeta = deepClone(snapshot.historyMeta || []);
     state.future = deepClone(snapshot.future || []);
@@ -15629,10 +15573,7 @@ const {
     const entity = historicalLibraryService.get(libraryId);
     const currentCountryId = String(entity?.metadata?.currentCountryId || '');
     if (currentCountryId && countryFeatureById(currentCountryId)) return currentCountryId;
-    const preferredInstanceId = String(entity?.metadata?.preferredInstanceId || '');
-    if (preferredInstanceId && countryFeatureById(preferredInstanceId)) return preferredInstanceId;
-    const country = state.countriesData?.features?.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
-    if (country) return String(country.properties.editor_id);
+    if (countryFeatureById(libraryId)) return String(libraryId);
     const unit = state.territorialUnits.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
     return unit ? String(unit.id) : '';
   }
@@ -15647,17 +15588,11 @@ const {
         throw new Error('영토 우선 라이브러리 항목은 한 번에 국가 1개만 추가할 수 있습니다.');
       }
       const descriptor = priority[0];
-      const feature = createCountryFeature(
-        descriptor.name,
-        [],
-        descriptor.metadata?.defaultColor || nextCountryColor(),
-        descriptor.geometry,
-      );
-      feature.properties.sourceLibraryId = descriptor.libraryId;
-      feature.properties.sourceGeometryVersion = descriptor.geometryVersionId;
-      feature.properties.validFrom = descriptor.validFrom;
-      feature.properties.validTo = descriptor.validTo;
-      feature.properties.libraryMetadata = descriptor.metadata;
+      const feature = createCountryFeature(descriptor.name, [], null, descriptor.geometry);
+      feature.id = descriptor.libraryId;
+      if (descriptor.metadata?.defaultColor) state.countryOverrides[descriptor.libraryId] = { color: descriptor.metadata.defaultColor };
+      if (descriptor.validFrom) feature.properties.validFrom = descriptor.validFrom;
+      if (descriptor.validTo) feature.properties.validTo = descriptor.validTo;
       const countriesData = { type: 'FeatureCollection', features: [feature] };
       const plan = await planGisMerge(state.countriesData, countriesData, 'imported-territory-priority');
       if (!plan.canCommit) throw new Error('자동 차감 후에도 국가 간 중첩이 남아 라이브러리 항목을 추가할 수 없습니다.');
@@ -15673,27 +15608,22 @@ const {
     let countriesAdded = 0;
     for (const descriptor of pending) {
       if (descriptor.type === LIBRARY_ENTITY_TYPES.COUNTRY) {
-        const preferredInstanceId = String(descriptor.metadata?.preferredInstanceId || '');
         const feature = createCountryFeature(
           descriptor.name,
           [],
-          descriptor.metadata?.defaultColor || nextCountryColor(),
+          null,
           descriptor.geometry,
         );
-        if (preferredInstanceId && !countryFeatureById(preferredInstanceId)) {
-          feature.properties.editor_id = preferredInstanceId;
-        }
-        feature.properties.sourceLibraryId = descriptor.libraryId;
-        feature.properties.sourceGeometryVersion = descriptor.geometryVersionId;
-        feature.properties.validFrom = descriptor.validFrom;
-        feature.properties.validTo = descriptor.validTo;
-        feature.properties.libraryMetadata = descriptor.metadata;
+        feature.id = descriptor.libraryId;
+        if (descriptor.metadata?.defaultColor) state.countryOverrides[descriptor.libraryId] = { color: descriptor.metadata.defaultColor };
+        if (descriptor.validFrom) feature.properties.validFrom = descriptor.validFrom;
+        if (descriptor.validTo) feature.properties.validTo = descriptor.validTo;
         if (descriptor.metadata?.territoryMerge === 'imported-priority') {
           const overlappingCountryIds = new Set(countryIdsOverlappingGeometry(descriptor.geometry));
           const donorIds = [];
           const nextFeatures = [];
           for (const candidate of state.countriesData.features || []) {
-            const donorId = String(candidate.properties?.editor_id || '');
+            const donorId = String(candidate.id || '');
             if (!overlappingCountryIds.has(donorId)) {
               nextFeatures.push(candidate);
               continue;
@@ -15708,10 +15638,10 @@ const {
           }
           state.countriesData.features = nextFeatures;
           for (const donorId of donorIds) state.historyDirtyCountryIds.add(donorId);
-          if (preferredInstanceId) transferLandDependents(descriptor.geometry, donorIds, preferredInstanceId);
+          transferLandDependents(descriptor.geometry, donorIds, descriptor.libraryId);
         }
         state.countriesData.features.push(feature);
-        state.historyDirtyCountryIds.add(String(feature.properties.editor_id || ''));
+        state.historyDirtyCountryIds.add(String(feature.id || ''));
         countriesAdded += 1;
         continue;
       }
@@ -15998,7 +15928,7 @@ const {
       }
 
       const draftCountries = deepClone(state.countriesData);
-      const draftById = new Map((draftCountries.features || []).map(feature => [String(feature.properties?.editor_id || ''), feature]));
+      const draftById = new Map((draftCountries.features || []).map(feature => [String(feature.id || ''), feature]));
       for (const [countryId, geometry] of countryGeometryOverrides) {
         const country = draftById.get(String(countryId));
         if (country) country.geometry = deepClone(geometry);
@@ -16028,11 +15958,11 @@ const {
         mapEditClient.rebase(draftCountries.features || []);
         annexResponse = await mapEditClient.execute('annex-batch', { operations });
         activeRequestId = annexResponse.requestId;
-        const patchById = new Map((annexResponse.result.features || []).map(feature => [String(feature.properties?.editor_id || ''), feature]));
+        const patchById = new Map((annexResponse.result.features || []).map(feature => [String(feature.id || ''), feature]));
         const removed = new Set((annexResponse.result.removedIds || []).map(String));
         draftCountries.features = (draftCountries.features || [])
-          .filter(feature => !removed.has(String(feature.properties?.editor_id || '')))
-          .map(feature => patchById.get(String(feature.properties?.editor_id || '')) || feature);
+          .filter(feature => !removed.has(String(feature.id || '')))
+          .map(feature => patchById.get(String(feature.id || '')) || feature);
         for (const [id, feature] of patchById) {
           if (!draftById.has(id)) draftCountries.features.push(feature);
         }
@@ -16041,7 +15971,7 @@ const {
       for (const id of countryGeometryOverrides.keys()) affectedCountryIds.add(String(id));
 
       const draftCountryById = new Map((draftCountries.features || [])
-        .map(feature => [String(feature.properties?.editor_id || ''), feature]));
+        .map(feature => [String(feature.id || ''), feature]));
       for (const feature of imported) {
         const sovereignId = String(feature.properties?.sovereignId || '');
         if (!sovereignId && kind === TERRITORIAL_UNIT_TYPES.REGION) continue;
@@ -16144,14 +16074,14 @@ const {
       });
     }
     const draftCountryFeatures = (state.countriesData?.features || []).map(candidate => {
-      const id = String(candidate.properties?.editor_id || '');
+      const id = String(candidate.id || '');
       const geometry = countryGeometryOverrides.get(id);
       return geometry ? { ...candidate, geometry } : candidate;
     });
     const topology = buildSharedBoundaryTopology(draftCountryFeatures);
     const analysis = analyzeAdminCountryCoast({
       adminFeature: feature,
-      countryFeature: { ...country, geometry: countryGeometryOverrides.get(String(country.properties?.editor_id || '')) || country.geometry },
+      countryFeature: { ...country, geometry: countryGeometryOverrides.get(String(country.id || '')) || country.geometry },
       countryTopology: topology,
     });
     if (analysis.status !== 'unavailable' && !analysis.conflicts.length) return { direction: 'none' };
@@ -16166,7 +16096,7 @@ const {
     const direction = normalizeCoastDecision(choice);
     if (direction === 'cancel') return { direction };
     if (direction === 'independent') return { direction };
-    const baseCountryGeometry = deepClone(countryGeometryOverrides.get(String(country.properties?.editor_id || '')) || country.geometry);
+    const baseCountryGeometry = deepClone(countryGeometryOverrides.get(String(country.id || '')) || country.geometry);
     const baseAdminGeometry = deepClone(feature.geometry);
     const planned = planCoastReconciliations({
       conflicts: analysis.conflicts.map(conflict => ({ ...conflict, countryGeometry: baseCountryGeometry, adminGeometry: baseAdminGeometry })),
@@ -16178,11 +16108,11 @@ const {
     const countryValidation = validateCoastReplacement(nextCountry, { clipper: window.polygonClipping });
     if (!adminValidation.ok || !countryValidation.ok) throw createGisImportError('해안선 정합 결과가 유효한 닫힌 영역이 아닙니다.', {
       category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
-      objectIds: [feature.id, country.properties?.editor_id],
+      objectIds: [feature.id, country.id],
       technicalMessage: [...(adminValidation.issues || []), ...(countryValidation.issues || [])].join(' / '),
     });
     if (direction === 'country-to-admin') feature.geometry = nextAdmin;
-    else countryGeometryOverrides.set(String(country.properties?.editor_id || ''), nextCountry);
+    else countryGeometryOverrides.set(String(country.id || ''), nextCountry);
     return { direction };
   }
 
@@ -16203,7 +16133,7 @@ const {
       const parent = feature.properties.parentId
         ? nextUnits.find(candidate => String(candidate.id) === String(feature.properties.parentId))
         : null;
-      const container = parent || (country ? { ...country, geometry: countryGeometryOverrides.get(String(country.properties?.editor_id || '')) || country.geometry } : country);
+      const container = parent || (country ? { ...country, geometry: countryGeometryOverrides.get(String(country.id || '')) || country.geometry } : country);
       if (!container?.geometry) {
         feature.properties.sovereignId = '';
         feature.properties.parentId = '';
@@ -17961,6 +17891,7 @@ const {
       : restored?.countriesData
         ? reindexCountries(restored.countriesData, true)
         : reindexCountries(geometry.countries, true);
+    if (!restored) applyPristineLabelAnchors(state.countriesData);
     if (navigationChanged) {
       state.view = navigationView;
       state.projection = navigationProjection;

@@ -80,15 +80,20 @@ export function createCountryImportMergePlanner({
   validateCountryCollection,
 }) {
   function mergeImportedCountryProperties(existing, imported, geometry) {
-    const importedId = text(existing?.properties?.editor_id || imported.properties?.editor_id || imported.id);
+    const importedId = text(existing?.id || imported?.id);
+    const existingProperties = existing?.properties || {};
+    const importedProperties = imported?.properties || {};
+    const properties = {
+      name: text(existingProperties.name || importedProperties.name || importedId),
+    };
+    const validFrom = text(existingProperties.validFrom || importedProperties.validFrom);
+    const validTo = text(existingProperties.validTo || importedProperties.validTo);
+    if (validFrom) properties.validFrom = validFrom;
+    if (validTo) properties.validTo = validTo;
     return {
       type: 'Feature',
       id: importedId,
-      properties: {
-        ...(existing?.properties || {}),
-        ...(imported.properties || {}),
-        editor_id: importedId,
-      },
+      properties,
       geometry,
     };
   }
@@ -97,18 +102,17 @@ export function createCountryImportMergePlanner({
     if (!clipper?.union || !clipper?.difference || !clipper?.intersection) throw new Error('국가 병합 연산 엔진을 불러오지 못했습니다.');
     const current = (currentCountries?.features || []).map(feature => clone(feature));
     const imported = (clone(importedCountries)?.features || []).map((feature, index) => {
-      feature.properties = feature.properties || {};
-      feature.properties.editor_id = featureCountryId(feature, index);
+      feature.id = featureCountryId(feature, index);
       return feature;
     });
     if (!imported.length) throw new Error('병합할 국가 객체가 없습니다.');
-    const incomingIds = imported.map(feature => text(feature.properties?.editor_id));
+    const incomingIds = imported.map(feature => text(feature?.id));
     if (incomingIds.some(id => !id) || new Set(incomingIds).size !== incomingIds.length) {
       throw new Error('가져온 국가 ID 연결 결과가 비어 있거나 중복되었습니다.');
     }
 
-    const currentById = new Map(current.map(feature => [text(feature.properties?.editor_id), feature]));
-    const importedById = new Map(imported.map(feature => [text(feature.properties?.editor_id), feature]));
+    const currentById = new Map(current.map(feature => [text(feature?.id), feature]));
+    const importedById = new Map(imported.map(feature => [text(feature?.id), feature]));
     const importedIds = new Set(importedById.keys());
     const affectedIds = new Set(importedIds);
     const matched = [...importedIds].filter(id => currentById.has(id)).length;
@@ -125,9 +129,13 @@ export function createCountryImportMergePlanner({
 
     if (strategy === 'id-replace') {
       counts.replaced = matched;
-      result = current.filter(feature => !importedIds.has(text(feature.properties?.editor_id)));
-      result.push(...imported.map(feature => clone(feature)));
-      const unaffected = result.filter(feature => !importedIds.has(text(feature.properties?.editor_id)));
+      result = current.filter(feature => !importedIds.has(text(feature?.id)));
+      result.push(...imported.map(feature => mergeImportedCountryProperties(
+        currentById.get(text(feature?.id)),
+        feature,
+        clone(feature.geometry),
+      )));
+      const unaffected = result.filter(feature => !importedIds.has(text(feature?.id)));
       for (const incoming of imported) {
         for (const other of unaffected) {
           if (!boundsOverlap(geometryBounds(incoming.geometry), geometryBounds(other.geometry))) continue;
@@ -148,7 +156,7 @@ export function createCountryImportMergePlanner({
     if (!importedRawUnion) throw new Error('가져온 영토를 결합할 수 없습니다.');
     result = [];
     for (const existing of current) {
-      const id = text(existing.properties?.editor_id);
+      const id = text(existing?.id);
       if (importedIds.has(id)) continue;
       if (!boundsOverlap(geometryBounds(existing.geometry), geometryBounds(importedRawUnion))) {
         result.push(existing);
@@ -171,7 +179,7 @@ export function createCountryImportMergePlanner({
       result.push(existing);
     }
     for (const incoming of imported) {
-      const id = text(incoming.properties?.editor_id);
+      const id = text(incoming?.id);
       const existing = currentById.get(id);
       const geometry = clone(incoming.geometry);
       if (!geometry) throw new Error(`${countryName(incoming)} 영토를 결합할 수 없습니다.`);
@@ -194,21 +202,8 @@ export function applyImportedPackageAssets(metadata, overrides) {
 }
 
 export function importedCountryOverrides(collection) {
-  const output = {};
-  for (const feature of collection?.features || []) {
-    const properties = feature.properties || {};
-    const id = text(properties.editor_id || feature.id);
-    if (!id) continue;
-    const mapped = {
-      name: properties.pandolab_name || properties.editor_name || properties.editor_original_name || properties.name || id,
-      capital: properties.pandolab_capital || properties.capital || '',
-      notes: properties.pandolab_notes || properties.notes || '',
-    };
-    const explicitColor = properties.pandolab_color || properties.editor_color;
-    if (explicitColor) mapped.color = explicitColor;
-    output[id] = mapped;
-  }
-  return output;
+  void collection;
+  return {};
 }
 
 export function appendImportedSourceInfo(previous, next, now = () => new Date().toISOString()) {

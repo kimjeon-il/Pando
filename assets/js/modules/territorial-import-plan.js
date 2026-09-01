@@ -13,14 +13,13 @@ function geometryFromCoordinates(coordinates) {
 }
 
 function countryId(feature) {
-  return text(feature?.properties?.editor_id || feature?.properties?.iso_a3 || feature?.id);
+  return text(feature?.id);
 }
 
 function countryNames(feature) {
   const properties = feature?.properties || {};
   return [
-    countryId(feature), properties.editor_name, properties.editor_original_name,
-    properties.name, properties.NAME, properties.iso_a3, properties.ADM0_A3,
+    countryId(feature), properties.name,
   ].map(value => text(value).toLocaleLowerCase('ko')).filter(Boolean);
 }
 
@@ -36,7 +35,7 @@ export function resolveImportedCountryId(value, countries = []) {
 
 function importedName(feature, index) {
   const properties = feature?.properties || {};
-  return text(properties.name || properties.NAME || properties.pandolab_name || feature?.id, `객체 ${index + 1}`);
+  return text(properties.name || properties.pandolab_name || properties.NAME_KO || properties.NAME_0 || properties.NAME || feature?.id, `객체 ${index + 1}`);
 }
 
 function intersectionGeometry(clipper, left, right) {

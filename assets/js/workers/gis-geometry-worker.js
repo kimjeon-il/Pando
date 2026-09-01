@@ -150,12 +150,12 @@ function planarArea(multiPolygon) {
 
 function featureName(feature) {
   const properties = feature?.properties || {};
-  return properties.editor_name || properties.editor_original_name || properties.pandolab_name || properties.name || properties.NAME || properties.editor_id || '국가';
+  return properties.pandolab_name || properties.NAME_KO || properties.NAME_0 || properties.NAME || properties.name || properties.pandolab_id || feature?.id || '국가';
 }
 
 function featureId(feature, index) {
   const properties = feature?.properties || {};
-  return String(properties.editor_id || properties.pandolab_id || properties.ADM0_A3 || properties.ISO_A3 || feature?.id || index + 1);
+  return String(properties.pandolab_id || properties.ADM0_A3 || properties.ISO_A3 || properties.GID_0 || feature?.id || index + 1);
 }
 
 function validateCollection(collection, affectedIds = null) {

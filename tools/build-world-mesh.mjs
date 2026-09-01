@@ -115,7 +115,7 @@ const countries = JSON.parse(sourceBytes.toString('utf8'));
 if (countries?.type !== 'FeatureCollection' || countries.features?.length !== 258) {
   throw new Error('Natural Earth 국가 데이터는 정확히 258개여야 합니다.');
 }
-const ids = countries.features.map((feature, index) => String(feature.properties?.editor_id || feature.properties?.iso_a3 || index));
+const ids = countries.features.map((feature, index) => String(feature.id || index));
 if (new Set(ids).size !== ids.length) throw new Error('국가 ID가 중복되었습니다.');
 const sourceCoordinateCount = countCoordinates(countries.features.map(feature => feature.geometry?.coordinates));
 if (sourceCoordinateCount !== 548464) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);

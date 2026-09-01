@@ -50,6 +50,7 @@ test('Canvas Worker persists independently revisioned view and style state', () 
     assert.ok(renderer.includes(type), `missing renderer message ${type}`);
   }
   assert.ok(renderer.includes('canvasWorkerPendingMessage = message;'));
+  assert.match(renderer, /invalidateGpuFrame\('canvas-data-ready'\);\s+renderCanvasWorker\(Math\.max\(currentRenderRevision, Number\(message\.revision \|\| 0\)\)\);/);
   assert.ok(worker.includes("message.type === 'view'"));
   assert.ok(worker.includes("message.type === 'style'"));
   assert.ok(worker.includes("message.type === 'physical-style'"));

@@ -12,7 +12,7 @@ const countries = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'as
 
 function featureById(id) {
   return countries.features.find(feature => [
-    feature.properties?.editor_id,
+    feature.id,
     feature.properties?.iso_a3,
     feature.properties?.adm0_a3,
   ].includes(id));

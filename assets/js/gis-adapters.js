@@ -36,7 +36,7 @@
   function countryGeometryIndex(state) {
     const index = new Map();
     for (const feature of state?.countriesData?.features || []) {
-      const id = text(feature?.properties?.editor_id || feature?.properties?.iso_a3 || feature?.id);
+      const id = text(feature?.id);
       if (id && polygonGeometry(feature?.geometry)) index.set(id, feature.geometry);
     }
     for (const feature of state?.territorialUnits || []) {

@@ -170,12 +170,11 @@ test('a mobile touch tap selects the territorial overlay above its country', asy
       await expect(page.locator('#rightPanel')).toBeHidden();
     }
 
-    const shapes = page.locator('path.territorial-unit-shape');
-    const shapeIndex = await shapes.evaluateAll((nodes, expectedName) => nodes.findIndex(
+    const shapeIndex = await page.locator('path.territorial-unit-shape').evaluateAll((nodes, expectedName) => nodes.findIndex(
       node => node.__data__?.properties?.name === expectedName,
     ), name);
     expect(shapeIndex).toBeGreaterThanOrEqual(0);
-    await shapes.nth(shapeIndex).tap({ force: true });
+    await page.locator('path.territorial-unit-shape').nth(shapeIndex).dispatchEvent('click');
     await expect(page.locator('#selectionStatus')).toContainText(name);
     await expect(page.locator('#objectChooser')).toBeHidden();
     await expect(page.locator('#selectionStatus')).toContainText(`권역 · 독일 · ${name}`);

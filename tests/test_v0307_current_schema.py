@@ -17,6 +17,7 @@ class CurrentSchemaPolicyTests(unittest.TestCase):
         self.assertIn("schemaVersion: PROJECT_SCHEMA_VERSION", APP)
         self.assertIn("assertCurrentProjectSchema(project)", APP)
         self.assertIn("export const PROJECT_SCHEMA_VERSION = 3", PROJECT)
+        self.assertIn("new Set(['name', 'validFrom', 'validTo'])", PROJECT)
         self.assertIn("createProjectObjectId", PROJECT)
         self.assertIn("crypto.randomUUID", PROJECT)
 

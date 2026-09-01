@@ -12,7 +12,7 @@ import { createAtomicMapStateController } from '../../assets/js/modules/map-stat
 const feature = (id, coordinates) => ({
   type: 'Feature',
   id,
-  properties: { editor_id: id },
+  properties: { name: id },
   geometry: { type: 'Polygon', coordinates: [coordinates] },
 });
 const clone = value => JSON.parse(JSON.stringify(value));
