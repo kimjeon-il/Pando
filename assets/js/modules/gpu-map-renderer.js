@@ -3706,7 +3706,7 @@ export function createGpuMapRenderer(deps) {
       let baseResult = null;
       sceneCacheFallbackFrame = false;
       const viewSignature = sceneViewSignature(viewState);
-      const needsBaseScene = !interactionOnly || !sceneColorCache.canComposite?.(viewSignature) || sceneColorCache.isDirty?.();
+      const needsBaseScene = !sceneColorCache.canComposite?.(viewSignature) || sceneColorCache.isDirty?.();
       if (needsBaseScene) {
         if (interactionOnly) sceneCacheSelectionOnlyBaseDrawCount += 1;
         if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature)) {
@@ -3722,10 +3722,19 @@ export function createGpuMapRenderer(deps) {
       }
       if (needsBaseScene) ensureCountryIdScene();
       if (sceneColorCache.canComposite?.(viewSignature)) {
-        if (!sceneColorCache.composite(pixelWidth, pixelHeight)) {
+        // Keep the previous framebuffer intact while compositing a validated
+        // active scene so a transient draw failure cannot expose transparency.
+        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: false })) {
           sceneCacheFallbackFrame = true;
-          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-          baseResult = drawBaseSceneContent();
+          // A failed composite does not make a same-view active scene stale.
+          // Preserve the already displayed frame instead of clearing it and
+          // exposing a partially redrawn/transparent framebuffer.
+          if (sceneColorCache.hasActive?.() && sceneColorCache.canComposite?.(viewSignature)) {
+            baseResult = lastBaseSceneResult;
+          } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            baseResult = drawBaseSceneContent();
+          }
         }
       } else if (!baseResult) {
         sceneCacheFallbackFrame = true;
@@ -3810,9 +3819,19 @@ export function createGpuMapRenderer(deps) {
         : false;
       if (!compositeSucceeded) {
         sceneCacheFallbackFrame = true;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, externalTargetFramebuffer);
-        baseResult = drawBaseSceneContent();
-        compositeSucceeded = !!baseResult;
+        // Keep the current MapLibre target untouched when the validated
+        // active scene matches this frame. Direct redraw is only safe when
+        // there is no usable scene to preserve.
+        const preserveActive = sceneColorCache.hasActive?.()
+          && sceneColorCache.canComposite?.(currentSignature);
+        if (preserveActive) {
+          baseResult = lastBaseSceneResult;
+          compositeSucceeded = true;
+        } else {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, externalTargetFramebuffer);
+          baseResult = drawBaseSceneContent();
+          compositeSucceeded = !!baseResult;
+        }
       } else {
         sceneCacheFallbackFrame = false;
         externalSceneCompositeCount += 1;
@@ -4090,7 +4109,6 @@ export function createGpuMapRenderer(deps) {
       }
       let result = null;
       if (isWebGlRenderer()) {
-        sceneColorCache.invalidate('gpu-scene-render');
         result = renderWebGl(activeRenderViewState);
       }
       else if (rendererMode === 'canvas-worker') renderCanvasWorker(currentRenderRevision, activeRenderViewState);

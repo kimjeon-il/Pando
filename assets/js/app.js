@@ -7971,9 +7971,15 @@ const {
     const protectedKeys = new Set(objectSelection.snapshot().keys);
     const protectedSignature = [...protectedKeys].sort().join('|');
     const qualitySignature = `${currentRenderQuality.revision}:${currentRenderQuality.backgroundLod}:${state.projection}`;
-    if (syncGpuRenderScene.protectedSignature !== protectedSignature
-      || syncGpuRenderScene.qualitySignature !== qualitySignature) {
+    // Selection protection is interaction state, not scene geometry.  Do not
+    // advance the base-scene revision when the selected keys change: doing so
+    // invalidates SceneColorCache for every selection/hover update and makes
+    // MapLibre expose a partially rebuilt frame.  Render quality changes do
+    // affect the scene packets and remain an explicit geometry invalidation.
+    if (syncGpuRenderScene.protectedSignature !== protectedSignature) {
       syncGpuRenderScene.protectedSignature = protectedSignature;
+    }
+    if (syncGpuRenderScene.qualitySignature !== qualitySignature) {
       syncGpuRenderScene.qualitySignature = qualitySignature;
       renderSceneGeometryRevision += 1;
       for (const domainName of ['base-graticule', 'generic-features', 'distributions']) {
@@ -8078,7 +8084,10 @@ const {
     protectedRenderLodSignature = signature;
     mapWorkScheduler.scheduleIdle('selected-render-lod', () => {
       syncGpuRenderScene();
-      mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, 'selected-render-lod');
+      // A selection-protection refresh changes interaction coverage only.  It
+      // must not request a base-scene frame (which would rebuild/composite the
+      // SceneColorCache during an otherwise selection-only update).
+      mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, 'selected-render-lod');
     }, 40);
     return true;
   }
