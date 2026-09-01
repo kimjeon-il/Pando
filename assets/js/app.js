@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r42';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r43';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -174,7 +174,7 @@ const { createSelectionPerformanceBaseline } = selectionPerformanceBaselineModul
 const { createRenderSceneBuilder } = renderSceneModule;
 const { createAdaptiveRenderQualityController } = adaptiveRenderQualityModule;
 const { createEditPreviewController } = editPreviewControllerModule;
-const { MAP_HOST_KINDS } = mapHostModule;
+const { MAP_HOST_KINDS, normalizeMapSurfaceDragDelta } = mapHostModule;
 const { createLegacyMapHost } = legacyMapHostModule;
 const { createMapLibreMapHost } = mapLibreMapHostModule;
 const { canUseMapLibreHost } = mapLibreRuntimeModule;
@@ -2540,24 +2540,33 @@ const {
     $('map')?.classList.remove('dragging');
   }
 
-  function panMapBy(dx, dy) {
-    if (mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE && mapHost.isReady?.()) {
-      const changed = mapHost.panBy(dx, dy, { animate: false });
-      syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
-      return changed;
-    }
+  function dragLegacyMapViewBy(dx, dy) {
+    const [dragX, dragY] = normalizeMapSurfaceDragDelta(dx, dy);
+    if (dragX === 0 && dragY === 0) return false;
     if (state.projection === 'globe') {
       const sensitivity = 0.22 / Math.max(0.75, Math.sqrt(state.view.globeZoom));
-      state.view.globeRotation[0] += dx * sensitivity;
-      state.view.globeRotation[1] -= dy * sensitivity;
+      state.view.globeRotation[0] += dragX * sensitivity;
+      state.view.globeRotation[1] -= dragY * sensitivity;
       state.view.globeRotation[1] = clamp(state.view.globeRotation[1], -89, 89);
-      return;
+      return true;
     }
     const scale = flatProjection.scale();
-    state.view.flatCenter[0] -= dx * 180 / (Math.PI * scale);
-    state.view.flatCenter[1] += dy * 180 / (Math.PI * scale);
+    state.view.flatCenter[0] -= dragX * 180 / (Math.PI * scale);
+    state.view.flatCenter[1] += dragY * 180 / (Math.PI * scale);
     state.view.flatCenter[1] = clamp(state.view.flatCenter[1], -85, 85);
     state.view.flatCenter[0] = ((state.view.flatCenter[0] + 540) % 360) - 180;
+    return true;
+  }
+
+  function dragMapBy(dx, dy) {
+    if (mapHost?.isReady?.() && typeof mapHost.dragBy === 'function') {
+      const changed = mapHost.dragBy(dx, dy, { animate: false });
+      if (mapHost.getKind?.() === MAP_HOST_KINDS.MAPLIBRE) {
+        syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
+      }
+      return changed;
+    }
+    return dragLegacyMapViewBy(dx, dy);
   }
 
   function wrappedLongitudeDelta(value) {
@@ -2618,7 +2627,7 @@ const {
       });
       const changed = mapHost.zoomAround({ zoom: hostZoom, point: source, animate: false });
       if (source && target && (source[0] !== target[0] || source[1] !== target[1])) {
-        mapHost.panBy(target[0] - source[0], target[1] - source[1], { animate: false });
+        mapHost.dragBy(target[0] - source[0], target[1] - source[1], { animate: false });
       }
       syncStateFromMapHost(mapHost.getViewState(), { invalidate: false });
       return changed;
@@ -2629,7 +2638,7 @@ const {
     if (anchor && target) {
       changed = alignGeographicAnchor(anchor, target) || changed;
     } else if (source && target && (source[0] !== target[0] || source[1] !== target[1])) {
-      panMapBy(target[0] - source[0], target[1] - source[1]);
+      dragMapBy(target[0] - source[0], target[1] - source[1]);
       updateProjection();
       changed = true;
     } else {
@@ -9001,6 +9010,7 @@ const {
       unproject: point => screenToGeo(point),
       requestRepaint: reason => mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, reason || 'legacy-host-repaint'),
       resize: () => gpuMapRenderer.resize(),
+      dragBy: dragLegacyMapViewBy,
       getDebugState: () => ({ viewRevision }),
     };
   }
@@ -9213,7 +9223,7 @@ const {
       getRevision: () => editInteractionRevision,
       beginMovement: beginMapMovement,
       finishMovement: finishMapMovement,
-      panBy: panMapBy,
+      dragBy: dragMapBy,
       scheduleViewRender,
       getZoom: () => state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom,
       transformView: transformMapView,

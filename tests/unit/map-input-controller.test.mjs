@@ -53,7 +53,7 @@ function createController(surface, overrides = {}) {
     getRevision: () => 1,
     beginMovement: () => {},
     finishMovement: () => {},
-    panBy: () => {},
+    dragBy: () => {},
     scheduleViewRender: () => {},
     getZoom: () => 1,
     transformView: () => {},
@@ -97,7 +97,7 @@ test('pointer capture begins only after navigation crosses the drag threshold', 
   const surface = new PointerSurface();
   const pans = [];
   const controller = createController(surface, {
-    panBy: (dx, dy) => pans.push([dx, dy]),
+    dragBy: (dx, dy) => pans.push([dx, dy]),
   });
 
   surface.dispatchEvent(pointerEvent('pointerdown'));
@@ -110,13 +110,27 @@ test('pointer capture begins only after navigation crosses the drag threshold', 
   controller.destroy();
 });
 
+test('pointer drag forwards left and upward surface deltas without sign conversion', () => {
+  const surface = new PointerSurface();
+  const drags = [];
+  const controller = createController(surface, {
+    dragBy: (dx, dy) => drags.push([dx, dy]),
+  });
+
+  surface.dispatchEvent(pointerEvent('pointerdown', { clientX: 40, clientY: 40 }));
+  surface.dispatchEvent(pointerEvent('pointermove', { clientX: 24, clientY: 30 }));
+
+  assert.deepEqual(drags, [[-16, -10]]);
+  controller.destroy();
+});
+
 test('interactive draft handles do not begin map panning', () => {
   const surface = new PointerSurface();
   surface.isDraftHandle = true;
   const pans = [];
   const controller = createController(surface, {
     interactiveTarget: target => target.isDraftHandle === true,
-    panBy: (dx, dy) => pans.push([dx, dy]),
+    dragBy: (dx, dy) => pans.push([dx, dy]),
   });
 
   surface.dispatchEvent(pointerEvent('pointerdown'));
@@ -137,7 +151,7 @@ test('genericFeature owns a drag, emits local coalesced samples, and does not pa
     beginStroke: (point, event) => { events.push(['begin', point, event.pointerType]); return true; },
     moveStroke: points => events.push(['move', points]),
     endStroke: point => events.push(['end', point]),
-    panBy: (dx, dy) => pans.push([dx, dy]),
+    dragBy: (dx, dy) => pans.push([dx, dy]),
   });
 
   surface.dispatchEvent(pointerEvent('pointerdown', { clientX: 20, clientY: 30 }));

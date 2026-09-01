@@ -14,6 +14,22 @@ export function normalizeMapProjectionKind(value) {
     : MAP_PROJECTION_KINDS.FLAT;
 }
 
+export function normalizeMapSurfaceDragDelta(dx, dy) {
+  const normalize = value => {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+  };
+  return Object.freeze([normalize(dx), normalize(dy)]);
+}
+
+export function mapSurfaceDragDeltaToCameraOffset(dx, dy) {
+  const [dragX, dragY] = normalizeMapSurfaceDragDelta(dx, dy);
+  return Object.freeze([
+    dragX === 0 ? 0 : -dragX,
+    dragY === 0 ? 0 : -dragY,
+  ]);
+}
+
 export function createMapHostEventHub() {
   const listeners = new Map();
 
@@ -68,6 +84,7 @@ const REQUIRED_METHODS = Object.freeze([
   'getViewportSize',
   'project',
   'unproject',
+  'dragBy',
   'requestRepaint',
   'resize',
   'on',

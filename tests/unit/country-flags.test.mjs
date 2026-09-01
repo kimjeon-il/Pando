@@ -69,7 +69,7 @@ test('effective flags honor project overrides, the built-in default, and explici
   assert.match(effectiveCountryFlagUrl({ countryId: 'KOR' }), /\/kr\.svg$/);
   assert.equal(effectiveCountryFlagUrl({ countryId: 'BRT' }), null);
 
-  const bundled = new URL(currentCountryFlagUrl('KOR', { assetRevision: '0.30.0-r42' }));
+  const bundled = new URL(currentCountryFlagUrl('KOR', { assetRevision: '0.30.0-r43' }));
   assert.match(decodeURIComponent(bundled.pathname), /assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/kr\.svg$/);
-  assert.equal(bundled.searchParams.get('v'), '0.30.0-r42');
+  assert.equal(bundled.searchParams.get('v'), '0.30.0-r43');
 });
