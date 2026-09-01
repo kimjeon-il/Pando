@@ -7864,11 +7864,55 @@ const {
   }
 
   function renderBase() {
+    // MapLibre owns the globe camera and its framebuffer when the preferred
+    // host is active.  The legacy D3 sphere geometry cannot be reused as-is,
+    // because its orthographic camera differs from MapLibre's globe camera.
+    // The horizon is therefore rebuilt from the active MapLibre view below so
+    // the visible border remains present and follows the same camera.
+    const mapLibreBaseOwned = mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE
+      && mapHost?.isReady?.();
+    shadowLayer.attr('display', mapLibreBaseOwned ? 'none' : null);
+    oceanLayer.attr('display', mapLibreBaseOwned ? 'none' : null);
     baseSvg.classed('flat-projection', state.projection !== 'globe');
-    shadowLayer.datum({ type: 'Sphere' }).attr('d', path);
+    if (mapLibreBaseOwned && state.projection === 'globe') {
+      // Keep the globe horizon visible, but derive it from the same camera as
+      // MapLibre instead of the legacy D3 orthographic projection.  Reusing
+      // the D3 Sphere path here produces the detached circular border seen
+      // after a globe rotation because the two projections have different
+      // horizon centers/radii.
+      const view = mapHost.getViewState?.();
+      const viewport = mapHost.getViewportSize?.() || {};
+      const center = view?.center && mapHost.project?.(view.center);
+      const probeCoordinate = view?.center
+        ? [Number(view.center[0]) + 90, Number(view.center[1])]
+        : null;
+      const probe = probeCoordinate && mapHost.project?.(probeCoordinate);
+      const width = Math.max(1, Number(viewport.width) || 1);
+      const height = Math.max(1, Number(viewport.height) || 1);
+      const cx = Number(center?.[0]);
+      const cy = Number(center?.[1]);
+      const measuredRadius = Math.hypot(Number(probe?.[0]) - cx, Number(probe?.[1]) - cy);
+      const radius = Number.isFinite(measuredRadius) && measuredRadius > 1
+        && measuredRadius < Math.max(width, height) * 1.5
+        ? measuredRadius
+        : Math.min(width, height) * 0.5;
+      if (Number.isFinite(cx) && Number.isFinite(cy) && Number.isFinite(radius)) {
+        shadowLayer
+          .attr('display', null)
+          .attr('d', `M ${cx - radius},${cy} a ${radius},${radius} 0 1,0 ${radius * 2},0 a ${radius},${radius} 0 1,0 ${-radius * 2},0`);
+      } else {
+        shadowLayer.datum({ type: 'Sphere' }).attr('d', path).attr('display', 'none');
+      }
+    } else {
+      shadowLayer.datum({ type: 'Sphere' }).attr('d', path);
+    }
     oceanLayer.datum({ type: 'Sphere' }).attr('d', path);
     const graticuleGeometry = graticule();
-    graticuleLayer.datum(graticuleGeometry).attr('d', path).attr('data-gpu-scene-key', 'base:graticule');
+    graticuleLayer
+      .attr('display', mapLibreBaseOwned ? 'none' : null)
+      .datum(graticuleGeometry)
+      .attr('d', path)
+      .attr('data-gpu-scene-key', 'base:graticule');
     const light = (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light';
     replaceGpuSceneDomain('base-graticule', {
       strokes: [{
