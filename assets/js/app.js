@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r45';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r47';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -2033,6 +2033,13 @@ const {
   let mapInteractionLayer;
   let territorialBoundaryCache = { countries: null, units: null, unitGeometryRevision: -1, segments: [], rebuildCount: 0 };
   let territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
+  // Territorial units are still mutated by a few import/edit paths that use
+  // push() or replace a geometry without going through the repository's
+  // revision setter.  Keep a session-only identity token for each geometry so
+  // the internal-boundary cache cannot reuse a batch from the previous unit
+  // collection after those in-place mutations.
+  const territorialBoundaryGeometryTokens = new WeakMap();
+  let territorialBoundaryGeometryTokenSequence = 0;
   let mapResizeObserver = null;
   let mapResizeFrame = 0;
   let mapResizeSignature = '';
@@ -6760,16 +6767,49 @@ const {
     replaceGpuSceneDomain('distributions', { polygons, strokes });
   }
 
+  function territorialBoundaryGeometryToken(geometry) {
+    if (!geometry || typeof geometry !== 'object') return 'none';
+    let token = territorialBoundaryGeometryTokens.get(geometry);
+    if (!token) {
+      token = String(++territorialBoundaryGeometryTokenSequence);
+      territorialBoundaryGeometryTokens.set(geometry, token);
+    }
+    return token;
+  }
+
+  function territorialBoundaryInputSignature(countries, units) {
+    const countrySignature = (countries || []).map(feature => [
+      String(feature?.id || ''),
+      territorialBoundaryGeometryToken(feature?.geometry),
+    ].join(':')).join('|');
+    const unitSignature = (units || []).map(feature => [
+      String(feature?.id || ''),
+      territorialBoundaryGeometryToken(feature?.geometry),
+      String(feature?.properties?.unitType || ''),
+      String(feature?.properties?.sovereignId || ''),
+      String(feature?.properties?.parentId || ''),
+    ].join(':')).join('|');
+    return [
+      countryLandRevision,
+      mapObjectGeometryRevisions.territorial,
+      countrySignature,
+      unitSignature,
+    ].join(';');
+  }
+
   function territorialInternalBoundarySegments() {
     const countries = state.countriesData?.features || [];
     const units = state.territorialUnits || [];
+    const inputSignature = territorialBoundaryInputSignature(countries, units);
     if (territorialBoundaryCache.countries !== countries
       || territorialBoundaryCache.units !== units
-      || territorialBoundaryCache.unitGeometryRevision !== mapObjectGeometryRevisions.territorial) {
+      || territorialBoundaryCache.unitGeometryRevision !== mapObjectGeometryRevisions.territorial
+      || territorialBoundaryCache.inputSignature !== inputSignature) {
       territorialBoundaryCache = {
         countries,
         units,
         unitGeometryRevision: mapObjectGeometryRevisions.territorial,
+        inputSignature,
         segments: buildTerritorialInternalBoundarySegments(countries, units),
         rebuildCount: territorialBoundaryCache.rebuildCount + 1,
       };
@@ -15722,6 +15762,12 @@ const {
     }
     if (countriesAdded) {
       reindexCountries(state.countriesData, true);
+      // Historical-library country insertion can replace several donor
+      // geometries without going through markCountryGeometriesChanged().
+      // Advance the canonical country revision here so RenderScene and its
+      // SceneColorCache cannot treat the pre-insertion mesh as unchanged.
+      countryLandRevision += 1;
+      territorialBoundaryCache.countries = null;
       mapEditClient.rebase(state.countriesData.features);
       scheduleGpuMeshRebuild(0);
     }
