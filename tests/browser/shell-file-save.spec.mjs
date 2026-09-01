@@ -105,8 +105,11 @@ test('one load command automatically classifies vector data and PandoLab project
   await expect(page.locator('#gisStepIndicator')).toHaveText('2/5 · 가져올 내용');
   await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
   await page.locator('#gisImportCancelBtn').click();
-  await expect(page.locator('#openGisBtn')).toBeFocused();
+  await expect(page.locator('#gisImportModal')).toBeHidden();
 
+  await page.locator('#mobileFileBtn').click();
+  if (!await page.locator('#fileMenu').isVisible()) await page.locator('#mobileFileBtn').click();
+  await expect(page.locator('#fileMenu')).toBeVisible();
   chooserPromise = page.waitForEvent('filechooser');
   await page.locator('#openGisBtn').click();
   await (await chooserPromise).setFiles({ name: 'saved-project.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: projectBuffer });

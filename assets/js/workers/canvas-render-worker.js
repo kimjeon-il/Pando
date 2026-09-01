@@ -505,7 +505,7 @@ function canvasFallbackWorkerMain() {
     }
 
     function countryId(feature, index) {
-      return String(feature.properties?.editor_id || feature.properties?.iso_a3 || index);
+      return String(feature?.id || index);
     }
 
     function countryOutlineFeature(feature) {
@@ -553,7 +553,7 @@ function canvasFallbackWorkerMain() {
           context.beginPath();
           geoPath(feature);
           context.globalAlpha = fillAlpha;
-          context.fillStyle = message.colors?.[countryId(feature, index)] || feature.properties?.editor_color || defaultLand;
+          context.fillStyle = message.colors?.[countryId(feature, index)] || defaultLand;
           context.fill();
         }
         const emphasis = message.countryEmphasis || {};

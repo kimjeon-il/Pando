@@ -1502,7 +1502,7 @@ export function createGpuMapRenderer(deps) {
       if (rawRequest && !Array.isArray(rawRequest) && typeof rawRequest === 'object' && rawRequest.ids) {
         const ids = [...new Set([...(rawRequest.ids || [])].map(String).filter(Boolean))];
         const byId = new Map((rawRequest.features || []).map(feature => [
-          String(feature?.properties?.editor_id || feature?.properties?.iso_a3 || ''),
+          String(feature?.id || ''),
           feature,
         ]).filter(([id]) => id));
         const removed = new Set((rawRequest.removedIds || []).map(String));
@@ -1517,7 +1517,7 @@ export function createGpuMapRenderer(deps) {
       const removedIds = [];
       for (const id of ids) {
         const feature = countryFeatureById(id);
-        if (feature && String(feature.properties?.editor_id || '') === id) features.push(feature);
+        if (feature && String(feature?.id || '') === id) features.push(feature);
         else removedIds.push(id);
       }
       return { ids, features, removedIds };
@@ -1572,7 +1572,7 @@ export function createGpuMapRenderer(deps) {
       };
       for (const id of ids) countryOverrideIds.add(id);
       for (const feature of features) {
-        const id = String(feature?.properties?.editor_id || '');
+        const id = String(feature?.id || '');
         if (id) overrideFeatureSnapshots.set(id, deepClone(feature));
       }
       for (const id of removedIds) overrideFeatureSnapshots.delete(String(id));
@@ -1684,7 +1684,7 @@ export function createGpuMapRenderer(deps) {
       offset += triangleIndices.byteLength;
       const lineIndices = new Uint32Array(buffer, offset, lineIndexCount);
       const ids = (features || window.PANDOLAB_COUNTRIES?.features || []).slice(0, countryCount)
-        .map((feature, index) => String(feature.properties?.editor_id || feature.properties?.iso_a3 || index));
+        .map((feature, index) => String(feature?.id || index));
       return { mesh: { positions, countryIndices, triangleIndices, lineIndices }, ids, sourceCoordinateCount: header[6], buffer };
     }
 
@@ -2948,7 +2948,7 @@ export function createGpuMapRenderer(deps) {
         hydroWorkerGeneration += 1;
         hydroWorkerReadyResolve?.(false);
         hydroWorkerReadyResolve = null;
-      }, 15000);
+      }, 30000);
       connectHydroCanvasWorkers();
       return hydroWorkerReadyPromise;
     }
@@ -3135,7 +3135,7 @@ export function createGpuMapRenderer(deps) {
         if (attempts <= 3) {
           setTimeout(() => {
             requestTerrainTile(spec, priority);
-          }, retryDelay);
+          }, retryDelay + 16);
         }
         console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
       }).finally(() => {
@@ -3826,7 +3826,7 @@ export function createGpuMapRenderer(deps) {
       ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
       if (state.layerVisibility.countries) {
         for (const feature of state.countriesData?.features || []) {
-          const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+          const id = String(feature?.id || '');
           if (!isLayerItemVisible('countries', id)) continue;
           ctx2d.beginPath();
           canvasPath(feature);
@@ -3845,7 +3845,7 @@ export function createGpuMapRenderer(deps) {
       }
       renderCanvasHydro(canvasPath, theme);
       if (state.layerVisibility.countries) for (const feature of state.countriesData?.features || []) {
-          const id = String(feature.properties?.editor_id || feature.properties?.iso_a3 || '');
+          const id = String(feature?.id || '');
           if (!isLayerItemVisible('countries', id)) continue;
           ctx2d.beginPath();
           canvasPath(countryOutlineFeature(feature));
@@ -3861,7 +3861,7 @@ export function createGpuMapRenderer(deps) {
     function canvasWorkerStyleMessage() {
       const colors = {};
       for (const feature of state.countriesData?.features || []) {
-        colors[String(feature.properties?.editor_id || feature.properties?.iso_a3 || '')] = countryColor(feature);
+        colors[String(feature?.id || '')] = countryColor(feature);
       }
       return {
         type: 'style',
@@ -4108,6 +4108,7 @@ export function createGpuMapRenderer(deps) {
         canvasDataReplacementResolver?.();
         canvasDataReplacementResolver = null;
         invalidateGpuFrame('canvas-data-ready');
+        renderCanvasWorker(Math.max(currentRenderRevision, Number(message.revision || 0)));
         return;
       }
       if (message.type === 'hydro-pick') {

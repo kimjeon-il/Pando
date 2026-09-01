@@ -121,7 +121,7 @@ test('dated relations resolve by reference date and overlapping ranges are rejec
 });
 
 test('country adapter and repository expose one territorial lookup surface', () => {
-  const country = { type: 'Feature', id: 'PL', properties: { editor_id: 'PL', editor_name: '폴란드' }, geometry: square() };
+  const country = { type: 'Feature', id: 'PL', properties: { name: '폴란드' }, geometry: square() };
   assert.equal(createCountryTerritorialAdapter(country).properties.sovereignId, 'PL');
   const territory = createTerritorialFeature({ id: 't1', unitType: 'territory', parentId: 'PL', sovereignId: 'PL', geometry: square() });
   const repository = createTerritorialRepository({ getCountries: () => ({ features: [country] }), getUnits: () => [territory] });

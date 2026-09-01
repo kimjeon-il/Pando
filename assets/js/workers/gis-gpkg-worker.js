@@ -1,6 +1,6 @@
 'use strict';
 
-const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r41';
+const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r42';
 const GIS_ADAPTER_URL = new URL('../gis-adapters.js', self.location.href);
 GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION);
 importScripts(GIS_ADAPTER_URL.href);
@@ -214,26 +214,17 @@ function writeAtlasTables(db, payload) {
     const overrides = state.countryOverrides || {};
     const countryRows = (state.countriesData?.features || []).map(feature => {
       const properties = feature.properties || {};
-      const id = String(properties.editor_id || feature.id || '');
+      const id = String(feature?.id || '');
       return {
         geometry: feature.geometry,
-        id,
-        name: overrides[id]?.name || properties.editor_name || properties.editor_original_name || properties.name || id,
-        type: 'country',
-        parent_id: '', sovereign_id: id, admin_level: null,
-        is_remainder: 0, valid_from: properties.validFrom || '', valid_to: properties.validTo || '',
-        color: overrides[id]?.color || properties.editor_color || '', style_key: properties.style_key || '',
-        source_library_id: properties.sourceLibraryId || '',
-        source_geometry_version: properties.sourceGeometryVersion || '',
-        metadata_json: JSON.stringify(properties.metadata || {}),
-        properties_json: JSON.stringify(properties),
+        pandolab_id: id,
+        pandolab_name: overrides[id]?.name || properties.name || id,
+        valid_from: properties.validFrom || null,
+        valid_to: properties.validTo || null,
       };
     });
     const countryColumns = [
-      { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
-      { name: 'admin_level', type: 'INTEGER' }, { name: 'is_remainder', type: 'INTEGER' }, { name: 'valid_from' }, { name: 'valid_to' },
-      { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
-      { name: 'metadata_json' }, { name: 'properties_json' },
+      { name: 'pandolab_id' }, { name: 'pandolab_name' }, { name: 'valid_from' }, { name: 'valid_to' },
     ];
     createFeatureTable(db, { tableName: 'countries', geometryType: 'MULTIPOLYGON', rows: countryRows, columns: countryColumns, description: 'PandoLab GIS countries' });
   }

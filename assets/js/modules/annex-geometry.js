@@ -23,11 +23,11 @@ export function planDrawnTerritoryAnnex({ drawnGeometry, donorFeatures = [], tar
   if (!transferGeometry) return null;
   const donorChanges = donors.map(feature => {
     const overlap = clipper.intersection(polygonCoordinates(feature.geometry), transferCoordinates);
-    return { countryId: String(feature.properties?.editor_id || feature.id || ''), geometry: geometryFromCoordinates(overlap) };
+    return { countryId: String(feature?.id || ''), geometry: geometryFromCoordinates(overlap) };
   }).filter(item => item.geometry);
   return {
     transferGeometry,
     donorChanges,
-    targetCountryId: String(targetFeature.properties?.editor_id || targetFeature.id || ''),
+    targetCountryId: String(targetFeature?.id || ''),
   };
 }

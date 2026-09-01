@@ -53,7 +53,8 @@ test('freehand river becomes one editable draft history step', async ({ page }) 
   await expect(page.locator('#modeDraftRedrawBtn')).toBeVisible();
 
   await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('.selection-overlay-layer .map-selection-outline')).toBeVisible();
+  await expect(page.locator('#modeEditingHud')).toBeHidden();
+  await expect(page.locator('#hydroProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
 

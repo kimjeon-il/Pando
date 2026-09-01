@@ -59,16 +59,11 @@ function meshHeader(value) {
 
 function minimalFeature(featureValue, index) {
   const properties = featureValue.properties || {};
-  const id = String(properties.editor_id || properties.iso_a3 || index);
+  const id = String(featureValue.id || index);
   return {
     type: 'Feature',
-    properties: {
-      name: properties.name || properties.ADMIN || properties.NAME || '이름 없는 국가',
-      iso_a3: properties.iso_a3 || properties.ISO_A3 || properties.ADM0_A3 || id,
-      continent: properties.continent || '',
-      pop_est: Number(properties.pop_est || 0),
-      editor_id: id,
-    },
+    id,
+    properties: { name: properties.name || '이름 없는 국가' },
     geometry: featureValue.geometry,
   };
 }
@@ -121,7 +116,7 @@ function hasPolygonArea(multiPolygon) {
 function overlappingFeaturePairs(collection) {
   const entries = collection.features.map((featureValue, index) => ({
     index,
-    id: String(featureValue.properties?.editor_id || index),
+    id: String(featureValue.id || index),
     geometry: featureValue.geometry,
     bounds: geometryBounds(featureValue.geometry),
   })).sort((left, right) => left.bounds[0] - right.bounds[0]);
@@ -332,7 +327,7 @@ function buildPreview(source) {
     name: `pandolab-world-preview-v${APP_VERSION}`,
     features: source.features.map(minimalFeature),
   };
-  const originalIds = minimal.features.map(featureValue => featureValue.properties.editor_id);
+  const originalIds = minimal.features.map(featureValue => featureValue.id);
   if (new Set(originalIds).size !== 258) throw new Error('원본 국가 ID가 정확히 258개여야 합니다.');
   const canonicalErrors = minimal.features.flatMap((featureValue, index) => {
     const issues = canonicalFeatureIssues(featureValue);
@@ -350,7 +345,7 @@ function buildPreview(source) {
     const candidate = materialized.collection;
     const coordinateCount = countCoordinates(candidate.features.map(featureValue => featureValue.geometry?.coordinates));
     const areaError = Math.abs(sphericalArea(candidate) - originalArea) / originalArea;
-    const ids = candidate.features.map(featureValue => String(featureValue.properties?.editor_id || ''));
+    const ids = candidate.features.map(featureValue => String(featureValue.id || ''));
     const invalidGeometryCount = candidate.features.filter(featureValue => canonicalFeatureIssues(featureValue).length).length;
     const geometriesValid = invalidGeometryCount === 0;
     diagnostics.push({

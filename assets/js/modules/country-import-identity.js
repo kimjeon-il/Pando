@@ -1,8 +1,6 @@
 const text = value => String(value ?? '').trim();
-
-const OFFICIAL_ID_FIELDS = new Set([
-  'adm0_a3', 'iso_a3', 'iso3', 'gid_0', 'sov_a3', 'gu_a3', 'su_a3',
-]);
+const OFFICIAL_ID_FIELDS = new Set(['adm0_a3', 'iso_a3', 'gid_0', '__feature_id__']);
+const SAFE_SOURCE_ID = /^[\p{L}\p{N}][\p{L}\p{N}._:-]{0,127}$/u;
 
 function normalizedIdentity(raw = {}) {
   return {
@@ -15,15 +13,14 @@ function normalizedIdentity(raw = {}) {
 
 export function countryImportIdentity(feature) {
   const properties = feature?.properties || {};
-  const metadata = properties.metadata && typeof properties.metadata === 'object' ? properties.metadata : {};
-  const identity = normalizedIdentity(metadata.importIdentity || {
-    sourceNamespace: metadata.sourceNamespace,
-    sourceIdField: metadata.sourceIdField,
-    sourceId: metadata.sourceId,
+  const identity = normalizedIdentity(feature?.importIdentity || properties.importIdentity || {
+    sourceId: properties.pandolab_id || feature?.id,
+    sourceIdField: properties.pandolab_id ? 'pandolab_id' : '',
+    sourceNamespace: properties.pandolab_id ? 'pandolab' : '',
     pandolabId: properties.pandolab_id,
   });
   if (!identity.sourceId) identity.sourceId = text(properties.pandolab_id || feature?.id);
-  if (!identity.sourceIdField) identity.sourceIdField = properties.pandolab_id ? 'pandolab_id' : '';
+  if (!identity.sourceIdField && properties.pandolab_id) identity.sourceIdField = 'pandolab_id';
   if (!identity.sourceNamespace && properties.pandolab_id) identity.sourceNamespace = 'pandolab';
   if (!identity.pandolabId && properties.pandolab_id) identity.pandolabId = text(properties.pandolab_id);
   return identity;
@@ -36,62 +33,9 @@ export function countryImportIdentityKey(identityOrFeature) {
   return [identity.sourceNamespace, identity.sourceIdField.toLowerCase(), identity.sourceId].join(':');
 }
 
-function countryId(feature) {
-  return text(feature?.properties?.editor_id || feature?.id);
-}
-
-function aliases(feature) {
-  const properties = feature?.properties || {};
-  const metadata = properties.metadata && typeof properties.metadata === 'object' ? properties.metadata : {};
-  const values = Array.isArray(metadata.importIdentities) ? metadata.importIdentities : [];
-  const legacy = metadata.sourceId ? [{
-    sourceNamespace: metadata.sourceNamespace || '',
-    sourceIdField: metadata.sourceIdField || '',
-    sourceId: metadata.sourceId,
-  }] : [];
-  return [...values, ...legacy].map(normalizedIdentity).filter(identity => identity.sourceId);
-}
-
-function candidateMap(existingCountries) {
-  const byEditorId = new Map();
-  const bySourceKey = new Map();
-  const byOfficialId = new Map();
-  const byLegacyId = new Map();
-  const add = (map, key, feature) => {
-    const normalized = text(key).toLowerCase();
-    if (!normalized) return;
-    if (!map.has(normalized)) map.set(normalized, []);
-    map.get(normalized).push(feature);
-  };
-  for (const feature of existingCountries || []) {
-    const id = countryId(feature);
-    if (id) byEditorId.set(id, feature);
-    for (const alias of aliases(feature)) add(bySourceKey, countryImportIdentityKey(alias), feature);
-    const properties = feature?.properties || {};
-    for (const field of ['iso_a3', 'ISO_A3', 'ADM0_A3', 'SOV_A3', 'GID_0']) add(byOfficialId, properties[field], feature);
-    add(byLegacyId, id, feature);
-    add(byLegacyId, properties?.metadata?.sourceId, feature);
-  }
-  return { byEditorId, bySourceKey, byOfficialId, byLegacyId };
-}
-
-function uniqueCandidates(rows, reason, confidence) {
-  const seen = new Map();
-  for (const feature of rows || []) {
-    const editorId = countryId(feature);
-    if (editorId && !seen.has(editorId)) seen.set(editorId, {
-      editorId,
-      feature,
-      reason,
-      confidence,
-    });
-  }
-  return [...seen.values()];
-}
-
 function incomingName(feature, index) {
   const properties = feature?.properties || {};
-  return text(properties.editor_name || properties.editor_original_name || properties.pandolab_name || properties.name || properties.NAME)
+  return text(properties.name || properties.pandolab_name || properties.NAME_KO || properties.NAME_0 || properties.NAME)
     || `국가 ${index + 1}`;
 }
 
@@ -99,7 +43,9 @@ export function resolveCountryIdentities(incomingFeatures = [], existingCountrie
   manualMappings = {},
   allowImplicitNew = false,
 } = {}) {
-  const indexes = candidateMap(existingCountries);
+  const existingById = new Map((existingCountries || [])
+    .map(feature => [text(feature?.id), feature])
+    .filter(([id]) => id));
   return (incomingFeatures || []).map((feature, index) => {
     const identity = countryImportIdentity(feature);
     const sourceKey = countryImportIdentityKey(identity);
@@ -109,49 +55,31 @@ export function resolveCountryIdentities(incomingFeatures = [], existingCountrie
     }
     if (manual.startsWith('existing:')) {
       const editorId = manual.slice('existing:'.length);
-      const existingCountry = indexes.byEditorId.get(editorId) || null;
+      const existingCountry = existingById.get(editorId) || null;
       if (existingCountry) return { status: 'existing', editorId, existingCountry, candidates: [], sourceIdentity: identity, sourceKey, feature, name: incomingName(feature, index), resolutionReason: 'manual-existing' };
     }
 
-    let candidates = [];
-    if (identity.pandolabId && indexes.byEditorId.has(identity.pandolabId)) {
-      candidates = uniqueCandidates([indexes.byEditorId.get(identity.pandolabId)], 'pandolab-id', 1);
-    }
-    if (!candidates.length && identity.sourceNamespace && identity.sourceIdField && identity.sourceId) {
-      candidates = uniqueCandidates(indexes.bySourceKey.get(sourceKey.toLowerCase()), 'source-key', 0.99);
-    }
-    if (!candidates.length && OFFICIAL_ID_FIELDS.has(identity.sourceIdField.toLowerCase())) {
-      candidates = uniqueCandidates(indexes.byOfficialId.get(identity.sourceId.toLowerCase()), 'official-id', 0.96);
-    }
-    if (!candidates.length && identity.sourceId) {
-      candidates = uniqueCandidates(indexes.byLegacyId.get(identity.sourceId.toLowerCase()), 'legacy-id', 0.9);
-    }
-    if (candidates.length === 1) {
-      const match = candidates[0];
-      return { status: 'existing', editorId: match.editorId, existingCountry: match.feature, candidates, sourceIdentity: identity, sourceKey, feature, name: incomingName(feature, index), resolutionReason: match.reason };
-    }
-    if (candidates.length > 1) {
-      return { status: 'ambiguous', editorId: null, existingCountry: null, candidates: candidates.map(({ feature: _feature, ...candidate }) => candidate), sourceIdentity: identity, sourceKey, feature, name: incomingName(feature, index), resolutionReason: 'multiple-candidates' };
+    const trustedId = text(identity.pandolabId || (OFFICIAL_ID_FIELDS.has(identity.sourceIdField.toLowerCase()) ? identity.sourceId : ''));
+    const existingCountry = existingById.get(trustedId) || null;
+    if (existingCountry) {
+      return {
+        status: 'existing', editorId: trustedId, existingCountry,
+        candidates: [{ editorId: trustedId, reason: identity.pandolabId ? 'pandolab-id' : 'official-id', confidence: identity.pandolabId ? 1 : 0.96 }],
+        sourceIdentity: identity, sourceKey, feature, name: incomingName(feature, index),
+        resolutionReason: identity.pandolabId ? 'pandolab-id' : 'official-id',
+      };
     }
     return { status: allowImplicitNew ? 'new' : 'unresolved', editorId: null, existingCountry: null, candidates: [], sourceIdentity: identity, sourceKey, feature, name: incomingName(feature, index), resolutionReason: allowImplicitNew ? 'replace-project' : 'no-match' };
   });
 }
 
-function mergedAliases(existing, identity) {
-  const current = aliases(existing);
-  const next = normalizedIdentity(identity);
-  const wantedKey = countryImportIdentityKey(next).toLowerCase();
-  if (next.sourceId && !current.some(alias => countryImportIdentityKey(alias).toLowerCase() === wantedKey)) current.push(next);
-  return current.map(alias => ({
-    sourceNamespace: alias.sourceNamespace,
-    sourceIdField: alias.sourceIdField,
-    sourceId: alias.sourceId,
-  }));
+function trustedNewId(identity) {
+  const official = OFFICIAL_ID_FIELDS.has(text(identity?.sourceIdField).toLowerCase());
+  const candidate = text(identity?.pandolabId || (official ? identity?.sourceId : ''));
+  return SAFE_SOURCE_ID.test(candidate) ? candidate : '';
 }
 
-export function materializeResolvedCountries(resolutions, {
-  createId = () => globalThis.crypto.randomUUID(),
-} = {}) {
+export function materializeResolvedCountries(resolutions, { createId = () => globalThis.crypto.randomUUID() } = {}) {
   const unresolved = (resolutions || []).filter(row => !['existing', 'new'].includes(row.status));
   if (unresolved.length) {
     const error = new Error('가져온 국가의 기존 국가 ID를 모두 확인해야 합니다.');
@@ -159,32 +87,25 @@ export function materializeResolvedCountries(resolutions, {
     error.unresolved = unresolved.map(row => row.sourceKey);
     throw error;
   }
+  const usedIds = new Set();
   return (resolutions || []).map(row => {
-    const incoming = structuredClone(row.feature);
-    const existing = row.existingCountry;
-    const trustedPandolabId = row.status === 'new'
-      && row.sourceIdentity?.sourceNamespace === 'pandolab'
-      ? text(row.sourceIdentity?.pandolabId || row.sourceIdentity?.sourceId)
-      : '';
-    const editorId = row.status === 'existing' ? row.editorId : (trustedPandolabId || text(createId()));
-    if (!editorId) throw new Error('새 국가의 프로젝트 ID를 만들지 못했습니다.');
-    const incomingProperties = incoming.properties || {};
-    const existingProperties = existing?.properties || {};
-    const metadata = {
-      ...(existingProperties.metadata && typeof existingProperties.metadata === 'object' ? existingProperties.metadata : {}),
-      ...(incomingProperties.metadata && typeof incomingProperties.metadata === 'object' ? incomingProperties.metadata : {}),
-      importIdentities: mergedAliases(existing, row.sourceIdentity),
+    const preferred = row.status === 'existing' ? text(row.editorId) : trustedNewId(row.sourceIdentity);
+    let id = preferred;
+    if (!id || usedIds.has(id)) id = text(createId());
+    if (!id || usedIds.has(id)) throw new Error('새 국가의 프로젝트 ID를 만들지 못했습니다.');
+    usedIds.add(id);
+    const sourceProperties = row.feature?.properties || {};
+    const existingProperties = row.existingCountry?.properties || {};
+    const properties = {
+      name: row.status === 'existing' ? (text(existingProperties.name) || row.name || id) : (row.name || id),
     };
-    delete metadata.importIdentity;
-    incoming.id = editorId;
-    incoming.properties = {
-      ...existingProperties,
-      ...incomingProperties,
-      editor_id: editorId,
-      editor_custom: row.status === 'new' ? true : existingProperties.editor_custom === true,
-      metadata,
-    };
-    return incoming;
+    const validFrom = text(sourceProperties.validFrom);
+    const validTo = text(sourceProperties.validTo);
+    if (validFrom) properties.validFrom = validFrom;
+    else if (text(existingProperties.validFrom)) properties.validFrom = text(existingProperties.validFrom);
+    if (validTo) properties.validTo = validTo;
+    else if (text(existingProperties.validTo)) properties.validTo = text(existingProperties.validTo);
+    return { type: 'Feature', id, properties, geometry: structuredClone(row.feature?.geometry) };
   });
 }
 

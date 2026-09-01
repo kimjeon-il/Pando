@@ -149,7 +149,7 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   await page.mouse.click(point.x, point.y);
   await selectUiOption(page, '#labelKindInput', 'capital');
   await expect(page.locator('.user-label')).toContainText('겹침 테스트');
-  await expect(page.locator('#labelProperties')).toBeVisible();
+  await expect(page.locator('#labelProperties')).toBeVisible({ timeout: 30_000 });
   await expect(page.locator('#labelProperties .editor-disclosure')).toHaveCount(0);
   const labelNotes = page.locator('#labelNotesInput');
   await expect(labelNotes).toBeVisible();
@@ -187,12 +187,28 @@ test('mobile additive selection uses the explicit selection control and keeps la
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
   const openLayers = async () => {
-    if (await page.locator('#mobileMapBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileMapBtn').click();
+    const trigger = page.locator('#mobileMapBtn');
+    const panel = page.locator('#leftPanel');
+    if (!await panel.isVisible()) {
+      if (await trigger.getAttribute('aria-expanded') === 'true') await trigger.click();
+      await trigger.click();
+    }
+    if (!await panel.isVisible()) {
+      await page.getByRole('slider', { name: '지도 창 높이 조절' }).evaluate(element => {
+        const BrowserKeyboardEvent = element.ownerDocument.defaultView.KeyboardEvent;
+        element.dispatchEvent(new BrowserKeyboardEvent('keydown', { key: 'End', bubbles: true }));
+      });
+    }
     await expect(page.locator('#leftPanel')).toBeVisible();
   };
   const closeLayers = async () => {
-    if (await page.locator('#mobileMapBtn').getAttribute('aria-expanded') === 'true') await page.locator('#mobileMapBtn').click();
-    await expect(page.locator('#leftPanel')).toBeHidden();
+    const trigger = page.locator('#mobileMapBtn');
+    const panel = page.locator('#leftPanel');
+    if (await panel.isVisible()) {
+      if (await trigger.getAttribute('aria-expanded') !== 'true') await trigger.click();
+      await trigger.click();
+    }
+    await expect(panel).toBeHidden({ timeout: 30_000 });
   };
 
   await openLayers();

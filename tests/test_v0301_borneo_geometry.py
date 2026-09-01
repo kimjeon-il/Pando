@@ -31,7 +31,7 @@ class BorneoGeometryRegressionTests(unittest.TestCase):
         duplicate_hits = []
         for feature in collection["features"]:
             geometry = feature.get("geometry") or {}
-            feature_id = feature["properties"].get("editor_id")
+            feature_id = feature.get("id")
             self.assertIn(geometry.get("type"), {"Polygon", "MultiPolygon"}, feature_id)
             self.assertTrue(shape(geometry).is_valid, feature_id)
             for polygon_index, polygon in enumerate(polygons(geometry)):
@@ -53,7 +53,7 @@ class BorneoGeometryRegressionTests(unittest.TestCase):
         self.assert_collection_is_canonical(PREVIEW_COUNTRIES)
 
     def test_egypt_canonical_geometry_is_unchanged(self):
-        egypt = next(feature for feature in COUNTRIES["features"] if feature["properties"].get("editor_id") == "EGY")
+        egypt = next(feature for feature in COUNTRIES["features"] if feature.get("id") == "EGY")
         encoded = json.dumps(egypt["geometry"], ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         self.assertEqual(hashlib.sha256(encoded).hexdigest(), "513e81cd5b16c86d59e048f90ee4c51d3a114f50a357cdb5e4ffd1aad7a33576")
         self.assertNotIn([35.429207, 22.97833], egypt["geometry"]["coordinates"][0][0])
@@ -61,7 +61,7 @@ class BorneoGeometryRegressionTests(unittest.TestCase):
     def test_borneo_shared_coordinate_is_not_consecutively_duplicated(self):
         target = [117.703608, 4.163415]
         for feature in COUNTRIES["features"]:
-            if feature["properties"].get("editor_id") not in {"IDN", "MYS"}:
+            if feature.get("id") not in {"IDN", "MYS"}:
                 continue
             for polygon in polygons(feature["geometry"]):
                 for ring in polygon:

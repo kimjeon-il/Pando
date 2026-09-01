@@ -369,7 +369,7 @@
 
     for (let countryIndex = 0; countryIndex < features.length; countryIndex += 1) {
       const feature = features[countryIndex];
-      const countryId = String(feature.properties?.editor_id || feature.properties?.iso_a3 || countryIndex);
+      const countryId = String(feature?.id || countryIndex);
       countryIds.push(countryId);
       const countryStrokeStart = strokeStartsEnds.length / 4;
       for (const polygon of polygonsFor(feature.geometry)) {

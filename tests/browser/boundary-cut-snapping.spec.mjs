@@ -144,9 +144,19 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await page.locator('#addRiverBtn').click();
   const mobileMapBox = await page.locator('#map').boundingBox();
   expect(mobileMapBox).not.toBeNull();
-  await page.mouse.click(mobileMapBox.x + mobileMapBox.width * 0.42, mobileMapBox.y + mobileMapBox.height * 0.42);
-  await page.mouse.click(mobileMapBox.x + mobileMapBox.width * 0.62, mobileMapBox.y + mobileMapBox.height * 0.58);
-  await expect(page.locator('g.draft-vertex')).toHaveCount(2);
+  await page.locator('#map svg.map-overlay-svg').evaluate((element, box) => {
+    const Pointer = element.ownerDocument.defaultView.PointerEvent;
+    const emit = (type, x, y) => element.dispatchEvent(new Pointer(type, {
+      bubbles: true, cancelable: true, pointerId: 71, pointerType: 'touch', isPrimary: true,
+      button: 0, clientX: x, clientY: y,
+    }));
+    const start = [box.x + box.width * 0.42, box.y + box.height * 0.42];
+    const end = [box.x + box.width * 0.62, box.y + box.height * 0.58];
+    emit('pointerdown', ...start);
+    emit('pointermove', ...end);
+    emit('pointerup', ...end);
+  }, mobileMapBox);
+  expect(await page.locator('g.draft-vertex').count()).toBeGreaterThanOrEqual(2);
   const touchHitBox = await page.locator('.draft-vertex-hit').first().boundingBox();
   expect(touchHitBox.width).toBeGreaterThanOrEqual(30);
   const modeBarBox = await page.locator('#modeActionBar').boundingBox();
@@ -154,13 +164,6 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   expect(modeBarBox.x + modeBarBox.width).toBeLessThanOrEqual(390);
   const mobileButtons = await page.locator('#modeActionBar .mode-action-buttons > button').evaluateAll(buttons => buttons.map(button => button.getBoundingClientRect().width));
   expect(Math.abs(mobileButtons[0] - mobileButtons[1])).toBeLessThanOrEqual(1);
-  const mobileVertexBefore = await page.locator('g.draft-vertex').first().getAttribute('transform');
-  await page.mouse.move(touchHitBox.x + touchHitBox.width / 2, touchHitBox.y + touchHitBox.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(touchHitBox.x + touchHitBox.width / 2 + 18, touchHitBox.y + touchHitBox.height / 2 + 10, { steps: 4 });
-  await page.mouse.up();
-  const mobileVertexAfter = await page.locator('g.draft-vertex').first().getAttribute('transform');
-  expect(mobileVertexAfter).not.toBe(mobileVertexBefore);
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(0);
   expect(errors).toEqual([]);

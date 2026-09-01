@@ -77,7 +77,7 @@ test('all hydro renderers inherit ocean colour with only the configured layer op
 
 test('bootstrap cache revision is advanced for the reliability build', () => {
   const source = read('assets/js/bootstrap.js');
-  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r41';"));
+  assert.ok(source.includes("const ASSET_REVISION = '0.30.0-r42';"));
 });
 
 test('completed hydro renders before canonical country boundaries in every native path', () => {
