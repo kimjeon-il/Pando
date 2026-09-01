@@ -185,15 +185,15 @@
   --ui-toolbar-gap: var(--ui-space-1);
   --ui-nav-icon-label-gap: var(--ui-space-1);
   --ui-status-padding-y: 5px;
-  --ui-sheet-header-height-compact: 74px;
-  --ui-sheet-mobile-handle-space: 20px;
-  --ui-sheet-header-height-mobile: 76px;
-  --ui-sheet-body-padding-x: var(--ui-space-4);
-  --ui-sheet-content-padding-x: var(--ui-panel-padding);
-  --ui-sheet-content-padding-bottom: var(--ui-panel-padding);
-  --ui-sheet-scrollbar-compensation: var(--ui-scrollbar-size);
-  --ui-sheet-visual-rail-x: calc(var(--ui-sheet-content-padding-x) + var(--ui-sheet-scrollbar-compensation));
-  --ui-sheet-header-control-inset: var(--ui-sheet-visual-rail-x);
+  --ui-surface-header-height-compact: 74px;
+  --ui-surface-mobile-handle-space: 20px;
+  --ui-surface-header-height-mobile: 76px;
+  --ui-surface-body-padding-x: var(--ui-space-4);
+  --ui-surface-content-padding-x: var(--ui-panel-padding);
+  --ui-surface-content-padding-bottom: var(--ui-panel-padding);
+  --ui-surface-scrollbar-compensation: var(--ui-scrollbar-size);
+  --ui-surface-visual-rail-x: calc(var(--ui-surface-content-padding-x) + var(--ui-surface-scrollbar-compensation));
+  --ui-surface-header-control-inset: var(--ui-surface-visual-rail-x);
   --ui-radius-sheet: 16px;
   --ui-control-bg: var(--panel-2);
   --ui-control-bg-hover: var(--surface-hover);
@@ -618,7 +618,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .space-pan-active .draft-interactive { pointer-events: none !important; }
 .globe-shadow { fill: none; stroke: var(--globe-shadow); stroke-opacity: var(--globe-shadow-opacity); stroke-width: 1px; filter: none; pointer-events: none; }
 /* ===== 시험판 0.7 mobile/touch fixes ===== */
-.mobile-bottom-bar, .mobile-sheet-header, .create-sheet-header { display: none; }
+.mobile-bottom-bar, .surface-header { display: none; }
 .fatal-noscript {
   position: fixed; inset: var(--ui-space-3); z-index: 9999; padding: var(--ui-panel-padding); border: 1px solid #8a4f4f;
   border-radius: var(--ui-radius-panel); background: #3b2525; color: #ffd1d1; font-size: var(--ui-font-body); line-height: 1.6;
@@ -855,7 +855,7 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .field-group label { color: #46515c; }
   .field-group input[readonly] { color: #74808b; }
   .fatal-noscript { border-color: #c97979; background: #fff0f0; color: #8b2929; }
-  .mobile-sheet-header::before { background: #b1bbc4; }
+  .surface-header::before { background: #b1bbc4; }
   .mobile-bottom-bar button.sheet-open { background: #e8edf1; color: #26313b; box-shadow: none; }
   .mobile-zoom-dock button:active { background: #dce8f7; border-color: #87a7cf; }
   .mode-primary-btn { background: var(--accent-surface); border-color: var(--accent-border) !important; color: var(--accent-text); }
@@ -1051,7 +1051,7 @@ button, input, textarea, select {
 }
 input, textarea, select { font-weight: var(--ui-weight-regular); }
 input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular); }
-.brand strong, .map-sheet-header strong, .editor-object-header h2 {
+.brand strong, .surface-header strong, .editor-object-header h2 {
   font-size: var(--ui-font-xl);
   font-weight: var(--ui-weight-bold);
   line-height: var(--ui-line-tight);
@@ -1077,7 +1077,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .gis-import-status { font-size: var(--ui-font-sm); line-height: var(--ui-line-normal); }
 .btn, .icon-btn, .danger-btn, .create-menu-btn,
 .create-menu-item, .editor-action-button, .mode-action-bar button,
-.mobile-sheet-header button { font-size: var(--ui-font-md); font-weight: var(--ui-weight-semibold); }
+.surface-header button { font-size: var(--ui-font-md); font-weight: var(--ui-weight-semibold); }
 
 .country-label {
   font-family: var(--ui-font-family);
@@ -1129,7 +1129,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   background: var(--surface-input);
 }
 .btn, .icon-btn, .danger-btn, .create-menu-btn, .create-menu-item,
-.editor-action-button, .mode-action-bar button, .mobile-sheet-header button {
+.editor-action-button, .mode-action-bar button, .surface-header button {
   min-height: var(--ui-control-height);
   border-radius: var(--ui-radius-control);
   transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease;
@@ -1216,7 +1216,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 #app[data-layout="mobile"] .map-bottom-status .engine-status { display: none; }
 
 /* ===== PandoLab v0.15.1: compact projection, search icon, and mobile controls ===== */
-#app[data-layout="mobile"] .mobile-sheet-header button {
+#app[data-layout="mobile"] .surface-header button {
   padding: 0;
 }
 /* ===== PandoLab v0.18.1: map-first responsive workspace ===== */
@@ -1261,7 +1261,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
 }
 
-.mobile-sheet-header {
+.surface-header {
   border-bottom: 0;
   border-color: var(--overlay-border);
   background: var(--surface-elevated);
@@ -1310,7 +1310,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .right-panel.collapsed { overflow: hidden; }
 
 .adaptive-nav,
-.mobile-sheet-header,
+.surface-header,
 .mobile-zoom-dock,
 .mobile-backdrop { display: none; }
 .compact-primary-controls { display: contents; }
@@ -1335,7 +1335,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   visibility: visible;
 }
 
-#app[data-layout="wide"] .left-panel .mobile-sheet-header { display: none; }
+#app[data-layout="wide"] .left-panel .surface-header { display: none; }
 
 #app[data-layout="wide"] .right-panel,
 #app[data-layout="wide"] .right-panel.collapsed {
@@ -1361,7 +1361,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   pointer-events: auto;
 }
 
-#app[data-layout="wide"] .right-panel .mobile-sheet-header {
+#app[data-layout="wide"] .right-panel .surface-header {
   display: flex;
   position: sticky;
   top: 0;
@@ -1377,7 +1377,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 #app[data-layout="compact"] .left-panel,
 #app[data-layout="compact"] .right-panel,
 #app[data-layout="compact"] .right-panel.collapsed {
-  top: var(--ui-sheet-header-height-compact);
+  top: var(--ui-surface-header-height-compact);
   bottom: var(--ui-control-height);
   width: var(--compact-drawer-width);
   max-height: none;
@@ -1411,14 +1411,14 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   pointer-events: auto;
 }
 
-#app[data-layout="compact"] .mobile-sheet-header {
+#app[data-layout="compact"] .surface-header {
   display: flex;
   position: sticky;
   top: 0;
   z-index: 3;
-  flex: 0 0 var(--ui-sheet-header-height-compact);
-  height: var(--ui-sheet-header-height-compact);
-  min-height: var(--ui-sheet-header-height-compact);
+  flex: 0 0 var(--ui-surface-header-height-compact);
+  height: var(--ui-surface-header-height-compact);
+  min-height: var(--ui-surface-header-height-compact);
   padding-block: var(--ui-panel-padding);
 }
 
@@ -1578,20 +1578,20 @@ body[data-layout="mobile"] {
   pointer-events: auto;
 }
 
-#app[data-layout="mobile"] .mobile-sheet-header { display: flex; }
-#app[data-layout="mobile"] .mobile-sheet-header::before { content: none; }
-#app[data-layout="mobile"] .mobile-sheet-header strong { padding: 0; }
-#app[data-layout="mobile"] .mobile-sheet-header {
+#app[data-layout="mobile"] .surface-header { display: flex; }
+#app[data-layout="mobile"] .surface-header::before { content: none; }
+#app[data-layout="mobile"] .surface-header strong { padding: 0; }
+#app[data-layout="mobile"] .surface-header {
   position: relative;
-  flex: 0 0 var(--ui-sheet-header-height-mobile);
-  min-height: var(--ui-sheet-header-height-mobile);
-  padding-block: calc(var(--ui-sheet-mobile-handle-space) + var(--ui-space-2)) var(--ui-space-2);
+  flex: 0 0 var(--ui-surface-header-height-mobile);
+  min-height: var(--ui-surface-header-height-mobile);
+  padding-block: calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2)) var(--ui-space-2);
   touch-action: none;
   cursor: ns-resize;
 }
-#app[data-layout="mobile"] .mobile-sheet-header .sheet-close-btn { display: none; }
-#app[data-layout="mobile"] .mobile-sheet-header strong { pointer-events: none; }
-#app[data-layout="mobile"] .map-sheet-header .sheet-drag-handle {
+#app[data-layout="mobile"] .surface-header .sheet-close-btn { display: none; }
+#app[data-layout="mobile"] .surface-header strong { pointer-events: none; }
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle {
   display: grid;
   place-items: start center;
   position: absolute;
@@ -1613,20 +1613,20 @@ body[data-layout="mobile"] {
   touch-action: none;
   cursor: ns-resize;
 }
-#app[data-layout="mobile"] .map-sheet-header .sheet-drag-handle > span {
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle > span {
   width: 38px;
   height: 4px;
   border-radius: 999px;
   background: var(--border-strong);
 }
-#app[data-layout="mobile"] .map-sheet-header .sheet-drag-handle:hover,
-#app[data-layout="mobile"] .map-sheet-header .sheet-drag-handle:active { border: 0 !important; background: transparent !important; transform: translateX(-50%); }
-#app[data-layout="mobile"] .map-sheet-header .sheet-drag-handle:focus-visible > span { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-border) 54%, transparent); }
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle:hover,
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle:active { border: 0 !important; background: transparent !important; transform: translateX(-50%); }
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle:focus-visible > span { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-border) 54%, transparent); }
 body.map-sheet-dragging { user-select: none; }
 body.map-sheet-dragging #app[data-layout="mobile"] :is(.left-panel, .right-panel, #createMenu) { transition: none; }
 body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; visibility: hidden; pointer-events: none; }
 
-#app[data-layout="mobile"] .map-sheet-body {
+#app[data-layout="mobile"] .surface-body {
   flex: 1 1 auto;
   overflow-x: hidden;
   overflow-y: auto;
@@ -1635,20 +1635,20 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
 }
-#app[data-layout="mobile"] .map-sheet-body-layers {
+#app[data-layout="mobile"] .surface-map > .surface-body-delegated {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   scrollbar-gutter: auto;
 }
-#app[data-layout="mobile"] .map-sheet-body-layers #layerSection {
+#app[data-layout="mobile"] .surface-map > .surface-body-delegated #layerSection {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
-#app[data-layout="mobile"] .map-sheet-body-layers .layer-list {
+#app[data-layout="mobile"] .surface-map > .surface-body-delegated .layer-list {
   flex: 1 1 auto;
   min-height: 0;
   overflow-x: hidden;
@@ -1705,38 +1705,6 @@ body[data-layout="mobile"] .ui-select-listbox {
 #app[data-layout="mobile"] .map-command-toolbar .create-menu-wrap { width: 0; }
 #app[data-layout="mobile"] .map-command-toolbar { gap: 0; }
 #app[data-layout="mobile"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }
-#app[data-layout="mobile"] .create-menu {
-  display: flex !important;
-  flex-direction: column;
-  position: fixed;
-  z-index: 100;
-  top: auto;
-  right: 0;
-  bottom: var(--mobile-nav-height);
-  left: 0;
-  width: 100%;
-  height: var(--sheet-height, 35dvh);
-  max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height));
-  overflow: hidden;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 0;
-  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
-  transform: translateY(calc(100% + 2px));
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
-}
-#app[data-layout="mobile"] .create-menu.mobile-open {
-  transform: translateY(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-#app[data-layout="mobile"] .create-sheet-body { display: block; }
 #app[data-layout="mobile"] .create-menu-item { min-height: 68px; }
 #app[data-layout="mobile"] .icon-btn { width: var(--ui-touch-height); height: var(--ui-touch-height); }
 #app[data-layout="mobile"] .mobile-zoom-dock {
@@ -2175,7 +2143,6 @@ body:not([data-layout="mobile"]) #gisExportModal .ui-dialog-card {
 .ui-dialog-actions { display: flex; justify-content: flex-end; gap: var(--ui-dialog-actions-gap); margin-top: var(--ui-dialog-actions-top); }
 .ui-dialog-kicker { color: var(--accent-2); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-bold); letter-spacing: .06em; }
 .ui-sheet { min-width: 0; min-height: 0; }
-.ui-sheet-header { min-width: 0; display: flex; align-items: center; gap: var(--ui-control-gap); }
 .ui-toolbar { display: flex; gap: var(--ui-toolbar-gap); padding: var(--ui-toolbar-padding); }
 .ui-disclosure { border: 1px solid var(--ui-card-border); background: var(--ui-card-bg); }
 .ui-info-list { border: 1px solid var(--ui-card-border); background: var(--ui-card-bg); }
@@ -2193,15 +2160,8 @@ body:not([data-layout="mobile"]) #gisExportModal .ui-dialog-card {
   box-shadow: var(--control-shadow);
   pointer-events: none;
 }
-.map-sheet-surface { min-width: 0; background: var(--surface-elevated); }
-.map-sheet-header {
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ui-space-3);
-}
-.map-sheet-header strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.map-sheet-body { min-width: 0; min-height: 0; }
+.surface-header strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.surface-body { min-width: 0; min-height: 0; }
 
 /* One SVG disclosure language for folders and details. */
 .disclosure-icon {
@@ -2483,7 +2443,7 @@ input[type="search"]::-webkit-search-decoration { appearance: none; -webkit-appe
     label:has(> input[type="radio"]),
     .layer-folder-row,
     .layer-child,
-    .map-sheet-header,
+    .surface-header,
     .sheet-drag-handle,
     .ui-select-control[readonly],
     .ui-select-toggle
@@ -2531,7 +2491,7 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 /* Search and form controls share the same field boundary and focus treatment. */
 .layer-search {
   flex: 0 0 auto;
-  margin: 0 var(--ui-sheet-visual-rail-x) var(--ui-space-2);
+  margin: 0 var(--ui-surface-visual-rail-x) var(--ui-space-2);
 }
 .layer-search input {
   height: calc(var(--ui-control-height) - 2px);
@@ -2560,9 +2520,9 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  padding-inline-end: var(--ui-sheet-content-padding-x);
-  padding-inline-start: var(--ui-sheet-visual-rail-x);
-  padding-block-end: var(--ui-sheet-content-padding-bottom);
+  padding-inline-end: var(--ui-surface-content-padding-x);
+  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-block-end: var(--ui-surface-content-padding-bottom);
 }
 .layer-category {
   flex: 0 0 auto;
@@ -2871,25 +2831,14 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   padding: 0;
   overflow: hidden;
 }
-.create-sheet-body {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
-}
-.create-sheet-content {
+.surface-content-create {
   min-width: 0;
   display: grid;
   align-content: start;
   gap: var(--ui-menu-gap);
-  padding-block: var(--ui-space-1) var(--ui-sheet-content-padding-bottom);
-  padding-inline-end: var(--ui-sheet-content-padding-x);
-  padding-inline-start: var(--ui-sheet-visual-rail-x);
+  padding-block: var(--ui-space-1) var(--ui-surface-content-padding-bottom);
+  padding-inline-end: var(--ui-surface-content-padding-x);
+  padding-inline-start: var(--ui-surface-visual-rail-x);
 }
 .create-menu-category {
   min-width: 0;
@@ -2897,10 +2846,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   gap: var(--ui-menu-gap);
 }
 .create-menu-category + .create-menu-category { margin-top: var(--ui-space-2); }
-.create-menu-routes {
-  flex: 0 0 auto;
-  margin: var(--ui-space-2) var(--ui-sheet-visual-rail-x) 0;
-}
 .create-menu-route-panel { min-width: 0; }
 .create-menu-route-panel[hidden] { display: none; }
 .create-menu-item {
@@ -2964,7 +2909,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   .danger-btn,
   .create-menu-btn,
   .mode-action-bar button,
-  .mobile-sheet-header button,
+  .surface-header button,
   .ui-color-trigger,
   .ui-color-default
 ) { min-height: var(--ui-touch-height); }
@@ -3026,7 +2971,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   padding: var(--ui-toolbar-padding);
 }
 #app[data-layout="mobile"] .mobile-zoom-dock .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
-#app[data-layout="mobile"] .ui-floating-toolbar:has(.map-sheet-surface) { backdrop-filter: none; }
+#app[data-layout="mobile"] .ui-floating-toolbar:has(.workspace-surface) { backdrop-filter: none; }
 #app[data-layout="mobile"] .adaptive-nav button { border: 1px solid transparent; border-radius: var(--ui-radius-control); }
 #app[data-layout="mobile"] .top-actions .btn,
 #app[data-layout="mobile"] .top-actions .btn:not(.ghost) { height: var(--ui-touch-height); flex-basis: var(--ui-touch-height); }
@@ -3195,23 +3140,6 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
 [data-theme="dark"] .mode-task-instruction.cut-invalid { color: #ff8d8d; }
 
 /* ===== PandoLab v0.19.0: shared editor shell and components ===== */
-.editor-shell {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.editor-shell-header {
-  position: relative;
-  flex: 0 0 var(--ui-sheet-header-height-compact);
-  min-height: var(--ui-sheet-header-height-compact);
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-1);
-  padding-block: 0;
-  border: 0;
-  background: var(--surface-elevated);
-  box-shadow: none;
-}
 .editor-scroll-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -3243,8 +3171,8 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   display: grid;
   place-items: center;
   padding-block: var(--ui-space-6);
-  padding-inline-end: var(--ui-sheet-content-padding-x);
-  padding-inline-start: var(--ui-sheet-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-padding-x);
+  padding-inline-start: var(--ui-surface-visual-rail-x);
   color: var(--muted);
   text-align: center;
 }
@@ -3255,9 +3183,9 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-6);
-  padding-block: 0 var(--ui-sheet-content-padding-bottom);
-  padding-inline-end: var(--ui-sheet-content-padding-x);
-  padding-inline-start: var(--ui-sheet-visual-rail-x);
+  padding-block: 0 var(--ui-surface-content-padding-bottom);
+  padding-inline-end: var(--ui-surface-content-padding-x);
+  padding-inline-start: var(--ui-surface-visual-rail-x);
 }
 .editor-section,
 .editor-disclosure {
@@ -3746,38 +3674,6 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 }
 #multiSelectionModeBtn { display: none; }
 
-.ui-sheet-tabs {
-  flex: 0 0 auto;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  height: var(--ui-control-height);
-  padding-inline: var(--ui-sheet-visual-rail-x);
-}
-.ui-sheet-tabs .ui-tab {
-  position: relative;
-  min-height: var(--ui-control-height);
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-}
-.ui-sheet-tabs .ui-tab::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 2px;
-  width: 30px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--accent);
-  opacity: 0;
-  transform: translateX(-50%) scaleX(.45);
-  transition: opacity .14s ease, transform .14s ease;
-}
-.ui-sheet-tabs .ui-tab:hover { background: transparent; color: var(--text-strong); }
-.ui-sheet-tabs .ui-tab.active,
-.ui-sheet-tabs .ui-tab[aria-selected="true"] { background: transparent; color: var(--text-strong); font-weight: var(--ui-weight-bold); }
-.ui-sheet-tabs .ui-tab.active::after,
-.ui-sheet-tabs .ui-tab[aria-selected="true"]::after { opacity: 1; transform: translateX(-50%) scaleX(1); }
 .editor-object-header { display: flex; align-items: center; gap: var(--ui-space-2); }
 .editor-object-heading { min-width: 0; flex: 1 1 auto; display: flex; align-items: baseline; gap: var(--ui-space-1-5); overflow: hidden; }
 .editor-object-heading h2 { min-width: 0; flex: 0 1 auto; }
@@ -3837,8 +3733,8 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .ui-empty-state--compact { padding: var(--ui-space-5) var(--ui-space-3); }
 #editorScrollBody > .editor-empty {
   padding-block: var(--ui-space-6);
-  padding-inline-end: var(--ui-sheet-content-padding-x);
-  padding-inline-start: var(--ui-sheet-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-padding-x);
+  padding-inline-start: var(--ui-surface-visual-rail-x);
 }
 
 .confirm-impact { display: grid; gap: var(--ui-space-2); margin-top: var(--ui-dialog-section-gap); padding: var(--ui-card-padding); border: 1px solid var(--danger-border); border-radius: var(--ui-radius-control); background: color-mix(in srgb, var(--danger-surface) 52%, transparent); }
@@ -3907,9 +3803,9 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 .map-view-settings {
   display: grid;
   gap: var(--ui-field-gap);
-  padding-bottom: var(--ui-sheet-content-padding-bottom);
-  padding-inline-end: var(--ui-sheet-content-padding-x);
-  padding-inline-start: var(--ui-sheet-visual-rail-x);
+  padding-bottom: var(--ui-surface-content-padding-bottom);
+  padding-inline-end: var(--ui-surface-content-padding-x);
+  padding-inline-start: var(--ui-surface-visual-rail-x);
 }
 .map-view-settings > .layer-style-editor:first-child { padding-top: 0; border-top: 0; }
 .map-view-projection-slot .projection-control {
@@ -3938,7 +3834,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 }
 .layer-child.is-multi-selected:not(.is-primary-selected) .layer-child-meta { color: var(--text-soft); }
 
-#app[data-layout="mobile"] .editor-shell-header { flex-basis: var(--ui-sheet-header-height-mobile); min-height: var(--ui-sheet-header-height-mobile); }
 #app[data-layout="mobile"] .editor-object-header { width: 100%; }
 #app[data-layout="mobile"] .object-actions-menu .ui-row-button { min-height: var(--ui-touch-height); }
 #app[data-layout="mobile"] #projectSaveStatusText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -3976,58 +3871,15 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   .editor-action-grid-two { grid-template-columns: 1fr; }
 }
 
-/* ===== PandoLab v0.23.0: unified navigation surfaces ===== */
-.layer-panel-header { display: flex; }
-:where(.layer-panel-header, .create-sheet-header, .editor-shell-header) {
-  position: relative;
-  align-items: center;
-  gap: var(--ui-space-3);
-  padding-block: var(--ui-space-3);
-  padding-inline: var(--ui-sheet-visual-rail-x);
-}
-:where(.create-sheet-header, .editor-shell-header) > strong {
-  display: block;
-  min-width: 0;
-  line-height: var(--ui-line-tight);
-}
-:where(.create-sheet-header, .editor-shell-header) > :is(strong, .editor-object-header) {
-  align-self: center;
-  line-height: var(--ui-line-tight);
-}
-#app:not([data-layout="mobile"]) :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) .sheet-close-btn {
-  position: absolute;
-  z-index: 1;
-  top: var(--ui-sheet-header-control-inset);
-  right: var(--ui-sheet-header-control-inset);
-  margin: 0;
-}
-#app:not([data-layout="mobile"]) :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) > :is(strong, .editor-object-header) {
-  min-width: 0;
-  padding-inline-end: calc(var(--ui-control-height) + var(--ui-space-2));
-}
-#app:not([data-layout="mobile"]) .editor-shell-header > .editor-object-header {
-  padding-inline-end: calc(
-    (var(--ui-control-height) * 4)
-    + (var(--ui-space-1) * 2)
-    + var(--ui-space-2)
-  );
-}
-#app:not([data-layout="mobile"]) .editor-shell-header .editor-object-actions {
-  position: absolute;
-  top: var(--ui-sheet-header-control-inset);
-  right: calc(var(--ui-sheet-header-control-inset) + var(--ui-control-height) + var(--ui-space-1));
-}
-#app[data-layout="mobile"] :where(.layer-panel-header, .create-sheet-header, .editor-shell-header) {
-  padding-block: var(--ui-space-2);
-}
+/* ===== PandoLab v0.23.0: layer content and navigation placement ===== */
 .layer-panel-section,
 .map-view-panel-section,
-.map-sheet-body-layers {
+.surface-map > .surface-body-delegated {
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
-.map-sheet-body-layers { flex: 1 1 auto; overflow: hidden; }
+.surface-map > .surface-body-delegated { flex: 1 1 auto; overflow: hidden; }
 .layer-panel-section,
 .map-view-panel-section {
   flex: 1 1 auto;
@@ -4056,8 +3908,8 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   padding-block: var(--ui-space-1);
-  padding-inline-end: var(--ui-sheet-content-padding-x);
-  padding-inline-start: var(--ui-sheet-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-padding-x);
+  padding-inline-start: var(--ui-surface-visual-rail-x);
 }
 .layer-search-result {
   width: 100%;
@@ -4104,13 +3956,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   width: var(--panel-left-width);
   overflow: hidden;
 }
-#app[data-layout="wide"] .left-panel .layer-panel-header {
-  position: relative;
-  display: flex;
-  flex: 0 0 var(--ui-sheet-header-height-compact);
-  min-height: var(--ui-sheet-header-height-compact);
-  padding-block: var(--ui-space-3);
-}
 #app[data-layout="wide"] .left-panel .sheet-close-btn,
 #app[data-layout="wide"] .left-panel .sheet-drag-handle { display: none; }
 #app[data-layout="wide"] .workspace.editor-drawer-open .editor-edge-slot { right: calc(var(--panel-right-width) + var(--ui-map-edge)); }
@@ -4134,7 +3979,7 @@ body.create-menu-open #app[data-layout="compact"] .map-command-toolbar:has(.crea
   flex-direction: column;
   position: fixed;
   z-index: 36;
-  top: calc(var(--ui-topbar-height) + var(--ui-sheet-header-height-compact));
+  top: calc(var(--ui-topbar-height) + var(--ui-surface-header-height-compact));
   right: auto;
   bottom: var(--ui-control-height);
   left: 8px;
@@ -4179,4 +4024,283 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   .layer-child-skeleton::before,
   .layer-skeleton-row > span,
   .layer-child-skeleton > span { animation: none; }
+}
+
+/* ===== Canonical workspace surfaces ===== */
+.workspace-surface {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface-elevated);
+}
+
+.surface-header {
+  position: relative;
+  flex: 0 0 var(--ui-surface-header-height-compact);
+  min-width: 0;
+  min-height: var(--ui-surface-header-height-compact);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--ui-space-3);
+  padding: 0 var(--ui-surface-visual-rail-x);
+  border: 0;
+  background: var(--surface-elevated);
+  box-shadow: none;
+}
+
+.surface-header-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  line-height: var(--ui-line-tight);
+}
+
+.surface-header-title > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.surface-header-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+}
+
+.surface-header-actions .editor-object-actions {
+  display: flex;
+  gap: var(--ui-space-1);
+}
+#app .surface-header-actions .editor-object-actions {
+  position: static;
+  inset: auto;
+}
+
+.surface-editor:has(.editor-object-header.hidden) .editor-object-actions { display: none; }
+.surface-header .sheet-drag-handle { display: none; }
+
+.surface-tabs {
+  flex: 0 0 var(--ui-control-height);
+  height: var(--ui-control-height);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding-inline: var(--ui-surface-visual-rail-x);
+}
+
+.surface-tabs .ui-tab {
+  position: relative;
+  min-height: var(--ui-control-height);
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.surface-tabs .ui-tab::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 30px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: 0;
+  transform: translateX(-50%) scaleX(.45);
+  transition: opacity .14s ease, transform .14s ease;
+}
+
+.surface-tabs .ui-tab:hover { background: transparent; color: var(--text-strong); }
+.surface-tabs .ui-tab:is(.active, [aria-selected="true"]) {
+  background: transparent;
+  color: var(--text-strong);
+  font-weight: var(--ui-weight-bold);
+}
+.surface-tabs .ui-tab:is(.active, [aria-selected="true"])::after {
+  opacity: 1;
+  transform: translateX(-50%) scaleX(1);
+}
+
+.surface-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.surface-body-delegated { overflow: hidden; scrollbar-gutter: auto; }
+.surface-content { min-width: 0; }
+.surface-content-create,
+.surface-content-editor {
+  padding-inline-end: var(--ui-surface-content-padding-x);
+  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-bottom: var(--ui-surface-content-padding-bottom);
+}
+.surface-content-create {
+  display: grid;
+  align-content: start;
+  gap: var(--ui-menu-gap);
+  padding-top: var(--ui-space-1);
+}
+.surface-content-editor {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.surface-content-editor > :is(.editor-view, .editor-empty) { padding-inline: 0; }
+.surface-content-editor > .editor-view { padding-bottom: 0; }
+.surface-content-map {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.create-menu-routes { margin: 0; }
+.create-menu-route-panel { min-width: 0; }
+.create-menu-route-panel[hidden] { display: none; }
+
+#app[data-layout="wide"] .surface-map {
+  width: var(--panel-left-width);
+  overflow: hidden;
+}
+#app[data-layout="wide"] .workspace-surface > .surface-header,
+#app[data-layout="compact"] .workspace-surface > .surface-header { display: grid; }
+#app[data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) { display: none; }
+#app[data-layout="wide"] .surface-create {
+  width: 280px;
+  max-height: calc(
+    100dvh
+    - var(--ui-topbar-height)
+    - var(--ui-control-height)
+    - var(--ui-map-edge)
+    - var(--ui-map-edge)
+    - var(--ui-map-edge)
+  );
+}
+#app:not([data-layout="mobile"]) .workspace-surface .surface-header-actions .sheet-close-btn {
+  position: static;
+  inset: auto;
+  margin: 0;
+}
+
+#app[data-layout="compact"] .workspace-surface {
+  position: fixed;
+  z-index: 36;
+  top: var(--ui-surface-header-height-compact);
+  bottom: var(--ui-control-height);
+  width: var(--compact-drawer-width);
+  max-height: none;
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--control-shadow);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
+}
+#app[data-layout="compact"] :is(.surface-map, .surface-create) {
+  right: auto;
+  left: 8px;
+  transform: translateX(calc(-100% - 20px));
+}
+#app[data-layout="compact"] .surface-editor {
+  right: 8px;
+  left: auto;
+  transform: translateX(calc(100% + 20px));
+}
+#app[data-layout="compact"] :is(.surface-map.mobile-open, .surface-editor.mobile-open),
+body.create-menu-open #app[data-layout="compact"] .surface-create {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+#app[data-layout="compact"] .surface-create.hidden { display: flex !important; }
+
+#app[data-layout="mobile"] .workspace-surface {
+  display: flex !important;
+  position: fixed;
+  z-index: 100;
+  top: auto;
+  right: 0;
+  bottom: var(--mobile-nav-height);
+  left: 0;
+  width: 100%;
+  height: var(--sheet-height, 60dvh);
+  max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height));
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
+  box-shadow: var(--control-shadow);
+  transform: translateY(calc(100% + 2px));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
+}
+#app[data-layout="mobile"] .workspace-surface.mobile-open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+#app[data-layout="mobile"] .surface-header {
+  display: grid;
+  flex-basis: var(--ui-surface-header-height-mobile);
+  min-height: var(--ui-surface-header-height-mobile);
+  padding-block: calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2)) var(--ui-space-2);
+  touch-action: none;
+  cursor: ns-resize;
+}
+#app[data-layout="mobile"] .surface-header .sheet-close-btn { display: none; }
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle {
+  display: grid;
+  place-items: start center;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 4;
+  width: 96px;
+  min-width: 96px;
+  height: 44px;
+  margin: 0;
+  padding: var(--ui-space-2) 0 0;
+  border: 0 !important;
+  border-radius: 0;
+  outline: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit;
+  transform: translateX(-50%);
+  touch-action: none;
+  cursor: ns-resize;
+}
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle > span {
+  width: 38px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle:is(:hover, :active) {
+  border: 0 !important;
+  background: transparent !important;
+  transform: translateX(-50%);
+}
+#app[data-layout="mobile"] .surface-header .sheet-drag-handle:focus-visible > span {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-border) 54%, transparent);
 }

@@ -14,7 +14,7 @@ const versionedModuleUrl = relativePath => {
 const MAPLIBRE_VERSION = '6.6.0';
 const MAPLIBRE_MODULE_URL = versionedModuleUrl(`../vendor/maplibre-gl/${MAPLIBRE_VERSION}/maplibre-gl.mjs`);
 const MAPLIBRE_WORKER_URL = versionedModuleUrl(`../vendor/maplibre-gl/${MAPLIBRE_VERSION}/maplibre-gl-worker.mjs`);
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule, historicalLibraryControllerModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, , boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule, historicalLibraryControllerModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -57,6 +57,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/historical-library-controller.js')),
   import(versionedModuleUrl('./modules/map-edit-worker-client.js')),
   import(versionedModuleUrl('./modules/map-object-spatial-index.js')),
+  import(versionedModuleUrl('./modules/surface-tabs-controller.js')),
 ]);
 const { createSvgIcon } = await import(versionedModuleUrl('./modules/icon-utils.js'));
 const { pruneCountryOverrides } = await import(versionedModuleUrl('./modules/country-feature.js'));
@@ -101,6 +102,7 @@ const {
 const { createHistoricalLibraryController } = historicalLibraryControllerModule;
 const { createMapEditWorkerClient } = mapEditWorkerClientModule;
 const { createMapObjectSpatialIndex } = mapObjectSpatialIndexModule;
+const { createSurfaceTabsController } = surfaceTabsControllerModule;
 const mapObjectCategoriesModule = await import(versionedModuleUrl('./modules/map-object-categories.js'));
 const {
   MAP_OBJECT_CATEGORIES,
@@ -617,6 +619,9 @@ const {
   let shortcutHelpReturnFocus = null;
   const surfaceController = createSurfaceController({ getElement: $, getLayout: () => layoutMode, document });
   const surfaceState = surfaceController.state;
+  let mapSurfaceTabs = null;
+  let createSurfaceTabs = null;
+  let editorSurfaceTabs = null;
   const SHEET_SNAP_RATIOS = Object.freeze([0.6, 1]);
   const SHEET_SNAP_LABELS = Object.freeze(['기본 높이', '전체 높이']);
   const MOBILE_SHEET_DEFAULT_SNAP = 0;
@@ -785,26 +790,15 @@ const {
 
   function activeCreateMenuItems() {
     const panel = $(`create${createMenuRoute === 'library' ? 'Library' : 'Build'}Panel`);
-    return panel ? [...panel.querySelectorAll('[role="menuitem"]:not([disabled])')] : [];
+    return panel ? [...panel.querySelectorAll('.create-menu-item:not([disabled])')] : [];
   }
 
   function syncCreateMenuRoute(route = createMenuRoute, { focus = false } = {}) {
     createMenuRoute = route === 'library' ? 'library' : 'build';
-    const tabs = [
-      [$('createBuildTabBtn'), 'createBuildPanel', 'build'],
-      [$('createLibraryTabBtn'), 'createLibraryPanel', 'library'],
-    ];
-    tabs.forEach(([tab, panelId, key]) => {
-      const active = key === createMenuRoute;
-      tab?.classList.toggle('active', active);
-      tab?.setAttribute('aria-selected', String(active));
-      tab?.toggleAttribute('tabindex', !active);
-      if (!active) tab?.setAttribute('tabindex', '-1');
-      const panel = $(panelId);
-      if (panel) panel.hidden = !active;
-    });
+    if ($('createBuildPanel')) $('createBuildPanel').hidden = createMenuRoute !== 'build';
+    if ($('createLibraryPanel')) $('createLibraryPanel').hidden = createMenuRoute !== 'library';
+    createSurfaceTabs?.sync(createMenuRoute, { focus });
     syncMapObjectCategoryLabels();
-    if (focus) requestAnimationFrame(() => activeCreateMenuItems()[0]?.focus({ preventScroll: true }));
   }
 
   function toggleCreateMenu(trigger) {
@@ -969,7 +963,7 @@ const {
 
   function bindMobileSheetSurface(panel) {
     if (!panel) return;
-    const header = panel.querySelector('.map-sheet-header');
+    const header = panel.querySelector('.surface-header');
     const handle = panel.querySelector('[data-sheet-handle]');
     if (handle) bindSheetDragHandle(handle);
 
@@ -1384,7 +1378,7 @@ const {
     }
     if (ref.domain === 'generic') {
       const feature = state.genericFeatures.find(item => String(item.id) === ref.id);
-      return { name: feature ? genericFeatureName(feature) : ref.id, type: feature ? genericFeatureRoleLabel(feature) : '일반 객체', detail: '' };
+      return { name: feature ? genericFeatureName(feature) : ref.id, type: feature ? genericFeatureRoleLabel(feature) : '기타 객체', detail: '' };
     }
     if (ref.domain === 'hydro') {
       const feature = hydroFeatureById(ref.id);
@@ -4843,7 +4837,7 @@ const {
   }
 
   function genericFeatureRoleLabel(feature) {
-    return GENERIC_FEATURE_ROLE_RULES[feature?.properties?.role]?.label || '일반 객체';
+    return GENERIC_FEATURE_ROLE_RULES[feature?.properties?.role]?.label || '기타 객체';
   }
 
   function genericFeatureRoleHelp(feature) {
@@ -5053,7 +5047,16 @@ const {
     ...MAP_OBJECT_CATEGORIES.features.viewGroups,
   ])]);
   const LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => !['labels', 'countryLabels'].includes(group));
-  const layerGroupNames = { countries: '국가', territories: '권역', administrative: '행정구역', regions: '지방', languages: '언어', ethnicities: '민족', religions: '종교', rivers: '강', lakes: '호수', hydro: '강·호수', genericFeatures: '기타 객체', labels: '지명', countryLabels: '국가명' };
+  const layerGroupNames = Object.freeze({
+    ...Object.fromEntries(Object.values(MAP_OBJECT_TYPES)
+      .filter(type => type.layerGroup)
+      .map(type => [type.layerGroup, type.label])),
+    languages: '언어',
+    ethnicities: '민족',
+    religions: '종교',
+    hydro: '강·호수',
+    countryLabels: '국가명',
+  });
   const layerGroupTargetIds = {
     countries: 'countriesLayerChildren',
     territories: 'territoriesLayerChildren',
@@ -5074,8 +5077,15 @@ const {
         ? node.querySelector('.layer-category-title')
         : node.querySelector('.create-menu-group-title');
       if (title) title.textContent = category.label;
+      if (node.matches('.layer-category')) {
+        const items = node.querySelector('.layer-category-items');
+        category.layerGroups.forEach(group => {
+          const folder = items?.querySelector(`.layer-folder[data-layer-group="${group}"]`);
+          if (folder) items.appendChild(folder);
+        });
+      }
     });
-    const buildContent = $('createBuildPanel')?.querySelector('.create-sheet-content');
+    const buildContent = $('createBuildPanel');
     if (buildContent) {
       MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
         const categoryNode = buildContent.querySelector(`.create-menu-category[data-map-category="${categoryKey}"]`);
@@ -5822,9 +5832,13 @@ const {
         .filter(item => sourceGroup !== 'hydro' || !item.isBuiltin || state.physicalLoadState.hydro !== 'error')
         .sort((a, b) => layerNameCollator.compare(a.name, b.name) || layerNameCollator.compare(a.id, b.id));
       if (group === 'genericFeatures') {
-        const hidden = !allItems.length && !search;
+        const hidden = !allItems.length;
         folder.hidden = hidden;
-        if (hidden) container.replaceChildren();
+        if (hidden) {
+          container.replaceChildren();
+          expandedLayerStyleGroups.delete(group);
+          state.layerFolders[group] = false;
+        }
       }
       renderLayerFolderContents({ group, folderKey: group, name: layerGroupNames[group], folder, container, items: allItems, search });
     }
@@ -10810,7 +10824,7 @@ const {
       selectGenericFeature(String(feature.id));
       renderAll();
       queueAutosave();
-      setActionStatus('점 일반 객체를 추가했습니다.', 'success');
+      setActionStatus('점 기타 객체를 추가했습니다.', 'success');
       return;
     }
     if (state.tool === 'select') clearSelection();
@@ -11262,7 +11276,7 @@ const {
     else selectGenericFeature(String(id));
     renderAll();
     queueAutosave();
-    const createdObjectLabel = hydro?.category === 'river' ? '강을' : hydro?.category === 'lake' ? '호수를' : '일반 객체를';
+    const createdObjectLabel = hydro?.category === 'river' ? '강을' : hydro?.category === 'lake' ? '호수를' : '기타 객체를';
     setActionStatus(`${createdObjectLabel} 추가했습니다.`, 'success');
   }
 
@@ -11707,7 +11721,7 @@ const {
     else if (territorialRedrawSourceId && territorialUnitById(territorialRedrawSourceId)) selectTerritorialUnit(territorialRedrawSourceId, true);
     renderAll();
     if (distributionDraft?.layerId && distributionLayerById(distributionDraft.layerId)) selectDistributionLayer(distributionDraft.layerId, true);
-    if (showMessage) setActionStatus(distributionDraft ? '자유 분포 그리기를 취소했습니다.' : splitSourceId || territorialSplitSourceId || territorialRedrawSourceId || directTerritorialUnit ? '영역 작업을 취소했습니다.' : `${terrain?.label || '일반 객체'} 추가를 취소했습니다.`, 'success');
+    if (showMessage) setActionStatus(distributionDraft ? '자유 분포 그리기를 취소했습니다.' : splitSourceId || territorialSplitSourceId || territorialRedrawSourceId || directTerritorialUnit ? '영역 작업을 취소했습니다.' : `${terrain?.label || '기타 객체'} 추가를 취소했습니다.`, 'success');
   }
 
   function addLabelAt(coord) {
@@ -12052,20 +12066,15 @@ const {
       });
   }
 
-  function setEditorShellView(view) {
+  function setEditorShellView(view, { focus = false } = {}) {
     const actions = view === 'actions' && !$('actionsTabBtn')?.hidden;
     $('rightPanel')?.setAttribute('data-editor-view', actions ? 'actions' : 'info');
-    $('editorTabBtn')?.classList.toggle('active', !actions);
-    $('actionsTabBtn')?.classList.toggle('active', actions);
-    $('editorTabBtn')?.setAttribute('aria-selected', String(!actions));
-    $('actionsTabBtn')?.setAttribute('aria-selected', String(actions));
-    if ($('editorTabBtn')) $('editorTabBtn').tabIndex = actions ? -1 : 0;
-    if ($('actionsTabBtn')) $('actionsTabBtn').tabIndex = actions ? 0 : -1;
+    editorSurfaceTabs?.sync(actions ? 'actions' : 'info', { focus });
   }
 
   const PROPERTY_TYPE_LABELS = Object.freeze({
     country: '국가', territory: '권역', administrative: '행정구역', region: '지방',
-    distribution: '분포', generic: '일반 객체', label: '지명', hydro: '강·호수', multi: '다중선택',
+    distribution: '분포', generic: '기타 객체', label: '지명', hydro: '강·호수', multi: '다중선택',
   });
 
   function activePropertyForm(type) {
@@ -13398,7 +13407,7 @@ const {
     genericFeatureLandClipCache.delete(feature);
     selectGenericFeature(String(feature.id), true);
     queueAutosave();
-    setActionStatus('일반 객체 색상을 기본값으로 되돌렸습니다.', 'success');
+    setActionStatus('기타 객체 색상을 기본값으로 되돌렸습니다.', 'success');
     return true;
   }
 
@@ -13581,7 +13590,7 @@ const {
     if (field === 'name') markLayerTreeDirty();
     selectGenericFeature(state.selected.id, true);
     queueAutosave();
-    setActionStatus('일반 객체 정보를 변경했습니다.', 'success');
+    setActionStatus('기타 객체 정보를 변경했습니다.', 'success');
   }
 
   function commitHydroEdit(field, value) {
@@ -14707,14 +14716,8 @@ const {
     const showingView = mapPanelView === 'view';
     $('layerSection')?.classList.toggle('hidden', showingView);
     $('mapViewSection')?.classList.toggle('hidden', !showingView);
-    $('mapLayersTabBtn')?.classList.toggle('active', !showingView);
-    $('mapViewTabBtn')?.classList.toggle('active', showingView);
-    $('mapLayersTabBtn')?.setAttribute('aria-selected', String(!showingView));
-    $('mapViewTabBtn')?.setAttribute('aria-selected', String(showingView));
-    if ($('mapLayersTabBtn')) $('mapLayersTabBtn').tabIndex = showingView ? -1 : 0;
-    if ($('mapViewTabBtn')) $('mapViewTabBtn').tabIndex = showingView ? 0 : -1;
+    mapSurfaceTabs?.sync(mapPanelView, { focus });
     if (showingView) renderLayerPresentationList();
-    if (focus) requestAnimationFrame(() => $(showingView ? 'mapViewTabBtn' : 'mapLayersTabBtn')?.focus());
   }
 
   const projectSerializer = createProjectSerializer({
@@ -16394,7 +16397,7 @@ const {
     markLayerTreeDirty();
     renderAll();
     queueAutosave();
-    setActionStatus(`GeoJSON 일반 객체 ${supported.length}개를 가져왔습니다.`, 'success', 3200);
+    setActionStatus(`GeoJSON 기타 객체 ${supported.length}개를 가져왔습니다.`, 'success', 3200);
   }
 
   let gisExportStep = 0;
@@ -16514,7 +16517,7 @@ const {
     if (state.selected?.domain === 'generic' && String(state.selected.id) === key) clearSelection(false);
     renderAll();
     queueAutosave();
-    setActionStatus(statusText || `${genericFeatureName(feature)} 일반 객체를 삭제했습니다.`, 'success');
+    setActionStatus(statusText || `${genericFeatureName(feature)} 기타 객체를 삭제했습니다.`, 'success');
     return true;
   }
 
@@ -16923,8 +16926,29 @@ const {
     });
   }
 
+  function bindSurfaceTabs() {
+    mapSurfaceTabs = createSurfaceTabsController({
+      tablist: $('mapPanelTabs'),
+      onSelect: (key, options) => setMapPanelView(key, options),
+    });
+    createSurfaceTabs = createSurfaceTabsController({
+      tablist: document.querySelector('#createMenu .surface-tabs'),
+      onSelect: (key, options) => syncCreateMenuRoute(key, options),
+    });
+    editorSurfaceTabs = createSurfaceTabsController({
+      tablist: document.querySelector('.editor-view-tabs'),
+      onSelect: (key, options) => setEditorShellView(key, options),
+    });
+    mapSurfaceTabs.bind();
+    createSurfaceTabs.bind();
+    editorSurfaceTabs.bind();
+    setMapPanelView(mapPanelView);
+    syncCreateMenuRoute(createMenuRoute);
+    setEditorShellView('info');
+  }
+
   function bindNavigationUI() {
-    syncCreateMenuRoute('build');
+    bindSurfaceTabs();
     document.addEventListener('pointerdown', event => {
       if (!event.target.closest('#notificationCloseBtn')) clearErrorNotification();
     }, true);
@@ -16963,19 +16987,6 @@ const {
       event.stopPropagation();
       toggleCreateMenu(event.currentTarget);
     });
-    $('createBuildTabBtn')?.addEventListener('click', () => syncCreateMenuRoute('build', { focus: true }));
-    $('createLibraryTabBtn')?.addEventListener('click', () => syncCreateMenuRoute('library', { focus: true }));
-    $('createMenu')?.querySelector('.create-menu-routes')?.addEventListener('keydown', event => {
-      const tabs = [...event.currentTarget.querySelectorAll('[role="tab"]')];
-      const index = tabs.indexOf(document.activeElement);
-      if (index < 0 || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-      const next = event.key === 'Home' ? 0
-        : event.key === 'End' ? tabs.length - 1
-          : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-      event.preventDefault();
-      tabs[next]?.focus({ preventScroll: true });
-      tabs[next]?.click();
-    });
     $('mobileBackdrop')?.addEventListener('click', () => {
       closeFileMenu({ restoreFocus: true });
     });
@@ -16998,6 +17009,7 @@ const {
     });
     $('mobileCloseCreateBtn')?.addEventListener('click', () => closeCreateMenu({ restoreFocus: true }));
     $('createMenu')?.addEventListener('keydown', event => {
+      if (event.defaultPrevented || event.target.closest('.surface-tabs')) return;
       const items = activeCreateMenuItems();
       const index = items.indexOf(document.activeElement);
       let nextIndex;
@@ -17022,9 +17034,6 @@ const {
           ['religions', 'religionsVisible'], ['rivers', 'riversVisible'], ['lakes', 'lakesVisible'], ['genericFeatures', 'genericFeaturesVisible'],
           ['labels', 'labelsVisible'], ['basemapLabels', 'basemapLabelsVisible'],
         ].map(([group, id]) => [group, $(id)])),
-        panelTabs: $('mapPanelTabs'),
-        layersTab: $('mapLayersTabBtn'),
-        viewTab: $('mapViewTabBtn'),
         terrainVisible: $('terrainVisible'),
         terrainStyleInputs: [$('terrainPoliticalRadio'), $('terrainPhysicalRadio')],
         terrainStrength: $('terrainStrengthInput'),
@@ -17050,7 +17059,6 @@ const {
           renderDistributions();
           queuePresentationAutosave();
         },
-        setPanelView: setMapPanelView,
         setTerrainVisible: visible => {
           state.physicalSettings.terrainVisible = !!visible;
           gpuMapRenderer.invalidatePhysicalStyle('terrain-visibility');
@@ -17403,15 +17411,6 @@ const {
     $('zoomInBtn')?.addEventListener('click', () => zoomBy(1.25));
 
     $('togglePanelBtn').addEventListener('click', toggleEditorPanel);
-    $('editorTabBtn')?.addEventListener('click', () => setEditorShellView('info'));
-    $('actionsTabBtn')?.addEventListener('click', () => setEditorShellView('actions'));
-    document.querySelector('.editor-view-tabs')?.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-      event.preventDefault();
-      const actions = event.key === 'ArrowRight' || event.key === 'End';
-      setEditorShellView(actions ? 'actions' : 'info');
-      $(actions ? 'actionsTabBtn' : 'editorTabBtn')?.focus();
-    });
     $('focusSelectedObjectBtn')?.addEventListener('click', () => objectSelection.primary() && focusObjectRef(objectSelection.primary()));
     $('objectLockBtn')?.addEventListener('click', batchToggleLocked);
     $('objectDeleteBtn')?.addEventListener('click', deleteSelectedFromObjectMenu);

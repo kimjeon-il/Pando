@@ -130,8 +130,8 @@ export function assertCurrentProjectSchema(project) {
     assertAllowedKeys(entry, new Set(['id', 'schemaVersion', 'layerId', 'mode', 'territorialUnitId', 'geometry', 'share', 'certainty', 'validFrom', 'validTo', 'metadata']), `분포 엔트리 ${text(entry?.id)}`);
   }
   for (const feature of project.genericFeatures || []) {
-    requireSchemaVersion(feature?.properties?.schemaVersion, `일반 객체 ${text(feature?.id)}`, 1);
-    assertAllowedKeys(feature?.properties, new Set(['schemaVersion', 'name', 'notes', 'color', 'role', 'ownerId', 'parentId', 'landBinding', 'topologyGroup', 'locked', 'source']), `일반 객체 ${text(feature?.id)}`);
+    requireSchemaVersion(feature?.properties?.schemaVersion, `기타 객체 ${text(feature?.id)}`, 1);
+    assertAllowedKeys(feature?.properties, new Set(['schemaVersion', 'name', 'notes', 'color', 'role', 'ownerId', 'parentId', 'landBinding', 'topologyGroup', 'locked', 'source']), `기타 객체 ${text(feature?.id)}`);
   }
   for (const feature of project.hydroEdits || []) {
     requireSchemaVersion(feature?.properties?.pandolab_schema_version, `편집 수계 ${text(feature?.id)}`, 1);

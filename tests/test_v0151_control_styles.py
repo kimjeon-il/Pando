@@ -45,7 +45,7 @@ class V0151ControlStyleTests(unittest.TestCase):
         self.assertIn('id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn"', INDEX)
         self.assertNotIn('aria-label="지도·레이어 창 닫기">닫기</button>', INDEX)
         self.assertNotIn('aria-label="편집창 닫기">닫기</button>', INDEX)
-        self.assertIn('.mobile-sheet-header .sheet-close-btn {', CSS)
+        self.assertIn('.surface-header .sheet-close-btn {', CSS)
         self.assertIn('width: var(--ui-touch-height);', CSS)
 
 

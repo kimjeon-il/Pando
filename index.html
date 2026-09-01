@@ -89,17 +89,18 @@
     </header>
 
     <div class="workspace">
-      <aside id="leftPanel" class="sidebar left-panel map-sheet-surface ui-sheet" aria-labelledby="mapSheetTitle">
-        <div class="mobile-sheet-header map-sheet-header ui-sheet-header layer-panel-header">
+      <aside id="leftPanel" class="sidebar left-panel workspace-surface surface-map ui-sheet" aria-labelledby="mapSheetTitle">
+        <header class="surface-header">
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="leftPanel" aria-label="지도 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
-          <strong id="mapSheetTitle">지도</strong>
-          <button id="mobileCloseLeftBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="지도 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
-        </div>
-        <nav id="mapPanelTabs" class="ui-tabs ui-sheet-tabs map-panel-tabs" role="tablist" aria-label="지도 패널 보기">
-          <button id="mapLayersTabBtn" class="ui-button ui-tab active" type="button" role="tab" aria-controls="layerSection" aria-selected="true">레이어</button>
-          <button id="mapViewTabBtn" class="ui-button ui-tab" type="button" role="tab" aria-controls="mapViewSection" aria-selected="false" tabindex="-1">보기</button>
+          <div class="surface-header-title"><strong id="mapSheetTitle">지도</strong></div>
+          <div class="surface-header-actions"><button id="mobileCloseLeftBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="지도 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+        </header>
+        <nav id="mapPanelTabs" class="ui-tabs surface-tabs map-panel-tabs" role="tablist" aria-label="지도 패널 보기">
+          <button id="mapLayersTabBtn" class="ui-button ui-tab active" data-surface-tab="layers" type="button" role="tab" aria-controls="layerSection" aria-selected="true">레이어</button>
+          <button id="mapViewTabBtn" class="ui-button ui-tab" data-surface-tab="view" type="button" role="tab" aria-controls="mapViewSection" aria-selected="false" tabindex="-1">보기</button>
         </nav>
-        <div class="map-sheet-body map-sheet-body-layers">
+        <div class="surface-body surface-body-delegated">
+        <div class="surface-content surface-content-map">
         <section id="layerSection" class="panel-section ui-panel--dense layer-panel-section is-hydrating" role="tabpanel" aria-labelledby="mapLayersTabBtn" aria-busy="true">
           <div class="ui-search-field layer-search">
             <svg class="ui-icon layer-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
@@ -227,7 +228,7 @@
               <div id="layerStylePanel-lakes" class="layer-inline-style-panel" data-layer-style-panel="lakes" role="group" aria-label="호수 표시 설정" hidden></div>
               <div id="lakesLayerChildren" class="layer-children" role="group" aria-label="호수 항목" hidden></div>
             </div>
-            <div class="layer-folder" data-layer-group="genericFeatures">
+            <div class="layer-folder" data-layer-group="genericFeatures" hidden>
               <div class="ui-row layer-folder-row has-layer-style">
                 <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="genericFeatures" aria-expanded="false" aria-label="기타 객체 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
                 <label class="layer-visibility-control"><input id="genericFeaturesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="기타 객체" aria-label="기타 객체 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
@@ -280,6 +281,7 @@
           </div>
           </section>
         </div>
+        </div>
 
       </aside>
 
@@ -295,47 +297,45 @@
 
           <div id="mapCommandToolbar" class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar floating-toolbar history-empty" aria-label="지도 명령">
             <div class="create-menu-wrap">
-              <button id="createMenuBtn" class="ui-button btn create-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
-              <div id="createMenu" class="create-menu map-sheet-surface ui-sheet ui-menu ui-popover ui-floating-surface hidden" role="menu" aria-label="지도 객체 추가">
-                <div class="create-sheet-header mobile-sheet-header map-sheet-header ui-sheet-header">
+              <button id="createMenuBtn" class="ui-button btn create-menu-btn" type="button" aria-haspopup="dialog" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
+              <section id="createMenu" class="create-menu workspace-surface surface-create ui-sheet ui-popover ui-floating-surface hidden" role="dialog" aria-modal="false" aria-labelledby="createSheetTitle">
+                <header class="surface-header">
                   <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="createMenu" aria-label="추가 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
-                  <strong>추가</strong>
-                  <button id="mobileCloseCreateBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="추가 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
-                </div>
-                <div class="create-menu-routes ui-tabs" role="tablist" aria-label="추가 경로">
-                  <button id="createBuildTabBtn" class="ui-button ui-tab active" type="button" role="tab" aria-controls="createBuildPanel" aria-selected="true">만들기</button>
-                  <button id="createLibraryTabBtn" class="ui-button ui-tab" type="button" role="tab" aria-controls="createLibraryPanel" aria-selected="false" tabindex="-1">라이브러리</button>
-                </div>
-                <div class="map-sheet-body create-sheet-body ui-scroll-surface">
+                  <div class="surface-header-title"><strong id="createSheetTitle">추가</strong></div>
+                  <div class="surface-header-actions"><button id="mobileCloseCreateBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="추가 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+                </header>
+                <nav class="surface-tabs create-menu-routes ui-tabs" role="tablist" aria-label="추가 경로">
+                  <button id="createBuildTabBtn" class="ui-button ui-tab active" data-surface-tab="build" type="button" role="tab" aria-controls="createBuildPanel" aria-selected="true">만들기</button>
+                  <button id="createLibraryTabBtn" class="ui-button ui-tab" data-surface-tab="library" type="button" role="tab" aria-controls="createLibraryPanel" aria-selected="false" tabindex="-1">라이브러리</button>
+                </nav>
+                <div class="surface-body ui-scroll-surface">
+                  <div class="surface-content surface-content-create">
                   <div id="createBuildPanel" class="create-menu-route-panel" role="tabpanel" aria-labelledby="createBuildTabBtn">
-                    <div class="create-sheet-content">
                       <div class="create-menu-category" data-map-category="territorial">
                         <div class="create-menu-group"><span class="create-menu-group-title">영토·구역</span></div>
-                        <button id="addCountryBtn" data-map-object-type="country" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
-                        <button id="addTerritoryBtn" data-map-object-type="territory" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-territory"/></svg></span><span><strong>권역</strong><small>국가 안의 권역 만들기</small></span></button>
-                        <button id="addAdministrativeBtn" data-map-object-type="admin" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-administrative"/></svg></span><span><strong>행정구역</strong><small>부모 영역 안에 행정 단위 만들기</small></span></button>
-                        <button id="addRegionBtn" data-map-object-type="region" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>지방</strong><small>역사·지리적 지방 만들기</small></span></button>
+                        <button id="addCountryBtn" data-map-object-type="country" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가</strong><small>기존 영토에서 신생국 만들기</small></span></button>
+                        <button id="addTerritoryBtn" data-map-object-type="territory" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-territory"/></svg></span><span><strong>권역</strong><small>국가 안의 권역 만들기</small></span></button>
+                        <button id="addAdministrativeBtn" data-map-object-type="admin" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-administrative"/></svg></span><span><strong>행정구역</strong><small>부모 영역 안에 행정 단위 만들기</small></span></button>
+                        <button id="addRegionBtn" data-map-object-type="region" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>지방</strong><small>역사·지리적 지방 만들기</small></span></button>
                       </div>
                       <div class="create-menu-category" data-map-category="distribution">
                         <div class="create-menu-group"><span class="create-menu-group-title">인문 분포</span></div>
-                        <button id="addDistributionBtn" data-map-object-type="distribution" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem" aria-haspopup="dialog" aria-controls="distributionTypeModal"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>분포</strong><small>언어·민족·종교 분포 만들기</small></span></button>
+                        <button id="addDistributionBtn" data-map-object-type="distribution" class="ui-button ui-row-button create-menu-item" type="button" aria-haspopup="dialog" aria-controls="distributionTypeModal"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>분포</strong><small>언어·민족·종교 분포 만들기</small></span></button>
                       </div>
                       <div class="create-menu-category" data-map-category="features">
                         <div class="create-menu-group"><span class="create-menu-group-title">지형지물</span></div>
-                        <button id="addLabelBtn" data-map-object-type="label" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong><small>지도에 지명 배치하기</small></span></button>
-                        <button id="addRiverBtn" data-map-object-type="river" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강</strong><small>강의 흐름을 선으로 그리기</small></span></button>
-                        <button id="addLakeBtn" data-map-object-type="lake" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수</strong><small>호수의 경계를 영역으로 그리기</small></span></button>
+                        <button id="addLabelBtn" data-map-object-type="label" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong><small>지도에 지명 배치하기</small></span></button>
+                        <button id="addRiverBtn" data-map-object-type="river" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강</strong><small>강의 흐름을 선으로 그리기</small></span></button>
+                        <button id="addLakeBtn" data-map-object-type="lake" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수</strong><small>호수의 경계를 영역으로 그리기</small></span></button>
                       </div>
-                    </div>
                   </div>
                   <div id="createLibraryPanel" class="create-menu-route-panel" role="tabpanel" aria-labelledby="createLibraryTabBtn" hidden>
-                    <div class="create-sheet-content">
                       <div class="create-menu-group"><span class="create-menu-group-title">라이브러리</span></div>
-                      <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button" role="menuitem"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong><small>현존·과거 국가와 지역 검색</small></span></button>
-                    </div>
+                      <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong><small>현존·과거 국가와 지역 검색</small></span></button>
+                  </div>
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
             <span class="toolbar-divider create-toolbar-divider"></span>
             <button id="undoBtn" class="ui-button icon-btn" data-tooltip="실행취소" aria-label="실행취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></button>
@@ -433,27 +433,32 @@
 
       </main>
 
-      <aside id="rightPanel" class="sidebar right-panel editor-panel editor-shell map-sheet-surface ui-sheet" aria-labelledby="editSheetTitle">
-        <header class="mobile-sheet-header editor-shell-header map-sheet-header ui-sheet-header">
+      <aside id="rightPanel" class="sidebar right-panel editor-panel workspace-surface surface-editor ui-sheet" aria-labelledby="editSheetTitle">
+        <header class="surface-header">
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="rightPanel" aria-label="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" aria-valuetext="기본 높이"><span aria-hidden="true"></span></button>
-          <strong id="editSheetTitle">편집</strong>
-          <section id="editorObjectHeader" class="editor-object-header hidden">
-            <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><span id="propertyTypeLabel"></span></div>
+          <div class="surface-header-title">
+            <strong id="editSheetTitle">편집</strong>
+            <section id="editorObjectHeader" class="editor-object-header hidden">
+              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><span id="propertyTypeLabel"></span></div>
+            </section>
+          </div>
+          <div class="surface-header-actions">
             <div class="editor-object-actions">
               <button id="focusSelectedObjectBtn" class="ui-button icon-btn compact" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button>
               <button id="objectLockBtn" class="ui-button icon-btn compact editor-object-lock" type="button" data-tooltip="잠금" aria-label="잠금" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
               <button id="objectDeleteBtn" class="ui-button icon-btn compact editor-object-delete" type="button" data-tooltip="삭제" aria-label="삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
             </div>
-          </section>
-          <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon editor-close-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><svg class="ui-icon editor-collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+            <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="편집창 닫기"><svg class="ui-icon editor-close-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><svg class="ui-icon editor-collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+          </div>
         </header>
 
-        <nav class="ui-tabs ui-sheet-tabs editor-view-tabs hidden" role="tablist" aria-label="객체 편집 보기">
-          <button id="editorTabBtn" class="ui-button ui-tab active" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="true">정보</button>
-          <button id="actionsTabBtn" class="ui-button ui-tab" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">작업</button>
+        <nav class="ui-tabs surface-tabs editor-view-tabs hidden" role="tablist" aria-label="객체 편집 보기">
+          <button id="editorTabBtn" class="ui-button ui-tab active" data-surface-tab="info" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="true">정보</button>
+          <button id="actionsTabBtn" class="ui-button ui-tab" data-surface-tab="actions" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">작업</button>
         </nav>
 
-        <div id="editorScrollBody" class="editor-scroll-body ui-scroll-surface" role="tabpanel" aria-labelledby="editorTabBtn">
+        <div id="editorScrollBody" class="surface-body editor-scroll-body ui-scroll-surface" role="tabpanel" aria-labelledby="editorTabBtn">
+          <div class="surface-content surface-content-editor">
 
           <section id="emptyProperties" class="empty-state editor-empty">
             <strong>선택한 객체가 없습니다.</strong><p>지도나 레이어 목록에서 편집할 대상을 선택하세요.</p>
@@ -670,7 +675,7 @@
                     <span class="ui-color-preview" aria-hidden="true"></span><span id="genericFeatureColorValue" class="ui-color-value">기본 색상</span>
                   </button>
                   <input id="genericFeatureColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
-                  <div id="genericFeatureColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="일반 객체 색상 팔레트">
+                  <div id="genericFeatureColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="기타 객체 색상 팔레트">
                     <button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="false"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button>
                     <div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div>
                     <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button>
@@ -726,7 +731,7 @@
               <div><span>토폴로지 그룹</span><output id="genericFeatureTopologyValue">—</output></div>
             </div>
 
-            <button id="deleteGenericFeatureInlineBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>일반 객체 삭제</button>
+            <button id="deleteGenericFeatureInlineBtn" class="ui-button btn ghost danger-ghost wide" type="button" hidden>기타 객체 삭제</button>
           </form>
 
           <form id="labelProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
@@ -776,6 +781,7 @@
               </div>
             </details>
           </section>
+          </div>
         </div>
       </aside>
     </div>
@@ -1011,7 +1017,7 @@
             <label class="ui-check"><input type="checkbox" value="territories" checked /><span>권역</span></label>
             <label class="ui-check"><input type="checkbox" value="administrative" checked /><span>행정구역</span></label>
             <label class="ui-check"><input type="checkbox" value="regions" checked /><span>지방</span></label>
-            <label class="ui-check"><input type="checkbox" value="genericFeatures" checked /><span>지형지물</span></label>
+            <label class="ui-check"><input type="checkbox" value="genericFeatures" checked /><span>기타 객체</span></label>
             <label class="ui-check"><input type="checkbox" value="distributions" checked /><span>분포</span></label>
             <label class="ui-check"><input type="checkbox" value="labels" checked /><span>지명</span></label>
           </fieldset>

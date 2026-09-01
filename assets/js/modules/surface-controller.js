@@ -100,16 +100,16 @@ export function createSurfaceController({ getElement, getLayout, document }) {
         panel.setAttribute('aria-modal', 'false');
         panel.setAttribute('aria-hidden', String(activeMobileSheet !== kind));
       } else {
-        panel.removeAttribute('aria-modal');
         panel.removeAttribute('aria-hidden');
-        if (kind === 'create') panel.setAttribute('role', 'menu');
-        else panel.removeAttribute('role');
+        if (kind === 'create') {
+          panel.setAttribute('role', 'dialog');
+          panel.setAttribute('aria-modal', 'false');
+        } else {
+          panel.removeAttribute('role');
+          panel.removeAttribute('aria-modal');
+        }
       }
     }
-    document.querySelectorAll('#createMenu .create-menu-item').forEach(item => {
-      if (layout === 'mobile') item.removeAttribute('role');
-      else item.setAttribute('role', 'menuitem');
-    });
     return { layersOpen, editorOpen, createOpen, activeMobileSheet };
   }
 
