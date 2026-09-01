@@ -197,7 +197,11 @@ export function createSceneColorCache() {
   }
 
   function canComposite(viewSignature = '', projectGeneration = 0) {
-    return valid && !!activeTarget && !disabled
+    // An invalidated cache may still own a perfectly good texture, but that
+    // texture belongs to the previous scene revision.  Never let callers
+    // composite it while a replacement is being staged; doing so leaves
+    // removed geometry (notably edited borders) as framebuffer afterimages.
+    return valid && !dirty && !!activeTarget && !disabled
       && activeViewSignature === String(viewSignature || '')
       && activeProjectGeneration === Number(projectGeneration || 0);
   }

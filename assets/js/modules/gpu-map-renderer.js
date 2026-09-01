@@ -1412,13 +1412,24 @@ export function createGpuMapRenderer(deps) {
 
     function setOverrideMesh(nextMesh, { renderFrame = true } = {}) {
       overrideMesh = nextMesh;
+      // An override changes the pixels owned by the base scene.  Invalidate
+      // the scene cache before uploading (and also when the override is
+      // cleared) so a previous scene texture cannot leave the old country
+      // border behind after the patch is displayed.
+      lastBaseSceneResult = null;
+      sceneColorCache.invalidate('country-override-mesh');
+      externalSceneDirty = true;
+      externalInteractionDirty = true;
       countryStrokePacketCache.override.mesh = null;
       countryStrokePacketCache.override.resource = null;
       countryFillRangeCache.override.mesh = null;
       countryFillRangeCache.override.ranges = new Map();
       overrideWebGl1PositionData = null;
       overrideWebGl1CountryData = null;
-      if (!gl || !isWebGlRenderer() || !nextMesh) return;
+      if (!gl || !isWebGlRenderer() || !nextMesh) {
+        if (renderFrame) render(currentRenderRevision);
+        return;
+      }
       const uploadBytes = Number(nextMesh.positions?.byteLength || 0)
         + Number(nextMesh.countryIndices?.byteLength || 0)
         + Number(nextMesh.triangleIndices?.byteLength || 0)
@@ -1667,6 +1678,13 @@ export function createGpuMapRenderer(deps) {
       countryOverrideIds.clear();
       overrideFeatureSnapshots.clear();
       overrideMesh = null;
+      // Clearing an override removes geometry from the base scene as well as
+      // from the interaction state.  Drop the cached scene before the next
+      // draw so the removed border cannot remain in the framebuffer.
+      lastBaseSceneResult = null;
+      sceneColorCache.invalidate('country-override-cleared');
+      externalSceneDirty = true;
+      externalInteractionDirty = true;
       state.pendingCountryRenderIds.clear();
       lastGeometryCommitTimings = null;
       if (renderFrame) {
@@ -3732,9 +3750,10 @@ export function createGpuMapRenderer(deps) {
       }
       if (needsBaseScene) ensureCountryIdScene();
       if (sceneColorCache.canComposite?.(viewSignature, projectGeneration)) {
-        // Keep the previous framebuffer intact while compositing a validated
-        // active scene so a transient draw failure cannot expose transparency.
-        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: false })) {
+        // This canvas is owned by PandoLab. Clear before compositing so pixels
+        // removed from the active scene (for example an edited border) cannot
+        // survive in the default framebuffer as an afterimage.
+        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) {
           sceneCacheFallbackFrame = true;
           // A failed composite does not make a same-view active scene stale.
           // Preserve the already displayed frame instead of clearing it and
@@ -3828,10 +3847,18 @@ export function createGpuMapRenderer(deps) {
       const viewState = externalFrameContext(context);
       let baseResult = null;
       const currentSignature = externalViewSignature;
+      // A valid texture can still be obsolete when a mesh/overlay update
+      // landed after prerender. Do not composite it just because its view
+      // signature matches; the dirty bit is part of the scene contract.
       let compositeSucceeded = sceneColorCache.canComposite?.(currentSignature, projectGeneration)
+        && !externalSceneDirty
         ? sceneColorCache.composite(pixelWidth, pixelHeight, {
           targetFramebuffer: externalTargetFramebuffer,
-          clearTarget: false,
+          // MapLibre uses a transparent blank style for this host.  Clear the
+          // custom-layer target before compositing a scene so pixels removed
+          // by a geometry patch (for example an old national border) cannot
+          // survive in the framebuffer as an afterimage.
+          clearTarget: true,
         })
         : false;
       if (!compositeSucceeded) {
@@ -3847,7 +3874,7 @@ export function createGpuMapRenderer(deps) {
             compositeSucceeded = finished && sceneColorCache.canComposite?.(currentSignature, projectGeneration)
               && sceneColorCache.composite(pixelWidth, pixelHeight, {
                 targetFramebuffer: externalTargetFramebuffer,
-                clearTarget: false,
+                clearTarget: true,
               });
             if (compositeSucceeded) {
               externalSceneDirty = false;
