@@ -38,7 +38,7 @@ test('partition object imports are constrained to the current project', () => {
   assert.equal(targetRequiresExistingProject('project'), false);
 });
 
-test('region imports keep explicit-area semantics', () => {
+test('region imports keep explicit-area semantics and optional country ownership', () => {
   const region = normalizeImportPlan({
     targetType: 'region', targetCountryId: 'DEU', useFeatureCountryField: true,
   });

@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createProjectSerializer, restoreCountriesFromDelta } from '../../assets/js/modules/project-serializer.js';
 
 const serializer = snapshot => createProjectSerializer({
-  schemaVersion: 2,
+  schemaVersion: 3,
   appVersion: '0.30.0',
   baseDataset: 'base',
   genericFeatureSchemaVersion: 1,
@@ -40,13 +40,16 @@ test('autosave serializer preserves full and delta formats', () => {
   const common = {
     countriesData: { type: 'FeatureCollection', features: [] },
     projectFields: { labels: [] },
-    countryDelta: { changed: [{ id: 'changed' }], removedIds: ['removed'] },
+    countryDelta: { changed: [{ type: 'Feature', id: 'changed', properties: { name: '국가', ignored: true }, geometry: null }], removedIds: ['removed'] },
     terrainManifest: null,
     hydroManifest: null,
   };
   const delta = serializer({ ...common, fullAutosave: false }).buildAutosave();
   assert.equal(delta.format, 'pandolab-autosave-delta');
-  assert.deepEqual(delta.countryDelta, common.countryDelta);
+  assert.deepEqual(delta.countryDelta, {
+    changed: [{ type: 'Feature', id: 'changed', properties: { name: '국가' }, geometry: null }],
+    removedIds: ['removed'],
+  });
   assert.equal('countriesData' in delta, false);
   const full = serializer({ ...common, fullAutosave: true }).buildAutosave();
   assert.equal(full.format, 'pandolab-autosave-full');
@@ -76,7 +79,7 @@ test('project serialization preserves the four canonical territorial unit types'
 });
 
 test('country delta restoration replaces removes and appends without mutating the delta', () => {
-  const feature = (id, value) => ({ type: 'Feature', properties: { editor_id: id, value }, geometry: null });
+  const feature = (id, name) => ({ type: 'Feature', id, properties: { name }, geometry: null });
   const project = { countryDelta: { changed: [feature('A', 2), feature('C', 3)], removedIds: ['B'] } };
   const clone = value => JSON.parse(JSON.stringify(value));
   const original = clone(project);
@@ -87,7 +90,7 @@ test('country delta restoration replaces removes and appends without mutating th
     reindex: value => value,
     applyPristineLabelAnchors: (_collection, ids) => anchors.push(...ids),
   });
-  assert.deepEqual(result.features.map(item => [item.properties.editor_id, item.properties.value]), [['A', 2], ['C', 3]]);
+  assert.deepEqual(result.features.map(item => [item.id, item.properties.name]), [['A', '2'], ['C', '3']]);
   assert.deepEqual(anchors, []);
   assert.deepEqual(project, original);
 });

@@ -64,13 +64,13 @@ export function validateProjectReferenceIntegrity({
 } = {}) {
   const issues = [];
 
-  issues.push(...duplicateIssues(countries, row => row?.properties?.editor_id || row?.id, 'PL-INV-COUNTRY', '국가'));
+  issues.push(...duplicateIssues(countries, row => row?.id, 'PL-INV-COUNTRY', '국가'));
   issues.push(...duplicateIssues(territorialUnits, row => row?.id, 'PL-INV-UNIT', '영역'));
   issues.push(...duplicateIssues(territorialRelations, row => row?.id, 'PL-INV-RELATION', '기간별 관계'));
   issues.push(...duplicateIssues(distributionLayers, row => row?.id, 'PL-INV-DIST-LAYER', '분포 레이어'));
   issues.push(...duplicateIssues(distributionEntries, row => row?.id, 'PL-INV-DIST-ENTRY', '분포 엔트리'));
 
-  const countryIds = new Set((countries || []).map(row => text(row?.properties?.editor_id || row?.id)).filter(Boolean));
+  const countryIds = new Set((countries || []).map(row => text(row?.id)).filter(Boolean));
   const unitIds = new Set((territorialUnits || []).map(row => text(row?.id)).filter(Boolean));
   const territorialIds = new Set([...countryIds, ...unitIds]);
   const unitById = new Map((territorialUnits || []).map(row => [text(row?.id), row]).filter(([id]) => id));
@@ -86,7 +86,7 @@ export function validateProjectReferenceIntegrity({
   }
 
   for (const feature of countries || []) {
-    const id = text(feature?.properties?.editor_id || feature?.id);
+    const id = text(feature?.id);
     const geometryError = geometryIssue(feature, id, '국가');
     if (geometryError) issues.push(geometryError);
   }

@@ -18,7 +18,7 @@ const countries = JSON.parse(readFileSync(path.join(root, 'assets/data/countries
 const flagRoot = path.join(root, 'assets/vendor/flag-icons/7.5.0/flags/4x3');
 
 test('current-country flag coverage is fixed at 239 supported and 19 explicit exclusions', () => {
-  const countryIds = new Set(countries.features.map(feature => String(feature.properties?.editor_id || '')));
+  const countryIds = new Set(countries.features.map(feature => String(feature.id || '')));
   const supportedIds = Object.keys(CURRENT_COUNTRY_FLAG_CODES);
   const excludedIds = [...CURRENT_COUNTRY_FLAG_EXCLUDED_IDS];
   assert.equal(countryIds.size, 258);
@@ -58,20 +58,18 @@ test('representative and exceptional country IDs resolve to the intended flags',
   assert.equal(currentCountryFlagCode('BRT'), '');
 });
 
-test('effective flags honor override, feature, default, and explicit-none precedence', () => {
+test('effective flags honor project overrides, the built-in default, and explicit-none precedence', () => {
   const custom = 'data:image/svg+xml;base64,PHN2Zy8+';
-  const imported = 'data:image/png;base64,aW1wb3J0ZWQ=';
   assert.equal(effectiveCountryFlagUrl({
-    countryId: 'KOR', properties: { flagDataUrl: imported }, override: { flagDataUrl: custom },
+    countryId: 'KOR', override: { flagDataUrl: custom },
   }), custom);
   assert.equal(effectiveCountryFlagUrl({
-    countryId: 'KOR', properties: { flagDataUrl: imported }, override: { flagDataUrl: null },
+    countryId: 'KOR', override: { flagDataUrl: null },
   }), null);
-  assert.equal(effectiveCountryFlagUrl({ countryId: 'KOR', properties: { flagDataUrl: imported } }), imported);
-  assert.equal(effectiveCountryFlagUrl({ countryId: 'KOR', properties: { flagDataUrl: null } }), null);
+  assert.match(effectiveCountryFlagUrl({ countryId: 'KOR' }), /\/kr\.svg$/);
   assert.equal(effectiveCountryFlagUrl({ countryId: 'BRT' }), null);
 
-  const bundled = new URL(currentCountryFlagUrl('KOR', { assetRevision: '0.30.0-r41' }));
+  const bundled = new URL(currentCountryFlagUrl('KOR', { assetRevision: '0.30.0-r42' }));
   assert.match(decodeURIComponent(bundled.pathname), /assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/kr\.svg$/);
-  assert.equal(bundled.searchParams.get('v'), '0.30.0-r41');
+  assert.equal(bundled.searchParams.get('v'), '0.30.0-r42');
 });

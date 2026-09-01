@@ -35,7 +35,7 @@ def validate_collection(label: str, collection: dict) -> None:
     errors: list[str] = []
     geometry_entries: list[tuple] = []
     features = collection.get("features", [])
-    ids = [str((feature.get("properties") or {}).get("editor_id") or "") for feature in features]
+    ids = [str(feature.get("id") or "") for feature in features]
     if collection.get("type") != "FeatureCollection":
         errors.append("FeatureCollection 형식이 아닙니다.")
     if len(features) != EXPECTED_COUNTRIES:
@@ -44,6 +44,8 @@ def validate_collection(label: str, collection: dict) -> None:
         errors.append("국가 ID가 비어 있거나 중복되었습니다.")
 
     for feature, feature_id in zip(features, ids):
+        if set((feature.get("properties") or {}).keys()) != {"name"}:
+            errors.append(f"{feature_id}: 국가 속성은 name 하나만 있어야 합니다.")
         geometry = feature.get("geometry") or {}
         if geometry.get("type") not in {"Polygon", "MultiPolygon"}:
             errors.append(f"{feature_id}: Polygon 또는 MultiPolygon이 아닙니다.")
@@ -107,8 +109,8 @@ def main() -> None:
         return
     preview = json.loads(gzip.decompress(PREVIEW_PATH.read_bytes()))
     validate_collection("preview", preview)
-    canonical_ids = [feature["properties"]["editor_id"] for feature in canonical["features"]]
-    preview_ids = [feature["properties"]["editor_id"] for feature in preview["features"]]
+    canonical_ids = [feature["id"] for feature in canonical["features"]]
+    preview_ids = [feature["id"] for feature in preview["features"]]
     if preview_ids != canonical_ids:
         raise SystemExit("preview 국가 ID 또는 순서가 canonical 원본과 다릅니다.")
 

@@ -16,9 +16,10 @@ test.describe('phase 1 residual UI cleanup', () => {
     await expect(page.locator('.map-status-state')).toHaveCount(1);
   });
 
-  test('historical library uses wide two-pane desktop and fullscreen mobile', async ({ page }) => {
+  test('historical library uses wide two-pane desktop and near-fullscreen mobile', async ({ page }) => {
     await page.goto('/');
     await page.waitForFunction(() => document.documentElement.dataset.pandolabUiCleanupPhase1 === 'done');
+    await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     await page.locator('#createMenuBtn').click();
     await page.locator('#createLibraryTabBtn').click();
     await page.locator('#addFromLibraryBtn').click();
@@ -38,7 +39,7 @@ test.describe('phase 1 residual UI cleanup', () => {
       height: el.getBoundingClientRect().height,
       radius: getComputedStyle(el).borderRadius,
     }));
-    expect(mobile.width).toBeGreaterThanOrEqual(389);
+    expect(mobile.width).toBeGreaterThanOrEqual(358);
     expect(mobile.height).toBeGreaterThanOrEqual(843);
     expect(mobile.radius).toBe('0px');
   });

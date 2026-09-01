@@ -22,7 +22,7 @@ export {
 };
 
 const clone = value => value == null ? value : structuredClone(value);
-const idOf = feature => String(feature?.properties?.editor_id || feature?.id || '');
+const idOf = feature => String(feature?.id || '');
 function geometryHasArea(geometry) {
   if (!geometry) return false;
   if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') return true;

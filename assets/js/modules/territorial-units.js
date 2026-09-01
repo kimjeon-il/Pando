@@ -286,7 +286,7 @@ export function createTerritorialFeature({
 export function createCountryTerritorialAdapter(feature, override = {}) {
   if (!feature?.geometry) return null;
   const properties = feature.properties || {};
-  const id = text(properties.editor_id || feature.id);
+  const id = text(feature.id);
   if (!id) return null;
   return {
     type: 'Feature',
@@ -294,19 +294,19 @@ export function createCountryTerritorialAdapter(feature, override = {}) {
     properties: {
       schemaVersion: TERRITORIAL_SCHEMA_VERSION,
       unitType: TERRITORIAL_UNIT_TYPES.COUNTRY,
-      name: text(override.name || properties.editor_name || properties.editor_original_name || properties.name || id),
+      name: text(override.name || properties.name || id),
       parentId: '',
       sovereignId: id,
       coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
       isRemainder: false,
       adminLevel: null,
-      style: { color: text(override.color || properties.editor_color) },
+      style: { color: text(override.color) },
       locked: false,
       validFrom: normalizeTemporalInterval(properties.validFrom, properties.validTo).validFrom,
       validTo: normalizeTemporalInterval(properties.validFrom, properties.validTo).validTo,
       metadata: { adapter: 'countriesData' },
-      sourceLibraryId: text(properties.sourceLibraryId),
-      sourceGeometryVersion: text(properties.sourceGeometryVersion),
+      sourceLibraryId: '',
+      sourceGeometryVersion: '',
     },
     geometry: feature.geometry,
   };
@@ -318,7 +318,7 @@ export function createTerritorialRepository({
   getCountryOverride = () => ({}),
 }) {
   const countries = () => (getCountries()?.features || [])
-    .map(feature => createCountryTerritorialAdapter(feature, getCountryOverride(text(feature.properties?.editor_id))))
+    .map(feature => createCountryTerritorialAdapter(feature, getCountryOverride(text(feature?.id))))
     .filter(Boolean);
   const units = () => Array.isArray(getUnits()) ? getUnits() : [];
   return Object.freeze({

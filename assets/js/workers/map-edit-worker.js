@@ -24,7 +24,7 @@ const cancelled = new Set();
 let currentDataRevision = 0;
 
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
-const featureId = feature => String(feature?.properties?.editor_id || feature?.id || '');
+const featureId = feature => String(feature?.id || '');
 
 function multiCoordinates(geometry) {
   if (!geometry) return [];
@@ -191,7 +191,7 @@ function validateResult(map, affectedIds, baseline, { allowAreaChange = false } 
   if (ids.some(id => !id) || new Set(ids).size !== ids.length) throw new Error('국가 ID가 비어 있거나 중복되었습니다.');
   for (const id of affected) {
     const feature = map.get(id);
-    if (feature && !geometryValid(feature.geometry)) throw new Error(`${feature.properties?.editor_name || id}의 경계가 유효하지 않습니다.`);
+    if (feature && !geometryValid(feature.geometry)) throw new Error(`${feature.properties?.name || id}의 경계가 유효하지 않습니다.`);
   }
   const tolerance = Math.max(1e-8, Number(baseline.boundaryLength || 0) * 2e-7);
   const tested = new Set();
@@ -295,8 +295,6 @@ function executeMerge(message, working) {
   const baseline = captureBaseline(working, affectedIds);
   const next = clone(source);
   next.geometry = normalizeCountryGeometry(clippingOperation('union', source.geometry.coordinates, ...targets.map(feature => feature.geometry.coordinates)));
-  next.properties.pop_est = Number(source.properties?.pop_est || 0) + targets.reduce((sum, feature) => sum + Number(feature.properties?.pop_est || 0), 0);
-  next.properties.gdp_md_est = Number(source.properties?.gdp_md_est || 0) + targets.reduce((sum, feature) => sum + Number(feature.properties?.gdp_md_est || 0), 0);
   applyPatch(working, [next], targetIds);
   validateResult(working, affectedIds, baseline);
   return { features: [next], removedIds: targetIds, affectedIds: [...affectedIds], seamless: true };

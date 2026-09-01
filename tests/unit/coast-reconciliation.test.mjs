@@ -48,7 +48,7 @@ test('country and imported-area choices update only their selected geometry', ()
 });
 
 test('coast analysis uses only trusted coast topology and accepts reversed chains', () => {
-  const countryFeature = { type: 'Feature', id: 'DEU', properties: { editor_id: 'DEU' }, geometry: square() };
+  const countryFeature = { type: 'Feature', id: 'DEU', properties: { name: '독일' }, geometry: square() };
   const adminFeature = {
     type: 'Feature', id: 'SCH', properties: {},
     geometry: { type: 'Polygon', coordinates: [[[0, 0.01], [2, 0.01], [2, 2], [0, 2], [0, 0.01]]] },

@@ -13,7 +13,7 @@
   const fflateScriptUrl = new URL('vendor/fflate/fflate.min.js', baseUrl).href;
   const importPlanModuleUrl = new URL('modules/import-plan.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
-  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r41');
+  gpkgWorkerUrlObject.searchParams.set('v', '0.30.0-r42');
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
   const archiveExtensions = new Set(['qgz', 'shz', 'zip', 'kmz']);
@@ -22,7 +22,7 @@
   const inputLimit = 512 * 1024 * 1024;
   const extractedLimit = 1024 * 1024 * 1024;
   const archiveEntryLimit = 10000;
-  const GIS_MANIFEST_SCHEMA_VERSION = 2;
+  const GIS_MANIFEST_SCHEMA_VERSION = 3;
   let gdalPromise = null;
   let gpkgWorker = null;
   let workerSequence = 0;
@@ -460,10 +460,11 @@
     return String(value).slice(0, 48);
   }
 
-  function populateFieldSelect(select, fields, { includeFid = false, includeStyle = false, selected = '', roleLabel = '속성', fieldExamples = {} } = {}) {
+  function populateFieldSelect(select, fields, { includeFid = false, includeFeatureId = false, includeStyle = false, selected = '', roleLabel = '속성', fieldExamples = {} } = {}) {
     select.replaceChildren();
     if (includeFid) select.add(new Option('원본 FID', '__fid__'));
     else select.add(new Option('사용 안 함', ''));
+    if (includeFeatureId) select.add(new Option('GeoJSON Feature.id', '__feature_id__'));
     if (includeStyle) select.add(new Option('QGIS 기본 스타일', '__qgis_style__'));
     fields.forEach(field => {
       const fieldName = String(field);
@@ -475,8 +476,15 @@
   function updateWizardFields(descriptor) {
     const fields = descriptor.fields || [];
     const fieldOptions = { fieldExamples: descriptor.fieldExamples || {} };
-    populateFieldSelect(document.getElementById('gisIdField'), fields, { ...fieldOptions, roleLabel: 'ID', includeFid: true, selected: autoField(fields, ['pandolab_id', 'editor_id', 'ADM0_A3', 'ISO_A3', 'id']) || '__fid__' });
-    populateFieldSelect(document.getElementById('gisNameField'), fields, { ...fieldOptions, roleLabel: '이름', selected: autoField(fields, ['pandolab_name', 'NAME_KO', 'name_ko', 'NAME', 'name', descriptor.qgsLabelField]) });
+    const featureIdAvailable = /geojson/i.test(String(descriptor.driverName || ''));
+    populateFieldSelect(document.getElementById('gisIdField'), fields, {
+      ...fieldOptions,
+      roleLabel: 'ID',
+      includeFid: true,
+      includeFeatureId: featureIdAvailable,
+      selected: autoField(fields, ['pandolab_id', 'ADM0_A3', 'ISO_A3', 'GID_0', 'id']) || (featureIdAvailable ? '__feature_id__' : '__fid__'),
+    });
+    populateFieldSelect(document.getElementById('gisNameField'), fields, { ...fieldOptions, roleLabel: '이름', selected: autoField(fields, ['pandolab_name', 'NAME_KO', 'NAME_0', 'NAME', 'name', descriptor.qgsLabelField]) });
     populateFieldSelect(document.getElementById('gisColorField'), fields, { ...fieldOptions, roleLabel: '색상', includeStyle: true, selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill']) });
     populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['sovereign_id', 'country_id', 'countryId', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
     populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 영역', selected: autoField(fields, ['parent_id', 'parent']) });
@@ -598,6 +606,7 @@
     document.getElementById('gisCountryFieldRow')?.classList.toggle('hidden', !territorial || !useCountryField);
     document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'administrative' || !useCountryField);
     document.getElementById('gisLevelFieldRow')?.classList.toggle('hidden', target !== 'administrative');
+    document.getElementById('gisColorFieldRow')?.classList.toggle('hidden', target === 'country');
     populateParentUnits();
     const modeSelect = document.getElementById('gisOpenMode');
     const modeRow = document.getElementById('gisOpenModeRow');
@@ -696,15 +705,6 @@
     return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
-  function applyQgsColor(style, properties) {
-    if (!style) return '';
-    if (style.field && Object.prototype.hasOwnProperty.call(properties, style.field)) {
-      const value = String(properties[style.field] ?? '');
-      if (style.categories?.[value]) return style.categories[value];
-    }
-    return style.singleColor || '';
-  }
-
   function geometryAsMultiPolygon(geometry) {
     if (geometry?.type === 'MultiPolygon') return geometry.coordinates;
     if (geometry?.type === 'Polygon') return [geometry.coordinates];
@@ -728,7 +728,8 @@
   function importSourceNamespace(descriptor, mapping, properties) {
     if (mapping.idField === 'pandolab_id' || properties.pandolab_id) return 'pandolab';
     const field = String(mapping.idField || '').toLowerCase();
-    if (['adm0_a3', 'sov_a3', 'gu_a3', 'su_a3'].includes(field)) return 'natural-earth';
+    if (field === '__feature_id__') return 'geojson';
+    if (['adm0_a3', 'iso_a3'].includes(field)) return 'natural-earth';
     if (field === 'gid_0') return 'gadm';
     const driver = String(descriptor?.driverName || 'vector').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const layer = String(descriptor?.layerName || descriptor?.datasetPath || 'layer').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
@@ -742,41 +743,26 @@
       const raw = featureCollection.features[index];
       const coordinates = geometryAsMultiPolygon(raw.geometry);
       if (!validateMultiPolygon(coordinates)) { invalid.push(raw.id ?? index); continue; }
-      let properties = { ...(raw.properties || {}) };
-      if (properties.pandolab_source_properties) {
-        try { properties = { ...JSON.parse(properties.pandolab_source_properties), ...properties }; } catch (_) {}
-      }
-      const rawId = mapping.idField === '__fid__' ? (raw.id ?? index + 1) : properties[mapping.idField];
+      const properties = raw.properties || {};
+      const rawId = ['__fid__', '__feature_id__'].includes(mapping.idField) ? (raw.id ?? index + 1) : properties[mapping.idField];
       const sourceId = String(rawId ?? '').trim();
       if (!sourceId) throw new Error(`국가 원본 ID가 비어 있는 객체가 있습니다: ${raw.id ?? index + 1}`);
       const name = String(mapping.nameField ? (properties[mapping.nameField] ?? '') : '').trim() || `국가 ${sourceId}`;
-      let color = '';
-      if (mapping.colorField === '__qgis_style__') color = applyQgsColor(descriptor.qgsStyle, properties);
-      else if (mapping.colorField) color = String(properties[mapping.colorField] || '');
-      if (!/^#[0-9a-f]{6}$/i.test(color)) color = '#63758a';
       const sourceNamespace = importSourceNamespace(descriptor, mapping, properties);
       const importIdentity = {
         sourceNamespace,
-        sourceIdField: mapping.idField === '__fid__' ? '__fid__' : String(mapping.idField || ''),
+        sourceIdField: ['__fid__', '__feature_id__'].includes(mapping.idField) ? mapping.idField : String(mapping.idField || ''),
         sourceId,
         pandolabId: mapping.idField === 'pandolab_id' || properties.pandolab_id ? String(properties.pandolab_id || sourceId) : '',
       };
       const feature = {
         type: 'Feature', id: sourceId,
         properties: {
-          ...properties,
-          iso_a3: properties.iso_a3 || properties.ISO_A3 || properties.ADM0_A3 || sourceId,
-          editor_original_name: name,
-          editor_name: name,
-          editor_color: color,
-          metadata: {
-            ...(properties.metadata && typeof properties.metadata === 'object' ? properties.metadata : {}),
-            sourceId,
-            sourceNamespace,
-            sourceIdField: importIdentity.sourceIdField,
-            importIdentity,
-          },
+          name,
+          ...(String(properties.valid_from || '').trim() ? { validFrom: String(properties.valid_from).trim() } : {}),
+          ...(String(properties.valid_to || '').trim() ? { validTo: String(properties.valid_to).trim() } : {}),
         },
+        importIdentity,
         geometry: { type: 'MultiPolygon', coordinates },
       };
       if (!groups.has(sourceId)) groups.set(sourceId, []);
@@ -790,7 +776,6 @@
       const first = values[0];
       if (values.length > 1) {
         first.geometry.coordinates = values.flatMap(value => value.geometry.coordinates);
-        first.properties.pandolab_source_rows = JSON.stringify(values.map(value => value.properties));
       }
       features.push(first);
     }
@@ -960,7 +945,7 @@
       countryField: document.getElementById('gisCountryField').value,
       parentField: document.getElementById('gisParentField').value,
       levelField: document.getElementById('gisLevelField').value,
-      colorField: document.getElementById('gisColorField').value,
+      colorField: targetType === 'country' ? '' : document.getElementById('gisColorField').value,
       sourceCrs: document.getElementById('gisCrsInput').value.trim(),
       groupDuplicates: true,
       targetCountryId: document.getElementById('gisIndependentRegion')?.checked ? '' : document.getElementById('gisTargetCountry').value,
@@ -1257,58 +1242,16 @@
     }
   }
 
-  const atlasReservedFields = ['pandolab_id', 'pandolab_name', 'pandolab_color', 'pandolab_capital', 'pandolab_notes', 'pandolab_source_properties', 'pandolab_field_map'];
-
-  function reservedFieldMapping(collection) {
-    const keys = new Set((collection?.features || []).flatMap(feature => Object.keys(feature.properties || {})));
-    const mapping = {};
-    for (const key of atlasReservedFields) {
-      if (!keys.has(key)) continue;
-      let replacement = `source_${key}`;
-      while (keys.has(replacement) || Object.values(mapping).includes(replacement)) replacement = `source_${replacement}`;
-      mapping[key] = replacement;
-    }
-    return mapping;
-  }
-
-  function exportCountryProperties(feature, overrides, reservedMap) {
-    const source = { ...(feature.properties || {}) };
-    delete source.editor_centroid;
-    delete source.editor_label_anchor;
-    delete source.flagDataUrl;
-    const id = String(source.editor_id || feature.id || '');
+  function exportCountryProperties(feature, overrides) {
+    const source = feature.properties || {};
+    const id = String(feature?.id || '');
     const override = overrides?.[id] || {};
-    const output = {};
-    const nested = {};
-    const renamed = {};
-    const reserved = new Set(atlasReservedFields);
-    for (const [key, value] of Object.entries(source)) {
-      if (reserved.has(key)) {
-        const replacement = reservedMap[key] || `source_${key}`;
-        renamed[key] = replacement;
-        if (value == null || ['string', 'number', 'boolean'].includes(typeof value)) output[replacement] = value;
-        else nested[replacement] = value;
-      } else if (value == null || ['string', 'number', 'boolean'].includes(typeof value)) output[key] = value;
-      else nested[key] = value;
-    }
-    output.pandolab_id = id;
-    output.pandolab_name = override.name || source.editor_name || source.editor_original_name || source.name || id;
-    output.pandolab_color = override.color || source.editor_color || '#63758a';
-    output.pandolab_capital = override.capital || source.capital || '';
-    output.pandolab_notes = override.notes || source.notes || '';
-    output.id = id;
-    output.name = output.pandolab_name;
-    output.type = 'country';
-    output.parent_id = '';
-    output.sovereign_id = id;
-    output.valid_from = source.validFrom || source.valid_from || '';
-    output.valid_to = source.validTo || source.valid_to || '';
-    output.color = output.pandolab_color;
-    output.style_key = source.style_key || '';
-    output.source_library_id = source.sourceLibraryId || source.source_library_id || '';
-    output.source_geometry_version = source.sourceGeometryVersion || source.source_geometry_version || '';
-    if (Object.keys(nested).length) output.pandolab_source_properties = JSON.stringify(nested);
-    if (Object.keys(renamed).length) output.pandolab_field_map = JSON.stringify(renamed);
+    const output = {
+      pandolab_id: id,
+      pandolab_name: override.name || source.name || id,
+    };
+    if (source.validFrom) output.valid_from = source.validFrom;
+    if (source.validTo) output.valid_to = source.validTo;
     return output;
   }
 
@@ -1337,7 +1280,6 @@
     const selected = new Set(selectedLayers);
     const territorial = gisAdapters.territorialRows(projectState);
     const distributions = gisAdapters.distributionRows(projectState);
-    const reservedMap = reservedFieldMapping(projectState.countriesData);
     const layers = [];
     const add = (category, file, targetType, collection, extra = {}) => {
       if (!selected.has(category) || !collection.features.length) return;
@@ -1346,8 +1288,7 @@
     add('countries', 'countries.geojson', 'country', {
       type: 'FeatureCollection',
       features: (projectState.countriesData?.features || []).map(feature => ({
-        type: 'Feature', id: String(feature.properties?.editor_id || feature.id || ''),
-        properties: exportCountryProperties(feature, projectState.countryOverrides, reservedMap), geometry: feature.geometry,
+        type: 'Feature', properties: exportCountryProperties(feature, projectState.countryOverrides), geometry: feature.geometry,
       })),
     });
     add('territories', 'territories.geojson', 'territory', rowsAsFeatureCollection(territorial.territories));
@@ -1385,6 +1326,7 @@
         name: withoutExtension(layer.file), file: layer.file, category: layer.category,
         targetType: layer.targetType, distributionType: layer.distributionType || '',
         crs: 'EPSG:4326', featureCount: layer.collection.features.length,
+        ...(layer.targetType === 'country' ? { fields: ['pandolab_id', 'pandolab_name', 'valid_from', 'valid_to'] } : {}),
       })),
     };
     const files = {};
@@ -1407,8 +1349,7 @@
       type: 'FeatureCollection',
       features: [],
     };
-    const reservedMap = reservedFieldMapping(projectState.countriesData);
-    countries.features = (projectState.countriesData?.features || []).map(feature => ({ type: 'Feature', id: String(feature.properties?.editor_id || feature.id || ''), properties: exportCountryProperties(feature, projectState.countryOverrides, reservedMap), geometry: feature.geometry }));
+    countries.features = (projectState.countriesData?.features || []).map(feature => ({ type: 'Feature', properties: exportCountryProperties(feature, projectState.countryOverrides), geometry: feature.geometry }));
     const gisLayers = exportMode === 'gis' ? buildGisExportLayers(projectState, selectedLayers) : [];
     const seedCollection = exportMode === 'project' ? countries : gisLayers.find(layer => layer.collection.features.length)?.collection;
     if (!seedCollection?.features?.length) throw new Error(exportMode === 'project' ? '저장할 국가 레이어가 없습니다.' : '선택한 범주에 내보낼 데이터가 없습니다.');
@@ -1437,7 +1378,6 @@
       sourceInfo: {
         ...(projectState.sourceInfo || {}),
         exportedAt: new Date().toISOString(),
-        reservedFieldMapping: reservedMap,
         physicalDatasets: projectState.physicalSourceInfo || null,
       },
     };

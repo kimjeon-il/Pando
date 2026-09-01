@@ -13,7 +13,8 @@ const importServiceSource = fs.readFileSync(path.join(root, 'assets/js/modules/i
 function feature(id, coordinates) {
   return {
     type: 'Feature',
-    properties: { editor_id: id, editor_name: id },
+    id,
+    properties: { name: id },
     geometry: { type: 'MultiPolygon', coordinates: [coordinates] },
   };
 }

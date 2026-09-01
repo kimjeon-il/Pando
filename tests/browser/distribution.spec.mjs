@@ -58,9 +58,9 @@ test('a language layer stores a territorial share and survives undo and redo', a
   await expect(page.locator('#distributionProperties')).toBeVisible();
   await expect(page.locator('#distributionTypeValue')).toHaveText('언어');
   await page.locator('#distributionColorTrigger').click();
-  await page.locator('#distributionColorPopover [data-color-value="#2563eb"]').click();
-  await expect(page.locator('#distributionColorInput')).toHaveValue('#2563eb');
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers('language')[0]?.color)).toBe('#2563eb');
+  await page.locator('#distributionColorPopover [data-color-value="#3b82f6"]').click();
+  await expect(page.locator('#distributionColorInput')).toHaveValue('#3b82f6');
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers('language')[0]?.color)).toBe('#3b82f6');
   await page.locator('#actionsTabBtn').click();
 
   const territorialUnitId = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');

@@ -30,9 +30,9 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn('data-app-version="0.30.0"', INDEX)
         self.assertIn("const APP_VERSION = '0.30.0'", APP)
         self.assertIn("const BUILD_ID = '0.30.0'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.30.0-r41'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.30.0-r41", INDEX)
-        self.assertIn("bootstrap.js?v=0.30.0-r41", INDEX)
+        self.assertIn("const ASSET_REVISION = '0.30.0-r42'", BOOTSTRAP)
+        self.assertIn("app.css?v=0.30.0-r42", INDEX)
+        self.assertIn("bootstrap.js?v=0.30.0-r42", INDEX)
         self.assertIn("recoverCacheMismatch()", BOOTSTRAP)
         self.assertIn("location.replace(recoveryUrl.href)", BOOTSTRAP)
 
@@ -41,7 +41,7 @@ class V0150TypographyCopyTests(unittest.TestCase):
             for file_path in REVISION_FILES
             for match in re.findall(r"0\.30\.0-r\d+", file_path.read_text(encoding="utf-8"))
         }
-        self.assertEqual(revisions, {"0.30.0-r41"})
+        self.assertEqual(revisions, {"0.30.0-r42"})
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())

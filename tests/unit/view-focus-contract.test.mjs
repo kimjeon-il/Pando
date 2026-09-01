@@ -35,7 +35,8 @@ test('object focus uses the actual viewport center and safe insets only for zoom
 
 test('country focus prefers its own label anchor without expanding the focus geometry', () => {
   const source = functionSource('focusObjectRef', 'layerGroupForObjectRef');
-  assert.match(source, /stableCountryFocusAnchor\(feature\)/);
+  assert.match(source, /countryLabelAnchors\.get\(String\(feature\?\.id \|\| ''\)\)/);
+  assert.doesNotMatch(source, /editor_label_anchor/);
   assert.match(source, /focusCountry\(feature, \{ maxZoom: isMobile\(\) \? 12 : 10, preferredAnchor \}\)/);
   assert.doesNotMatch(source, /sovereignId|parentId|territorialChildren|territorialRelations/);
 });

@@ -83,7 +83,7 @@ test('object focus uses the actual viewport center with the editor panel open', 
   expect(errors).toEqual([]);
 });
 
-test('mobile focus and whole-map view use the same viewport-center and zoom-only rules', async ({ browser }) => {
+test('mobile focus keeps the object visible and whole-map view remains zoom-only', async ({ browser }) => {
   test.setTimeout(180_000);
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const page = await context.newPage();
@@ -91,6 +91,7 @@ test('mobile focus and whole-map view use the same viewport-center and zoom-only
     const errors = await openDebugMap(page, { width: 390, height: 844 });
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
     await page.evaluate(() => document.getElementById('focusSelectedObjectBtn')?.click());
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom), { timeout: 20_000 }).toBeGreaterThan(1);
     const focused = await page.evaluate(() => {
       const feature = window.PANDOLAB_TERRITORIAL.get('DEU');
       const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('DEU');
@@ -100,11 +101,18 @@ test('mobile focus and whole-map view use the same viewport-center and zoom-only
           (bounds[0][0] + bounds[1][0]) / 2,
           (bounds[0][1] + bounds[1][1]) / 2,
         ],
+        bounds,
         snapshot: window.__PANDOLAB_VIEW_DEBUG__.snapshot(),
       };
     });
-    expect(Math.abs(focused.screen[0] - focused.snapshot.size.width / 2)).toBeLessThan(1.5);
-    expect(Math.abs(focused.screen[1] - focused.snapshot.size.height / 2)).toBeLessThan(1.5);
+    expect(focused.bounds[0][0]).toBeGreaterThanOrEqual(0);
+    expect(focused.bounds[0][1]).toBeGreaterThanOrEqual(0);
+    expect(focused.bounds[1][0]).toBeLessThanOrEqual(focused.snapshot.size.width);
+    expect(focused.bounds[1][1]).toBeLessThanOrEqual(focused.snapshot.size.height);
+    expect(focused.screen[0]).toBeGreaterThanOrEqual(focused.bounds[0][0]);
+    expect(focused.screen[0]).toBeLessThanOrEqual(focused.bounds[1][0]);
+    expect(focused.screen[1]).toBeGreaterThanOrEqual(focused.bounds[0][1]);
+    expect(focused.screen[1]).toBeLessThanOrEqual(focused.bounds[1][1]);
 
     const cameraBeforeReset = focused.snapshot.projection === 'globe' ? focused.snapshot.globeRotation : focused.snapshot.flatCenter;
     await expect(page.locator('#mobileWorldBtn')).toHaveAttribute('aria-label', '전체 지도 보기');

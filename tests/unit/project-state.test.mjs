@@ -72,6 +72,11 @@ const currentProject = () => ({
   territorialModel: { schemaVersion: 1 },
   distributionModel: { schemaVersion: 2 },
   layerPresentation: { schemaVersion: 2, overlayOrder: [], styles: {} },
+  countriesData: {
+    type: 'FeatureCollection',
+    features: [{ type: 'Feature', id: 'DEU', properties: { name: '독일' }, geometry: { type: 'MultiPolygon', coordinates: [] } }],
+  },
+  countryOverrides: { DEU: { color: '#53657a' } },
   territorialUnits: [{
     type: 'Feature', id: uuid(1),
     properties: { schemaVersion: 1, unitType: 'territory', isRemainder: false },
@@ -118,8 +123,38 @@ test('missing and old schema versions are rejected instead of migrated', () => {
   delete missing.schemaVersion;
   assert.throws(() => assertCurrentProjectSchema(missing), /schemaVersion이 없습니다/);
   const old = currentProject();
-  old.schemaVersion = 0;
+  old.schemaVersion = 2;
   assert.throws(() => assertCurrentProjectSchema(old), /지원하지 않습니다/);
+});
+
+test('country features and sparse overrides accept only the schema 3 allowlist', () => {
+  const valid = currentProject();
+  valid.countriesData.features[0].properties = { name: '독일', validFrom: '1949-05-23', validTo: '현재' };
+  valid.countryOverrides.DEU = { name: '독일 연방공화국', color: '#53657a', locked: true };
+  assert.equal(assertCurrentProjectSchema(valid), valid);
+
+  const legacyField = currentProject();
+  legacyField.countriesData.features[0].properties.editor_id = 'DEU';
+  assert.throws(() => assertCurrentProjectSchema(legacyField), /지원하지 않는 필드 editor_id/);
+
+  const emptyOverride = currentProject();
+  emptyOverride.countryOverrides.DEU = { name: '', locked: false };
+  assert.throws(() => assertCurrentProjectSchema(emptyOverride), /국가 설정/);
+});
+
+test('delta autosaves validate sparse overrides before canonical countries are reconstructed', () => {
+  const delta = currentProject();
+  delta.format = 'pandolab-autosave-delta';
+  delete delta.countriesData;
+  delta.countryDelta = {
+    changed: [{ type: 'Feature', id: 'historical-country:east-germany', properties: { name: '독일 민주 공화국' }, geometry: { type: 'MultiPolygon', coordinates: [] } }],
+    removedIds: [],
+  };
+  delta.countryOverrides = { DEU: { name: '독일 연방공화국' } };
+  assert.equal(assertCurrentProjectSchema(delta), delta);
+
+  delta.countryOverrides.DEU.unknown = 'legacy';
+  assert.throws(() => assertCurrentProjectSchema(delta), /국가 설정/);
 });
 
 test('missing duplicate and unsupported object fields are rejected', () => {

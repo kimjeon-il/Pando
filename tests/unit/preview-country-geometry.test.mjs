@@ -25,7 +25,7 @@ test('canonical and preview built-in countries require no runtime geometry repai
   for (const [label, collection] of [['canonical', canonical], ['preview', preview]]) {
     assert.equal(collection.features.length, 258, label);
     for (const feature of collection.features) {
-      const id = feature.properties?.editor_id;
+      const id = feature.id;
       assert.deepEqual(validateGeometry(feature), [], `${label}:${id}`);
       assert.equal(hasCanonicalCountryWinding(feature.geometry), true, `${label}:${id}`);
       assert.deepEqual(consecutiveDuplicates(feature.geometry), [], `${label}:${id}`);
@@ -35,12 +35,12 @@ test('canonical and preview built-in countries require no runtime geometry repai
 
 test('Egypt and the Borneo shared coordinate remain clean in both built-in quality levels', () => {
   for (const collection of [canonical, preview]) {
-    const egypt = collection.features.find(feature => feature.properties?.editor_id === 'EGY');
+    const egypt = collection.features.find(feature => feature.id === 'EGY');
     assert.ok(egypt);
     assert.equal(JSON.stringify(egypt.geometry.coordinates).includes('[35.429207,22.97833]'), false);
 
     for (const id of ['IDN', 'MYS']) {
-      const feature = collection.features.find(item => item.properties?.editor_id === id);
+      const feature = collection.features.find(item => item.id === id);
       assert.ok(feature);
       assert.deepEqual(consecutiveDuplicates(feature.geometry), []);
     }

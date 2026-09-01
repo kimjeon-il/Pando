@@ -8,14 +8,37 @@ test('date-line country selection stays lightweight during selection and navigat
   await page.goto('/?debug=1');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.waitForTimeout(800);
+  await expect.poll(
+    () => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.activeMeshQuality),
+    { timeout: 30_000 },
+  ).toBe('canonical');
+  await page.waitForFunction(() => {
+    const snapshot = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+    const signature = `${snapshot.gpuSelection.channels.primary.rebuildCount}:${snapshot.labelLayoutCount}`;
+    const now = performance.now();
+    const prior = window.__PANDOLAB_TEST_RENDER_STABILITY__;
+    if (!prior || prior.signature !== signature) {
+      window.__PANDOLAB_TEST_RENDER_STABILITY__ = { signature, changedAt: now };
+      return false;
+    }
+    return now - prior.changedAt >= 750;
+  }, null, { timeout: 30_000 });
 
   let primaryRebuildCount = 0;
   for (const id of ['RUS']) {
     const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());
     await page.evaluate(countryId => window.PANDOLAB_TERRITORIAL.select('country', countryId), id);
     await expect(page.locator('.selection-overlay-layer .map-selection-shape')).toHaveCount(0);
-    await page.waitForTimeout(80);
+    await page.waitForFunction(() => {
+      const count = window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.channels.primary.rebuildCount;
+      const now = performance.now();
+      const prior = window.__PANDOLAB_TEST_PRIMARY_REBUILD_STABILITY__;
+      if (!prior || prior.count !== count) {
+        window.__PANDOLAB_TEST_PRIMARY_REBUILD_STABILITY__ = { count, changedAt: now };
+        return false;
+      }
+      return now - prior.changedAt >= 750;
+    }, null, { timeout: 30_000 });
 
     const after = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());
     expect(errors).toEqual([]);

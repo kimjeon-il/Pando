@@ -15,7 +15,7 @@ async function openApp(page) {
 
 async function renderedCountryLabelCount(page, countryId) {
   return page.evaluate(id => [...document.querySelectorAll('text.country-label')]
-    .filter(node => String(node.__data__?.properties?.editor_id || '') === id).length, countryId);
+    .filter(node => String(node.__data__?.id || '') === id).length, countryId);
 }
 
 test('a selected small-country label stays visible and screen-space zoom controls its automatic return', async ({ page }) => {

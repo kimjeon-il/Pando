@@ -17,7 +17,7 @@ COUNTRIES = json.loads(COUNTRIES_PATH.read_text(encoding="utf-8"))
 ENTITY = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:east-germany")
 GEOMETRY = shape(ENTITY["geometryVersions"][0]["geometry"])
 CANONICAL_DEU = shape(next(
-    item["geometry"] for item in COUNTRIES["features"] if item["properties"]["editor_id"] == "DEU"
+    item["geometry"] for item in COUNTRIES["features"] if item["id"] == "DEU"
 ))
 TO_EQUAL_AREA = Transformer.from_crs(4326, 3035, always_xy=True).transform
 

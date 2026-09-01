@@ -12,7 +12,7 @@ const clipper = globalThis.polygonClipping;
 function rectangle(id, name, minX, minY, maxX, maxY, properties = {}) {
   return {
     type: 'Feature', id,
-    properties: { editor_id: id, editor_name: name, ...properties },
+    properties: { name, ...properties },
     geometry: { type: 'MultiPolygon', coordinates: [[[[minX, minY], [maxX, minY], [maxX, maxY], [minX, maxY], [minX, minY]]]] },
   };
 }

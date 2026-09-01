@@ -1,7 +1,7 @@
-import { resolveStartupLoadPolicy } from '../modules/startup-readiness.js?v=0.30.0-r41';
+import { resolveStartupLoadPolicy } from '../modules/startup-readiness.js?v=0.30.0-r42';
 
 const BUILD_ID = '0.30.0';
-const ASSET_REVISION = '0.30.0-r41';
+const ASSET_REVISION = '0.30.0-r42';
 const CORE_CACHE_PREFIX = 'pandolab-core-';
 const CORE_CACHE_NAME = `${CORE_CACHE_PREFIX}${ASSET_REVISION}`;
 const params = new URL(self.location.href).searchParams;
@@ -211,7 +211,7 @@ function validateCountries(data, label) {
   }
   const ids = new Set();
   for (const feature of data.features) {
-    const id = String(feature?.properties?.editor_id || '');
+    const id = String(feature?.id || '');
     if (!id || ids.has(id) || !['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type)) {
       throw new Error(`${label}의 국가 ID 또는 geometry가 올바르지 않습니다.`);
     }
