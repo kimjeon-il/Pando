@@ -279,7 +279,7 @@ test('retired DOM hooks stay absent and every app module uses the current revisi
   expect(audit.retiredElementCount).toBe(0);
   expect(audit.retiredSymbolCount).toBe(0);
   expect(audit.moduleUrls.length).toBeGreaterThanOrEqual(7);
-  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r43')).toBe(true);
+  expect(audit.moduleUrls.every(url => new URL(url).searchParams.get('v') === '0.30.0-r44')).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -294,7 +294,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
   }));
   await page.goto('/__map-edit-worker-test.html');
   const result = await page.evaluate(async () => {
-  const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r43');
+  const worker = new Worker('/assets/js/workers/map-edit-worker.js?v=0.30.0-r44');
     let workerError = '';
     worker.addEventListener('error', event => { workerError = event.message || 'worker error'; });
     const ring = (left, right) => [[left, 0], [left, 2], [right, 2], [right, 0], [left, 0]];
@@ -393,7 +393,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
 test('river territory partition Worker returns disjoint donor cells', async ({ page }) => {
   await page.goto('/');
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/river-territory-partition-worker.js?v=0.30.0-r43', { type: 'module' });
+    const worker = new Worker('/assets/js/workers/river-territory-partition-worker.js?v=0.30.0-r44', { type: 'module' });
     const donor = {
       countryId: 'donor', geometryRevision: 1,
       geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] },

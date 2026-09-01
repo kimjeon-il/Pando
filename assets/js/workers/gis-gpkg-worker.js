@@ -1,6 +1,6 @@
 'use strict';
 
-const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r43';
+const WORKER_REVISION = new URL(self.location.href).searchParams.get('v') || '0.30.0-r44';
 const GIS_ADAPTER_URL = new URL('../gis-adapters.js', self.location.href);
 GIS_ADAPTER_URL.searchParams.set('v', WORKER_REVISION);
 importScripts(GIS_ADAPTER_URL.href);

@@ -8,6 +8,13 @@ export const COUNTRY_FLAG_SOURCE = Object.freeze({
   url: 'https://github.com/lipis/flag-icons',
 });
 
+export const COUNTRY_FLAG_NATIVE_SOURCE = Object.freeze({
+  name: 'country-flags',
+  revision: 'c09927e63705529bbf59ca6684cd9b23225dddad',
+  license: 'Public Domain',
+  url: 'https://github.com/hampusborgos/country-flags',
+});
+
 export const CURRENT_COUNTRY_FLAG_EXCLUDED_IDS = Object.freeze([
   'ESB', 'SOL', 'USG', 'BRI', 'CYN', 'CNM', 'KAS', 'KAB', 'WSB', 'SPI',
   'BRT', 'IOA', 'CSI', 'PGA', 'CLP', 'ATC', 'BJN', 'SER', 'SCR',
@@ -46,6 +53,11 @@ export const CURRENT_COUNTRY_FLAG_CODES = Object.freeze({
   NIU: 'nu', ASM: 'as', PLW: 'pw', GUM: 'gu', MNP: 'mp', BHR: 'bh', MAC: 'mo',
 });
 
+const CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES = new Set(['la', 'mc', 'mu', 'mv']);
+export const CURRENT_COUNTRY_FLAG_NATIVE_CODES = Object.freeze(
+  Object.values(CURRENT_COUNTRY_FLAG_CODES).filter(code => !CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES.has(code)),
+);
+
 export function currentCountryFlagCode(countryId) {
   return CURRENT_COUNTRY_FLAG_CODES[text(countryId).toUpperCase()] || '';
 }
@@ -53,7 +65,10 @@ export function currentCountryFlagCode(countryId) {
 export function currentCountryFlagUrl(countryId, { assetRevision = '' } = {}) {
   const code = currentCountryFlagCode(countryId);
   if (!code) return null;
-  const url = new URL(`../../vendor/flag-icons/7.5.0/flags/4x3/${code}.svg`, import.meta.url);
+  const assetPath = CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES.has(code)
+    ? `../../vendor/flag-icons/7.5.0/flags/4x3/${code}.svg`
+    : `../../vendor/country-flags/${COUNTRY_FLAG_NATIVE_SOURCE.revision}/svg/${code}.svg`;
+  const url = new URL(assetPath, import.meta.url);
   if (assetRevision) url.searchParams.set('v', text(assetRevision));
   return url.href;
 }

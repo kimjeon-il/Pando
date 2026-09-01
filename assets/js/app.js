@@ -5,7 +5,7 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
-const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r43';
+const moduleRevision = new URL(import.meta.url).searchParams.get('v') || '0.30.0-r44';
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -8835,6 +8835,10 @@ const {
       return syncViewRevision();
     },
     renderers: {
+      view: viewState => {
+        if (mapHost?.getKind?.() === MAP_HOST_KINDS.MAPLIBRE) return null;
+        return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState);
+      },
       base: renderBase,
       countries: renderCountries,
       gpuInteraction: renderGpuInteractionFrame,
@@ -8952,8 +8956,6 @@ const {
     if (invalidate) {
       mapRenderCoordinator?.invalidate(
         MAP_RENDER_DIRTY.VIEW
-          | MAP_RENDER_DIRTY.GPU_FRAME
-          | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
           | MAP_RENDER_DIRTY.SELECTION_VIEW
           | MAP_RENDER_DIRTY.EDITING_OVERLAYS
           | MAP_RENDER_DIRTY.LABEL_POSITIONS,
@@ -14869,13 +14871,17 @@ const {
       });
     }
     resetCountryLabelAnchorRuntime();
-    gpuMapRenderer.resetCountryGeometryVisualState();
+    const projectGeneration = gpuMapRenderer.resetProjectRenderState?.();
+    state.countryVisualPhase = 'preview';
+    countryDisplaySource = null;
+    countryDisplayIndex = new Map();
     applySharedProjectFields(project);
     gpuMapRenderer.invalidateHydroVisibility();
     state.layerSearch = '';
     state.countriesData = project.countriesData
       ? reindexCountries(deepClone(project.countriesData), true)
       : freshPristineCountries(true);
+    state.auditPreviewCountries = state.countriesData;
     normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
@@ -14909,7 +14915,7 @@ const {
     showPropertyForm(null);
     $('selectionStatus').textContent = '';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    scheduleGpuMeshRebuild(0);
+    scheduleGpuMeshRebuild(0, projectGeneration);
     syncMapHostFromState();
     renderAll();
     updateHistoryButtons();
@@ -15039,7 +15045,10 @@ const {
   async function resetProjectInPlace() {
     closeConfirmModal();
     closeMobileSheets();
-    gpuMapRenderer.resetCountryGeometryVisualState();
+    const projectGeneration = gpuMapRenderer.resetProjectRenderState?.();
+    state.countryVisualPhase = 'preview';
+    countryDisplaySource = null;
+    countryDisplayIndex = new Map();
 
     // 자동저장 타이머가 직전 편집 geometry를 다시 저장하는 것을 먼저 차단한다.
     await deleteAutosavedProject();
@@ -15093,10 +15102,11 @@ const {
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     state.countryIndex.clear();
     state.countriesData = freshPristineCountries(false);
+    state.auditPreviewCountries = state.countriesData;
     pruneLayerItemVisibility();
     markLayerTreeDirty();
     configureDatasetSession(null);
-    scheduleGpuMeshRebuild(0);
+    scheduleGpuMeshRebuild(0, projectGeneration);
     const restoredGeometrySignature = JSON.stringify(
       state.countriesData.features.map(f => [String(f.id || ''), f.geometry])
     );
@@ -17910,7 +17920,10 @@ const {
     const previewSearch = state.layerSearch;
     const previewSelection = (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) ? String(state.selected.id || '') : '';
     installPristineCountrySource(geometry.countriesSourceBuffer);
-    gpuMapRenderer.resetCountryGeometryVisualState();
+    const projectGeneration = gpuMapRenderer.resetProjectRenderState?.();
+    state.countryVisualPhase = 'preview';
+    countryDisplaySource = null;
+    countryDisplayIndex = new Map();
 
     const restored = autosaveRestore.project;
     if (restored) applySharedProjectFields(restored);
@@ -17974,19 +17987,21 @@ const {
     }
     $('engineStatus').textContent = useBuiltInMesh ? '빠른 미리보기 · 고화질 지도 준비 중' : '프로젝트 지도를 다시 구성하는 중입니다.';
     window.dispatchEvent(new CustomEvent('pandolab:editable', { detail: { useBuiltInMesh } }));
-    return { useBuiltInMesh, restored };
+    return { useBuiltInMesh, restored, projectGeneration };
   }
 
   async function completeMeshEnhancement(mesh, context) {
     const meshReplaceStartedAt = performance.now();
     let meshApplied;
+    const projectGeneration = context?.projectGeneration ?? gpuMapRenderer.getProjectGeneration?.();
     if (!context.useBuiltInMesh || state.sessionBaseCountriesJson) {
-      meshApplied = (await gpuMapRenderer.rebuildFromCountries(state.countriesData?.features || [])) !== false;
+      meshApplied = (await gpuMapRenderer.rebuildFromCountries(state.countriesData?.features || [], { projectGeneration })) !== false;
     } else {
       meshApplied = (await gpuMapRenderer.replaceBuiltInMesh({
         meshBuffer: mesh.meshBuffer,
         features: state.countriesData?.features || [],
         quality: 'canonical',
+        projectGeneration,
       })) !== false;
       const dirtyIds = new Set([...state.historyDirtyCountryIds, ...state.pendingCountryRenderIds]);
       if (dirtyIds.size) {

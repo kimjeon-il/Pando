@@ -83,7 +83,7 @@ test('country flag actions remain icon-only and preserve the existing data flow'
   const errors = await openApp(page, { name: 'wide', width: 1440, height: 900 });
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/pl\.svg\?v=0\.30\.0-r41$/);
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/pl\.svg\?v=0\.30\.0-r44$/);
   await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 국기');
   await page.locator('#flagFileInput').setInputFiles({
     name: 'test-flag.svg',
@@ -97,7 +97,10 @@ test('country flag actions remain icon-only and preserve the existing data flow'
 
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/de\.svg\?v=0\.30\.0-r41$/);
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/de\.svg\?v=0\.30\.0-r44$/);
+  await page.locator('#layerSearchInput').fill('LAO');
+  await page.locator('#layerSearchResults .layer-search-result').first().click();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/la\.svg\?v=0\.30\.0-r44$/);
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);

@@ -8,6 +8,7 @@ function fixture() {
   const frames = [];
   const viewState = Object.freeze({ revision: 7, projection: 'globe' });
   const names = [
+    'view',
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
     'territorialUnits', 'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
     'selectionData', 'selectionView', 'selectionStyle', 'validation', 'countryLabelPositions', 'userLabelPositions',
@@ -45,11 +46,12 @@ test('view render refreshes projection-dependent layers with the shared view sta
   const { calls, coordinator } = fixture();
   coordinator.renderView();
   assert.equal(calls.some(call => call[0] === 'hydro'), false);
-  assert.equal(calls.some(call => call[0] === 'projectedOverlays'), true);
+  assert.equal(calls.some(call => call[0] === 'view'), true);
+  assert.equal(calls.some(call => call[0] === 'projectedOverlays'), false);
   assert.equal(calls.some(call => call[0] === 'layerTree'), false);
   assert.equal(calls.some(call => call[0] === 'selectionData'), false);
   assert.equal(calls.some(call => call[0] === 'selectionView'), true);
-  assert.equal(calls.some(call => call[0] === 'countries'), true);
+  assert.equal(calls.some(call => call[0] === 'countries'), false);
   assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), true);
 });
 
