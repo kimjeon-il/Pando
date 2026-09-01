@@ -114,7 +114,7 @@ test('MapLibre host is local, custom-layer based, and never mirrors canonical GI
   assert.match(host, /dragBy\(dx, dy, options = \{\}\)/);
   assert.match(host, /normalizeMapSurfaceDragDelta\(dx, dy\)/);
   assert.match(host, /dragGlobeBy\(dragX, dragY, options\)/);
-  assert.match(host, /map\.panBy\(\[dragX, dragY\]/);
+  assert.match(host, /map\.panBy\(mapSurfaceDragDeltaToCameraOffset\(dragX, dragY\)/);
   assert.doesNotMatch(app, /mapHost\.panBy\(|function panMapBy\(/);
   assert.doesNotMatch(host, /^\s+panBy\(dx, dy/m);
   assert.doesNotMatch(`${host}\n${layers}\n${renderer}`, /\.setData\s*\(/);

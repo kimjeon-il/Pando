@@ -76,6 +76,7 @@ export function createMapInputController({
     }
     if (pointers.size !== 1) return;
     const genericFeature = !!canDrawStroke(event) && beginStroke(localPoint(event), event) !== false;
+    const navigable = !genericFeature && canNavigate();
     if (genericFeature) capturePointer(event.pointerId);
     gesture = {
       kind: genericFeature ? 'draw' : 'navigate',
@@ -87,10 +88,16 @@ export function createMapInputController({
       lastY: event.clientY,
       moved: false,
       panned: false,
-      navigable: canNavigate(),
+      navigable,
       revision: getRevision(),
       cancelled: false,
     };
+    // Capture navigable pointers at the start of the gesture.  Waiting until
+    // the movement threshold lets a vertical drag cross a projected globe
+    // edge or a transparent overlay and silently lose subsequent move events.
+    // Click semantics are preserved because the controller still decides
+    // whether the gesture actually panned before completing it.
+    if (navigable) capturePointer(event.pointerId);
     if (genericFeature) event.preventDefault();
   }
 
