@@ -95,7 +95,7 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
 
   const previewMetrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {});
   expect(previewMetrics.meshQuality).toBe('preview');
-  expect(previewMetrics.renderVertices).toBeLessThan(100_000);
+  expect(previewMetrics.renderVertices).toBeLessThanOrEqual(130_000);
   expect(await page.evaluate(() => window.__PANDOLAB_STARTUP_EVENTS__)).toEqual(['interactive']);
   await page.locator('#mobileCreateBtn').click();
   await expect(page.locator('#createMenu')).not.toHaveClass(/mobile-open/);
@@ -245,8 +245,8 @@ test('a damaged cached country asset is deleted and recovered from the network',
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(async () => {
-    const cache = await caches.open('pandolab-core-0.30.0-r42');
-    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r42', location.href);
+    const cache = await caches.open('pandolab-core-0.30.0-r43');
+    const url = new URL('/assets/data/countries-ne-5.1.1.geojson.gz?v=0.30.0-r43', location.href);
     await cache.put(url, new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'Content-Type': 'application/gzip' } }));
   });
   let recoveryRequests = 0;

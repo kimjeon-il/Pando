@@ -5,7 +5,7 @@ export function createMapInputController({
   getRevision,
   beginMovement,
   finishMovement,
-  panBy,
+  dragBy,
   scheduleViewRender,
   getZoom,
   transformView,
@@ -130,7 +130,7 @@ export function createMapInputController({
       return;
     }
     if (!gesture.panned) return;
-    panBy(event.clientX - gesture.lastX, event.clientY - gesture.lastY);
+    dragBy(event.clientX - gesture.lastX, event.clientY - gesture.lastY);
     gesture.lastX = event.clientX;
     gesture.lastY = event.clientY;
     scheduleViewRender();

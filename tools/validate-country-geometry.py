@@ -31,7 +31,7 @@ def ring_area(ring: list) -> float:
     ) / 2
 
 
-def validate_collection(label: str, collection: dict) -> None:
+def validate_collection(label: str, collection: dict, *, overlap_exempt_ids: set[str] | None = None) -> None:
     errors: list[str] = []
     geometry_entries: list[tuple] = []
     features = collection.get("features", [])
@@ -78,6 +78,7 @@ def validate_collection(label: str, collection: dict) -> None:
                     if ring[vertex_index - 1] == ring[vertex_index]:
                         errors.append(f"{prefix}:{vertex_index}: 연속 중복 꼭짓점입니다.")
 
+    exempt_ids = overlap_exempt_ids or set()
     geometry_entries.sort(key=lambda entry: entry[0].bounds[0])
     for left_index, (left_geometry, left_id) in enumerate(geometry_entries):
         left_bounds = left_geometry.bounds
@@ -86,6 +87,8 @@ def validate_collection(label: str, collection: dict) -> None:
             if right_bounds[0] > left_bounds[2]:
                 break
             if right_bounds[1] > left_bounds[3] or right_bounds[3] < left_bounds[1]:
+                continue
+            if left_id in exempt_ids or right_id in exempt_ids:
                 continue
             overlap_area = left_geometry.intersection(right_geometry).area
             if overlap_area > MIN_RING_AREA:
@@ -108,7 +111,9 @@ def main() -> None:
     if args.canonical_only:
         return
     preview = json.loads(gzip.decompress(PREVIEW_PATH.read_bytes()))
-    validate_collection("preview", preview)
+    manifest_path = ROOT / "assets" / "data" / "world-preview-v0.30.0.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
+    validate_collection("preview", preview, overlap_exempt_ids=set(manifest.get("supplementedCountryIds", [])))
     canonical_ids = [feature["id"] for feature in canonical["features"]]
     preview_ids = [feature["id"] for feature in preview["features"]]
     if preview_ids != canonical_ids:

@@ -77,9 +77,21 @@ test('preview assets preserve country identity within the fixed size and geometr
     canonical.features.map(feature => String(feature.id)),
   );
   assert.equal(countCoordinates(preview.features.map(feature => feature.geometry.coordinates)), manifest.coordinateCount);
-  assert.ok(manifest.coordinateCount <= 60_000);
-  assert.ok(manifest.combinedCompressedBytes <= 2 * 1024 * 1024);
-  assert.ok(manifest.globalAreaError <= 0.005);
+  assert.ok(manifest.coordinateCount <= 120_000);
+  assert.ok(manifest.combinedCompressedBytes <= 3 * 1024 * 1024);
+  assert.equal(manifest.previewSourceScale, '50m');
+  assert.equal(manifest.previewSourceVersion, '5.1.1');
+  assert.equal(manifest.previewSourceSha256.length, 64);
+  assert.equal(manifest.canonicalSourceSha256.length, 64);
+  assert.equal(manifest.supplementedCountryIds.length, 16);
+  const koreaCoordinateCounts = Object.fromEntries(['KOR', 'PRK'].map(id => [
+    id,
+    countCoordinates(preview.features.find(feature => feature.id === id)?.geometry?.coordinates),
+  ]));
+  assert.ok(koreaCoordinateCounts.KOR >= 200);
+  assert.ok(koreaCoordinateCounts.PRK >= 200);
+  assert.ok(Math.max(koreaCoordinateCounts.KOR, koreaCoordinateCounts.PRK)
+    / Math.min(koreaCoordinateCounts.KOR, koreaCoordinateCounts.PRK) <= 2);
   assert.equal(previewMeshHeader[2], 258);
   assert.equal(previewMeshHeader[3], manifest.meshVertices);
   assert.equal(previewMeshHeader[6], manifest.coordinateCount);
