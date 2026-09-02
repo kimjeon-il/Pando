@@ -116,3 +116,15 @@
   font-weight: var(--ui-weight-regular);
   line-height: var(--ui-line-tight);
 }
+
+/* Layer folder actions live in a trailing rail; keep the primary name clear
+ * while preserving the existing disclosure and style controls. */
+.layer-folder-row > .layer-folder-name {
+  padding-inline-end: calc((var(--ui-tree-action-size) * 2) + var(--ui-space-2));
+}
+
+@media (max-width: 799px) {
+  .layer-folder-row > .layer-folder-name {
+    padding-inline-end: calc((var(--ui-tree-action-size-touch) * 2) + var(--ui-space-2));
+  }
+}
