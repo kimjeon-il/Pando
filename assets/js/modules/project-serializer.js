@@ -1,4 +1,5 @@
 import { normalizeCountryFeature, pruneCountryOverrides } from './country-feature.js';
+import { SOURCE_PROVENANCE_SCHEMA_VERSION } from './source-provenance.js';
 
 function cloneCountryFeature(feature, clone = structuredClone) {
   const normalized = normalizeCountryFeature(feature);
@@ -21,13 +22,27 @@ function normalizeProjectFields(fields, countriesData) {
   };
 }
 
-function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes }, compact = false) {
-  return {
-    landObjectModel: {
+function landObjectContract(genericFeatureSchemaVersion, compact = false) {
+  if (Number(genericFeatureSchemaVersion) >= 2) {
+    return {
       schemaVersion: genericFeatureSchemaVersion,
       coastlineAuthority: 'countries',
-      ...(compact ? {} : { roles: ['hydro', 'thematic', 'generic'] }),
-    },
+      purpose: 'lossless-fallback',
+      directCreation: false,
+      sourceProvenanceSchemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION,
+      ...(compact ? {} : { canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'] }),
+    };
+  }
+  return {
+    schemaVersion: genericFeatureSchemaVersion,
+    coastlineAuthority: 'countries',
+    ...(compact ? {} : { roles: ['hydro', 'thematic', 'generic'] }),
+  };
+}
+
+function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes }, compact = false) {
+  return {
+    landObjectModel: landObjectContract(genericFeatureSchemaVersion, compact),
     territorialModel: {
       schemaVersion: 1,
       coastlineAuthority: 'countriesData',

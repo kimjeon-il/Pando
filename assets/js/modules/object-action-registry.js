@@ -73,7 +73,7 @@ export const OBJECT_ACTIONS = Object.freeze({
     help: '국가 해안선과 불일치하는 경계를 정합합니다.',
     icon: 'icon-coastline',
     capability: 'reconcile-coast',
-    domains: ['territorial', 'generic'],
+    domains: ['territorial'],
     danger: false,
   }),
   merge: freezeAction({
@@ -140,8 +140,8 @@ export function objectActionsFor(context = {}, ids = Object.keys(OBJECT_ACTIONS)
 }
 
 /**
- * Command bridge used by the next application-architecture phase. The registry
- * owns action identity/presentation/applicability; mutation semantics remain in
+ * Command bridge used by the application-command layer. The registry owns
+ * action identity/presentation/applicability; mutation semantics remain in
  * the injected command executor.
  */
 export function createObjectActionExecutor({ execute }) {

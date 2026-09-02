@@ -10,12 +10,24 @@ on:
       - 'assets/js/modules/territorial-service.js'
       - 'assets/js/modules/distribution-service.js'
       - 'assets/js/modules/generic-feature-service.js'
+      - 'assets/js/modules/source-provenance.js'
+      - 'assets/js/modules/project-state.js'
+      - 'assets/js/modules/project-serializer.js'
+      - 'assets/js/modules/project-invariants.js'
+      - 'assets/js/modules/map-object-categories.js'
       - 'assets/js/modules/object-action-registry.js'
+      - 'assets/js/modules/phase1-ui-cleanup.js'
       - 'scripts/check-command-architecture.mjs'
+      - 'scripts/check-generic-provenance.mjs'
+      - 'scripts/check-object-registry.mjs'
       - 'tests/unit/project-command-pipeline.test.mjs'
       - 'tests/unit/object-adapter-registry.test.mjs'
       - 'tests/unit/service-command-pipeline.test.mjs'
+      - 'tests/unit/source-provenance.test.mjs'
+      - 'tests/unit/generic-feature-service.test.mjs'
+      - 'tests/unit/generic-provenance.test.mjs'
       - 'docs/architecture/application-command-pipeline.md'
+      - 'docs/architecture/generic-feature-provenance.md'
       - 'package.json'
       - '.github/workflows/application-architecture.yml'
   push:
@@ -29,12 +41,24 @@ on:
       - 'assets/js/modules/territorial-service.js'
       - 'assets/js/modules/distribution-service.js'
       - 'assets/js/modules/generic-feature-service.js'
+      - 'assets/js/modules/source-provenance.js'
+      - 'assets/js/modules/project-state.js'
+      - 'assets/js/modules/project-serializer.js'
+      - 'assets/js/modules/project-invariants.js'
+      - 'assets/js/modules/map-object-categories.js'
       - 'assets/js/modules/object-action-registry.js'
+      - 'assets/js/modules/phase1-ui-cleanup.js'
       - 'scripts/check-command-architecture.mjs'
+      - 'scripts/check-generic-provenance.mjs'
+      - 'scripts/check-object-registry.mjs'
       - 'tests/unit/project-command-pipeline.test.mjs'
       - 'tests/unit/object-adapter-registry.test.mjs'
       - 'tests/unit/service-command-pipeline.test.mjs'
+      - 'tests/unit/source-provenance.test.mjs'
+      - 'tests/unit/generic-feature-service.test.mjs'
+      - 'tests/unit/generic-provenance.test.mjs'
       - 'docs/architecture/application-command-pipeline.md'
+      - 'docs/architecture/generic-feature-provenance.md'
       - 'package.json'
       - '.github/workflows/application-architecture.yml'
 
@@ -60,5 +84,5 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Check application command contracts
-        run: pnpm check:commands
+      - name: Check application architecture
+        run: pnpm check:architecture
