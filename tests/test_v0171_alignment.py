@@ -27,9 +27,8 @@ class V0171AlignmentTests(unittest.TestCase):
         self.assertNotIn(".status-primary { grid-column: 2; justify-self: center; padding-inline: var(--ui-space-3); border-inline:", CSS)
 
     def test_toolbar_and_scroll_gutters_are_symmetric(self):
-        self.assertIn("scrollbar-gutter: stable;", CSS)
-        self.assertNotIn("scrollbar-gutter: stable both-edges", CSS)
-        self.assertIn("padding-inline-start: var(--ui-scrollbar-size);", CSS)
+        self.assertIn("scrollbar-gutter: stable both-edges;", CSS)
+        self.assertNotIn("padding-inline-start: var(--ui-scrollbar-size);", CSS)
         self.assertIn('#app[data-layout="compact"] .compact-primary-controls {', CSS)
         self.assertIn('#app[data-layout="compact"] .map-command-toolbar { position: relative; inset: auto; flex: 0 0 auto; gap: 0; }', CSS)
         self.assertIn('#app[data-layout="compact"] .map-command-toolbar { left: auto; }', CSS)
