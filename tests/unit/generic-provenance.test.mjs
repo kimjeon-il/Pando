@@ -33,14 +33,21 @@ test('project schema accepts canonical Generic Feature v2 provenance', () => {
   assert.equal(assertCurrentProjectSchema(current), current);
 });
 
-test('project schema keeps Generic Feature v1 readable until formal migration phase', () => {
+test('project schema migrates Generic Feature v1 from project schema 3', () => {
   const legacy = project();
+  legacy.schemaVersion = 3;
   legacy.landObjectModel = { schemaVersion: 1, coastlineAuthority: 'countries', roles: ['generic'] };
   legacy.genericFeatures = [{
     type: 'Feature', id: uuid(1), geometry: { type: 'Point', coordinates: [1, 2] },
     properties: { schemaVersion: 1, name: 'legacy', role: 'territory', ownerId: '', color: '#123456' },
   }];
-  assert.equal(assertCurrentProjectSchema(legacy), legacy);
+  const result = assertCurrentProjectSchema(legacy);
+  assert.equal(result, legacy);
+  assert.equal(legacy.schemaVersion, PROJECT_SCHEMA_VERSION);
+  assert.equal(legacy.landObjectModel.schemaVersion, 2);
+  assert.equal(legacy.genericFeatures[0].properties.schemaVersion, 2);
+  assert.equal(legacy.genericFeatures[0].properties.source.kind, 'legacy');
+  assert.equal(legacy.genericFeatures[0].properties.source.details.legacyGenericSemantics.role, 'territory');
 });
 
 test('invalid Generic Feature v2 provenance is rejected by schema and runtime invariants', () => {
