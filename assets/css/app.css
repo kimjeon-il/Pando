@@ -5,7 +5,6 @@
   font-weight: 45 920;
   font-display: swap;
 }
-
 :root {
   --bg: var(--ui-v2-color-bg);
   --panel: var(--ui-v2-color-panel);
@@ -787,52 +786,6 @@ body.file-menu-open .mobile-backdrop {
 .vertex-handle.country-vertex.coast-vertex { fill: #c5efff; stroke: #256681; }
 .vertex-handle.country-vertex.shared-boundary-vertex { fill: var(--surface-elevated); stroke: var(--map-snap); }
 .vertex-handle.country-vertex.fixed-boundary-vertex { fill: var(--surface-muted, #d8dde5) !important; stroke: var(--text-muted, #6b7280) !important; stroke-dasharray: 2 1; cursor: not-allowed !important; opacity: .9; }
-/* Shared modal grammar. Feature classes below only constrain content layout. */
-body.modal-open { overflow: hidden; }
-.ui-workflow-shell { min-width: 0; }
-.ui-workflow-shell > :is(.ui-dialog-header, .mode-task-window-header) { min-width: 0; }
-.confirm-modal-card { width: min(430px, 100%); }
-.coast-reconciliation-card { width: min(560px, 100%); }
-.coast-reconciliation-actions { flex-wrap: wrap; }
-.coast-reconciliation-actions .btn { flex: 1 1 9rem; }
-.confirm-modal-card h2 { margin: 0 0 var(--ui-dialog-title-gap); }
-.confirm-modal-card p { margin: 0; line-height: 1.65; white-space: pre-line; }
-.confirm-modal-actions { display: grid; grid-template-columns: 1fr 1fr; }
-.confirm-modal-actions .danger-confirm { background: #6c3434; border-color: #945050; color: #ffe2e2; }
-.historical-library-card,
-#gisExportModal .ui-dialog-card {
-  width: min(760px, 100%);
-  max-height: min(820px, calc(100dvh - var(--ui-dialog-edge) * 2));
-  overflow: auto;
-}
-.historical-library-filters .editor-disclosure-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ui-field-gap); }
-.historical-library-back { display: none; }
-.historical-library-advanced { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--ui-space-1) var(--ui-space-3); margin: var(--ui-space-2) 0 0; }
-.historical-library-advanced dt { color: var(--muted); }
-.historical-library-advanced dd { margin: 0; overflow-wrap: anywhere; }
-.gis-import-status { min-height: 20px; margin: var(--ui-space-2) 0 var(--ui-space-3); }
-.gis-import-status.error { color: var(--danger-text); }
-.gis-import-content-rail { min-width: 0; }
-.gis-form-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ui-field-gap); }
-.gis-form-grid .field-group { margin: 0; }
-.gis-form-grid small { margin-top: var(--ui-field-helper-gap); }
-.gis-wide { grid-column: 1; }
-.gis-import-progress.hidden { display: none; }
-.gis-form-grid .ui-callout p,
-#gisImportImpactSummary p { margin: var(--ui-space-1) 0 0; }
-.gis-mobile-step-indicator { display: block; margin: var(--ui-space-1) 0 0; color: var(--muted); font-size: var(--ui-font-caption); }
-.gis-mobile-nav { display: inline-flex; align-items: center; justify-content: center; }
-[data-gis-step]:not([data-gis-active="true"]),
-[data-gis-export-step]:not([data-gis-active="true"]) { display: none !important; }
-#gisImportImpactSummary ul { margin: var(--ui-space-2) 0 0; padding-left: var(--ui-space-5); }
-#gisImportImpactSummary li + li { margin-top: var(--ui-space-1); }
-#gisCountryIdentityPanel > p { margin: var(--ui-space-1) 0 var(--ui-space-3); color: var(--text-muted); }
-.gis-country-identity-rows { display: grid; gap: var(--ui-space-2); }
-.gis-country-identity-row { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(11rem, 1.35fr); gap: var(--ui-space-2); align-items: end; }
-.gis-country-identity-source { min-width: 0; }
-.gis-country-identity-source strong,
-.gis-country-identity-source small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gis-country-identity-source small { color: var(--text-muted); }
 body[data-layout="mobile"] .gis-country-identity-row { grid-template-columns: 1fr; }
 #gisTargetCountryRow b { color: var(--danger-text); }
 #gisCrsSummary { min-height: var(--ui-control-height); display: flex; align-items: center; color: var(--text-soft); }
@@ -841,11 +794,8 @@ body[data-layout="mobile"] .gis-country-identity-row { grid-template-columns: 1f
 #gisImportModal .is-busy select,
 #gisImportModal .is-busy input,
 #gisImportModal .is-busy .ui-dialog-actions button { pointer-events: none; opacity: .58; }
-.gis-export-step { display: grid; gap: var(--ui-field-gap); }
-.gis-export-layers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); margin: 0; padding: 0; border: 0; }
-.gis-export-layers legend { grid-column: 1 / -1; margin-bottom: var(--ui-space-2); font-weight: 700; }
-.gis-export-layers .ui-check { min-width: 0; padding: var(--ui-space-2); border-radius: var(--ui-control-radius); }
-.gis-export-layers .ui-check:hover { background: var(--surface-muted); }
+#gisImportImpactSummary ul { margin: var(--ui-space-2) 0 0; padding-left: var(--ui-space-5); }
+#gisImportImpactSummary li + li { margin-top: var(--ui-space-1); }
 #newProjectBtn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
 
@@ -2954,20 +2904,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .create-menu-category + .create-menu-category { margin-top: var(--ui-space-2); }
 .create-menu-route-panel { min-width: 0; }
 .create-menu-route-panel[hidden] { display: none; }
-.create-menu-item {
-  min-height: 64px;
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  align-items: center;
-  column-gap: var(--ui-space-3);
-  padding: var(--ui-space-2);
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--text);
-  text-align: left;
-}
-.create-menu-item:hover { border-color: var(--ui-control-border); background: var(--ui-control-bg-hover); }
 .create-menu-group {
   padding: var(--ui-space-1) var(--ui-space-2);
   color: var(--muted);
@@ -2976,19 +2912,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   line-height: var(--ui-line-tight);
 }
 .create-menu-group:not(:first-child) { margin-top: var(--ui-space-2); }
-.create-menu-icon {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: color-mix(in srgb, var(--accent-surface) 18%, transparent);
-  color: var(--accent-2);
-}
-.create-menu-icon .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
-.create-menu-item strong { font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
-.create-menu-item small { color: var(--muted); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-regular); line-height: var(--ui-line-normal); }
 .mode-action-buttons { display: flex; flex: 0 0 auto; justify-content: flex-end; gap: var(--ui-toolbar-gap); }
 .mode-action-buttons button {
   min-height: var(--ui-control-height);
@@ -3690,35 +3613,7 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   display: grid;
   gap: var(--ui-space-1);
 }
-.editor-action-row {
-  width: 100%;
-  min-width: 0;
-  min-height: var(--ui-touch-height);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--ui-icon-size);
-  align-items: center;
-  gap: var(--ui-space-2);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--text);
-  text-align: left;
-  transition: background-color .14s ease, color .14s ease;
-}
-.editor-action-row:hover { background: var(--surface-hover); color: var(--text-strong); }
-html.keyboard-navigation .editor-action-row:focus-visible { background: var(--surface-hover); color: var(--text-strong); }
-.editor-action-row > span { min-width: 0; display: grid; gap: var(--ui-space-0-5); }
-.editor-action-row strong,
-.editor-action-row small {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.editor-action-row strong { font-size: var(--ui-font-md); font-weight: var(--ui-weight-semibold); }
-.editor-action-row small { color: var(--muted); font-size: var(--ui-font-sm); line-height: var(--ui-line-normal); }
-.editor-action-row > .ui-icon { color: var(--muted); }
+/* Editor command rows are owned by components/command-row.css. */
 
 /* Functional editor state: selection, save state, layer presentation, and history. */
 .project-save-status {
@@ -3884,60 +3779,12 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 #rightPanel[data-editor-view="relation"] .editor-common-danger:not(.hidden) { display: grid; }
 #rightPanel[data-editor-view="actions"] .editor-common-danger { display: none !important; }
 
-/* UI v2 density and command-row feature placement. Primitive controls live
-   in assets/css/primitives/controls.css. */
-.ui-button.ui-row-button,
-.editor-action-row {
-  border-radius: var(--ui-radius-control);
-}
-.editor-action-row {
-  min-height: 42px;
-  grid-template-columns: minmax(0, 1fr) 14px;
-  gap: var(--ui-space-2);
-  padding: var(--ui-space-2) var(--ui-space-2);
-}
-.editor-action-row.has-command-row-icon {
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-icon-size);
-}
-.editor-action-row.has-command-row-icon > .command-row-icon { grid-column: 1; color: var(--muted); }
-.editor-action-row.has-command-row-icon > span { grid-column: 2; }
-.editor-action-row.has-command-row-icon > .ui-icon:not(.command-row-icon) { grid-column: 3; }
-.editor-action-row.has-command-row-icon:hover > .command-row-icon,
-html.keyboard-navigation .editor-action-row.has-command-row-icon:focus-visible > .command-row-icon { color: var(--text-soft); }
-.editor-action-row.has-command-row-icon:is(.active, [aria-pressed="true"]) > .command-row-icon { color: var(--accent); }
-.editor-action-row > span { grid-column: 1; }
-.editor-action-row > .ui-icon { grid-column: 2; width: var(--ui-icon-size); height: var(--ui-icon-size); }
-.editor-action-row.has-command-row-icon > .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
-.editor-action-row > span > strong { font-size: var(--ui-font-md); }
-.editor-action-row > span > small { font-size: var(--ui-font-sm); }
-.create-menu-item {
-  min-height: 42px;
-  grid-template-columns: 20px minmax(0, 1fr) var(--ui-icon-size);
-  gap: var(--ui-space-2);
-}
-.create-menu-item .create-menu-icon { width: 20px; height: 20px; display: grid; place-items: center; }
-.create-menu-item .create-menu-icon .ui-icon { width: 16px; height: 16px; }
-.create-menu-item .create-menu-chevron {
-  width: var(--ui-icon-size);
-  height: var(--ui-icon-size);
-  color: var(--muted);
-  justify-self: end;
-  align-self: center;
-}
-.create-menu-item:hover .create-menu-chevron,
-.create-menu-item:focus-visible .create-menu-chevron { color: var(--text-soft); }
-.create-menu-item:disabled .create-menu-chevron { opacity: .5; }
+/* Command-row presentation is owned by components/command-row.css. */
 .layer-folder-name,
 .layer-child-name { font-size: var(--ui-font-md); }
 .layer-child-meta { font-size: var(--ui-font-sm); }
 #app[data-layout="mobile"] .layer-child,
 #app[data-layout="mobile"] .layer-folder-row { min-height: 38px; height: 38px; }
-#app[data-layout="mobile"] .layer-visibility-control {
-  width: var(--ui-v2-layer-visibility-size-mobile);
-  min-width: var(--ui-v2-layer-visibility-size-mobile);
-  min-height: var(--ui-v2-layer-visibility-size-mobile);
-  height: var(--ui-v2-layer-visibility-size-mobile);
-}
 #app[data-layout="mobile"] .editor-action-row { min-height: var(--ui-touch-height); }
 
 .ui-empty-state,
@@ -4243,280 +4090,4 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   .layer-child-skeleton::before,
   .layer-skeleton-row > span,
   .layer-child-skeleton > span { animation: none; }
-}
-
-/* ===== Canonical workspace surfaces ===== */
-.workspace-surface {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--surface-elevated);
-}
-
-.surface-header {
-  position: relative;
-  flex: 0 0 var(--ui-surface-header-height-compact);
-  min-width: 0;
-  min-height: var(--ui-surface-header-height-compact);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: var(--ui-space-3);
-  padding: 0 var(--ui-surface-content-rail-x);
-  border: 0;
-  background: var(--surface-elevated);
-  box-shadow: none;
-}
-
-.surface-header-title {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  line-height: var(--ui-line-tight);
-}
-
-.surface-header-title > strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.surface-header-actions {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-1);
-}
-
-.surface-header .sheet-drag-handle { display: none; }
-
-.surface-tabs {
-  flex: 0 0 var(--ui-control-height);
-  height: var(--ui-control-height);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  padding-inline: var(--ui-surface-content-rail-x);
-}
-.editor-view-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-
-.surface-tabs .ui-tab {
-  position: relative;
-  min-height: var(--ui-control-height);
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-}
-
-.surface-tabs .ui-tab::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 2px;
-  width: 30px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--accent);
-  opacity: 0;
-  transform: translateX(-50%) scaleX(.45);
-  transition: opacity .14s ease, transform .14s ease;
-}
-
-.surface-tabs .ui-tab:hover { background: transparent; color: var(--text-strong); }
-.surface-tabs .ui-tab[aria-disabled="true"] { color: var(--muted); opacity: .5; cursor: not-allowed; }
-.surface-tabs .ui-tab[aria-disabled="true"]:hover { color: var(--muted); }
-.surface-tabs .ui-tab:is(.active, [aria-selected="true"]) {
-  background: transparent;
-  color: var(--text-strong);
-  font-weight: var(--ui-weight-bold);
-}
-.surface-tabs .ui-tab:is(.active, [aria-selected="true"])::after {
-  opacity: 1;
-  transform: translateX(-50%) scaleX(1);
-}
-
-.surface-body {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable both-edges;
-}
-
-/* The delegated shell is not a scroll owner; its child layer list owns the gutter. */
-.surface-body-delegated { overflow: hidden; scrollbar-gutter: auto; }
-.surface-content { min-width: 0; }
-.surface-content-create,
-.surface-content-editor {
-  padding-inline-end: var(--ui-surface-content-rail-x);
-  padding-inline-start: var(--ui-surface-content-rail-x);
-  padding-bottom: var(--ui-surface-content-padding-bottom);
-}
-.surface-content-create {
-  display: grid;
-  align-content: start;
-  gap: var(--ui-menu-gap);
-  padding-top: var(--ui-space-1);
-}
-.surface-content-editor {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.surface-content-editor > :is(.editor-view, .editor-empty) { padding-inline: 0; }
-.surface-content-editor > .editor-view { padding-bottom: 0; }
-.surface-content-map {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.create-menu-routes { margin: 0; }
-.create-menu-route-panel { min-width: 0; }
-.create-menu-route-panel[hidden] { display: none; }
-
-#app[data-layout="wide"] .surface-map {
-  width: var(--ui-shell-left-panel-width);
-  overflow: hidden;
-}
-#app[data-layout="wide"] .workspace-surface > .surface-header,
-#app[data-layout="compact"] .workspace-surface > .surface-header { display: grid; }
-#app[data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) { display: none; }
-#app[data-layout="wide"] .surface-create {
-  width: var(--ui-surface-create-wide-width);
-  max-height: calc(
-    100dvh
-    - var(--ui-topbar-height)
-    - var(--ui-control-height)
-    - var(--ui-map-edge)
-    - var(--ui-map-edge)
-    - var(--ui-map-edge)
-  );
-}
-#app:not([data-layout="mobile"]) .workspace-surface .surface-header-actions .sheet-close-btn {
-  position: static;
-  inset: auto;
-  margin: 0;
-}
-
-#app[data-layout="compact"] .workspace-surface {
-  position: fixed;
-  z-index: 36;
-  top: var(--ui-surface-header-height-compact);
-  bottom: var(--ui-control-height);
-  width: var(--compact-drawer-width);
-  max-height: none;
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-panel);
-  box-shadow: var(--control-shadow);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
-}
-#app[data-layout="compact"] :is(.surface-map, .surface-create) {
-  right: auto;
-  left: var(--ui-shell-compact-inset);
-  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
-}
-#app[data-layout="compact"] .surface-editor {
-  right: var(--ui-shell-compact-inset);
-  left: auto;
-  transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
-}
-#app[data-layout="compact"] :is(.surface-map.mobile-open, .surface-editor.mobile-open),
-body.create-menu-open #app[data-layout="compact"] .surface-create {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-#app[data-layout="compact"] .surface-create.hidden { display: flex !important; }
-
-#app[data-layout="mobile"] .workspace-surface {
-  display: flex !important;
-  position: fixed;
-  z-index: 100;
-  top: auto;
-  right: 0;
-  bottom: var(--mobile-nav-height);
-  left: 0;
-  width: 100%;
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
-  max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height));
-  overflow: hidden;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 0;
-  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
-  box-shadow: var(--control-shadow);
-  transform: translateY(calc(100% + 2px));
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
-}
-#app[data-layout="mobile"] :is(.surface-map, .surface-create) {
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-layer-half));
-}
-#app[data-layout="mobile"] .workspace-surface.mobile-open {
-  transform: translateY(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-#app[data-layout="mobile"] .surface-header {
-  display: grid;
-  flex-basis: var(--ui-surface-header-height-mobile);
-  min-height: var(--ui-surface-header-height-mobile);
-  padding-block: calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2)) var(--ui-space-2);
-  touch-action: none;
-  cursor: ns-resize;
-}
-#app[data-layout="mobile"] .surface-header .sheet-close-btn { display: none; }
-#app[data-layout="mobile"] .surface-header .sheet-drag-handle {
-  display: grid;
-  place-items: start center;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  z-index: 4;
-  width: 96px;
-  min-width: 96px;
-  height: 44px;
-  margin: 0;
-  padding: var(--ui-space-2) 0 0;
-  border: 0 !important;
-  border-radius: 0;
-  outline: 0;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: inherit;
-  transform: translateX(-50%);
-  touch-action: none;
-  cursor: ns-resize;
-}
-#app[data-layout="mobile"] .surface-header .sheet-drag-handle > span {
-  width: 38px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--border-strong);
-}
-#app[data-layout="mobile"] .surface-header .sheet-drag-handle:is(:hover, :active) {
-  border: 0 !important;
-  background: transparent !important;
-  transform: translateX(-50%);
-}
-#app[data-layout="mobile"] .surface-header .sheet-drag-handle:focus-visible > span {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-border) 54%, transparent);
 }

@@ -1,4 +1,4 @@
-import { createSvgIcon } from './icon-utils.js';
+import { createSemanticIcon } from './icon-utils.js';
 
 const DEFAULT_SEARCH_THRESHOLD = 12;
 const DEFAULT_RENDER_LIMIT = 240;
@@ -176,7 +176,7 @@ export function createSelectController({
       row.append(label);
       if (option.value === selected?.value) {
         row.classList.add('is-selected');
-        row.append(createSvgIcon(documentRef, 'icon-check', 'ui-icon ui-select-check'));
+        row.append(createSemanticIcon(documentRef, 'check', 'ui-icon ui-select-check'));
       }
       row.addEventListener('pointerdown', event => event.preventDefault());
       row.addEventListener('click', () => {
@@ -365,7 +365,7 @@ export function createSelectController({
     const toggle = documentRef.createElement('span');
     toggle.className = 'ui-select-toggle';
     toggle.setAttribute('aria-hidden', 'true');
-    toggle.append(createSvgIcon(documentRef, 'icon-chevron-down'));
+        toggle.append(createSemanticIcon(documentRef, 'chevronDown'));
     const popover = documentRef.createElement('div');
     popover.className = 'ui-select-popover';
     popover.hidden = true;
