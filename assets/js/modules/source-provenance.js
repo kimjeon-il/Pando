@@ -1,4 +1,6 @@
-export const SOURCE_PROVENANCE_SCHEMA_VERSION = 1;
+import { SOURCE_PROVENANCE_SCHEMA_VERSION } from './version-contract.js';
+
+export { SOURCE_PROVENANCE_SCHEMA_VERSION };
 
 export const SOURCE_KINDS = Object.freeze({
   USER: 'user',
