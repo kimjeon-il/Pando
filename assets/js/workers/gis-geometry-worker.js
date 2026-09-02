@@ -1,6 +1,6 @@
 'use strict';
 
-importScripts('../vendor/polygon-clipping.min.js', '../vendor/d3.min.js');
+importScripts('../vendor/polygon-clipping.min.js');
 
 function coordinateKey(point, precision = 8) {
   return `${Number(point?.[0] || 0).toFixed(precision)},${Number(point?.[1] || 0).toFixed(precision)}`;
@@ -148,6 +148,53 @@ function planarArea(multiPolygon) {
   }, 0);
 }
 
+// Keep Worker overlap metrics numerically identical to the browser-side
+// geometry-metrics contract.  d3.geo.area() uses ring winding to distinguish
+// a spherical complement, which makes the result depend on polygon-clipping's
+// output orientation.  The editor's metric is the physical minor area of
+// each ring, with holes subtracted and MultiPolygon components summed.
+const MEAN_EARTH_RADIUS_KM = 6371.0088;
+
+function radians(value) {
+  return Number(value || 0) * Math.PI / 180;
+}
+
+function ringAreaSteradians(ring = []) {
+  if (ring.length < 3) return 0;
+  let sum = 0;
+  const limit = ring.length > 1
+    && ring[0][0] === ring[ring.length - 1][0]
+    && ring[0][1] === ring[ring.length - 1][1]
+    ? ring.length - 1
+    : ring.length;
+  for (let index = 0; index < limit; index += 1) {
+    const current = ring[index];
+    const next = ring[(index + 1) % limit];
+    let deltaLon = radians(next[0]) - radians(current[0]);
+    if (deltaLon > Math.PI) deltaLon -= Math.PI * 2;
+    if (deltaLon < -Math.PI) deltaLon += Math.PI * 2;
+    sum += deltaLon * (2 + Math.sin(radians(current[1])) + Math.sin(radians(next[1])));
+  }
+  let area = Math.abs(sum / 2);
+  if (area > Math.PI * 2) area = Math.PI * 4 - area;
+  return Math.max(0, area);
+}
+
+function sphericalAreaKm2(geometry) {
+  const polygons = geometry?.type === 'Polygon'
+    ? [geometry.coordinates || []]
+    : geometry?.type === 'MultiPolygon'
+      ? geometry.coordinates || []
+      : [];
+  const steradians = polygons.reduce((total, polygon) => {
+    if (!polygon?.length) return total;
+    const outer = ringAreaSteradians(polygon[0]);
+    const holes = polygon.slice(1).reduce((sum, ring) => sum + ringAreaSteradians(ring), 0);
+    return total + Math.max(0, outer - holes);
+  }, 0);
+  return steradians * MEAN_EARTH_RADIUS_KM * MEAN_EARTH_RADIUS_KM;
+}
+
 function featureName(feature) {
   const properties = feature?.properties || {};
   return properties.pandolab_name || properties.NAME_KO || properties.NAME_0 || properties.NAME || properties.name || properties.pandolab_id || feature?.id || '국가';
@@ -192,7 +239,7 @@ function validateCollection(collection, affectedIds = null) {
       }
       if (overlapPlanarArea <= 1e-8) continue;
       const overlapGeometry = { type: 'MultiPolygon', coordinates: overlap };
-      const areaKm2 = Math.max(0, self.d3.geo.area(overlapGeometry) * 6371.0088 * 6371.0088);
+      const areaKm2 = sphericalAreaKm2(overlapGeometry);
       return { overlapAreaKm2: areaKm2, firstOverlap: [ids[i], ids[j]] };
     }
   }

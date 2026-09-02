@@ -5,6 +5,7 @@ import process from 'node:process';
 const root = process.cwd();
 const requiredLayeredFiles = Object.freeze([
   'assets/css/tokens/ui-v2.css',
+  'assets/css/primitives/controls.css',
   'assets/css/components/surface.css',
   'assets/css/components/content.css',
   'assets/css/layout/surfaces.css',

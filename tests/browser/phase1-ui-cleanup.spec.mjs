@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('phase 1 residual UI cleanup', () => {
-  test('removes obsolete map/editor surfaces after startup', async ({ page }) => {
+  test('removes obsolete editor surfaces while keeping the map status overlay', async ({ page }) => {
     await page.goto('/');
     await page.waitForFunction(() => document.documentElement.dataset.pandolabUiCleanupPhase1 === 'done');
 
-    await expect(page.locator('.map-bottom-status')).toHaveCount(0);
+    await expect(page.locator('.map-bottom-status')).toHaveCount(1);
     await expect(page.locator('.editor-edge-slot')).toHaveCount(0);
     await expect(page.locator('#togglePanelBtn')).toHaveCount(0);
     await expect(page.locator('.ui-dialog-kicker')).toHaveCount(0);
@@ -13,7 +13,7 @@ test.describe('phase 1 residual UI cleanup', () => {
 
     await expect(page.locator('#selectionStatus')).toHaveCount(1);
     await expect(page.locator('#engineStatus')).toHaveCount(1);
-    await expect(page.locator('.map-status-state')).toHaveCount(1);
+    await expect(page.locator('.map-status-state')).toHaveCount(0);
   });
 
   test('historical library uses wide two-pane desktop and near-fullscreen mobile', async ({ page }) => {

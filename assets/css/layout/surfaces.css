@@ -1,12 +1,12 @@
 [data-layout="wide"] .surface-map {
-  width: var(--panel-left-width);
+  width: var(--ui-shell-left-panel-width);
 }
 
 [data-layout="wide"] .surface-create {
   width: var(--ui-surface-create-wide-width);
   max-height: calc(
     100dvh
-    - var(--ui-topbar-height)
+    - var(--ui-shell-topbar-height)
     - var(--ui-control-height)
     - (var(--ui-map-edge) * 3)
   );
@@ -42,7 +42,7 @@
   z-index: 36;
   top: var(--ui-surface-header-height-compact);
   bottom: var(--ui-control-height);
-  width: var(--compact-drawer-width, var(--ui-surface-compact-drawer-width));
+  width: var(--compact-drawer-width, var(--ui-shell-compact-drawer-width));
   max-height: none;
   opacity: 0;
   visibility: hidden;
@@ -60,12 +60,12 @@
 
 [data-layout="compact"] :is(.surface-map, .surface-create) {
   right: auto;
-  left: var(--ui-space-2);
+  left: var(--ui-shell-compact-inset);
   transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
 }
 
 [data-layout="compact"] .surface-editor {
-  right: var(--ui-space-2);
+  right: var(--ui-shell-compact-inset);
   left: auto;
   transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
 }
@@ -86,8 +86,8 @@ body.create-menu-open [data-layout="compact"] .surface-create {
   bottom: var(--mobile-nav-height);
   left: 0;
   width: 100%;
-  height: var(--sheet-height, 60dvh);
-  max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height));
+  height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
+  max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
@@ -97,6 +97,10 @@ body.create-menu-open [data-layout="compact"] .surface-create {
   --ui-surface-radius-top-left: var(--ui-radius-sheet);
   --ui-surface-radius-top-right: var(--ui-radius-sheet);
   --ui-surface-shadow: var(--control-shadow);
+}
+
+[data-layout="mobile"] :is(.surface-map, .surface-create) {
+  height: var(--sheet-height, var(--ui-v2-sheet-snap-layer-half));
 }
 
 [data-layout="mobile"] .workspace-surface.mobile-open {

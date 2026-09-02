@@ -52,7 +52,8 @@ test('desktop shell keeps a stable three-zone topbar and an accessible file menu
   const errors = await openApp(page);
   const topbar = page.locator('.topbar');
   await expect(topbar).toHaveCSS('height', '60px');
-  await expect(page.locator('#projectSaveStatus')).toBeHidden();
+  await expect(page.locator('#projectSaveStatus')).toBeVisible();
+  await expect(page.locator('#projectSaveStatusText')).toHaveText('미저장');
   const centerBefore = await page.locator('.topbar-center').boundingBox();
 
   await page.locator('#mobileFileBtn').click();

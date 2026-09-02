@@ -24,17 +24,11 @@ const DIRTY_BITS = {
 
 export const MAP_RENDER_DIRTY = Object.freeze({
   ...DIRTY_BITS,
-  // Compatibility aliases for call sites that are progressively moving to
-  // the narrower rendering vocabulary.
-  GPU_COUNTRIES: DIRTY_BITS.GPU_FRAME,
-  GPU_SCENE: DIRTY_BITS.GPU_FRAME,
-  STATIC_OVERLAYS: DIRTY_BITS.OVERLAY_DATA,
-  DYNAMIC_OVERLAYS: DIRTY_BITS.INTERACTION_OVERLAYS,
   FULL: Object.values(DIRTY_BITS).reduce((mask, value) => mask | value, 0),
 });
 
 // A view gesture only changes uniforms/positions.  Scene geometry is rebuilt
-// by an explicit GPU_SCENE invalidation,
+// by an explicit scene invalidation,
 // so it must not be pulled into every interaction frame.
 const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.SELECTION_VIEW
@@ -45,11 +39,8 @@ const SETTLE_MASK = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
 const STRING_MASKS = Object.freeze({
   full: MAP_RENDER_DIRTY.FULL,
   view: INTERACTION_MASK,
-  countries: MAP_RENDER_DIRTY.GPU_FRAME,
   'gpu-frame': MAP_RENDER_DIRTY.GPU_FRAME,
-  'static-overlays': MAP_RENDER_DIRTY.OVERLAY_DATA,
   'projected-overlays': MAP_RENDER_DIRTY.PROJECTED_OVERLAYS,
-  'dynamic-overlays': MAP_RENDER_DIRTY.INTERACTION_OVERLAYS,
   'interaction-overlays': MAP_RENDER_DIRTY.INTERACTION_OVERLAYS,
   'selection-data': MAP_RENDER_DIRTY.SELECTION_DATA,
   'selection-view': MAP_RENDER_DIRTY.SELECTION_VIEW,

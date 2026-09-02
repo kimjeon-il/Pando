@@ -23,7 +23,7 @@ class ShellFileSaveContractTests(unittest.TestCase):
         ):
             self.assertNotIn(identifier, combined)
 
-    def test_topbar_uses_three_zones_and_keeps_dirty_state_by_file_button(self):
+    def test_topbar_uses_three_zones_and_status_overlay_owns_save_state(self):
         topbar = re.search(r'<header class="topbar">(.*?)</header>', HTML, re.S)
         self.assertIsNotNone(topbar)
         markup = topbar.group(1)
@@ -31,8 +31,8 @@ class ShellFileSaveContractTests(unittest.TestCase):
         self.assertLess(markup.index('class="topbar-center"'), markup.index('class="topbar-file-actions"'))
         file_actions = re.search(r'<div class="topbar-file-actions">(.*?)</div>\s*</header>', HTML, re.S)
         self.assertIsNotNone(file_actions)
-        self.assertLess(file_actions.group(1).index('id="projectSaveStatus"'), file_actions.group(1).index('id="mobileFileBtn"'))
-        self.assertIn('data-tooltip="저장되지 않은 변경 사항이 있습니다."', file_actions.group(1))
+        self.assertNotIn('id="projectSaveStatus"', file_actions.group(1))
+        self.assertIn('id="projectSaveStatus"', HTML[HTML.index('<div class="ui-status map-bottom-status"'):HTML.index('</main>', HTML.index('<div class="ui-status map-bottom-status"'))])
         self.assertNotIn('id="projectSaveStatus"', re.search(r'<div class="topbar-center"(.*?)</div>\s*</div>', HTML, re.S).group(1))
         self.assertIn("grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr)", CSS)
 
@@ -51,7 +51,7 @@ class ShellFileSaveContractTests(unittest.TestCase):
     def test_dirty_state_is_separate_from_autosave_and_transient_notifications(self):
         self.assertIn("hasUnsavedChanges: false", SAVE_STATE)
         self.assertIn("cleanContentToken", SAVE_STATE)
-        self.assertIn("status.hidden = !snapshot.hasUnsavedChanges", APP)
+        self.assertIn("status.hidden = false", APP)
         self.assertIn("자동저장 실패. 파일로 저장하세요.", APP)
         self.assertIn("프로젝트 저장에 실패했습니다.", APP)
         self.assertNotIn("자동저장 용량을 초과했습니다", APP)
