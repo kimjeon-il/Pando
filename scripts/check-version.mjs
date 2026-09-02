@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,6 +25,15 @@ expect(index.includes(`assets/js/build-meta.js?v=${buildMeta?.assetRevision || '
 
 const indexRevisions = [...index.matchAll(/\?v=([^"&]+)/g)].map(match => match[1]);
 for (const revision of indexRevisions) expect(revision === buildMeta?.assetRevision, `index.html에 다른 asset revision이 있습니다: ${revision}`);
+
+const versionedMapAssets = [
+  `assets/data/countries-preview-v${appVersion}.geojson.gz`,
+  `assets/data/world-mesh-preview-v${appVersion}.bin.gz`,
+  `assets/data/world-preview-v${appVersion}.json`,
+];
+for (const relativePath of versionedMapAssets) {
+  expect(existsSync(resolve(projectRoot, relativePath)), `${relativePath} 지도 미리보기 자산이 없습니다. pnpm build:preview를 실행하세요.`);
+}
 
 const productionFiles = [
   'assets/js/bootstrap.js',

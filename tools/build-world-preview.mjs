@@ -10,9 +10,9 @@ import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
 const APP_VERSION = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')).version;
+const dataDirectory = path.join(projectRoot, 'assets', 'data');
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
 const previewSourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1-50m.geojson');
-const existingPreviewPath = path.join(projectRoot, 'assets', 'data', `countries-preview-v${APP_VERSION}.geojson.gz`);
 const canonicalCountriesGzipPath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson.gz');
 const canonicalMeshPath = path.join(projectRoot, 'assets', 'data', 'world-mesh-v0.12.6.bin.gz');
 const labelAnchorsPath = path.join(projectRoot, 'assets', 'data', 'country-label-anchors-v0.10.1.json');
@@ -200,6 +200,29 @@ function compareOrWrite(filePath, bytes) {
   fs.writeFileSync(filePath, bytes);
 }
 
+function compareVersions(left, right) {
+  for (let index = 0; index < 3; index += 1) {
+    const difference = left[index] - right[index];
+    if (difference) return difference;
+  }
+  return 0;
+}
+
+function resolvePreviewSeedPath() {
+  if (fs.existsSync(previewCountriesPath)) return previewCountriesPath;
+  const currentVersion = APP_VERSION.split('.').map(Number);
+  const candidates = fs.readdirSync(dataDirectory)
+    .map(name => {
+      const match = /^countries-preview-v(\d+)\.(\d+)\.(\d+)\.geojson\.gz$/.exec(name);
+      return match ? { name, version: match.slice(1).map(Number) } : null;
+    })
+    .filter(candidate => candidate && compareVersions(candidate.version, currentVersion) < 0)
+    .sort((left, right) => compareVersions(left.version, right.version));
+  const latest = candidates.at(-1);
+  if (!latest) throw new Error('새 미리보기를 생성할 이전 버전 국가 자산이 없습니다.');
+  return path.join(dataDirectory, latest.name);
+}
+
 const canonicalBytes = Buffer.from(fs.readFileSync(sourcePath, 'utf8').replaceAll('\r\n', '\n'));
 const source50Bytes = Buffer.from(fs.readFileSync(previewSourcePath, 'utf8').replaceAll('\r\n', '\n'));
 const canonicalMeshBytes = fs.readFileSync(canonicalMeshPath);
@@ -207,6 +230,7 @@ const canonicalMeshDecoded = zlib.gunzipSync(canonicalMeshBytes);
 const labelAnchorBytes = Buffer.from(fs.readFileSync(labelAnchorsPath, 'utf8').replaceAll('\r\n', '\n'));
 const canonicalSource = JSON.parse(canonicalBytes.toString('utf8'));
 const source50 = JSON.parse(source50Bytes.toString('utf8'));
+const existingPreviewPath = resolvePreviewSeedPath();
 const existingPreview = JSON.parse(zlib.gunzipSync(fs.readFileSync(existingPreviewPath)));
 if (canonicalSource?.type !== 'FeatureCollection' || canonicalSource.features?.length !== 258) throw new Error('Natural Earth canonical 국가 데이터는 정확히 258개여야 합니다.');
 if (source50?.type !== 'FeatureCollection' || !Array.isArray(source50.features)) throw new Error('Natural Earth 50m 국가 데이터가 올바르지 않습니다.');
