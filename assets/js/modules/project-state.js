@@ -1,7 +1,16 @@
 import { pruneCountryOverrides } from './country-feature.js';
+import { migrateProjectInPlace } from './project-migrations.js';
 import { validateSourceProvenance } from './source-provenance.js';
+import {
+  PROJECT_SCHEMA_VERSION,
+  LAND_OBJECT_SCHEMA_VERSION,
+  SOURCE_PROVENANCE_SCHEMA_VERSION,
+  TERRITORIAL_MODEL_SCHEMA_VERSION,
+  DISTRIBUTION_MODEL_SCHEMA_VERSION,
+  LAYER_PRESENTATION_SCHEMA_VERSION,
+} from './version-contract.js';
 
-export const PROJECT_SCHEMA_VERSION = 3;
+export { PROJECT_SCHEMA_VERSION };
 export const PROJECT_FORMATS = Object.freeze(new Set([
   'pandolab-project-state',
   'pandolab-autosave-full',
@@ -13,8 +22,7 @@ const text = value => String(value ?? '').trim();
 const LAYER_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels']);
 const ITEM_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
 const PRESENTATION_GROUP_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
-const LEGACY_GENERIC_PROPERTY_KEYS = new Set(['schemaVersion', 'name', 'notes', 'color', 'role', 'ownerId', 'parentId', 'landBinding', 'topologyGroup', 'locked', 'source']);
-const GENERIC_V2_PROPERTY_KEYS = new Set(['schemaVersion', 'name', 'notes', 'color', 'locked', 'source']);
+const GENERIC_PROPERTY_KEYS = new Set(['schemaVersion', 'name', 'notes', 'color', 'locked', 'source']);
 
 export function createProjectObjectId() {
   if (typeof globalThis.crypto?.randomUUID !== 'function') throw new Error('이 환경에서는 안전한 프로젝트 ID를 만들 수 없습니다.');
@@ -32,19 +40,10 @@ function schemaError(message, code = 'PL-SCHEMA-001') {
 }
 
 function requireSchemaVersion(value, label, expected = PROJECT_SCHEMA_VERSION) {
-  if (value == null) throw schemaError(`${label}에 schemaVersion이 없습니다. 현재 형식의 파일만 열 수 있습니다.`, 'PL-SCHEMA-MISSING');
+  if (value == null) throw schemaError(`${label}에 schemaVersion이 없습니다.`, 'PL-SCHEMA-MISSING');
   if (Number(value) !== expected) {
     throw schemaError(`${label}의 schemaVersion ${value}은 지원하지 않습니다. 현재 버전은 ${expected}입니다.`, 'PL-SCHEMA-OLD');
   }
-}
-
-function requireSchemaVersionOneOf(value, label, expected) {
-  if (value == null) throw schemaError(`${label}에 schemaVersion이 없습니다.`, 'PL-SCHEMA-MISSING');
-  const actual = Number(value);
-  if (!expected.includes(actual)) {
-    throw schemaError(`${label}의 schemaVersion ${value}은 지원하지 않습니다. 지원 버전: ${expected.join(', ')}`, 'PL-SCHEMA-OLD');
-  }
-  return actual;
 }
 
 function assertUniqueProjectIds(rows, label, idOf = row => row?.id) {
@@ -74,14 +73,20 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
-export function assertCurrentProjectSchema(project) {
+function prepareProjectForValidation(project) {
   if (!project || typeof project !== 'object') throw schemaError('프로젝트 형식이 올바르지 않습니다.');
+  if (Number(project.schemaVersion) !== PROJECT_SCHEMA_VERSION) migrateProjectInPlace(project);
+  return project;
+}
+
+export function assertCurrentProjectSchema(input) {
+  const project = prepareProjectForValidation(input);
   if (!PROJECT_FORMATS.has(text(project.format))) throw schemaError(`지원하지 않는 프로젝트 형식입니다: ${text(project.format) || '(없음)'}`, 'PL-SCHEMA-FORMAT');
   requireSchemaVersion(project.schemaVersion, '프로젝트');
-  const landObjectSchemaVersion = requireSchemaVersionOneOf(project.landObjectModel?.schemaVersion, '지형지물 모델', [1, 2]);
-  requireSchemaVersion(project.territorialModel?.schemaVersion, '영토 모델', 1);
-  requireSchemaVersion(project.distributionModel?.schemaVersion, '분포 모델', 2);
-  requireSchemaVersion(project.layerPresentation?.schemaVersion, '레이어 표현', 2);
+  requireSchemaVersion(project.landObjectModel?.schemaVersion, '지형지물 모델', LAND_OBJECT_SCHEMA_VERSION);
+  requireSchemaVersion(project.territorialModel?.schemaVersion, '영토 모델', TERRITORIAL_MODEL_SCHEMA_VERSION);
+  requireSchemaVersion(project.distributionModel?.schemaVersion, '분포 모델', DISTRIBUTION_MODEL_SCHEMA_VERSION);
+  requireSchemaVersion(project.layerPresentation?.schemaVersion, '레이어 표현', LAYER_PRESENTATION_SCHEMA_VERSION);
   assertAllowedKeys(project, new Set([
     'format', 'schemaVersion', 'version', 'savedAt', 'countriesData', 'countryDelta',
     'countryOverrides', 'sourceInfo', 'labels', 'genericFeatures', 'hydroEdits',
@@ -90,16 +95,15 @@ export function assertCurrentProjectSchema(project) {
     'layerVisibility', 'itemVisibility', 'baseDataset', 'landObjectModel', 'territorialModel',
     'distributionModel', 'physicalSourceInfo',
   ]), '프로젝트');
-  assertAllowedKeys(project.landObjectModel, landObjectSchemaVersion === 1
-    ? new Set(['schemaVersion', 'coastlineAuthority', 'roles'])
-    : new Set(['schemaVersion', 'coastlineAuthority', 'purpose', 'directCreation', 'sourceProvenanceSchemaVersion', 'canonicalProperties']), '지형지물 모델');
-  if (landObjectSchemaVersion === 2) {
-    if (project.landObjectModel?.purpose !== 'lossless-fallback' || project.landObjectModel?.directCreation !== false) {
-      throw schemaError('Generic Feature v2는 손실 방지 fallback 전용이어야 합니다.', 'PL-SCHEMA-GENERIC-PURPOSE');
-    }
-    if (Number(project.landObjectModel?.sourceProvenanceSchemaVersion) !== 1) {
-      throw schemaError('Generic Feature v2 source provenance 버전이 올바르지 않습니다.', 'PL-SCHEMA-SOURCE');
-    }
+  assertAllowedKeys(project.landObjectModel, new Set([
+    'schemaVersion', 'coastlineAuthority', 'purpose', 'directCreation',
+    'sourceProvenanceSchemaVersion', 'canonicalProperties',
+  ]), '지형지물 모델');
+  if (project.landObjectModel?.purpose !== 'lossless-fallback' || project.landObjectModel?.directCreation !== false) {
+    throw schemaError('Generic Feature는 손실 방지 fallback 전용이어야 합니다.', 'PL-SCHEMA-GENERIC-PURPOSE');
+  }
+  if (Number(project.landObjectModel?.sourceProvenanceSchemaVersion) !== SOURCE_PROVENANCE_SCHEMA_VERSION) {
+    throw schemaError('Generic Feature source provenance 버전이 올바르지 않습니다.', 'PL-SCHEMA-SOURCE');
   }
   assertAllowedKeys(project.distributionSettings, new Set(['renderMode', 'boundaryVisible']), '분포 표시 설정');
   assertAllowedKeys(project.layerVisibility, LAYER_VISIBILITY_KEYS, '레이어 표시 상태');
@@ -154,12 +158,10 @@ export function assertCurrentProjectSchema(project) {
   }
   for (const feature of project.genericFeatures || []) {
     const label = `기타 객체 ${text(feature?.id)}`;
-    const version = requireSchemaVersionOneOf(feature?.properties?.schemaVersion, label, [1, 2]);
-    assertAllowedKeys(feature?.properties, version === 1 ? LEGACY_GENERIC_PROPERTY_KEYS : GENERIC_V2_PROPERTY_KEYS, label);
-    if (version === 2) {
-      const sourceValidation = validateSourceProvenance(feature?.properties?.source);
-      if (!sourceValidation.ok) throw schemaError(`${label}의 source provenance가 올바르지 않습니다. ${sourceValidation.issues[0]}`, 'PL-SCHEMA-SOURCE');
-    }
+    requireSchemaVersion(feature?.properties?.schemaVersion, label, LAND_OBJECT_SCHEMA_VERSION);
+    assertAllowedKeys(feature?.properties, GENERIC_PROPERTY_KEYS, label);
+    const sourceValidation = validateSourceProvenance(feature?.properties?.source);
+    if (!sourceValidation.ok) throw schemaError(`${label}의 source provenance가 올바르지 않습니다. ${sourceValidation.issues[0]}`, 'PL-SCHEMA-SOURCE');
   }
   for (const feature of project.hydroEdits || []) {
     requireSchemaVersion(feature?.properties?.pandolab_schema_version, `편집 수계 ${text(feature?.id)}`, 1);
