@@ -1292,19 +1292,20 @@ const {
   });
 
   let objectSelectionSyncing = false;
+  let pendingSelectionUiSnapshot = null;
+  let selectionUiSyncFrame = 0;
+  let lastSelectionUiSignature = '';
   const objectSelection = createObjectSelectionController({
     onChange: selection => {
-      const summaryStartedAt = performance.now();
       const primary = selection.items.find(item => item.key === selection.primaryKey) || null;
       state.selected = primary ? normalizeObjectRef(primary) : null;
       if (!selection.items.length) state.addSelectionMode = false;
-      syncSelectionSummary(selection);
       syncGpuCountryEmphasis();
+      scheduleSelectionUiSync(selection);
       mapRenderCoordinator?.invalidate(
         MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.HUD,
         'object-selection',
       );
-      selectionPerformanceMetrics.summaryMs = performance.now() - summaryStartedAt;
     },
   });
   const saveState = createSaveStateController({ onChange: syncProjectSaveStatus });
@@ -1405,6 +1406,28 @@ const {
     });
   }
 
+  function scheduleSelectionUiSync(selection = objectSelection.snapshot()) {
+    pendingSelectionUiSnapshot = selection;
+    if (selectionUiSyncFrame) {
+      selectionPerformanceMetrics.uiCoalescedCount = Number(selectionPerformanceMetrics.uiCoalescedCount || 0) + 1;
+      return;
+    }
+    const run = () => {
+      selectionUiSyncFrame = 0;
+      const next = pendingSelectionUiSnapshot || objectSelection.snapshot();
+      pendingSelectionUiSnapshot = null;
+      const signature = `${next.primaryKey || ''}:${next.items.map(item => item.key).join('|')}`;
+      if (signature === lastSelectionUiSignature) return;
+      lastSelectionUiSignature = signature;
+      const startedAt = performance.now();
+      syncSelectionSummary(next);
+      selectionPerformanceMetrics.uiSyncCount = Number(selectionPerformanceMetrics.uiSyncCount || 0) + 1;
+      selectionPerformanceMetrics.summaryMs = performance.now() - startedAt;
+    };
+    if (typeof requestAnimationFrame === 'function') selectionUiSyncFrame = requestAnimationFrame(run);
+    else selectionUiSyncFrame = setTimeout(run, 0);
+  }
+
   function syncSelectionSummary(selection = objectSelection.snapshot()) {
     const count = selection.items.length;
     const multiple = count > 1;
@@ -1421,9 +1444,9 @@ const {
       if ($('selectionStatus')) $('selectionStatus').textContent = `${count}개 선택됨 ${types.join(', ')}`;
       renderMultiSelectionEditor(selection);
     }
-    syncBatchActionAvailability();
+    syncBatchActionAvailability(selection);
     syncMapContextSurfaces();
-    syncLayerSelectionRows();
+    syncLayerSelectionRows(selection);
   }
 
   function syncProjectSaveStatus(snapshot = saveState?.snapshot?.() || {}) {
@@ -1597,8 +1620,8 @@ const {
     }
   }
 
-  function syncBatchActionAvailability() {
-    const refs = objectSelection.items();
+  function syncBatchActionAvailability(selection = objectSelection.snapshot()) {
+    const refs = selection.items || [];
     const capabilities = commonBatchCapabilities(refs);
     syncBatchBooleanInput($('multiPropertiesVisibilityInput'), refs.map(objectRefVisible), capabilities.has('visible'));
     syncBatchBooleanInput($('multiPropertiesLockInput'), refs.map(objectRefLocked), capabilities.has('lock'));
@@ -1609,14 +1632,18 @@ const {
     const borderButton = $('multiBorderEditBtn');
     const borderHelp = $('multiBorderEditHelp');
     if (countryOnly) {
-      const analysis = boundaryEditSelectionAnalysis(refs.map(ref => ref.id), { rebuild: true });
+      const analysis = boundaryEditSelectionAnalysis(refs.map(ref => ref.id));
       const lockedIds = refs.map(ref => ref.id).filter(isCountryLocked);
       if (borderButton) {
-        borderButton.disabled = lockedIds.length > 0 || !analysis.valid;
-        borderButton.dataset.tooltip = lockedIds.length ? '잠긴 국가를 해제한 뒤 국경을 조정하세요.' : analysis.message;
+        borderButton.disabled = lockedIds.length > 0;
+        borderButton.dataset.tooltip = lockedIds.length
+          ? '잠긴 국가를 해제한 뒤 국경을 조정하세요.'
+          : (analysis.message || '선택 후 공유국경을 확인합니다.');
       }
       if (borderHelp) {
-        const message = lockedIds.length ? `잠긴 국가 ${lockedIds.length}개를 해제해야 국경을 조정할 수 있습니다.` : analysis.message;
+        const message = lockedIds.length
+          ? `잠긴 국가 ${lockedIds.length}개를 해제해야 국경을 조정할 수 있습니다.`
+          : (analysis.message || '국경 조정 시작 시 공유국경을 확인합니다.');
         borderHelp.textContent = message;
         borderHelp.classList.toggle('hidden', !message);
       }
@@ -1996,7 +2023,6 @@ const {
   let currentGpuEditPreviewPackets = [];
   let currentGpuDraftPackets = [];
   let gpuInteractionPacketRevision = 0;
-  let protectedRenderLodSignature = '';
   const gpuInteractionPacketSignatures = { preview: '', draft: '' };
   const gpuSceneResourceObjectKeys = new Map();
   const selectionBoundaryGeometryCache = new Map();
@@ -2032,6 +2058,8 @@ const {
   let mapInteractionLayer;
   let territorialBoundaryCache = { countries: null, units: null, unitGeometryRevision: -1, segments: [], rebuildCount: 0 };
   let territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
+  const boundarySelectionAnalysisCache = new Map();
+  const boundarySelectionAnalysisMetrics = { builds: 0, cacheHits: 0, cacheMisses: 0, buildMs: 0 };
   // Territorial units are still mutated by a few import/edit paths that use
   // push() or replace a geometry without going through the repository's
   // revision setter.  Keep a session-only identity token for each geometry so
@@ -2090,6 +2118,16 @@ const {
     transactionMs: 0,
     controllerMs: 0,
     summaryMs: 0,
+    uiSyncCount: 0,
+    uiCoalescedCount: 0,
+    boundaryAnalysisBuildCount: 0,
+    boundaryAnalysisCacheHitCount: 0,
+    boundaryAnalysisCacheMissCount: 0,
+    boundaryAnalysisMs: 0,
+    selectionCountryBatchCount: 0,
+    selectionGenericBatchCount: 0,
+    selectionStrokeDrawCallCount: 0,
+    selectionOnlyScenePatchCount: 0,
     propertyPanelMs: 0,
     propertyFieldsMs: 0,
     editorOpenMs: 0,
@@ -3290,6 +3328,7 @@ const {
       territorialBoundaryCache.countries = null;
     }
     countryLandRevision += 1;
+    boundarySelectionAnalysisCache.clear();
     genericFeatureLandClipCache = new WeakMap();
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     gpuMapRenderer.applyCountryPatch({ ids: [...changed], features, removedIds });
@@ -3452,14 +3491,38 @@ const {
 
   function boundaryEditSelectionAnalysis(countryIds = state.boundaryEditCountryIds, { rebuild = false } = {}) {
     const ids = [...new Set(countryIds.map(String).filter(id => countryFeatureById(id)))];
-    if (rebuild) rebuildBoundaryTopology(ids);
+    const cacheKey = `${countryLandRevision}:${ids.slice().sort().join('|')}`;
+    const cached = boundarySelectionAnalysisCache.get(cacheKey);
+    if (cached) {
+      boundarySelectionAnalysisMetrics.cacheHits += 1;
+      return cached;
+    }
+    if (!rebuild) {
+      boundarySelectionAnalysisMetrics.cacheMisses += 1;
+      return {
+        selectedIds: ids,
+        segmentKeys: new Set(),
+        isolatedIds: [],
+        valid: ids.length >= 2,
+        analyzed: false,
+        message: ids.length >= 2 ? '국경 조정 시작 시 공유국경을 확인합니다.' : '접경국을 하나 이상 더 선택하세요.',
+      };
+    }
+    boundarySelectionAnalysisMetrics.cacheMisses += 1;
+    const startedAt = performance.now();
+    rebuildBoundaryTopology(ids);
     const plan = planSharedBoundaryEdit(state.sharedBoundaryTopology, ids);
     const names = plan.isolatedIds.map(id => countryName(countryFeatureById(id)) || id);
     let message = '';
     if (ids.length < 2) message = '접경국을 하나 이상 더 선택하세요.';
     else if (!plan.segmentKeys.size) message = '선택 국가 사이에 편집할 공유국경이 없습니다.';
     else if (names.length) message = `${names.join(', ')}은(는) 다른 선택 국가와 접하지 않습니다.`;
-    return { ...plan, message };
+    const result = { ...plan, message, analyzed: true };
+    boundarySelectionAnalysisCache.set(cacheKey, result);
+    boundarySelectionAnalysisMetrics.builds += 1;
+    boundarySelectionAnalysisMetrics.buildMs += performance.now() - startedAt;
+    while (boundarySelectionAnalysisCache.size > 64) boundarySelectionAnalysisCache.delete(boundarySelectionAnalysisCache.keys().next().value);
+    return result;
   }
 
   async function beginWorkerGeometryPreview({
@@ -5527,14 +5590,16 @@ const {
     return control;
   }
 
-  function syncLayerSelectionRows() {
+  function syncLayerSelectionRows(selection = objectSelection.snapshot()) {
+    const selectedKeys = new Set((selection.items || []).map(item => item.key));
+    const multi = selectedKeys.size > 1;
     document.querySelectorAll('[data-layer-group][data-item-id]').forEach(row => {
-      const selected = isLayerTreeItemSelected(row.dataset.layerGroup, row.dataset.itemId);
       const ref = layerItemObjectRef(row.dataset.layerGroup, row.dataset.itemId);
-      const primary = !!ref && objectSelection.snapshot().primaryKey === ref.key;
+      const selected = !!ref && selectedKeys.has(ref.key);
+      const primary = !!ref && selection.primaryKey === ref.key;
       row.classList.toggle('is-selected', selected);
-      row.classList.toggle('is-multi-selected', selected && objectSelection.size() > 1);
-      row.classList.toggle('is-primary-selected', primary && objectSelection.size() > 1);
+      row.classList.toggle('is-multi-selected', selected && multi);
+      row.classList.toggle('is-primary-selected', primary && multi);
       if (row.matches('.layer-search-result')) row.setAttribute('aria-selected', String(selected));
     });
   }
@@ -8117,20 +8182,6 @@ const {
     });
   }
 
-  function queueProtectedRenderLodSync() {
-    const signature = objectSelection.snapshot().keys.slice().sort().join('|');
-    if (signature === protectedRenderLodSignature) return false;
-    protectedRenderLodSignature = signature;
-    mapWorkScheduler.scheduleIdle('selected-render-lod', () => {
-      syncGpuRenderScene();
-      // A selection-protection refresh changes interaction coverage only.  It
-      // must not request a base-scene frame (which would rebuild/composite the
-      // SceneColorCache during an otherwise selection-only update).
-      mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, 'selected-render-lod');
-    }, 40);
-    return true;
-  }
-
   function syncActiveEditPreview(reason = 'edit-preview') {
     const packet = editPreviewController.packet();
     currentGpuEditPreviewPackets = packet ? [packet] : [];
@@ -8434,7 +8485,6 @@ const {
           style: resolvedInteractionStyle,
         });
         selectionPass.updateData(currentSelectionPacket);
-        queueProtectedRenderLodSync();
       }
       const interactionFills = buildGpuInteractionFillItems(interactionFillRequests);
       fillResourcesByObject = interactionFills.resourcesByObject;
@@ -8445,6 +8495,9 @@ const {
       gpuFillResult = interactionFrame?.interactionResult?.genericFillResult || null;
       gpuSelectionStats = selectionPass.stats();
       boundarySegmentCount = gpuSelectionStats.segmentCount;
+      selectionPerformanceMetrics.selectionCountryBatchCount = Number(gpuSelectionStats.countryBatchCount || 0);
+      selectionPerformanceMetrics.selectionGenericBatchCount = Number(gpuSelectionStats.genericBatchCount || 0);
+      selectionPerformanceMetrics.selectionStrokeDrawCallCount = Number(gpuSelectionStats.strokeDrawCallCount || 0);
     }
     if (!gpuSelectionStats) gpuSelectionStats = selectionPass?.stats?.() || null;
     const renderedKeys = {
@@ -8651,7 +8704,13 @@ const {
       pickReadPixelsMs: metrics.pickReadPixelsMs || 0,
       selectionPathCount: selectionMetrics.pathCount || 0,
       selectionPathCharacterCount: selectionMetrics.pathCharacterCount || 0,
-      selection: { ...selectionPerformanceMetrics },
+      selection: {
+        ...selectionPerformanceMetrics,
+        boundaryAnalysisBuildCount: boundarySelectionAnalysisMetrics.builds,
+        boundaryAnalysisCacheHitCount: boundarySelectionAnalysisMetrics.cacheHits,
+        boundaryAnalysisCacheMissCount: boundarySelectionAnalysisMetrics.cacheMisses,
+        boundaryAnalysisMs: boundarySelectionAnalysisMetrics.buildMs,
+      },
       spatialIndex: mapObjectSpatialIndex.stats(),
       viewportCulling: { ...viewportCullingMetrics },
       distributionRows: {
@@ -8921,7 +8980,13 @@ const {
         interactionGate: mapInteractionGate.stats(),
         interactionStyle: resolvedInteractionStyle,
         selection: { ...(window.__PANDOLAB_SELECTION_RENDER_METRICS__ || {}) },
-        selectionInput: { ...selectionPerformanceMetrics },
+        selectionInput: {
+          ...selectionPerformanceMetrics,
+          boundaryAnalysisBuildCount: boundarySelectionAnalysisMetrics.builds,
+          boundaryAnalysisCacheHitCount: boundarySelectionAnalysisMetrics.cacheHits,
+          boundaryAnalysisCacheMissCount: boundarySelectionAnalysisMetrics.cacheMisses,
+          boundaryAnalysisMs: boundarySelectionAnalysisMetrics.buildMs,
+        },
         selectionBaseline: selectionPerformanceBaseline.snapshot(),
         spatialIndex: mapObjectSpatialIndex.stats(),
         viewportCulling: { ...viewportCullingMetrics },
@@ -14818,6 +14883,7 @@ const {
     }
     resetCountryLabelAnchorRuntime();
     const projectGeneration = gpuMapRenderer.resetProjectRenderState?.();
+    boundarySelectionAnalysisCache.clear();
     state.countryVisualPhase = 'preview';
     countryDisplaySource = null;
     countryDisplayIndex = new Map();
@@ -14992,6 +15058,7 @@ const {
     closeConfirmModal();
     closeMobileSheets();
     const projectGeneration = gpuMapRenderer.resetProjectRenderState?.();
+    boundarySelectionAnalysisCache.clear();
     state.countryVisualPhase = 'preview';
     countryDisplaySource = null;
     countryDisplayIndex = new Map();
@@ -15664,6 +15731,7 @@ const {
       // Advance the canonical country revision here so RenderScene and its
       // SceneColorCache cannot treat the pre-insertion mesh as unchanged.
       countryLandRevision += 1;
+      boundarySelectionAnalysisCache.clear();
       territorialBoundaryCache.countries = null;
       mapEditClient.rebase(state.countriesData.features);
       scheduleGpuMeshRebuild(0);
@@ -17873,6 +17941,7 @@ const {
     const previewSelection = (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) ? String(state.selected.id || '') : '';
     installPristineCountrySource(geometry.countriesSourceBuffer);
     const projectGeneration = gpuMapRenderer.resetProjectRenderState?.();
+    boundarySelectionAnalysisCache.clear();
     // The low-resolution country source is a one-way startup aid.  After the
     // first canonical promotion a project reset starts from canonical data or
     // a neutral loading state and must not briefly re-expose preview geometry.

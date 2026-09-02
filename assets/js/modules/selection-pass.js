@@ -51,6 +51,9 @@ export function createSelectionPass({ onRenderError = null } = {}) {
   let bufferUploadBytes = 0;
   let geometryCacheHits = 0;
   let geometryCacheMisses = 0;
+  let countryBatchCount = 0;
+  let genericBatchCount = 0;
+  let strokeDrawCallCount = 0;
   let lastRenderResult = null;
   const geometryCache = new Map();
   const items = { hover: [],primary: [],secondary: [] };
@@ -161,15 +164,48 @@ export function createSelectionPass({ onRenderError = null } = {}) {
     const requested = items[name];
     const renderedKeys = [];const missingKeys = [];
     const style = channelStyle(name, interactionStyle);
+    const groups = new Map();
     for (const item of requested) {
       if (!item.packet) { missingKeys.push(item.key);continue; }
-      const result = strokeRenderer.drawBatches([{ ...item.packet,style }], frameContext);
-      if (result?.succeeded && result.renderedKeys?.includes(item.packet.key)) renderedKeys.push(item.key);
-      else missingKeys.push(item.key);
+      const isCountry = item.key.startsWith('country:') && Array.isArray(item.packet.ownerIds);
+      const groupKey = isCountry ? `country:${item.packet.key}` : `generic:${item.packet.key}`;
+      let group = groups.get(groupKey);
+      if (!group) {
+        group = { packet: item.packet, items: [], ownerIds: new Set(), isCountry };
+        groups.set(groupKey, group);
+      }
+      group.items.push(item);
+      for (const ownerId of item.packet.ownerIds || []) group.ownerIds.add(String(ownerId));
+    }
+    for (const group of groups.values()) {
+      const batch = {
+        ...group.packet,
+        style,
+        ownerIds: group.isCountry ? [...group.ownerIds] : group.packet.ownerIds,
+      };
+      const result = strokeRenderer.drawBatches([batch], frameContext);
+      if (group.isCountry) countryBatchCount += 1;
+      else genericBatchCount += 1;
+      strokeDrawCallCount += Number(result?.drawCallCount || 0);
+      const hasOwnerCoverage = Array.isArray(result?.renderedOwnerIds) || Array.isArray(result?.missingOwnerIds);
+      const renderedOwners = new Set((result?.renderedOwnerIds || []).map(String));
+      if (group.isCountry && !hasOwnerCoverage && result?.succeeded && result.renderedKeys?.includes(batch.key)) {
+        for (const ownerId of group.ownerIds) renderedOwners.add(String(ownerId));
+      }
+      const missingOwners = new Set((result?.missingOwnerIds || []).map(String));
+      for (const item of group.items) {
+        const ownerIds = item.packet.ownerIds || [];
+        const itemRendered = group.isCountry
+          ? ownerIds.length > 0 && ownerIds.every(ownerId => renderedOwners.has(String(ownerId)))
+          : !!result?.succeeded && result.renderedKeys?.includes(item.packet.key);
+        if (itemRendered) renderedKeys.push(item.key);
+        else if (group.isCountry && ownerIds.some(ownerId => missingOwners.has(String(ownerId)))) missingKeys.push(item.key);
+        else if (!itemRendered) missingKeys.push(item.key);
+      }
     }
     return Object.freeze({
       buildSucceeded: requested.every(item => !!item.packet),
-      drawSucceeded: missingKeys.length === 0,
+      drawSucceeded: missingKeys.length === 0 && requested.every(item => renderedKeys.includes(item.key)),
       renderedKeys: Object.freeze(renderedKeys),missingKeys: Object.freeze(missingKeys),
     });
   }
@@ -248,6 +284,7 @@ export function createSelectionPass({ onRenderError = null } = {}) {
       return Object.freeze({
         packetRevision,countryBoundaryRevision,viewDrawCount,viewOnlyBufferRebuildCount: 0,drawMs,lastDrawMs,renderFailureCount,contextLost,contextLossCount,contextRestoreCount,
         bufferBuildCount,bufferBuildMs,bufferUploadBytes,geometryCacheHits,geometryCacheMisses,
+        countryBatchCount,genericBatchCount,strokeDrawCallCount,
         gpuHealth: stroke.gpuHealth || 'unchecked',selfTestPassed: !!stroke.selfTestPassed,selfTestCount: Number(stroke.selfTestCount || 0),selfTestMs: Number(stroke.selfTestMs || 0),
         selfTestFailureReason: stroke.selfTestFailureReason || '',renderSucceeded: lastRenderResult?.succeeded ?? false,channels,
         segmentCount: CHANNELS.reduce((sum, name) => sum + items[name].reduce((inner, item) => inner + packetSegmentCount(item.packet), 0), 0),
