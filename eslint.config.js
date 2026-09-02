@@ -36,6 +36,13 @@ export default [
     },
   },
   {
+    files: ['assets/js/modules/gpu-stroke-renderer.js'],
+    rules: {
+      // Resource allocation is deliberately initialized before the guarded cleanup path.
+      'no-useless-assignment': 'off',
+    },
+  },
+  {
     files: ['assets/js/workers/**/*.js'],
     languageOptions: {
       sourceType: 'script',
