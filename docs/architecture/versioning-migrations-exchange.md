@@ -45,14 +45,12 @@ Object meaning and exchange format are separate concerns. Canonical exchange tar
 ```text
 project
 country
-t e r r i t o r y
+territory
 administrative
 region
 distribution
 generic
 ```
-
-(`territory` above is the literal target; spacing in this document is not part of the identifier.)
 
 Each target has one descriptor with a domain and can provide `importPayload` and/or `exportPayload`. Import services dispatch non-country targets through this registry instead of adding new top-level `if/switch` branches. Country import remains a specialized pipeline because identity resolution, overlap analysis, and merge policy are transactional operations rather than simple materialization.
 
