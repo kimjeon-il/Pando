@@ -1,6 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import {
+  MAP_OBJECT_CATEGORIES,
+  MAP_OBJECT_CATEGORY_ORDER,
+  MAP_OBJECT_TYPES,
+} from '../assets/js/modules/map-object-categories.js';
 
 const root = process.cwd();
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
@@ -33,7 +38,7 @@ function textById(id) {
   return stripTags(elementById(id));
 }
 
-// Create surface: acquisition route first, then object taxonomy.
+// Create surface: acquisition route first, then canonical object taxonomy.
 if (textById('createBuildTabBtn') !== '만들기') fail('create primary route must be "만들기"');
 if (textById('createLibraryTabBtn') !== '라이브러리') fail('create secondary route must be "라이브러리"');
 for (const [tabId, panelId] of [['createBuildTabBtn', 'createBuildPanel'], ['createLibraryTabBtn', 'createLibraryPanel']]) {
@@ -45,28 +50,28 @@ const buildStart = html.indexOf('id="createBuildPanel"');
 const libraryStart = html.indexOf('id="createLibraryPanel"');
 const buildPanel = buildStart >= 0 && libraryStart > buildStart ? html.slice(buildStart, libraryStart) : '';
 if (!buildPanel) fail('create build panel could not be resolved');
-const categoryContract = [
-  ['territorial', '영토·구역', ['country', 'territory', 'admin', 'region']],
-  ['distribution', '인문 분포', ['distribution']],
-  ['features', '지형지물', ['label', 'river', 'lake']],
-];
+const categoryContract = MAP_OBJECT_CATEGORY_ORDER.map(category => {
+  const descriptor = MAP_OBJECT_CATEGORIES[category];
+  return [category, descriptor.label, descriptor.createItems];
+});
 let previousCategoryIndex = -1;
 for (const [category, label, types] of categoryContract) {
   const marker = `data-map-category="${category}"`;
   const categoryIndex = buildPanel.indexOf(marker);
   if (categoryIndex < 0) fail(`create build panel is missing category ${category}`);
-  if (categoryIndex <= previousCategoryIndex) fail('create category order must be territorial → distribution → features');
+  if (categoryIndex <= previousCategoryIndex) fail(`create category order must be ${MAP_OBJECT_CATEGORY_ORDER.join(' → ')}`);
   previousCategoryIndex = categoryIndex;
   const nextCategoryIndex = categoryContract
     .map(([nextCategory]) => buildPanel.indexOf(`data-map-category="${nextCategory}"`, categoryIndex + marker.length))
     .filter(index => index > categoryIndex)
     .sort((a, b) => a - b)[0] ?? buildPanel.length;
   const categoryBody = buildPanel.slice(categoryIndex, nextCategoryIndex);
-  if (!categoryBody.includes(`>${label}<`)) fail(`create category ${category} must use label "${label}"`);
+  if (!categoryBody.includes(`>${label}<`)) fail(`create category ${category} must use registry label "${label}"`);
   for (const type of types) {
-    if (!categoryBody.includes(`data-map-object-type="${type}"`)) fail(`create category ${category} is missing object type ${type}`);
+    if (!categoryBody.includes(`data-map-object-type="${type}"`)) fail(`create category ${category} is missing registry object type ${type}`);
   }
 }
+if (MAP_OBJECT_TYPES.generic.creatable) fail('Generic Feature registry entry must remain non-creatable');
 if (buildPanel.includes('data-map-object-type="generic"')) fail('Generic Feature must not be directly creatable');
 const libraryPanel = libraryStart >= 0 ? html.slice(libraryStart, html.indexOf('</section>', libraryStart)) : '';
 if (!libraryPanel.includes('id="addFromLibraryBtn"')) fail('library route must expose the library entry action');
