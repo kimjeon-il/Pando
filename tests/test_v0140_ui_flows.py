@@ -17,8 +17,8 @@ def source_section(source: str, start: str, end: str) -> str:
 
 class V0140UiFlowTests(unittest.TestCase):
     def test_scroll_containers_reserve_scrollbar_space(self):
-        self.assertIn("scrollbar-gutter: stable;", CSS)
-        self.assertNotIn("scrollbar-gutter: stable both-edges", CSS)
+        self.assertIn("scrollbar-gutter: stable both-edges;", CSS)
+        self.assertNotIn("scrollbar-gutter: stable;", CSS)
         for selector in (".sidebar", ".layer-children", ".top-actions", ".ui-dialog-card"):
             self.assertIn(selector, CSS)
 

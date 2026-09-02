@@ -45,7 +45,7 @@ class EditorChromeTests(unittest.TestCase):
         canonical = CSS[CSS.index('/* ===== Canonical workspace surfaces ===== */'):]
         self.assertIn('.surface-header {', canonical)
         self.assertIn('min-height: var(--ui-surface-header-height-compact);', canonical)
-        self.assertIn('padding: 0 var(--ui-surface-visual-rail-x);', canonical)
+        self.assertIn('padding: 0 var(--ui-surface-content-rail-x);', canonical)
         self.assertIn('.surface-header-actions {', canonical)
         self.assertIn('.workspace-surface .surface-header-actions .sheet-close-btn {', canonical)
         self.assertIn('position: static;', canonical)

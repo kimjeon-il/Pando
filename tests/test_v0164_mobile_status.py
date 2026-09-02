@@ -29,7 +29,7 @@ class MobileStatusV0164Tests(unittest.TestCase):
         self.assertIn("grid-template-columns: minmax(0, 1fr) auto;", canonical)
         self.assertIn("flex-basis: var(--ui-surface-header-height-mobile);", canonical)
         self.assertIn("padding-block: calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2)) var(--ui-space-2);", canonical)
-        self.assertIn("padding: 0 var(--ui-surface-visual-rail-x);", canonical)
+        self.assertIn("padding: 0 var(--ui-surface-content-rail-x);", canonical)
         self.assertIn("calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height))", CSS)
 
     def test_empty_mobile_history_toolbar_is_hidden(self):

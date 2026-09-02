@@ -191,9 +191,8 @@
   --ui-surface-body-padding-x: var(--ui-space-4);
   --ui-surface-content-padding-x: var(--ui-panel-padding);
   --ui-surface-content-padding-bottom: var(--ui-panel-padding);
-  --ui-surface-scrollbar-compensation: var(--ui-scrollbar-size);
-  --ui-surface-visual-rail-x: calc(var(--ui-surface-content-padding-x) + var(--ui-surface-scrollbar-compensation));
-  --ui-surface-header-control-inset: var(--ui-surface-visual-rail-x);
+  --ui-surface-content-rail-x: var(--ui-surface-content-padding-x);
+  --ui-surface-header-control-inset: var(--ui-surface-content-rail-x);
   --ui-radius-sheet: 16px;
   --ui-control-bg: var(--panel-2);
   --ui-control-bg-hover: var(--surface-hover);
@@ -918,7 +917,6 @@ body { font-size: var(--ui-font-body); }
 #fileMenu {
   padding-block: var(--ui-menu-padding);
   padding-inline: 0;
-  padding-inline-start: var(--ui-scrollbar-size);
 }
 .top-actions.mobile-open { display: grid; }
 .top-actions .btn, .top-actions .btn:not(.ghost) {
@@ -1088,24 +1086,85 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   font-weight: var(--ui-weight-semibold);
 }
 
-/* Scrollbars belong to the element that owns scrolling, never its panel shell. */
-:where(.ui-scroll-surface, .layer-children, .ui-select-listbox) {
-  scrollbar-gutter: stable;
+/* Scrollbars belong to the element that owns scrolling, never its panel shell.
+   Both edges reserve the same layout space whether content overflows or not. */
+:where(
+  .ui-scroll-surface,
+  .layer-children,
+  .ui-select-listbox,
+  .historical-library-layout,
+  .historical-library-results,
+  .historical-library-preview,
+  .preferences-fields,
+  .mode-task-window-body,
+  .debug-map-panel,
+  .gis-import-content-rail,
+  .gis-export-step
+) {
+  scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
-:where(.ui-scroll-surface, .layer-children, .ui-select-listbox)::-webkit-scrollbar {
+:where(
+  .ui-scroll-surface,
+  .layer-children,
+  .ui-select-listbox,
+  .historical-library-layout,
+  .historical-library-results,
+  .historical-library-preview,
+  .preferences-fields,
+  .mode-task-window-body,
+  .debug-map-panel,
+  .gis-import-content-rail,
+  .gis-export-step
+)::-webkit-scrollbar {
   width: var(--ui-scrollbar-size);
   height: var(--ui-scrollbar-size);
 }
-:where(.ui-scroll-surface, .layer-children, .ui-select-listbox)::-webkit-scrollbar-track { background: transparent; }
-:where(.ui-scroll-surface, .layer-children, .ui-select-listbox)::-webkit-scrollbar-thumb {
+:where(
+  .ui-scroll-surface,
+  .layer-children,
+  .ui-select-listbox,
+  .historical-library-layout,
+  .historical-library-results,
+  .historical-library-preview,
+  .preferences-fields,
+  .mode-task-window-body,
+  .debug-map-panel,
+  .gis-import-content-rail,
+  .gis-export-step
+)::-webkit-scrollbar-track { background: transparent; }
+:where(
+  .ui-scroll-surface,
+  .layer-children,
+  .ui-select-listbox,
+  .historical-library-layout,
+  .historical-library-results,
+  .historical-library-preview,
+  .preferences-fields,
+  .mode-task-window-body,
+  .debug-map-panel,
+  .gis-import-content-rail,
+  .gis-export-step
+)::-webkit-scrollbar-thumb {
   border: var(--ui-scrollbar-thumb-inset) solid transparent;
   border-radius: 999px;
   background: var(--border-strong);
   background-clip: padding-box;
 }
-:where(.ui-scroll-surface, .layer-children, .ui-select-listbox)::-webkit-scrollbar-thumb:hover { background-color: var(--text-soft); }
+:where(
+  .ui-scroll-surface,
+  .layer-children,
+  .ui-select-listbox,
+  .historical-library-layout,
+  .historical-library-results,
+  .historical-library-preview,
+  .preferences-fields,
+  .mode-task-window-body,
+  .debug-map-panel,
+  .gis-import-content-rail,
+  .gis-export-step
+)::-webkit-scrollbar-thumb:hover { background-color: var(--text-soft); }
 
 .panel-section, .editor-view { min-width: 0; }
 .layer-search, .editor-section, .editor-disclosure,
@@ -1630,7 +1689,7 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
 }
 #app[data-layout="mobile"] .surface-map > .surface-body-delegated {
   display: flex;
@@ -1653,31 +1712,13 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
 }
 
 #app[data-layout="mobile"] .top-actions {
   top: calc(var(--ui-topbar-height) + var(--ui-space-2));
   right: var(--ui-popover-screen-edge);
   width: min(320px, calc(100vw - var(--ui-popover-screen-edge) * 2));
-}
-body[data-layout="mobile"] #fileMenu {
-  padding-inline: var(--ui-menu-padding);
-  scrollbar-gutter: auto;
-}
-body[data-layout="mobile"] :is(
-  .ui-select-listbox,
-  .object-chooser-list,
-  .historical-library-layout,
-  .historical-library-results,
-  .historical-library-preview,
-  .gis-form-grid,
-  .gis-export-step
-) {
-  scrollbar-gutter: auto;
-}
-body[data-layout="mobile"] .ui-select-listbox {
-  padding-inline: var(--ui-scrollbar-size);
 }
 #app[data-layout="mobile"] .top-actions .btn,
 #app[data-layout="mobile"] .top-actions .btn:not(.ghost) {
@@ -2135,7 +2176,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 .ui-dialog-card h2 { color: var(--modal-title); font-size: var(--ui-font-modal-title); }
 body:not([data-layout="mobile"]) #gisExportModal .ui-dialog-card {
-  padding-inline-start: calc(var(--ui-dialog-padding) + var(--ui-scrollbar-size));
+  padding-inline-start: var(--ui-dialog-padding);
 }
 .ui-dialog-actions { display: flex; justify-content: flex-end; gap: var(--ui-dialog-actions-gap); margin-top: var(--ui-dialog-actions-top); }
 .ui-dialog-kicker { color: var(--accent-2); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-bold); letter-spacing: .06em; }
@@ -2384,7 +2425,7 @@ input[type="search"]::-webkit-search-decoration { appearance: none; -webkit-appe
 .ui-select-listbox {
   max-height: var(--ui-select-list-max-height);
   padding-block: var(--ui-scrollbar-gutter-size);
-  padding-inline-start: var(--ui-scrollbar-size);
+  padding-inline: 0;
   scroll-padding-block: var(--ui-scrollbar-gutter-size);
   overflow-x: hidden;
   overflow-y: auto;
@@ -2488,7 +2529,7 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 /* Search and form controls share the same field boundary and focus treatment. */
 .layer-search {
   flex: 0 0 auto;
-  margin: 0 var(--ui-surface-visual-rail-x) var(--ui-space-2);
+  margin: 0 var(--ui-surface-content-rail-x) var(--ui-space-2);
 }
 .layer-search input {
   height: calc(var(--ui-control-height) - 2px);
@@ -2517,8 +2558,8 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  padding-inline-end: var(--ui-surface-content-padding-x);
-  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
   padding-block-end: var(--ui-surface-content-padding-bottom);
 }
 .layer-category {
@@ -2711,8 +2752,7 @@ html.keyboard-navigation .layer-style-toggle:focus-visible { border-radius: var(
   overscroll-behavior-y: auto;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  padding: var(--ui-space-1) var(--ui-space-0-5) var(--ui-space-2)
-    calc(var(--ui-space-0-5) + var(--ui-scrollbar-size));
+  padding: var(--ui-space-1) var(--ui-space-0-5) var(--ui-space-2);
   border: 0;
   border-left: 1px solid color-mix(in srgb, var(--ui-control-border) 68%, transparent);
   background: transparent;
@@ -2834,8 +2874,8 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   align-content: start;
   gap: var(--ui-menu-gap);
   padding-block: var(--ui-space-1) var(--ui-surface-content-padding-bottom);
-  padding-inline-end: var(--ui-surface-content-padding-x);
-  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
 }
 .create-menu-category {
   min-width: 0;
@@ -3168,8 +3208,8 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   display: grid;
   place-items: center;
   padding-block: var(--ui-space-6);
-  padding-inline-end: var(--ui-surface-content-padding-x);
-  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
   color: var(--muted);
   text-align: center;
 }
@@ -3181,8 +3221,8 @@ body.create-menu-open #app[data-layout="mobile"] .map-command-toolbar.history-em
   flex-direction: column;
   gap: var(--ui-space-6);
   padding-block: 0 var(--ui-surface-content-padding-bottom);
-  padding-inline-end: var(--ui-surface-content-padding-x);
-  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
 }
 .editor-section,
 .editor-disclosure {
@@ -3640,8 +3680,7 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
   gap: var(--ui-menu-gap);
   max-height: 300px;
   overflow: auto;
-  padding: var(--ui-menu-padding) var(--ui-menu-padding) var(--ui-menu-padding)
-    calc(var(--ui-menu-padding) + var(--ui-scrollbar-size));
+  padding: var(--ui-menu-padding);
 }
 .object-chooser-item {
   width: 100%;
@@ -3766,8 +3805,8 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .ui-empty-state--compact { padding: var(--ui-space-5) var(--ui-space-3); }
 #editorScrollBody > .editor-empty {
   padding-block: var(--ui-space-6);
-  padding-inline-end: var(--ui-surface-content-padding-x);
-  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
 }
 
 .confirm-impact { display: grid; gap: var(--ui-space-2); margin-top: var(--ui-dialog-section-gap); padding: var(--ui-card-padding); border: 1px solid var(--danger-border); border-radius: var(--ui-radius-control); background: color-mix(in srgb, var(--danger-surface) 52%, transparent); }
@@ -3804,8 +3843,7 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  padding-inline-start: var(--ui-scrollbar-size);
+  scrollbar-gutter: stable both-edges;
 }
 #gisImportForm > .gis-import-content-rail > .gis-form-grid {
   min-height: 260px;
@@ -3837,8 +3875,8 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   display: grid;
   gap: var(--ui-field-gap);
   padding-bottom: var(--ui-surface-content-padding-bottom);
-  padding-inline-end: var(--ui-surface-content-padding-x);
-  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
 }
 .map-view-settings > .layer-style-editor:first-child { padding-top: 0; border-top: 0; }
 .map-view-projection-slot .projection-control {
@@ -3941,8 +3979,8 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   padding-block: var(--ui-space-1);
-  padding-inline-end: var(--ui-surface-content-padding-x);
-  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
 }
 .layer-search-result {
   width: 100%;
@@ -4078,7 +4116,7 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   column-gap: var(--ui-space-3);
-  padding: 0 var(--ui-surface-visual-rail-x);
+  padding: 0 var(--ui-surface-content-rail-x);
   border: 0;
   background: var(--surface-elevated);
   box-shadow: none;
@@ -4113,7 +4151,7 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
-  padding-inline: var(--ui-surface-visual-rail-x);
+  padding-inline: var(--ui-surface-content-rail-x);
 }
 
 .surface-tabs .ui-tab {
@@ -4158,15 +4196,16 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
 }
 
+/* The delegated shell is not a scroll owner; its child layer list owns the gutter. */
 .surface-body-delegated { overflow: hidden; scrollbar-gutter: auto; }
 .surface-content { min-width: 0; }
 .surface-content-create,
 .surface-content-editor {
-  padding-inline-end: var(--ui-surface-content-padding-x);
-  padding-inline-start: var(--ui-surface-visual-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
   padding-bottom: var(--ui-surface-content-padding-bottom);
 }
 .surface-content-create {
