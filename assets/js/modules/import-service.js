@@ -1,3 +1,8 @@
+import {
+  EXCHANGE_TARGETS,
+  createExchangeAdapterRegistry,
+  normalizeExchangeTarget,
+} from './exchange-adapter-registry.js';
 import { TERRITORIAL_IMPORT_TARGETS } from './import-plan.js';
 
 export const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
@@ -218,6 +223,35 @@ export function appendImportedSourceInfo(previous, next, now = () => new Date().
   return { mergedAt: now(), imports };
 }
 
+function createMaterializerExchangeRegistry(materializers) {
+  const territorialImport = (result, context) => materializers.territorial(result, context.fileName || '벡터 파일');
+  const geoJsonImport = (result, context) => {
+    const target = result.targetType === EXCHANGE_TARGETS.DISTRIBUTION
+      ? result.distributionType
+      : result.targetType;
+    return materializers.geoJson(context.file, {
+      parsed: result.collection,
+      target,
+      mapping: {
+        nameField: result.mapping?.nameField || '',
+        countryField: result.mapping?.countryField || '',
+        parentField: result.mapping?.parentField || '',
+        levelField: result.mapping?.levelField || '',
+      },
+    });
+  };
+  return createExchangeAdapterRegistry({
+    adapters: {
+      [EXCHANGE_TARGETS.PROJECT]: { importPayload: result => materializers.replaceProject(result) },
+      [EXCHANGE_TARGETS.TERRITORY]: { importPayload: territorialImport },
+      [EXCHANGE_TARGETS.ADMINISTRATIVE]: { importPayload: territorialImport },
+      [EXCHANGE_TARGETS.REGION]: { importPayload: territorialImport },
+      [EXCHANGE_TARGETS.DISTRIBUTION]: { importPayload: geoJsonImport },
+      [EXCHANGE_TARGETS.GENERIC]: { importPayload: geoJsonImport },
+    },
+  });
+}
+
 export function createImportService({
   openImportWizard,
   getWizardOptions,
@@ -228,38 +262,34 @@ export function createImportService({
   materializeCountryImport = null,
   planCountryMerge,
   materializers,
+  exchangeRegistry = null,
   onStage = () => {},
 }) {
+  const adapters = exchangeRegistry || createMaterializerExchangeRegistry(materializers);
+
   async function openFiles(files, { targetType = '' } = {}) {
     if (!files?.length) return { status: 'empty' };
     const result = await openImportWizard(files, {
       targetType,
       ...getWizardOptions(),
     });
+    const resolvedTarget = normalizeExchangeTarget(result.importPlan?.targetType || result.targetType);
+    const context = { file: files[0], fileName: files[0]?.name || '벡터 파일' };
+
     if (result.sourceKind === 'project' || result.importPlan?.sourceKind === 'project') {
-      await materializers.replaceProject(result);
+      await adapters.importPayload(EXCHANGE_TARGETS.PROJECT, result, context);
       return { status: 'project-replaced', result };
     }
-    if (Object.values(TERRITORIAL_IMPORT_TARGETS).includes(result.targetType)) {
-      await materializers.territorial(result, files[0]?.name || '벡터 파일');
+    if (Object.values(TERRITORIAL_IMPORT_TARGETS).includes(resolvedTarget)) {
+      await adapters.importPayload(resolvedTarget, result, context);
       return { status: 'territorial-imported', result };
     }
-    if (!['country', 'project'].includes(result.importPlan?.targetType || result.targetType)) {
-      const target = result.targetType === 'distribution' ? result.distributionType : result.targetType;
-      await materializers.geoJson(files[0], {
-        parsed: result.collection,
-        target,
-        mapping: {
-          nameField: result.mapping?.nameField || '',
-          countryField: result.mapping?.countryField || '',
-          parentField: result.mapping?.parentField || '',
-          levelField: result.mapping?.levelField || '',
-        },
-      });
+    if (![EXCHANGE_TARGETS.COUNTRY, EXCHANGE_TARGETS.PROJECT].includes(resolvedTarget)) {
+      await adapters.importPayload(resolvedTarget, result, context);
       return { status: 'object-imported', result };
     }
 
-    if (result.targetType === 'country' && typeof materializeCountryImport === 'function') {
+    if (resolvedTarget === EXCHANGE_TARGETS.COUNTRY && typeof materializeCountryImport === 'function') {
       result.countriesData = materializeCountryImport(result.countriesData, {
         manualMappings: result.identityMappings || {},
         allowImplicitNew: result.openMode === 'replace',
@@ -291,5 +321,5 @@ export function createImportService({
     return { status: 'countries-merged', result, plan };
   }
 
-  return Object.freeze({ openFiles });
+  return Object.freeze({ openFiles, exchangeRegistry: adapters });
 }
