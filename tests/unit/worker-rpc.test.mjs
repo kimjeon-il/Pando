@@ -43,7 +43,7 @@ test('RPC client sends canonical request metadata and preserves transferables', 
   const buffer = new ArrayBuffer(8);
   const worker = fakeWorker((message, current) => {
     if (message.type !== 'request') return;
-    queueMicrotask(() => current.onmessage({ data: resultFor(message, { ok: 1 }) }));
+    Promise.resolve().then(() => current.onmessage({ data: resultFor(message, { ok: 1 }) }));
   });
   const client = createWorkerRpcClient({ createWorker: () => worker, getProjectRevision: () => 7 });
   const response = await client.request('geometry.mesh', { count: 2 }, { priority: 90, transfer: [buffer] });
@@ -74,7 +74,7 @@ test('RPC timeout cancels the worker request and reports a typed error', async (
 });
 
 test('AbortSignal cancellation uses the same cancel path', async () => {
-  const controller = new AbortController();
+  const controller = new globalThis.AbortController();
   const worker = fakeWorker();
   const client = createWorkerRpcClient({ createWorker: () => worker, defaultTimeoutMs: 0 });
   const pending = client.request('geometry.audit', {}, { signal: controller.signal });
@@ -100,7 +100,7 @@ test('worker crashes reject pending requests and the next request recreates the 
   const client = createWorkerRpcClient({
     createWorker: () => {
       const worker = fakeWorker((message, current) => {
-        if (workers.length > 1 && message.type === 'request') queueMicrotask(() => current.onmessage({ data: resultFor(message, 'recovered') }));
+        if (workers.length > 1 && message.type === 'request') Promise.resolve().then(() => current.onmessage({ data: resultFor(message, 'recovered') }));
       });
       workers.push(worker);
       return worker;
