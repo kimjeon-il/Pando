@@ -3,8 +3,9 @@ import {
   SOURCE_KINDS,
   normalizeSourceProvenance,
 } from './source-provenance.js';
+import { GENERIC_FEATURE_SCHEMA_VERSION } from './version-contract.js';
 
-export const GENERIC_FEATURE_SCHEMA_VERSION = 2;
+export { GENERIC_FEATURE_SCHEMA_VERSION };
 export const LEGACY_GENERIC_FEATURE_SCHEMA_VERSION = 1;
 
 // Deprecated compatibility metadata. Generic Feature v2 has no territorial role semantics;
