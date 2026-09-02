@@ -9,7 +9,7 @@ const expect = (condition, message) => { if (!condition) failures.push(message);
 
 const rpcClient = read('assets/js/modules/worker-rpc.js');
 for (const marker of [
-  'requestId', 'operation', 'projectRevision', 'priority', 'timeoutMs', 'AbortSignal',
+  'requestId', 'operation', 'projectRevision', 'priority', 'timeoutMs', 'signal',
   'WORKER_RPC_ERROR_CATEGORIES', 'STALE_RESULT', 'transfer', 'timing',
 ]) {
   expect(rpcClient.includes(marker), `worker-rpc.js is missing canonical RPC concept: ${marker}`);
