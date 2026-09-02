@@ -7,7 +7,7 @@ import {
   MAP_OBJECT_TYPES,
   categoryForCreateItem,
 } from '../assets/js/modules/map-object-categories.js';
-import { OBJECT_ACTIONS } from '../assets/js/modules/object-action-registry.js';
+import { OBJECT_ACTIONS, objectActionApplies } from '../assets/js/modules/object-action-registry.js';
 import { ACTION_UI_BINDINGS } from '../assets/js/modules/object-registry-presenter.js';
 
 const root = process.cwd();
@@ -36,7 +36,14 @@ for (const [key, descriptor] of Object.entries(MAP_OBJECT_TYPES)) {
 }
 
 if (MAP_OBJECT_TYPES.generic.creatable !== false) fail('generic objects must remain non-creatable');
+if (MAP_OBJECT_TYPES.generic.fallbackOnly !== true) fail('generic objects must remain fallback-only');
 if (MAP_OBJECT_TYPES.generic.createButton || MAP_OBJECT_TYPES.generic.createAction) fail('generic objects may not expose a create entry point');
+if (JSON.stringify(MAP_OBJECT_TYPES.generic.allowedActions) !== JSON.stringify(['focus', 'lock', 'delete'])) {
+  fail('generic objects must restrict product actions to focus/lock/delete');
+}
+if (objectActionApplies('coast-reconcile', { domain: 'generic', type: 'feature' })) {
+  fail('generic objects may not reuse territorial coast reconciliation');
+}
 
 const expectedOrder = ['territorial', 'distribution', 'features'];
 if (JSON.stringify(MAP_OBJECT_CATEGORY_ORDER) !== JSON.stringify(expectedOrder)) {

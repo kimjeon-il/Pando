@@ -4,6 +4,7 @@ const freezeType = type => Object.freeze({
   layerGroups: freezeList(type.layerGroups),
   presentationGroups: freezeList(type.presentationGroups),
   createMethods: freezeList(type.createMethods),
+  allowedActions: freezeList(type.allowedActions),
 });
 const freezeCategory = category => Object.freeze({
   ...category,
@@ -156,6 +157,8 @@ export const MAP_OBJECT_TYPES = Object.freeze({
     presentationGroup: 'genericFeatures',
     editor: 'generic',
     creatable: false,
+    fallbackOnly: true,
+    allowedActions: ['focus', 'lock', 'delete'],
     createButton: null,
     createAction: null,
   }),
