@@ -65,8 +65,12 @@ for (const marker of ['constrainGenericFallbackUi', 'genericFeatureLandRelationS
   if (!cleanupSource.includes(marker)) fail(`Generic fallback UI constraint is missing marker: ${marker}`);
 }
 const projectStateSource = read('assets/js/modules/project-state.js');
-for (const marker of ['validateSourceProvenance', 'GENERIC_V2_PROPERTY_KEYS', "[1, 2]"]) {
-  if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance compatibility marker: ${marker}`);
+for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS', 'migrateProjectInPlace(project)']) {
+  if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance migration marker: ${marker}`);
+}
+const migrationSource = read('assets/js/modules/project-migrations.js');
+for (const marker of ['normalizeGenericFeatureCollection', 'legacyDrawings', "purpose: 'lossless-fallback'"]) {
+  if (!migrationSource.includes(marker)) fail(`project migration is missing Generic lossless marker: ${marker}`);
 }
 const serializerSource = read('assets/js/modules/project-serializer.js');
 for (const marker of ["purpose: 'lossless-fallback'", 'directCreation: false', 'sourceProvenanceSchemaVersion']) {
