@@ -1,3 +1,5 @@
+import { createDocumentMutationRunner } from './document-mutation-runner.js';
+
 export const GENERIC_FEATURE_SCHEMA_VERSION = 1;
 export const GENERIC_FEATURE_ROLE_RULES = Object.freeze({
   generic: Object.freeze({ role: 'generic', geometry: 'any', binding: 'none', label: '기타 객체' }),
@@ -81,14 +83,15 @@ export function normalizeGenericFeatureCollection(genericFeatures) {
   return output;
 }
 
-export function createGenericFeatureService({ documentStore, runDocumentMutation, writeColor }) {
+export function createGenericFeatureService({ documentStore, commandPipeline = null, runDocumentMutation = null, writeColor }) {
+  const mutateDocument = createDocumentMutationRunner({ commandPipeline, runDocumentMutation });
   const genericFeatures = () => documentStore.readFeatures();
   const get = id => genericFeatures().find(feature => text(feature.id) === text(id)) || null;
 
   function add(feature) {
     const normalized = normalizeGenericFeatureSemantics(feature);
     if (get(normalized.id)) throw new Error(`기타 객체 ID가 중복되었습니다: ${normalized.id}`);
-    runDocumentMutation({ type: 'generic-feature-create', affectedIds: [text(normalized.id)] }, () => {
+    mutateDocument({ type: 'generic-feature-create', affectedIds: [text(normalized.id)] }, () => {
       documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), normalized]));
     });
     return get(normalized.id);
@@ -96,7 +99,7 @@ export function createGenericFeatureService({ documentStore, runDocumentMutation
 
   function addMany(features) {
     const normalized = normalizeGenericFeatureCollection(features);
-    runDocumentMutation({ type: 'generic-feature-import', affectedIds: normalized.map(feature => text(feature.id)) }, () => {
+    mutateDocument({ type: 'generic-feature-import', affectedIds: normalized.map(feature => text(feature.id)) }, () => {
       documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), ...normalized]));
     });
     return normalized.map(feature => get(feature.id));
@@ -105,7 +108,7 @@ export function createGenericFeatureService({ documentStore, runDocumentMutation
   function updateMetadata(id, field, value) {
     const current = get(id);
     if (!current) return { ok: false, code: 'not-found' };
-    runDocumentMutation({ type: 'generic-feature-metadata', affectedIds: [text(current.id)] }, () => {
+    mutateDocument({ type: 'generic-feature-metadata', affectedIds: [text(current.id)] }, () => {
       if (field === 'color') writeColor(current, value);
       else current.properties[field] = value;
       if (['role', 'ownerId', 'parentId', 'landBinding'].includes(field)) {
@@ -118,7 +121,7 @@ export function createGenericFeatureService({ documentStore, runDocumentMutation
   function remove(id, { beforeRemove = () => {} } = {}) {
     const feature = get(id);
     if (!feature) return { ok: false, code: 'not-found' };
-    runDocumentMutation({ type: 'generic-feature-delete', affectedIds: [text(feature.id)] }, () => {
+    mutateDocument({ type: 'generic-feature-delete', affectedIds: [text(feature.id)] }, () => {
       beforeRemove(feature);
       documentStore.replaceFeatures(genericFeatures().filter(candidate => text(candidate.id) !== text(feature.id)));
     });

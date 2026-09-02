@@ -1,0 +1,64 @@
+name: Application Architecture
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/modules/project-command-pipeline.js'
+      - 'assets/js/modules/object-adapter-registry.js'
+      - 'assets/js/modules/object-command-definitions.js'
+      - 'assets/js/modules/document-mutation-runner.js'
+      - 'assets/js/modules/territorial-service.js'
+      - 'assets/js/modules/distribution-service.js'
+      - 'assets/js/modules/generic-feature-service.js'
+      - 'assets/js/modules/object-action-registry.js'
+      - 'scripts/check-command-architecture.mjs'
+      - 'tests/unit/project-command-pipeline.test.mjs'
+      - 'tests/unit/object-adapter-registry.test.mjs'
+      - 'tests/unit/service-command-pipeline.test.mjs'
+      - 'docs/architecture/application-command-pipeline.md'
+      - 'package.json'
+      - '.github/workflows/application-architecture.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'assets/js/modules/project-command-pipeline.js'
+      - 'assets/js/modules/object-adapter-registry.js'
+      - 'assets/js/modules/object-command-definitions.js'
+      - 'assets/js/modules/document-mutation-runner.js'
+      - 'assets/js/modules/territorial-service.js'
+      - 'assets/js/modules/distribution-service.js'
+      - 'assets/js/modules/generic-feature-service.js'
+      - 'assets/js/modules/object-action-registry.js'
+      - 'scripts/check-command-architecture.mjs'
+      - 'tests/unit/project-command-pipeline.test.mjs'
+      - 'tests/unit/object-adapter-registry.test.mjs'
+      - 'tests/unit/service-command-pipeline.test.mjs'
+      - 'docs/architecture/application-command-pipeline.md'
+      - 'package.json'
+      - '.github/workflows/application-architecture.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  command-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check application command contracts
+        run: pnpm check:commands
