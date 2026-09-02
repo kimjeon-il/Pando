@@ -4,71 +4,89 @@ import {
   normalizeExchangeTarget,
 } from './exchange-adapter-registry.js';
 import { TERRITORIAL_IMPORT_TARGETS } from './import-plan.js';
+import {
+  WORKER_RPC_ERROR_CATEGORIES,
+  createWorkerRpcClient,
+} from './worker-rpc.js';
 
 export const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
 
 const text = value => String(value ?? '');
 
-export function createGisGeometryValidator({ createWorker, timeoutMs = GIS_GEOMETRY_TIMEOUT_MS }) {
-  let worker = null;
-  let sequence = 0;
-  const pending = new Map();
+function createLegacyGisGeometryCodec() {
+  return Object.freeze({
+    encodeRequest(envelope) {
+      return {
+        id: envelope.requestId,
+        action: envelope.operation === 'gis.validate' ? 'validate' : envelope.operation,
+        collection: envelope.payload?.collection,
+        affectedIds: envelope.payload?.affectedIds || null,
+        projectRevision: envelope.projectRevision,
+        priority: envelope.priority,
+      };
+    },
+    encodeCancel(envelope) {
+      return { id: envelope.requestId, action: 'cancel', reason: envelope.reason || 'cancelled' };
+    },
+    encodeEvent(envelope) {
+      return { action: envelope.operation, ...(envelope.payload || {}) };
+    },
+    decodeMessage(message) {
+      if (!message || message.id == null) return null;
+      const { id, ok, error, ...result } = message;
+      return {
+        kind: 'result',
+        requestId: Number(id || 0),
+        operation: 'gis.validate',
+        projectRevision: Number(message.projectRevision || 0),
+        ok: ok === true,
+        result,
+        error: ok === true ? null : {
+          category: WORKER_RPC_ERROR_CATEGORIES.OPERATION,
+          code: 'PL-GIS-GEOMETRY',
+          message: error || 'GIS 지오메트리 검증에 실패했습니다.',
+        },
+      };
+    },
+  });
+}
 
-  function rejectPending(error) {
-    for (const request of pending.values()) {
-      clearTimeout(request.timeoutId);
-      request.reject(error);
-    }
-    pending.clear();
+export function createGisGeometryValidator({ createWorker, timeoutMs = GIS_GEOMETRY_TIMEOUT_MS }) {
+  let rpc = null;
+
+  function ensureRpc() {
+    if (rpc) return rpc;
+    rpc = createWorkerRpcClient({
+      createWorker,
+      codec: createLegacyGisGeometryCodec(),
+      defaultTimeoutMs: timeoutMs,
+      restartOnCrash: true,
+    });
+    return rpc;
   }
 
   function dispose() {
-    worker?.terminate();
-    worker = null;
+    rpc?.stop('disposed');
+    rpc = null;
   }
 
-  function ensureWorker() {
-    if (worker) return worker;
-    worker = createWorker();
-    worker.onmessage = event => {
-      const request = pending.get(event.data?.id);
-      if (!request) return;
-      pending.delete(event.data.id);
-      clearTimeout(request.timeoutId);
-      if (event.data.ok) request.resolve(event.data);
-      else request.reject(new Error(event.data.error || 'GIS 지오메트리 검증에 실패했습니다.'));
-    };
-    worker.onerror = event => {
-      rejectPending(new Error(event.message || 'GIS 지오메트리 Worker 오류'));
-      dispose();
-    };
-    return worker;
-  }
-
-  function validate(collection, affectedIds = null) {
-    return new Promise((resolve, reject) => {
-      const activeWorker = ensureWorker();
-      const id = ++sequence;
-      const scopedIds = affectedIds
-        ? [...new Set([...affectedIds].map(text).filter(Boolean))]
-        : null;
-      const timeoutId = setTimeout(() => {
-        if (!pending.delete(id)) return;
-        reject(new Error('GIS 국가 경계 검사가 제한 시간 안에 끝나지 않았습니다.'));
-        rejectPending(new Error('GIS 국가 경계 Worker가 응답하지 않아 검사를 중단했습니다.'));
-        dispose();
-      }, timeoutMs);
-      pending.set(id, { resolve, reject, timeoutId });
-      activeWorker.postMessage({
-        id,
-        action: 'validate',
+  async function validate(collection, affectedIds = null) {
+    const scopedIds = affectedIds
+      ? [...new Set([...affectedIds].map(text).filter(Boolean))]
+      : null;
+    try {
+      const response = await ensureRpc().request('gis.validate', {
         collection,
         affectedIds: scopedIds?.length ? scopedIds : null,
-      });
-    });
+      }, { timeoutMs, priority: 300 });
+      return response.result;
+    } catch (error) {
+      if (error?.category === WORKER_RPC_ERROR_CATEGORIES.TIMEOUT) dispose();
+      throw error;
+    }
   }
 
-  return Object.freeze({ dispose, validate });
+  return Object.freeze({ dispose, validate, stats: () => rpc?.stats?.() || Object.freeze({ pendingCount: 0, workerActive: false }) });
 }
 
 export function createCountryImportMergePlanner({
