@@ -33,12 +33,6 @@ function textById(id) {
   return stripTags(elementById(id));
 }
 
-function requireBefore(first, second, label) {
-  const firstIndex = html.indexOf(first);
-  const secondIndex = html.indexOf(second);
-  if (firstIndex < 0 || secondIndex < 0 || firstIndex >= secondIndex) fail(label);
-}
-
 // Create surface: acquisition route first, then object taxonomy.
 if (textById('createBuildTabBtn') !== '만들기') fail('create primary route must be "만들기"');
 if (textById('createLibraryTabBtn') !== '라이브러리') fail('create secondary route must be "라이브러리"');
@@ -61,7 +55,7 @@ for (const [category, label, types] of categoryContract) {
   const marker = `data-map-category="${category}"`;
   const categoryIndex = buildPanel.indexOf(marker);
   if (categoryIndex < 0) fail(`create build panel is missing category ${category}`);
-  if (categoryIndex <= previousCategoryIndex) fail(`create category order must be territorial → distribution → features`);
+  if (categoryIndex <= previousCategoryIndex) fail('create category order must be territorial → distribution → features');
   previousCategoryIndex = categoryIndex;
   const nextCategoryIndex = categoryContract
     .map(([nextCategory]) => buildPanel.indexOf(`data-map-category="${nextCategory}"`, categoryIndex + marker.length))
