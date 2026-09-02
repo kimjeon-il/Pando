@@ -526,6 +526,7 @@ function canvasFallbackWorkerMain() {
       const dpr = Math.max(1, Number(message.dpr || 1));
       const pixelWidth = Math.max(1, Math.round(width * dpr));
       const pixelHeight = Math.max(1, Math.round(height * dpr));
+      let terrainComplete;
       if (!canvas) {
         canvas = new OffscreenCanvas(pixelWidth, pixelHeight);
         context = canvas.getContext('2d', { alpha: true });
@@ -539,7 +540,7 @@ function canvasFallbackWorkerMain() {
       {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const projection = createProjection(message, width, height);
-        const terrainComplete = renderTerrain(message, projection, width, height, dpr);
+        terrainComplete = renderTerrain(message, projection, width, height, dpr);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const geoPath = self.d3.geo.path().projection(projection).context(context);
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));

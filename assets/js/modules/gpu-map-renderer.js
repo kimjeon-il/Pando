@@ -233,6 +233,8 @@ export function createGpuMapRenderer(deps) {
     let paletteCapacity = 0;
     let palettePixels = null;
     const paletteDirty = { base: true, emphasis: true };
+    const pendingEmphasisCountryIds = new Set();
+    let emphasisPaletteFullDirty = true;
     let uniformLocationCache = new WeakMap();
     let attributeLocationCache = new WeakMap();
     let activeFrameContext = null;
@@ -380,6 +382,10 @@ export function createGpuMapRenderer(deps) {
       countryStateCompositeMs: 0,
       countryPatchUploadBytes: 0,
       lastCountryPatchUploadBytes: 0,
+      paletteChangedCountryCount: 0,
+      paletteUploadRangeCount: 0,
+      paletteFullRebuildCount: 0,
+      paletteSkippedUnchangedCount: 0,
       overlayUploadBytes: 0,
       lastOverlayUploadBytes: 0,
       overlayDeferredItemCount: 0,
@@ -1057,6 +1063,8 @@ export function createGpuMapRenderer(deps) {
       palettePixels = null;
       paletteDirty.base = true;
       paletteDirty.emphasis = true;
+      emphasisPaletteFullDirty = true;
+      pendingEmphasisCountryIds.clear();
       hydroVisibilityTexture = gl.createTexture();
       countryStateQuadBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, countryStateQuadBuffer);
@@ -1905,9 +1913,28 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.paletteUploadBytes += pixels.byteLength;
     }
 
-    function markPaletteDirty({ base = false, emphasis = false } = {}) {
+    function uploadPaletteRange(texture, pixels, first, count) {
+      if (!count) return;
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      const offset = first * 4;
+      const range = pixels.subarray(offset, offset + count * 4);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, first, 0, count, 1, gl.RGBA, gl.UNSIGNED_BYTE, range);
+      performanceMetrics.paletteUploadCount += 1;
+      performanceMetrics.paletteUploadBytes += range.byteLength;
+    }
+
+    function markPaletteDirty({ base = false, emphasis = false, countryIds = null } = {}) {
       paletteDirty.base ||= base;
       paletteDirty.emphasis ||= emphasis;
+      if (emphasis) {
+        if (Array.isArray(countryIds) && countryIds.length && !emphasisPaletteFullDirty) {
+          for (const id of countryIds) pendingEmphasisCountryIds.add(String(id));
+        } else if (!Array.isArray(countryIds) || !countryIds.length) {
+          emphasisPaletteFullDirty = true;
+          pendingEmphasisCountryIds.clear();
+        }
+      }
     }
 
     function flushPaletteUpdates() {
@@ -1937,7 +1964,13 @@ export function createGpuMapRenderer(deps) {
         performanceMetrics.paletteRebuildCount += 1;
       }
       if (paletteDirty.emphasis) {
-        for (let index = 0; index < meshCountryIds.length; index += 1) {
+        const indices = emphasisPaletteFullDirty
+          ? meshCountryIds.map((_, index) => index)
+          : [...pendingEmphasisCountryIds]
+            .map(id => meshCountryIds.indexOf(id))
+            .filter(index => index >= 0);
+        performanceMetrics.paletteChangedCountryCount += indices.length;
+        for (const index of indices) {
           const id = meshCountryIds[index];
           const offset = index * 4;
           const visible = base[offset + 3] || override[offset + 3];
@@ -1952,9 +1985,29 @@ export function createGpuMapRenderer(deps) {
           emphasis[offset + 3] = overridden ? 0 : alpha;
           overrideEmphasis[offset + 3] = overridden && !pending ? alpha : 0;
         }
-        uploadPalettePixels(emphasisPaletteTexture, emphasis);
-        uploadPalettePixels(overrideEmphasisPaletteTexture, overrideEmphasis);
+        if (emphasisPaletteFullDirty) {
+          uploadPalettePixels(emphasisPaletteTexture, emphasis);
+          uploadPalettePixels(overrideEmphasisPaletteTexture, overrideEmphasis);
+          performanceMetrics.paletteFullRebuildCount += 1;
+        } else if (indices.length) {
+          const sorted = [...new Set(indices)].sort((a, b) => a - b);
+          let start = sorted[0];
+          let previous = start;
+          for (let index = 1; index <= sorted.length; index += 1) {
+            const current = sorted[index];
+            if (current !== previous + 1) {
+              const count = previous - start + 1;
+              uploadPaletteRange(emphasisPaletteTexture, emphasis, start, count);
+              uploadPaletteRange(overrideEmphasisPaletteTexture, overrideEmphasis, start, count);
+              performanceMetrics.paletteUploadRangeCount += 1;
+              start = current;
+            }
+            previous = current;
+          }
+        }
         paletteDirty.emphasis = false;
+        emphasisPaletteFullDirty = false;
+        pendingEmphasisCountryIds.clear();
         performanceMetrics.paletteRebuildCount += 1;
       }
       return true;
@@ -4404,10 +4457,21 @@ export function createGpuMapRenderer(deps) {
         && countryEmphasis.hoverId === nextHover
         && countryEmphasis.selectedIds.size === nextSelected.size
         && [...nextSelected].every(id => countryEmphasis.selectedIds.has(id));
-      if (unchanged) return false;
+      if (unchanged) {
+        performanceMetrics.paletteSkippedUnchangedCount += 1;
+        return false;
+      }
+      const changedIds = new Set([
+        countryEmphasis.primaryId,
+        countryEmphasis.hoverId,
+        ...countryEmphasis.selectedIds,
+        nextPrimary,
+        nextHover,
+        ...nextSelected,
+      ].map(String).filter(Boolean));
       countryEmphasis = { primaryId: nextPrimary, hoverId: nextHover, selectedIds: nextSelected };
       countryEmphasisRevision += 1;
-      markPaletteDirty({ emphasis: true });
+      markPaletteDirty({ emphasis: true, countryIds: [...changedIds] });
       if (rendererMode !== 'pending') invalidateGpuInteraction('country-emphasis');
       return true;
     }
