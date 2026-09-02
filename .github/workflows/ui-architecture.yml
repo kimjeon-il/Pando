@@ -4,8 +4,10 @@ on:
   pull_request:
     paths:
       - 'assets/css/**'
+      - 'assets/js/modules/surface-controller.js'
       - 'index.html'
       - 'scripts/check-ui-*.mjs'
+      - 'tests/unit/surface-controller.test.mjs'
       - 'docs/architecture/ui-*.md'
       - 'package.json'
       - 'pnpm-lock.yaml'
@@ -15,8 +17,10 @@ on:
       - main
     paths:
       - 'assets/css/**'
+      - 'assets/js/modules/surface-controller.js'
       - 'index.html'
       - 'scripts/check-ui-*.mjs'
+      - 'tests/unit/surface-controller.test.mjs'
       - 'docs/architecture/ui-*.md'
       - 'package.json'
       - 'pnpm-lock.yaml'
