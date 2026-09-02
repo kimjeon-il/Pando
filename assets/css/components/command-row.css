@@ -1,0 +1,123 @@
+/* Shared command-row language for create, editor, and file actions. */
+.editor-action-row,
+.create-menu-item,
+.ui-row-button {
+  min-width: 0;
+  border-radius: var(--ui-radius-control);
+}
+
+.editor-action-row {
+  min-height: var(--ui-content-command-row-min-height);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ui-icon-size);
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-2);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.editor-action-row.has-command-row-icon {
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-icon-size);
+}
+
+.editor-action-row.has-command-row-icon > .command-row-icon {
+  grid-column: 1;
+  color: var(--muted);
+}
+
+.editor-action-row.has-command-row-icon > span { grid-column: 2; }
+.editor-action-row.has-command-row-icon > .ui-icon:not(.command-row-icon) { grid-column: 3; }
+.editor-action-row > span { min-width: 0; grid-column: 1; }
+.editor-action-row > .ui-icon { grid-column: 2; }
+
+.editor-action-row > span > strong,
+.editor-action-row > span > small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-action-row > span > strong {
+  display: block;
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.editor-action-row > span > small {
+  display: block;
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-action-row:hover,
+.editor-action-row:focus-visible {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.editor-action-row .command-row-icon,
+.editor-action-row > .ui-icon { color: var(--muted); }
+.editor-action-row:hover .command-row-icon,
+.editor-action-row:focus-visible .command-row-icon { color: var(--text-soft); }
+.editor-action-row:is(.active, [aria-pressed="true"]) .command-row-icon { color: var(--accent); }
+
+.create-menu-item {
+  min-height: var(--ui-content-command-row-min-height);
+  display: grid;
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-icon-size);
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2);
+}
+
+.create-menu-item .create-menu-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  display: grid;
+  place-items: center;
+  background: transparent;
+}
+
+.create-menu-item .create-menu-icon .ui-icon,
+.create-menu-item .create-menu-chevron {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+}
+
+.create-menu-item > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-0-5);
+}
+
+.create-menu-item strong,
+.create-menu-item small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-menu-item strong { font-size: var(--ui-font-md); }
+.create-menu-item small { color: var(--muted); font-size: var(--ui-font-sm); }
+.create-menu-item .create-menu-chevron { justify-self: end; color: var(--muted); }
+.create-menu-item:hover .create-menu-chevron,
+.create-menu-item:focus-visible .create-menu-chevron { color: var(--text-soft); }
+
+.file-menu-item {
+  display: grid;
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--ui-space-2);
+  text-align: left;
+}
+
+@media (max-width: 799px) {
+  .editor-action-row,
+  .create-menu-item { min-height: var(--ui-touch-height); }
+}

@@ -59,7 +59,7 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/map-object-spatial-index.js')),
   import(versionedModuleUrl('./modules/surface-tabs-controller.js')),
 ]);
-const { createSvgIcon } = await import(versionedModuleUrl('./modules/icon-utils.js'));
+const { createSemanticIcon } = await import(versionedModuleUrl('./modules/icon-utils.js'));
 const { pruneCountryOverrides } = await import(versionedModuleUrl('./modules/country-feature.js'));
 const {
   PROJECT_SCHEMA_VERSION,
@@ -5696,8 +5696,8 @@ const {
     visibility.setAttribute('aria-label', ariaLabel || `${label} 표시`);
     control.append(
       visibility,
-      createSvgIcon(document, 'icon-eye', 'ui-icon layer-visibility-icon layer-visibility-eye'),
-      createSvgIcon(document, 'icon-eye-off', 'ui-icon layer-visibility-icon layer-visibility-eye-off'),
+      createSemanticIcon(document, 'eye', 'ui-icon layer-visibility-icon layer-visibility-eye'),
+      createSemanticIcon(document, 'eyeOff', 'ui-icon layer-visibility-icon layer-visibility-eye-off'),
     );
     return control;
   }
@@ -5720,7 +5720,7 @@ const {
     const indicator = document.createElement('span');
     indicator.className = 'layer-lock-indicator';
     indicator.dataset.tooltip = '잠김';
-    indicator.append(createSvgIcon(document, 'icon-lock-closed', 'ui-icon layer-lock-icon'));
+    indicator.append(createSemanticIcon(document, 'lock', 'ui-icon layer-lock-icon'));
     return indicator;
   }
 
@@ -5767,7 +5767,7 @@ const {
       header.setAttribute('aria-expanded', String(item.expanded));
       header.setAttribute('aria-label', `${item.name} 하위 폴더 ${item.expanded ? '접기' : '펼치기'}`);
       header.dataset.tooltip = `${item.name} 하위 폴더 ${item.expanded ? '접기' : '펼치기'}`;
-      header.append(createSvgIcon(document, 'icon-chevron-down', 'ui-icon disclosure-icon'), document.createElement('strong'));
+      header.append(createSemanticIcon(document, 'chevronDown', 'ui-icon disclosure-icon'), document.createElement('strong'));
       header.querySelector('strong').textContent = item.name;
       return header;
     }
@@ -5821,7 +5821,7 @@ const {
     menuButton.setAttribute('aria-controls', 'objectActionsMenu');
     menuButton.setAttribute('aria-expanded', 'false');
     menuButton.dataset.tooltip = `${item.name} 메뉴`;
-    menuButton.append(createSvgIcon(document, 'icon-more'));
+    menuButton.append(createSemanticIcon(document, 'more'));
     row.append(visibility, name);
     if (item.meta) {
       const detail = document.createElement('span');
@@ -12360,7 +12360,7 @@ const {
       remove.dataset.distributionEntryDelete = entry.id;
       remove.setAttribute('aria-label', `${distributionEntryLabel(entry)} 분포 삭제`);
       remove.dataset.tooltip = `${distributionEntryLabel(entry)} 분포 삭제`;
-      remove.append(createSvgIcon(document, 'icon-trash'));
+      remove.append(createSemanticIcon(document, 'delete'));
       remove.disabled = layer.locked;
       row.append(label, remove);
       fragment.appendChild(row);
@@ -17793,38 +17793,38 @@ const {
   }
 
   const EDITOR_COMMAND_ROW_ICONS = Object.freeze({
-    multiBorderEditBtn: 'icon-merge',
-    annexTerritoryBtn: 'icon-territory',
-    mergeCountryBtn: 'icon-merge',
-    editBorderBtn: 'icon-boundary-edit',
-    editCoastBtn: 'icon-coastline',
-    changeCountryTypeBtn: 'icon-type',
-    reassignTerritoryShapeBtn: 'icon-boundary-edit',
-    mergeTerritoryBtn: 'icon-merge',
-    splitTerritoryBtn: 'icon-split',
-    transferTerritoryBtn: 'icon-transfer',
-    changeTerritoryTypeBtn: 'icon-type',
-    promoteTerritoryBtn: 'icon-country',
-    removeTerritoryDivisionBtn: 'icon-close',
-    reassignAdministrativeShapeBtn: 'icon-boundary-edit',
-    reconcileAdministrativeCoastBtn: 'icon-coastline',
-    mergeAdministrativeBtn: 'icon-merge',
-    splitAdministrativeBtn: 'icon-split',
-    transferAdministrativeBtn: 'icon-transfer',
-    changeAdministrativeTypeBtn: 'icon-type',
-    promoteAdministrativeBtn: 'icon-country',
-    removeAdministrativeDivisionBtn: 'icon-close',
-    reassignRegionShapeBtn: 'icon-boundary-edit',
-    mergeRegionBtn: 'icon-merge',
-    transferRegionBtn: 'icon-transfer',
+    multiBorderEditBtn: 'merge',
+    annexTerritoryBtn: 'territory',
+    mergeCountryBtn: 'merge',
+    editBorderBtn: 'boundary',
+    editCoastBtn: 'coastline',
+    changeCountryTypeBtn: 'transform',
+    reassignTerritoryShapeBtn: 'boundary',
+    mergeTerritoryBtn: 'merge',
+    splitTerritoryBtn: 'split',
+    transferTerritoryBtn: 'transfer',
+    changeTerritoryTypeBtn: 'transform',
+    promoteTerritoryBtn: 'country',
+    removeTerritoryDivisionBtn: 'close',
+    reassignAdministrativeShapeBtn: 'boundary',
+    reconcileAdministrativeCoastBtn: 'coastline',
+    mergeAdministrativeBtn: 'merge',
+    splitAdministrativeBtn: 'split',
+    transferAdministrativeBtn: 'transfer',
+    changeAdministrativeTypeBtn: 'transform',
+    promoteAdministrativeBtn: 'country',
+    removeAdministrativeDivisionBtn: 'close',
+    reassignRegionShapeBtn: 'boundary',
+    mergeRegionBtn: 'merge',
+    transferRegionBtn: 'transfer',
   });
 
   function syncEditorCommandRows() {
-    for (const [id, symbolId] of Object.entries(EDITOR_COMMAND_ROW_ICONS)) {
+    for (const [id, semanticName] of Object.entries(EDITOR_COMMAND_ROW_ICONS)) {
       const button = $(id);
       if (!button || button.querySelector(':scope > .command-row-icon')) continue;
       const trailingIcon = button.querySelector(':scope > .ui-icon:last-of-type');
-      button.insertBefore(createSvgIcon(document, symbolId, 'ui-icon command-row-icon'), button.firstChild);
+      button.insertBefore(createSemanticIcon(document, semanticName, 'ui-icon command-row-icon'), button.firstChild);
       button.classList.add('has-command-row-icon');
       trailingIcon?.querySelector('use')?.setAttribute('href', '#icon-chevron-right');
     }

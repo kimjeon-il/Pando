@@ -16,6 +16,7 @@ export function createTooltipController({
   }
 
   function show(target) {
+    if (document.getElementById('app')?.dataset.layout === 'mobile') return;
     if (!target || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     const value = String(target.dataset.tooltip || '').trim();
     if (!value || !tooltip) return;
