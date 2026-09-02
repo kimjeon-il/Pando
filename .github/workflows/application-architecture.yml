@@ -73,6 +73,7 @@ on:
       - 'docs/architecture/worker-rpc.md'
       - 'docs/architecture/renderer-v2.md'
       - 'package.json'
+      - 'eslint.config.js'
       - '.github/workflows/application-architecture.yml'
   push:
     branches:
@@ -148,6 +149,7 @@ on:
       - 'docs/architecture/worker-rpc.md'
       - 'docs/architecture/renderer-v2.md'
       - 'package.json'
+      - 'eslint.config.js'
       - '.github/workflows/application-architecture.yml'
 
 permissions:
