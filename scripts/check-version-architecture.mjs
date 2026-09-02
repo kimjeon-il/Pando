@@ -30,6 +30,10 @@ if (VERSION_POLICY.projectSchemaIndependentFromAppVersion !== true) fail('projec
 
 const readmeVersion = read('README.md').match(/^# .*?v(\d+\.\d+\.\d+)/m)?.[1] || '';
 if (readmeVersion !== appVersion) fail(`README version ${readmeVersion || '(missing)'} does not match package.json ${appVersion}`);
+const buildGenerator = read('scripts/generate-build-metadata.mjs');
+for (const marker of ['readmePath', 'data-app-version', 'README 최신 버전 제목']) {
+  if (!buildGenerator.includes(marker)) fail(`build metadata generator must derive version displays from package.json: ${marker}`);
+}
 
 if (!Number.isInteger(PROJECT_SCHEMA_VERSION) || !Number.isInteger(MIN_SUPPORTED_PROJECT_SCHEMA_VERSION)) {
   fail('project schema versions must be integers');
