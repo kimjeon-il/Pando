@@ -1,3 +1,4 @@
+import { createDocumentMutationRunner } from './document-mutation-runner.js';
 import {
   TERRITORIAL_UNIT_TYPES,
   runTerritorialTransaction,
@@ -8,10 +9,12 @@ const text = value => String(value ?? '').trim();
 
 export function createTerritorialApplicationService({
   repository,
-  runDocumentMutation,
+  commandPipeline = null,
+  runDocumentMutation = null,
   countryCommands,
   unitCommands,
 }) {
+  const mutateDocument = createDocumentMutationRunner({ commandPipeline, runDocumentMutation });
   const country = id => {
     const feature = repository.get(id);
     return feature?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
@@ -38,7 +41,7 @@ export function createTerritorialApplicationService({
     const key = text(id);
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       if (!country(key)) return { ok: false, code: 'not-found' };
-      runDocumentMutation({ type: 'country-metadata', affectedIds: [key] }, () => {
+      mutateDocument({ type: 'country-metadata', affectedIds: [key] }, () => {
         countryCommands.setField(key, field, value);
       });
       return { ok: true, unit: repository.get(key) };
@@ -46,14 +49,14 @@ export function createTerritorialApplicationService({
     const feature = unit(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
     if (feature.properties?.locked === true && field !== 'locked') return { ok: false, code: 'locked', unit: feature };
-    runDocumentMutation({ type: 'territorial-metadata', affectedIds: [key] }, () => {
+    mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
       unitCommands.setField(key, field, value);
     });
     return { ok: true, unit: repository.get(key) };
   }
 
   function replaceUnits(units, { type = 'territorial-metadata', affectedIds = [] } = {}) {
-    runDocumentMutation({ type, affectedIds: affectedIds.map(text).filter(Boolean) }, () => {
+    mutateDocument({ type, affectedIds: affectedIds.map(text).filter(Boolean) }, () => {
       unitCommands.replaceAll(units);
     });
     return { ok: true };
@@ -65,13 +68,13 @@ export function createTerritorialApplicationService({
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       if (!country(key)) return { ok: false, code: 'not-found' };
       if (countryCommands.isLocked(key) === next) return { ok: true, changed: false, unit: repository.get(key) };
-      runDocumentMutation({ ...history, type: 'country-lock', affectedIds: [key] }, () => countryCommands.setLocked(key, next));
+      mutateDocument({ ...history, type: 'country-lock', affectedIds: [key] }, () => countryCommands.setLocked(key, next));
       return { ok: true, changed: true, unit: repository.get(key) };
     }
     const feature = unit(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
     if (feature.properties?.locked === next) return { ok: true, changed: false, unit: feature };
-    runDocumentMutation({ ...history, type: 'territorial-lock', affectedIds: [key] }, () => unitCommands.setField(key, 'locked', next));
+    mutateDocument({ ...history, type: 'territorial-lock', affectedIds: [key] }, () => unitCommands.setField(key, 'locked', next));
     return { ok: true, changed: true, unit: repository.get(key) };
   }
 

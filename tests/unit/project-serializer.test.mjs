@@ -2,13 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createProjectSerializer, restoreCountriesFromDelta } from '../../assets/js/modules/project-serializer.js';
+import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 
 const serializer = snapshot => createProjectSerializer({
-  schemaVersion: 3,
   appVersion: '0.30.0',
   baseDataset: 'base',
-  genericFeatureSchemaVersion: 1,
-  distributionSchemaVersion: 2,
   distributionTypes: ['language'],
   distributionModes: ['territorial', 'geometry'],
   terrainDataset: 'terrain',
@@ -28,6 +26,10 @@ test('project serializer keeps document and presentation input while adding curr
   });
   const project = service.buildProject();
   assert.equal(project.format, 'pandolab-project-state');
+  assert.equal(project.schemaVersion, PROJECT_SCHEMA_VERSION);
+  assert.equal(project.landObjectModel.schemaVersion, 2);
+  assert.equal(project.landObjectModel.purpose, 'lossless-fallback');
+  assert.equal(project.landObjectModel.directCreation, false);
   assert.equal(project.savedAt, '2026-08-29T00:00:00.000Z');
   assert.deepEqual(project.layerVisibility, { countries: false });
   assert.equal(project.physicalSourceInfo.terrain.dataset, 'terrain-current');
@@ -46,6 +48,7 @@ test('autosave serializer preserves full and delta formats', () => {
   };
   const delta = serializer({ ...common, fullAutosave: false }).buildAutosave();
   assert.equal(delta.format, 'pandolab-autosave-delta');
+  assert.equal(delta.schemaVersion, PROJECT_SCHEMA_VERSION);
   assert.deepEqual(delta.countryDelta, {
     changed: [{ type: 'Feature', id: 'changed', properties: { name: '국가' }, geometry: null }],
     removedIds: ['removed'],

@@ -1,0 +1,118 @@
+:where(.ui-content-section, .editor-section) {
+  min-width: 0;
+}
+
+.ui-content-section {
+  display: grid;
+  gap: var(--ui-field-gap);
+}
+
+:where(.ui-content-field, .editor-field) {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-field-label-gap);
+}
+
+:where(.ui-action-list, .editor-action-list, .editor-action-grid, .editor-action-grid-two) {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ui-space-2);
+}
+
+.editor-action-button {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ui-content-action-min-height);
+  display: grid;
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ui-space-3);
+  padding: 0 var(--ui-control-padding-x);
+  border-radius: var(--ui-radius-control);
+  box-shadow: none;
+}
+
+.editor-action-button > span {
+  grid-row: auto;
+  display: grid;
+  place-items: center;
+}
+
+.editor-action-button > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-action-button > small { display: none; }
+
+:where(.ui-property-list, .ui-info-list.editor-info-list) {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:where(.ui-empty-state, .layer-empty) {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:where(.ui-helper-text, .editor-help) {
+  margin-block: var(--ui-space-1);
+}
+
+:where(.ui-object-context, .editor-object-header[data-editor-context]) {
+  width: 100%;
+  min-width: 0;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  padding: 0 0 var(--ui-space-4);
+}
+
+:where(.ui-object-context-main, .editor-object-context-main) {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+:where(.ui-object-context-heading, .editor-object-heading) {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-1);
+  overflow: hidden;
+}
+
+:where(.ui-object-context-heading, .editor-object-heading) h2 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--ui-object-context-name-lines);
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+:where(.ui-object-context-meta, .editor-object-meta) {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1-5);
+}
+
+:where(.ui-object-context-meta, .editor-object-meta) > span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-regular);
+  line-height: var(--ui-line-tight);
+}

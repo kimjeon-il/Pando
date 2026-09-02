@@ -1,3 +1,4 @@
+import { createDocumentMutationRunner } from './document-mutation-runner.js';
 import {
   DISTRIBUTION_MODES,
   DISTRIBUTION_RENDER_MODES,
@@ -13,10 +14,12 @@ const text = value => String(value ?? '').trim();
 export function createDistributionService({
   documentStore,
   presentationStore,
-  runDocumentMutation,
+  commandPipeline = null,
+  runDocumentMutation = null,
   writeLayerColor,
   territorialExists = () => true,
 }) {
+  const mutateDocument = createDocumentMutationRunner({ commandPipeline, runDocumentMutation });
   const layers = () => documentStore.readLayers();
   const entries = () => documentStore.readEntries();
   const layerById = id => layers().find(layer => layer.id === text(id)) || null;
@@ -50,7 +53,7 @@ export function createDistributionService({
   function createLayer(options) {
     const layer = createDistributionLayer(options);
     if (layerById(layer.id)) throw new Error(`분포 레이어 ID가 중복되었습니다: ${layer.id}`);
-    runDocumentMutation({ type: 'distribution-create', affectedIds: [layer.id] }, () => {
+    mutateDocument({ type: 'distribution-create', affectedIds: [layer.id] }, () => {
       documentStore.replaceLayers(normalizeDistributionLayers([...layers(), layer]));
     });
     return layerById(layer.id);
@@ -70,7 +73,7 @@ export function createDistributionService({
     } catch (error) {
       return { ok: false, code: 'invalid', error, layer: current };
     }
-    runDocumentMutation({ type: 'distribution-metadata', affectedIds: [current.id] }, () => {
+    mutateDocument({ type: 'distribution-metadata', affectedIds: [current.id] }, () => {
       documentStore.replaceLayers(normalized);
     });
     return { ok: true, layer: layerById(current.id) };
@@ -87,7 +90,7 @@ export function createDistributionService({
     try {
       entry = createDistributionEntry(options);
       const nextEntries = normalizeDistributionEntries([...entries(), entry], { layerExists: id => !!layerById(id) });
-      runDocumentMutation({ type: 'distribution-entry-create', affectedIds: [entry.id, layer.id] }, () => {
+      mutateDocument({ type: 'distribution-entry-create', affectedIds: [entry.id, layer.id] }, () => {
         documentStore.replaceEntries(nextEntries);
       });
     } catch (error) {
@@ -101,7 +104,7 @@ export function createDistributionService({
     const layer = entry ? layerById(entry.layerId) : null;
     if (!entry || !layer) return { ok: false, code: 'not-found' };
     if (layer.locked) return { ok: false, code: 'locked', layer, entry };
-    runDocumentMutation({ type: 'distribution-entry-delete', affectedIds: [entry.id, layer.id] }, () => {
+    mutateDocument({ type: 'distribution-entry-delete', affectedIds: [entry.id, layer.id] }, () => {
       documentStore.replaceEntries(entries().filter(candidate => candidate.id !== entry.id));
     });
     return { ok: true, layer, entry };
@@ -112,7 +115,7 @@ export function createDistributionService({
     if (!current) return { ok: false, code: 'not-found' };
     if (current.locked) return { ok: false, code: 'locked', layer: current };
     const removedEntries = listEntries(current.id);
-    runDocumentMutation({
+    mutateDocument({
       type: 'distribution-delete',
       affectedIds: [current.id, ...removedEntries.map(entry => entry.id)],
     }, () => {
@@ -128,7 +131,7 @@ export function createDistributionService({
     const nextLayers = normalizeDistributionLayers([...layers(), ...newLayers]);
     const layerIds = new Set(nextLayers.map(layer => layer.id));
     const nextEntries = normalizeDistributionEntries([...entries(), ...newEntries], { layerExists: id => layerIds.has(text(id)) });
-    runDocumentMutation({
+    mutateDocument({
       type: 'distribution-import',
       affectedIds: [...newLayers, ...newEntries].map(item => text(item.id)).filter(Boolean),
     }, () => {

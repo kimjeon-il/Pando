@@ -1,4 +1,5 @@
 import { normalizeTemporalInterval } from './temporal.js';
+import { validateSourceProvenance } from './source-provenance.js';
 
 const text = value => String(value ?? '').trim();
 const POLYGON_TYPES = new Set(['Polygon', 'MultiPolygon']);
@@ -69,6 +70,7 @@ export function validateProjectReferenceIntegrity({
   issues.push(...duplicateIssues(territorialRelations, row => row?.id, 'PL-INV-RELATION', '기간별 관계'));
   issues.push(...duplicateIssues(distributionLayers, row => row?.id, 'PL-INV-DIST-LAYER', '분포 레이어'));
   issues.push(...duplicateIssues(distributionEntries, row => row?.id, 'PL-INV-DIST-ENTRY', '분포 엔트리'));
+  issues.push(...duplicateIssues(genericFeatures, row => row?.id, 'PL-INV-GENERIC', '기타 객체'));
 
   const countryIds = new Set((countries || []).map(row => text(row?.id)).filter(Boolean));
   const unitIds = new Set((territorialUnits || []).map(row => text(row?.id)).filter(Boolean));
@@ -194,6 +196,16 @@ export function validateProjectReferenceIntegrity({
 
   for (const genericFeature of genericFeatures || []) {
     const id = text(genericFeature?.id);
+    const schemaVersion = Number(genericFeature?.properties?.schemaVersion || 1);
+    if (schemaVersion >= 2) {
+      const sourceValidation = validateSourceProvenance(genericFeature?.properties?.source);
+      for (const sourceIssue of sourceValidation.issues) {
+        issues.push(issue('PL-INV-GENERIC-SOURCE', `${id || '기타 객체'}의 출처 정보가 올바르지 않습니다. ${sourceIssue}`, [id], 'source'));
+      }
+      continue;
+    }
+
+    // Compatibility only: v1 Generic Feature may still carry territorial semantics.
     const ownerId = text(genericFeature?.properties?.ownerId);
     if (ownerId && !territorialIds.has(ownerId)) {
       issues.push(issue('PL-INV-MISSING-GENERIC-OWNER', `${id || '기타 객체'}의 소유 영역 ${ownerId}이 존재하지 않습니다.`, [id, ownerId], 'ownerId'));

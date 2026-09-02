@@ -1,69 +1,92 @@
+import {
+  EXCHANGE_TARGETS,
+  createExchangeAdapterRegistry,
+  normalizeExchangeTarget,
+} from './exchange-adapter-registry.js';
 import { TERRITORIAL_IMPORT_TARGETS } from './import-plan.js';
+import {
+  WORKER_RPC_ERROR_CATEGORIES,
+  createWorkerRpcClient,
+} from './worker-rpc.js';
 
 export const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
 
 const text = value => String(value ?? '');
 
-export function createGisGeometryValidator({ createWorker, timeoutMs = GIS_GEOMETRY_TIMEOUT_MS }) {
-  let worker = null;
-  let sequence = 0;
-  const pending = new Map();
+function createLegacyGisGeometryCodec() {
+  return Object.freeze({
+    encodeRequest(envelope) {
+      return {
+        id: envelope.requestId,
+        action: envelope.operation === 'gis.validate' ? 'validate' : envelope.operation,
+        collection: envelope.payload?.collection,
+        affectedIds: envelope.payload?.affectedIds || null,
+        projectRevision: envelope.projectRevision,
+        priority: envelope.priority,
+      };
+    },
+    encodeCancel(envelope) {
+      return { id: envelope.requestId, action: 'cancel', reason: envelope.reason || 'cancelled' };
+    },
+    encodeEvent(envelope) {
+      return { action: envelope.operation, ...(envelope.payload || {}) };
+    },
+    decodeMessage(message) {
+      if (!message || message.id == null) return null;
+      const { id, ok, error, ...result } = message;
+      return {
+        kind: 'result',
+        requestId: Number(id || 0),
+        operation: 'gis.validate',
+        projectRevision: Number(message.projectRevision || 0),
+        ok: ok === true,
+        result,
+        error: ok === true ? null : {
+          category: WORKER_RPC_ERROR_CATEGORIES.OPERATION,
+          code: 'PL-GIS-GEOMETRY',
+          message: error || 'GIS 지오메트리 검증에 실패했습니다.',
+        },
+      };
+    },
+  });
+}
 
-  function rejectPending(error) {
-    for (const request of pending.values()) {
-      clearTimeout(request.timeoutId);
-      request.reject(error);
-    }
-    pending.clear();
+export function createGisGeometryValidator({ createWorker, timeoutMs = GIS_GEOMETRY_TIMEOUT_MS }) {
+  let rpc = null;
+
+  function ensureRpc() {
+    if (rpc) return rpc;
+    rpc = createWorkerRpcClient({
+      createWorker,
+      codec: createLegacyGisGeometryCodec(),
+      defaultTimeoutMs: timeoutMs,
+      restartOnCrash: true,
+    });
+    return rpc;
   }
 
   function dispose() {
-    worker?.terminate();
-    worker = null;
+    rpc?.stop('disposed');
+    rpc = null;
   }
 
-  function ensureWorker() {
-    if (worker) return worker;
-    worker = createWorker();
-    worker.onmessage = event => {
-      const request = pending.get(event.data?.id);
-      if (!request) return;
-      pending.delete(event.data.id);
-      clearTimeout(request.timeoutId);
-      if (event.data.ok) request.resolve(event.data);
-      else request.reject(new Error(event.data.error || 'GIS 지오메트리 검증에 실패했습니다.'));
-    };
-    worker.onerror = event => {
-      rejectPending(new Error(event.message || 'GIS 지오메트리 Worker 오류'));
-      dispose();
-    };
-    return worker;
-  }
-
-  function validate(collection, affectedIds = null) {
-    return new Promise((resolve, reject) => {
-      const activeWorker = ensureWorker();
-      const id = ++sequence;
-      const scopedIds = affectedIds
-        ? [...new Set([...affectedIds].map(text).filter(Boolean))]
-        : null;
-      const timeoutId = setTimeout(() => {
-        if (!pending.delete(id)) return;
-        reject(new Error('GIS 국가 경계 검사가 제한 시간 안에 끝나지 않았습니다.'));
-        rejectPending(new Error('GIS 국가 경계 Worker가 응답하지 않아 검사를 중단했습니다.'));
-        dispose();
-      }, timeoutMs);
-      pending.set(id, { resolve, reject, timeoutId });
-      activeWorker.postMessage({
-        id,
-        action: 'validate',
+  async function validate(collection, affectedIds = null) {
+    const scopedIds = affectedIds
+      ? [...new Set([...affectedIds].map(text).filter(Boolean))]
+      : null;
+    try {
+      const response = await ensureRpc().request('gis.validate', {
         collection,
         affectedIds: scopedIds?.length ? scopedIds : null,
-      });
-    });
+      }, { timeoutMs, priority: 300 });
+      return response.result;
+    } catch (error) {
+      if (error?.category === WORKER_RPC_ERROR_CATEGORIES.TIMEOUT) dispose();
+      throw error;
+    }
   }
 
-  return Object.freeze({ dispose, validate });
+  return Object.freeze({ dispose, validate, stats: () => rpc?.stats?.() || Object.freeze({ pendingCount: 0, workerActive: false }) });
 }
 
 export function createCountryImportMergePlanner({
@@ -218,6 +241,35 @@ export function appendImportedSourceInfo(previous, next, now = () => new Date().
   return { mergedAt: now(), imports };
 }
 
+function createMaterializerExchangeRegistry(materializers) {
+  const territorialImport = (result, context) => materializers.territorial(result, context.fileName || '벡터 파일');
+  const geoJsonImport = (result, context) => {
+    const target = result.targetType === EXCHANGE_TARGETS.DISTRIBUTION
+      ? result.distributionType
+      : result.targetType;
+    return materializers.geoJson(context.file, {
+      parsed: result.collection,
+      target,
+      mapping: {
+        nameField: result.mapping?.nameField || '',
+        countryField: result.mapping?.countryField || '',
+        parentField: result.mapping?.parentField || '',
+        levelField: result.mapping?.levelField || '',
+      },
+    });
+  };
+  return createExchangeAdapterRegistry({
+    adapters: {
+      [EXCHANGE_TARGETS.PROJECT]: { importPayload: result => materializers.replaceProject(result) },
+      [EXCHANGE_TARGETS.TERRITORY]: { importPayload: territorialImport },
+      [EXCHANGE_TARGETS.ADMINISTRATIVE]: { importPayload: territorialImport },
+      [EXCHANGE_TARGETS.REGION]: { importPayload: territorialImport },
+      [EXCHANGE_TARGETS.DISTRIBUTION]: { importPayload: geoJsonImport },
+      [EXCHANGE_TARGETS.GENERIC]: { importPayload: geoJsonImport },
+    },
+  });
+}
+
 export function createImportService({
   openImportWizard,
   getWizardOptions,
@@ -228,38 +280,34 @@ export function createImportService({
   materializeCountryImport = null,
   planCountryMerge,
   materializers,
+  exchangeRegistry = null,
   onStage = () => {},
 }) {
+  const adapters = exchangeRegistry || createMaterializerExchangeRegistry(materializers);
+
   async function openFiles(files, { targetType = '' } = {}) {
     if (!files?.length) return { status: 'empty' };
     const result = await openImportWizard(files, {
       targetType,
       ...getWizardOptions(),
     });
+    const resolvedTarget = normalizeExchangeTarget(result.importPlan?.targetType || result.targetType);
+    const context = { file: files[0], fileName: files[0]?.name || '벡터 파일' };
+
     if (result.sourceKind === 'project' || result.importPlan?.sourceKind === 'project') {
-      await materializers.replaceProject(result);
+      await adapters.importPayload(EXCHANGE_TARGETS.PROJECT, result, context);
       return { status: 'project-replaced', result };
     }
-    if (Object.values(TERRITORIAL_IMPORT_TARGETS).includes(result.targetType)) {
-      await materializers.territorial(result, files[0]?.name || '벡터 파일');
+    if (Object.values(TERRITORIAL_IMPORT_TARGETS).includes(resolvedTarget)) {
+      await adapters.importPayload(resolvedTarget, result, context);
       return { status: 'territorial-imported', result };
     }
-    if (!['country', 'project'].includes(result.importPlan?.targetType || result.targetType)) {
-      const target = result.targetType === 'distribution' ? result.distributionType : result.targetType;
-      await materializers.geoJson(files[0], {
-        parsed: result.collection,
-        target,
-        mapping: {
-          nameField: result.mapping?.nameField || '',
-          countryField: result.mapping?.countryField || '',
-          parentField: result.mapping?.parentField || '',
-          levelField: result.mapping?.levelField || '',
-        },
-      });
+    if (![EXCHANGE_TARGETS.COUNTRY, EXCHANGE_TARGETS.PROJECT].includes(resolvedTarget)) {
+      await adapters.importPayload(resolvedTarget, result, context);
       return { status: 'object-imported', result };
     }
 
-    if (result.targetType === 'country' && typeof materializeCountryImport === 'function') {
+    if (resolvedTarget === EXCHANGE_TARGETS.COUNTRY && typeof materializeCountryImport === 'function') {
       result.countriesData = materializeCountryImport(result.countriesData, {
         manualMappings: result.identityMappings || {},
         allowImplicitNew: result.openMode === 'replace',
@@ -291,5 +339,5 @@ export function createImportService({
     return { status: 'countries-merged', result, plan };
   }
 
-  return Object.freeze({ openFiles });
+  return Object.freeze({ openFiles, exchangeRegistry: adapters });
 }

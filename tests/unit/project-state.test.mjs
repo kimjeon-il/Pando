@@ -8,6 +8,7 @@ import {
   createProjectObjectId,
   pickProjectFields,
 } from '../../assets/js/modules/project-state.js';
+import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
 
 const state = {
   countryOverrides: { KOR: { name: '대한민국' } }, sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
@@ -68,7 +69,14 @@ const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0
 const currentProject = () => ({
   format: 'pandolab-project-state',
   schemaVersion: PROJECT_SCHEMA_VERSION,
-  landObjectModel: { schemaVersion: 1 },
+  landObjectModel: {
+    schemaVersion: 2,
+    coastlineAuthority: 'countries',
+    purpose: 'lossless-fallback',
+    directCreation: false,
+    sourceProvenanceSchemaVersion: 1,
+    canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
+  },
   territorialModel: { schemaVersion: 1 },
   distributionModel: { schemaVersion: 2 },
   layerPresentation: { schemaVersion: 2, overlayOrder: [], styles: {} },
@@ -85,7 +93,10 @@ const currentProject = () => ({
   territorialRelations: [{ id: uuid(2), schemaVersion: 1 }],
   distributionLayers: [{ id: uuid(3), schemaVersion: 2, type: 'language' }],
   distributionEntries: [{ id: uuid(4), schemaVersion: 2, layerId: uuid(3) }],
-  genericFeatures: [{ type: 'Feature', id: uuid(5), properties: { schemaVersion: 1, role: 'generic', color: '#123456' } }],
+  genericFeatures: [{
+    type: 'Feature', id: uuid(5), geometry: { type: 'Point', coordinates: [1, 2] },
+    properties: { schemaVersion: 2, name: '기타', notes: '', color: '#123456', locked: false, source: normalizeSourceProvenance({ kind: 'unsupported' }) },
+  }],
   hydroEdits: [{ type: 'Feature', id: uuid(6), properties: { pandolab_schema_version: 1 } }],
   labels: [{ id: uuid(7) }],
 });
@@ -118,16 +129,23 @@ test('canonical river and lake presentation groups are accepted while hydro outp
   assert.equal(assertCurrentProjectSchema(canonical).schemaVersion, PROJECT_SCHEMA_VERSION);
 });
 
-test('missing and old schema versions are rejected instead of migrated', () => {
+test('previous schema is migrated at the project load gate while unsupported old versions fail', () => {
+  const prior = currentProject();
+  prior.schemaVersion = 3;
+  prior.landObjectModel = { schemaVersion: 1, coastlineAuthority: 'countries', roles: ['generic'] };
+  prior.genericFeatures[0].properties = { schemaVersion: 1, name: 'legacy', role: 'generic', color: '#123456' };
+  assert.equal(assertCurrentProjectSchema(prior).schemaVersion, PROJECT_SCHEMA_VERSION);
+  assert.equal(prior.genericFeatures[0].properties.schemaVersion, 2);
+
   const missing = currentProject();
   delete missing.schemaVersion;
-  assert.throws(() => assertCurrentProjectSchema(missing), /schemaVersion이 없습니다/);
-  const old = currentProject();
-  old.schemaVersion = 2;
-  assert.throws(() => assertCurrentProjectSchema(old), /지원하지 않습니다/);
+  assert.throws(() => assertCurrentProjectSchema(missing), /schemaVersion/);
+  const tooOld = currentProject();
+  tooOld.schemaVersion = 2;
+  assert.throws(() => assertCurrentProjectSchema(tooOld), /지원 범위/);
 });
 
-test('country features and sparse overrides accept only the schema 3 allowlist', () => {
+test('country features and sparse overrides accept only the schema 4 allowlist', () => {
   const valid = currentProject();
   valid.countriesData.features[0].properties = { name: '독일', validFrom: '1949-05-23', validTo: '현재' };
   valid.countryOverrides.DEU = { name: '독일 연방공화국', color: '#53657a', locked: true };
@@ -167,6 +185,9 @@ test('missing duplicate and unsupported object fields are rejected', () => {
   const unsupported = currentProject();
   unsupported.territorialUnits[0].properties.unknownField = 'PL';
   assert.throws(() => assertCurrentProjectSchema(unsupported), /지원하지 않는 필드 unknownField/);
+  const badGeneric = currentProject();
+  badGeneric.genericFeatures[0].properties.role = 'territory';
+  assert.throws(() => assertCurrentProjectSchema(badGeneric), /지원하지 않는 필드 role/);
 });
 
 test('session state and unsupported model fields are rejected from project files', () => {
