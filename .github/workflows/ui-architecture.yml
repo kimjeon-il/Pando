@@ -1,0 +1,68 @@
+name: UI Architecture
+
+on:
+  pull_request:
+    paths:
+      - 'assets/css/**'
+      - 'assets/js/modules/surface-controller.js'
+      - 'assets/js/modules/map-object-categories.js'
+      - 'assets/js/modules/object-action-registry.js'
+      - 'assets/js/modules/object-registry-presenter.js'
+      - 'assets/js/modules/phase1-ui-cleanup.js'
+      - 'index.html'
+      - 'scripts/check-ui-*.mjs'
+      - 'scripts/check-object-registry.mjs'
+      - 'tests/unit/surface-controller.test.mjs'
+      - 'tests/unit/object-registry.test.mjs'
+      - 'docs/architecture/ui-*.md'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ui-architecture.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'assets/css/**'
+      - 'assets/js/modules/surface-controller.js'
+      - 'assets/js/modules/map-object-categories.js'
+      - 'assets/js/modules/object-action-registry.js'
+      - 'assets/js/modules/object-registry-presenter.js'
+      - 'assets/js/modules/phase1-ui-cleanup.js'
+      - 'index.html'
+      - 'scripts/check-ui-*.mjs'
+      - 'scripts/check-object-registry.mjs'
+      - 'tests/unit/surface-controller.test.mjs'
+      - 'tests/unit/object-registry.test.mjs'
+      - 'docs/architecture/ui-*.md'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ui-architecture.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ui-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check UI contracts
+        run: pnpm check:ui

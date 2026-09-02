@@ -1,0 +1,165 @@
+.workspace-surface {
+  --ui-surface-border-top: 0;
+  --ui-surface-border-right: 0;
+  --ui-surface-border-bottom: 0;
+  --ui-surface-border-left: 0;
+  --ui-surface-radius-top-left: 0;
+  --ui-surface-radius-top-right: 0;
+  --ui-surface-radius-bottom-right: 0;
+  --ui-surface-radius-bottom-left: 0;
+  --ui-surface-shadow: none;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-top: var(--ui-surface-border-top);
+  border-right: var(--ui-surface-border-right);
+  border-bottom: var(--ui-surface-border-bottom);
+  border-left: var(--ui-surface-border-left);
+  border-radius:
+    var(--ui-surface-radius-top-left)
+    var(--ui-surface-radius-top-right)
+    var(--ui-surface-radius-bottom-right)
+    var(--ui-surface-radius-bottom-left);
+  background: var(--surface-elevated);
+  box-shadow: var(--ui-surface-shadow);
+  transition:
+    transform var(--ui-surface-motion-duration) ease,
+    opacity var(--ui-surface-motion-duration) ease,
+    visibility var(--ui-surface-motion-duration);
+}
+
+.surface-header {
+  position: relative;
+  flex: 0 0 var(--ui-surface-header-height-compact);
+  min-width: 0;
+  min-height: var(--ui-surface-header-height-compact);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--ui-space-3);
+  padding: 0 var(--ui-surface-content-rail-x);
+  border: 0;
+  background: var(--surface-elevated);
+  box-shadow: none;
+}
+
+.surface-header-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  line-height: var(--ui-line-tight);
+}
+
+.surface-header-title > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.surface-header-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+}
+
+.surface-header .sheet-drag-handle { display: none; }
+
+.surface-tabs {
+  flex: 0 0 var(--ui-control-height);
+  height: var(--ui-control-height);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding-inline: var(--ui-surface-content-rail-x);
+}
+
+.surface-tabs .ui-tab {
+  position: relative;
+  min-height: var(--ui-control-height);
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.surface-tabs .ui-tab::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: var(--ui-surface-tab-indicator-bottom);
+  width: var(--ui-surface-tab-indicator-width);
+  height: var(--ui-surface-tab-indicator-height);
+  border-radius: var(--ui-radius-pill);
+  background: var(--accent);
+  opacity: 0;
+  transform: translateX(-50%) scaleX(.45);
+  transition: opacity .14s ease, transform .14s ease;
+}
+
+.surface-tabs .ui-tab:hover {
+  background: transparent;
+  color: var(--text-strong);
+}
+
+.surface-tabs .ui-tab:is(.active, [aria-selected="true"]) {
+  background: transparent;
+  color: var(--text-strong);
+  font-weight: var(--ui-weight-bold);
+}
+
+.surface-tabs .ui-tab:is(.active, [aria-selected="true"])::after {
+  opacity: 1;
+  transform: translateX(-50%) scaleX(1);
+}
+
+.surface-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+}
+
+.surface-body-delegated {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
+.surface-content { min-width: 0; }
+
+.surface-content-create,
+.surface-content-editor {
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
+  padding-bottom: var(--ui-surface-content-padding-bottom);
+}
+
+.surface-content-create {
+  display: grid;
+  align-content: start;
+  gap: var(--ui-menu-gap);
+  padding-top: var(--ui-space-1);
+}
+
+.surface-content-editor {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.surface-content-editor > :is(.editor-view, .editor-empty) { padding-inline: 0; }
+.surface-content-editor > .editor-view { padding-bottom: 0; }
+
+.surface-content-map {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}

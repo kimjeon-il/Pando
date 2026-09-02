@@ -1,112 +1,238 @@
-const freezeType = type => Object.freeze({ ...type });
+const freezeList = values => Object.freeze([...(values || [])]);
+const freezeType = type => Object.freeze({
+  ...type,
+  layerGroups: freezeList(type.layerGroups),
+  presentationGroups: freezeList(type.presentationGroups),
+  createMethods: freezeList(type.createMethods),
+  allowedActions: freezeList(type.allowedActions),
+});
+const freezeCategory = category => Object.freeze({
+  ...category,
+  layerGroups: freezeList(category.layerGroups),
+  createItems: freezeList(category.createItems),
+  viewGroups: freezeList(category.viewGroups),
+});
+
+export const MAP_OBJECT_DOMAINS = Object.freeze({
+  TERRITORIAL: 'territorial',
+  DISTRIBUTION: 'distribution',
+  HYDRO: 'hydro',
+  LABEL: 'label',
+  GENERIC: 'generic',
+});
 
 /**
- * Shared semantic metadata for map objects.  The values intentionally mirror
- * the existing canonical unit and layer keys; this registry only describes
- * presentation and entry points, it does not define a second data model.
+ * Canonical semantic metadata for map objects.
+ *
+ * This registry does not define storage schemas. It is the single source of
+ * truth for object presentation and UI routing: domain, category, label, icon,
+ * layer/presentation mapping, editor target and creation entry point.
  */
 export const MAP_OBJECT_TYPES = Object.freeze({
   country: freezeType({
+    key: 'country',
+    domain: MAP_OBJECT_DOMAINS.TERRITORIAL,
     type: 'country',
+    category: 'territorial',
     label: '국가',
     icon: 'icon-country',
     layerGroup: 'countries',
+    presentationGroup: 'countries',
+    editor: 'country',
+    creatable: true,
     createButton: 'addCountryBtn',
     createAction: 'new-country',
   }),
   territory: freezeType({
+    key: 'territory',
+    domain: MAP_OBJECT_DOMAINS.TERRITORIAL,
     type: 'territory',
+    category: 'territorial',
     label: '권역',
     icon: 'icon-territory',
     layerGroup: 'territories',
+    presentationGroup: 'territories',
+    editor: 'territory',
+    creatable: true,
     createButton: 'addTerritoryBtn',
     createAction: 'territorial-modal',
-    createMethods: Object.freeze(['split', 'draw', 'geojson']),
+    createMethods: ['split', 'draw', 'geojson'],
   }),
   admin: freezeType({
+    key: 'admin',
+    domain: MAP_OBJECT_DOMAINS.TERRITORIAL,
     type: 'admin',
+    category: 'territorial',
     label: '행정구역',
     icon: 'icon-administrative',
     layerGroup: 'administrative',
+    presentationGroup: 'administrative',
+    editor: 'administrative',
+    creatable: true,
     createButton: 'addAdministrativeBtn',
     createAction: 'territorial-modal',
-    createMethods: Object.freeze(['split', 'draw', 'geojson']),
+    createMethods: ['split', 'draw', 'geojson'],
   }),
   region: freezeType({
+    key: 'region',
+    domain: MAP_OBJECT_DOMAINS.TERRITORIAL,
     type: 'region',
+    category: 'territorial',
     label: '지방',
     icon: 'icon-region',
     layerGroup: 'regions',
+    presentationGroup: 'regions',
+    editor: 'region',
+    creatable: true,
     createButton: 'addRegionBtn',
     createAction: 'territorial-modal',
-    createMethods: Object.freeze(['draw', 'geojson']),
-  }),
-  generic: freezeType({
-    type: 'feature',
-    label: '기타 객체',
-    icon: '',
-    layerGroup: 'genericFeatures',
-    createButton: null,
-    createAction: null,
+    createMethods: ['draw', 'geojson'],
   }),
   distribution: freezeType({
+    key: 'distribution',
+    domain: MAP_OBJECT_DOMAINS.DISTRIBUTION,
     type: 'distribution',
+    category: 'distribution',
     label: '분포',
     icon: 'icon-language',
+    layerGroup: '',
+    layerGroups: ['languages', 'ethnicities', 'religions'],
+    presentationGroup: '',
+    presentationGroups: ['languages', 'ethnicities', 'religions'],
+    editor: 'distribution',
+    creatable: true,
     createButton: 'addDistributionBtn',
     createAction: 'distribution-modal',
   }),
   label: freezeType({
+    key: 'label',
+    domain: MAP_OBJECT_DOMAINS.LABEL,
     type: 'label',
+    category: 'features',
     label: '지명',
     icon: 'icon-place',
     layerGroup: 'labels',
+    presentationGroup: 'labels',
+    editor: 'label',
+    creatable: true,
     createButton: 'addLabelBtn',
     createAction: 'label-placement',
   }),
   river: freezeType({
+    key: 'river',
+    domain: MAP_OBJECT_DOMAINS.HYDRO,
     type: 'river',
+    category: 'features',
     label: '강',
     icon: 'icon-river',
     layerGroup: 'rivers',
+    presentationGroup: 'rivers',
+    editor: 'hydro',
+    creatable: true,
     createButton: 'addRiverBtn',
     createAction: 'river-create',
   }),
   lake: freezeType({
+    key: 'lake',
+    domain: MAP_OBJECT_DOMAINS.HYDRO,
     type: 'lake',
+    category: 'features',
     label: '호수',
     icon: 'icon-lake',
     layerGroup: 'lakes',
+    presentationGroup: 'lakes',
+    editor: 'hydro',
+    creatable: true,
     createButton: 'addLakeBtn',
     createAction: 'lake-create',
+  }),
+  generic: freezeType({
+    key: 'generic',
+    domain: MAP_OBJECT_DOMAINS.GENERIC,
+    type: 'feature',
+    category: 'features',
+    label: '기타 객체',
+    icon: 'icon-shape',
+    layerGroup: 'genericFeatures',
+    presentationGroup: 'genericFeatures',
+    editor: 'generic',
+    creatable: false,
+    fallbackOnly: true,
+    allowedActions: ['focus', 'lock', 'delete'],
+    createButton: null,
+    createAction: null,
   }),
 });
 
 export const MAP_OBJECT_CATEGORIES = Object.freeze({
-  territorial: Object.freeze({
+  territorial: freezeCategory({
+    key: 'territorial',
     label: '영토·구역',
-    layerGroups: Object.freeze(['countries', 'territories', 'administrative', 'regions']),
-    createItems: Object.freeze(['country', 'territory', 'admin', 'region']),
+    layerGroups: ['countries', 'territories', 'administrative', 'regions'],
+    createItems: ['country', 'territory', 'admin', 'region'],
   }),
-  distribution: Object.freeze({
+  distribution: freezeCategory({
+    key: 'distribution',
     label: '인문 분포',
-    layerGroups: Object.freeze(['languages', 'ethnicities', 'religions']),
-    createItems: Object.freeze(['distribution']),
+    layerGroups: ['languages', 'ethnicities', 'religions'],
+    createItems: ['distribution'],
   }),
-  features: Object.freeze({
+  features: freezeCategory({
+    key: 'features',
     label: '지형지물',
-    layerGroups: Object.freeze(['rivers', 'lakes', 'genericFeatures']),
-    createItems: Object.freeze(['label', 'river', 'lake']),
-    viewGroups: Object.freeze(['labels', 'countryLabels']),
+    layerGroups: ['rivers', 'lakes', 'genericFeatures'],
+    createItems: ['label', 'river', 'lake'],
+    viewGroups: ['labels', 'countryLabels'],
   }),
 });
 
 export const MAP_OBJECT_CATEGORY_ORDER = Object.freeze(Object.keys(MAP_OBJECT_CATEGORIES));
 
+const DISTRIBUTION_LAYER_GROUPS = Object.freeze({
+  language: 'languages',
+  ethnicity: 'ethnicities',
+  religion: 'religions',
+});
+
+export function objectTypeKeyForRef(value) {
+  if (typeof value === 'string') return MAP_OBJECT_TYPES[value] ? value : '';
+  const domain = String(value?.domain || '').trim();
+  const type = String(value?.type || value?.kind || '').trim();
+  if (domain === MAP_OBJECT_DOMAINS.TERRITORIAL) return MAP_OBJECT_TYPES[type] ? type : '';
+  if (domain === MAP_OBJECT_DOMAINS.DISTRIBUTION) return 'distribution';
+  if (domain === MAP_OBJECT_DOMAINS.GENERIC) return 'generic';
+  if (domain === MAP_OBJECT_DOMAINS.LABEL) return 'label';
+  if (domain === MAP_OBJECT_DOMAINS.HYDRO && (type === 'river' || type === 'lake')) return type;
+  return MAP_OBJECT_TYPES[type] ? type : '';
+}
+
+export function objectTypeDescriptor(value) {
+  const key = objectTypeKeyForRef(value);
+  return key ? MAP_OBJECT_TYPES[key] : null;
+}
+
+export function objectTypeLabel(value, fallback = '') {
+  return objectTypeDescriptor(value)?.label || fallback;
+}
+
 export function categoryForCreateItem(type) {
-  return MAP_OBJECT_CATEGORY_ORDER.find(category => MAP_OBJECT_CATEGORIES[category].createItems.includes(type)) || '';
+  return MAP_OBJECT_TYPES[type]?.category || '';
 }
 
 export function categoryForLayerGroup(group) {
   return MAP_OBJECT_CATEGORY_ORDER.find(category => MAP_OBJECT_CATEGORIES[category].layerGroups.includes(group)) || '';
+}
+
+export function layerGroupForObjectType(value, { subtype = '' } = {}) {
+  const descriptor = objectTypeDescriptor(value);
+  if (!descriptor) return '';
+  if (descriptor.key === 'distribution') return DISTRIBUTION_LAYER_GROUPS[subtype] || '';
+  return descriptor.layerGroup || '';
+}
+
+export function presentationGroupForObjectType(value, options = {}) {
+  const descriptor = objectTypeDescriptor(value);
+  if (!descriptor) return '';
+  if (descriptor.key === 'distribution') return layerGroupForObjectType(descriptor.key, options);
+  return descriptor.presentationGroup || '';
 }

@@ -1,7 +1,72 @@
+import { createLatestWorkerJobScheduler } from './worker-job-scheduler.js';
 import {
-  createLatestWorkerJobScheduler,
-  createWorkerCancellationError,
-} from './worker-job-scheduler.js';
+  WORKER_RPC_ERROR_CATEGORIES,
+  createWorkerRpcClient,
+} from './worker-rpc.js';
+
+function createMapEditWorkerCodec() {
+  return Object.freeze({
+    encodeRequest(envelope) {
+      const metadata = envelope.metadata || {};
+      return {
+        type: 'execute',
+        operation: envelope.operation,
+        requestId: envelope.requestId,
+        jobKey: String(metadata.jobKey || ''),
+        dataRevision: Number(metadata.dataRevision || 0),
+        geometryRevision: Number(metadata.geometryRevision || metadata.dataRevision || 0),
+        targetRevision: Number(envelope.projectRevision || 0),
+        priority: Number(envelope.priority || 0),
+        ...(envelope.payload || {}),
+      };
+    },
+    encodeCancel(envelope) {
+      return {
+        type: 'cancel',
+        requestId: envelope.requestId,
+        targetRevision: Number(envelope.projectRevision || 0),
+        reason: envelope.reason || 'cancelled',
+      };
+    },
+    encodeEvent(envelope) {
+      const legacyTypes = {
+        'map-edit.rebase': 'rebase',
+        'map-edit.sync-patch': 'sync-patch',
+        'map-edit.commit': 'commit',
+        'map-edit.discard': 'discard',
+      };
+      return {
+        type: legacyTypes[envelope.operation] || envelope.operation,
+        ...(envelope.payload || {}),
+      };
+    },
+    decodeMessage(message) {
+      if (message?.type === 'ready') {
+        return {
+          kind: 'event',
+          operation: 'map-edit.ready',
+          payload: message,
+          projectRevision: Number(message.targetRevision || 0),
+        };
+      }
+      if (message?.type !== 'result') return null;
+      return {
+        kind: 'result',
+        requestId: Number(message.requestId || 0),
+        operation: '',
+        projectRevision: Number(message.targetRevision || 0),
+        ok: message.ok === true,
+        result: message.result,
+        error: message.ok === true ? null : {
+          category: message.cancelled ? WORKER_RPC_ERROR_CATEGORIES.CANCELLED : WORKER_RPC_ERROR_CATEGORIES.OPERATION,
+          code: message.cancelled ? 'PL-MAP-EDIT-CANCELLED' : 'PL-MAP-EDIT-WORKER',
+          message: message.message || '지도 편집 계산에 실패했습니다.',
+        },
+        timing: message.timing || null,
+      };
+    },
+  });
+}
 
 export function createMapEditWorkerClient({
   createWorker,
@@ -11,52 +76,34 @@ export function createMapEditWorkerClient({
   now = () => performance.now(),
   schedule = (callback, delay) => setTimeout(callback, delay),
   readyTimeoutMs = 3000,
+  requestTimeoutMs = 60_000,
 }) {
-  let worker = null;
+  let rpc = null;
   let dataRevision = 0;
   let ready = false;
-  const inFlight = new Map();
   const currentTargetRevision = () => typeof getTargetRevision === 'function'
     ? Number(getTargetRevision())
     : dataRevision;
 
-  function rejectWorkerRequests(error) {
-    for (const request of inFlight.values()) request.reject(error);
-    inFlight.clear();
-  }
-
-  function terminateWorker(error = null) {
-    if (error) rejectWorkerRequests(error);
-    worker?.terminate();
-    worker = null;
-    ready = false;
-  }
-
-  function ensureWorker() {
-    if (worker) return worker;
-    worker = createWorker();
-    worker.onmessage = event => {
-      const message = event.data || {};
-      if (message.type === 'ready') {
+  function ensureRpc() {
+    if (rpc) return rpc;
+    rpc = createWorkerRpcClient({
+      createWorker,
+      codec: createMapEditWorkerCodec(),
+      defaultTimeoutMs: requestTimeoutMs,
+      getProjectRevision: currentTargetRevision,
+      isCurrent: ({ entry }) => Number(entry.metadata?.geometryRevision) === dataRevision
+        && Number(entry.projectRevision) === currentTargetRevision(),
+      onEvent: event => {
+        if (event.operation !== 'map-edit.ready') return;
+        const message = event.payload || {};
         const readyRevision = message.dataRevision == null ? dataRevision : Number(message.dataRevision);
         if (readyRevision === dataRevision) ready = true;
-        return;
-      }
-      if (message.type !== 'result') return;
-      const requestId = Number(message.requestId || 0);
-      const request = inFlight.get(requestId);
-      if (!request) return;
-      inFlight.delete(requestId);
-      if (message.ok) request.resolve(message.result);
-      else if (message.cancelled) request.reject(createWorkerCancellationError('작업을 취소했습니다.', 'worker-cancelled'));
-      else request.reject(new Error(message.message || '지도 편집 계산에 실패했습니다.'));
-    };
-    worker.onerror = event => {
-      const error = new Error(event.message || '지도 편집 Worker를 사용할 수 없습니다.');
-      scheduler.cancelAll('worker-error');
-      terminateWorker(error);
-    };
-    return worker;
+      },
+      onCrash: () => { ready = false; },
+      now,
+    });
+    return rpc;
   }
 
   async function waitForReady() {
@@ -69,31 +116,30 @@ export function createMapEditWorkerClient({
   }
 
   function sendExecute(entry) {
-    return new Promise((resolve, reject) => {
-      inFlight.set(entry.requestId, { resolve, reject });
-      ensureWorker().postMessage({
-        type: 'execute',
-        operation: entry.payload.operation,
-        requestId: entry.requestId,
+    return ensureRpc().request(entry.payload.operation, entry.payload.payload, {
+      requestId: entry.requestId,
+      projectRevision: entry.targetRevision,
+      priority: entry.priority,
+      timeoutMs: requestTimeoutMs,
+      metadata: {
         jobKey: entry.jobKey,
         dataRevision: entry.geometryRevision,
         geometryRevision: entry.geometryRevision,
         targetRevision: entry.targetRevision,
-        ...entry.payload.payload,
-      });
-    });
+      },
+    }).then(response => response.result);
   }
 
   const scheduler = createLatestWorkerJobScheduler({
     maxConcurrent: 1,
     now,
     execute: sendExecute,
-    cancelRunning: entry => worker?.postMessage({
-      type: 'cancel', requestId: entry.requestId, jobKey: entry.jobKey, targetRevision: entry.targetRevision,
-    }),
-    discardResult: (_result, entry) => worker?.postMessage({
-      type: 'discard', requestId: entry.requestId, jobKey: entry.jobKey, targetRevision: entry.targetRevision,
-    }),
+    cancelRunning: entry => ensureRpc().cancel(entry.requestId, 'superseded'),
+    discardResult: (_result, entry) => ensureRpc().notify('map-edit.discard', {
+      requestId: entry.requestId,
+      dataRevision,
+      targetRevision: entry.targetRevision,
+    }, { projectRevision: entry.targetRevision }),
     isCurrent: entry => Number(entry.geometryRevision) === dataRevision
       && Number(entry.targetRevision) === currentTargetRevision(),
   });
@@ -102,37 +148,35 @@ export function createMapEditWorkerClient({
     scheduler.cancelAll('rebase');
     dataRevision += 1;
     ready = false;
-    ensureWorker().postMessage({
-      type: 'rebase',
+    ensureRpc().notify('map-edit.rebase', {
       dataRevision,
       geometryRevision: dataRevision,
       targetRevision: currentTargetRevision(),
       features,
-    });
+    }, { projectRevision: currentTargetRevision(), priority: 1000 });
     return dataRevision;
   }
 
   function syncPatch(rawIds) {
-    if (!worker || !ready) return false;
+    if (!rpc || !ready) return false;
     const ids = [...new Set([...rawIds].map(String).filter(Boolean))];
     if (!ids.length) return false;
     scheduler.cancelAll('state-changed');
     const features = ids.map(getFeatureById).filter(Boolean);
     const removedIds = ids.filter(id => !getFeatureById(id));
     dataRevision += 1;
-    worker.postMessage({
-      type: 'sync-patch',
+    ensureRpc().notify('map-edit.sync-patch', {
       dataRevision,
       geometryRevision: dataRevision,
       targetRevision: currentTargetRevision(),
       features,
       removedIds,
-    });
+    }, { projectRevision: currentTargetRevision(), priority: 900 });
     return true;
   }
 
   async function prepareWorker() {
-    if (!worker) rebase();
+    if (!rpc) rebase();
     if (!ready) await waitForReady();
   }
 
@@ -165,22 +209,31 @@ export function createMapEditWorkerClient({
 
   function commit(requestId) {
     const nextDataRevision = dataRevision + 1;
-    worker?.postMessage({ type: 'commit', requestId, dataRevision, nextDataRevision });
+    ensureRpc().notify('map-edit.commit', { requestId, dataRevision, nextDataRevision }, {
+      projectRevision: currentTargetRevision(),
+      priority: 1000,
+    });
     dataRevision = nextDataRevision;
   }
 
   function discard(requestId) {
     scheduler.cancel(requestId, 'discarded');
-    worker?.postMessage({ type: 'discard', requestId, dataRevision });
+    ensureRpc().notify('map-edit.discard', { requestId, dataRevision }, {
+      projectRevision: currentTargetRevision(),
+      priority: 1000,
+    });
   }
 
   function cancel() {
     scheduler.cancelAll('cancelled');
+    rpc?.cancelAll('cancelled');
   }
 
-  function stop(error = null) {
+  function stop() {
     scheduler.cancelAll('stopped');
-    terminateWorker(error || createWorkerCancellationError('지도 편집 Worker를 종료했습니다.', 'stopped'));
+    rpc?.stop('stopped');
+    rpc = null;
+    ready = false;
   }
 
   return Object.freeze({
@@ -192,11 +245,11 @@ export function createMapEditWorkerClient({
     stop,
     syncPatch,
     stats: () => Object.freeze({
-      role: 'stateful-dedicated',
+      role: 'stateful-dedicated-rpc',
       dataRevision,
       targetRevision: currentTargetRevision(),
       ready,
-      inFlightCount: inFlight.size,
+      ...(rpc?.stats?.() || { pendingCount: 0, workerActive: false }),
       ...scheduler.stats(),
     }),
   });

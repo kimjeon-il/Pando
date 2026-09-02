@@ -1,13 +1,19 @@
+import {
+  EXCHANGE_TARGETS,
+  EXCHANGE_TARGET_DESCRIPTORS,
+  normalizeExchangeTarget,
+} from './exchange-adapter-registry.js';
+
 export const TERRITORIAL_IMPORT_TARGETS = Object.freeze({
-  TERRITORY: 'territory',
-  ADMINISTRATIVE: 'administrative',
-  REGION: 'region',
+  TERRITORY: EXCHANGE_TARGETS.TERRITORY,
+  ADMINISTRATIVE: EXCHANGE_TARGETS.ADMINISTRATIVE,
+  REGION: EXCHANGE_TARGETS.REGION,
 });
 export const COAST_PREFLIGHT_TARGETS = Object.freeze(new Set(Object.values(TERRITORIAL_IMPORT_TARGETS)));
 export const SOVEREIGN_SELECTION_TARGETS = Object.freeze(new Set(Object.values(TERRITORIAL_IMPORT_TARGETS)));
 export const PARTITION_IMPORT_TARGETS = Object.freeze(new Set([TERRITORIAL_IMPORT_TARGETS.TERRITORY, TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE]));
 export const EXPLICIT_IMPORT_TARGETS = Object.freeze(new Set([TERRITORIAL_IMPORT_TARGETS.REGION]));
-const TARGET_TYPES = new Set(['project', 'country', 'generic', ...Object.values(TERRITORIAL_IMPORT_TARGETS), 'distribution']);
+const TARGET_TYPES = new Set(Object.keys(EXCHANGE_TARGET_DESCRIPTORS));
 const OPEN_MODES = new Set(['replace', 'merge']);
 const SOURCE_KINDS = new Set(['project', 'vector']);
 
@@ -17,11 +23,13 @@ function text(value, fallback = '') {
 }
 
 export function normalizeImportPlan(raw = {}) {
-  const targetType = TARGET_TYPES.has(raw.targetType) ? raw.targetType : 'generic';
-  const sourceKind = SOURCE_KINDS.has(raw.sourceKind) ? raw.sourceKind : (targetType === 'project' ? 'project' : 'vector');
-  const openMode = targetType === 'project'
+  const targetType = TARGET_TYPES.has(raw.targetType)
+    ? raw.targetType
+    : normalizeExchangeTarget(raw.targetType, EXCHANGE_TARGETS.GENERIC);
+  const sourceKind = SOURCE_KINDS.has(raw.sourceKind) ? raw.sourceKind : (targetType === EXCHANGE_TARGETS.PROJECT ? 'project' : 'vector');
+  const openMode = targetType === EXCHANGE_TARGETS.PROJECT
     ? 'replace'
-    : targetType === 'country'
+    : targetType === EXCHANGE_TARGETS.COUNTRY
       ? (OPEN_MODES.has(raw.openMode) ? raw.openMode : 'replace')
       : 'merge';
   const layerCandidates = Array.isArray(raw.layerCandidates) ? raw.layerCandidates.map(candidate => ({
@@ -39,7 +47,7 @@ export function normalizeImportPlan(raw = {}) {
     featureCount: Math.max(0, Number(raw.featureCount) || 0),
     detectedCrs: text(raw.detectedCrs, 'unknown'),
     targetType,
-    distributionType: targetType === 'distribution' && ['language', 'ethnicity', 'religion'].includes(raw.distributionType) ? raw.distributionType : '',
+    distributionType: targetType === EXCHANGE_TARGETS.DISTRIBUTION && ['language', 'ethnicity', 'religion'].includes(raw.distributionType) ? raw.distributionType : '',
     propertyMapping: {
       id: text(mapping.id), name: text(mapping.name), country: text(mapping.country),
       parent: text(mapping.parent), level: text(mapping.level), color: text(mapping.color),
@@ -50,10 +58,10 @@ export function normalizeImportPlan(raw = {}) {
     parentId: targetType === TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE ? text(raw.parentId) : '',
     landPolicy: PARTITION_IMPORT_TARGETS.has(targetType) ? 'transfer-to-owner' : 'preserve',
     openMode,
-    mergePolicy: targetType === 'country' ? 'same-id-multipolygon' : text(raw.mergePolicy, 'preserve-features'),
+    mergePolicy: targetType === EXCHANGE_TARGETS.COUNTRY ? 'same-id-multipolygon' : text(raw.mergePolicy, 'preserve-features'),
   };
 }
 
 export function targetRequiresExistingProject(targetType) {
-  return !['project', 'country'].includes(targetType);
+  return ![EXCHANGE_TARGETS.PROJECT, EXCHANGE_TARGETS.COUNTRY].includes(normalizeExchangeTarget(targetType));
 }

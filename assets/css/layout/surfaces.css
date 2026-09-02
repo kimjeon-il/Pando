@@ -1,0 +1,126 @@
+[data-layout="wide"] .surface-map {
+  width: var(--panel-left-width);
+}
+
+[data-layout="wide"] .surface-create {
+  width: var(--ui-surface-create-wide-width);
+  max-height: calc(
+    100dvh
+    - var(--ui-topbar-height)
+    - var(--ui-control-height)
+    - (var(--ui-map-edge) * 3)
+  );
+}
+
+[data-layout="wide"] :is(.surface-create, .surface-editor) {
+  --ui-surface-border-top: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-right: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-bottom: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-left: var(--ui-border-width) solid var(--border);
+  --ui-surface-radius-top-left: var(--ui-radius-panel);
+  --ui-surface-radius-top-right: var(--ui-radius-panel);
+  --ui-surface-radius-bottom-right: var(--ui-radius-panel);
+  --ui-surface-radius-bottom-left: var(--ui-radius-panel);
+  --ui-surface-shadow: var(--control-shadow);
+}
+
+[data-layout="wide"] .surface-map {
+  --ui-surface-border-right: var(--ui-border-width) solid var(--border);
+}
+
+[data-layout="wide"] .workspace-surface > .surface-header,
+[data-layout="compact"] .workspace-surface > .surface-header {
+  display: grid;
+}
+
+[data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) {
+  display: none;
+}
+
+[data-layout="compact"] .workspace-surface {
+  position: fixed;
+  z-index: 36;
+  top: var(--ui-surface-header-height-compact);
+  bottom: var(--ui-control-height);
+  width: var(--compact-drawer-width, var(--ui-surface-compact-drawer-width));
+  max-height: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  --ui-surface-border-top: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-right: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-bottom: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-left: var(--ui-border-width) solid var(--border);
+  --ui-surface-radius-top-left: var(--ui-radius-panel);
+  --ui-surface-radius-top-right: var(--ui-radius-panel);
+  --ui-surface-radius-bottom-right: var(--ui-radius-panel);
+  --ui-surface-radius-bottom-left: var(--ui-radius-panel);
+  --ui-surface-shadow: var(--control-shadow);
+}
+
+[data-layout="compact"] :is(.surface-map, .surface-create) {
+  right: auto;
+  left: var(--ui-space-2);
+  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
+}
+
+[data-layout="compact"] .surface-editor {
+  right: var(--ui-space-2);
+  left: auto;
+  transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
+}
+
+[data-layout="compact"] :is(.surface-map.mobile-open, .surface-editor.mobile-open),
+body.create-menu-open [data-layout="compact"] .surface-create {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+[data-layout="mobile"] .workspace-surface {
+  position: fixed;
+  z-index: 100;
+  top: auto;
+  right: 0;
+  bottom: var(--mobile-nav-height);
+  left: 0;
+  width: 100%;
+  height: var(--sheet-height, 60dvh);
+  max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height));
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(calc(100% + var(--ui-surface-mobile-hidden-offset)));
+  --ui-surface-border-top: var(--ui-border-width) solid var(--border);
+  --ui-surface-radius-top-left: var(--ui-radius-sheet);
+  --ui-surface-radius-top-right: var(--ui-radius-sheet);
+  --ui-surface-shadow: var(--control-shadow);
+}
+
+[data-layout="mobile"] .workspace-surface.mobile-open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+[data-layout="mobile"] .surface-header {
+  display: grid;
+  flex-basis: var(--ui-surface-header-height-mobile);
+  min-height: var(--ui-surface-header-height-mobile);
+  padding-block:
+    calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2))
+    var(--ui-space-2);
+  touch-action: none;
+  cursor: ns-resize;
+}
+
+[data-layout="mobile"] .surface-header .sheet-close-btn {
+  display: none;
+}
+
+[data-layout="mobile"] .surface-header .sheet-drag-handle {
+  display: grid;
+}
