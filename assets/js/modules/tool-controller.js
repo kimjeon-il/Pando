@@ -1,5 +1,6 @@
 export const TOOL_DEFINITIONS = Object.freeze({
   select: Object.freeze({ label: '국가 선택', task: '지도 편집', stage: '작업 진행', cursor: 'select' }),
+  move: Object.freeze({ label: '이동', task: '지도 이동', stage: '탐색', cursor: 'select' }),
   'new-country': Object.freeze({ label: '국가 추가', task: '국가 추가', cursor: 'phased', special: true, draftPhase: 'line', draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),
   'annex-territory': Object.freeze({ label: '영토 편입', task: '영토 편입', cursor: 'phased', special: true, draftPhase: 'line', draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),
   'merge-country': Object.freeze({ label: '국가 합병', task: '국가 합병', stage: '대상 국가 선택', cursor: 'country', special: true }),

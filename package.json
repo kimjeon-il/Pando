@@ -1,6 +1,6 @@
 {
   "name": "pandolab",
-  "version": "0.31.0",
+  "version": "0.32.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.19.0",
@@ -30,7 +30,8 @@
     "check:versioning": "eslint assets/js/modules/version-contract.js assets/js/modules/project-migrations.js assets/js/modules/exchange-adapter-registry.js assets/js/modules/import-plan.js assets/js/modules/import-service.js assets/js/modules/project-state.js assets/js/modules/project-serializer.js scripts/generate-build-metadata.mjs scripts/check-version.mjs scripts/check-version-architecture.mjs tests/unit/project-migrations.test.mjs tests/unit/exchange-adapter-registry.test.mjs tests/unit/project-state.test.mjs tests/unit/project-serializer.test.mjs tests/unit/import-service.test.mjs && node scripts/check-version.mjs && node scripts/check-version-architecture.mjs && node --test tests/unit/project-migrations.test.mjs tests/unit/exchange-adapter-registry.test.mjs tests/unit/project-state.test.mjs tests/unit/project-serializer.test.mjs tests/unit/import-service.test.mjs && python -m unittest tests/test_v0307_current_schema.py",
     "check:workers": "eslint assets/js/modules/worker-rpc.js assets/js/modules/worker-rpc-pool.js assets/js/modules/worker-job-scheduler.js assets/js/modules/map-edit-worker-client.js assets/js/workers/worker-rpc-host.js assets/js/workers/gpu-mesh-worker.js assets/js/workers/geometry-validation-worker.js assets/js/workers/river-territory-partition-worker.js scripts/check-worker-architecture.mjs tests/unit/worker-rpc.test.mjs tests/unit/worker-rpc-pool.test.mjs tests/unit/worker-job-scheduler.test.mjs tests/unit/map-edit-worker-client.test.mjs && node scripts/check-worker-architecture.mjs && node --test tests/unit/worker-rpc.test.mjs tests/unit/worker-rpc-pool.test.mjs tests/unit/worker-job-scheduler.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/import-service.test.mjs",
     "check:renderer-v2": "eslint assets/js/modules/gpu-stroke-renderer.js assets/js/modules/renderer-v2-contract.js scripts/check-renderer-v2.mjs tests/unit/gpu-stroke-renderer.test.mjs tests/unit/renderer-v2.test.mjs && node scripts/check-renderer-v2.mjs && node --test tests/unit/gpu-stroke-renderer.test.mjs tests/unit/renderer-v2.test.mjs tests/unit/selection-architecture.test.mjs tests/unit/render-scene.test.mjs tests/unit/map-render-coordinator.test.mjs",
-    "check:architecture": "node scripts/check-runtime-boundaries.mjs && pnpm check:commands && pnpm check:provenance && pnpm check:versioning && pnpm check:workers && pnpm check:renderer-v2",
+    "check:domains": "eslint assets/js/modules/project-domain.js assets/js/modules/selection-domain.js assets/js/modules/rendering-domain.js assets/js/modules/gis-domain.js assets/js/modules/editing-domain.js tests/unit/domain-split-contract.test.mjs && node --test tests/unit/domain-split-contract.test.mjs",
+    "check:architecture": "node scripts/check-runtime-boundaries.mjs && pnpm check:commands && pnpm check:provenance && pnpm check:versioning && pnpm check:workers && pnpm check:renderer-v2 && pnpm check:domains",
     "test:python": "python -m unittest discover -s tests -p \"test_*.py\"",
     "test:unit": "node --test \"tests/unit/*.test.mjs\"",
     "test:browser": "playwright test",

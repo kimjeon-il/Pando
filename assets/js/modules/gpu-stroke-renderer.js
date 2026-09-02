@@ -1,5 +1,8 @@
 import { isRenderDevice } from './render-device.js';
 import { createGpuResourceBudget } from './gpu-resource-budget.js';
+import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from './gpu-blend-utils.js';
+import { linkGpuProgram } from './gpu-shader-utils.js';
+import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 import { RENDERER_V2_STROKE_QUALITY } from './renderer-v2-contract.js';
 
 const FLOATS_PER_INSTANCE = 10;
@@ -27,48 +30,15 @@ export const GPU_STROKE_NODE_KINDS = Object.freeze({
   END_CAP: 3,
 });
 
-function colorRgb(value) {
-  const match = /^#([0-9a-f]{6})$/i.exec(String(value || ''));
-  if (!match) return [0, 0, 0];
-  const packed = Number.parseInt(match[1], 16);
-  return [(packed >> 16 & 255) / 255, (packed >> 8 & 255) / 255, (packed & 255) / 255];
-}
-
 function pointEquals(left, right, epsilon = CHAIN_EPSILON) {
   return !!left && !!right
     && Math.abs(Number(left[0]) - Number(right[0])) <= epsilon
     && Math.abs(Number(left[1]) - Number(right[1])) <= epsilon;
 }
 
-function compileShader(gl, type, source) {
-  const shader = gl.createShader(type);
-  if (!shader) throw new Error('stroke shader allocation failed');
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const message = gl.getShaderInfoLog(shader) || 'stroke shader compile failed';
-    gl.deleteShader(shader);
-    throw new Error(message);
-  }
-  return shader;
-}
-
 function linkProgram(device, vertexSource, fragmentSource, attributeNames, uniformNames) {
   const { gl } = device;
-  const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
-  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
-  const program = gl.createProgram();
-  if (!program) throw new Error('stroke program allocation failed');
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const message = gl.getProgramInfoLog(program) || 'stroke program link failed';
-    gl.deleteProgram(program);
-    throw new Error(message);
-  }
+  const program = linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'stroke' });
   const attributes = Object.freeze(Object.fromEntries(attributeNames.map(name => [name, gl.getAttribLocation(program, name)])));
   const uniforms = Object.freeze(Object.fromEntries(uniformNames.map(name => [name, gl.getUniformLocation(program, name)])));
   return Object.freeze({ program, attributes, uniforms });
@@ -214,7 +184,7 @@ function createPrograms(device) {
   const segmentSources = segmentProgramSources(device.version);
   const roundSources = roundProgramSources(device.version);
   const bevelSources = bevelProgramSources(device.version);
-  const viewUniforms = ['uViewport', 'uTranslate', 'uScale', 'uRowX', 'uRowY', 'uRowZ', 'uFlatCenter', 'uWorldOffset', 'uMode'];
+  const viewUniforms = GPU_VIEW_UNIFORM_NAMES;
   return Object.freeze({
     segment: linkProgram(device, segmentSources.vertex, segmentSources.fragment,
       ['aCorner', 'aPrevious', 'aSegment', 'aNext', 'aMeta'],
@@ -474,22 +444,7 @@ export function createGpuStrokeRenderer({ onError = null, aaRadiusPx = DEFAULT_A
   }
 
   function setViewUniforms(programInfo, frameContext, worldOffset) {
-    const uniforms = programInfo.uniforms;
-    gl.uniform2f(uniforms.uViewport, frameContext.viewport[0], frameContext.viewport[1]);
-    gl.uniform2f(uniforms.uTranslate, frameContext.translate[0], frameContext.translate[1]);
-    gl.uniform1f(uniforms.uScale, frameContext.scale);
-    gl.uniform3fv(uniforms.uRowX, frameContext.rowX);
-    gl.uniform3fv(uniforms.uRowY, frameContext.rowY);
-    gl.uniform3fv(uniforms.uRowZ, frameContext.rowZ);
-    gl.uniform2f(uniforms.uFlatCenter, frameContext.flatCenter[0], frameContext.flatCenter[1]);
-    gl.uniform1f(uniforms.uWorldOffset, worldOffset);
-    gl.uniform1i(uniforms.uMode, frameContext.mode);
-  }
-
-  function applyBlendMode(mode) {
-    gl.enable(gl.BLEND);
-    if (mode === 'multiply') gl.blendFuncSeparate(gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    else gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    return setGpuViewUniforms(gl, { frameContext, worldOffset, getLocation: name => programInfo.uniforms[name] });
   }
 
   function bindStaticAttribute(buffer, location, size) {
@@ -541,7 +496,7 @@ export function createGpuStrokeRenderer({ onError = null, aaRadiusPx = DEFAULT_A
   }
 
   function applyCommonStyleUniforms(programInfo, style) {
-    const [red, green, blue] = colorRgb(style.color);
+    const [red, green, blue] = parseGpuColor(style.color);
     const alpha = Math.max(0, Math.min(1, Number(style.alpha ?? 1)));
     const width = Math.max(0.25, Number(style.width || 1));
     if (programInfo.uniforms.uHalfWidth) gl.uniform1f(programInfo.uniforms.uHalfWidth, width / 2);
@@ -824,7 +779,7 @@ export function createGpuStrokeRenderer({ onError = null, aaRadiusPx = DEFAULT_A
       try {
         resourceBudget.touch(key, batch?.priority);
         const style = batch.style || {};
-        applyBlendMode(batch.blendMode || style.blendMode);
+        applyGpuBlendMode(gl, batch.blendMode || style.blendMode);
         let completedDraws = 0;
         if (style.casing?.width > style.width && style.casing.alpha > 0) {
           completedDraws += drawStyle(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, batch.ownerIds);
@@ -846,7 +801,7 @@ export function createGpuStrokeRenderer({ onError = null, aaRadiusPx = DEFAULT_A
         onError?.({ stage: 'gpu-stroke-draw', key, error });
       }
     }
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    resetGpuNormalBlend(gl);
     drawMs += performance.now() - started;
     return Object.freeze({
       succeeded: missingKeys.length === 0,

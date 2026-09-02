@@ -2,6 +2,9 @@ import { createRenderDevice } from './render-device.js';
 import { createSceneColorCache } from './scene-color-cache.js';
 import { createGpuPolygonOverlayPass } from './gpu-polygon-overlay-pass.js';
 import { createGpuStrokeRenderer } from './gpu-stroke-renderer.js';
+import { resetGpuNormalBlend } from './gpu-blend-utils.js';
+import { linkGpuProgram } from './gpu-shader-utils.js';
+import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 import { isRenderScene } from './render-scene.js';
 import {
   createLatestWorkerJobScheduler,
@@ -901,33 +904,8 @@ export function createGpuMapRenderer(deps) {
         gl_FragColor = vec4(mod(id, 256.0), mod(floor(id / 256.0), 256.0), mod(floor(id / 65536.0), 256.0), 255.0) / 255.0;
       }`;
 
-    function compileShader(type, source) {
-      const shader = gl.createShader(type);
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        const message = gl.getShaderInfoLog(shader) || 'shader compile failed';
-        gl.deleteShader(shader);
-        throw new Error(message);
-      }
-      return shader;
-    }
-
     function createProgram(vertexSource, fragmentSource) {
-      const program = gl.createProgram();
-      const vertex = compileShader(gl.VERTEX_SHADER, vertexSource);
-      const fragment = compileShader(gl.FRAGMENT_SHADER, fragmentSource);
-      gl.attachShader(program, vertex);
-      gl.attachShader(program, fragment);
-      gl.linkProgram(program);
-      gl.deleteShader(vertex);
-      gl.deleteShader(fragment);
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        const message = gl.getProgramInfoLog(program) || 'program link failed';
-        gl.deleteProgram(program);
-        throw new Error(message);
-      }
-      return program;
+      return linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'map' });
     }
 
     function cachedUniformLocation(program, name) {
@@ -1044,7 +1022,7 @@ export function createGpuMapRenderer(deps) {
         glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
         glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1,
       );
-      const viewUniforms = ['uViewport', 'uTranslate', 'uScale', 'uRowX', 'uRowY', 'uRowZ', 'uFlatCenter', 'uWorldOffset', 'uMode'];
+      const viewUniforms = GPU_VIEW_UNIFORM_NAMES;
       for (const program of [fillProgram, landMaskProgram, lineProgram, pickProgram, terrainProgram, hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram]) {
         primeProgramLocations(program, viewUniforms);
       }
@@ -1080,8 +1058,7 @@ export function createGpuMapRenderer(deps) {
       overrideCountryBuffer = gl.createBuffer();
       overrideFillIndexBuffer = gl.createBuffer();
       overrideLineIndexBuffer = gl.createBuffer();
-      gl.enable(gl.BLEND);
-      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      resetGpuNormalBlend(gl);
       gl.disable(gl.DEPTH_TEST);
       pickFramebuffer = null;
       pickTexture = null;
@@ -2103,15 +2080,11 @@ export function createGpuMapRenderer(deps) {
     }
 
     function setViewUniforms(program, worldOffset = 0, frameContext = activeFrameContext || createFrameContext()) {
-      gl.uniform2f(cachedUniformLocation(program, 'uViewport'), frameContext.viewport[0], frameContext.viewport[1]);
-      gl.uniform2f(cachedUniformLocation(program, 'uTranslate'), frameContext.translate[0], frameContext.translate[1]);
-      gl.uniform1f(cachedUniformLocation(program, 'uScale'), frameContext.scale);
-      gl.uniform3fv(cachedUniformLocation(program, 'uRowX'), frameContext.rowX);
-      gl.uniform3fv(cachedUniformLocation(program, 'uRowY'), frameContext.rowY);
-      gl.uniform3fv(cachedUniformLocation(program, 'uRowZ'), frameContext.rowZ);
-      gl.uniform2f(cachedUniformLocation(program, 'uFlatCenter'), frameContext.flatCenter[0], frameContext.flatCenter[1]);
-      gl.uniform1f(cachedUniformLocation(program, 'uWorldOffset'), worldOffset);
-      gl.uniform1i(cachedUniformLocation(program, 'uMode'), frameContext.mode);
+      return setGpuViewUniforms(gl, {
+        frameContext,
+        worldOffset,
+        getLocation: name => cachedUniformLocation(program, name),
+      });
     }
 
     function resize() {
@@ -3568,8 +3541,7 @@ export function createGpuMapRenderer(deps) {
         renderTerrain();
       }
       flushPaletteUpdates();
-      gl.enable(gl.BLEND);
-      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      resetGpuNormalBlend(gl);
       if (state.layerVisibility.countries) {
         drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
         if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture);
@@ -3651,8 +3623,7 @@ export function createGpuMapRenderer(deps) {
       if (countryStateFillProgram && countryStateQuadBuffer && ensureCountryIdScene()) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, pixelWidth, pixelHeight);
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        resetGpuNormalBlend(gl);
         gl.useProgram(countryStateFillProgram);
         const position = cachedAttributeLocation(countryStateFillProgram, 'aPosition');
         gl.bindBuffer(gl.ARRAY_BUFFER, countryStateQuadBuffer);
@@ -3671,8 +3642,7 @@ export function createGpuMapRenderer(deps) {
         performanceMetrics.countryStateCompositeMs += performance.now() - compositeStartedAt;
         return;
       }
-      gl.enable(gl.BLEND);
-      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      resetGpuNormalBlend(gl);
       const baseRanges = countryTriangleRanges(mesh, meshCountryIds, 'base');
       const visibleBaseRanges = [...emphasizedIds]
         .filter(id => !countryOverrideIds.has(id) && !geometryRevisionTracker.isPending(id) && isCountryVisibleById(id))

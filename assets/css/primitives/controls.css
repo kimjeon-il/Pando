@@ -1,0 +1,246 @@
+/* Canonical UI v2 primitive controls. Feature styles may position these
+   controls, but they do not redefine their visual language. */
+
+.ui-icon {
+  width: var(--ui-v2-icon-size);
+  height: var(--ui-v2-icon-size);
+  display: block;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--ui-v2-icon-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Projection glyphs are the only intentionally larger common icons. */
+.projection-btn .ui-icon {
+  width: var(--ui-v2-projection-icon-size);
+  height: var(--ui-v2-projection-icon-size);
+}
+
+:where(.ui-button) {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  min-height: var(--ui-v2-control-md);
+  margin: 0;
+  padding: 0 var(--ui-v2-control-padding-x);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-v2-radius-md);
+  background: var(--ui-control-bg);
+  color: var(--ui-control-text);
+  font: var(--ui-v2-weight-semibold) var(--ui-v2-font-sm) / var(--ui-v2-line-tight) var(--ui-v2-font-family);
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: none;
+  transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease, box-shadow .14s ease;
+}
+
+:where(.ui-button):focus-visible {
+  outline: 2px solid var(--ui-v2-color-focus-ring);
+  outline-offset: var(--ui-v2-focus-offset);
+}
+
+:where(.ui-button):active:not(:disabled) { transform: none; }
+:where(.ui-button):disabled { cursor: not-allowed; opacity: .48; }
+
+.ui-button:is(.btn, .file-menu-btn, .create-menu-btn, .mode-primary-btn) {
+  min-height: var(--ui-v2-control-md);
+}
+
+.ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) {
+  width: var(--ui-v2-control-md);
+  min-width: var(--ui-v2-control-md);
+  height: var(--ui-v2-control-md);
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+}
+
+.ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) .ui-icon {
+  width: var(--ui-v2-icon-size);
+  height: var(--ui-v2-icon-size);
+}
+
+.ui-button.compact:is(.icon-btn, .ui-icon-button),
+.ui-button:is(.mode-task-minimize-btn, .mode-task-close-btn) {
+  width: var(--ui-v2-control-sm);
+  min-width: var(--ui-v2-control-sm);
+  min-height: var(--ui-v2-control-sm);
+  height: var(--ui-v2-control-sm);
+}
+
+:where(.ui-button):hover:not(:disabled) {
+  border-color: var(--ui-control-border-hover);
+  background: var(--ui-control-bg-hover);
+  color: var(--text-strong);
+}
+
+:where(.ui-button):active:not(:disabled) { background: var(--ui-control-bg-pressed); }
+
+.ui-button:is(.btn:not(.ghost), .file-menu-btn, .create-menu-btn, .mode-primary-btn) {
+  border-color: var(--accent-border);
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+.ui-button:is(.btn:not(.ghost), .file-menu-btn, .create-menu-btn, .mode-primary-btn):hover:not(:disabled),
+.ui-button:is(.btn:not(.ghost), .file-menu-btn, .create-menu-btn, .mode-primary-btn):active:not(:disabled) {
+  border-color: var(--accent-border);
+  background: var(--accent-surface-hover);
+  color: var(--accent-text);
+}
+
+/* Fields keep a 30px control boundary on desktop. */
+:where(.field-group, .ui-field, .gis-form-grid) :where(
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  textarea,
+  select
+):not(.ui-native-select),
+.ui-select-control,
+.ui-search-field {
+  min-height: var(--ui-v2-control-md);
+  height: var(--ui-v2-control-md);
+  font-size: var(--ui-v2-font-md);
+}
+
+.ui-search-field > input[type="search"] { height: 100%; }
+
+/* Text areas retain their content-driven height while sharing the same
+   minimum control rhythm. */
+:where(.field-group, .ui-field, .gis-form-grid) textarea {
+  height: auto;
+  min-height: var(--ui-v2-control-md);
+}
+
+/* A toggle is a compact visual control inside a larger labelled hit area. */
+.ui-toggle {
+  min-height: var(--ui-v2-touch-height);
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-toggle > input[type="checkbox"] {
+  position: relative;
+  width: var(--ui-v2-toggle-width);
+  min-width: var(--ui-v2-toggle-width);
+  height: var(--ui-v2-toggle-height);
+  min-height: var(--ui-v2-toggle-height);
+  border: 0;
+  border-radius: var(--ui-v2-radius-pill);
+  background: var(--border-strong);
+  color: var(--accent-text);
+  box-shadow: none;
+  transition: background-color .14s ease, opacity .14s ease;
+}
+
+.ui-toggle > input[type="checkbox"]::before {
+  width: var(--ui-v2-toggle-thumb-size);
+  height: var(--ui-v2-toggle-thumb-size);
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  transform: translate(2px, 0);
+  transition: transform .14s ease;
+}
+
+.ui-toggle > input[type="checkbox"]:checked {
+  border: 0;
+  background: var(--accent);
+}
+
+.ui-toggle > input[type="checkbox"]:checked::before {
+  transform: translate(calc(var(--ui-v2-toggle-width) - var(--ui-v2-toggle-thumb-size) - 2px), 0);
+}
+
+.ui-toggle > input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--ui-v2-color-focus-ring);
+  outline-offset: var(--ui-v2-focus-offset);
+}
+
+/* Destructive intent is reserved for the final confirmation action. */
+.danger-btn,
+.danger-ghost,
+.mode-draft-action-btn.danger,
+.editor-object-delete,
+.object-actions-delete {
+  border-color: var(--ui-control-border);
+  background: var(--ui-control-bg);
+  color: var(--ui-control-text);
+}
+
+.danger-btn:hover:not(:disabled),
+.danger-ghost:hover:not(:disabled),
+.mode-draft-action-btn.danger:hover:not(:disabled),
+.editor-object-delete:hover:not(:disabled),
+.object-actions-delete:hover:not(:disabled) {
+  border-color: var(--ui-control-border-hover);
+  background: var(--ui-control-bg-hover);
+  color: var(--text-strong);
+}
+.danger-btn:active:not(:disabled),
+.danger-ghost:active:not(:disabled),
+.mode-draft-action-btn.danger:active:not(:disabled),
+.editor-object-delete:active:not(:disabled),
+.object-actions-delete:active:not(:disabled) {
+  border-color: var(--ui-control-border);
+  background: var(--ui-control-bg-pressed);
+  color: var(--ui-control-text);
+}
+
+.confirm-modal-actions .danger-confirm,
+.confirm-modal-actions .danger-confirm:hover:not(:disabled),
+.confirm-modal-actions .danger-confirm:focus-visible:not(:disabled) {
+  border-color: var(--danger-border);
+  background: var(--danger-surface);
+  color: var(--danger-text);
+}
+
+@media (max-width: 799px) {
+  .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) {
+    width: var(--ui-touch-height);
+    min-width: var(--ui-touch-height);
+    height: var(--ui-touch-height);
+  }
+
+  .ui-toggle > input[type="checkbox"] {
+    width: var(--ui-v2-toggle-mobile-width);
+    min-width: var(--ui-v2-toggle-mobile-width);
+    height: var(--ui-v2-toggle-mobile-height);
+    min-height: var(--ui-v2-toggle-mobile-height);
+  }
+
+  .ui-toggle > input[type="checkbox"]::before { transform: translate(2px, 0); }
+  .ui-toggle > input[type="checkbox"]:checked::before { transform: translate(16px, 0); }
+
+  :where(.field-group, .ui-field, .gis-form-grid) :where(
+    input[type="text"],
+    input[type="search"],
+    input[type="number"],
+    textarea,
+    select
+  ):not(.ui-native-select),
+  .ui-select-control,
+  .ui-search-field {
+    min-height: var(--ui-v2-control-mobile-height);
+    height: var(--ui-v2-control-mobile-height);
+    font-size: var(--ui-v2-font-md);
+  }
+
+  :where(.field-group, .ui-field):has(> :is(input, textarea, select, .ui-select-shell, .ui-search-field)) {
+    min-height: var(--ui-v2-touch-height);
+    align-content: center;
+  }
+
+  :where(.field-group, .ui-field, .gis-form-grid) textarea {
+    height: auto;
+    min-height: var(--ui-v2-control-mobile-height);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-button,
+  .ui-toggle > input[type="checkbox"] { transition: none; }
+}

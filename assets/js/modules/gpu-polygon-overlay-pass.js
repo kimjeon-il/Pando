@@ -1,25 +1,8 @@
 import { isRenderDevice } from './render-device.js';
 import { createGpuResourceBudget } from './gpu-resource-budget.js';
-
-function colorRgb(value) {
-  const match = /^#([0-9a-f]{6})$/i.exec(String(value || ''));
-  if (!match) return [0, 0, 0];
-  const packed = Number.parseInt(match[1], 16);
-  return [(packed >> 16 & 255) / 255, (packed >> 8 & 255) / 255, (packed & 255) / 255];
-}
-
-function compileShader(gl, type, source) {
-  const shader = gl.createShader(type);
-  if (!shader) throw new Error('polygon overlay shader allocation failed');
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const message = gl.getShaderInfoLog(shader) || 'polygon overlay shader compile failed';
-    gl.deleteShader(shader);
-    throw new Error(message);
-  }
-  return shader;
-}
+import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from './gpu-blend-utils.js';
+import { linkGpuProgram } from './gpu-shader-utils.js';
+import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 
 function createProgram(device) {
   const { gl, version } = device;
@@ -51,25 +34,12 @@ function createProgram(device) {
     : `precision mediump float;precision highp int;
     uniform int uMode;uniform vec4 uColor;varying float vDepth;
     void main(){if(uMode==0&&vDepth<0.0)discard;gl_FragColor=uColor;}`;
-  const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
-  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
-  const program = gl.createProgram();
-  if (!program) throw new Error('polygon overlay program allocation failed');
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const message = gl.getProgramInfoLog(program) || 'polygon overlay program link failed';
-    gl.deleteProgram(program);
-    throw new Error(message);
-  }
+  const program = linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'polygon overlay' });
   return Object.freeze({
     program,
     coord: gl.getAttribLocation(program, 'aCoord'),
     uniforms: Object.freeze(Object.fromEntries([
-      'uViewport', 'uTranslate', 'uScale', 'uRowX', 'uRowY', 'uRowZ', 'uFlatCenter', 'uWorldOffset', 'uMode', 'uColor',
+      ...GPU_VIEW_UNIFORM_NAMES, 'uColor',
     ].map(name => [name, gl.getUniformLocation(program, name)]))),
   });
 }
@@ -182,22 +152,7 @@ export function createGpuPolygonOverlayPass({ onError = null } = {}) {
   }
 
   function setViewUniforms(frameContext, worldOffset) {
-    const uniforms = programInfo.uniforms;
-    gl.uniform2f(uniforms.uViewport, frameContext.viewport[0], frameContext.viewport[1]);
-    gl.uniform2f(uniforms.uTranslate, frameContext.translate[0], frameContext.translate[1]);
-    gl.uniform1f(uniforms.uScale, frameContext.scale);
-    gl.uniform3fv(uniforms.uRowX, frameContext.rowX);
-    gl.uniform3fv(uniforms.uRowY, frameContext.rowY);
-    gl.uniform3fv(uniforms.uRowZ, frameContext.rowZ);
-    gl.uniform2f(uniforms.uFlatCenter, frameContext.flatCenter[0], frameContext.flatCenter[1]);
-    gl.uniform1f(uniforms.uWorldOffset, worldOffset);
-    gl.uniform1i(uniforms.uMode, frameContext.mode);
-  }
-
-  function applyBlendMode(mode) {
-    gl.enable(gl.BLEND);
-    if (mode === 'multiply') gl.blendFuncSeparate(gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    else gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    return setGpuViewUniforms(gl, { frameContext, worldOffset, getLocation: name => programInfo.uniforms[name] });
   }
 
   function drawPackets(packets = [], frameContext, { styleByKey = null } = {}) {
@@ -221,13 +176,13 @@ export function createGpuPolygonOverlayPass({ onError = null } = {}) {
       try {
         resourceBudget.touch(key, packet?.priority);
         const style = styleByKey?.get?.(key) || packet.style || {};
-        const [red, green, blue] = colorRgb(style.color);
+        const [red, green, blue] = parseGpuColor(style.color);
         const alpha = Math.max(0, Math.min(1, Number(style.fillAlpha ?? style.alpha ?? 1)));
         if (alpha <= 0) {
           if (key) renderedKeys.push(key);
           continue;
         }
-        applyBlendMode(packet.blendMode || style.blendMode);
+        applyGpuBlendMode(gl, packet.blendMode || style.blendMode);
         gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
         gl.bindBuffer(gl.ARRAY_BUFFER, resource.positionBuffer);
         gl.enableVertexAttribArray(programInfo.coord);
@@ -247,7 +202,7 @@ export function createGpuPolygonOverlayPass({ onError = null } = {}) {
         onError?.({ stage: 'gpu-polygon-draw', key, error });
       }
     }
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    resetGpuNormalBlend(gl);
     drawMs += performance.now() - started;
     return Object.freeze({
       succeeded: missingKeys.length === 0,
@@ -279,9 +234,9 @@ export function createGpuPolygonOverlayPass({ onError = null } = {}) {
       try {
         resourceBudget.touch(key, item?.priority);
         const style = item.style || {};
-        const [red, green, blue] = colorRgb(style.color);
+        const [red, green, blue] = parseGpuColor(style.color);
         const alpha = Math.max(0, Math.min(1, Number(style.fillAlpha ?? style.alpha ?? 1)));
-        applyBlendMode(item.blendMode || style.blendMode);
+        applyGpuBlendMode(gl, item.blendMode || style.blendMode);
         gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
         gl.bindBuffer(gl.ARRAY_BUFFER, resource.positionBuffer);
         gl.enableVertexAttribArray(programInfo.coord);
@@ -301,7 +256,7 @@ export function createGpuPolygonOverlayPass({ onError = null } = {}) {
         onError?.({ stage: 'gpu-polygon-interaction-draw', key, error });
       }
     }
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    resetGpuNormalBlend(gl);
     drawMs += performance.now() - started;
     return Object.freeze({ succeeded: missingKeys.length === 0, renderedKeys: Object.freeze(renderedKeys), missingKeys: Object.freeze(missingKeys) });
   }

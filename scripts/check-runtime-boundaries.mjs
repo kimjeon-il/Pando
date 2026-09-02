@@ -57,16 +57,39 @@ const domFreeModules = [
   'scene-color-cache.js',
   'gpu-polygon-overlay-pass.js',
   'gpu-stroke-renderer.js',
-  'selection-coverage.js',
   'selection-packet.js',
   'selection-pass.js',
   'selection-stroke-geometry.js',
+  'project-domain.js',
+  'selection-domain.js',
+  'gis-domain.js',
+  'editing-domain.js',
 ];
 for (const name of domFreeModules) {
   const source = sourceByFile.get(path.join(modulesDirectory, name));
   if (!source) throw new Error(`Missing runtime boundary module: ${name}`);
   for (const token of ['document.', 'querySelector(', 'getElementById(']) {
     if (source.includes(token)) throw new Error(`${name} must remain DOM-free: ${token}`);
+  }
+}
+
+const domainContracts = new Map([
+  ['project-domain.js', 'createProjectDomain'],
+  ['selection-domain.js', 'createSelectionDomain'],
+  ['gis-domain.js', 'createGisDomain'],
+  ['editing-domain.js', 'createEditingDomain'],
+  ['rendering-domain.js', 'createRenderingDomain'],
+]);
+for (const [name, factory] of domainContracts) {
+  const source = sourceByFile.get(path.join(modulesDirectory, name));
+  if (!source || !new RegExp(`export\\s+function\\s+${factory}\\b`).test(source)) {
+    throw new Error(`${name} must expose ${factory} as its domain boundary`);
+  }
+}
+for (const name of ['project-domain.js', 'selection-domain.js', 'gis-domain.js', 'editing-domain.js']) {
+  const source = sourceByFile.get(path.join(modulesDirectory, name)) || '';
+  for (const token of ['document.', 'window.', 'getContext(', 'createElement(']) {
+    if (source.includes(token)) throw new Error(`${name} must remain platform-free: ${token}`);
   }
 }
 

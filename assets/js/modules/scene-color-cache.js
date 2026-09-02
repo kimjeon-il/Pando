@@ -1,17 +1,5 @@
 import { isRenderDevice } from './render-device.js';
-
-function compileShader(gl, type, source) {
-  const shader = gl.createShader(type);
-  if (!shader) throw new Error('scene cache shader allocation failed');
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const message = gl.getShaderInfoLog(shader) || 'scene cache shader compile failed';
-    gl.deleteShader(shader);
-    throw new Error(message);
-  }
-  return shader;
-}
+import { linkGpuProgram } from './gpu-shader-utils.js';
 
 function createCompositeProgram(device) {
   const { gl, version } = device;
@@ -34,20 +22,7 @@ function createCompositeProgram(device) {
     uniform sampler2D uScene;
     varying vec2 vUv;
     void main(){gl_FragColor=texture2D(uScene,vUv);}`;
-  const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
-  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
-  const program = gl.createProgram();
-  if (!program) throw new Error('scene cache program allocation failed');
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const message = gl.getProgramInfoLog(program) || 'scene cache program link failed';
-    gl.deleteProgram(program);
-    throw new Error(message);
-  }
+  const program = linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'scene cache' });
   return {
     program,
     position: gl.getAttribLocation(program, 'aPosition'),
