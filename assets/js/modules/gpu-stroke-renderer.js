@@ -1,15 +1,43 @@
 import { isRenderDevice } from './render-device.js';
 import { createGpuResourceBudget } from './gpu-resource-budget.js';
+import { RENDERER_V2_STROKE_QUALITY } from './renderer-v2-contract.js';
 
-const FLOATS_PER_INSTANCE = 5;
+const FLOATS_PER_INSTANCE = 10;
+const FLOATS_PER_NODE = 8;
 const VERTICES_PER_SEGMENT = 6;
-const CORNERS = new Float32Array([-1, 0, 1, 0, -1, 1, -1, 1, 1, 0, 1, 1]);
+const VERTICES_PER_ROUND_NODE = 6;
+const VERTICES_PER_BEVEL_JOIN = 3;
+const SEGMENT_CORNERS = new Float32Array([-1, 0, 1, 0, -1, 1, -1, 1, 1, 0, 1, 1]);
+const ROUND_NODE_CORNERS = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
+const BEVEL_VERTEX_IDS = new Float32Array([0, 1, 2]);
+const CHAIN_EPSILON = 1e-9;
+const DEFAULT_AA_RADIUS_PX = Number(RENDERER_V2_STROKE_QUALITY.aaRadiusPx || 1);
+
+export const GPU_STROKE_FLAGS = Object.freeze({
+  HAS_PREVIOUS: 1,
+  HAS_NEXT: 2,
+  CHAIN_START: 4,
+  CHAIN_END: 8,
+  CLOSED_CHAIN: 16,
+});
+
+export const GPU_STROKE_NODE_KINDS = Object.freeze({
+  JOIN: 1,
+  START_CAP: 2,
+  END_CAP: 3,
+});
 
 function colorRgb(value) {
   const match = /^#([0-9a-f]{6})$/i.exec(String(value || ''));
   if (!match) return [0, 0, 0];
   const packed = Number.parseInt(match[1], 16);
   return [(packed >> 16 & 255) / 255, (packed >> 8 & 255) / 255, (packed & 255) / 255];
+}
+
+function pointEquals(left, right, epsilon = CHAIN_EPSILON) {
+  return !!left && !!right
+    && Math.abs(Number(left[0]) - Number(right[0])) <= epsilon
+    && Math.abs(Number(left[1]) - Number(right[1])) <= epsilon;
 }
 
 function compileShader(gl, type, source) {
@@ -25,105 +53,326 @@ function compileShader(gl, type, source) {
   return shader;
 }
 
-function createProgram(device) {
-  const { gl, version } = device;
-  const vertexSource = version === 2 ? `#version 300 es
-    precision highp float;precision highp int;
-    layout(location=0) in vec2 aCorner;layout(location=1) in vec4 aSegment;layout(location=2) in float aPhase;
-    uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
-    uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uFlatCenter;
-    uniform float uWorldOffset;uniform int uMode;uniform float uHalfWidth;uniform int uRoundCap;
-    out float vDepth;out float vAlong;out float vAcross;out float vSegmentLength;out float vLocalAlong;
-    vec3 project(vec2 coord){float lon=coord.x*0.017453292519943;float lat=coord.y*0.017453292519943;vec2 p;float depth;
-      if(uMode==0){vec3 q=vec3(cos(lat)*cos(lon),cos(lat)*sin(lon),sin(lat));p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));depth=dot(uRowZ,q);}
-      else{p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(lat-uFlatCenter.y));depth=1.0;}return vec3(p,depth);}
-    void main(){vec3 start=project(aSegment.xy);vec3 end=project(aSegment.zw);vec2 direction=end.xy-start.xy;float lengthPx=max(length(direction),0.0001);direction/=lengthPx;
-      float side=aCorner.x;float endpoint=aCorner.y;vec2 normal=vec2(-direction.y,direction.x);float cap=uRoundCap==1?uHalfWidth:0.0;
-      float local=mix(-cap,lengthPx+cap,endpoint);vec2 p=start.xy+direction*local+normal*side*uHalfWidth;
-      vDepth=mix(start.z,end.z,endpoint);vAlong=aPhase+max(0.0,min(lengthPx,local));vAcross=side*uHalfWidth;vSegmentLength=lengthPx;vLocalAlong=local;
-      gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);}`
-    : `precision highp float;precision highp int;
-    attribute vec2 aCorner;attribute vec4 aSegment;attribute float aPhase;
-    uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uFlatCenter;
-    uniform float uWorldOffset;uniform int uMode;uniform float uHalfWidth;uniform int uRoundCap;
-    varying float vDepth;varying float vAlong;varying float vAcross;varying float vSegmentLength;varying float vLocalAlong;
-    vec3 project(vec2 coord){float lon=coord.x*0.017453292519943;float lat=coord.y*0.017453292519943;vec2 p;float depth;
-      if(uMode==0){vec3 q=vec3(cos(lat)*cos(lon),cos(lat)*sin(lon),sin(lat));p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));depth=dot(uRowZ,q);}
-      else{p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(lat-uFlatCenter.y));depth=1.0;}return vec3(p,depth);}
-    void main(){vec3 start=project(aSegment.xy);vec3 end=project(aSegment.zw);vec2 direction=end.xy-start.xy;float lengthPx=max(length(direction),0.0001);direction/=lengthPx;
-      float side=aCorner.x;float endpoint=aCorner.y;vec2 normal=vec2(-direction.y,direction.x);float cap=uRoundCap==1?uHalfWidth:0.0;
-      float local=mix(-cap,lengthPx+cap,endpoint);vec2 p=start.xy+direction*local+normal*side*uHalfWidth;
-      vDepth=mix(start.z,end.z,endpoint);vAlong=aPhase+max(0.0,min(lengthPx,local));vAcross=side*uHalfWidth;vSegmentLength=lengthPx;vLocalAlong=local;
-      gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);}`;
-  const fragmentSource = version === 2 ? `#version 300 es
-    precision highp float;precision highp int;
-    uniform int uMode;uniform int uRoundCap;uniform float uHalfWidth;uniform vec2 uDash;uniform vec4 uColor;
-    in float vDepth;in float vAlong;in float vAcross;in float vSegmentLength;in float vLocalAlong;out vec4 outColor;
-    void main(){if(uMode==0&&vDepth<0.0)discard;float period=uDash.x+uDash.y;if(uDash.x>0.0&&uDash.y>0.0&&mod(vAlong,max(1.0,period))>uDash.x)discard;
-      if(uRoundCap==1){if(vLocalAlong<0.0&&length(vec2(vLocalAlong,vAcross))>uHalfWidth)discard;if(vLocalAlong>vSegmentLength&&length(vec2(vLocalAlong-vSegmentLength,vAcross))>uHalfWidth)discard;}outColor=uColor;}`
-    : `precision highp float;precision highp int;
-    uniform int uMode;uniform int uRoundCap;uniform float uHalfWidth;uniform vec2 uDash;uniform vec4 uColor;
-    varying float vDepth;varying float vAlong;varying float vAcross;varying float vSegmentLength;varying float vLocalAlong;
-    void main(){if(uMode==0&&vDepth<0.0)discard;float period=uDash.x+uDash.y;if(uDash.x>0.0&&uDash.y>0.0&&mod(vAlong,max(1.0,period))>uDash.x)discard;
-      if(uRoundCap==1){if(vLocalAlong<0.0&&length(vec2(vLocalAlong,vAcross))>uHalfWidth)discard;if(vLocalAlong>vSegmentLength&&length(vec2(vLocalAlong-vSegmentLength,vAcross))>uHalfWidth)discard;}gl_FragColor=uColor;}`;
+function linkProgram(device, vertexSource, fragmentSource, attributeNames, uniformNames) {
+  const { gl } = device;
   const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
   const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
   const program = gl.createProgram();
   if (!program) throw new Error('stroke program allocation failed');
-  gl.attachShader(program, vertex);gl.attachShader(program, fragment);gl.linkProgram(program);
-  gl.deleteShader(vertex);gl.deleteShader(fragment);
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     const message = gl.getProgramInfoLog(program) || 'stroke program link failed';
-    gl.deleteProgram(program);throw new Error(message);
+    gl.deleteProgram(program);
+    throw new Error(message);
   }
-  const attributes = Object.freeze(Object.fromEntries(['aCorner', 'aSegment', 'aPhase'].map(name => [name, gl.getAttribLocation(program, name)])));
-  const uniforms = Object.freeze(Object.fromEntries([
-    'uViewport', 'uTranslate', 'uScale', 'uRowX', 'uRowY', 'uRowZ', 'uFlatCenter', 'uWorldOffset',
-    'uMode', 'uHalfWidth', 'uRoundCap', 'uDash', 'uColor',
-  ].map(name => [name, gl.getUniformLocation(program, name)])));
+  const attributes = Object.freeze(Object.fromEntries(attributeNames.map(name => [name, gl.getAttribLocation(program, name)])));
+  const uniforms = Object.freeze(Object.fromEntries(uniformNames.map(name => [name, gl.getUniformLocation(program, name)])));
   return Object.freeze({ program, attributes, uniforms });
 }
 
-function normalizedOwnerRanges(ownerRanges, validIndices) {
-  if (!ownerRanges || typeof ownerRanges !== 'object') return Object.freeze({});
-  const ownerByInput = new Map();
-  for (const [ownerId, range] of Object.entries(ownerRanges)) {
-    const first = Math.max(0, Number(range?.first || 0));
-    const count = Math.max(0, Number(range?.count || 0));
-    for (let index = first; index < first + count; index += 1) ownerByInput.set(index, ownerId);
-  }
-  const output = {};
-  validIndices.forEach((inputIndex, outputIndex) => {
-    const ownerId = ownerByInput.get(inputIndex);
-    if (!ownerId) return;
-    const range = output[ownerId] || { first: outputIndex, count: 0 };
-    range.count += 1;output[ownerId] = range;
+function projectionSource() {
+  return `
+    vec3 projectStrokePoint(vec2 coord){
+      float lon=coord.x*0.017453292519943;float lat=coord.y*0.017453292519943;vec2 p;float depth;
+      if(uMode==0){
+        vec3 q=vec3(cos(lat)*cos(lon),cos(lat)*sin(lon),sin(lat));
+        p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));depth=dot(uRowZ,q);
+      }else{
+        p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(lat-uFlatCenter.y));depth=1.0;
+      }
+      return vec3(p,depth);
+    }
+  `;
+}
+
+function segmentProgramSources(version) {
+  const header = version === 2 ? '#version 300 es\nprecision highp float;precision highp int;' : 'precision highp float;precision highp int;';
+  const attributes = version === 2
+    ? 'in vec2 aCorner;in vec2 aPrevious;in vec4 aSegment;in vec2 aNext;in vec2 aMeta;out float vDepth;out float vAcross;out float vAlong;'
+    : 'attribute vec2 aCorner;attribute vec2 aPrevious;attribute vec4 aSegment;attribute vec2 aNext;attribute vec2 aMeta;varying float vDepth;varying float vAcross;varying float vAlong;';
+  const vertex = `${header}
+    ${attributes}
+    uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
+    uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uFlatCenter;
+    uniform float uWorldOffset;uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;uniform int uJoinMode;uniform float uMiterLimit;
+    ${projectionSource()}
+    bool hasFlag(float flags,float flag){return mod(floor(flags/flag),2.0)>0.5;}
+    vec2 safeDirection(vec2 delta){float lengthPx=length(delta);return lengthPx>0.0001?delta/lengthPx:vec2(1.0,0.0);}
+    vec2 normalFor(vec2 direction){return vec2(-direction.y,direction.x);}
+    vec2 miterOffset(vec2 incoming,vec2 outgoing,vec2 fallbackNormal,float side,float outerWidth){
+      vec2 tangent=safeDirection(incoming+outgoing);vec2 miter=normalFor(tangent);float denominator=dot(miter,fallbackNormal);
+      if(abs(denominator)<0.08)return side*fallbackNormal*outerWidth;
+      float lengthScale=outerWidth/denominator;
+      if(abs(lengthScale)>outerWidth*uMiterLimit)return side*fallbackNormal*outerWidth;
+      return side*miter*lengthScale;
+    }
+    void main(){
+      vec3 previous=projectStrokePoint(aPrevious);vec3 start=projectStrokePoint(aSegment.xy);vec3 end=projectStrokePoint(aSegment.zw);vec3 next=projectStrokePoint(aNext);
+      vec2 current=safeDirection(end.xy-start.xy);vec2 currentNormal=normalFor(current);float flags=aMeta.y;float side=aCorner.x;float endpoint=aCorner.y;
+      float outerWidth=uHalfWidth+uAaRadius;vec2 offset=side*currentNormal*outerWidth;
+      if(uJoinMode==1){
+        if(endpoint<0.5&&hasFlag(flags,1.0)){vec2 incoming=safeDirection(start.xy-previous.xy);offset=miterOffset(incoming,current,currentNormal,side,outerWidth);}
+        if(endpoint>=0.5&&hasFlag(flags,2.0)){vec2 outgoing=safeDirection(next.xy-end.xy);offset=miterOffset(current,outgoing,currentNormal,side,outerWidth);}
+      }
+      vec2 base=mix(start.xy,end.xy,endpoint);vec2 p=base+offset;
+      vDepth=mix(start.z,end.z,endpoint);vAcross=side*outerWidth;vAlong=aMeta.x+length(end.xy-start.xy)*endpoint;
+      gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);
+    }`;
+  const fragmentHeader = version === 2
+    ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;in float vAcross;in float vAlong;out vec4 outColor;'
+    : 'precision highp float;precision highp int;varying float vDepth;varying float vAcross;varying float vAlong;';
+  const output = version === 2 ? 'outColor=vec4(uColor.rgb,uColor.a*coverage);' : 'gl_FragColor=vec4(uColor.rgb,uColor.a*coverage);';
+  const fragment = `${fragmentHeader}
+    uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;uniform vec2 uDash;uniform vec4 uColor;
+    void main(){
+      if(uMode==0&&vDepth<0.0)discard;
+      float period=uDash.x+uDash.y;if(uDash.x>0.0&&uDash.y>0.0&&mod(vAlong,max(1.0,period))>uDash.x)discard;
+      float edge=uHalfWidth-abs(vAcross);float coverage=smoothstep(-uAaRadius,uAaRadius,edge);
+      if(coverage<=0.001)discard;${output}
+    }`;
+  return { vertex, fragment };
+}
+
+function roundProgramSources(version) {
+  const header = version === 2 ? '#version 300 es\nprecision highp float;precision highp int;' : 'precision highp float;precision highp int;';
+  const attributes = version === 2
+    ? 'in vec2 aCorner;in vec2 aNodePrevious;in vec2 aNodePoint;in vec2 aNodeNext;in vec2 aNodeMeta;out float vDepth;out vec2 vLocal;out vec2 vIncoming;out vec2 vOutgoing;out float vKind;'
+    : 'attribute vec2 aCorner;attribute vec2 aNodePrevious;attribute vec2 aNodePoint;attribute vec2 aNodeNext;attribute vec2 aNodeMeta;varying float vDepth;varying vec2 vLocal;varying vec2 vIncoming;varying vec2 vOutgoing;varying float vKind;';
+  const vertex = `${header}
+    ${attributes}
+    uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
+    uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uFlatCenter;
+    uniform float uWorldOffset;uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;
+    ${projectionSource()}
+    vec2 safeDirection(vec2 delta){float lengthPx=length(delta);return lengthPx>0.0001?delta/lengthPx:vec2(1.0,0.0);}
+    void main(){
+      vec3 previous=projectStrokePoint(aNodePrevious);vec3 point=projectStrokePoint(aNodePoint);vec3 next=projectStrokePoint(aNodeNext);
+      float radius=uHalfWidth+uAaRadius;vec2 local=aCorner*radius;vec2 p=point.xy+local;
+      vDepth=point.z;vLocal=local;vIncoming=safeDirection(point.xy-previous.xy);vOutgoing=safeDirection(next.xy-point.xy);vKind=aNodeMeta.y;
+      gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);
+    }`;
+  const fragmentHeader = version === 2
+    ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;in vec2 vLocal;in vec2 vIncoming;in vec2 vOutgoing;in float vKind;out vec4 outColor;'
+    : 'precision highp float;precision highp int;varying float vDepth;varying vec2 vLocal;varying vec2 vIncoming;varying vec2 vOutgoing;varying float vKind;';
+  const output = version === 2 ? 'outColor=vec4(uColor.rgb,uColor.a*coverage);' : 'gl_FragColor=vec4(uColor.rgb,uColor.a*coverage);';
+  const fragment = `${fragmentHeader}
+    uniform int uMode;uniform int uJoinMode;uniform int uRoundCap;uniform float uHalfWidth;uniform float uAaRadius;uniform vec4 uColor;
+    float cross2(vec2 left,vec2 right){return left.x*right.y-left.y*right.x;}
+    void main(){
+      if(uMode==0&&vDepth<0.0)discard;
+      bool interior=vKind<1.5;if(interior&&uJoinMode!=0)discard;if(!interior&&uRoundCap==0)discard;
+      if(interior){
+        bool insideIncoming=dot(vLocal,vIncoming)<=0.0&&abs(cross2(vIncoming,vLocal))<=uHalfWidth;
+        bool insideOutgoing=dot(vLocal,vOutgoing)>=0.0&&abs(cross2(vOutgoing,vLocal))<=uHalfWidth;
+        if(insideIncoming||insideOutgoing)discard;
+      }else if(vKind<2.5){
+        if(dot(vLocal,vOutgoing)>=0.0)discard;
+      }else{
+        if(dot(vLocal,vIncoming)<=0.0)discard;
+      }
+      float edge=uHalfWidth-length(vLocal);float coverage=smoothstep(-uAaRadius,uAaRadius,edge);
+      if(coverage<=0.001)discard;${output}
+    }`;
+  return { vertex, fragment };
+}
+
+function bevelProgramSources(version) {
+  const header = version === 2 ? '#version 300 es\nprecision highp float;precision highp int;' : 'precision highp float;precision highp int;';
+  const attributes = version === 2
+    ? 'in float aVertexId;in vec2 aNodePrevious;in vec2 aNodePoint;in vec2 aNodeNext;in vec2 aNodeMeta;out float vDepth;'
+    : 'attribute float aVertexId;attribute vec2 aNodePrevious;attribute vec2 aNodePoint;attribute vec2 aNodeNext;attribute vec2 aNodeMeta;varying float vDepth;';
+  const vertex = `${header}
+    ${attributes}
+    uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
+    uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uFlatCenter;
+    uniform float uWorldOffset;uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;
+    ${projectionSource()}
+    vec2 safeDirection(vec2 delta){float lengthPx=length(delta);return lengthPx>0.0001?delta/lengthPx:vec2(1.0,0.0);}
+    void main(){
+      vec3 previous=projectStrokePoint(aNodePrevious);vec3 point=projectStrokePoint(aNodePoint);vec3 next=projectStrokePoint(aNodeNext);
+      if(aNodeMeta.y>1.5){gl_Position=vec4(point.xy*0.0,0.0,1.0);vDepth=-1.0;return;}
+      vec2 incoming=safeDirection(point.xy-previous.xy);vec2 outgoing=safeDirection(next.xy-point.xy);float crossValue=incoming.x*outgoing.y-incoming.y*outgoing.x;
+      float side=crossValue>=0.0?-1.0:1.0;float width=uHalfWidth+uAaRadius;vec2 n0=vec2(-incoming.y,incoming.x)*side;vec2 n1=vec2(-outgoing.y,outgoing.x)*side;
+      vec2 p=aVertexId<0.5?point.xy:(aVertexId<1.5?point.xy+n0*width:point.xy+n1*width);vDepth=point.z;
+      gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);
+    }`;
+  const fragmentHeader = version === 2
+    ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;out vec4 outColor;'
+    : 'precision highp float;precision highp int;varying float vDepth;';
+  const output = version === 2 ? 'outColor=uColor;' : 'gl_FragColor=uColor;';
+  const fragment = `${fragmentHeader}
+    uniform int uMode;uniform vec4 uColor;
+    void main(){if(uMode==0&&vDepth<0.0)discard;${output}}`;
+  return { vertex, fragment };
+}
+
+function createPrograms(device) {
+  const segmentSources = segmentProgramSources(device.version);
+  const roundSources = roundProgramSources(device.version);
+  const bevelSources = bevelProgramSources(device.version);
+  const viewUniforms = ['uViewport', 'uTranslate', 'uScale', 'uRowX', 'uRowY', 'uRowZ', 'uFlatCenter', 'uWorldOffset', 'uMode'];
+  return Object.freeze({
+    segment: linkProgram(device, segmentSources.vertex, segmentSources.fragment,
+      ['aCorner', 'aPrevious', 'aSegment', 'aNext', 'aMeta'],
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uJoinMode', 'uMiterLimit', 'uDash', 'uColor']),
+    round: linkProgram(device, roundSources.vertex, roundSources.fragment,
+      ['aCorner', 'aNodePrevious', 'aNodePoint', 'aNodeNext', 'aNodeMeta'],
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uJoinMode', 'uRoundCap', 'uColor']),
+    bevel: linkProgram(device, bevelSources.vertex, bevelSources.fragment,
+      ['aVertexId', 'aNodePrevious', 'aNodePoint', 'aNodeNext', 'aNodeMeta'],
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uColor']),
   });
-  return Object.freeze(Object.fromEntries(Object.entries(output).map(([key, value]) => [key, Object.freeze(value)])));
+}
+
+function inputOwnerMap(ownerRanges) {
+  const ownerByInput = new Map();
+  if (!ownerRanges || typeof ownerRanges !== 'object') return ownerByInput;
+  for (const [ownerId, range] of Object.entries(ownerRanges)) {
+    const first = Math.max(0, Math.trunc(Number(range?.first) || 0));
+    const count = Math.max(0, Math.trunc(Number(range?.count) || 0));
+    for (let index = first; index < first + count; index += 1) ownerByInput.set(index, String(ownerId));
+  }
+  return ownerByInput;
+}
+
+function appendRange(output, ownerId, outputIndex) {
+  if (!ownerId) return;
+  const previous = output[ownerId];
+  if (!previous) output[ownerId] = { first: outputIndex, count: 1 };
+  else if (previous.first + previous.count === outputIndex) previous.count += 1;
+  else {
+    // Current public packets guarantee one contiguous range per owner. If a
+    // malformed packet violates that contract, keep the earliest range rather
+    // than accidentally drawing another owner's geometry.
+  }
+}
+
+function freezeRanges(value) {
+  return Object.freeze(Object.fromEntries(Object.entries(value).map(([key, range]) => [key, Object.freeze({ first: range.first, count: range.count })])));
+}
+
+function buildChains(segments) {
+  const chains = [];
+  let current = [];
+  for (const segment of segments) {
+    const previous = current[current.length - 1];
+    if (previous && previous.ownerId === segment.ownerId && pointEquals(previous.end, segment.start)) {
+      current.push(segment);
+    } else {
+      if (current.length) chains.push(current);
+      current = [segment];
+    }
+  }
+  if (current.length) chains.push(current);
+  return chains;
 }
 
 export function buildGpuStrokeInstances(startsEnds, chainPhase = null, ownerRanges = null) {
   const source = startsEnds instanceof Float32Array ? startsEnds : new Float32Array(startsEnds || []);
-  const values = [];const validIndices = [];let invalidSegmentCount = 0;let accumulatedPhase = 0;let previousEnd = null;
+  const ownerByInput = inputOwnerMap(ownerRanges);
+  const valid = [];
+  let invalidSegmentCount = 0;
+  let accumulatedPhase = 0;
+  let previousEnd = null;
+  let previousOwner = null;
+
   for (let offset = 0; offset + 3 < source.length; offset += 4) {
     const inputIndex = offset / 4;
-    const startLon = Number(source[offset]);const startLat = Number(source[offset + 1]);
-    const endLon = Number(source[offset + 2]);const endLat = Number(source[offset + 3]);
-    if (![startLon, startLat, endLon, endLat].every(Number.isFinite)
-      || Math.hypot(endLon - startLon, endLat - startLat) <= 1e-12) { invalidSegmentCount += 1;continue; }
-    if (!previousEnd || Math.hypot(startLon - previousEnd[0], startLat - previousEnd[1]) > 1e-9) accumulatedPhase = 0;
+    const start = [Number(source[offset]), Number(source[offset + 1])];
+    const end = [Number(source[offset + 2]), Number(source[offset + 3])];
+    const ownerId = ownerByInput.get(inputIndex) || '';
+    if (![...start, ...end].every(Number.isFinite) || pointEquals(start, end, 1e-12)) {
+      invalidSegmentCount += 1;
+      continue;
+    }
+    if (!previousEnd || !pointEquals(start, previousEnd) || ownerId !== previousOwner) accumulatedPhase = 0;
     const suppliedPhase = Number(chainPhase?.[inputIndex]);
-    values.push(startLon, startLat, endLon, endLat, Number.isFinite(suppliedPhase) ? suppliedPhase : accumulatedPhase);
-    accumulatedPhase += Math.hypot(endLon - startLon, endLat - startLat);previousEnd = [endLon, endLat];validIndices.push(inputIndex);
+    const phase = Number.isFinite(suppliedPhase) ? suppliedPhase : accumulatedPhase;
+    valid.push({ inputIndex, ownerId, start, end, phase });
+    accumulatedPhase = phase + Math.hypot(end[0] - start[0], end[1] - start[1]);
+    previousEnd = end;
+    previousOwner = ownerId;
   }
+
+  const values = [];
+  const nodes = [];
+  const segmentRanges = {};
+  const nodeRanges = {};
+  let joinCount = 0;
+  let capCount = 0;
+  let closedChainCount = 0;
+
+  const appendNode = (previous, point, next, phase, kind, ownerId) => {
+    const outputIndex = nodes.length / FLOATS_PER_NODE;
+    nodes.push(previous[0], previous[1], point[0], point[1], next[0], next[1], Number(phase || 0), Number(kind));
+    appendRange(nodeRanges, ownerId, outputIndex);
+    if (kind === GPU_STROKE_NODE_KINDS.JOIN) joinCount += 1;
+    else capCount += 1;
+  };
+
+  for (const chain of buildChains(valid)) {
+    const closed = chain.length > 1 && pointEquals(chain[0].start, chain[chain.length - 1].end);
+    if (closed) closedChainCount += 1;
+    for (let index = 0; index < chain.length; index += 1) {
+      const segment = chain[index];
+      const previousSegment = index > 0 ? chain[index - 1] : (closed ? chain[chain.length - 1] : null);
+      const nextSegment = index + 1 < chain.length ? chain[index + 1] : (closed ? chain[0] : null);
+      let flags = 0;
+      if (previousSegment) flags |= GPU_STROKE_FLAGS.HAS_PREVIOUS;
+      if (nextSegment) flags |= GPU_STROKE_FLAGS.HAS_NEXT;
+      if (!previousSegment) flags |= GPU_STROKE_FLAGS.CHAIN_START;
+      if (!nextSegment) flags |= GPU_STROKE_FLAGS.CHAIN_END;
+      if (closed) flags |= GPU_STROKE_FLAGS.CLOSED_CHAIN;
+      const previousPoint = previousSegment ? previousSegment.start : segment.start;
+      const nextPoint = nextSegment ? nextSegment.end : segment.end;
+      const outputIndex = values.length / FLOATS_PER_INSTANCE;
+      values.push(
+        previousPoint[0], previousPoint[1],
+        segment.start[0], segment.start[1], segment.end[0], segment.end[1],
+        nextPoint[0], nextPoint[1], segment.phase, flags,
+      );
+      appendRange(segmentRanges, segment.ownerId, outputIndex);
+    }
+
+    if (closed) {
+      for (let index = 0; index < chain.length; index += 1) {
+        const current = chain[index];
+        const previous = chain[(index - 1 + chain.length) % chain.length];
+        appendNode(previous.start, current.start, current.end, current.phase, GPU_STROKE_NODE_KINDS.JOIN, current.ownerId);
+      }
+    } else {
+      const first = chain[0];
+      appendNode(first.start, first.start, first.end, first.phase, GPU_STROKE_NODE_KINDS.START_CAP, first.ownerId);
+      for (let index = 1; index < chain.length; index += 1) {
+        const previous = chain[index - 1];
+        const current = chain[index];
+        appendNode(previous.start, current.start, current.end, current.phase, GPU_STROKE_NODE_KINDS.JOIN, current.ownerId);
+      }
+      const last = chain[chain.length - 1];
+      appendNode(last.start, last.end, last.end, last.phase, GPU_STROKE_NODE_KINDS.END_CAP, last.ownerId);
+    }
+  }
+
   return Object.freeze({
-    instances: new Float32Array(values),segmentCount: validIndices.length,invalidSegmentCount,
-    ownerRanges: normalizedOwnerRanges(ownerRanges, validIndices),
+    instances: new Float32Array(values),
+    nodes: new Float32Array(nodes),
+    segmentCount: values.length / FLOATS_PER_INSTANCE,
+    nodeCount: nodes.length / FLOATS_PER_NODE,
+    joinCount,
+    capCount,
+    closedChainCount,
+    invalidSegmentCount,
+    ownerRanges: freezeRanges(segmentRanges),
+    ownerNodeRanges: freezeRanges(nodeRanges),
   });
 }
 
-export function resolveGpuStrokeRanges(resource, ownerIds = null) {
-  const instanceCount = Math.max(0, Math.trunc(Number(resource?.instanceCount) || 0));
+export function resolveGpuStrokeRanges(resource, ownerIds = null, rangeProperty = 'ownerRanges', countProperty = 'instanceCount') {
+  const instanceCount = Math.max(0, Math.trunc(Number(resource?.[countProperty]) || 0));
   if (!instanceCount) return Object.freeze([]);
   if (!Array.isArray(ownerIds)) return Object.freeze([Object.freeze({ first: 0, count: instanceCount })]);
   const seen = new Set();
@@ -132,7 +381,7 @@ export function resolveGpuStrokeRanges(resource, ownerIds = null) {
     const key = String(ownerId || '');
     if (!key || seen.has(key)) continue;
     seen.add(key);
-    const source = resource?.ownerRanges?.[key];
+    const source = resource?.[rangeProperty]?.[key];
     const first = Math.max(0, Math.trunc(Number(source?.first) || 0));
     const count = Math.max(0, Math.trunc(Number(source?.count) || 0));
     if (!count || first >= instanceCount) continue;
@@ -141,19 +390,48 @@ export function resolveGpuStrokeRanges(resource, ownerIds = null) {
   return Object.freeze(ranges);
 }
 
-// Compatibility export for geometry-level callers; GPU upload is instanced.
 export const buildGpuStrokeRibbon = buildGpuStrokeInstances;
 
-export function createGpuStrokeRenderer({ onError = null } = {}) {
-  let device = null;let gl = null;let programInfo = null;let cornerBuffer = null;let instancing = null;
+function joinModeValue(join) {
+  if (join === 'miter') return 1;
+  if (join === 'bevel') return 2;
+  return 0;
+}
+
+export function createGpuStrokeRenderer({ onError = null, aaRadiusPx = DEFAULT_AA_RADIUS_PX } = {}) {
+  let device = null;
+  let gl = null;
+  let programs = null;
+  let segmentCornerBuffer = null;
+  let roundCornerBuffer = null;
+  let bevelVertexBuffer = null;
+  let instancing = null;
   const resources = new Map();
   const resourceBudget = createGpuResourceBudget();
-  let contextLost = false;let gpuHealth = 'unchecked';let selfTestPassed = false;
-  let selfTestCount = 0;let selfTestMs = 0;let selfTestFailureReason = '';
-  let uploadBytes = 0;let buildCount = 0;let buildMs = 0;let drawCount = 0;let drawCallCount = 0;let drawMs = 0;
-  let cacheHits = 0;let cacheMisses = 0;let failureCount = 0;let lastFailureStage = '';
+  let contextLost = false;
+  let gpuHealth = 'unchecked';
+  let selfTestPassed = false;
+  let selfTestCount = 0;
+  let selfTestMs = 0;
+  let selfTestFailureReason = '';
+  let uploadBytes = 0;
+  let buildCount = 0;
+  let buildMs = 0;
+  let drawCount = 0;
+  let drawCallCount = 0;
+  let drawMs = 0;
+  let cacheHits = 0;
+  let cacheMisses = 0;
+  let failureCount = 0;
+  let lastFailureStage = '';
+  let topologyJoinCount = 0;
+  let topologyCapCount = 0;
+  let topologyClosedChainCount = 0;
+  let topologyInvalidSegmentCount = 0;
+  const aaRadius = Math.max(0.5, Math.min(2, Number(aaRadiusPx) || DEFAULT_AA_RADIUS_PX));
 
   const setDivisor = (location, value) => {
+    if (location < 0) return;
     if (device.version === 2) gl.vertexAttribDivisor(location, value);
     else instancing.vertexAttribDivisorANGLE(location, value);
   };
@@ -164,40 +442,48 @@ export function createGpuStrokeRenderer({ onError = null } = {}) {
 
   function captureState() {
     return {
-      framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING),viewport: Array.from(gl.getParameter(gl.VIEWPORT)),
-      program: gl.getParameter(gl.CURRENT_PROGRAM),arrayBuffer: gl.getParameter(gl.ARRAY_BUFFER_BINDING),
-      activeTexture: gl.getParameter(gl.ACTIVE_TEXTURE),texture: gl.getParameter(gl.TEXTURE_BINDING_2D),
-      blend: gl.isEnabled(gl.BLEND),depth: gl.isEnabled(gl.DEPTH_TEST),cull: gl.isEnabled(gl.CULL_FACE),scissor: gl.isEnabled(gl.SCISSOR_TEST),
-      colorMask: Array.from(gl.getParameter(gl.COLOR_WRITEMASK)),clearColor: Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE)),
+      framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING),
+      viewport: Array.from(gl.getParameter(gl.VIEWPORT)),
+      program: gl.getParameter(gl.CURRENT_PROGRAM),
+      arrayBuffer: gl.getParameter(gl.ARRAY_BUFFER_BINDING),
+      activeTexture: gl.getParameter(gl.ACTIVE_TEXTURE),
+      texture: gl.getParameter(gl.TEXTURE_BINDING_2D),
+      blend: gl.isEnabled(gl.BLEND),
+      depth: gl.isEnabled(gl.DEPTH_TEST),
+      cull: gl.isEnabled(gl.CULL_FACE),
+      scissor: gl.isEnabled(gl.SCISSOR_TEST),
+      colorMask: Array.from(gl.getParameter(gl.COLOR_WRITEMASK)),
+      clearColor: Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE)),
     };
   }
 
   function restoreState(state) {
     const enabled = (cap, value) => value ? gl.enable(cap) : gl.disable(cap);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);gl.viewport(...state.viewport);gl.useProgram(state.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, state.arrayBuffer);gl.activeTexture(state.activeTexture);gl.bindTexture(gl.TEXTURE_2D, state.texture);
-    enabled(gl.BLEND, state.blend);enabled(gl.DEPTH_TEST, state.depth);enabled(gl.CULL_FACE, state.cull);enabled(gl.SCISSOR_TEST, state.scissor);
-    gl.colorMask(...state.colorMask);gl.clearColor(...state.clearColor);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);
+    gl.viewport(...state.viewport);
+    gl.useProgram(state.program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, state.arrayBuffer);
+    gl.activeTexture(state.activeTexture);
+    gl.bindTexture(gl.TEXTURE_2D, state.texture);
+    enabled(gl.BLEND, state.blend);
+    enabled(gl.DEPTH_TEST, state.depth);
+    enabled(gl.CULL_FACE, state.cull);
+    enabled(gl.SCISSOR_TEST, state.scissor);
+    gl.colorMask(...state.colorMask);
+    gl.clearColor(...state.clearColor);
   }
 
-  function bindGeometry(resource, firstInstance = 0) {
-    const { aCorner, aSegment, aPhase } = programInfo.attributes;
-    gl.bindBuffer(gl.ARRAY_BUFFER, cornerBuffer);gl.enableVertexAttribArray(aCorner);gl.vertexAttribPointer(aCorner, 2, gl.FLOAT, false, 0, 0);setDivisor(aCorner, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, resource.buffer);const stride = FLOATS_PER_INSTANCE * Float32Array.BYTES_PER_ELEMENT;const baseOffset = firstInstance * stride;
-    gl.enableVertexAttribArray(aSegment);gl.vertexAttribPointer(aSegment, 4, gl.FLOAT, false, stride, baseOffset);setDivisor(aSegment, 1);
-    gl.enableVertexAttribArray(aPhase);gl.vertexAttribPointer(aPhase, 1, gl.FLOAT, false, stride, baseOffset + 4 * Float32Array.BYTES_PER_ELEMENT);setDivisor(aPhase, 1);
-    return [aCorner, aSegment, aPhase];
-  }
-
-  function releaseAttributes(locations) {
-    for (const location of locations) { setDivisor(location, 0);gl.disableVertexAttribArray(location); }
-  }
-
-  function setViewUniforms(frameContext, worldOffset) {
+  function setViewUniforms(programInfo, frameContext, worldOffset) {
     const uniforms = programInfo.uniforms;
-    gl.uniform2f(uniforms.uViewport, frameContext.viewport[0], frameContext.viewport[1]);gl.uniform2f(uniforms.uTranslate, frameContext.translate[0], frameContext.translate[1]);
-    gl.uniform1f(uniforms.uScale, frameContext.scale);gl.uniform3fv(uniforms.uRowX, frameContext.rowX);gl.uniform3fv(uniforms.uRowY, frameContext.rowY);gl.uniform3fv(uniforms.uRowZ, frameContext.rowZ);
-    gl.uniform2f(uniforms.uFlatCenter, frameContext.flatCenter[0], frameContext.flatCenter[1]);gl.uniform1f(uniforms.uWorldOffset, worldOffset);gl.uniform1i(uniforms.uMode, frameContext.mode);
+    gl.uniform2f(uniforms.uViewport, frameContext.viewport[0], frameContext.viewport[1]);
+    gl.uniform2f(uniforms.uTranslate, frameContext.translate[0], frameContext.translate[1]);
+    gl.uniform1f(uniforms.uScale, frameContext.scale);
+    gl.uniform3fv(uniforms.uRowX, frameContext.rowX);
+    gl.uniform3fv(uniforms.uRowY, frameContext.rowY);
+    gl.uniform3fv(uniforms.uRowZ, frameContext.rowZ);
+    gl.uniform2f(uniforms.uFlatCenter, frameContext.flatCenter[0], frameContext.flatCenter[1]);
+    gl.uniform1f(uniforms.uWorldOffset, worldOffset);
+    gl.uniform1i(uniforms.uMode, frameContext.mode);
   }
 
   function applyBlendMode(mode) {
@@ -206,47 +492,237 @@ export function createGpuStrokeRenderer({ onError = null } = {}) {
     else gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   }
 
-  function drawStyle(resource, style, frameContext, ownerIds = null) {
-    const [red, green, blue] = colorRgb(style.color);const alpha = Math.max(0, Math.min(1, Number(style.alpha ?? 1)));const width = Math.max(0.25, Number(style.width || 1));
-    gl.uniform1f(programInfo.uniforms.uHalfWidth, width / 2);gl.uniform1i(programInfo.uniforms.uRoundCap, style.cap === 'butt' ? 0 : 1);
-    gl.uniform2f(programInfo.uniforms.uDash, Math.max(0, Number(style.dash?.[0]) || 0), Math.max(0, Number(style.dash?.[1]) || 0));gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
+  function bindStaticAttribute(buffer, location, size) {
+    if (location < 0) return;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, size, gl.FLOAT, false, 0, 0);
+    setDivisor(location, 0);
+  }
+
+  function bindInstancedAttribute(buffer, location, size, stride, offset) {
+    if (location < 0) return;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, size, gl.FLOAT, false, stride, offset);
+    setDivisor(location, 1);
+  }
+
+  function releaseAttributes(locations) {
+    for (const location of locations) {
+      if (location < 0) continue;
+      setDivisor(location, 0);
+      gl.disableVertexAttribArray(location);
+    }
+  }
+
+  function bindSegmentGeometry(resource, firstInstance = 0) {
+    const attributes = programs.segment.attributes;
+    const stride = FLOATS_PER_INSTANCE * Float32Array.BYTES_PER_ELEMENT;
+    const baseOffset = firstInstance * stride;
+    bindStaticAttribute(segmentCornerBuffer, attributes.aCorner, 2);
+    bindInstancedAttribute(resource.segmentBuffer, attributes.aPrevious, 2, stride, baseOffset);
+    bindInstancedAttribute(resource.segmentBuffer, attributes.aSegment, 4, stride, baseOffset + 2 * Float32Array.BYTES_PER_ELEMENT);
+    bindInstancedAttribute(resource.segmentBuffer, attributes.aNext, 2, stride, baseOffset + 6 * Float32Array.BYTES_PER_ELEMENT);
+    bindInstancedAttribute(resource.segmentBuffer, attributes.aMeta, 2, stride, baseOffset + 8 * Float32Array.BYTES_PER_ELEMENT);
+    return Object.values(attributes);
+  }
+
+  function bindNodeGeometry(programInfo, staticBuffer, staticAttributeName, resource, firstInstance = 0) {
+    const attributes = programInfo.attributes;
+    const stride = FLOATS_PER_NODE * Float32Array.BYTES_PER_ELEMENT;
+    const baseOffset = firstInstance * stride;
+    bindStaticAttribute(staticBuffer, attributes[staticAttributeName], 1 + Number(staticAttributeName === 'aCorner'));
+    bindInstancedAttribute(resource.nodeBuffer, attributes.aNodePrevious, 2, stride, baseOffset);
+    bindInstancedAttribute(resource.nodeBuffer, attributes.aNodePoint, 2, stride, baseOffset + 2 * Float32Array.BYTES_PER_ELEMENT);
+    bindInstancedAttribute(resource.nodeBuffer, attributes.aNodeNext, 2, stride, baseOffset + 4 * Float32Array.BYTES_PER_ELEMENT);
+    bindInstancedAttribute(resource.nodeBuffer, attributes.aNodeMeta, 2, stride, baseOffset + 6 * Float32Array.BYTES_PER_ELEMENT);
+    return Object.values(attributes);
+  }
+
+  function applyCommonStyleUniforms(programInfo, style) {
+    const [red, green, blue] = colorRgb(style.color);
+    const alpha = Math.max(0, Math.min(1, Number(style.alpha ?? 1)));
+    const width = Math.max(0.25, Number(style.width || 1));
+    if (programInfo.uniforms.uHalfWidth) gl.uniform1f(programInfo.uniforms.uHalfWidth, width / 2);
+    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, aaRadius);
+    if (programInfo.uniforms.uColor) gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
+    return { width, alpha };
+  }
+
+  function drawSegments(resource, style, frameContext, ownerIds) {
+    const programInfo = programs.segment;
+    gl.useProgram(programInfo.program);
+    applyCommonStyleUniforms(programInfo, style);
+    gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
+    gl.uniform1f(programInfo.uniforms.uMiterLimit, Math.max(1, Number(style.miterLimit) || 4));
+    gl.uniform2f(programInfo.uniforms.uDash, Math.max(0, Number(style.dash?.[0]) || 0), Math.max(0, Number(style.dash?.[1]) || 0));
     const ranges = resolveGpuStrokeRanges(resource, ownerIds);
     let completedDraws = 0;
     for (const range of ranges) {
-      const locations = bindGeometry(resource, range.first);
+      const locations = bindSegmentGeometry(resource, range.first);
       for (const worldOffset of frameContext.worldOffsets || [0]) {
-        setViewUniforms(frameContext, worldOffset);drawInstanced(VERTICES_PER_SEGMENT, range.count);drawCallCount += 1;completedDraws += 1;
+        setViewUniforms(programInfo, frameContext, worldOffset);
+        drawInstanced(VERTICES_PER_SEGMENT, range.count);
+        drawCallCount += 1;
+        completedDraws += 1;
       }
       releaseAttributes(locations);
     }
     return completedDraws;
   }
 
-  function runSelfTest() {
-    const started = performance.now();selfTestCount += 1;let saved = null;let texture = null;let framebuffer = null;let buffer = null;
+  function drawRoundNodes(resource, style, frameContext, ownerIds) {
+    if (!resource.nodeCount) return 0;
+    const programInfo = programs.round;
+    gl.useProgram(programInfo.program);
+    applyCommonStyleUniforms(programInfo, style);
+    gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
+    gl.uniform1i(programInfo.uniforms.uRoundCap, style.cap === 'round' ? 1 : 0);
+    const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
+    let completedDraws = 0;
+    for (const range of ranges) {
+      const locations = bindNodeGeometry(programInfo, roundCornerBuffer, 'aCorner', resource, range.first);
+      for (const worldOffset of frameContext.worldOffsets || [0]) {
+        setViewUniforms(programInfo, frameContext, worldOffset);
+        drawInstanced(VERTICES_PER_ROUND_NODE, range.count);
+        drawCallCount += 1;
+        completedDraws += 1;
+      }
+      releaseAttributes(locations);
+    }
+    return completedDraws;
+  }
+
+  function drawBevelJoins(resource, style, frameContext, ownerIds) {
+    if (!resource.nodeCount || style.join === 'round') return 0;
+    const programInfo = programs.bevel;
+    gl.useProgram(programInfo.program);
+    applyCommonStyleUniforms(programInfo, style);
+    const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
+    let completedDraws = 0;
+    for (const range of ranges) {
+      const locations = bindNodeGeometry(programInfo, bevelVertexBuffer, 'aVertexId', resource, range.first);
+      for (const worldOffset of frameContext.worldOffsets || [0]) {
+        setViewUniforms(programInfo, frameContext, worldOffset);
+        drawInstanced(VERTICES_PER_BEVEL_JOIN, range.count);
+        drawCallCount += 1;
+        completedDraws += 1;
+      }
+      releaseAttributes(locations);
+    }
+    return completedDraws;
+  }
+
+  function drawStyle(resource, style, frameContext, ownerIds = null) {
+    let draws = drawSegments(resource, style, frameContext, ownerIds);
+    draws += drawRoundNodes(resource, style, frameContext, ownerIds);
+    draws += drawBevelJoins(resource, style, frameContext, ownerIds);
+    return draws;
+  }
+
+  function createBuffer(data) {
+    const buffer = gl.createBuffer();
+    if (!buffer) throw new Error('stroke buffer allocation failed');
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    return buffer;
+  }
+
+  function createGpuResource(key, signature, geometry) {
+    const segmentBuffer = createBuffer(geometry.instances);
+    let nodeBuffer = null;
     try {
-      if (!gl || !programInfo || !cornerBuffer || !instancing) throw new Error('shader-program-unavailable');
-      saved = captureState();texture = gl.createTexture();framebuffer = gl.createFramebuffer();buffer = gl.createBuffer();
-      if (!texture || !framebuffer || !buffer) throw new Error('framebuffer-incomplete');
-      gl.bindTexture(gl.TEXTURE_2D, texture);gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('framebuffer-incomplete');
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-0.5, 0, 0.5, 0, 0]), gl.STATIC_DRAW);
-      gl.viewport(0, 0, 16, 16);gl.disable(gl.BLEND);gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.SCISSOR_TEST);
-      gl.colorMask(true, true, true, true);gl.clearColor(0, 0, 0, 0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(programInfo.program);
-      drawStyle({ buffer, instanceCount: 1, ownerRanges: {} }, { color: '#ffffff', alpha: 1, width: 3, cap: 'butt', dash: [0, 0] }, {
-        viewport: [16, 16],translate: [8, 8],scale: 500,rowX: [1, 0, 0],rowY: [0, 1, 0],rowZ: [0, 0, 1],flatCenter: [0, 0],mode: 1,worldOffsets: [0],
-      });
-      const pixels = new Uint8Array(16 * 16 * 4);gl.readPixels(0, 0, 16, 16, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-      if (!pixels.some((value, index) => index % 4 === 3 && value > 0)) throw new Error('zero-alpha-output');
-      selfTestPassed = true;gpuHealth = 'healthy';selfTestFailureReason = '';return true;
+      nodeBuffer = geometry.nodeCount ? createBuffer(geometry.nodes) : null;
     } catch (error) {
-      selfTestPassed = false;gpuHealth = contextLost ? 'context-lost' : 'unhealthy';selfTestFailureReason = error?.message || 'draw-failed';failureCount += 1;lastFailureStage = 'self-test';
-      onError?.({ stage: 'gpu-stroke-self-test', error });return false;
+      gl.deleteBuffer(segmentBuffer);
+      throw error;
+    }
+    return Object.freeze({
+      key,
+      signature,
+      buffer: segmentBuffer,
+      segmentBuffer,
+      nodeBuffer,
+      instanceCount: geometry.segmentCount,
+      nodeCount: geometry.nodeCount,
+      joinCount: geometry.joinCount,
+      capCount: geometry.capCount,
+      closedChainCount: geometry.closedChainCount,
+      invalidSegmentCount: geometry.invalidSegmentCount,
+      ownerRanges: geometry.ownerRanges,
+      ownerNodeRanges: geometry.ownerNodeRanges,
+      byteLength: geometry.instances.byteLength + geometry.nodes.byteLength,
+    });
+  }
+
+  function deleteGpuResource(resource) {
+    if (!resource || !gl || gl.isContextLost?.()) return;
+    if (resource.segmentBuffer) gl.deleteBuffer(resource.segmentBuffer);
+    if (resource.nodeBuffer) gl.deleteBuffer(resource.nodeBuffer);
+  }
+
+  function runSelfTest() {
+    const started = performance.now();
+    selfTestCount += 1;
+    let saved = null;
+    let texture = null;
+    let framebuffer = null;
+    let resource = null;
+    try {
+      if (!gl || !programs || !segmentCornerBuffer || !roundCornerBuffer || !bevelVertexBuffer || !instancing) throw new Error('shader-program-unavailable');
+      saved = captureState();
+      texture = gl.createTexture();
+      framebuffer = gl.createFramebuffer();
+      if (!texture || !framebuffer) throw new Error('framebuffer-incomplete');
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('framebuffer-incomplete');
+      const geometry = buildGpuStrokeInstances(new Float32Array([-0.5, 0, 0, 0, 0, 0, 0.5, 0]));
+      resource = createGpuResource('self-test', 'self-test', geometry);
+      gl.viewport(0, 0, 16, 16);
+      gl.disable(gl.BLEND);
+      gl.disable(gl.DEPTH_TEST);
+      gl.disable(gl.CULL_FACE);
+      gl.disable(gl.SCISSOR_TEST);
+      gl.colorMask(true, true, true, true);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      drawStyle(resource, { color: '#ffffff', alpha: 1, width: 3, cap: 'round', join: 'round', dash: [0, 0], miterLimit: 4 }, {
+        viewport: [16, 16], translate: [8, 8], scale: 500,
+        rowX: [1, 0, 0], rowY: [0, 1, 0], rowZ: [0, 0, 1], flatCenter: [0, 0], mode: 1, worldOffsets: [0],
+      });
+      const pixels = new Uint8Array(16 * 16 * 4);
+      gl.readPixels(0, 0, 16, 16, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      if (!pixels.some((value, index) => index % 4 === 3 && value > 0)) throw new Error('zero-alpha-output');
+      selfTestPassed = true;
+      gpuHealth = 'healthy';
+      selfTestFailureReason = '';
+      return true;
+    } catch (error) {
+      selfTestPassed = false;
+      gpuHealth = contextLost ? 'context-lost' : 'unhealthy';
+      selfTestFailureReason = error?.message || 'draw-failed';
+      failureCount += 1;
+      lastFailureStage = 'self-test';
+      onError?.({ stage: 'gpu-stroke-self-test', error });
+      return false;
     } finally {
-      try { if (buffer) gl?.deleteBuffer?.(buffer);if (framebuffer) gl?.deleteFramebuffer?.(framebuffer);if (texture) gl?.deleteTexture?.(texture);if (saved) restoreState(saved); }
-      catch (error) { selfTestPassed = false;gpuHealth = 'unhealthy';selfTestFailureReason = 'state-restore-failed';onError?.({ stage: 'gpu-stroke-self-test-restore', error }); }
+      try {
+        deleteGpuResource(resource);
+        if (framebuffer) gl?.deleteFramebuffer?.(framebuffer);
+        if (texture) gl?.deleteTexture?.(texture);
+        if (saved) restoreState(saved);
+      } catch (error) {
+        selfTestPassed = false;
+        gpuHealth = 'unhealthy';
+        selfTestFailureReason = 'state-restore-failed';
+        onError?.({ stage: 'gpu-stroke-self-test-restore', error });
+      }
       selfTestMs += performance.now() - started;
     }
   }
@@ -254,99 +730,231 @@ export function createGpuStrokeRenderer({ onError = null } = {}) {
   function initialize(nextDevice) {
     dispose();
     if (!isRenderDevice(nextDevice) || !nextDevice.capabilities.instancing) return false;
-    device = nextDevice;gl = nextDevice.gl;instancing = nextDevice.version === 2 ? gl : gl.getExtension('ANGLE_instanced_arrays');
+    device = nextDevice;
+    gl = nextDevice.gl;
+    instancing = nextDevice.version === 2 ? gl : gl.getExtension('ANGLE_instanced_arrays');
     try {
-      programInfo = createProgram(nextDevice);cornerBuffer = gl.createBuffer();if (!cornerBuffer || !instancing) throw new Error('stroke instancing unavailable');
-      gl.bindBuffer(gl.ARRAY_BUFFER, cornerBuffer);gl.bufferData(gl.ARRAY_BUFFER, CORNERS, gl.STATIC_DRAW);contextLost = false;return runSelfTest();
-    } catch (error) { failureCount += 1;lastFailureStage = 'initialize';onError?.({ stage: 'gpu-stroke-initialize', error });return false; }
+      programs = createPrograms(nextDevice);
+      segmentCornerBuffer = createBuffer(SEGMENT_CORNERS);
+      roundCornerBuffer = createBuffer(ROUND_NODE_CORNERS);
+      bevelVertexBuffer = createBuffer(BEVEL_VERTEX_IDS);
+      if (!instancing) throw new Error('stroke instancing unavailable');
+      contextLost = false;
+      return runSelfTest();
+    } catch (error) {
+      failureCount += 1;
+      lastFailureStage = 'initialize';
+      onError?.({ stage: 'gpu-stroke-initialize', error });
+      return false;
+    }
   }
 
   const resourceSignature = packet => `${String(packet?.key || '')}:${String(packet?.geometryRevision ?? 0)}:${String(packet?.lod || 'high')}`;
 
   function deleteResource(key) {
-    const normalized = String(key || '');const resource = resources.get(normalized);if (!resource) return false;
-    if (gl && !gl.isContextLost?.()) gl.deleteBuffer(resource.buffer);
-    resources.delete(normalized);resourceBudget.remove(normalized);return true;
+    const normalized = String(key || '');
+    const resource = resources.get(normalized);
+    if (!resource) return false;
+    deleteGpuResource(resource);
+    resources.delete(normalized);
+    resourceBudget.remove(normalized);
+    return true;
   }
 
   function ensureResource(packet) {
     const key = String(packet?.key || '');
-    if (!key || !gl || !programInfo || contextLost || gpuHealth !== 'healthy') return { resource: null, reason: 'unavailable' };
-    const signature = resourceSignature(packet);const previous = resources.get(key);
-    if (previous?.signature === signature) { cacheHits += 1;resourceBudget.touch(key, packet?.priority);return { resource: previous, reason: '' }; }
-    const started = performance.now();let buffer = null;
+    if (!key || !gl || !programs || contextLost || gpuHealth !== 'healthy') return { resource: null, reason: 'unavailable' };
+    const signature = resourceSignature(packet);
+    const previous = resources.get(key);
+    if (previous?.signature === signature) {
+      cacheHits += 1;
+      resourceBudget.touch(key, packet?.priority);
+      return { resource: previous, reason: '' };
+    }
+    const started = performance.now();
+    let resource = null;
     try {
       const geometry = buildGpuStrokeInstances(packet.startsEnds, packet.chainPhase, packet.ownerRanges);
       if (!geometry.segmentCount) return { resource: null, reason: 'empty-geometry' };
-      buffer = gl.createBuffer();if (!buffer) throw new Error('stroke buffer allocation failed');gl.bindBuffer(gl.ARRAY_BUFFER, buffer);gl.bufferData(gl.ARRAY_BUFFER, geometry.instances, gl.STATIC_DRAW);
-      const resource = Object.freeze({ key, signature, buffer, instanceCount: geometry.segmentCount, ownerRanges: geometry.ownerRanges, byteLength: geometry.instances.byteLength });
-      if (previous?.buffer) { gl.deleteBuffer(previous.buffer);resourceBudget.remove(key); }resources.set(key, resource);resourceBudget.track(key, geometry.instances.byteLength, packet?.priority);uploadBytes += geometry.instances.byteLength;buildCount += 1;cacheMisses += 1;return { resource, reason: '' };
+      resource = createGpuResource(key, signature, geometry);
+      if (previous) {
+        deleteGpuResource(previous);
+        resourceBudget.remove(key);
+      }
+      resources.set(key, resource);
+      resourceBudget.track(key, resource.byteLength, packet?.priority);
+      uploadBytes += resource.byteLength;
+      buildCount += 1;
+      cacheMisses += 1;
+      topologyJoinCount += geometry.joinCount;
+      topologyCapCount += geometry.capCount;
+      topologyClosedChainCount += geometry.closedChainCount;
+      topologyInvalidSegmentCount += geometry.invalidSegmentCount;
+      return { resource, reason: '' };
     } catch (error) {
-      if (buffer) gl.deleteBuffer(buffer);failureCount += 1;lastFailureStage = 'buffer-build';onError?.({ stage: 'gpu-stroke-buffer-build', key, error });return { resource: null, reason: error?.message || 'buffer-build-failed' };
-    } finally { buildMs += performance.now() - started; }
+      deleteGpuResource(resource);
+      failureCount += 1;
+      lastFailureStage = 'buffer-build';
+      onError?.({ stage: 'gpu-stroke-buffer-build', key, error });
+      return { resource: null, reason: error?.message || 'buffer-build-failed' };
+    } finally {
+      buildMs += performance.now() - started;
+    }
   }
 
   function drawBatches(batches = [], frameContext) {
-    const started = performance.now();drawCount += 1;const renderedKeys = [];const missingKeys = [];const failures = [];
-    if (!gl || !programInfo || contextLost || gpuHealth !== 'healthy' || gl.isContextLost?.() || !frameContext) {
+    const started = performance.now();
+    drawCount += 1;
+    const renderedKeys = [];
+    const missingKeys = [];
+    const failures = [];
+    if (!gl || !programs || contextLost || gpuHealth !== 'healthy' || gl.isContextLost?.() || !frameContext) {
       return Object.freeze({ succeeded: false, renderedKeys, missingKeys: batches.map(batch => String(batch?.key || '')).filter(Boolean), failures });
     }
-    gl.useProgram(programInfo.program);gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE);
     for (const batch of batches) {
-      const key = String(batch?.key || '');const { resource, reason } = ensureResource(batch);
-      if (!resource) { if (key) missingKeys.push(key);failures.push({ key, reason });continue; }
+      const key = String(batch?.key || '');
+      const { resource, reason } = ensureResource(batch);
+      if (!resource) {
+        if (key) missingKeys.push(key);
+        failures.push({ key, reason });
+        continue;
+      }
       try {
         resourceBudget.touch(key, batch?.priority);
-        const style = batch.style || {};applyBlendMode(batch.blendMode || style.blendMode);
+        const style = batch.style || {};
+        applyBlendMode(batch.blendMode || style.blendMode);
         let completedDraws = 0;
-        if (style.casing?.width > style.width && style.casing.alpha > 0) completedDraws += drawStyle(resource, { ...style, ...style.casing, cap: style.cap, dash: style.dash }, frameContext, batch.ownerIds);
+        if (style.casing?.width > style.width && style.casing.alpha > 0) {
+          completedDraws += drawStyle(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, batch.ownerIds);
+        }
         if (Number(style.alpha ?? 1) > 0 && Number(style.width || 0) > 0) completedDraws += drawStyle(resource, style, frameContext, batch.ownerIds);
         if (completedDraws > 0) {
           if (key) renderedKeys.push(key);
         } else {
           if (key) missingKeys.push(key);
           failures.push({ key, reason: Array.isArray(batch.ownerIds) ? 'owner-range-missing' : 'nothing-drawn' });
-          failureCount += 1;lastFailureStage = 'draw-coverage';
+          failureCount += 1;
+          lastFailureStage = 'draw-coverage';
         }
       } catch (error) {
-        if (key) missingKeys.push(key);failures.push({ key, reason: error?.message || 'draw-failed' });failureCount += 1;lastFailureStage = 'draw';onError?.({ stage: 'gpu-stroke-draw', key, error });
+        if (key) missingKeys.push(key);
+        failures.push({ key, reason: error?.message || 'draw-failed' });
+        failureCount += 1;
+        lastFailureStage = 'draw';
+        onError?.({ stage: 'gpu-stroke-draw', key, error });
       }
     }
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);drawMs += performance.now() - started;
-    return Object.freeze({ succeeded: missingKeys.length === 0, renderedKeys: Object.freeze(renderedKeys), missingKeys: Object.freeze(missingKeys), failures: Object.freeze(failures) });
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    drawMs += performance.now() - started;
+    return Object.freeze({
+      succeeded: missingKeys.length === 0,
+      renderedKeys: Object.freeze(renderedKeys),
+      missingKeys: Object.freeze(missingKeys),
+      failures: Object.freeze(failures),
+    });
   }
 
   function retain(keys = [], { protectedKeys = [] } = {}) {
     if (!gl || gl.isContextLost?.()) return [];
-    const evicted = resourceBudget.reconcile({ active: keys, protected: protectedKeys });for (const key of evicted) deleteResource(key);return evicted;
+    const evicted = resourceBudget.reconcile({ active: keys, protected: protectedKeys });
+    for (const key of evicted) deleteResource(key);
+    return evicted;
   }
 
   function setByteBudget(value) {
-    const evicted = resourceBudget.setByteBudget(value);for (const key of evicted) deleteResource(key);return resourceBudget.stats().byteBudget;
+    const evicted = resourceBudget.setByteBudget(value);
+    for (const key of evicted) deleteResource(key);
+    return resourceBudget.stats().byteBudget;
   }
 
   function handleContextLost() {
-    contextLost = true;gpuHealth = 'context-lost';selfTestPassed = false;resources.clear();resourceBudget.clear();programInfo = null;cornerBuffer = null;device = null;gl = null;instancing = null;
+    contextLost = true;
+    gpuHealth = 'context-lost';
+    selfTestPassed = false;
+    resources.clear();
+    resourceBudget.clear();
+    programs = null;
+    segmentCornerBuffer = null;
+    roundCornerBuffer = null;
+    bevelVertexBuffer = null;
+    device = null;
+    gl = null;
+    instancing = null;
   }
 
   function dispose() {
     if (gl && !gl.isContextLost?.()) {
-      for (const resource of resources.values()) gl.deleteBuffer(resource.buffer);
-      if (cornerBuffer) gl.deleteBuffer(cornerBuffer);if (programInfo?.program) gl.deleteProgram(programInfo.program);
+      for (const resource of resources.values()) deleteGpuResource(resource);
+      if (segmentCornerBuffer) gl.deleteBuffer(segmentCornerBuffer);
+      if (roundCornerBuffer) gl.deleteBuffer(roundCornerBuffer);
+      if (bevelVertexBuffer) gl.deleteBuffer(bevelVertexBuffer);
+      for (const programInfo of Object.values(programs || {})) if (programInfo?.program) gl.deleteProgram(programInfo.program);
     }
-    resources.clear();resourceBudget.clear();programInfo = null;cornerBuffer = null;device = null;gl = null;instancing = null;contextLost = false;gpuHealth = 'unchecked';selfTestPassed = false;
+    resources.clear();
+    resourceBudget.clear();
+    programs = null;
+    segmentCornerBuffer = null;
+    roundCornerBuffer = null;
+    bevelVertexBuffer = null;
+    device = null;
+    gl = null;
+    instancing = null;
+    contextLost = false;
+    gpuHealth = 'unchecked';
+    selfTestPassed = false;
   }
 
   return Object.freeze({
-    initialize,ensureResource,drawBatches,retain,setByteBudget,handleContextLost,dispose,runSelfTest,
+    initialize,
+    ensureResource,
+    drawBatches,
+    retain,
+    setByteBudget,
+    handleContextLost,
+    dispose,
+    runSelfTest,
     hasResource: key => resources.has(String(key || '')),
     resourceByteLength: key => Number(resources.get(String(key || ''))?.byteLength || 0),
-    isAvailable: () => !!gl && !!programInfo && !contextLost && gpuHealth === 'healthy' && selfTestPassed,
+    isAvailable: () => !!gl && !!programs && !contextLost && gpuHealth === 'healthy' && selfTestPassed,
     stats: () => Object.freeze({
-      resourceCount: resources.size,uploadBytes,buildCount,buildMs,drawCount,drawCallCount,drawMs,cacheHits,cacheMisses,failureCount,lastFailureStage,contextLost,
-      gpuHealth,selfTestPassed,selfTestCount,selfTestMs,selfTestFailureReason,activeBufferBytes: [...resources.values()].reduce((sum, resource) => sum + resource.byteLength, 0),resourceBudget: resourceBudget.stats(),
+      resourceCount: resources.size,
+      uploadBytes,
+      buildCount,
+      buildMs,
+      drawCount,
+      drawCallCount,
+      drawMs,
+      cacheHits,
+      cacheMisses,
+      failureCount,
+      lastFailureStage,
+      contextLost,
+      gpuHealth,
+      selfTestPassed,
+      selfTestCount,
+      selfTestMs,
+      selfTestFailureReason,
+      analyticAa: true,
+      aaRadiusPx: aaRadius,
+      connectedTopology: true,
+      topologyJoinCount,
+      topologyCapCount,
+      topologyClosedChainCount,
+      topologyInvalidSegmentCount,
+      activeBufferBytes: [...resources.values()].reduce((sum, resource) => sum + resource.byteLength, 0),
+      resourceBudget: resourceBudget.stats(),
     }),
   });
 }
 
-export const GPU_STROKE_LAYOUT = Object.freeze({ floatsPerInstance: FLOATS_PER_INSTANCE, verticesPerSegment: VERTICES_PER_SEGMENT });
+export const GPU_STROKE_LAYOUT = Object.freeze({
+  floatsPerInstance: FLOATS_PER_INSTANCE,
+  floatsPerNode: FLOATS_PER_NODE,
+  verticesPerSegment: VERTICES_PER_SEGMENT,
+  verticesPerRoundNode: VERTICES_PER_ROUND_NODE,
+  verticesPerBevelJoin: VERTICES_PER_BEVEL_JOIN,
+  analyticAa: true,
+  connectedTopology: true,
+});

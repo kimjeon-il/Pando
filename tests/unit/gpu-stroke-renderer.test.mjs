@@ -14,12 +14,14 @@ test('instanced stroke geometry keeps finite non-degenerate segments only', () =
     Number.NaN, 0, 2, 0,
     2, 0, 3, 1,
   ]));
-  assert.equal(GPU_STROKE_LAYOUT.floatsPerInstance, 5);
+  assert.equal(GPU_STROKE_LAYOUT.floatsPerInstance, 10);
+  assert.equal(GPU_STROKE_LAYOUT.floatsPerNode, 8);
   assert.equal(GPU_STROKE_LAYOUT.verticesPerSegment, 6);
   assert.equal(result.segmentCount, 2);
   assert.equal(result.invalidSegmentCount, 2);
   assert.equal(result.instances.length, result.segmentCount * GPU_STROKE_LAYOUT.floatsPerInstance);
-  assert.equal([...result.instances].every(Number.isFinite), true);
+  assert.equal(result.nodes.length, result.nodeCount * GPU_STROKE_LAYOUT.floatsPerNode);
+  assert.equal([...result.instances, ...result.nodes].every(Number.isFinite), true);
 });
 
 test('owner ranges remain compact after invalid country boundary segments are removed', () => {
@@ -35,6 +37,10 @@ test('owner ranges remain compact after invalid country boundary segments are re
     DEU: { first: 0, count: 1 },
     FRA: { first: 1, count: 1 },
   });
+  assert.deepEqual(result.ownerNodeRanges, {
+    DEU: { first: 0, count: 2 },
+    FRA: { first: 2, count: 2 },
+  });
 });
 
 test('explicit chain phases survive the shared stroke packet conversion', () => {
@@ -42,11 +48,25 @@ test('explicit chain phases survive the shared stroke packet conversion', () => 
     0, 0, 1, 0,
     1, 0, 2, 0,
   ]), new Float32Array([12, 28]));
-  assert.equal(result.instances[4], 12);
-  assert.equal(result.instances[9], 28);
+  assert.equal(result.instances[8], 12);
+  assert.equal(result.instances[18], 28);
 });
 
-test('owner-filtered drawing resolves only finite non-empty ranges inside the uploaded buffer', () => {
+test('connected segments produce shared join topology instead of independent caps', () => {
+  const result = buildGpuStrokeInstances(new Float32Array([
+    0, 0, 1, 0,
+    1, 0, 2, 1,
+    2, 1, 3, 1,
+  ]));
+  assert.equal(result.segmentCount, 3);
+  assert.equal(result.joinCount, 2);
+  assert.equal(result.capCount, 2);
+  assert.equal(result.nodeCount, 4);
+  assert.equal(GPU_STROKE_LAYOUT.connectedTopology, true);
+  assert.equal(GPU_STROKE_LAYOUT.analyticAa, true);
+});
+
+test('owner-filtered drawing resolves only finite non-empty ranges inside uploaded buffers', () => {
   const resource = {
     instanceCount: 5,
     ownerRanges: {
@@ -62,4 +82,15 @@ test('owner-filtered drawing resolves only finite non-empty ranges inside the up
   ]);
   assert.deepEqual(resolveGpuStrokeRanges(resource, ['MISSING']), []);
   assert.deepEqual(resolveGpuStrokeRanges(resource), [{ first: 0, count: 5 }]);
+});
+
+test('node owner ranges use the same scoped range resolver', () => {
+  const resource = {
+    nodeCount: 6,
+    ownerNodeRanges: {
+      DEU: { first: 0, count: 4 },
+      FRA: { first: 4, count: 2 },
+    },
+  };
+  assert.deepEqual(resolveGpuStrokeRanges(resource, ['FRA'], 'ownerNodeRanges', 'nodeCount'), [{ first: 4, count: 2 }]);
 });
