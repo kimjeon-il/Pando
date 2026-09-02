@@ -25,11 +25,12 @@
     "check:object-registry": "node scripts/check-object-registry.mjs && node --test tests/unit/object-registry.test.mjs",
     "check:surface-state": "node --test tests/unit/surface-controller.test.mjs",
     "check:ui": "pnpm check:ui-spacing && pnpm check:ui-components && pnpm check:ui-architecture && pnpm check:ui-layering && pnpm check:ui-ia && pnpm check:object-registry && pnpm check:surface-state",
-    "check:architecture": "node scripts/check-runtime-boundaries.mjs",
+    "check:commands": "node scripts/check-command-architecture.mjs && node --test tests/unit/project-command-pipeline.test.mjs tests/unit/object-adapter-registry.test.mjs tests/unit/service-command-pipeline.test.mjs",
+    "check:architecture": "node scripts/check-runtime-boundaries.mjs && pnpm check:commands",
     "test:python": "python -m unittest discover -s tests -p \"test_*.py\"",
     "test:unit": "node --test \"tests/unit/*.test.mjs\"",
     "test:browser": "playwright test",
-    "test": "eslint assets/js tests/browser tests/unit scripts tools playwright.config.js eslint.config.js && node scripts/check-js.mjs && node scripts/check-version.mjs && node scripts/check-runtime-boundaries.mjs && pnpm check:country-schema && pnpm check:historical-library && python -m unittest discover -s tests -p \"test_*.py\" && pnpm check:ui && node --test \"tests/unit/*.test.mjs\" && playwright test"
+    "test": "eslint assets/js tests/browser tests/unit scripts tools playwright.config.js eslint.config.js && node scripts/check-js.mjs && node scripts/check-version.mjs && pnpm check:architecture && pnpm check:country-schema && pnpm check:historical-library && python -m unittest discover -s tests -p \"test_*.py\" && pnpm check:ui && node --test \"tests/unit/*.test.mjs\" && playwright test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
