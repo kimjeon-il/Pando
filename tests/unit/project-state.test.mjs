@@ -94,7 +94,7 @@ const currentProject = () => ({
   distributionLayers: [{ id: uuid(3), schemaVersion: 2, type: 'language' }],
   distributionEntries: [{ id: uuid(4), schemaVersion: 2, layerId: uuid(3) }],
   genericFeatures: [{
-    type: 'Feature', id: uuid(5),
+    type: 'Feature', id: uuid(5), geometry: { type: 'Point', coordinates: [1, 2] },
     properties: { schemaVersion: 2, name: '기타', notes: '', color: '#123456', locked: false, source: normalizeSourceProvenance({ kind: 'unsupported' }) },
   }],
   hydroEdits: [{ type: 'Feature', id: uuid(6), properties: { pandolab_schema_version: 1 } }],
