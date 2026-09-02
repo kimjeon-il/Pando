@@ -381,7 +381,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 
 
 /* 오프라인 SVG 지구본 */
-#map { overflow: hidden; touch-action: none; cursor: grab; background: var(--map-stage); isolation: isolate; }
+#map { overflow: hidden; touch-action: none; overscroll-behavior: none; cursor: grab; background: var(--map-stage); isolation: isolate; }
 #map.generic-feature-mode { cursor: crosshair; }
 #map.country-pick-mode,
 #map.candidate-pick-mode { cursor: pointer; }
@@ -552,7 +552,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .historical-library-result-skeleton .ui-skeleton-block:last-child { width: 68%; height: .65em; }
 .historical-library-preview { min-height: 0; overflow: auto; display: grid; align-content: start; gap: var(--ui-space-3); padding: var(--ui-space-4); }
 .historical-library-preview h3 { margin: 0; }
-.historical-library-preview-map { min-height: 170px; border: 1px solid var(--border); border-radius: var(--ui-radius-card); background: var(--surface-muted); overflow: hidden; }
+.historical-library-preview-map { min-height: 170px; border: 1px solid var(--border); border-radius: var(--ui-radius-control); background: var(--surface-muted); overflow: hidden; }
 .historical-library-preview-map svg { display: block; width: 100%; height: 190px; }
 .historical-library-footer { display: flex; align-items: end; gap: var(--ui-space-3); padding: var(--ui-space-4); border-top: 1px solid var(--border); }
 .historical-library-footer-spacer { flex: 1; }

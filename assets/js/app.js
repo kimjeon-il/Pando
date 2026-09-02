@@ -9163,7 +9163,9 @@ const {
       .forEach(layer => interactionRoot.node().appendChild(layer.node()));
 
     mapInputController = createMapInputController({
-      element: svg.node(),
+      // Own the complete map surface so native touch/pinch gestures cannot
+      // escape through a child SVG hit target and become page zoom.
+      element: $('map'),
       interactiveTarget: target => {
         mapInteractionGate.setForcedPan(state.spacePanActive);
         return !state.spacePanActive && mapInteractionGate.isPandoTarget(target);
