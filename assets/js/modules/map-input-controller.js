@@ -61,10 +61,17 @@ export function createMapInputController({
   }
 
   function pointerDown(event) {
-    if (event.button > 0 || interactiveTarget(event.target)) return;
+    if (event.button > 0) return;
+    const isTouch = event.pointerType === 'touch';
+    const isInteractive = interactiveTarget(event.target);
+    // Keep touch pointers visible to the controller even when the first
+    // finger lands on an editing handle.  A second finger must be able to
+    // promote that gesture to map pinch; otherwise the browser can claim it
+    // as page zoom before our pinch handler gets a chance to cancel it.
+    if (!isTouch && isInteractive) return;
     const point = { x: event.clientX, y: event.clientY, pointerType: event.pointerType };
     pointers.set(event.pointerId, point);
-    if (event.pointerType === 'touch' && pointers.size === 2) {
+    if (isTouch && pointers.size === 2) {
       if (gesture?.kind === 'draw') cancelStroke(event);
       for (const pointerId of pointers.keys()) capturePointer(pointerId);
       const pair = [...pointers.values()];
@@ -74,6 +81,10 @@ export function createMapInputController({
       event.preventDefault();
       return;
     }
+    // A single touch on a Pando-owned control remains a pass-through touch;
+    // the control keeps its tap/drag semantics, while the pointer stays in
+    // the map set so a later second touch can start pinch.
+    if (isTouch && isInteractive) return;
     if (pointers.size !== 1) return;
     const genericFeature = !!canDrawStroke(event) && beginStroke(localPoint(event), event) !== false;
     const navigable = !genericFeature && canNavigate();
@@ -235,14 +246,16 @@ export function createMapInputController({
     endMovement(null);
   }
 
-  element.addEventListener('pointerdown', pointerDown, { passive: false });
-  element.addEventListener('pointermove', pointerMove, { passive: false });
-  element.addEventListener('pointerup', pointerUp, { passive: true });
-  element.addEventListener('pointercancel', pointerCancel, { passive: true });
-  element.addEventListener('wheel', wheel, { passive: false });
-  element.addEventListener('gesturestart', preventNativeGesture, { passive: false });
-  element.addEventListener('gesturechange', preventNativeGesture, { passive: false });
-  element.addEventListener('gestureend', preventNativeGesture, { passive: false });
+  const capturePassive = { passive: true, capture: true };
+  const captureActive = { passive: false, capture: true };
+  element.addEventListener('pointerdown', pointerDown, captureActive);
+  element.addEventListener('pointermove', pointerMove, captureActive);
+  element.addEventListener('pointerup', pointerUp, capturePassive);
+  element.addEventListener('pointercancel', pointerCancel, capturePassive);
+  element.addEventListener('wheel', wheel, captureActive);
+  element.addEventListener('gesturestart', preventNativeGesture, captureActive);
+  element.addEventListener('gesturechange', preventNativeGesture, captureActive);
+  element.addEventListener('gestureend', preventNativeGesture, captureActive);
 
   return {
     cancel,
@@ -250,14 +263,14 @@ export function createMapInputController({
     isPanning: () => !!gesture?.panned || !!pinch,
     destroy() {
       cancel();
-      element.removeEventListener('pointerdown', pointerDown);
-      element.removeEventListener('pointermove', pointerMove);
-      element.removeEventListener('pointerup', pointerUp);
-      element.removeEventListener('pointercancel', pointerCancel);
-      element.removeEventListener('wheel', wheel);
-      element.removeEventListener('gesturestart', preventNativeGesture);
-      element.removeEventListener('gesturechange', preventNativeGesture);
-      element.removeEventListener('gestureend', preventNativeGesture);
+      element.removeEventListener('pointerdown', pointerDown, captureActive);
+      element.removeEventListener('pointermove', pointerMove, captureActive);
+      element.removeEventListener('pointerup', pointerUp, capturePassive);
+      element.removeEventListener('pointercancel', pointerCancel, capturePassive);
+      element.removeEventListener('wheel', wheel, captureActive);
+      element.removeEventListener('gesturestart', preventNativeGesture, captureActive);
+      element.removeEventListener('gesturechange', preventNativeGesture, captureActive);
+      element.removeEventListener('gestureend', preventNativeGesture, captureActive);
     },
   };
 }
