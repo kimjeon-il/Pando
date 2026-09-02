@@ -3790,11 +3790,58 @@ html.keyboard-navigation .editor-action-row:focus-visible { background: var(--su
 .multi-property-option { min-height: var(--ui-control-height); padding-inline: var(--ui-row-padding-x); }
 .multi-property-option:has(input:disabled) { opacity: .5; }
 #rightPanel[data-editor-view="info"] .editor-view > .editor-action-section { display: none !important; }
+#rightPanel[data-editor-view="info"] .editor-view > .editor-relation-section { display: none !important; }
 #rightPanel[data-editor-view="actions"] .editor-view > :not(.editor-action-section):not([hidden]) { display: none !important; }
 #rightPanel[data-editor-view="actions"] .editor-view > .editor-action-section { display: grid; }
 #rightPanel[data-editor-view="actions"] details.editor-action-section { display: block; }
 #rightPanel[data-editor-view="info"] .editor-common-actions { display: none !important; }
 #rightPanel[data-editor-view="actions"] .editor-common-actions:not(.hidden) { display: grid; }
+#rightPanel[data-editor-view="actions"] .editor-view > .editor-relation-section { display: none !important; }
+#rightPanel[data-editor-view="relation"] .editor-view > :not(.editor-relation-section):not([hidden]) { display: none !important; }
+#rightPanel[data-editor-view="relation"] .editor-view > .editor-relation-section { display: grid; }
+#rightPanel[data-editor-view="relation"] details.editor-relation-section { display: block; }
+#rightPanel[data-editor-view="relation"] .editor-common-actions:not(.hidden) { display: grid; }
+#rightPanel[data-editor-view="relation"] .editor-common-danger:not(.hidden) { display: grid; }
+#rightPanel[data-editor-view="actions"] .editor-common-danger { display: none !important; }
+
+/* UI v2 density and command-row primitives. Keep the existing DOM and
+   interaction contracts while giving every surface the same visual rhythm. */
+.ui-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ui-button.ui-row-button,
+.editor-action-row {
+  border-radius: var(--ui-radius-control);
+}
+.editor-action-row {
+  min-height: 42px;
+  grid-template-columns: minmax(0, 1fr) 14px;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-2);
+}
+.editor-action-row > span { grid-column: 1; }
+.editor-action-row > .ui-icon { grid-column: 2; width: 14px; height: 14px; }
+.editor-action-row > span > strong { font-size: var(--ui-font-md); }
+.editor-action-row > span > small { font-size: var(--ui-font-sm); }
+.create-menu-item {
+  min-height: 42px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: var(--ui-space-2);
+}
+.create-menu-item .create-menu-icon { width: 20px; height: 20px; display: grid; place-items: center; }
+.create-menu-item .create-menu-icon .ui-icon { width: 16px; height: 16px; }
+.layer-folder-name,
+.layer-child-name { font-size: var(--ui-font-md); }
+.layer-child-meta { font-size: var(--ui-font-sm); }
+#app[data-layout="mobile"] .layer-child,
+#app[data-layout="mobile"] .layer-folder-row { min-height: 38px; height: 38px; }
+#app[data-layout="mobile"] .layer-visibility-control { min-height: var(--ui-touch-height); height: var(--ui-touch-height); }
 
 .ui-empty-state,
 .empty-state { display: grid; justify-items: center; gap: var(--ui-space-2); padding: var(--ui-space-10) var(--ui-space-5); text-align: center; color: var(--muted); }
@@ -4153,6 +4200,7 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   gap: 0;
   padding-inline: var(--ui-surface-content-rail-x);
 }
+.editor-view-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 .surface-tabs .ui-tab {
   position: relative;
@@ -4177,6 +4225,8 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
 }
 
 .surface-tabs .ui-tab:hover { background: transparent; color: var(--text-strong); }
+.surface-tabs .ui-tab[aria-disabled="true"] { color: var(--muted); opacity: .5; cursor: not-allowed; }
+.surface-tabs .ui-tab[aria-disabled="true"]:hover { color: var(--muted); }
 .surface-tabs .ui-tab:is(.active, [aria-selected="true"]) {
   background: transparent;
   color: var(--text-strong);

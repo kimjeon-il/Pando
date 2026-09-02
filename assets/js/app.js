@@ -1,4 +1,4 @@
-/* PandoLab v0.30.0
+/* PandoLab v0.31.0
  * GitHub Pages-ready static map editor.
  * Rendering: bundled D3 v3 + Natural Earth 5.1.1 Admin 0 Countries 1:10m.
  * The full 1:10m geometry remains canonical; rendering and editing use lossless source data.
@@ -543,7 +543,7 @@ const {
     'genericFeatureLandRelationSection', 'genericFeatureOwnerField', 'genericFeatureOwnerInput', 'genericFeatureParentField', 'genericFeatureParentInput', 'genericFeatureLandBindingField', 'genericFeatureLandBindingInput', 'genericFeatureRoleHelp',
     'genericFeatureLandActionsSection', 'splitGenericFeatureBtn', 'mergeGenericFeatureBtn', 'syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn', 'promoteGenericFeatureToCountryBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue',
-    'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'editorCommonActions', 'editorDeleteActions', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'actionsTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu', 'objectCoastReconcileMenuBtn',
+    'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'editorCommonActions', 'editorDeleteActions', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu', 'objectCoastReconcileMenuBtn',
     'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'territoryNameConflict', 'administrativeNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeTerritoryTypeBtn', 'changeAdministrativeTypeBtn', 'reconcileAdministrativeCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
     'countryCodeInput', 'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
@@ -12032,9 +12032,11 @@ const {
   }
 
   function setEditorShellView(view, { focus = false } = {}) {
-    const actions = view === 'actions' && !$('actionsTabBtn')?.hidden;
-    $('rightPanel')?.setAttribute('data-editor-view', actions ? 'actions' : 'info');
-    editorSurfaceTabs?.sync(actions ? 'actions' : 'info', { focus });
+    const requested = view === 'relation' ? 'relation' : view === 'actions' ? 'actions' : 'info';
+    const tab = requested === 'relation' ? $('relationTabBtn') : requested === 'actions' ? $('actionsTabBtn') : $('editorTabBtn');
+    const active = requested !== 'info' && (tab?.hidden || tab?.getAttribute('aria-disabled') === 'true') ? 'info' : requested;
+    $('rightPanel')?.setAttribute('data-editor-view', active);
+    editorSurfaceTabs?.sync(active, { focus });
   }
 
   const PROPERTY_TYPE_LABELS = Object.freeze({
@@ -12052,12 +12054,19 @@ const {
 
   function syncEditorActionTab(type) {
     const form = activePropertyForm(type);
-    const available = !!form && [...form.children].some(element => element.matches?.('.editor-action-section') && !element.hidden);
+    const sections = form ? [...form.children].filter(element => !element.hidden && !element.classList.contains('hidden')) : [];
+    const available = sections.some(element => element.matches?.('.editor-action-section') && !element.classList.contains('editor-relation-section'));
+    const relationAvailable = sections.some(element => element.matches?.('.editor-relation-section'));
     const commonAvailable = !!type && [...document.querySelectorAll('.editor-common-actions')].some(element => !element.classList.contains('hidden'));
-    const hasActions = available || commonAvailable;
-    $('actionsTabBtn').hidden = !hasActions;
+    const hasRelation = relationAvailable || commonAvailable;
+    const hasActions = available;
+    $('actionsTabBtn').hidden = !type;
     $('actionsTabBtn').setAttribute('aria-disabled', String(!hasActions));
-    if (!hasActions) setEditorShellView('info');
+    $('relationTabBtn').hidden = !type;
+    $('relationTabBtn').setAttribute('aria-disabled', String(!hasRelation));
+    const current = $('rightPanel')?.getAttribute('data-editor-view');
+    if (current === 'relation' && !hasRelation) setEditorShellView('info');
+    else if (current === 'actions' && !hasActions) setEditorShellView(hasRelation ? 'relation' : 'info');
   }
 
   function showPropertyForm(type, title = '', { resetScroll = true, typeLabel = '' } = {}) {
