@@ -9,7 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.30.0-build-3246c4fcfd56" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.31.0-build-31fb03a" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -63,7 +63,7 @@
       <div class="ui-progress bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.30.0" data-layout="wide">
+  <div id="app" data-app-version="0.31.0" data-layout="wide">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"></div>
@@ -94,9 +94,9 @@
           <div class="surface-header-title"><strong id="mapSheetTitle">지도</strong></div>
           <div class="surface-header-actions"><button id="mobileCloseLeftBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="지도 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
         </header>
-        <nav id="mapPanelTabs" class="ui-tabs surface-tabs map-panel-tabs" role="tablist" aria-label="지도 패널 보기">
+        <nav id="mapPanelTabs" class="ui-tabs surface-tabs map-panel-tabs" role="tablist" aria-label="지도 패널">
           <button id="mapLayersTabBtn" class="ui-button ui-tab active" data-surface-tab="layers" type="button" role="tab" aria-controls="layerSection" aria-selected="true">레이어</button>
-          <button id="mapViewTabBtn" class="ui-button ui-tab" data-surface-tab="view" type="button" role="tab" aria-controls="mapViewSection" aria-selected="false" tabindex="-1">보기</button>
+          <button id="mapViewTabBtn" class="ui-button ui-tab" data-surface-tab="view" type="button" role="tab" aria-controls="mapViewSection" aria-selected="false" tabindex="-1">지도</button>
         </nav>
         <div class="surface-body surface-body-delegated">
         <div class="surface-content surface-content-map">
@@ -248,7 +248,7 @@
               <div id="mapViewProjectionSlot" class="map-view-projection-slot">
                 <div id="projectionControl" class="ui-segmented projection-control" role="group" aria-label="지도 투영법">
                   <button id="globeBtn" class="ui-button ui-segment-option projection-btn active" type="button" aria-label="지구본 투영" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg><span>지구본</span></button>
-                  <button id="flatBtn" class="ui-button ui-segment-option projection-btn" type="button" aria-label="평면 투영" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-projection-flat"/></svg><span>평면</span></button>
+                  <button id="flatBtn" class="ui-button ui-segment-option projection-btn" type="button" aria-label="평면지도 투영" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-projection-flat"/></svg><span>평면지도</span></button>
                 </div>
               </div>
             </section>
@@ -443,9 +443,10 @@
           </div>
         </header>
 
-        <nav class="ui-tabs surface-tabs editor-view-tabs hidden" role="tablist" aria-label="객체 편집 보기">
+        <nav class="ui-tabs surface-tabs editor-view-tabs hidden" role="tablist" aria-label="객체 편집 탭">
           <button id="editorTabBtn" class="ui-button ui-tab active" data-surface-tab="info" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="true">정보</button>
-          <button id="actionsTabBtn" class="ui-button ui-tab" data-surface-tab="actions" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">작업</button>
+          <button id="actionsTabBtn" class="ui-button ui-tab" data-surface-tab="actions" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">편집</button>
+          <button id="relationTabBtn" class="ui-button ui-tab" data-surface-tab="relation" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">관계</button>
         </nav>
 
         <div id="editorScrollBody" class="surface-body editor-scroll-body ui-scroll-surface" role="tabpanel" aria-labelledby="editorTabBtn">
@@ -535,12 +536,18 @@
               </div>
             </details>
 
-            <section class="editor-section editor-action-section">
+            <section class="editor-section editor-action-section" aria-labelledby="countryGeometryActionsTitle">
+              <h3 id="countryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
                 <button id="annexTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row"><span><strong>국가 합병</strong><small>여러 국가를 하나로 합치기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="editBorderBtn" type="button" class="ui-button editor-action-row"><span><strong>국경 조정</strong><small>선택한 접경국 사이의 공유국경 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="editCoastBtn" type="button" class="ui-button editor-action-row"><span><strong>해안선 조정</strong><small>선택 국가의 외곽 해안선 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+              </div>
+            </section>
+            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="countryRelationActionsTitle">
+              <h3 id="countryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
+              <div class="editor-action-list">
                 <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가를 권역 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
@@ -567,7 +574,7 @@
                 <button id="splitTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section" aria-labelledby="territoryRelationActionsTitle">
+            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="territoryRelationActionsTitle">
               <h3 id="territoryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
                 <button id="transferTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -602,7 +609,7 @@
                 <button id="splitAdministrativeBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 나누기</strong><small>부모 영역 안에서 두 영역으로 분할</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section" aria-labelledby="administrativeRelationActionsTitle">
+            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="administrativeRelationActionsTitle">
               <h3 id="administrativeRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
                 <button id="transferAdministrativeBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -631,10 +638,16 @@
               </div></fieldset>
               <div class="ui-field field-group editor-field"><label for="regionNotesInput">메모</label><textarea id="regionNotesInput" rows="4"></textarea></div>
             </section>
-            <section class="editor-section editor-action-section">
+            <section class="editor-section editor-action-section" aria-labelledby="regionGeometryActionsTitle">
+              <h3 id="regionGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
                 <button id="reassignRegionShapeBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 수정</strong><small>상위 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="mergeRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>지방 합치기</strong><small>인접한 지방 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+              </div>
+            </section>
+            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="regionRelationActionsTitle">
+              <h3 id="regionRelationActionsTitle" class="editor-section-title">관계 및 구조</h3>
+              <div class="editor-action-list">
                 <button id="transferRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>주권 국가와 상위 영역 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
@@ -698,7 +711,7 @@
               </div>
             </section>
 
-            <section id="genericFeatureLandRelationSection" class="editor-section editor-info-section hidden">
+            <section id="genericFeatureLandRelationSection" class="editor-section editor-info-section editor-relation-section hidden">
               <h3 class="editor-section-title">육지 관계</h3>
               <div id="genericFeatureOwnerField" class="ui-field field-group editor-field">
                 <label for="genericFeatureOwnerInput">소유 국가</label>
@@ -719,7 +732,7 @@
               <p id="genericFeatureRoleHelp" class="editor-help" hidden></p>
             </section>
 
-            <section id="genericFeatureLandActionsSection" class="editor-section editor-action-section hidden">
+            <section id="genericFeatureLandActionsSection" class="editor-section editor-action-section editor-relation-section hidden">
               <h3 class="editor-section-title">국가 연동</h3>
               <div class="editor-action-grid editor-action-grid-two">
                 <button id="syncGenericFeatureCoastBtn" type="button" class="ui-button ui-card-button editor-action-button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg></span><strong>국가 육지에 맞춤</strong><small>소유 국가 밖 형상 정리</small></button>
@@ -1046,12 +1059,12 @@
 
   
   
-  <script src="assets/js/build-meta.js?v=0.30.0-build-3246c4fcfd56" defer></script>
+  <script src="assets/js/build-meta.js?v=0.31.0-build-31fb03a" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.30.0-build-3246c4fcfd56" defer></script>
-  <script src="assets/js/gis-io.js?v=0.30.0-build-3246c4fcfd56" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.30.0-build-3246c4fcfd56" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.31.0-build-31fb03a" defer></script>
+  <script src="assets/js/gis-io.js?v=0.31.0-build-31fb03a" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.31.0-build-31fb03a" defer></script>
 </body>
 </html>
