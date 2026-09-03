@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" data-pandolab-ui-v2="tokens-ui-v2" href="assets/css/tokens/ui-v2.css?v=0.32.0-build-ui14-291d0f5bfcaa" />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-ui14-291d0f5bfcaa" />
+  <link rel="stylesheet" data-pandolab-ui-v2="tokens-ui-v2" href="assets/css/tokens/ui-v2.css?v=0.32.0-build-ui14-76cb02ffaf2d" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-ui14-76cb02ffaf2d" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -374,7 +374,7 @@
                   <div class="mode-task-context">
                     <div class="mode-task-detail">
                       <p id="modeTaskInstruction" class="mode-task-instruction"></p>
-                      <div id="geometryPreviewSummary" class="geometry-preview-summary hidden workflow-impact workflow-impact workflow-impact workflow-impact"></div>
+                      <div id="geometryPreviewSummary" class="geometry-preview-summary hidden workflow-impact workflow-impact workflow-impact workflow-impact workflow-impact"></div>
                     </div>
                   </div>
                   <div id="modeMethodSwitch" class="ui-segmented mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
@@ -392,7 +392,7 @@
                     <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
                   </div>
                 </div>
-                <footer id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden workflow-actions workflow-actions workflow-actions workflow-actions" aria-label="지도 편집 작업 실행">
+                <footer id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden workflow-actions workflow-actions workflow-actions workflow-actions workflow-actions" aria-label="지도 편집 작업 실행">
                   <div class="mode-action-buttons">
                     <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
                     <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn" aria-describedby="modeTaskInstruction"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span><span class="mode-button-busy" aria-hidden="true">처리 중…</span></button>
@@ -888,7 +888,7 @@
       <svg class="ui-icon workflow-dialog-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><h2 id="confirmModalTitle">확인</h2>
       <p id="confirmModalMessage"></p>
       <section id="confirmModalImpactSection" class="confirm-impact hidden" aria-labelledby="confirmModalImpactTitle"><strong id="confirmModalImpactTitle">영향</strong><ul id="confirmModalImpactList"></ul></section>
-      <label id="confirmModalChoiceRow" class="ui-field field-group hidden workflow-choice-row"><span>처리 방식</span><select id="confirmModalChoice"></select></label>
+      <label id="confirmModalChoiceRow" class="ui-field field-group hidden workflow-choice-row workflow-choice-row"><span>처리 방식</span><select id="confirmModalChoice"></select></label>
       <div class="confirm-modal-actions ui-dialog-actions workflow-dialog-actions">
         <button id="confirmModalCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="confirmModalOkBtn" type="button" class="ui-button btn">확인</button>
@@ -902,10 +902,10 @@
       <p id="coastReconciliationMessage"></p>
       <section id="coastReconciliationImpact" class="confirm-impact hidden" aria-labelledby="coastReconciliationImpactTitle"><strong id="coastReconciliationImpactTitle">영향</strong><ul id="coastReconciliationImpactList"></ul></section>
       <div class="ui-dialog-actions coast-reconciliation-actions">
-        <button id="coastReconciliationCountryBtn" type="button" class="ui-button btn workflow-decision-option">국가 기준<span class="workflow-option-detail">국가 해안선을 기준으로 가져온 영역을 맞춥니다.</span></button>
-        <button id="coastReconciliationAdminBtn" type="button" class="ui-button btn workflow-decision-option">가져온 영역 기준<span class="workflow-option-detail">가져온 영역의 해안선을 기준으로 국가 쪽을 맞춥니다.</span></button>
-        <button id="coastReconciliationIndependentBtn" type="button" class="ui-button btn ghost workflow-decision-option">독립 유지<span class="workflow-option-detail">두 형상을 변경하지 않고 독립적으로 유지합니다.</span></button>
-        <button id="coastReconciliationCancelBtn" type="button" class="ui-button btn ghost workflow-decision-cancel">취소</button>
+        <button id="coastReconciliationCountryBtn" type="button" class="ui-button btn workflow-decision-option workflow-decision-option">국가 기준<span class="workflow-option-detail">국가 해안선을 기준으로 가져온 영역을 맞춥니다.</span></button>
+        <button id="coastReconciliationAdminBtn" type="button" class="ui-button btn workflow-decision-option workflow-decision-option">가져온 영역 기준<span class="workflow-option-detail">가져온 영역의 해안선을 기준으로 국가 쪽을 맞춥니다.</span></button>
+        <button id="coastReconciliationIndependentBtn" type="button" class="ui-button btn ghost workflow-decision-option workflow-decision-option">독립 유지<span class="workflow-option-detail">두 형상을 변경하지 않고 독립적으로 유지합니다.</span></button>
+        <button id="coastReconciliationCancelBtn" type="button" class="ui-button btn ghost workflow-decision-cancel workflow-decision-cancel">취소</button>
       </div>
     </section>
   </div>
@@ -1065,12 +1065,12 @@
 
   
   
-  <script src="assets/js/build-meta.js?v=0.32.0-build-ui14-291d0f5bfcaa" defer></script>
+  <script src="assets/js/build-meta.js?v=0.32.0-build-ui14-76cb02ffaf2d" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.32.0-build-ui14-291d0f5bfcaa" defer></script>
-  <script src="assets/js/gis-io.js?v=0.32.0-build-ui14-291d0f5bfcaa" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.32.0-build-ui14-291d0f5bfcaa" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.32.0-build-ui14-76cb02ffaf2d" defer></script>
+  <script src="assets/js/gis-io.js?v=0.32.0-build-ui14-76cb02ffaf2d" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.32.0-build-ui14-76cb02ffaf2d" defer></script>
 </body>
 </html>
