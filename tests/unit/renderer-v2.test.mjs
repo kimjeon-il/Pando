@@ -6,7 +6,7 @@ import {
   GPU_STROKE_LAYOUT,
   buildGpuStrokeInstances,
 } from '../../assets/js/modules/gpu-stroke-renderer.js';
-import { createMapRenderCoordinator } from '../../assets/js/modules/map-render-coordinator.js';
+import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
 import { createRenderSceneBuilder } from '../../assets/js/modules/render-scene.js';
 import {
   RENDERER_V2_PASSES,
@@ -73,11 +73,12 @@ test('RenderScene geometry packets are reused when only the view revision change
 
 test('view-only coordinator frames do not invoke scene geometry rendering', () => {
   const calls = [];
+  const gpuFrameResult = { succeeded: true, selection: { succeeded: true } };
   const coordinator = createMapRenderCoordinator({
     requestFrame: callback => callback(),
     prepareView: () => ({ revision: 5 }),
     renderers: {
-      view: () => calls.push('view'),
+      view: () => { calls.push('view'); return gpuFrameResult; },
       countries: () => calls.push('countries'),
       selectionView: () => calls.push('selection-view'),
       countryLabelPositions: () => calls.push('country-labels'),
@@ -88,6 +89,7 @@ test('view-only coordinator frames do not invoke scene geometry rendering', () =
   assert.equal(calls.includes('view'), true);
   assert.equal(calls.includes('selection-view'), true);
   assert.equal(calls.includes('countries'), false);
+  assert.equal(coordinator.getStats().lastDirtyMask & MAP_RENDER_DIRTY.SELECTION_VIEW, 0);
 });
 
 test('interaction-only renderer plan excludes scene and picking passes', () => {

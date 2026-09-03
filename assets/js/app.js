@@ -133,6 +133,7 @@ const graticuleGeometryModule = await import(versionedModuleUrl('./modules/grati
 const userPreferencesModule = await import(versionedModuleUrl('./modules/user-preferences.js'));
 const notificationCopyModule = await import(versionedModuleUrl('./modules/notification-copy.js'));
 const countryFlagsModule = await import(versionedModuleUrl('./modules/country-flags.js'));
+const mapLayoutMetricsModule = await import(versionedModuleUrl('./modules/map-layout-metrics.js'));
 // Domain boundaries are loaded independently of the legacy bootstrap body.
 // Their factories are wired once, after the existing services are ready, so
 // the migration does not duplicate project data or create import cycles.
@@ -192,6 +193,11 @@ const { createMapInteractionGate } = mapInteractionGateModule;
 const { resolveMapInteractionStyle } = mapInteractionStyleModule;
 const { loadUserPreferences, saveUserPreferences, effectiveTheme, defaultUserPreferences } = userPreferencesModule;
 const { compactNotificationMessage } = notificationCopyModule;
+const {
+  DEFAULT_SAFE_INSETS,
+  createMapLayoutMetricsSnapshot,
+  equirectangularCenterForAnchor,
+} = mapLayoutMetricsModule;
 const { createSelectController } = selectControllerModule;
 const { DATA_READINESS, READINESS_EVENTS, canMutateProject, transitionDataReadiness } = startupReadinessModule;
 const { runCountryEditTransaction } = countryEditTransactionModule;
@@ -769,7 +775,7 @@ const {
     syncEditorPanelControls();
     syncMobileNavigation();
     requestAnimationFrame(syncMapHudBounds);
-    if (!initial && previous !== layoutMode) queueMapResize();
+    if (!initial && previous !== layoutMode) queueMapResize('layout-mode-change');
     return previous !== layoutMode;
   }
 
@@ -782,6 +788,7 @@ const {
     requestAnimationFrame(syncMapHudBounds);
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     else $('app')?.style.removeProperty('--file-menu-notification-top');
+    queueMapResize('panel-layout');
     return view;
   }
 
@@ -907,6 +914,7 @@ const {
     if (Math.abs(deltaY) > 6) drag.moved = true;
     setMobileSheetHeight(panel, drag.startIndex, drag.startHeight - deltaY);
     refreshMapSheetMetrics();
+    queueMapResize('panel-layout');
     return true;
   }
 
@@ -1011,6 +1019,10 @@ const {
       header.addEventListener('pointerup', event => finishHeader(event));
       header.addEventListener('pointercancel', event => finishHeader(event, true));
     }
+    panel.addEventListener('transitionend', event => {
+      if (event.target !== panel || !['height', 'width', 'transform'].includes(event.propertyName)) return;
+      queueMapResize('panel-layout');
+    });
   }
 
   function openSelectionEditor() {
@@ -1019,7 +1031,7 @@ const {
     if (layoutMode !== 'wide' || !surfaceState.editorManuallyCollapsed) openSurface('editor', { automatic: true });
     if (panel.classList.contains('mobile-open')) $('editorScrollBody')?.scrollTo?.({ top: 0, behavior: 'instant' });
     syncMobileNavigation();
-    if (layoutMode === 'wide') queueMapResize();
+    if (layoutMode === 'wide') queueMapResize('panel-layout');
   }
 
 
@@ -2051,6 +2063,7 @@ const {
   }
 
   let baseSvg;
+  let flatOceanLayer;
   let svg;
   let interactionSvg;
   let root;
@@ -2150,6 +2163,9 @@ const {
   let mapResizeObserver = null;
   let mapResizeFrame = 0;
   let mapResizeSignature = '';
+  const mapResizeReasons = new Set();
+  let mapLayoutMetricsSnapshot = null;
+  let mapLayoutMetricsRefreshCount = 0;
   let resolutionQuery = null;
   let viewRevision = 0;
   let renderedViewSignature = '';
@@ -2374,7 +2390,7 @@ const {
     renderSceneBuilder.setCacheByteBudget(currentRenderQuality.renderPacketCacheBudgetBytes);
     gpuMapRenderer.setRenderQuality?.(currentRenderQuality);
     mapHost?.setRenderPixelRatio?.(Math.min(
-      Math.max(1, Number(window.devicePixelRatio || 1)),
+      currentMapDevicePixelRatio(),
       Math.max(1, Number(currentRenderQuality.dprCap || 1)),
     ));
     if (refreshScene) {
@@ -2720,11 +2736,28 @@ const {
 
   function alignGeographicAnchor(coordinate, screenPoint) {
     if (!coordinate || !screenPoint) return false;
+    if (state.projection === 'flat') {
+      const layout = projectionLayoutMetrics();
+      const nextCenter = equirectangularCenterForAnchor({
+        coordinate,
+        screenPoint,
+        translate: [layout.centerX, layout.centerY],
+        scale: layout.flatBaseScale * state.view.flatZoom,
+        latitudeLimit: FLAT_LATITUDE_LIMIT,
+      });
+      if (!nextCenter) return false;
+      const changed = Math.abs(wrappedLongitudeDelta(nextCenter[0] - state.view.flatCenter[0])) > 1e-9
+        || Math.abs(nextCenter[1] - state.view.flatCenter[1]) > 1e-9;
+      if (changed) state.view.flatCenter = nextCenter;
+      updateProjection();
+      return changed;
+    }
+
     let changed = false;
-    // Keep the geographic anchor stable while preserving each projection's
-    // native screen mapping.  Flat equirectangular latitude is linear; the
-    // globe path still uses its rotational Jacobian and pole guard.
-    for (let attempt = 0; attempt < 12; attempt += 1) {
+    // Orthographic projection needs a bounded correction because longitude
+    // and latitude are coupled near the horizon. Flat equirectangular view
+    // alignment above is exact and never enters this iterative path.
+    for (let attempt = 0; attempt < 4; attempt += 1) {
       updateProjection();
       const projected = activeProjection()(coordinate);
       if (projected && Math.hypot(projected[0] - screenPoint[0], projected[1] - screenPoint[1]) < 0.1) break;
@@ -2733,13 +2766,8 @@ const {
       const longitudeDelta = wrappedLongitudeDelta(coordinate[0] - targetCoordinate[0]);
       const latitudeDelta = Number(coordinate[1]) - Number(targetCoordinate[1]);
       if (Math.abs(longitudeDelta) < 1e-7 && Math.abs(latitudeDelta) < 1e-7) break;
-      if (state.projection === 'globe') {
-        state.view.globeRotation[0] -= longitudeDelta;
-        state.view.globeRotation[1] = clamp(state.view.globeRotation[1] - latitudeDelta, -89, 89);
-      } else {
-        state.view.flatCenter[0] = wrappedLongitudeDelta(state.view.flatCenter[0] + longitudeDelta);
-        state.view.flatCenter[1] = clamp(state.view.flatCenter[1] + latitudeDelta, -FLAT_LATITUDE_LIMIT, FLAT_LATITUDE_LIMIT);
-      }
+      state.view.globeRotation[0] -= longitudeDelta;
+      state.view.globeRotation[1] = clamp(state.view.globeRotation[1] - latitudeDelta, -89, 89);
       changed = true;
     }
     updateProjection();
@@ -4887,9 +4915,9 @@ const {
     return state.projection === 'globe' ? globeProjection : flatProjection;
   }
 
-  function currentMapSafeInsets() {
+  function readMapSafeInsets() {
     const workspace = document.querySelector('.workspace');
-    if (!workspace) return { left: 0, right: 0, top: 0, bottom: 26 };
+    if (!workspace) return DEFAULT_SAFE_INSETS;
     const styles = getComputedStyle(workspace);
     const read = name => Math.max(0, Number.parseFloat(styles.getPropertyValue(name)) || 0);
     return {
@@ -4900,27 +4928,69 @@ const {
     };
   }
 
-  function projectionLayoutMetrics() {
-    const { width, height } = state.size;
-    const safe = currentMapSafeInsets();
-    const contentWidth = Math.max(1, width - safe.left - safe.right);
-    const contentHeight = Math.max(1, height - safe.top - safe.bottom);
-    const scaleContentHeight = isMobile()
-      ? Math.max(1, height - safe.top - 96)
-      : contentHeight;
-    const centerX = safe.left + contentWidth / 2;
-    const centerY = safe.top + contentHeight / 2;
-    return {
+  function readObjectFitInsets(mapRect, safe) {
+    const insets = { ...safe };
+    if (!mapRect?.width || !mapRect?.height) return insets;
+    const panel = $('rightPanel');
+    const panelOpen = panel?.classList.contains('mobile-open') && getComputedStyle(panel).visibility !== 'hidden';
+    if (!panelOpen) return insets;
+    const panelRect = panel.getBoundingClientRect();
+    const edge = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-map-edge')) || 12;
+    const overlapLeft = Math.max(mapRect.left, panelRect.left);
+    const overlapRight = Math.min(mapRect.right, panelRect.right);
+    const overlapTop = Math.max(mapRect.top, panelRect.top);
+    const overlapBottom = Math.min(mapRect.bottom, panelRect.bottom);
+    if (overlapRight <= overlapLeft || overlapBottom <= overlapTop) return insets;
+    if (layoutMode === 'mobile') {
+      insets.bottom = Math.max(insets.bottom, mapRect.bottom - panelRect.top + edge);
+    } else if (panelRect.left >= mapRect.left + mapRect.width / 2) {
+      insets.right = Math.max(insets.right, mapRect.right - panelRect.left + edge);
+    } else {
+      insets.left = Math.max(insets.left, panelRect.right - mapRect.left + edge);
+    }
+    insets.left = clamp(insets.left, 0, mapRect.width - 96);
+    insets.right = clamp(insets.right, 0, mapRect.width - insets.left - 96);
+    insets.top = clamp(insets.top, 0, mapRect.height - 96);
+    insets.bottom = clamp(insets.bottom, 0, mapRect.height - insets.top - 96);
+    return insets;
+  }
+
+  function refreshMapLayoutMetrics(reason = 'layout') {
+    const mapElement = $('map');
+    const bounds = mapElement?.getBoundingClientRect?.();
+    const width = Math.max(1, bounds?.width || mapElement?.clientWidth || state.size.width || 900);
+    const height = Math.max(1, bounds?.height || mapElement?.clientHeight || state.size.height || 650);
+    const safe = readMapSafeInsets();
+    mapLayoutMetricsRefreshCount += 1;
+    mapLayoutMetricsSnapshot = createMapLayoutMetricsSnapshot({
       width,
       height,
-      safe,
-      contentWidth,
-      contentHeight,
-      centerX,
-      centerY,
-      globeBaseScale: Math.max(60, Math.min(contentWidth, scaleContentHeight) * 0.455),
-      flatBaseScale: Math.max(30, contentWidth / (2 * Math.PI)),
-    };
+      dpr: Math.max(1, Number(window.devicePixelRatio || 1)),
+      safeInsets: safe,
+      fitInsets: readObjectFitInsets(bounds, safe),
+      mobile: isMobile(),
+      revision: mapLayoutMetricsRefreshCount,
+      reason,
+    });
+    window.__PANDOLAB_MAP_LAYOUT_METRICS__ = mapLayoutMetricsSnapshot;
+    return mapLayoutMetricsSnapshot;
+  }
+
+  function projectionLayoutMetrics() {
+    if (!mapLayoutMetricsSnapshot) {
+      mapLayoutMetricsSnapshot = createMapLayoutMetricsSnapshot({
+        width: state.size.width,
+        height: state.size.height,
+        dpr: Math.max(1, Number(window.devicePixelRatio || 1)),
+        safeInsets: DEFAULT_SAFE_INSETS,
+        mobile: isMobile(),
+      });
+    }
+    return mapLayoutMetricsSnapshot;
+  }
+
+  function currentMapSafeInsets() {
+    return projectionLayoutMetrics().safe;
   }
 
   function updateProjection() {
@@ -4951,16 +5021,22 @@ const {
     }
   }
 
-  function isCoordVisible(coord) {
-    if (!coord) return false;
+  function projectVisibleCoordinate(coord, frameContext = null) {
+    if (!coord) return null;
     const p = activeProjection()(coord);
-    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return false;
+    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return null;
     if (state.projection === 'globe') {
-      const r = state.view.globeRotation;
+      const r = frameContext?.rotation || state.view.globeRotation;
       const center = [-r[0], -r[1]];
-      return d3.geo.distance(coord, center) <= Math.PI / 2 + 0.005;
+      return d3.geo.distance(coord, center) <= Math.PI / 2 + 0.005 ? p : null;
     }
-    return p[0] >= -30 && p[0] <= state.size.width + 30 && p[1] >= -30 && p[1] <= state.size.height + 30;
+    const width = Number(frameContext?.size?.width || state.size.width);
+    const height = Number(frameContext?.size?.height || state.size.height);
+    return p[0] >= -30 && p[0] <= width + 30 && p[1] >= -30 && p[1] <= height + 30 ? p : null;
+  }
+
+  function isCoordVisible(coord) {
+    return !!projectVisibleCoordinate(coord);
   }
 
   function screenToGeo(screenPoint) {
@@ -5278,7 +5354,8 @@ const {
   }
 
   function currentMapDevicePixelRatio() {
-    return Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1)));
+    const devicePixelRatio = mapLayoutMetricsSnapshot?.dpr ?? Math.max(1, Number(window.devicePixelRatio || 1));
+    return Math.min(isMobile() ? 2 : 3, devicePixelRatio);
   }
   function activeLayerFolderKeys() {
     const territorialUnitKeys = [];
@@ -6196,8 +6273,8 @@ const {
       if (zoom < Number(settings.minZoom ?? -Infinity) || zoom > Number(settings.maxZoom ?? Infinity)) continue;
       const anchor = countryLabelAnchors.get(id);
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : anchor;
-      if (!Array.isArray(coordinate) || !isCoordVisible(coordinate)) continue;
-      const point = activeProjection()(coordinate);
+      if (!Array.isArray(coordinate)) continue;
+      const point = projectVisibleCoordinate(coordinate);
       if (!point) continue;
       const selected = (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) && state.selected.id === id;
       const displayFeature = countryDisplayFeature(feature);
@@ -6220,8 +6297,7 @@ const {
       const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
       if (zoom < Number(settings.minZoom ?? -Infinity) || zoom > Number(settings.maxZoom ?? Infinity)) continue;
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
-      if (!isCoordVisible(coordinate)) continue;
-      const point = activeProjection()(coordinate);
+      const point = projectVisibleCoordinate(coordinate);
       if (!point) continue;
       const priority = settings.priority ?? (label.kind === 'capital' ? LABEL_PRIORITIES.capital : label.kind === 'city' ? LABEL_PRIORITIES.majorCity : label.kind === 'region' ? LABEL_PRIORITIES.administrative : LABEL_PRIORITIES.place);
       candidates.push({
@@ -6250,11 +6326,15 @@ const {
       qualityCulledCount: Math.max(0, candidates.length - qualityCandidates.length),
     };
     const placed = layoutLabels(qualityCandidates, { zoom, padding: isMobile() ? 5 : 3, metrics: nextLabelLayoutMetrics });
+    const placedCountryLabels = placed.filter(item => item.sourceType === 'country');
+    const placedUserLabels = placed.filter(item => item.sourceType === 'label');
     labelLayoutMetrics = nextLabelLayoutMetrics;
-    if (viewportCullingMetrics.lastByDomain.label) viewportCullingMetrics.lastByDomain.label.finalVisibleCount = placed.filter(item => item.sourceType === 'label').length;
+    if (viewportCullingMetrics.lastByDomain.label) viewportCullingMetrics.lastByDomain.label.finalVisibleCount = placedUserLabels.length;
     return {
-      countryLabels: placed.filter(item => item.sourceType === 'country').map(item => item.source),
-      userLabels: placed.filter(item => item.sourceType === 'label').map(item => item.source),
+      countryLabels: placedCountryLabels.map(item => item.source),
+      userLabels: placedUserLabels.map(item => item.source),
+      countryLabelPoints: new Map(placedCountryLabels.map(item => [String(item.source?.id || ''), item.point])),
+      userLabelPoints: new Map(placedUserLabels.map(item => [String(item.source?.id || ''), item.point])),
       countryScreenAreas: new Map(countryLabelScreenAreas),
       candidateCount: candidates.length,
     };
@@ -6881,15 +6961,25 @@ const {
     updateModeButtons();
   }
 
-  function updatePandoGlobeShell() {
-    // The shell is intentionally updated from the same projection state that
-    // the LegacyMapHost and GPU renderer consume. This runs before every view
-    // draw, so the horizon never lags one frame behind the globe contents.
-    shadowLayer.attr('display', null);
-    oceanLayer.attr('display', null);
-    baseSvg.classed('flat-projection', state.projection !== 'globe');
-    shadowLayer.datum({ type: 'Sphere' }).attr('d', path);
-    oceanLayer.datum({ type: 'Sphere' }).attr('d', path);
+  function updatePandoGlobeShell(frameContext = null) {
+    const projectionKind = frameContext?.projection || state.projection;
+    const globe = projectionKind === 'globe';
+    const translate = Array.isArray(frameContext?.translate)
+      ? frameContext.translate
+      : activeProjection().translate();
+    const radius = Math.max(0, Number(frameContext?.scale || activeProjection().scale() || 0));
+    const width = Math.max(1, Number(frameContext?.size?.width || state.size.width));
+    const height = Math.max(1, Number(frameContext?.size?.height || state.size.height));
+    const frameSignature = `${Number(frameContext?.revision || viewRevision)}:${projectionKind}:${translate[0]}:${translate[1]}:${radius}`;
+
+    baseSvg?.classed('flat-projection', !globe)
+      .attr('data-shell-frame-signature', frameSignature);
+    flatOceanLayer?.attr('display', globe ? 'none' : null)
+      .attr('x', 0).attr('y', 0).attr('width', width).attr('height', height);
+    oceanLayer?.attr('display', globe ? null : 'none')
+      .attr('cx', translate[0]).attr('cy', translate[1]).attr('r', radius);
+    shadowLayer?.attr('display', globe ? null : 'none')
+      .attr('cx', translate[0]).attr('cy', translate[1]).attr('r', radius);
   }
 
 
@@ -7208,6 +7298,12 @@ const {
         buildMs: distributionRenderRowCache.buildMs,
       },
       labelLayout: { ...labelLayoutMetrics },
+      layoutMetrics: {
+        refreshCount: mapLayoutMetricsRefreshCount,
+        revision: mapLayoutMetricsSnapshot?.revision || 0,
+        reason: mapLayoutMetricsSnapshot?.reason || 'initial',
+        projectionSignature: mapLayoutMetricsSnapshot?.projectionSignature || '',
+      },
       territorialBoundaryTopologyRebuildCount: renderingDomain?.getStats?.().territorialBoundaryTopologyRebuildCount || 0,
       workers: {
         mapEdit: mapEditMetrics,
@@ -7436,7 +7532,11 @@ const {
       geometryPreview: (...args) => renderingDomain?.renderGeometryPreview?.(...args),
       selectionData: (...args) => renderingDomain?.renderSelection?.(...args),
       selectionStyle: (...args) => renderingDomain?.renderSelection?.(...args, { styleOnly: true }),
-      selectionView: (...args) => renderingDomain?.renderSelection?.(...args, { viewOnly: true }),
+      selectionView: (frameContext, gpuFrameResult, options = {}) => renderingDomain?.renderSelection?.(
+        frameContext,
+        null,
+        { ...options, viewOnly: true, updateData: false, gpuFrameResult },
+      ),
       hover: (...args) => renderingDomain?.renderHoverOverlay?.(...args),
       validation: (...args) => renderingDomain?.renderValidation?.(...args),
       labelLayout: (...args) => renderingDomain?.renderPass('labelLayout', ...args),
@@ -7497,6 +7597,12 @@ const {
           buildMs: distributionRenderRowCache.buildMs,
         },
         labelLayout: { ...labelLayoutMetrics },
+        layoutMetrics: {
+          refreshCount: mapLayoutMetricsRefreshCount,
+          revision: mapLayoutMetricsSnapshot?.revision || 0,
+          reason: mapLayoutMetricsSnapshot?.reason || 'initial',
+          projectionSignature: mapLayoutMetricsSnapshot?.projectionSignature || '',
+        },
         territorialBoundaryTopologyRebuildCount: renderingDomain?.getStats?.().territorialBoundaryTopologyRebuildCount || 0,
         adaptiveRenderQuality: renderQualityController.stats(),
         renderScene: renderSceneBuilder.stats(),
@@ -7535,7 +7641,7 @@ const {
     if (point) suppressNextMapClick(point);
     mapRenderCoordinator.endInteraction('map-movement-end');
     mapRenderCoordinator.invalidate(
-      MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT,
+      MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT,
       'viewport-culling-settle',
     );
     gpuMapRenderer.prioritizeLatest();
@@ -7557,7 +7663,10 @@ const {
         updateProjection();
         return true;
       },
-      getViewportSize: () => ({ width: state.size.width, height: state.size.height, dpr: window.devicePixelRatio || 1 }),
+      getViewportSize: () => {
+        const layout = projectionLayoutMetrics();
+        return { width: layout.width, height: layout.height, dpr: layout.dpr };
+      },
       project: coordinate => activeProjection()(coordinate),
       unproject: point => screenToGeo(point),
       requestRepaint: reason => mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, reason || 'legacy-host-repaint'),
@@ -7651,8 +7760,9 @@ const {
       .attr('aria-hidden', 'true')
       .attr('focusable', 'false');
     const baseRoot = baseSvg.append('g').attr('class', 'map-base-root');
-    shadowLayer = baseRoot.append('path').attr('class', 'globe-shadow');
-    oceanLayer = baseRoot.append('path').attr('class', 'map-ocean');
+    flatOceanLayer = baseRoot.append('rect').attr('class', 'map-ocean map-ocean-flat');
+    oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
+    shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
 
     mapHost = createPreferredMapHost(mapEl);
     const gpuCanvas = document.createElement('canvas');
@@ -7815,10 +7925,14 @@ const {
     });
   }
 
-  function queueMapResize() {
+  function queueMapResize(reason = 'layout') {
+    mapResizeReasons.add(String(reason || 'layout'));
     if (mapResizeFrame) return;
     mapResizeFrame = requestAnimationFrame(() => {
       mapResizeFrame = 0;
+      const reasons = [...mapResizeReasons].sort();
+      mapResizeReasons.clear();
+      refreshMapLayoutMetrics(reasons.join(',') || 'layout');
       resizeMap();
     });
   }
@@ -7831,29 +7945,28 @@ const {
     resolutionQuery = window.matchMedia?.(`(resolution: ${window.devicePixelRatio || 1}dppx)`) || null;
     if (typeof resolutionQuery?.addEventListener === 'function') resolutionQuery.addEventListener('change', watchDevicePixelRatio, { once: true });
     else resolutionQuery?.addListener?.(watchDevicePixelRatio);
-    queueMapResize();
+    queueMapResize('dpr-change');
   }
 
   function startMapResizeObserver() {
     mapResizeObserver?.disconnect?.();
     if (typeof ResizeObserver === 'function') {
-      mapResizeObserver = new ResizeObserver(() => queueMapResize());
+      mapResizeObserver = new ResizeObserver(() => queueMapResize('resize-observer'));
       mapResizeObserver.observe($('map'));
     }
     window.visualViewport?.addEventListener?.('resize', () => {
       refreshMapSheetMetrics();
-      queueMapResize();
+      queueMapResize('visual-viewport-resize');
     });
     watchDevicePixelRatio();
   }
 
   function resizeMap() {
-    const el = $('map');
-    const bounds = el.getBoundingClientRect();
-    const width = Math.max(1, bounds.width || el.clientWidth || 900);
-    const height = Math.max(1, bounds.height || el.clientHeight || 650);
-    const safe = currentMapSafeInsets();
-    const signature = `${width.toFixed(3)}:${height.toFixed(3)}:${Number(window.devicePixelRatio || 1).toFixed(3)}:${safe.left}:${safe.right}:${safe.top}:${safe.bottom}`;
+    const layout = mapLayoutMetricsRefreshCount > 0
+      ? projectionLayoutMetrics()
+      : refreshMapLayoutMetrics('initial-resize');
+    const { width, height } = layout;
+    const signature = layout.projectionSignature;
     if (signature === mapResizeSignature) {
       syncMapHudBounds();
       return false;
@@ -14998,32 +15111,7 @@ const {
   }
 
   function currentObjectFitInsets() {
-    const mapRect = $('map')?.getBoundingClientRect();
-    const base = currentMapSafeInsets();
-    if (!mapRect?.width || !mapRect?.height) return base;
-    const insets = { ...base };
-    const panel = $('rightPanel');
-    const panelOpen = panel?.classList.contains('mobile-open') && getComputedStyle(panel).visibility !== 'hidden';
-    if (!panelOpen) return insets;
-    const panelRect = panel.getBoundingClientRect();
-    const edge = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-map-edge')) || 12;
-    const overlapLeft = Math.max(mapRect.left, panelRect.left);
-    const overlapRight = Math.min(mapRect.right, panelRect.right);
-    const overlapTop = Math.max(mapRect.top, panelRect.top);
-    const overlapBottom = Math.min(mapRect.bottom, panelRect.bottom);
-    if (overlapRight <= overlapLeft || overlapBottom <= overlapTop) return insets;
-    if (layoutMode === 'mobile') {
-      insets.bottom = Math.max(insets.bottom, mapRect.bottom - panelRect.top + edge);
-    } else if (panelRect.left >= mapRect.left + mapRect.width / 2) {
-      insets.right = Math.max(insets.right, mapRect.right - panelRect.left + edge);
-    } else {
-      insets.left = Math.max(insets.left, panelRect.right - mapRect.left + edge);
-    }
-    insets.left = clamp(insets.left, 0, mapRect.width - 96);
-    insets.right = clamp(insets.right, 0, mapRect.width - insets.left - 96);
-    insets.top = clamp(insets.top, 0, mapRect.height - 96);
-    insets.bottom = clamp(insets.bottom, 0, mapRect.height - insets.top - 96);
-    return insets;
+    return { ...projectionLayoutMetrics().fitInsets };
   }
 
   function focusCountry(feature, { announce = false, maxZoom = null, preferredAnchor = null } = {}) {
@@ -16006,8 +16094,12 @@ const {
       const layoutChanged = applyLayoutMode();
       if (!layoutChanged) {
         refreshMapSheetMetrics();
-        queueMapResize();
+        if (!mapResizeObserver) queueMapResize('window-resize-fallback');
       }
+    });
+    window.addEventListener('orientationchange', () => {
+      refreshMapSheetMetrics();
+      queueMapResize('orientation-change');
     });
     window.visualViewport?.addEventListener?.('resize', closeObjectActionsMenu);
     const onSystemThemeChange = event => applySystemTheme(!!event.matches);
@@ -16545,7 +16637,10 @@ const {
         domainListeners.set(key, listeners);
         return () => listeners.delete(listener);
       },
-      getViewport: () => ({ width: state.size.width, height: state.size.height, dpr: window.devicePixelRatio || 1 }),
+      getViewport: () => {
+        const layout = projectionLayoutMetrics();
+        return { width: layout.width, height: layout.height, dpr: layout.dpr };
+      },
       getFrameContext: () => window.__PANDOLAB_VIEW_STATE__ || null,
       reportDiagnostic: entry => reliabilityDiagnostic.push({ category: 'domain', ...entry }),
     });
@@ -16675,6 +16770,7 @@ const {
         labelKey,
         countryLabelAnchors: () => countryLabelAnchors,
         activeProjection,
+        projectVisibleCoordinate,
         isCoordVisible,
         labelDragBehavior,
         normalizeObjectRef,
@@ -16998,7 +17094,10 @@ const {
       refreshRenderResources,
       getRenderResourceSnapshot,
       renderers: {
-        view: viewState => { updatePandoGlobeShell(); return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState); },
+        view: viewState => {
+          updatePandoGlobeShell(viewState);
+          return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState);
+        },
         base: (...args) => renderingDomain.renderBase(...args),
         countries: (...args) => renderingDomain.renderCountries(...args),
         gpuInteraction: (...args) => renderingDomain.renderGpuInteraction(...args),
@@ -17013,7 +17112,11 @@ const {
         geometryPreview: (...args) => renderingDomain.renderGeometryPreview(...args),
         selectionData: (frameContext, packet, options = {}) => renderingDomain.renderSelection(frameContext, packet, options),
         selectionStyle: (frameContext, packet, options = {}) => renderingDomain.renderSelection(frameContext, packet, { ...options, styleOnly: true }),
-        selectionView: (frameContext, packet, options = {}) => renderingDomain.renderSelection(frameContext, packet, { ...options, viewOnly: true, updateData: false }),
+        selectionView: (frameContext, gpuFrameResult, options = {}) => renderingDomain.renderSelection(
+          frameContext,
+          null,
+          { ...options, viewOnly: true, updateData: false, gpuFrameResult },
+        ),
         hover: (...args) => renderingDomain.renderHoverOverlay(...args),
         validation: (...args) => renderingDomain.renderValidation(...args),
         labelLayout: visibleLabelLayout,

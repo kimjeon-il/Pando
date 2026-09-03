@@ -31,7 +31,6 @@ export const MAP_RENDER_DIRTY = Object.freeze({
 // by an explicit scene invalidation,
 // so it must not be pulled into every interaction frame.
 const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
-  | MAP_RENDER_DIRTY.SELECTION_VIEW
   | MAP_RENDER_DIRTY.LABEL_POSITIONS;
 
 const SETTLE_MASK = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
@@ -126,7 +125,9 @@ export function createMapRenderCoordinator({
 
       // The legacy Pando host and its renderer share the coordinator frame.
       // There is no second custom-layer render cycle.
-      if (!full && (mask & MAP_RENDER_DIRTY.VIEW)) callRenderer('view', rendererTimes, viewState);
+      const viewFrameResult = !full && (mask & MAP_RENDER_DIRTY.VIEW)
+        ? callRenderer('view', rendererTimes, viewState)
+        : null;
 
       if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes, viewState);
 
@@ -162,7 +163,19 @@ export function createMapRenderCoordinator({
       } else if (mask & MAP_RENDER_DIRTY.SELECTION_STYLE) {
         callRenderer('selectionStyle', rendererTimes, viewState);
       } else if (mask & MAP_RENDER_DIRTY.SELECTION_VIEW) {
-        callRenderer('selectionView', rendererTimes, viewState);
+        callRenderer('selectionView', rendererTimes, viewState, viewFrameResult, {
+          viewOnly: true,
+          updateData: false,
+          sparseFallbackOnly: true,
+        });
+      } else if (mask & MAP_RENDER_DIRTY.VIEW) {
+        // The main view renderer already drew the GPU interaction passes.
+        // Pass that exact result through and only move sparse SVG fallbacks.
+        callRenderer('selectionView', rendererTimes, viewState, viewFrameResult, {
+          viewOnly: true,
+          updateData: false,
+          sparseFallbackOnly: true,
+        });
       }
       if ((mask & MAP_RENDER_DIRTY.GPU_INTERACTION)
         && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW))) {

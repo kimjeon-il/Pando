@@ -86,7 +86,7 @@ test('completed hydro renders before canonical country boundaries in every nativ
   const gpu = read('assets/js/modules/gpu-map-renderer.js');
   const worker = read('assets/js/workers/canvas-render-worker.js');
   const webgl = gpu.slice(gpu.indexOf('function drawBaseSceneContent'), gpu.indexOf('function drawCountryInteractionFills'));
-  assert.ok(webgl.indexOf("drawHydro('border-river')") < webgl.indexOf('drawCountryBoundaryStrokes(dynamicResources)'));
+  assert.ok(webgl.indexOf("drawHydro('border-river')") < webgl.indexOf('drawCountryBoundaryStrokes(dynamicResources,'));
   const canvas = gpu.slice(gpu.indexOf('function renderCanvasFallback'), gpu.indexOf('function canvasWorkerStyleMessage'));
   assert.ok(canvas.indexOf('renderCanvasHydro(canvasPath, theme)') < canvas.indexOf('canvasPath(countryOutlineFeature(feature))'));
   const workerRender = worker.slice(worker.indexOf('function render(message)'), worker.indexOf('self.onmessage'));

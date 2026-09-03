@@ -49,7 +49,9 @@ function sha256(value) {
 }
 
 function meshHeader(value) {
-  return Array.from(new Uint32Array(value.buffer, value.byteOffset, 8));
+  const prefix = new Uint32Array(value.buffer, value.byteOffset, 8);
+  const words = prefix[1] >= 2 ? 12 : 8;
+  return Array.from(new Uint32Array(value.buffer, value.byteOffset, words));
 }
 
 function countryId(value, fallback = '') {
@@ -146,18 +148,35 @@ function buildPreview(canonicalSource, source50, existingPreview) {
 
 function packMesh(mesh, sourceCoordinateCount) {
   const vertexCount = mesh.positions.length / 2;
-  const headerBytes = 8 * Uint32Array.BYTES_PER_ELEMENT;
+  const headerWords = 12;
+  const headerBytes = headerWords * Uint32Array.BYTES_PER_ELEMENT;
   const countryBytesPadded = (mesh.countryIndices.byteLength + 3) & ~3;
-  const rawByteLength = headerBytes + mesh.positions.byteLength + countryBytesPadded + mesh.triangleIndices.byteLength + mesh.lineIndices.byteLength;
+  const rawByteLength = headerBytes + mesh.positions.byteLength + countryBytesPadded
+    + mesh.triangleIndices.byteLength + mesh.lineIndices.byteLength
+    + mesh.countryTriangleRanges.byteLength + mesh.countryBoundaryRanges.byteLength
+    + mesh.countryBounds.byteLength + mesh.countryBoundsFlags.byteLength;
   const raw = Buffer.alloc(rawByteLength);
-  const header = new Uint32Array(raw.buffer, raw.byteOffset, 8);
-  header.set([0x434d4731, 1, mesh.countryIds.length, vertexCount, mesh.triangleIndices.length, mesh.lineIndices.length, sourceCoordinateCount, meshCore.MESH_ALGORITHM_REVISION]);
+  const header = new Uint32Array(raw.buffer, raw.byteOffset, headerWords);
+  header.set([
+    0x434d4731, 2, mesh.countryIds.length, vertexCount,
+    mesh.triangleIndices.length, mesh.lineIndices.length,
+    sourceCoordinateCount, meshCore.MESH_ALGORITHM_REVISION,
+    mesh.countryTriangleRanges.length, mesh.countryBoundaryRanges.length,
+    mesh.countryBounds.length, mesh.countryBoundsFlags.length,
+  ]);
   let offset = headerBytes;
   for (const array of [mesh.positions, mesh.countryIndices]) {
     Buffer.from(array.buffer, array.byteOffset, array.byteLength).copy(raw, offset);
     offset += array === mesh.countryIndices ? countryBytesPadded : array.byteLength;
   }
-  for (const array of [mesh.triangleIndices, mesh.lineIndices]) {
+  for (const array of [
+    mesh.triangleIndices,
+    mesh.lineIndices,
+    mesh.countryTriangleRanges,
+    mesh.countryBoundaryRanges,
+    mesh.countryBounds,
+    mesh.countryBoundsFlags,
+  ]) {
     Buffer.from(array.buffer, array.byteOffset, array.byteLength).copy(raw, offset);
     offset += array.byteLength;
   }

@@ -42,6 +42,16 @@ test('GPU mesh worker packets include stable contiguous country stroke owner ran
     AAA: { first: 0, count: 4 },
     BBB: { first: 4, count: 4 },
   });
+  assert.equal(mesh.countryTriangleRanges[0], 0);
+  assert.ok(mesh.countryTriangleRanges[1] > 0);
+  assert.equal(mesh.countryTriangleRanges[2], mesh.countryTriangleRanges[1]);
+  assert.equal(mesh.countryTriangleRanges[3], mesh.countryTriangleRanges[1]);
+  assert.deepEqual(Array.from(mesh.countryBoundaryRanges), [0, 8, 8, 8]);
+  assert.deepEqual(Array.from(mesh.countryBounds), [
+    0, 0, 1_000_000, 1_000_000,
+    3_000_000, 0, 4_000_000, 1_000_000,
+  ]);
+  assert.deepEqual(Array.from(mesh.countryBoundsFlags), [0, 0]);
 
   for (const [id, range] of Object.entries(mesh.strokeOwnerRanges)) {
     const countryIndex = mesh.countryIds.indexOf(id);
@@ -62,4 +72,23 @@ test('GPU mesh worker packets include stable contiguous country stroke owner ran
       );
     }
   }
+});
+
+test('GPU mesh metadata represents date-line countries as wrapped longitude bounds', () => {
+  const feature = {
+    type: 'Feature',
+    id: 'DATE',
+    properties: {},
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[
+        [179, -1], [-179, -1], [-179, 1], [179, 1], [179, -1],
+      ]],
+    },
+  };
+  const mesh = meshCore.buildGpuMeshFeatures([feature], earcut, { validate: true });
+  assert.deepEqual(Array.from(mesh.countryBounds), [179_000_000, -1_000_000, -179_000_000, 1_000_000]);
+  assert.equal(mesh.countryBoundsFlags[0] & meshCore.COUNTRY_BOUNDS_FLAG_DATELINE, 1);
+  assert.equal(mesh.countryTriangleRanges.length, 2);
+  assert.equal(mesh.countryBoundaryRanges.length, 2);
 });

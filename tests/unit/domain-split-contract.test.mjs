@@ -40,6 +40,46 @@ test('domain factories expose isolated public contracts', () => {
   assert.equal(project.snapshot().countries[0].id, 'DEU', 'project snapshot is detached');
 });
 
+test('rendering domain coalesces label positions behind a 30Hz cadence', () => {
+  let clock = 0;
+  const frames = [];
+  const timers = [];
+  const rendering = createRenderingDomain({
+    labelPositionCadence: {
+      maxHz: 30,
+      now: () => clock,
+      requestFrame: callback => { frames.push(callback); return frames.length; },
+      cancelFrame: () => {},
+      setTimer: (callback, delay) => { timers.push({ callback, delay }); return timers.length; },
+      clearTimer: () => {},
+    },
+  });
+
+  rendering.renderCountryLabelPositions({ revision: 1 });
+  rendering.renderUserLabelPositions({ revision: 1 });
+  assert.equal(frames.length, 1);
+  assert.equal(timers.length, 0);
+  frames.shift()();
+  assert.equal(rendering.getStats().labelPositionCommitCount, 1);
+
+  clock = 10;
+  rendering.renderCountryLabelPositions({ revision: 2 });
+  rendering.renderUserLabelPositions({ revision: 2 });
+  assert.equal(timers.length, 1);
+  assert.ok(timers[0].delay >= 23 && timers[0].delay <= 24);
+  clock = 34;
+  timers.shift().callback();
+  assert.equal(frames.length, 1);
+  frames.shift()();
+
+  const stats = rendering.getStats();
+  assert.equal(stats.labelPositionRequestCount, 4);
+  assert.equal(stats.labelPositionMergedCount, 2);
+  assert.equal(stats.labelPositionCommitCount, 2);
+  assert.equal(stats.labelPositionLastFrameRevision, 2);
+  rendering.dispose();
+});
+
 test('non-rendering domains have no direct platform ownership', () => {
   const modules = ['project-domain.js', 'selection-domain.js', 'gis-domain.js', 'editing-domain.js'];
   for (const name of modules) {
@@ -187,7 +227,74 @@ test('rendering domain owns domain-specific invalidation masks', () => {
   assert.equal(masks.length, 3);
   assert.equal((masks[0] & (1 << 17)) === 0, true);
   assert.equal((masks[1] & (1 << 0)) !== 0, true);
+  assert.equal((masks[1] & (1 << 12)) === 0, true);
   assert.equal((masks[2] & (1 << 17)) !== 0, true);
+});
+
+test('view-only selection rendering reprojects only existing SVG fallbacks without another GPU frame', () => {
+  let gpuInteractionRenders = 0;
+  let projectedPaths = 0;
+  const pathSelection = features => ({
+    attr(name, callback) {
+      assert.equal(name, 'd');
+      for (const feature of features) callback(feature);
+      return this;
+    },
+  });
+  const layer = features => ({
+    selectAll: selector => {
+      assert.match(selector, /^path\.map-(selection|hover)-shape$/);
+      return pathSelection(features);
+    },
+  });
+  const rendering = createRenderingDomain({
+    gpuMapRenderer: {
+      renderInteraction() {
+        gpuInteractionRenders += 1;
+        return { succeeded: true };
+      },
+    },
+    selectionResources: {
+      selectionLayer: layer([{ type: 'Feature', geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] } }]),
+      hoverLayer: layer([]),
+      path: () => { projectedPaths += 1; return 'M0,0L1,1'; },
+      publishMetrics: () => {},
+    },
+  });
+  const result = rendering.renderSelection(
+    { revision: 8 },
+    null,
+    { viewOnly: true, updateData: false, gpuFrameResult: { succeeded: true, selection: { succeeded: true } } },
+  );
+  assert.equal(result, true);
+  assert.equal(projectedPaths, 1);
+  assert.equal(gpuInteractionRenders, 0);
+});
+
+test('view-only selection rendering is a no-op when no SVG fallback exists', () => {
+  let gpuInteractionRenders = 0;
+  const emptyLayer = {
+    selectAll: () => ({ attr: () => {} }),
+  };
+  const rendering = createRenderingDomain({
+    gpuMapRenderer: {
+      renderInteraction() {
+        gpuInteractionRenders += 1;
+        return { succeeded: true };
+      },
+    },
+    selectionResources: {
+      selectionLayer: emptyLayer,
+      hoverLayer: emptyLayer,
+      path: () => { throw new Error('no fallback path should be projected'); },
+    },
+  });
+  assert.equal(rendering.renderSelection(
+    { revision: 9 },
+    null,
+    { viewOnly: true, updateData: false, gpuFrameResult: { succeeded: true, selection: { succeeded: true } } },
+  ), false);
+  assert.equal(gpuInteractionRenders, 0);
 });
 
 test('project domain owns serializer snapshots and autosave data', () => {

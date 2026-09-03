@@ -68,7 +68,8 @@ test('render hot paths avoid heavyweight diagnostics and eager picking', () => {
   const interactionEnd = gpuRenderer.indexOf('function drawInteractionPasses', interactionStart);
   const interactionSource = gpuRenderer.slice(interactionStart, interactionEnd);
   assert.doesNotMatch(interactionSource, /ensureCountryIdScene\(\)/);
-  assert.match(interactionSource, /countryTriangleRanges\(mesh/);
+  assert.match(interactionSource, /triangleRangesByCountryId\?\.get\(id\)/);
+  assert.doesNotMatch(interactionSource, /createCountryTriangleRangeMap|countryTriangleRanges|for\s*\(/);
   assert.doesNotMatch(app, /const gpuId = gpuMapRenderer\.pick\(screenPoint\)/);
 });
 
