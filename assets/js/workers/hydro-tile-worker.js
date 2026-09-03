@@ -7,6 +7,7 @@ const textDecoder = new TextDecoder('utf-8');
 let manifest = null;
 let baseUrl = '';
 let assetRevision = '';
+let dataRevision = '';
 let latestRevision = 0;
 let busy = false;
 let pendingView = null;
@@ -34,7 +35,7 @@ let cacheCompleted = false;
 
 function resolveUrl(path) {
   const url = new URL(path, baseUrl);
-  if (assetRevision) url.searchParams.set('v', assetRevision);
+  if (dataRevision || assetRevision) url.searchParams.set('v', dataRevision || assetRevision);
   return url.href;
 }
 
@@ -745,6 +746,7 @@ onmessage = async event => {
       manifest = message.manifest;
       baseUrl = message.baseUrl;
       assetRevision = message.assetRevision || manifest.version || '';
+      dataRevision = message.dataRevision || assetRevision;
       includeGeometry = message.includeGeometry === true;
       tilePacks.clear();
       logicalPacks.clear();

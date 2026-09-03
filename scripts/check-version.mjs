@@ -20,6 +20,7 @@ expect(/^\d+\.\d+\.\d+$/.test(appVersion), `package.json version이 유효하지
 expect(buildMeta && buildMeta.appVersion === appVersion, 'build-meta.js의 appVersion이 package.json과 다릅니다.');
 expect(buildMeta && buildMeta.buildId === buildMeta.assetRevision, 'buildId와 assetRevision은 동일한 build ID여야 합니다.');
 expect(buildMeta && /^[0-9]+\.[0-9]+\.[0-9]+-build-[A-Za-z0-9._-]+$/.test(buildMeta.assetRevision), 'assetRevision 형식이 올바르지 않습니다.');
+expect(buildMeta && /^data-[a-f0-9]{32}$/.test(buildMeta.dataRevision || ''), 'dataRevision 형식이 올바르지 않습니다.');
 expect(index.includes(`data-app-version="${appVersion}"`), 'index.html의 data-app-version이 package.json과 다릅니다.');
 expect(index.includes(`assets/js/build-meta.js?v=${buildMeta?.assetRevision || ''}`), 'index.html이 현재 build-meta revision을 사용하지 않습니다.');
 

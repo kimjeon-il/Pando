@@ -9,8 +9,7 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" data-pandolab-ui-v2="tokens-ui-v2" href="assets/css/tokens/ui-v2.css?v=0.32.0-build-ui14-76cb02ffaf2d" />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-ui14-76cb02ffaf2d" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-b49b86892919" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -353,6 +352,11 @@
           <button id="resetViewBtn" class="ui-button icon-btn" data-tooltip="전체 지도 보기" aria-label="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
+        <div class="editor-edge-slot">
+          <button id="togglePanelBtn" class="ui-button icon-btn editor-edge-trigger" type="button" data-tooltip="편집창 열기" aria-label="편집창 열기" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></button>
+        </div>
+
+
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-zoom-dock" aria-label="모바일 지도 보기">
           <button id="mobileZoomInBtn" class="ui-button icon-btn" type="button" aria-label="지도 확대" data-tooltip="지도 확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="mobileZoomOutBtn" class="ui-button icon-btn" type="button" aria-label="지도 축소" data-tooltip="지도 축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
@@ -361,9 +365,9 @@
 
         <div id="mapTopContextSlot" class="map-top-context-slot" aria-live="polite">
           <div id="modeEditingContext" class="mode-editing-context hidden">
-            <section id="modeEditingHud" class="ui-floating-surface ui-workflow-shell mode-task-window workflow-map-session" role="region" aria-labelledby="modeTaskName">
+            <section id="modeEditingHud" class="ui-floating-surface ui-workflow-shell mode-task-window" role="region" aria-label="지도 편집 작업">
               <header class="mode-task-window-header">
-                <div class="mode-task-heading"><svg id="modeTaskIcon" class="ui-icon mode-task-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span></div>
+                <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span></div>
                 <div class="mode-task-window-controls">
                   <button id="modeTaskMinimizeBtn" class="ui-button icon-btn compact" type="button" aria-label="지도 작업창 최소화" aria-controls="modeTaskWindowContent" aria-expanded="true" data-tooltip="최소화"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
                   <button id="modeTaskCloseBtn" class="ui-button icon-btn compact" type="button" aria-label="지도 작업 취소" data-tooltip="작업 취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
@@ -374,7 +378,7 @@
                   <div class="mode-task-context">
                     <div class="mode-task-detail">
                       <p id="modeTaskInstruction" class="mode-task-instruction"></p>
-                      <div id="geometryPreviewSummary" class="geometry-preview-summary hidden workflow-impact workflow-impact workflow-impact workflow-impact workflow-impact"></div>
+                      <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
                     </div>
                   </div>
                   <div id="modeMethodSwitch" class="ui-segmented mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
@@ -392,7 +396,7 @@
                     <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
                   </div>
                 </div>
-                <footer id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden workflow-actions workflow-actions workflow-actions workflow-actions workflow-actions" aria-label="지도 편집 작업 실행">
+                <footer id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden" aria-label="지도 편집 작업 실행">
                   <div class="mode-action-buttons">
                     <button id="modeCancelBtn" type="button" class="ui-button mode-cancel-btn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-button-label">취소</span></button>
                     <button id="modePrimaryBtn" type="button" class="ui-button mode-primary-btn" aria-describedby="modeTaskInstruction"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-button-label">완료</span><span class="mode-button-busy" aria-hidden="true">처리 중…</span></button>
@@ -491,7 +495,7 @@
             </section>
             <section id="multiCountryActions" class="editor-section editor-action-section hidden" aria-label="다중 선택 작업">
               <div class="editor-action-list">
-                <button id="multiBorderEditBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>국경 조정</strong><small>선택 국가 사이의 공유국경 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="multiBorderEditBtn" type="button" class="ui-button editor-action-row"><span><strong>국경 조정</strong><small>선택 국가 사이의 공유국경 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
               <p id="multiBorderEditHelp" class="editor-help hidden" aria-live="polite"></p>
             </section>
@@ -544,16 +548,16 @@
             <section class="editor-section editor-action-section" aria-labelledby="countryGeometryActionsTitle">
               <h3 id="countryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
-                <button id="annexTerritoryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>국가 합병</strong><small>여러 국가를 하나로 합치기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="editBorderBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>국경 조정</strong><small>선택한 접경국 사이의 공유국경 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="editCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안선 조정</strong><small>선택 국가의 외곽 해안선 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="annexTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row"><span><strong>국가 합병</strong><small>여러 국가를 하나로 합치기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="editBorderBtn" type="button" class="ui-button editor-action-row"><span><strong>국경 조정</strong><small>선택한 접경국 사이의 공유국경 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="editCoastBtn" type="button" class="ui-button editor-action-row"><span><strong>해안선 조정</strong><small>선택 국가의 외곽 해안선 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="countryRelationActionsTitle">
               <h3 id="countryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
-                <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg><span><strong>종류 변경</strong><small>국가를 권역 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가를 권역 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
           </form>
@@ -574,18 +578,18 @@
             <section class="editor-section editor-action-section" aria-labelledby="territoryGeometryActionsTitle">
               <h3 id="territoryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
-                <button id="reassignTerritoryShapeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 수정</strong><small>부모 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="mergeTerritoryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>영역 합치기</strong><small>같은 국가의 인접 영역 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="splitTerritoryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-split"/></svg><span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="reassignTerritoryShapeBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 수정</strong><small>부모 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="mergeTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 합치기</strong><small>같은 국가의 인접 영역 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="splitTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="territoryRelationActionsTitle">
               <h3 id="territoryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
-                <button id="transferTerritoryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="changeTerritoryTypeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg><span><strong>종류 변경</strong><small>국가 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="promoteTerritoryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span><strong>국가로 전환</strong><small>선택 영역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="removeTerritoryDivisionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="transferTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="changeTerritoryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가 또는 행정구역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="promoteTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>국가로 전환</strong><small>선택 영역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="removeTerritoryDivisionBtn" type="button" class="ui-button editor-action-row"><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
           </form>
@@ -608,19 +612,19 @@
             <section class="editor-section editor-action-section" aria-labelledby="administrativeGeometryActionsTitle">
               <h3 id="administrativeGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
-                <button id="reassignAdministrativeShapeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 수정</strong><small>부모 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="reconcileAdministrativeCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안선 정합</strong><small>국가 해안선과 불일치 구간 조정</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg></button>
-                <button id="mergeAdministrativeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>영역 합치기</strong><small>같은 부모·단계의 인접 영역 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="splitAdministrativeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-split"/></svg><span><strong>영역 나누기</strong><small>부모 영역 안에서 두 영역으로 분할</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="reassignAdministrativeShapeBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 수정</strong><small>부모 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="reconcileAdministrativeCoastBtn" type="button" class="ui-button editor-action-row"><span><strong>해안선 정합</strong><small>국가 해안선과 불일치 구간 조정</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg></button>
+                <button id="mergeAdministrativeBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 합치기</strong><small>같은 부모·단계의 인접 영역 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="splitAdministrativeBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 나누기</strong><small>부모 영역 안에서 두 영역으로 분할</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="administrativeRelationActionsTitle">
               <h3 id="administrativeRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
-                <button id="transferAdministrativeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="changeAdministrativeTypeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg><span><strong>종류 변경</strong><small>국가 또는 권역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="promoteAdministrativeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span><strong>국가로 전환</strong><small>선택 구역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="removeAdministrativeDivisionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="transferAdministrativeBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="changeAdministrativeTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가 또는 권역으로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="promoteAdministrativeBtn" type="button" class="ui-button editor-action-row"><span><strong>국가로 전환</strong><small>선택 구역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="removeAdministrativeDivisionBtn" type="button" class="ui-button editor-action-row"><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
           </form>
@@ -646,14 +650,14 @@
             <section class="editor-section editor-action-section" aria-labelledby="regionGeometryActionsTitle">
               <h3 id="regionGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
-                <button id="reassignRegionShapeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 수정</strong><small>상위 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="mergeRegionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>지방 합치기</strong><small>인접한 지방 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="reassignRegionShapeBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 수정</strong><small>상위 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="mergeRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>지방 합치기</strong><small>인접한 지방 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="regionRelationActionsTitle">
               <h3 id="regionRelationActionsTitle" class="editor-section-title">관계 및 구조</h3>
               <div class="editor-action-list">
-                <button id="transferRegionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>소속 변경</strong><small>주권 국가와 상위 영역 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="transferRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>주권 국가와 상위 영역 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
           </form>
@@ -882,30 +886,30 @@
       <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>
     </section>
   </div>
-  <div id="confirmModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle" aria-describedby="confirmModalMessage">
+  <div id="confirmModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
     <div class="ui-dialog-backdrop confirm-modal-dim"></div>
-    <section class="ui-dialog-card ui-workflow-shell confirm-modal-card workflow-dialog-card workflow-dialog--compact">
-      <svg class="ui-icon workflow-dialog-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><h2 id="confirmModalTitle">확인</h2>
+    <section class="ui-dialog-card ui-workflow-shell confirm-modal-card">
+      <h2 id="confirmModalTitle">확인</h2>
       <p id="confirmModalMessage"></p>
       <section id="confirmModalImpactSection" class="confirm-impact hidden" aria-labelledby="confirmModalImpactTitle"><strong id="confirmModalImpactTitle">영향</strong><ul id="confirmModalImpactList"></ul></section>
-      <label id="confirmModalChoiceRow" class="ui-field field-group hidden workflow-choice-row workflow-choice-row"><span>처리 방식</span><select id="confirmModalChoice"></select></label>
-      <div class="confirm-modal-actions ui-dialog-actions workflow-dialog-actions">
+      <label id="confirmModalChoiceRow" class="ui-field field-group hidden"><span>처리 방식</span><select id="confirmModalChoice"></select></label>
+      <div class="confirm-modal-actions ui-dialog-actions">
         <button id="confirmModalCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="confirmModalOkBtn" type="button" class="ui-button btn">확인</button>
       </div>
     </section>
   </div>
-  <div id="coastReconciliationModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="coastReconciliationTitle" aria-describedby="coastReconciliationMessage">
+  <div id="coastReconciliationModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="coastReconciliationTitle">
     <div class="ui-dialog-backdrop confirm-modal-dim"></div>
-    <section class="ui-dialog-card ui-workflow-shell confirm-modal-card coast-reconciliation-card workflow-dialog-card workflow-dialog--wide workflow-dialog--decision">
+    <section class="ui-dialog-card ui-workflow-shell confirm-modal-card coast-reconciliation-card">
       <h2 id="coastReconciliationTitle">해안선이 서로 일치하지 않습니다</h2>
       <p id="coastReconciliationMessage"></p>
       <section id="coastReconciliationImpact" class="confirm-impact hidden" aria-labelledby="coastReconciliationImpactTitle"><strong id="coastReconciliationImpactTitle">영향</strong><ul id="coastReconciliationImpactList"></ul></section>
       <div class="ui-dialog-actions coast-reconciliation-actions">
-        <button id="coastReconciliationCountryBtn" type="button" class="ui-button btn workflow-decision-option workflow-decision-option">국가 기준<span class="workflow-option-detail">국가 해안선을 기준으로 가져온 영역을 맞춥니다.</span></button>
-        <button id="coastReconciliationAdminBtn" type="button" class="ui-button btn workflow-decision-option workflow-decision-option">가져온 영역 기준<span class="workflow-option-detail">가져온 영역의 해안선을 기준으로 국가 쪽을 맞춥니다.</span></button>
-        <button id="coastReconciliationIndependentBtn" type="button" class="ui-button btn ghost workflow-decision-option workflow-decision-option">독립 유지<span class="workflow-option-detail">두 형상을 변경하지 않고 독립적으로 유지합니다.</span></button>
-        <button id="coastReconciliationCancelBtn" type="button" class="ui-button btn ghost workflow-decision-cancel workflow-decision-cancel">취소</button>
+        <button id="coastReconciliationCountryBtn" type="button" class="ui-button btn">국가 기준</button>
+        <button id="coastReconciliationAdminBtn" type="button" class="ui-button btn">가져온 영역 기준</button>
+        <button id="coastReconciliationIndependentBtn" type="button" class="ui-button btn ghost">독립 유지</button>
+        <button id="coastReconciliationCancelBtn" type="button" class="ui-button btn ghost">취소</button>
       </div>
     </section>
   </div>
@@ -920,16 +924,16 @@
       <h2 id="territorialCreateTitle">권역 추가</h2>
       <p id="territorialCreateContext"></p>
       <label class="ui-field field-group"><span>생성 방법</span><select id="territorialCreateMethod"></select></label>
-      <div class="confirm-modal-actions ui-dialog-actions workflow-dialog-actions">
+      <div class="confirm-modal-actions ui-dialog-actions">
         <button id="territorialCreateCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="territorialCreateConfirmBtn" type="button" class="ui-button btn">시작</button>
       </div>
     </section>
   </div>
-  <div id="territorialTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="territorialTypeTitle" aria-describedby="territorialTypeContext">
+  <div id="territorialTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="territorialTypeTitle">
     <div class="ui-dialog-backdrop confirm-modal-dim"></div>
-    <section class="ui-dialog-card ui-workflow-shell confirm-modal-card territorial-type-card workflow-dialog-card workflow-dialog--standard">
-      <svg class="ui-icon workflow-dialog-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg><h2 id="territorialTypeTitle">종류 변경</h2>
+    <section class="ui-dialog-card ui-workflow-shell confirm-modal-card territorial-type-card">
+      <h2 id="territorialTypeTitle">종류 변경</h2>
       <p id="territorialTypeContext"></p>
       <div class="territorial-type-fields">
         <label class="ui-field field-group"><span>새 종류</span><select id="territorialTypeInput"><option value="country">국가</option><option value="territory">권역</option><option value="admin">행정구역</option></select></label>
@@ -940,7 +944,7 @@
           <ul id="territorialTypeImpactList"></ul>
         </section>
       </div>
-      <div class="confirm-modal-actions ui-dialog-actions workflow-dialog-actions">
+      <div class="confirm-modal-actions ui-dialog-actions">
         <button id="territorialTypeCancelBtn" type="button" class="ui-button btn ghost">취소</button>
         <button id="territorialTypeConfirmBtn" type="button" class="ui-button btn">종류 변경</button>
       </div>
@@ -948,9 +952,9 @@
   </div>
   <div id="historicalLibraryModal" class="ui-dialog historical-library-modal hidden" role="dialog" aria-modal="true" aria-labelledby="historicalLibraryTitle">
     <div class="ui-dialog-backdrop"></div>
-    <section class="ui-dialog-card ui-workflow-shell historical-library-card ui-scroll-surface library-workflow-card">
+    <section class="ui-dialog-card ui-workflow-shell historical-library-card ui-scroll-surface">
       <header class="ui-dialog-header">
-        <svg class="ui-icon library-dialog-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg><div><h2 id="historicalLibraryTitle">국가·지역 라이브러리</h2></div>
+        <div><h2 id="historicalLibraryTitle">국가·지역 라이브러리</h2></div>
         <button id="historicalLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기" data-tooltip="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
       <div class="historical-library-toolbar">
@@ -960,7 +964,7 @@
       </div>
       <div class="historical-library-layout">
         <div id="historicalLibraryResults" class="historical-library-results" role="listbox" aria-label="라이브러리 검색 결과"></div>
-        <aside id="historicalLibraryPreview" class="historical-library-preview">
+        <aside id="historicalLibraryPreview" class="ui-card historical-library-preview">
           <p class="editor-help">항목을 선택하면 시대·경계 버전·출처를 확인할 수 있습니다.</p>
         </aside>
       </div>
@@ -984,7 +988,6 @@
         </div>
         <button id="gisImportCancelBtn" type="button" class="ui-button icon-btn" aria-label="가져오기 닫기" data-tooltip="가져오기 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
-      <ol class="gis-stepper gis-stepper--5" aria-label="진행 단계"><li data-step-number="1" class="is-current" aria-current="step">파일</li><li data-step-number="2">종류</li><li data-step-number="3">속성</li><li data-step-number="4">적용</li><li data-step-number="5">확인</li></ol>
       <form id="gisImportForm" onsubmit="return false;">
         <div class="gis-import-content-rail">
           <div id="gisImportProgress" class="gis-import-progress"><div class="ui-progress" aria-hidden="true"><span id="gisImportProgressBar"></span></div><p id="gisImportStatus" class="ui-status gis-import-status" aria-live="polite">선택한 파일을 확인하는 중입니다.</p></div>
@@ -1035,7 +1038,6 @@
         <div><h2 id="gisExportTitle">데이터 내보내기</h2><p id="gisExportStepIndicator" class="gis-mobile-step-indicator" aria-live="polite">1/2 · 내보낼 데이터</p></div>
         <button id="gisExportCloseBtn" type="button" class="ui-button icon-btn" aria-label="데이터 내보내기 닫기" data-tooltip="데이터 내보내기 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
-      <ol class="gis-stepper gis-stepper--2" aria-label="진행 단계"><li data-step-number="1" class="is-current" aria-current="step">데이터</li><li data-step-number="2">형식</li></ol>
       <form id="gisExportForm" onsubmit="return false;">
         <div class="gis-export-step" data-gis-export-step="0" data-gis-active="true">
           <fieldset class="gis-export-layers"><legend>내보낼 데이터</legend>
@@ -1049,7 +1051,7 @@
           </fieldset>
         </div>
         <div class="gis-export-step" data-gis-export-step="1">
-          <label class="ui-field field-group gis-export-format-field"><span>파일 형식</span><select id="gisExportFormat" class="gis-export-format-native"><option value="gpkg">GIS용 GeoPackage</option><option value="geojson-zip">GeoJSON 묶음 (.zip)</option></select></label><div class="gis-export-format-list" role="radiogroup" aria-label="파일 형식"><label class="gis-export-format-option"><input type="radio" name="gisExportFormatPresentation" value="gpkg" checked /><span class="gis-export-format-copy"><strong>GIS용 GeoPackage</strong><small>하나의 GIS 패키지 파일로 저장합니다.</small></span></label><label class="gis-export-format-option"><input type="radio" name="gisExportFormatPresentation" value="geojson-zip" /><span class="gis-export-format-copy"><strong>GeoJSON 묶음 (.zip)</strong><small>레이어별 GeoJSON을 ZIP 파일로 저장합니다.</small></span></label></div>
+          <label class="ui-field field-group"><span>파일 형식</span><select id="gisExportFormat"><option value="gpkg">GIS용 GeoPackage</option><option value="geojson-zip">GeoJSON 묶음 (.zip)</option></select></label>
           <div id="gisExportSummary" class="ui-callout"><strong>파일 내용 확인</strong><p>선택한 데이터를 확인하는 중입니다.</p></div>
         </div>
         <div id="gisExportError" class="ui-alert hidden" role="alert"></div>
@@ -1065,12 +1067,12 @@
 
   
   
-  <script src="assets/js/build-meta.js?v=0.32.0-build-ui14-76cb02ffaf2d" defer></script>
+  <script src="assets/js/build-meta.js?v=0.32.0-build-b49b86892919" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.32.0-build-ui14-76cb02ffaf2d" defer></script>
-  <script src="assets/js/gis-io.js?v=0.32.0-build-ui14-76cb02ffaf2d" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.32.0-build-ui14-76cb02ffaf2d" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.32.0-build-b49b86892919" defer></script>
+  <script src="assets/js/gis-io.js?v=0.32.0-build-b49b86892919" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.32.0-build-b49b86892919" defer></script>
 </body>
 </html>

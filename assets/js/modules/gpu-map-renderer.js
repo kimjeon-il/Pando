@@ -95,6 +95,7 @@ export function createGpuMapRenderer(deps) {
   const {
     APP_VERSION,
     ASSET_REVISION,
+    DATA_REVISION,
     PHYSICAL_DATA_BASE_URL,
     activeProjection,
     countryColor,
@@ -160,6 +161,9 @@ export function createGpuMapRenderer(deps) {
     let sceneCacheInteractionDrawCount = 0;
     let sceneCacheSelectionOnlyBaseDrawCount = 0;
     let lastRenderSceneRevision = 0;
+    const rendererStartedAt = performance.now();
+    let firstCanonicalFrameMs = null;
+    let canonicalFrameFallbackCount = 0;
     let renderQuality = DEFAULT_RENDER_QUALITY;
     let meshSwitchCount = 0;
     let renderQualityChangeCount = 0;
@@ -172,6 +176,15 @@ export function createGpuMapRenderer(deps) {
     let canonicalPromotionCount = 0;
     let canonicalPromotionError = '';
     let canonicalReadyFrameId = 0;
+    function recordCanonicalFrameReady() {
+      if (firstCanonicalFrameMs === null) {
+        firstCanonicalFrameMs = Math.max(0, performance.now() - rendererStartedAt);
+      }
+    }
+    function recordSceneCacheFallback() {
+      if (!sceneCacheFallbackFrame) canonicalFrameFallbackCount += 1;
+      sceneCacheFallbackFrame = true;
+    }
     let webGlContextKind = '';
     let uintIndexExtension = null;
     let ctx2d = null;
@@ -1325,6 +1338,7 @@ export function createGpuMapRenderer(deps) {
 
     function promoteCanonicalMesh({ frameId = 0 } = {}) {
       canonicalMeshReady = true;
+      recordCanonicalFrameReady();
       qualityPhase = 'canonical-ready';
       previewAllowed = false;
       meshQuality = 'canonical';
@@ -1730,6 +1744,7 @@ export function createGpuMapRenderer(deps) {
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         meshQuality = 'canonical';
         canonicalMeshReady = true;
+        recordCanonicalFrameReady();
         qualityPhase = 'canonical-ready';
         previewAllowed = false;
         canonicalPromotionCount += 1;
@@ -1748,6 +1763,7 @@ export function createGpuMapRenderer(deps) {
       if (!isWebGlRenderer()) {
         meshQuality = 'canonical';
         canonicalMeshReady = true;
+        recordCanonicalFrameReady();
         qualityPhase = 'canonical-ready';
         previewAllowed = false;
         canonicalPromotionCount += 1;
@@ -3012,12 +3028,13 @@ export function createGpuMapRenderer(deps) {
         if (generation !== hydroWorkerGeneration) return;
         receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '강·호수 Worker 실행 오류' } });
       };
-      const hydroRevision = `${ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
+      const hydroRevision = `${DATA_REVISION || ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
       hydroWorker.postMessage({
         type: 'init',
         manifest: hydroManifest,
         baseUrl: new URL('./', hydroManifestUrl).href,
         assetRevision: hydroRevision,
+        dataRevision: DATA_REVISION || hydroRevision,
         includeGeometry: wantedIncludeGeometry,
       });
       hydroWorkerReadyTimer = setTimeout(() => {
@@ -3149,7 +3166,7 @@ export function createGpuMapRenderer(deps) {
         .replace('{column}', String(spec.column))
         .replace('{row}', String(spec.row));
       const url = new URL(relative, PHYSICAL_DATA_BASE_URL);
-      url.searchParams.set('v', terrainManifest.version || APP_VERSION);
+      url.searchParams.set('v', DATA_REVISION || terrainManifest.version || APP_VERSION);
       return url;
     }
 
@@ -3722,7 +3739,7 @@ export function createGpuMapRenderer(deps) {
             lastBaseSceneResult = baseResult;
           }
         } else {
-          sceneCacheFallbackFrame = true;
+          recordSceneCacheFallback();
           // A failed staging allocation must not clear the only visible
           // scene. Keep the last scene when it belongs to this exact view;
           // direct redraw is only safe before the first scene exists.
@@ -3742,7 +3759,7 @@ export function createGpuMapRenderer(deps) {
         // removed from the active scene (for example an edited border) cannot
         // survive in the default framebuffer as an afterimage.
         if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: false })) {
-          sceneCacheFallbackFrame = true;
+          recordSceneCacheFallback();
           // A failed composite does not make a same-view active scene stale.
           // Preserve the already displayed frame instead of clearing it and
           // exposing a partially redrawn/transparent framebuffer.
@@ -3757,7 +3774,7 @@ export function createGpuMapRenderer(deps) {
           }
         }
       } else if (!baseResult) {
-        sceneCacheFallbackFrame = true;
+        recordSceneCacheFallback();
         if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
           baseResult = lastBaseSceneResult;
         } else {
@@ -3937,7 +3954,11 @@ export function createGpuMapRenderer(deps) {
         ...canvasWorkerStyleMessage(),
         ...canvasWorkerPhysicalStyleMessage(),
         geometryRevision: geometryRevisionTracker.committedRevision(),
-        terrainManifestUrl: new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL).href,
+        terrainManifestUrl: (() => {
+          const url = new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL);
+          url.searchParams.set('v', DATA_REVISION || terrainManifest?.version || APP_VERSION);
+          return url.href;
+        })(),
       };
       message.type = 'init';
       return message;
@@ -4610,6 +4631,9 @@ export function createGpuMapRenderer(deps) {
       return {
         renderer: rendererMode,
         mapHost: 'legacy',
+        assetRevision: ASSET_REVISION,
+        dataRevision: DATA_REVISION,
+        dataCacheName: `pandolab-data-${DATA_REVISION}`,
         projectGeneration,
         projectRenderBlocked,
         activeWebGlContextCount: renderDevice && isWebGlRenderer() ? 1 : 0,
@@ -4620,6 +4644,8 @@ export function createGpuMapRenderer(deps) {
         sceneCacheInteractionDrawCount,
         selectionOnlyBaseDrawCount: sceneCacheSelectionOnlyBaseDrawCount,
         sceneCacheFallbackFrame,
+        canonicalFrameFallbackCount,
+        firstCanonicalFrameMs,
         polygonOverlay: polygonOverlayPass.stats(),
         stroke: strokeRenderer.stats(),
         selection: selectionPass?.stats?.() || null,
