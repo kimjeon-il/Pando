@@ -561,7 +561,7 @@ const {
     'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'territoryNameConflict', 'administrativeNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeTerritoryTypeBtn', 'changeAdministrativeTypeBtn', 'reconcileAdministrativeCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
     'countryCodeInput', 'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
-    'undoBtn', 'redoBtn', 'mapToolToolbar', 'mapSelectToolBtn', 'mapMoveToolBtn', 'mapBoundaryToolBtn', 'mapAreaToolBtn', 'togglePanelBtn', 'rightPanel',
+    'undoBtn', 'redoBtn', 'mapToolToolbar', 'mapSelectToolBtn', 'mapMoveToolBtn', 'mapBoundaryToolBtn', 'mapAreaToolBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
@@ -743,12 +743,6 @@ const {
   }
 
   function syncEditorPanelControls() {
-    const edge = $('togglePanelBtn');
-    edge?.classList.toggle('active', surfaceState.editorOpen);
-    edge?.setAttribute('aria-expanded', String(surfaceState.editorOpen));
-    const edgeLabel = surfaceState.editorOpen ? '편집창 닫기' : '편집창 열기';
-    edge?.setAttribute('aria-label', edgeLabel);
-    if (edge) edge.dataset.tooltip = edgeLabel;
     const headerToggle = $('mobileCloseRightBtn');
     if (!headerToggle) return;
     const label = layoutMode === 'wide' ? '편집창 접기' : '편집창 닫기';
@@ -1079,9 +1073,6 @@ const {
     }
   }
 
-  function toggleEditorPanel() {
-    toggleSurface('editor', document.activeElement);
-  }
 
   function syncMobileNavigation() {
     const adding = state?.tool === 'new-country' || !!hydroToolConfig(state?.tool) || state?.labelPlacementMode || state?.tool === 'label';
@@ -15643,7 +15634,6 @@ const {
     $('zoomOutBtn')?.addEventListener('click', () => zoomBy(0.8));
     $('zoomInBtn')?.addEventListener('click', () => zoomBy(1.25));
 
-    $('togglePanelBtn').addEventListener('click', toggleEditorPanel);
     $('focusSelectedObjectBtn')?.addEventListener('click', () => objectSelection.primary() && focusObjectRef(objectSelection.primary()));
     $('objectLockBtn')?.addEventListener('click', batchToggleLocked);
     $('objectDeleteBtn')?.addEventListener('click', deleteSelectedFromObjectMenu);
