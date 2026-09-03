@@ -1,0 +1,205 @@
+/* Mobile bottom-sheet chrome and direct-edit presentation. */
+
+@media (max-width: 799px) {
+  .mobile-bottom-bar {
+    min-height: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid var(--border);
+    background: var(--mobile-nav-bg);
+  }
+
+  .mobile-bottom-bar .ui-nav-item {
+    min-width: 0;
+    min-height: var(--ui-touch-height);
+    border-color: transparent;
+    background: transparent;
+    color: var(--muted);
+  }
+
+  .mobile-bottom-bar .ui-nav-item:hover,
+  .mobile-bottom-bar .ui-nav-item:focus-visible {
+    border-color: transparent;
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+
+  .mobile-bottom-bar .ui-nav-item[aria-expanded="true"],
+  .mobile-bottom-bar .ui-nav-item.sheet-open {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: var(--text-strong);
+  }
+
+  .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] .ui-icon,
+  .mobile-bottom-bar .ui-nav-item.sheet-open .ui-icon { color: var(--accent); }
+
+  .mobile-bottom-bar .ui-nav-item strong {
+    font-size: var(--ui-font-xs);
+    font-weight: var(--ui-weight-semibold);
+  }
+
+  .workspace-surface.ui-sheet {
+    border-top: 1px solid var(--border);
+    border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
+    background: var(--surface-elevated);
+    box-shadow: var(--control-shadow);
+  }
+
+  .workspace-surface.ui-sheet > .surface-header {
+    position: relative;
+    min-height: var(--ui-surface-header-height-mobile);
+    padding-inline: var(--ui-space-4);
+  }
+
+  .sheet-drag-handle {
+    position: absolute;
+    inset: 0 0 auto;
+    width: 100%;
+    min-height: var(--ui-touch-height);
+    height: var(--ui-touch-height);
+    display: grid;
+    place-items: start center;
+    padding: var(--ui-space-2) 0 0;
+    border: 0;
+    background: transparent;
+    touch-action: none;
+    cursor: ns-resize;
+  }
+
+  .sheet-drag-handle > span {
+    width: var(--ui-v2-control-lg);
+    height: var(--ui-space-1);
+    border-radius: var(--ui-radius-pill);
+    background: color-mix(in srgb, var(--muted) 54%, transparent);
+    pointer-events: none;
+  }
+
+  .surface-header-title { min-width: 0; }
+
+  .surface-header-title > strong {
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-weight-bold);
+  }
+
+  .workspace-surface[data-sheet-snap="0"] .surface-tabs,
+  .surface-editor[data-sheet-snap="0"] .editor-scroll-body { display: none; }
+
+  .surface-editor[data-sheet-snap="0"] > .surface-header { min-height: var(--ui-v2-sheet-snap-collapsed); }
+
+  .surface-editor .editor-view-tabs:not(.hidden) {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex: 0 0 auto;
+    min-height: 2.375rem;
+    padding-inline: var(--ui-space-3);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-elevated);
+  }
+
+  .surface-editor .editor-view-tabs .ui-tab {
+    min-height: 2.375rem;
+    justify-content: center;
+    font-size: var(--ui-font-sm);
+  }
+
+  .surface-editor .editor-scroll-body,
+  .surface-map .surface-body,
+  .surface-create .surface-body { overscroll-behavior: contain; }
+
+  :is(.surface-map, .surface-create)[data-sheet-snap="0"] { pointer-events: none; }
+
+  .surface-map .layer-folder-row,
+  .surface-map .layer-child {
+    min-height: var(--ui-v2-layer-row-height-mobile);
+    height: var(--ui-v2-layer-row-height-mobile);
+  }
+
+  .surface-create .create-menu-item { min-height: var(--ui-touch-height); }
+  .surface-map .projection-btn { min-height: var(--ui-touch-height); }
+
+  body.mobile-direct-edit .map-tool-toolbar { display: none; }
+
+  body.mobile-direct-edit .mode-editing-context {
+    position: relative;
+    z-index: 60;
+  }
+
+  body.mobile-direct-edit .workflow-map-session.mode-task-window {
+    position: relative;
+    width: min(100%, calc(100vw - var(--ui-space-4)));
+    min-height: 2.5rem;
+    border-radius: var(--ui-radius-panel);
+    overflow: visible;
+  }
+
+  body.mobile-direct-edit .workflow-map-session .mode-task-window-header {
+    min-height: 2.5rem;
+    justify-content: center;
+    padding: 0 3.625rem;
+    border-bottom: 0;
+  }
+
+  body.mobile-direct-edit .workflow-map-session .mode-task-heading {
+    display: flex;
+    min-width: 0;
+    justify-content: center;
+    gap: var(--ui-space-1);
+    text-align: center;
+  }
+
+  body.mobile-direct-edit .workflow-map-session .mode-task-icon,
+  body.mobile-direct-edit .workflow-map-session .mode-task-separator,
+  body.mobile-direct-edit .workflow-map-session .mode-task-window-controls { display: none; }
+
+  body.mobile-direct-edit .workflow-map-session .mode-task-heading > strong,
+  body.mobile-direct-edit .workflow-map-session .mode-task-stage { font-size: var(--ui-font-sm); }
+
+  body.mobile-direct-edit .workflow-map-session .mode-task-window-body { padding: 0 var(--ui-space-2) var(--ui-space-2); }
+  body.mobile-direct-edit .workflow-map-session .mode-task-instruction { display: none; }
+
+  body.mobile-direct-edit .workflow-map-session .mode-action-bar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 2.5rem;
+    padding: var(--ui-space-1);
+    border: 0;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  body.mobile-direct-edit .workflow-map-session .mode-action-buttons {
+    height: 100%;
+    justify-content: space-between;
+  }
+
+  body.mobile-direct-edit .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) {
+    min-width: 3.25rem;
+    min-height: var(--ui-v2-control-mobile-height);
+    height: var(--ui-v2-control-mobile-height);
+    padding-inline: var(--ui-space-2);
+    pointer-events: auto;
+  }
+
+  body.mobile-direct-edit .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) .ui-icon { display: none; }
+  body.mobile-direct-edit .workflow-map-session .mode-method-switch:not(.hidden) { margin-top: var(--ui-space-1); }
+  body.mobile-direct-edit .workflow-map-session .geometry-preview-summary:not(.hidden) { margin-top: var(--ui-space-1); }
+}
+
+@media (max-width: 799px) and (orientation: landscape) {
+  .workspace-surface.ui-sheet {
+    max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
+  }
+
+  body.mobile-direct-edit .workflow-map-session .mode-method-switch {
+    max-height: 5rem;
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-surface.ui-sheet,
+  .mobile-bottom-bar .ui-nav-item { transition-duration: .01ms; }
+}
