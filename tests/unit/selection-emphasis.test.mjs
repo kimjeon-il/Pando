@@ -206,10 +206,10 @@ test('country interaction fill composites the cached country-id scene before any
 });
 
 test('territorial persistent boundaries use the shared GPU scene stroke domain', async () => {
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
-  assert.match(app, /buildTerritorialInternalBoundarySegments/);
-  assert.match(app, /replaceGpuSceneDomain\('territorial-boundaries'/);
+  assert.match(rendering, /buildTerritorialInternalBoundarySegments/);
+  assert.match(rendering, /replaceGpuSceneDomain\?\.\('territorial-boundaries'/);
   assert.match(gpu, /strokeRenderer\.drawBatches/);
 });
 

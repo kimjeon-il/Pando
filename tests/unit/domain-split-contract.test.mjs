@@ -28,9 +28,9 @@ test('domain factories expose isolated public contracts', () => {
   for (const [domain, methods] of [
     [project, ['snapshot', 'buildProject', 'buildAutosave', 'countriesFromAutosaveDelta', 'dispatch', 'load', 'createEmpty', 'undo', 'redo', 'save', 'dispose']],
     [selection, ['snapshot', 'select', 'toggle', 'clear', 'setHover', 'selectObjectRef', 'createPacket', 'dispose']],
-    [rendering, ['setScene', 'invalidate', 'renderPass', 'renderScene', 'render', 'renderSelection', 'renderEditingPreview', 'renderDraft', 'renderVertices', 'renderSnap', 'renderCountryLabels', 'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions', 'renderCountries', 'renderHydro', 'renderHydroEdits', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderDistributions', 'getDistributionRenderRows', 'renderTerritorialInternalBoundaries', 'renderBase', 'renderProjectedOverlays', 'dispose']],
+    [rendering, ['setScene', 'invalidate', 'renderPass', 'renderDraft', 'renderVertices', 'renderSnap', 'renderBoundaryEdit', 'renderGeometryPreview', 'renderSelection', 'renderHover', 'renderValidation', 'renderCountryLabels', 'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions', 'renderCountries', 'renderHydro', 'renderHydroEdits', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderDistributions', 'getDistributionRenderRows', 'renderTerritorialInternalBoundaries', 'renderBase', 'renderProjectedOverlays', 'getTerritorialBoundaryStats', 'dispose']],
     [gis, ['normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity', 'planRiverPartition', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'executeWorker', 'dispose']],
-    [editing, ['setTool', 'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'applyGeometryPatch', 'commit', 'draftInputActive', 'commitDraftCoords', 'appendDraftCoordinate', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'insertDraftPoint', 'moveSelectedDraftPointByPixels', 'importProject', 'mergeCountries', 'importTerritorial', 'importGeneric', 'importDistribution', 'commitImport', 'reconcileCoast', 'dispose']],
+    [editing, ['setTool', 'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'applyGeometryPatch', 'commit', 'draftInputActive', 'commitDraftCoords', 'appendDraftCoordinate', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'insertDraftPoint', 'moveSelectedDraftPointByPixels', 'beginDraftStroke', 'appendDraftStroke', 'finishDraftStroke', 'cancelDraftStroke', 'redrawDraft', 'syncDraftAfterMutation', 'clearDraft', 'importProject', 'mergeCountries', 'importTerritorial', 'importGeneric', 'importDistribution', 'commitImport', 'reconcileCoast', 'dispose']],
   ]) {
     for (const method of methods) assert.equal(typeof domain[method], 'function', `${method} is public`);
     assert.equal(Object.isFrozen(domain), true);
@@ -76,6 +76,55 @@ test('editing domain owns draft coordinate history operations', () => {
   assert.deepEqual(coords, [[1, 2]]);
   assert.equal(editing.appendDraftCoordinate([1, 2], { dedupe: true }), false);
   assert.equal(snapshots.length, 1);
+});
+
+test('editing domain owns draft stroke lifecycle and delegates only platform adapters', () => {
+  const events = [];
+  let active = false;
+  const samples = [];
+  const editing = createEditingDomain({
+    draftInput: {
+      getToolConfig: () => ({ profile: 'freehand', shape: 'line' }),
+      getInputPhase: () => 'draw',
+      isSpacePanActive: () => false,
+      screenSample: point => ({ screen: point.slice(), coordinate: point.slice() }),
+      clearHover: () => {},
+      clearInsertTarget: () => {},
+      beginStroke: input => { active = true; samples.push(input.sample); return true; },
+      appendSamples: next => { samples.push(...next); return next.length > 0; },
+      isStrokeActive: () => active,
+      acceptingSamples: () => true,
+      queueRender: () => {},
+      projectCoordinate: value => value,
+      firstStrokeCoordinate: () => samples[0]?.coordinate,
+      finalizeStroke: () => { active = false; return { coords: samples.map(sample => sample.coordinate) }; },
+      cancelQueuedRender: () => {},
+      setStrokeActiveClass: () => {},
+      minimumPoints: () => 2,
+      render: () => {},
+      updateControls: () => {},
+      updateHistoryControls: () => {},
+      onFinished: () => {},
+    },
+    renderPackets: {
+      draft: {
+        isActive: () => true,
+        getCoords: () => [],
+        setCoords: () => {},
+        getEdit: () => ({ selectedVertexIndex: null }),
+        setInputPhase: () => {},
+        setSelectedVertex: () => {},
+        recordSnapshot: () => {},
+        syncAfterMutation: () => {},
+        coordNear: () => false,
+      },
+    },
+    onEditingStateChanged: snapshot => events.push(snapshot.reason),
+  });
+  assert.equal(editing.beginDraftStroke([1, 2], { pointerId: 1 }), true);
+  assert.equal(editing.appendDraftStroke([[2, 3]]), true);
+  assert.equal(editing.finishDraftStroke([3, 4]), true);
+  assert.deepEqual(events, ['draft-stroke-begin', 'draft-stroke-update', 'draft-stroke-update', 'draft-stroke-finish']);
 });
 
 test('app bootstrap wires every domain factory', () => {
@@ -166,6 +215,30 @@ test('rendering domain dispatches all visual passes through one owner', () => {
   const rendering = createRenderingDomain({ renderers: { base: value => { calls.push(value); return 'ok'; } } });
   assert.equal(rendering.renderPass('base', 'frame'), 'ok');
   assert.deepEqual(calls, ['frame']);
+});
+
+test('rendering domain owns territorial boundary cache state and resets it per project generation', () => {
+  const rendering = createRenderingDomain();
+  assert.deepEqual(rendering.getTerritorialBoundaryStats(), {
+    rebuildCount: 0,
+    revision: '',
+    inputSignature: '',
+    batchSignature: '',
+    segmentCount: 0,
+    groupCount: 0,
+  });
+  assert.equal(rendering.resetProjectGeneration(12), 12);
+  assert.deepEqual(rendering.getTerritorialBoundaryStats(), {
+    rebuildCount: 0,
+    revision: '',
+    inputSignature: '',
+    batchSignature: '',
+    segmentCount: 0,
+    groupCount: 0,
+  });
+  assert.equal(rendering.getStats().territorialBoundaryTopologyRebuildCount, 0);
+  assert.equal(rendering.getStats().territorialBoundaryRevision, '');
+  rendering.dispose();
 });
 
 test('GIS domain owns river source orchestration without mutating donors', async () => {

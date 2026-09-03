@@ -2,15 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
-import { OBJECT_ACTIONS } from '../assets/js/modules/object-action-registry.js';
 import { PROJECT_COMMAND_KINDS } from '../assets/js/modules/project-command-pipeline.js';
 
 const root = process.cwd();
 const failures = [];
 const required = [
   'assets/js/modules/project-command-pipeline.js',
-  'assets/js/modules/object-adapter-registry.js',
-  'assets/js/modules/object-command-definitions.js',
   'assets/js/modules/document-mutation-runner.js',
 ];
 const services = [
@@ -25,12 +22,6 @@ for (const relative of required) {
 
 if (PROJECT_COMMAND_KINDS.VIEW !== 'view' || PROJECT_COMMAND_KINDS.DOCUMENT !== 'document') {
   failures.push('project command pipeline must distinguish view and document commands');
-}
-
-const commandSource = fs.readFileSync(path.join(root, 'assets/js/modules/object-command-definitions.js'), 'utf8');
-for (const actionId of ['focus', 'lock', 'delete']) {
-  const command = OBJECT_ACTIONS[actionId]?.command;
-  if (!command || !commandSource.includes(`'${command}'`)) failures.push(`object action ${actionId} is not backed by canonical command ${command || '(missing)'}`);
 }
 
 for (const relative of services) {

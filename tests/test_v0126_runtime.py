@@ -12,6 +12,7 @@ from shapely.geometry import shape
 
 ROOT = Path(__file__).parents[1]
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+RENDERING = (ROOT / "assets" / "js" / "modules" / "rendering-domain.js").read_text(encoding="utf-8")
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
 CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 CORE = (ROOT / "assets" / "js" / "workers" / "gpu-mesh-core.js").read_text(encoding="utf-8")
@@ -28,12 +29,12 @@ class V0126RuntimeTests(unittest.TestCase):
     def test_annex_render_succeeds_before_history_commit(self):
         annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
         self.assertIn("await beginWorkerGeometryPreview({", annex)
-        self.assertIn("renderAll();", annex)
+        self.assertIn("invalidateTerritorialPatch('territory-annex-committed');", annex)
         preview = section(APP, "async function beginWorkerGeometryPreview", "function beginLocalGeometryPreview")
         self.assertLess(preview.index("await applyResult(result);"), preview.index("mapEditClient.commit(requestId);"))
         self.assertLess(preview.index("mapEditClient.commit(requestId);"), preview.index("commitHistorySnapshot(snapshot);"))
-        labels = section(APP, "function renderCountryLabels", "function prepareHydroFeature")
-        self.assertLess(labels.index("selection.exit().remove();"), labels.index("const allCountryLabels"))
+        labels = RENDERING
+        self.assertLess(labels.index("selection.exit().remove();"), labels.index("const all = layer.selectAll('text.country-label')"))
         self.assertIn("Array.isArray(anchor)", labels)
 
     def test_notifications_do_not_append_raw_internal_messages(self):

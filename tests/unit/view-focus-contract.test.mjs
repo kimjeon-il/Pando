@@ -42,6 +42,11 @@ test('country focus prefers its own label anchor without expanding the focus geo
 });
 
 test('desktop and mobile controls call the action whole-map view', () => {
-  assert.equal((htmlSource.match(/전체 지도 보기/g) || []).length, 3);
+  for (const id of ['resetViewBtn', 'mobileWorldBtn']) {
+    const button = htmlSource.match(new RegExp(`<button[^>]*id="${id}"[^>]*>`))?.[0] || '';
+    assert.match(button, /aria-label="전체 지도 보기"/);
+    assert.match(button, /data-tooltip="전체 지도 보기"/);
+  }
+  assert.equal((htmlSource.match(/aria-label="전체 지도 보기"/g) || []).length, 2);
   assert.doesNotMatch(htmlSource, /전체 지도 맞춤/);
 });

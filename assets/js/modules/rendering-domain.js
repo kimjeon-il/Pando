@@ -1,7 +1,6 @@
 import { MAP_RENDER_DIRTY } from './map-render-coordinator.js';
 
 export function createRenderingDomain({
-  context = null,
   gpuMapRenderer = null,
   sceneBuilder = null,
   coordinator = null,
@@ -19,18 +18,14 @@ export function createRenderingDomain({
   territorialBoundaryResources = null,
   baseResources = null,
   projectedOverlayResources = null,
+  editingRenderResources = null,
   renderers = {},
-  renderSelectionFrame = null,
-  renderEditingPreviewFrame = null,
-  onFrameCommitted = () => {},
   reportDiagnostic = () => {},
 } = {}) {
   let scene = null;
-  let selectionPacket = null;
-  let editingPreviewPacket = null;
   let disposed = false;
   let contextLost = false;
-  const stats = { invalidations: 0, renders: 0, selectionRenders: 0, editingRenders: 0, lastReason: '' };
+  const stats = { invalidations: 0, lastReason: '' };
   const active = () => { if (disposed) throw new Error('Rendering domain is disposed.'); };
   const labels = labelResources || {};
   const countries = countryResources || {};
@@ -41,6 +36,7 @@ export function createRenderingDomain({
   const territorialBoundary = territorialBoundaryResources || {};
   const base = baseResources || {};
   const projected = projectedOverlayResources || {};
+  const editing = editingRenderResources || {};
   const labelState = () => labels.getState?.() || {};
   const renderCountryLabels = (layout = null) => {
     active();
@@ -727,6 +723,123 @@ export function createRenderingDomain({
     for (const layer of projected.layers || []) layer?.selectAll?.('path')?.attr('d', projected.path);
     return true;
   };
+  const renderBoundaryEdit = () => {
+    active();
+    const state = editing.getState?.() || {};
+    const editActive = (state.tool === 'country-coast' && state.coastEditCountryId)
+      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing');
+    const visibleSegments = editActive
+      ? (editing.getCountryBoundarySegments?.() || []).filter(segment => segment.geometry?.coordinates?.some(editing.isCoordVisible))
+      : [];
+    const data = ['coast', 'shared'].map(kind => {
+      const segments = visibleSegments.filter(segment => (segment.kind === 'coast' ? 'coast' : 'shared') === kind);
+      return segments.length ? {
+        key: `${kind}:${state.coastEditCountryId || (state.boundaryEditCountryIds || []).join('|')}`,
+        kind,
+        geometry: { type: 'MultiLineString', coordinates: segments.map(segment => segment.geometry.coordinates) },
+      } : null;
+    }).filter(Boolean);
+    const layer = editing.boundaryEditLayer;
+    if (!layer) return false;
+    const selection = layer.selectAll('path.boundary-edit-segment').data(data, d => d.key);
+    selection.enter().append('path').attr('class', 'boundary-edit-segment');
+    selection.exit().remove();
+    layer.selectAll('path.boundary-edit-segment')
+      .attr('d', d => editing.path?.({ type: 'Feature', geometry: d.geometry, properties: {} }))
+      .attr('data-gpu-scene-key', d => `boundary-edit:${d.key}`)
+      .classed('coast', d => d.kind === 'coast')
+      .classed('shared', d => d.kind === 'shared')
+      .on('click.vertex-add', null);
+    editing.replaceGpuSceneDomain?.('boundary-edit', {
+      strokes: data.map(item => ({
+        key: `boundary-edit:${item.key}`,
+        geometryRevision: `${editing.getEditInteractionRevision?.() || 0}:${item.key}`,
+        geometry: item.geometry,
+        order: 9800,
+        style: {
+          color: item.kind === 'coast' ? '#72c9ef' : editing.getInteractionStyle?.()?.selection?.color,
+          alpha: 1,
+          width: 3.4,
+          dash: item.kind === 'shared' ? [6, 3] : [0, 0],
+          cap: 'round', join: 'round',
+        },
+      })),
+    });
+    return true;
+  };
+  const thinVisibleCoastHandles = handles => {
+    const projection = editing.activeProjection?.();
+    const zoom = editing.currentMapZoom?.() || 1;
+    const mobile = editing.isMobile?.() === true;
+    const minDistance = Math.max(mobile ? 7 : 4, (mobile ? 18 : 11) / Math.sqrt(Math.max(1, zoom)));
+    const occupied = new Map();
+    const accepted = [];
+    for (const handle of [...(handles || [])].sort((left, right) => Number(!!right.fixed) - Number(!!left.fixed))) {
+      if (!editing.isCoordVisible?.(handle.coord)) continue;
+      const point = projection?.(handle.coord);
+      if (!point) continue;
+      const gx = Math.floor(point[0] / minDistance), gy = Math.floor(point[1] / minDistance);
+      let crowded = false;
+      for (let x = gx - 1; x <= gx + 1 && !crowded; x += 1) {
+        for (let y = gy - 1; y <= gy + 1; y += 1) {
+          const other = occupied.get(`${x}:${y}`);
+          if (other && Math.hypot(point[0] - other[0], point[1] - other[1]) < minDistance) { crowded = true; break; }
+        }
+      }
+      if (crowded) continue;
+      occupied.set(`${gx}:${gy}`, point);
+      accepted.push(handle);
+    }
+    return accepted;
+  };
+  const renderVertices = () => {
+    active();
+    const state = editing.getState?.() || {};
+    let data = [];
+    let feature = null;
+    if (state.tool === 'select' && state.selected?.domain === 'generic') {
+      feature = editing.getGenericFeature?.(state.selected.id);
+      if (feature) data = (editing.getEditableVertices?.(feature) || []).filter(vertex => editing.isCoordVisible?.(vertex.coord));
+    } else if (state.tool === 'select' && state.selected?.domain === 'hydro') {
+      feature = editing.getHydroFeature?.(state.selected.id);
+      if (feature) data = (editing.getEditableVertices?.(feature) || []).filter(vertex => editing.isCoordVisible?.(vertex.coord));
+    } else if ((state.tool === 'country-coast' && state.coastEditCountryId)
+      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing')) {
+      const primaryId = state.tool === 'country-border' ? state.boundaryEditCountryIds?.[0] : state.coastEditCountryId;
+      feature = editing.getCountryFeature?.(primaryId);
+      if (feature) data = thinVisibleCoastHandles(editing.getCountryBoundaryHandles?.() || []);
+    }
+    const boundaryMode = (state.tool === 'country-coast' && !!state.coastEditCountryId)
+      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing');
+    const layer = editing.vertexLayer;
+    if (!layer) return false;
+    const selection = layer.selectAll('circle.vertex-handle').data(data, d => d.nodeKey || d.key || d.index);
+    selection.enter().append('circle').attr('class', 'vertex-handle');
+    selection.exit().remove();
+    const allVertices = layer.selectAll('circle.vertex-handle');
+    allVertices
+      .attr('r', boundaryMode ? (editing.isMobile?.() ? 7.2 : 5.2) : 4.5)
+      .classed('country-vertex', boundaryMode)
+      .classed('coast-vertex', d => boundaryMode && d.boundaryKind === 'coast')
+      .classed('shared-boundary-vertex', d => boundaryMode && d.boundaryKind === 'shared')
+      .classed('fixed-boundary-vertex', d => boundaryMode && d.fixed)
+      .attr('transform', d => {
+        const point = editing.activeProjection?.()(d.coord);
+        return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
+      });
+    allVertices.on('.drag', null);
+    if (feature && boundaryMode) allVertices.filter(d => !d.fixed).call(editing.countryBoundaryVertexDragBehavior?.(feature));
+    else if (feature) allVertices.call(editing.vertexDragBehavior?.(feature));
+    allVertices.on('click.vertex-select', null);
+    allVertices.each(function(d) {
+      let title = editing.d3?.select(this).select('title');
+      if (title?.empty?.()) title = editing.d3.select(this).append('title');
+      title?.text?.(boundaryMode
+        ? (d.fixed ? '선택 밖 국가와 연결되어 고정된 접경점' : d.boundaryKind === 'shared' ? `${d.ownerIds?.length || 2}개 국가가 공유하는 국경 꼭짓점` : '해안선 꼭짓점')
+        : '꼭짓점');
+    });
+    return true;
+  };
   const invalidate = (mask, reason = 'render-invalidation') => {
     active();
     stats.invalidations += 1;
@@ -799,51 +912,47 @@ export function createRenderingDomain({
     scene = nextScene || null;
     return scene;
   };
-  const render = viewState => {
-    active();
-    stats.renders += 1;
-    const frame = viewState || context?.getFrameContext?.() || null;
-    const result = gpuMapRenderer?.render?.(frame?.revision, frame) || null;
-    onFrameCommitted({ domain: 'rendering', result, sceneRevision: scene?.revision || 0 });
-    return result;
-  };
-  const renderSelection = packet => {
-    active();
-    stats.selectionRenders += 1;
-    selectionPacket = packet || null;
-    if (typeof renderSelectionFrame === 'function') return renderSelectionFrame(selectionPacket);
-    return gpuMapRenderer?.renderSelection?.(selectionPacket) || false;
-  };
-  const renderEditingPreview = packet => {
-    active();
-    stats.editingRenders += 1;
-    editingPreviewPacket = packet || null;
-    if (typeof renderEditingPreviewFrame === 'function') return renderEditingPreviewFrame(editingPreviewPacket);
-    return gpuMapRenderer?.renderEditingPreview?.(editingPreviewPacket) || editingPreviewPacket;
-  };
   const renderPass = (name, ...args) => {
     active();
     const renderer = renderers?.[name];
     if (typeof renderer !== 'function') return undefined;
     return renderer(...args);
   };
-  const renderScene = (frameContext, dirtyMask = 0) => {
-    active();
-    if (contextLost) return null;
-    const frame = frameContext || context?.getFrameContext?.() || null;
-    const result = renderPass('base', frame, dirtyMask);
-    onFrameCommitted({ domain: 'rendering', type: 'scene', frameId: frame?.frameId || null, dirtyMask, result });
-    return result;
-  };
   const renderDraft = packet => renderPass('draft', packet);
-  const renderVertices = packet => renderPass('vertices', packet);
   const renderSnap = packet => renderPass('snapIndicator', packet);
+  const renderGeometryPreview = (frameContext, packet) => renderPass('geometryPreview', frameContext, packet);
+  const renderSelection = (frameContext, packet, options = {}) => renderPass(
+    options.styleOnly ? 'selectionStyle' : options.viewOnly ? 'selectionView' : 'selectionData',
+    frameContext,
+    packet,
+    options,
+  );
+  const renderHover = (frameContext, packet) => renderPass('hover', frameContext, packet);
+  const renderValidation = (frameContext, packet) => renderPass('validation', frameContext, packet);
+  const resetTerritorialBoundaryCache = () => {
+    territorialBoundaryCache = {
+      countries: null,
+      units: null,
+      revision: -1,
+      inputSignature: '',
+      segments: [],
+      rebuildCount: 0,
+    };
+    territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
+  };
+  const getTerritorialBoundaryStats = () => Object.freeze({
+    rebuildCount: territorialBoundaryCache.rebuildCount,
+    revision: territorialBoundaryBatchCache.revision || '',
+    inputSignature: territorialBoundaryCache.inputSignature || '',
+    batchSignature: territorialBoundaryBatchCache.signature || '',
+    segmentCount: territorialBoundaryCache.segments.length,
+    groupCount: territorialBoundaryBatchCache.groups.length,
+  });
   const resetProjectGeneration = generation => {
     active();
     scene = null;
-    selectionPacket = null;
-    editingPreviewPacket = null;
     contextLost = false;
+    resetTerritorialBoundaryCache();
     gpuMapRenderer?.resetProjectRenderState?.({ generation });
     return generation;
   };
@@ -861,6 +970,8 @@ export function createRenderingDomain({
     ...stats,
     contextLost,
     projectGeneration: projectDomain?.getGeneration?.() || 0,
+    territorialBoundaryTopologyRebuildCount: territorialBoundaryCache.rebuildCount,
+    territorialBoundaryRevision: territorialBoundaryBatchCache.revision || '',
     hasScene: !!scene,
     hasMapHost: typeof mapHost === 'function' ? !!mapHost() : !!mapHost,
     hasDomLayers: !!domLayers,
@@ -868,7 +979,7 @@ export function createRenderingDomain({
     hasSelectionDomain: !!selectionDomain,
     hasEditingDomain: !!editingDomain,
   });
-  const dispose = () => { disposed = true; scene = null; selectionPacket = null; editingPreviewPacket = null; };
+  const dispose = () => { disposed = true; scene = null; };
   return Object.freeze({
     setScene,
     invalidate,
@@ -884,13 +995,14 @@ export function createRenderingDomain({
     invalidateGenericPatch,
     invalidateLabels,
     scheduleView,
-    render,
-    renderScene,
-    renderSelection,
-    renderEditingPreview,
     renderDraft,
     renderVertices,
     renderSnap,
+    renderBoundaryEdit,
+    renderGeometryPreview,
+    renderSelection,
+    renderHover,
+    renderValidation,
     renderPass,
     renderCountryLabels,
     renderUserLabels,
@@ -909,6 +1021,7 @@ export function createRenderingDomain({
     resetProjectGeneration,
     handleContextLost,
     handleContextRestored,
+    getTerritorialBoundaryStats,
     getStats,
     dispose,
   });
