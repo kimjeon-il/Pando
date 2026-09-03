@@ -28,7 +28,7 @@ test('domain factories expose isolated public contracts', () => {
   for (const [domain, methods] of [
     [project, ['snapshot', 'buildProject', 'buildAutosave', 'countriesFromAutosaveDelta', 'dispatch', 'load', 'createEmpty', 'undo', 'redo', 'save', 'dispose']],
     [selection, ['snapshot', 'select', 'toggle', 'clear', 'setHover', 'selectObjectRef', 'createPacket', 'dispose']],
-    [rendering, ['setScene', 'invalidate', 'renderPass', 'renderDraft', 'renderVertices', 'renderSnap', 'renderBoundaryEdit', 'renderGeometryPreview', 'renderSelection', 'renderHover', 'renderValidation', 'renderCountryLabels', 'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions', 'renderCountries', 'renderHydro', 'renderHydroEdits', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderDistributions', 'getDistributionRenderRows', 'renderTerritorialInternalBoundaries', 'renderBase', 'renderProjectedOverlays', 'getTerritorialBoundaryStats', 'dispose']],
+    [rendering, ['setScene', 'invalidate', 'renderPass', 'renderDraft', 'renderGpuInteraction', 'renderVertices', 'renderSnap', 'renderBoundaryEdit', 'renderGeometryPreview', 'renderSelection', 'renderHover', 'renderHoverOverlay', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'renderValidation', 'invalidateEditedGeometryPatch', 'renderCountryLabels', 'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions', 'renderCountries', 'renderHydro', 'renderHydroEdits', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderDistributions', 'getDistributionRenderRows', 'renderTerritorialInternalBoundaries', 'renderBase', 'renderProjectedOverlays', 'getTerritorialBoundaryStats', 'dispose']],
     [gis, ['normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity', 'planRiverPartition', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'executeWorker', 'dispose']],
     [editing, ['setTool', 'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'applyGeometryPatch', 'commit', 'draftInputActive', 'commitDraftCoords', 'appendDraftCoordinate', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'insertDraftPoint', 'moveSelectedDraftPointByPixels', 'beginDraftStroke', 'appendDraftStroke', 'finishDraftStroke', 'cancelDraftStroke', 'redrawDraft', 'syncDraftAfterMutation', 'clearDraft', 'importProject', 'mergeCountries', 'importTerritorial', 'importGeneric', 'importDistribution', 'commitImport', 'reconcileCoast', 'dispose']],
   ]) {
@@ -133,6 +133,25 @@ test('app bootstrap wires every domain factory', () => {
     assert.match(source, new RegExp(`${factory}\\(`));
   }
   assert.match(source, /window\.PANDOLAB_DOMAINS\s*=\s*Object\.freeze/);
+});
+
+test('app delegates interaction rendering to rendering domain', () => {
+  const source = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+  for (const name of [
+    'renderDraft',
+    'renderGeometryPreview',
+    'renderGpuInteractionFrame',
+    'renderHoverOverlay',
+    'renderValidationOverlay',
+    'renderSnapIndicator',
+    'renderEditedGeometryPatch',
+    'renderViewFrame',
+  ]) {
+    assert.doesNotMatch(source, new RegExp(`function ${name}\\b`), `${name} remains app-owned`);
+  }
+  assert.match(source, /renderingDomain\?\.renderDraft\?\./);
+  assert.match(source, /renderingDomain\?\.renderGpuInteraction\?\./);
+  assert.match(source, /renderingDomain\?\.renderValidation\?\./);
 });
 
 test('selection domain coalesces no-op changes and exposes an independent style revision', () => {
