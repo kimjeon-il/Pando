@@ -34,18 +34,26 @@ async function readCollection() {
   }
 }
 
-function mutateCollection(mutator) {
-  const run = mutationQueue.then(async () => {
-    const collection = await readCollection();
-    const nextRecords = mutator([...collection.records]);
-    await storage.writeProject({
-      version: COLLECTION_VERSION,
-      records: Array.isArray(nextRecords) ? nextRecords : collection.records,
-    });
-    return true;
+function writeCollection(records) {
+  return storage.writeProject({
+    version: COLLECTION_VERSION,
+    records: Array.isArray(records) ? records : [],
   });
+}
+
+function enqueue(operation) {
+  const run = mutationQueue.then(operation);
   mutationQueue = run.catch(() => {});
   return run;
+}
+
+function mutateCollection(mutator) {
+  return enqueue(async () => {
+    const collection = await readCollection();
+    const nextRecords = mutator([...collection.records]);
+    await writeCollection(Array.isArray(nextRecords) ? nextRecords : collection.records);
+    return true;
+  });
 }
 
 export async function listStoredReferenceImages() {
@@ -63,6 +71,11 @@ export function putStoredReferenceImage(record) {
   });
 }
 
+export function replaceStoredReferenceImages(records) {
+  const values = Array.isArray(records) ? [...records] : [];
+  return enqueue(() => writeCollection(values).then(() => true));
+}
+
 export function deleteStoredReferenceImage(id) {
   const key = String(id || '').trim();
   if (!key) return Promise.resolve(false);
@@ -70,7 +83,5 @@ export function deleteStoredReferenceImage(id) {
 }
 
 export function clearStoredReferenceImages() {
-  const run = mutationQueue.then(() => storage.writeProject({ version: COLLECTION_VERSION, records: [] }).then(() => true));
-  mutationQueue = run.catch(() => {});
-  return run;
+  return replaceStoredReferenceImages([]);
 }
