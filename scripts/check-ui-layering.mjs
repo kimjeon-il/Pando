@@ -8,16 +8,34 @@ const requiredLayeredFiles = Object.freeze([
   'assets/css/primitives/controls.css',
   'assets/css/components/surface.css',
   'assets/css/components/content.css',
+  'assets/css/components/command-row.css',
+  'assets/css/components/workflow.css',
+  'assets/css/components/workspace-refinements.css',
+  'assets/css/components/editor-shell.css',
+  'assets/css/components/map-create-panel.css',
+  'assets/css/components/edit-workflow.css',
+  'assets/css/components/library-gis-file.css',
+  'assets/css/components/mobile-sheets.css',
+  'assets/css/components/feedback.css',
   'assets/css/layout/surfaces.css',
+  'assets/css/features/layer-panel.css',
+  'assets/css/utilities/accessibility.css',
 ]);
-const cleanupPath = path.join(root, 'assets/css/phase1-ui-cleanup.css');
-const cleanupLoaderPath = path.join(root, 'assets/js/modules/phase1-ui-cleanup.js');
+const bootstrapPath = path.join(root, 'assets/js/bootstrap.js');
+const uiRuntimePath = path.join(root, 'assets/js/modules/ui-runtime.js');
 const componentDocPath = path.join(root, 'docs/architecture/ui-components-v2.md');
+const retiredArtifacts = Object.freeze([
+  'assets/css/phase1-ui-cleanup.css',
+  'assets/js/modules/phase1-ui-cleanup.js',
+  'assets/js/modules/mobile-sheet-v2.js',
+  'assets/js/modules/state-feedback-v2.js',
+  'assets/js/modules/accessibility-qa-v2.js',
+]);
 const failures = [];
 
 for (const relativePath of requiredLayeredFiles) {
   if (!fs.existsSync(path.join(root, relativePath))) {
-    failures.push(`missing UI v2 layered stylesheet: ${relativePath}`);
+    failures.push(`missing canonical layered stylesheet: ${relativePath}`);
   }
 }
 
@@ -25,38 +43,32 @@ if (!fs.existsSync(componentDocPath)) {
   failures.push('missing UI v2 component documentation: docs/architecture/ui-components-v2.md');
 }
 
-if (!fs.existsSync(cleanupPath)) {
-  failures.push('missing legacy UI cleanup stylesheet');
-} else {
-  const cleanupBytes = fs.statSync(cleanupPath).size;
-  const cleanupBudget = 4525;
-  if (cleanupBytes > cleanupBudget) {
-    failures.push(`phase1 UI cleanup CSS regrew: ${cleanupBytes} > ${cleanupBudget} bytes`);
-  }
-  const cleanup = fs.readFileSync(cleanupPath, 'utf8');
-  for (const migratedSelector of [
-    '.editor-action-grid',
-    '.editor-action-button',
-    '.ui-info-list.editor-info-list',
-    '.layer-category,',
-    '.ui-empty-state,',
-  ]) {
-    if (cleanup.includes(migratedSelector)) {
-      failures.push(`migrated component rule returned to phase1 cleanup CSS: ${migratedSelector}`);
-    }
+for (const relativePath of retiredArtifacts) {
+  if (fs.existsSync(path.join(root, relativePath))) {
+    failures.push(`retired UI compatibility artifact returned: ${relativePath}`);
   }
 }
 
-if (!fs.existsSync(cleanupLoaderPath)) {
-  failures.push('missing UI cleanup loader module');
+if (!fs.existsSync(bootstrapPath)) {
+  failures.push('missing canonical bootstrap: assets/js/bootstrap.js');
 } else {
-  const loader = fs.readFileSync(cleanupLoaderPath, 'utf8');
+  const bootstrap = fs.readFileSync(bootstrapPath, 'utf8');
   for (const relativePath of requiredLayeredFiles) {
-    const moduleRelative = relativePath.replace('assets/css/', '../../css/');
-    if (!loader.includes(moduleRelative)) {
-      failures.push(`UI v2 stylesheet is not installed by the bootstrap cleanup module: ${relativePath}`);
+    const runtimeRelative = relativePath.replace('assets/css/', '../css/');
+    if (!bootstrap.includes(runtimeRelative)) {
+      failures.push(`canonical stylesheet is not installed by bootstrap: ${relativePath}`);
     }
   }
+  if (!bootstrap.includes("./modules/ui-runtime.js")) {
+    failures.push('bootstrap does not initialize canonical ui-runtime.js');
+  }
+  if (/phase1-ui-cleanup|installPhaseOneUiCleanup|PL-UI-CLEANUP/.test(bootstrap)) {
+    failures.push('bootstrap still contains retired phase cleanup wiring');
+  }
+}
+
+if (!fs.existsSync(uiRuntimePath)) {
+  failures.push('missing canonical UI runtime: assets/js/modules/ui-runtime.js');
 }
 
 if (failures.length) {
@@ -64,5 +76,5 @@ if (failures.length) {
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(`UI layering audit passed: ${requiredLayeredFiles.length} canonical layered stylesheets, phase1 cleanup <= 4525 bytes.`);
+  console.log(`UI layering audit passed: ${requiredLayeredFiles.length} canonical layered stylesheets, no phase cleanup runtime.`);
 }
