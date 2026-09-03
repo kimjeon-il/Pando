@@ -62,8 +62,26 @@ test('wide keeps the layer surface open while the create popover is active', () 
   const { controller, elements } = fixture('wide');
   controller.open('create');
   assert.deepEqual(controller.render(), { layersOpen: true, editorOpen: false, createOpen: true, activeMobileSheet: null });
+  assert.equal(elements.mobileMapBtn.getAttribute('aria-expanded'), 'false');
+  assert.equal(elements.mobileCreateBtn.getAttribute('aria-expanded'), 'true');
   assert.equal(elements.createMenu.getAttribute('role'), 'dialog');
   assert.equal(elements.createMenu.getAttribute('aria-modal'), 'false');
+});
+
+test('wide workspace rail swaps one contextual pane at a time', () => {
+  const { controller, elements } = fixture('wide');
+
+  controller.open('editor');
+  assert.deepEqual(controller.render(), { layersOpen: true, editorOpen: true, createOpen: false, activeMobileSheet: null });
+  assert.equal(controller.isOpen('layers'), false);
+  assert.equal(elements.mobileEditBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.mobileMapBtn.getAttribute('aria-expanded'), 'false');
+
+  controller.open('layers');
+  assert.deepEqual(controller.render(), { layersOpen: true, editorOpen: false, createOpen: false, activeMobileSheet: null });
+  assert.equal(controller.isOpen('layers'), true);
+  assert.equal(elements.mobileMapBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.mobileEditBtn.getAttribute('aria-expanded'), 'false');
 });
 
 test('mobile tracks one explicit active sheet and clears it when closed', () => {

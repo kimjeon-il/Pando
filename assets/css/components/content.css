@@ -35,6 +35,15 @@
   box-shadow: none;
 }
 
+:is(.gis-import-status, .territorial-type-impact, .ui-callout, .ui-alert, .editor-help):empty {
+  display: none;
+  min-height: 0;
+}
+
+.ui-info-list {
+  box-shadow: none;
+}
+
 :where(.ui-helper-text, .editor-help) {
   margin-block: var(--ui-space-1);
 }
@@ -53,31 +62,6 @@
 :where(.ui-object-context-main, .editor-object-context-main) {
   min-width: 0;
   flex: 1 1 auto;
-}
-
-.editor-object-visual {
-  width: var(--ui-v2-control-mobile-height);
-  height: var(--ui-v2-control-mobile-height);
-  flex: 0 0 var(--ui-v2-control-mobile-height);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--ui-v2-radius-md);
-  background: var(--surface-card);
-  color: var(--muted);
-}
-
-.editor-object-visual > img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.editor-object-visual > svg.ui-icon {
-  width: var(--ui-v2-icon-size);
-  height: var(--ui-v2-icon-size);
 }
 
 :where(.ui-object-context-heading, .editor-object-heading) {
@@ -147,26 +131,6 @@
 .layer-folder-row > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker),
 .layer-child > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker) {
   display: none;
-}
-
-.editor-object-header[data-editor-context] :where(.editor-object-thumb, .editor-object-icon, .editor-object-flag, .object-context-flag, .object-context-icon) {
-  width: var(--ui-v2-control-mobile-height);
-  height: var(--ui-v2-control-mobile-height);
-  flex: 0 0 var(--ui-v2-control-mobile-height);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--ui-v2-radius-md);
-  background: var(--surface-card);
-  color: var(--muted);
-  display: grid;
-  place-items: center;
-}
-
-.editor-object-header[data-editor-context] :where(.editor-object-thumb, .editor-object-icon, .editor-object-flag, .object-context-flag, .object-context-icon) img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
 }
 
 @media (max-width: 799px) {
