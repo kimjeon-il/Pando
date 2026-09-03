@@ -2,15 +2,15 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
   <meta name="description" content="국가와 국경을 만드는 세계지도 편집기" />
   <link rel="icon" href="data:," />
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
-  <link rel="stylesheet" data-pandolab-ui-v2="tokens-ui-v2" href="assets/css/tokens/ui-v2.css?v=0.32.0-build-ui11-12-state-sheets" />
-  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-ui11-12-state-sheets" />
+  <link rel="stylesheet" data-pandolab-ui-v2="tokens-ui-v2" href="assets/css/tokens/ui-v2.css?v=0.32.0-build-ui14-41d848480e48" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-ui14-41d848480e48" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -244,7 +244,7 @@
             <section class="layer-style-editor map-projection-settings" aria-labelledby="mapProjectionSettingsTitle">
               <strong id="mapProjectionSettingsTitle">투영법</strong>
               <div id="mapViewProjectionSlot" class="map-view-projection-slot">
-                <div id="projectionControl" class="ui-segmented projection-control" role="group" aria-label="지도 투영법">
+                <div id="projectionControl" class="ui-segmented projection-control" role="group" aria-label="투영법">
                   <button id="globeBtn" class="ui-button ui-segment-option projection-btn active" type="button" aria-label="지구본 투영" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg><span>지구본</span></button>
                   <button id="flatBtn" class="ui-button ui-segment-option projection-btn" type="button" aria-label="평면지도 투영" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-projection-flat"/></svg><span>평면지도</span></button>
                 </div>
@@ -262,7 +262,7 @@
               <label class="ui-choice-row ui-toggle"><input id="distributionBoundaryVisibleInput" type="checkbox" checked aria-label="분포 경계 표시" /><span>분포 경계 표시</span></label>
             </section>
             <section class="layer-style-editor terrain-settings" aria-labelledby="terrainLayerSettingsTitle">
-              <strong id="terrainLayerSettingsTitle">지형 음영</strong>
+              <strong id="terrainLayerSettingsTitle">지형</strong>
               <label class="ui-choice-row ui-toggle"><input id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시" aria-controls="terrainDisplayOptions" aria-expanded="true" /><span>지형 음영 표시</span></label>
               <div id="terrainDisplayOptions" class="terrain-display-options">
                 <div class="terrain-mode-options" role="radiogroup" aria-label="지형 음영 모드">
@@ -296,17 +296,17 @@
         <div class="compact-primary-controls">
           <nav class="ui-nav adaptive-nav mobile-bottom-bar" aria-label="지도 탐색">
             <button id="mobileMapBtn" class="ui-button ui-nav-item" type="button" aria-controls="leftPanel" aria-label="지도" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>지도</strong></button>
-            <button id="mobileCreateBtn" class="ui-button ui-nav-item" type="button" aria-controls="createMenu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>추가</strong></button>
+            <button id="mobileCreateBtn" class="ui-button ui-nav-item" type="button" aria-controls="createMenu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>만들기</strong></button>
             <button id="mobileEditBtn" class="ui-button ui-nav-item" type="button" aria-controls="rightPanel" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
           </nav>
 
           <div id="mapCommandToolbar" class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar floating-toolbar history-empty" aria-label="지도 명령">
             <div class="create-menu-wrap">
-              <button id="createMenuBtn" class="ui-button btn create-menu-btn" type="button" aria-haspopup="dialog" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
+              <button id="createMenuBtn" class="ui-button btn create-menu-btn" type="button" aria-haspopup="dialog" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>만들기</span></button>
               <section id="createMenu" class="create-menu workspace-surface surface-create ui-sheet ui-popover ui-floating-surface hidden" role="dialog" aria-modal="false" aria-labelledby="createSheetTitle">
                 <header class="surface-header">
                   <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="createMenu" aria-label="추가 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
-                  <div class="surface-header-title"><strong id="createSheetTitle">추가</strong></div>
+                  <div class="surface-header-title"><strong id="createSheetTitle">만들기</strong></div>
                   <div class="surface-header-actions"><button id="mobileCloseCreateBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="추가 창 닫기" data-tooltip="추가 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
                 </header>
                 <nav class="surface-tabs create-menu-routes ui-tabs" role="tablist" aria-label="추가 경로">
@@ -342,7 +342,6 @@
                 </div>
               </section>
             </div>
-            <span class="toolbar-divider create-toolbar-divider"></span>
             <button id="undoBtn" class="ui-button icon-btn" data-tooltip="실행취소" aria-label="실행취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></button>
             <button id="redoBtn" class="ui-button icon-btn" data-tooltip="다시실행" aria-label="다시실행"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></button>
           </div>
@@ -820,10 +819,10 @@
       <div id="mobileBackdrop" class="mobile-backdrop" aria-hidden="true"></div>
       <nav id="fileMenu" class="ui-menu ui-popover ui-floating-surface top-actions ui-scroll-surface" role="menu" aria-label="파일 메뉴">
         <button id="newProjectBtn" type="button" class="ui-button btn ghost file-menu-item" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>새 프로젝트</span></button>
-        <button id="openGisBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg><span>불러오기</span></button>
-        <button id="saveProjectBtn" class="ui-button btn file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span>프로젝트 저장</span></button>
+        <button id="openGisBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg><span>GIS 가져오기</span></button>
+        <button id="saveProjectBtn" class="ui-button btn file-menu-item ghost" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span>저장</span></button>
         <input id="gisFileInput" type="file" multiple accept=".gpkg,.qgz,.qgs,.shp,.shx,.dbf,.prj,.cpg,.shz,.zip,.geojson,.json,.kml,.kmz,.gml,.xml,.fgb,application/geopackage+sqlite3,application/geo+json,application/json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden />
-        <button id="dataExportBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>데이터 내보내기</span></button>
+        <button id="dataExportBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>GIS 데이터 내보내기</span></button>
         <span class="divider" role="separator"></span>
         <button id="preferencesBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg><span>환경설정</span></button>
         <button id="keyboardHelpBtn" class="ui-button btn ghost file-help-menu-item file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg><span>키보드 도움말</span></button>
@@ -840,7 +839,7 @@
   <div id="preferencesModal" class="ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="preferencesTitle">
     <div class="ui-dialog-backdrop"></div>
     <section class="ui-dialog-card preferences-card">
-      <header class="ui-dialog-header"><div><span class="ui-dialog-kicker">개인 설정</span><h2 id="preferencesTitle">환경설정</h2></div><button id="preferencesCloseBtn" class="ui-button icon-btn" type="button" aria-label="환경설정 닫기" data-tooltip="환경설정 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
+      <header class="ui-dialog-header"><div><h2 id="preferencesTitle">환경설정</h2></div><button id="preferencesCloseBtn" class="ui-button icon-btn" type="button" aria-label="환경설정 닫기" data-tooltip="환경설정 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
       <div class="preferences-fields">
         <section class="preferences-section" aria-labelledby="preferencesAppearanceTitle">
           <h3 id="preferencesAppearanceTitle">화면</h3>
@@ -956,7 +955,7 @@
     <div class="ui-dialog-backdrop"></div>
     <section class="ui-dialog-card ui-workflow-shell historical-library-card ui-scroll-surface">
       <header class="ui-dialog-header">
-        <div><span class="ui-dialog-kicker">원본과 프로젝트 인스턴스 분리</span><h2 id="historicalLibraryTitle">국가·지역 라이브러리</h2></div>
+        <div><h2 id="historicalLibraryTitle">국가·지역 라이브러리</h2></div>
         <button id="historicalLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기" data-tooltip="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
       <div class="historical-library-toolbar">
@@ -985,7 +984,6 @@
     <section class="ui-dialog-card ui-workflow-shell ui-scroll-surface">
       <header class="ui-dialog-header">
         <div>
-          <span class="ui-dialog-kicker">파일 불러오기</span>
           <h2 id="gisImportTitle">파일 확인</h2>
           <p id="gisStepIndicator" class="gis-mobile-step-indicator" aria-live="polite">1/5 · 파일 확인</p>
         </div>
@@ -1038,7 +1036,7 @@
     <div class="ui-dialog-backdrop"></div>
     <section class="ui-dialog-card ui-workflow-shell ui-scroll-surface">
       <header class="ui-dialog-header">
-        <div><span class="ui-dialog-kicker">GIS 데이터</span><h2 id="gisExportTitle">데이터 내보내기</h2><p id="gisExportStepIndicator" class="gis-mobile-step-indicator" aria-live="polite">1/2 · 내보낼 데이터</p></div>
+        <div><h2 id="gisExportTitle">데이터 내보내기</h2><p id="gisExportStepIndicator" class="gis-mobile-step-indicator" aria-live="polite">1/2 · 내보낼 데이터</p></div>
         <button id="gisExportCloseBtn" type="button" class="ui-button icon-btn" aria-label="데이터 내보내기 닫기" data-tooltip="데이터 내보내기 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
       <form id="gisExportForm" onsubmit="return false;">
@@ -1070,12 +1068,12 @@
 
   
   
-  <script src="assets/js/build-meta.js?v=0.32.0-build-ui11-12-state-sheets" defer></script>
+  <script src="assets/js/build-meta.js?v=0.32.0-build-ui14-41d848480e48" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/gis-adapters.js?v=0.32.0-build-ui11-12-state-sheets" defer></script>
-  <script src="assets/js/gis-io.js?v=0.32.0-build-ui11-12-state-sheets" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.32.0-build-ui11-12-state-sheets" defer></script>
+  <script src="assets/js/gis-adapters.js?v=0.32.0-build-ui14-41d848480e48" defer></script>
+  <script src="assets/js/gis-io.js?v=0.32.0-build-ui14-41d848480e48" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.32.0-build-ui14-41d848480e48" defer></script>
 </body>
 </html>
