@@ -8,8 +8,6 @@
   const ASSET_REVISION = String(buildMeta.assetRevision || '');
   if (!APP_VERSION || !BUILD_ID || !ASSET_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
-  const LEGACY_COMPACT_QUERY = '(min-width: 800px) and (max-width: 1359px)';
-  const CANONICAL_COMPACT_QUERY = '(min-width: 800px) and (max-width: 1199px)';
   const UI_STYLES = Object.freeze([
     '../css/tokens/ui-v2.css',
     '../css/primitives/controls.css',
@@ -25,30 +23,9 @@
     '../css/features/edit-workflow.css',
     '../css/features/library-gis-file.css',
     '../css/features/mobile-sheets.css',
-    '../css/features/state-feedback.css',
-    '../css/features/responsive-accessibility.css',
+    '../css/components/feedback.css',
+    '../css/utilities/accessibility.css',
   ]);
-
-  function normalizeViewportAccessibility() {
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (!viewport) return;
-    const content = String(viewport.getAttribute('content') || '');
-    if (!/maximum-scale\s*=\s*1|user-scalable\s*=\s*no/i.test(content)) return;
-    viewport.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
-  }
-
-  function installLayoutContract() {
-    const nativeMatchMedia = window.matchMedia?.bind(window);
-    if (!nativeMatchMedia || window.__PANDOLAB_LAYOUT_CONTRACT_INSTALLED__) return;
-    window.matchMedia = query => {
-      const normalized = String(query || '').replace(/\s+/g, ' ').trim();
-      return nativeMatchMedia(normalized === LEGACY_COMPACT_QUERY ? CANONICAL_COMPACT_QUERY : query);
-    };
-    window.__PANDOLAB_LAYOUT_CONTRACT_INSTALLED__ = true;
-  }
-
-  normalizeViewportAccessibility();
-  installLayoutContract();
 
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
