@@ -89,6 +89,13 @@ function normalizeMobileLabels(documentRef) {
   if (desktopCreateLabel) desktopCreateLabel.textContent = '만들기';
 }
 
+function redirectHiddenToolbarFocus(documentRef, active) {
+  if (!active) return;
+  const toolbar = documentRef.getElementById('mapToolToolbar');
+  if (!toolbar?.contains(documentRef.activeElement)) return;
+  requestAnimationFrame(() => documentRef.getElementById('modeCancelBtn')?.focus({ preventScroll: true }));
+}
+
 function syncDirectEditState(documentRef) {
   const context = documentRef.getElementById('modeEditingContext');
   const panel = documentRef.getElementById(EDIT_PANEL_ID);
@@ -96,6 +103,7 @@ function syncDirectEditState(documentRef) {
 
   const active = isMobile(documentRef) && !context.classList.contains('hidden');
   documentRef.body.classList.toggle('mobile-direct-edit', active);
+  redirectHiddenToolbarFocus(documentRef, active);
 
   if (active && !editSession) {
     const wasOpen = panel.classList.contains('mobile-open');
