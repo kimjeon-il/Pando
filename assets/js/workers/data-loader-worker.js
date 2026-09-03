@@ -4,9 +4,11 @@ const buildMeta = globalThis.PANDOLAB_BUILD_META;
 if (!buildMeta) throw new Error('빌드 메타데이터를 불러오지 못했습니다.');
 const APP_VERSION = String(buildMeta.appVersion || '');
 const ASSET_REVISION = String(buildMeta.assetRevision || workerAssetRevision);
+const DATA_REVISION = String(buildMeta.dataRevision || `data-${APP_VERSION}`);
 const { resolveStartupLoadPolicy } = await import(`../modules/startup-readiness.js?v=${encodeURIComponent(ASSET_REVISION)}`);
-const CORE_CACHE_PREFIX = 'pandolab-core-';
-const CORE_CACHE_NAME = `${CORE_CACHE_PREFIX}${ASSET_REVISION}`;
+const DATA_CACHE_PREFIX = 'pandolab-data-';
+const DATA_CACHE_NAME = `${DATA_CACHE_PREFIX}${DATA_REVISION}`;
+const LEGACY_CORE_CACHE_PREFIX = 'pandolab-core-';
 const params = new URL(self.location.href).searchParams;
 const loadPolicy = resolveStartupLoadPolicy({
   layout: params.get('layout') || 'wide',
@@ -18,7 +20,7 @@ const loadPolicy = resolveStartupLoadPolicy({
 
 function versionedDataUrl(relativePath) {
   const url = new URL(relativePath, self.location.href);
-  url.searchParams.set('v', ASSET_REVISION);
+  url.searchParams.set('v', DATA_REVISION);
   return url;
 }
 
@@ -32,7 +34,7 @@ let geometryLoading = false;
 let meshLoading = false;
 let meshCancelled = false;
 let meshAbortController = null;
-let coreCachePromise = null;
+let dataCachePromise = null;
 let oldCacheCleanupPromise = null;
 
 function report(phase, key, message, loaded = 0, total = 0, done = false, extra = {}) {
@@ -49,10 +51,10 @@ function report(phase, key, message, loaded = 0, total = 0, done = false, extra 
   self.postMessage({ type: `${phase}-progress`, phase, stage: key, message, percent, ...extra });
 }
 
-async function openCoreCache() {
+async function openDataCache() {
   if (!('caches' in self)) return null;
-  if (!coreCachePromise) coreCachePromise = caches.open(CORE_CACHE_NAME).catch(() => null);
-  return coreCachePromise;
+  if (!dataCachePromise) dataCachePromise = caches.open(DATA_CACHE_NAME).catch(() => null);
+  return dataCachePromise;
 }
 
 async function cleanupOldCoreCaches() {
@@ -60,7 +62,8 @@ async function cleanupOldCoreCaches() {
   if (!oldCacheCleanupPromise) {
     oldCacheCleanupPromise = caches.keys()
       .then(names => Promise.all(names
-        .filter(name => name.startsWith(CORE_CACHE_PREFIX) && name !== CORE_CACHE_NAME)
+      .filter(name => (name.startsWith(DATA_CACHE_PREFIX) && name !== DATA_CACHE_NAME)
+        || name.startsWith(LEGACY_CORE_CACHE_PREFIX))
         .map(name => caches.delete(name))))
       .catch(() => []);
   }
@@ -158,7 +161,7 @@ function validateAssetLength(result, spec, label) {
 
 async function loadAsset(spec, phase, key, label, validate, signal = null) {
   const url = resolveAssetUrl(spec);
-  const cache = await openCoreCache();
+  const cache = await openDataCache();
   if (cache) {
     const cached = await cache.match(url).catch(() => null);
     if (cached) {

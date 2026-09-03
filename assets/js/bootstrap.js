@@ -6,26 +6,10 @@
   const APP_VERSION = String(buildMeta.appVersion || '');
   const BUILD_ID = String(buildMeta.buildId || '');
   const ASSET_REVISION = String(buildMeta.assetRevision || '');
-  if (!APP_VERSION || !BUILD_ID || !ASSET_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
+  const DATA_REVISION = String(buildMeta.dataRevision || `data-${APP_VERSION}`);
+  if (!APP_VERSION || !BUILD_ID || !ASSET_REVISION || !DATA_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
-  const UI_STYLES = Object.freeze([
-    '../css/tokens/ui-v2.css',
-    '../css/primitives/controls.css',
-    '../css/components/surface.css',
-    '../css/components/content.css',
-    '../css/components/command-row.css',
-    '../css/components/workflow.css',
-    '../css/components/workspace-refinements.css',
-    '../css/layout/surfaces.css',
-    '../css/features/layer-panel.css',
-    '../css/components/editor-shell.css',
-    '../css/components/map-create-panel.css',
-    '../css/components/edit-workflow.css',
-    '../css/components/library-gis-file.css',
-    '../css/components/mobile-sheets.css',
-    '../css/components/feedback.css',
-    '../css/utilities/accessibility.css',
-  ]);
+  const UI_BUNDLE = '../css/ui-v2.bundle.css';
 
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
@@ -51,6 +35,12 @@
   const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__ = {
     buildId: BUILD_ID,
     assetRevision: ASSET_REVISION,
+    dataRevision: DATA_REVISION,
+    dataCacheName: `pandolab-data-${DATA_REVISION}`,
+    uiStylesheetRequestCount: 0,
+    uiBundleBuildSourceCount: 16,
+    firstCanonicalFrameMs: null,
+    canonicalFrameFallbackCount: 0,
     signals: startupSignals,
     loadPolicy: null,
     startedAt: bootStartedAt,
@@ -107,14 +97,14 @@
   }
 
   function installUiV2() {
-    for (const relativePath of UI_STYLES) {
-      const key = relativePath.replace('../css/', '').replace(/\.css$/, '').replaceAll('/', '-');
-      if (document.querySelector(`link[data-pandolab-ui-v2="${key}"]`)) continue;
+    const key = 'ui-v2-bundle';
+    if (!document.querySelector(`link[data-pandolab-ui-v2="${key}"]`)) {
       const style = document.createElement('link');
       style.rel = 'stylesheet';
-      style.href = versionedAsset(relativePath).href;
+      style.href = versionedAsset(UI_BUNDLE).href;
       style.dataset.pandolabUiV2 = key;
       document.head.appendChild(style);
+      startupMetrics.uiStylesheetRequestCount += 1;
     }
 
     window.addEventListener('pandolab:interactive', () => {
@@ -152,6 +142,8 @@
   window.PANDOLAB_APP_VERSION = APP_VERSION;
   window.PANDOLAB_BUILD_ID = BUILD_ID;
   window.PANDOLAB_ASSET_REVISION = ASSET_REVISION;
+  window.PANDOLAB_DATA_REVISION = DATA_REVISION;
+  window.PANDOLAB_DATA_CACHE_NAME = `pandolab-data-${DATA_REVISION}`;
   const loaderUrl = versionedAsset('./workers/data-loader-worker.js');
   for (const [key, value] of Object.entries(startupSignals)) {
     if (value !== null && value !== '') loaderUrl.searchParams.set(key, String(value));

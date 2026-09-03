@@ -11,10 +11,11 @@ const failures = [];
 
 const cssLayers = new Set(['tokens', 'primitives', 'components', 'layout', 'features', 'utilities']);
 
-// app.css is the only remaining root-level UI stylesheet allowed to carry
-// pre-v2 rules. The dedicated phase cleanup stylesheet has been retired.
+// app.css carries legacy rules; ui-v2.bundle.css is a generated aggregation
+// artifact whose source ownership remains in the layered files below.
 const legacyCssBudgets = new Map([
   ['app.css', 178186],
+  ['ui-v2.bundle.css', Number.MAX_SAFE_INTEGER],
 ]);
 
 const retiredUiArtifacts = Object.freeze([

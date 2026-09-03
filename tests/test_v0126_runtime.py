@@ -72,9 +72,10 @@ class V0126RuntimeTests(unittest.TestCase):
         main_ring = egypt["geometry"]["coordinates"][0][0]
         self.assertNotIn([35.429207, 22.97833], main_ring)
 
-    def test_data_assets_inherit_the_bootstrap_cache_revision(self):
+    def test_data_assets_use_the_data_cache_revision(self):
         self.assertIn("function versionedDataUrl(relativePath)", LOADER)
-        self.assertIn("url.searchParams.set('v', ASSET_REVISION)", LOADER)
+        self.assertIn("url.searchParams.set('v', DATA_REVISION)", LOADER)
+        self.assertIn("const DATA_CACHE_PREFIX = 'pandolab-data-'", LOADER)
 
     def test_land_only_relief_and_automatic_water_colours(self):
         manifest = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))

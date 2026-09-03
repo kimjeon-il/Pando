@@ -117,6 +117,13 @@ export function createMapRenderCoordinator({
       const viewState = needsView ? prepareView() : undefined;
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
 
+      // Give domains one stable frame boundary so live render resources are
+      // refreshed once before any pass consumes the shared snapshot.
+      callRenderer('beginFrame', rendererTimes, {
+        ...(viewState && typeof viewState === 'object' ? viewState : {}),
+        frameId: renderRevision,
+      });
+
       // The legacy Pando host and its renderer share the coordinator frame.
       // There is no second custom-layer render cycle.
       if (!full && (mask & MAP_RENDER_DIRTY.VIEW)) callRenderer('view', rendererTimes, viewState);

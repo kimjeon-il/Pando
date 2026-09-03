@@ -21,13 +21,22 @@ export function createRenderingDomain({
   editingRenderResources = null,
   interactionResources = null,
   selectionResources = null,
+  refreshRenderResources = null,
+  getRenderResourceSnapshot = null,
   renderers = {},
   reportDiagnostic = () => {},
 } = {}) {
   let scene = null;
   let disposed = false;
   let contextLost = false;
-  const stats = { invalidations: 0, lastReason: '' };
+  const stats = {
+    invalidations: 0,
+    lastReason: '',
+    renderResourceRefreshCount: 0,
+    renderResourceSnapshotFrameId: null,
+    renderResourceProxyCount: 0,
+  };
+  let resourceFrameToken = null;
   const active = () => { if (disposed) throw new Error('Rendering domain is disposed.'); };
   const labels = labelResources || {};
   const countries = countryResources || {};
@@ -929,6 +938,16 @@ export function createRenderingDomain({
     stats.lastReason = String(reason);
     return coordinator?.scheduleView?.(reason) ?? coordinator?.invalidate?.(0, reason) ?? false;
   };
+  const beginFrame = (frameContext = null) => {
+    active();
+    const frameToken = frameContext?.frameId ?? frameContext?.revision ?? null;
+    if (frameToken !== null && frameToken === resourceFrameToken) return resourceFrameToken;
+    refreshRenderResources?.(frameToken);
+    resourceFrameToken = frameToken;
+    stats.renderResourceRefreshCount += 1;
+    stats.renderResourceSnapshotFrameId = frameToken;
+    return frameToken;
+  };
   const setScene = nextScene => {
     active();
     scene = nextScene || null;
@@ -1513,6 +1532,7 @@ export function createRenderingDomain({
     active();
     const state = interaction.getState?.() || {};
     const draftLayer = interaction.draftLayer;
+    if (!draftLayer) return false;
     const { d3, svg, path, isMobile, mapClickBlocked, projectedLineDistance, setActionStatus, toggleTerritoryComponentSelection, selectTerritoryCandidate, territoryComponentItems, formatTerritoryArea, isPolygonDraftTool, activeProjection, isCoordVisible, coordNear, activeCutDraftSourceGeometry, assessCutDraft, syncCutDraftFeedback, syncGenericDraftFeedback, draftFeature, draftSegmentRows, showDraftInsertTarget, draftVertexDragBehavior, updateModeButtons, syncGpuInteractionLayer, $ } = interaction;
     const editingDomain = { draftInputActive: () => interaction.draftInputActive?.() };
     draftLayer.selectAll('*').remove();
@@ -1712,6 +1732,9 @@ export function createRenderingDomain({
     return true;
   };
   return Object.freeze({
+    beginFrame,
+    refreshRenderResources: beginFrame,
+    getRenderResourceSnapshot: () => getRenderResourceSnapshot?.() || null,
     setScene,
     invalidate,
     invalidateView,
