@@ -3,76 +3,13 @@ import { installObjectRegistryPresenter } from './object-registry-presenter.js';
 import { createSemanticIcon } from './icon-utils.js';
 import { installMobileSheetController } from './mobile-sheet-controller.js';
 
-const COMMAND_ROW_ICON_BY_ID = Object.freeze({
-  multiBorderEditBtn: 'boundary',
-  annexTerritoryBtn: 'transfer',
-  mergeCountryBtn: 'merge',
-  editBorderBtn: 'boundary',
-  editCoastBtn: 'coastline',
-  changeCountryTypeBtn: 'transform',
-  reassignTerritoryShapeBtn: 'boundary',
-  mergeTerritoryBtn: 'merge',
-  splitTerritoryBtn: 'split',
-  transferTerritoryBtn: 'transfer',
-  changeTerritoryTypeBtn: 'transform',
-  promoteTerritoryBtn: 'country',
-  removeTerritoryDivisionBtn: 'merge',
-  reassignAdministrativeShapeBtn: 'boundary',
-  reconcileAdministrativeCoastBtn: 'coastline',
-  mergeAdministrativeBtn: 'merge',
-  splitAdministrativeBtn: 'split',
-  transferAdministrativeBtn: 'transfer',
-  changeAdministrativeTypeBtn: 'transform',
-  promoteAdministrativeBtn: 'country',
-  removeAdministrativeDivisionBtn: 'merge',
-  reassignRegionShapeBtn: 'boundary',
-  mergeRegionBtn: 'merge',
-  transferRegionBtn: 'transfer',
-  addTerritorialDistributionBtn: 'add',
-  addGeometryDistributionBtn: 'boundary',
-  editGenericFeatureBoundaryBtn: 'boundary',
-  mergeGenericFeatureBtn: 'merge',
-  splitGenericFeatureBtn: 'split',
-  syncGenericFeatureCoastBtn: 'coastline',
-  editGenericFeatureCoastBtn: 'coastline',
-  applyGenericFeatureToCountryBtn: 'transfer',
-  promoteGenericFeatureToCountryBtn: 'country',
-});
-
 const COAST_DECISION_DETAIL_BY_ID = Object.freeze({
   coastReconciliationCountryBtn: '국가 해안선을 기준으로 가져온 영역을 맞춥니다.',
   coastReconciliationAdminBtn: '가져온 영역의 해안선을 기준으로 국가 쪽을 맞춥니다.',
   coastReconciliationIndependentBtn: '두 형상을 변경하지 않고 독립적으로 유지합니다.',
 });
 
-const GIS_IMPORT_STEPS = Object.freeze(['파일', '종류', '속성', '적용', '확인']);
-const GIS_EXPORT_STEPS = Object.freeze(['데이터', '형식']);
-const GIS_EXPORT_FORMAT_HELP = Object.freeze({
-  gpkg: '하나의 GIS 패키지 파일로 저장합니다.',
-  'geojson-zip': '레이어별 GeoJSON을 ZIP 파일로 저장합니다.',
-});
-
 let initialized = false;
-
-function commandRowChevron() {
-  return createSemanticIcon(document, 'chevronRight', 'ui-icon command-row-chevron');
-}
-
-function normalizeCommandRows() {
-  for (const [id, semanticIcon] of Object.entries(COMMAND_ROW_ICON_BY_ID)) {
-    const row = document.getElementById(id);
-    if (!(row instanceof HTMLElement)) continue;
-    row.classList.add('has-command-row-icon');
-    const nextIcon = createSemanticIcon(document, semanticIcon, 'ui-icon command-row-icon');
-    const currentIcon = row.querySelector(':scope > .command-row-icon');
-    if (currentIcon) currentIcon.replaceWith(nextIcon);
-    else row.prepend(nextIcon);
-    const directIcons = Array.from(row.children).filter(node => node instanceof SVGElement && node !== nextIcon);
-    const trailing = directIcons.at(-1);
-    if (trailing) trailing.replaceWith(commandRowChevron());
-    else row.appendChild(commandRowChevron());
-  }
-}
 
 function workflowSemanticFromLabel(label, fallback = 'boundary') {
   const text = String(label || '');
@@ -102,9 +39,6 @@ function normalizeMapEditingWorkflow() {
   const heading = hud?.querySelector('.mode-task-heading');
   const title = document.getElementById('modeTaskName');
   if (!(hud instanceof HTMLElement) || !(heading instanceof HTMLElement) || !(title instanceof HTMLElement)) return;
-  hud.classList.add('workflow-map-session');
-  hud.setAttribute('aria-labelledby', 'modeTaskName');
-  hud.removeAttribute('aria-label');
   const syncIcon = () => replaceWorkflowIcon(heading, workflowSemanticFromLabel(title.textContent), 'ui-icon mode-task-icon');
   syncIcon();
   new MutationObserver(syncIcon).observe(title, { childList: true, characterData: true, subtree: true });
@@ -183,25 +117,18 @@ function addDialogHeaderIcon(modalId, semantic, className) {
   header.prepend(createSemanticIcon(document, semantic, `ui-icon ${className}`));
 }
 
-function installVisualStepper({ modalId, indicatorId, steps }) {
+function normalizeLibraryPresentation() {
+  const card = document.querySelector('#historicalLibraryModal .historical-library-card');
+  if (card instanceof HTMLElement) card.classList.add('library-workflow-card');
+  addDialogHeaderIcon('historicalLibraryModal', 'library', 'library-dialog-icon');
+  document.getElementById('historicalLibraryPreview')?.classList.remove('ui-card');
+}
+
+function bindVisualStepper({ modalId, indicatorId }) {
   const modal = document.getElementById(modalId);
-  const card = modal?.querySelector('.ui-dialog-card');
-  const header = card?.querySelector(':scope > .ui-dialog-header');
+  const stepper = modal?.querySelector('.gis-stepper');
   const indicator = document.getElementById(indicatorId);
-  if (!(card instanceof HTMLElement) || !(header instanceof HTMLElement) || !(indicator instanceof HTMLElement)) return;
-  let stepper = card.querySelector(':scope > .gis-stepper');
-  if (!(stepper instanceof HTMLOListElement)) {
-    stepper = document.createElement('ol');
-    stepper.className = `gis-stepper gis-stepper--${steps.length}`;
-    stepper.setAttribute('aria-label', '진행 단계');
-    steps.forEach((label, index) => {
-      const item = document.createElement('li');
-      item.dataset.stepNumber = String(index + 1);
-      item.textContent = label;
-      stepper.appendChild(item);
-    });
-    header.insertAdjacentElement('afterend', stepper);
-  }
+  if (!(stepper instanceof HTMLOListElement) || !(indicator instanceof HTMLElement)) return;
   const sync = () => {
     const match = String(indicator.textContent || '').match(/(\d+)\s*\/\s*(\d+)/);
     const current = Math.max(0, (Number(match?.[1]) || 1) - 1);
@@ -216,58 +143,27 @@ function installVisualStepper({ modalId, indicatorId, steps }) {
   new MutationObserver(sync).observe(indicator, { childList: true, characterData: true, subtree: true });
 }
 
-function normalizeLibraryPresentation() {
-  const card = document.querySelector('#historicalLibraryModal .historical-library-card');
-  if (card instanceof HTMLElement) card.classList.add('library-workflow-card');
-  addDialogHeaderIcon('historicalLibraryModal', 'library', 'library-dialog-icon');
-}
-
-function normalizeGisExportFormat() {
+function bindGisExportFormat() {
   const select = document.getElementById('gisExportFormat');
-  if (!(select instanceof HTMLSelectElement) || select.dataset.v2RadioPresentation === 'true') return;
-  select.dataset.v2RadioPresentation = 'true';
-  select.classList.add('gis-export-format-native');
-  const host = select.closest('.field-group');
-  if (!(host instanceof HTMLElement)) return;
-  host.classList.add('gis-export-format-field');
-  const list = document.createElement('div');
-  list.className = 'gis-export-format-list';
-  list.setAttribute('role', 'radiogroup');
-  list.setAttribute('aria-label', '파일 형식');
-  for (const option of Array.from(select.options)) {
-    const label = document.createElement('label');
-    label.className = 'gis-export-format-option';
-    const radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = 'gisExportFormatPresentation';
-    radio.value = option.value;
-    radio.checked = option.value === select.value;
-    const copy = document.createElement('span');
-    copy.className = 'gis-export-format-copy';
-    const strong = document.createElement('strong');
-    strong.textContent = option.textContent;
-    const small = document.createElement('small');
-    small.textContent = GIS_EXPORT_FORMAT_HELP[option.value] || '';
-    copy.append(strong, small);
-    label.append(radio, copy);
-    list.appendChild(label);
+  const list = document.querySelector('.gis-export-format-list');
+  if (!(select instanceof HTMLSelectElement) || !(list instanceof HTMLElement)) return;
+  if (list.dataset.bound === 'true') return;
+  list.dataset.bound = 'true';
+
+  for (const radio of list.querySelectorAll('input[type="radio"]')) {
     radio.addEventListener('change', () => {
       if (!radio.checked) return;
       select.value = radio.value;
       select.dispatchEvent(new Event('change', { bubbles: true }));
     });
   }
-  host.insertAdjacentElement('afterend', list);
-  select.addEventListener('change', () => {
+  const sync = () => {
     list.querySelectorAll('input[type="radio"]').forEach(radio => {
       radio.checked = radio.value === select.value;
     });
-  });
-}
-
-function removeObsoletePresentationNodes() {
-  document.querySelector('.editor-edge-slot')?.remove();
-  document.getElementById('historicalLibraryPreview')?.classList.remove('ui-card');
+  };
+  sync();
+  select.addEventListener('change', sync);
 }
 
 function constrainGenericFallbackUi() {
@@ -295,15 +191,13 @@ export function initializeUiRuntime(documentRef = document) {
   initialized = true;
   installBoundaryGhostingGuard();
   installObjectRegistryPresenter();
-  normalizeCommandRows();
   normalizeMapEditingWorkflow();
   normalizeEditingDialogs();
   normalizeLibraryPresentation();
-  installVisualStepper({ modalId: 'gisImportModal', indicatorId: 'gisStepIndicator', steps: GIS_IMPORT_STEPS });
-  installVisualStepper({ modalId: 'gisExportModal', indicatorId: 'gisExportStepIndicator', steps: GIS_EXPORT_STEPS });
-  normalizeGisExportFormat();
+  bindVisualStepper({ modalId: 'gisImportModal', indicatorId: 'gisStepIndicator' });
+  bindVisualStepper({ modalId: 'gisExportModal', indicatorId: 'gisExportStepIndicator' });
+  bindGisExportFormat();
   installMobileSheetController(documentRef);
-  removeObsoletePresentationNodes();
   constrainGenericFallbackUi();
   normalizeEmptyConditionalSurfaces();
   const app = documentRef.getElementById('app');
