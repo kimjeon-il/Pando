@@ -2888,7 +2888,7 @@ const {
     const message = state.dataReadiness === DATA_READINESS.ERROR
       ? '편집 데이터를 불러오지 못했습니다. 새로고침하세요.'
       : `편집 데이터 준비 중 · ${Math.round(state.geometryProgress || 0)}%`;
-    setActionStatus(message, state.dataReadiness === DATA_READINESS.ERROR ? 'error' : 'working', 0);
+    setActionStatus(message, state.dataReadiness === DATA_READINESS.ERROR ? 'error' : 'working', 2600);
     return false;
   }
 
@@ -13411,11 +13411,8 @@ const {
     const button = $('saveProjectBtn');
     if (button) button.disabled = true;
     saveState.markFileSaving();
-    setActionStatus('프로젝트 저장 준비 중…', 'working', 0);
     try {
-      const blob = await window.PandoLabGIS.exportGeoPackage(projectDomain.buildProject(), (_message, percent) => {
-        setActionStatus(`프로젝트 저장 중${Number.isFinite(percent) ? ` · ${Math.round(percent)}%` : ''}`, 'working', 0);
-      });
+      const blob = await window.PandoLabGIS.exportGeoPackage(projectDomain.buildProject(), () => undefined);
       const filename = '판도연구소-프로젝트.gpkg';
       if (typeof window.showSaveFilePicker === 'function') {
         const handle = await window.showSaveFilePicker({
@@ -16112,9 +16109,6 @@ const {
     if (canMutateProject(state.dataReadiness)) return;
     if (state.dataReadiness === DATA_READINESS.ERROR) applyDataReadinessEvent(READINESS_EVENTS.RETRY_GEOMETRY);
     $('engineStatus').textContent = `빠른 미리보기 · 편집 데이터 ${Math.round(state.geometryProgress)}%`;
-    if (detail.stage?.includes('retry') || state.geometryProgress >= 95 || state.geometryProgress % 10 === 0) {
-      setActionStatus(detail.message || `편집 데이터 준비 중 · ${Math.round(state.geometryProgress)}%`, 'working', 0);
-    }
   }
 
   function handleMeshProgress(event) {
@@ -16124,21 +16118,16 @@ const {
     if (metrics) metrics.meshProgress = { stage: detail.stage || '', percent: state.meshProgress };
     if (!canMutateProject(state.dataReadiness) || state.dataReadiness === DATA_READINESS.ENHANCED) return;
     $('engineStatus').textContent = `빠른 미리보기 · 고화질 지도 ${Math.round(state.meshProgress)}%`;
-    if (detail.stage?.includes('retry')) setActionStatus(detail.message || '고화질 지도를 다시 준비하는 중입니다.', 'working', 0);
   }
 
   function handleGeometryError(event) {
     applyDataReadinessEvent(READINESS_EVENTS.GEOMETRY_ERROR);
-    $('engineStatus').textContent = '빠른 미리보기 · 무손실 데이터 대기';
-    const detail = String(event.detail || '무손실 데이터를 준비하지 못했습니다.');
-    setActionStatus(`${detail} 미리보기 오류. 자동 재시도합니다.`, 'error', 0);
+    $('engineStatus').textContent = '편집 데이터 오류 · 자동 재시도 중';
   }
 
   function handleMeshError(event) {
     if (!canMutateProject(state.dataReadiness)) return;
-    $('engineStatus').textContent = '빠른 미리보기 · 고화질 지도 대기';
-    const detail = String(event.detail || '고화질 지도를 준비하지 못했습니다.');
-    setActionStatus(`${detail} 편집 데이터 오류. 자동 재시도합니다.`, 'error', 0);
+    $('engineStatus').textContent = '고화질 지도 오류 · 자동 재시도 중';
   }
 
   async function completeGeometryInitialization(geometry, autosaveRestore, previewStart) {
