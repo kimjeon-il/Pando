@@ -80,15 +80,6 @@ function setEditorSnap(panel, target) {
   else if (current > 1) dispatchHandleKey(handle, 'ArrowDown');
 }
 
-function normalizeMobileLabels(documentRef) {
-  const createNavLabel = documentRef.querySelector('#mobileCreateBtn strong');
-  if (createNavLabel) createNavLabel.textContent = '만들기';
-  const createSheetTitle = documentRef.getElementById('createSheetTitle');
-  if (createSheetTitle) createSheetTitle.textContent = '만들기';
-  const desktopCreateLabel = documentRef.querySelector('#createMenuBtn span');
-  if (desktopCreateLabel) desktopCreateLabel.textContent = '만들기';
-}
-
 function redirectHiddenToolbarFocus(documentRef, active) {
   if (!active) return;
   const toolbar = documentRef.getElementById('mapToolToolbar');
@@ -218,7 +209,6 @@ function observeLayout(documentRef) {
   const app = documentRef.getElementById('app');
   if (!(app instanceof HTMLElement)) return;
   const sync = () => {
-    normalizeMobileLabels(documentRef);
     syncDirectEditState(documentRef);
     for (const id of ['leftPanel', 'createMenu', EDIT_PANEL_ID]) {
       const panel = documentRef.getElementById(id);
@@ -237,7 +227,6 @@ export function installMobileSheetController(documentRef = document) {
   if (installed) return;
   installed = true;
   installFeedbackController(documentRef);
-  normalizeMobileLabels(documentRef);
   installHandleGuards(documentRef);
   observePanels(documentRef);
   observeEditContext(documentRef);
