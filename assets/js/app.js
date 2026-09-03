@@ -16487,6 +16487,15 @@ const {
   function initializeDomainBoundaries() {
     if (projectDomain || selectionDomain || renderingDomain || gisDomain || editingDomain) return;
     const domainListeners = new Map();
+    // Rendering domains are created before initSvg() so project/GIS services can
+    // be available during bootstrap. Keep DOM layer resources live instead of
+    // capturing their pre-init undefined values in the domain adapters.
+    const createLiveResources = (values, live = {}) => new Proxy(values, {
+      get(target, property, receiver) {
+        const getter = live[property];
+        return typeof getter === 'function' ? getter() : Reflect.get(target, property, receiver);
+      },
+    });
     const domainContext = Object.freeze({
       getProjectSnapshot: () => projectDomain?.snapshot?.() || projectSerializer.buildProject(),
       getSessionSnapshot: () => deepClone({ projection: state.projection, view: state.view, selected: state.selected }),
@@ -16613,7 +16622,7 @@ const {
       selectionDomain,
       projectDomain,
       domLayers: () => ({ baseSvg, svg, interactionSvg }),
-      labelResources: {
+      labelResources: createLiveResources({
         d3,
         countryLabelLayer,
         labelLayer,
@@ -16640,8 +16649,12 @@ const {
         normalizeObjectRef,
         selectionSnapshot: () => objectSelection.snapshot(),
         selectionHas: ref => objectSelection.has(ref),
-      },
-      countryResources: {
+      }, {
+        countryLabelLayer: () => countryLabelLayer,
+        labelLayer: () => labelLayer,
+        svg: () => svg,
+      }),
+      countryResources: createLiveResources({
         getState: () => state,
         getViewRevision: () => viewRevision,
         countryLayer,
@@ -16659,8 +16672,10 @@ const {
         gpuMapRenderer,
         applyGpuSceneCoverage,
         applyGpuInteractionCoverage,
-      },
-      hydroResources: {
+      }, {
+        countryLayer: () => countryLayer,
+      }),
+      hydroResources: createLiveResources({
         getState: () => state,
         getStateRevision: () => state.stateRevision,
         hydroLakeLayer,
@@ -16684,8 +16699,13 @@ const {
         svg: svg?.node?.() || svg,
         handleObjectSelectionAt,
         buildRenderableStrokeFeature,
-      },
-      territorialResources: {
+      }, {
+        hydroLakeLayer: () => hydroLakeLayer,
+        hydroRiverLayer: () => hydroRiverLayer,
+        hydroEditLayer: () => hydroEditLayer,
+        svg: () => svg?.node?.() || svg,
+      }),
+      territorialResources: createLiveResources({
         getState: () => state,
         territorialUnitLayer,
         territorialOperationLayer,
@@ -16712,8 +16732,12 @@ const {
         resolvedInteractionStyle: () => resolvedInteractionStyle,
         replaceGpuSceneDomain,
         buildRenderableStrokeFeature,
-      },
-      genericResources: {
+      }, {
+        territorialUnitLayer: () => territorialUnitLayer,
+        territorialOperationLayer: () => territorialOperationLayer,
+        svg: () => svg?.node?.() || svg,
+      }),
+      genericResources: createLiveResources({
         getState: () => state,
         genericFeatureLayer,
         path,
@@ -16738,8 +16762,11 @@ const {
         resolvedInteractionStyle: () => resolvedInteractionStyle,
         replaceGpuSceneDomain,
         buildRenderableStrokeFeature,
-      },
-      distributionResources: {
+      }, {
+        genericFeatureLayer: () => genericFeatureLayer,
+        svg: () => svg?.node?.() || svg,
+      }),
+      distributionResources: createLiveResources({
         getState: () => state,
         distributionLayer,
         distributionEntriesForLayer,
@@ -16770,8 +16797,11 @@ const {
         buildRenderableStrokeFeature,
         getCountryGeometryRevision: () => countryLandRevision,
         getDistributionVisibilityRevision: () => distributionVisibilityRevision,
-      },
-      territorialBoundaryResources: {
+      }, {
+        distributionLayer: () => distributionLayer,
+        svg: () => svg?.node?.() || svg,
+      }),
+      territorialBoundaryResources: createLiveResources({
         getState: () => state,
         getCountryLandRevision: () => countryLandRevision,
         getTerritorialGeometryRevision: () => mapObjectGeometryRevisions.territorial,
@@ -16785,8 +16815,10 @@ const {
         path,
         replaceGpuSceneDomain,
         gpuSceneOrder,
-      },
-      baseResources: {
+      }, {
+        territorialBoundaryLayer: () => territorialBoundaryLayer,
+      }),
+      baseResources: createLiveResources({
         getState: () => state,
         updatePandoGlobeShell,
         graticule,
@@ -16797,12 +16829,16 @@ const {
         buildGraticuleStrokeGeometryPacket,
         getProjection: () => state.projection,
         isLightTheme: () => (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light',
-      },
-      projectedOverlayResources: {
-        layers: [territorialBoundaryLayer, overlayStackLayer, hydroEditLayer, territorialOperationLayer],
+      }, {
+        graticuleLayer: () => graticuleLayer,
+      }),
+      projectedOverlayResources: createLiveResources({
+        layers: null,
         path,
-      },
-      selectionResources: {
+      }, {
+        layers: () => [territorialBoundaryLayer, overlayStackLayer, hydroEditLayer, territorialOperationLayer],
+      }),
+      selectionResources: createLiveResources({
         getState: () => state,
         getHover: () => state.hovered,
         snapshot: () => ({ selection: objectSelection.snapshot(), hover: state.hovered }),
@@ -16849,8 +16885,12 @@ const {
           });
           console.warn(`[${stage}] 직전 정상 선택 프레임을 유지합니다.`, error);
         },
-      },
-      interactionResources: {
+      }, {
+        selectionLayer: () => selectionLayer,
+        hoverLayer: () => hoverLayer,
+        selectionPass: () => selectionPass,
+      }),
+      interactionResources: createLiveResources({
         getState: () => state,
         draftLayer,
         draftInputActive: () => editingDomain?.draftInputActive?.(),
@@ -16892,8 +16932,14 @@ const {
         scheduleSpatialIndexRebuild: () => mapWorkScheduler.scheduleIdle('map-object-spatial-index', () => rebuildMapObjectSpatialIndex(), 40),
         getViewRevision: () => viewRevision,
         getViewState: () => window.__PANDOLAB_VIEW_STATE__ || null,
-      },
-      editingRenderResources: {
+      }, {
+        draftLayer: () => draftLayer,
+        previewLayer: () => previewLayer,
+        validationLayer: () => validationLayer,
+        snapLayer: () => snapLayer,
+        svg: () => svg,
+      }),
+      editingRenderResources: createLiveResources({
         getState: () => state,
         getCountryBoundarySegments,
         getEditableVertices,
@@ -16914,7 +16960,10 @@ const {
         replaceGpuSceneDomain,
         getEditInteractionRevision: () => editInteractionRevision,
         getInteractionStyle: () => resolvedInteractionStyle,
-      },
+      }, {
+        vertexLayer: () => vertexLayer,
+        boundaryEditLayer: () => boundaryEditLayer,
+      }),
       renderers: {
         view: viewState => { updatePandoGlobeShell(); return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState); },
         base: (...args) => renderingDomain.renderBase(...args),
