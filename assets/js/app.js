@@ -2816,7 +2816,7 @@ const {
     const notice = $('actionStatus');
     if (!notice) return;
     notice.classList.add('hidden');
-    notice.classList.remove('working', 'success', 'error');
+    notice.classList.remove('working', 'success', 'error', 'info', 'warning');
     notice.classList.add('ready');
     notice.setAttribute('role', 'status');
     document.body.classList.remove('notification-visible');
@@ -2835,7 +2835,7 @@ const {
       : fullMessage;
     clearTimeout(setActionStatus._timer);
     notice.classList.remove('hidden');
-    notice.classList.remove('ready', 'working', 'success', 'error');
+    notice.classList.remove('ready', 'working', 'success', 'error', 'info', 'warning');
     notice.classList.add(tone);
     notice.setAttribute('role', tone === 'error' ? 'alert' : 'status');
     notice.setAttribute('aria-label', fullMessage);
@@ -3327,7 +3327,7 @@ const {
         key: `territorial:${feature.id}`, domain: 'territorial', type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY, id: feature.id,
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
-    const distributionRows = buildDistributionRenderRows();
+    const distributionRows = renderingDomain?.getDistributionRenderRows?.() || [];
     if (force || mapObjectSpatialIndexSources.get('distribution')?.[0] !== distributionRows) mapObjectDistributionRowCache.clear();
     changed = replaceSpatialDomain('distribution', [distributionRows], () => distributionRows.map(row => {
       mapObjectDistributionRowCache.set(String(row.id), row);
@@ -5705,6 +5705,8 @@ const {
   function syncLayerSelectionRows(selection = objectSelection.snapshot()) {
     const selectedKeys = new Set((selection.items || []).map(item => item.key));
     const multi = selectedKeys.size > 1;
+    const primaryRef = (selection.items || []).find(item => item.key === selection.primaryKey) || null;
+    const primaryFolderGroup = layerFolderGroupForObjectRef(primaryRef);
     document.querySelectorAll('[data-layer-group][data-item-id]').forEach(row => {
       const ref = layerItemObjectRef(row.dataset.layerGroup, row.dataset.itemId);
       const selected = !!ref && selectedKeys.has(ref.key);
@@ -5714,6 +5716,32 @@ const {
       row.classList.toggle('is-primary-selected', primary && multi);
       if (row.matches('.layer-search-result')) row.setAttribute('aria-selected', String(selected));
     });
+    document.querySelectorAll('.layer-folder[data-layer-group] > .layer-folder-row').forEach(row => {
+      const group = row.closest('.layer-folder')?.dataset.layerGroup || '';
+      row.classList.toggle('is-active', !!primaryFolderGroup && group === primaryFolderGroup);
+    });
+  }
+
+  function layerFolderGroupForObjectRef(value) {
+    const ref = normalizeObjectRef(value);
+    if (!ref) return null;
+    if (ref.domain === 'territorial') {
+      if (ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY) return 'countries';
+      if (ref.type === TERRITORIAL_UNIT_TYPES.TERRITORY) return 'territories';
+      if (ref.type === TERRITORIAL_UNIT_TYPES.ADMIN) return 'administrative';
+      if (ref.type === TERRITORIAL_UNIT_TYPES.REGION) return 'regions';
+    }
+    if (ref.domain === 'distribution') {
+      if (ref.type === DISTRIBUTION_TYPES.LANGUAGE) return 'languages';
+      if (ref.type === DISTRIBUTION_TYPES.ETHNICITY) return 'ethnicities';
+      if (ref.type === DISTRIBUTION_TYPES.RELIGION) return 'religions';
+    }
+    if (ref.domain === 'hydro') {
+      const category = hydroCategoryKey(hydroEditById(ref.id)?.properties?.category || ref.type);
+      return category === 'lake' ? 'lakes' : category === 'river' ? 'rivers' : null;
+    }
+    if (ref.domain === 'generic') return 'genericFeatures';
+    return null;
   }
 
   function createLayerLockIndicator() {
@@ -5823,12 +5851,6 @@ const {
     menuButton.dataset.tooltip = `${item.name} 메뉴`;
     menuButton.append(createSemanticIcon(document, 'more'));
     row.append(visibility, name);
-    if (item.meta) {
-      const detail = document.createElement('span');
-      detail.className = 'layer-child-meta';
-      detail.textContent = item.meta;
-      row.append(detail);
-    }
     if (hasMenu) row.append(menuButton);
     return row;
   }
@@ -6034,6 +6056,7 @@ const {
     renderedLayerSearch = search;
     syncLayerStylePanels();
     syncCanonicalControls();
+    syncLayerSelectionRows();
   }
 
   function beginLayerTreeHydration() {
@@ -6174,115 +6197,6 @@ const {
     patchOutline.exit().remove();
   }
 
-  function renderCountries(viewStateOrRevision = viewRevision) {
-    let revision = viewRevision;
-    let renderViewState = null;
-    if (typeof viewStateOrRevision === 'number' && Number.isFinite(viewStateOrRevision)) {
-      revision = Number(viewStateOrRevision);
-    } else if (viewStateOrRevision && typeof viewStateOrRevision === 'object') {
-      renderViewState = viewStateOrRevision;
-      revision = Number(viewStateOrRevision?.revision || revision);
-    }
-    renderPendingCountryOverlays();
-    const highlighted = state.layerVisibility.countries && state.countriesData
-      ? state.countriesData.features.filter(feature => {
-          const id = String(feature.id || '');
-          if (!isLayerItemVisible('countries', id)) return false;
-          return (state.tool === 'country-coast' && state.coastEditCountryId === id) ||
-            (state.tool === 'country-border' && state.boundaryEditCountryIds.includes(id)) ||
-            (state.tool === 'annex-territory' && (state.annexTargetCountryId === id || state.annexDonorCountryIds.includes(id))) ||
-            (state.tool === 'merge-country' && (state.mergeSourceCountryId === id || state.mergeTargetCountryIds.includes(id))) ||
-            (state.tool === 'new-country' && state.newCountrySourceIds.includes(id));
-        })
-      : [];
-    const fillSelection = countryLayer.selectAll('path.country-highlight-fill')
-      .data(highlighted, feature => feature.id);
-    fillSelection.enter().append('path').attr('class', 'country-highlight-fill');
-    const allCountryFills = countryLayer.selectAll('path.country-highlight-fill');
-    allCountryFills
-      .attr('d', feature => path(feature))
-      .attr('data-gpu-scene-key', feature => `country-tool-fill:${feature.id}`)
-      .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds.includes(String(feature.id)))
-      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.id)
-      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryIds.includes(String(feature.id)))
-      .classed('merge-target', feature => state.tool === 'merge-country' && state.mergeTargetCountryIds.includes(String(feature.id)))
-      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds.includes(String(feature.id)));
-    fillSelection.exit().remove();
-    const selection = countryLayer.selectAll('path.country-shape')
-      .data(highlighted, feature => feature.id);
-    selection.enter().append('path').attr('class', 'country-shape gpu-country-highlight');
-    const allCountries = countryLayer.selectAll('path.country-shape');
-    allCountries
-      .attr('d', feature => path(countryOutlineFeature(feature)))
-      .attr('data-gpu-scene-key', feature => `country-tool-outline:${feature.id}`)
-      .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds.includes(String(feature.id)))
-      .classed('coast-editing', feature => state.tool === 'country-coast' && state.coastEditCountryId === feature.id)
-      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.id)
-      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryIds.includes(String(feature.id)))
-      .classed('merge-target', feature => state.tool === 'merge-country' && state.mergeTargetCountryIds.includes(String(feature.id)))
-      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds.includes(String(feature.id)));
-    selection.exit().remove();
-
-    const pending = state.layerVisibility.countries && state.pendingCountryRenderIds?.size
-      ? [...state.pendingCountryRenderIds].map(countryFeatureById).filter(Boolean)
-      : [];
-    const polygons = [];
-    const strokes = [];
-    for (const feature of pending) {
-      const id = String(feature.id || '');
-      const geometryRevision = selectionGeometryRevision(`country:${id}`, 'pending-country', feature);
-      polygons.push({
-        key: `pending-country-fill:${id}`,
-        geometryRevision,
-        geometry: feature.geometry,
-        order: -300,
-        style: { color: countryColor(feature), fillAlpha: mapTheme().fillAlpha, blendMode: 'normal' },
-      });
-      strokes.push({
-        key: `pending-country-outline:${id}`,
-        geometryRevision,
-        geometry: countryOutlineFeature(feature).geometry,
-        order: -290,
-        style: { color: mapTheme().border, alpha: mapTheme().borderAlpha, width: 1, cap: 'round' },
-      });
-    }
-    const highlightStyle = feature => {
-      const id = String(feature.id || '');
-      if (state.tool === 'annex-territory' && state.annexTargetCountryId === id) return { color: '#68be7e', fillAlpha: 0.16, stroke: '#9ee0a9', width: 2.4 };
-      if ((state.tool === 'annex-territory' && state.annexDonorCountryIds.includes(id))
-        || (state.tool === 'merge-country' && state.mergeTargetCountryIds.includes(id))) {
-        return { color: '#996fcd', fillAlpha: 0.16, stroke: '#d8b5ff', width: 2.6 };
-      }
-      if (state.tool === 'new-country' && state.newCountrySourceIds.includes(id)) return { color: '#e2c982', fillAlpha: 0.14, stroke: '#ffd77d', width: 2.6 };
-      return { color: resolvedInteractionStyle.selection.color, fillAlpha: 0.18, stroke: mapTheme().border, width: 0.72 };
-    };
-    for (const feature of highlighted) {
-      const id = String(feature.id || '');
-      const toolStyle = highlightStyle(feature);
-      const geometryRevision = selectionGeometryRevision(`country:${id}`, 'tool-highlight', feature);
-      polygons.push({
-        key: `country-tool-fill:${id}`,
-        geometryRevision,
-        geometry: feature.geometry,
-        order: 9000,
-        style: { color: toolStyle.color, fillAlpha: toolStyle.fillAlpha, blendMode: 'normal' },
-      });
-      strokes.push({
-        key: `country-tool-outline:${id}`,
-        geometryRevision,
-        geometry: countryOutlineFeature(feature).geometry,
-        order: 9010,
-        style: { color: toolStyle.stroke, alpha: 1, width: toolStyle.width, cap: 'round' },
-      });
-    }
-    replaceGpuSceneDomain('country-overlays', { polygons, strokes });
-    syncGpuRenderScene();
-    const frameResult = gpuMapRenderer.render(revision, renderViewState);
-    applyGpuSceneCoverage(frameResult);
-    applyGpuInteractionCoverage(frameResult);
-    return frameResult;
-  }
-
   function visibleLabelLayout() {
     const candidates = [];
     const indexedLabelIds = state.layerVisibility.labels
@@ -6359,60 +6273,6 @@ const {
       countryScreenAreas: new Map(countryLabelScreenAreas),
       candidateCount: candidates.length,
     };
-  }
-
-  function renderCountryLabels(layout = null) {
-    const resolvedLayout = layout || visibleLabelLayout();
-    const data = resolvedLayout.countryLabels || [];
-
-    const selection = countryLabelLayer.selectAll('text.country-label')
-      .data(data, d => d.id);
-
-    // 사라진 국가와 기준점 계산 중인 라벨을 먼저 제거해야 이전 DOM이
-    // undefined 기준점으로 한 프레임 더 투영되지 않는다.
-    selection.exit().remove();
-
-    selection.enter().append('text')
-      .attr('class', 'country-label')
-      .attr('dy', '.35em')
-      .on('click', function(d) {
-        if (mapClickBlocked()) return;
-        if (state.tool === 'new-country' && state.newCountryPhase === 'sources') {
-          d3.event.stopPropagation();
-          toggleNewCountrySource(d.id);
-          return;
-        }
-        if (state.tool === 'annex-territory' && state.annexPhase === 'donor') {
-          d3.event.stopPropagation();
-          toggleAnnexDonor(d.id);
-          return;
-        }
-        if (state.tool === 'merge-country' && state.mergeSourceCountryId) {
-          d3.event.stopPropagation();
-          toggleMergeTarget(d.id);
-          return;
-        }
-        if (state.tool === 'country-border' && state.boundaryEditPhase === 'selecting') {
-          d3.event.stopPropagation();
-          toggleBoundaryEditCountry(d.id);
-          return;
-        }
-        if (state.tool !== 'select' || state.labelPlacementMode) return;
-        d3.event.stopPropagation();
-        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'territorial', type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: d.id } });
-      });
-
-    const allCountryLabels = countryLabelLayer.selectAll('text.country-label');
-    allCountryLabels
-      .text(countryName)
-      .style('opacity', layerStyle(state.layerPresentation, 'countryLabels').opacity)
-      .classed('major', d => (countryLabelScreenAreas.get(String(d.id || '')) || 0) >= (isMobile() ? 3200 : 2200))
-      .attr('transform', d => {
-        const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', d.id)] || {});
-        const anchor = settings.pinned && settings.manualPosition ? settings.manualPosition : countryLabelAnchors.get(String(d.id || ''));
-        const p = Array.isArray(anchor) && anchor.length >= 2 ? activeProjection()(anchor) : null;
-        return p ? `translate(${p[0]},${p[1]})` : 'translate(-9999,-9999)';
-      });
   }
 
   function prepareHydroFeature(feature) {
@@ -6500,7 +6360,7 @@ const {
       state.physicalLoadState.hydro = 'ready';
       markLayerTreeDirty();
       renderLayerTree();
-      renderHydro();
+      renderingDomain?.renderHydro?.();
       return true;
     },
     onFailure: error => {
@@ -6584,344 +6444,12 @@ const {
     return [...groups.values()].map(group => ({ ...group, collection: { type: 'FeatureCollection', features: group.features } }));
   }
 
-  function renderHydro() {
-    if (!hydroLakeLayer || !hydroRiverLayer) return;
-    const riverStyle = layerStyle(state.layerPresentation, 'rivers');
-    const lakeStyle = layerStyle(state.layerPresentation, 'lakes');
-    const renderer = gpuMapRenderer.getStats({ detailed: false }).renderer;
-    const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker' || renderer === 'canvas2d';
-    if (nativeHydro) {
-      hydroLakeLayer.selectAll('*').remove();
-      hydroRiverLayer.selectAll('*').remove();
-    } else {
-      const lakes = state.layerVisibility.lakes ? hydroRenderGroups('lake') : [];
-      const lakeSelection = hydroLakeLayer.selectAll('path.hydro-lake-group').data(lakes, item => item.key);
-      lakeSelection.enter().append('path').attr('class', 'hydro-lake-group');
-      lakeSelection.attr('d', item => path(item.collection)).style('fill', hydroDisplayColor('lake')).style('stroke', hydroDisplayColor('lake')).style('opacity', null).style('fill-opacity', lakeStyle.opacity).style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0).style('stroke-width', lakeStyle.boundaryWidth);
-      lakeSelection.exit().remove();
-
-      const rivers = state.layerVisibility.rivers ? hydroRenderGroups('river') : [];
-      const riverSelection = hydroRiverLayer.selectAll('path.hydro-river-group').data(rivers, item => item.key);
-      riverSelection.enter().append('path').attr('class', 'hydro-river-group');
-      riverSelection.attr('d', item => path(item.collection)).style('stroke-width', item => `${item.width * riverStyle.boundaryWidth}px`).style('stroke', hydroDisplayColor('river')).style('opacity', null).style('stroke-opacity', riverStyle.opacity);
-      riverSelection.exit().remove();
-    }
-
-  }
-
   function hydroEditColor(feature) {
     const category = feature?.properties?.category === 'lake' ? 'lake' : 'river';
     return feature?.properties?.editorColor || HYDRO_TOOL_CONFIG[category].color;
   }
 
-  function renderHydroEdits() {
-    if (!hydroEditLayer) return;
-    const renderer = gpuMapRenderer.getStats({ detailed: false }).renderer;
-    const nativeHydro = renderer === 'webgl2' || renderer === 'webgl1' || renderer === 'canvas-worker' || renderer === 'canvas2d';
-    gpuMapRenderer.setHydroEdits?.(state.hydroEdits, state.stateRevision);
-    const riverStyle = layerStyle(state.layerPresentation, 'rivers');
-    const lakeStyle = layerStyle(state.layerPresentation, 'lakes');
-    const visibleHydroIds = new Set(visibleMapObjectCandidates(['hydro']).map(record => String(record.id)));
-    const data = state.hydroEdits.filter(feature => isHydroFeatureVisible(feature) && feature.geometry
-        && ((visibleHydroIds.has(String(feature.id)) && geometryMayIntersectViewport(feature.geometry))
-          || objectSelection.has(normalizeObjectRef({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))));
-    if (viewportCullingMetrics.lastByDomain.hydro) viewportCullingMetrics.lastByDomain.hydro.finalVisibleCount = data.length;
-    const selection = hydroEditLayer.selectAll('path.hydro-edit-shape').data(data, feature => String(feature.id));
-    selection.enter().append('path')
-      .attr('class', 'hydro-edit-shape')
-      .on('mouseenter.hover', feature => setMapHover('hydro', feature.id, feature, { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))
-      .on('mouseleave.hover', () => setMapHover('', '', null))
-      .on('click', function(feature) {
-        if (mapClickBlocked() || state.tool !== 'select' || state.labelPlacementMode) return;
-        d3.event.stopPropagation();
-        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id } });
-      });
-    selection
-      .attr('d', path)
-      .classed('hydro-edit-native-hit', nativeHydro)
-      .style('fill', feature => feature.properties?.category === 'lake' ? (nativeHydro ? 'transparent' : hydroEditColor(feature)) : 'none')
-      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? (nativeHydro ? 0 : 0.34 * lakeStyle.opacity) : 0)
-      .style('stroke', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 'none' : (nativeHydro ? 'transparent' : hydroEditColor(feature)))
-      .style('stroke-opacity', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : (nativeHydro ? 0 : riverStyle.opacity))
-      .style('stroke-width', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? 0 : (nativeHydro ? Math.max(8, riverStyle.boundaryWidth) : riverStyle.boundaryWidth));
-    selection.exit().remove();
-    const polygonSelection = hydroEditLayer.selectAll('path.hydro-edit-boundary').data(
-      nativeHydro ? [] : data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)),
-      feature => String(feature.id),
-    );
-    polygonSelection.enter().append('path').attr('class', 'hydro-edit-boundary').style('fill', 'none').style('pointer-events', 'none');
-    polygonSelection.attr('d', feature => path(buildRenderableStrokeFeature(feature)))
-      .style('stroke', hydroEditColor)
-      .style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)
-      .style('stroke-width', lakeStyle.boundaryWidth);
-    polygonSelection.exit().remove();
-  }
 
-  function renderGenericFeatures() {
-    const style = layerStyle(state.layerPresentation, 'genericFeatures');
-    const visibleGenericFeatureIds = state.layerVisibility.genericFeatures
-      ? new Set(visibleMapObjectCandidates(['generic']).map(record => String(record.id)))
-      : new Set();
-    const data = state.layerVisibility.genericFeatures
-      ? state.genericFeatures.filter(feature => isLayerItemVisible('genericFeatures', feature.id)).map(genericFeatureDisplayFeature).filter(feature => feature.geometry
-        && ((visibleGenericFeatureIds.has(String(feature.id)) && geometryMayIntersectViewport(feature.geometry))
-          || objectSelection.has(normalizeObjectRef({ domain: 'generic', type: 'feature', id: feature.id }))))
-      : [];
-    if (viewportCullingMetrics.lastByDomain.generic) viewportCullingMetrics.lastByDomain.generic.finalVisibleCount = data.length;
-    const selection = genericFeatureLayer.selectAll('path.generic-feature-shape')
-      .data(data, d => String(d.id));
-
-    selection.enter().append('path')
-      .attr('class', 'generic-feature-shape')
-      .on('mouseenter.hover', d => setMapHover('generic', d.id, d, { domain: 'generic', type: 'feature', id: d.id }))
-      .on('mouseleave.hover', () => setMapHover('', '', null))
-      .on('click', function(d) {
-        if (mapClickBlocked()) return;
-        if (state.tool === 'merge-generic-feature') {
-          d3.event.stopPropagation();
-          toggleGenericFeatureMergeTarget(String(d.id));
-          return;
-        }
-        if (state.tool !== 'select' || state.labelPlacementMode) return;
-        d3.event.stopPropagation();
-        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'generic', type: 'feature', id: d.id } });
-      });
-
-    selection
-      .attr('d', path)
-      .attr('data-gpu-scene-key', d => d.geometry?.type?.includes('Polygon')
-        ? `${normalizeObjectRef({ domain: 'generic', type: 'feature', id: d.id })?.key || `generic:feature:${d.id}`}:fill`
-        : ['LineString', 'MultiLineString'].includes(d.geometry?.type)
-          ? `${normalizeObjectRef({ domain: 'generic', type: 'feature', id: d.id })?.key || `generic:feature:${d.id}`}:line`
-          : null)
-      .classed('selected', d => objectSelection.has(normalizeObjectRef({ domain: 'generic', type: 'feature', id: d.id })))
-      .classed('selected-point', d => d.geometry?.type === 'Point' && objectSelection.has(normalizeObjectRef({ domain: 'generic', type: 'feature', id: d.id })))
-      .classed('is-primary-selection', d => objectSelection.snapshot().primaryKey === normalizeObjectRef({ domain: 'generic', type: 'feature', id: d.id })?.key)
-      .classed('is-secondary-selection', d => {
-        const ref = normalizeObjectRef({ domain: 'generic', type: 'feature', id: d.id });
-        return objectSelection.has(ref) && objectSelection.snapshot().primaryKey !== ref?.key;
-      })
-      .style('fill', d => d.geometry?.type?.includes('Polygon') ? genericFeatureColor(d) : 'none')
-      .style('fill-opacity', d => d.geometry?.type?.includes('Polygon') ? 0.34 * style.opacity : 0)
-      .style('stroke', d => d.geometry?.type?.includes('Polygon') ? 'none' : genericFeatureColor(d))
-      .style('stroke-opacity', d => d.geometry?.type?.includes('Polygon') ? 0 : style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', d => d.geometry?.type?.includes('Polygon') ? 0 : style.boundaryWidth)
-      .style('mix-blend-mode', style.blendMode)
-      .attr('data-presentation-group', 'genericFeatures')
-      .classed('generic-feature-merge-source', d => state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(d.id))
-      .classed('generic-feature-merge-target', d => state.tool === 'merge-generic-feature' && state.genericFeatureMergeTargetIds.includes(String(d.id)));
-
-    selection.exit().remove();
-    const polygonSelection = genericFeatureLayer.selectAll('path.generic-feature-boundary').data(
-      data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)),
-      feature => String(feature.id),
-    );
-    polygonSelection.enter().append('path').attr('class', 'generic-feature-boundary').style('fill', 'none').style('pointer-events', 'none');
-    polygonSelection.attr('d', feature => path(buildRenderableStrokeFeature(feature)))
-      .attr('data-gpu-scene-key', feature => `${normalizeObjectRef({ domain: 'generic', type: 'feature', id: feature.id })?.key || `generic:feature:${feature.id}`}:boundary`)
-      .style('stroke', genericFeatureColor)
-      .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', style.boundaryWidth)
-      .style('mix-blend-mode', style.blendMode)
-      .classed('generic-feature-merge-source', feature => state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(feature.id))
-      .classed('generic-feature-merge-target', feature => state.tool === 'merge-generic-feature' && state.genericFeatureMergeTargetIds.includes(String(feature.id)));
-    polygonSelection.exit().remove();
-
-    const polygons = [];
-    const strokes = [];
-    for (const feature of data) {
-      const objectKey = normalizeObjectRef({ domain: 'generic', type: 'feature', id: feature.id })?.key || `generic:feature:${feature.id}`;
-      const geometryRevision = selectionGeometryRevision(objectKey, 'gpu-scene', feature);
-      const mergeTarget = state.tool === 'merge-generic-feature' && state.genericFeatureMergeTargetIds.includes(String(feature.id));
-      const mergeSource = state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(feature.id);
-      if (['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)) {
-        polygons.push({
-          key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
-          order: gpuSceneOrder('genericFeatures', 10), blendMode: style.blendMode,
-          style: { color: genericFeatureColor(feature), fillAlpha: (mergeTarget ? 0.48 : 0.34) * style.opacity, blendMode: style.blendMode },
-        });
-        if (style.boundaryVisible || mergeSource || mergeTarget) strokes.push({
-          key: `${objectKey}:boundary`, objectKey, geometryRevision, geometry: buildRenderableStrokeFeature(feature).geometry,
-          order: gpuSceneOrder('genericFeatures', 20), blendMode: style.blendMode,
-          style: {
-            color: mergeTarget ? resolvedInteractionStyle.selection.color : genericFeatureColor(feature),
-            alpha: style.opacity,
-            width: mergeSource || mergeTarget ? 3 : style.boundaryWidth,
-            cap: 'round', join: 'round', blendMode: style.blendMode,
-          },
-        });
-      } else if (['LineString', 'MultiLineString'].includes(feature.geometry?.type) && style.boundaryVisible) {
-        strokes.push({
-          key: `${objectKey}:line`, objectKey, geometryRevision, geometry: feature.geometry,
-          order: gpuSceneOrder('genericFeatures', 15), blendMode: style.blendMode,
-          style: { color: genericFeatureColor(feature), alpha: style.opacity, width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode },
-        });
-      }
-    }
-    replaceGpuSceneDomain('generic-features', { polygons, strokes });
-  }
-
-  function buildDistributionRenderRows() {
-    const renderMode = state.distributionSettings.renderMode;
-    const selectedLayerId = renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY
-      ? String(state.selectedDistributionLayerId || state.selected?.domain === 'distribution' && state.selected.id || '')
-      : '';
-    const cacheCurrent = distributionRenderRowCache.layers === state.distributionLayers
-      && distributionRenderRowCache.entries === state.distributionEntries
-      && distributionRenderRowCache.countries === state.countriesData?.features
-      && distributionRenderRowCache.countryGeometryRevision === countryLandRevision
-      && distributionRenderRowCache.territorialUnits === state.territorialUnits
-      && distributionRenderRowCache.renderMode === renderMode
-      && distributionRenderRowCache.selectedLayerId === selectedLayerId
-      && distributionRenderRowCache.visibilityRevision === distributionVisibilityRevision;
-    if (cacheCurrent) return distributionRenderRowCache.rows;
-    const started = performance.now();
-    const visibleLayers = state.distributionLayers.filter(layer => {
-      const group = DISTRIBUTION_TYPE_GROUPS[layer.type];
-      return state.layerVisibility[group] !== false && isLayerItemVisible(group, layer.id);
-    });
-    const visibleIds = new Set(visibleLayers.map(layer => layer.id));
-    let entries;
-    if (renderMode === DISTRIBUTION_RENDER_MODES.INTENSITY) {
-      entries = visibleIds.has(selectedLayerId) ? distributionEntriesForLayer(state.distributionEntries, selectedLayerId) : [];
-    } else {
-      entries = Object.values(DISTRIBUTION_TYPES).flatMap(type => {
-        const typeLayers = visibleLayers.filter(layer => layer.type === type);
-        const typeIds = new Set(typeLayers.map(layer => layer.id));
-        return dominantDistributionEntries(typeLayers, state.distributionEntries.filter(entry => typeIds.has(entry.layerId)));
-      });
-    }
-    const byLayer = new Map(visibleLayers.map(layer => [layer.id, layer]));
-    const rows = entries.map(entry => {
-      const layer = byLayer.get(entry.layerId);
-      const geometry = entry.mode === DISTRIBUTION_MODES.TERRITORIAL
-        ? territorialRepository.get(entry.territorialUnitId)?.geometry
-        : entry.geometry;
-      if (!layer || !geometry) return null;
-      return Object.freeze({
-        id: entry.id,
-        layer,
-        entry,
-        geometry,
-        bounds: geometryBounds(geometry),
-        type: 'Feature',
-      });
-    }).filter(Boolean);
-    distributionRenderRowCache = {
-      layers: state.distributionLayers,
-      entries: state.distributionEntries,
-      countries: state.countriesData?.features,
-      countryGeometryRevision: countryLandRevision,
-      territorialUnits: state.territorialUnits,
-      renderMode,
-      selectedLayerId,
-      visibilityRevision: distributionVisibilityRevision,
-      rows: Object.freeze(rows),
-      rebuildCount: distributionRenderRowCache.rebuildCount + 1,
-      buildMs: performance.now() - started,
-    };
-    return distributionRenderRowCache.rows;
-  }
-
-  function visibleDistributionRenderRows() {
-    const rows = buildDistributionRenderRows();
-    const candidates = new Set(visibleMapObjectCandidates(['distribution']).map(record => String(record.id)));
-    const started = performance.now();
-    let verificationCount = 0;
-    const visible = rows.filter(row => {
-      const selected = objectSelection.has(normalizeObjectRef({ domain: 'distribution', type: row.layer.type, id: row.layer.id }));
-      if (selected) return true;
-      if (!candidates.has(String(row.id))) return false;
-      verificationCount += 1;
-      return geometryMayIntersectViewport(row.geometry);
-    });
-    viewportCullingMetrics.finalVisibleCount = visible.length;
-    if (viewportCullingMetrics.lastByDomain.distribution) viewportCullingMetrics.lastByDomain.distribution.finalVisibleCount = visible.length;
-    viewportCullingMetrics.projectedVerificationCount += verificationCount;
-    viewportCullingMetrics.projectedVerificationMs += performance.now() - started;
-    return visible;
-  }
-
-  function distributionRenderRows({ cull = true } = {}) {
-    return cull ? visibleDistributionRenderRows() : buildDistributionRenderRows();
-  }
-
-  function renderDistributions() {
-    if (!distributionLayer) return;
-    const data = distributionRenderRows();
-    const boundaryVisible = state.distributionSettings?.boundaryVisible !== false;
-    const selection = distributionLayer.selectAll('path.distribution-shape').data(data, row => row.id);
-    selection.enter().append('path').attr('class', 'distribution-shape')
-      .on('mouseenter.hover', row => setMapHover('distribution', row.id, featureFromGeometry(row.geometry), { domain: 'distribution', type: row.layer.type, id: row.layer.id }))
-      .on('mouseleave.hover', () => setMapHover('', '', null))
-      .on('click', function(row) {
-        if (mapClickBlocked() || state.tool !== 'select' || state.labelPlacementMode) return;
-        d3.event.stopPropagation();
-        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'distribution', type: row.layer.type, id: row.layer.id } });
-      });
-    selection
-      .attr('d', row => path({ type: 'Feature', properties: {}, geometry: row.geometry }))
-      .attr('data-gpu-scene-key', row => `distribution-entry:${row.id}:${['Polygon', 'MultiPolygon'].includes(row.geometry?.type) ? 'fill' : 'line'}`)
-      .style('fill', row => distributionColor(row.layer))
-      .style('stroke', row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type) ? 'none' : distributionColor(row.layer))
-      .style('fill-opacity', row => (0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58) * layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).opacity)
-      .style('stroke-opacity', row => {
-        if (['Polygon', 'MultiPolygon'].includes(row.geometry?.type)) return 0;
-        const style = layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
-        return boundaryVisible ? style.opacity : 0;
-      })
-      .style('stroke-width', row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type) ? 0 : layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).boundaryWidth)
-      .style('mix-blend-mode', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).blendMode)
-      .attr('data-presentation-group', row => DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
-    selection.exit().remove();
-    const polygonSelection = distributionLayer.selectAll('path.distribution-boundary').data(
-      data.filter(row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type)),
-      row => row.id,
-    );
-    polygonSelection.enter().append('path').attr('class', 'distribution-boundary').style('fill', 'none').style('pointer-events', 'none');
-    polygonSelection.attr('d', row => path(buildRenderableStrokeFeature({ type: 'Feature', properties: {}, geometry: row.geometry })))
-      .attr('data-gpu-scene-key', row => `distribution-entry:${row.id}:boundary`)
-      .style('stroke', row => distributionColor(row.layer))
-      .style('stroke-opacity', row => {
-        const style = layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]);
-        return boundaryVisible ? style.opacity : 0;
-      })
-      .style('stroke-width', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).boundaryWidth)
-      .style('mix-blend-mode', row => layerStyle(state.layerPresentation, DISTRIBUTION_TYPE_GROUPS[row.layer.type]).blendMode);
-    polygonSelection.exit().remove();
-
-    const polygons = [];
-    const strokes = [];
-    for (const row of data) {
-      const group = DISTRIBUTION_TYPE_GROUPS[row.layer.type];
-      const layerRenderStyle = layerStyle(state.layerPresentation, group);
-      const objectKey = normalizeObjectRef({ domain: 'distribution', type: row.layer.type, id: row.layer.id })?.key
-        || `distribution:${row.layer.type}:${row.layer.id}`;
-      const feature = featureFromGeometry(row.geometry);
-      const geometryRevision = selectionGeometryRevision(`distribution-entry:${row.id}`, 'gpu-scene', feature);
-      const fillAlpha = (0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58) * layerRenderStyle.opacity;
-      if (['Polygon', 'MultiPolygon'].includes(row.geometry?.type)) {
-        polygons.push({
-          key: `distribution-entry:${row.id}:fill`, objectKey, geometryRevision, geometry: row.geometry,
-          order: gpuSceneOrder(group, 10), blendMode: layerRenderStyle.blendMode,
-          style: { color: distributionColor(row.layer), fillAlpha, blendMode: layerRenderStyle.blendMode },
-        });
-        if (boundaryVisible && layerRenderStyle.boundaryVisible) strokes.push({
-          key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision,
-          geometry: buildRenderableStrokeFeature(feature).geometry,
-          order: gpuSceneOrder(group, 20), blendMode: layerRenderStyle.blendMode,
-          style: { color: distributionColor(row.layer), alpha: layerRenderStyle.opacity, width: layerRenderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: layerRenderStyle.blendMode },
-        });
-      } else if (['LineString', 'MultiLineString'].includes(row.geometry?.type) && boundaryVisible) {
-        strokes.push({
-          key: `distribution-entry:${row.id}:line`, objectKey, geometryRevision, geometry: row.geometry,
-          order: gpuSceneOrder(group, 15), blendMode: layerRenderStyle.blendMode,
-          style: { color: distributionColor(row.layer), alpha: layerRenderStyle.opacity, width: layerRenderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: layerRenderStyle.blendMode },
-        });
-      }
-    }
-    replaceGpuSceneDomain('distributions', { polygons, strokes });
-  }
 
   function territorialBoundaryGeometryToken(geometry) {
     if (!geometry || typeof geometry !== 'object') return 'none';
@@ -6931,249 +6459,6 @@ const {
       territorialBoundaryGeometryTokens.set(geometry, token);
     }
     return token;
-  }
-
-  function territorialBoundaryInputSignature(countries, units) {
-    const countrySignature = (countries || []).map(feature => [
-      String(feature?.id || ''),
-      territorialBoundaryGeometryToken(feature?.geometry),
-    ].join(':')).join('|');
-    const unitSignature = (units || []).map(feature => [
-      String(feature?.id || ''),
-      territorialBoundaryGeometryToken(feature?.geometry),
-      String(feature?.properties?.unitType || ''),
-      String(feature?.properties?.sovereignId || ''),
-      String(feature?.properties?.parentId || ''),
-    ].join(':')).join('|');
-    return [
-      countryLandRevision,
-      mapObjectGeometryRevisions.territorial,
-      countrySignature,
-      unitSignature,
-    ].join(';');
-  }
-
-  function territorialInternalBoundarySegments() {
-    const countries = state.countriesData?.features || [];
-    const units = state.territorialUnits || [];
-    const inputSignature = territorialBoundaryInputSignature(countries, units);
-    if (territorialBoundaryCache.countries !== countries
-      || territorialBoundaryCache.units !== units
-      || territorialBoundaryCache.unitGeometryRevision !== mapObjectGeometryRevisions.territorial
-      || territorialBoundaryCache.inputSignature !== inputSignature) {
-      territorialBoundaryCache = {
-        countries,
-        units,
-        unitGeometryRevision: mapObjectGeometryRevisions.territorial,
-        inputSignature,
-        segments: buildTerritorialInternalBoundarySegments(countries, units),
-        rebuildCount: territorialBoundaryCache.rebuildCount + 1,
-      };
-    }
-    return territorialBoundaryCache.segments;
-  }
-
-  function renderTerritorialInternalBoundaries(visibleFeatures) {
-    if (!territorialBoundaryLayer) return;
-    const visibleIds = new Set((visibleFeatures || []).map(feature => String(feature.id)));
-    const featuresById = new Map((state.territorialUnits || []).map(feature => [String(feature.id), feature]));
-    const styleByType = new Map([
-      ['territory', { presentationGroup: 'territories', width: 2, dash: [0, 0] }],
-      ['administrative', { presentationGroup: 'administrative', width: 1.1, dash: [3, 2] }],
-      ['region', { presentationGroup: 'regions', width: 1.5, dash: [7, 3] }],
-    ]);
-    const boundarySegments = territorialInternalBoundarySegments();
-    const visibleSignature = [...visibleIds].sort().map(id => `${id}:${territorialUnitColor(featuresById.get(id))}`).join('|');
-    const styleSignature = [...styleByType].map(([type, definition]) => {
-      const style = layerStyle(state.layerPresentation, definition.presentationGroup);
-      return `${type}:${style.opacity}:${style.boundaryVisible}`;
-    }).join('|');
-    const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature}`;
-    if (territorialBoundaryBatchCache.signature !== signature) {
-      const groups = new Map([...styleByType].map(([styleType, definition]) => [styleType, {
-        key: styleType,
-        styleType,
-        width: definition.width,
-        dash: definition.dash,
-        coordinates: [],
-        segments: [],
-      }]));
-      for (const segment of boundarySegments) {
-        const visibleOwner = segment.unitIds.find(id => visibleIds.has(String(id)));
-        if (!visibleOwner) continue;
-        const definition = styleByType.get(segment.styleType) || styleByType.get('territory');
-        const style = layerStyle(state.layerPresentation, definition.presentationGroup);
-        if (!style.boundaryVisible || !(style.opacity > 0)) continue;
-        const owner = featuresById.get(String(visibleOwner));
-        const color = owner ? territorialUnitColor(owner) : mapTheme().border;
-        const group = groups.get(segment.styleType) || groups.get('territory');
-        group.coordinates.push([segment.a, segment.b]);
-        group.segments.push({ a: segment.a, b: segment.b, color, opacity: style.opacity });
-      }
-      territorialBoundaryBatchCache = {
-        signature,
-        revision: `${territorialBoundaryCache.rebuildCount}:${signature}`,
-        groups: [...groups.values()].filter(group => group.segments.length),
-      };
-    }
-    const fallbackGroups = new Map();
-    for (const group of territorialBoundaryBatchCache.groups) for (const segment of group.segments) {
-      const key = `${group.styleType}:${segment.color}:${segment.opacity}`;
-      if (!fallbackGroups.has(key)) fallbackGroups.set(key, {
-        key, styleType: group.styleType, color: segment.color, opacity: segment.opacity, coordinates: [],
-      });
-      fallbackGroups.get(key).coordinates.push([segment.a, segment.b]);
-    }
-    const data = [...fallbackGroups.values()].map(group => ({
-      ...group, geometry: { type: 'MultiLineString', coordinates: group.coordinates },
-    }));
-    const selection = territorialBoundaryLayer.selectAll('path.territorial-internal-boundary')
-      .data(data, group => group.key);
-    selection.enter().append('path').attr('class', 'territorial-internal-boundary');
-    selection
-      .attr('class', group => `territorial-internal-boundary territorial-internal-boundary--${group.styleType}`)
-      .attr('d', group => path({ type: 'Feature', properties: {}, geometry: group.geometry }))
-      .attr('data-gpu-scene-key', group => `territorial-internal:${group.key}`)
-      .style('color', group => group.color)
-      .style('stroke', group => group.color)
-      .style('stroke-opacity', group => group.opacity);
-    selection.exit().remove();
-    replaceGpuSceneDomain('territorial-boundaries', {
-      strokes: data.map((group, index) => {
-        const definition = styleByType.get(group.styleType) || styleByType.get('territory');
-        return {
-          key: `territorial-internal:${group.key}`,
-          geometryRevision: territorialBoundaryBatchCache.revision,
-          geometry: group.geometry,
-          order: gpuSceneOrder(definition.presentationGroup, 30 + index),
-          style: {
-            color: group.color,
-            alpha: group.opacity,
-            width: definition.width,
-            dash: definition.dash,
-            cap: 'round', join: 'round',
-          },
-        };
-      }),
-    });
-  }
-
-  function renderTerritorialUnits() {
-    const visibleTerritorialIds = new Set(visibleMapObjectCandidates(['territorial']).map(record => String(record.id)));
-    const data = state.territorialUnits.filter(feature => {
-      const group = feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN
-        ? 'administrative'
-        : feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION
-          ? 'regions'
-          : 'territories';
-      const selected = objectSelection.has(normalizeObjectRef({
-        domain: 'territorial',
-        type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY,
-        id: feature.id,
-      }));
-      const editing = state.territorialUnitMergeSourceId === String(feature.id)
-        || state.territorialUnitMergeTargetIds.includes(String(feature.id))
-        || state.territorialUnitSplitSourceId === String(feature.id)
-        || state.territorialUnitRedrawSourceId === String(feature.id);
-      return state.layerVisibility[group] !== false && isLayerItemVisible(group, feature.id)
-        && (selected || editing || (visibleTerritorialIds.has(String(feature.id)) && geometryMayIntersectViewport(feature.geometry)));
-    });
-    if (viewportCullingMetrics.lastByDomain.territorial) viewportCullingMetrics.lastByDomain.territorial.finalVisibleCount = data.length;
-    const selection = territorialUnitLayer.selectAll('path.territorial-unit-shape')
-      .data(data, feature => String(feature.id));
-
-    selection.enter().append('path')
-      .attr('class', 'territorial-unit-shape')
-      .on('mouseenter.hover', feature => setMapHover('territorialUnit', feature.id, feature, { domain: 'territorial', type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY, id: feature.id }))
-      .on('mouseleave.hover', () => setMapHover('', '', null))
-      .on('click', function(feature) {
-        if (mapClickBlocked()) return;
-        if (state.tool === 'merge-territorial-unit') {
-          d3.event.stopPropagation();
-          toggleTerritorialUnitMergeTarget(String(feature.id));
-          return;
-        }
-        if (state.tool !== 'select' || state.labelPlacementMode) return;
-        d3.event.stopPropagation();
-        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'territorial', type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY, id: feature.id } });
-      });
-
-    selection
-      .attr('d', path)
-      .attr('data-gpu-scene-key', feature => {
-        const objectKey = normalizeObjectRef({ domain: 'territorial', type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY, id: feature.id })?.key
-          || `territorial:${feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY}:${feature.id}`;
-        return `${objectKey}:fill`;
-      })
-      .classed('is-territory', feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.TERRITORY)
-      .classed('is-administrative', feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN)
-      .classed('is-region', feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION)
-      .classed('has-explicit-color', feature => !!territorialStyleColor(feature))
-      .classed('territorial-unit-merge-source', feature => state.tool === 'merge-territorial-unit' && state.territorialUnitMergeSourceId === String(feature.id))
-      .classed('territorial-unit-merge-target', feature => state.tool === 'merge-territorial-unit' && state.territorialUnitMergeTargetIds.includes(String(feature.id)))
-      .style('color', territorialUnitColor)
-      .style('fill', territorialUnitColor)
-      .style('fill-opacity', feature => layerStyle(state.layerPresentation, presentationGroupForTerritorialFeature(feature)).opacity)
-      .style('stroke', 'none')
-      .style('stroke-opacity', 0)
-      .style('stroke-width', 0)
-      .style('stroke-dasharray', 'none')
-      .style('mix-blend-mode', feature => layerStyle(state.layerPresentation, presentationGroupForTerritorialFeature(feature)).blendMode)
-      .attr('data-presentation-group', presentationGroupForTerritorialFeature);
-
-    selection.exit().remove();
-    const operationOutlines = data.filter(feature => state.territorialUnitMergeSourceId === String(feature.id)
-      || state.territorialUnitMergeTargetIds.includes(String(feature.id)));
-    const outlineSelection = territorialOperationLayer.selectAll('path.territorial-unit-operation-outline')
-      .data(operationOutlines, feature => String(feature.id));
-    outlineSelection.enter().append('path')
-      .attr('class', 'territorial-unit-operation-outline')
-      .style('fill', 'none')
-      .style('pointer-events', 'none');
-    outlineSelection
-      .attr('d', feature => path(buildRenderableStrokeFeature(feature)))
-      .attr('data-gpu-scene-key', feature => {
-        const objectKey = normalizeObjectRef({ domain: 'territorial', type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY, id: feature.id })?.key
-          || `territorial:${feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY}:${feature.id}`;
-        return `${objectKey}:operation-outline`;
-      })
-      .style('stroke', feature => state.territorialUnitMergeSourceId === String(feature.id) ? 'var(--accent-2)' : 'var(--accent)')
-      .style('stroke-opacity', 1)
-      .style('stroke-width', 3)
-      .style('stroke-dasharray', 'none');
-    outlineSelection.exit().remove();
-    const polygons = [];
-    const strokes = [];
-    for (const feature of data) {
-      const group = presentationGroupForTerritorialFeature(feature);
-      const unitStyle = layerStyle(state.layerPresentation, group);
-      const objectKey = normalizeObjectRef({ domain: 'territorial', type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY, id: feature.id })?.key
-        || `territorial:${feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY}:${feature.id}`;
-      const geometryRevision = selectionGeometryRevision(objectKey, 'gpu-scene', feature);
-      polygons.push({
-        key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
-        order: gpuSceneOrder(group, 10), blendMode: unitStyle.blendMode,
-        style: { color: territorialUnitColor(feature), fillAlpha: unitStyle.opacity, blendMode: unitStyle.blendMode },
-      });
-      if (state.territorialUnitMergeSourceId === String(feature.id)
-        || state.territorialUnitMergeTargetIds.includes(String(feature.id))) {
-        strokes.push({
-          key: `${objectKey}:operation-outline`, objectKey, geometryRevision,
-          geometry: buildRenderableStrokeFeature(feature).geometry,
-          order: 9500,
-          style: {
-            color: state.territorialUnitMergeSourceId === String(feature.id) ? '#ffd77d' : resolvedInteractionStyle.selection.color,
-            alpha: 1, width: 3, cap: 'round', join: 'round',
-          },
-        });
-      }
-    }
-    replaceGpuSceneDomain('territorial-units', { polygons, strokes });
-    const boundaryFeatures = state.territorialUnits.filter(feature => {
-      const group = presentationGroupForTerritorialFeature(feature);
-      return state.layerVisibility[group] !== false && isLayerItemVisible(group, feature.id);
-    });
-    renderTerritorialInternalBoundaries(boundaryFeatures);
   }
 
   function presentationGroupForTerritorialFeature(feature) {
@@ -7201,65 +6486,6 @@ const {
     });
   }
 
-  function renderUserLabels(layout = null) {
-    const labelStyle = layerStyle(state.layerPresentation, 'labels');
-    const selectionState = objectSelection.snapshot();
-    const labelRef = label => normalizeObjectRef({ domain: 'label', type: label.kind || 'label', id: label.id });
-    const data = state.layerVisibility.labels
-      ? (layout || visibleLabelLayout()).userLabels || []
-      : [];
-
-    const selection = labelLayer.selectAll('g.user-label')
-      .data(data, d => d.id);
-
-    const enter = selection.enter().append('g')
-      .attr('class', 'user-label')
-      .on('click', function(d) {
-        if (mapClickBlocked()) return;
-        if (state.tool !== 'select' || state.labelPlacementMode) return;
-        d3.event.stopPropagation();
-        handleObjectSelectionAt(d3.mouse(svg.node()), { sourceEvent: d3.event, forcedRef: { domain: 'label', type: d.kind || 'label', id: d.id } });
-      });
-
-    enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
-    enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
-
-    selection
-      .style('opacity', labelStyle.opacity)
-      .classed('selected', d => objectSelection.has(labelRef(d)))
-      .classed('is-primary-selection', d => labelRef(d)?.key === selectionState.primaryKey)
-      .classed('is-secondary-selection', d => objectSelection.has(labelRef(d)) && labelRef(d)?.key !== selectionState.primaryKey)
-      .attr('transform', d => {
-        const settings = automaticLabelSettings(d.kind, state.labelSettings[labelKey('label', d.id)] || {});
-        const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : d.coordinates;
-        const p = activeProjection()(coordinate);
-        return p ? `translate(${p[0]},${p[1]})` : 'translate(-9999,-9999)';
-      });
-
-    selection.select('text').text(d => d.name);
-    // Drag capture would otherwise eat clicks intended for genericFeature tools.
-    selection.on('.drag', null);
-    if (state.tool === 'select' && !state.labelPlacementMode) selection.call(labelDragBehavior());
-    selection.exit().remove();
-  }
-
-  function renderCountryLabelPositions() {
-    countryLabelLayer.selectAll('text.country-label').attr('transform', feature => {
-      const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', feature.id)] || {});
-      const anchor = settings.pinned && settings.manualPosition ? settings.manualPosition : countryLabelAnchors.get(String(feature.id || ''));
-      const point = Array.isArray(anchor) && anchor.length >= 2 && isCoordVisible(anchor) ? activeProjection()(anchor) : null;
-      return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-    });
-  }
-
-  function renderUserLabelPositions() {
-    labelLayer.selectAll('g.user-label').attr('transform', label => {
-      const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
-      const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
-      const point = isCoordVisible(coordinate) ? activeProjection()(coordinate) : null;
-      return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-    });
-  }
 
   function getEditableVertices(feature) {
     if (!feature?.geometry) return [];
@@ -8030,35 +7256,6 @@ const {
     oceanLayer.datum({ type: 'Sphere' }).attr('d', path);
   }
 
-  function renderBase(viewState = null) {
-    // LegacyMapHost and the Pando GPU renderer share the same D3 projection.
-    // Keep the shell in that projection too; no second camera is consulted.
-    updatePandoGlobeShell();
-    const graticuleGeometry = graticule();
-    const gpuRenderer = gpuMapRenderer.getStats?.({ detailed: false })?.renderer;
-    const gpuOwnsGraticule = gpuRenderer === 'webgl2' || gpuRenderer === 'webgl1';
-    graticuleLayer
-      // WebGL gets the canonical high-density packet below. Keep the SVG
-      // path only for Canvas2D fallback so two rasterized grids never overlap.
-      .attr('display', gpuOwnsGraticule ? 'none' : null)
-      .datum(graticuleGeometry)
-      .attr('d', path)
-      .attr('data-gpu-scene-key', 'base:graticule');
-    const light = (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light';
-    replaceGpuSceneDomain('base-graticule', {
-      strokes: [{
-        key: 'base:graticule',
-        geometryRevision: `${state.projection}:graticule-v2`,
-        ...buildGraticuleStrokeGeometryPacket(graticuleGeometry, { maxEdgeDegrees: 0.5 }),
-        // Reference geometry must never be simplified with overlay LOD. It is
-        // rebuilt only when the projection changes, not on view-only frames.
-        lodPolicy: 'exact',
-        protected: true,
-        order: -10000,
-        style: { color: light ? '#aaaaaa' : '#688091', alpha: light ? 0.34 : 0.20, width: 0.55, cap: 'butt', join: 'round' },
-      }],
-    });
-  }
 
   function featureFromGeometry(geometry, properties = {}) {
     return geometry ? { type: 'Feature', properties, geometry } : null;
@@ -8782,11 +7979,6 @@ const {
     snapLayer.append('circle').attr('class', 'snap-indicator-point').attr('cx', point[0]).attr('cy', point[1]).attr('r', 6);
   }
 
-  function renderProjectedOverlays() {
-    for (const layer of [territorialBoundaryLayer, overlayStackLayer, hydroEditLayer, territorialOperationLayer]) {
-      layer?.selectAll?.('path')?.attr('d', path);
-    }
-  }
 
   function renderDebugMapPanel() {
     const panel = $('debugMapPanel');
@@ -9039,17 +8231,17 @@ const {
         updatePandoGlobeShell();
         return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState);
       },
-      base: (...args) => renderingDomain ? renderingDomain.renderPass('base', ...args) : renderBase(...args),
-      countries: (...args) => renderingDomain ? renderingDomain.renderPass('countries', ...args) : renderCountries(...args),
+      base: (...args) => renderingDomain ? renderingDomain.renderBase(...args) : false,
+      countries: (...args) => renderingDomain?.renderCountries?.(...args),
       gpuInteraction: (...args) => renderingDomain ? renderingDomain.renderPass('gpuInteraction', ...args) : renderGpuInteractionFrame(...args),
-      hydro: (...args) => renderingDomain ? renderingDomain.renderPass('hydro', ...args) : renderHydro(...args),
-      hydroEdits: (...args) => renderingDomain ? renderingDomain.renderPass('hydroEdits', ...args) : renderHydroEdits(...args),
+      hydro: (...args) => renderingDomain ? renderingDomain.renderHydro(...args) : false,
+      hydroEdits: (...args) => renderingDomain ? renderingDomain.renderHydroEdits(...args) : false,
       boundaryEdit: (...args) => renderingDomain ? renderingDomain.renderPass('boundaryEdit', ...args) : renderBoundaryEditOverlay(...args),
-      territorialUnits: (...args) => renderingDomain ? renderingDomain.renderPass('territorialUnits', ...args) : renderTerritorialUnits(...args),
-      distributions: (...args) => renderingDomain ? renderingDomain.renderPass('distributions', ...args) : renderDistributions(...args),
-      genericFeatures: (...args) => renderingDomain ? renderingDomain.renderPass('genericFeatures', ...args) : renderGenericFeatures(...args),
+      territorialUnits: (...args) => renderingDomain ? renderingDomain.renderTerritorialUnits(...args) : false,
+      distributions: (...args) => renderingDomain ? renderingDomain.renderDistributions(...args) : false,
+      genericFeatures: (...args) => renderingDomain ? renderingDomain.renderGenericFeatures(...args) : false,
       stackOverlays: (...args) => renderingDomain ? renderingDomain.renderPass('stackOverlays', ...args) : applyOverlayStackOrder(...args),
-      projectedOverlays: (...args) => renderingDomain ? renderingDomain.renderPass('projectedOverlays', ...args) : renderProjectedOverlays(...args),
+      projectedOverlays: (...args) => renderingDomain ? renderingDomain.renderProjectedOverlays(...args) : false,
       geometryPreview: (...args) => renderingDomain ? renderingDomain.renderPass('geometryPreview', ...args) : renderGeometryPreview(...args),
       selectionData: (...args) => renderingDomain ? renderingDomain.renderPass('selectionData', ...args) : renderSelectionOverlay(...args),
       selectionStyle: (...args) => renderingDomain ? renderingDomain.renderPass('selectionStyle', ...args) : renderSelectionOverlay(...args),
@@ -9057,10 +8249,10 @@ const {
       hover: (...args) => renderingDomain ? renderingDomain.renderPass('hover', ...args) : renderHoverOverlay(...args),
       validation: (...args) => renderingDomain ? renderingDomain.renderPass('validation', ...args) : renderValidationOverlay(...args),
       labelLayout: (...args) => renderingDomain ? renderingDomain.renderPass('labelLayout', ...args) : visibleLabelLayout(...args),
-      countryLabelPositions: (...args) => renderingDomain ? renderingDomain.renderPass('countryLabelPositions', ...args) : renderCountryLabelPositions(...args),
-      userLabelPositions: (...args) => renderingDomain ? renderingDomain.renderPass('userLabelPositions', ...args) : renderUserLabelPositions(...args),
-      countryLabels: (...args) => renderingDomain ? renderingDomain.renderPass('countryLabels', ...args) : renderCountryLabels(...args),
-      userLabels: (...args) => renderingDomain ? renderingDomain.renderPass('userLabels', ...args) : renderUserLabels(...args),
+      countryLabelPositions: (...args) => renderingDomain?.renderCountryLabelPositions?.(...args),
+      userLabelPositions: (...args) => renderingDomain?.renderUserLabelPositions?.(...args),
+      countryLabels: (...args) => renderingDomain?.renderCountryLabels?.(...args),
+      userLabels: (...args) => renderingDomain?.renderUserLabels?.(...args),
       vertices: (...args) => renderingDomain ? renderingDomain.renderPass('vertices', ...args) : renderVertices(...args),
       draft: (...args) => renderingDomain ? renderingDomain.renderPass('draft', ...args) : renderDraft(...args),
       snapIndicator: (...args) => renderingDomain ? renderingDomain.renderPass('snapIndicator', ...args) : renderSnapIndicator(...args),
@@ -10186,7 +9378,7 @@ const {
     if (selected.has(sourceId)) selected.delete(sourceId);
     else selected.add(sourceId);
     state.newCountrySourceIds = [...selected];
-    renderCountries();
+    renderingDomain?.renderCountries?.();
     setModeBanner('새 국가로 분리할 영토가 있는 국가를 선택하세요.');
     updateModeButtons();
   }
@@ -10234,7 +9426,7 @@ const {
     editingDomain?.setTool('annex-territory', { announce: false });
     state.annexTargetCountryId = String(id);
     syncCountryActionButtons();
-    renderCountries();
+    renderingDomain?.renderCountries?.();
     setModeBanner('피편입국을 선택하세요. 여러 국가를 선택할 수 있습니다.');
     updateModeButtons();
     return true;
@@ -10257,7 +9449,7 @@ const {
     if (selected.has(donorId)) selected.delete(donorId);
     else selected.add(donorId);
     state.annexDonorCountryIds = [...selected];
-    renderCountries();
+    renderingDomain?.renderCountries?.();
     setModeBanner('피편입국을 선택하세요. 여러 국가를 선택할 수 있습니다.');
     updateModeButtons();
   }
@@ -10483,7 +9675,7 @@ const {
     if (selected.has(targetId)) selected.delete(targetId);
     else selected.add(targetId);
     state.mergeTargetCountryIds = [...selected];
-    renderCountries();
+    renderingDomain?.renderCountries?.();
     setModeBanner('합병할 국가를 선택하세요.');
     updateModeButtons();
   }
@@ -11596,7 +10788,7 @@ const {
     const targets = new Set(state.genericFeatureMergeTargetIds.map(String));
     if (targets.has(String(id))) targets.delete(String(id)); else targets.add(String(id));
     state.genericFeatureMergeTargetIds = [...targets];
-    renderGenericFeatures();
+    renderingDomain?.renderGenericFeatures?.();
     updateModeButtons();
   }
 
@@ -12621,6 +11813,7 @@ const {
     $('genericFeatureRoleHelp').textContent = genericFeatureRoleHelp(feature);
     $('genericFeatureRoleValue').textContent = GENERIC_FEATURE_ROLE_LABELS[role] || role;
     $('genericFeatureTopologyValue').textContent = feature.properties?.topologyGroup || '—';
+    syncEditorActionTab('generic');
   }
 
   function selectGenericFeature(id, refreshOnly = false) {
@@ -13017,7 +12210,7 @@ const {
     state.territorialUnitMergeTargetIds = [];
     setModeBanner('합칠 인접 영역을 선택하세요.');
     updateModeButtons();
-    renderTerritorialUnits();
+    renderingDomain?.renderTerritorialUnits?.();
     return true;
   }
 
@@ -13037,7 +12230,7 @@ const {
     const targets = new Set(state.territorialUnitMergeTargetIds.map(String));
     if (targets.has(String(id))) targets.delete(String(id)); else targets.add(String(id));
     state.territorialUnitMergeTargetIds = [...targets];
-    renderTerritorialUnits();
+    renderingDomain?.renderTerritorialUnits?.();
     updateModeButtons();
   }
 
@@ -17022,13 +16215,13 @@ const {
         setDistributionRenderMode: mode => {
           distributionService.setRenderMode(mode);
           syncDistributionPresentationControls();
-          renderDistributions();
+          renderingDomain?.renderDistributions?.();
           queuePresentationAutosave();
         },
         setDistributionBoundaryVisible: visible => {
           distributionService.setBoundaryVisible(visible);
           syncDistributionPresentationControls();
-          renderDistributions();
+          renderingDomain?.renderDistributions?.();
           queuePresentationAutosave();
         },
         setTerrainVisible: visible => {
@@ -18375,19 +17568,208 @@ const {
       selectionDomain,
       projectDomain,
       domLayers: () => ({ baseSvg, svg, interactionSvg }),
+      labelResources: {
+        d3,
+        countryLabelLayer,
+        labelLayer,
+        svg: svg.node?.() || svg,
+        getState: () => state,
+        visibleLabelLayout,
+        mapClickBlocked,
+        handleObjectSelectionAt,
+        toggleNewCountrySource,
+        toggleAnnexDonor,
+        toggleMergeTarget,
+        toggleBoundaryEditCountry,
+        countryType: TERRITORIAL_UNIT_TYPES.COUNTRY,
+        countryName,
+        layerStyle,
+        isMobile,
+        automaticLabelSettings,
+        labelSettings: (currentState, domain, id) => currentState.labelSettings?.[labelKey(domain, id)] || {},
+        labelKey,
+        countryLabelAnchors: () => countryLabelAnchors,
+        activeProjection,
+        isCoordVisible,
+        labelDragBehavior,
+        normalizeObjectRef,
+        selectionSnapshot: () => objectSelection.snapshot(),
+        selectionHas: ref => objectSelection.has(ref),
+      },
+      countryResources: {
+        getState: () => state,
+        getViewRevision: () => viewRevision,
+        countryLayer,
+        path,
+        countryOutlineFeature,
+        countryFeatureById,
+        isLayerItemVisible,
+        renderPendingCountryOverlays,
+        selectionGeometryRevision,
+        countryColor,
+        mapTheme,
+        resolvedInteractionStyle: () => resolvedInteractionStyle,
+        replaceGpuSceneDomain,
+        syncGpuRenderScene,
+        gpuMapRenderer,
+        applyGpuSceneCoverage,
+        applyGpuInteractionCoverage,
+      },
+      hydroResources: {
+        getState: () => state,
+        getStateRevision: () => state.stateRevision,
+        hydroLakeLayer,
+        hydroRiverLayer,
+        hydroEditLayer,
+        gpuMapRenderer,
+        layerStyle,
+        hydroRenderGroups,
+        hydroDisplayColor,
+        hydroEditColor,
+        path,
+        visibleMapObjectCandidates,
+        geometryMayIntersectViewport,
+        isHydroFeatureVisible,
+        normalizeObjectRef,
+        selectionHas: ref => objectSelection.has(ref),
+        viewportCullingMetrics,
+        setMapHover,
+        mapClickBlocked,
+        d3,
+        svg: svg.node?.() || svg,
+        handleObjectSelectionAt,
+        buildRenderableStrokeFeature,
+      },
+      territorialResources: {
+        getState: () => state,
+        territorialUnitLayer,
+        territorialOperationLayer,
+        TERRITORIAL_UNIT_TYPES,
+        visibleMapObjectCandidates,
+        geometryMayIntersectViewport,
+        isLayerItemVisible,
+        selectionHas: ref => objectSelection.has(ref),
+        normalizeObjectRef,
+        viewportCullingMetrics,
+        setMapHover,
+        mapClickBlocked,
+        toggleTerritorialUnitMergeTarget,
+        d3,
+        svg: svg.node?.() || svg,
+        handleObjectSelectionAt,
+        path,
+        territorialStyleColor,
+        territorialUnitColor,
+        presentationGroupForTerritorialFeature,
+        layerStyle,
+        selectionGeometryRevision,
+        gpuSceneOrder,
+        resolvedInteractionStyle: () => resolvedInteractionStyle,
+        replaceGpuSceneDomain,
+        buildRenderableStrokeFeature,
+      },
+      genericResources: {
+        getState: () => state,
+        genericFeatureLayer,
+        path,
+        genericFeatureDisplayFeature,
+        genericFeatureColor,
+        visibleMapObjectCandidates,
+        isLayerItemVisible,
+        geometryMayIntersectViewport,
+        normalizeObjectRef,
+        selectionHas: ref => objectSelection.has(ref),
+        selectionSnapshot: () => objectSelection.snapshot(),
+        viewportCullingMetrics,
+        mapClickBlocked,
+        d3,
+        svg: svg.node?.() || svg,
+        handleObjectSelectionAt,
+        setMapHover,
+        toggleGenericFeatureMergeTarget,
+        layerStyle,
+        selectionGeometryRevision,
+        gpuSceneOrder,
+        resolvedInteractionStyle: () => resolvedInteractionStyle,
+        replaceGpuSceneDomain,
+        buildRenderableStrokeFeature,
+      },
+      distributionResources: {
+        getState: () => state,
+        distributionLayer,
+        distributionEntriesForLayer,
+        dominantDistributionEntries,
+        territorialRepository,
+        featureFromGeometry,
+        geometryBounds,
+        distributionColor,
+        DISTRIBUTION_TYPES,
+        DISTRIBUTION_MODES,
+        DISTRIBUTION_RENDER_MODES,
+        DISTRIBUTION_TYPE_GROUPS,
+        visibleMapObjectCandidates,
+        geometryMayIntersectViewport,
+        isLayerItemVisible,
+        normalizeObjectRef,
+        selectionHas: ref => objectSelection.has(ref),
+        viewportCullingMetrics,
+        mapClickBlocked,
+        d3,
+        svg: svg.node?.() || svg,
+        handleObjectSelectionAt,
+        setMapHover,
+        layerStyle,
+        selectionGeometryRevision,
+        gpuSceneOrder,
+        replaceGpuSceneDomain,
+        buildRenderableStrokeFeature,
+        getCountryGeometryRevision: () => countryLandRevision,
+        getDistributionVisibilityRevision: () => distributionVisibilityRevision,
+      },
+      territorialBoundaryResources: {
+        getState: () => state,
+        getCountryLandRevision: () => countryLandRevision,
+        getTerritorialGeometryRevision: () => mapObjectGeometryRevisions.territorial,
+        geometryToken: geometry => territorialBoundaryGeometryToken(geometry),
+        buildTerritorialInternalBoundarySegments,
+        territorialUnitColor,
+        layerStyle,
+        presentationGroupForTerritorialFeature,
+        mapTheme,
+        territorialBoundaryLayer,
+        path,
+        replaceGpuSceneDomain,
+        gpuSceneOrder,
+      },
+      baseResources: {
+        getState: () => state,
+        updatePandoGlobeShell,
+        graticule,
+        graticuleLayer,
+        path,
+        gpuMapRenderer,
+        replaceGpuSceneDomain,
+        buildGraticuleStrokeGeometryPacket,
+        getProjection: () => state.projection,
+        isLightTheme: () => (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light',
+      },
+      projectedOverlayResources: {
+        layers: [territorialBoundaryLayer, overlayStackLayer, hydroEditLayer, territorialOperationLayer],
+        path,
+      },
       renderers: {
         view: viewState => { updatePandoGlobeShell(); return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState); },
-        base: renderBase,
-        countries: renderCountries,
+        base: (...args) => renderingDomain.renderBase(...args),
+        countries: (...args) => renderingDomain.renderCountries(...args),
         gpuInteraction: renderGpuInteractionFrame,
-        hydro: renderHydro,
-        hydroEdits: renderHydroEdits,
+        hydro: (...args) => renderingDomain.renderHydro(...args),
+        hydroEdits: (...args) => renderingDomain.renderHydroEdits(...args),
         boundaryEdit: renderBoundaryEditOverlay,
-        territorialUnits: renderTerritorialUnits,
-        distributions: renderDistributions,
-        genericFeatures: renderGenericFeatures,
+        territorialUnits: (...args) => renderingDomain.renderTerritorialUnits(...args),
+        distributions: (...args) => renderingDomain.renderDistributions(...args),
+        genericFeatures: (...args) => renderingDomain.renderGenericFeatures(...args),
         stackOverlays: applyOverlayStackOrder,
-        projectedOverlays: renderProjectedOverlays,
+        projectedOverlays: (...args) => renderingDomain.renderProjectedOverlays(...args),
         geometryPreview: renderGeometryPreview,
         selectionData: renderSelectionOverlay,
         selectionStyle: renderSelectionOverlay,
@@ -18395,10 +17777,10 @@ const {
         hover: renderHoverOverlay,
         validation: renderValidationOverlay,
         labelLayout: visibleLabelLayout,
-        countryLabelPositions: renderCountryLabelPositions,
-        userLabelPositions: renderUserLabelPositions,
-        countryLabels: renderCountryLabels,
-        userLabels: renderUserLabels,
+        countryLabelPositions: (...args) => renderingDomain.renderCountryLabelPositions(...args),
+        userLabelPositions: (...args) => renderingDomain.renderUserLabelPositions(...args),
+        countryLabels: (...args) => renderingDomain.renderCountryLabels(...args),
+        userLabels: (...args) => renderingDomain.renderUserLabels(...args),
         vertices: renderVertices,
         draft: renderDraft,
         snapIndicator: renderSnapIndicator,
