@@ -74,17 +74,6 @@ function normalizeCommandRows() {
   }
 }
 
-function normalizeMapCreateSurfaceLabels() {
-  const mapSheetTitle = document.getElementById('mapSheetTitle');
-  if (mapSheetTitle) mapSheetTitle.textContent = '지도';
-  const mapViewTab = document.getElementById('mapViewTabBtn');
-  if (mapViewTab) mapViewTab.textContent = '지도';
-  const terrainTitle = document.getElementById('terrainLayerSettingsTitle');
-  if (terrainTitle) terrainTitle.textContent = '지형';
-  const projectionControl = document.getElementById('projectionControl');
-  if (projectionControl) projectionControl.setAttribute('aria-label', '투영법');
-}
-
 function workflowSemanticFromLabel(label, fallback = 'boundary') {
   const text = String(label || '');
   if (/삭제/.test(text)) return 'delete';
@@ -276,24 +265,8 @@ function normalizeGisExportFormat() {
   });
 }
 
-function normalizeFileMenuPresentation() {
-  const labels = {
-    openGisBtn: 'GIS 가져오기',
-    saveProjectBtn: '저장',
-    dataExportBtn: 'GIS 데이터 내보내기',
-  };
-  for (const [id, text] of Object.entries(labels)) {
-    const button = document.getElementById(id);
-    const label = button?.querySelector('span');
-    if (label) label.textContent = text;
-  }
-  document.getElementById('saveProjectBtn')?.classList.add('ghost');
-  document.getElementById('dataExportBtn')?.classList.add('file-menu-export-boundary');
-}
-
 function removeObsoletePresentationNodes() {
   document.querySelector('.editor-edge-slot')?.remove();
-  document.querySelectorAll('.ui-dialog-kicker, .create-toolbar-divider').forEach(node => node.remove());
   document.getElementById('historicalLibraryPreview')?.classList.remove('ui-card');
 }
 
@@ -323,14 +296,12 @@ export function initializeUiRuntime(documentRef = document) {
   installBoundaryGhostingGuard();
   installObjectRegistryPresenter();
   normalizeCommandRows();
-  normalizeMapCreateSurfaceLabels();
   normalizeMapEditingWorkflow();
   normalizeEditingDialogs();
   normalizeLibraryPresentation();
   installVisualStepper({ modalId: 'gisImportModal', indicatorId: 'gisStepIndicator', steps: GIS_IMPORT_STEPS });
   installVisualStepper({ modalId: 'gisExportModal', indicatorId: 'gisExportStepIndicator', steps: GIS_EXPORT_STEPS });
   normalizeGisExportFormat();
-  normalizeFileMenuPresentation();
   installMobileSheetController(documentRef);
   removeObsoletePresentationNodes();
   constrainGenericFallbackUi();
