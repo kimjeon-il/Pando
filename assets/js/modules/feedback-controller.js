@@ -1,8 +1,5 @@
 import { installDialogAccessibilityController } from './dialog-accessibility-controller.js';
 
-const READINESS_PATTERN = /(편집 데이터|고화질 지도|무손실 데이터|지도 엔진|자동 재시도|다시 준비|미리보기 오류)/u;
-const SAVE_WORKING_PATTERN = /저장\s*(중|하는 중|준비)/u;
-
 let installed = false;
 
 const normalizeText = value => String(value ?? '').replace(/\s+/g, ' ').trim();
@@ -21,17 +18,6 @@ function engineTone(message) {
   if (/주의|제외|대기/u.test(text)) return 'warning';
   if (/%|준비|재시도|처리/u.test(text)) return 'working';
   return 'info';
-}
-
-function setPersistentEngineStatus(documentRef, message, tone = engineTone(message)) {
-  const engine = documentRef.getElementById('engineStatus');
-  if (!(engine instanceof HTMLElement)) return;
-  const text = normalizeText(message);
-  if (!text) return;
-  engine.textContent = text;
-  engine.dataset.feedbackTone = tone;
-  engine.classList.remove('hidden');
-  engine.removeAttribute('aria-hidden');
 }
 
 function activeDialog(documentRef, id) {
@@ -88,19 +74,6 @@ function syncToast(documentRef) {
   if (!message) return;
   const tone = toneOf(notice);
   notice.dataset.feedbackTone = tone;
-
-  if (READINESS_PATTERN.test(message)) {
-    setPersistentEngineStatus(documentRef, message, tone === 'error' ? 'error' : 'working');
-    notice.dataset.feedbackRouted = 'engine';
-    notice.classList.add('hidden');
-    return;
-  }
-
-  if (tone === 'working' && SAVE_WORKING_PATTERN.test(message)) {
-    notice.dataset.feedbackRouted = 'save';
-    notice.classList.add('hidden');
-    return;
-  }
 
   if (tone === 'working' && routeWorkingToWorkflow(documentRef, message)) {
     notice.dataset.feedbackRouted = 'workflow';
