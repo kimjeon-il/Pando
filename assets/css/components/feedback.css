@@ -1,27 +1,5 @@
 /* Canonical status, toast, loading, progress, empty, and error grammar. */
 
-:root {
-  --ui-v2-feedback-working-border: #3d5f86;
-  --ui-v2-feedback-working-bg: #1c2b3c;
-  --ui-v2-feedback-working-text: #c8ddf5;
-  --ui-v2-feedback-working-dot: #6ea7e8;
-  --ui-v2-feedback-warning-border: #7a673f;
-  --ui-v2-feedback-warning-bg: #342d20;
-  --ui-v2-feedback-warning-text: #ffe6a6;
-  --ui-v2-feedback-warning-dot: #e2c982;
-}
-
-:root[data-theme="light"] {
-  --ui-v2-feedback-working-border: #87a7cf;
-  --ui-v2-feedback-working-bg: #eaf2fc;
-  --ui-v2-feedback-working-text: #1f416d;
-  --ui-v2-feedback-working-dot: #315e9d;
-  --ui-v2-feedback-warning-border: #cfaa58;
-  --ui-v2-feedback-warning-bg: #fff7e3;
-  --ui-v2-feedback-warning-text: #6f5315;
-  --ui-v2-feedback-warning-dot: #a97916;
-}
-
 .action-status.ui-toast {
   min-width: 0;
   max-width: 28.75rem;
