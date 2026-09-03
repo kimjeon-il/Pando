@@ -229,24 +229,28 @@ test('SelectionPass is independent from canvas and shares the main renderer cont
 test('selection data travels through one packet contract and main-renderer interaction draw', async () => {
   const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
   const packet = await readFile(new URL('../../assets/js/modules/selection-packet.js', import.meta.url), 'utf8');
+  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   assert.match(packet, /countryBoundaryRevision/);
   assert.match(packet, /territorialBoundaryRevision/);
   assert.match(packet, /generic: Object\.freeze/);
-  assert.match(app, /currentSelectionPacket = createSelectionPacket\(/);
-  assert.match(app, /selectionPass\.updateData\(currentSelectionPacket\)/);
-  assert.match(app, /gpuMapRenderer\.renderInteraction\?\./);
+  assert.doesNotMatch(app, /currentSelectionPacket = createSelectionPacket\(/);
+  assert.doesNotMatch(app, /selectionPass\.updateData\(currentSelectionPacket\)/);
+  assert.match(rendering, /gpuMapRenderer\?\.renderInteraction\?\./);
   assert.doesNotMatch(app, /selectionCanvasHost/);
   assert.doesNotMatch(app, /createSelectionEmphasisRenderer/);
 });
 
 test('selection overlay commits staged SVG only after GPU draw coverage is known', async () => {
   const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
-  const start = app.indexOf('function renderSelectionOverlayFrame');
-  const end = app.indexOf('function issueCoordinate', start);
-  const source = app.slice(start, end);
+  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const start = rendering.indexOf('const renderSelectionOverlayFrame');
+  const end = rendering.indexOf('const renderSelection =', start);
+  const source = rendering.slice(start, end);
   assert.ok(start > 0 && end > start);
+  assert.doesNotMatch(app, /function renderSelectionOverlayFrame\b/);
+  assert.doesNotMatch(app, /function renderSelectionOverlay\b/);
   assert.doesNotMatch(source, /selectionLayer\.selectAll\('\*'\)\.remove\(\)/);
-  assert.match(source, /document\.createElementNS/);
+  assert.match(source, /createElementNS/);
   assert.match(source, /gpuRenderResult\?\.channels\?\.primary\?\.renderedKeys/);
   assert.match(source, /selectionTarget\?\.replaceChildren/);
   assert.match(source, /retainedPreviousFrame/);
@@ -255,8 +259,8 @@ test('selection overlay commits staged SVG only after GPU draw coverage is known
 test('map hover invalidates selection data instead of rendering synchronously', async () => {
   const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
   const start = app.indexOf('function setMapHover');
-  const end = app.indexOf('function syncGpuCountryEmphasis', start);
+  const end = app.indexOf('\n  }', start);
   const source = app.slice(start, end);
-  assert.match(source, /invalidateSelectionOverlay\('map-hover'\)/);
+  assert.match(source, /renderingDomain\?\.invalidateSelectionOverlay\?\./);
   assert.doesNotMatch(source, /renderHoverOverlay\(\)/);
 });
