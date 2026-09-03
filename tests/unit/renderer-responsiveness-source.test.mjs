@@ -68,12 +68,12 @@ test('map edit worker clones only objects modified by the operation', () => {
 });
 
 test('large-data overlays use domain caches and multi-tier culling', () => {
-  const app = read('assets/js/app.js');
+  const rendering = read('assets/js/modules/rendering-domain.js');
   const index = read('assets/js/modules/map-object-spatial-index.js');
-  assert.ok(app.includes('function buildDistributionRenderRows()'));
-  assert.ok(app.includes('function visibleDistributionRenderRows()'));
-  assert.ok(app.includes('distributionRenderRowCache'));
-  assert.ok(!app.includes('territorialBoundaryCache.revision !== state.stateRevision'));
+  assert.ok(rendering.includes('const buildDistributionRenderRows ='));
+  assert.ok(rendering.includes('const visibleDistributionRenderRows ='));
+  assert.ok(rendering.includes('distributionRenderRowCache'));
+  assert.ok(!rendering.includes('territorialBoundaryCache.revision !== state.stateRevision'));
   assert.ok(index.includes("? 'fine'"));
   assert.ok(index.includes("? 'coarse' : 'global'"));
   assert.ok(index.includes('querySphericalCap'));

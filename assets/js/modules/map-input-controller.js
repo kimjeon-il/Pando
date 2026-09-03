@@ -103,12 +103,6 @@ export function createMapInputController({
       revision: getRevision(),
       cancelled: false,
     };
-    // Capture navigable pointers at the start of the gesture.  Waiting until
-    // the movement threshold lets a vertical drag cross a projected globe
-    // edge or a transparent overlay and silently lose subsequent move events.
-    // Click semantics are preserved because the controller still decides
-    // whether the gesture actually panned before completing it.
-    if (navigable) capturePointer(event.pointerId);
     if (genericFeature) event.preventDefault();
   }
 

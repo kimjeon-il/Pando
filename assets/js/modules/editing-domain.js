@@ -10,6 +10,7 @@ export function createEditingDomain({
   transactionRunner = null,
   toolController = null,
   renderPackets = null,
+  draftInput = null,
   onEditingStateChanged = () => {},
 } = {}) {
   let phase = 'idle';
@@ -33,7 +34,7 @@ export function createEditingDomain({
     if (tool.getGeometryPreviewSession?.() && tool.getCurrentTool?.() !== name) {
       tool.discardGeometryPreview?.({ announce: false });
     }
-    if (tool.getCurrentTool?.() !== name) tool.clearDraftInput?.(true);
+    if (tool.getCurrentTool?.() !== name) tool.clearDraft?.(true);
     tool.clearActiveSnap?.();
     tool.clearHover?.();
     tool.resetForTool?.(name);
@@ -113,6 +114,130 @@ export function createEditingDomain({
     const moved = draft.moveVertex?.(coords, index, coordinate);
     return moved ? commitDraftCoords(moved, index, { inputPhase: 'refine' }) : false;
   };
+  // Draft pointer lifecycle is owned here.  The injected adapter is limited
+  // to projection/UI side effects; coordinate accumulation and phase changes
+  // stay inside the editing domain.
+  const beginDraftStroke = (screenPoint, event) => {
+    active();
+    if (!draftInput) return false;
+    const config = draftInput.getToolConfig?.();
+    if (!config || draftInput.getInputPhase?.() !== 'draw' || draftInput.isSpacePanActive?.()) return false;
+    const sample = draftInput.screenSample?.(screenPoint);
+    if (!sample) return false;
+    draftInput.clearHover?.();
+    draftInput.clearInsertTarget?.();
+    const started = draftInput.beginStroke?.({
+      pointerId: event?.pointerId,
+      pointerType: event?.pointerType || 'mouse',
+      profile: config.profile,
+      sample,
+    });
+    if (started) {
+      draftInput.setStrokeActiveClass?.(true);
+      draftInput.render?.();
+      draftInput.updateControls?.();
+    }
+    if (started) emit('draft-stroke-begin');
+    return !!started;
+  };
+  const appendDraftStroke = screenPoints => {
+    active();
+    if (!draftInput || !draftInput.isStrokeActive?.()) return false;
+    const samples = [];
+    for (const screenPoint of screenPoints || []) {
+      const sample = draftInput.screenSample?.(screenPoint);
+      if (!sample) {
+        draftInput.setAcceptingSamples?.(false);
+        continue;
+      }
+      if (draftInput.acceptingSamples?.() === false) continue;
+      samples.push(sample);
+    }
+    const changed = draftInput.appendSamples?.(samples);
+    if (changed) draftInput.queueRender?.();
+    if (changed) emit('draft-stroke-update');
+    return !!changed;
+  };
+  const finishDraftStroke = screenPoint => {
+    active();
+    if (!draftInput || !draftInput.isStrokeActive?.()) return false;
+    appendDraftStroke([screenPoint]);
+    const config = draftInput.getToolConfig?.();
+    const firstCoordinate = draft.getCoords?.()?.[0] || draftInput.firstStrokeCoordinate?.();
+    const closeTargetScreen = firstCoordinate ? draftInput.projectCoordinate?.(firstCoordinate) : null;
+    const result = draftInput.finalizeStroke?.({ shape: config?.shape || 'line', closeTargetScreen });
+    draftInput.cancelQueuedRender?.();
+    draftInput.setStrokeActiveClass?.(false);
+    if (!result) return false;
+    const current = draft.getCoords?.() || [];
+    const next = current.map(coordinate => coordinate.slice());
+    for (const coordinate of result.coords || []) {
+      if (next.length && draft.coordNear?.(next[next.length - 1], coordinate, 1e-9)) continue;
+      next.push(coordinate.slice());
+    }
+    const minimum = draftInput.minimumPoints?.() || (config?.shape === 'polygon' ? 3 : 2);
+    if (next.length < minimum) {
+      draftInput.onTooShort?.(config);
+      draftInput.render?.();
+      draftInput.updateControls?.();
+      return false;
+    }
+    commitDraftCoords(next, null, { inputPhase: 'refine', buildPreview: true });
+    draftInput.onFinished?.();
+    const finished = true;
+    if (finished) emit('draft-stroke-finish');
+    return !!finished;
+  };
+  const cancelDraftStroke = reason => {
+    active();
+    if (!draftInput || !draftInput.isStrokeActive?.()) return false;
+    draftInput.cancelRawStroke?.();
+    draftInput.cancelQueuedRender?.();
+    draftInput.setStrokeActiveClass?.(false);
+    draftInput.render?.();
+    draftInput.updateControls?.();
+    const cancelled = true;
+    if (cancelled) emit(reason || 'draft-stroke-cancel');
+    return !!cancelled;
+  };
+  const redrawDraft = () => {
+    active();
+    if (!draftInput) return false;
+    cancelDraftStroke('redraw-draft');
+    const coords = draft.getCoords?.() || [];
+    if (coords.length) commitDraftCoords([], null, { inputPhase: 'draw', buildPreview: false });
+    else {
+      draftInput.setInputPhase?.('draw');
+      draftInput.setSelectedVertex?.(null);
+      syncDraftAfterMutation({ buildPreview: false });
+    }
+    draftInput.onRedraw?.();
+    return true;
+  };
+  const syncDraftAfterMutation = options => {
+    active();
+    draftInput?.incrementRevision?.();
+    draftInput?.clearInsertTarget?.();
+    draftInput?.clearHover?.();
+    draftInput?.refreshDerivedState?.({ buildPreview: options?.buildPreview !== false });
+    if (options?.render !== false) draftInput?.render?.();
+    draftInput?.updateControls?.();
+    draftInput?.updateHistoryControls?.();
+    emit('draft-mutated');
+    return true;
+  };
+  const clearDraft = options => {
+    active();
+    draftInput?.invalidateInteraction?.(options !== false);
+    draftInput?.cancelQueuedRender?.();
+    draftInput?.resetPointerState?.();
+    draftInput?.setStrokeActiveClass?.(false);
+    draftInput?.resetDraftState?.();
+    draft.reset?.();
+    draftInput?.clearLayer?.();
+    emit('draft-cleared');
+    return true;
+  };
   const importProject = (...args) => imports.replaceProject?.(...args);
   const mergeCountries = (...args) => imports.mergeCountries?.(...args);
   const importTerritorial = (...args) => imports.territorial?.(...args);
@@ -129,5 +254,5 @@ export function createEditingDomain({
   const commit = () => { active(); phase = 'idle'; activeTool = null; renderingDomain?.invalidate?.(0, 'editing-commit'); return emit('commit'); };
   const cancel = reason => cancelTool(reason || 'cancel');
   const dispose = () => { disposed = true; phase = 'idle'; activeTool = null; };
-  return Object.freeze({ setTool, beginTool, updatePointer, finishTool, cancelTool, beginBoundaryEdit, applyGeometryPatch, executeTerritorialTransaction, commit, cancel, dispose, draftInputActive, commitDraftCoords, appendDraftCoordinate, performDraftUndo, performDraftRedo, removeLastDraftPoint, deleteSelectedDraftPoint, insertDraftPoint, moveSelectedDraftPointByPixels, importProject, mergeCountries, importTerritorial, importGeneric, importDistribution, commitImport, reconcileCoast, snapshot: () => Object.freeze({ phase, activeTool, projectGeneration: projectDomain?.getGeneration?.() || 0, hasGisDomain: !!gisDomain, hasSelectionDomain: !!selectionDomain, hasSnapController: !!snapController }) });
+  return Object.freeze({ setTool, beginTool, updatePointer, finishTool, cancelTool, beginBoundaryEdit, applyGeometryPatch, executeTerritorialTransaction, commit, cancel, dispose, draftInputActive, commitDraftCoords, appendDraftCoordinate, performDraftUndo, performDraftRedo, removeLastDraftPoint, deleteSelectedDraftPoint, insertDraftPoint, moveSelectedDraftPointByPixels, beginDraftStroke, appendDraftStroke, finishDraftStroke, cancelDraftStroke, redrawDraft, syncDraftAfterMutation, clearDraft, importProject, mergeCountries, importTerritorial, importGeneric, importDistribution, commitImport, reconcileCoast, snapshot: () => Object.freeze({ phase, activeTool, projectGeneration: projectDomain?.getGeneration?.() || 0, hasGisDomain: !!gisDomain, hasSelectionDomain: !!selectionDomain, hasSnapController: !!snapController }) });
 }

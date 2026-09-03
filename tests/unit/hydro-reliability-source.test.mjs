@@ -57,7 +57,7 @@ test('built-in rivers and lakes use separate folders while retaining hydro item 
 });
 
 test('all hydro renderers inherit ocean colour with only the configured layer opacity', () => {
-  const app = read('assets/js/app.js');
+  const rendering = read('assets/js/modules/rendering-domain.js');
   const css = read('assets/css/app.css');
   const gpu = read('assets/js/modules/gpu-map-renderer.js');
   const canvas = read('assets/js/workers/canvas-render-worker.js');
@@ -66,8 +66,8 @@ test('all hydro renderers inherit ocean colour with only the configured layer op
   assert.ok(css.includes('fill: none; stroke: var(--map-ocean); stroke-opacity: 1'));
   assert.ok(!css.includes('.hydro-lake-group { fill: #376f91'));
   assert.ok(!css.includes('.hydro-river-group { stroke: #66b5e5'));
-  assert.ok(app.includes(".style('fill-opacity', lakeStyle.opacity)"));
-  assert.ok(app.includes(".style('stroke-opacity', riverStyle.opacity)"));
+  assert.ok(rendering.includes(".style('fill-opacity', lakeStyle.opacity)"));
+  assert.ok(rendering.includes(".style('stroke-opacity', riverStyle.opacity)"));
   assert.ok(gpu.includes('const color = [...rgb, hydroOpacity];'));
   assert.ok(!gpu.includes("(category === 'lake' ? 0.92 : 0.96)"));
   assert.ok(canvasHydro.includes('context.globalAlpha = hydroOpacity;'));

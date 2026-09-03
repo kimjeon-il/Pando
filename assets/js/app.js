@@ -2160,8 +2160,6 @@ const {
   let vertexLayer;
   let draftLayer;
   let mapInteractionLayer;
-  let territorialBoundaryCache = { countries: null, units: null, unitGeometryRevision: -1, segments: [], rebuildCount: 0 };
-  let territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
   const boundarySelectionAnalysisCache = new Map();
   const boundarySelectionAnalysisMetrics = { builds: 0, cacheHits: 0, cacheMisses: 0, buildMs: 0 };
   // Territorial units are still mutated by a few import/edit paths that use
@@ -3427,7 +3425,6 @@ const {
     invalidateGeometryCaches(changed);
     if (changed.size) {
       state.stateRevision += 1;
-      territorialBoundaryCache.countries = null;
     }
     countryLandRevision += 1;
     boundarySelectionAnalysisCache.clear();
@@ -6521,119 +6518,6 @@ const {
     return true;
   }
 
-  function renderBoundaryEditOverlay() {
-    const editActive = (state.tool === 'country-coast' && state.coastEditCountryId)
-      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing');
-    const visibleSegments = editActive
-      ? getCountryBoundarySegments().filter(seg => seg.geometry.coordinates.some(isCoordVisible))
-      : [];
-    const data = ['coast', 'shared'].map(kind => {
-      const segments = visibleSegments.filter(segment => (segment.kind === 'coast' ? 'coast' : 'shared') === kind);
-      return segments.length ? {
-        key: `${kind}:${state.coastEditCountryId || state.boundaryEditCountryIds.join('|')}`,
-        kind,
-        geometry: { type: 'MultiLineString', coordinates: segments.map(segment => segment.geometry.coordinates) },
-      } : null;
-    }).filter(Boolean);
-    const selection = boundaryEditLayer.selectAll('path.boundary-edit-segment').data(data, d => d.key);
-    selection.enter().append('path').attr('class', 'boundary-edit-segment');
-    selection.exit().remove();
-    const allSegments = boundaryEditLayer.selectAll('path.boundary-edit-segment');
-    allSegments
-      .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }))
-      .attr('data-gpu-scene-key', d => `boundary-edit:${d.key}`)
-      .classed('coast', d => d.kind === 'coast')
-      .classed('shared', d => d.kind === 'shared')
-      .on('click.vertex-add', null);
-    replaceGpuSceneDomain('boundary-edit', {
-      strokes: data.map(item => ({
-        key: `boundary-edit:${item.key}`,
-        geometryRevision: `${editInteractionRevision}:${item.key}`,
-        geometry: item.geometry,
-        order: 9800,
-        style: {
-          color: item.kind === 'coast' ? '#72c9ef' : resolvedInteractionStyle.selection.color,
-          alpha: 1,
-          width: 3.4,
-          dash: item.kind === 'shared' ? [6, 3] : [0, 0],
-          cap: 'round', join: 'round',
-        },
-      })),
-    });
-  }
-
-  function thinVisibleCoastHandles(handles) {
-    const projection = activeProjection();
-    const zoom = currentMapZoom();
-    const minDistance = Math.max(isMobile() ? 7 : 4, (isMobile() ? 18 : 11) / Math.sqrt(Math.max(1, zoom)));
-    const cellSize = minDistance;
-    const occupied = new Map();
-    const accepted = [];
-    const orderedHandles = [...handles].sort((left, right) => Number(!!right.fixed) - Number(!!left.fixed));
-    for (const handle of orderedHandles) {
-      if (!isCoordVisible(handle.coord)) continue;
-      const point = projection(handle.coord);
-      if (!point) continue;
-      const gx = Math.floor(point[0] / cellSize), gy = Math.floor(point[1] / cellSize);
-      let crowded = false;
-      for (let x = gx - 1; x <= gx + 1 && !crowded; x += 1) {
-        for (let y = gy - 1; y <= gy + 1; y += 1) {
-          const other = occupied.get(`${x}:${y}`);
-          if (other && Math.hypot(point[0] - other[0], point[1] - other[1]) < minDistance) { crowded = true; break; }
-        }
-      }
-      if (crowded) continue;
-      occupied.set(`${gx}:${gy}`, point);
-      accepted.push(handle);
-    }
-    return accepted;
-  }
-
-  function renderVertices() {
-    let data = [];
-    let feature = null;
-    if (state.tool === 'select' && state.selected?.domain === 'generic') {
-      feature = state.genericFeatures.find(f => String(f.id) === state.selected.id);
-      if (feature) data = getEditableVertices(feature).filter(v => isCoordVisible(v.coord));
-    } else if (state.tool === 'select' && state.selected?.domain === 'hydro') {
-      feature = hydroEditById(state.selected.id);
-      if (feature) data = getEditableVertices(feature).filter(vertex => isCoordVisible(vertex.coord));
-    } else if ((state.tool === 'country-coast' && state.coastEditCountryId)
-      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing')) {
-      const primaryId = state.tool === 'country-border' ? state.boundaryEditCountryIds[0] : state.coastEditCountryId;
-      feature = countryFeatureById(primaryId);
-      if (feature) data = thinVisibleCoastHandles(getCountryBoundaryHandles());
-    }
-    const boundaryMode = (state.tool === 'country-coast' && !!state.coastEditCountryId)
-      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing');
-    const selection = vertexLayer.selectAll('circle.vertex-handle').data(data, d => d.nodeKey || d.key || d.index);
-    selection.enter().append('circle').attr('class', 'vertex-handle');
-    selection.exit().remove();
-    const allVertices = vertexLayer.selectAll('circle.vertex-handle');
-    allVertices
-      .attr('r', boundaryMode ? (isMobile() ? 7.2 : 5.2) : 4.5)
-      .classed('country-vertex', boundaryMode)
-      .classed('coast-vertex', d => boundaryMode && d.boundaryKind === 'coast')
-      .classed('shared-boundary-vertex', d => boundaryMode && d.boundaryKind === 'shared')
-      .classed('fixed-boundary-vertex', d => boundaryMode && d.fixed)
-      .attr('transform', d => {
-        const p = activeProjection()(d.coord);
-        return p ? `translate(${p[0]},${p[1]})` : 'translate(-9999,-9999)';
-      });
-    allVertices.on('.drag', null);
-    if (feature && boundaryMode) allVertices.filter(d => !d.fixed).call(countryBoundaryVertexDragBehavior(feature));
-    else if (feature) allVertices.call(vertexDragBehavior(feature));
-    allVertices.on('click.vertex-select', null);
-    allVertices.each(function(d) {
-      let title = d3.select(this).select('title');
-      if (title.empty()) title = d3.select(this).append('title');
-      if (boundaryMode) title.text(d.fixed
-        ? '선택 밖 국가와 연결되어 고정된 접경점'
-        : d.boundaryKind === 'shared' ? `${d.ownerIds?.length || 2}개 국가가 공유하는 국경 꼭짓점` : '해안선 꼭짓점');
-      else title.text('꼭짓점');
-    });
-  }
-
   function draftFeature(coordinates = null) {
     const coords = coordinates ? coordinates.map(coordinate => coordinate.slice()) : state.draftCoords.slice();
     if (!coordinates && state.draftHover) coords.push(state.draftHover);
@@ -7773,7 +7657,7 @@ const {
           geometryRevision: countryBoundarySnapshot?.revision || countryLandRevision,
           styleRevision: `${resolvedInteractionStyle.selection.color}:${resolvedInteractionStyle.hover.color}:${resolvedInteractionStyle.selection.outlineVisible}`,
           countryBoundaryRevision: countryBoundarySnapshot?.revision || '',
-          territorialBoundaryRevision: territorialBoundaryBatchCache.revision || '',
+          territorialBoundaryRevision: renderingDomain?.getTerritorialBoundaryStats?.().revision || '',
           country: {
             hoverId: countryHoverId,
             primaryId: countryPrimaryId,
@@ -8016,7 +7900,7 @@ const {
         buildMs: distributionRenderRowCache.buildMs,
       },
       labelLayout: { ...labelLayoutMetrics },
-      territorialBoundaryTopologyRebuildCount: territorialBoundaryCache.rebuildCount,
+      territorialBoundaryTopologyRebuildCount: renderingDomain?.getStats?.().territorialBoundaryTopologyRebuildCount || 0,
       workers: {
         mapEdit: mapEditMetrics,
         countryPatchMesh: metrics.patchWorkerJobs || {},
@@ -8227,37 +8111,35 @@ const {
     },
     renderers: {
       view: viewState => {
-        if (renderingDomain) return renderingDomain.renderPass('view', viewState);
-        updatePandoGlobeShell();
-        return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState);
+        return renderingDomain?.renderPass('view', viewState);
       },
-      base: (...args) => renderingDomain ? renderingDomain.renderBase(...args) : false,
+      base: (...args) => renderingDomain?.renderBase?.(...args),
       countries: (...args) => renderingDomain?.renderCountries?.(...args),
-      gpuInteraction: (...args) => renderingDomain ? renderingDomain.renderPass('gpuInteraction', ...args) : renderGpuInteractionFrame(...args),
-      hydro: (...args) => renderingDomain ? renderingDomain.renderHydro(...args) : false,
-      hydroEdits: (...args) => renderingDomain ? renderingDomain.renderHydroEdits(...args) : false,
-      boundaryEdit: (...args) => renderingDomain ? renderingDomain.renderPass('boundaryEdit', ...args) : renderBoundaryEditOverlay(...args),
-      territorialUnits: (...args) => renderingDomain ? renderingDomain.renderTerritorialUnits(...args) : false,
-      distributions: (...args) => renderingDomain ? renderingDomain.renderDistributions(...args) : false,
-      genericFeatures: (...args) => renderingDomain ? renderingDomain.renderGenericFeatures(...args) : false,
-      stackOverlays: (...args) => renderingDomain ? renderingDomain.renderPass('stackOverlays', ...args) : applyOverlayStackOrder(...args),
-      projectedOverlays: (...args) => renderingDomain ? renderingDomain.renderProjectedOverlays(...args) : false,
-      geometryPreview: (...args) => renderingDomain ? renderingDomain.renderPass('geometryPreview', ...args) : renderGeometryPreview(...args),
-      selectionData: (...args) => renderingDomain ? renderingDomain.renderPass('selectionData', ...args) : renderSelectionOverlay(...args),
-      selectionStyle: (...args) => renderingDomain ? renderingDomain.renderPass('selectionStyle', ...args) : renderSelectionOverlay(...args),
-      selectionView: (...args) => renderingDomain ? renderingDomain.renderPass('selectionView', ...args) : renderSelectionOverlay(args[0], { updateData: false }),
-      hover: (...args) => renderingDomain ? renderingDomain.renderPass('hover', ...args) : renderHoverOverlay(...args),
-      validation: (...args) => renderingDomain ? renderingDomain.renderPass('validation', ...args) : renderValidationOverlay(...args),
-      labelLayout: (...args) => renderingDomain ? renderingDomain.renderPass('labelLayout', ...args) : visibleLabelLayout(...args),
+      gpuInteraction: (...args) => renderingDomain?.renderPass('gpuInteraction', ...args),
+      hydro: (...args) => renderingDomain?.renderHydro?.(...args),
+      hydroEdits: (...args) => renderingDomain?.renderHydroEdits?.(...args),
+      boundaryEdit: (...args) => renderingDomain?.renderBoundaryEdit?.(...args),
+      territorialUnits: (...args) => renderingDomain?.renderTerritorialUnits?.(...args),
+      distributions: (...args) => renderingDomain?.renderDistributions?.(...args),
+      genericFeatures: (...args) => renderingDomain?.renderGenericFeatures?.(...args),
+      stackOverlays: (...args) => renderingDomain?.renderPass('stackOverlays', ...args),
+      projectedOverlays: (...args) => renderingDomain?.renderProjectedOverlays?.(...args),
+      geometryPreview: (...args) => renderingDomain?.renderGeometryPreview?.(...args),
+      selectionData: (...args) => renderingDomain?.renderSelection?.(...args),
+      selectionStyle: (...args) => renderingDomain?.renderSelection?.(...args, { styleOnly: true }),
+      selectionView: (...args) => renderingDomain?.renderSelection?.(...args, { viewOnly: true }),
+      hover: (...args) => renderingDomain?.renderHover?.(...args),
+      validation: (...args) => renderingDomain?.renderValidation?.(...args),
+      labelLayout: (...args) => renderingDomain?.renderPass('labelLayout', ...args),
       countryLabelPositions: (...args) => renderingDomain?.renderCountryLabelPositions?.(...args),
       userLabelPositions: (...args) => renderingDomain?.renderUserLabelPositions?.(...args),
       countryLabels: (...args) => renderingDomain?.renderCountryLabels?.(...args),
       userLabels: (...args) => renderingDomain?.renderUserLabels?.(...args),
-      vertices: (...args) => renderingDomain ? renderingDomain.renderPass('vertices', ...args) : renderVertices(...args),
-      draft: (...args) => renderingDomain ? renderingDomain.renderPass('draft', ...args) : renderDraft(...args),
-      snapIndicator: (...args) => renderingDomain ? renderingDomain.renderPass('snapIndicator', ...args) : renderSnapIndicator(...args),
-      debug: (...args) => renderingDomain ? renderingDomain.renderPass('debug', ...args) : renderDebugMapPanel(...args),
-      layerTree: (...args) => renderingDomain ? renderingDomain.renderPass('layerTree', ...args) : renderLayerTree(...args),
+      vertices: (...args) => renderingDomain?.renderVertices?.(...args),
+      draft: (...args) => renderingDomain?.renderDraft?.(...args),
+      snapIndicator: (...args) => renderingDomain?.renderSnap?.(...args),
+      debug: (...args) => renderingDomain?.renderPass('debug', ...args),
+      layerTree: (...args) => renderingDomain?.renderPass('layerTree', ...args),
     },
     onFrameComplete: sample => {
       const changed = renderQualityController.recordFrame(sample.durationMs, {
@@ -8295,7 +8177,7 @@ const {
           buildMs: distributionRenderRowCache.buildMs,
         },
         labelLayout: { ...labelLayoutMetrics },
-        territorialBoundaryTopologyRebuildCount: territorialBoundaryCache.rebuildCount,
+        territorialBoundaryTopologyRebuildCount: renderingDomain?.getStats?.().territorialBoundaryTopologyRebuildCount || 0,
         adaptiveRenderQuality: renderQualityController.stats(),
         renderScene: renderSceneBuilder.stats(),
       }),
@@ -8560,10 +8442,10 @@ const {
         mapInteractionGate.setDraftInputActive(active);
         return active;
       },
-      beginStroke: beginDraftStrokeInput,
-      moveStroke: appendDraftStrokeInput,
-      endStroke: finishDraftStrokeInput,
-      cancelStroke: cancelDraftStrokeInput,
+      beginStroke: (screenPoint, event) => editingDomain?.beginDraftStroke?.(screenPoint, event),
+      moveStroke: screenPoints => editingDomain?.appendDraftStroke?.(screenPoints),
+      endStroke: screenPoint => editingDomain?.finishDraftStroke?.(screenPoint),
+      cancelStroke: reason => editingDomain?.cancelDraftStroke?.(reason),
     });
 
     svg.on('click', function() {
@@ -9092,7 +8974,7 @@ const {
     const usePolygon = method === 'polygon';
     if (state.tool === 'annex-territory' && ['line', 'polygon', 'polygon-preview', 'side', 'components'].includes(state.annexPhase)) {
       if (!state.annexDonorCountryIds.length) return;
-      clearDraftInput(true);
+      editingDomain?.clearDraft?.(true);
       state.annexComponentIndex = null;
       state.annexCandidates = [];
       state.annexSelectedCandidateIndex = null;
@@ -9106,7 +8988,7 @@ const {
         setModeBanner(defaultDraftInstruction());
       }
     } else if (state.tool === 'new-country' && ['line', 'side', 'components'].includes(state.newCountryPhase)) {
-      clearDraftInput(true);
+      editingDomain?.clearDraft?.(true);
       state.newCountryCandidates = [];
       state.newCountrySelectedCandidateIndex = null;
       state.newCountrySelectedComponentKeys = [];
@@ -9138,99 +9020,6 @@ const {
       draftStrokeRenderFrame = 0;
       renderDraft();
     });
-  }
-
-  function beginDraftStrokeInput(screenPoint, event) {
-    const config = draftToolConfig(state.tool);
-    if (!config || state.draftEdit.inputPhase !== 'draw' || state.spacePanActive) return false;
-    const sample = draftScreenSample(screenPoint);
-    if (!sample) return false;
-    state.draftHover = null;
-    state.draftEdit.insertTarget = null;
-    state.draftEdit.splitPreview = null;
-    const started = beginDraftStroke(state.draftStroke, {
-      pointerId: event?.pointerId,
-      pointerType: event?.pointerType || 'mouse',
-      profile: config.profile,
-      sample,
-    });
-    if (!started) return false;
-    $('map')?.classList.add('draft-stroke-active');
-    renderDraft();
-    updateModeButtons();
-    return true;
-  }
-
-  function appendDraftStrokeInput(screenPoints) {
-    if (!state.draftStroke.active) return false;
-    const samples = [];
-    for (const screenPoint of screenPoints || []) {
-      const sample = draftScreenSample(screenPoint);
-      if (!sample) {
-        state.draftStroke.acceptingSamples = false;
-        continue;
-      }
-      if (!state.draftStroke.acceptingSamples) continue;
-      samples.push(sample);
-    }
-    if (!appendDraftStrokeSamples(state.draftStroke, samples)) return false;
-    queueDraftStrokeRender();
-    return true;
-  }
-
-  function cancelDraftStrokeInput() {
-    if (!state.draftStroke.active) return false;
-    cancelRawDraftStroke(state.draftStroke);
-    if (draftStrokeRenderFrame) cancelAnimationFrame(draftStrokeRenderFrame);
-    draftStrokeRenderFrame = 0;
-    $('map')?.classList.remove('draft-stroke-active');
-    renderDraft();
-    updateModeButtons();
-    return true;
-  }
-
-  function finishDraftStrokeInput(screenPoint) {
-    if (!state.draftStroke.active) return false;
-    appendDraftStrokeInput([screenPoint]);
-    const config = draftToolConfig(state.tool);
-    const firstCoordinate = state.draftCoords[0] || state.draftStroke.samples[0]?.coordinate;
-    const closeTargetScreen = firstCoordinate ? activeProjection()(firstCoordinate) : null;
-    const result = finalizeDraftStroke(state.draftStroke, {
-      shape: config?.shape || 'line',
-      closeTargetScreen,
-    });
-    if (draftStrokeRenderFrame) cancelAnimationFrame(draftStrokeRenderFrame);
-    draftStrokeRenderFrame = 0;
-    $('map')?.classList.remove('draft-stroke-active');
-    if (!result) return false;
-    const next = state.draftCoords.map(coordinate => coordinate.slice());
-    for (const coordinate of result.coords) {
-      if (next.length && coordNear(next[next.length - 1], coordinate, 1e-9)) continue;
-      next.push(coordinate.slice());
-    }
-    if (next.length < draftMinimumPoints()) {
-      setActionStatus(`형상이 너무 짧습니다. ${config?.shape === 'polygon' ? '영역의 경계를 더 크게' : '선을 더 길게'} 그려주세요.`, 'error', 3200);
-      renderDraft();
-      updateModeButtons();
-      return false;
-    }
-    editingDomain?.commitDraftCoords(next, null, { inputPhase: 'refine', buildPreview: true });
-    if (!activeCutDraftSourceGeometry()) setModeBanner('꼭짓점을 드래그해 미세조정한 뒤 완료하세요.');
-    return true;
-  }
-
-  function redrawDraftInput() {
-    if (!editingDomain?.draftInputActive?.()) return false;
-    cancelDraftStrokeInput();
-    if (state.draftCoords.length) {
-      editingDomain?.commitDraftCoords([], null, { inputPhase: 'draw', buildPreview: false });
-    } else {
-      state.draftEdit.inputPhase = 'draw';
-      state.draftEdit.selectedVertexIndex = null;
-      syncDraftAfterMutation({ buildPreview: false });
-    }
-    setModeBanner(defaultDraftInstruction());
-    return true;
   }
 
   function draftSelfIntersectionIssue(coords, closed = false) {
@@ -9304,35 +9093,8 @@ const {
     editState.splitPreview = null;
   }
 
-  function syncDraftAfterMutation({ buildPreview = true, render = true } = {}) {
-    state.draftEdit.revision += 1;
-    state.draftEdit.insertTarget = null;
-    state.draftHover = null;
-    refreshDraftDerivedState({ buildPreview });
-    if (render) renderDraft();
-    updateModeButtons();
-    updateHistoryButtons();
-  }
-
-  function clearDraftInput(invalidateInteraction = true) {
-    if (invalidateInteraction) invalidateEditInteraction();
-    if (draftStrokeRenderFrame) cancelAnimationFrame(draftStrokeRenderFrame);
-    draftStrokeRenderFrame = 0;
-    state.spacePanActive = false;
-    mapInteractionGate.setForcedPan(false);
-    mapInteractionGate.setDraftInputActive(false);
-    mapHost?.setForcedPan?.(false);
-    $('map')?.classList.remove('space-pan-active', 'draft-stroke-active');
-    state.draftCoords = [];
-    state.draftHover = null;
-    state.draftCutAssessment = null;
-    resetDraftStrokeState(state.draftStroke);
-    resetDraftEditState(state.draftEdit);
-    if (draftLayer) draftLayer.selectAll('*').remove();
-  }
-
   function resetTerritoryEditingState(invalidateInteraction = true) {
-    clearDraftInput(invalidateInteraction);
+    editingDomain?.clearDraft?.(invalidateInteraction);
     resetAnnexState();
     resetNewCountryState();
   }
@@ -10096,7 +9858,7 @@ const {
           source.geometry = deepClone(sourceAfter.geometry);
           source.properties = deepClone(sourceAfter.properties);
           state.genericFeatures.push(deepClone(sibling));
-          clearDraftInput(true);
+          editingDomain?.clearDraft?.(true);
           editingDomain?.setTool('select', { announce: false });
           selectGenericFeature(String(source.id), true);
         },
@@ -10856,7 +10618,7 @@ const {
     const directTerritorialUnit = state.tool === 'draw-territorial-unit';
     const distributionDraft = state.distributionDraft;
     state.distributionDraft = null;
-    clearDraftInput(true);
+    editingDomain?.clearDraft?.(true);
     editingDomain?.setTool('select', { announce: false });
     if (splitSourceId && state.genericFeatures.some(item => String(item.id) === String(splitSourceId))) selectGenericFeature(String(splitSourceId), true);
     else if (territorialSplitSourceId && territorialUnitById(territorialSplitSourceId)) selectTerritorialUnit(territorialSplitSourceId, true);
@@ -12185,7 +11947,7 @@ const {
           } else state.territorialUnits.push(deepClone(retainedAfter));
           state.territorialUnits.push(deepClone(sibling));
           state.territorialUnits = normalizeTerritorialUnits(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
-          clearDraftInput(true);
+          editingDomain?.clearDraft?.(true);
           editingDomain?.setTool('select', { announce: false });
           markLayerTreeDirty();
           selectTerritorialUnit(sibling.id, true);
@@ -12354,7 +12116,7 @@ const {
           reconcileTerritorialUnitCompleteness([source.properties.sovereignId], {
             preserveIds: coastDirection === 'admin-to-country' || coastDirection === 'independent' ? [String(source.id)] : [],
           });
-          clearDraftInput(true);
+          editingDomain?.clearDraft?.(true);
           editingDomain?.setTool('select', { announce: false });
           markLayerTreeDirty();
           selectTerritorialUnit(source.id, true);
@@ -12421,7 +12183,7 @@ const {
             });
             createdId = createdIds[0] || '';
           }
-          clearDraftInput(true);
+          editingDomain?.clearDraft?.(true);
           editingDomain?.setTool('select', { announce: false });
           if (createdId) selectTerritorialUnit(createdId, true);
         },
@@ -14835,7 +14597,6 @@ const {
       // SceneColorCache cannot treat the pre-insertion mesh as unchanged.
       countryLandRevision += 1;
       boundarySelectionAnalysisCache.clear();
-      territorialBoundaryCache.countries = null;
       mapEditClient.rebase(state.countriesData.features);
       scheduleGpuMeshRebuild(0);
     }
@@ -16410,7 +16171,7 @@ const {
     $('modePolygonMethodBtn')?.addEventListener('click', () => requestDraftDiscard(() => switchTerritorySelectionMethod('polygon')));
     $('modeComponentsMethodBtn')?.addEventListener('click', () => requestDraftDiscard(() => switchTerritorySelectionMethod('components')));
     $('modeRiverBoundaryInput')?.addEventListener('change', event => toggleAnnexRiverBoundaries(event.currentTarget.checked));
-    $('modeDraftRedrawBtn')?.addEventListener('click', redrawDraftInput);
+    $('modeDraftRedrawBtn')?.addEventListener('click', () => editingDomain?.redrawDraft?.());
     $('modeDraftRemoveLastBtn')?.addEventListener('click', () => editingDomain?.removeLastDraftPoint());
     $('modeDraftDeleteBtn')?.addEventListener('click', () => editingDomain?.deleteSelectedDraftPoint());
     $('modeCancelBtn')?.addEventListener('click', () => {
@@ -17560,7 +17321,6 @@ const {
     });
 
     renderingDomain = createRenderingDomain({
-      context: domainContext,
       gpuMapRenderer,
       sceneBuilder: renderSceneBuilder,
       coordinator: mapRenderCoordinator,
@@ -17757,6 +17517,28 @@ const {
         layers: [territorialBoundaryLayer, overlayStackLayer, hydroEditLayer, territorialOperationLayer],
         path,
       },
+      editingRenderResources: {
+        getState: () => state,
+        getCountryBoundarySegments,
+        getEditableVertices,
+        getGenericFeature: id => state.genericFeatures.find(feature => String(feature.id) === String(id)),
+        getHydroFeature: id => hydroEditById(id),
+        getCountryFeature: id => countryFeatureById(id),
+        getCountryBoundaryHandles,
+        isCoordVisible,
+        activeProjection,
+        currentMapZoom,
+        isMobile,
+        path,
+        d3,
+        vertexLayer,
+        boundaryEditLayer,
+        countryBoundaryVertexDragBehavior,
+        vertexDragBehavior,
+        replaceGpuSceneDomain,
+        getEditInteractionRevision: () => editInteractionRevision,
+        getInteractionStyle: () => resolvedInteractionStyle,
+      },
       renderers: {
         view: viewState => { updatePandoGlobeShell(); return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState); },
         base: (...args) => renderingDomain.renderBase(...args),
@@ -17764,7 +17546,7 @@ const {
         gpuInteraction: renderGpuInteractionFrame,
         hydro: (...args) => renderingDomain.renderHydro(...args),
         hydroEdits: (...args) => renderingDomain.renderHydroEdits(...args),
-        boundaryEdit: renderBoundaryEditOverlay,
+        boundaryEdit: (...args) => renderingDomain.renderBoundaryEdit(...args),
         territorialUnits: (...args) => renderingDomain.renderTerritorialUnits(...args),
         distributions: (...args) => renderingDomain.renderDistributions(...args),
         genericFeatures: (...args) => renderingDomain.renderGenericFeatures(...args),
@@ -17781,16 +17563,11 @@ const {
         userLabelPositions: (...args) => renderingDomain.renderUserLabelPositions(...args),
         countryLabels: (...args) => renderingDomain.renderCountryLabels(...args),
         userLabels: (...args) => renderingDomain.renderUserLabels(...args),
-        vertices: renderVertices,
+        vertices: (...args) => renderingDomain.renderVertices(...args),
         draft: renderDraft,
         snapIndicator: renderSnapIndicator,
         debug: renderDebugMapPanel,
         layerTree: renderLayerTree,
-      },
-      renderSelectionFrame: () => renderSelectionOverlay(),
-      renderEditingPreviewFrame: () => renderGeometryPreview(),
-      onFrameCommitted: detail => {
-        window.__PANDOLAB_RENDERING_DOMAIN__ = detail;
       },
       reportDiagnostic: entry => reliabilityDiagnostic.push({ category: 'rendering-domain', ...entry }),
     });
@@ -17806,7 +17583,7 @@ const {
         getGeometryPreviewSession: () => state.geometryPreview.session,
         getCurrentTool: () => state.tool,
         discardGeometryPreview: discardActiveGeometryPreview,
-        clearDraftInput,
+        clearDraft: value => editingDomain?.clearDraft?.(value),
         clearActiveSnap,
         clearHover: () => { state.hovered = null; },
         resetForTool: tool => {
@@ -17850,6 +17627,58 @@ const {
       draftEditor: draftEditorModule,
       previewController: editPreviewController,
       snapController: geometrySnapModule,
+      draftInput: {
+        getToolConfig: () => draftToolConfig(state.tool),
+        getInputPhase: () => state.draftEdit.inputPhase,
+        isSpacePanActive: () => state.spacePanActive,
+        screenSample: screenPoint => draftScreenSample(screenPoint),
+        clearHover: () => { state.draftHover = null; },
+        clearInsertTarget: () => { state.draftEdit.insertTarget = null; },
+        beginStroke: options => beginDraftStroke(state.draftStroke, options),
+        appendSamples: samples => appendDraftStrokeSamples(state.draftStroke, samples),
+        isStrokeActive: () => state.draftStroke.active,
+        setAcceptingSamples: value => { state.draftStroke.acceptingSamples = value; },
+        acceptingSamples: () => state.draftStroke.acceptingSamples,
+        queueRender: queueDraftStrokeRender,
+        projectCoordinate: coordinate => activeProjection()(coordinate),
+        firstStrokeCoordinate: () => state.draftStroke.samples[0]?.coordinate,
+        finalizeStroke: options => finalizeDraftStroke(state.draftStroke, options),
+        cancelRawStroke: () => cancelRawDraftStroke(state.draftStroke),
+        cancelQueuedRender: () => {
+          if (draftStrokeRenderFrame) cancelAnimationFrame(draftStrokeRenderFrame);
+          draftStrokeRenderFrame = 0;
+        },
+        minimumPoints: draftMinimumPoints,
+        onTooShort: config => setActionStatus(`형상이 너무 짧습니다. ${config?.shape === 'polygon' ? '영역의 경계를 더 크게' : '선을 더 길게'} 그려주세요.`, 'error', 3200),
+        onFinished: () => {
+          if (!activeCutDraftSourceGeometry()) setModeBanner('꼭짓점을 드래그해 미세조정한 뒤 완료하세요.');
+        },
+        setStrokeActiveClass: active => $('map')?.classList.toggle('draft-stroke-active', !!active),
+        render: () => renderingDomain?.renderPass('draft'),
+        updateControls: updateModeButtons,
+        updateHistoryControls: updateHistoryButtons,
+        incrementRevision: () => { state.draftEdit.revision += 1; },
+        refreshDerivedState: options => refreshDraftDerivedState(options),
+        setInputPhase: phase => { state.draftEdit.inputPhase = phase; },
+        setSelectedVertex: index => { state.draftEdit.selectedVertexIndex = index; },
+        invalidateInteraction: invalidateEditInteraction,
+        resetPointerState: () => {
+          state.spacePanActive = false;
+          mapInteractionGate.setForcedPan(false);
+          mapInteractionGate.setDraftInputActive(false);
+          mapHost?.setForcedPan?.(false);
+          $('map')?.classList.remove('space-pan-active');
+        },
+        resetDraftState: () => {
+          state.draftCoords = [];
+          state.draftHover = null;
+          state.draftCutAssessment = null;
+          resetDraftStrokeState(state.draftStroke);
+          resetDraftEditState(state.draftEdit);
+        },
+        clearLayer: () => { draftLayer?.selectAll('*').remove(); },
+        onRedraw: () => setModeBanner(defaultDraftInstruction()),
+      },
       renderPackets: {
         draft: {
           isActive: () => !!draftToolConfig(state.tool),
@@ -17871,7 +17700,7 @@ const {
           coordNear,
           projectCoordinate: coord => activeProjection()(coord),
           unprojectScreen: point => screenToGeo(point),
-          syncAfterMutation: options => syncDraftAfterMutation(options),
+          syncAfterMutation: options => editingDomain?.syncDraftAfterMutation?.(options),
         },
         imports: {
           replaceProject: (...args) => applyImportedReplacement(...args),
