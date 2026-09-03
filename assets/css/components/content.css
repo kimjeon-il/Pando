@@ -68,10 +68,10 @@
   color: var(--muted);
 }
 
-.editor-object-visual > img,
-.editor-object-visual > svg {
+.editor-object-visual > img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
 }
 
@@ -151,6 +151,28 @@
 .layer-folder-row > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker),
 .layer-child > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker) {
   display: none !important;
+}
+
+/* Existing inspector thumbnails/flag previews can opt into the v2 32px
+ * object-context visual without changing their data or render path. */
+.editor-object-header[data-editor-context] :where(.editor-object-thumb, .editor-object-icon, .editor-object-flag, .object-context-flag, .object-context-icon) {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--ui-v2-radius-md);
+  background: var(--surface-card);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.editor-object-header[data-editor-context] :where(.editor-object-thumb, .editor-object-icon, .editor-object-flag, .object-context-flag, .object-context-icon) img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 @media (max-width: 799px) {
