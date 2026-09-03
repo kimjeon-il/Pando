@@ -8075,6 +8075,12 @@ const {
     const cancel = $('modeCancelBtn');
     if ($('modeTaskName')) $('modeTaskName').textContent = task.name;
     if ($('modeTaskStage')) $('modeTaskStage').textContent = task.stage;
+    const currentTaskIcon = $('modeTaskIcon');
+    if (currentTaskIcon && task.icon) {
+      const nextTaskIcon = createSemanticIcon(document, task.icon, 'ui-icon mode-task-icon');
+      nextTaskIcon.id = 'modeTaskIcon';
+      currentTaskIcon.replaceWith(nextTaskIcon);
+    }
     if (bar) {
       bar.classList.toggle('hidden', !specialMode);
       bar.classList.toggle('single-action', labelMode);
