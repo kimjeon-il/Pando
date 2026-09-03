@@ -20,15 +20,15 @@ async function openApp(page) {
 async function clearReferenceStore(page) {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
-      const request = indexedDB.open('pandolab-reference-images', 1);
+      const request = indexedDB.open('pandolab-reference-images', 2);
       request.onupgradeneeded = () => {
-        if (!request.result.objectStoreNames.contains('images')) request.result.createObjectStore('images', { keyPath: 'id' });
+        if (!request.result.objectStoreNames.contains('state-v2')) request.result.createObjectStore('state-v2');
       };
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         const db = request.result;
-        const tx = db.transaction('images', 'readwrite');
-        tx.objectStore('images').clear();
+        const tx = db.transaction('state-v2', 'readwrite');
+        tx.objectStore('state-v2').put({ version: 1, records: [] }, 'reference-images');
         tx.oncomplete = () => { db.close(); resolve(); };
         tx.onerror = () => { db.close(); reject(tx.error); };
       };
@@ -38,21 +38,24 @@ async function clearReferenceStore(page) {
 
 async function readReferenceStore(page) {
   return page.evaluate(async () => new Promise((resolve, reject) => {
-    const request = indexedDB.open('pandolab-reference-images', 1);
+    const request = indexedDB.open('pandolab-reference-images', 2);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const db = request.result;
-      const tx = db.transaction('images', 'readonly');
-      const getAll = tx.objectStore('images').getAll();
-      getAll.onsuccess = () => resolve(getAll.result.map(value => ({
-        id: value.id,
-        name: value.name,
-        order: value.order,
-        rotation: value.rotation || 0,
-        screenRect: value.screenRect,
-        controlPointCount: value.controlPoints?.length || 0,
-      })).sort((a, b) => a.order - b.order));
-      getAll.onerror = () => reject(getAll.error);
+      const tx = db.transaction('state-v2', 'readonly');
+      const get = tx.objectStore('state-v2').get('reference-images');
+      get.onsuccess = () => {
+        const values = Array.isArray(get.result?.records) ? get.result.records : [];
+        resolve(values.map(value => ({
+          id: value.id,
+          name: value.name,
+          order: value.order,
+          rotation: value.rotation || 0,
+          screenRect: value.screenRect,
+          controlPointCount: value.controlPoints?.length || 0,
+        })).sort((a, b) => a.order - b.order));
+      };
+      get.onerror = () => reject(get.error);
       tx.oncomplete = () => db.close();
     };
   }));
@@ -112,8 +115,9 @@ test('reference images support placement, ordering, georeferencing and persisten
 
   await page.locator('.reference-image-list-row').filter({ hasText: '<Base "reference">' }).click();
   const baseStored = (await readReferenceStore(page)).find(item => item.name === '<Base "reference">');
-  const baseCenterX = mapBox.x + baseStored.screenRect.x + baseStored.screenRect.width / 2;
-  const baseCenterY = mapBox.y + baseStored.screenRect.y + baseStored.screenRect.height / 2;
+  const currentMapBox = await page.locator('#map').boundingBox();
+  const baseCenterX = currentMapBox.x + baseStored.screenRect.x + baseStored.screenRect.width / 2;
+  const baseCenterY = currentMapBox.y + baseStored.screenRect.y + baseStored.screenRect.height / 2;
   await page.locator('[data-ref-action="gcp"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
   await page.mouse.click(baseCenterX, baseCenterY);
