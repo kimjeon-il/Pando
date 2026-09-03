@@ -1,0 +1,14 @@
+:root {
+  --ui-reference-panel-width: 340px;
+  --ui-reference-panel-max-height: 650px;
+  --ui-reference-panel-clearance: 70px;
+  --ui-reference-list-icon-track: 18px;
+  --ui-reference-list-indicator-inset: 6px;
+  --ui-reference-list-indicator-width: 2px;
+  --ui-reference-visibility-size: 18px;
+  --ui-reference-field-label-width: 72px;
+  --ui-reference-field-label-width-mobile: 64px;
+  --ui-reference-output-width: 38px;
+  --ui-reference-mobile-panel-clearance: 64px;
+  --ui-reference-mobile-panel-max-height: 60vh;
+}
