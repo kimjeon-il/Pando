@@ -13,9 +13,9 @@ import {
 } from './reference-image-placement.js';
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
 import {
-  deleteStoredReferenceImage,
   listStoredReferenceImages,
   putStoredReferenceImage,
+  replaceStoredReferenceImages,
 } from './reference-image-store.js';
 import {
   createReferenceImageLauncher,
@@ -27,6 +27,7 @@ import {
 const ACCEPTED_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
 const DEFAULT_OPACITY = 0.55;
 const DEFAULT_BLEND_MODE = 'source-over';
+const PERSIST_DEBOUNCE_MS = 220;
 const MESH_QUALITY = Object.freeze({ columns: 24, rows: 16 });
 const BLEND_OPTIONS = Object.freeze([
   ['source-over', '일반'],
@@ -41,6 +42,7 @@ const WARP_OPTIONS = Object.freeze([
   [REFERENCE_IMAGE_WARP_MODES.PROJECTIVE, 'Projective'],
   [REFERENCE_IMAGE_WARP_MODES.TPS, 'TPS 비선형'],
 ]);
+const CONTINUOUS_FIELDS = new Set(['name', 'opacity', 'rotation']);
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const numberText = (value, digits = 0) => Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
@@ -130,6 +132,7 @@ export function installReferenceImageController() {
   const emptyElement = panel.querySelector('[data-ref-empty]');
   const editorElement = panel.querySelector('[data-ref-editor]');
   const records = [];
+  const pendingPersistTimers = new Map();
   let selectedId = '';
   let gcpState = null;
   let placementEditingId = '';
@@ -152,14 +155,41 @@ export function installReferenceImageController() {
     if (record.warp.ok && placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
   }
 
+  function clearScheduledPersist(recordId) {
+    const timer = pendingPersistTimers.get(recordId);
+    if (timer) globalThis.clearTimeout(timer);
+    pendingPersistTimers.delete(recordId);
+  }
+
   function persist(record) {
     const index = records.indexOf(record);
+    if (index < 0 || !record.blob) return Promise.resolve(false);
+    clearScheduledPersist(record.id);
+    return putStoredReferenceImage(serializableRecord(record, index))
+      .catch(error => {
+        console.warn('[reference-image-store]', error);
+        return false;
+      });
+  }
+
+  function schedulePersist(record) {
+    const index = records.indexOf(record);
     if (index < 0 || !record.blob) return;
-    putStoredReferenceImage(serializableRecord(record, index)).catch(error => console.warn('[reference-image-store]', error));
+    clearScheduledPersist(record.id);
+    const timer = globalThis.setTimeout(() => {
+      pendingPersistTimers.delete(record.id);
+      void persist(record);
+    }, PERSIST_DEBOUNCE_MS);
+    pendingPersistTimers.set(record.id, timer);
   }
 
   function persistAll() {
-    records.forEach(record => persist(record));
+    for (const recordId of [...pendingPersistTimers.keys()]) clearScheduledPersist(recordId);
+    return replaceStoredReferenceImages(records.map((record, order) => serializableRecord(record, order)))
+      .catch(error => {
+        console.warn('[reference-image-store]', error);
+        return false;
+      });
   }
 
   function renderList() {
@@ -217,7 +247,7 @@ export function installReferenceImageController() {
     rebuildWarp(record);
     records.push(record);
     if (select) selectedId = record.id;
-    if (save) persist(record);
+    if (save) await persist(record);
     refreshUi();
     return record;
   }
@@ -226,12 +256,12 @@ export function installReferenceImageController() {
     const index = records.indexOf(record);
     if (index < 0) return;
     records.splice(index, 1);
+    clearScheduledPersist(record.id);
     if (record.objectUrl) URL.revokeObjectURL(record.objectUrl);
-    await deleteStoredReferenceImage(record.id).catch(error => console.warn('[reference-image-store]', error));
     selectedId = records.at(-1)?.id || '';
     if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
     if (gcpState?.recordId === record.id) cancelGcp(false);
-    persistAll();
+    await persistAll();
     refreshUi();
   }
 
@@ -241,7 +271,7 @@ export function installReferenceImageController() {
     if (index < 0 || nextIndex < 0 || nextIndex >= records.length) return false;
     records.splice(index, 1);
     records.splice(nextIndex, 0, record);
-    persistAll();
+    void persistAll();
     refreshUi();
     return true;
   }
@@ -309,7 +339,7 @@ export function installReferenceImageController() {
     try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
     placementDrag = null;
     if (record) {
-      persist(record);
+      void persist(record);
       renderEditor();
       renderer.requestRender();
     }
@@ -349,7 +379,7 @@ export function installReferenceImageController() {
         coordinate: [coordinate[0], coordinate[1]],
       });
       rebuildWarp(record);
-      persist(record);
+      void persist(record);
       gcpState = { recordId: record.id, step: 'image', image: null };
       refreshUi();
       setHint('기준점을 추가했습니다. 계속 추가하거나 Esc로 종료하세요.', 'success');
@@ -384,6 +414,9 @@ export function installReferenceImageController() {
     if (!record) return;
     const field = event.target?.dataset?.refField;
     if (!field) return;
+    const continuous = CONTINUOUS_FIELDS.has(field);
+    if (event.type === 'input' && !continuous) return;
+
     if (field === 'name') record.name = event.target.value || '참조 이미지';
     if (field === 'opacity') record.opacity = clamp(Number(event.target.value), 0, 1);
     if (field === 'rotation' && !record.warp?.ok && !record.locked) record.rotation = normalizeReferenceImageRotation(event.target.value);
@@ -400,7 +433,9 @@ export function installReferenceImageController() {
         if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
       }
     }
-    persist(record);
+
+    if (event.type === 'input' && continuous) schedulePersist(record);
+    else void persist(record);
     if (field === 'name' || field === 'visible') renderList();
     if (field === 'opacity') {
       const output = event.target.parentElement?.querySelector('output');
@@ -444,7 +479,7 @@ export function installReferenceImageController() {
     if (action === 'reset-placement' && !record.locked && !record.warp?.ok) {
       record.screenRect = defaultReferenceImageScreenRect(record.image, mapElement);
       record.rotation = 0;
-      persist(record);
+      void persist(record);
       refreshUi();
     }
     if (action === 'bring-forward') moveRecord(record, 1);
@@ -453,13 +488,13 @@ export function installReferenceImageController() {
     if (action === 'undo-gcp' && record.controlPoints.length) {
       record.controlPoints.pop();
       rebuildWarp(record);
-      persist(record);
+      void persist(record);
       refreshUi();
     }
     if (action === 'clear-gcp' && record.controlPoints.length) {
       record.controlPoints = [];
       rebuildWarp(record);
-      persist(record);
+      void persist(record);
       refreshUi();
     }
     if (action === 'flip-x' || action === 'flip-y') {
@@ -469,7 +504,7 @@ export function installReferenceImageController() {
         record.controlPoints = [];
         rebuildWarp(record);
       }
-      persist(record);
+      void persist(record);
       refreshUi();
     }
   }
@@ -526,7 +561,7 @@ export function installReferenceImageController() {
         }
       }
       selectedId = records.at(-1)?.id || '';
-      persistAll();
+      void persistAll();
       refreshUi();
     })
     .catch(error => console.warn('[reference-image-store]', error));
@@ -562,6 +597,7 @@ export function installReferenceImageController() {
     destroy: () => {
       if (disposed) return;
       disposed = true;
+      void persistAll();
       launcher.removeEventListener('click', onLauncherClick);
       panel.removeEventListener('click', onPanelClickEvent);
       editorElement.removeEventListener('input', onEditorInput);
