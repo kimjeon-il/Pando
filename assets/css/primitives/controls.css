@@ -226,21 +226,5 @@
   .ui-search-field {
     min-height: var(--ui-v2-control-mobile-height);
     height: var(--ui-v2-control-mobile-height);
-    font-size: var(--ui-v2-font-md);
   }
-
-  :where(.field-group, .ui-field):has(> :is(input, textarea, select, .ui-select-shell, .ui-search-field)) {
-    min-height: var(--ui-v2-touch-height);
-    align-content: center;
-  }
-
-  :where(.field-group, .ui-field, .gis-form-grid) textarea {
-    height: auto;
-    min-height: var(--ui-v2-control-mobile-height);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ui-button,
-  .ui-toggle > input[type="checkbox"] { transition: none; }
 }
