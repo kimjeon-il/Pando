@@ -203,7 +203,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
 
     const expanded = [
       ['mobileMapBtn', layersOpen], ['mobileCreateBtn', createOpen], ['mobileEditBtn', editorOpen],
-      ['createMenuBtn', createOpen], ['togglePanelBtn', editorOpen],
+      ['createMenuBtn', createOpen],
     ];
     for (const [id, openState] of expanded) {
       const button = getElement(id);
