@@ -1,0 +1,165 @@
+.reference-image-panel {
+  padding: var(--ui-space-3);
+  border: var(--ui-border-width) solid var(--overlay-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--overlay-panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(var(--ui-v2-overlay-blur));
+  color: var(--text);
+}
+
+.reference-image-launcher {
+  gap: var(--ui-space-2);
+  box-shadow: var(--control-shadow);
+  backdrop-filter: blur(var(--ui-v2-overlay-blur));
+}
+
+.reference-image-panel-header,
+.reference-image-editor-title,
+.reference-image-toolbar,
+.reference-image-toggle-row,
+.reference-image-placement-actions,
+.reference-image-gcp-actions,
+.reference-image-diagnostics {
+  gap: var(--ui-space-2);
+}
+
+.reference-image-panel-header {
+  padding-block-end: var(--ui-space-3);
+  border-block-end: var(--ui-border-width) solid var(--border);
+}
+
+.reference-image-panel-header > div {
+  gap: var(--ui-space-0-5);
+}
+
+.reference-image-panel-header strong {
+  font-size: var(--ui-font-section);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.reference-image-panel-header span,
+.reference-image-empty,
+.reference-image-hint,
+.reference-image-warning,
+.reference-image-diagnostics {
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-normal);
+  color: var(--muted);
+}
+
+.reference-image-toolbar {
+  padding-block: var(--ui-space-3);
+}
+
+.reference-image-list {
+  gap: var(--ui-space-1);
+}
+
+.reference-image-list-row {
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-0) var(--ui-space-2);
+  border: var(--ui-border-width) solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.reference-image-list-row::before {
+  border-radius: var(--ui-radius-pill);
+  background: transparent;
+}
+
+.reference-image-list-row:hover,
+.reference-image-list-row:focus-visible {
+  background: var(--surface-hover);
+  border-color: var(--surface-hover-border);
+}
+
+.reference-image-list-row.is-selected {
+  background: var(--selection-soft-bg);
+  border-color: var(--selection-soft-border);
+  color: var(--selection-soft-fg);
+}
+
+.reference-image-list-row.is-selected::before {
+  background: var(--accent);
+}
+
+.reference-image-visibility {
+  color: var(--muted);
+}
+
+.reference-image-list-row strong {
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-medium);
+}
+
+.reference-image-list-row small {
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+}
+
+.reference-image-empty {
+  padding: var(--ui-space-4) var(--ui-space-2);
+  border: var(--ui-border-width) dashed var(--border);
+  border-radius: var(--ui-radius-control);
+}
+
+.reference-image-editor {
+  gap: var(--ui-space-3);
+  margin-block-start: var(--ui-space-3);
+  padding-block-start: var(--ui-space-3);
+  border-block-start: var(--ui-border-width) solid var(--border);
+}
+
+.reference-image-field {
+  gap: var(--ui-space-2);
+  font-size: var(--ui-font-label);
+  color: var(--text-soft);
+}
+
+.reference-image-field output {
+  color: var(--muted);
+}
+
+.reference-image-toggle-row label {
+  gap: var(--ui-space-1);
+  font-size: var(--ui-font-label);
+  color: var(--text-soft);
+}
+
+.reference-image-placement-actions .ui-button.active,
+.reference-image-placement-actions .ui-button[aria-pressed="true"] {
+  background: var(--selection-soft-bg);
+  border-color: var(--accent-border);
+  color: var(--text-strong);
+}
+
+.reference-image-diagnostics {
+  padding: var(--ui-space-2);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+}
+
+.reference-image-diagnostics strong {
+  color: var(--text-soft);
+  font-weight: var(--ui-weight-medium);
+}
+
+.reference-image-warning {
+  margin: var(--ui-space-0);
+  padding: var(--ui-space-2);
+  border: var(--ui-border-width) solid var(--ui-v2-status-working-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-v2-status-working-bg);
+  color: var(--ui-v2-status-working-text);
+}
+
+.reference-image-hint {
+  margin: var(--ui-space-0);
+}
+
+.reference-image-hint[data-tone="working"] { color: var(--ui-v2-status-working-text); }
+.reference-image-hint[data-tone="success"] { color: var(--ui-v2-status-success-text); }
+.reference-image-hint[data-tone="error"] { color: var(--ui-v2-status-error-text); }
