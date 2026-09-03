@@ -11,20 +11,6 @@ const COAST_DECISION_DETAIL_BY_ID = Object.freeze({
 
 let initialized = false;
 
-function workflowSemanticFromLabel(label, fallback = 'boundary') {
-  const text = String(label || '');
-  if (/삭제/.test(text)) return 'delete';
-  if (/종류/.test(text)) return 'transform';
-  if (/편입|소속|반영/.test(text)) return 'transfer';
-  if (/합병|합치기/.test(text)) return 'merge';
-  if (/나누기|분할/.test(text)) return 'split';
-  if (/해안/.test(text)) return 'coastline';
-  if (/국경|경계/.test(text)) return 'boundary';
-  if (/국가로 전환|국가 추가|새 국가/.test(text)) return 'country';
-  if (/구분 해제/.test(text)) return 'close';
-  return fallback;
-}
-
 function replaceWorkflowIcon(host, semantic, className) {
   if (!(host instanceof Element)) return null;
   const next = createSemanticIcon(document, semantic, className);
@@ -32,18 +18,6 @@ function replaceWorkflowIcon(host, semantic, className) {
   if (current) current.replaceWith(next);
   else host.prepend(next);
   return next;
-}
-
-function normalizeMapEditingWorkflow() {
-  const hud = document.getElementById('modeEditingHud');
-  const heading = hud?.querySelector('.mode-task-heading');
-  const title = document.getElementById('modeTaskName');
-  if (!(hud instanceof HTMLElement) || !(heading instanceof HTMLElement) || !(title instanceof HTMLElement)) return;
-  const syncIcon = () => replaceWorkflowIcon(heading, workflowSemanticFromLabel(title.textContent), 'ui-icon mode-task-icon');
-  syncIcon();
-  new MutationObserver(syncIcon).observe(title, { childList: true, characterData: true, subtree: true });
-  document.getElementById('modeActionBar')?.classList.add('workflow-actions');
-  document.getElementById('geometryPreviewSummary')?.classList.add('workflow-impact');
 }
 
 function normalizeWorkflowDialog({ modalId, cardSelector, variant, semantic, titleId, descriptionId }) {
@@ -69,7 +43,7 @@ function normalizeEditingDialogs() {
     descriptionId: 'territorialTypeContext',
   });
 
-  const confirm = normalizeWorkflowDialog({
+  normalizeWorkflowDialog({
     modalId: 'confirmModal',
     cardSelector: '.confirm-modal-card',
     variant: 'compact',
@@ -77,15 +51,6 @@ function normalizeEditingDialogs() {
     titleId: 'confirmModalTitle',
     descriptionId: 'confirmModalMessage',
   });
-  if (confirm?.title) {
-    const syncConfirmIcon = () => replaceWorkflowIcon(
-      confirm.card,
-      workflowSemanticFromLabel(confirm.title.textContent, 'check'),
-      'ui-icon workflow-dialog-icon',
-    );
-    syncConfirmIcon();
-    new MutationObserver(syncConfirmIcon).observe(confirm.title, { childList: true, characterData: true, subtree: true });
-  }
   document.getElementById('confirmModalChoiceRow')?.classList.add('workflow-choice-row');
 
   const coast = normalizeWorkflowDialog({
@@ -191,7 +156,6 @@ export function initializeUiRuntime(documentRef = document) {
   initialized = true;
   installBoundaryGhostingGuard();
   installObjectRegistryPresenter();
-  normalizeMapEditingWorkflow();
   normalizeEditingDialogs();
   normalizeLibraryPresentation();
   bindVisualStepper({ modalId: 'gisImportModal', indicatorId: 'gisStepIndicator' });
