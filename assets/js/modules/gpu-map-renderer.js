@@ -30,6 +30,36 @@ export function resolveRenderPixelRatioValue(devicePixelRatio, mobileLayout = fa
   return Math.min(mobileLayout ? 2 : 3, cap, deviceRatio);
 }
 
+export function visibleFlatWorldOffsets({
+  translateX,
+  scale,
+  flatCenterRadians = 0,
+  viewportWidth,
+  minimumOverlap = 0.5,
+} = {}) {
+  const resolvedTranslate = Number(translateX);
+  const resolvedScale = Math.abs(Number(scale));
+  const resolvedCenter = Number(flatCenterRadians);
+  const resolvedWidth = Math.max(1, Number(viewportWidth));
+  if (![resolvedTranslate, resolvedScale, resolvedCenter, resolvedWidth].every(Number.isFinite) || resolvedScale <= 0) {
+    return [0];
+  }
+  const overlapThreshold = Math.max(0, Number(minimumOverlap) || 0);
+  const candidates = [-2 * Math.PI, 0, 2 * Math.PI];
+  const visible = candidates.filter(worldOffset => {
+    const left = resolvedTranslate + resolvedScale * (-Math.PI + worldOffset - resolvedCenter);
+    const right = resolvedTranslate + resolvedScale * (Math.PI + worldOffset - resolvedCenter);
+    return Math.min(right, resolvedWidth) - Math.max(left, 0) > overlapThreshold;
+  });
+  if (visible.length) return visible;
+  const viewportCenter = resolvedWidth / 2;
+  return [candidates.reduce((nearest, worldOffset) => {
+    const center = resolvedTranslate + resolvedScale * (worldOffset - resolvedCenter);
+    const distance = Math.abs(center - viewportCenter);
+    return distance < nearest.distance ? { worldOffset, distance } : nearest;
+  }, { worldOffset: 0, distance: Infinity }).worldOffset];
+}
+
 export function createCountryGeometryRevisionTracker() {
   let committedRevision = 0;
   let displayedRevision = 0;
@@ -363,6 +393,7 @@ export function createGpuMapRenderer(deps) {
     const canvasHydroPickRequests = new Map();
     let fallbackReason = '';
     let layoutMismatchCount = 0;
+    let lastLayoutMismatchCssPx = 0;
     let layoutVerificationFrame = 0;
     let webglRecoveryTimer = 0;
     let webglContextLost = false;
@@ -2071,6 +2102,10 @@ export function createGpuMapRenderer(deps) {
           };
       const flatCenter = viewState.projectionCenter || viewState.flatCenter || state.view.flatCenter;
       const cssViewport = [Number(viewState.size?.width || cssWidth), Number(viewState.size?.height || cssHeight)];
+      const viewport = [cssViewport[0] * dpr, cssViewport[1] * dpr];
+      const translate = [data.translate[0] * dpr, data.translate[1] * dpr];
+      const scale = data.scale * dpr;
+      const flatCenterRadians = [flatCenter[0] * PI / 180, flatCenter[1] * PI / 180];
       performanceMetrics.frameContextBuildCount += 1;
       return {
         viewState,
@@ -2082,14 +2117,19 @@ export function createGpuMapRenderer(deps) {
         cssViewport,
         cssTranslate: data.translate,
         cssScale: data.scale,
-        viewport: [cssViewport[0] * dpr, cssViewport[1] * dpr],
-        translate: [data.translate[0] * dpr, data.translate[1] * dpr],
-        scale: data.scale * dpr,
+        viewport,
+        translate,
+        scale,
         rowX: data.rowX,
         rowY: data.rowY,
         rowZ: data.rowZ,
-        flatCenter: [flatCenter[0] * PI / 180, flatCenter[1] * PI / 180],
-        worldOffsets: mode === 0 ? [0] : [-2 * PI, 0, 2 * PI],
+        flatCenter: flatCenterRadians,
+        worldOffsets: mode === 0 ? [0] : visibleFlatWorldOffsets({
+          translateX: translate[0],
+          scale,
+          flatCenterRadians: flatCenterRadians[0],
+          viewportWidth: viewport[0],
+        }),
         dpr,
         theme: mapTheme(),
       };
@@ -2130,12 +2170,13 @@ export function createGpuMapRenderer(deps) {
       if (!canvas || !mapElement?.isConnected || !canvas.isConnected) return 0;
       const mapRect = mapElement.getBoundingClientRect();
       const canvasRect = canvas.getBoundingClientRect();
-      return Math.max(
+      lastLayoutMismatchCssPx = Math.max(
         Math.abs(mapRect.left - canvasRect.left),
         Math.abs(mapRect.top - canvasRect.top),
         Math.abs(mapRect.width - canvasRect.width),
         Math.abs(mapRect.height - canvasRect.height),
       );
+      return lastLayoutMismatchCssPx;
     }
 
     function verifyLayout() {
@@ -3276,17 +3317,33 @@ export function createGpuMapRenderer(deps) {
         while (terrainUploadQueue.length && uploaded < limit && (uploaded === 0 || performance.now() - startedAt < 4)) {
           if (uploadTerrainTile(terrainUploadQueue.shift())) uploaded += 1;
         }
-        if (uploaded) invalidateGpuFrame('terrain-upload-ready');
+        // A texture upload is not itself a visible frame change. Repaint only
+        // when it completes a coherent terrain level; otherwise every tile
+        // caused a redundant base-scene draw (especially costly on mobile).
+        const readyLevel = uploaded ? completeTerrainLevelForFrame(activeFrameContext)?.level : null;
+        if (readyLevel && Number(readyLevel.id) !== terrainRenderedLevel) {
+          invalidateGpuFrame('terrain-level-ready');
+        }
         if (terrainUploadQueue.length) scheduleTerrainUpload();
       });
     }
 
-    function terrainGridMesh(spec) {
+    function terrainGridMesh(spec, frameContext = activeFrameContext || createFrameContext()) {
       const spanLon = Math.abs(spec.bounds[2] - spec.bounds[0]);
       const spanLat = Math.abs(spec.bounds[1] - spec.bounds[3]);
-      const stepsX = Math.max(1, Math.ceil(spanLon / 0.499));
-      const stepsY = Math.max(1, Math.ceil(spanLat / 0.499));
-      const key = `${stepsX}x${stepsY}`;
+      // Equirectangular terrain is affine inside a tile, so four vertices are
+      // exact. On the globe, tessellate only enough to keep spherical chord
+      // error below roughly one physical pixel. The old fixed 0.499-degree
+      // grid generated hundreds of thousands of triangles for a single
+      // overview tile and saturated mobile GPUs without improving the raster.
+      const globe = Number(frameContext?.mode) === 0;
+      const scale = Math.max(1, Number(frameContext?.scale) || 1);
+      const angularStep = globe
+        ? Math.max(0.75, Math.min(8, Math.sqrt(4 / scale) * 180 / PI))
+        : 360;
+      const stepsX = Math.max(1, Math.ceil(spanLon / angularStep));
+      const stepsY = Math.max(1, Math.ceil(spanLat / angularStep));
+      const key = `${globe ? 'globe' : 'flat'}:${stepsX}x${stepsY}`;
       if (terrainGridMeshes.has(key)) return terrainGridMeshes.get(key);
       const vertices = new Float32Array((stepsX + 1) * (stepsY + 1) * 2);
       let vertexOffset = 0;
@@ -3323,7 +3380,8 @@ export function createGpuMapRenderer(deps) {
       const tile = terrainTiles.get(spec.key);
       if (!tile || !terrainProgram) return false;
       tile.lastUsed = performance.now();
-      const grid = terrainGridMesh(spec);
+      const frameContext = activeFrameContext || createFrameContext();
+      const grid = terrainGridMesh(spec, frameContext);
       gl.useProgram(terrainProgram);
       const gridLocation = glVersion === 2 ? 0 : cachedAttributeLocation(terrainProgram, 'aGrid');
       gl.bindBuffer(gl.ARRAY_BUFFER, grid.vertexBuffer);
@@ -3343,7 +3401,6 @@ export function createGpuMapRenderer(deps) {
       gl.uniform4f(cachedUniformLocation(terrainProgram, 'uUvBounds'), u0, v0, u1, v1);
       gl.uniform1f(cachedUniformLocation(terrainProgram, 'uPhysicalStyle'), state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
       gl.uniform1f(cachedUniformLocation(terrainProgram, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
-      const frameContext = activeFrameContext || createFrameContext();
       for (const offset of frameContext.worldOffsets) {
         setViewUniforms(terrainProgram, offset, frameContext);
         gl.drawElements(gl.TRIANGLES, grid.indexCount, gl.UNSIGNED_INT, 0);
@@ -3352,23 +3409,32 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function renderTerrain() {
-      if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return;
+    function terrainCandidateLevels(frameContext = activeFrameContext || createFrameContext()) {
       const levels = terrainManifest.levels;
       const baseLevel = levels[0];
-      const frameContext = activeFrameContext || createFrameContext();
       const targetLevel = terrainLevelForView(frameContext) || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      // Never mix parent and child rasters in one frame. Pick the most
-      // detailed level whose visible tile set is complete; this prevents the
-      // rectangular low-resolution patches that appeared during movement.
       const candidateLevels = levels.slice(0, (state.dataReadiness === 'enhanced' ? targetIndex : 0) + 1).reverse();
-      const specsByLevel = candidateLevels.map(level => ({
+      return candidateLevels.map(level => ({
         level,
         specs: visibleTerrainTileSpecs(level, false, frameContext),
       }));
-      const selected = specsByLevel.find(entry => entry.specs.length > 0 && entry.specs.every(spec => terrainTiles.has(spec.key)))
-        || specsByLevel.find(entry => entry.specs.length > 0 && entry.level === baseLevel && entry.specs.some(spec => terrainTiles.has(spec.key)));
+    }
+
+    function completeTerrainLevelForFrame(frameContext = activeFrameContext || createFrameContext()) {
+      if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return null;
+      return terrainCandidateLevels(frameContext)
+        .find(entry => entry.specs.length > 0 && entry.specs.every(spec => terrainTiles.has(spec.key))) || null;
+    }
+
+    function renderTerrain() {
+      if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return;
+      const frameContext = activeFrameContext || createFrameContext();
+      const specsByLevel = terrainCandidateLevels(frameContext);
+      // Never mix parent and child rasters, and never expose a partially
+      // uploaded base level. The previous complete level remains active until
+      // one coherent candidate can replace it.
+      const selected = specsByLevel.find(entry => entry.specs.length > 0 && entry.specs.every(spec => terrainTiles.has(spec.key))) || null;
       const targetSpecs = specsByLevel[0]?.specs || [];
       terrainLastLevel = Number(selected?.level?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
@@ -3636,29 +3702,6 @@ export function createGpuMapRenderer(deps) {
       ].map(String).filter(Boolean));
       if (!emphasizedIds.size) return;
       flushPaletteUpdates();
-      const compositeStartedAt = performance.now();
-      if (countryStateFillProgram && countryStateQuadBuffer && ensureCountryIdScene()) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.viewport(0, 0, pixelWidth, pixelHeight);
-        resetGpuNormalBlend(gl);
-        gl.useProgram(countryStateFillProgram);
-        const position = cachedAttributeLocation(countryStateFillProgram, 'aPosition');
-        gl.bindBuffer(gl.ARRAY_BUFFER, countryStateQuadBuffer);
-        gl.enableVertexAttribArray(position);
-        gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, pickTexture);
-        gl.uniform1i(cachedUniformLocation(countryStateFillProgram, 'uCountryIds'), 0);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, emphasisPaletteTexture);
-        gl.uniform1i(cachedUniformLocation(countryStateFillProgram, 'uPalette'), 1);
-        gl.uniform1f(cachedUniformLocation(countryStateFillProgram, 'uPaletteWidth'), Math.max(1, meshCountryIds.length));
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        gl.disableVertexAttribArray(position);
-        performanceMetrics.countryStateCompositeCount += 1;
-        performanceMetrics.countryStateCompositeMs += performance.now() - compositeStartedAt;
-        return;
-      }
       resetGpuNormalBlend(gl);
       const baseRanges = countryTriangleRanges(mesh, meshCountryIds, 'base');
       const visibleBaseRanges = [...emphasizedIds]
@@ -3753,7 +3796,6 @@ export function createGpuMapRenderer(deps) {
       } else {
         sceneCacheHit = true;
       }
-      if (needsBaseScene) ensureCountryIdScene();
       if (sceneColorCache.canComposite?.(viewSignature, projectGeneration)) {
         // This canvas is owned by PandoLab. Clear before compositing so pixels
         // removed from the active scene (for example an edited border) cannot
@@ -4617,6 +4659,23 @@ export function createGpuMapRenderer(deps) {
       target.mapHost = 'legacy';
     }
 
+    function getRuntimeState() {
+      return {
+        renderer: rendererMode,
+        fallbackReason,
+        effectivePixelRatio,
+        devicePixelRatio: Math.max(1, Number(window.devicePixelRatio || 1)),
+        activeWebGlContextCount: renderDevice && isWebGlRenderer() ? 1 : 0,
+        canonicalMeshReady,
+        previewAllowed,
+        firstCanonicalFrameMs,
+        canonicalFrameFallbackCount,
+        projectGeneration,
+        projectRenderBlocked,
+        sceneCacheValid: sceneColorCache.isValid(),
+      };
+    }
+
     function getStats({ detailed = true } = {}) {
       if (detailed && performance.now() - cachedDetailedStats.at > 250) {
         const sorted = [...frameTimes].sort((a, b) => a - b);
@@ -4693,7 +4752,7 @@ export function createGpuMapRenderer(deps) {
         emphasizedCountryCount: countryEmphasis.selectedIds.size,
         viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
         canvasBackingPixels: [pixelWidth, pixelHeight],
-        layoutMismatchCssPx: Number(layoutMismatch().toFixed(3)),
+        layoutMismatchCssPx: Number(lastLayoutMismatchCssPx.toFixed(3)),
         requestedRevision: currentRenderRevision,
         displayedRevision: displayedRenderRevision,
         committedGeometryRevision: geometryRevisionTracker.committedRevision(),
@@ -4735,7 +4794,7 @@ export function createGpuMapRenderer(deps) {
       attach,
       initialize, replaceBuiltInMesh, render, renderInteraction,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
-      rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, setTerrainManifest,
+      rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, setTerrainManifest,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
       setHydroEdits,
       setHydroInteractionActive, setRenderQuality, renderViewFrame: render,

@@ -237,8 +237,8 @@ export function createRenderingDomain({
       polygons.push({ key: `country-tool-fill:${id}`, geometryRevision, geometry: feature.geometry, order: 9000, style: { color: toolStyle.color, fillAlpha: toolStyle.fillAlpha, blendMode: 'normal' } });
       strokes.push({ key: `country-tool-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: 9010, style: { color: toolStyle.stroke, alpha: 1, width: toolStyle.width, cap: 'round' } });
     }
-    countries.replaceGpuSceneDomain?.('country-overlays', { polygons, strokes });
-    countries.syncGpuRenderScene?.();
+    const sceneChanged = countries.replaceGpuSceneDomain?.('country-overlays', { polygons, strokes });
+    if (sceneChanged !== false) countries.syncGpuRenderScene?.();
     const frameResult = countries.gpuMapRenderer?.render?.(revision, renderViewState);
     countries.applyGpuSceneCoverage?.(frameResult);
     countries.applyGpuInteractionCoverage?.(frameResult);
@@ -250,7 +250,7 @@ export function createRenderingDomain({
     if (!hydro.hydroLakeLayer || !hydro.hydroRiverLayer) return false;
     const riverStyle = hydro.layerStyle?.(state.layerPresentation, 'rivers') || {};
     const lakeStyle = hydro.layerStyle?.(state.layerPresentation, 'lakes') || {};
-    const renderer = hydro.gpuMapRenderer?.getStats?.({ detailed: false }).renderer;
+    const renderer = hydro.gpuMapRenderer?.getRuntimeState?.().renderer;
     const nativeHydro = ['webgl2', 'webgl1', 'canvas-worker', 'canvas2d'].includes(renderer);
     if (nativeHydro) {
       hydro.hydroLakeLayer.selectAll('*').remove();
@@ -283,7 +283,7 @@ export function createRenderingDomain({
     active();
     const state = hydro.getState?.() || {};
     if (!hydro.hydroEditLayer) return false;
-    const renderer = hydro.gpuMapRenderer?.getStats?.({ detailed: false }).renderer;
+    const renderer = hydro.gpuMapRenderer?.getRuntimeState?.().renderer;
     const nativeHydro = ['webgl2', 'webgl1', 'canvas-worker', 'canvas2d'].includes(renderer);
     hydro.gpuMapRenderer?.setHydroEdits?.(state.hydroEdits || [], hydro.getStateRevision?.() || state.stateRevision);
     const riverStyle = hydro.layerStyle?.(state.layerPresentation, 'rivers') || {};
@@ -724,7 +724,7 @@ export function createRenderingDomain({
     b.updatePandoGlobeShell?.(viewState);
     const graticuleGeometry = b.graticule?.();
     if (!graticuleGeometry || !b.graticuleLayer) return false;
-    const renderer = b.gpuMapRenderer?.getStats?.({ detailed: false })?.renderer;
+    const renderer = b.gpuMapRenderer?.getRuntimeState?.()?.renderer;
     const gpuOwnsGraticule = renderer === 'webgl2' || renderer === 'webgl1';
     b.graticuleLayer.attr('display', gpuOwnsGraticule ? 'none' : null)
       .datum(graticuleGeometry).attr('d', b.path).attr('data-gpu-scene-key', 'base:graticule');
