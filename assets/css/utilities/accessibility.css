@@ -1,0 +1,161 @@
+/* Cross-cutting responsive and accessibility hardening. */
+
+:is(
+  .editor-object-heading h2,
+  .workflow-dialog-card h2,
+  .historical-library-preview,
+  .historical-library-result,
+  .editor-action-row,
+  .create-menu-item,
+  .file-menu-item,
+  .ui-callout,
+  .ui-alert,
+  .ui-empty-state,
+  .action-status strong
+) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:is(.editor-action-row, .create-menu-item, .file-menu-item) > span,
+:is(.editor-action-row, .create-menu-item) > :is(div, span) {
+  min-width: 0;
+}
+
+.ui-dialog-actions,
+.confirm-modal-actions,
+.workflow-dialog-actions {
+  flex-wrap: wrap;
+}
+
+.ui-dialog-card,
+.workflow-dialog-card,
+.historical-library-card {
+  max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
+}
+
+.ui-dialog-card :is(input, select, textarea, .ui-select-control, .ui-search-field) {
+  max-width: 100%;
+}
+
+.action-status {
+  height: auto;
+  min-height: var(--ui-v2-control-lg);
+}
+
+.map-bottom-status {
+  height: auto;
+  min-height: var(--ui-shell-statusbar-height);
+}
+
+[role="option"]:focus-visible,
+[role="menuitem"]:focus-visible,
+.sheet-drag-handle:focus-visible,
+[role="tab"]:focus-visible,
+[role="radio"]:focus-visible {
+  outline: 2px solid var(--ui-v2-color-focus-ring);
+  outline-offset: var(--ui-v2-focus-offset);
+}
+
+.historical-library-results,
+.layer-list,
+.editor-scroll-body,
+.surface-body {
+  scroll-padding: var(--ui-space-2);
+}
+
+.historical-library-result[aria-selected="true"],
+.ui-tab[aria-selected="true"],
+.map-tool-btn[aria-pressed="true"] {
+  box-shadow: inset 0 -2px color-mix(in srgb, var(--accent) 68%, transparent);
+}
+
+@media (max-width: 799px) {
+  .surface-editor .editor-view-tabs .ui-tab,
+  .mobile-bottom-bar .ui-nav-item,
+  .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn),
+  .gis-export-format-option {
+    min-height: var(--ui-touch-height);
+  }
+
+  .ui-dialog-card,
+  .workflow-dialog-card {
+    max-width: calc(100vw - var(--ui-space-2));
+  }
+
+  .ui-dialog-actions > .btn,
+  .confirm-modal-actions > .btn,
+  .workflow-dialog-actions > .btn {
+    min-height: var(--ui-touch-height);
+  }
+
+  @media (max-width: 360px) {
+    .ui-dialog-actions,
+    .confirm-modal-actions,
+    .workflow-dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .ui-dialog-actions > .btn,
+    .confirm-modal-actions > .btn,
+    .workflow-dialog-actions > .btn {
+      width: 100%;
+    }
+
+    .mobile-bottom-bar .ui-nav-item strong {
+      font-size: max(var(--ui-font-xs), .72rem);
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  :where(.ui-button):focus-visible,
+  [role="option"]:focus-visible,
+  [role="menuitem"]:focus-visible,
+  .sheet-drag-handle:focus-visible,
+  [role="tab"]:focus-visible,
+  [role="radio"]:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: var(--ui-v2-focus-offset);
+  }
+
+  :is(
+    .historical-library-result[aria-selected="true"],
+    .ui-tab[aria-selected="true"],
+    .map-tool-btn[aria-pressed="true"],
+    .ui-segment-option[aria-checked="true"]
+  ) {
+    border-color: Highlight;
+    outline: 1px solid Highlight;
+    box-shadow: none;
+  }
+
+  .ui-alert,
+  .ui-callout,
+  .workflow-impact,
+  .project-save-status {
+    border-color: CanvasText;
+  }
+
+  .ui-alert--error,
+  .action-status.error,
+  .project-save-status[data-save-state="error"] {
+    border-color: Mark;
+  }
+
+  .status-dot,
+  .project-save-status-dot {
+    forced-color-adjust: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.ui-button),
+  .workspace-surface,
+  .action-status,
+  .ui-progress > span {
+    scroll-behavior: auto;
+    transition-duration: .01ms;
+  }
+}
