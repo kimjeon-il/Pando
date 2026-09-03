@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t==='light'||t==='dark'?t:d;}catch(_){document.documentElement.dataset.theme='dark';}}());</script>
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
   <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-40dce6ec810d" />
 </head>
 <body class="is-loading">
@@ -63,10 +63,10 @@
       <div class="ui-progress bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" data-app-version="0.32.0" data-layout="wide">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true"></div>
+  <div id="app" data-app-version="0.32.0" data-layout="wide" data-od-id="app-shell">
+    <header class="topbar" data-od-id="topbar">
+      <div class="brand" data-od-id="brand">
+        <div class="brand-mark" aria-hidden="true"><svg class="ui-icon brand-logo" viewBox="0 0 24 24"><use href="#icon-map"/></svg></div>
         <div><strong>판도연구소</strong></div>
       </div>
 
@@ -79,13 +79,13 @@
       </div>
 
       <div class="topbar-file-actions">
-        <button id="mobileFileBtn" class="ui-button file-menu-btn" type="button" aria-label="파일 메뉴 열기" aria-haspopup="menu" aria-controls="fileMenu" aria-expanded="false"><span>파일</span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
+        <button id="mobileFileBtn" class="ui-button file-menu-btn" type="button" aria-label="파일 메뉴 열기" aria-haspopup="menu" aria-controls="fileMenu" aria-expanded="false" data-od-id="file-menu-button"><span>파일</span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
       </div>
 
     </header>
 
-    <div class="workspace">
-      <aside id="leftPanel" class="sidebar left-panel workspace-surface surface-map ui-sheet" aria-labelledby="mapSheetTitle">
+    <div class="workspace" data-od-id="workspace">
+      <aside id="leftPanel" class="sidebar left-panel workspace-surface surface-map ui-sheet" aria-labelledby="mapSheetTitle" data-od-id="map-panel">
         <header class="surface-header">
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="leftPanel" aria-label="지도 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
           <div class="surface-header-title"><strong id="mapSheetTitle">지도</strong></div>
@@ -281,8 +281,8 @@
 
       </aside>
 
-      <main class="map-wrap">
-        <div id="map" tabindex="-1" aria-label="지도 편집 영역"></div>
+      <main class="map-wrap" data-od-id="map-area">
+        <div id="map" tabindex="-1" aria-label="지도 편집 영역" data-od-id="map-stage"></div>
 
         <div class="map-overlay-layer" aria-label="지도 도구 및 상태">
         <nav id="mapToolToolbar" class="ui-toolbar ui-floating-surface ui-floating-toolbar map-tool-toolbar floating-toolbar" aria-label="지도 도구">
@@ -293,16 +293,16 @@
         </nav>
 
         <div class="compact-primary-controls">
-          <nav class="ui-nav adaptive-nav mobile-bottom-bar" aria-label="지도 탐색">
-            <button id="mobileMapBtn" class="ui-button ui-nav-item" type="button" aria-controls="leftPanel" aria-label="지도" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>지도</strong></button>
-            <button id="mobileCreateBtn" class="ui-button ui-nav-item" type="button" aria-controls="createMenu" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>만들기</strong></button>
-            <button id="mobileEditBtn" class="ui-button ui-nav-item" type="button" aria-controls="rightPanel" aria-expanded="false"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
+          <nav class="ui-nav adaptive-nav mobile-bottom-bar" aria-label="작업 공간" data-od-id="workspace-navigation">
+            <button id="mobileMapBtn" class="ui-button ui-nav-item" type="button" aria-controls="leftPanel" aria-label="레이어" aria-expanded="false" data-od-id="workspace-layers"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg></span><strong>레이어</strong></button>
+            <button id="mobileCreateBtn" class="ui-button ui-nav-item" type="button" aria-controls="createMenu" aria-expanded="false" data-od-id="workspace-create"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>만들기</strong></button>
+            <button id="mobileEditBtn" class="ui-button ui-nav-item" type="button" aria-controls="rightPanel" aria-expanded="false" data-od-id="workspace-edit"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
           </nav>
 
           <div id="mapCommandToolbar" class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar floating-toolbar history-empty" aria-label="지도 명령">
             <div class="create-menu-wrap">
               <button id="createMenuBtn" class="ui-button btn create-menu-btn" type="button" aria-haspopup="dialog" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>만들기</span></button>
-              <section id="createMenu" class="create-menu workspace-surface surface-create ui-sheet ui-popover ui-floating-surface hidden" role="dialog" aria-modal="false" aria-labelledby="createSheetTitle">
+              <section id="createMenu" class="create-menu workspace-surface surface-create ui-sheet ui-popover ui-floating-surface hidden" role="dialog" aria-modal="false" aria-labelledby="createSheetTitle" data-od-id="create-menu">
                 <header class="surface-header">
                   <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="createMenu" aria-label="추가 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
                   <div class="surface-header-title"><strong id="createSheetTitle">만들기</strong></div>
@@ -441,7 +441,7 @@
 
       </main>
 
-      <aside id="rightPanel" class="sidebar right-panel editor-panel workspace-surface surface-editor ui-sheet" aria-labelledby="editSheetTitle">
+      <aside id="rightPanel" class="sidebar right-panel editor-panel workspace-surface surface-editor ui-sheet" aria-labelledby="editSheetTitle" data-od-id="editor-panel">
         <header class="surface-header">
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="rightPanel" aria-label="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
           <div class="surface-header-title">
@@ -475,7 +475,7 @@
             </div>
           </section>
 
-          <section id="emptyProperties" class="empty-state editor-empty">
+          <section id="emptyProperties" class="empty-state editor-empty" data-od-id="empty-editor-state">
             <strong>선택한 객체가 없습니다.</strong><p>지도나 레이어 목록에서 편집할 대상을 선택하세요.</p>
           </section>
 

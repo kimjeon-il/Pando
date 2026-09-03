@@ -100,7 +100,10 @@ export function createSurfaceController({ getElement, getLayout, document }) {
   }
 
   function isOpen(surface) {
-    if (surface === 'layers') return getLayout() === 'wide' || state.layersOpen;
+    if (surface === 'layers') {
+      if (getLayout() === 'wide') return !state.editorOpen && state.activeSurface !== 'create';
+      return state.layersOpen;
+    }
     if (surface === 'editor') return state.editorOpen;
     if (surface === 'create') return state.activeSurface === 'create';
     return false;
@@ -144,9 +147,9 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     } else {
       activeMobileSheet = null;
       state.layersOpen = true;
-      if (surface === 'editor') state.editorOpen = true;
-      state.activeSurface = surface;
-      openOrigins[surface] = origin;
+      state.editorOpen = surface === 'editor';
+      state.activeSurface = surface === 'layers' ? null : surface;
+      for (const name of SURFACES) openOrigins[name] = name === surface ? origin : null;
     }
     return true;
   }
@@ -182,6 +185,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     const layersOpen = layout === 'wide' || (layout === 'mobile' ? activeMobileSheet === 'map' : state.layersOpen);
     const editorOpen = layout === 'mobile' ? activeMobileSheet === 'edit' : state.editorOpen;
     const createOpen = layout === 'mobile' ? activeMobileSheet === 'create' : state.activeSurface === 'create';
+    const layersControlOpen = layout === 'wide' ? !editorOpen && !createOpen : layersOpen;
     state.layersOpen = layersOpen;
     state.editorOpen = editorOpen;
 
@@ -202,7 +206,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     document.body.classList.toggle('map-sheet-open', layout === 'mobile' && !!activeMobileSheet);
 
     const expanded = [
-      ['mobileMapBtn', layersOpen], ['mobileCreateBtn', createOpen], ['mobileEditBtn', editorOpen],
+      ['mobileMapBtn', layersControlOpen], ['mobileCreateBtn', createOpen], ['mobileEditBtn', editorOpen],
       ['createMenuBtn', createOpen],
     ];
     for (const [id, openState] of expanded) {
