@@ -194,14 +194,16 @@ test('country interaction boundaries reuse stable shared resources and draw only
   assert.doesNotMatch(gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro')), /primaryBoundaryPaletteTexture/);
 });
 
-test('country interaction fill composites the cached country-id scene before any geometry fallback', async () => {
+test('country interaction fill draws only emphasized country owner ranges', async () => {
   const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
   const start = gpu.indexOf('function drawCountryInteractionFills');
-  const end = gpu.indexOf('function renderGpuSceneDomain', start);
+  const end = gpu.indexOf('function drawInteractionPasses', start);
   const interactionFill = gpu.slice(start, end);
   assert.match(gpu, /function ensureCountryIdScene/);
-  assert.match(interactionFill, /countryStateFillProgram && countryStateQuadBuffer && ensureCountryIdScene\(\)/);
-  assert.match(interactionFill, /gl\.drawArrays\(gl\.TRIANGLE_STRIP, 0, 4\)/);
+  assert.doesNotMatch(interactionFill, /ensureCountryIdScene\(\)/);
+  assert.match(interactionFill, /countryTriangleRanges\(mesh, meshCountryIds, 'base'\)/);
+  assert.match(interactionFill, /visibleBaseRanges/);
+  assert.match(interactionFill, /drawProgram\(fillProgram[^;]+visibleBaseRanges\)/s);
   assert.match(interactionFill, /performanceMetrics\.countryInteractionIndexCount = 0/);
 });
 

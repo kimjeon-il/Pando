@@ -5,7 +5,10 @@ import test from 'node:test';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-import { resolveRenderPixelRatioValue } from '../../assets/js/modules/gpu-map-renderer.js';
+import {
+  resolveRenderPixelRatioValue,
+  visibleFlatWorldOffsets,
+} from '../../assets/js/modules/gpu-map-renderer.js';
 import {
   DATA_READINESS,
   READINESS_EVENTS,
@@ -40,6 +43,34 @@ test('mobile DPR is capped at two while desktop retains the existing cap', () =>
   assert.equal(resolveRenderPixelRatioValue(4, false), 3);
   assert.equal(resolveRenderPixelRatioValue(2.5, false), 2.5);
   assert.equal(resolveRenderPixelRatioValue(3, false, 1.25), 1.25);
+});
+
+test('flat world copies are limited to intervals intersecting the viewport', () => {
+  assert.deepEqual(visibleFlatWorldOffsets({
+    translateX: 500,
+    scale: 500,
+    flatCenterRadians: 0,
+    viewportWidth: 1000,
+  }), [0]);
+  assert.deepEqual(visibleFlatWorldOffsets({
+    translateX: 500,
+    scale: 100,
+    flatCenterRadians: 0,
+    viewportWidth: 1000,
+  }), [-2 * Math.PI, 0, 2 * Math.PI]);
+  assert.deepEqual(visibleFlatWorldOffsets({
+    translateX: 500,
+    scale: 1000 / (2 * Math.PI),
+    flatCenterRadians: 0,
+    viewportWidth: 1000,
+  }), [0]);
+  assert.deepEqual(visibleFlatWorldOffsets({
+    translateX: -6000,
+    scale: 500,
+    flatCenterRadians: 0,
+    viewportWidth: 1000,
+  }), [2 * Math.PI]);
+  assert.deepEqual(visibleFlatWorldOffsets({ scale: 0, viewportWidth: 1000 }), [0]);
 });
 
 test('readiness transitions enable mutations at geometry-ready and preserve them through enhancement', () => {

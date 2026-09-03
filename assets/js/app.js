@@ -2163,7 +2163,6 @@ const {
   let countryOutlineCache = new WeakMap();
   let geometryAreaDisplayCache = new WeakMap();
   let pendingCountryAreaDisplay = new WeakSet();
-  let countryProjectedBoundsCache = new WeakMap();
   let genericFeatureLandClipCache = new WeakMap();
   const mapObjectSpatialIndex = createMapObjectSpatialIndex();
   const mapObjectDistributionRowCache = new Map();
@@ -2231,6 +2230,7 @@ const {
   }
 
   function selectionPerformanceCounterSnapshot() {
+    if (!selectionPerfEnabled) return null;
     const gpu = gpuMapRenderer?.getStats?.() || {};
     const selectionGpu = selectionPass?.stats?.() || {};
     const render = mapRenderCoordinator?.getStats?.() || {};
@@ -2267,7 +2267,7 @@ const {
       worldMeshUploadCount: 0,
       hydroUploadBytes: after.hydroUploadBytes - before.hydroUploadBytes,
       activeCanvasCount: gpuMapRenderer?.getRenderDevice?.() ? 1 : 0,
-      activeContextCount: Number(gpuMapRenderer?.getStats?.({ detailed: false })?.activeWebGlContextCount || 0),
+      activeContextCount: Number(gpuMapRenderer?.getRuntimeState?.()?.activeWebGlContextCount || 0),
     });
     window.__PANDOLAB_SELECTION_BASELINE__ = selectionPerformanceBaseline.snapshot();
   }
@@ -2359,7 +2359,7 @@ const {
 
   function applyAdaptiveRenderQuality({ refreshScene = false, reason = 'adaptive-render-quality' } = {}) {
     currentRenderQuality = renderQualityController.profile();
-    const gpuQuality = gpuMapRenderer.getStats?.() || {};
+    const gpuQuality = gpuMapRenderer.getRuntimeState?.() || {};
     if (gpuQuality.canonicalMeshReady) {
       // Background LOD is allowed to be coarse only while the initial
       // preview is visible.  After canonical promotion, interaction may
@@ -2378,9 +2378,8 @@ const {
       Math.max(1, Number(currentRenderQuality.dprCap || 1)),
     ));
     if (refreshScene) {
-      for (const domain of ['base-graticule', 'generic-features', 'distributions']) gpuSceneDirtyDomains.add(domain);
       mapRenderCoordinator?.invalidate(
-        MAP_RENDER_DIRTY.OVERLAY_DATA | MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
+        MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
         reason,
       );
     }
@@ -2433,9 +2432,11 @@ const {
   }
 
   function countryAtScreenPoint(screenPoint, coord, { verify = true } = {}) {
-    const gpuId = gpuMapRenderer.pick(screenPoint);
-    const gpuFeature = gpuId ? countryFeatureById(gpuId) : null;
-    if (gpuFeature && isLayerItemVisible('countries', gpuId) && (!verify || pointInCountryFeature(coord, gpuFeature))) return gpuFeature;
+    // Bounds from the spatial index already narrow the CPU test. Rebuilding a
+    // full-resolution GPU ID framebuffer after every camera change made the
+    // first hover/click stall while still requiring CPU geometry verification.
+    void screenPoint;
+    void verify;
     return cpuCountryAtCoordinate(coord);
   }
 
@@ -3377,7 +3378,6 @@ const {
         geometryBoundsCache.delete(feature.geometry);
         countryOutlineCache.delete(feature.geometry);
         geometryAreaDisplayCache.delete(feature.geometry);
-        countryProjectedBoundsCache.delete(feature.geometry);
       }
     }
     rebuildSpatialIndex();
@@ -6113,16 +6113,23 @@ const {
     let height = Number(projectedExtent?.height);
     if (!Number.isFinite(width) || !Number.isFinite(height)) {
       const geometry = feature?.geometry;
-      const cached = geometry ? countryProjectedBoundsCache.get(geometry) : null;
-      if (cached?.viewRevision === viewRevision) {
-        width = cached.width;
-        height = cached.height;
+      const bounds = geometry ? geometryBounds(geometry) : null;
+      const scale = Math.max(1, Number(activeProjection()?.scale?.()) || 1);
+      const lonSpan = bounds?.every(Number.isFinite)
+        ? Math.max(0, Math.min(360, Number(bounds[2]) - Number(bounds[0]))) * Math.PI / 180
+        : 0;
+      const latSpan = bounds?.every(Number.isFinite)
+        ? Math.max(0, Math.min(180, Number(bounds[3]) - Number(bounds[1]))) * Math.PI / 180
+        : 0;
+      if (state.projection === 'globe') {
+        const centerLatitude = bounds?.every(Number.isFinite)
+          ? Math.max(-89.999, Math.min(89.999, (Number(bounds[1]) + Number(bounds[3])) / 2)) * Math.PI / 180
+          : 0;
+        width = Math.min(scale * 2, scale * lonSpan * Math.max(0.08, Math.abs(Math.cos(centerLatitude))));
+        height = Math.min(scale * 2, scale * latSpan);
       } else {
-        let bounds;
-        try { bounds = path.bounds(feature); } catch (_) { bounds = null; }
-        width = bounds ? Math.max(0, Number(bounds[1]?.[0]) - Number(bounds[0]?.[0])) : 0;
-        height = bounds ? Math.max(0, Number(bounds[1]?.[1]) - Number(bounds[0]?.[1])) : 0;
-        if (geometry) countryProjectedBoundsCache.set(geometry, { viewRevision, width, height });
+        width = scale * lonSpan;
+        height = scale * latSpan;
       }
     }
     const textWidth = Math.max(20, [...countryName(labelFeature)].length * fontSize * 1.02 + 8);
@@ -6940,10 +6947,12 @@ const {
     const normalizedPolygons = polygons.filter(item => item?.key && item?.geometry).map(normalizeItem);
     const normalizedStrokes = strokes.filter(item => item?.key && (item?.geometry || item?.startsEnds)).map(normalizeItem);
     const geometrySignature = [...normalizedPolygons, ...normalizedStrokes]
-      .map(item => `${item.key}:${item.geometryRevision}`).join('|');
+      .map(item => [item.key, item.geometryRevision, item.objectKey || '', item.chunkKey,
+        item.lodPolicy, item.priority, item.protected === true].join(':')).join('|');
     const styleSignature = [...normalizedPolygons, ...normalizedStrokes]
       .map(item => `${item.key}:${JSON.stringify(item.style || {})}:${item.order}:${item.blendMode || ''}`).join('|');
     const previous = gpuSceneDomains.get(domain);
+    if (previous?.geometrySignature === geometrySignature && previous?.styleSignature === styleSignature) return false;
     if (previous?.geometrySignature !== geometrySignature) renderSceneGeometryRevision += 1;
     if (previous?.styleSignature !== styleSignature) renderSceneStyleRevision += 1;
     gpuSceneDomains.set(domain, {
@@ -6956,6 +6965,7 @@ const {
     for (const item of [...normalizedPolygons, ...normalizedStrokes]) {
       if (item.objectKey) gpuSceneResourceObjectKeys.set(String(item.key), String(item.objectKey));
     }
+    return true;
   }
 
   function syncGpuRenderScene({ selectionPacket = currentSelectionPacket, interactionFillItems = currentGpuInteractionFillItems } = {}) {
@@ -7116,7 +7126,7 @@ const {
   }
 
   function applyGpuSceneCoverage(frameResult) {
-    const webGlReady = ['webgl2', 'webgl1'].includes(gpuMapRenderer.getStats?.({ detailed: false })?.renderer);
+    const webGlReady = ['webgl2', 'webgl1'].includes(gpuMapRenderer.getRuntimeState?.()?.renderer);
     if (!webGlReady) {
       svg?.selectAll?.('[data-gpu-scene-key]')?.classed('gpu-scene-hit-proxy', false);
       return;
@@ -7131,7 +7141,7 @@ const {
   }
 
   function applyGpuInteractionCoverage(frameResult) {
-    const webGlReady = ['webgl2', 'webgl1'].includes(gpuMapRenderer.getStats?.({ detailed: false })?.renderer);
+    const webGlReady = ['webgl2', 'webgl1'].includes(gpuMapRenderer.getRuntimeState?.()?.renderer);
     const results = [
       ...(frameResult?.interactionResult?.previewResults || []),
       ...(frameResult?.interactionResult?.draftResults || []),
@@ -7408,6 +7418,7 @@ const {
       return syncViewRevision();
     },
     renderers: {
+      beginFrame: frameContext => renderingDomain?.beginFrame?.(frameContext),
       view: viewState => {
         return renderingDomain?.renderPass('view', viewState);
       },
@@ -7440,13 +7451,18 @@ const {
       layerTree: (...args) => renderingDomain?.renderPass('layerTree', ...args),
     },
     onFrameComplete: sample => {
-      const gpuStats = gpuMapRenderer.getStats?.({ detailed: false }) || {};
+      const gpuStats = gpuMapRenderer.getRuntimeState?.() || {};
       const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
       if (startupMetrics) {
         startupMetrics.firstCanonicalFrameMs = gpuStats.firstCanonicalFrameMs ?? startupMetrics.firstCanonicalFrameMs;
         startupMetrics.canonicalFrameFallbackCount = Number(gpuStats.canonicalFrameFallbackCount || 0);
       }
-      const changed = renderQualityController.recordFrame(sample.durationMs, {
+      // Startup/full-scene work is intentionally expensive and is not an
+      // interaction performance sample. Feeding it into the adaptive window
+      // caused an immediate post-load downgrade and another scene refresh.
+      const shouldSampleInteractionBudget = sample.interactionActive
+        || (!sample.full && !!(sample.dirtyMask & MAP_RENDER_DIRTY.VIEW));
+      const changed = shouldSampleInteractionBudget && renderQualityController.recordFrame(sample.durationMs, {
         interaction: sample.interactionActive,
       });
       if (changed) queueAdaptiveRenderQualityRefresh('frame-budget-quality-change');
@@ -16154,7 +16170,7 @@ const {
     // The low-resolution country source is a one-way startup aid.  After the
     // first canonical promotion a project reset starts from canonical data or
     // a neutral loading state and must not briefly re-expose preview geometry.
-    const previewAllowed = gpuMapRenderer.getStats?.().previewAllowed !== false;
+    const previewAllowed = gpuMapRenderer.getRuntimeState?.().previewAllowed !== false;
     state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
     countryDisplaySource = null;
     countryDisplayIndex = new Map();
@@ -16200,7 +16216,7 @@ const {
     const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     if (startupMetrics) {
       startupMetrics.geometryApplyMs = performance.now() - applyStartedAt;
-      const renderer = gpuMapRenderer.getStats();
+      const renderer = gpuMapRenderer.getRuntimeState();
       startupMetrics.renderer = renderer.renderer;
       startupMetrics.fallbackReason = renderer.fallbackReason;
       startupMetrics.devicePixelRatio = renderer.devicePixelRatio;
@@ -16255,7 +16271,7 @@ const {
     applyDataReadinessEvent(READINESS_EVENTS.MESH_READY);
     state.meshProgress = 100;
     invalidateProjectRender('canonical-mesh-ready');
-    const renderer = gpuMapRenderer.getStats();
+    const renderer = gpuMapRenderer.getRuntimeState();
     $('engineStatus').textContent = `Natural Earth 5.1.1 · ${renderer.renderer === 'webgl2' ? 'WebGL2' : renderer.renderer === 'webgl1' ? 'WebGL1' : 'Canvas'} 고화질`;
     const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     if (startupMetrics) {
@@ -16317,7 +16333,7 @@ const {
     await gpuMapRenderer.initialize();
     if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'ready';
     if (window.__PANDOLAB_STARTUP_METRICS__) {
-      const previewRenderer = gpuMapRenderer.getStats();
+      const previewRenderer = gpuMapRenderer.getRuntimeState();
       window.__PANDOLAB_STARTUP_METRICS__.previewMeshUploadMs = performance.now() - previewMeshStartedAt;
       window.__PANDOLAB_STARTUP_METRICS__.renderer = previewRenderer.renderer;
       window.__PANDOLAB_STARTUP_METRICS__.fallbackReason = previewRenderer.fallbackReason;
@@ -16982,7 +16998,6 @@ const {
       refreshRenderResources,
       getRenderResourceSnapshot,
       renderers: {
-        beginFrame: frameContext => renderingDomain.beginFrame?.(frameContext),
         view: viewState => { updatePandoGlobeShell(); return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState); },
         base: (...args) => renderingDomain.renderBase(...args),
         countries: (...args) => renderingDomain.renderCountries(...args),
