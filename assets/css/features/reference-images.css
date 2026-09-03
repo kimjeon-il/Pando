@@ -41,6 +41,7 @@
 .reference-image-editor-title,
 .reference-image-toolbar,
 .reference-image-toggle-row,
+.reference-image-placement-actions,
 .reference-image-gcp-actions,
 .reference-image-diagnostics {
   display: flex;
@@ -84,6 +85,7 @@
 }
 
 .reference-image-list-row {
+  position: relative;
   width: 100%;
   min-height: var(--ui-control-height);
   display: grid;
@@ -99,6 +101,16 @@
   cursor: pointer;
 }
 
+.reference-image-list-row::before {
+  content: '';
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  width: 2px;
+  border-radius: var(--ui-radius-pill);
+  background: transparent;
+}
+
 .reference-image-list-row:hover,
 .reference-image-list-row:focus-visible {
   background: var(--surface-hover);
@@ -109,6 +121,23 @@
   background: var(--selection-soft-bg);
   border-color: var(--selection-soft-border);
   color: var(--selection-soft-fg);
+}
+
+.reference-image-list-row.is-selected::before {
+  background: var(--accent);
+}
+
+.reference-image-visibility {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+
+.reference-image-visibility .ui-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
 }
 
 .reference-image-list-row strong {
@@ -159,7 +188,13 @@
   color: var(--muted);
 }
 
+.reference-image-number-input {
+  min-width: 0;
+  width: 100%;
+}
+
 .reference-image-toggle-row,
+.reference-image-placement-actions,
 .reference-image-gcp-actions {
   flex-wrap: wrap;
 }
@@ -171,6 +206,13 @@
   min-height: var(--ui-control-height);
   font-size: var(--ui-font-label);
   color: var(--text-soft);
+}
+
+.reference-image-placement-actions .ui-button.active,
+.reference-image-placement-actions .ui-button[aria-pressed="true"] {
+  background: var(--selection-soft-bg);
+  border-color: var(--accent-border);
+  color: var(--text-strong);
 }
 
 .reference-image-diagnostics {
@@ -206,6 +248,10 @@
   cursor: crosshair;
 }
 
+#map.is-reference-placement-mode {
+  cursor: move;
+}
+
 @media (max-width: 799px) {
   .reference-image-launcher {
     inset-block-start: var(--ui-space-2);
@@ -225,6 +271,11 @@
 
   .reference-image-field {
     grid-template-columns: 64px minmax(0, 1fr) auto;
+  }
+
+  .reference-image-placement-actions .ui-button,
+  .reference-image-gcp-actions .ui-button {
+    min-height: var(--ui-v2-control-mobile-height);
   }
 }
 
