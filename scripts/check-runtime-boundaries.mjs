@@ -57,6 +57,7 @@ const domFreeModules = [
   'scene-color-cache.js',
   'gpu-polygon-overlay-pass.js',
   'gpu-stroke-renderer.js',
+  'hydro-tile-window.js',
   'selection-packet.js',
   'selection-pass.js',
   'selection-stroke-geometry.js',

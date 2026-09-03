@@ -27,6 +27,10 @@ function meshTransferables(mesh) {
     mesh.triangleIndices.buffer,
     mesh.lineIndices.buffer,
     mesh.strokeStartsEnds.buffer,
+    mesh.countryTriangleRanges.buffer,
+    mesh.countryBoundaryRanges.buffer,
+    mesh.countryBounds.buffer,
+    mesh.countryBoundsFlags.buffer,
   ];
 }
 

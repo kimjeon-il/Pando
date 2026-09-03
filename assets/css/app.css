@@ -525,6 +525,8 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .gpu-country-highlight { fill: transparent; }
 .country-highlight-fill { fill: transparent; stroke: none; }
 .map-ocean { fill: var(--map-ocean); stroke: none; }
+.map-base-svg:not(.flat-projection) .map-ocean-flat { display: none; }
+.map-base-svg.flat-projection .map-ocean-globe { display: none; }
 .map-base-svg.flat-projection .map-ocean { stroke: none; }
 .map-base-svg.flat-projection .globe-shadow { display: none; }
 .map-graticule { fill: none; stroke: var(--map-graticule); stroke-opacity: var(--map-graticule-opacity); stroke-width: .55px; pointer-events: none; }

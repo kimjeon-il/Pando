@@ -7,6 +7,7 @@ function fixture() {
   const calls = [];
   const frames = [];
   const viewState = Object.freeze({ revision: 7, projection: 'globe' });
+  const viewFrameResult = Object.freeze({ succeeded: true, selection: { succeeded: true } });
   const names = [
     'view',
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
@@ -16,6 +17,7 @@ function fixture() {
   ];
   const renderers = Object.fromEntries(names.map(name => [name, (...args) => {
     calls.push([name, ...args]);
+    if (name === 'view') return viewFrameResult;
     return name === 'labelLayout' ? { countryLabels: [], userLabels: [] } : undefined;
   }]));
   const coordinator = createMapRenderCoordinator({
@@ -23,7 +25,7 @@ function fixture() {
     prepareView: () => { calls.push(['prepare']); return viewState; },
     renderers,
   });
-  return { calls, frames, coordinator, viewState };
+  return { calls, frames, coordinator, viewState, viewFrameResult };
 }
 
 test('full render preserves canonical layer order and revision', () => {
@@ -43,7 +45,7 @@ test('full render preserves canonical layer order and revision', () => {
 });
 
 test('view render refreshes projection-dependent layers with the shared view state', () => {
-  const { calls, coordinator } = fixture();
+  const { calls, coordinator, viewState, viewFrameResult } = fixture();
   coordinator.renderView();
   assert.equal(calls.some(call => call[0] === 'hydro'), false);
   assert.equal(calls.some(call => call[0] === 'view'), true);
@@ -51,6 +53,11 @@ test('view render refreshes projection-dependent layers with the shared view sta
   assert.equal(calls.some(call => call[0] === 'layerTree'), false);
   assert.equal(calls.some(call => call[0] === 'selectionData'), false);
   assert.equal(calls.some(call => call[0] === 'selectionView'), true);
+  const fallbackCall = calls.find(call => call[0] === 'selectionView');
+  assert.equal(fallbackCall[1], viewState);
+  assert.equal(fallbackCall[2], viewFrameResult);
+  assert.deepEqual(fallbackCall[3], { viewOnly: true, updateData: false, sparseFallbackOnly: true });
+  assert.equal(coordinator.getStats().lastDirtyMask & MAP_RENDER_DIRTY.SELECTION_VIEW, 0);
   assert.equal(calls.some(call => call[0] === 'countries'), false);
   assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), true);
 });

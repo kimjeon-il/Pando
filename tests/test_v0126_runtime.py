@@ -44,19 +44,22 @@ class V0126RuntimeTests(unittest.TestCase):
 
     def test_polar_closure_edges_are_excluded_from_all_stroke_paths(self):
         self.assertIn("MESH_ALGORITHM_REVISION = 3", CORE)
-        self.assertIn("expected.some((value, index) => header[index] !== value)", LOADER)
+        self.assertIn("expected.length === headerWords", LOADER)
+        self.assertIn("expected.every((value, index) => header[index] === value)", LOADER)
         self.assertIn("header[7] !== 3", RENDERER)
         self.assertIn("isArtificialPolarClosureEdge(a, b)", CORE)
         self.assertIn("countryOutlineFeature(feature)", RENDERER)
         self.assertIn("countryOutlineFeature(feature)", CANVAS)
 
         raw = gzip.decompress((ROOT / "assets" / "data" / "world-mesh-v0.12.6.bin.gz").read_bytes())
-        magic, _fmt, _countries, vertex_count, triangle_count, line_count, source_count, revision = struct.unpack_from("<8I", raw, 0)
+        magic, mesh_format, _countries, vertex_count, triangle_count, line_count, source_count, revision = struct.unpack_from("<8I", raw, 0)
         self.assertEqual(magic, 0x434D4731)
+        self.assertEqual(mesh_format, 2)
         self.assertEqual((source_count, revision), (548464, 3))
-        positions = struct.unpack_from(f"<{vertex_count * 2}i", raw, 32)
+        header_bytes = 48 if mesh_format >= 2 else 32
+        positions = struct.unpack_from(f"<{vertex_count * 2}i", raw, header_bytes)
         country_bytes = vertex_count * 2
-        offset = 32 + vertex_count * 8 + ((country_bytes + 3) & ~3) + triangle_count * 4
+        offset = header_bytes + vertex_count * 8 + ((country_bytes + 3) & ~3) + triangle_count * 4
         lines = struct.unpack_from(f"<{line_count}I", raw, offset)
         for left, right in zip(lines[::2], lines[1::2]):
             a = (positions[left * 2] / 1e6, positions[left * 2 + 1] / 1e6)

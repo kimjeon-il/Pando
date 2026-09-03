@@ -12,6 +12,8 @@ const outputPath = path.resolve(
   projectRoot,
   process.argv[2] || path.join('assets', 'data', 'world-mesh-v0.12.6.bin.gz'),
 );
+const MESH_FORMAT_VERSION = 2;
+const MESH_HEADER_WORDS = 12;
 function loadClassicScript(relativePath, globalName) {
   const filePath = path.join(projectRoot, relativePath);
   vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), { filename: filePath });
@@ -128,22 +130,35 @@ validateIndices(mesh.lineIndices, vertexCount, 2, '국경선');
 if (mesh.countryIds.length !== 258 || mesh.countryIndices.length !== vertexCount) {
   throw new Error('국가 또는 꼭짓점 메타데이터 길이가 올바르지 않습니다.');
 }
+if (mesh.countryTriangleRanges.length !== mesh.countryIds.length * 2
+    || mesh.countryBoundaryRanges.length !== mesh.countryIds.length * 2
+    || mesh.countryBounds.length !== mesh.countryIds.length * 4
+    || mesh.countryBoundsFlags.length !== mesh.countryIds.length) {
+  throw new Error('국가별 GPU draw metadata 길이가 올바르지 않습니다.');
+}
 const packedMaximumEdgeDegrees = validatePackedGeometry(mesh);
 
-const headerBytes = 8 * Uint32Array.BYTES_PER_ELEMENT;
+const headerBytes = MESH_HEADER_WORDS * Uint32Array.BYTES_PER_ELEMENT;
 const countryBytesPadded = (mesh.countryIndices.byteLength + 3) & ~3;
-const rawByteLength = headerBytes + mesh.positions.byteLength + countryBytesPadded + mesh.triangleIndices.byteLength + mesh.lineIndices.byteLength;
+const rawByteLength = headerBytes + mesh.positions.byteLength + countryBytesPadded
+  + mesh.triangleIndices.byteLength + mesh.lineIndices.byteLength
+  + mesh.countryTriangleRanges.byteLength + mesh.countryBoundaryRanges.byteLength
+  + mesh.countryBounds.byteLength + mesh.countryBoundsFlags.byteLength;
 const raw = Buffer.alloc(rawByteLength);
-const header = new Uint32Array(raw.buffer, raw.byteOffset, 8);
+const header = new Uint32Array(raw.buffer, raw.byteOffset, MESH_HEADER_WORDS);
 header.set([
   0x434d4731,
-  1,
+  MESH_FORMAT_VERSION,
   mesh.countryIds.length,
   vertexCount,
   mesh.triangleIndices.length,
   mesh.lineIndices.length,
   sourceCoordinateCount,
   meshCore.MESH_ALGORITHM_REVISION,
+  mesh.countryTriangleRanges.length,
+  mesh.countryBoundaryRanges.length,
+  mesh.countryBounds.length,
+  mesh.countryBoundsFlags.length,
 ]);
 
 let offset = headerBytes;
@@ -151,7 +166,14 @@ for (const array of [mesh.positions, mesh.countryIndices]) {
   Buffer.from(array.buffer, array.byteOffset, array.byteLength).copy(raw, offset);
   offset += array === mesh.countryIndices ? countryBytesPadded : array.byteLength;
 }
-for (const array of [mesh.triangleIndices, mesh.lineIndices]) {
+for (const array of [
+  mesh.triangleIndices,
+  mesh.lineIndices,
+  mesh.countryTriangleRanges,
+  mesh.countryBoundaryRanges,
+  mesh.countryBounds,
+  mesh.countryBoundsFlags,
+]) {
   Buffer.from(array.buffer, array.byteOffset, array.byteLength).copy(raw, offset);
   offset += array.byteLength;
 }

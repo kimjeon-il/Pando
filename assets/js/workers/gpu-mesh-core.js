@@ -7,6 +7,8 @@
   const DEG_TO_RAD = Math.PI / 180;
   const PARAM_EPSILON = 1e-12;
   const AREA_EPSILON = 1e-20;
+  const COUNTRY_BOUNDS_FLAG_DATELINE = 1;
+  const COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE = 2;
 
   function samePoint(a, b, epsilon = PARAM_EPSILON) {
     return a && b && Math.abs(a[0] - b[0]) <= epsilon && Math.abs(a[1] - b[1]) <= epsilon;
@@ -34,6 +36,50 @@
     while (longitude > 180) longitude -= 360;
     while (longitude < -180) longitude += 360;
     return longitude;
+  }
+
+  function collectGeometryCoordinates(value, output) {
+    if (!Array.isArray(value)) return;
+    if (value.length >= 2 && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]))) {
+      output.push([normalizeLongitude(Number(value[0])), Math.max(-90, Math.min(90, Number(value[1])))]);
+      return;
+    }
+    for (const item of value) collectGeometryCoordinates(item, output);
+  }
+
+  function countryGeographicBounds(geometry) {
+    const points = [];
+    collectGeometryCoordinates(geometry?.coordinates, points);
+    if (!points.length) {
+      return { bounds: [-180, -90, 180, 90], flags: COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE };
+    }
+    const latitudes = points.map(point => point[1]);
+    const angles = points.map(point => {
+      const angle = normalizeLongitude(point[0]) + 180;
+      return ((angle % 360) + 360) % 360;
+    }).sort((left, right) => left - right);
+    let largestGap = -1;
+    let gapIndex = 0;
+    for (let index = 0; index < angles.length; index += 1) {
+      const next = index + 1 < angles.length ? angles[index + 1] : angles[0] + 360;
+      const gap = next - angles[index];
+      if (gap > largestGap) {
+        largestGap = gap;
+        gapIndex = index;
+      }
+    }
+    const longitudeSpan = Math.max(0, Math.min(360, 360 - largestGap));
+    const westAngle = angles[(gapIndex + 1) % angles.length];
+    const eastAngle = angles[gapIndex];
+    const west = normalizeLongitude(westAngle - 180);
+    const east = normalizeLongitude(eastAngle - 180);
+    const crossesDateline = longitudeSpan > PARAM_EPSILON && west > east;
+    const fullLongitude = longitudeSpan >= 300;
+    return {
+      bounds: [west, Math.min(...latitudes), east, Math.max(...latitudes)],
+      flags: (crossesDateline ? COUNTRY_BOUNDS_FLAG_DATELINE : 0)
+        | (fullLongitude ? COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE : 0),
+    };
   }
 
   function unwrapLongitudeNear(longitude, reference) {
@@ -358,6 +404,10 @@
     const lineIndices = [];
     const strokeStartsEnds = [];
     const strokeOwnerRanges = {};
+    const countryTriangleRanges = [];
+    const countryBoundaryRanges = [];
+    const countryBounds = [];
+    const countryBoundsFlags = [];
     const countryIds = [];
     const stats = {
       algorithmRevision: MESH_ALGORITHM_REVISION,
@@ -371,6 +421,8 @@
       const feature = features[countryIndex];
       const countryId = String(feature?.id || countryIndex);
       countryIds.push(countryId);
+      const countryTriangleStart = triangleIndices.length;
+      const countryBoundaryStart = lineIndices.length;
       const countryStrokeStart = strokeStartsEnds.length / 4;
       for (const polygon of polygonsFor(feature.geometry)) {
         if (!polygon?.length) continue;
@@ -456,6 +508,11 @@
         first: countryStrokeStart,
         count: strokeStartsEnds.length / 4 - countryStrokeStart,
       });
+      countryTriangleRanges.push(countryTriangleStart, triangleIndices.length - countryTriangleStart);
+      countryBoundaryRanges.push(countryBoundaryStart, lineIndices.length - countryBoundaryStart);
+      const geographicBounds = countryGeographicBounds(feature?.geometry);
+      countryBounds.push(...geographicBounds.bounds.map(value => Math.round(value * 1e6)));
+      countryBoundsFlags.push(geographicBounds.flags);
     }
 
     if (stats.maxEdgeDegrees > maxEdgeDegrees + 1e-9) {
@@ -470,6 +527,10 @@
       lineIndices: new Uint32Array(lineIndices),
       strokeStartsEnds: new Float32Array(strokeStartsEnds),
       strokeOwnerRanges: Object.freeze(strokeOwnerRanges),
+      countryTriangleRanges: new Uint32Array(countryTriangleRanges),
+      countryBoundaryRanges: new Uint32Array(countryBoundaryRanges),
+      countryBounds: new Int32Array(countryBounds),
+      countryBoundsFlags: new Uint32Array(countryBoundsFlags),
       stats,
     };
   }
@@ -477,7 +538,10 @@
   const api = {
     MAX_RENDER_EDGE_DEGREES,
     MESH_ALGORITHM_REVISION,
+    COUNTRY_BOUNDS_FLAG_DATELINE,
+    COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE,
     isArtificialPolarClosureEdge,
+    countryGeographicBounds,
     buildGpuMeshFeatures,
   };
   scope.PandoLabGpuMeshCore = api;

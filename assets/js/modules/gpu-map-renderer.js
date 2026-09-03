@@ -5,6 +5,7 @@ import { createGpuStrokeRenderer } from './gpu-stroke-renderer.js';
 import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 import { linkGpuProgram } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
+import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
 import { isRenderScene } from './render-scene.js';
 import {
   createLatestWorkerJobScheduler,
@@ -23,6 +24,208 @@ const DEFAULT_RENDER_QUALITY = Object.freeze({
   overlayGpuBudgetBytes: 192 * 1024 * 1024,
   uploadBudgetBytes: 8 * 1024 * 1024,
 });
+
+const COUNTRY_BOUNDS_FLAG_DATELINE = 1;
+const COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE = 2;
+const COUNTRY_BOUNDS_SCALE = 1e-6;
+const COUNTRY_CULLING_PADDING_PIXELS = 64;
+const COUNTRY_CULLING_FULL_RANGE_THRESHOLD = 0.7;
+const COUNTRY_CULLING_MAX_RANGES = 96;
+
+function fullCountryDrawRange(indexCount) {
+  const count = Math.max(0, Number(indexCount || 0));
+  return count ? [{ first: 0, count }] : [];
+}
+
+export function mergeCountryDrawRanges(ranges = []) {
+  const normalized = ranges
+    .map(range => ({
+      first: Math.max(0, Number(range?.first || 0)),
+      count: Math.max(0, Number(range?.count || 0)),
+    }))
+    .filter(range => range.count > 0)
+    .sort((left, right) => left.first - right.first);
+  const merged = [];
+  for (const range of normalized) {
+    const previous = merged[merged.length - 1];
+    if (previous && range.first <= previous.first + previous.count) {
+      previous.count = Math.max(previous.first + previous.count, range.first + range.count) - previous.first;
+    } else {
+      merged.push({ ...range });
+    }
+  }
+  return merged;
+}
+
+export function createCountryTriangleRangeMap(sourceMesh, countryIds = []) {
+  const ranges = new Map();
+  const metadataRanges = sourceMesh?.countryTriangleRanges;
+  const metadataIds = sourceMesh?.metadataCountryIds;
+  if (metadataRanges?.length === metadataIds?.length * 2) {
+    for (let countryIndex = 0; countryIndex < metadataIds.length; countryIndex += 1) {
+      const count = Number(metadataRanges[countryIndex * 2 + 1] || 0);
+      if (!count) continue;
+      ranges.set(String(metadataIds[countryIndex]), Object.freeze([Object.freeze({
+        first: Number(metadataRanges[countryIndex * 2] || 0),
+        count,
+      })]));
+    }
+    return ranges;
+  }
+  const indices = sourceMesh?.triangleIndices || [];
+  let activeId = '';
+  let activeRange = null;
+  for (let first = 0; first + 2 < indices.length; first += 3) {
+    const vertexIndex = Number(indices[first]);
+    const countryIndex = Number(sourceMesh.countryIndices?.[vertexIndex]);
+    const countryId = String(countryIds?.[countryIndex] || '');
+    if (!countryId) {
+      activeId = '';
+      activeRange = null;
+      continue;
+    }
+    if (countryId === activeId && activeRange && activeRange.first + activeRange.count === first) {
+      activeRange.count += 3;
+      continue;
+    }
+    activeId = countryId;
+    activeRange = { first, count: 3 };
+    if (!ranges.has(countryId)) ranges.set(countryId, []);
+    ranges.get(countryId).push(activeRange);
+  }
+  for (const [countryId, countryRanges] of ranges) {
+    ranges.set(countryId, Object.freeze(countryRanges.map(range => Object.freeze({ ...range }))));
+  }
+  return ranges;
+}
+
+function longitudeIntervals(west, east, flags) {
+  if ((flags & COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE) !== 0) return [[-180, 180]];
+  if ((flags & COUNTRY_BOUNDS_FLAG_DATELINE) !== 0 || west > east) return [[west, 180], [-180, east]];
+  return [[west, east]];
+}
+
+function longitudeSpanDegrees(west, east, flags) {
+  if ((flags & COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE) !== 0) return 360;
+  return west <= east ? east - west : 360 - west + east;
+}
+
+function longitudeMidpointDegrees(west, east, flags) {
+  if ((flags & COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE) !== 0) return 0;
+  const span = longitudeSpanDegrees(west, east, flags);
+  const midpoint = west + span / 2;
+  return midpoint > 180 ? midpoint - 360 : midpoint;
+}
+
+function flatBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels) {
+  const [west, south, east, north] = bounds;
+  const width = Math.max(1, Number(frameContext.cssViewport?.[0] || 0));
+  const height = Math.max(1, Number(frameContext.cssViewport?.[1] || 0));
+  const translate = frameContext.cssTranslate || [width / 2, height / 2];
+  const scale = Math.abs(Number(frameContext.cssScale || 0));
+  const center = frameContext.flatCenter || [0, 0];
+  if (!scale) return true;
+  const minY = translate[1] - scale * (north * Math.PI / 180 - center[1]);
+  const maxY = translate[1] - scale * (south * Math.PI / 180 - center[1]);
+  if (maxY < -paddingPixels || minY > height + paddingPixels) return false;
+  for (const [intervalWest, intervalEast] of longitudeIntervals(west, east, flags)) {
+    for (const worldOffset of frameContext.worldOffsets || [0]) {
+      const minX = translate[0] + scale * (intervalWest * Math.PI / 180 + worldOffset - center[0]);
+      const maxX = translate[0] + scale * (intervalEast * Math.PI / 180 + worldOffset - center[0]);
+      if (maxX >= -paddingPixels && minX <= width + paddingPixels) return true;
+    }
+  }
+  return false;
+}
+
+function globeBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels) {
+  const [west, south, east, north] = bounds;
+  if ((flags & COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE) !== 0) return true;
+  const width = Math.max(1, Number(frameContext.cssViewport?.[0] || 0));
+  const height = Math.max(1, Number(frameContext.cssViewport?.[1] || 0));
+  const translate = frameContext.cssTranslate || [width / 2, height / 2];
+  const scale = Math.abs(Number(frameContext.cssScale || 0));
+  const lon = longitudeMidpointDegrees(west, east, flags) * Math.PI / 180;
+  const lat = ((south + north) / 2) * Math.PI / 180;
+  const vector = [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)];
+  const rowX = frameContext.rowX || [1, 0, 0];
+  const rowY = frameContext.rowY || [0, 1, 0];
+  const rowZ = frameContext.rowZ || [0, 0, 1];
+  const dot = (row, point) => row[0] * point[0] + row[1] * point[1] + row[2] * point[2];
+  const longitudeRadius = longitudeSpanDegrees(west, east, flags) * Math.PI / 360;
+  const latitudeRadius = Math.max(0, north - south) * Math.PI / 360;
+  const angularRadius = Math.min(Math.PI, Math.hypot(longitudeRadius, latitudeRadius) + 2 * Math.PI / 180);
+  if (angularRadius >= Math.PI / 2) return true;
+  const paddingAngle = scale > 0 ? paddingPixels / scale : 0;
+  const centerDepth = Math.max(-1, Math.min(1, dot(rowZ, vector)));
+  if (Math.acos(centerDepth) > Math.PI / 2 + angularRadius + paddingAngle) return false;
+  const screenX = translate[0] + scale * dot(rowX, vector);
+  const screenY = translate[1] + scale * dot(rowY, vector);
+  const radiusPixels = scale * 2 * Math.sin(angularRadius / 2) + paddingPixels;
+  return screenX + radiusPixels >= 0
+    && screenX - radiusPixels <= width
+    && screenY + radiusPixels >= 0
+    && screenY - radiusPixels <= height;
+}
+
+export function countryDrawRangesForFrame(sourceMesh, frameContext, {
+  kind = 'triangle',
+  paddingPixels = COUNTRY_CULLING_PADDING_PIXELS,
+  fullRangeThreshold = COUNTRY_CULLING_FULL_RANGE_THRESHOLD,
+  maxRanges = COUNTRY_CULLING_MAX_RANGES,
+  includeCountry = null,
+} = {}) {
+  const indexCount = Number(kind === 'boundary'
+    ? sourceMesh?.lineIndices?.length
+    : sourceMesh?.triangleIndices?.length) || 0;
+  const fullRanges = fullCountryDrawRange(indexCount);
+  const rangeData = kind === 'boundary' ? sourceMesh?.countryBoundaryRanges : sourceMesh?.countryTriangleRanges;
+  const boundsData = sourceMesh?.countryBounds;
+  const flagsData = sourceMesh?.countryBoundsFlags;
+  const countryIds = sourceMesh?.metadataCountryIds;
+  const countryCount = Array.isArray(countryIds) ? countryIds.length : Number(rangeData?.length || 0) / 2;
+  const invalidMetadata = !frameContext
+    || !rangeData || rangeData.length !== countryCount * 2
+    || !boundsData || boundsData.length !== countryCount * 4
+    || !flagsData || flagsData.length !== countryCount;
+  if (!indexCount || invalidMetadata) {
+    return { ranges: fullRanges, culled: false, visibleCountryCount: countryCount, indexCount, fullIndexCount: indexCount, fallback: true };
+  }
+  const width = Math.max(1, Number(frameContext.cssViewport?.[0] || 0));
+  const height = Math.max(1, Number(frameContext.cssViewport?.[1] || 0));
+  const scale = Math.abs(Number(frameContext.cssScale || 0));
+  const worldVisible = frameContext.mode === 0
+    ? scale * 2 <= Math.min(width, height) + paddingPixels * 2
+    : scale * 2 * Math.PI <= width + paddingPixels * 2 && scale * Math.PI <= height + paddingPixels * 2;
+  if (worldVisible && typeof includeCountry !== 'function') {
+    return { ranges: fullRanges, culled: false, visibleCountryCount: countryCount, indexCount, fullIndexCount: indexCount, fallback: false };
+  }
+  const candidates = [];
+  let visibleCountryCount = 0;
+  for (let countryIndex = 0; countryIndex < countryCount; countryIndex += 1) {
+    const countryId = String(countryIds?.[countryIndex] ?? countryIndex);
+    if (typeof includeCountry === 'function' && !includeCountry(countryId, countryIndex)) continue;
+    const range = {
+      first: Number(rangeData[countryIndex * 2] || 0),
+      count: Number(rangeData[countryIndex * 2 + 1] || 0),
+    };
+    if (!range.count) continue;
+    const bounds = Array.from(boundsData.subarray(countryIndex * 4, countryIndex * 4 + 4), value => value * COUNTRY_BOUNDS_SCALE);
+    const flags = Number(flagsData[countryIndex] || 0);
+    const visible = frameContext.mode === 0
+      ? globeBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels)
+      : flatBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels);
+    if (!visible) continue;
+    visibleCountryCount += 1;
+    candidates.push(range);
+  }
+  const merged = mergeCountryDrawRanges(candidates);
+  const visibleIndexCount = merged.reduce((sum, range) => sum + range.count, 0);
+  if (visibleIndexCount >= indexCount * Math.max(0, Number(fullRangeThreshold) || 0) || merged.length > Math.max(1, Number(maxRanges) || 1)) {
+    return { ranges: fullRanges, culled: false, visibleCountryCount, indexCount, fullIndexCount: indexCount, fallback: true };
+  }
+  return { ranges: merged, culled: true, visibleCountryCount, indexCount: visibleIndexCount, fullIndexCount: indexCount, fallback: false };
+}
 
 export function resolveRenderPixelRatioValue(devicePixelRatio, mobileLayout = false, qualityCap = Infinity) {
   const deviceRatio = Math.max(1, Number(devicePixelRatio || 1));
@@ -251,7 +454,7 @@ export function createGpuMapRenderer(deps) {
     let hydroViewRetryKey = '';
     let hydroViewRetryTimer = 0;
     let hydroRequestRevision = 0;
-    let hydroVisibleTileCache = { signature: '', tiles: [], key: '' };
+    let hydroVisibleTileCache = { signature: '', tiles: [], key: '', window: null };
     let hydroAcceptedRevision = 0;
     let hydroActivePackIds = new Set();
     const hydroPacks = new Map();
@@ -353,10 +556,6 @@ export function createGpuMapRenderer(deps) {
     };
     const countryStrokeMeshRevisions = new WeakMap();
     let countryStrokeMeshRevisionSequence = 0;
-    const countryFillRangeCache = {
-      base: { mesh: null, countryIds: null, ranges: new Map() },
-      override: { mesh: null, countryIds: null, ranges: new Map() },
-    };
     let meshQuality = 'preview';
     let activeMeshQuality = 'preview';
     let canonicalMeshReady = false;
@@ -410,6 +609,8 @@ export function createGpuMapRenderer(deps) {
       attributeCacheMisses: 0,
       frameContextBuildCount: 0,
       hydroViewRequestCount: 0,
+      hydroTileWindowCacheHitCount: 0,
+      hydroTileWindowRecomputeCount: 0,
       hydroUploadBytes: 0,
       terrainUploadCount: 0,
       terrainIncompleteFrameCount: 0,
@@ -425,6 +626,13 @@ export function createGpuMapRenderer(deps) {
       countryInteractionIndexCount: 0,
       countryInteractionRangeCount: 0,
       countryInteractionFullIndexCount: 0,
+      countryBaseIndexCount: 0,
+      countryBaseFullIndexCount: 0,
+      countryBaseRangeCount: 0,
+      countryBoundaryIndexCount: 0,
+      countryBoundaryFullIndexCount: 0,
+      countryVisibleCount: 0,
+      countryCullingFallbackCount: 0,
       countryStateCompositeCount: 0,
       countryStateCompositeMs: 0,
       countryPatchUploadBytes: 0,
@@ -1354,6 +1562,8 @@ export function createGpuMapRenderer(deps) {
       } else if (meshVariants.has(variantQuality)) {
         disposeMeshResources(meshVariants.get(variantQuality).resources);
       }
+      nextMesh.metadataCountryIds = [...countryIds];
+      nextMesh.triangleRangesByCountryId = createCountryTriangleRangeMap(nextMesh, countryIds);
       const entry = {
         quality: variantQuality,
         mesh: nextMesh,
@@ -1389,6 +1599,12 @@ export function createGpuMapRenderer(deps) {
     }
 
     function setOverrideMesh(nextMesh, { renderFrame = true } = {}) {
+      if (nextMesh && !(nextMesh.triangleRangesByCountryId instanceof Map)) {
+        nextMesh.triangleRangesByCountryId = createCountryTriangleRangeMap(
+          nextMesh,
+          nextMesh.metadataCountryIds || meshCountryIds,
+        );
+      }
       overrideMesh = nextMesh;
       // An override changes the pixels owned by the base scene.  Invalidate
       // the scene cache before uploading (and also when the override is
@@ -1398,8 +1614,6 @@ export function createGpuMapRenderer(deps) {
       sceneColorCache.invalidate('country-override-mesh');
       countryStrokePacketCache.override.mesh = null;
       countryStrokePacketCache.override.resource = null;
-      countryFillRangeCache.override.mesh = null;
-      countryFillRangeCache.override.ranges = new Map();
       overrideWebGl1PositionData = null;
       overrideWebGl1CountryData = null;
       if (!gl || !isWebGlRenderer() || !nextMesh) {
@@ -1465,14 +1679,21 @@ export function createGpuMapRenderer(deps) {
       const local = new Uint16Array(rawMesh.countryIndices);
       const countryIndices = new Uint16Array(local.length);
       for (let index = 0; index < local.length; index += 1) countryIndices[index] = globalIndices[local[index]];
-      return {
+      const remapped = {
         positions: new Int32Array(rawMesh.positions),
         countryIndices,
         triangleIndices: new Uint32Array(rawMesh.triangleIndices),
         lineIndices: new Uint32Array(rawMesh.lineIndices),
         strokeStartsEnds: new Float32Array(rawMesh.strokeStartsEnds || []),
         strokeOwnerRanges: rawMesh.strokeOwnerRanges || null,
+        countryTriangleRanges: new Uint32Array(rawMesh.countryTriangleRanges || []),
+        countryBoundaryRanges: new Uint32Array(rawMesh.countryBoundaryRanges || []),
+        countryBounds: new Int32Array(rawMesh.countryBounds || []),
+        countryBoundsFlags: new Uint32Array(rawMesh.countryBoundsFlags || []),
+        metadataCountryIds: [...localIds],
       };
+      remapped.triangleRangesByCountryId = createCountryTriangleRangeMap(remapped, localIds);
+      return remapped;
     }
 
     function stopPatchWorkerJobs(reason = 'cancelled') {
@@ -1730,15 +1951,28 @@ export function createGpuMapRenderer(deps) {
       const buffer = rawBuffer || window.PANDOLAB_GPU_MESH_BUFFER;
       if (!(buffer instanceof ArrayBuffer)) throw new Error('외부 GPU 메시가 준비되지 않았습니다.');
       if (!rawBuffer) window.PANDOLAB_GPU_MESH_BUFFER = null;
-      const header = new Uint32Array(buffer, 0, 8);
-      if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258 || header[6] < 1 || header[7] !== 3) {
+      const prefix = new Uint32Array(buffer, 0, 8);
+      const formatVersion = Number(prefix[1]);
+      const headerWords = formatVersion >= 2 ? 12 : 8;
+      const header = new Uint32Array(buffer, 0, headerWords);
+      if (header[0] !== 0x434d4731 || ![1, 2].includes(formatVersion) || header[2] !== 258 || header[6] < 1 || header[7] !== 3) {
         throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
       }
       const countryCount = header[2];
       const vertexCount = header[3];
       const triangleIndexCount = header[4];
       const lineIndexCount = header[5];
-      let offset = 8 * 4;
+      const triangleRangeLength = formatVersion >= 2 ? Number(header[8]) : 0;
+      const boundaryRangeLength = formatVersion >= 2 ? Number(header[9]) : 0;
+      const boundsLength = formatVersion >= 2 ? Number(header[10]) : 0;
+      const boundsFlagsLength = formatVersion >= 2 ? Number(header[11]) : 0;
+      if (formatVersion >= 2 && (
+        triangleRangeLength !== countryCount * 2
+        || boundaryRangeLength !== countryCount * 2
+        || boundsLength !== countryCount * 4
+        || boundsFlagsLength !== countryCount
+      )) throw new Error('외부 GPU 메시의 국가별 범위 메타데이터가 손상되었습니다.');
+      let offset = headerWords * 4;
       const positions = new Int32Array(buffer, offset, vertexCount * 2);
       offset += positions.byteLength;
       const countryIndices = new Uint16Array(buffer, offset, vertexCount);
@@ -1746,9 +1980,34 @@ export function createGpuMapRenderer(deps) {
       const triangleIndices = new Uint32Array(buffer, offset, triangleIndexCount);
       offset += triangleIndices.byteLength;
       const lineIndices = new Uint32Array(buffer, offset, lineIndexCount);
+      offset += lineIndices.byteLength;
+      const countryTriangleRanges = formatVersion >= 2 ? new Uint32Array(buffer, offset, triangleRangeLength) : null;
+      offset += countryTriangleRanges?.byteLength || 0;
+      const countryBoundaryRanges = formatVersion >= 2 ? new Uint32Array(buffer, offset, boundaryRangeLength) : null;
+      offset += countryBoundaryRanges?.byteLength || 0;
+      const countryBounds = formatVersion >= 2 ? new Int32Array(buffer, offset, boundsLength) : null;
+      offset += countryBounds?.byteLength || 0;
+      const countryBoundsFlags = formatVersion >= 2 ? new Uint32Array(buffer, offset, boundsFlagsLength) : null;
+      offset += countryBoundsFlags?.byteLength || 0;
+      if (offset !== buffer.byteLength) throw new Error('외부 GPU 메시의 크기가 헤더와 일치하지 않습니다.');
       const ids = (features || window.PANDOLAB_COUNTRIES?.features || []).slice(0, countryCount)
         .map((feature, index) => String(feature?.id || index));
-      return { mesh: { positions, countryIndices, triangleIndices, lineIndices }, ids, sourceCoordinateCount: header[6], buffer };
+      return {
+        mesh: {
+          positions,
+          countryIndices,
+          triangleIndices,
+          lineIndices,
+          countryTriangleRanges,
+          countryBoundaryRanges,
+          countryBounds,
+          countryBoundsFlags,
+          metadataCountryIds: ids,
+        },
+        ids,
+        sourceCoordinateCount: header[6],
+        buffer,
+      };
     }
 
     function createWorker() {
@@ -1849,6 +2108,10 @@ export function createGpuMapRenderer(deps) {
             lineIndices: new Uint32Array(next.lineIndices),
             strokeStartsEnds: new Float32Array(next.strokeStartsEnds || []),
             strokeOwnerRanges: next.strokeOwnerRanges || null,
+            countryTriangleRanges: new Uint32Array(next.countryTriangleRanges || []),
+            countryBoundaryRanges: new Uint32Array(next.countryBoundaryRanges || []),
+            countryBounds: new Int32Array(next.countryBounds || []),
+            countryBoundsFlags: new Uint32Array(next.countryBoundsFlags || []),
           }, next.countryIds || [], { renderFrame: false, quality: 'canonical', preserveOtherVariants: false });
           completeGeometryDisplay(pendingIds, task.revision);
           promoteCanonicalMesh({ frameId: currentRenderRevision });
@@ -2246,7 +2509,7 @@ export function createGpuMapRenderer(deps) {
       const webGl1Locations = glVersion === 2 ? null : bindWebGl1Attributes(program, indexBuffer, resources);
       if (glVersion === 2) gl.bindVertexArray(vao);
       const frameContext = activeFrameContext || createFrameContext();
-      const ranges = Array.isArray(drawRanges) && drawRanges.length
+      const ranges = Array.isArray(drawRanges)
         ? drawRanges
         : [{ first: 0, count: indexCount }];
       for (const worldOffset of frameContext.worldOffsets) {
@@ -2622,50 +2885,32 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
-    function hydroVisibleTileSpecs() {
-      if (!hydroManifest?.stages?.length) return [];
-      const threshold = hydroVisibilityThreshold();
-      const flatScale = Math.max(1, flatProjection.scale());
-      const flatHalfLon = state.size.width / flatScale * 90 / Math.PI + 2;
-      const flatHalfLat = state.size.height / flatScale * 90 / Math.PI + 2;
-      const flatCenter = state.view.flatCenter || [0, 0];
-      const globeCenter = [-Number(state.view.globeRotation?.[0] || 0), -Number(state.view.globeRotation?.[1] || 0)];
-      const globeRadius = Math.asin(Math.min(1, Math.hypot(state.size.width, state.size.height) * 0.5 / Math.max(1, globeProjection.scale())));
-      const specs = [];
-      for (const stage of hydroManifest.stages) {
-        if (Number(stage.minZoom) > threshold + 1e-9) continue;
-        const tileLon = 360 / stage.columns;
-        const tileLat = 180 / stage.rows;
-        for (let y = 0; y < stage.rows; y += 1) {
-          const centerLat = 90 - (y + 0.5) * tileLat;
-          for (let x = 0; x < stage.columns; x += 1) {
-            const centerLon = -180 + (x + 0.5) * tileLon;
-            let visible;
-            if (state.projection === 'flat') {
-              const deltaLon = Math.abs((((centerLon - flatCenter[0]) + 540) % 360) - 180);
-              visible = deltaLon <= flatHalfLon + tileLon / 2 && Math.abs(centerLat - flatCenter[1]) <= flatHalfLat + tileLat / 2;
-            } else {
-              const tileRadius = Math.hypot(tileLon, tileLat) * Math.PI / 360;
-              visible = d3.geo.distance(globeCenter, [centerLon, centerLat]) <= globeRadius + tileRadius + 0.04;
-            }
-            if (visible) specs.push({ stage: Number(stage.id), x, y });
-          }
-        }
-      }
-      return specs;
-    }
-
     function requestHydroView(viewState = getRenderViewState()) {
       if (!hydroWorker || !hydroWorkerReady || !hydroManifest) return;
       const threshold = hydroVisibilityThreshold();
-      const signature = [Number(viewState?.revision || currentRenderRevision), viewState?.projection || state.projection, threshold, state.size.width, state.size.height].join(':');
-      if (hydroVisibleTileCache.signature !== signature) {
-        const tiles = hydroVisibleTileSpecs();
+      const projection = viewState?.projection || state.projection;
+      const activeProjectionState = projection === 'globe' ? globeProjection : flatProjection;
+      const tileWindow = createHydroTileWindow({
+        manifest: hydroManifest,
+        projection,
+        threshold,
+        width: Number(viewState?.size?.width || state.size.width),
+        height: Number(viewState?.size?.height || state.size.height),
+        scale: Number(viewState?.scale || activeProjectionState.scale()),
+        flatCenter: viewState?.projectionCenter || viewState?.flatCenter || state.view.flatCenter,
+        rotation: viewState?.rotation || state.view.globeRotation,
+      });
+      if (hydroVisibleTileCache.signature !== tileWindow.signature) {
+        const tiles = hydroTileSpecsForWindow(tileWindow);
         hydroVisibleTileCache = {
-          signature,
+          signature: tileWindow.signature,
           tiles,
           key: tiles.map(spec => `${spec.stage}/${spec.x}-${spec.y}`).join('|'),
+          window: tileWindow,
         };
+        performanceMetrics.hydroTileWindowRecomputeCount += 1;
+      } else {
+        performanceMetrics.hydroTileWindowCacheHitCount += 1;
       }
       const { tiles, key } = hydroVisibleTileCache;
       if (key === hydroViewLoadedKey || key === hydroViewRequestedKey) return;
@@ -3027,6 +3272,7 @@ export function createGpuMapRenderer(deps) {
       hydroViewRequestedRevision = 0;
       hydroViewRetryAttempts = 0;
       hydroViewRetryKey = '';
+      hydroVisibleTileCache = { signature: '', tiles: [], key: '', window: null };
       if (hydroViewRetryTimer) clearTimeout(hydroViewRetryTimer);
       hydroViewRetryTimer = 0;
       hydroAcceptedRevision = 0;
@@ -3553,42 +3799,11 @@ export function createGpuMapRenderer(deps) {
       return packets.size > 0;
     }
 
-    function countryTriangleRanges(sourceMesh, countryIds, sourceName) {
-      const cache = countryFillRangeCache[sourceName];
-      if (cache.mesh === sourceMesh && cache.countryIds === countryIds) return cache.ranges;
-      const ranges = new Map();
-      let activeId = '';
-      let activeRange = null;
-      const indices = sourceMesh?.triangleIndices || [];
-      for (let first = 0; first + 2 < indices.length; first += 3) {
-        const vertexIndex = Number(indices[first]);
-        const countryIndex = Number(sourceMesh.countryIndices?.[vertexIndex]);
-        const countryId = String(countryIds?.[countryIndex] || '');
-        if (!countryId) {
-          activeId = '';
-          activeRange = null;
-          continue;
-        }
-        if (countryId === activeId && activeRange && activeRange.first + activeRange.count === first) {
-          activeRange.count += 3;
-          continue;
-        }
-        activeId = countryId;
-        activeRange = { first, count: 3 };
-        if (!ranges.has(countryId)) ranges.set(countryId, []);
-        ranges.get(countryId).push(activeRange);
-      }
-      cache.mesh = sourceMesh;
-      cache.countryIds = countryIds;
-      cache.ranges = ranges;
-      return ranges;
-    }
-
-    function drawCountryBoundaryStrokes(dynamicResources) {
+    function drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw) {
       if (!state.layerVisibility.countries) return { succeeded: true, renderedKeys: [], missingKeys: [] };
-      drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES);
+      drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES, null, paletteTexture, null, null, baseBoundaryDraw.ranges);
       if (overrideMesh?.lineIndices?.length) {
-        drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture);
+        drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture, null, null, overrideBoundaryDraw.ranges);
       }
       return {
         succeeded: true,
@@ -3605,14 +3820,27 @@ export function createGpuMapRenderer(deps) {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
       gl.disable(gl.BLEND);
       const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
+      const baseTriangleDraw = countryDrawRangesForFrame(mesh, activeFrameContext, { kind: 'triangle' });
+      const baseBoundaryDraw = countryDrawRangesForFrame(mesh, activeFrameContext, { kind: 'boundary' });
+      const overrideTriangleDraw = countryDrawRangesForFrame(overrideMesh, activeFrameContext, { kind: 'triangle' });
+      const overrideBoundaryDraw = countryDrawRangesForFrame(overrideMesh, activeFrameContext, { kind: 'boundary' });
+      performanceMetrics.countryBaseIndexCount = baseTriangleDraw.indexCount + overrideTriangleDraw.indexCount;
+      performanceMetrics.countryBaseFullIndexCount = baseTriangleDraw.fullIndexCount + overrideTriangleDraw.fullIndexCount;
+      performanceMetrics.countryBaseRangeCount = baseTriangleDraw.ranges.length + overrideTriangleDraw.ranges.length;
+      performanceMetrics.countryBoundaryIndexCount = baseBoundaryDraw.indexCount + overrideBoundaryDraw.indexCount;
+      performanceMetrics.countryBoundaryFullIndexCount = baseBoundaryDraw.fullIndexCount + overrideBoundaryDraw.fullIndexCount;
+      performanceMetrics.countryVisibleCount = baseTriangleDraw.visibleCountryCount + overrideTriangleDraw.visibleCountryCount;
+      if (baseTriangleDraw.fallback || baseBoundaryDraw.fallback || (overrideMesh && (overrideTriangleDraw.fallback || overrideBoundaryDraw.fallback))) {
+        performanceMetrics.countryCullingFallbackCount += 1;
+      }
       if (state.physicalSettings.terrainVisible && state.physicalSettings.terrainStyle !== 'physical') {
         gl.enable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
         gl.stencilFunc(gl.ALWAYS, 1, 0xff);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         gl.colorMask(false, false, false, false);
-        drawProgram(landMaskProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(landMaskProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture);
+        drawProgram(landMaskProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
+        if (overrideMesh?.triangleIndices?.length) drawProgram(landMaskProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
         gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);
         gl.stencilFunc(gl.EQUAL, 1, 0xff);
@@ -3626,14 +3854,14 @@ export function createGpuMapRenderer(deps) {
       flushPaletteUpdates();
       resetGpuNormalBlend(gl);
       if (state.layerVisibility.countries) {
-        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture);
+        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
+        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
       }
       drawHydro('lake');
       drawHydro('lake-boundary');
       drawHydro('river');
       drawHydro('border-river');
-      const countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources);
+      const countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
       const overlayItems = [
         ...(renderScene?.polygons || []).map(packet => ({ kind: 'polygon', packet })),
         ...(renderScene?.strokes || []).map(packet => ({ kind: 'stroke', packet })),
@@ -3703,20 +3931,18 @@ export function createGpuMapRenderer(deps) {
       if (!emphasizedIds.size) return;
       flushPaletteUpdates();
       resetGpuNormalBlend(gl);
-      const baseRanges = countryTriangleRanges(mesh, meshCountryIds, 'base');
       const visibleBaseRanges = [...emphasizedIds]
         .filter(id => !countryOverrideIds.has(id) && !geometryRevisionTracker.isPending(id) && isCountryVisibleById(id))
-        .flatMap(id => baseRanges.get(id) || []);
+        .flatMap(id => mesh?.triangleRangesByCountryId?.get(id) || []);
       if (visibleBaseRanges.length) {
         performanceMetrics.countryInteractionIndexCount += visibleBaseRanges.reduce((sum, range) => sum + Number(range.count || 0), 0);
         performanceMetrics.countryInteractionRangeCount += visibleBaseRanges.length;
         drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, emphasisPaletteTexture, null, null, visibleBaseRanges);
       }
       if (overrideMesh?.triangleIndices?.length) {
-        const overrideRanges = countryTriangleRanges(overrideMesh, meshCountryIds, 'override');
         const visibleOverrideRanges = [...emphasizedIds]
           .filter(id => countryOverrideIds.has(id) && !geometryRevisionTracker.isPending(id) && isCountryVisibleById(id))
-          .flatMap(id => overrideRanges.get(id) || []);
+          .flatMap(id => overrideMesh.triangleRangesByCountryId?.get(id) || []);
         if (visibleOverrideRanges.length) {
           performanceMetrics.countryInteractionIndexCount += visibleOverrideRanges.reduce((sum, range) => sum + Number(range.count || 0), 0);
           performanceMetrics.countryInteractionRangeCount += visibleOverrideRanges.length;
@@ -4648,8 +4874,16 @@ export function createGpuMapRenderer(deps) {
       target.paletteUploadCount = performanceMetrics.paletteUploadCount;
       target.paletteUploadBytes = performanceMetrics.paletteUploadBytes;
       target.hydroViewRequestCount = performanceMetrics.hydroViewRequestCount;
+      target.hydroTileWindowCacheHitCount = performanceMetrics.hydroTileWindowCacheHitCount;
+      target.hydroTileWindowRecomputeCount = performanceMetrics.hydroTileWindowRecomputeCount;
+      target.hydroTileWindowSignature = hydroVisibleTileCache.signature;
       target.canvasWorkerMessageCount = performanceMetrics.canvasWorkerMessageCount;
       target.canvasWorkerMessageBytes = performanceMetrics.canvasWorkerMessageBytes;
+      target.countryBaseIndexCount = performanceMetrics.countryBaseIndexCount;
+      target.countryBaseFullIndexCount = performanceMetrics.countryBaseFullIndexCount;
+      target.countryBaseRangeCount = performanceMetrics.countryBaseRangeCount;
+      target.countryVisibleCount = performanceMetrics.countryVisibleCount;
+      target.countryCullingFallbackCount = performanceMetrics.countryCullingFallbackCount;
       target.pendingCountryCount = geometryRevisionTracker.pendingIds().length;
       target.pendingOldMeshVisibleCount = pendingOldMeshVisibleCount;
       target.activeWebGlContextCount = renderDevice && isWebGlRenderer() ? 1 : 0;

@@ -23,6 +23,7 @@ export function createRenderingDomain({
   selectionResources = null,
   refreshRenderResources = null,
   getRenderResourceSnapshot = null,
+  labelPositionCadence = null,
   renderers = {},
   reportDiagnostic = () => {},
 } = {}) {
@@ -35,10 +36,35 @@ export function createRenderingDomain({
     renderResourceRefreshCount: 0,
     renderResourceSnapshotFrameId: null,
     renderResourceProxyCount: 0,
+    labelPositionRequestCount: 0,
+    labelPositionMergedCount: 0,
+    labelPositionCommitCount: 0,
+    labelPositionProjectionCount: 0,
+    labelPositionLastFrameRevision: 0,
   };
   let resourceFrameToken = null;
   const active = () => { if (disposed) throw new Error('Rendering domain is disposed.'); };
   const labels = labelResources || {};
+  const labelCadence = labelPositionCadence || {};
+  const requestedLabelCadence = Number(labelCadence.maxHz || 30);
+  const labelCadenceHz = Math.max(1, Math.min(30, Number.isFinite(requestedLabelCadence) ? requestedLabelCadence : 30));
+  const labelCadenceIntervalMs = 1000 / labelCadenceHz;
+  const labelNow = labelCadence.now || (() => globalThis.performance?.now?.() ?? Date.now());
+  const requestLabelFrame = labelCadence.requestFrame || (callback => (
+    typeof globalThis.requestAnimationFrame === 'function'
+      ? globalThis.requestAnimationFrame(callback)
+      : globalThis.setTimeout(callback, 0)
+  ));
+  const cancelLabelFrame = labelCadence.cancelFrame || (handle => {
+    if (typeof globalThis.cancelAnimationFrame === 'function') globalThis.cancelAnimationFrame(handle);
+    else globalThis.clearTimeout(handle);
+  });
+  const setLabelTimer = labelCadence.setTimer || ((callback, delay) => globalThis.setTimeout(callback, delay));
+  const clearLabelTimer = labelCadence.clearTimer || (handle => globalThis.clearTimeout(handle));
+  let labelPositionFrame = 0;
+  let labelPositionTimer = 0;
+  let pendingLabelPositionFrameContext = null;
+  let lastLabelPositionCommitAt = Number.NEGATIVE_INFINITY;
   const countries = countryResources || {};
   const hydro = hydroResources || {};
   const territorial = territorialResources || {};
@@ -57,8 +83,25 @@ export function createRenderingDomain({
     return 'issue-invalid';
   };
   const labelState = () => labels.getState?.() || {};
+  const projectLabelCoordinate = (coordinate, frameContext = null) => {
+    const point = typeof labels.projectVisibleCoordinate === 'function'
+      ? labels.projectVisibleCoordinate(coordinate, frameContext)
+      : (labels.isCoordVisible?.(coordinate) ? labels.activeProjection?.()(coordinate) : null);
+    if (!point || !Number.isFinite(point[0]) || !Number.isFinite(point[1])) return null;
+    stats.labelPositionProjectionCount += 1;
+    return point;
+  };
+  const cancelScheduledLabelPositions = () => {
+    if (labelPositionFrame) cancelLabelFrame(labelPositionFrame);
+    if (labelPositionTimer) clearLabelTimer(labelPositionTimer);
+    labelPositionFrame = 0;
+    labelPositionTimer = 0;
+    pendingLabelPositionFrameContext = null;
+  };
   const renderCountryLabels = (layout = null) => {
     active();
+    cancelScheduledLabelPositions();
+    lastLabelPositionCommitAt = labelNow();
     const state = labelState();
     const layer = labels.countryLabelLayer;
     if (!layer) return false;
@@ -108,7 +151,8 @@ export function createRenderingDomain({
         const anchor = settings?.pinned && settings.manualPosition
           ? settings.manualPosition
           : labels.countryLabelAnchors?.()?.get?.(String(d.id || ''));
-        const point = Array.isArray(anchor) && anchor.length >= 2 ? labels.activeProjection?.()(anchor) : null;
+        const point = resolvedLayout?.countryLabelPoints?.get?.(String(d.id || ''))
+          || (Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor) : null);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
     return true;
@@ -139,7 +183,8 @@ export function createRenderingDomain({
       .attr('transform', d => {
         const settings = labels.automaticLabelSettings?.(d.kind, labels.labelSettings?.(state, 'label', d.id) || {});
         const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : d.coordinates;
-        const point = labels.activeProjection?.()(coordinate);
+        const point = resolvedLayout?.userLabelPoints?.get?.(String(d.id || ''))
+          || projectLabelCoordinate(coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
     selection.select('text').text(d => d.name);
@@ -148,28 +193,68 @@ export function createRenderingDomain({
     selection.exit().remove();
     return true;
   };
-  const renderCountryLabelPositions = () => {
+  const applyCountryLabelPositions = (frameContext = null) => {
     active();
     const state = labelState();
     labels.countryLabelLayer?.selectAll('text.country-label').attr('transform', feature => {
       const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', feature.id) || {});
       const anchor = settings?.pinned && settings.manualPosition ? settings.manualPosition : labels.countryLabelAnchors?.()?.get?.(String(feature.id || ''));
-      const point = Array.isArray(anchor) && anchor.length >= 2 && labels.isCoordVisible?.(anchor) ? labels.activeProjection?.()(anchor) : null;
+      const point = Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor, frameContext) : null;
       return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
     });
     return true;
   };
-  const renderUserLabelPositions = () => {
+  const applyUserLabelPositions = (frameContext = null) => {
     active();
     const state = labelState();
     labels.labelLayer?.selectAll('g.user-label').attr('transform', label => {
       const settings = labels.automaticLabelSettings?.(label.kind, labels.labelSettings?.(state, 'label', label.id) || {});
       const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
-      const point = labels.isCoordVisible?.(coordinate) ? labels.activeProjection?.()(coordinate) : null;
+      const point = projectLabelCoordinate(coordinate, frameContext);
       return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
     });
     return true;
   };
+  const commitLabelPositions = () => {
+    labelPositionFrame = 0;
+    const frameContext = pendingLabelPositionFrameContext;
+    pendingLabelPositionFrameContext = null;
+    const elapsed = labelNow() - lastLabelPositionCommitAt;
+    if (elapsed + 0.01 < labelCadenceIntervalMs) {
+      labelPositionTimer = setLabelTimer(() => {
+        labelPositionTimer = 0;
+        labelPositionFrame = requestLabelFrame(commitLabelPositions);
+      }, Math.max(0, labelCadenceIntervalMs - elapsed));
+      pendingLabelPositionFrameContext = frameContext;
+      return;
+    }
+    lastLabelPositionCommitAt = labelNow();
+    applyCountryLabelPositions(frameContext);
+    applyUserLabelPositions(frameContext);
+    stats.labelPositionCommitCount += 1;
+    stats.labelPositionLastFrameRevision = Number(frameContext?.revision || 0);
+  };
+  const scheduleLabelPositions = (frameContext = null) => {
+    active();
+    stats.labelPositionRequestCount += 1;
+    pendingLabelPositionFrameContext = frameContext || pendingLabelPositionFrameContext;
+    if (labelPositionFrame || labelPositionTimer) {
+      stats.labelPositionMergedCount += 1;
+      return true;
+    }
+    const elapsed = labelNow() - lastLabelPositionCommitAt;
+    if (elapsed + 0.01 >= labelCadenceIntervalMs) {
+      labelPositionFrame = requestLabelFrame(commitLabelPositions);
+    } else {
+      labelPositionTimer = setLabelTimer(() => {
+        labelPositionTimer = 0;
+        labelPositionFrame = requestLabelFrame(commitLabelPositions);
+      }, Math.max(0, labelCadenceIntervalMs - elapsed));
+    }
+    return true;
+  };
+  const renderCountryLabelPositions = frameContext => scheduleLabelPositions(frameContext);
+  const renderUserLabelPositions = frameContext => scheduleLabelPositions(frameContext);
   const renderCountries = (viewStateOrRevision = null) => {
     active();
     const state = countries.getState?.() || {};
@@ -866,7 +951,7 @@ export function createRenderingDomain({
     return coordinator?.invalidate?.(mask, reason) ?? false;
   };
   const invalidateView = reason => invalidate(
-    MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.LABEL_POSITIONS,
+    MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_POSITIONS,
     reason || 'view-change',
   );
   const invalidateSelection = reason => invalidate(
@@ -1136,8 +1221,48 @@ export function createRenderingDomain({
       reason,
     ) || false;
   };
-  const renderSelectionOverlayFrame = (frameContext = null, { updateData = true, gpuFrameResult = null } = {}) => {
+  const renderSparseSelectionFallbackView = (frameContext = null) => {
+    let pathCount = 0;
+    const reproject = (layer, selector) => {
+      const paths = layer?.selectAll?.(selector);
+      if (!paths?.attr) return;
+      paths.attr('d', feature => {
+        pathCount += 1;
+        try {
+          return selection.path?.(feature) || '';
+        } catch (_) {
+          return '';
+        }
+      });
+    };
+    reproject(selection.selectionLayer, 'path.map-selection-shape');
+    reproject(selection.hoverLayer, 'path.map-hover-shape');
+    if (!pathCount) return false;
+    selection.publishMetrics?.({
+      viewRevision: selection.getViewRevision?.(frameContext) || frameContext?.viewRevision || frameContext?.revision || 0,
+      boundaryOwner: 'svg-fallback',
+      fallbackCount: selectionOverlayDiagnostics.fallbackCount,
+      sparseFallbackPathCount: pathCount,
+      renderSucceeded: true,
+      reusedGpuFrame: true,
+    });
+    return true;
+  };
+  const renderSelectionOverlayFrame = (frameContext = null, {
+    updateData = true,
+    gpuFrameResult = null,
+    viewOnly = false,
+  } = {}) => {
     active();
+    if (viewOnly) {
+      const gpuSelectionResult = gpuFrameResult?.selection || gpuFrameResult?.interactionResult?.selection || null;
+      const gpuFrameFailed = gpuFrameResult && (
+        gpuFrameResult.succeeded === false
+        || gpuSelectionResult?.succeeded === false
+        || gpuSelectionResult?.contextLost === true
+      );
+      if (!gpuFrameFailed) return renderSparseSelectionFallbackView(frameContext);
+    }
     const selectionLayer = selection.selectionLayer;
     if (!selectionLayer) return false;
     selectionOverlayStage = 'selection-data-prepare';
@@ -1278,7 +1403,9 @@ export function createRenderingDomain({
       fillResourcesByObject = interactionFills.resourcesByObject;
       selection.syncGpuInteractionState?.({ interactionFillItems: interactionFills.items });
       selectionOverlayStage = 'selection-gpu-render';
-      const interactionFrame = gpuFrameResult || renderGpuInteraction(frameContext);
+      // A view-only frame has already drawn GPU interaction passes in the
+      // shared VIEW renderer. Never start a second WebGL frame here.
+      const interactionFrame = gpuFrameResult || (viewOnly ? null : renderGpuInteraction(frameContext));
       gpuRenderResult = interactionFrame?.selection || interactionFrame?.interactionResult?.selection || null;
       gpuFillResult = interactionFrame?.interactionResult?.genericFillResult || null;
       gpuSelectionStats = selectionPass.stats?.() || null;
@@ -1527,7 +1654,11 @@ export function createRenderingDomain({
     hasSelectionDomain: !!selectionDomain,
     hasEditingDomain: !!editingDomain,
   });
-  const dispose = () => { disposed = true; scene = null; };
+  const dispose = () => {
+    cancelScheduledLabelPositions();
+    disposed = true;
+    scene = null;
+  };
   const renderDraft = (packet = null) => {
     active();
     const state = interaction.getState?.() || {};

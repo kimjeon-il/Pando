@@ -18,15 +18,20 @@ import {
 } from '../../assets/js/modules/startup-readiness.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world-preview-v0.30.0.json'), 'utf8'));
-const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/countries-preview-v0.30.0.geojson.gz'))));
+const appVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
+const manifest = JSON.parse(fs.readFileSync(path.join(root, `assets/data/world-preview-v${appVersion}.json`), 'utf8'));
+const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, `assets/data/countries-preview-v${appVersion}.geojson.gz`))));
 const canonicalSource = fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8').replaceAll('\r\n', '\n');
 const canonical = JSON.parse(canonicalSource);
 const canonicalGzip = fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson.gz'));
-const previewMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/world-mesh-preview-v0.30.0.bin.gz')));
-const previewMeshHeader = new Uint32Array(previewMeshBytes.buffer, previewMeshBytes.byteOffset, 8);
+const meshHeader = bytes => {
+  const prefix = new Uint32Array(bytes.buffer, bytes.byteOffset, 8);
+  return new Uint32Array(bytes.buffer, bytes.byteOffset, prefix[1] >= 2 ? 12 : 8);
+};
+const previewMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, `assets/data/world-mesh-preview-v${appVersion}.bin.gz`)));
+const previewMeshHeader = meshHeader(previewMeshBytes);
 const canonicalMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/world-mesh-v0.12.6.bin.gz')));
-const canonicalMeshHeader = new Uint32Array(canonicalMeshBytes.buffer, canonicalMeshBytes.byteOffset, 8);
+const canonicalMeshHeader = meshHeader(canonicalMeshBytes);
 const workerSource = fs.readFileSync(path.join(root, 'assets/js/workers/data-loader-worker.js'), 'utf8');
 const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
 
@@ -124,9 +129,13 @@ test('preview assets preserve country identity within the fixed size and geometr
   assert.ok(Math.max(koreaCoordinateCounts.KOR, koreaCoordinateCounts.PRK)
     / Math.min(koreaCoordinateCounts.KOR, koreaCoordinateCounts.PRK) <= 2);
   assert.equal(previewMeshHeader[2], 258);
+  assert.equal(previewMeshHeader[1], 2);
+  assert.deepEqual(Array.from(previewMeshHeader.subarray(8)), [516, 516, 1032, 258]);
   assert.equal(previewMeshHeader[3], manifest.meshVertices);
   assert.equal(previewMeshHeader[6], manifest.coordinateCount);
   assert.equal(canonicalMeshHeader[2], 258);
+  assert.equal(canonicalMeshHeader[1], 2);
+  assert.deepEqual(Array.from(canonicalMeshHeader.subarray(8)), [516, 516, 1032, 258]);
   assert.equal(canonicalMeshHeader[3], 1_028_628);
   assert.equal(canonicalMeshHeader[6], 548_464);
   for (const feature of preview.features) {

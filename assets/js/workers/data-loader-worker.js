@@ -227,10 +227,19 @@ function validateCountries(data, label) {
 }
 
 function validateMesh(buffer, spec, label) {
-  const header = new Uint32Array(buffer, 0, 8);
+  const prefix = new Uint32Array(buffer, 0, 8);
+  const headerWords = prefix[1] >= 2 ? 12 : 8;
+  const header = new Uint32Array(buffer, 0, headerWords);
   const expected = Array.isArray(spec.header) ? spec.header.map(Number) : [];
-  if (header[0] !== 0x434d4731 || header[1] !== 1 || header[2] !== 258
-      || (expected.length === 8 && expected.some((value, index) => header[index] !== value))) {
+  const metadataValid = header[1] === 1 || (header[1] === 2
+    && header[8] === header[2] * 2
+    && header[9] === header[2] * 2
+    && header[10] === header[2] * 4
+    && header[11] === header[2]);
+  const expectedHeaderValid = expected.length === headerWords
+    && expected.every((value, index) => header[index] === value);
+  if (header[0] !== 0x434d4731 || !metadataValid || header[2] !== 258
+      || !expectedHeaderValid) {
     throw new Error(`${label} 헤더가 올바르지 않습니다.`);
   }
   return buffer;
