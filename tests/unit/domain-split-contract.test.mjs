@@ -28,7 +28,7 @@ test('domain factories expose isolated public contracts', () => {
   for (const [domain, methods] of [
     [project, ['snapshot', 'buildProject', 'buildAutosave', 'countriesFromAutosaveDelta', 'dispatch', 'load', 'createEmpty', 'undo', 'redo', 'save', 'dispose']],
     [selection, ['snapshot', 'select', 'toggle', 'clear', 'setHover', 'selectObjectRef', 'createPacket', 'dispose']],
-    [rendering, ['setScene', 'invalidate', 'renderPass', 'renderScene', 'render', 'renderSelection', 'renderEditingPreview', 'renderDraft', 'renderVertices', 'renderSnap', 'dispose']],
+    [rendering, ['setScene', 'invalidate', 'renderPass', 'renderScene', 'render', 'renderSelection', 'renderEditingPreview', 'renderDraft', 'renderVertices', 'renderSnap', 'renderCountryLabels', 'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions', 'renderCountries', 'renderHydro', 'renderHydroEdits', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderDistributions', 'getDistributionRenderRows', 'renderTerritorialInternalBoundaries', 'renderBase', 'renderProjectedOverlays', 'dispose']],
     [gis, ['normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity', 'planRiverPartition', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'executeWorker', 'dispose']],
     [editing, ['setTool', 'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'applyGeometryPatch', 'commit', 'draftInputActive', 'commitDraftCoords', 'appendDraftCoordinate', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'insertDraftPoint', 'moveSelectedDraftPointByPixels', 'importProject', 'mergeCountries', 'importTerritorial', 'importGeneric', 'importDistribution', 'commitImport', 'reconcileCoast', 'dispose']],
   ]) {

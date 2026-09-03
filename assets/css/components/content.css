@@ -13,41 +13,12 @@
   gap: var(--ui-field-label-gap);
 }
 
-:where(.ui-action-list, .editor-action-list, .editor-action-grid, .editor-action-grid-two) {
+:where(.ui-action-list, .editor-action-list) {
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--ui-space-2);
 }
-
-.editor-action-button {
-  width: 100%;
-  min-width: 0;
-  min-height: var(--ui-content-action-min-height);
-  display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  align-items: center;
-  gap: var(--ui-space-3);
-  padding: 0 var(--ui-control-padding-x);
-  border-radius: var(--ui-radius-control);
-  box-shadow: none;
-}
-
-.editor-action-button > span {
-  grid-row: auto;
-  display: grid;
-  place-items: center;
-}
-
-.editor-action-button > strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.editor-action-button > small { display: none; }
 
 :where(.ui-property-list, .ui-info-list.editor-info-list) {
   border: 0;
@@ -121,6 +92,18 @@
  * while preserving the existing disclosure and style controls. */
 .layer-folder-row > .layer-folder-name {
   padding-inline-end: calc((var(--ui-tree-action-size) * 2) + var(--ui-space-2));
+}
+
+.layer-folder-row.is-active::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: var(--ui-space-1-5);
+  inset-block-end: var(--ui-space-1-5);
+  width: var(--ui-space-0-5);
+  border-radius: var(--ui-space-0-5);
+  background: var(--accent);
+  pointer-events: none;
 }
 
 @media (max-width: 799px) {
