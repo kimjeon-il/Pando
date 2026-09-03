@@ -1,8 +1,8 @@
-.reference-image-host.is-reference-gcp-mode {
+.is-reference-gcp-mode {
   cursor: crosshair;
 }
 
-.reference-image-host.is-reference-placement-mode {
+.is-reference-placement-mode {
   cursor: move;
 }
 
