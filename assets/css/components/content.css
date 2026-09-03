@@ -56,9 +56,9 @@
 }
 
 .editor-object-visual {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+  width: var(--ui-v2-control-mobile-height);
+  height: var(--ui-v2-control-mobile-height);
+  flex: 0 0 var(--ui-v2-control-mobile-height);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -117,8 +117,6 @@
   line-height: var(--ui-line-tight);
 }
 
-/* Layer folder actions live in a trailing rail; keep the primary name clear
- * while preserving the existing disclosure and style controls. */
 .layer-folder-row > .layer-folder-name {
   padding-inline-end: calc((var(--ui-tree-action-size) * 2) + var(--ui-space-2));
 }
@@ -146,19 +144,15 @@
   pointer-events: none;
 }
 
-/* Decorative swatches/counts are intentionally excluded from the primary
- * layer reading order in UI v2. Keep their data in JS, but do not show them. */
 .layer-folder-row > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker),
 .layer-child > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker) {
-  display: none !important;
+  display: none;
 }
 
-/* Existing inspector thumbnails/flag previews can opt into the v2 32px
- * object-context visual without changing their data or render path. */
 .editor-object-header[data-editor-context] :where(.editor-object-thumb, .editor-object-icon, .editor-object-flag, .object-context-flag, .object-context-icon) {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+  width: var(--ui-v2-control-mobile-height);
+  height: var(--ui-v2-control-mobile-height);
+  flex: 0 0 var(--ui-v2-control-mobile-height);
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--ui-v2-radius-md);
