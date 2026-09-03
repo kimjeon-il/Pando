@@ -396,7 +396,7 @@ const {
   const CUT_ENDPOINT_SNAP_DISTANCE = Object.freeze({ mouse: 10, touch: 18 });
   const LAYOUT_QUERIES = {
     mobile: window.matchMedia('(max-width: 799px)'),
-    compact: window.matchMedia('(min-width: 800px) and (max-width: 1359px)'),
+    compact: window.matchMedia('(min-width: 800px) and (max-width: 1199px)'),
   };
 
   const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
