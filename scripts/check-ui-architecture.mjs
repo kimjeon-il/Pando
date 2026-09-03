@@ -11,12 +11,18 @@ const failures = [];
 
 const cssLayers = new Set(['tokens', 'primitives', 'components', 'layout', 'features', 'utilities']);
 
-// Phase 1 is a ratchet, not a rewrite. Existing root-level CSS is grandfathered
-// temporarily, but it may not grow. Later UI phases should move rules into the
-// layered directories and lower these budgets instead of raising them.
+// app.css is the only remaining root-level UI stylesheet allowed to carry
+// pre-v2 rules. The dedicated phase cleanup stylesheet has been retired.
 const legacyCssBudgets = new Map([
   ['app.css', 178186],
-  ['phase1-ui-cleanup.css', 6203],
+]);
+
+const retiredUiArtifacts = Object.freeze([
+  'assets/css/phase1-ui-cleanup.css',
+  'assets/js/modules/phase1-ui-cleanup.js',
+  'assets/js/modules/mobile-sheet-v2.js',
+  'assets/js/modules/state-feedback-v2.js',
+  'assets/js/modules/accessibility-qa-v2.js',
 ]);
 
 // Layered CSS exceptions must be narrowly scoped and carry a durable reason.
@@ -186,6 +192,10 @@ function requireSurfaceContract({ id, variant }) {
       failures.push(`#${id} surface tab must compose .ui-button .ui-tab and data-surface-tab`);
     }
   }
+}
+
+for (const retiredPath of retiredUiArtifacts) {
+  if (fs.existsSync(path.join(root, retiredPath))) failures.push(`retired UI artifact must not exist: ${retiredPath}`);
 }
 
 if (!fs.existsSync(policyDocPath)) {
