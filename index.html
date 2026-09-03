@@ -454,13 +454,6 @@
           </div>
         </header>
 
-        <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
-          <div class="editor-object-context-main">
-            <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
-          </div>
-          <button id="focusSelectedObjectBtn" class="ui-button icon-btn compact" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button>
-        </section>
-
         <nav class="ui-tabs surface-tabs editor-view-tabs hidden" role="tablist" aria-label="객체 편집 탭">
           <button id="editorTabBtn" class="ui-button ui-tab active" data-surface-tab="info" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="true">정보</button>
           <button id="actionsTabBtn" class="ui-button ui-tab" data-surface-tab="actions" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">편집</button>
@@ -469,6 +462,13 @@
 
         <div id="editorScrollBody" class="surface-body editor-scroll-body ui-scroll-surface" role="tabpanel" aria-labelledby="editorTabBtn">
           <div class="surface-content surface-content-editor">
+
+          <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
+            <div class="editor-object-context-main">
+              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
+            </div>
+            <button id="focusSelectedObjectBtn" class="ui-button icon-btn compact" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button>
+          </section>
 
           <section id="editorCommonActions" class="editor-section editor-action-section editor-common-actions hidden" aria-labelledby="editorCommonActionsTitle">
             <h3 id="editorCommonActionsTitle" class="editor-section-title">객체 상태</h3>
