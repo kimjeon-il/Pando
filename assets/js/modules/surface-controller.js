@@ -219,10 +219,13 @@ export function createSurfaceController({ getElement, getLayout, document }) {
       const panel = getElement(id);
       if (!panel) continue;
       if (layout === 'mobile') {
+        const hidden = activeMobileSheet !== kind;
         panel.setAttribute('role', 'dialog');
         panel.setAttribute('aria-modal', 'false');
-        panel.setAttribute('aria-hidden', String(activeMobileSheet !== kind));
+        panel.setAttribute('aria-hidden', String(hidden));
+        panel.inert = hidden;
       } else {
+        panel.inert = false;
         panel.removeAttribute('aria-hidden');
         if (kind === 'create') {
           panel.setAttribute('role', 'dialog');
