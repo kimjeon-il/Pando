@@ -8,6 +8,48 @@
   const ASSET_REVISION = String(buildMeta.assetRevision || '');
   if (!APP_VERSION || !BUILD_ID || !ASSET_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
+  const LEGACY_COMPACT_QUERY = '(min-width: 800px) and (max-width: 1359px)';
+  const CANONICAL_COMPACT_QUERY = '(min-width: 800px) and (max-width: 1199px)';
+  const UI_STYLES = Object.freeze([
+    '../css/tokens/ui-v2.css',
+    '../css/primitives/controls.css',
+    '../css/components/surface.css',
+    '../css/components/content.css',
+    '../css/components/command-row.css',
+    '../css/components/workflow.css',
+    '../css/components/workspace-refinements.css',
+    '../css/layout/surfaces.css',
+    '../css/features/layer-panel.css',
+    '../css/features/editor-shell.css',
+    '../css/features/map-create-panel.css',
+    '../css/features/edit-workflow.css',
+    '../css/features/library-gis-file.css',
+    '../css/features/mobile-sheets.css',
+    '../css/features/state-feedback.css',
+    '../css/features/responsive-accessibility.css',
+  ]);
+
+  function normalizeViewportAccessibility() {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (!viewport) return;
+    const content = String(viewport.getAttribute('content') || '');
+    if (!/maximum-scale\s*=\s*1|user-scalable\s*=\s*no/i.test(content)) return;
+    viewport.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+  }
+
+  function installLayoutContract() {
+    const nativeMatchMedia = window.matchMedia?.bind(window);
+    if (!nativeMatchMedia || window.__PANDOLAB_LAYOUT_CONTRACT_INSTALLED__) return;
+    window.matchMedia = query => {
+      const normalized = String(query || '').replace(/\s+/g, ' ').trim();
+      return nativeMatchMedia(normalized === LEGACY_COMPACT_QUERY ? CANONICAL_COMPACT_QUERY : query);
+    };
+    window.__PANDOLAB_LAYOUT_CONTRACT_INSTALLED__ = true;
+  }
+
+  normalizeViewportAccessibility();
+  installLayoutContract();
+
   const bootstrapScriptUrl = document.currentScript?.src || new URL('./assets/js/bootstrap.js', location.href).href;
   const assetBaseUrl = new URL('./', bootstrapScriptUrl);
   const overlay = document.getElementById('bootstrapLoading');
@@ -87,17 +129,21 @@
     return url;
   }
 
-  function installPhaseOneUiCleanup() {
-    const style = document.createElement('link');
-    style.rel = 'stylesheet';
-    style.href = versionedAsset('../css/phase1-ui-cleanup.css').href;
-    style.dataset.pandolabPhase = 'ui-cleanup-1';
-    document.head.appendChild(style);
+  function installUiV2() {
+    for (const relativePath of UI_STYLES) {
+      const key = relativePath.replace('../css/', '').replace(/\.css$/, '').replaceAll('/', '-');
+      if (document.querySelector(`link[data-pandolab-ui-v2="${key}"]`)) continue;
+      const style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = versionedAsset(relativePath).href;
+      style.dataset.pandolabUiV2 = key;
+      document.head.appendChild(style);
+    }
 
     window.addEventListener('pandolab:interactive', () => {
-      import(versionedAsset('./modules/phase1-ui-cleanup.js').href)
-        .then(module => module.applyPhase1UiCleanup?.())
-        .catch(error => console.error('[PL-UI-CLEANUP-001]', error));
+      import(versionedAsset('./modules/ui-runtime.js').href)
+        .then(module => module.initializeUiRuntime?.(document))
+        .catch(error => console.error('[PL-UI-RUNTIME-001]', error));
     }, { once: true });
   }
 
@@ -123,7 +169,7 @@
     return;
   }
 
-  installPhaseOneUiCleanup();
+  installUiV2();
 
   window.PANDOLAB_ASSET_BASE_URL = assetBaseUrl.href;
   window.PANDOLAB_APP_VERSION = APP_VERSION;
