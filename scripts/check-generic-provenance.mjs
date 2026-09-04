@@ -60,9 +60,9 @@ if (normalized.properties.source?.details?.unmappedSourceFields?.provider !== 'o
   fail('legacy source metadata was not preserved in provenance details');
 }
 
-const cleanupSource = read('assets/js/modules/phase1-ui-cleanup.js');
+const staticUiSource = read('index.html');
 for (const marker of ['constrainGenericFallbackUi', 'genericFeatureLandRelationSection', 'genericFeatureLandActionsSection']) {
-  if (!cleanupSource.includes(marker)) fail(`Generic fallback UI constraint is missing marker: ${marker}`);
+  if (!staticUiSource.includes(marker)) fail(`canonical Generic fallback UI is missing marker: ${marker}`);
 }
 const projectStateSource = read('assets/js/modules/project-state.js');
 for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS', 'migrateProjectInPlace(project)']) {
