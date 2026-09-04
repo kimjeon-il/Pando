@@ -4,6 +4,7 @@ import {
   createOperationalError,
   isAbortError,
 } from './reliability-core.js';
+import { PERFORMANCE_METRIC_NAMES, getRuntimePerformanceMetrics } from './runtime-performance-metrics.js';
 
 function validationError(operationType, issues) {
   const detail = Array.isArray(issues) ? issues : [issues].filter(Boolean);
@@ -27,8 +28,26 @@ function assertValidationResult(result, operationType) {
   }
 }
 
+function metricNow() {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now();
+}
+
 function elapsed(startedAt) {
-  return (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+  return metricNow() - startedAt;
+}
+
+function recordTransactionMetric(startedAt, operationType, result, stage, stageDurations, detail = {}) {
+  getRuntimePerformanceMetrics()?.record?.(
+    PERFORMANCE_METRIC_NAMES.TRANSACTION,
+    elapsed(startedAt),
+    {
+      operationType,
+      result,
+      finalStage: stage,
+      stages: stageDurations,
+      ...detail,
+    },
+  );
 }
 
 async function runNonCriticalSideEffect({
@@ -72,38 +91,48 @@ export async function runProjectTransaction({
   diagnostic = null,
 } = {}) {
   let stage = 'prepare';
+  let stageStartedAt = metricNow();
   let externalCommitted = false;
   let historyCommitted = false;
-  const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const startedAt = stageStartedAt;
+  const stageDurations = {};
+  const enterStage = nextStage => {
+    stageDurations[stage] = Math.round((Number(stageDurations[stage] || 0) + elapsed(stageStartedAt)) * 100) / 100;
+    stage = nextStage;
+    stageStartedAt = metricNow();
+  };
+  const finishStage = () => {
+    stageDurations[stage] = Math.round((Number(stageDurations[stage] || 0) + elapsed(stageStartedAt)) * 100) / 100;
+  };
 
   try {
     const prepared = await prepare();
 
-    stage = 'normalize';
+    enterStage('normalize');
     const normalized = await normalize(prepared);
 
-    stage = 'validate-prepared';
+    enterStage('validate-prepared');
     assertValidationResult(await validatePrepared(normalized), operationType);
 
-    stage = 'apply-canonical';
+    enterStage('apply-canonical');
     const applyOutput = await applyCanonical(normalized);
     const applied = applyOutput === undefined ? normalized : applyOutput;
 
-    stage = 'validate-canonical';
+    enterStage('validate-canonical');
     assertValidationResult(await validateCanonical(applied, normalized), operationType);
 
-    stage = 'commit-external';
+    enterStage('commit-external');
     await commitExternal(applied, normalized);
     externalCommitted = true;
 
-    stage = 'history';
+    enterStage('history');
     await commitHistory(snapshot, applied, normalized);
     historyCommitted = true;
 
     // Autosave and success-notification hooks are intentionally non-critical.
     // Once canonical state + history are committed, a storage/UI side effect must
     // never roll the data model back to an older snapshot.
-    stage = 'autosave';
+    enterStage('autosave');
     const autosaveError = await runNonCriticalSideEffect({
       stage,
       action: () => queueAutosave(applied, normalized),
@@ -112,7 +141,7 @@ export async function runProjectTransaction({
       onSideEffectError,
     });
 
-    stage = 'success';
+    enterStage('success');
     const successHookError = await runNonCriticalSideEffect({
       stage: 'success-hook',
       action: () => onSuccess(applied, normalized),
@@ -120,6 +149,7 @@ export async function runProjectTransaction({
       operationType,
       onSideEffectError,
     });
+    finishStage();
 
     diagnostic?.push?.({
       category: 'transaction',
@@ -128,6 +158,19 @@ export async function runProjectTransaction({
       duration: elapsed(startedAt),
       errorCode: autosaveError?.code || successHookError?.code || '',
     });
+    recordTransactionMetric(
+      startedAt,
+      operationType,
+      autosaveError || successHookError ? 'success-with-warning' : 'success',
+      stage,
+      stageDurations,
+      {
+        externalCommitted,
+        historyCommitted,
+        autosaveError: String(autosaveError?.code || ''),
+        successHookError: String(successHookError?.code || ''),
+      },
+    );
 
     return {
       ok: true,
@@ -139,8 +182,10 @@ export async function runProjectTransaction({
       successHookError,
     };
   } catch (error) {
+    finishStage();
     const cancelled = isAbortError(error);
     try {
+      const restoreStartedAt = metricNow();
       await restore(snapshot, {
         stage,
         externalCommitted,
@@ -148,6 +193,7 @@ export async function runProjectTransaction({
         operationType,
         error,
       });
+      stageDurations.restore = Math.round(elapsed(restoreStartedAt) * 100) / 100;
     } catch (restoreError) {
       diagnostic?.push?.({
         category: 'transaction',
@@ -166,6 +212,18 @@ export async function runProjectTransaction({
       errorCode: String(error?.code || 'PL-TX-001'),
       duration: elapsed(startedAt),
     });
+    recordTransactionMetric(
+      startedAt,
+      operationType,
+      cancelled ? 'cancelled' : 'failed',
+      stage,
+      stageDurations,
+      {
+        externalCommitted,
+        historyCommitted,
+        errorCode: String(error?.code || 'PL-TX-001'),
+      },
+    );
     return { ok: false, cancelled, error, stage, externalCommitted, historyCommitted };
   }
 }
