@@ -16,6 +16,7 @@ import {
   resolveStartupLoadPolicy,
   transitionDataReadiness,
 } from '../../assets/js/modules/startup-readiness.js';
+import { inspectCanonicalCountryPacket } from '../../assets/js/modules/canonical-country-packet.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const appVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
@@ -24,6 +25,13 @@ const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, `asse
 const canonicalSource = fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8').replaceAll('\r\n', '\n');
 const canonical = JSON.parse(canonicalSource);
 const canonicalGzip = fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson.gz'));
+const canonicalPacketGzip = fs.readFileSync(path.join(root, `assets/data/countries-canonical-v${appVersion}.pcg.gz`));
+const canonicalPacketBytes = zlib.gunzipSync(canonicalPacketGzip);
+const canonicalPacketBuffer = canonicalPacketBytes.buffer.slice(
+  canonicalPacketBytes.byteOffset,
+  canonicalPacketBytes.byteOffset + canonicalPacketBytes.byteLength,
+);
+const canonicalPacketHeader = inspectCanonicalCountryPacket(canonicalPacketBuffer);
 const meshHeader = bytes => {
   const prefix = new Uint32Array(bytes.buffer, bytes.byteOffset, 8);
   return new Uint32Array(bytes.buffer, bytes.byteOffset, prefix[1] >= 2 ? 12 : 8);
@@ -95,13 +103,14 @@ test('readiness transitions enable mutations at geometry-ready and preserve them
   assert.equal(canMutateProject(readiness), true);
 });
 
-test('adaptive load policy uses hardware and network signals instead of viewport alone', () => {
-  assert.equal(resolveStartupLoadPolicy({ layout: 'mobile', deviceMemory: 8, hardwareConcurrency: 8, effectiveType: '4g' }).mode, 'parallel');
+test('startup load policy is sequential on every device while preserving diagnostic signals', () => {
+  assert.equal(resolveStartupLoadPolicy({ layout: 'mobile', deviceMemory: 8, hardwareConcurrency: 8, effectiveType: '4g' }).mode, 'sequential');
   assert.equal(resolveStartupLoadPolicy({ layout: 'wide', deviceMemory: 4, hardwareConcurrency: 12, effectiveType: '4g' }).mode, 'sequential');
   assert.equal(resolveStartupLoadPolicy({ layout: 'wide', deviceMemory: 16, hardwareConcurrency: 16, effectiveType: '3g' }).mode, 'sequential');
   assert.equal(resolveStartupLoadPolicy({ layout: 'wide', deviceMemory: 16, hardwareConcurrency: 16, effectiveType: '4g', saveData: true }).mode, 'sequential');
   assert.equal(resolveStartupLoadPolicy({ layout: 'mobile', hardwareConcurrency: 8, effectiveType: '4g' }).mode, 'sequential');
-  assert.equal(resolveStartupLoadPolicy({ layout: 'wide', hardwareConcurrency: 8, effectiveType: '4g' }).mode, 'parallel');
+  assert.equal(resolveStartupLoadPolicy({ layout: 'wide', hardwareConcurrency: 8, effectiveType: '4g' }).mode, 'sequential');
+  assert.equal(resolveStartupLoadPolicy({ layout: 'wide', deviceMemory: 32, hardwareConcurrency: 32, effectiveType: '4g' }).reason, 'interaction-first-v1');
 });
 
 test('preview assets preserve country identity within the fixed size and geometry budgets', () => {
@@ -145,6 +154,9 @@ test('preview assets preserve country identity within the fixed size and geometr
   assert.deepEqual(JSON.parse(zlib.gunzipSync(canonicalGzip)), canonical);
   assert.equal(manifest.assets.canonicalCountries.compressedBytes, canonicalGzip.length);
   assert.equal(manifest.assets.canonicalCountries.decodedBytes, Buffer.byteLength(canonicalSource));
+  assert.equal(manifest.assets.canonicalCountryPacket.compressedBytes, canonicalPacketGzip.length);
+  assert.equal(manifest.assets.canonicalCountryPacket.decodedBytes, canonicalPacketBytes.length);
+  assert.deepEqual(manifest.assets.canonicalCountryPacket.header, canonicalPacketHeader.words);
   assert.deepEqual(manifest.assets.previewMesh.header, [...previewMeshHeader]);
   assert.deepEqual(manifest.assets.canonicalMesh.header, [...canonicalMeshHeader]);
 });
@@ -158,7 +170,30 @@ test('staged loader separates editable geometry from the high-quality mesh and s
   assert.match(workerSource, /replaceAll\('\\r\\n', '\\n'\)/);
   assert.doesNotMatch(workerSource, /const chunks = \[\]/);
   assert.doesNotMatch(workerSource, /const merged = new Uint8Array/);
-  assert.match(appSource, /reindexCountries\(geometry\.countries, true\)/);
+  assert.doesNotMatch(workerSource, /response\.clone\(\)/);
+  assert.doesNotMatch(workerSource, /manifest\.assets\.canonicalCountries/);
+  assert.doesNotMatch(workerSource, /countriesSourceBuffer/);
+  assert.match(workerSource, /countryPacketBuffer/);
+  assert.match(workerSource, /canonicalCountryPacketTransferables\(countryPacketBuffer\)/);
+  const networkLoadSource = workerSource.slice(
+    workerSource.indexOf("const response = await fetch(url"),
+    workerSource.indexOf('validateAssetLength(result', workerSource.indexOf("const response = await fetch(url")),
+  );
+  assert.ok(networkLoadSource.indexOf('validateStoredAsset') < networkLoadSource.indexOf('cacheStoredBuffer'));
+  assert.ok(networkLoadSource.indexOf('cacheStoredBuffer') < networkLoadSource.indexOf('decodeStoredBuffer'));
+  const cacheWriteSource = workerSource.slice(
+    workerSource.indexOf('async function cacheStoredBuffer'),
+    workerSource.indexOf('function countedStream'),
+  );
+  assert.doesNotMatch(cacheWriteSource, /fetch\(/);
+  assert.match(appSource, /reindexCountries\(geometry\.countries, true, \{ assumeCanonical: true \}\)/);
+  assert.doesNotMatch(appSource, /pristineCountriesSourceBuffer|parsePristineCountries/);
+  const promotionSource = appSource.slice(
+    appSource.indexOf('async function completeGeometryInitialization'),
+    appSource.indexOf('async function completeMeshEnhancement'),
+  );
+  assert.doesNotMatch(promotionSource, /resetProjectRenderState/);
+  assert.doesNotMatch(promotionSource, /mapEditClient\.rebase/);
   assert.match(appSource, /READINESS_EVENTS\.GEOMETRY_READY/);
   assert.match(appSource, /READINESS_EVENTS\.MESH_READY/);
   assert.doesNotMatch(appSource.slice(appSource.indexOf('async function initProgressive'), appSource.indexOf('async function init()')), /deepClone\(geometry\.countries\)/);

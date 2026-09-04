@@ -15,12 +15,11 @@ await import(versionedModuleUrl('./modules/country-geometry.js'));
 const countryGeometry = globalThis.PandoLabCountryGeometry;
 if (!countryGeometry) throw new Error('국가 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, historicalLibraryModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, confirmModalControllerModule, layerPanelControllerModule, historyServiceModule, historicalLibraryServiceModule, importServiceModule, historicalLibraryControllerModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, layerPanelControllerModule, historyServiceModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
   import(versionedModuleUrl('./modules/distribution-model.js')),
-  import(versionedModuleUrl('./modules/historical-library.js')),
   import(versionedModuleUrl('./modules/surface-controller.js')),
   import(versionedModuleUrl('./modules/tool-controller.js')),
   import(versionedModuleUrl('./modules/map-input-controller.js')),
@@ -49,12 +48,8 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/generic-feature-service.js')),
   import(versionedModuleUrl('./modules/map-render-coordinator.js')),
   import(versionedModuleUrl('./modules/tooltip-controller.js')),
-  import(versionedModuleUrl('./modules/confirm-modal-controller.js')),
   import(versionedModuleUrl('./modules/layer-panel-controller.js')),
   import(versionedModuleUrl('./modules/history-service.js')),
-  import(versionedModuleUrl('./modules/historical-library-service.js')),
-  import(versionedModuleUrl('./modules/import-service.js')),
-  import(versionedModuleUrl('./modules/historical-library-controller.js')),
   import(versionedModuleUrl('./modules/map-edit-worker-client.js')),
   import(versionedModuleUrl('./modules/map-object-spatial-index.js')),
   import(versionedModuleUrl('./modules/surface-tabs-controller.js')),
@@ -87,19 +82,8 @@ const {
 } = genericFeatureServiceModule;
 const { createMapRenderCoordinator, MAP_RENDER_DIRTY } = mapRenderCoordinatorModule;
 const { createTooltipController } = tooltipControllerModule;
-const { createConfirmModalController } = confirmModalControllerModule;
 const { createLayerPanelController } = layerPanelControllerModule;
 const { createHistoryService } = historyServiceModule;
-const { createHistoricalLibraryService } = historicalLibraryServiceModule;
-const {
-  appendImportedSourceInfo,
-  applyImportedPackageAssets,
-  createCountryImportMergePlanner,
-  createGisGeometryValidator,
-  createImportService,
-  importedCountryOverrides,
-} = importServiceModule;
-const { createHistoricalLibraryController } = historicalLibraryControllerModule;
 const { createMapEditWorkerClient } = mapEditWorkerClientModule;
 const { createMapObjectSpatialIndex } = mapObjectSpatialIndexModule;
 const { createSurfaceTabsController } = surfaceTabsControllerModule;
@@ -111,12 +95,6 @@ const {
 } = mapObjectCategoriesModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
 const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
-const territorialImportPlanModule = await import(versionedModuleUrl('./modules/territorial-import-plan.js'));
-const countryImportIdentityModule = await import(versionedModuleUrl('./modules/country-import-identity.js'));
-const coastReconciliationModule = await import(versionedModuleUrl('./modules/coast-reconciliation.js'));
-const coastReconciliationControllerModule = await import(versionedModuleUrl('./modules/coast-reconciliation-controller.js'));
-const annexGeometryModule = await import(versionedModuleUrl('./modules/annex-geometry.js'));
-const riverTerritoryPartitionModule = await import(versionedModuleUrl('./modules/river-territory-partition.js'));
 const selectionStyleModule = await import(versionedModuleUrl('./modules/selection-style.js'));
 const selectionStrokeGeometryModule = await import(versionedModuleUrl('./modules/selection-stroke-geometry.js'));
 const selectionPassModule = await import(versionedModuleUrl('./modules/selection-pass.js'));
@@ -148,6 +126,149 @@ const { createSelectionDomain } = selectionDomainModule;
 const { createRenderingDomain } = renderingDomainModule;
 const { createGisDomain } = gisDomainModule;
 const { createEditingDomain } = editingDomainModule;
+
+let modalRuntimePromise = null;
+let gisRuntimePromise = null;
+let historicalRuntimePromise = null;
+let gisIoRuntimePromise = null;
+let createConfirmModalController;
+let createCoastReconciliationController;
+let importServiceModule;
+let appendImportedSourceInfo;
+let applyImportedPackageAssets;
+let importedCountryOverrides;
+let buildTerritorialImportTransactionPlan;
+let resolveImportedCountryId;
+let identityResolutionSummary;
+let materializeResolvedCountries;
+let resolveCountryIdentities;
+let analyzeAdminCountryCoast;
+let normalizeCoastDecision;
+let planCoastReconciliations;
+let validateCoastReplacement;
+let planDrawnTerritoryAnnex;
+let buildRiverTerritoryPartitions;
+let composeRiverBoundaryTerritoryComponents;
+let RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION;
+let RIVER_TERRITORY_PARTITION_CONFIG;
+let riverTerritoryPartitionConfigFingerprint;
+let historicalLibraryServiceModule;
+let historicalLibraryControllerModule;
+let LIBRARY_ENTITY_TYPES;
+let selectGeometryVersion;
+
+const recordLazyRuntime = (metric, startedAt) => {
+  const metrics = window.__PANDOLAB_STARTUP_METRICS__;
+  if (metrics && metrics[metric] == null) metrics[metric] = performance.now() - startedAt;
+};
+const recordLazyRuntimeError = () => {
+  const metrics = window.__PANDOLAB_STARTUP_METRICS__;
+  if (metrics) metrics.lazyModuleLoadErrorCount = Number(metrics.lazyModuleLoadErrorCount || 0) + 1;
+};
+
+async function ensureModalRuntime() {
+  if (modalRuntimePromise) return modalRuntimePromise;
+  const startedAt = performance.now();
+  modalRuntimePromise = Promise.all([
+    window.PANDOLAB_ENSURE_MODAL_STYLES?.() || Promise.resolve(),
+    import(versionedModuleUrl('./modules/confirm-modal-controller.js')),
+    import(versionedModuleUrl('./modules/coast-reconciliation-controller.js')),
+  ]).then(([, confirmModule, coastControllerModule]) => {
+    createConfirmModalController = confirmModule.createConfirmModalController;
+    createCoastReconciliationController = coastControllerModule.createCoastReconciliationController;
+    recordLazyRuntime('lazyModalLoadedMs', startedAt);
+    return { confirmModule, coastControllerModule };
+  }).catch(error => {
+    modalRuntimePromise = null;
+    recordLazyRuntimeError();
+    throw error;
+  });
+  return modalRuntimePromise;
+}
+
+async function ensureGisRuntime() {
+  if (gisRuntimePromise) return gisRuntimePromise;
+  const startedAt = performance.now();
+  gisRuntimePromise = Promise.all([
+    import(versionedModuleUrl('./modules/import-service.js')),
+    import(versionedModuleUrl('./modules/territorial-import-plan.js')),
+    import(versionedModuleUrl('./modules/country-import-identity.js')),
+    import(versionedModuleUrl('./modules/coast-reconciliation.js')),
+    import(versionedModuleUrl('./modules/annex-geometry.js')),
+    import(versionedModuleUrl('./modules/river-territory-partition.js')),
+  ]).then(([imports, territorial, countryIdentity, coast, annex, river]) => {
+    importServiceModule = imports;
+    ({ buildTerritorialImportTransactionPlan, resolveImportedCountryId } = territorial);
+    ({ identityResolutionSummary, materializeResolvedCountries, resolveCountryIdentities } = countryIdentity);
+    ({ analyzeAdminCountryCoast, normalizeCoastDecision, planCoastReconciliations, validateCoastReplacement } = coast);
+    ({ planDrawnTerritoryAnnex } = annex);
+    ({
+      buildRiverTerritoryPartitions,
+      composeRiverBoundaryTerritoryComponents,
+      RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
+      RIVER_TERRITORY_PARTITION_CONFIG,
+      riverTerritoryPartitionConfigFingerprint,
+    } = river);
+    recordLazyRuntime('lazyGisLoadedMs', startedAt);
+    return { imports, territorial, countryIdentity, coast, annex, river };
+  }).catch(error => {
+    gisRuntimePromise = null;
+    recordLazyRuntimeError();
+    throw error;
+  });
+  return gisRuntimePromise;
+}
+
+function loadClassicRuntime(relativePath) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = versionedModuleUrl(relativePath);
+    script.async = false;
+    script.addEventListener('load', () => resolve(script), { once: true });
+    script.addEventListener('error', () => reject(new Error(`${relativePath}을(를) 불러오지 못했습니다.`)), { once: true });
+    document.head.appendChild(script);
+  });
+}
+
+async function ensureGisIoRuntime() {
+  if (window.PandoLabGIS) return window.PandoLabGIS;
+  if (!gisIoRuntimePromise) {
+    gisIoRuntimePromise = loadClassicRuntime('./gis-adapters.js')
+      .then(() => loadClassicRuntime('./gis-io.js'))
+      .then(() => {
+        if (!window.PandoLabGIS) throw new Error('GIS 입출력 runtime을 초기화하지 못했습니다.');
+        return window.PandoLabGIS;
+      })
+      .catch(error => {
+        gisIoRuntimePromise = null;
+        recordLazyRuntimeError();
+        throw error;
+      });
+  }
+  return gisIoRuntimePromise;
+}
+
+async function ensureHistoricalRuntime() {
+  if (historicalRuntimePromise) return historicalRuntimePromise;
+  const startedAt = performance.now();
+  historicalRuntimePromise = Promise.all([
+    window.PANDOLAB_ENSURE_MODAL_STYLES?.() || Promise.resolve(),
+    import(versionedModuleUrl('./modules/historical-library.js')),
+    import(versionedModuleUrl('./modules/historical-library-service.js')),
+    import(versionedModuleUrl('./modules/historical-library-controller.js')),
+  ]).then(([, library, service, controller]) => {
+    historicalLibraryServiceModule = service;
+    historicalLibraryControllerModule = controller;
+    ({ LIBRARY_ENTITY_TYPES, selectGeometryVersion } = library);
+    recordLazyRuntime('lazyHistoricalLoadedMs', startedAt);
+    return { library, service, controller };
+  }).catch(error => {
+    historicalRuntimePromise = null;
+    recordLazyRuntimeError();
+    throw error;
+  });
+  return historicalRuntimePromise;
+}
 const {
   RELIABILITY_ERROR_CATEGORIES,
   createCancellationError,
@@ -157,27 +278,6 @@ const {
   isAbortError,
 } = reliabilityCoreModule;
 const { assertProjectReferenceIntegrity } = projectInvariantsModule;
-const { buildTerritorialImportTransactionPlan, resolveImportedCountryId } = territorialImportPlanModule;
-const {
-  identityResolutionSummary,
-  materializeResolvedCountries,
-  resolveCountryIdentities,
-} = countryImportIdentityModule;
-const {
-  analyzeAdminCountryCoast,
-  normalizeCoastDecision,
-  planCoastReconciliations,
-  validateCoastReplacement,
-} = coastReconciliationModule;
-const { createCoastReconciliationController } = coastReconciliationControllerModule;
-const { planDrawnTerritoryAnnex } = annexGeometryModule;
-const {
-  buildRiverTerritoryPartitions,
-  composeRiverBoundaryTerritoryComponents,
-  RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
-  RIVER_TERRITORY_PARTITION_CONFIG,
-  riverTerritoryPartitionConfigFingerprint,
-} = riverTerritoryPartitionModule;
 const { SELECTION_STYLE, setSelectionColor, setInteractionStyle: setSelectionInteractionStyle } = selectionStyleModule;
 const { buildSelectionBoundarySegments } = selectionStrokeGeometryModule;
 const { createSelectionPass } = selectionPassModule;
@@ -227,10 +327,6 @@ const {
   normalizeDistributionLayers,
   validateDistributionModel,
 } = distributionModelModule;
-const {
-  LIBRARY_ENTITY_TYPES,
-  selectGeometryVersion,
-} = historicalLibraryModule;
 const TERRITORIAL_TYPE_LABELS = Object.freeze({
   [TERRITORIAL_UNIT_TYPES.COUNTRY]: MAP_OBJECT_TYPES.country.label,
   [TERRITORIAL_UNIT_TYPES.TERRITORY]: MAP_OBJECT_TYPES.territory.label,
@@ -594,24 +690,36 @@ const {
   window.__PANDOLAB_RELIABILITY_LOG__ = reliabilityDiagnostic;
   // 내장 원본은 읽기 전용 기준 지도다. 렌더링 메시와 편집 사본을 분리해 원본 좌표를 보존한다.
   let pristineCountriesFallback = window.PANDOLAB_COUNTRIES || { type: 'FeatureCollection', features: [] };
-  let pristineCountriesSourceBuffer = null;
+  let canonicalCountryStore = null;
   const PRISTINE_LABEL_ANCHORS = window.PANDOLAB_LABEL_ANCHORS || {};
 
-  function parsePristineCountries() {
-    if (pristineCountriesSourceBuffer instanceof ArrayBuffer) {
-      return JSON.parse(new TextDecoder().decode(pristineCountriesSourceBuffer));
+  function installCanonicalCountryStore(store) {
+    if (!store || typeof store.materializeCollectionSync !== 'function'
+        || typeof store.materializeFeature !== 'function' || typeof store.geometryEquals !== 'function') {
+      throw new Error('무손실 국가 packet store가 올바르지 않습니다.');
     }
-    return deepClone(pristineCountriesFallback);
-  }
-
-  function installPristineCountrySource(sourceBuffer) {
-    if (!(sourceBuffer instanceof ArrayBuffer)) throw new Error('무손실 국가 데이터 버퍼가 올바르지 않습니다.');
-    pristineCountriesSourceBuffer = sourceBuffer;
+    canonicalCountryStore = store;
     pristineCountriesFallback = null;
   }
 
+  function materializePristineCountriesSync() {
+    return canonicalCountryStore?.materializeCollectionSync?.()
+      || deepClone(pristineCountriesFallback || { type: 'FeatureCollection', features: [] });
+  }
+
+  async function materializePristineCountries() {
+    if (!canonicalCountryStore?.materializeCollection) return materializePristineCountriesSync();
+    const result = await canonicalCountryStore.materializeCollection({
+      budgetMs: 4,
+      coordinateBudget: 4096,
+      waitForQuiet: async () => {},
+      yieldFrame: () => new Promise(resolve => requestAnimationFrame(resolve)),
+    });
+    return result.collection;
+  }
+
   function freshPristineCountries(applyOverrides = true) {
-    const countries = reindexCountries(parsePristineCountries(), applyOverrides);
+    const countries = reindexCountries(materializePristineCountriesSync(), applyOverrides, { assumeCanonical: !!canonicalCountryStore });
     applyPristineLabelAnchors(countries);
     return countries;
   }
@@ -2358,7 +2466,6 @@ const {
   const pendingCountryLabelAnchors = new Set();
   const countryLabelAnchorVersions = new Map();
   const countryLabelAnchors = new Map();
-  const countryCentroids = new Map();
   const countryLabelScreenAreas = new Map();
   let countryDisplaySource = null;
   let countryDisplayIndex = new Map();
@@ -3114,11 +3221,11 @@ const {
     return p.name || '이름 없는 국가';
   }
 
-  function reindexCountries(fc, applyOverrides = true) {
+  function reindexCountries(fc, applyOverrides = true, { assumeCanonical = false } = {}) {
     const out = fc?.type === 'FeatureCollection' ? fc : { type: 'FeatureCollection', features: [] };
     state.countryIndex.clear();
     out.features.forEach((feature, index) => {
-      if (!hasCanonicalCountryWinding(feature.geometry)) {
+      if (!assumeCanonical && !hasCanonicalCountryWinding(feature.geometry)) {
         const normalizedGeometry = normalizeCountryGeometry(feature.geometry);
         if (normalizedGeometry) feature.geometry = normalizedGeometry;
       }
@@ -3130,11 +3237,6 @@ const {
         ...(feature.properties.validFrom ? { validFrom: String(feature.properties.validFrom) } : {}),
         ...(feature.properties.validTo ? { validTo: String(feature.properties.validTo) } : {}),
       };
-      try {
-        countryCentroids.set(id, d3.geo.centroid(feature));
-      } catch (_) {
-        countryCentroids.set(id, [0, 0]);
-      }
       state.countryIndex.set(id, index);
     });
     rebuildSpatialIndex(out.features);
@@ -4272,12 +4374,6 @@ const {
 
   function refreshCountryCentroids(ids = null) {
     const filter = ids ? new Set([...ids].map(String)) : null;
-    for (const feature of state.countriesData?.features || []) {
-      const id = String(feature?.id || '');
-      if (filter && !filter.has(id)) continue;
-      try { countryCentroids.set(id, d3.geo.centroid(feature)); }
-      catch (_) { countryCentroids.set(id, [0, 0]); }
-    }
     scheduleCountryLabelAnchors(filter, 20);
   }
 
@@ -7502,7 +7598,7 @@ const {
       revision: state.stateRevision,
       payload: {
         countries: state.countriesData?.features || [],
-        coarseCountries: state.auditPreviewCountries?.features || [],
+        coarseCountries: state.countryVisualPhase === 'preview' ? state.auditPreviewCountries?.features || [] : [],
         preciseAffectedIds: [...state.historyDirtyCountryIds],
         units: state.territorialUnits || [],
         distributionEntries: state.distributionEntries || [],
@@ -7682,6 +7778,9 @@ const {
   function beginMapMovement() {
     if (state.mapMoving) return;
     state.mapMoving = true;
+    window.dispatchEvent(new CustomEvent('pandolab:interaction-state', {
+      detail: { active: true, source: 'map-movement', timestamp: performance.now() },
+    }));
     renderQualityController.beginInteraction('map-movement');
     applyAdaptiveRenderQuality({ refreshScene: false, reason: 'map-movement' });
     mapRenderCoordinator.beginInteraction('map-movement');
@@ -7698,6 +7797,9 @@ const {
   function finishMapMovement(point = null) {
     if (!state.mapMoving) return;
     state.mapMoving = false;
+    window.dispatchEvent(new CustomEvent('pandolab:interaction-state', {
+      detail: { active: false, source: 'map-movement', timestamp: performance.now() },
+    }));
     const previousTier = currentRenderQuality.tier;
     renderQualityController.endInteraction('map-movement-end');
     applyAdaptiveRenderQuality({ refreshScene: false, reason: 'map-movement-end' });
@@ -8661,6 +8763,13 @@ const {
   }
 
   function enterAnnexTerritoryMode(id) {
+    if (!planDrawnTerritoryAnnex || !composeRiverBoundaryTerritoryComponents) {
+      setActionStatus('영토 편입 도구를 준비하는 중입니다.', 'working', 0);
+      void ensureGisRuntime()
+        .then(() => enterAnnexTerritoryMode(id))
+        .catch(error => reportOperationError(error, '영토 편입 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-001', 4200));
+      return true;
+    }
     clearNotification();
     const feature = countryFeatureById(id);
     if (!feature) return false;
@@ -9000,15 +9109,12 @@ const {
     const geometry = geometryOverride
       ? deepClone(geometryOverride)
       : { type: 'Polygon', coordinates: [orientRing(rawRing, true)] };
-    const ring = ensureClosedRing(geometryPolygonSets(geometry)?.[0]?.[0] || rawRing || []);
     const feature = {
       type: 'Feature',
       id,
       properties: { name },
       geometry,
     };
-    try { countryCentroids.set(id, d3.geo.centroid(feature)); }
-    catch (_) { countryCentroids.set(id, ringRepresentativePoint(ring)); }
     if (color) state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}), color };
     return feature;
   }
@@ -9530,6 +9636,7 @@ const {
   }
 
   async function prepareRiverPartitionCandidates({ targetCountryId = state.annexTargetCountryId, donorCountryIds = state.annexDonorCountryIds } = {}) {
+    await ensureGisRuntime();
     const target = countryFeatureById(String(targetCountryId || ''));
     const donors = [...new Set((donorCountryIds || []).map(String))].map(countryFeatureById).filter(Boolean);
     if (!riverPartitionRequestActive() || !target || !donors.length) return;
@@ -12689,16 +12796,21 @@ const {
       return;
     }
     if (project?.countriesData && pristineCompatible) {
-      const pristine = parsePristineCountries();
-      const pristineById = new Map((pristine.features || []).map((feature, index) => [featureCountryId(feature, index), feature]));
       const currentIds = new Set();
       for (const feature of state.countriesData?.features || []) {
         const id = String(feature.id || '');
         currentIds.add(id);
-        const pristine = pristineById.get(id);
-        if (!pristine || JSON.stringify(pristine.geometry) !== JSON.stringify(feature.geometry)) state.historyDirtyCountryIds.add(id);
+        if (canonicalCountryStore) {
+          if (!canonicalCountryStore.getFingerprint(id)
+              || !canonicalCountryStore.geometryEquals(id, feature.geometry)) state.historyDirtyCountryIds.add(id);
+        } else {
+          const pristine = (pristineCountriesFallback?.features || []).find(candidate => String(candidate.id || '') === id);
+          if (!pristine || JSON.stringify(pristine.geometry) !== JSON.stringify(feature.geometry)) state.historyDirtyCountryIds.add(id);
+        }
       }
-      for (const id of pristineById.keys()) if (!currentIds.has(String(id))) state.historyDirtyCountryIds.add(String(id));
+      const pristineIds = canonicalCountryStore?.ids?.()
+        || (pristineCountriesFallback?.features || []).map(feature => String(feature.id || ''));
+      for (const id of pristineIds) if (!currentIds.has(String(id))) state.historyDirtyCountryIds.add(String(id));
     }
   }
 
@@ -12720,19 +12832,43 @@ const {
       state.historyDirtyCountryIds = new Set();
       return;
     }
-    const base = state.sessionBaseCountriesJson
-      ? JSON.parse(state.sessionBaseCountriesJson)
-      : parsePristineCountries();
     const delta = snapshot.countryDelta || { changed: [], removedIds: [] };
     const changed = new Map((delta.changed || []).map(feature => [String(feature.id || ''), feature]));
     const removed = new Set((delta.removedIds || []).map(String));
     const seen = new Set();
-    base.features = (base.features || []).filter(feature => !removed.has(String(feature.id || ''))).map(feature => {
-      const id = String(feature.id || '');
-      if (!changed.has(id)) return feature;
-      seen.add(id);
-      return deepClone(changed.get(id));
-    });
+    let base;
+    if (state.sessionBaseCountriesJson) {
+      base = JSON.parse(state.sessionBaseCountriesJson);
+      base.features = (base.features || []).filter(feature => !removed.has(String(feature.id || ''))).map(feature => {
+        const id = String(feature.id || '');
+        if (!changed.has(id)) return feature;
+        seen.add(id);
+        return deepClone(changed.get(id));
+      });
+    } else if (canonicalCountryStore) {
+      const currentById = new Map((state.countriesData?.features || []).map(feature => [String(feature.id || ''), feature]));
+      base = { type: 'FeatureCollection', features: [] };
+      for (const id of canonicalCountryStore.ids()) {
+        if (removed.has(id)) continue;
+        if (changed.has(id)) {
+          seen.add(id);
+          base.features.push(deepClone(changed.get(id)));
+          continue;
+        }
+        const current = currentById.get(id);
+        base.features.push(current && canonicalCountryStore.geometryEquals(id, current.geometry)
+          ? current
+          : canonicalCountryStore.materializeFeature(id));
+      }
+    } else {
+      base = materializePristineCountriesSync();
+      base.features = (base.features || []).filter(feature => !removed.has(String(feature.id || ''))).map(feature => {
+        const id = String(feature.id || '');
+        if (!changed.has(id)) return feature;
+        seen.add(id);
+        return deepClone(changed.get(id));
+      });
+    }
     for (const [id, feature] of changed) if (!seen.has(id)) base.features.push(deepClone(feature));
     state.countriesData = reindexCountries(base, true);
     const unchangedIds = (state.countriesData.features || []).map(feature => String(feature.id || '')).filter(id => !changed.has(id));
@@ -13252,7 +13388,7 @@ const {
     state.countriesData = project.countriesData
       ? reindexCountries(deepClone(project.countriesData), true)
       : freshPristineCountries(true);
-    state.auditPreviewCountries = state.countriesData;
+    state.auditPreviewCountries = null;
     normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
@@ -13298,43 +13434,58 @@ const {
       : '프로젝트를 불러왔습니다.', 'success', 3200);
   }
 
-  const confirmModalController = createConfirmModalController({
-    document,
-    window,
-    elements: {
-      modal: $('confirmModal'),
-      backdrop: $('confirmModal')?.querySelector('.confirm-modal-dim'),
-      title: $('confirmModalTitle'),
-      message: $('confirmModalMessage'),
-      impactSection: $('confirmModalImpactSection'),
-      impactList: $('confirmModalImpactList'),
-      ok: $('confirmModalOkBtn'),
-      cancel: $('confirmModalCancelBtn'),
-      choiceRow: $('confirmModalChoiceRow'),
-      choice: $('confirmModalChoice'),
-    },
-    setChoices: replaceSelectOptions,
-    beforeOpen: clearNotification,
-  });
-  const openConfirmModal = options => confirmModalController.open(options);
-  const closeConfirmModal = () => confirmModalController.close();
-
-  const coastReconciliationController = createCoastReconciliationController({
-    document,
-    window,
-    elements: {
-      modal: $('coastReconciliationModal'),
-      backdrop: $('coastReconciliationModal')?.querySelector('.confirm-modal-dim'),
-      title: $('coastReconciliationTitle'),
-      message: $('coastReconciliationMessage'),
-      impact: $('coastReconciliationImpact'),
-      impactList: $('coastReconciliationImpactList'),
-      country: $('coastReconciliationCountryBtn'),
-      subject: $('coastReconciliationAdminBtn'),
-      independent: $('coastReconciliationIndependentBtn'),
-      cancel: $('coastReconciliationCancelBtn'),
-    },
-  });
+  let confirmModalController = null;
+  let coastReconciliationController = null;
+  async function getConfirmModalController() {
+    if (confirmModalController) return confirmModalController;
+    await ensureModalRuntime();
+    confirmModalController = createConfirmModalController({
+      document,
+      window,
+      elements: {
+        modal: $('confirmModal'),
+        backdrop: $('confirmModal')?.querySelector('.confirm-modal-dim'),
+        title: $('confirmModalTitle'),
+        message: $('confirmModalMessage'),
+        impactSection: $('confirmModalImpactSection'),
+        impactList: $('confirmModalImpactList'),
+        ok: $('confirmModalOkBtn'),
+        cancel: $('confirmModalCancelBtn'),
+        choiceRow: $('confirmModalChoiceRow'),
+        choice: $('confirmModalChoice'),
+      },
+      setChoices: replaceSelectOptions,
+      beforeOpen: clearNotification,
+    });
+    confirmModalController.bind();
+    return confirmModalController;
+  }
+  async function getCoastReconciliationController() {
+    if (coastReconciliationController) return coastReconciliationController;
+    await ensureModalRuntime();
+    coastReconciliationController = createCoastReconciliationController({
+      document,
+      window,
+      elements: {
+        modal: $('coastReconciliationModal'),
+        backdrop: $('coastReconciliationModal')?.querySelector('.confirm-modal-dim'),
+        title: $('coastReconciliationTitle'),
+        message: $('coastReconciliationMessage'),
+        impact: $('coastReconciliationImpact'),
+        impactList: $('coastReconciliationImpactList'),
+        country: $('coastReconciliationCountryBtn'),
+        subject: $('coastReconciliationAdminBtn'),
+        independent: $('coastReconciliationIndependentBtn'),
+        cancel: $('coastReconciliationCancelBtn'),
+      },
+    });
+    coastReconciliationController.bind();
+    return coastReconciliationController;
+  }
+  const openConfirmModal = options => getConfirmModalController()
+    .then(controller => controller.open(options))
+    .catch(error => reportOperationError(error, '확인 창을 불러오지 못했습니다.', 'PL-MODAL-001'));
+  const closeConfirmModal = () => confirmModalController?.close();
 
   function analyzeAdminCountryCoastConflicts(adminId) {
     const admin = territorialUnitById(adminId);
@@ -13347,6 +13498,7 @@ const {
   }
 
   async function reconcileAdminCountryCoast(adminId, { manual = true } = {}) {
+    await ensureGisRuntime();
     const analysis = analyzeAdminCountryCoastConflicts(adminId);
     if (!analysis.admin || !analysis.country) {
       setActionStatus('소속 국가를 찾을 수 없어 해안선을 비교할 수 없습니다.', 'error', 3600);
@@ -13360,7 +13512,7 @@ const {
       if (manual) setActionStatus('국가 해안선과 일치하는 불일치 구간이 없습니다.', 'success', 3000);
       return { ok: true, changed: false };
     }
-    const decision = await coastReconciliationController.open({
+    const decision = await (await getCoastReconciliationController()).open({
       subjectName: territorialUnitName(analysis.admin),
       subjectActionLabel: '행정구역',
       countryName: countryName(analysis.country),
@@ -13477,19 +13629,18 @@ const {
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     state.countryIndex.clear();
-    state.countriesData = freshPristineCountries(false);
-    state.auditPreviewCountries = state.countriesData;
+    state.countriesData = reindexCountries(await materializePristineCountries(), false, { assumeCanonical: true });
+    applyPristineLabelAnchors(state.countriesData);
+    state.auditPreviewCountries = null;
     pruneLayerItemVisibility();
     markLayerTreeDirty();
     configureDatasetSession(null);
     scheduleGpuMeshRebuild(0, nextProjectGeneration);
-    const restoredGeometrySignature = JSON.stringify(
-      state.countriesData.features.map(f => [String(f.id || ''), f.geometry])
-    );
-    const pristineGeometrySignature = JSON.stringify(
-      (parsePristineCountries().features || []).map(f => [String(f.id || ''), f.geometry])
-    );
-    if (restoredGeometrySignature !== pristineGeometrySignature) {
+    const restoredExactly = canonicalCountryStore
+      ? state.countriesData.features.length === canonicalCountryStore.featureCount
+        && state.countriesData.features.every(feature => canonicalCountryStore.geometryEquals(String(feature.id || ''), feature.geometry))
+      : true;
+    if (!restoredExactly) {
       throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
     }
     refreshCountryCentroids();
@@ -13613,11 +13764,12 @@ const {
 
   async function saveGeoPackageFile() {
     if (!requireCanonicalData()) return;
-    if (!window.PandoLabGIS?.exportGeoPackage) throw new Error('GeoPackage 저장 모듈을 불러오지 못했습니다.');
     const button = $('saveProjectBtn');
     if (button) button.disabled = true;
     saveState.markFileSaving();
     try {
+      await ensureGisIoRuntime();
+      if (!window.PandoLabGIS?.exportGeoPackage) throw new Error('GeoPackage 저장 모듈을 불러오지 못했습니다.');
       const blob = await window.PandoLabGIS.exportGeoPackage(projectDomain.buildProject(), () => undefined);
       const filename = '판도연구소-프로젝트.gpkg';
       if (typeof window.showSaveFilePicker === 'function') {
@@ -13717,23 +13869,71 @@ const {
     };
   }
 
-  const gisGeometryValidator = createGisGeometryValidator({
-    createWorker: () => new Worker(runtimeAssetUrl('workers/gis-geometry-worker.js'), { name: 'pandolab-gis-geometry' }),
-  });
-  const validateGisCountryCollection = (collection, affectedIds = null) => gisGeometryValidator.validate(collection, affectedIds);
-  const planGisMerge = createCountryImportMergePlanner({
-    clipper: window.polygonClipping,
-    clone: deepClone,
-    featureCountryId,
-    countryName,
-    geometryBounds,
-    boundsOverlap,
-    normalizeGeometry: normalizeClippedLandGeometry,
-    geometryCoordinates: geometryMultiCoordinates,
-    planarArea: multiPolygonPlanarArea,
-    areaKm2: sphericalGeometryAreaKm2,
-    validateCountryCollection: validateGisCountryCollection,
-  });
+  let gisGeometryValidator = null;
+  let planGisMerge = null;
+  let importService = null;
+  async function ensureGisServices() {
+    if (importService && planGisMerge && gisGeometryValidator) return importService;
+    await Promise.all([ensureGisRuntime(), ensureGisIoRuntime(), ensureModalRuntime()]);
+    const {
+      appendImportedSourceInfo: appendSourceInfo,
+      applyImportedPackageAssets: applyPackageAssets,
+      createCountryImportMergePlanner,
+      createGisGeometryValidator,
+      createImportService,
+      importedCountryOverrides: readImportedOverrides,
+    } = importServiceModule;
+    appendImportedSourceInfo = appendSourceInfo;
+    applyImportedPackageAssets = applyPackageAssets;
+    importedCountryOverrides = readImportedOverrides;
+    gisGeometryValidator = createGisGeometryValidator({
+      createWorker: () => new Worker(runtimeAssetUrl('workers/gis-geometry-worker.js'), { name: 'pandolab-gis-geometry' }),
+    });
+    planGisMerge = createCountryImportMergePlanner({
+      clipper: window.polygonClipping,
+      clone: deepClone,
+      featureCountryId,
+      countryName,
+      geometryBounds,
+      boundsOverlap,
+      normalizeGeometry: normalizeClippedLandGeometry,
+      geometryCoordinates: geometryMultiCoordinates,
+      planarArea: multiPolygonPlanarArea,
+      areaKm2: sphericalGeometryAreaKm2,
+      validateCountryCollection: (collection, affectedIds = null) => gisGeometryValidator.validate(collection, affectedIds),
+    });
+    importService = createImportService({
+      openImportWizard: (files, options) => {
+        if (!window.PandoLabGIS?.openImportWizard) throw new Error('GIS 가져오기 모듈을 불러오지 못했습니다.');
+        return window.PandoLabGIS.openImportWizard(files, options);
+      },
+      getWizardOptions: () => ({
+        countryOptions: gisImportCountryOptions(),
+        parentOptions: gisImportParentOptions(),
+        hasUnsavedChanges: saveState.snapshot().hasUnsavedChanges,
+        planImpact: planTerritorialImportImpact,
+        planCountryIdentity: planCountryImportIdentity,
+      }),
+      validateStructuredGeometry,
+      featureCountryId,
+      validateCountryCollection: (collection, affectedIds = null) => gisGeometryValidator.validate(collection, affectedIds),
+      getCurrentCountries: () => state.countriesData,
+      materializeCountryImport,
+      planCountryMerge: planGisMerge,
+      materializers: {
+        replaceProject: (...args) => editingDomain?.importProject?.(...args),
+        territorial: (...args) => editingDomain?.importTerritorial?.(...args),
+        geoJson: (...args) => editingDomain?.importGeneric?.(...args),
+        mergeCountries: (...args) => editingDomain?.mergeCountries?.(...args),
+      },
+      onStage: message => setActionStatus(message, 'working', 0),
+    });
+    return importService;
+  }
+  const validateGisCountryCollection = async (collection, affectedIds = null) => {
+    await ensureGisServices();
+    return gisGeometryValidator.validate(collection, affectedIds);
+  };
 
   async function applyImportedReplacement(result) {
     const packageState = result.atlasMetadata?.projectState || {};
@@ -13818,33 +14018,6 @@ const {
 
   let requestedVectorTarget = '';
 
-  const importService = createImportService({
-    openImportWizard: (files, options) => {
-      if (!window.PandoLabGIS?.openImportWizard) throw new Error('GIS 가져오기 모듈을 불러오지 못했습니다.');
-      return window.PandoLabGIS.openImportWizard(files, options);
-    },
-    getWizardOptions: () => ({
-      countryOptions: gisImportCountryOptions(),
-      parentOptions: gisImportParentOptions(),
-      hasUnsavedChanges: saveState.snapshot().hasUnsavedChanges,
-      planImpact: planTerritorialImportImpact,
-      planCountryIdentity: planCountryImportIdentity,
-    }),
-    validateStructuredGeometry,
-    featureCountryId,
-    validateCountryCollection: validateGisCountryCollection,
-    getCurrentCountries: () => state.countriesData,
-    materializeCountryImport,
-    planCountryMerge: planGisMerge,
-    materializers: {
-      replaceProject: (...args) => editingDomain?.importProject?.(...args),
-      territorial: (...args) => editingDomain?.importTerritorial?.(...args),
-      geoJson: (...args) => editingDomain?.importGeneric?.(...args),
-      mergeCountries: (...args) => editingDomain?.mergeCountries?.(...args),
-    },
-    onStage: message => setActionStatus(message, 'working', 0),
-  });
-
   function captureGisImportSnapshot() {
     return {
       projectFields: pickProjectFields(state, { scope: 'project', clone: deepClone }),
@@ -13895,6 +14068,7 @@ const {
     const importSnapshot = captureGisImportSnapshot();
     setActionStatus('파일 확인 중…', 'working', 0);
     try {
+      await ensureGisServices();
       await importService.openFiles(files, { targetType: requestedTarget });
     } catch (error) {
       let rollback = 'restored';
@@ -13931,12 +14105,9 @@ const {
     }
   }
 
-  const LIBRARY_TYPE_LABELS = Object.freeze({
-    [LIBRARY_ENTITY_TYPES.COUNTRY]: MAP_OBJECT_TYPES.country.label,
-    [LIBRARY_ENTITY_TYPES.TERRITORY]: MAP_OBJECT_TYPES.territory.label,
-    [LIBRARY_ENTITY_TYPES.ADMIN]: MAP_OBJECT_TYPES.admin.label,
-    [LIBRARY_ENTITY_TYPES.REGION]: MAP_OBJECT_TYPES.region.label,
-  });
+  let historicalLibraryService = null;
+  let historicalLibraryController = null;
+  let LIBRARY_TYPE_LABELS = Object.freeze({});
 
   function combineHistoricalLibraryGeometries(geometries) {
     const coordinates = geometries.filter(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type)).map(geometry => geometry.coordinates);
@@ -13944,18 +14115,6 @@ const {
     const union = coordinates.length === 1 ? coordinates[0] : window.polygonClipping.union(...coordinates);
     return normalizeClippedLandGeometry(union);
   }
-
-  const historicalLibraryService = createHistoricalLibraryService({
-    dataUrl: HISTORICAL_LIBRARY_DATA_URL,
-    fetchJson: async url => {
-      const response = await fetch(url, { cache: 'force-cache' });
-      if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
-      return response.json();
-    },
-    getCountriesData: () => state.countriesData,
-    displayName: countryName,
-    combineGeometries: combineHistoricalLibraryGeometries,
-  });
 
   function historicalLibraryPreviewSvg(entity, version) {
     const wrapper = document.createElement('div');
@@ -14102,51 +14261,79 @@ const {
     };
   }
 
-  const historicalLibraryController = createHistoricalLibraryController({
-    document,
-    elements: {
-      open: $('addFromLibraryBtn'),
-      modal: $('historicalLibraryModal'),
-      card: document.querySelector('.historical-library-card'),
-      close: $('historicalLibraryCloseBtn'),
-      backdrop: $('historicalLibraryModal').querySelector('.ui-dialog-backdrop'),
-      search: $('historicalLibrarySearchInput'),
-      clearSearch: $('historicalLibrarySearchClearBtn'),
-      type: $('historicalLibraryTypeInput'),
-      status: $('historicalLibraryStatusInput'),
-      year: $('historicalLibraryYearInput'),
-      geographicRegion: $('historicalLibraryGeographicRegionInput'),
-      results: $('historicalLibraryResults'),
-      preview: $('historicalLibraryPreview'),
-      snapshot: $('historicalLibrarySnapshotInput'),
-      snapshotButton: $('historicalLibrarySnapshotBtn'),
-      childDepth: $('historicalLibraryChildDepthInput'),
-      add: $('historicalLibraryAddBtn'),
-      addOptions: $('historicalLibraryAddOptions'),
-      optionsBack: $('historicalLibraryOptionsBackBtn'),
-    },
-    service: historicalLibraryService,
-    typeLabels: LIBRARY_TYPE_LABELS,
-    selectGeometryVersion,
-    renderMapPreview: historicalLibraryPreviewSvg,
-    createEmptyState,
-    replaceSelectOptions,
-    collator: layerNameCollator,
-    isMobile,
-    closeCreateMenu,
-    instantiate: instantiateHistoricalLibraryEntities,
-    confirm: openConfirmModal,
-    setStatus: setActionStatus,
-    reportError: reportOperationError,
-  });
+  async function getHistoricalLibraryController() {
+    if (historicalLibraryController) return historicalLibraryController;
+    await Promise.all([ensureHistoricalRuntime(), ensureGisServices(), ensureModalRuntime()]);
+    const { createHistoricalLibraryService } = historicalLibraryServiceModule;
+    const { createHistoricalLibraryController } = historicalLibraryControllerModule;
+    historicalLibraryService = createHistoricalLibraryService({
+      dataUrl: HISTORICAL_LIBRARY_DATA_URL,
+      fetchJson: async url => {
+        const response = await fetch(url, { cache: 'force-cache' });
+        if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
+        return response.json();
+      },
+      getCountriesData: () => state.countriesData,
+      displayName: countryName,
+      combineGeometries: combineHistoricalLibraryGeometries,
+    });
+    LIBRARY_TYPE_LABELS = Object.freeze({
+      [LIBRARY_ENTITY_TYPES.COUNTRY]: MAP_OBJECT_TYPES.country.label,
+      [LIBRARY_ENTITY_TYPES.TERRITORY]: MAP_OBJECT_TYPES.territory.label,
+      [LIBRARY_ENTITY_TYPES.ADMIN]: MAP_OBJECT_TYPES.admin.label,
+      [LIBRARY_ENTITY_TYPES.REGION]: MAP_OBJECT_TYPES.region.label,
+    });
+    historicalLibraryController = createHistoricalLibraryController({
+      document,
+      elements: {
+        open: null,
+        modal: $('historicalLibraryModal'),
+        card: document.querySelector('.historical-library-card'),
+        close: $('historicalLibraryCloseBtn'),
+        backdrop: $('historicalLibraryModal').querySelector('.ui-dialog-backdrop'),
+        search: $('historicalLibrarySearchInput'),
+        clearSearch: $('historicalLibrarySearchClearBtn'),
+        type: $('historicalLibraryTypeInput'),
+        status: $('historicalLibraryStatusInput'),
+        year: $('historicalLibraryYearInput'),
+        geographicRegion: $('historicalLibraryGeographicRegionInput'),
+        results: $('historicalLibraryResults'),
+        preview: $('historicalLibraryPreview'),
+        snapshot: $('historicalLibrarySnapshotInput'),
+        snapshotButton: $('historicalLibrarySnapshotBtn'),
+        childDepth: $('historicalLibraryChildDepthInput'),
+        add: $('historicalLibraryAddBtn'),
+        addOptions: $('historicalLibraryAddOptions'),
+        optionsBack: $('historicalLibraryOptionsBackBtn'),
+      },
+      service: historicalLibraryService,
+      typeLabels: LIBRARY_TYPE_LABELS,
+      selectGeometryVersion,
+      renderMapPreview: historicalLibraryPreviewSvg,
+      createEmptyState,
+      replaceSelectOptions,
+      collator: layerNameCollator,
+      isMobile,
+      closeCreateMenu,
+      instantiate: instantiateHistoricalLibraryEntities,
+      confirm: openConfirmModal,
+      setStatus: setActionStatus,
+      reportError: reportOperationError,
+    });
+    historicalLibraryController.connect();
+    return historicalLibraryController;
+  }
 
   window.PANDOLAB_HISTORICAL_LIBRARY = Object.freeze({
-    load: historicalLibraryService.load,
-    get: historicalLibraryService.get,
-    list: historicalLibraryService.list,
-    search: historicalLibraryService.search,
-    snapshots: historicalLibraryService.snapshots,
-    instantiate: (id, referenceDate = '', childDepth = 'none') => instantiateHistoricalLibraryEntities([id], referenceDate, childDepth),
+    load: async () => { await getHistoricalLibraryController(); return historicalLibraryService.load(); },
+    get: async id => { await getHistoricalLibraryController(); return historicalLibraryService.get(id); },
+    list: async () => { await getHistoricalLibraryController(); return historicalLibraryService.list(); },
+    search: async options => { await getHistoricalLibraryController(); return historicalLibraryService.search(options); },
+    snapshots: async () => { await getHistoricalLibraryController(); return historicalLibraryService.snapshots(); },
+    instantiate: async (id, referenceDate = '', childDepth = 'none') => {
+      await getHistoricalLibraryController();
+      return instantiateHistoricalLibraryEntities([id], referenceDate, childDepth);
+    },
   });
 
   function territorialUnitMatchesFromImportedValue(value, countryId = '', units = state.territorialUnits) {
@@ -14505,7 +14692,8 @@ const {
       countryTopology: topology,
     });
     if (analysis.status !== 'unavailable' && !analysis.conflicts.length) return { direction: 'none' };
-    const choice = await coastReconciliationController.open({
+    await ensureGisRuntime();
+    const choice = await (await getCoastReconciliationController()).open({
       subjectName: territorialUnitName(feature),
       subjectActionLabel: '가져온 영역',
       countryName: countryName(country),
@@ -14865,7 +15053,8 @@ const {
     if (focus) requestAnimationFrame(() => document.querySelector(`[data-gis-export-step="${gisExportStep}"][data-gis-active="true"] :is(input, select, button)`)?.focus());
   }
 
-  function openGisDataExport() {
+  async function openGisDataExport() {
+    await Promise.all([ensureGisIoRuntime(), ensureModalRuntime()]);
     if (!requireCanonicalData()) return;
     gisExportReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : $('dataExportBtn');
     $('gisExportError').textContent = '';
@@ -15871,7 +16060,14 @@ const {
     };
     $('shortcutHelpCloseBtn')?.addEventListener('click', closeShortcutHelp);
     $('shortcutHelpModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeShortcutHelp);
-    historicalLibraryController.connect();
+    $('addFromLibraryBtn')?.addEventListener('click', async () => {
+      try {
+        const controller = await getHistoricalLibraryController();
+        await controller.open();
+      } catch (error) {
+        reportOperationError(error, '국가·지역 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);
+      }
+    });
     $('saveProjectBtn').addEventListener('click', saveGeoPackageFile);
     $('openGisBtn').addEventListener('click', () => {
       $('gisFileInput').dataset.returnFocusId = 'openGisBtn';
@@ -15884,10 +16080,9 @@ const {
     });
 
     $('newProjectBtn').addEventListener('click', requestNewProject);
-    confirmModalController.bind();
-    coastReconciliationController.bind();
-
-    $('dataExportBtn').addEventListener('click', openGisDataExport);
+    $('dataExportBtn').addEventListener('click', () => {
+      void openGisDataExport().catch(error => reportOperationError(error, 'GIS 내보내기 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-002', 4200));
+    });
     const preferencesModal = $('preferencesModal');
     let preferencesOrigin = null;
     const syncPreferencesForm = () => {
@@ -16050,13 +16245,13 @@ const {
         if (!$('preferencesModal')?.classList.contains('hidden')) { $('preferencesCancelBtn')?.click(); return; }
         if (!$('objectChooser')?.classList.contains('hidden')) { closeObjectChooser({ restoreFocus: true }); return; }
         if (!$('objectActionsMenu')?.classList.contains('hidden')) { closeObjectActionsMenu({ restoreFocus: true }); return; }
-        if (historicalLibraryController.isOpen()) { historicalLibraryController.close(); return; }
+        if (historicalLibraryController?.isOpen()) { historicalLibraryController.close(); return; }
         if (!$('territorialTypeModal')?.classList.contains('hidden')) { closeTerritorialTypeModal(); return; }
         if (!$('distributionTypeModal')?.classList.contains('hidden')) { $('distributionTypeCancelBtn')?.click(); return; }
         if (!$('territorialCreateModal')?.classList.contains('hidden')) { closeTerritorialCreateModal(); return; }
         if (!$('gisImportModal')?.classList.contains('hidden')) { $('gisImportCancelBtn')?.click(); return; }
         if (!$('gisExportModal')?.classList.contains('hidden')) { closeGisDataExport(); return; }
-        if (confirmModalController.isOpen()) { closeConfirmModal(); return; }
+        if (confirmModalController?.isOpen()) { closeConfirmModal(); return; }
         if (document.body.classList.contains('file-menu-open')) { closeFileMenu({ restoreFocus: true }); return; }
         if (isCreateMenuOpen()) { closeCreateMenu({ restoreFocus: true }); return; }
         if (state.geometryPreview.session) { discardActiveGeometryPreview(); return; }
@@ -16317,14 +16512,20 @@ const {
 
   async function completeGeometryInitialization(geometry, autosaveRestore, previewStart) {
     const applyStartedAt = performance.now();
+    const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
+    if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'start';
     const navigationView = deepClone(state.view);
     const navigationProjection = state.projection;
     const navigationChanged = navigationProjection !== previewStart.projection
       || JSON.stringify(navigationView) !== previewStart.viewJson;
     const previewSearch = state.layerSearch;
     const previewSelection = (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) ? String(state.selected.id || '') : '';
-    installPristineCountrySource(geometry.countriesSourceBuffer);
-    const projectGeneration = gpuMapRenderer.resetProjectRenderState?.();
+    installCanonicalCountryStore(geometry.canonicalCountryStore);
+    // Preview-to-canonical promotion stays inside the same project generation.
+    // A project hard reset here discarded the painted preview scene and forced
+    // the renderer down the expensive canonical fallback path before the
+    // Worker mesh was ready.
+    const projectGeneration = gpuMapRenderer.getProjectGeneration?.();
     boundarySelectionAnalysisCache.clear();
     // The low-resolution country source is a one-way startup aid.  After the
     // first canonical promotion a project reset starts from canonical data or
@@ -16341,7 +16542,8 @@ const {
       ? projectDomain.countriesFromAutosaveDelta(restored, geometry.countries)
       : restored?.countriesData
         ? reindexCountries(restored.countriesData, true)
-        : reindexCountries(geometry.countries, true);
+        : reindexCountries(geometry.countries, true, { assumeCanonical: true });
+    if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'countries-indexed';
     if (!restored) applyPristineLabelAnchors(state.countriesData);
     if (navigationChanged) {
       state.view = navigationView;
@@ -16356,6 +16558,7 @@ const {
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
     configureDatasetSession(restored);
+    if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'project-normalized';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     const externalGeometry = !!restored?.countriesData && restored.baseDataset !== BASE_DATASET;
     const useBuiltInMesh = !externalGeometry && !state.sessionBaseCountriesJson;
@@ -16363,16 +16566,24 @@ const {
     applyDataReadinessEvent(READINESS_EVENTS.GEOMETRY_READY);
     state.geometryProgress = 100;
     syncProjectControls();
-    resizeMap();
     updateHistoryButtons();
-    editingDomain?.setTool('select', { announce: false });
-    invalidateProjectRender('initial-geometry-ready');
+    // Keep the already-painted preview scene stable until the canonical mesh is
+    // ready. A full project invalidation here made the renderer traverse the
+    // 10m geometry on the main thread before the Worker-produced mesh could be
+    // applied, defeating the interaction-first startup contract.
+    // The canonical state becomes editable here, but the painted preview and
+    // its interaction packet remain active until the canonical mesh commits.
+    // The mesh commit performs the first full canonical render atomically.
+    invalidateView('canonical-geometry-applied');
     if (previewSelection && countryFeatureById(previewSelection)) selectCountry(previewSelection, true, false);
-    loadHydroData();
+    if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'layer-hydration';
     await completeLayerTreeHydration();
-    mapWorkScheduler.scheduleIdle('map-edit-warmup', () => mapEditClient.rebase(state.countriesData?.features || []), 1600);
+    if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'complete';
+    // Do not structured-clone the full canonical country collection into the
+    // edit Worker during startup. The client rebases lazily on the first edit
+    // operation, so the initial canonical promotion stays isolated from
+    // non-essential editing preparation.
 
-    const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     if (startupMetrics) {
       startupMetrics.geometryApplyMs = performance.now() - applyStartedAt;
       const renderer = gpuMapRenderer.getRuntimeState();
@@ -16401,6 +16612,7 @@ const {
 
   async function completeMeshEnhancement(mesh, context) {
     const meshReplaceStartedAt = performance.now();
+    const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     let meshApplied;
     const projectGeneration = context?.projectGeneration ?? gpuMapRenderer.getProjectGeneration?.();
     if (!context.useBuiltInMesh || state.sessionBaseCountriesJson) {
@@ -16425,14 +16637,21 @@ const {
       state.countryVisualPhase = 'canonical';
       countryDisplaySource = null;
       countryDisplayIndex = new Map();
+      state.auditPreviewCountries = null;
+      window.PANDOLAB_COUNTRIES = null;
+      if (startupMetrics) startupMetrics.canonicalPreviewReleasedBytes = Number(
+        startupMetrics.preview?.assets?.countries?.decodedBytes || 0,
+      );
+      void window.PANDOLAB_SAMPLE_STARTUP_MEMORY?.('preview-released');
       applyAdaptiveRenderQuality({ refreshScene: false, reason: 'canonical-ready' });
     }
+    loadTerrainManifest();
+    loadHydroData();
     applyDataReadinessEvent(READINESS_EVENTS.MESH_READY);
     state.meshProgress = 100;
     invalidateProjectRender('canonical-mesh-ready');
     const renderer = gpuMapRenderer.getRuntimeState();
     $('engineStatus').textContent = `Natural Earth 5.1.1 · ${renderer.renderer === 'webgl2' ? 'WebGL2' : renderer.renderer === 'webgl1' ? 'WebGL1' : 'Canvas'} 고화질`;
-    const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     if (startupMetrics) {
       startupMetrics.meshApplyMs = performance.now() - meshReplaceStartedAt;
       startupMetrics.renderer = renderer.renderer;
@@ -16510,7 +16729,6 @@ const {
     const previewStart = { projection: state.projection, viewJson: JSON.stringify(state.view) };
     setActionStatus('미리보기 표시 완료. 편집 데이터 준비 중…', 'working', 0);
     window.dispatchEvent(new CustomEvent('pandolab:interactive'));
-    requestAnimationFrame(() => loadTerrainManifest());
     if (window.__PANDOLAB_STARTUP_METRICS__?.geometryError) {
       handleGeometryError({ detail: window.__PANDOLAB_STARTUP_METRICS__.geometryError });
     }
@@ -16727,7 +16945,7 @@ const {
       history: historyService,
       invariants: { assertProjectReferenceIntegrity },
       restoreCountriesFromDelta: (project, suppliedBase = null) => restoreCountriesFromDelta(project, {
-        base: suppliedBase || parsePristineCountries(),
+        base: suppliedBase || materializePristineCountriesSync(),
         clone: deepClone,
         reindex: base => reindexCountries(base, true),
         applyPristineLabelAnchors,
@@ -16749,16 +16967,16 @@ const {
       geometryModules: {
         countryGeometry,
         geometryValidation: geometryValidationModule,
-        territorialImportPlan: territorialImportPlanModule,
-        coastReconciliation: coastReconciliationModule,
-        riverPartition: riverTerritoryPartitionModule,
       },
-      importService: importServiceModule,
-      countryIdentityResolver: countryImportIdentityModule,
+      importService: null,
+      countryIdentityResolver: null,
       riverPartitionWorkerFactory: () => new Worker(runtimeAssetUrl('workers/river-territory-partition-worker.js'), {
         type: 'module', name: 'pandolab-river-territory-partitions',
       }),
-      riverPartitionFallback: payload => buildRiverTerritoryPartitions({ ...payload, clipper: window.polygonClipping }),
+      riverPartitionFallback: async payload => {
+        await ensureGisRuntime();
+        return buildRiverTerritoryPartitions({ ...payload, clipper: window.polygonClipping });
+      },
       riverPartitionSource: {
         ensureReady: async () => {
           if (state.physicalLoadState.hydro === 'ready') return true;

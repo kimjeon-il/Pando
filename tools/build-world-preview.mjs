@@ -6,6 +6,10 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
+import {
+  encodeCanonicalCountryPacket,
+  inspectCanonicalCountryPacket,
+} from '../assets/js/modules/canonical-country-packet.js';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
@@ -14,6 +18,7 @@ const dataDirectory = path.join(projectRoot, 'assets', 'data');
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
 const previewSourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1-50m.geojson');
 const canonicalCountriesGzipPath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson.gz');
+const canonicalCountryPacketPath = path.join(projectRoot, 'assets', 'data', `countries-canonical-v${APP_VERSION}.pcg.gz`);
 const canonicalMeshPath = path.join(projectRoot, 'assets', 'data', 'world-mesh-v0.12.6.bin.gz');
 const labelAnchorsPath = path.join(projectRoot, 'assets', 'data', 'country-label-anchors-v0.10.1.json');
 const previewCountriesPath = path.join(projectRoot, 'assets', 'data', `countries-preview-v${APP_VERSION}.geojson.gz`);
@@ -259,6 +264,11 @@ const preview = buildPreview(canonicalSource, source50, existingPreview);
 const previewJson = Buffer.from(JSON.stringify(preview.collection));
 const previewCountries = zlib.gzipSync(previewJson, { level: 9, mtime: 0 });
 const canonicalCountries = zlib.gzipSync(canonicalBytes, { level: 9, mtime: 0 });
+const canonicalCountryPacketBuffer = encodeCanonicalCountryPacket(canonicalSource);
+const canonicalCountryPacketHeader = inspectCanonicalCountryPacket(canonicalCountryPacketBuffer);
+const canonicalCountryPacket = zlib.gzipSync(Buffer.from(canonicalCountryPacketBuffer), { level: 9, mtime: 0 });
+if (canonicalCountryPacketBuffer.byteLength > 10 * 1024 * 1024) throw new Error(`canonical 국가 packet이 10MiB를 초과했습니다: ${canonicalCountryPacketBuffer.byteLength}`);
+if (canonicalCountryPacket.length > 5.5 * 1024 * 1024) throw new Error(`canonical 국가 packet gzip이 5.5MiB를 초과했습니다: ${canonicalCountryPacket.length}`);
 const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, earcut, { validate: true, maxEdgeDegrees: 2 });
 validatePackedMeshGeometry(mesh);
 const packedMesh = packMesh(mesh, preview.coordinateCount);
@@ -289,6 +299,14 @@ const manifest = {
     previewMesh: { url: `world-mesh-preview-v${APP_VERSION}.bin.gz`, encoding: 'gzip', compressedBytes: packedMesh.compressed.length, decodedBytes: packedMesh.raw.length, sha256: sha256(packedMesh.compressed), header: meshHeader(packedMesh.raw) },
     labelAnchors: { url: 'country-label-anchors-v0.10.1.json', encoding: 'identity', compressedBytes: labelAnchorBytes.length, decodedBytes: labelAnchorBytes.length, sha256: sha256(labelAnchorBytes) },
     canonicalCountries: { url: 'countries-ne-5.1.1.geojson.gz', encoding: 'gzip', compressedBytes: canonicalCountries.length, decodedBytes: canonicalBytes.length, sha256: sha256(canonicalCountries) },
+    canonicalCountryPacket: {
+      url: `countries-canonical-v${APP_VERSION}.pcg.gz`,
+      encoding: 'gzip',
+      compressedBytes: canonicalCountryPacket.length,
+      decodedBytes: canonicalCountryPacketBuffer.byteLength,
+      sha256: sha256(canonicalCountryPacket),
+      header: canonicalCountryPacketHeader.words,
+    },
     canonicalMesh: { url: 'world-mesh-v0.12.6.bin.gz', encoding: 'gzip', compressedBytes: canonicalMeshBytes.length, decodedBytes: canonicalMeshDecoded.length, sha256: sha256(canonicalMeshBytes), header: meshHeader(canonicalMeshDecoded) },
   },
 };
@@ -296,6 +314,7 @@ const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
 
 compareOrWrite(previewCountriesPath, previewCountries);
 compareOrWrite(previewMeshPath, packedMesh.compressed);
+compareOrWrite(canonicalCountryPacketPath, canonicalCountryPacket);
 compareOrWrite(previewManifestPath, manifestBytes);
 if (!fs.readFileSync(canonicalCountriesGzipPath).equals(canonicalCountries)) throw new Error('canonical 국가 gzip이 변경되어 있습니다. preview 빌드가 canonical 자산을 덮어쓰지 않았습니다.');
 
