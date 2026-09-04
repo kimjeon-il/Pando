@@ -110,6 +110,20 @@ body.create-menu-open [data-layout="compact"] .surface-create {
   pointer-events: auto;
 }
 
+[data-layout="mobile"] .workspace-surface.mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
+  height: var(--sheet-drag-height, var(--sheet-height));
+  transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
+}
+
+[data-layout="mobile"] .workspace-surface.is-sheet-dragging {
+  transition: none;
+  will-change: transform;
+}
+
+[data-layout="mobile"] .workspace-surface.is-sheet-settling {
+  will-change: transform;
+}
+
 [data-layout="mobile"] .surface-header {
   display: grid;
   flex-basis: var(--ui-surface-header-height-mobile);

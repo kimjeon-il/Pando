@@ -151,7 +151,8 @@ body.mode-editing-active .map-tool-toolbar {
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   padding-inline: var(--ui-space-6) var(--ui-space-4);
   background: var(--surface-topbar);
-  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .topbar .brand {
@@ -268,7 +269,8 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
   border-radius: 0;
   background: var(--surface-elevated);
   box-shadow: none;
-  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 [data-layout="wide"] .left-panel {

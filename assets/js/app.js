@@ -889,16 +889,84 @@ const {
     return nearest;
   }
 
+  const mobileSheetSettlement = new WeakMap();
+
+  function clearMobileSheetDragPresentation(panel) {
+    if (!panel) return;
+    const pending = mobileSheetSettlement.get(panel);
+    if (pending?.timer) clearTimeout(pending.timer);
+    mobileSheetSettlement.delete(panel);
+    panel.classList.remove('is-sheet-dragging', 'is-sheet-settling');
+    panel.style.removeProperty('--sheet-drag-height');
+    panel.style.removeProperty('--sheet-drag-offset');
+  }
+
+  function applyMobileSheetDragPreview(panel, height) {
+    const maxHeight = mobileSheetSnapHeight(SHEET_SNAP_RATIOS.length - 1, panel);
+    const minHeight = mobileSheetSnapHeight(0, panel);
+    const visibleHeight = clamp(Number(height) || 0, Math.max(128, minHeight * 0.62), maxHeight);
+    panel.style.setProperty('--sheet-drag-height', `${Math.round(maxHeight)}px`);
+    panel.style.setProperty('--sheet-drag-offset', `${Math.round(maxHeight - visibleHeight)}px`);
+    return { visibleHeight, maxHeight };
+  }
+
+  function finalizeMobileSheetSettlement(panel) {
+    const settlement = mobileSheetSettlement.get(panel);
+    if (!settlement) return false;
+    if (settlement.timer) clearTimeout(settlement.timer);
+    mobileSheetSettlement.delete(panel);
+    const { dismiss, restoreFocus } = settlement;
+    panel.classList.remove('is-sheet-dragging', 'is-sheet-settling');
+    panel.style.removeProperty('--sheet-drag-height');
+    panel.style.removeProperty('--sheet-drag-offset');
+    if (dismiss) {
+      closeActiveMobileSheet({ restoreFocus });
+      return true;
+    }
+    refreshMapSheetMetrics();
+    requestAnimationFrame(syncMapHudBounds);
+    queueMapResize('panel-layout');
+    return true;
+  }
+
+  function settleMobileSheetDrag(panel, { targetIndex = null, dismiss = false, restoreFocus = false } = {}) {
+    if (!panel) return;
+    const previous = mobileSheetSettlement.get(panel);
+    if (previous?.timer) clearTimeout(previous.timer);
+    const maxHeight = mobileSheetSnapHeight(SHEET_SNAP_RATIOS.length - 1, panel);
+    let targetOffset = maxHeight;
+    if (!dismiss) {
+      const safeTarget = clamp(Number(targetIndex) || 0, 0, SHEET_SNAP_RATIOS.length - 1);
+      const targetHeight = setMobileSheetHeight(panel, safeTarget);
+      targetOffset = Math.max(0, maxHeight - targetHeight);
+    }
+    const settlement = { dismiss, restoreFocus, timer: 0 };
+    mobileSheetSettlement.set(panel, settlement);
+    panel.classList.remove('is-sheet-dragging');
+    panel.classList.add('is-sheet-settling');
+    panel.style.setProperty('--sheet-drag-height', `${Math.round(maxHeight)}px`);
+    requestAnimationFrame(() => {
+      if (mobileSheetSettlement.get(panel) !== settlement) return;
+      panel.style.setProperty('--sheet-drag-offset', `${Math.round(targetOffset)}px`);
+    });
+    settlement.timer = setTimeout(() => finalizeMobileSheetSettlement(panel), 280);
+  }
+
   function beginMobileSheetDrag(panel, source, pointerId, clientY) {
     if (!isMobile() || !panel || activeSheetDrag) return false;
+    clearMobileSheetDragPresentation(panel);
     const currentHeight = Number.parseFloat(getComputedStyle(panel).height)
       || setMobileSheetHeight(panel, sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP);
+    const preview = applyMobileSheetDragPreview(panel, currentHeight);
+    panel.classList.add('is-sheet-dragging');
     activeSheetDrag = {
       panel,
       source,
       pointerId,
       startY: clientY,
       startHeight: currentHeight,
+      previewHeight: preview.visibleHeight,
+      maxHeight: preview.maxHeight,
       startIndex: sheetSnapIndex.get(panel.id) ?? MOBILE_SHEET_DEFAULT_SNAP,
       startTime: performance.now(),
       moved: false,
@@ -912,9 +980,9 @@ const {
     if (!drag || drag.panel !== panel || drag.source !== source || drag.pointerId !== pointerId) return false;
     const deltaY = clientY - drag.startY;
     if (Math.abs(deltaY) > 6) drag.moved = true;
-    setMobileSheetHeight(panel, drag.startIndex, drag.startHeight - deltaY);
-    refreshMapSheetMetrics();
-    queueMapResize('panel-layout');
+    const preview = applyMobileSheetDragPreview(panel, drag.startHeight - deltaY);
+    drag.previewHeight = preview.visibleHeight;
+    drag.maxHeight = preview.maxHeight;
     return true;
   }
 
@@ -922,22 +990,21 @@ const {
     const drag = activeSheetDrag;
     if (!drag || drag.panel !== panel || drag.source !== source || drag.pointerId !== pointerId) return null;
     const deltaY = clientY - drag.startY;
-    const currentHeight = Number.parseFloat(getComputedStyle(panel).height) || drag.startHeight;
+    const currentHeight = Number(drag.previewHeight || drag.startHeight);
     const elapsed = Math.max(1, performance.now() - drag.startTime);
     const velocity = deltaY / elapsed;
     activeSheetDrag = null;
     document.body.classList.remove('map-sheet-dragging');
     const dismissDistance = Math.min(180, drag.startHeight * 0.3);
     if (!cancelled && deltaY > 64 && (deltaY >= dismissDistance || velocity > 0.65)) {
-      closeActiveMobileSheet({ restoreFocus: true });
+      settleMobileSheetDrag(panel, { dismiss: true, restoreFocus: true });
     } else {
       let targetIndex = cancelled ? drag.startIndex : nearestSheetSnapIndex(currentHeight, panel);
       if (!cancelled && drag.moved && Math.abs(deltaY) > 24 && Math.abs(velocity) > 0.45) {
         targetIndex = clamp(drag.startIndex + (deltaY < 0 ? 1 : -1), 0, SHEET_SNAP_RATIOS.length - 1);
       }
       if (!cancelled) sheetSnapTouched.add(panel.id);
-      setMobileSheetHeight(panel, targetIndex);
-      syncOverlayState();
+      settleMobileSheetDrag(panel, { targetIndex });
     }
     return drag;
   }
