@@ -1,3 +1,5 @@
+import { PERFORMANCE_METRIC_NAMES, getRuntimePerformanceMetrics } from './runtime-performance-metrics.js';
+
 export const PROJECT_COMMAND_KINDS = Object.freeze({
   VIEW: 'view',
   DOCUMENT: 'document',
@@ -6,6 +8,21 @@ export const PROJECT_COMMAND_KINDS = Object.freeze({
 const text = value => String(value ?? '').trim();
 const clone = value => value == null ? value : structuredClone(value);
 const isPromiseLike = value => !!value && typeof value.then === 'function';
+const metricNow = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+function recordCommandMetric(startedAt, command, result) {
+  getRuntimePerformanceMetrics()?.record?.(
+    PERFORMANCE_METRIC_NAMES.COMMAND,
+    metricNow() - startedAt,
+    {
+      command: String(command?.id || result?.command || ''),
+      kind: String(command?.kind || result?.kind || ''),
+      result: result?.ok === false ? 'failed' : result?.changed === false ? 'unchanged' : 'success',
+      stage: String(result?.stage || ''),
+      errorCode: String(result?.error?.code || ''),
+    },
+  );
+}
 
 function assertSynchronous(value, stage, commandId) {
   if (isPromiseLike(value)) {
@@ -171,11 +188,19 @@ export function createProjectCommandPipeline({
   }
 
   function execute(id, context = {}, payload = undefined) {
+    const startedAt = metricNow();
     const command = registry.get(text(id));
-    if (!command) return { ok: false, changed: false, command: text(id), error: commandError('PL-CMD-UNKNOWN-001', `Unknown project command: ${id}`) };
-    return command.kind === PROJECT_COMMAND_KINDS.VIEW
+    let result;
+    if (!command) {
+      result = { ok: false, changed: false, command: text(id), error: commandError('PL-CMD-UNKNOWN-001', `Unknown project command: ${id}`) };
+      recordCommandMetric(startedAt, null, result);
+      return result;
+    }
+    result = command.kind === PROJECT_COMMAND_KINDS.VIEW
       ? runView(command, context, payload)
       : runDocument(command, context, payload);
+    recordCommandMetric(startedAt, command, result);
+    return result;
   }
 
   function runMutation(meta = {}, mutate, options = {}) {
@@ -192,7 +217,10 @@ export function createProjectCommandPipeline({
         return result === undefined ? { changed: true } : result;
       },
     });
-    return runDocument(command, options.context || {}, options.payload);
+    const startedAt = metricNow();
+    const result = runDocument(command, options.context || {}, options.payload);
+    recordCommandMetric(startedAt, command, result);
+    return result;
   }
 
   return Object.freeze({

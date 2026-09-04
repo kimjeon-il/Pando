@@ -1,4 +1,10 @@
 import { AUTOSAVE_STATES } from './save-state-controller.js';
+import { PERFORMANCE_METRIC_NAMES, getRuntimePerformanceMetrics } from './runtime-performance-metrics.js';
+
+const metricNow = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+const recordMetric = (name, startedAt, detail = {}) => {
+  getRuntimePerformanceMetrics()?.record?.(name, metricNow() - startedAt, detail);
+};
 
 export function createBrowserProjectStorage({
   indexedDB,
@@ -111,22 +117,51 @@ export function createPersistenceService({
 }) {
   async function persist(project = null) {
     if (!canPersist()) return;
-    const autosaveProject = project || buildAutosave();
-    onAutosaveState(AUTOSAVE_STATES.SAVING);
+    const startedAt = metricNow();
+    const detail = {
+      outcome: 'building',
+      format: '',
+      buildMs: 0,
+      indexedDbMs: 0,
+      fallbackMs: 0,
+    };
     try {
-      await storage.writeProject(autosaveProject);
-      onSaved(now());
-      onAutosaveState(AUTOSAVE_STATES.SAVED);
-    } catch (error) {
+      const buildStartedAt = metricNow();
+      const autosaveProject = project || buildAutosave();
+      detail.buildMs = metricNow() - buildStartedAt;
+      detail.format = String(autosaveProject?.format || 'unknown');
+      onAutosaveState(AUTOSAVE_STATES.SAVING);
       try {
-        storage.writeFallback(autosaveProject);
+        const writeStartedAt = metricNow();
+        await storage.writeProject(autosaveProject);
+        detail.indexedDbMs = metricNow() - writeStartedAt;
+        detail.outcome = 'indexeddb';
         onSaved(now());
-        onAutosaveState(AUTOSAVE_STATES.SAVED, { fallback: '브라우저 로컬 저장소' });
-      } catch (fallbackError) {
-        onWarning('Autosave failed', error, fallbackError);
-        onAutosaveState(AUTOSAVE_STATES.ERROR);
-        onFailure(error, fallbackError);
+        onAutosaveState(AUTOSAVE_STATES.SAVED);
+      } catch (error) {
+        try {
+          const fallbackStartedAt = metricNow();
+          storage.writeFallback(autosaveProject);
+          detail.fallbackMs = metricNow() - fallbackStartedAt;
+          detail.outcome = 'localstorage';
+          detail.indexedDbError = String(error?.name || error?.code || 'error');
+          onSaved(now());
+          onAutosaveState(AUTOSAVE_STATES.SAVED, { fallback: '브라우저 로컬 저장소' });
+        } catch (fallbackError) {
+          detail.outcome = 'failed';
+          detail.indexedDbError = String(error?.name || error?.code || 'error');
+          detail.fallbackError = String(fallbackError?.name || fallbackError?.code || 'error');
+          onWarning('Autosave failed', error, fallbackError);
+          onAutosaveState(AUTOSAVE_STATES.ERROR);
+          onFailure(error, fallbackError);
+        }
       }
+    } catch (error) {
+      detail.outcome = 'build-failed';
+      detail.buildError = String(error?.name || error?.code || 'error');
+      throw error;
+    } finally {
+      recordMetric(PERFORMANCE_METRIC_NAMES.AUTOSAVE, startedAt, detail);
     }
   }
 
@@ -143,41 +178,56 @@ export function createPersistenceService({
 
   function queueView(delay = 120) {
     scheduler.scheduleIdle('view-autosave', () => {
-      storage.writeView({ ...readView(), savedAt: now().toISOString() }).catch(error => onWarning('View autosave failed', error));
+      const startedAt = metricNow();
+      storage.writeView({ ...readView(), savedAt: now().toISOString() })
+        .then(() => recordMetric('autosave.view', startedAt, { outcome: 'indexeddb' }))
+        .catch(error => {
+          recordMetric('autosave.view', startedAt, { outcome: 'failed', error: String(error?.name || error?.code || 'error') });
+          onWarning('View autosave failed', error);
+        });
     }, delay);
   }
 
   async function restore() {
+    const startedAt = metricNow();
+    let outcome = 'empty';
     let rejectedError = null;
     let view = null;
     try {
-      view = await storage.readView();
-    } catch (error) {
-      onWarning('IndexedDB view restore failed', error);
-    }
-    try {
-      const project = await storage.readProject();
-      if (project) {
-        validateProject(project);
-        return { project, source: 'indexeddb', view };
+      try {
+        view = await storage.readView();
+      } catch (error) {
+        onWarning('IndexedDB view restore failed', error);
       }
-    } catch (error) {
-      onWarning('IndexedDB autosave rejected', error);
-      rejectedError = error;
+      try {
+        const project = await storage.readProject();
+        if (project) {
+          validateProject(project);
+          outcome = 'indexeddb';
+          return { project, source: 'indexeddb', view };
+        }
+      } catch (error) {
+        onWarning('IndexedDB autosave rejected', error);
+        rejectedError = error;
+      }
+      const local = storage.readFallback();
+      if (!local) return { project: null, source: null, error: rejectedError, view };
+      try {
+        validateProject(local);
+      } catch (error) {
+        onWarning('Local autosave rejected', error);
+        outcome = 'rejected';
+        return { project: null, source: null, error, view };
+      }
+      try {
+        await storage.writeProject(local);
+        storage.removeFallback();
+      } catch (_) {}
+      outcome = 'localstorage';
+      return { project: local, source: 'localstorage', view };
+    } finally {
+      recordMetric('autosave.restore', startedAt, { outcome, restoredView: !!view, rejected: !!rejectedError });
     }
-    const local = storage.readFallback();
-    if (!local) return { project: null, source: null, error: rejectedError, view };
-    try {
-      validateProject(local);
-    } catch (error) {
-      onWarning('Local autosave rejected', error);
-      return { project: null, source: null, error, view };
-    }
-    try {
-      await storage.writeProject(local);
-      storage.removeFallback();
-    } catch (_) {}
-    return { project: local, source: 'localstorage', view };
   }
 
   async function clear() {
