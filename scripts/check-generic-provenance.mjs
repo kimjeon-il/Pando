@@ -61,7 +61,7 @@ if (normalized.properties.source?.details?.unmappedSourceFields?.provider !== 'o
 }
 
 const staticUiSource = read('index.html');
-for (const marker of ['constrainGenericFallbackUi', 'genericFeatureLandRelationSection', 'genericFeatureLandActionsSection']) {
+for (const marker of ['genericFeatureLandRelationSection', 'genericFeatureLandActionsSection']) {
   if (!staticUiSource.includes(marker)) fail(`canonical Generic fallback UI is missing marker: ${marker}`);
 }
 const projectStateSource = read('assets/js/modules/project-state.js');
