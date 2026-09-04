@@ -11,6 +11,8 @@ const bootstrap = read('assets/js/bootstrap.js');
 const loader = read('assets/js/workers/data-loader-worker.js');
 const metadata = read('assets/js/build-meta.js');
 const bundle = read('assets/css/ui-v2.bundle.css');
+const surfaces = read('assets/css/layout/surfaces.css');
+const editorShell = read('assets/css/components/editor-shell.css');
 
 const uiSources = Object.freeze([
   'assets/css/tokens/ui-v2.css',
@@ -107,4 +109,23 @@ test('UI bundle contains every canonical stylesheet exactly once in order', () =
   }
   assert.match(bootstrap, /const UI_BUNDLE = '\.\.\/css\/ui-v2\.bundle\.css'/);
   assert.doesNotMatch(bootstrap, /const UI_STYLES/);
+});
+
+test('mobile sheet drag stays compositor-only until snap settlement', () => {
+  const moveStart = app.indexOf('function moveMobileSheetDrag');
+  const moveEnd = app.indexOf('function finishMobileSheetDrag', moveStart);
+  const moveSource = app.slice(moveStart, moveEnd);
+  assert.ok(moveStart >= 0 && moveEnd > moveStart);
+  assert.match(moveSource, /applyMobileSheetDragPreview/);
+  assert.doesNotMatch(moveSource, /setMobileSheetHeight|refreshMapSheetMetrics|queueMapResize/);
+  assert.match(app, /function finalizeMobileSheetSettlement/);
+  assert.match(surfaces, /\.workspace-surface\.mobile-open:is\(\.is-sheet-dragging, \.is-sheet-settling\)/);
+  assert.match(surfaces, /transform: translate3d\(0, var\(--sheet-drag-offset, 0px\), 0\)/);
+  assert.match(surfaces, /\.workspace-surface\.is-sheet-dragging[\s\S]*transition: none/);
+});
+
+test('map chrome avoids live backdrop blur over animated map content', () => {
+  assert.doesNotMatch(editorShell, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
+  assert.match(editorShell, /\.topbar[\s\S]*backdrop-filter: none/);
+  assert.match(editorShell, /\[data-layout="wide"\] \.left-panel,[\s\S]*backdrop-filter: none/);
 });
