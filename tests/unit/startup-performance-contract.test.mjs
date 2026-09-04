@@ -13,6 +13,8 @@ const metadata = read('assets/js/build-meta.js');
 const bundle = read('assets/css/ui-v2.bundle.css');
 const surfaces = read('assets/css/layout/surfaces.css');
 const editorShell = read('assets/css/components/editor-shell.css');
+const modalBundle = read('assets/css/ui-modal.bundle.css');
+const indexHtml = read('index.html');
 
 const uiSources = Object.freeze([
   'assets/css/tokens/ui-v2.css',
@@ -107,7 +109,8 @@ test('UI bundle contains every canonical stylesheet exactly once in order', () =
     assert.equal(bundle.indexOf(marker, index + marker.length), -1, `duplicate bundle source: ${source}`);
     previous = index;
   }
-  assert.match(bootstrap, /const UI_BUNDLE = '\.\.\/css\/ui-v2\.bundle\.css'/);
+  assert.doesNotMatch(bootstrap, /const UI_BUNDLE = '\.\.\/css\/ui-v2\.bundle\.css'/);
+  assert.match(indexHtml, /ui-v2\.bundle\.css[^>]+data-pandolab-ui-v2="ui-v2-bundle"/);
   assert.doesNotMatch(bootstrap, /const UI_STYLES/);
 });
 
@@ -128,4 +131,47 @@ test('map chrome avoids live backdrop blur over animated map content', () => {
   assert.doesNotMatch(editorShell, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
   assert.match(editorShell, /\.topbar[\s\S]*backdrop-filter: none/);
   assert.match(editorShell, /\[data-layout="wide"\] \.left-panel,[\s\S]*backdrop-filter: none/);
+});
+
+test('canonical startup is input-gated and strictly sequential', () => {
+  assert.match(bootstrap, /createStartupTaskGate/);
+  assert.match(bootstrap, /canonicalQuietWindowMs:\s*500/);
+  assert.match(bootstrap, /requestAnimationFrame\(\(\) => requestAnimationFrame/);
+  assert.match(bootstrap, /type: 'start-geometry'/);
+  assert.match(loader, /type === 'start-geometry'/);
+  assert.doesNotMatch(loader, /loadPolicy\.mode === 'parallel'/);
+  assert.doesNotMatch(loader, /await loadPreview\(\);\s*loadGeometry\(\)/);
+  assert.match(bootstrap, /createCanonicalCountryStore/);
+  assert.match(bootstrap, /canonicalCountryStore\.materializeCollection/);
+  assert.match(bootstrap, /budgetMs:\s*4/);
+  assert.match(bootstrap, /coordinateBudget:\s*4096/);
+  assert.match(loader, /manifest\.assets\.canonicalCountryPacket/);
+  assert.match(loader, /canonicalCountryPacketTransferables/);
+  assert.doesNotMatch(loader, /manifest\.assets\.canonicalCountries/);
+  assert.doesNotMatch(loader, /countriesSourceBuffer|response\.clone\(\)/);
+  assert.doesNotMatch(app, /pristineCountriesSourceBuffer|parsePristineCountries/);
+});
+
+test('modal, GIS, and historical runtimes are absent from the initial request graph', () => {
+  const eagerImportBlock = app.slice(0, app.indexOf("const { createSemanticIcon }"));
+  for (const moduleName of [
+    'confirm-modal-controller.js',
+    'coast-reconciliation-controller.js',
+    'import-service.js',
+    'territorial-import-plan.js',
+    'country-import-identity.js',
+    'coast-reconciliation.js',
+    'annex-geometry.js',
+    'river-territory-partition.js',
+    'historical-library.js',
+    'historical-library-service.js',
+    'historical-library-controller.js',
+  ]) assert.doesNotMatch(eagerImportBlock, new RegExp(moduleName.replace('.', '\\.')));
+  assert.doesNotMatch(indexHtml, /assets\/js\/gis-(?:adapters|io)\.js/);
+  assert.match(app, /async function ensureModalRuntime/);
+  assert.match(app, /async function ensureGisRuntime/);
+  assert.match(app, /async function ensureHistoricalRuntime/);
+  assert.match(modalBundle, /modal-source-count:\s*1/);
+  assert.match(modalBundle, /modal-source: assets\/css\/components\/modals\.css/);
+  assert.match(bootstrap, /PANDOLAB_ENSURE_MODAL_STYLES/);
 });

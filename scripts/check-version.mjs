@@ -29,6 +29,7 @@ for (const revision of indexRevisions) expect(revision === buildMeta?.assetRevis
 
 const versionedMapAssets = [
   `assets/data/countries-preview-v${appVersion}.geojson.gz`,
+  `assets/data/countries-canonical-v${appVersion}.pcg.gz`,
   `assets/data/world-mesh-preview-v${appVersion}.bin.gz`,
   `assets/data/world-preview-v${appVersion}.json`,
 ];

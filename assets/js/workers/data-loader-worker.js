@@ -6,6 +6,10 @@ const APP_VERSION = String(buildMeta.appVersion || '');
 const ASSET_REVISION = String(buildMeta.assetRevision || workerAssetRevision);
 const DATA_REVISION = String(buildMeta.dataRevision || `data-${APP_VERSION}`);
 const { resolveStartupLoadPolicy } = await import(`../modules/startup-readiness.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+const {
+  canonicalCountryPacketTransferables,
+  inspectCanonicalCountryPacket,
+} = await import(`../modules/canonical-country-packet.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const DATA_CACHE_PREFIX = 'pandolab-data-';
 const DATA_CACHE_NAME = `${DATA_CACHE_PREFIX}${DATA_REVISION}`;
 const LEGACY_CORE_CACHE_PREFIX = 'pandolab-core-';
@@ -34,6 +38,8 @@ let geometryLoading = false;
 let meshLoading = false;
 let meshCancelled = false;
 let meshAbortController = null;
+let geometryStartRequested = false;
+let geometryApplied = false;
 let dataCachePromise = null;
 let oldCacheCleanupPromise = null;
 
@@ -70,17 +76,15 @@ async function cleanupOldCoreCaches() {
   await oldCacheCleanupPromise;
 }
 
-async function cacheNetworkResponse(cache, url, response) {
+async function cacheStoredBuffer(cache, url, storedBuffer, headers = null) {
   if (!cache) return false;
   try {
-    await cache.put(url, response.clone());
+    await cache.put(url, new Response(storedBuffer, { headers: headers || undefined }));
     return true;
   } catch (_) {
     await cleanupOldCoreCaches();
     try {
-      const retryResponse = await fetch(url, { cache: 'force-cache' });
-      if (!retryResponse.ok) return false;
-      await cache.put(url, retryResponse);
+      await cache.put(url, new Response(storedBuffer, { headers: headers || undefined }));
       return true;
     } catch (_) {
       return false;
@@ -98,55 +102,65 @@ function countedStream(stream, onChunk) {
   }));
 }
 
-async function consumeResponse(response, spec, phase, key, label, source) {
+async function consumeStoredResponse(response, spec, phase, key, label, source) {
   const startedAt = performance.now();
   let storedBytes = 0;
-  let decodedBytes = 0;
   const expectedStored = Number(spec.compressedBytes || 0);
   if (response.body && typeof TransformStream === 'function') {
-    let stream = countedStream(response.body, length => {
+    const stream = countedStream(response.body, length => {
       storedBytes += length;
       report(phase, key, `${label}: ${source === 'cache' ? '저장된 데이터를 읽는' : '다운로드하는'} 중입니다.`, storedBytes, expectedStored);
     });
-    if (spec.encoding === 'gzip') {
-      if (typeof DecompressionStream !== 'function') throw new Error(`이 브라우저는 ${label} 압축 해제를 지원하지 않습니다.`);
-      report(phase, `${key}-decode`, `${label}: 압축을 해제하는 중입니다.`);
-      stream = stream.pipeThrough(new DecompressionStream('gzip'));
-    }
-    stream = countedStream(stream, length => { decodedBytes += length; });
-    const buffer = await new Response(stream).arrayBuffer();
-    decodedBytes = buffer.byteLength;
+    const storedBuffer = await new Response(stream).arrayBuffer();
     return {
-      buffer,
+      storedBuffer,
       source,
       transferredBytes: source === 'network' ? storedBytes : 0,
       storedBytes,
-      decodedBytes,
-      milliseconds: performance.now() - startedAt,
+      readMs: performance.now() - startedAt,
     };
   }
 
-  const raw = await response.arrayBuffer();
-  storedBytes = raw.byteLength;
-  let buffer = raw;
-  if (spec.encoding === 'gzip') {
-    if (typeof DecompressionStream !== 'function') throw new Error(`이 브라우저는 ${label} 압축 해제를 지원하지 않습니다.`);
-    const decoded = new Blob([raw]).stream().pipeThrough(new DecompressionStream('gzip'));
-    buffer = await new Response(decoded).arrayBuffer();
-  }
-  decodedBytes = buffer.byteLength;
+  const storedBuffer = await response.arrayBuffer();
+  storedBytes = storedBuffer.byteLength;
   return {
-    buffer,
+    storedBuffer,
     source,
     transferredBytes: source === 'network' ? storedBytes : 0,
     storedBytes,
-    decodedBytes,
-    milliseconds: performance.now() - startedAt,
+    readMs: performance.now() - startedAt,
+  };
+}
+
+async function decodeStoredBuffer(storedBuffer, spec, phase, key, label) {
+  const startedAt = performance.now();
+  let buffer = storedBuffer;
+  if (spec.encoding === 'gzip') {
+    if (typeof DecompressionStream !== 'function') throw new Error(`이 브라우저는 ${label} 압축 해제를 지원하지 않습니다.`);
+    report(phase, `${key}-decode`, `${label}: 압축을 해제하는 중입니다.`);
+    const decoded = new Blob([storedBuffer]).stream().pipeThrough(new DecompressionStream('gzip'));
+    buffer = await new Response(decoded).arrayBuffer();
+  }
+  return {
+    buffer,
+    decodedBytes: buffer.byteLength,
+    decompressMs: performance.now() - startedAt,
   };
 }
 
 function resolveAssetUrl(spec) {
   return versionedDataUrl(`../../data/${String(spec.url || '')}`);
+}
+
+async function validateStoredAsset(storedBuffer, spec, label) {
+  const expectedBytes = Number(spec.compressedBytes || 0);
+  if (expectedBytes > 0 && storedBuffer.byteLength !== expectedBytes) throw new Error(`${label} 저장 크기가 올바르지 않습니다.`);
+  const expectedHash = String(spec.sha256 || '').toLowerCase();
+  if (!expectedHash) return;
+  if (!globalThis.crypto?.subtle) throw new Error(`${label} 무결성을 확인할 수 없습니다.`);
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', storedBuffer);
+  const actualHash = [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2, '0')).join('');
+  if (actualHash !== expectedHash) throw new Error(`${label} 무결성 검증에 실패했습니다.`);
 }
 
 function validateAssetLength(result, spec, label) {
@@ -166,7 +180,15 @@ async function loadAsset(spec, phase, key, label, validate, signal = null) {
     const cached = await cache.match(url).catch(() => null);
     if (cached) {
       try {
-        const result = await consumeResponse(cached, spec, phase, key, label, 'cache');
+        const read = await consumeStoredResponse(cached, spec, phase, key, label, 'cache');
+        await validateStoredAsset(read.storedBuffer, spec, label);
+        const decoded = await decodeStoredBuffer(read.storedBuffer, spec, phase, key, label);
+        const result = {
+          ...read,
+          ...decoded,
+          cacheWriteMs: 0,
+          milliseconds: read.readMs + decoded.decompressMs,
+        };
         validateAssetLength(result, spec, label);
         const value = await validate(result.buffer, label);
         report(phase, key, `${label}: 저장된 데이터를 확인했습니다.`, Number(spec.compressedBytes || result.storedBytes), Number(spec.compressedBytes || result.storedBytes), true, { source: 'cache' });
@@ -180,21 +202,31 @@ async function loadAsset(spec, phase, key, label, validate, signal = null) {
 
   let lastError = null;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
-    let cacheWrite = null;
     try {
       const response = await fetch(url, { cache: 'default', signal });
       if (!response.ok) throw new Error(`${label} 요청에 실패했습니다. (${response.status})`);
-      cacheWrite = cacheNetworkResponse(cache, url, response);
-      const result = await consumeResponse(response, spec, phase, key, label, 'network');
+      const responseHeaders = response.headers;
+      const read = await consumeStoredResponse(response, spec, phase, key, label, 'network');
+      await validateStoredAsset(read.storedBuffer, spec, label);
+      const cacheWriteStartedAt = performance.now();
+      report(phase, `${key}-cache-write`, `${label}: 다운로드한 데이터를 저장하는 중입니다.`, 0, 1);
+      const cached = await cacheStoredBuffer(cache, url, read.storedBuffer, responseHeaders);
+      const cacheWriteMs = performance.now() - cacheWriteStartedAt;
+      report(phase, `${key}-cache-write`, `${label}: 저장을 마쳤습니다.`, 1, 1, true, { cached });
+      const decoded = await decodeStoredBuffer(read.storedBuffer, spec, phase, key, label);
+      const result = {
+        ...read,
+        ...decoded,
+        cacheWriteMs,
+        milliseconds: read.readMs + cacheWriteMs + decoded.decompressMs,
+      };
       validateAssetLength(result, spec, label);
       const value = await validate(result.buffer, label);
-      const cached = await cacheWrite;
       report(phase, key, `${label}: 다운로드를 완료했습니다.`, Number(spec.compressedBytes || result.storedBytes), Number(spec.compressedBytes || result.storedBytes), true, { source: 'network', cached, attempt });
       return { ...result, value, cacheHit: false };
     } catch (error) {
       lastError = error;
       if (error?.name === 'AbortError') throw error;
-      if (cacheWrite) await cacheWrite.catch(() => false);
       if (cache) await cache.delete(url).catch(() => false);
       if (attempt < 3) {
         report(phase, `${key}-retry`, `${label} 준비를 다시 시도합니다. (${attempt + 1}/3)`, attempt, 3, false, { attempt });
@@ -253,6 +285,8 @@ function assetMetrics(result, parseMilliseconds = 0) {
     storedBytes: result.storedBytes,
     decodedBytes: result.decodedBytes,
     loadMs: result.milliseconds,
+    cacheWriteMs: result.cacheWriteMs || 0,
+    decompressMs: result.decompressMs || 0,
     parseMs: parseMilliseconds,
   };
 }
@@ -261,7 +295,8 @@ async function loadManifest() {
   const response = await fetch(MANIFEST_URL, { cache: 'default' });
   if (!response.ok) throw new Error(`시작 데이터 manifest 요청에 실패했습니다. (${response.status})`);
   const value = await response.json();
-  if (value?.version !== APP_VERSION || !value.assets?.previewCountries || !value.assets?.canonicalMesh) {
+  if (value?.version !== APP_VERSION || !value.assets?.previewCountries
+      || !value.assets?.canonicalCountryPacket || !value.assets?.canonicalMesh) {
     throw new Error('시작 데이터 manifest 버전이 올바르지 않습니다.');
   }
   return value;
@@ -281,6 +316,19 @@ async function loadJsonAsset(spec, phase, key, label, countryCollection = false,
 async function loadMeshAsset(spec, phase, key, label, signal = null) {
   const result = await loadAsset(spec, phase, key, label, buffer => validateMesh(buffer, spec, label), signal);
   return { ...result, buffer: result.value };
+}
+
+async function loadCountryPacketAsset(spec, phase, key, label, signal = null) {
+  let packetHeader = null;
+  let validateMilliseconds = 0;
+  const result = await loadAsset(spec, phase, key, label, buffer => {
+    const startedAt = performance.now();
+    packetHeader = inspectCanonicalCountryPacket(buffer, Array.isArray(spec.header) ? spec.header : null);
+    validateMilliseconds = performance.now() - startedAt;
+    if (packetHeader.featureCount !== 258) throw new Error(`${label}의 국가 수가 올바르지 않습니다.`);
+    return buffer;
+  }, signal);
+  return { ...result, buffer: result.value, packetHeader, validateMilliseconds };
 }
 
 async function loadPreview() {
@@ -321,20 +369,25 @@ async function loadGeometry() {
   const startedAt = performance.now();
   report('geometry', 'start', '무손실 국가 데이터를 준비하는 중입니다.');
   try {
-    const result = await loadJsonAsset(manifest.assets.canonicalCountries, 'geometry', 'countries', '원본 국가 데이터', true);
-    const countriesSourceBuffer = result.buffer;
+    const result = await loadCountryPacketAsset(manifest.assets.canonicalCountryPacket, 'geometry', 'countries', '원본 국가 packet');
+    const countryPacketBuffer = result.buffer;
     geometryReady = true;
     self.postMessage({
-      type: 'geometry-ready', buildId: APP_VERSION, countries: result.data, countriesSourceBuffer,
+      type: 'geometry-ready', buildId: APP_VERSION, countryPacketBuffer, packetHeader: result.packetHeader,
       postedEpochMs: performance.timeOrigin + performance.now(),
       metrics: {
         policy: loadPolicy,
         milliseconds: performance.now() - startedAt,
         transferredBytes: result.transferredBytes,
         decodedBytes: result.decodedBytes,
-        assets: { countries: assetMetrics(result, result.parseMilliseconds) },
+        canonicalPacketCompressedBytes: result.storedBytes,
+        canonicalPacketDecodedBytes: result.decodedBytes,
+        canonicalCacheWriteMs: result.cacheWriteMs || 0,
+        canonicalDecompressMs: result.decompressMs || 0,
+        canonicalPacketValidateMs: result.validateMilliseconds,
+        assets: { countryPacket: assetMetrics(result) },
       },
-    }, [countriesSourceBuffer]);
+    }, canonicalCountryPacketTransferables(countryPacketBuffer));
     if (meshReady) cleanupOldCoreCaches();
   } catch (error) {
     self.postMessage({ type: 'geometry-error', message: error?.message || String(error) });
@@ -379,9 +432,19 @@ async function loadMesh() {
 
 self.onmessage = event => {
   const type = event.data?.type;
-  if (type === 'geometry-applied' && loadPolicy.mode === 'sequential') loadMesh();
-  if ((type === 'retry-geometry' || type === 'retry-canonical') && previewReady && !geometryReady) loadGeometry();
-  if ((type === 'retry-mesh' || type === 'retry-canonical') && previewReady && geometryReady && !meshReady) {
+  if (type === 'start-geometry' && previewReady && !geometryStartRequested) {
+    geometryStartRequested = true;
+    loadGeometry();
+  }
+  if (type === 'geometry-applied' && geometryReady && !geometryApplied) {
+    geometryApplied = true;
+    loadMesh();
+  }
+  if ((type === 'retry-geometry' || type === 'retry-canonical') && previewReady && !geometryReady) {
+    geometryStartRequested = true;
+    loadGeometry();
+  }
+  if ((type === 'retry-mesh' || type === 'retry-canonical') && previewReady && geometryReady && geometryApplied && !meshReady) {
     meshCancelled = false;
     loadMesh();
   }
@@ -395,8 +458,6 @@ self.onmessage = event => {
   try {
     manifest = await loadManifest();
     await loadPreview();
-    if (loadPolicy.mode === 'parallel') loadMesh();
-    loadGeometry();
   } catch (error) {
     self.postMessage({ type: 'preview-error', message: error?.message || String(error) });
   }

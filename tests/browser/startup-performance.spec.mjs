@@ -38,7 +38,7 @@ function trackBrowserErrors(page) {
 async function gateCanonicalAssets(page) {
   let releaseCanonical;
   const canonicalGate = new Promise(resolve => { releaseCanonical = resolve; });
-  for (const pattern of ['**/countries-ne-5.1.1.geojson.gz*', '**/world-mesh-v0.12.6.bin.gz*']) {
+  for (const pattern of ['**/countries-canonical-v0.32.0.pcg.gz*', '**/world-mesh-v0.12.6.bin.gz*']) {
     await page.route(pattern, async route => {
       await canonicalGate;
       await route.continue();
@@ -63,7 +63,7 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   const meshGate = new Promise(resolve => { releaseMesh = resolve; });
   let releaseGeometry;
   const geometryGate = new Promise(resolve => { releaseGeometry = resolve; });
-  await page.route('**/countries-ne-5.1.1.geojson.gz*', async route => {
+  await page.route('**/countries-canonical-v0.32.0.pcg.gz*', async route => {
     await geometryGate;
     await route.continue();
   });
@@ -227,14 +227,14 @@ test('versioned core assets are reused from Cache Storage on reload', async ({ p
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const first = await page.evaluate(() => window.__PANDOLAB_STARTUP_METRICS__);
-  expect(first.geometry.assets.countries.source).toBe('network');
+  expect(first.geometry.assets.countryPacket.source).toBe('network');
   expect(first.mesh.assets.mesh.source).toBe('network');
 
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const second = await page.evaluate(() => window.__PANDOLAB_STARTUP_METRICS__);
   expect(second.preview.assets.countries.source).toBe('cache');
-  expect(second.geometry.assets.countries.source).toBe('cache');
+  expect(second.geometry.assets.countryPacket.source).toBe('cache');
   expect(second.mesh.assets.mesh.source).toBe('cache');
   expect(second.geometry.transferredBytes).toBe(0);
   expect(second.mesh.transferredBytes).toBe(0);
@@ -245,22 +245,22 @@ test('a damaged cached country asset is deleted and recovered from the network',
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(async () => {
-    const revision = window.PANDOLAB_ASSET_REVISION;
-    const cache = await caches.open(`pandolab-core-${revision}`);
-    const url = new URL(`/assets/data/countries-ne-5.1.1.geojson.gz?v=${encodeURIComponent(revision)}`, location.href);
+    const revision = window.PANDOLAB_DATA_REVISION;
+    const cache = await caches.open(`pandolab-data-${revision}`);
+    const url = new URL(`/assets/data/countries-canonical-v0.32.0.pcg.gz?v=${encodeURIComponent(revision)}`, location.href);
     await cache.put(url, new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'Content-Type': 'application/gzip' } }));
   });
   let recoveryRequests = 0;
   page.on('request', request => {
-    if (request.url().includes('countries-ne-5.1.1.geojson.gz')) recoveryRequests += 1;
+    if (request.url().includes('countries-canonical-v0.32.0.pcg.gz')) recoveryRequests += 1;
   });
 
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const metrics = await page.evaluate(() => window.__PANDOLAB_STARTUP_METRICS__);
   expect(recoveryRequests).toBe(1);
-  expect(metrics.geometry.assets.countries.source).toBe('network');
-  expect(metrics.geometry.assets.countries.cacheHit).toBe(false);
+  expect(metrics.geometry.assets.countryPacket.source).toBe('network');
+  expect(metrics.geometry.assets.countryPacket.cacheHit).toBe(false);
 });
 
 test('constrained devices request the high-quality mesh only after geometry is applied', async ({ page }) => {
@@ -272,7 +272,7 @@ test('constrained devices request the high-quality mesh only after geometry is a
   let releaseGeometry;
   const geometryGate = new Promise(resolve => { releaseGeometry = resolve; });
   let meshRequested = false;
-  await page.route('**/countries-ne-5.1.1.geojson.gz*', async route => {
+  await page.route('**/countries-canonical-v0.32.0.pcg.gz*', async route => {
     await geometryGate;
     await route.continue();
   });
@@ -296,7 +296,7 @@ for (const renderer of ['webgl1', 'canvas']) {
     test.setTimeout(180_000);
     let releaseCanonical;
     const canonicalGate = new Promise(resolve => { releaseCanonical = resolve; });
-    for (const pattern of ['**/countries-ne-5.1.1.geojson*', '**/world-mesh-v0.12.6.bin.gz*']) {
+    for (const pattern of ['**/countries-canonical-v0.32.0.pcg.gz*', '**/world-mesh-v0.12.6.bin.gz*']) {
       await page.route(pattern, async route => {
         await canonicalGate;
         await route.continue();

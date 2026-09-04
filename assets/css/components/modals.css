@@ -1,0 +1,479 @@
+/* Canonical lazy modal UI ownership. */
+
+/* Shared dialog and wizard rules. */
+
+/* Shared dialog and wizard grammar for editing, library, and GIS flows. */
+body.modal-open { overflow: hidden; }
+.ui-workflow-shell {
+  min-width: 0;
+}
+.ui-workflow-shell > :is(.ui-dialog-header, .mode-task-window-header) {
+  min-width: 0;
+}
+
+.confirm-modal-card {
+  width: min(var(--ui-confirm-modal-width), 100%);
+}
+
+.coast-reconciliation-card {
+  width: min(var(--ui-coast-modal-width), 100%);
+}
+
+.coast-reconciliation-actions {
+  flex-wrap: wrap;
+}
+
+.coast-reconciliation-actions .btn {
+  flex: 1 1 var(--ui-workflow-action-min-width);
+}
+
+.confirm-modal-card h2 {
+  margin: 0 0 var(--ui-dialog-title-gap);
+}
+
+.confirm-modal-card p {
+  margin: 0;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+.confirm-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.confirm-modal-actions .danger-confirm {
+  border-color: var(--danger-border);
+  background: var(--danger-surface);
+  color: var(--danger-text);
+}
+
+.confirm-modal-actions .danger-confirm:hover {
+  border-color: color-mix(in srgb, var(--danger-border) 72%, var(--danger));
+  background: color-mix(in srgb, var(--danger-surface) 76%, var(--danger));
+  color: var(--danger-text);
+}
+
+.historical-library-filters .editor-disclosure-body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ui-field-gap);
+}
+
+.historical-library-back {
+  display: none;
+}
+
+.historical-library-advanced {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--ui-space-1) var(--ui-space-3);
+  margin: var(--ui-space-2) 0 0;
+}
+
+.historical-library-advanced dt { color: var(--muted); }
+.historical-library-advanced dd { margin: 0; overflow-wrap: anywhere; }
+
+.gis-import-status {
+  min-height: var(--ui-v2-control-md);
+  margin: var(--ui-space-2) 0 var(--ui-space-3);
+  line-height: var(--ui-line-normal);
+}
+
+.gis-import-status.error { color: var(--danger-text); }
+
+@media (prefers-color-scheme: light) {
+  .confirm-modal-actions .danger-confirm {
+    background: #b84444 !important;
+    border-color: #923535 !important;
+    color: #ffffff !important;
+  }
+  .gis-import-status.error { color: #a32f2f; }
+}
+.gis-import-content-rail { min-width: 0; }
+.gis-form-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ui-field-gap); }
+.gis-form-grid .field-group { margin: 0; }
+.gis-form-grid small { margin-top: var(--ui-field-helper-gap); }
+.gis-form-grid .ui-callout p { margin: var(--ui-space-1) 0 0; }
+.gis-wide { grid-column: 1; }
+.gis-import-progress.hidden { display: none; }
+.gis-mobile-step-indicator { display: block; margin: var(--ui-space-1) 0 0; color: var(--muted); font-size: var(--ui-font-caption); }
+.gis-mobile-nav { display: inline-flex; align-items: center; justify-content: center; }
+
+[data-gis-step]:not([data-gis-active="true"]),
+[data-gis-export-step]:not([data-gis-active="true"]) { display: none; }
+
+.gis-country-identity-rows { display: grid; gap: var(--ui-space-2); }
+.gis-country-identity-row { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(11rem, 1.35fr); gap: var(--ui-space-2); align-items: end; }
+.gis-country-identity-source { min-width: 0; }
+.gis-country-identity-source strong,
+.gis-country-identity-source small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gis-country-identity-source small { color: var(--muted); }
+.gis-country-identity-help { margin: var(--ui-space-1) 0 var(--ui-space-3); color: var(--muted); }
+
+.gis-export-step { display: grid; gap: var(--ui-field-gap); }
+.gis-export-layers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); margin: 0; padding: 0; border: 0; }
+.gis-export-layers legend { grid-column: 1 / -1; margin-bottom: var(--ui-space-2); font-weight: var(--ui-weight-bold); }
+.gis-export-layers .ui-check { min-width: 0; padding: var(--ui-space-2); border-radius: var(--ui-radius-control); }
+
+@media (max-width: 799px) {
+  .historical-library-filters .editor-disclosure-body { grid-template-columns: 1fr; }
+  .historical-library-search { grid-column: 1 / -1; }
+  .historical-library-card.is-detail .historical-library-results { display: none; }
+  .historical-library-card:not(.is-detail) .historical-library-preview { display: none; }
+  .historical-library-card.is-detail .historical-library-back { display: inline-flex; align-items: center; justify-content: center; }
+  .historical-library-card.is-options { grid-template-rows: auto minmax(0, 1fr); }
+  .historical-library-card.is-options :is(.historical-library-toolbar, .historical-library-layout) { display: none; }
+  .historical-library-card.is-options .historical-library-footer {
+    min-height: 0;
+    justify-content: center;
+    overflow: auto;
+    padding: var(--ui-dialog-padding-compact);
+  }
+  .gis-country-identity-row { grid-template-columns: 1fr; }
+  .gis-export-layers { grid-template-columns: 1fr; }
+}
+
+/* Historical library, GIS workflows, and file/project actions. */
+
+.historical-library-modal .historical-library-card {
+  width: min(53.75rem, calc(100vw - (var(--ui-space-6) * 2)));
+  max-height: min(86vh, 48.75rem);
+}
+
+.historical-library-modal .ui-dialog-header {
+  display: grid;
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-control-height);
+  align-items: center;
+  gap: var(--ui-space-2);
+}
+
+.library-dialog-icon { color: var(--muted); }
+.historical-library-modal .ui-dialog-header > div { min-width: 0; }
+
+.historical-library-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(7.5rem, 10rem);
+  gap: var(--ui-space-3);
+  align-items: end;
+}
+
+.historical-library-filters { grid-column: 1 / -1; }
+
+.historical-library-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(15rem, .9fr) minmax(20rem, 1.25fr);
+  gap: 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.historical-library-results {
+  min-width: 0;
+  overflow: auto;
+  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-2) 0;
+  border-right: 1px solid var(--border);
+}
+
+.historical-library-result {
+  width: 100%;
+  min-height: 2.875rem;
+  display: grid;
+  gap: var(--ui-space-0-5);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  text-align: left;
+}
+
+.historical-library-result:hover,
+.historical-library-result:focus-visible { background: var(--surface-hover); }
+
+.historical-library-result.is-selected,
+.historical-library-result[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+
+.historical-library-result strong {
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.historical-library-result small {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+}
+
+.historical-library-result[aria-selected="true"] small { color: var(--selection-strong-muted); }
+
+.historical-library-result-skeleton {
+  min-height: 2.875rem;
+  display: grid;
+  align-content: center;
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-2) var(--ui-space-3);
+}
+
+.historical-library-result-skeleton .ui-skeleton-block:first-child { width: 48%; }
+.historical-library-result-skeleton .ui-skeleton-block:last-child { width: 68%; height: .65em; }
+
+.historical-library-preview {
+  min-width: 0;
+  overflow: auto;
+  padding: var(--ui-space-4);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.historical-library-preview > h3 {
+  margin: 0 0 var(--ui-space-1);
+  font-size: var(--ui-font-lg);
+  font-weight: var(--ui-weight-bold);
+}
+
+.historical-library-preview .editor-help {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+}
+
+.historical-library-preview-map svg { display: block; width: 100%; height: 190px; }
+
+.historical-library-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  min-height: var(--ui-touch-height);
+}
+
+.historical-library-footer-spacer { flex: 1 1 auto; }
+
+.ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-card,
+.ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-card {
+  width: min(45rem, calc(100vw - (var(--ui-space-6) * 2)));
+  max-height: min(88vh, 51.25rem);
+}
+
+.ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-header,
+.ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-header { align-items: center; }
+
+.gis-stepper {
+  display: grid;
+  gap: var(--ui-space-1);
+  margin: 0;
+  padding: var(--ui-space-3) var(--ui-dialog-padding) var(--ui-space-2);
+  list-style: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.gis-stepper--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.gis-stepper--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.gis-stepper li {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-1);
+  min-height: var(--ui-v2-control-sm);
+  padding: 0 var(--ui-space-2);
+  border-radius: var(--ui-radius-control);
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--ui-weight-medium);
+  white-space: nowrap;
+}
+
+.gis-stepper li::before {
+  content: attr(data-step-number);
+  width: 1.125rem;
+  height: 1.125rem;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 1.125rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  font-size: var(--ui-font-xs);
+}
+
+.gis-stepper li.is-current {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: var(--text-strong);
+}
+
+.gis-stepper li.is-current::before,
+.gis-stepper li.is-complete::before {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gis-stepper li.is-complete { color: var(--text-soft); }
+
+.gis-import-content-rail,
+.gis-export-step { min-width: 0; }
+
+.ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-actions,
+.ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: var(--ui-space-4);
+  padding-top: var(--ui-space-3);
+  border-top: 1px solid var(--border);
+  background: var(--surface-elevated);
+}
+
+.gis-import-progress { margin-bottom: var(--ui-space-3); }
+
+.gis-import-status {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+}
+
+.gis-export-layers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-1) var(--ui-space-4);
+  padding: 0;
+  border: 0;
+}
+
+.gis-export-layers .ui-check {
+  min-height: 2.125rem;
+  padding: var(--ui-space-1) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.gis-export-format-native {
+  position: absolute;
+  width: .0625rem;
+  height: .0625rem;
+  margin: -.0625rem;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.gis-export-format-list {
+  display: grid;
+  gap: var(--ui-space-1);
+}
+
+.gis-export-format-option {
+  min-height: 3.25rem;
+  display: grid;
+  grid-template-columns: 1.125rem minmax(0, 1fr);
+  gap: var(--ui-space-2);
+  align-items: center;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  cursor: pointer;
+}
+
+.gis-export-format-option:hover { background: var(--surface-hover); }
+
+.gis-export-format-option:has(input:checked) {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.gis-export-format-option input { margin: 0; }
+
+.gis-export-format-copy {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-0-5);
+}
+
+.gis-export-format-copy strong {
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.gis-export-format-copy small {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.historical-library-card {
+  width: min(65rem, calc(100vw - (var(--ui-dialog-edge) * 2)));
+  max-width: 65rem;
+  height: min(47.5rem, calc(100dvh - (var(--ui-dialog-edge) * 2)));
+  max-height: min(47.5rem, calc(100dvh - (var(--ui-dialog-edge) * 2)));
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.historical-library-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(17.5rem, 40fr) minmax(22.5rem, 60fr);
+  gap: var(--ui-space-4);
+  overflow: hidden;
+}
+
+.historical-library-results,
+.historical-library-preview {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
+}
+
+.historical-library-preview {
+  padding: 0;
+  border: var(--ui-border-width) solid var(--ui-card-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-card-bg);
+  box-shadow: var(--control-shadow);
+}
+
+.historical-library-preview-map {
+  border-color: var(--ui-card-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-card-bg);
+  box-shadow: none;
+}
+
+.historical-library-card .ui-disclosure {
+  border: var(--ui-border-width) solid var(--ui-card-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-card-bg);
+}
+
+.editor-flag-preview,
+.historical-library-preview-map {
+  box-shadow: none;
+}
+
+[data-layout="mobile"] .historical-library-card {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  border-radius: var(--ui-radius-panel);
+}
+
+[data-layout="mobile"] .historical-library-layout {
+  grid-template-columns: 1fr;
+}
+
+[data-layout="mobile"] :is(.historical-library-results, .historical-library-preview) {
+  max-height: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .historical-library-card {
+    transition-duration: .01ms;
+  }
+}
