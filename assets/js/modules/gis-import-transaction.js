@@ -821,5 +821,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     commitGisMerge,
     commitTerritorialImportWithTransfer,
     importGeoJson,
+    resolveTerritorialCoast,
+    importGeoJsonTerritorialUnits,
   });
 }

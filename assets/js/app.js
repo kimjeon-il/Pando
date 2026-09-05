@@ -134,6 +134,8 @@ let modalRuntimePromise = null;
 let gisRuntimePromise = null;
 let historicalRuntimePromise = null;
 let gisIoRuntimePromise = null;
+let gisExportControllerPromise = null;
+let gisExportController = null;
 let createConfirmModalController;
 let createCoastReconciliationController;
 let importServiceModule;
@@ -6277,17 +6279,12 @@ const {
   }
 
   function selectionGeometryRevision(key, role = 'outline', feature = null) {
-    const geometry = feature?.type === 'FeatureCollection'
-      ? (feature.features || []).map(item => item?.geometry || null)
-      : feature?.geometry || null;
-    if (!geometry) return `${key}:${role}:country-${countryLandRevision}`;
-    const serialized = JSON.stringify(geometry);
-    let hash = 2166136261;
-    for (let index = 0; index < serialized.length; index += 1) {
-      hash ^= serialized.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return `${key}:${role}:geometry-${(hash >>> 0).toString(36)}-${serialized.length}`;
+    // Geometry revisions are advanced at the canonical mutation boundary.
+    // Avoid serializing multipart geometry in the selection hot path; callers
+    // still use the geometry object itself for exact rendering when a revision
+    // changes.
+    void feature;
+    return `${key}:${role}:state-${state.stateRevision}:country-${countryLandRevision}`;
   }
 
   function gpuSceneOrder(group, offset = 0) {
@@ -9869,7 +9866,7 @@ const {
         const rawSourceAfter = deepClone(sourceAfter);
         rawSourceAfter.geometry = deepClone(drawn);
         const country = countryFeatureById(source.properties?.sovereignId);
-        const resolution = await resolveTerritorialCoast(rawSourceAfter, country, coastGeometryOverrides);
+        const resolution = await (await getGisImportCommitter()).resolveTerritorialCoast(rawSourceAfter, country, coastGeometryOverrides);
         if (resolution.direction === 'cancel') {
           setActionStatus('해안선 정합을 취소했습니다.', 'ready');
           return;
@@ -9981,7 +9978,7 @@ const {
             markLayerTreeDirty();
             queueAutosave();
           } else {
-            const createdIds = await importGeoJsonTerritorialUnits([rawFeature], context.unitType, {
+            const createdIds = await (await getGisImportCommitter()).importGeoJsonTerritorialUnits([rawFeature], context.unitType, {
               nameField: 'name', countryField: 'sovereignId', parentField: 'parentId', levelField: 'adminLevel',
             });
             createdId = createdIds[0] || '';
@@ -12617,7 +12614,16 @@ const {
           distributions: state.distributionEntries.length,
           labels: state.labels.length,
         }),
-        download: downloadBlob,
+        download: (filename, blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        },
         setStatus: setActionStatus,
         reportError: error => reportOperationError(error, 'GIS 데이터를 내보내지 못했습니다.', 'PL-GIS-EXPORT-001', 4200),
       });
@@ -13464,7 +13470,9 @@ const {
         reportOperationError(error, '국가·지역 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);
       }
     });
-    $('saveProjectBtn').addEventListener('click', saveGeoPackageFile);
+    $('saveProjectBtn').addEventListener('click', () => {
+      void getGisFileController().then(controller => controller.saveProject());
+    });
     $('openGisBtn').addEventListener('click', event => {
       void getGisFileController().then(controller => controller.openPicker({ trigger: event.currentTarget }));
     });
@@ -15129,6 +15137,7 @@ const {
         buildRenderableStrokeFeature,
         buildSelectionBoundarySegments,
         getCountryLandRevision: () => countryLandRevision,
+        getStateRevision: () => state.stateRevision,
         getTerritorialBoundaryRevision: () => renderingDomain?.getTerritorialBoundaryStats?.().revision || '',
         getViewRevision: () => viewRevision,
         getProjection: () => state.projection,
@@ -15232,7 +15241,7 @@ const {
         stackOverlays: applyOverlayStackOrder,
         labelLayout: visibleLabelLayout,
         debug: renderDebugMapPanel,
-        layerTree: renderLayerTree,
+        layerTree: (...args) => layerTreeController?.render?.(...args),
       },
       reportDiagnostic: entry => reliabilityDiagnostic.push({ category: 'rendering-domain', ...entry }),
     });

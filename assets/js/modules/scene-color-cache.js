@@ -7,11 +7,31 @@ function createCompositeProgram(device) {
     precision highp float;
     layout(location=0) in vec2 aPosition;
     out vec2 vUv;
-    void main(){vUv=aPosition*0.5+0.5;gl_Position=vec4(aPosition,0.0,1.0);}`
+    uniform vec2 uSourceViewport;
+    uniform vec2 uTargetViewport;
+    uniform vec2 uReprojectScale;
+    uniform vec2 uReprojectOffset;
+    void main(){
+      vUv=aPosition*0.5+0.5;
+      vec2 sourcePx=vUv*uSourceViewport;
+      vec2 targetPx=sourcePx*uReprojectScale+uReprojectOffset;
+      vec2 targetNdc=vec2(targetPx.x*2.0/uTargetViewport.x-1.0,targetPx.y*2.0/uTargetViewport.y-1.0);
+      gl_Position=vec4(targetNdc,0.0,1.0);
+    }}`
     : `precision highp float;
     attribute vec2 aPosition;
     varying vec2 vUv;
-    void main(){vUv=aPosition*0.5+0.5;gl_Position=vec4(aPosition,0.0,1.0);}`;
+    uniform vec2 uSourceViewport;
+    uniform vec2 uTargetViewport;
+    uniform vec2 uReprojectScale;
+    uniform vec2 uReprojectOffset;
+    void main(){
+      vUv=aPosition*0.5+0.5;
+      vec2 sourcePx=vUv*uSourceViewport;
+      vec2 targetPx=sourcePx*uReprojectScale+uReprojectOffset;
+      vec2 targetNdc=vec2(targetPx.x*2.0/uTargetViewport.x-1.0,targetPx.y*2.0/uTargetViewport.y-1.0);
+      gl_Position=vec4(targetNdc,0.0,1.0);
+    }`;
   const fragmentSource = version === 2 ? `#version 300 es
     precision mediump float;
     uniform sampler2D uScene;
@@ -27,6 +47,10 @@ function createCompositeProgram(device) {
     program,
     position: gl.getAttribLocation(program, 'aPosition'),
     scene: gl.getUniformLocation(program, 'uScene'),
+    sourceViewport: gl.getUniformLocation(program, 'uSourceViewport'),
+    targetViewport: gl.getUniformLocation(program, 'uTargetViewport'),
+    reprojectScale: gl.getUniformLocation(program, 'uReprojectScale'),
+    reprojectOffset: gl.getUniformLocation(program, 'uReprojectOffset'),
   };
 }
 
@@ -191,6 +215,11 @@ export function createSceneColorCache() {
       && activeProjectGeneration === Number(projectGeneration || 0);
   }
 
+  function hasActiveProject(projectGeneration = 0) {
+    return valid && !!activeTarget && !disabled
+      && activeProjectGeneration === Number(projectGeneration || 0);
+  }
+
   function reset({ dropActive = false } = {}) {
     if (dropActive) {
       clearTargets();
@@ -234,6 +263,7 @@ export function createSceneColorCache() {
   function composite(pixelWidth = width, pixelHeight = height, {
     targetFramebuffer = null,
     clearTarget = true,
+    reproject = null,
   } = {}) {
     if (!gl || !valid || !activeTarget?.colorTexture || !compositeProgram || disabled || gl.isContextLost?.()) return false;
     const started = performance.now();
@@ -252,6 +282,14 @@ export function createSceneColorCache() {
         gl.clear(gl.COLOR_BUFFER_BIT);
       }
       gl.useProgram(compositeProgram.program);
+      const sourceWidth = Math.max(1, Number(reproject?.sourceViewport?.[0] || width));
+      const sourceHeight = Math.max(1, Number(reproject?.sourceViewport?.[1] || height));
+      const scale = reproject?.scale || [1, 1];
+      const offset = reproject?.offset || [0, 0];
+      gl.uniform2f(compositeProgram.sourceViewport, sourceWidth, sourceHeight);
+      gl.uniform2f(compositeProgram.targetViewport, targetWidth, targetHeight);
+      gl.uniform2f(compositeProgram.reprojectScale, Number(scale[0]) || 1, Number(scale[1]) || 1);
+      gl.uniform2f(compositeProgram.reprojectOffset, Number(offset[0]) || 0, Number(offset[1]) || 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
       gl.enableVertexAttribArray(compositeProgram.position);
       gl.vertexAttribPointer(compositeProgram.position, 2, gl.FLOAT, false, 0, 0);
@@ -310,6 +348,7 @@ export function createSceneColorCache() {
     isDirty: () => dirty,
     hasActive: () => !!activeTarget && valid && !disabled,
     hasActiveFor,
+    hasActiveProject,
     canComposite,
     isAvailable: () => !!gl && !!compositeProgram && !disabled,
     stats: () => Object.freeze({
