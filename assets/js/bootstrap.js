@@ -341,7 +341,7 @@
         startupMetrics.canonicalMeshStartedMs = performance.now() - bootStartedAt;
         if (startupGate.getState().interactionActive) startupMetrics.canonicalWorkStartedDuringInputCount += 1;
         loader.postMessage({ type: 'geometry-applied' });
-      }, { queuedState: 'mesh-queued', runningState: 'mesh-loading' });
+      }, { queuedState: 'mesh-queued', runningState: 'mesh-loading', quietAfterQueue: true });
     }
   }, { once: true });
   window.addEventListener('pandolab:ready', () => {
@@ -500,7 +500,7 @@
         ? Math.max(0, performance.timeOrigin + performance.now() - Number(data.postedEpochMs))
         : null;
       startupGate.queue('apply-mesh', () => {
-        resolveMesh({ meshBuffer: data.meshBuffer, metrics: data.metrics || null });
+        resolveMesh({ meshBuffer: data.meshBuffer, preparedStroke: data.preparedStroke, metrics: data.metrics || null });
       }, { queuedState: 'mesh-ready', runningState: 'mesh-ready' });
       return;
     }
@@ -513,6 +513,7 @@
       : null;
     window.PANDOLAB_COUNTRIES = data.countries;
     window.PANDOLAB_GPU_MESH_BUFFER = data.meshBuffer;
+    window.PANDOLAB_GPU_MESH_STROKES = data.preparedStroke;
     window.PANDOLAB_LABEL_ANCHORS = data.labelAnchors || {};
     setProgress('빠른 미리보기 지도를 시작하는 중입니다.', 99);
     if (appInjected) return;

@@ -79,6 +79,43 @@ export function createRenderingDomain({
   const editing = editingRenderResources || {};
   const interaction = interactionResources || {};
   const selection = selectionResources || {};
+  const editingPresentation = new Map();
+  const editingChannelChanged = (name, layer, ...parts) => {
+    const previous = editingPresentation.get(name);
+    if (previous && previous.layer === layer && previous.generation === editingPacket.projectGeneration
+      && previous.parts.length === parts.length && parts.every((part, i) => part === previous.parts[i])) return false;
+    editingPresentation.set(name, { layer, parts, generation: editingPacket.projectGeneration });
+    return true;
+  };
+  const joinEditingNodes = (layer, selector, data, key) => {
+    const binding = layer.selectAll(selector).data(data, key);
+    binding.exit().remove();
+    const [tag, className] = selector.split('.');
+    binding.enter().append(tag).attr('class', className);
+    return layer.selectAll(selector);
+  };
+  const reprojectEditingLayer = (layer, frame) => {
+    const path = framePath(frame, interaction.path || editing.path);
+    layer?.selectAll('path').each(function(d) {
+      const geometry = d?.geometry || (d?.start && d?.end ? { type: 'LineString', coordinates: [d.start, d.end] } : null);
+      if (geometry) this.setAttribute('d', path({ type: 'Feature', properties: {}, geometry }) || '');
+    });
+    layer?.selectAll('g, circle, path.snap-indicator-cross').each(function(d) {
+      if (this.parentNode !== layer.node?.() && (this.parentNode?.__data__?.coordinate || this.parentNode?.__data__?.coord)) return;
+      const coordinate = d?.coordinate || d?.coord;
+      if (!coordinate) return;
+      const point = frameProjectCoordinate(coordinate, frame, interaction.activeProjection?.());
+      this.style.visibility = point ? '' : 'hidden';
+      if (!point) return;
+      if (this.tagName.toLowerCase() === 'circle') {
+        this.removeAttribute('transform');
+        this.setAttribute('cx', point[0]); this.setAttribute('cy', point[1]);
+      } else if (this.classList.contains('snap-indicator-cross')) {
+        this.setAttribute('d', `M${point[0] - 7},${point[1] - 7}L${point[0] + 7},${point[1] + 7}M${point[0] + 7},${point[1] - 7}L${point[0] - 7},${point[1] + 7}`);
+      } else this.setAttribute('transform', `translate(${point[0]},${point[1]})`);
+    });
+    return true;
+  };
   const publishEditingInteraction = event => {
     const packet = editingPacket || EMPTY_EDITING_RENDER_PACKET;
     const normalized = Object.freeze({
@@ -219,7 +256,11 @@ export function createRenderingDomain({
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
     countryLabelPositionBindings = [];
-    all.each(function(feature) { countryLabelPositionBindings.push({ node: this, feature }); });
+    all.each(function(feature) {
+      const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', feature.id) || {});
+      const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : labels.countryLabelAnchors?.()?.get?.(String(feature.id || ''));
+      countryLabelPositionBindings.push({ node: this, coordinate: coordinate?.slice() });
+    });
     return true;
   };
   const renderUserLabels = (layout = null) => {
@@ -257,15 +298,16 @@ export function createRenderingDomain({
     if (state.tool === 'select' && !state.labelPlacementMode) selection.call(labels.labelDragBehavior?.());
     selection.exit().remove();
     userLabelPositionBindings = [];
-    layer.selectAll('g.user-label').each(function(label) { userLabelPositionBindings.push({ node: this, label }); });
+    layer.selectAll('g.user-label').each(function(label) {
+      const settings = labels.automaticLabelSettings?.(label.kind, labels.labelSettings?.(state, 'label', label.id) || {});
+      const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
+      userLabelPositionBindings.push({ node: this, coordinate: coordinate?.slice() });
+    });
     return true;
   };
   const applyCountryLabelPositions = (frameContext = null) => {
     active();
-    const state = labelState();
-    for (const { node, feature } of countryLabelPositionBindings) {
-      const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', feature.id) || {});
-      const anchor = settings?.pinned && settings.manualPosition ? settings.manualPosition : labels.countryLabelAnchors?.()?.get?.(String(feature.id || ''));
+    for (const { node, coordinate: anchor } of countryLabelPositionBindings) {
       const point = Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor, frameContext) : null;
       node?.setAttribute?.('transform', point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)');
     }
@@ -273,10 +315,7 @@ export function createRenderingDomain({
   };
   const applyUserLabelPositions = (frameContext = null) => {
     active();
-    const state = labelState();
-    for (const { node, label } of userLabelPositionBindings) {
-      const settings = labels.automaticLabelSettings?.(label.kind, labels.labelSettings?.(state, 'label', label.id) || {});
-      const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
+    for (const { node, coordinate } of userLabelPositionBindings) {
       const point = projectLabelCoordinate(coordinate, frameContext);
       node?.setAttribute?.('transform', point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)');
     }
@@ -776,6 +815,14 @@ export function createRenderingDomain({
     const countries = state.countriesData?.features || [];
     const units = state.territorialUnits || [];
     const revision = t.getTerritorialGeometryRevision?.() ?? 0;
+    if (!units.some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) {
+      const hadBoundaries = territorialBoundaryCache.segments.length || territorialBoundaryBatchCache.groups.length;
+      territorialBoundaryCache = { countries: null, units: null, revision: -1, inputSignature: '', segments: [], rebuildCount: territorialBoundaryCache.rebuildCount };
+      territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
+      t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
+      if (hadBoundaries) t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: [] });
+      return true;
+    }
     const inputSignature = JSON.stringify([
       t.getCountryLandRevision?.() ?? 0,
       revision,
@@ -876,9 +923,8 @@ export function createRenderingDomain({
   const renderBoundaryEdit = (frameContext = null, packet = editingPacket) => {
     active();
     const boundary = packet?.boundaryEdit;
-    const visibleSegments = (boundary?.segments || []).filter(segment => (
-      editing.isCoordVisible?.(segment.start, frameContext) || editing.isCoordVisible?.(segment.end, frameContext)
-    ));
+    if (!editingChannelChanged('boundary', editing.boundaryEditLayer, boundary)) return reprojectEditingLayer(editing.boundaryEditLayer, frameContext);
+    const visibleSegments = boundary?.segments || [];
     const data = ['coast', 'shared'].map(kind => {
       const segments = visibleSegments.filter(segment => (segment.kind === 'coast' ? 'coast' : 'shared') === kind);
       return segments.length ? {
@@ -957,8 +1003,9 @@ export function createRenderingDomain({
     else data = data.filter(vertex => frameProjectCoordinate(vertex.coord, frameContext, editing.activeProjection?.()));
     const layer = editing.vertexLayer;
     if (!layer) return false;
+    const handlesChanged = editingChannelChanged('vertices', layer, packet?.objectVertices, packet?.boundaryEdit, packet?.tool);
     const selection = layer.selectAll('circle.vertex-handle').data(data, d => d.nodeKey || d.key || d.index);
-    selection.enter().append('circle').attr('class', 'vertex-handle');
+    const enteredVertices = selection.enter().append('circle').attr('class', 'vertex-handle');
     selection.exit().remove();
     const allVertices = layer.selectAll('circle.vertex-handle');
     allVertices
@@ -971,17 +1018,18 @@ export function createRenderingDomain({
         const point = frameProjectCoordinate(d.coord, frameContext, editing.activeProjection?.());
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
-    allVertices.on('.drag', null);
+    const eventVertices = handlesChanged ? allVertices : enteredVertices;
+    eventVertices.on('.drag', null);
     const dragKind = boundaryMode ? 'boundary-vertex' : 'object-vertex';
     if (objectPacket?.targetRef) {
       const behavior = editingDragBehavior(dragKind, objectPacket.targetRef);
       if (behavior) {
-        if (boundaryMode) allVertices.filter(d => !d.fixed).call(behavior);
-        else allVertices.call(behavior);
+        if (boundaryMode) eventVertices.filter(d => !d.fixed).call(behavior);
+        else eventVertices.call(behavior);
       }
     }
-    allVertices.on('click.vertex-select', null);
-    allVertices.each(function(d) {
+    eventVertices.on('click.vertex-select', null);
+    eventVertices.each(function(d) {
       let title = editing.d3?.select(this).select('title');
       if (title?.empty?.()) title = editing.d3.select(this).append('title');
       title?.text?.(boundaryMode
@@ -1165,7 +1213,6 @@ export function createRenderingDomain({
     if (!layer) return false;
     const target = packet?.draft?.insertTarget;
     const data = target?.coordinate
-      && interaction.isCoordVisible?.(target.coordinate)
       && packet?.draft?.active
       && !packet?.draft?.dragging ? [target] : [];
     const selection = layer.selectAll('g.draft-insert-handle').data(data, item => item.segmentIndex);
@@ -1187,39 +1234,14 @@ export function createRenderingDomain({
       });
     return true;
   };
-  const renderRiverPartitionEmphasis = (frameContext = null, packet = editingPacket) => {
-    active();
-    const layer = interaction.draftLayer;
-    const operation = packet?.territoryOperation;
-    const componentMode = operation?.kind === 'annex-territory' && operation?.phase === 'components';
-    if (!layer || !componentMode) return false;
-    const selected = new Set((operation.components || []).filter(item => item.selected).map(item => item.key));
-    const candidates = operation.components || [];
-    for (const candidate of candidates.filter(item => item.usesRiverBoundary)) {
-      for (const section of candidate.riverBoundarySegments || []) {
-        if (!Array.isArray(section) || section.length < 2) continue;
-        layer.append('path')
-          .datum(interaction.featureFromGeometry?.({ type: 'LineString', coordinates: section }))
-          .attr('class', `river-partition-emphasis${selected.has(candidate.key) ? ' selected' : ''}`)
-          .attr('d', framePath(frameContext, interaction.path))
-          .attr('stroke', interaction.selectionStyle?.color)
-          .attr('stroke-width', interaction.selectionStyle?.primaryWidth)
-          .attr('stroke-opacity', selected.has(candidate.key) ? interaction.selectionStyle?.primaryAlpha : interaction.selectionStyle?.secondaryAlpha);
-      }
-    }
-    return true;
-  };
   const renderGeometryPreview = (frameContext = null, packet = editingPacket) => {
     active();
     const layer = interaction.previewLayer;
     if (!layer) return false;
-    layer.selectAll('*').remove();
+    if (!editingChannelChanged('preview', layer, packet?.preview)) return reprojectEditingLayer(layer, frameContext);
     const session = packet?.preview?.session || packet?.preview;
-    if (!session || session.status === 'discarded' || session.status === 'committed') {
-      interaction.syncGpuInteractionLayer?.('preview', layer);
-      return true;
-    }
-    const delta = session.delta || {};
+    const delta = session && !['discarded', 'committed'].includes(session.status) ? session.delta || {} : {};
+    const rows = [];
     const path = framePath(frameContext, interaction.path);
     for (const [className, geometry] of [
       ['geometry-preview-remove', delta.removedGeometry],
@@ -1228,21 +1250,24 @@ export function createRenderingDomain({
       if (!geometry) continue;
       const feature = interaction.featureFromGeometry?.(geometry);
       if (interaction.hasAreaGeometry?.(feature)) {
-        layer.append('path').datum(feature).attr('class', `${className} geometry-preview-fill`).attr('d', path);
+        rows.push({ geometry: feature.geometry, className: `${className} geometry-preview-fill` });
       }
       const outline = interaction.buildRenderableStrokeFeature?.(feature);
       if (outline?.geometry?.coordinates?.length) {
-        layer.append('path').datum(outline).attr('class', `${className} geometry-preview-outline`).attr('d', path);
+        rows.push({ geometry: outline.geometry, className: `${className} geometry-preview-outline` });
       }
     }
     for (const geometry of delta.oldBoundaries || []) {
       const outline = interaction.buildRenderableStrokeFeature?.(interaction.featureFromGeometry?.(geometry));
-      if (outline) layer.append('path').datum(outline).attr('class', 'geometry-preview-old-boundary').attr('d', path);
+      if (outline) rows.push({ geometry: outline.geometry, className: 'geometry-preview-old-boundary' });
     }
     for (const geometry of delta.newBoundaries || []) {
       const outline = interaction.buildRenderableStrokeFeature?.(interaction.featureFromGeometry?.(geometry));
-      if (outline) layer.append('path').datum(outline).attr('class', 'geometry-preview-new-boundary').attr('d', path);
+      if (outline) rows.push({ geometry: outline.geometry, className: 'geometry-preview-new-boundary' });
     }
+    joinEditingNodes(layer, 'path.editing-preview-path', rows, (d, i) => `${d.className}:${i}`)
+      .attr('class', d => `editing-preview-path ${d.className}`)
+      .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }));
     interaction.syncGpuInteractionLayer?.('preview', layer);
     return true;
   };
@@ -1260,6 +1285,9 @@ export function createRenderingDomain({
   let selectionOverlayStage = '';
   const selectionBoundaryGeometryCache = new Map();
   const selectionProjectedPathCache = new Map();
+  let projectedPathFrameSignature = '';
+  const fallbackGeometryIds = new WeakMap();
+  let fallbackGeometryId = 0;
   let sparseFallbackViewSignature = '';
   let sparseFallbackPathCount = 0;
   let sparseFallbackDirty = true;
@@ -1305,6 +1333,10 @@ export function createRenderingDomain({
       frameContext?.viewport?.join(',') || '',
     ].join(':');
     const key = `${cacheKey}:${viewSignature}`;
+    if (projectedPathFrameSignature !== viewSignature) {
+      selectionProjectedPathCache.clear();
+      projectedPathFrameSignature = viewSignature;
+    }
     if (selectionProjectedPathCache.has(key)) {
       selectionOverlayDiagnostics.projectedPathCacheHits += 1;
       return selectionProjectedPathCache.get(key);
@@ -1364,10 +1396,14 @@ export function createRenderingDomain({
     const reproject = (layer, selector) => {
       const paths = layer?.selectAll?.(selector);
       if (!paths?.attr) return;
-      paths.attr('d', (feature, index) => {
+      paths.attr('d', function(feature) {
         pathCount += 1;
         try {
-          return cachedSelectionPath(`sparse:${selector}:${index}`, feature, frameContext) || '';
+          const geometry = feature?.geometry || feature;
+          if (geometry && typeof geometry === 'object' && !fallbackGeometryIds.has(geometry)) fallbackGeometryIds.set(geometry, ++fallbackGeometryId);
+          const objectKey = this.getAttribute('data-object-key') || String(feature?.id || '');
+          const revision = selectionGeometryRevision(objectKey, selector, feature);
+          return cachedSelectionPath(`sparse:${selector}:${objectKey}:${revision}:${fallbackGeometryIds.get(geometry) || 0}`, feature, frameContext) || '';
         } catch (_) {
           return '';
         }
@@ -1690,55 +1726,45 @@ export function createRenderingDomain({
     active();
     const layer = interaction.validationLayer;
     if (!layer) return false;
-    layer.selectAll('*').remove();
     const audit = interaction.getValidationPacket?.() || {};
+    if (!editingChannelChanged('validation', layer, packet?.validationIssues, audit.issues, audit.selectedIssueId)) return reprojectEditingLayer(layer, frameContext);
+    const rows = [];
+    const markers = [];
     const path = framePath(frameContext, interaction.path);
     const issues = packet?.validationIssues?.length ? packet.validationIssues : audit.issues || [];
     for (const issue of issues) {
       const className = geometryPreviewIssueClass(issue.kind);
-      if (issue.geometry && (audit.selectedIssueId === issue.id || interaction.geometryMayIntersectViewport?.(issue.geometry))) {
+      if (issue.geometry) {
         const feature = interaction.featureFromGeometry?.(issue.geometry);
         const selectedClass = audit.selectedIssueId === issue.id ? ' selected' : '';
         if (interaction.hasAreaGeometry?.(feature)) {
-          layer.append('path').datum(feature).attr('class', `map-validation-issue map-validation-fill ${className}${selectedClass}`).attr('d', path);
+          rows.push({ key: `${issue.id}:fill:${rows.length}`, geometry: feature.geometry, className: `map-validation-issue map-validation-fill ${className}${selectedClass}` });
         }
         const outline = interaction.buildRenderableStrokeFeature?.(feature);
         if (outline?.geometry?.coordinates?.length) {
-          layer.append('path').datum(outline).attr('class', `map-validation-issue map-validation-outline ${className}${selectedClass}`).attr('d', path);
+          rows.push({ key: `${issue.id}:outline:${rows.length}`, geometry: outline.geometry, className: `map-validation-issue map-validation-outline ${className}${selectedClass}` });
         }
       }
       const coordinate = interaction.issueCoordinate?.(issue);
-      if (!coordinate || !interaction.isCoordVisible?.(coordinate)) continue;
-      const point = frameProjectCoordinate(coordinate, frameContext, interaction.activeProjection?.());
-      if (!point) continue;
-      layer.append('circle').attr('class', `map-validation-marker ${className}`)
-        .attr('cx', point[0]).attr('cy', point[1])
-        .attr('r', audit.selectedIssueId === issue.id ? 8 : 6)
-        .append('title').text(issue.message || '지도 오류');
+      if (coordinate) markers.push({ key: issue.id || markers.length, coordinate, className, radius: audit.selectedIssueId === issue.id ? 8 : 6, message: issue.message });
     }
-    return true;
+    joinEditingNodes(layer, 'path.editing-validation-path', rows, d => d.key).attr('class', d => `editing-validation-path ${d.className}`)
+      .attr('d', d => path({ type: 'Feature', properties: {}, geometry: d.geometry }));
+    joinEditingNodes(layer, 'circle.map-validation-marker', markers, d => d.key).attr('class', d => `map-validation-marker ${d.className}`).attr('r', d => d.radius)
+      .each(function(d) { const node = interaction.d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(d.message || '지도 오류'); });
+    return reprojectEditingLayer(layer, frameContext);
   };
   const renderSnap = (frameContext = null, packet = editingPacket) => {
     active();
     const layer = interaction.snapLayer;
     if (!layer) return false;
-    layer.selectAll('*').remove();
-    const indicator = packet?.snap || null;
-    const coordinatePoint = indicator?.coordinate
-      ? frameProjectCoordinate(indicator.coordinate, frameContext, interaction.activeProjection?.())
-      : null;
-    if (!coordinatePoint) return true;
-    if (indicator.segmentEndpoints?.length === 2) {
-      layer.append('path').datum(interaction.featureFromGeometry?.({ type: 'LineString', coordinates: indicator.segmentEndpoints }))
-        .attr('class', 'snap-indicator-segment').attr('d', framePath(frameContext, interaction.path));
+    const indicator = packet?.snap;
+    if (editingChannelChanged('snap', layer, indicator)) {
+      joinEditingNodes(layer, 'path.snap-indicator-segment', indicator?.segmentEndpoints?.length === 2 ? [{ geometry: { type: 'LineString', coordinates: indicator.segmentEndpoints } }] : [], () => 'segment');
+      joinEditingNodes(layer, 'path.snap-indicator-cross', indicator?.kind === 'intersection' ? [indicator] : [], () => 'cross');
+      joinEditingNodes(layer, 'circle.snap-indicator-point', indicator?.coordinate ? [indicator] : [], () => 'point').attr('r', 6);
     }
-    const point = coordinatePoint;
-    if (indicator.kind === 'intersection') {
-      layer.append('path').attr('class', 'snap-indicator-cross')
-        .attr('d', `M${point[0] - 7},${point[1] - 7}L${point[0] + 7},${point[1] + 7}M${point[0] + 7},${point[1] - 7}L${point[0] - 7},${point[1] + 7}`);
-    }
-    layer.append('circle').attr('class', 'snap-indicator-point').attr('cx', point[0]).attr('cy', point[1]).attr('r', 6);
-    return true;
+    return reprojectEditingLayer(layer, frameContext);
   };
   const renderGpuInteraction = (viewState = null) => {
     active();
@@ -1790,106 +1816,68 @@ export function createRenderingDomain({
   };
   const renderDraft = (frameContext = null, packet = editingPacket) => {
     active();
-    const draftLayer = interaction.draftLayer;
-    if (!draftLayer) return false;
-    const { d3, isMobile, activeProjection, syncGpuInteractionLayer, formatTerritoryArea } = interaction;
-    const path = framePath(frameContext, interaction.path);
-    const projectCoordinate = coordinate => frameProjectCoordinate(coordinate, frameContext, activeProjection?.());
-    const isCoordinateVisible = coordinate => !!projectCoordinate(coordinate);
+    const layer = interaction.draftLayer;
+    if (!layer) return false;
     const draft = packet?.draft || EMPTY_EDITING_RENDER_PACKET.draft;
     const operation = packet?.territoryOperation;
-    draftLayer.selectAll('*').remove();
-
-    const components = (operation?.components || []).map(item => ({ type: 'Feature', geometry: item.geometry, properties: item }));
-    const componentPaths = draftLayer.selectAll('path.territory-component').data(components, item => item.properties.key).enter().append('path')
-      .attr('class', item => `territory-component${item.properties.usesRiverBoundary ? ' river-partition' : ''} ${item.properties.selected ? 'selected-component' : 'available'}${item.properties.hovered && !item.properties.selected ? ' hovered-component' : ''}`)
-      .attr('d', path)
-      .on('mouseenter', item => publishEditingInteraction({ type: 'territory-component-hover', componentKey: item.properties.key }))
-      .on('mouseleave', item => publishEditingInteraction({ type: 'territory-component-leave', componentKey: item.properties.key }))
-      .on('click', function(item) {
-        d3?.event?.preventDefault?.();
-        d3?.event?.stopPropagation?.();
-        publishEditingInteraction({ type: 'territory-component-toggle', componentKey: item.properties.key, screenPoint: localEditingPoint() });
-      });
-    componentPaths.append('title').text(item => `${item.properties.countryName} · ${formatTerritoryArea?.(item.properties.areaKm2) || item.properties.areaKm2} · 선택하여 ${item.properties.selected ? '해제' : '추가'}`);
-
-    const candidates = (operation?.candidates || []).map(item => ({ type: 'Feature', geometry: item.geometry, properties: item }));
-    draftLayer.selectAll('path.annex-candidate').data(candidates, item => item.properties.index).enter().append('path')
-      .attr('class', item => `annex-candidate ${item.properties.index === 0 ? 'side-a' : 'side-b'} ${item.properties.selected ? 'selected-candidate' : 'alternate-candidate'}`)
-      .attr('d', path)
-      .on('click', function(item) {
-        d3?.event?.preventDefault?.();
-        d3?.event?.stopPropagation?.();
-        publishEditingInteraction({ type: 'territory-candidate-select', candidateIndex: item.properties.index });
-      });
-
-    if (draft.rawStrokeGeometry) {
-      draftLayer.append('path').datum({ type: 'Feature', properties: {}, geometry: draft.rawStrokeGeometry })
-        .attr('class', 'draft-shape draft-raw-stroke').attr('d', path);
-    }
-    if (draft.geometry) {
-      draftLayer.append('path').datum({ type: 'Feature', properties: {}, geometry: draft.geometry })
-        .attr('class', ['draft-shape', packet.tool === 'annex-territory' ? 'annex-draft' : '', draft.cutStatus ? `cut-${draft.cutStatus}` : '', !draft.cutStatus && draft.issues.length ? 'draft-invalid' : ''].filter(Boolean).join(' '))
-        .attr('d', path);
-    }
-    if (draft.autoCloseSegment) {
-      draftLayer.append('path').datum({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [draft.autoCloseSegment.start, draft.autoCloseSegment.end] } })
-        .attr('class', 'draft-auto-close-preview').attr('d', path);
-    }
-    draftLayer.selectAll('path.draft-split-preview').data(draft.splitCandidates, item => item.key).enter().append('path')
-      .attr('class', (_, index) => `draft-split-preview side-${index === 0 ? 'a' : 'b'}`)
-      .attr('d', item => path({ type: 'Feature', properties: {}, geometry: item.geometry }));
-
-    const segmentHits = draftLayer.selectAll('path.draft-segment-hit').data(draft.segments, item => item.segmentIndex).enter().append('path')
+    if (!editingChannelChanged('draft', layer, draft, operation, packet.tool)) return reprojectEditingLayer(layer, frameContext);
+    const path = framePath(frameContext, interaction.path);
+    const { d3, isMobile, formatTerritoryArea } = interaction;
+    const stop = () => { d3?.event?.preventDefault?.(); d3?.event?.stopPropagation?.(); };
+    const components = (operation?.components || []).map(item => ({ ...item, geometry: item.geometry }));
+    const componentPaths = joinEditingNodes(layer, 'path.territory-component', components, d => d.key)
+      .attr('class', d => `territory-component${d.usesRiverBoundary ? ' river-partition' : ''} ${d.selected ? 'selected-component' : 'available'}${d.hovered && !d.selected ? ' hovered-component' : ''}`)
+      .on('mouseenter', d => publishEditingInteraction({ type: 'territory-component-hover', componentKey: d.key }))
+      .on('mouseleave', d => publishEditingInteraction({ type: 'territory-component-leave', componentKey: d.key }))
+      .on('click', d => { stop(); publishEditingInteraction({ type: 'territory-component-toggle', componentKey: d.key, screenPoint: localEditingPoint() }); });
+    componentPaths.each(function(d) { const node = d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(`${d.countryName} · ${formatTerritoryArea?.(d.areaKm2) || d.areaKm2}`); });
+    joinEditingNodes(layer, 'path.annex-candidate', operation?.candidates || [], d => d.index)
+      .attr('class', d => `annex-candidate ${d.index === 0 ? 'side-a' : 'side-b'} ${d.selected ? 'selected-candidate' : 'alternate-candidate'}`)
+      .on('click', d => { stop(); publishEditingInteraction({ type: 'territory-candidate-select', candidateIndex: d.index }); });
+    const shapes = [
+      { key: 'raw', geometry: draft.rawStrokeGeometry, className: 'draft-shape draft-raw-stroke' },
+      { key: 'shape', geometry: draft.geometry, className: ['draft-shape', packet.tool === 'annex-territory' ? 'annex-draft' : '', draft.cutStatus ? 'cut-' + draft.cutStatus : draft.issues.length ? 'draft-invalid' : ''].filter(Boolean).join(' ') },
+      { key: 'close', geometry: draft.autoCloseSegment ? { type: 'LineString', coordinates: [draft.autoCloseSegment.start, draft.autoCloseSegment.end] } : null, className: 'draft-auto-close-preview' },
+    ].filter(d => d.geometry);
+    joinEditingNodes(layer, 'path.draft-packet-shape', shapes, d => d.key).attr('class', d => 'draft-packet-shape ' + d.className);
+    joinEditingNodes(layer, 'path.draft-split-preview', draft.splitCandidates, d => d.key).attr('class', (_, i) => 'draft-split-preview side-' + (i === 0 ? 'a' : 'b'));
+    joinEditingNodes(layer, 'path.draft-segment-hit', draft.segments, d => d.segmentIndex)
       .attr('class', 'draft-segment-hit draft-interactive')
-      .attr('d', item => path({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [item.start, item.end] } }))
-      .on('mousemove', item => {
-        if (isMobile?.() || draft.dragging) return;
-        publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: item.segmentIndex, screenPoint: localEditingPoint() });
-      })
-      .on('mouseleave', item => publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: item.segmentIndex }))
-      .on('click', function(item) {
-        d3?.event?.preventDefault?.();
-        d3?.event?.stopPropagation?.();
-        publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: item.segmentIndex, screenPoint: localEditingPoint() });
-      });
-    segmentHits.append('title').text('선분에 꼭짓점 삽입');
-
-    const vertices = draftLayer.selectAll('g.draft-vertex').data(draft.vertices.filter(item => isCoordinateVisible(item.coordinate)), item => item.index).enter().append('g')
-      .attr('class', item => `draft-vertex draft-interactive${item.selected ? ' selected' : ''}`)
-      .attr('transform', item => {
-        const point = projectCoordinate(item.coordinate);
-        return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-      })
-      .on('click', function(item) {
-        d3?.event?.preventDefault?.();
-        d3?.event?.stopPropagation?.();
-        publishEditingInteraction({ type: 'draft-vertex-select', vertexIndex: item.index });
-      });
-    vertices.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile?.() ? 16 : 10);
-    vertices.append('circle').attr('class', 'draft-vertex-dot').attr('r', isMobile?.() ? 6.5 : 4.5);
-    vertices.append('title').text(item => `꼭짓점 ${item.index + 1} · 드래그하여 이동`);
-    const draftDrag = editingDragBehavior('draft-vertex');
-    if (draftDrag) vertices.call(draftDrag);
-
+      .on('mousemove', d => { if (!isMobile?.() && !editingPacket.draft.dragging) publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); })
+      .on('mouseleave', d => publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: d.segmentIndex }))
+      .on('click', d => { stop(); publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); });
+    const vertices = joinEditingNodes(layer, 'g.draft-vertex', draft.vertices, d => d.index)
+      .attr('class', d => 'draft-vertex draft-interactive' + (d.selected ? ' selected' : ''))
+      .on('click', d => { stop(); publishEditingInteraction({ type: 'draft-vertex-select', vertexIndex: d.index }); });
+    vertices.each(function() {
+      const node = d3.select(this);
+      if (node.select('circle').empty()) {
+        node.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile?.() ? 16 : 10);
+        node.append('circle').attr('class', 'draft-vertex-dot').attr('r', isMobile?.() ? 6.5 : 4.5);
+        node.append('title');
+      }
+      node.select('title').text(d => '꼭짓점 ' + (d.index + 1) + ' · 드래그하여 이동');
+    });
+    const drag = editingDragBehavior('draft-vertex');
+    if (drag) vertices.call(drag);
     renderDraftInsertionHandle(frameContext, packet);
-    const issueMarkers = draftLayer.selectAll('g.draft-issue-marker').data(draft.issues.filter(item => item.coordinate && isCoordinateVisible(item.coordinate)), (item, index) => `${item.kind}-${item.vertexIndex ?? item.segmentIndex ?? index}`).enter().append('g')
-      .attr('class', 'draft-issue-marker')
-      .attr('transform', item => {
-        const point = projectCoordinate(item.coordinate);
-        return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-      });
-    issueMarkers.append('circle').attr('r', 7);
-    issueMarkers.append('path').attr('d', 'M-3.2-3.2 3.2 3.2M3.2-3.2-3.2 3.2');
-    issueMarkers.append('title').text(item => item.message || '수정이 필요한 위치');
-    draftLayer.selectAll('circle.draft-snap-point').data(draft.snapPoints, item => item.endpoint).enter().append('circle')
-      .attr('class', item => `draft-snap-point ${item.endpoint}`).attr('r', 6)
-      .attr('transform', item => {
-        const point = projectCoordinate(item.coordinate);
-        return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-      });
-    renderRiverPartitionEmphasis(frameContext, packet);
-    syncGpuInteractionLayer?.('draft', draftLayer);
+    const issues = joinEditingNodes(layer, 'g.draft-issue-marker', draft.issues.filter(d => d.coordinate), (d, i) => d.kind + ':' + (d.vertexIndex ?? d.segmentIndex ?? i));
+    issues.each(function(d) {
+      const node = d3.select(this);
+      if (node.select('circle').empty()) { node.append('circle').attr('r', 7); node.append('path').attr('d', 'M-3.2-3.2 3.2 3.2M3.2-3.2-3.2 3.2'); node.append('title'); }
+      node.select('title').text(d.message || '수정이 필요한 위치');
+    });
+    joinEditingNodes(layer, 'circle.draft-snap-point', draft.snapPoints, d => d.endpoint).attr('class', d => 'draft-snap-point ' + d.endpoint).attr('r', 6);
+    const riverSections = [];
+    for (const component of operation?.components || []) for (const [i, section] of (component.riverBoundarySegments || []).entries()) {
+      if (component.usesRiverBoundary && section.length >= 2) riverSections.push({ key: component.key + ':' + i, selected: component.selected, geometry: { type: 'LineString', coordinates: section } });
+    }
+    joinEditingNodes(layer, 'path.river-partition-emphasis', riverSections, d => d.key)
+      .attr('class', d => 'river-partition-emphasis' + (d.selected ? ' selected' : ''))
+      .attr('stroke', interaction.selectionStyle?.color).attr('stroke-width', interaction.selectionStyle?.primaryWidth);
+    void path;
+    reprojectEditingLayer(layer, frameContext);
+    interaction.syncGpuInteractionLayer?.('draft', layer);
     return true;
   };
   const visualRootNode = value => value?.node?.() || value || null;

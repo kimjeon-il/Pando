@@ -280,6 +280,8 @@ function pointSegmentDistance(point, a, b) {
 }
 
 export function buildTerritorialInternalBoundarySegments(countries = [], units = [], { precision = 7, epsilon = 1e-7 } = {}) {
+  // No unit can own an internal boundary: do not even inspect country geometry.
+  if (!(units || []).some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) return [];
   const countryFeatures = (countries || [])
     .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
     .map((feature, index) => topologyFeature(feature, 'country', index));

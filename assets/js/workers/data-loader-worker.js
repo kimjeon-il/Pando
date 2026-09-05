@@ -11,6 +11,9 @@ const {
   inspectCanonicalCountryPacket,
 } = await import(`../modules/canonical-country-packet.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const DATA_CACHE_PREFIX = 'pandolab-data-';
+const { decodeCountryMesh } = await import(`../modules/country-mesh-codec.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+const { prepareCountryStroke, countryStrokeTransferables } = await import(`../modules/country-stroke-preparation.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+let canonicalCountryIds = [];
 const DATA_CACHE_NAME = `${DATA_CACHE_PREFIX}${DATA_REVISION}`;
 const LEGACY_CORE_CACHE_PREFIX = 'pandolab-core-';
 const params = new URL(self.location.href).searchParams;
@@ -344,9 +347,11 @@ async function loadPreview() {
     throw new Error('국명 기준점 데이터가 올바르지 않습니다.');
   }
   const meshBuffer = meshResult.buffer;
+  canonicalCountryIds = countryResult.data.features.map(feature => String(feature.id));
+  const preparedStroke = prepareCountryStroke(decodeCountryMesh(meshBuffer, canonicalCountryIds).mesh, canonicalCountryIds);
   previewReady = true;
   self.postMessage({
-    type: 'preview-ready', buildId: APP_VERSION, countries: countryResult.data, meshBuffer, labelAnchors: labelAnchors.anchors,
+    type: 'preview-ready', buildId: APP_VERSION, countries: countryResult.data, meshBuffer, preparedStroke, labelAnchors: labelAnchors.anchors,
     postedEpochMs: performance.timeOrigin + performance.now(),
     metrics: {
       policy: loadPolicy,
@@ -359,7 +364,7 @@ async function loadPreview() {
         labelAnchors: assetMetrics(anchorResult, anchorResult.parseMilliseconds),
       },
     },
-  }, [meshBuffer]);
+  }, [meshBuffer, ...countryStrokeTransferables(preparedStroke)]);
 }
 
 async function loadGeometry() {
@@ -407,9 +412,11 @@ async function loadMesh() {
     const result = await loadMeshAsset(manifest.assets.canonicalMesh, 'mesh', 'mesh', '고화질 GPU 메시', meshAbortController.signal);
     if (meshCancelled) return;
     const meshBuffer = result.buffer;
+    const preparedStroke = prepareCountryStroke(decodeCountryMesh(meshBuffer, canonicalCountryIds).mesh, canonicalCountryIds);
+    if (meshCancelled) return;
     meshReady = true;
     self.postMessage({
-      type: 'mesh-ready', buildId: APP_VERSION, meshBuffer,
+      type: 'mesh-ready', buildId: APP_VERSION, meshBuffer, preparedStroke,
       postedEpochMs: performance.timeOrigin + performance.now(),
       metrics: {
         policy: loadPolicy,
@@ -418,7 +425,7 @@ async function loadMesh() {
         decodedBytes: result.decodedBytes,
         assets: { mesh: assetMetrics(result) },
       },
-    }, [meshBuffer]);
+    }, [meshBuffer, ...countryStrokeTransferables(preparedStroke)]);
     if (geometryReady) cleanupOldCoreCaches();
   } catch (error) {
     if (error?.name !== 'AbortError' && !meshCancelled) {

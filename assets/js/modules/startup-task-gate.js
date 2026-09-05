@@ -48,7 +48,8 @@ export function createStartupTaskGate({
 
   const runNext = async () => {
     if (disposed || running || !paintReady || !pending.size) return;
-    const elapsed = now() - lastInputAt;
+    const taskNotBefore = pending.values().next().value?.notBefore || 0;
+    const elapsed = now() - Math.max(lastInputAt, taskNotBefore - quietWindowMs);
     if (interactionActive) return defer('interaction-active');
     if (isDocumentHidden()) return defer('document-hidden');
     if (elapsed < quietWindowMs) return defer('quiet-window');
@@ -71,7 +72,7 @@ export function createStartupTaskGate({
 
   function scheduleCheck() {
     if (disposed || running || !paintReady || !pending.size || timerId || idleId) return;
-    const delay = Math.max(0, quietWindowMs - (now() - lastInputAt));
+    const delay = Math.max(0, quietWindowMs - (now() - lastInputAt), (pending.values().next().value?.notBefore || 0) - now());
     timerId = setTimer?.(() => {
       timerId = 0;
       if (requestIdleCallback) {
@@ -88,11 +89,11 @@ export function createStartupTaskGate({
     }, delay || 1);
   }
 
-  function queue(key, run, { queuedState = '', runningState = '' } = {}) {
+  function queue(key, run, { queuedState = '', runningState = '', quietAfterQueue = false } = {}) {
     if (disposed || typeof run !== 'function') return false;
     const normalizedKey = String(key || '').trim();
     if (!normalizedKey || pending.has(normalizedKey)) return false;
-    pending.set(normalizedKey, { run, runningState });
+    pending.set(normalizedKey, { run, runningState, notBefore: quietAfterQueue ? now() + quietWindowMs : 0 });
     if (queuedState) publishState(queuedState);
     scheduleCheck();
     return true;
