@@ -6,7 +6,7 @@ import {
   GPU_STROKE_LAYOUT,
   buildGpuStrokeInstances,
 } from '../../assets/js/modules/gpu-stroke-renderer.js';
-import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
+import { createMapRenderCoordinator, MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from '../../assets/js/modules/map-render-coordinator.js';
 import { createRenderSceneBuilder } from '../../assets/js/modules/render-scene.js';
 import {
   RENDERER_V2_PASSES,
@@ -85,7 +85,7 @@ test('view-only coordinator frames do not invoke scene geometry rendering', () =
       userLabelPositions: () => calls.push('user-labels'),
     },
   });
-  coordinator.renderView();
+  coordinator.invalidate(MAP_RENDER_MASKS.VIEW, 'renderer-v2-view');
   assert.equal(calls.includes('view'), true);
   assert.equal(calls.includes('selection-view'), true);
   assert.equal(calls.includes('countries'), false);

@@ -232,8 +232,6 @@
       startupMetrics.canonicalInputDeferralCount += 1;
     },
   });
-  window.PANDOLAB_STARTUP_TASK_GATE = startupGate;
-
   const activePointers = new Set();
   const noteInput = active => startupGate.noteInput({ active });
   const startupInputCleanup = [];
@@ -281,10 +279,8 @@
 
   window.PANDOLAB_ASSET_BASE_URL = assetBaseUrl.href;
   window.PANDOLAB_APP_VERSION = APP_VERSION;
-  window.PANDOLAB_BUILD_ID = BUILD_ID;
   window.PANDOLAB_ASSET_REVISION = ASSET_REVISION;
   window.PANDOLAB_DATA_REVISION = DATA_REVISION;
-  window.PANDOLAB_DATA_CACHE_NAME = `pandolab-data-${DATA_REVISION}`;
   const loaderUrl = versionedAsset('./workers/data-loader-worker.js');
   for (const [key, value] of Object.entries(startupSignals)) {
     if (value !== null && value !== '') loaderUrl.searchParams.set(key, String(value));
@@ -300,7 +296,7 @@
   let resolveMesh;
   window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE = new Promise(resolve => { resolveGeometry = resolve; });
   window.PANDOLAB_CANONICAL_MESH_PROMISE = new Promise(resolve => { resolveMesh = resolve; });
-  window.PANDOLAB_CANONICAL_DATA_PROMISE = Promise.all([
+  void Promise.all([
     window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE,
     window.PANDOLAB_CANONICAL_MESH_PROMISE,
   ]).then(([geometry, mesh]) => {
@@ -358,7 +354,6 @@
     void sampleStartupMemory('canonical-mesh-committed');
     window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE = null;
     window.PANDOLAB_CANONICAL_MESH_PROMISE = null;
-    window.PANDOLAB_CANONICAL_DATA_PROMISE = null;
     resolveGeometry = null;
     resolveMesh = null;
     loader.terminate();

@@ -6,7 +6,6 @@ export const PROJECT_COMMAND_KINDS = Object.freeze({
 });
 
 const text = value => String(value ?? '').trim();
-const clone = value => value == null ? value : structuredClone(value);
 const isPromiseLike = value => !!value && typeof value.then === 'function';
 const metricNow = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
@@ -123,14 +122,14 @@ export function createProjectCommandPipeline({
       if (prepared?.skip === true) return { ok: true, changed: false, command: command.id, kind: command.kind };
 
       stage = 'snapshot';
-      snapshot = clone(assertSynchronous(captureSnapshot(), 'captureSnapshot', command.id));
+      snapshot = assertSynchronous(captureSnapshot(), 'captureSnapshot', command.id);
 
       stage = 'history';
       const history = resolveValue(command.history, context, payload, prepared) || {
         type: command.id,
         affectedIds: prepared?.affectedIds || [],
       };
-      recordHistory({ ...history, command: command.id });
+      recordHistory({ ...history, command: command.id }, snapshot);
       historyRecorded = true;
 
       stage = 'mutate';
@@ -175,7 +174,7 @@ export function createProjectCommandPipeline({
       };
     } catch (error) {
       if (snapshot !== undefined) {
-        try { restoreSnapshot(clone(snapshot), { command: command.id, stage, error }); }
+        try { restoreSnapshot(snapshot, { command: command.id, stage, error }); }
         catch (restoreError) { error.restoreError = restoreError; }
       }
       if (historyRecorded) {

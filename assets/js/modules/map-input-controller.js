@@ -6,7 +6,7 @@ export function createMapInputController({
   beginMovement,
   finishMovement,
   dragBy,
-  scheduleViewRender,
+  invalidateView,
   getZoom,
   transformView,
   zoomBy,
@@ -120,7 +120,7 @@ export function createMapInputController({
         source: 'pinch',
       });
       pinch.center = nextCenter;
-      scheduleViewRender();
+      invalidateView();
       event.preventDefault();
       return;
     }
@@ -145,7 +145,7 @@ export function createMapInputController({
     dragBy(event.clientX - gesture.lastX, event.clientY - gesture.lastY);
     gesture.lastX = event.clientX;
     gesture.lastY = event.clientY;
-    scheduleViewRender();
+    invalidateView();
     event.preventDefault();
   }
 
@@ -214,7 +214,7 @@ export function createMapInputController({
       toPoint: point,
       source: 'wheel',
     });
-    scheduleViewRender();
+    invalidateView();
     clearTimeout(wheelFinishTimer);
     wheelFinishTimer = setTimeout(() => endMovement(null), 120);
   }

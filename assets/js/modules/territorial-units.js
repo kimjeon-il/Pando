@@ -24,13 +24,13 @@ const UNIT_TYPES = new Set(Object.values(TERRITORIAL_UNIT_TYPES));
 const text = value => String(value ?? '').trim();
 const clone = value => structuredClone(value);
 
-export function territorialUnitType(feature) {
+function territorialUnitType(feature) {
   const properties = feature?.properties || {};
   const value = text(properties.unitType).toLowerCase();
   return UNIT_TYPES.has(value) ? value : '';
 }
 
-export function isTerritorialFeature(feature) {
+function isTerritorialFeature(feature) {
   return !!territorialUnitType(feature)
     && POLYGON_TYPES.has(feature?.geometry?.type)
     && Array.isArray(feature.geometry.coordinates)
@@ -77,7 +77,7 @@ function normalizedProperties(feature, type) {
   return properties;
 }
 
-export function normalizeTerritorialFeature(feature) {
+function normalizeTerritorialFeature(feature) {
   const type = territorialUnitType(feature);
   if (!type || !isTerritorialFeature(feature)) return null;
   const id = text(feature.id);

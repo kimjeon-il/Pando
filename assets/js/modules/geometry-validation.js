@@ -339,19 +339,7 @@ export function validateTerritorialGeometry(features = [], {
   return issues;
 }
 
-export function validateSharedBoundary(topology, { requiredSegmentKeys = null } = {}) {
-  const issues = [];
-  const required = requiredSegmentKeys ? new Set(requiredSegmentKeys) : null;
-  for (const segment of topology?.segments?.values?.() || []) {
-    if (required && required.has(segment.key) && segment.ownerIds.size < 2) issues.push(issue('shared-boundary-gap', '공유국경의 양쪽 geometry가 일치하지 않습니다.', {
-      entityRefs: [...segment.ownerIds], coordinate: [(segment.a[0] + segment.b[0]) / 2, (segment.a[1] + segment.b[1]) / 2],
-      segmentKey: segment.key,
-    }));
-  }
-  return issues;
-}
-
-export function validateAdministrativeContainment(units = [], countries = [], { clipper = null } = {}) {
+function validateAdministrativeContainment(units = [], countries = [], { clipper = null } = {}) {
   const issues = [];
   const countryMap = new Map(countries.map(feature => [featureId(feature), feature]));
   const unitMap = new Map(units.map(feature => [String(feature.id), feature]));
@@ -382,7 +370,7 @@ export function validateAdministrativeContainment(units = [], countries = [], { 
   return issues;
 }
 
-export function validateDistributionReference(entries = [], units = []) {
+function validateDistributionReference(entries = [], units = []) {
   const unitIds = new Set(units.map(feature => String(feature.id)));
   const seenIds = new Set();
   const issues = [];

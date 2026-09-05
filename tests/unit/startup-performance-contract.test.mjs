@@ -36,13 +36,14 @@ test('render resources use frame snapshots instead of Proxy traps', () => {
   assert.doesNotMatch(app, /createLiveResources|new\s+Proxy/);
   assert.match(app, /createResourceSnapshot/);
   assert.match(app, /refreshRenderResources/);
-  assert.match(rendering, /getRenderResourceSnapshot/);
+  assert.doesNotMatch(rendering, /getRenderResourceSnapshot/);
   assert.match(rendering, /beginFrame/);
   assert.match(rendering, /renderResourceRefreshCount/);
   assert.match(rendering, /renderResourceProxyCount/);
   assert.match(coordinator, /callRenderer\('beginFrame'/);
-  assert.match(app, /renderers:\s*{\s*beginFrame:\s*frameContext\s*=>\s*renderingDomain\?\.beginFrame\?\.\(frameContext\)/);
-  assert.doesNotMatch(app, /beginFrame:\s*frameContext\s*=>\s*renderingDomain\.beginFrame/);
+  assert.match(rendering, /coordinator\s*=\s*createMapRenderCoordinator\(\{/);
+  assert.match(rendering, /renderers:\s*{\s*beginFrame,/);
+  assert.doesNotMatch(app, /createMapRenderCoordinator|beginFrame:\s*frameContext/);
 });
 
 test('label and terrain view work scales with the visible frame', () => {

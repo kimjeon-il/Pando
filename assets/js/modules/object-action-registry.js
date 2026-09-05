@@ -135,10 +135,6 @@ export function resolveObjectAction(id, context = {}) {
   });
 }
 
-export function objectActionsFor(context = {}, ids = Object.keys(OBJECT_ACTIONS)) {
-  return ids.map(id => resolveObjectAction(id, context)).filter(action => action?.applies);
-}
-
 /**
  * Command bridge used by the application-command layer. The registry owns
  * action identity/presentation/applicability; mutation semantics remain in

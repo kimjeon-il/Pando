@@ -10,7 +10,7 @@ export const OVERLAY_GROUPS = Object.freeze([
   'genericFeatures',
 ]);
 
-export const PRESENTATION_GROUPS = Object.freeze([
+const PRESENTATION_GROUPS = Object.freeze([
   'labels',
   'countryLabels',
   ...OVERLAY_GROUPS,
@@ -30,7 +30,7 @@ const DEFAULT_STYLE = Object.freeze({
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
-export function normalizeLayerStyle(value = {}) {
+function normalizeLayerStyle(value = {}) {
   return {
     opacity: clamp(Number.isFinite(Number(value.opacity)) ? Number(value.opacity) : DEFAULT_STYLE.opacity, 0, 1),
     boundaryVisible: value.boundaryVisible !== false,

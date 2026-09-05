@@ -1,4 +1,4 @@
-export const RENDER_LOD_LEVELS = Object.freeze({
+const RENDER_LOD_LEVELS = Object.freeze({
   COARSE: 'coarse',
   MEDIUM: 'medium',
   HIGH: 'high',

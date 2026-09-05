@@ -79,17 +79,3 @@ export function validateSourceProvenance(value) {
   if (value.details != null && !plainObject(value.details)) issues.push('source provenance details must be an object');
   return { ok: issues.length === 0, issues };
 }
-
-export function assertSourceProvenance(value) {
-  const result = validateSourceProvenance(value);
-  if (result.ok) return value;
-  const error = new Error(result.issues[0] || 'source provenance is invalid');
-  error.code = 'PL-SOURCE-001';
-  error.issues = result.issues;
-  throw error;
-}
-
-export function sourceProvenanceKind(value) {
-  const kind = text(value?.kind);
-  return SOURCE_KIND_SET.has(kind) ? kind : '';
-}

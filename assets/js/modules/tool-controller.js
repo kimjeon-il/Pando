@@ -1,4 +1,4 @@
-export const TOOL_DEFINITIONS = Object.freeze({
+const TOOL_DEFINITIONS = Object.freeze({
   select: Object.freeze({ label: '국가 선택', task: '지도 편집', stage: '작업 진행', cursor: 'select', icon: 'focus' }),
   move: Object.freeze({ label: '이동', task: '지도 이동', stage: '탐색', cursor: 'select', icon: 'map' }),
   'new-country': Object.freeze({ label: '국가 추가', task: '국가 추가', cursor: 'phased', special: true, icon: 'country', draftPhase: 'line', draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),

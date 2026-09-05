@@ -1,12 +1,16 @@
-import { MAP_RENDER_DIRTY } from './map-render-coordinator.js';
+import {
+  createMapRenderCoordinator,
+  MAP_RENDER_DIRTY,
+  MAP_RENDER_MASKS,
+} from './map-render-coordinator.js';
+import { EMPTY_EDITING_RENDER_PACKET } from './editing-render-packet.js';
 
 export function createRenderingDomain({
+  context = null,
   gpuMapRenderer = null,
   sceneBuilder = null,
-  coordinator = null,
   mapHost = null,
   selectionDomain = null,
-  editingDomain = null,
   projectDomain = null,
   domLayers = null,
   labelResources = null,
@@ -22,14 +26,20 @@ export function createRenderingDomain({
   interactionResources = null,
   selectionResources = null,
   refreshRenderResources = null,
-  getRenderResourceSnapshot = null,
+  getEditingRenderPacket = () => EMPTY_EDITING_RENDER_PACKET,
+  emitEditingInteraction = null,
   labelPositionCadence = null,
   renderers = {},
+  requestFrame = callback => globalThis.requestAnimationFrame?.(callback) ?? globalThis.setTimeout(callback, 0),
+  prepareView = () => null,
+  onFrameComplete = null,
+  invalidMaskMode = 'throw',
   reportDiagnostic = () => {},
 } = {}) {
-  let scene = null;
   let disposed = false;
-  let contextLost = false;
+  let coordinator = null;
+  let editingPacket = EMPTY_EDITING_RENDER_PACKET;
+  let editingGestureSequence = 0;
   const stats = {
     invalidations: 0,
     lastReason: '',
@@ -76,6 +86,66 @@ export function createRenderingDomain({
   const editing = editingRenderResources || {};
   const interaction = interactionResources || {};
   const selection = selectionResources || {};
+  const publishEditingInteraction = event => {
+    const packet = editingPacket || EMPTY_EDITING_RENDER_PACKET;
+    const normalized = Object.freeze({
+      ...event,
+      projectGeneration: Number(event?.projectGeneration ?? packet.projectGeneration ?? 0),
+      packetRevision: Number(event?.packetRevision ?? packet.revision ?? 0),
+      screenPoint: Array.isArray(event?.screenPoint)
+        ? Object.freeze([Number(event.screenPoint[0]), Number(event.screenPoint[1])])
+        : null,
+      targetRef: event?.targetRef ? Object.freeze({ ...event.targetRef }) : null,
+      modifiers: event?.modifiers ? Object.freeze({ ...event.modifiers }) : null,
+    });
+    if (typeof emitEditingInteraction === 'function') return emitEditingInteraction(normalized);
+    context?.publish?.('editing-interaction', normalized);
+    return true;
+  };
+  const pointerMetadata = sourceEvent => ({
+    pointerType: sourceEvent?.pointerType || (sourceEvent?.touches ? 'touch' : 'mouse'),
+    modifiers: {
+      altKey: sourceEvent?.altKey === true,
+      ctrlKey: sourceEvent?.ctrlKey === true,
+      metaKey: sourceEvent?.metaKey === true,
+      shiftKey: sourceEvent?.shiftKey === true,
+    },
+  });
+  const localEditingPoint = () => interaction.d3?.mouse?.(interaction.svg?.node?.() || interaction.svg) || null;
+  const editingDragBehavior = (kind, targetRef = null) => {
+    let gestureId = '';
+    return interaction.d3?.behavior?.drag?.()
+      .on('dragstart', function(item) {
+        gestureId = `editing-${++editingGestureSequence}`;
+        const sourceEvent = interaction.d3?.event?.sourceEvent;
+        sourceEvent?.preventDefault?.();
+        sourceEvent?.stopPropagation?.();
+        publishEditingInteraction({
+          type: `${kind}-drag-start`, gestureId, targetRef: targetRef || item?.targetRef,
+          vertexKey: item?.nodeKey || item?.key || null, vertexIndex: item?.index,
+          screenPoint: localEditingPoint(), ...pointerMetadata(sourceEvent),
+        });
+      })
+      .on('drag', function(item) {
+        const sourceEvent = interaction.d3?.event?.sourceEvent;
+        publishEditingInteraction({
+          type: `${kind}-drag-move`, gestureId, targetRef: targetRef || item?.targetRef,
+          vertexKey: item?.nodeKey || item?.key || null, vertexIndex: item?.index,
+          screenPoint: localEditingPoint(), ...pointerMetadata(sourceEvent),
+        });
+      })
+      .on('dragend', function(item) {
+        const sourceEvent = interaction.d3?.event?.sourceEvent;
+        sourceEvent?.preventDefault?.();
+        sourceEvent?.stopPropagation?.();
+        publishEditingInteraction({
+          type: `${kind}-drag-end`, gestureId, targetRef: targetRef || item?.targetRef,
+          vertexKey: item?.nodeKey || item?.key || null, vertexIndex: item?.index,
+          screenPoint: localEditingPoint(), ...pointerMetadata(sourceEvent),
+        });
+        gestureId = '';
+      });
+  };
   const geometryPreviewIssueClass = (kind = '') => {
     if (kind === 'overlap') return 'issue-overlap';
     if (kind === 'gap' || kind === 'shared-boundary-gap') return 'issue-gap';
@@ -827,20 +897,18 @@ export function createRenderingDomain({
     for (const layer of projected.layers || []) layer?.selectAll?.('path')?.attr('d', projected.path);
     return true;
   };
-  const renderBoundaryEdit = () => {
+  const renderBoundaryEdit = (frameContext = null, packet = editingPacket) => {
     active();
-    const state = editing.getState?.() || {};
-    const editActive = (state.tool === 'country-coast' && state.coastEditCountryId)
-      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing');
-    const visibleSegments = editActive
-      ? (editing.getCountryBoundarySegments?.() || []).filter(segment => segment.geometry?.coordinates?.some(editing.isCoordVisible))
-      : [];
+    const boundary = packet?.boundaryEdit;
+    const visibleSegments = (boundary?.segments || []).filter(segment => (
+      editing.isCoordVisible?.(segment.start, frameContext) || editing.isCoordVisible?.(segment.end, frameContext)
+    ));
     const data = ['coast', 'shared'].map(kind => {
       const segments = visibleSegments.filter(segment => (segment.kind === 'coast' ? 'coast' : 'shared') === kind);
       return segments.length ? {
-        key: `${kind}:${state.coastEditCountryId || (state.boundaryEditCountryIds || []).join('|')}`,
+        key: `${kind}:${packet?.revision || 0}`,
         kind,
-        geometry: { type: 'MultiLineString', coordinates: segments.map(segment => segment.geometry.coordinates) },
+        geometry: { type: 'MultiLineString', coordinates: segments.map(segment => [segment.start, segment.end]) },
       } : null;
     }).filter(Boolean);
     const layer = editing.boundaryEditLayer;
@@ -896,25 +964,22 @@ export function createRenderingDomain({
     }
     return accepted;
   };
-  const renderVertices = () => {
+  const renderVertices = (frameContext = null, packet = editingPacket) => {
     active();
-    const state = editing.getState?.() || {};
-    let data = [];
-    let feature = null;
-    if (state.tool === 'select' && state.selected?.domain === 'generic') {
-      feature = editing.getGenericFeature?.(state.selected.id);
-      if (feature) data = (editing.getEditableVertices?.(feature) || []).filter(vertex => editing.isCoordVisible?.(vertex.coord));
-    } else if (state.tool === 'select' && state.selected?.domain === 'hydro') {
-      feature = editing.getHydroFeature?.(state.selected.id);
-      if (feature) data = (editing.getEditableVertices?.(feature) || []).filter(vertex => editing.isCoordVisible?.(vertex.coord));
-    } else if ((state.tool === 'country-coast' && state.coastEditCountryId)
-      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing')) {
-      const primaryId = state.tool === 'country-border' ? state.boundaryEditCountryIds?.[0] : state.coastEditCountryId;
-      feature = editing.getCountryFeature?.(primaryId);
-      if (feature) data = thinVisibleCoastHandles(editing.getCountryBoundaryHandles?.() || []);
-    }
-    const boundaryMode = (state.tool === 'country-coast' && !!state.coastEditCountryId)
-      || (state.tool === 'country-border' && state.boundaryEditPhase === 'editing');
+    const boundaryHandles = packet?.boundaryEdit?.handles || [];
+    const boundaryMode = ['country-border', 'country-coast'].includes(packet?.tool) && boundaryHandles.length > 0;
+    const objectPacket = boundaryMode ? {
+      mode: packet.tool,
+      handles: boundaryHandles,
+      targetRef: {
+        domain: 'territorial',
+        type: 'country',
+        id: String(boundaryHandles[0]?.ownerIds?.[0] || ''),
+      },
+    } : packet?.objectVertices;
+    let data = (objectPacket?.handles || []).map(item => ({ ...item, coord: item.coordinate }));
+    if (boundaryMode) data = thinVisibleCoastHandles(data);
+    else data = data.filter(vertex => editing.isCoordVisible?.(vertex.coord, frameContext));
     const layer = editing.vertexLayer;
     if (!layer) return false;
     const selection = layer.selectAll('circle.vertex-handle').data(data, d => d.nodeKey || d.key || d.index);
@@ -932,8 +997,14 @@ export function createRenderingDomain({
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
     allVertices.on('.drag', null);
-    if (feature && boundaryMode) allVertices.filter(d => !d.fixed).call(editing.countryBoundaryVertexDragBehavior?.(feature));
-    else if (feature) allVertices.call(editing.vertexDragBehavior?.(feature));
+    const dragKind = boundaryMode ? 'boundary-vertex' : 'object-vertex';
+    if (objectPacket?.targetRef) {
+      const behavior = editingDragBehavior(dragKind, objectPacket.targetRef);
+      if (behavior) {
+        if (boundaryMode) allVertices.filter(d => !d.fixed).call(behavior);
+        else allVertices.call(behavior);
+      }
+    }
     allVertices.on('click.vertex-select', null);
     allVertices.each(function(d) {
       let title = editing.d3?.select(this).select('title');
@@ -951,8 +1022,20 @@ export function createRenderingDomain({
     return coordinator?.invalidate?.(mask, reason) ?? false;
   };
   const invalidateView = reason => invalidate(
-    MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_POSITIONS,
+    MAP_RENDER_MASKS.VIEW,
     reason || 'view-change',
+  );
+  const invalidateViewSettle = reason => invalidate(
+    MAP_RENDER_MASKS.VIEW_SETTLE,
+    reason || 'view-settle',
+  );
+  const invalidateViewport = reason => invalidate(
+    MAP_RENDER_MASKS.RESIZE,
+    reason || 'viewport-resize',
+  );
+  const invalidateProjection = reason => invalidate(
+    MAP_RENDER_MASKS.PROJECTION,
+    reason || 'projection-change',
   );
   const invalidateSelection = reason => invalidate(
     MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.GPU_INTERACTION,
@@ -975,8 +1058,34 @@ export function createRenderingDomain({
     MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE,
     reason || 'overlay-style',
   );
-  const invalidateProjectRender = reason => coordinator?.scheduleFull?.(reason || 'project-render')
-    ?? invalidate(MAP_RENDER_DIRTY.FULL, reason || 'project-render');
+  const invalidateProject = reason => invalidate(
+    MAP_RENDER_MASKS.PROJECT,
+    reason || 'project-render',
+  );
+  const invalidateGpuFrame = reason => invalidate(
+    MAP_RENDER_DIRTY.GPU_FRAME,
+    reason || 'gpu-frame',
+  );
+  const invalidateGpuInteraction = reason => invalidate(
+    MAP_RENDER_DIRTY.GPU_INTERACTION,
+    reason || 'gpu-interaction',
+  );
+  const invalidateEditingOverlays = reason => invalidate(
+    MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.GPU_INTERACTION,
+    reason || 'editing-overlays',
+  );
+  const invalidateGpuContext = (phase, reason = '') => invalidate(
+    MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.SELECTION_DATA,
+    reason || `gpu-context-${phase || 'change'}`,
+  );
+  const invalidateQuality = reason => invalidate(
+    MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
+    reason || 'render-quality',
+  );
+  const invalidateBaseScene = reason => invalidate(
+    MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE,
+    reason || 'base-scene',
+  );
   const invalidatePatch = (bit, reason, extra = 0) => invalidate(
     bit | extra | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LAYER_TREE,
     reason,
@@ -1017,26 +1126,53 @@ export function createRenderingDomain({
     MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LAYER_TREE,
     reason || 'labels',
   );
-  const scheduleView = (reason = 'view-change') => {
+  const beginInteraction = reason => {
     active();
+    coordinator?.beginInteraction?.(reason || 'interaction');
+  };
+  const endInteraction = reason => {
+    active();
+    const resolvedReason = reason || 'interaction-end';
     stats.invalidations += 1;
-    stats.lastReason = String(reason);
-    return coordinator?.scheduleView?.(reason) ?? coordinator?.invalidate?.(0, reason) ?? false;
+    stats.lastReason = String(resolvedReason);
+    return coordinator?.endInteraction?.(resolvedReason) ?? false;
+  };
+  const requestRender = request => {
+    const kind = String(request?.kind || '');
+    const reason = request?.reason || kind;
+    const handlers = {
+      view: invalidateView,
+      'view-settle': invalidateViewSettle,
+      resize: invalidateViewport,
+      projection: invalidateProjection,
+      project: invalidateProject,
+      selection: invalidateSelection,
+      'selection-style': invalidateSelectionStyle,
+      'gpu-frame': invalidateGpuFrame,
+      'gpu-interaction': invalidateGpuInteraction,
+      'editing-overlays': invalidateEditingOverlays,
+      'country-patch': invalidateCountryPatch,
+      'hydro-patch': invalidateHydroPatch,
+      'territorial-patch': invalidateTerritorialPatch,
+      'generic-patch': invalidateGenericPatch,
+      'overlay-geometry': value => invalidateOverlayGeometry(request?.domain, value),
+      'overlay-style': invalidateOverlayStyle,
+      labels: invalidateLabels,
+    };
+    const handler = handlers[kind];
+    if (!handler) throw new TypeError(`Unknown render invalidation kind: ${kind || '<empty>'}`);
+    return handler(reason);
   };
   const beginFrame = (frameContext = null) => {
     active();
     const frameToken = frameContext?.frameId ?? frameContext?.revision ?? null;
     if (frameToken !== null && frameToken === resourceFrameToken) return resourceFrameToken;
     refreshRenderResources?.(frameToken);
+    editingPacket = getEditingRenderPacket?.() || EMPTY_EDITING_RENDER_PACKET;
     resourceFrameToken = frameToken;
     stats.renderResourceRefreshCount += 1;
     stats.renderResourceSnapshotFrameId = frameToken;
     return frameToken;
-  };
-  const setScene = nextScene => {
-    active();
-    scene = nextScene || null;
-    return scene;
   };
   const renderPass = (name, ...args) => {
     active();
@@ -1044,16 +1180,15 @@ export function createRenderingDomain({
     if (typeof renderer !== 'function') return undefined;
     return renderer(...args);
   };
-  const renderDraftInsertionHandle = () => {
+  const renderDraftInsertionHandle = (packet = editingPacket) => {
     active();
     const layer = interaction.draftLayer;
     if (!layer) return false;
-    const state = interaction.getState?.() || {};
-    const target = state.draftEdit?.insertTarget;
+    const target = packet?.draft?.insertTarget;
     const data = target?.coordinate
       && interaction.isCoordVisible?.(target.coordinate)
-      && interaction.draftInputActive?.()
-      && !state.spacePanActive ? [target] : [];
+      && packet?.draft?.active
+      && !packet?.draft?.dragging ? [target] : [];
     const selection = layer.selectAll('g.draft-insert-handle').data(data, item => item.segmentIndex);
     const enter = selection.enter().append('g').attr('class', 'draft-insert-handle draft-interactive');
     const mobile = interaction.isMobile?.() === true;
@@ -1069,20 +1204,18 @@ export function createRenderingDomain({
       .on('click', function() {
         interaction.d3?.event?.preventDefault?.();
         interaction.d3?.event?.stopPropagation?.();
-        interaction.insertDraftPoint?.();
+        publishEditingInteraction({ type: 'draft-insert-request' });
       });
     return true;
   };
-  const renderRiverPartitionEmphasis = () => {
+  const renderRiverPartitionEmphasis = (packet = editingPacket) => {
     active();
-    const state = interaction.getState?.() || {};
     const layer = interaction.draftLayer;
-    const componentMode = state.tool === 'annex-territory'
-      && state.annexPhase === 'components'
-      && state.annexUseRiverBoundaries;
+    const operation = packet?.territoryOperation;
+    const componentMode = operation?.kind === 'annex-territory' && operation?.phase === 'components';
     if (!layer || !componentMode) return false;
-    const selected = new Set(state.annexSelectedComponentKeys || []);
-    const candidates = interaction.territoryComponentItems?.() || [];
+    const selected = new Set((operation.components || []).filter(item => item.selected).map(item => item.key));
+    const candidates = operation.components || [];
     for (const candidate of candidates.filter(item => item.usesRiverBoundary)) {
       for (const section of candidate.riverBoundarySegments || []) {
         if (!Array.isArray(section) || section.length < 2) continue;
@@ -1097,13 +1230,12 @@ export function createRenderingDomain({
     }
     return true;
   };
-  const renderGeometryPreview = (frameContext = null, packet = null) => {
+  const renderGeometryPreview = (frameContext = null, packet = editingPacket) => {
     active();
     const layer = interaction.previewLayer;
     if (!layer) return false;
     layer.selectAll('*').remove();
-    const state = interaction.getState?.() || {};
-    const session = packet?.session || state.geometryPreview?.session;
+    const session = packet?.preview?.session || packet?.preview;
     if (!session || session.status === 'discarded' || session.status === 'committed') {
       interaction.syncGpuInteractionLayer?.('preview', layer);
       return true;
@@ -1193,17 +1325,17 @@ export function createRenderingDomain({
   };
   const syncSelectionEmphasis = () => {
     if (!gpuMapRenderer?.setCountryEmphasis) return false;
-    const state = selection.getState?.() || {};
-    const selectionState = selection.snapshot?.() || selection.getObjectSelectionSnapshot?.() || { items: [], primaryKey: null };
-    const items = selectionState.selection?.items || selectionState.items || [];
+    const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
+    const items = selectionState.selection.items;
     const countryIds = items
       .filter(ref => ref.domain === 'territorial' && ref.type === selection.countryType)
       .map(ref => ref.id);
-    const primary = items.find(ref => ref.key === (selectionState.selection?.primaryKey || selectionState.primaryKey));
-    const hovered = selection.getHover?.() || selectionState.hover || state.hovered;
+    const primary = items.find(ref => ref.key === selectionState.selection.primaryKey);
+    const hovered = selectionState.hover;
     const hoveredCountryId = !selection.isMobile?.()
-      && hovered?.type === 'country'
-      && !(hovered.ref && selection.selectionHas?.(hovered.ref))
+      && hovered?.domain === 'territorial'
+      && hovered?.type === selection.countryType
+      && !selectionDomain.has(hovered)
       ? String(hovered.id || '')
       : '';
     gpuMapRenderer.setCountryEmphasis({
@@ -1216,10 +1348,10 @@ export function createRenderingDomain({
   const invalidateSelectionOverlay = (reason = 'selection-overlay') => {
     active();
     syncSelectionEmphasis();
-    return coordinator?.invalidate?.(
+    return invalidate(
       MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.GPU_INTERACTION,
       reason,
-    ) || false;
+    );
   };
   const renderSparseSelectionFallbackView = (frameContext = null) => {
     let pathCount = 0;
@@ -1281,9 +1413,9 @@ export function createRenderingDomain({
     let pathCharacterCount = 0;
     let boundarySegmentCount = 0;
     const svgFallbackKeys = [];
-    const selectionState = selection.snapshot?.() || selection.getObjectSelectionSnapshot?.() || { selection: { items: [], primaryKey: null } };
-    const items = selectionState.selection?.items || selectionState.items || [];
-    const primaryKey = selectionState.selection?.primaryKey || selectionState.primaryKey;
+    const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
+    const items = selectionState.selection.items;
+    const primaryKey = selectionState.selection.primaryKey;
     const genericPrimary = [];
     const genericSecondary = [];
     const genericHover = [];
@@ -1298,18 +1430,19 @@ export function createRenderingDomain({
     const selectionPassAvailable = !!selectionPass?.isAvailable?.();
     const selectionOutlinesVisible = selectionStyle.outlineVisible !== false;
     const state = selection.getState?.() || {};
-    const hovered = selection.getHover?.() || selectionState.hover || state.hovered;
-    const hoverActive = !selection.isMobile?.() && hovered?.feature?.geometry && !state.mapMoving && !state.draftEdit?.dragging
-      && !(hovered.ref && selection.selectionHas?.(hovered.ref));
+    const hovered = selectionState.hover;
+    const hoveredFeature = hovered ? selection.mapFeatureForObjectRef?.(hovered) : null;
+    const hoverActive = !selection.isMobile?.() && hoveredFeature?.geometry && !state.mapMoving && !editingPacket?.draft?.dragging
+      && !selectionDomain.has(hovered);
     if (hoverActive) {
-      const isCountry = hovered.type === 'country';
-      const feature = isCountry ? selection.countryDisplayFeature?.(hovered.feature) : hovered.feature;
-      const key = isCountry ? `country:${String(hovered.id || '')}` : `hover:${hovered.type}:${hovered.id}`;
+      const isCountry = hovered.domain === 'territorial' && hovered.type === selection.countryType;
+      const feature = isCountry ? selection.countryDisplayFeature?.(hoveredFeature) : hoveredFeature;
+      const key = isCountry ? `country:${String(hovered.id || '')}` : hovered.key;
       const pendingCountry = isCountry && state.pendingCountryRenderIds?.has(String(hovered.id || ''));
       if ((!isCountry || pendingCountry) && ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type)) {
         stagedHoverLayer.append('path').datum(feature)
           .attr('class', 'map-hover-shape map-hover-fill')
-          .attr('data-object-key', hovered.ref?.key || '')
+          .attr('data-object-key', hovered.key || '')
           .attr('fill', style.hover?.color)
           .attr('fill-opacity', style.hover?.fillAlpha)
           .attr('d', selection.path);
@@ -1324,9 +1457,9 @@ export function createRenderingDomain({
         if (!pendingCountry) countryHoverId = String(hovered.id || '');
       } else {
         genericHover.push({ key, geometry: boundary.feature, geometryRevision: boundary.revision });
-        if (hovered.ref?.key && ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type)) {
+        if (hovered.key && ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type)) {
           interactionFillRequests.push({
-            objectKey: hovered.ref.key,
+            objectKey: hovered.key,
             singleResourceOnly: true,
             style: { color: style.hover?.color, fillAlpha: style.hover?.fillAlpha },
           });
@@ -1386,8 +1519,7 @@ export function createRenderingDomain({
         const countryBoundarySnapshot = gpuMapRenderer?.getCountryInteractionBoundaryData?.() || null;
         selectionPass.setCountryBoundaryResources?.(countryBoundarySnapshot);
         selectionOverlayStage = 'selection-buffer-build';
-        const packet = selection.createSelectionPacket?.({
-          revision: selection.getStateRevision?.() || state.stateRevision || 0,
+        const packet = selectionDomain?.createPacket?.({
           geometryRevision: countryBoundarySnapshot?.revision || selection.getCountryLandRevision?.() || 0,
           styleRevision: `${selectionStyle.color}:${style.hover?.color}:${selectionStyle.outlineVisible}`,
           countryBoundaryRevision: countryBoundarySnapshot?.revision || '',
@@ -1519,7 +1651,6 @@ export function createRenderingDomain({
     ...options,
     updateData: options.updateData !== false && !options.viewOnly && !options.styleOnly,
   });
-  const renderHover = (frameContext, packet) => renderSelectionOverlay(frameContext, { updateData: false, gpuFrameResult: packet });
   const renderHoverOverlay = (frameContext = null, options = {}) => {
     active();
     if (options.syncStrokes === false) return false;
@@ -1544,18 +1675,18 @@ export function createRenderingDomain({
     });
     return false;
   };
-  const renderValidation = (frameContext = null, packet = null) => {
+  const renderValidation = (frameContext = null, packet = editingPacket) => {
     active();
     const layer = interaction.validationLayer;
     if (!layer) return false;
     layer.selectAll('*').remove();
-    const state = interaction.getState?.() || {};
-    const issues = packet?.issues || state.audit?.report?.issues || state.geometryPreview?.session?.validation?.issues || [];
+    const audit = interaction.getValidationPacket?.() || {};
+    const issues = packet?.validationIssues?.length ? packet.validationIssues : audit.issues || [];
     for (const issue of issues) {
       const className = geometryPreviewIssueClass(issue.kind);
-      if (issue.geometry && (state.audit?.selectedIssueId === issue.id || interaction.geometryMayIntersectViewport?.(issue.geometry))) {
+      if (issue.geometry && (audit.selectedIssueId === issue.id || interaction.geometryMayIntersectViewport?.(issue.geometry))) {
         const feature = interaction.featureFromGeometry?.(issue.geometry);
-        const selectedClass = state.audit?.selectedIssueId === issue.id ? ' selected' : '';
+        const selectedClass = audit.selectedIssueId === issue.id ? ' selected' : '';
         if (interaction.hasAreaGeometry?.(feature)) {
           layer.append('path').datum(feature).attr('class', `map-validation-issue map-validation-fill ${className}${selectedClass}`).attr('d', interaction.path);
         }
@@ -1570,17 +1701,17 @@ export function createRenderingDomain({
       if (!point) continue;
       layer.append('circle').attr('class', `map-validation-marker ${className}`)
         .attr('cx', point[0]).attr('cy', point[1])
-        .attr('r', state.audit?.selectedIssueId === issue.id ? 8 : 6)
+        .attr('r', audit.selectedIssueId === issue.id ? 8 : 6)
         .append('title').text(issue.message || '지도 오류');
     }
     return true;
   };
-  const renderSnap = packet => {
+  const renderSnap = (frameContext = null, packet = editingPacket) => {
     active();
     const layer = interaction.snapLayer;
     if (!layer) return false;
     layer.selectAll('*').remove();
-    const indicator = packet || interaction.getState?.()?.activeSnap;
+    const indicator = packet?.snap || null;
     if (!indicator?.coordinate || !interaction.isCoordVisible?.(indicator.coordinate)) return true;
     if (indicator.segmentEndpoints?.length === 2) {
       layer.append('path').datum(interaction.featureFromGeometry?.({ type: 'LineString', coordinates: indicator.segmentEndpoints }))
@@ -1625,279 +1756,212 @@ export function createRenderingDomain({
   });
   const resetProjectGeneration = generation => {
     active();
-    scene = null;
-    contextLost = false;
     resetTerritorialBoundaryCache();
     gpuMapRenderer?.resetProjectRenderState?.({ generation });
     return generation;
   };
-  const handleContextLost = event => {
-    contextLost = true;
-    gpuMapRenderer?.handleContextLost?.(event);
-    reportDiagnostic({ type: 'context-lost', event });
-  };
-  const handleContextRestored = event => {
-    contextLost = false;
-    gpuMapRenderer?.handleContextRestored?.(event);
-    reportDiagnostic({ type: 'context-restored', event });
-  };
   const getStats = () => Object.freeze({
     ...stats,
-    contextLost,
+    ...(coordinator?.getStats?.() || {}),
     projectGeneration: projectDomain?.getGeneration?.() || 0,
     territorialBoundaryTopologyRebuildCount: territorialBoundaryCache.rebuildCount,
     territorialBoundaryRevision: territorialBoundaryBatchCache.revision || '',
-    hasScene: !!scene,
     hasMapHost: typeof mapHost === 'function' ? !!mapHost() : !!mapHost,
     hasDomLayers: !!domLayers,
     hasSceneBuilder: !!sceneBuilder,
     hasSelectionDomain: !!selectionDomain,
-    hasEditingDomain: !!editingDomain,
+    hasEditingDomain: typeof getEditingRenderPacket === 'function',
   });
   const dispose = () => {
     cancelScheduledLabelPositions();
     disposed = true;
-    scene = null;
   };
-  const renderDraft = (packet = null) => {
+  const renderDraft = (frameContext = null, packet = editingPacket) => {
     active();
-    const state = interaction.getState?.() || {};
     const draftLayer = interaction.draftLayer;
     if (!draftLayer) return false;
-    const { d3, svg, path, isMobile, mapClickBlocked, projectedLineDistance, setActionStatus, toggleTerritoryComponentSelection, selectTerritoryCandidate, territoryComponentItems, formatTerritoryArea, isPolygonDraftTool, activeProjection, isCoordVisible, coordNear, activeCutDraftSourceGeometry, assessCutDraft, syncCutDraftFeedback, syncGenericDraftFeedback, draftFeature, draftSegmentRows, showDraftInsertTarget, draftVertexDragBehavior, updateModeButtons, syncGpuInteractionLayer, $ } = interaction;
-    const editingDomain = { draftInputActive: () => interaction.draftInputActive?.() };
+    const { d3, path, isMobile, activeProjection, isCoordVisible, syncGpuInteractionLayer, formatTerritoryArea } = interaction;
+    const draft = packet?.draft || EMPTY_EDITING_RENDER_PACKET.draft;
+    const operation = packet?.territoryOperation;
     draftLayer.selectAll('*').remove();
-    const annexSide = state.tool === 'annex-territory' && ['side', 'polygon-preview'].includes(state.annexPhase);
-    const newCountrySide = state.tool === 'new-country' && state.newCountryPhase === 'side';
-    const annexComponents = state.tool === 'annex-territory' && state.annexPhase === 'components';
-    const newCountryComponents = state.tool === 'new-country' && state.newCountryPhase === 'components';
-    if (annexComponents || newCountryComponents) {
-      const components = territoryComponentItems().map(item => ({
-        type: 'Feature', geometry: item.geometry,
-        properties: {
-          key: item.key,
-          selected: item.selected,
-          countryName: item.countryName,
-          areaKm2: item.areaKm2,
-          usesRiverBoundary: item.usesRiverBoundary === true,
-          riverBoundarySegments: item.riverBoundarySegments || [],
-          hovered: state.annexHoveredComponentKey === item.key,
-        },
-      }));
-      const componentPaths = draftLayer.selectAll('path.territory-component').data(components, d => d.properties.key).enter().append('path')
-        .attr('class', d => `territory-component${d.properties.usesRiverBoundary ? ' river-partition' : ''} ${d.properties.selected ? 'selected-component' : 'available'}${d.properties.hovered && !d.properties.selected ? ' hovered-component' : ''}`)
-        .attr('d', path)
-        .on('mouseenter', function(d) {
-          if (!d.properties.usesRiverBoundary || state.annexHoveredComponentKey === d.properties.key) return;
-          state.annexHoveredComponentKey = d.properties.key;
-          renderDraft();
-        })
-        .on('mouseleave', function(d) {
-          if (!d.properties.usesRiverBoundary || state.annexHoveredComponentKey !== d.properties.key) return;
-          state.annexHoveredComponentKey = null;
-          renderDraft();
-        })
-        .on('click', function(d) {
-          if (mapClickBlocked()) return;
-          d3.event.preventDefault();
-          d3.event.stopPropagation();
-          if (d.properties.usesRiverBoundary) {
-            const dividerDistance = projectedLineDistance({
-              type: 'MultiLineString',
-              coordinates: d.properties.riverBoundarySegments,
-            }, d3.mouse(svg.node()));
-            if (dividerDistance <= (isMobile() ? 14 : 8)) {
-              setActionStatus('영역 안쪽을 클릭하세요.', 'ready', 2200);
-              return;
-            }
-          }
-          toggleTerritoryComponentSelection(d.properties.key);
-        });
-      componentPaths.append('title').text(d => `${d.properties.countryName} · ${formatTerritoryArea(d.properties.areaKm2)} · 선택하여 ${d.properties.selected ? '해제' : '추가'}`);
+
+    const components = (operation?.components || []).map(item => ({ type: 'Feature', geometry: item.geometry, properties: item }));
+    const componentPaths = draftLayer.selectAll('path.territory-component').data(components, item => item.properties.key).enter().append('path')
+      .attr('class', item => `territory-component${item.properties.usesRiverBoundary ? ' river-partition' : ''} ${item.properties.selected ? 'selected-component' : 'available'}${item.properties.hovered && !item.properties.selected ? ' hovered-component' : ''}`)
+      .attr('d', path)
+      .on('mouseenter', item => publishEditingInteraction({ type: 'territory-component-hover', componentKey: item.properties.key }))
+      .on('mouseleave', item => publishEditingInteraction({ type: 'territory-component-leave', componentKey: item.properties.key }))
+      .on('click', function(item) {
+        d3?.event?.preventDefault?.();
+        d3?.event?.stopPropagation?.();
+        publishEditingInteraction({ type: 'territory-component-toggle', componentKey: item.properties.key, screenPoint: localEditingPoint() });
+      });
+    componentPaths.append('title').text(item => `${item.properties.countryName} · ${formatTerritoryArea?.(item.properties.areaKm2) || item.properties.areaKm2} · 선택하여 ${item.properties.selected ? '해제' : '추가'}`);
+
+    const candidates = (operation?.candidates || []).map(item => ({ type: 'Feature', geometry: item.geometry, properties: item }));
+    draftLayer.selectAll('path.annex-candidate').data(candidates, item => item.properties.index).enter().append('path')
+      .attr('class', item => `annex-candidate ${item.properties.index === 0 ? 'side-a' : 'side-b'} ${item.properties.selected ? 'selected-candidate' : 'alternate-candidate'}`)
+      .attr('d', path)
+      .on('click', function(item) {
+        d3?.event?.preventDefault?.();
+        d3?.event?.stopPropagation?.();
+        publishEditingInteraction({ type: 'territory-candidate-select', candidateIndex: item.properties.index });
+      });
+
+    if (draft.rawStrokeGeometry) {
+      draftLayer.append('path').datum({ type: 'Feature', properties: {}, geometry: draft.rawStrokeGeometry })
+        .attr('class', 'draft-shape draft-raw-stroke').attr('d', path);
     }
-    if (annexSide || newCountrySide) {
-      const sourceCandidates = annexSide ? state.annexCandidates : state.newCountryCandidates;
-      const selectedIndex = annexSide ? state.annexSelectedCandidateIndex : state.newCountrySelectedCandidateIndex;
-      const candidates = sourceCandidates.map((candidate, index) => ({
-        type: 'Feature', geometry: candidate.geometry, properties: { index, selected: index === selectedIndex },
-      }));
-      draftLayer.selectAll('path.annex-candidate').data(candidates).enter().append('path')
-        .attr('class', d => `annex-candidate ${d.properties.index === 0 ? 'side-a' : 'side-b'} ${d.properties.selected ? 'selected-candidate' : 'alternate-candidate'}`)
-        .attr('d', path)
-        .on('click', function(d) {
-          if (mapClickBlocked()) return;
-          d3.event.preventDefault();
-          d3.event.stopPropagation();
-          selectTerritoryCandidate(d.properties.index);
-        });
+    if (draft.geometry) {
+      draftLayer.append('path').datum({ type: 'Feature', properties: {}, geometry: draft.geometry })
+        .attr('class', ['draft-shape', packet.tool === 'annex-territory' ? 'annex-draft' : '', draft.cutStatus ? `cut-${draft.cutStatus}` : '', !draft.cutStatus && draft.issues.length ? 'draft-invalid' : ''].filter(Boolean).join(' '))
+        .attr('d', path);
     }
-    if (state.draftStroke.active) {
-      const rawCoords = state.draftCoords.map(coordinate => coordinate.slice());
-      for (const sample of state.draftStroke.samples) {
-        if (rawCoords.length && coordNear(rawCoords[rawCoords.length - 1], sample.coordinate, 1e-9)) continue;
-        rawCoords.push(sample.coordinate.slice());
-      }
-      if (rawCoords.length) {
-        const geometry = rawCoords.length === 1
-          ? { type: 'Point', coordinates: rawCoords[0] }
-          : { type: 'LineString', coordinates: rawCoords };
-        draftLayer.append('path')
-          .datum({ type: 'Feature', properties: {}, geometry })
-          .attr('class', 'draft-shape draft-raw-stroke')
-          .attr('d', path);
-        if (isPolygonDraftTool(state.tool) && rawCoords.length >= 3) {
-          draftLayer.append('path')
-            .datum({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [rawCoords[rawCoords.length - 1], rawCoords[0]] } })
-            .attr('class', 'draft-auto-close-preview')
-            .attr('d', path);
-        }
-      }
-      renderRiverPartitionEmphasis();
-      syncGpuInteractionLayer('draft', draftLayer);
-      return;
+    if (draft.autoCloseSegment) {
+      draftLayer.append('path').datum({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [draft.autoCloseSegment.start, draft.autoCloseSegment.end] } })
+        .attr('class', 'draft-auto-close-preview').attr('d', path);
     }
-    const cutSourceGeometry = activeCutDraftSourceGeometry();
-    const rawCutLine = cutSourceGeometry
-      ? [...state.draftCoords, ...(state.draftHover ? [state.draftHover] : [])]
-      : null;
-    const cutAssessment = cutSourceGeometry ? assessCutDraft(rawCutLine, cutSourceGeometry) : null;
-    if (cutAssessment && !state.draftHover) {
-      state.draftCutAssessment = cutAssessment;
-      state.draftEdit.issues = cutAssessment.issues || [];
-      const primary = $('modePrimaryBtn');
-      if (primary) primary.disabled = !cutAssessment.valid;
-    } else if (!cutSourceGeometry) {
-      state.draftCutAssessment = null;
-    }
-    syncCutDraftFeedback(cutAssessment, !!state.draftHover);
-    if (!cutSourceGeometry && !state.draftHover) syncGenericDraftFeedback();
-    const splitPreview = editingDomain.draftInputActive() && !state.draftHover && !state.draftEdit.dragging && state.draftEdit.splitPreview?.revision === state.draftEdit.revision
-      ? state.draftEdit.splitPreview.candidates
-      : [];
-    draftLayer.selectAll('path.draft-split-preview').data(splitPreview, (_, index) => index).enter().append('path')
+    draftLayer.selectAll('path.draft-split-preview').data(draft.splitCandidates, item => item.key).enter().append('path')
       .attr('class', (_, index) => `draft-split-preview side-${index === 0 ? 'a' : 'b'}`)
-      .attr('d', candidate => path({ type: 'Feature', properties: {}, geometry: candidate.geometry }));
-    const feature = draftFeature(cutAssessment?.line || null);
-    if (feature && (feature.geometry.coordinates?.length || feature.geometry.coordinates?.[0]?.length)) {
-      draftLayer.append('path').datum(feature)
-        .attr('class', [
-          'draft-shape',
-          state.tool === 'annex-territory' ? 'annex-draft' : '',
-          cutAssessment ? `cut-${cutAssessment.status}` : '',
-          !cutAssessment && state.draftEdit.issues.length ? 'draft-invalid' : '',
-        ].filter(Boolean).join(' '))
-        .attr('d', path);
-    }
-    if (isPolygonDraftTool(state.tool) && state.draftCoords.length >= 3) {
-      draftLayer.append('path')
-        .datum({
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates: [state.draftCoords[state.draftCoords.length - 1], state.draftCoords[0]] },
-        })
-        .attr('class', 'draft-auto-close-preview')
-        .attr('d', path);
-    }
-    const fixedDisplayCoords = cutSourceGeometry && cutAssessment?.line?.length === state.draftCoords.length
-      ? cutAssessment.line
-      : state.draftCoords;
-    const segmentRows = draftSegmentRows(fixedDisplayCoords);
-    const segmentHits = draftLayer.selectAll('path.draft-segment-hit').data(segmentRows, row => row.segmentIndex).enter().append('path')
+      .attr('d', item => path({ type: 'Feature', properties: {}, geometry: item.geometry }));
+
+    const segmentHits = draftLayer.selectAll('path.draft-segment-hit').data(draft.segments, item => item.segmentIndex).enter().append('path')
       .attr('class', 'draft-segment-hit draft-interactive')
-      .attr('d', row => path({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [row.start, row.end] } }))
-      .on('mousemove', function(row) {
-        if (isMobile() || state.spacePanActive || state.draftEdit.dragging) return;
-        showDraftInsertTarget(row, d3.mouse(svg.node()));
+      .attr('d', item => path({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [item.start, item.end] } }))
+      .on('mousemove', item => {
+        if (isMobile?.() || draft.dragging) return;
+        publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: item.segmentIndex, screenPoint: localEditingPoint() });
       })
-      .on('click', function(row) {
-        if (state.spacePanActive || state.draftEdit.dragging) return;
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
-        showDraftInsertTarget(row, d3.mouse(svg.node()));
+      .on('mouseleave', item => publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: item.segmentIndex }))
+      .on('click', function(item) {
+        d3?.event?.preventDefault?.();
+        d3?.event?.stopPropagation?.();
+        publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: item.segmentIndex, screenPoint: localEditingPoint() });
       });
     segmentHits.append('title').text('선분에 꼭짓점 삽입');
-    const visible = fixedDisplayCoords.map((coord, index) => ({ coord, index })).filter(item => isCoordVisible(item.coord));
-    const vertices = draftLayer.selectAll('g.draft-vertex').data(visible, item => item.index).enter().append('g')
-      .attr('class', item => `draft-vertex draft-interactive${item.index === state.draftEdit.selectedVertexIndex ? ' selected' : ''}`)
+
+    const vertices = draftLayer.selectAll('g.draft-vertex').data(draft.vertices.filter(item => isCoordVisible?.(item.coordinate, frameContext)), item => item.index).enter().append('g')
+      .attr('class', item => `draft-vertex draft-interactive${item.selected ? ' selected' : ''}`)
       .attr('transform', item => {
-        const point = activeProjection()(item.coord);
+        const point = activeProjection?.()(item.coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       })
       .on('click', function(item) {
-        if (mapClickBlocked() || state.spacePanActive) return;
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
-        state.draftEdit.selectedVertexIndex = item.index;
-        state.draftEdit.inputPhase = 'refine';
-        state.draftEdit.insertTarget = null;
-        renderDraft();
-        updateModeButtons();
+        d3?.event?.preventDefault?.();
+        d3?.event?.stopPropagation?.();
+        publishEditingInteraction({ type: 'draft-vertex-select', vertexIndex: item.index });
       });
-    vertices.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile() ? 16 : 10);
-    vertices.append('circle').attr('class', 'draft-vertex-dot').attr('r', isMobile() ? 6.5 : 4.5);
+    vertices.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile?.() ? 16 : 10);
+    vertices.append('circle').attr('class', 'draft-vertex-dot').attr('r', isMobile?.() ? 6.5 : 4.5);
     vertices.append('title').text(item => `꼭짓점 ${item.index + 1} · 드래그하여 이동`);
-    vertices.call(draftVertexDragBehavior());
-    renderDraftInsertionHandle();
-    const issueData = (!state.draftHover ? state.draftEdit.issues : cutAssessment?.issues || []).filter(issue => issue.coordinate && isCoordVisible(issue.coordinate));
-    const issueMarkers = draftLayer.selectAll('g.draft-issue-marker').data(issueData, (issue, index) => `${issue.kind}-${issue.vertexIndex ?? issue.segmentIndex ?? index}`).enter().append('g')
+    const draftDrag = editingDragBehavior('draft-vertex');
+    if (draftDrag) vertices.call(draftDrag);
+
+    renderDraftInsertionHandle(packet);
+    const issueMarkers = draftLayer.selectAll('g.draft-issue-marker').data(draft.issues.filter(item => item.coordinate && isCoordVisible?.(item.coordinate, frameContext)), (item, index) => `${item.kind}-${item.vertexIndex ?? item.segmentIndex ?? index}`).enter().append('g')
       .attr('class', 'draft-issue-marker')
-      .attr('transform', issue => {
-        const point = activeProjection()(issue.coordinate);
+      .attr('transform', item => {
+        const point = activeProjection?.()(item.coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
     issueMarkers.append('circle').attr('r', 7);
     issueMarkers.append('path').attr('d', 'M-3.2-3.2 3.2 3.2M3.2-3.2-3.2 3.2');
-    issueMarkers.append('title').text(issue => issue.message || '수정이 필요한 위치');
-    const snapPoints = cutAssessment
-      ? Object.entries(cutAssessment.snaps).filter(([, snap]) => snap?.coordinate).map(([endpoint, snap]) => ({ endpoint, ...snap }))
-      : [];
-    draftLayer.selectAll('circle.draft-snap-point').data(snapPoints, snap => snap.endpoint).enter().append('circle')
-      .attr('class', snap => `draft-snap-point ${snap.endpoint}`)
-      .attr('r', 6)
-      .attr('transform', snap => {
-        const point = activeProjection()(snap.coordinate);
+    issueMarkers.append('title').text(item => item.message || '수정이 필요한 위치');
+    draftLayer.selectAll('circle.draft-snap-point').data(draft.snapPoints, item => item.endpoint).enter().append('circle')
+      .attr('class', item => `draft-snap-point ${item.endpoint}`).attr('r', 6)
+      .attr('transform', item => {
+        const point = activeProjection?.()(item.coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
-    renderRiverPartitionEmphasis();
-    syncGpuInteractionLayer('draft', draftLayer);
+    renderRiverPartitionEmphasis(packet);
+    syncGpuInteractionLayer?.('draft', draftLayer);
     return true;
   };
+  coordinator = createMapRenderCoordinator({
+    requestFrame,
+    prepareView,
+    invalidMaskMode,
+    onInvalidMask: error => reportDiagnostic({
+      code: error.code,
+      stage: 'render-invalidation',
+      reason: error.reason,
+      input: error.input,
+      knownMask: error.knownMask,
+    }),
+    onFrameComplete,
+    renderers: {
+      beginFrame,
+      view: (...args) => renderPass('view', ...args),
+      base: renderBase,
+      countries: renderCountries,
+      gpuInteraction: renderGpuInteraction,
+      hydro: renderHydro,
+      hydroEdits: renderHydroEdits,
+      boundaryEdit: renderBoundaryEdit,
+      territorialUnits: renderTerritorialUnits,
+      distributions: renderDistributions,
+      genericFeatures: renderGenericFeatures,
+      stackOverlays: (...args) => renderPass('stackOverlays', ...args),
+      projectedOverlays: renderProjectedOverlays,
+      geometryPreview: frameContext => renderGeometryPreview(frameContext, editingPacket),
+      selectionData: (frameContext, packet, options = {}) => renderSelection(frameContext, packet, options),
+      selectionStyle: (frameContext, packet, options = {}) => renderSelection(frameContext, packet, { ...options, styleOnly: true }),
+      selectionView: (frameContext, gpuFrameResult, options = {}) => renderSelection(
+        frameContext,
+        null,
+        { ...options, viewOnly: true, updateData: false, gpuFrameResult },
+      ),
+      hover: renderHoverOverlay,
+      validation: frameContext => renderValidation(frameContext, editingPacket),
+      labelLayout: (...args) => renderPass('labelLayout', ...args),
+      countryLabelPositions: renderCountryLabelPositions,
+      userLabelPositions: renderUserLabelPositions,
+      countryLabels: renderCountryLabels,
+      userLabels: renderUserLabels,
+      vertices: frameContext => renderVertices(frameContext, editingPacket),
+      draft: frameContext => renderDraft(frameContext, editingPacket),
+      snapIndicator: frameContext => renderSnap(frameContext, editingPacket),
+      debug: (...args) => renderPass('debug', ...args),
+      layerTree: (...args) => renderPass('layerTree', ...args),
+    },
+  });
+
   return Object.freeze({
     beginFrame,
-    refreshRenderResources: beginFrame,
-    getRenderResourceSnapshot: () => getRenderResourceSnapshot?.() || null,
-    setScene,
-    invalidate,
+    requestRender,
     invalidateView,
+    invalidateViewSettle,
+    invalidateViewport,
+    invalidateProjection,
+    invalidateProject,
     invalidateSelection,
     invalidateSelectionStyle,
+    invalidateGpuFrame,
+    invalidateGpuInteraction,
+    invalidateEditingOverlays,
+    invalidateGpuContext,
+    invalidateQuality,
+    invalidateBaseScene,
     invalidateOverlayGeometry,
     invalidateOverlayStyle,
-    invalidateProjectRender,
     invalidateCountryPatch,
     invalidateHydroPatch,
     invalidateTerritorialPatch,
     invalidateGenericPatch,
     invalidateEditedGeometryPatch,
     invalidateLabels,
-    scheduleView,
-    renderDraft,
-    renderDraftInsertionHandle,
-    renderRiverPartitionEmphasis,
+    beginInteraction,
+    endInteraction,
     renderGpuInteraction,
-    renderVertices,
-    renderSnap,
     renderBoundaryEdit,
     renderGeometryPreview,
     renderSelection,
-    renderHover,
     renderHoverOverlay,
     invalidateSelectionOverlay,
     syncSelectionEmphasis,
     getSelectionRenderStats,
     recordSelectionRenderError,
     renderValidation,
-    renderPass,
     renderCountryLabels,
     renderUserLabels,
     renderCountryLabelPositions,
@@ -1909,12 +1973,9 @@ export function createRenderingDomain({
     renderGenericFeatures,
     renderDistributions,
     getDistributionRenderRows: buildDistributionRenderRows,
-    renderTerritorialInternalBoundaries,
     renderBase,
     renderProjectedOverlays,
     resetProjectGeneration,
-    handleContextLost,
-    handleContextRestored,
     getTerritorialBoundaryStats,
     getStats,
     dispose,

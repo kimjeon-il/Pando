@@ -1,6 +1,6 @@
 export const CANONICAL_COUNTRY_PACKET_MAGIC = 0x31474350; // PCG1
-export const CANONICAL_COUNTRY_PACKET_VERSION = 1;
-export const CANONICAL_COUNTRY_PACKET_HEADER_WORDS = 20;
+const CANONICAL_COUNTRY_PACKET_VERSION = 1;
+const CANONICAL_COUNTRY_PACKET_HEADER_WORDS = 20;
 
 const HEADER = Object.freeze({
   MAGIC: 0,
@@ -79,11 +79,6 @@ function hashGeometryWords(geometry) {
     }
   }
   return [left, right];
-}
-
-export function countryGeometryFingerprint(geometry) {
-  const [left, right] = hashGeometryWords(geometry);
-  return `${left.toString(16).padStart(8, '0')}${right.toString(16).padStart(8, '0')}`;
 }
 
 export function encodeCanonicalCountryPacket(collection) {

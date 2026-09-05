@@ -35,6 +35,7 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
   const geometry = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
   const packet = createSelectionPacket({
     revision: 12,
+    hoverRevision: 7,
     geometryRevision: 'geometry-4',
     styleRevision: 'style-2',
     countryBoundaryRevision: 'country-8',
@@ -43,6 +44,7 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
     generic: { primary: [{ key: 'region:one', geometry, geometryRevision: 'region-5' }] },
   });
   assert.equal(packet.revision, 12);
+  assert.equal(packet.hoverRevision, 7);
   assert.equal(packet.geometryRevision, 'geometry-4');
   assert.equal(packet.styleRevision, 'style-2');
   assert.equal(packet.country.primaryId, 'RUS');

@@ -201,7 +201,7 @@ test('country interaction fill draws only emphasized country owner ranges', asyn
   const interactionFill = gpu.slice(start, end);
   assert.match(gpu, /function ensureCountryIdScene/);
   assert.doesNotMatch(interactionFill, /ensureCountryIdScene\(\)/);
-  assert.match(interactionFill, /countryTriangleRanges\(mesh, meshCountryIds, 'base'\)/);
+  assert.match(interactionFill, /mesh\?\.triangleRangesByCountryId\?\.get\(id\)/);
   assert.match(interactionFill, /visibleBaseRanges/);
   assert.match(interactionFill, /drawProgram\(fillProgram[^;]+visibleBaseRanges\)/s);
   assert.match(interactionFill, /performanceMetrics\.countryInteractionIndexCount = 0/);
@@ -258,11 +258,12 @@ test('selection overlay commits staged SVG only after GPU draw coverage is known
   assert.match(source, /retainedPreviousFrame/);
 });
 
-test('map hover invalidates selection data instead of rendering synchronously', async () => {
+test('map hover delegates ownership and invalidation to the selection domain', async () => {
   const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
   const start = app.indexOf('function setMapHover');
   const end = app.indexOf('\n  }', start);
   const source = app.slice(start, end);
-  assert.match(source, /renderingDomain\?\.invalidateSelectionOverlay\?\./);
+  assert.match(source, /selectionDomain\.setHover\(nextRef\)/);
+  assert.doesNotMatch(source, /invalidateSelectionOverlay/);
   assert.doesNotMatch(source, /renderHoverOverlay\(\)/);
 });

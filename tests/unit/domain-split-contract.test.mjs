@@ -8,33 +8,45 @@ import { createSelectionDomain } from '../../assets/js/modules/selection-domain.
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
 import { createGisDomain } from '../../assets/js/modules/gis-domain.js';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from '../../assets/js/modules/map-render-coordinator.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 test('domain factories expose isolated public contracts', () => {
   const projectState = { countries: [{ id: 'DEU' }] };
   const project = createProjectDomain({ getSnapshot: () => projectState });
-  const selectionController = {
-    snapshot: () => ({ primaryKey: 'a', keys: ['a'], items: [{ id: 'a' }] }),
-    replace: () => {},
-    toggle: () => {},
-    clear: () => {},
-    items: () => [{ id: 'a' }],
-  };
-  const selection = createSelectionDomain({ selectionController });
+  const selection = createSelectionDomain();
   const rendering = createRenderingDomain();
   const gis = createGisDomain();
   const editing = createEditingDomain();
   for (const [domain, methods] of [
     [project, ['snapshot', 'buildProject', 'buildAutosave', 'countriesFromAutosaveDelta', 'dispatch', 'load', 'createEmpty', 'undo', 'redo', 'save', 'dispose']],
-    [selection, ['snapshot', 'select', 'toggle', 'clear', 'setHover', 'selectObjectRef', 'createPacket', 'dispose']],
-    [rendering, ['setScene', 'invalidate', 'renderPass', 'renderDraft', 'renderGpuInteraction', 'renderVertices', 'renderSnap', 'renderBoundaryEdit', 'renderGeometryPreview', 'renderSelection', 'renderHover', 'renderHoverOverlay', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'renderValidation', 'invalidateEditedGeometryPatch', 'renderCountryLabels', 'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions', 'renderCountries', 'renderHydro', 'renderHydroEdits', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderDistributions', 'getDistributionRenderRows', 'renderTerritorialInternalBoundaries', 'renderBase', 'renderProjectedOverlays', 'getTerritorialBoundaryStats', 'dispose']],
+    [selection, ['snapshot', 'replace', 'toggle', 'selectRange', 'setMany', 'remove', 'prune', 'clear', 'resetProject', 'setHover', 'has', 'primary', 'size', 'createPacket', 'dispose']],
+    [rendering, ['requestRender', 'invalidateView', 'invalidateViewSettle', 'invalidateViewport', 'invalidateProjection', 'invalidateProject', 'invalidateSelection', 'invalidateSelectionStyle', 'invalidateGpuFrame', 'invalidateGpuInteraction', 'invalidateEditingOverlays', 'invalidateGpuContext', 'invalidateQuality', 'invalidateBaseScene', 'beginInteraction', 'endInteraction', 'renderGpuInteraction', 'renderBoundaryEdit', 'renderGeometryPreview', 'renderSelection', 'renderHoverOverlay', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'renderValidation', 'invalidateEditedGeometryPatch', 'renderCountryLabels', 'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions', 'renderCountries', 'renderHydro', 'renderHydroEdits', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderDistributions', 'getDistributionRenderRows', 'renderBase', 'renderProjectedOverlays', 'getTerritorialBoundaryStats', 'dispose']],
     [gis, ['normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity', 'planRiverPartition', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'executeWorker', 'dispose']],
-    [editing, ['setTool', 'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'applyGeometryPatch', 'commit', 'draftInputActive', 'commitDraftCoords', 'appendDraftCoordinate', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'insertDraftPoint', 'moveSelectedDraftPointByPixels', 'beginDraftStroke', 'appendDraftStroke', 'finishDraftStroke', 'cancelDraftStroke', 'redrawDraft', 'syncDraftAfterMutation', 'clearDraft', 'importProject', 'mergeCountries', 'importTerritorial', 'importGeneric', 'importDistribution', 'commitImport', 'reconcileCoast', 'dispose']],
+    [editing, ['setTool', 'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'handleInteraction', 'createRenderPacket', 'startDraft', 'replaceDraftCoordinates', 'setDraftHover', 'clearDraftHover', 'selectDraftVertex', 'cancelActiveGesture', 'resetProject', 'applyGeometryPatch', 'commit', 'draftInputActive', 'commitDraftCoords', 'appendDraftCoordinate', 'appendDraftScreenPoint', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'insertDraftPoint', 'moveSelectedDraftPointByPixels', 'beginDraftStroke', 'appendDraftStroke', 'finishDraftStroke', 'cancelDraftStroke', 'redrawDraft', 'syncDraftAfterMutation', 'clearDraft', 'importProject', 'mergeCountries', 'importTerritorial', 'importGeneric', 'importDistribution', 'commitImport', 'reconcileCoast', 'dispose']],
   ]) {
     for (const method of methods) assert.equal(typeof domain[method], 'function', `${method} is public`);
     assert.equal(Object.isFrozen(domain), true);
   }
+  for (const method of [
+    'refreshRenderResources',
+    'getRenderResourceSnapshot',
+    'setScene',
+    'renderHover',
+    'renderRiverPartitionEmphasis',
+    'renderTerritorialInternalBoundaries',
+    'handleContextLost',
+    'handleContextRestored',
+    'invalidate',
+    'scheduleView',
+    'invalidateProjectRender',
+    'renderPass',
+    'renderDraft',
+    'renderDraftInsertionHandle',
+    'renderVertices',
+    'renderSnap',
+  ]) assert.equal(rendering[method], undefined, `${method} is not a public rendering facade`);
   const snapshot = project.snapshot();
   snapshot.countries[0].id = 'FRA';
   assert.equal(project.snapshot().countries[0].id, 'DEU', 'project snapshot is detached');
@@ -91,79 +103,30 @@ test('non-rendering domains have no direct platform ownership', () => {
 });
 
 test('editing domain owns draft coordinate history operations', () => {
-  let coords = [];
-  const edit = { selectedVertexIndex: null };
-  const snapshots = [];
   const editing = createEditingDomain({
-    renderPackets: {
-      draft: {
-        isActive: () => true,
-        getCoords: () => coords,
-        setCoords: value => { coords = value; },
-        getEdit: () => edit,
-        setSelectedVertex: value => { edit.selectedVertexIndex = value; },
-        setInputPhase: () => {},
-        isStrokeActive: () => false,
-        recordSnapshot: (_state, value, selected) => snapshots.push({ coords: value.map(point => point.slice()), selected }),
-        syncAfterMutation: () => {},
-        coordNear: (a, b, tolerance) => Math.abs(a[0] - b[0]) <= tolerance && Math.abs(a[1] - b[1]) <= tolerance,
-        undoSnapshot: () => null,
-        redoSnapshot: () => null,
-      },
-    },
+    draftServices: { getToolConfig: () => ({ profile: 'freehand', shape: 'line', minimumPoints: 2 }) },
   });
   assert.equal(editing.appendDraftCoordinate([1, 2]), true);
-  assert.deepEqual(coords, [[1, 2]]);
+  assert.deepEqual(editing.snapshot().draft.coords, [[1, 2]]);
   assert.equal(editing.appendDraftCoordinate([1, 2], { dedupe: true }), false);
-  assert.equal(snapshots.length, 1);
+  assert.equal(editing.snapshot().draft.historyCount, 1);
 });
 
 test('editing domain owns draft stroke lifecycle and delegates only platform adapters', () => {
   const events = [];
-  let active = false;
-  const samples = [];
   const editing = createEditingDomain({
-    draftInput: {
+    draftServices: {
       getToolConfig: () => ({ profile: 'freehand', shape: 'line' }),
-      getInputPhase: () => 'draw',
       isSpacePanActive: () => false,
       screenSample: point => ({ screen: point.slice(), coordinate: point.slice() }),
-      clearHover: () => {},
-      clearInsertTarget: () => {},
-      beginStroke: input => { active = true; samples.push(input.sample); return true; },
-      appendSamples: next => { samples.push(...next); return next.length > 0; },
-      isStrokeActive: () => active,
-      acceptingSamples: () => true,
-      queueRender: () => {},
       projectCoordinate: value => value,
-      firstStrokeCoordinate: () => samples[0]?.coordinate,
-      finalizeStroke: () => { active = false; return { coords: samples.map(sample => sample.coordinate) }; },
-      cancelQueuedRender: () => {},
-      setStrokeActiveClass: () => {},
       minimumPoints: () => 2,
-      render: () => {},
-      updateControls: () => {},
-      updateHistoryControls: () => {},
-      onFinished: () => {},
-    },
-    renderPackets: {
-      draft: {
-        isActive: () => true,
-        getCoords: () => [],
-        setCoords: () => {},
-        getEdit: () => ({ selectedVertexIndex: null }),
-        setInputPhase: () => {},
-        setSelectedVertex: () => {},
-        recordSnapshot: () => {},
-        syncAfterMutation: () => {},
-        coordNear: () => false,
-      },
     },
     onEditingStateChanged: snapshot => events.push(snapshot.reason),
   });
   assert.equal(editing.beginDraftStroke([1, 2], { pointerId: 1 }), true);
-  assert.equal(editing.appendDraftStroke([[2, 3]]), true);
-  assert.equal(editing.finishDraftStroke([3, 4]), true);
+  assert.equal(editing.appendDraftStroke([[30, 30]]), true);
+  assert.equal(editing.finishDraftStroke([60, 60]), true);
   assert.deepEqual(events, ['draft-stroke-begin', 'draft-stroke-update', 'draft-stroke-update', 'draft-stroke-finish']);
 });
 
@@ -172,7 +135,7 @@ test('app bootstrap wires every domain factory', () => {
   for (const factory of ['createProjectDomain', 'createSelectionDomain', 'createRenderingDomain', 'createGisDomain', 'createEditingDomain']) {
     assert.match(source, new RegExp(`${factory}\\(`));
   }
-  assert.match(source, /window\.PANDOLAB_DOMAINS\s*=\s*Object\.freeze/);
+  assert.doesNotMatch(source, /window\.PANDOLAB_(?:DOMAINS|DOMAIN_CONTEXT)\s*=/);
 });
 
 test('app delegates interaction rendering to rendering domain', () => {
@@ -189,46 +152,66 @@ test('app delegates interaction rendering to rendering domain', () => {
   ]) {
     assert.doesNotMatch(source, new RegExp(`function ${name}\\b`), `${name} remains app-owned`);
   }
-  assert.match(source, /renderingDomain\?\.renderDraft\?\./);
-  assert.match(source, /renderingDomain\?\.renderGpuInteraction\?\./);
+  assert.match(source, /getEditingRenderPacket:\s*\(\)\s*=>\s*editingDomain\?\.createRenderPacket/);
+  assert.doesNotMatch(source, /renderingDomain\?\.render(?:Draft|DraftInsertionHandle|Vertices|Snap)\?\./);
   assert.match(source, /renderingDomain\?\.renderValidation\?\./);
+  assert.doesNotMatch(source, /mapRenderCoordinator|MAP_RENDER_DIRTY/);
+  const renderingSource = fs.readFileSync(path.join(root, 'assets/js/modules/rendering-domain.js'), 'utf8');
+  assert.match(renderingSource, /gpuInteraction:\s*renderGpuInteraction/);
 });
 
-test('selection domain coalesces no-op changes and exposes an independent style revision', () => {
+test('selection domain owns selection and hover revisions without serialized change detection', () => {
   let renderRequests = 0;
-  let state = { primaryKey: null, keys: [], items: [] };
+  const changes = [];
+  const country = id => ({ domain: 'territorial', type: 'country', id });
   const selection = createSelectionDomain({
-    selectionController: {
-      snapshot: () => state,
-      replace: () => {},
-      toggle: () => {},
-      clear: () => {},
-    },
+    onSelectionChanged: (snapshot, reason) => changes.push(['selection', snapshot.revision, reason]),
+    onHoverChanged: snapshot => changes.push(['hover', snapshot.hoverRevision]),
     requestRender: () => { renderRequests += 1; },
   });
   const initial = selection.snapshot();
-  assert.equal(selection.clear().revision, initial.revision);
+  assert.strictEqual(selection.clear(), initial);
   assert.equal(renderRequests, 0);
-  state = { primaryKey: 'country:DEU', keys: ['country:DEU'], items: [{ key: 'country:DEU' }] };
-  assert.equal(selection.select({ key: 'country:DEU' }).revision, initial.revision + 1);
+  const selected = selection.replace(country('DEU'));
+  assert.equal(selected.revision, initial.revision + 1);
   assert.equal(renderRequests, 1);
-  const beforeStyle = selection.snapshot();
-  assert.equal(selection.updateStyle().styleRevision, beforeStyle.styleRevision + 1);
-  assert.equal(selection.snapshot().revision, beforeStyle.revision + 1);
+  assert.strictEqual(selection.replace(country('DEU')), selected);
+  assert.equal(renderRequests, 1);
+  const hovered = selection.setHover(country('FRA'));
+  assert.equal(hovered.revision, selected.revision);
+  assert.equal(hovered.hoverRevision, initial.hoverRevision + 1);
   assert.equal(renderRequests, 2);
+  assert.strictEqual(selection.setHover({ ...country('FRA') }), hovered);
+  assert.strictEqual(selection.setHover({ domain: 'invalid', type: 'country', id: 'FRA' }), hovered);
+  assert.equal(renderRequests, 2);
+  assert.deepEqual(changes.map(change => change[0]), ['selection', 'hover']);
+  assert.deepEqual(selection.stats(), {
+    selectionRevision: 1,
+    selectionHoverRevision: 1,
+    selectionMutationCount: 2,
+    selectionNoOpCount: 4,
+    selectionRenderInvalidationCount: 2,
+  });
+  assert.equal(Object.isFrozen(hovered.selection.items), true);
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'assets/js/modules/selection-domain.js'), 'utf8'), /JSON\.stringify/);
 });
 
 test('rendering domain owns domain-specific invalidation masks', () => {
-  const masks = [];
-  const rendering = createRenderingDomain({ coordinator: { invalidate: (mask) => { masks.push(mask); return true; } } });
+  const frames = [];
+  const rendering = createRenderingDomain({
+    requestFrame: callback => frames.push(callback),
+    prepareView: () => ({ revision: 1 }),
+  });
   rendering.invalidateSelection('selection');
+  frames.shift()();
+  assert.equal(rendering.getStats().lastRequestedMask, MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.GPU_INTERACTION);
   rendering.invalidateView('view');
+  frames.shift()();
+  assert.equal(rendering.getStats().lastRequestedMask, MAP_RENDER_MASKS.VIEW);
   rendering.invalidateCountryPatch('country');
-  assert.equal(masks.length, 3);
-  assert.equal((masks[0] & (1 << 17)) === 0, true);
-  assert.equal((masks[1] & (1 << 0)) !== 0, true);
-  assert.equal((masks[1] & (1 << 12)) === 0, true);
-  assert.equal((masks[2] & (1 << 17)) !== 0, true);
+  frames.shift()();
+  assert.equal((rendering.getStats().lastRequestedMask & MAP_RENDER_DIRTY.COUNTRY_PATCH) !== 0, true);
+  assert.equal((rendering.getStats().lastRequestedMask & MAP_RENDER_DIRTY.SELECTION_VIEW) === 0, true);
 });
 
 test('view-only selection rendering reprojects only existing SVG fallbacks without another GPU frame', () => {
@@ -322,25 +305,84 @@ test('project replacement advances generation once before the canonical swap', a
   assert.equal(resets.length, 1);
 });
 
-test('selection object routing is owned by the selection domain', () => {
+test('project domain dispatch delegates to execute and emits only successful changes', async () => {
   const calls = [];
-  const selection = createSelectionDomain({
-    normalizeRef: value => value,
-    refExists: value => value?.id === 'DEU',
-    countryType: 'country',
-    selectHandlers: { country: (id, refreshOnly) => calls.push([id, refreshOnly]) },
-    withSelectionGuard: callback => callback(),
+  const changed = [];
+  const results = [
+    { ok: true, changed: true, value: 1 },
+    { ok: true, changed: false, value: 1 },
+    { ok: false, changed: false, error: new Error('rejected') },
+  ];
+  const project = createProjectDomain({
+    commandPipeline: {
+      execute(id, context, payload) {
+        calls.push({ id, context, payload });
+        return results.shift();
+      },
+    },
+    onProjectChanged: event => changed.push(event),
   });
-  assert.equal(selection.selectObjectRef({ domain: 'territorial', type: 'country', id: 'DEU' }, { refreshOnly: true }), true);
-  assert.deepEqual(calls, [['DEU', true]]);
-  assert.equal(selection.selectObjectRef({ domain: 'territorial', type: 'country', id: 'FRA' }), false);
+  const first = await project.dispatch({ id: 'generic.update', context: { source: 'test' }, payload: { id: 'g-1' } });
+  assert.equal(first.ok, true);
+  await project.dispatch({ id: 'generic.noop' });
+  await project.dispatch({ id: 'generic.reject' });
+  assert.deepEqual(calls, [
+    { id: 'generic.update', context: { source: 'test' }, payload: { id: 'g-1' } },
+    { id: 'generic.noop', context: {}, payload: undefined },
+    { id: 'generic.reject', context: {}, payload: undefined },
+  ]);
+  assert.equal(changed.length, 1);
+  assert.equal(changed[0].reason, 'generic.update');
 });
 
-test('rendering domain dispatches all visual passes through one owner', () => {
-  const calls = [];
-  const rendering = createRenderingDomain({ renderers: { base: value => { calls.push(value); return 'ok'; } } });
-  assert.equal(rendering.renderPass('base', 'frame'), 'ok');
-  assert.deepEqual(calls, ['frame']);
+test('project domain dispatch rejects missing ids and missing pipelines explicitly', async () => {
+  const withoutPipeline = createProjectDomain();
+  await assert.rejects(withoutPipeline.dispatch({ id: 'generic.update' }), /commandPipeline with execute/);
+  const withPipeline = createProjectDomain({ commandPipeline: { execute: () => ({ ok: true, changed: true }) } });
+  await assert.rejects(withPipeline.dispatch({ type: 'legacy-command' }), /requires a command id/);
+});
+
+test('selection controller storage and packet revisions are owned by the selection domain', () => {
+  const packets = [];
+  const selection = createSelectionDomain({
+    refExists: value => value?.id === 'DEU',
+    selectionPacketFactory: value => { packets.push(value); return value; },
+  });
+  selection.replace({ domain: 'territorial', type: 'country', id: 'DEU' });
+  selection.setHover({ domain: 'territorial', type: 'country', id: 'DEU' });
+  const packet = selection.createPacket({ geometryRevision: 'geometry-1' });
+  assert.equal(packet.revision, selection.snapshot().revision);
+  assert.equal(packet.hoverRevision, selection.snapshot().hoverRevision);
+  assert.equal(packet.geometryRevision, 'geometry-1');
+  assert.equal(packets.length, 1);
+  const before = selection.snapshot();
+  selection.replace({ domain: 'territorial', type: 'country', id: 'FRA' });
+  assert.strictEqual(selection.snapshot(), before, 'invalid refs are no-ops');
+});
+
+test('selection domain keeps large multi-selection snapshots cached and resets atomically', () => {
+  let renderRequests = 0;
+  const selection = createSelectionDomain({ requestRender: () => { renderRequests += 1; } });
+  const refs = Array.from({ length: 1000 }, (_, index) => ({
+    domain: 'generic', type: 'feature', id: `feature-${index}`,
+  }));
+  const selected = selection.setMany(refs, { primary: refs.at(-1), scope: 'map' });
+  assert.equal(selected.selection.items.length, 1000);
+  assert.strictEqual(selection.snapshot(), selected);
+  assert.equal(renderRequests, 1);
+  const same = selection.setMany(refs.map(ref => ({ ...ref })), { primary: { ...refs.at(-1) }, scope: 'map' });
+  assert.strictEqual(same, selected);
+  assert.equal(renderRequests, 1);
+  selection.setHover(refs[0]);
+  const beforeReset = selection.snapshot();
+  const reset = selection.resetProject(9);
+  assert.equal(reset.projectGeneration, 9);
+  assert.equal(reset.selection.items.length, 0);
+  assert.equal(reset.hover, null);
+  assert.equal(reset.revision, beforeReset.revision + 1);
+  assert.equal(reset.hoverRevision, beforeReset.hoverRevision + 1);
+  assert.equal(renderRequests, 3, 'selection, hover, and atomic reset each invalidate once');
+  assert.equal(selection.stats().selectionMutationCount, 3);
 });
 
 test('rendering domain owns territorial boundary cache state and resets it per project generation', () => {

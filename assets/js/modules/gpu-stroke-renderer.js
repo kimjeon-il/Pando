@@ -24,7 +24,7 @@ export const GPU_STROKE_FLAGS = Object.freeze({
   CLOSED_CHAIN: 16,
 });
 
-export const GPU_STROKE_NODE_KINDS = Object.freeze({
+const GPU_STROKE_NODE_KINDS = Object.freeze({
   JOIN: 1,
   START_CAP: 2,
   END_CAP: 3,
@@ -359,8 +359,6 @@ export function resolveGpuStrokeRanges(resource, ownerIds = null, rangeProperty 
   }
   return Object.freeze(ranges);
 }
-
-export const buildGpuStrokeRibbon = buildGpuStrokeInstances;
 
 function joinModeValue(join) {
   if (join === 'miter') return 1;

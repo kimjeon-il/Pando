@@ -10,6 +10,7 @@ EDIT_WORKER = (ROOT / "assets" / "js" / "workers" / "map-edit-worker.js").read_t
 CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 TRANSACTION = (ROOT / "assets" / "js" / "modules" / "country-edit-transaction.js").read_text(encoding="utf-8")
 MAP_INPUT = (ROOT / "assets" / "js" / "modules" / "map-input-controller.js").read_text(encoding="utf-8")
+RENDERING_DOMAIN = (ROOT / "assets" / "js" / "modules" / "rendering-domain.js").read_text(encoding="utf-8")
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
 COUNTRY_GEOMETRY = (ROOT / "assets" / "js" / "modules" / "country-geometry.js").read_text(encoding="utf-8")
 PERSISTENCE = (ROOT / "assets" / "js" / "modules" / "persistence-service.js").read_text(encoding="utf-8")
@@ -46,9 +47,11 @@ class V0210PerformancePipelineTests(unittest.TestCase):
             self.assertIn(operation, APP)
 
     def test_navigation_uses_view_only_frame(self):
-        self.assertIn("function scheduleViewRender(reason = 'view-change')", APP)
         self.assertIn("createMapInputController", APP)
-        self.assertIn("scheduleViewRender();", MAP_INPUT)
+        self.assertNotIn("scheduleViewRender", APP)
+        self.assertIn("invalidateView();", MAP_INPUT)
+        self.assertIn("const invalidateView = reason => invalidate(", RENDERING_DOMAIN)
+        self.assertIn("MAP_RENDER_MASKS.VIEW", RENDERING_DOMAIN)
         self.assertIn("renderCountryLabelPositions()", APP)
         self.assertIn("renderUserLabelPositions()", APP)
         self.assertIn("mapWorkScheduler.setInteractionActive(true)", APP)

@@ -2,6 +2,7 @@ const cloneItems = items => (items || []).map(item => ({ ...item }));
 
 export function createSelectionPacket({
   revision = 0,
+  hoverRevision = 0,
   geometryRevision = 0,
   styleRevision = 0,
   countryBoundaryRevision = '',
@@ -12,6 +13,7 @@ export function createSelectionPacket({
 } = {}) {
   return Object.freeze({
     revision: Number(revision || 0),
+    hoverRevision: Number(hoverRevision || 0),
     geometryRevision: String(geometryRevision ?? ''),
     styleRevision: String(styleRevision ?? ''),
     countryBoundaryRevision: String(countryBoundaryRevision || ''),

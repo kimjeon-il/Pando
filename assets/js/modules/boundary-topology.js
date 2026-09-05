@@ -195,26 +195,6 @@ export function moveTopologyNode(featureMap, node, nextCoordinate, { precision =
   return changed;
 }
 
-export function topologySnapCandidates(topology, { activeOwnerIds = [] } = {}) {
-  const active = new Set(activeOwnerIds.map(String));
-  const output = [];
-  for (const node of topology?.nodes?.values?.() || []) {
-    const neighbor = active.size && [...node.ownerIds].some(id => !active.has(String(id)));
-    output.push({ kind: 'vertex', coordinate: node.coordinate, ownerIds: [...node.ownerIds], nodeKey: node.key, neighbor });
-  }
-  for (const segment of topology?.segments?.values?.() || []) {
-    const neighbor = active.size && [...segment.ownerIds].some(id => !active.has(String(id)));
-    output.push({
-      kind: neighbor ? 'neighbor' : segment.kind === 'shared' ? 'boundary' : 'edge',
-      a: segment.a,
-      b: segment.b,
-      ownerIds: [...segment.ownerIds],
-      segmentKey: segment.key,
-    });
-  }
-  return output;
-}
-
 function selectedTopologySegmentKeys(topology, predicate) {
   const keys = new Set();
   for (const segment of topology?.segments?.values?.() || []) {

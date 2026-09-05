@@ -28,6 +28,26 @@ export function createObjectSelectionController({ onChange = () => {} } = {}) {
     return value;
   };
 
+  const sameSelection = (nextSelected, nextPrimaryKey) => {
+    if (primaryKey !== nextPrimaryKey || selected.size !== nextSelected.size) return false;
+    const currentKeys = selected.keys();
+    const nextKeys = nextSelected.keys();
+    while (true) {
+      const current = currentKeys.next();
+      const next = nextKeys.next();
+      if (current.done || next.done) return current.done === next.done;
+      if (current.value !== next.value) return false;
+    }
+  };
+
+  const replaceSelection = (nextSelected, nextPrimaryKey, reason) => {
+    if (sameSelection(nextSelected, nextPrimaryKey)) return snapshot();
+    selected.clear();
+    for (const [key, ref] of nextSelected) selected.set(key, ref);
+    primaryKey = nextPrimaryKey;
+    return emit(reason);
+  };
+
   function replace(ref, { scope = '' } = {}) {
     const normalized = normalizeObjectRef(ref);
     if (!normalized) return snapshot();
@@ -61,32 +81,31 @@ export function createObjectSelectionController({ onChange = () => {} } = {}) {
     if (targetIndex < 0) return snapshot();
     const anchorKey = rangeAnchors.get(scope);
     const anchorIndex = ordered.findIndex(candidate => candidate.key === anchorKey);
-    if (!additive) selected.clear();
+    const nextSelected = additive ? new Map(selected) : new Map();
     if (anchorIndex < 0) {
-      selected.set(normalized.key, normalized);
+      nextSelected.set(normalized.key, normalized);
     } else {
       const start = Math.min(anchorIndex, targetIndex);
       const end = Math.max(anchorIndex, targetIndex);
       for (let index = start; index <= end; index += 1) {
         const candidate = ordered[index];
-        selected.set(candidate.key, candidate);
+        nextSelected.set(candidate.key, candidate);
       }
     }
-    primaryKey = normalized.key;
     rangeAnchors.set(scope, normalized.key);
-    return emit('range');
+    return replaceSelection(nextSelected, normalized.key, 'range');
   }
 
   function setMany(refs, { primary = null, scope = '' } = {}) {
     const normalized = (refs || []).map(normalizeObjectRef).filter(Boolean);
-    selected.clear();
-    for (const ref of normalized) selected.set(ref.key, ref);
+    const nextSelected = new Map();
+    for (const ref of normalized) nextSelected.set(ref.key, ref);
     const requestedPrimary = normalizeObjectRef(primary);
-    primaryKey = requestedPrimary && selected.has(requestedPrimary.key)
+    const nextPrimaryKey = requestedPrimary && nextSelected.has(requestedPrimary.key)
       ? requestedPrimary.key
       : normalized.at(-1)?.key || null;
-    if (scope && primaryKey) rangeAnchors.set(scope, primaryKey);
-    return emit('set-many');
+    if (scope && nextPrimaryKey) rangeAnchors.set(scope, nextPrimaryKey);
+    return replaceSelection(nextSelected, nextPrimaryKey, 'set-many');
   }
 
   function remove(refOrKey) {

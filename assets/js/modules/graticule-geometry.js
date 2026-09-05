@@ -64,5 +64,3 @@ export function buildGraticuleStrokeGeometryPacket(geometry, { maxEdgeDegrees = 
     segmentCount: Math.floor(startsEnds.length / 4),
   };
 }
-
-export const GRATICULE_MAX_EDGE_DEGREES = MAX_EDGE_DEGREES;

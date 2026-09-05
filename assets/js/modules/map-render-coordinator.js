@@ -20,12 +20,19 @@ const DIRTY_BITS = {
   GENERIC_PATCH: 1 << 18,
   HYDRO_EDIT_PATCH: 1 << 19,
   TERRITORIAL_PATCH: 1 << 20,
+  RESIZE: 1 << 21,
+  PROJECTION: 1 << 22,
+  PROJECT: 1 << 23,
 };
 
 export const MAP_RENDER_DIRTY = Object.freeze({
   ...DIRTY_BITS,
-  FULL: Object.values(DIRTY_BITS).reduce((mask, value) => mask | value, 0),
 });
+
+const WORK_DIRTY_MASK = Object.entries(DIRTY_BITS)
+  .filter(([name]) => !['RESIZE', 'PROJECTION', 'PROJECT'].includes(name))
+  .reduce((mask, [, value]) => mask | value, 0);
+const KNOWN_DIRTY_MASK = Object.values(DIRTY_BITS).reduce((mask, value) => mask | value, 0);
 
 // A view gesture only changes uniforms/positions.  Scene geometry is rebuilt
 // by an explicit scene invalidation,
@@ -34,32 +41,47 @@ const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.LABEL_POSITIONS;
 
 const SETTLE_MASK = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
+const REPROJECT_MASK = MAP_RENDER_DIRTY.VIEW
+  | MAP_RENDER_DIRTY.BASE
+  | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
+  | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
+  | MAP_RENDER_DIRTY.EDITING_OVERLAYS
+  | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY
+  | MAP_RENDER_DIRTY.LABEL_LAYOUT
+  | MAP_RENDER_DIRTY.HUD;
 
-const STRING_MASKS = Object.freeze({
-  full: MAP_RENDER_DIRTY.FULL,
-  view: INTERACTION_MASK,
-  'gpu-frame': MAP_RENDER_DIRTY.GPU_FRAME,
-  'projected-overlays': MAP_RENDER_DIRTY.PROJECTED_OVERLAYS,
-  'interaction-overlays': MAP_RENDER_DIRTY.INTERACTION_OVERLAYS,
-  'selection-data': MAP_RENDER_DIRTY.SELECTION_DATA,
-  'selection-view': MAP_RENDER_DIRTY.SELECTION_VIEW,
-  'selection-style': MAP_RENDER_DIRTY.SELECTION_STYLE,
-  'gpu-interaction': MAP_RENDER_DIRTY.GPU_INTERACTION,
-  'overlay-geometry': MAP_RENDER_DIRTY.OVERLAY_GEOMETRY,
-  'overlay-style': MAP_RENDER_DIRTY.OVERLAY_STYLE,
-  'country-patch': MAP_RENDER_DIRTY.COUNTRY_PATCH,
-  'generic-patch': MAP_RENDER_DIRTY.GENERIC_PATCH,
-  'hydro-edit-patch': MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH,
-  'territorial-patch': MAP_RENDER_DIRTY.TERRITORIAL_PATCH,
-  labels: MAP_RENDER_DIRTY.LABEL_LAYOUT,
-  'layer-tree': MAP_RENDER_DIRTY.LAYER_TREE,
+export const MAP_RENDER_MASKS = Object.freeze({
+  VIEW: INTERACTION_MASK,
+  VIEW_SETTLE: INTERACTION_MASK | SETTLE_MASK,
+  RESIZE: MAP_RENDER_DIRTY.RESIZE,
+  PROJECTION: MAP_RENDER_DIRTY.PROJECTION,
+  PROJECT: MAP_RENDER_DIRTY.PROJECT,
 });
 
-function normalizedMask(value) {
-  if (typeof value === 'number' && Number.isFinite(value)) return value | 0;
-  if (typeof value === 'string') return STRING_MASKS[value] || MAP_RENDER_DIRTY.FULL;
-  if (Array.isArray(value) || value instanceof Set) return [...value].reduce((mask, entry) => mask | normalizedMask(entry), 0);
-  return MAP_RENDER_DIRTY.FULL;
+export class RenderInvalidationError extends TypeError {
+  constructor(input, reason = '') {
+    super(`Invalid render invalidation mask: ${String(input)}`);
+    this.name = 'RenderInvalidationError';
+    this.code = 'PL-RENDER-MASK-001';
+    this.input = input;
+    this.reason = String(reason || '');
+    this.knownMask = KNOWN_DIRTY_MASK;
+  }
+}
+
+function validatedMask(value, reason = '') {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value)
+    || value <= 0 || value > KNOWN_DIRTY_MASK || (value & ~KNOWN_DIRTY_MASK) !== 0) {
+    throw new RenderInvalidationError(value, reason);
+  }
+  return value;
+}
+
+function expandedMask(requestedMask) {
+  let mask = requestedMask & WORK_DIRTY_MASK;
+  if (requestedMask & (MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION)) mask |= REPROJECT_MASK;
+  if (requestedMask & MAP_RENDER_DIRTY.PROJECT) mask |= WORK_DIRTY_MASK;
+  return mask;
 }
 
 export function createMapRenderCoordinator({
@@ -67,14 +89,18 @@ export function createMapRenderCoordinator({
   prepareView,
   renderers,
   onFrameComplete = null,
+  invalidMaskMode = 'throw',
+  onInvalidMask = null,
   now = () => globalThis.performance?.now?.() ?? Date.now(),
 }) {
+  if (invalidMaskMode !== 'throw' && invalidMaskMode !== 'report') {
+    throw new TypeError(`Unknown invalid mask mode: ${String(invalidMaskMode)}`);
+  }
   let renderRevision = 0;
   let frameQueued = false;
   let rendering = false;
   let pendingMask = 0;
   let interactionActive = false;
-  let settleTimer = 0;
   const pendingReasons = new Set();
   const metrics = {
     fullRenderCount: 0,
@@ -84,7 +110,14 @@ export function createMapRenderCoordinator({
     labelLayoutCount: 0,
     lastRenderMs: 0,
     lastMode: '',
+    lastRequestedMask: 0,
     lastDirtyMask: 0,
+    lastInvalidMask: null,
+    invalidMaskCount: 0,
+    viewFrameCount: 0,
+    resizeFrameCount: 0,
+    projectionFrameCount: 0,
+    projectFrameCount: 0,
     lastReasons: [],
     lastRendererTimes: {},
     recentFrames: [],
@@ -99,11 +132,14 @@ export function createMapRenderCoordinator({
     return value;
   }
 
-  function render({ dirtyMask = MAP_RENDER_DIRTY.FULL, reasons = [] } = {}) {
-    const mask = normalizedMask(dirtyMask);
+  function render({ dirtyMask, reasons = [] }) {
+    const requestedMask = dirtyMask;
+    const mask = expandedMask(requestedMask);
     const startedAt = now();
     const rendererTimes = {};
-    const full = (mask & MAP_RENDER_DIRTY.FULL) === MAP_RENDER_DIRTY.FULL;
+    const full = !!(requestedMask & MAP_RENDER_DIRTY.PROJECT);
+    const viewFrame = requestedMask === MAP_RENDER_MASKS.VIEW
+      || requestedMask === MAP_RENDER_MASKS.VIEW_SETTLE;
     rendering = true;
     renderRevision += 1;
     try {
@@ -125,12 +161,17 @@ export function createMapRenderCoordinator({
 
       // The legacy Pando host and its renderer share the coordinator frame.
       // There is no second custom-layer render cycle.
-      const viewFrameResult = !full && (mask & MAP_RENDER_DIRTY.VIEW)
+      const sceneGpuMask = MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_DATA
+        | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE
+        | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
+        | MAP_RENDER_DIRTY.TERRITORIAL_PATCH;
+      let viewFrameResult = !full && (mask & MAP_RENDER_DIRTY.VIEW) && !(mask & sceneGpuMask)
         ? callRenderer('view', rendererTimes, viewState)
         : null;
 
       if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes, viewState);
 
+      let overlayStacked = false;
       if (mask & (MAP_RENDER_DIRTY.OVERLAY_DATA | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE)) {
         callRenderer('hydro', rendererTimes, viewState);
         callRenderer('hydroEdits', rendererTimes, viewState);
@@ -138,19 +179,21 @@ export function createMapRenderCoordinator({
         callRenderer('distributions', rendererTimes, viewState);
         callRenderer('genericFeatures', rendererTimes, viewState);
         callRenderer('stackOverlays', rendererTimes, viewState);
-      } else if (mask & MAP_RENDER_DIRTY.PROJECTED_OVERLAYS) {
-        callRenderer('projectedOverlays', rendererTimes, viewState);
-        callRenderer('stackOverlays', rendererTimes, viewState);
+        overlayStacked = true;
       } else {
         if (mask & MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH) callRenderer('hydroEdits', rendererTimes, viewState);
         if (mask & MAP_RENDER_DIRTY.TERRITORIAL_PATCH) callRenderer('territorialUnits', rendererTimes, viewState);
         if (mask & MAP_RENDER_DIRTY.GENERIC_PATCH) callRenderer('genericFeatures', rendererTimes, viewState);
       }
+      if (mask & MAP_RENDER_DIRTY.PROJECTED_OVERLAYS) {
+        callRenderer('projectedOverlays', rendererTimes, viewState);
+        if (!overlayStacked) callRenderer('stackOverlays', rendererTimes, viewState);
+      }
 
       if (mask & (MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_DATA
         | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE
         | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH)) {
-        callRenderer('countries', rendererTimes, viewState);
+        viewFrameResult = callRenderer('countries', rendererTimes, viewState);
       }
 
       if (mask & MAP_RENDER_DIRTY.INTERACTION_OVERLAYS) {
@@ -209,30 +252,49 @@ export function createMapRenderCoordinator({
       if (mask & MAP_RENDER_DIRTY.LAYER_TREE) callRenderer('layerTree', rendererTimes);
       metrics.lastRenderMs = Math.max(0, now() - startedAt);
       metrics.lastMode = full ? 'full' : 'partial';
+      metrics.lastRequestedMask = requestedMask;
       metrics.lastDirtyMask = mask;
       metrics.lastReasons = [...reasons];
       metrics.lastRendererTimes = rendererTimes;
       if (mask & MAP_RENDER_DIRTY.HUD) callRenderer('debug', rendererTimes);
-      metrics.recentFrames.push({ revision: renderRevision, mode: metrics.lastMode, dirtyMask: mask, reasons: [...reasons] });
+      const frameKind = requestedMask & MAP_RENDER_DIRTY.PROJECT ? 'project'
+        : requestedMask & MAP_RENDER_DIRTY.PROJECTION ? 'projection'
+          : requestedMask & MAP_RENDER_DIRTY.RESIZE ? 'resize'
+            : viewFrame ? 'view' : 'partial';
+      metrics.recentFrames.push({
+        revision: renderRevision,
+        mode: metrics.lastMode,
+        frameKind,
+        requestedMask,
+        dirtyMask: mask,
+        reasons: [...reasons],
+      });
       if (metrics.recentFrames.length > 20) metrics.recentFrames.splice(0, metrics.recentFrames.length - 20);
       if (full) metrics.fullRenderCount += 1;
       else metrics.viewRenderCount += 1;
+      if (requestedMask & MAP_RENDER_DIRTY.PROJECT) metrics.projectFrameCount += 1;
+      else if (requestedMask & MAP_RENDER_DIRTY.PROJECTION) metrics.projectionFrameCount += 1;
+      else if (requestedMask & MAP_RENDER_DIRTY.RESIZE) metrics.resizeFrameCount += 1;
+      else if (viewFrame) metrics.viewFrameCount += 1;
       try {
         onFrameComplete?.({
           renderRevision,
           durationMs: metrics.lastRenderMs,
+          requestedMask,
           dirtyMask: mask,
           reasons: [...reasons],
           rendererTimes: { ...rendererTimes },
           interactionActive,
           full,
+          frameKind,
+          viewFrame,
         });
       } catch (_) {}
       return {
         renderRevision,
         viewRevision,
         viewState,
-        viewOnly: mask === INTERACTION_MASK,
+        viewOnly: requestedMask === MAP_RENDER_MASKS.VIEW,
       };
     } finally {
       rendering = false;
@@ -245,7 +307,7 @@ export function createMapRenderCoordinator({
     frameQueued = true;
     requestFrame(() => {
       frameQueued = false;
-      const dirtyMask = pendingMask || INTERACTION_MASK;
+      const dirtyMask = pendingMask;
       const reasons = [...pendingReasons];
       pendingMask = 0;
       pendingReasons.clear();
@@ -254,8 +316,17 @@ export function createMapRenderCoordinator({
     return true;
   }
 
-  function invalidate(mask = MAP_RENDER_DIRTY.FULL, reason = '') {
-    const nextMask = normalizedMask(mask);
+  function invalidate(mask, reason = '') {
+    let nextMask;
+    try {
+      nextMask = validatedMask(mask, reason);
+    } catch (error) {
+      metrics.invalidMaskCount += 1;
+      metrics.lastInvalidMask = error.input;
+      try { onInvalidMask?.(error); } catch (_) {}
+      if (invalidMaskMode === 'throw') throw error;
+      return false;
+    }
     metrics.requestCount += 1;
     if (pendingMask || frameQueued || rendering) metrics.mergedRequestCount += 1;
     pendingMask |= nextMask;
@@ -263,59 +334,31 @@ export function createMapRenderCoordinator({
     return queueFrame();
   }
 
-  function scheduleFull(reason = 'full') {
-    return invalidate(MAP_RENDER_DIRTY.FULL, reason);
-  }
-
-  function scheduleView(reason = 'view') {
-    return invalidate(INTERACTION_MASK, reason);
-  }
-
   function beginInteraction(reason = 'interaction') {
     interactionActive = true;
-    clearTimeout(settleTimer);
-    settleTimer = 0;
     if (reason) pendingReasons.add(String(reason));
   }
 
   function endInteraction(reason = 'interaction-end') {
     interactionActive = false;
-    clearTimeout(settleTimer);
-    settleTimer = 0;
-    invalidate(SETTLE_MASK, reason);
+    invalidate(MAP_RENDER_MASKS.VIEW_SETTLE, reason);
     return true;
   }
 
-  function advanceRevision() {
-    renderRevision += 1;
-    return renderRevision;
-  }
-
   return Object.freeze({
-    renderFull: () => render({ dirtyMask: MAP_RENDER_DIRTY.FULL }),
-    renderView: () => render({ dirtyMask: INTERACTION_MASK }),
-    renderFrame: ({ mode = 'full', dirtyMask = null, reasons = [] } = {}) => render({
-      dirtyMask: dirtyMask == null ? (mode === 'view' ? INTERACTION_MASK : MAP_RENDER_DIRTY.FULL) : dirtyMask,
-      reasons,
-    }),
     invalidate,
-    scheduleFull,
-    scheduleView,
     beginInteraction,
     endInteraction,
-    isInteractionActive: () => interactionActive,
-    advanceRevision,
-    revision: () => renderRevision,
     getStats: () => ({
       ...metrics,
+      renderRevision,
       lastReasons: [...metrics.lastReasons],
       lastRendererTimes: { ...metrics.lastRendererTimes },
       recentFrames: metrics.recentFrames.map(frame => ({ ...frame, reasons: [...frame.reasons] })),
       pendingMask,
-      pendingMode: pendingMask === MAP_RENDER_DIRTY.FULL ? 'full' : pendingMask ? 'partial' : null,
+      pendingMode: pendingMask & MAP_RENDER_DIRTY.PROJECT ? 'full' : pendingMask ? 'partial' : null,
       frameQueued,
       interactionActive,
-      settlePending: !!settleTimer,
     }),
   });
 }

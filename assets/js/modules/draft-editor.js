@@ -14,7 +14,7 @@ export function createDraftEditState() {
   };
 }
 
-export function snapshotDraft(coords, selectedVertexIndex = null, inputPhase = 'draw') {
+function snapshotDraft(coords, selectedVertexIndex = null, inputPhase = 'draw') {
   return {
     coords: cloneCoords(coords),
     selectedVertexIndex: Number.isInteger(selectedVertexIndex) ? selectedVertexIndex : null,

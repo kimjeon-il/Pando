@@ -1,7 +1,5 @@
 const text = value => String(value ?? '').trim();
 
-export const COUNTRY_PROPERTY_KEYS = Object.freeze(['name', 'validFrom', 'validTo']);
-
 export function countryId(feature) {
   return text(feature?.id);
 }
