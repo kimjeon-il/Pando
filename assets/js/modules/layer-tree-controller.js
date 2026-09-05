@@ -21,6 +21,35 @@ export function createLayerTreeController({
   let searchMatches = [];
   const groupScrollTop = new Map();
   const virtualItems = new Map();
+  const rowBuildTokens = new WeakMap();
+  const rowBuilds = new Set();
+  let disposed = false;
+  const buildRows = (container, factories, before = [], after = [], onCommit = () => {}) => {
+    const token = {}, fragment = document.createDocumentFragment();
+    rowBuildTokens.set(container, token);
+    const focus = container.contains(document.activeElement) ? document.activeElement : null;
+    const focusKey = focus?.closest('[data-item-id]')?.dataset.itemId;
+    const focusTag = focus?.tagName;
+    fragment.append(...before);
+    let index = 0, finish;
+    const pending = new Promise(resolve => { finish = resolve; }); rowBuilds.add(pending);
+    const complete = () => { rowBuilds.delete(pending); finish(); };
+    const step = () => {
+      if (disposed || rowBuildTokens.get(container) !== token) { complete(); return; }
+      if (document.hidden || window.navigator?.scheduling?.isInputPending?.()) { window.setTimeout(step, 50); return; }
+      const started = performance.now();
+      while (index < factories.length && performance.now() - started < 4) fragment.append(factories[index++]());
+      if (index < factories.length) { window.setTimeout(step, 0); return; }
+      fragment.append(...after); container.replaceChildren(fragment); onCommit();
+      commands.syncCanonicalControls?.(container); syncSelection();
+      if (focusKey) {
+        const row = [...container.querySelectorAll('[data-item-id]')].find(node => node.dataset.itemId === focusKey && node.tagName === focusTag);
+        row?.focus?.({ preventScroll: true });
+      }
+      complete();
+    };
+    step();
+  };
 
   const rowHeight = container => {
     const rendered = container?.querySelector?.('.layer-child, .layer-subfolder-row, .layer-child-skeleton, .layer-folder-row');
@@ -134,28 +163,23 @@ export function createLayerTreeController({
     const viewport = Math.max(144, container.clientHeight || (search ? 420 : 235));
     const start = Math.max(0, Math.floor(desired / height) - OVERSCAN);
     const end = Math.min(items.length, start + Math.ceil(viewport / height) + OVERSCAN * 2);
-    const fragment = document.createDocumentFragment();
     const top = document.createElement('div');
     top.className = 'layer-virtual-spacer';
     top.style.height = `${start * height}px`;
-    fragment.append(top);
-    for (let index = start; index < end; index += 1) {
-      const entry = items[index];
-      fragment.append(createItemRow(search ? entry.group : group, search ? entry.item : entry, { searchResult: search }));
-    }
     const bottom = document.createElement('div');
     bottom.className = 'layer-virtual-spacer';
     bottom.style.height = `${Math.max(0, items.length - end) * height}px`;
-    fragment.append(bottom);
-    container.replaceChildren(fragment);
-    container.dataset.virtualized = 'true';
-    container.scrollTop = Math.min(desired, Math.max(0, container.scrollHeight - container.clientHeight));
-    if (!search) groupScrollTop.set(folderKey, container.scrollTop);
+    buildRows(container, items.slice(start, end).map(entry => () => createItemRow(search ? entry.group : group, search ? entry.item : entry, { searchResult: search })), [top], [bottom], () => {
+      container.dataset.virtualized = 'true';
+      container.scrollTop = Math.min(desired, Math.max(0, container.scrollHeight - container.clientHeight));
+      if (!search) groupScrollTop.set(folderKey, container.scrollTop);
+    });
   };
 
   const renderFolder = ({ group, folderKey, name, folder, container, items, search }) => {
     const snapshot = model.snapshot();
     const expanded = !search && !!snapshot.folders[folderKey];
+    rowBuildTokens.set(container, {});
     if (!container.hidden) groupScrollTop.set(folderKey, container.scrollTop);
     const saved = groupScrollTop.get(folderKey) ?? 0;
     folder.classList.toggle('is-expanded', expanded);
@@ -197,11 +221,10 @@ export function createLayerTreeController({
     else {
       virtualItems.delete(folderKey);
       container.removeAttribute('data-virtualized');
-      const fragment = document.createDocumentFragment();
-      for (const item of displayItems) fragment.append(createItemRow(group, item));
-      container.replaceChildren(fragment);
-      container.scrollTop = Math.min(saved, Math.max(0, container.scrollHeight - container.clientHeight));
-      groupScrollTop.set(folderKey, container.scrollTop);
+      buildRows(container, displayItems.map(item => () => createItemRow(group, item)), [], [], () => {
+        container.scrollTop = Math.min(saved, Math.max(0, container.scrollHeight - container.clientHeight));
+        groupScrollTop.set(folderKey, container.scrollTop);
+      });
     }
   };
 
@@ -323,7 +346,7 @@ export function createLayerTreeController({
     renderedRevision = snapshot.revision;
     renderedSearch = search;
     commands.syncStylePanels?.();
-    commands.syncCanonicalControls?.();
+    commands.syncCanonicalControls?.(elements.section);
     syncSelection();
     return true;
   };
@@ -331,6 +354,7 @@ export function createLayerTreeController({
   const beginHydration = () => commands.beginHydration?.();
   const completeHydration = async () => {
     if (hydrated) return;
+    while (rowBuilds.size) await Promise.all([...rowBuilds]);
     commands.layerTreeRendered?.();
     await new Promise(resolve => window.requestAnimationFrame(resolve));
     elements.section?.classList.remove('is-hydrating');
@@ -412,7 +436,7 @@ export function createLayerTreeController({
     return api;
   };
 
-  const dispose = () => window.clearTimeout(searchTimer);
+  const dispose = () => { disposed = true; window.clearTimeout(searchTimer); };
   const api = Object.freeze({ bind, render, syncSelection, syncLock, syncLocks, beginHydration, completeHydration, dispose });
   return api;
 }

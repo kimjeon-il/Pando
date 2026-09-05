@@ -2827,11 +2827,21 @@ const {
     scope?.querySelectorAll?.('input.layer-visibility-toggle').forEach(syncLayerVisibilityToggle);
   }
 
-  function syncCanonicalControls() {
+  const canonicalControls = new Set();
+  const canonicalControlReadiness = new WeakMap();
+  let canonicalControlsRegistered = false;
+  function syncCanonicalControls(scope = document) {
     const unavailable = !canMutateProject(state.dataReadiness);
+    if (!canonicalControlsRegistered || scope !== document) {
+      for (const element of scope.querySelectorAll(CANONICAL_CONTROL_SELECTOR)) canonicalControls.add(element);
+      canonicalControlsRegistered = true;
+    }
     $('app')?.setAttribute('data-readiness', state.dataReadiness);
     document.body.dataset.mapReadiness = state.dataReadiness;
-    for (const element of document.querySelectorAll(CANONICAL_CONTROL_SELECTOR)) {
+    for (const element of canonicalControls) {
+      if (!element.isConnected) { canonicalControls.delete(element); continue; }
+      if (canonicalControlReadiness.get(element) === unavailable) continue;
+      canonicalControlReadiness.set(element, unavailable);
       if (isReadinessIndependentControl(element)) continue;
       if (unavailable) {
         if (!Object.hasOwn(element.dataset, 'readinessDisabled')) {
@@ -3064,6 +3074,29 @@ const {
     return ringRepresentativePoint(ring);
   }
 
+  const labelFallbackQueue = new Map();
+  function queueCountryLabelFallback(id) {
+    if (validLabelAnchor(countryLabelAnchors.get(id))) return;
+    labelFallbackQueue.set(id, { generation: projectDomain.getGeneration(), version: countryLabelAnchorVersions.get(id) });
+    mapWorkScheduler.scheduleIdle('country-label-fallback', drainCountryLabelFallback, 20);
+  }
+  function drainCountryLabelFallback() {
+    if (state.mapMoving || document.hidden || navigator.scheduling?.isInputPending?.()) {
+      mapWorkScheduler.scheduleIdle('country-label-fallback', drainCountryLabelFallback, 100); return;
+    }
+    const start = performance.now();
+    let changed = false;
+    for (const [id, task] of labelFallbackQueue) {
+      labelFallbackQueue.delete(id);
+      if (task.generation !== projectDomain.getGeneration() || task.version !== countryLabelAnchorVersions.get(id)) continue;
+      const feature = countryFeatureById(id);
+      if (feature && !validLabelAnchor(countryLabelAnchors.get(id))) { countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature)); changed = true; }
+      if (performance.now() - start >= 4) break;
+    }
+    if (changed) renderingDomain?.invalidateLabels?.('country-label-fallback');
+    if (labelFallbackQueue.size) mapWorkScheduler.scheduleIdle('country-label-fallback', drainCountryLabelFallback, 20);
+  }
+
   function ensureCountryLabelAnchorWorker() {
     if (countryLabelAnchorWorker) return countryLabelAnchorWorker;
     const worker = new Worker(runtimeAssetUrl('workers/label-anchor-worker.js'), {
@@ -3080,10 +3113,9 @@ const {
         console.warn('Country label anchor worker failed', message.message);
         for (const { id } of flight.items) {
           const feature = countryFeatureById(id);
-          if (feature) countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature));
+          if (feature) queueCountryLabelFallback(id);
           pendingCountryLabelAnchors.delete(id);
         }
-        markLayerTreeDirty();
         renderingDomain?.invalidateLabels?.('country-label-anchor-fallback');
         return;
       }
@@ -3093,10 +3125,9 @@ const {
         if (countryLabelAnchorVersions.get(id) !== Number(result.version || 0)) continue;
         const feature = countryFeatureById(id);
         if (feature && validLabelAnchor(result.anchor)) countryLabelAnchors.set(id, [Number(result.anchor[0]), Number(result.anchor[1])]);
-        else if (feature) countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature));
+        else if (feature) queueCountryLabelFallback(id);
         pendingCountryLabelAnchors.delete(id);
       }
-      markLayerTreeDirty();
       renderingDomain?.invalidateLabels?.('country-label-anchor-ready');
     };
     worker.onerror = event => {
@@ -3106,10 +3137,9 @@ const {
       countryLabelAnchorWorker = null;
       for (const id of [...pendingCountryLabelAnchors]) {
         const feature = countryFeatureById(id);
-        if (feature) countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature));
+        if (feature) queueCountryLabelFallback(id);
         pendingCountryLabelAnchors.delete(id);
       }
-      markLayerTreeDirty();
       renderingDomain?.invalidateLabels?.('country-label-anchor-error');
     };
     countryLabelAnchorWorker = worker;
@@ -3117,6 +3147,8 @@ const {
   }
 
   function resetCountryLabelAnchorRuntime() {
+    labelFallbackQueue.clear();
+    mapWorkScheduler.cancel('country-label-fallback');
     countryLabelAnchorFlight = null;
     mapWorkScheduler.cancel('country-label-anchor-batch');
     clearTimeout(countryLabelAnchorTimer);
@@ -3158,7 +3190,7 @@ const {
       countryLabelAnchorWorker = null;
       for (const item of items) {
         const feature = countryFeatureById(item.id);
-        if (feature) countryLabelAnchors.set(item.id, fallbackCountryLabelAnchor(feature));
+        if (feature) queueCountryLabelFallback(item.id);
         pendingCountryLabelAnchors.delete(item.id);
       }
     }
@@ -13385,6 +13417,13 @@ const {
       meshApplied = (await gpuMapRenderer.replaceBuiltInMesh({
         meshBuffer: mesh.meshBuffer,
         preparedStroke: mesh.preparedStroke,
+        spatialBlocks: mesh.spatialBlocks,
+        onStaged: () => {
+          state.countryVisualPhase = 'canonical';
+          countryDisplaySource = null;
+          countryDisplayIndex = new Map();
+          renderingDomain?.invalidateProject?.('canonical-staging-ready');
+        },
         features: state.countriesData?.features || [],
         quality: 'canonical',
         projectGeneration,
@@ -13414,7 +13453,9 @@ const {
     loadHydroData();
     applyDataReadinessEvent(READINESS_EVENTS.MESH_READY);
     state.meshProgress = 100;
-    renderingDomain?.invalidateProject?.('canonical-mesh-ready');
+    if (!context.useBuiltInMesh || state.sessionBaseCountriesJson) {
+      renderingDomain?.invalidateProject?.('canonical-mesh-ready');
+    }
     const renderer = gpuMapRenderer.getRuntimeState();
     $('engineStatus').textContent = `Natural Earth 5.1.1 · ${renderer.renderer === 'webgl2' ? 'WebGL2' : renderer.renderer === 'webgl1' ? 'WebGL1' : 'Canvas'} 고화질`;
     if (startupMetrics) {
