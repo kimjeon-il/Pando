@@ -40,24 +40,24 @@
 
   function collectGeometryCoordinates(value, output) {
     if (!Array.isArray(value)) return;
-    if (value.length >= 2 && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]))) {
-      output.push([normalizeLongitude(Number(value[0])), Math.max(-90, Math.min(90, Number(value[1])))]);
+    if (value.length >= 2 && !Array.isArray(value[0]) && !Array.isArray(value[1]) && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]))) {
+      output(normalizeLongitude(Number(value[0])), Math.max(-90, Math.min(90, Number(value[1]))));
       return;
     }
     for (const item of value) collectGeometryCoordinates(item, output);
   }
 
   function countryGeographicBounds(geometry) {
-    const points = [];
-    collectGeometryCoordinates(geometry?.coordinates, points);
-    if (!points.length) {
+    const angles = [];
+    let south = Infinity, north = -Infinity;
+    collectGeometryCoordinates(geometry?.coordinates, (longitude, latitude) => {
+      south = Math.min(south, latitude); north = Math.max(north, latitude);
+      angles.push(((longitude + 180) % 360 + 360) % 360);
+    });
+    if (!angles.length) {
       return { bounds: [-180, -90, 180, 90], flags: COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE };
     }
-    const latitudes = points.map(point => point[1]);
-    const angles = points.map(point => {
-      const angle = normalizeLongitude(point[0]) + 180;
-      return ((angle % 360) + 360) % 360;
-    }).sort((left, right) => left - right);
+    angles.sort((left, right) => left - right);
     let largestGap = -1;
     let gapIndex = 0;
     for (let index = 0; index < angles.length; index += 1) {
@@ -76,7 +76,7 @@
     const crossesDateline = longitudeSpan > PARAM_EPSILON && west > east;
     const fullLongitude = longitudeSpan >= 300;
     return {
-      bounds: [west, Math.min(...latitudes), east, Math.max(...latitudes)],
+      bounds: [west, south, east, north],
       flags: (crossesDateline ? COUNTRY_BOUNDS_FLAG_DATELINE : 0)
         | (fullLongitude ? COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE : 0),
     };

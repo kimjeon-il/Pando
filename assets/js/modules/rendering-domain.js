@@ -4,6 +4,7 @@ import {
   MAP_RENDER_MASKS,
 } from './map-render-coordinator.js';
 import { EMPTY_EDITING_RENDER_PACKET } from './editing-render-packet.js';
+import { createGpuUploadScheduler } from './gpu-upload-scheduler.js';
 
 export function createRenderingDomain({
   context = null,
@@ -36,6 +37,25 @@ export function createRenderingDomain({
   reportDiagnostic = () => {},
 } = {}) {
   let disposed = false;
+  const uploadScheduler = createGpuUploadScheduler({ requestFrame, getByteBudget: () => gpuMapRenderer?.getUploadByteBudget?.() || 2 * 1024 * 1024 });
+  gpuMapRenderer?.setUploadScheduler?.(uploadScheduler);
+  const uploadPointers = new Set(), uploadListeners = [];
+  let uploadMapMoving = false, uploadTouches = 0;
+  const pulseUploadInput = () => uploadScheduler.noteInput(uploadMapMoving || uploadPointers.size > 0 || uploadTouches > 0);
+  const listenUploadInput = (target, type, listener) => {
+    target?.addEventListener(type, listener, { capture: true, passive: true });
+    uploadListeners.push(() => target?.removeEventListener(type, listener, true));
+  };
+  listenUploadInput(globalThis.window, 'pandolab:interaction-state', event => { uploadMapMoving = event.detail?.active === true; pulseUploadInput(); });
+  listenUploadInput(globalThis.document, 'pointerdown', event => { uploadPointers.add(event.pointerId); pulseUploadInput(); });
+  listenUploadInput(globalThis.document, 'pointermove', pulseUploadInput);
+  for (const type of ['pointerup', 'pointercancel']) listenUploadInput(globalThis.document, type, event => { uploadPointers.delete(event.pointerId); pulseUploadInput(); });
+  for (const type of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) listenUploadInput(globalThis.document, type, event => { uploadTouches = event.touches?.length || 0; pulseUploadInput(); });
+  listenUploadInput(globalThis.document, 'wheel', pulseUploadInput);
+  listenUploadInput(globalThis.document, 'keydown', event => { if (/^(Arrow|Page|Home|End)|^[+\-=]$/.test(event.key)) pulseUploadInput(); });
+  const resetUploadInput = () => { uploadPointers.clear(); uploadTouches = 0; uploadMapMoving = false; pulseUploadInput(); };
+  listenUploadInput(globalThis.window, 'blur', resetUploadInput);
+  listenUploadInput(globalThis.document, 'visibilitychange', resetUploadInput);
   let coordinator = null;
   let editingPacket = EMPTY_EDITING_RENDER_PACKET;
   let editingGestureSequence = 0;
@@ -961,15 +981,16 @@ export function createRenderingDomain({
     });
     return true;
   };
-  const thinVisibleCoastHandles = (handles, frameContext = null) => {
-    const projection = coordinate => frameProjectCoordinate(coordinate, frameContext, editing.activeProjection?.());
+  const vertexRows = new WeakMap();
+  let visibleVertexRows = [];
+  const thinVisibleCoastHandles = (handles, points) => {
     const zoom = editing.currentMapZoom?.() || 1;
     const mobile = editing.isMobile?.() === true;
     const minDistance = Math.max(mobile ? 7 : 4, (mobile ? 18 : 11) / Math.sqrt(Math.max(1, zoom)));
     const occupied = new Map();
     const accepted = [];
-    for (const handle of [...(handles || [])].sort((left, right) => Number(!!right.fixed) - Number(!!left.fixed))) {
-      const point = projection(handle.coord);
+    for (const handle of handles) {
+      const point = points.get(handle);
       if (!point) continue;
       const gx = Math.floor(point[0] / minDistance), gy = Math.floor(point[1] / minDistance);
       let crowded = false;
@@ -998,15 +1019,24 @@ export function createRenderingDomain({
         id: String(boundaryHandles[0]?.ownerIds?.[0] || ''),
       },
     } : packet?.objectVertices;
-    let data = (objectPacket?.handles || []).map(item => ({ ...item, coord: item.coordinate }));
-    if (boundaryMode) data = thinVisibleCoastHandles(data, frameContext);
-    else data = data.filter(vertex => frameProjectCoordinate(vertex.coord, frameContext, editing.activeProjection?.()));
+    const handles = objectPacket?.handles;
+    let rows = handles && vertexRows.get(handles);
+    if (!rows) {
+      rows = (handles || []).map(item => ({ ...item, coord: item.coordinate })).sort((a, b) => Number(!!b.fixed) - Number(!!a.fixed));
+      if (handles) vertexRows.set(handles, rows);
+    }
+    const points = new Map(rows.map(row => [row, frameProjectCoordinate(row.coord, frameContext, editing.activeProjection?.())]));
+    const data = boundaryMode ? thinVisibleCoastHandles(rows, points) : rows.filter(row => points.get(row));
     const layer = editing.vertexLayer;
     if (!layer) return false;
     const handlesChanged = editingChannelChanged('vertices', layer, packet?.objectVertices, packet?.boundaryEdit, packet?.tool);
-    const selection = layer.selectAll('circle.vertex-handle').data(data, d => d.nodeKey || d.key || d.index);
-    const enteredVertices = selection.enter().append('circle').attr('class', 'vertex-handle');
-    selection.exit().remove();
+    const joinChanged = handlesChanged || data.length !== visibleVertexRows.length || data.some((row, i) => row !== visibleVertexRows[i]);
+    let enteredVertices = layer.selectAll('circle.vertex-handle').filter(() => false);
+    if (joinChanged) {
+      const selection = layer.selectAll('circle.vertex-handle').data(data, d => d.nodeKey || d.key || d.index);
+      enteredVertices = selection.enter().append('circle').attr('class', 'vertex-handle');
+      selection.exit().remove(); visibleVertexRows = data;
+    }
     const allVertices = layer.selectAll('circle.vertex-handle');
     allVertices
       .attr('r', boundaryMode ? (editing.isMobile?.() ? 7.2 : 5.2) : 4.5)
@@ -1015,7 +1045,7 @@ export function createRenderingDomain({
       .classed('shared-boundary-vertex', d => boundaryMode && d.boundaryKind === 'shared')
       .classed('fixed-boundary-vertex', d => boundaryMode && d.fixed)
       .attr('transform', d => {
-        const point = frameProjectCoordinate(d.coord, frameContext, editing.activeProjection?.());
+        const point = points.get(d);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
     const eventVertices = handlesChanged ? allVertices : enteredVertices;
@@ -1146,7 +1176,7 @@ export function createRenderingDomain({
     );
   };
   const invalidateLabels = reason => invalidate(
-    MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.VIEW_PRESENTATION | MAP_RENDER_DIRTY.LAYER_TREE,
+    MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.VIEW_PRESENTATION,
     reason || 'labels',
   );
   const beginInteraction = reason => {
@@ -1798,6 +1828,7 @@ export function createRenderingDomain({
     return generation;
   };
   const getStats = () => Object.freeze({
+    uploads: uploadScheduler.getStats(),
     ...stats,
     ...(coordinator?.getStats?.() || {}),
     projectGeneration: projectDomain?.getGeneration?.() || 0,
@@ -1810,6 +1841,8 @@ export function createRenderingDomain({
     hasEditingDomain: typeof getEditingRenderPacket === 'function',
   });
   const dispose = () => {
+    uploadListeners.forEach(remove => remove());
+    uploadScheduler.dispose();
     pendingVisualFrames.clear();
     gpuMapRenderer?.setFramePresentationListener?.(null);
     disposed = true;
@@ -1947,6 +1980,7 @@ export function createRenderingDomain({
     stats.labelCommittedFrameId = Number(frame.frameId || 0);
     stats.overlayCommittedFrameId = Number(frame.frameId || 0);
     pendingVisualFrames.delete(Number(frame.frameId));
+    gpuMapRenderer?.commitVisualFrame?.(frame);
     return true;
   };
   const presentCanvasVisualFrame = result => {

@@ -13,6 +13,7 @@ const {
 const DATA_CACHE_PREFIX = 'pandolab-data-';
 const { decodeCountryMesh } = await import(`../modules/country-mesh-codec.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const { prepareCountryStroke, countryStrokeTransferables } = await import(`../modules/country-stroke-preparation.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+const { prepareMeshSpatialBlocks, spatialBlockTransferables } = await import(`../modules/mesh-spatial-blocks.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 let canonicalCountryIds = [];
 const DATA_CACHE_NAME = `${DATA_CACHE_PREFIX}${DATA_REVISION}`;
 const LEGACY_CORE_CACHE_PREFIX = 'pandolab-core-';
@@ -412,11 +413,17 @@ async function loadMesh() {
     const result = await loadMeshAsset(manifest.assets.canonicalMesh, 'mesh', 'mesh', '고화질 GPU 메시', meshAbortController.signal);
     if (meshCancelled) return;
     const meshBuffer = result.buffer;
-    const preparedStroke = prepareCountryStroke(decodeCountryMesh(meshBuffer, canonicalCountryIds).mesh, canonicalCountryIds);
+    const decodedMesh = decodeCountryMesh(meshBuffer, canonicalCountryIds).mesh;
+    // Stroke joins depend on original edge order; spatial line order is only for GL_LINES.
+    const preparedStroke = prepareCountryStroke(decodedMesh, canonicalCountryIds);
+    const originalTriangles = decodedMesh.triangleIndices, originalLines = decodedMesh.lineIndices;
+    prepareMeshSpatialBlocks(decodedMesh);
+    originalTriangles.set(decodedMesh.triangleIndices); originalLines.set(decodedMesh.lineIndices);
+    const spatialBlocks = decodedMesh.spatialBlocks;
     if (meshCancelled) return;
     meshReady = true;
     self.postMessage({
-      type: 'mesh-ready', buildId: APP_VERSION, meshBuffer, preparedStroke,
+      type: 'mesh-ready', buildId: APP_VERSION, meshBuffer, preparedStroke, spatialBlocks,
       postedEpochMs: performance.timeOrigin + performance.now(),
       metrics: {
         policy: loadPolicy,
@@ -425,7 +432,7 @@ async function loadMesh() {
         decodedBytes: result.decodedBytes,
         assets: { mesh: assetMetrics(result) },
       },
-    }, [meshBuffer, ...countryStrokeTransferables(preparedStroke)]);
+    }, [meshBuffer, ...countryStrokeTransferables(preparedStroke), ...spatialBlockTransferables(decodedMesh)]);
     if (geometryReady) cleanupOldCoreCaches();
   } catch (error) {
     if (error?.name !== 'AbortError' && !meshCancelled) {

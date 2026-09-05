@@ -13,6 +13,7 @@ if (assetRevision) {
 importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', meshCoreUrl.href, rpcHostUrl.href);
 
 const strokePreparation = import(`../modules/country-stroke-preparation.js?v=${encodeURIComponent(assetRevision)}`);
+const blockPreparation = import(`../modules/mesh-spatial-blocks.js?v=${encodeURIComponent(assetRevision)}`);
 async function buildMesh(features) {
   const mesh = self.PandoLabGpuMeshCore.buildGpuMeshFeatures(
     features || [],
@@ -20,7 +21,9 @@ async function buildMesh(features) {
     { validate: false },
   );
   const { prepareCountryStroke } = await strokePreparation;
+  const { prepareMeshSpatialBlocks } = await blockPreparation;
   mesh.preparedStroke = prepareCountryStroke(mesh, (features || []).map((feature, index) => String(feature.id || index)));
+  prepareMeshSpatialBlocks(mesh);
   return mesh;
 }
 
@@ -37,6 +40,7 @@ function meshTransferables(mesh) {
     mesh.countryBoundsFlags.buffer,
     mesh.preparedStroke.instances.buffer,
     mesh.preparedStroke.nodes.buffer,
+    ...Object.values(mesh.spatialBlocks).filter(value => value && typeof value === 'object').flatMap(tree => Object.values(tree).map(array => array.buffer)),
   ];
 }
 

@@ -500,7 +500,7 @@
         ? Math.max(0, performance.timeOrigin + performance.now() - Number(data.postedEpochMs))
         : null;
       startupGate.queue('apply-mesh', () => {
-        resolveMesh({ meshBuffer: data.meshBuffer, preparedStroke: data.preparedStroke, metrics: data.metrics || null });
+        resolveMesh({ meshBuffer: data.meshBuffer, preparedStroke: data.preparedStroke, spatialBlocks: data.spatialBlocks, metrics: data.metrics || null });
       }, { queuedState: 'mesh-ready', runningState: 'mesh-ready' });
       return;
     }

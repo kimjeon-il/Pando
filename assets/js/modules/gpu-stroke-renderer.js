@@ -160,19 +160,19 @@ function bevelProgramSources(version) {
   return { vertex, fragment };
 }
 
-function createPrograms(device) {
+function createPrograms(device, only = null) {
   const segmentSources = segmentProgramSources(device.version);
   const roundSources = roundProgramSources(device.version);
   const bevelSources = bevelProgramSources(device.version);
   const viewUniforms = GPU_VIEW_UNIFORM_NAMES;
   return Object.freeze({
-    segment: linkProgram(device, segmentSources.vertex, segmentSources.fragment,
+    segment: (!only || only === 'segment') && linkProgram(device, segmentSources.vertex, segmentSources.fragment,
       ['aCorner', 'aPrevious', 'aSegment', 'aNext', 'aMeta'],
       [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uJoinMode', 'uMiterLimit', 'uDash', 'uColor']),
-    round: linkProgram(device, roundSources.vertex, roundSources.fragment,
+    round: (!only || only === 'round') && linkProgram(device, roundSources.vertex, roundSources.fragment,
       ['aCorner', 'aNodePrevious', 'aNodePoint', 'aNodeNext', 'aNodeMeta'],
       [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uJoinMode', 'uRoundCap', 'uColor']),
-    bevel: linkProgram(device, bevelSources.vertex, bevelSources.fragment,
+    bevel: (!only || only === 'bevel') && linkProgram(device, bevelSources.vertex, bevelSources.fragment,
       ['aVertexId', 'aNodePrevious', 'aNodePoint', 'aNodeNext', 'aNodeMeta'],
       [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uColor']),
   });
@@ -204,25 +204,31 @@ function joinModeValue(join) {
 }
 
 export function createGpuStrokeRenderer({ onError = null, onResourceReady = null, isInputActive = () => false, getUploadBudget = () => 4 * 1024 * 1024, aaRadiusPx = DEFAULT_AA_RADIUS_PX } = {}) {
+  let uploadScheduler = null;
   const pendingUploads = new Map();
-  let uploadFrame = 0;
   const scheduleUpload = () => {
-    if (!uploadFrame && pendingUploads.size) uploadFrame = globalThis.requestAnimationFrame?.(drainUploads) || 0;
+    if (uploadScheduler) {
+      if (!pendingUploads.size) return;
+      void uploadScheduler.enqueueUpload({ key: 'stroke-prepared', priority: 60, step: ({ byteBudget }) => {
+        const before = uploadBytes;
+        drainUploads(byteBudget);
+        return { bytes: uploadBytes - before, done: !pendingUploads.size };
+      } }).catch(error => { if (error.name !== 'AbortError') onError?.({ stage: 'stroke-upload', error }); });
+      return;
+    }
+    if (pendingUploads.size) throw new Error('Prepared stroke uploads require the shared upload scheduler');
   };
   const cancelUploads = () => {
-    if (uploadFrame) globalThis.cancelAnimationFrame?.(uploadFrame);
-    uploadFrame = 0;
     if (gl && !gl.isContextLost?.()) for (const job of pendingUploads.values()) {
       for (const buffer of job.buffers) if (buffer) gl.deleteBuffer(buffer);
     }
     pendingUploads.clear();
   };
-  function drainUploads() {
-    uploadFrame = 0;
+  function drainUploads(byteLimit = Infinity) {
     if (!gl || contextLost) return;
     if (isInputActive() || globalThis.document?.hidden || globalThis.navigator?.scheduling?.isInputPending?.()) return scheduleUpload();
     const started = performance.now();
-    let budget = Math.max(64 * 1024, Number(getUploadBudget()) || 4 * 1024 * 1024);
+    let budget = Math.min(byteLimit, Math.max(64 * 1024, Number(getUploadBudget()) || 4 * 1024 * 1024));
     const savedBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
     try {
       for (const [key, job] of pendingUploads) {
@@ -234,6 +240,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
             if (!job.buffers[job.part]) throw new Error('stroke staging allocation failed');
             gl.bindBuffer(gl.ARRAY_BUFFER, job.buffers[job.part]);
             gl.bufferData(gl.ARRAY_BUFFER, data.byteLength, gl.STATIC_DRAW);
+            return; // Allocation is an indivisible driver call; upload on a later step.
           } else gl.bindBuffer(gl.ARRAY_BUFFER, job.buffers[job.part]);
           const bytes = Math.min(budget, 512 * 1024, data.byteLength - job.offset);
           gl.bufferSubData(gl.ARRAY_BUFFER, job.offset, new Uint8Array(data.buffer, data.byteOffset + job.offset, bytes));
@@ -576,14 +583,14 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     }
   }
 
-  function initialize(nextDevice) {
+  function initialize(nextDevice, preparedPrograms = null) {
     dispose();
     if (!isRenderDevice(nextDevice) || !nextDevice.capabilities.instancing) return false;
     device = nextDevice;
     gl = nextDevice.gl;
     instancing = nextDevice.version === 2 ? gl : gl.getExtension('ANGLE_instanced_arrays');
     try {
-      programs = createPrograms(nextDevice);
+      programs = preparedPrograms || createPrograms(nextDevice);
       segmentCornerBuffer = createBuffer(SEGMENT_CORNERS);
       roundCornerBuffer = createBuffer(ROUND_NODE_CORNERS);
       bevelVertexBuffer = createBuffer(BEVEL_VERTEX_IDS);
@@ -620,11 +627,12 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       resourceBudget.touch(key, packet?.priority);
       return { resource: previous, reason: '' };
     }
-    if (packet.preparedGeometry) {
+    if (packet.preparedGeometry || uploadScheduler) {
       const pending = pendingUploads.get(key);
       if (pending?.signature !== signature) {
         if (pending) for (const buffer of pending.buffers) if (buffer) gl.deleteBuffer(buffer);
-        pendingUploads.set(key, { signature, geometry: packet.preparedGeometry, priority: packet.priority, part: 0, offset: 0, buffers: [null, null] });
+        const geometry = packet.preparedGeometry || buildGpuStrokeInstances(packet.startsEnds, packet.chainPhase, packet.ownerRanges);
+        pendingUploads.set(key, { signature, geometry, priority: packet.priority, part: 0, offset: 0, buffers: [null, null] });
       }
       scheduleUpload();
       return { resource: null, reason: 'upload-pending' };
@@ -771,6 +779,19 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     ensureResource,
     cancelPendingUploads: cancelUploads,
     drawBatches,
+    setUploadScheduler: scheduler => { uploadScheduler = scheduler; },
+    async initializeProgressively(nextDevice, enqueue) {
+      const prepared = {};
+      try {
+        for (const name of ['segment', 'round', 'bevel']) {
+          prepared[name] = await enqueue('stroke-' + name, () => createPrograms(nextDevice, name)[name]);
+        }
+        return await enqueue('stroke-ready', () => initialize(nextDevice, prepared));
+      } catch (error) {
+        for (const info of Object.values(prepared)) nextDevice.gl.deleteProgram(info.program);
+        throw error;
+      }
+    },
     retain,
     setByteBudget,
     handleContextLost,
