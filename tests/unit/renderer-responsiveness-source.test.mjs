@@ -55,6 +55,15 @@ test('hydro and terrain use bounded interaction-aware upload budgets', () => {
   assert.ok(source.includes("hydroWorker?.postMessage({ type: 'interaction', active: interactionActive });"));
 });
 
+test('physical data and visibility changes invalidate the cached base scene', () => {
+  const source = read('assets/js/modules/gpu-map-renderer.js');
+  assert.match(source, /function invalidatePhysicalScene\([\s\S]*?sceneColorCache\.invalidate\(reason\);[\s\S]*?invalidateGpuFrame\(reason\);/);
+  assert.match(source, /function setTerrainManifest\([\s\S]*?invalidatePhysicalScene\('terrain-manifest'\);/);
+  assert.match(source, /function invalidateHydroVisibility\([\s\S]*?queueHydroRender\('hydro-visibility'\);/);
+  assert.match(source, /function queueHydroRender\([\s\S]*?invalidatePhysicalScene\(reason\);/);
+  assert.match(source, /completeTerrainLevelForFrame[\s\S]*?invalidatePhysicalScene\('terrain-level-ready'\);/);
+});
+
 test('Canvas Worker persists independently revisioned view and style state', () => {
   const renderer = read('assets/js/modules/gpu-map-renderer.js');
   const worker = read('assets/js/workers/canvas-render-worker.js');

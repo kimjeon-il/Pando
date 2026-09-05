@@ -669,6 +669,13 @@ export function createGpuMapRenderer(deps) {
       return invalidateGpuFrame(reason);
     }
 
+    function invalidatePhysicalScene(reason = 'physical-scene') {
+      lastBaseSceneResult = null;
+      sceneColorCache.invalidate(reason);
+      if (rendererMode !== 'pending') return invalidateGpuFrame(reason);
+      return false;
+    }
+
     function resolveRenderPixelRatio() {
       effectivePixelRatio = resolveRenderPixelRatioValue(window.devicePixelRatio, isMobile(), renderQuality.dprCap);
       return effectivePixelRatio;
@@ -2716,7 +2723,7 @@ export function createGpuMapRenderer(deps) {
       hydroEditRevision = nextRevision;
       hydroVisibilityDirty = true;
       if (rendererMode === 'canvas-worker' && canvasWorker) postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: features || [] });
-      if (rendererMode !== 'pending') invalidateGpuFrame('hydro-edit-data');
+      invalidatePhysicalScene('hydro-edit-data');
       return true;
     }
 
@@ -2857,7 +2864,7 @@ export function createGpuMapRenderer(deps) {
         if (next) {
           next.uploadQueued = false;
           uploadHydroPack(next);
-          if (next.resources) invalidateGpuFrame('hydro-upload-ready');
+          if (next.resources) queueHydroRender('hydro-upload-ready');
           else scheduleHydroUpload(next);
         }
         if (hydroUploadQueue.length) {
@@ -2938,11 +2945,11 @@ export function createGpuMapRenderer(deps) {
     }
 
     let hydroRenderFrame = 0;
-    function queueHydroRender() {
+    function queueHydroRender(reason = 'hydro-ready') {
       if (hydroRenderFrame) return;
       hydroRenderFrame = requestAnimationFrame(() => {
         hydroRenderFrame = 0;
-        invalidateGpuFrame('hydro-ready');
+        invalidatePhysicalScene(reason);
       });
     }
 
@@ -3288,6 +3295,7 @@ export function createGpuMapRenderer(deps) {
       if (hydroUploadFrame) cancelAnimationFrame(hydroUploadFrame);
       hydroUploadFrame = 0;
       hydroVisibilityDirty = true;
+      invalidatePhysicalScene('hydro-manifest');
       for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
       hydroPacks.clear();
       for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
@@ -3378,12 +3386,12 @@ export function createGpuMapRenderer(deps) {
     function invalidateHydroVisibility() {
       hydroVisibilityDirty = true;
       physicalStyleStateRevision += 1;
-      queueHydroRender();
+      queueHydroRender('hydro-visibility');
     }
 
     function invalidatePhysicalStyle(reason = 'physical-style') {
       physicalStyleStateRevision += 1;
-      if (rendererMode !== 'pending') invalidateGpuFrame(reason);
+      invalidatePhysicalScene(reason);
       return true;
     }
 
@@ -3575,7 +3583,7 @@ export function createGpuMapRenderer(deps) {
         // caused a redundant base-scene draw (especially costly on mobile).
         const readyLevel = uploaded ? completeTerrainLevelForFrame(activeFrameContext)?.level : null;
         if (readyLevel && Number(readyLevel.id) !== terrainRenderedLevel) {
-          invalidateGpuFrame('terrain-level-ready');
+          invalidatePhysicalScene('terrain-level-ready');
         }
         if (terrainUploadQueue.length) scheduleTerrainUpload();
       });
@@ -3822,6 +3830,8 @@ export function createGpuMapRenderer(deps) {
     function drawBaseSceneContent() {
       if (!gl || !mesh || !activeFrameContext || projectRenderBlocked) return false;
       gl.viewport(0, 0, pixelWidth, pixelHeight);
+      gl.disable(gl.SCISSOR_TEST);
+      gl.colorMask(true, true, true, true);
       gl.clearColor(0, 0, 0, 0);
       gl.clearStencil(0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
@@ -4922,7 +4932,7 @@ export function createGpuMapRenderer(deps) {
       if (terrainManifest && isWebGlRenderer()) {
         for (const spec of visibleTerrainTileSpecs(terrainManifest.levels[0], false)) requestTerrainTile(spec, 10_000);
       }
-      invalidateGpuFrame('terrain-manifest');
+      invalidatePhysicalScene('terrain-manifest');
     }
 
     function publishLightweightMetrics() {

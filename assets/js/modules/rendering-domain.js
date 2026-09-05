@@ -873,16 +873,26 @@ export function createRenderingDomain({
     }) });
     return true;
   };
-  const renderBase = (viewState = null) => {
+  const syncBaseView = (viewState = null) => {
     active();
     const b = base;
     b.updatePandoGlobeShell?.(viewState);
-    const graticuleGeometry = b.graticule?.();
-    if (!graticuleGeometry || !b.graticuleLayer) return false;
     const renderer = b.gpuMapRenderer?.getRuntimeState?.()?.renderer;
     const gpuOwnsGraticule = renderer === 'webgl2' || renderer === 'webgl1';
-    b.graticuleLayer.attr('display', gpuOwnsGraticule ? 'none' : null)
-      .datum(graticuleGeometry).attr('d', b.path).attr('data-gpu-scene-key', 'base:graticule');
+    b.graticuleLayer?.attr('display', gpuOwnsGraticule ? 'none' : null);
+    if (!gpuOwnsGraticule) {
+      const fallbackGeometry = b.graticule?.();
+      if (fallbackGeometry && b.graticuleLayer) {
+        b.graticuleLayer.datum(fallbackGeometry).attr('d', b.path).attr('data-gpu-scene-key', 'base:graticule');
+      }
+    }
+    return true;
+  };
+  const renderBase = (viewState = null) => {
+    syncBaseView(viewState);
+    const b = base;
+    const graticuleGeometry = b.graticule?.();
+    if (!graticuleGeometry) return false;
     const light = b.isLightTheme?.() ?? true;
     b.replaceGpuSceneDomain?.('base-graticule', { strokes: [{
       key: 'base:graticule', geometryRevision: `${b.getProjection?.() || 'unknown'}:graticule-v2`,
@@ -1920,7 +1930,10 @@ export function createRenderingDomain({
     onFrameComplete,
     renderers: {
       beginFrame,
-      view: (...args) => renderPass('view', ...args),
+      view: (...args) => {
+        syncBaseView(args[0]);
+        return renderPass('view', ...args);
+      },
       base: renderBase,
       countries: renderCountries,
       gpuInteraction: renderGpuInteraction,

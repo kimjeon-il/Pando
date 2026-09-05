@@ -2809,6 +2809,23 @@ const {
     '.layer-folder input[type="checkbox"]', '#labelsVisible', '#basemapLabelsVisible',
   ].join(',');
 
+  const READINESS_INDEPENDENT_CONTROL_SELECTOR = [
+    '.layer-visibility-toggle',
+    '.layer-style-toggle',
+    '[data-layer-style-opacity]',
+    '[data-layer-style-boundary]',
+    '[data-layer-style-blend-mode]',
+    '#terrainVisible',
+    'input[name="terrainStyle"]',
+    '#terrainStrengthInput',
+    '#labelsVisible',
+    '#basemapLabelsVisible',
+  ].join(',');
+
+  function isReadinessIndependentControl(element) {
+    return !!element?.matches?.(READINESS_INDEPENDENT_CONTROL_SELECTOR);
+  }
+
   function syncLayerVisibilityToggle(input) {
     if (!input?.classList?.contains('layer-visibility-toggle')) return;
     const label = input.dataset.visibilityLabel || '레이어';
@@ -2824,6 +2841,7 @@ const {
     $('app')?.setAttribute('data-readiness', state.dataReadiness);
     document.body.dataset.mapReadiness = state.dataReadiness;
     for (const element of document.querySelectorAll(CANONICAL_CONTROL_SELECTOR)) {
+      if (isReadinessIndependentControl(element)) continue;
       if (unavailable) {
         if (!Object.hasOwn(element.dataset, 'readinessDisabled')) {
           element.dataset.readinessDisabled = String('disabled' in element && element.disabled);
@@ -2868,7 +2886,7 @@ const {
   function blockUnavailableCanonicalAction(event) {
     if (canMutateProject(state.dataReadiness)) return;
     const target = event.target instanceof window.Element ? event.target.closest(CANONICAL_CONTROL_SELECTOR) : null;
-    if (!target) return;
+    if (!target || isReadinessIndependentControl(target)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     requireCanonicalData();
@@ -15234,10 +15252,7 @@ const {
         ? 'throw'
         : 'report',
       renderers: {
-        view: viewState => {
-          updatePandoGlobeShell(viewState);
-          return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState);
-        },
+        view: viewState => gpuMapRenderer.render(viewState?.revision || viewRevision, viewState),
         stackOverlays: applyOverlayStackOrder,
         labelLayout: visibleLabelLayout,
         debug: renderDebugMapPanel,

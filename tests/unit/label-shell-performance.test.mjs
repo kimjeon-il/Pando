@@ -21,6 +21,9 @@ test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere p
   assert.doesNotMatch(shell, /Sphere|\.attr\('d'|\bpath\b/);
   assert.match(app, /append\('circle'\)\.attr\('class', 'map-ocean map-ocean-globe'\)/);
   assert.match(app, /append\('circle'\)\.attr\('class', 'globe-shadow'\)/);
+  assert.match(rendering, /const syncBaseView = \(viewState = null\) =>/);
+  assert.match(rendering, /b\.graticuleLayer\?\.attr\('display', gpuOwnsGraticule \? 'none' : null\)/);
+  assert.match(rendering, /view: \(\.\.\.args\) => \{\s*syncBaseView\(args\[0\]\);/);
 });
 
 test('label positioning is coalesced and each production label projection has one entry point', () => {
