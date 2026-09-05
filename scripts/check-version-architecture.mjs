@@ -81,8 +81,8 @@ if (EXCHANGE_TARGET_DESCRIPTORS.generic?.fallback !== true) fail('Generic exchan
 const importPlan = read('assets/js/modules/import-plan.js');
 if (!importPlan.includes("from './exchange-adapter-registry.js'")) fail('import-plan must derive canonical targets from exchange-adapter-registry.js');
 const importService = read('assets/js/modules/import-service.js');
-if (!importService.includes('createExchangeAdapterRegistry')) fail('import-service must dispatch ordinary imports through the exchange adapter registry');
-if (!importService.includes('exchangeRegistry: adapters')) fail('import-service must expose its exchange registry for diagnostics/tests');
+if (!importService.includes('exchangeRegistry = null')) fail('import-service must accept the wizard exchange registry boundary');
+if (!importService.includes('Object.freeze({ openFiles, exchangeRegistry })')) fail('import-service must expose its injected exchange registry for diagnostics/tests');
 
 if (!fs.existsSync(path.join(root, 'docs/architecture/versioning-migrations-exchange.md'))) {
   fail('versioning/migration/exchange architecture documentation is missing');
