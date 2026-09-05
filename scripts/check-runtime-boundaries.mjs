@@ -123,8 +123,8 @@ for (const file of javascriptFiles) {
 
 const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
 const appLogicalLineCount = appSource.split(/\r?\n/).filter(line => line.trim()).length;
-if (appLogicalLineCount > 14500) {
-  throw new Error(`app.js logical line ratchet exceeded: ${appLogicalLineCount} > 14500`);
+if (appLogicalLineCount > 14100) {
+  throw new Error(`app.js logical line ratchet exceeded: ${appLogicalLineCount} > 14100`);
 }
 const bootstrapSource = fs.readFileSync(path.join(root, 'assets/js/bootstrap.js'), 'utf8');
 if (appSource.includes("worker.postMessage({ type: 'execute'")) {
@@ -420,17 +420,23 @@ for (const [source, methods] of removedDomainFacadeMethods) {
     }
   }
 }
-if (!appSource.includes("window.addEventListener('pagehide'")) {
-  throw new Error('app.js must own the common domain dispose lifecycle');
+const lifecycleSource = sourceByFile.get(path.join(modulesDirectory, 'application-lifecycle.js')) || '';
+if (!appSource.includes('createApplicationLifecycle({') || !appSource.includes('void lifecycle.start();')) {
+  throw new Error('app.js must start through the application composition root');
 }
-if (!appSource.includes('if (!event.persisted) disposeDomainBoundaries();')) {
+if (!lifecycleSource.includes('if (!event.persisted) dispose();')) {
   throw new Error('domain disposal must preserve pages retained in the back-forward cache');
 }
-if (!appSource.includes('for (const domain of [renderingDomain, editingDomain, selectionDomain, gisDomain, projectDomain])')) {
+if (!appSource.includes('renderingDomain, editingDomain, selectionDomain, gisWorkflow, gisDomain, projectDomain]')) {
   throw new Error('app.js must dispose every domain in visual-to-data ownership order');
 }
-if (!appSource.includes('domain?.dispose?.()')) {
-  throw new Error('app.js common domain lifecycle does not invoke dispose');
+if (!lifecycleSource.includes('resource?.dispose?.()')) {
+  throw new Error('application lifecycle does not invoke dispose');
+}
+for (const name of ['bindEditorFields', 'bindChangeFields', 'handleUndoRequest', 'handleRedoRequest', 'syncProjectSaveStatus', 'updateHistoryButtons', 'requestNewProject', 'beginMapMovement', 'finishMapMovement', 'bindMapInputPresentation', 'ensureGisServices', 'gisImportCountryOptions', 'planCountryImportIdentity', 'renderDebugMapPanel', 'installRenderDebugFacade', 'installViewDebugFacade', 'disposeDomainBoundaries']) {
+  if (new RegExp(`function\\s+${name}\\b`).test(appSource)) {
+    throw new Error(`app.js reintroduced an extracted UI/composition implementation: ${name}`);
+  }
 }
 
 // SelectionDomain.remove remains integration debt until its final caller is migrated or deleted.

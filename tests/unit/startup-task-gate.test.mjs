@@ -30,6 +30,20 @@ function createClock() {
   return { advance, clearTimer, now: () => current, setTimer };
 }
 
+test('mesh stage waits a fresh quiet window after geometry application', async () => {
+  const clock = createClock();
+  const gate = createStartupTaskGate({ now: clock.now, setTimer: clock.setTimer, clearTimer: clock.clearTimer, requestIdleCallback: null, isInputPending: () => false, isDocumentHidden: () => false });
+  gate.markInteractivePaint();
+  await clock.advance(1000);
+  let started = 0;
+  gate.queue('mesh', () => { started += 1; }, { quietAfterQueue: true });
+  await clock.advance(499);
+  assert.equal(started, 0);
+  await clock.advance(1);
+  assert.equal(started, 1);
+  gate.dispose();
+});
+
 test('canonical work waits for paint and a complete quiet window', async () => {
   const clock = createClock();
   const calls = [];

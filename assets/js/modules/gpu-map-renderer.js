@@ -1,3 +1,4 @@
+import { decodeCountryMesh } from './country-mesh-codec.js';
 import { createRenderDevice } from './render-device.js';
 import { createSceneColorCache } from './scene-color-cache.js';
 import { createGpuPolygonOverlayPass } from './gpu-polygon-overlay-pass.js';
@@ -169,6 +170,24 @@ function globeBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels
     && screenY - radiusPixels <= height;
 }
 
+const countryVisibilityFrames = new WeakMap();
+function countryVisibilityForFrame(sourceMesh, frameContext, paddingPixels, countryCount) {
+  let meshes = countryVisibilityFrames.get(frameContext);
+  if (!meshes) countryVisibilityFrames.set(frameContext, meshes = new WeakMap());
+  let cached = meshes.get(sourceMesh);
+  if (cached?.paddingPixels === paddingPixels) return cached.visible;
+  const visible = new Uint8Array(countryCount);
+  for (let i = 0; i < countryCount; i += 1) {
+    const bounds = Array.from(sourceMesh.countryBounds.subarray(i * 4, i * 4 + 4), value => value * COUNTRY_BOUNDS_SCALE);
+    const flags = Number(sourceMesh.countryBoundsFlags[i] || 0);
+    visible[i] = frameContext.mode === 0
+      ? globeBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels)
+      : flatBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels);
+  }
+  meshes.set(sourceMesh, { paddingPixels, visible });
+  return visible;
+}
+
 export function countryDrawRangesForFrame(sourceMesh, frameContext, {
   kind = 'triangle',
   paddingPixels = COUNTRY_CULLING_PADDING_PIXELS,
@@ -195,13 +214,13 @@ export function countryDrawRangesForFrame(sourceMesh, frameContext, {
   const width = Math.max(1, Number(frameContext.cssViewport?.[0] || 0));
   const height = Math.max(1, Number(frameContext.cssViewport?.[1] || 0));
   const scale = Math.abs(Number(frameContext.cssScale || 0));
-  const worldVisible = frameContext.mode === 0
-    ? scale * 2 <= Math.min(width, height) + paddingPixels * 2
-    : scale * 2 * Math.PI <= width + paddingPixels * 2 && scale * Math.PI <= height + paddingPixels * 2;
+  const worldVisible = frameContext.mode !== 0
+    && scale * 2 * Math.PI <= width + paddingPixels * 2 && scale * Math.PI <= height + paddingPixels * 2;
   if (worldVisible && typeof includeCountry !== 'function') {
     return { ranges: fullRanges, culled: false, visibleCountryCount: countryCount, indexCount, fullIndexCount: indexCount, fallback: false };
   }
   const candidates = [];
+  const visibility = countryVisibilityForFrame(sourceMesh, frameContext, paddingPixels, countryCount);
   let visibleCountryCount = 0;
   for (let countryIndex = 0; countryIndex < countryCount; countryIndex += 1) {
     const countryId = String(countryIds?.[countryIndex] ?? countryIndex);
@@ -211,18 +230,15 @@ export function countryDrawRangesForFrame(sourceMesh, frameContext, {
       count: Number(rangeData[countryIndex * 2 + 1] || 0),
     };
     if (!range.count) continue;
-    const bounds = Array.from(boundsData.subarray(countryIndex * 4, countryIndex * 4 + 4), value => value * COUNTRY_BOUNDS_SCALE);
-    const flags = Number(flagsData[countryIndex] || 0);
-    const visible = frameContext.mode === 0
-      ? globeBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels)
-      : flatBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels);
-    if (!visible) continue;
+    if (!visibility[countryIndex]) continue;
     visibleCountryCount += 1;
     candidates.push(range);
   }
   const merged = mergeCountryDrawRanges(candidates);
   const visibleIndexCount = merged.reduce((sum, range) => sum + range.count, 0);
-  if (visibleIndexCount >= indexCount * Math.max(0, Number(fullRangeThreshold) || 0) || merged.length > Math.max(1, Number(maxRanges) || 1)) {
+  // A globe's conservative country bounds often retain most indices. Do not
+  // undo its rear-hemisphere rejection merely because that fraction is high.
+  if ((frameContext.mode !== 0 && visibleIndexCount >= indexCount * Math.max(0, Number(fullRangeThreshold) || 0)) || merged.length > Math.max(1, Number(maxRanges) || 1)) {
     return { ranges: fullRanges, culled: false, visibleCountryCount, indexCount, fullIndexCount: indexCount, fallback: true };
   }
   return { ranges: merged, culled: true, visibleCountryCount, indexCount: visibleIndexCount, fullIndexCount: indexCount, fallback: false };
@@ -388,6 +404,9 @@ export function createGpuMapRenderer(deps) {
       onError: payload => console.warn(`[${payload?.stage || 'gpu-polygon-overlay'}]`, payload?.error || payload),
     });
     const strokeRenderer = createGpuStrokeRenderer({
+      isInputActive: () => interactionActive,
+      getUploadBudget: () => renderQuality.uploadBudgetBytes,
+      onResourceReady: () => scheduleGpuInteractionFrame?.('country-stroke-ready'),
       onError: payload => console.warn(`[${payload?.stage || 'gpu-stroke'}]`, payload?.error || payload),
     });
     let sceneCacheFallbackFrame = false;
@@ -1927,6 +1946,7 @@ export function createGpuMapRenderer(deps) {
       lastBaseSceneResult = null;
       lastSceneFrameContext = null;
       selectionPass?.clear?.();
+      strokeRenderer.cancelPendingUploads();
       countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set() };
       countryEmphasisRevision += 1;
       markPaletteDirty({ emphasis: true });
@@ -1965,67 +1985,17 @@ export function createGpuMapRenderer(deps) {
       return projectGeneration;
     }
 
-    async function decodeBuiltInMesh(rawBuffer = null, features = null) {
+    async function decodeBuiltInMesh(rawBuffer = null, features = null, preparedStroke = null) {
       const buffer = rawBuffer || window.PANDOLAB_GPU_MESH_BUFFER;
-      if (!(buffer instanceof ArrayBuffer)) throw new Error('외부 GPU 메시가 준비되지 않았습니다.');
-      if (!rawBuffer) window.PANDOLAB_GPU_MESH_BUFFER = null;
-      const prefix = new Uint32Array(buffer, 0, 8);
-      const formatVersion = Number(prefix[1]);
-      const headerWords = formatVersion >= 2 ? 12 : 8;
-      const header = new Uint32Array(buffer, 0, headerWords);
-      if (header[0] !== 0x434d4731 || ![1, 2].includes(formatVersion) || header[2] !== 258 || header[6] < 1 || header[7] !== 3) {
-        throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
+      const ids = (features || window.PANDOLAB_COUNTRIES?.features || []).map((feature, index) => String(feature?.id || index));
+      const decoded = decodeCountryMesh(buffer, ids);
+      decoded.mesh.preparedStroke = preparedStroke || (!rawBuffer ? window.PANDOLAB_GPU_MESH_STROKES : null);
+      if (!decoded.mesh.preparedStroke) throw new Error('국가 stroke Worker 결과가 준비되지 않았습니다.');
+      if (!rawBuffer) {
+        window.PANDOLAB_GPU_MESH_BUFFER = null;
+        window.PANDOLAB_GPU_MESH_STROKES = null;
       }
-      const countryCount = header[2];
-      const vertexCount = header[3];
-      const triangleIndexCount = header[4];
-      const lineIndexCount = header[5];
-      const triangleRangeLength = formatVersion >= 2 ? Number(header[8]) : 0;
-      const boundaryRangeLength = formatVersion >= 2 ? Number(header[9]) : 0;
-      const boundsLength = formatVersion >= 2 ? Number(header[10]) : 0;
-      const boundsFlagsLength = formatVersion >= 2 ? Number(header[11]) : 0;
-      if (formatVersion >= 2 && (
-        triangleRangeLength !== countryCount * 2
-        || boundaryRangeLength !== countryCount * 2
-        || boundsLength !== countryCount * 4
-        || boundsFlagsLength !== countryCount
-      )) throw new Error('외부 GPU 메시의 국가별 범위 메타데이터가 손상되었습니다.');
-      let offset = headerWords * 4;
-      const positions = new Int32Array(buffer, offset, vertexCount * 2);
-      offset += positions.byteLength;
-      const countryIndices = new Uint16Array(buffer, offset, vertexCount);
-      offset += (countryIndices.byteLength + 3) & ~3;
-      const triangleIndices = new Uint32Array(buffer, offset, triangleIndexCount);
-      offset += triangleIndices.byteLength;
-      const lineIndices = new Uint32Array(buffer, offset, lineIndexCount);
-      offset += lineIndices.byteLength;
-      const countryTriangleRanges = formatVersion >= 2 ? new Uint32Array(buffer, offset, triangleRangeLength) : null;
-      offset += countryTriangleRanges?.byteLength || 0;
-      const countryBoundaryRanges = formatVersion >= 2 ? new Uint32Array(buffer, offset, boundaryRangeLength) : null;
-      offset += countryBoundaryRanges?.byteLength || 0;
-      const countryBounds = formatVersion >= 2 ? new Int32Array(buffer, offset, boundsLength) : null;
-      offset += countryBounds?.byteLength || 0;
-      const countryBoundsFlags = formatVersion >= 2 ? new Uint32Array(buffer, offset, boundsFlagsLength) : null;
-      offset += countryBoundsFlags?.byteLength || 0;
-      if (offset !== buffer.byteLength) throw new Error('외부 GPU 메시의 크기가 헤더와 일치하지 않습니다.');
-      const ids = (features || window.PANDOLAB_COUNTRIES?.features || []).slice(0, countryCount)
-        .map((feature, index) => String(feature?.id || index));
-      return {
-        mesh: {
-          positions,
-          countryIndices,
-          triangleIndices,
-          lineIndices,
-          countryTriangleRanges,
-          countryBoundaryRanges,
-          countryBounds,
-          countryBoundsFlags,
-          metadataCountryIds: ids,
-        },
-        ids,
-        sourceCoordinateCount: header[6],
-        buffer,
-      };
+      return decoded;
     }
 
     function createWorker() {
@@ -3662,53 +3632,17 @@ export function createGpuMapRenderer(deps) {
       if (!sourceMesh?.lineIndices?.length || !sourceMesh?.positions?.length || !sourceMesh?.countryIndices?.length) return null;
       const cache = countryStrokePacketCache[sourceName];
       if (cache.mesh === sourceMesh && cache.countryIds === countryIds && cache.revision === revision) return cache.resource;
-      let startsEnds = sourceMesh.strokeStartsEnds;
-      let ownerRanges = sourceMesh.strokeOwnerRanges;
-      if (!(startsEnds instanceof Float32Array) || !ownerRanges) {
-        const counts = new Map();
-        for (let offset = 0; offset + 1 < sourceMesh.lineIndices.length; offset += 2) {
-          const startIndex = Number(sourceMesh.lineIndices[offset]);
-          const countryIndex = Number(sourceMesh.countryIndices[startIndex]);
-          const id = String(countryIds?.[countryIndex] || '');
-          if (id) counts.set(id, (counts.get(id) || 0) + 1);
-        }
-        const ownerIds = [...counts.keys()].sort((left, right) => countryIds.indexOf(left) - countryIds.indexOf(right));
-        ownerRanges = {};
-        const cursorByOwner = new Map();
-        let segmentOffset = 0;
-        for (const id of ownerIds) {
-          ownerRanges[id] = { first: segmentOffset, count: counts.get(id) || 0 };
-          cursorByOwner.set(id, segmentOffset);
-          segmentOffset += counts.get(id) || 0;
-        }
-        startsEnds = new Float32Array(segmentOffset * 4);
-        const coordinateScale = sourceMesh.positions instanceof Int32Array
-          || sourceMesh.positions instanceof Uint32Array
-          || Math.max(Math.abs(Number(sourceMesh.positions[0] || 0)), Math.abs(Number(sourceMesh.positions[1] || 0))) > 1000
-          ? 1e-6 : 1;
-        for (let offset = 0; offset + 1 < sourceMesh.lineIndices.length; offset += 2) {
-          const startIndex = Number(sourceMesh.lineIndices[offset]);
-          const endIndex = Number(sourceMesh.lineIndices[offset + 1]);
-          const countryIndex = Number(sourceMesh.countryIndices[startIndex]);
-          const id = String(countryIds?.[countryIndex] || '');
-          if (!cursorByOwner.has(id)) continue;
-          const cursor = cursorByOwner.get(id);
-          const target = cursor * 4;
-          startsEnds[target] = Number(sourceMesh.positions[startIndex * 2]) * coordinateScale;
-          startsEnds[target + 1] = Number(sourceMesh.positions[startIndex * 2 + 1]) * coordinateScale;
-          startsEnds[target + 2] = Number(sourceMesh.positions[endIndex * 2]) * coordinateScale;
-          startsEnds[target + 3] = Number(sourceMesh.positions[endIndex * 2 + 1]) * coordinateScale;
-          cursorByOwner.set(id, cursor + 1);
-        }
-        sourceMesh.strokeStartsEnds = startsEnds;
-        sourceMesh.strokeOwnerRanges = ownerRanges;
-      }
+      const preparedGeometry = sourceMesh.preparedStroke;
+      if (!preparedGeometry) return null;
+      const startsEnds = preparedGeometry.startsEnds;
+      const ownerRanges = preparedGeometry.inputOwnerRanges;
       const ownerIds = Object.entries(ownerRanges)
         .filter(([, range]) => Number(range?.count || 0) > 0)
         .map(([id]) => id);
       const segmentOffset = startsEnds.length / 4;
       const packet = Object.freeze({
         key: `country-boundary:${sourceName}`,
+        preparedGeometry,
         geometryRevision: String(revision),
         startsEnds,
         segmentCount: segmentOffset,
@@ -4708,9 +4642,9 @@ export function createGpuMapRenderer(deps) {
       return false;
     }
 
-    async function replaceBuiltInMesh({ meshBuffer, features, quality = 'canonical', projectGeneration: requestedGeneration = projectGeneration }) {
+    async function replaceBuiltInMesh({ meshBuffer, preparedStroke, features, quality = 'canonical', projectGeneration: requestedGeneration = projectGeneration }) {
       if (Number(requestedGeneration) !== projectGeneration) return false;
-      const decoded = await decodeBuiltInMesh(meshBuffer, features);
+      const decoded = await decodeBuiltInMesh(meshBuffer, features, preparedStroke);
       if (Number(requestedGeneration) !== projectGeneration) return false;
       setMesh(decoded.mesh, decoded.ids, {
         renderFrame: false,

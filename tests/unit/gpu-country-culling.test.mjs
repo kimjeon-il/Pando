@@ -70,12 +70,12 @@ test('globe culling rejects a country wholly behind the current hemisphere', () 
     mode: 0,
     cssViewport: [400, 400],
     cssTranslate: [200, 200],
-    cssScale: 500,
+    cssScale: 100, // The entire globe fits: the rear hemisphere must still be culled.
     rowX: [0, 1, 0],
     rowY: [0, 0, -1],
     rowZ: [1, 0, 0],
     worldOffsets: [0],
-  }, { paddingPixels: 0 });
+  }, { paddingPixels: 0, fullRangeThreshold: 0.1 });
   assert.equal(result.culled, true);
   assert.equal(result.visibleCountryCount, 1);
   assert.deepEqual(result.ranges, [{ first: 0, count: 6 }]);
