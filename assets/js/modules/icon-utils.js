@@ -5,7 +5,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  * the source of truth for the actual paths; this registry only gives callers a
  * stable meaning-to-symbol mapping without duplicating SVG markup.
  */
-export const ICON_REGISTRY = Object.freeze({
+const ICON_REGISTRY = Object.freeze({
   add: 'icon-plus',
   close: 'icon-close',
   check: 'icon-check',
@@ -43,7 +43,7 @@ export const ICON_REGISTRY = Object.freeze({
 });
 
 /** Create a sprite-backed icon without duplicating inline SVG markup. */
-export function createSvgIcon(documentRef, symbolId, className = 'ui-icon') {
+function createSvgIcon(documentRef, symbolId, className = 'ui-icon') {
   const icon = documentRef.createElementNS(SVG_NS, 'svg');
   icon.setAttribute('class', className);
   icon.setAttribute('viewBox', '0 0 24 24');

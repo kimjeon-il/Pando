@@ -11,7 +11,7 @@ function normalizedIdentity(raw = {}) {
   };
 }
 
-export function countryImportIdentity(feature) {
+function countryImportIdentity(feature) {
   const properties = feature?.properties || {};
   const identity = normalizedIdentity(feature?.importIdentity || properties.importIdentity || {
     sourceId: properties.pandolab_id || feature?.id,

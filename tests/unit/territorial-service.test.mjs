@@ -13,13 +13,20 @@ function fixture() {
   }];
   const lockedCountries = new Set();
   const transactions = [];
+  const commandPipeline = {
+    runMutation(meta, mutate, options) {
+      transactions.push({ ...meta, renderDirty: options.renderDirty });
+      const value = mutate();
+      return { ok: true, value };
+    },
+  };
   const repository = {
     get(id) { return [...countries, ...units].find(item => item.id === String(id)) || null; },
     list({ type } = {}) { return [...countries, ...units].filter(item => !type || item.properties.unitType === type); },
   };
   const service = createTerritorialApplicationService({
     repository,
-    runDocumentMutation(meta, mutate) { transactions.push(meta); return mutate(); },
+    commandPipeline,
     countryCommands: {
       isLocked: id => lockedCountries.has(id),
       setLocked(id, value) { if (value) lockedCountries.add(id); else lockedCountries.delete(id); },
@@ -43,6 +50,10 @@ test('territorial service owns metadata transaction and lock enforcement', () =>
   });
   assert.equal(service.get('unit-a').properties.name, 'Changed');
   assert.deepEqual(transactions.map(item => item.type), ['territorial-metadata', 'territorial-lock']);
+  assert.deepEqual(transactions.map(item => item.renderDirty), [
+    { domain: 'territorial', change: 'metadata' },
+    { domain: 'territorial', change: 'metadata' },
+  ]);
 });
 
 test('territorial service routes country commands and replaces units atomically', () => {
@@ -54,5 +65,9 @@ test('territorial service routes country commands and replaces units atomically'
   }];
   service.replaceUnits(replacement, { type: 'territorial-replace', affectedIds: ['unit-a', 'unit-b'] });
   assert.equal(units(), replacement);
-  assert.deepEqual(transactions.at(-1), { type: 'territorial-replace', affectedIds: ['unit-a', 'unit-b'] });
+  assert.deepEqual(transactions.at(-1), {
+    type: 'territorial-replace',
+    affectedIds: ['unit-a', 'unit-b'],
+    renderDirty: { domain: 'territorial', change: 'structure' },
+  });
 });

@@ -1,7 +1,7 @@
 import { buildRenderableBoundarySegments, densifyBoundarySegmentsForProjection } from './geographic-boundary.js';
 
 const RIBBON_VERTEX_SCALAR_COUNT = 6;
-export const RIBBON_SEGMENT_SCALAR_COUNT = RIBBON_VERTEX_SCALAR_COUNT * 6;
+const RIBBON_SEGMENT_SCALAR_COUNT = RIBBON_VERTEX_SCALAR_COUNT * 6;
 const RIBBON_MIN_SEGMENT_LENGTH_DEGREES = 1e-12;
 const RIBBON_SIDE_PATTERN = Object.freeze([-1, 1, -1, -1, 1, 1]);
 const RIBBON_ENDPOINT_PATTERN = Object.freeze([0, 0, 1, 1, 0, 1]);
@@ -11,7 +11,7 @@ export function buildSelectionBoundarySegments(geometry, { densify = false } = {
   return densify ? densifyBoundarySegmentsForProjection(segments) : segments;
 }
 
-export function appendSelectionRibbonSegment(values, startLon, startLat, endLon, endLat) {
+function appendSelectionRibbonSegment(values, startLon, startLat, endLon, endLat) {
   const coordinates = [startLon, startLat, endLon, endLat].map(Number);
   if (!coordinates.every(Number.isFinite)) return false;
   const [safeStartLon, safeStartLat, safeEndLon, safeEndLat] = coordinates;
@@ -27,7 +27,7 @@ export function appendSelectionRibbonSegment(values, startLon, startLat, endLon,
   return true;
 }
 
-export function ribbonVerticesForSelectionSegments(segments) {
+function ribbonVerticesForSelectionSegments(segments) {
   const values = [];
   for (const [[startLon, startLat], [endLon, endLat]] of segments || []) {
     appendSelectionRibbonSegment(values, startLon, startLat, endLon, endLat);
@@ -75,12 +75,7 @@ export function buildSelectionRibbonVertices(geometry) {
   return ribbonVerticesForSelectionSegments(buildSelectionBoundarySegments(geometry));
 }
 
-export function buildSelectionPointCoordinates(geometry) {
-  if (geometry?.type === 'Point' && Array.isArray(geometry.coordinates)) return [geometry.coordinates.slice(0, 2)];
-  return [];
-}
-
-export function flattenSelectionGeometry(feature) {
+function flattenSelectionGeometry(feature) {
   if (!feature) return [];
   if (feature.type === 'FeatureCollection') return (feature.features || []).flatMap(flattenSelectionGeometry);
   if (feature.type === 'Feature') return flattenSelectionGeometry(feature.geometry);

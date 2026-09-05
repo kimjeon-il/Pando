@@ -11,7 +11,7 @@ export const PERFORMANCE_METRIC_NAMES = Object.freeze({
   MAP_RESIZE: 'map.resize',
 });
 
-export const PERFORMANCE_DIAGNOSTIC_THRESHOLDS = Object.freeze({
+const PERFORMANCE_DIAGNOSTIC_THRESHOLDS = Object.freeze({
   firstLoadWindowMs: FIRST_LOAD_WINDOW_MS,
   longTaskMs: 50,
   interactionFrameBudgetMs: 16.7,

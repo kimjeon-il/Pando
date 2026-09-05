@@ -17,7 +17,6 @@ export function createProjectDomain({
   context = null,
   getSnapshot = null,
   replaceSnapshot = () => false,
-  dispatchProjectCommand = null,
   commandPipeline = null,
   serializer = null,
   persistence = null,
@@ -63,18 +62,13 @@ export function createProjectDomain({
 
   const dispatch = async command => {
     assertActive();
-    const type = String(command?.type || command?.name || 'command');
-    let result;
-    if (typeof dispatchProjectCommand === 'function') {
-      result = await dispatchProjectCommand(command);
-    } else if (commandPipeline?.dispatch) {
-      result = await commandPipeline.dispatch(command);
-    } else if (typeof command?.execute === 'function') {
-      result = await command.execute();
-    } else {
-      return null;
+    const id = String(command?.id || '').trim();
+    if (!id) throw new TypeError('ProjectDomain.dispatch() requires a command id.');
+    if (typeof commandPipeline?.execute !== 'function') {
+      throw new TypeError('ProjectDomain.dispatch() requires a commandPipeline with execute().');
     }
-    emitChanged(type, result);
+    const result = await commandPipeline.execute(id, command?.context || {}, command?.payload);
+    if (result?.ok === true && result?.changed === true) emitChanged(id, result);
     return result;
   };
 

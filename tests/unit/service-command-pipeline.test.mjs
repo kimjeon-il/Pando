@@ -24,7 +24,7 @@ test('domain services can use the command pipeline as their document mutation bo
     discardHistory: () => { history.pop(); calls.push('discard'); },
     validateProject: () => { calls.push('validate'); return true; },
     advanceRevision: () => { calls.push('revision'); return ++state.revision; },
-    invalidateRender: dirty => calls.push(`render:${dirty}`),
+    invalidateRender: dirty => calls.push({ render: dirty }),
     queueAutosave: () => calls.push('autosave'),
   });
   const service = createGenericFeatureService({
@@ -40,27 +40,40 @@ test('domain services can use the command pipeline as their document mutation bo
   assert.equal(created.id, 'g-1');
   assert.equal(state.revision, 1);
   assert.equal(history[0].type, 'generic-feature-create');
-  assert.deepEqual(calls, ['history', 'mutate', 'validate', 'revision', 'render:document', 'autosave']);
+  assert.deepEqual(calls, [
+    'history',
+    'mutate',
+    'validate',
+    'revision',
+    { render: { domain: 'generic', change: 'geometry' } },
+    'autosave',
+  ]);
 
   calls.length = 0;
   service.updateMetadata('g-1', 'name', 'Changed');
   assert.equal(service.get('g-1').properties.name, 'Changed');
   assert.equal(state.revision, 2);
-  assert.deepEqual(calls, ['history', 'validate', 'revision', 'render:document', 'autosave']);
+  assert.deepEqual(calls, [
+    'history',
+    'validate',
+    'revision',
+    { render: { domain: 'generic', change: 'metadata' } },
+    'autosave',
+  ]);
+
+  calls.length = 0;
+  const noOp = service.updateMetadata('g-1', 'name', 'Changed');
+  assert.equal(noOp.changed, false);
+  assert.equal(state.revision, 2);
+  assert.deepEqual(calls, []);
 });
 
-test('legacy runDocumentMutation remains supported during bootstrap migration', () => {
-  let features = [];
-  const transactions = [];
-  const service = createGenericFeatureService({
+test('domain services reject bootstrap without the production command pipeline', () => {
+  assert.throws(() => createGenericFeatureService({
     documentStore: {
-      readFeatures: () => features,
-      replaceFeatures: value => { features = value; },
+      readFeatures: () => [],
+      replaceFeatures: () => {},
     },
-    runDocumentMutation(meta, mutate) { transactions.push(meta); return mutate(); },
-    writeColor: (feature, color) => { feature.properties.color = color; },
-  });
-  service.add(genericPoint('legacy', 'Legacy'));
-  assert.equal(service.get('legacy').id, 'legacy');
-  assert.deepEqual(transactions.map(item => item.type), ['generic-feature-create']);
+    writeColor: () => {},
+  }), /commandPipeline with runMutation/);
 });

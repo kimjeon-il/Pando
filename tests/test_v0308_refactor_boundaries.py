@@ -11,6 +11,7 @@ TERRITORIAL_SERVICE = (ROOT / "assets/js/modules/territorial-service.js").read_t
 DISTRIBUTION_SERVICE = (ROOT / "assets/js/modules/distribution-service.js").read_text(encoding="utf-8")
 GENERIC_FEATURE_SERVICE = (ROOT / "assets/js/modules/generic-feature-service.js").read_text(encoding="utf-8")
 RENDER_COORDINATOR = (ROOT / "assets/js/modules/map-render-coordinator.js").read_text(encoding="utf-8")
+RENDERING_DOMAIN = (ROOT / "assets/js/modules/rendering-domain.js").read_text(encoding="utf-8")
 GPU_RENDERER = (ROOT / "assets/js/modules/gpu-map-renderer.js").read_text(encoding="utf-8")
 TOOLTIP_CONTROLLER = (ROOT / "assets/js/modules/tooltip-controller.js").read_text(encoding="utf-8")
 CONFIRM_MODAL_CONTROLLER = (ROOT / "assets/js/modules/confirm-modal-controller.js").read_text(encoding="utf-8")
@@ -54,7 +55,7 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("createTerritorialApplicationService({", APP)
         self.assertIn("territorialApplicationService.updateMetadata", APP)
         self.assertIn("territorialApplicationService.replaceUnits", APP)
-        self.assertIn("runDocumentMutation", TERRITORIAL_SERVICE)
+        self.assertIn("commandPipeline", TERRITORIAL_SERVICE)
         self.assertIn("runGeometryTransaction", TERRITORIAL_SERVICE)
 
     def test_distribution_and_genericFeature_crud_are_behind_services(self):
@@ -64,12 +65,13 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("createGenericFeatureService({", APP)
         self.assertIn("genericFeatureService.updateMetadata", APP)
         self.assertIn("genericFeatureService.remove", APP)
-        self.assertIn("runDocumentMutation", DISTRIBUTION_SERVICE)
-        self.assertIn("runDocumentMutation", GENERIC_FEATURE_SERVICE)
+        self.assertIn("commandPipeline", DISTRIBUTION_SERVICE)
+        self.assertIn("commandPipeline", GENERIC_FEATURE_SERVICE)
 
     def test_render_order_is_coordinated_and_renderer_is_dom_free(self):
-        self.assertIn("createMapRenderCoordinator({", APP)
-        self.assertIn("mapRenderCoordinator.invalidate", APP)
+        self.assertIn("createMapRenderCoordinator({", RENDERING_DOMAIN)
+        self.assertNotIn("mapRenderCoordinator", APP)
+        self.assertNotIn("MAP_RENDER_DIRTY", APP)
         self.assertIn("callRenderer('territorialUnits'", RENDER_COORDINATOR)
         self.assertIn("rendererUi.setEngineStatus", GPU_RENDERER)
         self.assertNotIn("document.", GPU_RENDERER)

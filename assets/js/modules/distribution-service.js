@@ -14,12 +14,11 @@ const text = value => String(value ?? '').trim();
 export function createDistributionService({
   documentStore,
   presentationStore,
-  commandPipeline = null,
-  runDocumentMutation = null,
+  commandPipeline,
   writeLayerColor,
   territorialExists = () => true,
 }) {
-  const mutateDocument = createDocumentMutationRunner({ commandPipeline, runDocumentMutation });
+  const mutateDocument = createDocumentMutationRunner({ commandPipeline });
   const layers = () => documentStore.readLayers();
   const entries = () => documentStore.readEntries();
   const layerById = id => layers().find(layer => layer.id === text(id)) || null;
@@ -55,7 +54,7 @@ export function createDistributionService({
     if (layerById(layer.id)) throw new Error(`분포 레이어 ID가 중복되었습니다: ${layer.id}`);
     mutateDocument({ type: 'distribution-create', affectedIds: [layer.id] }, () => {
       documentStore.replaceLayers(normalizeDistributionLayers([...layers(), layer]));
-    });
+    }, { renderDirty: { domain: 'distribution', change: 'structure' } });
     return layerById(layer.id);
   }
 
@@ -73,10 +72,14 @@ export function createDistributionService({
     } catch (error) {
       return { ok: false, code: 'invalid', error, layer: current };
     }
+    const normalizedCurrent = normalized.find(candidate => candidate.id === current.id);
+    if (JSON.stringify(normalizedCurrent) === JSON.stringify(current)) {
+      return { ok: true, changed: false, layer: current };
+    }
     mutateDocument({ type: 'distribution-metadata', affectedIds: [current.id] }, () => {
       documentStore.replaceLayers(normalized);
-    });
-    return { ok: true, layer: layerById(current.id) };
+    }, { renderDirty: { domain: 'distribution', change: 'metadata' } });
+    return { ok: true, changed: true, layer: layerById(current.id) };
   }
 
   function addEntry(options) {
@@ -92,7 +95,7 @@ export function createDistributionService({
       const nextEntries = normalizeDistributionEntries([...entries(), entry], { layerExists: id => !!layerById(id) });
       mutateDocument({ type: 'distribution-entry-create', affectedIds: [entry.id, layer.id] }, () => {
         documentStore.replaceEntries(nextEntries);
-      });
+      }, { renderDirty: { domain: 'distribution', change: 'geometry' } });
     } catch (error) {
       return { ok: false, code: 'invalid', error, layer };
     }
@@ -106,7 +109,7 @@ export function createDistributionService({
     if (layer.locked) return { ok: false, code: 'locked', layer, entry };
     mutateDocument({ type: 'distribution-entry-delete', affectedIds: [entry.id, layer.id] }, () => {
       documentStore.replaceEntries(entries().filter(candidate => candidate.id !== entry.id));
-    });
+    }, { renderDirty: { domain: 'distribution', change: 'geometry' } });
     return { ok: true, layer, entry };
   }
 
@@ -123,7 +126,7 @@ export function createDistributionService({
         .map(candidate => candidate.parentId === current.id ? { ...candidate, parentId: '' } : candidate);
       documentStore.replaceLayers(normalizeDistributionLayers(nextLayers));
       documentStore.replaceEntries(entries().filter(entry => entry.layerId !== current.id));
-    });
+    }, { renderDirty: { domain: 'distribution', change: 'structure' } });
     return { ok: true, layer: current, removedEntryCount: removedEntries.length };
   }
 
@@ -137,7 +140,7 @@ export function createDistributionService({
     }, () => {
       documentStore.replaceLayers(nextLayers);
       documentStore.replaceEntries(nextEntries);
-    });
+    }, { renderDirty: { domain: 'distribution', change: 'structure' } });
     return { layers: newLayers.length, entries: newEntries.length };
   }
 

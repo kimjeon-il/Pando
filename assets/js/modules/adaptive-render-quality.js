@@ -1,4 +1,4 @@
-export const RENDER_QUALITY_TIERS = Object.freeze({
+const RENDER_QUALITY_TIERS = Object.freeze({
   COARSE: 'coarse',
   MEDIUM: 'medium',
   HIGH: 'high',

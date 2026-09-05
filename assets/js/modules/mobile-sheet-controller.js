@@ -8,6 +8,11 @@ let installed = false;
 let programmaticSnapDepth = 0;
 let editSession = null;
 
+const isHtmlElement = value => {
+  const HTMLElementCtor = value?.ownerDocument?.defaultView?.HTMLElement;
+  return typeof HTMLElementCtor === 'function' && value instanceof HTMLElementCtor;
+};
+
 const isMobile = documentRef => {
   const app = documentRef.getElementById('app');
   return app?.dataset.layout === 'mobile' || documentRef.body?.dataset.layout === 'mobile';
@@ -23,10 +28,12 @@ function internalSnap(panel) {
 }
 
 function dispatchHandleKey(handle, key) {
-  if (!(handle instanceof HTMLElement)) return false;
+  if (!isHtmlElement(handle)) return false;
+  const KeyboardEventCtor = handle.ownerDocument?.defaultView?.KeyboardEvent;
+  if (typeof KeyboardEventCtor !== 'function') return false;
   programmaticSnapDepth += 1;
   try {
-    return handle.dispatchEvent(new KeyboardEvent('keydown', {
+    return handle.dispatchEvent(new KeyboardEventCtor('keydown', {
       key,
       bubbles: true,
       cancelable: true,
@@ -37,9 +44,9 @@ function dispatchHandleKey(handle, key) {
 }
 
 function normalizeTwoSnapAria(panel) {
-  if (!(panel instanceof HTMLElement) || !TWO_SNAP_PANEL_IDS.has(panel.id)) return;
+  if (!isHtmlElement(panel) || !TWO_SNAP_PANEL_IDS.has(panel.id)) return;
   const handle = handleForPanel(panel);
-  if (!(handle instanceof HTMLElement)) return;
+  if (!isHtmlElement(handle)) return;
   const snap = internalSnap(panel);
   const expanded = snap >= 2;
   handle.setAttribute('aria-valuemin', '0');
@@ -49,9 +56,9 @@ function normalizeTwoSnapAria(panel) {
 }
 
 function normalizeEditorAria(panel) {
-  if (!(panel instanceof HTMLElement) || panel.id !== EDIT_PANEL_ID) return;
+  if (!isHtmlElement(panel) || panel.id !== EDIT_PANEL_ID) return;
   const handle = handleForPanel(panel);
-  if (!(handle instanceof HTMLElement)) return;
+  if (!isHtmlElement(handle)) return;
   const snap = Math.max(0, Math.min(2, internalSnap(panel)));
   handle.setAttribute('aria-valuemin', '0');
   handle.setAttribute('aria-valuemax', '2');
@@ -60,7 +67,7 @@ function normalizeEditorAria(panel) {
 }
 
 function closeTransientCollapsedSheet(panel, documentRef) {
-  if (!(panel instanceof HTMLElement) || !TWO_SNAP_PANEL_IDS.has(panel.id)) return;
+  if (!isHtmlElement(panel) || !TWO_SNAP_PANEL_IDS.has(panel.id)) return;
   if (!isMobile(documentRef) || !panel.classList.contains('mobile-open') || internalSnap(panel) !== 0) return;
   queueMicrotask(() => {
     if (!isMobile(documentRef) || !panel.classList.contains('mobile-open') || internalSnap(panel) !== 0) return;
@@ -69,9 +76,9 @@ function closeTransientCollapsedSheet(panel, documentRef) {
 }
 
 function setEditorSnap(panel, target) {
-  if (!(panel instanceof HTMLElement)) return;
+  if (!isHtmlElement(panel)) return;
   const handle = handleForPanel(panel);
-  if (!(handle instanceof HTMLElement)) return;
+  if (!isHtmlElement(handle)) return;
   const current = internalSnap(panel);
   if (current === target) return;
   if (target <= 0) dispatchHandleKey(handle, 'Home');
@@ -90,7 +97,7 @@ function redirectHiddenToolbarFocus(documentRef, active) {
 function syncDirectEditState(documentRef) {
   const context = documentRef.getElementById('modeEditingContext');
   const panel = documentRef.getElementById(EDIT_PANEL_ID);
-  if (!(context instanceof HTMLElement) || !(panel instanceof HTMLElement)) return;
+  if (!isHtmlElement(context) || !isHtmlElement(panel)) return;
 
   const active = isMobile(documentRef) && !context.classList.contains('hidden');
   documentRef.body.classList.toggle('mobile-direct-edit', active);
@@ -134,9 +141,9 @@ function markEditorTouched(target, documentRef) {
 function installHandleGuards(documentRef) {
   documentRef.addEventListener('click', event => {
     const handle = event.target?.closest?.('[data-sheet-handle]');
-    if (!(handle instanceof HTMLElement) || !isMobile(documentRef)) return;
+    if (!isHtmlElement(handle) || !isMobile(documentRef)) return;
     const panel = documentRef.getElementById(handle.dataset.sheetHandle || '');
-    if (!(panel instanceof HTMLElement)) return;
+    if (!isHtmlElement(panel)) return;
 
     if (panel.id === EDIT_PANEL_ID) markEditorTouched(handle, documentRef);
     if (!TWO_SNAP_PANEL_IDS.has(panel.id) || programmaticSnapDepth > 0 || handle.dataset.dragged === 'true') return;
@@ -151,9 +158,9 @@ function installHandleGuards(documentRef) {
 
   documentRef.addEventListener('keydown', event => {
     const handle = event.target?.closest?.('[data-sheet-handle]');
-    if (!(handle instanceof HTMLElement) || !isMobile(documentRef)) return;
+    if (!isHtmlElement(handle) || !isMobile(documentRef)) return;
     const panel = documentRef.getElementById(handle.dataset.sheetHandle || '');
-    if (!(panel instanceof HTMLElement)) return;
+    if (!isHtmlElement(panel)) return;
 
     if (panel.id === EDIT_PANEL_ID && SNAP_KEYS.has(event.key)) markEditorTouched(handle, documentRef);
     if (!TWO_SNAP_PANEL_IDS.has(panel.id) || programmaticSnapDepth > 0) return;
@@ -177,7 +184,7 @@ function installHandleGuards(documentRef) {
 function observePanels(documentRef) {
   for (const id of ['leftPanel', 'createMenu', EDIT_PANEL_ID]) {
     const panel = documentRef.getElementById(id);
-    if (!(panel instanceof HTMLElement)) continue;
+    if (!isHtmlElement(panel)) continue;
     const sync = () => {
       if (TWO_SNAP_PANEL_IDS.has(id)) {
         normalizeTwoSnapAria(panel);
@@ -196,7 +203,7 @@ function observePanels(documentRef) {
 
 function observeEditContext(documentRef) {
   const context = documentRef.getElementById('modeEditingContext');
-  if (!(context instanceof HTMLElement)) return;
+  if (!isHtmlElement(context)) return;
   const sync = () => syncDirectEditState(documentRef);
   sync();
   new MutationObserver(sync).observe(context, {
@@ -207,7 +214,7 @@ function observeEditContext(documentRef) {
 
 function observeLayout(documentRef) {
   const app = documentRef.getElementById('app');
-  if (!(app instanceof HTMLElement)) return;
+  if (!isHtmlElement(app)) return;
   const sync = () => {
     syncDirectEditState(documentRef);
     for (const id of ['leftPanel', 'createMenu', EDIT_PANEL_ID]) {

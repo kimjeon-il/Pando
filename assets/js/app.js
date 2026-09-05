@@ -15,7 +15,7 @@ await import(versionedModuleUrl('./modules/country-geometry.js'));
 const countryGeometry = globalThis.PandoLabCountryGeometry;
 if (!countryGeometry) throw new Error('국가 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, draftEditorModule, draftStrokeModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometrySnapModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectSelectionModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, mapRenderCoordinatorModule, tooltipControllerModule, layerPanelControllerModule, historyServiceModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
+const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, layerPanelControllerModule, historyServiceModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/country-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -27,12 +27,9 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/territorial-geometry.js')),
   import(versionedModuleUrl('./modules/select-controller.js')),
   import(versionedModuleUrl('./modules/startup-readiness.js')),
-  import(versionedModuleUrl('./modules/draft-editor.js')),
-  import(versionedModuleUrl('./modules/draft-stroke.js')),
   import(versionedModuleUrl('./modules/boundary-topology.js')),
   import(versionedModuleUrl('./modules/geometry-metrics.js')),
   import(versionedModuleUrl('./modules/geometry-preview.js')),
-  import(versionedModuleUrl('./modules/geometry-snap.js')),
   import(versionedModuleUrl('./modules/geometry-validation.js')),
   import(versionedModuleUrl('./modules/label-layout.js')),
   import(versionedModuleUrl('./modules/map-state-transition.js')),
@@ -46,7 +43,6 @@ const [projectStateModule, countryEditTransactionModule, territorialUnitsModule,
   import(versionedModuleUrl('./modules/territorial-service.js')),
   import(versionedModuleUrl('./modules/distribution-service.js')),
   import(versionedModuleUrl('./modules/generic-feature-service.js')),
-  import(versionedModuleUrl('./modules/map-render-coordinator.js')),
   import(versionedModuleUrl('./modules/tooltip-controller.js')),
   import(versionedModuleUrl('./modules/layer-panel-controller.js')),
   import(versionedModuleUrl('./modules/history-service.js')),
@@ -80,7 +76,6 @@ const {
   normalizeGenericFeatureCollection,
   normalizeGenericFeatureSemantics,
 } = genericFeatureServiceModule;
-const { createMapRenderCoordinator, MAP_RENDER_DIRTY } = mapRenderCoordinatorModule;
 const { createTooltipController } = tooltipControllerModule;
 const { createLayerPanelController } = layerPanelControllerModule;
 const { createHistoryService } = historyServiceModule;
@@ -116,12 +111,14 @@ const mapLayoutMetricsModule = await import(versionedModuleUrl('./modules/map-la
 // Their factories are wired once, after the existing services are ready, so
 // the migration does not duplicate project data or create import cycles.
 const projectDomainModule = await import(versionedModuleUrl('./modules/project-domain.js'));
+const projectCommandPipelineModule = await import(versionedModuleUrl('./modules/project-command-pipeline.js'));
 const selectionDomainModule = await import(versionedModuleUrl('./modules/selection-domain.js'));
 const renderingDomainModule = await import(versionedModuleUrl('./modules/rendering-domain.js'));
 const gisDomainModule = await import(versionedModuleUrl('./modules/gis-domain.js'));
 const editingDomainModule = await import(versionedModuleUrl('./modules/editing-domain.js'));
 const { effectiveCountryFlagUrl } = countryFlagsModule;
 const { createProjectDomain } = projectDomainModule;
+const { createProjectCommandPipeline } = projectCommandPipelineModule;
 const { createSelectionDomain } = selectionDomainModule;
 const { createRenderingDomain } = renderingDomainModule;
 const { createGisDomain } = gisDomainModule;
@@ -355,31 +352,10 @@ const { createMapInputController } = mapInputControllerModule;
 const { createGpuMapRenderer } = gpuMapRendererModule;
 const { createTerritorialGeometryKernel, snapLineEndpointsToBoundary } = territorialGeometryModule;
 const {
-  createDraftEditState,
-  deleteDraftVertex,
-  insertDraftVertex,
-  moveDraftVertex,
-  recordDraftSnapshot,
-  redoDraftSnapshot,
-  removeLastDraftVertex,
-  resetDraftEditState,
-  undoDraftSnapshot,
-} = draftEditorModule;
-const {
-  appendDraftStrokeSamples,
-  beginDraftStroke,
-  cancelDraftStroke: cancelRawDraftStroke,
-  createDraftStrokeState,
-  finalizeDraftStroke,
-  resetDraftStrokeState,
-} = draftStrokeModule;
-const {
   buildBoundaryTopology: buildSharedBoundaryTopology,
   buildTerritorialInternalBoundarySegments,
-  moveTopologyNode,
   planCoastEdit,
   planSharedBoundaryEdit,
-  topologyNodeKey,
 } = boundaryTopologyModule;
 const {
   formatArea,
@@ -394,14 +370,10 @@ const {
   hasAreaGeometry,
   previewIsCurrent,
 } = geometryPreviewModule;
-const {
-  resolveSnap,
-  snapIndicator,
-} = geometrySnapModule;
 const { validateGeometry: validateStructuredGeometry, validateTerritorialGeometry } = geometryValidationModule;
 const { LABEL_PRIORITIES, automaticLabelSettings, labelKey, layoutLabels, normalizeLabelSettings } = labelLayoutModule;
 const { createAtomicMapStateController } = mapStateTransitionModule;
-const { createObjectSelectionController, normalizeObjectRef } = objectSelectionModule;
+const { normalizeObjectRef } = objectRefModule;
 const { OVERLAY_GROUPS, layerStyle, normalizeLayerPresentation } = layerPresentationModule;
 const { AUTOSAVE_STATES, createSaveStateController } = saveStateModule;
 const {
@@ -614,7 +586,7 @@ const {
     if (svg) {
       markLayerTreeDirty();
       renderLayerTree();
-      invalidateBaseScene('system-theme');
+      renderingDomain?.invalidateBaseScene?.('system-theme');
     }
   }
 
@@ -727,7 +699,6 @@ const {
   const hydroToolConfig = tool => HYDRO_TOOL_CONFIG[tool] || null;
   const draftToolConfig = tool => toolDraftDefinition(tool, state);
   const isPolygonDraftTool = tool => draftToolConfig(tool)?.shape === 'polygon';
-  const isLineDraftTool = tool => draftToolConfig(tool)?.shape === 'line';
   const isGenericFeatureDraftTool = tool => !!draftToolConfig(tool);
   const clampViewZooms = view => {
     if (!view) return view;
@@ -1273,68 +1244,6 @@ const {
     $('mobileEditBtn')?.classList.toggle('needs-attention', !!state?.selected && !surfaceState.editorOpen);
   }
 
-  let mapRenderCoordinator = null;
-  const invalidateMask = (mask, reason) => renderingDomain?.invalidate(mask, reason)
-    ?? mapRenderCoordinator?.invalidate(mask, reason)
-    ?? false;
-  function invalidateView(reason = 'view-change') {
-    return renderingDomain?.invalidateView?.(reason)
-      ?? renderingDomain?.scheduleView(reason)
-      ?? mapRenderCoordinator?.scheduleView(reason)
-      ?? false;
-  }
-  function invalidateSelection(reason = 'selection-change') {
-    return renderingDomain?.invalidateSelection?.(reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.GPU_INTERACTION, reason);
-  }
-  function invalidateSelectionStyle(reason = 'selection-style') {
-    return renderingDomain?.invalidateSelectionStyle?.(reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.GPU_INTERACTION, reason);
-  }
-  function invalidateGpuInteraction(reason = 'gpu-interaction') {
-    return invalidateMask(MAP_RENDER_DIRTY.GPU_INTERACTION, reason);
-  }
-  function invalidateOverlayGeometry(domain = 'overlay', reason = 'overlay-geometry') {
-    return renderingDomain?.invalidateOverlayGeometry?.(domain, reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.LAYER_TREE, reason);
-  }
-  function invalidateOverlayStyle(reason = 'overlay-style') {
-    return renderingDomain?.invalidateOverlayStyle?.(reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE, reason);
-  }
-  function invalidateCountryPatch(reason = 'country-patch') {
-    return renderingDomain?.invalidateCountryPatch?.(reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.LAYER_TREE, reason);
-  }
-  function invalidateHydroPatch(reason = 'hydro-patch') {
-    return renderingDomain?.invalidateHydroPatch?.(reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LAYER_TREE, reason);
-  }
-  function invalidateTerritorialPatch(reason = 'territorial-patch') {
-    return renderingDomain?.invalidateTerritorialPatch?.(reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.TERRITORIAL_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LAYER_TREE, reason);
-  }
-  function invalidateGenericPatch(reason = 'generic-patch') {
-    return renderingDomain?.invalidateGenericPatch?.(reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.GENERIC_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LAYER_TREE, reason);
-  }
-  function invalidateLabels(reason = 'labels') {
-    return renderingDomain?.invalidateLabels?.(reason)
-      ?? invalidateMask(MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LAYER_TREE, reason);
-  }
-  function invalidateProjectRender(reason = 'project-render') {
-    mapWorkScheduler.scheduleIdle('map-object-spatial-index', () => rebuildMapObjectSpatialIndex(), 40);
-    return renderingDomain?.invalidateProjectRender?.(reason)
-      || mapRenderCoordinator?.scheduleFull(reason)
-      || false;
-  }
-  function invalidateBaseScene(reason = 'base-scene') {
-    return invalidateMask(MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE, reason);
-  }
-  function scheduleViewRender(reason = 'view-change') {
-    return invalidateView(reason);
-  }
-
   const mapWorkScheduler = (() => {
     let interactionActive = false;
     const jobs = new Map();
@@ -1516,17 +1425,10 @@ const {
     historyDirtyCountryIds: new Set(),
     pendingCountryRenderIds: new Set(),
     sessionBaseCountriesJson: null,
-    draftCoords: [],
-    draftHover: null,
-    draftCutAssessment: null,
-    draftEdit: createDraftEditState(),
-    draftStroke: createDraftStrokeState(),
     geometryPreview: createGeometryPreviewState(),
     modeProcessing: false,
     modeTaskMinimized: false,
-    activeSnap: null,
     audit: { status: 'idle', revision: 0, report: null, selectedIssueId: null },
-    hovered: null,
     stateRevision: 0,
     transitionRevision: 0,
     spacePanActive: false,
@@ -1555,23 +1457,9 @@ const {
     },
   });
 
-  let objectSelectionSyncing = false;
   let pendingSelectionUiSnapshot = null;
   let selectionUiSyncFrame = 0;
-  let lastSelectionUiSignature = '';
-  const objectSelection = createObjectSelectionController({
-    onChange: selection => {
-      const primary = selection.items.find(item => item.key === selection.primaryKey) || null;
-      state.selected = primary ? normalizeObjectRef(primary) : null;
-      if (!selection.items.length) state.addSelectionMode = false;
-      renderingDomain?.syncSelectionEmphasis?.();
-      scheduleSelectionUiSync(selection);
-      mapRenderCoordinator?.invalidate(
-        MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.HUD,
-        'object-selection',
-      );
-    },
-  });
+  let lastSelectionUiRevision = -1;
   const saveState = createSaveStateController({ onChange: syncProjectSaveStatus });
 
   let objectChooserCandidates = [];
@@ -1583,19 +1471,19 @@ const {
   function setCountryObjectSelection(countryIds, primaryId = countryIds.at(-1), { refreshEditor = true } = {}) {
     const refs = [...new Set(countryIds.map(String).filter(id => countryFeatureById(id)))].map(countryObjectRef).filter(Boolean);
     const primary = countryObjectRef(primaryId) || refs.at(-1) || null;
-    objectSelection.setMany(refs, { primary, scope: 'map' });
-    if (refreshEditor && primary) selectionDomain?.selectObjectRef(primary, { refreshOnly: true });
-    if (refs.length > 1) renderMultiSelectionEditor(objectSelection.snapshot());
+    selectionDomain.setMany(refs, { primary, scope: 'map', reason: 'country-selection-set' });
+    if (refreshEditor && primary) presentPrimarySelection({ refreshOnly: true });
+    if (refs.length > 1) renderMultiSelectionEditor(selectionDomain.snapshot().selection);
     return refs;
   }
 
   function restoreObjectSelectionSnapshot(snapshot) {
     const refs = (snapshot?.items || []).map(normalizeObjectRef).filter(objectRefExists);
     const primary = refs.find(ref => ref.key === snapshot?.primaryKey) || refs.at(-1) || null;
-    objectSelection.setMany(refs, { primary, scope: 'map' });
-    if (primary) selectionDomain?.selectObjectRef(primary, { refreshOnly: true });
+    selectionDomain.setMany(refs, { primary, scope: 'map', reason: 'restore-selection' });
+    if (primary) presentPrimarySelection({ refreshOnly: true });
     else clearSelection(false);
-    if (refs.length > 1) renderMultiSelectionEditor(objectSelection.snapshot());
+    if (refs.length > 1) renderMultiSelectionEditor(selectionDomain.snapshot().selection);
   }
 
   function layerItemObjectRef(group, id) {
@@ -1654,16 +1542,7 @@ const {
     return { name: label?.name || ref.id, type: '지명', detail: labelKind[label?.kind] || '지명' };
   }
 
-  function syncObjectSelection(selection) {
-    if (objectSelectionSyncing) return;
-    const ref = normalizeObjectRef(selection);
-    if (ref) {
-      if (selectionDomain) selectionDomain.select(ref, { scope: 'map' });
-      else objectSelection.replace(ref);
-    }
-  }
-
-  function renderMultiSelectionEditor(selection = objectSelection.snapshot()) {
+  function renderMultiSelectionEditor(selection = selectionDomain.snapshot().selection) {
     const multiple = selection.items.length > 1;
     if (!multiple) return;
     const types = [...new Set(selection.items.map(item => objectDisplayInfo(item).type))];
@@ -1673,29 +1552,28 @@ const {
     });
   }
 
-  function scheduleSelectionUiSync(selection = objectSelection.snapshot()) {
-    pendingSelectionUiSnapshot = selection;
+  function scheduleSelectionUiSync(domainSnapshot = selectionDomain.snapshot()) {
+    pendingSelectionUiSnapshot = domainSnapshot;
     if (selectionUiSyncFrame) {
-      selectionPerformanceMetrics.uiCoalescedCount = Number(selectionPerformanceMetrics.uiCoalescedCount || 0) + 1;
+      selectionPerformanceMetrics.selectionUiCoalescedCount = Number(selectionPerformanceMetrics.selectionUiCoalescedCount || 0) + 1;
       return;
     }
     const run = () => {
       selectionUiSyncFrame = 0;
-      const next = pendingSelectionUiSnapshot || objectSelection.snapshot();
+      const next = pendingSelectionUiSnapshot || selectionDomain.snapshot();
       pendingSelectionUiSnapshot = null;
-      const signature = `${next.primaryKey || ''}:${next.items.map(item => item.key).join('|')}`;
-      if (signature === lastSelectionUiSignature) return;
-      lastSelectionUiSignature = signature;
+      if (next.revision === lastSelectionUiRevision) return;
+      lastSelectionUiRevision = next.revision;
       const startedAt = performance.now();
-      syncSelectionSummary(next);
-      selectionPerformanceMetrics.uiSyncCount = Number(selectionPerformanceMetrics.uiSyncCount || 0) + 1;
+      syncSelectionSummary(next.selection);
+      selectionPerformanceMetrics.selectionUiSyncCount = Number(selectionPerformanceMetrics.selectionUiSyncCount || 0) + 1;
       selectionPerformanceMetrics.summaryMs = performance.now() - startedAt;
     };
     if (typeof requestAnimationFrame === 'function') selectionUiSyncFrame = requestAnimationFrame(run);
     else selectionUiSyncFrame = setTimeout(run, 0);
   }
 
-  function syncSelectionSummary(selection = objectSelection.snapshot()) {
+  function syncSelectionSummary(selection = selectionDomain.snapshot().selection) {
     const count = selection.items.length;
     const multiple = count > 1;
     if ($('multiSelectionCount')) $('multiSelectionCount').textContent = `${count}개 선택됨`;
@@ -1744,18 +1622,18 @@ const {
     status.setAttribute('aria-label', saveStateDescription);
   }
 
-  function applyObjectSelection(value, { mode = 'replace', orderedRefs = [], scope = 'map' } = {}) {
+  function applySelectionIntent(value, { mode = 'replace', orderedRefs = [], scope = 'map', refreshOnly = false, openEditor = true } = {}) {
     const ref = normalizeObjectRef(value);
     if (!ref || !objectRefExists(ref)) return false;
-    if (mode === 'toggle') selectionDomain?.toggle(ref, { scope });
-    else if (mode === 'range') objectSelection.selectRange(ref, orderedRefs, { scope });
-    else selectionDomain?.select(ref, { scope });
-    if (!selectionDomain && mode === 'toggle') objectSelection.toggle(ref, { scope });
-    else if (!selectionDomain && mode !== 'range') objectSelection.replace(ref, { scope });
-    const primary = objectSelection.primary();
-    if (primary) selectionDomain?.selectObjectRef(primary);
+    const controllerStartedAt = performance.now();
+    if (mode === 'toggle') selectionDomain.toggle(ref, { scope, reason: 'object-selection-toggle' });
+    else if (mode === 'range') selectionDomain.selectRange(ref, orderedRefs, { scope, reason: 'object-selection-range' });
+    else selectionDomain.replace(ref, { scope, reason: 'object-selection-replace' });
+    selectionPerformanceMetrics.controllerMs = performance.now() - controllerStartedAt;
+    const primary = selectionDomain.primary();
+    if (primary) presentPrimarySelection({ refreshOnly, openEditor });
     else clearSelection(false);
-    const selection = objectSelection.snapshot();
+    const selection = selectionDomain.snapshot().selection;
     if (selection.items.length > 1) renderMultiSelectionEditor(selection);
     closeObjectChooser();
     return true;
@@ -1822,7 +1700,7 @@ const {
     return values;
   }
 
-  function commonBatchCapabilities(refs = objectSelection.items()) {
+  function commonBatchCapabilities(refs = selectionDomain.snapshot().selection.items) {
     if (!refs.length) return new Set();
     const common = objectBatchCapabilities(refs[0]);
     for (const ref of refs.slice(1)) for (const capability of [...common]) if (!objectBatchCapabilities(ref).has(capability)) common.delete(capability);
@@ -1891,7 +1769,7 @@ const {
     }
   }
 
-  function syncBatchActionAvailability(selection = objectSelection.snapshot()) {
+  function syncBatchActionAvailability(selection = selectionDomain.snapshot().selection) {
     const refs = selection.items || [];
     const capabilities = commonBatchCapabilities(refs);
     syncBatchBooleanInput($('multiPropertiesVisibilityInput'), refs.map(objectRefVisible), capabilities.has('visible'));
@@ -1932,7 +1810,7 @@ const {
   }
 
   function batchSetVisibility(nextVisible = null) {
-    const refs = objectSelection.items();
+    const refs = selectionDomain.snapshot().selection.items;
     if (!refs.length || !commonBatchCapabilities(refs).has('visible')) return;
     const allVisible = refs.every(ref => isLayerItemVisible(layerGroupForObjectRef(ref), ref.id));
     const visible = typeof nextVisible === 'boolean' ? nextVisible : !allVisible;
@@ -1948,13 +1826,13 @@ const {
       gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-visibility');
     }
     markLayerTreeDirty();
-    invalidateBaseScene('batch-country-visibility');
+    renderingDomain?.invalidateBaseScene?.('batch-country-visibility');
     queuePresentationAutosave();
     syncBatchActionAvailability();
   }
 
   function batchSetLocked(nextLocked = null) {
-    const refs = objectSelection.items();
+    const refs = selectionDomain.snapshot().selection.items;
     if (!refs.length || !commonBatchCapabilities(refs).has('lock')) return;
     const locked = typeof nextLocked === 'boolean' ? nextLocked : !refs.every(objectRefLocked);
     if (refs.every(ref => objectRefLocked(ref) === locked)) return;
@@ -1972,10 +1850,10 @@ const {
       }
     }
     syncObjectLockStateChange(refs);
-    invalidateSelection('batch-lock');
+    renderingDomain?.invalidateSelection?.('batch-lock');
     queueAutosave();
-    const primary = objectSelection.primary();
-    if (primary) selectionDomain?.selectObjectRef(primary, { refreshOnly: true });
+    const primary = selectionDomain.primary();
+    if (primary) presentPrimarySelection({ refreshOnly: true });
     syncBatchActionAvailability();
   }
 
@@ -1999,8 +1877,8 @@ const {
   }
 
   function syncObjectActionsMenu() {
-    const refs = objectSelection.items();
-    const primary = objectSelection.primary();
+    const refs = selectionDomain.snapshot().selection.items;
+    const primary = selectionDomain.primary();
     const capabilities = commonBatchCapabilities(refs);
     const locked = refs.length > 0 && refs.every(objectRefLocked);
     const canLock = refs.length > 0 && capabilities.has('lock');
@@ -2107,7 +1985,7 @@ const {
 
   function openObjectActionsMenu(trigger) {
     const menu = $('objectActionsMenu');
-    if (!menu || !trigger || !objectSelection.primary()) return;
+    if (!menu || !trigger || !selectionDomain.primary()) return;
     const toggleClosed = objectActionsMenuTrigger === trigger && !menu.classList.contains('hidden');
     closeObjectActionsMenu();
     if (toggleClosed) return;
@@ -2121,11 +1999,11 @@ const {
 
   function deleteSelectedFromObjectMenu() {
     closeObjectActionsMenu();
-    if (objectSelection.items().length > 1) requestBatchDelete();
+    if (selectionDomain.size() > 1) requestBatchDelete();
     else if ((state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) deleteSelectedCountry();
     else if ((state.selected?.domain === 'territorial' && state.selected.type !== TERRITORIAL_UNIT_TYPES.COUNTRY)) requestTerritorialUnitDivisionRemoval(state.selected.id);
     else {
-      const primary = objectSelection.primary();
+      const primary = selectionDomain.primary();
       if (!primary) return;
       const info = objectDisplayInfo(primary);
       openConfirmModal({
@@ -2140,7 +2018,7 @@ const {
   }
 
   function batchSetColor(color) {
-    const refs = objectSelection.items();
+    const refs = selectionDomain.snapshot().selection.items;
     if (!refs.length || !commonBatchCapabilities(refs).has('color')) return;
     const normalizedColor = normalizeEditorColor(color, DEFAULT_GENERIC_FEATURE_COLOR);
     recordHistory({ type: 'batch-color', description: `${refs.length}개 객체 색상 변경`, affectedIds: refs.map(ref => ref.id) });
@@ -2168,13 +2046,13 @@ const {
       gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
     }
     markLayerTreeDirty();
-    invalidateBaseScene('batch-country-color');
+    renderingDomain?.invalidateBaseScene?.('batch-country-color');
     queueAutosave();
     syncBatchActionAvailability();
   }
 
   function requestBatchDelete() {
-    const refs = objectSelection.items();
+    const refs = selectionDomain.snapshot().selection.items;
     if (!refs.length || !commonBatchCapabilities(refs).has('delete')) return;
     const typeCounts = new Map();
     for (const ref of refs) {
@@ -2219,18 +2097,13 @@ const {
         for (const id of removedLabelIds) delete state.labelSettings[labelKey('label', id)];
         state.territorialUnits = state.territorialUnits.filter(feature => !removedUnitIds.has(String(feature.id)));
         state.territorialRelations = state.territorialRelations.filter(relation => !removedUnitIds.has(String(relation.unitId)) && !removedUnitIds.has(String(relation.parentId)));
-        objectSelectionSyncing = true;
-        objectSelection.clear();
-        objectSelectionSyncing = false;
-        state.selected = null;
+        selectionDomain.clear({ reason: 'batch-delete-clear' });
         state.addSelectionMode = false;
         showPropertyForm(null);
         markLayerTreeDirty();
-        invalidateMask(
-          MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.TERRITORIAL_PATCH | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
-            | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.LAYER_TREE,
-          'batch-delete',
-        );
+        renderingDomain?.invalidateOverlayGeometry?.('batch', 'batch-delete');
+        renderingDomain?.invalidateSelection?.('batch-delete');
+        renderingDomain?.invalidateLabels?.('batch-delete');
         queueAutosave();
         setActionStatus(`${refs.length}개 객체를 삭제했습니다.`, 'success', 2800);
       },
@@ -2258,6 +2131,23 @@ const {
   let renderingDomain = null;
   let gisDomain = null;
   let editingDomain = null;
+  const emptyDraftSession = Object.freeze({
+    coords: Object.freeze([]), hover: null, inputPhase: 'draw', selectedVertexIndex: null,
+    insertTarget: null, dragging: false, issues: Object.freeze([]), historyCount: 0,
+    futureCount: 0, strokeActive: false, cutAssessment: null, activeSnap: null,
+  });
+  const editingDraftSnapshot = () => editingDomain?.snapshot?.().draft || emptyDraftSession;
+  const editingDraftCoordinates = () => editingDraftSnapshot().coords;
+  const dispatchEditingInteraction = (type, detail = {}) => {
+    const currentPacket = editingDomain?.createRenderPacket?.();
+    if (!currentPacket) return false;
+    return editingDomain.handleInteraction({
+      type,
+      projectGeneration: currentPacket.projectGeneration,
+      packetRevision: currentPacket.revision,
+      ...detail,
+    });
+  };
   const renderQualityController = createAdaptiveRenderQualityController({
     mobile: isMobile(),
     deviceMemory: navigator.deviceMemory,
@@ -2280,19 +2170,6 @@ const {
     commitP95Ms: 0,
     commitP99Ms: 0,
   };
-  const editCommitLatencySamples = [];
-  function recordEditCommitLatency(domain, startedAt) {
-    const duration = Math.max(0, performance.now() - startedAt);
-    editCommitLatencySamples.push(duration);
-    if (editCommitLatencySamples.length > 120) editCommitLatencySamples.shift();
-    const sorted = [...editCommitLatencySamples].sort((left, right) => left - right);
-    const percentile = ratio => sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * ratio) - 1))] || 0;
-    editPipelineMetrics.commitCount += 1;
-    editPipelineMetrics.lastCommitMs = duration;
-    editPipelineMetrics.lastCommitDomain = String(domain || '');
-    editPipelineMetrics.commitP95Ms = percentile(0.95);
-    editPipelineMetrics.commitP99Ms = percentile(0.99);
-  }
   const gpuSceneDomains = new Map();
   const gpuSceneDirtyDomains = new Set();
   const gpuSceneBuiltDomainKeys = new Map();
@@ -2349,7 +2226,6 @@ const {
   let mapHost = null;
   let mapHostReadyPromise = Promise.resolve(false);
   const mapInteractionGate = createMapInteractionGate();
-  let draftStrokeRenderFrame = 0;
   let geometryBoundsCache = new WeakMap();
   let countryOutlineCache = new WeakMap();
   let geometryAreaDisplayCache = new WeakMap();
@@ -2388,8 +2264,8 @@ const {
     transactionMs: 0,
     controllerMs: 0,
     summaryMs: 0,
-    uiSyncCount: 0,
-    uiCoalescedCount: 0,
+    selectionUiSyncCount: 0,
+    selectionUiCoalescedCount: 0,
     boundaryAnalysisBuildCount: 0,
     boundaryAnalysisCacheHitCount: 0,
     boundaryAnalysisCacheMissCount: 0,
@@ -2424,7 +2300,7 @@ const {
     if (!selectionPerfEnabled) return null;
     const gpu = gpuMapRenderer?.getStats?.() || {};
     const selectionGpu = selectionPass?.stats?.() || {};
-    const render = mapRenderCoordinator?.getStats?.() || {};
+    const render = renderingDomain?.getStats?.() || {};
     return {
       selectionBufferBuildCount: Number(selectionGpu.bufferBuildCount || 0),
       selectionUploadBytes: Number(selectionGpu.bufferUploadBytes || 0),
@@ -2437,7 +2313,6 @@ const {
 
   function publishSelectionPerformanceSample(inputStartedAt, before, scenario = 'selection') {
     selectionPerformanceMetrics.inputToPresentMs = performance.now() - inputStartedAt;
-    window.__PANDOLAB_SELECTION_PERFORMANCE__ = { ...selectionPerformanceMetrics };
     if (!selectionPerfEnabled) return;
     const after = selectionPerformanceCounterSnapshot();
     const gpu = gpuMapRenderer?.getStats?.() || {};
@@ -2460,7 +2335,6 @@ const {
       activeCanvasCount: gpuMapRenderer?.getRenderDevice?.() ? 1 : 0,
       activeContextCount: Number(gpuMapRenderer?.getRuntimeState?.()?.activeWebGlContextCount || 0),
     });
-    window.__PANDOLAB_SELECTION_BASELINE__ = selectionPerformanceBaseline.snapshot();
   }
   let countryLandRevision = 0;
   const pendingCountryLabelAnchors = new Set();
@@ -2473,6 +2347,7 @@ const {
   let pendingHoverPick = null;
   let lastHoverPickPoint = null;
   let lastHoverPickViewRevision = -1;
+  let lastHoverHit = null;
   let countryLabelAnchorWorker = null;
   let countryLabelAnchorTimer = 0;
   let countryLabelAnchorRequestId = 0;
@@ -2519,9 +2394,7 @@ const {
     prepareHydroFeature,
     queueMapResize,
     renderPendingCountryOverlays,
-    renderViewFrame: () => renderingDomain?.scheduleView?.('render-view')
-      || mapRenderCoordinator?.scheduleView?.('render-view')
-      || false,
+    renderViewFrame: () => renderingDomain?.invalidateView?.('render-view') || false,
     reportOperationError,
     rendererUi: {
       createCanvas: () => document.createElement('canvas'),
@@ -2532,15 +2405,12 @@ const {
         status.textContent = text;
         status.dataset.tooltip = text;
       },
-      onContextStateChange: phase => mapRenderCoordinator?.invalidate(
-        MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.SELECTION_DATA,
-        `gpu-context-${phase}`,
-      ) || false,
+      onContextStateChange: phase => renderingDomain?.invalidateGpuContext?.(phase) || false,
       requestHostRepaint: reason => mapHost?.requestRepaint?.(reason) || false,
     },
     runtimeAssetUrl,
-    scheduleGpuFrame: reason => mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, reason) || false,
-    scheduleGpuInteractionFrame: reason => mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, reason) || false,
+    scheduleGpuFrame: reason => renderingDomain?.invalidateGpuFrame?.(reason) || false,
+    scheduleGpuInteractionFrame: reason => renderingDomain?.invalidateGpuInteraction?.(reason) || false,
     scheduleGpuMeshRebuild,
     setActionStatus,
     state,
@@ -2567,12 +2437,7 @@ const {
       currentMapDevicePixelRatio(),
       Math.max(1, Number(currentRenderQuality.dprCap || 1)),
     ));
-    if (refreshScene) {
-      mapRenderCoordinator?.invalidate(
-        MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD,
-        reason,
-      );
-    }
+    if (refreshScene) renderingDomain?.invalidateQuality?.(reason);
     return currentRenderQuality;
   }
 
@@ -2593,7 +2458,7 @@ const {
     document.documentElement.style.setProperty('--map-selection-halo', resolvedInteractionStyle.selection.color);
     window.__PANDOLAB_INTERACTION_STYLE__ = resolvedInteractionStyle;
     if (redraw) {
-      invalidateSelectionStyle('selection-style');
+      renderingDomain?.invalidateSelectionStyle?.('selection-style');
     }
     return resolvedInteractionStyle;
   }
@@ -2636,14 +2501,14 @@ const {
     pendingHoverPick = null;
     lastHoverPickPoint = null;
     lastHoverPickViewRevision = -1;
-    if (clear && state.hovered?.type === 'country') {
-      state.hovered = null;
-      renderingDomain?.renderHoverOverlay?.();
+    if (clear && selectionDomain.snapshot().hover) {
+      lastHoverHit = null;
+      selectionDomain.setHover(null);
     }
   }
 
   function queueCountryHoverPick(screenPoint, coord) {
-    if (!screenPoint || !coord || state.mapMoving || state.draftEdit.dragging || state.tool !== 'select') return;
+    if (!screenPoint || !coord || state.mapMoving || editingDraftSnapshot().dragging || state.tool !== 'select') return;
     if (lastHoverPickPoint && Math.hypot(screenPoint[0] - lastHoverPickPoint[0], screenPoint[1] - lastHoverPickPoint[1]) < 3) return;
     pendingHoverPick = { screenPoint: [...screenPoint], coord: [...coord] };
     if (hoverPickFrame) return;
@@ -2651,16 +2516,17 @@ const {
       hoverPickFrame = 0;
       const pending = pendingHoverPick;
       pendingHoverPick = null;
-      if (!pending || state.mapMoving || state.draftEdit.dragging || state.tool !== 'select') return;
+      if (!pending || state.mapMoving || editingDraftSnapshot().dragging || state.tool !== 'select') return;
       lastHoverPickPoint = pending.screenPoint;
       lastHoverPickViewRevision = viewRevision;
       const hoveredCountry = state.layerVisibility.countries
         ? countryAtScreenPoint(pending.screenPoint, pending.coord, { verify: false })
         : null;
       const nextId = hoveredCountry ? String(hoveredCountry?.id || '') : '';
-      if (String(state.hovered?.id || '') === nextId && (!nextId || state.hovered?.type === 'country')) return;
-      state.hovered = hoveredCountry ? { type: 'country', id: nextId, feature: hoveredCountry, ref: countryObjectRef(nextId) } : null;
-      renderingDomain?.renderHoverOverlay?.();
+      const nextRef = hoveredCountry ? countryObjectRef(nextId) : null;
+      if ((selectionDomain.snapshot().hover?.key || '') === (nextRef?.key || '')) return;
+      lastHoverHit = hoveredCountry ? { ref: nextRef, feature: hoveredCountry } : null;
+      selectionDomain.setHover(nextRef);
     }, 50);
   }
 
@@ -2806,27 +2672,6 @@ const {
     }
     snapCandidateCache = { key: cacheKey, candidates };
     return candidates;
-  }
-
-  function snapCoordinateForInput(coordinate, screenPoint, pointerType = 'mouse', { excludeNodeKey = null, excludeCoordinate = null } = {}) {
-    if (!coordinate || !screenPoint) return coordinate;
-    const result = resolveSnap({
-      coordinate,
-      screenPoint,
-      candidates: localSnapCandidates(coordinate).filter(candidate => (!excludeNodeKey || candidate.nodeKey !== excludeNodeKey)
-        && (!excludeCoordinate || !candidate.coordinate || !coordNear(candidate.coordinate, excludeCoordinate, 1e-9))),
-      project: activeProjection(),
-      pointerType,
-    });
-    state.activeSnap = snapIndicator(result);
-    renderingDomain?.renderSnap?.();
-    return result?.coordinate?.slice() || coordinate;
-  }
-
-  function clearActiveSnap() {
-    if (!state.activeSnap) return;
-    state.activeSnap = null;
-    renderingDomain?.renderSnap?.();
   }
 
   function mapClickBlocked(event = d3.event) {
@@ -3302,7 +3147,7 @@ const {
           pendingCountryLabelAnchors.delete(id);
         }
         markLayerTreeDirty();
-        invalidateLabels('country-label-anchor-fallback');
+        renderingDomain?.invalidateLabels?.('country-label-anchor-fallback');
         return;
       }
       if (message.type !== 'anchors') return;
@@ -3315,7 +3160,7 @@ const {
         pendingCountryLabelAnchors.delete(id);
       }
       markLayerTreeDirty();
-      invalidateLabels('country-label-anchor-ready');
+      renderingDomain?.invalidateLabels?.('country-label-anchor-ready');
     };
     worker.onerror = event => {
       console.warn('Country label anchor worker error', event.message || event);
@@ -3327,7 +3172,7 @@ const {
         pendingCountryLabelAnchors.delete(id);
       }
       markLayerTreeDirty();
-      invalidateLabels('country-label-anchor-error');
+      renderingDomain?.invalidateLabels?.('country-label-anchor-error');
     };
     countryLabelAnchorWorker = worker;
     return worker;
@@ -3518,6 +3363,10 @@ const {
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
     return changed;
+  }
+
+  function scheduleMapObjectSpatialIndexRebuild() {
+    mapWorkScheduler.scheduleIdle('map-object-spatial-index', () => rebuildMapObjectSpatialIndex(), 40);
   }
 
   function selectionQueryBounds(screenPoint, tolerance = 8) {
@@ -3872,7 +3721,7 @@ const {
           clearGeometryPreview(state.geometryPreview);
           activeGeometryPreviewApply = null;
           activeGeometryPreviewDiscard = null;
-          invalidateGpuInteraction('geometry-preview-cancelled');
+          renderingDomain?.invalidateGpuInteraction?.('geometry-preview-cancelled');
           updateModeButtons();
           setActionStatus('지도가 바뀌어 미리보기를 취소했습니다.', 'error', 3800);
           return false;
@@ -3891,7 +3740,7 @@ const {
           commitHistorySnapshot(snapshot);
           queueAutosave();
           onSuccess(result);
-          invalidateCountryPatch('country-geometry-preview-applied');
+          renderingDomain?.invalidateCountryPatch?.('country-geometry-preview-applied');
           updateModeButtons();
           return true;
         } catch (error) {
@@ -3901,7 +3750,7 @@ const {
           return false;
         }
       };
-      invalidateGpuInteraction('geometry-preview-ready');
+      renderingDomain?.invalidateGpuInteraction?.('geometry-preview-ready');
       updateModeButtons();
       const blockingIssue = validationIssues.find(issue => issue.severity !== 'warning');
       setModeBanner(blockingIssue?.message || '변경 결과를 확인한 뒤 적용하세요.');
@@ -3948,7 +3797,7 @@ const {
       if (!previewIsCurrent(state.geometryPreview, session.sessionId, baseDataRevision) || state.stateRevision !== baseDataRevision) {
         clearGeometryPreview(state.geometryPreview);
         activeGeometryPreviewApply = null;
-        invalidateGpuInteraction('local-geometry-preview-cancelled');
+        renderingDomain?.invalidateGpuInteraction?.('local-geometry-preview-cancelled');
         updateModeButtons();
         setActionStatus('지도가 바뀌어 미리보기를 취소했습니다.', 'error', 3600);
         return false;
@@ -3965,7 +3814,7 @@ const {
         assertCurrentProjectReferences();
         state.stateRevision += 1;
         queueAutosave();
-        invalidateGenericPatch('local-geometry-preview-applied');
+        renderingDomain?.invalidateGenericPatch?.('local-geometry-preview-applied');
         updateModeButtons();
         setActionStatus(successMessage, 'success', 3600);
         return true;
@@ -3975,7 +3824,7 @@ const {
         return false;
       }
     };
-    invalidateGpuInteraction('local-geometry-preview-ready');
+    renderingDomain?.invalidateGpuInteraction?.('local-geometry-preview-ready');
     updateModeButtons();
     const blockingIssue = issues.find(issue => issue.severity !== 'warning');
     setModeBanner(blockingIssue?.message || '변경 결과를 확인한 뒤 적용하세요.');
@@ -3994,7 +3843,7 @@ const {
     activeGeometryPreviewApply = null;
     activeGeometryPreviewDiscard = null;
     clearGeometryPreview(state.geometryPreview);
-    invalidateGpuInteraction('geometry-preview-discard');
+    renderingDomain?.invalidateGpuInteraction?.('geometry-preview-discard');
     updateModeButtons();
     if (announce) setActionStatus('미리보기를 닫았습니다.', 'success', 2600);
     return true;
@@ -4359,7 +4208,7 @@ const {
     markCountryGeometriesChanged(changedIds);
     state.historyDirtyCountryIds = restoredDirtyIds;
     rebuildBoundaryTopology(state.tool === 'country-border' ? state.boundaryEditCountryIds : state.coastEditCountryId);
-    invalidateCountryPatch('country-edit-snapshot-restored');
+    renderingDomain?.invalidateCountryPatch?.('country-edit-snapshot-restored');
   }
 
   function interpolateCoordinate(a, b, t) {
@@ -4409,18 +4258,6 @@ const {
 
   function pointInGenericFeature(point, feature) {
     return geometryPolygonSets(feature?.geometry).some(polygon => pointInPolygonSet(point, polygon));
-  }
-
-  function pointOnGeometryBoundary(point, geometry, tolerance = 0.00008) {
-    for (const polygon of geometryPolygonSets(geometry)) {
-      for (const rawRing of polygon) {
-        const ring = ensureClosedRing(rawRing);
-        for (let index = 0; index < ring.length - 1; index += 1) {
-          if (pointOnSegment(point, ring[index], ring[index + 1], tolerance)) return true;
-        }
-      }
-    }
-    return false;
   }
 
   function partitionGroupMatches(feature, { unitType, sovereignId, parentId = '', adminLevel = null }) {
@@ -4722,6 +4559,25 @@ const {
     if (events.length === 0) return '영역을 통과하지 않습니다. 양쪽 경계를 가로지르세요.';
     if (events.length === 1) return '한쪽 경계만 연결됐습니다. 반대쪽 경계까지 그리세요.';
     return fallback;
+  }
+
+  function draftSelfIntersectionIssue(coords, closed = false) {
+    const points = (coords || []).map(coord => coord.slice());
+    if (closed && points.length >= 3) points.push(points[0].slice());
+    const segmentCount = Math.max(0, points.length - 1);
+    for (let left = 0; left < segmentCount; left += 1) {
+      for (let right = left + 1; right < segmentCount; right += 1) {
+        if (Math.abs(left - right) <= 1 || (closed && left === 0 && right === segmentCount - 1)) continue;
+        const detail = segmentIntersectionDetail(points[left], points[left + 1], points[right], points[right + 1]);
+        if (!detail) continue;
+        return {
+          kind: detail.overlap ? 'segment-overlap' : 'self-intersection',
+          coordinate: detail.coord || interpolateCoordinate(points[left], points[left + 1], 0.5),
+          segmentIndex: left,
+        };
+      }
+    }
+    return null;
   }
 
   function cutDraftIssues(line, sourceGeometry, originalError) {
@@ -5135,7 +4991,6 @@ const {
       revision: mapLayoutMetricsRefreshCount,
       reason,
     });
-    window.__PANDOLAB_MAP_LAYOUT_METRICS__ = mapLayoutMetricsSnapshot;
     return mapLayoutMetricsSnapshot;
   }
 
@@ -5261,96 +5116,13 @@ const {
     return feature.properties?.name || `이름 없는 ${genericFeatureRoleLabel(feature)} ${String(feature.id || '').slice(0, 8)}`;
   }
 
-  const territorialRepository = createTerritorialRepository({
-    getCountries: () => state.countriesData,
-    getUnits: () => state.territorialUnits,
-    getCountryOverride: id => state.countryOverrides[id] || {},
-  });
-
-  const territorialApplicationService = createTerritorialApplicationService({
-    repository: territorialRepository,
-    runDocumentMutation: (meta, mutate) => {
-      recordHistory(meta);
-      return mutate();
-    },
-    countryCommands: {
-      isLocked: id => isCountryLocked(id),
-      setLocked: (id, locked) => setCountryLockedState(id, locked),
-      setField: (id, field, value) => {
-        state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}) };
-        if (field === 'color') {
-          writeDomainColor(COLOR_DOMAINS.COUNTRY, {
-            feature: countryFeatureById(id), override: state.countryOverrides[id],
-          }, value, { fallback: defaultCountryColor() });
-        } else state.countryOverrides[id][field] = value;
-      },
-    },
-    unitCommands: {
-      setField: (id, field, value) => {
-        const feature = territorialUnitById(id);
-        if (!feature) return;
-        if (field === 'color') setTerritorialStyleColor(feature, value);
-        else feature.properties[field] = value;
-      },
-      replaceAll: units => {
-        state.territorialUnits = units;
-        mapObjectGeometryRevisions.territorial += 1;
-      },
-    },
-  });
+  let territorialRepository;
+  let territorialApplicationService;
+  let distributionService;
+  let genericFeatureService;
+  let projectCommandPipeline;
   const runTerritorialUnitTransaction = options => territorialApplicationService.runGeometryTransaction(options);
   const validateTerritorialUnitRelations = (units, options) => territorialApplicationService.validateRelations(units, options);
-  const distributionService = createDistributionService({
-    documentStore: {
-      readLayers: () => state.distributionLayers,
-      replaceLayers: layers => {
-        state.distributionLayers = layers;
-        distributionVisibilityRevision += 1;
-      },
-      readEntries: () => state.distributionEntries,
-      replaceEntries: entries => {
-        state.distributionEntries = entries;
-        distributionVisibilityRevision += 1;
-      },
-    },
-    presentationStore: {
-      setRenderMode: mode => {
-        state.distributionSettings.renderMode = mode;
-        distributionVisibilityRevision += 1;
-      },
-      setBoundaryVisible: visible => {
-        state.distributionSettings.boundaryVisible = visible !== false;
-        distributionVisibilityRevision += 1;
-      },
-    },
-    runDocumentMutation: (meta, mutate) => {
-      recordHistory(meta);
-      return mutate();
-    },
-    writeLayerColor: (layer, color) => writeDomainColor(
-      COLOR_DOMAINS.DISTRIBUTION,
-      { layer },
-      color,
-      { fallback: DEFAULT_GENERIC_FEATURE_COLOR },
-    ),
-    territorialExists: id => !!territorialRepository.get(id),
-  });
-  const genericFeatureService = createGenericFeatureService({
-    documentStore: {
-      readFeatures: () => state.genericFeatures,
-      replaceFeatures: genericFeatures => { state.genericFeatures = genericFeatures; },
-    },
-    runDocumentMutation: (meta, mutate) => {
-      recordHistory(meta);
-      return mutate();
-    },
-    writeColor: (feature, color) => writeDomainColor(
-      COLOR_DOMAINS.GENERIC,
-      { feature },
-      color,
-      { fallback: defaultGenericFeatureColor(feature) },
-    ),
-  });
 
   function territorialUnitById(id) {
     return territorialApplicationService.get(id);
@@ -5739,7 +5511,7 @@ const {
       state.physicalSettings.hydroLayers[key] = !!visible;
       gpuMapRenderer.invalidateHydroVisibility();
       markLayerTreeDirty();
-      invalidateOverlayStyle('hydro-layer-visibility');
+      renderingDomain?.invalidateOverlayStyle?.('hydro-layer-visibility');
       queuePresentationAutosave();
       return;
     }
@@ -5748,7 +5520,7 @@ const {
     else state.itemVisibility[group][key] = false;
     if (group === 'countries') gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-item-visibility');
     markLayerTreeDirty();
-    invalidateOverlayStyle('layer-item-visibility');
+    renderingDomain?.invalidateOverlayStyle?.('layer-item-visibility');
     queuePresentationAutosave();
   }
 
@@ -5871,7 +5643,7 @@ const {
         delete state.layerFolders[key];
       }
     }
-    objectSelection?.prune?.(objectRefExists);
+    selectionDomain?.prune?.(null, { reason: 'prune-invalid-selection' });
   }
 
   const LAYER_VIRTUAL_ROW_HEIGHT_FALLBACK = 30;
@@ -5898,7 +5670,7 @@ const {
 
   function isLayerTreeItemSelected(group, id) {
     const ref = layerItemObjectRef(group, id);
-    return !!ref && objectSelection.has(ref);
+    return !!ref && selectionDomain.has(ref);
   }
 
   function createLayerVisibilityControl({ group, itemId, label, checked, ariaLabel }) {
@@ -5920,7 +5692,7 @@ const {
     return control;
   }
 
-  function syncLayerSelectionRows(selection = objectSelection.snapshot()) {
+  function syncLayerSelectionRows(selection = selectionDomain.snapshot().selection) {
     const selectedKeys = new Set((selection.items || []).map(item => item.key));
     const multi = selectedKeys.size > 1;
     const primaryRef = (selection.items || []).find(item => item.key === selection.primaryKey) || null;
@@ -6020,9 +5792,9 @@ const {
     const row = document.createElement(searchResult ? 'button' : 'div');
     const selected = isLayerTreeItemSelected(itemGroup, item.id);
     const ref = layerItemObjectRef(itemGroup, item.id);
-    const primary = !!ref && objectSelection.snapshot().primaryKey === ref.key;
+    const primary = !!ref && selectionDomain.snapshot().selection.primaryKey === ref.key;
     const hasMenu = itemGroup !== 'countryLabels' && !!ref;
-    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${selected ? ' is-selected' : ''}${selected && objectSelection.size() > 1 ? ' is-multi-selected' : ''}${primary && objectSelection.size() > 1 ? ' is-primary-selected' : ''}`;
+    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${selected ? ' is-selected' : ''}${selected && selectionDomain.size() > 1 ? ' is-multi-selected' : ''}${primary && selectionDomain.size() > 1 ? ' is-primary-selected' : ''}`;
     row.dataset.layerGroup = itemGroup;
     row.dataset.itemId = item.id;
     if (searchResult) {
@@ -6343,7 +6115,7 @@ const {
     if (rerender && svg) {
       markLayerTreeDirty();
       renderLayerTree();
-      invalidateBaseScene('user-preferences');
+      renderingDomain?.invalidateBaseScene?.('user-preferences');
     }
     return userPreferences;
   }
@@ -6536,7 +6308,7 @@ const {
       gpuMapRenderer.setTerrainManifest(manifest);
       markLayerTreeDirty();
       renderLayerTree();
-      invalidateBaseScene('terrain-manifest-ready');
+      renderingDomain?.invalidateBaseScene?.('terrain-manifest-ready');
     },
     onFailure: error => {
       state.physicalLoadState.terrainManifest = 'error';
@@ -6715,158 +6487,9 @@ const {
   }
 
 
-  function getEditableVertices(feature) {
-    if (!feature?.geometry) return [];
-    const type = feature.geometry.type;
-    if (type === 'LineString') {
-      return feature.geometry.coordinates.map((coord, index) => ({ key: `0:${index}`, partIndex: 0, index, coord }));
-    }
-    if (type === 'MultiLineString') {
-      return (feature.geometry.coordinates || []).flatMap((part, partIndex) => part.map((coord, index) => ({ key: `${partIndex}:${index}`, partIndex, index, coord })));
-    }
-    if (type === 'Polygon') {
-      return (feature.geometry.coordinates || []).flatMap((ring, ringIndex) => ring.slice(0, Math.max(0, ring.length - 1)).map((coord, index) => ({ key: `0:${ringIndex}:${index}`, polygonIndex: 0, ringIndex, index, coord })));
-    }
-    if (type === 'MultiPolygon') {
-      return (feature.geometry.coordinates || []).flatMap((polygon, polygonIndex) => (polygon || []).flatMap((ring, ringIndex) => ring.slice(0, Math.max(0, ring.length - 1)).map((coord, index) => ({ key: `${polygonIndex}:${ringIndex}:${index}`, polygonIndex, ringIndex, index, coord }))));
-    }
-    return [];
-  }
-
-  function setEditableVertexCoord(feature, vertex, coord) {
-    const type = feature?.geometry?.type;
-    if (type === 'LineString') feature.geometry.coordinates[vertex.index] = coord.slice();
-    else if (type === 'MultiLineString') feature.geometry.coordinates[vertex.partIndex][vertex.index] = coord.slice();
-    else {
-      const ring = type === 'Polygon'
-        ? feature.geometry.coordinates?.[vertex.ringIndex]
-        : feature.geometry.coordinates?.[vertex.polygonIndex]?.[vertex.ringIndex];
-      if (!ring || vertex.index < 0 || vertex.index >= ring.length - 1) return false;
-      ring[vertex.index] = coord.slice();
-      if (vertex.index === 0) ring[ring.length - 1] = coord.slice();
-    }
-    genericFeatureLandClipCache.delete(feature);
-    return true;
-  }
-
-  function draftFeature(coordinates = null) {
-    const coords = coordinates ? coordinates.map(coordinate => coordinate.slice()) : state.draftCoords.slice();
-    if (!coordinates && state.draftHover) coords.push(state.draftHover);
-    if (isPolygonDraftTool(state.tool)) {
-      if (!coords.length) return null;
-      // A GeoJSON polygon is only valid once it has at least three vertices.
-      // Until then, draw the draft as a line so D3 never receives an invalid polygon ring.
-      if (coords.length < 3) {
-        return { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} };
-      }
-      const ring = coords.slice();
-      ring.push(ring[0]);
-      return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring] }, properties: {} };
-    }
-    if (state.tool === 'new-country' && ['line', 'side'].includes(state.newCountryPhase)) {
-      if (!coords.length) return null;
-      return { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} };
-    }
-    if (isLineDraftTool(state.tool) || state.tool === 'annex-territory') {
-      if (!coords.length) return null;
-      return { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} };
-    }
-    return null;
-  }
-
-  function draftVertexDragBehavior() {
-    let moved = false;
-    return d3.behavior.drag()
-      .on('dragstart', function(vertex) {
-        if (!editingDomain?.draftInputActive?.() || state.spacePanActive) return;
-        moved = false;
-        state.draftEdit.selectedVertexIndex = vertex.index;
-        state.draftEdit.inputPhase = 'refine';
-        state.draftEdit.insertTarget = null;
-        state.draftEdit.dragging = true;
-        state.draftEdit.splitPreview = null;
-        state.draftHover = null;
-        d3.event.sourceEvent?.preventDefault?.();
-        d3.event.sourceEvent?.stopPropagation?.();
-        renderingDomain?.renderDraft?.();
-        updateModeButtons();
-      })
-      .on('drag', function(vertex) {
-        if (!editingDomain?.draftInputActive?.() || state.spacePanActive || !state.draftCoords[vertex.index]) return;
-        const screenPoint = d3.mouse(svg.node());
-        const rawCoordinate = screenToGeo(screenPoint);
-        if (!rawCoordinate) return;
-        const pointerType = d3.event.sourceEvent?.pointerType === 'touch' || d3.event.sourceEvent?.touches ? 'touch' : 'mouse';
-        const coordinate = snapCoordinateForInput(rawCoordinate, screenPoint, pointerType);
-        if (!moved) {
-          recordDraftSnapshot(state.draftEdit, state.draftCoords, state.draftEdit.selectedVertexIndex, MAX_HISTORY);
-          state.draftEdit.inputPhase = 'refine';
-          moved = true;
-        }
-        state.draftCoords = moveDraftVertex(state.draftCoords, vertex.index, coordinate);
-        state.draftEdit.revision += 1;
-        refreshDraftDerivedState({ buildPreview: false });
-        renderingDomain?.renderDraft?.();
-        updateModeButtons();
-        updateHistoryButtons();
-      })
-      .on('dragend', function() {
-        if (!state.draftEdit.dragging) return;
-        state.draftEdit.dragging = false;
-        const sourceEvent = d3.event.sourceEvent;
-        if (moved) {
-          refreshDraftDerivedState({ buildPreview: true });
-          if (Number.isFinite(sourceEvent?.clientX) && Number.isFinite(sourceEvent?.clientY)) {
-            suppressNextMapClick([sourceEvent.clientX, sourceEvent.clientY], 700);
-          } else {
-            suppressNextMapClick(null, 700);
-          }
-        }
-        renderingDomain?.renderDraft?.();
-        clearActiveSnap();
-        updateModeButtons();
-        updateHistoryButtons();
-        sourceEvent?.preventDefault?.();
-        sourceEvent?.stopPropagation?.();
-      });
-  }
-
-  function draftSegmentRows(displayCoords) {
-    const rows = [];
-    for (let index = 0; index < displayCoords.length - 1; index += 1) {
-      rows.push({ segmentIndex: index, start: displayCoords[index], end: displayCoords[index + 1] });
-    }
-    if (isPolygonDraftTool(state.tool) && displayCoords.length >= 3) {
-      rows.push({ segmentIndex: displayCoords.length - 1, start: displayCoords[displayCoords.length - 1], end: displayCoords[0] });
-    }
-    return rows.filter(row => {
-      const start = activeProjection()(row.start);
-      const end = activeProjection()(row.end);
-      return start && end && Math.hypot(end[0] - start[0], end[1] - start[1]) <= Math.max(1, state.size.width * 0.7);
-    });
-  }
-
-  function draftInsertCoordinate(row, screenPoint = d3.mouse(svg.node())) {
-    const start = activeProjection()(row.start);
-    const end = activeProjection()(row.end);
-    if (!start || !end) return null;
-    const dx = end[0] - start[0];
-    const dy = end[1] - start[1];
-    const length2 = dx * dx + dy * dy;
-    if (length2 <= 1e-6) return null;
-    const t = clamp(((screenPoint[0] - start[0]) * dx + (screenPoint[1] - start[1]) * dy) / length2, 0.08, 0.92);
-    return screenToGeo([start[0] + dx * t, start[1] + dy * t]);
-  }
-
-  function showDraftInsertTarget(row, screenPoint) {
-    const coordinate = draftInsertCoordinate(row, screenPoint);
-    if (!coordinate) return;
-    state.draftEdit.insertTarget = { segmentIndex: row.segmentIndex, coordinate };
-    renderingDomain?.renderDraftInsertionHandle?.();
-  }
-
   function defaultDraftInstruction() {
-    if (state.draftEdit.inputPhase === 'refine' && state.draftCoords.length) {
+    const draft = editingDraftSnapshot();
+    if (draft.inputPhase === 'refine' && draft.coords.length) {
       return '꼭짓점을 드래그해 미세조정한 뒤 완료하세요.';
     }
     const inputHint = isMobile() ? '한 손가락으로 그리세요.' : '드래그하거나 클릭해 그리세요.';
@@ -6890,7 +6513,7 @@ const {
 
   function syncGenericDraftFeedback() {
     if (!editingDomain?.draftInputActive?.() || activeCutDraftSourceGeometry()) return;
-    const issue = state.draftEdit.issues[0];
+    const issue = editingDraftSnapshot().issues[0];
     setModeBanner(issue?.message || defaultDraftInstruction());
     if (issue) $('modeTaskInstruction')?.classList.add('cut-invalid');
   }
@@ -7022,35 +6645,8 @@ const {
     if (domain === 'preview') currentGpuPreviewPackets = packets;
     else currentGpuDraftPackets = packets;
     syncGpuInteractionState();
-    mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, `gpu-${domain}-packets`);
+    renderingDomain?.invalidateGpuInteraction?.(`gpu-${domain}-packets`);
     return true;
-  }
-
-  function editableVertexPreviewSegments(feature, vertex) {
-    if (!feature?.geometry || !vertex) return [];
-    const type = feature.geometry.type;
-    let coordinates = null;
-    let closed = false;
-    if (type === 'LineString') coordinates = feature.geometry.coordinates;
-    else if (type === 'MultiLineString') coordinates = feature.geometry.coordinates?.[vertex.partIndex];
-    else if (type === 'Polygon') {
-      coordinates = feature.geometry.coordinates?.[vertex.ringIndex];
-      closed = true;
-    } else if (type === 'MultiPolygon') {
-      coordinates = feature.geometry.coordinates?.[vertex.polygonIndex]?.[vertex.ringIndex];
-      closed = true;
-    }
-    const count = Math.max(0, (coordinates?.length || 0) - (closed ? 1 : 0));
-    if (!coordinates || vertex.index < 0 || vertex.index >= count) return [];
-    const segments = [];
-    const push = (startIndex, endIndex) => {
-      const start = coordinates[startIndex];
-      const end = coordinates[endIndex];
-      if (start && end) segments.push({ start, end });
-    };
-    if (closed || vertex.index > 0) push((vertex.index - 1 + count) % count, vertex.index);
-    if (closed || vertex.index < count - 1) push(vertex.index, (vertex.index + 1) % count);
-    return segments;
   }
 
   function selectTerritoryCandidate(candidateIndex) {
@@ -7064,7 +6660,7 @@ const {
     } else {
       return;
     }
-        renderingDomain?.renderDraft?.();
+    renderingDomain?.invalidateEditingOverlays?.('territory-candidate-selection');
     updateModeButtons();
   }
 
@@ -7100,7 +6696,7 @@ const {
     else {
       updateTerritoryComponentSelectionFeedback();
       updateModeButtons();
-      invalidateSelection('territory-component-mode');
+      renderingDomain?.invalidateSelection?.('territory-component-mode');
     }
   }
 
@@ -7120,7 +6716,7 @@ const {
       return;
     }
     updateTerritoryComponentSelectionFeedback();
-        renderingDomain?.renderDraft?.();
+    renderingDomain?.invalidateEditingOverlays?.('territory-component-selection');
     updateModeButtons();
   }
 
@@ -7332,7 +6928,7 @@ const {
     const packet = editPreviewController.packet();
     currentGpuEditPreviewPackets = packet ? [packet] : [];
     syncGpuInteractionState();
-    mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, reason);
+    renderingDomain?.invalidateGpuInteraction?.(reason);
   }
 
   function beginActiveEditPreview({ key, segments, style }) {
@@ -7350,7 +6946,7 @@ const {
     if (!editPreviewController.clear() && !currentGpuEditPreviewPackets.length) return false;
     currentGpuEditPreviewPackets = [];
     syncGpuInteractionState();
-    mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, reason);
+    renderingDomain?.invalidateGpuInteraction?.(reason);
     return true;
   }
 
@@ -7409,11 +7005,12 @@ const {
 
   function setMapHover(type, id, feature, ref = null) {
     if (isMobile() || state.tool !== 'select' || state.mapMoving) return;
-    const nextId = `${type}:${String(id || '')}`;
-    if (`${state.hovered?.type || ''}:${state.hovered?.id || ''}` === nextId) return;
-    state.hovered = feature?.geometry ? { type, id: String(id || ''), feature, ref: normalizeObjectRef(ref) } : null;
-    selectionDomain?.setHover?.(state.hovered?.ref || null);
-    renderingDomain?.invalidateSelectionOverlay?.('map-hover');
+    void type;
+    void id;
+    const nextRef = feature?.geometry ? normalizeObjectRef(ref) : null;
+    if ((selectionDomain.snapshot().hover?.key || '') === (nextRef?.key || '')) return;
+    lastHoverHit = nextRef ? { ref: nextRef, feature } : null;
+    selectionDomain.setHover(nextRef);
   }
 
   function issueCoordinate(issue) {
@@ -7437,59 +7034,15 @@ const {
     const mapEditMetrics = mapEditClient.stats?.() || {};
     const editPreviewMetrics = editPreviewController.stats?.() || {};
     const mapHostMetrics = mapHost?.getDebugState?.() || {};
-    const renderMetrics = mapRenderCoordinator?.getStats?.() || {};
+    const renderMetrics = renderingDomain?.getStats?.() || {};
     const selectionMetrics = window.__PANDOLAB_SELECTION_RENDER_METRICS__ || {};
-    window.__PANDOLAB_RENDER_METRICS__ = {
-      ...renderMetrics,
-      activeMeshQuality: metrics.activeMeshQuality || metrics.meshQuality,
-      pickCount: metrics.pickCount || 0,
-      pickReadPixelsMs: metrics.pickReadPixelsMs || 0,
-      selectionPathCount: selectionMetrics.pathCount || 0,
-      selectionPathCharacterCount: selectionMetrics.pathCharacterCount || 0,
-      selection: {
-        ...selectionPerformanceMetrics,
-        boundaryAnalysisBuildCount: boundarySelectionAnalysisMetrics.builds,
-        boundaryAnalysisCacheHitCount: boundarySelectionAnalysisMetrics.cacheHits,
-        boundaryAnalysisCacheMissCount: boundarySelectionAnalysisMetrics.cacheMisses,
-        boundaryAnalysisMs: boundarySelectionAnalysisMetrics.buildMs,
-      },
-      spatialIndex: mapObjectSpatialIndex.stats(),
-      viewportCulling: { ...viewportCullingMetrics },
-      distributionRows: {
-        rebuildCount: distributionRenderRowCache.rebuildCount,
-        rowCount: distributionRenderRowCache.rows.length,
-        buildMs: distributionRenderRowCache.buildMs,
-      },
-      labelLayout: { ...labelLayoutMetrics },
-      layoutMetrics: {
-        refreshCount: mapLayoutMetricsRefreshCount,
-        revision: mapLayoutMetricsSnapshot?.revision || 0,
-        reason: mapLayoutMetricsSnapshot?.reason || 'initial',
-        projectionSignature: mapLayoutMetricsSnapshot?.projectionSignature || '',
-      },
-      territorialBoundaryTopologyRebuildCount: renderingDomain?.getStats?.().territorialBoundaryTopologyRebuildCount || 0,
-      workers: {
-        mapEdit: mapEditMetrics,
-        countryPatchMesh: metrics.patchWorkerJobs || {},
-      },
-      editPreview: editPreviewMetrics,
-      editPipeline: { ...editPipelineMetrics },
-      renderScene: renderSceneBuilder.stats(),
-    };
-    window.__PANDOLAB_WORKER_METRICS__ = {
-      mapEdit: mapEditMetrics,
-      countryPatchMesh: metrics.patchWorkerJobs || {},
-      patchWorkerOutputBytes: Number(metrics.patchWorkerOutputBytes || 0),
-      editPreview: editPreviewMetrics,
-      editPipeline: { ...editPipelineMetrics },
-    };
     if (!enabled) return;
     const lines = [
       `renderer: ${metrics.renderer || 'unknown'}`,
       `map host: ${mapHostMetrics.kind || 'legacy'} / ${mapHostMetrics.projection || state.projection}`,
       `WebGL contexts: ${Number(metrics.activeWebGlContextCount || 0)}`,
       `mesh quality: ${metrics.activeMeshQuality || metrics.meshQuality || 'unknown'}`,
-      `render revision: ${mapRenderCoordinator?.revision() || 0}`,
+      `render revision: ${renderMetrics.renderRevision || 0}`,
       `view revision: ${viewRevision}`,
       `full / view renders: ${renderMetrics.fullRenderCount || 0} / ${renderMetrics.viewRenderCount || 0}`,
       `last render: ${Number(renderMetrics.lastRenderMs || 0).toFixed(1)} ms`,
@@ -7670,71 +7223,26 @@ const {
     return false;
   }
 
-  mapRenderCoordinator = createMapRenderCoordinator({
-    requestFrame: callback => requestAnimationFrame(callback),
-    prepareView: () => {
-      updateProjection();
-      return syncViewRevision();
-    },
-    renderers: {
-      beginFrame: frameContext => renderingDomain?.beginFrame?.(frameContext),
-      view: viewState => {
-        return renderingDomain?.renderPass('view', viewState);
-      },
-      base: (...args) => renderingDomain?.renderBase?.(...args),
-      countries: (...args) => renderingDomain?.renderCountries?.(...args),
-      gpuInteraction: (...args) => renderingDomain?.renderGpuInteraction?.(...args),
-      hydro: (...args) => renderingDomain?.renderHydro?.(...args),
-      hydroEdits: (...args) => renderingDomain?.renderHydroEdits?.(...args),
-      boundaryEdit: (...args) => renderingDomain?.renderBoundaryEdit?.(...args),
-      territorialUnits: (...args) => renderingDomain?.renderTerritorialUnits?.(...args),
-      distributions: (...args) => renderingDomain?.renderDistributions?.(...args),
-      genericFeatures: (...args) => renderingDomain?.renderGenericFeatures?.(...args),
-      stackOverlays: (...args) => renderingDomain?.renderPass('stackOverlays', ...args),
-      projectedOverlays: (...args) => renderingDomain?.renderProjectedOverlays?.(...args),
-      geometryPreview: (...args) => renderingDomain?.renderGeometryPreview?.(...args),
-      selectionData: (...args) => renderingDomain?.renderSelection?.(...args),
-      selectionStyle: (...args) => renderingDomain?.renderSelection?.(...args, { styleOnly: true }),
-      selectionView: (frameContext, gpuFrameResult, options = {}) => renderingDomain?.renderSelection?.(
-        frameContext,
-        null,
-        { ...options, viewOnly: true, updateData: false, gpuFrameResult },
-      ),
-      hover: (...args) => renderingDomain?.renderHoverOverlay?.(...args),
-      validation: (...args) => renderingDomain?.renderValidation?.(...args),
-      labelLayout: (...args) => renderingDomain?.renderPass('labelLayout', ...args),
-      countryLabelPositions: (...args) => renderingDomain?.renderCountryLabelPositions?.(...args),
-      userLabelPositions: (...args) => renderingDomain?.renderUserLabelPositions?.(...args),
-      countryLabels: (...args) => renderingDomain?.renderCountryLabels?.(...args),
-      userLabels: (...args) => renderingDomain?.renderUserLabels?.(...args),
-      vertices: (...args) => renderingDomain?.renderVertices?.(...args),
-      draft: (...args) => renderingDomain?.renderDraft?.(...args),
-      snapIndicator: (...args) => renderingDomain?.renderSnap?.(...args),
-      debug: (...args) => renderingDomain?.renderPass('debug', ...args),
-      layerTree: (...args) => renderingDomain?.renderPass('layerTree', ...args),
-    },
-    onFrameComplete: sample => {
-      const gpuStats = gpuMapRenderer.getRuntimeState?.() || {};
-      const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
-      if (startupMetrics) {
-        startupMetrics.firstCanonicalFrameMs = gpuStats.firstCanonicalFrameMs ?? startupMetrics.firstCanonicalFrameMs;
-        startupMetrics.canonicalFrameFallbackCount = Number(gpuStats.canonicalFrameFallbackCount || 0);
-      }
-      // Startup/full-scene work is intentionally expensive and is not an
-      // interaction performance sample. Feeding it into the adaptive window
-      // caused an immediate post-load downgrade and another scene refresh.
-      const shouldSampleInteractionBudget = sample.interactionActive
-        || (!sample.full && !!(sample.dirtyMask & MAP_RENDER_DIRTY.VIEW));
-      const changed = shouldSampleInteractionBudget && renderQualityController.recordFrame(sample.durationMs, {
-        interaction: sample.interactionActive,
-      });
-      if (changed) queueAdaptiveRenderQualityRefresh('frame-budget-quality-change');
-    },
-  });
+  function handleRenderFrameComplete(sample) {
+    const gpuStats = gpuMapRenderer.getRuntimeState?.() || {};
+    const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
+    if (startupMetrics) {
+      startupMetrics.firstCanonicalFrameMs = gpuStats.firstCanonicalFrameMs ?? startupMetrics.firstCanonicalFrameMs;
+      startupMetrics.canonicalFrameFallbackCount = Number(gpuStats.canonicalFrameFallbackCount || 0);
+    }
+    // Startup/full-scene work is intentionally expensive and is not an
+    // interaction performance sample. Feeding it into the adaptive window
+    // caused an immediate post-load downgrade and another scene refresh.
+    const shouldSampleInteractionBudget = sample.interactionActive || (!sample.full && sample.viewFrame === true);
+    const changed = shouldSampleInteractionBudget && renderQualityController.recordFrame(sample.durationMs, {
+      interaction: sample.interactionActive,
+    });
+    if (changed) queueAdaptiveRenderQualityRefresh('frame-budget-quality-change');
+  }
   if (new URLSearchParams(location.search).has('debug') || new URLSearchParams(location.search).has('perf')) {
     window.__PANDOLAB_RENDER_DEBUG__ = Object.freeze({
       snapshot: () => ({
-        ...mapRenderCoordinator.getStats(),
+        ...(renderingDomain?.getStats?.() || {}),
         gpu: gpuMapRenderer.getStats?.() || {},
         gpuSelection: {
           ...(selectionPass?.stats?.() || {}),
@@ -7746,6 +7254,7 @@ const {
         selection: { ...(window.__PANDOLAB_SELECTION_RENDER_METRICS__ || {}) },
         selectionInput: {
           ...selectionPerformanceMetrics,
+          ...(selectionDomain?.stats?.() || {}),
           boundaryAnalysisBuildCount: boundarySelectionAnalysisMetrics.builds,
           boundaryAnalysisCacheHitCount: boundarySelectionAnalysisMetrics.cacheHits,
           boundaryAnalysisCacheMissCount: boundarySelectionAnalysisMetrics.cacheMisses,
@@ -7783,15 +7292,12 @@ const {
     }));
     renderQualityController.beginInteraction('map-movement');
     applyAdaptiveRenderQuality({ refreshScene: false, reason: 'map-movement' });
-    mapRenderCoordinator.beginInteraction('map-movement');
+    renderingDomain?.beginInteraction?.('map-movement');
     mapWorkScheduler.setInteractionActive(true);
     gpuMapRenderer.setHydroInteractionActive(true);
     cancelCountryHoverPick({ clear: true });
     $('map')?.classList.add('dragging');
-    if (state.draftHover) {
-      state.draftHover = null;
-        renderingDomain?.renderDraft?.();
-    }
+    editingDomain?.clearDraftHover?.('map-movement-start');
   }
 
   function finishMapMovement(point = null) {
@@ -7808,11 +7314,7 @@ const {
     gpuMapRenderer.setHydroInteractionActive(false);
     $('map')?.classList.remove('dragging');
     if (point) suppressNextMapClick(point);
-    mapRenderCoordinator.endInteraction('map-movement-end');
-    mapRenderCoordinator.invalidate(
-      MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT,
-      'viewport-culling-settle',
-    );
+    renderingDomain?.endInteraction?.('viewport-culling-settle');
     gpuMapRenderer.prioritizeLatest();
     queueViewAutosave();
   }
@@ -7838,7 +7340,7 @@ const {
       },
       project: coordinate => activeProjection()(coordinate),
       unproject: point => screenToGeo(point),
-      requestRepaint: reason => mapRenderCoordinator?.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, reason || 'legacy-host-repaint'),
+      requestRepaint: reason => renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),
       resize: () => gpuMapRenderer.resize(),
       dragBy: dragLegacyMapViewBy,
       getDebugState: () => ({ viewRevision }),
@@ -8005,7 +7507,7 @@ const {
       beginMovement: beginMapMovement,
       finishMovement: finishMapMovement,
       dragBy: dragMapBy,
-      scheduleViewRender,
+      invalidateView: reason => renderingDomain?.invalidateView?.(reason) || false,
       getZoom: () => state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom,
       transformView: transformMapView,
       zoomBy: factor => {
@@ -8016,21 +7518,25 @@ const {
         if (state.tool === 'move') return false;
         const annexLine = state.tool === 'annex-territory' && ['line', 'polygon'].includes(state.annexPhase);
         const newCountryLine = state.tool === 'new-country' && state.newCountryPhase === 'line';
-        const draftTap = (isGenericFeatureDraftTool(state.tool) || newCountryLine || annexLine) && state.draftEdit.inputPhase === 'draw';
+        const draftTap = (isGenericFeatureDraftTool(state.tool) || newCountryLine || annexLine) && editingDraftSnapshot().inputPhase === 'draw';
         return state.labelPlacementMode || draftTap || state.tool === 'point';
       },
       directTap: handleMapClick,
       canDoubleTap: () => isMobile() && state.tool !== 'move' && ['select', 'country-border', 'country-coast', 'merge-country'].includes(state.tool) && !state.labelPlacementMode,
       suppressClick: suppressNextMapClick,
       canDrawStroke: () => {
-        const active = editingDomain?.draftInputActive?.() && state.draftEdit.inputPhase === 'draw' && !state.spacePanActive;
+        const active = editingDomain?.draftInputActive?.() && editingDraftSnapshot().inputPhase === 'draw' && !state.spacePanActive;
         mapInteractionGate.setDraftInputActive(active);
         return active;
       },
-      beginStroke: (screenPoint, event) => editingDomain?.beginDraftStroke?.(screenPoint, event),
-      moveStroke: screenPoints => editingDomain?.appendDraftStroke?.(screenPoints),
-      endStroke: screenPoint => editingDomain?.finishDraftStroke?.(screenPoint),
-      cancelStroke: reason => editingDomain?.cancelDraftStroke?.(reason),
+      beginStroke: (screenPoint, event) => dispatchEditingInteraction('draft-stroke-start', {
+        screenPoint,
+        pointerId: event?.pointerId,
+        pointerType: event?.pointerType || 'mouse',
+      }),
+      moveStroke: screenPoints => dispatchEditingInteraction('draft-stroke-move', { screenPoints }),
+      endStroke: screenPoint => dispatchEditingInteraction('draft-stroke-end', { screenPoint }),
+      cancelStroke: reason => dispatchEditingInteraction('draft-stroke-cancel', { reason }),
     });
 
     svg.on('click', function() {
@@ -8039,23 +7545,14 @@ const {
     });
 
     svg.on('mousemove', function() {
-      if (state.draftStroke.active) return;
-      if (d3.event.target?.closest?.('.draft-interactive') || state.draftEdit.dragging) {
-        if (state.draftHover) {
-          state.draftHover = null;
-        renderingDomain?.renderDraft?.();
-        }
+      const draft = editingDraftSnapshot();
+      if (draft.strokeActive) return;
+      if (d3.event.target?.closest?.('.draft-interactive') || draft.dragging) {
+        editingDomain?.clearDraftHover?.('draft-interactive-hover');
         return;
       }
-      if (state.draftEdit.insertTarget && !d3.event.target?.closest?.('.draft-interactive')) {
-        state.draftEdit.insertTarget = null;
-        renderingDomain?.renderDraftInsertionHandle?.();
-      }
       if (mapInputController?.isPanning()) {
-        if (state.draftHover) {
-          state.draftHover = null;
-        renderingDomain?.renderDraft?.();
-        }
+        editingDomain?.clearDraftHover?.('map-panning');
         return;
       }
       const screenPoint = d3.mouse(this);
@@ -8063,34 +7560,26 @@ const {
       if (coord) {
         $('coordStatus').textContent = `경도 ${coord[0].toFixed(4)} · 위도 ${coord[1].toFixed(4)}`;
         const newCountryLineMode = state.tool === 'new-country' && state.newCountryPhase === 'line';
-        if ((isGenericFeatureDraftTool(state.tool) || newCountryLineMode || (state.tool === 'annex-territory' && ['line', 'polygon'].includes(state.annexPhase))) && state.draftEdit.inputPhase === 'draw' && state.draftCoords.length) {
-          state.draftHover = snapCoordinateForInput(coord, screenPoint, 'mouse');
-        renderingDomain?.renderDraft?.();
+        if ((isGenericFeatureDraftTool(state.tool) || newCountryLineMode || (state.tool === 'annex-territory' && ['line', 'polygon'].includes(state.annexPhase))) && draft.inputPhase === 'draw' && draft.coords.length) {
+          dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
         }
         if (state.tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape, .territorial-unit-shape, .distribution-shape')) {
           queueCountryHoverPick(screenPoint, coord);
         }
       } else {
         $('coordStatus').textContent = '지구본 바깥';
-        if (state.draftHover) {
-          state.draftHover = null;
-        renderingDomain?.renderDraft?.();
-        }
+        dispatchEditingInteraction('draft-hover-clear');
         cancelCountryHoverPick({ clear: true });
-        state.hovered = null;
-        clearActiveSnap();
-        renderingDomain?.renderHoverOverlay?.();
+        lastHoverHit = null;
+        selectionDomain.setHover(null);
       }
     });
 
     svg.on('mouseleave', function() {
       cancelCountryHoverPick();
-      state.draftHover = null;
-      state.draftEdit.insertTarget = null;
-      state.hovered = null;
-      clearActiveSnap();
-        renderingDomain?.renderDraft?.();
-      renderingDomain?.renderHoverOverlay?.();
+      dispatchEditingInteraction('draft-hover-clear');
+      lastHoverHit = null;
+      selectionDomain.setHover(null);
     });
   }
 
@@ -8155,7 +7644,7 @@ const {
       .attr('height', state.size.height);
     mapHost?.resize?.();
     gpuMapRenderer.resize();
-    invalidateProjectRender('resize');
+    renderingDomain?.invalidateViewport?.('resize');
     syncMapHudBounds();
     requestAnimationFrame(() => gpuMapRenderer.verifyLayout());
     return true;
@@ -8283,7 +7772,7 @@ const {
       }
     }
     mapModeContextWasActive = editing;
-    const selectionCount = objectSelection.snapshot().items.length;
+    const selectionCount = selectionDomain.size();
     const showSelection = selectionCount > 1 || (isMobile() && selectionCount > 0);
     if (!editing) state.modeTaskMinimized = false;
     const minimized = editing && state.modeTaskMinimized === true;
@@ -8320,8 +7809,9 @@ const {
   }
 
   function updateModeButtons() {
+    const draft = editingDraftSnapshot();
     const toolbarButtons = document.querySelectorAll('[data-map-tool]');
-    const toolbarBusy = state.modeProcessing || state.draftStroke.active;
+    const toolbarBusy = state.modeProcessing || draft.strokeActive;
     toolbarButtons.forEach(button => {
       const active = button.dataset.mapTool === state.tool;
       button.classList.toggle('active', active);
@@ -8362,11 +7852,7 @@ const {
     const previewMode = !!state.geometryPreview.session;
     const specialMode = labelMode || terrainMode || previewMode || isSpecialTool(state.tool) || draftMode;
     const cutLineMode = genericFeatureSplitMode || territorialUnitSplitMode || annexLineMode || newCountryLineMode;
-    if (cutLineMode) {
-      const sourceGeometry = activeCutDraftSourceGeometry();
-      state.draftCutAssessment = sourceGeometry ? assessCutDraft(state.draftCoords, sourceGeometry) : null;
-    }
-    const cutLineReady = !cutLineMode || state.draftCutAssessment?.valid === true;
+    const cutLineReady = !cutLineMode || draft.cutAssessment?.valid === true;
     const task = activeModeTaskDescriptor();
     const bar = $('modeActionBar');
     const methodSwitch = $('modeMethodSwitch');
@@ -8403,15 +7889,15 @@ const {
       riverBoundaryInput.checked = annexComponentsMode && state.annexUseRiverBoundaries;
       riverBoundaryInput.disabled = state.modeProcessing;
     }
-    const refineSelection = draftMode && state.draftEdit.inputPhase === 'refine' && Number.isInteger(state.draftEdit.selectedVertexIndex);
-    const draftActionsVisible = draftMode && state.draftCoords.length > 0;
+    const refineSelection = draftMode && draft.inputPhase === 'refine' && Number.isInteger(draft.selectedVertexIndex);
+    const draftActionsVisible = draftMode && draft.coords.length > 0;
     draftActions?.classList.toggle('hidden', !draftActionsVisible);
     draftRedraw?.classList.toggle('hidden', refineSelection);
     draftRemoveLast?.classList.toggle('hidden', refineSelection);
     draftDelete?.classList.toggle('hidden', !refineSelection);
-    if (draftRedraw) draftRedraw.disabled = state.modeProcessing || state.draftStroke.active || !state.draftCoords.length;
-    if (draftRemoveLast) draftRemoveLast.disabled = state.modeProcessing || state.draftStroke.active || !state.draftCoords.length;
-    if (draftDelete) draftDelete.disabled = state.modeProcessing || state.draftStroke.active || !refineSelection;
+    if (draftRedraw) draftRedraw.disabled = state.modeProcessing || draft.strokeActive || !draft.coords.length;
+    if (draftRemoveLast) draftRemoveLast.disabled = state.modeProcessing || draft.strokeActive || !draft.coords.length;
+    if (draftDelete) draftDelete.disabled = state.modeProcessing || draft.strokeActive || !refineSelection;
     for (const [button, method] of [[lineMethod, 'line'], [polygonMethod, 'polygon'], [componentsMethod, 'components']]) {
       if (!button) continue;
       button.classList.toggle('hidden', state.tool !== 'annex-territory' && method === 'polygon');
@@ -8423,18 +7909,18 @@ const {
     if (primary) {
       primary.classList.toggle('hidden', labelMode);
       primary.disabled = state.modeProcessing
-        || (draftMode && (state.draftStroke.active || state.draftCoords.length < draftMinimumPoints() || state.draftEdit.issues.length > 0 || (cutLineMode && !cutLineReady)))
-        || (terrainMode && state.draftCoords.length < (isPolygonDraftTool(state.tool) ? 3 : 2))
+        || (draftMode && (draft.strokeActive || draft.coords.length < draftMinimumPoints() || draft.issues.length > 0 || (cutLineMode && !cutLineReady)))
+        || (terrainMode && draft.coords.length < (isPolygonDraftTool(state.tool) ? 3 : 2))
         || (newCountrySourceMode && !state.newCountrySourceIds.length)
         || (annexDonorMode && !state.annexDonorCountryIds.length)
-        || (annexPolygonMode && state.draftCoords.length < 3)
+        || (annexPolygonMode && draft.coords.length < 3)
         || (annexPolygonPreviewMode && !state.annexCandidates[0]?.geometry)
         || (mergeTargetMode && !state.mergeTargetCountryIds.length)
         || (genericFeatureMergeMode && !state.genericFeatureMergeTargetIds.length)
         || (territorialUnitMergeMode && !state.territorialUnitMergeTargetIds.length)
         || ((genericFeatureSplitMode || territorialUnitSplitMode) && !cutLineReady)
-        || (territorialUnitRedrawMode && state.draftCoords.length < 3)
-        || (territorialUnitCreateMode && state.draftCoords.length < 3)
+        || (territorialUnitRedrawMode && draft.coords.length < 3)
+        || (territorialUnitCreateMode && draft.coords.length < 3)
         || (boundarySelectMode && !boundarySelectionReady)
         || ((annexLineMode || newCountryLineMode) && !cutLineReady)
         || (annexSideMode && !state.annexCandidates[state.annexSelectedCandidateIndex]?.geometry)
@@ -8596,95 +8082,11 @@ const {
       return;
     }
     updateModeButtons();
-    invalidateSelection('territory-selection-method');
+      renderingDomain?.invalidateSelection?.('territory-selection-method');
   }
 
   function draftMinimumPoints() {
     return isPolygonDraftTool(state.tool) ? 3 : 2;
-  }
-
-  function draftScreenSample(screenPoint) {
-    const coordinate = screenToGeo(screenPoint);
-    return coordinate ? { screen: screenPoint.slice(), coordinate } : null;
-  }
-
-  function queueDraftStrokeRender() {
-    if (draftStrokeRenderFrame) return;
-    draftStrokeRenderFrame = requestAnimationFrame(() => {
-      draftStrokeRenderFrame = 0;
-        renderingDomain?.renderDraft?.();
-    });
-  }
-
-  function draftSelfIntersectionIssue(coords, closed = false) {
-    const points = (coords || []).map(coord => coord.slice());
-    if (closed && points.length >= 3) points.push(points[0].slice());
-    const segmentCount = Math.max(0, points.length - 1);
-    for (let i = 0; i < segmentCount; i += 1) {
-      for (let j = i + 1; j < segmentCount; j += 1) {
-        if (Math.abs(i - j) <= 1) continue;
-        if (closed && i === 0 && j === segmentCount - 1) continue;
-        const detail = segmentIntersectionDetail(points[i], points[i + 1], points[j], points[j + 1]);
-        if (!detail) continue;
-        return {
-          kind: detail.overlap ? 'segment-overlap' : 'self-intersection',
-          coordinate: detail.coord || interpolateCoordinate(points[i], points[i + 1], 0.5),
-          segmentIndex: i,
-        };
-      }
-    }
-    return null;
-  }
-
-  function genericDraftIssues(coords = state.draftCoords) {
-    const issues = [];
-    for (let index = 1; index < coords.length; index += 1) {
-      if (!coordNear(coords[index - 1], coords[index], 1e-9)) continue;
-      issues.push({
-        kind: 'duplicate-vertex',
-        coordinate: coords[index].slice(),
-        vertexIndex: index,
-        segmentIndex: index - 1,
-        message: '서로 다른 위치를 연결하세요.',
-      });
-      break;
-    }
-    const intersection = draftSelfIntersectionIssue(coords, isPolygonDraftTool(state.tool));
-    if (intersection) issues.push({ ...intersection, message: isPolygonDraftTool(state.tool) ? '영역 경계가 자기 자신과 교차합니다.' : '선이 자기 자신과 교차합니다.' });
-    return issues;
-  }
-
-  function refreshDraftDerivedState({ buildPreview = false } = {}) {
-    const editState = state.draftEdit;
-    if (!editingDomain?.draftInputActive?.()) {
-      state.draftCutAssessment = null;
-      editState.issues = [];
-      editState.splitPreview = null;
-      return;
-    }
-    const sourceGeometry = activeCutDraftSourceGeometry();
-    if (sourceGeometry) {
-      const assessment = assessCutDraft(state.draftCoords, sourceGeometry);
-      state.draftCutAssessment = assessment;
-      editState.issues = assessment.issues || [];
-      if (!assessment.valid || editState.dragging) {
-        editState.splitPreview = null;
-      } else if (buildPreview) {
-        try {
-          const split = buildCutSplitCandidates(sourceGeometry, state.draftCoords);
-          editState.splitPreview = {
-            revision: editState.revision,
-            candidates: split.candidates.map(candidate => ({ geometry: deepClone(candidate.geometry), area: candidate.area })),
-          };
-        } catch (_) {
-          editState.splitPreview = null;
-        }
-      }
-      return;
-    }
-    state.draftCutAssessment = null;
-    editState.issues = genericDraftIssues();
-    editState.splitPreview = null;
   }
 
   function resetTerritoryEditingState(invalidateInteraction = true) {
@@ -8717,8 +8119,7 @@ const {
   function enterNewCountryMode() {
     clearNotification();
     clearSelection(false);
-    state.draftCoords = [];
-    state.draftHover = null;
+    editingDomain?.clearDraft?.({ reason: 'new-country-mode', render: false });
     resetNewCountryState();
     state.newCountryPhase = 'sources';
     editingDomain?.setTool('new-country', { announce: false });
@@ -8755,11 +8156,10 @@ const {
     state.newCountrySelectedCandidateIndex = null;
     state.newCountrySelectedComponentKeys = [];
     state.newCountrySourceGeometry = sourceGeometry;
-    state.draftCoords = [];
-    state.draftHover = null;
+    editingDomain?.startDraft?.({ coords: [] });
     setModeBanner(defaultDraftInstruction());
     updateModeButtons();
-    invalidateGpuInteraction('new-country-line-start');
+    renderingDomain?.invalidateGpuInteraction?.('new-country-line-start');
   }
 
   function enterAnnexTerritoryMode(id) {
@@ -8774,8 +8174,7 @@ const {
     const feature = countryFeatureById(id);
     if (!feature) return false;
     if (!requireCountriesUnlocked([id], '영토 편입을 시작')) return false;
-    state.draftCoords = [];
-    state.draftHover = null;
+    editingDomain?.clearDraft?.({ reason: 'annex-mode', render: false });
     state.annexTargetCountryId = String(id);
     state.annexDonorCountryIds = [];
     state.annexPhase = 'donor';
@@ -8835,15 +8234,14 @@ const {
     state.annexSelectionMethod = 'line';
     resetRiverPartitionState();
     state.annexSourceGeometry = sourceGeometry;
-    state.draftCoords = [];
-    state.draftHover = null;
+    editingDomain?.startDraft?.({ coords: [] });
     setModeBanner(defaultDraftInstruction());
     updateModeButtons();
-    invalidateSelection('annex-selection-start');
+    renderingDomain?.invalidateSelection?.('annex-selection-start');
   }
 
   function selectionSessionSnapshot() {
-    const snapshot = objectSelection.snapshot();
+    const snapshot = selectionDomain.snapshot().selection;
     return {
       primaryKey: snapshot.primaryKey,
       items: snapshot.items.map(ref => ({ domain: ref.domain, type: ref.type, id: ref.id })),
@@ -8864,7 +8262,7 @@ const {
     setCountryObjectSelection(state.boundaryEditCountryIds, id, { refreshEditor: false });
     rebuildBoundaryTopology(state.boundaryEditCountryIds);
     setModeBanner(`${countryName(feature)}와 접한 국가를 선택하세요.`);
-    invalidateGpuInteraction('country-border-selection');
+    renderingDomain?.invalidateGpuInteraction?.('country-border-selection');
     updateModeButtons();
     return true;
   }
@@ -8872,7 +8270,7 @@ const {
   function enterCountryBorderEditFromSelection() {
     clearNotification();
     const snapshot = selectionSessionSnapshot();
-    const refs = objectSelection.items();
+    const refs = selectionDomain.snapshot().selection.items;
     const ids = refs.filter(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id);
     if (ids.length !== refs.length || ids.length < 2) {
       setActionStatus('국경 조정은 국가를 2개 이상 선택했을 때 시작할 수 있습니다.', 'error', 3200);
@@ -8892,7 +8290,7 @@ const {
     setCountryObjectSelection(analysis.selectedIds, analysis.selectedIds.at(-1), { refreshEditor: false });
     rebuildBoundaryTopology(analysis.selectedIds);
     setModeBanner('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
-    invalidateGpuInteraction('country-border-edit-selection');
+    renderingDomain?.invalidateGpuInteraction?.('country-border-edit-selection');
     updateModeButtons();
     return true;
   }
@@ -8934,7 +8332,7 @@ const {
     setModeBanner(analysis.valid
       ? `${analysis.selectedIds.length}개 국가 선택됨 · 완료하면 공유국경을 편집합니다.`
       : analysis.message);
-    invalidateGpuInteraction('country-border-country-toggle');
+    renderingDomain?.invalidateGpuInteraction?.('country-border-country-toggle');
     updateModeButtons();
     return true;
   }
@@ -8951,7 +8349,7 @@ const {
     state.boundaryEditPhase = 'editing';
     rebuildBoundaryTopology(analysis.selectedIds);
     setModeBanner('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
-    invalidateGpuInteraction('country-border-edit-start');
+    renderingDomain?.invalidateGpuInteraction?.('country-border-edit-start');
     updateModeButtons();
     return true;
   }
@@ -9000,8 +8398,8 @@ const {
     state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
     state.coastEditScopeGenericFeatureId = null;
     state.coastEditReturnSelection = null;
-    if (returnSelection?.type === 'generic' && state.genericFeatures.some(item => String(item.id) === String(returnSelection.id))) selectGenericFeature(String(returnSelection.id), true);
-    else if (feature) selectCountry(id, true);
+    if (returnSelection?.type === 'generic' && state.genericFeatures.some(item => String(item.id) === String(returnSelection.id))) applyGenericSelectionIntent(String(returnSelection.id), true);
+    else if (feature) applyCountrySelectionIntent(id, true);
     queueAutosave();
     setActionStatus(`${feature ? countryName(feature) : '국가'}의 해안선을 조정했습니다.`, 'success');
   }
@@ -9068,10 +8466,10 @@ const {
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
     if (cancelledTool === 'country-border' && boundarySelectionSnapshot) restoreObjectSelectionSnapshot(boundarySelectionSnapshot);
-    else if (selectedGenericFeatureId && state.genericFeatures.some(item => String(item.id) === String(selectedGenericFeatureId))) selectGenericFeature(String(selectedGenericFeatureId), true);
-    else if (selectedTerritorialUnitId && territorialUnitById(selectedTerritorialUnitId)) selectTerritorialUnit(String(selectedTerritorialUnitId), true);
-    else if (selectedId && countryFeatureById(selectedId)) selectCountry(selectedId, true);
-        renderingDomain?.renderDraft?.();
+    else if (selectedGenericFeatureId && state.genericFeatures.some(item => String(item.id) === String(selectedGenericFeatureId))) applyGenericSelectionIntent(String(selectedGenericFeatureId), true);
+    else if (selectedTerritorialUnitId && territorialUnitById(selectedTerritorialUnitId)) applyTerritorialUnitSelectionIntent(String(selectedTerritorialUnitId), true);
+    else if (selectedId && countryFeatureById(selectedId)) applyCountrySelectionIntent(selectedId, true);
+    renderingDomain?.invalidateEditingOverlays?.('active-mode-cancelled');
     const labels = { 'new-country': '국가 추가', 'annex-territory': '영토 편입', 'merge-country': '국가 합병', 'merge-generic-feature': '영역 합치기', 'split-generic-feature': '영역 나누기', 'merge-territorial-unit': '영역 합치기', 'split-territorial-unit': '영역 나누기', 'country-border': '국경 조정', 'country-coast': '해안선 조정' };
     if (announce) setActionStatus(`${labels[cancelledTool] || '지도 작업'}을 취소했습니다.`, 'success');
   }
@@ -9232,13 +8630,13 @@ const {
         if (feature && isHydroFeatureVisible(feature) && geometryHitsScreenPoint(feature.geometry, coord, screenPoint, isMobile() ? 14 : 8)) add({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id });
       }
     }
-    const canReuseHover = state.hovered?.type === 'country' && state.hovered.feature
+    const canReuseHover = lastHoverHit?.ref?.type === TERRITORIAL_UNIT_TYPES.COUNTRY && lastHoverHit.feature
       && lastHoverPickViewRevision === viewRevision && lastHoverPickPoint
       && Math.hypot(screenPoint[0] - lastHoverPickPoint[0], screenPoint[1] - lastHoverPickPoint[1]) < 3;
     selectionPerformanceMetrics.pickCacheHit = !!canReuseHover;
     if (state.layerVisibility.countries) {
       let country;
-      if (canReuseHover) country = state.hovered.feature;
+      if (canReuseHover) country = lastHoverHit.feature;
       else {
         const pickStartedAt = performance.now();
         country = countryAtScreenPoint(screenPoint, coord, { verify: false });
@@ -9272,10 +8670,10 @@ const {
       const info = objectDisplayInfo(ref);
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = `ui-button ui-row ui-card ui-selectable-row object-chooser-item${objectSelection.has(ref) ? ' is-selected' : ''}`;
+      button.className = `ui-button ui-row ui-card ui-selectable-row object-chooser-item${selectionDomain.has(ref) ? ' is-selected' : ''}`;
       button.dataset.objectChooserIndex = String(index);
       button.setAttribute('role', 'option');
-      button.setAttribute('aria-selected', String(objectSelection.has(ref)));
+      button.setAttribute('aria-selected', String(selectionDomain.has(ref)));
       const name = document.createElement('span');
       const type = document.createElement('small');
       name.textContent = info.name;
@@ -9312,7 +8710,7 @@ const {
       selectionPerformanceMetrics.direct = true;
       const event = sourceEvent?.sourceEvent || sourceEvent || {};
       const mode = event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace';
-      applyObjectSelection(normalizedForced, { mode, scope: 'map' });
+      applySelectionIntent(normalizedForced, { mode, scope: 'map' });
       selectionPerformanceMetrics.handlerMs = performance.now() - inputStartedAt;
       requestAnimationFrame(() => {
         publishSelectionPerformanceSample(inputStartedAt, performanceBefore, `direct:${normalizedForced.key}`);
@@ -9334,7 +8732,7 @@ const {
     }
     const target = normalizedForced || candidates[0];
     const mode = event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace';
-    applyObjectSelection(target, { mode, scope: 'map' });
+    applySelectionIntent(target, { mode, scope: 'map' });
     selectionPerformanceMetrics.handlerMs = performance.now() - inputStartedAt;
     requestAnimationFrame(() => {
       publishSelectionPerformanceSample(inputStartedAt, performanceBefore, `map:${target.key}`);
@@ -9347,9 +8745,7 @@ const {
     const rawCoord = screenToGeo(screenPoint);
     if (!rawCoord) return;
     const pointerType = d3.event?.pointerType === 'touch' || d3.event?.changedTouches ? 'touch' : 'mouse';
-    const coord = (editingDomain?.draftInputActive?.() || ['new-country', 'annex-territory'].includes(state.tool))
-      ? snapCoordinateForInput(rawCoord, screenPoint, pointerType)
-      : rawCoord;
+    const coord = rawCoord;
     if (state.labelPlacementMode) {
       addLabelAt(coord);
       return;
@@ -9394,14 +8790,14 @@ const {
         setActionStatus('선택한 국가를 찾을 수 없습니다. 영토를 가져올 국가를 다시 선택하세요.', 'error', 3400);
         return;
       }
-      if (state.draftEdit.inputPhase !== 'draw') return;
-      editingDomain?.appendDraftCoordinate(coord, { dedupe: true });
+      if (editingDraftSnapshot().inputPhase !== 'draw') return;
+      editingDomain?.appendDraftScreenPoint?.(screenPoint, pointerType, { dedupe: true });
       return;
     }
     const newCountryLineMode = state.tool === 'new-country' && state.newCountryPhase === 'line';
     if (isGenericFeatureDraftTool(state.tool) || newCountryLineMode) {
-      if (state.draftEdit.inputPhase !== 'draw') return;
-      editingDomain?.appendDraftCoordinate(coord);
+      if (editingDraftSnapshot().inputPhase !== 'draw') return;
+      editingDomain?.appendDraftScreenPoint?.(screenPoint, pointerType);
       return;
     }
     if (state.tool === 'point') {
@@ -9412,9 +8808,7 @@ const {
       };
       genericFeatureService.add(feature);
       editingDomain?.setTool('select');
-      selectGenericFeature(String(feature.id));
-      invalidateSelection('map-feature-selection');
-      queueAutosave();
+      applyGenericSelectionIntent(String(feature.id));
       setActionStatus('점 기타 객체를 추가했습니다.', 'success');
       return;
     }
@@ -9428,7 +8822,7 @@ const {
       return;
     }
     try {
-      const split = buildCutSplitCandidates(source.geometry, state.draftCoords);
+      const split = buildCutSplitCandidates(source.geometry, editingDraftCoordinates());
       const untouchedComponents = geometryPolygonSets(source.geometry)
         .filter((_, index) => index !== split.componentIndex)
         .map(polygon => deepClone(polygon));
@@ -9458,7 +8852,7 @@ const {
           state.genericFeatures.push(deepClone(sibling));
           editingDomain?.clearDraft?.(true);
           editingDomain?.setTool('select', { announce: false });
-          selectGenericFeature(String(source.id), true);
+          applyGenericSelectionIntent(String(source.id), true);
         },
         successMessage: `${baseName} 영역을 두 영역으로 나눴습니다.`,
         errorMessage: '영역 나누기 결과를 적용하지 못했습니다.',
@@ -9477,16 +8871,15 @@ const {
     }
     try {
       const sourceGeometry = state.annexSourceGeometry || selectedCountryUnionGeometry(state.annexDonorCountryIds);
-      const split = buildCutSplitCandidates(sourceGeometry, state.draftCoords);
+      const split = buildCutSplitCandidates(sourceGeometry, editingDraftCoordinates());
       state.annexComponentIndex = split.componentIndex;
-      state.draftCoords = split.cutLine.map(coord => coord.slice());
-      state.draftHover = null;
+      editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
       state.annexCandidates = split.candidates;
       state.annexSelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       state.annexPhase = 'side';
       setModeBanner('편입할 영역을 선택하세요.', 'annex-mode');
       updateModeButtons();
-      invalidateGpuInteraction('annex-candidates-ready');
+      renderingDomain?.invalidateGpuInteraction?.('annex-candidates-ready');
     } catch (error) {
       reportOperationError(error, '새 경계를 사용할 수 없습니다. 영토를 가져올 국가를 한 번만 관통하도록 선을 다시 그리세요.', 'PL-ANNEX-003');
     }
@@ -9499,15 +8892,14 @@ const {
     }
     try {
       const sourceGeometry = state.newCountrySourceGeometry || selectedCountryUnionGeometry(state.newCountrySourceIds);
-      const split = buildCutSplitCandidates(sourceGeometry, state.draftCoords);
-      state.draftCoords = split.cutLine.map(coord => coord.slice());
-      state.draftHover = null;
+      const split = buildCutSplitCandidates(sourceGeometry, editingDraftCoordinates());
+      editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
       state.newCountryCandidates = split.candidates;
       state.newCountrySelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       state.newCountryPhase = 'side';
       setModeBanner('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
       updateModeButtons();
-      invalidateGpuInteraction('new-country-candidates-ready');
+      renderingDomain?.invalidateGpuInteraction?.('new-country-candidates-ready');
     } catch (error) {
       reportOperationError(error, '신생국 국경선을 사용할 수 없습니다. 선택 영토를 한 번만 관통하도록 선을 다시 그리세요.', 'PL-COUNTRY-003');
     }
@@ -9518,7 +8910,7 @@ const {
     const donors = state.annexDonorCountryIds.map(countryFeatureById).filter(Boolean);
     if (state.annexPhase !== 'polygon' || !target || !donors.length) return;
     const plan = planDrawnTerritoryAnnex({
-      drawnGeometry: { type: 'Polygon', coordinates: [ensureClosedRing(state.draftCoords)] },
+      drawnGeometry: { type: 'Polygon', coordinates: [ensureClosedRing(editingDraftCoordinates())] },
       donorFeatures: donors,
       targetFeature: target,
       clipper: window.polygonClipping,
@@ -9532,7 +8924,7 @@ const {
     state.annexPhase = 'polygon-preview';
     setModeBanner('편입할 영역을 선택하세요.', 'annex-mode');
     updateModeButtons();
-    invalidateGpuInteraction('annex-polygon-ready');
+    renderingDomain?.invalidateGpuInteraction?.('annex-polygon-ready');
   }
 
   function resetRiverPartitionState({ preserveCache = true } = {}) {
@@ -9654,13 +9046,13 @@ const {
       window.__PANDOLAB_RIVER_PARTITION_DIAGNOSTICS__ = structuredClone(cached.diagnostics || {});
       setModeBanner(riverPartitionResultMessage(candidates, donorResults, donors), 'annex-mode');
       updateModeButtons();
-      invalidateGpuInteraction('river-partition-cache-ready');
+      renderingDomain?.invalidateGpuInteraction?.('river-partition-cache-ready');
       return;
     }
     state.annexRiverPartitionStatus = 'loading';
     setModeBanner('피편입국을 가로지르는 강으로 영토 조각을 계산하는 중입니다.', 'annex-mode');
     updateModeButtons();
-    invalidateGpuInteraction('river-partition-loading');
+    renderingDomain?.invalidateGpuInteraction?.('river-partition-loading');
     try {
       const sources = await gisDomain.loadRiverPartitionFeatures(donors);
       if (!current()) return;
@@ -9689,7 +9081,7 @@ const {
       applyRiverPartitionResult(candidates, donorResults);
       setModeBanner(riverPartitionResultMessage(candidates, donorResults, donors), 'annex-mode');
       updateModeButtons();
-      invalidateGpuInteraction('river-partition-ready');
+      renderingDomain?.invalidateGpuInteraction?.('river-partition-ready');
     } catch (error) {
       if (!current()) return;
       state.annexRiverPartitionStatus = error?.code === 'RIVER_PARTITION_SOURCE_ERROR' ? 'source-error' : 'error';
@@ -9704,17 +9096,16 @@ const {
   }
 
   function finishGenericFeatureDraft(polygonMode) {
+    const draftCoords = editingDraftCoordinates();
     const hydro = hydroToolConfig(state.tool);
     const id = uid(hydro?.prefix || (polygonMode ? 'poly' : 'line'));
     const geometry = polygonMode
-      ? { type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] }
-      : { type: 'LineString', coordinates: state.draftCoords.map(coord => coord.slice()) };
+      ? { type: 'Polygon', coordinates: [orientRing(draftCoords, true)] }
+      : { type: 'LineString', coordinates: draftCoords.map(coord => coord.slice()) };
     if (polygonMode) {
       const issues = validateStructuredGeometry({ type: 'Feature', id, properties: {}, geometry });
       if (issues.length) {
         setActionStatus(issues[0].message || '그린 영역을 저장할 수 없습니다. 표시된 경계를 수정하세요.', 'error', 4200);
-        state.draftEdit.issues = issues;
-        renderingDomain?.renderDraft?.();
         updateModeButtons();
         return;
       }
@@ -9738,11 +9129,9 @@ const {
         return;
       }
       state.distributionDraft = null;
-      state.draftCoords = [];
-      state.draftHover = null;
+      editingDomain?.clearDraft?.({ reason: 'distribution-draft-committed', render: false });
       editingDomain?.setTool('select', { announce: false });
-      selectDistributionLayer(layer.id);
-      queueAutosave();
+      applyDistributionSelectionIntent(layer.id);
       setActionStatus(`${layer.name} 자유 분포 영역을 추가했습니다.`, 'success');
       return;
     }
@@ -9771,14 +9160,13 @@ const {
     } else {
       genericFeatureService.add(feature);
     }
-    state.draftCoords = [];
-    state.draftHover = null;
+    editingDomain?.clearDraft?.({ reason: 'feature-draft-committed', render: false });
     editingDomain?.setTool('select', { announce: false });
     markLayerTreeDirty();
-    if (hydro) selectHydro(String(id));
-    else selectGenericFeature(String(id));
-    invalidateGpuInteraction('finish-generic-draft');
-    queueAutosave();
+    if (hydro) applyHydroSelectionIntent(String(id));
+    else applyGenericSelectionIntent(String(id));
+    renderingDomain?.invalidateGpuInteraction?.('finish-generic-draft');
+    if (hydro) queueAutosave();
     const createdObjectLabel = hydro?.category === 'river' ? '강을' : hydro?.category === 'lake' ? '호수를' : '기타 객체를';
     setActionStatus(`${createdObjectLabel} 추가했습니다.`, 'success');
   }
@@ -9790,29 +9178,25 @@ const {
     }
     const polygonMode = isPolygonDraftTool(state.tool);
     const minimumPoints = polygonMode ? 3 : 2;
-    if (state.draftCoords.length < minimumPoints) {
+    const draft = editingDraftSnapshot();
+    if (draft.coords.length < minimumPoints) {
       setActionStatus(`완료하려면 점이 최소 ${minimumPoints}개 필요합니다. 지도에서 점을 더 입력하세요.`, 'error');
       return;
     }
-    if (state.draftStroke.active) {
+    if (draft.strokeActive) {
       setActionStatus('선을 그리는 중입니다. 포인터를 놓은 뒤 완료하세요.', 'error', 2400);
       return;
     }
     const cutSourceGeometry = activeCutDraftSourceGeometry();
-    refreshDraftDerivedState({ buildPreview: false });
-    if (!cutSourceGeometry && state.draftEdit.issues.length) {
-      setActionStatus(state.draftEdit.issues[0].message || '그린 형상에서 수정이 필요한 위치를 확인하세요.', 'error', 4200);
-        renderingDomain?.renderDraft?.();
+    if (!cutSourceGeometry && draft.issues.length) {
+      setActionStatus(draft.issues[0].message || '그린 형상에서 수정이 필요한 위치를 확인하세요.', 'error', 4200);
       updateModeButtons();
       return;
     }
     if (cutSourceGeometry) {
-      const assessment = assessCutDraft(state.draftCoords, cutSourceGeometry);
-      state.draftCutAssessment = assessment;
-      state.draftEdit.issues = assessment.issues || [];
+      const assessment = assessCutDraft(draft.coords, cutSourceGeometry);
       if (!assessment.valid) {
         setActionStatus(assessment.message || '경계선을 선택 영역의 반대쪽 경계까지 연결하세요.', 'error', 4200);
-        renderingDomain?.renderDraft?.();
         updateModeButtons();
         return;
       }
@@ -9868,11 +9252,10 @@ const {
         refreshCountryCentroids(affectedIds);
         state.boundaryTopology = { edges: new Map(), nodes: new Map() };
         if (!countryFeatureById(targetId)) throw new Error('편입받을 국가가 편입 결과에서 사라졌습니다.');
-        state.draftCoords = [];
-        state.draftHover = null;
+        editingDomain?.clearDraft?.({ reason: 'annex-committed', render: false });
         editingDomain?.setTool('select', { announce: false });
-        selectCountry(targetId, false, false);
-        invalidateTerritorialPatch('territory-annex-committed');
+        applyCountrySelectionIntent(targetId);
+        renderingDomain?.invalidateTerritorialPatch?.('territory-annex-committed');
       },
       onSuccess: plan => {
         const removedText = plan.removedIds.length ? ` · ${plan.removedIds.length}개국 완전 흡수` : '';
@@ -9907,7 +9290,7 @@ const {
     const snapshot = snapshotEditable();
     const feature = createCountryFeature(
       nameInput.trim() || '새 국가',
-      state.draftCoords,
+      editingDraftCoordinates(),
       null,
       snapGeometryToGrid(candidate.geometry, 7),
     );
@@ -9923,11 +9306,10 @@ const {
         transferLandDependents(candidate.geometry, sourceIds, feature.id);
         refreshCountryCentroids(affectedIds);
         state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-        state.draftCoords = [];
-        state.draftHover = null;
+        editingDomain?.clearDraft?.({ reason: 'country-created', render: false });
         editingDomain?.setTool('select', { announce: false });
-        selectCountry(feature.id, false, false);
-        invalidateCountryPatch('new-country-committed');
+        applyCountrySelectionIntent(feature.id);
+        renderingDomain?.invalidateCountryPatch?.('new-country-committed');
       },
       onSuccess: transferPlan => {
         const removedText = transferPlan.removedIds.length ? ` · 원본 ${transferPlan.removedIds.length}개국 완전 흡수` : '';
@@ -9966,8 +9348,8 @@ const {
         refreshCountryCentroids(new Set([sourceId]));
         state.boundaryTopology = { edges: new Map(), nodes: new Map() };
         editingDomain?.setTool('select', { announce: false });
-        selectCountry(sourceId, false, false);
-        invalidateCountryPatch('country-merge-committed');
+        applyCountrySelectionIntent(sourceId);
+        renderingDomain?.invalidateCountryPatch?.('country-merge-committed');
       },
       onSuccess: () => setActionStatus(`${targetIds.length}개국을 ${sourceName}에 합병했습니다.`, 'success', 3200),
       onError: error => reportOperationError(error, '국가를 합병하지 못해 변경을 되돌렸습니다. 대상을 다시 확인하세요.', 'PL-MERGE-001'),
@@ -10021,8 +9403,8 @@ const {
       recordHistory();
       feature.geometry = normalizeClippedLandGeometry(window.polygonClipping.intersection(feature.geometry.coordinates, owner.geometry.coordinates)) || feature.geometry;
       normalizeGenericFeatureSemantics(feature, { inferOwner: false });
-      selectGenericFeature(String(feature.id), true);
-      invalidateGenericPatch('generic-owner-clip-preview');
+      applyGenericSelectionIntent(String(feature.id), true);
+      renderingDomain?.invalidateGenericPatch?.('generic-owner-clip-preview');
       queueAutosave();
       setActionStatus('영역이 이미 소유 국가 안에 있습니다. 국가 해안선 결합을 갱신했습니다.', 'success', 3400);
       return;
@@ -10039,8 +9421,8 @@ const {
         transferLandDependents(transferredGeometry, donorIds, ownerId);
         normalizeGenericFeatureSemantics(feature, { inferOwner: false });
         refreshCountryCentroids(new Set(result.affectedIds));
-        selectGenericFeature(String(feature.id), true);
-        invalidateGenericPatch('generic-owner-clip-committed');
+        applyGenericSelectionIntent(String(feature.id), true);
+        renderingDomain?.invalidateGenericPatch?.('generic-owner-clip-committed');
       },
       onSuccess: () => setActionStatus(`${genericFeatureName(feature)} 영역을 ${countryName(countryFeatureById(ownerId))} 영토에 반영했습니다.`, 'success', 3800),
       onError: error => reportOperationError(error, '영역을 국가 영토에 반영하지 못했습니다. 소유 국가와 겹치는 범위를 확인하세요.', 'PL-LAND-001', 4600),
@@ -10079,8 +9461,8 @@ const {
         state.genericFeatures = state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
         reindexCountries(state.countriesData, true);
         refreshCountryCentroids(new Set(result.affectedIds));
-        selectCountry(country.id, false, false);
-        invalidateCountryPatch('generic-promoted-country');
+        applyCountrySelectionIntent(country.id);
+        renderingDomain?.invalidateCountryPatch?.('generic-promoted-country');
       },
       onSuccess: () => setActionStatus(`${name} 영역을 독립 국가로 전환했습니다.`, 'success', 3600),
       onError: error => reportOperationError(error, '영역을 국가로 전환하지 못했습니다. 다른 국가와의 중첩과 형상을 확인하세요.', 'PL-LAND-002', 4600),
@@ -10106,8 +9488,8 @@ const {
     feature.properties.landBinding = 'hard';
     feature.properties.topologyGroup = `land:${feature.properties.ownerId}`;
     genericFeatureLandClipCache.delete(feature);
-    selectGenericFeature(String(feature.id), true);
-    invalidateGenericPatch('generic-owner-align');
+    applyGenericSelectionIntent(String(feature.id), true);
+    renderingDomain?.invalidateGenericPatch?.('generic-owner-align');
     queueAutosave();
     setActionStatus('객체를 소유 국가의 현재 육지와 맞췄습니다.', 'success', 3200);
   }
@@ -10180,7 +9562,7 @@ const {
         state.genericFeatures = state.genericFeatures.filter(item => !removed.has(String(item.id)));
         normalizeGenericFeatureSemantics(source, { inferOwner: false });
         editingDomain?.setTool('select', { announce: false });
-        selectGenericFeature(String(source.id), true);
+        applyGenericSelectionIntent(String(source.id), true);
       },
       successMessage: `${targets.length + 1}개 영역을 하나로 합쳤습니다.`,
       errorMessage: '영역 합치기 결과를 적용하지 못했습니다.',
@@ -10188,13 +9570,14 @@ const {
   }
 
   function requestDraftDiscard(action) {
-    if (!editingDomain?.draftInputActive?.() || state.draftCoords.length < 3) {
+    const draftCount = editingDraftCoordinates().length;
+    if (!editingDomain?.draftInputActive?.() || draftCount < 3) {
       action?.();
       return true;
     }
     openConfirmModal({
       title: '그리기 취소',
-      message: `작성 중인 점 ${state.draftCoords.length}개를 버리고 현재 그리기를 취소합니다.`,
+      message: `작성 중인 점 ${draftCount}개를 버리고 현재 그리기를 취소합니다.`,
       confirmText: '그리기 취소',
       cancelText: '계속 그리기',
       danger: true,
@@ -10219,11 +9602,11 @@ const {
     state.distributionDraft = null;
     editingDomain?.clearDraft?.(true);
     editingDomain?.setTool('select', { announce: false });
-    if (splitSourceId && state.genericFeatures.some(item => String(item.id) === String(splitSourceId))) selectGenericFeature(String(splitSourceId), true);
-    else if (territorialSplitSourceId && territorialUnitById(territorialSplitSourceId)) selectTerritorialUnit(territorialSplitSourceId, true);
-    else if (territorialRedrawSourceId && territorialUnitById(territorialRedrawSourceId)) selectTerritorialUnit(territorialRedrawSourceId, true);
-    invalidateGpuInteraction('draft-cancel');
-    if (distributionDraft?.layerId && distributionLayerById(distributionDraft.layerId)) selectDistributionLayer(distributionDraft.layerId, true);
+    if (splitSourceId && state.genericFeatures.some(item => String(item.id) === String(splitSourceId))) applyGenericSelectionIntent(String(splitSourceId), true);
+    else if (territorialSplitSourceId && territorialUnitById(territorialSplitSourceId)) applyTerritorialUnitSelectionIntent(territorialSplitSourceId, true);
+    else if (territorialRedrawSourceId && territorialUnitById(territorialRedrawSourceId)) applyTerritorialUnitSelectionIntent(territorialRedrawSourceId, true);
+    renderingDomain?.invalidateGpuInteraction?.('draft-cancel');
+    if (distributionDraft?.layerId && distributionLayerById(distributionDraft.layerId)) applyDistributionSelectionIntent(distributionDraft.layerId, true);
     if (showMessage) setActionStatus(distributionDraft ? '자유 분포 그리기를 취소했습니다.' : splitSourceId || territorialSplitSourceId || territorialRedrawSourceId || directTerritorialUnit ? '영역 작업을 취소했습니다.' : `${terrain?.label || '기타 객체'} 추가를 취소했습니다.`, 'success');
   }
 
@@ -10235,309 +9618,10 @@ const {
     state.labels.push(label);
     state.labelSettings[labelKey('label', label.id)] = automaticLabelSettings(label.kind, { pinned: false });
     exitLabelMode(false);
-    selectLabel(label.id);
-    invalidateLabels('label-created');
+    applyLabelSelectionIntent(label.id);
+    renderingDomain?.invalidateLabels?.('label-created');
     queueAutosave();
     setActionStatus(`${label.name} 지명을 추가했습니다.`, 'success');
-  }
-
-  function vertexDragBehavior(feature) {
-    let blockedByCanonicalCoast = false;
-    let beforeGeometry = null;
-    let previewFeature = null;
-    let activeVertex = null;
-    let changed = false;
-    const hydroEdit = isHydroEditFeature(feature);
-    const previewSegments = () => editableVertexPreviewSegments(previewFeature, activeVertex);
-    return d3.behavior.drag()
-      .on('dragstart', function(vertex) {
-        if (!feature || state.tool !== 'select') return;
-        if (feature.properties?.locked === true) {
-          blockedByCanonicalCoast = true;
-          d3.event.sourceEvent?.stopPropagation?.();
-          setActionStatus('잠금을 해제한 뒤 꼭짓점을 이동하세요.', 'error', 3200);
-          return;
-        }
-        const owner = hydroEdit ? null : countryFeatureById(feature.properties?.ownerId);
-        blockedByCanonicalCoast = !hydroEdit && genericFeatureLandBinding(feature) === 'hard' && owner
-          ? pointOnGeometryBoundary(vertex.coord, owner.geometry, 0.00012)
-          : false;
-        if (blockedByCanonicalCoast) {
-          d3.event.sourceEvent?.stopPropagation?.();
-          setActionStatus('국가 해안선과 연결된 점입니다. 편집창의 해안 구간 수정을 사용하세요.', 'error', 3800);
-          return;
-        }
-        beforeGeometry = deepClone(feature.geometry);
-        previewFeature = deepClone(feature);
-        activeVertex = vertex;
-        changed = false;
-        recordHistory();
-        beginActiveEditPreview({
-          key: `${hydroEdit ? 'hydro' : 'generic'}:${feature.id}`,
-          segments: previewSegments(),
-          style: {
-            color: hydroEdit ? '#72c9ef' : resolvedInteractionStyle.selection.color,
-            alpha: 1,
-            width: 3.2,
-            casing: { color: '#101820', alpha: 0.55, width: 4.8 },
-            cap: 'round', join: 'round',
-          },
-        });
-        d3.event.sourceEvent?.stopPropagation?.();
-      })
-      .on('drag', function(vertex) {
-        if (!feature || !previewFeature || state.tool !== 'select' || blockedByCanonicalCoast) return;
-        const screenPoint = d3.mouse(svg.node());
-        const rawCoord = screenToGeo(screenPoint);
-        if (!rawCoord) return;
-        const pointerType = d3.event.sourceEvent?.pointerType === 'touch' || d3.event.sourceEvent?.touches ? 'touch' : 'mouse';
-        const coord = snapCoordinateForInput(rawCoord, screenPoint, pointerType, { excludeCoordinate: vertex.coord });
-        changed = changed || !coordNear(vertex.coord, coord, 1e-9);
-        setEditableVertexCoord(previewFeature, vertex, coord);
-        updateActiveEditPreview(previewSegments());
-        if (hydroEdit) hydroEditLayer.selectAll('path.hydro-edit-shape').attr('d', bound => (
-          String(bound?.id) === String(feature.id) ? path(previewFeature) : path(bound)
-        ));
-        else genericFeatureLayer.selectAll('path.generic-feature-shape').attr('d', bound => {
-          if (String(bound?.id) === String(feature.id)) return path(genericFeatureDisplayFeature(previewFeature));
-          const source = state.genericFeatures.find(item => String(item.id) === String(bound.id));
-          return source ? path(genericFeatureDisplayFeature(source)) : '';
-        });
-        vertexLayer.selectAll('circle.vertex-handle').attr('transform', d => {
-          const verts = getEditableVertices(previewFeature);
-          const fresh = verts.find(v => v.key === d.key) || d;
-          const p = activeProjection()(fresh.coord);
-          return p ? `translate(${p[0]},${p[1]})` : 'translate(-9999,-9999)';
-        });
-      })
-      .on('dragend', function() {
-        if (!feature || blockedByCanonicalCoast) return;
-        const commitStartedAt = performance.now();
-        clearActiveEditPreview('vertex-edit-preview-end');
-        if (!previewFeature || !changed) {
-          if (beforeGeometry) historyService.discardLast();
-          beforeGeometry = null;
-          previewFeature = null;
-          activeVertex = null;
-          clearActiveSnap();
-          renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-preview-no-change');
-          return;
-        }
-        const owner = hydroEdit ? null : countryFeatureById(feature.properties?.ownerId);
-        if (!hydroEdit && genericFeatureLandBinding(feature) === 'hard' && owner && genericFeatureGeometryKind(feature) === 'polygon') {
-          const clipped = normalizeClippedLandGeometry(window.polygonClipping.intersection(previewFeature.geometry.coordinates, owner.geometry.coordinates));
-          if (clipped) previewFeature.geometry = clipped;
-        }
-        const issues = ['Polygon', 'MultiPolygon'].includes(previewFeature.geometry?.type) ? validateStructuredGeometry(previewFeature) : [];
-        if (issues.length && beforeGeometry) {
-          editPipelineMetrics.rollbackCount += 1;
-          historyService.discardLast();
-          beforeGeometry = null;
-          previewFeature = null;
-          activeVertex = null;
-          clearActiveSnap();
-          renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-preview-invalid');
-          setActionStatus(issues[0].message || '유효하지 않은 geometry라 꼭짓점 이동을 되돌렸습니다.', 'error', 3800);
-          return;
-        }
-        feature.geometry = deepClone(previewFeature.geometry);
-        if (hydroEdit) mapObjectGeometryRevisions.hydro += 1;
-        else mapObjectGeometryRevisions.generic += 1;
-        genericFeatureLandClipCache.delete(feature);
-        recordEditCommitLatency(hydroEdit ? 'hydro' : 'generic', commitStartedAt);
-        beforeGeometry = null;
-        previewFeature = null;
-        activeVertex = null;
-        clearActiveSnap();
-        renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-edit-commit');
-        queueAutosave();
-        setActionStatus('꼭짓점을 이동했습니다.', 'success');
-      });
-  }
-
-  function boundaryTopologyPreviewTargets(nodeKey, topology = state.sharedBoundaryTopology) {
-    const precision = topology?.precision || 7;
-    const node = topology?.nodes?.get?.(nodeKey);
-    const currentNodeKey = node ? topologyNodeKey(node.coordinate, precision) : nodeKey;
-    const endpoints = [];
-    const segments = [];
-    for (const segment of topology?.segments?.values?.() || []) {
-      const startsHere = topologyNodeKey(segment.a, precision) === currentNodeKey;
-      const endsHere = topologyNodeKey(segment.b, precision) === currentNodeKey;
-      if (!startsHere && !endsHere) continue;
-      if (startsHere) endpoints.push(segment.a);
-      if (endsHere) endpoints.push(segment.b);
-      segments.push({ start: segment.a, end: segment.b });
-    }
-    return { node, endpoints, segments };
-  }
-
-  function moveBoundaryTopologyPreviewTargets(targets, coordinate) {
-    for (const endpoint of targets?.endpoints || []) {
-      endpoint[0] = coordinate[0];
-      endpoint[1] = coordinate[1];
-    }
-    if (!targets?.node) return;
-    targets.node.coordinate[0] = coordinate[0];
-    targets.node.coordinate[1] = coordinate[1];
-  }
-
-  function countryBoundaryVertexDragBehavior(feature) {
-    let activeRefs = [];
-    let affectedIds = new Set();
-    let transactionSnapshot = null;
-    let startCoord = null;
-    let dragEnabled = false;
-    let changed = false;
-    let ownerBeforeGeometries = new Map();
-    let validationBaseline = null;
-    let structuredValidationBaseline = new Set();
-    let activeNodeKey = null;
-    let activePreviewTargets = null;
-    let previewFeatures = new Map();
-    let previewTopology = null;
-    let editTool = null;
-    return d3.behavior.drag()
-      .on('dragstart', function(vertex) {
-        if (!feature || vertex.fixed || !['country-border', 'country-coast'].includes(state.tool)) return;
-        dragEnabled = false;
-        const node = state.sharedBoundaryTopology?.nodes?.get(vertex.nodeKey || coordKey(vertex.coord));
-        if (!node) return;
-        editTool = state.tool;
-        const borderMode = editTool === 'country-border';
-        const selectedIds = new Set(state.boundaryEditCountryIds.map(String));
-        const coastId = String(state.coastEditCountryId || feature.id);
-        const allowed = borderMode
-          ? node.ownerIds.size >= 2 && [...node.ownerIds].every(id => selectedIds.has(String(id)))
-          : node.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(coastId);
-        if (!allowed) return;
-        const nextAffectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
-        if (!requireCountriesUnlocked([...nextAffectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return;
-        transactionSnapshot = snapshotEditable();
-        startCoord = node.coordinate.slice();
-        changed = false;
-        const selectedId = borderMode ? String(state.boundaryEditCountryIds[0] || feature.id) : coastId;
-        affectedIds = nextAffectedIds;
-        ownerBeforeGeometries = new Map([...affectedIds].map(id => [id, deepClone(countryFeatureById(id)?.geometry)]));
-        structuredValidationBaseline = new Set([...affectedIds]
-          .flatMap(id => validateStructuredGeometry(countryFeatureById(id)).filter(Boolean))
-          .map(structuredGeometryIssueKey));
-        validationBaseline = affectedIds.size > 1 ? captureCountryGeometryValidationBaseline(affectedIds) : null;
-        previewFeatures = new Map([...affectedIds]
-          .map(id => [id, countryFeatureById(id)])
-          .filter(([, country]) => country)
-          .map(([id, country]) => [id, deepClone(country)]));
-        moveTopologyNode(previewFeatures, node, startCoord);
-        previewTopology = buildSharedBoundaryTopology([...previewFeatures.values()]);
-        const materializedNode = previewTopology?.nodes?.get(topologyNodeKey(startCoord, previewTopology?.precision || 7));
-        activeNodeKey = materializedNode?.key || node.key;
-        activePreviewTargets = boundaryTopologyPreviewTargets(activeNodeKey, previewTopology);
-        activeRefs = (materializedNode?.refs || []).filter(ref => affectedIds.has(String(ref.featureId))).map(ref => ({
-          countryId: String(ref.featureId),
-          feature: previewFeatures.get(String(ref.featureId)),
-          vertex: { polygonIndex: ref.polygonIndex, ringIndex: ref.ringIndex, index: ref.vertexIndex },
-        })).filter(ref => ref.feature);
-        if (!activeRefs.length) activeRefs = [{ countryId: selectedId, feature: previewFeatures.get(selectedId), vertex }].filter(ref => ref.feature);
-        beginActiveEditPreview({
-          key: `${borderMode ? 'border' : 'coast'}:${[...affectedIds].sort().join('|')}:${activeNodeKey}`,
-          segments: activePreviewTargets.segments,
-          style: {
-            color: borderMode ? resolvedInteractionStyle.selection.color : '#72c9ef',
-            alpha: 1,
-            width: 3.8,
-            casing: { color: '#101820', alpha: 0.65, width: 5.4 },
-            cap: 'round', join: 'round',
-          },
-        });
-        dragEnabled = true;
-        d3.event.sourceEvent?.stopPropagation?.();
-      })
-      .on('drag', function() {
-        if (!feature || state.tool !== editTool || !dragEnabled) return;
-        const screenPoint = d3.mouse(svg.node());
-        const rawCoord = screenToGeo(screenPoint);
-        if (!rawCoord) return;
-        const pointerType = d3.event.sourceEvent?.pointerType === 'touch' || d3.event.sourceEvent?.touches ? 'touch' : 'mouse';
-        const coord = snapCoordinateForInput(rawCoord, screenPoint, pointerType, { excludeNodeKey: activeNodeKey });
-        changed = changed || !coordNear(startCoord, coord, 1e-9);
-        for (const ref of activeRefs) setCountryVertexCoord(ref.feature, ref.vertex, coord);
-        moveBoundaryTopologyPreviewTargets(activePreviewTargets, coord);
-        updateActiveEditPreview(activePreviewTargets.segments);
-        vertexLayer.selectAll('circle.vertex-handle').attr('transform', d => {
-          const activeRef = d.nodeKey === activeNodeKey
-            ? activeRefs.find(ref => String(ref.countryId) === String(editTool === 'country-border' ? state.boundaryEditCountryIds[0] : state.coastEditCountryId)) || activeRefs[0]
-            : null;
-          const fresh = activeRef ? countryRingForVertex(activeRef.feature, activeRef.vertex)?.[activeRef.vertex.index] : d.coord;
-          const p = activeProjection()(fresh);
-          return p ? `translate(${p[0]},${p[1]})` : 'translate(-9999,-9999)';
-        });
-      })
-      .on('dragend', function() {
-        if (!feature || state.tool !== editTool || !dragEnabled || !transactionSnapshot) return;
-        const commitStartedAt = performance.now();
-        const snapshot = transactionSnapshot;
-        const borderMode = editTool === 'country-border';
-        let canonicalApplied = false;
-        dragEnabled = false;
-        transactionSnapshot = null;
-        activePreviewTargets = null;
-        clearActiveEditPreview('country-boundary-preview-end');
-        try {
-          if (!changed) {
-            previewFeatures.clear();
-            previewTopology = null;
-            renderingDomain?.invalidateEditedGeometryPatch?.('country', 'boundary-preview-no-change');
-            return;
-          }
-          const structuredIssues = [...affectedIds]
-            .flatMap(id => validateStructuredGeometry(previewFeatures.get(id)).filter(Boolean))
-            .filter(issue => !structuredValidationBaseline.has(structuredGeometryIssueKey(issue)));
-          if (structuredIssues.length) throw new Error(structuredIssues[0].message);
-          const validation = validateCountryGeometryEdit(affectedIds, validationBaseline, { featureOverrides: previewFeatures });
-          if (!validation.ok) throw new Error(validation.message);
-          for (const id of affectedIds) {
-            const current = countryFeatureById(id);
-            const preview = previewFeatures.get(id);
-            if (current && preview?.geometry) current.geometry = deepClone(preview.geometry);
-          }
-          canonicalApplied = true;
-          for (const id of affectedIds) {
-            const current = countryFeatureById(id);
-            const beforeGeometry = ownerBeforeGeometries.get(id);
-            if (current && beforeGeometry) syncHardLandDependents(id, beforeGeometry, current.geometry, startCoord);
-          }
-          markCountryGeometriesChanged(affectedIds);
-          refreshCountryCentroids(affectedIds);
-          rebuildBoundaryTopology(borderMode ? state.boundaryEditCountryIds : state.coastEditCountryId);
-          commitHistorySnapshot(snapshot);
-          recordEditCommitLatency(borderMode ? 'country-border' : 'country-coast', commitStartedAt);
-          previewFeatures.clear();
-          previewTopology = null;
-          renderingDomain?.invalidateEditedGeometryPatch?.('country', 'boundary-edit-commit');
-          queueAutosave();
-          if (borderMode) {
-            setModeBanner('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
-            setActionStatus(`${affectedIds.size}개 국가의 공유국경을 함께 수정했습니다.`, 'success');
-          } else {
-            setModeBanner(state.coastEditScopeGenericFeatureId
-              ? '해안선 꼭짓점을 드래그하세요. 연결 영역도 함께 변경됩니다.'
-              : '해안선 꼭짓점을 드래그하세요. 국경 접점은 고정됩니다.');
-            setActionStatus('해안선을 수정했습니다.', 'success');
-          }
-        } catch (error) {
-          editPipelineMetrics.rollbackCount += 1;
-          previewFeatures.clear();
-          previewTopology = null;
-          if (canonicalApplied) restoreCountryEditSnapshot(snapshot);
-          else {
-            rebuildBoundaryTopology(borderMode ? state.boundaryEditCountryIds : state.coastEditCountryId);
-            renderingDomain?.invalidateEditedGeometryPatch?.('country', 'boundary-preview-invalid');
-          }
-          reportOperationError(error, borderMode
-            ? '공유국경을 이동하지 못해 변경을 되돌렸습니다. 중첩·빈틈·자기 교차가 생기지 않는 위치로 다시 이동하세요.'
-            : '해안선을 이동하지 못해 변경을 되돌렸습니다. 중첩·빈틈·자기 교차가 생기지 않는 위치로 다시 이동하세요.', borderMode ? 'PL-BORDER-001' : 'PL-COAST-001', 4300);
-        }
-      });
   }
 
   function labelDragBehavior() {
@@ -10563,7 +9647,7 @@ const {
           pinned: true,
         });
         mapObjectGeometryRevisions.label += 1;
-        invalidateLabels('label-moved');
+        renderingDomain?.invalidateLabels?.('label-moved');
         queueAutosave();
         setActionStatus(`${label.name} 지명을 이동했습니다.`, 'success');
       });
@@ -10693,7 +9777,7 @@ const {
     else setTimeout(calculate, 0);
   }
 
-  function selectCountry(id, refreshOnly = false, shouldRender = true) {
+  function presentCountrySelection(id, refreshOnly = false) {
     const transactionStartedAt = performance.now();
     const idx = state.countryIndex.get(String(id));
     if (idx === undefined) return;
@@ -10701,10 +9785,6 @@ const {
     const p = feature.properties || {};
     const override = state.countryOverrides[id] || {};
     const displayName = override.name || p.name || id;
-    state.selected = countryObjectRef(id);
-    const controllerStartedAt = performance.now();
-    syncObjectSelection(state.selected);
-    selectionPerformanceMetrics.controllerMs = performance.now() - controllerStartedAt;
     const panelStartedAt = performance.now();
     showPropertyForm('country', displayName, { resetScroll: !refreshOnly });
     selectionPerformanceMetrics.propertyPanelMs = performance.now() - panelStartedAt;
@@ -10732,13 +9812,6 @@ const {
     syncStatusBar();
     syncCountryActionButtons();
     selectionPerformanceMetrics.propertyFieldsMs = performance.now() - fieldsStartedAt;
-    const editorStartedAt = performance.now();
-    if (!refreshOnly) openSelectionEditor();
-    selectionPerformanceMetrics.editorOpenMs = performance.now() - editorStartedAt;
-    if (shouldRender) mapRenderCoordinator.invalidate(
-      MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.HUD,
-      'select-country',
-    );
     selectionPerformanceMetrics.transactionMs = performance.now() - transactionStartedAt;
   }
 
@@ -10815,7 +9888,7 @@ const {
     ];
   }
 
-  function selectTerritorialUnit(id, refreshOnly = false) {
+  function presentTerritorialSelection(id, refreshOnly = false) {
     const feature = territorialUnitById(id);
     if (!feature) return;
     const properties = feature.properties || {};
@@ -10823,8 +9896,6 @@ const {
     const region = properties.unitType === TERRITORIAL_UNIT_TYPES.REGION;
     const formType = administrative ? 'administrative' : region ? 'region' : 'territory';
     const displayName = territorialUnitName(feature);
-    state.selected = normalizeObjectRef({ domain: 'territorial', type: properties.unitType, id: String(feature.id) });
-    syncObjectSelection(state.selected);
     showPropertyForm(formType, displayName, { resetScroll: !refreshOnly });
     const prefix = administrative ? 'administrative' : region ? 'region' : 'territory';
     const normalizedName = String(properties.name || '').trim().toLocaleLowerCase('ko');
@@ -10862,8 +9933,6 @@ const {
     $('selectionStatus').textContent += geometryAreaStatusSuffix(feature.geometry);
     syncStatusBar();
     syncLayerSelectionRows();
-    invalidateSelection('territorial-selection');
-    if (!refreshOnly) openSelectionEditor();
   }
 
   function distributionLayerById(id) {
@@ -10921,11 +9990,9 @@ const {
     container.replaceChildren(fragment);
   }
 
-  function selectDistributionLayer(id, refreshOnly = false) {
+  function presentDistributionSelection(id, refreshOnly = false) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
-    state.selected = normalizeObjectRef({ domain: 'distribution', type: layer.type, id: layer.id });
-    syncObjectSelection(state.selected);
     state.selectedDistributionLayerId = layer.id;
     showPropertyForm('distribution', layer.name, { resetScroll: !refreshOnly });
     $('distributionNameInput').value = layer.name;
@@ -10942,8 +10009,6 @@ const {
     $('selectionStatus').textContent = `${DISTRIBUTION_TYPE_LABELS[layer.type]} · ${layer.name}`;
     syncStatusBar();
     syncLayerSelectionRows();
-    invalidateSelection('distribution-selection');
-    if (!refreshOnly) openSelectionEditor();
     return true;
   }
 
@@ -10953,19 +10018,18 @@ const {
     if (!layer) return false;
     if (layer.locked && field !== 'locked') {
       setActionStatus('잠금을 해제한 뒤 분포 항목을 변경할 수 있습니다.', 'error', 3200);
-      selectDistributionLayer(layer.id, true);
+      applyDistributionSelectionIntent(layer.id, true);
       return false;
     }
     const result = distributionService.updateLayer(layer.id, field, value);
     if (!result.ok) {
       if (result.code === 'invalid') setActionStatus('자기 자신이나 하위 분류를 상위 분류로 설정할 수 없습니다.', 'error', 3600);
-      selectDistributionLayer(layer.id, true);
+      applyDistributionSelectionIntent(layer.id, true);
       return false;
     }
     if (field === 'locked') syncObjectLockStateChange([{ domain: 'distribution', type: layer.type, id: layer.id }]);
     else markLayerTreeDirty();
-    selectDistributionLayer(layer.id, true);
-    queueAutosave();
+    applyDistributionSelectionIntent(layer.id, true);
     setActionStatus(`${DISTRIBUTION_TYPE_LABELS[layer.type]} 정보를 변경했습니다.`, 'success');
     return true;
   }
@@ -10983,8 +10047,7 @@ const {
     state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === DISTRIBUTION_TYPE_GROUPS[type]]));
     markLayerTreeDirty();
     renderLayerTree(true);
-    selectDistributionLayer(layer.id);
-    queueAutosave();
+    applyDistributionSelectionIntent(layer.id);
     setActionStatus(`${layer.name} ${label} 항목을 추가했습니다. 분포를 이어서 입력하세요.`, 'success', 3600);
     return true;
   }
@@ -11009,8 +10072,7 @@ const {
     }
     const result = distributionService.addEntry(entry);
     if (!result.ok) return false;
-    selectDistributionLayer(layer.id, true);
-    queueAutosave();
+    applyDistributionSelectionIntent(layer.id, true);
     setActionStatus(`${distributionEntryLabel(result.entry)}에 ${layer.name} 분포를 추가했습니다.`, 'success');
     return true;
   }
@@ -11035,8 +10097,7 @@ const {
     if (!entry || !layer || layer.locked) return false;
     const result = distributionService.removeEntry(entry.id);
     if (!result.ok) return false;
-    selectDistributionLayer(layer.id, true);
-    queueAutosave();
+    applyDistributionSelectionIntent(layer.id, true);
     setActionStatus('분포 엔트리를 삭제했습니다.', 'success');
     return true;
   }
@@ -11054,8 +10115,6 @@ const {
       if (state.selectedDistributionLayerId === layer.id) state.selectedDistributionLayerId = '';
       markLayerTreeDirty();
       clearSelection(false);
-      invalidateOverlayGeometry('overlay', 'distribution-layer-deleted');
-      queueAutosave();
       setActionStatus(`${layer.name} ${DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
       return true;
     };
@@ -11083,32 +10142,30 @@ const {
     else delete state.itemVisibility[group][layer.id];
     distributionVisibilityRevision += 1;
     markLayerTreeDirty();
-    invalidateOverlayStyle('distribution-layer-visibility');
+    renderingDomain?.invalidateOverlayStyle?.('distribution-layer-visibility');
     queuePresentationAutosave();
     return true;
   }
 
-  function selectTerritorialObject(type, id, refreshOnly = false, shouldRender = true) {
+  function applyTerritorialSelectionIntent(type, id, refreshOnly = false) {
     const unitType = String(type || territorialUnitById(id)?.properties?.unitType || '');
     if (unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      selectCountry(id, refreshOnly, shouldRender);
-      return true;
+      return applySelectionIntent(countryObjectRef(id), { refreshOnly, openEditor: !refreshOnly });
     }
     const unit = territorialUnitById(id);
     if (!unit || unit.properties?.unitType !== unitType) return false;
-    selectTerritorialUnit(id, refreshOnly);
-    return true;
+    return applySelectionIntent(normalizeObjectRef({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: !refreshOnly });
   }
 
   function setTerritorialUnitName(type, id, name) {
-    if (!selectTerritorialObject(type, id, true, false)) return false;
+    if (!applyTerritorialSelectionIntent(type, id, true)) return false;
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) commitCountryEdit('name', name);
     else commitTerritorialUnitMeta('name', name);
     return true;
   }
 
   function setTerritorialUnitColor(type, id, color) {
-    if (!selectTerritorialObject(type, id, true, false)) return false;
+    if (!applyTerritorialSelectionIntent(type, id, true)) return false;
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) commitCountryEdit('color', color);
     else commitTerritorialUnitMeta('color', color);
     return true;
@@ -11125,17 +10182,16 @@ const {
     if (!result.changed) return true;
     syncObjectLockStateChange([{ domain: 'territorial', type, id: key }]);
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      if ((state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) && String(state.selected.id) === key) selectCountry(key, true);
+      if ((state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) && String(state.selected.id) === key) presentCountrySelection(key, true);
       syncBatchActionAvailability();
-    } else selectTerritorialUnit(key, true);
-    queueAutosave();
+    } else presentTerritorialSelection(key, true);
     return true;
   }
 
   window.PANDOLAB_TERRITORIAL = Object.freeze({
     get: id => territorialApplicationService.get(id),
     list: options => territorialApplicationService.list(options),
-    select: selectTerritorialObject,
+    select: applyTerritorialSelectionIntent,
     setName: setTerritorialUnitName,
     setColor: setTerritorialUnitColor,
     setLocked: setTerritorialUnitLocked,
@@ -11146,7 +10202,7 @@ const {
     getLayer: id => distributionLayerById(id),
     listLayers: type => distributionService.listLayers(type),
     listEntries: layerId => distributionService.listEntries(layerId),
-    select: selectDistributionLayer,
+    select: applyDistributionSelectionIntent,
     setVisible: setDistributionLayerVisible,
   });
 
@@ -11177,15 +10233,13 @@ const {
     syncEditorActionTab('generic');
   }
 
-  function selectGenericFeature(id, refreshOnly = false) {
+  function presentGenericSelection(id, refreshOnly = false) {
     const feature = state.genericFeatures.find(f => String(f.id) === String(id));
     if (!feature) return;
     normalizeGenericFeatureSemantics(feature);
     const meta = feature.properties || (feature.properties = {});
     const typeLabel = genericFeatureRoleLabel(feature);
     const displayName = genericFeatureName(feature);
-    state.selected = normalizeObjectRef({ domain: 'generic', type: 'feature', id: String(id) });
-    syncObjectSelection(state.selected);
     showPropertyForm('generic', displayName, { resetScroll: !refreshOnly });
     $('genericFeatureNameInput').value = meta.name || '';
     $('genericFeatureIdInput').textContent = String(id);
@@ -11198,15 +10252,11 @@ const {
     $('selectionStatus').textContent = `${typeLabel} · ${meta.name || String(id).slice(0, 8)}${geometryAreaStatusSuffix(feature.geometry)}`;
     syncStatusBar();
     syncLayerSelectionRows();
-    invalidateSelection('generic-selection');
-    if (!refreshOnly) openSelectionEditor();
   }
 
-  function selectLabel(id, refreshOnly = false) {
+  function presentLabelSelection(id, refreshOnly = false) {
     const label = state.labels.find(item => item.id === id);
     if (!label) return;
-    state.selected = normalizeObjectRef({ domain: 'label', type: label.kind || 'label', id });
-    syncObjectSelection(state.selected);
     showPropertyForm('label', label.name, { resetScroll: !refreshOnly });
     $('labelNameInput').value = label.name;
     $('labelKindInput').value = label.kind;
@@ -11216,8 +10266,6 @@ const {
     $('selectionStatus').textContent = `지명 · ${label.name}`;
     syncStatusBar();
     syncLayerSelectionRows();
-    invalidateSelection('label-selection');
-    if (!refreshOnly) openSelectionEditor();
   }
 
   function hydroEditorName(value, fallback) {
@@ -11226,7 +10274,7 @@ const {
     return name || fallback;
   }
 
-  function selectHydro(id, refreshOnly = false) {
+  function presentHydroSelection(id, refreshOnly = false) {
     const feature = hydroFeatureById(id);
     if (!feature || !isHydroFeatureVisible(feature)) return;
     const properties = feature.properties || {};
@@ -11234,8 +10282,6 @@ const {
     const categoryKey = hydroCategoryKey(properties.category);
     const category = hydroCategoryLabel(categoryKey);
     const displayName = hydroEditorName(properties.name, hydroFallbackName(categoryKey));
-    state.selected = normalizeObjectRef({ domain: 'hydro', type: hydroCategoryKey(properties.category), id: String(editable ? feature.id : properties.pandolab_id || feature.id) });
-    syncObjectSelection(state.selected);
     showPropertyForm('hydro', displayName, { resetScroll: !refreshOnly, typeLabel: category });
     $('hydroColorPopover').setAttribute('aria-label', `${category} 색상 팔레트`);
     $('hydroEditFields').classList.toggle('hidden', !editable);
@@ -11265,8 +10311,6 @@ const {
     $('selectionStatus').textContent = `${category} · ${displayName}`;
     syncStatusBar();
     syncLayerSelectionRows();
-    invalidateSelection('hydro-selection');
-    if (!refreshOnly) openSelectionEditor();
     if (!editable && !feature.geometry && !feature.__geometryLoading) {
       feature.__geometryLoading = true;
       gpuMapRenderer.loadHydroLogicalFeature(Number(properties.__logicalFid)).then(full => {
@@ -11277,7 +10321,7 @@ const {
         for (const [fid, cached] of state.hydroFeatureByFid) {
           if (String(cached?.properties?.pandolab_id || cached?.id) === key) state.hydroFeatureByFid.set(fid, full);
         }
-        if (state.selected?.domain === 'hydro' && state.selected.id === key) selectHydro(key, true);
+        if (state.selected?.domain === 'hydro' && state.selected.id === key) presentHydroSelection(key, true);
       }).catch(error => console.warn('강·호수 선택 형상을 불러오지 못했습니다.', error)).finally(() => { feature.__geometryLoading = false; });
     }
   }
@@ -11322,27 +10366,85 @@ const {
     state.physicalSettings.hiddenHydroIds[String(source.properties?.pandolab_id || source.id)] = true;
     gpuMapRenderer.invalidateHydroVisibility();
     markLayerTreeDirty();
-    selectHydro(String(copy.id));
-    invalidateHydroPatch('hydro-edit-copy');
+    applyHydroSelectionIntent(String(copy.id));
+    renderingDomain?.invalidateHydroPatch?.('hydro-edit-copy');
     queueAutosave();
     setActionStatus(`${source.properties?.name || (category === 'lake' ? '호수' : '강')} 편집 복사본을 만들었습니다.`, 'success', 3600);
   }
 
-  function clearSelection(announce = true) {
-    if (!objectSelectionSyncing) {
-      if (selectionDomain) selectionDomain.clear();
-      else objectSelection.clear();
+  function presentPrimarySelection({ refreshOnly = false, openEditor = false } = {}) {
+    const selection = selectionDomain.snapshot().selection;
+    const primary = selection.items.find(item => item.key === selection.primaryKey) || null;
+    if (!primary) return false;
+    if (selection.items.length > 1) renderMultiSelectionEditor(selection);
+    else if (primary.domain === 'territorial' && primary.type === TERRITORIAL_UNIT_TYPES.COUNTRY) presentCountrySelection(primary.id, refreshOnly);
+    else if (primary.domain === 'territorial') presentTerritorialSelection(primary.id, refreshOnly);
+    else if (primary.domain === 'distribution') presentDistributionSelection(primary.id, refreshOnly);
+    else if (primary.domain === 'generic') presentGenericSelection(primary.id, refreshOnly);
+    else if (primary.domain === 'hydro') presentHydroSelection(primary.id, refreshOnly);
+    else if (primary.domain === 'label') presentLabelSelection(primary.id, refreshOnly);
+    else return false;
+    if (openEditor) {
+      const startedAt = performance.now();
+      openSelectionEditor();
+      selectionPerformanceMetrics.editorOpenMs = performance.now() - startedAt;
     }
-    state.selected = null;
+    return true;
+  }
+
+  function applyCountrySelectionIntent(id, refreshOnly = false) {
+    return applySelectionIntent(
+      countryObjectRef(id),
+      { refreshOnly, openEditor: !refreshOnly, reason: 'country-selection' },
+    );
+  }
+
+  function applyTerritorialUnitSelectionIntent(id, refreshOnly = false) {
+    const feature = territorialUnitById(id);
+    return feature ? applySelectionIntent(normalizeObjectRef({
+      domain: 'territorial',
+      type: feature.properties?.unitType || TERRITORIAL_UNIT_TYPES.TERRITORY,
+      id: String(id),
+    }), { refreshOnly, openEditor: !refreshOnly, reason: 'territorial-selection' }) : false;
+  }
+
+  function applyDistributionSelectionIntent(id, refreshOnly = false) {
+    const layer = distributionLayerById(id);
+    return layer ? applySelectionIntent(normalizeObjectRef({ domain: 'distribution', type: layer.type, id: layer.id }), {
+      refreshOnly, openEditor: !refreshOnly, reason: 'distribution-selection',
+    }) : false;
+  }
+
+  function applyGenericSelectionIntent(id, refreshOnly = false) {
+    return applySelectionIntent(
+      normalizeObjectRef({ domain: 'generic', type: 'feature', id: String(id) }),
+      { refreshOnly, openEditor: !refreshOnly, reason: 'generic-selection' },
+    );
+  }
+
+  function applyLabelSelectionIntent(id, refreshOnly = false) {
+    const label = state.labels.find(item => String(item.id) === String(id));
+    return label ? applySelectionIntent(normalizeObjectRef({ domain: 'label', type: label.kind || 'label', id: String(id) }), {
+      refreshOnly, openEditor: !refreshOnly, reason: 'label-selection',
+    }) : false;
+  }
+
+  function applyHydroSelectionIntent(id, refreshOnly = false) {
+    const feature = hydroFeatureById(id);
+    const selectedId = String(hydroEditById(id) ? feature?.id : feature?.properties?.pandolab_id || feature?.id || id);
+    return feature ? applySelectionIntent(normalizeObjectRef({
+      domain: 'hydro', type: hydroCategoryKey(feature.properties?.category), id: selectedId,
+    }), { refreshOnly, openEditor: !refreshOnly, reason: 'hydro-selection' }) : false;
+  }
+
+  function clearSelection(announce = true) {
+    void announce;
+    selectionDomain.clear({ reason: 'clear-selection' });
     state.addSelectionMode = false;
     $('selectionStatus').textContent = '';
     showPropertyForm(null);
     syncCountryActionButtons();
     syncMobileNavigation();
-    mapRenderCoordinator.invalidate(
-      MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.HUD,
-      'clear-selection',
-    );
     if (layoutMode === 'wide') {
       surfaceState.editorManuallyCollapsed = false;
       if (surfaceState.editorOpen) closeSurface('editor');
@@ -11493,7 +10595,7 @@ const {
       return;
     }
     try {
-      const split = buildCutSplitCandidates(source.geometry, state.draftCoords);
+      const split = buildCutSplitCandidates(source.geometry, editingDraftCoordinates());
       const untouched = geometryPolygonSets(source.geometry)
         .filter((_, index) => index !== split.componentIndex)
         .map(polygon => deepClone(polygon));
@@ -11549,7 +10651,7 @@ const {
           editingDomain?.clearDraft?.(true);
           editingDomain?.setTool('select', { announce: false });
           markLayerTreeDirty();
-          selectTerritorialUnit(sibling.id, true);
+          applyTerritorialUnitSelectionIntent(sibling.id, true);
         },
         successMessage: `${typeLabel}을(를) 나누고 나머지 면적을 ${wasRemainder ? '미지정 영역으로 ' : ''}보존했습니다.`,
         errorMessage: '영역 나누기 결과를 적용하지 못했습니다.',
@@ -11619,7 +10721,7 @@ const {
           state.territorialUnits = normalizeTerritorialUnits(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
           editingDomain?.setTool('select', { announce: false });
           markLayerTreeDirty();
-          selectTerritorialUnit(source.id, true);
+          applyTerritorialUnitSelectionIntent(source.id, true);
         },
         successMessage: `${targets.length + 1}개 ${territorialTypeLabel(source.properties.unitType)}을 하나로 합쳤습니다.`,
         errorMessage: '영역 합치기 결과를 적용하지 못했습니다.',
@@ -11645,7 +10747,7 @@ const {
     const clipper = window.polygonClipping;
     if (!source || !container || !clipper?.intersection || !clipper?.difference) return;
     try {
-      const drawn = { type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] };
+      const drawn = { type: 'Polygon', coordinates: [orientRing(editingDraftCoordinates(), true)] };
       let nextGeometry = normalizeClippedLandGeometry(clipper.intersection(drawn.coordinates, container.geometry.coordinates));
       if (!nextGeometry) throw new Error('그린 영역이 부모 영역 안에 없습니다.');
       const siblings = territorialSiblings(state.territorialUnits, source);
@@ -11718,7 +10820,7 @@ const {
           editingDomain?.clearDraft?.(true);
           editingDomain?.setTool('select', { announce: false });
           markLayerTreeDirty();
-          selectTerritorialUnit(source.id, true);
+          applyTerritorialUnitSelectionIntent(source.id, true);
         },
         successMessage: '영역을 다시 지정하고 남는 면적을 미지정 영역으로 보존했습니다.',
         errorMessage: '영역 다시 지정 결과를 적용하지 못했습니다.',
@@ -11734,7 +10836,7 @@ const {
     const typeLabel = territorialTypeLabel(context.unitType);
     const name = prompt(`새 ${typeLabel} 이름을 입력하세요.`, `새 ${typeLabel}`);
     if (name === null) return;
-    const geometry = normalizeCountryGeometry({ type: 'Polygon', coordinates: [orientRing(state.draftCoords, true)] });
+    const geometry = normalizeCountryGeometry({ type: 'Polygon', coordinates: [orientRing(editingDraftCoordinates(), true)] });
     try {
       if (!geometry) throw new Error('그린 영역을 닫힌 Polygon으로 만들 수 없습니다.');
       const rawFeature = {
@@ -11784,7 +10886,7 @@ const {
           }
           editingDomain?.clearDraft?.(true);
           editingDomain?.setTool('select', { announce: false });
-          if (createdId) selectTerritorialUnit(createdId, true);
+          if (createdId) applyTerritorialUnitSelectionIntent(createdId, true);
         },
         successMessage: `${typeLabel}을 직접 지정했습니다.`,
         errorMessage: `${typeLabel} 직접 지정 결과를 적용하지 못했습니다.`,
@@ -11910,7 +11012,7 @@ const {
     recordHistory();
     state.countryOverrides[id] = override;
     writeDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, '', { clear: true, fallback: defaultCountryColor() });
-    selectCountry(id, true);
+    applyCountrySelectionIntent(id, true);
     queueAutosave();
     setActionStatus('국가 색상을 기본값으로 되돌렸습니다.', 'success');
     return true;
@@ -11930,7 +11032,7 @@ const {
     recordHistory();
     writeDomainColor(COLOR_DOMAINS.GENERIC, { feature }, '', { clear: true, fallback: defaultGenericFeatureColor(feature) });
     genericFeatureLandClipCache.delete(feature);
-    selectGenericFeature(String(feature.id), true);
+    applyGenericSelectionIntent(String(feature.id), true);
     queueAutosave();
     setActionStatus('기타 객체 색상을 기본값으로 되돌렸습니다.', 'success');
     return true;
@@ -12098,10 +11200,8 @@ const {
     const id = state.selected.id;
     const result = territorialApplicationService.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, id, field, value);
     if (!result.ok) return;
-    if (field === 'color') gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-color');
     if (field === 'name') markLayerTreeDirty();
-    selectCountry(id, true);
-    queueAutosave();
+    applyCountrySelectionIntent(id, true);
     setActionStatus('국가 정보를 변경했습니다.', 'success');
   }
 
@@ -12113,8 +11213,7 @@ const {
     if (!result.ok) return;
     genericFeatureLandClipCache.delete(f);
     if (field === 'name') markLayerTreeDirty();
-    selectGenericFeature(state.selected.id, true);
-    queueAutosave();
+    applyGenericSelectionIntent(state.selected.id, true);
     setActionStatus('기타 객체 정보를 변경했습니다.', 'success');
   }
 
@@ -12130,7 +11229,7 @@ const {
       ? normalizeEditorColor(value, HYDRO_TOOL_CONFIG[feature.properties.category].color)
       : value;
     if (field === 'name') markLayerTreeDirty();
-    selectHydro(String(feature.id), true);
+    applyHydroSelectionIntent(String(feature.id), true);
     queueAutosave();
     setActionStatus(`${hydroCategoryLabel(feature.properties.category)} 정보를 변경했습니다.`, 'success');
   }
@@ -12156,7 +11255,7 @@ const {
     if (!feature) return;
     if (feature.properties?.locked) {
       setActionStatus('잠금을 해제한 뒤 영역 정보를 변경할 수 있습니다.', 'error', 3200);
-      selectTerritorialUnit(feature.id, true);
+      applyTerritorialUnitSelectionIntent(feature.id, true);
       return;
     }
     const explicitCoverage = feature.properties?.coverageMode === TERRITORIAL_COVERAGE_MODES.EXPLICIT;
@@ -12169,8 +11268,7 @@ const {
         type: 'territorial-sovereign', affectedIds: [feature.id],
       });
       markLayerTreeDirty();
-      selectTerritorialUnit(feature.id, true);
-      queueAutosave();
+      applyTerritorialUnitSelectionIntent(feature.id, true);
       setActionStatus('지방의 주권 관계를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
       return;
     }
@@ -12184,9 +11282,9 @@ const {
         feature.properties.parentId = '';
         feature.properties.isRemainder = false;
         normalizeProjectObjects();
-        selectTerritorialUnit(feature.id, true);
+        applyTerritorialUnitSelectionIntent(feature.id, true);
         markLayerTreeDirty();
-        invalidateTerritorialPatch('territorial-meta-committed');
+        renderingDomain?.invalidateTerritorialPatch?.('territorial-meta-committed');
         queueAutosave();
         return;
       }
@@ -12213,7 +11311,7 @@ const {
     try {
       normalizedUnits = normalizeTerritorialUnits(candidateUnits, { countryExists: id => !!countryFeatureById(id) });
     } catch (error) {
-      selectTerritorialUnit(feature.id, true);
+      applyTerritorialUnitSelectionIntent(feature.id, true);
       const validationMessage = compactNotificationMessage(error?.message || '영역 정보를 검증하지 못했습니다.', { tone: 'error', maxLength: 52 });
       setActionStatus(validationMessage, 'error', 0);
       return;
@@ -12222,8 +11320,7 @@ const {
       type: 'territorial-metadata', affectedIds: [feature.id],
     });
     markLayerTreeDirty();
-    selectTerritorialUnit(feature.id, true);
-    queueAutosave();
+    applyTerritorialUnitSelectionIntent(feature.id, true);
     const unitLabel = feature.properties.unitType === TERRITORIAL_UNIT_TYPES.ADMIN
       ? '행정구역'
       : feature.properties.unitType === TERRITORIAL_UNIT_TYPES.REGION
@@ -12293,9 +11390,9 @@ const {
           markCountryGeometriesChanged([donor.id, target.id]);
           refreshCountryCentroids([donor.id, target.id]);
           markLayerTreeDirty();
-          selectTerritorialUnit(unitId, true);
-          invalidateTerritorialPatch('territorial-transfer-committed');
-          clearActiveSnap();
+          applyTerritorialUnitSelectionIntent(unitId, true);
+          renderingDomain?.invalidateTerritorialPatch?.('territorial-transfer-committed');
+          editingDomain?.clearDraftHover?.('territorial-transfer-committed');
         },
         restore: before => restoreEditable(before),
         recordHistory: before => commitHistorySnapshot(before),
@@ -12304,7 +11401,7 @@ const {
       setActionStatus(`${territorialUnitName(source)} 소속과 국경을 변경했습니다.`, 'success', 4200);
       return true;
         } catch (error) {
-          clearActiveSnap();
+          editingDomain?.clearDraftHover?.('territorial-transfer-failed');
       reportOperationError(error, '권역을 다른 국가로 이전하지 못해 변경을 되돌렸습니다.', 'PL-REGION-TRANSFER-001', 4800);
       return false;
     }
@@ -12404,8 +11501,8 @@ const {
         reconcileTerritorialUnitCompleteness([sourceCountryId, country.id]);
         refreshCountryCentroids(new Set(plan.affectedIds));
         markLayerTreeDirty();
-        selectCountry(country.id, false, false);
-        invalidateCountryPatch('territorial-promoted-country');
+        applyCountrySelectionIntent(country.id);
+        renderingDomain?.invalidateCountryPatch?.('territorial-promoted-country');
       },
       onSuccess: () => setActionStatus(`${name} 권역을 새 국가로 독립시켰습니다. 하위 행정구역은 유지했습니다.`, 'success', 4000),
       onError: error => reportOperationError(error, '권역을 새 국가로 독립시키지 못했습니다.', 'PL-REGION-PROMOTE-001', 4700),
@@ -12653,8 +11750,8 @@ const {
           reconcileTerritorialUnitCompleteness([sovereignId]);
           state.territorialUnits = normalizeTerritorialUnits(state.territorialUnits, { countryExists: id => !!countryFeatureById(id) });
           markLayerTreeDirty();
-          selectTerritorialUnit(unitId, true);
-          invalidateTerritorialPatch('territorial-type-converted');
+          applyTerritorialUnitSelectionIntent(unitId, true);
+          renderingDomain?.invalidateTerritorialPatch?.('territorial-type-converted');
         },
         restore: before => restoreEditable(before),
         recordHistory: before => commitHistorySnapshot(before),
@@ -12740,8 +11837,8 @@ const {
         refreshCountryCentroids(new Set(plan.affectedIds));
         state.boundaryTopology = { edges: new Map(), nodes: new Map() };
         markLayerTreeDirty();
-        selectTerritorialUnit(converted.id, true);
-        invalidateCountryPatch('country-converted-to-region');
+        applyTerritorialUnitSelectionIntent(converted.id, true);
+        renderingDomain?.invalidateCountryPatch?.('country-converted-to-region');
       },
       onSuccess: () => setActionStatus(`${name}을(를) ${countryName(target)} 소속 ${TERRITORIAL_TYPE_LABELS[targetType]}(으)로 변경했습니다.`, 'success', 4300),
       onError: error => reportOperationError(error, '국가 종류를 변경하지 못해 변경을 되돌렸습니다.', 'PL-TYPE-002', 4800),
@@ -12775,7 +11872,7 @@ const {
     recordHistory();
     label[field] = value;
     if (field === 'name' || field === 'kind') markLayerTreeDirty();
-    selectLabel(label.id, true);
+    applyLabelSelectionIntent(label.id, true);
     queueAutosave();
     setActionStatus('지명 정보를 변경했습니다.', 'success');
   }
@@ -12942,7 +12039,7 @@ const {
   }
 
   function normalizeHistoryMetadata(meta = {}) {
-    const primary = objectSelection.primary();
+    const primary = selectionDomain.primary();
     const info = primary ? objectDisplayInfo(primary) : null;
     return {
       id: uid('history'),
@@ -12982,7 +12079,8 @@ const {
     historyService.record(meta);
   }
 
-  function restoreEditable(snapshot) {
+  function restoreEditable(snapshot, { mode = 'history' } = {}) {
+    const rollback = mode === 'rollback';
     const changedCountryIds = new Set(state.historyDirtyCountryIds);
     applySharedProjectFields(snapshot, 'history');
     gpuMapRenderer.invalidateHydroVisibility();
@@ -12994,10 +12092,7 @@ const {
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
     markLayerTreeDirty();
-    state.selected = null;
-    objectSelectionSyncing = true;
-    objectSelection.clear();
-    objectSelectionSyncing = false;
+    selectionDomain.clear({ reason: 'undo-clear-selection' });
     state.coastEditCountryId = null;
     state.coastEditScopeGenericFeatureId = null;
     state.coastEditReturnSelection = null;
@@ -13015,8 +12110,10 @@ const {
     updateModeButtons();
     if (changedCountryIds.size) markCountryGeometriesChanged(changedCountryIds);
     state.historyDirtyCountryIds = restoredDirtyIds;
-    invalidateCountryPatch('editable-state-restored');
-    queueAutosave();
+    if (!rollback) {
+      renderingDomain?.invalidateCountryPatch?.('editable-state-restored');
+      queueAutosave();
+    }
   }
 
   function undo() {
@@ -13051,8 +12148,9 @@ const {
 
   function updateHistoryButtons() {
     const draftMode = editingDomain?.draftInputActive?.();
-    const undoAvailable = draftMode ? state.draftEdit.history.length > 0 : historyService.canUndo();
-    const redoAvailable = draftMode ? state.draftEdit.future.length > 0 : historyService.canRedo();
+    const draft = editingDraftSnapshot();
+    const undoAvailable = draftMode ? draft.historyCount > 0 : historyService.canUndo();
+    const redoAvailable = draftMode ? draft.futureCount > 0 : historyService.canRedo();
     $('undoBtn').disabled = state.modeProcessing || !undoAvailable;
     $('redoBtn').disabled = state.modeProcessing || !redoAvailable;
     $('undoBtn').dataset.tooltip = draftMode ? '작성 중 실행 취소' : '실행 취소';
@@ -13103,7 +12201,7 @@ const {
     invalidateEditInteraction();
     syncMapHostFromState();
     syncProjectionButtons();
-    invalidateProjectRender('projection-change');
+    renderingDomain?.invalidateProjection?.('projection-change');
     queueViewAutosave();
     return true;
   }
@@ -13113,7 +12211,7 @@ const {
     if (DISTRIBUTION_GROUP_TYPES[key]) distributionVisibilityRevision += 1;
     if (key === 'countries') gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') gpuMapRenderer.invalidateHydroVisibility();
-    invalidateBaseScene('layer-visibility');
+    renderingDomain?.invalidateBaseScene?.('layer-visibility');
     queuePresentationAutosave();
   }
 
@@ -13153,7 +12251,7 @@ const {
     if (target.presentationGroup === 'rivers' || target.presentationGroup === 'lakes') {
       gpuMapRenderer.invalidatePhysicalStyle('hydro-presentation');
     }
-    invalidateOverlayStyle('layer-presentation-style');
+    renderingDomain?.invalidateOverlayStyle?.('layer-presentation-style');
     queuePresentationAutosave();
     return true;
   }
@@ -13356,6 +12454,144 @@ const {
     onWarning: (...args) => console.warn(...args),
   });
 
+  function validateCanonicalProjectState() {
+    assertProjectReferenceIntegrity({
+      countries: state.countriesData?.features || [],
+      countryOverrides: state.countryOverrides,
+      territorialUnits: state.territorialUnits,
+      territorialRelations: state.territorialRelations,
+      distributionLayers: state.distributionLayers,
+      distributionEntries: state.distributionEntries,
+      labels: state.labels,
+      genericFeatures: state.genericFeatures,
+      itemVisibility: state.itemVisibility,
+      labelSettings: state.labelSettings,
+    });
+    return true;
+  }
+
+  function invalidateProjectCommandRender(descriptor, commandId) {
+    const domain = String(descriptor?.domain || '');
+    const reason = `project-command:${String(commandId || 'mutation')}`;
+    if (domain === 'country') return renderingDomain?.invalidateCountryPatch?.(reason);
+    if (domain === 'territorial') return renderingDomain?.invalidateTerritorialPatch?.(reason);
+    if (domain === 'distribution') return renderingDomain?.invalidateOverlayGeometry?.('distribution', reason);
+    if (domain === 'generic') return renderingDomain?.invalidateGenericPatch?.(reason);
+    throw new TypeError(`Unknown project command render domain: ${domain || '(empty)'}`);
+  }
+
+  let projectCommandSaveStateCheckpoint = null;
+  let projectCommandStateRevision = 0;
+  projectCommandPipeline = createProjectCommandPipeline({
+    captureSnapshot: () => {
+      projectCommandSaveStateCheckpoint = saveState.checkpoint();
+      projectCommandStateRevision = state.stateRevision;
+      return snapshotEditable();
+    },
+    recordHistory: (meta, snapshot) => commitHistorySnapshot(snapshot, meta),
+    discardHistory: () => historyService.discardLast(),
+    restoreSnapshot: snapshot => {
+      restoreEditable(snapshot, { mode: 'rollback' });
+      state.stateRevision = projectCommandStateRevision;
+      if (projectCommandSaveStateCheckpoint) saveState.restore(projectCommandSaveStateCheckpoint);
+    },
+    validateProject: validateCanonicalProjectState,
+    advanceRevision: () => {
+      state.stateRevision += 1;
+      return state.stateRevision;
+    },
+    invalidateRender: invalidateProjectCommandRender,
+    queueAutosave: () => queueAutosave(),
+    onSuccess: () => {
+      projectCommandSaveStateCheckpoint = null;
+    },
+    onError: () => {
+      projectCommandSaveStateCheckpoint = null;
+    },
+  });
+
+  territorialRepository = createTerritorialRepository({
+    getCountries: () => state.countriesData,
+    getUnits: () => state.territorialUnits,
+    getCountryOverride: id => state.countryOverrides[id] || {},
+  });
+
+  territorialApplicationService = createTerritorialApplicationService({
+    repository: territorialRepository,
+    commandPipeline: projectCommandPipeline,
+    countryCommands: {
+      isLocked: id => isCountryLocked(id),
+      setLocked: (id, locked) => setCountryLockedState(id, locked),
+      setField: (id, field, value) => {
+        state.countryOverrides[id] = { ...(state.countryOverrides[id] || {}) };
+        if (field === 'color') {
+          writeDomainColor(COLOR_DOMAINS.COUNTRY, {
+            feature: countryFeatureById(id), override: state.countryOverrides[id],
+          }, value, { fallback: defaultCountryColor() });
+        } else state.countryOverrides[id][field] = value;
+      },
+    },
+    unitCommands: {
+      setField: (id, field, value) => {
+        const feature = territorialUnitById(id);
+        if (!feature) return;
+        if (field === 'color') setTerritorialStyleColor(feature, value);
+        else feature.properties[field] = value;
+      },
+      replaceAll: units => {
+        state.territorialUnits = units;
+        mapObjectGeometryRevisions.territorial += 1;
+      },
+    },
+  });
+
+  distributionService = createDistributionService({
+    documentStore: {
+      readLayers: () => state.distributionLayers,
+      replaceLayers: layers => {
+        state.distributionLayers = layers;
+        distributionVisibilityRevision += 1;
+      },
+      readEntries: () => state.distributionEntries,
+      replaceEntries: entries => {
+        state.distributionEntries = entries;
+        distributionVisibilityRevision += 1;
+      },
+    },
+    presentationStore: {
+      setRenderMode: mode => {
+        state.distributionSettings.renderMode = mode;
+        distributionVisibilityRevision += 1;
+      },
+      setBoundaryVisible: visible => {
+        state.distributionSettings.boundaryVisible = visible !== false;
+        distributionVisibilityRevision += 1;
+      },
+    },
+    commandPipeline: projectCommandPipeline,
+    writeLayerColor: (layer, color) => writeDomainColor(
+      COLOR_DOMAINS.DISTRIBUTION,
+      { layer },
+      color,
+      { fallback: DEFAULT_GENERIC_FEATURE_COLOR },
+    ),
+    territorialExists: id => !!territorialRepository.get(id),
+  });
+
+  genericFeatureService = createGenericFeatureService({
+    documentStore: {
+      readFeatures: () => state.genericFeatures,
+      replaceFeatures: genericFeatures => { state.genericFeatures = genericFeatures; },
+    },
+    commandPipeline: projectCommandPipeline,
+    writeColor: (feature, color) => writeDomainColor(
+      COLOR_DOMAINS.GENERIC,
+      { feature },
+      color,
+      { fallback: defaultGenericFeatureColor(feature) },
+    ),
+  });
+
   function applyAtlasState(project, manual = false, { projectGeneration = null, skipRenderReset = false } = {}) {
     assertCurrentProjectSchema(project);
     if (project.countriesData?.features) {
@@ -13396,12 +12632,8 @@ const {
     configureDatasetSession(project);
     const externalGeometry = !!project.countriesData && project.baseDataset !== BASE_DATASET;
     historyService.reset();
-    state.selected = null;
-    objectSelectionSyncing = true;
-    objectSelection.clear();
-    objectSelectionSyncing = false;
-    state.draftCoords = [];
-    state.draftHover = null;
+    selectionDomain.resetProject(projectDomain?.getGeneration?.() || 0);
+    editingDomain?.resetProject?.(projectDomain?.getGeneration?.() || 0);
 
     syncProjectionButtons();
     $('countriesVisible').checked = state.layerVisibility.countries;
@@ -13424,7 +12656,8 @@ const {
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
     scheduleGpuMeshRebuild(0, nextProjectGeneration);
     syncMapHostFromState();
-    invalidateProjectRender('atlas-state-applied');
+    scheduleMapObjectSpatialIndexRebuild();
+    renderingDomain?.invalidateProject?.('atlas-state-applied');
     updateHistoryButtons();
     editingDomain?.setTool('select');
     queueAutosave();
@@ -13552,7 +12785,7 @@ const {
       normalizeProjectObjects();
       assertCurrentProjectReferences();
       markLayerTreeDirty();
-      invalidateCountryPatch('admin-country-coast-reconciled');
+      renderingDomain?.invalidateCountryPatch?.('admin-country-coast-reconciled');
       queueAutosave();
       setActionStatus(decision.direction === 'admin-to-country' ? '행정구역 해안선을 기준으로 국가 해안선을 조정했습니다.' : '국가 해안선을 기준으로 행정구역 해안선을 조정했습니다.', 'success', 4200);
       return { ok: true, changed: true, direction: decision.direction };
@@ -13596,9 +12829,9 @@ const {
     state.selectedDistributionLayerId = '';
     state.distributionDraft = null;
     clearGeometryPreview(state.geometryPreview);
-    state.activeSnap = null;
+    editingDomain?.cancelActiveGesture?.('project-state-replaced');
     state.audit = { status: 'idle', revision: state.audit.revision + 1, report: null, selectedIssueId: null };
-    state.hovered = null;
+    lastHoverHit = null;
     state.physicalSettings = normalizePhysicalSettings(null);
     state.projection = 'globe';
     state.layerVisibility = normalizeLayerVisibility();
@@ -13620,10 +12853,7 @@ const {
     resetMergeState();
     resetTerritoryEditingState(true);
     historyService.reset();
-    state.selected = null;
-    objectSelectionSyncing = true;
-    objectSelection.clear();
-    objectSelectionSyncing = false;
+    selectionDomain.resetProject(projectDomain?.getGeneration?.() || 0);
     state.view = { globeRotation: [-15, -25, 0], globeZoom: 1, flatCenter: [0, 20], flatZoom: 1 };
 
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
@@ -13678,7 +12908,8 @@ const {
 
     syncMapHostFromState();
     resizeMap();
-    invalidateProjectRender('new-project');
+    scheduleMapObjectSpatialIndexRebuild();
+    renderingDomain?.invalidateProject?.('new-project');
     updateHistoryButtons();
     // 복원된 최초 geometry를 새 자동저장 기준으로 기록한다.
     queueAutosave();
@@ -13737,7 +12968,7 @@ const {
         if ((state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) && String(state.selected.id) === key) clearSelection(false);
         else {
           markLayerTreeDirty();
-          invalidateCountryPatch('country-deleted');
+          renderingDomain?.invalidateCountryPatch?.('country-deleted');
         }
         queueAutosave();
         setActionStatus(`${name} 국가를 삭제했습니다.`, 'success');
@@ -14005,7 +13236,7 @@ const {
     markCountryGeometriesChanged(plan.affectedIds || importedIds);
     commitHistorySnapshot(before);
     clearSelection(false);
-    invalidateCountryPatch('gis-merge-committed');
+    renderingDomain?.invalidateCountryPatch?.('gis-merge-committed');
     queueAutosave();
     setActionStatus(result.commitStatus || 'GIS 레이어를 한 번의 편집 작업으로 병합했습니다.', 'success', 3200);
     return {
@@ -14030,7 +13261,7 @@ const {
       historyMeta: deepClone(state.historyMeta),
       future: deepClone(state.future),
       futureMeta: deepClone(state.futureMeta),
-      selection: deepClone(objectSelection.snapshot()),
+      selection: deepClone(selectionDomain.snapshot().selection),
       saveState: saveState.checkpoint(),
     };
   }
@@ -14058,7 +13289,8 @@ const {
     saveState.restore(snapshot.saveState);
     updateHistoryButtons();
     restoreObjectSelectionSnapshot(snapshot.selection);
-    invalidateProjectRender('gis-import-rollback');
+    scheduleMapObjectSpatialIndexRebuild();
+    renderingDomain?.invalidateProject?.('gis-import-rollback');
   }
 
   async function openGisFiles(files) {
@@ -14250,7 +13482,8 @@ const {
     }
     normalizeProjectObjects();
     markLayerTreeDirty();
-    invalidateProjectRender('historical-library-import');
+    scheduleMapObjectSpatialIndexRebuild();
+    renderingDomain?.invalidateProject?.('historical-library-import');
     queueAutosave();
     saveState.markNewProject('content:0');
     return {
@@ -14651,7 +13884,7 @@ const {
         description: `${fileName} 영토 이전 및 ${territorialTypeLabel(kind)} 가져오기`,
         affectedIds: [...affectedCountryIds, ...imported.map(feature => String(feature.id))],
       });
-      invalidateTerritorialPatch('territorial-import-committed');
+      renderingDomain?.invalidateTerritorialPatch?.('territorial-import-committed');
       queueAutosave();
       setActionStatus(`${territorialTypeLabel(kind)} ${imported.length}개를 전체 형상으로 가져왔습니다.`, 'success', 4400);
       if (activeRequestId != null) mapEditClient.discard(activeRequestId);
@@ -14801,7 +14034,7 @@ const {
     const affectedCountryIds = new Set(state.territorialUnits.map(feature => String(feature.properties?.sovereignId || '')).filter(Boolean));
     reconcileTerritorialUnitCompleteness(affectedCountryIds, { preserveIds: [...preservedIds] });
     markLayerTreeDirty();
-    invalidateTerritorialPatch('territorial-import');
+    renderingDomain?.invalidateTerritorialPatch?.('territorial-import');
     queueAutosave();
     setActionStatus(`${territorialTypeLabel(kind)} ${importedCount}개를 가져왔습니다.`, 'success', 3800);
     return importedIds;
@@ -14891,8 +14124,8 @@ const {
     state.layerVisibility.regions = true;
     for (const feature of imported) delete state.itemVisibility.regions?.[String(feature.id)];
     markLayerTreeDirty();
-    if (imported.length === 1) selectTerritorialUnit(imported[0].id, true);
-    else invalidateTerritorialPatch('region-import');
+    if (imported.length === 1) applyTerritorialUnitSelectionIntent(imported[0].id, true);
+    else renderingDomain?.invalidateTerritorialPatch?.('region-import');
     queueAutosave();
     setActionStatus(`지방 ${imported.length}개를 가져왔습니다.`, 'success', 3800);
     return imported.map(feature => String(feature.id));
@@ -14949,10 +14182,7 @@ const {
     }
     if (!newEntries.length) throw new Error('가져올 Polygon 또는 MultiPolygon 분포가 없습니다.');
     distributionService.append({ layers: newLayers, entries: newEntries });
-    normalizeProjectObjects();
     markLayerTreeDirty();
-    invalidateOverlayGeometry('overlay', 'distribution-import');
-    queueAutosave();
     setActionStatus(`${DISTRIBUTION_TYPE_LABELS[type]} 분포 ${newEntries.length}개를 가져왔습니다.`, 'success', 3800);
   }
 
@@ -15000,8 +14230,6 @@ const {
     genericFeatureService.addMany(supported);
     state.layerFolders = Object.fromEntries(activeLayerFolderKeys().map(key => [key, key === 'genericFeatures']));
     markLayerTreeDirty();
-    invalidateGenericPatch('geojson-import');
-    queueAutosave();
     setActionStatus(`GeoJSON 기타 객체 ${supported.length}개를 가져왔습니다.`, 'success', 3200);
   }
 
@@ -15121,8 +14349,6 @@ const {
     if (!result.ok) return false;
     markLayerTreeDirty();
     if (state.selected?.domain === 'generic' && String(state.selected.id) === key) clearSelection(false);
-    invalidateGenericPatch('generic-feature-deleted');
-    queueAutosave();
     setActionStatus(statusText || `${genericFeatureName(feature)} 기타 객체를 삭제했습니다.`, 'success');
     return true;
   }
@@ -15140,7 +14366,7 @@ const {
     }
     markLayerTreeDirty();
     if (state.selected?.domain === 'hydro' && String(state.selected.id) === key) clearSelection(false);
-    invalidateHydroPatch('hydro-feature-deleted');
+    renderingDomain?.invalidateHydroPatch?.('hydro-feature-deleted');
     queueAutosave();
     const category = hydroCategoryLabel(feature.properties?.category);
     const fallback = hydroFallbackName(feature.properties?.category);
@@ -15157,7 +14383,7 @@ const {
     delete state.labelSettings[labelKey('label', key)];
     markLayerTreeDirty();
     if (state.selected?.domain === 'label' && String(state.selected.id) === key) clearSelection(false);
-    invalidateLabels('label-deleted');
+    renderingDomain?.invalidateLabels?.('label-deleted');
     queueAutosave();
     setActionStatus(statusText || `${label.name || '지명'} 지명을 삭제했습니다.`, 'success');
     return true;
@@ -15203,7 +14429,7 @@ const {
         .filter(relation => String(relation.unitId) !== String(feature.id))
         .map(relation => String(relation.parentId) === String(feature.id) ? { ...relation, parentId: String(mergeTarget.id) } : relation);
       state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
-      selectTerritorialUnit(mergeTarget.id, true);
+      applyTerritorialUnitSelectionIntent(mergeTarget.id, true);
     } else if (action === 'clear-all') {
       const groupIds = new Set([feature, ...siblings].map(candidate => String(candidate.id)));
       state.distributionEntries = state.distributionEntries.filter(entry => entry.mode !== DISTRIBUTION_MODES.TERRITORIAL || !groupIds.has(String(entry.territorialUnitId)));
@@ -15224,19 +14450,19 @@ const {
           .filter(relation => String(relation.unitId) !== String(feature.id))
           .map(relation => String(relation.parentId) === String(feature.id) ? { ...relation, parentId: String(unassigned.id) } : relation);
         state.territorialUnits = state.territorialUnits.filter(candidate => String(candidate.id) !== String(feature.id));
-        selectTerritorialUnit(unassigned.id, true);
+        applyTerritorialUnitSelectionIntent(unassigned.id, true);
       } else {
         feature.properties.isRemainder = true;
         feature.properties.name = '';
         feature.properties.notes = '';
         setTerritorialStyleColor(feature, '');
-        selectTerritorialUnit(feature.id, true);
+        applyTerritorialUnitSelectionIntent(feature.id, true);
       }
     }
     if (countryId) reconcileTerritorialUnitCompleteness([countryId]);
     state.territorialUnits = normalizeTerritorialUnits(state.territorialUnits, { countryExists: key => !!countryFeatureById(key) });
     markLayerTreeDirty();
-    invalidateTerritorialPatch('territorial-unit-deleted');
+    renderingDomain?.invalidateTerritorialPatch?.('territorial-unit-deleted');
     queueAutosave();
     setActionStatus(`${territorialTypeLabel(feature.properties.unitType)} 구분을 안전하게 해제했습니다.`, 'success', 3600);
     return true;
@@ -15261,7 +14487,7 @@ const {
         state.distributionEntries = state.distributionEntries.filter(entry => entry.mode !== DISTRIBUTION_MODES.TERRITORIAL || String(entry.territorialUnitId) !== String(feature.id));
         markLayerTreeDirty();
         if ((state.selected?.domain === 'territorial' && state.selected.type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && String(state.selected.id) === String(feature.id)) clearSelection(false);
-        else invalidateTerritorialPatch('territorial-unit-deleted');
+        else renderingDomain?.invalidateTerritorialPatch?.('territorial-unit-deleted');
         queueAutosave();
         setActionStatus(`${territorialUnitName(feature)} 지방을 삭제했습니다.`, 'success');
       },
@@ -15360,8 +14586,7 @@ const {
     const current = state.projection === 'globe' ? state.view.globeZoom : state.view.flatZoom;
     const next = current * factor;
     if (!setMapZoomValue(next)) return false;
-    renderingDomain?.scheduleView?.('render-view');
-    mapRenderCoordinator.endInteraction('zoom-control-settle');
+    renderingDomain?.endInteraction?.('zoom-control-settle');
     queueViewAutosave();
     return true;
   }
@@ -15415,7 +14640,7 @@ const {
     // move a focused European country to the opposite hemisphere.
     alignGeographicAnchor(anchor, viewportCenter);
     syncMapHostFromState();
-    invalidateView('focus-country');
+    renderingDomain?.invalidateView?.('focus-country');
     queueViewAutosave();
   }
 
@@ -15429,7 +14654,7 @@ const {
       state.view.flatZoom = clamp(zoom || Math.max(6, state.view.flatZoom), ZOOM_LIMITS.flat.min, ZOOM_LIMITS.flat.max);
     }
     syncMapHostFromState();
-    invalidateView('focus-coordinate');
+    renderingDomain?.invalidateView?.('focus-coordinate');
     queueViewAutosave();
   }
 
@@ -15452,7 +14677,7 @@ const {
     const ref = layerItemObjectRef(group, key);
     if (!ref || !objectRefExists(ref)) return false;
     const orderedRefs = range ? layerTreeItems(group).sort((left, right) => layerNameCollator.compare(left.name, right.name) || layerNameCollator.compare(left.id, right.id)).map(item => layerItemObjectRef(group, item.id)).filter(Boolean) : [];
-    return applyObjectSelection(ref, { mode: range ? 'range' : mode, orderedRefs, scope: `layer:${group}` });
+    return applySelectionIntent(ref, { mode: range ? 'range' : mode, orderedRefs, scope: `layer:${group}` });
   }
 
   function resetView() {
@@ -15462,8 +14687,7 @@ const {
       state.view.flatZoom = 1;
     }
     syncMapHostFromState();
-    renderingDomain?.scheduleView?.('render-view');
-    mapRenderCoordinator.endInteraction('world-view-settle');
+    renderingDomain?.endInteraction?.('world-view-settle');
     queueViewAutosave();
   }
 
@@ -15543,7 +14767,7 @@ const {
       const button = event.target.closest('[data-object-chooser-index]');
       const ref = button ? objectChooserCandidates[Number(button.dataset.objectChooserIndex)] : null;
       if (!ref) return;
-      applyObjectSelection(ref, { mode: event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace', scope: 'map' });
+      applySelectionIntent(ref, { mode: event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace', scope: 'map' });
     });
     $('objectChooserList')?.addEventListener('keydown', event => {
       const items = [...event.currentTarget.querySelectorAll('[data-object-chooser-index]')];
@@ -15644,7 +14868,7 @@ const {
           syncPhysicalControls();
           markLayerTreeDirty();
           renderLayerTree();
-          invalidateBaseScene('terrain-visibility');
+          renderingDomain?.invalidateBaseScene?.('terrain-visibility');
           queuePresentationAutosave();
         },
         setTerrainStyle: value => {
@@ -15653,7 +14877,7 @@ const {
           syncPhysicalControls();
           markLayerTreeDirty();
           renderLayerTree();
-          invalidateBaseScene('terrain-style');
+          renderingDomain?.invalidateBaseScene?.('terrain-style');
           queuePresentationAutosave();
           setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
         },
@@ -15662,7 +14886,7 @@ const {
           gpuMapRenderer.invalidatePhysicalStyle('terrain-strength');
           $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
           syncRangeProgress($('terrainStrengthInput'));
-          invalidateOverlayStyle('terrain-strength');
+          renderingDomain?.invalidateOverlayStyle?.('terrain-strength');
         },
         commitTerrainStrength: queuePresentationAutosave,
         setSearchValue: value => {
@@ -15965,7 +15189,7 @@ const {
 
     $('editGenericFeatureBoundaryBtn').addEventListener('click', () => {
       if (state.selected?.domain !== 'generic') return;
-      const primary = objectSelection.primary();
+      const primary = selectionDomain.primary();
       if (primary) focusObjectRef(primary);
       returnToMapAfterMobileAction(true);
       setActionStatus('지도 위 꼭짓점을 드래그해 경계를 수정하세요.', 'success', 3400);
@@ -16007,12 +15231,12 @@ const {
     $('zoomOutBtn')?.addEventListener('click', () => zoomBy(0.8));
     $('zoomInBtn')?.addEventListener('click', () => zoomBy(1.25));
 
-    $('focusSelectedObjectBtn')?.addEventListener('click', () => objectSelection.primary() && focusObjectRef(objectSelection.primary()));
+    $('focusSelectedObjectBtn')?.addEventListener('click', () => selectionDomain.primary() && focusObjectRef(selectionDomain.primary()));
     $('objectLockBtn')?.addEventListener('click', batchToggleLocked);
     $('objectDeleteBtn')?.addEventListener('click', deleteSelectedFromObjectMenu);
     $('objectLockMenuBtn')?.addEventListener('click', () => { closeObjectActionsMenu(); batchToggleLocked(); });
     $('objectCoastReconcileMenuBtn')?.addEventListener('click', () => {
-      const primary = objectSelection.primary();
+      const primary = selectionDomain.primary();
       closeObjectActionsMenu();
       if (primary?.domain !== 'territorial' || primary.type !== TERRITORIAL_UNIT_TYPES.ADMIN) return;
       if (territorialUnitById(primary.id)?.properties?.locked === true) return;
@@ -16032,7 +15256,7 @@ const {
     $('multiPropertiesLockInput')?.addEventListener('change', event => batchSetLocked(event.target.checked));
     $('multiBorderEditBtn')?.addEventListener('click', () => requestDraftDiscard(() => returnToMapAfterMobileAction(enterCountryBorderEditFromSelection())));
     $('multiSelectionModeBtn')?.addEventListener('click', () => {
-      if (!isMobile() || objectSelection.size() === 0) return;
+      if (!isMobile() || selectionDomain.size() === 0) return;
       state.addSelectionMode = !state.addSelectionMode;
       syncSelectionSummary();
       syncMapContextSurfaces();
@@ -16234,8 +15458,7 @@ const {
         mapInteractionGate.setForcedPan(true);
         mapHost?.setForcedPan?.(true);
         $('map')?.classList.add('space-pan-active');
-        state.draftEdit.insertTarget = null;
-        renderingDomain?.renderDraftInsertionHandle?.();
+        editingDomain?.clearDraftHover?.('space-pan');
         e.preventDefault();
         return;
       }
@@ -16258,7 +15481,7 @@ const {
         if (state.labelPlacementMode) exitLabelMode();
         else if (editingDomain?.draftInputActive?.()) requestDraftDiscard(() => isGenericFeatureDraftTool(state.tool) ? cancelDraft(true) : cancelActiveMode());
         else if (['new-country', 'annex-territory', 'merge-country', 'merge-generic-feature', 'country-border', 'country-coast'].includes(state.tool)) cancelActiveMode();
-        else if (state.draftCoords.length) cancelDraft(true);
+        else if (editingDraftCoordinates().length) cancelDraft(true);
         else if ($('rightPanel')?.classList.contains('mobile-open')) {
           closeSurface('editor', { manual: layoutMode === 'wide', restoreFocus: true });
         }
@@ -16298,10 +15521,10 @@ const {
         else completeLinearAnnexation(null);
         return;
       }
-      if (e.key === 'Enter' && !editingText && (isGenericFeatureDraftTool(state.tool) || newCountryLineMode || (state.tool === 'annex-territory' && ['line', 'polygon'].includes(state.annexPhase))) && state.draftCoords.length) {
+      if (e.key === 'Enter' && !editingText && (isGenericFeatureDraftTool(state.tool) || newCountryLineMode || (state.tool === 'annex-territory' && ['line', 'polygon'].includes(state.annexPhase))) && editingDraftCoordinates().length) {
         e.preventDefault(); finishDraft();
       }
-      if (!editingText && Number.isInteger(state.draftEdit.selectedVertexIndex) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && editingDomain?.draftInputActive?.()) {
+      if (!editingText && Number.isInteger(editingDraftSnapshot().selectedVertexIndex) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && editingDomain?.draftInputActive?.()) {
         const distance = e.shiftKey ? 10 : 1;
         const offsets = {
           ArrowLeft: [-distance, 0],
@@ -16330,7 +15553,7 @@ const {
         }
         if (state.selected) {
           e.preventDefault();
-          if (objectSelection.size() > 1) requestBatchDelete();
+          if (selectionDomain.size() > 1) requestBatchDelete();
           else deleteSelected();
         }
       }
@@ -16345,11 +15568,14 @@ const {
     });
     window.addEventListener('blur', () => {
       mapInputController?.cancel?.();
+      editingDomain?.cancelActiveGesture?.('window-blur');
       state.spacePanActive = false;
       mapInteractionGate.setForcedPan(false);
       mapHost?.setForcedPan?.(false);
       $('map')?.classList.remove('space-pan-active');
     });
+    $('map')?.addEventListener('pointercancel', () => editingDomain?.cancelActiveGesture?.('pointercancel'));
+    $('map')?.addEventListener('touchcancel', () => editingDomain?.cancelActiveGesture?.('touchcancel'), { passive: true });
 
     window.addEventListener('resize', () => {
       closeObjectActionsMenu();
@@ -16370,6 +15596,7 @@ const {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
         mapInputController?.cancel?.();
+        editingDomain?.cancelActiveGesture?.('document-hidden');
         mapWorkScheduler.cancel('autosave');
         mapWorkScheduler.cancel('view-autosave');
         persistAutosave().catch(error => console.warn('Immediate autosave failed', error));
@@ -16574,8 +15801,8 @@ const {
     // The canonical state becomes editable here, but the painted preview and
     // its interaction packet remain active until the canonical mesh commits.
     // The mesh commit performs the first full canonical render atomically.
-    invalidateView('canonical-geometry-applied');
-    if (previewSelection && countryFeatureById(previewSelection)) selectCountry(previewSelection, true, false);
+    renderingDomain?.invalidateView?.('canonical-geometry-applied');
+    if (previewSelection && countryFeatureById(previewSelection)) applyCountrySelectionIntent(previewSelection, true);
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'layer-hydration';
     await completeLayerTreeHydration();
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'complete';
@@ -16649,7 +15876,7 @@ const {
     loadHydroData();
     applyDataReadinessEvent(READINESS_EVENTS.MESH_READY);
     state.meshProgress = 100;
-    invalidateProjectRender('canonical-mesh-ready');
+    renderingDomain?.invalidateProject?.('canonical-mesh-ready');
     const renderer = gpuMapRenderer.getRuntimeState();
     $('engineStatus').textContent = `Natural Earth 5.1.1 · ${renderer.renderer === 'webgl2' ? 'WebGL2' : renderer.renderer === 'webgl1' ? 'WebGL1' : 'Canvas'} 고화질`;
     if (startupMetrics) {
@@ -16746,7 +15973,8 @@ const {
       console.error('[PL-GEOMETRY-APPLY-001]', error);
       state.countriesData = reindexCountries(previewCountries, true);
       applyDataReadinessEvent(READINESS_EVENTS.GEOMETRY_ERROR);
-      invalidateProjectRender('progressive-initialization');
+      scheduleMapObjectSpatialIndexRebuild();
+      renderingDomain?.invalidateProject?.('progressive-initialization');
       handleGeometryError({ detail: '무손실 편집 지도를 적용하지 못했습니다.' });
       return;
     }
@@ -16903,15 +16131,11 @@ const {
       renderResourceSnapshotFrameId = frameId ?? `direct-${Date.now()}`;
       return renderResourceSnapshotFrameId;
     };
-    const getRenderResourceSnapshot = () => Object.freeze({ ...resourceSnapshots });
     const domainContext = Object.freeze({
       getProjectSnapshot: () => projectDomain?.snapshot?.() || projectSerializer.buildProject(),
       getSessionSnapshot: () => deepClone({ projection: state.projection, view: state.view, selected: state.selected }),
       dispatchProjectCommand: command => projectDomain?.dispatch?.(command),
-      requestRender: invalidation => {
-        if (typeof invalidation === 'number') return invalidateMask(invalidation, 'domain-context');
-        return invalidateMask(invalidation?.mask || 0, invalidation?.reason || 'domain-context');
-      },
+      requestRender: invalidation => renderingDomain?.requestRender?.(invalidation) || false,
       publish: (name, detail) => {
         for (const listener of domainListeners.get(String(name)) || []) listener(detail);
       },
@@ -16943,6 +16167,7 @@ const {
       serializer: projectSerializer,
       persistence: persistenceService,
       history: historyService,
+      commandPipeline: projectCommandPipeline,
       invariants: { assertProjectReferenceIntegrity },
       restoreCountriesFromDelta: (project, suppliedBase = null) => restoreCountriesFromDelta(project, {
         base: suppliedBase || materializePristineCountriesSync(),
@@ -16955,7 +16180,7 @@ const {
       },
       onProjectReset: event => {
         selectionDomain?.clear({ reason: event.reason });
-        editingDomain?.cancelTool?.(event.reason);
+        editingDomain?.resetProject?.(event.generation);
         renderingDomain?.resetProjectGeneration(event.generation);
       },
     });
@@ -17000,38 +16225,345 @@ const {
     selectionDomain = createSelectionDomain({
       context: domainContext,
       projectDomain,
-      spatialIndex: mapObjectSpatialIndex,
-      selectionController: objectSelection,
       selectionPacketFactory: createSelectionPacket,
       normalizeRef: normalizeObjectRef,
       refExists: objectRefExists,
-      countryType: TERRITORIAL_UNIT_TYPES.COUNTRY,
-      selectHandlers: {
-        country: selectCountry,
-        territorial: selectTerritorialUnit,
-        distribution: selectDistributionLayer,
-        generic: selectGenericFeature,
-        hydro: selectHydro,
-        label: selectLabel,
-      },
-      withSelectionGuard: callback => {
-        const previous = objectSelectionSyncing;
-        objectSelectionSyncing = true;
-        try { return callback(); } finally { objectSelectionSyncing = previous; }
-      },
       onSelectionChanged: snapshot => {
-        window.__PANDOLAB_SELECTION_DOMAIN__ = snapshot;
+        const selection = snapshot.selection;
+        state.selected = selection.items.find(item => item.key === selection.primaryKey) || null;
+        if (!selection.items.length) state.addSelectionMode = false;
+        scheduleSelectionUiSync(snapshot);
       },
-      requestRender: reason => invalidateSelection(reason),
+      requestRender: reason => renderingDomain?.invalidateSelectionOverlay?.(reason) || false,
+    });
+
+    editingDomain = createEditingDomain({
+      context: domainContext,
+      projectDomain,
+      gisDomain,
+      selectionDomain,
+      toolController: {
+        requireCanonicalData,
+        getGeometryPreviewSession: () => state.geometryPreview.session,
+        getCurrentTool: () => state.tool,
+        discardGeometryPreview: discardActiveGeometryPreview,
+        clearHover: () => { lastHoverHit = null; selectionDomain.setHover(null); },
+        resetForTool: tool => {
+          state.labelPlacementMode = false;
+          if (tool !== 'country-coast') {
+            state.coastEditCountryId = null;
+            state.coastEditScopeGenericFeatureId = null;
+            state.coastEditReturnSelection = null;
+          }
+          if (tool !== 'country-border') resetBoundaryEditState();
+          if (tool !== 'merge-country') resetMergeState();
+          if (tool !== 'merge-generic-feature') resetGenericFeatureMergeState();
+          if (tool !== 'split-generic-feature') state.genericFeatureSplitSourceId = null;
+          if (tool !== 'merge-territorial-unit') {
+            state.territorialUnitMergeSourceId = null;
+            state.territorialUnitMergeTargetIds = [];
+          }
+          if (tool !== 'split-territorial-unit') {
+            state.territorialUnitSplitSourceId = null;
+            state.territorialUnitSplitVirtualSource = null;
+          }
+          if (tool !== 'redraw-territorial-unit') state.territorialUnitRedrawSourceId = null;
+          if (tool !== 'draw-territorial-unit') state.territorialCreateContext = null;
+          if (tool !== 'annex-territory') resetAnnexState();
+          if (tool !== 'new-country') resetNewCountryState();
+        },
+        applyToolPresentation: (tool, options = {}) => {
+          state.tool = tool;
+          setCurrentTool(toolLabel(tool));
+          setModeBanner();
+          syncMobileNavigation();
+          updateModeButtons();
+          return options;
+        },
+      },
+      previewController: editPreviewController,
+      draftServices: {
+        getToolConfig: tool => {
+          const config = draftToolConfig(tool);
+          return config ? { ...config, minimumPoints: config.shape === 'polygon' ? 3 : 2 } : null;
+        },
+        isSpacePanActive: () => state.spacePanActive,
+        screenSample: screenPoint => {
+          const coordinate = screenToGeo(screenPoint);
+          return coordinate ? { screen: screenPoint.slice(), coordinate } : null;
+        },
+        projectCoordinate: coordinate => activeProjection()(coordinate),
+        screenToCoordinate: point => screenToGeo(point),
+        snapCandidates: ({ coordinate, excludeNodeKey }) => localSnapCandidates(coordinate)
+          .filter(candidate => !excludeNodeKey || candidate.nodeKey !== excludeNodeKey),
+        assessDraft: ({ tool, coords, buildPreview }) => {
+          const sourceGeometry = activeCutDraftSourceGeometry();
+          if (sourceGeometry) {
+            const assessment = assessCutDraft(coords, sourceGeometry);
+            if (assessment.valid && buildPreview) {
+              try {
+                const split = buildCutSplitCandidates(sourceGeometry, coords);
+                assessment.splitPreview = {
+                  revision: Number(editingDomain?.snapshot?.().revision || 0),
+                  candidates: split.candidates.map(candidate => ({ geometry: deepClone(candidate.geometry), area: candidate.area })),
+                };
+              } catch (_) { assessment.splitPreview = null; }
+            }
+            return assessment;
+          }
+          return null;
+        },
+        requestFrame: callback => requestAnimationFrame(callback),
+        cancelFrame: handle => cancelAnimationFrame(handle),
+        onTooShort: config => setActionStatus(`형상이 너무 짧습니다. ${config?.shape === 'polygon' ? '영역의 경계를 더 크게' : '선을 더 길게'} 그려주세요.`, 'error', 3200),
+        onFinished: () => {
+          if (!activeCutDraftSourceGeometry()) setModeBanner('꼭짓점을 드래그해 미세조정한 뒤 완료하세요.');
+        },
+      },
+      geometryEditing: {
+        resolveObjectFeature: targetRef => {
+          if (targetRef?.domain === 'hydro') return state.hydroEdits.find(item => String(item.id) === String(targetRef.id)) || null;
+          if (targetRef?.domain === 'generic') return state.genericFeatures.find(item => String(item.id) === String(targetRef.id)) || null;
+          return null;
+        },
+        canEditObject: feature => {
+          if (feature?.properties?.locked === true) {
+            setActionStatus('잠금을 해제한 뒤 꼭짓점을 이동하세요.', 'error', 3200);
+            return false;
+          }
+          const hydroEdit = isHydroEditFeature(feature);
+          const owner = hydroEdit ? null : countryFeatureById(feature.properties?.ownerId);
+          if (!hydroEdit && genericFeatureLandBinding(feature) === 'hard' && owner) {
+            setActionStatus('국가 해안선과 연결된 점입니다. 편집창의 해안 구간 수정을 사용하세요.', 'error', 3800);
+            return false;
+          }
+          recordHistory();
+          return true;
+        },
+        getObjectVertexTarget: () => {
+          if (state.tool !== 'select') return null;
+          const selected = state.selected;
+          if (selected?.domain === 'hydro') {
+            const feature = state.hydroEdits.find(item => String(item.id) === String(selected.id));
+            return feature ? { targetRef: { domain: 'hydro', type: 'hydro', id: String(feature.id) }, mode: 'hydro', feature } : null;
+          }
+          if (selected?.domain === 'generic') {
+            const feature = state.genericFeatures.find(item => String(item.id) === String(selected.id));
+            return feature ? { targetRef: { domain: 'generic', type: 'generic', id: String(feature.id) }, mode: 'generic', feature } : null;
+          }
+          return null;
+        },
+        previewObjectGesture: ({ source, feature, segments }) => {
+          beginActiveEditPreview({
+            key: `${isHydroEditFeature(source) ? 'hydro' : 'generic'}:${source.id}`,
+            segments,
+            style: {
+              color: isHydroEditFeature(source) ? '#72c9ef' : resolvedInteractionStyle.selection.color,
+              alpha: 1,
+              width: 3.2,
+              casing: { color: '#101820', alpha: 0.55, width: 4.8 },
+              cap: 'round', join: 'round',
+            },
+          });
+          return feature;
+        },
+        commitObjectGesture: ({ source, feature, beforeGeometry, changed }) => {
+          const hydroEdit = isHydroEditFeature(source);
+          clearActiveEditPreview('vertex-edit-preview-end');
+          if (!changed) {
+            historyService.discardLast();
+            renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-preview-no-change');
+            return false;
+          }
+          const issues = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? validateStructuredGeometry(feature) : [];
+          if (issues.length) {
+            historyService.discardLast();
+            setActionStatus(issues[0].message || '유효하지 않은 geometry라 꼭짓점 이동을 되돌렸습니다.', 'error', 3800);
+            return false;
+          }
+          source.geometry = deepClone(feature.geometry);
+          genericFeatureLandClipCache.delete(source);
+          if (hydroEdit) mapObjectGeometryRevisions.hydro += 1;
+          else mapObjectGeometryRevisions.generic += 1;
+          renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-edit-commit');
+          queueAutosave();
+          setActionStatus('꼭짓점을 이동했습니다.', 'success');
+          void beforeGeometry;
+          return true;
+        },
+        beginBoundaryGesture: event => {
+          if (!['country-border', 'country-coast'].includes(state.tool)) return false;
+          const node = state.sharedBoundaryTopology?.nodes?.get?.(String(event.vertexKey || ''));
+          if (!node) return false;
+          const borderMode = state.tool === 'country-border';
+          const selectedIds = new Set(state.boundaryEditCountryIds.map(String));
+          const coastId = String(state.coastEditCountryId || event.targetRef?.id || '');
+          const allowed = borderMode
+            ? node.ownerIds.size >= 2 && [...node.ownerIds].every(id => selectedIds.has(String(id)))
+            : node.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(coastId);
+          if (!allowed) return false;
+          const affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
+          if (!requireCountriesUnlocked([...affectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return false;
+          const features = new Map([...affectedIds]
+            .map(id => [id, countryFeatureById(id)])
+            .filter(([, feature]) => feature)
+            .map(([id, feature]) => [id, deepClone(feature)]));
+          const refs = [...(node.refs || []), ...(node.virtualRefs || [])]
+            .filter(ref => affectedIds.has(String(ref.featureId)))
+            .map(ref => ({
+              countryId: String(ref.featureId),
+              vertex: { polygonIndex: ref.polygonIndex, ringIndex: ref.ringIndex, index: ref.vertexIndex ?? ref.segmentIndex },
+            }));
+          beginActiveEditPreview({
+            key: `${borderMode ? 'border' : 'coast'}:${[...affectedIds].sort().join('|')}:${node.key}`,
+            segments: getCountryBoundarySegments().map(item => ({
+              start: item.geometry.coordinates[0], end: item.geometry.coordinates[1],
+            })),
+            style: {
+              color: borderMode ? resolvedInteractionStyle.selection.color : '#72c9ef',
+              alpha: 1,
+              width: 3.8,
+              casing: { color: '#101820', alpha: 0.65, width: 5.4 },
+              cap: 'round', join: 'round',
+            },
+          });
+          return {
+            borderMode,
+            affectedIds,
+            features,
+            refs,
+            startCoordinate: node.coordinate.slice(),
+            changed: false,
+            snapshot: snapshotEditable(),
+            validationBaseline: affectedIds.size > 1 ? captureCountryGeometryValidationBaseline(affectedIds) : null,
+            structuredBaseline: new Set([...affectedIds]
+              .flatMap(id => validateStructuredGeometry(countryFeatureById(id)).filter(Boolean))
+              .map(structuredGeometryIssueKey)),
+            beforeGeometries: new Map([...affectedIds].map(id => [id, deepClone(countryFeatureById(id)?.geometry)])),
+          };
+        },
+        moveBoundaryGesture: (session, coordinate) => {
+          session.changed = session.changed || !coordNear(session.startCoordinate, coordinate, 1e-9);
+          for (const ref of session.refs) {
+            const feature = session.features.get(ref.countryId);
+            if (feature) setCountryVertexCoord(feature, ref.vertex, coordinate);
+          }
+          const segments = session.refs.flatMap(ref => {
+            const feature = session.features.get(ref.countryId);
+            const ring = feature ? countryRingForVertex(feature, ref.vertex) : null;
+            const count = Math.max(0, (ring?.length || 0) - 1);
+            if (!ring || !count) return [];
+            return [
+              { start: ring[(ref.vertex.index - 1 + count) % count], end: ring[ref.vertex.index] },
+              { start: ring[ref.vertex.index], end: ring[(ref.vertex.index + 1) % count] },
+            ];
+          });
+          updateActiveEditPreview(segments);
+        },
+        commitBoundaryGesture: session => {
+          clearActiveEditPreview('country-boundary-preview-end');
+          if (!session.changed) return false;
+          try {
+            const structuredIssues = [...session.affectedIds]
+              .flatMap(id => validateStructuredGeometry(session.features.get(id)).filter(Boolean))
+              .filter(issue => !session.structuredBaseline.has(structuredGeometryIssueKey(issue)));
+            if (structuredIssues.length) throw new Error(structuredIssues[0].message);
+            const validation = validateCountryGeometryEdit(session.affectedIds, session.validationBaseline, { featureOverrides: session.features });
+            if (!validation.ok) throw new Error(validation.message);
+            for (const id of session.affectedIds) {
+              const current = countryFeatureById(id);
+              const preview = session.features.get(id);
+              if (current && preview?.geometry) current.geometry = deepClone(preview.geometry);
+            }
+            for (const id of session.affectedIds) {
+              const current = countryFeatureById(id);
+              const before = session.beforeGeometries.get(id);
+              if (current && before) syncHardLandDependents(id, before, current.geometry, session.startCoordinate);
+            }
+            markCountryGeometriesChanged(session.affectedIds);
+            refreshCountryCentroids(session.affectedIds);
+            rebuildBoundaryTopology(session.borderMode ? state.boundaryEditCountryIds : state.coastEditCountryId);
+            commitHistorySnapshot(session.snapshot);
+            renderingDomain?.invalidateEditedGeometryPatch?.('country', 'boundary-edit-commit');
+            queueAutosave();
+            setActionStatus(session.borderMode
+              ? `${session.affectedIds.size}개 국가의 공유국경을 함께 수정했습니다.`
+              : '해안선을 수정했습니다.', 'success');
+            return true;
+          } catch (error) {
+            rebuildBoundaryTopology(session.borderMode ? state.boundaryEditCountryIds : state.coastEditCountryId);
+            reportOperationError(error, session.borderMode
+              ? '공유국경을 이동하지 못해 변경을 되돌렸습니다.'
+              : '해안선을 이동하지 못해 변경을 되돌렸습니다.', session.borderMode ? 'PL-BORDER-001' : 'PL-COAST-001', 4300);
+            return false;
+          }
+        },
+        renderPacket: () => {
+          const boundarySegments = getCountryBoundarySegments().flatMap(item => {
+            const coordinates = item.geometry?.coordinates || [];
+            return coordinates.length >= 2 ? [{ key: item.key, kind: item.kind, start: coordinates[0], end: coordinates[1] }] : [];
+          });
+          const boundaryHandles = getCountryBoundaryHandles();
+          const territoryItems = territoryComponentItems();
+          const candidates = state.tool === 'annex-territory'
+            ? state.annexCandidates
+            : state.tool === 'new-country' ? state.newCountryCandidates : [];
+          return {
+            boundaryEdit: boundarySegments.length || boundaryHandles.length ? { segments: boundarySegments, handles: boundaryHandles } : null,
+            territoryOperation: territoryItems.length || candidates.length ? {
+              kind: state.tool,
+              phase: state.tool === 'annex-territory' ? state.annexPhase : state.newCountryPhase,
+              components: territoryItems.map(item => ({ ...item, hovered: item.key === state.annexHoveredComponentKey })),
+              candidates: candidates.map((item, index) => ({
+                index,
+                geometry: item.geometry,
+                selected: index === (state.tool === 'annex-territory' ? state.annexSelectedCandidateIndex : state.newCountrySelectedCandidateIndex),
+              })),
+            } : null,
+          };
+        },
+        handleTerritoryInteraction: event => {
+          if (event.type === 'territory-component-hover') state.annexHoveredComponentKey = event.componentKey;
+          else if (event.type === 'territory-component-leave' && state.annexHoveredComponentKey === event.componentKey) state.annexHoveredComponentKey = null;
+          else if (event.type === 'territory-component-toggle') toggleTerritoryComponentSelection(event.componentKey);
+          else if (event.type === 'territory-candidate-select') selectTerritoryCandidate(event.candidateIndex);
+          else return false;
+          return true;
+        },
+      },
+      importTransactions: {
+        replaceProject: (...args) => applyImportedReplacement(...args),
+        territorial: (...args) => commitTerritorialImportWithTransfer(...args),
+        geoJson: (...args) => importGeoJson(...args),
+        mergeCountries: (...args) => commitGisMerge(...args),
+        distribution: (...args) => importGeoJsonDistributions(...args),
+        reconcileCoast: (...args) => reconcileAdminCountryCoast(...args),
+      },
+      onEditingStateChanged: snapshot => {
+        state.tool = snapshot.activeTool;
+        $('map')?.classList.toggle('draft-stroke-active', snapshot.draft.strokeActive);
+        syncCutDraftFeedback(snapshot.draft.cutAssessment, !!snapshot.draft.hover);
+        if (!snapshot.draft.cutAssessment && !snapshot.draft.hover) syncGenericDraftFeedback(snapshot.draft);
+        updateModeButtons();
+        updateHistoryButtons();
+      },
+      transactionRunner: ({ domain, patch: geometryPatch }) => {
+        if (geometryPatch?.commit && typeof geometryPatch.commit === 'function') return geometryPatch.commit();
+        const error = new TypeError(`${domain} geometry patch requires an explicit transaction commit().`);
+        error.code = 'PL-EDIT-TRANSACTION-001';
+        throw error;
+      },
     });
 
     renderingDomain = createRenderingDomain({
+      context: domainContext,
       gpuMapRenderer,
       sceneBuilder: renderSceneBuilder,
-      coordinator: mapRenderCoordinator,
       mapHost: () => mapHost,
       selectionDomain,
       projectDomain,
+      getEditingRenderPacket: () => editingDomain?.createRenderPacket?.(),
+      emitEditingInteraction: event => editingDomain?.handleInteraction?.(event),
       domLayers: () => ({ baseSvg, svg, interactionSvg }),
       labelResources: createResourceSnapshot('labels', {
         d3,
@@ -17059,8 +16591,8 @@ const {
         isCoordVisible,
         labelDragBehavior,
         normalizeObjectRef,
-        selectionSnapshot: () => objectSelection.snapshot(),
-        selectionHas: ref => objectSelection.has(ref),
+        selectionSnapshot: () => selectionDomain.snapshot().selection,
+        selectionHas: ref => selectionDomain.has(ref),
       }, {
         countryLabelLayer: () => countryLabelLayer,
         labelLayer: () => labelLayer,
@@ -17103,7 +16635,7 @@ const {
         geometryMayIntersectViewport,
         isHydroFeatureVisible,
         normalizeObjectRef,
-        selectionHas: ref => objectSelection.has(ref),
+        selectionHas: ref => selectionDomain.has(ref),
         viewportCullingMetrics,
         setMapHover,
         mapClickBlocked,
@@ -17125,7 +16657,7 @@ const {
         visibleMapObjectCandidates,
         geometryMayIntersectViewport,
         isLayerItemVisible,
-        selectionHas: ref => objectSelection.has(ref),
+        selectionHas: ref => selectionDomain.has(ref),
         normalizeObjectRef,
         viewportCullingMetrics,
         setMapHover,
@@ -17159,8 +16691,8 @@ const {
         isLayerItemVisible,
         geometryMayIntersectViewport,
         normalizeObjectRef,
-        selectionHas: ref => objectSelection.has(ref),
-        selectionSnapshot: () => objectSelection.snapshot(),
+        selectionHas: ref => selectionDomain.has(ref),
+        selectionSnapshot: () => selectionDomain.snapshot().selection,
         viewportCullingMetrics,
         mapClickBlocked,
         d3,
@@ -17195,7 +16727,7 @@ const {
         geometryMayIntersectViewport,
         isLayerItemVisible,
         normalizeObjectRef,
-        selectionHas: ref => objectSelection.has(ref),
+        selectionHas: ref => selectionDomain.has(ref),
         viewportCullingMetrics,
         mapClickBlocked,
         d3,
@@ -17252,9 +16784,6 @@ const {
       }),
       selectionResources: createResourceSnapshot('selection', {
         getState: () => state,
-        getHover: () => state.hovered,
-        snapshot: () => ({ selection: objectSelection.snapshot(), hover: state.hovered }),
-        selectionHas: ref => objectSelection.has(ref),
         countryType: TERRITORIAL_UNIT_TYPES.COUNTRY,
         selectionLayer,
         hoverLayer,
@@ -17275,7 +16804,6 @@ const {
         getProjection: () => state.projection,
         isMobile,
         gpuMapRenderer,
-        createSelectionPacket,
         buildGpuInteractionFillItems,
         syncGpuInteractionState,
         setCurrentSelectionPacket: packet => { currentSelectionPacket = packet || null; },
@@ -17303,30 +16831,13 @@ const {
         selectionPass: () => selectionPass,
       }),
       interactionResources: createResourceSnapshot('interaction', {
-        getState: () => state,
         draftLayer,
-        draftInputActive: () => editingDomain?.draftInputActive?.(),
-        insertDraftPoint: () => editingDomain?.insertDraftPoint?.(),
         d3,
         svg,
         isMobile,
-        territoryComponentItems,
-        selectTerritoryCandidate,
-        toggleTerritoryComponentSelection,
         selectionStyle: SELECTION_STYLE,
         projectedLineDistance,
         formatTerritoryArea,
-        isPolygonDraftTool,
-        coordNear,
-        activeCutDraftSourceGeometry,
-        assessCutDraft,
-        syncCutDraftFeedback,
-        syncGenericDraftFeedback,
-        draftFeature,
-        draftSegmentRows,
-        showDraftInsertTarget,
-        draftVertexDragBehavior,
-        updateModeButtons,
         setModeBanner,
         previewLayer,
         validationLayer,
@@ -17336,6 +16847,10 @@ const {
         hasAreaGeometry,
         buildRenderableStrokeFeature,
         issueCoordinate,
+        getValidationPacket: () => ({
+          issues: state.audit?.report?.issues || state.geometryPreview?.session?.validation?.issues || [],
+          selectedIssueId: state.audit?.selectedIssueId || null,
+        }),
         geometryMayIntersectViewport,
         isCoordVisible,
         activeProjection,
@@ -17352,13 +16867,6 @@ const {
         svg: () => svg,
       }),
       editingRenderResources: createResourceSnapshot('editing', {
-        getState: () => state,
-        getCountryBoundarySegments,
-        getEditableVertices,
-        getGenericFeature: id => state.genericFeatures.find(feature => String(feature.id) === String(id)),
-        getHydroFeature: id => hydroEditById(id),
-        getCountryFeature: id => countryFeatureById(id),
-        getCountryBoundaryHandles,
         isCoordVisible,
         activeProjection,
         currentMapZoom,
@@ -17367,8 +16875,6 @@ const {
         d3,
         vertexLayer,
         boundaryEditLayer,
-        countryBoundaryVertexDragBehavior,
-        vertexDragBehavior,
         replaceGpuSceneDomain,
         getEditInteractionRevision: () => editInteractionRevision,
         getInteractionStyle: () => resolvedInteractionStyle,
@@ -17377,203 +16883,30 @@ const {
         boundaryEditLayer: () => boundaryEditLayer,
       }),
       refreshRenderResources,
-      getRenderResourceSnapshot,
+      requestFrame: callback => requestAnimationFrame(callback),
+      prepareView: () => {
+        updateProjection();
+        return syncViewRevision();
+      },
+      onFrameComplete: handleRenderFrameComplete,
+      invalidMaskMode: ['localhost', '127.0.0.1', '::1'].includes(location.hostname)
+        || new URLSearchParams(location.search).has('debug')
+        || new URLSearchParams(location.search).has('perf')
+        ? 'throw'
+        : 'report',
       renderers: {
         view: viewState => {
           updatePandoGlobeShell(viewState);
           return gpuMapRenderer.render(viewState?.revision || viewRevision, viewState);
         },
-        base: (...args) => renderingDomain.renderBase(...args),
-        countries: (...args) => renderingDomain.renderCountries(...args),
-        gpuInteraction: (...args) => renderingDomain.renderGpuInteraction(...args),
-        hydro: (...args) => renderingDomain.renderHydro(...args),
-        hydroEdits: (...args) => renderingDomain.renderHydroEdits(...args),
-        boundaryEdit: (...args) => renderingDomain.renderBoundaryEdit(...args),
-        territorialUnits: (...args) => renderingDomain.renderTerritorialUnits(...args),
-        distributions: (...args) => renderingDomain.renderDistributions(...args),
-        genericFeatures: (...args) => renderingDomain.renderGenericFeatures(...args),
         stackOverlays: applyOverlayStackOrder,
-        projectedOverlays: (...args) => renderingDomain.renderProjectedOverlays(...args),
-        geometryPreview: (...args) => renderingDomain.renderGeometryPreview(...args),
-        selectionData: (frameContext, packet, options = {}) => renderingDomain.renderSelection(frameContext, packet, options),
-        selectionStyle: (frameContext, packet, options = {}) => renderingDomain.renderSelection(frameContext, packet, { ...options, styleOnly: true }),
-        selectionView: (frameContext, gpuFrameResult, options = {}) => renderingDomain.renderSelection(
-          frameContext,
-          null,
-          { ...options, viewOnly: true, updateData: false, gpuFrameResult },
-        ),
-        hover: (...args) => renderingDomain.renderHoverOverlay(...args),
-        validation: (...args) => renderingDomain.renderValidation(...args),
         labelLayout: visibleLabelLayout,
-        countryLabelPositions: (...args) => renderingDomain.renderCountryLabelPositions(...args),
-        userLabelPositions: (...args) => renderingDomain.renderUserLabelPositions(...args),
-        countryLabels: (...args) => renderingDomain.renderCountryLabels(...args),
-        userLabels: (...args) => renderingDomain.renderUserLabels(...args),
-        vertices: (...args) => renderingDomain.renderVertices(...args),
-        draft: (...args) => renderingDomain.renderDraft(...args),
-        snapIndicator: (...args) => renderingDomain.renderSnap(...args),
         debug: renderDebugMapPanel,
         layerTree: renderLayerTree,
       },
       reportDiagnostic: entry => reliabilityDiagnostic.push({ category: 'rendering-domain', ...entry }),
     });
 
-    editingDomain = createEditingDomain({
-      context: domainContext,
-      projectDomain,
-      gisDomain,
-      selectionDomain,
-      renderingDomain,
-      toolController: {
-        requireCanonicalData,
-        getGeometryPreviewSession: () => state.geometryPreview.session,
-        getCurrentTool: () => state.tool,
-        discardGeometryPreview: discardActiveGeometryPreview,
-        clearDraft: value => editingDomain?.clearDraft?.(value),
-        clearActiveSnap,
-        clearHover: () => { state.hovered = null; },
-        resetForTool: tool => {
-          state.labelPlacementMode = false;
-          if (tool !== 'country-coast') {
-            state.coastEditCountryId = null;
-            state.coastEditScopeGenericFeatureId = null;
-            state.coastEditReturnSelection = null;
-          }
-          if (tool !== 'country-border') resetBoundaryEditState();
-          if (tool !== 'merge-country') resetMergeState();
-          if (tool !== 'merge-generic-feature') resetGenericFeatureMergeState();
-          if (tool !== 'split-generic-feature') state.genericFeatureSplitSourceId = null;
-          if (tool !== 'merge-territorial-unit') {
-            state.territorialUnitMergeSourceId = null;
-            state.territorialUnitMergeTargetIds = [];
-          }
-          if (tool !== 'split-territorial-unit') {
-            state.territorialUnitSplitSourceId = null;
-            state.territorialUnitSplitVirtualSource = null;
-          }
-          if (tool !== 'redraw-territorial-unit') state.territorialUnitRedrawSourceId = null;
-          if (tool !== 'draw-territorial-unit') state.territorialCreateContext = null;
-          if (tool !== 'annex-territory') resetAnnexState();
-          if (tool !== 'new-country') resetNewCountryState();
-        },
-        setCurrentToolState: tool => { state.tool = tool; },
-        applyToolPresentation: (tool, options = {}) => {
-          setCurrentTool(toolLabel(tool));
-          setModeBanner();
-          renderingDomain?.renderPass('countries');
-          renderingDomain?.renderPass('boundaryEdit');
-          renderingDomain?.renderPass('hover');
-          renderingDomain?.renderVertices?.();
-          renderingDomain?.renderDraft?.();
-          syncMobileNavigation();
-          updateModeButtons();
-          return options;
-        },
-      },
-      draftEditor: draftEditorModule,
-      previewController: editPreviewController,
-      snapController: geometrySnapModule,
-      draftInput: {
-        getToolConfig: () => draftToolConfig(state.tool),
-        getInputPhase: () => state.draftEdit.inputPhase,
-        isSpacePanActive: () => state.spacePanActive,
-        screenSample: screenPoint => draftScreenSample(screenPoint),
-        clearHover: () => { state.draftHover = null; },
-        clearInsertTarget: () => { state.draftEdit.insertTarget = null; },
-        beginStroke: options => beginDraftStroke(state.draftStroke, options),
-        appendSamples: samples => appendDraftStrokeSamples(state.draftStroke, samples),
-        isStrokeActive: () => state.draftStroke.active,
-        setAcceptingSamples: value => { state.draftStroke.acceptingSamples = value; },
-        acceptingSamples: () => state.draftStroke.acceptingSamples,
-        queueRender: queueDraftStrokeRender,
-        projectCoordinate: coordinate => activeProjection()(coordinate),
-        firstStrokeCoordinate: () => state.draftStroke.samples[0]?.coordinate,
-        finalizeStroke: options => finalizeDraftStroke(state.draftStroke, options),
-        cancelRawStroke: () => cancelRawDraftStroke(state.draftStroke),
-        cancelQueuedRender: () => {
-          if (draftStrokeRenderFrame) cancelAnimationFrame(draftStrokeRenderFrame);
-          draftStrokeRenderFrame = 0;
-        },
-        minimumPoints: draftMinimumPoints,
-        onTooShort: config => setActionStatus(`형상이 너무 짧습니다. ${config?.shape === 'polygon' ? '영역의 경계를 더 크게' : '선을 더 길게'} 그려주세요.`, 'error', 3200),
-        onFinished: () => {
-          if (!activeCutDraftSourceGeometry()) setModeBanner('꼭짓점을 드래그해 미세조정한 뒤 완료하세요.');
-        },
-        setStrokeActiveClass: active => $('map')?.classList.toggle('draft-stroke-active', !!active),
-        render: () => renderingDomain?.renderPass('draft'),
-        updateControls: updateModeButtons,
-        updateHistoryControls: updateHistoryButtons,
-        incrementRevision: () => { state.draftEdit.revision += 1; },
-        refreshDerivedState: options => refreshDraftDerivedState(options),
-        setInputPhase: phase => { state.draftEdit.inputPhase = phase; },
-        setSelectedVertex: index => { state.draftEdit.selectedVertexIndex = index; },
-        invalidateInteraction: invalidateEditInteraction,
-        resetPointerState: () => {
-          state.spacePanActive = false;
-          mapInteractionGate.setForcedPan(false);
-          mapInteractionGate.setDraftInputActive(false);
-          mapHost?.setForcedPan?.(false);
-          $('map')?.classList.remove('space-pan-active');
-        },
-        resetDraftState: () => {
-          state.draftCoords = [];
-          state.draftHover = null;
-          state.draftCutAssessment = null;
-          resetDraftStrokeState(state.draftStroke);
-          resetDraftEditState(state.draftEdit);
-        },
-        clearLayer: () => { draftLayer?.selectAll('*').remove(); },
-        onRedraw: () => setModeBanner(defaultDraftInstruction()),
-      },
-      renderPackets: {
-        draft: {
-          isActive: () => !!draftToolConfig(state.tool),
-          getCoords: () => state.draftCoords,
-          setCoords: coords => { state.draftCoords = coords; },
-          getEdit: () => state.draftEdit,
-          setInputPhase: phase => { state.draftEdit.inputPhase = phase; },
-          setSelectedVertex: index => { state.draftEdit.selectedVertexIndex = index; },
-          getInsertTarget: () => state.draftEdit.insertTarget,
-          isStrokeActive: () => !!state.draftStroke.active,
-          isPolygon: () => isPolygonDraftTool(state.tool),
-          recordSnapshot: (edit, coords, selected) => recordDraftSnapshot(edit, coords, selected, MAX_HISTORY),
-          undoSnapshot: (edit, coords) => undoDraftSnapshot(edit, coords),
-          redoSnapshot: (edit, coords) => redoDraftSnapshot(edit, coords),
-          removeLastVertex: (coords, selected) => removeLastDraftVertex(coords, selected),
-          deleteVertex: (coords, index) => deleteDraftVertex(coords, index),
-          insertVertex: (coords, segment, coordinate, polygon) => insertDraftVertex(coords, segment, coordinate, polygon),
-          moveVertex: (coords, index, coordinate) => moveDraftVertex(coords, index, coordinate),
-          coordNear,
-          projectCoordinate: coord => activeProjection()(coord),
-          unprojectScreen: point => screenToGeo(point),
-          syncAfterMutation: options => editingDomain?.syncDraftAfterMutation?.(options),
-        },
-        imports: {
-          replaceProject: (...args) => applyImportedReplacement(...args),
-          territorial: (...args) => commitTerritorialImportWithTransfer(...args),
-          geoJson: (...args) => importGeoJson(...args),
-          mergeCountries: (...args) => commitGisMerge(...args),
-          distribution: (...args) => importGeoJsonDistributions(...args),
-          reconcileCoast: (...args) => reconcileAdminCountryCoast(...args),
-        },
-      },
-      transactionRunner: ({ domain, patch: geometryPatch }) => {
-        if (geometryPatch?.commit && typeof geometryPatch.commit === 'function') return geometryPatch.commit();
-        return projectDomain.dispatch({ type: `${domain}-geometry-patch`, payload: geometryPatch });
-      },
-      onEditingStateChanged: snapshot => {
-        window.__PANDOLAB_EDITING_DOMAIN__ = snapshot;
-      },
-    });
-
-    window.PANDOLAB_DOMAINS = Object.freeze({
-      project: projectDomain,
-      selection: selectionDomain,
-      rendering: renderingDomain,
-      gis: gisDomain,
-      editing: editingDomain,
-    });
-    window.PANDOLAB_DOMAIN_CONTEXT = domainContext;
   }
 
   initializeDomainBoundaries();

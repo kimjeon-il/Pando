@@ -13,7 +13,7 @@ const freezeCategory = category => Object.freeze({
   viewGroups: freezeList(category.viewGroups),
 });
 
-export const MAP_OBJECT_DOMAINS = Object.freeze({
+const MAP_OBJECT_DOMAINS = Object.freeze({
   TERRITORIAL: 'territorial',
   DISTRIBUTION: 'distribution',
   HYDRO: 'hydro',

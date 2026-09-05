@@ -7,12 +7,12 @@ function temporalError(value, message) {
   return error;
 }
 
-export function isLeapYear(year) {
+function isLeapYear(year) {
   const absoluteYear = Math.abs(Number(year));
   return absoluteYear % 4 === 0 && (absoluteYear % 100 !== 0 || absoluteYear % 400 === 0);
 }
 
-export function daysInMonth(year, month) {
+function daysInMonth(year, month) {
   if (month === 2) return isLeapYear(year) ? 29 : 28;
   return [4, 6, 9, 11].includes(month) ? 30 : 31;
 }

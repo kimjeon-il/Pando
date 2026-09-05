@@ -61,13 +61,6 @@ export function geometryAreaKm2(geometry) {
   return steradians * MEAN_EARTH_RADIUS_KM * MEAN_EARTH_RADIUS_KM;
 }
 
-export function formatDistance(valueKm, locale = 'ko-KR') {
-  const value = Math.max(0, Number(valueKm || 0));
-  if (value < 1) return `${Math.round(value * 1000).toLocaleString(locale)} m`;
-  const digits = value < 10 ? 2 : value < 100 ? 1 : 0;
-  return `${value.toLocaleString(locale, { maximumFractionDigits: digits })} km`;
-}
-
 export function formatArea(valueKm2, locale = 'ko-KR', { approximate = true } = {}) {
   const value = Math.max(0, Number(valueKm2 || 0));
   const digits = value < 1 ? 2 : value < 100 ? 1 : 0;

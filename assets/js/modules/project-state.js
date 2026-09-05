@@ -11,7 +11,7 @@ import {
 } from './version-contract.js';
 
 export { PROJECT_SCHEMA_VERSION };
-export const PROJECT_FORMATS = Object.freeze(new Set([
+const PROJECT_FORMATS = Object.freeze(new Set([
   'pandolab-project-state',
   'pandolab-autosave-full',
   'pandolab-autosave-delta',
@@ -29,7 +29,7 @@ export function createProjectObjectId() {
   return globalThis.crypto.randomUUID();
 }
 
-export function isProjectObjectId(value) {
+function isProjectObjectId(value) {
   return UUID_PATTERN.test(text(value));
 }
 

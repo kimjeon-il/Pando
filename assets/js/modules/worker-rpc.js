@@ -21,7 +21,7 @@ const text = value => String(value ?? '').trim();
 const finiteRevision = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const defaultNow = () => globalThis.performance?.now?.() ?? Date.now();
 
-export function createWorkerRpcError({
+function createWorkerRpcError({
   message = 'Worker 작업에 실패했습니다.',
   category = WORKER_RPC_ERROR_CATEGORIES.WORKER,
   code = 'PL-WORKER-RPC-001',
@@ -45,7 +45,7 @@ export function createWorkerRpcError({
   return error;
 }
 
-export function createCanonicalWorkerRpcCodec() {
+function createCanonicalWorkerRpcCodec() {
   return Object.freeze({
     encodeRequest(envelope) { return envelope; },
     encodeCancel(envelope) { return envelope; },
