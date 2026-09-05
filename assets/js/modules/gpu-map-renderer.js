@@ -4052,9 +4052,20 @@ export function createGpuMapRenderer(deps) {
         if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
           baseResult = drawBaseSceneContent();
           if (baseResult !== false) {
-            sceneColorCache.finishScene(null, viewSignature, projectGeneration);
+            const promoted = sceneColorCache.finishScene(null, viewSignature, projectGeneration);
             lastBaseSceneResult = baseResult;
             lastSceneFrameContext = activeFrameContext;
+            // finishScene() only promotes the staging texture and restores the
+            // default framebuffer. Present that texture in this same frame.
+            // Without this composite, a continuously changing view keeps
+            // producing offscreen scenes that are never shown; only the first
+            // unchanged settle frame can hit the cache, making the map jump on
+            // pointer release while DOM labels move throughout the drag.
+            if (!promoted || !sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) {
+              recordSceneCacheFallback();
+              gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+              baseResult = drawBaseSceneContent();
+            }
           }
         } else {
           recordSceneCacheFallback();
@@ -4075,7 +4086,7 @@ export function createGpuMapRenderer(deps) {
         // This canvas is owned by PandoLab. Clear before compositing so pixels
         // removed from the active scene (for example an edited border) cannot
         // survive in the default framebuffer as an afterimage.
-        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: false, reproject })) {
+        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true, reproject })) {
           recordSceneCacheFallback();
           // A failed composite does not make a same-view active scene stale.
           // Preserve the already displayed frame instead of clearing it and

@@ -34,6 +34,18 @@ test('WebGL locations and frame projection state are cached', () => {
   assert.equal((stroke.match(/gl\.getAttribLocation\(/g) || []).length, 1);
 });
 
+test('a newly promoted scene cache texture is presented in the same view frame', () => {
+  const gpu = read('assets/js/modules/gpu-map-renderer.js');
+  const renderWebGl = gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro'));
+  const finish = renderWebGl.indexOf('sceneColorCache.finishScene(null, viewSignature, projectGeneration)');
+  const present = renderWebGl.indexOf('sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })', finish);
+  const interactions = renderWebGl.indexOf('drawInteractionPasses(viewState)');
+  assert.ok(finish >= 0, 'scene promotion must remain explicit');
+  assert.ok(present > finish, 'the promoted texture must be presented after promotion');
+  assert.ok(present < interactions, 'the base scene must be presented before interaction overlays');
+  assert.ok(!renderWebGl.includes('{ clearTarget: false, reproject }'));
+});
+
 test('hydro and terrain use bounded interaction-aware upload budgets', () => {
   const source = read('assets/js/modules/gpu-map-renderer.js');
   assert.ok(source.includes('Number(renderQuality.uploadBudgetBytes)'));
