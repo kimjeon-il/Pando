@@ -122,6 +122,10 @@ for (const file of javascriptFiles) {
 }
 
 const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+const appLogicalLineCount = appSource.split(/\r?\n/).filter(line => line.trim()).length;
+if (appLogicalLineCount > 14500) {
+  throw new Error(`app.js logical line ratchet exceeded: ${appLogicalLineCount} > 14500`);
+}
 const bootstrapSource = fs.readFileSync(path.join(root, 'assets/js/bootstrap.js'), 'utf8');
 if (appSource.includes("worker.postMessage({ type: 'execute'")) {
   throw new Error('app.js bypasses map-edit-worker-client.js');

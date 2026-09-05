@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
+OBJECT_PROPERTIES = (ROOT / "assets/js/modules/object-property-controller.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 PHASE_CSS = (ROOT / "assets/css/phase1-ui-cleanup.css").read_text(encoding="utf-8")
 TERRITORIAL_SERVICE = (ROOT / "assets/js/modules/territorial-service.js").read_text(encoding="utf-8")
@@ -49,16 +50,16 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertNotIn('class="editor-object-separator"', INDEX)
         self.assertIn('.editor-object-heading {', CSS)
         self.assertIn('-webkit-line-clamp: 2;', CSS)
-        self.assertIn("document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type)", APP)
-        self.assertIn("$('editSheetTitle')?.classList.remove('hidden')", APP)
-        self.assertIn("$('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle')", APP)
+        self.assertIn("document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type)", OBJECT_PROPERTIES)
+        self.assertIn("$('editSheetTitle')?.classList.remove('hidden')", OBJECT_PROPERTIES)
+        self.assertIn("$('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle')", OBJECT_PROPERTIES)
 
     def test_multi_selection_uses_the_editor_header_without_a_card_surface(self):
         self.assertNotIn('id="multiPropertiesCount"', INDEX)
         self.assertNotIn('id="multiPropertiesTypes"', INDEX)
         self.assertNotIn('class="multi-properties-summary"', INDEX)
         self.assertIn("typeLabel: types.length === 1 ? types[0] : '여러 유형'", APP)
-        self.assertIn("showPropertyForm('multi', `${selection.items.length}개 선택됨`", APP)
+        self.assertIn("objectPropertyController.show('multi'", APP)
         self.assertIn('.multi-properties > .editor-section-primary { padding: 0; border: 0; border-radius: 0; background: transparent; }', CSS)
 
     def test_target_information_forms_are_flat_and_ordered(self):

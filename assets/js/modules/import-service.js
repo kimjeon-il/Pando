@@ -1,9 +1,6 @@
-import {
-  EXCHANGE_TARGETS,
-  createExchangeAdapterRegistry,
-  normalizeExchangeTarget,
-} from './exchange-adapter-registry.js';
+import { EXCHANGE_TARGETS, normalizeExchangeTarget } from './exchange-adapter-registry.js';
 import { TERRITORIAL_IMPORT_TARGETS } from './import-plan.js';
+import { createGisImportPlan } from './gis-import-plan.js';
 import {
   WORKER_RPC_ERROR_CATEGORIES,
   createWorkerRpcClient,
@@ -241,35 +238,6 @@ export function appendImportedSourceInfo(previous, next, now = () => new Date().
   return { mergedAt: now(), imports };
 }
 
-function createMaterializerExchangeRegistry(materializers) {
-  const territorialImport = (result, context) => materializers.territorial(result, context.fileName || '벡터 파일');
-  const geoJsonImport = (result, context) => {
-    const target = result.targetType === EXCHANGE_TARGETS.DISTRIBUTION
-      ? result.distributionType
-      : result.targetType;
-    return materializers.geoJson(context.file, {
-      parsed: result.collection,
-      target,
-      mapping: {
-        nameField: result.mapping?.nameField || '',
-        countryField: result.mapping?.countryField || '',
-        parentField: result.mapping?.parentField || '',
-        levelField: result.mapping?.levelField || '',
-      },
-    });
-  };
-  return createExchangeAdapterRegistry({
-    adapters: {
-      [EXCHANGE_TARGETS.PROJECT]: { importPayload: result => materializers.replaceProject(result) },
-      [EXCHANGE_TARGETS.TERRITORY]: { importPayload: territorialImport },
-      [EXCHANGE_TARGETS.ADMINISTRATIVE]: { importPayload: territorialImport },
-      [EXCHANGE_TARGETS.REGION]: { importPayload: territorialImport },
-      [EXCHANGE_TARGETS.DISTRIBUTION]: { importPayload: geoJsonImport },
-      [EXCHANGE_TARGETS.GENERIC]: { importPayload: geoJsonImport },
-    },
-  });
-}
-
 export function createImportService({
   openImportWizard,
   getWizardOptions,
@@ -279,11 +247,25 @@ export function createImportService({
   getCurrentCountries,
   materializeCountryImport = null,
   planCountryMerge,
-  materializers,
   exchangeRegistry = null,
+  getProjectGeneration = () => 0,
   onStage = () => {},
 }) {
-  const adapters = exchangeRegistry || createMaterializerExchangeRegistry(materializers);
+  const buildPlan = (kind, result, context, extra = {}) => createGisImportPlan({
+    kind,
+    projectGeneration: getProjectGeneration(),
+    source: { fileName: context.fileName, sourceKind: result.sourceKind || result.importPlan?.sourceKind || '' },
+    payload: { result, ...extra },
+    affectedIds: extra.plan?.affectedIds || [],
+    render: kind === 'country-merge' || kind === 'project-replace'
+      ? { kind: 'country-patch', domain: 'country' }
+      : kind === 'territorial'
+        ? { kind: 'territorial-patch', domain: 'territorial' }
+        : kind === 'distribution'
+          ? { kind: 'overlay-geometry', domain: 'distribution' }
+          : { kind: 'generic-patch', domain: 'generic' },
+    summary: extra.plan?.counts || result.summary || {},
+  });
 
   async function openFiles(files, { targetType = '' } = {}) {
     if (!files?.length) return { status: 'empty' };
@@ -292,19 +274,17 @@ export function createImportService({
       ...getWizardOptions(),
     });
     const resolvedTarget = normalizeExchangeTarget(result.importPlan?.targetType || result.targetType);
-    const context = { file: files[0], fileName: files[0]?.name || '벡터 파일' };
+    const context = { fileName: files[0]?.name || '벡터 파일' };
 
     if (result.sourceKind === 'project' || result.importPlan?.sourceKind === 'project') {
-      await adapters.importPayload(EXCHANGE_TARGETS.PROJECT, result, context);
-      return { status: 'project-replaced', result };
+      return { status: 'planned', plan: buildPlan('project-replace', result, context) };
     }
     if (Object.values(TERRITORIAL_IMPORT_TARGETS).includes(resolvedTarget)) {
-      await adapters.importPayload(resolvedTarget, result, context);
-      return { status: 'territorial-imported', result };
+      return { status: 'planned', plan: buildPlan('territorial', result, context) };
     }
     if (![EXCHANGE_TARGETS.COUNTRY, EXCHANGE_TARGETS.PROJECT].includes(resolvedTarget)) {
-      await adapters.importPayload(resolvedTarget, result, context);
-      return { status: 'object-imported', result };
+      const kind = resolvedTarget === EXCHANGE_TARGETS.DISTRIBUTION ? 'distribution' : 'generic';
+      return { status: 'planned', plan: buildPlan(kind, result, context) };
     }
 
     if (resolvedTarget === EXCHANGE_TARGETS.COUNTRY && typeof materializeCountryImport === 'function') {
@@ -326,8 +306,7 @@ export function createImportService({
       throw new Error(`가져온 레이어 안에서 서로 다른 국가가 ${Math.round(importedOverlapAreaKm2).toLocaleString()} km² 겹칩니다.`);
     }
     if (result.openMode === 'replace') {
-      await materializers.replaceProject(result);
-      return { status: 'countries-replaced', result };
+      return { status: 'planned', plan: buildPlan('project-replace', result, context) };
     }
     const plan = await planCountryMerge(getCurrentCountries(), result.countriesData, result.mergeStrategy);
     if (!plan.canCommit) {
@@ -335,9 +314,8 @@ export function createImportService({
         ? '자동 차감 후에도 국가 간 중첩이 남아 가져올 수 없습니다.'
         : 'ID 기준 교체 후 다른 국가와 영토가 겹쳐 가져올 수 없습니다.');
     }
-    await materializers.mergeCountries(result, plan);
-    return { status: 'countries-merged', result, plan };
+    return { status: 'planned', plan: buildPlan('country-merge', result, context, { plan }) };
   }
 
-  return Object.freeze({ openFiles, exchangeRegistry: adapters });
+  return Object.freeze({ openFiles, exchangeRegistry });
 }

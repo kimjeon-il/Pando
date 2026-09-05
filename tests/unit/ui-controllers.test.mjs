@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createConfirmModalController } from '../../assets/js/modules/confirm-modal-controller.js';
-import { createLayerPanelController } from '../../assets/js/modules/layer-panel-controller.js';
+import { createLayerTreeController } from '../../assets/js/modules/layer-tree-controller.js';
 import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
 
 function fakeElement() {
@@ -45,13 +45,15 @@ test('confirm modal controller owns focus, choice, and confirm lifecycle', () =>
   assert.equal(controller.isOpen(), false);
 });
 
-test('layer panel controller translates DOM events into commands', () => {
+test('layer tree controller translates DOM events into commands', () => {
   const visibility = fakeElement();
   const search = fakeElement();
   const calls = [];
-  const controller = createLayerPanelController({
+  const controller = createLayerTreeController({
     window: { setTimeout: callback => { callback(); return 1; }, Event: class { constructor(type) { this.type = type; } } },
     elements: { visibilityInputs: { countries: visibility }, search },
+    groups: { tree: [], search: [], names: {} },
+    model: { snapshot: () => ({ revision: 0, search: '', folders: {} }), items: () => [] },
     commands: {
       setLayerVisibility: (...args) => calls.push(['visibility', ...args]),
       setSearchValue: value => calls.push(['search', value]),
