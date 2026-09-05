@@ -17,7 +17,7 @@ function createCompositeProgram(device) {
       vec2 targetPx=sourcePx*uReprojectScale+uReprojectOffset;
       vec2 targetNdc=vec2(targetPx.x*2.0/uTargetViewport.x-1.0,targetPx.y*2.0/uTargetViewport.y-1.0);
       gl_Position=vec4(targetNdc,0.0,1.0);
-    }}`
+    }`
     : `precision highp float;
     attribute vec2 aPosition;
     varying vec2 vUv;
