@@ -4,8 +4,9 @@ import test from 'node:test';
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from '../../assets/js/modules/gpu-blend-utils.js';
 import { compileGpuShader, linkGpuProgram } from '../../assets/js/modules/gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from '../../assets/js/modules/gpu-view-uniforms.js';
+import { createSceneColorCache } from '../../assets/js/modules/scene-color-cache.js';
 
-function createFakeGl({ compileOk = true, linkOk = true } = {}) {
+function createFakeGl({ compileOk = true, linkOk = true, validateShaderSource = false } = {}) {
   let nextId = 1;
   const calls = [];
   const shaders = new Map();
@@ -21,13 +22,26 @@ function createFakeGl({ compileOk = true, linkOk = true } = {}) {
     ONE_MINUS_SRC_ALPHA: 7,
     ONE: 8,
     DST_COLOR: 9,
+    ARRAY_BUFFER: 10,
+    STATIC_DRAW: 11,
     createShader(type) {
       const shader = { id: nextId++, type };
       shaders.set(shader, { source: '', compiled: compileOk });
       return shader;
     },
     shaderSource(shader, source) { shaders.get(shader).source = source; calls.push(['shaderSource', shader.type, source]); },
-    compileShader(shader) { calls.push(['compileShader', shader.type]); },
+    compileShader(shader) {
+      const entry = shaders.get(shader);
+      if (validateShaderSource) {
+        let depth = 0;
+        entry.compiled = entry.compiled && [...entry.source].every(character => {
+          if (character === '{') depth += 1;
+          if (character === '}') depth -= 1;
+          return depth >= 0;
+        }) && depth === 0;
+      }
+      calls.push(['compileShader', shader.type]);
+    },
     getShaderParameter(shader) { return shaders.get(shader).compiled; },
     getShaderInfoLog() { return 'compile failed'; },
     deleteShader(shader) { calls.push(['deleteShader', shader?.type]); shaders.delete(shader); },
@@ -41,6 +55,13 @@ function createFakeGl({ compileOk = true, linkOk = true } = {}) {
     getProgramParameter(program) { return programs.get(program).linked; },
     getProgramInfoLog() { return 'link failed'; },
     deleteProgram(program) { calls.push(['deleteProgram', program?.id]); programs.delete(program); },
+    getAttribLocation() { return 0; },
+    getUniformLocation(_program, name) { return name; },
+    createBuffer() { return { id: nextId++ }; },
+    bindBuffer(...args) { calls.push(['bindBuffer', ...args]); },
+    bufferData(...args) { calls.push(['bufferData', ...args]); },
+    deleteBuffer(buffer) { calls.push(['deleteBuffer', buffer?.id]); },
+    isContextLost() { return false; },
     enable(cap) { calls.push(['enable', cap]); },
     blendFuncSeparate(...args) { calls.push(['blendFuncSeparate', ...args]); },
     uniform2f(...args) { calls.push(['uniform2f', ...args]); },
@@ -68,6 +89,16 @@ test('GPU shader helper deletes failed shaders and programs', () => {
   assert.throws(() => linkGpuProgram(linkGl, 'vertex', 'fragment'), /link failed/);
   assert.equal(linkGl.calls.filter(([name]) => name === 'deleteShader').length, 2);
   assert.equal(linkGl.calls.filter(([name]) => name === 'deleteProgram').length, 1);
+});
+
+test('SceneColorCache shaders initialize with balanced WebGL sources', () => {
+  for (const version of [1, 2]) {
+    const gl = createFakeGl({ validateShaderSource: true });
+    const cache = createSceneColorCache();
+    assert.equal(cache.initialize({ gl, version, capabilities: { stencil: false } }), true);
+    assert.equal(cache.stats().disabled, false);
+    cache.dispose();
+  }
 });
 
 test('GPU blend helper preserves normal and multiply contracts', () => {
