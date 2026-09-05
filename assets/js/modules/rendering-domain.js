@@ -1280,6 +1280,10 @@ export function createRenderingDomain({
   let selectionOverlayStage = '';
   const selectionBoundaryGeometryCache = new Map();
   const selectionProjectedPathCache = new Map();
+  let sparseFallbackViewSignature = '';
+  let sparseFallbackLastAt = Number.NEGATIVE_INFINITY;
+  let sparseFallbackPathCount = 0;
+  let sparseFallbackDirty = true;
   const setLimitedSelectionCache = (cache, key, value, limit = 160) => {
     if (cache.has(key)) cache.delete(key);
     cache.set(key, value);
@@ -1287,17 +1291,15 @@ export function createRenderingDomain({
     return value;
   };
   const selectionGeometryRevision = (key, role = 'outline', feature = null) => {
-    const geometry = feature?.type === 'FeatureCollection'
-      ? (feature.features || []).map(item => item?.geometry || null)
-      : feature?.geometry || null;
-    if (!geometry) return `${key}:${role}:country-${selection.getCountryLandRevision?.() || 0}`;
-    const serialized = JSON.stringify(geometry);
-    let hash = 2166136261;
-    for (let index = 0; index < serialized.length; index += 1) {
-      hash ^= serialized.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return `${key}:${role}:geometry-${(hash >>> 0).toString(36)}-${serialized.length}`;
+    // Canonical mutation boundaries already advance these revisions.  Using
+    // them keeps multipart selection geometry out of the hot-path serializer;
+    // the feature is still passed through to the exact renderer on a miss.
+    void feature;
+    const stateRevision = selection.getStateRevision?.()
+      ?? selection.getState?.()?.stateRevision
+      ?? 0;
+    const countryRevision = selection.getCountryLandRevision?.() || 0;
+    return `${key}:${role}:state-${stateRevision}:country-${countryRevision}`;
   };
   const cachedSelectionBoundaryFeature = (key, feature, role = 'outline') => {
     const revision = selectionGeometryRevision(key, role, feature);
@@ -1314,8 +1316,16 @@ export function createRenderingDomain({
   };
   const cachedSelectionPath = (cacheKey, feature, frameContext = null) => {
     const projection = selection.getProjection?.(frameContext) || selection.getState?.()?.projection || '';
-    const viewRevision = selection.getViewRevision?.(frameContext) || frameContext?.viewRevision || 0;
-    const key = `${cacheKey}:${projection}:${viewRevision}`;
+    const viewSignature = [
+      projection,
+      frameContext?.mode ?? '',
+      frameContext?.translate?.join(',') || '',
+      frameContext?.scale ?? '',
+      frameContext?.rotation?.join(',') || '',
+      frameContext?.flatCenter?.join(',') || '',
+      frameContext?.viewport?.join(',') || '',
+    ].join(':');
+    const key = `${cacheKey}:${viewSignature}`;
     if (selectionProjectedPathCache.has(key)) {
       selectionOverlayDiagnostics.projectedPathCacheHits += 1;
       return selectionProjectedPathCache.get(key);
@@ -1354,14 +1364,28 @@ export function createRenderingDomain({
     );
   };
   const renderSparseSelectionFallbackView = (frameContext = null) => {
+    const viewSignature = [
+      frameContext?.mode ?? '',
+      frameContext?.projection ?? '',
+      frameContext?.translate?.join(',') || '',
+      frameContext?.scale ?? '',
+      frameContext?.rotation?.join(',') || '',
+      frameContext?.flatCenter?.join(',') || '',
+      frameContext?.viewport?.join(',') || '',
+    ].join(':');
+    const now = globalThis.performance?.now?.() ?? Date.now();
+    if (!sparseFallbackDirty
+      && (sparseFallbackViewSignature === viewSignature || now - sparseFallbackLastAt < 1000 / 30)) {
+      return sparseFallbackPathCount > 0;
+    }
     let pathCount = 0;
     const reproject = (layer, selector) => {
       const paths = layer?.selectAll?.(selector);
       if (!paths?.attr) return;
-      paths.attr('d', feature => {
+      paths.attr('d', (feature, index) => {
         pathCount += 1;
         try {
-          return selection.path?.(feature) || '';
+          return cachedSelectionPath(`sparse:${selector}:${index}`, feature, frameContext) || '';
         } catch (_) {
           return '';
         }
@@ -1369,6 +1393,10 @@ export function createRenderingDomain({
     };
     reproject(selection.selectionLayer, 'path.map-selection-shape');
     reproject(selection.hoverLayer, 'path.map-hover-shape');
+    sparseFallbackViewSignature = viewSignature;
+    sparseFallbackLastAt = now;
+    sparseFallbackPathCount = pathCount;
+    sparseFallbackDirty = false;
     if (!pathCount) return false;
     selection.publishMetrics?.({
       viewRevision: selection.getViewRevision?.(frameContext) || frameContext?.viewRevision || frameContext?.revision || 0,
@@ -1386,6 +1414,7 @@ export function createRenderingDomain({
     viewOnly = false,
   } = {}) => {
     active();
+    if (!viewOnly) sparseFallbackDirty = true;
     if (viewOnly) {
       const gpuSelectionResult = gpuFrameResult?.selection || gpuFrameResult?.interactionResult?.selection || null;
       const gpuFrameFailed = gpuFrameResult && (

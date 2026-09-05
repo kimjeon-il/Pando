@@ -22,7 +22,6 @@ export function createObjectPropertyController(runtime = {}) {
     territorialParentOptions,
     territorialUnitColor,
     territorialRepository,
-    territorialChildren,
     distributionService,
     distributionEntriesForLayer,
     genericFeatureById,

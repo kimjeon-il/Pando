@@ -393,6 +393,7 @@ export function createGpuMapRenderer(deps) {
     let sceneCacheFullDrawCount = 0;
     let sceneCacheInteractionDrawCount = 0;
     let sceneCacheSelectionOnlyBaseDrawCount = 0;
+    let sceneCacheReprojectCount = 0;
     let lastRenderSceneRevision = 0;
     const rendererStartedAt = performance.now();
     let firstCanonicalFrameMs = null;
@@ -570,9 +571,11 @@ export function createGpuMapRenderer(deps) {
     let pixelHeight = 0;
     let cssWidth = 0;
     let cssHeight = 0;
+    let resizePending = true;
     let pickFramebuffer = null;
     let pickTexture = null;
     let activeRenderViewState = null;
+    let lastSceneFrameContext = null;
     let worker = null;
     let workerCompletionResolver = null;
     let canvasWorker = null;
@@ -1199,6 +1202,7 @@ export function createGpuMapRenderer(deps) {
 
     function attach(nextCanvas) {
       canvas = nextCanvas;
+      resizePending = true;
       canvas.className = 'gpu-map-canvas';
       canvas.setAttribute('aria-hidden', 'true');
       canvas.style.position = 'absolute';
@@ -1361,6 +1365,7 @@ export function createGpuMapRenderer(deps) {
       if (!selectionPass?.stats?.().contextLost) selectionPass?.handleContextLost?.();
       lastSelectionRenderResult = null;
       lastBaseSceneResult = null;
+      lastSceneFrameContext = null;
       sceneCacheFallbackFrame = false;
     }
 
@@ -1908,6 +1913,7 @@ export function createGpuMapRenderer(deps) {
       });
       lastSelectionRenderResult = null;
       lastBaseSceneResult = null;
+      lastSceneFrameContext = null;
       selectionPass?.clear?.();
       countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set() };
       countryEmphasisRevision += 1;
@@ -2426,6 +2432,7 @@ export function createGpuMapRenderer(deps) {
       pixelHeight = nextHeight;
       canvas.style.width = '100%';
       canvas.style.height = '100%';
+      resizePending = false;
     }
 
     function layoutMismatch() {
@@ -3978,7 +3985,6 @@ export function createGpuMapRenderer(deps) {
     function sceneViewSignature(viewState = activeRenderViewState || getRenderViewState()) {
       return [
         renderDeviceContextRevision,
-        viewState?.revision,
         viewState?.projection,
         viewState?.translate?.join(','),
         viewState?.scale,
@@ -3989,16 +3995,58 @@ export function createGpuMapRenderer(deps) {
       ].join(':');
     }
 
+    // The scene cache stores a flat projection in screen pixels.  During a
+    // small flat pan/zoom we can reproject that texture with one affine quad
+    // instead of traversing every canonical triangle again. Globe frames and
+    // large moves fall back to the exact scene rebuild because their mapping
+    // is non-linear or would expose pixels outside the cached viewport.
+    function flatSceneReprojection(frameContext) {
+      const previous = lastSceneFrameContext;
+      if (!previous || previous.mode !== 1 || frameContext?.mode !== 1) return null;
+      if (previous.viewport?.[0] !== frameContext.viewport?.[0]
+        || previous.viewport?.[1] !== frameContext.viewport?.[1]) return null;
+      const oldScale = Number(previous.scale || 0);
+      const nextScale = Number(frameContext.scale || 0);
+      if (!(oldScale > 0) || !(nextScale > 0)) return null;
+      const scale = nextScale / oldScale;
+      if (scale < 0.85 || scale > 1.15) return null;
+      const oldCenter = previous.flatCenter || [0, 0];
+      const nextCenter = frameContext.flatCenter || [0, 0];
+      const oldTranslate = previous.translate || [0, 0];
+      const nextTranslate = frameContext.translate || [0, 0];
+      const offsetX = nextTranslate[0] - scale * oldTranslate[0]
+        + nextScale * (oldCenter[0] - nextCenter[0]);
+      const offsetYScreen = nextTranslate[1] - scale * oldTranslate[1]
+        + nextScale * (nextCenter[1] - oldCenter[1]);
+      const width = Number(frameContext.viewport?.[0] || 0);
+      const height = Number(frameContext.viewport?.[1] || 0);
+      if (!(width > 0 && height > 0)
+        || Math.abs(offsetX) > width * 0.2
+        || Math.abs(offsetYScreen) > height * 0.2) return null;
+      return {
+        sourceViewport: previous.viewport,
+        scale: [scale, scale],
+        // Composite coordinates use a bottom-left origin while D3 view
+        // translations use a top-left origin.
+        offset: [offsetX, height - scale * height - offsetYScreen],
+      };
+    }
+
     function renderWebGl(viewState = getRenderViewState(), { interactionOnly = false } = {}) {
       if (!gl || !mesh) return null;
-      resize();
+      if (resizePending) resize();
       activeFrameContext = createFrameContext(viewState);
       const started = performance.now();
       let sceneCacheHit = false;
       let baseResult = null;
       sceneCacheFallbackFrame = false;
       const viewSignature = sceneViewSignature(viewState);
-      const needsBaseScene = !sceneColorCache.canComposite?.(viewSignature, projectGeneration) || sceneColorCache.isDirty?.();
+      const exactSceneCacheHit = sceneColorCache.canComposite?.(viewSignature, projectGeneration) || false;
+      const reproject = !exactSceneCacheHit && !sceneColorCache.isDirty?.()
+        && sceneColorCache.hasActiveProject?.(projectGeneration)
+        ? flatSceneReprojection(activeFrameContext)
+        : null;
+      const needsBaseScene = !exactSceneCacheHit && !reproject;
       if (needsBaseScene) {
         if (interactionOnly) sceneCacheSelectionOnlyBaseDrawCount += 1;
         if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
@@ -4006,6 +4054,7 @@ export function createGpuMapRenderer(deps) {
           if (baseResult !== false) {
             sceneColorCache.finishScene(null, viewSignature, projectGeneration);
             lastBaseSceneResult = baseResult;
+            lastSceneFrameContext = activeFrameContext;
           }
         } else {
           recordSceneCacheFallback();
@@ -4022,11 +4071,11 @@ export function createGpuMapRenderer(deps) {
       } else {
         sceneCacheHit = true;
       }
-      if (sceneColorCache.canComposite?.(viewSignature, projectGeneration)) {
+      if (exactSceneCacheHit || reproject) {
         // This canvas is owned by PandoLab. Clear before compositing so pixels
         // removed from the active scene (for example an edited border) cannot
         // survive in the default framebuffer as an afterimage.
-        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: false })) {
+        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: false, reproject })) {
           recordSceneCacheFallback();
           // A failed composite does not make a same-view active scene stale.
           // Preserve the already displayed frame instead of clearing it and
@@ -4041,6 +4090,8 @@ export function createGpuMapRenderer(deps) {
             baseResult = drawBaseSceneContent();
           }
         }
+        if (reproject) sceneCacheReprojectCount += 1;
+        if (!baseResult) baseResult = lastBaseSceneResult;
       } else if (!baseResult) {
         recordSceneCacheFallback();
         if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
@@ -4107,7 +4158,7 @@ export function createGpuMapRenderer(deps) {
 
     function renderCanvasFallback() {
       if (!ctx2d || !canvas) return;
-      resize();
+      if (resizePending) resize();
       const dpr = pixelWidth / cssWidth;
       ctx2d.setTransform(1, 0, 0, 1, 0, 0);
       ctx2d.clearRect(0, 0, pixelWidth, pixelHeight);
@@ -4278,7 +4329,7 @@ export function createGpuMapRenderer(deps) {
 
     function renderCanvasWorker(revision = currentRenderRevision, viewState = null) {
       if (!canvasWorker) return;
-      resize();
+      if (resizePending) resize();
       syncCanvasWorkerState();
       const message = canvasWorkerViewMessage(revision, viewState);
       canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
@@ -4935,6 +4986,7 @@ export function createGpuMapRenderer(deps) {
         sceneCache: sceneColorCache.stats(),
         sceneCacheFullDrawCount,
         sceneCacheInteractionDrawCount,
+        sceneCacheReprojectCount,
         selectionOnlyBaseDrawCount: sceneCacheSelectionOnlyBaseDrawCount,
         sceneCacheFallbackFrame,
         canonicalFrameFallbackCount,
