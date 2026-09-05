@@ -275,6 +275,7 @@ export function createSceneColorCache() {
       gl.disable(gl.DEPTH_TEST);
       gl.disable(gl.STENCIL_TEST);
       gl.disable(gl.CULL_FACE);
+      gl.disable(gl.SCISSOR_TEST);
       gl.disable(gl.BLEND);
       gl.colorMask(true, true, true, true);
       if (clearTarget) {
