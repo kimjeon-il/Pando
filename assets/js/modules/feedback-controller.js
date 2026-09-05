@@ -65,9 +65,13 @@ function hasVisibleInlineDuplicate(documentRef, message) {
 function syncToast(documentRef) {
   const notice = documentRef.getElementById('actionStatus');
   if (!(notice instanceof HTMLElement)) return;
-  notice.classList.add('ui-toast');
-  notice.setAttribute('role', 'status');
-  notice.setAttribute('aria-atomic', 'true');
+  // The observer below watches the class attribute. Calling classList.add()
+  // for a class that is already present still emits an attribute mutation in
+  // Chromium, which schedules this callback again and can starve the main
+  // thread indefinitely. Keep the static toast semantics idempotent.
+  if (!notice.classList.contains('ui-toast')) notice.classList.add('ui-toast');
+  if (notice.getAttribute('role') !== 'status') notice.setAttribute('role', 'status');
+  if (notice.getAttribute('aria-atomic') !== 'true') notice.setAttribute('aria-atomic', 'true');
 
   if (notice.classList.contains('hidden')) return;
   const message = normalizeText(notice.querySelector('strong')?.textContent);
