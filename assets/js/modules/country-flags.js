@@ -1,26 +1,9 @@
 const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value || {}, key);
 const text = value => String(value ?? '').trim();
 
-export const COUNTRY_FLAG_SOURCE = Object.freeze({
-  name: 'flag-icons',
-  version: '7.5.0',
-  license: 'MIT',
-  url: 'https://github.com/lipis/flag-icons',
-});
+const COUNTRY_FLAG_NATIVE_REVISION = 'c09927e63705529bbf59ca6684cd9b23225dddad';
 
-export const COUNTRY_FLAG_NATIVE_SOURCE = Object.freeze({
-  name: 'country-flags',
-  revision: 'c09927e63705529bbf59ca6684cd9b23225dddad',
-  license: 'Public Domain',
-  url: 'https://github.com/hampusborgos/country-flags',
-});
-
-export const CURRENT_COUNTRY_FLAG_EXCLUDED_IDS = Object.freeze([
-  'ESB', 'SOL', 'USG', 'BRI', 'CYN', 'CNM', 'KAS', 'KAB', 'WSB', 'SPI',
-  'BRT', 'IOA', 'CSI', 'PGA', 'CLP', 'ATC', 'BJN', 'SER', 'SCR',
-]);
-
-export const CURRENT_COUNTRY_FLAG_CODES = Object.freeze({
+const CURRENT_COUNTRY_FLAG_CODES = Object.freeze({
   IDN: 'id', MYS: 'my', CHL: 'cl', BOL: 'bo', PER: 'pe', ARG: 'ar', CYP: 'cy', IND: 'in',
   CHN: 'cn', ISR: 'il', PSX: 'ps', LBN: 'lb', ETH: 'et', SDS: 'ss', SOM: 'so', KEN: 'ke',
   MWI: 'mw', TZA: 'tz', SYR: 'sy', FRA: 'fr', SUR: 'sr', GUY: 'gy', KOR: 'kr', PRK: 'kp',
@@ -54,9 +37,6 @@ export const CURRENT_COUNTRY_FLAG_CODES = Object.freeze({
 });
 
 const CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES = new Set(['cd', 'sm', 'ga', 'pg']);
-export const CURRENT_COUNTRY_FLAG_NATIVE_CODES = Object.freeze(
-  Object.values(CURRENT_COUNTRY_FLAG_CODES).filter(code => !CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES.has(code)),
-);
 
 export function currentCountryFlagCode(countryId) {
   return CURRENT_COUNTRY_FLAG_CODES[text(countryId).toUpperCase()] || '';
@@ -67,7 +47,7 @@ export function currentCountryFlagUrl(countryId, { assetRevision = '' } = {}) {
   if (!code) return null;
   const assetPath = CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES.has(code)
     ? `../../vendor/flag-icons/7.5.0/flags/4x3/${code}.svg`
-    : `../../vendor/country-flags/${COUNTRY_FLAG_NATIVE_SOURCE.revision}/svg/${code}.svg`;
+    : `../../vendor/country-flags/${COUNTRY_FLAG_NATIVE_REVISION}/svg/${code}.svg`;
   const url = new URL(assetPath, import.meta.url);
   if (assetRevision) url.searchParams.set('v', text(assetRevision));
   return url.href;

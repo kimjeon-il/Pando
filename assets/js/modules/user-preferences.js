@@ -93,4 +93,4 @@ export function effectiveTheme(preference, prefersDark = false) {
   return theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
 }
 
-export { STORAGE_KEY, DEFAULTS, LABEL_FONTS };
+export { STORAGE_KEY };

@@ -393,11 +393,6 @@ body.create-menu-open [data-layout="wide"] .left-panel {
 }
 
 /* Editor-owned layout refinements. */
-.editor-edge-slot,
-.editor-edge-trigger {
-  display: none;
-}
-
 .map-command-toolbar,
 .map-view-toolbar,
 .mobile-zoom-dock {

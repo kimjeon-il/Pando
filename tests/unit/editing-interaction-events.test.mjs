@@ -20,8 +20,7 @@ test('stale click interactions are rejected without changing packet revision', (
       screenToCoordinate: value => value,
     },
   });
-  editing.appendDraftCoordinate([0, 0]);
-  editing.appendDraftCoordinate([10, 0]);
+  editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
   const packet = editing.createRenderPacket();
   assert.equal(editing.handleInteraction({
     type: 'draft-vertex-select',
@@ -43,8 +42,7 @@ test('drag move accepts a newer packet revision only for the active gesture id',
       cancelFrame: () => {},
     },
   });
-  editing.appendDraftCoordinate([0, 0]);
-  editing.appendDraftCoordinate([10, 0]);
+  editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
   assert.equal(editing.handleInteraction(eventFor(editing, 'draft-vertex-drag-start', {
     gestureId: 'gesture-1', vertexIndex: 0, screenPoint: [0, 0],
   })), true);
@@ -71,7 +69,7 @@ test('project reset cancels an active gesture and rejects its stale end event', 
       projectCoordinate: value => value,
     },
   });
-  editing.appendDraftCoordinate([0, 0]);
+  editing.replaceDraftCoordinates([[0, 0]]);
   const started = eventFor(editing, 'draft-vertex-drag-start', {
     gestureId: 'old-project', vertexIndex: 0, screenPoint: [0, 0],
   });

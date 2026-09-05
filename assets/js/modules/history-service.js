@@ -38,25 +38,36 @@ export function createHistoryService({
 
   function undo(fallbackMetadata = {}) {
     if (!store.history.length) return false;
-    store.future.push(snapshot());
+    const current = snapshot();
+    restoreHistory(store.history.at(-1), current);
+    store.future.push(current);
     store.futureMeta.push(store.historyMeta.at(-1) || normalizeMetadata(fallbackMetadata));
-    const previous = store.history.pop();
+    store.history.pop();
     store.historyMeta.pop();
-    restore(previous);
     onChange();
     return true;
   }
 
   function redo(fallbackMetadata = {}) {
     if (!store.future.length) return false;
-    store.history.push(snapshot());
+    const current = snapshot();
+    restoreHistory(store.future.at(-1), current);
+    store.history.push(current);
     store.historyMeta.push(store.futureMeta.at(-1) || normalizeMetadata(fallbackMetadata));
     trim();
-    const next = store.future.pop();
+    store.future.pop();
     store.futureMeta.pop();
-    restore(next);
     onChange();
     return true;
+  }
+
+  function restoreHistory(target, current) {
+    try { restore(target, { mode: 'history' }); }
+    catch (error) {
+      try { restore(current, { mode: 'rollback' }); }
+      catch (restoreError) { error.restoreError = restoreError; }
+      throw error;
+    }
   }
 
   function reset() {

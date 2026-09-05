@@ -5,20 +5,23 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
-  COUNTRY_FLAG_NATIVE_SOURCE,
-  COUNTRY_FLAG_SOURCE,
-  CURRENT_COUNTRY_FLAG_CODES,
-  CURRENT_COUNTRY_FLAG_EXCLUDED_IDS,
-  CURRENT_COUNTRY_FLAG_NATIVE_CODES,
   currentCountryFlagCode,
   currentCountryFlagUrl,
   effectiveCountryFlagUrl,
 } from '../../assets/js/modules/country-flags.js';
+import {
+  EXPECTED_COUNTRY_FLAG_EXCLUDED_IDS,
+  EXPECTED_COUNTRY_FLAG_LEGACY_4X3_CODES,
+  EXPECTED_COUNTRY_FLAG_NATIVE_COUNT,
+  EXPECTED_COUNTRY_FLAG_NATIVE_SOURCE,
+  EXPECTED_COUNTRY_FLAG_SOURCE,
+  EXPECTED_COUNTRY_FLAG_SUPPORTED_COUNT,
+} from '../fixtures/country-flag-expectations.mjs';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const countries = JSON.parse(readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
 const flagRoot = path.join(root, 'assets/vendor/flag-icons/7.5.0/flags/4x3');
-const nativeFlagRoot = path.join(root, 'assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg');
+const nativeFlagRoot = path.join(root, `assets/vendor/country-flags/${EXPECTED_COUNTRY_FLAG_NATIVE_SOURCE.revision}/svg`);
 
 function viewBoxDimensions(source) {
   const match = source.match(/viewBox="([^"]+)"/);
@@ -31,10 +34,10 @@ function viewBoxDimensions(source) {
 
 test('current-country flag coverage is fixed at 239 supported and 19 explicit exclusions', () => {
   const countryIds = new Set(countries.features.map(feature => String(feature.id || '')));
-  const supportedIds = Object.keys(CURRENT_COUNTRY_FLAG_CODES);
-  const excludedIds = [...CURRENT_COUNTRY_FLAG_EXCLUDED_IDS];
+  const supportedIds = [...countryIds].filter(currentCountryFlagCode);
+  const excludedIds = [...EXPECTED_COUNTRY_FLAG_EXCLUDED_IDS];
   assert.equal(countryIds.size, 258);
-  assert.equal(supportedIds.length, 239);
+  assert.equal(supportedIds.length, EXPECTED_COUNTRY_FLAG_SUPPORTED_COUNT);
   assert.equal(excludedIds.length, 19);
   assert.equal(new Set([...supportedIds, ...excludedIds]).size, 258);
   assert.deepEqual(new Set([...supportedIds, ...excludedIds]), countryIds);
@@ -42,13 +45,15 @@ test('current-country flag coverage is fixed at 239 supported and 19 explicit ex
 });
 
 test('every mapped country uses its original-ratio or legacy 4x3 bundled SVG', () => {
-  const codes = Object.values(CURRENT_COUNTRY_FLAG_CODES);
-  assert.equal(new Set(codes).size, 239);
-  assert.equal(CURRENT_COUNTRY_FLAG_NATIVE_CODES.length, 235);
-  assert.equal(new Set(CURRENT_COUNTRY_FLAG_NATIVE_CODES).size, 235);
+  const codes = countries.features.map(feature => currentCountryFlagCode(feature.id)).filter(Boolean);
+  const legacyCodes = new Set(EXPECTED_COUNTRY_FLAG_LEGACY_4X3_CODES);
+  const nativeCodes = codes.filter(code => !legacyCodes.has(code));
+  assert.equal(new Set(codes).size, EXPECTED_COUNTRY_FLAG_SUPPORTED_COUNT);
+  assert.equal(nativeCodes.length, EXPECTED_COUNTRY_FLAG_NATIVE_COUNT);
+  assert.equal(new Set(nativeCodes).size, EXPECTED_COUNTRY_FLAG_NATIVE_COUNT);
   for (const code of codes) {
     assert.match(code, /^[a-z]{2}$/);
-    const isNative = CURRENT_COUNTRY_FLAG_NATIVE_CODES.includes(code);
+    const isNative = nativeCodes.includes(code);
     const assetPath = path.join(isNative ? nativeFlagRoot : flagRoot, `${code}.svg`);
     assert.equal(existsSync(assetPath), true, `missing flag asset ${code}.svg`);
     const source = readFileSync(assetPath, 'utf8');
@@ -59,13 +64,8 @@ test('every mapped country uses its original-ratio or legacy 4x3 bundled SVG', (
   }
   assert.equal(existsSync(path.join(root, 'assets/vendor/flag-icons/7.5.0/LICENSE')), true);
   assert.equal(existsSync(path.join(nativeFlagRoot, '..', 'NOTICE')), true);
-  assert.deepEqual(COUNTRY_FLAG_SOURCE, {
-    name: 'flag-icons', version: '7.5.0', license: 'MIT', url: 'https://github.com/lipis/flag-icons',
-  });
-  assert.deepEqual(COUNTRY_FLAG_NATIVE_SOURCE, {
-    name: 'country-flags', revision: 'c09927e63705529bbf59ca6684cd9b23225dddad',
-    license: 'Public Domain', url: 'https://github.com/hampusborgos/country-flags',
-  });
+  assert.equal(EXPECTED_COUNTRY_FLAG_SOURCE.license, 'MIT');
+  assert.equal(EXPECTED_COUNTRY_FLAG_NATIVE_SOURCE.license, 'Public Domain');
 });
 
 test('representative and exceptional country IDs resolve to the intended flags', () => {

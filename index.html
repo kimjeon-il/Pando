@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-2d27aa90e87a" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-2d27aa90e87a" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-3bd28908343d" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-3bd28908343d" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -352,11 +352,6 @@
           <button id="zoomInBtn" class="ui-button icon-btn" data-tooltip="확대" aria-label="확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="resetViewBtn" class="ui-button icon-btn" data-tooltip="전체 지도 보기" aria-label="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
-
-        <div class="editor-edge-slot">
-          <button id="togglePanelBtn" class="ui-button icon-btn editor-edge-trigger" type="button" data-tooltip="편집창 열기" aria-label="편집창 열기" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></button>
-        </div>
-
 
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-zoom-dock" aria-label="모바일 지도 보기">
           <button id="mobileZoomInBtn" class="ui-button icon-btn" type="button" aria-label="지도 확대" data-tooltip="지도 확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
@@ -1013,7 +1008,6 @@
             <label id="gisColorFieldRow" class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
           </div></details>
           <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary">감지 중</output><input id="gisCrsInput" class="hidden" type="text" inputmode="numeric" placeholder="EPSG:4326" /></div>
-          <input id="gisGroupDuplicates" type="checkbox" checked hidden />
           <div id="gisImportImpact" class="ui-callout gis-wide" data-gis-step="3"><strong>적용 결과</strong><div id="gisImportImpactSummary"><p>적용할 내용을 계산하기 전입니다.</p></div></div>
           <div id="gisCountryIdentityPanel" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>국가 ID 연결</strong><p class="gis-country-identity-help">자동으로 확정하지 못한 국가는 기존 국가와 직접 연결하거나 새 국가로 지정하세요.</p><div id="gisCountryIdentityRows" class="gis-country-identity-rows"></div></div>
           <div id="gisOpenModeRow" class="ui-field field-group gis-wide" data-gis-step="3"><span>적용 방식</span><div id="gisOpenModeControl" class="ui-segmented" role="radiogroup" aria-label="적용 방식"><button class="ui-button ui-segment-option active" type="button" data-gis-open-mode="replace" role="radio" aria-checked="true">새 프로젝트</button><button class="ui-button ui-segment-option" type="button" data-gis-open-mode="merge" role="radio" aria-checked="false">현재 지도에 추가</button></div><select id="gisOpenMode" hidden><option value="replace">새 프로젝트</option><option value="merge">현재 지도에 추가</option></select></div>
@@ -1068,10 +1062,10 @@
 
   
   
-  <script src="assets/js/build-meta.js?v=0.32.0-build-2d27aa90e87a" defer></script>
+  <script src="assets/js/build-meta.js?v=0.32.0-build-3bd28908343d" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.32.0-build-2d27aa90e87a" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.32.0-build-3bd28908343d" defer></script>
 </body>
 </html>

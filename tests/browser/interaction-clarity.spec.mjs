@@ -126,7 +126,6 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#layerSection')).toBeVisible();
   await expect(page.locator('#mapLayersTabBtn')).toBeFocused();
 
-  if (!await page.locator('#rightPanel').isVisible()) await page.locator('#togglePanelBtn').click();
   await expect(page.locator('#historyTabBtn')).toHaveCount(0);
   await expect(page.locator('#undoBtn')).toBeDisabled();
   await expect(page.locator('#projectSaveStatusText')).toContainText('미저장');
