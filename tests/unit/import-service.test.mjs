@@ -101,7 +101,7 @@ test('imported-wins authoritatively replaces the same country instead of unionin
   assert.equal(current.features.find(feature => feature.id === 'DEU').properties.name, 'Old Germany');
 });
 
-test('import service validates countries then delegates one materialization path', async () => {
+test('import service validates countries and returns one immutable merge plan', async () => {
   const calls = [];
   const result = {
     targetType: 'country',
@@ -118,16 +118,14 @@ test('import service validates countries then delegates one materialization path
     validateCountryCollection: async (_collection, ids) => { calls.push(['validate', [...ids]]); return { overlapAreaKm2: 0 }; },
     getCurrentCountries: () => ({ type: 'FeatureCollection', features: [] }),
     planCountryMerge: async () => ({ canCommit: true, counts: { residualOverlapAreaKm2: 0 } }),
-    materializers: {
-      replaceProject: async () => calls.push(['replace']),
-      territorial: async () => calls.push(['territorial']),
-      geoJson: async () => calls.push(['geojson']),
-      mergeCountries: async (_imported, plan) => calls.push(['merge', plan.canCommit]),
-    },
+    getProjectGeneration: () => 7,
   });
   const opened = await service.openFiles([{ name: 'countries.geojson' }], { targetType: 'country' });
-  assert.equal(opened.status, 'countries-merged');
-  assert.deepEqual(calls, [['wizard', 'country'], ['validate', ['AAA']], ['merge', true]]);
+  assert.equal(opened.status, 'planned');
+  assert.equal(opened.plan.kind, 'country-merge');
+  assert.equal(opened.plan.projectGeneration, 7);
+  assert.equal(opened.plan.payload.plan.canCommit, true);
+  assert.deepEqual(calls, [['wizard', 'country'], ['validate', ['AAA']]]);
 });
 
 test('GIS imports ignore feature metadata while project packages preserve separate assets and source history', () => {
