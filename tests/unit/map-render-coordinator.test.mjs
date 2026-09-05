@@ -18,7 +18,7 @@ function fixture() {
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
     'territorialUnits', 'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
     'selectionData', 'selectionView', 'selectionStyle', 'validation', 'countryLabelPositions', 'userLabelPositions',
-    'labelLayout', 'countryLabels', 'userLabels', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
+    'labelLayout', 'countryLabels', 'userLabels', 'viewPresentation', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
   ];
   const renderers = Object.fromEntries(names.map(name => [name, (...args) => {
     calls.push([name, ...args]);
@@ -44,7 +44,7 @@ test('full render preserves canonical layer order and revision', () => {
   assert.deepEqual(calls.map(call => call[0]), [
     'prepare', 'base', 'hydro', 'hydroEdits', 'territorialUnits',
     'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'countries', 'geometryPreview', 'validation', 'selectionData',
-    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'layerTree', 'debug',
+    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'viewPresentation', 'layerTree', 'debug',
   ]);
   assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
   assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'countryLabels', 'userLabels', 'debug', 'layerTree'].includes(call[0])).every(call => call[1] === viewState), true);
@@ -70,7 +70,8 @@ test('view render refreshes projection-dependent layers with the shared view sta
   assert.deepEqual(fallbackCall[3], { viewOnly: true, updateData: false, sparseFallbackOnly: true });
   assert.equal(coordinator.getStats().lastDirtyMask & MAP_RENDER_DIRTY.SELECTION_VIEW, 0);
   assert.equal(calls.some(call => call[0] === 'countries'), false);
-  assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), true);
+  assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), false);
+  assert.equal(calls.some(call => call[0] === 'viewPresentation'), true);
 });
 
 test('scheduled view and full renders merge into one full frame', () => {
@@ -98,11 +99,12 @@ test('interaction end coalesces settle work into the pending frame', () => {
   assert.equal(coordinator.getStats().fullRenderCount, 0);
 });
 
-test('GPU-only invalidation does not rebuild overlay data', () => {
+test('GPU-only invalidation redraws the shared view without rebuilding overlay data', () => {
   const { calls, frames, coordinator } = fixture();
   coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, 'tile-ready');
   frames.shift()();
-  assert.equal(calls.some(call => call[0] === 'countries'), true);
+  assert.equal(calls.some(call => call[0] === 'view'), true);
+  assert.equal(calls.some(call => call[0] === 'countries'), false);
   assert.equal(calls.some(call => call[0] === 'hydro'), false);
   assert.equal(calls.some(call => call[0] === 'projectedOverlays'), false);
 });

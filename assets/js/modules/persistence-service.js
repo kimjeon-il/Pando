@@ -165,9 +165,9 @@ export function createPersistenceService({
     }
   }
 
-  function queueProject(delay = 650, { scope = 'document' } = {}) {
+  function queueProject(delay = 650, { scope = 'document', markDirty = true } = {}) {
     if (!canPersist()) return;
-    onDirty(scope);
+    if (markDirty) onDirty(scope);
     onAutosaveState(AUTOSAVE_STATES.QUEUED);
     scheduler.scheduleIdle('autosave', () => persist(), delay);
   }
@@ -230,8 +230,13 @@ export function createPersistenceService({
     }
   }
 
-  async function clear() {
+  function cancelPending() {
     scheduler.cancel('autosave');
+    scheduler.cancel('view-autosave');
+  }
+
+  async function clear() {
+    cancelPending();
     try {
       await storage.deleteRecords();
     } catch (_) {}
@@ -240,5 +245,5 @@ export function createPersistenceService({
 
   const writeProject = project => storage.writeProject(project);
 
-  return Object.freeze({ persist, writeProject, queueProject, queuePresentation, queueView, restore, clear });
+  return Object.freeze({ persist, writeProject, queueProject, queuePresentation, queueView, restore, clear, cancelPending });
 }

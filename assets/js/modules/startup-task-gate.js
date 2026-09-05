@@ -187,5 +187,3 @@ export function createStartupTaskGate({
     yieldFrame,
   });
 }
-
-export { DEFAULT_QUIET_WINDOW_MS };

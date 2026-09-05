@@ -3,7 +3,6 @@ import { createGpuResourceBudget } from './gpu-resource-budget.js';
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from './gpu-blend-utils.js';
 import { linkGpuProgram } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
-import { RENDERER_V2_STROKE_QUALITY } from './renderer-v2-contract.js';
 
 const FLOATS_PER_INSTANCE = 10;
 const FLOATS_PER_NODE = 8;
@@ -14,7 +13,7 @@ const SEGMENT_CORNERS = new Float32Array([-1, 0, 1, 0, -1, 1, -1, 1, 1, 0, 1, 1]
 const ROUND_NODE_CORNERS = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
 const BEVEL_VERTEX_IDS = new Float32Array([0, 1, 2]);
 const CHAIN_EPSILON = 1e-9;
-const DEFAULT_AA_RADIUS_PX = Number(RENDERER_V2_STROKE_QUALITY.aaRadiusPx || 1);
+const DEFAULT_AA_RADIUS_PX = 1;
 
 export const GPU_STROKE_FLAGS = Object.freeze({
   HAS_PREVIOUS: 1,
@@ -35,7 +34,6 @@ function pointEquals(left, right, epsilon = CHAIN_EPSILON) {
     && Math.abs(Number(left[0]) - Number(right[0])) <= epsilon
     && Math.abs(Number(left[1]) - Number(right[1])) <= epsilon;
 }
-
 function linkProgram(device, vertexSource, fragmentSource, attributeNames, uniformNames) {
   const { gl } = device;
   const program = linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'stroke' });
@@ -901,13 +899,3 @@ export function createGpuStrokeRenderer({ onError = null, aaRadiusPx = DEFAULT_A
     }),
   });
 }
-
-export const GPU_STROKE_LAYOUT = Object.freeze({
-  floatsPerInstance: FLOATS_PER_INSTANCE,
-  floatsPerNode: FLOATS_PER_NODE,
-  verticesPerSegment: VERTICES_PER_SEGMENT,
-  verticesPerRoundNode: VERTICES_PER_ROUND_NODE,
-  verticesPerBevelJoin: VERTICES_PER_BEVEL_JOIN,
-  analyticAa: true,
-  connectedTopology: true,
-});

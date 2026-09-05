@@ -20,11 +20,11 @@ test('domain factories expose isolated public contracts', () => {
   const gis = createGisDomain();
   const editing = createEditingDomain();
   for (const [domain, methods] of [
-    [project, ['snapshot', 'buildProject', 'buildAutosave', 'countriesFromAutosaveDelta', 'dispatch', 'load', 'createEmpty', 'undo', 'redo', 'save', 'dispose']],
+    [project, ['snapshot', 'buildProject', 'buildAutosave', 'countriesFromAutosaveDelta', 'dispatch', 'load', 'dispose']],
     [selection, ['snapshot', 'replace', 'toggle', 'selectRange', 'setMany', 'remove', 'prune', 'clear', 'resetProject', 'setHover', 'has', 'primary', 'size', 'createPacket', 'dispose']],
-    [rendering, ['requestRender', 'invalidateView', 'invalidateViewSettle', 'invalidateViewport', 'invalidateProjection', 'invalidateProject', 'invalidateSelection', 'invalidateSelectionStyle', 'invalidateGpuFrame', 'invalidateGpuInteraction', 'invalidateEditingOverlays', 'invalidateGpuContext', 'invalidateQuality', 'invalidateBaseScene', 'beginInteraction', 'endInteraction', 'renderGpuInteraction', 'renderBoundaryEdit', 'renderGeometryPreview', 'renderSelection', 'renderHoverOverlay', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'renderValidation', 'invalidateEditedGeometryPatch', 'renderCountryLabels', 'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions', 'renderCountries', 'renderHydro', 'renderHydroEdits', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderDistributions', 'getDistributionRenderRows', 'renderBase', 'renderProjectedOverlays', 'getTerritorialBoundaryStats', 'dispose']],
-    [gis, ['normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity', 'planImport', 'planRiverPartition', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'executeWorker', 'dispose']],
-    [editing, ['setTool', 'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'handleInteraction', 'createRenderPacket', 'startDraft', 'replaceDraftCoordinates', 'setDraftHover', 'clearDraftHover', 'selectDraftVertex', 'cancelActiveGesture', 'resetProject', 'applyGeometryPatch', 'commit', 'draftInputActive', 'commitDraftCoords', 'appendDraftCoordinate', 'appendDraftScreenPoint', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'insertDraftPoint', 'moveSelectedDraftPointByPixels', 'beginDraftStroke', 'appendDraftStroke', 'finishDraftStroke', 'cancelDraftStroke', 'redrawDraft', 'syncDraftAfterMutation', 'clearDraft', 'commitImport', 'reconcileCoast', 'dispose']],
+    [rendering, ['requestRender', 'invalidateView', 'invalidateViewport', 'invalidateProjection', 'invalidateProject', 'invalidateSelection', 'invalidateSelectionStyle', 'invalidateGpuFrame', 'invalidateGpuInteraction', 'invalidateEditingOverlays', 'invalidateGpuContext', 'invalidateQuality', 'invalidateBaseScene', 'beginInteraction', 'endInteraction', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'renderValidation', 'invalidateEditedGeometryPatch', 'renderCountries', 'renderHydro', 'renderTerritorialUnits', 'renderGenericFeatures', 'getDistributionRenderRows', 'getTerritorialBoundaryStats', 'dispose']],
+    [gis, ['planImport', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'dispose']],
+    [editing, ['setTool', 'handleInteraction', 'createRenderPacket', 'startDraft', 'replaceDraftCoordinates', 'clearDraftHover', 'cancelActiveGesture', 'resetProject', 'draftInputActive', 'appendDraftScreenPoint', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'moveSelectedDraftPointByPixels', 'redrawDraft', 'clearDraft', 'commitImport', 'snapshot', 'dispose']],
   ]) {
     for (const method of methods) assert.equal(typeof domain[method], 'function', `${method} is public`);
     assert.equal(Object.isFrozen(domain), true);
@@ -46,49 +46,60 @@ test('domain factories expose isolated public contracts', () => {
     'renderDraftInsertionHandle',
     'renderVertices',
     'renderSnap',
+    'beginFrame',
+    'invalidateViewSettle',
+    'renderGpuInteraction',
+    'renderBoundaryEdit',
+    'renderGeometryPreview',
+    'renderSelection',
+    'renderHoverOverlay',
+    'renderCountryLabels',
+    'renderUserLabels',
+    'renderCountryLabelPositions',
+    'renderUserLabelPositions',
+    'renderHydroEdits',
+    'renderDistributions',
+    'renderBase',
+    'renderProjectedOverlays',
   ]) assert.equal(rendering[method], undefined, `${method} is not a public rendering facade`);
+  for (const method of ['createEmpty', 'undo', 'redo', 'save']) assert.equal(typeof project[method], 'function');
+  for (const method of [
+    'normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity', 'planCountryImport',
+    'planTerritorialImport', 'planCoastReconciliation', 'planRiverPartition', 'executeWorker', 'cancelWorker',
+  ]) assert.equal(gis[method], undefined);
+  for (const method of [
+    'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'beginBoundaryEdit',
+    'beginObjectVertexEdit', 'beginBoundaryVertexEdit', 'setDraftHover', 'selectDraftVertex',
+    'applyGeometryPatch', 'executeTerritorialTransaction', 'commit', 'cancel', 'commitDraftCoords',
+    'appendDraftCoordinate', 'insertDraftPoint', 'beginDraftStroke', 'appendDraftStroke',
+    'finishDraftStroke', 'cancelDraftStroke', 'syncDraftAfterMutation', 'reconcileCoast',
+  ]) assert.equal(editing[method], undefined);
   const snapshot = project.snapshot();
   snapshot.countries[0].id = 'FRA';
   assert.equal(project.snapshot().countries[0].id, 'DEU', 'project snapshot is detached');
 });
 
-test('rendering domain coalesces label positions behind a 30Hz cadence', () => {
-  let clock = 0;
+test('rendering domain commits label positions synchronously in the coordinator frame', () => {
   const frames = [];
-  const timers = [];
   const rendering = createRenderingDomain({
-    labelPositionCadence: {
-      maxHz: 30,
-      now: () => clock,
-      requestFrame: callback => { frames.push(callback); return frames.length; },
-      cancelFrame: () => {},
-      setTimer: (callback, delay) => { timers.push({ callback, delay }); return timers.length; },
-      clearTimer: () => {},
-    },
+    requestFrame: callback => { frames.push(callback); return frames.length; },
+    prepareView: ({ frameId }) => Object.freeze({
+      __mapVisualFrame: true,
+      frameId,
+      revision: 1,
+      viewRevision: 1,
+      projectionRevision: 1,
+      projection: 'flat',
+    }),
   });
-
-  rendering.renderCountryLabelPositions({ revision: 1 });
-  rendering.renderUserLabelPositions({ revision: 1 });
-  assert.equal(frames.length, 1);
-  assert.equal(timers.length, 0);
-  frames.shift()();
-  assert.equal(rendering.getStats().labelPositionCommitCount, 1);
-
-  clock = 10;
-  rendering.renderCountryLabelPositions({ revision: 2 });
-  rendering.renderUserLabelPositions({ revision: 2 });
-  assert.equal(timers.length, 1);
-  assert.ok(timers[0].delay >= 23 && timers[0].delay <= 24);
-  clock = 34;
-  timers.shift().callback();
-  assert.equal(frames.length, 1);
+  rendering.invalidateView('label-position-contract');
   frames.shift()();
 
   const stats = rendering.getStats();
-  assert.equal(stats.labelPositionRequestCount, 4);
-  assert.equal(stats.labelPositionMergedCount, 2);
-  assert.equal(stats.labelPositionCommitCount, 2);
-  assert.equal(stats.labelPositionLastFrameRevision, 2);
+  assert.equal(stats.labelPositionRequestCount, 1);
+  assert.equal(stats.labelPositionMergedCount, 0);
+  assert.equal(stats.labelPositionCommitCount, 1);
+  assert.equal(stats.labelPositionLastFrameRevision, 1);
   rendering.dispose();
 });
 
@@ -104,11 +115,14 @@ test('non-rendering domains have no direct platform ownership', () => {
 
 test('editing domain owns draft coordinate history operations', () => {
   const editing = createEditingDomain({
-    draftServices: { getToolConfig: () => ({ profile: 'freehand', shape: 'line', minimumPoints: 2 }) },
+    draftServices: {
+      getToolConfig: () => ({ profile: 'freehand', shape: 'line', minimumPoints: 2 }),
+      screenToCoordinate: value => value,
+    },
   });
-  assert.equal(editing.appendDraftCoordinate([1, 2]), true);
+  assert.equal(editing.appendDraftScreenPoint([1, 2]), true);
   assert.deepEqual(editing.snapshot().draft.coords, [[1, 2]]);
-  assert.equal(editing.appendDraftCoordinate([1, 2], { dedupe: true }), false);
+  assert.equal(editing.appendDraftScreenPoint([1, 2], 'mouse', { dedupe: true }), false);
   assert.equal(editing.snapshot().draft.historyCount, 1);
 });
 
@@ -124,9 +138,18 @@ test('editing domain owns draft stroke lifecycle and delegates only platform ada
     },
     onEditingStateChanged: snapshot => events.push(snapshot.reason),
   });
-  assert.equal(editing.beginDraftStroke([1, 2], { pointerId: 1 }), true);
-  assert.equal(editing.appendDraftStroke([[30, 30]]), true);
-  assert.equal(editing.finishDraftStroke([60, 60]), true);
+  const interact = (type, detail) => {
+    const packet = editing.createRenderPacket();
+    return editing.handleInteraction({
+      type,
+      projectGeneration: packet.projectGeneration,
+      packetRevision: packet.revision,
+      ...detail,
+    });
+  };
+  assert.equal(interact('draft-stroke-start', { screenPoint: [1, 2], pointerId: 1 }), true);
+  assert.equal(interact('draft-stroke-move', { screenPoints: [[30, 30]] }), true);
+  assert.equal(interact('draft-stroke-end', { screenPoint: [60, 60] }), true);
   assert.deepEqual(events, ['draft-stroke-begin', 'draft-stroke-update', 'draft-stroke-update', 'draft-stroke-finish']);
 });
 
@@ -215,6 +238,7 @@ test('rendering domain owns domain-specific invalidation masks', () => {
 });
 
 test('view-only selection rendering reprojects only existing SVG fallbacks without another GPU frame', () => {
+  const frames = [];
   let gpuInteractionRenders = 0;
   let projectedPaths = 0;
   const pathSelection = features => ({
@@ -231,6 +255,18 @@ test('view-only selection rendering reprojects only existing SVG fallbacks witho
     },
   });
   const rendering = createRenderingDomain({
+    requestFrame: callback => { frames.push(callback); return frames.length; },
+    prepareView: ({ frameId }) => Object.freeze({
+      __mapVisualFrame: true,
+      frameId,
+      revision: 8,
+      viewRevision: 8,
+      projectionRevision: 1,
+      projection: 'flat',
+      translate: [0, 0],
+      rotation: [0, 0, 0],
+      projectPath: () => { projectedPaths += 1; return 'M0,0L1,1'; },
+    }),
     gpuMapRenderer: {
       renderInteraction() {
         gpuInteractionRenders += 1;
@@ -240,26 +276,33 @@ test('view-only selection rendering reprojects only existing SVG fallbacks witho
     selectionResources: {
       selectionLayer: layer([{ type: 'Feature', geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] } }]),
       hoverLayer: layer([]),
-      path: () => { projectedPaths += 1; return 'M0,0L1,1'; },
       publishMetrics: () => {},
     },
   });
-  const result = rendering.renderSelection(
-    { revision: 8 },
-    null,
-    { viewOnly: true, updateData: false, gpuFrameResult: { succeeded: true, selection: { succeeded: true } } },
-  );
-  assert.equal(result, true);
+  rendering.invalidateView('sparse-selection-fallback');
+  frames.shift()();
   assert.equal(projectedPaths, 1);
   assert.equal(gpuInteractionRenders, 0);
 });
 
 test('view-only selection rendering is a no-op when no SVG fallback exists', () => {
+  const frames = [];
   let gpuInteractionRenders = 0;
   const emptyLayer = {
     selectAll: () => ({ attr: () => {} }),
   };
   const rendering = createRenderingDomain({
+    requestFrame: callback => { frames.push(callback); return frames.length; },
+    prepareView: ({ frameId }) => Object.freeze({
+      __mapVisualFrame: true,
+      frameId,
+      revision: 9,
+      viewRevision: 9,
+      projectionRevision: 1,
+      projection: 'flat',
+      translate: [0, 0],
+      rotation: [0, 0, 0],
+    }),
     gpuMapRenderer: {
       renderInteraction() {
         gpuInteractionRenders += 1;
@@ -272,11 +315,8 @@ test('view-only selection rendering is a no-op when no SVG fallback exists', () 
       path: () => { throw new Error('no fallback path should be projected'); },
     },
   });
-  assert.equal(rendering.renderSelection(
-    { revision: 9 },
-    null,
-    { viewOnly: true, updateData: false, gpuFrameResult: { succeeded: true, selection: { succeeded: true } } },
-  ), false);
+  rendering.invalidateView('empty-selection-fallback');
+  frames.shift()();
   assert.equal(gpuInteractionRenders, 0);
 });
 

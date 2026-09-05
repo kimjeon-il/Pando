@@ -1,4 +1,4 @@
-export const GIS_IMPORT_PLAN_VERSION = 1;
+const GIS_IMPORT_PLAN_VERSION = 1;
 
 const PLAN_KINDS = new Set(['project-replace', 'country-merge', 'territorial', 'generic', 'distribution']);
 

@@ -3871,23 +3871,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 .layer-search-result:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > span { color: var(--selection-strong-muted); }
 .layer-search-result.is-multi-selected:not(.is-primary-selected) > span { color: var(--text-soft); }
 
-.editor-edge-slot {
-  position: absolute;
-  z-index: 43;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  pointer-events: none;
-  transition: right 170ms ease;
-}
-.editor-edge-trigger {
-  width: var(--ui-touch-height);
-  height: 56px;
-  border-right: 0;
-  border-radius: var(--ui-radius-control) 0 0 var(--ui-radius-control);
-  pointer-events: auto;
-}
-.editor-edge-trigger.active { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
 .editor-collapse-icon { display: none; transform: rotate(-90deg); }
 
 #app[data-layout="wide"] .workspace {
@@ -3902,7 +3885,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 }
 #app[data-layout="wide"] .left-panel .sheet-close-btn,
 #app[data-layout="wide"] .left-panel .sheet-drag-handle { display: none; }
-#app[data-layout="wide"] .workspace.editor-drawer-open .editor-edge-slot { right: calc(var(--ui-shell-right-panel-width) + var(--ui-map-edge)); }
 #app[data-layout="wide"] .editor-collapse-icon { display: block; }
 #app[data-layout="wide"] .editor-close-icon { display: none; }
 #app[data-layout="compact"] .workspace {
@@ -3915,7 +3897,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   --map-safe-left: 0px;
   --map-safe-right: 0px;
 }
-#app[data-layout="compact"] .editor-edge-slot { display: none; }
 #app[data-layout="compact"] .map-command-toolbar { left: auto; }
 body.create-menu-open #app[data-layout="compact"] .map-command-toolbar:has(.create-menu) { backdrop-filter: none; }
 #app[data-layout="compact"] .create-menu {
@@ -3956,13 +3937,12 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   --map-safe-left: 0px;
   --map-safe-right: 0px;
 }
-#app[data-layout="mobile"] .editor-edge-slot { display: none; }
 #app[data-layout="mobile"] .editor-collapse-icon { display: none; }
 #app[data-layout="mobile"] .editor-close-icon { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   .left-panel, .right-panel, .create-menu, .map-command-toolbar, .map-view-toolbar,
-  .map-top-context-slot, .mode-action-bar, .map-bottom-status, .mobile-backdrop, .editor-edge-slot { transition-duration: 0.01ms !important; }
+  .map-top-context-slot, .mode-action-bar, .map-bottom-status, .mobile-backdrop { transition-duration: 0.01ms !important; }
   .ui-skeleton-block,
   .layer-skeleton-row::before,
   .layer-child-skeleton::before,

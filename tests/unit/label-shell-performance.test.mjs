@@ -14,8 +14,8 @@ function functionSource(source, name, nextName) {
 
 test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere path', () => {
   const shell = functionSource(app, 'updatePandoGlobeShell', 'featureFromGeometry');
-  assert.match(shell, /frameContext\?\.translate/);
-  assert.match(shell, /frameContext\?\.scale/);
+  assert.match(shell, /frameContext\?\.cssTranslate/);
+  assert.match(shell, /frameContext\?\.cssScale/);
   assert.match(shell, /\.attr\('cx', translate\[0\]\)/);
   assert.match(shell, /\.attr\('r', radius\)/);
   assert.doesNotMatch(shell, /Sphere|\.attr\('d'|\bpath\b/);
@@ -23,14 +23,15 @@ test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere p
   assert.match(app, /append\('circle'\)\.attr\('class', 'globe-shadow'\)/);
   assert.match(rendering, /const syncBaseView = \(viewState = null\) =>/);
   assert.match(rendering, /b\.graticuleLayer\?\.attr\('display', gpuOwnsGraticule \? 'none' : null\)/);
-  assert.match(rendering, /view: \(\.\.\.args\) => \{\s*syncBaseView\(args\[0\]\);/);
+  assert.match(rendering, /viewPresentation: commitViewAttachedLayers/);
 });
 
-test('label positioning is coalesced and each production label projection has one entry point', () => {
-  assert.match(rendering, /Math\.max\(1, Math\.min\(30,/);
-  assert.match(rendering, /labelCadenceIntervalMs = 1000 \/ labelCadenceHz/);
-  assert.match(rendering, /renderCountryLabelPositions = frameContext => scheduleLabelPositions\(frameContext\)/);
-  assert.match(rendering, /renderUserLabelPositions = frameContext => scheduleLabelPositions\(frameContext\)/);
+test('label positioning commits inside the shared visual frame without a private cadence', () => {
+  assert.doesNotMatch(rendering, /labelCadenceIntervalMs|scheduleLabelPositions|pendingLabelPositionFrameContext/);
+  assert.match(rendering, /renderCountryLabelPositions = frameContext => \{/);
+  assert.match(rendering, /renderUserLabelPositions = frameContext => applyUserLabelPositions\(frameContext\)/);
+  assert.match(rendering, /renderCountryLabelPositions\(frame\)/);
+  assert.match(rendering, /renderUserLabelPositions\(frame\)/);
   assert.match(rendering, /projectVisibleCoordinate\(coordinate, frameContext\)/);
   assert.match(app, /countryLabelPoints: new Map/);
   assert.match(app, /userLabelPoints: new Map/);

@@ -9,9 +9,9 @@ import {
   CANONICAL_COUNTRY_PACKET_MAGIC,
   canonicalCountryPacketTransferables,
   createCanonicalCountryStore,
-  encodeCanonicalCountryPacket,
   inspectCanonicalCountryPacket,
 } from '../../assets/js/modules/canonical-country-packet.js';
+import { encodeCanonicalCountryPacket } from '../../tools/canonical-country-packet-encoder.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));

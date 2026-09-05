@@ -6,10 +6,8 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
-import {
-  encodeCanonicalCountryPacket,
-  inspectCanonicalCountryPacket,
-} from '../assets/js/modules/canonical-country-packet.js';
+import { inspectCanonicalCountryPacket } from '../assets/js/modules/canonical-country-packet.js';
+import { encodeCanonicalCountryPacket } from './canonical-country-packet-encoder.mjs';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');

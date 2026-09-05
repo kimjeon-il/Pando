@@ -28,7 +28,6 @@ export function createRenderingDomain({
   refreshRenderResources = null,
   getEditingRenderPacket = () => EMPTY_EDITING_RENDER_PACKET,
   emitEditingInteraction = null,
-  labelPositionCadence = null,
   renderers = {},
   requestFrame = callback => globalThis.requestAnimationFrame?.(callback) ?? globalThis.setTimeout(callback, 0),
   prepareView = () => null,
@@ -51,30 +50,24 @@ export function createRenderingDomain({
     labelPositionCommitCount: 0,
     labelPositionProjectionCount: 0,
     labelPositionLastFrameRevision: 0,
+    visualFramePreparedCount: 0,
+    visualFrameCommittedCount: 0,
+    visualFrameRejectedCount: 0,
+    visualFramePartialCommitCount: 0,
+    lastPreparedVisualFrameId: 0,
+    lastCommittedVisualFrameId: 0,
+    gpuCommittedFrameId: 0,
+    shellCommittedFrameId: 0,
+    graticuleCommittedFrameId: 0,
+    labelCommittedFrameId: 0,
+    overlayCommittedFrameId: 0,
   };
   let resourceFrameToken = null;
   const active = () => { if (disposed) throw new Error('Rendering domain is disposed.'); };
   const labels = labelResources || {};
-  const labelCadence = labelPositionCadence || {};
-  const requestedLabelCadence = Number(labelCadence.maxHz || 30);
-  const labelCadenceHz = Math.max(1, Math.min(30, Number.isFinite(requestedLabelCadence) ? requestedLabelCadence : 30));
-  const labelCadenceIntervalMs = 1000 / labelCadenceHz;
-  const labelNow = labelCadence.now || (() => globalThis.performance?.now?.() ?? Date.now());
-  const requestLabelFrame = labelCadence.requestFrame || (callback => (
-    typeof globalThis.requestAnimationFrame === 'function'
-      ? globalThis.requestAnimationFrame(callback)
-      : globalThis.setTimeout(callback, 0)
-  ));
-  const cancelLabelFrame = labelCadence.cancelFrame || (handle => {
-    if (typeof globalThis.cancelAnimationFrame === 'function') globalThis.cancelAnimationFrame(handle);
-    else globalThis.clearTimeout(handle);
-  });
-  const setLabelTimer = labelCadence.setTimer || ((callback, delay) => globalThis.setTimeout(callback, delay));
-  const clearLabelTimer = labelCadence.clearTimer || (handle => globalThis.clearTimeout(handle));
-  let labelPositionFrame = 0;
-  let labelPositionTimer = 0;
-  let pendingLabelPositionFrameContext = null;
-  let lastLabelPositionCommitAt = Number.NEGATIVE_INFINITY;
+  const pendingVisualFrames = new Map();
+  let countryLabelPositionBindings = [];
+  let userLabelPositionBindings = [];
   const countries = countryResources || {};
   const hydro = hydroResources || {};
   const territorial = territorialResources || {};
@@ -153,6 +146,15 @@ export function createRenderingDomain({
     return 'issue-invalid';
   };
   const labelState = () => labels.getState?.() || {};
+  const frameProjectCoordinate = (coordinate, frameContext = null, fallback = null) => {
+    if (typeof frameContext?.projectVisibleCoordinate === 'function') {
+      return frameContext.projectVisibleCoordinate(coordinate);
+    }
+    return typeof fallback === 'function' ? fallback(coordinate) : null;
+  };
+  const framePath = (frameContext = null, fallback = null) => (
+    typeof frameContext?.projectPath === 'function' ? frameContext.projectPath : fallback
+  );
   const projectLabelCoordinate = (coordinate, frameContext = null) => {
     const point = typeof labels.projectVisibleCoordinate === 'function'
       ? labels.projectVisibleCoordinate(coordinate, frameContext)
@@ -161,17 +163,8 @@ export function createRenderingDomain({
     stats.labelPositionProjectionCount += 1;
     return point;
   };
-  const cancelScheduledLabelPositions = () => {
-    if (labelPositionFrame) cancelLabelFrame(labelPositionFrame);
-    if (labelPositionTimer) clearLabelTimer(labelPositionTimer);
-    labelPositionFrame = 0;
-    labelPositionTimer = 0;
-    pendingLabelPositionFrameContext = null;
-  };
   const renderCountryLabels = (layout = null) => {
     active();
-    cancelScheduledLabelPositions();
-    lastLabelPositionCommitAt = labelNow();
     const state = labelState();
     const layer = labels.countryLabelLayer;
     if (!layer) return false;
@@ -225,6 +218,8 @@ export function createRenderingDomain({
           || (Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor) : null);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
+    countryLabelPositionBindings = [];
+    all.each(function(feature) { countryLabelPositionBindings.push({ node: this, feature }); });
     return true;
   };
   const renderUserLabels = (layout = null) => {
@@ -261,76 +256,43 @@ export function createRenderingDomain({
     selection.on('.drag', null);
     if (state.tool === 'select' && !state.labelPlacementMode) selection.call(labels.labelDragBehavior?.());
     selection.exit().remove();
+    userLabelPositionBindings = [];
+    layer.selectAll('g.user-label').each(function(label) { userLabelPositionBindings.push({ node: this, label }); });
     return true;
   };
   const applyCountryLabelPositions = (frameContext = null) => {
     active();
     const state = labelState();
-    labels.countryLabelLayer?.selectAll('text.country-label').attr('transform', feature => {
+    for (const { node, feature } of countryLabelPositionBindings) {
       const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', feature.id) || {});
       const anchor = settings?.pinned && settings.manualPosition ? settings.manualPosition : labels.countryLabelAnchors?.()?.get?.(String(feature.id || ''));
       const point = Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor, frameContext) : null;
-      return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-    });
+      node?.setAttribute?.('transform', point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)');
+    }
     return true;
   };
   const applyUserLabelPositions = (frameContext = null) => {
     active();
     const state = labelState();
-    labels.labelLayer?.selectAll('g.user-label').attr('transform', label => {
+    for (const { node, label } of userLabelPositionBindings) {
       const settings = labels.automaticLabelSettings?.(label.kind, labels.labelSettings?.(state, 'label', label.id) || {});
       const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
       const point = projectLabelCoordinate(coordinate, frameContext);
-      return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
-    });
+      node?.setAttribute?.('transform', point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)');
+    }
     return true;
   };
-  const commitLabelPositions = () => {
-    labelPositionFrame = 0;
-    const frameContext = pendingLabelPositionFrameContext;
-    pendingLabelPositionFrameContext = null;
-    const elapsed = labelNow() - lastLabelPositionCommitAt;
-    if (elapsed + 0.01 < labelCadenceIntervalMs) {
-      labelPositionTimer = setLabelTimer(() => {
-        labelPositionTimer = 0;
-        labelPositionFrame = requestLabelFrame(commitLabelPositions);
-      }, Math.max(0, labelCadenceIntervalMs - elapsed));
-      pendingLabelPositionFrameContext = frameContext;
-      return;
-    }
-    lastLabelPositionCommitAt = labelNow();
-    applyCountryLabelPositions(frameContext);
-    applyUserLabelPositions(frameContext);
-    stats.labelPositionCommitCount += 1;
-    stats.labelPositionLastFrameRevision = Number(frameContext?.revision || 0);
-  };
-  const scheduleLabelPositions = (frameContext = null) => {
-    active();
+  const renderCountryLabelPositions = frameContext => {
     stats.labelPositionRequestCount += 1;
-    pendingLabelPositionFrameContext = frameContext || pendingLabelPositionFrameContext;
-    if (labelPositionFrame || labelPositionTimer) {
-      stats.labelPositionMergedCount += 1;
-      return true;
-    }
-    const elapsed = labelNow() - lastLabelPositionCommitAt;
-    if (elapsed + 0.01 >= labelCadenceIntervalMs) {
-      labelPositionFrame = requestLabelFrame(commitLabelPositions);
-    } else {
-      labelPositionTimer = setLabelTimer(() => {
-        labelPositionTimer = 0;
-        labelPositionFrame = requestLabelFrame(commitLabelPositions);
-      }, Math.max(0, labelCadenceIntervalMs - elapsed));
-    }
-    return true;
+    const result = applyCountryLabelPositions(frameContext);
+    stats.labelPositionCommitCount += 1;
+    stats.labelPositionLastFrameRevision = Number(frameContext?.viewRevision || frameContext?.revision || 0);
+    return result;
   };
-  const renderCountryLabelPositions = frameContext => scheduleLabelPositions(frameContext);
-  const renderUserLabelPositions = frameContext => scheduleLabelPositions(frameContext);
+  const renderUserLabelPositions = frameContext => applyUserLabelPositions(frameContext);
   const renderCountries = (viewStateOrRevision = null) => {
     active();
     const state = countries.getState?.() || {};
-    const revision = typeof viewStateOrRevision === 'number' && Number.isFinite(viewStateOrRevision)
-      ? Number(viewStateOrRevision)
-      : Number(viewStateOrRevision?.revision || countries.getViewRevision?.() || 0);
     const renderViewState = viewStateOrRevision && typeof viewStateOrRevision === 'object' ? viewStateOrRevision : null;
     countries.renderPendingCountryOverlays?.();
     const highlighted = state.layerVisibility?.countries && state.countriesData
@@ -394,7 +356,9 @@ export function createRenderingDomain({
     }
     const sceneChanged = countries.replaceGpuSceneDomain?.('country-overlays', { polygons, strokes });
     if (sceneChanged !== false) countries.syncGpuRenderScene?.();
-    const frameResult = countries.gpuMapRenderer?.render?.(revision, renderViewState);
+    const frameResult = renderViewState?.__mapVisualFrame
+      ? countries.gpuMapRenderer?.renderFrame?.(renderViewState)
+      : null;
     countries.applyGpuSceneCoverage?.(frameResult);
     countries.applyGpuInteractionCoverage?.(frameResult);
     return frameResult;
@@ -883,7 +847,7 @@ export function createRenderingDomain({
     if (!gpuOwnsGraticule) {
       const fallbackGeometry = b.graticule?.();
       if (fallbackGeometry && b.graticuleLayer) {
-        b.graticuleLayer.datum(fallbackGeometry).attr('d', b.path).attr('data-gpu-scene-key', 'base:graticule');
+        b.graticuleLayer.datum(fallbackGeometry).attr('d', framePath(viewState, b.path)).attr('data-gpu-scene-key', 'base:graticule');
       }
     }
     return true;
@@ -902,9 +866,11 @@ export function createRenderingDomain({
     }] });
     return true;
   };
-  const renderProjectedOverlays = () => {
+  const renderProjectedOverlays = (frameContext = null) => {
     active();
-    for (const layer of projected.layers || []) layer?.selectAll?.('path')?.attr('d', projected.path);
+    for (const layer of projected.layers || []) {
+      layer?.selectAll?.('path')?.attr('d', framePath(frameContext, projected.path));
+    }
     return true;
   };
   const renderBoundaryEdit = (frameContext = null, packet = editingPacket) => {
@@ -927,7 +893,7 @@ export function createRenderingDomain({
     selection.enter().append('path').attr('class', 'boundary-edit-segment');
     selection.exit().remove();
     layer.selectAll('path.boundary-edit-segment')
-      .attr('d', d => editing.path?.({ type: 'Feature', geometry: d.geometry, properties: {} }))
+      .attr('d', d => framePath(frameContext, editing.path)?.({ type: 'Feature', geometry: d.geometry, properties: {} }))
       .attr('data-gpu-scene-key', d => `boundary-edit:${d.key}`)
       .classed('coast', d => d.kind === 'coast')
       .classed('shared', d => d.kind === 'shared')
@@ -949,16 +915,15 @@ export function createRenderingDomain({
     });
     return true;
   };
-  const thinVisibleCoastHandles = handles => {
-    const projection = editing.activeProjection?.();
+  const thinVisibleCoastHandles = (handles, frameContext = null) => {
+    const projection = coordinate => frameProjectCoordinate(coordinate, frameContext, editing.activeProjection?.());
     const zoom = editing.currentMapZoom?.() || 1;
     const mobile = editing.isMobile?.() === true;
     const minDistance = Math.max(mobile ? 7 : 4, (mobile ? 18 : 11) / Math.sqrt(Math.max(1, zoom)));
     const occupied = new Map();
     const accepted = [];
     for (const handle of [...(handles || [])].sort((left, right) => Number(!!right.fixed) - Number(!!left.fixed))) {
-      if (!editing.isCoordVisible?.(handle.coord)) continue;
-      const point = projection?.(handle.coord);
+      const point = projection(handle.coord);
       if (!point) continue;
       const gx = Math.floor(point[0] / minDistance), gy = Math.floor(point[1] / minDistance);
       let crowded = false;
@@ -988,8 +953,8 @@ export function createRenderingDomain({
       },
     } : packet?.objectVertices;
     let data = (objectPacket?.handles || []).map(item => ({ ...item, coord: item.coordinate }));
-    if (boundaryMode) data = thinVisibleCoastHandles(data);
-    else data = data.filter(vertex => editing.isCoordVisible?.(vertex.coord, frameContext));
+    if (boundaryMode) data = thinVisibleCoastHandles(data, frameContext);
+    else data = data.filter(vertex => frameProjectCoordinate(vertex.coord, frameContext, editing.activeProjection?.()));
     const layer = editing.vertexLayer;
     if (!layer) return false;
     const selection = layer.selectAll('circle.vertex-handle').data(data, d => d.nodeKey || d.key || d.index);
@@ -1003,7 +968,7 @@ export function createRenderingDomain({
       .classed('shared-boundary-vertex', d => boundaryMode && d.boundaryKind === 'shared')
       .classed('fixed-boundary-vertex', d => boundaryMode && d.fixed)
       .attr('transform', d => {
-        const point = editing.activeProjection?.()(d.coord);
+        const point = frameProjectCoordinate(d.coord, frameContext, editing.activeProjection?.());
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
     allVertices.on('.drag', null);
@@ -1133,7 +1098,7 @@ export function createRenderingDomain({
     );
   };
   const invalidateLabels = reason => invalidate(
-    MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LAYER_TREE,
+    MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.VIEW_PRESENTATION | MAP_RENDER_DIRTY.LAYER_TREE,
     reason || 'labels',
   );
   const beginInteraction = reason => {
@@ -1182,6 +1147,10 @@ export function createRenderingDomain({
     resourceFrameToken = frameToken;
     stats.renderResourceRefreshCount += 1;
     stats.renderResourceSnapshotFrameId = frameToken;
+    if (frameContext?.__mapVisualFrame) {
+      stats.visualFramePreparedCount += 1;
+      stats.lastPreparedVisualFrameId = Number(frameContext.frameId || 0);
+    }
     return frameToken;
   };
   const renderPass = (name, ...args) => {
@@ -1190,7 +1159,7 @@ export function createRenderingDomain({
     if (typeof renderer !== 'function') return undefined;
     return renderer(...args);
   };
-  const renderDraftInsertionHandle = (packet = editingPacket) => {
+  const renderDraftInsertionHandle = (frameContext = null, packet = editingPacket) => {
     active();
     const layer = interaction.draftLayer;
     if (!layer) return false;
@@ -1208,7 +1177,7 @@ export function createRenderingDomain({
     selection.exit().remove();
     layer.selectAll('g.draft-insert-handle')
       .attr('transform', item => {
-        const point = interaction.activeProjection?.()(item.coordinate);
+        const point = frameProjectCoordinate(item.coordinate, frameContext, interaction.activeProjection?.());
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       })
       .on('click', function() {
@@ -1218,7 +1187,7 @@ export function createRenderingDomain({
       });
     return true;
   };
-  const renderRiverPartitionEmphasis = (packet = editingPacket) => {
+  const renderRiverPartitionEmphasis = (frameContext = null, packet = editingPacket) => {
     active();
     const layer = interaction.draftLayer;
     const operation = packet?.territoryOperation;
@@ -1232,7 +1201,7 @@ export function createRenderingDomain({
         layer.append('path')
           .datum(interaction.featureFromGeometry?.({ type: 'LineString', coordinates: section }))
           .attr('class', `river-partition-emphasis${selected.has(candidate.key) ? ' selected' : ''}`)
-          .attr('d', interaction.path)
+          .attr('d', framePath(frameContext, interaction.path))
           .attr('stroke', interaction.selectionStyle?.color)
           .attr('stroke-width', interaction.selectionStyle?.primaryWidth)
           .attr('stroke-opacity', selected.has(candidate.key) ? interaction.selectionStyle?.primaryAlpha : interaction.selectionStyle?.secondaryAlpha);
@@ -1251,6 +1220,7 @@ export function createRenderingDomain({
       return true;
     }
     const delta = session.delta || {};
+    const path = framePath(frameContext, interaction.path);
     for (const [className, geometry] of [
       ['geometry-preview-remove', delta.removedGeometry],
       ['geometry-preview-add', delta.addedGeometry],
@@ -1258,20 +1228,20 @@ export function createRenderingDomain({
       if (!geometry) continue;
       const feature = interaction.featureFromGeometry?.(geometry);
       if (interaction.hasAreaGeometry?.(feature)) {
-        layer.append('path').datum(feature).attr('class', `${className} geometry-preview-fill`).attr('d', interaction.path);
+        layer.append('path').datum(feature).attr('class', `${className} geometry-preview-fill`).attr('d', path);
       }
       const outline = interaction.buildRenderableStrokeFeature?.(feature);
       if (outline?.geometry?.coordinates?.length) {
-        layer.append('path').datum(outline).attr('class', `${className} geometry-preview-outline`).attr('d', interaction.path);
+        layer.append('path').datum(outline).attr('class', `${className} geometry-preview-outline`).attr('d', path);
       }
     }
     for (const geometry of delta.oldBoundaries || []) {
       const outline = interaction.buildRenderableStrokeFeature?.(interaction.featureFromGeometry?.(geometry));
-      if (outline) layer.append('path').datum(outline).attr('class', 'geometry-preview-old-boundary').attr('d', interaction.path);
+      if (outline) layer.append('path').datum(outline).attr('class', 'geometry-preview-old-boundary').attr('d', path);
     }
     for (const geometry of delta.newBoundaries || []) {
       const outline = interaction.buildRenderableStrokeFeature?.(interaction.featureFromGeometry?.(geometry));
-      if (outline) layer.append('path').datum(outline).attr('class', 'geometry-preview-new-boundary').attr('d', interaction.path);
+      if (outline) layer.append('path').datum(outline).attr('class', 'geometry-preview-new-boundary').attr('d', path);
     }
     interaction.syncGpuInteractionLayer?.('preview', layer);
     return true;
@@ -1291,7 +1261,6 @@ export function createRenderingDomain({
   const selectionBoundaryGeometryCache = new Map();
   const selectionProjectedPathCache = new Map();
   let sparseFallbackViewSignature = '';
-  let sparseFallbackLastAt = Number.NEGATIVE_INFINITY;
   let sparseFallbackPathCount = 0;
   let sparseFallbackDirty = true;
   const setLimitedSelectionCache = (cache, key, value, limit = 160) => {
@@ -1341,7 +1310,12 @@ export function createRenderingDomain({
       return selectionProjectedPathCache.get(key);
     }
     selectionOverlayDiagnostics.projectedPathCacheMisses += 1;
-    return setLimitedSelectionCache(selectionProjectedPathCache, key, selection.path?.(feature), 96);
+    return setLimitedSelectionCache(
+      selectionProjectedPathCache,
+      key,
+      framePath(frameContext, selection.path)?.(feature),
+      96,
+    );
   };
   const syncSelectionEmphasis = () => {
     if (!gpuMapRenderer?.setCountryEmphasis) return false;
@@ -1383,9 +1357,7 @@ export function createRenderingDomain({
       frameContext?.flatCenter?.join(',') || '',
       frameContext?.viewport?.join(',') || '',
     ].join(':');
-    const now = globalThis.performance?.now?.() ?? Date.now();
-    if (!sparseFallbackDirty
-      && (sparseFallbackViewSignature === viewSignature || now - sparseFallbackLastAt < 1000 / 30)) {
+    if (!sparseFallbackDirty && sparseFallbackViewSignature === viewSignature) {
       return sparseFallbackPathCount > 0;
     }
     let pathCount = 0;
@@ -1404,7 +1376,6 @@ export function createRenderingDomain({
     reproject(selection.selectionLayer, 'path.map-selection-shape');
     reproject(selection.hoverLayer, 'path.map-hover-shape');
     sparseFallbackViewSignature = viewSignature;
-    sparseFallbackLastAt = now;
     sparseFallbackPathCount = pathCount;
     sparseFallbackDirty = false;
     if (!pathCount) return false;
@@ -1466,6 +1437,7 @@ export function createRenderingDomain({
     const selectionPass = selection.selectionPass;
     const style = selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.() || {};
     const selectionStyle = style.selection || {};
+    const selectionFramePath = framePath(frameContext, selection.path);
     const selectionPassAvailable = !!selectionPass?.isAvailable?.();
     const selectionOutlinesVisible = selectionStyle.outlineVisible !== false;
     const state = selection.getState?.() || {};
@@ -1484,7 +1456,7 @@ export function createRenderingDomain({
           .attr('data-object-key', hovered.key || '')
           .attr('fill', style.hover?.color)
           .attr('fill-opacity', style.hover?.fillAlpha)
-          .attr('d', selection.path);
+          .attr('d', selectionFramePath);
       }
       const boundary = !isCountry && ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type)
         ? cachedSelectionBoundaryFeature(key, feature, 'hover')
@@ -1520,7 +1492,7 @@ export function createRenderingDomain({
           const priorityClass = primary ? ' is-primary' : ' is-secondary';
           if ((itemStyle?.fillAlpha || 0) > 0) stagedSelectionLayer.append('path').datum(feature)
             .attr('class', `map-selection-shape map-selection-fill${priorityClass}`)
-            .attr('fill', selectionStyle.color).attr('fill-opacity', itemStyle.fillAlpha).attr('stroke', 'none').attr('d', selection.path);
+            .attr('fill', selectionStyle.color).attr('fill-opacity', itemStyle.fillAlpha).attr('stroke', 'none').attr('d', selectionFramePath);
         }
         if (selectionOutlinesVisible) {
           const channel = primary ? 'primary' : 'secondary';
@@ -1537,7 +1509,7 @@ export function createRenderingDomain({
         const fillAlpha = primary ? selectionStyle.primary?.fillAlpha : selectionStyle.secondary?.fillAlpha;
         if ((fillAlpha || 0) > 0) stagedSelectionLayer.append('path').datum(feature)
           .attr('class', `map-selection-shape map-selection-fill${primary ? ' is-primary' : ' is-secondary'}`)
-          .attr('data-object-key', ref.key).attr('fill', selectionStyle.color).attr('fill-opacity', fillAlpha).attr('stroke', 'none').attr('d', selection.path);
+          .attr('data-object-key', ref.key).attr('fill', selectionStyle.color).attr('fill-opacity', fillAlpha).attr('stroke', 'none').attr('d', selectionFramePath);
         if ((fillAlpha || 0) > 0) interactionFillRequests.push({ objectKey: ref.key, style: { color: selectionStyle.color, fillAlpha } });
       }
       const boundary = hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))
@@ -1720,6 +1692,7 @@ export function createRenderingDomain({
     if (!layer) return false;
     layer.selectAll('*').remove();
     const audit = interaction.getValidationPacket?.() || {};
+    const path = framePath(frameContext, interaction.path);
     const issues = packet?.validationIssues?.length ? packet.validationIssues : audit.issues || [];
     for (const issue of issues) {
       const className = geometryPreviewIssueClass(issue.kind);
@@ -1727,16 +1700,16 @@ export function createRenderingDomain({
         const feature = interaction.featureFromGeometry?.(issue.geometry);
         const selectedClass = audit.selectedIssueId === issue.id ? ' selected' : '';
         if (interaction.hasAreaGeometry?.(feature)) {
-          layer.append('path').datum(feature).attr('class', `map-validation-issue map-validation-fill ${className}${selectedClass}`).attr('d', interaction.path);
+          layer.append('path').datum(feature).attr('class', `map-validation-issue map-validation-fill ${className}${selectedClass}`).attr('d', path);
         }
         const outline = interaction.buildRenderableStrokeFeature?.(feature);
         if (outline?.geometry?.coordinates?.length) {
-          layer.append('path').datum(outline).attr('class', `map-validation-issue map-validation-outline ${className}${selectedClass}`).attr('d', interaction.path);
+          layer.append('path').datum(outline).attr('class', `map-validation-issue map-validation-outline ${className}${selectedClass}`).attr('d', path);
         }
       }
       const coordinate = interaction.issueCoordinate?.(issue);
       if (!coordinate || !interaction.isCoordVisible?.(coordinate)) continue;
-      const point = interaction.activeProjection?.()(coordinate);
+      const point = frameProjectCoordinate(coordinate, frameContext, interaction.activeProjection?.());
       if (!point) continue;
       layer.append('circle').attr('class', `map-validation-marker ${className}`)
         .attr('cx', point[0]).attr('cy', point[1])
@@ -1751,13 +1724,15 @@ export function createRenderingDomain({
     if (!layer) return false;
     layer.selectAll('*').remove();
     const indicator = packet?.snap || null;
-    if (!indicator?.coordinate || !interaction.isCoordVisible?.(indicator.coordinate)) return true;
+    const coordinatePoint = indicator?.coordinate
+      ? frameProjectCoordinate(indicator.coordinate, frameContext, interaction.activeProjection?.())
+      : null;
+    if (!coordinatePoint) return true;
     if (indicator.segmentEndpoints?.length === 2) {
       layer.append('path').datum(interaction.featureFromGeometry?.({ type: 'LineString', coordinates: indicator.segmentEndpoints }))
-        .attr('class', 'snap-indicator-segment').attr('d', interaction.path);
+        .attr('class', 'snap-indicator-segment').attr('d', framePath(frameContext, interaction.path));
     }
-    const point = interaction.activeProjection?.()(indicator.coordinate);
-    if (!point) return true;
+    const point = coordinatePoint;
     if (indicator.kind === 'intersection') {
       layer.append('path').attr('class', 'snap-indicator-cross')
         .attr('d', `M${point[0] - 7},${point[1] - 7}L${point[0] + 7},${point[1] + 7}M${point[0] + 7},${point[1] - 7}L${point[0] - 7},${point[1] + 7}`);
@@ -1767,10 +1742,7 @@ export function createRenderingDomain({
   };
   const renderGpuInteraction = (viewState = null) => {
     active();
-    const result = gpuMapRenderer?.renderInteraction?.(
-      Number(viewState?.revision || interaction.getViewRevision?.() || 0),
-      viewState || interaction.getViewState?.() || null,
-    ) || null;
+    const result = gpuMapRenderer?.renderInteraction?.(viewState) || null;
     interaction.applyGpuInteractionCoverage?.(result);
     return result;
   };
@@ -1812,14 +1784,18 @@ export function createRenderingDomain({
     hasEditingDomain: typeof getEditingRenderPacket === 'function',
   });
   const dispose = () => {
-    cancelScheduledLabelPositions();
+    pendingVisualFrames.clear();
+    gpuMapRenderer?.setFramePresentationListener?.(null);
     disposed = true;
   };
   const renderDraft = (frameContext = null, packet = editingPacket) => {
     active();
     const draftLayer = interaction.draftLayer;
     if (!draftLayer) return false;
-    const { d3, path, isMobile, activeProjection, isCoordVisible, syncGpuInteractionLayer, formatTerritoryArea } = interaction;
+    const { d3, isMobile, activeProjection, syncGpuInteractionLayer, formatTerritoryArea } = interaction;
+    const path = framePath(frameContext, interaction.path);
+    const projectCoordinate = coordinate => frameProjectCoordinate(coordinate, frameContext, activeProjection?.());
+    const isCoordinateVisible = coordinate => !!projectCoordinate(coordinate);
     const draft = packet?.draft || EMPTY_EDITING_RENDER_PACKET.draft;
     const operation = packet?.territoryOperation;
     draftLayer.selectAll('*').remove();
@@ -1879,10 +1855,10 @@ export function createRenderingDomain({
       });
     segmentHits.append('title').text('선분에 꼭짓점 삽입');
 
-    const vertices = draftLayer.selectAll('g.draft-vertex').data(draft.vertices.filter(item => isCoordVisible?.(item.coordinate, frameContext)), item => item.index).enter().append('g')
+    const vertices = draftLayer.selectAll('g.draft-vertex').data(draft.vertices.filter(item => isCoordinateVisible(item.coordinate)), item => item.index).enter().append('g')
       .attr('class', item => `draft-vertex draft-interactive${item.selected ? ' selected' : ''}`)
       .attr('transform', item => {
-        const point = activeProjection?.()(item.coordinate);
+        const point = projectCoordinate(item.coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       })
       .on('click', function(item) {
@@ -1896,11 +1872,11 @@ export function createRenderingDomain({
     const draftDrag = editingDragBehavior('draft-vertex');
     if (draftDrag) vertices.call(draftDrag);
 
-    renderDraftInsertionHandle(packet);
-    const issueMarkers = draftLayer.selectAll('g.draft-issue-marker').data(draft.issues.filter(item => item.coordinate && isCoordVisible?.(item.coordinate, frameContext)), (item, index) => `${item.kind}-${item.vertexIndex ?? item.segmentIndex ?? index}`).enter().append('g')
+    renderDraftInsertionHandle(frameContext, packet);
+    const issueMarkers = draftLayer.selectAll('g.draft-issue-marker').data(draft.issues.filter(item => item.coordinate && isCoordinateVisible(item.coordinate)), (item, index) => `${item.kind}-${item.vertexIndex ?? item.segmentIndex ?? index}`).enter().append('g')
       .attr('class', 'draft-issue-marker')
       .attr('transform', item => {
-        const point = activeProjection?.()(item.coordinate);
+        const point = projectCoordinate(item.coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
     issueMarkers.append('circle').attr('r', 7);
@@ -1909,13 +1885,94 @@ export function createRenderingDomain({
     draftLayer.selectAll('circle.draft-snap-point').data(draft.snapPoints, item => item.endpoint).enter().append('circle')
       .attr('class', item => `draft-snap-point ${item.endpoint}`).attr('r', 6)
       .attr('transform', item => {
-        const point = activeProjection?.()(item.coordinate);
+        const point = projectCoordinate(item.coordinate);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
-    renderRiverPartitionEmphasis(packet);
+    renderRiverPartitionEmphasis(frameContext, packet);
     syncGpuInteractionLayer?.('draft', draftLayer);
     return true;
   };
+  const visualRootNode = value => value?.node?.() || value || null;
+  const markVisualRoot = (value, frame) => {
+    const node = visualRootNode(value);
+    if (!node?.setAttribute) return false;
+    node.setAttribute('data-visual-frame-id', String(frame.frameId));
+    node.setAttribute('data-view-revision', String(frame.viewRevision));
+    node.setAttribute('data-projection-revision', String(frame.projectionRevision));
+    return true;
+  };
+  const editingPacketHasViewContent = packet => !!(
+    packet?.draft?.active
+    || packet?.objectVertices
+    || packet?.boundaryEdit
+    || packet?.territoryOperation
+    || packet?.snap
+    || packet?.preview
+    || packet?.validationIssues?.length
+  );
+  const commitViewAttachedLayers = (frame, gpuResult = null, { canvasPresented = false } = {}) => {
+    if (!frame?.__mapVisualFrame) {
+      stats.visualFrameRejectedCount += 1;
+      return false;
+    }
+    if (gpuResult?.deferred && !canvasPresented) {
+      pendingVisualFrames.set(Number(frame.frameId), frame);
+      for (const key of pendingVisualFrames.keys()) {
+        if (key < Number(frame.frameId)) pendingVisualFrames.delete(key);
+      }
+      return false;
+    }
+    syncBaseView(frame);
+    renderProjectedOverlays(frame);
+    renderCountryLabelPositions(frame);
+    renderUserLabelPositions(frame);
+    if (editingPacketHasViewContent(editingPacket)) {
+      renderGeometryPreview(frame, editingPacket);
+      renderBoundaryEdit(frame, editingPacket);
+      renderVertices(frame, editingPacket);
+      renderDraft(frame, editingPacket);
+      renderSnap(frame, editingPacket);
+      renderValidation(frame, editingPacket);
+    }
+    const roots = typeof domLayers === 'function' ? domLayers() || {} : domLayers || {};
+    markVisualRoot(roots.baseSvg, frame);
+    markVisualRoot(roots.gpuCanvas, frame);
+    markVisualRoot(roots.svg, frame);
+    markVisualRoot(roots.interactionSvg, frame);
+    markVisualRoot(base.graticuleLayer, frame);
+    markVisualRoot(labels.countryLabelLayer, frame);
+    markVisualRoot(labels.labelLayer, frame);
+    markVisualRoot(selection.selectionLayer, frame);
+    markVisualRoot(selection.hoverLayer, frame);
+    markVisualRoot(editing.boundaryEditLayer, frame);
+    markVisualRoot(editing.vertexLayer, frame);
+    markVisualRoot(interaction.previewLayer, frame);
+    markVisualRoot(interaction.validationLayer, frame);
+    markVisualRoot(interaction.draftLayer, frame);
+    markVisualRoot(interaction.snapLayer, frame);
+    for (const layer of projected.layers || []) markVisualRoot(layer, frame);
+    stats.visualFrameCommittedCount += 1;
+    stats.lastCommittedVisualFrameId = Number(frame.frameId || 0);
+    stats.gpuCommittedFrameId = Number(frame.frameId || 0);
+    stats.shellCommittedFrameId = Number(frame.frameId || 0);
+    stats.graticuleCommittedFrameId = Number(frame.frameId || 0);
+    stats.labelCommittedFrameId = Number(frame.frameId || 0);
+    stats.overlayCommittedFrameId = Number(frame.frameId || 0);
+    pendingVisualFrames.delete(Number(frame.frameId));
+    return true;
+  };
+  const presentCanvasVisualFrame = result => {
+    const frame = pendingVisualFrames.get(Number(result?.frameId || 0));
+    if (!frame
+      || Number(result?.viewRevision || 0) !== Number(frame.viewRevision || 0)
+      || Number(result?.projectionRevision || 0) !== Number(frame.projectionRevision || 0)
+      || Number(result?.projectGeneration || 0) !== Number(frame.projectGeneration || 0)) {
+      stats.visualFrameRejectedCount += 1;
+      return false;
+    }
+    return commitViewAttachedLayers(frame, result, { canvasPresented: true });
+  };
+  gpuMapRenderer?.setFramePresentationListener?.(presentCanvasVisualFrame);
   coordinator = createMapRenderCoordinator({
     requestFrame,
     prepareView,
@@ -1930,10 +1987,7 @@ export function createRenderingDomain({
     onFrameComplete,
     renderers: {
       beginFrame,
-      view: (...args) => {
-        syncBaseView(args[0]);
-        return renderPass('view', ...args);
-      },
+      view: (...args) => renderPass('view', ...args),
       base: renderBase,
       countries: renderCountries,
       gpuInteraction: renderGpuInteraction,
@@ -1960,6 +2014,7 @@ export function createRenderingDomain({
       userLabelPositions: renderUserLabelPositions,
       countryLabels: renderCountryLabels,
       userLabels: renderUserLabels,
+      viewPresentation: commitViewAttachedLayers,
       vertices: frameContext => renderVertices(frameContext, editingPacket),
       draft: frameContext => renderDraft(frameContext, editingPacket),
       snapIndicator: frameContext => renderSnap(frameContext, editingPacket),
@@ -1969,10 +2024,8 @@ export function createRenderingDomain({
   });
 
   return Object.freeze({
-    beginFrame,
     requestRender,
     invalidateView,
-    invalidateViewSettle,
     invalidateViewport,
     invalidateProjection,
     invalidateProject,
@@ -1994,29 +2047,16 @@ export function createRenderingDomain({
     invalidateLabels,
     beginInteraction,
     endInteraction,
-    renderGpuInteraction,
-    renderBoundaryEdit,
-    renderGeometryPreview,
-    renderSelection,
-    renderHoverOverlay,
     invalidateSelectionOverlay,
     syncSelectionEmphasis,
     getSelectionRenderStats,
     recordSelectionRenderError,
     renderValidation,
-    renderCountryLabels,
-    renderUserLabels,
-    renderCountryLabelPositions,
-    renderUserLabelPositions,
     renderCountries,
     renderHydro,
-    renderHydroEdits,
     renderTerritorialUnits,
     renderGenericFeatures,
-    renderDistributions,
     getDistributionRenderRows: buildDistributionRenderRows,
-    renderBase,
-    renderProjectedOverlays,
     resetProjectGeneration,
     getTerritorialBoundaryStats,
     getStats,

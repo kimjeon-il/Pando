@@ -56,15 +56,18 @@ test('editing domain reuses packet identity until an actual state mutation', () 
   let invalidations = 0;
   const editing = createEditingDomain({
     context: { requestRender: () => { invalidations += 1; } },
-    draftServices: { getToolConfig: () => ({ shape: 'line', profile: 'freehand', minimumPoints: 2 }) },
+    draftServices: {
+      getToolConfig: () => ({ shape: 'line', profile: 'freehand', minimumPoints: 2 }),
+      screenToCoordinate: value => value,
+    },
   });
   const initial = editing.createRenderPacket();
   assert.strictEqual(editing.createRenderPacket(), initial);
-  assert.equal(editing.appendDraftCoordinate([1, 2]), true);
+  assert.equal(editing.appendDraftScreenPoint([1, 2]), true);
   const changed = editing.createRenderPacket();
   assert.notStrictEqual(changed, initial);
   assert.strictEqual(editing.createRenderPacket(), changed);
-  assert.equal(editing.appendDraftCoordinate([1, 2], { dedupe: true }), false);
+  assert.equal(editing.appendDraftScreenPoint([1, 2], 'mouse', { dedupe: true }), false);
   assert.strictEqual(editing.createRenderPacket(), changed);
   assert.equal(invalidations, 1);
 });

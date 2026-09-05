@@ -23,6 +23,7 @@ const DIRTY_BITS = {
   RESIZE: 1 << 21,
   PROJECTION: 1 << 22,
   PROJECT: 1 << 23,
+  VIEW_PRESENTATION: 1 << 24,
 };
 
 export const MAP_RENDER_DIRTY = Object.freeze({
@@ -38,7 +39,9 @@ const KNOWN_DIRTY_MASK = Object.values(DIRTY_BITS).reduce((mask, value) => mask 
 // by an explicit scene invalidation,
 // so it must not be pulled into every interaction frame.
 const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
-  | MAP_RENDER_DIRTY.LABEL_POSITIONS;
+  | MAP_RENDER_DIRTY.GPU_FRAME
+  | MAP_RENDER_DIRTY.LABEL_POSITIONS
+  | MAP_RENDER_DIRTY.VIEW_PRESENTATION;
 
 const SETTLE_MASK = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
 const REPROJECT_MASK = MAP_RENDER_DIRTY.VIEW
@@ -48,7 +51,8 @@ const REPROJECT_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.EDITING_OVERLAYS
   | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY
   | MAP_RENDER_DIRTY.LABEL_LAYOUT
-  | MAP_RENDER_DIRTY.HUD;
+  | MAP_RENDER_DIRTY.HUD
+  | MAP_RENDER_DIRTY.VIEW_PRESENTATION;
 
 export const MAP_RENDER_MASKS = Object.freeze({
   VIEW: INTERACTION_MASK,
@@ -149,19 +153,18 @@ export function createMapRenderCoordinator({
         | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT
         | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
         | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH));
-      const viewState = needsView ? prepareView() : undefined;
+      const viewState = needsView ? prepareView({ frameId: renderRevision }) : undefined;
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
 
       // Give domains one stable frame boundary so live render resources are
       // refreshed once before any pass consumes the shared snapshot.
-      callRenderer('beginFrame', rendererTimes, {
-        ...(viewState && typeof viewState === 'object' ? viewState : {}),
-        frameId: renderRevision,
-      });
+      callRenderer('beginFrame', rendererTimes, viewState && typeof viewState === 'object'
+        ? viewState
+        : { frameId: renderRevision });
 
       // The legacy Pando host and its renderer share the coordinator frame.
       // There is no second custom-layer render cycle.
-      const sceneGpuMask = MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_DATA
+      const sceneGpuMask = MAP_RENDER_DIRTY.OVERLAY_DATA
         | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE
         | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
         | MAP_RENDER_DIRTY.TERRITORIAL_PATCH;
@@ -190,10 +193,10 @@ export function createMapRenderCoordinator({
         if (!overlayStacked) callRenderer('stackOverlays', rendererTimes, viewState);
       }
 
-      if (mask & (MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_DATA
-        | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE
-        | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH)) {
+      if (mask & sceneGpuMask) {
         viewFrameResult = callRenderer('countries', rendererTimes, viewState);
+      } else if (!viewFrameResult && (mask & MAP_RENDER_DIRTY.GPU_FRAME)) {
+        viewFrameResult = callRenderer('view', rendererTimes, viewState);
       }
 
       if (mask & MAP_RENDER_DIRTY.INTERACTION_OVERLAYS) {
@@ -244,9 +247,10 @@ export function createMapRenderCoordinator({
         if (renderers.labelLayout) metrics.labelLayoutCount += 1;
         callRenderer('countryLabels', rendererTimes, labelLayout, viewState);
         callRenderer('userLabels', rendererTimes, labelLayout, viewState);
-      } else if (mask & MAP_RENDER_DIRTY.LABEL_POSITIONS) {
-        callRenderer('countryLabelPositions', rendererTimes, viewState);
-        callRenderer('userLabelPositions', rendererTimes, viewState);
+      }
+
+      if (mask & MAP_RENDER_DIRTY.VIEW_PRESENTATION) {
+        callRenderer('viewPresentation', rendererTimes, viewState, viewFrameResult);
       }
 
       if (mask & MAP_RENDER_DIRTY.LAYER_TREE) callRenderer('layerTree', rendererTimes);

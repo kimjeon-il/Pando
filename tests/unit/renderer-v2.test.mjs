@@ -3,33 +3,15 @@ import test from 'node:test';
 
 import {
   GPU_STROKE_FLAGS,
-  GPU_STROKE_LAYOUT,
   buildGpuStrokeInstances,
 } from '../../assets/js/modules/gpu-stroke-renderer.js';
 import { createMapRenderCoordinator, MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from '../../assets/js/modules/map-render-coordinator.js';
 import { createRenderSceneBuilder } from '../../assets/js/modules/render-scene.js';
-import {
-  RENDERER_V2_PASSES,
-  RENDERER_V2_RUNTIME_CONTRACT,
-  RENDERER_V2_STROKE_QUALITY,
-  rendererV2FramePlan,
-  validateRendererV2PassOrder,
-} from '../../assets/js/modules/renderer-v2-contract.js';
-
-test('renderer v2 pass contract is ordered and single-context', () => {
-  assert.equal(validateRendererV2PassOrder(), true);
-  assert.deepEqual(RENDERER_V2_PASSES.map(pass => pass.order), [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
-  assert.equal(RENDERER_V2_RUNTIME_CONTRACT.webGlContextCount, 1);
-  assert.equal(RENDERER_V2_STROKE_QUALITY.connectedTopology, true);
-  assert.equal(RENDERER_V2_STROKE_QUALITY.analyticAa, true);
-});
-
 test('connected stroke preprocessing emits neighbor topology, joins and terminal caps', () => {
   const geometry = buildGpuStrokeInstances(new Float32Array([
     0, 0, 1, 0,
     1, 0, 2, 1,
   ]));
-  assert.equal(GPU_STROKE_LAYOUT.floatsPerInstance, 10);
   assert.equal(geometry.segmentCount, 2);
   assert.equal(geometry.joinCount, 1);
   assert.equal(geometry.capCount, 2);
@@ -43,7 +25,6 @@ test('connected stroke preprocessing emits neighbor topology, joins and terminal
   assert.deepEqual([...geometry.instances.slice(6, 8)], [2, 1]);
   assert.deepEqual([...geometry.instances.slice(10, 12)], [0, 0]);
 });
-
 test('closed stroke chains have joins at every vertex and never create endpoint caps', () => {
   const geometry = buildGpuStrokeInstances(new Float32Array([
     0, 0, 1, 0,
@@ -54,7 +35,8 @@ test('closed stroke chains have joins at every vertex and never create endpoint 
   assert.equal(geometry.joinCount, 3);
   assert.equal(geometry.capCount, 0);
   assert.equal(geometry.nodeCount, 3);
-  for (let offset = 9; offset < geometry.instances.length; offset += GPU_STROKE_LAYOUT.floatsPerInstance) {
+  const instanceStride = geometry.instances.length / geometry.segmentCount;
+  for (let offset = instanceStride - 1; offset < geometry.instances.length; offset += instanceStride) {
     assert.equal((geometry.instances[offset] & GPU_STROKE_FLAGS.CLOSED_CHAIN) !== 0, true);
   }
 });
@@ -90,10 +72,4 @@ test('view-only coordinator frames do not invoke scene geometry rendering', () =
   assert.equal(calls.includes('selection-view'), true);
   assert.equal(calls.includes('countries'), false);
   assert.equal(coordinator.getStats().lastDirtyMask & MAP_RENDER_DIRTY.SELECTION_VIEW, 0);
-});
-
-test('interaction-only renderer plan excludes scene and picking passes', () => {
-  const plan = rendererV2FramePlan({ interactionChanged: true });
-  assert.deepEqual(plan.map(pass => pass.phase), ['interaction', 'interaction', 'interaction']);
-  assert.deepEqual(plan.map(pass => pass.id), ['selection-fill', 'selection-stroke', 'edit-preview']);
 });

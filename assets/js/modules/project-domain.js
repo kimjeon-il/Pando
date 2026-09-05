@@ -9,9 +9,8 @@ const cloneValue = value => {
 };
 
 /**
- * Owns the canonical project boundary while keeping persistence and the
- * existing command/history services injectable.  The domain never exposes
- * the mutable object returned by the host application.
+ * Owns the canonical project boundary without exposing the mutable object
+ * returned by the host application.
  */
 export function createProjectDomain({
   context = null,
@@ -19,8 +18,16 @@ export function createProjectDomain({
   replaceSnapshot = () => false,
   commandPipeline = null,
   serializer = null,
-  persistence = null,
   history = null,
+  persistence = null,
+  saveState = null,
+  createProjectFile = null,
+  prepareEmpty = async () => null,
+  captureReplacement = null,
+  restoreReplacement = null,
+  invalidateProject = () => {},
+  invalidateHistory = () => {},
+  reportDiagnostic = () => {},
   invariants = null,
   restoreCountriesFromDelta = null,
   onProjectChanged = () => {},
@@ -28,6 +35,8 @@ export function createProjectDomain({
 } = {}) {
   let generation = 0;
   let disposed = false;
+  let replacing = false;
+  let saving = false;
 
   const snapshot = () => cloneValue(
     typeof serializer?.buildProject === 'function'
@@ -72,70 +81,99 @@ export function createProjectDomain({
     return result;
   };
 
-  const load = async serializedProject => {
+  const notify = (reason, detail, invalidate) => {
+    for (const [stage, action] of [
+      ['event', () => emitChanged(reason, detail)],
+      ['render', () => invalidate(reason)],
+      ['autosave', () => persistence?.queueProject(undefined, { markDirty: false })],
+    ]) {
+      try { action(); } catch (error) {
+        try { reportDiagnostic({ stage, reason, error }); } catch (_) { /* A diagnostic cannot undo a commit. */ }
+      }
+    }
+  };
+
+  const replace = async (serializedProject, reason) => {
     assertActive();
-    if (invariants?.assertProjectReferenceIntegrity) {
+    if (replacing) throw new Error('Project replacement is already running.');
+    if (serializedProject && invariants?.assertProjectReferenceIntegrity) {
       const countries = serializedProject?.countriesData?.features || serializedProject?.countries || [];
       invariants.assertProjectReferenceIntegrity({
         ...serializedProject,
         countries,
       });
     }
-    const nextGeneration = bumpGeneration('project-load');
-    let result;
+    replacing = true;
+    let checkpoint;
+    let resetStarted = false;
     try {
-      result = await replaceSnapshot(serializedProject, {
-        reason: 'load', generation: nextGeneration, skipRenderReset: true,
+      // Finish asynchronous preparation before touching the current project.
+      const prepared = reason === 'new' ? await prepareEmpty() : null;
+      checkpoint = captureReplacement?.();
+      persistence?.cancelPending?.();
+      resetStarted = true;
+      const nextGeneration = bumpGeneration(`project-${reason}`);
+      const result = await replaceSnapshot(serializedProject, {
+        reason, generation: nextGeneration, skipRenderReset: true,
+        ...(reason === 'new' ? { prepared } : {}),
       });
+      if (result === false) throw new Error('Project replacement was rejected.');
+      if (reason === 'new') await persistence?.clear?.();
+      history?.reset();
+      if (reason === 'new') saveState?.markNewProject('content:0');
+      else saveState?.markOpenedFile(`content:${Date.now()}`);
+      notify(`project-${reason}`, null, invalidateProject);
+      return result;
     } catch (error) {
-      generation -= 1;
+      if (resetStarted && checkpoint !== undefined && restoreReplacement) {
+        // Generations stay monotonic so failed replacement workers remain stale.
+        const rollbackGeneration = bumpGeneration('project-rollback');
+        try { await restoreReplacement(checkpoint, rollbackGeneration); }
+        catch (restoreError) { error.restoreError = restoreError; }
+      }
       throw error;
+    } finally {
+      replacing = false;
     }
-    emitChanged('project-load', result);
-    return result;
   };
-
-  const createEmpty = async () => {
+  const load = project => replace(project, 'load');
+  const createEmpty = () => replace(null, 'new');
+  const travelHistory = (direction, metadata) => {
     assertActive();
-    const nextGeneration = bumpGeneration('project-create-empty');
-    let result;
+    if (replacing) return false;
+    if (!history) throw new TypeError('Project history is not configured.');
+    const changed = history[direction](metadata);
+    if (changed) {
+      saveState?.markContentChanged();
+      notify(`project-${direction}`, null, invalidateHistory);
+    }
+    return changed;
+  };
+  const save = async write => {
+    assertActive();
+    if (saving || replacing) return false;
+    if (typeof createProjectFile !== 'function' || typeof write !== 'function') {
+      throw new TypeError('Project save requires an encoder and a file writer.');
+    }
+    saving = true;
+    const checkpoint = saveState?.checkpoint?.();
+    const savedGeneration = generation;
+    const tokens = saveState?.snapshot?.();
+    const unchanged = () => generation === savedGeneration
+      && saveState?.snapshot?.().currentContentToken === tokens?.currentContentToken
+      && saveState?.snapshot?.().currentPresentationToken === tokens?.currentPresentationToken;
+    saveState?.markFileSaving?.();
     try {
-      result = await replaceSnapshot(null, {
-        reason: 'create-empty', generation: nextGeneration, skipRenderReset: true,
-      });
+      const blob = await createProjectFile(buildProject());
+      const result = await write(blob);
+      if (unchanged()) saveState?.markFileSaved?.(result);
+      return true;
     } catch (error) {
-      generation -= 1;
+      if (error?.name === 'AbortError') {
+        if (checkpoint && unchanged()) saveState.restore(checkpoint);
+      } else if (unchanged()) saveState?.markFileError?.();
       throw error;
-    }
-    emitChanged('project-create-empty', result);
-    return result;
-  };
-
-  const save = async () => {
-    assertActive();
-    const project = buildProject();
-    if (invariants?.assertProjectReferenceIntegrity) {
-      invariants.assertProjectReferenceIntegrity({
-        ...project,
-        countries: project?.countriesData?.features || project?.countries || [],
-      });
-    }
-    if (persistence?.persist) return persistence.persist(project);
-    return project;
-  };
-
-  const undo = async () => {
-    assertActive();
-    const result = await history?.undo?.();
-    if (result) emitChanged('undo', result);
-    return result;
-  };
-
-  const redo = async () => {
-    assertActive();
-    const result = await history?.redo?.();
-    if (result) emitChanged('redo', result);
-    return result;
+    } finally { saving = false; }
   };
 
   const resetRenderGeneration = reason => bumpGeneration(reason || 'render-reset');
@@ -150,9 +188,20 @@ export function createProjectDomain({
     dispatch,
     load,
     createEmpty,
-    undo,
-    redo,
     save,
+    undo: metadata => travelHistory('undo', metadata),
+    redo: metadata => travelHistory('redo', metadata),
+    canUndo: () => history?.canUndo() || false,
+    canRedo: () => history?.canRedo() || false,
+    recordHistory: history?.record,
+    commitHistorySnapshot: history?.commitSnapshot,
+    discardHistory: history?.discardLast,
+    queueAutosave: persistence?.queueProject,
+    queueViewAutosave: persistence?.queueView,
+    queuePresentationAutosave: persistence?.queuePresentation,
+    persistAutosave: persistence?.persist,
+    restoreAutosave: persistence?.restore,
+    flushAutosave: () => persistence?.writeProject(buildAutosave()),
     resetRenderGeneration,
     dispose,
   });

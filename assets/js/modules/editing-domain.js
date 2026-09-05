@@ -151,7 +151,6 @@ export function createEditingDomain({
   toolController = null,
   draftServices = null,
   geometryEditing = null,
-  importTransactions = null,
   getImportCommitter = null,
   onEditingStateChanged = () => {},
   maxHistory = 100,
@@ -178,7 +177,6 @@ export function createEditingDomain({
   const tool = toolController || {};
   const services = draftServices || {};
   const geometry = geometryEditing || {};
-  const imports = importTransactions || {};
   const active = () => { if (disposed) throw new Error('Editing domain is disposed.'); };
   const toolConfig = () => services.getToolConfig?.(activeTool) || null;
   const draftInputActive = () => !!toolConfig();
@@ -488,25 +486,6 @@ export function createEditingDomain({
     return true;
   };
 
-  const beginTool = value => setTool(value);
-  const finishTool = () => setTool('select', { announce: false });
-  const cancelTool = reason => {
-    clearDraft({ reason: reason || 'cancel-tool', render: false });
-    return setTool('select', { announce: false });
-  };
-
-  const beginBoundaryEdit = target => {
-    active();
-    phase = 'boundary-edit';
-    activeTool = target?.mode || 'country-border';
-    geometry.beginBoundaryEdit?.(target);
-    emit('begin-boundary-edit');
-    return true;
-  };
-
-  const beginObjectVertexEdit = (targetRef, vertexKey) => geometry.beginObjectVertexEdit?.({ targetRef, vertexKey }) ?? false;
-  const beginBoundaryVertexEdit = (targetRef, vertexKey) => geometry.beginBoundaryVertexEdit?.({ targetRef, vertexKey }) ?? false;
-
   function cancelActiveGesture(reason = 'gesture-cancel', { emitChange = true } = {}) {
     if (!activeGesture) return false;
     geometry.cancelGesture?.(activeGesture, reason);
@@ -754,10 +733,6 @@ export function createEditingDomain({
     throw error;
   };
 
-  const executeTerritorialTransaction = plan => applyGeometryPatch('territorial', plan);
-  const updatePointer = input => handleInteraction(input);
-  const commit = () => { phase = 'idle'; activeTool = 'select'; return emit('commit'); };
-  const cancel = reason => cancelTool(reason || 'cancel');
   const resetProject = generation => {
     projectGeneration = Number(generation || 0);
     activeGesture = null;
@@ -802,17 +777,14 @@ export function createEditingDomain({
   };
 
   return Object.freeze({
-    setTool, beginTool, updatePointer, finishTool, cancelTool, beginBoundaryEdit,
-    beginObjectVertexEdit, beginBoundaryVertexEdit, handleInteraction, createRenderPacket,
-    startDraft, replaceDraftCoordinates, setDraftHover, clearDraftHover, selectDraftVertex,
-    cancelActiveGesture, resetProject, applyGeometryPatch, executeTerritorialTransaction,
-    commit, cancel, dispose, draftInputActive, commitDraftCoords, appendDraftCoordinate, appendDraftScreenPoint,
+    setTool, handleInteraction, createRenderPacket,
+    startDraft, replaceDraftCoordinates, clearDraftHover,
+    cancelActiveGesture, resetProject,
+    dispose, draftInputActive, appendDraftScreenPoint,
     performDraftUndo, performDraftRedo, removeLastDraftPoint, deleteSelectedDraftPoint,
-    insertDraftPoint, moveSelectedDraftPointByPixels, beginDraftStroke, appendDraftStroke,
-    finishDraftStroke, cancelDraftStroke, redrawDraft, syncDraftAfterMutation: syncAfterMutation,
+    moveSelectedDraftPointByPixels, redrawDraft,
     clearDraft,
     commitImport,
-    reconcileCoast: (...args) => imports.reconcileCoast?.(...args),
     snapshot: () => snapshotCache || (snapshotCache = buildSnapshot('snapshot')),
   });
 }

@@ -26,7 +26,7 @@ function fixture(initialLayout) {
   let layout = initialLayout;
   const elements = Object.fromEntries([
     'leftPanel', 'rightPanel', 'createMenu', 'mobileMapBtn', 'mobileCreateBtn', 'mobileEditBtn',
-    'createMenuBtn', 'togglePanelBtn', 'mobileFileBtn', 'mobileBackdrop', 'multiEditBtn',
+    'createMenuBtn', 'mobileFileBtn', 'mobileBackdrop', 'multiEditBtn',
   ].map(id => [id, element(id)]));
   const workspace = element('workspace');
   const body = element('body');

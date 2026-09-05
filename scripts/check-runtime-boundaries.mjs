@@ -153,6 +153,8 @@ for (const legacyFunction of [
 }
 const selectionDomainSource = sourceByFile.get(path.join(modulesDirectory, 'selection-domain.js')) || '';
 const renderingDomainSource = sourceByFile.get(path.join(modulesDirectory, 'rendering-domain.js')) || '';
+const projectDomainSource = sourceByFile.get(path.join(modulesDirectory, 'project-domain.js')) || '';
+const gisDomainSource = sourceByFile.get(path.join(modulesDirectory, 'gis-domain.js')) || '';
 if (selectionDomainSource.includes('JSON.stringify')) {
   throw new Error('selection-domain.js must use controller change events instead of serialized snapshots');
 }
@@ -234,6 +236,37 @@ for (const symbol of removedRuntimeSymbols) {
   if (runtimeSources.some(source => pattern.test(source))) throw new Error(`Removed runtime symbol was reintroduced: ${symbol}`);
 }
 
+const canonicalPacketSource = sourceByFile.get(path.join(modulesDirectory, 'canonical-country-packet.js')) || '';
+const labelLayoutSource = sourceByFile.get(path.join(modulesDirectory, 'label-layout.js')) || '';
+const countryFlagsSource = sourceByFile.get(path.join(modulesDirectory, 'country-flags.js')) || '';
+if (canonicalPacketSource.includes('encodeCanonicalCountryPacket')) {
+  throw new Error('canonical packet encoder must remain build-only under tools/');
+}
+if (labelLayoutSource.includes('layoutLabelsLegacy')) {
+  throw new Error('legacy label layout must remain outside the runtime module graph');
+}
+if (fs.existsSync(path.join(modulesDirectory, 'renderer-v2-contract.js'))) {
+  throw new Error('architecture-only renderer contract must not be shipped as a runtime module');
+}
+for (const symbol of [
+  'COUNTRY_FLAG_SOURCE',
+  'COUNTRY_FLAG_NATIVE_SOURCE',
+  'CURRENT_COUNTRY_FLAG_EXCLUDED_IDS',
+  'CURRENT_COUNTRY_FLAG_NATIVE_CODES',
+]) {
+  if (new RegExp(`\\bexport\\s+(?:const|function)\\s+${symbol}\\b`).test(countryFlagsSource)) {
+    throw new Error(`country flag test expectation leaked into runtime: ${symbol}`);
+  }
+}
+for (const relativePath of [
+  'tools/canonical-country-packet-encoder.mjs',
+  'tools/benchmark-helpers/legacy-label-layout.mjs',
+  'tests/fixtures/country-flag-expectations.mjs',
+  'scripts/lib/renderer-v2-architecture.mjs',
+]) {
+  if (!fs.existsSync(path.join(root, relativePath))) throw new Error(`Missing non-runtime helper: ${relativePath}`);
+}
+
 const privateModuleDeclarations = new Map([
   ['adaptive-render-quality.js', ['RENDER_QUALITY_TIERS']],
   ['canonical-country-packet.js', ['CANONICAL_COUNTRY_PACKET_VERSION', 'CANONICAL_COUNTRY_PACKET_HEADER_WORDS']],
@@ -255,7 +288,6 @@ const privateModuleDeclarations = new Map([
   ['project-state.js', ['PROJECT_FORMATS', 'isProjectObjectId']],
   ['reliability-core.js', ['delayWithSignal']],
   ['render-lod.js', ['RENDER_LOD_LEVELS']],
-  ['renderer-v2-contract.js', ['RENDERER_V2_PASS_IDS']],
   ['runtime-performance-metrics.js', ['PERFORMANCE_DIAGNOSTIC_THRESHOLDS']],
   ['selection-stroke-geometry.js', ['RIBBON_SEGMENT_SCALAR_COUNT', 'appendSelectionRibbonSegment', 'ribbonVerticesForSelectionSegments', 'flattenSelectionGeometry']],
   ['temporal.js', ['isLeapYear', 'daysInMonth']],
@@ -346,9 +378,62 @@ if (!appSource.includes("invalidateProjection?.('projection-change')")) {
 }
 if (appSource.includes('renderAll(')) throw new Error('app.js must not retain renderAll compatibility calls');
 
-// Integration debt remains public until app.js delegates the corresponding legacy flow:
-// ProjectDomain createEmpty/undo/redo/save, SelectionDomain remove, GIS planning/worker methods,
-// and EditingDomain tool/transaction methods. Domain dispose methods are lifecycle debt until a
-// single application teardown boundary owns them.
+const domainPublicFacade = source => source.slice(source.lastIndexOf('return Object.freeze({'));
+// Project lifecycle APIs now have production UI consumers, not existence-only facades.
+for (const method of ['createEmpty', 'load', 'save', 'undo', 'redo']) {
+  if (!new RegExp(`\\b${method}\\s*[,:(]`).test(domainPublicFacade(projectDomainSource))) {
+    throw new Error(`ProjectDomain must own project lifecycle: ${method}`);
+  }
+}
+if (/\b(?:historyService|persistenceService)\s*\./.test(appSource)) {
+  throw new Error('app.js must use ProjectDomain instead of history/persistence services directly');
+}
+if (/function\s+(?:recordHistory|commitHistorySnapshot|queueAutosave|queueViewAutosave|queuePresentationAutosave|persistAutosave|restoreAutosavedProject)\s*\(/.test(appSource)) {
+  throw new Error('app.js must not reintroduce project history/persistence wrappers');
+}
+const removedDomainFacadeMethods = new Map([
+  [gisDomainSource, [
+    'normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity',
+    'planCountryImport', 'planTerritorialImport', 'planCoastReconciliation',
+    'planRiverPartition', 'executeWorker', 'cancelWorker',
+  ]],
+  [editingDomainSource, [
+    'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'beginBoundaryEdit',
+    'beginObjectVertexEdit', 'beginBoundaryVertexEdit', 'executeTerritorialTransaction',
+    'commit', 'cancel', 'setDraftHover', 'selectDraftVertex', 'applyGeometryPatch',
+    'commitDraftCoords', 'appendDraftCoordinate', 'insertDraftPoint', 'beginDraftStroke',
+    'appendDraftStroke', 'finishDraftStroke', 'cancelDraftStroke', 'syncDraftCoordinates',
+    'reconcileCoast',
+  ]],
+  [renderingDomainSource, [
+    'beginFrame', 'invalidateViewSettle', 'renderGpuInteraction', 'renderBoundaryEdit',
+    'renderGeometryPreview', 'renderSelection', 'renderHoverOverlay', 'renderCountryLabels',
+    'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions',
+    'renderHydroEdits', 'renderDistributions', 'renderBase', 'renderProjectedOverlays',
+  ]],
+]);
+for (const [source, methods] of removedDomainFacadeMethods) {
+  const facade = domainPublicFacade(source);
+  for (const method of methods) {
+    if (new RegExp(`\\b${method}\\s*[,:(]`).test(facade)) {
+      throw new Error(`Domain public facade reintroduced external-unused method: ${method}`);
+    }
+  }
+}
+if (!appSource.includes("window.addEventListener('pagehide'")) {
+  throw new Error('app.js must own the common domain dispose lifecycle');
+}
+if (!appSource.includes('if (!event.persisted) disposeDomainBoundaries();')) {
+  throw new Error('domain disposal must preserve pages retained in the back-forward cache');
+}
+if (!appSource.includes('for (const domain of [renderingDomain, editingDomain, selectionDomain, gisDomain, projectDomain])')) {
+  throw new Error('app.js must dispose every domain in visual-to-data ownership order');
+}
+if (!appSource.includes('domain?.dispose?.()')) {
+  throw new Error('app.js common domain lifecycle does not invoke dispose');
+}
+
+// SelectionDomain.remove remains integration debt until its final caller is migrated or deleted.
+// Every domain dispose method is now integrated through the common pagehide teardown boundary.
 
 console.log(`Runtime boundaries OK: ${moduleFiles.length} modules, no circular imports.`);
