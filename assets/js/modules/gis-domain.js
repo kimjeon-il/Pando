@@ -8,6 +8,12 @@ const cloneValue = value => {
   return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
 };
 
+const freezeValue = value => {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const item of Object.values(value)) freezeValue(item);
+  return Object.freeze(value);
+};
+
 export function createGisDomain({
   context = null,
   projectDomain = null,
@@ -39,6 +45,16 @@ export function createGisDomain({
   const planTerritorialImport = input => { const plan = call(geometryModules.territorialImportPlan || importService, 'buildTerritorialImportTransactionPlan', [input]) || cloneValue(input); onImportPlanned({ kind: 'territorial', plan }); return plan; };
   const planCoastReconciliation = input => { const plan = call(geometryModules.coastReconciliation, 'planCoastReconciliations', [input]) || cloneValue(input); onImportPlanned({ kind: 'coast', plan }); return plan; };
   const planRiverPartition = input => { const plan = call(geometryModules.riverPartition, 'buildRiverTerritoryPartitions', [input]) || cloneValue(input); onImportPlanned({ kind: 'river', plan }); return plan; };
+  const planImport = async (files, options = {}) => {
+    if (disposed) throw new Error('GIS domain is disposed.');
+    const service = typeof importService === 'function' ? await importService() : importService;
+    if (!service?.openFiles) throw new Error('GIS import service is not ready.');
+    const outcome = await service.openFiles(files, cloneValue(options));
+    if (outcome?.status !== 'planned' || !outcome.plan) return outcome;
+    const plan = freezeValue(cloneValue(outcome.plan));
+    onImportPlanned({ kind: plan.kind, plan });
+    return { status: 'planned', plan };
+  };
   const loadRiverPartitionFeatures = async donors => {
     if (!riverPartitionSource) return { features: [], boundsList: [], failedLogicalIds: [], diagnostics: { discoveredLogicalRivers: 0, loadedRivers: 0, failedRiverLoads: 0 } };
     await riverPartitionSource.ensureReady?.();
@@ -189,5 +205,5 @@ export function createGisDomain({
     riverPartitionWorker?.terminate?.();
     riverPartitionWorker = null;
   };
-  return Object.freeze({ normalizeGeometry, validateGeometry, resolveCountryIdentity, planCountryImport, planTerritorialImport, planCoastReconciliation, planRiverPartition, loadRiverPartitionFeatures, executeWorker, computeRiverPartition, cancelWorker, dispose });
+  return Object.freeze({ normalizeGeometry, validateGeometry, resolveCountryIdentity, planCountryImport, planTerritorialImport, planCoastReconciliation, planRiverPartition, planImport, loadRiverPartitionFeatures, executeWorker, computeRiverPartition, cancelWorker, dispose });
 }

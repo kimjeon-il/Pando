@@ -19,6 +19,7 @@ import {
 } from './draft-stroke.js';
 import { resolveSnap, snapIndicator } from './geometry-snap.js';
 import { createEditingRenderPacket, EMPTY_EDITING_RENDER_PACKET } from './editing-render-packet.js';
+import { assertCurrentGisImportPlan } from './gis-import-plan.js';
 
 const cloneCoordinate = value => [Number(value[0]), Number(value[1])];
 const cloneCoordinates = values => (values || []).map(cloneCoordinate);
@@ -151,6 +152,7 @@ export function createEditingDomain({
   draftServices = null,
   geometryEditing = null,
   importTransactions = null,
+  getImportCommitter = null,
   onEditingStateChanged = () => {},
   maxHistory = 100,
 } = {}) {
@@ -776,6 +778,28 @@ export function createEditingDomain({
     phase = 'idle';
     activeTool = 'select';
   };
+  const commitImport = async plan => {
+    assertCurrentGisImportPlan(plan, projectDomain?.getGeneration?.() || 0);
+    const result = plan.payload?.result || {};
+    const committer = await getImportCommitter?.();
+    if (!committer) throw new Error('GIS import committer is not ready.');
+    if (plan.kind === 'project-replace') return committer.applyImportedReplacement(result);
+    if (plan.kind === 'country-merge') return committer.commitGisMerge(result, plan.payload?.plan);
+    if (plan.kind === 'territorial') return committer.commitTerritorialImportWithTransfer(result, plan.source.fileName || '벡터 파일');
+    const target = plan.kind === 'distribution'
+      ? result.distributionType
+      : result.targetType || 'generic';
+    return committer.importGeoJson({ name: plan.source.fileName || '벡터 파일' }, {
+      parsed: result.collection,
+      target,
+      mapping: {
+        nameField: result.mapping?.nameField || '',
+        countryField: result.mapping?.countryField || '',
+        parentField: result.mapping?.parentField || '',
+        levelField: result.mapping?.levelField || '',
+      },
+    });
+  };
 
   return Object.freeze({
     setTool, beginTool, updatePointer, finishTool, cancelTool, beginBoundaryEdit,
@@ -787,12 +811,7 @@ export function createEditingDomain({
     insertDraftPoint, moveSelectedDraftPointByPixels, beginDraftStroke, appendDraftStroke,
     finishDraftStroke, cancelDraftStroke, redrawDraft, syncDraftAfterMutation: syncAfterMutation,
     clearDraft,
-    importProject: (...args) => imports.replaceProject?.(...args),
-    mergeCountries: (...args) => imports.mergeCountries?.(...args),
-    importTerritorial: (...args) => imports.territorial?.(...args),
-    importGeneric: (...args) => imports.geoJson?.(...args),
-    importDistribution: (...args) => imports.distribution?.(...args),
-    commitImport: (...args) => imports.commitImport?.(...args),
+    commitImport,
     reconcileCoast: (...args) => imports.reconcileCoast?.(...args),
     snapshot: () => snapshotCache || (snapshotCache = buildSnapshot('snapshot')),
   });

@@ -15,7 +15,7 @@ RENDERING_DOMAIN = (ROOT / "assets/js/modules/rendering-domain.js").read_text(en
 GPU_RENDERER = (ROOT / "assets/js/modules/gpu-map-renderer.js").read_text(encoding="utf-8")
 TOOLTIP_CONTROLLER = (ROOT / "assets/js/modules/tooltip-controller.js").read_text(encoding="utf-8")
 CONFIRM_MODAL_CONTROLLER = (ROOT / "assets/js/modules/confirm-modal-controller.js").read_text(encoding="utf-8")
-LAYER_PANEL_CONTROLLER = (ROOT / "assets/js/modules/layer-panel-controller.js").read_text(encoding="utf-8")
+LAYER_TREE_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
 HISTORY_SERVICE = (ROOT / "assets/js/modules/history-service.js").read_text(encoding="utf-8")
 HISTORICAL_LIBRARY_SERVICE = (ROOT / "assets/js/modules/historical-library-service.js").read_text(encoding="utf-8")
 IMPORT_SERVICE = (ROOT / "assets/js/modules/import-service.js").read_text(encoding="utf-8")
@@ -80,9 +80,10 @@ class RefactorBoundaryTests(unittest.TestCase):
     def test_dom_event_lifecycle_is_behind_ui_controllers(self):
         self.assertIn("createTooltipController({", APP)
         self.assertIn("createConfirmModalController({", APP)
-        self.assertIn("createLayerPanelController({", APP)
+        self.assertIn("createAppLayerTreeController({", APP)
+        self.assertIn("return createLayerTreeController({", LAYER_TREE_CONTROLLER)
         self.assertIn("elements.cancel?.addEventListener", CONFIRM_MODAL_CONTROLLER)
-        self.assertIn("elements.section?.addEventListener('click'", LAYER_PANEL_CONTROLLER)
+        self.assertIn("elements.section?.addEventListener('click'", LAYER_TREE_CONTROLLER)
         self.assertIn("document.addEventListener('pointerover'", TOOLTIP_CONTROLLER)
 
     def test_document_history_is_behind_history_service(self):

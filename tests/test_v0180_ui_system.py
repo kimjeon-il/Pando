@@ -10,6 +10,7 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 PHASE_CSS = (ROOT / "assets" / "css" / "phase1-ui-cleanup.css").read_text(encoding="utf-8")
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "layer-tree-controller.js").read_text(encoding="utf-8")
 
 
 class V0180UiSystemTests(unittest.TestCase):
@@ -50,7 +51,7 @@ class V0180UiSystemTests(unittest.TestCase):
         self.assertEqual(INDEX.count('class="layer-skeleton-group"'), 3)
         self.assertEqual(INDEX.count('class="layer-skeleton-row"'), 10)
         self.assertIn('.layer-panel-section.is-hydrating .layer-real-items { display: none; }', CSS)
-        self.assertIn('async function completeLayerTreeHydration()', APP)
+        self.assertIn('const completeHydration = async', LAYER_TREE)
         self.assertNotIn('body.is-hydrating', CSS)
 
     def test_native_selection_controls_are_visually_normalized(self):
