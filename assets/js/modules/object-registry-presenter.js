@@ -7,14 +7,13 @@ import { resolveObjectAction } from './object-action-registry.js';
 const ACTION_UI_BINDINGS = Object.freeze({
   focus: Object.freeze([
     Object.freeze({ elementId: 'focusSelectedObjectBtn', icon: true }),
+    Object.freeze({ elementId: 'objectFocusMenuBtn', labelSelector: 'span:last-child', icon: true }),
   ]),
   lock: Object.freeze([
-    Object.freeze({ elementId: 'objectLockBtn', labelSelector: '[data-editor-action-label]', helpSelector: '[data-editor-action-help]', dynamic: true }),
-    Object.freeze({ elementId: 'objectLockMenuBtn', labelSelector: '#objectLockMenuLabel', dynamic: true }),
+    Object.freeze({ elementId: 'objectLockBtn', dynamic: true }),
   ]),
   delete: Object.freeze([
-    Object.freeze({ elementId: 'objectDeleteBtn', labelSelector: 'strong', helpSelector: '[data-editor-action-help]', icon: true }),
-    Object.freeze({ elementId: 'objectDeleteMenuBtn', labelSelector: 'span:last-child', icon: true }),
+    Object.freeze({ elementId: 'objectDeleteBtn', icon: true }),
   ]),
   'change-type': Object.freeze([
     Object.freeze({ elementId: 'changeCountryTypeBtn', labelSelector: 'strong' }),

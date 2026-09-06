@@ -206,7 +206,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     document.body.classList.toggle('map-sheet-open', layout === 'mobile' && !!activeMobileSheet);
 
     const expanded = [
-      ['mobileMapBtn', layersControlOpen], ['mobileCreateBtn', createOpen], ['mobileEditBtn', editorOpen],
+      ['mobileMapBtn', layersControlOpen], ['mobileEditBtn', editorOpen],
       ['createMenuBtn', createOpen],
     ];
     for (const [id, openState] of expanded) {

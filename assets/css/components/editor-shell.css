@@ -3,6 +3,36 @@
 [data-layout="wide"] .surface-map { width: var(--ui-shell-left-panel-width); }
 [data-layout="wide"] .surface-editor { width: var(--ui-shell-right-panel-width); }
 
+/* The wide inspector occupies workspace area, not an overlay over the map. */
+#app[data-layout="wide"] .workspace.editor-drawer-open .map-wrap {
+  right: var(--ui-shell-right-panel-width);
+  width: calc(100% - var(--ui-shell-right-panel-width));
+}
+.editor-task-slot[hidden] { display: none !important; }
+.editor-task-slot { display: flex; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+#rightPanel[data-editor-content="task"] > :is(.surface-header, .editor-view-tabs, #editorScrollBody) { display: none !important; }
+#rightPanel[data-editor-content="task"] #modeEditingContext {
+  display: flex; flex: 1 1 auto; width: 100%; max-width: none; min-height: 0;
+}
+#rightPanel[data-editor-content="task"] #modeEditingHud {
+  display: flex; flex-direction: column; flex: 1 1 auto; width: 100%; max-width: none;
+  min-height: 0; border: 0; border-radius: 0; box-shadow: none; background: var(--surface-elevated);
+}
+#rightPanel[data-editor-content="task"] .mode-task-window-header {
+  flex: 0 0 auto; min-height: var(--ui-surface-header-height-compact); border-bottom: 1px solid var(--border);
+}
+#rightPanel[data-editor-content="task"] #modeTaskWindowContent {
+  display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden;
+}
+#rightPanel[data-editor-content="task"] .mode-task-window-body {
+  flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto;
+}
+#rightPanel[data-editor-content="task"] #modeActionBar {
+  flex: 0 0 auto; width: 100%; max-width: none; margin: 0; border-radius: 0; box-shadow: none;
+  border: 0; border-top: 1px solid var(--border);
+}
+#rightPanel[data-editor-content="task"] #modeTaskMinimizeBtn { display: none !important; }
+
 .topbar {
   min-height: var(--ui-shell-topbar-height);
   height: var(--ui-shell-topbar-height);
@@ -207,9 +237,7 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
   font-weight: var(--ui-v2-weight-bold);
 }
 
-[data-layout="wide"] .left-panel,
-[data-layout="wide"] .right-panel,
-[data-layout="wide"] .right-panel.collapsed {
+[data-layout="wide"] .left-panel {
   top: 0;
   right: auto;
   bottom: 0;
@@ -229,30 +257,6 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-}
-
-[data-layout="wide"] .right-panel,
-[data-layout="wide"] .right-panel.collapsed {
-  transform: translateX(calc(-100% - var(--ui-space-5)));
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-[data-layout="wide"] .right-panel.mobile-open,
-[data-layout="wide"] .right-panel.collapsed.mobile-open {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-[data-layout="wide"] .workspace.editor-drawer-open .left-panel,
-body.create-menu-open [data-layout="wide"] .left-panel {
-  transform: translateX(calc(-100% - var(--ui-space-5)));
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
 }
 
 [data-layout="wide"] :is(.left-panel, .right-panel) > .surface-header {
@@ -302,19 +306,7 @@ body.create-menu-open [data-layout="wide"] .left-panel {
   border-bottom: 1px solid var(--border);
 }
 
-[data-layout="wide"] .create-menu-wrap {
-  width: 0;
-  min-width: 0;
-}
 
-[data-layout="wide"] .create-menu-btn { display: none; }
-
-[data-layout="wide"] .map-command-toolbar {
-  left: calc(var(--map-safe-left) + var(--ui-map-edge));
-}
-
-@media (max-width: 1199px) {
-}
 
 @media (max-width: 799px) {
 
@@ -328,9 +320,7 @@ body.create-menu-open [data-layout="wide"] .left-panel {
   .mode-task-window { transition: none; }
 }
 
-/* Editor-owned layout refinements. */
-.map-command-toolbar,
-.map-view-toolbar{
+.map-view-toolbar {
   width: max-content;
   max-width: calc(100% - var(--map-safe-left, 0) - var(--map-safe-right, 0) - (var(--ui-map-edge) * 2));
   align-self: start;

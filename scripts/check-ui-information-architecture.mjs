@@ -104,16 +104,12 @@ if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext 
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
-const deleteSectionIndex = editor.indexOf('id="editorDeleteActions"');
-const deleteButtonIndex = editor.indexOf('id="objectDeleteBtn"');
-const lastObjectViewIndex = Math.max(
-  ...['countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'genericFeatureProperties', 'labelProperties', 'hydroProperties']
-    .map(id => editor.indexOf(`id="${id}"`)),
-);
-if (!(deleteSectionIndex > lastObjectViewIndex && deleteButtonIndex > deleteSectionIndex)) fail('delete must live after object editors in the final danger section');
-const deleteTag = openingTagById('editorDeleteActions');
-if (!/\beditor-common-danger\b/.test(deleteTag)) fail('editor delete section must be explicitly marked as a danger section');
-if ((editor.match(/id="objectDeleteBtn"/g) || []).length !== 1) fail('editor must expose exactly one primary delete action');
+const footer = html.match(/<footer class="layer-panel-footer">([\s\S]*?)<\/footer>/)?.[1] || '';
+for (const id of ['createMenuBtn', 'objectLockBtn', 'objectDeleteBtn', 'multiSelectionBar']) {
+  if (!footer.includes(`id="${id}"`)) fail(`layer footer must own #${id}`);
+  if ((html.match(new RegExp(`id="${id}"`, 'g')) || []).length !== 1) fail(`#${id} must have one owner`);
+}
+if (editor.includes('id="objectDeleteBtn"') || editor.includes('id="objectLockBtn"')) fail('property editors must not duplicate layer actions');
 
 if (!uiTokens.includes('--ui-object-context-name-lines: 2;')) fail('ObjectContext name line budget must remain two lines');
 if (!contentCss.includes('-webkit-line-clamp: var(--ui-object-context-name-lines);') || !contentCss.includes('white-space: normal;')) {

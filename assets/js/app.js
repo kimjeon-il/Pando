@@ -369,6 +369,7 @@ const createPartitionTerritorialFeature = options => createTerritorialFeature({
   geometry: options.geometry,
 });
 const { createSurfaceController } = surfaceControllerModule;
+const { createEditorWorkspacePresentation } = await import(versionedModuleUrl('./modules/editor-workspace-presentation.js'));
 const { describeTool, dispatchTool, isSpecialTool, toolCursorMode, toolDraftDefinition, toolLabel } = toolControllerModule;
 const { createMapInputController } = mapInputControllerModule;
 const { createGpuMapRenderer } = gpuMapRendererModule;
@@ -661,14 +662,14 @@ const {
     'genericFeatureLandRelationSection', 'genericFeatureOwnerField', 'genericFeatureOwnerInput', 'genericFeatureParentField', 'genericFeatureParentInput', 'genericFeatureLandBindingField', 'genericFeatureLandBindingInput', 'genericFeatureRoleHelp',
     'genericFeatureLandActionsSection', 'splitGenericFeatureBtn', 'mergeGenericFeatureBtn', 'syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn', 'promoteGenericFeatureToCountryBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue',
-    'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'editorCommonActions', 'editorDeleteActions', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu',
-    'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'territoryNameConflict', 'administrativeNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
+    'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu',
+    'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'territoryNameConflict', 'administrativeNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeTerritoryTypeBtn', 'changeAdministrativeTypeBtn', 'reconcileAdministrativeCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
     'countryCodeInput', 'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
-    'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
+    'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
     'createBuildTabBtn', 'createLibraryTabBtn', 'createBuildPanel', 'createLibraryPanel', 'addCountryBtn', 'addTerritoryBtn', 'addAdministrativeBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
     'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
@@ -746,6 +747,16 @@ const {
   let createMenuRoute = 'build';
   const surfaceController = createSurfaceController({ getElement: $, getLayout: () => layoutMode, document });
   const surfaceState = surfaceController.state;
+  const editorWorkspacePresentation = createEditorWorkspacePresentation({
+    document, getLayout: () => layoutMode,
+    panel: $('rightPanel'), task: $('modeEditingContext'),
+    dockSlot: $('editorTaskSlot'), floatingSlot: $('mapTopContextSlot'),
+    content: $('modeTaskWindowContent'), minimize: $('modeTaskMinimizeBtn'),
+    isEditorOpen: () => surfaceController.isOpen('editor'),
+    openEditor: () => { surfaceController.open('editor'); surfaceController.render(); },
+    closeEditor: () => { surfaceController.close('editor'); surfaceController.render(); },
+    onLayoutChange: () => queueMapResize('editor-task-layout'),
+  });
   let mapSurfaceTabs = null;
   let createSurfaceTabs = null;
   let editorSurfaceTabs = null;
@@ -877,11 +888,13 @@ const {
     }
     const fileOpen = !!document.querySelector('.top-actions')?.classList.contains('mobile-open');
     surfaceController.render({ fileOpen });
+    editorWorkspacePresentation.sync();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
     syncEditorPanelControls();
     syncMobileNavigation();
     requestAnimationFrame(syncMapHudBounds);
+    if (isCreateMenuOpen()) positionLayerCreateMenu();
     if (!initial && previous !== layoutMode) queueMapResize('layout-mode-change');
     return previous !== layoutMode;
   }
@@ -889,10 +902,12 @@ const {
   function syncOverlayState() {
     const fileOpen = !!document.querySelector('.top-actions')?.classList.contains('mobile-open');
     const view = surfaceController.render({ fileOpen });
+    editorWorkspacePresentation.sync();
     syncEditorPanelControls();
     refreshMapSheetMetrics();
     syncMobileNavigation();
     requestAnimationFrame(syncMapHudBounds);
+    if (view.createOpen) positionLayerCreateMenu();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     else $('app')?.style.removeProperty('--file-menu-notification-top');
     queueMapResize('panel-layout');
@@ -943,6 +958,22 @@ const {
 
   function toggleCreateMenu(trigger) {
     toggleSurface('create', trigger);
+  }
+
+  function positionLayerCreateMenu() {
+    if (isMobile()) return;
+    const menu = $('createMenu');
+    const trigger = $('createMenuBtn');
+    if (!menu || !trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const left = viewport?.offsetLeft || 0;
+    const top = viewport?.offsetTop || 0;
+    const width = viewport?.width || window.innerWidth;
+    const height = viewport?.height || window.innerHeight;
+    menu.style.setProperty('--layer-create-left', `${Math.max(left + 8, Math.min(rect.left, left + width - menu.getBoundingClientRect().width - 8))}px`);
+    menu.style.setProperty('--layer-create-bottom', `${Math.max(8, window.innerHeight - rect.top + 8)}px`);
+    menu.style.setProperty('--layer-create-height', `${Math.max(80, Math.min(height - 16, rect.top - top - 16))}px`);
   }
 
   function closeActiveMobileSheet({ restoreFocus = false, syncHistory = true } = {}) {
@@ -1229,6 +1260,7 @@ const {
   }
 
   function closeSurface(surface, { manual = false, restoreFocus = false, syncHistory = true } = {}) {
+    if (surface === 'editor' && editorWorkspacePresentation.isDocked()) return;
     const mobileKind = isMobile() ? { layers: 'map', create: 'create', editor: 'edit' }[surface] : null;
     const mobilePanel = mobileKind ? mobileSheetPanel(mobileKind) : null;
     if (!surfaceController.close(surface, { manual, selected: !!state?.selected })) return;
@@ -1263,7 +1295,6 @@ const {
 
   function syncMobileNavigation() {
     const adding = state?.tool === 'new-country' || !!hydroToolConfig(state?.tool) || state?.labelPlacementMode || state?.tool === 'label';
-    $('mobileCreateBtn')?.classList.toggle('active', !!adding || isCreateMenuOpen());
     $('createMenuBtn')?.classList.toggle('active', !!adding);
     $('addCountryBtn')?.classList.toggle('active', state?.tool === 'new-country');
     $('addLabelBtn')?.classList.toggle('active', !!state?.labelPlacementMode || state?.tool === 'label');
@@ -1684,7 +1715,6 @@ const {
     const refs = selection.items || [];
     const capabilities = commonBatchCapabilities(refs);
     syncBatchBooleanInput($('multiPropertiesVisibilityInput'), refs.map(objectRefVisible), capabilities.has('visible'));
-    syncBatchBooleanInput($('multiPropertiesLockInput'), refs.map(objectRefLocked), capabilities.has('lock'));
     if ($('multiPropertiesColorInput')) $('multiPropertiesColorInput').disabled = !capabilities.has('color');
     if ($('multiPropertiesColorTrigger')) $('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
     const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY);
@@ -1797,7 +1827,7 @@ const {
       ? capabilities.has('delete')
       : !!primary && (primary.domain !== 'hydro' || !!hydroEditById(primary.id));
     const deleteDisabled = !canDelete || !!(primary && objectRefLocked(primary));
-    const lockLabel = locked ? '잠금 해제' : '잠금';
+    const lockLabel = locked ? '잠금 해제' : refs.length > 1 ? '모두 잠금' : '잠금';
     const status = $('editorObjectStatus');
     if (status) {
       const lockedCount = refs.filter(objectRefLocked).length;
@@ -1809,49 +1839,22 @@ const {
     }
     const focusButton = $('focusSelectedObjectBtn');
     if (focusButton) focusButton.classList.toggle('hidden', refs.length !== 1 || !primary);
-    const separatorVisible = canDelete && canLock;
-
-    const lockMenuButton = $('objectLockMenuBtn');
-    if (lockMenuButton) {
-      $('objectLockMenuLabel').textContent = lockLabel;
-      $('objectLockMenuIcon')?.setAttribute('href', locked ? '#icon-lock-open' : '#icon-lock-closed');
-      lockMenuButton.classList.toggle('hidden', !canLock);
-      lockMenuButton.disabled = !canLock;
-      lockMenuButton.setAttribute('aria-label', lockLabel);
-    }
-
-    const deleteMenuButton = $('objectDeleteMenuBtn');
-    if (deleteMenuButton) {
-      deleteMenuButton.classList.toggle('hidden', !canDelete);
-      deleteMenuButton.disabled = deleteDisabled;
-      deleteMenuButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
-      deleteMenuButton.setAttribute('aria-label', deleteMenuButton.dataset.tooltip);
-    }
-
-    $('objectActionsMenu')?.querySelector('.object-actions-separator')?.toggleAttribute('hidden', !separatorVisible);
-
     const lockButton = $('objectLockBtn');
     if (lockButton) {
-      lockButton.classList.toggle('hidden', !canLock);
       lockButton.disabled = !canLock;
       lockButton.setAttribute('aria-pressed', String(locked));
       lockButton.setAttribute('aria-label', lockLabel);
       lockButton.dataset.tooltip = lockLabel;
-      lockButton.querySelector('[data-editor-action-label]')?.replaceChildren(document.createTextNode(lockLabel));
-      lockButton.querySelector('[data-editor-action-help]')?.replaceChildren(document.createTextNode(locked ? '선택한 객체의 잠금을 해제합니다.' : '선택한 객체를 잠급니다.'));
       $('objectLockIcon')?.setAttribute('href', locked ? '#icon-lock-closed' : '#icon-lock-open');
     }
-
     const deleteButton = $('objectDeleteBtn');
     if (deleteButton) {
-      deleteButton.classList.toggle('hidden', !canDelete);
       deleteButton.disabled = deleteDisabled;
       deleteButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
       deleteButton.setAttribute('aria-label', deleteButton.dataset.tooltip);
-      deleteButton.querySelector('[data-editor-action-help]')?.replaceChildren(document.createTextNode(deleteDisabled && canDelete ? '잠금 해제 후 삭제할 수 있습니다.' : '선택한 객체를 삭제합니다.'));
     }
-    $('editorCommonActions')?.classList.toggle('hidden', !canLock);
-    $('editorDeleteActions')?.classList.toggle('hidden', !canDelete);
+    const menuFocus = $('objectFocusMenuBtn');
+    if (menuFocus) menuFocus.disabled = refs.length !== 1 || !primary;
   }
 
   function positionObjectActionsMenu(trigger) {
@@ -1897,11 +1900,11 @@ const {
 
   function deleteSelectedFromObjectMenu() {
     closeObjectActionsMenu();
+    const primary = selectionDomain.primary();
     if (selectionDomain.size() > 1) requestBatchDelete();
-    else if ((state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) deleteSelectedCountry();
-    else if ((state.selected?.domain === 'territorial' && state.selected.type !== TERRITORIAL_UNIT_TYPES.COUNTRY)) requestTerritorialUnitDivisionRemoval(state.selected.id);
+    else if (primary?.domain === 'territorial' && primary.type === TERRITORIAL_UNIT_TYPES.COUNTRY) requestDeleteCountry(primary.id);
+    else if (primary?.domain === 'territorial') requestTerritorialUnitDivisionRemoval(primary.id);
     else {
-      const primary = selectionDomain.primary();
       if (!primary) return;
       const info = objectDisplayInfo(primary);
       openConfirmModal({
@@ -5576,7 +5579,7 @@ const {
     return state.labels.map(label => ({
       id: String(label.id),
       name: label.name || '이름 없는 지명',
-      color: '#d6b969',
+      icon: 'place',
       meta: label.kind || '지명',
       selected: state.selected?.domain === 'label' && state.selected.id === String(label.id),
     }));
@@ -7041,6 +7044,7 @@ const {
   }
 
   function syncMapHudBounds() {
+    if (layoutMode === 'wide') return;
     const slot = $('mapTopContextSlot');
     const map = $('map');
     if (!slot || !map) return;
@@ -7049,15 +7053,7 @@ const {
     const edge = 12;
     let left = edge;
     let right = bounds.width - edge;
-    if (layoutMode === 'wide') {
-      const leftPanel = $('leftPanel');
-      const rightPanel = $('rightPanel');
-      if (elementHasLayout(leftPanel)) left = Math.max(left, leftPanel.getBoundingClientRect().right - bounds.left + edge);
-      if (elementHasLayout(rightPanel)) right = Math.min(right, rightPanel.getBoundingClientRect().left - bounds.left - edge);
-    }
-    const command = $('mapCommandToolbar');
     const view = document.querySelector('.map-view-toolbar');
-    if (elementHasLayout(command)) left = Math.max(left, command.getBoundingClientRect().right - bounds.left + 8);
     if (elementHasLayout(view)) right = Math.min(right, view.getBoundingClientRect().left - bounds.left - 8);
     if (right <= left) {
       left = edge;
@@ -7079,7 +7075,7 @@ const {
     }
     mapModeContextWasActive = editing;
     const selectionCount = selectionDomain.size();
-    const showSelection = selectionCount > 1 || (isMobile() && selectionCount > 0);
+    const showSelection = selectionCount > 0;
     if (!editing) state.modeTaskMinimized = false;
     const minimized = editing && state.modeTaskMinimized === true;
     const context = $('modeEditingContext');
@@ -7094,7 +7090,8 @@ const {
       minimize.dataset.tooltip = minimized ? '복원' : '최소화';
       minimize.querySelector('use')?.setAttribute('href', minimized ? '#icon-chevron-down' : '#icon-minus');
     }
-    $('multiSelectionBar')?.classList.toggle('hidden', editing || !showSelection);
+    $('multiSelectionBar')?.classList.toggle('hidden', !showSelection);
+    editorWorkspacePresentation.sync({ active: editing, minimized });
     requestAnimationFrame(syncMapHudBounds);
   }
 
@@ -12606,10 +12603,6 @@ const {
     });
     Object.values(MOBILE_SHEET_IDS).forEach(id => bindMobileSheetSurface($(id)));
     $('mobileMapBtn')?.addEventListener('click', event => toggleSurface('layers', event.currentTarget));
-    $('mobileCreateBtn')?.addEventListener('click', event => {
-      event.stopPropagation();
-      toggleSurface('create', event.currentTarget);
-    });
     $('mobileEditBtn')?.addEventListener('click', event => toggleSurface('editor', event.currentTarget));
     $('mobileCloseLeftBtn')?.addEventListener('click', () => closeSurface('layers', { restoreFocus: true }));
     $('mobileCloseRightBtn')?.addEventListener('click', () => {
@@ -12649,7 +12642,7 @@ const {
       queuePresentationAutosave: (...args) => projectDomain.queuePresentationAutosave(...args), gpuMapRenderer, syncPhysicalControls, markLayerTreeDirty,
       clamp, syncRangeProgress, setActionStatus, selectLayerTreeItem, openObjectActionsMenu,
       isMobile, returnToMapAfterMobileAction, closeObjectActionsMenu,
-      syncLayerVisibilityToggle, setLayerItemVisibility,
+      syncLayerVisibilityToggle, setLayerItemVisibility, batchToggleLocked, deleteSelectedFromObjectMenu,
     });
     layerTreeController.bind();
   }
@@ -14670,11 +14663,8 @@ const {
           applySelectedGenericFeatureToOwnerCountry,
           promoteSelectedGenericFeatureToCountry,
           copySelectedHydroForEditing,
-          batchToggleLocked,
-          deleteSelectedFromObjectMenu,
           closeObjectActionsMenu,
           batchSetVisibility,
-          batchSetLocked,
           enterCountryBorderEditFromSelection,
           undo: () => projectUi.undo(),
           redo: () => projectUi.redo(),
@@ -14783,7 +14773,7 @@ const {
     startup: init,
     onReady: () => { runtimeReady = true; },
     onError: showFatalError,
-    getDisposables: () => [mapInputPresentation, propertyEditorUi, renderingDomain, editingDomain, selectionDomain, gisWorkflow, gisDomain, projectDomain],
+    getDisposables: () => [editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, renderingDomain, editingDomain, selectionDomain, gisWorkflow, gisDomain, projectDomain],
     reportDisposeError: error => reliabilityDiagnostic.push({ category: 'dispose', message: String(error?.message || error) }),
   });
   void lifecycle.start();

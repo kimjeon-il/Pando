@@ -72,8 +72,8 @@ test('action executor delegates canonical commands without owning mutation logic
 });
 
 test('shared layer menu and editor endpoints bind to the same action ids', () => {
-  assert.deepEqual(ACTION_UI_BINDINGS.lock.map(binding => binding.elementId), ['objectLockBtn', 'objectLockMenuBtn']);
-  assert.deepEqual(ACTION_UI_BINDINGS.delete.map(binding => binding.elementId), ['objectDeleteBtn', 'objectDeleteMenuBtn']);
+  assert.deepEqual(ACTION_UI_BINDINGS.lock.map(binding => binding.elementId), ['objectLockBtn']);
+  assert.deepEqual(ACTION_UI_BINDINGS.delete.map(binding => binding.elementId), ['objectDeleteBtn']);
   assert.ok(ACTION_UI_BINDINGS['change-type'].some(binding => binding.elementId === 'changeCountryTypeBtn'));
-  assert.ok(ACTION_UI_BINDINGS['coast-reconcile'].some(binding => binding.elementId === 'objectCoastReconcileMenuBtn'));
+  assert.ok(ACTION_UI_BINDINGS['coast-reconcile'].some(binding => binding.elementId === 'reconcileAdministrativeCoastBtn'));
 });

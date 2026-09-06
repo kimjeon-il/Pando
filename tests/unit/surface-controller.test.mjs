@@ -25,8 +25,8 @@ function element(id = '') {
 function fixture(initialLayout) {
   let layout = initialLayout;
   const elements = Object.fromEntries([
-    'leftPanel', 'rightPanel', 'createMenu', 'mobileMapBtn', 'mobileCreateBtn', 'mobileEditBtn',
-    'createMenuBtn', 'mobileFileBtn', 'mobileBackdrop', 'multiEditBtn',
+    'leftPanel', 'rightPanel', 'createMenu', 'mobileMapBtn', 'createMenuBtn', 'mobileEditBtn',
+    'mobileFileBtn', 'mobileBackdrop', 'multiEditBtn',
   ].map(id => [id, element(id)]));
   const workspace = element('workspace');
   const body = element('body');
@@ -48,12 +48,12 @@ function fixture(initialLayout) {
 
 test('compact surfaces are mutually exclusive and synchronize ARIA once rendered', () => {
   const { controller, elements } = fixture('compact');
-  for (const [surface, button] of [['layers', 'mobileMapBtn'], ['create', 'mobileCreateBtn'], ['editor', 'mobileEditBtn']]) {
+  for (const [surface, button] of [['layers', 'mobileMapBtn'], ['create', 'createMenuBtn'], ['editor', 'mobileEditBtn']]) {
     controller.open(surface);
     const view = controller.render();
     assert.equal(view[`${surface === 'layers' ? 'layers' : surface === 'editor' ? 'editor' : 'create'}Open`], true);
     assert.equal(elements[button].getAttribute('aria-expanded'), 'true');
-    assert.equal(['mobileMapBtn', 'mobileCreateBtn', 'mobileEditBtn'].filter(id => elements[id].classList.contains('sheet-open')).length, 1);
+    assert.equal(['mobileMapBtn', 'createMenuBtn', 'mobileEditBtn'].filter(id => elements[id].classList.contains('sheet-open')).length, 1);
     assert.equal(controller.originOf(surface), SURFACE_OPEN_ORIGINS.USER);
   }
 });
@@ -63,7 +63,7 @@ test('wide keeps the layer surface open while the create popover is active', () 
   controller.open('create');
   assert.deepEqual(controller.render(), { layersOpen: true, editorOpen: false, createOpen: true, activeMobileSheet: null });
   assert.equal(elements.mobileMapBtn.getAttribute('aria-expanded'), 'false');
-  assert.equal(elements.mobileCreateBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.createMenuBtn.getAttribute('aria-expanded'), 'true');
   assert.equal(elements.createMenu.getAttribute('role'), 'dialog');
   assert.equal(elements.createMenu.getAttribute('aria-modal'), 'false');
 });
