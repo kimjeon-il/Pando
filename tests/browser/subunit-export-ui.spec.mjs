@@ -12,7 +12,7 @@ test('GIS export shows one subunit choice and counts subunit-only selection', as
   for (const input of await choices.all()) await input.uncheck();
   await page.locator('.gis-export-layers input[value="subunits"]').check();
   await page.locator('#gisExportNextBtn').click();
-  await expect(page.locator('#gisExportModal')).toContainText(/하위단위\s+46개/);
+  await expect(page.locator('#gisExportModal')).toContainText(/하위단위\s+47개/);
   await expect(page.locator('#gisExportModal')).not.toContainText('생성할 데이터 없음');
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#gisExportConfirmBtn')).toBeVisible();
