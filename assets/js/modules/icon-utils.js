@@ -21,6 +21,7 @@ const ICON_REGISTRY = Object.freeze({
   delete: 'icon-trash',
   country: 'icon-country',
   territory: 'icon-territory',
+  subunit: 'icon-territory',
   administrative: 'icon-administrative',
   region: 'icon-region',
   distribution: 'icon-language',

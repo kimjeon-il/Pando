@@ -19,9 +19,9 @@ const PROJECT_FORMATS = Object.freeze(new Set([
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const text = value => String(value ?? '').trim();
-const LAYER_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels']);
-const ITEM_VISIBILITY_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
-const PRESENTATION_GROUP_KEYS = new Set(['countries', 'territories', 'administrative', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
+const LAYER_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels']);
+const ITEM_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
+const PRESENTATION_GROUP_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
 const GENERIC_PROPERTY_KEYS = new Set(['schemaVersion', 'name', 'notes', 'color', 'locked', 'source']);
 
 export function createProjectObjectId() {
@@ -108,10 +108,18 @@ export function assertCurrentProjectSchema(input) {
   assertAllowedKeys(project.distributionSettings, new Set(['renderMode', 'boundaryVisible']), '분포 표시 설정');
   assertAllowedKeys(project.layerVisibility, LAYER_VISIBILITY_KEYS, '레이어 표시 상태');
   assertAllowedKeys(project.itemVisibility, ITEM_VISIBILITY_KEYS, '객체 표시 상태');
-  assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles']), '레이어 표현');
+  assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles', 'objectStyles', 'objectOrder']), '레이어 표현');
   assertAllowedKeys(project.layerPresentation?.styles, PRESENTATION_GROUP_KEYS, '레이어 표현 스타일');
   for (const [group, style] of Object.entries(project.layerPresentation?.styles || {})) {
     assertAllowedKeys(style, new Set(['opacity', 'boundaryVisible', 'boundaryWidth', 'labelsVisible', 'blendMode']), `${group} 레이어 스타일`);
+  }
+  for (const [key, style] of Object.entries(project.layerPresentation?.objectStyles || {})) {
+    if (!/^territorial:(subunit|region):.+/.test(key)) throw schemaError(`객체 표현 key가 올바르지 않습니다: ${key}`);
+    assertAllowedKeys(style, new Set(['opacity', 'boundaryVisible', 'boundaryWidth', 'labelsVisible', 'blendMode']), `${key} 객체 스타일`);
+  }
+  if (project.layerPresentation?.objectOrder != null && (!Array.isArray(project.layerPresentation.objectOrder)
+    || project.layerPresentation.objectOrder.some(key => typeof key !== 'string' || !/^territorial:(subunit|region):.+/.test(key)))) {
+    throw schemaError('객체 표현 순서가 올바르지 않습니다.');
   }
 
   const countries = project.countriesData?.features || [];
@@ -139,7 +147,7 @@ export function assertCurrentProjectSchema(input) {
   assertUniqueProjectIds(project.labels, '지명');
 
   for (const feature of project.territorialUnits || []) {
-    requireSchemaVersion(feature?.properties?.schemaVersion, `영역 ${text(feature?.id)}`, 1);
+    requireSchemaVersion(feature?.properties?.schemaVersion, `영역 ${text(feature?.id)}`, 2);
     assertAllowedKeys(feature?.properties, new Set([
       'schemaVersion', 'unitType', 'name', 'parentId', 'sovereignId', 'coverageMode',
       'adminLevel', 'style', 'locked', 'validFrom', 'validTo', 'isRemainder', 'notes',

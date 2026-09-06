@@ -1,5 +1,5 @@
 const TYPE_LABELS = Object.freeze({
-  countries: '국가', territories: '권역', administrative: '행정구역', regions: '지방',
+  countries: '국가', subunits: '하위단위', regions: '지방',
   languages: '언어', ethnicities: '민족', religions: '종교', labels: '지명', genericFeatures: '기타 객체',
 });
 

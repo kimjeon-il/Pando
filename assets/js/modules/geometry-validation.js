@@ -360,7 +360,7 @@ function validateAdministrativeContainment(units = [], countries = [], { clipper
     if (parentId && !unitMap.has(parentId) && !countryMap.has(parentId)) issues.push(issue('orphan-administrative', `${properties.name || id}의 parentId가 존재하지 않습니다.`, {
       entityRefs: [id, parentId], bounds: bounds(unit.geometry),
     }));
-    if (clipper?.difference && parent?.geometry && unit.geometry) {
+    if (properties.coverageMode !== 'explicit' && clipper?.difference && parent?.geometry && unit.geometry) {
       const outside = clipGeometry('MultiPolygon', clipper.difference(multiCoordinates(unit.geometry), multiCoordinates(parent.geometry)));
       if (geometryPlanarArea(outside) > 1e-10) issues.push(issue('outside-parent', `${properties.name || id}이(가) 부모 영역 밖에 있습니다.`, {
         entityRefs: [id, featureId(parent)], geometry: outside, bounds: bounds(outside),

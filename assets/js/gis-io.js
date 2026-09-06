@@ -31,12 +31,11 @@
   let activeSession = null;
   let importPlanModulePromise = null;
   const TERRITORIAL_IMPORT_TARGETS = Object.freeze({
-    TERRITORY: 'territory',
-    ADMINISTRATIVE: 'administrative',
+    SUBUNIT: 'subunit',
     REGION: 'region',
   });
   const SOVEREIGN_SELECTION_TARGETS = new Set(Object.values(TERRITORIAL_IMPORT_TARGETS));
-  const PARTITION_IMPORT_TARGETS = new Set([TERRITORIAL_IMPORT_TARGETS.TERRITORY, TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE]);
+  const PARTITION_IMPORT_TARGETS = new Set([TERRITORIAL_IMPORT_TARGETS.SUBUNIT]);
   let wizardReturnFocus = null;
 
   function importPlanModule() {
@@ -506,8 +505,8 @@
     if (manifestLayer?.targetType) return String(manifestLayer.targetType);
     const hint = `${descriptor?.layerName || ''} ${descriptor?.geometryType || ''}`.toLowerCase();
     if (/country|countries|admin[_ ]?0|국가/.test(hint) && /polygon|surface/.test(hint)) return 'country';
-    if (/admin|administrative|행정/.test(hint) && /polygon|surface/.test(hint)) return 'administrative';
-    if (/territor|권역/.test(hint) && /polygon|surface/.test(hint)) return 'territory';
+    if (/admin|subunits|행정/.test(hint) && /polygon|surface/.test(hint)) return 'subunit';
+    if (/territor|하위단위/.test(hint) && /polygon|surface/.test(hint)) return 'subunit';
     if (/region|province|지방|지역/.test(hint) && /polygon|surface/.test(hint)) return 'region';
     return 'generic';
   }
@@ -575,7 +574,7 @@
     const ownerId = document.getElementById('gisTargetCountry')?.value || '';
     select.replaceChildren(new Option('국가 직속', ''));
     for (const unit of (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId))) {
-      select.add(new Option(`${unit.name}${unit.type === 'administrative' ? ` · ${unit.level || 1}단계` : ' · 권역'}`, unit.id));
+      select.add(new Option(`${unit.name}${unit.type === 'subunit' ? ` · ${unit.level || 1}단계` : ' · 하위단위'}`, unit.id));
     }
     if ([...select.options].some(option => option.value === selected)) select.value = selected;
   }
@@ -602,11 +601,11 @@
     document.getElementById('gisDistributionTypeRow')?.classList.toggle('hidden', !distribution);
     document.getElementById('gisTargetCountryRow')?.classList.toggle('hidden', !territorial || independentRegion);
     document.getElementById('gisIndependentRegionRow')?.classList.toggle('hidden', target !== TERRITORIAL_IMPORT_TARGETS.REGION);
-    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'administrative');
+    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'subunit');
     document.getElementById('gisUseCountryFieldRow')?.classList.toggle('hidden', !territorial);
     document.getElementById('gisCountryFieldRow')?.classList.toggle('hidden', !territorial || !useCountryField);
-    document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'administrative' || !useCountryField);
-    document.getElementById('gisLevelFieldRow')?.classList.toggle('hidden', target !== 'administrative');
+    document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'subunit' || !useCountryField);
+    document.getElementById('gisLevelFieldRow')?.classList.toggle('hidden', target !== 'subunit');
     document.getElementById('gisColorFieldRow')?.classList.toggle('hidden', target === 'country');
     populateParentUnits();
     const modeSelect = document.getElementById('gisOpenMode');
@@ -975,7 +974,7 @@
     const ownerNames = new Map((wizardOptions.countryOptions || []).map(country => [String(country.id), country.name || country.id]));
     const formatArea = value => `${Math.round(Number(value) || 0).toLocaleString()} km²`;
     container.append(Object.assign(document.createElement('p'), {
-      textContent: `${impact.featureCount.toLocaleString()}개 ${mapping.targetType === 'administrative' ? '행정구역' : '권역'} · 전체 ${formatArea(impact.totalAreaKm2)}`,
+      textContent: `${impact.featureCount.toLocaleString()}개 ${mapping.targetType === 'subunit' ? '하위단위' : '하위단위'} · 전체 ${formatArea(impact.totalAreaKm2)}`,
     }));
     const list = document.createElement('ul');
     for (const group of impact.groups || []) {
@@ -1141,7 +1140,7 @@
         const descriptor = session.descriptors[Number(layerSelect.value) || 0];
         const mapping = importMappingFromUi();
         if (SOVEREIGN_SELECTION_TARGETS.has(mapping.targetType) && !mapping.targetCountryId && !mapping.independentRegion) {
-          throw new Error('권역·행정구역·지방을 가져오려면 소속 국가를 선택해야 합니다.');
+          throw new Error('하위단위·하위단위·지방을 가져오려면 소속 국가를 선택해야 합니다.');
         }
         if (mapping.useFeatureCountryField && !mapping.countryField) { revealAdvancedField('gisCountryField'); throw new Error('객체별 소속 국가에 사용할 속성을 선택하세요.'); }
         const crsInput = document.getElementById('gisCrsInput');
@@ -1302,8 +1301,7 @@
         type: 'Feature', properties: exportCountryProperties(feature, projectState.countryOverrides), geometry: feature.geometry,
       })),
     });
-    add('territories', 'territories.geojson', 'territory', rowsAsFeatureCollection(territorial.territories));
-    add('administrative', 'administrative.geojson', 'administrative', rowsAsFeatureCollection(territorial.administrative));
+    add('subunit', 'subunits.geojson', 'subunit', rowsAsFeatureCollection(territorial.subunits));
     add('regions', 'regions.geojson', 'region', rowsAsFeatureCollection(territorial.regions));
     add('genericFeatures', 'generic_features.geojson', 'generic', { type: 'FeatureCollection', features: structuredClone(projectState.genericFeatures || []) });
     if (selected.has('distributions')) {

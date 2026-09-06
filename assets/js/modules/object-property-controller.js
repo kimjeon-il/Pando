@@ -1,5 +1,5 @@
 const PROPERTY_TYPE_LABELS = Object.freeze({
-  country: '국가', territory: '권역', administrative: '행정구역', region: '지방',
+  country: '국가', subunit: '하위단위', region: '지방',
   distribution: '분포', generic: '기타 객체', label: '지명', hydro: '강·호수', multi: '다중선택',
 });
 
@@ -65,7 +65,7 @@ export function createObjectPropertyController(runtime = {}) {
 
   function activeForm(type) {
     return type ? $({
-      country: 'countryProperties', territory: 'territoryProperties', administrative: 'administrativeProperties',
+      country: 'countryProperties', subunit: 'subunitProperties',
       region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
       label: 'labelProperties', hydro: 'hydroProperties', multi: 'multiProperties',
     }[type]) : null;
@@ -95,7 +95,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('editSheetTitle')?.classList.remove('hidden');
     $('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
     for (const [kind, id] of Object.entries({
-      country: 'countryProperties', territory: 'territoryProperties', administrative: 'administrativeProperties',
+      country: 'countryProperties', subunit: 'subunitProperties',
       region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
       label: 'labelProperties', hydro: 'hydroProperties', multi: 'multiProperties',
     })) $(id)?.classList.toggle('hidden', type !== kind);
@@ -131,12 +131,12 @@ export function createObjectPropertyController(runtime = {}) {
     const feature = territorialUnitById(id);
     if (!feature) return false;
     const properties = feature.properties || {};
-    const administrative = properties.unitType === territorialUnitTypes.ADMIN;
+    const subunits = properties.unitType === territorialUnitTypes.SUBUNIT;
     const region = properties.unitType === territorialUnitTypes.REGION;
-    const formType = administrative ? 'administrative' : region ? 'region' : 'territory';
+    const formType = region ? 'region' : 'subunit';
     const displayName = territorialUnitName(feature);
     show(formType, displayName, { resetScroll: !refreshOnly });
-    const prefix = administrative ? 'administrative' : region ? 'region' : 'territory';
+    const prefix = region ? 'region' : 'subunit';
     const normalizedName = String(properties.name || '').trim().toLocaleLowerCase('ko');
     const conflict = !!normalizedName && state.territorialUnits.some(candidate => candidate.id !== feature.id
       && candidate.properties?.unitType === properties.unitType
@@ -152,19 +152,20 @@ export function createObjectPropertyController(runtime = {}) {
     $(`${prefix}NotesInput`).value = properties.notes || '';
     const actionIds = region
       ? ['reassignRegionShapeBtn', 'mergeRegionBtn', 'transferRegionBtn']
-      : administrative
-        ? ['splitAdministrativeBtn', 'mergeAdministrativeBtn', 'reassignAdministrativeShapeBtn', 'reconcileAdministrativeCoastBtn', 'transferAdministrativeBtn', 'promoteAdministrativeBtn', 'changeAdministrativeTypeBtn', 'removeAdministrativeDivisionBtn']
-        : ['splitTerritoryBtn', 'mergeTerritoryBtn', 'reassignTerritoryShapeBtn', 'transferTerritoryBtn', 'promoteTerritoryBtn', 'changeTerritoryTypeBtn', 'removeTerritoryDivisionBtn'];
+      : ['splitSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'reconcileSubunitCoastBtn', 'transferSubunitBtn', 'promoteSubunitBtn', 'changeSubunitTypeBtn', 'removeSubunitDivisionBtn'];
     for (const actionId of actionIds) $(actionId).disabled = properties.locked === true;
-    if (administrative) {
-      replaceSelectOptions($('administrativeParentInput'), territorialUnitParentOptions(feature), properties.parentId);
-      $('administrativeLevelValue').textContent = `${Number(properties.adminLevel) || 1}급`;
+    if (subunits) {
+      replaceSelectOptions($('subunitParentInput'), territorialUnitParentOptions(feature), properties.parentId);
+      $('subunitLevelInput').value = properties.adminLevel || '';
     } else if (region) {
       replaceSelectOptions($('regionParentInput'), territorialParentOptions(feature), properties.parentId);
+      // Kept only to display pre-v5 relationship data; Region is not a new
+      // branch in the Country/Subunit hierarchy.
+      $('regionParentInput').disabled = true;
       $('regionValidFromInput').value = properties.validFrom || '';
       $('regionValidToInput').value = properties.validTo || '';
     }
-    $('selectionStatus').textContent = `${administrative ? `행정구역 · ${territorialUnitCountryName(feature)} · ${Number(properties.adminLevel) || 1}급` : region ? '지방' : `권역 · ${territorialUnitCountryName(feature)}`} · ${displayName}${areaSuffix(feature.geometry)}`;
+    $('selectionStatus').textContent = `${subunits ? `하위단위 · ${territorialUnitCountryName(feature)}${Number(properties.adminLevel) > 0 ? ` · ${properties.adminLevel}급` : ''}` : '지방'} · ${displayName}${areaSuffix(feature.geometry)}`;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;

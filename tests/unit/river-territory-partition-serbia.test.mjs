@@ -74,6 +74,28 @@ test('production Serbia rivers separate three northern cells from the southern m
     return matches[0];
   });
   assert.equal(new Set(cells.map(cell => cell.key)).size, 4);
+  // Exercise the production annex worker: these three cells formerly left
+  // two almost-zero-area polygons north-west of Serbia's mainland.
+  const worker = vm.createContext({ URL });
+  worker.self = worker;
+  worker.location = { href: 'http://test/assets/js/workers/map-edit-worker.js' };
+  worker.importScripts = () => {};
+  for (const path of ['modules/country-geometry.js', 'vendor/polygon-clipping.min.js', 'workers/map-edit-worker.js']) {
+    vm.runInContext(read(`assets/js/${path}`).toString(), worker);
+  }
+  const selected = cells.slice(0, 3);
+  worker.features = collection.features;
+  worker.payload = { targetId: 'HUN', donorIds: ['SRB'],
+    transferredGeometry: { type: 'MultiPolygon', coordinates: clipper.union(...selected.map(cell => polygons(cell.geometry))) },
+    riverSliverContext: [{ donorId: 'SRB', polygonIndex: 0,
+      unselectedGeometries: result.candidates.filter(cell => !selected.includes(cell)).map(cell => cell.geometry) }],
+  };
+  const annex = vm.runInContext('executeAnnex(payload, new Map(features.map(f => [f.id, f])))', worker);
+  // Two persisted artifacts plus one smaller raw clipping fragment that the
+  // old normalization dropped. All are transferred, not silently discarded.
+  assert.equal(annex.autoIncludedSlivers.count, 3);
+  assert.ok(annex.autoIncludedSlivers.areaM2 < 0.000001);
+  assert.equal(annex.features.find(f => f.id === 'SRB').geometry.type, 'Polygon');
   for (const [index, expectedKm2] of [9022, 9036, 4228].entries()) {
     assert.ok(Math.abs(cells[index].areaM2 / 1e6 - expectedKm2) < 2);
   }

@@ -5,12 +5,11 @@ import {
   temporalIntervalsOverlap,
 } from './temporal.js';
 
-export const TERRITORIAL_SCHEMA_VERSION = 1;
+export const TERRITORIAL_SCHEMA_VERSION = 2;
 
 export const TERRITORIAL_UNIT_TYPES = Object.freeze({
   COUNTRY: 'country',
-  TERRITORY: 'territory',
-  ADMIN: 'admin',
+  SUBUNIT: 'subunit',
   REGION: 'region',
 });
 
@@ -59,8 +58,8 @@ function normalizedProperties(feature, type) {
     parentId,
     sovereignId,
     coverageMode,
-    adminLevel: type === TERRITORIAL_UNIT_TYPES.ADMIN
-      ? Math.max(1, Number.parseInt(source.adminLevel, 10) || 1)
+    adminLevel: type === TERRITORIAL_UNIT_TYPES.SUBUNIT && Number(source.adminLevel) > 0
+      ? Math.max(1, Number.parseInt(source.adminLevel, 10))
       : null,
     style: color ? { ...sourceStyle, color } : { ...sourceStyle },
     locked: source.locked === true,
@@ -144,8 +143,9 @@ export function territorialSiblings(units, source) {
   return (units || []).filter(candidate => candidate.id !== source.id
     && candidate.properties?.unitType === properties.unitType
     && text(candidate.properties?.parentId) === text(properties.parentId)
-    && (properties.unitType !== TERRITORIAL_UNIT_TYPES.ADMIN
-      || Number(candidate.properties?.adminLevel || 0) === Number(properties.adminLevel || 0)));
+    && (properties.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT
+      || Number(candidate.properties?.adminLevel || 0) === Number(properties.adminLevel || 0))
+    && (candidate.properties?.metadata?.legacyTerritorialPartition || '') === (properties.metadata?.legacyTerritorialPartition || ''));
 }
 
 export function validateTerritorialRelations(units, {
@@ -194,7 +194,7 @@ export function normalizeTerritorialRelations(value) {
   const output = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    if (Number(raw?.schemaVersion) !== TERRITORIAL_SCHEMA_VERSION) throw new Error('기간별 관계 schemaVersion이 현재 형식과 일치하지 않습니다.');
+    if (Number(raw?.schemaVersion) !== 1) throw new Error('기간별 관계 schemaVersion이 현재 형식과 일치하지 않습니다.');
     const unitId = text(raw?.unitId);
     if (!unitId) throw new Error('기간별 관계의 대상 영역 ID가 비어 있습니다.');
     const id = text(raw.id);
@@ -204,7 +204,7 @@ export function normalizeTerritorialRelations(value) {
     const interval = normalizeTemporalInterval(raw.validFrom, raw.validTo);
     output.push({
       id,
-      schemaVersion: TERRITORIAL_SCHEMA_VERSION,
+      schemaVersion: 1,
       unitId,
       parentId: text(raw.parentId),
       sovereignId: text(raw.sovereignId),
@@ -252,6 +252,10 @@ export function createTerritorialFeature({
   sourceLibraryId = '',
   sourceGeometryVersion = '',
 }) {
+  if (unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT) {
+    parentId = text(parentId || sovereignId);
+    if (!parentId) throw new Error('하위단위의 직속 소속을 지정해야 합니다.');
+  }
   const resolvedCoverageMode = coverageMode || (unitType === TERRITORIAL_UNIT_TYPES.REGION
     ? TERRITORIAL_COVERAGE_MODES.EXPLICIT
     : TERRITORIAL_COVERAGE_MODES.PARTITION);
@@ -356,7 +360,8 @@ export function changeSovereign(unit, newSovereignId) {
 function partitionGroupKey(feature) {
   const properties = feature?.properties || {};
   if (properties.coverageMode !== TERRITORIAL_COVERAGE_MODES.PARTITION || !properties.parentId) return '';
-  return [text(properties.parentId), text(properties.unitType), Number(properties.adminLevel) || 0].join('\u0000');
+  return [text(properties.parentId), text(properties.unitType), Number(properties.adminLevel) || 0,
+    text(properties.metadata?.legacyTerritorialPartition)].join('\u0000');
 }
 
 export function validatePartitionRemainders(units) {
@@ -403,8 +408,8 @@ export function changeUnitType(unit, newType) {
   next.properties.coverageMode = type === TERRITORIAL_UNIT_TYPES.REGION
     ? TERRITORIAL_COVERAGE_MODES.EXPLICIT
     : next.properties.coverageMode;
-  next.properties.adminLevel = type === TERRITORIAL_UNIT_TYPES.ADMIN
-    ? Math.max(1, Number(next.properties.adminLevel) || 1)
+  next.properties.adminLevel = type === TERRITORIAL_UNIT_TYPES.SUBUNIT && Number(next.properties.adminLevel) > 0
+    ? Math.max(1, Number(next.properties.adminLevel))
     : null;
   return next;
 }

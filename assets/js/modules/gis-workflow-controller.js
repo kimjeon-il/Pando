@@ -67,12 +67,12 @@ export function createGisWorkflowController({
   }
 
   function gisImportParentOptions() {
-    return (getTerritorialUnits() || []).filter(feature => [TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN].includes(feature.properties?.unitType)).map(feature => ({
+    return (getTerritorialUnits() || []).filter(feature => [TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(feature.properties?.unitType)).map(feature => ({
       id: String(feature.id),
       name: territorialUnitName(feature),
       countryId: String(feature.properties?.sovereignId || ''),
       type: feature.properties?.unitType,
-      level: Number(feature.properties?.adminLevel) || 1,
+      level: Number(feature.properties?.adminLevel) || null,
     })).filter(unit => unit.id && unit.countryId).sort((left, right) => layerNameCollator.compare(left.name, right.name));
   }
 

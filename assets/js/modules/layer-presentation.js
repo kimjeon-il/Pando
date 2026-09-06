@@ -1,11 +1,10 @@
-export const LAYER_PRESENTATION_SCHEMA_VERSION = 2;
+export const LAYER_PRESENTATION_SCHEMA_VERSION = 3;
 
 export const OVERLAY_GROUPS = Object.freeze([
   'religions',
   'ethnicities',
   'languages',
-  'administrative',
-  'territories',
+  'subunits',
   'regions',
   'genericFeatures',
 ]);
@@ -29,6 +28,18 @@ const DEFAULT_STYLE = Object.freeze({
 });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const orderIndexCache = new WeakMap();
+
+export function layerObjectRank(presentation, objectKey) {
+  const order = presentation?.objectOrder;
+  if (!objectKey || !Array.isArray(order) || !order.length) return 0;
+  let index = orderIndexCache.get(order);
+  if (!index) {
+    index = new Map(order.map((key, rank) => [key, rank]));
+    orderIndexCache.set(order, index);
+  }
+  return (index.get(objectKey) ?? order.length) / (order.length + 1);
+}
 
 function normalizeLayerStyle(value = {}) {
   return {
@@ -60,7 +71,10 @@ export function normalizeLayerPresentation(value = {}) {
     }
     styles[group] = normalizeLayerStyle(sourceStyles[group]);
   }
-  return { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder, styles };
+  const objectStyles = {};
+  for (const [key, style] of Object.entries(value.objectStyles || {})) objectStyles[key] = normalizeLayerStyle(style);
+  const objectOrder = [...new Set((value.objectOrder || []).map(String))];
+  return { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder, styles, objectStyles, objectOrder };
 }
 
 export function moveOverlayGroup(presentation, group, direction) {
@@ -69,4 +83,6 @@ export function moveOverlayGroup(presentation, group, direction) {
   return normalizeLayerPresentation(presentation);
 }
 
-export const layerStyle = (presentation, group) => normalizeLayerStyle(normalizeLayerPresentation(presentation).styles[group]);
+export const layerStyle = (presentation, group, objectKey = '') => normalizeLayerStyle(
+  (objectKey && presentation?.objectStyles?.[objectKey]) || presentation?.styles?.[group],
+);

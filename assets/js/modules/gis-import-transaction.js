@@ -94,11 +94,11 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       objectIds: [String(raw.id ?? index + 1), rawCountryValue],
     });
     const countryId = String(fieldCountry || resolveImportedCountryId(mapping.targetCountryId, state.countriesData?.features || []) || '');
-    const commonParent = kind === TERRITORIAL_UNIT_TYPES.ADMIN && mapping.parentId
+    const commonParent = kind === TERRITORIAL_UNIT_TYPES.SUBUNIT && mapping.parentId
       ? knownUnits.find(candidate => String(candidate.id) === String(mapping.parentId)
         && String(candidate.properties?.sovereignId || '') === countryId)
       : null;
-    const rawParentValue = kind === TERRITORIAL_UNIT_TYPES.ADMIN && mapping.useFeatureCountryField && mapping.parentField
+    const rawParentValue = kind === TERRITORIAL_UNIT_TYPES.SUBUNIT && mapping.useFeatureCountryField && mapping.parentField
       ? String(properties[mapping.parentField] ?? '').trim()
       : '';
     const parentMatches = rawParentValue
@@ -114,13 +114,8 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       objectIds: [String(raw.id ?? index + 1), rawParentValue],
     });
     const parent = commonParent || mappedParent;
-    const level = kind === TERRITORIAL_UNIT_TYPES.ADMIN
-      ? (parent?.properties?.unitType === TERRITORIAL_UNIT_TYPES.ADMIN
-        ? Math.max(1, Number(parent.properties.adminLevel) || 1) + 1
-        : parent?.properties?.unitType === TERRITORIAL_UNIT_TYPES.TERRITORY
-          ? 2
-          : 1)
-      : null;
+    const rank = mapping.levelField ? Number(properties[mapping.levelField]) : null;
+    const level = kind === TERRITORIAL_UNIT_TYPES.SUBUNIT && rank > 0 ? Math.floor(rank) : null;
     const mappedId = mapping.idField === '__fid__' ? raw.id : properties[mapping.idField];
     const sourceId = String(mappedId ?? raw.id ?? '').trim();
     const baseOptions = {
@@ -231,7 +226,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       if (!hadPartition) {
         const remainder = normalizeClippedLandGeometry(clipper.difference(container.geometry.coordinates, feature.geometry.coordinates));
         if (remainder) nextUnits.push(createPartitionTerritorialFeature({
-          id: uid(kind === TERRITORIAL_UNIT_TYPES.ADMIN ? 'administrative' : 'territory'),
+          id: uid('subunit'),
           ...context,
           isRemainder: true,
           geometry: remainder,
@@ -246,11 +241,11 @@ export function createGisImportTransactionCommitter(runtime = {}) {
   }
   
   async function commitTerritorialImportWithTransfer(result, fileName) {
-    const kind = result.targetType === 'administrative'
-      ? TERRITORIAL_UNIT_TYPES.ADMIN
+    const kind = result.targetType === 'subunit'
+      ? TERRITORIAL_UNIT_TYPES.SUBUNIT
       : result.targetType === 'region'
         ? TERRITORIAL_UNIT_TYPES.REGION
-        : TERRITORIAL_UNIT_TYPES.TERRITORY;
+        : TERRITORIAL_UNIT_TYPES.SUBUNIT;
     const mapping = result.mapping || {};
     const sourceFolderId = `gis:${uid('source')}`;
     const imported = prepareImportedTerritorialUnitFeatures(result.collection?.features || [], kind, mapping, sourceFolderId);
@@ -345,7 +340,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
             parent.geometry.coordinates,
           ));
       if (outsideParent && sphericalGeometryAreaKm2(outsideParent) > Math.max(0.0001, sphericalGeometryAreaKm2(feature.geometry) * 1e-9)) {
-            throw createGisImportError('가져온 행정구역이 지정된 부모 영역 밖에 존재합니다.', {
+            throw createGisImportError('가져온 하위단위가 지정된 부모 영역 밖에 존재합니다.', {
               category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
               objectIds: [feature.id, parentId],
             });
@@ -407,7 +402,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
   
   async function resolveTerritorialCoast(feature, country, countryGeometryOverrides) {
     const unitType = feature?.properties?.unitType;
-    if (![TERRITORIAL_UNIT_TYPES.TERRITORY, TERRITORIAL_UNIT_TYPES.ADMIN, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
+    if (![TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
     if (!country?.geometry) {
       if (!feature?.properties?.sovereignId && unitType === TERRITORIAL_UNIT_TYPES.REGION) return { direction: 'none' };
       throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
@@ -513,7 +508,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       if (!hadPartition) {
         const remainder = normalizeClippedLandGeometry(clipper.difference(container.geometry.coordinates, feature.geometry.coordinates));
         if (remainder) nextUnits.push(createPartitionTerritorialFeature({
-          id: uid(kind === TERRITORIAL_UNIT_TYPES.ADMIN ? 'administrative' : 'territory'),
+          id: uid('subunit'),
           ...context,
           isRemainder: true,
           geometry: remainder,
@@ -693,8 +688,8 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     const features = parsed.type === 'FeatureCollection' ? parsed.features : parsed.type === 'Feature' ? [parsed] : [];
     const structuredIssues = features.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)).flatMap(validateStructuredGeometry);
     if (structuredIssues.length) throw new Error(`가져온 geometry가 올바르지 않습니다. ${structuredIssues[0].message}`);
-    if (target === 'territory' || target === 'administrative') {
-      await importGeoJsonTerritorialUnits(features, target === 'administrative' ? TERRITORIAL_UNIT_TYPES.ADMIN : TERRITORIAL_UNIT_TYPES.TERRITORY, mapping);
+    if (target === 'subunit') {
+      await importGeoJsonTerritorialUnits(features, target === 'subunit' ? TERRITORIAL_UNIT_TYPES.SUBUNIT : TERRITORIAL_UNIT_TYPES.SUBUNIT, mapping);
       return;
     }
     if (target === 'region') {

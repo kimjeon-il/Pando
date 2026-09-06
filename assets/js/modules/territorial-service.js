@@ -1,4 +1,5 @@
 import { createDocumentMutationRunner } from './document-mutation-runner.js';
+import { validateSubunitParentChanges } from './territorial-scope.js';
 import {
   TERRITORIAL_UNIT_TYPES,
   runTerritorialTransaction,
@@ -53,6 +54,13 @@ export function createTerritorialApplicationService({
     if (feature.properties?.locked === true && field !== 'locked') return { ok: false, code: 'locked', unit: feature };
     const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
     if (currentValue === value) return { ok: true, changed: false, unit: feature };
+    if (field === 'parentId' || field === 'unitType') {
+      const previous = repository.list();
+      const candidate = previous.map(item => String(item.id) === key
+        ? { ...item, properties: { ...item.properties, [field]: value } } : item);
+      const validation = validateSubunitParentChanges(previous, candidate, id => !!country(id));
+      if (!validation.ok) return { ok: false, code: 'invalid-parent', issues: validation.issues, unit: feature };
+    }
     mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
       unitCommands.setField(key, field, value);
     }, { renderDirty: { domain: 'territorial', change: 'metadata' } });
@@ -60,6 +68,8 @@ export function createTerritorialApplicationService({
   }
 
   function replaceUnits(units, { type = 'territorial-metadata', affectedIds = [] } = {}) {
+    const parentValidation = validateSubunitParentChanges(repository.list(), units, id => !!country(id));
+    if (!parentValidation.ok) throw new Error(parentValidation.issues[0]);
     if (JSON.stringify(repository.list().filter(feature => feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY)) === JSON.stringify(units)) {
       return { ok: true, changed: false };
     }

@@ -61,7 +61,7 @@ test('territorial service routes country commands and replaces units atomically'
   service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'name', 'Renamed');
   assert.equal(service.get('country-a').properties.name, 'Renamed');
   const replacement = [{
-    type: 'Feature', id: 'unit-b', properties: { unitType: 'admin', name: 'Admin', locked: false }, geometry: { type: 'Polygon', coordinates: [] },
+    type: 'Feature', id: 'unit-b', properties: { unitType: 'subunit', name: 'Subunit', parentId: 'country-a', locked: false }, geometry: { type: 'Polygon', coordinates: [] },
   }];
   service.replaceUnits(replacement, { type: 'territorial-replace', affectedIds: ['unit-a', 'unit-b'] });
   assert.equal(units(), replacement);
@@ -70,4 +70,17 @@ test('territorial service routes country commands and replaces units atomically'
     affectedIds: ['unit-a', 'unit-b'],
     renderDirty: { domain: 'territorial', change: 'structure' },
   });
+});
+
+test('metadata parent edits cannot bypass Subunit parent and cycle validation', () => {
+  const { service, transactions } = fixture();
+  service.replaceUnits([
+    { id: 's', properties: { unitType: 'subunit', parentId: 'country-a' } },
+    { id: 'r', properties: { unitType: 'region' } },
+  ]);
+  const count = transactions.length;
+  assert.equal(service.updateMetadata('subunit', 's', 'parentId', 'r').code, 'invalid-parent');
+  assert.equal(service.updateMetadata('subunit', 's', 'parentId', 's').code, 'invalid-parent');
+  assert.equal(transactions.length, count);
+  assert.equal(service.get('s').properties.parentId, 'country-a');
 });

@@ -75,13 +75,11 @@ export function createPropertyEditorBindings({
       { id: 'genericFeatureNotesInput', field: 'notes', commit: commitGenericFeatureMeta },
       { id: 'hydroNameInput', field: 'name', commit: commitHydroEdit, transform: value => value.trim() },
       { id: 'hydroNotesInput', field: 'notes', commit: commitHydroEdit },
-      { id: 'territoryNameInput', field: 'name', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
-      { id: 'territoryCountryInput', field: 'sovereignId', commit: commitTerritorialUnitMeta },
-      { id: 'territoryNotesInput', field: 'notes', commit: commitTerritorialUnitMeta },
-      { id: 'administrativeNameInput', field: 'name', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
-      { id: 'administrativeCountryInput', field: 'sovereignId', commit: commitTerritorialUnitMeta },
-      { id: 'administrativeParentInput', field: 'parentId', commit: commitTerritorialUnitMeta },
-      { id: 'administrativeNotesInput', field: 'notes', commit: commitTerritorialUnitMeta },
+      { id: 'subunitNameInput', field: 'name', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
+      { id: 'subunitCountryInput', field: 'sovereignId', commit: commitTerritorialUnitMeta },
+      { id: 'subunitParentInput', field: 'parentId', commit: commitTerritorialUnitMeta },
+      { id: 'subunitLevelInput', field: 'level', commit: commitTerritorialUnitMeta, transform: value => Number(value) > 0 ? Math.floor(Number(value)) : null },
+      { id: 'subunitNotesInput', field: 'notes', commit: commitTerritorialUnitMeta },
       { id: 'regionNameInput', field: 'name', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
       { id: 'regionCountryInput', field: 'sovereignId', commit: commitTerritorialUnitMeta },
       { id: 'regionParentInput', field: 'parentId', commit: commitTerritorialUnitMeta },
@@ -100,44 +98,32 @@ export function createPropertyEditorBindings({
     });
     listen($('addTerritorialDistributionBtn'), 'click', addTerritorialDistributionEntry);
     listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(() => returnToMapAfterMobileAction(startGeometryDistributionDraft())));
-    listen($('removeTerritoryDivisionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitDivisionRemoval(getPrimary().id));
-    listen($('removeAdministrativeDivisionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitDivisionRemoval(getPrimary().id));
-    listen($('splitTerritoryBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitSplitMode(getPrimary().id))));
-    listen($('splitAdministrativeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitSplitMode(getPrimary().id))));
-    listen($('mergeTerritoryBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitMergeMode(getPrimary().id))));
-    listen($('mergeAdministrativeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitMergeMode(getPrimary().id))));
+    listen($('removeSubunitDivisionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitDivisionRemoval(getPrimary().id));
+    listen($('splitSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitSplitMode(getPrimary().id))));
+    listen($('mergeSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitMergeMode(getPrimary().id))));
     listen($('mergeRegionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitMergeMode(getPrimary().id))));
-    listen($('reassignTerritoryShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitRedrawMode(getPrimary().id))));
-    listen($('reassignAdministrativeShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitRedrawMode(getPrimary().id))));
-    listen($('reconcileAdministrativeCoastBtn'), 'click', () => {
+    listen($('reassignSubunitShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitRedrawMode(getPrimary().id))));
+    listen($('reconcileSubunitCoastBtn'), 'click', () => {
       if (!(getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
       const feature = territorialUnitById(getPrimary().id);
-      if (feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.ADMIN || feature.properties?.locked === true) return;
+      if (feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT || feature.properties?.locked === true) return;
       reconcileAdminCountryCoast(getPrimary().id);
     });
     listen($('reassignRegionShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitRedrawMode(getPrimary().id))));
-    listen($('promoteTerritoryBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitPromotion(getPrimary().id));
-    listen($('promoteAdministrativeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitPromotion(getPrimary().id));
+    listen($('promoteSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitPromotion(getPrimary().id));
     listen($('changeCountryTypeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type === TERRITORIAL_UNIT_TYPES.COUNTRY)
       && openTerritorialTypeModal(TERRITORIAL_UNIT_TYPES.COUNTRY, getPrimary().id));
-    listen($('changeTerritoryTypeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY)
-      && openTerritorialTypeModal(TERRITORIAL_UNIT_TYPES.TERRITORY, getPrimary().id));
-    listen($('changeAdministrativeTypeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY)
-      && openTerritorialTypeModal(TERRITORIAL_UNIT_TYPES.ADMIN, getPrimary().id));
+    listen($('changeSubunitTypeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY)
+      && openTerritorialTypeModal(TERRITORIAL_UNIT_TYPES.SUBUNIT, getPrimary().id));
     listen($('territorialTypeInput'), 'change', syncTerritorialTypeModal);
     listen($('territorialTypeSovereignInput'), 'change', syncTerritorialTypeModal);
     listen($('territorialTypeParentInput'), 'change', syncTerritorialTypeModal);
     listen($('territorialTypeCancelBtn'), 'click', closeTerritorialTypeModal);
     listen($('territorialTypeModal').querySelector('.confirm-modal-dim'), 'click', closeTerritorialTypeModal);
     listen($('territorialTypeConfirmBtn'), 'click', confirmTerritorialTypeConversion);
-    listen($('transferTerritoryBtn'), 'click', () => {
+    listen($('transferSubunitBtn'), 'click', () => {
       setEditorShellView('info');
-      $('territoryCountryInput').focus();
-      setActionStatus('소속 국가 목록에서 이전할 국가를 선택하세요. 실제 국경 변경 전에 확인합니다.', 'success', 3400);
-    });
-    listen($('transferAdministrativeBtn'), 'click', () => {
-      setEditorShellView('info');
-      $('administrativeCountryInput').focus();
+      $('subunitCountryInput').focus();
       setActionStatus('소속 국가 목록에서 이전할 국가를 선택하세요. 실제 국경 변경 전에 확인합니다.', 'success', 3400);
     });
     listen($('transferRegionBtn'), 'click', () => {

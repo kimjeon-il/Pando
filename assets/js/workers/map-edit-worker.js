@@ -101,22 +101,79 @@ function areaPolygonsNearFeatures(features, areaCoordinates) {
   return polygons;
 }
 
-function subtractAreaFromGeometry(geometry, areaCoordinates, tolerance) {
+// Translate before summing: tiny slivers at large longitude/latitude otherwise
+// lose their area to cancellation. This is an existence test, not a tolerance.
+function localRingArea(ring, scaleX = 1, scaleY = 1) {
+  const origin = ring?.[0];
+  if (!origin) return 0;
+  let sum = 0;
+  for (let i = 1; i < ring.length; i += 1) {
+    sum += (ring[i - 1][0] - origin[0]) * (ring[i][1] - origin[1])
+      - (ring[i][0] - origin[0]) * (ring[i - 1][1] - origin[1]);
+  }
+  return Math.abs(sum / 2) * scaleX * scaleY;
+}
+
+function positivePolygonArea(polygon) {
+  return localRingArea(polygon[0]) - polygon.slice(1).reduce((sum, ring) => sum + localRingArea(ring), 0) > 0;
+}
+
+function sliverAreaM2(polygon) {
+  const bounds = polygonBounds(polygon);
+  // Skip uncertain wraps/polar geometry rather than approximating it away.
+  if (bounds[2] - bounds[0] > 1 || bounds[3] - bounds[1] > 1 || Math.max(Math.abs(bounds[1]), Math.abs(bounds[3])) > 80) return Infinity;
+  const meters = 6371008.8 * Math.PI / 180;
+  const x = meters * Math.cos((bounds[1] + bounds[3]) / 2 * Math.PI / 180);
+  return Math.max(0, localRingArea(polygon[0], x, meters)
+    - polygon.slice(1).reduce((sum, ring) => sum + localRingArea(ring, x, meters), 0));
+}
+
+function sharesBoundary(polygon, others) {
+  // Only near-collinear overlapping edges, never proximity or point contact.
+  const epsilon = 1e-11;
+  for (const ring of polygon) for (let i = 1; i < ring.length; i += 1) {
+    const a = ring[i - 1], b = ring[i];
+    const dx = b[0] - a[0], dy = b[1] - a[1], length = Math.hypot(dx, dy);
+    if (length <= epsilon) continue;
+    for (const other of others) for (const otherRing of other) for (let j = 1; j < otherRing.length; j += 1) {
+      const c = otherRing[j - 1], d = otherRing[j];
+      if (Math.abs(dx * (c[1] - a[1]) - dy * (c[0] - a[0])) / length > epsilon
+        || Math.abs(dx * (d[1] - a[1]) - dy * (d[0] - a[0])) / length > epsilon) continue;
+      const start = ((c[0] - a[0]) * dx + (c[1] - a[1]) * dy) / length;
+      const end = ((d[0] - a[0]) * dx + (d[1] - a[1]) * dy) / length;
+      if (Math.min(length, Math.max(start, end)) - Math.max(0, Math.min(start, end)) > epsilon) return true;
+    }
+  }
+  return false;
+}
+
+function subtractAreaFromGeometry(geometry, areaCoordinates, { riverComponents = [], slivers = null } = {}) {
   const areaBounds = geometryBounds({ type: 'MultiPolygon', coordinates: areaCoordinates });
   const polygons = [];
   let affected = false;
-  for (const polygon of multiCoordinates(geometry)) {
+  for (const [polygonIndex, polygon] of multiCoordinates(geometry).entries()) {
     if (!boundsOverlap(polygonBounds(polygon), areaBounds)) {
       polygons.push(clone(polygon));
       continue;
     }
     const source = [polygon];
-    if (area(clippingOperation('intersection', source, areaCoordinates)) <= tolerance) {
+    if (!clippingOperation('intersection', source, areaCoordinates).some(positivePolygonArea)) {
       polygons.push(clone(polygon));
       continue;
     }
     affected = true;
-    polygons.push(...clippingOperation('difference', source, areaCoordinates));
+    const pieces = clippingOperation('difference', source, areaCoordinates);
+    const component = riverComponents.find(row => row.polygonIndex === polygonIndex);
+    const unselected = component?.unselectedGeometries?.flatMap(multiCoordinates);
+    for (const piece of pieces) {
+      const size = slivers && unselected ? sliverAreaM2(piece) : Infinity;
+      if (size > 0 && size <= 1 && slivers.areaM2 + size <= 10
+        && !clippingOperation('intersection', [piece], unselected).some(positivePolygonArea)
+        && sharesBoundary(piece, areaCoordinates) && !sharesBoundary(piece, unselected)) {
+        slivers.polygons.push(piece);
+        slivers.areaM2 += size;
+      } else polygons.push(piece);
+    }
   }
   return { affected, geometry: normalizeCountryGeometry(polygons) };
 }
@@ -227,9 +284,9 @@ function executeAnnex(message, working) {
   const target = working.get(targetId);
   const donors = donorIds.map(id => working.get(id)).filter(Boolean);
   if (!target?.geometry || donors.length !== donorIds.length || (!allowUnclaimed && !donors.length)) throw new Error('편입할 국가 데이터를 찾을 수 없습니다. 대상을 다시 선택하세요.');
-  const transferred = multiCoordinates(message.transferredGeometry);
+  let transferred = multiCoordinates(message.transferredGeometry);
   const transferredArea = area(transferred);
-  if (transferredArea <= 1e-14) throw new Error('편입할 유효한 영토가 없습니다.');
+  if (!transferred.some(positivePolygonArea)) throw new Error('편입할 유효한 영토가 없습니다.');
   const donorInputs = areaPolygonsNearFeatures(donors, transferred);
   const donorUnion = donorInputs.length ? clippingOperation('union', ...donorInputs) : [];
   if (!allowUnclaimed && area(clippingOperation('difference', transferred, donorUnion)) > Math.max(1e-10, transferredArea * 1e-10)) {
@@ -238,14 +295,14 @@ function executeAnnex(message, working) {
   const updates = [];
   const removedIds = [];
   const affectedDonorIds = [];
-  const nextTarget = clone(target);
-  nextTarget.geometry = unionAreaWithGeometry(target.geometry, transferred);
-  updates.push(nextTarget);
-  const tolerance = Math.max(1e-10, transferredArea * 1e-10);
+  const slivers = { polygons: [], areaM2: 0 };
   for (const donor of donors) {
     if (cancelled.has(message.requestId)) throw new Error('CANCELLED');
     const id = featureId(donor);
-    const subtraction = subtractAreaFromGeometry(donor.geometry, transferred, tolerance);
+    const riverComponents = Array.isArray(message.riverSliverContext)
+      ? message.riverSliverContext.filter(row => row.donorId === id && Number.isInteger(row.polygonIndex)
+        && Array.isArray(row.unselectedGeometries)) : [];
+    const subtraction = subtractAreaFromGeometry(donor.geometry, transferred, { riverComponents, slivers });
     if (!subtraction.affected) continue;
     affectedDonorIds.push(id);
     const remainder = subtraction.geometry;
@@ -257,11 +314,19 @@ function executeAnnex(message, working) {
     }
   }
   if (!affectedDonorIds.length && !allowUnclaimed) throw new Error('선택 영역과 겹치는 국가가 없습니다.');
+  if (slivers.polygons.length) transferred = clippingOperation('union', transferred, slivers.polygons);
+  const nextTarget = clone(target);
+  nextTarget.geometry = unionAreaWithGeometry(target.geometry, transferred);
+  updates.unshift(nextTarget);
   const affectedIds = new Set([targetId, ...affectedDonorIds]);
   const baseline = captureBaseline(working, affectedIds);
   applyPatch(working, updates, removedIds);
   validateResult(working, new Set([targetId, ...affectedDonorIds]), baseline, { allowAreaChange: allowUnclaimed });
-  return { features: updates, removedIds, affectedIds: [targetId, ...affectedDonorIds], affectedDonorIds, transferredArea };
+  return {
+    features: updates, removedIds, affectedIds: [targetId, ...affectedDonorIds], affectedDonorIds,
+    transferredArea: area(transferred), transferredGeometry: { type: 'MultiPolygon', coordinates: transferred },
+    autoIncludedSlivers: { count: slivers.polygons.length, areaM2: slivers.areaM2 },
+  };
 }
 
 function executeAnnexBatch(message, working) {
@@ -316,10 +381,9 @@ function executeNewCountry(message, working) {
   const updates = [];
   const removedIds = [];
   const affectedSourceIds = [];
-  const tolerance = Math.max(1e-10, transferredArea * 1e-10);
   for (const source of sources) {
     const id = featureId(source);
-    const subtraction = subtractAreaFromGeometry(source.geometry, transferred, tolerance);
+    const subtraction = subtractAreaFromGeometry(source.geometry, transferred);
     if (!subtraction.affected) continue;
     affectedSourceIds.push(id);
     const remainder = subtraction.geometry;
