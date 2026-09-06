@@ -8,7 +8,6 @@ test('library title occupies the flexible column and close button stays right', 
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#createMenuBtn').click();
-  await page.locator('#createLibraryTabBtn').click();
   await page.locator('#addFromLibraryBtn').click();
   const title = page.locator('#historicalLibraryTitle');
   await expect(title).toBeVisible();

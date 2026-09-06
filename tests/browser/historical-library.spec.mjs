@@ -14,7 +14,6 @@ test('historical library search previews and instantiates an independent sourced
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
 
   await page.locator('#createMenuBtn').click();
-  await page.locator('#createLibraryTabBtn').click();
   await page.locator('#addFromLibraryBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeVisible();
   await expect.poll(() => page.locator('#historicalLibraryResults [data-library-entity-id]').count()).toBeGreaterThan(200);
@@ -111,7 +110,6 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   });
 
   await page.locator('#createMenuBtn').click();
-  await page.locator('#createLibraryTabBtn').click();
   await page.locator('#addFromLibraryBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeVisible();
   await page.locator('#historicalLibrarySearchInput').fill('동독');
