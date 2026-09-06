@@ -50,7 +50,6 @@ export function createSelectionUiController({
     if ((current.items?.length || 0) <= 1) return false;
     const types = [...new Set(current.items.map(item => displayInfo(item).type).filter(Boolean))];
     presenters.multiple?.(current, {
-      title: `${current.items.length}개 선택됨`,
       typeLabel: types.length === 1 ? types[0] : '여러 유형',
     });
     return true;
@@ -74,8 +73,9 @@ export function createSelectionUiController({
     }
     document?.body?.classList?.toggle('multi-selection-active', multiple);
     if (multiple) {
-      const types = [...new Set(current.items.map(item => displayInfo(item).type).filter(Boolean))];
-      if (elements.selectionStatus) elements.selectionStatus.textContent = `${count}개 선택됨 ${types.join(', ')}`;
+      // The layer footer is the single owner of the multi-selection count.
+      // Keep the status bar reserved for single-object context information.
+      if (elements.selectionStatus) elements.selectionStatus.textContent = '';
       renderMultiple(current);
     }
     uiActions.syncBatchActions?.(current);
@@ -158,7 +158,6 @@ export function createSelectionUiController({
   const bind = () => {
     elements.multiSelectionMode?.addEventListener?.('click', () => uiActions.toggleAddSelectionMode?.());
     elements.clearMultiSelection?.addEventListener?.('click', () => clear());
-    elements.multiEdit?.addEventListener?.('click', () => uiActions.openMultiEditor?.());
     return api;
   };
 
