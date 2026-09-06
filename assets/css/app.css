@@ -763,7 +763,6 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .mobile-bottom-bar button.active { background: var(--accent-surface); border-color: transparent; color: var(--accent-text); box-shadow: none; }
   .layer-search { background: #ffffff; }
   .layer-search input::placeholder { color: #7a8590; }
-  .layer-folder-toggle,
   .layer-child { color: #46515c; }
   .field-group label { color: #46515c; }
   .field-group input[readonly] { color: #74808b; }
@@ -888,7 +887,7 @@ body { font-size: var(--ui-font-body); }
 }
 #copyHydroBtn { width: 100%; }
 
-.layer-folder-name { font-size: var(--ui-font-body); }
+
 
 #layerSection { order: 2; }
 
@@ -1076,7 +1075,8 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .editor-flag-preview, .create-menu, .top-actions, .ui-dialog-card {
   border-radius: var(--ui-radius-panel);
 }
-.layer-folder, .create-menu-item, .terrain-mode-option {
+.create-menu-item,
+.terrain-mode-option {
   border-radius: var(--ui-radius-control);
 }
 .editor-section, .editor-disclosure {
@@ -1624,7 +1624,6 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
 }
 #app[data-layout="mobile"] .terrain-mode-option,
 #app[data-layout="mobile"] .layer-child,
-#app[data-layout="mobile"] .layer-folder-name,
 #app[data-layout="mobile"] .layer-child-name { min-height: var(--ui-touch-height); }
 
 
@@ -2072,23 +2071,11 @@ body:not([data-layout="mobile"]) #gisExportModal .ui-dialog-card {
   color: var(--muted);
   transition: transform .14s ease, color .14s ease;
 }
-.layer-folder-toggle {
-  width: var(--ui-tree-action-size);
-  min-width: var(--ui-tree-action-size);
-  height: var(--ui-tree-action-size);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--muted);
-  font-size: 0;
-}
-.layer-folder-toggle:hover { background: transparent; color: var(--text-strong); }
-.layer-folder .layer-folder-toggle .disclosure-icon { transform: rotate(-90deg); }
-.layer-folder.is-expanded .layer-folder-toggle { transform: none; }
-.layer-folder.is-expanded .layer-folder-toggle .disclosure-icon { transform: rotate(0deg); }
+
+
+
+
+
 /* Native inputs keep semantics, but no longer leak operating-system visuals. */
 input[type="checkbox"],
 input[type="radio"] {
@@ -2423,129 +2410,39 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
   padding-inline-start: var(--ui-surface-content-rail-x);
   padding-block-end: var(--ui-surface-content-padding-bottom);
 }
-.layer-category {
-  flex: 0 0 auto;
-  min-width: 0;
-}
-.layer-category-title {
-  margin: 0;
-  padding: 0 var(--ui-space-2) var(--ui-space-1);
-  color: var(--muted);
-  font-size: var(--ui-font-caption);
-  font-weight: var(--ui-weight-semibold);
-  line-height: var(--ui-line-tight);
-}
-.layer-category-items {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-0-5);
-}
-.ui-skeleton-block,
-.layer-skeleton-row > span,
-.layer-child-skeleton > span {
+
+
+
+.ui-skeleton-block {
   display: block;
   height: .8em;
   border-radius: var(--ui-radius-control);
   background: color-mix(in srgb, var(--text) 11%, var(--surface-subtle));
   animation: uiSkeletonPulse 1.4s ease-in-out infinite;
 }
-.layer-skeleton-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-0-5);
-  pointer-events: none;
-  user-select: none;
-}
-.layer-skeleton-row {
-  position: relative;
-  display: grid;
-  align-items: center;
-  height: var(--ui-tree-folder-height);
-  grid-template-columns: var(--ui-tree-action-size) var(--ui-tree-action-size) minmax(0, 1fr) var(--ui-tree-action-size);
-  gap: var(--ui-space-1);
-  padding: 0 var(--ui-row-padding-x);
-}
-.layer-skeleton-row::before,
-.layer-child-skeleton::before {
-  content: "";
-  position: absolute;
-  inset-inline: var(--ui-row-padding-x);
-  top: 50%;
-  height: 18px;
-  transform: translateY(-50%);
-  border-radius: var(--ui-radius-control);
-  background: color-mix(in srgb, var(--text) 11%, var(--surface-subtle));
-  animation: uiSkeletonPulse 1.4s ease-in-out infinite;
-  pointer-events: none;
-}
-.layer-skeleton-row > span,
-.layer-child-skeleton > span {
-  background: transparent;
-  animation: none;
-  visibility: hidden;
-}
-.layer-skeleton-row > span:nth-child(1),
-.layer-skeleton-row > span:nth-child(2),
-.layer-skeleton-row > span:nth-child(4) {
-  width: 18px;
-  height: 18px;
-  justify-self: center;
-}
-.layer-skeleton-row > span:nth-child(3) { width: 52%; }
-.layer-skeleton-row:nth-child(2n) > span:nth-child(3) { width: 68%; }
-.layer-skeleton-row:nth-child(3n) > span:nth-child(3) { width: 42%; }
-.layer-panel-section.is-hydrating .layer-real-items { display: none; }
-.layer-panel-section:not(.is-hydrating) .layer-category > .layer-skeleton-group { display: none; }
-.layer-child-skeleton {
-  position: relative;
-  display: grid;
-  align-items: center;
-  height: var(--ui-tree-row-height);
-  grid-template-columns: var(--ui-tree-action-size) minmax(0, 1fr) var(--ui-tree-action-size);
-  gap: var(--ui-space-1);
-  padding: 0 var(--ui-row-padding-x);
-  pointer-events: none;
-  user-select: none;
-}
-.layer-child-skeleton > span:first-child,
-.layer-child-skeleton > span:last-child {
-  width: 18px;
-  height: 18px;
-  justify-self: center;
-}
-.layer-child-skeleton > span:nth-child(2) { width: 58%; }
-.layer-child-skeleton:nth-child(2n) > span:nth-child(2) { width: 72%; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @keyframes uiSkeletonPulse {
   0%, 100% { opacity: .55; }
   50% { opacity: .92; }
 }
-.layer-folder {
-  flex: 0 0 auto;
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  overflow: visible;
-}
-.layer-folder.is-expanded { min-height: 0; }
-.layer-folder-row {
-  position: relative;
-  display: grid;
-  align-items: center;
-  height: var(--ui-tree-folder-height);
-  min-height: var(--ui-tree-folder-height);
-  grid-template-columns: var(--ui-tree-action-size) var(--ui-tree-action-size) minmax(0, 1fr);
-  gap: var(--ui-space-1);
-  padding: 0 var(--ui-row-padding-x);
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  transition: background-color .14s ease;
-}
-.layer-folder-row.has-layer-style {
-  grid-template-columns: var(--ui-tree-action-size) var(--ui-tree-action-size) minmax(0, 1fr) var(--ui-tree-action-size);
-}
-.layer-folder-row:has(.layer-folder-toggle:hover, .layer-folder-name:hover) {
-  background: var(--ui-control-bg-hover);
-}
+
+
+
+
+
 .layer-style-toggle {
   width: var(--ui-tree-action-size);
   min-width: var(--ui-tree-action-size);
@@ -2589,7 +2486,6 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 .layer-inline-style-field output { color: var(--text-strong); font-variant-numeric: tabular-nums; }
 .layer-inline-style-panel input[type="range"] { width: 100%; }
 html.keyboard-navigation .layer-style-toggle:focus-visible { border-radius: var(--ui-radius-control); outline-offset: -2px; }
-.layer-folder-name,
 .layer-child-name {
   min-width: 0;
   min-height: var(--ui-control-height);
@@ -2607,19 +2503,7 @@ html.keyboard-navigation .layer-style-toggle:focus-visible { border-radius: var(
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.layer-children {
-  max-height: min(38vh, 340px);
-  margin-left: var(--ui-tree-indent);
-  overflow-y: auto;
-  overscroll-behavior-y: auto;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  padding: var(--ui-space-1) var(--ui-space-0-5) var(--ui-space-2);
-  border: 0;
-  border-left: 1px solid color-mix(in srgb, var(--ui-control-border) 68%, transparent);
-  background: transparent;
-  contain: layout paint;
-}
+
 .layer-child {
   position: relative;
   display: grid;
@@ -2642,20 +2526,10 @@ html.keyboard-navigation .layer-style-toggle:focus-visible { border-radius: var(
   background: var(--accent);
   pointer-events: none;
 }
-.layer-subfolder-row {
-  min-height: var(--ui-tree-row-height);
-  display: grid;
-  grid-template-columns: var(--ui-tree-action-size) minmax(0, 1fr);
-  align-items: center;
-  gap: var(--ui-space-1);
-  padding: 0 var(--ui-row-padding-x);
-  font-size: var(--ui-font-body);
-  text-align: left;
-  width: 100%;
-}
-.layer-folder-row:has(> .layer-visibility-control > .layer-visibility-toggle:not(:checked)) > .layer-folder-name { color: var(--muted); }
-.layer-subfolder-row[aria-expanded="false"] .disclosure-icon { transform: rotate(-90deg); }
-.layer-subfolder-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+
+
+
 .layer-child > .layer-visibility-control { grid-column: 1; }
 .layer-child-name { grid-column: 2; }
 .layer-child-name-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2795,24 +2669,15 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 #app[data-layout="mobile"] .projection-control { height: var(--ui-touch-height); padding: var(--ui-segment-padding); }
 #app[data-layout="mobile"] .projection-btn { min-height: 0; height: 100%; }
 #app[data-layout="mobile"] .mode-method-btn { font-size: var(--ui-font-body); }
-#app[data-layout="mobile"] .layer-folder-row {
-  height: var(--ui-tree-row-height);
-  min-height: var(--ui-tree-row-height);
-  grid-template-columns: var(--ui-tree-action-size-touch) var(--ui-tree-action-size-touch) minmax(0, 1fr);
-  gap: var(--ui-space-1);
-  padding: 0 var(--ui-row-padding-x);
-}
-#app[data-layout="mobile"] .layer-folder-row:has(.layer-lock-control) {
-  grid-template-columns: var(--ui-tree-action-size-touch) var(--ui-tree-action-size-touch) minmax(0, 1fr) var(--ui-tree-action-size-touch);
-}
+
+
 #app[data-layout="mobile"] .layer-lock-control {
   width: var(--ui-tree-action-size-touch);
   min-width: var(--ui-tree-action-size-touch);
   height: var(--ui-tree-action-size-touch);
 }
-#app[data-layout="mobile"] .layer-folder-toggle { width: var(--ui-tree-action-size-touch); min-width: var(--ui-tree-action-size-touch); height: var(--ui-tree-action-size-touch); }
-#app[data-layout="mobile"] .layer-subfolder-row { grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr); }
-#app[data-layout="mobile"] .layer-folder-name,
+
+
 #app[data-layout="mobile"] .layer-child-name,
 #app[data-layout="mobile"] .layer-child,
 #app[data-layout="mobile"] .terrain-mode-option { min-height: var(--ui-touch-height); }
@@ -2823,17 +2688,9 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   min-width: var(--ui-touch-height);
   height: var(--ui-touch-height);
 }
-#app[data-layout="mobile"] .layer-folder-row.has-layer-style {
-  grid-template-columns: var(--ui-tree-action-size-touch) var(--ui-tree-action-size-touch) minmax(0, 1fr) var(--ui-tree-action-size-touch);
-}
-#app[data-layout="mobile"] .layer-skeleton-row {
-  height: var(--ui-tree-row-height);
-  grid-template-columns: var(--ui-tree-action-size-touch) var(--ui-tree-action-size-touch) minmax(0, 1fr) var(--ui-tree-action-size-touch);
-}
-#app[data-layout="mobile"] .layer-child-skeleton {
-  height: var(--ui-tree-row-height);
-  grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr) var(--ui-tree-action-size-touch);
-}
+
+
+
 #app[data-layout="mobile"] .layer-style-toggle {
   width: var(--ui-tree-action-size-touch);
   min-width: var(--ui-tree-action-size-touch);
@@ -3539,10 +3396,8 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 #rightPanel[data-editor-view="relation"] details.editor-relation-section { display: block; }
 
 /* Command-row presentation is owned by components/command-row.css. */
-.layer-folder-name,
 .layer-child-name { font-size: var(--ui-font-md); }
-#app[data-layout="mobile"] .layer-child,
-#app[data-layout="mobile"] .layer-folder-row { min-height: 38px; height: 38px; }
+#app[data-layout="mobile"] .layer-child { min-height: 38px; height: 38px; }
 #app[data-layout="mobile"] .editor-action-row { min-height: var(--ui-touch-height); }
 
 .ui-empty-state,
@@ -3814,11 +3669,7 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
 .mode-action-bar,
 .map-bottom-status,
 .mobile-backdrop { transition-duration: 0.01ms !important; }
-  .ui-skeleton-block,
-  .layer-skeleton-row::before,
-  .layer-child-skeleton::before,
-  .layer-skeleton-row > span,
-  .layer-child-skeleton > span { animation: none; }
+  .ui-skeleton-block { animation: none; }
 }
 
 #app[data-layout="mobile"] .map-view-toolbar {

@@ -101,21 +101,16 @@
   line-height: var(--ui-line-tight);
 }
 
-.layer-folder-row > .layer-folder-name {
-  padding-inline-end: calc((var(--ui-tree-action-size) * 2) + var(--ui-space-2));
-}
 
-.layer-folder-row,
+
 .layer-child {
   position: relative;
 }
 
-.layer-folder-row.is-active,
 .layer-child.is-active {
   background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
 
-.layer-folder-row.is-active::before,
 .layer-child.is-active::before {
   content: "";
   position: absolute;
@@ -134,7 +129,5 @@
 }
 
 @media (max-width: 799px) {
-  .layer-folder-row > .layer-folder-name {
-    padding-inline-end: calc((var(--ui-tree-action-size-touch) * 2) + var(--ui-space-2));
-  }
+
 }

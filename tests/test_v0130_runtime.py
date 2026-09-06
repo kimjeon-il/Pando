@@ -9,6 +9,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
+LAYER_MODEL = (ROOT / "assets/js/modules/layer-list-model.js").read_text(encoding="utf-8")
+LAYER_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
 APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
@@ -80,16 +82,16 @@ class V0130RuntimeTests(unittest.TestCase):
     def test_pointer_focus_layer_folders_and_water_labels_are_simplified(self):
         self.assertIn("html.keyboard-navigation", CSS)
         self.assertIn("document.addEventListener('pointerdown', disableKeyboardNavigation", APP)
-        self.assertRegex(CSS, r"\.layer-folder\s*\{[^}]*border:\s*0;")
+        self.assertNotIn('class="layer-folder"', INDEX)
         self.assertNotIn("label: '강 · Hydro'", APP)
         self.assertNotIn("label: '호수 · Natural Earth'", APP)
         self.assertIn("label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS'", APP)
         self.assertIn("label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth'", APP)
         self.assertNotIn("HYDRO_FOLDER_STATE_PREFIX", APP)
-        self.assertIn("rivers: 'riversLayerChildren'", APP)
-        self.assertIn("lakes: 'lakesLayerChildren'", APP)
+        self.assertIn("name: '기본 강'", LAYER_MODEL)
+        self.assertIn("name: '기본 호수'", LAYER_MODEL)
         self.assertIn("name: meta.sourceLabel", APP)
-        self.assertIn("const sourceGroup = group === 'rivers' || group === 'lakes' ? 'hydro' : group", APP)
+        self.assertIn("layerGroup === 'hydro' && source.isBuiltin", LAYER_MODEL)
 
     def test_hydro_uses_the_current_ocean_colour_without_intrinsic_alpha(self):
         lake_rule = source_section(CSS, ".hydro-lake-group {", "}")

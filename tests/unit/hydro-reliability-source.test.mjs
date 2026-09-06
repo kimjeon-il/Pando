@@ -45,15 +45,15 @@ test('app waits for actual hydro worker readiness and retries manifests', () => 
   assert.ok(service.includes('timeoutMs: 15000'));
 });
 
-test('built-in rivers and lakes use separate folders while retaining hydro item visibility', () => {
+test('built-in rivers and lakes use data bundles while retaining hydro item visibility', () => {
   const source = read('assets/js/app.js');
+  const model = read('assets/js/modules/layer-list-model.js');
   assert.ok(!source.includes('HYDRO_FOLDER_STATE_PREFIX'));
-  assert.ok(source.includes("rivers: 'riversLayerChildren'"));
-  assert.ok(source.includes("lakes: 'lakesLayerChildren'"));
-  assert.ok(source.includes("const sourceGroup = group === 'rivers' || group === 'lakes' ? 'hydro' : group"));
+  assert.ok(model.includes("name: '기본 강'"));
+  assert.ok(model.includes("name: '기본 호수'"));
+  assert.ok(model.includes("layerGroup === 'hydro' && source.isBuiltin"));
   assert.ok(source.includes('name: meta.sourceLabel'));
-  assert.ok(source.includes('visibility.dataset.layerItemVisibility = group'));
-  assert.ok(source.includes('state.physicalSettings.hydroLayers[key] = !!visible'));
+  assert.ok(source.includes('state.physicalSettings.hydroLayers[item.id] = !!visible'));
 });
 
 test('all hydro renderers inherit ocean colour with only the configured layer opacity', () => {

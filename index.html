@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-7a653ee1ad7e" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-7a653ee1ad7e" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-5f9b806327d4" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-5f9b806327d4" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -115,139 +115,7 @@
             <button id="layerSearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="레이어 검색어 지우기" data-tooltip="레이어 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
           </div>
           <div id="layerSearchResults" class="layer-search-results ui-scroll-surface hidden" role="listbox" aria-label="레이어 검색 결과"></div>
-          <div class="layer-list ui-scroll-surface">
-            <section class="layer-category" data-map-category="territorial" aria-labelledby="territoryLayerCategoryTitle">
-              <h3 id="territoryLayerCategoryTitle" class="layer-category-title">영토·구역</h3>
-              <div class="layer-skeleton-group" aria-hidden="true">
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-              </div>
-              <div class="layer-category-items layer-real-items">
-            <div class="layer-folder" data-layer-group="countries">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="countries" aria-expanded="false" aria-label="국가 폴더 펼치기" data-tooltip="국가 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="countriesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="국가" aria-label="국가 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="countries">국가</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="countries" aria-label="국가 표시 설정" aria-controls="layerStylePanel-countries" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-countries" class="layer-inline-style-panel" data-layer-style-panel="countries" role="group" aria-label="국가 표시 설정" hidden></div>
-              <div id="countriesLayerChildren" class="layer-children" role="group" aria-label="국가 항목" hidden></div>
-            </div>
-            <div class="layer-folder" data-layer-group="territories">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="territories" aria-expanded="false" aria-label="권역 폴더 펼치기" data-tooltip="권역 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="territoriesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="권역" aria-label="권역 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="territories">권역</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="territories" aria-label="권역 표시 설정" aria-controls="layerStylePanel-territories" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-territories" class="layer-inline-style-panel" data-layer-style-panel="territories" role="group" aria-label="권역 표시 설정" hidden></div>
-              <div id="territoriesLayerChildren" class="layer-children" role="group" aria-label="권역 항목" hidden></div>
-            </div>
-            <div class="layer-folder" data-layer-group="administrative">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="administrative" aria-expanded="false" aria-label="행정구역 폴더 펼치기" data-tooltip="행정구역 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="administrativeVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="행정구역" aria-label="행정구역 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="administrative">행정구역</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="administrative" aria-label="행정구역 표시 설정" aria-controls="layerStylePanel-administrative" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-administrative" class="layer-inline-style-panel" data-layer-style-panel="administrative" role="group" aria-label="행정구역 표시 설정" hidden></div>
-              <div id="administrativeLayerChildren" class="layer-children" role="group" aria-label="행정구역 항목" hidden></div>
-            </div>
-            <div class="layer-folder" data-layer-group="regions">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="regions" aria-expanded="false" aria-label="지방 폴더 펼치기" data-tooltip="지방 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="regionsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="지방" aria-label="지방 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="regions">지방</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="regions" aria-label="지방 표시 설정" aria-controls="layerStylePanel-regions" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-regions" class="layer-inline-style-panel" data-layer-style-panel="regions" role="group" aria-label="지방 표시 설정" hidden></div>
-              <div id="regionsLayerChildren" class="layer-children" role="group" aria-label="지방 항목" hidden></div>
-            </div>
-              </div>
-            </section>
-            <section class="layer-category" data-map-category="distribution" aria-labelledby="distributionLayerCategoryTitle">
-              <h3 id="distributionLayerCategoryTitle" class="layer-category-title">인문 분포</h3>
-              <div class="layer-skeleton-group" aria-hidden="true">
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-              </div>
-              <div class="layer-category-items layer-real-items">
-            <div class="layer-folder" data-layer-group="languages">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="languages" aria-expanded="false" aria-label="언어 폴더 펼치기" data-tooltip="언어 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="languagesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="언어" aria-label="언어 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="languages">언어</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="languages" aria-label="언어 표시 설정" aria-controls="layerStylePanel-languages" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-languages" class="layer-inline-style-panel" data-layer-style-panel="languages" role="group" aria-label="언어 표시 설정" hidden></div>
-              <div id="languagesLayerChildren" class="layer-children" role="group" aria-label="언어 항목" hidden></div>
-            </div>
-            <div class="layer-folder" data-layer-group="ethnicities">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="ethnicities" aria-expanded="false" aria-label="민족 폴더 펼치기" data-tooltip="민족 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="ethnicitiesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="민족" aria-label="민족 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="ethnicities">민족</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="ethnicities" aria-label="민족 표시 설정" aria-controls="layerStylePanel-ethnicities" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-ethnicities" class="layer-inline-style-panel" data-layer-style-panel="ethnicities" role="group" aria-label="민족 표시 설정" hidden></div>
-              <div id="ethnicitiesLayerChildren" class="layer-children" role="group" aria-label="민족 항목" hidden></div>
-            </div>
-            <div class="layer-folder" data-layer-group="religions">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="religions" aria-expanded="false" aria-label="종교 폴더 펼치기" data-tooltip="종교 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="religionsVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="종교" aria-label="종교 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="religions">종교</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="religions" aria-label="종교 표시 설정" aria-controls="layerStylePanel-religions" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-religions" class="layer-inline-style-panel" data-layer-style-panel="religions" role="group" aria-label="종교 표시 설정" hidden></div>
-              <div id="religionsLayerChildren" class="layer-children" role="group" aria-label="종교 항목" hidden></div>
-            </div>
-              </div>
-            </section>
-            <section class="layer-category" data-map-category="features" aria-labelledby="featuresLayerCategoryTitle">
-              <h3 id="featuresLayerCategoryTitle" class="layer-category-title">지형지물</h3>
-              <div class="layer-skeleton-group" aria-hidden="true">
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-                <div class="layer-skeleton-row"><span></span><span></span><span></span><span></span></div>
-              </div>
-              <div id="featuresLayerItems" class="layer-category-items layer-real-items">
-            <div class="layer-folder" data-layer-group="rivers">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="rivers" aria-expanded="false" aria-label="강 폴더 펼치기" data-tooltip="강 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="riversVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="강" aria-label="강 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="rivers">강</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="rivers" aria-label="강 표시 설정" aria-controls="layerStylePanel-rivers" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-rivers" class="layer-inline-style-panel" data-layer-style-panel="rivers" role="group" aria-label="강 표시 설정" hidden></div>
-              <div id="riversLayerChildren" class="layer-children" role="group" aria-label="강 항목" hidden></div>
-            </div>
-            <div class="layer-folder" data-layer-group="lakes">
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="lakes" aria-expanded="false" aria-label="호수 폴더 펼치기" data-tooltip="호수 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="lakesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="호수" aria-label="호수 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="lakes">호수</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="lakes" aria-label="호수 표시 설정" aria-controls="layerStylePanel-lakes" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-lakes" class="layer-inline-style-panel" data-layer-style-panel="lakes" role="group" aria-label="호수 표시 설정" hidden></div>
-              <div id="lakesLayerChildren" class="layer-children" role="group" aria-label="호수 항목" hidden></div>
-            </div>
-            <div class="layer-folder" data-layer-group="genericFeatures" hidden>
-              <div class="ui-row layer-folder-row has-layer-style">
-                <button class="ui-button layer-folder-toggle" type="button" data-layer-folder-toggle="genericFeatures" aria-expanded="false" aria-label="기타 객체 폴더 펼치기" data-tooltip="기타 객체 폴더 펼치기"><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-                <label class="layer-visibility-control"><input id="genericFeaturesVisible" type="checkbox" checked class="layer-visibility-toggle" data-visibility-label="기타 객체" aria-label="기타 객체 레이어 표시" /><svg class="ui-icon layer-visibility-icon layer-visibility-eye" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><svg class="ui-icon layer-visibility-icon layer-visibility-eye-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye-off"/></svg></label>
-                <button class="ui-button layer-folder-name" type="button" data-layer-folder-toggle="genericFeatures">기타 객체</button>
-                <button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="genericFeatures" aria-label="기타 객체 표시 설정" aria-controls="layerStylePanel-genericFeatures" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button>
-              </div>
-              <div id="layerStylePanel-genericFeatures" class="layer-inline-style-panel" data-layer-style-panel="genericFeatures" role="group" aria-label="기타 객체 표시 설정" hidden></div>
-              <div id="genericFeaturesLayerChildren" class="layer-children" role="group" aria-label="기타 객체 항목" hidden></div>
-            </div>
-              </div>
-            </section>
-          </div>
+          <div class="layer-list ui-scroll-surface" aria-label="프로젝트 레이어"></div>
           <footer class="layer-panel-footer">
           <div id="multiSelectionBar" class="layer-selection-summary hidden" role="region" aria-label="다중 선택 작업">
           <strong id="multiSelectionCount">0개 선택됨</strong>
@@ -284,6 +152,49 @@
               <small id="distributionLayerModeHint" class="layer-setting-hint"></small>
               <label class="ui-choice-row ui-toggle"><input id="distributionBoundaryVisibleInput" type="checkbox" checked aria-label="분포 경계 표시" /><span>분포 경계 표시</span></label>
             </section>
+            <details class="layer-style-editor map-object-style-settings">
+              <summary>객체 유형별 표시 설정</summary>
+            <section class="layer-type-settings" aria-label="국가 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" /><span>국가 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="countries" aria-label="국가 표시 설정" aria-controls="layerStylePanel-countries" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-countries" class="layer-inline-style-panel" data-layer-style-panel="countries" role="group" aria-label="국가 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="권역 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="territoriesVisible" type="checkbox" checked aria-label="권역 레이어 표시" /><span>권역 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="territories" aria-label="권역 표시 설정" aria-controls="layerStylePanel-territories" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-territories" class="layer-inline-style-panel" data-layer-style-panel="territories" role="group" aria-label="권역 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="행정구역 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="administrativeVisible" type="checkbox" checked aria-label="행정구역 레이어 표시" /><span>행정구역 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="administrative" aria-label="행정구역 표시 설정" aria-controls="layerStylePanel-administrative" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-administrative" class="layer-inline-style-panel" data-layer-style-panel="administrative" role="group" aria-label="행정구역 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="지방 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="regionsVisible" type="checkbox" checked aria-label="지방 레이어 표시" /><span>지방 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="regions" aria-label="지방 표시 설정" aria-controls="layerStylePanel-regions" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-regions" class="layer-inline-style-panel" data-layer-style-panel="regions" role="group" aria-label="지방 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="언어 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="languagesVisible" type="checkbox" checked aria-label="언어 레이어 표시" /><span>언어 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="languages" aria-label="언어 표시 설정" aria-controls="layerStylePanel-languages" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-languages" class="layer-inline-style-panel" data-layer-style-panel="languages" role="group" aria-label="언어 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="민족 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="ethnicitiesVisible" type="checkbox" checked aria-label="민족 레이어 표시" /><span>민족 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="ethnicities" aria-label="민족 표시 설정" aria-controls="layerStylePanel-ethnicities" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-ethnicities" class="layer-inline-style-panel" data-layer-style-panel="ethnicities" role="group" aria-label="민족 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="종교 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="religionsVisible" type="checkbox" checked aria-label="종교 레이어 표시" /><span>종교 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="religions" aria-label="종교 표시 설정" aria-controls="layerStylePanel-religions" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-religions" class="layer-inline-style-panel" data-layer-style-panel="religions" role="group" aria-label="종교 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="강 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="riversVisible" type="checkbox" checked aria-label="강 레이어 표시" /><span>강 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="rivers" aria-label="강 표시 설정" aria-controls="layerStylePanel-rivers" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-rivers" class="layer-inline-style-panel" data-layer-style-panel="rivers" role="group" aria-label="강 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="호수 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="lakesVisible" type="checkbox" checked aria-label="호수 레이어 표시" /><span>호수 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="lakes" aria-label="호수 표시 설정" aria-controls="layerStylePanel-lakes" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-lakes" class="layer-inline-style-panel" data-layer-style-panel="lakes" role="group" aria-label="호수 표시 설정" hidden></div>
+            </section>
+            <section class="layer-type-settings" aria-label="기타 객체 표시 설정">
+              <div class="layer-type-settings-heading"><label class="ui-choice-row"><input id="genericFeaturesVisible" type="checkbox" checked aria-label="기타 객체 레이어 표시" /><span>기타 객체 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="genericFeatures" aria-label="기타 객체 표시 설정" aria-controls="layerStylePanel-genericFeatures" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+              <div id="layerStylePanel-genericFeatures" class="layer-inline-style-panel" data-layer-style-panel="genericFeatures" role="group" aria-label="기타 객체 표시 설정" hidden></div>
+            </section>
+            </details>
             <section class="layer-style-editor terrain-settings" aria-labelledby="terrainLayerSettingsTitle">
               <strong id="terrainLayerSettingsTitle">지형</strong>
               <label class="ui-choice-row ui-toggle"><input id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시" aria-controls="terrainDisplayOptions" aria-expanded="true" /><span>지형 음영 표시</span></label>
@@ -1011,10 +922,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.32.0-build-7a653ee1ad7e" defer></script>
+  <script src="assets/js/build-meta.js?v=0.32.0-build-5f9b806327d4" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.32.0-build-7a653ee1ad7e" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.32.0-build-5f9b806327d4" defer></script>
 </body>
 </html>

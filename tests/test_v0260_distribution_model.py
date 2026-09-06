@@ -43,9 +43,7 @@ class V0260DistributionModelTests(unittest.TestCase):
 
     def test_common_layer_tree_create_flow_and_editor_exist(self):
         for element_id in (
-            "languagesLayerChildren",
-            "ethnicitiesLayerChildren",
-            "religionsLayerChildren",
+
             "addDistributionBtn",
             "distributionTypeModal",
             "distributionProperties",

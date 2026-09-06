@@ -109,11 +109,10 @@
 
   :is(.surface-map, .surface-create)[data-sheet-snap="0"] { pointer-events: none; }
 
-  .surface-map .layer-folder-row,
   .surface-map .layer-child {
-    min-height: var(--ui-v2-layer-row-height-mobile);
-    height: var(--ui-v2-layer-row-height-mobile);
-  }
+      min-height: var(--ui-v2-layer-row-height-mobile);
+      height: var(--ui-v2-layer-row-height-mobile);
+    }
 
   .surface-create .create-menu-item { min-height: var(--ui-touch-height); }
   .surface-map .projection-btn { min-height: var(--ui-touch-height); }
