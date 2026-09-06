@@ -58,14 +58,14 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
   await expect(page.locator('#multiSelectionBar')).toBeVisible();
   await expect(page.locator('#multiProperties')).toBeVisible();
-  await expect(page.locator('#propertyTitle')).toHaveText('2개 선택됨');
+  await expect(page.locator('#propertyTitle')).toHaveText('공통 속성');
   await expect(page.locator('#propertyTypeLabel')).toHaveText('국가');
   await expect(page.locator('.multi-properties-summary, #multiPropertiesCount, #multiPropertiesTypes')).toHaveCount(0);
   await expect(page.locator('#multiPropertiesVisibilityInput')).toBeChecked();
   await expect(page.locator('#multiPropertiesLockInput')).not.toBeChecked();
   await expect(page.locator('#multiPropertiesDeleteBtn')).toHaveCount(0);
   await expect(page.locator('#multiSelectionModeBtn')).toBeHidden();
-  await expect(page.locator('#multiSelectionBar button:visible')).toHaveCount(2);
+  await expect(page.locator('#multiSelectionBar button:visible')).toHaveCount(1);
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#multiCountryActions')).toBeVisible();
   await expect(page.locator('#multiBorderEditBtn')).toBeEnabled();

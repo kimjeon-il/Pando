@@ -26,7 +26,7 @@ function fixture(initialLayout) {
   let layout = initialLayout;
   const elements = Object.fromEntries([
     'leftPanel', 'rightPanel', 'createMenu', 'mobileMapBtn', 'createMenuBtn', 'mobileEditBtn',
-    'mobileFileBtn', 'mobileBackdrop', 'multiEditBtn',
+    'mobileFileBtn', 'mobileBackdrop',
   ].map(id => [id, element(id)]));
   const workspace = element('workspace');
   const body = element('body');
@@ -104,14 +104,6 @@ test('automatic editor open is blocked on mobile but explicit editor intent open
   assert.deepEqual(controller.render(), {
     layersOpen: false, editorOpen: true, createOpen: false, activeMobileSheet: 'edit',
   });
-});
-
-test('contextual multi-edit remains an explicit user request on mobile', () => {
-  const { controller, setActiveElement } = fixture('mobile');
-  setActiveElement('multiEditBtn');
-  assert.equal(controller.open('editor', { automatic: true }), true);
-  assert.equal(controller.originOf('editor'), SURFACE_OPEN_ORIGINS.USER);
-  assert.equal(controller.render().activeMobileSheet, 'edit');
 });
 
 test('manual editor close suppresses later automatic reopen until a user opens it', () => {

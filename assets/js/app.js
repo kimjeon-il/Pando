@@ -13830,7 +13830,6 @@ const {
         multiSelectionCount: $('multiSelectionCount'),
         multiSelectionMode: $('multiSelectionModeBtn'),
         clearMultiSelection: $('clearMultiSelectionBtn'),
-        multiEdit: $('multiEditBtn'),
         selectionStatus: $('selectionStatus'),
       },
       resolveRef: normalizeObjectRef,
@@ -13846,7 +13845,7 @@ const {
           }
           return null;
         },
-        multiple: (selection, detail) => objectPropertyController.show('multi', detail.title, {
+        multiple: (selection, detail) => objectPropertyController.show('multi', '공통 속성', {
           resetScroll: false,
           typeLabel: detail.typeLabel,
         }),
@@ -13866,7 +13865,6 @@ const {
           openSelectionEditor();
           selectionPerformanceMetrics.editorOpenMs = performance.now() - startedAt;
         },
-        openMultiEditor: () => { setEditorShellView('info'); openSelectionEditor(); },
         clearPresenter: () => {
           countryPropertyController.clear();
           state.addSelectionMode = false;

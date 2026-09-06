@@ -30,7 +30,6 @@ export function createSurfaceController({ getElement, getLayout, document }) {
   });
 
   let activeMobileSheet = null;
-  let explicitIntentSurface = null;
   let blockedHistorySnapshot;
 
   function windowObject() {
@@ -64,29 +63,8 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     }
   }
 
-  function markExplicitIntent(surface) {
-    if (!SURFACE_SET.has(surface)) return;
-    explicitIntentSurface = surface;
-    queueMicrotask(() => {
-      if (explicitIntentSurface === surface) explicitIntentSurface = null;
-    });
-  }
-
-  // app.js currently routes the contextual multi-selection Edit action through the
-  // automatic selection helper. Capture that user gesture so mobile can distinguish
-  // explicit intent without reopening the sheet for ordinary map selection.
-  document?.addEventListener?.('click', event => {
-    const target = event.target;
-    const explicitEditorControl = target?.closest?.('#multiEditBtn');
-    if (explicitEditorControl) markExplicitIntent('editor');
-  }, true);
-
   function consumeExplicitIntent(surface) {
-    const activeId = document?.activeElement?.id || '';
-    const compatibleFocusedIntent = surface === 'editor' && activeId === 'multiEditBtn';
-    const explicit = explicitIntentSurface === surface || compatibleFocusedIntent;
-    if (explicitIntentSurface === surface) explicitIntentSurface = null;
-    return explicit;
+    return surface === 'editor' && document?.activeElement?.id === 'mobileEditBtn';
   }
 
   function originOf(surface) {
@@ -306,7 +284,6 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     resetAutomaticBlock,
     render,
     syncLayout,
-    markExplicitIntent,
     get activeMobileSheet() { return activeMobileSheet; },
     set activeMobileSheet(value) {
       activeMobileSheet = value && MOBILE_TO_SURFACE[value] ? value : null;
