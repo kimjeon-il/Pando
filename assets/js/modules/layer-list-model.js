@@ -30,16 +30,47 @@ export function createLayerListModel({ items, groups, itemRef, compare }) {
   for (const bundle of bundles) {
     bundle.items.sort(order);
   }
-  return { bundles: bundles.filter(bundle => bundle.items.length), objects, order };
+  const political = bundles[0].items;
+  const parentsById = new Map();
+  for (const item of political.filter(item => ['countries', 'subunits'].includes(item.layerGroup))) {
+    const matches = parentsById.get(String(item.id)) || [];
+    matches.push(item); parentsById.set(String(item.id), matches);
+  }
+  const parentKeys = new Map(), children = new Map();
+  for (const item of political.filter(item => item.layerGroup === 'subunits')) {
+    const matches = parentsById.get(String(item.parentId || item.countryId || '')) || [];
+    if (matches.length === 1 && matches[0].key !== item.key) parentKeys.set(item.key, matches[0].key);
+  }
+  // Preserve malformed legacy relationships as direct rows rather than hiding them in cycles.
+  for (const key of [...parentKeys.keys()]) {
+    const visited = new Set([key]);
+    let cursor = parentKeys.get(key);
+    while (cursor && !visited.has(cursor)) { visited.add(cursor); cursor = parentKeys.get(cursor); }
+    if (cursor) parentKeys.delete(key);
+  }
+  for (const item of political) {
+    const parent = parentKeys.get(item.key);
+    if (parent) { const list = children.get(parent) || []; list.push(item); children.set(parent, list); }
+  }
+  return { bundles: bundles.filter(bundle => bundle.items.length), objects, order, parentKeys, children };
 }
 
-export function visibleLayerRows(model, folders = {}, search = '') {
+export function visibleLayerRows(model, folders = {}, search = '', expanded = new Set()) {
   const query = search.trim().toLocaleLowerCase('ko');
   if (query) return [...model.bundles.flatMap(bundle => bundle.items), ...model.objects]
     .filter(item => `${item.name} ${item.typeLabel} ${item.searchText || ''} ${item.id}`.toLocaleLowerCase('ko').includes(query))
     .sort(model.order);
-  return [...model.bundles.flatMap(bundle => folders[bundle.id]
-    ? [bundle, ...bundle.items.map(item => ({ ...item, bundleId: bundle.id }))] : [bundle]), ...model.objects];
+  const rows = [];
+  const append = (item, bundleId, depth = 0) => {
+    const children = model.children.get(item.key) || [];
+    rows.push({ ...item, bundleId, depth, hasChildren: children.length > 0, expanded: expanded.has(item.key) });
+    if (expanded.has(item.key)) for (const child of children) append(child, bundleId, depth + 1);
+  };
+  for (const bundle of model.bundles) {
+    rows.push(bundle);
+    if (folders[bundle.id]) for (const item of bundle.items) if (!model.parentKeys.has(item.key)) append(item, bundle.id);
+  }
+  return [...rows, ...model.objects];
 }
 
 /** Lift an old group-wide hidden flag without changing any non-target object's effective visibility. */

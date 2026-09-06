@@ -61,7 +61,7 @@
         type: unitType,
         parent_id: text(properties.parentId),
         sovereign_id: text(properties.sovereignId),
-        admin_level: unitType === 'subunit' ? Number(properties.adminLevel ?? 1) : null,
+        admin_level: unitType === 'subunit' && Number(properties.adminLevel) > 0 ? Number(properties.adminLevel) : null,
         is_remainder: properties.isRemainder === true ? 1 : 0,
         valid_from: text(properties.validFrom),
         valid_to: text(properties.validTo),

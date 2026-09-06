@@ -21,7 +21,7 @@ test('dynamic success copy falls back to a complete short message', () => {
     'PandoLab-East-Prussia-1900.json의 전체 geometry를 보존해 1개 행정구역을 가져왔습니다.',
     { tone: 'success', maxLength: 22 },
   );
-  assert.equal(result, '행정구역을 가져왔습니다.');
+  assert.equal(result, '하위단위를 가져왔습니다.');
   assert.ok(result.length <= 22);
 });
 

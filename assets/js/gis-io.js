@@ -574,7 +574,7 @@
     const ownerId = document.getElementById('gisTargetCountry')?.value || '';
     select.replaceChildren(new Option('국가 직속', ''));
     for (const unit of (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId))) {
-      select.add(new Option(`${unit.name}${unit.type === 'subunit' ? ` · ${unit.level || 1}단계` : ' · 하위단위'}`, unit.id));
+      select.add(new Option(`${unit.name}${Number(unit.level) > 0 ? ` · ${unit.level}단계` : ''}`, unit.id));
     }
     if ([...select.options].some(option => option.value === selected)) select.value = selected;
   }
@@ -974,7 +974,7 @@
     const ownerNames = new Map((wizardOptions.countryOptions || []).map(country => [String(country.id), country.name || country.id]));
     const formatArea = value => `${Math.round(Number(value) || 0).toLocaleString()} km²`;
     container.append(Object.assign(document.createElement('p'), {
-      textContent: `${impact.featureCount.toLocaleString()}개 ${mapping.targetType === 'subunit' ? '하위단위' : '하위단위'} · 전체 ${formatArea(impact.totalAreaKm2)}`,
+      textContent: `${impact.featureCount.toLocaleString()}개 ${mapping.targetType === 'region' ? '지방' : '하위단위'} · 전체 ${formatArea(impact.totalAreaKm2)}`,
     }));
     const list = document.createElement('ul');
     for (const group of impact.groups || []) {
@@ -1140,7 +1140,7 @@
         const descriptor = session.descriptors[Number(layerSelect.value) || 0];
         const mapping = importMappingFromUi();
         if (SOVEREIGN_SELECTION_TARGETS.has(mapping.targetType) && !mapping.targetCountryId && !mapping.independentRegion) {
-          throw new Error('하위단위·하위단위·지방을 가져오려면 소속 국가를 선택해야 합니다.');
+          throw new Error('하위단위 또는 국가 소속 지방을 가져오려면 소속 국가를 선택해야 합니다.');
         }
         if (mapping.useFeatureCountryField && !mapping.countryField) { revealAdvancedField('gisCountryField'); throw new Error('객체별 소속 국가에 사용할 속성을 선택하세요.'); }
         const crsInput = document.getElementById('gisCrsInput');
@@ -1301,7 +1301,7 @@
         type: 'Feature', properties: exportCountryProperties(feature, projectState.countryOverrides), geometry: feature.geometry,
       })),
     });
-    add('subunit', 'subunits.geojson', 'subunit', rowsAsFeatureCollection(territorial.subunits));
+    add('subunits', 'subunits.geojson', 'subunit', rowsAsFeatureCollection(territorial.subunits));
     add('regions', 'regions.geojson', 'region', rowsAsFeatureCollection(territorial.regions));
     add('genericFeatures', 'generic_features.geojson', 'generic', { type: 'FeatureCollection', features: structuredClone(projectState.genericFeatures || []) });
     if (selected.has('distributions')) {

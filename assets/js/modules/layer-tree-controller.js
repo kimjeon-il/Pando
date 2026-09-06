@@ -23,6 +23,9 @@ export function createLayerTreeController({
   let logicalRows = [];
   let presentation = null;
   let listScrollTop = 0;
+  let lastRevealedSelection = '';
+  let pendingRevealKey = '';
+  const expandedParents = new Set();
   const rowBuildTokens = new WeakMap();
   const rowBuilds = new Set();
   let disposed = false;
@@ -32,7 +35,7 @@ export function createLayerTreeController({
     resizeFrame = window.requestAnimationFrame(() => {
       resizeFrame = 0;
       const container = renderedSearch ? elements.searchResults : elements.list;
-      if (container.clientHeight) renderRows(container, logicalRows, container.scrollTop);
+      if (container.clientHeight && !revealPendingSelection()) renderRows(container, logicalRows, container.scrollTop);
     });
   }) : null;
   const buildRows = (container, factories, before = [], after = [], onCommit = () => {}) => {
@@ -128,6 +131,23 @@ export function createLayerTreeController({
     row.dataset.layerGroup = itemGroup;
     row.dataset.itemId = item.id;
     row.dataset.objectKey = item.key;
+    if (!searchResult) {
+      row.classList.add('layer-hierarchy-row');
+      row.style.setProperty('--layer-depth', String(item.depth || 0));
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'ui-button layer-bundle-toggle layer-parent-toggle';
+      if (item.hasChildren) {
+        toggle.dataset.layerParentToggle = item.key;
+        toggle.setAttribute('aria-expanded', String(item.expanded));
+        toggle.setAttribute('aria-label', `${item.name} 하위단위 ${item.expanded ? '접기' : '펼치기'}`);
+        toggle.append(createIcon('chevronDown', 'ui-icon disclosure-icon'));
+        row.append(toggle);
+      } else {
+        const spacer = document.createElement('span');
+        spacer.className = 'layer-parent-spacer'; spacer.setAttribute('aria-hidden', 'true'); row.append(spacer);
+      }
+    }
     if (item.bundleId) row.dataset.bundleMember = item.bundleId;
     const swatch = document.createElement('span');
     swatch.className = 'layer-color-swatch';
@@ -227,7 +247,57 @@ export function createLayerTreeController({
     });
   };
 
-  const syncSelection = (current = selection()) => {
+  const revealPendingSelection = () => {
+    if (!pendingRevealKey || !presentation) return false;
+    const bundle = presentation.bundles.find(entry => entry.items.some(item => item.ref?.key === pendingRevealKey));
+    const target = bundle?.items.find(item => item.ref?.key === pendingRevealKey)
+      || presentation.objects.find(item => item.ref?.key === pendingRevealKey);
+    if (!target) return false;
+    let snapshot = model.snapshot();
+    if (snapshot.search && !visibleLayerRows(presentation, snapshot.folders, snapshot.search).some(item => item.ref?.key === pendingRevealKey)) {
+      elements.search.value = '';
+      commands.setSearchValue('');
+      commands.commitSearch?.();
+      snapshot = model.snapshot();
+    }
+    if (!snapshot.search && bundle && !snapshot.folders[bundle.id]) {
+      commands.toggleFolder(bundle.id);
+      snapshot = model.snapshot();
+    }
+    const search = String(snapshot.search || '').trim();
+    if (!search) {
+      let parent = presentation.parentKeys.get(target.key);
+      while (parent) { expandedParents.add(parent); parent = presentation.parentKeys.get(parent); }
+    }
+    logicalRows = visibleLayerRows(presentation, snapshot.folders, search, expandedParents);
+    elements.list.classList.toggle('hidden', !!search);
+    elements.searchResults.classList.toggle('hidden', !search);
+    renderedSearch = search;
+    renderedRevision = snapshot.revision;
+    const container = search ? elements.searchResults : elements.list;
+    if (!container.clientHeight) return false;
+    const index = logicalRows.findIndex(item => item.ref?.key === pendingRevealKey);
+    if (index < 0) return false;
+    pendingRevealKey = '';
+    const height = rowHeight(container);
+    const top = index * height;
+    const currentTop = container.scrollTop;
+    const nextTop = top < currentTop ? top : top + height > currentTop + container.clientHeight
+      ? top + height - container.clientHeight : currentTop;
+    if (search) searchScrollTop = nextTop; else listScrollTop = nextTop;
+    renderRows(container, logicalRows, nextTop);
+    return true;
+  };
+
+  const syncSelection = (current = selection(), { reveal = false } = {}) => {
+    if (reveal) {
+      const primary = current.primaryKey || '';
+      if (primary !== lastRevealedSelection) {
+        lastRevealedSelection = primary;
+        pendingRevealKey = primary;
+        revealPendingSelection();
+      }
+    }
     const keys = new Set((current.items || []).map(item => item.key));
     const multi = keys.size > 1;
     elements.section?.querySelectorAll('[data-layer-group][data-item-id]').forEach(row => {
@@ -287,14 +357,14 @@ export function createLayerTreeController({
       items: model.items, groups: groups.search, builtinCountryIds: model.builtinCountryIds(),
       builtinSession: model.builtinSession(), itemRef: model.itemRef, compare: model.compare,
     });
-    logicalRows = visibleLayerRows(presentation, snapshot.folders, search);
+    logicalRows = visibleLayerRows(presentation, snapshot.folders, search, expandedParents);
     elements.searchResults.classList.toggle('hidden', !search);
     elements.list.classList.toggle('hidden', !!search);
     const container = search ? elements.searchResults : elements.list;
     const inactive = search ? elements.list : elements.searchResults;
     rowBuildTokens.set(inactive, {}); inactive.replaceChildren();
-    renderRows(container, logicalRows, search ? (searchChanged ? 0 : searchScrollTop) : listScrollTop);
     renderedRevision = snapshot.revision; renderedSearch = search;
+    if (!revealPendingSelection()) renderRows(container, logicalRows, search ? (searchChanged ? 0 : searchScrollTop) : listScrollTop);
     return true;
   };
 
@@ -352,6 +422,15 @@ export function createLayerTreeController({
       if (event.target.closest('#objectDeleteBtn')) { commands.deleteSelection?.(); return; }
       const menu = event.target.closest('[data-layer-item-menu]');
       if (menu) { event.stopPropagation(); commands.openItemMenu(menu.dataset.layerItemMenu, menu.dataset.itemId, menu); return; }
+      const parent = event.target.closest('[data-layer-parent-toggle]');
+      if (parent) {
+        const key = parent.dataset.layerParentToggle;
+        if (expandedParents.has(key)) expandedParents.delete(key); else expandedParents.add(key);
+        const snapshot = model.snapshot();
+        logicalRows = visibleLayerRows(presentation, snapshot.folders, snapshot.search, expandedParents);
+        renderRows(elements.list, logicalRows);
+        return;
+      }
       const folder = event.target.closest('[data-layer-folder-toggle], [data-bundle-key]');
       if (folder) {
         commands.toggleFolder(folder.dataset.layerFolderToggle || folder.dataset.bundleKey);
