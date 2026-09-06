@@ -11941,10 +11941,21 @@ const {
   let LIBRARY_TYPE_LABELS = Object.freeze({});
 
   function combineHistoricalLibraryGeometries(geometries) {
-    const coordinates = geometries.filter(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type)).map(geometry => geometry.coordinates);
+    const valid = geometries.filter(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type));
+    const coordinates = valid.map(geometry => geometry.coordinates);
     if (!coordinates.length) return null;
-    const union = coordinates.length === 1 ? coordinates[0] : window.polygonClipping.union(...coordinates);
+    const union = coordinates.length === 1
+      ? (valid[0].type === 'Polygon' ? [coordinates[0]] : coordinates[0])
+      : window.polygonClipping.union(...coordinates);
     return normalizeClippedLandGeometry(union);
+  }
+
+  function subtractHistoricalLibraryGeometry(geometry, excludedGeometry) {
+    if (!geometry?.coordinates || !excludedGeometry?.coordinates) return null;
+    return normalizeClippedLandGeometry(window.polygonClipping.difference(
+      geometry.coordinates,
+      excludedGeometry.coordinates,
+    ));
   }
 
   function historicalLibraryPreviewSvg(entity, version) {
@@ -11986,32 +11997,42 @@ const {
     const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth);
     const pending = descriptors.filter(descriptor => !libraryInstanceId(descriptor.libraryId));
     if (!pending.length) return { added: 0, subtracted: 0, deleted: 0, affectedIds: [] };
-    const priority = pending.filter(descriptor => descriptor.instantiation?.mode === 'country-territory-priority');
-    if (priority.length) {
-      if (priority.length !== 1 || pending.length !== 1 || priority[0].type !== LIBRARY_ENTITY_TYPES.COUNTRY) {
-        throw new Error('영토 우선 라이브러리 항목은 한 번에 국가 1개만 추가할 수 있습니다.');
+    const replacements = pending.filter(descriptor => descriptor.instantiation?.mode === 'territory-replacement');
+    let replacementResult = null;
+    let remaining = pending;
+    if (replacements.length) {
+      const additionalCountries = pending.filter(descriptor => descriptor.type === LIBRARY_ENTITY_TYPES.COUNTRY && descriptor !== replacements[0]);
+      if (replacements.length !== 1 || replacements[0].type !== LIBRARY_ENTITY_TYPES.COUNTRY || additionalCountries.length) {
+        throw new Error('영토 대체 라이브러리 항목은 한 번에 상위 국가 1개와 그 하위 영역만 추가할 수 있습니다.');
       }
-      const descriptor = priority[0];
+      const descriptor = replacements[0];
       const feature = createCountryFeature(descriptor.name, [], null, descriptor.geometry);
       feature.id = descriptor.libraryId;
-      if (descriptor.metadata?.defaultColor) state.countryOverrides[descriptor.libraryId] = { color: descriptor.metadata.defaultColor };
+      const replacementOverride = {};
+      if (descriptor.metadata?.defaultColor) replacementOverride.color = descriptor.metadata.defaultColor;
+      if (descriptor.metadata?.defaultFlagDataUrl) replacementOverride.flagDataUrl = descriptor.metadata.defaultFlagDataUrl;
       if (descriptor.validFrom) feature.properties.validFrom = descriptor.validFrom;
       if (descriptor.validTo) feature.properties.validTo = descriptor.validTo;
       const countriesData = { type: 'FeatureCollection', features: [feature] };
-      const plan = await gisWorkflow.planMerge(state.countriesData, countriesData, 'imported-territory-priority');
+      const plan = await gisWorkflow.planMerge(state.countriesData, countriesData, 'territory-replacement');
       if (!plan.canCommit) throw new Error('자동 차감 후에도 국가 간 중첩이 남아 라이브러리 항목을 추가할 수 없습니다.');
-      if (plan.counts?.deleted) throw new Error('영토 우선 국가 추가 과정에서 기존 국가가 삭제되어 작업을 중단했습니다.');
       const committer = await getGisImportCommitter();
-      return committer.commitGisMerge({
+      replacementResult = await committer.commitGisMerge({
         countriesData,
         countryUpdates: descriptor.instantiation?.countryUpdates || {},
+        atlasMetadata: Object.keys(replacementOverride).length
+          ? { projectState: { countryOverrides: { [descriptor.libraryId]: replacementOverride } } }
+          : {},
+        landDependentsTargetId: descriptor.libraryId,
         sourceInfo: descriptor.metadata?.librarySourceInfo || {},
-        commitStatus: `${descriptor.name}을(를) 추가하고 기존 국가 영토를 한 번의 작업으로 차감했습니다.`,
+        commitStatus: `${descriptor.name}을(를) 추가하고 겹치는 기존 국가 영토를 한 번의 작업으로 대체했습니다.`,
       }, plan);
+      remaining = pending.filter(candidate => candidate !== descriptor);
+      if (!remaining.length) return replacementResult;
     }
-    projectDomain.recordHistory();
+    if (!replacementResult) projectDomain.recordHistory();
     let countriesAdded = 0;
-    for (const descriptor of pending) {
+    for (const descriptor of remaining) {
       if (descriptor.type === LIBRARY_ENTITY_TYPES.COUNTRY) {
         const feature = createCountryFeature(
           descriptor.name,
@@ -12020,31 +12041,12 @@ const {
           descriptor.geometry,
         );
         feature.id = descriptor.libraryId;
-        if (descriptor.metadata?.defaultColor) state.countryOverrides[descriptor.libraryId] = { color: descriptor.metadata.defaultColor };
+        const defaultOverride = {};
+        if (descriptor.metadata?.defaultColor) defaultOverride.color = descriptor.metadata.defaultColor;
+        if (descriptor.metadata?.defaultFlagDataUrl) defaultOverride.flagDataUrl = descriptor.metadata.defaultFlagDataUrl;
+        if (Object.keys(defaultOverride).length) state.countryOverrides[descriptor.libraryId] = defaultOverride;
         if (descriptor.validFrom) feature.properties.validFrom = descriptor.validFrom;
         if (descriptor.validTo) feature.properties.validTo = descriptor.validTo;
-        if (descriptor.metadata?.territoryMerge === 'imported-priority') {
-          const overlappingCountryIds = new Set(countryIdsOverlappingGeometry(descriptor.geometry));
-          const donorIds = [];
-          const nextFeatures = [];
-          for (const candidate of state.countriesData.features || []) {
-            const donorId = String(candidate.id || '');
-            if (!overlappingCountryIds.has(donorId)) {
-              nextFeatures.push(candidate);
-              continue;
-            }
-            if (donorId) donorIds.push(donorId);
-            const remainder = normalizeClippedLandGeometry(window.polygonClipping.difference(
-              candidate.geometry.coordinates,
-              descriptor.geometry.coordinates,
-            ));
-            if (!remainder || sphericalGeometryAreaKm2(remainder) <= 0.000001) continue;
-            nextFeatures.push({ ...candidate, geometry: remainder });
-          }
-          state.countriesData.features = nextFeatures;
-          for (const donorId of donorIds) state.historyDirtyCountryIds.add(donorId);
-          transferLandDependents(descriptor.geometry, donorIds, descriptor.libraryId);
-        }
         state.countriesData.features.push(feature);
         state.historyDirtyCountryIds.add(String(feature.id || ''));
         countriesAdded += 1;
@@ -12087,10 +12089,13 @@ const {
     projectDomain.queueAutosave();
     saveState.markNewProject('content:0');
     return {
-      added: pending.length,
-      subtracted: 0,
-      deleted: 0,
-      affectedIds: pending.map(descriptor => libraryInstanceId(descriptor.libraryId)).filter(Boolean),
+      added: Number(replacementResult?.added || 0) + remaining.length,
+      subtracted: Number(replacementResult?.subtracted || 0),
+      deleted: Number(replacementResult?.deleted || 0),
+      affectedIds: [...new Set([
+        ...(replacementResult?.affectedIds || []),
+        ...remaining.map(descriptor => libraryInstanceId(descriptor.libraryId)).filter(Boolean),
+      ])],
     };
   }
 
@@ -12107,8 +12112,10 @@ const {
         return response.json();
       },
       getCountriesData: () => state.countriesData,
+      getMaterializationCountriesData: () => materializePristineCountriesSync(),
       displayName: countryName,
       combineGeometries: combineHistoricalLibraryGeometries,
+      subtractGeometries: subtractHistoricalLibraryGeometry,
     });
     LIBRARY_TYPE_LABELS = Object.freeze({
       [LIBRARY_ENTITY_TYPES.COUNTRY]: MAP_OBJECT_TYPES.country.label,

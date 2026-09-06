@@ -9,6 +9,7 @@ import {
   createImportService,
   importedCountryOverrides,
 } from '../../assets/js/modules/import-service.js';
+import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
 
 const country = (id, name = id) => ({
   type: 'Feature',
@@ -99,6 +100,132 @@ test('imported-wins authoritatively replaces the same country instead of unionin
   assert.deepEqual(plan.countriesData.features.find(feature => feature.id === 'DEU').geometry, importedGermany.geometry);
   assert.deepEqual(unionArgumentCounts, [1]);
   assert.equal(current.features.find(feature => feature.id === 'DEU').properties.name, 'Old Germany');
+});
+
+test('territory replacement deletes every country fully covered by one historical country', async () => {
+  const planner = createCountryImportMergePlanner({
+    clipper: {
+      union(...items) { return items[0]; },
+      difference() { return []; },
+      intersection() { return [[[0, 0], [1, 0], [1, 1], [0, 0]]]; },
+    },
+    clone: value => JSON.parse(JSON.stringify(value)),
+    featureCountryId: feature => feature.id,
+    countryName: feature => feature.properties.name,
+    geometryBounds: () => [[0, 0], [1, 1]],
+    boundsOverlap: () => true,
+    normalizeGeometry: coordinates => Array.isArray(coordinates) && coordinates.length
+      ? { type: 'Polygon', coordinates }
+      : null,
+    geometryCoordinates: geometry => geometry.coordinates,
+    planarArea: () => 1,
+    areaKm2: () => 1,
+    validateCountryCollection: async () => ({ overlapAreaKm2: 0 }),
+  });
+  const current = { type: 'FeatureCollection', features: [country('CZE'), country('SVK')] };
+  const historical = { type: 'FeatureCollection', features: [country('historical-country:czechoslovakia')] };
+  const plan = await planner(current, historical, 'territory-replacement');
+  assert.equal(plan.canCommit, true);
+  assert.equal(plan.counts.subtracted, 2);
+  assert.equal(plan.counts.deleted, 2);
+  assert.deepEqual(plan.affectedIds.sort(), ['CZE', 'SVK', 'historical-country:czechoslovakia'].sort());
+  assert.deepEqual(plan.donorIds, ['CZE', 'SVK']);
+  assert.equal(plan.transferredGeometry.type, 'Polygon');
+  assert.deepEqual(plan.countriesData.features.map(feature => feature.id), ['historical-country:czechoslovakia']);
+  assert.equal(current.features.length, 2);
+});
+
+test('territory replacement preserves the remainders of several partially covered countries', async () => {
+  const remainder = [[[0, 0], [0.5, 0], [0.5, 0.5], [0, 0]]];
+  const planner = createCountryImportMergePlanner({
+    clipper: {
+      union(...items) { return items[0]; },
+      difference() { return remainder; },
+      intersection() { return [[[0, 0], [1, 0], [1, 1], [0, 0]]]; },
+    },
+    clone: value => JSON.parse(JSON.stringify(value)),
+    featureCountryId: feature => feature.id,
+    countryName: feature => feature.properties.name,
+    geometryBounds: () => [[0, 0], [1, 1]],
+    boundsOverlap: () => true,
+    normalizeGeometry: coordinates => Array.isArray(coordinates) && coordinates.length
+      ? { type: 'Polygon', coordinates }
+      : null,
+    geometryCoordinates: geometry => geometry.coordinates,
+    planarArea: () => 1,
+    areaKm2: () => 1,
+    validateCountryCollection: async () => ({ overlapAreaKm2: 0 }),
+  });
+  const current = { type: 'FeatureCollection', features: [country('DEU'), country('POL')] };
+  const historical = { type: 'FeatureCollection', features: [country('historical-country:east-prussia')] };
+  const plan = await planner(current, historical, 'territory-replacement');
+  assert.equal(plan.canCommit, true);
+  assert.equal(plan.counts.subtracted, 2);
+  assert.equal(plan.counts.deleted, 0);
+  assert.deepEqual(plan.donorIds, ['DEU', 'POL']);
+  assert.deepEqual(plan.countriesData.features.map(feature => feature.id), [
+    'DEU', 'POL', 'historical-country:east-prussia',
+  ]);
+  assert.deepEqual(plan.countriesData.features[0].geometry.coordinates, remainder);
+  assert.deepEqual(plan.countriesData.features[1].geometry.coordinates, remainder);
+});
+
+test('historical replacement commits full country deletion and transfers dependent territories atomically', async () => {
+  const existing = country('KAZ');
+  const replacement = country('historical-country:soviet-union');
+  const state = {
+    countriesData: { type: 'FeatureCollection', features: [existing] },
+    countryOverrides: { KAZ: { color: '#123456' } },
+    territorialUnits: [{ id: 'KAB', properties: { sovereignId: 'KAZ' } }],
+    territorialRelations: [], distributionLayers: [], distributionEntries: [], labels: [], genericFeatures: [],
+    itemVisibility: {}, labelSettings: {}, sourceInfo: null,
+  };
+  let transferred = null;
+  let committedSnapshot = null;
+  const committer = createGisImportTransactionCommitter({
+    state,
+    deepClone: value => JSON.parse(JSON.stringify(value)),
+    importedCountryOverrides: () => ({}),
+    applyImportedPackageAssets: (_metadata, overrides) => overrides,
+    validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }),
+    reindexCountries: collection => collection,
+    transferLandDependents: (geometry, donorIds, targetId) => {
+      transferred = { geometry, donorIds, targetId };
+      state.territorialUnits = [];
+    },
+    pruneLayerItemVisibility() {},
+    assertProjectReferenceIntegrity(input) {
+      assert.deepEqual(input.territorialUnits, []);
+      assert.deepEqual(input.countries.map(feature => feature.id), ['historical-country:soviet-union']);
+    },
+    snapshotEditable: () => ({ marker: 'before' }),
+    restoreCountryEditSnapshot() { throw new Error('unexpected rollback'); },
+    appendImportedSourceInfo: (_previous, next) => next,
+    scheduleCountryLabelAnchors() {},
+    markCountryGeometriesChanged() {},
+    commitHistorySnapshot(snapshot) { committedSnapshot = snapshot; },
+    selectionUiController: { clear() {} },
+    renderingDomain: { invalidateCountryPatch() {} },
+    queueAutosave() {},
+    setActionStatus() {},
+  });
+  const result = await committer.commitGisMerge({
+    countriesData: { type: 'FeatureCollection', features: [replacement] },
+    landDependentsTargetId: replacement.id,
+    sourceInfo: { title: 'Historical library' },
+  }, {
+    countriesData: { type: 'FeatureCollection', features: [replacement] },
+    counts: { added: 1, subtracted: 1, deleted: 1 },
+    affectedIds: ['KAZ', replacement.id], donorIds: ['KAZ'], transferredGeometry: replacement.geometry,
+  });
+  assert.deepEqual(result, {
+    added: 1, subtracted: 1, deleted: 1, affectedIds: ['KAZ', 'historical-country:soviet-union'],
+  });
+  assert.equal(transferred.targetId, replacement.id);
+  assert.deepEqual(transferred.donorIds, ['KAZ']);
+  assert.deepEqual(state.countriesData.features.map(feature => feature.id), [replacement.id]);
+  assert.deepEqual(state.countryOverrides, { [replacement.id]: {} });
+  assert.deepEqual(committedSnapshot, { marker: 'before' });
 });
 
 test('import service validates countries and returns one immutable merge plan', async () => {

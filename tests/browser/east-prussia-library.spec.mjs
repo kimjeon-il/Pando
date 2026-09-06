@@ -44,8 +44,8 @@ test('East Prussia r2 library entry adds an exact overlap-free country', async (
   const sourceBefore = await page.evaluate(() => JSON.stringify(
     window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:east-prussia').geometryVersions[0].geometry,
   ));
-  await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryAddOptions')).toBeVisible();
+  await expect(page.locator('#historicalLibraryAddOptions')).toContainText('불러올 범위');
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeHidden();
 

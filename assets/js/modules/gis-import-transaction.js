@@ -778,37 +778,49 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         technicalMessage: `Residual overlap: ${validation.overlapAreaKm2} km2`,
       });
     }
-    assertProjectReferenceIntegrity({
-      countries: draftCountries.features || [],
-      countryOverrides: draftOverrides,
-      territorialUnits: state.territorialUnits || [],
-      territorialRelations: state.territorialRelations || [],
-      distributionLayers: state.distributionLayers || [],
-      distributionEntries: state.distributionEntries || [],
-      labels: state.labels || [],
-      genericFeatures: state.genericFeatures || [],
-      itemVisibility: state.itemVisibility || {},
-      labelSettings: state.labelSettings || {},
-    });
-  
     const before = snapshotEditable();
-    state.sourceInfo = appendImportedSourceInfo(state.sourceInfo, result.sourceInfo);
-    state.countryOverrides = draftOverrides;
-    state.countriesData = reindexCountries(draftCountries, true);
-    pruneLayerItemVisibility();
-    scheduleCountryLabelAnchors(null, 10);
-    markCountryGeometriesChanged(plan.affectedIds || importedIds);
-    commitHistorySnapshot(before);
-    selectionUiController.clear({ reason: 'gis-merge-selection-clear' });
-    renderingDomain?.invalidateCountryPatch?.('gis-merge-committed');
-    queueAutosave();
-    setActionStatus(result.commitStatus || 'GIS 레이어를 한 번의 편집 작업으로 병합했습니다.', 'success', 3200);
-    return {
-      added: Number(plan.counts?.added || 0),
-      subtracted: Number(plan.counts?.subtracted || 0),
-      deleted: Number(plan.counts?.deleted || 0),
-      affectedIds: [...new Set(plan.affectedIds || [])],
-    };
+    try {
+      state.countryOverrides = draftOverrides;
+      state.countriesData = reindexCountries(draftCountries, true);
+      const dependentTargetId = String(result.landDependentsTargetId || '');
+      if (dependentTargetId && plan.transferredGeometry && Array.isArray(plan.donorIds)) {
+        transferLandDependents(plan.transferredGeometry, plan.donorIds, dependentTargetId);
+      }
+      pruneLayerItemVisibility();
+      for (const key of Object.keys(state.labelSettings || {})) {
+        if (key.startsWith('country:') && !draftCountryIds.has(key.slice('country:'.length))) delete state.labelSettings[key];
+      }
+      assertProjectReferenceIntegrity({
+        countries: state.countriesData.features || [],
+        countryOverrides: state.countryOverrides,
+        territorialUnits: state.territorialUnits || [],
+        territorialRelations: state.territorialRelations || [],
+        distributionLayers: state.distributionLayers || [],
+        distributionEntries: state.distributionEntries || [],
+        labels: state.labels || [],
+        genericFeatures: state.genericFeatures || [],
+        itemVisibility: state.itemVisibility || {},
+        labelSettings: state.labelSettings || {},
+      });
+
+      state.sourceInfo = appendImportedSourceInfo(state.sourceInfo, result.sourceInfo);
+      scheduleCountryLabelAnchors(null, 10);
+      markCountryGeometriesChanged(plan.affectedIds || importedIds);
+      commitHistorySnapshot(before);
+      selectionUiController.clear({ reason: 'gis-merge-selection-clear' });
+      renderingDomain?.invalidateCountryPatch?.('gis-merge-committed');
+      queueAutosave();
+      setActionStatus(result.commitStatus || 'GIS 레이어를 한 번의 편집 작업으로 병합했습니다.', 'success', 3200);
+      return {
+        added: Number(plan.counts?.added || 0),
+        subtracted: Number(plan.counts?.subtracted || 0),
+        deleted: Number(plan.counts?.deleted || 0),
+        affectedIds: [...new Set(plan.affectedIds || [])],
+      };
+    } catch (error) {
+      restoreCountryEditSnapshot(before);
+      throw error;
+    }
   }
 
   return Object.freeze({
