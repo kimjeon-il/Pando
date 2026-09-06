@@ -120,7 +120,8 @@ export function createSelectionUiController({
     const selected = selectionDomain.has(ref);
     if (selected) {
       presentPrimary({ refreshOnly, openEditor });
-      if (!refreshOnly) uiActions.focusObject?.(ref);
+      const isCountry = ref.domain === 'territorial' && ref.type === 'country';
+      if (!refreshOnly && !isCountry) uiActions.focusObject?.(ref);
     } else if (!selectionDomain.size()) uiActions.clearPresenter?.({ refreshOnly: false });
     uiActions.closeChooser?.();
     return selected;
