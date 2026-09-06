@@ -30,7 +30,7 @@ export function createLayerListModel({ items, groups, builtinCountryIds, builtin
   objects.sort(order);
   for (const bundle of bundles) {
     bundle.items.sort(order);
-    bundle.typeLabel = bundle.id === 'countries' ? `국가 ${bundle.items.length}` : '수계';
+    bundle.typeLabel = bundle.id === 'countries' ? '국가' : '수계';
   }
   return { bundles: bundles.filter(bundle => bundle.items.length), objects, order };
 }
