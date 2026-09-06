@@ -22,7 +22,7 @@ test('object registry exposes canonical domain/category/editor metadata', () => 
   assert.equal(MAP_OBJECT_TYPES.country.domain, 'territorial');
   assert.equal(MAP_OBJECT_TYPES.country.category, 'territorial');
   assert.equal(MAP_OBJECT_TYPES.country.editor, 'country');
-  assert.equal(MAP_OBJECT_TYPES.admin.editor, 'administrative');
+  assert.equal(MAP_OBJECT_TYPES.subunit.editor, 'subunit');
   assert.equal(MAP_OBJECT_TYPES.river.domain, 'hydro');
   assert.equal(MAP_OBJECT_TYPES.river.editor, 'hydro');
   assert.equal(MAP_OBJECT_TYPES.generic.domain, 'generic');
@@ -31,11 +31,11 @@ test('object registry exposes canonical domain/category/editor metadata', () => 
 });
 
 test('object refs resolve through one registry key and presentation mapping', () => {
-  assert.equal(objectTypeKeyForRef({ domain: 'territorial', type: 'admin', id: 'a' }), 'admin');
+  assert.equal(objectTypeKeyForRef({ domain: 'territorial', type: 'subunit', id: 'a' }), 'subunit');
   assert.equal(objectTypeKeyForRef({ domain: 'distribution', type: 'language', id: 'd' }), 'distribution');
   assert.equal(objectTypeKeyForRef({ domain: 'hydro', type: 'lake', id: 'l' }), 'lake');
   assert.equal(objectTypeDescriptor({ domain: 'generic', type: 'feature' }), MAP_OBJECT_TYPES.generic);
-  assert.equal(objectTypeLabel({ domain: 'territorial', type: 'territory' }), '권역');
+  assert.equal(objectTypeLabel({ domain: 'territorial', type: 'subunit' }), '하위단위');
   assert.equal(layerGroupForObjectType('distribution', { subtype: 'ethnicity' }), 'ethnicities');
   assert.equal(presentationGroupForObjectType('river'), 'rivers');
   assert.equal(categoryForLayerGroup('genericFeatures'), 'features');
@@ -48,7 +48,7 @@ test('action registry resolves dynamic lock metadata and applicability', () => {
   assert.equal(resolveObjectAction('delete').danger, true);
   assert.equal(objectActionApplies('change-type', { domain: 'territorial', type: 'country' }), true);
   assert.equal(objectActionApplies('change-type', { domain: 'hydro', type: 'river' }), false);
-  assert.equal(objectActionApplies('border-edit', { domain: 'territorial', type: 'territory' }), false);
+  assert.equal(objectActionApplies('border-edit', { domain: 'territorial', type: 'subunit' }), false);
   assert.equal(objectActionApplies('border-edit', { domain: 'territorial', type: 'country' }), true);
   assert.ok(OBJECT_ACTIONS['coast-reconcile']);
 });
@@ -62,11 +62,11 @@ test('action executor delegates canonical commands without owning mutation logic
     },
   });
   const context = { domain: 'territorial', type: 'country', capabilities: new Set(['change-type']) };
-  assert.equal(executor.execute('change-type', context, { type: 'territory' }), 'done');
+  assert.equal(executor.execute('change-type', context, { type: 'subunit' }), 'done');
   assert.deepEqual(calls[0], {
     command: 'territorial.change-type',
     context,
-    payload: { type: 'territory' },
+    payload: { type: 'subunit' },
   });
   assert.equal(executor.execute('border-edit', { ...context, capabilities: new Set() }), false);
 });
@@ -75,5 +75,5 @@ test('shared layer menu and editor endpoints bind to the same action ids', () =>
   assert.deepEqual(ACTION_UI_BINDINGS.lock.map(binding => binding.elementId), ['objectLockBtn']);
   assert.deepEqual(ACTION_UI_BINDINGS.delete.map(binding => binding.elementId), ['objectDeleteBtn']);
   assert.ok(ACTION_UI_BINDINGS['change-type'].some(binding => binding.elementId === 'changeCountryTypeBtn'));
-  assert.ok(ACTION_UI_BINDINGS['coast-reconcile'].some(binding => binding.elementId === 'reconcileAdministrativeCoastBtn'));
+  assert.ok(ACTION_UI_BINDINGS['coast-reconcile'].some(binding => binding.elementId === 'reconcileSubunitCoastBtn'));
 });

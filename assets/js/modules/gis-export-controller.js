@@ -1,5 +1,5 @@
 const LABELS = Object.freeze({
-  countries: '국가', territories: '권역', administrative: '행정구역', regions: '지방',
+  countries: '국가', subunits: '하위단위', regions: '지방',
   genericFeatures: '기타 객체', distributions: '분포', labels: '지명',
 });
 

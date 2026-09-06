@@ -513,7 +513,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
   pointer-events: none;
   vector-effect: non-scaling-stroke;
 }
-.territorial-internal-boundary--territory { stroke-width: 2px; }
+.territorial-internal-boundary--subunit { stroke-width: 2px; }
 .territorial-internal-boundary--administrative { stroke-width: 1.1px; stroke-dasharray: 3 2; }
 .territorial-internal-boundary--region { stroke-width: 1.5px; stroke-dasharray: 7 3; }
 .territorial-unit-shape.has-explicit-color { fill-opacity: .24; }

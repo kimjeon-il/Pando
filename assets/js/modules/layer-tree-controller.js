@@ -420,7 +420,7 @@ export function createAppLayerTreeController(runtime = {}) {
     document,
     elements: {
       visibilityInputs: Object.fromEntries([
-        ['countries', 'countriesVisible'], ['territories', 'territoriesVisible'], ['administrative', 'administrativeVisible'],
+        ['countries', 'countriesVisible'], ['subunits', 'subunitsVisible'],
         ['regions', 'regionsVisible'], ['languages', 'languagesVisible'], ['ethnicities', 'ethnicitiesVisible'],
         ['religions', 'religionsVisible'], ['rivers', 'riversVisible'], ['lakes', 'lakesVisible'], ['genericFeatures', 'genericFeaturesVisible'],
         ['labels', 'labelsVisible'], ['basemapLabels', 'basemapLabelsVisible'],

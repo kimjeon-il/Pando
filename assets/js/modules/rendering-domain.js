@@ -534,10 +534,10 @@ export function createRenderingDomain({
     const types = t.TERRITORIAL_UNIT_TYPES || {};
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
     const data = (state.territorialUnits || []).filter(feature => {
-      const group = feature.properties?.unitType === types.ADMIN ? 'administrative'
-        : feature.properties?.unitType === types.REGION ? 'regions' : 'territories';
+      const group = feature.properties?.unitType === types.SUBUNIT ? 'subunits'
+        : feature.properties?.unitType === types.REGION ? 'regions' : 'subunits';
       const selected = t.selectionHas?.(t.normalizeObjectRef?.({
-        domain: 'territorial', type: feature.properties?.unitType || types.TERRITORY, id: feature.id,
+        domain: 'territorial', type: feature.properties?.unitType || types.SUBUNIT, id: feature.id,
       }));
       const editing = state.territorialUnitMergeSourceId === String(feature.id)
         || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))
@@ -550,7 +550,7 @@ export function createRenderingDomain({
     const selection = t.territorialUnitLayer?.selectAll('path.territorial-unit-shape').data(data, feature => String(feature.id));
     selection?.enter().append('path').attr('class', 'territorial-unit-shape')
       .on('mouseenter.hover', feature => t.setMapHover?.('territorialUnit', feature.id, feature, {
-        domain: 'territorial', type: feature.properties?.unitType || types.TERRITORY, id: feature.id,
+        domain: 'territorial', type: feature.properties?.unitType || types.SUBUNIT, id: feature.id,
       }))
       .on('mouseleave.hover', () => t.setMapHover?.('', '', null))
       .on('click', function(feature) {
@@ -565,27 +565,26 @@ export function createRenderingDomain({
         t.d3?.event?.stopPropagation?.();
         t.handleObjectSelectionAt?.(t.d3?.mouse?.(t.svg), {
           sourceEvent: t.d3?.event,
-          forcedRef: { domain: 'territorial', type: feature.properties?.unitType || types.TERRITORY, id: feature.id },
+          forcedRef: { domain: 'territorial', type: feature.properties?.unitType || types.SUBUNIT, id: feature.id },
         });
       });
     selection?.attr('d', feature => t.path?.(feature))
       .attr('data-gpu-scene-key', feature => {
-        const type = feature.properties?.unitType || types.TERRITORY;
+        const type = feature.properties?.unitType || types.SUBUNIT;
         const key = t.normalizeObjectRef?.({ domain: 'territorial', type, id: feature.id })?.key
           || `territorial:${type}:${feature.id}`;
         return `${key}:fill`;
       })
-      .classed('is-territory', feature => feature.properties?.unitType === types.TERRITORY)
-      .classed('is-administrative', feature => feature.properties?.unitType === types.ADMIN)
+      .classed('is-territory', feature => feature.properties?.unitType === types.SUBUNIT)
       .classed('is-region', feature => feature.properties?.unitType === types.REGION)
       .classed('has-explicit-color', feature => !!t.territorialStyleColor?.(feature))
       .classed('territorial-unit-merge-source', feature => state.territorialUnitMergeSourceId === String(feature.id))
       .classed('territorial-unit-merge-target', feature => (state.territorialUnitMergeTargetIds || []).includes(String(feature.id)))
       .style('color', t.territorialUnitColor)
       .style('fill', t.territorialUnitColor)
-      .style('fill-opacity', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature)).opacity)
+      .style('fill-opacity', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${feature.id}`).opacity)
       .style('stroke', 'none').style('stroke-opacity', 0).style('stroke-width', 0).style('stroke-dasharray', 'none')
-      .style('mix-blend-mode', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature)).blendMode)
+      .style('mix-blend-mode', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${feature.id}`).blendMode)
       .attr('data-presentation-group', t.presentationGroupForTerritorialFeature);
     selection?.exit().remove();
     const operationOutlines = data.filter(feature => state.territorialUnitMergeSourceId === String(feature.id)
@@ -596,7 +595,7 @@ export function createRenderingDomain({
       .style('fill', 'none').style('pointer-events', 'none');
     outlineSelection?.attr('d', feature => t.path?.(t.buildRenderableStrokeFeature?.(feature) || feature))
       .attr('data-gpu-scene-key', feature => {
-        const type = feature.properties?.unitType || types.TERRITORY;
+        const type = feature.properties?.unitType || types.SUBUNIT;
         const key = t.normalizeObjectRef?.({ domain: 'territorial', type, id: feature.id })?.key
           || `territorial:${type}:${feature.id}`;
         return `${key}:operation-outline`;
@@ -607,14 +606,14 @@ export function createRenderingDomain({
     const polygons = [];
     const strokes = [];
     for (const feature of data) {
-      const group = t.presentationGroupForTerritorialFeature?.(feature) || 'territories';
-      const unitStyle = t.layerStyle?.(state.layerPresentation, group) || {};
-      const type = feature.properties?.unitType || types.TERRITORY;
+      const group = t.presentationGroupForTerritorialFeature?.(feature) || 'subunits';
+      const unitStyle = t.layerStyle?.(state.layerPresentation, group, `territorial:${feature.properties.unitType}:${feature.id}`) || {};
+      const type = feature.properties?.unitType || types.SUBUNIT;
       const objectKey = t.normalizeObjectRef?.({ domain: 'territorial', type, id: feature.id })?.key
         || `territorial:${type}:${feature.id}`;
       const geometryRevision = t.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
       polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
-        order: t.gpuSceneOrder?.(group, 10), blendMode: unitStyle.blendMode,
+        order: t.gpuSceneOrder?.(group, 10, objectKey), blendMode: unitStyle.blendMode,
         style: { color: t.territorialUnitColor?.(feature), fillAlpha: unitStyle.opacity, blendMode: unitStyle.blendMode } });
       if (state.territorialUnitMergeSourceId === String(feature.id)
         || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))) {
@@ -626,7 +625,7 @@ export function createRenderingDomain({
     }
     t.replaceGpuSceneDomain?.('territorial-units', { polygons, strokes });
     const boundaryFeatures = (state.territorialUnits || []).filter(feature => {
-      const group = t.presentationGroupForTerritorialFeature?.(feature) || 'territories';
+      const group = t.presentationGroupForTerritorialFeature?.(feature) || 'subunits';
       return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id);
     });
     renderTerritorialInternalBoundaries(boundaryFeatures);
@@ -871,13 +870,12 @@ export function createRenderingDomain({
     }
     const visibleIds = new Set(visibleFeatures.map(feature => String(feature.id)));
     const styleByType = new Map([
-      ['territory', { presentationGroup: 'territories', width: 2, dash: [0, 0] }],
-      ['administrative', { presentationGroup: 'administrative', width: 1.1, dash: [3, 2] }],
+      ['subunit', { presentationGroup: 'subunits', width: 2, dash: [0, 0] }],
       ['region', { presentationGroup: 'regions', width: 1.5, dash: [7, 3] }],
     ]);
     const visibleSignature = [...visibleIds].sort().map(id => {
       const feature = visibleFeatures.find(item => String(item.id) === id);
-      return `${id}:${t.territorialUnitColor?.(feature)}`;
+      return `${id}:${t.territorialUnitColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${id}`))}`;
     }).join('|');
     const styleSignature = [...styleByType].map(([type, definition]) => {
       const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
@@ -890,11 +888,11 @@ export function createRenderingDomain({
         const owner = (segment.unitIds || []).find(id => visibleIds.has(String(id)));
         if (!owner) continue;
         const feature = visibleFeatures.find(item => String(item.id) === String(owner));
-        const styleType = feature?.properties?.unitType || 'territory';
-        const definition = styleByType.get(styleType) || styleByType.get('territory');
-        const group = groups.get(styleType) || groups.get('territory');
+        const styleType = feature?.properties?.unitType || 'subunit';
+        const definition = styleByType.get(styleType) || styleByType.get('subunit');
+        const group = groups.get(styleType) || groups.get('subunit');
         if (!group) continue;
-        const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
+        const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup, `territorial:${feature.properties.unitType}:${feature.id}`) || {};
         if (!style.boundaryVisible || !(style.opacity > 0)) continue;
         group.segments.push({ a: segment.a, b: segment.b, color: t.territorialUnitColor?.(feature) || t.mapTheme?.().border, opacity: style.opacity });
       }
@@ -914,7 +912,7 @@ export function createRenderingDomain({
       .attr('data-gpu-scene-key', group => `territorial-internal:${group.key}`).style('color', group => group.color).style('stroke', group => group.color).style('stroke-opacity', group => group.opacity);
     selection?.exit().remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
-      const definition = styleByType.get(group.styleType) || styleByType.get('territory') || { presentationGroup: 'territories', width: 1, dash: [] };
+      const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits', width: 1, dash: [] };
       return { key: `territorial-internal:${group.key}`, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 30 + index), style: { color: group.color, alpha: group.opacity, width: definition.width, dash: definition.dash, cap: 'round', join: 'round' } };
     }) });
     return true;
@@ -1397,7 +1395,14 @@ export function createRenderingDomain({
   const syncSelectionEmphasis = () => {
     if (!gpuMapRenderer?.setCountryEmphasis) return false;
     const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
-    const items = selectionState.selection.items;
+    // Read-only visual extensions are not SelectionDomain members. A country
+    // remains one selected object, including when it owns detached subunits.
+    const items = selectionState.selection.items.flatMap(ref => {
+      if (ref.domain !== 'territorial' || ref.type !== selection.countryType) return [ref];
+      const extra = selection.countrySubunitExtent?.(ref.id);
+      return extra ? [ref, { domain: 'territorial', type: 'subunit', id: ref.id,
+        key: `${ref.key}:extent`, parentSelectionKey: ref.key, scopeFeature: extra }] : [ref];
+    });
     const countryIds = items
       .filter(ref => ref.domain === 'territorial' && ref.type === selection.countryType)
       .map(ref => ref.id);
@@ -1559,8 +1564,8 @@ export function createRenderingDomain({
       }
     }
     for (const ref of items) {
-      const primary = primaryKey === ref.key;
-      const canonicalFeature = selection.mapFeatureForObjectRef?.(ref);
+      const primary = primaryKey === (ref.parentSelectionKey || ref.key);
+      const canonicalFeature = ref.scopeFeature || selection.mapFeatureForObjectRef?.(ref);
       const isCountry = ref.domain === 'territorial' && ref.type === selection.countryType;
       const feature = isCountry ? selection.countryDisplayFeature?.(canonicalFeature) : canonicalFeature;
       if (!feature?.geometry && feature?.type !== 'FeatureCollection') continue;

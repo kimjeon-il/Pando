@@ -17,8 +17,7 @@ const ACTION_UI_BINDINGS = Object.freeze({
   ]),
   'change-type': Object.freeze([
     Object.freeze({ elementId: 'changeCountryTypeBtn', labelSelector: 'strong' }),
-    Object.freeze({ elementId: 'changeTerritoryTypeBtn', labelSelector: 'strong' }),
-    Object.freeze({ elementId: 'changeAdministrativeTypeBtn', labelSelector: 'strong' }),
+    Object.freeze({ elementId: 'changeSubunitTypeBtn', labelSelector: 'strong' }),
   ]),
   'border-edit': Object.freeze([
     Object.freeze({ elementId: 'editBorderBtn', labelSelector: 'strong' }),
@@ -28,7 +27,7 @@ const ACTION_UI_BINDINGS = Object.freeze({
     Object.freeze({ elementId: 'editCoastBtn', labelSelector: 'strong' }),
   ]),
   'coast-reconcile': Object.freeze([
-    Object.freeze({ elementId: 'reconcileAdministrativeCoastBtn', labelSelector: 'strong', icon: true }),
+    Object.freeze({ elementId: 'reconcileSubunitCoastBtn', labelSelector: 'strong', icon: true }),
   ]),
 });
 

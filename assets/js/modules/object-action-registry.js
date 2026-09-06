@@ -42,7 +42,7 @@ export const OBJECT_ACTIONS = Object.freeze({
     icon: 'icon-chevron-right',
     capability: 'change-type',
     domains: ['territorial'],
-    types: ['country', 'territory', 'admin', 'region'],
+    types: ['country', 'subunit', 'region'],
     danger: false,
   }),
   'border-edit': freezeAction({

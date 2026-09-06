@@ -77,9 +77,9 @@ const currentProject = () => ({
     sourceProvenanceSchemaVersion: 1,
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
-  territorialModel: { schemaVersion: 1 },
+  territorialModel: { schemaVersion: 2 },
   distributionModel: { schemaVersion: 2 },
-  layerPresentation: { schemaVersion: 2, overlayOrder: [], styles: {} },
+  layerPresentation: { schemaVersion: 3, overlayOrder: [], styles: {} },
   countriesData: {
     type: 'FeatureCollection',
     features: [{ type: 'Feature', id: 'DEU', properties: { name: '독일' }, geometry: { type: 'MultiPolygon', coordinates: [] } }],
@@ -87,7 +87,7 @@ const currentProject = () => ({
   countryOverrides: { DEU: { color: '#53657a' } },
   territorialUnits: [{
     type: 'Feature', id: uuid(1),
-    properties: { schemaVersion: 1, unitType: 'territory', isRemainder: false },
+    properties: { schemaVersion: 2, unitType: 'subunit', isRemainder: false },
     geometry: { type: 'Polygon', coordinates: [] },
   }],
   territorialRelations: [{ id: uuid(2), schemaVersion: 1 }],
@@ -104,6 +104,29 @@ const currentProject = () => ({
 test('current project schema accepts only explicit current versions and UUID object IDs', () => {
   assert.equal(assertCurrentProjectSchema(currentProject()).schemaVersion, PROJECT_SCHEMA_VERSION);
   assert.match(createProjectObjectId(), /^[0-9a-f-]{36}$/i);
+});
+
+test('v4 Subunit migration passes the real load gate and v5 save/reopen preserves presentation', () => {
+  const source = currentProject();
+  source.schemaVersion = 4;
+  source.territorialModel.schemaVersion = 1;
+  source.territorialUnits[0].properties = {
+    ...source.territorialUnits[0].properties, schemaVersion: 1, unitType: 'admin',
+    parentId: 'DEU', sovereignId: 'DEU', adminLevel: 2,
+  };
+  source.layerVisibility = { administrative: false, territories: true };
+  source.itemVisibility = { administrative: {}, territories: {} };
+  source.layerPresentation = { schemaVersion: 2, styles: { administrative: { opacity: 0.4, blendMode: 'multiply' } } };
+  const before = structuredClone(source.territorialUnits[0]);
+  const converted = assertCurrentProjectSchema(source);
+  const reopened = assertCurrentProjectSchema(JSON.parse(JSON.stringify(converted)));
+  assert.equal(reopened.schemaVersion, 5);
+  assert.equal(reopened.territorialUnits[0].properties.unitType, 'subunit');
+  assert.equal(reopened.territorialUnits[0].id, before.id);
+  assert.deepEqual(reopened.territorialUnits[0].geometry, before.geometry);
+  assert.equal(reopened.itemVisibility.subunits[before.id], false);
+  assert.equal(reopened.layerPresentation.objectStyles[`territorial:subunit:${before.id}`].opacity, 0.4);
+  assert.deepEqual(reopened, converted);
 });
 
 test('distribution boundary visibility is a shared optional presentation setting', () => {
@@ -186,7 +209,7 @@ test('missing duplicate and unsupported object fields are rejected', () => {
   unsupported.territorialUnits[0].properties.unknownField = 'PL';
   assert.throws(() => assertCurrentProjectSchema(unsupported), /지원하지 않는 필드 unknownField/);
   const badGeneric = currentProject();
-  badGeneric.genericFeatures[0].properties.role = 'territory';
+  badGeneric.genericFeatures[0].properties.role = 'subunit';
   assert.throws(() => assertCurrentProjectSchema(badGeneric), /지원하지 않는 필드 role/);
 });
 

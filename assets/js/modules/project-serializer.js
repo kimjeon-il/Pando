@@ -53,7 +53,7 @@ function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion
       schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION,
       coastlineAuthority: 'countriesData',
       countryStorage: 'countriesData-adapter',
-      types: ['country', 'territory', 'admin', 'region'],
+      types: ['country', 'subunit', 'region'],
       coverageModes: ['partition', 'explicit'],
     },
     distributionModel: {

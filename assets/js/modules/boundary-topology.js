@@ -333,11 +333,7 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
     if (!unitOwners.length || [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')) || nearCountryExterior(segment)) continue;
     const metadata = unitOwners.map(ownerId => unitMeta.get(ownerId)).filter(Boolean);
     if (!metadata.length) continue;
-    const styleType = metadata.some(item => item.type === 'admin')
-      ? 'administrative'
-      : metadata.some(item => item.type === 'region')
-        ? 'region'
-        : 'territory';
+    const styleType = metadata.some(item => item.type === 'region') ? 'region' : 'subunit';
     output.push({
       key: segment.key,
       a: segment.a,

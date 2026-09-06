@@ -2,8 +2,7 @@
   'use strict';
 
   const TERRITORIAL_TABLES = Object.freeze({
-    territory: 'territories',
-    admin: 'administrative',
+    subunit: 'subunits',
     region: 'regions',
   });
   const DISTRIBUTION_TABLES = Object.freeze({
@@ -14,6 +13,7 @@
   const DISTRIBUTION_TYPES_BY_TABLE = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_TABLES).map(([type, table]) => [table, type])));
   const TERRITORIAL_TYPES_BY_TABLE = Object.freeze({
     ...Object.fromEntries(Object.entries(TERRITORIAL_TABLES).map(([type, table]) => [table, type])),
+    territories: 'subunit', administrative: 'subunit',
   });
   const clone = value => value == null ? value : structuredClone(value);
   const text = value => String(value ?? '').trim();
@@ -61,7 +61,7 @@
         type: unitType,
         parent_id: text(properties.parentId),
         sovereign_id: text(properties.sovereignId),
-        admin_level: unitType === 'admin' ? Number(properties.adminLevel ?? 1) : null,
+        admin_level: unitType === 'subunit' ? Number(properties.adminLevel ?? 1) : null,
         is_remainder: properties.isRemainder === true ? 1 : 0,
         valid_from: text(properties.validFrom),
         valid_to: text(properties.validTo),
@@ -123,12 +123,12 @@
       id,
       properties: {
         ...currentProperties,
-        schemaVersion: 1,
+        schemaVersion: 2,
         unitType,
         name: text(properties.name ?? currentProperties.name) || id,
         parentId: text(properties.parent_id ?? currentProperties.parentId),
         sovereignId: text(properties.sovereign_id ?? currentProperties.sovereignId),
-        adminLevel: unitType === 'admin' ? Math.max(1, Number(properties.admin_level ?? currentProperties.adminLevel ?? 1)) : null,
+        adminLevel: unitType === 'subunit' && Number(properties.admin_level ?? currentProperties.adminLevel) > 0 ? Math.max(1, Number(properties.admin_level ?? currentProperties.adminLevel)) : null,
         coverageMode: unitType === 'region' ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
         isRemainder: Number(properties.is_remainder ?? (currentProperties.isRemainder ? 1 : 0)) === 1,
         validFrom: text(properties.valid_from ?? currentProperties.validFrom) || null,
