@@ -58,12 +58,10 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             self.assertTrue(entity["sourceInfo"]["title"])
         east_germany = next(entity for entity in PILOT["entities"] if entity["libraryId"] == "historical-country:deutsche-demokratische-republik")
         supplemental_ids = {
-            "historical-country:ukraine-1991-2014",
-            "historical-country:kingdom-of-yugoslavia",
-            "historical-country:sfr-yugoslavia",
-            "historical-country:federal-republic-of-yugoslavia",
-            "historical-country:sudan-1956-2011",
-            "historical-country:indonesia-1945-2002",
+            "historical-country:ukraine",
+            "historical-country:yugoslavia",
+            "historical-country:sudan",
+            "historical-country:indonesia",
         }
         self.assertEqual(east_germany["geometryVersions"][0]["datePrecision"], "reference-date")
         self.assertEqual(east_germany["geometryVersions"][0]["certainty"], "medium")
@@ -80,12 +78,10 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
 
     def test_supplemental_historical_countries_have_territory_replacement_versions(self):
         expected = {
-            "historical-country:ukraine-1991-2014": ("1991-08-24", "2014-03-17"),
-            "historical-country:kingdom-of-yugoslavia": ("1918-12-01", "1941-04-17"),
-            "historical-country:sfr-yugoslavia": ("1945-11-29", "1992-04-27"),
-            "historical-country:federal-republic-of-yugoslavia": ("1992-04-27", "2003-02-04"),
-            "historical-country:sudan-1956-2011": ("1956-01-01", "2011-07-08"),
-            "historical-country:indonesia-1945-2002": ("1945-08-17", "2002-05-19"),
+            "historical-country:ukraine": ("1991-08-24", "2014-03-17"),
+            "historical-country:yugoslavia": ("1918-12-01", "2003-02-04"),
+            "historical-country:sudan": ("1956-01-01", "2011-07-08"),
+            "historical-country:indonesia": ("1945-08-17", "2002-05-19"),
         }
         by_id = {entity["libraryId"]: entity for entity in PILOT["entities"]}
         for library_id, dates in expected.items():
@@ -93,9 +89,14 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             self.assertEqual(entity["type"], "country")
             self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
             self.assertEqual((entity["startDate"], entity["endDate"]), dates)
-            self.assertEqual(len(entity["geometryVersions"]), 1)
-            self.assertEqual(entity["geometryVersions"][0]["validFrom"], dates[0])
-            self.assertEqual(entity["geometryVersions"][0]["validTo"], dates[1])
+            if library_id == "historical-country:yugoslavia":
+                self.assertEqual(len(entity["geometryVersions"]), 3)
+                self.assertEqual(entity["geometryVersions"][0]["validFrom"], "1918-12-01")
+                self.assertEqual(entity["geometryVersions"][-1]["validTo"], "2003-02-04")
+            else:
+                self.assertEqual(len(entity["geometryVersions"]), 1)
+                self.assertEqual(entity["geometryVersions"][0]["validFrom"], dates[0])
+                self.assertEqual(entity["geometryVersions"][0]["validTo"], dates[1])
             self.assertTrue(entity["metadata"]["approximateGeometry"])
 
     def test_soviet_union_has_fifteen_flagged_constituent_republics(self):
