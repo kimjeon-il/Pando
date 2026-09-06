@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260906212148" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260906212148" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260906222220" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260906222220" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -137,6 +137,7 @@
             <section class="layer-style-editor map-name-settings" aria-labelledby="mapNameSettingsTitle">
               <strong id="mapNameSettingsTitle">이름 표시</strong>
               <label class="ui-choice-row ui-toggle"><input id="basemapLabelsVisible" type="checkbox" checked aria-label="국가명 표시" /><span>국가명 표시</span></label>
+              <label class="ui-choice-row ui-toggle"><input id="countryFlagsVisible" type="checkbox" checked aria-label="국기 함께 표시" /><span>국기 함께 표시</span></label>
               <label class="ui-choice-row ui-toggle"><input id="labelsVisible" type="checkbox" checked aria-label="지명 표시" /><span>지명 표시</span></label>
             </section>
             <section class="layer-style-editor distribution-view-settings" aria-labelledby="distributionViewSettingsTitle">
@@ -360,7 +361,6 @@
           <form id="countryProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <section class="editor-section editor-info-section editor-section-primary">
               <div class="ui-field field-group editor-field"><label for="countryNameInput">국명</label><input id="countryNameInput" type="text" autocomplete="off" /></div>
-              <div class="ui-field field-group editor-field"><label for="capitalInput">수도</label><input id="capitalInput" type="text" placeholder="예: 아테네" autocomplete="off" /></div>
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="country">
                 <label id="countryColorLabel">색상</label>
                 <button id="countryColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="countryColorPopover" aria-labelledby="countryColorLabel countryColorValue">
@@ -390,16 +390,6 @@
             <section class="editor-section editor-info-section">
               <div class="ui-field field-group editor-field"><label for="notesInput">메모</label><textarea id="notesInput" rows="5" placeholder="국가에 관한 메모를 입력하세요."></textarea></div>
             </section>
-
-            <details class="ui-disclosure editor-disclosure">
-              <summary><span>식별 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
-              <div class="editor-disclosure-body">
-                <div class="ui-info-list editor-info-list editor-meta-list">
-                  <div><span>국가 코드</span><output id="countryCodeInput">—</output></div>
-                  <div><span>기본 국명</span><strong id="originalNameValue">—</strong></div>
-                </div>
-              </div>
-            </details>
 
             <section class="editor-section editor-action-section" aria-labelledby="countryGeometryActionsTitle">
               <h3 id="countryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
@@ -871,10 +861,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260906212148" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260906222220" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260906212148" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260906222220" defer></script>
 </body>
 </html>

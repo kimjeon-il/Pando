@@ -6,6 +6,8 @@
  */
 
 const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
+const { layoutCountryFlags } = await import(`./modules/country-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
+const { countryDisplayName, defaultGeographicName } = await import(`./modules/country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./modules/territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
 const { classifyBuiltinCountries, builtinSubunitSourceId } = await import(`./modules/builtin-subunits.js?v=${encodeURIComponent(moduleRevision)}`);
 const versionedModuleUrl = relativePath => {
@@ -656,8 +658,8 @@ const {
   const REQUIRED_UI_IDS = Object.freeze([
     'app', 'map', 'statusView', 'projectionStatus', 'statusPrimary', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
     'mapPanelTabs', 'mapLayersTabBtn', 'mapViewTabBtn', 'layerSection', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
-    'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
-    'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
+    'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
+    'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'notesInput',
     'debugMapPanel', 'countryAreaValue',
     'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
     'genericFeatureNameInput', 'genericFeatureColorInput', 'genericFeatureNotesInput',
@@ -667,7 +669,7 @@ const {
     'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu',
     'countryProperties', 'subunitProperties', 'regionProperties', 'distributionProperties', 'subunitNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeSubunitTypeBtn', 'reconcileSubunitCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
-    'countryCodeInput', 'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
+    'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
     'undoBtn', 'redoBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
@@ -1411,6 +1413,7 @@ const {
     genericFeatures: true,
     labels: true,
     basemapLabels: true,
+    countryFlags: true,
   });
 
   function normalizeLayerVisibility(value = {}, current = DEFAULT_LAYER_VISIBILITY) {
@@ -5166,7 +5169,7 @@ const {
 
   function territorialUnitName(feature) {
     const properties = feature?.properties || {};
-    if (properties.name) return properties.name;
+    if (properties.name) return defaultGeographicName(builtinSubunitSourceId(feature), properties.name);
     if (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
     return properties.isRemainder === true
       ? (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION ? '미지정 지방' : '미지정 하위단위')
@@ -5195,7 +5198,7 @@ const {
   }
 
   function countryName(feature) {
-    return state.countryOverrides[String(feature?.id || '')]?.name || feature?.properties?.name || '국가';
+    return countryDisplayName(feature, state.countryOverrides[String(feature?.id || '')]);
   }
 
   function hydroCategoryKey(value) {
@@ -5850,11 +5853,17 @@ const {
     };
     const placed = layoutLabels(qualityCandidates, { zoom, padding: isMobile() ? 5 : 3, metrics: nextLabelLayoutMetrics });
     const placedCountryLabels = placed.filter(item => item.sourceType === 'country');
+    const countryFlags = layoutCountryFlags(placed, {
+      zoom, enabled: state.layerVisibility.countryFlags !== false,
+      isCountry: feature => !builtinRenderCountries().labelRefs.has(String(feature.id)),
+      flagUrl: feature => effectiveCountryFlagUrl({ countryId: feature.id, override: state.countryOverrides[String(feature.id)] || {}, assetRevision: ASSET_REVISION }),
+    });
     const placedUserLabels = placed.filter(item => item.sourceType === 'label');
     labelLayoutMetrics = nextLabelLayoutMetrics;
     if (viewportCullingMetrics.lastByDomain.label) viewportCullingMetrics.lastByDomain.label.finalVisibleCount = placedUserLabels.length;
     return {
       countryLabels: placedCountryLabels.map(item => item.source),
+      countryFlags,
       userLabels: placedUserLabels.map(item => item.source),
       countryLabelPoints: new Map(placedCountryLabels.map(item => [String(item.source?.id || ''), item.point])),
       userLabelPoints: new Map(placedUserLabels.map(item => [String(item.source?.id || ''), item.point])),
@@ -10092,6 +10101,7 @@ const {
     const id = state.selected.id;
     const result = territorialApplicationService.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, id, field, value);
     if (!result.ok) return;
+    if (field === 'flagDataUrl') renderingDomain?.invalidateLabels?.('country-flag-edited');
     if (field === 'name') markLayerTreeDirty();
     applyCountrySelectionIntent(id, true);
     setActionStatus('국가 정보를 변경했습니다.', 'success');
@@ -11062,7 +11072,8 @@ const {
     if (DISTRIBUTION_GROUP_TYPES[key]) distributionVisibilityRevision += 1;
     if (key === 'countries') gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') gpuMapRenderer.invalidateHydroVisibility();
-    renderingDomain?.invalidateBaseScene?.('layer-visibility');
+    if (key === 'countryFlags') renderingDomain?.invalidateLabels?.('country-flags-visibility');
+    else renderingDomain?.invalidateBaseScene?.('layer-visibility');
     projectDomain.queuePresentationAutosave();
   }
 
@@ -11479,6 +11490,7 @@ const {
     $('genericFeaturesVisible').checked = state.layerVisibility.genericFeatures;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
+    $('countryFlagsVisible').checked = state.layerVisibility.countryFlags !== false;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     layerTreeController?.render(true);
@@ -11714,6 +11726,7 @@ const {
     $('genericFeaturesVisible').checked = true;
     $('labelsVisible').checked = true;
     $('basemapLabelsVisible').checked = true;
+    $('countryFlagsVisible').checked = state.layerVisibility.countryFlags !== false;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = '';
     layerTreeController?.render(true);
@@ -13207,6 +13220,7 @@ const {
     $('genericFeaturesVisible').checked = state.layerVisibility.genericFeatures;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
+    $('countryFlagsVisible').checked = state.layerVisibility.countryFlags !== false;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     layerTreeController?.render(true);
@@ -13590,6 +13604,7 @@ const {
     $('genericFeaturesVisible').checked = state.layerVisibility.genericFeatures;
     $('labelsVisible').checked = state.layerVisibility.labels;
     $('basemapLabelsVisible').checked = state.layerVisibility.basemapLabels;
+    $('countryFlagsVisible').checked = state.layerVisibility.countryFlags !== false;
     syncPhysicalControls();
     if ($('layerSearchInput')) $('layerSearchInput').value = state.layerSearch;
     layerTreeController?.render(true);
@@ -13848,11 +13863,8 @@ const {
       document,
       elements: {
         name: $('countryNameInput'),
-        code: $('countryCodeInput'),
         color: $('countryColorInput'),
-        capital: $('capitalInput'),
         notes: $('notesInput'),
-        originalName: $('originalNameValue'),
         area: $('countryAreaValue'),
         selectionStatus: $('selectionStatus'),
         flagPreview: $('flagPreview'),
@@ -13867,7 +13879,7 @@ const {
         if (!feature) return null;
         const properties = feature.properties || {};
         const override = state.countryOverrides[id] || {};
-        return { ref: countryObjectRef(id), id, feature, properties, override, displayName: override.name || properties.name || id };
+        return { ref: countryObjectRef(id), id, feature, properties, override, displayName: countryName(feature) };
       },
       getPrimaryRef: () => selectionDomain.primary(),
       showPropertyForm: (...args) => objectPropertyController.show(...args),

@@ -505,7 +505,7 @@ export function createAppLayerTreeController(runtime = {}) {
         ['countries', 'countriesVisible'], ['subunits', 'subunitsVisible'],
         ['regions', 'regionsVisible'], ['languages', 'languagesVisible'], ['ethnicities', 'ethnicitiesVisible'],
         ['religions', 'religionsVisible'], ['rivers', 'riversVisible'], ['lakes', 'lakesVisible'], ['genericFeatures', 'genericFeaturesVisible'],
-        ['labels', 'labelsVisible'], ['basemapLabels', 'basemapLabelsVisible'],
+        ['labels', 'labelsVisible'], ['basemapLabels', 'basemapLabelsVisible'], ['countryFlags', 'countryFlagsVisible'],
       ].map(([group, id]) => [group, $(id)])),
       terrainVisible: $('terrainVisible'),
       terrainStyleInputs: [$('terrainPoliticalRadio'), $('terrainPhysicalRadio')],
