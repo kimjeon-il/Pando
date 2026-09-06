@@ -234,6 +234,16 @@ export function createRenderingDomain({
       .attr('dy', '.35em')
       .on('click', function(d) {
         if (labels.mapClickBlocked?.()) return;
+        const subunitRef = labels.countryLabelObjectRef?.(d);
+        if (subunitRef) {
+          if (state.tool === 'select' && !state.labelPlacementMode) {
+            labels.d3?.event?.stopPropagation?.();
+            labels.handleObjectSelectionAt?.(labels.d3?.mouse?.(labels.svg), {
+              sourceEvent: labels.d3?.event, forcedRef: subunitRef,
+            });
+          }
+          return;
+        }
         if (state.tool === 'new-country' && state.newCountryPhase === 'sources') {
           labels.d3?.event?.stopPropagation?.();
           labels.toggleNewCountrySource?.(d.id);
@@ -531,6 +541,7 @@ export function createRenderingDomain({
     active();
     const t = territorial;
     const state = t.getState?.() || {};
+    t.syncBuiltinPalette?.();
     const types = t.TERRITORIAL_UNIT_TYPES || {};
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
     const data = (state.territorialUnits || []).filter(feature => {
@@ -543,6 +554,7 @@ export function createRenderingDomain({
         || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))
         || state.territorialUnitSplitSourceId === String(feature.id)
         || state.territorialUnitRedrawSourceId === String(feature.id);
+      if (!editing && t.isNativeBuiltinSubunit?.(feature)) return false;
       return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id)
         && (selected || editing || (visibleIds.has(String(feature.id)) && t.geometryMayIntersectViewport?.(feature.geometry)));
     });
@@ -625,6 +637,7 @@ export function createRenderingDomain({
     }
     t.replaceGpuSceneDomain?.('territorial-units', { polygons, strokes });
     const boundaryFeatures = (state.territorialUnits || []).filter(feature => {
+      if (t.isNativeBuiltinSubunit?.(feature)) return false;
       const group = t.presentationGroupForTerritorialFeature?.(feature) || 'subunits';
       return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id);
     });
@@ -1169,7 +1182,7 @@ export function createRenderingDomain({
   const invalidateTerritorialPatch = reason => invalidatePatch(
     MAP_RENDER_DIRTY.TERRITORIAL_PATCH,
     reason || 'territorial-patch',
-    MAP_RENDER_DIRTY.EDITING_OVERLAYS,
+    MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_LAYOUT,
   );
   const invalidateGenericPatch = reason => invalidatePatch(
     MAP_RENDER_DIRTY.GENERIC_PATCH,

@@ -7,6 +7,7 @@
 
 const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./modules/territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
+const { classifyBuiltinCountries, builtinSubunitSourceId } = await import(`./modules/builtin-subunits.js?v=${encodeURIComponent(moduleRevision)}`);
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, import.meta.url);
   url.searchParams.set('v', moduleRevision);
@@ -727,6 +728,74 @@ const {
     const countries = reindexCountries(materializePristineCountriesSync(), applyOverrides, { assumeCanonical: !!canonicalCountryStore });
     applyPristineLabelAnchors(countries);
     return countries;
+  }
+
+  function applyFreshBuiltinClassification() {
+    const result = classifyBuiltinCountries(state.countriesData);
+    state.territorialUnits = result.subunits;
+    state.countriesData = reindexCountries(result.countries, true, { assumeCanonical: true });
+    applyPristineLabelAnchors({ features: result.subunits.map(unit => ({ id: builtinSubunitSourceId(unit) })) });
+  }
+
+  let builtinRenderCache = null;
+  let builtinGeometryCache = new WeakMap();
+  let builtinGeometryStore = null;
+  function builtinRenderCountries() {
+    if (builtinGeometryStore !== canonicalCountryStore) {
+      builtinGeometryStore = canonicalCountryStore;
+      builtinGeometryCache = new WeakMap();
+      builtinRenderCache = null;
+    }
+    if (builtinRenderCache?.countries === state.countriesData && builtinRenderCache.units === state.territorialUnits
+      && builtinRenderCache.presentation === state.layerPresentation) return builtinRenderCache;
+    const features = [...(state.countriesData?.features || [])];
+    const byId = new Map(features.map(feature => [String(feature.id), feature]));
+    const labelById = new Map(byId);
+    const labelRefs = new Map();
+    const units = new Map();
+    for (const unit of state.territorialUnits || []) {
+      const id = builtinSubunitSourceId(unit);
+      if (!id || byId.has(id)) continue;
+      const feature = { type: 'Feature', id, properties: unit.properties, geometry: unit.geometry };
+      labelById.set(id, feature);
+      labelRefs.set(id, { domain: 'territorial', type: 'subunit', id: unit.id });
+      const style = layerStyle(state.layerPresentation, 'subunits', `territorial:subunit:${unit.id}`);
+      if (style.opacity !== 1 || style.blendMode !== 'normal' || !style.boundaryVisible) continue;
+      let unchanged = builtinGeometryCache.get(unit.geometry);
+      if (unchanged === undefined) {
+        unchanged = canonicalCountryStore ? canonicalCountryStore.geometryEquals(id, unit.geometry)
+          : JSON.stringify(unit.geometry) === JSON.stringify(pristineCountriesFallback?.features.find(feature => feature.id === id)?.geometry);
+        builtinGeometryCache.set(unit.geometry, unchanged);
+      }
+      if (!unchanged) continue;
+      features.push(feature); byId.set(id, feature); units.set(id, unit);
+    }
+    const order = new Map((canonicalCountryStore?.ids() || pristineCountriesFallback?.features.map(feature => feature.id) || []).map((id, index) => [id, index]));
+    features.sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
+    builtinRenderCache = { countries: state.countriesData, units: state.territorialUnits, presentation: state.layerPresentation,
+      collection: { type: 'FeatureCollection', features }, byId, labelById, labelRefs, nativeUnits: units };
+    return builtinRenderCache;
+  }
+  const renderCountryFeatureById = id => builtinRenderCountries().byId.get(String(id)) || null;
+  const countryLabelFeatureById = id => builtinRenderCountries().labelById.get(String(id)) || null;
+  let builtinPaletteKey = null;
+  let builtinPaletteVisibility = '';
+  function syncBuiltinPalette() {
+    const cache = builtinRenderCountries();
+    const visibility = JSON.stringify([state.layerVisibility.subunits, state.itemVisibility.subunits]);
+    if (builtinPaletteKey === cache && builtinPaletteVisibility === visibility) return;
+    builtinPaletteKey = cache;
+    builtinPaletteVisibility = visibility;
+    gpuMapRenderer.invalidateCountryPalette({ base: true }, 'builtin-subunit-presentation');
+  }
+  function isNativeBuiltinSubunit(unit) {
+    const sourceId = builtinSubunitSourceId(unit);
+    return !!sourceId && builtinRenderCountries().nativeUnits.get(sourceId) === unit;
+  }
+  function isRenderCountryVisible(id) {
+    const unit = builtinRenderCountries().nativeUnits.get(String(id));
+    return unit ? state.layerVisibility.subunits !== false && isLayerItemVisible('subunits', unit.id)
+      : !!countryFeatureById(id) && isCountryVisibleById(id);
   }
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   const hydroToolConfig = tool => HYDRO_TOOL_CONFIG[tool] || null;
@@ -2284,8 +2353,9 @@ const {
     DATA_REVISION,
     PHYSICAL_DATA_BASE_URL,
     activeProjection,
-    countryColor,
-    countryFeatureById,
+    countryColor: feature => feature.properties?.unitType === 'subunit'
+      ? territorialUnitColor(builtinRenderCountries().nativeUnits.get(String(feature.id)) || feature) : countryColor(feature),
+    countryFeatureById: renderCountryFeatureById,
     countryOutlineFeature,
     d3,
     deepClone,
@@ -2296,7 +2366,7 @@ const {
     hydroDisplayColor,
     hydroFeatureById,
     hydroVisibilityThreshold,
-    isCountryVisibleById,
+    isCountryVisibleById: isRenderCountryVisible,
     isHydroFeatureVisible,
     isLayerItemVisible,
     isMobile,
@@ -2322,7 +2392,12 @@ const {
     scheduleGpuInteractionFrame: reason => renderingDomain?.invalidateGpuInteraction?.(reason) || false,
     scheduleGpuMeshRebuild,
     setActionStatus,
-    state,
+    state: new Proxy(state, { get: (target, key) => {
+      if (key === 'countriesData') return builtinRenderCountries().collection;
+      if (key === 'layerVisibility') return { ...target.layerVisibility, countries: target.layerVisibility.countries
+        || [...builtinRenderCountries().nativeUnits.keys()].some(isRenderCountryVisible) };
+      return Reflect.get(target, key);
+    } }),
   });
   gpuMapRenderer.setRenderQuality?.(currentRenderQuality);
 
@@ -2377,7 +2452,7 @@ const {
     clearTimeout(gpuRebuildTimer);
     gpuRebuildTimer = setTimeout(() => {
       mapEditClient.rebase(state.countriesData?.features || []);
-      gpuMapRenderer.rebuildFromCountries(state.countriesData?.features || []);
+      gpuMapRenderer.rebuildFromCountries(builtinRenderCountries().collection.features);
     }, delay);
   }
 
@@ -3084,7 +3159,7 @@ const {
     for (const [id, task] of labelFallbackQueue) {
       labelFallbackQueue.delete(id);
       if (task.generation !== projectDomain.getGeneration() || task.version !== countryLabelAnchorVersions.get(id)) continue;
-      const feature = countryFeatureById(id);
+      const feature = countryLabelFeatureById(id);
       if (feature && !validLabelAnchor(countryLabelAnchors.get(id))) { countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature)); changed = true; }
       if (performance.now() - start >= 4) break;
     }
@@ -3107,7 +3182,7 @@ const {
       if (message.type === 'error') {
         console.warn('Country label anchor worker failed', message.message);
         for (const { id } of flight.items) {
-          const feature = countryFeatureById(id);
+          const feature = countryLabelFeatureById(id);
           if (feature) queueCountryLabelFallback(id);
           pendingCountryLabelAnchors.delete(id);
         }
@@ -3118,7 +3193,7 @@ const {
       for (const result of message.results || []) {
         const id = String(result.id || '');
         if (countryLabelAnchorVersions.get(id) !== Number(result.version || 0)) continue;
-        const feature = countryFeatureById(id);
+        const feature = countryLabelFeatureById(id);
         if (feature && validLabelAnchor(result.anchor)) countryLabelAnchors.set(id, [Number(result.anchor[0]), Number(result.anchor[1])]);
         else if (feature) queueCountryLabelFallback(id);
         pendingCountryLabelAnchors.delete(id);
@@ -3131,7 +3206,7 @@ const {
       countryLabelAnchorWorker?.terminate();
       countryLabelAnchorWorker = null;
       for (const id of [...pendingCountryLabelAnchors]) {
-        const feature = countryFeatureById(id);
+        const feature = countryLabelFeatureById(id);
         if (feature) queueCountryLabelFallback(id);
         pendingCountryLabelAnchors.delete(id);
       }
@@ -3166,7 +3241,7 @@ const {
     const batchStartedAt = performance.now();
     const items = [];
     for (const id of pendingCountryLabelAnchors) {
-      const feature = countryFeatureById(id);
+      const feature = countryLabelFeatureById(id);
       if (!feature?.geometry) continue;
       items.push({
         id,
@@ -3184,7 +3259,7 @@ const {
       countryLabelAnchorFlight = null;
       countryLabelAnchorWorker = null;
       for (const item of items) {
-        const feature = countryFeatureById(item.id);
+        const feature = countryLabelFeatureById(item.id);
         if (feature) queueCountryLabelFallback(item.id);
         pendingCountryLabelAnchors.delete(item.id);
       }
@@ -3193,7 +3268,7 @@ const {
 
   function scheduleCountryLabelAnchors(ids = null, delay = 30) {
     const requested = ids ? new Set([...ids].map(String)) : null;
-    for (const feature of state.countriesData?.features || []) {
+    for (const feature of builtinRenderCountries().labelById.values()) {
       const id = String(feature?.id || '');
       if (requested && !requested.has(id)) continue;
       if (!requested && validLabelAnchor(countryLabelAnchors.get(id))) continue;
@@ -5581,7 +5656,7 @@ const {
   function pruneLayerItemVisibility() {
     const valid = {
       countries: new Set((state.countriesData?.features || []).map(feature => String(feature.id || ''))),
-      countryLabels: new Set((state.countriesData?.features || []).map(feature => String(feature.id || ''))),
+      countryLabels: new Set(builtinRenderCountries().labelById.keys()),
       subunits: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT).map(feature => String(feature.id))),
       regions: new Set(state.territorialUnits.filter(feature => feature.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION).map(feature => String(feature.id))),
       languages: new Set(state.distributionLayers.filter(layer => layer.type === DISTRIBUTION_TYPES.LANGUAGE).map(layer => layer.id)),
@@ -5735,7 +5810,7 @@ const {
       : new Set();
     countryLabelScreenAreas.clear();
     const zoom = currentMapZoom();
-    if (state.layerVisibility.basemapLabels) for (const feature of state.countriesData?.features || []) {
+    if (state.layerVisibility.basemapLabels) for (const feature of builtinRenderCountries().labelById.values()) {
       const id = String(feature.id || '');
       if (!isLayerItemVisible('countryLabels', id) || pendingCountryLabelAnchors.has(id)) continue;
       const settings = automaticLabelSettings('country', state.labelSettings[labelKey('country', id)] || {});
@@ -5745,7 +5820,9 @@ const {
       if (!Array.isArray(coordinate)) continue;
       const point = projectVisibleCoordinate(coordinate);
       if (!point) continue;
-      const selected = (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) && state.selected.id === id;
+      const labelRef = builtinRenderCountries().labelRefs.get(id);
+      const selected = labelRef ? selectionDomain.has(labelRef)
+        : (state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY) && state.selected.id === id;
       const displayFeature = countryDisplayFeature(feature);
       const baseMetrics = countryLabelScreenMetrics(displayFeature, isMobile() ? 8 : 9, null, feature);
       const fontSize = baseMetrics.area >= (isMobile() ? 3200 : 2200) ? (isMobile() ? 10 : 12) : isMobile() ? 8 : 9;
@@ -10727,6 +10804,12 @@ const {
       ? null
       : JSON.stringify(state.countriesData || { type: 'FeatureCollection', features: [] });
     state.historyDirtyCountryIds = new Set();
+    // The pristine geometry store stays at 258 source features. Persist these
+    // removals in delta/history snapshots so old sources cannot resurrect them.
+    for (const unit of state.territorialUnits) {
+      const sourceId = builtinSubunitSourceId(unit);
+      if (sourceId && !countryFeatureById(sourceId)) state.historyDirtyCountryIds.add(sourceId);
+    }
     if (deltaProject) {
       const delta = project.countryDelta || { changed: [], removedIds: [] };
       state.historyDirtyCountryIds = new Set([
@@ -11625,6 +11708,7 @@ const {
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     state.countryIndex.clear();
     state.countriesData = reindexCountries(prepared, false, { assumeCanonical: true });
+    applyFreshBuiltinClassification();
     applyPristineLabelAnchors(state.countriesData);
     state.auditPreviewCountries = null;
     pruneLayerItemVisibility();
@@ -11632,8 +11716,9 @@ const {
     configureDatasetSession(null);
     scheduleGpuMeshRebuild(0, nextProjectGeneration);
     const restoredExactly = canonicalCountryStore
-      ? state.countriesData.features.length === canonicalCountryStore.featureCount
+      ? state.countriesData.features.length + state.territorialUnits.length === canonicalCountryStore.featureCount
         && state.countriesData.features.every(feature => canonicalCountryStore.geometryEquals(String(feature.id || ''), feature.geometry))
+        && state.territorialUnits.every(feature => canonicalCountryStore.geometryEquals(builtinSubunitSourceId(feature), feature.geometry))
       : true;
     if (!restoredExactly) {
       throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
@@ -13220,6 +13305,7 @@ const {
         ? reindexCountries(restored.countriesData, true)
         : reindexCountries(geometry.countries, true, { assumeCanonical: true });
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'countries-indexed';
+    if (!restored) applyFreshBuiltinClassification();
     if (!restored) applyPristineLabelAnchors(state.countriesData);
     if (navigationChanged) {
       state.view = navigationView;
@@ -13292,7 +13378,7 @@ const {
     let meshApplied;
     const projectGeneration = context?.projectGeneration ?? gpuMapRenderer.getProjectGeneration?.();
     if (!context.useBuiltInMesh || state.sessionBaseCountriesJson) {
-      meshApplied = (await gpuMapRenderer.rebuildFromCountries(state.countriesData?.features || [], { projectGeneration })) !== false;
+      meshApplied = (await gpuMapRenderer.rebuildFromCountries(builtinRenderCountries().collection.features, { projectGeneration })) !== false;
     } else {
       meshApplied = (await gpuMapRenderer.replaceBuiltInMesh({
         meshBuffer: mesh.meshBuffer,
@@ -13304,7 +13390,9 @@ const {
           countryDisplayIndex = new Map();
           renderingDomain?.invalidateProject?.('canonical-staging-ready');
         },
-        features: state.countriesData?.features || [],
+        // Binary country slots retain canonical source order, even when a
+        // source now lives in Subunits, is hidden, edited or deleted.
+        features: canonicalCountryStore.ids().map(id => ({ id })),
         quality: 'canonical',
         projectGeneration,
       })) !== false;
@@ -13370,6 +13458,7 @@ const {
 
     const autosavePromise = projectDomain.restoreAutosave();
     state.countriesData = reindexCountries(window.PANDOLAB_COUNTRIES, true);
+    applyFreshBuiltinClassification();
     normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
@@ -13480,6 +13569,7 @@ const {
         ? reindexCountries(deepClone(restored.countriesData), true)
         : freshPristineCountries(true);
     state.countryVisualPhase = 'canonical';
+    if (!restored) applyFreshBuiltinClassification();
     normalizeProjectObjects();
     pruneLayerItemVisibility();
     scheduleCountryLabelAnchors(null, 10);
@@ -14222,6 +14312,7 @@ const {
         toggleMergeTarget,
         toggleBoundaryEditCountry,
         countryType: TERRITORIAL_UNIT_TYPES.COUNTRY,
+        countryLabelObjectRef: feature => builtinRenderCountries().labelRefs.get(String(feature.id)),
         countryName,
         layerStyle,
         isMobile,
@@ -14293,6 +14384,8 @@ const {
         svg: () => svg?.node?.() || svg,
       }),
       territorialResources: createResourceSnapshot('territorial', {
+        isNativeBuiltinSubunit,
+        syncBuiltinPalette,
         getState: () => state,
         territorialUnitLayer,
         territorialOperationLayer,
