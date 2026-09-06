@@ -352,8 +352,12 @@ export function createLayerTreeController({
       if (event.target.closest('#objectDeleteBtn')) { commands.deleteSelection?.(); return; }
       const menu = event.target.closest('[data-layer-item-menu]');
       if (menu) { event.stopPropagation(); commands.openItemMenu(menu.dataset.layerItemMenu, menu.dataset.itemId, menu); return; }
-      const folder = event.target.closest('[data-layer-folder-toggle]');
-      if (folder) { commands.toggleFolder(folder.dataset.layerFolderToggle); render(); return; }
+      const folder = event.target.closest('[data-layer-folder-toggle], [data-bundle-key]');
+      if (folder) {
+        commands.toggleFolder(folder.dataset.layerFolderToggle || folder.dataset.bundleKey);
+        render();
+        return;
+      }
       const item = event.target.closest('[data-layer-item-select]');
       if (item) commands.selectItem({ group: item.dataset.layerItemSelect, id: item.dataset.itemId, additive: event.ctrlKey || event.metaKey, range: event.shiftKey, orderedRefs: logicalRows.flatMap(row => row.ref ? [row.ref] : []) });
     });

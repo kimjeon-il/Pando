@@ -5269,13 +5269,8 @@ const {
         const category = MAP_OBJECT_CATEGORIES[categoryKey];
         if (!categoryNode || !category) return;
         buildContent.appendChild(categoryNode);
-        const heading = categoryNode.querySelector('.create-menu-group') || document.createElement('div');
-        heading.className = 'create-menu-group';
-        const headingText = heading.querySelector('.create-menu-group-title') || document.createElement('span');
-        headingText.className = 'create-menu-group-title';
-        headingText.textContent = category.label;
-        if (!headingText.parentElement) heading.appendChild(headingText);
-        categoryNode.prepend(heading);
+        categoryNode.setAttribute('role', 'group');
+        categoryNode.setAttribute('aria-label', category.label);
         category.createItems.forEach(type => {
           const item = categoryNode.querySelector(`[data-map-object-type="${type}"]`);
           if (!item) return;
