@@ -523,7 +523,7 @@ export function createAppLayerTreeController(runtime = {}) {
         state.layerFolders[group] = !state.layerFolders[group]; markLayerTreeDirty();
       },
       selectItem: ({ group, id, additive, range, orderedRefs }) => {
-        const mode = additive || (isMobile() && state.addSelectionMode) ? 'toggle' : 'replace';
+        const mode = additive ? 'toggle' : 'replace';
         const didSelect = selectLayerTreeItem(group, id, { mode, range, orderedRefs });
         if (didSelect && isMobile() && mode === 'replace' && !range) returnToMapAfterMobileAction(true);
       },

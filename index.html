@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-5cba6870f7ef" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-5cba6870f7ef" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-665f2c297339" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-665f2c297339" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -117,11 +117,6 @@
           <div id="layerSearchResults" class="layer-search-results ui-scroll-surface hidden" role="listbox" aria-label="레이어 검색 결과"></div>
           <div class="layer-list ui-scroll-surface" aria-label="프로젝트 레이어"></div>
           <footer class="layer-panel-footer">
-          <div id="multiSelectionBar" class="layer-selection-summary hidden" role="region" aria-label="다중 선택 작업">
-          <strong id="multiSelectionCount">0개 선택됨</strong>
-          <button id="multiSelectionModeBtn" class="ui-button btn ghost compact" type="button" aria-pressed="false">추가 선택</button>
-          <button id="clearMultiSelectionBtn" class="ui-button icon-btn compact" type="button" aria-label="다중 선택 해제" data-tooltip="다중 선택 해제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
-          </div>
           <div class="layer-action-bar" role="toolbar" aria-label="레이어 작업">
           <button id="createMenuBtn" class="ui-button btn create-menu-btn" type="button" aria-haspopup="dialog" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
           <div class="layer-selection-actions">
@@ -255,15 +250,18 @@
                       <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
                     </div>
                   </div>
-                  <div id="modeMethodSwitch" class="ui-segmented mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
-                    <button id="modeLineMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="경계선을 그려 영토 일부 선택" aria-pressed="true">경계선 그리기</button>
-                    <button id="modePolygonMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="영역을 지정해 영토 편입" aria-pressed="false">영역 지정</button>
-                    <button id="modeComponentsMethodBtn" type="button" class="ui-button ui-segment-option mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false">영토 조각 선택</button>
+                  <div class="mode-task-section mode-task-method-section">
+                    <div class="mode-task-section-title">선택 방식</div>
+                    <div id="modeMethodSwitch" class="mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
+                      <button id="modeLineMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="경계선을 그려 영토 일부 선택" aria-pressed="true"><span class="mode-method-title">경계선 그리기</span><small>국경선을 따라 선을 그립니다.</small></button>
+                      <button id="modePolygonMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="영역을 지정해 영토 편입" aria-pressed="false"><span class="mode-method-title">영역 지정</span><small>지도에서 범위를 지정합니다.</small></button>
+                      <button id="modeComponentsMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false"><span class="mode-method-title">영토 조각 선택</span><small>기존 영토 조각을 직접 선택합니다.</small></button>
+                    </div>
+                    <label id="modeRiverBoundaryOption" class="ui-choice-row mode-river-boundary-option hidden" for="modeRiverBoundaryInput">
+                      <input id="modeRiverBoundaryInput" type="checkbox" />
+                      <span>하천을 경계로 취급</span>
+                    </label>
                   </div>
-                  <label id="modeRiverBoundaryOption" class="ui-choice-row mode-river-boundary-option hidden" for="modeRiverBoundaryInput">
-                    <input id="modeRiverBoundaryInput" type="checkbox" />
-                    <span>하천을 경계로 취급</span>
-                  </label>
                   <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
                     <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
                     <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
@@ -332,9 +330,8 @@
 
           <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
             <div class="editor-object-context-main">
-              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
+              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span><button id="focusSelectedObjectBtn" class="ui-button editor-quiet-action editor-focus-action" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button></div></div>
             </div>
-            <button id="focusSelectedObjectBtn" class="ui-button icon-btn compact" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button>
           </section>
 
 
@@ -386,8 +383,8 @@
 
             <section class="editor-section editor-info-section editor-flag-section">
               <div class="editor-section-heading"><h3 class="editor-property-heading">국기</h3><div class="editor-flag-actions">
-                <button id="flagUploadBtn" type="button" class="ui-button icon-btn" data-tooltip="국기 변경" aria-label="국기 변경"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg></button>
-                <button id="flagRemoveBtn" type="button" class="ui-button icon-btn danger-ghost" data-tooltip="국기 삭제" aria-label="국기 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
+                <button id="flagUploadBtn" type="button" class="ui-button icon-btn editor-quiet-action" data-tooltip="국기 변경" aria-label="국기 변경"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg></button>
+                <button id="flagRemoveBtn" type="button" class="ui-button icon-btn danger-ghost editor-quiet-action" data-tooltip="국기 삭제" aria-label="국기 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
               </div></div>
               <div class="editor-flag-layout">
                 <div id="flagPreview" class="editor-flag-preview">국기 없음</div>
@@ -921,10 +918,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.32.0-build-5cba6870f7ef" defer></script>
+  <script src="assets/js/build-meta.js?v=0.32.0-build-665f2c297339" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.32.0-build-5cba6870f7ef" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.32.0-build-665f2c297339" defer></script>
 </body>
 </html>

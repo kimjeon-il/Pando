@@ -28,8 +28,7 @@ test('selection domain drives country editing, multi-selection, and independent 
   await expect(franceRow).toHaveCount(1);
   await franceRow.click({ modifiers: ['Control'] });
 
-  await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
-  await expect(page.locator('#multiSelectionBar')).toBeVisible();
+  await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
   await expect(page.locator('#multiProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
