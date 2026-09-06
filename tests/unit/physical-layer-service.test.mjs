@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { setImmediate } from 'node:timers';
 
 import { createHydroService, createTerrainService } from '../../assets/js/modules/physical-layer-service.js';
 
@@ -69,4 +70,65 @@ test('hydro service waits for renderer worker acceptance', async () => {
   });
   assert.equal(await service.load(), true);
   assert.deepEqual(accepted, [manifest, 'https://example.test/hydro.json']);
+});
+
+test('hydro consumers join initial loading through worker readiness without duplicate fetches', async () => {
+  let releaseFetch;
+  let releaseWorker;
+  const fetchGate = new Promise(resolve => { releaseFetch = resolve; });
+  const workerGate = new Promise(resolve => { releaseWorker = resolve; });
+  let loadState = 'idle';
+  let fetches = 0;
+  const service = createHydroService({
+    fetchWithRetry: async () => {
+      fetches += 1;
+      await fetchGate;
+      return response({ version: '0.13.0', schema: 'pandolab-water-shards-v5' });
+    },
+    dataVersion: '0.13.0',
+    manifestUrl: () => new URL('https://example.test/hydro.json'),
+    getLoadState: () => loadState,
+    onLoading() { loadState = 'loading'; },
+    onRetry() {},
+    acceptManifest: async () => { await workerGate; loadState = 'ready'; return true; },
+    onFailure: assert.fail,
+  });
+  const startup = service.load();
+  await Promise.resolve();
+  assert.equal(loadState, 'loading');
+  const partition = service.load();
+  assert.equal(partition, startup);
+  assert.equal(service.load(true), startup);
+  let finished = false;
+  partition.then(() => { finished = true; });
+  releaseFetch();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(finished, false, 'manifest alone must not release consumers before worker readiness');
+  releaseWorker();
+  assert.equal(await partition, true);
+  assert.equal(await service.load(), true);
+  assert.equal(fetches, 1);
+});
+
+test('hydro shared failure clears pending state and permits a later explicit retry', async () => {
+  let fetches = 0;
+  let failures = 0;
+  const service = createHydroService({
+    fetchWithRetry: async () => {
+      fetches += 1;
+      if (fetches === 1) throw new Error('offline');
+      return response({ version: '0.13.0', schema: 'pandolab-water-shards-v5' });
+    },
+    dataVersion: '0.13.0',
+    manifestUrl: () => new URL('https://example.test/hydro.json'),
+    getLoadState: () => 'error',
+    onLoading() {}, onRetry() {},
+    acceptManifest: async () => true,
+    onFailure: () => { failures += 1; },
+  });
+  assert.deepEqual(await Promise.all([service.load(), service.load()]), [false, false]);
+  assert.equal(fetches, 1);
+  assert.equal(failures, 1);
+  assert.equal(await service.load(true), true);
+  assert.equal(fetches, 2);
 });

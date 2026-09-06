@@ -8215,12 +8215,16 @@ const {
     return `${String(feature.id || '')}:${JSON.stringify(feature.geometry.coordinates || [])}`;
   }
 
-  function riverPartitionHydroSignature() {
+  function riverPartitionHydroEditSignature() {
     const edits = state.hydroEdits
       .filter(feature => feature?.properties?.category === 'river' && feature.geometry)
       .map(feature => `${String(feature.id)}:${JSON.stringify(feature.geometry.coordinates || [])}`)
       .sort();
-    return `${state.hydroManifest?.version || ''}:${state.hydroManifest?.index?.sha256 || ''}:${edits.join('|')}`;
+    return edits.join('|');
+  }
+
+  function riverPartitionHydroSignature() {
+    return `${state.hydroManifest?.version || ''}:${state.hydroManifest?.index?.sha256 || ''}:${riverPartitionHydroEditSignature()}`;
   }
 
   function riverPartitionCandidateSignature(donors) {
@@ -8302,31 +8306,46 @@ const {
   }
 
   async function prepareRiverPartitionCandidates({ targetCountryId = state.annexTargetCountryId, donorCountryIds = state.annexDonorCountryIds } = {}) {
-    await ensureGisRuntime();
     const target = countryFeatureById(String(targetCountryId || ''));
     const donors = [...new Set((donorCountryIds || []).map(String))].map(countryFeatureById).filter(Boolean);
     if (!riverPartitionRequestActive() || !target || !donors.length) return;
-    const signature = riverPartitionCandidateSignature(donors);
     resetRiverPartitionState();
     const generation = riverPartitionGeneration;
+    const projectGeneration = projectDomain?.getGeneration?.();
+    const donorSignature = donors.map(riverPartitionGeometrySignature).sort().join('::');
+    const editSignature = riverPartitionHydroEditSignature();
+    let signature = null;
     const current = () => riverPartitionRequestActive()
       && generation === riverPartitionGeneration
-      && signature === riverPartitionCandidateSignature(state.annexDonorCountryIds.map(countryFeatureById).filter(Boolean));
-    const cached = riverPartitionCache.get(signature);
-    if (cached) {
-      const candidates = structuredClone(cached.candidates);
-      const donorResults = structuredClone(cached.donorResults || []);
-      applyRiverPartitionResult(candidates, donorResults);
-      setModeBanner(riverPartitionResultMessage(candidates, donorResults, donors), 'annex-mode');
-      updateModeButtons();
-      editingDomain?.refreshTerritoryOperation('river-partition-cache-ready');
-      return;
-    }
+      && projectGeneration === projectDomain?.getGeneration?.()
+      && String(targetCountryId) === String(state.annexTargetCountryId)
+      && donorSignature === state.annexDonorCountryIds.map(countryFeatureById).filter(Boolean).map(riverPartitionGeometrySignature).sort().join('::')
+      && editSignature === riverPartitionHydroEditSignature()
+      && (signature === null || signature === riverPartitionCandidateSignature(donors));
     state.annexRiverPartitionStatus = 'loading';
     setModeBanner('피편입국을 가로지르는 강으로 영토 조각을 계산하는 중입니다.', 'annex-mode');
     updateModeButtons();
     editingDomain?.refreshTerritoryOperation('river-partition-loading');
     try {
+      await ensureGisRuntime();
+      if (!current()) return;
+      const ready = state.physicalLoadState.hydro === 'ready'
+        || await loadHydroData(state.physicalLoadState.hydro === 'error');
+      if (!current()) return;
+      if (!ready) throw new Error('강·호수 데이터가 아직 준비되지 않았습니다.');
+      // Initial manifest loading is part of this request, not an invalidation.
+      // Freeze the data/cache identity only after the manifest is available.
+      signature = riverPartitionCandidateSignature(donors);
+      const cached = riverPartitionCache.get(signature);
+      if (cached) {
+        const candidates = structuredClone(cached.candidates);
+        const donorResults = structuredClone(cached.donorResults || []);
+        applyRiverPartitionResult(candidates, donorResults);
+        setModeBanner(riverPartitionResultMessage(candidates, donorResults, donors), 'annex-mode');
+        updateModeButtons();
+        editingDomain?.refreshTerritoryOperation('river-partition-cache-ready');
+        return;
+      }
       const sources = await gisDomain.loadRiverPartitionFeatures(donors);
       if (!current()) return;
       const result = await gisDomain.computeRiverPartition({
