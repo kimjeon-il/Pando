@@ -28,7 +28,6 @@ test('East Prussia r2 library entry adds an exact overlap-free country', async (
   }));
 
   await page.locator('#createMenuBtn').click();
-  await page.locator('#createLibraryTabBtn').click();
   await page.locator('#addFromLibraryBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeVisible();
   await page.locator('#historicalLibrarySearchInput').fill('동프로이센');

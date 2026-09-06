@@ -26,28 +26,16 @@ function elementById(id, tag = '[a-z][\\w-]*') {
   return html.match(pattern)?.[0] || '';
 }
 
-function openingTagById(id) {
-  const idIndex = Math.max(html.indexOf(`id="${id}"`), html.indexOf(`id='${id}'`));
-  if (idIndex < 0) return '';
-  const start = html.lastIndexOf('<', idIndex);
-  const end = html.indexOf('>', idIndex);
-  return start >= 0 && end >= 0 ? html.slice(start, end + 1) : '';
-}
-
 function textById(id) {
   return stripTags(elementById(id));
 }
 
-// Create surface: acquisition route first, then canonical object taxonomy.
-if (textById('createBuildTabBtn') !== '만들기') fail('create primary route must be "만들기"');
-if (textById('createLibraryTabBtn') !== '라이브러리') fail('create secondary route must be "라이브러리"');
-for (const [tabId, panelId] of [['createBuildTabBtn', 'createBuildPanel'], ['createLibraryTabBtn', 'createLibraryPanel']]) {
-  const tag = openingTagById(tabId);
-  if (!tag.includes(`aria-controls="${panelId}"`)) fail(`#${tabId} must control #${panelId}`);
-}
+// Create commands and library acquisition share one list, without route tabs.
+if (/id="(?:createBuildTabBtn|createLibraryTabBtn|createLibraryPanel)"/.test(html)) fail('create menu must not retain route tabs');
+if (textById('addFromLibraryBtn') !== '라이브러리에서 추가') fail('library entry must be named 라이브러리에서 추가');
 
 const buildStart = html.indexOf('id="createBuildPanel"');
-const libraryStart = html.indexOf('id="createLibraryPanel"');
+const libraryStart = html.indexOf('class="create-menu-category create-library-actions"');
 const buildPanel = buildStart >= 0 && libraryStart > buildStart ? html.slice(buildStart, libraryStart) : '';
 if (!buildPanel) fail('create build panel could not be resolved');
 const categoryContract = MAP_OBJECT_CATEGORY_ORDER.map(category => {
@@ -55,7 +43,7 @@ const categoryContract = MAP_OBJECT_CATEGORY_ORDER.map(category => {
   return [category, descriptor.label, descriptor.createItems];
 });
 let previousCategoryIndex = -1;
-for (const [category, label, types] of categoryContract) {
+for (const [category, , types] of categoryContract) {
   const marker = `data-map-category="${category}"`;
   const categoryIndex = buildPanel.indexOf(marker);
   if (categoryIndex < 0) fail(`create build panel is missing category ${category}`);
@@ -66,7 +54,6 @@ for (const [category, label, types] of categoryContract) {
     .filter(index => index > categoryIndex)
     .sort((a, b) => a - b)[0] ?? buildPanel.length;
   const categoryBody = buildPanel.slice(categoryIndex, nextCategoryIndex);
-  if (!categoryBody.includes(`>${label}<`)) fail(`create category ${category} must use registry label "${label}"`);
   for (const type of types) {
     if (!categoryBody.includes(`data-map-object-type="${type}"`)) fail(`create category ${category} is missing registry object type ${type}`);
   }

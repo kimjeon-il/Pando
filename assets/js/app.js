@@ -673,7 +673,7 @@ const {
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
-    'createBuildTabBtn', 'createLibraryTabBtn', 'createBuildPanel', 'createLibraryPanel', 'addCountryBtn', 'addSubunitBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
+    'createBuildPanel', 'addCountryBtn', 'addSubunitBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
     'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
     'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibrarySearchClearBtn', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryGeographicRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
@@ -816,7 +816,6 @@ const {
   let lastOverlayTrigger = null;
   let fileMenuTrigger = null;
   let createMenuTrigger = null;
-  let createMenuRoute = 'build';
   const surfaceController = createSurfaceController({ getElement: $, getLayout: () => layoutMode, document });
   const surfaceState = surfaceController.state;
   const editorWorkspacePresentation = createEditorWorkspacePresentation({
@@ -830,7 +829,6 @@ const {
     onLayoutChange: () => queueMapResize('editor-task-layout'),
   });
   let mapSurfaceTabs = null;
-  let createSurfaceTabs = null;
   let editorSurfaceTabs = null;
   // Keep these values in sync with the UI v2 sheet tokens. CSS cannot be read
   // reliably during boot, so the controller owns the numeric snap contract.
@@ -1016,16 +1014,8 @@ const {
   }
 
   function activeCreateMenuItems() {
-    const panel = $(`create${createMenuRoute === 'library' ? 'Library' : 'Build'}Panel`);
+    const panel = $('createMenu');
     return panel ? [...panel.querySelectorAll('.create-menu-item:not([disabled])')] : [];
-  }
-
-  function syncCreateMenuRoute(route = createMenuRoute, { focus = false } = {}) {
-    createMenuRoute = route === 'library' ? 'library' : 'build';
-    if ($('createBuildPanel')) $('createBuildPanel').hidden = createMenuRoute !== 'build';
-    if ($('createLibraryPanel')) $('createLibraryPanel').hidden = createMenuRoute !== 'library';
-    createSurfaceTabs?.sync(createMenuRoute, { focus });
-    syncMapObjectCategoryLabels();
   }
 
   function toggleCreateMenu(trigger) {
@@ -12608,19 +12598,14 @@ const {
       tablist: $('mapPanelTabs'),
       onSelect: (key, options) => setMapPanelView(key, options),
     });
-    createSurfaceTabs = createSurfaceTabsController({
-      tablist: document.querySelector('#createMenu .surface-tabs'),
-      onSelect: (key, options) => syncCreateMenuRoute(key, options),
-    });
     editorSurfaceTabs = createSurfaceTabsController({
       tablist: document.querySelector('.editor-view-tabs'),
       onSelect: (key, options) => setEditorShellView(key, options),
     });
     mapSurfaceTabs.bind();
-    createSurfaceTabs.bind();
     editorSurfaceTabs.bind();
     setMapPanelView(mapPanelView);
-    syncCreateMenuRoute(createMenuRoute);
+    syncMapObjectCategoryLabels();
     setEditorShellView('info');
   }
 

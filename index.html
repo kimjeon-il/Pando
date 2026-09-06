@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260906203339" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260906203339" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260906204825" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260906204825" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -118,11 +118,10 @@
           <div class="layer-list ui-scroll-surface" aria-label="프로젝트 레이어"></div>
           <footer class="layer-panel-footer">
           <div class="layer-action-bar" role="toolbar" aria-label="레이어 작업">
-          <button id="createMenuBtn" class="ui-button btn create-menu-btn" type="button" aria-haspopup="dialog" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>추가</span></button>
-          <div class="layer-selection-actions">
+          <button id="createMenuBtn" class="ui-button icon-btn" type="button" aria-label="레이어 추가" data-tooltip="레이어 추가" aria-haspopup="dialog" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="objectLockBtn" class="ui-button icon-btn" type="button" aria-label="잠금" data-tooltip="잠금" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
           <button id="objectDeleteBtn" class="ui-button icon-btn layer-delete-action" type="button" aria-label="삭제" data-tooltip="삭제" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
-          </div></div></footer>
+          </div></footer>
         </section>
         <section id="mapViewSection" class="panel-section ui-panel--dense map-view-panel-section ui-scroll-surface hidden" role="tabpanel" aria-labelledby="mapViewTabBtn">
           <div class="map-view-settings">
@@ -640,13 +639,9 @@
                   <div class="surface-header-title"><strong id="createSheetTitle">만들기</strong></div>
                   <div class="surface-header-actions"><button id="mobileCloseCreateBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="추가 창 닫기" data-tooltip="추가 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
                 </header>
-                <nav class="surface-tabs create-menu-routes ui-tabs" role="tablist" aria-label="추가 경로">
-                  <button id="createBuildTabBtn" class="ui-button ui-tab active" data-surface-tab="build" type="button" role="tab" aria-controls="createBuildPanel" aria-selected="true">만들기</button>
-                  <button id="createLibraryTabBtn" class="ui-button ui-tab" data-surface-tab="library" type="button" role="tab" aria-controls="createLibraryPanel" aria-selected="false" tabindex="-1">라이브러리</button>
-                </nav>
                 <div class="surface-body ui-scroll-surface">
                   <div class="surface-content surface-content-create">
-                  <div id="createBuildPanel" class="create-menu-route-panel" role="tabpanel" aria-labelledby="createBuildTabBtn">
+                  <div id="createBuildPanel">
                       <div class="create-menu-category" data-map-category="territorial">
                         <button id="addCountryBtn" data-map-object-type="country" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가</strong></span></button>
                         <button id="addSubunitBtn" data-map-object-type="subunit" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg></span><span><strong>하위단위</strong></span></button>
@@ -661,8 +656,8 @@
                         <button id="addLakeBtn" data-map-object-type="lake" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수</strong></span></button>
                       </div>
                   </div>
-                  <div id="createLibraryPanel" class="create-menu-route-panel" role="tabpanel" aria-labelledby="createLibraryTabBtn" hidden>
-                      <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong></span></button>
+                  <div class="create-menu-category create-library-actions">
+                      <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리에서 추가</strong></span></button>
                   </div>
                   </div>
                 </div>
@@ -877,10 +872,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260906203339" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260906204825" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260906203339" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260906204825" defer></script>
 </body>
 </html>
