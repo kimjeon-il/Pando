@@ -463,7 +463,7 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   for (const area of expectedAreas) {
     await components.evaluateAll((nodes, target) => {
       const node = nodes.find(node => Math.abs(node.__data__.areaKm2 - target) < 2);
-      node.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: -1000, clientY: -1000 }));
+      node.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true, clientX: -1000, clientY: -1000 }));
     }, area);
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
     await expect(page.locator('.selected-component')).toHaveCount(expectedAreas.indexOf(area) + 1);
@@ -475,6 +475,42 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#modeActionBar')).toBeHidden();
   await expect(components).toHaveCount(0);
+  // Continue in the same browser session with the two formerly disconnected
+  // Croatia confluences, including projection changes while cells are active.
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'HUN'));
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexTerritoryBtn').click();
+  const croatiaPoint = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen([17.5, 45.6]));
+  const croatiaBox = await page.locator('#map').boundingBox();
+  await page.locator('#map .map-svg').dispatchEvent('click', {
+    clientX: croatiaBox.x + croatiaPoint[0], clientY: croatiaBox.y + croatiaPoint[1], button: 0,
+  });
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await page.locator('#modePrimaryBtn').click();
+  await page.locator('#modeComponentsMethodBtn').click();
+  await page.locator('#modeRiverBoundaryInput').check();
+  await expect(page.locator('#modeTaskInstruction')).toContainText('하천을 경계로 나눈', { timeout: 60_000 });
+  await expect.poll(() => components.evaluateAll(nodes => [824, 1087].map(area => nodes.filter(node =>
+    Math.abs(node.__data__.areaKm2 - area) < 2).length))).toEqual([1, 1]);
+  await page.locator('#mapViewTabBtn').click();
+  for (const button of ['#flatBtn', '#globeBtn']) {
+    await page.locator(button).click();
+    await expect(page.locator(button)).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => components.evaluateAll(nodes => nodes.filter(node => node.getAttribute('d')).length)).toBeGreaterThan(0);
+  }
+  for (const area of [824, 1087]) {
+    await components.evaluateAll((nodes, target) => {
+      const node = nodes.find(node => Math.abs(node.__data__.areaKm2 - target) < 2);
+      node.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true, clientX: -1000, clientY: -1000 }));
+    }, area);
+  }
+  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (2)');
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 90_000 });
+  await page.locator('#modeCancelBtn').click();
+  await page.locator('#modeCancelBtn').click();
+  await expect(components).toHaveCount(0);
+  await expect(page.locator('#modeActionBar')).toBeHidden();
   expect(errors).toEqual([]);
 });
 
