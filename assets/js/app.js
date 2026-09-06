@@ -1489,17 +1489,8 @@ const {
       countryLabels: {},
     },
     layerFolders: {
-      countries: false,
-      subunits: false,
-      regions: false,
-      languages: false,
-      ethnicities: false,
-      religions: false,
-      terrain: false,
-      hydro: false,
-      genericFeatures: false,
-      labels: false,
-      countryLabels: false,
+      polities: false,
+      landforms: false,
     },
     layerSearch: '',
     tool: 'select',
@@ -5310,7 +5301,7 @@ const {
     return Math.min(isMobile() ? 2 : 3, devicePixelRatio);
   }
   function activeLayerFolderKeys() {
-    return ['countries', 'rivers', 'lakes'];
+    return ['polities', 'landforms'];
   }
 
   function normalizePhysicalSettings(value) {

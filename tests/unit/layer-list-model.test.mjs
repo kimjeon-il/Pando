@@ -16,30 +16,35 @@ const hydro = [{ id: 'builtin-river', name: 'HydroRIVERS', isBuiltin: true, hydr
   { id: 'builtin-lake', name: 'Natural Earth', isBuiltin: true, hydroCategory: 'lake' },
   { id: 'user-river', name: '나의 강', hydroCategory: 'river' }];
 
-test('edited built-in IDs remain bundled, user objects are directly sorted across types', () => {
-  const m = fixture({ countries, hydro, languages: [{ id: 'de', name: '독일어권' }], regions: [{ id: 'r', name: '알자스' }], labels: [{ id: 'p', name: '가 지명' }] });
-  assert.deepEqual(m.bundles.map(b => b.name), ['세계 국가', '기본 강', '기본 호수']);
-  assert.deepEqual(m.bundles[0].items.map(i => i.id), ['DEU']);
-  assert.deepEqual(m.objects.map(i => i.name), ['가 지명', '나의 강', '독일어권', '새 나라', '알자스']);
-  assert.deepEqual(m.objects.map(i => i.typeLabel), ['지명', '강', '언어', '국가', '지방']);
+test('political objects and all hydro occupy two folders; unrelated types remain direct', () => {
+  const m = fixture({ countries, hydro, subunits: [{ id: 's', name: '홍콩' }], languages: [{ id: 'de', name: '독일어권' }], regions: [{ id: 'r', name: '알자스' }], labels: [{ id: 'p', name: '가 지명' }] });
+  assert.deepEqual(m.bundles.map(b => b.name), ['정치체', '지형지물']);
+  assert.deepEqual(m.bundles[0].items.map(i => i.id), ['DEU', 'new', 'r', 's']);
+  assert.deepEqual(m.bundles[0].items.map(i => i.typeLabel), ['국가', '국가', '지방', '하위단위']);
+  assert.equal(m.bundles[1].items.length, 3);
+  assert.ok(m.bundles[1].items.some(i => i.id === 'user-river'));
+  assert.deepEqual(m.objects.map(i => i.name), ['가 지명', '독일어권']);
+  assert.deepEqual(m.objects.map(i => i.typeLabel), ['지명', '언어']);
 });
-test('external project country IDs are never classified as the built-in dataset', () => {
+test('external project countries share the political folder without changing their provenance', () => {
   const m = fixture({ countries }, false);
-  assert.equal(m.bundles.length, 0);
-  assert.equal(m.objects.length, 2);
+  assert.equal(m.bundles.length, 1);
+  assert.equal(m.bundles[0].id, 'polities');
+  assert.equal(m.bundles[0].items.length, 2);
+  assert.equal(m.objects.length, 0);
 });
 test('empty bundles disappear and restored objects recreate them; hidden/error items remain', () => {
   assert.equal(fixture({ countries: [], hydro: [] }).bundles.length, 0);
   const m = fixture({ countries: [{ ...countries[0], visible: false }], hydro: hydro.map(i => ({ ...i, loadState: 'error' })) });
-  assert.equal(m.bundles.length, 3);
+  assert.equal(m.bundles.length, 2);
   assert.equal(m.bundles[0].items.length, 1);
 });
 test('logical range order includes off-DOM expanded children but not collapsed children', () => {
   const m = fixture({ countries, hydro, regions: Array.from({ length: 1000 }, (_, i) => ({ id: String(i), name: `지역 ${i}` })) });
-  const closed = visibleLayerRows(m, {}), open = visibleLayerRows(m, { countries: true });
+  const closed = visibleLayerRows(m, {}), open = visibleLayerRows(m, { polities: true });
   assert.equal(closed.some(i => i.id === 'DEU'), false);
   assert.equal(open.some(i => i.id === 'DEU'), true);
-  assert.equal(open.filter(i => i.ref).length, 1003);
+  assert.equal(open.filter(i => i.ref).length, 1002);
   assert.equal(open.filter(i => i.ref).at(-1).id, '999');
 });
 test('equal names sort by full ObjectKey, and search does not duplicate bundle members', () => {

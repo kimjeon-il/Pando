@@ -45,13 +45,12 @@ test('app waits for actual hydro worker readiness and retries manifests', () => 
   assert.ok(service.includes('timeoutMs: 15000'));
 });
 
-test('built-in rivers and lakes use data bundles while retaining hydro item visibility', () => {
+test('rivers and lakes share the landforms folder while retaining hydro item visibility', () => {
   const source = read('assets/js/app.js');
   const model = read('assets/js/modules/layer-list-model.js');
   assert.ok(!source.includes('HYDRO_FOLDER_STATE_PREFIX'));
-  assert.ok(model.includes("name: '기본 강'"));
-  assert.ok(model.includes("name: '기본 호수'"));
-  assert.ok(model.includes("layerGroup === 'hydro' && source.isBuiltin"));
+  assert.ok(model.includes("name: '지형지물'"));
+  assert.ok(model.includes("layerGroup === 'hydro') bundles[1].items.push(item)"));
   assert.ok(source.includes('name: meta.sourceLabel'));
   assert.ok(source.includes('state.physicalSettings.hydroLayers[item.id] = !!visible'));
 });

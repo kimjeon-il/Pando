@@ -199,9 +199,8 @@ export function createLayerTreeController({
     const icon = document.createElement('span');
     icon.className = 'layer-color-swatch is-type-icon'; icon.append(createIcon(bundle.icon));
     const label = document.createElement('span'); label.className = 'layer-child-name-label'; label.textContent = bundle.name;
-    const type = document.createElement('span'); type.className = 'layer-item-type'; type.textContent = bundle.typeLabel;
-    name.append(icon, label, type); row.append(toggle, visibility, name);
-    if (bundle.id !== 'countries') row.dataset.loadState = model.snapshot().hydroState;
+    name.append(icon, label); row.append(toggle, visibility, name);
+    if (bundle.id === 'landforms') row.dataset.loadState = model.snapshot().hydroState;
     return row;
   };
 
@@ -519,7 +518,7 @@ export function createAppLayerTreeController(runtime = {}) {
         openObjectActionsMenu(trigger);
       },
       toggleFolder: group => {
-        if (!['countries', 'rivers', 'lakes'].includes(group)) return;
+        if (!['polities', 'landforms'].includes(group)) return;
         state.layerFolders[group] = !state.layerFolders[group]; markLayerTreeDirty();
       },
       selectItem: ({ group, id, additive, range, orderedRefs }) => {
