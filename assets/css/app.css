@@ -3129,6 +3129,10 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .ui-color-swatch {
   aspect-ratio: 1;
   min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
   padding: 0;
   display: grid;
   place-items: center;

@@ -402,7 +402,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
   
   async function resolveTerritorialCoast(feature, country, countryGeometryOverrides) {
     const unitType = feature?.properties?.unitType;
-    if (![TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
+    if (![TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
     if (!country?.geometry) {
       if (!feature?.properties?.sovereignId && unitType === TERRITORIAL_UNIT_TYPES.REGION) return { direction: 'none' };
       throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
@@ -689,7 +689,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     const structuredIssues = features.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)).flatMap(validateStructuredGeometry);
     if (structuredIssues.length) throw new Error(`가져온 geometry가 올바르지 않습니다. ${structuredIssues[0].message}`);
     if (target === 'subunit') {
-      await importGeoJsonTerritorialUnits(features, target === 'subunit' ? TERRITORIAL_UNIT_TYPES.SUBUNIT : TERRITORIAL_UNIT_TYPES.SUBUNIT, mapping);
+      await importGeoJsonTerritorialUnits(features, TERRITORIAL_UNIT_TYPES.SUBUNIT, mapping);
       return;
     }
     if (target === 'region') {

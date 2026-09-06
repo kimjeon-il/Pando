@@ -12,6 +12,28 @@ const fixture = (data, builtinSession = true) => createLayerListModel({
   compare: (a, b) => collator.compare(a.name, b.name) || collator.compare(a.id, b.id),
 });
 const countries = [{ id: 'DEU', name: '독일 수정', geometry: { edited: true } }, { id: 'new', name: '새 나라' }];
+test('subunits default closed, expand along parents, and remain searchable with orphan and region rows', () => {
+  const m = fixture({ countries, subunits: [
+    { id: 's', name: '하위', parentId: 'DEU' },
+    { id: 'nested', name: '중첩', parentId: 's' },
+    { id: 'orphan', name: '독립', parentId: 'missing' },
+  ], regions: [{ id: 'r', name: '지방', parentId: 'DEU' }] });
+  const ids = expanded => visibleLayerRows(m, { polities: true }, '', expanded).map(row => row.id);
+  assert.ok(!ids().includes('s'));
+  assert.ok(ids().includes('orphan'));
+  assert.ok(ids().includes('r'));
+  assert.ok(ids(new Set(['countries:DEU'])).includes('s'));
+  assert.ok(!ids(new Set(['countries:DEU'])).includes('nested'));
+  const open = visibleLayerRows(m, { polities: true }, '', new Set(['countries:DEU', 'subunits:s']));
+  assert.equal(open.find(row => row.id === 'nested').depth, 2);
+  assert.equal(visibleLayerRows(m, {}, '중첩')[0].id, 'nested');
+});
+
+test('cyclic legacy subunits remain reachable without recursive loops', () => {
+  const m = fixture({ subunits: [{ id: 'a', name: 'a', parentId: 'b' }, { id: 'b', name: 'b', parentId: 'a' }] });
+  const rows = visibleLayerRows(m, { polities: true }, '', new Set(['subunits:a', 'subunits:b']));
+  assert.equal(rows.filter(row => row.ref).length, 2);
+});
 const hydro = [{ id: 'builtin-river', name: 'HydroRIVERS', isBuiltin: true, hydroCategory: 'river' },
   { id: 'builtin-lake', name: 'Natural Earth', isBuiltin: true, hydroCategory: 'lake' },
   { id: 'user-river', name: '나의 강', hydroCategory: 'river' }];

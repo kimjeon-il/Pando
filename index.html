@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260906204825" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260906204825" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260906212148" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260906212148" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -413,7 +413,7 @@
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="countryRelationActionsTitle">
               <h3 id="countryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
-                <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가를 하위단위 또는 하위단위로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가를 하위단위로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
           </form>
@@ -446,7 +446,7 @@
               <h3 id="subunitRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
                 <button id="transferSubunitBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="changeSubunitTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가 또는 하위단위로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="changeSubunitTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="promoteSubunitBtn" type="button" class="ui-button editor-action-row"><span><strong>국가로 전환</strong><small>선택 구역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="removeSubunitDivisionBtn" type="button" class="ui-button editor-action-row"><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
@@ -508,7 +508,7 @@
                 <div class="ui-field field-group editor-field"><label for="distributionTerritorialUnitInput">기준 영역</label><select id="distributionTerritorialUnitInput"></select></div>
                 <div class="ui-field field-group editor-field"><label for="distributionShareInput">비율 (%)</label><input id="distributionShareInput" type="number" min="0" max="100" step="1" value="100" /></div>
                 <div class="editor-action-list">
-                  <button id="addTerritorialDistributionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span><strong>영역 분포 추가</strong><small>국가·하위단위·하위단위 참조</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                  <button id="addTerritorialDistributionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span><strong>영역 분포 추가</strong><small>국가·하위단위·지방 참조</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                   <button id="addGeometryDistributionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-area-draw"/></svg><span><strong>자유 영역 그리기</strong><small>행정경계와 무관한 분포</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 </div>
               </div>
@@ -742,8 +742,8 @@
       <p id="territorialTypeContext"></p>
       <div class="territorial-type-fields">
         <label class="ui-field field-group"><span>새 종류</span><select id="territorialTypeInput"><option value="country">국가</option><option value="subunit">하위단위</option></select></label>
-        <label id="territorialTypeSovereignRow" class="ui-field field-group hidden"><span>소속 국가</span><select id="territorialTypeSovereignInput"></select><small>국가를 하위단위·하위단위로 바꾸면 영토가 이 국가에 합쳐집니다.</small></label>
-        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 하위단위·하위단위</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 영역에 맞춰 자동으로 정해집니다.</small></label>
+        <label id="territorialTypeSovereignRow" class="ui-field field-group hidden"><span>소속 국가</span><select id="territorialTypeSovereignInput"></select><small>국가를 하위단위로 바꾸면 영토가 이 국가에 합쳐집니다.</small></label>
+        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 하위단위</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 영역에 맞춰 자동으로 정해집니다.</small></label>
         <section id="territorialTypeImpact" class="territorial-type-impact" aria-live="polite">
           <strong id="territorialTypeImpactSummary"></strong>
           <ul id="territorialTypeImpactList"></ul>
@@ -805,7 +805,7 @@
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
           <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">교차 면적은 추천 정보일 뿐이며, 여기서 선택한 국가가 최종 소속입니다.</small></label>
           <label id="gisIndependentRegionRow" class="ui-check gis-wide hidden" data-gis-step="1"><input id="gisIndependentRegion" type="checkbox" /><span>국가에 속하지 않는 독립 지방으로 가져오기</span></label>
-          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentUnit"><option value="">국가 직속</option></select><small>선택한 국가의 기존 하위단위·하위단위만 표시합니다. 행정 단계는 상위 영역에서 자동 계산합니다.</small></label>
+          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentUnit"><option value="">국가 직속</option></select><small>선택한 국가의 기존 하위단위만 표시합니다. 행정 단계는 상위 영역에서 자동 계산합니다.</small></label>
           <div class="ui-callout gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
           <details id="gisAdvancedMapping" class="ui-disclosure editor-disclosure gis-wide" data-gis-step="2"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body gis-form-grid">
             <label class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
@@ -847,8 +847,7 @@
         <div class="gis-export-step" data-gis-export-step="0" data-gis-active="true">
           <fieldset class="gis-export-layers"><legend>내보낼 데이터</legend>
             <label class="ui-check"><input type="checkbox" value="countries" checked /><span>국가</span></label>
-            <label class="ui-check"><input type="checkbox" value="territories" checked /><span>하위단위</span></label>
-            <label class="ui-check"><input type="checkbox" value="subunit" checked /><span>하위단위</span></label>
+            <label class="ui-check"><input type="checkbox" value="subunits" checked /><span>하위단위</span></label>
             <label class="ui-check"><input type="checkbox" value="regions" checked /><span>지방</span></label>
             <label class="ui-check"><input type="checkbox" value="genericFeatures" checked /><span>기타 객체</span></label>
             <label class="ui-check"><input type="checkbox" value="distributions" checked /><span>분포</span></label>
@@ -872,10 +871,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260906204825" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260906212148" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260906204825" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260906212148" defer></script>
 </body>
 </html>

@@ -1608,7 +1608,7 @@ const {
       const feature = territorialUnitById(ref.id);
       const type = territorialTypeLabel(ref.type);
       const context = ref.type === TERRITORIAL_UNIT_TYPES.REGION ? '' : territorialUnitCountryName(feature);
-      return { name: feature ? territorialUnitName(feature) : ref.id, type, detail: [context, ref.type === TERRITORIAL_UNIT_TYPES.SUBUNIT ? `${Number(feature?.properties?.adminLevel) || 1}급` : ''].filter(Boolean).join(' · ') };
+      return { name: feature ? territorialUnitName(feature) : ref.id, type, detail: [context, ref.type === TERRITORIAL_UNIT_TYPES.SUBUNIT && Number(feature?.properties?.adminLevel) > 0 ? `${Number(feature.properties.adminLevel)}급` : ''].filter(Boolean).join(' · ') };
     }
     if (ref.domain === 'distribution') {
       const layer = distributionLayerById(ref.id);
@@ -5169,8 +5169,8 @@ const {
     if (properties.name) return properties.name;
     if (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
     return properties.isRemainder === true
-      ? (properties.unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT ? '미지정 하위단위' : '미지정 하위단위')
-      : (properties.unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT ? '이름 없는 하위단위' : '이름 없는 하위단위');
+      ? (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION ? '미지정 지방' : '미지정 하위단위')
+      : (properties.unitType === TERRITORIAL_UNIT_TYPES.REGION ? '이름 없는 지방' : '이름 없는 하위단위');
   }
 
   function territorialUnitColor(feature) {
@@ -5569,6 +5569,7 @@ const {
             ? `지방${feature.properties?.sovereignId ? ` · ${countryLabel}` : ''}`
             : `하위단위 · ${countryLabel}`,
           countryId: String(feature.properties?.sovereignId || ''),
+          parentId: String(feature.properties?.parentId || ''),
           level: Number(feature.properties?.adminLevel) || null,
           selected: (state.selected?.domain === 'territorial' && state.selected.type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && state.selected.id === String(feature.id),
         };
@@ -9447,7 +9448,7 @@ const {
     const context = territorialPartitionContext(unitType);
     if (!context) {
       setActionStatus(unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT
-        ? '하위단위의 부모로 사용할 국가·하위단위·하위단위를 먼저 선택하세요.'
+        ? '하위단위의 부모로 사용할 국가 또는 하위단위를 먼저 선택하세요.'
         : '하위단위를 만들 국가를 먼저 선택하세요.', 'error', 3900);
       return false;
     }
@@ -9474,7 +9475,7 @@ const {
     const context = territorialCreateContext(unitType);
     if (!context) {
       setActionStatus(unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT
-        ? '하위단위의 부모로 사용할 국가·하위단위·하위단위를 먼저 선택하세요.'
+        ? '하위단위의 부모로 사용할 국가 또는 하위단위를 먼저 선택하세요.'
         : '하위단위를 만들 국가를 먼저 선택하세요.', 'error', 3900);
       return false;
     }
@@ -10401,7 +10402,7 @@ const {
         applyCountrySelectionIntent(country.id);
         renderingDomain?.invalidateCountryPatch?.('territorial-promoted-country');
       },
-      onSuccess: () => setActionStatus(`${name} 하위단위를 새 국가로 독립시켰습니다. 하위 하위단위은 유지했습니다.`, 'success', 4000),
+      onSuccess: () => setActionStatus(`${name} 하위단위를 새 국가로 독립시켰습니다. 소속 하위단위는 유지했습니다.`, 'success', 4000),
       onError: error => reportOperationError(error, '하위단위를 새 국가로 독립시키지 못했습니다.', 'PL-REGION-PROMOTE-001', 4700),
     });
     return result.ok;
@@ -13935,7 +13936,7 @@ const {
         },
         syncBatchActions: syncBatchActionAvailability,
         syncMapSurfaces: syncMapContextSurfaces,
-        syncLayerRows: selection => layerTreeController?.syncSelection(selection),
+        syncLayerRows: selection => layerTreeController?.syncSelection(selection, { reveal: true }),
         closeChooser: closeObjectChooser,
       },
       metrics: selectionPerformanceMetrics,
