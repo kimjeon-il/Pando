@@ -4,11 +4,10 @@ const TYPE_LABELS = Object.freeze({
 });
 
 /** Presentation only: membership never depends on geometry, visibility or loading success. */
-export function createLayerListModel({ items, groups, builtinCountryIds, builtinSession, itemRef, compare }) {
+export function createLayerListModel({ items, groups, itemRef, compare }) {
   const bundles = [
-    { kind: 'bundle', key: 'bundle:countries', id: 'countries', name: '세계 국가', icon: 'country', items: [] },
-    { kind: 'bundle', key: 'bundle:rivers', id: 'rivers', name: '기본 강', icon: 'river', items: [] },
-    { kind: 'bundle', key: 'bundle:lakes', id: 'lakes', name: '기본 호수', icon: 'lake', items: [] },
+    { kind: 'bundle', key: 'bundle:polities', id: 'polities', name: '정치체', icon: 'country', items: [] },
+    { kind: 'bundle', key: 'bundle:landforms', id: 'landforms', name: '지형지물', icon: 'river', items: [] },
   ];
   const objects = [], seen = new Set();
   for (const group of groups) for (const source of items(group)) {
@@ -21,8 +20,8 @@ export function createLayerListModel({ items, groups, builtinCountryIds, builtin
       : layerGroup === 'genericFeatures' ? (source.meta?.split(' · ')[0] || TYPE_LABELS[layerGroup])
         : TYPE_LABELS[layerGroup] || layerGroup;
     const item = { ...source, kind: 'object', key, ref, layerGroup, typeLabel };
-    if (layerGroup === 'countries' && builtinSession && builtinCountryIds.has(String(source.id))) bundles[0].items.push(item);
-    else if (layerGroup === 'hydro' && source.isBuiltin) bundles[source.hydroCategory === 'lake' ? 2 : 1].items.push(item);
+    if (['countries', 'regions', 'subunits'].includes(layerGroup)) bundles[0].items.push(item);
+    else if (layerGroup === 'hydro') bundles[1].items.push(item);
     else objects.push(item);
   }
   // The existing locale name comparator is retained; ties use the full ObjectKey, not a type-local ID.
@@ -30,7 +29,6 @@ export function createLayerListModel({ items, groups, builtinCountryIds, builtin
   objects.sort(order);
   for (const bundle of bundles) {
     bundle.items.sort(order);
-    bundle.typeLabel = bundle.id === 'countries' ? '국가' : '수계';
   }
   return { bundles: bundles.filter(bundle => bundle.items.length), objects, order };
 }
