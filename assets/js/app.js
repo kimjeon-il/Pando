@@ -104,6 +104,7 @@ const mapInteractionGateModule = await import(versionedModuleUrl('./modules/map-
 const mapInteractionStyleModule = await import(versionedModuleUrl('./modules/map-interaction-style.js'));
 const graticuleGeometryModule = await import(versionedModuleUrl('./modules/graticule-geometry.js'));
 const userPreferencesModule = await import(versionedModuleUrl('./modules/user-preferences.js'));
+const { applyAppAccent } = await import(versionedModuleUrl('./modules/app-accent.js'));
 const notificationCopyModule = await import(versionedModuleUrl('./modules/notification-copy.js'));
 const countryFlagsModule = await import(versionedModuleUrl('./modules/country-flags.js'));
 const mapLayoutMetricsModule = await import(versionedModuleUrl('./modules/map-layout-metrics.js'));
@@ -524,12 +525,13 @@ const {
     else root.removeProperty('--place-label-point-color');
   }
   applyMapLabelPreferences();
+  let resolvedAccentColor = applyAppAccent(document, userPreferences.appearance.accentColor);
   function resolveCurrentInteractionStyle() {
     const theme = effectiveTheme(userPreferences, systemTheme === 'dark');
     const computed = getComputedStyle(document.documentElement);
     return resolveMapInteractionStyle({
       theme,
-      selectionColor: null,
+      selectionColor: resolvedAccentColor,
       outlineVisible: true,
       fillStrength: 0.35,
       tokens: {
@@ -595,6 +597,7 @@ const {
     document.documentElement.dataset.systemTheme = systemTheme;
     document.documentElement.dataset.theme = effectiveTheme(userPreferences, systemTheme === 'dark');
     window.__PANDOLAB_THEME__ = effectiveTheme(userPreferences, systemTheme === 'dark');
+    resolvedAccentColor = applyAppAccent(document, userPreferences.appearance.accentColor);
     syncResolvedInteractionStyle();
     gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'system-theme');
     gpuMapRenderer.invalidatePhysicalStyle('system-theme');
@@ -5659,16 +5662,21 @@ const {
   }
 
   function applyUserPreferences(nextPreferences, { persist = true, rerender = true } = {}) {
+    const previousTheme = effectiveTheme(userPreferences, systemTheme === 'dark');
+    const previousAccent = resolvedAccentColor;
     userPreferences = persist ? saveUserPreferences(nextPreferences) : nextPreferences;
     const resolvedTheme = effectiveTheme(userPreferences, systemTheme === 'dark');
     document.documentElement.dataset.theme = resolvedTheme;
+    resolvedAccentColor = applyAppAccent(document, userPreferences.appearance.accentColor);
     applyMapLabelPreferences();
-    syncResolvedInteractionStyle();
-    renderingDomain?.syncSelectionEmphasis?.();
-    gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'user-preferences');
-    gpuMapRenderer.invalidatePhysicalStyle('user-preferences');
     window.__PANDOLAB_THEME__ = resolvedTheme;
-    if (rerender && svg) {
+    const themeChanged = previousTheme !== resolvedTheme;
+    if (themeChanged || previousAccent !== resolvedAccentColor) syncResolvedInteractionStyle({ redraw: rerender });
+    if (themeChanged) {
+      gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'user-preferences');
+      gpuMapRenderer.invalidatePhysicalStyle('user-preferences');
+    }
+    if (themeChanged && rerender && svg) {
       markLayerTreeDirty();
       layerTreeController?.render();
       renderingDomain?.invalidateBaseScene?.('user-preferences');
@@ -12790,27 +12798,56 @@ const {
     });
     const preferencesModal = $('preferencesModal');
     let preferencesOrigin = null;
+    let accentPreviewFrame = 0;
+    let pendingAccent;
     const syncPreferencesForm = () => {
       $('preferencesThemeInput').value = userPreferences.appearance.theme;
+      const accent = userPreferences.appearance.accentColor;
+      const input = document.getElementById('preferencesAccentInput');
+      input.value = accent || resolvedAccentColor;
+      document.getElementById('preferencesAccentValue').textContent = accent || `기본 · ${resolvedAccentColor}`;
+      document.getElementById('preferencesAccentPreview').style.backgroundColor = accent || resolvedAccentColor;
+      preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
+        button.setAttribute('aria-pressed', String((button.dataset.preferenceAccent || null) === accent));
+      });
     };
     const preferencesFromForm = () => ({
       ...userPreferences,
-      appearance: { theme: $('preferencesThemeInput').value },
+      appearance: { ...userPreferences.appearance, theme: $('preferencesThemeInput').value },
     });
     const applyPreferencesForm = () => {
-      applyUserPreferences(preferencesFromForm());
+      applyUserPreferences(preferencesFromForm(), { persist: false });
       syncPreferencesForm();
+    };
+    const flushAccentPreview = () => {
+      if (accentPreviewFrame) cancelAnimationFrame(accentPreviewFrame);
+      accentPreviewFrame = 0;
+      if (pendingAccent === undefined) return;
+      const accentColor = pendingAccent; pendingAccent = undefined;
+      applyUserPreferences({ ...userPreferences, appearance: { ...userPreferences.appearance, accentColor } }, { persist: false });
+      syncPreferencesForm();
+    };
+    const previewAccent = value => {
+      pendingAccent = value;
+      if (!accentPreviewFrame) accentPreviewFrame = requestAnimationFrame(flushAccentPreview);
     };
     const closePreferences = ({ restoreFocus = true, revert = false } = {}) => {
       if (!preferencesModal || preferencesModal.classList.contains('hidden')) return;
-      if (revert && preferencesOrigin) applyUserPreferences(preferencesOrigin);
+      if (revert) {
+        if (accentPreviewFrame) cancelAnimationFrame(accentPreviewFrame);
+        accentPreviewFrame = 0; pendingAccent = undefined;
+        if (preferencesOrigin) applyUserPreferences({ ...userPreferences, appearance: preferencesOrigin }, { persist: false });
+      } else {
+        flushAccentPreview();
+        userPreferences = saveUserPreferences(userPreferences);
+      }
       preferencesOrigin = null;
       preferencesModal.classList.add('hidden');
       if (restoreFocus) $('preferencesBtn')?.focus({ preventScroll: true });
     };
     const openPreferences = () => {
       syncPreferencesForm();
-      preferencesOrigin = structuredClone(userPreferences);
+      preferencesOrigin = { ...userPreferences.appearance };
       preferencesModal?.classList.remove('hidden');
       $('preferencesThemeInput')?.focus({ preventScroll: true });
     };
@@ -12819,8 +12856,19 @@ const {
     $('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
     preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences({ revert: true }));
     $('preferencesResetBtn')?.addEventListener('click', () => {
-      applyUserPreferences({ ...userPreferences, appearance: defaultUserPreferences().appearance });
+      pendingAccent = undefined;
+      if (accentPreviewFrame) cancelAnimationFrame(accentPreviewFrame);
+      accentPreviewFrame = 0;
+      applyUserPreferences({ ...userPreferences, appearance: defaultUserPreferences().appearance }, { persist: false });
       syncPreferencesForm();
+    });
+    preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
+      button.addEventListener('click', () => previewAccent(button.dataset.preferenceAccent || null));
+    });
+    document.getElementById('preferencesAccentInput').addEventListener('input', event => previewAccent(event.target.value.toLowerCase()));
+    document.getElementById('preferencesAccentCustomBtn').addEventListener('click', () => {
+      const input = document.getElementById('preferencesAccentInput');
+      if (input.showPicker) input.showPicker(); else input.click();
     });
     $('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
     $('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));

@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-2e9c19c02d27" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-2e9c19c02d27" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-6b4b9baa983e" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-6b4b9baa983e" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -825,6 +825,20 @@
         <section class="preferences-section" aria-labelledby="preferencesAppearanceTitle">
           <h3 id="preferencesAppearanceTitle">화면</h3>
           <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
+          <div class="preferences-accent" role="group" aria-labelledby="preferencesAccentTitle">
+            <strong id="preferencesAccentTitle">강조색(액센트)</strong>
+            <div class="preferences-accent-swatches">
+              <button type="button" class="ui-button btn ghost" data-preference-accent="" aria-pressed="true">기본값</button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#4f8cff" style="--swatch: #4f8cff" aria-label="파랑" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#8b5cf6" style="--swatch: #8b5cf6" aria-label="보라" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#0f9d92" style="--swatch: #0f9d92" aria-label="청록" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#2e9d57" style="--swatch: #2e9d57" aria-label="초록" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#e87924" style="--swatch: #e87924" aria-label="주황" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#d9468f" style="--swatch: #d9468f" aria-label="분홍" aria-pressed="false"></button>
+            </div>
+            <button id="preferencesAccentCustomBtn" type="button" class="ui-button btn ghost"><span id="preferencesAccentPreview" class="ui-color-preview" aria-hidden="true"></span><span>사용자 지정</span><output id="preferencesAccentValue"></output></button>
+            <input id="preferencesAccentInput" type="color" class="ui-native-color-input" value="#4f8cff" tabindex="-1" aria-hidden="true" />
+          </div>
         </section>
       </div>
       <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>
@@ -1007,10 +1021,10 @@
 
   
   
-  <script src="assets/js/build-meta.js?v=0.32.0-build-2e9c19c02d27" defer></script>
+  <script src="assets/js/build-meta.js?v=0.32.0-build-6b4b9baa983e" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.32.0-build-2e9c19c02d27" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.32.0-build-6b4b9baa983e" defer></script>
 </body>
 </html>

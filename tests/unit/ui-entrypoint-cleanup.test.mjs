@@ -19,7 +19,7 @@ test('theme updates retain persisted label and legacy selection values', () => {
   const result = saveUserPreferences({ ...original, appearance: { theme: 'dark' } }, { setItem() {} });
   assert.deepEqual(result.labels, original.labels);
   assert.deepEqual(result.selection, original.selection);
-  assert.match(app, /selectionColor: null,\s+outlineVisible: true,\s+fillStrength: 0\.35/);
+  assert.match(app, /selectionColor: resolvedAccentColor,\s+outlineVisible: true,\s+fillStrength: 0\.35/);
   const fields = html.slice(html.indexOf('id="preferencesModal"'), html.indexOf('id="coastReconciliationModal"'));
   assert.ok(fields.includes('id="preferencesThemeInput"'));
   assert.doesNotMatch(fields, /preferences(?:Country|Place|Selection)/);
