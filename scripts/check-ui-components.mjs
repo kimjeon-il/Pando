@@ -65,10 +65,9 @@ for (const id of ['layerSearchInput', 'historicalLibrarySearchInput']) {
 }
 
 const floatingContracts = new Map([
-  ['mapCommandToolbar', ['ui-floating-surface', 'ui-floating-toolbar']],
   ['modeActionBar', ['ui-floating-surface', 'ui-context-toolbar']],
   ['objectChooser', ['ui-popover', 'ui-floating-surface']],
-  ['multiSelectionBar', ['ui-floating-surface', 'ui-context-toolbar']],
+  ['multiSelectionBar', ['layer-selection-summary']],
 ]);
 for (const [id, classes] of floatingContracts) {
   const tag = html.match(new RegExp(`<[^>]+id=["']${id}["'][^>]*>`, 'i'))?.[0] || '';

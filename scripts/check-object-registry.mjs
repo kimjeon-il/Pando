@@ -69,9 +69,10 @@ for (const actionId of ['focus', 'lock', 'delete', 'change-type', 'border-edit',
 if (OBJECT_ACTIONS.delete?.danger !== true) fail('delete action must remain marked as danger');
 
 const requiredBindings = Object.freeze({
-  lock: ['objectLockBtn', 'objectLockMenuBtn'],
-  delete: ['objectDeleteBtn', 'objectDeleteMenuBtn'],
-  'coast-reconcile': ['objectCoastReconcileMenuBtn', 'reconcileAdministrativeCoastBtn'],
+  lock: ['objectLockBtn'],
+  delete: ['objectDeleteBtn'],
+  focus: ['focusSelectedObjectBtn', 'objectFocusMenuBtn'],
+  'coast-reconcile': ['reconcileAdministrativeCoastBtn'],
   'change-type': ['changeCountryTypeBtn', 'changeTerritoryTypeBtn', 'changeAdministrativeTypeBtn'],
 });
 for (const [actionId, elementIds] of Object.entries(requiredBindings)) {

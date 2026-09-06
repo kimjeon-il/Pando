@@ -261,8 +261,7 @@
 /* Historical library refinements. */
 
 /* Panel-owned visibility refinements. */
-.ui-dialog-kicker,
-.create-toolbar-divider {
+.ui-dialog-kicker {
   display: none;
 }
 

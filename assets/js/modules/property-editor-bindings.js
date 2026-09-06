@@ -40,11 +40,8 @@ export function createPropertyEditorBindings({
   copySelectedHydroForEditing,
   undo,
   redo,
-  batchToggleLocked,
-  deleteSelectedFromObjectMenu,
   closeObjectActionsMenu,
   batchSetVisibility,
-  batchSetLocked,
   enterCountryBorderEditFromSelection,
 } = {}) {
 
@@ -97,7 +94,6 @@ export function createPropertyEditorBindings({
       { id: 'labelKindInput', field: 'kind', commit: commitLabelEdit },
       { id: 'labelNotesInput', field: 'notes', commit: commitLabelEdit },
     ]);
-    listen($('distributionLockedInput'), 'change', event => commitDistributionMeta('locked', event.target.checked));
     listen($('distributionEntryList'), 'click', event => {
       const button = event.target.closest('[data-distribution-entry-delete]');
       if (button) removeDistributionEntry(button.dataset.distributionEntryDelete);
@@ -193,10 +189,7 @@ export function createPropertyEditorBindings({
     listen($('redoBtn'), 'click', redo);
 
     listen($('focusSelectedObjectBtn'), 'click', () => getPrimary() && focusObjectRef(getPrimary()));
-    listen($('objectLockBtn'), 'click', batchToggleLocked);
-    listen($('objectDeleteBtn'), 'click', deleteSelectedFromObjectMenu);
-    listen($('objectLockMenuBtn'), 'click', () => { closeObjectActionsMenu(); batchToggleLocked(); });
-    listen($('objectDeleteMenuBtn'), 'click', deleteSelectedFromObjectMenu);
+    listen($('objectFocusMenuBtn'), 'click', () => { closeObjectActionsMenu(); if (getPrimary()) focusObjectRef(getPrimary()); });
     listen($('objectActionsMenu'), 'keydown', event => {
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeObjectActionsMenu({ restoreFocus: true }); return; }
       const items = [...event.currentTarget.querySelectorAll('[role="menuitem"]:not(.hidden):not(:disabled)')];
@@ -207,7 +200,6 @@ export function createPropertyEditorBindings({
       items[(current + delta + items.length) % items.length]?.focus();
     });
     listen($('multiPropertiesVisibilityInput'), 'change', event => batchSetVisibility(event.target.checked));
-    listen($('multiPropertiesLockInput'), 'change', event => batchSetLocked(event.target.checked));
     listen($('multiBorderEditBtn'), 'click', () => requestDraftDiscard(() => returnToMapAfterMobileAction(enterCountryBorderEditFromSelection())));
   }
 

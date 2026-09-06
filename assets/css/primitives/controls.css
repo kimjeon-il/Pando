@@ -166,9 +166,7 @@
 /* Destructive intent is reserved for the final confirmation action. */
 .danger-btn,
 .danger-ghost,
-.mode-draft-action-btn.danger,
-.editor-object-delete,
-.object-actions-delete {
+.mode-draft-action-btn.danger {
   border-color: var(--ui-control-border);
   background: var(--ui-control-bg);
   color: var(--ui-control-text);
@@ -176,18 +174,14 @@
 
 .danger-btn:hover:not(:disabled),
 .danger-ghost:hover:not(:disabled),
-.mode-draft-action-btn.danger:hover:not(:disabled),
-.editor-object-delete:hover:not(:disabled),
-.object-actions-delete:hover:not(:disabled) {
+.mode-draft-action-btn.danger:hover:not(:disabled) {
   border-color: var(--ui-control-border-hover);
   background: var(--ui-control-bg-hover);
   color: var(--text-strong);
 }
 .danger-btn:active:not(:disabled),
 .danger-ghost:active:not(:disabled),
-.mode-draft-action-btn.danger:active:not(:disabled),
-.editor-object-delete:active:not(:disabled),
-.object-actions-delete:active:not(:disabled) {
+.mode-draft-action-btn.danger:active:not(:disabled) {
   border-color: var(--ui-control-border);
   background: var(--ui-control-bg-pressed);
   color: var(--ui-control-text);

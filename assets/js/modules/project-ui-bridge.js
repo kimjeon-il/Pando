@@ -88,7 +88,6 @@ export function createProjectUiBridge({
     $('redoBtn').dataset.tooltip = draftMode ? '작성 중 다시 실행' : '다시 실행';
     $('undoBtn').setAttribute('aria-label', draftMode ? '작성 중 실행 취소' : '실행 취소');
     $('redoBtn').setAttribute('aria-label', draftMode ? '작성 중 다시 실행' : '다시 실행');
-    $('mapCommandToolbar')?.classList.toggle('history-empty', !undoAvailable && !redoAvailable);
   }
 
   function requestNewProject(event) {

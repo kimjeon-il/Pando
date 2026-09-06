@@ -107,8 +107,6 @@ export function createObjectPropertyController(runtime = {}) {
       $('editorObjectStatus').classList.add('hidden');
     }
     if (!type) {
-      $('editorCommonActions')?.classList.add('hidden');
-      $('editorDeleteActions')?.classList.add('hidden');
       $('focusSelectedObjectBtn')?.classList.add('hidden');
     }
     document.querySelector('.editor-object-heading')?.setAttribute('aria-label', type ? `${String(title || '')}, ${visibleTypeLabel}` : '');
@@ -225,7 +223,6 @@ export function createObjectPropertyController(runtime = {}) {
     })).sort((a, b) => layerNameCompare(a.label, b.label));
     replaceSelectOptions($('distributionParentInput'), parentOptions, layer.parentId);
     replaceSelectOptions($('distributionTerritorialUnitInput'), unitOptions, $('distributionTerritorialUnitInput').value);
-    $('distributionLockedInput').checked = layer.locked;
     $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
     for (const idValue of ['distributionNameInput', 'distributionColorTrigger', 'distributionParentInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
     renderDistributionEntries(layer);

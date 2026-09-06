@@ -113,6 +113,14 @@ export function createLayerTreeController({
     row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${isSelected ? ' is-selected' : ''}${isSelected && multi ? ' is-multi-selected' : ''}${primary && multi ? ' is-primary-selected' : ''}`;
     row.dataset.layerGroup = itemGroup;
     row.dataset.itemId = item.id;
+    const swatch = document.createElement('span');
+    swatch.className = 'layer-color-swatch';
+    swatch.setAttribute('aria-hidden', 'true');
+    if (item.color) swatch.style.backgroundColor = item.color;
+    else {
+      swatch.classList.add('is-type-icon');
+      swatch.append(createIcon(item.icon || 'map'));
+    }
     if (searchResult) {
       row.type = 'button';
       row.dataset.layerItemSelect = itemGroup;
@@ -121,6 +129,7 @@ export function createLayerTreeController({
       row.append(document.createElement('span'), document.createElement('strong'));
       row.querySelector('span').textContent = item.folderName || groups.names[itemGroup] || '지형 음영';
       row.querySelector('strong').textContent = item.name;
+      row.querySelector('strong').prepend(swatch);
       return row;
     }
     const visibility = createVisibilityControl({ group: itemGroup, itemId: item.id, label: item.name, checked: model.isVisible(itemGroup, item.id) });
@@ -132,7 +141,7 @@ export function createLayerTreeController({
     const label = document.createElement('span');
     label.className = 'layer-child-name-label';
     label.textContent = item.name;
-    name.append(label);
+    name.append(swatch, label);
     name.dataset.tooltip = item.title || `${item.name} 선택`;
     if (hasMenu && model.isLocked(ref)) {
       name.classList.add('has-lock-indicator');
@@ -406,6 +415,9 @@ export function createLayerTreeController({
       elements.search.focus({ preventScroll: true });
     });
     elements.section?.addEventListener('click', event => {
+      if (event.target.closest('.layer-visibility-control')) return;
+      if (event.target.closest('#objectLockBtn')) { commands.lockSelection?.(); return; }
+      if (event.target.closest('#objectDeleteBtn')) { commands.deleteSelection?.(); return; }
       const style = event.target.closest('[data-layer-style-toggle]');
       if (style) { event.preventDefault(); event.stopPropagation(); commands.toggleLayerStyle?.(style.dataset.layerStyleToggle); return; }
       const menu = event.target.closest('[data-layer-item-menu]');
@@ -456,7 +468,7 @@ export function createAppLayerTreeController(runtime = {}) {
     gpuMapRenderer, syncPhysicalControls, markLayerTreeDirty, clamp, syncRangeProgress,
     setActionStatus, selectLayerTreeItem, openObjectActionsMenu, isMobile,
     returnToMapAfterMobileAction, closeObjectActionsMenu, syncLayerVisibilityToggle,
-    setLayerItemVisibility,
+    setLayerItemVisibility, batchToggleLocked, deleteSelectedFromObjectMenu,
   } = runtime;
   const targets = Object.fromEntries(Object.entries(layerGroupTargetIds).map(([group, id]) => [group, $(id)]));
   return createLayerTreeController({
@@ -527,6 +539,8 @@ export function createAppLayerTreeController(runtime = {}) {
       },
     },
     commands: {
+      lockSelection: batchToggleLocked,
+      deleteSelection: deleteSelectedFromObjectMenu,
       prune: pruneLayerItemVisibility,
       syncCategoryLabels: syncMapObjectCategoryLabels,
       syncStylePanels: syncLayerStylePanels,
