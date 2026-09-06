@@ -6,7 +6,7 @@ const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
 const DEFAULTS = Object.freeze({
   version: 2,
-  appearance: Object.freeze({ theme: 'system' }),
+  appearance: Object.freeze({ theme: 'system', accentColor: null }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
     place: Object.freeze({ font: 'default', color: null, pointColor: null }),
@@ -32,7 +32,7 @@ function normalizeLabelFont(value, fallback) {
 export function defaultUserPreferences() {
   return {
     version: DEFAULTS.version,
-    appearance: { theme: DEFAULTS.appearance.theme },
+    appearance: { theme: DEFAULTS.appearance.theme, accentColor: null },
     labels: {
       country: { font: DEFAULTS.labels.country.font, color: DEFAULTS.labels.country.color },
       place: {
@@ -57,7 +57,7 @@ export function normalizeUserPreferences(value) {
   const outlineVisible = source.selection?.outlineVisible !== false || fillStrength === 0;
   return {
     version: DEFAULTS.version,
-    appearance: { theme },
+    appearance: { theme, accentColor: normalizeColor(source.appearance?.accentColor) },
     labels: {
       country: {
         font: normalizeLabelFont(source.labels?.country?.font, defaults.labels.country.font),

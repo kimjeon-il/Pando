@@ -555,6 +555,13 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .preferences-section + .preferences-section { padding-top: var(--ui-space-4); border-top: 1px solid var(--border); }
 .preferences-section > h3 { margin: 0; color: var(--text-strong); font-size: var(--ui-font-section); font-weight: var(--ui-weight-bold); line-height: var(--ui-line-tight); }
 .preferences-actions-spacer { flex: 1; }
+.preferences-accent { display: grid; gap: var(--ui-space-3); }
+.preferences-accent-swatches { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); align-items: center; }
+.preferences-accent-chip { width: 36px; height: 36px; min-width: 36px; padding: 0; background: var(--swatch); border: 2px solid var(--border); border-radius: 50%; }
+.preferences-accent-chip:is(:hover, :focus-visible) { background: var(--swatch); outline: 2px solid var(--text-strong); outline-offset: 2px; }
+.preferences-accent-chip[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--text-strong); }
+#preferencesAccentCustomBtn { display: flex; align-items: center; gap: var(--ui-space-2); flex-wrap: wrap; }
+#preferencesAccentValue { font-variant-numeric: tabular-nums; }
 .vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
 .vertex-handle:hover { r: 6px; }
 .draft-shape { fill: rgba(205,169,93,.14); stroke: #e2c982; stroke-width: 2px; stroke-dasharray: 5 4; pointer-events: none; }
