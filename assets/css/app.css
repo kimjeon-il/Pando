@@ -498,6 +498,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .country-shape { stroke: var(--map-border); stroke-width: .72px; stroke-linejoin: round; cursor: pointer; transition: fill-opacity .12s ease; }
 .country-label { fill: var(--country-label-color, var(--map-label)); font-family: var(--country-label-font-family, var(--ui-font-family)); font-size: var(--ui-font-map); font-weight: var(--ui-weight-semibold); text-anchor: middle; paint-order: stroke; stroke: var(--map-label-halo); stroke-width: 2.3px; stroke-linejoin: round; pointer-events: auto; cursor: pointer; }
 .country-label.major { font-size: var(--ui-font-caption); }
+.country-label-flag { filter: drop-shadow(0 0 .4px rgba(0, 0, 0, .55)); }
 .territorial-unit-shape {
   fill-opacity: 0;
   stroke: none;

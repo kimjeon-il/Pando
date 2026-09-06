@@ -227,11 +227,10 @@ export function createRenderingDomain({
     if (!layer) return false;
     const resolvedLayout = layout || labels.visibleLabelLayout?.();
     const data = resolvedLayout?.countryLabels || [];
-    const selection = layer.selectAll('text.country-label').data(data, d => d.id);
+    const selection = layer.selectAll('g.country-label-item').data(data, d => d.id);
     selection.exit().remove();
-    selection.enter().append('text')
-      .attr('class', 'country-label')
-      .attr('dy', '.35em')
+    const enter = selection.enter().append('g')
+      .attr('class', 'country-label-item')
       .on('click', function(d) {
         if (labels.mapClickBlocked?.()) return;
         const subunitRef = labels.countryLabelObjectRef?.(d);
@@ -272,8 +271,18 @@ export function createRenderingDomain({
           forcedRef: { domain: 'territorial', type: labels.countryType || 'country', id: d.id },
         });
       });
-    const all = layer.selectAll('text.country-label');
-    all.text(labels.countryName || (d => d.name || ''))
+    enter.append('image').attr('class', 'country-label-flag').attr('preserveAspectRatio', 'xMidYMid meet')
+      .attr('aria-hidden', 'true').style('pointer-events', 'none')
+      .on('error', function() {
+        this.dataset.failedUrl = this.getAttribute('href');
+        this.style.display = 'none';
+        this.parentNode.querySelector('text')?.setAttribute('x', '0');
+      });
+    enter.append('text').attr('class', 'country-label').attr('dy', '.35em');
+    const all = layer.selectAll('g.country-label-item');
+    all.select('text').text(labels.countryName || (d => d.name || ''))
+      .classed('major', d => (resolvedLayout?.countryScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
+    all
       .style('opacity', labels.layerStyle?.(state.layerPresentation, 'countryLabels').opacity)
       .classed('major', d => (resolvedLayout?.countryScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
       .attr('transform', d => {
@@ -287,6 +296,19 @@ export function createRenderingDomain({
       });
     countryLabelPositionBindings = [];
     all.each(function(feature) {
+      let flag = resolvedLayout?.countryFlags?.get(String(feature.id));
+      const text = this.querySelector('text');
+      const image = this.querySelector('image');
+      if (flag?.url === image.dataset.failedUrl) flag = null;
+      text.setAttribute('x', flag ? (flag.width + flag.gap) / 2 : 0);
+      image.style.display = flag ? '' : 'none';
+      if (flag) {
+        const width = text.getComputedTextLength();
+        image.setAttribute('x', -(width + flag.width + flag.gap) / 2);
+        image.setAttribute('y', -flag.height / 2);
+        image.setAttribute('width', flag.width); image.setAttribute('height', flag.height);
+        if (image.getAttribute('href') !== flag.url) image.setAttribute('href', flag.url);
+      } else image.removeAttribute('href');
       const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', feature.id) || {});
       const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : labels.countryLabelAnchors?.()?.get?.(String(feature.id || ''));
       countryLabelPositionBindings.push({ node: this, coordinate: coordinate?.slice() });

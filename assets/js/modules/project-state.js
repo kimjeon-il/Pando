@@ -19,7 +19,7 @@ const PROJECT_FORMATS = Object.freeze(new Set([
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const text = value => String(value ?? '').trim();
-const LAYER_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels']);
+const LAYER_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels', 'countryFlags']);
 const ITEM_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
 const PRESENTATION_GROUP_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
 const GENERIC_PROPERTY_KEYS = new Set(['schemaVersion', 'name', 'notes', 'color', 'locked', 'source']);

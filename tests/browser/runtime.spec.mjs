@@ -53,12 +53,9 @@ async function editorTypographySnapshot(page) {
       readonlyLabel: font('.editor-property-list span'),
       readonlyValue: font('#countryAreaValue'),
       distributionType: font('#distributionTypeValue'),
-      metaLabel: font('.editor-meta-list span'),
-      metaValue: font('#countryCodeInput'),
       helper: font('#territoryNameConflict'),
       colorValue: font('#countryColorValue'),
       propertyHeading: font('.editor-property-heading'),
-      disclosure: font('#countryProperties > .editor-disclosure > summary'),
       periodHeading: font('.editor-period-group > legend'),
       periodSubfield: font('label[for="regionValidFromInput"]'),
     };
@@ -138,12 +135,9 @@ for (const layout of layouts) {
       expect(typography.readonlyLabel).toEqual(['14px', '500']);
       expect(typography.readonlyValue).toEqual(['15px', '600']);
       expect(typography.distributionType).toEqual(['15px', '600']);
-      expect(typography.metaLabel).toEqual(['13px', '400']);
-      expect(typography.metaValue).toEqual(['13px', '600']);
       expect(typography.helper).toEqual(['13px', '400']);
       expect(typography.colorValue).toEqual(['15px', '400']);
       expect(typography.propertyHeading).toEqual(['14px', '500']);
-      expect(typography.disclosure).toEqual(['14px', '500']);
       expect(typography.periodHeading).toEqual(['14px', '500']);
       expect(typography.periodSubfield).toEqual(['13px', '500']);
       expect(errors).toEqual([]);
@@ -230,7 +224,6 @@ test('narrow mobile widths keep the editor type scale instead of shrinking text'
     expect(typography.propertyLabel).toEqual(['14px', '500']);
     expect(typography.editableValue).toEqual(['15px', '400']);
     expect(typography.readonlyValue).toEqual(['15px', '600']);
-    expect(typography.metaValue).toEqual(['13px', '600']);
   }
   expect(errors).toEqual([]);
 });

@@ -1,4 +1,5 @@
 import { createTerritorialFeature } from './territorial-units.js';
+import { defaultGeographicName } from './country-display.js';
 
 // User-approved default-map classification, not a live legal-status database.
 // Canonical source IDs and coordinates remain unchanged in the source assets.
@@ -55,7 +56,7 @@ export function classifyBuiltinCountries(collection) {
     const row = bySource.get(String(feature.id));
     if (!row) { countries.push(feature); continue; }
     subunits.push(createTerritorialFeature({
-      id: row.id, unitType: 'subunit', name: feature.properties.name, geometry: feature.geometry,
+      id: row.id, unitType: 'subunit', name: defaultGeographicName(row.sourceCountryId, feature.properties.name), geometry: feature.geometry,
       parentId: row.parentId, sovereignId: row.parentId, coverageMode: 'explicit', adminLevel: null,
       notes: row.note || '',
       metadata: {

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from '../../assets/js/modules/builtin-subunits.js';
 import { normalizeTerritorialUnits } from '../../assets/js/modules/territorial-units.js';
+import { defaultGeographicName } from '../../assets/js/modules/country-display.js';
 import { migrateProjectToCurrent } from '../../assets/js/modules/project-migrations.js';
 import { createProjectSerializer, restoreCountriesFromDelta } from '../../assets/js/modules/project-serializer.js';
 
@@ -30,7 +31,8 @@ test('all source geometries stay identical; normalization and classification do 
   for (const feature of [...result.countries.features, ...normalized]) {
     const original = originals.get(builtinSubunitSourceId(feature) || feature.id);
     assert.deepEqual(feature.geometry, original.geometry);
-    assert.equal(feature.properties.name, original.properties.name);
+    assert.equal(feature.properties.name, builtinSubunitSourceId(feature)
+      ? defaultGeographicName(original.id, original.properties.name) : original.properties.name);
   }
   assert.equal(JSON.stringify(source), before);
   assert.deepEqual(classifyBuiltinCountries(source), result);
