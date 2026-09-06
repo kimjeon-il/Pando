@@ -61,9 +61,10 @@ export function createMapInputController({
   }
 
   function pointerDown(event) {
-    if (event.button > 0) return;
+    if (event.button > 1) return;
+    const assistedPan = event.button === 1;
     const isTouch = event.pointerType === 'touch';
-    const isInteractive = interactiveTarget(event.target);
+    const isInteractive = interactiveTarget(event.target, event);
     // Keep touch pointers visible to the controller even when the first
     // finger lands on an editing handle.  A second finger must be able to
     // promote that gesture to map pinch; otherwise the browser can claim it
@@ -72,7 +73,7 @@ export function createMapInputController({
     const point = { x: event.clientX, y: event.clientY, pointerType: event.pointerType };
     pointers.set(event.pointerId, point);
     if (isTouch && pointers.size === 2) {
-      if (gesture?.kind === 'draw') cancelStroke(event);
+      cancelStroke('pinch');
       for (const pointerId of pointers.keys()) capturePointer(pointerId);
       const pair = [...pointers.values()];
       gesture = null;
@@ -86,8 +87,8 @@ export function createMapInputController({
     // the map set so a later second touch can start pinch.
     if (isTouch && isInteractive) return;
     if (pointers.size !== 1) return;
-    const genericFeature = !!canDrawStroke(event) && beginStroke(localPoint(event), event) !== false;
-    const navigable = !genericFeature && canNavigate();
+    const genericFeature = !assistedPan && !!canDrawStroke(event) && beginStroke(localPoint(event), event) !== false;
+    const navigable = assistedPan || (!genericFeature && canNavigate());
     if (genericFeature) capturePointer(event.pointerId);
     gesture = {
       kind: genericFeature ? 'draw' : 'navigate',
@@ -103,7 +104,7 @@ export function createMapInputController({
       revision: getRevision(),
       cancelled: false,
     };
-    if (genericFeature) event.preventDefault();
+    if (genericFeature || assistedPan) event.preventDefault();
   }
 
   function pointerMove(event) {

@@ -529,9 +529,9 @@ const {
     const computed = getComputedStyle(document.documentElement);
     return resolveMapInteractionStyle({
       theme,
-      selectionColor: userPreferences.selection.color,
-      outlineVisible: userPreferences.selection.outlineVisible,
-      fillStrength: userPreferences.selection.fillStrength,
+      selectionColor: null,
+      outlineVisible: true,
+      fillStrength: 0.35,
       tokens: {
         accent: computed.getPropertyValue('--accent').trim(),
         textStrong: computed.getPropertyValue('--text-strong').trim(),
@@ -648,7 +648,7 @@ const {
     return url;
   }
   const REQUIRED_UI_IDS = Object.freeze([
-    'app', 'map', 'engineStatus', 'statusView', 'projectionStatus', 'statusPrimary', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
+    'app', 'map', 'statusView', 'projectionStatus', 'statusPrimary', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
     'mapPanelTabs', 'mapLayersTabBtn', 'mapViewTabBtn', 'layerSection', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
     'globeBtn', 'flatBtn', 'countriesVisible', 'territoriesVisible', 'administrativeVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
     'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'capitalInput', 'notesInput',
@@ -658,15 +658,15 @@ const {
     'genericFeatureLandRelationSection', 'genericFeatureOwnerField', 'genericFeatureOwnerInput', 'genericFeatureParentField', 'genericFeatureParentInput', 'genericFeatureLandBindingField', 'genericFeatureLandBindingInput', 'genericFeatureRoleHelp',
     'genericFeatureLandActionsSection', 'splitGenericFeatureBtn', 'mergeGenericFeatureBtn', 'syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn', 'promoteGenericFeatureToCountryBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',
     'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue',
-    'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'editorCommonActions', 'editorDeleteActions', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu', 'objectCoastReconcileMenuBtn',
+    'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'editorCommonActions', 'editorDeleteActions', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu',
     'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'territoryNameConflict', 'administrativeNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionLockedInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
     'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeTerritoryTypeBtn', 'changeAdministrativeTypeBtn', 'reconcileAdministrativeCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
     'countryCodeInput', 'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
-    'undoBtn', 'redoBtn', 'mapToolToolbar', 'mapSelectToolBtn', 'mapMoveToolBtn', 'mapBoundaryToolBtn', 'mapAreaToolBtn', 'rightPanel',
+    'undoBtn', 'redoBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiPropertiesLockInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
-    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesCountryLabelFontInput', 'preferencesCountryLabelColorInput', 'preferencesCountryLabelColorTrigger', 'preferencesCountryLabelColorValue', 'preferencesCountryLabelColorPopover', 'preferencesPlaceLabelFontInput', 'preferencesPlaceLabelColorInput', 'preferencesPlaceLabelColorTrigger', 'preferencesPlaceLabelColorValue', 'preferencesPlaceLabelColorPopover', 'preferencesPlacePointColorInput', 'preferencesPlacePointColorTrigger', 'preferencesPlacePointColorValue', 'preferencesPlacePointColorPopover', 'preferencesSelectionColorInput', 'preferencesSelectionColorTrigger', 'preferencesSelectionColorValue', 'preferencesSelectionColorPopover', 'preferencesSelectionOutlineInput', 'preferencesSelectionFillStrengthInput', 'preferencesSelectionFillStrengthValue', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
+    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
     'createBuildTabBtn', 'createLibraryTabBtn', 'createBuildPanel', 'createLibraryPanel', 'addCountryBtn', 'addTerritoryBtn', 'addAdministrativeBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
     'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
@@ -741,7 +741,6 @@ const {
   let fileMenuTrigger = null;
   let createMenuTrigger = null;
   let createMenuRoute = 'build';
-  let shortcutHelpReturnFocus = null;
   const surfaceController = createSurfaceController({ getElement: $, getLayout: () => layoutMode, document });
   const surfaceState = surfaceController.state;
   let mapSurfaceTabs = null;
@@ -1807,12 +1806,7 @@ const {
     }
     const focusButton = $('focusSelectedObjectBtn');
     if (focusButton) focusButton.classList.toggle('hidden', refs.length !== 1 || !primary);
-    const canReconcileCoast = refs.length === 1
-      && !!primary
-      && primary.domain === 'territorial'
-      && primary.type === TERRITORIAL_UNIT_TYPES.ADMIN
-      && !!territorialUnitById(primary.id)?.properties?.sovereignId;
-    const separatorVisible = canDelete && (canLock || canReconcileCoast);
+    const separatorVisible = canDelete && canLock;
 
     const lockMenuButton = $('objectLockMenuBtn');
     if (lockMenuButton) {
@@ -1829,14 +1823,6 @@ const {
       deleteMenuButton.disabled = deleteDisabled;
       deleteMenuButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
       deleteMenuButton.setAttribute('aria-label', deleteMenuButton.dataset.tooltip);
-    }
-
-    const coastMenuButton = $('objectCoastReconcileMenuBtn');
-    if (coastMenuButton) {
-      coastMenuButton.classList.toggle('hidden', !canReconcileCoast);
-      coastMenuButton.disabled = !canReconcileCoast || !!(primary && objectRefLocked(primary));
-      coastMenuButton.dataset.tooltip = coastMenuButton.disabled ? '잠금 해제 후 해안선 정합' : '해안선 정합';
-      coastMenuButton.setAttribute('aria-label', coastMenuButton.dataset.tooltip);
     }
 
     $('objectActionsMenu')?.querySelector('.object-actions-separator')?.toggleAttribute('hidden', !separatorVisible);
@@ -2314,10 +2300,7 @@ const {
       createCanvas: () => document.createElement('canvas'),
       getMapElement: () => $('map'),
       setEngineStatus: text => {
-        const status = $('engineStatus');
-        if (!status) return;
-        status.textContent = text;
-        status.dataset.tooltip = text;
+        (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = text;
       },
       onContextStateChange: phase => renderingDomain?.invalidateGpuContext?.(phase) || false,
       requestHostRepaint: reason => mapHost?.requestRepaint?.(reason) || false,
@@ -2970,7 +2953,7 @@ const {
       document.body.appendChild(box);
     }
     box.textContent = `판도연구소를 시작할 수 없습니다.\n${message}\n\n페이지를 새로고침하세요. 문제가 계속되면 오류 코드를 확인하세요.`;
-    try { $('engineStatus').textContent = '실행 오류'; } catch (_) {}
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '실행 오류';
   }
 
   function handleUnexpectedRuntimeError(error) {
@@ -7125,17 +7108,6 @@ const {
 
   function updateModeButtons() {
     const draft = editingDraftSnapshot();
-    const toolbarButtons = document.querySelectorAll('[data-map-tool]');
-    const toolbarBusy = state.modeProcessing || draft.strokeActive;
-    toolbarButtons.forEach(button => {
-      const active = button.dataset.mapTool === state.tool;
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-pressed', String(active));
-      // Keep switching available while a draft has points (the click handler
-      // can then run the existing discard confirmation), but never interrupt
-      // an in-flight operation or raw pointer stroke.
-      button.disabled = toolbarBusy;
-    });
     const annexLineMode = state.tool === 'annex-territory' && state.annexPhase === 'line';
     const annexPolygonMode = state.tool === 'annex-territory' && state.annexPhase === 'polygon';
     const annexPolygonPreviewMode = state.tool === 'annex-territory' && state.annexPhase === 'polygon-preview';
@@ -9804,25 +9776,10 @@ const {
     return normalizeColorValue(value, fallback);
   }
 
-  function preferenceDefaultColor(kind) {
-    const token = kind === 'preferencesCountryLabel'
-      ? '--map-label'
-      : kind === 'preferencesPlaceLabel'
-        ? '--user-label-text'
-        : kind === 'preferencesPlacePoint'
-          ? '--user-label-dot'
-          : kind === 'preferencesSelection'
-            ? '--accent'
-          : '';
-    const fallback = kind === 'preferencesSelection' ? resolvedInteractionStyle.selection.color : '#8c68d8';
-    return token ? normalizeEditorColor(getComputedStyle(document.documentElement).getPropertyValue(token).trim(), fallback) : fallback;
-  }
-
   function syncColorPicker(kind, { value, defaultColor, isDefault }) {
     const picker = document.querySelector(`[data-color-picker="${kind}"]`);
     if (!picker) return;
-    const fallback = kind.startsWith('preferences') ? preferenceDefaultColor(kind)
-      : kind === 'country' ? defaultCountryColor()
+    const fallback = kind === 'country' ? defaultCountryColor()
       : (kind === 'territory' || kind === 'administrative') && (state.selected?.domain === 'territorial' && state.selected.type !== TERRITORIAL_UNIT_TYPES.COUNTRY)
         ? territorialUnitColor(territorialUnitById(state.selected.id))
         : DEFAULT_GENERIC_FEATURE_COLOR;
@@ -9956,27 +9913,6 @@ const {
   }
 
   function applyColorPickerSelection(kind, value, isDefault = false) {
-    if (kind === 'preferencesSelection' || kind === 'preferencesCountryLabel' || kind === 'preferencesPlaceLabel' || kind === 'preferencesPlacePoint') {
-      const defaultColor = preferenceDefaultColor(kind);
-      const color = normalizeEditorColor(value, defaultColor);
-      const nextLabels = structuredClone(userPreferences.labels);
-      const nextSelection = { ...userPreferences.selection };
-      if (kind === 'preferencesSelection') nextSelection.color = isDefault ? null : color;
-      if (kind === 'preferencesCountryLabel') nextLabels.country.color = isDefault ? null : color;
-      if (kind === 'preferencesPlaceLabel') nextLabels.place.color = isDefault ? null : color;
-      if (kind === 'preferencesPlacePoint') nextLabels.place.pointColor = isDefault ? null : color;
-      applyUserPreferences({
-        ...userPreferences,
-        labels: nextLabels,
-        selection: nextSelection,
-      });
-      const resolvedValue = kind === 'preferencesSelection' ? userPreferences.selection.color
-        : kind === 'preferencesCountryLabel' ? userPreferences.labels.country.color
-          : kind === 'preferencesPlaceLabel' ? userPreferences.labels.place.color
-            : userPreferences.labels.place.pointColor;
-      syncColorPicker(kind, { value: resolvedValue || defaultColor, defaultColor, isDefault: !resolvedValue });
-      return true;
-    }
     if (kind === 'multiProperties') {
       const color = normalizeEditorColor(value, '#3f6fae');
       syncColorPicker('multiProperties', { value: color, defaultColor: color, isDefault: false });
@@ -12572,6 +12508,7 @@ const {
     button.addEventListener('pointerdown', event => {
       repeated = false;
       suppressNextClick = false;
+      if (event.button !== 0) return;
       button.setPointerCapture?.(event.pointerId);
       timer = setTimeout(() => {
         repeated = true;
@@ -12582,6 +12519,8 @@ const {
     button.addEventListener('pointerup', clear);
     button.addEventListener('pointercancel', clear);
     button.addEventListener('lostpointercapture', clear);
+    window.addEventListener('blur', clear);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) clear(); });
     button.addEventListener('click', event => {
       if (suppressNextClick) {
         suppressNextClick = false;
@@ -12658,12 +12597,6 @@ const {
       closeFileMenu({ restoreFocus: true });
     });
     Object.values(MOBILE_SHEET_IDS).forEach(id => bindMobileSheetSurface($(id)));
-    bindHoldZoom($('mobileZoomInBtn'), 1.34);
-    bindHoldZoom($('mobileZoomOutBtn'), 0.746);
-    $('mobileWorldBtn')?.addEventListener('click', () => {
-      resetView();
-      if (navigator.vibrate) navigator.vibrate(8);
-    });
     $('mobileMapBtn')?.addEventListener('click', event => toggleSurface('layers', event.currentTarget));
     $('mobileCreateBtn')?.addEventListener('click', event => {
       event.stopPropagation();
@@ -12714,28 +12647,6 @@ const {
   }
 
   function bindToolUI() {
-    document.querySelectorAll('[data-map-tool]').forEach(button => {
-      button.addEventListener('click', () => {
-        const tool = button.dataset.mapTool;
-        if (!tool) return;
-        requestDraftDiscard(() => {
-          // Leave an active task through its existing cleanup path before
-          // entering a toolbar mode.  Drafts keep their confirmation flow;
-          // completed special-task state is cancelled silently.
-          if (editingDomain?.draftInputActive?.()) {
-            if (isGenericFeatureDraftTool(state.tool)) cancelDraft(false);
-            else cancelActiveMode(false);
-          } else if (state.tool !== 'select' && isSpecialTool(state.tool)) {
-            cancelActiveMode(false);
-          }
-          if (!editingDomain?.setTool(tool, { announce: false })) return false;
-          if (tool === 'line' || tool === 'polygon') setModeBanner(defaultDraftInstruction());
-          else setModeBanner('');
-          updateModeButtons();
-          return true;
-        });
-      });
-    });
     $('addCountryBtn')?.addEventListener('click', () => {
       requestDraftDiscard(() => returnToMapAfterMobileAction(enterNewCountryMode(), { fromCreate: true }));
     });
@@ -12849,28 +12760,13 @@ const {
     $('mergeCountryBtn')?.addEventListener('click', () => {
       if ((state.selected?.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) requestDraftDiscard(() => returnToMapAfterMobileAction(enterMergeCountryMode(state.selected.id)));
     });
+    bindHoldZoom($('zoomInBtn'), 1.25);
+    bindHoldZoom($('zoomOutBtn'), 0.8);
     $('resetViewBtn').addEventListener('click', resetView);
   }
 
 
   function bindFileAndGisUI() {
-    const openShortcutHelp = trigger => {
-      if (!shortcutHelpReturnFocus) {
-        shortcutHelpReturnFocus = trigger?.closest?.('.top-actions') ? $('mobileFileBtn') : trigger;
-      }
-      closeFileMenu();
-      $('shortcutHelpModal').classList.remove('hidden');
-      requestAnimationFrame(() => $('shortcutHelpCloseBtn').focus());
-    };
-    $('keyboardHelpBtn')?.addEventListener('click', event => openShortcutHelp(event.currentTarget));
-    const closeShortcutHelp = () => {
-      $('shortcutHelpModal').classList.add('hidden');
-      const returnFocus = shortcutHelpReturnFocus?.isConnected ? shortcutHelpReturnFocus : $('mobileFileBtn');
-      shortcutHelpReturnFocus = null;
-      returnFocus?.focus({ preventScroll: true });
-    };
-    $('shortcutHelpCloseBtn')?.addEventListener('click', closeShortcutHelp);
-    $('shortcutHelpModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeShortcutHelp);
     $('addFromLibraryBtn')?.addEventListener('click', async () => {
       try {
         const controller = await getHistoricalLibraryController();
@@ -12896,45 +12792,10 @@ const {
     let preferencesOrigin = null;
     const syncPreferencesForm = () => {
       $('preferencesThemeInput').value = userPreferences.appearance.theme;
-      $('preferencesCountryLabelFontInput').value = userPreferences.labels.country.font;
-      $('preferencesPlaceLabelFontInput').value = userPreferences.labels.place.font;
-      $('preferencesSelectionColorInput').value = resolvedInteractionStyle.selection.color;
-      $('preferencesSelectionOutlineInput').checked = userPreferences.selection.outlineVisible;
-      $('preferencesSelectionFillStrengthInput').value = String(Math.round(userPreferences.selection.fillStrength * 100));
-      $('preferencesSelectionFillStrengthValue').value = `${Math.round(userPreferences.selection.fillStrength * 100)}%`;
-      syncColorPicker('preferencesSelection', {
-        value: userPreferences.selection.color || resolvedInteractionStyle.selection.color,
-        defaultColor: preferenceDefaultColor('preferencesSelection'),
-        isDefault: !userPreferences.selection.color,
-      });
-      syncColorPicker('preferencesCountryLabel', {
-        value: userPreferences.labels.country.color || preferenceDefaultColor('preferencesCountryLabel'),
-        defaultColor: preferenceDefaultColor('preferencesCountryLabel'),
-        isDefault: !userPreferences.labels.country.color,
-      });
-      syncColorPicker('preferencesPlaceLabel', {
-        value: userPreferences.labels.place.color || preferenceDefaultColor('preferencesPlaceLabel'),
-        defaultColor: preferenceDefaultColor('preferencesPlaceLabel'),
-        isDefault: !userPreferences.labels.place.color,
-      });
-      syncColorPicker('preferencesPlacePoint', {
-        value: userPreferences.labels.place.pointColor || preferenceDefaultColor('preferencesPlacePoint'),
-        defaultColor: preferenceDefaultColor('preferencesPlacePoint'),
-        isDefault: !userPreferences.labels.place.pointColor,
-      });
     };
     const preferencesFromForm = () => ({
-      version: userPreferences.version,
+      ...userPreferences,
       appearance: { theme: $('preferencesThemeInput').value },
-      labels: {
-        country: { ...userPreferences.labels.country, font: $('preferencesCountryLabelFontInput').value },
-        place: { ...userPreferences.labels.place, font: $('preferencesPlaceLabelFontInput').value },
-      },
-      selection: {
-        ...userPreferences.selection,
-        outlineVisible: $('preferencesSelectionOutlineInput').checked,
-        fillStrength: Number($('preferencesSelectionFillStrengthInput').value) / 100,
-      },
     });
     const applyPreferencesForm = () => {
       applyUserPreferences(preferencesFromForm());
@@ -12958,14 +12819,10 @@ const {
     $('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
     preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences({ revert: true }));
     $('preferencesResetBtn')?.addEventListener('click', () => {
-      applyUserPreferences(defaultUserPreferences());
+      applyUserPreferences({ ...userPreferences, appearance: defaultUserPreferences().appearance });
       syncPreferencesForm();
     });
     $('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
-    $('preferencesCountryLabelFontInput')?.addEventListener('change', applyPreferencesForm);
-    $('preferencesPlaceLabelFontInput')?.addEventListener('change', applyPreferencesForm);
-    $('preferencesSelectionOutlineInput')?.addEventListener('change', applyPreferencesForm);
-    $('preferencesSelectionFillStrengthInput')?.addEventListener('input', applyPreferencesForm);
     $('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
     const fileMenu = document.querySelector('.top-actions');
     const visibleFileMenuItems = () => [...(fileMenu?.querySelectorAll('[role="menuitem"]:not(:disabled)') || [])]
@@ -13014,13 +12871,7 @@ const {
   function bindGlobalInputUI() {
     document.addEventListener('keydown', e => {
       const tag = document.activeElement?.tagName;
-      const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
-      if (e.key === '?' && !editingText) {
-        e.preventDefault();
-        shortcutHelpReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : $('map');
-        $('keyboardHelpBtn')?.click();
-        return;
-      }
+      const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable;
       if (e.code === 'Space' && !editingText && (editingDomain?.draftInputActive?.() || ['country-border', 'country-coast'].includes(state.tool) || state.selected?.domain === 'generic' || (state.selected?.domain === 'hydro' && hydroEditById(state.selected.id)))) {
         state.spacePanActive = true;
         mapInteractionGate.setForcedPan(true);
@@ -13032,7 +12883,6 @@ const {
       }
       if (e.key === 'Escape') {
         if (state.modeProcessing) { e.preventDefault(); return; }
-        if (!$('shortcutHelpModal')?.classList.contains('hidden')) { $('shortcutHelpCloseBtn')?.click(); return; }
         if (!$('preferencesModal')?.classList.contains('hidden')) { $('preferencesCancelBtn')?.click(); return; }
         if (!$('objectChooser')?.classList.contains('hidden')) { closeObjectChooser({ restoreFocus: true }); return; }
         if (!$('objectActionsMenu')?.classList.contains('hidden')) { closeObjectActionsMenu({ restoreFocus: true }); return; }
@@ -13143,7 +12993,14 @@ const {
       mapHost?.setForcedPan?.(false);
       $('map')?.classList.remove('space-pan-active');
     });
-    $('map')?.addEventListener('pointercancel', () => editingDomain?.cancelActiveGesture?.('pointercancel'));
+    const clearAssistedPan = () => {
+      state.spacePanActive = false;
+      mapInteractionGate.setForcedPan(false);
+      mapHost?.setForcedPan?.(false);
+      $('map')?.classList.remove('space-pan-active');
+    };
+    $('map')?.addEventListener('pointercancel', () => { clearAssistedPan(); editingDomain?.cancelActiveGesture?.('pointercancel'); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { clearAssistedPan(); mapInputController?.cancel?.(); editingDomain?.cancelActiveGesture?.('document-hidden'); } });
     $('map')?.addEventListener('touchcancel', () => editingDomain?.cancelActiveGesture?.('touchcancel'), { passive: true });
 
     window.addEventListener('resize', () => {
@@ -13284,7 +13141,7 @@ const {
     if (metrics) metrics.geometryProgress = { stage: detail.stage || '', percent: state.geometryProgress };
     if (canMutateProject(state.dataReadiness)) return;
     if (state.dataReadiness === DATA_READINESS.ERROR) applyDataReadinessEvent(READINESS_EVENTS.RETRY_GEOMETRY);
-    $('engineStatus').textContent = `빠른 미리보기 · 편집 데이터 ${Math.round(state.geometryProgress)}%`;
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = `빠른 미리보기 · 편집 데이터 ${Math.round(state.geometryProgress)}%`;
   }
 
   function handleMeshProgress(event) {
@@ -13293,17 +13150,17 @@ const {
     const metrics = window.__PANDOLAB_STARTUP_METRICS__;
     if (metrics) metrics.meshProgress = { stage: detail.stage || '', percent: state.meshProgress };
     if (!canMutateProject(state.dataReadiness) || state.dataReadiness === DATA_READINESS.ENHANCED) return;
-    $('engineStatus').textContent = `빠른 미리보기 · 고화질 지도 ${Math.round(state.meshProgress)}%`;
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = `빠른 미리보기 · 고화질 지도 ${Math.round(state.meshProgress)}%`;
   }
 
   function handleGeometryError(event) {
     applyDataReadinessEvent(READINESS_EVENTS.GEOMETRY_ERROR);
-    $('engineStatus').textContent = '편집 데이터 오류 · 자동 재시도 중';
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '편집 데이터 오류 · 자동 재시도 중';
   }
 
   function handleMeshError(event) {
     if (!canMutateProject(state.dataReadiness)) return;
-    $('engineStatus').textContent = '고화질 지도 오류 · 자동 재시도 중';
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '고화질 지도 오류 · 자동 재시도 중';
   }
 
   async function completeGeometryInitialization(geometry, autosaveRestore, previewStart) {
@@ -13401,7 +13258,7 @@ const {
         : '편집 준비 완료. 고화질 지도 준비 중…';
       setActionStatus(restoreMessage, autosaveRestore.error ? 'error' : 'success', autosaveRestore.error ? 0 : 3200);
     }
-    $('engineStatus').textContent = useBuiltInMesh ? '빠른 미리보기 · 고화질 지도 준비 중' : '프로젝트 지도를 다시 구성하는 중입니다.';
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = useBuiltInMesh ? '빠른 미리보기 · 고화질 지도 준비 중' : '프로젝트 지도를 다시 구성하는 중입니다.';
     window.dispatchEvent(new CustomEvent('pandolab:editable', { detail: { useBuiltInMesh } }));
     return { useBuiltInMesh, restored, projectGeneration };
   }
@@ -13457,7 +13314,7 @@ const {
       renderingDomain?.invalidateProject?.('canonical-mesh-ready');
     }
     const renderer = gpuMapRenderer.getRuntimeState();
-    $('engineStatus').textContent = `Natural Earth 5.1.1 · ${renderer.renderer === 'webgl2' ? 'WebGL2' : renderer.renderer === 'webgl1' ? 'WebGL1' : 'Canvas'} 고화질`;
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = `Natural Earth 5.1.1 · ${renderer.renderer === 'webgl2' ? 'WebGL2' : renderer.renderer === 'webgl1' ? 'WebGL1' : 'Canvas'} 고화질`;
     if (startupMetrics) {
       startupMetrics.meshApplyMs = performance.now() - meshReplaceStartedAt;
       startupMetrics.renderer = renderer.renderer;
@@ -13496,7 +13353,7 @@ const {
     markLayerTreeDirty();
     configureDatasetSession(null);
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    $('engineStatus').textContent = '빠른 미리보기 GPU 지도를 준비하는 중입니다.';
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '빠른 미리보기 GPU 지도를 준비하는 중입니다.';
 
     applyLayoutMode({ initial: true });
     bindUI();
@@ -13578,7 +13435,7 @@ const {
     if (window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE instanceof Promise) return initProgressive();
     assertRuntimeCompatibility();
     if (!window.d3) {
-      $('engineStatus').textContent = '엔진 오류';
+      (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '엔진 오류';
       setActionStatus('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.', 'error', 0);
       return;
     }
@@ -13606,7 +13463,7 @@ const {
     markLayerTreeDirty();
     configureDatasetSession(restored);
     const externalGeometry = !!restored?.countriesData && restored.baseDataset !== BASE_DATASET;
-    $('engineStatus').textContent = 'Natural Earth 5.1.1 · GPU 렌더러를 준비하는 중입니다.';
+    (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = 'Natural Earth 5.1.1 · GPU 렌더러를 준비하는 중입니다.';
     state.boundaryTopology = { edges: new Map(), nodes: new Map() };
 
     applyLayoutMode({ initial: true });
@@ -14765,7 +14622,6 @@ const {
           applySelectedGenericFeatureToOwnerCountry,
           promoteSelectedGenericFeatureToCountry,
           copySelectedHydroForEditing,
-          zoomBy,
           batchToggleLocked,
           deleteSelectedFromObjectMenu,
           closeObjectActionsMenu,

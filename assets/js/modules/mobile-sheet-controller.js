@@ -87,12 +87,6 @@ function setEditorSnap(panel, target) {
   else if (current > 1) dispatchHandleKey(handle, 'ArrowDown');
 }
 
-function redirectHiddenToolbarFocus(documentRef, active) {
-  if (!active) return;
-  const toolbar = documentRef.getElementById('mapToolToolbar');
-  if (!toolbar?.contains(documentRef.activeElement)) return;
-  requestAnimationFrame(() => documentRef.getElementById('modeCancelBtn')?.focus({ preventScroll: true }));
-}
 
 function syncDirectEditState(documentRef) {
   const context = documentRef.getElementById('modeEditingContext');
@@ -101,7 +95,6 @@ function syncDirectEditState(documentRef) {
 
   const active = isMobile(documentRef) && !context.classList.contains('hidden');
   documentRef.body.classList.toggle('mobile-direct-edit', active);
-  redirectHiddenToolbarFocus(documentRef, active);
 
   if (active && !editSession) {
     const wasOpen = panel.classList.contains('mobile-open');

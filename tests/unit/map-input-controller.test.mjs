@@ -66,6 +66,23 @@ function createController(surface, overrides = {}) {
   });
 }
 
+test('middle button navigates without starting the active drawing tool', () => {
+  const surface = new PointerSurface(); let draws = 0, moves = 0;
+  const controller = createController(surface, { canNavigate: () => false, canDrawStroke: () => true, beginStroke: () => { draws++; }, dragBy: () => { moves++; } });
+  surface.dispatchEvent(pointerEvent('pointerdown', { button: 1 }));
+  surface.dispatchEvent(pointerEvent('pointermove', { button: 1, clientX: 80 }));
+  surface.dispatchEvent(pointerEvent('pointerup', { button: 1, clientX: 80 }));
+  assert.equal(draws, 0); assert.ok(moves > 0); controller.destroy();
+});
+
+test('second touch cancels the editing gesture before starting pinch', () => {
+  const surface = new PointerSurface(), events = [];
+  const controller = createController(surface, { interactiveTarget: () => true, cancelStroke: () => events.push('cancel'), beginMovement: () => events.push('move') });
+  surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 1 }));
+  surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 2 }));
+  assert.deepEqual(events, ['cancel', 'move']); controller.destroy();
+});
+
 test('a simple pointer click keeps its original overlay target', () => {
   const surface = new PointerSurface();
   const controller = createController(surface);

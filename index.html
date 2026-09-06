@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-7400681edb05" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-7400681edb05" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.32.0-build-2e9c19c02d27" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.32.0-build-2e9c19c02d27" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -286,12 +286,6 @@
         <div id="map" tabindex="-1" aria-label="지도 편집 영역" data-od-id="map-stage"></div>
 
         <div class="map-overlay-layer" aria-label="지도 도구 및 상태">
-        <nav id="mapToolToolbar" class="ui-toolbar ui-floating-surface ui-floating-toolbar map-tool-toolbar floating-toolbar" aria-label="지도 도구">
-          <button id="mapSelectToolBtn" class="ui-button map-tool-btn active" type="button" data-map-tool="select" aria-label="선택 도구" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg><span>선택</span></button>
-          <button id="mapMoveToolBtn" class="ui-button map-tool-btn" type="button" data-map-tool="move" aria-label="이동 도구" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>이동</span></button>
-          <button id="mapBoundaryToolBtn" class="ui-button map-tool-btn" type="button" data-map-tool="line" aria-label="경계 도구" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span>경계</span></button>
-          <button id="mapAreaToolBtn" class="ui-button map-tool-btn" type="button" data-map-tool="polygon" aria-label="영역 도구" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-area-draw"/></svg><span>영역</span></button>
-        </nav>
 
         <div class="compact-primary-controls">
           <nav class="ui-nav adaptive-nav mobile-bottom-bar" aria-label="작업 공간" data-od-id="workspace-navigation">
@@ -353,11 +347,6 @@
           <button id="resetViewBtn" class="ui-button icon-btn" data-tooltip="전체 지도 보기" aria-label="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
-        <div class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-zoom-dock" aria-label="모바일 지도 보기">
-          <button id="mobileZoomInBtn" class="ui-button icon-btn" type="button" aria-label="지도 확대" data-tooltip="지도 확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
-          <button id="mobileZoomOutBtn" class="ui-button icon-btn" type="button" aria-label="지도 축소" data-tooltip="지도 축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
-          <button id="mobileWorldBtn" class="ui-button icon-btn" type="button" aria-label="전체 지도 보기" data-tooltip="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
-        </div>
 
         <div id="mapTopContextSlot" class="map-top-context-slot" aria-live="polite">
           <div id="modeEditingContext" class="mode-editing-context hidden">
@@ -423,7 +412,6 @@
             <div id="statusView" class="status-group status-view" aria-label="보기 정보">
               <span id="projectionStatus" class="status-item">투영 지구본</span>
               <span id="coordStatus" class="status-item hidden">경도 0.0000 · 위도 0.0000</span>
-              <span id="engineStatus" class="status-item engine-status hidden" aria-hidden="true">지도 엔진 준비 중</span>
             </div>
             <div id="statusPrimary" class="status-group status-primary hidden" aria-label="현재 작업">
               <span id="currentToolStatus" class="current-tool-status"></span>
@@ -820,11 +808,9 @@
         <button id="dataExportBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>GIS 데이터 내보내기</span></button>
         <span class="divider" role="separator"></span>
         <button id="preferencesBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg><span>환경설정</span></button>
-        <button id="keyboardHelpBtn" class="ui-button btn ghost file-help-menu-item file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg><span>키보드 도움말</span></button>
       </nav>
       <div id="objectActionsMenu" class="ui-menu ui-popover object-actions-menu hidden" role="menu" aria-label="레이어 작업">
         <button id="objectLockMenuBtn" class="ui-button ui-row-button" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockMenuIcon" href="#icon-lock-closed"/></svg><span id="objectLockMenuLabel">잠금</span></button>
-        <button id="objectCoastReconcileMenuBtn" class="ui-button ui-row-button" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span>해안선 정합</span></button>
         <span class="object-actions-separator" role="separator" hidden></span>
         <button id="objectDeleteMenuBtn" class="ui-button ui-row-button object-actions-delete" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>삭제</span></button>
       </div>
@@ -839,44 +825,6 @@
         <section class="preferences-section" aria-labelledby="preferencesAppearanceTitle">
           <h3 id="preferencesAppearanceTitle">화면</h3>
           <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
-        </section>
-        <section class="preferences-section" aria-labelledby="preferencesLabelsTitle">
-          <h3 id="preferencesLabelsTitle">지도 글자</h3>
-          <fieldset class="preferences-subgroup"><legend>국가명</legend>
-            <label class="ui-field field-group"><span>글꼴</span><select id="preferencesCountryLabelFontInput"><option value="default">기본</option><option value="gothic">고딕</option><option value="serif">명조</option></select></label>
-            <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesCountryLabel">
-              <label id="preferencesCountryLabelColorLabel">글자 색상</label>
-              <button id="preferencesCountryLabelColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesCountryLabelColorPopover" aria-labelledby="preferencesCountryLabelColorLabel preferencesCountryLabelColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesCountryLabelColorValue" class="ui-color-value">기본 색상</span></button>
-              <input id="preferencesCountryLabelColorInput" class="ui-native-color-input" type="color" value="#d8dee5" tabindex="-1" aria-hidden="true" />
-              <div id="preferencesCountryLabelColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="국가명 글자 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
-            </div>
-          </fieldset>
-          <fieldset class="preferences-subgroup"><legend>지명</legend>
-            <label class="ui-field field-group"><span>글꼴</span><select id="preferencesPlaceLabelFontInput"><option value="default">기본</option><option value="gothic">고딕</option><option value="serif">명조</option></select></label>
-            <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesPlaceLabel">
-              <label id="preferencesPlaceLabelColorLabel">글자 색상</label>
-              <button id="preferencesPlaceLabelColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesPlaceLabelColorPopover" aria-labelledby="preferencesPlaceLabelColorLabel preferencesPlaceLabelColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesPlaceLabelColorValue" class="ui-color-value">기본 색상</span></button>
-              <input id="preferencesPlaceLabelColorInput" class="ui-native-color-input" type="color" value="#f1e4be" tabindex="-1" aria-hidden="true" />
-              <div id="preferencesPlaceLabelColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="지명 글자 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
-            </div>
-            <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesPlacePoint">
-              <label id="preferencesPlacePointColorLabel">지점 색상</label>
-              <button id="preferencesPlacePointColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesPlacePointColorPopover" aria-labelledby="preferencesPlacePointColorLabel preferencesPlacePointColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesPlacePointColorValue" class="ui-color-value">기본 색상</span></button>
-              <input id="preferencesPlacePointColorInput" class="ui-native-color-input" type="color" value="#e0c26f" tabindex="-1" aria-hidden="true" />
-              <div id="preferencesPlacePointColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="지명 지점 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
-            </div>
-          </fieldset>
-        </section>
-        <section class="preferences-section" aria-labelledby="preferencesSelectionTitle">
-          <h3 id="preferencesSelectionTitle">지도 강조 표시</h3>
-          <div class="ui-field field-group ui-color-picker" data-color-picker="preferencesSelection">
-            <label id="preferencesSelectionColorLabel">강조 색상</label>
-            <button id="preferencesSelectionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="preferencesSelectionColorPopover" aria-labelledby="preferencesSelectionColorLabel preferencesSelectionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="preferencesSelectionColorValue" class="ui-color-value">기본 색상</span></button>
-            <input id="preferencesSelectionColorInput" class="ui-native-color-input" type="color" value="#cda95d" tabindex="-1" aria-hidden="true" />
-            <div id="preferencesSelectionColorPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="강조 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
-          </div>
-          <label class="ui-choice-row ui-toggle"><input id="preferencesSelectionOutlineInput" type="checkbox" /><span>강조 외곽선 표시</span></label>
-          <label class="ui-field field-group preferences-range-field"><span>강조 채우기 강도 <output id="preferencesSelectionFillStrengthValue" for="preferencesSelectionFillStrengthInput">35%</output></span><input id="preferencesSelectionFillStrengthInput" type="range" min="0" max="100" step="1" value="35" /></label>
         </section>
       </div>
       <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>
@@ -908,10 +856,6 @@
         <button id="coastReconciliationCancelBtn" type="button" class="ui-button btn ghost">취소</button>
       </div>
     </section>
-  </div>
-  <div id="shortcutHelpModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="shortcutHelpTitle">
-    <div class="ui-dialog-backdrop confirm-modal-dim"></div>
-    <section class="ui-dialog-card confirm-modal-card shortcut-help-card"><h2 id="shortcutHelpTitle">키보드 단축키</h2><dl><div><dt>Ctrl/Cmd + 클릭</dt><dd>선택 추가·해제</dd></div><div><dt>Shift + 클릭</dt><dd>같은 목록 범위 선택</dd></div><div><dt>Alt + 클릭</dt><dd>겹친 객체 순환</dd></div><div><dt>Ctrl/Cmd + Z</dt><dd>실행취소</dd></div><div><dt>Esc</dt><dd>팝오버 또는 현재 작업 닫기</dd></div></dl><div class="ui-dialog-actions"><button id="shortcutHelpCloseBtn" class="ui-button btn" type="button">닫기</button></div></section>
   </div>
   <div id="distributionTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="distributionTypeTitle"><div class="ui-dialog-backdrop confirm-modal-dim"></div><section class="ui-dialog-card ui-workflow-shell confirm-modal-card"><h2 id="distributionTypeTitle">분포 추가</h2><label class="ui-field field-group"><span>종류</span><select id="distributionTypeInput"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label><div class="ui-dialog-actions"><button id="distributionTypeCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="distributionTypeConfirmBtn" class="ui-button btn" type="button">다음</button></div></section></div>
   <div id="territorialCreateModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="territorialCreateTitle">
@@ -1006,8 +950,9 @@
             <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 영역 속성</span><select id="gisParentField"></select></label>
             <label id="gisLevelFieldRow" class="ui-field field-group"><span>행정 단계 속성</span><select id="gisLevelField"></select></label>
             <label id="gisColorFieldRow" class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
+            <label class="ui-field field-group"><span>수동 좌표계</span><input id="gisCrsInput" type="text" inputmode="numeric" placeholder="EPSG:4326" /></label>
           </div></details>
-          <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary">감지 중</output><input id="gisCrsInput" class="hidden" type="text" inputmode="numeric" placeholder="EPSG:4326" /></div>
+          <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary">감지 중</output></div>
           <div id="gisImportImpact" class="ui-callout gis-wide" data-gis-step="3"><strong>적용 결과</strong><div id="gisImportImpactSummary"><p>적용할 내용을 계산하기 전입니다.</p></div></div>
           <div id="gisCountryIdentityPanel" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>국가 ID 연결</strong><p class="gis-country-identity-help">자동으로 확정하지 못한 국가는 기존 국가와 직접 연결하거나 새 국가로 지정하세요.</p><div id="gisCountryIdentityRows" class="gis-country-identity-rows"></div></div>
           <div id="gisOpenModeRow" class="ui-field field-group gis-wide" data-gis-step="3"><span>적용 방식</span><div id="gisOpenModeControl" class="ui-segmented" role="radiogroup" aria-label="적용 방식"><button class="ui-button ui-segment-option active" type="button" data-gis-open-mode="replace" role="radio" aria-checked="true">새 프로젝트</button><button class="ui-button ui-segment-option" type="button" data-gis-open-mode="merge" role="radio" aria-checked="false">현재 지도에 추가</button></div><select id="gisOpenMode" hidden><option value="replace">새 프로젝트</option><option value="merge">현재 지도에 추가</option></select></div>
@@ -1062,10 +1007,10 @@
 
   
   
-  <script src="assets/js/build-meta.js?v=0.32.0-build-7400681edb05" defer></script>
+  <script src="assets/js/build-meta.js?v=0.32.0-build-2e9c19c02d27" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.32.0-build-7400681edb05" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.32.0-build-2e9c19c02d27" defer></script>
 </body>
 </html>

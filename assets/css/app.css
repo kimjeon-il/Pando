@@ -401,40 +401,6 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 }
 .map-overlay-layer > * { pointer-events: auto; }
 .map-overlay-layer > .map-bottom-status { pointer-events: none; }
-.map-tool-toolbar {
-  position: absolute;
-  z-index: 12;
-  top: var(--ui-map-edge);
-  left: 50%;
-  display: inline-flex;
-  width: max-content;
-  max-width: calc(100% - (var(--ui-map-edge) * 2));
-  transform: translateX(-50%);
-}
-.map-tool-btn {
-  min-width: 68px;
-  min-height: var(--ui-control-height);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-control-gap);
-  padding-inline: var(--ui-space-2);
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--text-soft);
-  font-size: var(--ui-font-body);
-  font-weight: var(--ui-weight-medium);
-}
-.map-tool-btn:hover,
-.map-tool-btn:focus-visible { background: var(--surface-hover); color: var(--text-strong); }
-.map-tool-btn.active,
-.map-tool-btn[aria-pressed="true"] { background: var(--accent-surface); color: var(--accent-text); }
-.map-tool-btn.active:hover,
-.map-tool-btn.active:focus-visible,
-.map-tool-btn[aria-pressed="true"]:hover,
-.map-tool-btn[aria-pressed="true"]:focus-visible { background: var(--accent-surface-hover); color: var(--accent-text); }
-.map-tool-btn .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 .map-base-svg, .gpu-map-canvas, .map-overlay-svg, .map-interaction-svg {
   position: absolute; inset: 0; display: block; width: 100%; height: 100%;
 }
@@ -588,10 +554,6 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .preferences-section { display: grid; gap: var(--ui-space-3); }
 .preferences-section + .preferences-section { padding-top: var(--ui-space-4); border-top: 1px solid var(--border); }
 .preferences-section > h3 { margin: 0; color: var(--text-strong); font-size: var(--ui-font-section); font-weight: var(--ui-weight-bold); line-height: var(--ui-line-tight); }
-.preferences-subgroup { display: grid; gap: var(--ui-space-3); min-width: 0; margin: 0; padding: var(--ui-space-3); border: 1px solid var(--border); border-radius: var(--ui-radius-control); }
-.preferences-subgroup > legend { padding: 0 var(--ui-space-1); color: var(--text-soft); font-size: var(--ui-font-label); font-weight: var(--ui-weight-medium); }
-.preferences-range-field > span { display: flex; justify-content: space-between; gap: var(--ui-space-2); }
-.preferences-range-field output { color: var(--text-strong); font-weight: var(--ui-weight-semibold); }
 .preferences-actions-spacer { flex: 1; }
 .vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
 .vertex-handle:hover { r: 6px; }
@@ -623,11 +585,7 @@ body.create-menu-open .floating-toolbar { z-index: 130; }
 .fatal-noscript {
   position: fixed; inset: var(--ui-space-3); z-index: 9999; padding: var(--ui-panel-padding); border: 1px solid #8a4f4f;
   border-radius: var(--ui-radius-panel); background: #3b2525; color: #ffd1d1; font-size: var(--ui-font-body); line-height: 1.6;
-}
-
-
-/* ===== 시험판 0.7: 모바일 UI 전수 정리 ===== */
-.mobile-zoom-dock, .mobile-backdrop { display: none; }
+} .mobile-backdrop { display: none; }
 .overlay-root {
   position: fixed;
   inset: 0;
@@ -806,7 +764,6 @@ body.is-loading #app { pointer-events: none; user-select: none; }
   .fatal-noscript { border-color: #c97979; background: #fff0f0; color: #8b2929; }
   .surface-header::before { background: #b1bbc4; }
   .mobile-bottom-bar button.sheet-open { background: #e8edf1; color: #26313b; box-shadow: none; }
-  .mobile-zoom-dock button:active { background: #dce8f7; border-color: #87a7cf; }
   .mode-primary-btn { background: var(--accent-surface); border-color: var(--accent-border) !important; color: var(--accent-text); }
   .field-group input[type="text"]:focus,
   .field-group textarea:focus,
@@ -985,7 +942,6 @@ body { font-size: var(--ui-font-body); }
   background: var(--map-status-border);
 }
 .current-tool-status { min-width: 0; overflow: hidden; color: var(--text); font-weight: var(--ui-weight-semibold); text-overflow: ellipsis; white-space: nowrap; }
-.map-bottom-status .engine-status::before { content: none; margin: 0; }
 
 .ui-dialog-kicker, .gis-form-grid .field-group > span, .gis-check { font-size: var(--ui-font-body); }
 .ui-callout, .gis-form-grid small, .ui-alert { font-size: var(--ui-font-caption); }
@@ -1191,8 +1147,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 .projection-btn.active:hover { background: var(--accent-surface-hover); color: var(--accent-text); }
 .projection-btn > span { display: none; }
-.engine-status { color: var(--text-soft); white-space: nowrap; }
-.engine-status::before { content: '·'; margin-right: var(--ui-space-2); color: var(--muted); }
 
 #app[data-layout="mobile"] .projection-control {
   width: 100%;
@@ -1211,7 +1165,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   padding: 0 var(--ui-control-padding-x);
 }
 #app[data-layout="mobile"] .projection-btn > span { display: inline; }
-#app[data-layout="mobile"] .map-bottom-status .engine-status { display: none; }
 
 /* ===== PandoLab v0.15.1: compact projection, search icon, and mobile controls ===== */
 #app[data-layout="mobile"] .surface-header button {
@@ -1309,7 +1262,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 
 .adaptive-nav,
 .surface-header,
-.mobile-zoom-dock,
 .mobile-backdrop { display: none; }
 .compact-primary-controls { display: contents; }
 
@@ -1472,8 +1424,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 #app[data-layout="compact"] .map-command-toolbar { position: relative; inset: auto; flex: 0 0 auto; gap: 0; }
 #app[data-layout="compact"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }
 #app[data-layout="compact"] .mobile-backdrop { display: none !important; }
-#app[data-layout="wide"] .mobile-zoom-dock,
-#app[data-layout="compact"] .mobile-zoom-dock { display: none !important; }
 
 /* Compact controls: the wrapper only positions the two intentional surfaces. */
 #app[data-layout="compact"] .compact-primary-controls {
@@ -1687,9 +1637,8 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   right: 8px;
   left: auto;
 }
-#app[data-layout="mobile"] .map-tool-toolbar { display: none; }
 #app[data-layout="mobile"] .map-command-toolbar.history-empty { display: none; }
-#app[data-layout="mobile"] .map-view-toolbar { display: none; }
+
 #app[data-layout="mobile"] .map-command-toolbar .create-menu-btn,
 #app[data-layout="mobile"] .map-command-toolbar .create-toolbar-divider { display: none; }
 #app[data-layout="mobile"] .map-command-toolbar .create-menu-wrap { width: 0; }
@@ -1697,14 +1646,14 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
 #app[data-layout="mobile"] .map-command-toolbar #redoBtn { margin-left: var(--ui-space-1); }
 #app[data-layout="mobile"] .create-menu-item { min-height: 68px; }
 #app[data-layout="mobile"] .icon-btn { width: var(--ui-touch-height); height: var(--ui-touch-height); }
-#app[data-layout="mobile"] .mobile-zoom-dock {
+#app[data-layout="mobile"] .map-view-toolbar {
   display: grid;
   position: absolute;
   z-index: 18;
   right: var(--ui-popover-screen-edge);
   bottom: calc(112px + env(safe-area-inset-bottom));
 }
-#app[data-layout="mobile"] .mobile-zoom-dock button { width: var(--ui-touch-height); height: var(--ui-touch-height); display: grid; place-items: center; padding: 0; border-radius: var(--ui-radius-control); }
+#app[data-layout="mobile"] .map-view-toolbar button { width: var(--ui-touch-height); height: var(--ui-touch-height); display: grid; place-items: center; padding: 0; border-radius: var(--ui-radius-control); }
 #app[data-layout="mobile"] .mode-editing-context { width: min(100%, 420px); }
 #app[data-layout="mobile"] .mode-task-window-body { max-height: min(42dvh, 320px); }
 #app[data-layout="mobile"] .mode-method-switch { grid-column: 1 / -1; width: 100%; }
@@ -1857,8 +1806,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 .icon-btn .ui-icon,
 .ui-icon-button .ui-icon,
-.sheet-close-btn .ui-icon,
-.mobile-zoom-dock button .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
+.sheet-close-btn .ui-icon{ width: var(--ui-icon-size); height: var(--ui-icon-size); }
 .btn.ghost,
 .mode-cancel-btn { background: var(--ui-control-bg); border-color: var(--ui-control-border); color: var(--ui-control-text); }
 .btn:not(.ghost),
@@ -1869,18 +1817,10 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   background: var(--accent-surface);
   color: var(--accent-text);
 }
-:is(.btn.ghost, .icon-btn, .mode-cancel-btn, .sheet-close-btn, .mobile-zoom-dock button):hover {
-  border-color: var(--ui-control-border-hover);
-  background: var(--ui-control-bg-hover);
-  color: var(--text-strong);
-}
 :is(.btn:not(.ghost), .file-menu-btn, .create-menu-btn, .mode-primary-btn):hover {
   border-color: var(--accent-border);
   background: var(--accent-surface-hover);
   color: var(--accent-text);
-}
-:is(.btn, .icon-btn, .file-menu-btn, .create-menu-btn, .danger-btn, .mode-primary-btn, .mode-cancel-btn, .sheet-close-btn, .mobile-zoom-dock button):active:not(:disabled) {
-  background: var(--ui-control-bg-pressed);
 }
 :is(.btn:not(.ghost), .file-menu-btn, .create-menu-btn, .mode-primary-btn):active:not(:disabled) {
   background: var(--accent-surface-hover);
@@ -2854,7 +2794,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 #app[data-layout="compact"] .adaptive-nav { gap: var(--ui-toolbar-gap); padding: var(--ui-toolbar-padding); }
 #app[data-layout="compact"] .adaptive-nav button { border: 1px solid transparent; border-radius: var(--ui-radius-control); }
 #app[data-layout="mobile"] .icon-btn,
-#app[data-layout="mobile"] .mobile-zoom-dock button {
+#app[data-layout="mobile"] .map-view-toolbar button {
   width: var(--ui-touch-height);
   min-width: var(--ui-touch-height);
   height: var(--ui-touch-height);
@@ -2918,14 +2858,14 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 #app[data-layout="mobile"] .layer-presentation-row { min-height: var(--ui-touch-height); grid-template-columns: var(--ui-touch-height) minmax(0, 1fr) var(--ui-touch-height); }
 #app[data-layout="mobile"] .layer-inline-style-panel { margin-inline: var(--ui-row-padding-x); padding-inline: var(--ui-space-2); }
 #app[data-layout="mobile"] .layer-child-menu { width: var(--ui-tree-action-size-touch); min-width: var(--ui-tree-action-size-touch); height: var(--ui-tree-action-size-touch); }
-#app[data-layout="mobile"] .mobile-zoom-dock {
+#app[data-layout="mobile"] .map-view-toolbar {
   width: calc(var(--ui-touch-height) + var(--ui-toolbar-padding) + var(--ui-toolbar-padding) + 2px);
   grid-template-columns: var(--ui-touch-height);
   grid-template-rows: repeat(3, var(--ui-touch-height));
   gap: var(--ui-toolbar-gap);
   padding: var(--ui-toolbar-padding);
 }
-#app[data-layout="mobile"] .mobile-zoom-dock .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
+#app[data-layout="mobile"] .map-view-toolbar .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 #app[data-layout="mobile"] .ui-floating-toolbar:has(.workspace-surface) { backdrop-filter: none; }
 #app[data-layout="mobile"] .adaptive-nav button { border: 1px solid transparent; border-radius: var(--ui-radius-control); }
 #app[data-layout="mobile"] .top-actions .btn,
@@ -3767,10 +3707,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 }
 .map-view-projection-slot .projection-btn + .projection-btn { border-left: 0; }
 .map-view-projection-slot .projection-btn > span { display: inline; }
-.shortcut-help-card dl { display: grid; gap: var(--ui-space-2); margin: var(--ui-dialog-section-gap) 0 0; }
-.shortcut-help-card dl > div { display: grid; grid-template-columns: minmax(120px, .8fr) minmax(0, 1fr); gap: var(--ui-space-3); }
-.shortcut-help-card dt { font-weight: var(--ui-weight-semibold); }
-.shortcut-help-card dd { margin: 0; color: var(--modal-text); }
 
 .layer-child.is-multi-selected:not(.is-primary-selected),
 .layer-search-result.is-multi-selected:not(.is-primary-selected) {
@@ -3948,4 +3884,12 @@ body.create-menu-open #app[data-layout="compact"] .create-menu {
   .layer-child-skeleton::before,
   .layer-skeleton-row > span,
   .layer-child-skeleton > span { animation: none; }
+}
+
+#app[data-layout="mobile"] .map-view-toolbar {
+  top: auto;
+  left: auto;
+  right: calc(var(--map-safe-right, 0px) + var(--ui-popover-screen-edge));
+  bottom: calc(112px + env(safe-area-inset-bottom));
+  transform: none;
 }

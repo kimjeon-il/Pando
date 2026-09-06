@@ -46,18 +46,6 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-v2-feedback-warning-dot) 14%, transparent);
 }
 
-.engine-status[data-feedback-tone="working"] {
-  color: var(--status-text);
-}
-
-.engine-status[data-feedback-tone="warning"] {
-  color: var(--ui-v2-feedback-warning-text);
-}
-
-.engine-status[data-feedback-tone="error"] {
-  color: var(--ui-v2-status-error-text);
-}
-
 .project-save-status[data-save-state="saving"] .project-save-status-dot {
   animation: feedbackPulse 1s ease-in-out infinite;
 }
