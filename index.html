@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260906200847" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260906200847" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260906203339" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260906203339" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -648,25 +648,21 @@
                   <div class="surface-content surface-content-create">
                   <div id="createBuildPanel" class="create-menu-route-panel" role="tabpanel" aria-labelledby="createBuildTabBtn">
                       <div class="create-menu-category" data-map-category="territorial">
-                        <div class="create-menu-group"><span class="create-menu-group-title">영토·구역</span></div>
-                        <button id="addCountryBtn" data-map-object-type="country" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가</strong><small>기존 영토에서 신생국 만들기</small></span><svg class="ui-icon create-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                        <button id="addSubunitBtn" data-map-object-type="subunit" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg></span><span><strong>하위단위</strong><small>부모 영역 안에 행정 단위 만들기</small></span><svg class="ui-icon create-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                        <button id="addRegionBtn" data-map-object-type="region" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>지방</strong><small>역사·지리적 지방 만들기</small></span><svg class="ui-icon create-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                        <button id="addCountryBtn" data-map-object-type="country" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가</strong></span></button>
+                        <button id="addSubunitBtn" data-map-object-type="subunit" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg></span><span><strong>하위단위</strong></span></button>
+                        <button id="addRegionBtn" data-map-object-type="region" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>지방</strong></span></button>
                       </div>
                       <div class="create-menu-category" data-map-category="distribution">
-                        <div class="create-menu-group"><span class="create-menu-group-title">인문 분포</span></div>
-                        <button id="addDistributionBtn" data-map-object-type="distribution" class="ui-button ui-row-button create-menu-item" type="button" aria-haspopup="dialog" aria-controls="distributionTypeModal"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>분포</strong><small>언어·민족·종교 분포 만들기</small></span><svg class="ui-icon create-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                        <button id="addDistributionBtn" data-map-object-type="distribution" class="ui-button ui-row-button create-menu-item" type="button" aria-haspopup="dialog" aria-controls="distributionTypeModal"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>분포</strong></span></button>
                       </div>
                       <div class="create-menu-category" data-map-category="features">
-                        <div class="create-menu-group"><span class="create-menu-group-title">지형지물</span></div>
-                        <button id="addLabelBtn" data-map-object-type="label" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong><small>지도에 지명 배치하기</small></span><svg class="ui-icon create-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                        <button id="addRiverBtn" data-map-object-type="river" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강</strong><small>강의 흐름을 선으로 그리기</small></span><svg class="ui-icon create-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                        <button id="addLakeBtn" data-map-object-type="lake" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수</strong><small>호수의 경계를 영역으로 그리기</small></span><svg class="ui-icon create-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                        <button id="addLabelBtn" data-map-object-type="label" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong></span></button>
+                        <button id="addRiverBtn" data-map-object-type="river" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강</strong></span></button>
+                        <button id="addLakeBtn" data-map-object-type="lake" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수</strong></span></button>
                       </div>
                   </div>
                   <div id="createLibraryPanel" class="create-menu-route-panel" role="tabpanel" aria-labelledby="createLibraryTabBtn" hidden>
-                      <div class="create-menu-group"><span class="create-menu-group-title">라이브러리</span></div>
-                      <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong><small>현존·과거 국가와 지역 검색</small></span><svg class="ui-icon create-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                      <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong></span></button>
                   </div>
                   </div>
                 </div>
@@ -881,10 +877,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260906200847" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260906203339" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260906200847" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260906203339" defer></script>
 </body>
 </html>

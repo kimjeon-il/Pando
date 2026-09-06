@@ -149,12 +149,11 @@ body.modal-open { overflow: hidden; }
 
 .historical-library-modal .ui-dialog-header {
   display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-control-height);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--ui-space-2);
 }
 
-.library-dialog-icon { color: var(--muted); }
 .historical-library-modal .ui-dialog-header > div { min-width: 0; }
 
 .historical-library-toolbar {
