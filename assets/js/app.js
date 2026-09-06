@@ -6,6 +6,7 @@
  */
 
 const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
+const { BUILTIN_TERRITORY_MERGES } = await import(`./modules/builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutCountryFlags } = await import(`./modules/country-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
 const { countryDisplayName, defaultGeographicName } = await import(`./modules/country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./modules/territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -10797,6 +10798,12 @@ const {
       const sourceId = builtinSubunitSourceId(unit);
       if (sourceId && !countryFeatureById(sourceId)) state.historyDirtyCountryIds.add(sourceId);
     }
+    if (!project) for (const policy of BUILTIN_TERRITORY_MERGES) {
+      if (!countryFeatureById(policy.sourceId) && countryFeatureById(policy.controller)) {
+        state.historyDirtyCountryIds.add(policy.sourceId);
+        state.historyDirtyCountryIds.add(policy.controller);
+      }
+    }
     if (deltaProject) {
       const delta = project.countryDelta || { changed: [], removedIds: [] };
       state.historyDirtyCountryIds = new Set([
@@ -11704,9 +11711,11 @@ const {
     markLayerTreeDirty();
     configureDatasetSession(null);
     scheduleGpuMeshRebuild(0, nextProjectGeneration);
+    const expectedCountries = classifyBuiltinCountries({ ...prepared, features: prepared.features }).countries;
+    const expectedById = new Map(expectedCountries.features.map(feature => [String(feature.id), feature]));
     const restoredExactly = canonicalCountryStore
-      ? state.countriesData.features.length + state.territorialUnits.length === canonicalCountryStore.featureCount
-        && state.countriesData.features.every(feature => canonicalCountryStore.geometryEquals(String(feature.id || ''), feature.geometry))
+      ? state.countriesData.features.length === expectedCountries.features.length
+        && state.countriesData.features.every(feature => JSON.stringify(feature.geometry) === JSON.stringify(expectedById.get(String(feature.id))?.geometry))
         && state.territorialUnits.every(feature => canonicalCountryStore.geometryEquals(builtinSubunitSourceId(feature), feature.geometry))
       : true;
     if (!restoredExactly) {

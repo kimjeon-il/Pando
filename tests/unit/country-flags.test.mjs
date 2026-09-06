@@ -16,6 +16,7 @@ import {
   EXPECTED_COUNTRY_FLAG_NATIVE_SOURCE,
   EXPECTED_COUNTRY_FLAG_SOURCE,
   EXPECTED_COUNTRY_FLAG_SUPPORTED_COUNT,
+  EXPECTED_COUNTRY_FLAG_SPECIAL_IDS,
 } from '../fixtures/country-flag-expectations.mjs';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
@@ -32,13 +33,13 @@ function viewBoxDimensions(source) {
   return { width: values[2], height: values[3] };
 }
 
-test('current-country flag coverage is fixed at 239 supported and 19 explicit exclusions', () => {
+test('canonical-source flag coverage includes 239 mapped codes and two special flags', () => {
   const countryIds = new Set(countries.features.map(feature => String(feature.id || '')));
-  const supportedIds = [...countryIds].filter(currentCountryFlagCode);
+  const supportedIds = [...countryIds].filter(id => currentCountryFlagUrl(id));
   const excludedIds = [...EXPECTED_COUNTRY_FLAG_EXCLUDED_IDS];
   assert.equal(countryIds.size, 258);
-  assert.equal(supportedIds.length, EXPECTED_COUNTRY_FLAG_SUPPORTED_COUNT);
-  assert.equal(excludedIds.length, 19);
+  assert.equal(supportedIds.length, EXPECTED_COUNTRY_FLAG_SUPPORTED_COUNT + EXPECTED_COUNTRY_FLAG_SPECIAL_IDS.length);
+  assert.equal(excludedIds.length, 17);
   assert.equal(new Set([...supportedIds, ...excludedIds]).size, 258);
   assert.deepEqual(new Set([...supportedIds, ...excludedIds]), countryIds);
   assert.equal(supportedIds.some(id => excludedIds.includes(id)), false);

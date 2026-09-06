@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from '../../assets/js/modules/builtin-subunits.js';
 import { normalizeTerritorialUnits } from '../../assets/js/modules/territorial-units.js';
+import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from '../../assets/js/modules/builtin-territory-policy.js';
 import { defaultGeographicName } from '../../assets/js/modules/country-display.js';
 import { migrateProjectToCurrent } from '../../assets/js/modules/project-migrations.js';
 import { createProjectSerializer, restoreCountriesFromDelta } from '../../assets/js/modules/project-serializer.js';
@@ -12,11 +13,11 @@ const before = JSON.stringify(source);
 const result = classifyBuiltinCountries(source);
 const ids = new Set(result.countries.features.map(f => f.id));
 
-test('46 agreed source objects become stable Subunits; 212 countries and exceptions remain', () => {
-  assert.equal(BUILTIN_SUBUNITS.length, 46);
-  assert.equal(new Set(result.subunits.map(f => f.id)).size, 46);
-  assert.equal(ids.size, 212);
-  for (const id of ['ATA', 'BRT', 'SAH']) assert.ok(ids.has(id));
+test('47 agreed source objects become stable Subunits; 207 countries and exceptions remain', () => {
+  assert.equal(BUILTIN_SUBUNITS.length, 47);
+  assert.equal(new Set(result.subunits.map(f => f.id)).size, 47);
+  assert.equal(ids.size, 207);
+  for (const id of ['ATA', 'BRT', 'SAH', 'CNM', 'CYN', 'SOL', 'KAS', 'SPI']) assert.ok(ids.has(id));
   for (const unit of result.subunits) {
     assert.match(unit.id, /^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     assert.ok(ids.has(unit.properties.parentId));
@@ -27,10 +28,11 @@ test('46 agreed source objects become stable Subunits; 212 countries and excepti
 test('all source geometries stay identical; normalization and classification do not mutate input', () => {
   const originals = new Map(source.features.map(f => [f.id, f]));
   const normalized = normalizeTerritorialUnits(result.subunits, { countryExists: id => ids.has(id) });
-  assert.equal(normalized.length, 46);
+  assert.equal(normalized.length, 47);
   for (const feature of [...result.countries.features, ...normalized]) {
     const original = originals.get(builtinSubunitSourceId(feature) || feature.id);
-    assert.deepEqual(feature.geometry, original.geometry);
+    const expected = mergeBuiltinTerritories(source).features.find(f => f.id === original.id);
+    assert.deepEqual(feature.geometry, expected?.geometry || original.geometry);
     assert.equal(feature.properties.name, builtinSubunitSourceId(feature)
       ? defaultGeographicName(original.id, original.properties.name) : original.properties.name);
   }
@@ -55,13 +57,14 @@ test('saved older default projects are not automatically reclassified', () => {
 });
 
 test('new full and delta saves retain Subunits and source-country removals', () => {
-  const delta = { changed: [], removedIds: BUILTIN_SUBUNITS.map(row => row.sourceCountryId) };
+  const controllers = new Set(BUILTIN_TERRITORY_MERGES.map(row => row.controller));
+  const delta = { changed: result.countries.features.filter(f => controllers.has(f.id)), removedIds: [...BUILTIN_SUBUNITS.map(row => row.sourceCountryId), ...BUILTIN_TERRITORY_MERGES.map(row => row.sourceId)] };
   const serializer = createProjectSerializer({ appVersion: '0.33.0', baseDataset: 'test',
     distributionTypes: ['language', 'ethnicity', 'religion'], distributionModes: ['territorial', 'geometry'],
     readSnapshot: () => ({ countriesData: result.countries, projectFields: { territorialUnits: result.subunits }, countryDelta: delta, fullAutosave: false }) });
   const full = JSON.parse(JSON.stringify(serializer.buildProject()));
   assert.deepEqual(full.territorialUnits, result.subunits);
-  assert.equal(full.countriesData.features.length, 212);
+  assert.equal(full.countriesData.features.length, 207);
   const saved = JSON.parse(JSON.stringify(serializer.buildAutosave()));
   assert.deepEqual(saved.territorialUnits, result.subunits);
   assert.deepEqual(restoreCountriesFromDelta(saved, { base: structuredClone(source),

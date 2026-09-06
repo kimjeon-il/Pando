@@ -44,6 +44,12 @@ export function currentCountryFlagCode(countryId) {
 
 export function currentCountryFlagUrl(countryId, { assetRevision = '' } = {}) {
   const code = currentCountryFlagCode(countryId);
+  const special = { CYN: 'cyn', SOL: 'sol' }[text(countryId).toUpperCase()];
+  if (special) {
+    const url = new URL(`../../vendor/political-flags/${special}.svg`, import.meta.url);
+    if (assetRevision) url.searchParams.set('v', text(assetRevision));
+    return url.href;
+  }
   if (!code) return null;
   const assetPath = CURRENT_COUNTRY_FLAG_LEGACY_4X3_CODES.has(code)
     ? `../../vendor/flag-icons/7.5.0/flags/4x3/${code}.svg`

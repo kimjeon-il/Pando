@@ -1,9 +1,10 @@
 import { createTerritorialFeature } from './territorial-units.js';
 import { defaultGeographicName } from './country-display.js';
+import { mergeBuiltinTerritories } from './builtin-territory-policy.js';
 
 // User-approved default-map classification, not a live legal-status database.
 // Canonical source IDs and coordinates remain unchanged in the source assets.
-export const BUILTIN_SUBUNIT_REVISION = 'builtin-subunits-1';
+export const BUILTIN_SUBUNIT_REVISION = 'builtin-subunits-2';
 const relationships = {
   JEY: { basis: 'crown-dependency', note: '왕실속령. 영국의 일반 행정구역과 구분합니다.' },
   GGY: { basis: 'crown-dependency', note: '왕실속령. 영국의 일반 행정구역과 구분합니다.' },
@@ -30,7 +31,7 @@ export const BUILTIN_SUBUNITS = Object.freeze([
   ['WLF', 'FRA'], ['SGS', 'GBR'], ['FLK', 'GBR'], ['ASM', 'USA'], ['GUM', 'USA'],
   ['MNP', 'USA'], ['MAC', 'CHN'], ['ALD', 'FIN'], ['IOA', 'AUS'], ['CSI', 'AUS'],
   ['CLP', 'FRA'], ['ATC', 'AUS'], ['ESB', 'GBR'], ['WSB', 'GBR'], ['USG', 'CUB'],
-  ['KAB', 'KAZ'],
+  ['KAB', 'KAZ'], ['PGA', 'USA'],
 ].map(([sourceCountryId, parentId]) => Object.freeze({
   sourceCountryId, parentId, id: builtinSubunitId(sourceCountryId),
   ...relationships[sourceCountryId],
@@ -69,5 +70,5 @@ export function classifyBuiltinCountries(collection) {
       },
     }));
   }
-  return { countries: { ...collection, features: countries }, subunits };
+  return { countries: mergeBuiltinTerritories({ ...collection, features: countries }), subunits };
 }

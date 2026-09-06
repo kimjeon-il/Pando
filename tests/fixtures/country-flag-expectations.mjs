@@ -13,10 +13,11 @@ export const EXPECTED_COUNTRY_FLAG_NATIVE_SOURCE = Object.freeze({
 });
 
 export const EXPECTED_COUNTRY_FLAG_EXCLUDED_IDS = Object.freeze([
-  'ESB', 'SOL', 'USG', 'BRI', 'CYN', 'CNM', 'KAS', 'KAB', 'WSB', 'SPI',
+  'ESB', 'USG', 'BRI', 'CNM', 'KAS', 'KAB', 'WSB', 'SPI',
   'BRT', 'IOA', 'CSI', 'PGA', 'CLP', 'ATC', 'BJN', 'SER', 'SCR',
 ]);
 
 export const EXPECTED_COUNTRY_FLAG_LEGACY_4X3_CODES = Object.freeze(['cd', 'sm', 'ga', 'pg']);
 export const EXPECTED_COUNTRY_FLAG_SUPPORTED_COUNT = 239;
+export const EXPECTED_COUNTRY_FLAG_SPECIAL_IDS = Object.freeze(['CYN', 'SOL']);
 export const EXPECTED_COUNTRY_FLAG_NATIVE_COUNT = 235;
