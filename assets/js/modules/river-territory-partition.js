@@ -1,7 +1,7 @@
 const EARTH_RADIUS_M = 6371008.8;
 const DEG_TO_RAD = Math.PI / 180;
 
-export const RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION = 'river-partitions-v1';
+export const RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION = 'river-partitions-v2';
 export const RIVER_TERRITORY_PARTITION_CONFIG = Object.freeze({
   minRiverEdgeM: 10,
   riverEndpointSnapM: 50,
@@ -423,6 +423,32 @@ function buildInputSegments(component, riverFeatures, workspace, config, diagnos
 
 function nodeSegments(boundarySegments, riverSegments, metricRings, config, diagnostics) {
   const boundaryGrid = createSegmentGrid(boundarySegments, config.spatialGridCellM);
+  // Quantized hydro endpoints can miss the interior of a boundary edge by a few
+  // centimetres. Node both edges, not just the river, before pruning the graph.
+  const tolerance = Math.max(0, Number(config.nodeMergeToleranceM) || 0);
+  for (const river of riverSegments) {
+    for (const endpoint of ['a', 'b']) {
+      const point = river[endpoint];
+      let nearest = null;
+      for (const index of boundaryGrid.query([
+        point[0] - tolerance, point[1] - tolerance,
+        point[0] + tolerance, point[1] + tolerance,
+      ])) {
+        const boundary = boundarySegments[index];
+        const parameter = Math.max(0, Math.min(1, segmentParameter(point, boundary)));
+        const projected = interpolateSegment(boundary, parameter);
+        const distance = coordinateDistance(point, projected);
+        if (distance > tolerance) continue;
+        if (!nearest || distance < nearest.distance || (distance === nearest.distance && index < nearest.index)) {
+          nearest = { index, distance, parameter, projected };
+        }
+      }
+      if (!nearest) continue;
+      river[endpoint] = nearest.projected;
+      boundarySegments[nearest.index].split.push(nearest.parameter);
+    }
+    river.bounds = segmentBounds(river);
+  }
   for (const river of riverSegments) {
     for (const boundaryIndex of boundaryGrid.query(river.bounds)) {
       const boundary = boundarySegments[boundaryIndex];

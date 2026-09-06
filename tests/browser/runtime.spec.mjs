@@ -421,8 +421,48 @@ test('river territory partition Worker returns disjoint donor cells', async ({ p
   expect(result.candidates).toHaveLength(4);
   expect(new Set(result.candidates.map(candidate => candidate.key)).size).toBe(4);
   expect(result.candidates.every(candidate => candidate.donorCountryId === 'donor')).toBe(true);
-  expect(result.candidates.every(candidate => candidate.algorithmRevision === 'river-partitions-v1')).toBe(true);
+  expect(result.candidates.every(candidate => candidate.algorithmRevision === 'river-partitions-v2')).toBe(true);
   expect(result.donorResults).toEqual([{ donorCountryId: 'donor', status: 'ready', candidateCount: 4, reason: '' }]);
+});
+
+test('Hungary annex workflow selects three northern Serbia river cells and cancels cleanly', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page, { url: '/?debug=1', waitForCanonical: false });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'HUN'));
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexTerritoryBtn').click();
+  const donorPoint = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen([20.8, 44.3]));
+  const mapBox = await page.locator('#map').boundingBox();
+  await page.locator('#map .map-svg').dispatchEvent('click', {
+    clientX: mapBox.x + donorPoint[0], clientY: mapBox.y + donorPoint[1], button: 0,
+  });
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await page.locator('#modePrimaryBtn').click();
+  await page.locator('#modeComponentsMethodBtn').click();
+  await page.locator('#modeRiverBoundaryInput').check();
+  await expect(page.locator('#modeTaskInstruction')).toContainText('하천을 경계로 나눈', { timeout: 60_000 });
+  const components = page.locator('.draft-layer path.territory-component');
+  const expectedAreas = [9022, 9036, 4228];
+  await expect.poll(() => components.evaluateAll((nodes, areas) => areas.map(area => nodes.filter(node =>
+    Math.abs(node.__data__.areaKm2 - area) < 2).length), expectedAreas)).toEqual([1, 1, 1]);
+  for (const area of expectedAreas) {
+    await components.evaluateAll((nodes, target) => {
+      const node = nodes.find(node => Math.abs(node.__data__.areaKm2 - target) < 2);
+      node.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: -1000, clientY: -1000 }));
+    }, area);
+    await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+    await expect(page.locator('.selected-component')).toHaveCount(expectedAreas.indexOf(area) + 1);
+  }
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 90_000 });
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (3)');
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#modeActionBar')).toBeHidden();
+  await expect(components).toHaveCount(0);
+  expect(errors).toEqual([]);
 });
 
 test('wide keeps layers visible while the add popover opens', async ({ page }) => {

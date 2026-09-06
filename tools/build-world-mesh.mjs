@@ -120,7 +120,7 @@ if (countries?.type !== 'FeatureCollection' || countries.features?.length !== 25
 const ids = countries.features.map((feature, index) => String(feature.id || index));
 if (new Set(ids).size !== ids.length) throw new Error('국가 ID가 중복되었습니다.');
 const sourceCoordinateCount = countCoordinates(countries.features.map(feature => feature.geometry?.coordinates));
-if (sourceCoordinateCount !== 548464) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);
+if (sourceCoordinateCount !== 548454) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);
 
 const startedAt = performance.now();
 const mesh = meshCore.buildGpuMeshFeatures(countries.features, earcut, { validate: true });

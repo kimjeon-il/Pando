@@ -70,7 +70,7 @@ test('isolated browser river partition and Worker compatibility contracts agree'
   const direct = sortResult(result.direct);
   const worker = sortResult(result.worker);
   expect(worker).toEqual(direct);
-  expect(direct.candidates.every(candidate => candidate.algorithmRevision === 'river-partitions-v1')).toBe(true);
+  expect(direct.candidates.every(candidate => candidate.algorithmRevision === 'river-partitions-v2')).toBe(true);
   expect(direct.candidates.every(candidate => candidate.sourceRiverIds.length > 0 && candidate.riverBoundarySegments.length > 0)).toBe(true);
   expect(direct.donorResults).toEqual([
     { donorCountryId: 'date-line', status: 'ready', candidateCount: 2, reason: '' },

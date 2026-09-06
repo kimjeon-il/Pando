@@ -778,6 +778,11 @@ export function createEditingDomain({
 
   return Object.freeze({
     setTool, handleInteraction, createRenderPacket,
+    refreshTerritoryOperation: reason => {
+      if (disposed || !['annex-territory', 'new-country'].includes(activeTool)) return false;
+      emit(reason || 'territory-operation-changed');
+      return true;
+    },
     startDraft, replaceDraftCoordinates, clearDraftHover,
     cancelActiveGesture, resetProject,
     dispose, draftInputActive, appendDraftScreenPoint,

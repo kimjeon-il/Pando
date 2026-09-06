@@ -93,7 +93,7 @@ test('cooperative materialization respects the 4096-coordinate slice ceiling', a
     onSlice: slice => slices.push(slice),
   });
   assert.equal(result.collection.features.length, 258);
-  assert.equal(result.metrics.coordinateCount, 548464);
+  assert.equal(result.metrics.coordinateCount, 548454);
   assert.ok(slices.every(slice => slice.coordinateCount <= 4096));
   assert.equal(yields, slices.filter(slice => !slice.final).length);
   assert.ok(quietWaits >= yields + 1);

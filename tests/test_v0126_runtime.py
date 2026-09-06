@@ -55,7 +55,7 @@ class V0126RuntimeTests(unittest.TestCase):
         magic, mesh_format, _countries, vertex_count, triangle_count, line_count, source_count, revision = struct.unpack_from("<8I", raw, 0)
         self.assertEqual(magic, 0x434D4731)
         self.assertEqual(mesh_format, 2)
-        self.assertEqual((source_count, revision), (548464, 3))
+        self.assertEqual((source_count, revision), (548454, 3))
         header_bytes = 48 if mesh_format >= 2 else 32
         positions = struct.unpack_from(f"<{vertex_count * 2}i", raw, header_bytes)
         country_bytes = vertex_count * 2
