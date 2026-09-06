@@ -427,6 +427,14 @@ test('river territory partition Worker returns disjoint donor cells', async ({ p
 
 test('Hungary annex workflow selects three northern Serbia river cells and cancels cleanly', async ({ page }) => {
   test.setTimeout(180_000);
+  let releaseManifest;
+  const manifestGate = new Promise(resolve => { releaseManifest = resolve; });
+  let manifestRequested = false;
+  await page.route('**/hydro/v*/manifest.json*', async route => {
+    manifestRequested = true;
+    await manifestGate;
+    await route.continue();
+  });
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1', waitForCanonical: false });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -442,6 +450,11 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   await page.locator('#modePrimaryBtn').click();
   await page.locator('#modeComponentsMethodBtn').click();
   await page.locator('#modeRiverBoundaryInput').check();
+  await expect(page.locator('#modeTaskInstruction')).toContainText('계산하는 중');
+  await expect.poll(() => manifestRequested).toBe(true);
+  // Complete first-time hydro loading after the checkbox request has begun.
+  // Do not press the component-method button again to kick the request.
+  releaseManifest();
   await expect(page.locator('#modeTaskInstruction')).toContainText('하천을 경계로 나눈', { timeout: 60_000 });
   const components = page.locator('.draft-layer path.territory-component');
   const expectedAreas = [9022, 9036, 4228];
