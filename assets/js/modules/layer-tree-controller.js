@@ -1,3 +1,5 @@
+import { createLayerListModel, visibleLayerRows } from './layer-list-model.js';
+
 const ROW_HEIGHT_DESKTOP = 30;
 const ROW_HEIGHT_MOBILE = 38;
 const OVERSCAN = 5;
@@ -18,17 +20,26 @@ export function createLayerTreeController({
   let renderedSearch = '';
   let searchScrollTop = 0;
   let hydrated = false;
-  let searchMatches = [];
-  const groupScrollTop = new Map();
-  const virtualItems = new Map();
+  let logicalRows = [];
+  let presentation = null;
+  let listScrollTop = 0;
   const rowBuildTokens = new WeakMap();
   const rowBuilds = new Set();
   let disposed = false;
+  let resizeFrame = 0;
+  const resizeObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver(() => {
+    if (disposed || resizeFrame || !presentation) return;
+    resizeFrame = window.requestAnimationFrame(() => {
+      resizeFrame = 0;
+      const container = renderedSearch ? elements.searchResults : elements.list;
+      if (container.clientHeight) renderRows(container, logicalRows, container.scrollTop);
+    });
+  }) : null;
   const buildRows = (container, factories, before = [], after = [], onCommit = () => {}) => {
     const token = {}, fragment = document.createDocumentFragment();
     rowBuildTokens.set(container, token);
     const focus = container.contains(document.activeElement) ? document.activeElement : null;
-    const focusKey = focus?.closest('[data-item-id]')?.dataset.itemId;
+    const focusKey = focus?.closest('[data-object-key]')?.dataset.objectKey;
     const focusTag = focus?.tagName;
     fragment.append(...before);
     let index = 0, finish;
@@ -40,11 +51,26 @@ export function createLayerTreeController({
       const started = performance.now();
       while (index < factories.length && performance.now() - started < 4) fragment.append(factories[index++]());
       if (index < factories.length) { window.setTimeout(step, 0); return; }
-      fragment.append(...after); container.replaceChildren(fragment); onCommit();
+      fragment.append(...after);
+      const previous = new Map([...container.children].filter(node => node.dataset.objectKey).map(node => [node.dataset.objectKey, node]));
+      let cursor = container.firstChild;
+      for (const candidate of [...fragment.children]) {
+        const retained = previous.get(candidate.dataset.objectKey);
+        const node = retained?.isEqualNode(candidate) ? retained : candidate;
+        if (node === retained) {
+          const input = node.querySelector('input');
+          const nextInput = candidate.querySelector('input');
+          if (input && nextInput) { input.checked = nextInput.checked; input.indeterminate = nextInput.indeterminate; }
+        }
+        if (node === cursor) cursor = cursor.nextSibling;
+        else container.insertBefore(node, cursor);
+      }
+      while (cursor) { const next = cursor.nextSibling; cursor.remove(); cursor = next; }
+      onCommit();
       commands.syncCanonicalControls?.(container); syncSelection();
-      if (focusKey) {
-        const row = [...container.querySelectorAll('[data-item-id]')].find(node => node.dataset.itemId === focusKey && node.tagName === focusTag);
-        row?.focus?.({ preventScroll: true });
+      if (focusKey && !focus?.isConnected) {
+        const row = [...container.querySelectorAll('[data-object-key]')].find(node => node.dataset.objectKey === focusKey);
+        row?.querySelector(focusTag.toLowerCase())?.focus?.({ preventScroll: true });
       }
       complete();
     };
@@ -52,7 +78,7 @@ export function createLayerTreeController({
   };
 
   const rowHeight = container => {
-    const rendered = container?.querySelector?.('.layer-child, .layer-subfolder-row, .layer-child-skeleton, .layer-folder-row');
+    const rendered = container?.querySelector?.('.layer-child, .layer-bundle-row');
     const measured = rendered?.getBoundingClientRect?.().height;
     if (Number.isFinite(measured) && measured > 0) return measured;
     const value = Number.parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--ui-tree-row-height'));
@@ -91,28 +117,18 @@ export function createLayerTreeController({
 
   const createItemRow = (group, item, { searchResult = false } = {}) => {
     const itemGroup = item.layerGroup || group;
-    if (item.groupHeader && !searchResult) {
-      const header = document.createElement('button');
-      header.type = 'button';
-      header.className = 'ui-button ui-selectable-row layer-subfolder-row';
-      header.dataset.territorialUnitFolderToggle = item.folderKey;
-      header.setAttribute('aria-expanded', String(item.expanded));
-      header.setAttribute('aria-label', `${item.name} 하위 폴더 ${item.expanded ? '접기' : '펼치기'}`);
-      header.dataset.tooltip = `${item.name} 하위 폴더 ${item.expanded ? '접기' : '펼치기'}`;
-      header.append(createIcon('chevronDown', 'ui-icon disclosure-icon'), document.createElement('strong'));
-      header.querySelector('strong').textContent = item.name;
-      return header;
-    }
-    const row = document.createElement(searchResult ? 'button' : 'div');
+    const row = document.createElement('div');
     const currentSelection = selection();
     const isSelected = selected(itemGroup, item.id);
     const ref = model.itemRef(itemGroup, item.id);
     const primary = !!ref && currentSelection.primaryKey === ref.key;
     const hasMenu = itemGroup !== 'countryLabels' && !!ref;
     const multi = (currentSelection.items?.length || 0) > 1;
-    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-search-result' : 'layer-child'}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${isSelected ? ' is-selected' : ''}${isSelected && multi ? ' is-multi-selected' : ''}${primary && multi ? ' is-primary-selected' : ''}`;
+    row.className = `ui-row ui-selectable-row ${searchResult ? 'layer-child layer-search-result' : 'layer-child'}${!searchResult && !hasMenu ? ' has-no-menu' : ''}${isSelected ? ' is-selected' : ''}${isSelected && multi ? ' is-multi-selected' : ''}${primary && multi ? ' is-primary-selected' : ''}`;
     row.dataset.layerGroup = itemGroup;
     row.dataset.itemId = item.id;
+    row.dataset.objectKey = item.key;
+    if (item.bundleId) row.dataset.bundleMember = item.bundleId;
     const swatch = document.createElement('span');
     swatch.className = 'layer-color-swatch';
     swatch.setAttribute('aria-hidden', 'true');
@@ -120,17 +136,6 @@ export function createLayerTreeController({
     else {
       swatch.classList.add('is-type-icon');
       swatch.append(createIcon(item.icon || 'map'));
-    }
-    if (searchResult) {
-      row.type = 'button';
-      row.dataset.layerItemSelect = itemGroup;
-      row.setAttribute('role', 'option');
-      row.setAttribute('aria-selected', String(isSelected));
-      row.append(document.createElement('span'), document.createElement('strong'));
-      row.querySelector('span').textContent = item.folderName || groups.names[itemGroup] || '지형 음영';
-      row.querySelector('strong').textContent = item.name;
-      row.querySelector('strong').prepend(swatch);
-      return row;
     }
     const visibility = createVisibilityControl({ group: itemGroup, itemId: item.id, label: item.name, checked: model.isVisible(itemGroup, item.id) });
     const name = document.createElement('button');
@@ -141,7 +146,14 @@ export function createLayerTreeController({
     const label = document.createElement('span');
     label.className = 'layer-child-name-label';
     label.textContent = item.name;
-    name.append(swatch, label);
+    const type = document.createElement('span');
+    type.className = 'layer-item-type';
+    type.textContent = item.typeLabel;
+    if (item.isBuiltin && itemGroup === 'hydro') {
+      const status = model.snapshot().hydroState;
+      type.textContent += status === 'error' ? ' · 재시도' : ['idle', 'loading'].includes(status) ? ' · 로딩' : '';
+    }
+    name.append(swatch, label, type);
     name.dataset.tooltip = item.title || `${item.name} 선택`;
     if (hasMenu && model.isLocked(ref)) {
       name.classList.add('has-lock-indicator');
@@ -164,84 +176,61 @@ export function createLayerTreeController({
     return row;
   };
 
-  const renderVirtual = (group, container, items, { scrollTop = container.scrollTop, folderKey = group, search = false } = {}) => {
-    if (search) searchMatches = items;
-    else virtualItems.set(folderKey, items);
-    const height = rowHeight(container);
-    const desired = Math.max(0, Number(scrollTop) || 0);
-    const viewport = Math.max(144, container.clientHeight || (search ? 420 : 235));
-    const start = Math.max(0, Math.floor(desired / height) - OVERSCAN);
-    const end = Math.min(items.length, start + Math.ceil(viewport / height) + OVERSCAN * 2);
-    const top = document.createElement('div');
-    top.className = 'layer-virtual-spacer';
-    top.style.height = `${start * height}px`;
-    const bottom = document.createElement('div');
-    bottom.className = 'layer-virtual-spacer';
-    bottom.style.height = `${Math.max(0, items.length - end) * height}px`;
-    buildRows(container, items.slice(start, end).map(entry => () => createItemRow(search ? entry.group : group, search ? entry.item : entry, { searchResult: search })), [top], [bottom], () => {
-      container.dataset.virtualized = 'true';
-      container.scrollTop = Math.min(desired, Math.max(0, container.scrollHeight - container.clientHeight));
-      if (!search) groupScrollTop.set(folderKey, container.scrollTop);
-    });
+
+  const createBundleRow = bundle => {
+    const expanded = !!model.snapshot().folders[bundle.id];
+    const row = document.createElement('div');
+    row.className = 'ui-row layer-bundle-row';
+    row.dataset.bundleKey = bundle.id;
+    row.dataset.objectKey = bundle.key;
+    const toggle = document.createElement('button');
+    toggle.type = 'button'; toggle.className = 'ui-button layer-bundle-toggle';
+    toggle.dataset.layerFolderToggle = bundle.id;
+    toggle.setAttribute('aria-expanded', String(expanded));
+    toggle.setAttribute('aria-label', bundle.name + (expanded ? ' 접기' : ' 펼치기'));
+    toggle.append(createIcon('chevronDown', 'ui-icon disclosure-icon'));
+    const checked = bundle.items.every(item => model.isVisible(item.layerGroup, item.id));
+    const visibility = createVisibilityControl({ group: 'bundle', itemId: bundle.id, label: bundle.name, checked });
+    visibility.querySelector('input').indeterminate = !checked && bundle.items.some(item => model.isVisible(item.layerGroup, item.id));
+    const name = document.createElement('button');
+    name.type = 'button'; name.className = 'ui-button layer-child-name';
+    name.dataset.layerFolderToggle = bundle.id;
+    name.setAttribute('aria-expanded', String(expanded));
+    const icon = document.createElement('span');
+    icon.className = 'layer-color-swatch is-type-icon'; icon.append(createIcon(bundle.icon));
+    const label = document.createElement('span'); label.className = 'layer-child-name-label'; label.textContent = bundle.name;
+    const type = document.createElement('span'); type.className = 'layer-item-type'; type.textContent = bundle.typeLabel;
+    name.append(icon, label, type); row.append(toggle, visibility, name);
+    if (bundle.id !== 'countries') row.dataset.loadState = model.snapshot().hydroState;
+    return row;
   };
 
-  const renderFolder = ({ group, folderKey, name, folder, container, items, search }) => {
-    const snapshot = model.snapshot();
-    const expanded = !search && !!snapshot.folders[folderKey];
-    rowBuildTokens.set(container, {});
-    if (!container.hidden) groupScrollTop.set(folderKey, container.scrollTop);
-    const saved = groupScrollTop.get(folderKey) ?? 0;
-    folder.classList.toggle('is-expanded', expanded);
-    folder.querySelectorAll('[data-layer-folder-toggle]').forEach(button => {
-      button.setAttribute('aria-expanded', String(expanded));
-      const label = `${name} 폴더 ${expanded ? '접기' : '펼치기'}`;
-      button.setAttribute('aria-label', label);
-      button.dataset.tooltip = label;
+  const renderRows = (container, rows, scrollTop = container.scrollTop) => {
+    const height = rowHeight(container);
+    const viewport = Math.max(144, container.clientHeight || 420);
+    const virtual = rows.length > 80;
+    const desired = Math.min(Math.max(0, scrollTop), Math.max(0, rows.length * height - viewport));
+    const start = virtual ? Math.max(0, Math.floor(desired / height) - OVERSCAN) : 0;
+    const end = virtual ? Math.min(rows.length, start + Math.ceil(viewport / height) + OVERSCAN * 2) : rows.length;
+    const spacer = count => {
+      const node = document.createElement('div'); node.className = 'layer-virtual-spacer';
+      node.style.height = `${count * height}px`; return node;
+    };
+    const search = container === elements.searchResults;
+    const factories = rows.slice(start, end).map(item => () => item.kind === 'bundle'
+      ? createBundleRow(item) : createItemRow(item.layerGroup, item, { searchResult: search }));
+    if (!rows.length) factories.push(() => {
+      const empty = createEmptyState(search ? '검색 결과가 없습니다.' : '아직 레이어가 없습니다.', search ? '다른 이름이나 유형으로 검색해 보세요.' : '아래 추가 버튼에서 시작하세요.');
+      empty.classList.add('layer-empty'); return empty;
     });
-    container.hidden = !expanded;
-    if (!expanded) {
-      container.removeAttribute('aria-busy');
-      container.replaceChildren();
-      return;
-    }
-    if ((group === 'rivers' || group === 'lakes') && ['idle', 'loading'].includes(snapshot.hydroState)) {
-      container.setAttribute('aria-busy', 'true');
-      const fragment = document.createDocumentFragment();
-      for (let index = 0; index < 4; index += 1) {
-        const row = document.createElement('div');
-        row.className = 'layer-child-skeleton';
-        row.setAttribute('aria-hidden', 'true');
-        row.append(document.createElement('span'), document.createElement('span'), document.createElement('span'));
-        fragment.append(row);
-      }
-      container.replaceChildren(fragment);
-      return;
-    }
-    container.removeAttribute('aria-busy');
-    if (!items.length) {
-      const empty = document.createElement('div');
-      empty.className = 'layer-empty';
-      empty.textContent = (group === 'rivers' || group === 'lakes') && snapshot.hydroState === 'error' ? `${name} 목록을 불러오지 못했습니다.` : '항목 없음';
-      container.replaceChildren(empty);
-      return;
-    }
-    const displayItems = model.groupItems?.(group, items, snapshot) || items;
-    if (displayItems.length > 80) renderVirtual(group, container, displayItems, { scrollTop: saved, folderKey });
-    else {
-      virtualItems.delete(folderKey);
-      container.removeAttribute('data-virtualized');
-      buildRows(container, displayItems.map(item => () => createItemRow(group, item)), [], [], () => {
-        container.scrollTop = Math.min(saved, Math.max(0, container.scrollHeight - container.clientHeight));
-        groupScrollTop.set(folderKey, container.scrollTop);
-      });
-    }
+    buildRows(container, factories, virtual ? [spacer(start)] : [], virtual ? [spacer(rows.length - end)] : [], () => {
+      container.dataset.virtualized = String(virtual); container.scrollTop = desired;
+    });
   };
 
   const syncSelection = (current = selection()) => {
     const keys = new Set((current.items || []).map(item => item.key));
     const multi = keys.size > 1;
-    const primary = (current.items || []).find(item => item.key === current.primaryKey) || null;
-    const primaryGroup = model.folderGroup(primary);
     elements.section?.querySelectorAll('[data-layer-group][data-item-id]').forEach(row => {
       const ref = model.itemRef(row.dataset.layerGroup, row.dataset.itemId);
       const isSelected = !!ref && keys.has(ref.key);
@@ -250,10 +239,6 @@ export function createLayerTreeController({
       row.classList.toggle('is-multi-selected', isSelected && multi);
       row.classList.toggle('is-primary-selected', isPrimary && multi);
       if (row.matches('.layer-search-result')) row.setAttribute('aria-selected', String(isSelected));
-    });
-    elements.section?.querySelectorAll('.layer-folder[data-layer-group] > .layer-folder-row').forEach(row => {
-      const group = row.closest('.layer-folder')?.dataset.layerGroup || '';
-      row.classList.toggle('is-active', !!primaryGroup && group === primaryGroup);
     });
   };
 
@@ -290,73 +275,27 @@ export function createLayerTreeController({
     unique.forEach(syncLock);
   };
 
+
   const render = (force = false) => {
     const snapshot = model.snapshot();
-    commands.syncCategoryLabels?.();
     if (!force && renderedRevision === snapshot.revision) return false;
     commands.prune?.();
     const search = String(snapshot.search || '').trim().toLocaleLowerCase('ko');
     const searchChanged = search !== renderedSearch;
-    elements.searchResults?.classList.toggle('hidden', !search);
-    elements.list?.classList.toggle('hidden', !!search);
-    if (search) {
-      if (!searchChanged && elements.searchResults) searchScrollTop = elements.searchResults.scrollTop;
-      const matches = [];
-      for (const group of groups.search) {
-        for (const item of model.items(group)) {
-          if (group === 'hydro' && item.isBuiltin && snapshot.hydroState !== 'ready') continue;
-          const haystack = `${item.name} ${item.searchText || ''} ${item.id} ${item.meta || ''}`.toLocaleLowerCase('ko');
-          if (haystack.includes(search)) matches.push({ group, item });
-        }
-      }
-      matches.sort((left, right) => model.compare(left.item, right.item));
-      if (matches.length > 80 && elements.searchResults) renderVirtual('', elements.searchResults, matches, { scrollTop: searchChanged ? 0 : searchScrollTop, search: true });
-      else {
-        searchMatches = [];
-        elements.searchResults?.removeAttribute('data-virtualized');
-        const fragment = document.createDocumentFragment();
-        for (const { group, item } of matches) fragment.append(createItemRow(group, item, { searchResult: true }));
-        if (!matches.length) {
-          const empty = createEmptyState('검색 결과가 없습니다.', '이름, 유형 또는 상위 국가를 다른 검색어로 입력해 보세요.');
-          empty.classList.add('layer-empty');
-          fragment.append(empty);
-        }
-        elements.searchResults?.replaceChildren(fragment);
-      }
-      if (elements.searchResults) {
-        elements.searchResults.scrollTop = searchChanged ? 0 : Math.min(searchScrollTop, Math.max(0, elements.searchResults.scrollHeight - elements.searchResults.clientHeight));
-        searchScrollTop = elements.searchResults.scrollTop;
-      }
-    } else {
-      elements.searchResults?.replaceChildren();
-      elements.searchResults?.removeAttribute('data-virtualized');
-      searchMatches = [];
-      searchScrollTop = 0;
-    }
-    for (const group of groups.tree) {
-      const folder = elements.section?.querySelector(`.layer-folder[data-layer-group="${group}"]`);
-      const container = elements.targets[group];
-      if (!folder || !container) continue;
-      const sourceGroup = group === 'rivers' || group === 'lakes' ? 'hydro' : group;
-      const category = group === 'rivers' ? 'river' : group === 'lakes' ? 'lake' : '';
-      const items = model.items(sourceGroup)
-        .filter(item => !category || model.hydroCategory(item.hydroCategory) === category)
-        .filter(item => sourceGroup !== 'hydro' || !item.isBuiltin || snapshot.hydroState !== 'error')
-        .sort(model.compare);
-      if (group === 'genericFeatures') {
-        folder.hidden = !items.length;
-        if (!items.length) {
-          container.replaceChildren();
-          commands.collapseEmptyGroup?.(group);
-        }
-      }
-      renderFolder({ group, folderKey: group, name: groups.names[group], folder, container, items, search });
-    }
-    renderedRevision = snapshot.revision;
-    renderedSearch = search;
-    commands.syncStylePanels?.();
-    commands.syncCanonicalControls?.(elements.section);
-    syncSelection();
+    if (!elements.list.classList.contains('hidden')) listScrollTop = elements.list.scrollTop;
+    if (!elements.searchResults.classList.contains('hidden')) searchScrollTop = elements.searchResults.scrollTop;
+    presentation = createLayerListModel({
+      items: model.items, groups: groups.search, builtinCountryIds: model.builtinCountryIds(),
+      builtinSession: model.builtinSession(), itemRef: model.itemRef, compare: model.compare,
+    });
+    logicalRows = visibleLayerRows(presentation, snapshot.folders, search);
+    elements.searchResults.classList.toggle('hidden', !search);
+    elements.list.classList.toggle('hidden', !!search);
+    const container = search ? elements.searchResults : elements.list;
+    const inactive = search ? elements.list : elements.searchResults;
+    rowBuildTokens.set(inactive, {}); inactive.replaceChildren();
+    renderRows(container, logicalRows, search ? (searchChanged ? 0 : searchScrollTop) : listScrollTop);
+    renderedRevision = snapshot.revision; renderedSearch = search;
     return true;
   };
 
@@ -375,28 +314,22 @@ export function createLayerTreeController({
     window.dispatchEvent(new window.CustomEvent('pandolab:layer-ready'));
   };
 
+
   const handleScroll = event => {
+    const container = event.target;
+    if (container !== elements.list && container !== elements.searchResults) return;
     commands.closeMenu?.();
-    if (event.target === elements.searchResults) {
-      searchScrollTop = event.target.scrollTop;
-      if (event.target.dataset.virtualized === 'true' && searchMatches.length) renderVirtual('', event.target, searchMatches, { scrollTop: searchScrollTop, search: true });
-      return;
-    }
-    const container = event.target.closest?.('.layer-children');
-    if (!container) return;
-    const folder = container.closest('.layer-folder');
-    const group = folder?.dataset.layerGroup;
-    const folderKey = folder?.dataset.layerFolderKey || group;
-    if (!group || !folderKey) return;
-    groupScrollTop.set(folderKey, container.scrollTop);
-    const items = virtualItems.get(folderKey);
-    if (items && container.dataset.virtualized === 'true') renderVirtual(group, container, items, { scrollTop: container.scrollTop, folderKey });
+    if (container === elements.list) listScrollTop = container.scrollTop;
+    else searchScrollTop = container.scrollTop;
+    if (container.dataset.virtualized === 'true') renderRows(container, logicalRows, container.scrollTop);
   };
 
   const bind = () => {
+    resizeObserver?.observe(elements.list);
+    resizeObserver?.observe(elements.searchResults);
     for (const [group, input] of Object.entries(elements.visibilityInputs || {})) input?.addEventListener('change', event => {
-      commands.syncVisibilityToggle?.(event.target);
       commands.setLayerVisibility(group, event.target.checked);
+      render();
     });
     elements.terrainVisible?.addEventListener('change', event => commands.setTerrainVisible(event.target.checked));
     for (const input of elements.terrainStyleInputs || []) input?.addEventListener('change', event => event.target.checked && commands.setTerrainStyle(event.target.value));
@@ -418,50 +351,62 @@ export function createLayerTreeController({
       if (event.target.closest('.layer-visibility-control')) return;
       if (event.target.closest('#objectLockBtn')) { commands.lockSelection?.(); return; }
       if (event.target.closest('#objectDeleteBtn')) { commands.deleteSelection?.(); return; }
-      const style = event.target.closest('[data-layer-style-toggle]');
-      if (style) { event.preventDefault(); event.stopPropagation(); commands.toggleLayerStyle?.(style.dataset.layerStyleToggle); return; }
       const menu = event.target.closest('[data-layer-item-menu]');
       if (menu) { event.stopPropagation(); commands.openItemMenu(menu.dataset.layerItemMenu, menu.dataset.itemId, menu); return; }
-      const territorial = event.target.closest('[data-territorial-unit-folder-toggle]');
-      if (territorial) { commands.toggleTerritorialUnitFolder(territorial.dataset.territorialUnitFolderToggle); render(); return; }
       const folder = event.target.closest('[data-layer-folder-toggle]');
       if (folder) { commands.toggleFolder(folder.dataset.layerFolderToggle); render(); return; }
       const item = event.target.closest('[data-layer-item-select]');
-      if (item) commands.selectItem({ group: item.dataset.layerItemSelect, id: item.dataset.itemId, additive: event.ctrlKey || event.metaKey, range: event.shiftKey });
+      if (item) commands.selectItem({ group: item.dataset.layerItemSelect, id: item.dataset.itemId, additive: event.ctrlKey || event.metaKey, range: event.shiftKey, orderedRefs: logicalRows.flatMap(row => row.ref ? [row.ref] : []) });
     });
     elements.section?.addEventListener('scroll', handleScroll, true);
     elements.section?.addEventListener('change', event => {
       commands.syncVisibilityToggle?.(event.target);
       const checkbox = event.target.closest('[data-layer-item-visibility]');
-      if (checkbox) commands.setItemVisibility(checkbox.dataset.layerItemVisibility, checkbox.dataset.itemId, checkbox.checked);
-      const opacity = event.target.closest('[data-layer-style-opacity]');
-      if (opacity) commands.updateLayerStyle?.(opacity.dataset.layerStyleOpacity, { opacity: Number(opacity.value) / 100 });
+      if (checkbox) {
+        if (checkbox.dataset.layerItemVisibility === 'bundle') {
+          const bundle = presentation?.bundles.find(entry => entry.id === checkbox.dataset.itemId);
+          if (bundle) commands.setBundleVisibility(bundle.items, checkbox.checked);
+        } else commands.setItemVisibility(checkbox.dataset.layerItemVisibility, checkbox.dataset.itemId, checkbox.checked);
+        render();
+      }
+    });
+    const bindStyleEvents = surface => {
+    surface?.addEventListener('click', event => {
+      const toggle = event.target.closest('[data-layer-style-toggle]');
+      if (toggle) commands.toggleLayerStyle?.(toggle.dataset.layerStyleToggle);
+    });
+    surface?.addEventListener('change', event => {
       const boundary = event.target.closest('[data-layer-style-boundary]');
       if (boundary) commands.updateLayerStyle?.(boundary.dataset.layerStyleBoundary, { boundaryVisible: boundary.checked });
       const blend = event.target.closest('[data-layer-style-blend-mode]');
       if (blend) commands.updateLayerStyle?.(blend.dataset.layerStyleBlendMode, { blendMode: blend.value });
     });
-    elements.section?.addEventListener('input', event => {
+    surface?.addEventListener('input', event => {
       const opacity = event.target.closest('[data-layer-style-opacity]');
       if (opacity) commands.updateLayerStyle?.(opacity.dataset.layerStyleOpacity, { opacity: Number(opacity.value) / 100 });
     });
+    };
+    bindStyleEvents(elements.styleSection);
     return api;
   };
 
-  const dispose = () => { disposed = true; window.clearTimeout(searchTimer); };
+  const dispose = () => {
+    disposed = true; window.clearTimeout(searchTimer);
+    resizeObserver?.disconnect();
+    if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
+  };
   const api = Object.freeze({ bind, render, syncSelection, syncLock, syncLocks, beginHydration, completeHydration, dispose });
   return api;
 }
 
 export function createAppLayerTreeController(runtime = {}) {
   const {
-    window, document, getElement: $, state, layerGroupTargetIds, layerTreeGroupKeys,
+    window, document, getElement: $, state,
     layerSearchGroupKeys, layerGroupNames, createIcon, createEmptyState, layerTreeItems,
     layerItemObjectRef, normalizeObjectRef, selectionDomain, isLayerItemVisible,
-    objectRefLocked, layerFolderGroupForObjectRef, hydroCategoryKey, compareItems,
-    territorialUnitCountryName, territorialUnitById, territorialUnitFolderStateKey,
-    territorialUnitFolderStatePrefix, activeLayerFolderKeys, expandedLayerStyleGroups,
-    pruneLayerItemVisibility, syncMapObjectCategoryLabels, syncLayerStylePanels,
+    objectRefLocked, compareItems,
+    builtinCountryIds, builtinSession, setBundleVisibility,
+    pruneLayerItemVisibility,
     syncCanonicalControls, syncSearchClearButton, setLayerVisibility,
     toggleLayerStylePanel, updateLayerPresentationStyle, distributionService,
     syncDistributionPresentationControls, renderingDomain, queuePresentationAutosave,
@@ -470,7 +415,6 @@ export function createAppLayerTreeController(runtime = {}) {
     returnToMapAfterMobileAction, closeObjectActionsMenu, syncLayerVisibilityToggle,
     setLayerItemVisibility, batchToggleLocked, deleteSelectedFromObjectMenu,
   } = runtime;
-  const targets = Object.fromEntries(Object.entries(layerGroupTargetIds).map(([group, id]) => [group, $(id)]));
   return createLayerTreeController({
     window,
     document,
@@ -491,65 +435,28 @@ export function createAppLayerTreeController(runtime = {}) {
       searchResults: $('layerSearchResults'),
       section: $('layerSection'),
       list: document.querySelector('.layer-list'),
-      targets,
+      styleSection: $('mapViewSection'),
     },
-    groups: { tree: layerTreeGroupKeys, search: layerSearchGroupKeys, names: layerGroupNames },
+    groups: { search: layerSearchGroupKeys, names: layerGroupNames },
     createIcon,
     createEmptyState,
     model: {
       snapshot: () => ({ revision: state.layerTreeRevision, search: state.layerSearch, folders: state.layerFolders, hydroState: state.physicalLoadState.hydro }),
-      items: layerTreeItems,
+      items: layerTreeItems, builtinCountryIds, builtinSession,
       itemRef: layerItemObjectRef,
       normalizeRef: normalizeObjectRef,
       selectionSnapshot: () => selectionDomain.snapshot(),
       selectionHas: ref => selectionDomain.has(ref),
       isVisible: isLayerItemVisible,
       isLocked: objectRefLocked,
-      folderGroup: layerFolderGroupForObjectRef,
-      hydroCategory: hydroCategoryKey,
       compare: compareItems,
-      groupItems: (group, items) => {
-        if (group !== 'territories' && group !== 'administrative') return items;
-        const displayItems = [];
-        let previousCountry = null;
-        for (const item of items.sort((left, right) => {
-          const orphanOrder = Number(!left.countryId) - Number(!right.countryId);
-          if (orphanOrder) return orphanOrder;
-          const countryOrder = compareItems(
-            { name: territorialUnitCountryName(territorialUnitById(left.id)), id: left.id },
-            { name: territorialUnitCountryName(territorialUnitById(right.id)), id: right.id },
-          );
-          return countryOrder || Number(left.level || 0) - Number(right.level || 0) || compareItems(left, right);
-        })) {
-          const countryKey = String(item.countryId || 'unassigned');
-          if (countryKey !== previousCountry) {
-            const folderKey = territorialUnitFolderStateKey(group, item.countryId);
-            displayItems.push({
-              groupHeader: true,
-              id: `header:${group}:${countryKey}`,
-              name: territorialUnitCountryName(territorialUnitById(item.id)),
-              folderKey,
-              expanded: state.layerFolders[folderKey] !== false,
-            });
-            previousCountry = countryKey;
-          }
-          if (state.layerFolders[territorialUnitFolderStateKey(group, item.countryId)] !== false) displayItems.push(item);
-        }
-        return displayItems;
-      },
     },
     commands: {
       lockSelection: batchToggleLocked,
       deleteSelection: deleteSelectedFromObjectMenu,
       prune: pruneLayerItemVisibility,
-      syncCategoryLabels: syncMapObjectCategoryLabels,
-      syncStylePanels: syncLayerStylePanels,
       syncCanonicalControls,
       syncSearchClear: () => syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn')),
-      collapseEmptyGroup: group => {
-        expandedLayerStyleGroups.delete(group);
-        state.layerFolders[group] = false;
-      },
       beginHydration: () => {
         const metrics = window.__PANDOLAB_STARTUP_METRICS__;
         if (metrics && metrics.layerHydrationStartedMs == null) metrics.layerHydrationStartedMs = performance.now() - metrics.startedAt;
@@ -611,26 +518,18 @@ export function createAppLayerTreeController(runtime = {}) {
         selectLayerTreeItem(group, id, { mode: 'replace' });
         openObjectActionsMenu(trigger);
       },
-      toggleTerritorialUnitFolder: folderKey => {
-        if (!folderKey.startsWith(territorialUnitFolderStatePrefix)) return;
-        state.layerFolders[folderKey] = state.layerFolders[folderKey] === false;
-        markLayerTreeDirty();
-      },
       toggleFolder: group => {
-        const folderKeys = activeLayerFolderKeys();
-        if (!folderKeys.includes(group)) return;
-        const willExpand = !state.layerFolders[group];
-        for (const key of folderKeys) if (!key.startsWith(territorialUnitFolderStatePrefix)) state.layerFolders[key] = false;
-        state.layerFolders[group] = willExpand;
-        markLayerTreeDirty();
+        if (!['countries', 'rivers', 'lakes'].includes(group)) return;
+        state.layerFolders[group] = !state.layerFolders[group]; markLayerTreeDirty();
       },
-      selectItem: ({ group, id, additive, range }) => {
+      selectItem: ({ group, id, additive, range, orderedRefs }) => {
         const mode = additive || (isMobile() && state.addSelectionMode) ? 'toggle' : 'replace';
-        const didSelect = selectLayerTreeItem(group, id, { mode, range });
+        const didSelect = selectLayerTreeItem(group, id, { mode, range, orderedRefs });
         if (didSelect && isMobile() && mode === 'replace' && !range) returnToMapAfterMobileAction(true);
       },
       closeMenu: closeObjectActionsMenu,
       syncVisibilityToggle: syncLayerVisibilityToggle,
+      setBundleVisibility,
       setItemVisibility: setLayerItemVisibility,
     },
   });

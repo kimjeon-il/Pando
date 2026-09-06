@@ -349,10 +349,16 @@ export function createRenderingDomain({
     return result;
   };
   const renderUserLabelPositions = frameContext => applyUserLabelPositions(frameContext);
-  const renderCountries = (viewStateOrRevision = null) => {
+  const renderCountries = (viewStateOrRevision = null, {
+    presentationOnly = false,
+    gpuResult = null,
+  } = {}) => {
     active();
     const state = countries.getState?.() || {};
     const renderViewState = viewStateOrRevision && typeof viewStateOrRevision === 'object' ? viewStateOrRevision : null;
+    const visualPath = renderViewState?.__mapVisualFrame
+      ? framePath(renderViewState, countries.path)
+      : countries.path;
     countries.renderPendingCountryOverlays?.();
     const highlighted = state.layerVisibility?.countries && state.countriesData
       ? state.countriesData.features.filter(feature => {
@@ -368,7 +374,7 @@ export function createRenderingDomain({
     const fillSelection = countries.countryLayer?.selectAll('path.country-highlight-fill').data(highlighted, feature => feature.id);
     fillSelection?.enter().append('path').attr('class', 'country-highlight-fill');
     const allCountryFills = countries.countryLayer?.selectAll('path.country-highlight-fill');
-    allCountryFills?.attr('d', feature => countries.path?.(feature))
+    allCountryFills?.attr('d', feature => visualPath?.(feature))
       .attr('data-gpu-scene-key', feature => `country-tool-fill:${feature.id}`)
       .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds?.includes(String(feature.id)))
       .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.id)
@@ -379,7 +385,7 @@ export function createRenderingDomain({
     const selection = countries.countryLayer?.selectAll('path.country-shape').data(highlighted, feature => feature.id);
     selection?.enter().append('path').attr('class', 'country-shape gpu-country-highlight');
     const allCountries = countries.countryLayer?.selectAll('path.country-shape');
-    allCountries?.attr('d', feature => countries.path?.(countries.countryOutlineFeature?.(feature)))
+    allCountries?.attr('d', feature => visualPath?.(countries.countryOutlineFeature?.(feature)))
       .attr('data-gpu-scene-key', feature => `country-tool-outline:${feature.id}`)
       .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds?.includes(String(feature.id)))
       .classed('coast-editing', feature => state.tool === 'country-coast' && state.coastEditCountryId === feature.id)
@@ -391,13 +397,13 @@ export function createRenderingDomain({
     const pending = state.layerVisibility?.countries && state.pendingCountryRenderIds?.size
       ? [...state.pendingCountryRenderIds].map(countries.countryFeatureById).filter(Boolean)
       : [];
-    const polygons = [];
-    const strokes = [];
+    const pendingPolygons = [];
+    const pendingStrokes = [];
     for (const feature of pending) {
       const id = String(feature.id || '');
       const geometryRevision = countries.selectionGeometryRevision?.(`country:${id}`, 'pending-country', feature);
-      polygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300, style: { color: countries.countryColor?.(feature), fillAlpha: countries.mapTheme?.().fillAlpha, blendMode: 'normal' } });
-      strokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: { color: countries.mapTheme?.().border, alpha: countries.mapTheme?.().borderAlpha, width: 1, cap: 'round' } });
+      pendingPolygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300, style: { color: countries.countryColor?.(feature), fillAlpha: countries.mapTheme?.().fillAlpha, blendMode: 'normal' } });
+      pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: { color: countries.mapTheme?.().border, alpha: countries.mapTheme?.().borderAlpha, width: 1, cap: 'round' } });
     }
     const highlightStyle = feature => {
       const id = String(feature.id || '');
@@ -406,18 +412,27 @@ export function createRenderingDomain({
       if (state.tool === 'new-country' && state.newCountrySourceIds?.includes(id)) return { color: '#e2c982', fillAlpha: 0.14, stroke: '#ffd77d', width: 2.6 };
       return { color: countries.resolvedInteractionStyle?.().selection.color, fillAlpha: 0.18, stroke: countries.mapTheme?.().border, width: 0.72 };
     };
+    const toolPolygons = [];
+    const toolStrokes = [];
     for (const feature of highlighted) {
       const id = String(feature.id || '');
       const toolStyle = highlightStyle(feature);
       const geometryRevision = countries.selectionGeometryRevision?.(`country:${id}`, 'tool-highlight', feature);
-      polygons.push({ key: `country-tool-fill:${id}`, geometryRevision, geometry: feature.geometry, order: 9000, style: { color: toolStyle.color, fillAlpha: toolStyle.fillAlpha, blendMode: 'normal' } });
-      strokes.push({ key: `country-tool-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: 9010, style: { color: toolStyle.stroke, alpha: 1, width: toolStyle.width, cap: 'round' } });
+      toolPolygons.push({ key: `country-tool-fill:${id}`, geometryRevision, geometry: feature.geometry, order: 9000, style: { color: toolStyle.color, fillAlpha: toolStyle.fillAlpha, blendMode: 'normal' } });
+      toolStrokes.push({ key: `country-tool-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: 9010, style: { color: toolStyle.stroke, alpha: 1, width: toolStyle.width, cap: 'round' } });
     }
-    const sceneChanged = countries.replaceGpuSceneDomain?.('country-overlays', { polygons, strokes });
-    if (sceneChanged !== false) countries.syncGpuRenderScene?.();
-    const frameResult = renderViewState?.__mapVisualFrame
+    const pendingChanged = countries.replaceGpuSceneDomain?.('country-overlays', {
+      polygons: pendingPolygons,
+      strokes: pendingStrokes,
+    });
+    const toolChanged = countries.replaceGpuSceneDomain?.('country-tool-highlights', {
+      polygons: toolPolygons,
+      strokes: toolStrokes,
+    });
+    if (pendingChanged !== false || toolChanged !== false) countries.syncGpuRenderScene?.();
+    const frameResult = !presentationOnly && renderViewState?.__mapVisualFrame
       ? countries.gpuMapRenderer?.renderFrame?.(renderViewState)
-      : null;
+      : gpuResult;
     countries.applyGpuSceneCoverage?.(frameResult);
     countries.applyGpuInteractionCoverage?.(frameResult);
     return frameResult;
@@ -1124,7 +1139,7 @@ export function createRenderingDomain({
     reason || 'gpu-interaction',
   );
   const invalidateEditingOverlays = reason => invalidate(
-    MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.GPU_INTERACTION,
+    MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.VIEW_PRESENTATION,
     reason || 'editing-overlays',
   );
   const invalidateGpuContext = (phase, reason = '') => invalidate(
@@ -1431,7 +1446,7 @@ export function createRenderingDomain({
         try {
           const geometry = feature?.geometry || feature;
           if (geometry && typeof geometry === 'object' && !fallbackGeometryIds.has(geometry)) fallbackGeometryIds.set(geometry, ++fallbackGeometryId);
-          const objectKey = this.getAttribute('data-object-key') || String(feature?.id || '');
+          const objectKey = this?.getAttribute?.('data-object-key') || String(feature?.id || '');
           const revision = selectionGeometryRevision(objectKey, selector, feature);
           return cachedSelectionPath(`sparse:${selector}:${objectKey}:${revision}:${fallbackGeometryIds.get(geometry) || 0}`, feature, frameContext) || '';
         } catch (_) {
@@ -1945,6 +1960,7 @@ export function createRenderingDomain({
     }
     syncBaseView(frame);
     renderProjectedOverlays(frame);
+    renderCountries(frame, { presentationOnly: true, gpuResult });
     renderCountryLabelPositions(frame);
     renderUserLabelPositions(frame);
     if (editingPacketHasViewContent(editingPacket)) {
