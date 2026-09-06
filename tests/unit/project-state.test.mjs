@@ -188,7 +188,7 @@ test('delta autosaves validate sparse overrides before canonical countries are r
   delta.format = 'pandolab-autosave-delta';
   delete delta.countriesData;
   delta.countryDelta = {
-    changed: [{ type: 'Feature', id: 'historical-country:east-germany', properties: { name: '독일 민주 공화국' }, geometry: { type: 'MultiPolygon', coordinates: [] } }],
+    changed: [{ type: 'Feature', id: 'historical-country:deutsche-demokratische-republik', properties: { name: '독일 민주공화국' }, geometry: { type: 'MultiPolygon', coordinates: [] } }],
     removedIds: [],
   };
   delta.countryOverrides = { DEU: { name: '독일 연방공화국' } };

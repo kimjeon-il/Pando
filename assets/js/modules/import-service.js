@@ -174,6 +174,7 @@ export function createCountryImportMergePlanner({
 
     const importedRawUnion = normalizeGeometry(clipper.union(...imported.map(feature => feature.geometry.coordinates)));
     if (!importedRawUnion) throw new Error('가져온 영토를 결합할 수 없습니다.');
+    const donorIds = [];
     result = [];
     for (const existing of current) {
       const id = text(existing?.id);
@@ -190,6 +191,7 @@ export function createCountryImportMergePlanner({
       counts.overlapAreaKm2 += areaKm2(overlap);
       const remainder = normalizeGeometry(clipper.difference(existing.geometry.coordinates, importedRawUnion.coordinates));
       affectedIds.add(id);
+      donorIds.push(id);
       counts.subtracted += 1;
       if (!remainder) {
         counts.deleted += 1;
@@ -207,7 +209,14 @@ export function createCountryImportMergePlanner({
     }
     const countriesData = { type: 'FeatureCollection', features: result };
     counts.residualOverlapAreaKm2 = (await validateCountryCollection(countriesData, affectedIds)).overlapAreaKm2;
-    return { countriesData, counts, affectedIds: [...affectedIds], canCommit: counts.residualOverlapAreaKm2 <= 0.001 };
+    return {
+      countriesData,
+      counts,
+      affectedIds: [...affectedIds],
+      donorIds,
+      transferredGeometry: clone(importedRawUnion),
+      canCommit: counts.residualOverlapAreaKm2 <= 0.001,
+    };
   };
 }
 

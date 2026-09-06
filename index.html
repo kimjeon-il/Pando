@@ -767,9 +767,9 @@
         <label class="ui-field field-group" hidden><span>WorldSnapshot</span><select id="historicalLibrarySnapshotInput"><option value="">스냅샷 선택</option></select></label>
         <button id="historicalLibrarySnapshotBtn" type="button" class="ui-button btn ghost" disabled hidden>없는 항목 추가</button>
         <span class="historical-library-footer-spacer"></span>
-        <button id="historicalLibraryOptionsBackBtn" type="button" class="ui-button btn ghost hidden">상세로 돌아가기</button>
-        <details id="historicalLibraryAddOptions" class="ui-disclosure editor-disclosure hidden"><summary><span>추가 옵션</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>하위 항목</span><select id="historicalLibraryChildDepthInput"><option value="none">포함 안 함</option><option value="level1">1단계 포함</option><option value="all">전체 포함</option></select></label></div></details>
-        <button id="historicalLibraryAddBtn" type="button" class="ui-button btn" disabled>프로젝트에 추가</button>
+        <button id="historicalLibraryOptionsBackBtn" type="button" class="ui-button btn ghost hidden" aria-label="검색 결과로 돌아가기" data-tooltip="검색 결과로 돌아가기">목록</button>
+        <details id="historicalLibraryAddOptions" class="ui-disclosure editor-disclosure hidden" open><summary><span>불러올 범위</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>함께 불러올 하위 영역</span><select id="historicalLibraryChildDepthInput"><option value="none">선택한 항목만</option><option value="level1">선택한 항목 + 바로 아래 하위 영역까지</option><option value="all">선택한 항목 + 모든 단계의 하위 영역까지</option></select><small class="editor-help">선택한 라이브러리 항목을 현재 프로젝트에 불러옵니다.</small></label></div></details>
+        <button id="historicalLibraryAddBtn" type="button" class="ui-button btn" aria-label="선택한 항목을 현재 프로젝트에 추가" data-tooltip="선택한 항목을 현재 프로젝트에 추가" disabled>추가</button>
       </footer>
     </section>
   </div>
@@ -798,8 +798,8 @@
           <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentUnit"><option value="">국가 직속</option></select><small>선택한 국가의 기존 하위단위만 표시합니다. 행정 단계는 상위 영역에서 자동 계산합니다.</small></label>
           <div class="ui-callout gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
           <details id="gisAdvancedMapping" class="ui-disclosure editor-disclosure gis-wide" data-gis-step="2"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body gis-form-grid">
-            <label class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
-            <label class="ui-field field-group"><span>이름 속성</span><select id="gisNameField"></select></label>
+            <label id="gisIdFieldRow" class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
+            <label id="gisNameFieldRow" class="ui-field field-group"><span>이름 속성</span><select id="gisNameField"></select></label>
             <label id="gisUseCountryFieldRow" class="ui-check gis-wide hidden"><input id="gisUseCountryField" type="checkbox" /><span>객체별 소속 국가 속성 사용</span></label>
             <label id="gisCountryFieldRow" class="ui-field field-group"><span>소속 국가 속성</span><select id="gisCountryField"></select><small>값이 비어 있을 때만 공통 소속 국가를 사용합니다. 알 수 없는 값은 오류로 표시됩니다.</small></label>
             <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 영역 속성</span><select id="gisParentField"></select></label>

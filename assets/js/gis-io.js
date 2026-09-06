@@ -460,35 +460,73 @@
     return String(value).slice(0, 48);
   }
 
-  function populateFieldSelect(select, fields, { includeFid = false, includeFeatureId = false, includeStyle = false, selected = '', roleLabel = '속성', fieldExamples = {} } = {}) {
+  function populateFieldSelect(select, fields, { includeFid = false, includeFeatureId = false, includeStyle = false, selected = '', roleLabel = '속성', fieldExamples = {}, fieldFilter = null } = {}) {
     select.replaceChildren();
     if (includeFid) select.add(new Option('원본 FID', '__fid__'));
     else select.add(new Option('사용 안 함', ''));
     if (includeFeatureId) select.add(new Option('GeoJSON Feature.id', '__feature_id__'));
     if (includeStyle) select.add(new Option('QGIS 기본 스타일', '__qgis_style__'));
-    fields.forEach(field => {
+    fields.filter(field => !fieldFilter || fieldFilter(String(field))).forEach(field => {
       const fieldName = String(field);
-      select.add(new Option(`${roleLabel} — ${fieldExampleText(fieldName, fieldExamples)}`, fieldName));
+      const example = fieldExampleText(fieldName, fieldExamples);
+      const exampleSuffix = example === '예시 없음' ? '' : ` (예: ${example})`;
+      select.add(new Option(`${roleLabel} — ${fieldName}${exampleSuffix}`, fieldName));
     });
     select.value = selected || (includeFid ? '__fid__' : '');
+  }
+
+  function isCanonicalField(fields, fieldName) {
+    return fields.some(field => String(field).toLowerCase() === fieldName);
+  }
+
+  function canonicalHistoricalField(fields, candidates) {
+    const lower = new Map(fields.map(field => [String(field).toLowerCase(), String(field)]));
+    for (const candidate of candidates) {
+      const field = lower.get(String(candidate).toLowerCase());
+      if (field) return field;
+    }
+    return '';
+  }
+
+  function syncAutoMappedField(rowId, selectId, automatic) {
+    const row = document.getElementById(rowId);
+    const select = document.getElementById(selectId);
+    row?.classList.toggle('hidden', automatic);
+    if (select) select.disabled = automatic;
   }
 
   function updateWizardFields(descriptor) {
     const fields = descriptor.fields || [];
     const fieldOptions = { fieldExamples: descriptor.fieldExamples || {} };
     const featureIdAvailable = /geojson/i.test(String(descriptor.driverName || ''));
+    const hasHistoricalIdentity = isCanonicalField(fields, 'id')
+      && isCanonicalField(fields, 'name')
+      && (isCanonicalField(fields, 'validfrom') || isCanonicalField(fields, 'valid_from') || isCanonicalField(fields, 'libraryid'));
+    const canonicalIdField = canonicalHistoricalField(fields, ['pandolab_id']) || (hasHistoricalIdentity ? canonicalHistoricalField(fields, ['id']) : '');
+    const canonicalNameField = canonicalHistoricalField(fields, ['pandolab_name'])
+      || (canonicalIdField ? canonicalHistoricalField(fields, ['name']) : '');
+    const hasCanonicalId = Boolean(canonicalIdField);
+    const hasCanonicalName = Boolean(canonicalNameField);
     populateFieldSelect(document.getElementById('gisIdField'), fields, {
       ...fieldOptions,
       roleLabel: 'ID',
       includeFid: true,
       includeFeatureId: featureIdAvailable,
-      selected: autoField(fields, ['pandolab_id', 'ADM0_A3', 'ISO_A3', 'GID_0', 'id']) || (featureIdAvailable ? '__feature_id__' : '__fid__'),
+      selected: canonicalIdField || autoField(fields, ['ADM0_A3', 'ISO_A3', 'GID_0', 'id']) || (featureIdAvailable ? '__feature_id__' : '__fid__'),
     });
-    populateFieldSelect(document.getElementById('gisNameField'), fields, { ...fieldOptions, roleLabel: '이름', selected: autoField(fields, ['pandolab_name', 'NAME_KO', 'NAME_0', 'NAME', 'name', descriptor.qgsLabelField]) });
-    populateFieldSelect(document.getElementById('gisColorField'), fields, { ...fieldOptions, roleLabel: '색상', includeStyle: true, selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill']) });
+    populateFieldSelect(document.getElementById('gisNameField'), fields, { ...fieldOptions, roleLabel: '이름', selected: canonicalNameField || autoField(fields, ['NAME_KO', 'NAME_0', 'NAME', 'name', descriptor.qgsLabelField]) });
+    populateFieldSelect(document.getElementById('gisColorField'), fields, {
+      ...fieldOptions,
+      roleLabel: '색상',
+      includeStyle: true,
+      fieldFilter: field => /(?:^|[_-])(color|fill|stroke|style)(?:$|[_-])/i.test(field) || /(?:Color|Fill|Stroke|Style)$/i.test(field),
+      selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill', 'stroke']),
+    });
     populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['sovereign_id', 'country_id', 'countryId', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
     populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 영역', selected: autoField(fields, ['parent_id', 'parent']) });
     populateFieldSelect(document.getElementById('gisLevelField'), fields, { ...fieldOptions, roleLabel: '행정 단계', selected: autoField(fields, ['admin_level', 'level', 'adm_level']) });
+    syncAutoMappedField('gisIdFieldRow', 'gisIdField', hasCanonicalId);
+    syncAutoMappedField('gisNameFieldRow', 'gisNameField', hasCanonicalName);
     const crsInput = document.getElementById('gisCrsInput');
     crsInput.value = descriptor.crs.source || '';
     crsInput.closest('label').hidden = descriptor.crs.hasCrs;
