@@ -6234,7 +6234,7 @@ const {
     else {
       updateTerritoryComponentSelectionFeedback();
       updateModeButtons();
-      renderingDomain?.invalidateSelection?.('territory-component-mode');
+      editingDomain?.refreshTerritoryOperation('territory-component-mode');
     }
   }
 
@@ -8319,13 +8319,13 @@ const {
       applyRiverPartitionResult(candidates, donorResults);
       setModeBanner(riverPartitionResultMessage(candidates, donorResults, donors), 'annex-mode');
       updateModeButtons();
-      renderingDomain?.invalidateGpuInteraction?.('river-partition-cache-ready');
+      editingDomain?.refreshTerritoryOperation('river-partition-cache-ready');
       return;
     }
     state.annexRiverPartitionStatus = 'loading';
     setModeBanner('피편입국을 가로지르는 강으로 영토 조각을 계산하는 중입니다.', 'annex-mode');
     updateModeButtons();
-    renderingDomain?.invalidateGpuInteraction?.('river-partition-loading');
+    editingDomain?.refreshTerritoryOperation('river-partition-loading');
     try {
       const sources = await gisDomain.loadRiverPartitionFeatures(donors);
       if (!current()) return;
@@ -8353,7 +8353,7 @@ const {
       applyRiverPartitionResult(candidates, donorResults);
       setModeBanner(riverPartitionResultMessage(candidates, donorResults, donors), 'annex-mode');
       updateModeButtons();
-      renderingDomain?.invalidateGpuInteraction?.('river-partition-ready');
+      editingDomain?.refreshTerritoryOperation('river-partition-ready');
     } catch (error) {
       if (!current()) return;
       state.annexRiverPartitionStatus = error?.code === 'RIVER_PARTITION_SOURCE_ERROR' ? 'source-error' : 'error';
@@ -8364,6 +8364,7 @@ const {
         : '강으로 분리되는 영토 조각을 계산하지 못했습니다.', 'annex-mode');
       updateModeButtons();
       reportOperationError(error, '강으로 분리되는 영토 조각을 계산하지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-ANNEX-RIVER-001', 4200);
+      editingDomain?.refreshTerritoryOperation('river-partition-error');
     }
   }
 

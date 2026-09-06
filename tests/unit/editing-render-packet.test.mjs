@@ -14,6 +14,34 @@ const assertDeepFrozen = value => {
   for (const item of Object.values(value)) assertDeepFrozen(item);
 };
 
+test('asynchronous territory results replace cached packets and clear on cancellation', () => {
+  const requests = [];
+  let territoryOperation = null;
+  const editing = createEditingDomain({
+    context: { requestRender: request => requests.push(request) },
+    geometryEditing: { renderPacket: () => ({ territoryOperation }) },
+  });
+  editing.setTool('annex-territory');
+  const loading = editing.createRenderPacket();
+  territoryOperation = { kind: 'annex-territory', phase: 'components', components: [{ key: 'north', selected: false }] };
+  requests.length = 0;
+  assert.equal(editing.refreshTerritoryOperation('river-partition-ready'), true);
+  const ready = editing.createRenderPacket();
+  assert.notEqual(ready, loading);
+  assert.equal(ready.revision, loading.revision + 1);
+  assert.equal(ready.territoryOperation.components[0].key, 'north');
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].kind, 'editing-overlays');
+  assert.equal(editing.createRenderPacket(), ready);
+  territoryOperation = null;
+  editing.refreshTerritoryOperation('river-partition-error');
+  assert.equal(editing.createRenderPacket().territoryOperation, null);
+  editing.setTool('select');
+  requests.length = 0;
+  assert.equal(editing.refreshTerritoryOperation('stale-river-partition-ready'), false);
+  assert.equal(requests.length, 0);
+});
+
 test('editing render packets detach and freeze every public channel', () => {
   const coordinate = [1, 2];
   const source = {

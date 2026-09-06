@@ -60,7 +60,7 @@ test('canonical packet materializes cooperatively in an isolated browser harness
   expect(result.decodedBytes).toBeLessThan(10 * 1024 * 1024);
   expect(result.retainedBytes).toBeLessThan(10 * 1024 * 1024);
   expect(result.featureCount).toBe(258);
-  expect(result.coordinateCount).toBe(548_464);
+  expect(result.coordinateCount).toBe(548_454);
   expect(result.sliceCount).toBeGreaterThan(1);
   expect(result.maxSliceCoordinates).toBeLessThanOrEqual(4096);
   expect(result.longTaskCount).toBe(0);

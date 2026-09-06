@@ -26,6 +26,17 @@ function consecutiveDuplicates(geometry) {
   })));
 }
 
+function pointInRing(point, ring) {
+  let inside = false;
+  for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index++) {
+    const [x, y] = ring[index];
+    const [previousX, previousY] = ring[previous];
+    if ((y > point[1]) !== (previousY > point[1])
+      && point[0] < (previousX - x) * (point[1] - y) / ((previousY - y) || Number.EPSILON) + x) inside = !inside;
+  }
+  return inside;
+}
+
 test('canonical and preview built-in countries require no runtime geometry repair', () => {
   for (const [label, collection] of [['canonical', canonical], ['preview', preview]]) {
     assert.equal(collection.features.length, 258, label);
@@ -68,5 +79,17 @@ test('preview uses the vendored 50m source without an additional simplification 
     const feature = preview.features.find(item => item.id === id);
     assert.ok(feature);
     assert.ok(count(feature.geometry.coordinates) >= 200);
+  }
+});
+
+test('Egypt canonical mainland has no internal holes in either built-in quality level', () => {
+  const representativeCoordinates = [[34.832422, 22.61675475], [34.4595285, 22.2542175]];
+  for (const collection of [canonical, preview]) {
+    const egypt = collection.features.find(feature => feature.id === 'EGY');
+    assert.ok(egypt);
+    const polygons = egypt.geometry.type === 'Polygon' ? [egypt.geometry.coordinates] : egypt.geometry.coordinates;
+    const mainland = polygons[0];
+    assert.equal(mainland.length, 1);
+    for (const coordinate of representativeCoordinates) assert.equal(pointInRing(coordinate, mainland[0]), true, `${collection === canonical ? 'canonical' : 'preview'}:${coordinate}`);
   }
 });
