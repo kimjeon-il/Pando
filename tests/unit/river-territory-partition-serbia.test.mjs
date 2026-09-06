@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { TextDecoder } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import test from 'node:test';
 import { buildRiverTerritoryPartitions, createRiverPartitionWorkspace } from '../../assets/js/modules/river-territory-partition.js';
@@ -12,8 +13,8 @@ const collection = JSON.parse(read('assets/data/countries-ne-5.1.1.geojson'));
 const serbia = collection.features.find(feature => feature.id === 'SRB');
 const polygons = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
 
-function loadSerbiaRivers() {
-  const base = 'assets/data/hydro/v0.13.0/';
+function loadSerbiaRivers(country = serbia) {
+  const base = process.env.PANDOLAB_HYDRO_TEST_BASE || 'assets/data/hydro/v0.13.0/';
   const manifest = JSON.parse(read(`${base}manifest.json`));
   // Execute the production decoder, without network, cache or Worker startup.
   const context = vm.createContext({ TextDecoder, URL, performance, structuredClone, inputManifest: manifest });
@@ -27,7 +28,7 @@ function loadSerbiaRivers() {
   const decoder = vm.runInContext('({ readGlobalIndex, readFeatureMetadata, readPack, mergeLogicalFragments, logicalPacks, packSpecs, featureMetadata })', context);
   decoder.readGlobalIndex(gunzipSync(read(base + manifest.index.url)));
   decoder.readFeatureMetadata(gunzipSync(read(base + manifest.metadata.core.url)));
-  const bounds = polygons(serbia.geometry).flat(2).reduce((b, p) => [
+  const bounds = polygons(country.geometry).flat(2).reduce((b, p) => [
     Math.min(b[0], p[0]), Math.min(b[1], p[1]), Math.max(b[2], p[0]), Math.max(b[3], p[1]),
   ], [180, 90, -180, -90]);
   const ids = new Set([...decoder.featureMetadata.values()].filter(row => row.category === 'river'
@@ -93,4 +94,20 @@ test('production Serbia rivers separate three northern cells from the southern m
   const reordered = buildRiverTerritoryPartitions({ donors, riverFeatures: [...rivers].reverse(), clipper });
   assert.deepEqual(reordered.candidates.map(candidate => candidate.key), result.candidates.map(candidate => candidate.key));
   assert.deepEqual({ donors, rivers }, before);
+});
+
+test('production Croatia confluences restore the two northern river-defined cells', () => {
+  const croatia = collection.features.find(feature => feature.id === 'HRV');
+  const rivers = loadSerbiaRivers(croatia);
+  const before = structuredClone(rivers);
+  const result = buildRiverTerritoryPartitions({
+    donors: [{ countryId: 'HRV', geometry: croatia.geometry, geometryRevision: 1 }],
+    riverFeatures: rivers, clipper: globalThis.polygonClipping,
+  });
+  assert.equal(result.donorResults[0].status, 'ready');
+  // Current source-defined land, not an administrative-area replacement.
+  for (const expectedKm2 of [824, 1087]) {
+    assert.equal(result.candidates.filter(cell => Math.abs(cell.areaM2 / 1e6 - expectedKm2) < 2).length, 1);
+  }
+  assert.deepEqual(rivers, before);
 });
