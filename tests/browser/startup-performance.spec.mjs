@@ -79,7 +79,7 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   await expect(page.locator('#map .map-svg')).toBeVisible();
 
   const viewRevisionBefore = await page.evaluate(() => window.__PANDOLAB_VIEW_REVISION__ || 0);
-  await page.locator('#mobileZoomInBtn').click();
+  await page.locator('#zoomInBtn').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_REVISION__ || 0)).toBeGreaterThan(viewRevisionBefore);
   await page.locator('#mobileMapBtn').click();
   await expect(page.locator('#layerSection')).toHaveClass(/is-hydrating/);

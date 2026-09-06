@@ -40,7 +40,6 @@ export function createPropertyEditorBindings({
   copySelectedHydroForEditing,
   undo,
   redo,
-  zoomBy,
   batchToggleLocked,
   deleteSelectedFromObjectMenu,
   closeObjectActionsMenu,
@@ -192,20 +191,11 @@ export function createPropertyEditorBindings({
 
     listen($('undoBtn'), 'click', undo);
     listen($('redoBtn'), 'click', redo);
-    listen($('zoomOutBtn'), 'click', () => zoomBy(0.8));
-    listen($('zoomInBtn'), 'click', () => zoomBy(1.25));
 
     listen($('focusSelectedObjectBtn'), 'click', () => getPrimary() && focusObjectRef(getPrimary()));
     listen($('objectLockBtn'), 'click', batchToggleLocked);
     listen($('objectDeleteBtn'), 'click', deleteSelectedFromObjectMenu);
     listen($('objectLockMenuBtn'), 'click', () => { closeObjectActionsMenu(); batchToggleLocked(); });
-    listen($('objectCoastReconcileMenuBtn'), 'click', () => {
-      const primary = getPrimary();
-      closeObjectActionsMenu();
-      if (primary?.domain !== 'territorial' || primary.type !== TERRITORIAL_UNIT_TYPES.ADMIN) return;
-      if (territorialUnitById(primary.id)?.properties?.locked === true) return;
-      reconcileAdminCountryCoast(primary.id);
-    });
     listen($('objectDeleteMenuBtn'), 'click', deleteSelectedFromObjectMenu);
     listen($('objectActionsMenu'), 'keydown', event => {
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeObjectActionsMenu({ restoreFocus: true }); return; }

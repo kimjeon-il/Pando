@@ -37,10 +37,6 @@ for (const match of app.matchAll(/document\.createElement\(['"]button['"]\)/g)) 
 }
 
 for (const match of html.matchAll(/<input\b([^>]*\btype=["']color["'][^>]*)>/gi)) {
-  const id = match[1].match(/\bid=["']([^"']+)/i)?.[1] || '';
-  // The preferences picker is intentionally visible; all editor color
-  // controls use the hidden native input behind their custom trigger.
-  if (id === 'preferencesSelectionColorInput') continue;
   if (!/\bui-native-color-input\b/.test(match[1]) || !/aria-hidden=["']true["']/.test(match[1])) {
     failures.push(`visible native color input near index.html offset ${match.index}`);
   }

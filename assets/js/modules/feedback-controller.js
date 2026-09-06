@@ -12,13 +12,6 @@ function toneOf(element) {
   return 'info';
 }
 
-function engineTone(message) {
-  const text = normalizeText(message);
-  if (/오류|실패|불러오지 못/u.test(text)) return 'error';
-  if (/주의|제외|대기/u.test(text)) return 'warning';
-  if (/%|준비|재시도|처리/u.test(text)) return 'working';
-  return 'info';
-}
 
 function activeDialog(documentRef, id) {
   const modal = documentRef.getElementById(id);
@@ -141,22 +134,6 @@ function observeToast(documentRef) {
   });
 }
 
-function observeEngineStatus(documentRef) {
-  const engine = documentRef.getElementById('engineStatus');
-  if (!(engine instanceof HTMLElement)) return;
-  const sync = () => {
-    const message = normalizeText(engine.textContent);
-    if (!message) return;
-    const tone = engineTone(message);
-    engine.dataset.feedbackTone = tone;
-    if (/%|오류|실패|대기|재시도/u.test(message)) {
-      engine.classList.remove('hidden');
-      engine.removeAttribute('aria-hidden');
-    }
-  };
-  sync();
-  new MutationObserver(sync).observe(engine, { childList: true, characterData: true, subtree: true });
-}
 
 export function installFeedbackController(documentRef = document) {
   if (installed) return;
@@ -165,5 +142,4 @@ export function installFeedbackController(documentRef = document) {
   normalizeInlineFeedback(documentRef);
   installProgressSemantics(documentRef);
   observeToast(documentRef);
-  observeEngineStatus(documentRef);
 }

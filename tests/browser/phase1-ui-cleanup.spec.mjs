@@ -12,7 +12,7 @@ test.describe('phase 1 residual UI cleanup', () => {
     await expect(page.locator('.create-toolbar-divider')).toHaveCount(0);
 
     await expect(page.locator('#selectionStatus')).toHaveCount(1);
-    await expect(page.locator('#engineStatus')).toHaveCount(1);
+    await expect(page.locator('#engineStatus')).toHaveCount(0);
     await expect(page.locator('.map-status-state')).toHaveCount(0);
   });
 

@@ -65,8 +65,7 @@
 }
 
 .historical-library-result[aria-selected="true"],
-.ui-tab[aria-selected="true"],
-.map-tool-btn[aria-pressed="true"] {
+.ui-tab[aria-selected="true"]{
   box-shadow: inset 0 -2px color-mix(in srgb, var(--accent) 68%, transparent);
 }
 
@@ -118,17 +117,6 @@
   [role="radio"]:focus-visible {
     outline: 2px solid Highlight;
     outline-offset: var(--ui-v2-focus-offset);
-  }
-
-  :is(
-    .historical-library-result[aria-selected="true"],
-    .ui-tab[aria-selected="true"],
-    .map-tool-btn[aria-pressed="true"],
-    .ui-segment-option[aria-checked="true"]
-  ) {
-    border-color: Highlight;
-    outline: 1px solid Highlight;
-    box-shadow: none;
   }
 
   .ui-alert,

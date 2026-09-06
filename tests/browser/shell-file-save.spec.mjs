@@ -59,13 +59,13 @@ test('desktop shell keeps a stable three-zone topbar and an accessible file menu
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#fileMenu')).toBeVisible();
   await expect(page.locator('#mobileFileBtn')).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '불러오기', '프로젝트 저장', '데이터 내보내기', '환경설정', '키보드 도움말']);
+  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '불러오기', '프로젝트 저장', '데이터 내보내기', '환경설정']);
   const centerAfter = await page.locator('.topbar-center').boundingBox();
   expect(Math.abs(centerAfter.x - centerBefore.x)).toBeLessThanOrEqual(1);
 
   await expect(page.locator('#newProjectBtn')).toBeFocused();
   await page.keyboard.press('End');
-  await expect(page.locator('#keyboardHelpBtn')).toBeFocused();
+  await expect(page.locator('#preferencesBtn')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.locator('#mobileFileBtn')).toBeFocused();
   await expect(page.locator('#fileMenu')).toBeHidden();

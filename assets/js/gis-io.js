@@ -492,7 +492,7 @@
     populateFieldSelect(document.getElementById('gisLevelField'), fields, { ...fieldOptions, roleLabel: '행정 단계', selected: autoField(fields, ['admin_level', 'level', 'adm_level']) });
     const crsInput = document.getElementById('gisCrsInput');
     crsInput.value = descriptor.crs.source || '';
-    crsInput.classList.toggle('hidden', descriptor.crs.hasCrs);
+    crsInput.closest('label').hidden = descriptor.crs.hasCrs;
     crsInput.disabled = descriptor.crs.hasCrs;
     crsInput.required = !descriptor.crs.hasCrs;
     document.getElementById('gisCrsSummary').textContent = descriptor.crs.hasCrs ? `${descriptor.crs.label} · 자동 감지` : '좌표계를 확인할 수 없습니다. EPSG 코드를 입력하세요.';
@@ -653,6 +653,12 @@
     if (!error) return;
     error.textContent = '';
     error.classList.add('hidden');
+  }
+
+  function revealAdvancedField(id) {
+    setImportMobileStep(2);
+    document.getElementById('gisAdvancedMapping').open = true;
+    requestAnimationFrame(() => document.getElementById(id)?.focus());
   }
 
   function showWizardError(message) {
@@ -1035,6 +1041,7 @@
   }
 
   async function openImportWizard(files, options = {}) {
+    document.getElementById('gisAdvancedMapping').open = false;
     wizardOptions = options || {};
     importSourceKind = 'vector';
     importStepRoute = [0, 1, 2, 3, 4];
@@ -1050,6 +1057,9 @@
     updateTargetFields();
     setImportMobileStep(0);
     const form = document.getElementById('gisImportForm');
+    form.querySelectorAll('#gisAdvancedMapping input, #gisAdvancedMapping select').forEach(field => {
+      field.oninvalid = () => revealAdvancedField(field.id);
+    });
     const confirmButton = document.getElementById('gisImportConfirmBtn');
     const cancelButton = document.getElementById('gisImportCancelBtn');
     const layerSelect = document.getElementById('gisLayerSelect');
@@ -1133,9 +1143,9 @@
         if (SOVEREIGN_SELECTION_TARGETS.has(mapping.targetType) && !mapping.targetCountryId && !mapping.independentRegion) {
           throw new Error('권역·행정구역·지방을 가져오려면 소속 국가를 선택해야 합니다.');
         }
-        if (mapping.useFeatureCountryField && !mapping.countryField) throw new Error('객체별 소속 국가에 사용할 속성을 선택하세요.');
+        if (mapping.useFeatureCountryField && !mapping.countryField) { revealAdvancedField('gisCountryField'); throw new Error('객체별 소속 국가에 사용할 속성을 선택하세요.'); }
         const crsInput = document.getElementById('gisCrsInput');
-        if (crsInput?.required && !/^EPSG:\d+$/i.test(crsInput.value.trim())) throw new Error('좌표계를 EPSG 코드로 입력하세요.');
+        if (crsInput?.required && !/^EPSG:\d+$/i.test(crsInput.value.trim())) { revealAdvancedField('gisCrsInput'); throw new Error('좌표계를 EPSG 코드로 입력하세요.'); }
         if (!convertedCache) convertedCache = await convertSelectedLayer(descriptor, mapping, setWizardProgress);
         if (mapping.targetType === 'country' && mapping.openMode === 'merge' && typeof options.planCountryIdentity === 'function') {
           identityPlanCache = await options.planCountryIdentity(convertedCache.countriesData, mapping, {

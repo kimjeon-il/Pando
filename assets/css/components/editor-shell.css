@@ -19,55 +19,6 @@
 
 .topbar :is(button, .ui-button) { min-height: var(--ui-v2-control-sm); }
 
-.map-tool-toolbar {
-  top: var(--ui-map-edge);
-  left: 50%;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-0-5);
-  padding: var(--ui-toolbar-padding);
-  border: 1px solid var(--toolbar-border);
-  border-radius: var(--ui-v2-radius-lg);
-  background: var(--toolbar-bg);
-  box-shadow: var(--control-shadow);
-  transform: translateX(-50%);
-}
-
-.map-tool-toolbar .map-tool-btn {
-  min-height: var(--ui-v2-control-md);
-  height: var(--ui-v2-control-md);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-1-5);
-  padding-inline: var(--ui-space-3);
-  border-color: transparent;
-  background: transparent;
-  color: var(--text-soft);
-  font-size: var(--ui-v2-font-sm);
-  font-weight: var(--ui-v2-weight-semibold);
-}
-
-.map-tool-toolbar .map-tool-btn:hover,
-.map-tool-toolbar .map-tool-btn:focus-visible {
-  border-color: transparent;
-  background: var(--surface-hover);
-  color: var(--text-strong);
-}
-
-.map-tool-toolbar .map-tool-btn:is(.active, [aria-pressed="true"]) {
-  border-color: transparent;
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  color: var(--text-strong);
-}
-
-.map-tool-toolbar .map-tool-btn:is(.active, [aria-pressed="true"]) .ui-icon { color: var(--accent); }
-
-.mode-editing-context:not(.hidden) ~ .map-tool-toolbar,
-body.mode-editing-active .map-tool-toolbar {
-  opacity: .22;
-  pointer-events: none;
-}
-
 .mode-task-window {
   border: 1px solid var(--overlay-border);
   border-radius: var(--ui-v2-radius-lg);
@@ -358,28 +309,14 @@ body.create-menu-open [data-layout="wide"] .left-panel {
 
 [data-layout="wide"] .create-menu-btn { display: none; }
 
-[data-layout="wide"] .map-tool-toolbar {
-  left: calc(var(--map-safe-left) + ((100% - var(--map-safe-left)) / 2));
-}
-
 [data-layout="wide"] .map-command-toolbar {
   left: calc(var(--map-safe-left) + var(--ui-map-edge));
 }
 
 @media (max-width: 1199px) {
-  .map-tool-toolbar { max-width: calc(100vw - (var(--ui-space-6) * 2)); }
 }
 
 @media (max-width: 799px) {
-  .map-tool-toolbar { top: var(--ui-space-2); }
-
-  .map-tool-toolbar .map-tool-btn {
-    min-width: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
-    height: var(--ui-touch-height);
-    justify-content: center;
-    padding-inline: var(--ui-space-2);
-  }
 
   .map-bottom-status {
     height: auto;
@@ -388,14 +325,12 @@ body.create-menu-open [data-layout="wide"] .left-panel {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-tool-toolbar .map-tool-btn,
   .mode-task-window { transition: none; }
 }
 
 /* Editor-owned layout refinements. */
 .map-command-toolbar,
-.map-view-toolbar,
-.mobile-zoom-dock {
+.map-view-toolbar{
   width: max-content;
   max-width: calc(100% - var(--map-safe-left, 0) - var(--map-safe-right, 0) - (var(--ui-map-edge) * 2));
   align-self: start;

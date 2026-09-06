@@ -29,7 +29,6 @@ const ACTION_UI_BINDINGS = Object.freeze({
     Object.freeze({ elementId: 'editCoastBtn', labelSelector: 'strong' }),
   ]),
   'coast-reconcile': Object.freeze([
-    Object.freeze({ elementId: 'objectCoastReconcileMenuBtn', labelSelector: 'span:last-child', icon: true }),
     Object.freeze({ elementId: 'reconcileAdministrativeCoastBtn', labelSelector: 'strong', icon: true }),
   ]),
 });

@@ -85,7 +85,9 @@ export function createMapInputPresentation({
       // Own the complete map surface so native touch/pinch gestures cannot
       // escape through a child SVG hit target and become page zoom.
       element: $('map'),
-      interactiveTarget: target => {
+      interactiveTarget: (target, event) => {
+        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.left-panel,.right-panel')) return true;
+        if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);
         return getInputSnapshot().tool !== 'move' && !getInputSnapshot().spacePanActive && mapInteractionGate.isPandoTarget(target);
       },
@@ -127,7 +129,7 @@ export function createMapInputPresentation({
       }),
       moveStroke: screenPoints => dispatchEditingInteraction('draft-stroke-move', { screenPoints }),
       endStroke: screenPoint => dispatchEditingInteraction('draft-stroke-end', { screenPoint }),
-      cancelStroke: reason => dispatchEditingInteraction('draft-stroke-cancel', { reason }),
+      cancelStroke: reason => { editingDomain?.cancelActiveGesture?.('pinch-or-cancel'); return dispatchEditingInteraction('draft-stroke-cancel', { reason: typeof reason === 'string' ? reason : 'pointer-cancel' }); },
     });
 
     svg.on('click', function() {

@@ -76,6 +76,6 @@ test('search clear control and desktop tooltip follow the shared interaction con
 
 test('mobile controls do not open hover tooltips', async ({ page }) => {
   await openApp(page, viewports[3]);
-  await page.locator('#mobileZoomInBtn').click();
+  await page.locator('#zoomInBtn').click();
   await expect(page.locator('#uiTooltip')).toBeHidden();
 });

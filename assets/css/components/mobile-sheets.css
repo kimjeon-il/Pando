@@ -118,8 +118,6 @@
   .surface-create .create-menu-item { min-height: var(--ui-touch-height); }
   .surface-map .projection-btn { min-height: var(--ui-touch-height); }
 
-  body.mobile-direct-edit .map-tool-toolbar { display: none; }
-
   body.mobile-direct-edit .mode-editing-context {
     position: relative;
     z-index: 60;
