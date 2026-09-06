@@ -35,8 +35,7 @@ for (const viewport of viewports) {
     for (const id of removedIds) await expect(page.locator(`#${id}`)).toHaveCount(0);
     await expect(page.locator('.measurement-layer, .country-component-item')).toHaveCount(0);
     await expect(page.locator('.editor-danger-zone:visible')).toHaveCount(0);
-    await expect(page.locator('#multiSelectionBar')).toContainText('0개 선택됨');
-    await expect(page.locator('#multiSelectionBar button')).toHaveCount(2);
+    await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
 
     const search = page.locator('#layerSearchInput');
     if (!await search.isVisible()) await page.locator('#mobileMapBtn').click();

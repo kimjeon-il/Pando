@@ -17,7 +17,10 @@ test('wide dock owns tasks while compact and mobile retain the original task sur
   const panel = await page.locator('#rightPanel').boundingBox();
   const map = await page.locator('#map').boundingBox();
   expect(panel.y).toBe(52);
-  expect(Math.round(map.x + map.width)).toBe(Math.round(panel.x));
+  // The wide editor overlays the map edge without resizing the map viewport,
+  // so opening the editor must not shift the geographic projection.
+  expect(Math.round(map.x + map.width)).toBe(1440);
+  expect(Math.round(map.x + map.width)).toBeGreaterThan(Math.round(panel.x));
   await expect(page.locator('#leftPanel')).toBeVisible();
   await page.locator('#focusSelectedObjectBtn').click();
   await page.locator('#actionsTabBtn').click();

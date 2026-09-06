@@ -49,14 +49,13 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await page.locator('#focusSelectedObjectBtn').click();
   await expect.poll(() => page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0))).toBeGreaterThan(viewRevisionBeforeFocus);
   await expect(page.locator('#propertyTitle')).toHaveText('폴란드');
-  await expect(page.locator('#multiSelectionBar')).toBeHidden();
+  await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
 
   await search.fill('독일');
   const germany = page.locator('#layerSearchResults .layer-search-result').first();
   await expect(germany).toContainText('독일');
   await germany.click({ modifiers: ['Control'] });
-  await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
-  await expect(page.locator('#multiSelectionBar')).toBeVisible();
+  await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
   await expect(page.locator('#multiProperties')).toBeVisible();
   await expect(page.locator('#propertyTitle')).toHaveText('공통 속성');
   await expect(page.locator('#propertyTypeLabel')).toHaveText('국가');
@@ -64,8 +63,6 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#multiPropertiesVisibilityInput')).toBeChecked();
   await expect(page.locator('#multiPropertiesLockInput')).not.toBeChecked();
   await expect(page.locator('#multiPropertiesDeleteBtn')).toHaveCount(0);
-  await expect(page.locator('#multiSelectionModeBtn')).toBeHidden();
-  await expect(page.locator('#multiSelectionBar button:visible')).toHaveCount(1);
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#multiCountryActions')).toBeVisible();
   await expect(page.locator('#multiBorderEditBtn')).toBeEnabled();
@@ -75,10 +72,9 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('path.boundary-edit-segment.shared')).not.toHaveCount(0, { timeout: 30_000 });
   await expect(page.locator('path.boundary-edit-segment.coast')).toHaveCount(0);
   await page.locator('#modeCancelBtn').click();
-  await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
 
-  await page.locator('#clearMultiSelectionBtn').click();
-  await expect(page.locator('#multiSelectionBar')).toBeHidden();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#multiProperties')).toBeHidden();
   await search.fill('');
   await expect(page.locator('#layerSearchResults')).toBeHidden();
 
@@ -92,7 +88,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('공유국경 편집');
   await page.locator('#modeCancelBtn').click();
-  await expect(page.locator('#multiSelectionBar')).toBeHidden();
+  await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'IRL'));
   await page.locator('#actionsTabBtn').click();
@@ -182,7 +178,7 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   expect(errors).toEqual([]);
 });
 
-test('mobile additive selection uses the explicit selection control and keeps large touch targets', async ({ page }) => {
+test('mobile additive selection uses modifier input and keeps large touch targets', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
   const openLayers = async () => {
@@ -216,12 +212,7 @@ test('mobile additive selection uses the explicit selection control and keeps la
   const poland = page.locator('#layerSearchResults .layer-search-result').first();
   await expect(poland).toContainText('폴란드');
   await poland.click();
-  await expect(page.locator('#multiSelectionBar')).toBeVisible();
-  await expect(page.locator('#multiSelectionCount')).toHaveText('1개 선택됨');
-  await expect(page.locator('#multiSelectionModeBtn')).toHaveText('추가 선택');
-  await page.locator('#multiSelectionModeBtn').click();
-  await expect(page.locator('#multiSelectionModeBtn')).toHaveText('선택 완료');
-  await expect(page.locator('#multiSelectionModeBtn')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
 
   await openLayers();
   await search.fill('독일');
@@ -229,21 +220,16 @@ test('mobile additive selection uses the explicit selection control and keeps la
   await expect(germany).toContainText('독일');
   const touchBox = await germany.boundingBox();
   expect(touchBox.height).toBeGreaterThanOrEqual(48);
-  await germany.click();
-  await expect(page.locator('#multiSelectionCount')).toHaveText('2개 선택됨');
-  await expect(page.locator('#multiSelectionBar')).not.toHaveClass(/hidden/);
+  await germany.click({ modifiers: ['Control'] });
+  await expect(page.locator('#multiProperties')).toBeVisible();
 
   await closeLayers();
-  await page.locator('#multiSelectionModeBtn').click();
-  await expect(page.locator('#multiSelectionModeBtn')).toHaveText('추가 선택');
-  await expect(page.locator('#multiSelectionModeBtn')).toHaveAttribute('aria-pressed', 'false');
 
   await openLayers();
   await search.fill('프랑스');
   const france = page.locator('#layerSearchResults .layer-search-result').first();
   await expect(france).toContainText('프랑스');
   await france.click();
-  await expect(page.locator('#multiSelectionCount')).toHaveText('1개 선택됨');
   expect(errors).toEqual([]);
 });
 

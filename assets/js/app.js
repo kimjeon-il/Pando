@@ -670,7 +670,7 @@ const {
     'undoBtn', 'redoBtn', 'rightPanel',
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
-    'multiSelectionBar', 'multiSelectionCount', 'multiSelectionModeBtn', 'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
+    'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
     'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
     'createBuildTabBtn', 'createLibraryTabBtn', 'createBuildPanel', 'createLibraryPanel', 'addCountryBtn', 'addTerritoryBtn', 'addAdministrativeBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
     'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
@@ -913,7 +913,7 @@ const {
     if (view.createOpen) positionLayerCreateMenu();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     else $('app')?.style.removeProperty('--file-menu-notification-top');
-    queueMapResize('panel-layout');
+    if (layoutMode !== 'wide') queueMapResize('panel-layout');
     return view;
   }
 
@@ -1229,7 +1229,7 @@ const {
     }
     panel.addEventListener('transitionend', event => {
       if (event.target !== panel || !['height', 'width', 'transform'].includes(event.propertyName)) return;
-      queueMapResize('panel-layout');
+      if (layoutMode !== 'wide') queueMapResize('panel-layout');
     });
   }
 
@@ -1239,7 +1239,6 @@ const {
     if (layoutMode !== 'wide' || !surfaceState.editorManuallyCollapsed) openSurface('editor', { automatic: true });
     if (panel.classList.contains('mobile-open')) $('editorScrollBody')?.scrollTo?.({ top: 0, behavior: 'instant' });
     syncMobileNavigation();
-    if (layoutMode === 'wide') queueMapResize('panel-layout');
   }
 
 
@@ -1389,7 +1388,6 @@ const {
     selectedDistributionLayerId: '',
     layerPresentation: normalizeLayerPresentation(),
     selected: null,
-    addSelectionMode: false,
     projection: 'globe',
     layerVisibility: normalizeLayerVisibility(),
     physicalSettings: {
@@ -2002,7 +2000,6 @@ const {
         state.territorialUnits = state.territorialUnits.filter(feature => !removedUnitIds.has(String(feature.id)));
         state.territorialRelations = state.territorialRelations.filter(relation => !removedUnitIds.has(String(relation.unitId)) && !removedUnitIds.has(String(relation.parentId)));
         selectionDomain.clear({ reason: 'batch-delete-clear' });
-        state.addSelectionMode = false;
         objectPropertyController?.show(null);
         markLayerTreeDirty();
         renderingDomain?.invalidateOverlayGeometry?.('batch', 'batch-delete');
@@ -7048,8 +7045,6 @@ const {
       }
     }
     mapModeContextWasActive = editing;
-    const selectionCount = selectionDomain.size();
-    const showSelection = selectionCount > 0;
     if (!editing) state.modeTaskMinimized = false;
     const minimized = editing && state.modeTaskMinimized === true;
     const context = $('modeEditingContext');
@@ -7064,7 +7059,6 @@ const {
       minimize.dataset.tooltip = minimized ? '복원' : '최소화';
       minimize.querySelector('use')?.setAttribute('href', minimized ? '#icon-chevron-down' : '#icon-minus');
     }
-    $('multiSelectionBar')?.classList.toggle('hidden', !showSelection);
     editorWorkspacePresentation.sync({ active: editing, minimized });
     requestAnimationFrame(syncMapHudBounds);
   }
@@ -7983,7 +7977,7 @@ const {
     if (normalizedForced && objectRefExists(normalizedForced)) {
       selectionPerformanceMetrics.direct = true;
       const event = sourceEvent?.sourceEvent || sourceEvent || {};
-      const mode = event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace';
+      const mode = event.ctrlKey || event.metaKey ? 'toggle' : 'replace';
       selectionUiController.applyIntent(normalizedForced, { mode, scope: 'map' });
       selectionPerformanceMetrics.handlerMs = performance.now() - inputStartedAt;
       requestAnimationFrame(() => {
@@ -7992,11 +7986,17 @@ const {
       return true;
     }
     const coord = screenToGeo(screenPoint);
-    if (!coord) return false;
+    if (!coord) {
+      closeObjectChooser();
+      selectionUiController.clear({ reason: 'map-background-selection-clear' });
+      closeSurface('editor', { restoreFocus: false });
+      return false;
+    }
     const candidates = await selectableObjectsAt(screenPoint, coord);
     if (!candidates.length) {
       closeObjectChooser();
-      selectionUiController.clear({ reason: 'empty-object-chooser' });
+      selectionUiController.clear({ reason: 'map-background-selection-clear' });
+      closeSurface('editor', { restoreFocus: false });
       return false;
     }
     const event = sourceEvent?.sourceEvent || sourceEvent || {};
@@ -8005,7 +8005,7 @@ const {
       return true;
     }
     const target = normalizedForced || candidates[0];
-    const mode = event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace';
+    const mode = event.ctrlKey || event.metaKey ? 'toggle' : 'replace';
     selectionUiController.applyIntent(target, { mode, scope: 'map' });
     selectionPerformanceMetrics.handlerMs = performance.now() - inputStartedAt;
     requestAnimationFrame(() => {
@@ -12550,7 +12550,7 @@ const {
       const button = event.target.closest('[data-object-chooser-index]');
       const ref = button ? objectChooserCandidates[Number(button.dataset.objectChooserIndex)] : null;
       if (!ref) return;
-      selectionUiController.applyIntent(ref, { mode: event.ctrlKey || event.metaKey || state.addSelectionMode ? 'toggle' : 'replace', scope: 'map' });
+      selectionUiController.applyIntent(ref, { mode: event.ctrlKey || event.metaKey ? 'toggle' : 'replace', scope: 'map' });
     });
     $('objectChooserList')?.addEventListener('keydown', event => {
       const items = [...event.currentTarget.querySelectorAll('[data-object-chooser-index]')];
@@ -13701,7 +13701,6 @@ const {
       onSelectionChanged: snapshot => {
         const selection = snapshot.selection;
         state.selected = selection.items.find(item => item.key === selection.primaryKey) || null;
-        if (!selection.items.length) state.addSelectionMode = false;
         selectionUiController?.sync?.(snapshot);
       },
       requestRender: reason => renderingDomain?.invalidateSelectionOverlay?.(reason) || false,
@@ -13827,9 +13826,6 @@ const {
       document,
       selectionDomain,
       elements: {
-        multiSelectionCount: $('multiSelectionCount'),
-        multiSelectionMode: $('multiSelectionModeBtn'),
-        clearMultiSelection: $('clearMultiSelectionBtn'),
         selectionStatus: $('selectionStatus'),
       },
       resolveRef: normalizeObjectRef,
@@ -13851,14 +13847,6 @@ const {
         }),
       },
       uiActions: {
-        isAddSelectionMode: () => state.addSelectionMode,
-        toggleAddSelectionMode: () => {
-          if (!isMobile() || !selectionDomain.size()) return false;
-          state.addSelectionMode = !state.addSelectionMode;
-          selectionUiController.syncNow(selectionDomain.snapshot(), { force: true });
-          syncMapContextSurfaces();
-          return true;
-        },
         focusObject: focusObjectRef,
         openEditor: () => {
           const startedAt = performance.now();
@@ -13867,7 +13855,6 @@ const {
         },
         clearPresenter: () => {
           countryPropertyController.clear();
-          state.addSelectionMode = false;
           if ($('selectionStatus')) $('selectionStatus').textContent = '';
           objectPropertyController.show(null);
           syncCountryActionButtons();

@@ -64,16 +64,8 @@ export function createSelectionUiController({
     const current = currentSnapshot.selection;
     const count = current.items.length;
     const multiple = count > 1;
-    if (elements.multiSelectionCount) elements.multiSelectionCount.textContent = `${count}개 선택됨`;
-    if (elements.multiSelectionMode) {
-      const addMode = uiActions.isAddSelectionMode?.() === true;
-      elements.multiSelectionMode.textContent = addMode ? '선택 완료' : '추가 선택';
-      elements.multiSelectionMode.setAttribute('aria-pressed', String(addMode));
-      elements.multiSelectionMode.disabled = count === 0;
-    }
     document?.body?.classList?.toggle('multi-selection-active', multiple);
     if (multiple) {
-      // The layer footer is the single owner of the multi-selection count.
       // Keep the status bar reserved for single-object context information.
       if (elements.selectionStatus) elements.selectionStatus.textContent = '';
       renderMultiple(current);
@@ -155,11 +147,7 @@ export function createSelectionUiController({
     return changed;
   };
 
-  const bind = () => {
-    elements.multiSelectionMode?.addEventListener?.('click', () => uiActions.toggleAddSelectionMode?.());
-    elements.clearMultiSelection?.addEventListener?.('click', () => clear());
-    return api;
-  };
+  const bind = () => api;
 
   const resetProject = () => {
     lastRevision = -1;
