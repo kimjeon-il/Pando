@@ -8,6 +8,7 @@ import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 import { linkGpuProgram } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
+import { createHydroViewRequests } from './hydro-view-requests.js';
 import { isRenderScene } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import {
@@ -482,12 +483,18 @@ export function createGpuMapRenderer(deps) {
     let hydroWorkerReadyPromise = Promise.resolve(false);
     let hydroWorkerReadyResolve = null;
     let hydroWorkerReadyTimer = 0;
-    let hydroViewRequestedKey = '';
-    let hydroViewLoadedKey = '';
     let hydroViewRequestedRevision = 0;
-    let hydroViewRetryAttempts = 0;
-    let hydroViewRetryKey = '';
-    let hydroViewRetryTimer = 0;
+    const hydroViewRequests = createHydroViewRequests({
+      retry: () => requestHydroView(),
+      onSuppressed: () => {
+        performanceMetrics.hydroExhaustedRequestSuppressedCount = Number(performanceMetrics.hydroExhaustedRequestSuppressedCount || 0) + 1;
+      },
+      notify: message => {
+        performanceMetrics.hydroLastError = message.diagnostic || null;
+        const error = Object.assign(new Error(message.message || ''), { diagnostic: message.diagnostic });
+        reportOperationError(error, '현재 화면의 강·호수 데이터를 처리하지 못했습니다. 다시 시도하세요.', 'PL-WATER-003', 4200);
+      },
+    });
     let hydroRequestRevision = 0;
     let hydroVisibleTileCache = { signature: '', tiles: [], key: '', window: null };
     let hydroAcceptedRevision = 0;
@@ -2900,12 +2907,7 @@ export function createGpuMapRenderer(deps) {
         performanceMetrics.hydroTileWindowCacheHitCount += 1;
       }
       const { tiles, key } = hydroVisibleTileCache;
-      if (key === hydroViewLoadedKey || key === hydroViewRequestedKey) return;
-      if (key !== hydroViewRetryKey) {
-        hydroViewRetryKey = key;
-        hydroViewRetryAttempts = 0;
-      }
-      hydroViewRequestedKey = key;
+      if (!hydroViewRequests.start(key, hydroRequestRevision + 1)) return;
       hydroViewRequestedRevision = ++hydroRequestRevision;
       state.physicalLoadState.hydroView = 'loading';
       performanceMetrics.hydroViewRequestCount += 1;
@@ -3048,16 +3050,16 @@ export function createGpuMapRenderer(deps) {
     }
 
     function retryHydroCache() {
+      if (!hydroViewRequests.retryCurrent()) return;
       hydroWorker?.postMessage({ type: 'retry-cache' });
+      requestHydroView();
     }
 
     function receiveHydroWorkerMessage(event) {
       const message = event.data || {};
       if (message.type === 'ready') {
         hydroWorkerReady = true;
-        hydroViewRequestedKey = '';
-        hydroViewLoadedKey = '';
-        hydroViewRetryAttempts = 0;
+        hydroViewRequests.reset();
         state.physicalLoadState.hydroWorker = 'ready';
         if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
         hydroWorkerReadyTimer = 0;
@@ -3080,43 +3082,15 @@ export function createGpuMapRenderer(deps) {
       }
       if (message.type === 'view-ready') {
         const revision = Number(message.revision || 0);
-        if (revision < hydroViewRequestedRevision) return;
-        hydroViewLoadedKey = hydroViewRequestedKey;
-        hydroViewRequestedKey = '';
-        hydroViewRetryAttempts = 0;
-        hydroViewRetryKey = '';
+        if (!hydroViewRequests.ready(revision)) return;
         state.physicalLoadState.hydroView = 'ready';
-        if (hydroViewRetryTimer) clearTimeout(hydroViewRetryTimer);
-        hydroViewRetryTimer = 0;
         return;
       }
       if (message.type === 'view-error') {
         const revision = Number(message.revision || 0);
-        if (revision < hydroViewRequestedRevision) return;
-        const failedKey = hydroViewRequestedKey || hydroViewRetryKey;
-        hydroViewRequestedKey = '';
-        if (failedKey !== hydroViewRetryKey) {
-          hydroViewRetryKey = failedKey;
-          hydroViewRetryAttempts = 0;
-        }
-        hydroViewRetryAttempts += 1;
-        if (message.retryable !== false && hydroViewRetryAttempts <= 3) {
-          state.physicalLoadState.hydroView = 'retrying';
-          const delay = Math.min(2400, 400 * (2 ** (hydroViewRetryAttempts - 1)));
-          if (hydroViewRetryTimer) clearTimeout(hydroViewRetryTimer);
-          hydroViewRetryTimer = setTimeout(() => {
-            hydroViewRetryTimer = 0;
-            requestHydroView();
-          }, delay);
-        } else {
-          state.physicalLoadState.hydroView = 'error';
-          reportOperationError(
-            new Error(message.message || ''),
-            '현재 화면의 강·호수 데이터를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 이동하거나 시도하세요.',
-            'PL-WATER-003',
-            4200,
-          );
-        }
+        const phase = hydroViewRequests.fail(revision, message);
+        if (!phase) return;
+        state.physicalLoadState.hydroView = phase === 'retry-wait' ? 'retrying' : 'error';
         return;
       }
       if (message.type === 'active') {
@@ -3254,14 +3228,9 @@ export function createGpuMapRenderer(deps) {
       hydroWorker = null;
       hydroWorkerReady = false;
       hydroWorkerIncludesGeometry = wantedIncludeGeometry;
-      hydroViewRequestedKey = '';
-      hydroViewLoadedKey = '';
       hydroViewRequestedRevision = 0;
-      hydroViewRetryAttempts = 0;
-      hydroViewRetryKey = '';
+      hydroViewRequests.reset();
       hydroVisibleTileCache = { signature: '', tiles: [], key: '', window: null };
-      if (hydroViewRetryTimer) clearTimeout(hydroViewRetryTimer);
-      hydroViewRetryTimer = 0;
       hydroAcceptedRevision = 0;
       hydroActivePackIds.clear();
       hydroVisibilityDirty = true;

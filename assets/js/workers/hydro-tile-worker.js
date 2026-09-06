@@ -1,7 +1,7 @@
 /* PandoLab v0.24.0 water-system shard, Range, and persistent-cache worker. */
 'use strict';
 
-importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js', 'geographic-boundary-core.js');
+importScripts('../vendor/fflate/fflate.min.js', '../vendor/earcut.min.js', 'geographic-boundary-core.js', 'hydro-shard-store.js');
 
 const textDecoder = new TextDecoder('utf-8');
 let manifest = null;
@@ -18,7 +18,7 @@ const packSpecs = new Map();
 const shardSpecs = new Map();
 const postedPacks = new Set();
 const inFlightPacks = new Map();
-const fullShardMemory = new Map();
+let shardStore;
 let rangeSupportPromise = null;
 let includeGeometry = false;
 let interactionActive = false;
@@ -166,62 +166,22 @@ async function openHydroCache() {
   catch (_) { return null; }
 }
 
-async function cachedFullShard(spec) {
-  if (fullShardMemory.has(spec.id)) return fullShardMemory.get(spec.id);
-  const cache = await openHydroCache();
-  if (!cache) return null;
-  const response = await cache.match(resolveUrl(spec.url));
-  if (!response) return null;
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  fullShardMemory.set(spec.id, bytes);
-  if (fullShardMemory.size > 2) fullShardMemory.delete(fullShardMemory.keys().next().value);
-  return bytes;
-}
-
 async function fetchPackBytes(packId) {
   const pack = packSpecs.get(Number(packId));
-  if (!pack) throw new Error(`수계 pack ${packId} 정보가 없습니다.`);
+  if (!pack) throw new Error('Unknown hydro pack ' + packId);
   const shard = shardSpecs.get(Number(pack.shard));
-  if (!shard) throw new Error(`수계 shard ${pack.shard} 정보가 없습니다.`);
-  const cached = await cachedFullShard(shard);
-  if (cached) return self.fflate.gunzipSync(cached.subarray(pack.offset, pack.offset + pack.length));
-  const url = resolveUrl(shard.url);
-  const response = await fetchWithRetry(url, { headers: { Range: `bytes=${pack.offset}-${pack.offset + pack.length - 1}` } });
-  if (!response.ok) throw new Error(`${shard.url} HTTP ${response.status}`);
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (response.status === 206) return self.fflate.gunzipSync(bytes);
-  if (bytes.length < pack.offset + pack.length) throw new Error(`${shard.url}의 Range 응답이 손상되었습니다.`);
-  const cache = await openHydroCache();
-  if (cache) {
-    try { await cache.put(url, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } })); }
-    catch (_) { /* quota errors leave streaming mode available */ }
-  }
-  fullShardMemory.set(shard.id, bytes);
-  if (fullShardMemory.size > 2) fullShardMemory.delete(fullShardMemory.keys().next().value);
-  return self.fflate.gunzipSync(bytes.subarray(pack.offset, pack.offset + pack.length));
+  const rows = await shardStore.read(shard, [{ ...pack, id: packId }], pack.offset, pack.offset + pack.length);
+  return rows[0][1];
 }
 
 async function detectRangeSupport() {
   const first = [...shardSpecs.values()][0];
   if (!first) return false;
   try {
-    const url = resolveUrl(first.url);
-    const response = await fetchWithRetry(url, { headers: { Range: 'bytes=0-0' } }, { attempts: 2 });
-    if (!response.ok) return false;
+    const response = await fetchWithRetry(resolveUrl(first.url), { headers: { Range: 'bytes=0-0' } }, { attempts: 2 });
     const bytes = new Uint8Array(await response.arrayBuffer());
-    if (response.status === 206 && /^bytes\s+0-0\//i.test(response.headers.get('Content-Range') || '')) return true;
-    if (response.status === 200 && bytes.length) {
-      fullShardMemory.set(first.id, bytes);
-      const cache = await openHydroCache();
-      if (cache) {
-        try { await cache.put(url, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } })); }
-        catch (_) {}
-      }
-    }
-    return false;
-  } catch (_) {
-    return false;
-  }
+    return response.status === 206 && bytes.length === 1 && response.headers.get('Content-Range') === 'bytes 0-0/' + first.bytes;
+  } catch (_) { return false; }
 }
 
 function readUVarint(bytes, cursor) {
@@ -466,31 +426,9 @@ function coalescePackRanges(packIds) {
 
 async function loadPackRangeGroup(group) {
   const shard = shardSpecs.get(Number(group.shard));
-  if (!shard) throw new Error(`수계 shard ${group.shard} 정보가 없습니다.`);
-  const cached = await cachedFullShard(shard);
-  let bytes = cached;
-  let baseOffset = 0;
-  if (!bytes) {
-    const url = resolveUrl(shard.url);
-    const response = await fetchWithRetry(url, { headers: { Range: `bytes=${group.start}-${group.end - 1}` } });
-    if (!response.ok) throw new Error(`${shard.url} HTTP ${response.status}`);
-    bytes = new Uint8Array(await response.arrayBuffer());
-    if (response.status === 206) baseOffset = group.start;
-    else {
-      if (bytes.length < group.end) throw new Error(`${shard.url}의 Range 응답이 손상되었습니다.`);
-      const cache = await openHydroCache();
-      if (cache) {
-        try { await cache.put(url, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } })); }
-        catch (_) { /* foreground rendering must continue */ }
-      }
-      fullShardMemory.set(shard.id, bytes);
-    }
-  }
-  return group.rows.map(row => {
-    const start = row.offset - baseOffset;
-    const compressed = bytes.subarray(start, start + row.length);
-    return [row.id, readPack(self.fflate.gunzipSync(compressed), row.id)];
-  });
+  if (!shard) throw new Error('Unknown hydro shard ' + group.shard);
+  const rows = await shardStore.read(shard, group.rows, group.start, group.end);
+  return rows.map(([id, bytes]) => [id, readPack(bytes, id)]);
 }
 
 function postPack(packId, pack, revision) {
@@ -612,6 +550,7 @@ async function drain(message) {
           postMessage({
             type: 'view-error',
             message: error?.message || String(error),
+            diagnostic: error?.diagnostic || { stage: 'pack-processing' },
             revision: Number(current.revision || 0),
             retryable: error?.name !== 'AbortError' && error?.retryable !== false,
           });
@@ -633,7 +572,7 @@ function scheduleBackgroundCache(force = false) {
   backgroundCacheTimer = setTimeout(() => {
     backgroundCacheTimer = 0;
     backgroundCacheController = new AbortController();
-    backgroundCacheShards(force, backgroundCacheController.signal)
+    backgroundCacheShards(backgroundCacheController.signal)
       .then(completed => { if (completed) cacheCompleted = true; })
       .catch(error => {
         if (error?.name !== 'AbortError') postMessage({ type: 'cache-unavailable', message: error?.message || String(error) });
@@ -652,7 +591,7 @@ async function waitForCacheIdle(signal) {
   }
 }
 
-async function backgroundCacheShards(force = false, signal = null) {
+async function backgroundCacheShards(signal = null) {
   const cache = await openHydroCache();
   if (!cache) {
     postMessage({ type: 'cache-unavailable', message: '이 브라우저에서는 수계 영구 저장소를 사용할 수 없습니다.' });
@@ -665,17 +604,7 @@ async function backgroundCacheShards(force = false, signal = null) {
   for (const shard of shards) {
     await waitForCacheIdle(signal);
     if (signal?.aborted) throw signal.reason || new DOMException('Aborted', 'AbortError');
-    const url = resolveUrl(shard.url);
-    let response = force ? null : await cache.match(url);
-    if (!response) {
-      response = await fetchWithRetry(url, { signal }, { signal });
-      if (!response.ok) throw responseError(shard.url, response);
-      try { await cache.put(url, response.clone()); }
-      catch (error) {
-        postMessage({ type: 'cache-unavailable', message: `수계 저장 공간이 부족합니다. ${error?.message || ''}` });
-        return false;
-      }
-    }
+    await shardStore.full(shard, signal);
     loadedBytes += Number(shard.bytes || 0);
     loadedShards += 1;
     const now = performance.now();
@@ -755,7 +684,13 @@ onmessage = async event => {
       featureMetadata.clear();
       postedPacks.clear();
       inFlightPacks.clear();
-      fullShardMemory.clear();
+      shardStore = self.createHydroShardStore({
+        fetchResponse: fetchWithRetry,
+        openCache: openHydroCache,
+        resolveUrl,
+        gunzip: bytes => self.fflate.gunzipSync(bytes),
+        digest: async bytes => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join(''),
+      });
       cacheCompleted = false;
       firstViewReady = false;
       for (const shard of manifest.shards || []) shardSpecs.set(Number(shard.id), shard);
@@ -786,6 +721,7 @@ onmessage = async event => {
     else if (firstViewReady) scheduleBackgroundCache();
   }
   else if (message.type === 'retry-cache') {
+    shardStore.retry();
     cacheCompleted = false;
     abortBackgroundCache();
     scheduleBackgroundCache(true);

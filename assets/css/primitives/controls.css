@@ -137,13 +137,16 @@
 }
 
 .ui-toggle > input[type="checkbox"]::before {
+  position: absolute;
+  top: 50%;
+  left: 2px;
   width: var(--ui-v2-toggle-thumb-size);
   height: var(--ui-v2-toggle-thumb-size);
   border: 0;
   border-radius: 50%;
   background: var(--surface-elevated);
-  transform: translate(2px, 0);
-  transition: transform .14s ease;
+  transform: translateY(-50%);
+  transition: left .14s ease;
 }
 
 .ui-toggle > input[type="checkbox"]:checked {
@@ -152,7 +155,7 @@
 }
 
 .ui-toggle > input[type="checkbox"]:checked::before {
-  transform: translate(calc(var(--ui-v2-toggle-width) - var(--ui-v2-toggle-thumb-size) - 2px), 0);
+  left: calc(100% - var(--ui-v2-toggle-thumb-size) - 2px);
 }
 
 .ui-toggle > input[type="checkbox"]:focus-visible {
@@ -211,9 +214,6 @@
     height: var(--ui-v2-toggle-mobile-height);
     min-height: var(--ui-v2-toggle-mobile-height);
   }
-
-  .ui-toggle > input[type="checkbox"]::before { transform: translate(2px, 0); }
-  .ui-toggle > input[type="checkbox"]:checked::before { transform: translate(16px, 0); }
 
   :where(.field-group, .ui-field, .gis-form-grid) :where(
     input[type="text"],

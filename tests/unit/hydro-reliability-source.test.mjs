@@ -26,11 +26,11 @@ test('hydro worker probes Range with GET and can abort background cache', () => 
 
 test('renderer separates requested and loaded hydro views and treats cache failure as unavailable', () => {
   const source = read('assets/js/modules/gpu-map-renderer.js');
-  assert.ok(source.includes("let hydroViewRequestedKey = '';"));
-  assert.ok(source.includes("let hydroViewLoadedKey = '';"));
-  assert.ok(source.includes("let hydroViewRetryKey = '';"));
+  assert.ok(source.includes('hydroViewRequests.start(key, hydroRequestRevision + 1)'));
+  assert.ok(source.includes('hydroViewRequests.ready(revision)'));
+  assert.ok(source.includes('hydroViewRequests.fail(revision, message)'));
   assert.ok(source.includes("state.physicalLoadState.hydroCache = 'unavailable';"));
-  assert.ok(source.includes("message.retryable !== false"));
+  assert.ok(read('assets/js/modules/hydro-view-requests.js').includes('message.retryable !== false'));
   assert.ok(!source.includes("hydroViewKey = key"));
 });
 
