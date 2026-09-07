@@ -1119,8 +1119,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .mode-method-btn {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 36px;
-  padding: 0 var(--ui-control-padding-x);
   border-color: transparent;
   border-radius: calc(var(--ui-radius-control) - var(--ui-space-0-5));
   background: transparent;
@@ -1236,11 +1234,11 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 
 .map-view-toolbar {
   top: var(--ui-map-edge);
-  right: auto;
+  left: auto;
+  right: calc(var(--map-safe-right) + var(--ui-map-edge));
   transition: left 170ms ease, right 170ms ease, opacity 170ms ease;
 }
 
-.map-view-toolbar { left: auto; right: calc(var(--map-safe-right) + var(--ui-map-edge)); }
 .map-view-toolbar .icon-btn { flex: 0 0 var(--ui-control-height); }
 .debug-map-panel {
   position: absolute;
@@ -1641,7 +1639,6 @@ body.map-sheet-open #app[data-layout="mobile"] .map-bottom-status { opacity: 0; 
   display: grid;
   position: absolute;
   z-index: 18;
-  right: var(--ui-popover-screen-edge);
   bottom: calc(112px + env(safe-area-inset-bottom));
 }
 #app[data-layout="mobile"] .map-view-toolbar button { width: var(--ui-touch-height); height: var(--ui-touch-height); display: grid; place-items: center; padding: 0; border-radius: var(--ui-radius-control); }
@@ -1871,7 +1868,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   background: transparent;
 }
 .map-view-toolbar .projection-btn { border-radius: var(--ui-radius-control); }
-.mode-method-switch { height: var(--ui-control-height); flex: 0 0 auto; }
+.mode-method-switch { flex: 0 0 auto; }
 .ui-segment-option {
   width: 100%;
   min-width: 0;
@@ -2689,7 +2686,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 #app[data-layout="mobile"] .layer-child-name,
 #app[data-layout="mobile"] .layer-child,
 #app[data-layout="mobile"] .terrain-mode-option { min-height: var(--ui-touch-height); }
-#app[data-layout="mobile"] .layer-child { height: var(--ui-tree-row-height); grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr) var(--ui-tree-action-size-touch); }
+#app[data-layout="mobile"] .layer-child { grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr) var(--ui-tree-action-size-touch); }
 #app[data-layout="mobile"] .layer-child.has-no-menu { grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr); }
 #app[data-layout="mobile"] .layer-visibility-control {
   width: var(--ui-touch-height);
