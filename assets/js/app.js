@@ -11993,8 +11993,8 @@ const {
     return unit ? String(unit.id) : '';
   }
 
-  async function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none') {
-    const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth);
+  async function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none', versionOverrides = {}) {
+    const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth, versionOverrides);
     const pending = descriptors.filter(descriptor => !libraryInstanceId(descriptor.libraryId));
     if (!pending.length) return { added: 0, subtracted: 0, deleted: 0, affectedIds: [] };
     const replacements = pending.filter(descriptor => descriptor.instantiation?.mode === 'territory-replacement');
@@ -12169,9 +12169,9 @@ const {
     list: async () => { await getHistoricalLibraryController(); return historicalLibraryService.list(); },
     search: async options => { await getHistoricalLibraryController(); return historicalLibraryService.search(options); },
     snapshots: async () => { await getHistoricalLibraryController(); return historicalLibraryService.snapshots(); },
-    instantiate: async (id, referenceDate = '', childDepth = 'none') => {
+    instantiate: async (id, referenceDate = '', childDepth = 'none', versionOverrides = {}) => {
       await getHistoricalLibraryController();
-      return instantiateHistoricalLibraryEntities([id], referenceDate, childDepth);
+      return instantiateHistoricalLibraryEntities([id], referenceDate, childDepth, versionOverrides);
     },
   });
 

@@ -2627,7 +2627,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   display: grid;
   gap: var(--ui-menu-gap);
 }
-.create-menu-category + .create-menu-category { margin-top: var(--ui-space-2); }
+.create-menu-category + .create-menu-category { margin-top: 0; }
 .create-menu-route-panel { min-width: 0; }
 .create-menu-route-panel[hidden] { display: none; }
 .create-menu-group {

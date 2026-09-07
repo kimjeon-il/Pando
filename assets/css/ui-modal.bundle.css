@@ -66,6 +66,16 @@ body.modal-open { overflow: hidden; }
   gap: var(--ui-field-gap);
 }
 
+/* Keep filter controls visible so search state is always apparent. */
+.historical-library-filters > summary {
+  min-height: 1.5rem;
+  padding: 0 0 var(--ui-space-1);
+}
+.historical-library-filters .editor-disclosure-body,
+.historical-library-filters:not([open]) .editor-disclosure-body {
+  display: grid;
+}
+
 .historical-library-back {
   display: none;
 }
@@ -144,8 +154,8 @@ body.modal-open { overflow: hidden; }
 /* Historical library, GIS workflows, and file/project actions. */
 
 .historical-library-modal .historical-library-card {
-  width: min(53.75rem, calc(100vw - (var(--ui-space-6) * 2)));
-  max-height: min(86vh, 48.75rem);
+  width: min(47.5rem, calc(100vw - (var(--ui-space-6) * 2)));
+  max-height: min(82vh, 40rem);
 }
 
 .historical-library-modal .ui-dialog-header {
@@ -186,7 +196,7 @@ body.modal-open { overflow: hidden; }
 
 .historical-library-result {
   width: 100%;
-  min-height: 2.875rem;
+  min-height: 2.5rem;
   display: grid;
   gap: var(--ui-space-0-5);
   padding: var(--ui-space-2) var(--ui-space-3);
@@ -238,7 +248,7 @@ body.modal-open { overflow: hidden; }
 .historical-library-preview {
   min-width: 0;
   overflow: auto;
-  padding: var(--ui-space-4);
+  padding: var(--ui-space-3) 0 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -251,6 +261,17 @@ body.modal-open { overflow: hidden; }
   font-weight: var(--ui-weight-bold);
 }
 
+.historical-library-version-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ui-space-2);
+  margin-bottom: var(--ui-space-2);
+}
+.historical-library-version-field > span { color: var(--muted); white-space: nowrap; }
+.historical-library-version-notes:empty { display: none; }
+.historical-library-version-notes { margin: 0 0 var(--ui-space-2); }
+
 .historical-library-preview .editor-help {
   color: var(--muted);
   font-size: var(--ui-font-sm);
@@ -258,31 +279,44 @@ body.modal-open { overflow: hidden; }
 
 .historical-library-preview-map svg { display: block; width: 100%; height: 190px; }
 
+/* Keep the pilot geometry in the DOM for the preview controller, but avoid
+   presenting its low-resolution rendering in the compact detail surface. */
+.historical-library-preview-map { display: none; }
+.historical-library-preview .editor-flag-preview {
+  min-height: 3rem;
+  max-height: 4rem;
+  margin-bottom: var(--ui-space-2);
+}
+
 .historical-library-footer {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--ui-space-2);
   min-height: var(--ui-touch-height);
-  padding-top: var(--ui-space-3);
+  padding-top: var(--ui-space-2);
   border-top: 1px solid var(--border);
 }
 
-.historical-library-footer-spacer { flex: 1 1 auto; }
+.historical-library-footer-spacer { display: none; }
 
 .historical-library-footer #historicalLibraryAddOptions {
-  flex: 1 0 100%;
-  order: -1;
+  min-width: 0;
+  grid-column: 2;
+  order: 0;
 }
+
+.historical-library-footer #historicalLibraryAddOptions > summary { display: none; }
 
 .historical-library-footer #historicalLibraryAddOptions .editor-disclosure-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
   gap: var(--ui-space-1);
 }
 
 .historical-library-footer #historicalLibraryAddOptions .editor-help {
-  margin: var(--ui-space-1) 0 0;
+  display: none;
 }
 
 .ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-card,
@@ -439,10 +473,10 @@ body.modal-open { overflow: hidden; }
 }
 
 .historical-library-card {
-  width: min(65rem, calc(100vw - (var(--ui-dialog-edge) * 2)));
-  max-width: 65rem;
-  height: min(47.5rem, calc(100dvh - (var(--ui-dialog-edge) * 2)));
-  max-height: min(47.5rem, calc(100dvh - (var(--ui-dialog-edge) * 2)));
+  width: min(47.5rem, calc(100vw - (var(--ui-dialog-edge) * 2)));
+  max-width: 47.5rem;
+  height: min(40rem, calc(100dvh - (var(--ui-dialog-edge) * 2)));
+  max-height: min(40rem, calc(100dvh - (var(--ui-dialog-edge) * 2)));
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
   overflow: hidden;
@@ -452,7 +486,7 @@ body.modal-open { overflow: hidden; }
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(17.5rem, 40fr) minmax(22.5rem, 60fr);
-  gap: var(--ui-space-4);
+  gap: var(--ui-space-2);
   overflow: hidden;
 }
 
@@ -465,11 +499,11 @@ body.modal-open { overflow: hidden; }
 }
 
 .historical-library-preview {
-  padding: 0;
-  border: var(--ui-border-width) solid var(--ui-card-border);
-  border-radius: var(--ui-radius-panel);
-  background: var(--ui-card-bg);
-  box-shadow: var(--control-shadow);
+  padding: var(--ui-space-3) 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .historical-library-preview-map {
