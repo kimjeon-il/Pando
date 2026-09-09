@@ -676,7 +676,7 @@ const {
     'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
     'modeMethodSwitch', 'modeLineMethodBtn', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
     'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
-    'saveProjectBtn', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
+    'saveProjectBtn', 'openProjectBtn', 'projectFileInput', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
     'createBuildPanel', 'addCountryBtn', 'addSubunitBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
     'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
     'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
@@ -11916,7 +11916,7 @@ const {
     if (gisFileControllerPromise) return gisFileControllerPromise;
     gisFileControllerPromise = Promise.resolve().then(() => {
         const controller = createGisFileController({
-          elements: { open: $('openGisBtn'), input: $('gisFileInput'), save: $('saveProjectBtn') },
+          elements: { open: $('openGisBtn'), input: $('gisFileInput'), save: $('saveProjectBtn'), projectOpen: $('openProjectBtn'), projectInput: $('projectFileInput') },
           setTarget: target => { requestedVectorTarget = target; },
           onFiles: openGisFiles,
           requireCanonicalData,
@@ -11935,13 +11935,13 @@ const {
     return gisFileControllerPromise;
   }
 
-  async function openGisFiles(files) {
+  async function openGisFiles(files, { sourceKind = '' } = {}) {
     if (!files?.length) return;
     const requestedTarget = requestedVectorTarget;
     requestedVectorTarget = '';
     setActionStatus('파일 확인 중…', 'working', 0);
     try {
-      const outcome = await gisDomain.planImport(files, { targetType: requestedTarget });
+      const outcome = await gisDomain.planImport(files, { targetType: requestedTarget, sourceKind });
       if (outcome?.status === 'planned') await editingDomain.commitImport(outcome.plan);
     } catch (error) {
       if (isAbortError(error)) {
@@ -12885,6 +12885,9 @@ const {
     });
     $('openGisBtn').addEventListener('click', event => {
       void getGisFileController().then(controller => controller.openPicker({ trigger: event.currentTarget }));
+    });
+    $('openProjectBtn').addEventListener('click', () => {
+      void getGisFileController().then(controller => controller.openProjectPicker());
     });
 
     $('newProjectBtn').addEventListener('click', (...args) => projectUi.requestNew(...args));

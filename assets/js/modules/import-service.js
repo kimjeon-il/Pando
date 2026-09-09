@@ -276,10 +276,11 @@ export function createImportService({
     summary: extra.plan?.counts || result.summary || {},
   });
 
-  async function openFiles(files, { targetType = '' } = {}) {
+  async function openFiles(files, { targetType = '', sourceKind = '' } = {}) {
     if (!files?.length) return { status: 'empty' };
     const result = await openImportWizard(files, {
       targetType,
+      sourceKind,
       ...getWizardOptions(),
     });
     const resolvedTarget = normalizeExchangeTarget(result.importPlan?.targetType || result.targetType);

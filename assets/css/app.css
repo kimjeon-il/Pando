@@ -555,9 +555,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .preferences-actions-spacer { flex: 1; }
 .preferences-accent { display: grid; gap: var(--ui-space-3); }
 .preferences-accent-swatches { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); align-items: center; }
-.preferences-accent-chip { width: 36px; height: 36px; min-width: 36px; padding: 0; background: var(--swatch); border: 2px solid var(--border); border-radius: 50%; }
-.preferences-accent-chip:is(:hover, :focus-visible) { background: var(--swatch); outline: 2px solid var(--text-strong); outline-offset: 2px; }
-.preferences-accent-chip[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--text-strong); }
 #preferencesAccentCustomBtn { display: flex; align-items: center; gap: var(--ui-space-2); flex-wrap: wrap; }
 #preferencesAccentValue { font-variant-numeric: tabular-nums; }
 .vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
@@ -1283,7 +1280,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .app-root[data-layout="wide"] .right-panel.collapsed {
   top: 0;
   right: 0;
-  bottom: var(--ui-statusbar-height);
   left: auto;
   width: var(--ui-shell-right-panel-width);
   border: 0;
@@ -1316,7 +1312,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .app-root[data-layout="compact"] .right-panel,
 .app-root[data-layout="compact"] .right-panel.collapsed {
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
-  bottom: var(--ui-control-height);
   width: var(--compact-drawer-width);
   max-height: none;
   border: 1px solid var(--border);
