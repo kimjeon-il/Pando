@@ -108,6 +108,40 @@
 .map-view-settings .ui-choice-row,
 .map-view-settings .field-group { margin: 0; }
 
+.map-view-settings .ui-choice-copy {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-0-5);
+}
+
+.map-view-settings .ui-choice-copy > strong {
+  font-weight: var(--ui-weight-medium);
+}
+
+.map-view-settings .ui-choice-copy > small {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+/* Terrain modes use the same quiet radio-row treatment as distribution modes.
+   Selection is communicated by the radio itself, not a card-sized highlight. */
+.map-view-settings .terrain-mode-option {
+  min-height: var(--ui-v2-control-mobile-height);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.map-view-settings .terrain-mode-option:hover,
+.map-view-settings .terrain-mode-option:has(input:checked) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text);
+}
+
 .map-view-settings .layer-setting-hint:empty { display: none; }
 
 .terrain-display-options,

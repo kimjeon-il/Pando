@@ -11260,8 +11260,8 @@ const {
     const hint = $('distributionLayerModeHint');
     if (!hint) return;
     hint.textContent = mode === DISTRIBUTION_RENDER_MODES.INTENSITY
-      ? '선택한 분포를 비율이 높을수록 진하게 표시합니다.'
-      : '각 영역에서 비율이 가장 높은 분포만 표시합니다.';
+      ? '선택한 분포가 많을수록 색이 진해집니다.'
+      : '각 지역에서 가장 많은 분포 하나만 표시합니다.';
   }
 
 
