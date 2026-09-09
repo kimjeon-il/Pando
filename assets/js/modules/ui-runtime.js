@@ -3,7 +3,11 @@ import { installObjectRegistryPresenter } from './object-registry-presenter.js';
 import { installMobileSheetController } from './mobile-sheet-controller.js';
 import { installRuntimePerformanceMetrics } from './runtime-performance-metrics.js';
 import { installSurfaceMetrics } from './surface-metrics.js';
-import { installOverlayScrollbars } from './overlay-scrollbars.js';
+// Carry the runtime revision into this dependency; otherwise Pages can reuse a
+// cached scrollbar implementation after the versioned UI runtime has updated.
+const scrollbarModuleUrl = new URL('./overlay-scrollbars.js', import.meta.url);
+scrollbarModuleUrl.search = new URL(import.meta.url).search;
+const { installOverlayScrollbars } = await import(scrollbarModuleUrl.href);
 
 let initialized = false;
 

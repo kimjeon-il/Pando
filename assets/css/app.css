@@ -1144,7 +1144,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   font-weight: var(--ui-weight-strong);
   box-shadow: none;
 }
-.projection-btn + .projection-btn { border-left: 1px solid var(--border); }
 .projection-btn:hover { background: var(--surface-hover); color: var(--text); }
 .projection-btn.active {
   background: var(--accent-surface);
@@ -1780,7 +1779,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   font-weight: var(--ui-weight-semibold);
   box-shadow: none;
 }
-.projection-btn + .projection-btn { border-left: 0; }
 .ui-segment-option:hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
 .ui-segment-option.active,
 .ui-segment-option[aria-pressed="true"] {
@@ -3421,7 +3419,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   padding: 0 var(--ui-control-padding-x);
   border-radius: calc(var(--ui-radius-control) - var(--ui-space-0-5));
 }
-.map-view-projection-slot .projection-btn + .projection-btn { border-left: 0; }
 .map-view-projection-slot .projection-btn > span { display: inline; }
 
 .layer-child.is-multi-selected:not(.is-primary-selected),
