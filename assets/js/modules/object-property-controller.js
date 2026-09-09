@@ -90,7 +90,10 @@ export function createObjectPropertyController(runtime = {}) {
   function show(type, title = '', { resetScroll = true, typeLabel = '' } = {}) {
     if (type && resetScroll) setEditorShellView('info');
     $('emptyProperties').classList.toggle('hidden', !!type);
-    $('editorObjectHeader').classList.toggle('hidden', !type);
+    const objectHeader = $('editorObjectHeader');
+    objectHeader.classList.toggle('hidden', !type);
+    objectHeader.classList.toggle('editor-object-header--country', type === 'country');
+    $('countryHeaderFields')?.classList.toggle('hidden', type !== 'country');
     document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type);
     $('editSheetTitle')?.classList.remove('hidden');
     $('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
@@ -101,7 +104,10 @@ export function createObjectPropertyController(runtime = {}) {
     })) $(id)?.classList.toggle('hidden', type !== kind);
     $('propertyTitle').textContent = type ? String(title || '') : '';
     const visibleTypeLabel = typeLabel || (type ? PROPERTY_TYPE_LABELS[type] || type : '');
-    if ($('propertyTypeLabel')) $('propertyTypeLabel').textContent = visibleTypeLabel;
+    if ($('propertyTypeLabel')) {
+      $('propertyTypeLabel').textContent = visibleTypeLabel;
+      $('propertyTypeLabel').classList.add('editor-object-type-label');
+    }
     if (!type && $('editorObjectStatus')) {
       $('editorObjectStatus').textContent = '';
       $('editorObjectStatus').classList.add('hidden');

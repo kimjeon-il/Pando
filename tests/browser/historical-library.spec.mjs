@@ -17,6 +17,9 @@ test('historical library search previews and instantiates a sourced historical c
   await page.locator('#addFromLibraryBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeVisible();
   await expect.poll(() => page.locator('#historicalLibraryResults [data-library-entity-id]').count()).toBeGreaterThan(200);
+  const currentCountry = page.locator('[data-library-entity-id="current-country:DEU"]');
+  await expect(currentCountry).toBeVisible();
+  await expect(currentCountry.locator('.historical-library-result-flag img')).toHaveCount(1);
 
   await page.locator('#historicalLibrarySearchInput').fill('USSR');
   await expect(page.locator('.historical-library-filters summary')).toHaveCount(0);
