@@ -116,7 +116,10 @@ export function createPropertyEditorBindings({
     listen($('changeSubunitTypeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY)
       && openTerritorialTypeModal(TERRITORIAL_UNIT_TYPES.SUBUNIT, getPrimary().id));
     listen($('territorialTypeInput'), 'change', syncTerritorialTypeModal);
-    listen($('territorialTypeSovereignInput'), 'change', syncTerritorialTypeModal);
+    listen($('territorialTypeSovereignInput'), 'change', () => {
+      $('territorialTypeParentInput').value = '';
+      syncTerritorialTypeModal();
+    });
     listen($('territorialTypeParentInput'), 'change', syncTerritorialTypeModal);
     listen($('territorialTypeCancelBtn'), 'click', closeTerritorialTypeModal);
     listen($('territorialTypeModal').querySelector('.confirm-modal-dim'), 'click', closeTerritorialTypeModal);
@@ -129,7 +132,7 @@ export function createPropertyEditorBindings({
     listen($('transferRegionBtn'), 'click', () => {
       setEditorShellView('info');
       $('regionCountryInput').focus();
-      setActionStatus('주권 국가와 상위 영역을 확인한 뒤 변경하세요.', 'success', 3400);
+      setActionStatus('주권 국가와 상위 소속을 확인한 뒤 변경하세요.', 'success', 3400);
     });
 
     listen($('editGenericFeatureBoundaryBtn'), 'click', () => {

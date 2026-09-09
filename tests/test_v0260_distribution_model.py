@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import unittest
 from pathlib import Path
@@ -6,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 MODEL = (ROOT / "assets" / "js" / "modules" / "distribution-model.js").read_text(encoding="utf-8")
 PROJECT_STATE = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
 GENERIC_FEATURE_SERVICE = (ROOT / "assets" / "js" / "modules" / "generic-feature-service.js").read_text(encoding="utf-8")

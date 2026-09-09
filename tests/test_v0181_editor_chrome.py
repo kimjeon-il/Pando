@@ -1,10 +1,11 @@
+from tests.application_source import read_application_sources
 from pathlib import Path
 import re
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 

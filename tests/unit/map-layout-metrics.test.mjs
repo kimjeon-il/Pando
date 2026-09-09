@@ -1,5 +1,5 @@
+import { readApplicationOwners, applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
@@ -7,14 +7,9 @@ import {
   equirectangularCenterForAnchor,
 } from '../../assets/js/modules/map-layout-metrics.js';
 
-const appSource = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+const appSource = readApplicationOwners('map-projection', 'camera-navigation', 'map-host', 'workspace-surfaces', 'global-input-bindings');
 
-function functionSource(name, nextName) {
-  const start = appSource.indexOf(`function ${name}`);
-  const end = appSource.indexOf(`function ${nextName}`, start);
-  assert.ok(start >= 0 && end > start, `${name} source must exist`);
-  return appSource.slice(start, end);
-}
+const functionSource = name => applicationFunctionSource(appSource, name);
 
 test('layout snapshot derives stable projection metrics without accessors', () => {
   const snapshot = createMapLayoutMetricsSnapshot({
@@ -86,5 +81,5 @@ test('render and anchor paths consume cached layout while event paths refresh it
   assert.match(appSource, /queueMapResize\('panel-layout'\)/);
   assert.match(appSource, /queueMapResize\('orientation-change'\)/);
   assert.match(appSource, /queueMapResize\('dpr-change'\)/);
-  assert.equal((appSource.match(/refreshMapLayoutMetrics\(/g) || []).length, 3);
+  assert.equal((appSource.match(/(?<!get )refreshMapLayoutMetrics\(/g) || []).length, 3);
 });

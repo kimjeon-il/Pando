@@ -1,3 +1,4 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,7 +42,7 @@ const previewMeshHeader = meshHeader(previewMeshBytes);
 const canonicalMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/world-mesh-v0.12.6.bin.gz')));
 const canonicalMeshHeader = meshHeader(canonicalMeshBytes);
 const workerSource = fs.readFileSync(path.join(root, 'assets/js/workers/data-loader-worker.js'), 'utf8');
-const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+const appSource = readApplicationOwners('progressive-startup');
 
 function countCoordinates(value) {
   if (Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') return 1;

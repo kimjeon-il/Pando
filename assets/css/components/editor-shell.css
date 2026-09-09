@@ -34,6 +34,17 @@
   min-width: 0;
   min-height: var(--ui-control-height);
 }
+.editor-country-header-fields .editor-country-name-field input,
+.editor-country-header-fields .editor-country-color-trigger {
+  border-color: transparent;
+  background: transparent;
+}
+.editor-country-header-fields .editor-country-name-field input:hover:not(:focus),
+.editor-country-header-fields .editor-country-color-trigger:hover:not(:disabled),
+.editor-country-header-fields .editor-country-color-trigger[aria-expanded="true"] {
+  border-color: var(--ui-control-border-hover);
+  background: var(--ui-control-bg-hover);
+}
 .editor-country-header-fields .editor-country-color-field {
   flex: 0 0 auto;
 }
@@ -497,4 +508,22 @@
   [data-layout="wide"] .map-bottom-status {
     background: color-mix(in srgb, var(--status-bg) 92%, transparent);
   }
+}
+.historical-library-ownership {
+  min-height: 0;
+  max-height: 45dvh;
+  overflow-y: auto;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.historical-library-ownership .field-group[hidden] {
+  display: none;
+}
+
+.historical-library-ownership h3 {
+  margin: 0;
 }

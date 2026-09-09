@@ -90,7 +90,7 @@ export function validateSubunitParentChanges(previous, next, countryExists) {
     }
     if (before?.properties?.unitType === 'subunit' && String(before.properties.parentId || '') === parentId) continue;
     if (!parentId || (!countryExists(parentId) && units.get(parentId)?.properties?.unitType !== 'subunit')) {
-      issues.push(`${unit.id}: 하위단위의 직속 소속은 국가 또는 하위단위여야 합니다.`);
+      issues.push(`${unit.id}: 하위단위의 상위 소속은 국가 또는 하위단위여야 합니다.`);
     }
   }
   return { ok: !issues.length, issues };

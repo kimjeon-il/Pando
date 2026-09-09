@@ -1,9 +1,10 @@
+from tests.application_source import read_application_sources
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 PROJECT_STATE = (ROOT / "assets/js/modules/project-state.js").read_text(encoding="utf-8")
 SAVE_STATE = (ROOT / "assets/js/modules/save-state-controller.js").read_text(encoding="utf-8")
 PERSISTENCE = (ROOT / "assets/js/modules/persistence-service.js").read_text(encoding="utf-8")

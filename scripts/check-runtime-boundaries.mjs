@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readApplicationImplementations, readApplicationOwners } from './lib/application-source.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const modulesDirectory = path.join(root, 'assets/js/modules');
@@ -16,6 +17,11 @@ function localImports(file, source) {
     if (!match[1].startsWith('.')) continue;
     const resolved = path.resolve(path.dirname(file), match[1]);
     const target = path.extname(resolved) ? resolved : `${resolved}.js`;
+    if (sourceByFile.has(target)) imports.push(target);
+  }
+  // Include revisioned dynamic imports in the same cycle graph.
+  for (const match of source.matchAll(/(?:import\s*\(|new URL\s*\()\s*[`'"](\.\.?\/[^`'"?$]+\.js)/g)) {
+    const target = path.resolve(path.dirname(file), match[1]);
     if (sourceByFile.has(target)) imports.push(target);
   }
   return imports;
@@ -121,10 +127,14 @@ for (const file of javascriptFiles) {
   }
 }
 
-const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
-const appLogicalLineCount = appSource.split(/\r?\n/).filter(line => line.trim()).length;
-if (appLogicalLineCount > 14100) {
-  throw new Error(`app.js logical line ratchet exceeded: ${appLogicalLineCount} > 14100`);
+const entrySource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+const appSource = readApplicationImplementations();
+const appLogicalLineCount = entrySource.split(/\r?\n/).filter(line => line.trim()).length;
+if (appLogicalLineCount > 400) {
+  throw new Error(`app.js logical line ratchet exceeded: ${appLogicalLineCount} > 400`);
+}
+if (/\bfunction\b|=>|document\.|addEventListener\(|\bnew\s+(?:Map|Set|Worker)\b/.test(entrySource)) {
+  throw new Error('app.js must contain only revisioned loading, composition and lifecycle startup');
 }
 const bootstrapSource = fs.readFileSync(path.join(root, 'assets/js/bootstrap.js'), 'utf8');
 if (appSource.includes("worker.postMessage({ type: 'execute'")) {
@@ -370,10 +380,10 @@ const coordinatorPublicFacade = coordinatorSource.slice(coordinatorSource.lastIn
 if (/\n\s*revision\s*[:,]/.test(coordinatorPublicFacade)) {
   throw new Error('Coordinator must expose renderRevision through getStats only');
 }
-if (!appSource.includes("invalidateViewport?.('resize')")) {
+if (!readApplicationOwners('map-host').includes("invalidateViewport?.('resize')")) {
   throw new Error('app.js resize path must use RenderingDomain.invalidateViewport');
 }
-if (!appSource.includes("invalidateProjection?.('projection-change')")) {
+if (!readApplicationOwners('map-settings').includes("invalidateProjection?.('projection-change')")) {
   throw new Error('app.js projection path must use RenderingDomain.invalidateProjection');
 }
 if (appSource.includes('renderAll(')) throw new Error('app.js must not retain renderAll compatibility calls');
@@ -421,13 +431,13 @@ for (const [source, methods] of removedDomainFacadeMethods) {
   }
 }
 const lifecycleSource = sourceByFile.get(path.join(modulesDirectory, 'application-lifecycle.js')) || '';
-if (!appSource.includes('createApplicationLifecycle({') || !appSource.includes('void lifecycle.start();')) {
+if (!readApplicationOwners('lifecycle-assembly').includes('createApplicationLifecycle({') || !entrySource.includes('void application.start();')) {
   throw new Error('app.js must start through the application composition root');
 }
 if (!lifecycleSource.includes('if (!event.persisted) dispose();')) {
   throw new Error('domain disposal must preserve pages retained in the back-forward cache');
 }
-if (!appSource.includes('renderingDomain, editingDomain, selectionDomain, gisWorkflow, gisDomain, projectDomain]')) {
+if (!readApplicationOwners('lifecycle-assembly').includes('renderingDomain, editingDomain, selectionDomain, gisWorkflow, gisDomain, projectDomain]')) {
   throw new Error('app.js must dispose every domain in visual-to-data ownership order');
 }
 if (!lifecycleSource.includes('resource?.dispose?.()')) {

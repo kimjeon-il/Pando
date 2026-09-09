@@ -1,9 +1,10 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
-const app = fs.readFileSync(new URL('assets/js/app.js', root), 'utf8');
+const app = readApplicationOwners('runtime-dependencies', 'project-session', 'domain-assembly', 'river-candidates', 'territory-components');
 const renderer = fs.readFileSync(new URL('assets/js/modules/gpu-map-renderer.js', root), 'utf8');
 const worker = fs.readFileSync(new URL('assets/js/workers/river-territory-partition-worker.js', root), 'utf8');
 

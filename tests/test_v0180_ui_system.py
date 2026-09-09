@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import re
 import unittest
@@ -11,7 +12,7 @@ LAYER_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_te
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 PHASE_CSS = (ROOT / "assets" / "css" / "phase1-ui-cleanup.css").read_text(encoding="utf-8")
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "layer-tree-controller.js").read_text(encoding="utf-8")
 
 

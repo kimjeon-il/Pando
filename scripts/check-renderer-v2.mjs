@@ -1,3 +1,4 @@
+import { readApplicationOwners } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -17,7 +18,7 @@ const stroke = read('assets/js/modules/gpu-stroke-renderer.js');
 const scene = read('assets/js/modules/render-scene.js');
 const coordinator = read('assets/js/modules/map-render-coordinator.js');
 const meshWorker = read('assets/js/workers/gpu-mesh-worker.js');
-const app = read('assets/js/app.js');
+const app = readApplicationOwners('map-host', 'gpu-scene');
 const css = read('assets/css/app.css');
 
 expect(renderer.includes('createRenderDevice({'), 'main GPU renderer must own the RenderDevice');

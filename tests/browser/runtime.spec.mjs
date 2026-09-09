@@ -961,7 +961,11 @@ test('layer folders expose presentation controls while global view settings stay
   const terrainOptions = page.locator('#terrainDisplayOptions');
   const terrainStrength = page.locator('#terrainStrengthInput');
   await expect(page.locator('#mapViewSection #terrainVisible')).toHaveCount(1);
-  await expect(page.locator('label:has(#terrainVisible)')).toContainText('지형 음영 표시');
+  await expect(page.locator('label:has(#terrainVisible)')).toContainText('지형 표시');
+  await expect(page.locator('#terrainPoliticalRadio').locator('xpath=..')).toContainText('국가 색상 유지');
+  await expect(page.locator('#terrainPhysicalRadio').locator('xpath=..')).toContainText('지형 높낮이 색상');
+  await expect(page.locator('.terrain-strength-heading')).toContainText('입체감');
+  await expect(terrainStrength).toHaveAttribute('aria-label', '지형 입체감');
   await expect(terrainVisible).toHaveAttribute('aria-expanded', 'true');
   await expect(terrainOptions).toBeVisible();
   await expect(terrainStrength).toHaveJSProperty('value', '32');

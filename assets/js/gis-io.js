@@ -524,7 +524,7 @@
       selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill', 'stroke']),
     });
     populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['sovereign_id', 'country_id', 'countryId', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
-    populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 영역', selected: autoField(fields, ['parent_id', 'parent']) });
+    populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 소속', selected: autoField(fields, ['parent_id', 'parent']) });
     populateFieldSelect(document.getElementById('gisLevelField'), fields, { ...fieldOptions, roleLabel: '행정 단계', selected: autoField(fields, ['admin_level', 'level', 'adm_level']) });
     syncAutoMappedField('gisIdFieldRow', 'gisIdField', hasCanonicalId);
     syncAutoMappedField('gisNameFieldRow', 'gisNameField', hasCanonicalName);
@@ -624,10 +624,19 @@
     if (!select) return;
     const selected = select.value;
     const ownerId = document.getElementById('gisTargetCountry')?.value || '';
-    select.replaceChildren(new Option('국가 직속', ''));
-    for (const unit of (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId))) {
-      select.add(new Option(`${unit.name}${Number(unit.level) > 0 ? ` · ${unit.level}단계` : ''}`, unit.id));
+    const country = (wizardOptions.countryOptions || []).find(item => String(item.id) === String(ownerId));
+    select.replaceChildren(new Option(country?.name || '소속 국가 선택', ''));
+    const candidates = (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId));
+    const seen = new Set();
+    function append(parentId, depth) {
+      for (const unit of candidates.filter(item => String(item.parentId || ownerId) === parentId)) {
+        if (seen.has(unit.id)) continue;
+        seen.add(unit.id);
+        select.add(new Option(`${'　'.repeat(depth)}${unit.name}${Number(unit.level) > 0 ? ` · ${unit.level}단계` : ''}`, unit.id));
+        append(String(unit.id), depth + 1);
+      }
     }
+    append(String(ownerId), 1);
     if ([...select.options].some(option => option.value === selected)) select.value = selected;
   }
 
@@ -661,6 +670,7 @@
     document.getElementById('gisLevelFieldRow')?.classList.toggle('hidden', target !== 'subunit');
     document.getElementById('gisColorFieldRow')?.classList.toggle('hidden', target === 'country');
     populateParentUnits();
+    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'subunit' || document.getElementById('gisParentUnit').options.length < 2);
     const modeSelect = document.getElementById('gisOpenMode');
     const modeRow = document.getElementById('gisOpenModeRow');
     if (importSourceKind === 'project') modeSelect.value = 'replace';
@@ -1190,7 +1200,7 @@
         document.getElementById(id).onchange = () => { invalidatePrepared(); updateTargetFields(); };
       }
       document.getElementById('gisUseCountryField').onchange = () => { invalidatePrepared(); updateTargetFields(); };
-      document.getElementById('gisTargetCountry').onchange = () => { invalidatePrepared(); updateTargetFields(); };
+      document.getElementById('gisTargetCountry').onchange = () => { document.getElementById('gisParentUnit').value = ''; invalidatePrepared(); updateTargetFields(); };
       document.getElementById('gisIndependentRegion').onchange = () => { invalidatePrepared(); updateTargetFields(); };
       document.getElementById('gisOpenModeControl').onclick = event => {
         const button = event.target.closest('[data-gis-open-mode]');

@@ -105,11 +105,11 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       ? territorialUnitMatchesFromImportedValue(rawParentValue, countryId, knownUnits)
       : [];
     const mappedParent = parentMatches.length === 1 ? parentMatches[0] : null;
-    if (rawParentValue && parentMatches.length > 1) throw createGisImportError(`객체별 상위 영역 값 "${rawParentValue}"이(가) 여러 영역과 일치합니다. 고유 ID로 직접 연결하세요.`, {
+    if (rawParentValue && parentMatches.length > 1) throw createGisImportError(`객체별 상위 소속 값 "${rawParentValue}"이(가) 여러 영역과 일치합니다. 고유 ID로 직접 연결하세요.`, {
       category: RELIABILITY_ERROR_CATEGORIES.RELATION,
       objectIds: [String(raw.id ?? index + 1), ...parentMatches.map(feature => String(feature.id))],
     });
-    if (rawParentValue && !mappedParent) throw createGisImportError(`객체별 상위 영역 값 "${rawParentValue}"을(를) 현재 지도에서 찾을 수 없습니다.`, {
+    if (rawParentValue && !mappedParent) throw createGisImportError(`객체별 상위 소속 값 "${rawParentValue}"을(를) 현재 지도에서 찾을 수 없습니다.`, {
       category: RELIABILITY_ERROR_CATEGORIES.RELATION,
       objectIds: [String(raw.id ?? index + 1), rawParentValue],
     });
@@ -193,7 +193,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id, feature.properties.parentId],
       });
-      if (!container?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가 또는 상위 영역을 찾을 수 없습니다.`, {
+      if (!container?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가 또는 상위 소속을 찾을 수 없습니다.`, {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id, countryId, feature.properties.parentId],
       });
@@ -201,7 +201,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         ? null
         : normalizeClippedLandGeometry(clipper.difference(feature.geometry.coordinates, container.geometry.coordinates));
       if (outside && sphericalGeometryAreaKm2(outside) > Math.max(0.0001, sphericalGeometryAreaKm2(feature.geometry) * 1e-9)) {
-        throw new Error(`${territorialUnitName(feature)}의 전체 geometry가 선택한 국가 또는 상위 영역 안에 포함되지 않습니다.`);
+        throw new Error(`${territorialUnitName(feature)}의 전체 geometry가 선택한 국가 또는 상위 소속 안에 포함되지 않습니다.`);
       }
       const context = {
         unitType: kind,
@@ -778,6 +778,13 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         technicalMessage: `Residual overlap: ${validation.overlapAreaKm2} km2`,
       });
     }
+    result.assertCurrent?.();
+    const preparedUnits = result.preparedTerritorialUnits || [];
+    const existingIds = new Set([...draftCountries.features, ...(state.territorialUnits || [])].map(feature => String(feature.id)));
+    for (const unit of preparedUnits) {
+      if (existingIds.has(String(unit.id))) throw new Error('추가할 하위단위 ID가 중복됩니다.');
+      existingIds.add(String(unit.id));
+    }
     const before = snapshotEditable();
     try {
       state.countryOverrides = draftOverrides;
@@ -785,6 +792,14 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       const dependentTargetId = String(result.landDependentsTargetId || '');
       if (dependentTargetId && plan.transferredGeometry && Array.isArray(plan.donorIds)) {
         transferLandDependents(plan.transferredGeometry, plan.donorIds, dependentTargetId);
+      }
+      for (const transfer of result.landTransfers || []) {
+        transferLandDependents(transfer.geometry, transfer.donorIds, transfer.targetId);
+      }
+      if (preparedUnits.length) {
+        state.territorialUnits.push(...deepClone(preparedUnits));
+        normalizeProjectObjects();
+        markLayerTreeDirty();
       }
       pruneLayerItemVisibility();
       for (const key of Object.keys(state.labelSettings || {})) {
@@ -807,20 +822,26 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       scheduleCountryLabelAnchors(null, 10);
       markCountryGeometriesChanged(plan.affectedIds || importedIds);
       commitHistorySnapshot(before);
-      selectionUiController.clear({ reason: 'gis-merge-selection-clear' });
-      renderingDomain?.invalidateCountryPatch?.('gis-merge-committed');
-      queueAutosave();
-      setActionStatus(result.commitStatus || 'GIS 레이어를 한 번의 편집 작업으로 병합했습니다.', 'success', 3200);
-      return {
-        added: Number(plan.counts?.added || 0),
-        subtracted: Number(plan.counts?.subtracted || 0),
-        deleted: Number(plan.counts?.deleted || 0),
-        affectedIds: [...new Set(plan.affectedIds || [])],
-      };
     } catch (error) {
       restoreCountryEditSnapshot(before);
       throw error;
     }
+    // Canonical data and history are committed. Notification/autosave failures
+    // must not restore data while leaving an already committed Undo entry.
+    try {
+      selectionUiController.clear({ reason: 'gis-merge-selection-clear' });
+      renderingDomain?.invalidateCountryPatch?.('gis-merge-committed');
+      queueAutosave();
+      setActionStatus(result.commitStatus || 'GIS 레이어를 한 번의 편집 작업으로 병합했습니다.', 'success', 3200);
+    } catch (error) {
+      console.error('[PL-LIB-POST-COMMIT]', error);
+    }
+    return {
+      added: Number(plan.counts?.added || 0),
+      subtracted: Number(plan.counts?.subtracted || 0),
+      deleted: Number(plan.counts?.deleted || 0),
+      affectedIds: [...new Set(plan.affectedIds || [])],
+    };
   }
 
   return Object.freeze({

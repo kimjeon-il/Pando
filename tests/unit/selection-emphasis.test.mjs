@@ -1,3 +1,4 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -229,7 +230,7 @@ test('SelectionPass is independent from canvas and shares the main renderer cont
 });
 
 test('selection data travels through one packet contract and main-renderer interaction draw', async () => {
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const app = readApplicationOwners('gpu-scene', 'domain-assembly');
   const packet = await readFile(new URL('../../assets/js/modules/selection-packet.js', import.meta.url), 'utf8');
   const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   assert.match(packet, /countryBoundaryRevision/);
@@ -243,7 +244,7 @@ test('selection data travels through one packet contract and main-renderer inter
 });
 
 test('selection overlay commits staged SVG only after GPU draw coverage is known', async () => {
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const app = readApplicationOwners('gpu-scene', 'domain-assembly');
   const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   const start = rendering.indexOf('const renderSelectionOverlayFrame');
   const end = rendering.indexOf('const renderSelection =', start);
@@ -259,7 +260,7 @@ test('selection overlay commits staged SVG only after GPU draw coverage is known
 });
 
 test('map hover delegates ownership and invalidation to the selection domain', async () => {
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const app = readApplicationOwners('gpu-scene', 'domain-assembly');
   const start = app.indexOf('function setMapHover');
   const end = app.indexOf('\n  }', start);
   const source = app.slice(start, end);

@@ -1,3 +1,4 @@
+import { readApplicationOwners } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -15,7 +16,7 @@ const services = [
   'assets/js/modules/distribution-service.js',
   'assets/js/modules/generic-feature-service.js',
 ];
-const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+const appSource = readApplicationOwners('history-assembly', 'domain-assembly');
 const projectDomainSource = fs.readFileSync(path.join(root, 'assets/js/modules/project-domain.js'), 'utf8');
 const mutationRunnerSource = fs.readFileSync(path.join(root, 'assets/js/modules/document-mutation-runner.js'), 'utf8');
 const legacyMutationCallback = ['run', 'Document', 'Mutation'].join('');

@@ -1,3 +1,4 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -154,7 +155,7 @@ test('editing domain owns draft stroke lifecycle and delegates only platform ada
 });
 
 test('app bootstrap wires every domain factory', () => {
-  const source = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+  const source = readApplicationOwners('domain-assembly', 'map-audit');
   for (const factory of ['createProjectDomain', 'createSelectionDomain', 'createRenderingDomain', 'createGisDomain', 'createEditingDomain']) {
     assert.match(source, new RegExp(`${factory}\\(`));
   }
@@ -162,7 +163,7 @@ test('app bootstrap wires every domain factory', () => {
 });
 
 test('app delegates interaction rendering to rendering domain', () => {
-  const source = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+  const source = readApplicationOwners('domain-assembly', 'map-audit');
   for (const name of [
     'renderDraft',
     'renderGeometryPreview',

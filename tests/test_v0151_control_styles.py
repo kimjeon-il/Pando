@@ -1,3 +1,4 @@
+from tests.application_source import read_application_sources
 from pathlib import Path
 import unittest
 
@@ -34,7 +35,7 @@ class V0151ControlStyleTests(unittest.TestCase):
 
     def test_mobile_zoom_dock_uses_shared_shell_without_duplicate_scale(self):
         self.assertNotIn('id="mobileZoomValue"', INDEX)
-        self.assertNotIn("mobileZoomValue", (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8"))
+        self.assertNotIn("mobileZoomValue", read_application_sources(ROOT))
         self.assertIn("grid-template-rows: repeat(3, var(--ui-touch-height));", CSS)
         self.assertIn("padding: var(--ui-toolbar-padding);", CSS)
         self.assertIn('class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-zoom-dock"', INDEX)

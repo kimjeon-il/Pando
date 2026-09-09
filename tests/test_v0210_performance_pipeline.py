@@ -1,11 +1,12 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 EDIT_WORKER = (ROOT / "assets" / "js" / "workers" / "map-edit-worker.js").read_text(encoding="utf-8")
 CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 TRANSACTION = (ROOT / "assets" / "js" / "modules" / "country-edit-transaction.js").read_text(encoding="utf-8")

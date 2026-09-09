@@ -1,3 +1,4 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -5,7 +6,7 @@ import { saveUserPreferences } from '../../assets/js/modules/user-preferences.js
 
 const source = file => readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8');
 const html = source('index.html');
-const app = source('assets/js/app.js');
+const app = readApplicationOwners('environment', 'map-settings', 'editor-bindings');
 test('removed entrypoints have no DOM or app bindings', () => {
   for (const id of ['mapToolToolbar', 'mobileZoomInBtn', 'mobileZoomOutBtn', 'mobileWorldBtn', 'keyboardHelpBtn', 'shortcutHelpModal', 'engineStatus', 'objectCoastReconcileMenuBtn']) {
     assert.ok(!html.includes(`id="${id}"`), id);

@@ -1,8 +1,9 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const appSource = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+const appSource = readApplicationOwners('camera-navigation', 'object-commands');
 const htmlSource = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
 
 function functionSource(name, nextName) {
