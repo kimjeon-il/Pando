@@ -66,6 +66,15 @@
   width: min(var(--ui-v2-country-color-popover-width), calc(100vw - (var(--ui-popover-screen-edge) * 2)));
 }
 .editor-object-type-label { display: none; }
+.editor-focus-action {
+  width: var(--ui-control-height);
+  min-width: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+}
+.editor-focus-action .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 .editor-flag-trigger {
   flex: 0 0 auto;
   padding: var(--ui-space-1);
@@ -110,6 +119,14 @@
 .app-root[data-layout="mobile"] .workspace:has(.right-panel.mobile-open) .status-selection,
 .workspace:has(.mode-action-bar:not(.hidden)) .status-primary {
   display: none;
+}
+
+@media (max-width: 799px) {
+  .editor-focus-action {
+    width: var(--ui-touch-height);
+    min-width: var(--ui-touch-height);
+    min-height: var(--ui-touch-height);
+  }
 }
 
 [data-layout="wide"] .surface-map { width: var(--ui-shell-left-panel-width); }

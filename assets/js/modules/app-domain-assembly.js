@@ -417,7 +417,7 @@ export function createDomainAssembly() {
         cancelFrame: handle => cancelAnimationFrame(handle),
         onTooShort: config => (0, dependencies.setActionStatus)(`형상이 너무 짧습니다. ${config?.shape === 'polygon' ? '영역의 경계를 더 크게' : '선을 더 길게'} 그려주세요.`, 'error', 3200),
         onFinished: () => {
-          if (!(0, dependencies.activeCutDraftSourceGeometry)()) (0, dependencies.setModeBanner)('꼭짓점을 드래그해 미세조정한 뒤 완료하세요.');
+          if (!(0, dependencies.activeCutDraftSourceGeometry)()) (0, dependencies.setModeBanner)('꼭짓점을 드래그해 미세조정하세요.');
         },
       },
       geometryEditing: {

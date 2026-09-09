@@ -75,16 +75,26 @@ export function createObjectPropertyController(runtime = {}) {
     const form = activeForm(type);
     const sections = form ? [...form.children].filter(element => !element.hidden && !element.classList.contains('hidden')) : [];
     const hasActions = sections.some(element => element.matches?.('.editor-action-section') && !element.classList.contains('editor-relation-section'));
-    const relationAvailable = sections.some(element => element.matches?.('.editor-relation-section'));
+    const relationSections = sections.filter(element => element.matches?.('.editor-relation-section'));
+    const relationAvailable = relationSections.length > 0;
     const commonAvailable = !!type && [...document.querySelectorAll('.editor-common-actions')].some(element => !element.classList.contains('hidden'));
     const hasRelation = relationAvailable || commonAvailable;
+    const relationControlCount = relationSections.reduce((count, section) => count + [...section.querySelectorAll('button, input, select, textarea')]
+      .filter(control => !control.disabled && !control.hidden && !control.classList.contains('hidden') && !control.closest('.hidden, [hidden]')).length, 0);
+    const inlineRelation = relationAvailable && !commonAvailable && relationControlCount <= 1;
+    const relationTabVisible = hasRelation && !inlineRelation;
+    const rightPanel = $('rightPanel');
+    if (rightPanel) {
+      if (inlineRelation) rightPanel.setAttribute('data-editor-inline-relation', 'true');
+      else rightPanel.removeAttribute('data-editor-inline-relation');
+    }
     $('actionsTabBtn').hidden = !type;
     $('actionsTabBtn').setAttribute('aria-disabled', String(!hasActions));
-    $('relationTabBtn').hidden = !type;
-    $('relationTabBtn').setAttribute('aria-disabled', String(!hasRelation));
-    const current = $('rightPanel')?.getAttribute('data-editor-view');
-    if (current === 'relation' && !hasRelation) setEditorShellView('info');
-    else if (current === 'actions' && !hasActions) setEditorShellView(hasRelation ? 'relation' : 'info');
+    $('relationTabBtn').hidden = !type || !relationTabVisible;
+    $('relationTabBtn').setAttribute('aria-disabled', String(!relationTabVisible));
+    const current = rightPanel?.getAttribute('data-editor-view');
+    if (current === 'relation' && !relationTabVisible) setEditorShellView('info');
+    else if (current === 'actions' && !hasActions) setEditorShellView(relationTabVisible ? 'relation' : 'info');
   }
 
   function show(type, title = '', { resetScroll = true, typeLabel = '' } = {}) {
