@@ -129,6 +129,7 @@ body.modal-open { overflow: hidden; }
   grid-template-columns: minmax(0, 1fr) minmax(0, 6.5rem);
   gap: var(--ui-space-3);
   align-items: end;
+  padding-top: var(--ui-space-2);
 }
 
 .historical-library-search { grid-column: 1; }
@@ -150,7 +151,7 @@ body.modal-open { overflow: hidden; }
   min-width: 0;
   overflow: auto;
   padding-block: var(--ui-space-1);
-  padding-inline: 0;
+  padding-inline: 0 var(--ui-scrollbar-size);
   border-right: 0;
 }
 
@@ -158,6 +159,7 @@ body.modal-open { overflow: hidden; }
   width: 100%;
   min-height: var(--ui-v2-command-description-height);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--ui-space-0-5);
   padding: var(--ui-space-2) var(--ui-space-3);
   border: 0;
@@ -166,6 +168,37 @@ body.modal-open { overflow: hidden; }
   box-shadow: none;
   color: var(--text);
   text-align: left;
+}
+
+.historical-library-result--flagged {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--ui-space-2);
+}
+
+.historical-library-result--flagged > strong,
+.historical-library-result--flagged > small { grid-column: 2; }
+.historical-library-result--flagged > strong { grid-row: 1; }
+.historical-library-result--flagged > small { grid-row: 2; }
+
+.historical-library-result-flag {
+  width: 2.75rem;
+  height: 1.5rem;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex: 0 0 auto;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.historical-library-result-flag img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .historical-library-result:hover,
@@ -230,8 +263,6 @@ body.modal-open { overflow: hidden; }
   margin-bottom: var(--ui-space-2);
 }
 .historical-library-version-field > span { color: var(--muted); white-space: nowrap; }
-.historical-library-version-notes:empty { display: none; }
-.historical-library-version-notes { margin: 0 0 var(--ui-space-2); }
 
 .historical-library-preview .editor-help {
   color: var(--muted);
@@ -243,12 +274,6 @@ body.modal-open { overflow: hidden; }
 /* Keep the pilot geometry in the DOM for the preview controller, but avoid
    presenting its low-resolution rendering in the compact detail surface. */
 .historical-library-preview-map { display: none; }
-.historical-library-preview .editor-flag-preview {
-  min-height: 3rem;
-  max-height: 4rem;
-  margin-bottom: var(--ui-space-2);
-}
-
 .historical-library-footer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -467,8 +492,17 @@ body.modal-open { overflow: hidden; }
 }
 
 .historical-library-preview-heading h3 { margin: 0; font-size: var(--ui-v2-font-xl); overflow-wrap: anywhere; }
-.historical-library-flag { flex: 0 0 auto; }
-.historical-library-flag img { display: block; width: auto; height: auto; max-width: var(--ui-touch-height); max-height: var(--ui-v2-brand-mark-size); object-fit: contain; }
+.historical-library-preview-title {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -.0625rem;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
 .historical-library-card :is(summary, a):focus-visible { outline: 2px solid var(--ui-v2-color-focus-ring); outline-offset: calc(-1 * var(--ui-v2-focus-offset)); }
 .historical-library-card summary:is(:hover, :focus-visible) { background: var(--surface-hover); color: var(--text-strong); }
 .historical-library-preview a { color: var(--text); text-decoration: underline; text-underline-offset: .2em; }
