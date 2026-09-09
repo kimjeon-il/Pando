@@ -504,7 +504,7 @@ const {
   const CUT_ENDPOINT_SNAP_DISTANCE = Object.freeze({ mouse: 10, touch: 18 });
   const LAYOUT_QUERIES = {
     mobile: window.matchMedia('(max-width: 799px)'),
-    compact: window.matchMedia('(min-width: 800px) and (max-width: 1199px)'),
+    compact: window.matchMedia('(min-width: 800px) and (max-width: 1359px)'),
   };
 
   const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -840,9 +840,9 @@ const {
   const MOBILE_SHEET_MAP_RATIOS = Object.freeze({ half: 0.52, expanded: 0.88 });
   const SHEET_SNAP_RATIOS = Object.freeze([0, MOBILE_SHEET_EDITOR_RATIOS.half, MOBILE_SHEET_EDITOR_RATIOS.expanded]);
   const SHEET_SNAP_LABELS = Object.freeze(['접힌 상태', '중간 높이', '확장']);
-  const SHEET_SNAP_DEFAULTS = Object.freeze({ layers: 1, create: 1, edit: 1 });
+  const SHEET_SNAP_DEFAULTS = Object.freeze({ layers: 1, edit: 1 });
   const MOBILE_SHEET_DEFAULT_SNAP = 1;
-  const MOBILE_SHEET_IDS = Object.freeze({ map: 'leftPanel', create: 'createMenu', edit: 'rightPanel' });
+  const MOBILE_SHEET_IDS = Object.freeze({ map: 'leftPanel', edit: 'rightPanel' });
   const sheetSnapIndex = new Map(Object.values(MOBILE_SHEET_IDS).map(id => [id, MOBILE_SHEET_DEFAULT_SNAP]));
   const sheetSnapTouched = new Set();
   let activeSheetDrag = null;
@@ -872,7 +872,12 @@ const {
   function mobileSheetSnapHeight(index, panelOrKind = 'edit') {
     const safeIndex = clamp(Number(index) || 0, 0, SHEET_SNAP_RATIOS.length - 1);
     const kind = mobileSheetKind(panelOrKind);
-    if (safeIndex === 0) return Math.min(mobileSheetAvailableHeight(), MOBILE_SHEET_SNAP_COLLAPSED_PX);
+    if (safeIndex === 0) {
+      const panel = typeof panelOrKind === 'string' ? mobileSheetPanel(kind) : panelOrKind;
+      const headerHeight = panel?.querySelector('.surface-header')?.getBoundingClientRect().height || 0;
+      const rootScale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
+      return Math.min(mobileSheetAvailableHeight(), Math.max(headerHeight, MOBILE_SHEET_SNAP_COLLAPSED_PX * rootScale));
+    }
     const ratios = kind === 'edit' ? MOBILE_SHEET_EDITOR_RATIOS : MOBILE_SHEET_MAP_RATIOS;
     const ratio = safeIndex === 1 ? ratios.half : ratios.expanded;
     return Math.min(mobileSheetAvailableHeight(), mobileViewportHeight() * ratio);
@@ -967,7 +972,8 @@ const {
     syncEditorPanelControls();
     syncMobileNavigation();
     requestAnimationFrame(syncMapHudBounds);
-    if (isCreateMenuOpen()) positionLayerCreateMenu();
+    if (previous !== layoutMode) closeCreateMenu();
+    else if (isCreateMenuOpen()) positionLayerCreateMenu();
     if (!initial && previous !== layoutMode) queueMapResize('layout-mode-change');
     return previous !== layoutMode;
   }
@@ -980,7 +986,8 @@ const {
     refreshMapSheetMetrics();
     syncMobileNavigation();
     requestAnimationFrame(syncMapHudBounds);
-    if (view.createOpen) positionLayerCreateMenu();
+    if (!view.layersOpen || view.editorOpen) closeCreateMenu();
+    else if (isCreateMenuOpen()) positionLayerCreateMenu();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     else $('app')?.style.removeProperty('--file-menu-notification-top');
     if (layoutMode !== 'wide') queueMapResize('panel-layout');
@@ -1008,12 +1015,16 @@ const {
   }
 
   function isCreateMenuOpen() {
-    return surfaceController.isOpen('create');
+    return !!$('createMenu') && !$('createMenu').classList.contains('hidden');
   }
 
   function closeCreateMenu({ restoreFocus = false } = {}) {
     if (!isCreateMenuOpen()) return;
-    closeSurface('create', { restoreFocus });
+    $('createMenu').classList.add('hidden');
+    $('createMenuBtn')?.setAttribute('aria-expanded', 'false');
+    const trigger = createMenuTrigger;
+    createMenuTrigger = null;
+    if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
   }
 
   function activeCreateMenuItems() {
@@ -1022,11 +1033,16 @@ const {
   }
 
   function toggleCreateMenu(trigger) {
-    toggleSurface('create', trigger);
+    if (isCreateMenuOpen()) { closeCreateMenu({ restoreFocus: true }); return; }
+    closeFileMenu();
+    createMenuTrigger = trigger || $('createMenuBtn');
+    $('createMenu').classList.remove('hidden');
+    $('createMenuBtn')?.setAttribute('aria-expanded', 'true');
+    positionLayerCreateMenu();
+    activeCreateMenuItems()[0]?.focus({ preventScroll: true });
   }
 
   function positionLayerCreateMenu() {
-    if (isMobile()) return;
     const menu = $('createMenu');
     const trigger = $('createMenuBtn');
     if (!menu || !trigger) return;
@@ -1037,14 +1053,19 @@ const {
     const width = viewport?.width || window.innerWidth;
     const height = viewport?.height || window.innerHeight;
     menu.style.setProperty('--layer-create-left', `${Math.max(left + 8, Math.min(rect.left, left + width - menu.getBoundingClientRect().width - 8))}px`);
-    menu.style.setProperty('--layer-create-bottom', `${Math.max(8, window.innerHeight - rect.top + 8)}px`);
-    menu.style.setProperty('--layer-create-height', `${Math.max(80, Math.min(height - 16, rect.top - top - 16))}px`);
+    const below = top + height - rect.bottom - 16;
+    const above = rect.top - top - 16;
+    const available = Math.max(0, Math.max(below, above));
+    menu.style.setProperty('--layer-create-height', `${available}px`);
+    const menuHeight = Math.min(menu.scrollHeight, available);
+    const y = below >= menuHeight || below >= above ? rect.bottom + 8 : rect.top - 8 - menuHeight;
+    menu.style.setProperty('--layer-create-top', `${Math.max(top + 8, y)}px`);
   }
 
   function closeActiveMobileSheet({ restoreFocus = false, syncHistory = true } = {}) {
     if (!isMobile() || !surfaceController.activeMobileSheet) return;
     const kind = surfaceController.activeMobileSheet;
-    const surface = { map: 'layers', create: 'create', edit: 'editor' }[kind];
+    const surface = { map: 'layers', edit: 'editor' }[kind];
     const panel = mobileSheetPanel(kind);
     surfaceController.close(surface);
     resetMobileSheetSession(panel);
@@ -1056,13 +1077,13 @@ const {
 
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
     if (isMobile()) {
-      const exceptKind = except === 'left' ? 'map' : except === 'right' ? 'edit' : except === 'create' ? 'create' : null;
+      const exceptKind = except === 'left' ? 'map' : except === 'right' ? 'edit' : null;
       if (surfaceController.activeMobileSheet && surfaceController.activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
       return;
     }
     if (except !== 'left') surfaceController.close('layers');
     if (except !== 'right') surfaceController.close('editor');
-    if (except !== 'create') surfaceController.close('create');
+    closeCreateMenu();
     syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
@@ -1305,37 +1326,33 @@ const {
 
 
   function openSurface(surface, { trigger = null, automatic = false } = {}) {
-    if (!['layers', 'create', 'editor'].includes(surface)) return;
+    if (!['layers', 'editor'].includes(surface)) return;
+    closeCreateMenu();
     closeFileMenu();
     const activeTrigger = trigger instanceof HTMLElement ? trigger : document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    if (surface === 'create' && !isMobile()) createMenuTrigger = activeTrigger;
     if (isMobile()) lastOverlayTrigger = activeTrigger;
     surfaceController.open(surface, { automatic });
     if (isMobile()) {
-      const kind = { layers: 'map', create: 'create', editor: 'edit' }[surface];
+      const kind = { layers: 'map', editor: 'edit' }[surface];
       const panel = mobileSheetPanel(kind);
       resetMobileSheetSession(panel);
       trackMobileSheetHistory(kind);
     }
     syncOverlayState();
-    if (surface === 'create' && layoutMode === 'wide') {
-      requestAnimationFrame(() => activeCreateMenuItems()[0]?.focus({ preventScroll: true }));
-    }
   }
 
   function closeSurface(surface, { manual = false, restoreFocus = false, syncHistory = true } = {}) {
     if (surface === 'editor' && editorWorkspacePresentation.isDocked()) return;
-    const mobileKind = isMobile() ? { layers: 'map', create: 'create', editor: 'edit' }[surface] : null;
+    const mobileKind = isMobile() ? { layers: 'map', editor: 'edit' }[surface] : null;
     const mobilePanel = mobileKind ? mobileSheetPanel(mobileKind) : null;
     if (!surfaceController.close(surface, { manual, selected: !!state?.selected })) return;
     if (mobilePanel) resetMobileSheetSession(mobilePanel);
     if (surface === 'editor') closeAllColorPickers();
     syncOverlayState();
     if (mobilePanel && syncHistory) releaseMobileSheetHistory();
-    const trigger = surface === 'create' && !isMobile() ? createMenuTrigger : lastOverlayTrigger;
+    const trigger = lastOverlayTrigger;
     if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
-    if (surface === 'create') createMenuTrigger = null;
   }
 
   function returnToMapAfterMobileAction(started, { fromCreate = false } = {}) {
@@ -12689,9 +12706,13 @@ const {
     $('mobileCloseRightBtn')?.addEventListener('click', () => {
       closeSurface('editor', { manual: layoutMode === 'wide', restoreFocus: true });
     });
-    $('mobileCloseCreateBtn')?.addEventListener('click', () => closeCreateMenu({ restoreFocus: true }));
     $('createMenu')?.addEventListener('keydown', event => {
-      if (event.defaultPrevented || event.target.closest('.surface-tabs')) return;
+      if (event.defaultPrevented) return;
+      if (event.key === 'Escape') {
+        event.preventDefault(); event.stopPropagation();
+        closeCreateMenu({ restoreFocus: true }); return;
+      }
+      if (event.key === 'Tab') { closeCreateMenu({ restoreFocus: true }); return; }
       const items = activeCreateMenuItems();
       const index = items.indexOf(document.activeElement);
       let nextIndex;
@@ -12702,6 +12723,13 @@ const {
       else return;
       event.preventDefault();
       items[nextIndex]?.focus();
+    });
+    document.addEventListener('pointerdown', event => {
+      if (event.target.closest('.ui-overlay-scrollbar')?.getAttribute('aria-controls') === 'createMenu') return;
+      if (isCreateMenuOpen() && !event.target.closest('#createMenu, #createMenuBtn')) closeCreateMenu({ restoreFocus: true });
+    }, true);
+    $('createMenu')?.addEventListener('click', event => {
+      if (event.target.closest('[role="menuitem"]')) closeCreateMenu();
     });
 
   }

@@ -2,6 +2,8 @@ import { installBoundaryGhostingGuard } from './boundary-ghosting-guard.js';
 import { installObjectRegistryPresenter } from './object-registry-presenter.js';
 import { installMobileSheetController } from './mobile-sheet-controller.js';
 import { installRuntimePerformanceMetrics } from './runtime-performance-metrics.js';
+import { installSurfaceMetrics } from './surface-metrics.js';
+import { installOverlayScrollbars } from './overlay-scrollbars.js';
 
 let initialized = false;
 
@@ -71,6 +73,8 @@ export function initializeUiRuntime(documentRef = document) {
   bindVisualStepper({ modalId: 'gisExportModal', indicatorId: 'gisExportStepIndicator' });
   bindGisExportFormat();
   installMobileSheetController(documentRef);
+  installSurfaceMetrics(documentRef);
+  installOverlayScrollbars(documentRef);
   constrainGenericFallbackUi();
   const app = documentRef.getElementById('app');
   if (app) app.dataset.uiArchitecture = '2';

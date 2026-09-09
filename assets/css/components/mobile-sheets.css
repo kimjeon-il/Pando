@@ -33,7 +33,7 @@
   .mobile-bottom-bar .ui-nav-item.sheet-open .ui-icon { color: var(--accent); }
 
   .mobile-bottom-bar .ui-nav-item strong {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-md);
     font-weight: var(--ui-weight-semibold);
   }
 
@@ -47,13 +47,14 @@
   .workspace-surface.ui-sheet > .surface-header {
     position: relative;
     min-height: var(--ui-surface-header-height-mobile);
-    padding-inline: var(--ui-space-4);
+    padding-inline: var(--ui-surface-content-rail-x);
   }
 
   .sheet-drag-handle {
     position: absolute;
-    inset: 0 0 auto;
-    width: 100%;
+    inset: 0 auto auto 50%;
+    transform: translateX(-50%);
+    width: 6rem;
     min-height: var(--ui-touch-height);
     height: var(--ui-touch-height);
     display: grid;
@@ -76,7 +77,8 @@
   .surface-header-title { min-width: 0; }
 
   .surface-header-title > strong {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-v2-font-xl);
+    line-height: var(--ui-v2-line-title);
     font-weight: var(--ui-weight-bold);
   }
 
@@ -85,36 +87,38 @@
 
   .surface-editor[data-sheet-snap="0"] > .surface-header { min-height: var(--ui-v2-sheet-snap-collapsed); }
 
+  .surface-tabs,
+  .surface-tabs .ui-tab { min-height: var(--ui-touch-height); }
+
+  .surface-editor[data-sheet-snap="0"] > .editor-object-header { display: none; }
+
   .surface-editor .editor-view-tabs:not(.hidden) {
     position: relative;
     z-index: 2;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     flex: 0 0 auto;
-    min-height: 2.375rem;
-    padding-inline: var(--ui-space-3);
+    min-height: var(--ui-touch-height);
+    padding-inline: var(--ui-surface-content-rail-x);
     border-bottom: 1px solid var(--border);
     background: var(--surface-elevated);
   }
 
   .surface-editor .editor-view-tabs .ui-tab {
-    min-height: 2.375rem;
+    min-height: var(--ui-touch-height);
     justify-content: center;
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-md);
   }
 
   .surface-editor .editor-scroll-body,
-  .surface-map .surface-body,
-  .surface-create .surface-body { overscroll-behavior: contain; }
+  .surface-map .surface-body{ overscroll-behavior: contain; }
 
-  :is(.surface-map, .surface-create)[data-sheet-snap="0"] { pointer-events: none; }
+  .surface-map[data-sheet-snap="0"] { pointer-events: none; }
 
   .surface-map .layer-child {
       min-height: var(--ui-v2-layer-row-height-mobile);
       height: var(--ui-v2-layer-row-height-mobile);
     }
-
-  .surface-create .create-menu-item { min-height: var(--ui-touch-height); }
   .surface-map .projection-btn { min-height: var(--ui-touch-height); }
 
   body.mobile-direct-edit .mode-editing-context {

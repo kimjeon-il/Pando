@@ -87,7 +87,8 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   await expect(page.locator('#layerSearchInput')).toBeDisabled();
   await expect(page.locator('.layer-category > .layer-skeleton-group').first()).toBeVisible();
   await expect(page.locator('.layer-real-items').first()).toBeHidden();
-  await page.locator('#mobileCreateBtn').click();
+  if (!(await page.locator('#createMenuBtn').isVisible())) await page.locator('#mobileMapBtn').click();
+  await page.locator('#createMenuBtn').click();
   await expect(page.locator('#createMenu .create-menu-item').first()).toBeDisabled();
   await expect(page.locator('#newProjectBtn')).toBeDisabled();
   await expect(page.locator('#saveProjectBtn')).toBeDisabled();
@@ -97,8 +98,9 @@ test('geometry becomes editable while the high-quality mesh is delayed, then upg
   expect(previewMetrics.meshQuality).toBe('preview');
   expect(previewMetrics.renderVertices).toBeLessThanOrEqual(130_000);
   expect(await page.evaluate(() => window.__PANDOLAB_STARTUP_EVENTS__)).toEqual(['interactive']);
-  await page.locator('#mobileCreateBtn').click();
-  await expect(page.locator('#createMenu')).not.toHaveClass(/mobile-open/);
+  if (!(await page.locator('#createMenuBtn').isVisible())) await page.locator('#mobileMapBtn').click();
+  await page.locator('#createMenuBtn').click();
+  await expect(page.locator('#createMenu')).toBeHidden();
   const stableView = await page.evaluate(() => ({
     revision: window.__PANDOLAB_VIEW_REVISION__,
     projection: window.__PANDOLAB_VIEW_STATE__?.projection,

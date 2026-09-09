@@ -103,7 +103,7 @@
 }
 
 .workflow-map-session .mode-method-btn {
-  min-height: 56px;
+  min-height: var(--ui-v2-command-description-height-mobile);
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   grid-template-rows: auto auto;
@@ -128,8 +128,8 @@
 .workflow-map-session .mode-method-btn::before {
   content: "";
   grid-row: 1 / span 2;
-  width: 16px;
-  height: 16px;
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
   box-sizing: border-box;
   border: 2px solid var(--border-strong);
   border-radius: 50%;

@@ -1,3 +1,29 @@
+.ui-native-scroll.ui-scroll-surface,
+.ui-native-scroll.surface-body,
+.ui-native-scroll.gis-import-content-rail,
+.ui-native-scroll.historical-library-results,
+.ui-native-scroll.historical-library-preview { scrollbar-width: none; scrollbar-gutter: auto; }
+.ui-native-scroll::-webkit-scrollbar { display: none; }
+.ui-overlay-scrollbar {
+  position: fixed;
+  z-index: var(--ui-scrollbar-z);
+  width: var(--ui-scrollbar-track-width);
+  touch-action: none;
+  cursor: default;
+  outline-offset: calc(-1 * var(--ui-border-width));
+}
+.ui-overlay-scrollbar[hidden] { display: none; }
+.ui-overlay-scrollbar-thumb {
+  display: block;
+  margin-inline: auto;
+  width: var(--ui-scrollbar-thumb-width);
+  border-radius: var(--ui-radius-pill);
+  background: var(--muted);
+  opacity: .6;
+}
+.ui-overlay-scrollbar:is(:hover, :focus-visible) .ui-overlay-scrollbar-thumb { opacity: 1; }
+.ui-overlay-scrollbar:focus-visible { outline: var(--ui-border-width) solid var(--accent); }
+
 .workspace-surface {
   --ui-surface-border-top: 0;
   --ui-surface-border-right: 0;
@@ -32,14 +58,14 @@
 
 .surface-header {
   position: relative;
-  flex: 0 0 var(--ui-surface-header-height-compact);
+  flex: 0 0 auto;
   min-width: 0;
   min-height: var(--ui-surface-header-height-compact);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   column-gap: var(--ui-space-3);
-  padding: 0 var(--ui-surface-content-rail-x);
+  padding: var(--ui-space-3) var(--ui-surface-content-rail-x);
   border: 0;
   background: var(--surface-elevated);
   box-shadow: none;
@@ -49,7 +75,8 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  line-height: var(--ui-line-tight);
+  font-size: var(--ui-v2-font-xl);
+  line-height: var(--ui-v2-line-title);
 }
 
 .surface-header-title > strong {
@@ -63,14 +90,14 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: var(--ui-space-1);
+  gap: var(--ui-v2-button-gap);
 }
 
 .surface-header .sheet-drag-handle { display: none; }
 
 .surface-tabs {
-  flex: 0 0 var(--ui-control-height);
-  height: var(--ui-control-height);
+  flex: 0 0 auto;
+  min-height: var(--ui-v2-tab-height);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
@@ -79,7 +106,8 @@
 
 .surface-tabs .ui-tab {
   position: relative;
-  min-height: var(--ui-control-height);
+  min-height: var(--ui-v2-tab-height);
+  font-size: var(--ui-v2-font-md);
   border: 0;
   background: transparent;
   color: var(--muted);
@@ -124,7 +152,7 @@
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: auto;
 }
 
 .surface-body-delegated {
@@ -133,19 +161,10 @@
 }
 
 .surface-content { min-width: 0; }
-
-.surface-content-create,
 .surface-content-editor {
   padding-inline-end: var(--ui-surface-content-rail-x);
   padding-inline-start: var(--ui-surface-content-rail-x);
   padding-bottom: var(--ui-surface-content-padding-bottom);
-}
-
-.surface-content-create {
-  display: grid;
-  align-content: start;
-  gap: var(--ui-menu-gap);
-  padding-top: var(--ui-space-1);
 }
 
 .surface-content-editor {

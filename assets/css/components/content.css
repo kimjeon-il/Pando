@@ -81,9 +81,9 @@
   text-overflow: ellipsis;
   white-space: normal;
   color: var(--text);
-  font-size: var(--ui-v2-font-lg);
+  font-size: var(--ui-v2-font-xl);
   font-weight: var(--ui-v2-weight-bold);
-  line-height: var(--ui-v2-line-tight);
+  line-height: var(--ui-v2-line-title);
 }
 
 :where(.ui-object-context-meta, .editor-object-meta) {
@@ -130,4 +130,35 @@
 
 @media (max-width: 799px) {
 
+}
+
+/* Layer row surfaces: feature states do not redefine component skin. */
+
+.layer-panel-footer { border-top: 1px solid var(--border); background: var(--surface-elevated); padding: var(--ui-space-2); padding-bottom: max(var(--ui-space-2), env(safe-area-inset-bottom));
+}
+.app-root .layer-action-bar > .icon-btn { padding: 0; border: 0; background: transparent; box-shadow: none;
+}
+.app-root .layer-action-bar > .icon-btn:is(:hover, :focus-visible):not(:disabled) { background: var(--surface-hover);
+}
+.layer-color-swatch { border: 1px solid var(--border-strong); border-radius: var(--ui-radius-control);
+}
+.layer-color-swatch.is-type-icon { border: 0;
+}
+@media (max-width: 799px) {
+  .app-root .topbar-center { padding: 0;
+}}
+.app-root .layer-bundle-row { padding: 0 var(--ui-row-padding-x);
+}
+.layer-bundle-toggle { padding: 0; border: 0; background: transparent;
+}
+.app-root .layer-child-name { background: transparent;
+}
+.app-root .layer-child[data-bundle-member] { padding-inline-start: calc(var(--ui-row-padding-x) + var(--ui-space-5));
+}
+.app-root .layer-child.layer-hierarchy-row {
+  padding-inline-start: calc(var(--ui-row-padding-x) + var(--layer-depth, 0) * var(--ui-icon-size));
+}
+.app-root .layer-child.layer-search-result { padding: 0 var(--ui-row-padding-x);
+}
+.layer-type-settings { padding-block: var(--ui-space-2); border-top: 0;
 }

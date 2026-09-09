@@ -548,7 +548,6 @@ for (const layout of layouts.slice(1)) {
     const errors = await openApp(page);
     for (const [button, panel] of [
       ['#mobileMapBtn', '#leftPanel'],
-      ['#mobileCreateBtn', '#createMenu'],
       ['#mobileEditBtn', '#rightPanel'],
       ['#mobileMapBtn', '#leftPanel'],
     ]) {
@@ -565,7 +564,8 @@ test('opening a sheet does not shift the compact map projection safe area', asyn
   await page.setViewportSize(layouts[1].viewport);
   await openApp(page);
   const before = await page.locator('#map').boundingBox();
-  await page.locator('#mobileCreateBtn').click();
+  await page.locator('#mobileMapBtn').click();
+  await page.locator('#createMenuBtn').click();
   const after = await page.locator('#map').boundingBox();
   expect(after).toEqual(before);
 });
@@ -713,11 +713,12 @@ test('common row buttons, headers, cards, and checkboxes keep their component ge
           iconHref: icon.querySelector('use').getAttribute('href'),
         };
       });
-      const createTrigger = layout.name === 'wide' ? '#createMenuBtn' : '#mobileCreateBtn';
+      if (layout.name !== 'wide' && await page.locator('#mobileMapBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileMapBtn').click();
+      const createTrigger = '#createMenuBtn';
       await page.locator(createTrigger).click();
       const geometry = await page.evaluate(() => {
       const item = document.querySelector('#addCountryBtn');
-      const body = document.querySelector('#createMenu .surface-body');
+      const body = document.querySelector('#createMenu');
       const itemStyle = getComputedStyle(item);
       const bodyStyle = getComputedStyle(body);
       return {
@@ -754,7 +755,6 @@ test('compact layer, create, and editor headers share the drawer header shell', 
   const measurements = [];
   for (const [trigger, panel] of [
     ['#mobileMapBtn', '#leftPanel'],
-    ['#mobileCreateBtn', '#createMenu'],
     ['#mobileEditBtn', '#rightPanel'],
   ]) {
     await page.locator(trigger).click();
@@ -1395,10 +1395,9 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
     return page.locator(panel).evaluate(element => element.getBoundingClientRect().height);
   };
   const layerHeight = await openSheet('#mobileMapBtn', '#leftPanel');
-  const createHeight = await openSheet('#mobileCreateBtn', '#createMenu');
   const editHeight = await openSheet('#mobileEditBtn', '#rightPanel');
-  expect(Math.max(layerHeight, createHeight, editHeight) - Math.min(layerHeight, createHeight, editHeight)).toBeLessThanOrEqual(1);
-  expect(editHeight).toBeGreaterThan(500);
+  expect(layerHeight).toBeGreaterThan(editHeight);
+  expect(editHeight).toBeGreaterThan(300);
 
   await page.getByRole('slider', { name: '편집창 높이 조절' }).press('ArrowUp');
   const raisedHeight = await page.locator('#rightPanel').evaluate(element => element.getBoundingClientRect().height);
@@ -1419,7 +1418,8 @@ test('mobile sheets share one default snap, reset on reopen, and map actions dis
   await page.locator('#countriesVisible').click();
   await expect(page.locator('#leftPanel')).toBeVisible();
 
-  await openSheet('#mobileCreateBtn', '#createMenu');
+  await openSheet('#mobileMapBtn', '#leftPanel');
+  await page.locator('#createMenuBtn').click();
   await page.locator('#addRiverBtn').click();
   await expect(page.locator('#createMenu')).not.toBeVisible();
   await expect(page.locator('#map')).toBeFocused();

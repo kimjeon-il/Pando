@@ -64,7 +64,7 @@ const libraryPanel = libraryStart >= 0 ? html.slice(libraryStart, html.indexOf('
 if (!libraryPanel.includes('id="addFromLibraryBtn"')) fail('library route must expose the library entry action');
 if (/data-map-object-type=/.test(libraryPanel)) fail('library route must remain an acquisition route, not an object category');
 
-// Editor surface: Surface identity lives in the header; object identity lives below tabs.
+// Editor surface: object context stays visible above the property/action tabs.
 const rightStart = html.indexOf('id="rightPanel"');
 const rightEnd = rightStart >= 0 ? html.indexOf('</aside>', rightStart) : -1;
 const editor = rightStart >= 0 && rightEnd > rightStart ? html.slice(rightStart, rightEnd) : '';
@@ -81,7 +81,7 @@ for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectSt
 const tabsIndex = editor.indexOf('class="ui-tabs surface-tabs editor-view-tabs');
 const bodyIndex = editor.indexOf('id="editorScrollBody"');
 const contextIndex = editor.indexOf('id="editorObjectHeader"');
-if (!(tabsIndex >= 0 && bodyIndex > tabsIndex && contextIndex > bodyIndex)) fail('editor hierarchy must be header → tabs → body → ObjectContext');
+if (!(contextIndex > headerEnd && tabsIndex > contextIndex && bodyIndex > tabsIndex)) fail('editor hierarchy must be header → ObjectContext → tabs → body');
 const contextEnd = contextIndex >= 0 ? editor.indexOf('</section>', contextIndex) : -1;
 const objectContext = contextIndex >= 0 && contextEnd > contextIndex ? editor.slice(contextIndex, contextEnd) : '';
 for (const requiredId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
@@ -92,10 +92,15 @@ if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
 const footer = html.match(/<footer class="layer-panel-footer">([\s\S]*?)<\/footer>/)?.[1] || '';
-for (const id of ['createMenuBtn', 'objectLockBtn', 'objectDeleteBtn', 'multiSelectionBar']) {
+const layerTools = html.match(/<div class="layer-list-tools"[\s\S]*?(?=<div id="layerSearchResults")/)?.[0] || '';
+if (!layerTools.includes('id="layerSearchInput"') || !layerTools.includes('id="createMenuBtn"')) fail('layer list tools must own search and add');
+if ((html.match(/id="createMenuBtn"/g) || []).length !== 1) fail('#createMenuBtn must have one owner');
+for (const id of ['objectLockBtn', 'objectDeleteBtn']) {
   if (!footer.includes(`id="${id}"`)) fail(`layer footer must own #${id}`);
   if ((html.match(new RegExp(`id="${id}"`, 'g')) || []).length !== 1) fail(`#${id} must have one owner`);
 }
+// Single and multiple selection share one object context, not a duplicate footer summary.
+if ((html.match(/id="editorObjectHeader"/g) || []).length !== 1) fail('selection context must have one owner');
 if (editor.includes('id="objectDeleteBtn"') || editor.includes('id="objectLockBtn"')) fail('property editors must not duplicate layer actions');
 
 if (!uiTokens.includes('--ui-object-context-name-lines: 2;')) fail('ObjectContext name line budget must remain two lines');
