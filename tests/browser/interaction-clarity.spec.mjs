@@ -81,7 +81,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await page.locator('#actionsTabBtn').click();
   await page.locator('#editBorderBtn').click();
-  await expect(page.locator('#modeTaskStage')).toHaveText('대상 선택');
+  await expect(page.locator('#modeTaskStage')).toHaveText('맞닿은 국가 선택');
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await clickCountryOnMap(page, 'POL');
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
@@ -94,7 +94,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await page.locator('#actionsTabBtn').click();
   await page.locator('#editCoastBtn').click();
   await expect(page.locator('#modeTaskName')).toHaveText('해안선 조정');
-  await expect(page.locator('#modeTaskStage')).toHaveText('외곽선 편집');
+  await expect(page.locator('#modeTaskStage')).toHaveText('해안선 편집');
   await expect(page.locator('path.boundary-edit-segment.coast')).not.toHaveCount(0, { timeout: 30_000 });
   await expect(page.locator('path.boundary-edit-segment.shared')).toHaveCount(0);
   await page.locator('#modeCancelBtn').click();

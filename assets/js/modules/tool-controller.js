@@ -3,7 +3,7 @@ const TOOL_DEFINITIONS = Object.freeze({
   move: Object.freeze({ label: '이동', task: '지도 이동', stage: '탐색', cursor: 'select', icon: 'map' }),
   'new-country': Object.freeze({ label: '국가 추가', task: '국가 추가', cursor: 'phased', special: true, icon: 'country', draftPhase: 'line', draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),
   'annex-territory': Object.freeze({ label: '영토 편입', task: '영토 편입', cursor: 'phased', special: true, icon: 'transfer', draftPhase: 'line', draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),
-  'merge-country': Object.freeze({ label: '국가 합병', task: '국가 합병', stage: '대상 국가 선택', cursor: 'country', special: true, icon: 'merge' }),
+  'merge-country': Object.freeze({ label: '국가 합병', task: '국가 합병', stage: '합칠 국가 선택', cursor: 'country', special: true, icon: 'merge' }),
   'merge-generic-feature': Object.freeze({ label: '영역 합치기', task: '영역 합치기', stage: '대상 영역 선택', cursor: 'country', special: true, icon: 'merge' }),
   'split-generic-feature': Object.freeze({ label: '영역 나누기', task: '영역 나누기', stage: '경계 그리기', cursor: 'generic', special: true, icon: 'split', draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),
   'merge-territorial-unit': Object.freeze({ label: '영역 합치기', task: '영역 합치기', stage: '인접 영역 선택', cursor: 'country', special: true, icon: 'merge' }),
@@ -11,7 +11,7 @@ const TOOL_DEFINITIONS = Object.freeze({
   'redraw-territorial-unit': Object.freeze({ label: '영역 다시 지정', task: '영역 다시 지정', stage: '영역 그리기', cursor: 'generic', special: true, icon: 'boundary', draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
   'draw-territorial-unit': Object.freeze({ label: '영역 직접 지정', task: '영역 추가', stage: '영역 그리기', cursor: 'generic', special: true, icon: 'boundary', draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
   'country-border': Object.freeze({ label: '국경 조정', task: '국경 조정', stage: '공유국경 편집', cursor: 'phased', special: true, icon: 'boundary' }),
-  'country-coast': Object.freeze({ label: '해안선 조정', task: '해안선 조정', stage: '외곽선 편집', cursor: 'select', special: true, icon: 'coastline' }),
+  'country-coast': Object.freeze({ label: '해안선 조정', task: '해안선 조정', stage: '해안선 편집', cursor: 'select', special: true, icon: 'coastline' }),
   label: Object.freeze({ label: '지명 배치', task: '지명 추가', stage: '위치 선택', cursor: 'generic', special: true, icon: 'place' }),
   river: Object.freeze({ label: '강 추가', task: '강 추가', stage: '경로 그리기', cursor: 'generic', special: true, icon: 'river', draft: Object.freeze({ shape: 'line', profile: 'river' }) }),
   lake: Object.freeze({ label: '호수 추가', task: '호수 추가', stage: '영역 그리기', cursor: 'generic', special: true, icon: 'lake', draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
@@ -22,7 +22,7 @@ const TOOL_DEFINITIONS = Object.freeze({
 
 const phaseStage = phase => phase === 'sources' || phase === 'donor' ? '대상 국가 선택'
   : phase === 'components' ? '영토 조각 선택'
-    : phase === 'polygon' || phase === 'polygon-preview' ? '영역 지정'
+  : phase === 'polygon' || phase === 'polygon-preview' ? '영역 그리기'
     : phase === 'side' ? '영역 확인'
       : '경계선 그리기';
 
@@ -30,8 +30,8 @@ export function describeTool(tool, state, { labelPlacement = false } = {}) {
   if (labelPlacement || tool === 'label') return { name: '지명 추가', stage: '위치 선택', icon: TOOL_DEFINITIONS.label.icon };
   const definition = TOOL_DEFINITIONS[tool] || TOOL_DEFINITIONS.select;
   if (tool === 'new-country') return { name: definition.task, stage: phaseStage(state.newCountryPhase), icon: definition.icon };
-  if (tool === 'annex-territory') return { name: definition.task, stage: phaseStage(state.annexPhase), icon: definition.icon };
-  if (tool === 'country-border') return { name: definition.task, stage: state.boundaryEditPhase === 'selecting' ? '대상 선택' : '공유국경 편집', icon: definition.icon };
+  if (tool === 'annex-territory') return { name: definition.task, stage: state.annexPhase === 'donor' ? '가져올 국가 선택' : phaseStage(state.annexPhase), icon: definition.icon };
+  if (tool === 'country-border') return { name: definition.task, stage: state.boundaryEditPhase === 'selecting' ? '맞닿은 국가 선택' : '공유국경 편집', icon: definition.icon };
   return { name: definition.task, stage: definition.stage || '작업 진행', icon: definition.icon };
 }
 

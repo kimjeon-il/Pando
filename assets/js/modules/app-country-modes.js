@@ -199,7 +199,7 @@ export function createCountryModes() {
     dependencies.state.annexTargetCountryId = String(id);
     (0, dependencies.syncCountryActionButtons)();
     dependencies.renderingDomain?.invalidateEditingOverlays?.('annex-target-selected');
-    (0, dependencies.setModeBanner)('가져올 국가를 선택하세요.');
+    (0, dependencies.setModeBanner)('가져올 국가를 고른 뒤, 아래에서 편입 방식을 선택하세요.');
     (0, dependencies.updateModeButtons)();
     return true;
   }
@@ -222,7 +222,9 @@ export function createCountryModes() {
     else selected.add(donorId);
     dependencies.state.annexDonorCountryIds = [...selected];
     dependencies.renderingDomain?.invalidateEditingOverlays?.('annex-donor-selection-changed');
-    (0, dependencies.setModeBanner)('가져올 국가를 선택하세요.');
+    (0, dependencies.setModeBanner)(dependencies.state.annexDonorCountryIds.length
+      ? `${dependencies.state.annexDonorCountryIds.length}개 국가 선택됨 · 아래에서 편입 방식을 선택하세요.`
+      : '가져올 국가를 고른 뒤, 아래에서 편입 방식을 선택하세요.');
     (0, dependencies.updateModeButtons)();
   }
 

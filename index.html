@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-44d957db4202" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-44d957db4202" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-7bd424f344ed" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-7bd424f344ed" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -263,8 +263,11 @@
                   <div class="mode-task-section mode-task-method-section">
                     <div class="mode-task-section-title">선택 방식</div>
                     <div id="modeMethodSwitch" class="mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
-                      <button id="modeLineMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="경계선을 그려 영토 일부 선택" aria-pressed="true"><span class="mode-method-title">경계선 그리기</span></button>
-                      <button id="modePolygonMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="영역을 지정해 영토 편입" aria-pressed="false"><span class="mode-method-title">영역 지정</span></button>
+                      <button id="modeLineMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="직접 그리기로 영토 일부 선택" aria-pressed="true"><span class="mode-method-title">직접 그리기</span></button>
+                      <div id="modeDirectMethodOptions" class="mode-direct-method-options hidden" role="radiogroup" aria-label="직접 그리기 방식">
+                        <label class="mode-direct-method-option"><input id="modeDirectLineMethodInput" type="radio" name="modeDirectMethod" value="line" /><span>선 그리기</span></label>
+                        <label class="mode-direct-method-option"><input id="modePolygonMethodBtn" type="radio" name="modeDirectMethod" value="polygon" /><span>영역 그리기</span></label>
+                      </div>
                       <button id="modeComponentsMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false"><span class="mode-method-title">영토 조각 선택</span></button>
                     </div>
                     <label id="modeRiverBoundaryOption" class="ui-choice-row mode-river-boundary-option hidden" for="modeRiverBoundaryInput">
@@ -405,9 +408,9 @@
               <h3 id="countryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
                 <button id="annexTerritoryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>국가 합병</strong></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>국가 합병</strong><small>선택한 국가들과 하나로 합치기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="editBorderBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>국경 조정</strong><small>선택한 접경국 사이의 공유국경 편집</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="editCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안선 조정</strong></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="editCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안선 조정</strong><small>바다와 맞닿은 경계 편집</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="countryRelationActionsTitle" data-od-id="country-relation-actions-title"><h3 id="countryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
@@ -862,10 +865,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-44d957db4202" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-7bd424f344ed" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-44d957db4202" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-7bd424f344ed" defer></script>
 </body>
 </html>

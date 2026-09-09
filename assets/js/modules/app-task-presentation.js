@@ -181,7 +181,7 @@ export function createTaskPresentation() {
     const boundarySelectMode = dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting';
     const boundaryEditMode = dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'editing';
     const boundarySelectionReady = !boundarySelectMode || (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds).valid;
-    const methodSwitchAvailable = annexLineMode || annexPolygonMode || annexPolygonPreviewMode || annexSideMode || annexComponentsMode
+    const methodSwitchAvailable = annexDonorMode || annexLineMode || annexPolygonMode || annexPolygonPreviewMode || annexSideMode || annexComponentsMode
       || newCountryLineMode || newCountrySideMode || newCountryComponentsMode;
     const activeMethod = dependencies.state.tool === 'annex-territory'
       ? dependencies.state.annexSelectionMethod
@@ -197,6 +197,8 @@ export function createTaskPresentation() {
     const bar = (0, dependencies.$)('modeActionBar');
     const methodSwitch = (0, dependencies.$)('modeMethodSwitch');
     const lineMethod = (0, dependencies.$)('modeLineMethodBtn');
+    const directMethodOptions = (0, dependencies.$)('modeDirectMethodOptions');
+    const directLineMethodInput = (0, dependencies.$)('modeDirectLineMethodInput');
     const polygonMethod = (0, dependencies.$)('modePolygonMethodBtn');
     const componentsMethod = (0, dependencies.$)('modeComponentsMethodBtn');
     const riverBoundaryOption = (0, dependencies.$)('modeRiverBoundaryOption');
@@ -217,12 +219,12 @@ export function createTaskPresentation() {
     }
     if (bar) {
       bar.classList.toggle('hidden', !specialMode);
-      bar.classList.toggle('single-action', labelMode);
+      bar.classList.toggle('single-action', labelMode || annexDonorMode);
       bar.classList.toggle('is-processing', dependencies.state.modeProcessing);
       bar.setAttribute('aria-busy', String(dependencies.state.modeProcessing));
     }
     methodSwitch?.classList.toggle('hidden', !methodSwitchAvailable);
-    methodSwitch?.classList.toggle('annex-three-methods', dependencies.state.tool === 'annex-territory');
+    methodSwitch?.classList.toggle('annex-methods', dependencies.state.tool === 'annex-territory');
     riverBoundaryOption?.classList.toggle('hidden', !annexComponentsMode);
     riverBoundaryOption?.setAttribute('aria-busy', String(annexComponentsMode && dependencies.state.annexUseRiverBoundaries && dependencies.state.annexRiverPartitionStatus === 'loading'));
     if (riverBoundaryInput) {
@@ -238,16 +240,33 @@ export function createTaskPresentation() {
     if (draftRedraw) draftRedraw.disabled = dependencies.state.modeProcessing || draft.strokeActive || !draft.coords.length;
     if (draftRemoveLast) draftRemoveLast.disabled = dependencies.state.modeProcessing || draft.strokeActive || !draft.coords.length;
     if (draftDelete) draftDelete.disabled = dependencies.state.modeProcessing || draft.strokeActive || !refineSelection;
-    for (const [button, method] of [[lineMethod, 'line'], [polygonMethod, 'polygon'], [componentsMethod, 'components']]) {
-      if (!button) continue;
-      button.classList.toggle('hidden', dependencies.state.tool !== 'annex-territory' && method === 'polygon');
-      const active = activeMethod === method;
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-pressed', String(active));
-      button.disabled = dependencies.state.modeProcessing;
+    const annexDirectMode = dependencies.state.tool === 'annex-territory' && ['line', 'polygon'].includes(activeMethod);
+    if (lineMethod) {
+      const active = !annexDonorMode && (activeMethod === 'line' || activeMethod === 'polygon');
+      lineMethod.classList.toggle('active', active);
+      lineMethod.setAttribute('aria-pressed', String(active));
+      lineMethod.disabled = dependencies.state.modeProcessing || (annexDonorMode && !dependencies.state.annexDonorCountryIds.length);
+      const title = lineMethod.querySelector('.mode-method-title');
+      if (title) title.textContent = dependencies.state.tool === 'annex-territory' ? '직접 그리기' : '선 그리기';
+      lineMethod.setAttribute('aria-label', dependencies.state.tool === 'annex-territory' ? '직접 그리기로 영토 일부 선택' : '경계선을 그려 영토 일부 선택');
+    }
+    directMethodOptions?.classList.toggle('hidden', !annexDirectMode);
+    if (directLineMethodInput) {
+      directLineMethodInput.checked = annexDirectMode && activeMethod === 'line';
+      directLineMethodInput.disabled = dependencies.state.modeProcessing;
+    }
+    if (polygonMethod) {
+      polygonMethod.checked = annexDirectMode && activeMethod === 'polygon';
+      polygonMethod.disabled = dependencies.state.modeProcessing;
+    }
+    if (componentsMethod) {
+      const active = activeMethod === 'components';
+      componentsMethod.classList.toggle('active', active);
+      componentsMethod.setAttribute('aria-pressed', String(active));
+      componentsMethod.disabled = dependencies.state.modeProcessing || (annexDonorMode && !dependencies.state.annexDonorCountryIds.length);
     }
     if (primary) {
-      primary.classList.toggle('hidden', labelMode);
+      primary.classList.toggle('hidden', labelMode || annexDonorMode);
       primary.disabled = dependencies.state.modeProcessing
         || (draftMode && (draft.strokeActive || draft.coords.length < (0, dependencies.draftMinimumPoints)() || draft.issues.length > 0 || (cutLineMode && !cutLineReady)))
         || (terrainMode && draft.coords.length < ((0, dependencies.isPolygonDraftTool)(dependencies.state.tool) ? 3 : 2))
@@ -271,11 +290,10 @@ export function createTaskPresentation() {
         || (previewMode && dependencies.state.geometryPreview.session.validation?.blocking === true);
       let primaryLabel = '완료';
       if (previewMode) primaryLabel = '변경 적용';
-      else if (boundarySelectMode) primaryLabel = `선택 완료 (${dependencies.state.boundaryEditCountryIds.length})`;
+      else if (boundarySelectMode) primaryLabel = `국경 편집 (${dependencies.state.boundaryEditCountryIds.length})`;
       else if (boundaryEditMode || dependencies.state.tool === 'country-coast') primaryLabel = '수정 완료';
       else if (terrainMode) primaryLabel = '그리기 완료';
       else if (newCountrySourceMode) primaryLabel = `선택 완료 (${dependencies.state.newCountrySourceIds.length})`;
-      else if (annexDonorMode) primaryLabel = `선택 완료 (${dependencies.state.annexDonorCountryIds.length})`;
       else if (annexPolygonMode) primaryLabel = '영역 편입';
       else if (annexPolygonPreviewMode) primaryLabel = '영역 편입';
       else if (mergeTargetMode) primaryLabel = `합병 (${dependencies.state.mergeTargetCountryIds.length})`;
