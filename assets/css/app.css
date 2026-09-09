@@ -2033,10 +2033,9 @@ input[type="radio"]:disabled { cursor: not-allowed; opacity: .42; }
   position: relative;
   border-radius: var(--ui-radius-control);
   background: transparent;
-  color: var(--accent-2);
   cursor: pointer;
 }
-.layer-visibility-control:hover { background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.layer-visibility-control:hover { background: var(--ui-control-bg-hover); }
 .layer-visibility-control:has(.layer-visibility-toggle:disabled) { cursor: not-allowed; opacity: .42; }
 .layer-visibility-control:has(.layer-visibility-toggle:disabled):hover { background: transparent; }
 .layer-visibility-control .layer-visibility-toggle {
@@ -2050,7 +2049,6 @@ input[type="radio"]:disabled { cursor: not-allowed; opacity: .42; }
   z-index: 1;
 }
 .layer-visibility-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
-.layer-visibility-control:has(.layer-visibility-toggle:not(:checked)) { color: var(--muted); }
 .layer-visibility-control:has(.layer-visibility-toggle:focus-visible) { outline: 2px solid var(--accent-border); outline-offset: -2px; }
 
 select {
@@ -2477,11 +2475,8 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   border-radius: var(--ui-radius-control);
   outline-offset: -2px;
 }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > .layer-visibility-control:has(.layer-visibility-toggle:checked) { color: var(--selection-strong-fg); }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > .layer-visibility-control:has(.layer-visibility-toggle:not(:checked)) { color: var(--selection-strong-muted); }
 .layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > .layer-visibility-control:hover {
   background: color-mix(in srgb, var(--selection-strong-fg) 14%, transparent);
-  color: var(--selection-strong-fg);
 }
 .terrain-mode-option {
   min-height: var(--ui-control-height);
@@ -2867,7 +2862,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 }
 .editor-field,
 .editor-field-grid,
-.editor-flag-layout,
 .editor-disclosure-body { min-width: 0; }
 .editor-field { display: grid; gap: var(--ui-field-label-gap); }
 .editor-field-stack { min-width: 0; display: grid; gap: var(--ui-field-gap); }
@@ -3026,9 +3020,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .editor-help {
   margin: 0;
   color: var(--muted);
-}
-.editor-flag-layout {
-  display: block;
 }
 .editor-section-heading { min-width: 0; display: flex; align-items: center; gap: var(--ui-space-2); }
 .editor-section-heading :is(.editor-section-title, .editor-property-heading) { min-width: 0; flex: 1; }

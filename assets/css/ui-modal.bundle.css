@@ -71,16 +71,6 @@ body.modal-open { overflow: hidden; }
   display: none;
 }
 
-.historical-library-advanced {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--ui-space-1) var(--ui-space-3);
-  margin: var(--ui-space-2) 0 0;
-}
-
-.historical-library-advanced dt { color: var(--muted); }
-.historical-library-advanced dd { margin: 0; overflow-wrap: anywhere; }
-
 .gis-import-status {
   min-height: var(--ui-v2-control-md);
   margin: var(--ui-space-2) 0 var(--ui-space-3);
@@ -116,11 +106,6 @@ body.modal-open { overflow: hidden; }
 .gis-export-layers .ui-check { min-width: 0; padding: var(--ui-space-2); border-radius: var(--ui-radius-control); }
 
 @media (max-width: 799px) {
-  .historical-library-card.is-detail .historical-library-results { display: none; }
-  .historical-library-card:not(.is-detail) .historical-library-preview { display: none; }
-  .historical-library-card.is-detail .historical-library-back { display: inline-flex; align-items: center; justify-content: center; }
-  .historical-library-card.is-detail .historical-library-footer-spacer { display: none; }
-  .historical-library-card.is-detail .historical-library-footer .historical-library-add-options { grid-column: 1 / -1; }
   .gis-country-identity-row { grid-template-columns: 1fr; }
   .gis-export-layers { grid-template-columns: 1fr; }
 }
@@ -153,9 +138,10 @@ body.modal-open { overflow: hidden; }
 .historical-library-layout {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
-  border-top: 1px solid var(--border);
+  border-top: 0;
+  padding-top: var(--ui-space-3);
   border-bottom: 0;
   overflow: hidden;
 }
@@ -163,9 +149,9 @@ body.modal-open { overflow: hidden; }
 .historical-library-results {
   min-width: 0;
   overflow: auto;
-  padding-block: var(--ui-space-2);
+  padding-block: var(--ui-space-1);
   padding-inline: 0;
-  border-right: 1px solid var(--border);
+  border-right: 0;
 }
 
 .historical-library-result {
@@ -173,7 +159,7 @@ body.modal-open { overflow: hidden; }
   min-height: var(--ui-v2-command-description-height);
   display: grid;
   gap: var(--ui-space-0-5);
-  padding: var(--ui-space-2) 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
   border: 0;
   border-radius: var(--ui-radius-control);
   background: transparent;
@@ -188,7 +174,7 @@ body.modal-open { overflow: hidden; }
 .historical-library-result.is-selected,
 .historical-library-result[aria-selected="true"] {
   background: color-mix(in srgb, var(--accent) 12%, var(--surface-card));
-  box-shadow: inset 2px 0 var(--accent);
+  box-shadow: none;
   color: var(--text-strong);
 }
 
@@ -221,8 +207,9 @@ body.modal-open { overflow: hidden; }
 
 .historical-library-preview {
   min-width: 0;
-  overflow: auto;
-  padding: var(--ui-space-3) 0 0 var(--ui-surface-content-rail-x);
+  overflow: visible;
+  padding: var(--ui-space-3);
+  margin-block: var(--ui-space-1) var(--ui-space-3);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -452,8 +439,7 @@ body.modal-open { overflow: hidden; }
   overflow: hidden;
 }
 
-.historical-library-results,
-.historical-library-preview {
+.historical-library-results {
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
@@ -510,15 +496,6 @@ body.modal-open { overflow: hidden; }
   height: calc(100dvh - (var(--ui-dialog-edge) * 2));
   max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
   border-radius: var(--ui-radius-panel);
-}
-
-/* The toolbar is absent in detail mode: the remaining space belongs to the body. */
-[data-layout="mobile"] .historical-library-card.is-detail {
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-@media (max-width: 799px) {
-  .historical-library-card .historical-library-preview { padding-inline: 0; }
 }
 
 [data-layout="mobile"] .historical-library-layout {

@@ -103,3 +103,45 @@ test('concise toast copy fits narrow screens without enlarging the toast', async
     }
   }
 });
+
+test('overlapping menus hide background tracks but retain their own scrollbar', async ({ page }) => {
+  await fixture(page);
+  await page.addStyleTag({ content: ':root{--ui-scrollbar-z:2100}.test-popup{position:fixed;left:200px;top:70px;width:130px;height:120px;background:white;z-index:2000}.test-popup button{width:100%;height:40px}' });
+  await page.evaluate(() => {
+    const popup = document.createElement('div');
+    popup.id = 'popup'; popup.className = 'test-popup ui-scroll-surface'; popup.hidden = true;
+    popup.setAttribute('role', 'menu');
+    popup.innerHTML = '<button role="menuitem">항목</button><div style="height:600px"></div>';
+    document.body.append(popup);
+    document.querySelector('#trigger').addEventListener('click', () => { popup.hidden = false; popup.querySelector('button').focus(); });
+    popup.addEventListener('keydown', event => { if (event.key === 'Escape') { popup.hidden = true; document.querySelector('#trigger').focus(); } });
+    document.querySelector('#scroll').scrollTop = 120;
+  });
+  const behind = page.locator('[aria-controls="scroll"][role="scrollbar"]');
+  const own = page.locator('[aria-controls="popup"][role="scrollbar"]');
+  for (const width of [360, 390, 430, 1024, 1366]) {
+    await page.setViewportSize({ width, height: 740 });
+    for (const kind of ['file', 'create', 'object', 'select']) {
+      await page.locator('#popup').evaluate((el, value) => {
+        el.className = `test-popup ui-scroll-surface ${value === 'select' ? 'ui-select-popover' : 'ui-popover'}`;
+        el.setAttribute('role', value === 'select' ? 'listbox' : 'menu');
+      }, kind);
+      await page.locator('#trigger').click();
+      await expect(behind).toBeHidden();
+      await expect(behind).toHaveAttribute('tabindex', '-1');
+      await expect(own).toBeVisible();
+      expect(await page.evaluate(() => document.elementFromPoint(240, 85)?.closest('#popup')?.id)).toBe('popup');
+      await own.focus(); await page.keyboard.press('End');
+      await expect.poll(() => page.locator('#popup').evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+      // Moving an open popup away must restore an unrelated track immediately.
+      await page.locator('#popup').evaluate(el => { el.style.left = '20px'; });
+      await expect(behind).toBeVisible();
+      await page.locator('#popup').evaluate(el => { el.style.left = '200px'; });
+      await expect(behind).toBeHidden();
+      await page.locator('#popup').press('Escape');
+      await expect(behind).toBeVisible();
+      await expect(page.locator('#trigger')).toBeFocused();
+      expect(await page.locator('#scroll').evaluate(el => el.scrollTop)).toBe(120);
+    }
+  }
+});
