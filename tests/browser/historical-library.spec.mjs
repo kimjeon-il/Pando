@@ -25,11 +25,14 @@ test('historical library search previews and instantiates a sourced historical c
   const result = page.locator('[data-library-entity-id="historical-country:soviet-union"]');
   await expect(result).toBeVisible();
   await result.click();
+  await expect(result.locator('.historical-library-result-flag img')).toHaveCount(1);
   await expect(page.locator('#historicalLibraryPreview')).toContainText('소련');
+  await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
+  await expect(result).not.toHaveAttribute('aria-controls');
   await expect(page.locator('#historicalLibraryPreview')).toContainText('근사 경계');
   await expect(page.locator('#historicalLibraryPreview')).not.toContainText('출처·이용 조건');
   await expect(page.locator('#historicalLibraryPreview a[aria-label^="출처"]')).toHaveCount(0);
-  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(1);
+  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
   const hasChildren = await page.evaluate(async () => (await window.PANDOLAB_HISTORICAL_LIBRARY.list()).some(entity => entity.parentLibraryId === 'historical-country:soviet-union'));
   if (hasChildren) {
     await expect(page.locator('#historicalLibraryAddOptions summary')).toHaveCount(0);
@@ -117,12 +120,9 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   const result = page.locator('[data-library-entity-id="historical-country:deutsche-demokratische-republik"]');
   await expect(result).toBeVisible();
   await result.click();
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('기준일 1989-04-25');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('신뢰도 medium');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('근사 경계');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('Natural Earth Admin 1');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('BKG Verwaltungsgebiete');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('Verlauf der Berliner Mauer');
+  await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
+  await expect(page.locator('#historicalLibraryPreview details')).toHaveCount(0);
+  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
   await page.locator('#historicalLibraryAddBtn').click();
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 60_000 });
