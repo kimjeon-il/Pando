@@ -108,7 +108,7 @@ export function createRiverCandidates() {
     const invalidNames = donors.filter(feature => invalidIds.has(String(feature.id))).map(dependencies.countryName);
     const suffix = invalidNames.length ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외했습니다.` : '';
     const composition = (0, dependencies.annexRiverBoundaryComposition)((0, dependencies.territoryBaseComponentItems)());
-    if (candidates.length) return `하천을 경계로 나눈 영토 조각을 선택하세요. 여러 조각을 선택할 수 있습니다.${suffix}`;
+    if (candidates.length) return `하천으로 나뉜 영토 조각을 선택하세요.${suffix}`;
     if (composition.items.length) return `분할 가능한 하천이 없어 기존 영토 조각을 표시합니다.${suffix}`;
     return invalidNames.length
       ? `하천 분할 오류로 ${invalidNames.join(', ')}의 영토 조각을 표시할 수 없습니다.`
@@ -133,7 +133,7 @@ export function createRiverCandidates() {
       && editSignature === riverPartitionHydroEditSignature()
       && (signature === null || signature === riverPartitionCandidateSignature(donors));
     dependencies.state.annexRiverPartitionStatus = 'loading';
-    (0, dependencies.setModeBanner)('피편입국을 가로지르는 강으로 영토 조각을 계산하는 중입니다.', 'annex-mode');
+    (0, dependencies.setModeBanner)('하천 기준 영토 조각을 준비하는 중입니다.', 'annex-mode');
     (0, dependencies.updateModeButtons)();
     dependencies.editingDomain?.refreshTerritoryOperation('river-partition-loading');
     try {
@@ -189,7 +189,7 @@ export function createRiverCandidates() {
       dependencies.state.annexRiverPartitionCandidates = [];
       dependencies.state.annexRiverPartitionDonorResults = [];
       (0, dependencies.setModeBanner)(error?.code === 'RIVER_PARTITION_SOURCE_ERROR'
-        ? '피편입국을 가로지르는 하천 데이터를 불러오지 못했습니다.'
+        ? '가져올 국가의 하천 데이터를 불러오지 못했습니다.'
         : '강으로 분리되는 영토 조각을 계산하지 못했습니다.', 'annex-mode');
       (0, dependencies.updateModeButtons)();
       (0, dependencies.reportOperationError)(error, '강으로 분리되는 영토 조각을 계산하지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-ANNEX-RIVER-001', 4200);

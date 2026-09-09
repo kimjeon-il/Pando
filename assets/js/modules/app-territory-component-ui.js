@@ -14,7 +14,7 @@ export function createTerritoryComponentUi() {
     const index = Number(candidateIndex);
     if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'side' && dependencies.state.annexCandidates[index]?.geometry) {
       dependencies.state.annexSelectedCandidateIndex = index;
-      (0, dependencies.setModeBanner)('편입할 영역을 선택하세요.', 'annex-mode');
+      (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     } else if (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'side' && dependencies.state.newCountryCandidates[index]?.geometry) {
       dependencies.state.newCountrySelectedCandidateIndex = index;
       (0, dependencies.setModeBanner)('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
@@ -27,8 +27,7 @@ export function createTerritoryComponentUi() {
 
   function updateTerritoryComponentSelectionFeedback() {
     if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'components') {
-      const count = dependencies.state.annexSelectedComponentKeys.length;
-      const prefix = dependencies.state.annexUseRiverBoundaries ? '하천을 경계로 나눈 영토 조각을' : '편입할 영토 조각을';
+      const prefix = dependencies.state.annexUseRiverBoundaries ? '하천으로 나뉜 영토 조각' : '가져올 영토 조각';
       const invalidIds = new Set(dependencies.state.annexRiverPartitionDonorResults
         .filter(result => result.status === 'invalid')
         .map(result => String(result.donorCountryId)));
@@ -39,7 +38,7 @@ export function createTerritoryComponentUi() {
       const suffix = dependencies.state.annexUseRiverBoundaries && invalidNames.length
         ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외됨.`
         : '';
-      (0, dependencies.setModeBanner)(count ? `${prefix} 선택하세요. ${count}개 조각 선택됨.${suffix}` : `${prefix} 클릭해 선택하세요.${suffix}`);
+      (0, dependencies.setModeBanner)(`${prefix}을 선택하세요.${suffix}`);
     } else if (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'components') {
       (0, dependencies.setModeBanner)('새 국가로 만들 영토 조각을 클릭해 선택하세요.');
     }

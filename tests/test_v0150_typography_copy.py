@@ -106,7 +106,7 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn("영토를 가져올 국가", APP)
         self.assertIn("기준 국가", APP)
         self.assertIn("합병할 국가", APP)
-        self.assertIn("피편입국을 선택하세요. 여러 국가를 선택할 수 있습니다.", APP)
+        self.assertIn("가져올 국가를 선택하세요.", APP)
         self.assertIn("영역 안쪽을 클릭하세요.", APP)
 
     def test_fatal_initialization_and_runtime_errors_are_separate(self):

@@ -183,8 +183,8 @@ test('annex territory exposes river boundaries as a retained component-selection
   await page.locator('#modeRiverBoundaryInput').check();
   await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-  await expect(page.locator('#modeTaskInstruction')).toContainText('계산하는 중');
-  await expect(page.locator('#modeTaskInstruction')).not.toContainText('계산하는 중', { timeout: 120_000 });
+  await expect(page.locator('#modeTaskInstruction')).toContainText('준비하는 중');
+  await expect(page.locator('#modeTaskInstruction')).not.toContainText('준비하는 중', { timeout: 120_000 });
   await expect(components.first()).toBeVisible();
   await page.waitForTimeout(500);
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
@@ -198,7 +198,7 @@ test('annex territory exposes river boundaries as a retained component-selection
   await expect(components.first()).toBeVisible({ timeout: 120_000 });
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await page.locator('#modeRiverBoundaryInput').uncheck();
-  await expect(page.locator('#modeTaskInstruction')).toContainText('편입할 영토 조각');
+  await expect(page.locator('#modeTaskInstruction')).toContainText('가져올 영토 조각');
   await page.waitForTimeout(500);
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
@@ -443,12 +443,12 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   await page.locator('#modePrimaryBtn').click();
   await page.locator('#modeComponentsMethodBtn').click();
   await page.locator('#modeRiverBoundaryInput').check();
-  await expect(page.locator('#modeTaskInstruction')).toContainText('계산하는 중');
+  await expect(page.locator('#modeTaskInstruction')).toContainText('준비하는 중');
   await expect.poll(() => manifestRequested).toBe(true);
   // Complete first-time hydro loading after the checkbox request has begun.
   // Do not press the component-method button again to kick the request.
   releaseManifest();
-  await expect(page.locator('#modeTaskInstruction')).toContainText('하천을 경계로 나눈', { timeout: 60_000 });
+  await expect(page.locator('#modeTaskInstruction')).toContainText('하천으로 나뉜', { timeout: 60_000 });
   const components = page.locator('.draft-layer path.territory-component');
   const expectedAreas = [9022, 9036, 4228];
   await expect.poll(() => components.evaluateAll((nodes, areas) => areas.map(area => nodes.filter(node =>
@@ -482,7 +482,7 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   await page.locator('#modePrimaryBtn').click();
   await page.locator('#modeComponentsMethodBtn').click();
   await page.locator('#modeRiverBoundaryInput').check();
-  await expect(page.locator('#modeTaskInstruction')).toContainText('하천을 경계로 나눈', { timeout: 60_000 });
+  await expect(page.locator('#modeTaskInstruction')).toContainText('하천으로 나뉜', { timeout: 60_000 });
   await expect.poll(() => components.evaluateAll(nodes => [824, 1087].map(area => nodes.filter(node =>
     Math.abs(node.__data__.areaKm2 - area) < 2).length))).toEqual([1, 1]);
   await page.locator('#mapViewTabBtn').click();

@@ -25,7 +25,7 @@ export function createCountryCommits() {
       dependencies.state.annexCandidates = split.candidates;
       dependencies.state.annexSelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       dependencies.state.annexPhase = 'side';
-      (0, dependencies.setModeBanner)('편입할 영역을 선택하세요.', 'annex-mode');
+      (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
       (0, dependencies.updateModeButtons)();
       dependencies.renderingDomain?.invalidateGpuInteraction?.('annex-candidates-ready');
     } catch (error) {
@@ -70,7 +70,7 @@ export function createCountryCommits() {
     dependencies.state.annexCandidates = [{ geometry: plan.transferGeometry }];
     dependencies.state.annexSelectedCandidateIndex = 0;
     dependencies.state.annexPhase = 'polygon-preview';
-    (0, dependencies.setModeBanner)('편입할 영역을 선택하세요.', 'annex-mode');
+    (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     (0, dependencies.updateModeButtons)();
     dependencies.renderingDomain?.invalidateGpuInteraction?.('annex-polygon-ready');
   }

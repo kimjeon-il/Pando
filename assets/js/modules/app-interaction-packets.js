@@ -61,7 +61,7 @@ export function createInteractionPackets() {
   function defaultDraftInstruction() {
     const draft = (0, dependencies.editingDraftSnapshot)();
     if (draft.inputPhase === 'refine' && draft.coords.length) {
-      return '꼭짓점을 드래그해 미세조정한 뒤 완료하세요.';
+      return '꼭짓점을 드래그해 미세조정하세요.';
     }
     const inputHint = (0, dependencies.isMobile)() ? '한 손가락으로 그리세요.' : '드래그하거나 클릭해 그리세요.';
     const hydro = (0, dependencies.hydroToolConfig)(dependencies.state.tool);
@@ -74,9 +74,9 @@ export function createInteractionPackets() {
     }
     if (dependencies.state.tool === 'redraw-territorial-unit') return '부모 영역 안에 새 영역을 그리세요.';
     if (dependencies.state.tool === 'draw-territorial-unit') return '추가할 영역을 그리세요.';
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'polygon') return '편입할 영역을 지도에서 지정하세요.';
+    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'polygon') return '가져올 영역을 지도에 그리세요.';
     if ((dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'line') || (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'line')) {
-      return '선택한 영토를 가로질러 새 경계를 완성하세요.';
+      return '가져올 영토를 가로질러 선을 그리세요.';
     }
     if (dependencies.state.distributionDraft && (0, dependencies.isPolygonDraftTool)(dependencies.state.tool)) return '분포 영역을 지도에서 지정하세요.';
     return inputHint;
