@@ -407,7 +407,9 @@ export function createLayerTreeController({
     for (const input of elements.terrainStyleInputs || []) input?.addEventListener('change', event => event.target.checked && commands.setTerrainStyle(event.target.value));
     elements.terrainStrength?.addEventListener('input', event => commands.previewTerrainStrength(event.target.value));
     elements.terrainStrength?.addEventListener('change', commands.commitTerrainStrength);
-    for (const input of elements.distributionModeInputs || []) input?.addEventListener('change', event => commands.setDistributionRenderMode?.(event.target.value));
+    for (const input of elements.distributionModeInputs || []) input?.addEventListener('change', event => {
+      if (event.target.type !== 'radio' || event.target.checked) commands.setDistributionRenderMode?.(event.target.value);
+    });
     elements.distributionBoundaryVisible?.addEventListener('change', event => commands.setDistributionBoundaryVisible?.(event.target.checked));
     elements.search?.addEventListener('input', event => {
       commands.setSearchValue(event.target.value || '');
@@ -513,7 +515,7 @@ export function createAppLayerTreeController(runtime = {}) {
       terrainVisible: $('terrainVisible'),
       terrainStyleInputs: [$('terrainPoliticalRadio'), $('terrainPhysicalRadio')],
       terrainStrength: $('terrainStrengthInput'),
-      distributionModeInputs: [$('distributionLayerModeInput'), $('distributionRenderModeInput')],
+      distributionModeInputs: [$('distributionLayerModeInput'), $('distributionRenderModeInput'), $('distributionDominantRadio'), $('distributionIntensityRadio')],
       distributionBoundaryVisible: $('distributionBoundaryVisibleInput'),
       search: $('layerSearchInput'),
       searchClear: $('layerSearchClearBtn'),

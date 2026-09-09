@@ -954,7 +954,7 @@ test('layer folders expose presentation controls while global view settings stay
   await expect(page.locator('[data-layer-style-toggle="lakes"]')).toHaveCount(1);
   await expect(page.locator('[data-layer-style-toggle="labels"], [data-layer-style-toggle="countryLabels"]')).toHaveCount(0);
   await page.locator('#mapViewTabBtn').click();
-  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('이름 표시');
+  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('지도 표기');
   await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
   await expect(page.locator('#mapViewSection label:has(#labelsVisible)')).toContainText('지명 표시');
   const terrainVisible = page.locator('#terrainVisible');

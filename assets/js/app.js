@@ -11253,6 +11253,9 @@ const {
       if (input) input.value = mode;
     }
     const boundary = $('distributionBoundaryVisibleInput');
+    for (const input of document.querySelectorAll('input[name="distributionLayerMode"]')) {
+      input.checked = input.value === mode;
+    }
     if (boundary) boundary.checked = state.distributionSettings?.boundaryVisible !== false;
     const hint = $('distributionLayerModeHint');
     if (!hint) return;
@@ -13917,6 +13920,8 @@ const {
         area: $('countryAreaValue'),
         selectionStatus: $('selectionStatus'),
         flagPreview: $('flagPreview'),
+        flagTrigger: $('flagMenuBtn'),
+        flagMenu: $('flagMenu'),
         flagUpload: $('flagUploadBtn'),
         flagFile: $('flagFileInput'),
         flagRemove: $('flagRemoveBtn'),
@@ -13930,8 +13935,6 @@ const {
         const override = state.countryOverrides[id] || {};
         return { ref: countryObjectRef(id), id, feature, properties, override, displayName: countryName(feature) };
       },
-        flagTrigger: $('flagMenuBtn'),
-        flagMenu: $('flagMenu'),
       getPrimaryRef: () => selectionDomain.primary(),
       showPropertyForm: (...args) => objectPropertyController.show(...args),
       resolveColor: view => readDomainColor(COLOR_DOMAINS.COUNTRY, {

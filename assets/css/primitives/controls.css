@@ -178,7 +178,7 @@ html { font-size: 100%; }
 .ui-toggle > input[type="checkbox"]::before {
   position: absolute;
   top: 50%;
-  left: var(--ui-space-0-5);
+  left: var(--ui-v2-toggle-thumb-inset);
   width: var(--ui-v2-toggle-thumb-size);
   height: var(--ui-v2-toggle-thumb-size);
   border: 0;
@@ -194,7 +194,7 @@ html { font-size: 100%; }
 }
 
 .ui-toggle > input[type="checkbox"]:checked::before {
-  left: calc(100% - var(--ui-v2-toggle-thumb-size) - var(--ui-space-0-5));
+  left: calc(100% - var(--ui-v2-toggle-thumb-size) - var(--ui-v2-toggle-thumb-inset));
 }
 
 .ui-toggle > input[type="checkbox"]:focus-visible {

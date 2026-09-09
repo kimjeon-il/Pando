@@ -2,6 +2,34 @@ import { expect, test } from '@playwright/test';
 
 test.use({ hasTouch: true });
 
+test('real file menu hides panel tracks and loads the revisioned scrollbar module', async ({ page }) => {
+  const moduleRequests = [];
+  page.on('request', request => {
+    if (new URL(request.url()).pathname.endsWith('/overlay-scrollbars.js')) moduleRequests.push(request.url());
+  });
+  // Simulate an older module still cached under its unversioned URL.
+  await page.route('**/overlay-scrollbars.js', route => route.fulfill({
+    contentType: 'text/javascript', body: 'export function installOverlayScrollbars() {}',
+  }));
+  await page.setViewportSize({ width: 1024, height: 600 });
+  await page.goto('/');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
+  await page.getByRole('button', { name: '레이어', exact: true }).click();
+  await page.locator('#mapViewTabBtn').click();
+  const track = page.locator('.ui-overlay-scrollbar[aria-controls="mapViewSection"]');
+  await expect(track).toBeVisible();
+  const revision = await page.locator('script[src*="/ui-runtime.js"], script[src*="/build-meta.js"]').first().getAttribute('src');
+  expect(moduleRequests.some(url => new URL(url).searchParams.get('v') === new URL(revision, 'http://localhost').searchParams.get('v'))).toBe(true);
+  await page.locator('#mobileFileBtn').click();
+  await expect(page.locator('#fileMenu')).toBeVisible();
+  await expect(track).toBeHidden();
+  await expect(track).toHaveAttribute('tabindex', '-1');
+  await page.locator('#fileMenu [role="menuitem"]').first().press('Escape');
+  await expect(page.locator('#fileMenu')).toBeHidden();
+  await expect(track).toBeVisible();
+  await expect(page.locator('#mobileFileBtn')).toBeFocused();
+});
+
 async function fixture(page) {
   await page.route('**/feedback-fixture', route => route.fulfill({ contentType: 'text/html', body: `
     <link rel="stylesheet" href="/assets/css/components/surface.css">
