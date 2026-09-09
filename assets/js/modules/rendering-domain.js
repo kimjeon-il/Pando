@@ -230,47 +230,13 @@ export function createRenderingDomain({
     const data = resolvedLayout?.countryLabels || [];
     const selection = layer.selectAll('g.country-label-item').data(data, d => d.id);
     selection.exit().remove();
+    // Use ground hit-testing and tool dispatch, rather than forcing the named object.
     const enter = selection.enter().append('g')
       .attr('class', 'country-label-item')
-      .on('click', function(d) {
+      .on('click', function() {
         if (labels.mapClickBlocked?.()) return;
-        const subunitRef = labels.countryLabelObjectRef?.(d);
-        if (subunitRef) {
-          if (state.tool === 'select' && !state.labelPlacementMode) {
-            labels.d3?.event?.stopPropagation?.();
-            labels.handleObjectSelectionAt?.(labels.d3?.mouse?.(labels.svg), {
-              sourceEvent: labels.d3?.event, forcedRef: subunitRef,
-            });
-          }
-          return;
-        }
-        if (state.tool === 'new-country' && state.newCountryPhase === 'sources') {
-          labels.d3?.event?.stopPropagation?.();
-          labels.toggleNewCountrySource?.(d.id);
-          return;
-        }
-        if (state.tool === 'annex-territory' && state.annexPhase === 'donor') {
-          labels.d3?.event?.stopPropagation?.();
-          labels.toggleAnnexDonor?.(d.id);
-          return;
-        }
-        if (state.tool === 'merge-country' && state.mergeSourceCountryId) {
-          labels.d3?.event?.stopPropagation?.();
-          labels.toggleMergeTarget?.(d.id);
-          return;
-        }
-        if (state.tool === 'country-border' && state.boundaryEditPhase === 'selecting') {
-          labels.d3?.event?.stopPropagation?.();
-          labels.toggleBoundaryEditCountry?.(d.id);
-          return;
-        }
-        if (state.tool !== 'select' || state.labelPlacementMode) return;
-        labels.d3?.event?.stopPropagation?.();
-        const point = labels.d3?.mouse?.(labels.svg);
-        labels.handleObjectSelectionAt?.(point, {
-          sourceEvent: labels.d3?.event,
-          forcedRef: { domain: 'territorial', type: labels.countryType || 'country', id: d.id },
-        });
+        labels.d3.event.stopPropagation();
+        labels.handleMapClick(labels.d3.mouse(labels.svg.node()));
       });
     enter.append('image').attr('class', 'country-label-flag').attr('preserveAspectRatio', 'xMidYMid meet')
       .attr('aria-hidden', 'true').style('pointer-events', 'none')

@@ -9,6 +9,7 @@ const ICON_REGISTRY = Object.freeze({
   add: 'icon-plus',
   close: 'icon-close',
   check: 'icon-check',
+  save: 'icon-save',
   more: 'icon-more',
   chevronRight: 'icon-chevron-right',
   chevronDown: 'icon-chevron-down',

@@ -70,7 +70,7 @@ test('retired create surface cannot change layer state', () => {
   }
 });
 
-test('wide workspace rail swaps one contextual pane at a time', () => {
+test('wide editor navigation preserves the persistent layer dock', () => {
   const { controller, elements } = fixture('wide');
 
   controller.open('editor');

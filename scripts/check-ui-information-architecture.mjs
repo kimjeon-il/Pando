@@ -92,10 +92,9 @@ if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
 const footer = html.match(/<footer class="layer-panel-footer">([\s\S]*?)<\/footer>/)?.[1] || '';
-const layerTools = html.match(/<div class="layer-list-tools"[\s\S]*?(?=<div id="layerSearchResults")/)?.[0] || '';
-if (!layerTools.includes('id="layerSearchInput"') || !layerTools.includes('id="createMenuBtn"')) fail('layer list tools must own search and add');
+if (!html.includes('id="layerSearchInput"')) fail('layer search must remain available');
 if ((html.match(/id="createMenuBtn"/g) || []).length !== 1) fail('#createMenuBtn must have one owner');
-for (const id of ['objectLockBtn', 'objectDeleteBtn']) {
+for (const id of ['createMenuBtn', 'objectLockBtn', 'objectDeleteBtn']) {
   if (!footer.includes(`id="${id}"`)) fail(`layer footer must own #${id}`);
   if ((html.match(new RegExp(`id="${id}"`, 'g')) || []).length !== 1) fail(`#${id} must have one owner`);
 }
