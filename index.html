@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-ui-controls-menu-repair-20260909" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-ui-controls-menu-repair-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-ui-radio-copy-native-select-20260909" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-ui-radio-copy-native-select-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -152,11 +152,10 @@
             <section class="layer-style-editor distribution-view-settings" aria-labelledby="distributionViewSettingsTitle">
               <strong id="distributionViewSettingsTitle">인문 분포</strong>
               <div class="ui-field field-group" role="radiogroup" aria-label="표시 기준" aria-describedby="distributionLayerModeHint">
-                <span>표시 기준</span>
-                <label class="ui-choice-row"><input id="distributionDominantRadio" type="radio" name="distributionLayerMode" value="dominant" checked /><span>영역별 대표 분포</span></label>
-                <label class="ui-choice-row"><input id="distributionIntensityRadio" type="radio" name="distributionLayerMode" value="intensity" /><span>선택 분포 비율</span></label>
+                <label class="ui-choice-row"><input id="distributionDominantRadio" type="radio" name="distributionLayerMode" value="dominant" checked /><span class="ui-choice-copy"><strong>가장 많은 분포만 표시</strong><small>각 지역에서 1개만 표시합니다.</small></span></label>
+                <label class="ui-choice-row"><input id="distributionIntensityRadio" type="radio" name="distributionLayerMode" value="intensity" /><span class="ui-choice-copy"><strong>비율을 색 농도로 표시</strong><small>선택한 분포가 많을수록 진하게 표시합니다.</small></span></label>
               </div>
-              <select id="distributionLayerModeInput" hidden><option value="dominant">영역별 대표 분포</option><option value="intensity">선택 분포 비율</option></select>
+              <select id="distributionLayerModeInput" data-native-select hidden><option value="dominant">가장 많은 분포만 표시</option><option value="intensity">비율을 색 농도로 표시</option></select>
               <small id="distributionLayerModeHint" class="layer-setting-hint"></small>
               <label class="ui-choice-row ui-toggle"><input id="distributionBoundaryVisibleInput" type="checkbox" checked aria-label="분포 경계 표시" /><span>분포 경계 표시</span></label>
             </section>
@@ -501,7 +500,7 @@
                 </div>
               </div>
               <details class="ui-disclosure editor-disclosure"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="distributionParentInput">상위 분류</label><select id="distributionParentInput"><option value="">상위 분류 없음</option></select></div></div></details>
-              <select id="distributionRenderModeInput" hidden><option value="dominant">영역별 대표 분포</option><option value="intensity">선택 분포 비율</option></select>
+              <select id="distributionRenderModeInput" data-native-select hidden><option value="dominant">가장 많은 분포만 표시</option><option value="intensity">비율을 색 농도로 표시</option></select>
             </section>
             <section class="editor-section editor-action-section">
               <h3 class="editor-section-title">분포</h3>
@@ -868,10 +867,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-ui-controls-menu-repair-20260909" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-ui-radio-copy-native-select-20260909" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-ui-controls-menu-repair-20260909" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-ui-radio-copy-native-select-20260909" defer></script>
 </body>
 </html>

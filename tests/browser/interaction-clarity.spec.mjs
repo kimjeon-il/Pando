@@ -115,7 +115,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await page.locator('#mapViewTabBtn').click();
   await page.locator('#distributionLayerModeInput').selectOption('intensity');
   await expect(page.locator('#distributionLayerModeInput')).toHaveValue('intensity');
-  await expect(page.locator('#distributionLayerModeHint')).toHaveText('선택한 분포를 비율이 높을수록 진하게 표시합니다.');
+  await expect(page.locator('#distributionLayerModeHint')).toHaveText('선택한 분포가 많을수록 색이 진해집니다.');
   await page.locator('#distributionBoundaryVisibleInput').uncheck();
   await expect(page.locator('#distributionBoundaryVisibleInput')).not.toBeChecked();
   await page.locator('#mapLayersTabBtn').click();

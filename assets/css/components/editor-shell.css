@@ -2,7 +2,19 @@
 
 .editor-object-context-main { display: flex; align-items: center; gap: var(--ui-v2-button-gap); }
 .editor-object-context-main > .editor-object-heading { flex: 1; min-width: 0; }
-.editor-flag-trigger { flex: 0 0 auto; padding: var(--ui-space-1); }
+.editor-flag-trigger {
+  flex: 0 0 auto;
+  padding: var(--ui-space-1);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.editor-flag-trigger:hover:not(:disabled),
+.editor-flag-trigger:active:not(:disabled) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
 .editor-flag-thumbnail { display: grid; place-items: center; width: 2.5rem; height: 1.75rem; }
 .editor-flag-thumbnail img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .editor-flag-menu {
