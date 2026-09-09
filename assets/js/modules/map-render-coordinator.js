@@ -225,7 +225,14 @@ export function createMapRenderCoordinator({
       }
       if ((mask & MAP_RENDER_DIRTY.GPU_INTERACTION)
         && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW))) {
-        callRenderer('gpuInteraction', rendererTimes, viewState);
+        const interactionResult = callRenderer('gpuInteraction', rendererTimes, viewState);
+        // A stroke upload can complete without a selection or camera change.
+        // Commit its coverage to the temporary SVG layer in this same frame.
+        callRenderer('selectionView', rendererTimes, viewState, interactionResult, {
+          viewOnly: true,
+          updateData: false,
+          sparseFallbackOnly: true,
+        });
       }
 
       if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {

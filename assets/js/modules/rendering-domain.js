@@ -5,6 +5,7 @@ import {
 } from './map-render-coordinator.js';
 import { EMPTY_EDITING_RENDER_PACKET } from './editing-render-packet.js';
 import { createGpuUploadScheduler } from './gpu-upload-scheduler.js';
+import { commitSelectionFallbackCoverage } from './selection-fallback-coverage.js';
 
 export function createRenderingDomain({
   context = null,
@@ -1499,16 +1500,15 @@ export function createRenderingDomain({
     sparseFallbackViewSignature = viewSignature;
     sparseFallbackPathCount = pathCount;
     sparseFallbackDirty = false;
-    if (!pathCount) return false;
     selection.publishMetrics?.({
       viewRevision: selection.getViewRevision?.(frameContext) || frameContext?.viewRevision || frameContext?.revision || 0,
-      boundaryOwner: 'svg-fallback',
+      boundaryOwner: pathCount ? 'svg-fallback' : 'interaction-overlay',
       fallbackCount: selectionOverlayDiagnostics.fallbackCount,
       sparseFallbackPathCount: pathCount,
       renderSucceeded: true,
       reusedGpuFrame: true,
     });
-    return true;
+    return pathCount > 0;
   };
   const renderSelectionOverlayFrame = (frameContext = null, {
     updateData = true,
@@ -1524,7 +1524,18 @@ export function createRenderingDomain({
         || gpuSelectionResult?.succeeded === false
         || gpuSelectionResult?.contextLost === true
       );
-      if (!gpuFrameFailed) return renderSparseSelectionFallbackView(frameContext);
+      if (!gpuFrameFailed) {
+        // Upload completion schedules an interaction/view frame, not a new
+        // selection-data frame. Retire temporary SVGs before reprojecting them.
+        const roots = [selection.selectionLayer?.node?.(), selection.hoverLayer?.node?.()];
+        if (commitSelectionFallbackCoverage(roots, gpuSelectionResult)) {
+          sparseFallbackDirty = true;
+          const keys = new Set(roots.flatMap(root => [...(root?.querySelectorAll?.('[data-selection-fallback-key]') || [])]
+            .map(node => node.getAttribute('data-selection-fallback-key'))));
+          selectionOverlayDiagnostics.fallbackCount = keys.size;
+        }
+        return renderSparseSelectionFallbackView(frameContext);
+      }
     }
     const selectionLayer = selection.selectionLayer;
     if (!selectionLayer) return false;
@@ -1708,6 +1719,7 @@ export function createRenderingDomain({
       const d = cachedSelectionPath(request.cacheKey || request.key, fallbackFeature, frameContext);
       if (!d) continue;
       stagedHoverLayer.append('path').datum(fallbackFeature).attr('class', 'map-hover-shape map-hover-outline').attr('fill', 'none')
+        .attr('data-selection-fallback-key', request.key).attr('data-selection-channel', 'hover')
         .attr('stroke', style.hover?.color).attr('stroke-width', style.hover?.width).attr('stroke-opacity', style.hover?.alpha).attr('d', d);
       svgFallbackKeys.push(request.key); boundarySegmentCount += countFallbackSegments(fallbackFeature);
     }
@@ -1722,9 +1734,11 @@ export function createRenderingDomain({
           const d = cachedSelectionPath(request.cacheKey || request.key, fallbackFeature, frameContext);
           if (!d) continue;
           stagedSelectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
+            .attr('data-selection-fallback-key', request.key).attr('data-selection-channel', channel)
             .attr('fill', 'none').attr('stroke', selectionStyle.casingColor).attr('stroke-width', itemStyle?.outerWidth)
             .attr('stroke-opacity', itemStyle?.casingAlpha).attr('d', d);
           stagedSelectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
+            .attr('data-selection-fallback-key', request.key).attr('data-selection-channel', channel)
             .attr('fill', 'none').attr('stroke', selectionStyle.color).attr('stroke-width', itemStyle?.innerWidth)
             .attr('stroke-opacity', itemStyle?.innerAlpha).attr('d', d);
           pathCount += 2; pathCharacterCount += d.length * 2; svgFallbackKeys.push(request.key); boundarySegmentCount += countFallbackSegments(fallbackFeature);
