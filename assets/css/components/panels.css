@@ -58,7 +58,7 @@
 .map-view-projection-slot .projection-btn {
   min-width: 0;
   min-height: var(--ui-v2-command-row-min-height);
-  height: var(--ui-v2-command-row-min-height);
+  height: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -76,7 +76,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--ui-font-sm);
+  font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-semibold);
 }
 
@@ -184,11 +184,13 @@
 
   .map-view-projection-slot .projection-btn {
     min-height: var(--ui-touch-height);
-    height: var(--ui-touch-height);
+    height: auto;
   }
 
   .map-view-settings .ui-choice-row,
-  .map-view-settings .ui-toggle { min-height: 2.5rem; }
+  .map-view-settings .ui-toggle { min-height: var(--ui-touch-height); }
+
+  .terrain-strength-control input[type="range"] { min-height: var(--ui-touch-height); }
 
   .create-menu-item { min-height: var(--ui-touch-height); }
 }
@@ -240,8 +242,6 @@
     max-height: calc(100dvh - var(--ui-space-4));
   }
 
-  .historical-library-toolbar { grid-template-columns: 1fr; }
-  .historical-library-filters { grid-column: 1; }
 
   .historical-library-layout {
     grid-template-columns: 1fr;

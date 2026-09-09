@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-mobile-sheet-chrome-20260909" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-mobile-sheet-chrome-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-ui-feedback-accessibility-20260909" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-ui-feedback-accessibility-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -333,7 +333,7 @@
         <nav class="ui-tabs surface-tabs editor-view-tabs hidden" role="tablist" aria-label="객체 편집 탭">
           <button id="editorTabBtn" class="ui-button ui-tab active" data-surface-tab="info" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="true">정보</button>
           <button id="actionsTabBtn" class="ui-button ui-tab" data-surface-tab="actions" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">편집</button>
-          <button id="relationTabBtn" class="ui-button ui-tab" data-surface-tab="relation" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">더보기</button>
+          <button id="relationTabBtn" class="ui-button ui-tab" data-surface-tab="relation" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="false" tabindex="-1">관계</button>
         </nav>
 
         <div id="editorScrollBody" class="surface-body editor-scroll-body ui-scroll-surface" role="tabpanel" aria-labelledby="editorTabBtn">
@@ -762,7 +762,7 @@
       <div class="historical-library-toolbar">
         <div class="ui-field field-group historical-library-search"><label for="historicalLibrarySearchInput" hidden>검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="historicalLibrarySearchInput" type="search" placeholder="이름·별칭·다국어 이름" autocomplete="off" /><button id="historicalLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
         <label class="ui-field field-group"><span>기준 연도</span><input id="historicalLibraryYearInput" type="number" min="-5000" max="9999" step="1" placeholder="예: 1910" /></label>
-        <details class="ui-disclosure editor-disclosure historical-library-filters" open><summary><span>필터</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="subunit">하위단위</option><option value="region">지방</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>지역</span><select id="historicalLibraryGeographicRegionInput"><option value="">전체</option></select></label></div></details>
+        <div class="historical-library-filters" role="group" aria-label="필터" data-od-id="library-filters"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="subunit">하위단위</option><option value="region">지방</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>지역</span><select id="historicalLibraryGeographicRegionInput"><option value="">전체</option></select></label></div>
       </div>
       <div class="historical-library-layout">
         <div id="historicalLibraryResults" class="historical-library-results" role="listbox" aria-label="라이브러리 검색 결과"></div>
@@ -775,7 +775,7 @@
         <button id="historicalLibrarySnapshotBtn" type="button" class="ui-button btn ghost" disabled hidden>없는 항목 추가</button>
         <span class="historical-library-footer-spacer"></span>
         <button id="historicalLibraryOptionsBackBtn" type="button" class="historical-library-back-action ui-button btn ghost hidden" aria-label="검색 결과로 돌아가기" data-tooltip="검색 결과로 돌아가기">목록</button>
-        <details id="historicalLibraryAddOptions" class="ui-disclosure editor-disclosure historical-library-add-options hidden" open><summary><span>하위 영역 가져오기</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span hidden>불러올 범위</span><select id="historicalLibraryChildDepthInput" aria-label="하위 영역 가져오기"><option value="none">선택한 항목만</option><option value="level1">바로 아래 영역까지 가져오기</option><option value="all">모든 하위 영역 가져오기</option></select></label></div></details>
+        <div id="historicalLibraryAddOptions" class="historical-library-add-options hidden" data-od-id="library-child-options"><label class="ui-field field-group"><span>불러올 범위</span><select id="historicalLibraryChildDepthInput" aria-label="하위 영역 가져오기"><option value="none">선택한 항목만</option><option value="level1">바로 아래 영역까지 가져오기</option><option value="all">모든 하위 영역 가져오기</option></select></label></div>
         <button id="historicalLibraryAddBtn" type="button" class="historical-library-add-action ui-button btn" aria-label="선택한 항목을 현재 프로젝트에 추가" data-tooltip="선택한 항목을 현재 프로젝트에 추가" disabled>추가</button>
       </footer>
     </section>
@@ -838,26 +838,24 @@
     <div class="ui-dialog-backdrop"></div>
     <section class="ui-dialog-card ui-workflow-shell ui-scroll-surface">
       <header class="ui-dialog-header">
-        <div><h2 id="gisExportTitle">데이터 내보내기</h2><p id="gisExportStepIndicator" class="gis-mobile-step-indicator" aria-live="polite">1/2 · 내보낼 데이터</p></div>
-        <button id="gisExportCloseBtn" type="button" class="ui-button icon-btn" aria-label="데이터 내보내기 닫기" data-tooltip="데이터 내보내기 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+        <div><h2 id="gisExportTitle">GIS 내보내기</h2></div>
+        <button id="gisExportCloseBtn" type="button" class="ui-button icon-btn" aria-label="GIS 내보내기 닫기" data-tooltip="GIS 내보내기 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
-      <form id="gisExportForm" onsubmit="return false;">
-        <div class="gis-export-step" data-gis-export-step="0" data-gis-active="true">
+      <form id="gisExportForm" class="gis-export-compact ui-scroll-surface" data-od-id="gis-export-form" onsubmit="return false;">
+          <label class="ui-field field-group"><span>파일 형식</span><select id="gisExportFormat"><option value="gpkg">GIS용 GeoPackage</option><option value="geojson-zip">GeoJSON 묶음 (.zip)</option></select></label>
+        <div class="gis-export-content">
           <fieldset class="gis-export-layers"><legend>내보낼 데이터</legend>
             <label class="ui-check"><input type="checkbox" value="countries" checked /><span>국가</span></label>
             <label class="ui-check"><input type="checkbox" value="subunits" checked /><span>하위단위</span></label>
             <label class="ui-check"><input type="checkbox" value="regions" checked /><span>지방</span></label>
             <label class="ui-check"><input type="checkbox" value="genericFeatures" checked /><span>기타 객체</span></label>
+      <div class="ui-dialog-actions"><button id="gisExportCancelBtn" type="button" class="ui-button btn ghost">취소</button><button id="gisExportConfirmBtn" data-od-id="gis-export-confirm" type="button" class="ui-button btn">내보내기</button></div>
             <label class="ui-check"><input type="checkbox" value="distributions" checked /><span>분포</span></label>
             <label class="ui-check"><input type="checkbox" value="labels" checked /><span>지명</span></label>
           </fieldset>
         </div>
-        <div class="gis-export-step" data-gis-export-step="1">
-          <label class="ui-field field-group"><span>파일 형식</span><select id="gisExportFormat"><option value="gpkg">GIS용 GeoPackage</option><option value="geojson-zip">GeoJSON 묶음 (.zip)</option></select></label>
-          <div id="gisExportSummary" class="ui-callout"><strong>파일 내용 확인</strong><p>선택한 데이터를 확인하는 중입니다.</p></div>
-        </div>
+        <div id="gisExportSummary" class="gis-export-summary" aria-live="polite"><p></p></div>
         <div id="gisExportError" class="ui-alert hidden" role="alert"></div>
-        <div class="ui-dialog-actions"><button id="gisExportCancelBtn" type="button" class="ui-button btn ghost">취소</button><button id="gisExportBackBtn" type="button" class="ui-button btn ghost" disabled>이전</button><button id="gisExportNextBtn" type="button" class="ui-button btn">다음</button><button id="gisExportConfirmBtn" type="button" class="ui-button btn hidden">내보내기</button></div>
       </form>
     </section>
   </div>
@@ -869,10 +867,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-mobile-sheet-chrome-20260909" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-ui-feedback-accessibility-20260909" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-mobile-sheet-chrome-20260909" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-ui-feedback-accessibility-20260909" defer></script>
 </body>
 </html>

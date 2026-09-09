@@ -21,6 +21,7 @@ function fakeElement() {
     focus() { this.focused = true; },
     replaceChildren(...children) { this.children = children; },
     setAttribute(name, value) { this[name] = value; },
+    getAttribute(name) { return this[name] ?? null; },
     removeAttribute(name) { delete this[name]; },
     getBoundingClientRect() { return { left: 10, top: 10, bottom: 30, width: 20, height: 20 }; },
   };

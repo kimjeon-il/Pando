@@ -85,6 +85,9 @@ export function installDialogAccessibilityController(documentRef = document) {
 
   documentRef.addEventListener('keydown', event => {
     if (event.key !== 'Tab') return;
+    // The confirmation controller owns the top confirmation dialog's Tab loop.
+    const confirmation = documentRef.getElementById('confirmModal');
+    if (confirmation && !isHidden(confirmation)) return;
     const dialog = topOpenDialog(documentRef);
     if (!(dialog instanceof HTMLElement)) return;
     const active = documentRef.activeElement;

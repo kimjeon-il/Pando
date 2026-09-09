@@ -7,12 +7,12 @@ test('short notification copy is preserved', () => {
   assert.equal(compactNotificationMessage('저장했습니다.'), '저장했습니다.');
 });
 
-test('mobile error copy keeps the operation and error code within one line', () => {
+test('mobile error copy keeps the operation and corrective instruction', () => {
   const result = compactNotificationMessage(
     '파일을 불러오지 못했습니다. 파일 형식과 구성을 확인하세요. 다시 시도해도 문제가 계속되면 오류 코드 PL-GIS-001를 확인하세요.',
     { tone: 'error', maxLength: 22 },
   );
-  assert.equal(result, '파일 작업 실패 · PL-GIS-001');
+  assert.equal(result, '불러오기 실패. 파일을 확인하세요');
   assert.ok(result.length <= 22);
 });
 
@@ -30,5 +30,12 @@ test('actionable errors prefer the corrective instruction', () => {
     '국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.',
     { tone: 'error', maxLength: 22 },
   );
-  assert.equal(result, '국가를 편집할 수 없습니다.');
+  assert.equal(result, '잠금 해제 후 다시 시도하세요');
+});
+
+test('unknown warnings and errors preserve their cause', () => {
+  for (const tone of ['warning', 'error']) {
+    const message = 'Unrecognized coordinate system: choose the source CRS before importing.';
+    assert.equal(compactNotificationMessage(message, { tone }), message);
+  }
 });

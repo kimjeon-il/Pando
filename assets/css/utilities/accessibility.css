@@ -88,19 +88,6 @@
   }
 
   @media (max-width: 360px) {
-    .ui-dialog-actions,
-    .confirm-modal-actions,
-    .workflow-dialog-actions {
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
-    .ui-dialog-actions > .btn,
-    .confirm-modal-actions > .btn,
-    .workflow-dialog-actions > .btn {
-      width: 100%;
-    }
-
     .mobile-bottom-bar .ui-nav-item strong {
       font-size: max(var(--ui-font-xs), .72rem);
     }

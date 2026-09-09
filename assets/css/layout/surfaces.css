@@ -1,6 +1,15 @@
+[data-layout="compact"] .topbar,
+[data-layout="mobile"] .topbar {
+  padding-block: var(--ui-space-3);
+  padding-inline: max(var(--ui-surface-content-rail-x), env(safe-area-inset-left)) max(var(--ui-surface-content-rail-x), env(safe-area-inset-right));
+}
+
 [data-layout="wide"] .surface-map {
   width: var(--ui-shell-left-panel-width);
 }
+
+/* The wide dock has no workspace navigation; retain the shared narrow controls. */
+[data-layout="wide"] .adaptive-nav { display: none; }
 
 /* Both desktop surfaces end at the same persistent status boundary. */
 [data-layout="wide"] .workspace-surface,
@@ -42,7 +51,6 @@
 [data-layout="compact"] .workspace-surface > .surface-header {
   display: grid;
   min-height: var(--ui-v2-surface-header-height-desktop);
-  border-bottom: var(--ui-border-width) solid var(--border);
 }
 
 [data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) {
