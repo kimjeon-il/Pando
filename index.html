@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-20260909124620" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-20260909124620" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-release-ui-info-20260909042355" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-release-ui-info-20260909042355" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -249,9 +249,9 @@
                   <div class="mode-task-section mode-task-method-section">
                     <div class="mode-task-section-title">선택 방식</div>
                     <div id="modeMethodSwitch" class="mode-method-switch hidden" role="group" aria-label="영토 선택 방식">
-                      <button id="modeLineMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="경계선을 그려 영토 일부 선택" aria-pressed="true"><span class="mode-method-title">경계선 그리기</span><small>국경선을 따라 선을 그립니다.</small></button>
-                      <button id="modePolygonMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="영역을 지정해 영토 편입" aria-pressed="false"><span class="mode-method-title">영역 지정</span><small>지도에서 범위를 지정합니다.</small></button>
-                      <button id="modeComponentsMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false"><span class="mode-method-title">영토 조각 선택</span><small>기존 영토 조각을 직접 선택합니다.</small></button>
+                      <button id="modeLineMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="경계선을 그려 영토 일부 선택" aria-pressed="true"><span class="mode-method-title">경계선 그리기</span></button>
+                      <button id="modePolygonMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="영역을 지정해 영토 편입" aria-pressed="false"><span class="mode-method-title">영역 지정</span></button>
+                      <button id="modeComponentsMethodBtn" type="button" class="ui-button mode-method-btn" aria-label="기존 영토 조각 선택" aria-pressed="false"><span class="mode-method-title">영토 조각 선택</span></button>
                     </div>
                     <label id="modeRiverBoundaryOption" class="ui-choice-row mode-river-boundary-option hidden" for="modeRiverBoundaryInput">
                       <input id="modeRiverBoundaryInput" type="checkbox" />
@@ -395,9 +395,9 @@
               <h3 id="countryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
                 <button id="annexTerritoryBtn" type="button" class="ui-button editor-action-row"><span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row"><span><strong>국가 합병</strong><small>여러 국가를 하나로 합치기</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row"><span><strong>국가 합병</strong></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="editBorderBtn" type="button" class="ui-button editor-action-row"><span><strong>국경 조정</strong><small>선택한 접경국 사이의 공유국경 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="editCoastBtn" type="button" class="ui-button editor-action-row"><span><strong>해안선 조정</strong><small>선택 국가의 외곽 해안선 편집</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="editCoastBtn" type="button" class="ui-button editor-action-row"><span><strong>해안선 조정</strong></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="countryRelationActionsTitle">
@@ -435,7 +435,7 @@
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="subunitRelationActionsTitle">
               <h3 id="subunitRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
-                <button id="transferSubunitBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>소속 국가 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="transferSubunitBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="changeSubunitTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="promoteSubunitBtn" type="button" class="ui-button editor-action-row"><span><strong>국가로 전환</strong><small>선택 구역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="removeSubunitDivisionBtn" type="button" class="ui-button editor-action-row"><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -471,7 +471,7 @@
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="regionRelationActionsTitle">
               <h3 id="regionRelationActionsTitle" class="editor-section-title">관계 및 구조</h3>
               <div class="editor-action-list">
-                <button id="transferRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong><small>주권 국가와 상위 영역 선택으로 이동</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="transferRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
           </form>
@@ -521,13 +521,13 @@
                   </div>
               </div>
               <div class="ui-field field-group editor-field"><label for="genericFeatureNotesInput">메모</label><textarea id="genericFeatureNotesInput" rows="5"></textarea></div>
-              <p class="editor-help">경계를 수정하려면 지도 위 꼭짓점을 드래그하세요.</p>
+
             </section>
 
             <section class="editor-section editor-action-section">
               <h3 class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
-                <button id="editGenericFeatureBoundaryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 수정</strong><small>지도 위 꼭짓점 편집</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="editGenericFeatureBoundaryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 수정</strong></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="mergeGenericFeatureBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>영역 합치기</strong><small>같은 역할의 영역 합치기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="splitGenericFeatureBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-split"/></svg><span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
@@ -596,7 +596,7 @@
                   <div id="hydroColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="강 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
                 </div>
                 <div class="ui-field field-group editor-field"><label for="hydroNotesInput">메모</label><textarea id="hydroNotesInput" rows="5"></textarea></div>
-                <p class="editor-help">경계를 수정하려면 지도 위 꼭짓점을 드래그하세요.</p>
+
               </div>
               <div class="ui-info-list editor-info-list editor-property-list">
                 <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
@@ -667,7 +667,7 @@
           <h3 id="preferencesAppearanceTitle">화면</h3>
           <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
           <div class="preferences-accent" role="group" aria-labelledby="preferencesAccentTitle">
-            <strong id="preferencesAccentTitle">강조색(액센트)</strong>
+            <strong id="preferencesAccentTitle">강조색</strong>
             <div class="preferences-accent-swatches">
               <button type="button" class="ui-button btn ghost" data-preference-accent="" aria-pressed="true">기본값</button>
               <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#4f8cff" style="--swatch: #4f8cff" aria-label="파랑" aria-pressed="false"></button>
@@ -753,14 +753,14 @@
         <button id="historicalLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기" data-tooltip="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
       <div class="historical-library-toolbar">
-        <div class="ui-field field-group historical-library-search"><label for="historicalLibrarySearchInput">검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="historicalLibrarySearchInput" type="search" placeholder="이름·별칭·다국어 이름" autocomplete="off" /><button id="historicalLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
+        <div class="ui-field field-group historical-library-search"><label for="historicalLibrarySearchInput" hidden>검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="historicalLibrarySearchInput" type="search" placeholder="이름·별칭·다국어 이름" autocomplete="off" /><button id="historicalLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
         <label class="ui-field field-group"><span>기준 연도</span><input id="historicalLibraryYearInput" type="number" min="-5000" max="9999" step="1" placeholder="예: 1910" /></label>
         <details class="ui-disclosure editor-disclosure historical-library-filters" open><summary><span>필터</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="subunit">하위단위</option><option value="region">지방</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>지역</span><select id="historicalLibraryGeographicRegionInput"><option value="">전체</option></select></label></div></details>
       </div>
       <div class="historical-library-layout">
         <div id="historicalLibraryResults" class="historical-library-results" role="listbox" aria-label="라이브러리 검색 결과"></div>
         <aside id="historicalLibraryPreview" class="ui-card historical-library-preview">
-          <p class="editor-help">항목을 선택하면 시대·경계 버전·출처를 확인할 수 있습니다.</p>
+          <p class="editor-help">항목을 선택하세요.</p>
         </aside>
       </div>
       <footer class="historical-library-footer">
@@ -768,7 +768,7 @@
         <button id="historicalLibrarySnapshotBtn" type="button" class="ui-button btn ghost" disabled hidden>없는 항목 추가</button>
         <span class="historical-library-footer-spacer"></span>
         <button id="historicalLibraryOptionsBackBtn" type="button" class="ui-button btn ghost hidden" aria-label="검색 결과로 돌아가기" data-tooltip="검색 결과로 돌아가기">목록</button>
-        <details id="historicalLibraryAddOptions" class="ui-disclosure editor-disclosure hidden" open><summary><span>하위 영역 불러오기</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span>불러올 범위</span><select id="historicalLibraryChildDepthInput"><option value="none">선택한 항목만</option><option value="level1">선택한 항목 + 바로 아래 하위 영역까지</option><option value="all">선택한 항목 + 모든 단계의 하위 영역까지</option></select><small class="editor-help">선택한 항목과 하위 영역을 현재 프로젝트에 불러옵니다.</small></label></div></details>
+        <details id="historicalLibraryAddOptions" class="ui-disclosure editor-disclosure hidden" open><summary><span>하위 영역 가져오기</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group"><span hidden>불러올 범위</span><select id="historicalLibraryChildDepthInput" aria-label="하위 영역 가져오기"><option value="none">선택한 항목만</option><option value="level1">바로 아래 영역까지 가져오기</option><option value="all">모든 하위 영역 가져오기</option></select></label></div></details>
         <button id="historicalLibraryAddBtn" type="button" class="ui-button btn" aria-label="선택한 항목을 현재 프로젝트에 추가" data-tooltip="선택한 항목을 현재 프로젝트에 추가" disabled>추가</button>
       </footer>
     </section>
@@ -793,9 +793,9 @@
           <label id="gisLayerRow" class="ui-field field-group gis-wide" data-gis-step="0" data-gis-active="true"><span>가져올 레이어</span><select id="gisLayerSelect"></select><small id="gisLayerDetails">레이어 정보를 불러오는 중입니다.</small></label>
           <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="country">국가</option><option value="generic">기타 객체</option><option value="subunit">하위단위</option><option value="region">지방</option><option value="distribution">분포</option></select></label>
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
-          <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">교차 면적은 추천 정보일 뿐이며, 여기서 선택한 국가가 최종 소속입니다.</small></label>
+          <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">선택한 국가로 영토가 이전됩니다.</small></label>
           <label id="gisIndependentRegionRow" class="ui-check gis-wide hidden" data-gis-step="1"><input id="gisIndependentRegion" type="checkbox" /><span>국가에 속하지 않는 독립 지방으로 가져오기</span></label>
-          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentUnit"><option value="">국가 직속</option></select><small>선택한 국가의 기존 하위단위만 표시합니다. 행정 단계는 상위 영역에서 자동 계산합니다.</small></label>
+          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="1"><span>상위 영역</span><select id="gisParentUnit"><option value="">국가 직속</option></select><small>행정 단계는 상위 영역에 맞춰 정해집니다.</small></label>
           <div class="ui-callout gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
           <details id="gisAdvancedMapping" class="ui-disclosure editor-disclosure gis-wide" data-gis-step="2"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body gis-form-grid">
             <label id="gisIdFieldRow" class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
@@ -809,7 +809,7 @@
           </div></details>
           <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary">감지 중</output></div>
           <div id="gisImportImpact" class="ui-callout gis-wide" data-gis-step="3"><strong>적용 결과</strong><div id="gisImportImpactSummary"><p>적용할 내용을 계산하기 전입니다.</p></div></div>
-          <div id="gisCountryIdentityPanel" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>국가 ID 연결</strong><p class="gis-country-identity-help">자동으로 확정하지 못한 국가는 기존 국가와 직접 연결하거나 새 국가로 지정하세요.</p><div id="gisCountryIdentityRows" class="gis-country-identity-rows"></div></div>
+          <div id="gisCountryIdentityPanel" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>국가 ID 연결</strong><p class="gis-country-identity-help">연결할 국가를 확인하세요.</p><div id="gisCountryIdentityRows" class="gis-country-identity-rows"></div></div>
           <div id="gisOpenModeRow" class="ui-field field-group gis-wide" data-gis-step="3"><span>적용 방식</span><div id="gisOpenModeControl" class="ui-segmented" role="radiogroup" aria-label="적용 방식"><button class="ui-button ui-segment-option active" type="button" data-gis-open-mode="replace" role="radio" aria-checked="true">새 프로젝트</button><button class="ui-button ui-segment-option" type="button" data-gis-open-mode="merge" role="radio" aria-checked="false">현재 지도에 추가</button></div><select id="gisOpenMode" hidden><option value="replace">새 프로젝트</option><option value="merge">현재 지도에 추가</option></select></div>
           <div id="gisFixedOpenModeNote" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>현재 지도에 추가</strong><p>이 종류는 기존 국가·영역을 기준으로 하므로 현재 프로젝트에 추가됩니다.</p></div>
           <label id="gisMergeStrategyRow" class="ui-field field-group hidden" data-gis-step="3"><span>병합 방식</span><select id="gisMergeStrategy"><option value="id-replace">ID 기준 교체</option><option value="imported-wins">가져온 영토 우선</option></select></label>
@@ -861,10 +861,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-release-20260909124620" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-release-ui-info-20260909042355" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-20260909124620" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-release-ui-info-20260909042355" defer></script>
 </body>
 </html>

@@ -23,13 +23,9 @@ export function createGisExportController({
     const counts = getCounts();
     const selected = selectedLayers();
     const nonEmpty = selected.filter(layer => counts[layer] > 0);
-    const empty = selected.filter(layer => counts[layer] === 0);
-    const format = elements.format?.value === 'geojson-zip' ? 'GeoJSON 묶음' : 'GIS용 GeoPackage';
     const summary = elements.summary?.querySelector('p');
     if (!summary) return;
-    const included = nonEmpty.length ? nonEmpty.map(layer => `${LABELS[layer]} ${counts[layer].toLocaleString()}개`).join(' · ') : '생성할 데이터 없음';
-    const omitted = empty.length ? ` 비어 있는 ${empty.map(layer => LABELS[layer]).join(', ')} 파일은 만들지 않습니다.` : '';
-    summary.textContent = `${format} · ${included}.${omitted}`;
+    summary.textContent = nonEmpty.length ? `총 ${nonEmpty.length}개 레이어` : '내보낼 데이터를 선택하세요.';
   };
 
   const setStep = (value, { focus = false } = {}) => {

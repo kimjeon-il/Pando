@@ -1,5 +1,11 @@
 /* Editor shell, map toolbar, edit-session HUD, and persistent status. */
 
+.workspace.editor-drawer-open .status-selection,
+.workspace:has(.right-panel.mobile-open) .status-selection,
+.workspace:has(.mode-action-bar:not(.hidden)) .status-primary {
+  display: none;
+}
+
 [data-layout="wide"] .surface-map { width: var(--ui-shell-left-panel-width); }
 [data-layout="wide"] .surface-editor { width: var(--ui-shell-right-panel-width); }
 
