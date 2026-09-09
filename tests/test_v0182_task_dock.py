@@ -42,10 +42,11 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertIn("state.modeTaskMinimized", APP)
         self.assertIn("'annex-territory': Object.freeze({ label: '영토 편입'", TOOLS)
         self.assertIn("'merge-country': Object.freeze({ label: '국가 합병'", TOOLS)
-        self.assertIn("stage: '대상 국가 선택'", TOOLS)
+        self.assertIn("stage: '합칠 국가 선택'", TOOLS)
 
     def test_selection_counts_live_in_primary_action_labels(self):
-        self.assertIn("`선택 완료 (${state.annexDonorCountryIds.length})`", APP)
+        self.assertNotIn("`선택 완료 (${state.annexDonorCountryIds.length})`", APP)
+        self.assertIn("`국경 편집 (${state.boundaryEditCountryIds.length})`", APP)
         self.assertIn("`합병 (${state.mergeTargetCountryIds.length})`", APP)
         self.assertIn("`편입 (${state.annexSelectedComponentKeys.length})`", APP)
         self.assertNotIn("현재 ${state.annexDonorCountryIds.length}개국", APP)

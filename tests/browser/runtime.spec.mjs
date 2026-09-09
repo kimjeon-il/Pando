@@ -152,7 +152,7 @@ test('annex territory exposes river boundaries as a retained component-selection
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexTerritoryBtn').click();
-  await expect(page.locator('#modeTaskStage')).toHaveText('대상 국가 선택');
+  await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가 선택');
   const donorPoint = await page.evaluate(() => {
     const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
     return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
@@ -163,10 +163,16 @@ test('annex territory exposes river boundaries as a retained component-selection
     clientY: mapBox.y + donorPoint[1],
     button: 0,
   });
-  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
-  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modePrimaryBtn')).toBeHidden();
+  await expect(page.locator('#modeLineMethodBtn')).toBeEnabled();
+  await page.locator('#modeLineMethodBtn').click();
 
-  await expect(page.locator('#modeMethodSwitch .mode-method-btn')).toHaveCount(3);
+  await expect(page.locator('#modeMethodSwitch .mode-method-btn')).toHaveCount(2);
+  await expect(page.locator('#modeDirectMethodOptions')).toBeVisible();
+  await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked();
+  await expect(page.locator('#modePolygonMethodBtn')).not.toBeChecked();
+  await page.locator('#modePolygonMethodBtn').check();
+  await expect(page.locator('#modePolygonMethodBtn')).toBeChecked();
   await expect(page.locator('#modeRiverMethodBtn')).toHaveCount(0);
   await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
   await page.locator('#modeComponentsMethodBtn').click();
@@ -192,6 +198,7 @@ test('annex territory exposes river boundaries as a retained component-selection
   })));
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modeLineMethodBtn').click();
+  await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked();
   await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
   await page.locator('#modeComponentsMethodBtn').click();
   await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();

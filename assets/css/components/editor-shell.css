@@ -191,10 +191,14 @@
   font-weight: var(--ui-v2-weight-bold);
 }
 
-.mode-task-stage,
-.mode-task-instruction {
+.mode-task-stage {
   color: var(--muted);
   font-size: var(--ui-v2-font-sm);
+}
+
+.mode-task-instruction {
+  color: var(--text-soft);
+  font-size: var(--ui-v2-font-md);
 }
 
 .map-bottom-status {
