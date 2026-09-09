@@ -138,17 +138,18 @@
 
 [data-layout="mobile"] .surface-header {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(var(--ui-touch-height), auto) auto;
   flex-basis: auto;
   min-height: var(--ui-surface-header-height-mobile);
-  padding-block:
-    calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2))
-    var(--ui-space-2);
+  padding-block: 0 var(--ui-space-2);
   touch-action: none;
   cursor: ns-resize;
 }
 
-[data-layout="mobile"] .surface-header .sheet-close-btn {
-  display: inline-grid;
+[data-layout="mobile"] .surface-header .sheet-close-btn,
+[data-layout="mobile"] .surface-header .surface-header-actions {
+  display: none;
 }
 
 [data-layout="mobile"] .surface-header .sheet-drag-handle {

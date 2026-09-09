@@ -38,6 +38,7 @@
   }
 
   .workspace-surface.ui-sheet {
+    --surface-elevated: var(--ui-v2-color-panel);
     border-top: 1px solid var(--border);
     border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
     background: var(--surface-elevated);
@@ -50,20 +51,36 @@
     padding-inline: var(--ui-surface-content-rail-x);
   }
 
-  .sheet-drag-handle {
-    position: absolute;
-    inset: 0 auto auto 50%;
-    transform: translateX(-50%);
+  .surface-header .sheet-drag-handle {
+    --ui-control-bg: transparent;
+    --ui-control-bg-hover: transparent;
+    --ui-control-bg-pressed: transparent;
+    position: static;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: center;
     width: 6rem;
     min-height: var(--ui-touch-height);
-    height: var(--ui-touch-height);
+    height: auto;
     display: grid;
     place-items: start center;
     padding: var(--ui-space-2) 0 0;
     border: 0;
     background: transparent;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
     touch-action: none;
     cursor: ns-resize;
+  }
+
+  .surface-header .sheet-drag-handle:is(:hover, :active) {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .surface-header .sheet-drag-handle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: calc(-1 * var(--ui-v2-focus-offset));
   }
 
   .sheet-drag-handle > span {
@@ -112,7 +129,7 @@
   .surface-editor .editor-scroll-body,
   .surface-map .surface-body{ overscroll-behavior: contain; }
 
-  .surface-map[data-sheet-snap="0"] { pointer-events: none; }
+  /* Snap 0 closes the map through the controller; open/closed layout owns hit testing. */
 
   .surface-map .layer-child {
       min-height: var(--ui-v2-layer-row-height-mobile);
