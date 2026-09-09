@@ -469,8 +469,9 @@
     fields.filter(field => !fieldFilter || fieldFilter(String(field))).forEach(field => {
       const fieldName = String(field);
       const example = fieldExampleText(fieldName, fieldExamples);
-      const exampleSuffix = example === '예시 없음' ? '' : ` (예: ${example})`;
-      select.add(new Option(`${roleLabel} — ${fieldName}${exampleSuffix}`, fieldName));
+      const option = new Option(fieldName, fieldName);
+      if (example !== '예시 없음') option.dataset.tooltip = `예: ${example}`;
+      select.add(option);
     });
     select.value = selected || (includeFid ? '__fid__' : '');
   }
@@ -534,7 +535,7 @@
     crsInput.required = !descriptor.crs.hasCrs;
     document.getElementById('gisCrsSummary').textContent = descriptor.crs.hasCrs ? `${descriptor.crs.label} · 자동 감지` : '좌표계를 확인할 수 없습니다. EPSG 코드를 입력하세요.';
     const dimensionNote = /(?:^|\s)(?:Z|M|ZM)(?:\s|$)/i.test(descriptor.geometryType) ? ' · Z/M은 XY로 편집' : '';
-    document.getElementById('gisLayerDetails').textContent = `${descriptor.featureCount.toLocaleString()}개 · ${descriptor.geometryType} · ${descriptor.crs.label} · ${descriptor.driverName}${dimensionNote}`;
+    document.getElementById('gisLayerDetails').textContent = `${descriptor.geometryType}${dimensionNote}`;
     updateTargetFields();
   }
 
@@ -567,9 +568,9 @@
       const warning = wizardOptions.hasUnsavedChanges ? ' 파일에 저장하지 않은 현재 변경 사항은 사라집니다.' : '';
       summary.textContent = `PandoLab 프로젝트를 열어 현재 작업공간을 교체합니다.${warning}`;
     } else if (SOVEREIGN_SELECTION_TARGETS.has(document.getElementById('gisTargetType')?.value)) {
-      summary.textContent = `${layer} 전체를 ${country || '선택한 국가'} 소속 ${target}(으)로 가져오고 필요한 영토를 이전합니다.`;
+      summary.textContent = `${layer} → ${country || '선택한 국가'} · ${target}. 영토 이전이 적용됩니다.`;
     } else {
-      summary.textContent = `${layer}를 ${target}${distribution && target === '분포' ? ` · ${distribution}` : ''}(으)로 ${mode === 'replace' ? '새 프로젝트에서 엽니다' : '현재 프로젝트에 추가합니다'}.`;
+      summary.textContent = `${layer} → ${target}${distribution && target === '분포' ? ` · ${distribution}` : ''} → ${mode === 'replace' ? '새 프로젝트' : '현재 지도에 추가'}.${mode === 'replace' && wizardOptions.hasUnsavedChanges ? ' 저장하지 않은 변경 사항은 사라집니다.' : ''}`;
     }
   }
 
@@ -661,23 +662,15 @@
     const fixedModeTitle = fixedModeNote?.querySelector('strong');
     const fixedModeBody = fixedModeNote?.querySelector('p');
     if (fixedModeTitle) fixedModeTitle.textContent = importSourceKind === 'project' ? '프로젝트 열기' : '현재 지도에 추가';
-    if (fixedModeBody) fixedModeBody.textContent = importSourceKind === 'project'
-      ? 'PandoLab 프로젝트 데이터와 내부 속성을 그대로 열어 현재 작업공간을 교체합니다.'
-      : '선택한 데이터를 현재 프로젝트에 추가하며 기존 프로젝트를 교체하지 않습니다.';
+    if (fixedModeBody) fixedModeBody.textContent = '';
     document.getElementById('gisMergeStrategyRow')?.classList.toggle('hidden', importSourceKind === 'project' || target !== 'country' || modeSelect.value !== 'merge');
-    const withExample = (label, field, fallback) => {
-      const value = field && field !== '__fid__' && field !== '__qgis_style__' ? descriptor?.fieldExamples?.[field] : undefined;
-      const example = value == null || value === '' ? '' : ` (예: ${String(value).slice(0, 48)})`;
-      return `${label}: ${field || fallback}${example}`;
-    };
     const name = document.getElementById('gisNameField')?.value || '';
     const id = document.getElementById('gisIdField')?.value || '';
-    const country = document.getElementById('gisCountryField')?.value || '';
-    const parts = [withExample('이름', name, '자동 이름'), withExample('ID', id, '자동 ID')];
+    const parts = [name ? '이름 연결됨' : '이름 자동 생성', id ? 'ID 연결됨' : 'ID 자동 생성'];
     if (territorial) parts.push(independentRegion
       ? '소속 국가: 독립 지방'
-      : useCountryField ? withExample('객체별 소속 국가', country, '공통 소속 국가 사용') : '소속 국가: 위에서 선택한 공통 국가');
-    document.getElementById('gisMappingSummary').textContent = parts.join(' · ');
+      : useCountryField ? '객체별 소속 국가 사용' : '');
+    document.getElementById('gisMappingSummary').textContent = parts.filter(Boolean).join(' · ');
     const confirm = document.getElementById('gisImportConfirmBtn');
     if (confirm) confirm.textContent = importSourceKind === 'project'
       ? '프로젝트 열기'
@@ -974,7 +967,6 @@
     const lines = [];
     if (missing.length) lines.push(`<strong>누락 참조 ${missing.length}개</strong><br>${missing.slice(0, 5).map(escapeHtml).join('<br>')}`);
     if (ambiguous.length) lines.push(`<strong>동명 참조 ${ambiguous.length}개</strong><br>${ambiguous.slice(0, 5).map(escapeHtml).join('<br>')}`);
-    if (!lines.length) lines.push(`선택 파일 ${session.prepared.originals.length}개 · 참조 경로 정상`);
     return lines.join('<br><br>');
   }
 
@@ -1028,7 +1020,20 @@
       for (const detail of details) list.append(Object.assign(document.createElement('li'), { textContent: detail }));
     }
     if (impact.unresolvedCountryValueCount) list.append(Object.assign(document.createElement('li'), { textContent: `해석하지 못한 객체별 국가값 ${impact.unresolvedCountryValueCount}개가 있어 가져오기를 진행할 수 없습니다.` }));
-    container.append(list);
+    const affected = (impact.groups || []).filter(group => group.donors?.length || group.absorbedCountryIds?.length);
+    for (const group of affected) {
+      const donors = (group.donors || []).map(donor => ownerNames.get(String(donor.countryId)) || donor.countryId);
+      container.append(Object.assign(document.createElement('p'), {
+        textContent: `${ownerNames.get(String(group.targetCountryId)) || group.targetCountryId}에 영토 이전${donors.length ? ` · 영향 국가: ${donors.join(', ')}` : ''}${group.absorbedCountryIds?.length ? ` · 완전히 흡수되는 국가 ${group.absorbedCountryIds.length}개` : ''}`,
+      }));
+    }
+    if (impact.unresolvedCountryValueCount) container.append(Object.assign(document.createElement('p'), {
+      textContent: `소속 국가를 확인해야 하는 객체 ${impact.unresolvedCountryValueCount}개가 있습니다.`,
+    }));
+    const details = document.createElement('details');
+    details.className = 'ui-disclosure editor-disclosure';
+    details.append(Object.assign(document.createElement('summary'), { textContent: '면적·영토 변경 상세' }), list);
+    container.append(details);
   }
 
   function renderCountryIdentityPlan(plan, manualMappings) {
@@ -1047,7 +1052,7 @@
       const title = document.createElement('strong');
       title.textContent = row.name || row.sourceId || '가져온 국가';
       const detail = document.createElement('small');
-      detail.textContent = `${row.sourceIdField || 'ID'}: ${row.sourceId || '(없음)'} · ${row.sourceNamespace || '일반 GIS'}`;
+      detail.textContent = row.sourceId || '';
       source.append(title, detail);
       const label = document.createElement('label');
       label.className = 'ui-field field-group';
@@ -1118,10 +1123,12 @@
       document.getElementById('gisLayerRow')?.classList.toggle('hidden', session.descriptors.length === 1 || projectLayerIndex >= 0);
       document.getElementById('gisSecurityNote')?.classList.toggle('hidden', !session.prepared.originals.some(file => ['qgs', 'qgz'].includes(extension(file.name))));
       document.getElementById('gisSourceReport').innerHTML = reportHtml(session);
+      document.getElementById('gisSourceReport').classList.toggle('hidden', !reportHtml(session));
       importSourceKind = session.projectMetadata?.projectState ? 'project' : 'vector';
       importStepRoute = importSourceKind === 'project' ? [0, 4] : [0, 1, 2, 3, 4];
       if (importSourceKind === 'project') {
         document.getElementById('gisSourceReport').innerHTML = '<strong>PandoLab 프로젝트 감지</strong><br>프로젝트 데이터와 내부 속성을 그대로 엽니다.';
+        document.getElementById('gisSourceReport').classList.remove('hidden');
         if (kicker) kicker.textContent = 'PandoLab 프로젝트';
         if (title) title.textContent = '프로젝트 불러오기';
       } else {
