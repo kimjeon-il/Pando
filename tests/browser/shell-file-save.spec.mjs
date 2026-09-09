@@ -99,11 +99,8 @@ test('one load command automatically classifies vector data and PandoLab project
   await (await chooserPromise).setFiles(vectorFixture);
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportTitle')).toHaveText('벡터 데이터 불러오기');
-  await expect(page.locator('#gisStepIndicator')).toHaveText('1/5 · 파일 확인');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 가져올 데이터');
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
-  await expect(page.locator('#gisTargetTypeRow')).toBeHidden();
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('2/5 · 가져올 내용');
   await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
   await page.locator('#gisImportCancelBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden();

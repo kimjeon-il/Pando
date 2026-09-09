@@ -11241,12 +11241,25 @@ const {
 
   function renderLayerPresentationList() {
     state.layerPresentation = normalizeLayerPresentation(state.layerPresentation);
+    const units = state.territorialUnits || [];
+    const available = {
+      subunitsVisible: units.some(unit => unit.properties?.unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT),
+      regionsVisible: units.some(unit => unit.properties?.unitType === TERRITORIAL_UNIT_TYPES.REGION),
+      genericFeaturesVisible: state.genericFeatures.length > 0,
+      languagesVisible: state.distributionEntries.length > 0,
+      ethnicitiesVisible: state.distributionEntries.length > 0,
+      religionsVisible: state.distributionEntries.length > 0,
+    };
+    for (const [id, visible] of Object.entries(available)) {
+      $(id)?.closest('.layer-type-settings')?.classList.toggle('hidden', !visible);
+    }
     syncLayerStylePanels();
     syncDistributionPresentationControls();
     syncPhysicalControls();
   }
 
   function syncDistributionPresentationControls() {
+    $('distributionViewSettings')?.classList.toggle('hidden', !state.distributionEntries.length);
     const mode = state.distributionSettings?.renderMode || DISTRIBUTION_RENDER_MODES.DOMINANT;
     for (const id of ['distributionLayerModeInput', 'distributionRenderModeInput']) {
       const input = $(id);

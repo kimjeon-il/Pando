@@ -6,7 +6,7 @@ async function runDebugAudit(page) {
   await expect.poll(() => panel.locator('pre').innerText(), { timeout: 120_000 }).toContain('audit: ready / 0 issues');
 }
 
-test('East Prussia r2 library entry adds an exact overlap-free country', async ({ page }) => {
+test('East Prussia r3 library entry adds the reviewed overlap-free country', async ({ page }) => {
   test.setTimeout(240_000);
   const consoleIssues = [];
   page.on('pageerror', error => consoleIssues.push(`pageerror: ${error.message}`));
@@ -36,10 +36,9 @@ test('East Prussia r2 library entry adds an exact overlap-free country', async (
   await expect(result).toBeVisible();
   await result.click();
   await expect(page.locator('#historicalLibraryPreview')).toContainText('동프로이센주');
-  await page.locator('#historicalLibraryPreview details summary').click();
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('exact');
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('high');
-  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(1);
+  await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
+  await expect(page.locator('#historicalLibraryPreview details')).toHaveCount(0);
+  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
 
   const sourceBefore = await page.evaluate(() => JSON.stringify(
     window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:east-prussia').geometryVersions[0].geometry,
@@ -80,7 +79,7 @@ test('East Prussia r2 library entry adds an exact overlap-free country', async (
     name: '동프로이센주',
     validFrom: '1878-04-01',
     validTo: '1920-01-10',
-    components: 2,
+    components: 1,
     overlapIds: [],
     sourceAfter: sourceBefore,
   });

@@ -252,7 +252,6 @@ test('East Prussia imports as a complete German administrative unit and undo tre
   await page.locator('#openGisBtn').click();
   await (await chooserPromise).setFiles(eastPrussiaFixture);
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
-  await page.locator('#gisImportNextBtn').click();
   await selectUiOption(page, '#gisTargetType', 'administrative');
   await selectUiOption(page, '#gisTargetCountry', 'DEU');
   await expect(page.locator('#gisParentUnit')).toHaveValue('');
@@ -260,7 +259,7 @@ test('East Prussia imports as a complete German administrative unit and undo tre
   await expect(page.locator('#gisNameField')).toHaveValue('pandolab_name');
   await expect(page.locator('#gisCountryField')).toHaveValue('sovereign_id');
   await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('4/5 · 적용 결과', { timeout: 90_000 });
+  await expect(page.locator('#gisStepIndicator')).toHaveText('2/3 · 적용 결과', { timeout: 90_000 });
   await expect(page.locator('#gisImportImpactSummary')).toContainText('소속 국가: 독일');
   await expect(page.locator('#gisImportImpactSummary')).toContainText('영토를 내주는 국가:');
   await page.locator('#gisImportNextBtn').click();

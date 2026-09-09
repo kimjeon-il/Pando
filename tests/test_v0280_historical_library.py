@@ -111,7 +111,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             self.assertEqual(entity["adminLevel"], 1)
             self.assertTrue(entity["metadata"]["defaultFlagDataUrl"].startswith("data:image/svg+xml;base64,"))
 
-    def test_east_prussia_is_a_high_certainty_embedded_country(self):
+    def test_east_prussia_rebuild_preserves_identity_and_discloses_uncertainty(self):
         entity = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:east-prussia")
         version = entity["geometryVersions"][0]
         self.assertEqual(entity["type"], "country")
@@ -122,11 +122,15 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertEqual(entity["metadata"]["defaultColor"], "#53657A")
         self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
         self.assertNotIn("territoryMerge", entity["metadata"])
-        self.assertEqual(version["id"], "ostpreussen-1878-1920-r2")
+        self.assertEqual(version["id"], "ostpreussen-1878-1920-r3")
         self.assertEqual(version["datePrecision"], "exact")
-        self.assertEqual(version["certainty"], "high")
+        self.assertEqual(version["certainty"], "medium")
+        self.assertTrue(entity["metadata"]["approximateGeometry"])
+        self.assertFalse(entity["metadata"]["production"])
+        self.assertFalse(entity["metadata"]["validation"]["statisticalAreaWithinOnePercent"])
+        self.assertEqual(entity["metadata"]["validation"]["redistributionPermission"], "unconfirmed")
         self.assertEqual(version["geometry"]["type"], "MultiPolygon")
-        self.assertEqual(len(version["geometry"]["coordinates"]), 2)
+        self.assertEqual(len(version["geometry"]["coordinates"]), 1)
 
     def test_world_snapshot_is_a_template(self):
         self.assertIn("normalizeWorldSnapshot", MODEL)
