@@ -67,7 +67,8 @@ for (const id of ['layerSearchInput', 'historicalLibrarySearchInput']) {
 const floatingContracts = new Map([
   ['modeActionBar', ['ui-floating-surface', 'ui-context-toolbar']],
   ['objectChooser', ['ui-popover', 'ui-floating-surface']],
-  ['multiSelectionBar', ['layer-selection-summary']],
+  // Single and multiple selection now share the editor object context.
+  ['editorObjectHeader', ['editor-object-header']],
 ]);
 for (const [id, classes] of floatingContracts) {
   const tag = html.match(new RegExp(`<[^>]+id=["']${id}["'][^>]*>`, 'i'))?.[0] || '';

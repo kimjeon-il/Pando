@@ -1,4 +1,20 @@
 /* Shared map, create, historical-library, and GIS panel presentation. */
+.layer-create-menu {
+  position: fixed;
+  top: var(--layer-create-top, var(--ui-shell-topbar-height));
+  left: var(--layer-create-left, var(--ui-shell-compact-inset));
+  width: min(var(--ui-layer-create-width), calc(100vw - var(--ui-space-5)));
+  max-height: var(--layer-create-height, 80dvh);
+  overflow: auto;
+  padding: var(--ui-space-2) var(--ui-surface-content-rail-x);
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow);
+  z-index: var(--ui-layer-create-z);
+}
+.layer-create-menu.hidden { display: none; }
+.layer-create-content, .layer-create-groups { min-width: 0; }
 
 /* Map and create panel rules. */
 
@@ -27,7 +43,7 @@
 .map-view-settings > .layer-style-editor > strong,
 .create-menu-group-title {
   color: var(--muted);
-  font-size: var(--ui-font-caption);
+  font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-semibold);
   line-height: var(--ui-line-tight);
 }
@@ -125,13 +141,6 @@
   font-weight: var(--ui-weight-medium);
 }
 
-.surface-content-create {
-  min-width: 0;
-  display: grid;
-  gap: 0;
-}
-
-.create-menu-route-panel { min-width: 0; }
 
 .create-menu-category {
   min-width: 0;
@@ -211,9 +220,18 @@
 }
 
 .top-actions .file-menu-export-boundary {
-  margin-top: var(--ui-space-1);
-  box-shadow: inset 0 1px var(--border);
+  margin-top: var(--ui-space-3);
+  box-shadow: none;
 }
+
+.top-actions .file-submenu { border-left: 0; }
+
+.layer-inline-style-panel { border-block: 0; }
+
+.layer-list-tools { display: flex; align-items: center; gap: var(--ui-space-2); min-width: 0; }
+.layer-list-tools .layer-search { flex: 1 1 auto; min-width: 0; }
+.layer-list-tools .layer-add-button { flex: 0 0 auto; gap: var(--ui-space-1); min-height: var(--ui-touch-height); padding-inline: var(--ui-space-2); }
+.layer-list-tools .layer-add-button .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 
 .top-actions .file-menu-icon { color: var(--muted); }
 

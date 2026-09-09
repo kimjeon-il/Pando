@@ -1,7 +1,7 @@
-const SURFACES = Object.freeze(['layers', 'create', 'editor']);
+const SURFACES = Object.freeze(['layers', 'editor']);
 const SURFACE_SET = new Set(SURFACES);
-const SURFACE_TO_MOBILE = Object.freeze({ layers: 'map', create: 'create', editor: 'edit' });
-const MOBILE_TO_SURFACE = Object.freeze({ map: 'layers', create: 'create', edit: 'editor' });
+const SURFACE_TO_MOBILE = Object.freeze({ layers: 'map', editor: 'edit' });
+const MOBILE_TO_SURFACE = Object.freeze({ map: 'layers', edit: 'editor' });
 const SURFACE_OPEN_ORIGINS = Object.freeze({ USER: 'user', AUTOMATIC: 'automatic', RESTORED: 'restored' });
 
 // Compatibility while app.js still owns the browser-history wrapper around mobile sheets.
@@ -13,8 +13,8 @@ const BLOCKED_HISTORY_SENTINEL = '__surfaceAutomaticOpenBlocked__';
 export { SURFACE_OPEN_ORIGINS };
 
 export function createSurfaceController({ getElement, getLayout, document }) {
-  const openOrigins = { layers: null, create: null, editor: null };
-  const automaticOpenBlocked = { layers: false, create: false, editor: false };
+  const openOrigins = { layers: null, editor: null };
+  const automaticOpenBlocked = { layers: false, editor: false };
   const state = {
     activeSurface: null,
     layersOpen: false,
@@ -79,11 +79,10 @@ export function createSurfaceController({ getElement, getLayout, document }) {
 
   function isOpen(surface) {
     if (surface === 'layers') {
-      if (getLayout() === 'wide') return !state.editorOpen && state.activeSurface !== 'create';
+      if (getLayout() === 'wide') return !state.editorOpen;
       return state.layersOpen;
     }
     if (surface === 'editor') return state.editorOpen;
-    if (surface === 'create') return state.activeSurface === 'create';
     return false;
   }
 
@@ -162,30 +161,24 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     if (layout !== 'mobile') activeMobileSheet = null;
     const layersOpen = layout === 'wide' || (layout === 'mobile' ? activeMobileSheet === 'map' : state.layersOpen);
     const editorOpen = layout === 'mobile' ? activeMobileSheet === 'edit' : state.editorOpen;
-    const createOpen = layout === 'mobile' ? activeMobileSheet === 'create' : state.activeSurface === 'create';
-    const layersControlOpen = layout === 'wide' ? !editorOpen && !createOpen : layersOpen;
+    const layersControlOpen = layout === 'wide' ? !editorOpen : layersOpen;
     state.layersOpen = layersOpen;
     state.editorOpen = editorOpen;
 
     const left = getElement('leftPanel');
     const right = getElement('rightPanel');
-    const create = getElement('createMenu');
     left?.classList.toggle('mobile-open', layout !== 'wide' && layersOpen);
     right?.classList.toggle('mobile-open', editorOpen);
     right?.classList.remove('collapsed');
-    create?.classList.toggle('mobile-open', layout === 'mobile' && createOpen);
-    create?.classList.toggle('hidden', !createOpen);
 
     const workspace = document.querySelector('.workspace');
     workspace?.classList.toggle('layers-drawer-open', layersOpen);
     workspace?.classList.toggle('editor-drawer-open', editorOpen);
     document.body.classList.toggle('file-menu-open', fileOpen);
-    document.body.classList.toggle('create-menu-open', createOpen);
     document.body.classList.toggle('map-sheet-open', layout === 'mobile' && !!activeMobileSheet);
 
     const expanded = [
       ['mobileMapBtn', layersControlOpen], ['mobileEditBtn', editorOpen],
-      ['createMenuBtn', createOpen],
     ];
     for (const [id, openState] of expanded) {
       const button = getElement(id);
@@ -196,7 +189,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     getElement('mobileFileBtn')?.setAttribute('aria-expanded', String(fileOpen));
     getElement('mobileBackdrop')?.setAttribute('aria-hidden', String(!fileOpen));
 
-    const mobileIds = { map: 'leftPanel', create: 'createMenu', edit: 'rightPanel' };
+    const mobileIds = { map: 'leftPanel', edit: 'rightPanel' };
     for (const [kind, id] of Object.entries(mobileIds)) {
       const panel = getElement(id);
       if (!panel) continue;
@@ -209,16 +202,11 @@ export function createSurfaceController({ getElement, getLayout, document }) {
       } else {
         panel.inert = false;
         panel.removeAttribute('aria-hidden');
-        if (kind === 'create') {
-          panel.setAttribute('role', 'dialog');
-          panel.setAttribute('aria-modal', 'false');
-        } else {
-          panel.removeAttribute('role');
-          panel.removeAttribute('aria-modal');
-        }
+        panel.removeAttribute('role');
+        panel.removeAttribute('aria-modal');
       }
     }
-    return { layersOpen, editorOpen, createOpen, activeMobileSheet };
+    return { layersOpen, editorOpen, activeMobileSheet };
   }
 
   function syncLayout(previousLayout) {
@@ -226,9 +214,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     if (layout === previousLayout) return;
 
     if (layout === 'mobile') {
-      const requestedSurface = state.activeSurface === 'create' && openOrigins.create
-        ? 'create'
-        : state.editorOpen && openOrigins.editor !== SURFACE_OPEN_ORIGINS.AUTOMATIC
+      const requestedSurface = state.editorOpen && openOrigins.editor !== SURFACE_OPEN_ORIGINS.AUTOMATIC
           ? 'editor'
           : previousLayout !== 'wide' && state.layersOpen && openOrigins.layers
             ? 'layers'
@@ -247,7 +233,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
       const mobileSurface = activeMobileSheet ? MOBILE_TO_SURFACE[activeMobileSheet] : null;
       activeMobileSheet = null;
       const compactSurface = mobileSurface
-        || (state.activeSurface === 'create' ? 'create' : state.editorOpen ? 'editor' : state.layersOpen && previousLayout !== 'wide' ? 'layers' : null);
+        || (state.editorOpen ? 'editor' : state.layersOpen && previousLayout !== 'wide' ? 'layers' : null);
       state.activeSurface = compactSurface;
       state.layersOpen = compactSurface === 'layers';
       state.editorOpen = compactSurface === 'editor';
@@ -261,10 +247,6 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     activeMobileSheet = null;
     state.layersOpen = true;
     openOrigins.layers = null;
-    if (state.activeSurface === 'create') {
-      state.activeSurface = null;
-      openOrigins.create = null;
-    }
     if (state.editorOpen) {
       state.activeSurface = 'editor';
       if (!openOrigins.editor) openOrigins.editor = SURFACE_OPEN_ORIGINS.RESTORED;

@@ -1,7 +1,7 @@
 import { createLayerListModel, visibleLayerRows } from './layer-list-model.js';
 
-const ROW_HEIGHT_DESKTOP = 30;
-const ROW_HEIGHT_MOBILE = 38;
+const ROW_HEIGHT_DESKTOP = 36;
+const ROW_HEIGHT_MOBILE = 44;
 const OVERSCAN = 5;
 
 export function createLayerTreeController({
@@ -30,11 +30,16 @@ export function createLayerTreeController({
   const rowBuilds = new Set();
   let disposed = false;
   let resizeFrame = 0;
+  let measuredRow = null;
+  let measuredSize = '';
   const resizeObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver(() => {
     if (disposed || resizeFrame || !presentation) return;
     resizeFrame = window.requestAnimationFrame(() => {
       resizeFrame = 0;
       const container = renderedSearch ? elements.searchResults : elements.list;
+      const size = `${container.clientWidth}:${container.clientHeight}:${rowHeight(container)}`;
+      if (size === measuredSize) return;
+      measuredSize = size;
       if (container.clientHeight && !revealPendingSelection()) renderRows(container, logicalRows, container.scrollTop);
     });
   }) : null;
@@ -70,6 +75,12 @@ export function createLayerTreeController({
       }
       while (cursor) { const next = cursor.nextSibling; cursor.remove(); cursor = next; }
       onCommit();
+      const nextMeasuredRow = container.querySelector('.layer-child, .layer-bundle-row');
+      if (nextMeasuredRow !== measuredRow) {
+        if (measuredRow) resizeObserver?.unobserve(measuredRow);
+        measuredRow = nextMeasuredRow;
+        if (measuredRow) resizeObserver?.observe(measuredRow);
+      }
       commands.syncCanonicalControls?.(container); syncSelection();
       if (focusKey && !focus?.isConnected) {
         const row = [...container.querySelectorAll('[data-object-key]')].find(node => node.dataset.objectKey === focusKey);
@@ -84,9 +95,8 @@ export function createLayerTreeController({
     const rendered = container?.querySelector?.('.layer-child, .layer-bundle-row');
     const measured = rendered?.getBoundingClientRect?.().height;
     if (Number.isFinite(measured) && measured > 0) return measured;
-    const value = Number.parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--ui-tree-row-height'));
-    if (Number.isFinite(value) && value > 0) return value;
-    return window.matchMedia?.('(max-width: 799px)').matches ? ROW_HEIGHT_MOBILE : ROW_HEIGHT_DESKTOP;
+    const rootSize = Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+    return (window.matchMedia?.('(max-width: 799px)').matches ? ROW_HEIGHT_MOBILE : ROW_HEIGHT_DESKTOP) * rootSize / 16;
   };
 
   const selection = () => model.selectionSnapshot?.().selection || { primaryKey: null, items: [] };
@@ -396,6 +406,7 @@ export function createLayerTreeController({
   const bind = () => {
     resizeObserver?.observe(elements.list);
     resizeObserver?.observe(elements.searchResults);
+    resizeObserver?.observe(document.documentElement);
     for (const [group, input] of Object.entries(elements.visibilityInputs || {})) input?.addEventListener('change', event => {
       commands.setLayerVisibility(group, event.target.checked);
       render();

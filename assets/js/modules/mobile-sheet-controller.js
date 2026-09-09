@@ -1,6 +1,6 @@
 import { installFeedbackController } from './feedback-controller.js';
 
-const TWO_SNAP_PANEL_IDS = new Set(['leftPanel', 'createMenu']);
+const TWO_SNAP_PANEL_IDS = new Set(['leftPanel']);
 const EDIT_PANEL_ID = 'rightPanel';
 const SNAP_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
 
@@ -175,7 +175,7 @@ function installHandleGuards(documentRef) {
 }
 
 function observePanels(documentRef) {
-  for (const id of ['leftPanel', 'createMenu', EDIT_PANEL_ID]) {
+  for (const id of ['leftPanel', EDIT_PANEL_ID]) {
     const panel = documentRef.getElementById(id);
     if (!isHtmlElement(panel)) continue;
     const sync = () => {
@@ -210,7 +210,7 @@ function observeLayout(documentRef) {
   if (!isHtmlElement(app)) return;
   const sync = () => {
     syncDirectEditState(documentRef);
-    for (const id of ['leftPanel', 'createMenu', EDIT_PANEL_ID]) {
+    for (const id of ['leftPanel', EDIT_PANEL_ID]) {
       const panel = documentRef.getElementById(id);
       if (TWO_SNAP_PANEL_IDS.has(id)) normalizeTwoSnapAria(panel);
       else normalizeEditorAria(panel);

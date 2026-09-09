@@ -38,7 +38,7 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .editor-action-row > span > strong {
@@ -67,7 +67,7 @@
 .editor-action-row:is(.active, [aria-pressed="true"]) .command-row-icon { color: var(--accent); }
 
 .create-menu-item {
-  min-height: 36px;
+  min-height: var(--ui-v2-control-md);
   display: grid;
   grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
   align-items: center;
@@ -112,7 +112,15 @@
   text-align: left;
 }
 
+:is(.editor-action-row, .create-menu-item, .ui-row-button):has(small:not(:empty)) {
+  min-height: var(--ui-v2-command-description-height);
+}
+
 @media (max-width: 799px) {
   .editor-action-row,
   .create-menu-item { min-height: var(--ui-touch-height); }
+
+  :is(.editor-action-row, .create-menu-item, .ui-row-button):has(small:not(:empty)) {
+    min-height: var(--ui-v2-command-description-height-mobile);
+  }
 }

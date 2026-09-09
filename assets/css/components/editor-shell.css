@@ -1,5 +1,9 @@
 /* Editor shell, map toolbar, edit-session HUD, and persistent status. */
 
+.surface-header .editor-collapse-icon { display: none; transform: rotate(-90deg); }
+[data-layout="wide"] .surface-header .editor-collapse-icon { display: block; }
+[data-layout="wide"] .surface-header .editor-close-icon { display: none; }
+
 .workspace.editor-drawer-open .status-selection,
 .workspace:has(.right-panel.mobile-open) .status-selection,
 .workspace:has(.mode-action-bar:not(.hidden)) .status-primary {
@@ -10,34 +14,34 @@
 [data-layout="wide"] .surface-editor { width: var(--ui-shell-right-panel-width); }
 
 /* Keep the map viewport stable while the wide inspector opens over its edge. */
-.editor-task-slot[hidden] { display: none !important; }
+.editor-task-slot[hidden] { display: none; }
 .editor-task-slot { display: flex; flex: 1 1 auto; min-height: 0; overflow: hidden; }
-#rightPanel[data-editor-content="task"] > :is(.surface-header, .editor-view-tabs, #editorScrollBody) { display: none !important; }
-#rightPanel[data-editor-content="task"] #modeEditingContext {
+.editor-panel[data-editor-content="task"] > :is(.surface-header, .editor-object-header, .editor-view-tabs, .editor-scroll-body) { display: none; }
+.editor-panel[data-editor-content="task"] .mode-editing-context {
   display: flex; flex: 1 1 auto; width: 100%; max-width: none; min-height: 0;
 }
-#rightPanel[data-editor-content="task"] #modeEditingHud {
+.editor-panel[data-editor-content="task"] .mode-task-window {
   display: flex; flex-direction: column; flex: 1 1 auto; width: 100%; max-width: none;
   min-height: 0; border: 0; border-radius: 0; box-shadow: none; background: var(--surface-elevated);
 }
-#rightPanel[data-editor-content="task"] .mode-task-window-header {
+.editor-panel[data-editor-content="task"] .mode-task-window-header {
   flex: 0 0 auto; min-height: var(--ui-surface-header-height-compact); border-bottom: 1px solid var(--border);
 }
-#rightPanel[data-editor-content="task"] #modeTaskWindowContent {
+.editor-panel[data-editor-content="task"] .mode-task-window-content {
   display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden;
 }
-#rightPanel[data-editor-content="task"] .mode-task-window-body {
+.editor-panel[data-editor-content="task"] .mode-task-window-body {
   flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto;
 }
-#rightPanel[data-editor-content="task"] #modeActionBar {
+.editor-panel[data-editor-content="task"] .mode-action-bar {
   flex: 0 0 auto; width: 100%; max-width: none; margin: 0; border-radius: 0; box-shadow: none;
   border: 0; border-top: 1px solid var(--border);
 }
-#rightPanel[data-editor-content="task"] #modeTaskMinimizeBtn { display: none !important; }
+.editor-panel[data-editor-content="task"] .mode-task-minimize-btn { display: none; }
 
 .topbar {
-  min-height: var(--ui-shell-topbar-height);
-  height: var(--ui-shell-topbar-height);
+  min-height: var(--ui-v2-topbar-height);
+  height: auto;
   padding-inline: var(--ui-space-4);
   border-bottom: 1px solid var(--border);
   background: var(--surface-topbar);
@@ -76,7 +80,7 @@
 
 .map-bottom-status {
   min-height: var(--ui-shell-statusbar-height);
-  height: var(--ui-shell-statusbar-height);
+  height: auto;
   padding: 0;
   border-top: 1px solid var(--status-border);
   border-radius: 0;
@@ -131,7 +135,7 @@
 }
 
 /* The drawer overlays the right edge; keep map content fixed and move only the controls. */
-#app[data-layout="wide"] .workspace.editor-drawer-open .map-view-toolbar {
+.app-root[data-layout="wide"] .workspace.editor-drawer-open .map-view-toolbar {
   right: calc(var(--ui-shell-right-panel-width) + var(--ui-map-edge));
 }
 
@@ -224,8 +228,7 @@
   background: var(--accent);
 }
 
-[data-layout="wide"] .workspace.editor-drawer-open [data-od-id="workspace-layers"]::after,
-body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::after {
+[data-layout="wide"] .workspace.editor-drawer-open [data-od-id="workspace-layers"]::after{
   opacity: 0;
 }
 
@@ -268,10 +271,10 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
 
 [data-layout="wide"] :is(.left-panel, .right-panel) > .surface-header {
   min-height: var(--ui-v2-surface-header-height-desktop);
-  height: var(--ui-v2-surface-header-height-desktop);
-  flex-basis: var(--ui-v2-surface-header-height-desktop);
+  height: auto;
+  flex-basis: auto;
   display: grid;
-  padding-inline: var(--ui-space-6) var(--ui-space-4);
+  padding-inline: var(--ui-surface-content-rail-x);
   border-bottom: 1px solid var(--border);
 }
 
@@ -280,36 +283,9 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
 }
 
 [data-layout="wide"] .surface-tabs {
-  height: var(--ui-control-height);
-  flex-basis: var(--ui-control-height);
-  border-bottom: 1px solid var(--border);
-}
-
-[data-layout="wide"] .create-menu {
-  position: fixed;
-  z-index: 38;
-  top: var(--ui-shell-topbar-height);
-  right: auto;
-  bottom: 0;
-  left: var(--ui-shell-workspace-rail-width);
-  width: var(--ui-shell-left-panel-width);
-  max-height: none;
-  padding: 0;
-  overflow: hidden;
-  border: 0;
-  border-inline-end: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--surface-elevated);
-  box-shadow: none;
-  transform: none;
-}
-
-[data-layout="wide"] .create-menu > .surface-header {
-  min-height: var(--ui-v2-surface-header-height-desktop);
-  height: var(--ui-v2-surface-header-height-desktop);
-  flex-basis: var(--ui-v2-surface-header-height-desktop);
-  display: grid;
-  padding-inline: var(--ui-space-6) var(--ui-space-4);
+  min-height: var(--ui-v2-tab-height);
+  height: auto;
+  flex-basis: auto;
   border-bottom: 1px solid var(--border);
 }
 
@@ -340,6 +316,29 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
 
 .editor-section-title {
   margin-bottom: var(--ui-space-1);
+}
+
+/* Group inspector fields with spacing, without a second frame around controls. */
+.editor-panel .editor-section,
+.editor-panel .editor-disclosure {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.editor-panel .editor-object-form > .editor-info-section + .editor-info-section {
+  border-top: 0;
+}
+
+.editor-panel .editor-disclosure > summary:is(:hover, :focus-visible) {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.editor-panel .editor-disclosure > summary:focus-visible {
+  outline: 2px solid var(--ui-v2-color-focus-ring);
+  outline-offset: calc(-1 * var(--ui-v2-focus-offset));
 }
 
 .editor-object-visual {
@@ -391,8 +390,8 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
    navigation, layer, and inspector roles readable at a glance. */
 @media (min-width: 800px) {
   [data-layout="wide"] .topbar {
-    min-height: calc(var(--ui-shell-topbar-height) + var(--ui-space-1));
-    height: calc(var(--ui-shell-topbar-height) + var(--ui-space-1));
+    min-height: var(--ui-v2-topbar-height);
+    height: auto;
     gap: var(--ui-space-3);
     padding-inline: var(--ui-space-3) var(--ui-space-4);
     background: var(--surface-elevated);
@@ -451,26 +450,15 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
     background: var(--surface-elevated);
   }
 
-  [data-layout="wide"] .left-panel .surface-tabs {
-    height: calc(var(--ui-control-height) + var(--ui-space-1));
-    flex-basis: calc(var(--ui-control-height) + var(--ui-space-1));
-    padding-inline: var(--ui-space-4);
-  }
-
   [data-layout="wide"] .left-panel .layer-search {
-    margin: var(--ui-space-2) var(--ui-space-2) var(--ui-space-1);
     border-color: var(--border);
     border-radius: var(--ui-v2-radius-lg);
     background: var(--surface-input);
   }
 
-  [data-layout="wide"] .left-panel .layer-list {
-    padding: var(--ui-space-1) var(--ui-space-2) var(--ui-space-5);
-  }
-
   [data-layout="wide"] .left-panel .layer-category {
     padding-block: var(--ui-space-4) var(--ui-space-2);
-    border-top: 1px solid var(--border);
+    border-top: 0;
   }
 
   [data-layout="wide"] .left-panel .layer-category:first-child {
@@ -510,8 +498,8 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
 
   [data-layout="wide"] .editor-object-header[data-editor-context] {
     margin-bottom: var(--ui-space-2);
-    padding: var(--ui-space-4) var(--ui-space-4) var(--ui-space-3);
-    border-bottom: 1px solid var(--border);
+    padding: var(--ui-space-4) var(--ui-surface-content-rail-x) var(--ui-space-3);
+    border-bottom: 0;
   }
 
   [data-layout="wide"] .editor-empty {
@@ -519,21 +507,21 @@ body.create-menu-open [data-layout="wide"] [data-od-id="workspace-layers"]::afte
   }
 
   [data-layout="wide"] .editor-section {
-    padding: var(--ui-space-4);
-    border: 1px solid var(--border);
-    border-radius: var(--ui-v2-radius-lg);
-    background: var(--surface-card);
+    padding: var(--ui-space-4) 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   [data-layout="wide"] .editor-action-row {
-    min-height: calc(var(--ui-content-command-row-min-height) - var(--ui-space-1));
-    border: 1px solid transparent;
+    min-height: var(--ui-content-command-row-min-height);
+    border: 0;
   }
 
   [data-layout="wide"] .editor-action-row:hover,
   [data-layout="wide"] .editor-action-row:focus-visible {
-    border-color: var(--border);
     background: var(--surface-hover);
+    color: var(--text-strong);
   }
 
   [data-layout="wide"] .map-view-toolbar {

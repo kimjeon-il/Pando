@@ -2,17 +2,7 @@
   width: var(--ui-shell-left-panel-width);
 }
 
-[data-layout="wide"] .surface-create {
-  width: var(--ui-surface-create-wide-width);
-  max-height: calc(
-    100dvh
-    - var(--ui-shell-topbar-height)
-    - var(--ui-control-height)
-    - (var(--ui-map-edge) * 3)
-  );
-}
-
-[data-layout="wide"] :is(.surface-create, .surface-editor) {
+[data-layout="wide"] .surface-editor {
   --ui-surface-border-top: var(--ui-border-width) solid var(--border);
   --ui-surface-border-right: var(--ui-border-width) solid var(--border);
   --ui-surface-border-bottom: var(--ui-border-width) solid var(--border);
@@ -40,7 +30,7 @@
 [data-layout="compact"] .workspace-surface {
   position: fixed;
   z-index: 36;
-  top: var(--ui-surface-header-height-compact);
+  top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
   bottom: var(--ui-control-height);
   width: var(--compact-drawer-width, var(--ui-shell-compact-drawer-width));
   max-height: none;
@@ -58,7 +48,7 @@
   --ui-surface-shadow: var(--control-shadow);
 }
 
-[data-layout="compact"] :is(.surface-map, .surface-create) {
+[data-layout="compact"] .surface-map {
   right: auto;
   left: var(--ui-shell-compact-inset);
   transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
@@ -70,8 +60,7 @@
   transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
 }
 
-[data-layout="compact"] :is(.surface-map.mobile-open, .surface-editor.mobile-open),
-body.create-menu-open [data-layout="compact"] .surface-create {
+[data-layout="compact"] :is(.surface-map.mobile-open, .surface-editor.mobile-open){
   transform: translateX(0);
   opacity: 1;
   visibility: visible;
@@ -87,6 +76,7 @@ body.create-menu-open [data-layout="compact"] .surface-create {
   left: 0;
   width: 100%;
   height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
+  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--ui-v2-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
   max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   opacity: 0;
@@ -99,7 +89,7 @@ body.create-menu-open [data-layout="compact"] .surface-create {
   --ui-surface-shadow: var(--control-shadow);
 }
 
-[data-layout="mobile"] :is(.surface-map, .surface-create) {
+[data-layout="mobile"] .surface-map {
   height: var(--sheet-height, var(--ui-v2-sheet-snap-layer-half));
 }
 
@@ -126,7 +116,7 @@ body.create-menu-open [data-layout="compact"] .surface-create {
 
 [data-layout="mobile"] .surface-header {
   display: grid;
-  flex-basis: var(--ui-surface-header-height-mobile);
+  flex-basis: auto;
   min-height: var(--ui-surface-header-height-mobile);
   padding-block:
     calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2))
@@ -136,7 +126,7 @@ body.create-menu-open [data-layout="compact"] .surface-create {
 }
 
 [data-layout="mobile"] .surface-header .sheet-close-btn {
-  display: none;
+  display: inline-grid;
 }
 
 [data-layout="mobile"] .surface-header .sheet-drag-handle {

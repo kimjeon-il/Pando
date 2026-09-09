@@ -62,7 +62,7 @@ body.modal-open { overflow: hidden; }
 
 /* Keep filter controls visible so search state is always apparent. */
 .historical-library-filters > summary {
-  min-height: 1.5rem;
+  min-height: var(--ui-touch-height);
   padding: 0 0 var(--ui-space-1);
 }
 .historical-library-filters .editor-disclosure-body,
@@ -92,14 +92,6 @@ body.modal-open { overflow: hidden; }
 
 .gis-import-status.error { color: var(--danger-text); }
 
-@media (prefers-color-scheme: light) {
-  .confirm-modal-actions .danger-confirm {
-    background: #b84444 !important;
-    border-color: #923535 !important;
-    color: #ffffff !important;
-  }
-  .gis-import-status.error { color: #a32f2f; }
-}
 .gis-import-content-rail { min-width: 0; }
 .gis-form-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ui-field-gap); }
 .gis-form-grid .field-group { margin: 0; }
@@ -138,9 +130,9 @@ body.modal-open { overflow: hidden; }
     align-items: center;
   }
   .historical-library-card.is-detail .historical-library-footer-spacer { display: none; }
-  .historical-library-card.is-detail .historical-library-footer #historicalLibraryAddOptions { grid-column: 1 / -1; }
-  .historical-library-card.is-detail .historical-library-footer #historicalLibraryOptionsBackBtn,
-  .historical-library-card.is-detail .historical-library-footer #historicalLibraryAddBtn { width: 100%; }
+  .historical-library-card.is-detail .historical-library-footer .historical-library-add-options { grid-column: 1 / -1; }
+  .historical-library-card.is-detail .historical-library-footer .historical-library-back-action,
+  .historical-library-card.is-detail .historical-library-footer .historical-library-add-action { width: 100%; }
   .gis-country-identity-row { grid-template-columns: 1fr; }
   .gis-export-layers { grid-template-columns: 1fr; }
 }
@@ -184,13 +176,15 @@ body.modal-open { overflow: hidden; }
 .historical-library-results {
   min-width: 0;
   overflow: auto;
-  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-2) 0;
+  padding-block: var(--ui-space-2);
+  padding-inline-start: var(--ui-surface-content-rail-x);
+  padding-inline-end: var(--ui-surface-content-rail-x);
   border-right: 1px solid var(--border);
 }
 
 .historical-library-result {
   width: 100%;
-  min-height: 2.5rem;
+  min-height: var(--ui-v2-command-description-height);
   display: grid;
   gap: var(--ui-space-0-5);
   padding: var(--ui-space-2) var(--ui-space-3);
@@ -271,7 +265,7 @@ body.modal-open { overflow: hidden; }
   font-size: var(--ui-font-sm);
 }
 
-.historical-library-preview-map svg { display: block; width: 100%; height: 190px; }
+.historical-library-preview-map svg { display: block; width: 100%; height: var(--ui-library-preview-height); }
 
 /* Keep the pilot geometry in the DOM for the preview controller, but avoid
    presenting its low-resolution rendering in the compact detail surface. */
@@ -294,22 +288,22 @@ body.modal-open { overflow: hidden; }
 
 .historical-library-footer-spacer { display: none; }
 
-.historical-library-footer #historicalLibraryAddOptions {
+.historical-library-footer .historical-library-add-options {
   min-width: 0;
   grid-column: 2;
   order: 0;
 }
 
-.historical-library-footer #historicalLibraryAddOptions > summary { display: none; }
+.historical-library-footer .historical-library-add-options > summary { display: none; }
 
-.historical-library-footer #historicalLibraryAddOptions .editor-disclosure-body {
+.historical-library-footer .historical-library-add-options .editor-disclosure-body {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--ui-space-1);
 }
 
-.historical-library-footer #historicalLibraryAddOptions .editor-help {
+.historical-library-footer .historical-library-add-options .editor-help {
   display: none;
 }
 
@@ -404,7 +398,7 @@ body.modal-open { overflow: hidden; }
 }
 
 .gis-export-layers .ui-check {
-  min-height: 2.125rem;
+  min-height: var(--ui-touch-height);
   padding: var(--ui-space-1) 0;
   border: 0;
   border-radius: 0;
@@ -489,11 +483,11 @@ body.modal-open { overflow: hidden; }
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: auto;
 }
 
 .historical-library-preview {
-  padding: var(--ui-space-3) 0 0;
+  padding: var(--ui-space-3) var(--ui-surface-content-rail-x) 0;
   border: 0;
   border-radius: 0;
   background: transparent;
