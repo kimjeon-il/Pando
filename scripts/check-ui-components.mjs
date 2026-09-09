@@ -1,3 +1,4 @@
+import { readApplicationImplementations } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -6,7 +7,7 @@ const root = process.cwd();
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const html = read('index.html');
 const css = `${read('assets/css/app.css')}\n${read('assets/css/primitives/controls.css')}`;
-const app = read('assets/js/app.js');
+const app = readApplicationImplementations();
 const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');
 const selectController = read('assets/js/modules/select-controller.js');
 const failures = [];

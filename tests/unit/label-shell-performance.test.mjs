@@ -1,16 +1,12 @@
+import { readApplicationOwners, applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+const app = readApplicationOwners('map-projection', 'gpu-scene', 'map-host', 'country-labels');
 const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
 
-function functionSource(source, name, nextName) {
-  const start = source.indexOf(`function ${name}`);
-  const end = source.indexOf(`function ${nextName}`, start);
-  assert.ok(start >= 0 && end > start, `${name} source must exist`);
-  return source.slice(start, end);
-}
+const functionSource = applicationFunctionSource;
 
 test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere path', () => {
   const shell = functionSource(app, 'updatePandoGlobeShell', 'featureFromGeometry');

@@ -1,3 +1,4 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -35,7 +36,7 @@ test('renderer separates requested and loaded hydro views and treats cache failu
 });
 
 test('app waits for actual hydro worker readiness and retries manifests', () => {
-  const app = read('assets/js/app.js');
+  const app = readApplicationOwners('physical-resources', 'layer-list', 'hydro-settings');
   const service = read('assets/js/modules/physical-layer-service.js');
   assert.ok(app.includes('await gpuMapRenderer.setHydroManifest(manifest, manifestUrl)'));
   assert.ok(app.includes("state.physicalLoadState.hydroWorker = 'starting';"));
@@ -46,7 +47,7 @@ test('app waits for actual hydro worker readiness and retries manifests', () => 
 });
 
 test('rivers and lakes share the landforms folder while retaining hydro item visibility', () => {
-  const source = read('assets/js/app.js');
+  const source = readApplicationOwners('physical-resources', 'layer-list', 'hydro-settings');
   const model = read('assets/js/modules/layer-list-model.js');
   assert.ok(!source.includes('HYDRO_FOLDER_STATE_PREFIX'));
   assert.ok(model.includes("name: '지형지물'"));

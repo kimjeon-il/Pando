@@ -1,3 +1,4 @@
+import { readApplicationOwners } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -90,7 +91,7 @@ if (!uiRuntimeSource.includes('installObjectRegistryPresenter();')) {
   fail('object registry presenter is not installed by the canonical UI runtime');
 }
 
-const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+const appSource = readApplicationOwners('runtime-dependencies', 'object-presentation');
 for (const marker of [
   'MAP_OBJECT_TYPES.country.label',
   'Object.values(MAP_OBJECT_TYPES)',

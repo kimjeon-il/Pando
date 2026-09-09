@@ -161,7 +161,9 @@ export function createObjectPropertyController(runtime = {}) {
       : ['splitSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'reconcileSubunitCoastBtn', 'transferSubunitBtn', 'promoteSubunitBtn', 'changeSubunitTypeBtn', 'removeSubunitDivisionBtn'];
     for (const actionId of actionIds) $(actionId).disabled = properties.locked === true;
     if (subunits) {
-      replaceSelectOptions($('subunitParentInput'), territorialUnitParentOptions(feature), properties.parentId);
+      const parentOptions = territorialUnitParentOptions(feature);
+      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId);
+      $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', parentOptions.length < 2 && String(properties.parentId) === String(properties.sovereignId));
       $('subunitLevelInput').value = properties.adminLevel || '';
     } else if (region) {
       replaceSelectOptions($('regionParentInput'), territorialParentOptions(feature), properties.parentId);

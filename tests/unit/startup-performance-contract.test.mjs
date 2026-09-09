@@ -1,9 +1,10 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
-const app = read('assets/js/app.js');
+const app = readApplicationOwners('runtime-dependencies', 'domain-assembly', 'country-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
 const rendering = read('assets/js/modules/rendering-domain.js');
 const coordinator = read('assets/js/modules/map-render-coordinator.js');
 const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');

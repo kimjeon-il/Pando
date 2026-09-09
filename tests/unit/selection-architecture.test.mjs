@@ -1,3 +1,4 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -54,7 +55,7 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
 
 test('selection layer architecture uses one legacy Pando host and z4 controls', async () => {
   const css = await readFile(new URL('../../assets/css/app.css', import.meta.url), 'utf8');
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const app = readApplicationOwners('map-host');
   assert.match(css, /\.map-base-svg\s*\{\s*z-index:\s*0/);
   assert.match(css, /\.gpu-map-canvas\s*\{\s*z-index:\s*1/);
   assert.match(css, /\.map-interaction-svg\s*\{\s*z-index:\s*4/);

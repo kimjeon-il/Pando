@@ -71,6 +71,7 @@ export function createGisWorkflowController({
       id: String(feature.id),
       name: territorialUnitName(feature),
       countryId: String(feature.properties?.sovereignId || ''),
+      parentId: String(feature.properties?.parentId || ''),
       type: feature.properties?.unitType,
       level: Number(feature.properties?.adminLevel) || null,
     })).filter(unit => unit.id && unit.countryId).sort((left, right) => layerNameCollator.compare(left.name, right.name));

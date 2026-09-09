@@ -41,7 +41,7 @@ test('administrative levels are preserved and dangling parents fail instead of b
   assert.equal(validateTerritorialRelations(units, { countryExists: id => id === 'PL' }).ok, true);
   assert.throws(() => normalizeTerritorialUnits([
     createTerritorialFeature({ id: 'a3', unitType: 'subunit', sovereignId: 'PL', parentId: 'missing', geometry: square() }),
-  ], { countryExists: id => id === 'PL' }), /상위 영역 missing/);
+  ], { countryExists: id => id === 'PL' }), /상위 소속 missing/);
 });
 
 test('subunit and region type changes preserve identity and geometry', () => {

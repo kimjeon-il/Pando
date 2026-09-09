@@ -1,11 +1,12 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 COLOR = (ROOT / "assets" / "js" / "modules" / "color-adapter.js").read_text(encoding="utf-8")
 PRESENTATION = (ROOT / "assets" / "js" / "modules" / "layer-presentation.js").read_text(encoding="utf-8")

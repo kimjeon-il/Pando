@@ -586,7 +586,8 @@ export function createAppLayerTreeController(runtime = {}) {
         markLayerTreeDirty();
         renderingDomain()?.invalidateBaseScene?.('terrain-style');
         queuePresentationAutosave();
-        setActionStatus(`${state.physicalSettings.terrainStyle === 'physical' ? '지형색 강조' : '국가색 + 음영'} 모드로 전환했습니다.`, 'success', 2200);
+        const terrainModeLabel = state.physicalSettings.terrainStyle === 'physical' ? '지형 높낮이 색상' : '국가 색상 유지';
+        setActionStatus(`${terrainModeLabel} 방식으로 전환했습니다.`, 'success', 2200);
       },
       previewTerrainStrength: value => {
         state.physicalSettings.terrainStrength = clamp(Number(value) / 100, 0, 1);

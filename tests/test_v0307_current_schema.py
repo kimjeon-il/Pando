@@ -1,11 +1,12 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 PROJECT = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
 MIGRATIONS = (ROOT / "assets" / "js" / "modules" / "project-migrations.js").read_text(encoding="utf-8")
 VERSIONS = (ROOT / "assets" / "js" / "modules" / "version-contract.js").read_text(encoding="utf-8")

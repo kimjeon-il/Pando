@@ -1,3 +1,4 @@
+from tests.application_source import read_application_sources
 import re
 import unittest
 from pathlib import Path
@@ -5,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "index.html").read_text(encoding="utf-8")
-APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 SAVE_STATE = (ROOT / "assets/js/modules/save-state-controller.js").read_text(encoding="utf-8")
 GIS_IO = (ROOT / "assets/js/gis-io.js").read_text(encoding="utf-8")

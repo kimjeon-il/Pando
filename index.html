@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-deferred-ui-gis-library-20260909" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-deferred-ui-gis-library-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-1f11f659d946" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-1f11f659d946" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -200,15 +200,16 @@
             </details>
             <section class="layer-style-editor terrain-settings" aria-labelledby="terrainLayerSettingsTitle">
               <strong id="terrainLayerSettingsTitle">지형</strong>
-              <label class="ui-choice-row ui-toggle"><input id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시" aria-controls="terrainDisplayOptions" aria-expanded="true" /><span>지형 음영 표시</span></label>
+              <label class="ui-choice-row ui-toggle"><input id="terrainVisible" type="checkbox" checked aria-label="지형 표시" aria-controls="terrainDisplayOptions" aria-expanded="true" /><span>지형 표시</span></label>
               <div id="terrainDisplayOptions" class="terrain-display-options">
-                <div class="terrain-mode-options" role="radiogroup" aria-label="지형 음영 모드">
-                  <label class="ui-choice-row terrain-mode-option" for="terrainPoliticalRadio"><input id="terrainPoliticalRadio" type="radio" name="terrainStyle" value="political" checked /><span>국가색과 결합</span></label>
-                  <label class="ui-choice-row terrain-mode-option" for="terrainPhysicalRadio"><input id="terrainPhysicalRadio" type="radio" name="terrainStyle" value="physical" /><span>지형색 강조</span></label>
+                <div class="terrain-mode-options" role="radiogroup" aria-label="지형 표현 방식">
+                  <label class="ui-choice-row terrain-mode-option" for="terrainPoliticalRadio"><input id="terrainPoliticalRadio" type="radio" name="terrainStyle" value="political" checked /><span class="ui-choice-copy"><strong>국가 색상 유지</strong><small>국가별 색 위에 지형 명암을 더합니다.</small></span></label>
+                  <label class="ui-choice-row terrain-mode-option" for="terrainPhysicalRadio"><input id="terrainPhysicalRadio" type="radio" name="terrainStyle" value="physical" /><span class="ui-choice-copy"><strong>지형 높낮이 색상</strong><small>높은 곳과 낮은 곳을 색으로 구분합니다.</small></span></label>
                 </div>
                 <div id="terrainStrengthControl" class="terrain-strength-control">
-                  <div class="terrain-strength-heading"><span>음영 강도</span><strong id="terrainStrengthValue">32%</strong></div>
-                  <input id="terrainStrengthInput" class="ui-range-progress" type="range" min="0" max="100" step="1" value="32" aria-label="음영 강도" />
+                  <div class="terrain-strength-heading"><span>입체감</span><strong id="terrainStrengthValue">32%</strong></div>
+                  <input id="terrainStrengthInput" class="ui-range-progress" type="range" min="0" max="100" step="1" value="32" aria-label="지형 입체감" aria-describedby="terrainStrengthHint" />
+                  <small id="terrainStrengthHint" class="layer-setting-hint">높낮이 명암의 세기를 조절합니다.</small>
                 </div>
               </div>
             </section>
@@ -419,9 +420,9 @@
           <form id="subunitProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <section class="editor-section editor-info-section editor-section-primary">
               <div class="ui-field field-group editor-field"><label for="subunitNameInput">하위단위명</label><input id="subunitNameInput" type="text" placeholder="예: 마조프셰주" /></div>
-              <p id="subunitNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 하위단위가 있습니다. 단계와 상위 영역을 확인하세요.</p>
+              <p id="subunitNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 하위단위가 있습니다. 단계와 상위 소속을 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="subunitCountryInput">주권 국가</label><select id="subunitCountryInput"><option value="">소속 국가 미지정</option></select></div>
-              <div class="ui-field field-group editor-field"><label for="subunitParentInput">직속 소속</label><select id="subunitParentInput"><option value="">국가 직속</option></select></div>
+              <div class="ui-field field-group editor-field"><label for="subunitParentInput">상위 소속</label><select id="subunitParentInput"><option value="">소속 국가 선택</option></select></div>
 
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="subunit">
                 <label id="subunitColorLabel">색상</label>
@@ -453,9 +454,9 @@
           <form id="regionProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <section class="editor-section editor-info-section editor-section-primary">
               <div class="ui-field field-group editor-field"><label for="regionNameInput">지방명</label><input id="regionNameInput" type="text" placeholder="예: 실레시아" /></div>
-              <p id="regionNameConflict" class="editor-help hidden">이름이 같은 지방이 있습니다. 시대와 상위 영역을 확인하세요.</p>
+              <p id="regionNameConflict" class="editor-help hidden">이름이 같은 지방이 있습니다. 시대와 상위 소속을 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="regionCountryInput">주권 국가</label><select id="regionCountryInput"><option value="">주권 국가 없음</option></select></div>
-              <div class="ui-field field-group editor-field"><label for="regionParentInput">상위 영역</label><select id="regionParentInput"><option value="">상위 영역 없음</option></select></div>
+              <div class="ui-field field-group editor-field"><label for="regionParentInput">상위 소속</label><select id="regionParentInput"><option value="">상위 소속 없음</option></select></div>
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="region">
                 <label id="regionColorLabel">색상</label>
                 <button id="regionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="regionColorPopover" aria-labelledby="regionColorLabel regionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="regionColorValue" class="ui-color-value">기본 색상</span></button>
@@ -545,8 +546,8 @@
                 <select id="genericFeatureOwnerInput"><option value="">소유 국가 없음</option></select>
               </div>
               <div id="genericFeatureParentField" class="ui-field field-group editor-field hidden">
-                <label for="genericFeatureParentInput">상위 영역</label>
-                <select id="genericFeatureParentInput"><option value="">상위 영역 없음</option></select>
+                <label for="genericFeatureParentInput">상위 소속</label>
+                <select id="genericFeatureParentInput"><option value="">상위 소속 없음</option></select>
               </div>
               <div id="genericFeatureLandBindingField" class="ui-field field-group editor-field" hidden>
                 <label for="genericFeatureLandBindingInput">육지 결합</label>
@@ -733,7 +734,7 @@
       <div class="territorial-type-fields">
         <label class="ui-field field-group"><span>새 종류</span><select id="territorialTypeInput"><option value="country">국가</option><option value="subunit">하위단위</option></select></label>
         <label id="territorialTypeSovereignRow" class="ui-field field-group hidden"><span>소속 국가</span><select id="territorialTypeSovereignInput"></select><small>국가를 하위단위로 바꾸면 영토가 이 국가에 합쳐집니다.</small></label>
-        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 하위단위</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 영역에 맞춰 자동으로 정해집니다.</small></label>
+        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 소속</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 소속에 맞춰 자동으로 정해집니다.</small></label>
         <section id="territorialTypeImpact" class="territorial-type-impact" aria-live="polite">
           <strong id="territorialTypeImpactSummary"></strong>
           <ul id="territorialTypeImpactList"></ul>
@@ -763,6 +764,7 @@
           <p class="editor-help">항목을 선택하세요.</p>
         </aside>
       </div>
+      <section id="historicalLibraryOwnership" class="historical-library-ownership hidden" aria-label="라이브러리 소속 설정" aria-live="polite"></section>
       <footer class="historical-library-footer">
         <label class="ui-field field-group" hidden><span>WorldSnapshot</span><select id="historicalLibrarySnapshotInput"><option value="">스냅샷 선택</option></select></label>
         <button id="historicalLibrarySnapshotBtn" type="button" class="ui-button btn ghost" disabled hidden>없는 항목 추가</button>
@@ -796,14 +798,14 @@
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
           <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">선택한 국가로 영토가 이전됩니다.</small></label>
           <label id="gisIndependentRegionRow" class="ui-check gis-wide hidden" data-gis-step="3"><input id="gisIndependentRegion" type="checkbox" /><span>국가에 속하지 않는 독립 지방으로 가져오기</span></label>
-          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>상위 영역</span><select id="gisParentUnit"><option value="">국가 직속</option></select><small>행정 단계는 상위 영역에 맞춰 정해집니다.</small></label>
+          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>상위 소속</span><select id="gisParentUnit"><option value="">소속 국가 선택</option></select><small>행정 단계는 상위 소속에 맞춰 정해집니다.</small></label>
           <div class="gis-mapping-summary gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
           <details id="gisAdvancedMapping" class="ui-disclosure editor-disclosure gis-wide" data-gis-step="2"><summary><span>속성 연결 수정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body gis-form-grid">
             <label id="gisIdFieldRow" class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
             <label id="gisNameFieldRow" class="ui-field field-group"><span>이름 속성</span><select id="gisNameField"></select></label>
             <label id="gisUseCountryFieldRow" class="ui-check gis-wide hidden"><input id="gisUseCountryField" type="checkbox" /><span>객체별 소속 국가 속성 사용</span></label>
             <label id="gisCountryFieldRow" class="ui-field field-group"><span>소속 국가 속성</span><select id="gisCountryField"></select><small>값이 비어 있을 때만 공통 소속 국가를 사용합니다. 알 수 없는 값은 오류로 표시됩니다.</small></label>
-            <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 영역 속성</span><select id="gisParentField"></select></label>
+            <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 소속 속성</span><select id="gisParentField"></select></label>
             <label id="gisLevelFieldRow" class="ui-field field-group"><span>행정 단계 속성</span><select id="gisLevelField"></select></label>
             <label id="gisColorFieldRow" class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
             <label class="ui-field field-group"><span>수동 좌표계</span><input id="gisCrsInput" type="text" inputmode="numeric" placeholder="EPSG:4326" /></label>
@@ -860,10 +862,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-deferred-ui-gis-library-20260909" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-1f11f659d946" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-deferred-ui-gis-library-20260909" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-1f11f659d946" defer></script>
 </body>
 </html>
