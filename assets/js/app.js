@@ -17,6 +17,7 @@ const versionedModuleUrl = relativePath => {
   return url.href;
 };
 await import(versionedModuleUrl('./modules/country-geometry.js'));
+const { createGisFileController } = await import(versionedModuleUrl('./modules/gis-file-controller.js'));
 const countryGeometry = globalThis.PandoLabCountryGeometry;
 if (!countryGeometry) throw new Error('국가 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 
@@ -1058,7 +1059,7 @@ const {
     const available = Math.max(0, Math.max(below, above));
     menu.style.setProperty('--layer-create-height', `${available}px`);
     const menuHeight = Math.min(menu.scrollHeight, available);
-    const y = below >= menuHeight || below >= above ? rect.bottom + 8 : rect.top - 8 - menuHeight;
+    const y = above >= menuHeight || above >= below ? rect.top - 8 - menuHeight : rect.bottom + 8;
     menu.style.setProperty('--layer-create-top', `${Math.max(top + 8, y)}px`);
   }
 
@@ -11913,8 +11914,7 @@ const {
 
   function getGisFileController() {
     if (gisFileControllerPromise) return gisFileControllerPromise;
-    gisFileControllerPromise = import(versionedModuleUrl('./modules/gis-file-controller.js'))
-      .then(({ createGisFileController }) => {
+    gisFileControllerPromise = Promise.resolve().then(() => {
         const controller = createGisFileController({
           elements: { open: $('openGisBtn'), input: $('gisFileInput'), save: $('saveProjectBtn') },
           setTarget: target => { requestedVectorTarget = target; },
@@ -14335,12 +14335,7 @@ const {
         visibleLabelLayout,
         mapClickBlocked,
         handleObjectSelectionAt,
-        toggleNewCountrySource,
-        toggleAnnexDonor,
-        toggleMergeTarget,
-        toggleBoundaryEditCountry,
-        countryType: TERRITORIAL_UNIT_TYPES.COUNTRY,
-        countryLabelObjectRef: feature => builtinRenderCountries().labelRefs.get(String(feature.id)),
+        handleMapClick,
         countryName,
         layerStyle,
         isMobile,

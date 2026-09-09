@@ -9,6 +9,7 @@ export function createGisFileController({
   document = globalThis.document,
 } = {}) {
   let returnFocus = null;
+  let saving = false;
 
   const openPicker = ({ target = '', trigger = null } = {}) => {
     setTarget(target);
@@ -45,17 +46,20 @@ export function createGisFileController({
   };
 
   const saveProject = async () => {
-    if (!requireCanonicalData()) return false;
+    if (saving || !requireCanonicalData()) return false;
+    saving = true;
     const button = elements.save;
     if (button) button.disabled = true;
     try {
+      const filename = '판도연구소-프로젝트.gpkg';
+      // Request the destination while the click still has user activation.
+      const handle = typeof window.showSaveFilePicker === 'function'
+        ? await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: '판도연구소 프로젝트', accept: { 'application/geopackage+sqlite3': ['.gpkg'] } }],
+        }) : null;
       return await projectDomain.save(async blob => {
-        const filename = '판도연구소-프로젝트.gpkg';
-        if (typeof window.showSaveFilePicker === 'function') {
-          const handle = await window.showSaveFilePicker({
-            suggestedName: filename,
-            types: [{ description: 'GeoPackage', accept: { 'application/geopackage+sqlite3': ['.gpkg'] } }],
-          });
+        if (handle) {
           const writable = await handle.createWritable();
           await writable.write(blob);
           await writable.close();
@@ -63,7 +67,7 @@ export function createGisFileController({
           return { downloaded: false };
         } else {
           downloadBlob(filename, blob);
-          setActionStatus('프로젝트 다운로드를 만들었습니다.', 'success', 3600);
+          setActionStatus('프로젝트를 다운로드했습니다. 저장 위치는 브라우저 다운로드 설정을 따릅니다.', 'success', 4800);
           return { downloaded: true };
         }
       });
@@ -76,6 +80,7 @@ export function createGisFileController({
       setActionStatus('프로젝트 저장에 실패했습니다.', 'error', 0);
       return false;
     } finally {
+      saving = false;
       if (button) button.disabled = false;
     }
   };

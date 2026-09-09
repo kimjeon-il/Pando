@@ -228,10 +228,6 @@
 
 .layer-inline-style-panel { border-block: 0; }
 
-.layer-list-tools { display: flex; align-items: center; gap: var(--ui-space-2); min-width: 0; }
-.layer-list-tools .layer-search { flex: 1 1 auto; min-width: 0; }
-.layer-list-tools .layer-add-button { flex: 0 0 auto; gap: var(--ui-space-1); min-height: var(--ui-touch-height); padding-inline: var(--ui-space-2); }
-.layer-list-tools .layer-add-button .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 
 .top-actions .file-menu-icon { color: var(--muted); }
 
