@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-ui-feedback-accessibility-20260909" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-ui-feedback-accessibility-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-ui-library-flag-visibility-20260909" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-ui-library-flag-visibility-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -326,7 +326,14 @@
 
           <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
             <div class="editor-object-context-main">
-              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span><button id="focusSelectedObjectBtn" class="ui-button editor-quiet-action editor-focus-action" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button></div></div>
+              <button id="flagMenuBtn" class="ui-button editor-flag-trigger hidden" type="button" aria-label="국기 관리" data-tooltip="국기 관리" aria-haspopup="menu" aria-expanded="false" aria-controls="flagMenu"><span id="flagPreview" class="editor-flag-thumbnail"></span></button>
+              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
+              <button id="focusSelectedObjectBtn" class="ui-button editor-quiet-action editor-focus-action" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button>
+              <div id="flagMenu" class="editor-flag-menu" popover="auto" role="menu" aria-label="국기 관리">
+                <button id="flagUploadBtn" type="button" class="ui-button" role="menuitem">국기 변경</button>
+                <button id="flagRemoveBtn" type="button" class="ui-button" role="menuitem">국기 제거</button>
+              </div>
+              <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
             </div>
           </section>
 
@@ -385,17 +392,6 @@
                 </div>
               </div>
               <div class="ui-info-list editor-info-list editor-property-list"><div><span>면적</span><strong id="countryAreaValue">—</strong></div></div>
-            </section>
-
-            <section class="editor-section editor-info-section editor-flag-section">
-              <div class="editor-section-heading"><h3 class="editor-property-heading">국기</h3><div class="editor-flag-actions">
-                <button id="flagUploadBtn" type="button" class="ui-button icon-btn editor-quiet-action" data-tooltip="국기 변경" aria-label="국기 변경"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg></button>
-                <button id="flagRemoveBtn" type="button" class="ui-button icon-btn danger-ghost editor-quiet-action" data-tooltip="국기 삭제" aria-label="국기 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
-              </div></div>
-              <div class="editor-flag-layout">
-                <div id="flagPreview" class="editor-flag-preview">국기 없음</div>
-                <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
-              </div>
             </section>
 
             <section class="editor-section editor-info-section">
@@ -765,8 +761,8 @@
         <div class="historical-library-filters" role="group" aria-label="필터" data-od-id="library-filters"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="subunit">하위단위</option><option value="region">지방</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>지역</span><select id="historicalLibraryGeographicRegionInput"><option value="">전체</option></select></label></div>
       </div>
       <div class="historical-library-layout">
-        <div id="historicalLibraryResults" class="historical-library-results" role="listbox" aria-label="라이브러리 검색 결과"></div>
-        <aside id="historicalLibraryPreview" class="ui-card historical-library-preview">
+        <div id="historicalLibraryResults" class="historical-library-results" role="group" aria-label="라이브러리 검색 결과"></div>
+        <aside id="historicalLibraryPreview" class="historical-library-preview" hidden>
           <p class="editor-help">항목을 선택하세요.</p>
         </aside>
       </div>
@@ -867,10 +863,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-ui-feedback-accessibility-20260909" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-ui-library-flag-visibility-20260909" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-ui-feedback-accessibility-20260909" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-ui-library-flag-visibility-20260909" defer></script>
 </body>
 </html>

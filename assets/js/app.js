@@ -1910,6 +1910,13 @@ const {
     }
     const focusButton = $('focusSelectedObjectBtn');
     if (focusButton) focusButton.classList.toggle('hidden', refs.length !== 1 || !primary);
+    const flagButton = $('flagMenuBtn');
+    if (flagButton) {
+      const singleCountry = refs.length === 1 && primary?.domain === 'territorial' && primary?.type === 'country';
+      flagButton.classList.toggle('hidden', !singleCountry);
+      flagButton.disabled = !singleCountry || objectRefLocked(primary);
+      if (!singleCountry || flagButton.disabled) $('flagMenu')?.hidePopover();
+    }
     const lockButton = $('objectLockBtn');
     if (lockButton) {
       lockButton.disabled = !canLock;
@@ -13923,6 +13930,8 @@ const {
         const override = state.countryOverrides[id] || {};
         return { ref: countryObjectRef(id), id, feature, properties, override, displayName: countryName(feature) };
       },
+        flagTrigger: $('flagMenuBtn'),
+        flagMenu: $('flagMenu'),
       getPrimaryRef: () => selectionDomain.primary(),
       showPropertyForm: (...args) => objectPropertyController.show(...args),
       resolveColor: view => readDomainColor(COLOR_DOMAINS.COUNTRY, {

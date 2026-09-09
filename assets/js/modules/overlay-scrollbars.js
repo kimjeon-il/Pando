@@ -10,6 +10,10 @@ export function installOverlayScrollbars(documentRef = document) {
   const view = documentRef.defaultView;
   if (!view?.ResizeObserver) return () => {};
   const selector = '.ui-scroll-surface, .surface-body, .gis-import-content-rail, .historical-library-results, .historical-library-preview';
+  const popupSelector = '[role="menu"], .ui-popover, .ui-select-popover';
+  const visible = node => node.getClientRects().length
+    && !node.closest('[hidden], .hidden, [aria-hidden="true"]')
+    && view.getComputedStyle(node).visibility !== 'hidden';
   const records = new Map();
   const dialogOrder = new Map();
   let openSequence = 0;
@@ -26,6 +30,8 @@ export function installOverlayScrollbars(documentRef = document) {
     for (const node of dialogOrder.keys()) if (!dialogs.includes(node)) dialogOrder.delete(node);
     for (const node of dialogs) if (!dialogOrder.has(node)) dialogOrder.set(node, ++openSequence);
     const modal = dialogs.sort((a, b) => dialogOrder.get(a) - dialogOrder.get(b)).at(-1);
+    const popups = [...documentRef.querySelectorAll(popupSelector)].filter(visible)
+      .map(node => ({ node, rect: node.getBoundingClientRect() }));
     for (const [element, record] of records) if (!element.isConnected) { record.dispose(); records.delete(element); }
     for (const element of documentRef.querySelectorAll(selector)) {
       if (!records.has(element)) install(element);
@@ -39,12 +45,19 @@ export function installOverlayScrollbars(documentRef = document) {
         || (!!modal && !modal.contains(element))
         || rect.bottom <= 0 || rect.top >= view.innerHeight || rect.right <= 0 || rect.left >= view.innerWidth
         || !['auto', 'scroll'].includes(style.overflowY);
-      if (track.hidden) continue;
+      track.tabIndex = track.hidden ? -1 : 0;
+      if (track.hidden) { records.get(element).cancelDrag(); continue; }
       // Dialog tracks are absolute, outside the scrolling card but inside its focus scope.
       const base = owner?.getBoundingClientRect();
       track.style.left = `${rect.right - (parseFloat(style.borderRightWidth) || 0) - rootSize - (base?.left || 0) + (owner?.scrollLeft || 0) - (owner ? parseFloat(view.getComputedStyle(owner).borderLeftWidth) || 0 : 0)}px`;
       track.style.top = `${rect.top + (parseFloat(style.borderTopWidth) || 0) - (base?.top || 0) + (owner?.scrollTop || 0) - (owner ? parseFloat(view.getComputedStyle(owner).borderTopWidth) || 0 : 0)}px`;
       track.style.height = `${element.clientHeight}px`;
+      const trackRect = track.getBoundingClientRect();
+      track.hidden = popups.some(({ node, rect: popupRect }) => !node.contains(element)
+        && popupRect.left < trackRect.right && popupRect.right > trackRect.left
+        && popupRect.top < trackRect.bottom && popupRect.bottom > trackRect.top);
+      track.tabIndex = track.hidden ? -1 : 0;
+      if (track.hidden) records.get(element).cancelDrag();
       thumb.style.height = `${g.thumb}px`;
       thumb.style.transform = `translateY(${g.top}px)`;
       track.setAttribute('aria-valuemax', String(Math.round(g.maximum)));
@@ -63,11 +76,16 @@ export function installOverlayScrollbars(documentRef = document) {
     track.setAttribute('aria-controls', element.id); track.tabIndex = 0; track.hidden = true;
     track.append(thumb); documentRef.body.append(track); element.classList.add('ui-native-scroll');
     let drag = null;
+    const cancelDrag = () => {
+      const pointerId = drag?.pointerId;
+      drag = null;
+      if (pointerId !== undefined && track.hasPointerCapture(pointerId)) track.releasePointerCapture(pointerId);
+    };
     track.addEventListener('pointerdown', event => {
       if (event.button !== 0) return;
       event.preventDefault(); const g = geometry(element);
       if (event.target !== thumb) element.scrollTop = (event.clientY - track.getBoundingClientRect().top - g.thumb / 2) / Math.max(1, g.travel) * g.maximum;
-      drag = { y: event.clientY, scroll: element.scrollTop, ratio: g.maximum / Math.max(1, g.travel) };
+      drag = { pointerId: event.pointerId, y: event.clientY, scroll: element.scrollTop, ratio: g.maximum / Math.max(1, g.travel) };
       track.setPointerCapture(event.pointerId); track.focus({ preventScroll: true }); schedule();
     });
     track.addEventListener('pointermove', event => {
@@ -85,16 +103,18 @@ export function installOverlayScrollbars(documentRef = document) {
       element.scrollTop += event.deltaY * scale; event.preventDefault(); schedule();
     }, { passive: false });
     element.addEventListener('scroll', schedule, { passive: true }); resize.observe(element);
-    records.set(element, { track, thumb, dispose() {
+    records.set(element, { track, thumb, cancelDrag, dispose() {
+      cancelDrag();
       resize.unobserve(element); element.removeEventListener('scroll', schedule);
       element.classList.remove('ui-native-scroll'); track.remove(); if (generatedId) element.removeAttribute('id');
     } });
   };
   const mutation = new view.MutationObserver(entries => {
-    if (entries.some(entry => !entry.target.closest?.('.ui-overlay-scrollbar'))) schedule();
+    if (entries.some(entry => !entry.target.closest?.('.ui-overlay-scrollbar')
+      && (entry.attributeName !== 'style' || entry.target.closest?.(popupSelector)))) schedule();
   });
   mutation.observe(documentRef.body, { subtree: true, childList: true, characterData: true, attributes: true,
-    attributeFilter: ['class', 'hidden', 'open', 'data-layout', 'aria-modal'] });
+    attributeFilter: ['class', 'hidden', 'open', 'data-layout', 'aria-modal', 'aria-hidden', 'style'] });
   view.addEventListener('resize', schedule); documentRef.addEventListener('scroll', schedule, true);
   documentRef.addEventListener('transitionend', schedule, true);
   documentRef.addEventListener('load', schedule, true);

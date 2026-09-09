@@ -253,11 +253,6 @@
     padding-right: 0;
   }
 
-  .historical-library-card.is-detail .historical-library-results,
-  .historical-library-card.is-detail .historical-library-toolbar { display: none; }
-
-  .historical-library-card:not(.is-detail) .historical-library-preview { display: none; }
-
   .historical-library-footer {
     position: sticky;
     bottom: 0;

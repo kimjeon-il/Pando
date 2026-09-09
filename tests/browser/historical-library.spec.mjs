@@ -26,9 +26,9 @@ test('historical library search previews and instantiates a sourced historical c
   await expect(result).toBeVisible();
   await result.click();
   await expect(page.locator('#historicalLibraryPreview')).toContainText('소련');
-  await page.locator('#historicalLibraryPreview details summary').click();
   await expect(page.locator('#historicalLibraryPreview')).toContainText('근사 경계');
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('이용 조건');
+  await expect(page.locator('#historicalLibraryPreview')).not.toContainText('출처·이용 조건');
+  await expect(page.locator('#historicalLibraryPreview a[aria-label^="출처"]')).toHaveCount(0);
   await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(1);
   const hasChildren = await page.evaluate(async () => (await window.PANDOLAB_HISTORICAL_LIBRARY.list()).some(entity => entity.parentLibraryId === 'historical-country:soviet-union'));
   if (hasChildren) {
