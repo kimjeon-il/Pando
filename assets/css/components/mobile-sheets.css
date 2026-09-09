@@ -96,7 +96,6 @@
     position: relative;
     z-index: 2;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     flex: 0 0 auto;
     min-height: var(--ui-touch-height);
     padding-inline: var(--ui-surface-content-rail-x);

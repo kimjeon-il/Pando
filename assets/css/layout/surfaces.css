@@ -2,6 +2,26 @@
   width: var(--ui-shell-left-panel-width);
 }
 
+/* Both desktop surfaces end at the same persistent status boundary. */
+[data-layout="wide"] .workspace-surface,
+[data-layout="compact"] .workspace-surface {
+  bottom: var(--ui-shell-statusbar-height);
+}
+
+[data-layout="wide"] .map-bottom-status,
+[data-layout="compact"] .map-bottom-status {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+[data-layout="wide"] .map-bottom-status .status-inner,
+[data-layout="compact"] .map-bottom-status .status-inner {
+  left: 0;
+  right: 0;
+}
+
 [data-layout="wide"] .surface-editor {
   --ui-surface-border-top: var(--ui-border-width) solid var(--border);
   --ui-surface-border-right: var(--ui-border-width) solid var(--border);
@@ -21,6 +41,8 @@
 [data-layout="wide"] .workspace-surface > .surface-header,
 [data-layout="compact"] .workspace-surface > .surface-header {
   display: grid;
+  min-height: var(--ui-v2-surface-header-height-desktop);
+  border-bottom: var(--ui-border-width) solid var(--border);
 }
 
 [data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) {
@@ -31,7 +53,7 @@
   position: fixed;
   z-index: 36;
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
-  bottom: var(--ui-control-height);
+  bottom: var(--ui-shell-statusbar-height);
   width: var(--compact-drawer-width, var(--ui-shell-compact-drawer-width));
   max-height: none;
   opacity: 0;

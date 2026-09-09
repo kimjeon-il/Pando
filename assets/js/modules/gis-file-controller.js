@@ -21,7 +21,7 @@ export function createGisFileController({
   const handleChange = async event => {
     const files = [...(event.target.files || [])];
     event.target.value = '';
-    try { return await onFiles(files); }
+    try { return await onFiles(files, { sourceKind: event.target === elements.projectInput ? 'project' : 'vector' }); }
     finally {
       const target = returnFocus;
       returnFocus = null;
@@ -31,7 +31,15 @@ export function createGisFileController({
 
   const bind = () => {
     elements.input?.addEventListener('change', handleChange);
+    elements.projectInput?.addEventListener('change', handleChange);
     return api;
+  };
+
+  const openProjectPicker = () => {
+    setTarget('');
+    returnFocus = elements.projectOpen;
+    elements.projectInput.dataset.returnFocusId = returnFocus?.id || '';
+    elements.projectInput.click();
   };
 
   const downloadBlob = (filename, blob) => {
@@ -85,6 +93,6 @@ export function createGisFileController({
     }
   };
 
-  const api = Object.freeze({ bind, openPicker, handleChange, saveProject });
+  const api = Object.freeze({ bind, openPicker, openProjectPicker, handleChange, saveProject });
   return api;
 }

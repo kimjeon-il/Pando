@@ -390,6 +390,10 @@ body.modal-open { overflow: hidden; }
 
 .gis-import-progress { margin-bottom: var(--ui-space-3); }
 
+.ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-actions > [data-gis-cancel] {
+  margin-inline-end: auto;
+}
+
 .gis-import-status {
   color: var(--muted);
   font-size: var(--ui-font-sm);

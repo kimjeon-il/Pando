@@ -28,11 +28,6 @@
 
 .map-view-settings > .layer-style-editor {
   min-width: 0;
-  display: grid;
-  gap: var(--ui-space-2);
-  padding: var(--ui-space-4) 0;
-  border-top: 1px solid var(--border);
-  background: transparent;
 }
 
 .map-view-settings > .layer-style-editor:first-child {
@@ -227,6 +222,12 @@
 .top-actions .file-submenu { border-left: 0; }
 
 .layer-inline-style-panel { border-block: 0; }
+
+/* The footer owns the bottom inset; the containing tab must not add another. */
+.left-panel .layer-panel-section {
+  padding-block: var(--ui-space-2) 0;
+  padding-inline: 0;
+}
 
 
 .top-actions .file-menu-icon { color: var(--muted); }

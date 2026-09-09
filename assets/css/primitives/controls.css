@@ -15,6 +15,40 @@ html { font-size: 100%; }
   stroke-linejoin: round;
 }
 
+/* Palette buttons preserve their swatch through common button states. */
+.ui-button.preferences-accent-chip {
+  --ui-control-bg: var(--swatch);
+  --ui-control-bg-hover: var(--swatch);
+  --ui-control-bg-pressed: var(--swatch);
+  width: var(--ui-control-height);
+  min-width: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+  height: auto;
+  aspect-ratio: 1;
+  padding: 0;
+  background: var(--swatch);
+  border: 2px solid var(--border);
+  border-radius: var(--ui-v2-radius-pill);
+}
+
+.ui-button.preferences-accent-chip:is(:hover, :focus-visible) {
+  background: var(--swatch);
+  outline: 2px solid var(--text-strong);
+  outline-offset: var(--ui-v2-focus-offset);
+}
+
+.ui-button.preferences-accent-chip[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--text-strong);
+}
+
+@media (max-width: 799px) {
+  .ui-button.preferences-accent-chip {
+    width: var(--ui-touch-height);
+    min-width: var(--ui-touch-height);
+    min-height: var(--ui-touch-height);
+  }
+}
+
 /* Projection glyphs are the only intentionally larger common icons. */
 .projection-btn .ui-icon {
   width: var(--ui-v2-projection-icon-size);
