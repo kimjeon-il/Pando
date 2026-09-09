@@ -1068,8 +1068,7 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   });
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
+  await expect(page.locator('#gisStepIndicator')).toContainText('1/3');
 
   const targetSelect = page.locator('#gisTargetType');
   const targetControl = targetSelect.locator('..').locator('.ui-select-control');
@@ -1088,8 +1087,7 @@ test('themed dropdowns preserve native values and search long dynamic option lis
     select.dispatchEvent(new BrowserEvent('input', { bubbles: true }));
     select.dispatchEvent(new BrowserEvent('change', { bubbles: true }));
   });
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toContainText('3/5');
+  await expect(page.locator('#gisStepIndicator')).toContainText('1/3');
   await page.locator('#gisAdvancedMapping summary').click();
 
   const nameSelect = page.locator('#gisNameField');
@@ -1159,22 +1157,19 @@ test('GIS import keeps every step on one content rail', async ({ page }) => {
     await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
 
     await railMatches(['#gisSourceReport']);
-    await page.locator('#gisImportNextBtn').click();
-    await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
+    await expect(page.locator('#gisStepIndicator')).toContainText('1/3');
     await railMatches(['#gisTargetTypeRow']);
     await page.locator('#gisTargetType').evaluate(select => {
       select.value = 'country';
       select.dispatchEvent(new select.ownerDocument.defaultView.Event('change', { bubbles: true }));
     });
-
-    await page.locator('#gisImportNextBtn').click();
-    await expect(page.locator('#gisStepIndicator')).toContainText('3/5');
+    await expect(page.locator('#gisStepIndicator')).toContainText('1/3');
     await railMatches(['#gisAdvancedMapping', '#gisCrsSummary']);
     await page.locator('#gisAdvancedMapping summary').click();
     await railMatches(['#gisAdvancedMapping']);
 
     await page.locator('#gisImportNextBtn').click();
-    await expect(page.locator('#gisStepIndicator')).toContainText('4/5');
+    await expect(page.locator('#gisStepIndicator')).toContainText('2/3');
     await railMatches(['#gisImportImpact', '#gisOpenModeRow']);
 
     await page.locator('#gisImportNextBtn').click();
@@ -1187,7 +1182,7 @@ test('GIS import keeps every step on one content rail', async ({ page }) => {
       element.dispatchEvent(new BrowserEvent('change', { bubbles: true }));
     });
     await page.locator('#gisImportNextBtn').click();
-    await expect(page.locator('#gisStepIndicator')).toContainText('5/5');
+    await expect(page.locator('#gisStepIndicator')).toContainText('3/3');
     await railMatches(['#gisFinalSummary']);
     await page.locator('#gisImportCancelBtn').click();
     await expect(page.locator('#gisImportModal')).toBeHidden();
@@ -1498,8 +1493,7 @@ test('GeoJSON polygon imports create canonical territories with explicit ownersh
   });
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
+  await expect(page.locator('#gisStepIndicator')).toContainText('1/3');
   const targetSelect = page.locator('#gisTargetType');
   await targetSelect.locator('..').locator('.ui-select-control').click();
   await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '권역', exact: true }).click();
@@ -1510,7 +1504,7 @@ test('GeoJSON polygon imports create canonical territories with explicit ownersh
     select.value = poland.value;
     select.dispatchEvent(new select.ownerDocument.defaultView.Event('change', { bubbles: true }));
   });
-  for (const step of ['3/5', '4/5', '5/5']) {
+  for (const step of ['2/3', '3/3']) {
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText(step, { timeout: 30_000 });
   }

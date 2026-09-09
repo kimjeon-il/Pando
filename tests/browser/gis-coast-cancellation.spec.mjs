@@ -16,16 +16,14 @@ async function openCoastImport(page, targetType) {
   await page.locator('#openGisBtn').click();
   await (await chooserPromise).setFiles(fixture);
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
-  await page.locator('#gisImportNextBtn').click();
   await selectUiOption(page, '#gisTargetType', targetType);
   if (targetType === 'administrative') await selectUiOption(page, '#gisTargetCountry', 'DEU');
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('3/5 · 속성 연결');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 가져올 데이터');
   await selectUiOption(page, '#gisCountryField', 'sovereign_id');
   await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('4/5 · 적용 결과', { timeout: 90_000 });
+  await expect(page.locator('#gisStepIndicator')).toHaveText('2/3 · 적용 결과', { timeout: 90_000 });
   await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('5/5 · 최종 확인');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('3/3 · 최종 확인');
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#coastReconciliationModal')).toBeVisible({ timeout: 120_000 });
 }

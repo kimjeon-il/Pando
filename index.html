@@ -112,7 +112,7 @@
         </header>
         <nav id="mapPanelTabs" class="ui-tabs surface-tabs map-panel-tabs" role="tablist" aria-label="지도 패널">
           <button id="mapLayersTabBtn" class="ui-button ui-tab active" data-surface-tab="layers" type="button" role="tab" aria-controls="layerSection" aria-selected="true">레이어</button>
-          <button id="mapViewTabBtn" class="ui-button ui-tab" data-surface-tab="view" type="button" role="tab" aria-controls="mapViewSection" aria-selected="false" tabindex="-1">지도</button>
+          <button id="mapViewTabBtn" class="ui-button ui-tab" data-surface-tab="view" type="button" role="tab" aria-controls="mapViewSection" aria-selected="false" tabindex="-1">표시 설정</button>
         </nav>
         <div class="surface-body surface-body-delegated">
         <div class="surface-content surface-content-map">
@@ -149,7 +149,7 @@
               <label class="ui-choice-row ui-toggle"><input id="countryFlagsVisible" type="checkbox" checked aria-label="국기 표시" /><span>국기 표시</span></label>
               <label class="ui-choice-row ui-toggle"><input id="labelsVisible" type="checkbox" checked aria-label="지명 표시" /><span>지명 표시</span></label>
             </section>
-            <section class="layer-style-editor distribution-view-settings" aria-labelledby="distributionViewSettingsTitle">
+            <section id="distributionViewSettings" class="layer-style-editor distribution-view-settings hidden" aria-labelledby="distributionViewSettingsTitle">
               <strong id="distributionViewSettingsTitle">인문 분포</strong>
               <div class="ui-field field-group" role="radiogroup" aria-label="표시 기준" aria-describedby="distributionLayerModeHint">
                 <label class="ui-choice-row"><input id="distributionDominantRadio" type="radio" name="distributionLayerMode" value="dominant" checked /><span class="ui-choice-copy"><strong>가장 많은 분포만 표시</strong><small>각 지역에서 1개만 표시합니다.</small></span></label>
@@ -409,8 +409,7 @@
                 <button id="editCoastBtn" type="button" class="ui-button editor-action-row"><span><strong>해안선 조정</strong></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="countryRelationActionsTitle">
-              <h3 id="countryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
+            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="countryRelationActionsTitle" data-od-id="country-relation-actions-title"><h3 id="countryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
                 <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가를 하위단위로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
@@ -423,14 +422,14 @@
               <p id="subunitNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 하위단위가 있습니다. 단계와 상위 영역을 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="subunitCountryInput">주권 국가</label><select id="subunitCountryInput"><option value="">소속 국가 미지정</option></select></div>
               <div class="ui-field field-group editor-field"><label for="subunitParentInput">직속 소속</label><select id="subunitParentInput"><option value="">국가 직속</option></select></div>
-              <label class="ui-field field-group editor-field"><span>행정 단계 (선택)</span><input id="subunitLevelInput" type="number" min="1" step="1" placeholder="미지정" /></label>
+
               <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="subunit">
                 <label id="subunitColorLabel">색상</label>
                 <button id="subunitColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="subunitColorPopover" aria-labelledby="subunitColorLabel subunitColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="subunitColorValue" class="ui-color-value">국가색 상속</span></button>
                 <input id="subunitColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
                 <div id="subunitColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="하위단위 색상 팔레트"><button id="subunitInheritColorBtn" class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>국가색 상속</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
               </div>
-              <div class="ui-field field-group editor-field"><label for="subunitNotesInput">메모</label><textarea id="subunitNotesInput" rows="4"></textarea></div>
+              <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="subunit-details"><summary><span>상세 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group editor-field"><span>행정 단계 (선택)</span><input id="subunitLevelInput" type="number" min="1" step="1" placeholder="미지정" /></label><div class="ui-field field-group editor-field"><label for="subunitNotesInput">메모</label><textarea id="subunitNotesInput" rows="4"></textarea></div></div></details>
             </section>
             <section class="editor-section editor-action-section" aria-labelledby="subunitGeometryActionsTitle">
               <h3 id="subunitGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
@@ -441,8 +440,7 @@
                 <button id="splitSubunitBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 나누기</strong><small>부모 영역 안에서 두 영역으로 분할</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="subunitRelationActionsTitle">
-              <h3 id="subunitRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
+            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="subunitRelationActionsTitle" data-od-id="subunit-relation-actions-title"><h3 id="subunitRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
                 <button id="transferSubunitBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="changeSubunitTypeBtn" type="button" class="ui-button editor-action-row"><span><strong>종류 변경</strong><small>국가로 전환</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -468,7 +466,7 @@
                 <div class="ui-field field-group editor-field"><label for="regionValidFromInput">시작일</label><input id="regionValidFromInput" type="text" inputmode="numeric" placeholder="예: 1910-01-01" /></div>
                 <div class="ui-field field-group editor-field"><label for="regionValidToInput">종료일</label><input id="regionValidToInput" type="text" inputmode="numeric" placeholder="현재까지면 비워 둠" /></div>
               </div></fieldset>
-              <div class="ui-field field-group editor-field"><label for="regionNotesInput">메모</label><textarea id="regionNotesInput" rows="4"></textarea></div>
+              <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="region-details"><summary><span>상세 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="regionNotesInput">메모</label><textarea id="regionNotesInput" rows="4"></textarea></div></div></details>
             </section>
             <section class="editor-section editor-action-section" aria-labelledby="regionGeometryActionsTitle">
               <h3 id="regionGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
@@ -477,8 +475,7 @@
                 <button id="mergeRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>지방 합치기</strong><small>인접한 지방 선택</small></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="regionRelationActionsTitle">
-              <h3 id="regionRelationActionsTitle" class="editor-section-title">관계 및 구조</h3>
+            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="regionRelationActionsTitle" data-od-id="region-relation-actions-title"><h3 id="regionRelationActionsTitle" class="editor-section-title">관계 및 구조</h3>
               <div class="editor-action-list">
                 <button id="transferRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>소속 변경</strong></span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
@@ -529,8 +526,7 @@
                     <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button>
                   </div>
               </div>
-              <div class="ui-field field-group editor-field"><label for="genericFeatureNotesInput">메모</label><textarea id="genericFeatureNotesInput" rows="5"></textarea></div>
-
+              <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="generic-feature-details"><summary><span>메모</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="genericFeatureNotesInput">메모</label><textarea id="genericFeatureNotesInput" rows="5"></textarea></div></div></details>
             </section>
 
             <section class="editor-section editor-action-section">
@@ -589,7 +585,7 @@
                 <select id="labelKindInput"><option value="capital">수도</option><option value="city">도시</option><option value="town">마을</option><option value="region">지역명</option><option value="mountain">산</option><option value="water">수역</option><option value="custom">기타</option></select>
               </div>
               <div class="ui-info-list editor-info-list editor-property-list"><div><span>위치</span><strong id="labelPositionValue">지도에서 자동 배치</strong></div></div>
-              <div class="ui-field field-group editor-field"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div>
+              <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="label-details"><summary><span>메모</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div></div></details>
             </section>
 
           </form>
@@ -604,8 +600,7 @@
                   <input id="hydroColorInput" class="ui-native-color-input" type="color" value="#3b82c4" tabindex="-1" aria-hidden="true" />
                   <div id="hydroColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="강 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
                 </div>
-                <div class="ui-field field-group editor-field"><label for="hydroNotesInput">메모</label><textarea id="hydroNotesInput" rows="5"></textarea></div>
-
+                <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="hydro-details"><summary><span>메모</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="hydroNotesInput">메모</label><textarea id="hydroNotesInput" rows="5"></textarea></div></div></details>
               </div>
               <div class="ui-info-list editor-info-list editor-property-list">
                 <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
@@ -758,7 +753,7 @@
         <button id="historicalLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기" data-tooltip="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
       <div class="historical-library-toolbar">
-        <div class="ui-field field-group historical-library-search"><label for="historicalLibrarySearchInput" hidden>검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="historicalLibrarySearchInput" type="search" placeholder="이름·별칭·다국어 이름" autocomplete="off" /><button id="historicalLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
+        <div class="ui-field field-group historical-library-search"><label for="historicalLibrarySearchInput">이름 검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="historicalLibrarySearchInput" type="search" placeholder="이름 검색" autocomplete="off" /><button id="historicalLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
         <label class="ui-field field-group"><span>기준 연도</span><input id="historicalLibraryYearInput" type="number" min="-5000" max="9999" step="1" placeholder="예: 1910" /></label>
         <div class="historical-library-filters" role="group" aria-label="필터" data-od-id="library-filters"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="country">국가</option><option value="subunit">하위단위</option><option value="region">지방</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>지역</span><select id="historicalLibraryGeographicRegionInput"><option value="">전체</option></select></label></div>
       </div>
@@ -847,7 +842,6 @@
             <label class="ui-check"><input type="checkbox" value="subunits" checked /><span>하위단위</span></label>
             <label class="ui-check"><input type="checkbox" value="regions" checked /><span>지방</span></label>
             <label class="ui-check"><input type="checkbox" value="genericFeatures" checked /><span>기타 객체</span></label>
-      <div class="ui-dialog-actions"><button id="gisExportCancelBtn" type="button" class="ui-button btn ghost">취소</button><button id="gisExportConfirmBtn" data-od-id="gis-export-confirm" type="button" class="ui-button btn">내보내기</button></div>
             <label class="ui-check"><input type="checkbox" value="distributions" checked /><span>분포</span></label>
             <label class="ui-check"><input type="checkbox" value="labels" checked /><span>지명</span></label>
           </fieldset>
@@ -855,6 +849,7 @@
         <div id="gisExportSummary" class="gis-export-summary" aria-live="polite"><p></p></div>
         <div id="gisExportError" class="ui-alert hidden" role="alert"></div>
       </form>
+      <div class="ui-dialog-actions"><button id="gisExportCancelBtn" type="button" class="ui-button btn ghost">취소</button><button id="gisExportConfirmBtn" data-od-id="gis-export-confirm" type="button" class="ui-button btn">내보내기</button></div>
     </section>
   </div>
   <noscript><div class="ui-alert fatal-noscript">판도연구소를 사용하려면 브라우저에서 자바스크립트 실행을 허용하세요.</div></noscript>
