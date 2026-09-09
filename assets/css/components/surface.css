@@ -13,6 +13,7 @@
   outline-offset: calc(-1 * var(--ui-border-width));
 }
 .ui-overlay-scrollbar[hidden] { display: none; }
+.ui-overlay-scrollbar--dialog { position: absolute; }
 .ui-overlay-scrollbar-thumb {
   display: block;
   margin-inline: auto;
@@ -25,6 +26,7 @@
 .ui-overlay-scrollbar:focus-visible { outline: var(--ui-border-width) solid var(--accent); }
 
 .workspace-surface {
+  --surface-elevated: var(--ui-v2-color-panel);
   --ui-surface-border-top: 0;
   --ui-surface-border-right: 0;
   --ui-surface-border-bottom: 0;
@@ -67,6 +69,7 @@
   column-gap: var(--ui-space-3);
   padding: var(--ui-space-3) var(--ui-surface-content-rail-x);
   border: 0;
+  border-bottom: var(--ui-border-width) solid var(--border);
   background: var(--surface-elevated);
   box-shadow: none;
 }

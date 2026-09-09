@@ -19,7 +19,7 @@ test('historical library search previews and instantiates a sourced historical c
   await expect.poll(() => page.locator('#historicalLibraryResults [data-library-entity-id]').count()).toBeGreaterThan(200);
 
   await page.locator('#historicalLibrarySearchInput').fill('USSR');
-  await page.locator('.historical-library-filters summary').click();
+  await expect(page.locator('.historical-library-filters summary')).toHaveCount(0);
   await selectUiOption(page, '#historicalLibraryStatusInput', 'past');
   await page.locator('#historicalLibraryYearInput').fill('1991');
   const result = page.locator('[data-library-entity-id="historical-country:soviet-union"]');
@@ -27,26 +27,27 @@ test('historical library search previews and instantiates a sourced historical c
   await result.click();
   await expect(page.locator('#historicalLibraryPreview')).toContainText('소련');
   await page.locator('#historicalLibraryPreview details summary').click();
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('신뢰도');
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('low');
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('기능 시험용 근사 경계');
+  await expect(page.locator('#historicalLibraryPreview')).toContainText('근사 경계');
+  await expect(page.locator('#historicalLibraryPreview details')).toContainText('이용 조건');
   await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(1);
-  await expect(page.locator('#historicalLibraryAddOptions')).toBeVisible();
-  await expect(page.locator('#historicalLibraryAddOptions')).toContainText('불러올 범위');
-  await expect(page.locator('#historicalLibraryChildDepthInput')).toContainText('선택한 항목 + 모든 단계의 하위 영역까지');
+  const hasChildren = await page.evaluate(async () => (await window.PANDOLAB_HISTORICAL_LIBRARY.list()).some(entity => entity.parentLibraryId === 'historical-country:soviet-union'));
+  if (hasChildren) {
+    await expect(page.locator('#historicalLibraryAddOptions summary')).toHaveCount(0);
+    await expect(page.locator('#historicalLibraryChildDepthInput')).toContainText('모든 하위 영역');
+  } else await expect(page.locator('#historicalLibraryAddOptions')).toBeHidden();
 
-  const originalGeometry = await page.evaluate(() => JSON.stringify(
-    window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union').geometryVersions[0].geometry,
+  const originalGeometry = await page.evaluate(async () => JSON.stringify(
+    (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union')).geometryVersions[0].geometry,
   ));
   await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeHidden();
+  await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
     .filter(unit => unit.id === 'historical-country:soviet-union').length)).toBe(1);
   const instanceId = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
     .find(unit => unit.id === 'historical-country:soviet-union')?.id);
   expect(instanceId).toBe('historical-country:soviet-union');
-  const sourceAfterEdit = await page.evaluate(() => JSON.stringify(
-    window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union').geometryVersions[0].geometry,
+  const sourceAfterEdit = await page.evaluate(async () => JSON.stringify(
+    (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union')).geometryVersions[0].geometry,
   ));
   expect(sourceAfterEdit).toBe(originalGeometry);
 

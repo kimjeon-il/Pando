@@ -54,20 +54,11 @@ body.modal-open { overflow: hidden; }
   color: var(--danger-text);
 }
 
-.historical-library-filters .editor-disclosure-body {
+.historical-library-filters {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--ui-field-gap);
-}
-
-/* Keep filter controls visible so search state is always apparent. */
-.historical-library-filters > summary {
-  min-height: var(--ui-touch-height);
-  padding: 0 0 var(--ui-space-1);
-}
-.historical-library-filters .editor-disclosure-body,
-.historical-library-filters:not([open]) .editor-disclosure-body {
-  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr));
+  gap: var(--ui-v2-button-gap);
 }
 
 .historical-library-back {
@@ -119,30 +110,17 @@ body.modal-open { overflow: hidden; }
 .gis-export-layers .ui-check { min-width: 0; padding: var(--ui-space-2); border-radius: var(--ui-radius-control); }
 
 @media (max-width: 799px) {
-  .historical-library-filters .editor-disclosure-body { grid-template-columns: 1fr; }
-  .historical-library-search { grid-column: 1 / -1; }
   .historical-library-card.is-detail .historical-library-results { display: none; }
   .historical-library-card:not(.is-detail) .historical-library-preview { display: none; }
   .historical-library-card.is-detail .historical-library-back { display: inline-flex; align-items: center; justify-content: center; }
-  .historical-library-card.is-detail .historical-library-footer {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: center;
-  }
   .historical-library-card.is-detail .historical-library-footer-spacer { display: none; }
   .historical-library-card.is-detail .historical-library-footer .historical-library-add-options { grid-column: 1 / -1; }
-  .historical-library-card.is-detail .historical-library-footer .historical-library-back-action,
-  .historical-library-card.is-detail .historical-library-footer .historical-library-add-action { width: 100%; }
   .gis-country-identity-row { grid-template-columns: 1fr; }
   .gis-export-layers { grid-template-columns: 1fr; }
 }
 
 /* Historical library, GIS workflows, and file/project actions. */
 
-.historical-library-modal .historical-library-card {
-  width: min(47.5rem, calc(100vw - (var(--ui-space-6) * 2)));
-  max-height: min(82vh, 40rem);
-}
 
 .historical-library-modal .ui-dialog-header {
   display: grid;
@@ -157,28 +135,30 @@ body.modal-open { overflow: hidden; }
 
 .historical-library-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(7.5rem, 10rem);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 6.5rem);
   gap: var(--ui-space-3);
   align-items: end;
 }
 
-.historical-library-filters { grid-column: 1 / -1; }
+.historical-library-search { grid-column: 1; }
+.historical-library-toolbar .field-group,
+.historical-library-add-options .field-group { min-width: 0; margin: 0; }
 
 .historical-library-layout {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(15rem, .9fr) minmax(20rem, 1.25fr);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   gap: 0;
   border-top: 1px solid var(--border);
   border-bottom: 0;
+  overflow: hidden;
 }
 
 .historical-library-results {
   min-width: 0;
   overflow: auto;
   padding-block: var(--ui-space-2);
-  padding-inline-start: var(--ui-surface-content-rail-x);
-  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline: 0;
   border-right: 1px solid var(--border);
 }
 
@@ -187,7 +167,7 @@ body.modal-open { overflow: hidden; }
   min-height: var(--ui-v2-command-description-height);
   display: grid;
   gap: var(--ui-space-0-5);
-  padding: var(--ui-space-2) var(--ui-space-3);
+  padding: var(--ui-space-2) 0;
   border: 0;
   border-radius: var(--ui-radius-control);
   background: transparent;
@@ -236,7 +216,7 @@ body.modal-open { overflow: hidden; }
 .historical-library-preview {
   min-width: 0;
   overflow: auto;
-  padding: var(--ui-space-3) 0 0;
+  padding: var(--ui-space-3) 0 0 var(--ui-surface-content-rail-x);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -278,9 +258,11 @@ body.modal-open { overflow: hidden; }
 
 .historical-library-footer {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-auto-rows: auto;
+  align-content: start;
   align-items: center;
-  gap: var(--ui-space-2);
+  gap: var(--ui-v2-button-gap);
   min-height: var(--ui-touch-height);
   padding-top: var(--ui-space-2);
   border-top: 1px solid var(--border);
@@ -290,22 +272,12 @@ body.modal-open { overflow: hidden; }
 
 .historical-library-footer .historical-library-add-options {
   min-width: 0;
-  grid-column: 2;
-  order: 0;
+  grid-column: 1 / -1;
+  grid-row: 1;
 }
 
-.historical-library-footer .historical-library-add-options > summary { display: none; }
-
-.historical-library-footer .historical-library-add-options .editor-disclosure-body {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--ui-space-1);
-}
-
-.historical-library-footer .historical-library-add-options .editor-help {
-  display: none;
-}
+.historical-library-back-action { grid-column: 1; grid-row: 2; justify-self: start; }
+.historical-library-add-action { grid-column: 2; grid-row: 2; justify-self: end; }
 
 .ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-card,
 .ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-card {
@@ -474,28 +446,12 @@ body.modal-open { overflow: hidden; }
   overflow: hidden;
 }
 
-.historical-library-layout {
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(17.5rem, 40fr) minmax(22.5rem, 60fr);
-  gap: var(--ui-space-2);
-  overflow: hidden;
-}
-
 .historical-library-results,
 .historical-library-preview {
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: auto;
-}
-
-.historical-library-preview {
-  padding: var(--ui-space-3) var(--ui-surface-content-rail-x) 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
 }
 
 .historical-library-preview-map {
@@ -506,10 +462,36 @@ body.modal-open { overflow: hidden; }
 }
 
 .historical-library-card .ui-disclosure {
-  border: var(--ui-border-width) solid var(--ui-card-border);
-  border-radius: var(--ui-radius-panel);
-  background: var(--ui-card-bg);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
+
+.historical-library-preview-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  min-width: 0;
+}
+
+.historical-library-preview-heading h3 { margin: 0; font-size: var(--ui-v2-font-xl); overflow-wrap: anywhere; }
+.historical-library-flag { flex: 0 0 auto; }
+.historical-library-flag img { display: block; width: auto; height: auto; max-width: var(--ui-touch-height); max-height: var(--ui-v2-brand-mark-size); object-fit: contain; }
+.historical-library-card :is(summary, a):focus-visible { outline: 2px solid var(--ui-v2-color-focus-ring); outline-offset: calc(-1 * var(--ui-v2-focus-offset)); }
+.historical-library-card summary:is(:hover, :focus-visible) { background: var(--surface-hover); color: var(--text-strong); }
+.historical-library-preview a { color: var(--text); text-decoration: underline; text-underline-offset: .2em; }
+.historical-library-preview a:hover { color: var(--text-strong); }
+
+.ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-card { width: min(32rem, calc(100vw - (var(--ui-dialog-edge) * 2))); display: flex; flex-direction: column; overflow: hidden; }
+.gis-export-compact { display: grid; gap: var(--ui-space-5); min-width: 0; min-height: 0; overflow: auto; }
+.ui-dialog[aria-labelledby="gisExportTitle"] :is(.ui-dialog-header, .ui-dialog-actions) { flex: 0 0 auto; }
+.gis-export-content { min-width: 0; }
+.gis-export-layers .ui-check[hidden] { display: none; }
+.gis-export-summary { color: var(--text-soft); font-size: var(--ui-font-sm); }
+.gis-export-summary p { margin: 0; overflow-wrap: anywhere; }
+.ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-actions { margin-top: 0; border-top: 0; }
+
+.ui-dialog[aria-labelledby="gisImportTitle"] .editor-disclosure { border: 0; background: transparent; }
 
 .editor-flag-preview,
 .historical-library-preview-map {
@@ -519,9 +501,18 @@ body.modal-open { overflow: hidden; }
 [data-layout="mobile"] .historical-library-card {
   width: 100%;
   max-width: none;
-  height: 100dvh;
-  max-height: none;
+  height: calc(100dvh - (var(--ui-dialog-edge) * 2));
+  max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
   border-radius: var(--ui-radius-panel);
+}
+
+/* The toolbar is absent in detail mode: the remaining space belongs to the body. */
+[data-layout="mobile"] .historical-library-card.is-detail {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+@media (max-width: 799px) {
+  .historical-library-card .historical-library-preview { padding-inline: 0; }
 }
 
 [data-layout="mobile"] .historical-library-layout {

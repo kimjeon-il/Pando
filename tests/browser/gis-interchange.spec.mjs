@@ -153,8 +153,9 @@ test('GIS data export writes only selected layers and omits project-only metadat
   await page.locator('#gisExportForm .gis-export-layers input').evaluateAll(inputs => {
     for (const input of inputs) input.checked = input.value === 'countries';
   });
-  await page.locator('#gisExportNextBtn').click();
-  await expect(page.locator('#gisExportSummary')).toContainText('국가');
+  await page.locator('.gis-export-layers').dispatchEvent('change');
+  await expect(page.locator('.gis-export-layers input[value="countries"]')).toBeChecked();
+  await expect(page.locator('#gisExportSummary')).toBeHidden();
   const [download] = await Promise.all([
     page.waitForEvent('download', { timeout: 240_000 }),
     page.locator('#gisExportConfirmBtn').click(),
@@ -201,31 +202,33 @@ test('mobile vector import advances by stage and preserves detected choices when
     })),
   });
   await expect(page.locator('#gisImportModal')).toBeVisible();
-  await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-  await expect(page.locator('#gisStepIndicator')).toHaveText('1/5 · 파일 확인');
-  await expect(page.locator('#gisTargetTypeRow')).toBeHidden();
-
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('2/5 · 가져올 내용');
+  await expect(page.locator('#gisImportNextBtn')).toBeEnabled({ timeout: 30_000 });
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 데이터 선택');
   await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
-  await selectUiOption(page, '#gisTargetType', 'territory');
+  await selectUiOption(page, '#gisTargetType', 'subunit');
+  await page.locator('#gisImportNextBtn').click();
+  await expect(page.locator('#gisStepIndicator')).toHaveText('2/3 · 가져오기 설정');
   await expect(page.locator('#gisTargetCountryRow')).toBeVisible();
   await expect(page.locator('#gisTargetCountry')).toHaveValue('DEU');
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('3/5 · 속성 연결');
-  await expect(page.locator('#gisMappingSummary')).toContainText('예: 모바일 시험 지역');
   const detectedNameField = await page.locator('#gisNameField').inputValue();
+  expect(detectedNameField).toBeTruthy();
 
-  await page.locator('#gisImportBackBtn').click();
-  await expect(page.locator('#gisTargetType')).toHaveValue('territory');
   await page.locator('#gisImportNextBtn').click();
+  await page.locator('#gisImportBackBtn').click();
+  await expect(page.locator('#gisTargetType')).toHaveValue('subunit');
+  await expect(page.locator('#gisTargetCountry')).toHaveValue('DEU');
+  await expect(page.locator('#gisNameField')).toHaveValue(detectedNameField);
+  await page.locator('#gisImportBackBtn').click();
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 데이터 선택');
+  await expect(page.locator('#gisTargetType')).toHaveValue('subunit');
+  await page.locator('#gisImportNextBtn').click();
+  await expect(page.locator('#gisStepIndicator')).toHaveText('2/3 · 가져오기 설정');
+  await expect(page.locator('#gisTargetCountry')).toHaveValue('DEU');
   await expect(page.locator('#gisNameField')).toHaveValue(detectedNameField);
   await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('4/5 · 적용 결과');
-  await expect(page.locator('#gisImportImpactSummary')).toContainText('소속 국가:');
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('5/5 · 최종 확인');
-  await expect(page.locator('#gisFinalSummary')).toContainText('전체를 독일 소속 권역');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('3/3 · 확인');
+  await expect(page.locator('#gisFinalSummary')).toContainText('독일');
+  await expect(page.locator('#gisFinalSummary')).toContainText('영토 이전');
   await expect(page.locator('#gisImportConfirmBtn')).toBeVisible();
 
   await page.locator('#gisImportCancelBtn').click();

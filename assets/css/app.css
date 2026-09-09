@@ -167,11 +167,11 @@
   --ui-scrollbar-gutter-size: var(--ui-scrollbar-size);
   --ui-popover-screen-edge: var(--ui-space-2);
   --ui-dialog-edge: var(--ui-space-4);
-  --ui-dialog-padding: var(--ui-space-6);
-  --ui-dialog-padding-compact: var(--ui-space-4);
+  --ui-dialog-padding: var(--ui-surface-content-rail-x);
+  --ui-dialog-padding-compact: var(--ui-surface-content-rail-x);
   --ui-dialog-title-gap: var(--ui-space-3);
   --ui-dialog-section-gap: var(--ui-space-4);
-  --ui-dialog-actions-gap: var(--ui-space-2);
+  --ui-dialog-actions-gap: var(--ui-v2-button-gap);
   --ui-dialog-actions-top: var(--ui-space-6);
   --ui-map-edge: var(--ui-space-3);
   --ui-map-status-height: var(--ui-shell-statusbar-height);
@@ -554,7 +554,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .preferences-section > h3 { margin: 0; color: var(--text-strong); font-size: var(--ui-font-section); font-weight: var(--ui-weight-bold); line-height: var(--ui-line-tight); }
 .preferences-actions-spacer { flex: 1; }
 .preferences-accent { display: grid; gap: var(--ui-space-3); }
-.preferences-accent-swatches { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); align-items: center; }
 #preferencesAccentCustomBtn { display: flex; align-items: center; gap: var(--ui-space-2); flex-wrap: wrap; }
 #preferencesAccentValue { font-variant-numeric: tabular-nums; }
 .vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
@@ -874,7 +873,7 @@ body { font-size: var(--ui-font-body); }
 .terrain-strength-control[hidden] { display: none; }
 .terrain-strength-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); color: var(--text-soft); font-size: var(--ui-font-caption); }
 .terrain-strength-heading strong { color: var(--accent-2); font-variant-numeric: tabular-nums; }
-.terrain-strength-control input[type="range"] { --ui-range-progress: 32%; width: 100%; min-height: 28px; accent-color: var(--accent); cursor: pointer; }
+.terrain-strength-control input[type="range"] { --ui-range-progress: 32%; width: 100%; min-height: var(--ui-control-height); accent-color: var(--accent); cursor: pointer; }
 
 .hydro-lakes-layer,
 .hydro-rivers-layer { pointer-events: none; }
@@ -1155,23 +1154,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .projection-btn.active:hover { background: var(--accent-surface-hover); color: var(--accent-text); }
 .projection-btn > span { display: none; }
 
-.app-root[data-layout="mobile"] .projection-control {
-  width: 100%;
-  height: var(--ui-touch-height);
-  grid-template-columns: repeat(2,minmax(0,1fr));
-  gap: 0;
-}
-.app-root[data-layout="mobile"] .projection-btn {
-  width: 100%;
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  font-size: var(--ui-font-md);
-  font-weight: var(--ui-weight-medium);
-  gap: var(--ui-control-gap);
-  padding: 0 var(--ui-control-padding-x);
-}
-.app-root[data-layout="mobile"] .projection-btn > span { display: inline; }
 
 /* ===== PandoLab v0.15.1: compact projection, search icon, and mobile controls ===== */
 .app-root[data-layout="mobile"] .surface-header button {
@@ -1418,7 +1400,6 @@ body[data-layout="mobile"] {
 
 .app-root[data-layout="mobile"] .topbar {
   grid-template-columns: minmax(0, 1fr) auto;
-  padding: 0 max(var(--ui-space-2), env(safe-area-inset-right)) 0 max(var(--ui-space-2), env(safe-area-inset-left));
 }
 .app-root[data-layout="mobile"] .brand { min-width: 0; overflow: hidden; }
 .app-root[data-layout="mobile"] .topbar-center {
@@ -1549,7 +1530,6 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status { opacity
 .app-root[data-layout="mobile"] .layer-child-name { min-height: var(--ui-touch-height); }
 
 
-.app-root[data-layout="mobile"] .create-menu-item { min-height: 68px; }
 .app-root[data-layout="mobile"] .icon-btn { width: var(--ui-touch-height); height: var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .map-view-toolbar {
   display: grid;
@@ -1631,8 +1611,6 @@ body[data-layout="mobile"] .ui-dialog-header .icon-btn { width: var(--ui-touch-h
 body[data-layout="mobile"] .gis-form-grid { grid-template-columns: 1fr; }
 body[data-layout="mobile"] .gis-wide { grid-column: 1; }
 body[data-layout="mobile"] #gisExportModal { align-items: center; padding: var(--ui-dialog-edge); }
-body[data-layout="mobile"] #gisExportModal .ui-dialog-card { width: 100%; height: auto; max-height: calc(100dvh - var(--ui-dialog-edge) * 2); border-radius: var(--ui-radius-sheet); overflow: auto; }
-body[data-layout="mobile"] #gisExportForm { min-height: 0; display: flex; flex-direction: column; gap: var(--ui-space-3); }
 body[data-layout="mobile"] .gis-export-step { flex: 1 1 auto; align-content: start; overflow: auto; }
 body[data-layout="mobile"] .gis-export-layers { grid-template-columns: 1fr; }
 /* ===== PandoLab shared interaction and component system ===== */
@@ -2575,7 +2553,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   .ui-color-default
 ) { min-height: var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .projection-control { height: var(--ui-touch-height); padding: var(--ui-segment-padding); }
-.app-root[data-layout="mobile"] .projection-btn { min-height: 0; height: 100%; }
 .app-root[data-layout="mobile"] .mode-method-btn { font-size: var(--ui-font-body); }
 
 
@@ -3053,19 +3030,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .editor-flag-layout {
   display: block;
 }
-.editor-flag-preview {
-  width: 100%;
-  min-height: 96px;
-  max-height: 140px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border: 1px dashed var(--ui-control-border);
-  background: var(--surface-subtle);
-  color: var(--muted);
-  text-align: center;
-}
-.editor-flag-preview img { width: auto; max-width: 100%; height: auto; max-height: 140px; object-fit: contain; }
 .editor-section-heading { min-width: 0; display: flex; align-items: center; gap: var(--ui-space-2); }
 .editor-section-heading :is(.editor-section-title, .editor-property-heading) { min-width: 0; flex: 1; }
 .editor-quiet-action {
@@ -3084,21 +3048,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   border-color: transparent !important;
   background: transparent !important;
 }
-.editor-object-meta .editor-focus-action {
-  width: auto;
-  min-width: 28px;
-  height: 28px;
-  min-height: 28px;
-  display: inline-grid;
-  place-items: center;
-  padding: 0 var(--ui-space-1);
-  border-radius: var(--ui-radius-control);
-  vertical-align: middle;
-}
-.editor-flag-actions { min-width: 0; display: flex; align-items: center; gap: var(--ui-space-0-5); }
-.editor-flag-actions > .icon-btn { width: 30px; min-width: 30px; height: 30px; min-height: 30px; }
-.editor-flag-actions > .icon-btn .ui-icon { width: 16px; height: 16px; }
-.app-root[data-layout="mobile"] .editor-flag-actions > .icon-btn { width: 36px; min-width: 36px; height: 36px; min-height: 36px; }
 .editor-disclosure { overflow: clip; }
 .editor-disclosure > summary {
   min-height: var(--ui-touch-height);

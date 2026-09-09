@@ -15,28 +15,34 @@ export function createGisExportController({
   setStatus,
   reportError,
 } = {}) {
-  let step = 0;
+  let busy = false;
   let returnFocus = null;
 
-  const selectedLayers = () => [...elements.form.querySelectorAll('.gis-export-layers input:checked')].map(input => input.value);
+  const selectedLayers = () => [...elements.form.querySelectorAll('.gis-export-layers input:checked')]
+    .filter(input => !input.disabled).map(input => input.value);
   const updateSummary = () => {
     const counts = getCounts();
     const selected = selectedLayers();
     const nonEmpty = selected.filter(layer => counts[layer] > 0);
     const summary = elements.summary?.querySelector('p');
     if (!summary) return;
-    summary.textContent = nonEmpty.length ? `총 ${nonEmpty.length}개 레이어` : '내보낼 데이터를 선택하세요.';
+    summary.textContent = nonEmpty.length ? '' : '내보낼 데이터를 선택하세요.';
+    elements.summary.hidden = nonEmpty.length > 0;
+    elements.confirm.disabled = busy || !nonEmpty.length;
   };
 
-  const setStep = (value, { focus = false } = {}) => {
-    step = value === 1 ? 1 : 0;
-    for (const element of elements.form.querySelectorAll('[data-gis-export-step]')) element.dataset.gisActive = String(Number(element.dataset.gisExportStep) === step);
-    elements.stepIndicator.textContent = `${step + 1}/2 · ${step ? '형식과 파일 내용 확인' : '내보낼 데이터'}`;
-    elements.back.disabled = step === 0;
-    elements.next.classList.toggle('hidden', step === 1);
-    elements.confirm.classList.toggle('hidden', step !== 1);
-    if (step === 1) updateSummary();
-    if (focus) window.requestAnimationFrame(() => elements.form.querySelector(`[data-gis-export-step="${step}"][data-gis-active="true"] :is(input, select, button)`)?.focus());
+  const refreshLayers = () => {
+    const counts = getCounts();
+    for (const input of elements.form.querySelectorAll('.gis-export-layers input')) {
+      const count = Number(counts[input.value]) || 0;
+      input.disabled = count === 0;
+      input.checked = count > 0;
+      const row = input.closest('label');
+      if (row) row.hidden = count === 0;
+      const label = row?.querySelector('span');
+      if (label) label.textContent = `${LABELS[input.value]} · ${count.toLocaleString()}개`;
+    }
+    updateSummary();
   };
 
   const open = async () => {
@@ -48,7 +54,8 @@ export function createGisExportController({
     elements.error.classList.add('hidden');
     elements.modal.classList.remove('hidden');
     document.body.classList.add('modal-open');
-    setStep(0, { focus: true });
+    refreshLayers();
+    window.requestAnimationFrame(() => elements.format?.focus());
     return true;
   };
 
@@ -63,6 +70,7 @@ export function createGisExportController({
   };
 
   const confirm = async () => {
+    if (busy) return false;
     const selected = selectedLayers();
     const counts = getCounts();
     if (!selected.some(layer => counts[layer] > 0)) {
@@ -70,6 +78,7 @@ export function createGisExportController({
       elements.error.classList.remove('hidden');
       return false;
     }
+    busy = true;
     elements.confirm.disabled = true;
     elements.error.classList.add('hidden');
     try {
@@ -93,7 +102,8 @@ export function createGisExportController({
       reportError(error);
       return false;
     } finally {
-      elements.confirm.disabled = false;
+      busy = false;
+      updateSummary();
     }
   };
 
@@ -101,16 +111,6 @@ export function createGisExportController({
     elements.close?.addEventListener('click', close);
     elements.cancel?.addEventListener('click', close);
     elements.backdrop?.addEventListener('click', close);
-    elements.back?.addEventListener('click', () => setStep(0, { focus: true }));
-    elements.next?.addEventListener('click', () => {
-      if (!selectedLayers().length) {
-        elements.error.textContent = '내보낼 범주를 하나 이상 선택하세요.';
-        elements.error.classList.remove('hidden');
-        return;
-      }
-      elements.error.classList.add('hidden');
-      setStep(1, { focus: true });
-    });
     elements.confirm?.addEventListener('click', confirm);
     elements.format?.addEventListener('change', updateSummary);
     elements.form.querySelector('.gis-export-layers')?.addEventListener('change', updateSummary);

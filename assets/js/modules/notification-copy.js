@@ -16,8 +16,7 @@ function firstSentence(value) {
   return normalize(value).split(/(?<=[.!?])\s+/u)[0] || '';
 }
 
-function fallbackCopy(value, tone, code) {
-  const suffix = code ? ` · ${code}` : '';
+function fallbackCopy(value, tone) {
   if (tone === 'working') {
     if (/저장/u.test(value)) return '저장 중…';
     if (/내보|GeoJSON|GeoPackage/u.test(value)) return '파일 생성 중…';
@@ -25,15 +24,6 @@ function fallbackCopy(value, tone, code) {
     if (/미리보기/u.test(value)) return '미리보기 계산 중…';
     if (/지도|렌더/u.test(value)) return '지도 준비 중…';
     return '작업 중…';
-  }
-  if (tone === 'error') {
-    if (/자동저장/u.test(value)) return '자동저장 실패. 직접 저장하세요.';
-    if (/잠금/u.test(value)) return '잠금을 해제하세요.';
-    if (/상위 영역|부모/u.test(value)) return '상위 영역을 확인하세요.';
-    if (/소속 국가|국가.*선택|원본 국가/u.test(value)) return '국가를 다시 선택하세요.';
-    if (/파일|불러|저장|내보|GeoJSON|GeoPackage/u.test(value)) return `파일 작업 실패${suffix}`;
-    if (/형상|geometry|경계|국경/u.test(value)) return '형상을 확인하세요.';
-    return `작업 실패${suffix}`;
   }
   if (/저장/u.test(value)) return '저장했습니다.';
   if (/(?:하위단위|행정구역|권역).*가져|가져.*(?:하위단위|행정구역|권역)/u.test(value)) return '하위단위를 가져왔습니다.';
@@ -55,6 +45,13 @@ export function compactNotificationMessage(message, { tone = 'success', maxLengt
   let compact = full;
   for (const [pattern, replacement] of COPY_REPLACEMENTS) compact = compact.replace(pattern, replacement);
   compact = normalize(compact);
+  // Never replace an unknown warning/error with a generic failure or success.
+  if (tone === 'error' || tone === 'warning') {
+    if (/잠금.*해제/u.test(compact)) return '잠금 해제 후 다시 시도하세요';
+    if (/자동저장.*(?:실패|못)/u.test(compact)) return '자동저장 실패. 직접 저장하세요';
+    if (/파일을 불러오지 못했습니다.*파일을 확인하세요/u.test(compact)) return '불러오기 실패. 파일을 확인하세요';
+    return compact;
+  }
   if (compact.length <= maxLength) return compact;
 
   const first = firstSentence(compact);

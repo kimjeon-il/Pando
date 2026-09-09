@@ -115,8 +115,16 @@
 
 
 .layer-child {
+  --selection-strong-bg: transparent;
+  --selection-strong-fg: var(--text-strong);
+  --selection-strong-muted: var(--text-soft);
   position: relative;
 }
+
+/* Preferences is available before lazy workflow styles have loaded. */
+.preferences-accent-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr)); gap: var(--ui-v2-button-gap); align-items: center; }
+
+.layer-child.ui-selectable-row.is-selected { border-color: transparent; }
 
 .layer-child.is-active {
   background: color-mix(in srgb, var(--accent) 4%, transparent);
@@ -145,15 +153,11 @@
 
 /* Layer row surfaces: feature states do not redefine component skin. */
 
-.layer-panel-footer { border-top: 1px solid var(--border); background: var(--surface-elevated); padding: var(--ui-space-2); padding-bottom: max(var(--ui-space-2), env(safe-area-inset-bottom));
+.layer-panel-footer { border-top: 1px solid var(--border); background: var(--surface-elevated); padding: var(--ui-space-2) var(--ui-surface-content-rail-x); padding-bottom: max(var(--ui-space-2), env(safe-area-inset-bottom));
 }
 .app-root .layer-action-bar > .icon-btn { padding: 0; border: 0; background: transparent; box-shadow: none;
 }
 .app-root .layer-action-bar > .icon-btn:is(:hover, :focus-visible):not(:disabled) { background: var(--surface-hover);
-}
-.layer-color-swatch { border: 1px solid var(--border-strong); border-radius: var(--ui-radius-control);
-}
-.layer-color-swatch.is-type-icon { border: 0;
 }
 @media (max-width: 799px) {
   .app-root .topbar-center { padding: 0;

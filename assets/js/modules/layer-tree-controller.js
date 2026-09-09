@@ -159,14 +159,6 @@ export function createLayerTreeController({
       }
     }
     if (item.bundleId) row.dataset.bundleMember = item.bundleId;
-    const swatch = document.createElement('span');
-    swatch.className = 'layer-color-swatch';
-    swatch.setAttribute('aria-hidden', 'true');
-    if (item.color) swatch.style.backgroundColor = item.color;
-    else {
-      swatch.classList.add('is-type-icon');
-      swatch.append(createIcon(item.icon || 'map'));
-    }
     const visibility = createVisibilityControl({ group: itemGroup, itemId: item.id, label: item.name, checked: model.isVisible(itemGroup, item.id) });
     const name = document.createElement('button');
     name.type = 'button';
@@ -178,12 +170,14 @@ export function createLayerTreeController({
     label.textContent = item.name;
     const type = document.createElement('span');
     type.className = 'layer-item-type';
-    type.textContent = item.typeLabel;
+    type.textContent = searchResult ? item.typeLabel : '';
     if (item.isBuiltin && itemGroup === 'hydro') {
       const status = model.snapshot().hydroState;
-      type.textContent += status === 'error' ? ' · 재시도' : ['idle', 'loading'].includes(status) ? ' · 로딩' : '';
+      const statusLabel = status === 'error' ? '재시도' : ['idle', 'loading'].includes(status) ? '로딩' : '';
+      type.textContent = [type.textContent, statusLabel].filter(Boolean).join(' · ');
     }
-    name.append(swatch, label, type);
+    name.append(label);
+    if (type.textContent) name.append(type);
     name.dataset.tooltip = item.title || `${item.name} 선택`;
     if (hasMenu && model.isLocked(ref)) {
       name.classList.add('has-lock-indicator');
@@ -226,10 +220,8 @@ export function createLayerTreeController({
     name.type = 'button'; name.className = 'ui-button layer-child-name';
     name.dataset.layerFolderToggle = bundle.id;
     name.setAttribute('aria-expanded', String(expanded));
-    const icon = document.createElement('span');
-    icon.className = 'layer-color-swatch is-type-icon'; icon.append(createIcon(bundle.icon));
     const label = document.createElement('span'); label.className = 'layer-child-name-label'; label.textContent = bundle.name;
-    name.append(icon, label); row.append(toggle, visibility, name);
+    name.append(label); row.append(toggle, visibility, name);
     if (bundle.id === 'landforms') row.dataset.loadState = model.snapshot().hydroState;
     return row;
   };

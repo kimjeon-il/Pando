@@ -71,21 +71,21 @@ export function createGisFileController({
           const writable = await handle.createWritable();
           await writable.write(blob);
           await writable.close();
-          setActionStatus('프로젝트 파일을 저장했습니다.', 'success', 3200);
+          setActionStatus('프로젝트 저장 완료', 'success', 3200);
           return { downloaded: false };
         } else {
           downloadBlob(filename, blob);
-          setActionStatus('프로젝트를 다운로드했습니다. 저장 위치는 브라우저 다운로드 설정을 따릅니다.', 'success', 4800);
+          setActionStatus('브라우저 다운로드 폴더에 저장 완료', 'success', 4800);
           return { downloaded: true };
         }
       });
     } catch (error) {
       if (error?.name === 'AbortError') {
-        setActionStatus('파일 저장을 취소했습니다.', 'ready', 2200);
+        setActionStatus('저장 취소', 'ready', 2200);
         return false;
       }
       console.error('[PL-GPKG-001]', error);
-      setActionStatus('프로젝트 저장에 실패했습니다.', 'error', 0);
+      setActionStatus('프로젝트 저장 실패', 'error', 0);
       return false;
     } finally {
       saving = false;

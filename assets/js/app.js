@@ -1668,7 +1668,7 @@ const {
       const label = state.labels.find(item => String(item.id) === ref.id);
       if (label) {
         focusCoordinate(label.coordinates);
-        if (announce) setActionStatus(`${label.name} 위치로 이동했습니다.`, 'success', 2200);
+        if (announce) setActionStatus('선택 위치로 이동 완료', 'success', 2200);
         return true;
       }
     }
@@ -1683,7 +1683,7 @@ const {
       ? runtimeAnchor
       : null;
     focusCountry(feature, { maxZoom: isMobile() ? 12 : 10, preferredAnchor });
-    if (announce) setActionStatus(`${objectDisplayInfo(ref).name} 위치로 이동했습니다.`, 'success', 2200);
+    if (announce) setActionStatus('선택 위치로 이동 완료', 'success', 2200);
     return true;
   }
 
@@ -1748,9 +1748,7 @@ const {
   function requireCountriesUnlocked(ids, action = '편집') {
     const lockedIds = lockedCountryIds(ids);
     if (!lockedIds.length) return true;
-    const names = lockedIds.slice(0, 3).map(id => countryFeatureById(id)).filter(Boolean).map(countryName);
-    const suffix = lockedIds.length > names.length ? ` 외 ${lockedIds.length - names.length}개국` : '';
-    setActionStatus(`${names.join(', ')}${suffix} 잠금을 해제한 뒤 ${action}할 수 있습니다.`, 'error', 3800);
+    setActionStatus(`${lockedIds.length}개국 잠금 해제 후 ${action}하세요`, 'error', 3800);
     return false;
   }
 
@@ -2078,7 +2076,7 @@ const {
         renderingDomain?.invalidateSelection?.('batch-delete');
         renderingDomain?.invalidateLabels?.('batch-delete');
         projectDomain.queueAutosave();
-        setActionStatus(`${refs.length}개 객체를 삭제했습니다.`, 'success', 2800);
+        setActionStatus(`${refs.length}개 객체 삭제 완료`, 'success', 2800);
       },
     });
   }
@@ -7543,12 +7541,12 @@ const {
     const donorId = String(id || '');
     if (state.tool !== 'annex-territory' || state.annexPhase !== 'donor') return;
     if (!targetId || donorId === targetId) {
-      setActionStatus('편입받을 국가는 영토를 가져올 국가로 선택할 수 없습니다. 다른 국가를 선택하세요.', 'error', 3500);
+      setActionStatus('다른 원본 국가를 선택하세요', 'error', 3500);
       return;
     }
     const donor = countryFeatureById(donorId);
     if (!donor?.geometry || !['Polygon', 'MultiPolygon'].includes(donor.geometry.type)) {
-      setActionStatus('영토를 가져올 국가를 찾을 수 없습니다. 지도에 표시된 다른 국가를 선택하세요.', 'error', 3500);
+      setActionStatus('원본 국가를 다시 선택하세요', 'error', 3500);
       return;
     }
     const selected = new Set(state.annexDonorCountryIds.map(String));
@@ -7619,7 +7617,7 @@ const {
     const refs = selectionDomain.snapshot().selection.items;
     const ids = refs.filter(ref => ref.domain === 'territorial' && ref.type === TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id);
     if (ids.length !== refs.length || ids.length < 2) {
-      setActionStatus('국경 조정은 국가를 2개 이상 선택했을 때 시작할 수 있습니다.', 'error', 3200);
+      setActionStatus('국가를 2개 이상 선택하세요', 'error', 3200);
       return false;
     }
     if (!requireCountriesUnlocked(ids, '국경 조정을 시작')) return false;
@@ -7777,7 +7775,7 @@ const {
     const targetId = String(id || '');
     if (state.tool !== 'merge-country' || !sourceId) return;
     if (!targetId || targetId === sourceId) {
-      setActionStatus('기준 국가는 합병 대상으로 선택할 수 없습니다. 다른 국가를 선택하세요.', 'error', 3200);
+      setActionStatus('기준 국가 외 합병 대상을 선택하세요', 'error', 3200);
       return;
     }
     if (!countryFeatureById(targetId)) {
@@ -12206,12 +12204,9 @@ const {
           error: $('gisExportError'),
           summary: $('gisExportSummary'),
           format: $('gisExportFormat'),
-          stepIndicator: $('gisExportStepIndicator'),
           close: $('gisExportCloseBtn'),
           cancel: $('gisExportCancelBtn'),
           backdrop: $('gisExportModal').querySelector('.ui-dialog-backdrop'),
-          back: $('gisExportBackBtn'),
-          next: $('gisExportNextBtn'),
           confirm: $('gisExportConfirmBtn'),
         },
         ensureRuntime: () => Promise.all([ensureGisIoRuntime(), ensureModalRuntime()]),
@@ -12466,7 +12461,7 @@ const {
   function deleteSelected() {
     if (!requireCanonicalData()) return;
     if (!state.selected) {
-      setActionStatus('삭제할 객체가 없습니다. 지도에서 객체를 먼저 선택하세요.', 'error');
+      setActionStatus('삭제할 객체를 선택하세요', 'error');
       return;
     }
     if ((state.selected.domain === 'territorial' && state.selected.type === TERRITORIAL_UNIT_TYPES.COUNTRY)) {
@@ -13581,11 +13576,11 @@ const {
     assertRuntimeCompatibility();
     if (!window.d3) {
       (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '엔진 오류';
-      setActionStatus('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.', 'error', 0);
+      setActionStatus('지도 엔진 로드 실패. 새로고침하세요', 'error', 0);
       return;
     }
     if (!window.PANDOLAB_COUNTRIES?.features?.length) {
-      setActionStatus('내장 국가 데이터를 불러올 수 없습니다. 페이지를 새로고침하세요.', 'error', 0);
+      setActionStatus('국가 자료 로드 실패. 새로고침하세요', 'error', 0);
       return;
     }
 

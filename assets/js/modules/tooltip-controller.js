@@ -8,24 +8,32 @@ export function createTooltipController({
   function hide() {
     if (!tooltip) return;
     const ownerId = tooltip.dataset.ownerId;
-    if (ownerId) document.getElementById(ownerId)?.removeAttribute('aria-describedby');
+    const owner = ownerId && document.getElementById(ownerId);
+    if (owner) {
+      const ids = (owner.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== tooltip.id);
+      if (ids.length) owner.setAttribute('aria-describedby', ids.join(' '));
+      else owner.removeAttribute('aria-describedby');
+    }
     tooltip.classList.add('hidden');
     tooltip.setAttribute('aria-hidden', 'true');
     tooltip.textContent = '';
     delete tooltip.dataset.ownerId;
   }
 
-  function show(target) {
-    if (document.getElementById('app')?.dataset.layout === 'mobile') return;
-    if (!target || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  function show(target, source = 'pointer') {
+    if (!target) return;
+    if (source !== 'keyboard' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     const value = String(target.dataset.tooltip || '').trim();
     if (!value || !tooltip) return;
+    hide();
     if (!target.id) target.id = `${idPrefix}${Math.random().toString(36).slice(2, 9)}`;
     tooltip.textContent = value;
     tooltip.dataset.ownerId = target.id;
     tooltip.classList.remove('hidden');
     tooltip.setAttribute('aria-hidden', 'false');
-    target.setAttribute('aria-describedby', tooltip.id);
+    const descriptions = new Set((target.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+    descriptions.add(tooltip.id);
+    target.setAttribute('aria-describedby', [...descriptions].join(' '));
     const targetRect = target.getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
     const edge = 8;
@@ -50,12 +58,13 @@ export function createTooltipController({
     });
     document.addEventListener('focusin', event => {
       const target = event.target.closest?.('[data-tooltip]');
-      if (target && document.documentElement.classList.contains('keyboard-navigation')) show(target);
+      if (target && document.documentElement.classList.contains('keyboard-navigation')) show(target, 'keyboard');
     });
     document.addEventListener('focusout', event => {
       if (event.target.closest?.('[data-tooltip]')) hide();
     });
     document.addEventListener('scroll', hide, true);
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') hide(); });
     window.addEventListener('resize', hide);
   }
 
