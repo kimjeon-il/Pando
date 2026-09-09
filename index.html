@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-library-flags-boundary-20260909" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-library-flags-boundary-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-country-editor-library-flags-20260909" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-country-editor-library-flags-20260909" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -331,7 +331,22 @@
           <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
             <div class="editor-object-context-main">
               <button id="flagMenuBtn" class="ui-button editor-flag-trigger hidden" type="button" aria-label="국기 관리" data-tooltip="국기 관리" aria-haspopup="menu" aria-expanded="false" aria-controls="flagMenu"><span id="flagPreview" class="editor-flag-thumbnail"></span></button>
-              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
+              <div id="countryHeaderFields" class="editor-country-header-fields hidden" aria-label="국가 기본 정보">
+                <div class="ui-field field-group editor-field editor-country-name-field"><label for="countryNameInput">국명</label><input id="countryNameInput" form="countryProperties" type="text" autocomplete="off" /></div>
+                <div class="ui-field field-group editor-field editor-color-field ui-color-picker editor-country-color-field" data-color-picker="country">
+                  <label id="countryColorLabel">색상</label>
+                  <button id="countryColorTrigger" class="ui-button ui-color-trigger editor-country-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="countryColorPopover" aria-labelledby="countryColorLabel countryColorValue">
+                    <span class="ui-color-preview" aria-hidden="true"></span><span id="countryColorValue" class="ui-color-value">기본 색상</span>
+                  </button>
+                  <input id="countryColorInput" class="ui-native-color-input" type="color" value="#7c8da6" tabindex="-1" aria-hidden="true" />
+                  <div id="countryColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="국가 색상 팔레트">
+                    <button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="false"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button>
+                    <div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div>
+                    <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button>
+                  </div>
+                </div>
+              </div>
+              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel" class="editor-object-type-label"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
               <button id="focusSelectedObjectBtn" class="ui-button editor-quiet-action editor-focus-action" type="button" data-tooltip="지도에서 보기" aria-label="지도에서 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-object"/></svg></button>
               <div id="flagMenu" class="editor-flag-menu" popover="auto" role="menu" aria-label="국기 관리">
                 <button id="flagUploadBtn" type="button" class="ui-button" role="menuitem">국기 변경</button>
@@ -381,26 +396,9 @@
           </section>
 
           <form id="countryProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
-            <section class="editor-section editor-info-section editor-section-primary">
-              <div class="ui-field field-group editor-field"><label for="countryNameInput">국명</label><input id="countryNameInput" type="text" autocomplete="off" /></div>
-              <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="country">
-                <label id="countryColorLabel">색상</label>
-                <button id="countryColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="countryColorPopover" aria-labelledby="countryColorLabel countryColorValue">
-                  <span class="ui-color-preview" aria-hidden="true"></span><span id="countryColorValue" class="ui-color-value">기본 색상</span>
-                </button>
-                <input id="countryColorInput" class="ui-native-color-input" type="color" value="#7c8da6" tabindex="-1" aria-hidden="true" />
-                <div id="countryColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="국가 색상 팔레트">
-                  <button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="false"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button>
-                  <div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div>
-                  <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button>
-                </div>
-              </div>
-              <div class="ui-info-list editor-info-list editor-property-list"><div><span>면적</span><strong id="countryAreaValue">—</strong></div></div>
-            </section>
+            <div class="editor-country-area" aria-hidden="true" hidden><strong id="countryAreaValue">—</strong></div>
 
-            <section class="editor-section editor-info-section">
-              <div class="ui-field field-group editor-field"><label for="notesInput">메모</label><textarea id="notesInput" rows="5" placeholder="국가에 관한 메모를 입력하세요."></textarea></div>
-            </section>
+            <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="country-details"><summary><span>상세 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="notesInput">메모</label><textarea id="notesInput" rows="5" placeholder="국가에 관한 메모를 입력하세요."></textarea></div></div></details>
 
             <section class="editor-section editor-action-section" aria-labelledby="countryGeometryActionsTitle">
               <h3 id="countryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
@@ -867,10 +865,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-library-flags-boundary-20260909" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-country-editor-library-flags-20260909" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-library-flags-boundary-20260909" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-country-editor-library-flags-20260909" defer></script>
 </body>
 </html>
