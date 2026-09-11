@@ -13,6 +13,7 @@ function canvasFallbackWorkerMain() {
     const terrainFetchQueue = [];
     const terrainQueuedKeys = new Set();
     const terrainFailures = new Map();
+    const terrainProtectedKeys = new Set();
     let terrainActiveFetches = 0;
     let terrainFetchConcurrency = 2;
     const hydroPacks = new Map();
@@ -51,6 +52,22 @@ function canvasFallbackWorkerMain() {
           90 - y1 / level.height * 180,
         ],
       };
+    }
+
+    function terrainNeighbourSpecs(level, specs) {
+      const output = [];
+      const seen = new Set(specs.map(spec => spec.key));
+      for (const spec of specs) {
+        for (let row = Math.max(0, spec.row - 1); row <= Math.min(level.rows - 1, spec.row + 1); row += 1) {
+          for (let column = Math.max(0, spec.column - 1); column <= Math.min(level.columns - 1, spec.column + 1); column += 1) {
+            const neighbour = terrainTileSpec(level, column, row);
+            if (seen.has(neighbour.key)) continue;
+            seen.add(neighbour.key);
+            output.push(neighbour);
+          }
+        }
+      }
+      return output;
     }
 
     function terrainTileUrl(spec) {
@@ -121,7 +138,9 @@ function canvasFallbackWorkerMain() {
           terrainFailures.delete(spec.key);
           terrainTiles.set(spec.key, { ...images, lastUsed: performance.now() });
           while (terrainTiles.size > 40) {
-            const oldest = [...terrainTiles.entries()].sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
+            const oldest = [...terrainTiles.entries()]
+              .filter(([key]) => !terrainProtectedKeys.has(key))
+              .sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
             if (!oldest || oldest[0] === spec.key) break;
             terrainTiles.delete(oldest[0]);
           }
@@ -157,9 +176,9 @@ function canvasFallbackWorkerMain() {
       }
     }
 
-    function terrainLevelForView(projection, dpr) {
+    function terrainLevelForView(projection, terrainDpr) {
       if (!terrainManifest?.levels?.length) return null;
-      const desiredWidth = Math.max(1, 2 * Math.PI * projection.scale() * dpr);
+      const desiredWidth = Math.max(1, 2 * Math.PI * projection.scale() * Math.max(1, Number(terrainDpr || 1)));
       return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
         || terrainManifest.levels[terrainManifest.levels.length - 1];
     }
@@ -287,7 +306,7 @@ function canvasFallbackWorkerMain() {
       if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return true;
       const levels = terrainManifest.levels;
       const baseLevel = levels[0];
-      const targetLevel = terrainLevelForView(projection, dpr) || baseLevel;
+      const targetLevel = terrainLevelForView(projection, message.terrainDpr || dpr) || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
       const activeTargetIndex = message.dataReadiness === 'enhanced' ? targetIndex : 0;
       const specsByLevel = levels.slice(0, activeTargetIndex + 1).map((level, index) => ({
@@ -296,10 +315,14 @@ function canvasFallbackWorkerMain() {
       }));
       const targetSpecs = specsByLevel[specsByLevel.length - 1]?.specs || [];
       const terrainComplete = targetSpecs.every(spec => terrainTiles.has(spec.key));
+      terrainProtectedKeys.clear();
+      for (const entry of specsByLevel) for (const spec of entry.specs) terrainProtectedKeys.add(spec.key);
+      for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainProtectedKeys.add(spec.key);
       for (let index = 0; index < specsByLevel.length; index += 1) {
         const priority = index === 0 ? 10_000 : 1_000 - index;
         for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
       }
+      for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 120);
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
       context.globalAlpha = 1;

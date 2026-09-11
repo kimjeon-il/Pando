@@ -60,6 +60,7 @@ export function createColorPicker() {
 
   function alignColorPopoverToViewport(popover) {
     if (!popover || popover.classList.contains('hidden')) return;
+    if (popover.classList.contains('ui-color-popover--inline')) return;
     popover.style.removeProperty('--ui-color-popover-shift-x');
     popover.style.removeProperty('--ui-color-popover-shift-y');
     delete popover.dataset.placement;
@@ -228,7 +229,7 @@ export function createColorPicker() {
   function populateColorPalette(container) {
     if (!container || container.children.length) return;
     appendColorPaletteSection(container, '무채색', dependencies.COLOR_PALETTE_NEUTRALS, 'neutral');
-    appendColorPaletteSection(container, '색상', dependencies.COLOR_PALETTE_COLORS, 'chromatic');
+    appendColorPaletteSection(container, '유채색', dependencies.COLOR_PALETTE_COLORS, 'chromatic');
   }
 
   function bindColorPickers() {
@@ -259,7 +260,7 @@ export function createColorPicker() {
       });
     });
     document.addEventListener('pointerdown', event => {
-      if (!event.target.closest('[data-color-picker]')) closeAllColorPickers();
+      if (!event.target.closest('.ui-color-popover, .ui-color-trigger')) closeAllColorPickers();
     }, true);
     document.addEventListener('keydown', event => {
       if (event.key !== 'Escape') return;

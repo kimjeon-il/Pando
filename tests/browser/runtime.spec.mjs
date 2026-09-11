@@ -963,7 +963,7 @@ test('layer folders expose presentation controls while global view settings stay
   await expect(page.locator('#mapNameSettingsTitle')).toHaveText('지도 표시');
   await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
   await expect(page.locator('#mapViewSection label:has(#labelsVisible)')).toContainText('지명 표시');
-  await expect(page.locator('.map-name-settings + .terrain-settings')).toHaveCount(1);
+  await expect(page.locator('.terrain-settings')).toHaveCount(0);
   const terrainVisible = page.locator('#terrainVisible');
   const terrainOptions = page.locator('#terrainDisplayOptions');
   await expect(page.locator('#mapViewSection #terrainVisible')).toHaveCount(1);
@@ -971,6 +971,12 @@ test('layer folders expose presentation controls while global view settings stay
   await expect(page.locator('#terrainPoliticalRadio').locator('xpath=..')).toContainText('국가 색상 유지');
   await expect(page.locator('#terrainPhysicalRadio').locator('xpath=..')).toContainText('지형 높낮이 색상');
   await expect(page.locator('#terrainStrengthControl, #terrainStrengthInput')).toHaveCount(0);
+  expect(await page.locator('#terrainVisible').evaluate(input => input.closest('.map-name-settings') != null)).toBe(true);
+  expect(await page.locator('#countriesVisible, #subunitsVisible, #regionsVisible, #languagesVisible, #ethnicitiesVisible, #religionsVisible, #riversVisible, #lakesVisible').evaluateAll(inputs => inputs.map(input => ({
+    type: input.type,
+    radioStyle: input.closest('label')?.classList.contains('ui-radio-toggle'),
+    radius: getComputedStyle(input).borderRadius,
+  })))).toEqual(Array.from({ length: 8 }, () => ({ type: 'checkbox', radioStyle: true, radius: '50%' })));
   await expect(terrainVisible).toHaveAttribute('aria-expanded', 'true');
   await expect(terrainOptions).toBeVisible();
   await terrainVisible.uncheck();
@@ -986,10 +992,10 @@ test('layer folders expose presentation controls while global view settings stay
     await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name, { timeout: 30_000 });
     if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
     if (!await page.locator('#mapViewSection').isVisible()) await page.locator('#mapViewTabBtn').click();
-    await expect(page.locator('.terrain-settings')).toBeVisible();
+    await expect(page.locator('.map-name-settings')).toBeVisible();
     const overflow = await page.locator('#leftPanel').evaluate(panel => ({
       panel: panel.scrollWidth > panel.clientWidth + 1,
-      settings: panel.querySelector('.terrain-settings').scrollWidth > panel.querySelector('.terrain-settings').clientWidth + 1,
+      settings: panel.querySelector('.map-name-settings').scrollWidth > panel.querySelector('.map-name-settings').clientWidth + 1,
     }));
     expect(overflow).toEqual({ panel: false, settings: false });
   }
@@ -1253,7 +1259,11 @@ test('shared color picker applies presets, restores defaults, and participates i
   expect(await chromatic.evaluateAll(elements => elements.slice(0, 12).map(element => element.dataset.colorFamily))).toEqual([
     '빨강', '주황', '황금', '노랑', '연두', '초록', '청록', '시안', '파랑', '인디고', '보라', '분홍',
   ]);
-  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(12);
+  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(10);
+  expect(await palette.locator('.ui-color-swatch-grid').evaluateAll(grids => grids.map(grid => {
+    const rect = grid.querySelector('.ui-color-swatch')?.getBoundingClientRect();
+    return rect ? [rect.width, rect.height] : [];
+  }))).toEqual([[22, 22], [22, 22]]);
   await palette.locator('[data-color-value="#ef4444"]').click();
   await expect(page.locator('#countryColorInput')).toHaveValue('#ef4444');
   await expect(page.locator('#countryColorValue')).toHaveText('#EF4444');
@@ -1275,12 +1285,9 @@ test('shared color picker applies presets, restores defaults, and participates i
   ]);
   await page.locator('#countryColorTrigger').click();
   await expect(palette).toBeVisible();
-  const paletteBox = await palette.boundingBox();
-  expect(paletteBox.x).toBeGreaterThanOrEqual(0);
-  expect(paletteBox.x + paletteBox.width).toBeLessThanOrEqual(layouts[2].viewport.width);
-  expect(paletteBox.y).toBeGreaterThanOrEqual(0);
-  expect(paletteBox.y + paletteBox.height).toBeLessThanOrEqual(layouts[2].viewport.height);
-  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(12);
+  await expect(palette).toHaveCSS('position', 'static');
+  expect(await palette.evaluate(element => element.parentElement?.id)).toBe('editorObjectHeader');
+  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(10);
   await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
   await expect(page.locator('#countryColorInput')).toHaveAttribute('type', 'color');
   await page.keyboard.press('Escape');
