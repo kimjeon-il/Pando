@@ -29,7 +29,11 @@ test('palette swatches stay square and inside their grid on desktop and mobile',
       const rect = swatch?.getBoundingClientRect();
       return rect ? [rect.width, rect.height] : [];
     }));
-    expect(swatchSizes).toEqual([[22, 22], [22, 22]]);
+    expect(swatchSizes).toHaveLength(1);
+    expect(swatchSizes[0][0]).toBeGreaterThanOrEqual(18);
+    expect(swatchSizes[0][0]).toBeLessThanOrEqual(20);
+    expect(swatchSizes[0][1]).toBe(swatchSizes[0][0]);
+    expect(await palette.locator('.ui-color-swatch-grid--palette').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(13);
     await expect(palette).toHaveCSS('position', 'static');
     await palette.screenshot({ path: testInfo.outputPath(`palette-${width}.png`) });
     await palette.locator('[data-color-value="#ef4444"]').click();

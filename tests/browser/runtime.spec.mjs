@@ -1249,21 +1249,19 @@ test('shared color picker applies presets, restores defaults, and participates i
   await expect(page.locator('#countryColorInput')).toHaveValue('#63758a');
   await page.locator('#countryColorTrigger').click();
   const palette = page.locator('#countryColorPopover');
-  const neutrals = palette.locator('.ui-color-swatch-grid--neutral [data-color-value]');
-  const chromatic = palette.locator('.ui-color-swatch-grid--chromatic [data-color-value]');
+  const swatches = palette.locator('.ui-color-swatch-grid--palette [data-color-value]');
   await expect(palette).toBeVisible();
-  await expect(neutrals).toHaveCount(6);
-  await expect(chromatic).toHaveCount(60);
-  await expect(neutrals.first()).toHaveAttribute('aria-label', '흰색 (#FFFFFF) 색상');
-  await expect(chromatic.first()).toHaveAttribute('aria-label', '빨강 아주 밝음 (#FEE2E2) 색상');
-  expect(await chromatic.evaluateAll(elements => elements.slice(0, 12).map(element => element.dataset.colorFamily))).toEqual([
-    '빨강', '주황', '황금', '노랑', '연두', '초록', '청록', '시안', '파랑', '인디고', '보라', '분홍',
+  await expect(swatches).toHaveCount(66);
+  await expect(swatches.first()).toHaveAttribute('aria-label', '흰색 (#FFFFFF) 색상');
+  await expect(swatches.nth(1)).toHaveAttribute('aria-label', '빨강 아주 밝음 (#FEE2E2) 색상');
+  expect(await swatches.evaluateAll(elements => elements.slice(0, 13).map(element => element.dataset.colorFamily))).toEqual([
+    '회색', '빨강', '주황', '황금', '노랑', '연두', '초록', '청록', '시안', '파랑', '인디고', '보라', '분홍',
   ]);
-  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(10);
+  expect(await palette.locator('.ui-color-swatch-grid--palette').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(13);
   expect(await palette.locator('.ui-color-swatch-grid').evaluateAll(grids => grids.map(grid => {
     const rect = grid.querySelector('.ui-color-swatch')?.getBoundingClientRect();
     return rect ? [rect.width, rect.height] : [];
-  }))).toEqual([[22, 22], [22, 22]]);
+  }))).toHaveLength(1);
   await palette.locator('[data-color-value="#ef4444"]').click();
   await expect(page.locator('#countryColorInput')).toHaveValue('#ef4444');
   await expect(page.locator('#countryColorValue')).toHaveText('#EF4444');
@@ -1287,7 +1285,7 @@ test('shared color picker applies presets, restores defaults, and participates i
   await expect(palette).toBeVisible();
   await expect(palette).toHaveCSS('position', 'static');
   expect(await palette.evaluate(element => element.parentElement?.id)).toBe('editorObjectHeader');
-  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(10);
+  expect(await palette.locator('.ui-color-swatch-grid--palette').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(13);
   await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
   await expect(page.locator('#countryColorInput')).toHaveAttribute('type', 'color');
   await page.keyboard.press('Escape');
@@ -1352,8 +1350,7 @@ test('layer style hover is isolated and preferences reuse the shared color picke
   await page.locator('#preferencesSelectionColorTrigger').click();
   const palette = page.locator('#preferencesSelectionColorPopover');
   await expect(palette).toBeVisible();
-  await expect(palette.locator('.ui-color-swatch-grid--neutral [data-color-value]')).toHaveCount(6);
-  await expect(palette.locator('.ui-color-swatch-grid--chromatic [data-color-value]')).toHaveCount(60);
+  await expect(palette.locator('.ui-color-swatch-grid--palette [data-color-value]')).toHaveCount(66);
   await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
   await palette.locator('[data-color-value="#ef4444"]').click();
   await expect(page.locator('#preferencesSelectionColorInput')).toHaveValue('#ef4444');
