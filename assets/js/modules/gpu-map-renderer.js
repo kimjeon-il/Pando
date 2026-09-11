@@ -586,6 +586,8 @@ export function createGpuMapRenderer(deps) {
     let terrainRenderedLevel = -1;
     let terrainTargetTileCount = 0;
     let terrainTargetTilesLoaded = 0;
+    let terrainFallbackTileCount = 0;
+    let terrainRetentionKeys = new Set();
     let mesh = null;
     let meshCountryIds = [];
     const countryStrokePacketCache = {
@@ -1374,6 +1376,7 @@ export function createGpuMapRenderer(deps) {
       terrainFetchQueuedKeys.clear();
       terrainActiveFetches = 0;
       terrainTileFailures.clear();
+      terrainRetentionKeys = new Set();
       terrainGridMeshes.clear();
       for (const entry of [...hydroPacks.values(), ...hydroEditEntries]) {
         entry.resources = null;
@@ -2030,6 +2033,8 @@ export function createGpuMapRenderer(deps) {
       terrainRenderedLevel = -1;
       terrainTargetTileCount = 0;
       terrainTargetTilesLoaded = 0;
+      terrainFallbackTileCount = 0;
+      terrainRetentionKeys = new Set();
       // The legacy renderer owns its default framebuffer, so clear the old
       // project immediately during a project reset.
       if (gl && !gl.isContextLost?.()) {
@@ -3336,10 +3341,12 @@ export function createGpuMapRenderer(deps) {
 
     function terrainLevelForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
-      const scale = Number(frameContext?.scale) || Number(activeProjection().scale()) || 1;
-      // frameContext.scale is already in physical pixels; do not apply DPR a
-      // second time or movement/resize would spuriously request a lower LOD.
-      const desiredWidth = Math.max(1, 2 * PI * scale);
+      const physicalScale = Number(frameContext?.scale) || Number(activeProjection().scale()) || 1;
+      // The render canvas may lower its DPR under load, but that must not
+      // choose a blurrier source terrain level for an unchanged map view.
+      const renderDpr = Math.max(1, Number(effectivePixelRatio || resolveRenderPixelRatio()));
+      const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1)));
+      const desiredWidth = Math.max(1, 2 * PI * (physicalScale / renderDpr) * sourceDpr);
       return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
         || terrainManifest.levels[terrainManifest.levels.length - 1];
     }
@@ -3363,6 +3370,29 @@ export function createGpuMapRenderer(deps) {
           90 - y1 / level.height * 180,
         ],
       };
+    }
+
+    function terrainTileAt(level, longitude, latitude) {
+      if (!level) return null;
+      const x = Math.min(level.width - Number.EPSILON, Math.max(0, (Number(longitude) + 180) / 360 * level.width));
+      const y = Math.min(level.height - Number.EPSILON, Math.max(0, (90 - Number(latitude)) / 180 * level.height));
+      return terrainTileSpec(level, Math.floor(x / level.tileSize), Math.floor(y / level.tileSize));
+    }
+
+    function terrainNeighbourSpecs(level, specs) {
+      const output = [];
+      const seen = new Set(specs.map(spec => spec.key));
+      for (const spec of specs) {
+        for (let row = Math.max(0, spec.row - 1); row <= Math.min(level.rows - 1, spec.row + 1); row += 1) {
+          for (let column = Math.max(0, spec.column - 1); column <= Math.min(level.columns - 1, spec.column + 1); column += 1) {
+            const neighbour = terrainTileSpec(level, column, row);
+            if (seen.has(neighbour.key)) continue;
+            seen.add(neighbour.key);
+            output.push(neighbour);
+          }
+        }
+      }
+      return output;
     }
 
     function visibleTerrainTileSpecs(level, includeAll = false, frameContext = activeFrameContext) {
@@ -3497,7 +3527,10 @@ export function createGpuMapRenderer(deps) {
         const terrainBudget = Math.max(8 * 1024 * 1024, Number(renderQuality.terrainCacheBudgetBytes) || DEFAULT_RENDER_QUALITY.terrainCacheBudgetBytes);
         while (terrainBytes > terrainBudget) {
           let oldest = null;
-          for (const item of terrainTiles.entries()) if (!oldest || item[1].lastUsed < oldest[1].lastUsed) oldest = item;
+          for (const item of terrainTiles.entries()) {
+            if (terrainRetentionKeys.has(item[0])) continue;
+            if (!oldest || item[1].lastUsed < oldest[1].lastUsed) oldest = item;
+          }
           if (!oldest || oldest[0] === spec.key) break;
           gl.deleteTexture(oldest[1].texture);
           terrainTiles.delete(oldest[0]);
@@ -3517,8 +3550,7 @@ export function createGpuMapRenderer(deps) {
           const next = terrainUploadQueue.shift();
           const bytes = next ? next.bitmap.width * next.bitmap.height * 4 : 0;
           const uploaded = next && uploadTerrainTile(next);
-          const readyLevel = uploaded ? completeTerrainLevelForFrame(activeFrameContext)?.level : null;
-          if (readyLevel && Number(readyLevel.id) !== terrainRenderedLevel) invalidatePhysicalScene('terrain-level-ready');
+          if (uploaded && next && terrainRetentionKeys.has(next.spec.key)) invalidatePhysicalScene('terrain-tile-ready');
           return { bytes, done: !terrainUploadQueue.length };
         },
       }).catch(error => { if (error.name !== 'AbortError') console.warn('Terrain upload failed', error); });
@@ -3572,8 +3604,8 @@ export function createGpuMapRenderer(deps) {
       return meshEntry;
     }
 
-    function drawTerrainTile(spec) {
-      const tile = terrainTiles.get(spec.key);
+    function drawTerrainTile(spec, sourceSpec = spec) {
+      const tile = terrainTiles.get(sourceSpec.key);
       if (!tile || !terrainProgram) return false;
       tile.lastUsed = performance.now();
       const frameContext = activeFrameContext || lastVisualFrame;
@@ -3591,10 +3623,13 @@ export function createGpuMapRenderer(deps) {
       const [west, north, east, south] = spec.bounds;
       gl.uniform4f(cachedUniformLocation(terrainProgram, 'uGeoBounds'), west, north, east, south);
       const gutter = Number(terrainManifest.gutter || 0);
-      const u0 = gutter / (spec.pixelWidth + gutter * 2);
-      const v0 = gutter / (spec.pixelHeight + gutter * 2);
-      const u1 = (gutter + spec.pixelWidth) / (spec.pixelWidth + gutter * 2);
-      const v1 = (gutter + spec.pixelHeight) / (spec.pixelHeight + gutter * 2);
+      const [sourceWest, sourceNorth, sourceEast, sourceSouth] = sourceSpec.bounds;
+      const sourceWidth = sourceSpec.pixelWidth + gutter * 2;
+      const sourceHeight = sourceSpec.pixelHeight + gutter * 2;
+      const u0 = (gutter + (west - sourceWest) / (sourceEast - sourceWest) * sourceSpec.pixelWidth) / sourceWidth;
+      const v0 = (gutter + (sourceNorth - north) / (sourceNorth - sourceSouth) * sourceSpec.pixelHeight) / sourceHeight;
+      const u1 = (gutter + (east - sourceWest) / (sourceEast - sourceWest) * sourceSpec.pixelWidth) / sourceWidth;
+      const v1 = (gutter + (sourceNorth - south) / (sourceNorth - sourceSouth) * sourceSpec.pixelHeight) / sourceHeight;
       gl.uniform4f(cachedUniformLocation(terrainProgram, 'uUvBounds'), u0, v0, u1, v1);
       gl.uniform1f(cachedUniformLocation(terrainProgram, 'uPhysicalStyle'), state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
       gl.uniform1f(cachedUniformLocation(terrainProgram, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
@@ -3619,34 +3654,41 @@ export function createGpuMapRenderer(deps) {
       }));
     }
 
-    function completeTerrainLevelForFrame(frameContext = activeFrameContext || lastVisualFrame) {
-      if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return null;
-      return terrainCandidateLevels(frameContext)
-        .find(entry => entry.specs.length > 0 && entry.specs.every(spec => terrainTiles.has(spec.key))) || null;
-    }
-
     function renderTerrain() {
       if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return;
       const frameContext = activeFrameContext || lastVisualFrame;
       if (!frameContext) return false;
       const specsByLevel = terrainCandidateLevels(frameContext);
-      // Never mix parent and child rasters, and never expose a partially
-      // uploaded base level. The previous complete level remains active until
-      // one coherent candidate can replace it.
-      const selected = specsByLevel.find(entry => entry.specs.length > 0 && entry.specs.every(spec => terrainTiles.has(spec.key))) || null;
       const targetSpecs = specsByLevel[0]?.specs || [];
-      terrainLastLevel = Number(selected?.level?.id ?? -1);
+      const targetLevel = specsByLevel[0]?.level || null;
+      terrainLastLevel = Number(targetLevel?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
+      terrainFallbackTileCount = 0;
+      terrainRetentionKeys = new Set(specsByLevel.flatMap(entry => entry.specs.map(spec => spec.key)));
+      if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
       for (let index = 0; index < specsByLevel.length; index += 1) {
         const priority = index === 0 ? 10_000 : 1_000 - index;
         for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
       }
+      if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 120);
       terrainRenderedLevel = -1;
-      if (selected) {
-        for (const spec of selected.specs) {
-          if (drawTerrainTile(spec)) terrainRenderedLevel = Number(selected.level.id);
+      for (const spec of targetSpecs) {
+        let sourceSpec = terrainTiles.has(spec.key) ? spec : null;
+        if (!sourceSpec) {
+          const centerLongitude = (spec.bounds[0] + spec.bounds[2]) / 2;
+          const centerLatitude = (spec.bounds[1] + spec.bounds[3]) / 2;
+          for (let index = 1; index < specsByLevel.length; index += 1) {
+            const candidate = terrainTileAt(specsByLevel[index].level, centerLongitude, centerLatitude);
+            if (candidate && terrainTiles.has(candidate.key)) {
+              sourceSpec = candidate;
+              break;
+            }
+          }
         }
+        if (!sourceSpec || !drawTerrainTile(spec, sourceSpec)) continue;
+        terrainRenderedLevel = terrainRenderedLevel < 0 ? Number(sourceSpec.level) : Math.min(terrainRenderedLevel, Number(sourceSpec.level));
+        if (sourceSpec.key !== spec.key) terrainFallbackTileCount += 1;
       }
     }
 
@@ -4196,6 +4238,7 @@ export function createGpuMapRenderer(deps) {
         width: Math.max(1, Number(view.size?.width || state.size.width)),
         height: Math.max(1, Number(view.size?.height || state.size.height)),
         dpr: Number(view.dpr || resolveRenderPixelRatio()),
+        terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
         projection: view.projection || state.projection,
         view: workerView,
         revision: Number(revision || 0),
@@ -4410,7 +4453,7 @@ export function createGpuMapRenderer(deps) {
         && revision >= canvasWorkerLatestRequestedRevision
         && Number(message.projectGeneration || projectGeneration) === projectGeneration
         && geometryRevision >= geometryRevisionTracker.committedRevision();
-      if (canDisplay && message.bitmap && message.terrainComplete !== false) {
+      if (canDisplay && message.bitmap) {
         if (canvasWorkerBitmapContext) {
           canvasWorkerBitmapContext.transferFromImageBitmap(message.bitmap);
         } else if (canvasWorker2dContext) {
@@ -4429,9 +4472,9 @@ export function createGpuMapRenderer(deps) {
           renderer: 'canvas-worker',
         });
         completeGeometryDisplay(geometryRevisionTracker.pendingIds(), geometryRevision, { renderFrame: false });
+        if (message.terrainComplete === false) performanceMetrics.terrainIncompleteFrameCount += 1;
       } else {
         if (message.bitmap) performanceMetrics.canvasWorkerStaleFrameCount += 1;
-        if (canDisplay && message.bitmap && message.terrainComplete === false) performanceMetrics.terrainIncompleteFrameCount += 1;
         message.bitmap?.close?.();
       }
       const pending = canvasWorkerPendingMessage;
@@ -5028,6 +5071,7 @@ export function createGpuMapRenderer(deps) {
         terrainRenderedLevel,
         terrainTargetTileCount,
         terrainTargetTilesLoaded,
+        terrainFallbackTileCount,
         terrainTilesLoaded: terrainTiles.size,
         terrainCacheBytes: [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0),
         terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length,
