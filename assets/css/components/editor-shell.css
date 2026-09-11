@@ -243,6 +243,10 @@
   box-shadow: none;
 }
 
+:root[data-status-bar-visible="false"] .map-bottom-status {
+  display: none;
+}
+
 .map-bottom-status .status-inner {
   min-height: 100%;
   height: 100%;
