@@ -3019,24 +3019,12 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   display: grid;
   gap: var(--ui-space-2);
 }
-.ui-color-palette-section {
-  min-width: 0;
-  display: grid;
-  gap: var(--ui-space-1);
-}
-.ui-color-palette-label {
-  color: var(--text-soft);
-  font-size: var(--ui-font-caption);
-  font-weight: var(--ui-weight-semibold);
-  line-height: var(--ui-line-tight);
-}
 .ui-color-swatch-grid {
   min-width: 0;
   display: grid;
   gap: var(--ui-space-0-5);
 }
-.ui-color-swatch-grid--neutral { grid-template-columns: repeat(6, 28px); }
-.ui-color-swatch-grid--chromatic { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.ui-color-swatch-grid--palette { grid-template-columns: repeat(13, minmax(0, 1fr)); }
 .ui-color-swatch {
   aspect-ratio: 1;
   min-width: 0;
@@ -3064,9 +3052,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .ui-color-swatch[data-check-tone="dark"] { color: #111827; }
 .ui-color-swatch[data-check-tone="dark"][aria-pressed="true"]::after { text-shadow: 0 1px 2px rgba(255,255,255,.9); }
 .ui-color-custom { width: 100%; }
-@media (max-width: 359px) {
-  .ui-color-swatch-grid--chromatic { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-}
 .editor-help {
   margin: 0;
   color: var(--muted);

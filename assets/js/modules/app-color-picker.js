@@ -103,15 +103,18 @@ export function createColorPicker() {
     const id = dependencies.state.selected.id;
     const idx = dependencies.state.countryIndex.get(id);
     const feature = idx === undefined ? null : dependencies.state.countriesData.features[idx];
-    const override = dependencies.state.countryOverrides[id] || {};
+    const override = { ...(dependencies.state.countryOverrides[id] || {}) };
     const color = (0, dependencies.readDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: (0, dependencies.defaultCountryColor)() });
     if (color.isDefault) {
       syncColorPicker('country', { value: (0, dependencies.defaultCountryColor)(), defaultColor: (0, dependencies.defaultCountryColor)(), isDefault: true });
       return true;
     }
     dependencies.projectDomain.recordHistory();
-    dependencies.state.countryOverrides[id] = override;
     (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, { feature, override }, '', { clear: true, fallback: (0, dependencies.defaultCountryColor)() });
+    if (Object.keys(override).length) dependencies.state.countryOverrides[id] = override;
+    else delete dependencies.state.countryOverrides[id];
+    dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-color-reset');
+    dependencies.renderingDomain?.invalidateBaseScene?.('country-color-reset');
     (0, dependencies.applyCountrySelectionIntent)(id, true);
     dependencies.projectDomain.queueAutosave();
     (0, dependencies.setActionStatus)('국가 색상을 기본값으로 되돌렸습니다.', 'success');
@@ -211,25 +214,32 @@ export function createColorPicker() {
     return button;
   }
 
-  function appendColorPaletteSection(container, label, colors, modifier) {
-    const section = document.createElement('section');
-    section.className = 'ui-color-palette-section';
-    const heading = document.createElement('span');
-    heading.className = 'ui-color-palette-label';
-    heading.textContent = label;
+  function paletteColorsByTone() {
+    const neutrals = dependencies.COLOR_PALETTE_NEUTRALS;
+    const chromatic = dependencies.COLOR_PALETTE_COLORS;
+    const hueCount = Math.max(1, new Set(chromatic.map(color => color.family)).size);
+    const rowCount = Math.max(neutrals.length, Math.ceil(chromatic.length / hueCount));
+    const colors = [];
+    for (let row = 0; row < rowCount; row += 1) {
+      const tone = chromatic[row * hueCount]?.tone || '가장 어두움';
+      if (neutrals[row]) colors.push({ ...neutrals[row], family: '회색', tone });
+      colors.push(...chromatic.slice(row * hueCount, (row + 1) * hueCount));
+    }
+    return colors;
+  }
+
+  function appendColorPalette(container, colors) {
     const grid = document.createElement('div');
-    grid.className = `ui-color-swatch-grid ui-color-swatch-grid--${modifier}`;
+    grid.className = 'ui-color-swatch-grid ui-color-swatch-grid--palette';
     grid.setAttribute('role', 'group');
-    grid.setAttribute('aria-label', `${label} 색상`);
+    grid.setAttribute('aria-label', '색상표');
     colors.forEach(color => grid.appendChild(createColorSwatch(color)));
-    section.append(heading, grid);
-    container.appendChild(section);
+    container.appendChild(grid);
   }
 
   function populateColorPalette(container) {
     if (!container || container.children.length) return;
-    appendColorPaletteSection(container, '무채색', dependencies.COLOR_PALETTE_NEUTRALS, 'neutral');
-    appendColorPaletteSection(container, '유채색', dependencies.COLOR_PALETTE_COLORS, 'chromatic');
+    appendColorPalette(container, paletteColorsByTone());
   }
 
   function bindColorPickers() {

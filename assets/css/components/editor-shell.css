@@ -92,14 +92,14 @@
 }
 .editor-country-color-palette .ui-color-swatch-grid {
   width: 100%;
-  max-width: 16rem;
-  grid-template-columns: repeat(auto-fill, 22px);
+  max-width: 17.75rem;
   justify-content: start;
 }
+.editor-country-color-palette .ui-color-swatch-grid--palette { grid-template-columns: repeat(13, minmax(18px, 20px)); }
 .editor-country-color-palette .ui-color-swatch {
-  width: 22px;
-  height: 22px;
-  aspect-ratio: auto;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
 }
 .editor-object-type-label { display: none; }
 .editor-focus-action {
