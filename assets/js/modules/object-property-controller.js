@@ -183,7 +183,7 @@ export function createObjectPropertyController(runtime = {}) {
       $('regionValidFromInput').value = properties.validFrom || '';
       $('regionValidToInput').value = properties.validTo || '';
     }
-    $('selectionStatus').textContent = `${subunits ? `하위단위 · ${territorialUnitCountryName(feature)}${Number(properties.adminLevel) > 0 ? ` · ${properties.adminLevel}급` : ''}` : '지방'} · ${displayName}${areaSuffix(feature.geometry)}`;
+    $('selectionStatus').textContent = `${displayName}${areaSuffix(feature.geometry)}`;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;
@@ -245,7 +245,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
     for (const idValue of ['distributionNameInput', 'distributionColorTrigger', 'distributionParentInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
     renderDistributionEntries(layer);
-    $('selectionStatus').textContent = `${distributionTypeLabels[layer.type]} · ${layer.name}`;
+    $('selectionStatus').textContent = layer.name;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;
@@ -294,7 +294,7 @@ export function createObjectPropertyController(runtime = {}) {
     syncColorPicker('generic', { value: color.value, defaultColor, isDefault: color.isDefault });
     $('genericFeatureNotesInput').value = meta.notes || '';
     syncGenericSemanticEditor(feature);
-    $('selectionStatus').textContent = `${typeLabel} · ${meta.name || String(id).slice(0, 8)}${areaSuffix(feature.geometry)}`;
+    $('selectionStatus').textContent = `${meta.name || String(id).slice(0, 8)}${areaSuffix(feature.geometry)}`;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;
@@ -309,7 +309,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('labelNotesInput').value = label.notes || '';
     const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
     $('labelPositionValue').textContent = settings.pinned ? '사용자 위치에 고정됨' : '종류별 정책으로 자동 배치';
-    $('selectionStatus').textContent = `지명 · ${label.name}`;
+    $('selectionStatus').textContent = label.name;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;
@@ -347,7 +347,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('hydroTributaryValue').textContent = categoryKey === 'river' ? '본류·표시 지류' : '호수';
     $('hydroSourceValue').textContent = properties.source || `판도연구소 내장 ${category}`;
     $('hydroBuiltinHelp').lastChild.textContent = ` 기반 내장 ${category}입니다. 직접 수정하려면 복사본을 만드세요.`;
-    $('selectionStatus').textContent = `${category} · ${displayName}`;
+    $('selectionStatus').textContent = displayName;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     if (!editable && !feature.geometry && !feature.__geometryLoading) {
