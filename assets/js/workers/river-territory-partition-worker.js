@@ -8,7 +8,12 @@ if (revision) {
   rpcHostUrl.searchParams.set('v', revision);
 }
 
-importScripts(rpcHostUrl.href);
+// Module evaluation can yield before message handlers exist. Retain the first
+// request (and RPC cancellation events) until initialization has completed.
+const startupMessages = [];
+const retainStartupMessage = event => startupMessages.push({ data: event.data, ports: event.ports });
+self.addEventListener('message', retainStartupMessage);
+await import(rpcHostUrl.href);
 const dependencies = Promise.all([
   import(partitionModuleUrl.href),
   import(polygonClippingUrl.href),
@@ -25,6 +30,7 @@ async function compute(payload, context = null) {
   return result;
 }
 
+await dependencies;
 self.PandoLabWorkerRpc.install({
   handlers: {
     'river.partition': (payload, context) => compute(payload, context),
@@ -47,3 +53,6 @@ self.addEventListener('message', async event => {
     });
   }
 });
+
+self.removeEventListener('message', retainStartupMessage);
+for (const message of startupMessages.splice(0)) self.dispatchEvent(new MessageEvent('message', message));

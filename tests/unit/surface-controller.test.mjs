@@ -25,8 +25,8 @@ function element(id = '') {
 function fixture(initialLayout) {
   let layout = initialLayout;
   const elements = Object.fromEntries([
-    'leftPanel', 'rightPanel', 'createMenu', 'mobileMapBtn', 'mobileCreateBtn', 'mobileEditBtn',
-    'createMenuBtn', 'togglePanelBtn', 'mobileFileBtn', 'mobileBackdrop', 'multiEditBtn',
+    'leftPanel', 'rightPanel', 'createMenu', 'mobileMapBtn', 'createMenuBtn', 'mobileEditBtn',
+    'mobileFileBtn', 'mobileBackdrop',
   ].map(id => [id, element(id)]));
   const workspace = element('workspace');
   const body = element('body');
@@ -48,22 +48,42 @@ function fixture(initialLayout) {
 
 test('compact surfaces are mutually exclusive and synchronize ARIA once rendered', () => {
   const { controller, elements } = fixture('compact');
-  for (const [surface, button] of [['layers', 'mobileMapBtn'], ['create', 'mobileCreateBtn'], ['editor', 'mobileEditBtn']]) {
+  for (const [surface, button] of [['layers', 'mobileMapBtn'], ['editor', 'mobileEditBtn']]) {
     controller.open(surface);
     const view = controller.render();
     assert.equal(view[`${surface === 'layers' ? 'layers' : surface === 'editor' ? 'editor' : 'create'}Open`], true);
     assert.equal(elements[button].getAttribute('aria-expanded'), 'true');
-    assert.equal(['mobileMapBtn', 'mobileCreateBtn', 'mobileEditBtn'].filter(id => elements[id].classList.contains('sheet-open')).length, 1);
+    assert.equal(['mobileMapBtn', 'createMenuBtn', 'mobileEditBtn'].filter(id => elements[id].classList.contains('sheet-open')).length, 1);
     assert.equal(controller.originOf(surface), SURFACE_OPEN_ORIGINS.USER);
   }
 });
 
-test('wide keeps the layer surface open while the create popover is active', () => {
+test('retired create surface cannot change layer state', () => {
+  for (const layout of ['wide', 'compact', 'mobile']) {
+    const { controller, elements } = fixture(layout);
+    controller.open('layers');
+    const before = controller.render();
+    assert.equal(controller.open('create'), false);
+    assert.deepEqual(controller.render(), before);
+    assert.equal(elements.createMenu.getAttribute('role'), undefined);
+    assert.equal(elements.createMenuBtn.getAttribute('aria-expanded'), undefined);
+  }
+});
+
+test('wide editor navigation preserves the persistent layer dock', () => {
   const { controller, elements } = fixture('wide');
-  controller.open('create');
-  assert.deepEqual(controller.render(), { layersOpen: true, editorOpen: false, createOpen: true, activeMobileSheet: null });
-  assert.equal(elements.createMenu.getAttribute('role'), 'dialog');
-  assert.equal(elements.createMenu.getAttribute('aria-modal'), 'false');
+
+  controller.open('editor');
+  assert.deepEqual(controller.render(), { layersOpen: true, editorOpen: true, activeMobileSheet: null });
+  assert.equal(controller.isOpen('layers'), false);
+  assert.equal(elements.mobileEditBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.mobileMapBtn.getAttribute('aria-expanded'), 'false');
+
+  controller.open('layers');
+  assert.deepEqual(controller.render(), { layersOpen: true, editorOpen: false, activeMobileSheet: null });
+  assert.equal(controller.isOpen('layers'), true);
+  assert.equal(elements.mobileMapBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.mobileEditBtn.getAttribute('aria-expanded'), 'false');
 });
 
 test('mobile tracks one explicit active sheet and clears it when closed', () => {
@@ -80,20 +100,12 @@ test('automatic editor open is blocked on mobile but explicit editor intent open
   const { controller } = fixture('mobile');
   assert.equal(controller.open('editor', { automatic: true }), false);
   assert.deepEqual(controller.render(), {
-    layersOpen: false, editorOpen: false, createOpen: false, activeMobileSheet: null,
+    layersOpen: false, editorOpen: false, activeMobileSheet: null,
   });
   assert.equal(controller.open('editor'), true);
   assert.deepEqual(controller.render(), {
-    layersOpen: false, editorOpen: true, createOpen: false, activeMobileSheet: 'edit',
+    layersOpen: false, editorOpen: true, activeMobileSheet: 'edit',
   });
-});
-
-test('contextual multi-edit remains an explicit user request on mobile', () => {
-  const { controller, setActiveElement } = fixture('mobile');
-  setActiveElement('multiEditBtn');
-  assert.equal(controller.open('editor', { automatic: true }), true);
-  assert.equal(controller.originOf('editor'), SURFACE_OPEN_ORIGINS.USER);
-  assert.equal(controller.render().activeMobileSheet, 'edit');
 });
 
 test('manual editor close suppresses later automatic reopen until a user opens it', () => {
@@ -124,16 +136,7 @@ test('layout changes preserve user-opened transient surfaces without promoting p
   wideEditor.setLayout('compact');
   wideEditor.controller.syncLayout('wide');
   assert.deepEqual(wideEditor.controller.render(), {
-    layersOpen: false, editorOpen: true, createOpen: false, activeMobileSheet: null,
-  });
-
-  const compactCreate = fixture('compact');
-  compactCreate.controller.open('create');
-  compactCreate.controller.render();
-  compactCreate.setLayout('mobile');
-  compactCreate.controller.syncLayout('compact');
-  assert.deepEqual(compactCreate.controller.render(), {
-    layersOpen: false, editorOpen: false, createOpen: true, activeMobileSheet: 'create',
+    layersOpen: false, editorOpen: true, activeMobileSheet: null,
   });
 
   const persistentWideLayers = fixture('wide');
@@ -141,7 +144,7 @@ test('layout changes preserve user-opened transient surfaces without promoting p
   persistentWideLayers.setLayout('mobile');
   persistentWideLayers.controller.syncLayout('wide');
   assert.deepEqual(persistentWideLayers.controller.render(), {
-    layersOpen: false, editorOpen: false, createOpen: false, activeMobileSheet: null,
+    layersOpen: false, editorOpen: false, activeMobileSheet: null,
   });
 });
 
@@ -152,7 +155,7 @@ test('automatic editor state does not become a mobile sheet during responsive tr
   automaticEditor.setLayout('mobile');
   automaticEditor.controller.syncLayout('wide');
   assert.deepEqual(automaticEditor.controller.render(), {
-    layersOpen: false, editorOpen: false, createOpen: false, activeMobileSheet: null,
+    layersOpen: false, editorOpen: false, activeMobileSheet: null,
   });
 
   const userEditor = fixture('wide');
@@ -161,6 +164,6 @@ test('automatic editor state does not become a mobile sheet during responsive tr
   userEditor.setLayout('mobile');
   userEditor.controller.syncLayout('wide');
   assert.deepEqual(userEditor.controller.render(), {
-    layersOpen: false, editorOpen: true, createOpen: false, activeMobileSheet: 'edit',
+    layersOpen: false, editorOpen: true, activeMobileSheet: 'edit',
   });
 });

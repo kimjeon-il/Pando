@@ -9,6 +9,13 @@ function fixture() {
   let entries = [];
   let renderMode = 'dominant';
   const transactions = [];
+  const commandPipeline = {
+    runMutation(meta, mutate, options) {
+      transactions.push({ ...meta, renderDirty: options.renderDirty });
+      const value = mutate();
+      return { ok: true, value };
+    },
+  };
   const service = createDistributionService({
     documentStore: {
       readLayers: () => layers,
@@ -19,7 +26,7 @@ function fixture() {
     presentationStore: {
       setRenderMode: value => { renderMode = value; },
     },
-    runDocumentMutation(meta, mutate) { transactions.push(meta); return mutate(); },
+    commandPipeline,
     writeLayerColor(layer, value) { layer.color = value; },
     territorialExists: id => id === 'region-a',
   });

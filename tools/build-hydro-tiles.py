@@ -33,6 +33,7 @@ from shapely.affinity import translate
 from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, Polygon, box, shape
 from shapely.ops import linemerge, nearest_points, transform, unary_union
 from shapely.strtree import STRtree
+from hydro_connectivity import repair_connections, audit_parts
 
 
 VERSION = "0.13.0"
@@ -1371,6 +1372,25 @@ def normalize_chain_connections(
     return changed
 
 
+def normalize_network_connections(chains, original_network, region):
+    """Repair cross-chain confluences using the original NEXT_DOWN graph.
+
+    Repeated source IDs retain all ordered split parts; connectivity resolves
+    their unique entry/exit ports instead of guessing a nearby river.
+    """
+    parts = defaultdict(list)
+    for chain in chains:
+        for reach in chain:
+            for index, points in enumerate(reach.parts):
+                parts[reach.source_id].append({
+                    'fid': reach.source_id, 'part': index, 'points': points,
+                    'aligned': bool(reach.border_pair), 'system': str(reach.main_river),
+                })
+    changes = repair_connections(parts, original_network, region)
+    report = audit_parts(parts, original_network)
+    return {'changedPorts': len(changes), 'changes': changes, 'remaining': report['issues']}
+
+
 def part_widths(part: Sequence[Sequence[float]], start_width: float, end_width: float) -> list[float]:
     if len(part) <= 1:
         return [start_width] * len(part)
@@ -1796,17 +1816,26 @@ def main() -> None:
         path = find_unique(roots, f"HydroRIVERS_v10_{code}.shp")
         print(f"[{code}] 강과 본류 연결망을 읽는 중입니다.", flush=True)
         reaches, bounds, reach_stats = read_selected_rivers(path, guides, coast_snapper)
+        original_network = {
+            reach.source_id: {'region': code, 'next': reach.next_down,
+                              'start': list(reach.parts[0][0]), 'end': list(reach.parts[-1][-1])}
+            for reach in reaches
+        }
         chains = logical_river_objects(reaches, guides)
         matched_names = match_ne_river_names(chains, rivers_base, bounds)
         border_stats = border_aligner.align_chains(chains)
         connection_changed_count = sum(
             normalize_chain_connections(chain, border_aligner=border_aligner) for chain in chains
         )
+        junction_report = normalize_network_connections(chains, original_network, code)
+        print(f"[{code}] junction ports repaired: {junction_report['changedPorts']}; "
+              f"unresolved connections: {len(junction_report['remaining'])}", flush=True)
         for chain in chains:
             terminal_reach = chain[-1]
             chain_ids = {reach.source_id for reach in chain}
             if terminal_reach.next_down and terminal_reach.next_down not in chain_ids:
                 terminal_reach.terminal_class = "confluence"
+                terminal_reach.original_endpoint = tuple(original_network[terminal_reach.source_id]['end'])
         systems = river_systems(chains)
         print(
             f"[{code}] seed {reach_stats['seedReachCount']:,} + 본류 {reach_stats['continuityReachCount']:,} "

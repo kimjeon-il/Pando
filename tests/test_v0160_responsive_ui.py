@@ -1,10 +1,11 @@
+from tests.application_source import read_application_sources
 import pathlib
 import unittest
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
-APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 
 
@@ -19,7 +20,7 @@ class ResponsiveUiV0160Tests(unittest.TestCase):
     def test_map_controls_are_split_without_changing_existing_ids(self):
         self.assertIn('id="mapCommandToolbar"', INDEX)
         self.assertRegex(INDEX, r'class="[^"]*map-view-toolbar[^"]*floating-toolbar[^"]*"')
-        for element_id in ("createMenuBtn", "undoBtn", "redoBtn", "zoomOutBtn", "zoomInBtn", "resetViewBtn", "projectionControl", "togglePanelBtn"):
+        for element_id in ("createMenuBtn", "undoBtn", "redoBtn", "zoomOutBtn", "zoomInBtn", "resetViewBtn", "projectionControl"):
             self.assertEqual(INDEX.count(f'id="{element_id}"'), 1)
 
     def test_map_uses_css_safe_insets_without_mutating_saved_view(self):

@@ -12,7 +12,7 @@ test.describe('phase 1 residual UI cleanup', () => {
     await expect(page.locator('.create-toolbar-divider')).toHaveCount(0);
 
     await expect(page.locator('#selectionStatus')).toHaveCount(1);
-    await expect(page.locator('#engineStatus')).toHaveCount(1);
+    await expect(page.locator('#engineStatus')).toHaveCount(0);
     await expect(page.locator('.map-status-state')).toHaveCount(0);
   });
 
@@ -21,7 +21,6 @@ test.describe('phase 1 residual UI cleanup', () => {
     await page.waitForFunction(() => document.documentElement.dataset.pandolabUiCleanupPhase1 === 'done');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     await page.locator('#createMenuBtn').click();
-    await page.locator('#createLibraryTabBtn').click();
     await page.locator('#addFromLibraryBtn').click();
 
     const card = page.locator('.historical-library-card');

@@ -1,17 +1,12 @@
-export const PROJECT_SCHEMA_VERSION = 4;
+export const PROJECT_SCHEMA_VERSION = 5;
 export const MIN_SUPPORTED_PROJECT_SCHEMA_VERSION = 3;
 
 export const LAND_OBJECT_SCHEMA_VERSION = 2;
 export const SOURCE_PROVENANCE_SCHEMA_VERSION = 1;
 export const GENERIC_FEATURE_SCHEMA_VERSION = 2;
-export const TERRITORIAL_MODEL_SCHEMA_VERSION = 1;
+export const TERRITORIAL_MODEL_SCHEMA_VERSION = 2;
 export const DISTRIBUTION_MODEL_SCHEMA_VERSION = 2;
-export const LAYER_PRESENTATION_SCHEMA_VERSION = 2;
-
-export const VERSION_CHANGE_LEVELS = Object.freeze({
-  MINOR: 'minor',
-  PATCH: 'patch',
-});
+export const LAYER_PRESENTATION_SCHEMA_VERSION = 3;
 
 export const VERSION_POLICY = Object.freeze({
   appVersionSource: 'package.json',
@@ -31,10 +26,3 @@ export const VERSION_POLICY = Object.freeze({
   datasetVersionsIndependentFromAppVersion: true,
   assetRevisionSource: 'build metadata',
 });
-
-export function isSupportedProjectSchemaVersion(value) {
-  const version = Number(value);
-  return Number.isInteger(version)
-    && version >= MIN_SUPPORTED_PROJECT_SCHEMA_VERSION
-    && version <= PROJECT_SCHEMA_VERSION;
-}

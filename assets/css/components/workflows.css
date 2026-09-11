@@ -1,0 +1,355 @@
+/* Shared grammar for editing workflows, dialogs, and wizard sessions. */
+
+/* Map-edit workflow extensions. */
+
+/* Shared grammar for direct map-edit sessions and editing dialogs. */
+
+.workflow-map-session.mode-task-window {
+  width: min(26.25rem, calc(100vw - (var(--ui-space-6) * 2)));
+  overflow: hidden;
+}
+
+.workflow-map-session .mode-task-window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  min-height: var(--ui-v2-control-lg);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.workflow-map-session .mode-task-heading {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--ui-icon-size) auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ui-space-1-5);
+}
+
+.workflow-map-session .mode-task-icon { color: var(--muted); }
+
+.workflow-map-session .mode-task-heading > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-strong);
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-bold);
+}
+
+.workflow-map-session .mode-task-separator {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+}
+
+.workflow-map-session .mode-task-stage {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--ui-weight-medium);
+}
+
+.workflow-map-session .mode-task-window-controls {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: var(--ui-space-1);
+}
+
+.workflow-map-session .mode-task-window-content { min-width: 0; }
+
+.workflow-map-session .mode-task-window-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-content: flex-start;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3);
+}
+
+.workflow-map-session .mode-task-context,
+.workflow-map-session .mode-task-detail { min-width: 0; }
+
+.workflow-map-session .mode-task-instruction {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.workflow-map-session .geometry-preview-summary:not(.hidden) {
+  display: grid;
+  gap: var(--ui-space-1);
+  margin-top: var(--ui-space-2);
+  padding-top: var(--ui-space-2);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: var(--ui-font-xs);
+  line-height: var(--ui-line-normal);
+}
+
+.workflow-map-session .mode-method-switch {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ui-space-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.workflow-map-session .mode-method-btn {
+  min-height: var(--ui-v2-command-description-height-mobile);
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-items: start;
+  column-gap: var(--ui-space-2);
+  row-gap: var(--ui-space-0-5);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-bg);
+  color: var(--ui-control-text);
+  text-align: left;
+}
+
+.workflow-map-session .mode-method-btn:is(.active, [aria-pressed="true"]) {
+  border-color: var(--accent-border);
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+.workflow-map-session .mode-method-btn::before {
+  content: "";
+  grid-row: 1 / span 2;
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  box-sizing: border-box;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+}
+
+.workflow-map-session .mode-method-btn:is(.active, [aria-pressed="true"])::before {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 4px var(--accent-surface);
+}
+
+.workflow-map-session .mode-method-title { font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
+.workflow-map-session .mode-method-btn small { color: var(--muted); font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
+.workflow-map-session .mode-method-btn:is(.active, [aria-pressed="true"]) small { color: var(--accent-text); opacity: .82; }
+.workflow-map-session .mode-river-boundary-option {
+  min-height: var(--ui-v2-control-md);
+  padding-inline: var(--ui-space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+}
+
+.workflow-map-session .mode-action-bar {
+  position: static;
+  width: 100%;
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.workflow-map-session .mode-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ui-space-2);
+}
+
+.workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) { min-height: var(--ui-v2-control-md); }
+
+.workflow-map-session .mode-cancel-btn {
+  border-color: var(--ui-control-border);
+  background: var(--ui-control-bg);
+  color: var(--ui-control-text);
+}
+
+.workflow-map-session .mode-primary-btn {
+  border-color: var(--accent-border);
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+.workflow-dialog-card {
+  display: grid;
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
+  column-gap: var(--ui-space-2);
+  row-gap: var(--ui-space-2);
+  padding: var(--ui-dialog-padding);
+}
+
+.workflow-dialog--compact { width: min(var(--ui-confirm-modal-width), calc(100vw - (var(--ui-dialog-edge) * 2))); }
+.workflow-dialog--standard { width: min(37.5rem, calc(100vw - (var(--ui-dialog-edge) * 2))); }
+.workflow-dialog--wide { width: min(max(var(--ui-coast-modal-width), 38.75rem), calc(100vw - (var(--ui-dialog-edge) * 2))); }
+
+.workflow-dialog-card > .workflow-dialog-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  margin-top: var(--ui-space-0-5);
+  color: var(--muted);
+}
+
+.workflow-dialog-card > h2 {
+  grid-column: 2;
+  margin: 0;
+  color: var(--text-strong);
+  font-size: var(--ui-font-lg);
+  font-weight: var(--ui-weight-bold);
+  line-height: var(--ui-line-tight);
+}
+
+.workflow-dialog-card > p {
+  grid-column: 2;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.workflow-dialog-card > :is(.territorial-type-fields, .territorial-create-fields, .confirm-impact, .confirm-modal-choice-row, .ui-dialog-actions, .confirm-modal-actions) {
+  grid-column: 1 / -1;
+}
+
+.workflow-dialog-card .territorial-type-fields,
+.workflow-dialog-card .territorial-create-fields {
+  display: grid;
+  gap: var(--ui-field-gap);
+  margin-top: var(--ui-space-2);
+}
+
+.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) {
+  margin: var(--ui-space-1) 0 0;
+  padding: var(--ui-space-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) > strong {
+  display: block;
+  margin-bottom: var(--ui-space-2);
+  color: var(--muted);
+  font-size: var(--ui-font-xs);
+  font-weight: var(--ui-weight-bold);
+  letter-spacing: .06em;
+}
+
+.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) ul {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.workflow-dialog-card > :is(.ui-dialog-actions, .confirm-modal-actions) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ui-dialog-actions-gap);
+  margin-top: var(--ui-dialog-actions-top);
+  padding-top: var(--ui-space-3);
+  border-top: 1px solid var(--border);
+}
+
+.workflow-dialog-card > :is(.ui-dialog-actions, .confirm-modal-actions) > .btn { min-width: var(--ui-workflow-action-min-width); }
+
+.workflow-dialog--decision .coast-reconciliation-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ui-space-2);
+}
+
+.workflow-dialog--decision .workflow-decision-option {
+  width: 100%;
+  min-height: var(--ui-touch-height);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: var(--ui-space-0-5);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-color: var(--ui-control-border);
+  background: var(--ui-control-bg);
+  color: var(--text-strong);
+  text-align: left;
+}
+
+.workflow-dialog--decision .workflow-decision-option:hover,
+.workflow-dialog--decision .workflow-decision-option:focus-visible {
+  border-color: var(--ui-control-border-hover);
+  background: var(--ui-control-bg-hover);
+  color: var(--text-strong);
+}
+
+.workflow-dialog--decision .workflow-option-detail {
+  color: var(--muted);
+  font-size: var(--ui-font-xs);
+  font-weight: var(--ui-weight-regular);
+  line-height: var(--ui-line-normal);
+}
+
+.workflow-dialog--decision .workflow-decision-cancel {
+  justify-self: end;
+  margin-top: var(--ui-space-1);
+}
+
+@media (max-width: 799px) {
+  .workflow-map-session.mode-task-window { width: min(100%, calc(100vw - var(--ui-space-4))); }
+
+  .workflow-map-session .mode-task-window-header {
+    min-height: 2.5rem;
+    padding-inline: var(--ui-space-2);
+  }
+
+  .workflow-map-session .mode-task-window-body { padding: var(--ui-space-2); }
+
+  .workflow-map-session .mode-method-btn,
+  .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) { min-height: 2.5rem; }
+
+  .workflow-dialog-card {
+    width: calc(100vw - var(--ui-space-4));
+    max-height: calc(100dvh - var(--ui-space-4));
+    padding: var(--ui-dialog-padding-compact);
+    overflow: auto;
+  }
+
+  .workflow-dialog-card > :is(.ui-dialog-actions, .confirm-modal-actions) {
+    position: sticky;
+    bottom: calc(var(--ui-dialog-padding-compact) * -1);
+    z-index: 2;
+    margin-inline: calc(var(--ui-dialog-padding-compact) * -1);
+    margin-bottom: calc(var(--ui-dialog-padding-compact) * -1);
+    padding: var(--ui-space-3) var(--ui-dialog-padding-compact) var(--ui-dialog-padding-compact);
+    background: var(--surface-elevated);
+  }
+
+  .workflow-dialog-card > :is(.ui-dialog-actions, .confirm-modal-actions) > .btn {
+    min-height: 2.5rem;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .workflow-dialog--decision .workflow-decision-option { min-height: var(--ui-touch-height); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workflow-map-session .mode-method-btn,
+  .workflow-dialog-card .btn { transition: none; }
+}

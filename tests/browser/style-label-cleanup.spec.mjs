@@ -27,7 +27,7 @@ test('a selected small-country label stays visible and screen-space zoom control
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('country', id), countryId);
   await expect.poll(() => renderedCountryLabelCount(page, countryId)).toBe(1);
   await page.locator('#focusSelectedObjectBtn').click();
-  await page.locator('#clearMultiSelectionBtn').evaluate(button => button.click());
+  await page.keyboard.press('Escape');
   await expect(page.locator('#countryProperties')).toHaveClass(/\bhidden\b/);
   await expect.poll(() => renderedCountryLabelCount(page, countryId)).toBe(1);
 

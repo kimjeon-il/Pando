@@ -12,12 +12,19 @@ if (assetRevision) {
 }
 importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', meshCoreUrl.href, rpcHostUrl.href);
 
-function buildMesh(features) {
-  return self.PandoLabGpuMeshCore.buildGpuMeshFeatures(
+const strokePreparation = import(`../modules/country-stroke-preparation.js?v=${encodeURIComponent(assetRevision)}`);
+const blockPreparation = import(`../modules/mesh-spatial-blocks.js?v=${encodeURIComponent(assetRevision)}`);
+async function buildMesh(features) {
+  const mesh = self.PandoLabGpuMeshCore.buildGpuMeshFeatures(
     features || [],
     self.earcut,
     { validate: false },
   );
+  const { prepareCountryStroke } = await strokePreparation;
+  const { prepareMeshSpatialBlocks } = await blockPreparation;
+  mesh.preparedStroke = prepareCountryStroke(mesh, (features || []).map((feature, index) => String(feature.id || index)));
+  prepareMeshSpatialBlocks(mesh);
+  return mesh;
 }
 
 function meshTransferables(mesh) {
@@ -27,14 +34,21 @@ function meshTransferables(mesh) {
     mesh.triangleIndices.buffer,
     mesh.lineIndices.buffer,
     mesh.strokeStartsEnds.buffer,
+    mesh.countryTriangleRanges.buffer,
+    mesh.countryBoundaryRanges.buffer,
+    mesh.countryBounds.buffer,
+    mesh.countryBoundsFlags.buffer,
+    mesh.preparedStroke.instances.buffer,
+    mesh.preparedStroke.nodes.buffer,
+    ...Object.values(mesh.spatialBlocks).filter(value => value && typeof value === 'object').flatMap(tree => Object.values(tree).map(array => array.buffer)),
   ];
 }
 
 const rpcHost = self.PandoLabWorkerRpc.install({
   handlers: {
-    'geometry.mesh': (payload, context) => {
+    'geometry.mesh': async (payload, context) => {
       context.throwIfCancelled();
-      const mesh = buildMesh(payload?.features || []);
+      const mesh = await buildMesh(payload?.features || []);
       context.throwIfCancelled();
       return self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
     },
@@ -44,12 +58,12 @@ void rpcHost;
 
 // Compatibility bridge for the current renderer. New CPU geometry clients use
 // Worker RPC; the renderer-v2 migration removes this token-based transport.
-self.addEventListener('message', event => {
+self.addEventListener('message', async event => {
   if (event.data?.rpc === self.PandoLabWorkerRpc.PROTOCOL) return;
   const token = event.data?.token;
   const projectGeneration = event.data?.projectGeneration;
   try {
-    const mesh = buildMesh(event.data?.features || []);
+    const mesh = await buildMesh(event.data?.features || []);
     self.postMessage({ token, projectGeneration, ok: true, mesh }, meshTransferables(mesh));
   } catch (error) {
     self.postMessage({ token, projectGeneration, ok: false, message: error?.message || String(error) });

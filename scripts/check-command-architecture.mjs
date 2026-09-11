@@ -1,16 +1,14 @@
+import { readApplicationOwners } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
-import { OBJECT_ACTIONS } from '../assets/js/modules/object-action-registry.js';
 import { PROJECT_COMMAND_KINDS } from '../assets/js/modules/project-command-pipeline.js';
 
 const root = process.cwd();
 const failures = [];
 const required = [
   'assets/js/modules/project-command-pipeline.js',
-  'assets/js/modules/object-adapter-registry.js',
-  'assets/js/modules/object-command-definitions.js',
   'assets/js/modules/document-mutation-runner.js',
 ];
 const services = [
@@ -18,6 +16,10 @@ const services = [
   'assets/js/modules/distribution-service.js',
   'assets/js/modules/generic-feature-service.js',
 ];
+const appSource = readApplicationOwners('history-assembly', 'domain-assembly');
+const projectDomainSource = fs.readFileSync(path.join(root, 'assets/js/modules/project-domain.js'), 'utf8');
+const mutationRunnerSource = fs.readFileSync(path.join(root, 'assets/js/modules/document-mutation-runner.js'), 'utf8');
+const legacyMutationCallback = ['run', 'Document', 'Mutation'].join('');
 
 for (const relative of required) {
   if (!fs.existsSync(path.join(root, relative))) failures.push(`missing application architecture module: ${relative}`);
@@ -27,19 +29,25 @@ if (PROJECT_COMMAND_KINDS.VIEW !== 'view' || PROJECT_COMMAND_KINDS.DOCUMENT !== 
   failures.push('project command pipeline must distinguish view and document commands');
 }
 
-const commandSource = fs.readFileSync(path.join(root, 'assets/js/modules/object-command-definitions.js'), 'utf8');
-for (const actionId of ['focus', 'lock', 'delete']) {
-  const command = OBJECT_ACTIONS[actionId]?.command;
-  if (!command || !commandSource.includes(`'${command}'`)) failures.push(`object action ${actionId} is not backed by canonical command ${command || '(missing)'}`);
-}
-
 for (const relative of services) {
   const source = fs.readFileSync(path.join(root, relative), 'utf8');
   if (!source.includes("createDocumentMutationRunner")) failures.push(`${relative} must resolve document mutations through the shared mutation runner`);
   if (!source.includes('const mutateDocument = createDocumentMutationRunner')) failures.push(`${relative} does not establish a canonical mutation boundary`);
+  if (!source.includes('renderDirty: { domain:')) failures.push(`${relative} must provide semantic render descriptors for document mutations`);
   for (const forbidden of ['recordHistory(', 'renderAll(', 'queueAutosave(']) {
     if (source.includes(forbidden)) failures.push(`${relative} must not own ${forbidden.slice(0, -1)} side effects`);
   }
+}
+
+const pipelineCreations = appSource.match(/createProjectCommandPipeline\s*\(\s*\{/g) || [];
+if (pipelineCreations.length !== 1) failures.push(`app bootstrap must create exactly one ProjectCommandPipeline (found ${pipelineCreations.length})`);
+const pipelineInjections = appSource.match(/commandPipeline:\s*projectCommandPipeline/g) || [];
+if (pipelineInjections.length !== 4) failures.push(`the same ProjectCommandPipeline must be injected into three services and ProjectDomain (found ${pipelineInjections.length})`);
+if (appSource.includes(legacyMutationCallback)) failures.push('app bootstrap must not use the legacy document mutation callback');
+if (mutationRunnerSource.includes(legacyMutationCallback)) failures.push('document mutation runner must not retain the legacy callback fallback');
+if (!projectDomainSource.includes('commandPipeline.execute(id,')) failures.push('ProjectDomain.dispatch must delegate to commandPipeline.execute(id, context, payload)');
+for (const forbidden of ['commandPipeline.dispatch', 'command?.execute', 'command?.type', 'command?.name']) {
+  if (projectDomainSource.includes(forbidden)) failures.push(`ProjectDomain must not retain legacy dispatch path: ${forbidden}`);
 }
 
 const pipelineSource = fs.readFileSync(path.join(root, 'assets/js/modules/project-command-pipeline.js'), 'utf8');

@@ -30,6 +30,24 @@ test('layer presentation applies the fixed v2 runtime policy', () => {
   assert.deepEqual(moveOverlayGroup(normalized, 'languages', 'down'), normalized);
 });
 
+test('object selection emits only when ordered keys or the primary item change', () => {
+  const reasons = [];
+  const controller = createObjectSelectionController({ onChange: (_snapshot, reason) => reasons.push(reason) });
+  const refs = ['A', 'B', 'C'].map(country);
+  controller.setMany(refs, { primary: refs[1], scope: 'countries' });
+  const stable = controller.snapshot();
+  controller.setMany(refs.map(ref => ({ ...ref })), { primary: { ...refs[1] }, scope: 'countries' });
+  assert.deepEqual(controller.snapshot(), stable);
+  assert.deepEqual(reasons, ['set-many']);
+  controller.replace(refs[1], { scope: 'countries' });
+  controller.selectRange(country('B'), refs, { scope: 'countries' });
+  assert.deepEqual(reasons, ['set-many', 'replace'], 'range anchor changes without a visible selection change do not emit');
+  controller.remove(country('missing'));
+  controller.clear();
+  controller.clear();
+  assert.deepEqual(reasons, ['set-many', 'replace', 'clear']);
+});
+
 test('v2 hydro presentation input normalizes to canonical river and lake styles', () => {
   const normalized = normalizeLayerPresentation({
     schemaVersion: 2,

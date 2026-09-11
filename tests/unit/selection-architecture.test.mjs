@@ -1,3 +1,4 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -35,6 +36,7 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
   const geometry = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
   const packet = createSelectionPacket({
     revision: 12,
+    hoverRevision: 7,
     geometryRevision: 'geometry-4',
     styleRevision: 'style-2',
     countryBoundaryRevision: 'country-8',
@@ -43,6 +45,7 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
     generic: { primary: [{ key: 'region:one', geometry, geometryRevision: 'region-5' }] },
   });
   assert.equal(packet.revision, 12);
+  assert.equal(packet.hoverRevision, 7);
   assert.equal(packet.geometryRevision, 'geometry-4');
   assert.equal(packet.styleRevision, 'style-2');
   assert.equal(packet.country.primaryId, 'RUS');
@@ -52,7 +55,7 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
 
 test('selection layer architecture uses one legacy Pando host and z4 controls', async () => {
   const css = await readFile(new URL('../../assets/css/app.css', import.meta.url), 'utf8');
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const app = readApplicationOwners('map-host');
   assert.match(css, /\.map-base-svg\s*\{\s*z-index:\s*0/);
   assert.match(css, /\.gpu-map-canvas\s*\{\s*z-index:\s*1/);
   assert.match(css, /\.map-interaction-svg\s*\{\s*z-index:\s*4/);

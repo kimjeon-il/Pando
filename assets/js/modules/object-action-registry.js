@@ -42,7 +42,7 @@ export const OBJECT_ACTIONS = Object.freeze({
     icon: 'icon-chevron-right',
     capability: 'change-type',
     domains: ['territorial'],
-    types: ['country', 'territory', 'admin', 'region'],
+    types: ['country', 'subunit', 'region'],
     danger: false,
   }),
   'border-edit': freezeAction({
@@ -133,10 +133,6 @@ export function resolveObjectAction(id, context = {}) {
     danger: action.danger === true,
     applies: objectActionApplies(action, context),
   });
-}
-
-export function objectActionsFor(context = {}, ids = Object.keys(OBJECT_ACTIONS)) {
-  return ids.map(id => resolveObjectAction(id, context)).filter(action => action?.applies);
 }
 
 /**

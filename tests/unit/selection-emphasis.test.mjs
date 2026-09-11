@@ -1,3 +1,4 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -194,22 +195,24 @@ test('country interaction boundaries reuse stable shared resources and draw only
   assert.doesNotMatch(gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro')), /primaryBoundaryPaletteTexture/);
 });
 
-test('country interaction fill composites the cached country-id scene before any geometry fallback', async () => {
+test('country interaction fill draws only emphasized country owner ranges', async () => {
   const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
   const start = gpu.indexOf('function drawCountryInteractionFills');
-  const end = gpu.indexOf('function renderGpuSceneDomain', start);
+  const end = gpu.indexOf('function drawInteractionPasses', start);
   const interactionFill = gpu.slice(start, end);
   assert.match(gpu, /function ensureCountryIdScene/);
-  assert.match(interactionFill, /countryStateFillProgram && countryStateQuadBuffer && ensureCountryIdScene\(\)/);
-  assert.match(interactionFill, /gl\.drawArrays\(gl\.TRIANGLE_STRIP, 0, 4\)/);
+  assert.doesNotMatch(interactionFill, /ensureCountryIdScene\(\)/);
+  assert.match(interactionFill, /mesh\?\.triangleRangesByCountryId\?\.get\(id\)/);
+  assert.match(interactionFill, /visibleBaseRanges/);
+  assert.match(interactionFill, /drawProgram\(fillProgram[^;]+visibleBaseRanges\)/s);
   assert.match(interactionFill, /performanceMetrics\.countryInteractionIndexCount = 0/);
 });
 
 test('territorial persistent boundaries use the shared GPU scene stroke domain', async () => {
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
-  assert.match(app, /buildTerritorialInternalBoundarySegments/);
-  assert.match(app, /replaceGpuSceneDomain\('territorial-boundaries'/);
+  assert.match(rendering, /buildTerritorialInternalBoundarySegments/);
+  assert.match(rendering, /replaceGpuSceneDomain\?\.\('territorial-boundaries'/);
   assert.match(gpu, /strokeRenderer\.drawBatches/);
 });
 
@@ -227,36 +230,41 @@ test('SelectionPass is independent from canvas and shares the main renderer cont
 });
 
 test('selection data travels through one packet contract and main-renderer interaction draw', async () => {
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+  const app = readApplicationOwners('gpu-scene', 'domain-assembly');
   const packet = await readFile(new URL('../../assets/js/modules/selection-packet.js', import.meta.url), 'utf8');
+  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   assert.match(packet, /countryBoundaryRevision/);
   assert.match(packet, /territorialBoundaryRevision/);
   assert.match(packet, /generic: Object\.freeze/);
-  assert.match(app, /currentSelectionPacket = createSelectionPacket\(/);
-  assert.match(app, /selectionPass\.updateData\(currentSelectionPacket\)/);
-  assert.match(app, /gpuMapRenderer\.renderInteraction\?\./);
+  assert.doesNotMatch(app, /currentSelectionPacket = createSelectionPacket\(/);
+  assert.doesNotMatch(app, /selectionPass\.updateData\(currentSelectionPacket\)/);
+  assert.match(rendering, /gpuMapRenderer\?\.renderInteraction\?\./);
   assert.doesNotMatch(app, /selectionCanvasHost/);
   assert.doesNotMatch(app, /createSelectionEmphasisRenderer/);
 });
 
 test('selection overlay commits staged SVG only after GPU draw coverage is known', async () => {
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
-  const start = app.indexOf('function renderSelectionOverlayFrame');
-  const end = app.indexOf('function issueCoordinate', start);
-  const source = app.slice(start, end);
+  const app = readApplicationOwners('gpu-scene', 'domain-assembly');
+  const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const start = rendering.indexOf('const renderSelectionOverlayFrame');
+  const end = rendering.indexOf('const renderSelection =', start);
+  const source = rendering.slice(start, end);
   assert.ok(start > 0 && end > start);
+  assert.doesNotMatch(app, /function renderSelectionOverlayFrame\b/);
+  assert.doesNotMatch(app, /function renderSelectionOverlay\b/);
   assert.doesNotMatch(source, /selectionLayer\.selectAll\('\*'\)\.remove\(\)/);
-  assert.match(source, /document\.createElementNS/);
+  assert.match(source, /createElementNS/);
   assert.match(source, /gpuRenderResult\?\.channels\?\.primary\?\.renderedKeys/);
   assert.match(source, /selectionTarget\?\.replaceChildren/);
   assert.match(source, /retainedPreviousFrame/);
 });
 
-test('map hover invalidates selection data instead of rendering synchronously', async () => {
-  const app = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+test('map hover delegates ownership and invalidation to the selection domain', async () => {
+  const app = readApplicationOwners('gpu-scene', 'domain-assembly');
   const start = app.indexOf('function setMapHover');
-  const end = app.indexOf('function syncGpuCountryEmphasis', start);
+  const end = app.indexOf('\n  }', start);
   const source = app.slice(start, end);
-  assert.match(source, /invalidateSelectionOverlay\('map-hover'\)/);
+  assert.match(source, /selectionDomain\.setHover\(nextRef\)/);
+  assert.doesNotMatch(source, /invalidateSelectionOverlay/);
   assert.doesNotMatch(source, /renderHoverOverlay\(\)/);
 });

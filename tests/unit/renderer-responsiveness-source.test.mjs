@@ -21,17 +21,31 @@ test('country palettes keep storage and use dirty-domain sub-image uploads', () 
 
 test('WebGL locations and frame projection state are cached', () => {
   const gpu = read('assets/js/modules/gpu-map-renderer.js');
+  const visualFrame = read('assets/js/modules/map-visual-frame.js');
   const selection = read('assets/js/modules/selection-pass.js');
   const stroke = read('assets/js/modules/gpu-stroke-renderer.js');
   assert.ok(gpu.includes('let uniformLocationCache = new WeakMap();'));
-  assert.ok(gpu.includes('function createFrameContext('));
-  assert.ok(gpu.includes('activeFrameContext = createFrameContext(viewState);'));
+  assert.ok(visualFrame.includes('function createMapVisualFrame'));
+  assert.ok(gpu.includes('activeFrameContext = visualFrame;'));
+  assert.ok(!gpu.includes('function createFrameContext('));
   assert.equal((gpu.match(/gl\.getUniformLocation\(/g) || []).length, 1);
   assert.equal((gpu.match(/gl\.getAttribLocation\(/g) || []).length, 1);
   assert.equal((selection.match(/gl\.getUniformLocation\(/g) || []).length, 0);
   assert.equal((selection.match(/gl\.getAttribLocation\(/g) || []).length, 0);
   assert.equal((stroke.match(/gl\.getUniformLocation\(/g) || []).length, 1);
   assert.equal((stroke.match(/gl\.getAttribLocation\(/g) || []).length, 1);
+});
+
+test('a newly promoted scene cache texture is presented in the same view frame', () => {
+  const gpu = read('assets/js/modules/gpu-map-renderer.js');
+  const renderWebGl = gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro'));
+  const finish = renderWebGl.indexOf('sceneColorCache.finishScene(null, viewSignature, projectGeneration)');
+  const present = renderWebGl.indexOf('sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })', finish);
+  const interactions = renderWebGl.indexOf('drawInteractionPasses(viewState)');
+  assert.ok(finish >= 0, 'scene promotion must remain explicit');
+  assert.ok(present > finish, 'the promoted texture must be presented after promotion');
+  assert.ok(present < interactions, 'the base scene must be presented before interaction overlays');
+  assert.ok(!renderWebGl.includes('{ clearTarget: false, reproject }'));
 });
 
 test('hydro and terrain use bounded interaction-aware upload budgets', () => {
@@ -41,6 +55,15 @@ test('hydro and terrain use bounded interaction-aware upload budgets', () => {
   assert.ok(source.includes('const limit = interactionActive ? 1 : Math.max(1, Math.min(4, Math.floor(uploadBudget / (1024 * 1024))));'));
   assert.ok(source.includes('performance.now() - startedAt < 4'));
   assert.ok(source.includes("hydroWorker?.postMessage({ type: 'interaction', active: interactionActive });"));
+});
+
+test('physical data and visibility changes invalidate the cached base scene', () => {
+  const source = read('assets/js/modules/gpu-map-renderer.js');
+  assert.match(source, /function invalidatePhysicalScene\([\s\S]*?sceneColorCache\.invalidate\(reason\);[\s\S]*?invalidateGpuFrame\(reason\);/);
+  assert.match(source, /function setTerrainManifest\([\s\S]*?invalidatePhysicalScene\('terrain-manifest'\);/);
+  assert.match(source, /function invalidateHydroVisibility\([\s\S]*?queueHydroRender\('hydro-visibility'\);/);
+  assert.match(source, /function queueHydroRender\([\s\S]*?invalidatePhysicalScene\(reason\);/);
+  assert.match(source, /completeTerrainLevelForFrame[\s\S]*?invalidatePhysicalScene\('terrain-level-ready'\);/);
 });
 
 test('Canvas Worker persists independently revisioned view and style state', () => {
@@ -68,34 +91,28 @@ test('map edit worker clones only objects modified by the operation', () => {
 });
 
 test('large-data overlays use domain caches and multi-tier culling', () => {
-  const app = read('assets/js/app.js');
+  const rendering = read('assets/js/modules/rendering-domain.js');
   const index = read('assets/js/modules/map-object-spatial-index.js');
-  assert.ok(app.includes('function buildDistributionRenderRows()'));
-  assert.ok(app.includes('function visibleDistributionRenderRows()'));
-  assert.ok(app.includes('distributionRenderRowCache'));
-  assert.ok(!app.includes('territorialBoundaryCache.revision !== state.stateRevision'));
+  assert.ok(rendering.includes('const buildDistributionRenderRows ='));
+  assert.ok(rendering.includes('const visibleDistributionRenderRows ='));
+  assert.ok(rendering.includes('distributionRenderRowCache'));
+  assert.ok(!rendering.includes('territorialBoundaryCache.revision !== state.stateRevision'));
   assert.ok(index.includes("? 'fine'"));
   assert.ok(index.includes("? 'coarse' : 'global'"));
   assert.ok(index.includes('querySphericalCap'));
 });
 
 test('interactive vertex drags use a session GPU preview without geometry Worker work', () => {
-  const app = read('assets/js/app.js');
-  const genericDrag = app.slice(
-    app.indexOf('function vertexDragBehavior('),
-    app.indexOf('function boundaryTopologyPreviewTargets('),
-  );
-  const countryDrag = app.slice(
-    app.indexOf('function countryBoundaryVertexDragBehavior('),
-    app.indexOf('function labelDragBehavior('),
-  );
-  for (const source of [genericDrag, countryDrag]) {
-    assert.ok(source.includes('updateActiveEditPreview('));
-    assert.ok(source.includes('renderEditedGeometryPatch('));
-    assert.ok(!source.includes('mapEditClient.execute('));
-    assert.ok(!source.includes('gpuMapRenderer.render('));
-    assert.ok(!source.includes('renderAll('));
-  }
+  const editing = read('assets/js/modules/editing-domain.js');
+  const rendering = read('assets/js/modules/rendering-domain.js');
+  const gestureMove = editing.slice(editing.indexOf('const applyGestureMove ='), editing.indexOf('const flushPendingMove ='));
+  assert.ok(gestureMove.includes('geometry.previewObjectGesture?.('));
+  assert.ok(gestureMove.includes('geometry.moveBoundaryGesture?.('));
+  assert.ok(!gestureMove.includes('mapEditClient.execute('));
+  assert.ok(rendering.includes("type: `${kind}-drag-move`"));
+  assert.ok(rendering.includes('publishEditingInteraction({'));
+  assert.ok(!rendering.includes('gpuMapRenderer.render('));
+  assert.ok(!rendering.includes('renderAll('));
 });
 
 test('expensive edit workers use revisioned latest-wins scheduling', () => {

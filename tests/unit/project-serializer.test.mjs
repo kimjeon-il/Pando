@@ -59,8 +59,8 @@ test('autosave serializer preserves full and delta formats', () => {
   assert.deepEqual(full.countriesData, common.countriesData);
 });
 
-test('project serialization preserves the four canonical territorial unit types', () => {
-  const territorialUnits = ['country', 'territory', 'admin', 'region'].map(unitType => ({
+test('project serialization preserves the three canonical territorial unit types', () => {
+  const territorialUnits = ['country', 'subunit', 'region'].map(unitType => ({
     type: 'Feature',
     id: `${unitType}-1`,
     properties: { unitType },
@@ -75,9 +75,9 @@ test('project serialization preserves the four canonical territorial unit types'
     hydroManifest: null,
   }).buildProject();
 
-  assert.deepEqual(project.territorialModel.types, ['country', 'territory', 'admin', 'region']);
+  assert.deepEqual(project.territorialModel.types, ['country', 'subunit', 'region']);
   assert.deepEqual(project.territorialUnits.map(feature => feature.properties.unitType), [
-    'country', 'territory', 'admin', 'region',
+    'country', 'subunit', 'region',
   ]);
 });
 

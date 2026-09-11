@@ -40,7 +40,3 @@ export function linkGpuProgram(gl, vertexSource, fragmentSource, { label = 'prog
     if (fragment) gl.deleteShader(fragment);
   }
 }
-
-export function deleteGpuProgram(gl, program) {
-  if (gl && program) gl.deleteProgram(program);
-}

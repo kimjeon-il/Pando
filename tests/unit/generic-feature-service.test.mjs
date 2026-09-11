@@ -58,12 +58,19 @@ test('new v2 Generic Feature uses canonical fallback provenance and rejects dupl
 test('genericFeature service keeps canonical fields while compatibility metadata lives in provenance', () => {
   let genericFeatures = [];
   const transactions = [];
+  const commandPipeline = {
+    runMutation(meta, mutate, options) {
+      transactions.push({ ...meta, renderDirty: options.renderDirty });
+      const value = mutate();
+      return { ok: true, value };
+    },
+  };
   const service = createGenericFeatureService({
     documentStore: {
       readFeatures: () => genericFeatures,
       replaceFeatures: value => { genericFeatures = value; },
     },
-    runDocumentMutation(meta, mutate) { transactions.push(meta); return mutate(); },
+    commandPipeline,
     writeColor(feature, value) { feature.properties.color = value; },
   });
   service.add(genericFeature('one', undefined, { schemaVersion: 1, role: 'generic' }));

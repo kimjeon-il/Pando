@@ -339,19 +339,7 @@ export function validateTerritorialGeometry(features = [], {
   return issues;
 }
 
-export function validateSharedBoundary(topology, { requiredSegmentKeys = null } = {}) {
-  const issues = [];
-  const required = requiredSegmentKeys ? new Set(requiredSegmentKeys) : null;
-  for (const segment of topology?.segments?.values?.() || []) {
-    if (required && required.has(segment.key) && segment.ownerIds.size < 2) issues.push(issue('shared-boundary-gap', '공유국경의 양쪽 geometry가 일치하지 않습니다.', {
-      entityRefs: [...segment.ownerIds], coordinate: [(segment.a[0] + segment.b[0]) / 2, (segment.a[1] + segment.b[1]) / 2],
-      segmentKey: segment.key,
-    }));
-  }
-  return issues;
-}
-
-export function validateAdministrativeContainment(units = [], countries = [], { clipper = null } = {}) {
+function validateAdministrativeContainment(units = [], countries = [], { clipper = null } = {}) {
   const issues = [];
   const countryMap = new Map(countries.map(feature => [featureId(feature), feature]));
   const unitMap = new Map(units.map(feature => [String(feature.id), feature]));
@@ -359,7 +347,7 @@ export function validateAdministrativeContainment(units = [], countries = [], { 
   for (const [unitIndex, unit] of units.entries()) {
     const id = String(unit.id || '');
     const properties = unit.properties || {};
-    if (id && seenIds.has(id)) issues.push(issue('duplicate-id', `중복 행정·권역 ID ${id}가 있습니다.`, {
+    if (id && seenIds.has(id)) issues.push(issue('duplicate-id', `중복 영토 객체 ID ${id}가 있습니다.`, {
       entityRefs: [id], bounds: bounds(unit.geometry), sequence: unitIndex,
     }));
     if (id) seenIds.add(id);
@@ -372,7 +360,7 @@ export function validateAdministrativeContainment(units = [], countries = [], { 
     if (parentId && !unitMap.has(parentId) && !countryMap.has(parentId)) issues.push(issue('orphan-administrative', `${properties.name || id}의 parentId가 존재하지 않습니다.`, {
       entityRefs: [id, parentId], bounds: bounds(unit.geometry),
     }));
-    if (clipper?.difference && parent?.geometry && unit.geometry) {
+    if (properties.coverageMode !== 'explicit' && clipper?.difference && parent?.geometry && unit.geometry) {
       const outside = clipGeometry('MultiPolygon', clipper.difference(multiCoordinates(unit.geometry), multiCoordinates(parent.geometry)));
       if (geometryPlanarArea(outside) > 1e-10) issues.push(issue('outside-parent', `${properties.name || id}이(가) 부모 영역 밖에 있습니다.`, {
         entityRefs: [id, featureId(parent)], geometry: outside, bounds: bounds(outside),
@@ -382,7 +370,7 @@ export function validateAdministrativeContainment(units = [], countries = [], { 
   return issues;
 }
 
-export function validateDistributionReference(entries = [], units = []) {
+function validateDistributionReference(entries = [], units = []) {
   const unitIds = new Set(units.map(feature => String(feature.id)));
   const seenIds = new Set();
   const issues = [];

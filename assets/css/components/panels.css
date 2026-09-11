@@ -1,0 +1,313 @@
+/* Shared map, create, historical-library, and GIS panel presentation. */
+.layer-create-menu {
+  position: fixed;
+  top: var(--layer-create-top, var(--ui-shell-topbar-height));
+  left: var(--layer-create-left, var(--ui-shell-compact-inset));
+  width: min(var(--ui-layer-create-width), calc(100vw - var(--ui-space-5)));
+  max-height: var(--layer-create-height, 80dvh);
+  overflow: auto;
+  padding: var(--ui-space-2) var(--ui-surface-content-rail-x);
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow);
+  z-index: var(--ui-layer-create-z);
+}
+.layer-create-menu.hidden { display: none; }
+.layer-create-content, .layer-create-groups { min-width: 0; }
+
+/* Map and create panel rules. */
+
+/* Map settings and create surface presentation. */
+
+.map-view-settings {
+  min-width: 0;
+  display: grid;
+  gap: 0;
+}
+
+.map-view-settings > .layer-style-editor {
+  min-width: 0;
+}
+
+.map-view-settings > .layer-style-editor:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.map-view-settings > .layer-style-editor > strong,
+.create-menu-group-title {
+  color: var(--muted);
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+  line-height: var(--ui-line-tight);
+}
+
+.map-view-projection-slot .projection-control {
+  width: 100%;
+  height: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-1);
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.map-view-projection-slot .projection-btn {
+  min-width: 0;
+  min-height: var(--ui-v2-command-row-min-height);
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-2);
+  padding-inline: var(--ui-space-3);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-bg);
+  color: var(--muted);
+}
+
+.map-view-projection-slot .projection-btn > span {
+  display: inline;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.map-view-projection-slot .projection-btn .ui-icon {
+  width: var(--ui-v2-projection-icon-size);
+  height: var(--ui-v2-projection-icon-size);
+  flex: 0 0 auto;
+}
+
+.map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--ui-control-bg));
+  color: var(--text-strong);
+}
+
+.map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) .ui-icon { color: var(--accent); }
+
+.map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]):hover {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 13%, var(--ui-control-bg));
+  color: var(--text-strong);
+}
+
+.map-view-settings .ui-choice-row,
+.map-view-settings .ui-toggle {
+  min-height: var(--ui-v2-control-mobile-height);
+}
+
+.map-view-settings .ui-choice-row,
+.map-view-settings .field-group { margin: 0; }
+
+.map-view-settings .ui-choice-copy {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-0-5);
+}
+
+.map-view-settings .ui-choice-copy > strong {
+  font-weight: var(--ui-weight-medium);
+}
+
+.map-view-settings .ui-choice-copy > small {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+/* Terrain modes use the same quiet radio-row treatment as distribution modes.
+   Selection is communicated by the radio itself, not a card-sized highlight. */
+.map-view-settings .terrain-mode-option {
+  min-height: var(--ui-v2-control-mobile-height);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.map-view-settings .terrain-mode-option:hover,
+.map-view-settings .terrain-mode-option:has(input:checked) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text);
+}
+
+.map-view-settings .layer-setting-hint:empty { display: none; }
+
+.terrain-display-options,
+.terrain-mode-options,
+.terrain-strength-control {
+  min-width: 0;
+  display: grid;
+}
+
+.terrain-display-options { gap: var(--ui-space-2); }
+.terrain-mode-options,
+.terrain-strength-control { gap: var(--ui-space-1); }
+
+.terrain-strength-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+}
+
+.terrain-strength-heading > strong {
+  color: var(--muted);
+  font-size: var(--ui-font-xs);
+  font-weight: var(--ui-weight-medium);
+}
+
+
+.create-menu-category {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-0-5);
+  padding: var(--ui-space-3) 0;
+  border-top: 1px solid var(--border);
+}
+
+.create-menu-category:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.create-menu-category + .create-menu-category { margin-top: 0; }
+
+.create-menu-group {
+  min-height: 1.5rem;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--ui-space-2);
+}
+
+.create-menu-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.create-menu-item:hover,
+.create-menu-item:focus-visible {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.create-menu-item .create-menu-icon { color: var(--muted); }
+
+.create-menu-item:hover .create-menu-icon,
+.create-menu-item:focus-visible .create-menu-icon { color: var(--text-soft); }
+
+.create-menu-item > span:nth-child(2) { gap: var(--ui-space-0-5); }
+
+@media (max-width: 799px) {
+  .map-view-settings > .layer-style-editor { padding-block: var(--ui-space-4); }
+
+  .map-view-projection-slot .projection-btn {
+    min-height: var(--ui-touch-height);
+    height: auto;
+  }
+
+  .map-view-settings .ui-choice-row,
+  .map-view-settings .ui-toggle { min-height: var(--ui-touch-height); }
+
+  .terrain-strength-control input[type="range"] { min-height: var(--ui-touch-height); }
+
+  .create-menu-item { min-height: var(--ui-touch-height); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-view-projection-slot .projection-btn,
+  .create-menu-item { transition: none; }
+}
+
+/* Library, GIS, and file panel rules. */
+
+.top-actions .file-menu-item {
+  min-height: var(--ui-v2-control-lg);
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.top-actions .file-menu-item:hover,
+.top-actions .file-menu-item:focus-visible {
+  border-color: transparent;
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.top-actions .file-menu-export-boundary {
+  margin-top: var(--ui-space-3);
+  box-shadow: none;
+}
+
+.top-actions .file-submenu { border-left: 0; }
+
+.layer-inline-style-panel { border-block: 0; }
+
+/* The footer owns the bottom inset; the containing tab must not add another. */
+.left-panel .layer-panel-section {
+  padding-block: var(--ui-space-2) 0;
+  padding-inline: 0;
+}
+
+
+.top-actions .file-menu-icon { color: var(--muted); }
+
+@media (max-width: 799px) {
+  .historical-library-modal .historical-library-card,
+  .ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-card,
+  .ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-card {
+    width: calc(100vw - var(--ui-space-4));
+    max-height: calc(100dvh - var(--ui-space-4));
+  }
+
+
+  .historical-library-layout {
+    grid-template-columns: 1fr;
+    border-bottom: 0;
+  }
+
+  .historical-library-results {
+    border-right: 0;
+    padding-right: 0;
+  }
+
+  .historical-library-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: var(--surface-elevated);
+  }
+
+  .gis-stepper { display: none; }
+  .gis-mobile-step-indicator { display: block; }
+  .gis-export-layers { grid-template-columns: 1fr; }
+  .gis-export-format-option { min-height: 3.5rem; }
+}
+
+/* Historical library refinements. */
+
+/* Panel-owned visibility refinements. */
+.ui-dialog-kicker {
+  display: none;
+}
+
+body.file-menu-open .mobile-backdrop {
+  display: none;
+  pointer-events: none;
+}

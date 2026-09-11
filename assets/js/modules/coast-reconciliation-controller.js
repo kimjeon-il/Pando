@@ -10,8 +10,8 @@ export function createCoastReconciliationController({ document, window, elements
   }
 
   function open({
-    subjectName = '행정구역',
-    subjectActionLabel = '행정구역',
+    subjectName = '하위단위',
+    subjectActionLabel = '하위단위',
     countryName = '국가',
     conflicts = [],
     automaticAvailable = true,

@@ -72,6 +72,7 @@ export function createSelectController({
       value: String(option.value),
       label: String(option.label || option.textContent || option.value),
       searchText: `${option.dataset.searchText || ''} ${option.value}`,
+      tooltip: option.dataset.tooltip || '',
       disabled: !!option.disabled,
       selected: !!option.selected,
     }));
@@ -170,6 +171,7 @@ export function createSelectController({
       row.setAttribute('aria-selected', String(option.value === selected?.value));
       if (option.disabled) row.setAttribute('aria-disabled', 'true');
       row.dataset.optionIndex = String(option.index);
+      if (option.tooltip) row.dataset.tooltip = option.tooltip;
       const label = documentRef.createElement('span');
       label.className = 'ui-select-option-label';
       label.textContent = option.label;

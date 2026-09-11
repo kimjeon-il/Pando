@@ -2,7 +2,7 @@ export const MAP_HOST_KINDS = Object.freeze({
   LEGACY: 'legacy',
 });
 
-export const MAP_PROJECTION_KINDS = Object.freeze({
+const MAP_PROJECTION_KINDS = Object.freeze({
   FLAT: 'flat',
   GLOBE: 'globe',
 });
@@ -84,9 +84,4 @@ const REQUIRED_METHODS = Object.freeze([
 
 export function isMapHost(value) {
   return !!value && REQUIRED_METHODS.every(name => typeof value[name] === 'function');
-}
-
-export function assertMapHost(value) {
-  if (!isMapHost(value)) throw new TypeError('MapHost 계약을 충족하지 않습니다.');
-  return value;
 }

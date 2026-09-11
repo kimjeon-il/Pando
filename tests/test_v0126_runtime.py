@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import gzip
 import json
@@ -11,7 +12,8 @@ from shapely.geometry import shape
 
 
 ROOT = Path(__file__).parents[1]
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
+RENDERING = (ROOT / "assets" / "js" / "modules" / "rendering-domain.js").read_text(encoding="utf-8")
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
 CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 CORE = (ROOT / "assets" / "js" / "workers" / "gpu-mesh-core.js").read_text(encoding="utf-8")
@@ -28,12 +30,12 @@ class V0126RuntimeTests(unittest.TestCase):
     def test_annex_render_succeeds_before_history_commit(self):
         annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
         self.assertIn("await beginWorkerGeometryPreview({", annex)
-        self.assertIn("renderAll();", annex)
+        self.assertIn("invalidateTerritorialPatch('territory-annex-committed');", annex)
         preview = section(APP, "async function beginWorkerGeometryPreview", "function beginLocalGeometryPreview")
         self.assertLess(preview.index("await applyResult(result);"), preview.index("mapEditClient.commit(requestId);"))
         self.assertLess(preview.index("mapEditClient.commit(requestId);"), preview.index("commitHistorySnapshot(snapshot);"))
-        labels = section(APP, "function renderCountryLabels", "function prepareHydroFeature")
-        self.assertLess(labels.index("selection.exit().remove();"), labels.index("const allCountryLabels"))
+        labels = RENDERING
+        self.assertLess(labels.index("selection.exit().remove();"), labels.index("const all = layer.selectAll('text.country-label')"))
         self.assertIn("Array.isArray(anchor)", labels)
 
     def test_notifications_do_not_append_raw_internal_messages(self):
@@ -43,19 +45,22 @@ class V0126RuntimeTests(unittest.TestCase):
 
     def test_polar_closure_edges_are_excluded_from_all_stroke_paths(self):
         self.assertIn("MESH_ALGORITHM_REVISION = 3", CORE)
-        self.assertIn("expected.some((value, index) => header[index] !== value)", LOADER)
+        self.assertIn("expected.length === headerWords", LOADER)
+        self.assertIn("expected.every((value, index) => header[index] === value)", LOADER)
         self.assertIn("header[7] !== 3", RENDERER)
         self.assertIn("isArtificialPolarClosureEdge(a, b)", CORE)
         self.assertIn("countryOutlineFeature(feature)", RENDERER)
         self.assertIn("countryOutlineFeature(feature)", CANVAS)
 
         raw = gzip.decompress((ROOT / "assets" / "data" / "world-mesh-v0.12.6.bin.gz").read_bytes())
-        magic, _fmt, _countries, vertex_count, triangle_count, line_count, source_count, revision = struct.unpack_from("<8I", raw, 0)
+        magic, mesh_format, _countries, vertex_count, triangle_count, line_count, source_count, revision = struct.unpack_from("<8I", raw, 0)
         self.assertEqual(magic, 0x434D4731)
-        self.assertEqual((source_count, revision), (548464, 3))
-        positions = struct.unpack_from(f"<{vertex_count * 2}i", raw, 32)
+        self.assertEqual(mesh_format, 2)
+        self.assertEqual((source_count, revision), (548454, 3))
+        header_bytes = 48 if mesh_format >= 2 else 32
+        positions = struct.unpack_from(f"<{vertex_count * 2}i", raw, header_bytes)
         country_bytes = vertex_count * 2
-        offset = 32 + vertex_count * 8 + ((country_bytes + 3) & ~3) + triangle_count * 4
+        offset = header_bytes + vertex_count * 8 + ((country_bytes + 3) & ~3) + triangle_count * 4
         lines = struct.unpack_from(f"<{line_count}I", raw, offset)
         for left, right in zip(lines[::2], lines[1::2]):
             a = (positions[left * 2] / 1e6, positions[left * 2 + 1] / 1e6)
@@ -71,9 +76,10 @@ class V0126RuntimeTests(unittest.TestCase):
         main_ring = egypt["geometry"]["coordinates"][0][0]
         self.assertNotIn([35.429207, 22.97833], main_ring)
 
-    def test_data_assets_inherit_the_bootstrap_cache_revision(self):
+    def test_data_assets_use_the_data_cache_revision(self):
         self.assertIn("function versionedDataUrl(relativePath)", LOADER)
-        self.assertIn("url.searchParams.set('v', ASSET_REVISION)", LOADER)
+        self.assertIn("url.searchParams.set('v', DATA_REVISION)", LOADER)
+        self.assertIn("const DATA_CACHE_PREFIX = 'pandolab-data-'", LOADER)
 
     def test_land_only_relief_and_automatic_water_colours(self):
         manifest = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))

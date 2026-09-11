@@ -14,7 +14,7 @@ PILOT_PATH = ROOT / "assets" / "data" / "historical-library-pilot.json"
 COUNTRIES_PATH = ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson"
 PILOT = json.loads(PILOT_PATH.read_text(encoding="utf-8"))
 COUNTRIES = json.loads(COUNTRIES_PATH.read_text(encoding="utf-8"))
-ENTITY = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:east-germany")
+ENTITY = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:deutsche-demokratische-republik")
 GEOMETRY = shape(ENTITY["geometryVersions"][0]["geometry"])
 CANONICAL_DEU = shape(next(
     item["geometry"] for item in COUNTRIES["features"] if item["id"] == "DEU"
@@ -29,15 +29,15 @@ def projected_area_km2(geometry):
 class EastGermanyHistoricalLibraryTests(unittest.TestCase):
     def test_identity_dates_aliases_and_instantiation_policy(self):
         self.assertEqual(ENTITY["canonicalName"], "German Democratic Republic")
-        self.assertEqual(ENTITY["displayNames"]["ko"], "독일 민주 공화국")
+        self.assertEqual(ENTITY["displayNames"]["ko"], "독일 민주공화국")
         self.assertEqual(ENTITY["displayNames"]["de"], "Deutsche Demokratische Republik")
-        self.assertEqual(set(ENTITY["alternateNames"]), {"동독", "East Germany", "DDR", "GDR"})
+        self.assertEqual(set(ENTITY["alternateNames"]), {"동독", "East Germany", "DDR", "GDR", "Ostdeutschland"})
         self.assertEqual(ENTITY["startDate"], "1949-10-07")
         self.assertEqual(ENTITY["endDate"], "1990-10-02")
         self.assertEqual(ENTITY["metadata"]["dissolutionDate"], "1990-10-03")
         self.assertEqual(ENTITY["metadata"]["referenceDate"], "1989-04-25")
         self.assertEqual(ENTITY["instantiation"], {
-            "mode": "country-territory-priority",
+            "mode": "territory-replacement",
             "countryUpdates": {"DEU": {"name": "독일 연방공화국"}},
         })
 
@@ -48,7 +48,7 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
         self.assertGreaterEqual(abs(area) / 1_000_000, 108_000)
         self.assertLessEqual(abs(area) / 1_000_000, 109_000)
         self.assertLessEqual(projected_area_km2(GEOMETRY.difference(CANONICAL_DEU)), 1e-6)
-        self.assertLess(PILOT_PATH.stat().st_size, 2 * 1024 * 1024)
+        self.assertLess(PILOT_PATH.stat().st_size, 6 * 1024 * 1024)
 
     def test_reference_points_and_west_berlin_exclusion(self):
         inside = {

@@ -14,7 +14,7 @@ function normalizeLongitude(value) {
   return longitude;
 }
 
-export function splitGeographicBounds(value) {
+function splitGeographicBounds(value) {
   if (!finiteBounds(value)) return [];
   const south = Math.max(-90, Math.min(90, Number(value[1])));
   const north = Math.max(-90, Math.min(90, Number(value[3])));
@@ -224,10 +224,3 @@ export function createMapObjectSpatialIndex({
 
   return Object.freeze({ upsert, remove, clearDomain, query, querySphericalCap, stats });
 }
-
-export const MAP_OBJECT_INDEX_DEFAULTS = Object.freeze({
-  cellSize: DEFAULT_CELL_SIZE,
-  maxCellsPerEntry: DEFAULT_MAX_CELLS,
-  coarseCellSize: DEFAULT_COARSE_CELL_SIZE,
-  maxCoarseCellsPerEntry: DEFAULT_MAX_COARSE_CELLS,
-});

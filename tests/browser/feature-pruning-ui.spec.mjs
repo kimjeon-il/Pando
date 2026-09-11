@@ -35,8 +35,7 @@ for (const viewport of viewports) {
     for (const id of removedIds) await expect(page.locator(`#${id}`)).toHaveCount(0);
     await expect(page.locator('.measurement-layer, .country-component-item')).toHaveCount(0);
     await expect(page.locator('.editor-danger-zone:visible')).toHaveCount(0);
-    await expect(page.locator('#multiSelectionBar')).toContainText('0개 선택됨');
-    await expect(page.locator('#multiSelectionBar button')).toHaveCount(3);
+    await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
 
     const search = page.locator('#layerSearchInput');
     if (!await search.isVisible()) await page.locator('#mobileMapBtn').click();
@@ -52,6 +51,13 @@ for (const viewport of viewports) {
     await expect(page.locator('#objectDeleteBtn')).toBeVisible();
     await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'normal');
     await expect(page.locator('#countryProperties .editor-action-row')).toHaveCount(5);
+    const inconsistentActionRows = await page.locator('#rightPanel .editor-action-row').evaluateAll(rows => rows
+      .filter(row => !row.classList.contains('has-command-row-icon')
+        || row.querySelectorAll(':scope > .command-row-icon').length !== 1
+        || row.querySelectorAll(':scope > span').length !== 1
+        || row.querySelectorAll(':scope > .command-row-chevron').length !== 1)
+      .map(row => row.id));
+    expect(inconsistentActionRows).toEqual([]);
     await expect(page.locator('#countryProperties .editor-action-grid')).toHaveCount(0);
     await page.locator('#editorTabBtn').click();
     const overflow = await page.evaluate(() => ({

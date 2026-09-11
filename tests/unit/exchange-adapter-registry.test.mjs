@@ -14,7 +14,7 @@ test('exchange targets own canonical domain and fallback metadata', () => {
   assert.equal(exchangeDomainForTarget('administrative'), 'territorial');
   assert.equal(exchangeDomainForTarget('distribution'), 'distribution');
   assert.equal(exchangeTargetDescriptor('generic').fallback, true);
-  assert.equal(normalizeExchangeTarget('admin'), EXCHANGE_TARGETS.ADMINISTRATIVE);
+  assert.equal(normalizeExchangeTarget('admin'), EXCHANGE_TARGETS.SUBUNIT);
   assert.equal(normalizeExchangeTarget('unknown'), EXCHANGE_TARGETS.GENERIC);
 });
 

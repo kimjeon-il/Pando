@@ -37,7 +37,7 @@ test('dangling references are reported instead of silently ignored', () => {
   assert.throws(() => assertProjectReferenceIntegrity({
     countries: [country('A')],
     territorialUnits: [unit('R', 'MISSING', 'A')],
-  }), /상위 영역/);
+  }), /상위 소속/);
 });
 
 test('territorial and distribution parent cycles are rejected', () => {

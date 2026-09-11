@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
-test('historical library search previews and instantiates an independent sourced country', async ({ page }) => {
+test('historical library search previews and instantiates a sourced historical country', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -14,40 +14,46 @@ test('historical library search previews and instantiates an independent sourced
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
 
   await page.locator('#createMenuBtn').click();
-  await page.locator('#createLibraryTabBtn').click();
   await page.locator('#addFromLibraryBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeVisible();
   await expect.poll(() => page.locator('#historicalLibraryResults [data-library-entity-id]').count()).toBeGreaterThan(200);
+  const currentCountry = page.locator('[data-library-entity-id="current-country:DEU"]');
+  await expect(currentCountry).toBeVisible();
+  await expect(currentCountry.locator('.historical-library-result-flag img')).toHaveCount(1);
 
   await page.locator('#historicalLibrarySearchInput').fill('USSR');
-  await page.locator('.historical-library-filters summary').click();
+  await expect(page.locator('.historical-library-filters summary')).toHaveCount(0);
   await selectUiOption(page, '#historicalLibraryStatusInput', 'past');
   await page.locator('#historicalLibraryYearInput').fill('1991');
   const result = page.locator('[data-library-entity-id="historical-country:soviet-union"]');
   await expect(result).toBeVisible();
   await result.click();
+  await expect(result.locator('.historical-library-result-flag img')).toHaveCount(1);
   await expect(page.locator('#historicalLibraryPreview')).toContainText('소련');
-  await page.locator('#historicalLibraryPreview details summary').click();
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('신뢰도');
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('low');
-  await expect(page.locator('#historicalLibraryPreview details')).toContainText('기능 시험용 근사 경계');
-  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(1);
+  await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
+  await expect(result).not.toHaveAttribute('aria-controls');
+  await expect(page.locator('#historicalLibraryPreview')).toContainText('근사 경계');
+  await expect(page.locator('#historicalLibraryPreview')).not.toContainText('출처·이용 조건');
+  await expect(page.locator('#historicalLibraryPreview a[aria-label^="출처"]')).toHaveCount(0);
+  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
+  const hasChildren = await page.evaluate(async () => (await window.PANDOLAB_HISTORICAL_LIBRARY.list()).some(entity => entity.parentLibraryId === 'historical-country:soviet-union'));
+  if (hasChildren) {
+    await expect(page.locator('#historicalLibraryAddOptions summary')).toHaveCount(0);
+    await expect(page.locator('#historicalLibraryChildDepthInput')).toContainText('모든 하위 영역');
+  } else await expect(page.locator('#historicalLibraryAddOptions')).toBeHidden();
 
-  const originalGeometry = await page.evaluate(() => JSON.stringify(
-    window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union').geometryVersions[0].geometry,
+  const originalGeometry = await page.evaluate(async () => JSON.stringify(
+    (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union')).geometryVersions[0].geometry,
   ));
   await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryAddOptions')).toBeVisible();
-  await expect(page.locator('#historicalLibraryAddBtn')).toHaveText('추가 확정');
-  await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeHidden();
+  await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
     .filter(unit => unit.id === 'historical-country:soviet-union').length)).toBe(1);
   const instanceId = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
     .find(unit => unit.id === 'historical-country:soviet-union')?.id);
   expect(instanceId).toBe('historical-country:soviet-union');
-  const sourceAfterEdit = await page.evaluate(() => JSON.stringify(
-    window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union').geometryVersions[0].geometry,
+  const sourceAfterEdit = await page.evaluate(async () => JSON.stringify(
+    (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union')).geometryVersions[0].geometry,
   ));
   expect(sourceAfterEdit).toBe(originalGeometry);
 
@@ -75,7 +81,7 @@ async function autosaveContainsEastGermany(page) {
         ? (project.countryDelta?.changed || [])
         : (project?.countriesData?.features || []);
       return changedCountries.some(country => (
-        country?.id === 'historical-country:east-germany'
+        country?.id === 'historical-country:deutsche-demokratische-republik'
       )) && project?.countryOverrides?.DEU?.name === '독일 연방공화국';
     } finally {
       database.close();
@@ -111,19 +117,15 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   });
 
   await page.locator('#createMenuBtn').click();
-  await page.locator('#createLibraryTabBtn').click();
   await page.locator('#addFromLibraryBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeVisible();
   await page.locator('#historicalLibrarySearchInput').fill('동독');
-  const result = page.locator('[data-library-entity-id="historical-country:east-germany"]');
+  const result = page.locator('[data-library-entity-id="historical-country:deutsche-demokratische-republik"]');
   await expect(result).toBeVisible();
   await result.click();
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('기준일 1989-04-25');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('신뢰도 medium');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('근사 경계');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('Natural Earth Admin 1');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('BKG Verwaltungsgebiete');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('Verlauf der Berliner Mauer');
+  await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
+  await expect(page.locator('#historicalLibraryPreview details')).toHaveCount(0);
+  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
   await page.locator('#historicalLibraryAddBtn').click();
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 60_000 });
@@ -131,12 +133,12 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length)).toBe(before.count + 1);
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties?.name)).toBe('독일 연방공화국');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .filter(country => country.id === 'historical-country:east-germany').length)).toBe(1);
+    .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(1);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.pendingCountryCount || 0), { timeout: 60_000 }).toBe(0);
 
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .filter(country => country.id === 'historical-country:east-germany').length)).toBe(0);
+    .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(0);
   const afterUndo = await page.evaluate(() => {
     const countries = window.PANDOLAB_TERRITORIAL.list({ type: 'country' });
     const germany = countries.find(country => country.id === 'DEU');
@@ -145,14 +147,14 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   expect(afterUndo).toEqual(before);
 
   const apiResult = await page.evaluate(() => window.PANDOLAB_HISTORICAL_LIBRARY.instantiate(
-    'historical-country:east-germany', '1989-04-25', 'none',
+    'historical-country:deutsche-demokratische-republik', '1989-04-25', 'none',
   ));
   expect(apiResult.added).toBe(1);
   expect(apiResult.subtracted).toBe(1);
   expect(apiResult.deleted).toBe(0);
   expect(apiResult.affectedIds).toContain('DEU');
   const duplicate = await page.evaluate(() => window.PANDOLAB_HISTORICAL_LIBRARY.instantiate(
-    'historical-country:east-germany', '1989-04-25', 'none',
+    'historical-country:deutsche-demokratische-republik', '1989-04-25', 'none',
   ));
   expect(duplicate).toEqual({ added: 0, subtracted: 0, deleted: 0, affectedIds: [] });
 
@@ -162,7 +164,7 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties?.name)).toBe('독일 연방공화국');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
-    .filter(country => country.id === 'historical-country:east-germany').length)).toBe(1);
+    .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(1);
   await runDebugAudit(page);
   expect(errors).toEqual([]);
 });

@@ -1,3 +1,4 @@
+import { readApplicationImplementations } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -6,7 +7,7 @@ const root = process.cwd();
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const html = read('index.html');
 const css = `${read('assets/css/app.css')}\n${read('assets/css/primitives/controls.css')}`;
-const app = read('assets/js/app.js');
+const app = readApplicationImplementations();
 const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');
 const selectController = read('assets/js/modules/select-controller.js');
 const failures = [];
@@ -37,10 +38,6 @@ for (const match of app.matchAll(/document\.createElement\(['"]button['"]\)/g)) 
 }
 
 for (const match of html.matchAll(/<input\b([^>]*\btype=["']color["'][^>]*)>/gi)) {
-  const id = match[1].match(/\bid=["']([^"']+)/i)?.[1] || '';
-  // The preferences picker is intentionally visible; all editor color
-  // controls use the hidden native input behind their custom trigger.
-  if (id === 'preferencesSelectionColorInput') continue;
   if (!/\bui-native-color-input\b/.test(match[1]) || !/aria-hidden=["']true["']/.test(match[1])) {
     failures.push(`visible native color input near index.html offset ${match.index}`);
   }
@@ -69,10 +66,10 @@ for (const id of ['layerSearchInput', 'historicalLibrarySearchInput']) {
 }
 
 const floatingContracts = new Map([
-  ['mapCommandToolbar', ['ui-floating-surface', 'ui-floating-toolbar']],
   ['modeActionBar', ['ui-floating-surface', 'ui-context-toolbar']],
   ['objectChooser', ['ui-popover', 'ui-floating-surface']],
-  ['multiSelectionBar', ['ui-floating-surface', 'ui-context-toolbar']],
+  // Single and multiple selection now share the editor object context.
+  ['editorObjectHeader', ['editor-object-header']],
 ]);
 for (const [id, classes] of floatingContracts) {
   const tag = html.match(new RegExp(`<[^>]+id=["']${id}["'][^>]*>`, 'i'))?.[0] || '';

@@ -195,26 +195,6 @@ export function moveTopologyNode(featureMap, node, nextCoordinate, { precision =
   return changed;
 }
 
-export function topologySnapCandidates(topology, { activeOwnerIds = [] } = {}) {
-  const active = new Set(activeOwnerIds.map(String));
-  const output = [];
-  for (const node of topology?.nodes?.values?.() || []) {
-    const neighbor = active.size && [...node.ownerIds].some(id => !active.has(String(id)));
-    output.push({ kind: 'vertex', coordinate: node.coordinate, ownerIds: [...node.ownerIds], nodeKey: node.key, neighbor });
-  }
-  for (const segment of topology?.segments?.values?.() || []) {
-    const neighbor = active.size && [...segment.ownerIds].some(id => !active.has(String(id)));
-    output.push({
-      kind: neighbor ? 'neighbor' : segment.kind === 'shared' ? 'boundary' : 'edge',
-      a: segment.a,
-      b: segment.b,
-      ownerIds: [...segment.ownerIds],
-      segmentKey: segment.key,
-    });
-  }
-  return output;
-}
-
 function selectedTopologySegmentKeys(topology, predicate) {
   const keys = new Set();
   for (const segment of topology?.segments?.values?.() || []) {
@@ -300,6 +280,8 @@ function pointSegmentDistance(point, a, b) {
 }
 
 export function buildTerritorialInternalBoundarySegments(countries = [], units = [], { precision = 7, epsilon = 1e-7 } = {}) {
+  // No unit can own an internal boundary: do not even inspect country geometry.
+  if (!(units || []).some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) return [];
   const countryFeatures = (countries || [])
     .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
     .map((feature, index) => topologyFeature(feature, 'country', index));
@@ -351,11 +333,7 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
     if (!unitOwners.length || [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')) || nearCountryExterior(segment)) continue;
     const metadata = unitOwners.map(ownerId => unitMeta.get(ownerId)).filter(Boolean);
     if (!metadata.length) continue;
-    const styleType = metadata.some(item => item.type === 'admin')
-      ? 'administrative'
-      : metadata.some(item => item.type === 'region')
-        ? 'region'
-        : 'territory';
+    const styleType = metadata.some(item => item.type === 'region') ? 'region' : 'subunit';
     output.push({
       key: segment.key,
       a: segment.a,

@@ -1,21 +1,19 @@
 export const EXCHANGE_TARGETS = Object.freeze({
   PROJECT: 'project',
   COUNTRY: 'country',
-  TERRITORY: 'territory',
-  ADMINISTRATIVE: 'administrative',
+  SUBUNIT: 'subunit',
   REGION: 'region',
   DISTRIBUTION: 'distribution',
   GENERIC: 'generic',
 });
 
 const text = value => String(value ?? '').trim();
-const TARGET_ALIASES = Object.freeze({ admin: EXCHANGE_TARGETS.ADMINISTRATIVE });
+const TARGET_ALIASES = Object.freeze({ admin: EXCHANGE_TARGETS.SUBUNIT, administrative: EXCHANGE_TARGETS.SUBUNIT, territory: EXCHANGE_TARGETS.SUBUNIT });
 
 export const EXCHANGE_TARGET_DESCRIPTORS = Object.freeze({
   [EXCHANGE_TARGETS.PROJECT]: Object.freeze({ target: EXCHANGE_TARGETS.PROJECT, domain: 'project', replaceOnly: true, fallback: false }),
   [EXCHANGE_TARGETS.COUNTRY]: Object.freeze({ target: EXCHANGE_TARGETS.COUNTRY, domain: 'territorial', replaceOnly: false, fallback: false }),
-  [EXCHANGE_TARGETS.TERRITORY]: Object.freeze({ target: EXCHANGE_TARGETS.TERRITORY, domain: 'territorial', replaceOnly: false, fallback: false }),
-  [EXCHANGE_TARGETS.ADMINISTRATIVE]: Object.freeze({ target: EXCHANGE_TARGETS.ADMINISTRATIVE, domain: 'territorial', replaceOnly: false, fallback: false }),
+  [EXCHANGE_TARGETS.SUBUNIT]: Object.freeze({ target: EXCHANGE_TARGETS.SUBUNIT, domain: 'territorial', replaceOnly: false, fallback: false }),
   [EXCHANGE_TARGETS.REGION]: Object.freeze({ target: EXCHANGE_TARGETS.REGION, domain: 'territorial', replaceOnly: false, fallback: false }),
   [EXCHANGE_TARGETS.DISTRIBUTION]: Object.freeze({ target: EXCHANGE_TARGETS.DISTRIBUTION, domain: 'distribution', replaceOnly: false, fallback: false }),
   [EXCHANGE_TARGETS.GENERIC]: Object.freeze({ target: EXCHANGE_TARGETS.GENERIC, domain: 'generic', replaceOnly: false, fallback: true }),

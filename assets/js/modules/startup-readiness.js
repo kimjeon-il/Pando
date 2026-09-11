@@ -49,7 +49,8 @@ export function resolveStartupLoadPolicy({
     || (!memoryKnown && mobileFallback)
     || (!memoryKnown && !mobileFallback && (!coresKnown || cores <= 4));
   return Object.freeze({
-    mode: constrained ? 'sequential' : 'parallel',
+    mode: 'sequential',
+    reason: 'interaction-first-v1',
     constrained,
     signals: Object.freeze({
       layout: mobileFallback ? 'mobile' : String(layout || 'wide'),

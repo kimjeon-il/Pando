@@ -36,7 +36,7 @@ function shareValue(value) {
   return share;
 }
 
-export function normalizeDistributionLayer(raw) {
+function normalizeDistributionLayer(raw) {
   if (Number(raw?.schemaVersion) !== DISTRIBUTION_SCHEMA_VERSION) throw new Error('분포 레이어 schemaVersion이 현재 형식과 일치하지 않습니다.');
   assertAllowedKeys(raw, LAYER_KEYS, '분포 레이어');
   const type = text(raw?.type).toLowerCase();
@@ -88,7 +88,7 @@ export function normalizeDistributionLayers(value) {
   return output;
 }
 
-export function normalizeDistributionEntry(raw) {
+function normalizeDistributionEntry(raw) {
   if (Number(raw?.schemaVersion) !== DISTRIBUTION_SCHEMA_VERSION) throw new Error('분포 엔트리 schemaVersion이 현재 형식과 일치하지 않습니다.');
   assertAllowedKeys(raw, ENTRY_KEYS, '분포 엔트리');
   const layerId = text(raw?.layerId);

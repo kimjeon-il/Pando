@@ -59,13 +59,13 @@ test('desktop shell keeps a stable three-zone topbar and an accessible file menu
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#fileMenu')).toBeVisible();
   await expect(page.locator('#mobileFileBtn')).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '불러오기', '프로젝트 저장', '데이터 내보내기', '환경설정', '키보드 도움말']);
+  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '불러오기', '프로젝트 저장', '데이터 내보내기', '환경설정']);
   const centerAfter = await page.locator('.topbar-center').boundingBox();
   expect(Math.abs(centerAfter.x - centerBefore.x)).toBeLessThanOrEqual(1);
 
   await expect(page.locator('#newProjectBtn')).toBeFocused();
   await page.keyboard.press('End');
-  await expect(page.locator('#keyboardHelpBtn')).toBeFocused();
+  await expect(page.locator('#preferencesBtn')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.locator('#mobileFileBtn')).toBeFocused();
   await expect(page.locator('#fileMenu')).toBeHidden();
@@ -99,11 +99,8 @@ test('one load command automatically classifies vector data and PandoLab project
   await (await chooserPromise).setFiles(vectorFixture);
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportTitle')).toHaveText('벡터 데이터 불러오기');
-  await expect(page.locator('#gisStepIndicator')).toHaveText('1/5 · 파일 확인');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 가져올 데이터');
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
-  await expect(page.locator('#gisTargetTypeRow')).toBeHidden();
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('2/5 · 가져올 내용');
   await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
   await page.locator('#gisImportCancelBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden();
