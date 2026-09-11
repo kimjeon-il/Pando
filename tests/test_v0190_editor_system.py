@@ -1,3 +1,4 @@
+from tests.application_source import read_application_sources
 from pathlib import Path
 import re
 import unittest
@@ -5,7 +6,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
-APP = (ROOT / "assets/js/app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
+OBJECT_PROPERTIES = (ROOT / "assets/js/modules/object-property-controller.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 
 
@@ -50,7 +52,7 @@ class EditorSystemV0190Tests(unittest.TestCase):
         self.assertIn('id="hydroIdValue"', INDEX)
 
     def test_empty_and_active_states_are_managed_by_one_function(self):
-        function = re.search(r"function showPropertyForm\([\s\S]+?\n  }", APP)
+        function = re.search(r"function show\([\s\S]+?\n  }", OBJECT_PROPERTIES)
         self.assertIsNotNone(function)
         source = function.group(0)
         for element_id in (

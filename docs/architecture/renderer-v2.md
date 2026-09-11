@@ -13,7 +13,7 @@ Project Model
   -> ordered GPU passes
 ```
 
-The pass contract is defined in `assets/js/modules/renderer-v2-contract.js`. The canonical order is terrain, country fills, distribution fills, hydro, base boundaries, territorial boundaries, selection fill, selection stroke, edit preview, then picking.
+The runtime pass order is defined by the actual coordinator and GPU renderer behavior. Architecture-only expectations live in `scripts/lib/renderer-v2-architecture.mjs`; no declarative test contract is downloaded by the browser.
 
 ## Geometry and view ownership
 

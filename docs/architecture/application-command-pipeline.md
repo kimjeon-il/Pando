@@ -51,7 +51,7 @@ mutation 또는 canonical validation이 실패하면 snapshot을 복원하고 �
 
 ## Domain Service migration
 
-`territorial-service.js`, `distribution-service.js`, `generic-feature-service.js`는 `createDocumentMutationRunner()`를 사용한다. 새 bootstrap은 `commandPipeline`을 주입할 수 있고, 현재 app bootstrap의 `runDocumentMutation` callback도 전환 기간 동안 호환된다.
+`territorial-service.js`, `distribution-service.js`, `generic-feature-service.js`는 `createDocumentMutationRunner()`를 사용하며, app bootstrap이 만든 하나의 `ProjectCommandPipeline`만 주입받는다. legacy mutation callback이나 서비스별 history 우회 경로는 지원하지 않는다.
 
 서비스 자체에는 history/render/autosave 호출을 넣지 않는다. 해당 side effect는 application command pipeline 소유다.
 
@@ -79,4 +79,4 @@ delete → object.delete         (document)
 - mutation 실패 시 rollback + history discard
 - document mutation의 revision/render/autosave 순서
 
-새 기능은 기존 compatibility callback을 복제하지 말고 command pipeline 또는 async project transaction 중 하나를 선택한다.
+새 기능은 command pipeline 또는 async project transaction 중 하나를 선택한다. 동기 서비스 mutation은 반드시 domain별 render descriptor를 전달하고, geometry transaction은 pipeline에 등록되지 않은 command로 우회하지 않는다.

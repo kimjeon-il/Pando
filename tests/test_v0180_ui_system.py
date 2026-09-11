@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import re
 import unittest
@@ -6,10 +7,13 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
+LAYER_MODEL = (ROOT / "assets/js/modules/layer-list-model.js").read_text(encoding="utf-8")
+LAYER_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 PHASE_CSS = (ROOT / "assets" / "css" / "phase1-ui-cleanup.css").read_text(encoding="utf-8")
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
+LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "layer-tree-controller.js").read_text(encoding="utf-8")
 
 
 class V0180UiSystemTests(unittest.TestCase):
@@ -21,9 +25,8 @@ class V0180UiSystemTests(unittest.TestCase):
 
     def test_disclosures_use_one_svg_icon(self):
         toggles = re.findall(r'class="ui-button layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)
-        self.assertEqual(len(toggles), 10)
-        self.assertTrue(all('class="ui-icon disclosure-icon"' in toggle for toggle in toggles))
-        self.assertGreaterEqual(INDEX.count('class="ui-icon disclosure-icon"'), 15)
+        self.assertEqual(len(toggles), 0)
+        self.assertIn("createIcon('chevronDown', 'ui-icon disclosure-icon')", LAYER_CONTROLLER)
         self.assertNotIn('>›</button>', INDEX)
         self.assertNotIn("content: '⌄'", CSS)
         self.assertIn(".editor-disclosure > summary::-webkit-details-marker { display: none; }", CSS)
@@ -50,7 +53,7 @@ class V0180UiSystemTests(unittest.TestCase):
         self.assertEqual(INDEX.count('class="layer-skeleton-group"'), 3)
         self.assertEqual(INDEX.count('class="layer-skeleton-row"'), 10)
         self.assertIn('.layer-panel-section.is-hydrating .layer-real-items { display: none; }', CSS)
-        self.assertIn('async function completeLayerTreeHydration()', APP)
+        self.assertIn('const completeHydration = async', LAYER_TREE)
         self.assertNotIn('body.is-hydrating', CSS)
 
     def test_native_selection_controls_are_visually_normalized(self):

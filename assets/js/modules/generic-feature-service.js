@@ -6,7 +6,7 @@ import {
 import { GENERIC_FEATURE_SCHEMA_VERSION } from './version-contract.js';
 
 export { GENERIC_FEATURE_SCHEMA_VERSION };
-export const LEGACY_GENERIC_FEATURE_SCHEMA_VERSION = 1;
+const LEGACY_GENERIC_FEATURE_SCHEMA_VERSION = 1;
 
 // Deprecated compatibility metadata. Generic Feature v2 has no territorial role semantics;
 // these values only expose preserved v1 data to legacy callers until their UI paths are removed.
@@ -35,10 +35,6 @@ export function genericFeatureGeometryKind(feature) {
   return 'unknown';
 }
 
-export function genericFeatureRoleRule(role) {
-  return GENERIC_FEATURE_ROLE_RULES[role] || GENERIC_FEATURE_ROLE_RULES.generic;
-}
-
 function legacyDetails(feature) {
   const details = feature?.properties?.source?.details;
   return plainObject(details?.legacyGenericSemantics) ? details.legacyGenericSemantics : {};
@@ -47,11 +43,6 @@ function legacyDetails(feature) {
 export function genericFeatureRole(feature) {
   const role = text(legacyDetails(feature).role);
   return GENERIC_FEATURE_ROLE_RULES[role] ? role : 'generic';
-}
-
-export function genericFeatureRoleCompatible(feature, role) {
-  const expected = genericFeatureRoleRule(role).geometry;
-  return expected === 'any' || expected === genericFeatureGeometryKind(feature);
 }
 
 export function genericFeatureLandBinding(feature) {
@@ -154,8 +145,16 @@ function writeLegacyCompatibilityField(feature, field, value) {
   feature.properties.source = normalizeSourceProvenance({ ...source, details });
 }
 
-export function createGenericFeatureService({ documentStore, commandPipeline = null, runDocumentMutation = null, writeColor }) {
-  const mutateDocument = createDocumentMutationRunner({ commandPipeline, runDocumentMutation });
+function applyGenericMetadata(feature, field, value, writeColor) {
+  if (field === 'color') writeColor(feature, value);
+  else if (field === 'source') feature.properties.source = normalizeSourceProvenance(value, { kind: SOURCE_KINDS.UNSUPPORTED });
+  else if (LEGACY_SEMANTIC_KEY_SET.has(field)) writeLegacyCompatibilityField(feature, field, value);
+  else if (['name', 'notes', 'locked'].includes(field)) feature.properties[field] = field === 'locked' ? value === true : text(value);
+  else throw new Error(`기타 객체에 지원하지 않는 필드 ${field}가 있습니다.`);
+}
+
+export function createGenericFeatureService({ documentStore, commandPipeline, writeColor }) {
+  const mutateDocument = createDocumentMutationRunner({ commandPipeline });
   const genericFeatures = () => documentStore.readFeatures();
   const get = id => genericFeatures().find(feature => text(feature.id) === text(id)) || null;
 
@@ -164,7 +163,7 @@ export function createGenericFeatureService({ documentStore, commandPipeline = n
     if (get(normalized.id)) throw new Error(`기타 객체 ID가 중복되었습니다: ${normalized.id}`);
     mutateDocument({ type: 'generic-feature-create', affectedIds: [text(normalized.id)] }, () => {
       documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), normalized]));
-    });
+    }, { renderDirty: { domain: 'generic', change: 'geometry' } });
     return get(normalized.id);
   }
 
@@ -172,21 +171,22 @@ export function createGenericFeatureService({ documentStore, commandPipeline = n
     const normalized = normalizeGenericFeatureCollection(features);
     mutateDocument({ type: 'generic-feature-import', affectedIds: normalized.map(feature => text(feature.id)) }, () => {
       documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), ...normalized]));
-    });
+    }, { renderDirty: { domain: 'generic', change: 'structure' } });
     return normalized.map(feature => get(feature.id));
   }
 
   function updateMetadata(id, field, value) {
     const current = get(id);
     if (!current) return { ok: false, code: 'not-found' };
+    const candidate = clone(current);
+    applyGenericMetadata(candidate, field, value, writeColor);
+    if (JSON.stringify(candidate.properties) === JSON.stringify(current.properties)) {
+      return { ok: true, changed: false, feature: current };
+    }
     mutateDocument({ type: 'generic-feature-metadata', affectedIds: [text(current.id)] }, () => {
-      if (field === 'color') writeColor(current, value);
-      else if (field === 'source') current.properties.source = normalizeSourceProvenance(value, { kind: SOURCE_KINDS.UNSUPPORTED });
-      else if (LEGACY_SEMANTIC_KEY_SET.has(field)) writeLegacyCompatibilityField(current, field, value);
-      else if (['name', 'notes', 'locked'].includes(field)) current.properties[field] = field === 'locked' ? value === true : text(value);
-      else throw new Error(`기타 객체에 지원하지 않는 필드 ${field}가 있습니다.`);
-    });
-    return { ok: true, feature: current };
+      applyGenericMetadata(current, field, value, writeColor);
+    }, { renderDirty: { domain: 'generic', change: 'metadata' } });
+    return { ok: true, changed: true, feature: current };
   }
 
   function remove(id, { beforeRemove = () => {} } = {}) {
@@ -195,7 +195,7 @@ export function createGenericFeatureService({ documentStore, commandPipeline = n
     mutateDocument({ type: 'generic-feature-delete', affectedIds: [text(feature.id)] }, () => {
       beforeRemove(feature);
       documentStore.replaceFeatures(genericFeatures().filter(candidate => text(candidate.id) !== text(feature.id)));
-    });
+    }, { renderDirty: { domain: 'generic', change: 'structure' } });
     return { ok: true, feature };
   }
 

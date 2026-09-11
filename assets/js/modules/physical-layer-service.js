@@ -46,8 +46,17 @@ export function createHydroService({
   acceptManifest,
   onFailure,
 }) {
-  async function load(force = false) {
-    if (!force && ['loading', 'ready'].includes(getLoadState())) return false;
+  let pendingLoad = null;
+
+  function load(force = false) {
+    // Consumers need the same readiness result, not an early duplicate-load failure.
+    if (pendingLoad) return pendingLoad;
+    if (!force && getLoadState() === 'ready') return Promise.resolve(true);
+    pendingLoad = Promise.resolve().then(loadManifest).finally(() => { pendingLoad = null; });
+    return pendingLoad;
+  }
+
+  async function loadManifest() {
     onLoading();
     try {
       const url = manifestUrl();

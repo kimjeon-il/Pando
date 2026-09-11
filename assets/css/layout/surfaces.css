@@ -1,18 +1,37 @@
+[data-layout="compact"] .topbar,
+[data-layout="mobile"] .topbar {
+  padding-block: var(--ui-space-3);
+  padding-inline: max(var(--ui-surface-content-rail-x), env(safe-area-inset-left)) max(var(--ui-surface-content-rail-x), env(safe-area-inset-right));
+}
+
 [data-layout="wide"] .surface-map {
   width: var(--ui-shell-left-panel-width);
 }
 
-[data-layout="wide"] .surface-create {
-  width: var(--ui-surface-create-wide-width);
-  max-height: calc(
-    100dvh
-    - var(--ui-shell-topbar-height)
-    - var(--ui-control-height)
-    - (var(--ui-map-edge) * 3)
-  );
+/* The wide dock has no workspace navigation; retain the shared narrow controls. */
+[data-layout="wide"] .adaptive-nav { display: none; }
+
+/* Both desktop surfaces end at the same persistent status boundary. */
+[data-layout="wide"] .workspace-surface,
+[data-layout="compact"] .workspace-surface {
+  bottom: var(--ui-shell-statusbar-height);
 }
 
-[data-layout="wide"] :is(.surface-create, .surface-editor) {
+[data-layout="wide"] .map-bottom-status,
+[data-layout="compact"] .map-bottom-status {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+[data-layout="wide"] .map-bottom-status .status-inner,
+[data-layout="compact"] .map-bottom-status .status-inner {
+  left: 0;
+  right: 0;
+}
+
+[data-layout="wide"] .surface-editor {
   --ui-surface-border-top: var(--ui-border-width) solid var(--border);
   --ui-surface-border-right: var(--ui-border-width) solid var(--border);
   --ui-surface-border-bottom: var(--ui-border-width) solid var(--border);
@@ -31,6 +50,7 @@
 [data-layout="wide"] .workspace-surface > .surface-header,
 [data-layout="compact"] .workspace-surface > .surface-header {
   display: grid;
+  min-height: var(--ui-v2-surface-header-height-desktop);
 }
 
 [data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) {
@@ -40,8 +60,8 @@
 [data-layout="compact"] .workspace-surface {
   position: fixed;
   z-index: 36;
-  top: var(--ui-surface-header-height-compact);
-  bottom: var(--ui-control-height);
+  top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
+  bottom: var(--ui-shell-statusbar-height);
   width: var(--compact-drawer-width, var(--ui-shell-compact-drawer-width));
   max-height: none;
   opacity: 0;
@@ -58,7 +78,7 @@
   --ui-surface-shadow: var(--control-shadow);
 }
 
-[data-layout="compact"] :is(.surface-map, .surface-create) {
+[data-layout="compact"] .surface-map {
   right: auto;
   left: var(--ui-shell-compact-inset);
   transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
@@ -70,8 +90,7 @@
   transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
 }
 
-[data-layout="compact"] :is(.surface-map.mobile-open, .surface-editor.mobile-open),
-body.create-menu-open [data-layout="compact"] .surface-create {
+[data-layout="compact"] :is(.surface-map.mobile-open, .surface-editor.mobile-open){
   transform: translateX(0);
   opacity: 1;
   visibility: visible;
@@ -87,6 +106,7 @@ body.create-menu-open [data-layout="compact"] .surface-create {
   left: 0;
   width: 100%;
   height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
+  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--ui-v2-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
   max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   opacity: 0;
@@ -99,7 +119,7 @@ body.create-menu-open [data-layout="compact"] .surface-create {
   --ui-surface-shadow: var(--control-shadow);
 }
 
-[data-layout="mobile"] :is(.surface-map, .surface-create) {
+[data-layout="mobile"] .surface-map {
   height: var(--sheet-height, var(--ui-v2-sheet-snap-layer-half));
 }
 
@@ -110,18 +130,33 @@ body.create-menu-open [data-layout="compact"] .surface-create {
   pointer-events: auto;
 }
 
+[data-layout="mobile"] .workspace-surface.mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
+  height: var(--sheet-drag-height, var(--sheet-height));
+  transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
+}
+
+[data-layout="mobile"] .workspace-surface.is-sheet-dragging {
+  transition: none;
+  will-change: transform;
+}
+
+[data-layout="mobile"] .workspace-surface.is-sheet-settling {
+  will-change: transform;
+}
+
 [data-layout="mobile"] .surface-header {
   display: grid;
-  flex-basis: var(--ui-surface-header-height-mobile);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(var(--ui-touch-height), auto) auto;
+  flex-basis: auto;
   min-height: var(--ui-surface-header-height-mobile);
-  padding-block:
-    calc(var(--ui-surface-mobile-handle-space) + var(--ui-space-2))
-    var(--ui-space-2);
+  padding-block: 0 var(--ui-space-2);
   touch-action: none;
   cursor: ns-resize;
 }
 
-[data-layout="mobile"] .surface-header .sheet-close-btn {
+[data-layout="mobile"] .surface-header .sheet-close-btn,
+[data-layout="mobile"] .surface-header .surface-header-actions {
   display: none;
 }
 

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { layoutLabels, layoutLabelsLegacy } from '../../assets/js/modules/label-layout.js';
+import { layoutLabels } from '../../assets/js/modules/label-layout.js';
+import { layoutLabelsLegacy } from '../../tools/benchmark-helpers/legacy-label-layout.mjs';
 
 function seededRandom(seed) {
   let value = seed >>> 0;

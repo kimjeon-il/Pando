@@ -4,7 +4,7 @@ const POINTER_GROUPS = Object.freeze({
   touch: 'coarse',
 });
 
-export const DRAFT_STROKE_PROFILES = Object.freeze({
+const DRAFT_STROKE_PROFILES = Object.freeze({
   boundary: Object.freeze({
     sampleDistance: Object.freeze({ fine: 4, coarse: 8 }),
     simplifyTolerance: Object.freeze({ fine: 2.5, coarse: 4 }),
@@ -30,7 +30,7 @@ const squaredDistance = (left, right) => {
   return dx * dx + dy * dy;
 };
 
-export function draftPointerGroup(pointerType) {
+function draftPointerGroup(pointerType) {
   return POINTER_GROUPS[pointerType] || 'fine';
 }
 

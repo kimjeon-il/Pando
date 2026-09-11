@@ -80,7 +80,8 @@ test('double click never completes a draft implicitly', async ({ page }) => {
 test('mobile touch stroke draws, while a second touch cancels raw input for map gestures', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
-  await page.locator('#mobileCreateBtn').click();
+  if (!(await page.locator('#createMenuBtn').isVisible())) await page.locator('#mobileMapBtn').click();
+  await page.locator('#createMenuBtn').click();
   await page.locator('#addLakeBtn').click();
   const box = await page.locator('#map').boundingBox();
   expect(box).not.toBeNull();

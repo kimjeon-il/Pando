@@ -7,47 +7,29 @@
   gap: var(--ui-field-gap);
 }
 
+/* Shared flat section grammar, independent of panel width or purpose. */
+.surface-content .editor-section,
+.map-view-settings > .layer-style-editor {
+  display: grid;
+  gap: var(--ui-field-gap);
+  padding: var(--ui-space-4) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 :where(.ui-content-field, .editor-field) {
   min-width: 0;
   display: grid;
   gap: var(--ui-field-label-gap);
 }
 
-:where(.ui-action-list, .editor-action-list, .editor-action-grid, .editor-action-grid-two) {
+:where(.ui-action-list, .editor-action-list) {
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--ui-space-2);
 }
-
-.editor-action-button {
-  width: 100%;
-  min-width: 0;
-  min-height: var(--ui-content-action-min-height);
-  display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  align-items: center;
-  gap: var(--ui-space-3);
-  padding: 0 var(--ui-control-padding-x);
-  border-radius: var(--ui-radius-control);
-  box-shadow: none;
-}
-
-.editor-action-button > span {
-  grid-row: auto;
-  display: grid;
-  place-items: center;
-}
-
-.editor-action-button > strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.editor-action-button > small { display: none; }
 
 :where(.ui-property-list, .ui-info-list.editor-info-list) {
   border: 0;
@@ -61,6 +43,15 @@
   border: 0;
   border-radius: 0;
   background: transparent;
+  box-shadow: none;
+}
+
+:is(.gis-import-status, .territorial-type-impact, .ui-callout, .ui-alert, .editor-help):empty {
+  display: none;
+  min-height: 0;
+}
+
+.ui-info-list {
   box-shadow: none;
 }
 
@@ -100,6 +91,10 @@
   -webkit-line-clamp: var(--ui-object-context-name-lines);
   text-overflow: ellipsis;
   white-space: normal;
+  color: var(--text);
+  font-size: var(--ui-v2-font-xl);
+  font-weight: var(--ui-v2-weight-bold);
+  line-height: var(--ui-v2-line-title);
 }
 
 :where(.ui-object-context-meta, .editor-object-meta) {
@@ -112,19 +107,73 @@
 :where(.ui-object-context-meta, .editor-object-meta) > span {
   min-width: 0;
   color: var(--muted);
-  font-size: var(--ui-font-body);
+  font-size: var(--ui-v2-font-xs);
   font-weight: var(--ui-weight-regular);
   line-height: var(--ui-line-tight);
 }
 
-/* Layer folder actions live in a trailing rail; keep the primary name clear
- * while preserving the existing disclosure and style controls. */
-.layer-folder-row > .layer-folder-name {
-  padding-inline-end: calc((var(--ui-tree-action-size) * 2) + var(--ui-space-2));
+
+
+.layer-child {
+  --selection-strong-bg: transparent;
+  --selection-strong-fg: var(--text-strong);
+  --selection-strong-muted: var(--text-soft);
+  position: relative;
+}
+
+/* Preferences is available before lazy workflow styles have loaded. */
+.preferences-accent-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr)); gap: var(--ui-v2-button-gap); align-items: center; }
+
+.layer-child.ui-selectable-row.is-selected { border-color: transparent; }
+
+.layer-child.is-active {
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+
+.layer-child.is-active::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: var(--ui-space-1-5);
+  inset-block-end: var(--ui-space-1-5);
+  width: var(--ui-space-0-5);
+  border-radius: var(--ui-space-0-5);
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.layer-folder-row > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker),
+.layer-child > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker) {
+  display: none;
 }
 
 @media (max-width: 799px) {
-  .layer-folder-row > .layer-folder-name {
-    padding-inline-end: calc((var(--ui-tree-action-size-touch) * 2) + var(--ui-space-2));
-  }
+
+}
+
+/* Layer row surfaces: feature states do not redefine component skin. */
+
+.layer-panel-footer { border-top: 1px solid var(--border); background: var(--surface-elevated); padding: var(--ui-space-2) var(--ui-surface-content-rail-x); padding-bottom: max(var(--ui-space-2), env(safe-area-inset-bottom));
+}
+.app-root .layer-action-bar > .icon-btn { padding: 0; border: 0; background: transparent; box-shadow: none;
+}
+.app-root .layer-action-bar > .icon-btn:is(:hover, :focus-visible):not(:disabled) { background: var(--surface-hover);
+}
+@media (max-width: 799px) {
+  .app-root .topbar-center { padding: 0;
+}}
+.app-root .layer-bundle-row { padding: 0 var(--ui-row-padding-x);
+}
+.layer-bundle-toggle { padding: 0; border: 0; background: transparent;
+}
+.app-root .layer-child-name { background: transparent;
+}
+.app-root .layer-child[data-bundle-member] { padding-inline-start: calc(var(--ui-row-padding-x) + var(--ui-space-5));
+}
+.app-root .layer-child.layer-hierarchy-row {
+  padding-inline-start: calc(var(--ui-row-padding-x) + var(--layer-depth, 0) * var(--ui-icon-size));
+}
+.app-root .layer-child.layer-search-result { padding: 0 var(--ui-row-padding-x);
+}
+.layer-type-settings { padding-block: var(--ui-space-2); border-top: 0;
 }

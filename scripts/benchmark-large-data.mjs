@@ -1,6 +1,7 @@
 import { performance } from 'node:perf_hooks';
 
-import { layoutLabels, layoutLabelsLegacy } from '../assets/js/modules/label-layout.js';
+import { layoutLabels } from '../assets/js/modules/label-layout.js';
+import { layoutLabelsLegacy } from '../tools/benchmark-helpers/legacy-label-layout.mjs';
 import { createMapObjectSpatialIndex } from '../assets/js/modules/map-object-spatial-index.js';
 import { buildTerritorialInternalBoundarySegments } from '../assets/js/modules/boundary-topology.js';
 

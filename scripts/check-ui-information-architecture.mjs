@@ -26,28 +26,16 @@ function elementById(id, tag = '[a-z][\\w-]*') {
   return html.match(pattern)?.[0] || '';
 }
 
-function openingTagById(id) {
-  const idIndex = Math.max(html.indexOf(`id="${id}"`), html.indexOf(`id='${id}'`));
-  if (idIndex < 0) return '';
-  const start = html.lastIndexOf('<', idIndex);
-  const end = html.indexOf('>', idIndex);
-  return start >= 0 && end >= 0 ? html.slice(start, end + 1) : '';
-}
-
 function textById(id) {
   return stripTags(elementById(id));
 }
 
-// Create surface: acquisition route first, then canonical object taxonomy.
-if (textById('createBuildTabBtn') !== '만들기') fail('create primary route must be "만들기"');
-if (textById('createLibraryTabBtn') !== '라이브러리') fail('create secondary route must be "라이브러리"');
-for (const [tabId, panelId] of [['createBuildTabBtn', 'createBuildPanel'], ['createLibraryTabBtn', 'createLibraryPanel']]) {
-  const tag = openingTagById(tabId);
-  if (!tag.includes(`aria-controls="${panelId}"`)) fail(`#${tabId} must control #${panelId}`);
-}
+// Create commands and library acquisition share one list, without route tabs.
+if (/id="(?:createBuildTabBtn|createLibraryTabBtn|createLibraryPanel)"/.test(html)) fail('create menu must not retain route tabs');
+if (textById('addFromLibraryBtn') !== '라이브러리에서 추가') fail('library entry must be named 라이브러리에서 추가');
 
 const buildStart = html.indexOf('id="createBuildPanel"');
-const libraryStart = html.indexOf('id="createLibraryPanel"');
+const libraryStart = html.indexOf('class="create-menu-category create-library-actions"');
 const buildPanel = buildStart >= 0 && libraryStart > buildStart ? html.slice(buildStart, libraryStart) : '';
 if (!buildPanel) fail('create build panel could not be resolved');
 const categoryContract = MAP_OBJECT_CATEGORY_ORDER.map(category => {
@@ -55,7 +43,7 @@ const categoryContract = MAP_OBJECT_CATEGORY_ORDER.map(category => {
   return [category, descriptor.label, descriptor.createItems];
 });
 let previousCategoryIndex = -1;
-for (const [category, label, types] of categoryContract) {
+for (const [category, , types] of categoryContract) {
   const marker = `data-map-category="${category}"`;
   const categoryIndex = buildPanel.indexOf(marker);
   if (categoryIndex < 0) fail(`create build panel is missing category ${category}`);
@@ -66,7 +54,6 @@ for (const [category, label, types] of categoryContract) {
     .filter(index => index > categoryIndex)
     .sort((a, b) => a - b)[0] ?? buildPanel.length;
   const categoryBody = buildPanel.slice(categoryIndex, nextCategoryIndex);
-  if (!categoryBody.includes(`>${label}<`)) fail(`create category ${category} must use registry label "${label}"`);
   for (const type of types) {
     if (!categoryBody.includes(`data-map-object-type="${type}"`)) fail(`create category ${category} is missing registry object type ${type}`);
   }
@@ -77,7 +64,7 @@ const libraryPanel = libraryStart >= 0 ? html.slice(libraryStart, html.indexOf('
 if (!libraryPanel.includes('id="addFromLibraryBtn"')) fail('library route must expose the library entry action');
 if (/data-map-object-type=/.test(libraryPanel)) fail('library route must remain an acquisition route, not an object category');
 
-// Editor surface: Surface identity lives in the header; object identity lives below tabs.
+// Editor surface: object context stays visible above the property/action tabs.
 const rightStart = html.indexOf('id="rightPanel"');
 const rightEnd = rightStart >= 0 ? html.indexOf('</aside>', rightStart) : -1;
 const editor = rightStart >= 0 && rightEnd > rightStart ? html.slice(rightStart, rightEnd) : '';
@@ -94,7 +81,7 @@ for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectSt
 const tabsIndex = editor.indexOf('class="ui-tabs surface-tabs editor-view-tabs');
 const bodyIndex = editor.indexOf('id="editorScrollBody"');
 const contextIndex = editor.indexOf('id="editorObjectHeader"');
-if (!(tabsIndex >= 0 && bodyIndex > tabsIndex && contextIndex > bodyIndex)) fail('editor hierarchy must be header → tabs → body → ObjectContext');
+if (!(contextIndex > headerEnd && tabsIndex > contextIndex && bodyIndex > tabsIndex)) fail('editor hierarchy must be header → ObjectContext → tabs → body');
 const contextEnd = contextIndex >= 0 ? editor.indexOf('</section>', contextIndex) : -1;
 const objectContext = contextIndex >= 0 && contextEnd > contextIndex ? editor.slice(contextIndex, contextEnd) : '';
 for (const requiredId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
@@ -104,16 +91,16 @@ if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext 
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
-const deleteSectionIndex = editor.indexOf('id="editorDeleteActions"');
-const deleteButtonIndex = editor.indexOf('id="objectDeleteBtn"');
-const lastObjectViewIndex = Math.max(
-  ...['countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties', 'distributionProperties', 'genericFeatureProperties', 'labelProperties', 'hydroProperties']
-    .map(id => editor.indexOf(`id="${id}"`)),
-);
-if (!(deleteSectionIndex > lastObjectViewIndex && deleteButtonIndex > deleteSectionIndex)) fail('delete must live after object editors in the final danger section');
-const deleteTag = openingTagById('editorDeleteActions');
-if (!/\beditor-common-danger\b/.test(deleteTag)) fail('editor delete section must be explicitly marked as a danger section');
-if ((editor.match(/id="objectDeleteBtn"/g) || []).length !== 1) fail('editor must expose exactly one primary delete action');
+const footer = html.match(/<footer class="layer-panel-footer">([\s\S]*?)<\/footer>/)?.[1] || '';
+if (!html.includes('id="layerSearchInput"')) fail('layer search must remain available');
+if ((html.match(/id="createMenuBtn"/g) || []).length !== 1) fail('#createMenuBtn must have one owner');
+for (const id of ['createMenuBtn', 'objectLockBtn', 'objectDeleteBtn']) {
+  if (!footer.includes(`id="${id}"`)) fail(`layer footer must own #${id}`);
+  if ((html.match(new RegExp(`id="${id}"`, 'g')) || []).length !== 1) fail(`#${id} must have one owner`);
+}
+// Single and multiple selection share one object context, not a duplicate footer summary.
+if ((html.match(/id="editorObjectHeader"/g) || []).length !== 1) fail('selection context must have one owner');
+if (editor.includes('id="objectDeleteBtn"') || editor.includes('id="objectLockBtn"')) fail('property editors must not duplicate layer actions');
 
 if (!uiTokens.includes('--ui-object-context-name-lines: 2;')) fail('ObjectContext name line budget must remain two lines');
 if (!contentCss.includes('-webkit-line-clamp: var(--ui-object-context-name-lines);') || !contentCss.includes('white-space: normal;')) {

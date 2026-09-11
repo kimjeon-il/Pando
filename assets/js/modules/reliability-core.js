@@ -71,7 +71,7 @@ export function retryDelay(attempt, {
   return Math.max(0, Math.round(exponential - spread + random() * spread * 2));
 }
 
-export async function delayWithSignal(ms, signal) {
+async function delayWithSignal(ms, signal) {
   if (signal?.aborted) throw signal.reason || new DOMException('Aborted', 'AbortError');
   await new Promise((resolve, reject) => {
     let settled = false;

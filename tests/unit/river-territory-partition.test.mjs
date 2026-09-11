@@ -44,6 +44,23 @@ test('one crossing river creates two disjoint donor cells', () => {
   assert.equal(result.donorResults[0].status, 'ready');
 });
 
+test('near-boundary endpoints node the boundary interior within 0.5m only', () => {
+  // Degree offsets at the equator: 0.03m and 0.6m respectively.
+  for (const [gapM, count] of [[0.03, 2], [0.6, 0]]) {
+    const gap = gapM / 111195.0802335329;
+    const rivers = [river('near-boundary', [[0.5, gap], [0.5, 1 - gap]])];
+    const before = structuredClone({ square, rivers });
+    const result = partition([square], rivers);
+    assert.equal(result.candidates.length, count, `gap ${gapM}m`);
+    assert.deepEqual({ square, rivers }, before);
+    if (count) {
+      const coverage = clipper.union(...result.candidates.map(candidate => [candidate.geometry.coordinates]));
+      assert.deepEqual(clipper.difference([square.geometry.coordinates], coverage), []);
+      assert.deepEqual(clipper.difference(coverage, [square.geometry.coordinates]), []);
+    }
+  }
+});
+
 test('all crossing rivers form one final non-overlapping subdivision', () => {
   const result = partition([square], [
     river('vertical', [[0.5, -1], [0.5, 2]]),
@@ -154,7 +171,7 @@ test('input order does not change candidate keys and inputs remain immutable', (
   const second = partition([square], [...rivers].reverse());
   assert.deepEqual(first.candidates.map(candidate => candidate.key), second.candidates.map(candidate => candidate.key));
   assert.deepEqual({ square, rivers }, before);
-  assert.equal(RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION, 'river-partitions-v1');
+  assert.equal(RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION, 'river-partitions-v2');
   assert.notEqual(
     riverTerritoryPartitionConfigFingerprint(RIVER_TERRITORY_PARTITION_CONFIG),
     riverTerritoryPartitionConfigFingerprint({ ...RIVER_TERRITORY_PARTITION_CONFIG, minRiverEdgeM: 20 }),

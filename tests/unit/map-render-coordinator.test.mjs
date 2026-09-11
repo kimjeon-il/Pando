@@ -1,21 +1,28 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
+import {
+  createMapRenderCoordinator,
+  MAP_RENDER_DIRTY,
+  MAP_RENDER_MASKS,
+  RenderInvalidationError,
+} from '../../assets/js/modules/map-render-coordinator.js';
 
 function fixture() {
   const calls = [];
   const frames = [];
   const viewState = Object.freeze({ revision: 7, projection: 'globe' });
+  const viewFrameResult = Object.freeze({ succeeded: true, selection: { succeeded: true } });
   const names = [
     'view',
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
     'territorialUnits', 'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
     'selectionData', 'selectionView', 'selectionStyle', 'validation', 'countryLabelPositions', 'userLabelPositions',
-    'labelLayout', 'countryLabels', 'userLabels', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
+    'labelLayout', 'countryLabels', 'userLabels', 'viewPresentation', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
   ];
   const renderers = Object.fromEntries(names.map(name => [name, (...args) => {
     calls.push([name, ...args]);
+    if (name === 'view') return viewFrameResult;
     return name === 'labelLayout' ? { countryLabels: [], userLabels: [] } : undefined;
   }]));
   const coordinator = createMapRenderCoordinator({
@@ -23,16 +30,21 @@ function fixture() {
     prepareView: () => { calls.push(['prepare']); return viewState; },
     renderers,
   });
-  return { calls, frames, coordinator, viewState };
+  return { calls, frames, coordinator, viewState, viewFrameResult };
 }
 
 test('full render preserves canonical layer order and revision', () => {
-  const { calls, coordinator, viewState } = fixture();
-  assert.deepEqual(coordinator.renderFull(), { renderRevision: 1, viewRevision: 7, viewState, viewOnly: false });
+  const { calls, frames, coordinator, viewState } = fixture();
+  for (const method of ['renderFull', 'renderView', 'renderFrame', 'isInteractionActive', 'advanceRevision', 'scheduleFull', 'scheduleView', 'revision']) {
+    assert.equal(coordinator[method], undefined, `${method} is not a public coordinator method`);
+  }
+  assert.equal(coordinator.invalidate(MAP_RENDER_MASKS.PROJECT, 'test-full'), true);
+  frames.shift()();
+  assert.equal(coordinator.getStats().renderRevision, 1);
   assert.deepEqual(calls.map(call => call[0]), [
     'prepare', 'base', 'hydro', 'hydroEdits', 'territorialUnits',
-    'distributions', 'genericFeatures', 'stackOverlays', 'countries', 'geometryPreview', 'validation', 'selectionData',
-    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'layerTree', 'debug',
+    'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'countries', 'geometryPreview', 'validation', 'selectionData',
+    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'viewPresentation', 'layerTree', 'debug',
   ]);
   assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
   assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'countryLabels', 'userLabels', 'debug', 'layerTree'].includes(call[0])).every(call => call[1] === viewState), true);
@@ -43,36 +55,42 @@ test('full render preserves canonical layer order and revision', () => {
 });
 
 test('view render refreshes projection-dependent layers with the shared view state', () => {
-  const { calls, coordinator } = fixture();
-  coordinator.renderView();
+  const { calls, frames, coordinator, viewState, viewFrameResult } = fixture();
+  assert.equal(coordinator.invalidate(MAP_RENDER_MASKS.VIEW, 'test-view'), true);
+  frames.shift()();
   assert.equal(calls.some(call => call[0] === 'hydro'), false);
   assert.equal(calls.some(call => call[0] === 'view'), true);
   assert.equal(calls.some(call => call[0] === 'projectedOverlays'), false);
   assert.equal(calls.some(call => call[0] === 'layerTree'), false);
   assert.equal(calls.some(call => call[0] === 'selectionData'), false);
   assert.equal(calls.some(call => call[0] === 'selectionView'), true);
+  const fallbackCall = calls.find(call => call[0] === 'selectionView');
+  assert.equal(fallbackCall[1], viewState);
+  assert.equal(fallbackCall[2], viewFrameResult);
+  assert.deepEqual(fallbackCall[3], { viewOnly: true, updateData: false, sparseFallbackOnly: true });
+  assert.equal(coordinator.getStats().lastDirtyMask & MAP_RENDER_DIRTY.SELECTION_VIEW, 0);
   assert.equal(calls.some(call => call[0] === 'countries'), false);
-  assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), true);
+  assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), false);
+  assert.equal(calls.some(call => call[0] === 'viewPresentation'), true);
 });
 
 test('scheduled view and full renders merge into one full frame', () => {
   const { calls, frames, coordinator } = fixture();
-  assert.equal(coordinator.scheduleView('pan'), true);
-  assert.equal(coordinator.scheduleFull('selection'), false);
-  assert.equal(coordinator.scheduleView('resize'), false);
+  assert.equal(coordinator.invalidate(MAP_RENDER_MASKS.VIEW, 'pan'), true);
+  assert.equal(coordinator.invalidate(MAP_RENDER_MASKS.PROJECT, 'selection'), false);
+  assert.equal(coordinator.invalidate(MAP_RENDER_MASKS.RESIZE, 'resize'), false);
   assert.equal(frames.length, 1);
   frames.shift()();
-  assert.equal(coordinator.revision(), 1);
+  assert.equal(coordinator.getStats().renderRevision, 1);
   assert.equal(calls.some(call => call[0] === 'hydro'), true);
   assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), false);
   assert.deepEqual(coordinator.getStats().lastReasons, ['pan', 'selection', 'resize']);
-  assert.equal(coordinator.advanceRevision(), 2);
 });
 
 test('interaction end coalesces settle work into the pending frame', () => {
   const { calls, frames, coordinator } = fixture();
   coordinator.beginInteraction();
-  coordinator.scheduleView('drag');
+  coordinator.invalidate(MAP_RENDER_MASKS.VIEW, 'drag');
   assert.equal(coordinator.endInteraction('settle'), true);
   assert.equal(frames.length, 1);
   frames.shift()();
@@ -81,11 +99,12 @@ test('interaction end coalesces settle work into the pending frame', () => {
   assert.equal(coordinator.getStats().fullRenderCount, 0);
 });
 
-test('GPU-only invalidation does not rebuild overlay data', () => {
+test('GPU-only invalidation redraws the shared view without rebuilding overlay data', () => {
   const { calls, frames, coordinator } = fixture();
-  coordinator.invalidate('gpu-frame', 'tile-ready');
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME, 'tile-ready');
   frames.shift()();
-  assert.equal(calls.some(call => call[0] === 'countries'), true);
+  assert.equal(calls.some(call => call[0] === 'view'), true);
+  assert.equal(calls.some(call => call[0] === 'countries'), false);
   assert.equal(calls.some(call => call[0] === 'hydro'), false);
   assert.equal(calls.some(call => call[0] === 'projectedOverlays'), false);
 });
@@ -156,9 +175,107 @@ test('frame completion reports measured interaction state without changing rende
     onFrameComplete: sample => samples.push(sample),
   });
   coordinator.beginInteraction('drag');
-  coordinator.scheduleView('drag-frame');
+  coordinator.invalidate(MAP_RENDER_MASKS.VIEW, 'drag-frame');
   frames.shift()();
   assert.equal(samples.length, 1);
   assert.equal(samples[0].interactionActive, true);
   assert.ok(samples[0].durationMs > 0);
+});
+
+test('invalid masks throw in strict mode without queuing or widening a frame', () => {
+  const { coordinator, frames } = fixture();
+  for (const input of [0, 'view', {}, Number.NaN, Number.POSITIVE_INFINITY, 1 << 29, 2 ** 32]) {
+    assert.throws(
+      () => coordinator.invalidate(input, 'invalid-test'),
+      error => error instanceof RenderInvalidationError && error.code === 'PL-RENDER-MASK-001',
+    );
+  }
+  assert.equal(frames.length, 0);
+  assert.equal(coordinator.getStats().requestCount, 0);
+  assert.equal(coordinator.getStats().invalidMaskCount, 7);
+
+  coordinator.invalidate(MAP_RENDER_MASKS.VIEW, 'valid-view');
+  assert.throws(() => coordinator.invalidate('full', 'invalid-after-valid'), /Invalid render invalidation mask/);
+  assert.equal(frames.length, 1);
+  frames.shift()();
+  assert.equal(coordinator.getStats().lastRequestedMask, MAP_RENDER_MASKS.VIEW);
+  assert.equal(coordinator.getStats().fullRenderCount, 0);
+});
+
+test('invalid masks are safely reported in production mode', () => {
+  const frames = [];
+  const errors = [];
+  const coordinator = createMapRenderCoordinator({
+    requestFrame: callback => frames.push(callback),
+    prepareView: () => ({ revision: 1 }),
+    renderers: {},
+    invalidMaskMode: 'report',
+    onInvalidMask: error => errors.push(error),
+  });
+  assert.equal(coordinator.invalidate('unknown', 'production-invalid'), false);
+  assert.equal(frames.length, 0);
+  assert.equal(errors.length, 1);
+  assert.equal(errors[0].code, 'PL-RENDER-MASK-001');
+  assert.equal(coordinator.getStats().lastInvalidMask, 'unknown');
+});
+
+test('invalid mask mode is rejected at coordinator construction', () => {
+  assert.throws(
+    () => createMapRenderCoordinator({
+      requestFrame: () => {},
+      prepareView: () => null,
+      renderers: {},
+      invalidMaskMode: 'full-fallback',
+    }),
+    /Unknown invalid mask mode/,
+  );
+});
+
+test('merged work bits never become a project frame without the project trigger', () => {
+  const { frames, coordinator } = fixture();
+  const triggerMask = MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION | MAP_RENDER_DIRTY.PROJECT;
+  const workMask = Object.values(MAP_RENDER_DIRTY)
+    .reduce((mask, bit) => mask | (triggerMask & bit ? 0 : bit), 0);
+  coordinator.invalidate(workMask, 'all-work-bits');
+  frames.shift()();
+  const stats = coordinator.getStats();
+  assert.equal(stats.fullRenderCount, 0);
+  assert.equal(stats.projectFrameCount, 0);
+  assert.equal(stats.lastMode, 'partial');
+  assert.equal(stats.recentFrames.at(-1).frameKind, 'partial');
+});
+
+test('resize and projection triggers reproject visible domains without becoming project frames', () => {
+  for (const [mask, counter] of [
+    [MAP_RENDER_MASKS.RESIZE, 'resizeFrameCount'],
+    [MAP_RENDER_MASKS.PROJECTION, 'projectionFrameCount'],
+  ]) {
+    const { calls, frames, coordinator } = fixture();
+    coordinator.invalidate(mask, counter);
+    frames.shift()();
+    const names = calls.map(call => call[0]);
+    assert.equal(names.filter(name => name === 'countries').length, 1);
+    assert.equal(names.includes('base'), true);
+    assert.equal(names.includes('hydro'), true);
+    assert.equal(names.includes('territorialUnits'), true);
+    assert.equal(names.includes('distributions'), true);
+    assert.equal(names.includes('genericFeatures'), true);
+    assert.equal(names.includes('projectedOverlays'), true);
+    assert.equal(names.includes('labelLayout'), true);
+    assert.equal(names.includes('view'), false, 'scene draw must not be duplicated before the country renderer');
+    assert.equal(coordinator.getStats()[counter], 1);
+    assert.equal(coordinator.getStats().projectFrameCount, 0);
+    assert.equal(coordinator.getStats().fullRenderCount, 0);
+  }
+});
+
+test('selection-only frames do not draw the base scene or rebuild geometry', () => {
+  const { calls, frames, coordinator } = fixture();
+  coordinator.invalidate(MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.GPU_INTERACTION, 'selection-only');
+  frames.shift()();
+  const names = calls.map(call => call[0]);
+  assert.equal(names.filter(name => name === 'selectionData').length, 1);
+  for (const forbidden of ['view', 'base', 'countries', 'hydro', 'territorialUnits', 'distributions', 'genericFeatures']) {
+    assert.equal(names.includes(forbidden), false, `${forbidden} must not run in a selection-only frame`);
+  }
 });

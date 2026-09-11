@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "historical-country:east-germany:1989-04-25-r1",
+  "id": "historical-country:deutsche-demokratische-republik:1989-04-25-r1",
   "referenceDate": "1989-04-25",
   "output": "assets/data/historical-library-pilot.json",
-  "entityId": "historical-country:east-germany",
+  "entityId": "historical-country:deutsche-demokratische-republik",
   "sources": {
     "naturalEarthAdmin1": {
       "path": "tools/historical-library/sources/east-germany/natural-earth-admin1-germany-v5.1.1.geojson",

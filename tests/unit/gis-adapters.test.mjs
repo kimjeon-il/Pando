@@ -15,17 +15,17 @@ test('territorial GIS rows keep hierarchy sovereignty dates and multipart geomet
     territorialUnits: [{
       type: 'Feature', id: 'admin-a', geometry,
       properties: {
-        unitType: 'admin', name: '아티키', parentId: 'country-gr', sovereignId: 'country-gr', adminLevel: 1,
+        unitType: 'subunit', name: '아티키', parentId: 'country-gr', sovereignId: 'country-gr', adminLevel: 1,
         validFrom: '1900', validTo: '2000', style: { color: '#123456' }, sourceLibraryId: 'lib-admin-a',
       },
     }],
   };
   const rows = adapters.territorialRows(state);
-  assert.equal(rows.administrative.length, 1);
-  assert.deepEqual(rows.administrative[0].geometry, geometry);
-  assert.deepEqual(rows.administrative[0], {
-    ...rows.administrative[0],
-    id: 'admin-a', type: 'admin', parent_id: 'country-gr', sovereign_id: 'country-gr',
+  assert.equal(rows.subunits.length, 1);
+  assert.deepEqual(rows.subunits[0].geometry, geometry);
+  assert.deepEqual(rows.subunits[0], {
+    ...rows.subunits[0],
+    id: 'admin-a', type: 'subunit', parent_id: 'country-gr', sovereign_id: 'country-gr',
     admin_level: 1, valid_from: '1900', valid_to: '2000', source_library_id: 'lib-admin-a',
   });
 });
@@ -73,8 +73,8 @@ test('the canonical administrative table imports through the adapter', () => {
     type: 'Feature', geometry: polygon(), properties: { id: 'admin-1', name: '아티키', sovereign_id: 'GR', parent_id: 'GR', admin_level: 1 },
   };
   const imported = adapters.importTerritorialFeature(source, 'administrative');
-  assert.equal(imported.properties.schemaVersion, 1);
-  assert.equal(imported.properties.unitType, 'admin');
+  assert.equal(imported.properties.schemaVersion, 2);
+  assert.equal(imported.properties.unitType, 'subunit');
   assert.equal(imported.properties.sovereignId, 'GR');
-  assert.equal(adapters.TERRITORIAL_TABLES.admin, 'administrative');
+  assert.equal(adapters.TERRITORIAL_TABLES.subunit, 'subunits');
 });

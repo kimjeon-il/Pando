@@ -17,12 +17,12 @@ A commit does not require a version bump by itself. Release version changes are 
 
 ## Project schema
 
-Current project schema: **4**. Minimum automatic migration source: **3**.
+Current project schema: **5**. Minimum automatic migration source: **3**.
 
 Project files are loaded through the migration-aware schema gate. Migrations must be sequential and explicit:
 
 ```text
-v3 -> migrateProjectV3ToV4 -> v4
+v3 -> migrateProjectV3ToV4 -> v4 -> migrateProjectV4ToV5 -> v5
 ```
 
 A migration must clone the input, preserve stable IDs where possible, preserve unsupported source data under provenance `details`, update exactly one schema version, and never silently skip a missing migration step. Files newer than the runtime or older than the supported migration floor fail with an explicit migration error.
@@ -38,6 +38,25 @@ The v4 migration:
 - renames `drawings` / `userDrawings` presentation aliases to `genericFeatures`;
 - writes the `lossless-fallback` land-object contract.
 
+### v4 -> v5
+
+Territorial model and feature schema 2 use `country / subunit / region`.
+Legacy `territory` and `admin` inputs become `subunit` without changing IDs,
+geometry, legal relationships, dates, or user metadata. Presentation schema 3
+preserves effective visibility per object and differing legacy group styles and
+draw order in `objectStyles` and `objectOrder`. Legacy independent partition
+families retain their provenance in `metadata.legacyTerritorialPartition`.
+
+New Subunits require a Country or Subunit parent and cannot form cycles.
+Existing irregular parents remain compatible until edited. Administrative rank
+is optional. Region is not a new parent option. Country selection/focus resolves
+descendant extent without altering stored geometry or adding selection items;
+explicit Subunit colors override inherited parent color.
+
+This migration does not reclassify any base-map country. Antarctica (`ATA`)
+and Bir Tawil (`BRT`) remain Country objects. Canonical and hydro geometry is
+unchanged. Loading never overwrites the original project file.
+
 ## Import/export contract
 
 Object meaning and exchange format are separate concerns. Canonical exchange targets are registered in `exchange-adapter-registry.js`:
@@ -45,8 +64,7 @@ Object meaning and exchange format are separate concerns. Canonical exchange tar
 ```text
 project
 country
-territory
-administrative
+subunit
 region
 distribution
 generic

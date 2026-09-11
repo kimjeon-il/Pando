@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import json
 import unittest
@@ -7,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 MODEL = (ROOT / "assets" / "js" / "modules" / "historical-library.js").read_text(encoding="utf-8")
 CONTROLLER = (ROOT / "assets" / "js" / "modules" / "historical-library-controller.js").read_text(encoding="utf-8")
 PILOT = json.loads((ROOT / "assets" / "data" / "historical-library-pilot.json").read_text(encoding="utf-8"))
@@ -56,17 +57,62 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             self.assertTrue(entity["metadata"]["pilot"])
             self.assertTrue(entity["metadata"]["approximateGeometry"])
             self.assertTrue(entity["sourceInfo"]["title"])
-        east_germany = next(entity for entity in PILOT["entities"] if entity["libraryId"] == "historical-country:east-germany")
+        east_germany = next(entity for entity in PILOT["entities"] if entity["libraryId"] == "historical-country:deutsche-demokratische-republik")
+        supplemental_ids = {
+            "historical-country:ukraine",
+            "historical-country:yugoslavia",
+            "historical-country:sudan",
+            "historical-country:indonesia",
+        }
         self.assertEqual(east_germany["geometryVersions"][0]["datePrecision"], "reference-date")
         self.assertEqual(east_germany["geometryVersions"][0]["certainty"], "medium")
-        self.assertEqual(east_germany["instantiation"]["mode"], "country-territory-priority")
+        self.assertEqual(east_germany["instantiation"]["mode"], "territory-replacement")
         for entity in pilot_entities:
-            if entity is east_germany:
+            if entity["type"] != "country" or entity is east_germany or entity["libraryId"] == "historical-country:nagorno-karabakh":
+                continue
+            if entity["libraryId"] in supplemental_ids:
+                self.assertEqual(entity["geometryVersions"][0]["datePrecision"], "reference-date")
+                self.assertEqual(entity["geometryVersions"][0]["certainty"], "medium")
                 continue
             self.assertEqual(entity["geometryVersions"][0]["datePrecision"], "approximate")
             self.assertEqual(entity["geometryVersions"][0]["certainty"], "low")
 
-    def test_east_prussia_is_a_high_certainty_embedded_country(self):
+    def test_supplemental_historical_countries_have_territory_replacement_versions(self):
+        expected = {
+            "historical-country:ukraine": ("1991-08-24", "2014-03-17"),
+            "historical-country:yugoslavia": ("1918-12-01", "2003-02-04"),
+            "historical-country:sudan": ("1956-01-01", "2011-07-08"),
+            "historical-country:indonesia": ("1945-08-17", "2002-05-19"),
+        }
+        by_id = {entity["libraryId"]: entity for entity in PILOT["entities"]}
+        for library_id, dates in expected.items():
+            entity = by_id[library_id]
+            self.assertEqual(entity["type"], "country")
+            self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
+            self.assertEqual((entity["startDate"], entity["endDate"]), dates)
+            if library_id == "historical-country:yugoslavia":
+                self.assertEqual(len(entity["geometryVersions"]), 3)
+                self.assertEqual(entity["geometryVersions"][0]["validFrom"], "1918-12-01")
+                self.assertEqual(entity["geometryVersions"][-1]["validTo"], "2003-02-04")
+            else:
+                self.assertEqual(len(entity["geometryVersions"]), 1)
+                self.assertEqual(entity["geometryVersions"][0]["validFrom"], dates[0])
+                self.assertEqual(entity["geometryVersions"][0]["validTo"], dates[1])
+            self.assertTrue(entity["metadata"]["approximateGeometry"])
+
+    def test_soviet_union_has_fifteen_flagged_constituent_republics(self):
+        children = [
+            entity for entity in PILOT["entities"]
+            if entity.get("parentLibraryId") == "historical-country:soviet-union"
+        ]
+        self.assertEqual(len(children), 15)
+        for entity in children:
+            self.assertEqual(entity["type"], "subunit")
+            self.assertEqual(entity["sovereignLibraryId"], "historical-country:soviet-union")
+            self.assertEqual(entity["adminLevel"], 1)
+            self.assertTrue(entity["metadata"]["defaultFlagDataUrl"].startswith("data:image/svg+xml;base64,"))
+
+    def test_east_prussia_rebuild_preserves_identity_and_discloses_uncertainty(self):
         entity = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:east-prussia")
         version = entity["geometryVersions"][0]
         self.assertEqual(entity["type"], "country")
@@ -75,12 +121,17 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertEqual(entity["endDate"], "1920-01-10")
         self.assertEqual(entity["metadata"]["preferredInstanceId"], "HIST_DEU_OSTPREUSSEN_1900")
         self.assertEqual(entity["metadata"]["defaultColor"], "#53657A")
-        self.assertEqual(entity["metadata"]["territoryMerge"], "imported-priority")
-        self.assertEqual(version["id"], "ostpreussen-1878-1920-r2")
+        self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
+        self.assertNotIn("territoryMerge", entity["metadata"])
+        self.assertEqual(version["id"], "ostpreussen-1878-1920-r3")
         self.assertEqual(version["datePrecision"], "exact")
-        self.assertEqual(version["certainty"], "high")
+        self.assertEqual(version["certainty"], "medium")
+        self.assertTrue(entity["metadata"]["approximateGeometry"])
+        self.assertFalse(entity["metadata"]["production"])
+        self.assertFalse(entity["metadata"]["validation"]["statisticalAreaWithinOnePercent"])
+        self.assertEqual(entity["metadata"]["validation"]["redistributionPermission"], "unconfirmed")
         self.assertEqual(version["geometry"]["type"], "MultiPolygon")
-        self.assertEqual(len(version["geometry"]["coordinates"]), 2)
+        self.assertEqual(len(version["geometry"]["coordinates"]), 1)
 
     def test_world_snapshot_is_a_template(self):
         self.assertIn("normalizeWorldSnapshot", MODEL)

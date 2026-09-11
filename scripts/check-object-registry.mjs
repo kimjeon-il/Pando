@@ -1,3 +1,4 @@
+import { readApplicationOwners } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -69,10 +70,11 @@ for (const actionId of ['focus', 'lock', 'delete', 'change-type', 'border-edit',
 if (OBJECT_ACTIONS.delete?.danger !== true) fail('delete action must remain marked as danger');
 
 const requiredBindings = Object.freeze({
-  lock: ['objectLockBtn', 'objectLockMenuBtn'],
-  delete: ['objectDeleteBtn', 'objectDeleteMenuBtn'],
-  'coast-reconcile': ['objectCoastReconcileMenuBtn', 'reconcileAdministrativeCoastBtn'],
-  'change-type': ['changeCountryTypeBtn', 'changeTerritoryTypeBtn', 'changeAdministrativeTypeBtn'],
+  lock: ['objectLockBtn'],
+  delete: ['objectDeleteBtn'],
+  focus: ['focusSelectedObjectBtn', 'objectFocusMenuBtn'],
+  'coast-reconcile': ['reconcileSubunitCoastBtn'],
+  'change-type': ['changeCountryTypeBtn', 'changeSubunitTypeBtn'],
 });
 for (const [actionId, elementIds] of Object.entries(requiredBindings)) {
   const bound = new Set((ACTION_UI_BINDINGS[actionId] || []).map(binding => binding.elementId));
@@ -81,13 +83,15 @@ for (const [actionId, elementIds] of Object.entries(requiredBindings)) {
   }
 }
 
-const cleanupSource = fs.readFileSync(path.join(root, 'assets/js/modules/phase1-ui-cleanup.js'), 'utf8');
-if (!cleanupSource.includes("import { installObjectRegistryPresenter } from './object-registry-presenter.js';")) {
-  fail('UI bootstrap cleanup must import the object registry presenter');
+const uiRuntimeSource = fs.readFileSync(path.join(root, 'assets/js/modules/ui-runtime.js'), 'utf8');
+if (!uiRuntimeSource.includes("import { installObjectRegistryPresenter } from './object-registry-presenter.js';")) {
+  fail('canonical UI runtime must import the object registry presenter');
 }
-if (!cleanupSource.includes('installObjectRegistryPresenter();')) fail('object registry presenter is not installed at runtime');
+if (!uiRuntimeSource.includes('installObjectRegistryPresenter();')) {
+  fail('object registry presenter is not installed by the canonical UI runtime');
+}
 
-const appSource = fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+const appSource = readApplicationOwners('runtime-dependencies', 'object-presentation');
 for (const marker of [
   'MAP_OBJECT_TYPES.country.label',
   'Object.values(MAP_OBJECT_TYPES)',

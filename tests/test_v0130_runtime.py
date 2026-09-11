@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import gzip
 import json
@@ -9,7 +10,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+LAYER_MODEL = (ROOT / "assets/js/modules/layer-list-model.js").read_text(encoding="utf-8")
+LAYER_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 README = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -45,10 +48,16 @@ class V0130RuntimeTests(unittest.TestCase):
 
     def test_terrain_toggle_settings_and_automatic_water_colour(self):
         self.assertNotIn('data-layer-group="terrain"', INDEX)
-        self.assertIn('id="terrainVisible" type="checkbox" checked aria-label="지형 음영 표시"', INDEX)
+        self.assertIn('id="terrainVisible" type="checkbox" checked aria-label="지형 표시"', INDEX)
         self.assertIn('id="terrainDisplayOptions" class="terrain-display-options"', INDEX)
         self.assertIn('class="ui-range-progress" type="range"', INDEX)
-        self.assertIn('id="terrainLayerSettingsTitle">지형 음영</strong>', INDEX)
+        self.assertIn('id="terrainLayerSettingsTitle">지형</strong>', INDEX)
+        self.assertIn('<strong>국가 색상 유지</strong>', INDEX)
+        self.assertIn('<strong>지형 높낮이 색상</strong>', INDEX)
+        self.assertIn('<span>입체감</span>', INDEX)
+        self.assertNotIn('국가색과 결합', INDEX)
+        self.assertNotIn('지형색 강조', INDEX)
+        self.assertNotIn('음영 강도', INDEX)
         for element_id in ("terrainVisible", "terrainPoliticalRadio", "terrainPhysicalRadio", "terrainStrengthControl"):
             self.assertIn(f'id="{element_id}"', INDEX)
         for removed_id in ("terrainStyleSelect", "riverColorSelect", "lakeColorSelect"):
@@ -80,16 +89,16 @@ class V0130RuntimeTests(unittest.TestCase):
     def test_pointer_focus_layer_folders_and_water_labels_are_simplified(self):
         self.assertIn("html.keyboard-navigation", CSS)
         self.assertIn("document.addEventListener('pointerdown', disableKeyboardNavigation", APP)
-        self.assertRegex(CSS, r"\.layer-folder\s*\{[^}]*border:\s*0;")
+        self.assertNotIn('class="layer-folder"', INDEX)
         self.assertNotIn("label: '강 · Hydro'", APP)
         self.assertNotIn("label: '호수 · Natural Earth'", APP)
         self.assertIn("label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS'", APP)
         self.assertIn("label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth'", APP)
         self.assertNotIn("HYDRO_FOLDER_STATE_PREFIX", APP)
-        self.assertIn("rivers: 'riversLayerChildren'", APP)
-        self.assertIn("lakes: 'lakesLayerChildren'", APP)
+        self.assertIn("name: '기본 강'", LAYER_MODEL)
+        self.assertIn("name: '기본 호수'", LAYER_MODEL)
         self.assertIn("name: meta.sourceLabel", APP)
-        self.assertIn("const sourceGroup = group === 'rivers' || group === 'lakes' ? 'hydro' : group", APP)
+        self.assertIn("layerGroup === 'hydro' && source.isBuiltin", LAYER_MODEL)
 
     def test_hydro_uses_the_current_ocean_colour_without_intrinsic_alpha(self):
         lake_rule = source_section(CSS, ".hydro-lake-group {", "}")

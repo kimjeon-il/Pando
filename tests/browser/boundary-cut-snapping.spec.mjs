@@ -33,10 +33,9 @@ async function importGenericFeature(page) {
   });
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-  await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toContainText('2/5');
+  await expect(page.locator('#gisStepIndicator')).toContainText('1/3');
   await selectUiOption(page, '#gisTargetType', 'generic');
-  for (const step of ['3/5', '4/5', '5/5']) {
+  for (const step of ['2/3', '3/3']) {
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText(step, { timeout: 30_000 });
   }
@@ -140,7 +139,8 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
-  await page.locator('#mobileCreateBtn').click();
+  if (!(await page.locator('#createMenuBtn').isVisible())) await page.locator('#mobileMapBtn').click();
+  await page.locator('#createMenuBtn').click();
   await page.locator('#addRiverBtn').click();
   const mobileMapBox = await page.locator('#map').boundingBox();
   expect(mobileMapBox).not.toBeNull();

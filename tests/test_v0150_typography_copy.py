@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import hashlib
 import re
@@ -7,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 BOOTSTRAP = (ROOT / "assets" / "js" / "bootstrap.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
@@ -105,7 +106,7 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn("영토를 가져올 국가", APP)
         self.assertIn("기준 국가", APP)
         self.assertIn("합병할 국가", APP)
-        self.assertIn("피편입국을 선택하세요. 여러 국가를 선택할 수 있습니다.", APP)
+        self.assertIn("가져올 국가를 고른 뒤, 아래에서 편입 방식을 선택하세요.", APP)
         self.assertIn("영역 안쪽을 클릭하세요.", APP)
 
     def test_fatal_initialization_and_runtime_errors_are_separate(self):

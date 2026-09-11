@@ -1,11 +1,12 @@
 from __future__ import annotations
+from tests.application_source import read_application_sources
 
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 
@@ -35,7 +36,7 @@ class V0140UiFlowTests(unittest.TestCase):
             self.assertIn(token, CSS)
 
     def test_territory_method_switch_is_explicit(self):
-        for element_id in ("modeMethodSwitch", "modeLineMethodBtn", "modePolygonMethodBtn", "modeComponentsMethodBtn", "modeRiverBoundaryOption", "modeRiverBoundaryInput"):
+        for element_id in ("modeMethodSwitch", "modeLineMethodBtn", "modeDirectMethodOptions", "modeDirectLineMethodInput", "modePolygonMethodBtn", "modeComponentsMethodBtn", "modeRiverBoundaryOption", "modeRiverBoundaryInput"):
             self.assertIn(f'id="{element_id}"', INDEX)
         self.assertNotIn('id="modeRiverMethodBtn"', INDEX)
         self.assertNotIn('id="modeSelectionSummary"', INDEX)
@@ -44,17 +45,18 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertIn("switchTerritorySelectionMethod('polygon')", APP)
         self.assertIn("switchTerritorySelectionMethod('components')", APP)
         self.assertNotIn("switchTerritorySelectionMethod('river')", APP)
-        self.assertIn('aria-label="경계선을 그려 영토 일부 선택"', INDEX)
+        self.assertIn('aria-label="직접 그리기로 영토 일부 선택"', INDEX)
         self.assertIn('aria-label="기존 영토 조각 선택"', INDEX)
-        self.assertIn(">경계선 그리기</button>", INDEX)
-        self.assertIn(">영역 지정</button>", INDEX)
-        self.assertIn(">영토 조각 선택</button>", INDEX)
+        self.assertIn(">직접 그리기</span>", INDEX)
+        self.assertIn(">선 그리기</span>", INDEX)
+        self.assertIn(">영역 그리기</span>", INDEX)
+        self.assertIn(">영토 조각 선택</span>", INDEX)
         self.assertIn("하천을 경계로 취급", INDEX)
         self.assertIn("annexUseRiverBoundaries: false", APP)
         self.assertIn("toggleAnnexRiverBoundaries", APP)
         self.assertNotIn("'river-partitions'", APP)
-        self.assertIn(".mode-method-switch.annex-three-methods", CSS)
-        self.assertNotIn("annex-four-methods", CSS)
+        self.assertIn(".mode-method-switch.annex-methods", CSS)
+        self.assertNotIn("annex-three-methods", CSS)
         self.assertNotIn("개 점 연결", APP)
         self.assertIn(".mode-method-switch {", CSS)
         self.assertIn("width: min(100%, 360px);", CSS)

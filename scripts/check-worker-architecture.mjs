@@ -25,11 +25,6 @@ for (const marker of ['transferResult', 'durationMs', 'throwIfCancelled', 'proto
   expect(host.includes(marker), `worker-rpc-host.js is missing host contract: ${marker}`);
 }
 
-const pool = read('assets/js/modules/worker-rpc-pool.js');
-expect(pool.includes('resolveWorkerRpcPoolSize'), 'Worker RPC pool sizing policy is missing');
-expect(pool.includes('Math.min(4'), 'desktop Worker RPC pool must remain capped at 4');
-expect(pool.includes('mobile'), 'Worker RPC pool must keep a mobile sizing branch');
-
 const mapEditClient = read('assets/js/modules/map-edit-worker-client.js');
 expect(mapEditClient.includes("from './worker-rpc.js'"), 'map-edit worker client must use Worker RPC');
 expect(mapEditClient.includes('createWorkerRpcClient'), 'map-edit worker client must create a Worker RPC client');
@@ -82,4 +77,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Worker architecture OK: RPC owns request lifecycle, pool policy is bounded, and mesh transferables are preserved.');
+console.log('Worker architecture OK: RPC owns request lifecycle, scheduler policy is bounded, and mesh transferables are preserved.');

@@ -1,10 +1,11 @@
+from tests.application_source import read_application_sources
 from pathlib import Path
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
-APP = (ROOT / "assets" / "js" / "app.js").read_text(encoding="utf-8")
+APP = read_application_sources(ROOT)
 TOOLS = (ROOT / "assets" / "js" / "modules" / "tool-controller.js").read_text(encoding="utf-8")
 CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
 
@@ -41,18 +42,19 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertIn("state.modeTaskMinimized", APP)
         self.assertIn("'annex-territory': Object.freeze({ label: '영토 편입'", TOOLS)
         self.assertIn("'merge-country': Object.freeze({ label: '국가 합병'", TOOLS)
-        self.assertIn("stage: '대상 국가 선택'", TOOLS)
+        self.assertIn("stage: '합칠 국가 선택'", TOOLS)
 
     def test_selection_counts_live_in_primary_action_labels(self):
-        self.assertIn("`선택 완료 (${state.annexDonorCountryIds.length})`", APP)
+        self.assertNotIn("`선택 완료 (${state.annexDonorCountryIds.length})`", APP)
+        self.assertIn("`국경 편집 (${state.boundaryEditCountryIds.length})`", APP)
         self.assertIn("`합병 (${state.mergeTargetCountryIds.length})`", APP)
         self.assertIn("`편입 (${state.annexSelectedComponentKeys.length})`", APP)
         self.assertNotIn("현재 ${state.annexDonorCountryIds.length}개국", APP)
         self.assertNotIn("현재 ${state.mergeTargetCountryIds.length}개국", APP)
 
     def test_target_selection_copy_is_short_and_unambiguous(self):
-        self.assertIn("'편입할 영토 조각을'", APP)
-        self.assertIn("'하천을 경계로 나눈 영토 조각을'", APP)
+        self.assertIn("'가져올 영토 조각'", APP)
+        self.assertIn("'하천으로 나뉜 영토 조각'", APP)
         self.assertIn("영역 안쪽을 클릭하세요.", APP)
         self.assertIn("합병할 국가를 선택하세요.", APP)
         self.assertNotIn("편입할 영토를 가져올 국가", APP)

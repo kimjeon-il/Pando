@@ -1,4 +1,4 @@
-export const SNAP_THRESHOLDS = Object.freeze({
+const SNAP_THRESHOLDS = Object.freeze({
   mouse: 10,
   touch: 18,
 });

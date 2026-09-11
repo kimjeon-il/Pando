@@ -8,18 +8,19 @@ const cloneValue = value => {
   return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
 };
 
+const freezeValue = value => {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const item of Object.values(value)) freezeValue(item);
+  return Object.freeze(value);
+};
+
 export function createGisDomain({
-  context = null,
   projectDomain = null,
-  workerClients = {},
-  geometryModules = {},
   importService = null,
-  countryIdentityResolver = null,
   riverPartitionWorkerFactory = null,
   riverPartitionFallback = null,
   riverPartitionSource = null,
   onImportPlanned = () => {},
-  onImportCommitted = () => {},
   reportDiagnostic = () => {},
 } = {}) {
   let disposed = false;
@@ -27,18 +28,16 @@ export function createGisDomain({
   let riverPartitionWorker = null;
   let riverPartitionRequestId = 0;
   const riverPartitionRequests = new Map();
-  const call = (module, name, args) => {
-    const fn = module?.[name];
-    if (typeof fn !== 'function') return null;
-    return fn(...args.map(cloneValue));
+  const planImport = async (files, options = {}) => {
+    if (disposed) throw new Error('GIS domain is disposed.');
+    const service = typeof importService === 'function' ? await importService() : importService;
+    if (!service?.openFiles) throw new Error('GIS import service is not ready.');
+    const outcome = await service.openFiles(files, cloneValue(options));
+    if (outcome?.status !== 'planned' || !outcome.plan) return outcome;
+    const plan = freezeValue(cloneValue(outcome.plan));
+    onImportPlanned({ kind: plan.kind, plan });
+    return { status: 'planned', plan };
   };
-  const normalizeGeometry = input => call(geometryModules.countryGeometry || geometryModules.geometry, 'normalizeCountryGeometry', [input]) || cloneValue(input);
-  const validateGeometry = (input, options) => call(geometryModules.validation || geometryModules.geometryValidation, 'validateGeometry', [input, options]) || { valid: true };
-  const resolveCountryIdentity = input => call(countryIdentityResolver, 'resolveCountryIdentities', [input]) || cloneValue(input);
-  const planCountryImport = input => { const plan = call(importService, 'planCountryImport', [input]) || cloneValue(input); onImportPlanned({ kind: 'country', plan }); return plan; };
-  const planTerritorialImport = input => { const plan = call(geometryModules.territorialImportPlan || importService, 'buildTerritorialImportTransactionPlan', [input]) || cloneValue(input); onImportPlanned({ kind: 'territorial', plan }); return plan; };
-  const planCoastReconciliation = input => { const plan = call(geometryModules.coastReconciliation, 'planCoastReconciliations', [input]) || cloneValue(input); onImportPlanned({ kind: 'coast', plan }); return plan; };
-  const planRiverPartition = input => { const plan = call(geometryModules.riverPartition, 'buildRiverTerritoryPartitions', [input]) || cloneValue(input); onImportPlanned({ kind: 'river', plan }); return plan; };
   const loadRiverPartitionFeatures = async donors => {
     if (!riverPartitionSource) return { features: [], boundsList: [], failedLogicalIds: [], diagnostics: { discoveredLogicalRivers: 0, loadedRivers: 0, failedRiverLoads: 0 } };
     await riverPartitionSource.ensureReady?.();
@@ -82,52 +81,6 @@ export function createGisDomain({
         failedRiverLoads: failedLogicalIds.length,
       },
     };
-  };
-  const executeWorker = async (operation, payload, metadata = {}) => {
-    if (disposed) throw new Error('GIS domain is disposed.');
-    const client = workerClients?.[operation] || workerClients?.default;
-    if (!client) return null;
-    const operationKey = String(operation || 'default');
-    const taskToken = `${operationKey}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
-    operationTokens.set(operationKey, taskToken);
-    const projectGeneration = projectDomain?.getGeneration?.() || 0;
-    const geometryRevision = metadata?.geometryRevision ?? payload?.geometryRevision ?? null;
-    const enriched = {
-      ...cloneValue(payload),
-      metadata: {
-        ...cloneValue(metadata),
-        taskToken,
-        projectGeneration,
-        geometryRevision,
-      },
-    };
-    const result = await (client.execute?.(enriched) || client.request?.(enriched));
-    const currentToken = operationTokens.get(operationKey);
-    const resultMetadata = result?.metadata || result;
-    const stale = currentToken !== taskToken
-      || (resultMetadata?.projectGeneration !== undefined && resultMetadata.projectGeneration !== projectGeneration)
-      || (geometryRevision !== null && resultMetadata?.geometryRevision !== undefined
-        && resultMetadata.geometryRevision !== geometryRevision)
-      || (resultMetadata?.taskToken !== undefined && resultMetadata.taskToken !== taskToken);
-    if (stale) {
-      (typeof reportDiagnostic === 'function' ? reportDiagnostic : context?.reportDiagnostic)?.({
-        type: 'stale-worker-result',
-        operation,
-        taskToken,
-        projectGeneration,
-        geometryRevision,
-        resultGeneration: resultMetadata?.projectGeneration,
-      });
-      return null;
-    }
-    onImportCommitted({ kind: operation, result });
-    return result;
-  };
-  const cancelWorker = operation => {
-    const key = String(operation || 'default');
-    operationTokens.set(key, `${key}:cancelled:${Date.now()}`);
-    const client = workerClients?.[operation] || workerClients?.default;
-    client?.cancel?.(key);
   };
   const ensureRiverPartitionWorker = () => {
     if (riverPartitionWorker || typeof riverPartitionWorkerFactory !== 'function') return riverPartitionWorker;
@@ -189,5 +142,5 @@ export function createGisDomain({
     riverPartitionWorker?.terminate?.();
     riverPartitionWorker = null;
   };
-  return Object.freeze({ normalizeGeometry, validateGeometry, resolveCountryIdentity, planCountryImport, planTerritorialImport, planCoastReconciliation, planRiverPartition, loadRiverPartitionFeatures, executeWorker, computeRiverPartition, cancelWorker, dispose });
+  return Object.freeze({ planImport, loadRiverPartitionFeatures, computeRiverPartition, dispose });
 }

@@ -21,9 +21,9 @@ const project = feature => ({
     sourceProvenanceSchemaVersion: 1,
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
-  territorialModel: { schemaVersion: 1 },
+  territorialModel: { schemaVersion: 2 },
   distributionModel: { schemaVersion: 2 },
-  layerPresentation: { schemaVersion: 2, overlayOrder: [], styles: {} },
+  layerPresentation: { schemaVersion: 3, overlayOrder: [], styles: {} },
   countriesData: { type: 'FeatureCollection', features: [] },
   genericFeatures: feature ? [feature] : [],
 });

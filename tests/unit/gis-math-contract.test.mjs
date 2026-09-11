@@ -174,7 +174,7 @@ test('river partition browser contract is deterministic and non-mutating', () =>
   const snapshotRivers = clone(riverFeatures);
   const first = partitions.buildRiverTerritoryPartitions({ donors, riverFeatures, clipper: clipperContext.polygonClipping, hydroRevision: 'contract' });
   const second = partitions.buildRiverTerritoryPartitions({ donors: clone(donors), riverFeatures: clone(riverFeatures), clipper: clipperContext.polygonClipping, hydroRevision: 'contract' });
-  assert.equal(first.diagnostics.algorithmRevision, 'river-partitions-v1');
+  assert.equal(first.diagnostics.algorithmRevision, 'river-partitions-v2');
   assert.deepEqual(first.donorResults, second.donorResults);
   assert.deepEqual(first.candidates.map(candidate => candidate.key), second.candidates.map(candidate => candidate.key));
   assert.deepEqual(first.candidates.map(candidate => candidate.geometry), second.candidates.map(candidate => candidate.geometry));

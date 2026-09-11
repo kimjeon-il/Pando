@@ -1,6 +1,6 @@
 const EARTH_RADIUS_METERS = 6371008.8;
 
-export const COAST_RECONCILIATION_DEFAULTS = Object.freeze({
+const COAST_RECONCILIATION_DEFAULTS = Object.freeze({
   searchDistanceMeters: 2500,
   alignedToleranceMeters: 250,
   minMatchLengthMeters: 500,
@@ -47,7 +47,7 @@ function normalizeLongitude(value) {
   return longitude;
 }
 
-export function localMetricDistance(a, b, referenceLatitude = ((Number(a?.[1]) || 0) + (Number(b?.[1]) || 0)) / 2) {
+function localMetricDistance(a, b, referenceLatitude = ((Number(a?.[1]) || 0) + (Number(b?.[1]) || 0)) / 2) {
   if (!Array.isArray(a) || !Array.isArray(b)) return Number.POSITIVE_INFINITY;
   const latitude = Number(referenceLatitude) * Math.PI / 180;
   const dx = longitudeDelta(a[0], b[0]) * Math.PI / 180 * Math.cos(latitude) * EARTH_RADIUS_METERS;
@@ -77,7 +77,7 @@ function segmentDistance(segment, point) {
   return Math.hypot(px - bx * t, py - by * t);
 }
 
-export function extractExteriorSegments(feature) {
+function extractExteriorSegments(feature) {
   const output = [];
   for (let polygonIndex = 0; polygonIndex < polygonsFor(feature?.geometry).length; polygonIndex += 1) {
     const polygon = polygonsFor(feature.geometry)[polygonIndex];

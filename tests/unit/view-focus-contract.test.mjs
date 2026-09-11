@@ -1,8 +1,9 @@
+import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const appSource = await readFile(new URL('../../assets/js/app.js', import.meta.url), 'utf8');
+const appSource = readApplicationOwners('camera-navigation', 'object-commands');
 const htmlSource = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
 
 function functionSource(name, nextName) {
@@ -42,6 +43,11 @@ test('country focus prefers its own label anchor without expanding the focus geo
 });
 
 test('desktop and mobile controls call the action whole-map view', () => {
-  assert.equal((htmlSource.match(/전체 지도 보기/g) || []).length, 3);
+  for (const id of ['resetViewBtn', 'mobileWorldBtn']) {
+    const button = htmlSource.match(new RegExp(`<button[^>]*id="${id}"[^>]*>`))?.[0] || '';
+    assert.match(button, /aria-label="전체 지도 보기"/);
+    assert.match(button, /data-tooltip="전체 지도 보기"/);
+  }
+  assert.equal((htmlSource.match(/aria-label="전체 지도 보기"/g) || []).length, 2);
   assert.doesNotMatch(htmlSource, /전체 지도 맞춤/);
 });

@@ -594,7 +594,11 @@ function canvasFallbackWorkerMain() {
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({
         type: 'frame',
+        frameId: Number(message.frameId || message.revision || 0),
         revision: Number(message.revision || 0),
+        viewRevision: Number(message.viewRevision || message.revision || 0),
+        projectionRevision: Number(message.projectionRevision || 0),
+        projectGeneration: Number(message.projectGeneration || 0),
         geometryRevision,
         bitmap,
         width: pixelWidth,

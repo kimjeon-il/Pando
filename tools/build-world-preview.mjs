@@ -6,6 +6,8 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
+import { inspectCanonicalCountryPacket } from '../assets/js/modules/canonical-country-packet.js';
+import { encodeCanonicalCountryPacket } from './canonical-country-packet-encoder.mjs';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
@@ -14,6 +16,7 @@ const dataDirectory = path.join(projectRoot, 'assets', 'data');
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
 const previewSourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1-50m.geojson');
 const canonicalCountriesGzipPath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson.gz');
+const canonicalCountryPacketPath = path.join(projectRoot, 'assets', 'data', `countries-canonical-v${APP_VERSION}.pcg.gz`);
 const canonicalMeshPath = path.join(projectRoot, 'assets', 'data', 'world-mesh-v0.12.6.bin.gz');
 const labelAnchorsPath = path.join(projectRoot, 'assets', 'data', 'country-label-anchors-v0.10.1.json');
 const previewCountriesPath = path.join(projectRoot, 'assets', 'data', `countries-preview-v${APP_VERSION}.geojson.gz`);
@@ -49,7 +52,9 @@ function sha256(value) {
 }
 
 function meshHeader(value) {
-  return Array.from(new Uint32Array(value.buffer, value.byteOffset, 8));
+  const prefix = new Uint32Array(value.buffer, value.byteOffset, 8);
+  const words = prefix[1] >= 2 ? 12 : 8;
+  return Array.from(new Uint32Array(value.buffer, value.byteOffset, words));
 }
 
 function countryId(value, fallback = '') {
@@ -146,18 +151,35 @@ function buildPreview(canonicalSource, source50, existingPreview) {
 
 function packMesh(mesh, sourceCoordinateCount) {
   const vertexCount = mesh.positions.length / 2;
-  const headerBytes = 8 * Uint32Array.BYTES_PER_ELEMENT;
+  const headerWords = 12;
+  const headerBytes = headerWords * Uint32Array.BYTES_PER_ELEMENT;
   const countryBytesPadded = (mesh.countryIndices.byteLength + 3) & ~3;
-  const rawByteLength = headerBytes + mesh.positions.byteLength + countryBytesPadded + mesh.triangleIndices.byteLength + mesh.lineIndices.byteLength;
+  const rawByteLength = headerBytes + mesh.positions.byteLength + countryBytesPadded
+    + mesh.triangleIndices.byteLength + mesh.lineIndices.byteLength
+    + mesh.countryTriangleRanges.byteLength + mesh.countryBoundaryRanges.byteLength
+    + mesh.countryBounds.byteLength + mesh.countryBoundsFlags.byteLength;
   const raw = Buffer.alloc(rawByteLength);
-  const header = new Uint32Array(raw.buffer, raw.byteOffset, 8);
-  header.set([0x434d4731, 1, mesh.countryIds.length, vertexCount, mesh.triangleIndices.length, mesh.lineIndices.length, sourceCoordinateCount, meshCore.MESH_ALGORITHM_REVISION]);
+  const header = new Uint32Array(raw.buffer, raw.byteOffset, headerWords);
+  header.set([
+    0x434d4731, 2, mesh.countryIds.length, vertexCount,
+    mesh.triangleIndices.length, mesh.lineIndices.length,
+    sourceCoordinateCount, meshCore.MESH_ALGORITHM_REVISION,
+    mesh.countryTriangleRanges.length, mesh.countryBoundaryRanges.length,
+    mesh.countryBounds.length, mesh.countryBoundsFlags.length,
+  ]);
   let offset = headerBytes;
   for (const array of [mesh.positions, mesh.countryIndices]) {
     Buffer.from(array.buffer, array.byteOffset, array.byteLength).copy(raw, offset);
     offset += array === mesh.countryIndices ? countryBytesPadded : array.byteLength;
   }
-  for (const array of [mesh.triangleIndices, mesh.lineIndices]) {
+  for (const array of [
+    mesh.triangleIndices,
+    mesh.lineIndices,
+    mesh.countryTriangleRanges,
+    mesh.countryBoundaryRanges,
+    mesh.countryBounds,
+    mesh.countryBoundsFlags,
+  ]) {
     Buffer.from(array.buffer, array.byteOffset, array.byteLength).copy(raw, offset);
     offset += array.byteLength;
   }
@@ -240,6 +262,11 @@ const preview = buildPreview(canonicalSource, source50, existingPreview);
 const previewJson = Buffer.from(JSON.stringify(preview.collection));
 const previewCountries = zlib.gzipSync(previewJson, { level: 9, mtime: 0 });
 const canonicalCountries = zlib.gzipSync(canonicalBytes, { level: 9, mtime: 0 });
+const canonicalCountryPacketBuffer = encodeCanonicalCountryPacket(canonicalSource);
+const canonicalCountryPacketHeader = inspectCanonicalCountryPacket(canonicalCountryPacketBuffer);
+const canonicalCountryPacket = zlib.gzipSync(Buffer.from(canonicalCountryPacketBuffer), { level: 9, mtime: 0 });
+if (canonicalCountryPacketBuffer.byteLength > 10 * 1024 * 1024) throw new Error(`canonical 국가 packet이 10MiB를 초과했습니다: ${canonicalCountryPacketBuffer.byteLength}`);
+if (canonicalCountryPacket.length > 5.5 * 1024 * 1024) throw new Error(`canonical 국가 packet gzip이 5.5MiB를 초과했습니다: ${canonicalCountryPacket.length}`);
 const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, earcut, { validate: true, maxEdgeDegrees: 2 });
 validatePackedMeshGeometry(mesh);
 const packedMesh = packMesh(mesh, preview.coordinateCount);
@@ -270,6 +297,14 @@ const manifest = {
     previewMesh: { url: `world-mesh-preview-v${APP_VERSION}.bin.gz`, encoding: 'gzip', compressedBytes: packedMesh.compressed.length, decodedBytes: packedMesh.raw.length, sha256: sha256(packedMesh.compressed), header: meshHeader(packedMesh.raw) },
     labelAnchors: { url: 'country-label-anchors-v0.10.1.json', encoding: 'identity', compressedBytes: labelAnchorBytes.length, decodedBytes: labelAnchorBytes.length, sha256: sha256(labelAnchorBytes) },
     canonicalCountries: { url: 'countries-ne-5.1.1.geojson.gz', encoding: 'gzip', compressedBytes: canonicalCountries.length, decodedBytes: canonicalBytes.length, sha256: sha256(canonicalCountries) },
+    canonicalCountryPacket: {
+      url: `countries-canonical-v${APP_VERSION}.pcg.gz`,
+      encoding: 'gzip',
+      compressedBytes: canonicalCountryPacket.length,
+      decodedBytes: canonicalCountryPacketBuffer.byteLength,
+      sha256: sha256(canonicalCountryPacket),
+      header: canonicalCountryPacketHeader.words,
+    },
     canonicalMesh: { url: 'world-mesh-v0.12.6.bin.gz', encoding: 'gzip', compressedBytes: canonicalMeshBytes.length, decodedBytes: canonicalMeshDecoded.length, sha256: sha256(canonicalMeshBytes), header: meshHeader(canonicalMeshDecoded) },
   },
 };
@@ -277,6 +312,7 @@ const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
 
 compareOrWrite(previewCountriesPath, previewCountries);
 compareOrWrite(previewMeshPath, packedMesh.compressed);
+compareOrWrite(canonicalCountryPacketPath, canonicalCountryPacket);
 compareOrWrite(previewManifestPath, manifestBytes);
 if (!fs.readFileSync(canonicalCountriesGzipPath).equals(canonicalCountries)) throw new Error('canonical 국가 gzip이 변경되어 있습니다. preview 빌드가 canonical 자산을 덮어쓰지 않았습니다.');
 

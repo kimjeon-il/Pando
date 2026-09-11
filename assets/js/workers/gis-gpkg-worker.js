@@ -245,7 +245,7 @@ function writeAtlasTables(db, payload) {
     { name: 'metadata_json' }, { name: 'properties_json' },
   ];
   for (const [unitType, tableName] of Object.entries(self.PandoLabGisAdapters.TERRITORIAL_TABLES)) {
-    const logicalLayer = unitType === 'territory' ? 'territories' : unitType === 'admin' ? 'administrative' : 'regions';
+    const logicalLayer = unitType === 'subunit' ? 'subunits' : 'regions';
     if (!includes(logicalLayer)) continue;
     createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: territorialRows[tableName] || [], columns: territorialColumns, description: `PandoLab ${unitType} territorial units` });
   }

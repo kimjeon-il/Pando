@@ -44,7 +44,9 @@ function createProgram(device) {
   });
 }
 
-export function createGpuPolygonOverlayPass({ onError = null } = {}) {
+export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = null } = {}) {
+  let uploadScheduler = null;
+  const pendingUploads = new Map();
   let gl = null;
   let programInfo = null;
   let contextLost = false;
@@ -107,6 +109,40 @@ export function createGpuPolygonOverlayPass({ onError = null } = {}) {
     if (!(packet.positions instanceof Float32Array) || !(packet.indices instanceof Uint32Array)
       || packet.positions.length < 6 || packet.indices.length < 3) {
       return { resource: null, reason: 'empty-geometry' };
+    }
+    if (uploadScheduler) {
+      if (pendingUploads.get(key)?.signature === nextSignature) return { resource: null, reason: 'upload-pending' };
+      uploadScheduler.cancelKey('polygon:' + key);
+      const uploadGl = gl, job = { signature: nextSignature, part: 0, offset: 0, buffers: [] };
+      pendingUploads.set(key, job);
+      void uploadScheduler.enqueueUpload({
+        key: 'polygon:' + key, priority: 50,
+        dispose: () => { for (const buffer of job.buffers) uploadGl.deleteBuffer(buffer); if (pendingUploads.get(key) === job) pendingUploads.delete(key); },
+        step: ({ byteBudget }) => {
+          if (gl !== uploadGl || contextLost || pendingUploads.get(key) !== job) throw Object.assign(new Error('Stale polygon upload'), { name: 'AbortError' });
+          if (job.part === 2) {
+            const resource = Object.freeze({ key, signature: nextSignature, positionBuffer: job.buffers[0], indexBuffer: job.buffers[1], indexCount: packet.indices.length, byteLength: packet.positions.byteLength + packet.indices.byteLength });
+            if (previous) { gl.deleteBuffer(previous.positionBuffer); gl.deleteBuffer(previous.indexBuffer); }
+            resources.set(key, resource); resourceBudget.track(key, resource.byteLength, packet.priority); pendingUploads.delete(key); buildCount++; cacheMisses++;
+            onResourceReady?.(key); return { done: true };
+          }
+          const data = job.part ? packet.indices : packet.positions, target = job.part ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+          const binding = gl.getParameter(job.part ? gl.ELEMENT_ARRAY_BUFFER_BINDING : gl.ARRAY_BUFFER_BINDING);
+          try {
+            if (!job.buffers[job.part]) {
+              const buffer = gl.createBuffer(); if (!buffer) throw new Error('Polygon staging allocation failed');
+              job.buffers[job.part] = buffer; gl.bindBuffer(target, buffer); gl.bufferData(target, data.byteLength, gl.STATIC_DRAW); return { bytes: 0 };
+            }
+            gl.bindBuffer(target, job.buffers[job.part]);
+            const bytes = Math.min(byteBudget, data.byteLength - job.offset);
+            gl.bufferSubData(target, job.offset, new Uint8Array(data.buffer, data.byteOffset + job.offset, bytes));
+            job.offset += bytes; uploadBytes += bytes;
+            if (job.offset === data.byteLength) { job.part++; job.offset = 0; }
+            return { bytes };
+          } finally { gl.bindBuffer(target, binding); }
+        },
+      }).catch(error => { if (error.name !== 'AbortError') onError?.({ stage: 'polygon-upload', error }); });
+      return { resource: null, reason: 'upload-pending' };
     }
     const started = performance.now();
     let positionBuffer = null;
@@ -283,6 +319,7 @@ export function createGpuPolygonOverlayPass({ onError = null } = {}) {
   }
 
   function dispose() {
+    for (const key of pendingUploads.keys()) uploadScheduler?.cancelKey('polygon:' + key);
     if (gl && !gl.isContextLost?.()) {
       for (const resource of resources.values()) {
         gl.deleteBuffer(resource.positionBuffer);
@@ -299,6 +336,7 @@ export function createGpuPolygonOverlayPass({ onError = null } = {}) {
 
   return Object.freeze({
     initialize,
+    setUploadScheduler: scheduler => { uploadScheduler = scheduler; },
     ensureResource,
     drawPackets,
     drawResourceItems,
