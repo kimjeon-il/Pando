@@ -30,7 +30,7 @@ test('projection buttons retain all four borders in either selection state', asy
       }
     }
   }
-  expect(html).toContain('id="mapNameSettingsTitle">지도 표기');
+  expect(html).toContain('id="mapNameSettingsTitle">지도 표시');
   expect(html).toContain('aria-label="국기 표시"');
   expect(html).not.toContain('국기 함께 표시');
 });

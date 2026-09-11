@@ -405,8 +405,6 @@ export function createLayerTreeController({
     });
     elements.terrainVisible?.addEventListener('change', event => commands.setTerrainVisible(event.target.checked));
     for (const input of elements.terrainStyleInputs || []) input?.addEventListener('change', event => event.target.checked && commands.setTerrainStyle(event.target.value));
-    elements.terrainStrength?.addEventListener('input', event => commands.previewTerrainStrength(event.target.value));
-    elements.terrainStrength?.addEventListener('change', commands.commitTerrainStrength);
     for (const input of elements.distributionModeInputs || []) input?.addEventListener('change', event => {
       if (event.target.type !== 'radio' || event.target.checked) commands.setDistributionRenderMode?.(event.target.value);
     });
@@ -497,7 +495,7 @@ export function createAppLayerTreeController(runtime = {}) {
     syncCanonicalControls, syncSearchClearButton, setLayerVisibility,
     toggleLayerStylePanel, updateLayerPresentationStyle, distributionService,
     syncDistributionPresentationControls, renderingDomain, queuePresentationAutosave,
-    gpuMapRenderer, syncPhysicalControls, markLayerTreeDirty, clamp, syncRangeProgress,
+    gpuMapRenderer, syncPhysicalControls, markLayerTreeDirty,
     setActionStatus, selectLayerTreeItem, openObjectActionsMenu, isMobile,
     returnToMapAfterMobileAction, closeObjectActionsMenu, syncLayerVisibilityToggle,
     setLayerItemVisibility, batchToggleLocked, deleteSelectedFromObjectMenu,
@@ -514,7 +512,6 @@ export function createAppLayerTreeController(runtime = {}) {
       ].map(([group, id]) => [group, $(id)])),
       terrainVisible: $('terrainVisible'),
       terrainStyleInputs: [$('terrainPoliticalRadio'), $('terrainPhysicalRadio')],
-      terrainStrength: $('terrainStrengthInput'),
       distributionModeInputs: [$('distributionLayerModeInput'), $('distributionRenderModeInput'), $('distributionDominantRadio'), $('distributionIntensityRadio')],
       distributionBoundaryVisible: $('distributionBoundaryVisibleInput'),
       search: $('layerSearchInput'),
@@ -589,14 +586,6 @@ export function createAppLayerTreeController(runtime = {}) {
         const terrainModeLabel = state.physicalSettings.terrainStyle === 'physical' ? '지형 높낮이 색상' : '국가 색상 유지';
         setActionStatus(`${terrainModeLabel} 방식으로 전환했습니다.`, 'success', 2200);
       },
-      previewTerrainStrength: value => {
-        state.physicalSettings.terrainStrength = clamp(Number(value) / 100, 0, 1);
-        gpuMapRenderer.invalidatePhysicalStyle('terrain-strength');
-        $('terrainStrengthValue').textContent = `${Math.round(state.physicalSettings.terrainStrength * 100)}%`;
-        syncRangeProgress($('terrainStrengthInput'));
-        renderingDomain()?.invalidateOverlayStyle?.('terrain-strength');
-      },
-      commitTerrainStrength: queuePresentationAutosave,
       setSearchValue: value => {
         state.layerSearch = value;
         syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn'));

@@ -15,6 +15,10 @@ export function createObjectMetadata() {
     const id = dependencies.state.selected.id;
     const result = dependencies.territorialApplicationService.updateMetadata(dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY, id, field, value);
     if (!result.ok) return;
+    if (field === 'color') {
+      dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-color-edited');
+      dependencies.renderingDomain?.invalidateBaseScene?.('country-color-edited');
+    }
     if (field === 'flagDataUrl') dependencies.renderingDomain?.invalidateLabels?.('country-flag-edited');
     if (field === 'name') (0, dependencies.markLayerTreeDirty)();
     (0, dependencies.applyCountrySelectionIntent)(id, true);

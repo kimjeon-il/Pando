@@ -180,10 +180,10 @@ body.modal-open { overflow: hidden; }
   height: 1.5rem;
   display: grid;
   place-items: center;
-  overflow: hidden;
   flex: 0 0 auto;
   grid-column: 1;
   grid-row: 1 / span 2;
+  line-height: 0;
 }
 
 .historical-library-result-flag img {

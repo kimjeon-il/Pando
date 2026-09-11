@@ -36,7 +36,7 @@ class V0140UiFlowTests(unittest.TestCase):
             self.assertIn(token, CSS)
 
     def test_territory_method_switch_is_explicit(self):
-        for element_id in ("modeMethodSwitch", "modeLineMethodBtn", "modeDirectMethodOptions", "modeDirectLineMethodInput", "modePolygonMethodBtn", "modeComponentsMethodBtn", "modeRiverBoundaryOption", "modeRiverBoundaryInput"):
+        for element_id in ("modeMethodSwitch", "modeDirectLineMethodInput", "modePolygonMethodOption", "modePolygonMethodInput", "modeComponentsMethodInput", "modeRiverBoundaryOption", "modeRiverBoundaryInput"):
             self.assertIn(f'id="{element_id}"', INDEX)
         self.assertNotIn('id="modeRiverMethodBtn"', INDEX)
         self.assertNotIn('id="modeSelectionSummary"', INDEX)
@@ -44,10 +44,8 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertIn("switchTerritorySelectionMethod('line')", APP)
         self.assertIn("switchTerritorySelectionMethod('polygon')", APP)
         self.assertIn("switchTerritorySelectionMethod('components')", APP)
+        self.assertIn("refreshTerritoryOperation('territory-component-method')", APP)
         self.assertNotIn("switchTerritorySelectionMethod('river')", APP)
-        self.assertIn('aria-label="직접 그리기로 영토 일부 선택"', INDEX)
-        self.assertIn('aria-label="기존 영토 조각 선택"', INDEX)
-        self.assertIn(">직접 그리기</span>", INDEX)
         self.assertIn(">선 그리기</span>", INDEX)
         self.assertIn(">영역 그리기</span>", INDEX)
         self.assertIn(">영토 조각 선택</span>", INDEX)
@@ -85,6 +83,12 @@ class V0140UiFlowTests(unittest.TestCase):
     def test_buttons_use_css_pressed_state_without_transient_flash(self):
         self.assertNotIn("function flashButton", APP)
         self.assertNotIn("button-flash", CSS)
+
+    def test_country_colour_edits_invalidate_the_map_palette(self):
+        commit = source_section(APP, "function commitCountryEdit", "function commitGenericFeatureMeta")
+        self.assertIn("field === 'color'", commit)
+        self.assertIn("invalidateCountryPalette({ base: true, emphasis: true }, 'country-color-edited')", commit)
+        self.assertIn("invalidateBaseScene?.('country-color-edited')", commit)
 
     def test_projection_controls_live_in_the_map_view_for_every_layout(self):
         self.assertNotIn('class="panel-section compact-view-section"', INDEX)

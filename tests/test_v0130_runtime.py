@@ -50,17 +50,15 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertNotIn('data-layer-group="terrain"', INDEX)
         self.assertIn('id="terrainVisible" type="checkbox" checked aria-label="지형 표시"', INDEX)
         self.assertIn('id="terrainDisplayOptions" class="terrain-display-options"', INDEX)
-        self.assertIn('class="ui-range-progress" type="range"', INDEX)
         self.assertIn('id="terrainLayerSettingsTitle">지형</strong>', INDEX)
         self.assertIn('<strong>국가 색상 유지</strong>', INDEX)
         self.assertIn('<strong>지형 높낮이 색상</strong>', INDEX)
-        self.assertIn('<span>입체감</span>', INDEX)
         self.assertNotIn('국가색과 결합', INDEX)
         self.assertNotIn('지형색 강조', INDEX)
         self.assertNotIn('음영 강도', INDEX)
-        for element_id in ("terrainVisible", "terrainPoliticalRadio", "terrainPhysicalRadio", "terrainStrengthControl"):
+        for element_id in ("terrainVisible", "terrainPoliticalRadio", "terrainPhysicalRadio"):
             self.assertIn(f'id="{element_id}"', INDEX)
-        for removed_id in ("terrainStyleSelect", "riverColorSelect", "lakeColorSelect"):
+        for removed_id in ("terrainStyleSelect", "terrainStrengthControl", "terrainStrengthInput", "riverColorSelect", "lakeColorSelect"):
             self.assertNotIn(f'id="{removed_id}"', INDEX)
         self.assertIn("automaticWaterColor", APP)
         self.assertIn("automaticWaterColor", CANVAS)

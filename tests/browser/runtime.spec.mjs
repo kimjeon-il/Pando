@@ -164,18 +164,17 @@ test('annex territory exposes river boundaries as a retained component-selection
     button: 0,
   });
   await expect(page.locator('#modePrimaryBtn')).toBeHidden();
-  await expect(page.locator('#modeLineMethodBtn')).toBeEnabled();
-  await page.locator('#modeLineMethodBtn').click();
+  await expect(page.locator('#modeDirectLineMethodInput')).toBeEnabled();
+  await page.locator('#modeDirectLineMethodInput').check();
 
-  await expect(page.locator('#modeMethodSwitch .mode-method-btn')).toHaveCount(2);
-  await expect(page.locator('#modeDirectMethodOptions')).toBeVisible();
+  await expect(page.locator('#modeMethodSwitch .mode-direct-method-option')).toHaveCount(3);
   await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked();
-  await expect(page.locator('#modePolygonMethodBtn')).not.toBeChecked();
-  await page.locator('#modePolygonMethodBtn').check();
-  await expect(page.locator('#modePolygonMethodBtn')).toBeChecked();
+  await expect(page.locator('#modePolygonMethodInput')).not.toBeChecked();
+  await page.locator('#modePolygonMethodInput').check();
+  await expect(page.locator('#modePolygonMethodInput')).toBeChecked();
   await expect(page.locator('#modeRiverMethodBtn')).toHaveCount(0);
   await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
-  await page.locator('#modeComponentsMethodBtn').click();
+  await page.locator('#modeComponentsMethodInput').check();
   await expect(page.locator('#modeRiverBoundaryOption')).toBeVisible();
   await expect(page.locator('#modeRiverBoundaryInput')).not.toBeChecked();
   const components = page.locator('.draft-layer path.territory-component');
@@ -197,10 +196,10 @@ test('annex territory exposes river boundaries as a retained component-selection
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
-  await page.locator('#modeLineMethodBtn').click();
+  await page.locator('#modeDirectLineMethodInput').check();
   await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked();
   await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
-  await page.locator('#modeComponentsMethodBtn').click();
+  await page.locator('#modeComponentsMethodInput').check();
   await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
   await expect(components.first()).toBeVisible({ timeout: 120_000 });
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
@@ -961,38 +960,26 @@ test('layer folders expose presentation controls while global view settings stay
   await expect(page.locator('[data-layer-style-toggle="lakes"]')).toHaveCount(1);
   await expect(page.locator('[data-layer-style-toggle="labels"], [data-layer-style-toggle="countryLabels"]')).toHaveCount(0);
   await page.locator('#mapViewTabBtn').click();
-  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('지도 표기');
+  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('지도 표시');
   await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
   await expect(page.locator('#mapViewSection label:has(#labelsVisible)')).toContainText('지명 표시');
+  await expect(page.locator('.map-name-settings + .terrain-settings')).toHaveCount(1);
   const terrainVisible = page.locator('#terrainVisible');
   const terrainOptions = page.locator('#terrainDisplayOptions');
-  const terrainStrength = page.locator('#terrainStrengthInput');
   await expect(page.locator('#mapViewSection #terrainVisible')).toHaveCount(1);
   await expect(page.locator('label:has(#terrainVisible)')).toContainText('지형 표시');
   await expect(page.locator('#terrainPoliticalRadio').locator('xpath=..')).toContainText('국가 색상 유지');
   await expect(page.locator('#terrainPhysicalRadio').locator('xpath=..')).toContainText('지형 높낮이 색상');
-  await expect(page.locator('.terrain-strength-heading')).toContainText('입체감');
-  await expect(terrainStrength).toHaveAttribute('aria-label', '지형 입체감');
+  await expect(page.locator('#terrainStrengthControl, #terrainStrengthInput')).toHaveCount(0);
   await expect(terrainVisible).toHaveAttribute('aria-expanded', 'true');
   await expect(terrainOptions).toBeVisible();
-  await expect(terrainStrength).toHaveJSProperty('value', '32');
-  await expect.poll(() => terrainStrength.evaluate(input => getComputedStyle(input).getPropertyValue('--ui-range-progress').trim())).toBe('32%');
-  await terrainStrength.evaluate(input => {
-    input.value = '75';
-    input.dispatchEvent(new input.ownerDocument.defaultView.Event('input', { bubbles: true }));
-  });
-  await expect(page.locator('#terrainStrengthValue')).toHaveText('75%');
-  await expect.poll(() => terrainStrength.evaluate(input => getComputedStyle(input).getPropertyValue('--ui-range-progress').trim())).toBe('75%');
   await terrainVisible.uncheck();
   await expect(terrainVisible).toHaveAttribute('aria-expanded', 'false');
   await expect(terrainOptions).toBeHidden();
   await terrainVisible.check();
   await expect(terrainOptions).toBeVisible();
-  await expect(page.locator('#terrainStrengthValue')).toHaveText('75%');
   await page.locator('#terrainPhysicalRadio').check();
-  await expect(page.locator('#terrainStrengthControl')).toBeHidden();
   await page.locator('#terrainPoliticalRadio').check();
-  await expect(page.locator('#terrainStrengthControl')).toBeVisible();
   for (const layout of layouts.slice(1)) {
     await page.setViewportSize(layout.viewport);
     await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));

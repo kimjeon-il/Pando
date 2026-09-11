@@ -4250,7 +4250,7 @@ export function createGpuMapRenderer(deps) {
       const theme = mapTheme();
       const physicalSignature = [physicalStyleStateRevision, state.layerVisibility.rivers, state.layerVisibility.lakes,
         theme.riverOpacity, theme.lakeOpacity, theme.lakeBoundaryVisible, theme.ocean,
-        state.physicalSettings.terrainVisible, state.physicalSettings.terrainStyle, state.physicalSettings.terrainStrength,
+        state.physicalSettings.terrainVisible, state.physicalSettings.terrainStyle,
         state.dataReadiness].join(':');
       if (physicalSignature !== canvasLastPhysicalStyleSignature) {
         canvasLastPhysicalStyleSignature = physicalSignature;

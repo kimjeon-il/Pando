@@ -104,7 +104,6 @@ export function createProjectSession() {
       physicalSettings: {
         terrainVisible: true,
         terrainStyle: 'political',
-        terrainStrength: 0.32,
         hydroLayers: {
           rivers_hydro: true,
           lakes_natural_earth: true,
