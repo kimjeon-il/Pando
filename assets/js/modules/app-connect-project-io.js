@@ -435,6 +435,7 @@ export function connectProjectIo({
   toolBindings.connect({
     get $() { return environment.$; },
     get bindHoldZoom() { return cameraNavigation.bindHoldZoom; },
+    get beginAnnexSelection() { return countryModes.beginAnnexSelection; },
     get cancelActiveMode() { return countryModes.cancelActiveMode; },
     get cancelDraft() { return genericCommands.cancelDraft; },
     get closeCreateMenu() { return workspaceSurfaces.closeCreateMenu; },

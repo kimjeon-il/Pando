@@ -2641,14 +2641,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   border: 0;
   background: transparent;
 }
-.mode-method-switch.annex-methods { grid-template-columns: 1fr; }
-.mode-direct-method-options {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ui-space-1);
-  padding-inline: var(--ui-space-2);
-}
-.mode-direct-method-options.hidden { display: none; }
 .mode-direct-method-option {
   min-width: 0;
   min-height: var(--ui-control-height);

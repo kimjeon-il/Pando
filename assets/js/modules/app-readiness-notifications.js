@@ -262,7 +262,6 @@ export function createReadinessNotifications() {
       '[data-layer-style-blend-mode]',
       '#terrainVisible',
       'input[name="terrainStyle"]',
-      '#terrainStrengthInput',
       '#labelsVisible',
       '#basemapLabelsVisible',
     ].join(','));

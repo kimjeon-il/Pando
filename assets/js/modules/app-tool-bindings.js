@@ -82,32 +82,21 @@ export function createToolBindings() {
     (0, dependencies.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.runModePrimaryAction)(); });
     (0, dependencies.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.toggleMapTaskWindow);
     (0, dependencies.$)('modeTaskCloseBtn')?.addEventListener('click', () => (0, dependencies.$)('modeCancelBtn')?.click());
-    (0, dependencies.$)('modeLineMethodBtn')?.addEventListener('click', () => {
-      if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor') {
-        (0, dependencies.requestDraftDiscard)(() => (0, dependencies.beginAnnexSelection)());
-        return;
-      }
-      const activeMethod = dependencies.state.tool === 'annex-territory'
-        ? dependencies.state.annexSelectionMethod
-        : dependencies.state.newCountrySelectionMethod;
-      if (['line', 'polygon'].includes(activeMethod)) return;
-      (0, dependencies.requestDraftDiscard)(() => (0, dependencies.switchTerritorySelectionMethod)('line'));
-    });
+    const selectTerritoryMethod = method => {
+      (0, dependencies.requestDraftDiscard)(() => {
+        const annexDonorMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor';
+        if (annexDonorMode) (0, dependencies.beginAnnexSelection)();
+        if (!annexDonorMode || method !== 'line') (0, dependencies.switchTerritorySelectionMethod)(method);
+      });
+    };
     (0, dependencies.$)('modeDirectLineMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) (0, dependencies.requestDraftDiscard)(() => (0, dependencies.switchTerritorySelectionMethod)('line'));
+      if (event.currentTarget.checked) selectTerritoryMethod('line');
     });
-    (0, dependencies.$)('modePolygonMethodBtn')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) (0, dependencies.requestDraftDiscard)(() => (0, dependencies.switchTerritorySelectionMethod)('polygon'));
+    (0, dependencies.$)('modePolygonMethodInput')?.addEventListener('change', event => {
+      if (event.currentTarget.checked) selectTerritoryMethod('polygon');
     });
-    (0, dependencies.$)('modeComponentsMethodBtn')?.addEventListener('click', () => {
-      if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor') {
-        (0, dependencies.requestDraftDiscard)(() => {
-          (0, dependencies.beginAnnexSelection)();
-          (0, dependencies.switchTerritorySelectionMethod)('components');
-        });
-        return;
-      }
-      (0, dependencies.requestDraftDiscard)(() => (0, dependencies.switchTerritorySelectionMethod)('components'));
+    (0, dependencies.$)('modeComponentsMethodInput')?.addEventListener('change', event => {
+      if (event.currentTarget.checked) selectTerritoryMethod('components');
     });
     (0, dependencies.$)('modeRiverBoundaryInput')?.addEventListener('change', event => (0, dependencies.toggleAnnexRiverBoundaries)(event.currentTarget.checked));
     (0, dependencies.$)('modeDraftRedrawBtn')?.addEventListener('click', () => dependencies.editingDomain?.redrawDraft?.());

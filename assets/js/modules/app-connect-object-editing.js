@@ -264,6 +264,7 @@ export function connectObjectEditing({
     get editingDomain() { return domainAssembly.editingDomain; },
     get genericFeatureLandClipCache() { return objectPresentation.genericFeatureLandClipCache; },
     get genericFeatureService() { return objectPresentation.genericFeatureService; },
+    get gpuMapRenderer() { return serviceAssembly.gpuMapRenderer; },
     get HYDRO_TOOL_CONFIG() { return environment.HYDRO_TOOL_CONFIG; },
     get hydroCategoryLabel() { return objectPresentation.hydroCategoryLabel; },
     get hydroEditById() { return hydroSettings.hydroEditById; },

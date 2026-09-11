@@ -73,7 +73,10 @@ export function createCountryModes() {
       dependencies.state.annexSelectionMethod = annexMethods.has(method) ? method : 'line';
       dependencies.state.annexPhase = useComponents ? 'components' : usePolygon ? 'polygon' : 'line';
       if (useComponents && dependencies.state.annexUseRiverBoundaries) void (0, dependencies.prepareRiverPartitionCandidates)();
-      else if (useComponents) (0, dependencies.updateTerritoryComponentSelectionFeedback)();
+      else if (useComponents) {
+        (0, dependencies.updateTerritoryComponentSelectionFeedback)();
+        dependencies.editingDomain?.refreshTerritoryOperation('territory-component-method');
+      }
       else {
         (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
       }
@@ -84,7 +87,10 @@ export function createCountryModes() {
       dependencies.state.newCountrySelectedComponentKeys = [];
       dependencies.state.newCountrySelectionMethod = useComponents ? 'components' : 'line';
       dependencies.state.newCountryPhase = useComponents ? 'components' : 'line';
-      if (useComponents) (0, dependencies.updateTerritoryComponentSelectionFeedback)();
+      if (useComponents) {
+        (0, dependencies.updateTerritoryComponentSelectionFeedback)();
+        dependencies.editingDomain?.refreshTerritoryOperation('territory-component-method');
+      }
       else {
         (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
       }

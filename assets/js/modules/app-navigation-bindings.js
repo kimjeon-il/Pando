@@ -117,7 +117,7 @@ export function createNavigationBindings() {
       setLayerVisibility: dependencies.setLayerVisibility, toggleLayerStylePanel: dependencies.toggleLayerStylePanel, updateLayerPresentationStyle: dependencies.updateLayerPresentationStyle, distributionService: dependencies.distributionService,
       syncDistributionPresentationControls: dependencies.syncDistributionPresentationControls, renderingDomain: () => dependencies.renderingDomain,
       queuePresentationAutosave: (...args) => dependencies.projectDomain.queuePresentationAutosave(...args), gpuMapRenderer: dependencies.gpuMapRenderer, syncPhysicalControls: dependencies.syncPhysicalControls, markLayerTreeDirty: dependencies.markLayerTreeDirty,
-      clamp: dependencies.clamp, syncRangeProgress: dependencies.syncRangeProgress, setActionStatus: dependencies.setActionStatus, selectLayerTreeItem: dependencies.selectLayerTreeItem, openObjectActionsMenu: dependencies.openObjectActionsMenu,
+      setActionStatus: dependencies.setActionStatus, selectLayerTreeItem: dependencies.selectLayerTreeItem, openObjectActionsMenu: dependencies.openObjectActionsMenu,
       isMobile: dependencies.isMobile, returnToMapAfterMobileAction: dependencies.returnToMapAfterMobileAction, closeObjectActionsMenu: dependencies.closeObjectActionsMenu,
       syncLayerVisibilityToggle: dependencies.syncLayerVisibilityToggle, setLayerItemVisibility: dependencies.setLayerItemVisibility, batchToggleLocked: dependencies.batchToggleLocked, deleteSelectedFromObjectMenu: dependencies.deleteSelectedFromObjectMenu,
     });

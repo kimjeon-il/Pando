@@ -196,11 +196,10 @@ export function createTaskPresentation() {
     const task = activeModeTaskDescriptor();
     const bar = (0, dependencies.$)('modeActionBar');
     const methodSwitch = (0, dependencies.$)('modeMethodSwitch');
-    const lineMethod = (0, dependencies.$)('modeLineMethodBtn');
-    const directMethodOptions = (0, dependencies.$)('modeDirectMethodOptions');
     const directLineMethodInput = (0, dependencies.$)('modeDirectLineMethodInput');
-    const polygonMethod = (0, dependencies.$)('modePolygonMethodBtn');
-    const componentsMethod = (0, dependencies.$)('modeComponentsMethodBtn');
+    const polygonMethodOption = (0, dependencies.$)('modePolygonMethodOption');
+    const polygonMethodInput = (0, dependencies.$)('modePolygonMethodInput');
+    const componentsMethodInput = (0, dependencies.$)('modeComponentsMethodInput');
     const riverBoundaryOption = (0, dependencies.$)('modeRiverBoundaryOption');
     const riverBoundaryInput = (0, dependencies.$)('modeRiverBoundaryInput');
     const draftActions = (0, dependencies.$)('modeDraftActions');
@@ -240,30 +239,19 @@ export function createTaskPresentation() {
     if (draftRedraw) draftRedraw.disabled = dependencies.state.modeProcessing || draft.strokeActive || !draft.coords.length;
     if (draftRemoveLast) draftRemoveLast.disabled = dependencies.state.modeProcessing || draft.strokeActive || !draft.coords.length;
     if (draftDelete) draftDelete.disabled = dependencies.state.modeProcessing || draft.strokeActive || !refineSelection;
-    const annexDirectMode = dependencies.state.tool === 'annex-territory' && ['line', 'polygon'].includes(activeMethod);
-    if (lineMethod) {
-      const active = !annexDonorMode && (activeMethod === 'line' || activeMethod === 'polygon');
-      lineMethod.classList.toggle('active', active);
-      lineMethod.setAttribute('aria-pressed', String(active));
-      lineMethod.disabled = dependencies.state.modeProcessing || (annexDonorMode && !dependencies.state.annexDonorCountryIds.length);
-      const title = lineMethod.querySelector('.mode-method-title');
-      if (title) title.textContent = dependencies.state.tool === 'annex-territory' ? '직접 그리기' : '선 그리기';
-      lineMethod.setAttribute('aria-label', dependencies.state.tool === 'annex-territory' ? '직접 그리기로 영토 일부 선택' : '경계선을 그려 영토 일부 선택');
-    }
-    directMethodOptions?.classList.toggle('hidden', !annexDirectMode);
+    const methodSelectionReady = !annexDonorMode || dependencies.state.annexDonorCountryIds.length > 0;
     if (directLineMethodInput) {
-      directLineMethodInput.checked = annexDirectMode && activeMethod === 'line';
-      directLineMethodInput.disabled = dependencies.state.modeProcessing;
+      directLineMethodInput.checked = !annexDonorMode && activeMethod === 'line';
+      directLineMethodInput.disabled = dependencies.state.modeProcessing || !methodSelectionReady;
     }
-    if (polygonMethod) {
-      polygonMethod.checked = annexDirectMode && activeMethod === 'polygon';
-      polygonMethod.disabled = dependencies.state.modeProcessing;
+    polygonMethodOption?.classList.toggle('hidden', dependencies.state.tool !== 'annex-territory');
+    if (polygonMethodInput) {
+      polygonMethodInput.checked = !annexDonorMode && activeMethod === 'polygon';
+      polygonMethodInput.disabled = dependencies.state.modeProcessing || !methodSelectionReady;
     }
-    if (componentsMethod) {
-      const active = activeMethod === 'components';
-      componentsMethod.classList.toggle('active', active);
-      componentsMethod.setAttribute('aria-pressed', String(active));
-      componentsMethod.disabled = dependencies.state.modeProcessing || (annexDonorMode && !dependencies.state.annexDonorCountryIds.length);
+    if (componentsMethodInput) {
+      componentsMethodInput.checked = !annexDonorMode && activeMethod === 'components';
+      componentsMethodInput.disabled = dependencies.state.modeProcessing || !methodSelectionReady;
     }
     if (primary) {
       primary.classList.toggle('hidden', labelMode || annexDonorMode);

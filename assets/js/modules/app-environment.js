@@ -99,9 +99,8 @@ export function createEnvironment() {
   function mapTheme() {
     const terrainVisible = dependencies.state?.physicalSettings?.terrainVisible !== false;
     const terrainStyle = dependencies.state?.physicalSettings?.terrainStyle || 'political';
-    const terrainStrength = clamp(Number(dependencies.state?.physicalSettings?.terrainStrength ?? 0.32), 0, 1);
     const terrainFillAlpha = terrainVisible
-      ? (terrainStyle === 'physical' ? 0.22 : 1 - terrainStrength)
+      ? (terrainStyle === 'physical' ? 0.22 : 0.68)
       : null;
     const countryStyle = dependencies.state?.layerPresentation ? (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'countries') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const riverStyle = dependencies.state?.layerPresentation ? (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'rivers') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
@@ -364,7 +363,7 @@ export function createEnvironment() {
       'app', 'map', 'statusView', 'projectionStatus', 'statusPrimary', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
       'mapPanelTabs', 'mapLayersTabBtn', 'mapViewTabBtn', 'layerSection', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
       'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
-      'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'notesInput',
+      'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'countryNameInput', 'countryColorInput', 'notesInput',
       'debugMapPanel', 'countryAreaValue',
       'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
       'genericFeatureNameInput', 'genericFeatureColorInput', 'genericFeatureNotesInput',
@@ -377,7 +376,7 @@ export function createEnvironment() {
       'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
       'undoBtn', 'redoBtn', 'rightPanel',
       'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
-      'modeMethodSwitch', 'modeLineMethodBtn', 'modeDirectMethodOptions', 'modeDirectLineMethodInput', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
+      'modeMethodSwitch', 'modeDirectLineMethodInput', 'modePolygonMethodOption', 'modePolygonMethodInput', 'modeComponentsMethodInput', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
       'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
       'saveProjectBtn', 'openProjectBtn', 'projectFileInput', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
       'createBuildPanel', 'addCountryBtn', 'addSubunitBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',

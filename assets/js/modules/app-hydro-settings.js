@@ -35,7 +35,6 @@ export function createHydroSettings() {
     return {
       terrainVisible: value?.terrainVisible !== false,
       terrainStyle: value?.terrainStyle === 'physical' ? 'physical' : 'political',
-      terrainStrength: (0, dependencies.clamp)(Number(value?.terrainStrength ?? 0.32), 0, 1),
       hydroLayers,
       userFeaturesVisible: value?.userFeaturesVisible !== false,
       hiddenHydroIds,
@@ -61,10 +60,6 @@ export function createHydroSettings() {
     if ((0, dependencies.$)('terrainDisplayOptions')) (0, dependencies.$)('terrainDisplayOptions').hidden = !terrainVisible;
     if ((0, dependencies.$)('terrainPoliticalRadio')) (0, dependencies.$)('terrainPoliticalRadio').checked = dependencies.state.physicalSettings.terrainStyle === 'political';
     if ((0, dependencies.$)('terrainPhysicalRadio')) (0, dependencies.$)('terrainPhysicalRadio').checked = dependencies.state.physicalSettings.terrainStyle === 'physical';
-    if ((0, dependencies.$)('terrainStrengthInput')) (0, dependencies.$)('terrainStrengthInput').value = String(Math.round(dependencies.state.physicalSettings.terrainStrength * 100));
-    if ((0, dependencies.$)('terrainStrengthValue')) (0, dependencies.$)('terrainStrengthValue').textContent = `${Math.round(dependencies.state.physicalSettings.terrainStrength * 100)}%`;
-    if ((0, dependencies.$)('terrainStrengthControl')) (0, dependencies.$)('terrainStrengthControl').hidden = !terrainVisible || dependencies.state.physicalSettings.terrainStyle !== 'political';
-    syncRangeProgress((0, dependencies.$)('terrainStrengthInput'));
   }
 
   function parseHexRgb(value, fallback = dependencies.TERRAIN_OCEAN_REPRESENTATIVE) {
