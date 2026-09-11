@@ -151,7 +151,6 @@ export function createMapInputPresentation({
       const screenPoint = d3.mouse(this);
       const coord = screenToGeo(screenPoint);
       if (coord) {
-        $('coordStatus').textContent = `경도 ${coord[0].toFixed(4)} · 위도 ${coord[1].toFixed(4)}`;
         const newCountryLineMode = getInputSnapshot().tool === 'new-country' && getInputSnapshot().newCountryPhase === 'line';
         if ((isGenericFeatureDraftTool(getInputSnapshot().tool) || newCountryLineMode || (getInputSnapshot().tool === 'annex-territory' && ['line', 'polygon'].includes(getInputSnapshot().annexPhase))) && draft.inputPhase === 'draw' && draft.coords.length) {
           dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
@@ -160,7 +159,6 @@ export function createMapInputPresentation({
           queueCountryHoverPick(screenPoint, coord);
         }
       } else {
-        $('coordStatus').textContent = '지구본 바깥';
         dispatchEditingInteraction('draft-hover-clear');
         cancelCountryHoverPick({ clear: true });
         clearHoverHit();

@@ -41,6 +41,7 @@ export function createFileBindings() {
     let pendingAccent;
     const syncPreferencesForm = () => {
       (0, dependencies.$)('preferencesThemeInput').value = dependencies.userPreferences.appearance.theme;
+      (0, dependencies.$)('preferencesStatusBarVisibleInput').checked = dependencies.userPreferences.appearance.statusBarVisible !== false;
       const accent = dependencies.userPreferences.appearance.accentColor;
       const input = document.getElementById('preferencesAccentInput');
       input.value = accent || dependencies.resolvedAccentColor;
@@ -52,7 +53,11 @@ export function createFileBindings() {
     };
     const preferencesFromForm = () => ({
       ...dependencies.userPreferences,
-      appearance: { ...dependencies.userPreferences.appearance, theme: (0, dependencies.$)('preferencesThemeInput').value },
+      appearance: {
+        ...dependencies.userPreferences.appearance,
+        theme: (0, dependencies.$)('preferencesThemeInput').value,
+        statusBarVisible: (0, dependencies.$)('preferencesStatusBarVisibleInput').checked,
+      },
     });
     const applyPreferencesForm = () => {
       (0, dependencies.applyUserPreferences)(preferencesFromForm(), { persist: false });
@@ -110,6 +115,7 @@ export function createFileBindings() {
       if (input.showPicker) input.showPicker(); else input.click();
     });
     (0, dependencies.$)('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
+    (0, dependencies.$)('preferencesStatusBarVisibleInput')?.addEventListener('change', applyPreferencesForm);
     (0, dependencies.$)('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
     const fileMenu = document.querySelector('.top-actions');
     const visibleFileMenuItems = () => [...(fileMenu?.querySelectorAll('[role="menuitem"]:not(:disabled)') || [])]

@@ -8,7 +8,7 @@
   <link rel="icon" href="data:," />
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var t=Number(p.version)===2&&p.appearance&&p.appearance.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';}catch(_){document.documentElement.dataset.theme='light';}}());</script>
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
   <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-677fed234feb" />
   <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-677fed234feb" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
@@ -146,11 +146,11 @@
             <section class="layer-style-editor map-name-settings" aria-labelledby="mapNameSettingsTitle">
               <strong id="mapNameSettingsTitle">지도 표시</strong>
               <section class="layer-type-settings" aria-label="국가 표시 설정">
-                <div class="layer-type-settings-heading"><label class="ui-choice-row ui-radio-toggle"><input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" /><span>국가 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="countries" aria-label="국가 표시 설정" aria-controls="layerStylePanel-countries" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+                <div class="layer-type-settings-heading"><label class="ui-choice-row ui-toggle"><input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" /><span>국가 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="countries" aria-label="국가 표시 설정" aria-controls="layerStylePanel-countries" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
                 <div id="layerStylePanel-countries" class="layer-inline-style-panel" data-layer-style-panel="countries" role="group" aria-label="국가 표시 설정" hidden></div>
               </section>
               <section class="layer-type-settings" aria-label="하위단위 표시 설정">
-                <div class="layer-type-settings-heading"><label class="ui-choice-row ui-radio-toggle"><input id="subunitsVisible" type="checkbox" checked aria-label="하위단위 레이어 표시" /><span>하위단위 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="subunits" aria-label="하위단위 표시 설정" aria-controls="layerStylePanel-subunits" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+                <div class="layer-type-settings-heading"><label class="ui-choice-row ui-toggle"><input id="subunitsVisible" type="checkbox" checked aria-label="하위단위 레이어 표시" /><span>하위단위 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="subunits" aria-label="하위단위 표시 설정" aria-controls="layerStylePanel-subunits" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
                 <div id="layerStylePanel-subunits" class="layer-inline-style-panel" data-layer-style-panel="subunits" role="group" aria-label="하위단위 표시 설정" hidden></div>
               </section>
               <section class="layer-type-settings" aria-label="지방 표시 설정">
@@ -170,11 +170,11 @@
                 <div id="layerStylePanel-religions" class="layer-inline-style-panel" data-layer-style-panel="religions" role="group" aria-label="종교 표시 설정" hidden></div>
               </section>
               <section class="layer-type-settings" aria-label="강 표시 설정">
-                <div class="layer-type-settings-heading"><label class="ui-choice-row ui-radio-toggle"><input id="riversVisible" type="checkbox" checked aria-label="강 레이어 표시" /><span>강 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="rivers" aria-label="강 표시 설정" aria-controls="layerStylePanel-rivers" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+                <div class="layer-type-settings-heading"><label class="ui-choice-row ui-toggle"><input id="riversVisible" type="checkbox" checked aria-label="강 레이어 표시" /><span>강 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="rivers" aria-label="강 표시 설정" aria-controls="layerStylePanel-rivers" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
                 <div id="layerStylePanel-rivers" class="layer-inline-style-panel" data-layer-style-panel="rivers" role="group" aria-label="강 표시 설정" hidden></div>
               </section>
               <section class="layer-type-settings" aria-label="호수 표시 설정">
-                <div class="layer-type-settings-heading"><label class="ui-choice-row ui-radio-toggle"><input id="lakesVisible" type="checkbox" checked aria-label="호수 레이어 표시" /><span>호수 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="lakes" aria-label="호수 표시 설정" aria-controls="layerStylePanel-lakes" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
+                <div class="layer-type-settings-heading"><label class="ui-choice-row ui-toggle"><input id="lakesVisible" type="checkbox" checked aria-label="호수 레이어 표시" /><span>호수 표시</span></label><button class="ui-button icon-btn layer-style-toggle" type="button" data-layer-style-toggle="lakes" aria-label="호수 표시 설정" aria-controls="layerStylePanel-lakes" aria-expanded="false" data-tooltip="표시 설정"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg></button></div>
                 <div id="layerStylePanel-lakes" class="layer-inline-style-panel" data-layer-style-panel="lakes" role="group" aria-label="호수 표시 설정" hidden></div>
               </section>
               <section class="layer-type-settings" aria-label="기타 객체 표시 설정">
@@ -285,17 +285,13 @@
           <div id="objectChooserList" class="object-chooser-list ui-scroll-surface" role="listbox" aria-multiselectable="true"></div>
         </div>
 
-        <div class="ui-status map-bottom-status" aria-label="지도 상태">
+        <div id="mapBottomStatus" class="ui-status map-bottom-status" aria-label="지도 상태">
           <div class="status-inner">
             <div id="projectSaveStatus" class="ui-status status-group project-save-status" data-tooltip="저장되지 않은 변경 사항이 있습니다." aria-label="저장되지 않은 변경 사항이 있습니다">
               <span class="project-save-status-dot" aria-hidden="true"></span><span id="projectSaveStatusText">미저장</span>
             </div>
             <div id="statusView" class="status-group status-view" aria-label="보기 정보">
-              <span id="projectionStatus" class="status-item">투영 지구본</span>
-              <span id="coordStatus" class="status-item hidden">경도 0.0000 · 위도 0.0000</span>
-            </div>
-            <div id="statusPrimary" class="status-group status-primary hidden" aria-label="현재 작업">
-              <span id="currentToolStatus" class="current-tool-status"></span>
+              <span id="projectionStatus" class="status-item">지구본</span>
             </div>
             <div id="statusSelection" class="status-group status-selection hidden" aria-label="선택 대상">
               <span id="selectionStatus"></span>
@@ -656,6 +652,7 @@
         <section class="preferences-section" aria-labelledby="preferencesAppearanceTitle">
           <h3 id="preferencesAppearanceTitle">화면</h3>
           <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
+          <label class="ui-choice-row ui-toggle"><input id="preferencesStatusBarVisibleInput" type="checkbox" checked /><span>하단 상태표시줄 표시</span></label>
           <div class="preferences-accent" role="group" aria-labelledby="preferencesAccentTitle">
             <strong id="preferencesAccentTitle">강조색</strong>
             <div class="preferences-accent-swatches">

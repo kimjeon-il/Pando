@@ -132,6 +132,7 @@ export function connectMapResources({
     get territorialUnitName() { return objectPresentation.territorialUnitName; },
   });
   countryLabels.connect({
+    get $() { return environment.$; },
     get activeProjection() { return mapProjection.activeProjection; },
     get applyAppAccent() { return runtime.applyAppAccent; },
     get applyMapLabelPreferences() { return environment.applyMapLabelPreferences; },

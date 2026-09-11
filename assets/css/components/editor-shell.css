@@ -152,11 +152,6 @@
 [data-layout="wide"] .surface-header .editor-collapse-icon { display: block; }
 [data-layout="wide"] .surface-header .editor-close-icon { display: none; }
 
-.app-root[data-layout="mobile"] .workspace:has(.right-panel.mobile-open) .status-selection,
-.workspace:has(.mode-action-bar:not(.hidden)) .status-primary {
-  display: none;
-}
-
 @media (max-width: 799px) {
   .editor-focus-action {
     width: var(--ui-touch-height);

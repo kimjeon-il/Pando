@@ -14,30 +14,15 @@ export function createReadinessNotifications() {
     dependencies = ports;
   }
 
-  function setCurrentTool(name) {
-    const currentName = name || '선택·편집';
-    if ((0, dependencies.$)('currentToolStatus')) (0, dependencies.$)('currentToolStatus').textContent = currentName;
+  function setCurrentTool() {
     syncStatusBar();
   }
 
-  function shouldShowCoordinates() {
-    if (dependencies.state.labelPlacementMode || dependencies.state.tool === 'label' || dependencies.state.tool === 'point') return true;
-    if (['country-border', 'country-coast'].includes(dependencies.state.tool) || (0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool)) return true;
-    if (dependencies.state.tool === 'new-country') return dependencies.state.newCountryPhase === 'line';
-    if (dependencies.state.tool === 'annex-territory') return ['line', 'polygon'].includes(dependencies.state.annexPhase);
-    return false;
-  }
-
   function syncStatusBar() {
-    const showCoordinates = shouldShowCoordinates();
-    const showTask = dependencies.state.tool !== 'select' || dependencies.state.labelPlacementMode;
     const selectedText = (0, dependencies.$)('selectionStatus')?.textContent?.trim() || '';
     const showSelection = !!dependencies.state.selected && !!selectedText;
     const projectionLabel = dependencies.state.projection === 'flat' ? '평면지도' : '지구본';
-    if ((0, dependencies.$)('projectionStatus')) (0, dependencies.$)('projectionStatus').textContent = `투영 ${projectionLabel}`;
-    (0, dependencies.$)('coordStatus')?.classList.toggle('hidden', !showCoordinates);
-    (0, dependencies.$)('statusView')?.classList.toggle('coordinates-active', showCoordinates);
-    (0, dependencies.$)('statusPrimary')?.classList.toggle('hidden', !showTask);
+    if ((0, dependencies.$)('projectionStatus')) (0, dependencies.$)('projectionStatus').textContent = projectionLabel;
     (0, dependencies.$)('statusSelection')?.classList.toggle('hidden', !showSelection);
   }
 

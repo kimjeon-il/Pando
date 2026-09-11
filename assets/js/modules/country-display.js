@@ -20,6 +20,5 @@ export function countryDisplayName(feature, override = {}) {
 }
 
 export function countrySelectionStatus(view, area = '') {
-  const code = /^[A-Z]{3}$/.test(view.id || '') ? view.id : '';
-  return ['국가', view.displayName, code, area].filter(Boolean).join(' · ');
+  return [view.displayName, area].filter(Boolean).join(' · ');
 }
