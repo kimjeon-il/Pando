@@ -11,16 +11,16 @@
 .reference-image-launcher {
   position: absolute;
   z-index: 8;
-  inset-block-start: var(--ui-map-edge);
-  inset-inline-end: var(--ui-map-edge);
+  inset-block-start: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-4));
+  inset-inline-end: calc(var(--map-safe-right, 0px) + var(--ui-map-edge));
   min-height: var(--ui-control-height);
 }
 
 .reference-image-panel {
   position: absolute;
   z-index: 9;
-  inset-block-start: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-2));
-  inset-inline-end: var(--ui-map-edge);
+  inset-block-start: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-4) + var(--ui-control-height) + var(--ui-space-2));
+  inset-inline-end: calc(var(--map-safe-right, 0px) + var(--ui-map-edge));
   width: min(var(--ui-reference-panel-width), calc(100% - var(--ui-map-edge) * 2));
   max-height: min(var(--ui-reference-panel-max-height), calc(100% - var(--ui-reference-panel-clearance)));
   overflow: auto;
@@ -131,7 +131,7 @@
 @media (max-width: 799px) {
   .reference-image-launcher {
     inset-block-start: var(--ui-space-2);
-    inset-inline-end: var(--ui-space-2);
+    inset-inline-end: calc(var(--map-safe-right, 0px) + var(--ui-space-2));
   }
 
   .reference-image-panel {
