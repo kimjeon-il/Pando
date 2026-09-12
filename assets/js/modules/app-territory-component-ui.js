@@ -16,7 +16,7 @@ export function createTerritoryComponentUi() {
 
   function updateTerritoryComponentSelectionFeedback() {
     const session = (0, dependencies.activeTerritorySelectionSession)();
-    if (!session || session.stage !== 'selection' || session.selectionPhase !== 'components') return;
+    if (!session || session.stage !== 'selection' || session.activePhase !== 'components') return;
     const prefix = session.useRiverBoundaries ? session.riverComponentLabel : session.componentLabel;
     if (session.showRiverFailureSources) {
       const invalidIds = new Set(session.riverPartitionDonorResults

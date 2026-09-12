@@ -50,9 +50,10 @@ export function toolCursorMode(tool, state, { labelPlacement = false } = {}) {
     || tool === 'merge-territorial-unit';
   const generic = labelPlacement
     || ['polygon', 'line', 'river', 'lake', 'split-generic-feature', 'split-territorial-unit', 'redraw-territorial-unit'].includes(tool)
-    || (territorySelection?.stage === 'selection' && ['line', 'polygon'].includes(territorySelection.selectionPhase));
+    || (territorySelection?.stage === 'selection' && territorySelection.activePhase === 'drawing'
+      && ['line', 'polygon'].includes(territorySelection.activeMethod));
   const candidate = territorySelection?.stage === 'selection'
-    && ['side', 'components'].includes(territorySelection.selectionPhase);
+    && ['candidate', 'components'].includes(territorySelection.activePhase);
   return { country, generic, candidate, select: !country && !generic && !candidate };
 }
 
@@ -63,8 +64,9 @@ export function toolDraftDefinition(tool, state = {}) {
   const territorySelection = territorySelectionForTool(tool, state);
   if (territorySelection) {
     if (territorySelection.stage !== 'selection') return null;
-    if (territorySelection.selectionPhase === 'line') return Object.freeze({ shape: 'line', profile: 'boundary' });
-    if (territorySelection.selectionPhase === 'polygon') return Object.freeze({ shape: 'polygon', profile: 'area' });
+    if (territorySelection.activePhase !== 'drawing') return null;
+    if (territorySelection.activeMethod === 'line') return Object.freeze({ shape: 'line', profile: 'boundary' });
+    if (territorySelection.activeMethod === 'polygon') return Object.freeze({ shape: 'polygon', profile: 'area' });
     return null;
   }
   const definition = TOOL_DEFINITIONS[tool];

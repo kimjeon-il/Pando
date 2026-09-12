@@ -75,7 +75,7 @@ export function createInteractionPackets() {
     if (dependencies.state.tool === 'redraw-territorial-unit') return '부모 영역 안에 새 영역을 그리세요.';
     const territorySelection = dependencies.state.territorySelectionSession;
     if (territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection') {
-      const instruction = territorySelection.draftInstructions?.[territorySelection.selectionPhase];
+      const instruction = territorySelection.draftInstructions?.[territorySelection.activeMethod];
       if (instruction) return instruction;
     }
     if (dependencies.state.distributionDraft && (0, dependencies.isPolygonDraftTool)(dependencies.state.tool)) return '분포 영역을 지도에서 지정하세요.';

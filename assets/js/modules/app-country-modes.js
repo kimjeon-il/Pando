@@ -119,20 +119,19 @@ export function createCountryModes() {
     const lockIds = session.kind === 'annex' ? [session.targetCountryId, ...ids] : ids;
     if (!(0, dependencies.requireCountriesUnlocked)(lockIds, operationLabel)) return false;
     try {
+      const fingerprint = [...ids].sort().join('|');
+      if (session.sourceCountryFingerprint === fingerprint && session.baseSourceGeometry) return true;
       const sourceGeometry = (0, dependencies.selectedCountryUnionGeometry)(ids);
       if (!sourceGeometry) return false;
       session.baseSourceGeometry = (0, dependencies.deepClone)(sourceGeometry);
       session.workingSourceGeometry = (0, dependencies.deepClone)(sourceGeometry);
       session.remainingGeometry = (0, dependencies.deepClone)(sourceGeometry);
       session.sourceRevision += 1;
+      session.sourceCountryFingerprint = fingerprint;
       session.componentFeatures = ids
         .map(id => (0, dependencies.countryFeatureById)(id))
         .filter(Boolean)
         .map(feature => (0, dependencies.deepClone)(feature));
-      if (session.method !== 'components') {
-        dependencies.editingDomain?.startDraft?.({ coords: [] });
-        (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
-      }
       return true;
     } catch (error) {
       (0, dependencies.reportOperationError)(error, '선택한 국가의 영토를 준비할 수 없습니다. 대상을 다시 선택하세요.', 'PL-TERRITORY-SELECTION-002', 3800);

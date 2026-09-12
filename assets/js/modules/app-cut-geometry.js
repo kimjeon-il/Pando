@@ -135,7 +135,7 @@ export function createCutGeometry() {
     }
     const territorySelection = dependencies.state.territorySelectionSession;
     if (territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection'
-      && territorySelection.selectionPhase === 'line') return territorySelection.workingSourceGeometry || null;
+      && territorySelection.activePhase === 'drawing' && territorySelection.activeMethod === 'line') return territorySelection.workingSourceGeometry || null;
     return null;
   }
 

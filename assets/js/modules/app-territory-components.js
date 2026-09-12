@@ -30,9 +30,24 @@ export function createTerritoryComponents() {
     return `component:${String(countryId)}:${Number(polygonIndex)}`;
   }
 
+  function sourcePolygonIndexFor(feature, geometry, fallback) {
+    const sourcePolygons = feature?.properties?.__territorySourcePolygons;
+    if (!Array.isArray(sourcePolygons) || !sourcePolygons.length || !window.polygonClipping?.intersection) return fallback;
+    for (let index = 0; index < sourcePolygons.length; index += 1) {
+      try {
+        const overlap = (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.intersection(
+          sourcePolygons[index],
+          geometryMultiCoordinates(geometry),
+        ));
+        if (overlap) return index;
+      } catch { /* Keep the live component index when a provenance intersection cannot be read. */ }
+    }
+    return fallback;
+  }
+
   function territoryComponentContext() {
     const session = dependencies.state.territorySelectionSession;
-    if (session?.stage === 'selection' && session.selectionPhase === 'components') {
+    if (session?.stage === 'selection' && session.activePhase === 'components') {
       return { selectedKeys: session.selectedComponentKeys, features: session.componentFeatures || [] };
     }
     return { selectedKeys: [], features: [] };
@@ -46,9 +61,10 @@ export function createTerritoryComponents() {
         const geometry = (0, dependencies.normalizeClippedLandGeometry)([(0, dependencies.deepClone)(polygon)]);
         if (!geometry) return;
         const key = territoryComponentKey(countryId, polygonIndex);
+        const sourcePolygonIndex = sourcePolygonIndexFor(feature, geometry, polygonIndex);
         const areaKm2 = Math.max(0, dependencies.d3.geo.area(geometry) * 6371.0088 * 6371.0088);
         items.push({
-          key, countryId, polygonIndex, componentKey: `${countryId}:${polygonIndex}`, geometry, areaKm2,
+          key, countryId, polygonIndex, sourcePolygonIndex, componentKey: `${countryId}:${polygonIndex}`, geometry, areaKm2,
           countryName: (0, dependencies.countryName)(feature),
         });
       });
@@ -71,7 +87,7 @@ export function createTerritoryComponents() {
     let items = baseItems;
     const territorialSession = dependencies.state.territorySelectionSession;
     const usesRiver = territorialSession?.stage === 'selection'
-      && territorialSession.selectionPhase === 'components'
+      && territorialSession.activePhase === 'components'
       && territorialSession.useRiverBoundaries;
     if (usesRiver) {
       const status = territorialSession.riverPartitionStatus;

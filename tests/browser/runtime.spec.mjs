@@ -222,6 +222,47 @@ test('annex territory exposes river boundaries as a retained component-selection
   expect(errors).toEqual([]);
 });
 
+test('annex archives a component and starts the next method without losing the combined selection', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page, { url: '/?debug=1' });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexTerritoryBtn').click();
+  const donorPoint = await page.evaluate(() => {
+    const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
+    return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
+  });
+  const mapBox = await page.locator('#map').boundingBox();
+  await page.locator('#map .map-svg').dispatchEvent('click', {
+    clientX: mapBox.x + donorPoint[0], clientY: mapBox.y + donorPoint[1], button: 0,
+  });
+  await page.locator('#modePrimaryBtn').click();
+  await page.locator('#modeComponentsMethodInput').check();
+  await page.locator('#modePrimaryBtn').click();
+  const components = page.locator('.draft-layer path.territory-component');
+  await expect(components.first()).toBeVisible();
+  await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
+    bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
+  })));
+  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (1)', { timeout: 120_000 });
+  await expect(page.locator('#multiDrawnAddBtn')).toBeEnabled();
+  await page.locator('#multiDrawnAddBtn').click();
+  await expect(page.locator('#modeNextMethodChooser')).toBeVisible();
+  await expect(page.locator('#multiDrawnCount')).toHaveText('영역 1개');
+  await expect(page.locator('#multiDrawnAddBtn')).toBeDisabled();
+  await expect(page.locator('#multiDrawnUndoBtn')).toBeEnabled();
+  await page.locator('#modeNextPolygonMethodBtn').click();
+  await expect(page.locator('#modeDraftActions')).toBeVisible();
+  await expect(page.locator('#modeNextMethodChooser')).toBeHidden();
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await page.locator('#modeCancelBtn').click();
+  await page.locator('#modeCancelBtn').click();
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#modeActionBar')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
 test('narrow mobile widths keep the editor type scale instead of shrinking text', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const errors = await openApp(page, { waitForCanonical: false });

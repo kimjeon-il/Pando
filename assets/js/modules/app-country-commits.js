@@ -188,7 +188,7 @@ export function createCountryCommits() {
   function prepareAnnexDraftCandidates(session = dependencies.state.territorySelectionSession) {
     const targetId = String(session?.targetCountryId || '');
     const target = (0, dependencies.countryFeatureById)(targetId);
-    if (session?.kind !== 'annex' || session.selectionPhase !== 'line' || !target || !session.sourceCountryIds.length) {
+    if (session?.kind !== 'annex' || session.activePhase !== 'drawing' || session.activeMethod !== 'line' || !target || !session.sourceCountryIds.length) {
       (0, dependencies.setActionStatus)('편입을 진행할 수 없습니다. 편입받을 국가와 영토를 가져올 국가를 먼저 선택하세요.', 'error', 3800);
       return;
     }
@@ -198,7 +198,7 @@ export function createCountryCommits() {
       session.componentIndex = split.componentIndex;
       dependencies.editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
       const selectedIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-      (0, dependencies.setTerritorySelectionCandidates)(split.candidates, selectedIndex, 'side');
+      (0, dependencies.setTerritorySelectionCandidates)(split.candidates, selectedIndex);
       dependencies.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'annex-candidates-ready' });
       (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
       (0, dependencies.updateModeButtons)();
@@ -210,7 +210,7 @@ export function createCountryCommits() {
   }
 
   function prepareNewCountryDraftCandidates(session = dependencies.state.territorySelectionSession) {
-    if (session?.kind !== 'new-country' || session.selectionPhase !== 'line') {
+    if (session?.kind !== 'new-country' || session.activePhase !== 'drawing' || session.activeMethod !== 'line') {
       (0, dependencies.setActionStatus)('새 국가를 만들 수 없습니다. 영토를 가져올 국가 선택을 먼저 완료하세요.', 'error', 3600);
       return;
     }
@@ -219,7 +219,7 @@ export function createCountryCommits() {
       const split = (0, dependencies.buildCutSplitCandidates)(sourceGeometry, (0, dependencies.editingDraftCoordinates)());
       dependencies.editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
       const selectedIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-      (0, dependencies.setTerritorySelectionCandidates)(split.candidates, selectedIndex, 'side');
+      (0, dependencies.setTerritorySelectionCandidates)(split.candidates, selectedIndex);
       dependencies.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'new-country-candidates-ready' });
       (0, dependencies.setModeBanner)('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
       (0, dependencies.updateModeButtons)();
@@ -233,7 +233,7 @@ export function createCountryCommits() {
   function prepareAnnexPolygon(session = dependencies.state.territorySelectionSession) {
     const target = (0, dependencies.countryFeatureById)(String(session?.targetCountryId || ''));
     const donors = (session?.sourceCountryIds || []).map(dependencies.countryFeatureById).filter(Boolean);
-    if (session?.kind !== 'annex' || session.selectionPhase !== 'polygon' || !target || !donors.length) return;
+    if (session?.kind !== 'annex' || session.activePhase !== 'drawing' || session.activeMethod !== 'polygon' || !target || !donors.length) return;
     const plan = (0, dependencies.planDrawnTerritoryAnnex)({
       drawnGeometry: { type: 'Polygon', coordinates: [(0, dependencies.ensureClosedRing)((0, dependencies.editingDraftCoordinates)())] },
       donorFeatures: [{ geometry: session.workingSourceGeometry }],
@@ -244,7 +244,7 @@ export function createCountryCommits() {
       (0, dependencies.setActionStatus)('그린 영역 안에 편입할 영토가 없습니다.', 'error', 3200);
       return;
     }
-    (0, dependencies.setTerritorySelectionCandidates)([{ geometry: plan.transferGeometry }], 0, 'side');
+    (0, dependencies.setTerritorySelectionCandidates)([{ geometry: plan.transferGeometry }], 0);
     dependencies.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'annex-polygon-ready' });
     (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     (0, dependencies.updateModeButtons)();
@@ -253,7 +253,7 @@ export function createCountryCommits() {
   }
 
   function prepareNewCountryPolygon(session = dependencies.state.territorySelectionSession) {
-    if (session?.kind !== 'new-country' || session.selectionPhase !== 'polygon') return false;
+    if (session?.kind !== 'new-country' || session.activePhase !== 'drawing' || session.activeMethod !== 'polygon') return false;
     try {
       const drawn = { type: 'Polygon', coordinates: [(0, dependencies.ensureClosedRing)((0, dependencies.editingDraftCoordinates)())] };
       const geometry = (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.intersection(
@@ -261,7 +261,7 @@ export function createCountryCommits() {
         (0, dependencies.geometryMultiCoordinates)(drawn),
       ));
       if (!geometry) throw new Error('그린 영역 안에 새 국가로 만들 영토가 없습니다.');
-      return (0, dependencies.setTerritorySelectionCandidates)([{ geometry }], 0, 'side');
+      return (0, dependencies.setTerritorySelectionCandidates)([{ geometry }], 0);
     } catch (error) {
       (0, dependencies.reportOperationError)(error, '그린 영역을 새 국가 후보로 만들 수 없습니다.', 'PL-COUNTRY-003', 3800);
       return false;
@@ -269,11 +269,11 @@ export function createCountryCommits() {
   }
 
   function finishAnnexSelectionDraft(session) {
-    return session?.method === 'polygon' ? prepareAnnexPolygon(session) : prepareAnnexDraftCandidates(session);
+    return session?.activeMethod === 'polygon' ? prepareAnnexPolygon(session) : prepareAnnexDraftCandidates(session);
   }
 
   function finishNewCountrySelectionDraft(session) {
-    return session?.method === 'polygon' ? prepareNewCountryPolygon(session) : prepareNewCountryDraftCandidates(session);
+    return session?.activeMethod === 'polygon' ? prepareNewCountryPolygon(session) : prepareNewCountryDraftCandidates(session);
   }
 
   function finishGenericFeatureDraft(polygonMode) {
@@ -374,22 +374,40 @@ export function createCountryCommits() {
   }
 
   async function prepareAnnexSelectionPreview(session, expectedKey) {
-    if (session?.kind !== 'annex' || session.stage !== 'selection' || !['side', 'components'].includes(session.selectionPhase)) return false;
+    if (session?.kind !== 'annex' || session.stage !== 'selection'
+      || !['candidate', 'components', 'result', 'method-choice'].includes(session.activePhase)) return false;
     const targetId = String(session.targetCountryId || '');
-    const componentMode = session.selectionPhase === 'components';
-    const componentItems = componentMode ? (0, dependencies.territoryComponentItems)() : [];
-    const selectedComponents = componentItems.filter(item => item.selected);
+    const activeComponentItems = session.activePhase === 'components'
+      ? (0, dependencies.territoryComponentItems)().filter(item => item.selected)
+      : [];
+    const archivedComponents = (session.parts || []).filter(part => part.method === 'components' && part.component).map(part => part.component);
+    const selectedComponents = [...archivedComponents, ...activeComponentItems];
+    const snapshots = new Map((session.componentSnapshots || []).map(snapshot => [snapshot.id, snapshot.items || []]));
     const riverSliverContext = [];
     for (const item of selectedComponents) {
-      if (!item.usesRiverBoundary || riverSliverContext.some(row => row.donorId === item.countryId && row.polygonIndex === item.polygonIndex)) continue;
+      const polygonIndex = item.sourcePolygonIndex ?? item.polygonIndex;
+      if (!item.usesRiverBoundary || riverSliverContext.some(row => row.donorId === item.countryId && row.polygonIndex === polygonIndex)) continue;
+      const snapshotItems = item.snapshotId
+        ? snapshots.get(item.snapshotId) || []
+        : session.activePhase === 'components' ? (0, dependencies.territoryComponentItems)() : [];
+      const unselectedGeometries = snapshotItems
+        .filter(other => other.componentKey === item.componentKey && other.key !== item.key)
+        .map(other => {
+          try {
+            return (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.difference(
+              (0, dependencies.geometryMultiCoordinates)(other.geometry),
+              (0, dependencies.geometryMultiCoordinates)(session.combinedGeometry),
+            ));
+          } catch { return other.geometry; }
+        }).filter(Boolean);
       riverSliverContext.push({
-        donorId: item.countryId, polygonIndex: item.polygonIndex,
-        unselectedGeometries: componentItems.filter(other => other.componentKey === item.componentKey && !other.selected).map(other => other.geometry),
+        donorId: item.countryId, polygonIndex, unselectedGeometries,
       });
     }
-    const donorIds = componentMode
-      ? [...new Set(selectedComponents.map(item => String(item.countryId)).filter(Boolean))]
-      : session.sourceCountryIds.map(String);
+    const donorIds = [...new Set([
+      ...session.sourceCountryIds.map(String),
+      ...selectedComponents.map(item => String(item.countryId)).filter(Boolean),
+    ])];
     if (!(0, dependencies.requireCountriesUnlocked)([targetId, ...donorIds], '영토를 편입')) return;
     const candidate = { geometry: session.combinedGeometry };
     const targetBefore = (0, dependencies.countryFeatureById)(targetId);
@@ -420,7 +438,7 @@ export function createCountryCommits() {
       },
       onSuccess: plan => {
         const removedText = plan.removedIds.length ? ` · ${plan.removedIds.length}개국 완전 흡수` : '';
-        const selectedText = componentMode ? `선택한 ${selectedComponents.length}개 영토 조각을 ` : '선택한 ';
+        const selectedText = selectedComponents.length ? `선택한 ${selectedComponents.length}개 영토 조각을 포함해 ` : '선택한 ';
         (0, dependencies.setActionStatus)(`${selectedText}${plan.affectedDonorIds.length}개국의 영토를 ${targetName}에 편입했습니다${removedText}.`, 'success', 4000);
       },
       onError: error => (0, dependencies.reportOperationError)(error, '영토를 편입하지 못해 변경을 되돌렸습니다. 편입 범위를 조정한 뒤 다시 시도하세요.', 'PL-ANNEX-002'),

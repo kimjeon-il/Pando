@@ -77,6 +77,24 @@ export function createToolBindings() {
     (0, dependencies.$)('modeComponentsMethodInput')?.addEventListener('change', event => {
       if (event.currentTarget.checked) (0, dependencies.territorySelectionSelectMethod)('components');
     });
+    const startAdditionalTerritoryMethod = method => {
+      void (async () => {
+        const started = await (0, dependencies.territorySelectionStartAdditionalMethod)(method);
+        if (started) requestAnimationFrame(() => (0, dependencies.$)('modeDraftActions')?.querySelector('button:not(:disabled)')?.focus());
+      })();
+    };
+    (0, dependencies.$)('modeNextLineMethodBtn')?.addEventListener('click', () => startAdditionalTerritoryMethod('line'));
+    (0, dependencies.$)('modeNextPolygonMethodBtn')?.addEventListener('click', () => startAdditionalTerritoryMethod('polygon'));
+    (0, dependencies.$)('modeNextComponentsMethodBtn')?.addEventListener('click', () => startAdditionalTerritoryMethod('components'));
+    (0, dependencies.$)('modeNextMethodStartBtn')?.addEventListener('click', () => {
+      void (0, dependencies.territorySelectionStartAdditionalMethod)();
+    });
+    (0, dependencies.$)('modeMethodChangeKeepBtn')?.addEventListener('click', () => {
+      (0, dependencies.territorySelectionCancelMethodChange)();
+    });
+    (0, dependencies.$)('modeMethodChangeConfirmBtn')?.addEventListener('click', () => {
+      void (0, dependencies.territorySelectionConfirmMethodChange)();
+    });
     (0, dependencies.$)('modeRiverBoundaryInput')?.addEventListener('change', event => (0, dependencies.territorySelectionToggleRiverBoundaries)(event.currentTarget.checked));
     (0, dependencies.$)('modeDraftInsertBtn')?.addEventListener('click', () => {
       dependencies.editingDomain?.setDraftVertexInsertMode?.(!dependencies.editingDomain.snapshot().draft.vertexInsertMode);

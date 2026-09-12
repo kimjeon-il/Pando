@@ -35,7 +35,9 @@ test('annex selection controls and heading fit a narrow editor surface', async (
         fits: button.scrollWidth <= button.clientWidth,
         nowrap: getComputedStyle(button.querySelector('.mode-button-label') || button).whiteSpace === 'nowrap',
       })),
-      auxHeights: [...element.querySelectorAll('.mode-aux-control')].map(button => button.getBoundingClientRect().height),
+      auxHeights: [...element.querySelectorAll('.mode-aux-control')]
+        .filter(button => button.getClientRects().length > 0)
+        .map(button => button.getBoundingClientRect().height),
       grid: getComputedStyle(element.querySelector('#modeDraftActions')).gridTemplateColumns.split(' ').length,
       icons: element.querySelectorAll('.mode-aux-control svg').length,
     }));

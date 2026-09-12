@@ -112,7 +112,8 @@ export function createMapInputPresentation({
         if (input.tool === 'move') return false;
         const territoryDraft = input.territorySelectionSession?.tool === input.tool
           && input.territorySelectionSession.stage === 'selection'
-          && ['line', 'polygon'].includes(input.territorySelectionSession.selectionPhase);
+          && input.territorySelectionSession.activePhase === 'drawing'
+          && ['line', 'polygon'].includes(input.territorySelectionSession.activeMethod);
         const draftTap = (isGenericFeatureDraftTool(input.tool) || territoryDraft) && getDraftSnapshot().inputPhase === 'draw';
         return input.labelPlacementMode || draftTap || input.tool === 'point';
       },
@@ -156,7 +157,8 @@ export function createMapInputPresentation({
         const input = getInputSnapshot();
         const territoryDraft = input.territorySelectionSession?.tool === input.tool
           && input.territorySelectionSession.stage === 'selection'
-          && ['line', 'polygon'].includes(input.territorySelectionSession.selectionPhase);
+          && input.territorySelectionSession.activePhase === 'drawing'
+          && ['line', 'polygon'].includes(input.territorySelectionSession.activeMethod);
         if ((isGenericFeatureDraftTool(input.tool) || territoryDraft) && draft.inputPhase === 'draw' && draft.coords.length) {
           dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
         }

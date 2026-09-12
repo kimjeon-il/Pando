@@ -1,13 +1,15 @@
 /** Task surface presentation. Territory selection is rendered from one shared model. */
 export function draftToolbarStatus({ state, draft, draftMode, hasDraftTool, minimumPoints, cutLineReady }) {
   const territory = state.territorySelectionSession;
-  const territoryDrawing = territory?.stage === 'selection' && ['line', 'polygon'].includes(territory.selectionPhase);
+  const territoryDrawing = territory?.stage === 'selection' && territory.activePhase === 'drawing'
+    && ['line', 'polygon'].includes(territory.activeMethod);
   const preview = !!state.geometryPreview.session;
   const multiDraft = state.multiDraft;
   const hydroReview = !!multiDraft && multiDraft.kind === 'hydro'
     && ((multiDraft.parts?.length || 0) > 0 || !!multiDraft.current);
   const territoryReview = territory?.stage === 'selection'
-    && (territory.selectionPhase === 'side' || (!!territory.parts.length && !draft.coords.length));
+    && (territory.activePhase === 'candidate' || territory.activePhase === 'result'
+      || (territory.activePhase === 'drawing' && !!territory.parts.length && !draft.coords.length));
   const review = territoryReview || (hasDraftTool && preview) || hydroReview;
   const editable = !!draftMode && !preview && (!territory || territoryDrawing);
   const busy = state.modeProcessing || draft.strokeActive || draft.dragging || territory?.previewPending;
@@ -330,6 +332,19 @@ export function createTaskPresentation() {
     }
     (0, dependencies.$)('modePolygonMethodOption')?.classList.toggle('hidden', !selectionModel?.showMethods);
 
+    const nextMethodChooser = (0, dependencies.$)('modeNextMethodChooser');
+    nextMethodChooser?.classList.toggle('hidden', !selectionModel?.showNextMethods);
+    for (const id of ['modeNextLineMethodBtn', 'modeNextPolygonMethodBtn', 'modeNextComponentsMethodBtn']) {
+      const button = (0, dependencies.$)(id);
+      if (button) button.disabled = !!busy || !selectionModel?.showNextMethods;
+    }
+    const methodChangeConfirm = (0, dependencies.$)('modeMethodChangeConfirm');
+    methodChangeConfirm?.classList.toggle('hidden', !selectionModel?.showMethodChangeConfirmation);
+    const methodChangeMessage = (0, dependencies.$)('modeMethodChangeConfirmMessage');
+    if (methodChangeMessage) methodChangeMessage.textContent = selectionModel?.methodChangeConfirmationMessage || '';
+    (0, dependencies.$)('modeMethodChangeKeepBtn')?.toggleAttribute('disabled', !!busy);
+    (0, dependencies.$)('modeMethodChangeConfirmBtn')?.toggleAttribute('disabled', !!busy);
+
     const riverOption = (0, dependencies.$)('modeRiverBoundaryOption');
     const riverInput = (0, dependencies.$)('modeRiverBoundaryInput');
     riverOption?.classList.toggle('hidden', !selectionModel?.showRiver);
@@ -338,6 +353,9 @@ export function createTaskPresentation() {
       riverInput.checked = !!selection?.useRiverBoundaries;
       riverInput.disabled = !!busy;
     }
+    const nextMethodStart = (0, dependencies.$)('modeNextMethodStartBtn');
+    nextMethodStart?.classList.toggle('hidden', !selectionModel?.showNextMethodStart);
+    if (nextMethodStart) nextMethodStart.disabled = !!busy || !selection?.sourceCountryIds?.length;
 
     (0, dependencies.$)('modeDraftActions')?.classList.toggle('hidden', !toolbar.visible);
     const controls = { modeDraftRedrawBtn: !toolbar.redraw, modeDraftDeleteBtn: !toolbar.remove, modeDraftInsertBtn: !toolbar.insert, modeDraftDoneBtn: !toolbar.complete };
@@ -350,7 +368,7 @@ export function createTaskPresentation() {
 
     const hydroReview = multiDraftReviewActive(state);
     const hydroCount = hydroReview ? (0, dependencies.multiDraftPartCount)() : 0;
-    const showSelectionActions = !!selectionModel?.selection && !selectionModel.components;
+    const showSelectionActions = !!selectionModel?.selection && !!selectionModel.showDrawnActions;
     (0, dependencies.$)('multiDrawnActions')?.classList.toggle('hidden', !showSelectionActions && !hydroReview);
     const count = showSelectionActions ? selectionModel.count : hydroCount;
     const countNode = (0, dependencies.$)('multiDrawnCount');
@@ -360,7 +378,9 @@ export function createTaskPresentation() {
       ? !!busy || draft.strokeActive || !selectionModel.canAddPart
       : !!busy || draft.strokeActive || !state.multiDraft?.current;
     const undo = (0, dependencies.$)('multiDrawnUndoBtn');
-    if (undo) undo.disabled = !!busy || draft.strokeActive || !count || (!!draftMode && draft.coords.length > 0);
+    if (undo) undo.disabled = showSelectionActions
+      ? !!busy || draft.strokeActive || !selectionModel.canUndoPart
+      : !!busy || draft.strokeActive || !count || (!!draftMode && draft.coords.length > 0);
 
     const primary = (0, dependencies.$)('modePrimaryBtn');
     if (primary) {

@@ -621,7 +621,7 @@ export function createDomainAssembly() {
             boundaryEdit: boundarySegments.length || boundaryHandles.length ? { segments: boundarySegments, handles: boundaryHandles } : null,
             territoryOperation: territoryItems.length || candidates.length ? {
               kind: dependencies.state.tool,
-              phase: territorySelection?.selectionPhase || null,
+              phase: territorySelection?.activePhase || null,
               components: territoryItems.map(item => ({ ...item, hovered: item.key === territorySelection?.hoveredComponentKey })),
               candidates,
             } : null,
