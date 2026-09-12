@@ -198,7 +198,7 @@ test('annex territory exposes river boundaries as a retained component-selection
   await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (1)', { timeout: 120_000 });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
 
-  await page.locator('#modeRiverBoundaryInput').check();
+  await page.locator('#modeRiverBoundaryOption').click();
   await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await expect(page.locator('#modeTaskInstruction')).toContainText('준비하는 중');
@@ -208,7 +208,8 @@ test('annex territory exposes river boundaries as a retained component-selection
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
-  await page.locator('#modeRiverBoundaryInput').uncheck();
+  await page.locator('#modeRiverBoundaryOption').click();
+  await expect(page.locator('#modeRiverBoundaryInput')).not.toBeChecked();
   await expect(page.locator('#modeTaskInstruction')).toContainText('가져올 영토 조각');
   await page.waitForTimeout(500);
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
@@ -453,7 +454,8 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   await page.locator('#modeComponentsMethodInput').check();
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
-  await page.locator('#modeRiverBoundaryInput').check();
+  await page.locator('#modeRiverBoundaryOption').click();
+  await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
   await expect(page.locator('#modeTaskInstruction')).toContainText('준비하는 중');
   await expect.poll(() => manifestRequested).toBe(true);
   // Complete first-time hydro loading after the checkbox request has begun.
@@ -495,7 +497,8 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   await page.locator('#modePrimaryBtn').click();
   await page.locator('#modeComponentsMethodInput').check();
   await page.locator('#modePrimaryBtn').click();
-  await page.locator('#modeRiverBoundaryInput').check();
+  await page.locator('#modeRiverBoundaryOption').click();
+  await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
   await expect(page.locator('#modeTaskInstruction')).toContainText('하천으로 나뉜', { timeout: 60_000 });
   await expect.poll(() => components.evaluateAll(nodes => [824, 1087].map(area => nodes.filter(node =>
     Math.abs(node.__data__.areaKm2 - area) < 2).length))).toEqual([1, 1]);

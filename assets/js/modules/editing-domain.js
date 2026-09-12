@@ -804,9 +804,9 @@ export function createEditingDomain({
       emit(reason || 'draft-presentation-changed');
       return true;
     },
-    refreshTerritoryOperation: reason => {
-      if (disposed || !['annex-territory', 'new-country'].includes(activeTool)) return false;
-      emit(reason || 'territory-operation-changed');
+    refreshTerritorySelection: ({ tool: expectedTool, reason } = {}) => {
+      if (disposed || !expectedTool || String(expectedTool) !== activeTool) return false;
+      emit(reason || 'territory-selection-changed');
       return true;
     },
     startDraft, replaceDraftCoordinates, clearDraftHover,

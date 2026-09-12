@@ -129,10 +129,7 @@ export function createCountryModes() {
         .map(id => (0, dependencies.countryFeatureById)(id))
         .filter(Boolean)
         .map(feature => (0, dependencies.deepClone)(feature));
-      if (session.method === 'components') {
-        (0, dependencies.updateTerritoryComponentSelectionFeedback)();
-        dependencies.editingDomain?.refreshTerritoryOperation?.('territory-selection-components');
-      } else {
+      if (session.method !== 'components') {
         dependencies.editingDomain?.startDraft?.({ coords: [] });
         (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
       }

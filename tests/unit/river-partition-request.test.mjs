@@ -9,7 +9,7 @@ function harness() {
   const calls = [];
   const country = { id: 'SRB', geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } };
   const session = {
-    kind: 'annex', stage: 'selection', selectionPhase: 'components', useRiverBoundaries: true,
+    kind: 'annex', tool: 'annex-territory', stage: 'selection', selectionPhase: 'components', useRiverBoundaries: true,
     componentFeatures: [country], riverPartitionStatus: 'idle', riverPartitionCandidates: [], riverPartitionDonorResults: [],
   };
   const state = {
@@ -22,7 +22,11 @@ function harness() {
     RIVER_TERRITORY_PARTITION_CONFIG: {}, RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION: 'river-partitions-v2',
     riverTerritoryPartitionConfigFingerprint: () => '', countryFeatureById: () => country,
     activeTerritorySelectionSession: () => state.territorySelectionSession,
-    riverBoundaryComposition: () => ({ items: [{}] }), territoryBaseComponentItems: () => [],
+    riverBoundaryComposition: (_base, { candidates = [] } = {}) => ({
+      items: candidates.length ? candidates : [{}],
+      riverCandidateCount: candidates.length,
+    }),
+    territoryBaseComponentItems: () => [],
     countryName: feature => feature.id,
     ensureGisRuntime: async () => {},
     loadHydroData: async () => {
@@ -35,8 +39,8 @@ function harness() {
       loadRiverPartitionFeatures: async () => { calls.push('sources'); return { features: [], diagnostics: {} }; },
       computeRiverPartition: async request => { calls.push('compute'); calls.push(request.hydroRevision); return { candidates: [], donorResults: [] }; },
     },
-    setModeBanner: () => {}, updateModeButtons: () => {},
-    renderingDomain: { invalidateEditingOverlays: reason => calls.push(reason) },
+    setModeBanner: message => calls.push(message), updateModeButtons: () => {},
+    editingDomain: { refreshTerritorySelection: ({ tool, reason }) => { calls.push(reason); return tool === session.tool; } },
     normalizeClippedLandGeometry: geometry => geometry,
     reportOperationError: error => calls.push(error.message),
   };
@@ -57,9 +61,23 @@ test('first checkbox request survives manifest loading and caches under the load
   assert.equal(h.session.riverPartitionStatus, 'ready');
   assert.equal(h.calls.filter(call => call === 'compute').length, 1);
   assert.ok(h.calls.some(call => call.startsWith('0.13.0:loaded-index:')));
+  assert.ok(h.calls.includes('분할 가능한 하천이 없어 기존 영토 조각을 표시합니다.'));
   await h.run();
   assert.equal(h.calls.filter(call => call === 'compute').length, 1);
   assert.equal(h.calls.at(-1), 'river-partition-cache-ready');
+});
+
+test('result guidance follows the displayed river composition rather than raw candidates', async () => {
+  const h = harness();
+  h.context.gisDomain.computeRiverPartition = async () => ({
+    candidates: [{ key: 'river:1', donorCountryId: 'SRB', componentKey: 'SRB:0', geometry: h.session.componentFeatures[0].geometry }],
+    donorResults: [],
+  });
+  const pending = h.run();
+  h.release();
+  await pending;
+  assert.ok(h.calls.includes('하천으로 나뉜 영토 조각을 선택하세요.'));
+  assert.equal(h.calls.at(-1), 'river-partition-ready');
 });
 
 test('cancellation or target change during initial loading does not launch a stale computation', async () => {

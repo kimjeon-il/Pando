@@ -699,7 +699,7 @@ body.file-menu-open .mobile-backdrop {
 .territorial-create-reference {
   display: grid;
   gap: var(--ui-space-2);
-  padding: var(--ui-space-1) 0 0;
+  padding: var(--ui-space-1) var(--ui-space-2) 0;
 }
 
 .territorial-create-reference-heading {

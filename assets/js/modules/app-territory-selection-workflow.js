@@ -85,6 +85,7 @@ export function createTerritorySelectionWorkflow() {
         setupStageLabel: '대상 선택',
         defaultName: '',
         nameLabel: '',
+        referenceLabel: '',
         generatedIdPrefix: '',
         supportsName: false,
         showSetup: false,
@@ -122,6 +123,7 @@ export function createTerritorySelectionWorkflow() {
         setupStageLabel: '기본 설정',
         defaultName: '새 국가',
         nameLabel: '국가명',
+        referenceLabel: '영토를 가져올 국가',
         generatedIdPrefix: 'USR',
         supportsName: true,
         showSetup: true,
@@ -145,7 +147,7 @@ export function createTerritorySelectionWorkflow() {
         showReference: current => current.stage === 'setup',
         showCountryFlow: false,
         finalLabel: () => '생성',
-        sourceInstruction: '기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
+        sourceInstruction: '영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: () => true,
         validateSetup: dependencies.validateNewCountrySelectionSetup,
         prepareSelection: dependencies.prepareNewCountrySelection,
@@ -158,6 +160,7 @@ export function createTerritorySelectionWorkflow() {
         setupStageLabel: '기본 설정',
         defaultName: '새 하위단위',
         nameLabel: '하위단위명',
+        referenceLabel: '',
         generatedIdPrefix: 'subunit',
         supportsName: true,
         showSetup: true,
@@ -194,6 +197,7 @@ export function createTerritorySelectionWorkflow() {
         setupStageLabel: '기본 설정',
         defaultName: '새 지방',
         nameLabel: '지방명',
+        referenceLabel: '영역 기준 국가',
         generatedIdPrefix: 'region',
         supportsName: true,
         showSetup: true,
@@ -217,7 +221,7 @@ export function createTerritorySelectionWorkflow() {
         showReference: current => current.stage === 'method' && ['line', 'components'].includes(current.pendingMethod),
         showCountryFlow: false,
         finalLabel: () => '생성',
-        sourceInstruction: '기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
+        sourceInstruction: '영역 기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: () => true,
         validateSetup: dependencies.territorialCreateSetupValid,
         prepareSelection: dependencies.prepareTerritorialCreateSelection,
@@ -364,6 +368,13 @@ export function createTerritorySelectionWorkflow() {
     }
     current.stage = 'selection';
     current.selectionPhase = current.method === 'components' ? 'components' : current.method;
+    if (current.selectionPhase === 'components') {
+      (0, dependencies.updateTerritoryComponentSelectionFeedback)();
+      dependencies.editingDomain?.refreshTerritorySelection?.({
+        tool: current.tool,
+        reason: 'territory-selection-components-ready',
+      });
+    }
     refresh('territory-selection-ready');
     return true;
   }
@@ -556,6 +567,10 @@ export function createTerritorySelectionWorkflow() {
     (0, dependencies.resetRiverPartitionState)();
     if (next) void (0, dependencies.prepareRiverPartitionCandidates)();
     else (0, dependencies.updateTerritoryComponentSelectionFeedback)();
+    dependencies.editingDomain?.refreshTerritorySelection?.({
+      tool: current.tool,
+      reason: 'territory-selection-river-toggle',
+    });
     refresh('territory-selection-river');
     return true;
   }
@@ -727,6 +742,7 @@ export function createTerritorySelectionWorkflow() {
       showSetup: current.stage === 'setup' && adapter.showSetup,
       showName: current.stage === 'setup' && adapter.supportsName,
       nameLabel: adapter.nameLabel,
+      referenceLabel: adapter.referenceLabel,
       showSubunitFields: current.stage === 'setup' && adapter.showSubunitFields,
       showReference: adapter.showReference(current),
       showCountryFlow: adapter.showCountryFlow,

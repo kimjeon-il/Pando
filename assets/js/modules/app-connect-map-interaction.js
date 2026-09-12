@@ -255,7 +255,6 @@ export function connectMapInteraction({
     get normalizeClippedLandGeometry() { return cutGeometry.normalizeClippedLandGeometry; },
     get projectDomain() { return domainAssembly.projectDomain; },
     get reportOperationError() { return readinessNotifications.reportOperationError; },
-    get renderingDomain() { return domainAssembly.renderingDomain; },
     get RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION() { return runtime.RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION; },
     get RIVER_TERRITORY_PARTITION_CONFIG() { return runtime.RIVER_TERRITORY_PARTITION_CONFIG; },
     get riverTerritoryPartitionConfigFingerprint() { return runtime.riverTerritoryPartitionConfigFingerprint; },

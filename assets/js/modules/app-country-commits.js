@@ -199,7 +199,7 @@ export function createCountryCommits() {
       dependencies.editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
       const selectedIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       (0, dependencies.setTerritorySelectionCandidates)(split.candidates, selectedIndex, 'side');
-      dependencies.editingDomain?.refreshTerritoryOperation?.('annex-candidates-ready');
+      dependencies.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'annex-candidates-ready' });
       (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
       (0, dependencies.updateModeButtons)();
       dependencies.renderingDomain?.invalidateGpuInteraction?.('annex-candidates-ready');
@@ -220,7 +220,7 @@ export function createCountryCommits() {
       dependencies.editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
       const selectedIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       (0, dependencies.setTerritorySelectionCandidates)(split.candidates, selectedIndex, 'side');
-      dependencies.editingDomain?.refreshTerritoryOperation?.('new-country-candidates-ready');
+      dependencies.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'new-country-candidates-ready' });
       (0, dependencies.setModeBanner)('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
       (0, dependencies.updateModeButtons)();
       dependencies.renderingDomain?.invalidateGpuInteraction?.('new-country-candidates-ready');
@@ -245,7 +245,7 @@ export function createCountryCommits() {
       return;
     }
     (0, dependencies.setTerritorySelectionCandidates)([{ geometry: plan.transferGeometry }], 0, 'side');
-    dependencies.editingDomain?.refreshTerritoryOperation?.('annex-polygon-ready');
+    dependencies.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'annex-polygon-ready' });
     (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     (0, dependencies.updateModeButtons)();
     dependencies.renderingDomain?.invalidateGpuInteraction?.('annex-polygon-ready');
