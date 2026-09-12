@@ -27,7 +27,6 @@ export function createTerritorySelectionWorkflow() {
       taskLabel: definition.label,
       setupStageLabel: definition.setupStageLabel,
       setupCountryPicking: definition.setupCountryPicking,
-      methodCountryPickingMethods: [...definition.methodCountryPickingMethods],
       methodsRequiringSources: [...definition.methodsRequiringSources],
       unboundedMethods: [...definition.unboundedMethods],
       draftInstructions: definition.draftInstructions,
@@ -39,10 +38,8 @@ export function createTerritorySelectionWorkflow() {
       actionButtonId: definition.actionButtonId,
       stage: 'setup',
       activePhase: null,
-      resumeSelection: false,
       activeMethod: null,
-      pendingMethod: null,
-      pendingAdditionalMethod: null,
+      requestedMethod: null,
       methodChangeConfirmation: null,
       name: String(options.name ?? definition.defaultName),
       generatedId: options.generatedId || (definition.generatedIdPrefix ? (0, dependencies.uid)(definition.generatedIdPrefix) : ''),
@@ -95,7 +92,6 @@ export function createTerritorySelectionWorkflow() {
         showSetup: false,
         showSubunitFields: false,
         setupCountryPicking: true,
-        methodCountryPickingMethods: [],
         methodsRequiringSources: [],
         unboundedMethods: [],
         draftInstructions: Object.freeze({
@@ -133,7 +129,6 @@ export function createTerritorySelectionWorkflow() {
         showSetup: true,
         showSubunitFields: false,
         setupCountryPicking: true,
-        methodCountryPickingMethods: [],
         methodsRequiringSources: [],
         unboundedMethods: [],
         draftInstructions: Object.freeze({
@@ -170,7 +165,6 @@ export function createTerritorySelectionWorkflow() {
         showSetup: true,
         showSubunitFields: true,
         setupCountryPicking: false,
-        methodCountryPickingMethods: [],
         methodsRequiringSources: [],
         unboundedMethods: [],
         draftInstructions: Object.freeze({
@@ -207,7 +201,6 @@ export function createTerritorySelectionWorkflow() {
         showSetup: true,
         showSubunitFields: false,
         setupCountryPicking: false,
-        methodCountryPickingMethods: ['line', 'components'],
         methodsRequiringSources: ['line', 'components'],
         unboundedMethods: ['polygon'],
         draftInstructions: Object.freeze({
@@ -222,8 +215,7 @@ export function createTerritorySelectionWorkflow() {
         sourceHighlightRole: 'reference',
         actionButtonId: '',
         defaultSourceKey: '',
-        showReference: current => (current.stage === 'method' && ['line', 'components'].includes(current.pendingMethod))
-          || (current.stage === 'selection' && current.activePhase === 'source'),
+        showReference: current => current.stage === 'selection' && current.activePhase === 'source',
         showCountryFlow: false,
         finalLabel: () => '생성',
         sourceInstruction: '영역 기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
@@ -308,7 +300,7 @@ export function createTerritorySelectionWorkflow() {
     if (clearDraft) dependencies.editingDomain?.clearDraft?.({ reason: 'territory-selection-current-clear', render: false });
     current.activePhase = null;
     current.activeMethod = null;
-    current.pendingAdditionalMethod = null;
+    current.requestedMethod = null;
     current.methodChangeConfirmation = null;
     current.componentIndex = null;
     current.candidates = [];
@@ -326,11 +318,11 @@ export function createTerritorySelectionWorkflow() {
     return true;
   }
 
-  function resetSelection(current = session(), { keepPendingMethod = true, refreshUi = true } = {}) {
+  function resetSelection(current = session(), { keepRequestedMethod = true, refreshUi = true } = {}) {
     if (!current) return false;
+    const requestedMethod = current.requestedMethod;
     clearCurrentSelection(current, { refreshUi: false });
-    current.resumeSelection = false;
-    if (!keepPendingMethod) current.pendingMethod = null;
+    current.requestedMethod = keepRequestedMethod ? requestedMethod : null;
     current.parts = [];
     current.componentSnapshots = [];
     current.baseSourceFeatures = [];
@@ -347,11 +339,6 @@ export function createTerritorySelectionWorkflow() {
     return !!current && adapterFor(current)?.validateSetup?.(current) === true;
   }
 
-  function methodValid(current = session()) {
-    if (!current?.pendingMethod || !['line', 'polygon', 'components'].includes(current.pendingMethod)) return false;
-    return !current.methodsRequiringSources.includes(current.pendingMethod) || current.sourceCountryIds.length > 0;
-  }
-
   function draftCoordinates() {
     return (0, dependencies.editingDraftCoordinates)() || [];
   }
@@ -366,7 +353,7 @@ export function createTerritorySelectionWorkflow() {
     return {
       activePhase: current.activePhase,
       activeMethod: current.activeMethod,
-      pendingAdditionalMethod: current.pendingAdditionalMethod,
+      requestedMethod: current.requestedMethod,
       methodChangeConfirmation: current.methodChangeConfirmation,
       componentIndex: current.componentIndex,
       candidates: structuredClone(current.candidates),
@@ -387,7 +374,7 @@ export function createTerritorySelectionWorkflow() {
     Object.assign(current, {
       activePhase: snapshot.activePhase,
       activeMethod: snapshot.activeMethod,
-      pendingAdditionalMethod: snapshot.pendingAdditionalMethod,
+      requestedMethod: snapshot.requestedMethod,
       methodChangeConfirmation: snapshot.methodChangeConfirmation,
       componentIndex: snapshot.componentIndex,
       candidates: snapshot.candidates,
@@ -515,27 +502,17 @@ export function createTerritorySelectionWorkflow() {
     if (current.stage === 'setup') {
       if (!setupValid(current)) return false;
       current.name = current.name.trim();
-      current.stage = 'method';
-      current.activePhase = null;
-      (0, dependencies.setModeBanner)('');
-      refresh('territory-selection-method');
-      return true;
-    }
-    if (current.stage !== 'method' || !methodValid(current)) return false;
-    if (current.activeMethod === current.pendingMethod && current.resumeSelection) {
       current.stage = 'selection';
-      current.resumeSelection = false;
-      refresh('territory-selection-restored');
+      (0, dependencies.setModeBanner)('');
       if (!dependencies.state.geometryPreview.session && selectionGeometryReady(current)) schedulePreview();
+      refresh('territory-selection-open');
       return true;
     }
-    if (current.activeMethod && current.activeMethod !== current.pendingMethod && activeCurrentWork(current)) {
-      current.methodChangeConfirmation = { type: 'method', method: current.pendingMethod };
-      refresh('territory-selection-method-change-confirm');
-      return false;
-    }
-    current.stage = 'selection';
-    return activateMethod(current, current.pendingMethod);
+    if (current.stage !== 'selection' || !previewReady(current)) return false;
+    current.stage = 'review';
+    (0, dependencies.setModeBanner)('');
+    refresh('territory-selection-review');
+    return true;
   }
 
   function back() {
@@ -543,19 +520,18 @@ export function createTerritorySelectionWorkflow() {
     if (!current) return false;
     if (current.methodChangeConfirmation) {
       current.methodChangeConfirmation = null;
-      current.pendingMethod = current.activeMethod || current.pendingMethod;
+      current.requestedMethod = current.activeMethod || current.requestedMethod;
       refresh('territory-selection-method-change-kept');
+      return true;
+    }
+    if (current.stage === 'review') {
+      current.stage = 'selection';
+      (0, dependencies.setModeBanner)('');
+      refresh('territory-selection-back-selection');
       return true;
     }
     if (current.stage === 'selection') {
       cancelPreview({ discard: false, preserveReady: true });
-      current.resumeSelection = true;
-      current.stage = 'method';
-      (0, dependencies.setModeBanner)('');
-      refresh('territory-selection-back-method');
-      return true;
-    }
-    if (current.stage === 'method') {
       current.stage = 'setup';
       (0, dependencies.setModeBanner)('');
       refresh('territory-selection-back-setup');
@@ -564,13 +540,22 @@ export function createTerritorySelectionWorkflow() {
     return false;
   }
 
-  function selectMethod(method) {
+  async function selectMethod(method) {
     const current = session();
-    if (!current || current.stage !== 'method' || !['line', 'polygon', 'components'].includes(method)) return false;
-    if (current.pendingMethod === method) return true;
-    current.pendingMethod = method;
-    refresh('territory-selection-method-changed');
-    return true;
+    if (!current || current.stage !== 'selection' || !['line', 'polygon', 'components'].includes(method)) return false;
+    if (current.activeMethod === method && current.activePhase !== 'source') return true;
+    current.requestedMethod = method;
+    if (current.activeMethod && current.activeMethod !== method && activeCurrentWork(current)) {
+      current.methodChangeConfirmation = { type: 'method', method };
+      refresh('territory-selection-method-change-confirm');
+      return false;
+    }
+    if (current.methodsRequiringSources.includes(method) && !current.sourceCountryIds.length) {
+      current.activePhase = 'source';
+      refresh('territory-selection-source-required');
+      return false;
+    }
+    return activateMethod(current, method);
   }
 
   async function confirmMethodChange() {
@@ -582,14 +567,11 @@ export function createTerritorySelectionWorkflow() {
       return applySourceCountryToggle(current, confirmation.countryId, { reset: true });
     }
     const requested = confirmation.method;
-    if (current.stage !== 'method' || !requested) return false;
+    if (current.stage !== 'selection' || !requested) return false;
     current.methodChangeConfirmation = null;
-    current.stage = 'selection';
     const started = await activateMethod(current, requested);
     if (!started && current === session()) {
-      current.stage = 'method';
-      current.pendingMethod = current.activeMethod || requested;
-      current.resumeSelection = true;
+      current.requestedMethod = current.activeMethod || requested;
     }
     return started;
   }
@@ -600,26 +582,17 @@ export function createTerritorySelectionWorkflow() {
     const wasMethodChange = current.methodChangeConfirmation.type === 'method';
     current.methodChangeConfirmation = null;
     if (wasMethodChange) {
-      current.pendingMethod = current.activeMethod || current.pendingMethod;
-      current.resumeSelection = true;
+      current.requestedMethod = current.activeMethod || current.requestedMethod;
     }
     refresh('territory-selection-method-change-kept');
     return true;
   }
 
-  async function startAdditionalMethod(method = session()?.pendingAdditionalMethod) {
+  async function startReferenceMethod() {
     const current = session();
-    if (!current || current.stage !== 'selection' || !['line', 'polygon', 'components'].includes(method)) return false;
-    if (!['method-choice', 'source'].includes(current.activePhase)) return false;
-    current.pendingAdditionalMethod = method;
-    if (current.methodsRequiringSources.includes(method) && !current.sourceCountryIds.length) {
-      current.activePhase = 'source';
-      refresh('territory-selection-additional-source');
-      return false;
-    }
-    const started = await activateMethod(current, method);
-    if (started) current.pendingAdditionalMethod = null;
-    return started;
+    if (!current || current.stage !== 'selection' || current.activePhase !== 'source' || !current.requestedMethod) return false;
+    if (!current.sourceCountryIds.length) return false;
+    return activateMethod(current, current.requestedMethod);
   }
 
   function updateName(value) {
@@ -637,9 +610,8 @@ export function createTerritorySelectionWorkflow() {
 
   function countryPickingActive(current = session()) {
     return !!current && ((current.stage === 'setup' && current.setupCountryPicking)
-      || (current.stage === 'method' && current.methodCountryPickingMethods.includes(current.pendingMethod))
       || (current.stage === 'selection' && current.activePhase === 'source'
-        && current.methodsRequiringSources.includes(current.pendingAdditionalMethod)));
+        && current.methodsRequiringSources.includes(current.requestedMethod)));
   }
 
   function toggleSourceCountry(countryId) {
@@ -658,7 +630,7 @@ export function createTerritorySelectionWorkflow() {
       refresh('territory-selection-settings-change-confirm');
       return true;
     }
-    return applySourceCountryToggle(current, id, { reset: current.activeMethod || current.resumeSelection });
+    return applySourceCountryToggle(current, id, { reset: !!current.activeMethod });
   }
 
   function applySourceCountryToggle(current, id, { reset = false } = {}) {
@@ -669,10 +641,10 @@ export function createTerritorySelectionWorkflow() {
     current.sourceCountryIds = [...selected];
     current.settingsRevision += 1;
     if (reset) {
-      const nextMethod = current.pendingAdditionalMethod || current.pendingMethod;
-      resetSelection(current, { keepPendingMethod: true, refreshUi: false });
-      current.pendingMethod = nextMethod;
-      if (current.stage === 'selection') current.stage = 'method';
+      const requestedMethod = current.requestedMethod;
+      resetSelection(current, { keepRequestedMethod: true, refreshUi: false });
+      current.requestedMethod = requestedMethod;
+      current.stage = 'selection';
     }
     refresh('territory-selection-source-country');
     return true;
@@ -827,7 +799,8 @@ export function createTerritorySelectionWorkflow() {
     current.selectedComponentKeys = [];
     current.hoveredComponentKey = null;
     current.activeMethod = null;
-    current.activePhase = 'method-choice';
+    current.requestedMethod = null;
+    current.activePhase = null;
     current.useRiverBoundaries = false;
     (0, dependencies.resetRiverPartitionState)();
     refreshCombinedGeometry(current);
@@ -889,7 +862,8 @@ export function createTerritorySelectionWorkflow() {
   }
 
   function selectionGeometryReady(current = session()) {
-    if (!current || current.stage !== 'selection') return false;
+    if (!current || !['selection', 'review'].includes(current.stage)) return false;
+    if (current.stage === 'review') return !!current.combinedGeometry && !dependencies.editingDomain?.draftInputActive?.();
     if (current.activePhase === 'components') {
       return (!current.useRiverBoundaries || current.riverPartitionStatus === 'ready') && current.selectedComponentKeys.length > 0 && !!current.currentGeometry;
     }
@@ -946,7 +920,7 @@ export function createTerritorySelectionWorkflow() {
 
   async function apply() {
     const current = session();
-    if (!current || current.applying || !previewReady(current)) return false;
+    if (!current || current.stage !== 'review' || current.applying || !previewReady(current)) return false;
     current.applying = true;
     refresh('territory-selection-applying');
     try {
@@ -967,11 +941,11 @@ export function createTerritorySelectionWorkflow() {
     if (!current) return null;
     const adapter = adapterFor(current);
     if (!adapter) return null;
-    const step = current.stage === 'setup' ? 1 : current.stage === 'method' ? 2 : 3;
+    const step = current.stage === 'setup' ? 1 : current.stage === 'selection' ? 2 : 3;
     const stageLabel = current.stage === 'setup' ? current.setupStageLabel
-      : current.stage === 'method' ? '방식 선택' : '영역 선택';
+      : current.stage === 'selection' ? '영역 선택' : '결과 확인';
     const count = partCount(current);
-    const primaryLabel = current.stage === 'selection'
+    const primaryLabel = current.stage === 'review'
       ? adapter.finalLabel(count)
       : '다음';
     return {
@@ -980,15 +954,19 @@ export function createTerritorySelectionWorkflow() {
       taskName: `${current.taskLabel} ${step}단계`,
       stageLabel,
       setup: current.stage === 'setup',
-      method: current.stage === 'method',
       selection: current.stage === 'selection',
+      review: current.stage === 'review',
       line: current.stage === 'selection' && current.activePhase === 'drawing' && current.activeMethod === 'line',
       polygon: current.stage === 'selection' && current.activePhase === 'drawing' && current.activeMethod === 'polygon',
       candidate: current.stage === 'selection' && current.activePhase === 'candidate',
       result: current.stage === 'selection' && current.activePhase === 'result',
       components: current.stage === 'selection' && current.activePhase === 'components',
-      activeMethod: current.stage === 'method' ? current.pendingMethod : current.activeMethod,
+      activeMethod: current.activeMethod || current.requestedMethod,
       showSetup: current.stage === 'setup' && adapter.showSetup,
+      showReviewSummary: current.stage === 'review' && adapter.supportsName,
+      reviewName: current.name.trim(),
+      reviewSovereignId: current.sovereignId,
+      reviewParentId: current.parentId,
       showName: current.stage === 'setup' && adapter.supportsName,
       nameLabel: adapter.nameLabel,
       referenceLabel: adapter.referenceLabel,
@@ -996,25 +974,25 @@ export function createTerritorySelectionWorkflow() {
       showReference: adapter.showReference(current)
         || current.stage === 'selection' && current.activePhase === 'source',
       showCountryFlow: adapter.showCountryFlow,
-      showMethods: current.stage === 'method',
-      showNextMethods: current.stage === 'selection' && current.activePhase === 'method-choice',
-      showNextMethodStart: current.stage === 'selection' && current.activePhase === 'source',
+      showMethods: current.stage === 'selection',
+      showReferenceStart: current.stage === 'selection' && current.activePhase === 'source',
       showMethodChangeConfirmation: !!current.methodChangeConfirmation,
       methodChangeConfirmationMessage: current.methodChangeConfirmation?.type === 'settings'
         ? '선택한 영역을 모두 지우고 설정을 바꿀까요?'
         : '현재 영역을 버리고 방식을 바꿀까요?',
       showRiver: current.stage === 'selection' && current.activePhase === 'components',
-      showDrawnActions: current.stage === 'selection' && ['candidate', 'components', 'result', 'method-choice'].includes(current.activePhase),
+      showDrawnActions: current.stage === 'selection' && (current.parts.length > 0
+        || ['candidate', 'components', 'result'].includes(current.activePhase)),
       count,
       canAddPart: canAddPart(current),
       canUndoPart: current.stage === 'selection' && !dependencies.editingDomain?.draftInputActive?.()
         && (current.selectedComponentKeys.length > 0 || !!current.currentGeometry || current.parts.length > 0),
       primaryLabel,
-      primaryIcon: current.stage === 'selection' ? '#icon-check' : '#icon-chevron-right',
+      primaryIcon: current.stage === 'review' ? '#icon-check' : '#icon-chevron-right',
       primaryDisabled: current.applying || current.previewPending
         || current.stage === 'setup' && !setupValid(current)
-        || current.stage === 'method' && !methodValid(current)
-        || current.stage === 'selection' && !previewReady(current),
+        || current.stage === 'selection' && !previewReady(current)
+        || current.stage === 'review' && !previewReady(current),
       cancelLabel: current.stage === 'setup' ? '취소' : '뒤로',
       cancelIcon: current.stage === 'setup' ? '#icon-close' : '#icon-chevron-left',
       referenceCount: current.sourceCountryIds.length,
@@ -1036,7 +1014,6 @@ export function createTerritorySelectionWorkflow() {
     get confirmMethodChange() { return confirmMethodChange; },
     get countryPickingActive() { return countryPickingActive; },
     get finishDraft() { return finishDraft; },
-    get methodValid() { return methodValid; },
     get partCount() { return partCount; },
     get presentation() { return presentation; },
     get previewIsCurrent() { return previewIsCurrent; },
@@ -1051,7 +1028,7 @@ export function createTerritorySelectionWorkflow() {
     get setCurrentCandidates() { return setCurrentCandidates; },
     get setupValid() { return setupValid; },
     get sourceCountryInstruction() { return sourceCountryInstruction; },
-    get startAdditionalMethod() { return startAdditionalMethod; },
+    get startReferenceMethod() { return startReferenceMethod; },
     get start() { return start; },
     get toggleComponent() { return toggleComponent; },
     get toggleRiverBoundaries() { return toggleRiverBoundaries; },

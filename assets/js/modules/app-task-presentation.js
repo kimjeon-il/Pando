@@ -1,6 +1,7 @@
 /** Task surface presentation. Territory selection is rendered from one shared model. */
 export function draftToolbarStatus({ state, draft, draftMode, hasDraftTool, minimumPoints, cutLineReady }) {
   const territory = state.territorySelectionSession;
+  const territoryOutsideSelection = !!territory && territory.stage !== 'selection';
   const territoryDrawing = territory?.stage === 'selection' && territory.activePhase === 'drawing'
     && ['line', 'polygon'].includes(territory.activeMethod);
   const preview = !!state.geometryPreview.session;
@@ -10,8 +11,8 @@ export function draftToolbarStatus({ state, draft, draftMode, hasDraftTool, mini
   const territoryReview = territory?.stage === 'selection'
     && (territory.activePhase === 'candidate' || territory.activePhase === 'result'
       || (territory.activePhase === 'drawing' && !!territory.parts.length && !draft.coords.length));
-  const review = territoryReview || (hasDraftTool && preview) || hydroReview;
-  const editable = !!draftMode && !preview && (!territory || territoryDrawing);
+  const review = !territoryOutsideSelection && (territoryReview || (hasDraftTool && preview) || hydroReview);
+  const editable = !territoryOutsideSelection && !!draftMode && !preview && (!territory || territoryDrawing);
   const busy = state.modeProcessing || draft.strokeActive || draft.dragging || territory?.previewPending;
   const accumulatedOnly = (!!territoryDrawing && territory.parts.length > 0 && !draft.coords.length && !draft.strokeActive)
     || (hydroReview && (multiDraft.parts?.length || 0) > 0 && !draft.coords.length && !draft.strokeActive);
@@ -20,7 +21,7 @@ export function draftToolbarStatus({ state, draft, draftMode, hasDraftTool, mini
     editable,
     insert: editable && !busy && draft.coords.length >= 2,
     remove: editable && !busy && draft.inputPhase === 'refine' && Number.isInteger(draft.selectedVertexIndex),
-    redraw: !busy && (!!draft.coords.length || review),
+    redraw: !territoryOutsideSelection && !busy && (!!draft.coords.length || review),
     complete: editable && !busy
       && (accumulatedOnly || (draft.coords.length >= minimumPoints && !draft.issues.length && cutLineReady)),
   };
@@ -129,7 +130,7 @@ export function createTaskPresentation() {
     const element = (0, dependencies.$)('geometryPreviewSummary');
     if (!element) return;
     const preview = dependencies.state.geometryPreview.session;
-    const suspended = !!selection && selection.stage !== 'selection';
+    const suspended = !!selection && selection.stage !== 'review';
     const blocking = preview?.validation?.blocking === true;
     element.classList.toggle('hidden', !preview || blocking || suspended);
     if (!preview || blocking || suspended) {
@@ -275,6 +276,41 @@ export function createTaskPresentation() {
     }
   }
 
+  function territorialUnitDisplay(unitId) {
+    const id = String(unitId || '');
+    if (!id) return null;
+    const unit = (dependencies.state.territorialUnits || []).find(item => String(item?.id || '') === id);
+    const name = String(unit?.properties?.name || '').trim();
+    return name || null;
+  }
+
+  function syncTerritoryReviewSummary(model) {
+    const summary = (0, dependencies.$)('territorialReviewSummary');
+    const visible = !!model?.showReviewSummary;
+    summary?.classList.toggle('hidden', !visible);
+    if (!summary) return;
+    const name = (0, dependencies.$)('territorialReviewName');
+    const detail = (0, dependencies.$)('territorialReviewDetail');
+    if (!visible) {
+      if (name) name.textContent = '';
+      if (detail) detail.textContent = '';
+      summary.removeAttribute('aria-label');
+      return;
+    }
+    const label = model.reviewName || '새 항목';
+    if (name) name.textContent = label;
+    const current = model.current;
+    const sovereign = countryDisplay(model.reviewSovereignId);
+    const parent = model.reviewParentId && model.reviewParentId !== model.reviewSovereignId
+      ? territorialUnitDisplay(model.reviewParentId)
+      : null;
+    const detailText = current?.kind === 'subunit'
+      ? [sovereign?.name, parent].filter(Boolean).join(' · ')
+      : '';
+    if (detail) detail.textContent = detailText;
+    summary.setAttribute('aria-label', detailText ? `${label}, ${detailText}` : label);
+  }
+
   function setButtonLabel(button, label) {
     const node = button?.querySelector('.mode-button-label');
     if (node) node.textContent = label;
@@ -312,6 +348,7 @@ export function createTaskPresentation() {
     if (taskStage) taskStage.textContent = selectionModel?.stageLabel || task.stage;
     syncTerritoryTransferFlow(selectionModel);
     syncTerritorySetup(selectionModel);
+    syncTerritoryReviewSummary(selectionModel);
 
     const specialMode = !!(selection || labelMode || terrainMode || previewMode || (0, dependencies.isSpecialTool)(state.tool) || draftMode);
     const busy = state.modeProcessing || selection?.previewPending;
@@ -328,16 +365,10 @@ export function createTaskPresentation() {
       const input = (0, dependencies.$)(id);
       if (!input) continue;
       input.checked = activeMethod === method;
-      input.disabled = !!busy || !selectionModel?.method;
+      input.disabled = !!busy || !selectionModel?.selection || !!selectionModel?.showMethodChangeConfirmation;
     }
     (0, dependencies.$)('modePolygonMethodOption')?.classList.toggle('hidden', !selectionModel?.showMethods);
 
-    const nextMethodChooser = (0, dependencies.$)('modeNextMethodChooser');
-    nextMethodChooser?.classList.toggle('hidden', !selectionModel?.showNextMethods);
-    for (const id of ['modeNextLineMethodBtn', 'modeNextPolygonMethodBtn', 'modeNextComponentsMethodBtn']) {
-      const button = (0, dependencies.$)(id);
-      if (button) button.disabled = !!busy || !selectionModel?.showNextMethods;
-    }
     const methodChangeConfirm = (0, dependencies.$)('modeMethodChangeConfirm');
     methodChangeConfirm?.classList.toggle('hidden', !selectionModel?.showMethodChangeConfirmation);
     const methodChangeMessage = (0, dependencies.$)('modeMethodChangeConfirmMessage');
@@ -353,9 +384,9 @@ export function createTaskPresentation() {
       riverInput.checked = !!selection?.useRiverBoundaries;
       riverInput.disabled = !!busy;
     }
-    const nextMethodStart = (0, dependencies.$)('modeNextMethodStartBtn');
-    nextMethodStart?.classList.toggle('hidden', !selectionModel?.showNextMethodStart);
-    if (nextMethodStart) nextMethodStart.disabled = !!busy || !selection?.sourceCountryIds?.length;
+    const referenceStart = (0, dependencies.$)('territorialReferenceStartBtn');
+    referenceStart?.classList.toggle('hidden', !selectionModel?.showReferenceStart);
+    if (referenceStart) referenceStart.disabled = !!busy || !selection?.sourceCountryIds?.length;
 
     (0, dependencies.$)('modeDraftActions')?.classList.toggle('hidden', !toolbar.visible);
     const controls = { modeDraftRedrawBtn: !toolbar.redraw, modeDraftDeleteBtn: !toolbar.remove, modeDraftInsertBtn: !toolbar.insert, modeDraftDoneBtn: !toolbar.complete };
@@ -437,7 +468,7 @@ export function createTaskPresentation() {
 
   function dispatchModePrimaryAction() {
     const selection = dependencies.state.territorySelectionSession;
-    if (selection) return selection.stage === 'selection'
+    if (selection) return selection.stage === 'review'
       ? (0, dependencies.territorySelectionApply)()
       : (0, dependencies.territorySelectionAdvance)();
     if (dependencies.state.geometryPreview.session) return (0, dependencies.applyActiveGeometryPreview)();

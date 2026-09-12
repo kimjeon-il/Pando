@@ -141,7 +141,7 @@ export function createTerritorialDrafts() {
     session.sourceKey = 'unassigned';
     session.setupSourceCache = null;
     session.settingsRevision += 1;
-    (0, dependencies.resetTerritorySelection)(session, { keepPendingMethod: false });
+    (0, dependencies.resetTerritorySelection)(session, { keepRequestedMethod: false });
     territorialCreateSetupModel();
     (0, dependencies.updateModeButtons)();
   }
@@ -153,7 +153,7 @@ export function createTerritorialDrafts() {
     session.sourceKey = 'unassigned';
     session.setupSourceCache = null;
     session.settingsRevision += 1;
-    (0, dependencies.resetTerritorySelection)(session, { keepPendingMethod: false });
+    (0, dependencies.resetTerritorySelection)(session, { keepRequestedMethod: false });
     territorialCreateSetupModel();
     (0, dependencies.updateModeButtons)();
   }
@@ -163,7 +163,7 @@ export function createTerritorialDrafts() {
     if (!session || text(value) === text(session.sourceKey)) return;
     session.sourceKey = text(value);
     session.settingsRevision += 1;
-    (0, dependencies.resetTerritorySelection)(session, { keepPendingMethod: false });
+    (0, dependencies.resetTerritorySelection)(session, { keepRequestedMethod: false });
     (0, dependencies.updateModeButtons)();
   }
 

@@ -688,7 +688,7 @@ body.file-menu-open .mobile-backdrop {
 .mode-task-window-content[hidden] { display: none; }
 .mode-task-section { min-width: 0; display: grid; gap: var(--ui-space-2); }
 .mode-task-section-title { color: var(--muted); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-semibold); }
-.mode-task-method-section:has(#modeMethodSwitch.hidden):has(#modeNextMethodChooser.hidden):has(#modeMethodChangeConfirm.hidden):has(#modeRiverBoundaryOption.hidden):has(#territorialCreateReference.hidden) { display: none; }
+.mode-task-method-section:has(#modeMethodSwitch.hidden):has(#modeMethodChangeConfirm.hidden):has(#modeRiverBoundaryOption.hidden):has(#territorialCreateReference.hidden) { display: none; }
 
 .territorial-create-setup {
   display: grid;
@@ -1176,20 +1176,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 
 /* ===== PandoLab v0.14.4: unified segmented controls ===== */
 .mode-method-switch.hidden { display: none !important; }
-.mode-method-btn {
-  flex: 1 1 0;
-  min-width: 0;
-  border-color: transparent;
-  border-radius: calc(var(--ui-radius-control) - var(--ui-space-0-5));
-  background: transparent;
-  color: var(--muted);
-  font-weight: var(--ui-weight-strong);
-  box-shadow: none;
-  white-space: nowrap;
-}
-.mode-method-btn:hover { background: var(--surface-hover); color: var(--text); }
-.mode-method-btn.active { background: transparent; color: var(--text-strong); box-shadow: none; }
-.mode-method-btn.active:hover { background: transparent; color: var(--text-strong); }
 .mode-action-buttons .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
 /* ===== PandoLab v0.14.2: projection controls and renderer status placement ===== */
 .projection-btn {
@@ -1607,7 +1593,6 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status { opacity
 .app-root[data-layout="mobile"] .mode-task-window-body { max-height: min(42dvh, 320px); }
 .app-root[data-layout="mobile"] .mode-method-switch { grid-column: 1 / -1; width: 100%; }
 .app-root[data-layout="mobile"] .mode-action-buttons { justify-self: center; }
-.app-root[data-layout="mobile"] .mode-method-btn { min-height: var(--ui-touch-height); padding: 0 var(--ui-control-padding-x); font-size: var(--ui-font-sm); }
 .app-root[data-layout="mobile"] .mode-action-buttons button { min-height: var(--ui-touch-height); flex: 0 0 auto; padding: 0 var(--ui-control-padding-x); }
 .app-root[data-layout="mobile"] .map-bottom-status {
   bottom: var(--mobile-nav-height);
@@ -2612,9 +2597,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   .ui-color-default
 ) { min-height: var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .projection-control { height: var(--ui-touch-height); padding: var(--ui-segment-padding); }
-.app-root[data-layout="mobile"] .mode-method-btn { font-size: var(--ui-font-body); }
-
-
 .app-root[data-layout="mobile"] .layer-lock-control {
   width: var(--ui-tree-action-size-touch);
   min-width: var(--ui-tree-action-size-touch);
@@ -2697,6 +2679,19 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   line-height: var(--ui-line-normal);
 }
 .mode-task-instruction:empty { display: none; }
+.territorial-review-summary {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--ui-space-1);
+  color: var(--text-soft);
+  font-size: var(--ui-font-body);
+  line-height: var(--ui-line-normal);
+}
+.territorial-review-summary.hidden { display: none; }
+.territorial-review-summary strong { min-width: 0; color: var(--text-strong); font-weight: var(--ui-weight-semibold); }
+.territorial-review-summary span:empty { display: none; }
 .mode-method-switch {
   width: 100%;
   display: grid;
@@ -2734,9 +2729,9 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .mode-direct-method-option:has(input:checked) { color: var(--text-strong); }
 .mode-direct-method-option:has(input:disabled) { cursor: not-allowed; opacity: .48; }
 .mode-river-boundary-option {
-  width: 100%;
-  min-height: 40px;
-  justify-self: stretch;
+  width: calc((100% - var(--ui-toolbar-gap)) / 2);
+  min-height: var(--ui-control-height);
+  justify-self: start;
   padding: 0 var(--ui-space-3);
   border: 1px solid var(--border);
   border-radius: var(--ui-radius-control);
@@ -2747,46 +2742,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 }
 .mode-river-boundary-option.hidden { display: none !important; }
 .mode-river-boundary-option input { accent-color: var(--accent); }
-.mode-method-btn {
-  position: relative;
-  min-width: 0;
-  min-height: var(--ui-touch-height);
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  grid-template-rows: auto;
-  align-items: center;
-  justify-items: start;
-  column-gap: var(--ui-space-2);
-  padding: 0 var(--ui-space-2);
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--text-soft);
-  text-align: left;
-}
-.mode-method-btn::before {
-  content: "";
-  grid-row: 1;
-  width: 18px;
-  height: 18px;
-  box-sizing: border-box;
-  border: 1px solid var(--border-strong);
-  border-radius: 50%;
-}
-.mode-method-btn:is(.active, [aria-pressed="true"]) {
-  border-color: transparent;
-  background: transparent;
-  color: var(--text-strong);
-}
-.mode-method-btn:is(.active, [aria-pressed="true"])::before {
-  border-color: var(--accent-surface);
-  background: var(--accent-surface);
-  box-shadow: inset 0 0 0 5px var(--accent-text);
-}
-.mode-method-btn:is(:hover, :focus-visible) { border-color: transparent; background: transparent; color: var(--text-strong); }
-.mode-method-title { font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
-.mode-method-btn small { color: var(--muted); font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
-.mode-method-btn:is(.active, [aria-pressed="true"]) small { color: var(--accent-text); opacity: .82; }
 .mode-action-bar {
   display: flex;
   align-items: center;

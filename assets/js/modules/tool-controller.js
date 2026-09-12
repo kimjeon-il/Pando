@@ -32,7 +32,7 @@ export function describeTool(tool, state, { labelPlacement = false } = {}) {
   if (territorySelection) {
     const stage = territorySelection.stage === 'setup'
       ? territorySelection.setupStageLabel
-      : territorySelection.stage === 'method' ? '방식 선택' : '영역 선택';
+      : territorySelection.stage === 'review' ? '결과 확인' : '영역 선택';
     return { name: territorySelection.taskLabel, stage, icon: definition.icon };
   }
   if (tool === 'country-border') return { name: definition.task, stage: state.boundaryEditPhase === 'selecting' ? '맞닿은 국가 선택' : '공유국경 편집', icon: definition.icon };
@@ -42,8 +42,8 @@ export function describeTool(tool, state, { labelPlacement = false } = {}) {
 export function toolCursorMode(tool, state, { labelPlacement = false } = {}) {
   const territorySelection = territorySelectionForTool(tool, state);
   const country = (territorySelection?.stage === 'setup' && territorySelection.setupCountryPicking)
-    || (territorySelection?.stage === 'method'
-      && territorySelection.methodCountryPickingMethods?.includes(territorySelection.pendingMethod))
+    || (territorySelection?.stage === 'selection' && territorySelection.activePhase === 'source'
+      && territorySelection.methodsRequiringSources?.includes(territorySelection.requestedMethod))
     || (tool === 'merge-country' && !!state.mergeSourceCountryId)
     || (tool === 'country-border' && state.boundaryEditPhase === 'selecting')
     || tool === 'merge-generic-feature'
