@@ -473,7 +473,7 @@ export function connectProjectIo({
     get territorySelectionCancelMethodChange() { return territorySelectionWorkflow.cancelMethodChange; },
     get territorySelectionConfirmMethodChange() { return territorySelectionWorkflow.confirmMethodChange; },
     get territorySelectionSelectMethod() { return territorySelectionWorkflow.selectMethod; },
-    get territorySelectionStartAdditionalMethod() { return territorySelectionWorkflow.startAdditionalMethod; },
+    get territorySelectionStartReferenceMethod() { return territorySelectionWorkflow.startReferenceMethod; },
     get territorySelectionToggleRiverBoundaries() { return territorySelectionWorkflow.toggleRiverBoundaries; },
     get territorySelectionUndoPart() { return territorySelectionWorkflow.undoPart; },
     get territorySelectionUpdateName() { return territorySelectionWorkflow.updateName; },

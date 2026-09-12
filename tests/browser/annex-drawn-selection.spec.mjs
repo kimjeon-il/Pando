@@ -17,11 +17,11 @@ test('annex selection controls and heading fit a narrow editor surface', async (
     task.querySelector('#modeDraftActions').classList.remove('hidden');
     task.querySelector('#modeRiverBoundaryOption').classList.remove('hidden');
     task.querySelector('#multiDrawnCount').textContent = '영역 12개';
-    task.querySelector('#modeTaskName').textContent = '영토 편입 3단계';
+    task.querySelector('#modeTaskName').textContent = '영토 편입 2단계';
     task.querySelector('#modeTaskStage').textContent = '영역 선택';
     task.querySelector('#modeActionBar').classList.remove('hidden');
     task.querySelector('#modeCancelBtn .mode-button-label').textContent = '뒤로';
-    task.querySelector('#modePrimaryBtn .mode-button-label').textContent = '편입 (12)';
+    task.querySelector('#modePrimaryBtn .mode-button-label').textContent = '다음';
   });
   for (const width of [260, 300, 360]) {
     await page.setViewportSize({ width: width < 300 ? 390 : 1024, height: 844 });
@@ -40,13 +40,20 @@ test('annex selection controls and heading fit a narrow editor surface', async (
         .map(button => button.getBoundingClientRect().height),
       grid: getComputedStyle(element.querySelector('#modeDraftActions')).gridTemplateColumns.split(' ').length,
       icons: element.querySelectorAll('.mode-aux-control svg').length,
+      river: (() => {
+        const river = element.querySelector('#modeRiverBoundaryOption').getBoundingClientRect();
+        const draw = element.querySelector('#modeDraftActions button').getBoundingClientRect();
+        return { left: river.left, width: river.width, drawLeft: draw.left, drawWidth: draw.width };
+      })(),
     }));
     expect(sizes.controlsFit).toBe(true);
     expect(sizes.titleFits).toBe(true);
-    expect(sizes.buttons.map(button => button.text)).toEqual(['꼭짓점 추가', '꼭짓점 삭제', '다시 그리기', '완료', '추가', '되돌리기', '뒤로', '편입 (12)']);
+    expect(sizes.buttons.map(button => button.text)).toEqual(['꼭짓점 추가', '꼭짓점 삭제', '다시 그리기', '완료', '추가', '되돌리기', '뒤로', '다음']);
     expect(sizes.buttons.every(button => button.fits && button.nowrap)).toBe(true);
     expect(sizes.auxHeights.every(height => height === (width < 300 ? 48 : 36))).toBe(true);
     expect(sizes.grid).toBe(2);
     expect(sizes.icons).toBe(0);
+    expect(Math.abs(sizes.river.left - sizes.river.drawLeft)).toBeLessThanOrEqual(1);
+    expect(Math.abs(sizes.river.width - sizes.river.drawWidth)).toBeLessThanOrEqual(1);
   }
 });

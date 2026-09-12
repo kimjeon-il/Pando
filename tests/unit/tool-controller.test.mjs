@@ -20,7 +20,7 @@ test('every territorial workflow exposes draft input from the shared session onl
     ['draw-territorial-unit', 'subunit'],
     ['draw-territorial-unit', 'region'],
   ]) {
-    const state = { territorySelectionSession: { tool, kind, stage: 'method', activePhase: null, activeMethod: null } };
+    const state = { territorySelectionSession: { tool, kind, stage: 'setup', activePhase: null, activeMethod: null } };
     assert.equal(toolDraftDefinition(tool, state), null);
     state.territorySelectionSession.stage = 'selection';
     state.territorySelectionSession.activePhase = 'drawing';
@@ -29,6 +29,8 @@ test('every territorial workflow exposes draft input from the shared session onl
     state.territorySelectionSession.activeMethod = 'polygon';
     assert.deepEqual(toolDraftDefinition(tool, state), { shape: 'polygon', profile: 'area' });
     state.territorySelectionSession.activePhase = 'components';
+    assert.equal(toolDraftDefinition(tool, state), null);
+    state.territorySelectionSession.stage = 'review';
     assert.equal(toolDraftDefinition(tool, state), null);
   }
 });

@@ -55,6 +55,18 @@ test('all four territory operations use the same candidate-review toolbar contra
   }
 });
 
+test('territory review hides drawing tools even when the prepared result remains available', () => {
+  const session = territorySession({ stage: 'review', activePhase: 'candidate', activeMethod: 'polygon' });
+  const result = draftToolbarStatus(options({
+    state: { tool: session.tool, territorySelectionSession: session, geometryPreview: { session: {} } },
+    draftMode: false,
+    hasDraftTool: false,
+  }));
+  assert.equal(result.visible, false);
+  assert.equal(result.editable, false);
+  assert.equal(result.redraw, false);
+});
+
 test('stored territory areas can return to review but an unfinished path cannot be completed', () => {
   const session = territorySession({ parts: [{ geometry: {} }] });
   const input = options({

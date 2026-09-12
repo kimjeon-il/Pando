@@ -345,7 +345,7 @@ export function createDomainAssembly() {
       toolController: {
         requireCanonicalData: dependencies.requireCanonicalData,
         getGeometryPreviewSession: () => dependencies.state.territorySelectionSession
-          && dependencies.state.territorySelectionSession.stage !== 'selection'
+          && dependencies.state.territorySelectionSession.stage !== 'review'
           ? null
           : dependencies.state.geometryPreview.session,
         getCurrentTool: () => dependencies.state.tool,

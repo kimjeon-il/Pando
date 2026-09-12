@@ -375,7 +375,7 @@ export function createCountryCommits() {
 
   async function prepareAnnexSelectionPreview(session, expectedKey) {
     if (session?.kind !== 'annex' || session.stage !== 'selection'
-      || !['candidate', 'components', 'result', 'method-choice'].includes(session.activePhase)) return false;
+      || !(['candidate', 'components', 'result'].includes(session.activePhase) || session.parts?.length)) return false;
     const targetId = String(session.targetCountryId || '');
     const activeComponentItems = session.activePhase === 'components'
       ? (0, dependencies.territoryComponentItems)().filter(item => item.selected)

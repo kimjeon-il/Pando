@@ -69,25 +69,16 @@ export function createToolBindings() {
     });
     (0, dependencies.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.toggleMapTaskWindow);
     (0, dependencies.$)('modeDirectLineMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) (0, dependencies.territorySelectionSelectMethod)('line');
+      if (event.currentTarget.checked) void (0, dependencies.territorySelectionSelectMethod)('line');
     });
     (0, dependencies.$)('modePolygonMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) (0, dependencies.territorySelectionSelectMethod)('polygon');
+      if (event.currentTarget.checked) void (0, dependencies.territorySelectionSelectMethod)('polygon');
     });
     (0, dependencies.$)('modeComponentsMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) (0, dependencies.territorySelectionSelectMethod)('components');
+      if (event.currentTarget.checked) void (0, dependencies.territorySelectionSelectMethod)('components');
     });
-    const startAdditionalTerritoryMethod = method => {
-      void (async () => {
-        const started = await (0, dependencies.territorySelectionStartAdditionalMethod)(method);
-        if (started) requestAnimationFrame(() => (0, dependencies.$)('modeDraftActions')?.querySelector('button:not(:disabled)')?.focus());
-      })();
-    };
-    (0, dependencies.$)('modeNextLineMethodBtn')?.addEventListener('click', () => startAdditionalTerritoryMethod('line'));
-    (0, dependencies.$)('modeNextPolygonMethodBtn')?.addEventListener('click', () => startAdditionalTerritoryMethod('polygon'));
-    (0, dependencies.$)('modeNextComponentsMethodBtn')?.addEventListener('click', () => startAdditionalTerritoryMethod('components'));
-    (0, dependencies.$)('modeNextMethodStartBtn')?.addEventListener('click', () => {
-      void (0, dependencies.territorySelectionStartAdditionalMethod)();
+    (0, dependencies.$)('territorialReferenceStartBtn')?.addEventListener('click', () => {
+      void (0, dependencies.territorySelectionStartReferenceMethod)();
     });
     (0, dependencies.$)('modeMethodChangeKeepBtn')?.addEventListener('click', () => {
       (0, dependencies.territorySelectionCancelMethodChange)();
@@ -103,8 +94,10 @@ export function createToolBindings() {
     (0, dependencies.$)('modeDraftRedrawBtn')?.addEventListener('click', () => dependencies.redrawCurrentDraft());
     (0, dependencies.$)('modeDraftDeleteBtn')?.addEventListener('click', () => dependencies.editingDomain?.deleteSelectedDraftPoint());
     (0, dependencies.$)('modeCancelBtn')?.addEventListener('click', () => {
-      if (dependencies.state.territorySelectionSession?.stage !== 'setup') {
-        (0, dependencies.territorySelectionBack)();
+      const selection = dependencies.state.territorySelectionSession;
+      if (selection) {
+        if (selection.stage !== 'setup') (0, dependencies.territorySelectionBack)();
+        else (0, dependencies.cancelActiveMode)();
         return;
       }
       (0, dependencies.requestDraftDiscard)(() => {

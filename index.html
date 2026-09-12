@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-21a70dd10e8a" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-21a70dd10e8a" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-cdb9d49760ec" />
+  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-cdb9d49760ec" data-pandolab-ui-v2="ui-v2-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -254,6 +254,10 @@
                           <strong id="annexDonorCountryName" class="annex-country-flow-name annex-country-flow-placeholder">국가 선택</strong>
                         </div>
                       </div>
+                      <div id="territorialReviewSummary" class="territorial-review-summary hidden" role="status">
+                        <strong id="territorialReviewName"></strong>
+                        <span id="territorialReviewDetail"></span>
+                      </div>
                       <p id="modeTaskInstruction" class="mode-task-instruction"></p>
                       <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
                     </div>
@@ -270,14 +274,6 @@
                       <label id="modePolygonMethodOption" class="mode-direct-method-option"><input id="modePolygonMethodInput" type="radio" name="modeSelectionMethod" value="polygon" /><span>영역 그리기</span></label>
                       <label class="mode-direct-method-option"><input id="modeComponentsMethodInput" type="radio" name="modeSelectionMethod" value="components" /><span>영토 조각 선택</span></label>
                     </div>
-                    <div id="modeNextMethodChooser" class="mode-next-method-chooser hidden" role="group" aria-label="다음 영역 방식">
-                      <strong>다음 영역 방식</strong>
-                      <div class="mode-next-method-buttons">
-                        <button id="modeNextLineMethodBtn" type="button" class="ui-button mode-aux-control" data-tooltip="선 그리기" aria-label="선 그리기">선</button>
-                        <button id="modeNextPolygonMethodBtn" type="button" class="ui-button mode-aux-control" data-tooltip="영역 그리기" aria-label="영역 그리기">영역</button>
-                        <button id="modeNextComponentsMethodBtn" type="button" class="ui-button mode-aux-control" data-tooltip="영토 조각 선택" aria-label="영토 조각 선택">조각</button>
-                      </div>
-                    </div>
                     <div id="modeMethodChangeConfirm" class="mode-method-change-confirm hidden" role="alert">
                       <p id="modeMethodChangeConfirmMessage">현재 영역을 버리고 방식을 바꿀까요?</p>
                       <div>
@@ -291,11 +287,11 @@
                         <span id="territorialCreateReferenceCount" class="territorial-create-reference-count">0개</span>
                       </div>
                       <div id="territorialCreateReferenceList" class="territorial-create-reference-list" role="list" aria-label="기준 국가 목록"></div>
-                      <button id="modeNextMethodStartBtn" type="button" class="ui-button mode-aux-control hidden">시작</button>
+                      <button id="territorialReferenceStartBtn" type="button" class="ui-button mode-aux-control hidden">시작</button>
                     </div>
-                    <label id="modeRiverBoundaryOption" class="mode-river-boundary-option mode-aux-control hidden" for="modeRiverBoundaryInput">
+                    <label id="modeRiverBoundaryOption" class="mode-river-boundary-option mode-aux-control hidden" for="modeRiverBoundaryInput" aria-label="하천 경계 취급">
                       <input id="modeRiverBoundaryInput" type="checkbox" />
-                      <span>하천을 경계로 취급</span>
+                      <span>하천 경계 취급</span>
                     </label>
                   </div>
                   <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="그리기 도구">
@@ -830,10 +826,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-21a70dd10e8a" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-cdb9d49760ec" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-21a70dd10e8a" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-cdb9d49760ec" defer></script>
 </body>
 </html>
