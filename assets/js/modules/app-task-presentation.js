@@ -2,6 +2,29 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
+export function draftToolbarStatus({ state, draft, draftMode, hasDraftTool, minimumPoints, cutLineReady }) {
+  const annex = state.tool === 'annex-territory';
+  const drawingAnnex = annex && ['line', 'polygon'].includes(state.annexPhase);
+  const preview = !!state.geometryPreview.session;
+  const multiDraft = state.multiDraft;
+  const multiReview = !!multiDraft && ((multiDraft.parts?.length || 0) > 0 || !!multiDraft.current);
+  const review = (annex && ['side', 'polygon-preview'].includes(state.annexPhase))
+    || (state.tool === 'new-country' && state.newCountryPhase === 'side')
+    || (hasDraftTool && preview) || multiReview;
+  const editable = !!draftMode && !preview;
+  const busy = state.modeProcessing || draft.strokeActive || draft.dragging;
+  const accumulatedOnly = (drawingAnnex && !draft.coords.length && state.annexDrawnSelections?.length > 0)
+    || (!!multiDraft && (multiDraft.parts?.length || 0) > 0 && !draft.coords.length && !draft.strokeActive);
+  return {
+    visible: !!draftMode || review,
+    editable,
+    insert: editable && !busy && draft.coords.length >= 2,
+    remove: editable && !busy && draft.inputPhase === 'refine' && Number.isInteger(draft.selectedVertexIndex),
+    redraw: !busy && (!!draft.coords.length || review),
+    complete: editable && !busy && (accumulatedOnly || (draft.coords.length >= minimumPoints && !draft.issues.length && cutLineReady)),
+  };
+}
+
 export function createTaskPresentation() {
   let dependencies;
 
@@ -47,7 +70,7 @@ export function createTaskPresentation() {
     if (assessment.valid) {
       message = preview
         ? '이 위치에 놓으면 유효한 경계가 됩니다. 경계 근처 끝점은 자동으로 연결됩니다.'
-        : '유효한 경계입니다. 영역 나누기를 눌러 완료하세요.';
+        : '유효한 경계입니다. 완료를 눌러 그리기를 마치세요.';
     } else if (assessment.status === 'pending') {
       message = '선택 영역을 가로질러 반대쪽까지 그리세요.';
     } else {
@@ -235,6 +258,9 @@ export function createTaskPresentation() {
     const labelMode = dependencies.state.labelPlacementMode || dependencies.state.tool === 'label';
     const terrainMode = !!(0, dependencies.hydroToolConfig)(dependencies.state.tool);
     const draftMode = dependencies.editingDomain?.draftInputActive?.();
+    const multiDraft = dependencies.state.multiDraft;
+    const multiDraftActive = !!multiDraft && ['hydro', 'new-country', 'territorial-direct', 'territorial-split-create'].includes(multiDraft.kind);
+    const multiDraftCount = multiDraftActive ? (0, dependencies.multiDraftPartCount)() : 0;
     const previewMode = !!dependencies.state.geometryPreview.session;
     const specialMode = labelMode || terrainMode || previewMode || (0, dependencies.isSpecialTool)(dependencies.state.tool) || draftMode;
     const cutLineMode = genericFeatureSplitMode || territorialUnitSplitMode || annexLineMode || newCountryLineMode;
@@ -250,8 +276,12 @@ export function createTaskPresentation() {
     const riverBoundaryInput = (0, dependencies.$)('modeRiverBoundaryInput');
     const draftActions = (0, dependencies.$)('modeDraftActions');
     const draftRedraw = (0, dependencies.$)('modeDraftRedrawBtn');
-    const draftRemoveLast = (0, dependencies.$)('modeDraftRemoveLastBtn');
     const draftDelete = (0, dependencies.$)('modeDraftDeleteBtn');
+    const draftInsert = (0, dependencies.$)('modeDraftInsertBtn');
+    const draftDone = (0, dependencies.$)('modeDraftDoneBtn');
+    const toolbar = draftToolbarStatus({ state: dependencies.state, draft, draftMode,
+      hasDraftTool: dependencies.isGenericFeatureDraftTool(dependencies.state.tool),
+      minimumPoints: dependencies.draftMinimumPoints(), cutLineReady });
     const primary = (0, dependencies.$)('modePrimaryBtn');
     const cancel = (0, dependencies.$)('modeCancelBtn');
     const annexTask = dependencies.state.tool === 'annex-territory';
@@ -285,15 +315,17 @@ export function createTaskPresentation() {
       riverBoundaryInput.checked = annexComponentsMode && dependencies.state.annexUseRiverBoundaries;
       riverBoundaryInput.disabled = dependencies.state.modeProcessing;
     }
-    const refineSelection = draftMode && draft.inputPhase === 'refine' && Number.isInteger(draft.selectedVertexIndex);
-    const draftActionsVisible = draftMode && draft.coords.length > 0;
-    draftActions?.classList.toggle('hidden', !draftActionsVisible);
-    draftRedraw?.classList.toggle('hidden', refineSelection);
-    draftRemoveLast?.classList.toggle('hidden', refineSelection);
-    draftDelete?.classList.toggle('hidden', !refineSelection);
-    if (draftRedraw) draftRedraw.disabled = dependencies.state.modeProcessing || draft.strokeActive || !draft.coords.length;
-    if (draftRemoveLast) draftRemoveLast.disabled = dependencies.state.modeProcessing || draft.strokeActive || !draft.coords.length;
-    if (draftDelete) draftDelete.disabled = dependencies.state.modeProcessing || draft.strokeActive || !refineSelection;
+    draftActions?.classList.toggle('hidden', !toolbar.visible);
+    if (draftRedraw) draftRedraw.disabled = !toolbar.redraw;
+    if (draftDelete) draftDelete.disabled = !toolbar.remove;
+    if (draftInsert) {
+      draftInsert.disabled = !toolbar.insert;
+      draftInsert.setAttribute('aria-pressed', String(toolbar.editable && !!draft.vertexInsertMode));
+    }
+    if (draftDone) {
+      draftDone.disabled = !toolbar.complete;
+      draftDone.setAttribute('aria-busy', String(dependencies.state.modeProcessing));
+    }
     const methodSelectionReady = !annexTask || annexMethodMode;
     if (directLineMethodInput) {
       directLineMethodInput.checked = activeMethod === 'line';
@@ -315,21 +347,28 @@ export function createTaskPresentation() {
     const accumulatedOnlyDraft = (annexLineMode || annexPolygonMode) && !draft.coords.length
       && !draft.strokeActive && annexSelectedCount > 0;
     const drawnSelectionActions = (0, dependencies.$)('annexDrawnActions');
-    drawnSelectionActions?.classList.toggle('hidden', !annexReviewMode || annexComponentsMode || !annexSelectedCount);
+    drawnSelectionActions?.classList.toggle('hidden', (!annexReviewMode || annexComponentsMode) && !multiDraftActive);
     const drawnSelectionCount = (0, dependencies.$)('annexDrawnCount');
-    if (drawnSelectionCount) drawnSelectionCount.textContent = `영역 ${annexSelectedCount}개`;
+    if (drawnSelectionCount) drawnSelectionCount.textContent = `${multiDraftActive && multiDraft.shape === 'line' ? '경로' : '영역'} ${multiDraftActive ? multiDraftCount : annexSelectedCount}개`;
     const addSelection = (0, dependencies.$)('annexDrawnAddBtn');
-    if (addSelection) addSelection.disabled = dependencies.state.modeProcessing || draft.strokeActive
-      || !(annexSideMode || annexPolygonPreviewMode) || !dependencies.state.annexRemainingGeometry;
+    if (addSelection) addSelection.disabled = multiDraftActive
+      ? dependencies.state.modeProcessing || draft.strokeActive || !multiDraft?.current
+      : dependencies.state.modeProcessing || draft.strokeActive
+        || !(annexSideMode || annexPolygonPreviewMode) || !dependencies.state.annexRemainingGeometry
+        || !dependencies.state.annexCandidates[dependencies.state.annexSelectedCandidateIndex]?.geometry;
     const undoSelection = (0, dependencies.$)('annexDrawnUndoBtn');
-    if (undoSelection) undoSelection.disabled = dependencies.state.modeProcessing || draft.strokeActive || !annexSelectedCount;
-    const annexPreviewReady = annexReviewMode
+    if (undoSelection) undoSelection.disabled = multiDraftActive
+      ? dependencies.state.modeProcessing || draft.strokeActive || !multiDraftCount || (draftMode && draft.coords.length > 0)
+      : dependencies.state.modeProcessing || draft.strokeActive || !annexSelectedCount
+        || ((annexLineMode || annexPolygonMode) && draft.coords.length > 0);
+    const annexPreviewReady = annexReviewMode && !annexLineMode && !annexPolygonMode
       && !dependencies.state.annexPreviewPending
       && !!dependencies.state.geometryPreview.session
       && dependencies.state.geometryPreview.session.validation?.blocking !== true;
     if (primary) {
-      primary.classList.toggle('hidden', labelMode);
+      primary.classList.toggle('hidden', labelMode || (!annexTask && toolbar.editable));
       primary.disabled = dependencies.state.modeProcessing
+        || (multiDraftActive && (!multiDraftCount || draftMode || !!multiDraft?.previewPending || !!multiDraft?.previewIssues?.length))
         || (draftMode && !accumulatedOnlyDraft && (draft.strokeActive || draft.coords.length < (0, dependencies.draftMinimumPoints)() || draft.issues.length > 0 || (cutLineMode && !cutLineReady)))
         || (terrainMode && draft.coords.length < ((0, dependencies.isPolygonDraftTool)(dependencies.state.tool) ? 3 : 2))
         || (newCountrySourceMode && !dependencies.state.newCountrySourceIds.length)
@@ -340,9 +379,9 @@ export function createTaskPresentation() {
         || (mergeTargetMode && !dependencies.state.mergeTargetCountryIds.length)
         || (genericFeatureMergeMode && !dependencies.state.genericFeatureMergeTargetIds.length)
         || (territorialUnitMergeMode && !dependencies.state.territorialUnitMergeTargetIds.length)
-        || ((genericFeatureSplitMode || territorialUnitSplitMode) && !cutLineReady)
+        || ((genericFeatureSplitMode || territorialUnitSplitMode) && !multiDraftActive && !cutLineReady)
         || (territorialUnitRedrawMode && draft.coords.length < 3)
-        || (territorialUnitCreateMode && draft.coords.length < 3)
+        || (territorialUnitCreateMode && !multiDraftActive && draft.coords.length < 3)
         || (boundarySelectMode && !boundarySelectionReady)
         || ((annexLineMode || newCountryLineMode) && !accumulatedOnlyDraft && !cutLineReady)
         || (annexSideMode && !annexSelectedCount)
@@ -351,11 +390,13 @@ export function createTaskPresentation() {
         || (annexComponentsMode && !dependencies.state.annexSelectedComponentKeys.length)
         || (newCountryComponentsMode && !dependencies.state.newCountrySelectedComponentKeys.length)
         || (previewMode && dependencies.state.geometryPreview.session.validation?.blocking === true)
-        || (annexReviewMode && !annexLineMode && !annexPolygonMode && !annexPreviewReady);
+        || (annexReviewMode && !annexPreviewReady);
       let primaryLabel = '완료';
       let primaryIcon = '#icon-check';
-      if (annexTask) {
-        if (annexDonorMode || annexMethodMode || annexLineMode || annexPolygonMode) {
+      if (multiDraftActive) {
+        primaryLabel = '생성';
+      } else if (annexTask) {
+        if (annexDonorMode || annexMethodMode) {
           primaryLabel = '다음';
           primaryIcon = '#icon-chevron-right';
         } else {
@@ -389,7 +430,7 @@ export function createTaskPresentation() {
       const cancelLabelNode = cancel.querySelector('.mode-button-label');
       if (cancelLabelNode) cancelLabelNode.textContent = cancelLabel;
       else cancel.textContent = cancelLabel;
-      (0, dependencies.$)('modeCancelIcon')?.setAttribute('href', annexBack ? '#icon-undo' : '#icon-close');
+      (0, dependencies.$)('modeCancelIcon')?.setAttribute('href', annexBack ? '#icon-chevron-left' : '#icon-close');
       cancel.setAttribute('aria-label', annexBack ? '이전 단계' : '작업 취소');
       cancel.disabled = dependencies.state.modeProcessing;
     }
@@ -403,8 +444,9 @@ export function createTaskPresentation() {
 
   function dispatchModePrimaryAction() {
     const annexTask = dependencies.state.tool === 'annex-territory';
-    const annexReviewMode = annexTask && ['line', 'polygon', 'polygon-preview', 'side', 'components'].includes(dependencies.state.annexPhase);
+    const annexReviewMode = annexTask && ['polygon-preview', 'side', 'components'].includes(dependencies.state.annexPhase);
     if (dependencies.state.geometryPreview.session && (!annexTask || annexReviewMode)) return (0, dependencies.applyActiveGeometryPreview)();
+    if (dependencies.state.multiDraft && !dependencies.editingDomain?.draftInputActive?.()) return (0, dependencies.completeMultiDraftCreation)();
     if (dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting') return (0, dependencies.beginCountryBorderEditing)();
     if (dependencies.state.tool === 'country-border') return (0, dependencies.finishCountryBorderEdit)();
     if (dependencies.state.tool === 'country-coast') return (0, dependencies.finishCountryCoastEdit)();
@@ -437,12 +479,19 @@ export function createTaskPresentation() {
     }
   }
 
+  function completeCurrentDraft() {
+    if ((0, dependencies.$)('modeDraftDoneBtn')?.disabled || !dependencies.editingDomain?.draftInputActive?.()
+      || dependencies.state.geometryPreview.session) return false;
+    return runModePrimaryAction(dependencies.finishDraft);
+  }
+
 
 
   return Object.freeze({
     connect,
 
     get runModePrimaryAction() { return runModePrimaryAction; },
+    get completeCurrentDraft() { return completeCurrentDraft; },
     get setModeBanner() { return setModeBanner; },
     get syncCountryActionButtons() { return syncCountryActionButtons; },
     get syncCutDraftFeedback() { return syncCutDraftFeedback; },

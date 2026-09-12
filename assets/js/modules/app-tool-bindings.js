@@ -81,10 +81,12 @@ export function createToolBindings() {
     });
     (0, dependencies.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.runModePrimaryAction)(); });
     (0, dependencies.$)('annexDrawnAddBtn')?.addEventListener('click', () => {
-      void (0, dependencies.runModePrimaryAction)(dependencies.addAnnexDrawnSelection);
+      const action = dependencies.state.multiDraft ? dependencies.addMultiDraftPart : dependencies.addAnnexDrawnSelection;
+      void (0, dependencies.runModePrimaryAction)(action);
     });
     (0, dependencies.$)('annexDrawnUndoBtn')?.addEventListener('click', () => {
-      void (0, dependencies.runModePrimaryAction)(dependencies.undoAnnexDrawnSelection);
+      const action = dependencies.state.multiDraft ? dependencies.undoMultiDraftPart : dependencies.undoAnnexDrawnSelection;
+      void (0, dependencies.runModePrimaryAction)(action);
     });
     (0, dependencies.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.toggleMapTaskWindow);
     const selectTerritoryMethod = method => {
@@ -106,8 +108,11 @@ export function createToolBindings() {
       if (event.currentTarget.checked) selectTerritoryMethod('components');
     });
     (0, dependencies.$)('modeRiverBoundaryInput')?.addEventListener('change', event => (0, dependencies.toggleAnnexRiverBoundaries)(event.currentTarget.checked));
-    (0, dependencies.$)('modeDraftRedrawBtn')?.addEventListener('click', () => dependencies.editingDomain?.redrawDraft?.());
-    (0, dependencies.$)('modeDraftRemoveLastBtn')?.addEventListener('click', () => dependencies.editingDomain?.removeLastDraftPoint());
+    (0, dependencies.$)('modeDraftInsertBtn')?.addEventListener('click', () => {
+      dependencies.editingDomain?.setDraftVertexInsertMode?.(!dependencies.editingDomain.snapshot().draft.vertexInsertMode);
+    });
+    (0, dependencies.$)('modeDraftDoneBtn')?.addEventListener('click', () => { void dependencies.completeCurrentDraft(); });
+    (0, dependencies.$)('modeDraftRedrawBtn')?.addEventListener('click', () => dependencies.redrawCurrentDraft());
     (0, dependencies.$)('modeDraftDeleteBtn')?.addEventListener('click', () => dependencies.editingDomain?.deleteSelectedDraftPoint());
     (0, dependencies.$)('modeCancelBtn')?.addEventListener('click', () => {
       if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase !== 'donor') {

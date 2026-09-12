@@ -17,6 +17,7 @@ export function createTerritoryComponentUi() {
       (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     } else if (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'side' && dependencies.state.newCountryCandidates[index]?.geometry) {
       dependencies.state.newCountrySelectedCandidateIndex = index;
+      if (dependencies.state.multiDraft?.kind === 'new-country') dependencies.state.multiDraft.current = { geometry: dependencies.state.newCountryCandidates[index].geometry };
       (0, dependencies.setModeBanner)('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
     } else {
       return;
@@ -24,6 +25,7 @@ export function createTerritoryComponentUi() {
     dependencies.renderingDomain?.invalidateEditingOverlays?.('territory-candidate-selection');
     (0, dependencies.updateModeButtons)();
     if (dependencies.state.tool === 'annex-territory') (0, dependencies.scheduleAnnexGeometryPreview)();
+    else if ((0, dependencies.ensureNewCountryDraftName)()) (0, dependencies.scheduleNewCountryGeometryPreview)();
   }
 
   function updateTerritoryComponentSelectionFeedback() {
@@ -74,6 +76,10 @@ export function createTerritoryComponentUi() {
       selected = new Set(dependencies.state.newCountrySelectedComponentKeys);
       if (selected.has(componentKey)) selected.delete(componentKey); else selected.add(componentKey);
       dependencies.state.newCountrySelectedComponentKeys = [...selected];
+      if (dependencies.state.multiDraft?.kind === 'new-country') {
+        try { dependencies.state.multiDraft.current = selected.size ? { geometry: (0, dependencies.selectedTerritoryComponentGeometry)() } : null; }
+        catch { dependencies.state.multiDraft.current = null; }
+      }
     } else {
       return;
     }
@@ -81,6 +87,7 @@ export function createTerritoryComponentUi() {
     dependencies.renderingDomain?.invalidateEditingOverlays?.('territory-component-selection');
     (0, dependencies.updateModeButtons)();
     if (dependencies.state.tool === 'annex-territory') (0, dependencies.scheduleAnnexGeometryPreview)();
+    else if (!dependencies.state.multiDraft?.current || (0, dependencies.ensureNewCountryDraftName)()) (0, dependencies.scheduleNewCountryGeometryPreview)();
   }
 
 

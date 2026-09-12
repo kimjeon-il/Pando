@@ -102,24 +102,27 @@ test('new project waits for confirmation and save presenter only changes DOM', (
   assert.equal(getElement('projectSaveStatusText').textContent, '저장됨');
 });
 
-test('property field bindings invoke injected commands once and detach on dispose', () => {
+test('compatibility object bindings expose only one geometry-aware conversion command and detach on dispose', () => {
   const elements = new Map();
   const getElement = id => {
     if (!elements.has(id)) elements.set(id, new FakeElement());
     return elements.get(id);
   };
-  const commits = [];
+  const conversions = [];
   const bindings = createPropertyEditorBindings({
     getElement, bindColorPickers() {}, document: {},
-    commitGenericFeatureMeta: (...args) => commits.push(args),
+    getPrimary: () => ({ domain: 'generic', id: 'legacy-river' }),
+    convertSelectedGenericFeature: options => conversions.push(options),
   });
   bindings.bind(); bindings.bind();
-  getElement('genericFeatureNameInput').value = '  New name  ';
-  getElement('genericFeatureNameInput').dispatchEvent(new Event('change'));
-  assert.deepEqual(commits, [['name', 'New name']]);
+  getElement('genericFeatureConvertType').value = 'river';
+  getElement('genericFeatureConvertCountryInput').value = 'country-1';
+  getElement('genericFeatureConvertDistributionInput').value = 'layer-1';
+  getElement('convertGenericFeatureBtn').dispatchEvent(new Event('click'));
+  assert.deepEqual(conversions, [{ target: 'river', sovereignId: 'country-1', distributionLayerId: 'layer-1' }]);
   bindings.dispose();
-  getElement('genericFeatureNameInput').dispatchEvent(new Event('change'));
-  assert.equal(commits.length, 1);
+  getElement('convertGenericFeatureBtn').dispatchEvent(new Event('click'));
+  assert.equal(conversions.length, 1);
 });
 
 test('flat/globe input reads current zoom and movement transitions stay single-shot', () => {

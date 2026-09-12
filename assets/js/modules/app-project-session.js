@@ -156,6 +156,11 @@ export function createProjectSession() {
       territorialUnitSplitVirtualSource: null,
       territorialUnitRedrawSourceId: null,
       territorialCreateContext: null,
+      territorialUnitSplitCreateContext: null,
+      // Ephemeral composition state for a single user-created object.  It is
+      // deliberately outside the project document: only the final geometry is
+      // persisted, and cancelling a tool must leave no partial object behind.
+      multiDraft: null,
       annexTargetCountryId: null,
       annexDonorCountryIds: [],
       annexPhase: null,

@@ -137,7 +137,7 @@
 
 .workflow-map-session .annex-drawn-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--ui-space-2);
   min-width: 0;
@@ -229,12 +229,66 @@
 .workflow-map-session .mode-method-title { font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
 .workflow-map-session .mode-method-btn small { color: var(--muted); font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
 .workflow-map-session .mode-method-btn:is(.active, [aria-pressed="true"]) small { color: var(--accent-text); opacity: .82; }
-.workflow-map-session .mode-river-boundary-option {
+.workflow-map-session .mode-aux-control {
+  position: relative;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: var(--ui-v2-control-md);
   min-height: var(--ui-v2-control-md);
-  padding-inline: var(--ui-space-3);
-  border: 1px solid var(--border);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid var(--ui-control-border);
   border-radius: var(--ui-radius-control);
-  background: var(--surface-subtle);
+  background: var(--ui-control-bg);
+  color: var(--ui-control-text);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-tight);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.workflow-map-session .mode-aux-control:where(:hover:not(:disabled):not(:has(input:disabled))) {
+  border-color: var(--ui-control-border-hover);
+  background: var(--ui-control-bg-hover);
+}
+
+.workflow-map-session .mode-aux-control:where(:active:not(:disabled):not(:has(input:disabled))) {
+  background: var(--ui-control-bg-pressed);
+}
+
+.workflow-map-session .mode-aux-control:is([aria-pressed="true"], :has(input:checked)) {
+  border-color: var(--accent-border);
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+.workflow-map-session .mode-aux-control:is(:focus-visible, :has(input:focus-visible)) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.workflow-map-session .mode-aux-control:is(:disabled, :has(input:disabled)) {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.workflow-map-session .mode-river-boundary-option { width: 100%; }
+.workflow-map-session .mode-river-boundary-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+
+.app-root[data-layout="mobile"] .workflow-map-session .mode-aux-control {
+  height: var(--ui-v2-control-mobile-height);
+  min-height: var(--ui-v2-control-mobile-height);
 }
 
 .workflow-map-session .mode-action-bar {
