@@ -21,11 +21,12 @@ function harness(t) {
 
   const countries = new Map(['A', 'B', 'C'].map((id, index) => [id, { id, geometry: geometry(index * 3) }]));
   const state = { territorySelectionSession: null, geometryPreview: { session: null } };
-  const calls = { prepare: [], preview: [], apply: 0, refresh: [] };
+  const calls = { prepare: [], preview: [], apply: 0, refresh: [], errors: [] };
   let draft = [];
   let uid = 0;
   let releaseApply;
   let holdApply = false;
+  let previewFailure = null;
   const workflow = createTerritorySelectionWorkflow();
   const validate = current => !!current.name.trim();
   const prepare = current => {
@@ -38,6 +39,7 @@ function harness(t) {
     return true;
   };
   const preview = async (current, key) => {
+    if (previewFailure) throw previewFailure;
     calls.preview.push([current.kind, key, current.combinedGeometry]);
     state.geometryPreview.session = { validation: { blocking: false } };
     return true;
@@ -82,7 +84,7 @@ function harness(t) {
     },
     setModeBanner() {},
     setActionStatus() {},
-    reportOperationError: error => { throw error; },
+    reportOperationError: (error, _message, code) => calls.errors.push({ error, code }),
     renderingDomain: {
       invalidateEditingOverlays: reason => calls.refresh.push(reason),
       invalidateCountryPatch: reason => calls.refresh.push(reason),
@@ -95,6 +97,7 @@ function harness(t) {
     state, calls, workflow,
     setDraft: coordinates => { draft = coordinates; },
     holdApply: () => { holdApply = true; },
+    failPreview: error => { previewFailure = error; },
     releaseApply: value => releaseApply(value),
   };
 }
@@ -132,6 +135,20 @@ test('all four operations use the same setup, method, selection, and back transi
     h.workflow.clear();
   }
   assert.equal(h.calls.prepare.length, 4);
+});
+
+test('river-boundary control appears for component selection in all four operations', async t => {
+  const h = harness(t);
+  for (const [kind, startOptions] of starts) {
+    const options = kind === 'region' ? { ...startOptions, sourceCountryIds: ['B'] } : startOptions;
+    h.workflow.start(kind, options);
+    await h.workflow.advance();
+    h.workflow.selectMethod('components');
+    assert.equal(h.workflow.presentation().showRiver, false, `${kind} must hide the control in method selection`);
+    await h.workflow.advance();
+    assert.equal(h.workflow.presentation().showRiver, true, `${kind} must show the control in component selection`);
+    h.workflow.clear();
+  }
 });
 
 test('changing a method discards the prior selection instead of synchronizing parallel state', async t => {
@@ -183,6 +200,45 @@ test('presentation reads prepared geometry without repeating union work', async 
   const preparedUnions = unions;
   for (let index = 0; index < 20; index += 1) h.workflow.presentation();
   assert.equal(unions, preparedUnions);
+});
+
+test('component selection skips the unused remaining-area subtraction', async t => {
+  const h = harness(t);
+  const current = h.workflow.start('new-country', starts[1][1]);
+  await h.workflow.advance();
+  h.workflow.selectMethod('components');
+  await h.workflow.advance();
+  current.currentGeometry = geometry(10);
+  let differences = 0;
+  globalThis.window.polygonClipping.difference = () => {
+    differences += 1;
+    throw new Error('component subtraction must not run');
+  };
+
+  assert.doesNotThrow(() => h.workflow.refreshCombinedGeometry());
+  assert.equal(differences, 0);
+  assert.deepEqual(current.remainingGeometry, current.workingSourceGeometry);
+  assert.deepEqual(h.calls.errors, []);
+});
+
+test('remaining-area and preview failures stay inside the territory workflow', async t => {
+  const h = harness(t);
+  const current = h.workflow.start('new-country', starts[1][1]);
+  await h.workflow.advance();
+  h.workflow.selectMethod('polygon');
+  await h.workflow.advance();
+  globalThis.window.polygonClipping.difference = () => { throw new Error('invalid remainder'); };
+  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }], 0, 'side');
+  assert.equal(current.remainingGeometry, null);
+  assert.equal(h.calls.errors.at(-1)?.code, 'PL-TERRITORY-SELECTION-003');
+
+  h.failPreview(new Error('preview failed'));
+  t.mock.timers.tick(300);
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(current.previewPending, false);
+  assert.equal(h.workflow.previewReady(), false);
+  assert.equal(h.calls.errors.at(-1)?.code, 'PL-TERRITORY-PREVIEW-001');
 });
 
 test('the shared scheduler keeps only the latest preview and applies once', async t => {

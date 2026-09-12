@@ -219,6 +219,8 @@ export function createTaskPresentation() {
       (0, dependencies.$)(id)?.classList.toggle('hidden', !model?.showSetup || !model?.showSubunitFields);
     }
     if (model?.showSetup) {
+      const nameLabel = (0, dependencies.$)('territorialCreateNameLabel');
+      if (nameLabel) nameLabel.textContent = model.nameLabel || '이름';
       const name = (0, dependencies.$)('territorialCreateNameInput');
       if (name && name.value !== selection.name) name.value = selection.name;
       if (model?.showSubunitFields) {
@@ -232,7 +234,39 @@ export function createTaskPresentation() {
     }
     const reference = (0, dependencies.$)('territorialCreateReference');
     reference?.classList.toggle('hidden', !model?.showReference);
-    if (model?.showReference) (0, dependencies.$)('territorialCreateReferenceCount').textContent = `기준 국가 ${model.referenceCount}개`;
+    if (model?.showReference) {
+      const countries = selection.sourceCountryIds.map(countryDisplay).filter(Boolean);
+      const count = (0, dependencies.$)('territorialCreateReferenceCount');
+      const list = (0, dependencies.$)('territorialCreateReferenceList');
+      if (count) count.textContent = `${model.referenceCount}개`;
+      if (list) {
+        const signature = JSON.stringify(countries.map(country => [country.name, country.flagUrl]));
+        if (list.dataset.signature !== signature) {
+          const fragment = document.createDocumentFragment();
+          for (const country of countries) {
+            const chip = document.createElement('span');
+            chip.className = 'territorial-create-reference-chip';
+            chip.setAttribute('role', 'listitem');
+            if (country.flagUrl) {
+              const flag = document.createElement('img');
+              flag.className = 'territorial-create-reference-flag';
+              flag.src = country.flagUrl;
+              flag.alt = '';
+              chip.append(flag);
+            }
+            const name = document.createElement('strong');
+            name.textContent = country.name;
+            chip.append(name);
+            fragment.append(chip);
+          }
+          list.replaceChildren(fragment);
+          list.dataset.signature = signature;
+        }
+      }
+      reference?.setAttribute('aria-label', countries.length
+        ? `기준 국가 ${model.referenceCount}개: ${countries.map(country => country.name).join(', ')}`
+        : '기준 국가 0개');
+    }
   }
 
   function setButtonLabel(button, label) {

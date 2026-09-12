@@ -692,20 +692,69 @@ body.file-menu-open .mobile-backdrop {
 
 .territorial-create-setup {
   display: grid;
-  gap: 12px;
-  padding: 12px 10px 4px;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-2) var(--ui-space-1);
 }
 
 .territorial-create-reference {
   display: grid;
-  gap: 3px;
-  padding: 10px;
-  border: 1px solid var(--ui-border-color, #c9d0d7);
-  border-radius: 8px;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-1) 0 0;
 }
 
-.territorial-create-reference > span { font-weight: 700; }
-.territorial-create-reference > small { color: var(--ui-muted-color, #66707a); }
+.territorial-create-reference-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  color: var(--text-soft);
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-semibold);
+}
+.territorial-create-reference-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ui-space-8);
+  padding: var(--ui-space-0-5) var(--ui-space-2);
+  border-radius: 999px;
+  background: var(--surface-hover);
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  font-weight: var(--ui-weight-semibold);
+}
+.territorial-create-reference-list {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-1-5);
+}
+.territorial-create-reference-chip {
+  min-width: 0;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border-radius: 999px;
+  background: var(--surface-hover);
+  color: var(--text-strong);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-tight);
+}
+.territorial-create-reference-chip strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.territorial-create-reference-flag {
+  width: 1.25rem;
+  height: .875rem;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  object-fit: cover;
+}
 
 
 /* ===== v0.10.2: 매개평면 GPU 메시, QGIS 벡터 호환, 계층형 레이어 ===== */
