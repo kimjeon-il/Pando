@@ -1119,8 +1119,6 @@
     if (kicker) kicker.textContent = '파일 불러오기';
     const title = document.getElementById('gisImportTitle');
     if (title) title.textContent = '파일 확인';
-    const closeButton = document.getElementById('gisImportCancelBtn');
-    closeButton?.setAttribute('aria-label', '파일 불러오기 닫기');
     clearWizardError();
     populateTargetCountries();
     updateTargetFields();
@@ -1130,7 +1128,7 @@
       field.oninvalid = () => revealAdvancedField(field.id);
     });
     const confirmButton = document.getElementById('gisImportConfirmBtn');
-    const cancelButton = document.getElementById('gisImportCancelBtn');
+    const cancelButton = document.querySelector('[data-gis-cancel="true"]');
     const layerSelect = document.getElementById('gisLayerSelect');
     const modeSelect = document.getElementById('gisOpenMode');
     form.classList.add('is-busy');
@@ -1298,7 +1296,6 @@
           reject(new DOMException('사용자가 GIS 가져오기를 취소했습니다.', 'AbortError'));
         };
         cancelButton.onclick = cancel;
-        document.querySelector('[data-gis-cancel="true"]').onclick = cancel;
         document.querySelector('#gisImportModal .ui-dialog-backdrop').onclick = cancel;
         confirmButton.onclick = async () => {
           try {

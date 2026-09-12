@@ -15,7 +15,7 @@ test('palette swatches stay square and inside their grid on desktop and mobile',
     await page.locator('#countryColorTrigger').click();
     const palette = page.locator('#countryColorPopover');
     await expect(palette).toBeVisible();
-    await expect(palette.locator('.ui-color-swatch')).toHaveCount(66);
+    await expect(palette.locator('.ui-color-swatch')).toHaveCount(65);
     await expect.poll(() => palette.locator('.ui-color-swatch-grid').evaluateAll(grids => grids.every(grid => {
       const bounds = grid.getBoundingClientRect();
       const rects = [...grid.querySelectorAll('.ui-color-swatch')].map(node => node.getBoundingClientRect());
@@ -31,10 +31,10 @@ test('palette swatches stay square and inside their grid on desktop and mobile',
     }));
     expect(swatchSizes).toHaveLength(1);
     expect(swatchSizes[0][0]).toBeGreaterThanOrEqual(18);
-    expect(swatchSizes[0][0]).toBeLessThanOrEqual(20);
+    expect(swatchSizes[0][0]).toBeLessThanOrEqual(24);
     expect(swatchSizes[0][1]).toBe(swatchSizes[0][0]);
     expect(await palette.locator('.ui-color-swatch-grid--palette').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(13);
-    await expect(palette).toHaveCSS('position', 'static');
+    await expect(palette).toHaveCSS('position', width < 800 ? 'fixed' : 'absolute');
     await palette.screenshot({ path: testInfo.outputPath(`palette-${width}.png`) });
     await palette.locator('[data-color-value="#ef4444"]').click();
     await expect(page.locator('#countryColorInput')).toHaveValue('#ef4444');

@@ -67,39 +67,7 @@
   align-items: stretch;
 }
 .editor-country-color-palette {
-  position: static;
-  inline-size: 100%;
-  max-inline-size: none;
-  margin-block-start: var(--ui-space-2);
-  padding: var(--ui-space-2);
-  border-radius: var(--ui-radius-control);
-  box-shadow: none;
-}
-.editor-country-color-palette .ui-color-default,
-.editor-country-color-palette .ui-color-custom {
-  width: fit-content;
-  min-height: 1.875rem;
-  padding: var(--ui-space-1) var(--ui-space-2);
-}
-.editor-country-color-palette .ui-color-default .ui-color-preview {
-  width: 1rem;
-  min-width: 1rem;
-  height: 1rem;
-  border-radius: 4px;
-}
-.editor-country-color-palette .ui-color-swatches {
-  gap: var(--ui-space-2);
-}
-.editor-country-color-palette .ui-color-swatch-grid {
-  width: 100%;
-  max-width: 17.75rem;
-  justify-content: start;
-}
-.editor-country-color-palette .ui-color-swatch-grid--palette { grid-template-columns: repeat(13, minmax(18px, 20px)); }
-.editor-country-color-palette .ui-color-swatch {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
+  width: min(var(--ui-v2-country-color-popover-width), calc(100vw - (var(--ui-popover-screen-edge) * 2)));
 }
 .editor-object-type-label { display: none; }
 .editor-focus-action {

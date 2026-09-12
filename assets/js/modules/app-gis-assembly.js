@@ -150,7 +150,6 @@ export function createGisAssembly() {
           error: (0, dependencies.$)('gisExportError'),
           summary: (0, dependencies.$)('gisExportSummary'),
           format: (0, dependencies.$)('gisExportFormat'),
-          close: (0, dependencies.$)('gisExportCloseBtn'),
           cancel: (0, dependencies.$)('gisExportCancelBtn'),
           backdrop: (0, dependencies.$)('gisExportModal').querySelector('.ui-dialog-backdrop'),
           confirm: (0, dependencies.$)('gisExportConfirmBtn'),

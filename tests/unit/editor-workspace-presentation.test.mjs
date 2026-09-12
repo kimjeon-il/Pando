@@ -13,11 +13,11 @@ function fixture() {
   document.defaultView = new EventTarget();
   const panel = node(), task = node(), dockSlot = node(), floatingSlot = node(), content = node(), minimize = node();
   task.parentElement = floatingSlot;
-  let layout = 'wide', open = false, invalidations = 0, opens = 0;
+  let open = false, invalidations = 0, opens = 0;
   const controller = createEditorWorkspacePresentation({
     document, panel, task, dockSlot, floatingSlot, content, minimize,
-    getLayout: () => layout, isEditorOpen: () => open,
-    openEditor: () => { open = true; opens++; }, closeEditor: () => { open = false; },
+    isEditorOpen: () => open,
+    openEditor: () => { open = true; opens++; },
     onLayoutChange: () => invalidations++,
   });
   const pointer = (type, id = 1) => {
@@ -26,12 +26,11 @@ function fixture() {
     document.dispatchEvent(event);
   };
   return { controller, panel, task, dockSlot, floatingSlot, content, minimize, document, pointer,
-    layout: value => { layout = value; controller.sync(); },
     stats: () => ({ open, opens, invalidations }),
   };
 }
 
-test('wide tasks reuse one DOM, open the inspector and ignore floating minimization', () => {
+test('active tasks reuse one editor slot, open the inspector and ignore minimization', () => {
   const f = fixture();
   f.controller.sync({ active: true, minimized: true });
   assert.equal(f.task.parentElement, f.dockSlot);
@@ -53,41 +52,34 @@ test('completion restores property mode without closing the inspector', () => {
   assert.equal(f.stats().open, true);
 });
 
-test('compact and mobile keep the original floating task and minimize state', () => {
+test('active task presentation never restores the floating task surface', () => {
   const f = fixture();
   f.controller.sync({ active: true, minimized: true });
-  for (const layout of ['compact', 'mobile']) {
-    f.layout(layout);
-    assert.equal(f.task.parentElement, f.floatingSlot);
-    assert.equal(f.content.hidden, true);
-    assert.equal(f.minimize.hidden, false);
-  }
-  f.layout('wide');
   assert.equal(f.task.parentElement, f.dockSlot);
   assert.equal(f.content.hidden, false);
+  assert.equal(f.minimize.hidden, true);
+  assert.equal(f.floatingSlot.moves, 0);
 });
 
-test('breakpoint reparenting waits for the last pointer and uses the latest layout', async () => {
+test('task reparenting waits for the last pointer gesture', async () => {
   const f = fixture();
-  f.controller.sync({ active: true });
   f.pointer('pointerdown', 1); f.pointer('pointerdown', 2);
-  f.layout('compact');
-  assert.equal(f.task.parentElement, f.dockSlot);
+  f.controller.sync({ active: true });
+  assert.equal(f.task.parentElement, f.floatingSlot);
   f.pointer('pointerup', 1);
   await Promise.resolve();
-  assert.equal(f.task.parentElement, f.dockSlot);
+  assert.equal(f.task.parentElement, f.floatingSlot);
   f.pointer('pointercancel', 2);
   await Promise.resolve();
-  assert.equal(f.task.parentElement, f.floatingSlot);
+  assert.equal(f.task.parentElement, f.dockSlot);
 });
 
 test('blur releases pending presentation and dispose removes lifecycle listeners', async () => {
   const f = fixture();
-  f.controller.sync({ active: true });
-  f.pointer('pointerdown'); f.layout('compact');
+  f.pointer('pointerdown'); f.controller.sync({ active: true });
   f.document.defaultView.dispatchEvent(new Event('blur'));
   await Promise.resolve();
-  assert.equal(f.task.parentElement, f.floatingSlot);
-  f.controller.dispose(); f.layout('wide');
-  assert.equal(f.task.parentElement, f.floatingSlot);
+  assert.equal(f.task.parentElement, f.dockSlot);
+  f.controller.dispose(); f.controller.sync({ active: false });
+  assert.equal(f.task.parentElement, f.dockSlot);
 });

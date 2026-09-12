@@ -60,7 +60,7 @@ export function createColorPicker() {
 
   function alignColorPopoverToViewport(popover) {
     if (!popover || popover.classList.contains('hidden')) return;
-    if (popover.classList.contains('ui-color-popover--inline')) return;
+    if (window.matchMedia('(max-width: 799px)').matches) return;
     popover.style.removeProperty('--ui-color-popover-shift-x');
     popover.style.removeProperty('--ui-color-popover-shift-y');
     delete popover.dataset.placement;

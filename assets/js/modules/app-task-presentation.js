@@ -116,36 +116,28 @@ export function createTaskPresentation() {
 
   function syncMapContextSurfaces() {
     const editing = mapModeContextActive();
-    if (editing && !dependencies.mapModeContextWasActive && (0, dependencies.isMobile)()) {
-      const inspector = (0, dependencies.$)('rightPanel');
-      dependencies.mapModeContextWasActive = editing;
-      if (inspector?.classList.contains('mobile-open')) {
-        (0, dependencies.setMobileSheetHeight)(inspector, 0);
-        (0, dependencies.syncOverlayState)();
-      }
-    }
     dependencies.mapModeContextWasActive = editing;
     if (!editing) dependencies.state.modeTaskMinimized = false;
-    const minimized = editing && dependencies.state.modeTaskMinimized === true;
     const context = (0, dependencies.$)('modeEditingContext');
     const content = (0, dependencies.$)('modeTaskWindowContent');
     const minimize = (0, dependencies.$)('modeTaskMinimizeBtn');
     context?.classList.toggle('hidden', !editing);
-    context?.classList.toggle('is-minimized', minimized);
-    if (content) content.hidden = minimized;
+    context?.classList.toggle('is-minimized', false);
+    if (content) content.hidden = false;
     if (minimize) {
-      minimize.setAttribute('aria-expanded', String(!minimized));
-      minimize.setAttribute('aria-label', minimized ? '지도 작업창 복원' : '지도 작업창 최소화');
-      minimize.dataset.tooltip = minimized ? '복원' : '최소화';
-      minimize.querySelector('use')?.setAttribute('href', minimized ? '#icon-chevron-down' : '#icon-minus');
+      minimize.hidden = true;
+      minimize.setAttribute('aria-expanded', 'true');
+      minimize.setAttribute('aria-label', '지도 작업창 최소화');
+      minimize.dataset.tooltip = '최소화';
+      minimize.querySelector('use')?.setAttribute('href', '#icon-minus');
     }
-    dependencies.editorWorkspacePresentation.sync({ active: editing, minimized });
+    dependencies.editorWorkspacePresentation.sync({ active: editing });
     requestAnimationFrame(syncMapHudBounds);
   }
 
   function toggleMapTaskWindow() {
     if (!mapModeContextActive()) return;
-    dependencies.state.modeTaskMinimized = !dependencies.state.modeTaskMinimized;
+    dependencies.state.modeTaskMinimized = false;
     syncMapContextSurfaces();
   }
 

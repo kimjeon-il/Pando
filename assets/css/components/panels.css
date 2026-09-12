@@ -30,6 +30,12 @@
   min-width: 0;
 }
 
+/* Map display rows share the parent grid gap, whether they expose a style menu
+   or only a visibility toggle. */
+.map-name-settings > .layer-type-settings {
+  padding-block: 0;
+}
+
 .map-view-settings > .layer-style-editor:first-child {
   padding-top: 0;
   border-top: 0;
