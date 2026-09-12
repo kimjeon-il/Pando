@@ -242,12 +242,22 @@
                 <div class="mode-task-window-body">
                   <div class="mode-task-context">
                     <div class="mode-task-detail">
+                      <div id="annexCountryFlow" class="annex-country-flow hidden" role="group" aria-live="polite">
+                        <div class="annex-country-flow-country annex-country-flow-target">
+                          <img id="annexTargetCountryFlag" class="annex-country-flow-flag" alt="" hidden />
+                          <strong id="annexTargetCountryName" class="annex-country-flow-name"></strong>
+                        </div>
+                        <span class="annex-country-flow-arrow" aria-hidden="true">←</span>
+                        <div class="annex-country-flow-country annex-country-flow-donor">
+                          <img id="annexDonorCountryFlag" class="annex-country-flow-flag" alt="" hidden />
+                          <strong id="annexDonorCountryName" class="annex-country-flow-name annex-country-flow-placeholder">국가 선택</strong>
+                        </div>
+                      </div>
                       <p id="modeTaskInstruction" class="mode-task-instruction"></p>
                       <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
                     </div>
                   </div>
                   <div class="mode-task-section mode-task-method-section">
-                    <div class="mode-task-section-title">선택 방식</div>
                     <div id="modeMethodSwitch" class="mode-method-switch hidden" role="radiogroup" aria-label="영토 선택 방식">
                       <label class="mode-direct-method-option"><input id="modeDirectLineMethodInput" type="radio" name="modeSelectionMethod" value="line" /><span>선 그리기</span></label>
                       <label id="modePolygonMethodOption" class="mode-direct-method-option"><input id="modePolygonMethodInput" type="radio" name="modeSelectionMethod" value="polygon" /><span>영역 그리기</span></label>

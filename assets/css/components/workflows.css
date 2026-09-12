@@ -81,6 +81,60 @@
   line-height: var(--ui-line-normal);
 }
 
+.workflow-map-session .annex-country-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--ui-space-2);
+  min-width: 0;
+  min-height: 2.25rem;
+  margin-top: var(--ui-space-2);
+}
+
+.workflow-map-session .annex-country-flow.hidden { display: none; }
+
+.workflow-map-session .annex-country-flow-country {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1-5);
+}
+
+.workflow-map-session .annex-country-flow-donor { justify-content: flex-end; }
+
+.workflow-map-session .annex-country-flow-flag {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.25rem;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--surface-subtle);
+}
+
+.workflow-map-session .annex-country-flow-arrow {
+  color: var(--text-strong);
+  font-size: var(--ui-font-xl);
+  font-weight: var(--ui-weight-semibold);
+  line-height: 1;
+}
+
+.workflow-map-session .annex-country-flow-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-strong);
+  font-size: var(--ui-font-lg);
+  font-weight: var(--ui-weight-bold);
+  line-height: var(--ui-line-tight);
+}
+
+.workflow-map-session .annex-country-flow-placeholder {
+  color: var(--text-soft);
+  font-weight: var(--ui-weight-medium);
+}
+
 .workflow-map-session .geometry-preview-summary:not(.hidden) {
   display: grid;
   gap: var(--ui-space-1);
