@@ -80,6 +80,12 @@ export function createToolBindings() {
       (0, dependencies.requestDraftDiscard)(() => (0, dependencies.returnToMapAfterMobileAction)((0, dependencies.enterTerrainGenericFeatureMode)('lake'), { fromCreate: true }));
     });
     (0, dependencies.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.runModePrimaryAction)(); });
+    (0, dependencies.$)('annexDrawnAddBtn')?.addEventListener('click', () => {
+      void (0, dependencies.runModePrimaryAction)(dependencies.addAnnexDrawnSelection);
+    });
+    (0, dependencies.$)('annexDrawnUndoBtn')?.addEventListener('click', () => {
+      void (0, dependencies.runModePrimaryAction)(dependencies.undoAnnexDrawnSelection);
+    });
     (0, dependencies.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.toggleMapTaskWindow);
     const selectTerritoryMethod = method => {
       if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'method') {

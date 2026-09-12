@@ -1901,7 +1901,8 @@ export function createRenderingDomain({
     componentPaths.each(function(d) { const node = d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(`${d.countryName} · ${formatTerritoryArea?.(d.areaKm2) || d.areaKm2}`); });
     joinEditingNodes(layer, 'path.annex-candidate', operation?.candidates || [], d => d.index)
       .attr('class', d => `annex-candidate ${d.index === 0 ? 'side-a' : 'side-b'} ${d.selected ? 'selected-candidate' : 'alternate-candidate'}`)
-      .on('click', d => { stop(); publishEditingInteraction({ type: 'territory-candidate-select', candidateIndex: d.index }); });
+      .style('pointer-events', d => d.interactive === false ? 'none' : null)
+      .on('click', d => { if (d.interactive === false) return; stop(); publishEditingInteraction({ type: 'territory-candidate-select', candidateIndex: d.index }); });
     const shapes = [
       { key: 'raw', geometry: draft.rawStrokeGeometry, className: 'draft-shape draft-raw-stroke' },
       { key: 'shape', geometry: draft.geometry, className: ['draft-shape', packet.tool === 'annex-territory' ? 'annex-draft' : '', draft.cutStatus ? 'cut-' + draft.cutStatus : draft.issues.length ? 'draft-invalid' : ''].filter(Boolean).join(' ') },

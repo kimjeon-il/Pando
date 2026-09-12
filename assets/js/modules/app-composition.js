@@ -173,7 +173,7 @@ export async function composeApplication({ revision }) {
     territorialConversion, territorialDrafts, territoryComponents, workspaceSurfaces,
   });
   projectIoConnector.connectProjectIo({
-    builtinSession, cameraNavigation, countryIndex, countryLabels, countryModes, countryValidation,
+    builtinSession, cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, countryValidation,
     cutGeometry, domainAssembly, environment, genericCommands, geometryPreview, gisAssembly, historyAssembly,
     hydroSettings, landRelations, layerList, libraryAssembly, lifecycleAssembly, mapHost, mapProjection,
     mapSettings, navigationBindings, objectCommands, objectDeletion, objectMetadata, objectPicking,

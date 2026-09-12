@@ -152,6 +152,7 @@ export function connectMapInteraction({
     get toolCursorMode() { return runtime.toolCursorMode; },
   });
   countryModes.connect({
+    get scheduleAnnexGeometryPreview() { return countryCommits.scheduleAnnexGeometryPreview; },
     get $() { return environment.$; },
     get applyCountrySelectionIntent() { return propertySelection.applyCountrySelectionIntent; },
     get applyGenericSelectionIntent() { return propertySelection.applyGenericSelectionIntent; },

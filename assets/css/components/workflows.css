@@ -22,7 +22,7 @@
 .workflow-map-session .mode-task-heading {
   min-width: 0;
   display: grid;
-  grid-template-columns: var(--ui-icon-size) auto auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   gap: var(--ui-space-1-5);
 }
@@ -133,6 +133,37 @@
 .workflow-map-session .annex-country-flow-placeholder {
   color: var(--text-soft);
   font-weight: var(--ui-weight-medium);
+}
+
+.workflow-map-session .annex-drawn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ui-space-2);
+  min-width: 0;
+}
+
+.workflow-map-session .annex-drawn-actions.hidden { display: none; }
+
+.workflow-map-session .annex-drawn-count {
+  flex: 1 0 auto;
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+  white-space: nowrap;
+}
+
+.workflow-map-session .annex-drawn-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.workflow-map-session .annex-drawn-buttons .ui-button {
+  min-width: 0;
+  padding-inline: var(--ui-space-2);
+  white-space: nowrap;
 }
 
 .workflow-map-session .geometry-preview-summary:not(.hidden) {
