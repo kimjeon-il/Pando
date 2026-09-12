@@ -601,13 +601,12 @@ export function createWorkspaceSurfaces() {
     (surfaceState = surfaceController.state);
 
     (editorWorkspacePresentation = (0, dependencies.createEditorWorkspacePresentation)({
-      document, getLayout: () => layoutMode,
+      document,
       panel: (0, dependencies.$)('rightPanel'), task: (0, dependencies.$)('modeEditingContext'),
       dockSlot: (0, dependencies.$)('editorTaskSlot'), floatingSlot: (0, dependencies.$)('mapTopContextSlot'),
       content: (0, dependencies.$)('modeTaskWindowContent'), minimize: (0, dependencies.$)('modeTaskMinimizeBtn'),
       isEditorOpen: () => surfaceController.isOpen('editor'),
-      openEditor: () => { surfaceController.open('editor'); surfaceController.render(); },
-      closeEditor: () => { surfaceController.close('editor'); surfaceController.render(); },
+      openEditor: () => openSurface('editor'),
       onLayoutChange: () => (0, dependencies.queueMapResize)('editor-task-layout'),
     }));
 

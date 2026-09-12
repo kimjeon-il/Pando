@@ -1,4 +1,4 @@
-/* Mobile bottom-sheet chrome and direct-edit presentation. */
+/* Mobile bottom-sheet chrome and task-surface presentation. */
 
 @media (max-width: 799px) {
   .mobile-bottom-bar {
@@ -137,72 +137,23 @@
     }
   .surface-map .projection-btn { min-height: var(--ui-touch-height); }
 
-  body.mobile-direct-edit .mode-editing-context {
-    position: relative;
-    z-index: 60;
+  .surface-editor[data-editor-content="task"] > .surface-header {
+    display: grid;
+    order: -1;
+    flex: 0 0 auto;
+    min-height: var(--ui-touch-height);
+    padding: 0;
+    border-bottom: 1px solid var(--border);
   }
 
-  body.mobile-direct-edit .workflow-map-session.mode-task-window {
-    position: relative;
-    width: min(100%, calc(100vw - var(--ui-space-4)));
-    min-height: 2.5rem;
-    border-radius: var(--ui-radius-panel);
-    overflow: visible;
+  .surface-editor[data-editor-content="task"] > .surface-header :is(.surface-header-title, .surface-header-actions) { display: none; }
+
+  .surface-editor[data-editor-content="task"] > .surface-header .sheet-drag-handle {
+    display: grid;
+    width: 100%;
+    min-height: var(--ui-touch-height);
+    padding-top: var(--ui-space-2);
   }
-
-  body.mobile-direct-edit .workflow-map-session .mode-task-window-header {
-    min-height: 2.5rem;
-    justify-content: center;
-    padding: 0 3.625rem;
-    border-bottom: 0;
-  }
-
-  body.mobile-direct-edit .workflow-map-session .mode-task-heading {
-    display: flex;
-    min-width: 0;
-    justify-content: center;
-    gap: var(--ui-space-1);
-    text-align: center;
-  }
-
-  body.mobile-direct-edit .workflow-map-session .mode-task-icon,
-  body.mobile-direct-edit .workflow-map-session .mode-task-separator,
-  body.mobile-direct-edit .workflow-map-session .mode-task-window-controls { display: none; }
-
-  body.mobile-direct-edit .workflow-map-session .mode-task-heading > strong,
-  body.mobile-direct-edit .workflow-map-session .mode-task-stage { font-size: var(--ui-font-sm); }
-
-  body.mobile-direct-edit .workflow-map-session .mode-task-window-body { padding: 0 var(--ui-space-2) var(--ui-space-2); }
-  body.mobile-direct-edit .workflow-map-session .mode-task-instruction { display: none; }
-
-  body.mobile-direct-edit .workflow-map-session .mode-action-bar {
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    height: 2.5rem;
-    padding: var(--ui-space-1);
-    border: 0;
-    background: transparent;
-    pointer-events: none;
-  }
-
-  body.mobile-direct-edit .workflow-map-session .mode-action-buttons {
-    height: 100%;
-    justify-content: space-between;
-  }
-
-  body.mobile-direct-edit .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) {
-    min-width: 3.25rem;
-    min-height: var(--ui-v2-control-mobile-height);
-    height: var(--ui-v2-control-mobile-height);
-    padding-inline: var(--ui-space-2);
-    pointer-events: auto;
-  }
-
-  body.mobile-direct-edit .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) .ui-icon { display: none; }
-  body.mobile-direct-edit .workflow-map-session .mode-method-switch:not(.hidden) { margin-top: var(--ui-space-1); }
-  body.mobile-direct-edit .workflow-map-session .geometry-preview-summary:not(.hidden) { margin-top: var(--ui-space-1); }
 }
 
 @media (max-width: 799px) and (orientation: landscape) {
@@ -210,10 +161,6 @@
     max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   }
 
-  body.mobile-direct-edit .workflow-map-session .mode-method-switch {
-    max-height: 5rem;
-    overflow-x: auto;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

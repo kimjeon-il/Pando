@@ -246,12 +246,11 @@ export function createEnvironment() {
     (COLOR_PALETTE_TONES = Object.freeze(['아주 밝음', '밝음', '기본', '어두움', '아주 어두움']));
 
     (COLOR_PALETTE_NEUTRALS = Object.freeze([
-      Object.freeze({ color: '#ffffff', label: '흰색' }),
-      Object.freeze({ color: '#e5e7eb', label: '연회색' }),
-      Object.freeze({ color: '#9ca3af', label: '회색' }),
-      Object.freeze({ color: '#4b5563', label: '진회색' }),
-      Object.freeze({ color: '#1f2937', label: '먹색' }),
-      Object.freeze({ color: '#000000', label: '검정' }),
+      Object.freeze({ color: '#f3f4f6', label: '회색 아주 밝음' }),
+      Object.freeze({ color: '#d1d5db', label: '회색 밝음' }),
+      Object.freeze({ color: '#9ca3af', label: '회색 기본' }),
+      Object.freeze({ color: '#4b5563', label: '회색 어두움' }),
+      Object.freeze({ color: '#1f2937', label: '회색 아주 어두움' }),
     ]));
 
     (COLOR_PALETTE_HUES = Object.freeze([
@@ -376,10 +375,10 @@ export function createEnvironment() {
       'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeSubunitTypeBtn', 'reconcileSubunitCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
       'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
       'undoBtn', 'redoBtn', 'rightPanel',
-      'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
+      'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
       'modeMethodSwitch', 'modeDirectLineMethodInput', 'modePolygonMethodOption', 'modePolygonMethodInput', 'modeComponentsMethodInput', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
       'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
-      'saveProjectBtn', 'openProjectBtn', 'projectFileInput', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesStatusBarVisibleInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
+      'saveProjectBtn', 'openProjectBtn', 'projectFileInput', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesStatusBarVisibleInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn',
       'createBuildPanel', 'addCountryBtn', 'addSubunitBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
       'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
       'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',

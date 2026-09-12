@@ -96,7 +96,6 @@ export function createFileBindings() {
       (0, dependencies.$)('preferencesThemeInput')?.focus({ preventScroll: true });
     };
     (0, dependencies.$)('preferencesBtn')?.addEventListener('click', openPreferences);
-    (0, dependencies.$)('preferencesCloseBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
     (0, dependencies.$)('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
     preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences({ revert: true }));
     (0, dependencies.$)('preferencesResetBtn')?.addEventListener('click', () => {

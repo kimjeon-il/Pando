@@ -13,13 +13,56 @@ import {
 
 const sample = (x, y, lon = x, lat = y) => ({ screen: [x, y], coordinate: [lon, lat] });
 
+const pointSegmentDistance = (point, start, end) => {
+  const dx = end[0] - start[0];
+  const dy = end[1] - start[1];
+  if (dx === 0 && dy === 0) return Math.hypot(point[0] - start[0], point[1] - start[1]);
+  const t = Math.max(0, Math.min(1, ((point[0] - start[0]) * dx + (point[1] - start[1]) * dy) / (dx * dx + dy * dy)));
+  return Math.hypot(point[0] - (start[0] + dx * t), point[1] - (start[1] + dy * t));
+};
+
+const maximumPolylineDeviation = (points, polyline) => Math.max(...points.map(point => Math.min(
+  ...polyline.slice(1).map((end, index) => pointSegmentDistance(point, polyline[index], end)),
+)));
+
 test('draft stroke profiles use fine and coarse CSS-pixel thresholds', () => {
   assert.deepEqual(draftStrokeProfile('boundary', 'mouse'), {
-    profile: 'boundary', pointerGroup: 'fine', sampleDistance: 4, simplifyTolerance: 2.5,
+    profile: 'boundary', pointerGroup: 'fine', sampleDistance: 2, simplifyTolerance: 1,
+  });
+  assert.deepEqual(draftStrokeProfile('boundary', 'touch'), {
+    profile: 'boundary', pointerGroup: 'coarse', sampleDistance: 3, simplifyTolerance: 1,
+  });
+  assert.deepEqual(draftStrokeProfile('area', 'pen'), {
+    profile: 'area', pointerGroup: 'fine', sampleDistance: 2, simplifyTolerance: 1,
   });
   assert.deepEqual(draftStrokeProfile('river', 'touch'), {
     profile: 'river', pointerGroup: 'coarse', sampleDistance: 8, simplifyTolerance: 3,
   });
+});
+
+test('boundary and area strokes retain screen-visible border-scale turns', () => {
+  const borderScaleTurns = [
+    sample(0, 0), sample(2, 1.1), sample(4, 0), sample(6, -1.1),
+    sample(8, 0), sample(10, 1.1), sample(12, 0),
+  ];
+  for (const profile of ['boundary', 'area']) {
+    const state = createDraftStrokeState();
+    beginDraftStroke(state, { pointerId: 9, pointerType: 'mouse', profile, sample: borderScaleTurns[0] });
+    assert.equal(appendDraftStrokeSamples(state, borderScaleTurns.slice(1)), 6);
+    const result = finalizeDraftStroke(state, {
+      shape: profile === 'area' ? 'polygon' : 'line',
+      closeSnapDistance: 0,
+    });
+    assert.deepEqual(result.screenPoints, [[0, 0], [2, 1.1], [6, -1.1], [10, 1.1], [12, 0]]);
+    assert.ok(maximumPolylineDeviation(borderScaleTurns.map(item => item.screen), result.screenPoints) <= 1);
+  }
+});
+
+test('one-pixel-or-smaller draft jitter remains simplified', () => {
+  const simplified = simplifyDraftStrokeSamples([
+    sample(0, 0), sample(2, 0.99), sample(4, -0.99), sample(6, 0.5), sample(8, 0),
+  ], 1);
+  assert.deepEqual(simplified.map(item => item.screen), [[0, 0], [8, 0]]);
 });
 
 test('stroke sampling ignores short moves and keeps deterministic shape points', () => {

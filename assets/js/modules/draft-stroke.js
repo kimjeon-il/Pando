@@ -6,16 +6,16 @@ const POINTER_GROUPS = Object.freeze({
 
 const DRAFT_STROKE_PROFILES = Object.freeze({
   boundary: Object.freeze({
-    sampleDistance: Object.freeze({ fine: 4, coarse: 8 }),
-    simplifyTolerance: Object.freeze({ fine: 2.5, coarse: 4 }),
+    sampleDistance: Object.freeze({ fine: 2, coarse: 3 }),
+    simplifyTolerance: Object.freeze({ fine: 1, coarse: 1 }),
   }),
   river: Object.freeze({
     sampleDistance: Object.freeze({ fine: 4, coarse: 8 }),
     simplifyTolerance: Object.freeze({ fine: 1.5, coarse: 3 }),
   }),
   area: Object.freeze({
-    sampleDistance: Object.freeze({ fine: 4, coarse: 8 }),
-    simplifyTolerance: Object.freeze({ fine: 2.5, coarse: 4 }),
+    sampleDistance: Object.freeze({ fine: 2, coarse: 3 }),
+    simplifyTolerance: Object.freeze({ fine: 1, coarse: 1 }),
   }),
 });
 

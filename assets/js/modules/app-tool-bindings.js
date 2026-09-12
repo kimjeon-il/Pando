@@ -81,7 +81,6 @@ export function createToolBindings() {
     });
     (0, dependencies.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.runModePrimaryAction)(); });
     (0, dependencies.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.toggleMapTaskWindow);
-    (0, dependencies.$)('modeTaskCloseBtn')?.addEventListener('click', () => (0, dependencies.$)('modeCancelBtn')?.click());
     const selectTerritoryMethod = method => {
       (0, dependencies.requestDraftDiscard)(() => {
         const annexDonorMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor';

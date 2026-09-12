@@ -1,22 +1,19 @@
 /** Moves the existing task UI; never owns editing state or registers its handlers. */
 export function createEditorWorkspacePresentation({
-  document, getLayout, panel, task, dockSlot, floatingSlot, content, minimize,
-  isEditorOpen, openEditor, closeEditor, onLayoutChange,
+  document, panel, task, dockSlot, floatingSlot, content, minimize,
+  isEditorOpen, openEditor, onLayoutChange,
 }) {
   let active = false;
-  let minimized = false;
   let docked = false;
-  let editorWasOpen = false;
   let disposed = false;
   const pointers = new Set();
 
   const apply = () => {
     if (disposed) return;
-    const nextDocked = active && getLayout() === 'wide';
+    const nextDocked = active;
     if (nextDocked !== docked && pointers.size) return;
     const destination = nextDocked ? dockSlot : floatingSlot;
     const changed = nextDocked !== docked;
-    if (changed && nextDocked) editorWasOpen = isEditorOpen();
     if (task.parentElement !== destination) destination.append(task);
     docked = nextDocked;
     if (panel.dataset.editorContent !== (docked ? 'task' : 'properties')) {
@@ -25,16 +22,14 @@ export function createEditorWorkspacePresentation({
     }
     if (dockSlot.hidden !== !docked) dockSlot.hidden = !docked;
     task.classList.toggle('hidden', !active);
-    task.classList.toggle('is-minimized', !docked && minimized);
-    if (content.hidden !== (!docked && minimized)) content.hidden = !docked && minimized;
-    if (minimize.hidden !== docked) minimize.hidden = docked;
+    task.classList.toggle('is-minimized', false);
+    if (content.hidden) content.hidden = false;
+    if (!minimize.hidden) minimize.hidden = true;
     if (docked && !isEditorOpen()) openEditor();
-    else if (changed && active && !editorWasOpen) closeEditor();
     if (changed) onLayoutChange();
   };
   const sync = (input = {}) => {
     if ('active' in input) active = !!input.active;
-    if ('minimized' in input) minimized = !!input.minimized;
     apply();
   };
   const start = event => pointers.add(event.pointerId);

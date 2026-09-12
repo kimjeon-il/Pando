@@ -1251,8 +1251,8 @@ test('shared color picker applies presets, restores defaults, and participates i
   const palette = page.locator('#countryColorPopover');
   const swatches = palette.locator('.ui-color-swatch-grid--palette [data-color-value]');
   await expect(palette).toBeVisible();
-  await expect(swatches).toHaveCount(66);
-  await expect(swatches.first()).toHaveAttribute('aria-label', '흰색 (#FFFFFF) 색상');
+  await expect(swatches).toHaveCount(65);
+  await expect(swatches.first()).toHaveAttribute('aria-label', '회색 아주 밝음 (#F3F4F6) 색상');
   await expect(swatches.nth(1)).toHaveAttribute('aria-label', '빨강 아주 밝음 (#FEE2E2) 색상');
   expect(await swatches.evaluateAll(elements => elements.slice(0, 13).map(element => element.dataset.colorFamily))).toEqual([
     '회색', '빨강', '주황', '황금', '노랑', '연두', '초록', '청록', '시안', '파랑', '인디고', '보라', '분홍',
@@ -1283,7 +1283,7 @@ test('shared color picker applies presets, restores defaults, and participates i
   ]);
   await page.locator('#countryColorTrigger').click();
   await expect(palette).toBeVisible();
-  await expect(palette).toHaveCSS('position', 'static');
+  await expect(palette).toHaveCSS('position', 'fixed');
   expect(await palette.evaluate(element => element.parentElement?.id)).toBe('editorObjectHeader');
   expect(await palette.locator('.ui-color-swatch-grid--palette').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(13);
   await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
@@ -1350,7 +1350,7 @@ test('layer style hover is isolated and preferences reuse the shared color picke
   await page.locator('#preferencesSelectionColorTrigger').click();
   const palette = page.locator('#preferencesSelectionColorPopover');
   await expect(palette).toBeVisible();
-  await expect(palette.locator('.ui-color-swatch-grid--palette [data-color-value]')).toHaveCount(66);
+  await expect(palette.locator('.ui-color-swatch-grid--palette [data-color-value]')).toHaveCount(65);
   await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
   await palette.locator('[data-color-value="#ef4444"]').click();
   await expect(page.locator('#preferencesSelectionColorInput')).toHaveValue('#ef4444');
