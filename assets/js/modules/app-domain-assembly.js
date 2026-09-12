@@ -344,7 +344,11 @@ export function createDomainAssembly() {
       selectionDomain,
       toolController: {
         requireCanonicalData: dependencies.requireCanonicalData,
-        getGeometryPreviewSession: () => dependencies.state.geometryPreview.session,
+        getGeometryPreviewSession: () => (
+          dependencies.state.tool === 'annex-territory' && ['donor', 'method'].includes(dependencies.state.annexPhase)
+            ? null
+            : dependencies.state.geometryPreview.session
+        ),
         getCurrentTool: () => dependencies.state.tool,
         discardGeometryPreview: dependencies.discardActiveGeometryPreview,
         clearHover: () => { dependencies.lastHoverHit = null; selectionDomain.setHover(null); },

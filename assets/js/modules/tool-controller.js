@@ -30,7 +30,7 @@ export function describeTool(tool, state, { labelPlacement = false } = {}) {
   if (labelPlacement || tool === 'label') return { name: '지명 추가', stage: '위치 선택', icon: TOOL_DEFINITIONS.label.icon };
   const definition = TOOL_DEFINITIONS[tool] || TOOL_DEFINITIONS.select;
   if (tool === 'new-country') return { name: definition.task, stage: phaseStage(state.newCountryPhase), icon: definition.icon };
-  if (tool === 'annex-territory') return { name: definition.task, stage: state.annexPhase === 'donor' ? '가져올 국가 선택' : phaseStage(state.annexPhase), icon: definition.icon };
+  if (tool === 'annex-territory') return { name: definition.task, stage: state.annexPhase === 'donor' ? '가져올 국가 선택' : state.annexPhase === 'method' ? '방식 선택' : phaseStage(state.annexPhase), icon: definition.icon };
   if (tool === 'country-border') return { name: definition.task, stage: state.boundaryEditPhase === 'selecting' ? '맞닿은 국가 선택' : '공유국경 편집', icon: definition.icon };
   return { name: definition.task, stage: definition.stage || '작업 진행', icon: definition.icon };
 }

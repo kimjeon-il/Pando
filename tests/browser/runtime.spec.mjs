@@ -166,21 +166,27 @@ test('annex territory exposes river boundaries as a retained component-selection
     clientY: mapBox.y + donorPoint[1],
     button: 0,
   });
-  await expect(page.locator('#modePrimaryBtn')).toBeHidden();
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
+  await expect(page.locator('#modeMethodSwitch')).toBeHidden();
+  await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 2단계');
   await expect(page.locator('#modeTaskStage')).toHaveText('방식 선택');
   await expect(page.locator('#modeMethodSwitch')).toBeVisible();
-  await expect(page.locator('#modeDirectLineMethodInput')).toBeEnabled();
-  await page.locator('#modeDirectLineMethodInput').check();
-
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await expect(page.locator('#modeMethodSwitch .mode-direct-method-option')).toHaveCount(3);
-  await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked();
   await expect(page.locator('#modePolygonMethodInput')).not.toBeChecked();
-  await page.locator('#modePolygonMethodInput').check();
-  await expect(page.locator('#modePolygonMethodInput')).toBeChecked();
   await expect(page.locator('#modeRiverMethodBtn')).toHaveCount(0);
   await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
   await page.locator('#modeComponentsMethodInput').check();
+  await expect(page.locator('#modeComponentsMethodInput')).toBeChecked();
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 3단계');
+  await expect(page.locator('#modeTaskStage')).toHaveText('영역 선택');
+  await expect(page.locator('#modeMethodSwitch')).toBeHidden();
   await expect(page.locator('#modeRiverBoundaryOption')).toBeVisible();
   await expect(page.locator('#modeRiverBoundaryInput')).not.toBeChecked();
   const components = page.locator('.draft-layer path.territory-component');
@@ -189,6 +195,7 @@ test('annex territory exposes river boundaries as a retained component-selection
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
+  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (1)', { timeout: 120_000 });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
 
   await page.locator('#modeRiverBoundaryInput').check();
@@ -201,24 +208,14 @@ test('annex territory exposes river boundaries as a retained component-selection
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
-  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
-  await page.locator('#modeDirectLineMethodInput').check();
-  await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked();
-  await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
-  await page.locator('#modeComponentsMethodInput').check();
-  await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
-  await expect(components.first()).toBeVisible({ timeout: 120_000 });
-  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await page.locator('#modeRiverBoundaryInput').uncheck();
   await expect(page.locator('#modeTaskInstruction')).toContainText('가져올 영토 조각');
   await page.waitForTimeout(500);
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
-  await page.evaluate(() => document.activeElement?.blur());
-  await page.keyboard.press('Enter');
-  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 120_000 });
-  await page.keyboard.press('Enter');
+  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (1)', { timeout: 120_000 });
+  await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeActionBar')).toBeHidden({ timeout: 120_000 });
   await expect(page.locator('#actionStatus')).toContainText('영토 조각');
   expect(errors).toEqual([]);
@@ -453,7 +450,9 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
-  await page.locator('#modeComponentsMethodBtn').click();
+  await page.locator('#modeComponentsMethodInput').check();
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await page.locator('#modePrimaryBtn').click();
   await page.locator('#modeRiverBoundaryInput').check();
   await expect(page.locator('#modeTaskInstruction')).toContainText('준비하는 중');
   await expect.poll(() => manifestRequested).toBe(true);
@@ -470,13 +469,15 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
       const node = nodes.find(node => Math.abs(node.__data__.areaKm2 - target) < 2);
       node.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true, clientX: -1000, clientY: -1000 }));
     }, area);
-    await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
     await expect(page.locator('.selected-component')).toHaveCount(expectedAreas.indexOf(area) + 1);
   }
-  await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 90_000 });
+  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (3)', { timeout: 90_000 });
   await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 2단계');
+  await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (3)');
+  await page.locator('#modeCancelBtn').click();
+  await page.locator('#modeCancelBtn').click();
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#modeActionBar')).toBeHidden();
   await expect(components).toHaveCount(0);
@@ -492,7 +493,8 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
-  await page.locator('#modeComponentsMethodBtn').click();
+  await page.locator('#modeComponentsMethodInput').check();
+  await page.locator('#modePrimaryBtn').click();
   await page.locator('#modeRiverBoundaryInput').check();
   await expect(page.locator('#modeTaskInstruction')).toContainText('하천으로 나뉜', { timeout: 60_000 });
   await expect.poll(() => components.evaluateAll(nodes => [824, 1087].map(area => nodes.filter(node =>
@@ -510,8 +512,7 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
     }, area);
   }
   await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (2)');
-  await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 90_000 });
+  await page.locator('#modeCancelBtn').click();
   await page.locator('#modeCancelBtn').click();
   await page.locator('#modeCancelBtn').click();
   await expect(components).toHaveCount(0);

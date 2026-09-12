@@ -199,6 +199,7 @@ export function createGeometryPreview() {
     applyResult,
     onSuccess = () => {},
     onError = () => {},
+    shouldKeepResult = () => true,
   }) {
     discardActiveGeometryPreview({ announce: false });
     const baseDataRevision = dependencies.state.stateRevision;
@@ -207,7 +208,7 @@ export function createGeometryPreview() {
     try {
       const response = await dependencies.mapEditClient.execute(operation, payload);
       requestId = response.requestId;
-      if (dependencies.state.stateRevision !== baseDataRevision) {
+      if (dependencies.state.stateRevision !== baseDataRevision || !shouldKeepResult()) {
         dependencies.mapEditClient.discard(requestId);
         throw Object.assign(new Error('계산 중 지도 상태가 바뀌어 미리보기를 폐기했습니다.'), { cancelled: true });
       }

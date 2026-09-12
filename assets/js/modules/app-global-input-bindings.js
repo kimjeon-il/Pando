@@ -54,20 +54,23 @@ export function createGlobalInputBindings() {
       const newCountrySideMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'side';
       const newCountryComponentsMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'components';
       const annexDonorMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor';
+      const annexMethodMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'method';
       const annexSideMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'side';
       const annexPolygonPreviewMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'polygon-preview';
       const annexComponentsMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'components';
       const mergeTargetMode = dependencies.state.tool === 'merge-country' && !!dependencies.state.mergeSourceCountryId;
       const boundarySelectMode = dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting';
-      if (e.key === 'Enter' && !editingText && dependencies.state.geometryPreview.session) {
+      const annexReviewMode = dependencies.state.tool === 'annex-territory' && ['line', 'polygon', 'polygon-preview', 'side', 'components'].includes(dependencies.state.annexPhase);
+      if (e.key === 'Enter' && !editingText && dependencies.state.geometryPreview.session && (dependencies.state.tool !== 'annex-territory' || annexReviewMode)) {
         e.preventDefault();
         (0, dependencies.applyActiveGeometryPreview)();
         return;
       }
-      if (e.key === 'Enter' && !editingText && (newCountrySourceMode || annexDonorMode || mergeTargetMode || boundarySelectMode)) {
+      if (e.key === 'Enter' && !editingText && (newCountrySourceMode || annexDonorMode || annexMethodMode || mergeTargetMode || boundarySelectMode)) {
         e.preventDefault();
         if (newCountrySourceMode) (0, dependencies.beginNewCountryLine)();
-        else if (annexDonorMode) (0, dependencies.beginAnnexSelection)();
+        else if (annexDonorMode) (0, dependencies.advanceAnnexToMethod)();
+        else if (annexMethodMode) (0, dependencies.beginAnnexSelection)();
         else if (mergeTargetMode) (0, dependencies.completeCountryMerge)();
         else (0, dependencies.beginCountryBorderEditing)();
         return;
@@ -76,9 +79,7 @@ export function createGlobalInputBindings() {
         e.preventDefault();
         if (newCountrySideMode) (0, dependencies.completeNewCountryCreation)(dependencies.state.newCountrySelectedCandidateIndex);
         else if (newCountryComponentsMode) (0, dependencies.completeNewCountryCreation)(null);
-        else if (annexSideMode) (0, dependencies.completeLinearAnnexation)(dependencies.state.annexSelectedCandidateIndex);
-        else if (annexPolygonPreviewMode) (0, dependencies.completeLinearAnnexation)(0);
-        else (0, dependencies.completeLinearAnnexation)(null);
+        else (0, dependencies.scheduleAnnexGeometryPreview)({ delay: 0 });
         return;
       }
       if (e.key === 'Enter' && !editingText && ((0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) || newCountryLineMode || (dependencies.state.tool === 'annex-territory' && ['line', 'polygon'].includes(dependencies.state.annexPhase))) && (0, dependencies.editingDraftCoordinates)().length) {

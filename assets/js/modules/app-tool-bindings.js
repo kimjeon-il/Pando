@@ -82,10 +82,12 @@ export function createToolBindings() {
     (0, dependencies.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.runModePrimaryAction)(); });
     (0, dependencies.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.toggleMapTaskWindow);
     const selectTerritoryMethod = method => {
+      if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'method') {
+        (0, dependencies.selectAnnexSelectionMethod)(method);
+        return;
+      }
       (0, dependencies.requestDraftDiscard)(() => {
-        const annexDonorMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor';
-        if (annexDonorMode) (0, dependencies.beginAnnexSelection)();
-        if (!annexDonorMode || method !== 'line') (0, dependencies.switchTerritorySelectionMethod)(method);
+        (0, dependencies.switchTerritorySelectionMethod)(method);
       });
     };
     (0, dependencies.$)('modeDirectLineMethodInput')?.addEventListener('change', event => {
@@ -102,6 +104,10 @@ export function createToolBindings() {
     (0, dependencies.$)('modeDraftRemoveLastBtn')?.addEventListener('click', () => dependencies.editingDomain?.removeLastDraftPoint());
     (0, dependencies.$)('modeDraftDeleteBtn')?.addEventListener('click', () => dependencies.editingDomain?.deleteSelectedDraftPoint());
     (0, dependencies.$)('modeCancelBtn')?.addEventListener('click', () => {
+      if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase !== 'donor') {
+        (0, dependencies.returnAnnexToPreviousStep)();
+        return;
+      }
       (0, dependencies.requestDraftDiscard)(() => {
         if (dependencies.state.geometryPreview.session) (0, dependencies.discardActiveGeometryPreview)();
         else if (dependencies.state.labelPlacementMode || dependencies.state.tool === 'label') (0, dependencies.exitLabelMode)();
