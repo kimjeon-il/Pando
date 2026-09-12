@@ -5,6 +5,7 @@
 export function createCountryCommits() {
   let dependencies;
   let annexPreviewTimer = null;
+  let annexPreviewGeneration = 0;
 
   function connect(ports) {
     if (dependencies) throw new Error('country-commits already connected');
@@ -20,10 +21,12 @@ export function createCountryCommits() {
       componentKeys: dependencies.state.annexSelectedComponentKeys.map(String).sort(),
       riverStatus: dependencies.state.annexRiverPartitionStatus,
       usesRiverBoundaries: dependencies.state.annexUseRiverBoundaries,
+      generation: annexPreviewGeneration,
     });
   }
 
   function cancelScheduledAnnexPreview({ discard = true } = {}) {
+    annexPreviewGeneration += 1;
     if (annexPreviewTimer !== null) {
       clearTimeout(annexPreviewTimer);
       annexPreviewTimer = null;
@@ -45,14 +48,89 @@ export function createCountryCommits() {
       return (!dependencies.state.annexUseRiverBoundaries || dependencies.state.annexRiverPartitionStatus === 'ready')
         && dependencies.state.annexSelectedComponentKeys.length > 0;
     }
-    const candidateIndex = currentAnnexPreviewCandidateIndex();
     return ['side', 'polygon-preview'].includes(dependencies.state.annexPhase)
-      && Number.isInteger(candidateIndex)
-      && !!dependencies.state.annexCandidates[candidateIndex]?.geometry;
+      && !!dependencies.state.annexDrawnGeometry;
+  }
+
+  // Prepared only when the selection changes, never in a render frame.
+  function refreshAnnexDrawnSelection(candidateIndex = currentAnnexPreviewCandidateIndex()) {
+    const state = dependencies.state;
+    const accumulated = state.annexDrawnSelections?.at(-1)?.combinedGeometry || null;
+    const current = Number.isInteger(candidateIndex) ? state.annexCandidates[candidateIndex]?.geometry : null;
+    const coordinates = dependencies.geometryMultiCoordinates;
+    const normalize = dependencies.normalizeClippedLandGeometry;
+    state.annexDrawnGeometry = null;
+    state.annexRemainingGeometry = null;
+    if (!current) {
+      state.annexDrawnGeometry = accumulated;
+      state.annexRemainingGeometry = state.annexSourceGeometry;
+      return true;
+    }
+    try {
+      const combined = accumulated
+        ? normalize(window.polygonClipping.union(coordinates(accumulated), coordinates(current)))
+        : current;
+      const remaining = normalize(window.polygonClipping.difference(coordinates(state.annexSourceGeometry), coordinates(current)));
+      state.annexDrawnGeometry = combined;
+      state.annexRemainingGeometry = remaining;
+      return true;
+    } catch (error) {
+      (0, dependencies.reportOperationError)(error, '선택한 영역을 합칠 수 없습니다. 선택을 조정하세요.', 'PL-ANNEX-001', 3800);
+      return false;
+    }
+  }
+
+  function addAnnexDrawnSelection() {
+    const state = dependencies.state;
+    if (state.tool !== 'annex-territory' || !['side', 'polygon-preview'].includes(state.annexPhase)
+      || dependencies.editingDraftSnapshot().strokeActive) return false;
+    if (!refreshAnnexDrawnSelection() || !state.annexDrawnGeometry || !state.annexRemainingGeometry) return false;
+    cancelScheduledAnnexPreview({ discard: true });
+    const current = state.annexCandidates[state.annexSelectedCandidateIndex]?.geometry;
+    if (current) {
+      state.annexDrawnSelections.push({
+        geometry: current,
+        combinedGeometry: state.annexDrawnGeometry,
+        sourceGeometry: state.annexSourceGeometry,
+      });
+      state.annexSourceGeometry = state.annexRemainingGeometry;
+    }
+    state.annexCandidates = [];
+    state.annexSelectedCandidateIndex = null;
+    state.annexComponentIndex = null;
+    state.annexPhase = state.annexSelectionMethod === 'polygon' ? 'polygon' : 'line';
+    dependencies.editingDomain?.startDraft?.({ coords: [] });
+    (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
+    dependencies.renderingDomain?.invalidateEditingOverlays?.('annex-drawn-add');
+    (0, dependencies.updateModeButtons)();
+    return true;
+  }
+
+  function undoAnnexDrawnSelection() {
+    const state = dependencies.state;
+    if (state.tool !== 'annex-territory' || !['line', 'polygon', 'side', 'polygon-preview'].includes(state.annexPhase)
+      || dependencies.editingDraftSnapshot().strokeActive) return false;
+    const current = state.annexCandidates[state.annexSelectedCandidateIndex]?.geometry;
+    if (!current && !state.annexDrawnSelections?.length) return false;
+    cancelScheduledAnnexPreview({ discard: true });
+    if (!current) state.annexSourceGeometry = state.annexDrawnSelections.pop().sourceGeometry;
+    state.annexCandidates = [];
+    state.annexSelectedCandidateIndex = null;
+    state.annexComponentIndex = null;
+    const polygon = state.annexSelectionMethod === 'polygon';
+    state.annexPhase = state.annexDrawnSelections.length ? (polygon ? 'polygon-preview' : 'side') : (polygon ? 'polygon' : 'line');
+    dependencies.editingDomain?.startDraft?.({ coords: [] });
+    (0, dependencies.setModeBanner)(state.annexDrawnSelections.length ? '선택한 영역을 확인하세요.' : (0, dependencies.defaultDraftInstruction)());
+    scheduleAnnexGeometryPreview();
+    dependencies.renderingDomain?.invalidateEditingOverlays?.('annex-drawn-undo');
+    (0, dependencies.updateModeButtons)();
+    return true;
   }
 
   function scheduleAnnexGeometryPreview({ delay = 300 } = {}) {
     cancelScheduledAnnexPreview({ discard: true });
+    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexSelectionMethod !== 'components'
+      && !refreshAnnexDrawnSelection()) return false;
     if (!annexPreviewIsReady()) return false;
     const signature = annexPreviewSignature();
     dependencies.state.annexPreviewPending = true;
@@ -60,9 +138,11 @@ export function createCountryCommits() {
     annexPreviewTimer = setTimeout(() => {
       annexPreviewTimer = null;
       if (signature !== annexPreviewSignature() || !annexPreviewIsReady()) return;
-      dependencies.state.annexPreviewPending = false;
-      (0, dependencies.updateModeButtons)();
-      void completeLinearAnnexation(currentAnnexPreviewCandidateIndex(), signature);
+      void completeLinearAnnexation(currentAnnexPreviewCandidateIndex(), signature).finally(() => {
+        if (signature !== annexPreviewSignature()) return;
+        dependencies.state.annexPreviewPending = false;
+        (0, dependencies.updateModeButtons)();
+      });
     }, Math.max(0, Number(delay) || 0));
     return true;
   }
@@ -82,6 +162,7 @@ export function createCountryCommits() {
       dependencies.state.annexCandidates = split.candidates;
       dependencies.state.annexSelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
       dependencies.state.annexPhase = 'side';
+      dependencies.editingDomain?.refreshTerritoryOperation?.('annex-candidates-ready');
       (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
       (0, dependencies.updateModeButtons)();
       dependencies.renderingDomain?.invalidateGpuInteraction?.('annex-candidates-ready');
@@ -117,7 +198,7 @@ export function createCountryCommits() {
     if (dependencies.state.annexPhase !== 'polygon' || !target || !donors.length) return;
     const plan = (0, dependencies.planDrawnTerritoryAnnex)({
       drawnGeometry: { type: 'Polygon', coordinates: [(0, dependencies.ensureClosedRing)((0, dependencies.editingDraftCoordinates)())] },
-      donorFeatures: donors,
+      donorFeatures: [{ geometry: dependencies.state.annexSourceGeometry }],
       targetFeature: target,
       clipper: window.polygonClipping,
     });
@@ -128,6 +209,7 @@ export function createCountryCommits() {
     dependencies.state.annexCandidates = [{ geometry: plan.transferGeometry }];
     dependencies.state.annexSelectedCandidateIndex = 0;
     dependencies.state.annexPhase = 'polygon-preview';
+    dependencies.editingDomain?.refreshTerritoryOperation?.('annex-polygon-ready');
     (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     (0, dependencies.updateModeButtons)();
     dependencies.renderingDomain?.invalidateGpuInteraction?.('annex-polygon-ready');
@@ -218,6 +300,14 @@ export function createCountryCommits() {
     const polygonMode = (0, dependencies.isPolygonDraftTool)(dependencies.state.tool);
     const minimumPoints = polygonMode ? 3 : 2;
     const draft = (0, dependencies.editingDraftSnapshot)();
+    if (dependencies.state.tool === 'annex-territory' && ['line', 'polygon'].includes(dependencies.state.annexPhase)
+      && dependencies.state.annexDrawnSelections?.length && !draft.coords.length && !draft.strokeActive) {
+      dependencies.state.annexPhase = polygonMode ? 'polygon-preview' : 'side';
+      dependencies.editingDomain?.refreshTerritoryOperation?.('annex-accumulated-review');
+      scheduleAnnexGeometryPreview();
+      (0, dependencies.updateModeButtons)();
+      return;
+    }
     if (draft.coords.length < minimumPoints) {
       (0, dependencies.setActionStatus)(`완료하려면 점이 최소 ${minimumPoints}개 필요합니다. 지도에서 점을 더 입력하세요.`, 'error');
       return;
@@ -276,8 +366,8 @@ export function createCountryCommits() {
         return;
       }
     } else {
-      const selectedIndex = candidateIndex === null ? NaN : Number(candidateIndex);
-      candidate = Number.isInteger(selectedIndex) && selectedIndex >= 0 ? dependencies.state.annexCandidates[selectedIndex] : null;
+      if (!expectedSignature && !refreshAnnexDrawnSelection(candidateIndex)) return;
+      candidate = { geometry: dependencies.state.annexDrawnGeometry };
     }
     const targetBefore = (0, dependencies.countryFeatureById)(targetId);
     const donorsBefore = donorIds.map(dependencies.countryFeatureById).filter(Boolean);
@@ -411,6 +501,8 @@ export function createCountryCommits() {
     connect,
 
     get completeCountryMerge() { return completeCountryMerge; },
+    get addAnnexDrawnSelection() { return addAnnexDrawnSelection; },
+    get undoAnnexDrawnSelection() { return undoAnnexDrawnSelection; },
     get completeLinearAnnexation() { return completeLinearAnnexation; },
     get completeNewCountryCreation() { return completeNewCountryCreation; },
     get cancelScheduledAnnexPreview() { return cancelScheduledAnnexPreview; },

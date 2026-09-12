@@ -1,6 +1,6 @@
 /** Explicit dependency wiring; no state ownership or event registration. */
 export function connectProjectIo({
-  builtinSession, cameraNavigation, countryIndex, countryLabels, countryModes, countryValidation, cutGeometry,
+  builtinSession, cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, countryValidation, cutGeometry,
   domainAssembly, environment, genericCommands, geometryPreview, gisAssembly, historyAssembly, hydroSettings,
   landRelations, layerList, libraryAssembly, lifecycleAssembly, mapHost, mapProjection, mapSettings,
   navigationBindings, objectCommands, objectDeletion, objectMetadata, objectPicking, objectPresentation,
@@ -433,6 +433,8 @@ export function connectProjectIo({
     get updateLayerPresentationStyle() { return mapSettings.updateLayerPresentationStyle; },
   });
   toolBindings.connect({
+    get addAnnexDrawnSelection() { return countryCommits.addAnnexDrawnSelection; },
+    get undoAnnexDrawnSelection() { return countryCommits.undoAnnexDrawnSelection; },
     get $() { return environment.$; },
     get bindHoldZoom() { return cameraNavigation.bindHoldZoom; },
     get beginAnnexSelection() { return countryModes.beginAnnexSelection; },

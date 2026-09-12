@@ -63,6 +63,7 @@ export function createGlobalInputBindings() {
       const annexReviewMode = dependencies.state.tool === 'annex-territory' && ['line', 'polygon', 'polygon-preview', 'side', 'components'].includes(dependencies.state.annexPhase);
       if (e.key === 'Enter' && !editingText && dependencies.state.geometryPreview.session && (dependencies.state.tool !== 'annex-territory' || annexReviewMode)) {
         e.preventDefault();
+        if (dependencies.state.modeProcessing || (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPreviewPending)) return;
         (0, dependencies.applyActiveGeometryPreview)();
         return;
       }

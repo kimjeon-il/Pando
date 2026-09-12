@@ -609,20 +609,23 @@ export function createDomainAssembly() {
           });
           const boundaryHandles = (0, dependencies.getCountryBoundaryHandles)();
           const territoryItems = (0, dependencies.territoryComponentItems)();
-          const candidates = dependencies.state.tool === 'annex-territory'
-            ? dependencies.state.annexCandidates
-            : dependencies.state.tool === 'new-country' ? dependencies.state.newCountryCandidates : [];
+          const annex = dependencies.state.tool === 'annex-territory';
+          const annexReview = annex && ['line', 'polygon', 'side', 'polygon-preview', 'components'].includes(dependencies.state.annexPhase);
+          const accumulatedGeometry = annexReview ? dependencies.state.annexDrawnSelections?.at(-1)?.combinedGeometry : null;
+          const candidates = (annex ? (annexReview ? dependencies.state.annexCandidates : [])
+            : dependencies.state.tool === 'new-country' ? dependencies.state.newCountryCandidates : [])
+            .map((item, index) => ({
+              index, geometry: item.geometry,
+              selected: index === (annex ? dependencies.state.annexSelectedCandidateIndex : dependencies.state.newCountrySelectedCandidateIndex),
+            }));
+          if (accumulatedGeometry) candidates.unshift({ index: -1, geometry: accumulatedGeometry, selected: true, interactive: false });
           return {
             boundaryEdit: boundarySegments.length || boundaryHandles.length ? { segments: boundarySegments, handles: boundaryHandles } : null,
             territoryOperation: territoryItems.length || candidates.length ? {
               kind: dependencies.state.tool,
               phase: dependencies.state.tool === 'annex-territory' ? dependencies.state.annexPhase : dependencies.state.newCountryPhase,
               components: territoryItems.map(item => ({ ...item, hovered: item.key === dependencies.state.annexHoveredComponentKey })),
-              candidates: candidates.map((item, index) => ({
-                index,
-                geometry: item.geometry,
-                selected: index === (dependencies.state.tool === 'annex-territory' ? dependencies.state.annexSelectedCandidateIndex : dependencies.state.newCountrySelectedCandidateIndex),
-              })),
+              candidates,
             } : null,
           };
         },

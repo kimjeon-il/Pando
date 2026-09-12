@@ -310,7 +310,19 @@ export function createTaskPresentation() {
     }
     const annexSelectedCount = annexComponentsMode
       ? dependencies.state.annexSelectedComponentKeys.length
-      : (annexSideMode || annexPolygonPreviewMode ? 1 : 0);
+      : (dependencies.state.annexDrawnSelections?.length || 0)
+        + (dependencies.state.annexCandidates[dependencies.state.annexSelectedCandidateIndex]?.geometry ? 1 : 0);
+    const accumulatedOnlyDraft = (annexLineMode || annexPolygonMode) && !draft.coords.length
+      && !draft.strokeActive && annexSelectedCount > 0;
+    const drawnSelectionActions = (0, dependencies.$)('annexDrawnActions');
+    drawnSelectionActions?.classList.toggle('hidden', !annexReviewMode || annexComponentsMode || !annexSelectedCount);
+    const drawnSelectionCount = (0, dependencies.$)('annexDrawnCount');
+    if (drawnSelectionCount) drawnSelectionCount.textContent = `영역 ${annexSelectedCount}개`;
+    const addSelection = (0, dependencies.$)('annexDrawnAddBtn');
+    if (addSelection) addSelection.disabled = dependencies.state.modeProcessing || draft.strokeActive
+      || !(annexSideMode || annexPolygonPreviewMode) || !dependencies.state.annexRemainingGeometry;
+    const undoSelection = (0, dependencies.$)('annexDrawnUndoBtn');
+    if (undoSelection) undoSelection.disabled = dependencies.state.modeProcessing || draft.strokeActive || !annexSelectedCount;
     const annexPreviewReady = annexReviewMode
       && !dependencies.state.annexPreviewPending
       && !!dependencies.state.geometryPreview.session
@@ -318,13 +330,13 @@ export function createTaskPresentation() {
     if (primary) {
       primary.classList.toggle('hidden', labelMode);
       primary.disabled = dependencies.state.modeProcessing
-        || (draftMode && (draft.strokeActive || draft.coords.length < (0, dependencies.draftMinimumPoints)() || draft.issues.length > 0 || (cutLineMode && !cutLineReady)))
+        || (draftMode && !accumulatedOnlyDraft && (draft.strokeActive || draft.coords.length < (0, dependencies.draftMinimumPoints)() || draft.issues.length > 0 || (cutLineMode && !cutLineReady)))
         || (terrainMode && draft.coords.length < ((0, dependencies.isPolygonDraftTool)(dependencies.state.tool) ? 3 : 2))
         || (newCountrySourceMode && !dependencies.state.newCountrySourceIds.length)
         || (annexDonorMode && !dependencies.state.annexDonorCountryIds.length)
         || (annexMethodMode && !dependencies.state.annexPendingSelectionMethod)
-        || (annexPolygonMode && draft.coords.length < 3)
-        || (annexPolygonPreviewMode && !dependencies.state.annexCandidates[0]?.geometry)
+        || (annexPolygonMode && !accumulatedOnlyDraft && draft.coords.length < 3)
+        || (annexPolygonPreviewMode && !annexSelectedCount)
         || (mergeTargetMode && !dependencies.state.mergeTargetCountryIds.length)
         || (genericFeatureMergeMode && !dependencies.state.genericFeatureMergeTargetIds.length)
         || (territorialUnitMergeMode && !dependencies.state.territorialUnitMergeTargetIds.length)
@@ -332,8 +344,8 @@ export function createTaskPresentation() {
         || (territorialUnitRedrawMode && draft.coords.length < 3)
         || (territorialUnitCreateMode && draft.coords.length < 3)
         || (boundarySelectMode && !boundarySelectionReady)
-        || ((annexLineMode || newCountryLineMode) && !cutLineReady)
-        || (annexSideMode && !dependencies.state.annexCandidates[dependencies.state.annexSelectedCandidateIndex]?.geometry)
+        || ((annexLineMode || newCountryLineMode) && !accumulatedOnlyDraft && !cutLineReady)
+        || (annexSideMode && !annexSelectedCount)
         || (newCountrySideMode && !dependencies.state.newCountryCandidates[dependencies.state.newCountrySelectedCandidateIndex]?.geometry)
         || (annexComponentsMode && dependencies.state.annexUseRiverBoundaries && dependencies.state.annexRiverPartitionStatus !== 'ready')
         || (annexComponentsMode && !dependencies.state.annexSelectedComponentKeys.length)
@@ -411,6 +423,7 @@ export function createTaskPresentation() {
 
   async function runModePrimaryAction(action = dispatchModePrimaryAction) {
     if (dependencies.state.modeProcessing) return false;
+    if (action === dispatchModePrimaryAction && (0, dependencies.$)('modePrimaryBtn')?.disabled) return false;
     dependencies.state.modeProcessing = true;
     updateModeButtons();
     try {

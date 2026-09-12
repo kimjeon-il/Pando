@@ -146,6 +146,7 @@ const territoryPacket = input => {
       index: Number(value?.index || 0),
       geometry: geometry(value?.geometry),
       selected: value?.selected === true,
+      interactive: value?.interactive !== false,
     })),
     riverBoundarySegments: Object.freeze((input.riverBoundarySegments || []).map(coordinates)),
   });

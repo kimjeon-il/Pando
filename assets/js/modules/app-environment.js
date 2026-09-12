@@ -377,6 +377,7 @@ export function createEnvironment() {
       'undoBtn', 'redoBtn', 'rightPanel',
       'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeCancelIcon', 'modePrimaryIcon', 'modeTaskInstruction', 'annexCountryFlow', 'annexTargetCountryFlag', 'annexTargetCountryName', 'annexDonorCountryFlag', 'annexDonorCountryName',
       'modeMethodSwitch', 'modeDirectLineMethodInput', 'modePolygonMethodOption', 'modePolygonMethodInput', 'modeComponentsMethodInput', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
+      'annexDrawnActions', 'annexDrawnCount', 'annexDrawnAddBtn', 'annexDrawnUndoBtn',
       'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
       'saveProjectBtn', 'openProjectBtn', 'projectFileInput', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesStatusBarVisibleInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn',
       'createBuildPanel', 'addCountryBtn', 'addSubunitBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
