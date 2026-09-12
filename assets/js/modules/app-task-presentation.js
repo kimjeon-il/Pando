@@ -236,8 +236,11 @@ export function createTaskPresentation() {
     reference?.classList.toggle('hidden', !model?.showReference);
     if (model?.showReference) {
       const countries = selection.sourceCountryIds.map(countryDisplay).filter(Boolean);
+      const referenceLabel = model.referenceLabel || '기준 국가';
+      const label = (0, dependencies.$)('territorialCreateReferenceLabel');
       const count = (0, dependencies.$)('territorialCreateReferenceCount');
       const list = (0, dependencies.$)('territorialCreateReferenceList');
+      if (label) label.textContent = referenceLabel;
       if (count) count.textContent = `${model.referenceCount}개`;
       if (list) {
         const signature = JSON.stringify(countries.map(country => [country.name, country.flagUrl]));
@@ -262,10 +265,11 @@ export function createTaskPresentation() {
           list.replaceChildren(fragment);
           list.dataset.signature = signature;
         }
+        list.setAttribute('aria-label', `${referenceLabel} 목록`);
       }
       reference?.setAttribute('aria-label', countries.length
-        ? `기준 국가 ${model.referenceCount}개: ${countries.map(country => country.name).join(', ')}`
-        : '기준 국가 0개');
+        ? `${referenceLabel} ${model.referenceCount}개: ${countries.map(country => country.name).join(', ')}`
+        : `${referenceLabel} 0개`);
     }
   }
 

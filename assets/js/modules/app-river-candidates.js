@@ -98,7 +98,8 @@ export function createRiverCandidates() {
   }
 
   function refreshRiverPartitionPresentation(reason) {
-    dependencies.renderingDomain?.invalidateEditingOverlays?.(reason);
+    const session = (0, dependencies.activeTerritorySelectionSession)();
+    dependencies.editingDomain?.refreshTerritorySelection?.({ tool: session?.tool, reason });
   }
 
   function applyRiverPartitionResult(candidates, donorResults) {
@@ -111,12 +112,11 @@ export function createRiverCandidates() {
     return composition;
   }
 
-  function riverPartitionResultMessage(candidates, donorResults, donors) {
+  function riverPartitionResultMessage(composition, donorResults, donors) {
     const invalidIds = new Set((donorResults || []).filter(result => result.status === 'invalid').map(result => String(result.donorCountryId)));
     const invalidNames = donors.filter(feature => invalidIds.has(String(feature.id))).map(feature => (0, dependencies.countryName)(feature) || feature.properties?.name || '기준 영역');
     const suffix = invalidNames.length ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외했습니다.` : '';
-    const composition = (0, dependencies.riverBoundaryComposition)((0, dependencies.territoryBaseComponentItems)(), { candidates, donorResults });
-    if (candidates.length) return `하천으로 나뉜 영토 조각을 선택하세요.${suffix}`;
+    if (composition.riverCandidateCount > 0) return `하천으로 나뉜 영토 조각을 선택하세요.${suffix}`;
     if (composition.items.length) return `분할 가능한 하천이 없어 기존 영토 조각을 표시합니다.${suffix}`;
     return invalidNames.length
       ? `하천 분할 오류로 ${invalidNames.join(', ')}의 영토 조각을 표시할 수 없습니다.`
@@ -143,7 +143,6 @@ export function createRiverCandidates() {
     session.riverPartitionStatus = 'loading';
     (0, dependencies.setModeBanner)('하천 기준 영토 조각을 준비하는 중입니다.');
     (0, dependencies.updateModeButtons)();
-    refreshRiverPartitionPresentation('river-partition-loading');
     try {
       await (0, dependencies.ensureGisRuntime)();
       if (!current()) return;
@@ -158,8 +157,8 @@ export function createRiverCandidates() {
       if (cached) {
         const candidates = structuredClone(cached.candidates);
         const donorResults = structuredClone(cached.donorResults || []);
-        applyRiverPartitionResult(candidates, donorResults);
-        (0, dependencies.setModeBanner)(riverPartitionResultMessage(candidates, donorResults, donors));
+        const composition = applyRiverPartitionResult(candidates, donorResults);
+        (0, dependencies.setModeBanner)(riverPartitionResultMessage(composition, donorResults, donors));
         (0, dependencies.updateModeButtons)();
         refreshRiverPartitionPresentation('river-partition-cache-ready');
         return;
@@ -187,8 +186,8 @@ export function createRiverCandidates() {
       const diagnostics = { ...sources.diagnostics, ...(result.diagnostics || {}) };
       riverPartitionCache.set(signature, { candidates: structuredClone(candidates), donorResults: structuredClone(donorResults), diagnostics });
       if (riverPartitionCache.size > 8) riverPartitionCache.delete(riverPartitionCache.keys().next().value);
-      applyRiverPartitionResult(candidates, donorResults);
-      (0, dependencies.setModeBanner)(riverPartitionResultMessage(candidates, donorResults, donors));
+      const composition = applyRiverPartitionResult(candidates, donorResults);
+      (0, dependencies.setModeBanner)(riverPartitionResultMessage(composition, donorResults, donors));
       (0, dependencies.updateModeButtons)();
       refreshRiverPartitionPresentation('river-partition-ready');
     } catch (error) {

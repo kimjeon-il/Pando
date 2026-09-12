@@ -72,6 +72,11 @@ test('all owners construct without DOM access, connect once, and expose every re
   assert.ok(composition.lastIndexOf('Connector.connect') < stages[0].index);
 });
 
+test('object editing composition supplies the shared territory component UI', () => {
+  const connection = composition.match(/objectEditingConnector\.connectObjectEditing\(\{([\s\S]*?)\n\s*\}\);/)?.[1] || '';
+  assert.match(connection, /\bterritoryComponentUi\b/);
+});
+
 test('canonical replacement retains one live store and updates dependent ID reads', () => {
   const owner = createBuiltinSession();
   owner.connect({});

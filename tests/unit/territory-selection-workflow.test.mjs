@@ -81,6 +81,10 @@ function harness(t) {
       startDraft: ({ coords }) => { draft = [...coords]; },
       clearDraft: () => { draft = []; },
       draftInputActive: () => draft.length > 0,
+      refreshTerritorySelection: ({ tool, reason }) => {
+        calls.refresh.push(`packet:${tool}:${reason}`);
+        return true;
+      },
     },
     setModeBanner() {},
     setActionStatus() {},
@@ -147,8 +151,20 @@ test('river-boundary control appears for component selection in all four operati
     assert.equal(h.workflow.presentation().showRiver, false, `${kind} must hide the control in method selection`);
     await h.workflow.advance();
     assert.equal(h.workflow.presentation().showRiver, true, `${kind} must show the control in component selection`);
+    assert.ok(h.calls.refresh.includes(`packet:${h.workflow.activeSession().tool}:territory-selection-components-ready`));
+    assert.equal(h.workflow.toggleRiverBoundaries(true), true);
+    assert.ok(h.calls.refresh.includes(`packet:${h.workflow.activeSession().tool}:territory-selection-river-toggle`));
     h.workflow.clear();
   }
+});
+
+test('reference-country labels describe each operation instead of using one generic term', async t => {
+  const h = harness(t);
+  h.workflow.start('new-country', starts[1][1]);
+  assert.equal(h.workflow.presentation().referenceLabel, '영토를 가져올 국가');
+  h.workflow.clear();
+  h.workflow.start('region', starts[3][1]);
+  assert.equal(h.workflow.presentation().referenceLabel, '영역 기준 국가');
 });
 
 test('changing a method discards the prior selection instead of synchronizing parallel state', async t => {

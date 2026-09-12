@@ -204,7 +204,6 @@ export function createTerritorialDrafts() {
     session.sourceRevision += 1;
     if (session.method === 'components') {
       session.componentFeatures = [(0, dependencies.deepClone)(sourceInfo.feature)];
-      dependencies.renderingDomain?.invalidateEditingOverlays?.('territorial-create-components');
     } else {
       dependencies.editingDomain?.startDraft?.({ coords: [] });
     }

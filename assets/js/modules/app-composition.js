@@ -173,7 +173,7 @@ export async function composeApplication({ revision }) {
     interactionPackets, landRelations, layerList, lifecycleAssembly, mapHost, mapProjection, objectCommands,
     objectMetadata, objectPicking, objectPresentation, projectRestore, projectSession, projectSnapshots,
     propertySelection, readinessNotifications, riverCandidates, runtime, serviceAssembly, spatialIndex, taskPresentation,
-    territorialConversion, territorialDrafts, territoryComponents, territorySelectionWorkflow, workspaceSurfaces,
+    territorialConversion, territorialDrafts, territoryComponentUi, territoryComponents, territorySelectionWorkflow, workspaceSurfaces,
   });
   projectIoConnector.connectProjectIo({
     builtinSession, cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, countryValidation,
