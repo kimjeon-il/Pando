@@ -15,10 +15,14 @@ export function createToolBindings() {
       (0, dependencies.requestDraftDiscard)(() => (0, dependencies.returnToMapAfterMobileAction)((0, dependencies.enterNewCountryMode)(), { fromCreate: true }));
     });
     (0, dependencies.$)('addSubunitBtn')?.addEventListener('click', () => {
-      (0, dependencies.openTerritorialCreateModal)(dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT);
+      (0, dependencies.requestDraftDiscard)(() => (0, dependencies.returnToMapAfterMobileAction)(
+        (0, dependencies.enterTerritorialCreateWorkflow)(dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT), { fromCreate: true },
+      ));
     });
     (0, dependencies.$)('addRegionBtn')?.addEventListener('click', () => {
-      (0, dependencies.openTerritorialCreateModal)(dependencies.TERRITORIAL_UNIT_TYPES.REGION);
+      (0, dependencies.requestDraftDiscard)(() => (0, dependencies.returnToMapAfterMobileAction)(
+        (0, dependencies.enterTerritorialCreateWorkflow)(dependencies.TERRITORIAL_UNIT_TYPES.REGION), { fromCreate: true },
+      ));
     });
     const closeDistributionTypeModal = () => {
       (0, dependencies.$)('distributionTypeModal')?.classList.add('hidden');
@@ -41,35 +45,10 @@ export function createToolBindings() {
         if (dependencies.layoutMode !== 'wide') (0, dependencies.openSurface)('editor');
       });
     });
-    (0, dependencies.$)('territorialCreateCancelBtn')?.addEventListener('click', dependencies.closeTerritorialCreateModal);
-    (0, dependencies.$)('territorialCreateModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', dependencies.closeTerritorialCreateModal);
-    (0, dependencies.$)('territorialCreateConfirmBtn')?.addEventListener('click', () => {
-      const unitType = dependencies.pendingTerritorialCreateType;
-      const method = (0, dependencies.$)('territorialCreateMethod').value;
-      (0, dependencies.closeTerritorialCreateModal)();
-      if (!unitType) return;
-      if (method === 'geojson') {
-        (0, dependencies.requestDraftDiscard)(() => {
-          (0, dependencies.discardActiveDraftSilently)();
-          const target = unitType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT
-            ? 'subunits'
-            : unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION
-              ? 'region'
-              : 'subunit';
-          const trigger = (0, dependencies.$)(unitType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT
-            ? 'addSubunitBtn'
-            : unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION
-              ? 'addRegionBtn'
-              : 'addSubunitBtn');
-          void (0, dependencies.getGisFileController)().then(controller => controller.openPicker({ target, trigger }));
-        });
-        return;
-      }
-      (0, dependencies.requestDraftDiscard)(() => {
-        const started = method === 'draw' ? (0, dependencies.enterTerritorialUnitDirectCreate)(unitType) : (0, dependencies.startTerritorialUnitCreate)(unitType);
-        (0, dependencies.returnToMapAfterMobileAction)(started, { fromCreate: true });
-      });
-    });
+    (0, dependencies.$)('territorialCreateNameInput')?.addEventListener('input', event => (0, dependencies.territorySelectionUpdateName)(event.currentTarget.value));
+    (0, dependencies.$)('territorialCreateSovereignInput')?.addEventListener('change', event => (0, dependencies.updateTerritorialCreateSovereign)(event.currentTarget.value));
+    (0, dependencies.$)('territorialCreateParentInput')?.addEventListener('change', event => (0, dependencies.updateTerritorialCreateParent)(event.currentTarget.value));
+    (0, dependencies.$)('territorialCreateSourceInput')?.addEventListener('change', event => (0, dependencies.updateTerritorialCreateSource)(event.currentTarget.value));
     (0, dependencies.$)('addLabelBtn')?.addEventListener('click', () => {
       (0, dependencies.requestDraftDiscard)(() => (0, dependencies.returnToMapAfterMobileAction)((0, dependencies.enterLabelMode)(), { fromCreate: true }));
     });
@@ -80,34 +59,25 @@ export function createToolBindings() {
       (0, dependencies.requestDraftDiscard)(() => (0, dependencies.returnToMapAfterMobileAction)((0, dependencies.enterTerrainGenericFeatureMode)('lake'), { fromCreate: true }));
     });
     (0, dependencies.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.runModePrimaryAction)(); });
-    (0, dependencies.$)('annexDrawnAddBtn')?.addEventListener('click', () => {
-      const action = dependencies.state.multiDraft ? dependencies.addMultiDraftPart : dependencies.addAnnexDrawnSelection;
+    (0, dependencies.$)('multiDrawnAddBtn')?.addEventListener('click', () => {
+      const action = dependencies.state.territorySelectionSession ? dependencies.territorySelectionAddPart : dependencies.addMultiDraftPart;
       void (0, dependencies.runModePrimaryAction)(action);
     });
-    (0, dependencies.$)('annexDrawnUndoBtn')?.addEventListener('click', () => {
-      const action = dependencies.state.multiDraft ? dependencies.undoMultiDraftPart : dependencies.undoAnnexDrawnSelection;
+    (0, dependencies.$)('multiDrawnUndoBtn')?.addEventListener('click', () => {
+      const action = dependencies.state.territorySelectionSession ? dependencies.territorySelectionUndoPart : dependencies.undoMultiDraftPart;
       void (0, dependencies.runModePrimaryAction)(action);
     });
     (0, dependencies.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.toggleMapTaskWindow);
-    const selectTerritoryMethod = method => {
-      if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'method') {
-        (0, dependencies.selectAnnexSelectionMethod)(method);
-        return;
-      }
-      (0, dependencies.requestDraftDiscard)(() => {
-        (0, dependencies.switchTerritorySelectionMethod)(method);
-      });
-    };
     (0, dependencies.$)('modeDirectLineMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) selectTerritoryMethod('line');
+      if (event.currentTarget.checked) (0, dependencies.territorySelectionSelectMethod)('line');
     });
     (0, dependencies.$)('modePolygonMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) selectTerritoryMethod('polygon');
+      if (event.currentTarget.checked) (0, dependencies.territorySelectionSelectMethod)('polygon');
     });
     (0, dependencies.$)('modeComponentsMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) selectTerritoryMethod('components');
+      if (event.currentTarget.checked) (0, dependencies.territorySelectionSelectMethod)('components');
     });
-    (0, dependencies.$)('modeRiverBoundaryInput')?.addEventListener('change', event => (0, dependencies.toggleAnnexRiverBoundaries)(event.currentTarget.checked));
+    (0, dependencies.$)('modeRiverBoundaryInput')?.addEventListener('change', event => (0, dependencies.territorySelectionToggleRiverBoundaries)(event.currentTarget.checked));
     (0, dependencies.$)('modeDraftInsertBtn')?.addEventListener('click', () => {
       dependencies.editingDomain?.setDraftVertexInsertMode?.(!dependencies.editingDomain.snapshot().draft.vertexInsertMode);
     });
@@ -115,8 +85,8 @@ export function createToolBindings() {
     (0, dependencies.$)('modeDraftRedrawBtn')?.addEventListener('click', () => dependencies.redrawCurrentDraft());
     (0, dependencies.$)('modeDraftDeleteBtn')?.addEventListener('click', () => dependencies.editingDomain?.deleteSelectedDraftPoint());
     (0, dependencies.$)('modeCancelBtn')?.addEventListener('click', () => {
-      if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase !== 'donor') {
-        (0, dependencies.returnAnnexToPreviousStep)();
+      if (dependencies.state.territorySelectionSession?.stage !== 'setup') {
+        (0, dependencies.territorySelectionBack)();
         return;
       }
       (0, dependencies.requestDraftDiscard)(() => {
@@ -129,7 +99,8 @@ export function createToolBindings() {
     (0, dependencies.$)('annexTerritoryBtn')?.addEventListener('click', () => {
       if (!(dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
       (0, dependencies.requestDraftDiscard)(() => {
-        if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexTargetCountryId === dependencies.state.selected.id) (0, dependencies.cancelActiveMode)();
+        if (dependencies.state.territorySelectionSession?.kind === 'annex'
+          && dependencies.state.territorySelectionSession.targetCountryId === dependencies.state.selected.id) (0, dependencies.cancelActiveMode)();
         else (0, dependencies.returnToMapAfterMobileAction)((0, dependencies.enterAnnexTerritoryMode)(dependencies.state.selected.id));
       });
     });

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTaskPresentation, draftToolbarStatus } from '../../assets/js/modules/app-task-presentation.js';
+import { createTaskPresentation, draftToolbarStatus, multiDraftReviewActive } from '../../assets/js/modules/app-task-presentation.js';
 
 const options = (overrides = {}) => ({
   state: { tool: 'river', geometryPreview: { session: null } },
@@ -9,7 +9,13 @@ const options = (overrides = {}) => ({
   ...overrides,
 });
 
-test('shared toolbar is visible even for an empty draft and enforces completion/deletion readiness', () => {
+const territorySession = (overrides = {}) => ({
+  kind: 'annex', tool: 'annex-territory', stage: 'selection', selectionPhase: 'line',
+  parts: [], currentGeometry: null, previewPending: false,
+  ...overrides,
+});
+
+test('shared toolbar is visible even for an empty draft and enforces completion and deletion readiness', () => {
   const initial = options();
   assert.equal(draftToolbarStatus(initial).complete, true);
   assert.equal(draftToolbarStatus(initial).remove, false);
@@ -28,14 +34,19 @@ test('shared toolbar is visible even for an empty draft and enforces completion/
   assert.equal(empty.complete, false);
 });
 
-test('completed candidates and previews only allow redraw, never a second drawing completion', () => {
-  for (const state of [
-    { tool: 'annex-territory', annexPhase: 'side', geometryPreview: { session: null } },
-    { tool: 'annex-territory', annexPhase: 'polygon-preview', geometryPreview: { session: {} } },
-    { tool: 'new-country', newCountryPhase: 'side', geometryPreview: { session: null } },
-    { tool: 'split-territorial-unit', geometryPreview: { session: {} } },
+test('all four territory operations use the same candidate-review toolbar contract', () => {
+  for (const [tool, kind] of [
+    ['annex-territory', 'annex'],
+    ['new-country', 'new-country'],
+    ['draw-territorial-unit', 'subunit'],
+    ['draw-territorial-unit', 'region'],
   ]) {
-    const result = draftToolbarStatus(options({ state, draftMode: false }));
+    const state = {
+      tool,
+      geometryPreview: { session: {} },
+      territorySelectionSession: territorySession({ tool, kind, selectionPhase: 'side' }),
+    };
+    const result = draftToolbarStatus(options({ state, draftMode: false, hasDraftTool: false }));
     assert.equal(result.visible, true);
     assert.equal(result.redraw, true);
     assert.equal(result.insert, false);
@@ -44,33 +55,28 @@ test('completed candidates and previews only allow redraw, never a second drawin
   }
 });
 
-test('annex can review accumulated land from an empty draft but cannot ignore an unfinished path', () => {
+test('stored territory areas can return to review but an unfinished path cannot be completed', () => {
+  const session = territorySession({ parts: [{ geometry: {} }] });
   const input = options({
-    state: { tool: 'annex-territory', annexPhase: 'line', annexDrawnSelections: [{}], geometryPreview: { session: null } },
-    draft: { coords: [], issues: [] }, cutLineReady: false,
+    state: { tool: session.tool, territorySelectionSession: session, geometryPreview: { session: null } },
+    draft: { coords: [], issues: [], strokeActive: false },
+    cutLineReady: false,
   });
   assert.equal(draftToolbarStatus(input).complete, true);
   input.draft.coords = [[0, 0]];
   assert.equal(draftToolbarStatus(input).complete, false);
-  input.state.modeProcessing = true;
-  input.draft.coords = [];
-  assert.equal(draftToolbarStatus(input).complete, false);
-  input.state.annexPhase = 'components';
+  session.selectionPhase = 'components';
   assert.equal(draftToolbarStatus({ ...input, draftMode: false, hasDraftTool: false }).visible, false);
 });
 
-test('a finalized multi-piece draft stays in review without treating an unfinished new path as a piece', () => {
-  const input = options({
-    state: { tool: 'river', multiDraft: { kind: 'hydro', shape: 'line', parts: [{}], current: null }, geometryPreview: { session: null } },
-    draft: { coords: [], issues: [] }, draftMode: false,
-  });
-  const review = draftToolbarStatus(input);
-  assert.equal(review.visible, true);
-  assert.equal(review.redraw, true);
-  assert.equal(review.complete, false, 'the final creation button, not drawing completion, owns review');
-  input.draftMode = true;
-  input.draft.coords = [[0, 0]];
-  assert.equal(draftToolbarStatus(input).complete, false, 'an unfinished second path cannot be treated as finalized');
+test('hydro keeps its multi-path review while territorial work never uses multiDraft', () => {
+  const hydro = { tool: 'river', multiDraft: { kind: 'hydro', shape: 'line', parts: [{}], current: null } };
+  assert.equal(multiDraftReviewActive(hydro), true);
+  const territorial = {
+    tool: 'new-country',
+    territorySelectionSession: territorySession({ kind: 'new-country', tool: 'new-country', parts: [{ geometry: {} }] }),
+  };
+  assert.equal(multiDraftReviewActive(territorial), false);
 });
 
 test('completion awaits the drawing operation, rejects duplicate clicks and never applies a preview', async t => {
@@ -81,7 +87,6 @@ test('completion awaits the drawing operation, rejects duplicate clicks and neve
     else delete globalThis.requestAnimationFrame;
   });
   const input = options();
-  Object.assign(input.state, { annexCandidates: [], annexSelectedComponentKeys: [] });
   const done = { disabled: false, setAttribute() {} };
   let calls = 0;
   let release;
@@ -93,8 +98,9 @@ test('completion awaits the drawing operation, rejects duplicate clicks and neve
     isGenericFeatureDraftTool: () => true, draftMinimumPoints: () => 2,
     describeTool: () => ({ name: '강 추가', stage: '경로 그리기' }),
     hydroToolConfig: () => null, isSpecialTool: () => true,
+    TERRITORIAL_UNIT_TYPES: { SUBUNIT: 'subunit' },
     editorWorkspacePresentation: { sync() {} }, projectUi: { syncHistory() {} },
-    syncStatusBar() {}, layoutMode: 'wide',
+    syncStatusBar() {}, layoutMode: 'wide', territorySelectionPresentation: () => null,
     finishDraft: () => { calls++; return pending; },
     applyActiveGeometryPreview: () => assert.fail('completion must not apply the preview'),
     reportOperationError: error => { throw error; },

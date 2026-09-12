@@ -4,61 +4,12 @@
  */
 export function createCountryCommits() {
   let dependencies;
-  let annexPreviewTimer = null;
-  let annexPreviewGeneration = 0;
-  let newCountryPreviewTimer = null;
-  let newCountryPreviewGeneration = 0;
   let multiDraftPreviewTimer = null;
   let multiDraftPreviewGeneration = 0;
 
   function connect(ports) {
     if (dependencies) throw new Error('country-commits already connected');
     dependencies = ports;
-  }
-
-  function annexPreviewSignature() {
-    return JSON.stringify({
-      phase: dependencies.state.annexPhase,
-      targetId: dependencies.state.annexTargetCountryId,
-      donorIds: dependencies.state.annexDonorCountryIds.map(String).sort(),
-      candidateIndex: dependencies.state.annexSelectedCandidateIndex,
-      componentKeys: dependencies.state.annexSelectedComponentKeys.map(String).sort(),
-      riverStatus: dependencies.state.annexRiverPartitionStatus,
-      usesRiverBoundaries: dependencies.state.annexUseRiverBoundaries,
-      generation: annexPreviewGeneration,
-    });
-  }
-
-  function cancelScheduledAnnexPreview({ discard = true } = {}) {
-    annexPreviewGeneration += 1;
-    if (annexPreviewTimer !== null) {
-      clearTimeout(annexPreviewTimer);
-      annexPreviewTimer = null;
-    }
-    dependencies.state.annexPreviewPending = false;
-    if (discard) dependencies.discardActiveGeometryPreview?.({ announce: false });
-    (0, dependencies.updateModeButtons)();
-  }
-
-  function newCountryPreviewSignature() {
-    return JSON.stringify({
-      tool: dependencies.state.tool,
-      phase: dependencies.state.newCountryPhase,
-      sourceIds: dependencies.state.newCountrySourceIds.map(String).sort(),
-      geometry: composeMultiDraftGeometry({ polygon: true }),
-      generation: newCountryPreviewGeneration,
-    });
-  }
-
-  function cancelScheduledNewCountryPreview({ discard = true } = {}) {
-    newCountryPreviewGeneration += 1;
-    if (newCountryPreviewTimer !== null) {
-      clearTimeout(newCountryPreviewTimer);
-      newCountryPreviewTimer = null;
-    }
-    if (dependencies.state.multiDraft?.kind === 'new-country') dependencies.state.multiDraft.previewPending = false;
-    if (discard) dependencies.discardActiveGeometryPreview?.({ announce: false });
-    (0, dependencies.updateModeButtons)();
   }
 
   function cancelScheduledMultiDraftPreview() {
@@ -96,149 +47,20 @@ export function createCountryCommits() {
     return true;
   }
 
-  function currentAnnexPreviewCandidateIndex() {
-    if (dependencies.state.annexPhase === 'components') return null;
-    if (dependencies.state.annexPhase === 'polygon-preview') return 0;
-    return dependencies.state.annexSelectedCandidateIndex;
-  }
-
-  function annexPreviewIsReady() {
-    if (dependencies.state.tool !== 'annex-territory') return false;
-    if (dependencies.state.annexPhase === 'components') {
-      return (!dependencies.state.annexUseRiverBoundaries || dependencies.state.annexRiverPartitionStatus === 'ready')
-        && dependencies.state.annexSelectedComponentKeys.length > 0;
-    }
-    return ['side', 'polygon-preview'].includes(dependencies.state.annexPhase)
-      && !!dependencies.state.annexDrawnGeometry;
-  }
-
-  // Prepared only when the selection changes, never in a render frame.
-  function refreshAnnexDrawnSelection(candidateIndex = currentAnnexPreviewCandidateIndex()) {
-    const state = dependencies.state;
-    const accumulated = state.annexDrawnSelections?.at(-1)?.combinedGeometry || null;
-    const current = Number.isInteger(candidateIndex) ? state.annexCandidates[candidateIndex]?.geometry : null;
-    const coordinates = dependencies.geometryMultiCoordinates;
-    const normalize = dependencies.normalizeClippedLandGeometry;
-    state.annexDrawnGeometry = null;
-    state.annexRemainingGeometry = null;
-    if (!current) {
-      state.annexDrawnGeometry = accumulated;
-      state.annexRemainingGeometry = state.annexSourceGeometry;
-      return true;
-    }
-    try {
-      const combined = accumulated
-        ? normalize(window.polygonClipping.union(coordinates(accumulated), coordinates(current)))
-        : current;
-      const remaining = normalize(window.polygonClipping.difference(coordinates(state.annexSourceGeometry), coordinates(current)));
-      state.annexDrawnGeometry = combined;
-      state.annexRemainingGeometry = remaining;
-      return true;
-    } catch (error) {
-      (0, dependencies.reportOperationError)(error, '선택한 영역을 합칠 수 없습니다. 선택을 조정하세요.', 'PL-ANNEX-001', 3800);
-      return false;
-    }
-  }
-
-  function addAnnexDrawnSelection() {
-    const state = dependencies.state;
-    if (state.tool !== 'annex-territory' || !['side', 'polygon-preview'].includes(state.annexPhase)
-      || dependencies.editingDraftSnapshot().strokeActive) return false;
-    if (!state.annexCandidates[state.annexSelectedCandidateIndex]?.geometry) return false;
-    if (!refreshAnnexDrawnSelection() || !state.annexDrawnGeometry || !state.annexRemainingGeometry) return false;
-    cancelScheduledAnnexPreview({ discard: true });
-    const current = state.annexCandidates[state.annexSelectedCandidateIndex]?.geometry;
-    if (current) {
-      state.annexDrawnSelections.push({
-        geometry: current,
-        combinedGeometry: state.annexDrawnGeometry,
-        sourceGeometry: state.annexSourceGeometry,
-      });
-      state.annexSourceGeometry = state.annexRemainingGeometry;
-    }
-    state.annexCandidates = [];
-    state.annexSelectedCandidateIndex = null;
-    state.annexComponentIndex = null;
-    state.annexPhase = state.annexSelectionMethod === 'polygon' ? 'polygon' : 'line';
-    dependencies.editingDomain?.startDraft?.({ coords: [] });
-    (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
-    dependencies.renderingDomain?.invalidateEditingOverlays?.('annex-drawn-add');
-    (0, dependencies.updateModeButtons)();
-    return true;
-  }
-
-  function undoAnnexDrawnSelection() {
-    const state = dependencies.state;
-    if (state.tool !== 'annex-territory' || !['line', 'polygon', 'side', 'polygon-preview'].includes(state.annexPhase)
-      || dependencies.editingDraftSnapshot().strokeActive) return false;
-    if (['line', 'polygon'].includes(state.annexPhase) && dependencies.editingDraftCoordinates().length) return false;
-    const current = state.annexCandidates[state.annexSelectedCandidateIndex]?.geometry;
-    if (!current && !state.annexDrawnSelections?.length) return false;
-    cancelScheduledAnnexPreview({ discard: true });
-    if (!current) state.annexSourceGeometry = state.annexDrawnSelections.pop().sourceGeometry;
-    state.annexCandidates = [];
-    state.annexSelectedCandidateIndex = null;
-    state.annexComponentIndex = null;
-    const polygon = state.annexSelectionMethod === 'polygon';
-    state.annexPhase = state.annexDrawnSelections.length ? (polygon ? 'polygon-preview' : 'side') : (polygon ? 'polygon' : 'line');
-    dependencies.editingDomain?.startDraft?.({ coords: [] });
-    (0, dependencies.setModeBanner)(state.annexDrawnSelections.length ? '선택한 영역을 확인하세요.' : (0, dependencies.defaultDraftInstruction)());
-    scheduleAnnexGeometryPreview();
-    dependencies.renderingDomain?.invalidateEditingOverlays?.('annex-drawn-undo');
-    (0, dependencies.updateModeButtons)();
-    return true;
-  }
-
-  function scheduleAnnexGeometryPreview({ delay = 300 } = {}) {
-    cancelScheduledAnnexPreview({ discard: true });
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexSelectionMethod !== 'components'
-      && !refreshAnnexDrawnSelection()) return false;
-    if (!annexPreviewIsReady()) return false;
-    const signature = annexPreviewSignature();
-    dependencies.state.annexPreviewPending = true;
-    (0, dependencies.updateModeButtons)();
-    annexPreviewTimer = setTimeout(() => {
-      annexPreviewTimer = null;
-      if (signature !== annexPreviewSignature() || !annexPreviewIsReady()) return;
-      void completeLinearAnnexation(currentAnnexPreviewCandidateIndex(), signature).finally(() => {
-        if (signature !== annexPreviewSignature()) return;
-        dependencies.state.annexPreviewPending = false;
-        (0, dependencies.updateModeButtons)();
-      });
-    }, Math.max(0, Number(delay) || 0));
-    return true;
-  }
-
   function redrawCurrentDraft() {
     const state = dependencies.state;
     const draft = dependencies.editingDraftSnapshot();
     if (state.modeProcessing || draft.strokeActive || draft.dragging) return false;
-    const annex = state.tool === 'annex-territory' && ['line', 'polygon', 'side', 'polygon-preview'].includes(state.annexPhase);
-    const newCountry = state.tool === 'new-country' && ['line', 'side'].includes(state.newCountryPhase);
+    if (state.territorySelectionSession) return (0, dependencies.redrawTerritorySelection)();
     const multi = state.multiDraft;
-    const multiDraft = !!multi && ['hydro', 'new-country', 'territorial-direct', 'territorial-split-create'].includes(multi.kind);
-    if (!annex && !newCountry && !multiDraft && !dependencies.isGenericFeatureDraftTool(state.tool)) return false;
-    if (annex) {
-      cancelScheduledAnnexPreview();
-      state.annexCandidates = [];
-      state.annexSelectedCandidateIndex = null;
-      state.annexComponentIndex = null;
-      state.annexPhase = state.annexSelectionMethod === 'polygon' ? 'polygon' : 'line';
-      refreshAnnexDrawnSelection();
-    } else {
-      dependencies.discardActiveGeometryPreview?.({ announce: false });
-      if (newCountry) cancelScheduledNewCountryPreview({ discard: false });
-      else cancelScheduledMultiDraftPreview();
-      if (multi?.current) multi.current = null;
-      if (multi && !newCountry) {
-        multi.previewGeometry = null;
-        multi.previewIssues = [];
-      }
-      if (newCountry) {
-        state.newCountryCandidates = [];
-        state.newCountrySelectedCandidateIndex = null;
-        state.newCountryPhase = 'line';
-      }
+    const multiDraft = !!multi && ['hydro', 'territorial-direct', 'territorial-split-create'].includes(multi.kind);
+    if (!multiDraft && !dependencies.isGenericFeatureDraftTool(state.tool)) return false;
+    dependencies.discardActiveGeometryPreview?.({ announce: false });
+    cancelScheduledMultiDraftPreview();
+    if (multi?.current) multi.current = null;
+    if (multi) {
+      multi.previewGeometry = null;
+      multi.previewIssues = [];
     }
     dependencies.editingDomain?.startDraft?.({ coords: [] });
     dependencies.setModeBanner(dependencies.defaultDraftInstruction());
@@ -270,7 +92,8 @@ export function createCountryCommits() {
     }
     try {
       const coordinates = pieces.flatMap(item => (0, dependencies.geometryMultiCoordinates)(item.geometry));
-      return (0, dependencies.normalizeClippedLandGeometry)(coordinates);
+      const union = window.polygonClipping?.union ? window.polygonClipping.union(...coordinates) : coordinates;
+      return (0, dependencies.normalizeClippedLandGeometry)(union);
     } catch (error) {
       (0, dependencies.reportOperationError)(error, '여러 영역을 하나로 준비하지 못했습니다. 겹치는 경계를 확인하세요.', 'PL-MULTI-DRAFT-001', 3800);
       return null;
@@ -288,8 +111,6 @@ export function createCountryCommits() {
     const draft = multiDraft();
     const snapshot = dependencies.editingDraftSnapshot();
     if (!draft || dependencies.state.modeProcessing || snapshot.strokeActive || !draft.current) return false;
-    if (draft.kind === 'new-country') return addNewCountryDraftPart();
-    if (draft.kind === 'territorial-direct' || draft.kind === 'territorial-split-create') return dependencies.addTerritorialMultiDraftPart?.() || false;
     draft.parts.push(draft.current);
     draft.current = null;
     scheduleMultiDraftPreview();
@@ -301,8 +122,6 @@ export function createCountryCommits() {
     const draft = multiDraft();
     const snapshot = dependencies.editingDraftSnapshot();
     if (!draft || dependencies.state.modeProcessing || snapshot.strokeActive) return false;
-    if (draft.kind === 'new-country') return undoNewCountryDraftPart();
-    if (draft.kind === 'territorial-direct' || draft.kind === 'territorial-split-create') return dependencies.undoTerritorialMultiDraftPart?.() || false;
     if (!draft.current && !draft.parts.length) return false;
     cancelScheduledMultiDraftPreview();
     draft.current = null;
@@ -363,144 +182,61 @@ export function createCountryCommits() {
     const draft = multiDraft();
     if (!draft) return false;
     if (draft.kind === 'hydro') return completeHydroMultiDraft();
-    if (draft.kind === 'new-country') return completeNewCountryCreation();
-    if (draft.kind === 'territorial-direct' || draft.kind === 'territorial-split-create') return dependencies.completeTerritorialMultiDraft?.() || false;
     return false;
   }
 
-  function selectedNewCountryDraftGeometry() {
-    const state = dependencies.state;
-    if (state.newCountryPhase === 'components') {
-      try { return (0, dependencies.selectedTerritoryComponentGeometry)(); }
-      catch { return null; }
-    }
-    const index = Number(state.newCountrySelectedCandidateIndex);
-    return Number.isInteger(index) ? state.newCountryCandidates[index]?.geometry || null : null;
-  }
-
-  function ensureNewCountryDraftName() {
-    const draft = multiDraft();
-    if (draft?.kind !== 'new-country') return true;
-    if (draft.name !== null && draft.name !== undefined) return true;
-    const name = prompt('새 국가의 국명을 입력하세요.', '새 국가');
-    if (name === null) return false;
-    draft.name = name.trim() || '새 국가';
-    return true;
-  }
-
-  function addNewCountryDraftPart() {
-    const state = dependencies.state;
-    const draft = multiDraft();
-    if (!draft || draft.kind !== 'new-country' || !['side', 'components'].includes(state.newCountryPhase)) return false;
-    const geometry = selectedNewCountryDraftGeometry();
-    if (!geometry) return false;
-    if (!ensureNewCountryDraftName()) return false;
-    try {
-      cancelScheduledNewCountryPreview({ discard: true });
-      const remaining = (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.difference(
-        (0, dependencies.geometryMultiCoordinates)(state.newCountrySourceGeometry),
-        (0, dependencies.geometryMultiCoordinates)(geometry),
-      ));
-      if (!remaining) throw new Error('선택하지 않은 원본 영역을 보존할 수 없습니다.');
-      draft.parts.push({ geometry, sourceGeometry: state.newCountrySourceGeometry });
-      draft.current = null;
-      state.newCountrySourceGeometry = remaining;
-      state.newCountryCandidates = [];
-      state.newCountrySelectedCandidateIndex = null;
-      state.newCountrySelectedComponentKeys = [];
-      state.newCountryPhase = 'line';
-      startNextMultiDraftPart();
-      return true;
-    } catch (error) {
-      (0, dependencies.reportOperationError)(error, '선택한 영역을 보관하지 못했습니다. 다른 후보를 선택하세요.', 'PL-MULTI-COUNTRY-001', 3800);
-      return false;
-    }
-  }
-
-  function undoNewCountryDraftPart() {
-    const state = dependencies.state;
-    const draft = multiDraft();
-    if (!draft || draft.kind !== 'new-country') return false;
-    cancelScheduledNewCountryPreview({ discard: true });
-    const current = selectedNewCountryDraftGeometry();
-    if (current) {
-      draft.current = null;
-      state.newCountryCandidates = [];
-      state.newCountrySelectedCandidateIndex = null;
-      state.newCountrySelectedComponentKeys = [];
-      state.newCountryPhase = 'line';
-      startNextMultiDraftPart();
-      return true;
-    }
-    const last = draft.parts.pop();
-    if (!last) return false;
-    state.newCountrySourceGeometry = last.sourceGeometry;
-    state.newCountryCandidates = [];
-    state.newCountrySelectedCandidateIndex = null;
-    state.newCountrySelectedComponentKeys = [];
-    state.newCountryPhase = 'line';
-    startNextMultiDraftPart();
-    return true;
-  }
-
-  function prepareAnnexDraftCandidates() {
-    const targetId = String(dependencies.state.annexTargetCountryId || '');
+  function prepareAnnexDraftCandidates(session = dependencies.state.territorySelectionSession) {
+    const targetId = String(session?.targetCountryId || '');
     const target = (0, dependencies.countryFeatureById)(targetId);
-    if (dependencies.state.annexPhase !== 'line' || !target || !dependencies.state.annexDonorCountryIds.length) {
+    if (session?.kind !== 'annex' || session.selectionPhase !== 'line' || !target || !session.sourceCountryIds.length) {
       (0, dependencies.setActionStatus)('편입을 진행할 수 없습니다. 편입받을 국가와 영토를 가져올 국가를 먼저 선택하세요.', 'error', 3800);
       return;
     }
     try {
-      const sourceGeometry = dependencies.state.annexSourceGeometry || (0, dependencies.selectedCountryUnionGeometry)(dependencies.state.annexDonorCountryIds);
+      const sourceGeometry = session.workingSourceGeometry;
       const split = (0, dependencies.buildCutSplitCandidates)(sourceGeometry, (0, dependencies.editingDraftCoordinates)());
-      dependencies.state.annexComponentIndex = split.componentIndex;
+      session.componentIndex = split.componentIndex;
       dependencies.editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
-      dependencies.state.annexCandidates = split.candidates;
-      dependencies.state.annexSelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-      dependencies.state.annexPhase = 'side';
+      const selectedIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
+      (0, dependencies.setTerritorySelectionCandidates)(split.candidates, selectedIndex, 'side');
       dependencies.editingDomain?.refreshTerritoryOperation?.('annex-candidates-ready');
       (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
       (0, dependencies.updateModeButtons)();
       dependencies.renderingDomain?.invalidateGpuInteraction?.('annex-candidates-ready');
-      scheduleAnnexGeometryPreview();
+      return true;
     } catch (error) {
       (0, dependencies.reportOperationError)(error, '새 경계를 사용할 수 없습니다. 영토를 가져올 국가를 한 번만 관통하도록 선을 다시 그리세요.', 'PL-ANNEX-003');
     }
   }
 
-  function prepareNewCountryDraftCandidates() {
-    if (dependencies.state.newCountryPhase !== 'line') {
+  function prepareNewCountryDraftCandidates(session = dependencies.state.territorySelectionSession) {
+    if (session?.kind !== 'new-country' || session.selectionPhase !== 'line') {
       (0, dependencies.setActionStatus)('새 국가를 만들 수 없습니다. 영토를 가져올 국가 선택을 먼저 완료하세요.', 'error', 3600);
       return;
     }
     try {
-      const sourceGeometry = dependencies.state.newCountrySourceGeometry || (0, dependencies.selectedCountryUnionGeometry)(dependencies.state.newCountrySourceIds);
+      const sourceGeometry = session.workingSourceGeometry;
       const split = (0, dependencies.buildCutSplitCandidates)(sourceGeometry, (0, dependencies.editingDraftCoordinates)());
       dependencies.editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
-      dependencies.state.newCountryCandidates = split.candidates;
-      dependencies.state.newCountrySelectedCandidateIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-      if (dependencies.state.multiDraft?.kind === 'new-country') {
-        dependencies.state.multiDraft.current = { geometry: dependencies.state.newCountryCandidates[dependencies.state.newCountrySelectedCandidateIndex].geometry };
-        ensureNewCountryDraftName();
-      }
-      dependencies.state.newCountryPhase = 'side';
+      const selectedIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
+      (0, dependencies.setTerritorySelectionCandidates)(split.candidates, selectedIndex, 'side');
       dependencies.editingDomain?.refreshTerritoryOperation?.('new-country-candidates-ready');
       (0, dependencies.setModeBanner)('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
       (0, dependencies.updateModeButtons)();
       dependencies.renderingDomain?.invalidateGpuInteraction?.('new-country-candidates-ready');
-      if (dependencies.state.multiDraft?.name) scheduleNewCountryGeometryPreview();
+      return true;
     } catch (error) {
       (0, dependencies.reportOperationError)(error, '신생국 국경선을 사용할 수 없습니다. 선택 영토를 한 번만 관통하도록 선을 다시 그리세요.', 'PL-COUNTRY-003');
     }
   }
 
-  function prepareAnnexPolygon() {
-    const target = (0, dependencies.countryFeatureById)(String(dependencies.state.annexTargetCountryId || ''));
-    const donors = dependencies.state.annexDonorCountryIds.map(dependencies.countryFeatureById).filter(Boolean);
-    if (dependencies.state.annexPhase !== 'polygon' || !target || !donors.length) return;
+  function prepareAnnexPolygon(session = dependencies.state.territorySelectionSession) {
+    const target = (0, dependencies.countryFeatureById)(String(session?.targetCountryId || ''));
+    const donors = (session?.sourceCountryIds || []).map(dependencies.countryFeatureById).filter(Boolean);
+    if (session?.kind !== 'annex' || session.selectionPhase !== 'polygon' || !target || !donors.length) return;
     const plan = (0, dependencies.planDrawnTerritoryAnnex)({
       drawnGeometry: { type: 'Polygon', coordinates: [(0, dependencies.ensureClosedRing)((0, dependencies.editingDraftCoordinates)())] },
-      donorFeatures: [{ geometry: dependencies.state.annexSourceGeometry }],
+      donorFeatures: [{ geometry: session.workingSourceGeometry }],
       targetFeature: target,
       clipper: window.polygonClipping,
     });
@@ -508,14 +244,36 @@ export function createCountryCommits() {
       (0, dependencies.setActionStatus)('그린 영역 안에 편입할 영토가 없습니다.', 'error', 3200);
       return;
     }
-    dependencies.state.annexCandidates = [{ geometry: plan.transferGeometry }];
-    dependencies.state.annexSelectedCandidateIndex = 0;
-    dependencies.state.annexPhase = 'polygon-preview';
+    (0, dependencies.setTerritorySelectionCandidates)([{ geometry: plan.transferGeometry }], 0, 'side');
     dependencies.editingDomain?.refreshTerritoryOperation?.('annex-polygon-ready');
     (0, dependencies.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     (0, dependencies.updateModeButtons)();
     dependencies.renderingDomain?.invalidateGpuInteraction?.('annex-polygon-ready');
-    scheduleAnnexGeometryPreview();
+    return true;
+  }
+
+  function prepareNewCountryPolygon(session = dependencies.state.territorySelectionSession) {
+    if (session?.kind !== 'new-country' || session.selectionPhase !== 'polygon') return false;
+    try {
+      const drawn = { type: 'Polygon', coordinates: [(0, dependencies.ensureClosedRing)((0, dependencies.editingDraftCoordinates)())] };
+      const geometry = (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.intersection(
+        (0, dependencies.geometryMultiCoordinates)(session.workingSourceGeometry),
+        (0, dependencies.geometryMultiCoordinates)(drawn),
+      ));
+      if (!geometry) throw new Error('그린 영역 안에 새 국가로 만들 영토가 없습니다.');
+      return (0, dependencies.setTerritorySelectionCandidates)([{ geometry }], 0, 'side');
+    } catch (error) {
+      (0, dependencies.reportOperationError)(error, '그린 영역을 새 국가 후보로 만들 수 없습니다.', 'PL-COUNTRY-003', 3800);
+      return false;
+    }
+  }
+
+  function finishAnnexSelectionDraft(session) {
+    return session?.method === 'polygon' ? prepareAnnexPolygon(session) : prepareAnnexDraftCandidates(session);
+  }
+
+  function finishNewCountrySelectionDraft(session) {
+    return session?.method === 'polygon' ? prepareNewCountryPolygon(session) : prepareNewCountryDraftCandidates(session);
   }
 
   function finishGenericFeatureDraft(polygonMode) {
@@ -566,32 +324,23 @@ export function createCountryCommits() {
   }
 
   function finishDraft() {
-    if (!((0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) || ['new-country', 'annex-territory'].includes(dependencies.state.tool))) {
+    const territorySession = dependencies.state.territorySelectionSession;
+    if (!((0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) || territorySession)) {
       (0, dependencies.setActionStatus)('완료할 형상이 없습니다. 지도에서 점을 먼저 입력하세요.', 'error');
       return;
     }
     const polygonMode = (0, dependencies.isPolygonDraftTool)(dependencies.state.tool);
     const minimumPoints = polygonMode ? 3 : 2;
     const draft = (0, dependencies.editingDraftSnapshot)();
-    const accumulatedMultiDraft = dependencies.state.multiDraft
-      && ['hydro', 'new-country', 'territorial-direct', 'territorial-split-create'].includes(dependencies.state.multiDraft.kind)
+    const accumulatedMultiDraft = dependencies.state.multiDraft?.kind === 'hydro'
       && dependencies.state.multiDraft.parts.length > 0 && !draft.coords.length && !draft.strokeActive;
     if (accumulatedMultiDraft) {
       dependencies.editingDomain?.clearDraft?.({ reason: 'multi-draft-review', render: false });
       (0, dependencies.setModeBanner)('그린 영역을 확인하세요.');
       dependencies.renderingDomain?.invalidateEditingOverlays?.('multi-draft-review');
-      if (dependencies.state.multiDraft.kind === 'new-country') scheduleNewCountryGeometryPreview();
-      else scheduleMultiDraftPreview();
+      scheduleMultiDraftPreview();
       (0, dependencies.updateModeButtons)();
       return true;
-    }
-    if (dependencies.state.tool === 'annex-territory' && ['line', 'polygon'].includes(dependencies.state.annexPhase)
-      && dependencies.state.annexDrawnSelections?.length && !draft.coords.length && !draft.strokeActive) {
-      dependencies.state.annexPhase = polygonMode ? 'polygon-preview' : 'side';
-      dependencies.editingDomain?.refreshTerritoryOperation?.('annex-accumulated-review');
-      scheduleAnnexGeometryPreview();
-      (0, dependencies.updateModeButtons)();
-      return;
     }
     if (draft.coords.length < minimumPoints) {
       (0, dependencies.setActionStatus)(`완료하려면 점이 최소 ${minimumPoints}개 필요합니다. 지도에서 점을 더 입력하세요.`, 'error');
@@ -616,20 +365,18 @@ export function createCountryCommits() {
       }
     }
     dependencies.editingDomain?.setDraftVertexInsertMode?.(false);
+    if (territorySession) return (0, dependencies.finishTerritorySelectionDraft)();
     return (0, dependencies.dispatchTool)(dependencies.state.tool, {
       'split-generic-feature': dependencies.finishSplitGenericFeatureDraft,
       'split-territorial-unit': dependencies.finishTerritorialUnitSplitDraft,
       'redraw-territorial-unit': dependencies.finishTerritorialUnitRedrawDraft,
-      'draw-territorial-unit': dependencies.finishTerritorialUnitDirectDraft,
-      'annex-territory': dependencies.state.annexPhase === 'polygon' ? prepareAnnexPolygon : prepareAnnexDraftCandidates,
-      'new-country': prepareNewCountryDraftCandidates,
     }, () => finishGenericFeatureDraft(polygonMode));
   }
 
-  async function completeLinearAnnexation(candidateIndex, expectedSignature = null) {
-    if (dependencies.state.tool !== 'annex-territory' || !['side', 'polygon-preview', 'components'].includes(dependencies.state.annexPhase)) return;
-    const targetId = String(dependencies.state.annexTargetCountryId || '');
-    const componentMode = dependencies.state.annexPhase === 'components';
+  async function prepareAnnexSelectionPreview(session, expectedKey) {
+    if (session?.kind !== 'annex' || session.stage !== 'selection' || !['side', 'components'].includes(session.selectionPhase)) return false;
+    const targetId = String(session.targetCountryId || '');
+    const componentMode = session.selectionPhase === 'components';
     const componentItems = componentMode ? (0, dependencies.territoryComponentItems)() : [];
     const selectedComponents = componentItems.filter(item => item.selected);
     const riverSliverContext = [];
@@ -642,19 +389,9 @@ export function createCountryCommits() {
     }
     const donorIds = componentMode
       ? [...new Set(selectedComponents.map(item => String(item.countryId)).filter(Boolean))]
-      : dependencies.state.annexDonorCountryIds.map(String);
+      : session.sourceCountryIds.map(String);
     if (!(0, dependencies.requireCountriesUnlocked)([targetId, ...donorIds], '영토를 편입')) return;
-    let candidate;
-    if (componentMode) {
-      try { candidate = { geometry: (0, dependencies.selectedTerritoryComponentGeometry)() }; }
-      catch (error) {
-        (0, dependencies.reportOperationError)(error, '선택한 영토 조각을 확인하지 못했습니다. 영역을 다시 선택하세요.', 'PL-ANNEX-001', 3800);
-        return;
-      }
-    } else {
-      if (!expectedSignature && !refreshAnnexDrawnSelection(candidateIndex)) return;
-      candidate = { geometry: dependencies.state.annexDrawnGeometry };
-    }
+    const candidate = { geometry: session.combinedGeometry };
     const targetBefore = (0, dependencies.countryFeatureById)(targetId);
     const donorsBefore = donorIds.map(dependencies.countryFeatureById).filter(Boolean);
     if (!candidate?.geometry || !targetBefore || !donorsBefore.length) {
@@ -687,41 +424,34 @@ export function createCountryCommits() {
         (0, dependencies.setActionStatus)(`${selectedText}${plan.affectedDonorIds.length}개국의 영토를 ${targetName}에 편입했습니다${removedText}.`, 'success', 4000);
       },
       onError: error => (0, dependencies.reportOperationError)(error, '영토를 편입하지 못해 변경을 되돌렸습니다. 편입 범위를 조정한 뒤 다시 시도하세요.', 'PL-ANNEX-002'),
-      shouldKeepResult: () => !expectedSignature || expectedSignature === annexPreviewSignature(),
+      shouldKeepResult: () => dependencies.state.territorySelectionSession === session
+        && expectedKey === [session.id, session.projectGeneration, session.settingsRevision, session.sourceRevision, session.selectionRevision].join(':'),
     });
+    return true;
   }
 
-  function newCountryPreviewContext() {
-    const draft = multiDraft();
-    const reviewOnly = dependencies.state.newCountryPhase === 'line'
-      && draft?.kind === 'new-country' && draft.parts.length > 0 && !draft.current;
-    if (dependencies.state.tool !== 'new-country' || (!['side', 'components'].includes(dependencies.state.newCountryPhase) && !reviewOnly)) return;
-    const selectedGeometry = selectedNewCountryDraftGeometry();
-    if (draft?.kind === 'new-country' && selectedGeometry) draft.current = { geometry: selectedGeometry };
-    const transferredGeometry = draft?.kind === 'new-country'
-      ? composeMultiDraftGeometry({ polygon: true })
-      : selectedGeometry;
+  function newCountryPreviewContext(session) {
+    if (session?.kind !== 'new-country' || session.stage !== 'selection') return null;
+    const transferredGeometry = session.combinedGeometry;
     if (!transferredGeometry) {
       (0, dependencies.setActionStatus)('신생국 영토 후보를 찾을 수 없습니다.', 'error', 3800);
       return null;
     }
-    if (!(0, dependencies.requireCountriesUnlocked)(dependencies.state.newCountrySourceIds, '새 국가를 분리')) return null;
-    let nameInput = draft?.name;
-    if (!nameInput && !ensureNewCountryDraftName()) return null;
-    nameInput = draft?.name || nameInput;
-    const sourceIds = dependencies.state.newCountrySourceIds.map(String);
+    if (!(0, dependencies.requireCountriesUnlocked)(session.sourceCountryIds, '새 국가를 분리')) return null;
+    const sourceIds = session.sourceCountryIds.map(String);
     const snapshot = (0, dependencies.snapshotEditable)();
     const feature = (0, dependencies.createCountryFeature)(
-      String(nameInput).trim() || '새 국가',
+      session.name.trim(),
       (0, dependencies.editingDraftCoordinates)(),
       null,
       (0, dependencies.snapGeometryToGrid)(transferredGeometry, 7),
     );
-    return { draft, sourceIds, snapshot, feature, transferredGeometry };
+    feature.id = session.generatedId;
+    return { sourceIds, snapshot, feature, transferredGeometry };
   }
 
-  async function prepareNewCountryGeometryPreview(expectedSignature = null) {
-    const context = newCountryPreviewContext();
+  async function prepareNewCountrySelectionPreview(session, expectedKey) {
+    const context = newCountryPreviewContext(session);
     if (!context) return false;
     const { sourceIds, snapshot, feature, transferredGeometry } = context;
     await (0, dependencies.beginWorkerGeometryPreview)({
@@ -746,35 +476,12 @@ export function createCountryCommits() {
         (0, dependencies.setActionStatus)(`${(0, dependencies.countryName)(feature)} 국가를 추가했습니다${removedText}.`, 'success', 4200);
       },
       onError: error => (0, dependencies.reportOperationError)(error, '국가를 추가하지 못해 변경을 되돌렸습니다. 선택 범위를 조정한 뒤 다시 시도하세요.', 'PL-COUNTRY-002'),
-      shouldKeepResult: () => !expectedSignature || expectedSignature === newCountryPreviewSignature(),
+      shouldKeepResult: () => dependencies.state.territorySelectionSession === session
+        && expectedKey === [session.id, session.projectGeneration, session.settingsRevision, session.sourceRevision, session.selectionRevision].join(':'),
     });
     return true;
   }
 
-  function scheduleNewCountryGeometryPreview({ delay = 300 } = {}) {
-    const draft = multiDraft();
-    if (!draft || draft.kind !== 'new-country') return false;
-    cancelScheduledNewCountryPreview({ discard: true });
-    if (!selectedNewCountryDraftGeometry() && !draft.current && !draft.parts.length) return false;
-    const signature = newCountryPreviewSignature();
-    draft.previewPending = true;
-    (0, dependencies.updateModeButtons)();
-    newCountryPreviewTimer = setTimeout(() => {
-      newCountryPreviewTimer = null;
-      if (signature !== newCountryPreviewSignature()) return;
-      void prepareNewCountryGeometryPreview(signature).finally(() => {
-        if (signature !== newCountryPreviewSignature()) return;
-        if (dependencies.state.multiDraft?.kind === 'new-country') dependencies.state.multiDraft.previewPending = false;
-        (0, dependencies.updateModeButtons)();
-      });
-    }, Math.max(0, Number(delay) || 0));
-    return true;
-  }
-
-  async function completeNewCountryCreation() {
-    cancelScheduledNewCountryPreview({ discard: true });
-    return prepareNewCountryGeometryPreview();
-  }
 
   async function completeCountryMerge() {
     const sourceId = String(dependencies.state.mergeSourceCountryId || '');
@@ -824,18 +531,13 @@ export function createCountryCommits() {
     get composeMultiDraftGeometry() { return composeMultiDraftGeometry; },
     get multiDraftPartCount() { return multiDraftPartCount; },
     get undoMultiDraftPart() { return undoMultiDraftPart; },
-    get addAnnexDrawnSelection() { return addAnnexDrawnSelection; },
-    get undoAnnexDrawnSelection() { return undoAnnexDrawnSelection; },
-    get completeLinearAnnexation() { return completeLinearAnnexation; },
-    get completeNewCountryCreation() { return completeNewCountryCreation; },
-    get cancelScheduledAnnexPreview() { return cancelScheduledAnnexPreview; },
-    get cancelScheduledNewCountryPreview() { return cancelScheduledNewCountryPreview; },
     get cancelScheduledMultiDraftPreview() { return cancelScheduledMultiDraftPreview; },
     get finishDraft() { return finishDraft; },
+    get finishAnnexSelectionDraft() { return finishAnnexSelectionDraft; },
+    get finishNewCountrySelectionDraft() { return finishNewCountrySelectionDraft; },
+    get prepareAnnexSelectionPreview() { return prepareAnnexSelectionPreview; },
+    get prepareNewCountrySelectionPreview() { return prepareNewCountrySelectionPreview; },
     get redrawCurrentDraft() { return redrawCurrentDraft; },
-    get scheduleAnnexGeometryPreview() { return scheduleAnnexGeometryPreview; },
-    get scheduleNewCountryGeometryPreview() { return scheduleNewCountryGeometryPreview; },
     get scheduleMultiDraftPreview() { return scheduleMultiDraftPreview; },
-    get ensureNewCountryDraftName() { return ensureNewCountryDraftName; },
   });
 }

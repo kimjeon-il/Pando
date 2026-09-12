@@ -133,8 +133,9 @@ export function createCutGeometry() {
     if (dependencies.state.tool === 'split-territorial-unit') {
       return ((0, dependencies.territorialUnitById)(dependencies.state.territorialUnitSplitSourceId) || dependencies.state.territorialUnitSplitVirtualSource)?.geometry || null;
     }
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'line') return dependencies.state.annexSourceGeometry;
-    if (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'line') return dependencies.state.newCountrySourceGeometry;
+    const territorySelection = dependencies.state.territorySelectionSession;
+    if (territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection'
+      && territorySelection.selectionPhase === 'line') return territorySelection.workingSourceGeometry || null;
     return null;
   }
 

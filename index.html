@@ -258,11 +258,20 @@
                       <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
                     </div>
                   </div>
+                  <div id="territorialCreateSetup" class="territorial-create-setup hidden">
+                    <label class="ui-field field-group"><span>이름</span><input id="territorialCreateNameInput" type="text" maxlength="120" autocomplete="off" /></label>
+                    <label id="territorialCreateSovereignRow" class="ui-field field-group"><span>소속 국가</span><select id="territorialCreateSovereignInput"></select></label>
+                    <label id="territorialCreateParentRow" class="ui-field field-group"><span>상위 소속</span><select id="territorialCreateParentInput"></select></label>
+                    <label id="territorialCreateSourceRow" class="ui-field field-group"><span>기준 영역</span><select id="territorialCreateSourceInput"></select></label>
+                  </div>
                   <div class="mode-task-section mode-task-method-section">
                     <div id="modeMethodSwitch" class="mode-method-switch hidden" role="radiogroup" aria-label="영토 선택 방식">
                       <label class="mode-direct-method-option"><input id="modeDirectLineMethodInput" type="radio" name="modeSelectionMethod" value="line" /><span>선 그리기</span></label>
                       <label id="modePolygonMethodOption" class="mode-direct-method-option"><input id="modePolygonMethodInput" type="radio" name="modeSelectionMethod" value="polygon" /><span>영역 그리기</span></label>
                       <label class="mode-direct-method-option"><input id="modeComponentsMethodInput" type="radio" name="modeSelectionMethod" value="components" /><span>영토 조각 선택</span></label>
+                    </div>
+                    <div id="territorialCreateReference" class="territorial-create-reference hidden" aria-live="polite">
+                      <span id="territorialCreateReferenceCount">기준 국가 0개</span>
                     </div>
                     <label id="modeRiverBoundaryOption" class="mode-river-boundary-option mode-aux-control hidden" for="modeRiverBoundaryInput">
                       <input id="modeRiverBoundaryInput" type="checkbox" />
@@ -275,11 +284,11 @@
                     <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-aux-control" data-tooltip="현재 경로 다시 그리기" aria-label="현재 경로 다시 그리기">다시 그리기</button>
                     <button id="modeDraftDoneBtn" type="button" class="ui-button mode-aux-control" data-tooltip="그리기 완료" aria-label="그리기 완료">완료</button>
                   </div>
-                  <div id="annexDrawnActions" class="annex-drawn-actions hidden" role="group" aria-label="편입 영역 선택">
-                    <span id="annexDrawnCount" class="annex-drawn-count" role="status">영역 0개</span>
-                    <div class="annex-drawn-buttons">
-                      <button id="annexDrawnAddBtn" type="button" class="ui-button mode-aux-control" data-tooltip="선택을 유지하고 다른 영역 그리기" aria-label="선택을 유지하고 다른 영역 그리기">추가</button>
-                      <button id="annexDrawnUndoBtn" type="button" class="ui-button mode-aux-control" data-tooltip="직전 영역 선택 취소" aria-label="직전 영역 선택 취소">되돌리기</button>
+                  <div id="multiDrawnActions" class="multi-drawn-actions hidden" role="group" aria-label="다중 영역 선택">
+                    <span id="multiDrawnCount" class="multi-drawn-count" role="status">영역 0개</span>
+                    <div class="multi-drawn-buttons">
+                      <button id="multiDrawnAddBtn" type="button" class="ui-button mode-aux-control" data-tooltip="선택을 유지하고 다른 영역 그리기" aria-label="선택을 유지하고 다른 영역 그리기">추가</button>
+                      <button id="multiDrawnUndoBtn" type="button" class="ui-button mode-aux-control" data-tooltip="직전 영역 선택 취소" aria-label="직전 영역 선택 취소">되돌리기</button>
                     </div>
                   </div>
                 </div>
@@ -667,18 +676,6 @@
     </section>
   </div>
   <div id="distributionTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="distributionTypeTitle"><div class="ui-dialog-backdrop confirm-modal-dim"></div><section class="ui-dialog-card ui-workflow-shell confirm-modal-card"><h2 id="distributionTypeTitle">분포 추가</h2><label class="ui-field field-group"><span>종류</span><select id="distributionTypeInput"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label><div class="ui-dialog-actions"><button id="distributionTypeCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="distributionTypeConfirmBtn" class="ui-button btn" type="button">다음</button></div></section></div>
-  <div id="territorialCreateModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="territorialCreateTitle">
-    <div class="ui-dialog-backdrop confirm-modal-dim"></div>
-    <section class="ui-dialog-card ui-workflow-shell confirm-modal-card">
-      <h2 id="territorialCreateTitle">하위단위 추가</h2>
-      <p id="territorialCreateContext"></p>
-      <label class="ui-field field-group"><span>생성 방법</span><select id="territorialCreateMethod"></select></label>
-      <div class="confirm-modal-actions ui-dialog-actions">
-        <button id="territorialCreateCancelBtn" type="button" class="ui-button btn ghost">취소</button>
-        <button id="territorialCreateConfirmBtn" type="button" class="ui-button btn">시작</button>
-      </div>
-    </section>
-  </div>
   <div id="territorialTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="territorialTypeTitle">
     <div class="ui-dialog-backdrop confirm-modal-dim"></div>
     <section class="ui-dialog-card ui-workflow-shell confirm-modal-card territorial-type-card">

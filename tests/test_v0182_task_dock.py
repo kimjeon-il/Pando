@@ -45,17 +45,17 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertIn("stage: '합칠 국가 선택'", TOOLS)
 
     def test_selection_counts_live_in_primary_action_labels(self):
-        self.assertNotIn("`선택 완료 (${state.annexDonorCountryIds.length})`", APP)
         self.assertIn("`국경 편집 (${state.boundaryEditCountryIds.length})`", APP)
         self.assertIn("`합병 (${state.mergeTargetCountryIds.length})`", APP)
-        self.assertIn("`편입 (${state.annexSelectedComponentKeys.length})`", APP)
-        self.assertNotIn("현재 ${state.annexDonorCountryIds.length}개국", APP)
+        self.assertIn("finalLabel: count => `편입 (${count})`", APP)
+        self.assertNotIn("annexDonorCountryIds", APP)
+        self.assertNotIn("annexSelectedComponentKeys", APP)
         self.assertNotIn("현재 ${state.mergeTargetCountryIds.length}개국", APP)
 
     def test_target_selection_copy_is_short_and_unambiguous(self):
         self.assertIn("'가져올 영토 조각'", APP)
         self.assertIn("'하천으로 나뉜 영토 조각'", APP)
-        self.assertIn("영역 안쪽을 클릭하세요.", APP)
+        self.assertIn("components: '가져올 영토 조각을 선택하세요.'", APP)
         self.assertIn("합병할 국가를 선택하세요.", APP)
         self.assertNotIn("편입할 영토를 가져올 국가", APP)
         self.assertNotIn("국가 합병 대상 선택", APP)

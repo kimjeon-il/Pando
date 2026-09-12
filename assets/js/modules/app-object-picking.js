@@ -265,22 +265,17 @@ export function createObjectPicking() {
       return;
     }
     if (dependencies.state.tool === 'select' && !dependencies.state.labelPlacementMode) return handleObjectSelectionAt(screenPoint);
+    const territoryCountryPicking = (0, dependencies.territorySelectionCountryPickingActive)();
     const needsCountryHit = (dependencies.state.tool === 'select' && !dependencies.state.labelPlacementMode) ||
-      (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'sources') ||
-      (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor') ||
+      territoryCountryPicking ||
       (dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting') ||
       (dependencies.state.tool === 'merge-country' && !!dependencies.state.mergeSourceCountryId);
     const clickedCountry = needsCountryHit && dependencies.state.layerVisibility.countries
       ? (0, dependencies.countryAtScreenPoint)(screenPoint, coord)
       : null;
-    if (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'sources') {
-      if (clickedCountry) (0, dependencies.toggleNewCountrySource)(clickedCountry.id);
-      else (0, dependencies.setActionStatus)('영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
-      return;
-    }
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor') {
-      if (clickedCountry) (0, dependencies.toggleAnnexDonor)(clickedCountry.id);
-      else (0, dependencies.setActionStatus)('영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
+    if (territoryCountryPicking) {
+      if (clickedCountry) (0, dependencies.toggleTerritorySelectionSourceCountry)(clickedCountry.id);
+      else (0, dependencies.setActionStatus)((0, dependencies.territorySelectionCountryInstruction)(), 'error', 2600);
       return;
     }
     if (dependencies.state.tool === 'merge-country' && dependencies.state.mergeSourceCountryId) {
@@ -294,22 +289,14 @@ export function createObjectPicking() {
       return;
     }
     if (dependencies.state.tool === 'select' && !dependencies.state.labelPlacementMode && clickedCountry) return;
-    if (dependencies.state.tool === 'annex-territory') {
-      if (dependencies.state.annexPhase === 'donor') {
-        (0, dependencies.setActionStatus)('영토를 가져올 국가를 먼저 지도에서 선택하세요.', 'error', 3200);
-        return;
-      }
-      if (dependencies.state.annexPhase !== 'line' && dependencies.state.annexPhase !== 'polygon') return;
-      if (!dependencies.state.annexDonorCountryIds.length) {
-        (0, dependencies.setActionStatus)('선택한 국가를 찾을 수 없습니다. 영토를 가져올 국가를 다시 선택하세요.', 'error', 3400);
-        return;
-      }
+    const territorySession = dependencies.state.territorySelectionSession;
+    if (territorySession) {
+      if (territorySession.stage !== 'selection' || !['line', 'polygon'].includes(territorySession.selectionPhase)) return;
       if ((0, dependencies.editingDraftSnapshot)().inputPhase !== 'draw') return;
       dependencies.editingDomain?.appendDraftScreenPoint?.(screenPoint, pointerType, { dedupe: true });
       return;
     }
-    const newCountryLineMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'line';
-    if ((0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) || newCountryLineMode) {
+    if ((0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool)) {
       if ((0, dependencies.editingDraftSnapshot)().inputPhase !== 'draw') return;
       dependencies.editingDomain?.appendDraftScreenPoint?.(screenPoint, pointerType);
       return;

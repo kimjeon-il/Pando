@@ -13,10 +13,10 @@ test('annex selection controls and heading fit a narrow editor surface', async (
     document.body.append(task);
     document.body.classList.add('app-root');
     task.classList.remove('hidden');
-    task.querySelector('#annexDrawnActions').classList.remove('hidden');
+    task.querySelector('#multiDrawnActions').classList.remove('hidden');
     task.querySelector('#modeDraftActions').classList.remove('hidden');
     task.querySelector('#modeRiverBoundaryOption').classList.remove('hidden');
-    task.querySelector('#annexDrawnCount').textContent = '영역 12개';
+    task.querySelector('#multiDrawnCount').textContent = '영역 12개';
     task.querySelector('#modeTaskName').textContent = '영토 편입 3단계';
     task.querySelector('#modeTaskStage').textContent = '영역 선택';
     task.querySelector('#modeActionBar').classList.remove('hidden');
@@ -28,9 +28,9 @@ test('annex selection controls and heading fit a narrow editor surface', async (
     await page.evaluate(mobile => { document.body.dataset.layout = mobile ? 'mobile' : 'compact'; }, width < 300);
     await page.locator('#modeEditingHud').evaluate((element, value) => { element.style.width = value + 'px'; }, width);
     const sizes = await page.locator('#modeEditingHud').evaluate(element => ({
-      controlsFit: element.querySelector('#annexDrawnActions').scrollWidth <= element.querySelector('#annexDrawnActions').clientWidth,
+      controlsFit: element.querySelector('#multiDrawnActions').scrollWidth <= element.querySelector('#multiDrawnActions').clientWidth,
       titleFits: element.querySelector('#modeTaskName').scrollWidth <= element.querySelector('#modeTaskName').clientWidth,
-      buttons: [...element.querySelectorAll('#modeDraftActions button, #annexDrawnActions button, #modeActionBar button')].map(button => ({
+      buttons: [...element.querySelectorAll('#modeDraftActions button, #multiDrawnActions button, #modeActionBar button')].map(button => ({
         text: button.textContent.trim().replace('처리 중…', '').trim(),
         fits: button.scrollWidth <= button.clientWidth,
         nowrap: getComputedStyle(button.querySelector('.mode-button-label') || button).whiteSpace === 'nowrap',

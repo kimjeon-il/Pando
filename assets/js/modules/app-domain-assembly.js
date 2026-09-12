@@ -344,11 +344,10 @@ export function createDomainAssembly() {
       selectionDomain,
       toolController: {
         requireCanonicalData: dependencies.requireCanonicalData,
-        getGeometryPreviewSession: () => (
-          dependencies.state.tool === 'annex-territory' && ['donor', 'method'].includes(dependencies.state.annexPhase)
-            ? null
-            : dependencies.state.geometryPreview.session
-        ),
+        getGeometryPreviewSession: () => dependencies.state.territorySelectionSession
+          && dependencies.state.territorySelectionSession.stage !== 'selection'
+          ? null
+          : dependencies.state.geometryPreview.session,
         getCurrentTool: () => dependencies.state.tool,
         discardGeometryPreview: dependencies.discardActiveGeometryPreview,
         clearHover: () => { dependencies.lastHoverHit = null; selectionDomain.setHover(null); },
@@ -370,13 +369,13 @@ export function createDomainAssembly() {
           if (tool !== 'split-territorial-unit') {
             dependencies.state.territorialUnitSplitSourceId = null;
             dependencies.state.territorialUnitSplitVirtualSource = null;
-            dependencies.state.territorialUnitSplitCreateContext = null;
           }
           if (tool !== 'redraw-territorial-unit') dependencies.state.territorialUnitRedrawSourceId = null;
-          if (tool !== 'draw-territorial-unit') dependencies.state.territorialCreateContext = null;
-          if (!['river', 'lake', 'new-country', 'draw-territorial-unit', 'split-territorial-unit'].includes(tool)) dependencies.state.multiDraft = null;
-          if (tool !== 'annex-territory') (0, dependencies.resetAnnexState)();
-          if (tool !== 'new-country') (0, dependencies.resetNewCountryState)();
+          if (!['river', 'lake'].includes(tool)) dependencies.state.multiDraft = null;
+          const territorySelection = dependencies.state.territorySelectionSession;
+          if (territorySelection && !territorySelection.applying && territorySelection.tool !== tool) {
+            (0, dependencies.clearTerritorySelection)({ discardPreview: true, refreshUi: false });
+          }
         },
         applyToolPresentation: (tool, options = {}) => {
           dependencies.state.tool = tool;
@@ -603,35 +602,40 @@ export function createDomainAssembly() {
           });
           const boundaryHandles = (0, dependencies.getCountryBoundaryHandles)();
           const territoryItems = (0, dependencies.territoryComponentItems)();
-          const annex = dependencies.state.tool === 'annex-territory';
-          const annexReview = annex && ['line', 'polygon', 'side', 'polygon-preview', 'components'].includes(dependencies.state.annexPhase);
-          const accumulatedGeometry = annexReview ? dependencies.state.annexDrawnSelections?.at(-1)?.combinedGeometry : null;
-          const multiDraft = dependencies.state.multiDraft;
-          const multiGeometry = multiDraft?.parts?.length
-            ? multiDraft.parts.map(item => ({ index: -1, geometry: item.geometry, selected: true, interactive: false }))
-            : [];
-          if (multiDraft?.current?.geometry) multiGeometry.push({ index: -1, geometry: multiDraft.current.geometry, selected: true, interactive: false });
-          const candidates = (annex ? (annexReview ? dependencies.state.annexCandidates : [])
-            : dependencies.state.tool === 'new-country' ? dependencies.state.newCountryCandidates : [])
-            .map((item, index) => ({
-              index, geometry: item.geometry,
-              selected: index === (annex ? dependencies.state.annexSelectedCandidateIndex : dependencies.state.newCountrySelectedCandidateIndex),
-            }));
-          if (accumulatedGeometry) candidates.unshift({ index: -1, geometry: accumulatedGeometry, selected: true, interactive: false });
-          if (multiGeometry.length) candidates.unshift(...multiGeometry);
+          const territorySelection = dependencies.state.territorySelectionSession;
+          const selectionVisible = territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection';
+          const candidates = selectionVisible ? territorySelection.candidates.map((item, index) => ({
+            index,
+            geometry: item.geometry,
+            selected: index === territorySelection.selectedCandidateIndex,
+          })) : [];
+          if (selectionVisible && territorySelection.currentGeometry && !candidates.some(item => item.selected)) {
+            candidates.unshift({ index: -1, geometry: territorySelection.currentGeometry, selected: true, interactive: false });
+          }
+          if (selectionVisible && territorySelection.parts.length) {
+            candidates.unshift(...territorySelection.parts.map(item => ({
+              index: -1, geometry: item.geometry, selected: true, interactive: false,
+            })));
+          }
           return {
             boundaryEdit: boundarySegments.length || boundaryHandles.length ? { segments: boundarySegments, handles: boundaryHandles } : null,
             territoryOperation: territoryItems.length || candidates.length ? {
               kind: dependencies.state.tool,
-              phase: dependencies.state.tool === 'annex-territory' ? dependencies.state.annexPhase : dependencies.state.newCountryPhase,
-              components: territoryItems.map(item => ({ ...item, hovered: item.key === dependencies.state.annexHoveredComponentKey })),
+              phase: territorySelection?.selectionPhase || null,
+              components: territoryItems.map(item => ({ ...item, hovered: item.key === territorySelection?.hoveredComponentKey })),
               candidates,
             } : null,
           };
         },
         handleTerritoryInteraction: event => {
-          if (event.type === 'territory-component-hover') dependencies.state.annexHoveredComponentKey = event.componentKey;
-          else if (event.type === 'territory-component-leave' && dependencies.state.annexHoveredComponentKey === event.componentKey) dependencies.state.annexHoveredComponentKey = null;
+          const territorySelection = dependencies.state.territorySelectionSession;
+          if (!territorySelection || territorySelection.stage !== 'selection') return false;
+          if (event.type === 'territory-component-hover') {
+            territorySelection.hoveredComponentKey = event.componentKey;
+          }
+          else if (event.type === 'territory-component-leave' && territorySelection.hoveredComponentKey === event.componentKey) {
+            territorySelection.hoveredComponentKey = null;
+          }
           else if (event.type === 'territory-component-toggle') (0, dependencies.toggleTerritoryComponentSelection)(event.componentKey);
           else if (event.type === 'territory-candidate-select') (0, dependencies.selectTerritoryCandidate)(event.candidateIndex);
           else return false;

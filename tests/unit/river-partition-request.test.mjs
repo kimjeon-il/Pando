@@ -8,17 +8,21 @@ function harness() {
   const gate = new Promise(resolve => { release = resolve; });
   const calls = [];
   const country = { id: 'SRB', geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } };
+  const session = {
+    kind: 'annex', stage: 'selection', selectionPhase: 'components', useRiverBoundaries: true,
+    componentFeatures: [country], riverPartitionStatus: 'idle', riverPartitionCandidates: [], riverPartitionDonorResults: [],
+  };
   const state = {
-    tool: 'annex-territory', annexPhase: 'components', annexUseRiverBoundaries: true,
-    annexTargetCountryId: 'HUN', annexDonorCountryIds: ['SRB'], hydroEdits: [],
-    hydroManifest: null, physicalLoadState: { hydro: 'idle' }, annexRiverPartitionStatus: 'idle',
+    territorySelectionSession: session, hydroEdits: [],
+    hydroManifest: null, physicalLoadState: { hydro: 'idle' },
   };
   const context = {
     state, countryLandRevision: 1,
     projectDomain: { getGeneration: () => 1 },
     RIVER_TERRITORY_PARTITION_CONFIG: {}, RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION: 'river-partitions-v2',
     riverTerritoryPartitionConfigFingerprint: () => '', countryFeatureById: () => country,
-    annexRiverBoundaryComposition: () => ({ items: [{}] }), territoryBaseComponentItems: () => [],
+    activeTerritorySelectionSession: () => state.territorySelectionSession,
+    riverBoundaryComposition: () => ({ items: [{}] }), territoryBaseComponentItems: () => [],
     countryName: feature => feature.id,
     ensureGisRuntime: async () => {},
     loadHydroData: async () => {
@@ -32,7 +36,7 @@ function harness() {
       computeRiverPartition: async request => { calls.push('compute'); calls.push(request.hydroRevision); return { candidates: [], donorResults: [] }; },
     },
     setModeBanner: () => {}, updateModeButtons: () => {},
-    editingDomain: { refreshTerritoryOperation: reason => calls.push(reason) },
+    renderingDomain: { invalidateEditingOverlays: reason => calls.push(reason) },
     normalizeClippedLandGeometry: geometry => geometry,
     reportOperationError: error => calls.push(error.message),
   };
@@ -40,17 +44,17 @@ function harness() {
   candidates.connect(context);
   candidates.initializeRiverPartitionGeneration();
   context.resetRiverPartitionState = candidates.resetRiverPartitionState;
-  return { state, calls, context, release, run: candidates.prepareRiverPartitionCandidates };
+  return { state, session, calls, context, release, run: candidates.prepareRiverPartitionCandidates };
 
 }
 
 test('first checkbox request survives manifest loading and caches under the loaded identity', async () => {
   const h = harness();
   const pending = h.run();
-  assert.equal(h.state.annexRiverPartitionStatus, 'loading');
+  assert.equal(h.session.riverPartitionStatus, 'loading');
   h.release();
   await pending;
-  assert.equal(h.state.annexRiverPartitionStatus, 'ready');
+  assert.equal(h.session.riverPartitionStatus, 'ready');
   assert.equal(h.calls.filter(call => call === 'compute').length, 1);
   assert.ok(h.calls.some(call => call.startsWith('0.13.0:loaded-index:')));
   await h.run();
@@ -59,7 +63,7 @@ test('first checkbox request survives manifest loading and caches under the load
 });
 
 test('cancellation or target change during initial loading does not launch a stale computation', async () => {
-  for (const change of [h => h.context.resetRiverPartitionState(), h => { h.state.annexTargetCountryId = 'AUT'; }]) {
+  for (const change of [h => h.context.resetRiverPartitionState(), h => { h.session.componentFeatures = [{ ...h.session.componentFeatures[0], id: 'AUT' }]; }]) {
     const h = harness();
     const pending = h.run();
     await new Promise(resolve => setImmediate(resolve));
@@ -76,7 +80,7 @@ test('initial runtime or hydro failure exits loading and publishes an error', as
     const h = harness();
     h.context[service] = async () => { throw new Error('initialization failed'); };
     await h.run();
-    assert.equal(h.state.annexRiverPartitionStatus, 'error');
+    assert.equal(h.session.riverPartitionStatus, 'error');
     assert.equal(h.calls.includes('compute'), false);
     assert.equal(h.calls.at(-1), 'river-partition-error');
   }

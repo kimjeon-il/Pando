@@ -33,17 +33,17 @@ export function createGlobalInputBindings() {
         if (dependencies.historicalLibraryController?.isOpen()) { dependencies.historicalLibraryController.close(); return; }
         if (!(0, dependencies.$)('territorialTypeModal')?.classList.contains('hidden')) { (0, dependencies.closeTerritorialTypeModal)(); return; }
         if (!(0, dependencies.$)('distributionTypeModal')?.classList.contains('hidden')) { (0, dependencies.$)('distributionTypeCancelBtn')?.click(); return; }
-        if (!(0, dependencies.$)('territorialCreateModal')?.classList.contains('hidden')) { (0, dependencies.closeTerritorialCreateModal)(); return; }
         if (!(0, dependencies.$)('gisImportModal')?.classList.contains('hidden')) { (0, dependencies.$)('gisImportCancelBtn')?.click(); return; }
         if (!(0, dependencies.$)('gisExportModal')?.classList.contains('hidden')) { dependencies.gisExportController?.close(); return; }
         if (dependencies.confirmModalController?.isOpen()) { (0, dependencies.closeConfirmModal)(); return; }
         if (document.body.classList.contains('file-menu-open')) { (0, dependencies.closeFileMenu)({ restoreFocus: true }); return; }
         if ((0, dependencies.isCreateMenuOpen)()) { (0, dependencies.closeCreateMenu)({ restoreFocus: true }); return; }
         if (dependencies.editingDraftSnapshot().vertexInsertMode) { dependencies.editingDomain.setDraftVertexInsertMode(false); return; }
+        if (dependencies.state.territorySelectionSession) { (0, dependencies.$)('modeCancelBtn')?.click(); return; }
         if (dependencies.state.geometryPreview.session) { (0, dependencies.discardActiveGeometryPreview)(); return; }
         if (dependencies.state.labelPlacementMode) (0, dependencies.exitLabelMode)();
         else if (dependencies.editingDomain?.draftInputActive?.()) (0, dependencies.requestDraftDiscard)(() => (0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) ? (0, dependencies.cancelDraft)(true) : (0, dependencies.cancelActiveMode)());
-        else if (['new-country', 'annex-territory', 'merge-country', 'merge-generic-feature', 'country-border', 'country-coast'].includes(dependencies.state.tool)) (0, dependencies.cancelActiveMode)();
+        else if (['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'country-border', 'country-coast'].includes(dependencies.state.tool)) (0, dependencies.cancelActiveMode)();
         else if ((0, dependencies.editingDraftCoordinates)().length) (0, dependencies.cancelDraft)(true);
         else if ((0, dependencies.$)('rightPanel')?.classList.contains('mobile-open')) {
           (0, dependencies.closeSurface)('editor', { manual: dependencies.layoutMode === 'wide', restoreFocus: true });

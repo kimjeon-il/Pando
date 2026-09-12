@@ -31,19 +31,9 @@ export function createTerritoryComponents() {
   }
 
   function territoryComponentContext() {
-    if (dependencies.state.tool === 'annex-territory') {
-      const donorIds = new Set(dependencies.state.annexDonorCountryIds.map(String));
-      return {
-        selectedKeys: dependencies.state.annexSelectedComponentKeys,
-        features: (dependencies.state.countriesData?.features || []).filter(feature => donorIds.has(String(feature?.id || ''))),
-      };
-    }
-    if (dependencies.state.tool === 'new-country') {
-      const sourceIds = new Set(dependencies.state.newCountrySourceIds.map(String));
-      return {
-        selectedKeys: dependencies.state.newCountrySelectedComponentKeys,
-        features: (dependencies.state.countriesData?.features || []).filter(feature => sourceIds.has(String(feature?.id || ''))),
-      };
+    const session = dependencies.state.territorySelectionSession;
+    if (session?.stage === 'selection' && session.selectionPhase === 'components') {
+      return { selectedKeys: session.selectedComponentKeys, features: session.componentFeatures || [] };
     }
     return { selectedKeys: [], features: [] };
   }
@@ -66,11 +56,11 @@ export function createTerritoryComponents() {
     return items;
   }
 
-  function annexRiverBoundaryComposition(baseItems = territoryBaseComponentItems()) {
+  function riverBoundaryComposition(baseItems = territoryBaseComponentItems(), { candidates, donorResults } = {}) {
     return (0, dependencies.composeRiverBoundaryTerritoryComponents)({
       components: baseItems,
-      candidates: dependencies.state.annexRiverPartitionCandidates,
-      donorResults: dependencies.state.annexRiverPartitionDonorResults,
+      candidates: candidates || dependencies.state.territorySelectionSession?.riverPartitionCandidates || [],
+      donorResults: donorResults || dependencies.state.territorySelectionSession?.riverPartitionDonorResults || [],
     });
   }
 
@@ -79,10 +69,18 @@ export function createTerritoryComponents() {
     const selected = new Set(context.selectedKeys);
     const baseItems = territoryBaseComponentItems(context);
     let items = baseItems;
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexUseRiverBoundaries) {
-      if (dependencies.state.annexRiverPartitionStatus !== 'ready') return [];
+    const territorialSession = dependencies.state.territorySelectionSession;
+    const usesRiver = territorialSession?.stage === 'selection'
+      && territorialSession.selectionPhase === 'components'
+      && territorialSession.useRiverBoundaries;
+    if (usesRiver) {
+      const status = territorialSession.riverPartitionStatus;
+      if (status !== 'ready') return [];
       const baseByComponent = new Map(baseItems.map(item => [item.componentKey, item]));
-      items = annexRiverBoundaryComposition(baseItems).items.map(item => {
+      items = riverBoundaryComposition(baseItems, {
+        candidates: territorialSession.riverPartitionCandidates,
+        donorResults: territorialSession.riverPartitionDonorResults,
+      }).items.map(item => {
         const base = baseByComponent.get(item.componentKey);
         const geometry = item.geometry;
         const areaKm2 = Number.isFinite(Number(item.areaKm2))
@@ -140,7 +138,7 @@ export function createTerritoryComponents() {
   return Object.freeze({
     connect,
 
-    get annexRiverBoundaryComposition() { return annexRiverBoundaryComposition; },
+    get riverBoundaryComposition() { return riverBoundaryComposition; },
     get countryUnionFromFeatures() { return countryUnionFromFeatures; },
     get formatTerritoryArea() { return formatTerritoryArea; },
     get geometryMultiCoordinates() { return geometryMultiCoordinates; },
