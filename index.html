@@ -270,12 +270,28 @@
                       <label id="modePolygonMethodOption" class="mode-direct-method-option"><input id="modePolygonMethodInput" type="radio" name="modeSelectionMethod" value="polygon" /><span>영역 그리기</span></label>
                       <label class="mode-direct-method-option"><input id="modeComponentsMethodInput" type="radio" name="modeSelectionMethod" value="components" /><span>영토 조각 선택</span></label>
                     </div>
+                    <div id="modeNextMethodChooser" class="mode-next-method-chooser hidden" role="group" aria-label="다음 영역 방식">
+                      <strong>다음 영역 방식</strong>
+                      <div class="mode-next-method-buttons">
+                        <button id="modeNextLineMethodBtn" type="button" class="ui-button mode-aux-control" data-tooltip="선 그리기" aria-label="선 그리기">선</button>
+                        <button id="modeNextPolygonMethodBtn" type="button" class="ui-button mode-aux-control" data-tooltip="영역 그리기" aria-label="영역 그리기">영역</button>
+                        <button id="modeNextComponentsMethodBtn" type="button" class="ui-button mode-aux-control" data-tooltip="영토 조각 선택" aria-label="영토 조각 선택">조각</button>
+                      </div>
+                    </div>
+                    <div id="modeMethodChangeConfirm" class="mode-method-change-confirm hidden" role="alert">
+                      <p id="modeMethodChangeConfirmMessage">현재 영역을 버리고 방식을 바꿀까요?</p>
+                      <div>
+                        <button id="modeMethodChangeKeepBtn" type="button" class="ui-button mode-aux-control">유지</button>
+                        <button id="modeMethodChangeConfirmBtn" type="button" class="ui-button mode-aux-control">변경</button>
+                      </div>
+                    </div>
                     <div id="territorialCreateReference" class="territorial-create-reference hidden" aria-live="polite">
                       <div class="territorial-create-reference-heading">
                         <span id="territorialCreateReferenceLabel">기준 국가</span>
                         <span id="territorialCreateReferenceCount" class="territorial-create-reference-count">0개</span>
                       </div>
                       <div id="territorialCreateReferenceList" class="territorial-create-reference-list" role="list" aria-label="기준 국가 목록"></div>
+                      <button id="modeNextMethodStartBtn" type="button" class="ui-button mode-aux-control hidden">시작</button>
                     </div>
                     <label id="modeRiverBoundaryOption" class="mode-river-boundary-option mode-aux-control hidden" for="modeRiverBoundaryInput">
                       <input id="modeRiverBoundaryInput" type="checkbox" />

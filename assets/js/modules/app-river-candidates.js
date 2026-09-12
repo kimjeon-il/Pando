@@ -94,7 +94,7 @@ export function createRiverCandidates() {
 
   function riverPartitionRequestActive() {
     const session = (0, dependencies.activeTerritorySelectionSession)();
-    return session?.stage === 'selection' && session.selectionPhase === 'components' && session.useRiverBoundaries;
+    return session?.stage === 'selection' && session.activePhase === 'components' && session.useRiverBoundaries;
   }
 
   function refreshRiverPartitionPresentation(reason) {

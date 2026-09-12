@@ -291,7 +291,8 @@ export function createObjectPicking() {
     if (dependencies.state.tool === 'select' && !dependencies.state.labelPlacementMode && clickedCountry) return;
     const territorySession = dependencies.state.territorySelectionSession;
     if (territorySession) {
-      if (territorySession.stage !== 'selection' || !['line', 'polygon'].includes(territorySession.selectionPhase)) return;
+      if (territorySession.stage !== 'selection' || territorySession.activePhase !== 'drawing'
+        || !['line', 'polygon'].includes(territorySession.activeMethod)) return;
       if ((0, dependencies.editingDraftSnapshot)().inputPhase !== 'draw') return;
       dependencies.editingDomain?.appendDraftScreenPoint?.(screenPoint, pointerType, { dedupe: true });
       return;

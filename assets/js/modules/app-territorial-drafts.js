@@ -169,7 +169,7 @@ export function createTerritorialDrafts() {
 
   function createTerritorialSourceFeature(session) {
     if (session.kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) return resolveTerritorialCreateSource(session);
-    if (session.method === 'polygon') return null;
+    if (session.activeMethod === 'polygon') return null;
     const geometry = (0, dependencies.selectedCountryUnionGeometry)(session.sourceCountryIds);
     if (!geometry) return null;
     return {
@@ -179,17 +179,19 @@ export function createTerritorialDrafts() {
   }
 
   function prepareTerritorialCreateSelection(session) {
-    if (!session?.pendingMethod || !['line', 'polygon', 'components'].includes(session.pendingMethod)
+    if (!session?.activeMethod || !['line', 'polygon', 'components'].includes(session.activeMethod)
       || (session.kind === dependencies.TERRITORIAL_UNIT_TYPES.REGION
-        && session.pendingMethod !== 'polygon' && !session.sourceCountryIds.length)) return false;
+        && session.activeMethod !== 'polygon' && !session.sourceCountryIds.length)) return false;
     const sourceInfo = createTerritorialSourceFeature(session);
-    if (session.method !== 'polygon' && !sourceInfo?.feature?.geometry) return false;
+    if (session.activeMethod !== 'polygon' && !sourceInfo?.feature?.geometry) return false;
     const context = {
       unitType: session.kind,
       sovereignId: session.kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT ? session.sovereignId : '',
       parentId: session.kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT ? session.parentId : '',
       adminLevel: session.kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT ? sourceInfo?.feature?.properties?.adminLevel ?? null : null,
     };
+    const fingerprint = JSON.stringify([session.kind, session.sovereignId, session.parentId, session.sourceKey, [...session.sourceCountryIds].sort()]);
+    if (session.sourceFingerprint === fingerprint && (session.baseSourceGeometry || session.activeMethod === 'polygon')) return true;
     session.sourceInfo = { context, source: null, existingId: '', virtual: false, sourceWasExisting: false, sourceIsRemainder: false };
     if (sourceInfo) {
       const source = (0, dependencies.deepClone)(sourceInfo.feature);
@@ -202,13 +204,10 @@ export function createTerritorialDrafts() {
     session.workingSourceGeometry = sourceInfo ? (0, dependencies.deepClone)(sourceInfo.feature.geometry) : null;
     session.remainingGeometry = session.workingSourceGeometry;
     session.sourceRevision += 1;
-    if (session.method === 'components') {
+    session.sourceFingerprint = fingerprint;
+    if (session.activeMethod === 'components') {
       session.componentFeatures = [(0, dependencies.deepClone)(sourceInfo.feature)];
-    } else {
-      dependencies.editingDomain?.startDraft?.({ coords: [] });
     }
-    (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
-    (0, dependencies.updateModeButtons)();
     return true;
   }
 
@@ -309,7 +308,6 @@ export function createTerritorialDrafts() {
       (0, dependencies.setTerritorySelectionCandidates)(
         split.candidates.map(candidate => ({ geometry: (0, dependencies.deepClone)(candidate.geometry) })),
         smallerIndex,
-        'side',
       );
       (0, dependencies.setModeBanner)('나눌 영역을 확인하세요.');
       dependencies.renderingDomain?.invalidateEditingOverlays?.('territorial-create-split-part-finished');
@@ -492,7 +490,7 @@ export function createTerritorialDrafts() {
 
   function finishTerritorialUnitDirectDraft() {
     const workflow = dependencies.state.territorySelectionSession;
-    if (workflow?.stage === 'selection' && workflow.selectionPhase === 'line') return finishTerritorialUnitCreateSplitDraft();
+    if (workflow?.stage === 'selection' && workflow.activePhase === 'drawing' && workflow.activeMethod === 'line') return finishTerritorialUnitCreateSplitDraft();
     const context = workflow?.sourceInfo?.context;
     if (!context) return;
     const typeLabel = (0, dependencies.territorialTypeLabel)(context.unitType);
@@ -510,7 +508,7 @@ export function createTerritorialDrafts() {
         ));
         if (!geometry) throw new Error('그린 영역이 기준 영역 안에 없습니다.');
       }
-      (0, dependencies.setTerritorySelectionCandidates)([{ geometry }], 0, 'side');
+      (0, dependencies.setTerritorySelectionCandidates)([{ geometry }], 0);
       (0, dependencies.setModeBanner)('그린 영역을 확인하세요.');
       dependencies.renderingDomain?.invalidateEditingOverlays?.('territorial-direct-part-finished');
       (0, dependencies.updateModeButtons)();

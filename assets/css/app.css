@@ -688,7 +688,7 @@ body.file-menu-open .mobile-backdrop {
 .mode-task-window-content[hidden] { display: none; }
 .mode-task-section { min-width: 0; display: grid; gap: var(--ui-space-2); }
 .mode-task-section-title { color: var(--muted); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-semibold); }
-.mode-task-method-section:has(#modeMethodSwitch.hidden):has(#modeRiverBoundaryOption.hidden):has(#territorialCreateReference.hidden) { display: none; }
+.mode-task-method-section:has(#modeMethodSwitch.hidden):has(#modeNextMethodChooser.hidden):has(#modeMethodChangeConfirm.hidden):has(#modeRiverBoundaryOption.hidden):has(#territorialCreateReference.hidden) { display: none; }
 
 .territorial-create-setup {
   display: grid;

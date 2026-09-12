@@ -10,7 +10,7 @@ const options = (overrides = {}) => ({
 });
 
 const territorySession = (overrides = {}) => ({
-  kind: 'annex', tool: 'annex-territory', stage: 'selection', selectionPhase: 'line',
+  kind: 'annex', tool: 'annex-territory', stage: 'selection', activePhase: 'drawing', activeMethod: 'line',
   parts: [], currentGeometry: null, previewPending: false,
   ...overrides,
 });
@@ -44,7 +44,7 @@ test('all four territory operations use the same candidate-review toolbar contra
     const state = {
       tool,
       geometryPreview: { session: {} },
-      territorySelectionSession: territorySession({ tool, kind, selectionPhase: 'side' }),
+      territorySelectionSession: territorySession({ tool, kind, activePhase: 'candidate', activeMethod: 'polygon' }),
     };
     const result = draftToolbarStatus(options({ state, draftMode: false, hasDraftTool: false }));
     assert.equal(result.visible, true);
@@ -65,7 +65,7 @@ test('stored territory areas can return to review but an unfinished path cannot 
   assert.equal(draftToolbarStatus(input).complete, true);
   input.draft.coords = [[0, 0]];
   assert.equal(draftToolbarStatus(input).complete, false);
-  session.selectionPhase = 'components';
+  session.activePhase = 'components';
   assert.equal(draftToolbarStatus({ ...input, draftMode: false, hasDraftTool: false }).visible, false);
 });
 

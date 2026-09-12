@@ -15,7 +15,7 @@ function harness(kind) {
     { type: 'Feature', id: 'D', properties: { name: 'Donor' }, geometry: box(0, 0, 10, 10) },
   ];
   const session = {
-    id: 'selection-1', kind, stage: 'selection', selectionPhase: 'side',
+    id: 'selection-1', kind, stage: 'selection', activePhase: 'candidate',
     targetCountryId: 'T', sourceCountryIds: ['D'], generatedId: 'USR-new', name: '새 국가',
     projectGeneration: 1, settingsRevision: 2, sourceRevision: 3, selectionRevision: 4,
     combinedGeometry: box(1, 1, 3, 3),

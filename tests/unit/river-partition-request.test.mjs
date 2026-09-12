@@ -9,7 +9,7 @@ function harness() {
   const calls = [];
   const country = { id: 'SRB', geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } };
   const session = {
-    kind: 'annex', tool: 'annex-territory', stage: 'selection', selectionPhase: 'components', useRiverBoundaries: true,
+    kind: 'annex', tool: 'annex-territory', stage: 'selection', activePhase: 'components', useRiverBoundaries: true,
     componentFeatures: [country], riverPartitionStatus: 'idle', riverPartitionCandidates: [], riverPartitionDonorResults: [],
   };
   const state = {
