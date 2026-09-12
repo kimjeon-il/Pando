@@ -16,7 +16,6 @@ export function createObjectPropertyController(runtime = {}) {
     hydroToolConfig,
     territorialUnitById,
     territorialUnitName,
-    territorialUnitCountryName,
     territorialUnitCountryOptions,
     territorialUnitParentOptions,
     territorialParentOptions,
@@ -28,12 +27,8 @@ export function createObjectPropertyController(runtime = {}) {
     normalizeGenericFeatureSemantics,
     genericFeatureGeometryKind,
     genericFeatureRole,
-    genericFeatureRoleLabel,
-    genericFeatureRoleHelp,
-    genericFeatureLandBinding,
     genericFeatureName,
     genericFeatureRoleLabels,
-    defaultGenericFeatureColorFor,
     labelKey,
     automaticLabelSettings,
     hydroFeatureById,
@@ -254,25 +249,34 @@ export function createObjectPropertyController(runtime = {}) {
   function syncGenericSemanticEditor(feature) {
     const geometryKind = genericFeatureGeometryKind(feature);
     const role = genericFeatureRole(feature);
-    const editableArea = geometryKind === 'polygon' && role === 'generic';
-    const hasOwnerCountry = !!runtime.countryFeatureById(feature?.properties?.ownerId);
-    $('genericFeatureLandRelationSection').classList.toggle('hidden', !editableArea);
-    $('genericFeatureLandActionsSection').classList.toggle('hidden', !editableArea);
-    $('genericFeatureOwnerField').classList.add('hidden');
-    $('genericFeatureParentField').classList.add('hidden');
-    $('genericFeatureLandBindingField').classList.toggle('hidden', !editableArea);
-    $('splitGenericFeatureBtn').classList.toggle('hidden', !editableArea);
-    $('mergeGenericFeatureBtn').classList.toggle('hidden', !editableArea);
-    for (const id of ['syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn', 'promoteGenericFeatureToCountryBtn']) $(id).classList.toggle('hidden', !editableArea);
-    for (const id of ['syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn']) {
-      const button = $(id);
-      button.disabled = editableArea && !hasOwnerCountry;
-      if (button.disabled) button.dataset.tooltip = '소유 국가가 지정된 영역에서 사용할 수 있습니다.';
-      else delete button.dataset.tooltip;
+    const options = geometryKind === 'point'
+      ? [{ value: 'label', label: '지명' }]
+      : geometryKind === 'line'
+        ? [{ value: 'river', label: '강' }]
+        : geometryKind === 'polygon'
+          ? [
+            { value: 'country', label: '국가' }, { value: 'subunit', label: '하위단위' },
+            { value: 'region', label: '지방' }, { value: 'lake', label: '호수' }, { value: 'distribution', label: '분포' },
+          ]
+          : [];
+    const convertSection = $('genericFeatureConversionSection');
+    convertSection.classList.toggle('hidden', !options.length);
+    replaceSelectOptions($('genericFeatureConvertType'), options, $('genericFeatureConvertType').value || options[0]?.value);
+    const target = $('genericFeatureConvertType').value;
+    const countryField = $('genericFeatureConvertCountryField');
+    countryField.classList.toggle('hidden', !['subunit', 'region'].includes(target));
+    if (!countryField.classList.contains('hidden')) {
+      const countryOptions = [{ value: '', label: '국가 선택' }, ...(state.countriesData?.features || []).map(country => ({
+        value: String(country.id), label: String(country.properties?.name || country.properties?.NAME || country.id),
+      })).sort((left, right) => layerNameCompare(left.label, right.label))];
+      replaceSelectOptions($('genericFeatureConvertCountryInput'), countryOptions, feature.properties?.ownerId || '');
     }
-    $('promoteGenericFeatureToCountryBtn').disabled = !editableArea;
-    $('genericFeatureLandBindingInput').value = genericFeatureLandBinding(feature);
-    $('genericFeatureRoleHelp').textContent = genericFeatureRoleHelp(feature);
+    const distributionField = $('genericFeatureConvertDistributionField');
+    distributionField.classList.toggle('hidden', target !== 'distribution');
+    if (!distributionField.classList.contains('hidden')) {
+      replaceSelectOptions($('genericFeatureConvertDistributionInput'), [{ value: '', label: '분포 레이어 선택' }, ...distributionService.listLayers().map(layer => ({ value: layer.id, label: layer.name }))], '');
+    }
+    $('convertGenericFeatureBtn').disabled = !options.length;
     $('genericFeatureRoleValue').textContent = genericFeatureRoleLabels[role] || role;
     $('genericFeatureTopologyValue').textContent = feature.properties?.topologyGroup || '—';
     syncActionTab('generic');
@@ -282,19 +286,11 @@ export function createObjectPropertyController(runtime = {}) {
     const feature = genericFeatureById(id);
     if (!feature) return false;
     normalizeGenericFeatureSemantics(feature);
-    const meta = feature.properties || (feature.properties = {});
-    const typeLabel = genericFeatureRoleLabel(feature);
     const displayName = genericFeatureName(feature);
     show('generic', displayName, { resetScroll: !refreshOnly });
-    $('genericFeatureNameInput').value = meta.name || '';
     $('genericFeatureIdInput').textContent = String(id);
-    const defaultColor = defaultGenericFeatureColorFor(feature);
-    const color = readDomainColor(colorDomains.GENERIC, { feature }, { fallback: defaultColor });
-    $('genericFeatureColorInput').value = color.value;
-    syncColorPicker('generic', { value: color.value, defaultColor, isDefault: color.isDefault });
-    $('genericFeatureNotesInput').value = meta.notes || '';
     syncGenericSemanticEditor(feature);
-    $('selectionStatus').textContent = `${meta.name || String(id).slice(0, 8)}${areaSuffix(feature.geometry)}`;
+    $('selectionStatus').textContent = `${feature.properties?.name || String(id).slice(0, 8)}${areaSuffix(feature.geometry)}`;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;

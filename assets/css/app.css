@@ -688,7 +688,7 @@ body.file-menu-open .mobile-backdrop {
 .mode-task-window-content[hidden] { display: none; }
 .mode-task-section { min-width: 0; display: grid; gap: var(--ui-space-2); }
 .mode-task-section-title { color: var(--muted); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-semibold); }
-.mode-task-method-section:has(#modeMethodSwitch.hidden) { display: none; }
+.mode-task-method-section:has(#modeMethodSwitch.hidden):has(#modeRiverBoundaryOption.hidden) { display: none; }
 
 
 /* ===== v0.10.2: 매개평면 GPU 메시, QGIS 벡터 호환, 계층형 레이어 ===== */
@@ -2765,7 +2765,8 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .mode-action-bar.is-processing .mode-primary-btn > :not(.mode-button-busy) { visibility: hidden; }
 .mode-action-bar.is-processing .mode-button-busy { display: grid; }
 .mode-draft-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   justify-content: flex-start;
   gap: var(--ui-toolbar-gap);
@@ -2773,34 +2774,11 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   padding: 0;
 }
 .mode-draft-actions:not(.hidden) { padding-top: var(--ui-space-2); border-top: 1px solid var(--border); }
-.mode-draft-action-btn {
-  min-width: 0;
-  min-height: var(--ui-control-height);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-space-1-5);
-  padding: 0 var(--ui-space-2);
-  border: 1px solid var(--ui-control-border);
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-control-bg);
-  color: var(--ui-control-text);
-  white-space: nowrap;
-}
-.mode-draft-action-btn .ui-icon { width: 16px; height: 16px; }
-.mode-draft-action-btn:hover:not(:disabled) { border-color: var(--ui-control-border-hover); background: var(--ui-control-bg-hover); color: var(--text-strong); }
-.mode-draft-action-btn:active:not(:disabled) { background: var(--ui-control-bg-pressed); }
-.mode-draft-action-btn.danger:not(:disabled) { color: var(--danger-text); }
-.mode-draft-action-btn.danger:hover:not(:disabled) { border-color: var(--danger-border); background: var(--danger-surface); color: var(--danger-text); }
-.mode-draft-action-btn.danger:active:not(:disabled) { background: color-mix(in srgb, var(--danger-surface) 76%, var(--danger)); }
 .app-root[data-layout="mobile"] .mode-task-heading strong { font-size: var(--ui-font-body); }
 .app-root[data-layout="mobile"] .mode-task-stage { font-size: var(--ui-font-caption); }
 .app-root[data-layout="mobile"] .mode-action-buttons { width: 100%; }
 .app-root[data-layout="mobile"] .mode-action-buttons > button { flex: 1 1 0; }
 .app-root[data-layout="mobile"] .mode-action-bar { justify-content: stretch; }
-.app-root[data-layout="mobile"] .mode-draft-actions { flex-wrap: wrap; }
-.app-root[data-layout="mobile"] .mode-draft-action-btn { min-width: var(--ui-touch-height); min-height: var(--ui-touch-height); padding: 0 var(--ui-space-2); }
-.app-root[data-layout="mobile"] .mode-draft-action-btn:not(#modeDraftRemoveLastBtn):not(#modeDraftDeleteBtn) span { display: none; }
 
 /* Boundary-cut feedback: shared by area, territorial, annexation, and new-country splits. */
 .draft-shape.cut-pending {

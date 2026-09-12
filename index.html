@@ -55,6 +55,7 @@
     <symbol id="icon-lock-closed" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
     <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></symbol>
     <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path d="m7 9 5 5 5-5"/></symbol>
+    <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
     <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
     <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
     <symbol id="icon-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 4.2A10 10 0 0 1 12 4c6 0 9.5 8 9.5 8a16 16 0 0 1-2.1 3.2M6.6 6.6C3.9 8.4 2.5 12 2.5 12S6 20 12 20c1.8 0 3.4-.7 4.8-1.6"/></symbol>
@@ -263,22 +264,23 @@
                       <label id="modePolygonMethodOption" class="mode-direct-method-option"><input id="modePolygonMethodInput" type="radio" name="modeSelectionMethod" value="polygon" /><span>영역 그리기</span></label>
                       <label class="mode-direct-method-option"><input id="modeComponentsMethodInput" type="radio" name="modeSelectionMethod" value="components" /><span>영토 조각 선택</span></label>
                     </div>
-                    <label id="modeRiverBoundaryOption" class="ui-choice-row mode-river-boundary-option hidden" for="modeRiverBoundaryInput">
+                    <label id="modeRiverBoundaryOption" class="mode-river-boundary-option mode-aux-control hidden" for="modeRiverBoundaryInput">
                       <input id="modeRiverBoundaryInput" type="checkbox" />
                       <span>하천을 경계로 취급</span>
                     </label>
                   </div>
+                  <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="그리기 도구">
+                    <button id="modeDraftInsertBtn" type="button" class="ui-button mode-aux-control" aria-pressed="false" data-tooltip="선분을 눌러 꼭짓점 추가" aria-label="꼭짓점 추가">꼭짓점 추가</button>
+                    <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-aux-control" data-tooltip="지도에서 선택한 꼭짓점 삭제" aria-label="선택한 꼭짓점 삭제">꼭짓점 삭제</button>
+                    <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-aux-control" data-tooltip="현재 경로 다시 그리기" aria-label="현재 경로 다시 그리기">다시 그리기</button>
+                    <button id="modeDraftDoneBtn" type="button" class="ui-button mode-aux-control" data-tooltip="그리기 완료" aria-label="그리기 완료">완료</button>
+                  </div>
                   <div id="annexDrawnActions" class="annex-drawn-actions hidden" role="group" aria-label="편입 영역 선택">
                     <span id="annexDrawnCount" class="annex-drawn-count" role="status">영역 0개</span>
                     <div class="annex-drawn-buttons">
-                      <button id="annexDrawnAddBtn" type="button" class="ui-button" data-tooltip="선택을 유지하고 다른 영역 그리기" aria-label="선택을 유지하고 다른 영역 그리기">추가</button>
-                      <button id="annexDrawnUndoBtn" type="button" class="ui-button" data-tooltip="직전 영역 선택 취소" aria-label="직전 영역 선택 취소">되돌리기</button>
+                      <button id="annexDrawnAddBtn" type="button" class="ui-button mode-aux-control" data-tooltip="선택을 유지하고 다른 영역 그리기" aria-label="선택을 유지하고 다른 영역 그리기">추가</button>
+                      <button id="annexDrawnUndoBtn" type="button" class="ui-button mode-aux-control" data-tooltip="직전 영역 선택 취소" aria-label="직전 영역 선택 취소">되돌리기</button>
                     </div>
-                  </div>
-                  <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="작성 중 꼭짓점 편집">
-                    <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="처음부터 다시 그리기" aria-label="처음부터 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg><span>다시 그리기</span></button>
-                    <button id="modeDraftRemoveLastBtn" type="button" class="ui-button mode-draft-action-btn" data-tooltip="마지막 점 제거" aria-label="마지막 점 제거"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg><span>마지막 점</span></button>
-                    <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-draft-action-btn danger" data-tooltip="선택한 점 삭제" aria-label="선택한 점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>점 삭제</span></button>
                   </div>
                 </div>
                 <footer id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden" aria-label="지도 편집 작업 실행">
@@ -512,61 +514,12 @@
           </form>
 
           <form id="genericFeatureProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
-            <section class="editor-section editor-info-section editor-section-primary">
-              <div class="ui-field field-group editor-field"><label for="genericFeatureNameInput">이름</label><input id="genericFeatureNameInput" type="text" placeholder="예: 라인강" /></div>
-              <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="generic">
-                  <label id="genericFeatureColorLabel">색상</label>
-                  <button id="genericFeatureColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="genericFeatureColorPopover" aria-labelledby="genericFeatureColorLabel genericFeatureColorValue">
-                    <span class="ui-color-preview" aria-hidden="true"></span><span id="genericFeatureColorValue" class="ui-color-value">기본 색상</span>
-                  </button>
-                  <input id="genericFeatureColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
-                  <div id="genericFeatureColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="기타 객체 색상 팔레트">
-                    <button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="false"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button>
-                    <div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div>
-                    <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button>
-                  </div>
-              </div>
-              <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="generic-feature-details"><summary><span>메모</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="genericFeatureNotesInput">메모</label><textarea id="genericFeatureNotesInput" rows="5"></textarea></div></div></details>
-            </section>
-
-            <section class="editor-section editor-action-section">
-              <h3 class="editor-section-title">영역 편집</h3>
-              <div class="editor-action-list">
-                <button id="editGenericFeatureBoundaryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 수정</strong></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="mergeGenericFeatureBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>영역 합치기</strong><small>같은 역할의 영역 합치기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="splitGenericFeatureBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-split"/></svg><span><strong>영역 나누기</strong><small>새 경계로 두 영역 만들기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-              </div>
-            </section>
-
-            <section id="genericFeatureLandRelationSection" class="editor-section editor-info-section editor-relation-section hidden">
-              <h3 class="editor-section-title">육지 관계</h3>
-              <div id="genericFeatureOwnerField" class="ui-field field-group editor-field">
-                <label for="genericFeatureOwnerInput">소유 국가</label>
-                <select id="genericFeatureOwnerInput"><option value="">소유 국가 없음</option></select>
-              </div>
-              <div id="genericFeatureParentField" class="ui-field field-group editor-field hidden">
-                <label for="genericFeatureParentInput">상위 소속</label>
-                <select id="genericFeatureParentInput"><option value="">상위 소속 없음</option></select>
-              </div>
-              <div id="genericFeatureLandBindingField" class="ui-field field-group editor-field" hidden>
-                <label for="genericFeatureLandBindingInput">육지 결합</label>
-                <select id="genericFeatureLandBindingInput">
-                  <option value="hard">국가 해안선과 함께 변경</option>
-                  <option value="clip">육지 안에서만 표시</option>
-                  <option value="none">독립 형상</option>
-                </select>
-              </div>
-              <p id="genericFeatureRoleHelp" class="editor-help" hidden></p>
-            </section>
-
-            <section id="genericFeatureLandActionsSection" class="editor-section editor-action-section editor-relation-section hidden">
-              <h3 class="editor-section-title">국가 연동</h3>
-              <div class="editor-action-list">
-                <button id="syncGenericFeatureCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>국가 육지에 맞춤</strong><small>소유 국가 밖 형상 정리</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="editGenericFeatureCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안 수정</strong><small>국가 해안선을 기준으로 수정</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="applyGenericFeatureToCountryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>국가 영토에 반영</strong><small>이 영역의 소유권 확정</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="promoteGenericFeatureToCountryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span><strong>국가로 전환</strong><small>이 영역으로 새 국가 만들기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-              </div>
+            <section id="genericFeatureConversionSection" class="editor-section editor-info-section">
+              <h3 class="editor-section-title">종류 변경</h3>
+              <div class="ui-field field-group editor-field"><label for="genericFeatureConvertType">대상 종류</label><select id="genericFeatureConvertType"></select></div>
+              <div id="genericFeatureConvertCountryField" class="ui-field field-group editor-field hidden"><label for="genericFeatureConvertCountryInput">소속 국가</label><select id="genericFeatureConvertCountryInput"></select></div>
+              <div id="genericFeatureConvertDistributionField" class="ui-field field-group editor-field hidden"><label for="genericFeatureConvertDistributionInput">분포 레이어</label><select id="genericFeatureConvertDistributionInput"></select></div>
+              <button id="convertGenericFeatureBtn" type="button" class="ui-button mode-aux-control">종류 변경</button>
             </section>
 
             <div class="ui-info-list editor-info-list editor-meta-list" hidden>

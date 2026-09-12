@@ -130,8 +130,10 @@ export function createObjectCommands() {
       if (ref.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY && !(0, dependencies.territorialChildren)(dependencies.state.territorialUnits, ref.id).length) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
-    } else if (ref.domain === 'generic' || ref.domain === 'hydro') {
+    } else if (ref.domain === 'hydro') {
       values.add('color'); values.add('lock'); values.add('delete');
+    } else if (ref.domain === 'generic') {
+      values.add('lock'); values.add('delete');
     } else if (ref.domain === 'label') values.add('delete');
     return values;
   }

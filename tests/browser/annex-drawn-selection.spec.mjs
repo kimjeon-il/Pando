@@ -11,8 +11,11 @@ test('annex selection controls and heading fit a narrow editor surface', async (
     const source = new DOMParser().parseFromString(await (await fetch('/index.html')).text(), 'text/html');
     const task = source.getElementById('modeEditingHud');
     document.body.append(task);
+    document.body.classList.add('app-root');
     task.classList.remove('hidden');
     task.querySelector('#annexDrawnActions').classList.remove('hidden');
+    task.querySelector('#modeDraftActions').classList.remove('hidden');
+    task.querySelector('#modeRiverBoundaryOption').classList.remove('hidden');
     task.querySelector('#annexDrawnCount').textContent = '영역 12개';
     task.querySelector('#modeTaskName').textContent = '영토 편입 3단계';
     task.querySelector('#modeTaskStage').textContent = '영역 선택';
@@ -22,19 +25,26 @@ test('annex selection controls and heading fit a narrow editor surface', async (
   });
   for (const width of [260, 300, 360]) {
     await page.setViewportSize({ width: width < 300 ? 390 : 1024, height: 844 });
+    await page.evaluate(mobile => { document.body.dataset.layout = mobile ? 'mobile' : 'compact'; }, width < 300);
     await page.locator('#modeEditingHud').evaluate((element, value) => { element.style.width = value + 'px'; }, width);
     const sizes = await page.locator('#modeEditingHud').evaluate(element => ({
       controlsFit: element.querySelector('#annexDrawnActions').scrollWidth <= element.querySelector('#annexDrawnActions').clientWidth,
       titleFits: element.querySelector('#modeTaskName').scrollWidth <= element.querySelector('#modeTaskName').clientWidth,
-      buttons: [...element.querySelectorAll('#annexDrawnActions button, #modeActionBar button')].map(button => ({
+      buttons: [...element.querySelectorAll('#modeDraftActions button, #annexDrawnActions button, #modeActionBar button')].map(button => ({
         text: button.textContent.trim().replace('처리 중…', '').trim(),
         fits: button.scrollWidth <= button.clientWidth,
         nowrap: getComputedStyle(button.querySelector('.mode-button-label') || button).whiteSpace === 'nowrap',
       })),
+      auxHeights: [...element.querySelectorAll('.mode-aux-control')].map(button => button.getBoundingClientRect().height),
+      grid: getComputedStyle(element.querySelector('#modeDraftActions')).gridTemplateColumns.split(' ').length,
+      icons: element.querySelectorAll('.mode-aux-control svg').length,
     }));
     expect(sizes.controlsFit).toBe(true);
     expect(sizes.titleFits).toBe(true);
-    expect(sizes.buttons.map(button => button.text)).toEqual(['추가', '되돌리기', '뒤로', '편입 (12)']);
+    expect(sizes.buttons.map(button => button.text)).toEqual(['꼭짓점 추가', '꼭짓점 삭제', '다시 그리기', '완료', '추가', '되돌리기', '뒤로', '편입 (12)']);
     expect(sizes.buttons.every(button => button.fits && button.nowrap)).toBe(true);
+    expect(sizes.auxHeights.every(height => height === (width < 300 ? 48 : 36))).toBe(true);
+    expect(sizes.grid).toBe(2);
+    expect(sizes.icons).toBe(0);
   }
 });

@@ -14,6 +14,8 @@ export function createGlobalInputBindings() {
     document.addEventListener('keydown', e => {
       const tag = document.activeElement?.tagName;
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable;
+      // Let focused controls handle Enter/Space once, through their normal click/change event.
+      if (['Enter', ' '].includes(e.key) && document.activeElement?.closest('button, [role="button"]')) return;
       if (e.code === 'Space' && !editingText && (dependencies.editingDomain?.draftInputActive?.() || ['country-border', 'country-coast'].includes(dependencies.state.tool) || dependencies.state.selected?.domain === 'generic' || (dependencies.state.selected?.domain === 'hydro' && (0, dependencies.hydroEditById)(dependencies.state.selected.id)))) {
         dependencies.state.spacePanActive = true;
         dependencies.mapInteractionGate.setForcedPan(true);
@@ -37,6 +39,7 @@ export function createGlobalInputBindings() {
         if (dependencies.confirmModalController?.isOpen()) { (0, dependencies.closeConfirmModal)(); return; }
         if (document.body.classList.contains('file-menu-open')) { (0, dependencies.closeFileMenu)({ restoreFocus: true }); return; }
         if ((0, dependencies.isCreateMenuOpen)()) { (0, dependencies.closeCreateMenu)({ restoreFocus: true }); return; }
+        if (dependencies.editingDraftSnapshot().vertexInsertMode) { dependencies.editingDomain.setDraftVertexInsertMode(false); return; }
         if (dependencies.state.geometryPreview.session) { (0, dependencies.discardActiveGeometryPreview)(); return; }
         if (dependencies.state.labelPlacementMode) (0, dependencies.exitLabelMode)();
         else if (dependencies.editingDomain?.draftInputActive?.()) (0, dependencies.requestDraftDiscard)(() => (0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) ? (0, dependencies.cancelDraft)(true) : (0, dependencies.cancelActiveMode)());
@@ -49,42 +52,14 @@ export function createGlobalInputBindings() {
         else if (!(0, dependencies.$)('actionStatus')?.classList.contains('hidden')) (0, dependencies.clearNotification)();
         else dependencies.selectionUiController.clear({ reason: 'escape-selection-clear' });
       }
-      const newCountryLineMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'line';
-      const newCountrySourceMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'sources';
-      const newCountrySideMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'side';
-      const newCountryComponentsMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'components';
-      const annexDonorMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor';
-      const annexMethodMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'method';
-      const annexSideMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'side';
-      const annexPolygonPreviewMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'polygon-preview';
-      const annexComponentsMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'components';
-      const mergeTargetMode = dependencies.state.tool === 'merge-country' && !!dependencies.state.mergeSourceCountryId;
-      const boundarySelectMode = dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting';
-      const annexReviewMode = dependencies.state.tool === 'annex-territory' && ['line', 'polygon', 'polygon-preview', 'side', 'components'].includes(dependencies.state.annexPhase);
-      if (e.key === 'Enter' && !editingText && dependencies.state.geometryPreview.session && (dependencies.state.tool !== 'annex-territory' || annexReviewMode)) {
-        e.preventDefault();
-        if (dependencies.state.modeProcessing || (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPreviewPending)) return;
-        (0, dependencies.applyActiveGeometryPreview)();
-        return;
-      }
-      if (e.key === 'Enter' && !editingText && (newCountrySourceMode || annexDonorMode || annexMethodMode || mergeTargetMode || boundarySelectMode)) {
-        e.preventDefault();
-        if (newCountrySourceMode) (0, dependencies.beginNewCountryLine)();
-        else if (annexDonorMode) (0, dependencies.advanceAnnexToMethod)();
-        else if (annexMethodMode) (0, dependencies.beginAnnexSelection)();
-        else if (mergeTargetMode) (0, dependencies.completeCountryMerge)();
-        else (0, dependencies.beginCountryBorderEditing)();
-        return;
-      }
-      if (e.key === 'Enter' && !editingText && (newCountrySideMode || annexSideMode || annexPolygonPreviewMode || newCountryComponentsMode || annexComponentsMode)) {
-        e.preventDefault();
-        if (newCountrySideMode) (0, dependencies.completeNewCountryCreation)(dependencies.state.newCountrySelectedCandidateIndex);
-        else if (newCountryComponentsMode) (0, dependencies.completeNewCountryCreation)(null);
-        else (0, dependencies.scheduleAnnexGeometryPreview)({ delay: 0 });
-        return;
-      }
-      if (e.key === 'Enter' && !editingText && ((0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) || newCountryLineMode || (dependencies.state.tool === 'annex-territory' && ['line', 'polygon'].includes(dependencies.state.annexPhase))) && (0, dependencies.editingDraftCoordinates)().length) {
-        e.preventDefault(); (0, dependencies.finishDraft)();
+      if (e.key === 'Enter' && !editingText) {
+        const drawing = dependencies.editingDomain?.draftInputActive?.() && !dependencies.state.geometryPreview.session;
+        const action = dependencies.$(drawing ? 'modeDraftDoneBtn' : 'modePrimaryBtn');
+        if (action && !action.closest('.hidden, [hidden]')) {
+          e.preventDefault();
+          if (!dependencies.state.modeProcessing && !action.disabled) action.click();
+          return;
+        }
       }
       if (!editingText && Number.isInteger((0, dependencies.editingDraftSnapshot)().selectedVertexIndex) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && dependencies.editingDomain?.draftInputActive?.()) {
         const distance = e.shiftKey ? 10 : 1;

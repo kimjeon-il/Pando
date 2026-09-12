@@ -84,6 +84,7 @@ export function createDraftRenderPacket(input = {}) {
   return Object.freeze({
     active: input.active === true,
     inputPhase: input.inputPhase === 'refine' ? 'refine' : 'draw',
+    vertexInsertMode: input.vertexInsertMode === true,
     shape: input.shape === 'polygon' ? 'polygon' : input.shape === 'line' ? 'line' : null,
     geometry: geometry(input.geometry),
     rawStrokeGeometry: geometry(input.rawStrokeGeometry),

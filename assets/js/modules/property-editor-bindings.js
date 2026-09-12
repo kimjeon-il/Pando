@@ -2,10 +2,8 @@ export function createPropertyEditorBindings({
   getElement: $,
   document,
   getPrimary,
-  getGenericFeature,
   TERRITORIAL_UNIT_TYPES,
   bindColorPickers,
-  commitGenericFeatureMeta,
   commitHydroEdit,
   commitTerritorialUnitMeta,
   commitDistributionMeta,
@@ -29,14 +27,7 @@ export function createPropertyEditorBindings({
   setEditorShellView,
   setActionStatus,
   focusObjectRef,
-  enterGenericFeatureSplitMode,
-  enterGenericFeatureMergeMode,
-  alignSelectedGenericFeatureToOwnerLand,
-  countryFeatureById,
-  enterCountryCoastEdit,
-  openConfirmModal,
-  applySelectedGenericFeatureToOwnerCountry,
-  promoteSelectedGenericFeatureToCountry,
+  convertSelectedGenericFeature,
   copySelectedHydroForEditing,
   undo,
   redo,
@@ -68,11 +59,6 @@ export function createPropertyEditorBindings({
     bound = true;
     bindColorPickers();
     bindChangeFields([
-      { id: 'genericFeatureNameInput', field: 'name', commit: commitGenericFeatureMeta, transform: value => value.trim() },
-      { id: 'genericFeatureOwnerInput', field: 'ownerId', commit: commitGenericFeatureMeta },
-      { id: 'genericFeatureParentInput', field: 'parentId', commit: commitGenericFeatureMeta },
-      { id: 'genericFeatureLandBindingInput', field: 'landBinding', commit: commitGenericFeatureMeta },
-      { id: 'genericFeatureNotesInput', field: 'notes', commit: commitGenericFeatureMeta },
       { id: 'hydroNameInput', field: 'name', commit: commitHydroEdit, transform: value => value.trim() },
       { id: 'hydroNotesInput', field: 'notes', commit: commitHydroEdit },
       { id: 'subunitNameInput', field: 'name', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
@@ -135,42 +121,20 @@ export function createPropertyEditorBindings({
       setActionStatus('주권 국가와 상위 소속을 확인한 뒤 변경하세요.', 'success', 3400);
     });
 
-    listen($('editGenericFeatureBoundaryBtn'), 'click', () => {
-      if (getPrimary()?.domain !== 'generic') return;
+    listen($('genericFeatureConvertType'), 'change', event => {
+      const target = event.target.value;
+      $('genericFeatureConvertCountryField')?.classList.toggle('hidden', !['subunit', 'region'].includes(target));
+      $('genericFeatureConvertDistributionField')?.classList.toggle('hidden', target !== 'distribution');
+    });
+    listen($('convertGenericFeatureBtn'), 'click', () => {
       const primary = getPrimary();
-      if (primary) focusObjectRef(primary);
-      returnToMapAfterMobileAction(true);
-      setActionStatus('지도 위 꼭짓점을 드래그해 경계를 수정하세요.', 'success', 3400);
+      if (primary?.domain !== 'generic') return;
+      void convertSelectedGenericFeature?.({
+        target: $('genericFeatureConvertType')?.value,
+        sovereignId: $('genericFeatureConvertCountryInput')?.value,
+        distributionLayerId: $('genericFeatureConvertDistributionInput')?.value,
+      });
     });
-
-    listen($('splitGenericFeatureBtn'), 'click', () => {
-      if (getPrimary()?.domain === 'generic') requestDraftDiscard(() => returnToMapAfterMobileAction(enterGenericFeatureSplitMode(getPrimary().id)));
-    });
-    listen($('mergeGenericFeatureBtn'), 'click', () => {
-      if (getPrimary()?.domain === 'generic') requestDraftDiscard(() => returnToMapAfterMobileAction(enterGenericFeatureMergeMode(getPrimary().id)));
-    });
-    listen($('syncGenericFeatureCoastBtn'), 'click', alignSelectedGenericFeatureToOwnerLand);
-    listen($('editGenericFeatureCoastBtn'), 'click', () => {
-      if (getPrimary()?.domain !== 'generic') return;
-      const feature = getGenericFeature(getPrimary().id);
-      const ownerId = String(feature?.properties?.ownerId || '');
-      if (!countryFeatureById(ownerId)) return;
-      requestDraftDiscard(() => returnToMapAfterMobileAction(enterCountryCoastEdit(ownerId, { scopeGenericFeatureId: feature.id, returnSelection: { type: 'generic', id: String(feature.id) } })));
-    });
-    listen($('applyGenericFeatureToCountryBtn'), 'click', () => openConfirmModal({
-      title: '국가 영토에 반영',
-      message: '선택한 영역과 겹치는 다른 국가의 영토를 소유 국가로 이전합니다. 한 번의 실행취소로 복구할 수 있습니다.',
-      impacts: ['소유 국가와 겹치는 국가들의 실제 국경 변경', '선택 지형지물은 유지'],
-      confirmText: '영토 반영',
-      onConfirm: applySelectedGenericFeatureToOwnerCountry,
-    }));
-    listen($('promoteGenericFeatureToCountryBtn'), 'click', () => openConfirmModal({
-      title: '국가로 전환',
-      message: '선택한 영역을 기존 국가들에서 분리해 새 국가로 전환합니다. 객체 이름을 새 국명으로 사용합니다.',
-      impacts: ['새 국가 1개 생성', '겹치는 기존 국가들의 실제 국경 변경', '선택 지형지물 제거'],
-      confirmText: '국가로 전환',
-      onConfirm: promoteSelectedGenericFeatureToCountry,
-    }));
 
     listen($('copyHydroBtn'), 'click', copySelectedHydroForEditing);
 

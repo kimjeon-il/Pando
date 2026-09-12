@@ -11,50 +11,8 @@ export function createGenericCommands() {
   }
 
   function finishSplitGenericFeatureDraft() {
-    const source = dependencies.state.genericFeatures.find(item => String(item.id) === String(dependencies.state.genericFeatureSplitSourceId));
-    if (!source || (0, dependencies.genericFeatureGeometryKind)(source) !== 'polygon') {
-      (0, dependencies.setActionStatus)('나눌 영역을 찾을 수 없습니다. 영역을 다시 선택하세요.', 'error', 3400);
-      return;
-    }
-    try {
-      const split = (0, dependencies.buildCutSplitCandidates)(source.geometry, (0, dependencies.editingDraftCoordinates)());
-      const untouchedComponents = (0, dependencies.geometryPolygonSets)(source.geometry)
-        .filter((_, index) => index !== split.componentIndex)
-        .map(polygon => (0, dependencies.deepClone)(polygon));
-      const retainedGeometry = (0, dependencies.normalizeClippedLandGeometry)([
-        ...(0, dependencies.geometryMultiCoordinates)(split.candidates[0].geometry),
-        ...untouchedComponents,
-      ]);
-      if (!retainedGeometry) throw new Error('나누지 않은 영토 조각을 보존할 수 없습니다.');
-      const baseName = (0, dependencies.genericFeatureName)(source);
-      const sourceAfter = (0, dependencies.deepClone)(source);
-      sourceAfter.geometry = retainedGeometry;
-      sourceAfter.properties.name = `${baseName} 1`;
-      const sibling = (0, dependencies.normalizeGenericFeatureSemantics)({
-        type: 'Feature',
-        id: (0, dependencies.uid)('area'),
-        geometry: (0, dependencies.deepClone)(split.candidates[1].geometry),
-        properties: { ...(0, dependencies.deepClone)(sourceAfter.properties), name: `${baseName} 2` },
-      }, { inferOwner: false });
-      (0, dependencies.beginLocalGeometryPreview)({
-        operation: 'split-generic-feature',
-        beforeFeatures: [source],
-        afterFeatures: [sourceAfter, sibling],
-        applyResult: () => {
-          dependencies.projectDomain.recordHistory();
-          source.geometry = (0, dependencies.deepClone)(sourceAfter.geometry);
-          source.properties = (0, dependencies.deepClone)(sourceAfter.properties);
-          dependencies.state.genericFeatures.push((0, dependencies.deepClone)(sibling));
-          dependencies.editingDomain?.clearDraft?.(true);
-          dependencies.editingDomain?.setTool('select', { announce: false });
-          (0, dependencies.applyGenericSelectionIntent)(String(source.id), true);
-        },
-        successMessage: `${baseName} 영역을 두 영역으로 나눴습니다.`,
-        errorMessage: '영역 나누기 결과를 적용하지 못했습니다.',
-      });
-    } catch (error) {
-      (0, dependencies.reportOperationError)(error, '영역을 나누지 못했습니다. 영역을 한 번만 관통하도록 경계를 다시 그리세요.', 'PL-LAND-003', 4200);
-    }
+    (0, dependencies.setActionStatus)('기타 객체는 종류 변경으로만 정리할 수 있습니다.', 'error', 3400);
+    return false;
   }
 
   function countryIdsOverlappingGeometry(geometry, excludeIds = []) {
@@ -137,6 +95,7 @@ export function createGenericCommands() {
       (0, dependencies.setActionStatus)('국가로 전환할 수 없습니다. 면 객체를 선택하세요.', 'error', 3400);
       return;
     }
+    if (!canConvertGenericFeature(feature)) return false;
     const transferredGeometry = geometryClippedToCurrentLand(feature.geometry);
     const sourceIds = transferredGeometry ? countryIdsOverlappingGeometry(transferredGeometry) : [];
     if (!transferredGeometry || !sourceIds.length) {
@@ -144,13 +103,10 @@ export function createGenericCommands() {
       return;
     }
     if (!(0, dependencies.requireCountriesUnlocked)(sourceIds, '국가로 전환')) return;
-    const name = String(feature.properties?.name || '').trim();
-    if (!name) {
-      (0, dependencies.setActionStatus)('국가로 전환하기 전에 객체 이름을 입력하세요.', 'error', 3400);
-      return;
-    }
+    const name = String(feature.properties?.name || '').trim() || '이름 없음';
     const snapshot = (0, dependencies.snapshotEditable)();
     const country = (0, dependencies.createCountryFeature)(name, [], feature.properties?.color || null, (0, dependencies.snapGeometryToGrid)(transferredGeometry, 7));
+    country.properties.metadata = legacyGenericMetadata(feature);
     (0, dependencies.setActionStatus)('영역을 국가로 전환하는 중입니다.', 'working', 0);
     await (0, dependencies.transactCountryEdit)({
       operation: 'new-country',
@@ -160,14 +116,137 @@ export function createGenericCommands() {
         (0, dependencies.applyWorkerCountryPatches)(result);
         (0, dependencies.transferLandDependents)(transferredGeometry, sourceIds, country.id, [feature.id]);
         dependencies.state.genericFeatures = dependencies.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
+        dependencies.mapObjectGeometryRevisions.generic += 1;
         (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
         (0, dependencies.refreshCountryCentroids)(new Set(result.affectedIds));
+        (0, dependencies.markLayerTreeDirty)();
         (0, dependencies.applyCountrySelectionIntent)(country.id);
         dependencies.renderingDomain?.invalidateCountryPatch?.('generic-promoted-country');
       },
       onSuccess: () => (0, dependencies.setActionStatus)(`${name} 영역을 독립 국가로 전환했습니다.`, 'success', 3600),
       onError: error => (0, dependencies.reportOperationError)(error, '영역을 국가로 전환하지 못했습니다. 다른 국가와의 중첩과 형상을 확인하세요.', 'PL-LAND-002', 4600),
     });
+  }
+
+  function legacyGenericMetadata(feature) {
+    return { compatibilitySource: (0, dependencies.deepClone)(feature.properties || {}) };
+  }
+
+  function canConvertGenericFeature(feature) {
+    const dependentCount = dependencies.state.genericFeatures.filter(candidate => String(candidate.id) !== String(feature.id)
+      && String(candidate.properties?.parentId || '') === String(feature.id)).length;
+    if (!dependentCount) return true;
+    (0, dependencies.setActionStatus)(`이 객체를 상위로 참조하는 기타 객체 ${dependentCount}개가 있습니다. 먼저 그 객체를 전환하거나 관계를 정리하세요.`, 'error', 4200);
+    return false;
+  }
+
+  function removeGenericFeatureAfterConversion(feature) {
+    dependencies.state.genericFeatures = dependencies.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
+    dependencies.mapObjectGeometryRevisions.generic += 1;
+    dependencies.renderingDomain?.invalidateGenericPatch?.('generic-feature-converted');
+  }
+
+  function genericCoordinates(feature) {
+    const type = feature?.geometry?.type;
+    if (type === 'Point') return [feature.geometry.coordinates];
+    if (type === 'MultiPoint') return feature.geometry.coordinates || [];
+    return [];
+  }
+
+  async function convertSelectedGenericFeature({ target, sovereignId = '', distributionLayerId = '' } = {}) {
+    if (dependencies.state.selected?.domain !== 'generic') return false;
+    const feature = dependencies.state.genericFeatures.find(item => String(item.id) === String(dependencies.state.selected.id));
+    const kind = (0, dependencies.genericFeatureGeometryKind)(feature);
+    if (!feature || feature.properties?.locked) {
+      (0, dependencies.setActionStatus)('잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3400);
+      return false;
+    }
+    if (!canConvertGenericFeature(feature)) return false;
+    if (target === 'country') return promoteSelectedGenericFeatureToCountry();
+    const name = String(feature.properties?.name || '').trim() || '이름 없음';
+    const color = feature.properties?.color || feature.properties?.editorColor || '';
+    try {
+      if (target === 'river' || target === 'lake') {
+        const expectedKind = target === 'river' ? 'line' : 'polygon';
+        if (kind !== expectedKind) throw new Error(`${target === 'river' ? '강' : '호수'}으로 전환할 수 없는 형상입니다.`);
+        const hydro = {
+          type: 'Feature', id: (0, dependencies.uid)(target), geometry: (0, dependencies.deepClone)(feature.geometry),
+          properties: { name, editorColor: color, category: target, notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature) },
+        };
+        dependencies.projectDomain.recordHistory({ type: 'generic-convert-hydro', affectedIds: [String(feature.id), String(hydro.id)] });
+        (0, dependencies.normalizeHydroEdit)(hydro);
+        dependencies.state.hydroEdits.push(hydro);
+        removeGenericFeatureAfterConversion(feature);
+        (0, dependencies.markLayerTreeDirty)();
+        dependencies.projectDomain.queueAutosave();
+        (0, dependencies.applyHydroSelectionIntent)(String(hydro.id));
+        dependencies.renderingDomain?.invalidateGpuInteraction?.('generic-converted-hydro');
+        (0, dependencies.setActionStatus)(`${name}을(를) ${target === 'river' ? '강' : '호수'}로 전환했습니다.`, 'success');
+        return true;
+      }
+      if (target === 'label') {
+        const points = genericCoordinates(feature);
+        if (!points.length) throw new Error('지명으로 전환할 수 없는 형상입니다.');
+        dependencies.projectDomain.recordHistory({ type: 'generic-convert-label', affectedIds: [String(feature.id)] });
+        const labels = points.map((coordinates, index) => {
+          const id = (0, dependencies.uid)('label');
+          const label = {
+            id, name: points.length > 1 ? `${name} ${index + 1}` : name, kind: 'custom', coordinates: coordinates.slice(),
+            notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
+          };
+          dependencies.state.labelSettings[(0, dependencies.labelKey)('label', id)] = (0, dependencies.automaticLabelSettings)(label.kind, { pinned: false });
+          return label;
+        });
+        dependencies.state.labels.push(...labels);
+        removeGenericFeatureAfterConversion(feature);
+        (0, dependencies.markLayerTreeDirty)();
+        dependencies.projectDomain.queueAutosave();
+        (0, dependencies.applyLabelSelectionIntent)(labels[0].id);
+        dependencies.renderingDomain?.invalidateLabels?.('generic-converted-label');
+        (0, dependencies.setActionStatus)(`${name}을(를) 지명으로 전환했습니다.`, 'success');
+        return true;
+      }
+      if (target === 'subunit' || target === 'region') {
+        if (kind !== 'polygon') throw new Error('영역 형상만 하위단위 또는 지방으로 전환할 수 있습니다.');
+        const country = (0, dependencies.countryFeatureById)(sovereignId);
+        if (!country) throw new Error('소속 국가를 선택하세요.');
+        const unitType = target === 'subunit' ? dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT : dependencies.TERRITORIAL_UNIT_TYPES.REGION;
+        const unit = (0, dependencies.createTerritorialFeature)({
+          id: (0, dependencies.uid)(unitType), unitType, name, geometry: (0, dependencies.deepClone)(feature.geometry),
+          sovereignId: String(country.id), parentId: target === 'subunit' ? String(country.id) : '',
+          coverageMode: dependencies.TERRITORIAL_COVERAGE_MODES.EXPLICIT, isRemainder: false, color,
+          validFrom: feature.properties?.validFrom ?? null, validTo: feature.properties?.validTo ?? null,
+          notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
+        });
+        dependencies.projectDomain.recordHistory({ type: 'generic-convert-territorial', affectedIds: [String(feature.id), String(unit.id)] });
+        dependencies.state.territorialUnits.push(unit);
+        dependencies.state.territorialUnits = (0, dependencies.normalizeTerritorialUnits)(dependencies.state.territorialUnits, { countryExists: id => !!(0, dependencies.countryFeatureById)(id) });
+        removeGenericFeatureAfterConversion(feature);
+        (0, dependencies.markLayerTreeDirty)();
+        dependencies.projectDomain.queueAutosave();
+        (0, dependencies.applyTerritorialUnitSelectionIntent)(unit.id, true);
+        dependencies.renderingDomain?.invalidateTerritorialPatch?.('generic-converted-territorial');
+        (0, dependencies.setActionStatus)(`${name}을(를) ${target === 'subunit' ? '하위단위' : '지방'}으로 전환했습니다.`, 'success');
+        return true;
+      }
+      if (target === 'distribution') {
+        if (kind !== 'polygon') throw new Error('영역 형상만 분포로 전환할 수 있습니다.');
+        const result = dependencies.distributionService.addEntry({
+          id: (0, dependencies.uid)('distribution_entry'), layerId: String(distributionLayerId), mode: dependencies.DISTRIBUTION_MODES.GEOMETRY,
+          geometry: (0, dependencies.deepClone)(feature.geometry), share: 100,
+        });
+        if (!result.ok) throw result.error || new Error('분포 레이어를 선택하세요.');
+        removeGenericFeatureAfterConversion(feature);
+        (0, dependencies.markLayerTreeDirty)();
+        (0, dependencies.applyDistributionSelectionIntent)(result.layer.id);
+        (0, dependencies.setActionStatus)(`${name}을(를) 분포로 전환했습니다.`, 'success');
+        return true;
+      }
+      throw new Error('이 형상에 사용할 수 있는 대상 종류를 선택하세요.');
+    } catch (error) {
+      (0, dependencies.reportOperationError)(error, '종류를 변경하지 못했습니다. 대상과 소속을 확인하세요.', 'PL-GENERIC-CONVERT-001', 4200);
+      return false;
+    }
   }
 
   function alignSelectedGenericFeatureToOwnerLand() {
@@ -196,24 +275,15 @@ export function createGenericCommands() {
   }
 
   function enterGenericFeatureSplitMode(id) {
-    const feature = dependencies.state.genericFeatures.find(item => String(item.id) === String(id));
-    if (!feature || (0, dependencies.genericFeatureGeometryKind)(feature) !== 'polygon') return false;
-    dependencies.state.genericFeatureSplitSourceId = String(id);
-    dependencies.editingDomain?.setTool('split-generic-feature', { announce: false });
-    dependencies.state.genericFeatureSplitSourceId = String(id);
-    (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
-    return true;
+    void id;
+    (0, dependencies.setActionStatus)('기타 객체는 종류 변경으로만 정리할 수 있습니다.', 'error', 3400);
+    return false;
   }
 
   function enterGenericFeatureMergeMode(id) {
-    const feature = dependencies.state.genericFeatures.find(item => String(item.id) === String(id));
-    if (!feature || (0, dependencies.genericFeatureGeometryKind)(feature) !== 'polygon') return false;
-    dependencies.state.genericFeatureMergeSourceId = String(id);
-    dependencies.state.genericFeatureMergeTargetIds = [];
-    dependencies.editingDomain?.setTool('merge-generic-feature', { announce: false });
-    dependencies.state.genericFeatureMergeSourceId = String(id);
-    (0, dependencies.setModeBanner)('합칠 영역을 선택하세요.');
-    return true;
+    void id;
+    (0, dependencies.setActionStatus)('기타 객체는 종류 변경으로만 정리할 수 있습니다.', 'error', 3400);
+    return false;
   }
 
   function toggleGenericFeatureMergeTarget(id) {
@@ -237,37 +307,8 @@ export function createGenericCommands() {
   }
 
   function completeGenericFeatureMerge() {
-    const source = dependencies.state.genericFeatures.find(item => String(item.id) === String(dependencies.state.genericFeatureMergeSourceId));
-    const targets = dependencies.state.genericFeatureMergeTargetIds.map(id => dependencies.state.genericFeatures.find(item => String(item.id) === String(id))).filter(Boolean);
-    if (!source || !targets.length) {
-      (0, dependencies.setActionStatus)('합칠 영역을 하나 이상 선택하세요.', 'error', 3000);
-      return;
-    }
-    const merged = (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.union(source.geometry.coordinates, ...targets.map(item => item.geometry.coordinates)));
-    if (!merged) {
-      (0, dependencies.setActionStatus)('선택한 영역을 합칠 수 없습니다. 형상을 확인하세요.', 'error', 3400);
-      return;
-    }
-    const removed = new Set(targets.map(item => String(item.id)));
-    const sourceAfter = (0, dependencies.deepClone)(source);
-    sourceAfter.geometry = merged;
-    (0, dependencies.beginLocalGeometryPreview)({
-      operation: 'merge-generic-feature',
-      beforeFeatures: [source, ...targets],
-      afterFeatures: [sourceAfter],
-      removedIds: [...removed],
-      applyResult: () => {
-        dependencies.projectDomain.recordHistory();
-        source.geometry = (0, dependencies.deepClone)(merged);
-        (0, dependencies.reassignGenericFeatureParents)([...removed], String(source.id));
-        dependencies.state.genericFeatures = dependencies.state.genericFeatures.filter(item => !removed.has(String(item.id)));
-        (0, dependencies.normalizeGenericFeatureSemantics)(source, { inferOwner: false });
-        dependencies.editingDomain?.setTool('select', { announce: false });
-        (0, dependencies.applyGenericSelectionIntent)(String(source.id), true);
-      },
-      successMessage: `${targets.length + 1}개 영역을 하나로 합쳤습니다.`,
-      errorMessage: '영역 합치기 결과를 적용하지 못했습니다.',
-    });
+    (0, dependencies.setActionStatus)('기타 객체는 종류 변경으로만 정리할 수 있습니다.', 'error', 3400);
+    return false;
   }
 
   function requestDraftDiscard(action) {
@@ -363,6 +404,7 @@ export function createGenericCommands() {
     get alignSelectedGenericFeatureToOwnerLand() { return alignSelectedGenericFeatureToOwnerLand; },
     get applySelectedGenericFeatureToOwnerCountry() { return applySelectedGenericFeatureToOwnerCountry; },
     get cancelDraft() { return cancelDraft; },
+    get convertSelectedGenericFeature() { return convertSelectedGenericFeature; },
     get completeGenericFeatureMerge() { return completeGenericFeatureMerge; },
     get discardActiveDraftSilently() { return discardActiveDraftSilently; },
     get enterGenericFeatureMergeMode() { return enterGenericFeatureMergeMode; },

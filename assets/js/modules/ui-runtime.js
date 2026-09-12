@@ -57,14 +57,7 @@ function bindGisExportFormat() {
 
 function constrainGenericFallbackUi() {
   const form = document.getElementById('genericFeatureProperties');
-  if (form) form.dataset.genericFeatureMode = 'fallback';
-  for (const id of ['genericFeatureLandRelationSection', 'genericFeatureLandActionsSection']) {
-    const section = document.getElementById(id);
-    if (!section) continue;
-    section.hidden = false;
-    section.removeAttribute('aria-hidden');
-    delete section.dataset.legacyGenericSemantics;
-  }
+  if (form) form.dataset.genericFeatureMode = 'conversion-only';
 }
 
 export function initializeUiRuntime(documentRef = document) {

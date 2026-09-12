@@ -54,6 +54,7 @@ function harness(t, method = 'polygon') {
   const components = createTerritoryComponents();
   const requests = [];
   const errors = [];
+  const renderInvalidations = [];
   const ports = {
     ...geometry, state, snapLineEndpointsToBoundary, createRingHitTester,
     activeProjection: () => p => p.map(n => n * 100), isCoordVisible: () => true,
@@ -77,12 +78,25 @@ function harness(t, method = 'polygon') {
     setActionStatus: (...args) => errors.push(args), reportOperationError: error => { throw error; },
     cancelScheduledAnnexPreview: commits.cancelScheduledAnnexPreview, scheduleAnnexGeometryPreview: commits.scheduleAnnexGeometryPreview,
     discardActiveGeometryPreview: () => { state.geometryPreview.session = null; },
-    renderingDomain: { invalidateEditingOverlays: noop, invalidateGpuInteraction: noop, invalidateSelection: noop },
+    renderingDomain: {
+      invalidateCountryPatch: reason => renderInvalidations.push(['country-patch', reason]),
+      invalidateEditingOverlays: reason => renderInvalidations.push(['editing-overlays', reason]),
+      invalidateGpuInteraction: noop,
+      invalidateSelection: noop,
+    },
     editingDomain: {
       startDraft: ({ coords }) => { draft = { coords, issues: [], strokeActive: false }; },
       replaceDraftCoordinates: coords => { draft.coords = coords; },
-      clearDraft: () => { draft = { coords: [], issues: [], strokeActive: false }; }, refreshTerritoryOperation: noop,
+      clearDraft: () => { draft = { coords: [], issues: [], strokeActive: false }; },
+      refreshTerritoryOperation: noop,
+      setTool: tool => { state.tool = tool; },
     },
+    mapEditClient: { cancel: noop },
+    selectionUiController: { restore: noop },
+    applyCountrySelectionIntent: noop,
+    applyGenericSelectionIntent: noop,
+    applyTerritorialUnitSelectionIntent: noop,
+    territorialUnitById: () => null,
     snapshotEditable: () => structuredClone(features),
     beginWorkerGeometryPreview: options => new Promise(resolve => requests.push({ ...options, resolve })),
   };
@@ -90,7 +104,7 @@ function harness(t, method = 'polygon') {
   relations.initializeRingHitTester();
   t.after(() => commits.cancelScheduledAnnexPreview());
   return {
-    state, commits, modes, cut, features, requests, errors, components,
+    state, commits, modes, cut, features, requests, errors, components, renderInvalidations,
     draw: coords => { draft.coords = structuredClone(coords); commits.finishDraft(); },
     area: value => components.multiPolygonPlanarArea(components.geometryMultiCoordinates(value)),
     workerPlan: () => executeAnnex({ targetId: 'T', donorIds: ['D'], transferredGeometry: state.annexDrawnGeometry }, new Map(features.map(f => [f.id, f]))),
@@ -155,6 +169,33 @@ test('going back preserves selections; changing method or donors clears them', t
   h.modes.returnAnnexToPreviousStep();
   h.modes.toggleAnnexDonor('D');
   assert.deepEqual(h.state.annexDonorCountryIds, []);
+});
+
+test('redraw only drops the current area and invalidates its pending preview', t => {
+  const h = harness(t);
+  h.draw(box(1, 1, 3, 3).coordinates[0].slice(0, -1));
+  h.commits.addAnnexDrawnSelection();
+  h.draw(box(7, 7, 8, 8).coordinates[0].slice(0, -1));
+  t.mock.timers.tick(300);
+  assert.equal(h.commits.redrawCurrentDraft(), true);
+  assert.equal(h.requests[0].shouldKeepResult(), false);
+  assert.equal(h.state.annexPhase, 'polygon');
+  assert.equal(h.state.annexDrawnSelections.length, 1);
+  assert.equal(h.area(h.state.annexDrawnGeometry), 4);
+  h.draw([]);
+  assert.equal(h.state.annexPhase, 'polygon-preview');
+  assert.equal(h.area(h.state.annexDrawnGeometry), 4);
+});
+
+test('cancelling annex or merge clears the GPU country tool highlight immediately', t => {
+  const h = harness(t);
+  h.modes.cancelActiveMode();
+  assert.deepEqual(h.renderInvalidations, [['country-patch', 'active-mode-cancelled']]);
+  h.renderInvalidations.length = 0;
+  h.state.tool = 'merge-country';
+  h.state.mergeSourceCountryId = 'T';
+  h.modes.cancelActiveMode();
+  assert.deepEqual(h.renderInvalidations, [['country-patch', 'active-mode-cancelled']]);
 });
 
 test('the same candidate index from an older batch cannot revive a stale preview', async t => {

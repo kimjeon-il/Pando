@@ -433,8 +433,12 @@ export function connectProjectIo({
     get updateLayerPresentationStyle() { return mapSettings.updateLayerPresentationStyle; },
   });
   toolBindings.connect({
+    get completeCurrentDraft() { return taskPresentation.completeCurrentDraft; },
+    get redrawCurrentDraft() { return countryCommits.redrawCurrentDraft; },
     get addAnnexDrawnSelection() { return countryCommits.addAnnexDrawnSelection; },
+    get addMultiDraftPart() { return countryCommits.addMultiDraftPart; },
     get undoAnnexDrawnSelection() { return countryCommits.undoAnnexDrawnSelection; },
+    get undoMultiDraftPart() { return countryCommits.undoMultiDraftPart; },
     get $() { return environment.$; },
     get bindHoldZoom() { return cameraNavigation.bindHoldZoom; },
     get beginAnnexSelection() { return countryModes.beginAnnexSelection; },

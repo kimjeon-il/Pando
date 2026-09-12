@@ -101,6 +101,7 @@ export function createLifecycleAssembly() {
             openConfirmModal: dependencies.openConfirmModal,
             applySelectedGenericFeatureToOwnerCountry: dependencies.applySelectedGenericFeatureToOwnerCountry,
             promoteSelectedGenericFeatureToCountry: dependencies.promoteSelectedGenericFeatureToCountry,
+            convertSelectedGenericFeature: dependencies.convertSelectedGenericFeature,
             copySelectedHydroForEditing: dependencies.copySelectedHydroForEditing,
             closeObjectActionsMenu: dependencies.closeObjectActionsMenu,
             batchSetVisibility: dependencies.batchSetVisibility,

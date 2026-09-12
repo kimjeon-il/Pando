@@ -1914,7 +1914,7 @@ export function createRenderingDomain({
       .attr('class', 'draft-segment-hit draft-interactive')
       .on('mousemove', d => { if (!isMobile?.() && !editingPacket.draft.dragging) publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); })
       .on('mouseleave', d => publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: d.segmentIndex }))
-      .on('click', d => { stop(); publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); });
+      .on('click', d => { stop(); publishEditingInteraction({ type: editingPacket.draft.vertexInsertMode ? 'draft-segment-insert' : 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); });
     const vertices = joinEditingNodes(layer, 'g.draft-vertex', draft.vertices, d => d.index)
       .attr('class', d => 'draft-vertex draft-interactive' + (d.selected ? ' selected' : ''))
       .on('click', d => { stop(); publishEditingInteraction({ type: 'draft-vertex-select', vertexIndex: d.index }); });

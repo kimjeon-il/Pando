@@ -53,9 +53,12 @@ export function createCountryModes() {
     dependencies.state.territorialUnitSplitVirtualSource = null;
     dependencies.state.territorialUnitRedrawSourceId = null;
     dependencies.state.territorialCreateContext = null;
+    dependencies.state.territorialUnitSplitCreateContext = null;
+    dependencies.state.multiDraft = null;
   }
 
   function resetNewCountryState() {
+    dependencies.cancelScheduledNewCountryPreview?.({ discard: true });
     dependencies.state.newCountryPhase = null;
     dependencies.state.newCountrySourceIds = [];
     dependencies.state.newCountryCandidates = [];
@@ -63,15 +66,21 @@ export function createCountryModes() {
     dependencies.state.newCountrySelectedComponentKeys = [];
     dependencies.state.newCountrySelectionMethod = 'line';
     dependencies.state.newCountrySourceGeometry = null;
+    if (dependencies.state.multiDraft?.kind === 'new-country') dependencies.state.multiDraft = null;
   }
 
   function switchTerritorySelectionMethod(method) {
     const useComponents = method === 'components';
     if (dependencies.state.tool === 'new-country' && ['line', 'side', 'components'].includes(dependencies.state.newCountryPhase)) {
+      dependencies.cancelScheduledNewCountryPreview?.({ discard: true });
       dependencies.editingDomain?.clearDraft?.(true);
       dependencies.state.newCountryCandidates = [];
       dependencies.state.newCountrySelectedCandidateIndex = null;
       dependencies.state.newCountrySelectedComponentKeys = [];
+      if (dependencies.state.multiDraft?.kind === 'new-country') {
+        dependencies.state.multiDraft.parts = [];
+        dependencies.state.multiDraft.current = null;
+      }
       dependencies.state.newCountrySelectionMethod = useComponents ? 'components' : 'line';
       dependencies.state.newCountryPhase = useComponents ? 'components' : 'line';
       if (useComponents) {
@@ -150,6 +159,7 @@ export function createCountryModes() {
     resetTerritoryEditingState(true);
     dependencies.state.coastEditCountryId = null;
     resetMergeState();
+    dependencies.state.multiDraft = { kind: 'hydro', category: config.category, shape: config.category === 'lake' ? 'polygon' : 'line', parts: [], current: null };
     dependencies.editingDomain?.setTool(tool, { announce: false });
     (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
     (0, dependencies.updateModeButtons)();
@@ -161,6 +171,7 @@ export function createCountryModes() {
     dependencies.selectionUiController.clear({ reason: 'new-country-selection-clear' });
     dependencies.editingDomain?.clearDraft?.({ reason: 'new-country-mode', render: false });
     resetNewCountryState();
+    dependencies.state.multiDraft = { kind: 'new-country', shape: 'polygon', parts: [], current: null, name: null };
     dependencies.state.newCountryPhase = 'sources';
     dependencies.editingDomain?.setTool('new-country', { announce: false });
     (0, dependencies.setModeBanner)('새 국가로 분리할 영토가 있는 국가를 선택하세요.');
@@ -563,7 +574,14 @@ export function createCountryModes() {
     else if (selectedGenericFeatureId && dependencies.state.genericFeatures.some(item => String(item.id) === String(selectedGenericFeatureId))) (0, dependencies.applyGenericSelectionIntent)(String(selectedGenericFeatureId), true);
     else if (selectedTerritorialUnitId && (0, dependencies.territorialUnitById)(selectedTerritorialUnitId)) (0, dependencies.applyTerritorialUnitSelectionIntent)(String(selectedTerritorialUnitId), true);
     else if (selectedId && (0, dependencies.countryFeatureById)(selectedId)) (0, dependencies.applyCountrySelectionIntent)(selectedId, true);
-    dependencies.renderingDomain?.invalidateEditingOverlays?.('active-mode-cancelled');
+    // Country tool highlighting lives in the GPU scene rather than the draft overlay.
+    // Rebuild that scene on cancellation so its translucent fills do not remain until
+    // the next camera movement triggers a full country presentation pass.
+    if (cancelledTool === 'annex-territory' || cancelledTool === 'merge-country') {
+      dependencies.renderingDomain?.invalidateCountryPatch?.('active-mode-cancelled');
+    } else {
+      dependencies.renderingDomain?.invalidateEditingOverlays?.('active-mode-cancelled');
+    }
     const labels = { 'new-country': '국가 추가', 'annex-territory': '영토 편입', 'merge-country': '국가 합병', 'merge-generic-feature': '영역 합치기', 'split-generic-feature': '영역 나누기', 'merge-territorial-unit': '영역 합치기', 'split-territorial-unit': '영역 나누기', 'country-border': '국경 조정', 'country-coast': '해안선 조정' };
     if (announce) (0, dependencies.setActionStatus)(`${labels[cancelledTool] || '지도 작업'}을 취소했습니다.`, 'success');
   }
@@ -604,7 +622,7 @@ export function createCountryModes() {
 
   function initializeEmptyDraftSession() {
     (emptyDraftSession = Object.freeze({
-      coords: Object.freeze([]), hover: null, inputPhase: 'draw', selectedVertexIndex: null,
+      coords: Object.freeze([]), hover: null, inputPhase: 'draw', vertexInsertMode: false, selectedVertexIndex: null,
       insertTarget: null, dragging: false, issues: Object.freeze([]), historyCount: 0,
       futureCount: 0, strokeActive: false, cutAssessment: null, activeSnap: null,
     }));

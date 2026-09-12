@@ -370,9 +370,11 @@ export function createDomainAssembly() {
           if (tool !== 'split-territorial-unit') {
             dependencies.state.territorialUnitSplitSourceId = null;
             dependencies.state.territorialUnitSplitVirtualSource = null;
+            dependencies.state.territorialUnitSplitCreateContext = null;
           }
           if (tool !== 'redraw-territorial-unit') dependencies.state.territorialUnitRedrawSourceId = null;
           if (tool !== 'draw-territorial-unit') dependencies.state.territorialCreateContext = null;
+          if (!['river', 'lake', 'new-country', 'draw-territorial-unit', 'split-territorial-unit'].includes(tool)) dependencies.state.multiDraft = null;
           if (tool !== 'annex-territory') (0, dependencies.resetAnnexState)();
           if (tool !== 'new-country') (0, dependencies.resetNewCountryState)();
         },
@@ -388,6 +390,7 @@ export function createDomainAssembly() {
       previewController: dependencies.editPreviewController,
       draftServices: {
         getToolConfig: tool => {
+          if (dependencies.state.geometryPreview.session) return null;
           const config = (0, dependencies.draftToolConfig)(tool);
           return config ? { ...config, minimumPoints: config.shape === 'polygon' ? 3 : 2 } : null;
         },
@@ -427,7 +430,6 @@ export function createDomainAssembly() {
       geometryEditing: {
         resolveObjectFeature: targetRef => {
           if (targetRef?.domain === 'hydro') return dependencies.state.hydroEdits.find(item => String(item.id) === String(targetRef.id)) || null;
-          if (targetRef?.domain === 'generic') return dependencies.state.genericFeatures.find(item => String(item.id) === String(targetRef.id)) || null;
           return null;
         },
         canEditObject: feature => {
@@ -436,11 +438,7 @@ export function createDomainAssembly() {
             return false;
           }
           const hydroEdit = (0, dependencies.isHydroEditFeature)(feature);
-          const owner = hydroEdit ? null : (0, dependencies.countryFeatureById)(feature.properties?.ownerId);
-          if (!hydroEdit && (0, dependencies.genericFeatureLandBinding)(feature) === 'hard' && owner) {
-            (0, dependencies.setActionStatus)('국가 해안선과 연결된 점입니다. 편집창의 해안 구간 수정을 사용하세요.', 'error', 3800);
-            return false;
-          }
+          if (!hydroEdit) return false;
           projectDomain.recordHistory();
           return true;
         },
@@ -450,10 +448,6 @@ export function createDomainAssembly() {
           if (selected?.domain === 'hydro') {
             const feature = dependencies.state.hydroEdits.find(item => String(item.id) === String(selected.id));
             return feature ? { targetRef: { domain: 'hydro', type: 'hydro', id: String(feature.id) }, mode: 'hydro', feature } : null;
-          }
-          if (selected?.domain === 'generic') {
-            const feature = dependencies.state.genericFeatures.find(item => String(item.id) === String(selected.id));
-            return feature ? { targetRef: { domain: 'generic', type: 'generic', id: String(feature.id) }, mode: 'generic', feature } : null;
           }
           return null;
         },
@@ -612,6 +606,11 @@ export function createDomainAssembly() {
           const annex = dependencies.state.tool === 'annex-territory';
           const annexReview = annex && ['line', 'polygon', 'side', 'polygon-preview', 'components'].includes(dependencies.state.annexPhase);
           const accumulatedGeometry = annexReview ? dependencies.state.annexDrawnSelections?.at(-1)?.combinedGeometry : null;
+          const multiDraft = dependencies.state.multiDraft;
+          const multiGeometry = multiDraft?.parts?.length
+            ? multiDraft.parts.map(item => ({ index: -1, geometry: item.geometry, selected: true, interactive: false }))
+            : [];
+          if (multiDraft?.current?.geometry) multiGeometry.push({ index: -1, geometry: multiDraft.current.geometry, selected: true, interactive: false });
           const candidates = (annex ? (annexReview ? dependencies.state.annexCandidates : [])
             : dependencies.state.tool === 'new-country' ? dependencies.state.newCountryCandidates : [])
             .map((item, index) => ({
@@ -619,6 +618,7 @@ export function createDomainAssembly() {
               selected: index === (annex ? dependencies.state.annexSelectedCandidateIndex : dependencies.state.newCountrySelectedCandidateIndex),
             }));
           if (accumulatedGeometry) candidates.unshift({ index: -1, geometry: accumulatedGeometry, selected: true, interactive: false });
+          if (multiGeometry.length) candidates.unshift(...multiGeometry);
           return {
             boundaryEdit: boundarySegments.length || boundaryHandles.length ? { segments: boundarySegments, handles: boundaryHandles } : null,
             territoryOperation: territoryItems.length || candidates.length ? {

@@ -76,7 +76,7 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   const shape = page.locator('path.generic-feature-shape');
   await page.locator('#actionsTabBtn').click();
   await page.locator('#splitGenericFeatureBtn').click();
-  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await expect(page.locator('#modeDraftDoneBtn')).toBeDisabled();
 
   const box = await shape.boundingBox();
   expect(box).not.toBeNull();
@@ -92,17 +92,16 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await expect(page.locator('g.draft-vertex')).toHaveCount(2);
   await expect(page.locator('#modeEditingHud')).toBeVisible();
   await expect(page.locator('#modeDraftRedrawBtn')).toBeVisible();
-  await expect(page.locator('#modeDraftRemoveLastBtn')).toBeVisible();
-  await expect(page.locator('#modeDraftDeleteBtn')).toBeHidden();
+  await expect(page.locator('#modeDraftDeleteBtn')).toBeVisible();
+  await expect(page.locator('#modeDraftDeleteBtn')).toBeDisabled();
   await expect(page.locator('#modeTaskInstruction')).toHaveClass(/cut-valid/);
-  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled();
 
   await page.locator('.draft-segment-hit').first().hover();
   await expect(page.locator('.draft-insert-handle')).toBeVisible();
   await page.locator('.draft-insert-handle').click();
   await expect(page.locator('g.draft-vertex')).toHaveCount(3);
-  await expect(page.locator('#modeDraftRedrawBtn')).toBeHidden();
-  await expect(page.locator('#modeDraftRemoveLastBtn')).toBeHidden();
+  await expect(page.locator('#modeDraftRedrawBtn')).toBeVisible();
   await expect(page.locator('#modeDraftDeleteBtn')).toBeVisible();
   await expect(page.locator('#modeDraftDeleteBtn')).toBeEnabled();
   const middleVertexBox = await page.locator('g.draft-vertex').nth(1).boundingBox();
@@ -113,7 +112,7 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   await page.mouse.up();
   await expect(page.locator('.draft-shape.cut-invalid')).toBeVisible();
   await expect(page.locator('.draft-issue-marker')).not.toHaveCount(0);
-  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await expect(page.locator('#modeDraftDoneBtn')).toBeDisabled();
   await page.locator('#undoBtn').click();
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1);
   await page.locator('#modeDraftDeleteBtn').click();
@@ -130,7 +129,7 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
   expect(afterNudge).not.toBe(beforeNudge);
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1);
   await expect(page.locator('.draft-split-preview')).toHaveCount(2);
-  await page.locator('#modePrimaryBtn').click();
+  await page.locator('#modeDraftDoneBtn').click();
   await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용');
   await page.locator('#modePrimaryBtn').click();
 
