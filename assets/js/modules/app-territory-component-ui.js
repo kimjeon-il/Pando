@@ -23,6 +23,7 @@ export function createTerritoryComponentUi() {
     }
     dependencies.renderingDomain?.invalidateEditingOverlays?.('territory-candidate-selection');
     (0, dependencies.updateModeButtons)();
+    if (dependencies.state.tool === 'annex-territory') (0, dependencies.scheduleAnnexGeometryPreview)();
   }
 
   function updateTerritoryComponentSelectionFeedback() {
@@ -51,6 +52,7 @@ export function createTerritoryComponentUi() {
     dependencies.state.annexUseRiverBoundaries = next;
     dependencies.state.annexSelectedComponentKeys = [];
     dependencies.state.annexHoveredComponentKey = null;
+    (0, dependencies.cancelScheduledAnnexPreview)({ discard: true });
     (0, dependencies.resetRiverPartitionState)();
     if (next) void (0, dependencies.prepareRiverPartitionCandidates)();
     else {
@@ -78,6 +80,7 @@ export function createTerritoryComponentUi() {
     updateTerritoryComponentSelectionFeedback();
     dependencies.renderingDomain?.invalidateEditingOverlays?.('territory-component-selection');
     (0, dependencies.updateModeButtons)();
+    if (dependencies.state.tool === 'annex-territory') (0, dependencies.scheduleAnnexGeometryPreview)();
   }
 
 

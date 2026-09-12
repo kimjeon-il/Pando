@@ -20,6 +20,7 @@ export function connectObjectEditing({
     get countryFeatureById() { return countryIndex.countryFeatureById; },
     get countryName() { return objectPresentation.countryName; },
     get createCountryFeature() { return objectPicking.createCountryFeature; },
+    get discardActiveGeometryPreview() { return geometryPreview.discardActiveGeometryPreview; },
     get DEFAULT_GENERIC_FEATURE_COLOR() { return environment.DEFAULT_GENERIC_FEATURE_COLOR; },
     get dispatchTool() { return runtime.dispatchTool; },
     get DISTRIBUTION_MODES() { return runtime.DISTRIBUTION_MODES; },

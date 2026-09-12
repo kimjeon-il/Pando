@@ -118,9 +118,11 @@ export function createTaskPresentation() {
     const element = (0, dependencies.$)('geometryPreviewSummary');
     if (!element) return;
     const session = dependencies.state.geometryPreview.session;
+    const annexPreviewSuspended = dependencies.state.tool === 'annex-territory'
+      && ['donor', 'method'].includes(dependencies.state.annexPhase);
     const blocking = session?.validation?.blocking === true;
-    element.classList.toggle('hidden', !session || blocking);
-    if (!session || blocking) {
+    element.classList.toggle('hidden', !session || blocking || annexPreviewSuspended);
+    if (!session || blocking || annexPreviewSuspended) {
       element.textContent = '';
       element.removeAttribute('aria-label');
       return;
@@ -210,6 +212,8 @@ export function createTaskPresentation() {
     const annexSideMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'side';
     const annexComponentsMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'components';
     const annexDonorMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor';
+    const annexMethodMode = dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'method';
+    const annexReviewMode = annexLineMode || annexPolygonMode || annexPolygonPreviewMode || annexSideMode || annexComponentsMode;
     const newCountrySourceMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'sources';
     const newCountryLineMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'line';
     const newCountrySideMode = dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'side';
@@ -224,11 +228,9 @@ export function createTaskPresentation() {
     const boundarySelectMode = dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting';
     const boundaryEditMode = dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'editing';
     const boundarySelectionReady = !boundarySelectMode || (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds).valid;
-    const annexMethodSwitchAvailable = !annexDonorMode || dependencies.state.annexDonorCountryIds.length > 0;
-    const methodSwitchAvailable = (annexDonorMode && annexMethodSwitchAvailable) || annexLineMode || annexPolygonMode || annexPolygonPreviewMode || annexSideMode || annexComponentsMode
-      || newCountryLineMode || newCountrySideMode || newCountryComponentsMode;
+    const methodSwitchAvailable = annexMethodMode || newCountryLineMode || newCountrySideMode || newCountryComponentsMode;
     const activeMethod = dependencies.state.tool === 'annex-territory'
-      ? dependencies.state.annexSelectionMethod
+      ? (annexMethodMode ? dependencies.state.annexPendingSelectionMethod : dependencies.state.annexSelectionMethod)
       : dependencies.state.newCountrySelectionMethod;
     const labelMode = dependencies.state.labelPlacementMode || dependencies.state.tool === 'label';
     const terrainMode = !!(0, dependencies.hydroToolConfig)(dependencies.state.tool);
@@ -253,12 +255,10 @@ export function createTaskPresentation() {
     const primary = (0, dependencies.$)('modePrimaryBtn');
     const cancel = (0, dependencies.$)('modeCancelBtn');
     const annexTask = dependencies.state.tool === 'annex-territory';
-    const annexStep = annexDonorMode
-      ? (dependencies.state.annexDonorCountryIds.length ? 2 : 1)
-      : 3;
+    const annexStep = annexDonorMode ? 1 : annexMethodMode ? 2 : 3;
     const taskName = annexTask ? `영토 편입 ${annexStep}단계` : task.name;
-    const taskStage = annexTask && annexDonorMode
-      ? (dependencies.state.annexDonorCountryIds.length ? '방식 선택' : '대상 선택')
+    const taskStage = annexTask
+      ? (annexDonorMode ? '대상 선택' : annexMethodMode ? '방식 선택' : '영역 선택')
       : task.stage;
     if ((0, dependencies.$)('modeTaskName')) (0, dependencies.$)('modeTaskName').textContent = taskName;
     if ((0, dependencies.$)('modeTaskStage')) (0, dependencies.$)('modeTaskStage').textContent = taskStage;
@@ -273,9 +273,9 @@ export function createTaskPresentation() {
     }
     if (bar) {
       bar.classList.toggle('hidden', !specialMode);
-      bar.classList.toggle('single-action', labelMode || annexDonorMode);
-      bar.classList.toggle('is-processing', dependencies.state.modeProcessing);
-      bar.setAttribute('aria-busy', String(dependencies.state.modeProcessing));
+      bar.classList.toggle('single-action', labelMode);
+      bar.classList.toggle('is-processing', dependencies.state.modeProcessing || dependencies.state.annexPreviewPending);
+      bar.setAttribute('aria-busy', String(dependencies.state.modeProcessing || dependencies.state.annexPreviewPending));
     }
     methodSwitch?.classList.toggle('hidden', !methodSwitchAvailable);
     methodSwitch?.classList.toggle('annex-methods', dependencies.state.tool === 'annex-territory');
@@ -294,27 +294,35 @@ export function createTaskPresentation() {
     if (draftRedraw) draftRedraw.disabled = dependencies.state.modeProcessing || draft.strokeActive || !draft.coords.length;
     if (draftRemoveLast) draftRemoveLast.disabled = dependencies.state.modeProcessing || draft.strokeActive || !draft.coords.length;
     if (draftDelete) draftDelete.disabled = dependencies.state.modeProcessing || draft.strokeActive || !refineSelection;
-    const methodSelectionReady = !annexDonorMode || dependencies.state.annexDonorCountryIds.length > 0;
+    const methodSelectionReady = !annexTask || annexMethodMode;
     if (directLineMethodInput) {
-      directLineMethodInput.checked = !annexDonorMode && activeMethod === 'line';
+      directLineMethodInput.checked = activeMethod === 'line';
       directLineMethodInput.disabled = dependencies.state.modeProcessing || !methodSelectionReady;
     }
     polygonMethodOption?.classList.toggle('hidden', dependencies.state.tool !== 'annex-territory');
     if (polygonMethodInput) {
-      polygonMethodInput.checked = !annexDonorMode && activeMethod === 'polygon';
+      polygonMethodInput.checked = activeMethod === 'polygon';
       polygonMethodInput.disabled = dependencies.state.modeProcessing || !methodSelectionReady;
     }
     if (componentsMethodInput) {
-      componentsMethodInput.checked = !annexDonorMode && activeMethod === 'components';
+      componentsMethodInput.checked = activeMethod === 'components';
       componentsMethodInput.disabled = dependencies.state.modeProcessing || !methodSelectionReady;
     }
+    const annexSelectedCount = annexComponentsMode
+      ? dependencies.state.annexSelectedComponentKeys.length
+      : (annexSideMode || annexPolygonPreviewMode ? 1 : 0);
+    const annexPreviewReady = annexReviewMode
+      && !dependencies.state.annexPreviewPending
+      && !!dependencies.state.geometryPreview.session
+      && dependencies.state.geometryPreview.session.validation?.blocking !== true;
     if (primary) {
-      primary.classList.toggle('hidden', labelMode || annexDonorMode);
+      primary.classList.toggle('hidden', labelMode);
       primary.disabled = dependencies.state.modeProcessing
         || (draftMode && (draft.strokeActive || draft.coords.length < (0, dependencies.draftMinimumPoints)() || draft.issues.length > 0 || (cutLineMode && !cutLineReady)))
         || (terrainMode && draft.coords.length < ((0, dependencies.isPolygonDraftTool)(dependencies.state.tool) ? 3 : 2))
         || (newCountrySourceMode && !dependencies.state.newCountrySourceIds.length)
         || (annexDonorMode && !dependencies.state.annexDonorCountryIds.length)
+        || (annexMethodMode && !dependencies.state.annexPendingSelectionMethod)
         || (annexPolygonMode && draft.coords.length < 3)
         || (annexPolygonPreviewMode && !dependencies.state.annexCandidates[0]?.geometry)
         || (mergeTargetMode && !dependencies.state.mergeTargetCountryIds.length)
@@ -330,15 +338,22 @@ export function createTaskPresentation() {
         || (annexComponentsMode && dependencies.state.annexUseRiverBoundaries && dependencies.state.annexRiverPartitionStatus !== 'ready')
         || (annexComponentsMode && !dependencies.state.annexSelectedComponentKeys.length)
         || (newCountryComponentsMode && !dependencies.state.newCountrySelectedComponentKeys.length)
-        || (previewMode && dependencies.state.geometryPreview.session.validation?.blocking === true);
+        || (previewMode && dependencies.state.geometryPreview.session.validation?.blocking === true)
+        || (annexReviewMode && !annexLineMode && !annexPolygonMode && !annexPreviewReady);
       let primaryLabel = '완료';
-      if (previewMode) primaryLabel = '변경 적용';
+      let primaryIcon = '#icon-check';
+      if (annexTask) {
+        if (annexDonorMode || annexMethodMode || annexLineMode || annexPolygonMode) {
+          primaryLabel = '다음';
+          primaryIcon = '#icon-chevron-right';
+        } else {
+          primaryLabel = `편입 (${annexSelectedCount})`;
+        }
+      } else if (previewMode) primaryLabel = '변경 적용';
       else if (boundarySelectMode) primaryLabel = `국경 편집 (${dependencies.state.boundaryEditCountryIds.length})`;
       else if (boundaryEditMode || dependencies.state.tool === 'country-coast') primaryLabel = '수정 완료';
       else if (terrainMode) primaryLabel = '그리기 완료';
       else if (newCountrySourceMode) primaryLabel = `선택 완료 (${dependencies.state.newCountrySourceIds.length})`;
-      else if (annexPolygonMode) primaryLabel = '영역 편입';
-      else if (annexPolygonPreviewMode) primaryLabel = '영역 편입';
       else if (mergeTargetMode) primaryLabel = `합병 (${dependencies.state.mergeTargetCountryIds.length})`;
       else if (genericFeatureMergeMode) primaryLabel = `영역 합치기 (${dependencies.state.genericFeatureMergeTargetIds.length})`;
       else if (territorialUnitMergeMode) primaryLabel = `영역 합치기 (${dependencies.state.territorialUnitMergeTargetIds.length})`;
@@ -346,22 +361,24 @@ export function createTaskPresentation() {
       else if (territorialUnitSplitMode) primaryLabel = '영역 나누기';
       else if (territorialUnitRedrawMode) primaryLabel = '영역 다시 지정';
       else if (territorialUnitCreateMode) primaryLabel = '영역 만들기';
-      else if (newCountryLineMode || annexLineMode) primaryLabel = '나누기';
+      else if (newCountryLineMode) primaryLabel = '나누기';
       else if (newCountryComponentsMode) primaryLabel = `국가 만들기 (${dependencies.state.newCountrySelectedComponentKeys.length})`;
       else if (newCountrySideMode) primaryLabel = '국가 만들기';
-      else if (annexComponentsMode) primaryLabel = `편입 (${dependencies.state.annexSelectedComponentKeys.length})`;
-      else if (annexSideMode) primaryLabel = '편입';
       const primaryLabelNode = primary.querySelector('.mode-button-label');
       if (primaryLabelNode) primaryLabelNode.textContent = primaryLabel;
       else primary.textContent = primaryLabel;
-      primary.setAttribute('aria-label', primaryLabel);
-      primary.setAttribute('aria-busy', String(dependencies.state.modeProcessing));
+      (0, dependencies.$)('modePrimaryIcon')?.setAttribute('href', primaryIcon);
+      primary.setAttribute('aria-label', annexTask && primaryLabel === '다음' ? '다음 단계' : primaryLabel);
+      primary.setAttribute('aria-busy', String(dependencies.state.modeProcessing || dependencies.state.annexPreviewPending));
     }
     if (cancel) {
+      const annexBack = annexTask && !annexDonorMode;
+      const cancelLabel = annexBack ? '뒤로' : '취소';
       const cancelLabelNode = cancel.querySelector('.mode-button-label');
-      if (cancelLabelNode) cancelLabelNode.textContent = '취소';
-      else cancel.textContent = '취소';
-      cancel.setAttribute('aria-label', '작업 취소');
+      if (cancelLabelNode) cancelLabelNode.textContent = cancelLabel;
+      else cancel.textContent = cancelLabel;
+      (0, dependencies.$)('modeCancelIcon')?.setAttribute('href', annexBack ? '#icon-undo' : '#icon-close');
+      cancel.setAttribute('aria-label', annexBack ? '이전 단계' : '작업 취소');
       cancel.disabled = dependencies.state.modeProcessing;
     }
     syncGeometryPreviewSummary();
@@ -373,20 +390,21 @@ export function createTaskPresentation() {
   }
 
   function dispatchModePrimaryAction() {
-    if (dependencies.state.geometryPreview.session) return (0, dependencies.applyActiveGeometryPreview)();
+    const annexTask = dependencies.state.tool === 'annex-territory';
+    const annexReviewMode = annexTask && ['line', 'polygon', 'polygon-preview', 'side', 'components'].includes(dependencies.state.annexPhase);
+    if (dependencies.state.geometryPreview.session && (!annexTask || annexReviewMode)) return (0, dependencies.applyActiveGeometryPreview)();
     if (dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting') return (0, dependencies.beginCountryBorderEditing)();
     if (dependencies.state.tool === 'country-border') return (0, dependencies.finishCountryBorderEdit)();
     if (dependencies.state.tool === 'country-coast') return (0, dependencies.finishCountryCoastEdit)();
     if (dependencies.state.tool === 'merge-generic-feature') return (0, dependencies.completeGenericFeatureMerge)();
     if (dependencies.state.tool === 'merge-territorial-unit') return (0, dependencies.completeTerritorialUnitMerge)();
     if (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'sources') return (0, dependencies.beginNewCountryLine)();
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'donor') return (0, dependencies.beginAnnexSelection)();
+    if (annexTask && dependencies.state.annexPhase === 'donor') return (0, dependencies.advanceAnnexToMethod)();
+    if (annexTask && dependencies.state.annexPhase === 'method') return (0, dependencies.beginAnnexSelection)();
     if (dependencies.state.tool === 'merge-country') return (0, dependencies.completeCountryMerge)();
     if (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'side') return (0, dependencies.completeNewCountryCreation)(dependencies.state.newCountrySelectedCandidateIndex);
     if (dependencies.state.tool === 'new-country' && dependencies.state.newCountryPhase === 'components') return (0, dependencies.completeNewCountryCreation)(null);
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'side') return (0, dependencies.completeLinearAnnexation)(dependencies.state.annexSelectedCandidateIndex);
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'polygon-preview') return (0, dependencies.completeLinearAnnexation)(0);
-    if (dependencies.state.tool === 'annex-territory' && dependencies.state.annexPhase === 'components') return (0, dependencies.completeLinearAnnexation)(null);
+    if (annexTask && ['side', 'polygon-preview', 'components'].includes(dependencies.state.annexPhase)) return (0, dependencies.scheduleAnnexGeometryPreview)({ delay: 0 });
     if ((0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) || ['new-country', 'annex-territory'].includes(dependencies.state.tool)) return (0, dependencies.finishDraft)();
     return false;
   }
