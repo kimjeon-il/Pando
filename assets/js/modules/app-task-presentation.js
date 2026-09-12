@@ -63,6 +63,57 @@ export function createTaskPresentation() {
     return (0, dependencies.describeTool)(dependencies.state.tool, dependencies.state, { labelPlacement: dependencies.state.labelPlacementMode });
   }
 
+  function annexCountryDisplay(countryId) {
+    const id = String(countryId || '');
+    const feature = id ? dependencies.countryFeatureById?.(id) : null;
+    if (!feature) return null;
+    const override = dependencies.state.countryOverrides?.[id] || {};
+    return {
+      name: dependencies.countryName(feature, override),
+      flagUrl: dependencies.effectiveCountryFlagUrl({ countryId: id, override, assetRevision: dependencies.ASSET_REVISION }),
+    };
+  }
+
+  function setAnnexCountryDisplay({ flag, name }, display, fallback) {
+    const label = display?.name || fallback;
+    if (name) {
+      name.textContent = label;
+      name.classList.toggle('annex-country-flow-placeholder', !display);
+    }
+    if (!flag) return;
+    flag.hidden = !display?.flagUrl;
+    if (display?.flagUrl) flag.src = display.flagUrl;
+    else flag.removeAttribute('src');
+  }
+
+  function syncAnnexCountryFlow() {
+    const flow = (0, dependencies.$)('annexCountryFlow');
+    if (!flow) return;
+    const active = dependencies.state.tool === 'annex-territory';
+    flow.classList.toggle('hidden', !active);
+    if (!active) {
+      flow.removeAttribute('aria-label');
+      return;
+    }
+    const target = annexCountryDisplay(dependencies.state.annexTargetCountryId);
+    const donors = dependencies.state.annexDonorCountryIds
+      .map(annexCountryDisplay)
+      .filter(Boolean);
+    const donor = donors[0] || null;
+    const donorLabel = donor ? `${donor.name}${donors.length > 1 ? ` 외 ${donors.length - 1}개` : ''}` : '국가 선택';
+    setAnnexCountryDisplay({
+      flag: (0, dependencies.$)('annexTargetCountryFlag'),
+      name: (0, dependencies.$)('annexTargetCountryName'),
+    }, target, '국가');
+    setAnnexCountryDisplay({
+      flag: (0, dependencies.$)('annexDonorCountryFlag'),
+      name: (0, dependencies.$)('annexDonorCountryName'),
+    }, donor ? { ...donor, name: donorLabel } : null, '국가 선택');
+    flow.setAttribute('aria-label', donor
+      ? `${donorLabel}의 영토를 ${target?.name || '국가'}에 편입`
+      : `${target?.name || '국가'}에 편입할 국가를 선택`);
+  }
+
   function syncGeometryPreviewSummary() {
     const element = (0, dependencies.$)('geometryPreviewSummary');
     if (!element) return;
@@ -173,7 +224,8 @@ export function createTaskPresentation() {
     const boundarySelectMode = dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting';
     const boundaryEditMode = dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'editing';
     const boundarySelectionReady = !boundarySelectMode || (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds).valid;
-    const methodSwitchAvailable = annexDonorMode || annexLineMode || annexPolygonMode || annexPolygonPreviewMode || annexSideMode || annexComponentsMode
+    const annexMethodSwitchAvailable = !annexDonorMode || dependencies.state.annexDonorCountryIds.length > 0;
+    const methodSwitchAvailable = (annexDonorMode && annexMethodSwitchAvailable) || annexLineMode || annexPolygonMode || annexPolygonPreviewMode || annexSideMode || annexComponentsMode
       || newCountryLineMode || newCountrySideMode || newCountryComponentsMode;
     const activeMethod = dependencies.state.tool === 'annex-territory'
       ? dependencies.state.annexSelectionMethod
@@ -200,8 +252,19 @@ export function createTaskPresentation() {
     const draftDelete = (0, dependencies.$)('modeDraftDeleteBtn');
     const primary = (0, dependencies.$)('modePrimaryBtn');
     const cancel = (0, dependencies.$)('modeCancelBtn');
-    if ((0, dependencies.$)('modeTaskName')) (0, dependencies.$)('modeTaskName').textContent = task.name;
-    if ((0, dependencies.$)('modeTaskStage')) (0, dependencies.$)('modeTaskStage').textContent = task.stage;
+    const annexTask = dependencies.state.tool === 'annex-territory';
+    const annexStep = annexDonorMode
+      ? (dependencies.state.annexDonorCountryIds.length ? 2 : 1)
+      : 3;
+    const taskName = annexTask ? `영토 편입 ${annexStep}단계` : task.name;
+    const taskStage = annexTask && annexDonorMode
+      ? (dependencies.state.annexDonorCountryIds.length ? '방식 선택' : '대상 선택')
+      : task.stage;
+    if ((0, dependencies.$)('modeTaskName')) (0, dependencies.$)('modeTaskName').textContent = taskName;
+    if ((0, dependencies.$)('modeTaskStage')) (0, dependencies.$)('modeTaskStage').textContent = taskStage;
+    syncAnnexCountryFlow();
+    const instruction = (0, dependencies.$)('modeTaskInstruction');
+    if (instruction && annexDonorMode) instruction.classList.add('hidden');
     const currentTaskIcon = (0, dependencies.$)('modeTaskIcon');
     if (currentTaskIcon && task.icon) {
       const nextTaskIcon = (0, dependencies.createSemanticIcon)(document, task.icon, 'ui-icon mode-task-icon');

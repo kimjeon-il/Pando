@@ -32,7 +32,7 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await openActionsTab(page);
   await page.locator('#annexTerritoryBtn').click();
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
-  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
   await expect(page.locator('#editorScrollBody')).not.toBeVisible();
   await expect(page.locator('#modeTaskMinimizeBtn')).not.toBeVisible();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
@@ -44,7 +44,7 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#modeTaskMinimizeBtn')).not.toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
-  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#rightPanel')).toHaveAttribute('data-editor-content', 'properties');
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));

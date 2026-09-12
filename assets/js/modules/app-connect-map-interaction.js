@@ -106,6 +106,7 @@ export function connectMapInteraction({
   });
   taskPresentation.connect({
     get $() { return environment.$; },
+    get ASSET_REVISION() { return environment.ASSET_REVISION; },
     get applyActiveGeometryPreview() { return geometryPreview.applyActiveGeometryPreview; },
     get beginAnnexSelection() { return countryModes.beginAnnexSelection; },
     get beginCountryBorderEditing() { return countryModes.beginCountryBorderEditing; },
@@ -116,12 +117,15 @@ export function connectMapInteraction({
     get completeLinearAnnexation() { return countryCommits.completeLinearAnnexation; },
     get completeNewCountryCreation() { return countryCommits.completeNewCountryCreation; },
     get completeTerritorialUnitMerge() { return territorialDrafts.completeTerritorialUnitMerge; },
+    get countryFeatureById() { return countryIndex.countryFeatureById; },
+    get countryName() { return objectPresentation.countryName; },
     get createSemanticIcon() { return runtime.createSemanticIcon; },
     get describeTool() { return runtime.describeTool; },
     get draftMinimumPoints() { return countryModes.draftMinimumPoints; },
     get editingDomain() { return domainAssembly.editingDomain; },
     get editingDraftSnapshot() { return countryModes.editingDraftSnapshot; },
     get editorWorkspacePresentation() { return workspaceSurfaces.editorWorkspacePresentation; },
+    get effectiveCountryFlagUrl() { return runtime.effectiveCountryFlagUrl; },
     get finishCountryBorderEdit() { return countryModes.finishCountryBorderEdit; },
     get finishCountryCoastEdit() { return countryModes.finishCountryCoastEdit; },
     get finishDraft() { return countryCommits.finishDraft; },

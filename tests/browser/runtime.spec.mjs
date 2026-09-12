@@ -152,7 +152,10 @@ test('annex territory exposes river boundaries as a retained component-selection
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexTerritoryBtn').click();
-  await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가 선택');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
+  await expect(page.locator('#modeTaskStage')).toHaveText('대상 선택');
+  await expect(page.locator('#annexCountryFlow')).toBeVisible();
+  await expect(page.locator('#modeMethodSwitch')).toBeHidden();
   const donorPoint = await page.evaluate(() => {
     const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
     return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
@@ -164,6 +167,9 @@ test('annex territory exposes river boundaries as a retained component-selection
     button: 0,
   });
   await expect(page.locator('#modePrimaryBtn')).toBeHidden();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 2단계');
+  await expect(page.locator('#modeTaskStage')).toHaveText('방식 선택');
+  await expect(page.locator('#modeMethodSwitch')).toBeVisible();
   await expect(page.locator('#modeDirectLineMethodInput')).toBeEnabled();
   await page.locator('#modeDirectLineMethodInput').check();
 
