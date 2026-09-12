@@ -307,7 +307,7 @@
 
 .workflow-map-session .mode-aux-control:is(:focus-visible, :has(input:focus-visible)) {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: var(--ui-v2-focus-offset);
 }
 
 .workflow-map-session .mode-aux-control:is(:disabled, :has(input:disabled)) {
@@ -318,8 +318,8 @@
 .workflow-map-session .mode-river-boundary-option { width: 100%; }
 .workflow-map-session .mode-river-boundary-option input {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: var(--ui-border-width);
+  height: var(--ui-border-width);
   margin: 0;
   padding: 0;
   clip-path: inset(50%);
