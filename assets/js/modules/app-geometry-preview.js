@@ -216,11 +216,14 @@ export function createGeometryPreview() {
       transferredGeometry = result.transferredGeometry || transferredGeometry;
       const affectedIds = new Set((result.affectedIds || []).map(String));
       const removedIds = new Set((result.removedIds || []).map(String));
-      const beforeFeatures = [...affectedIds].map(dependencies.countryFeatureById).filter(Boolean).map(dependencies.deepClone);
+      const beforeFeatures = [...affectedIds]
+        .map(id => (0, dependencies.countryFeatureById)(id))
+        .filter(Boolean)
+        .map(feature => (0, dependencies.deepClone)(feature));
       const patchById = new Map((result.features || []).map(feature => [String(feature?.id || ''), (0, dependencies.deepClone)(feature)]));
       const afterFeatures = [...affectedIds].filter(id => !removedIds.has(id))
         .map(id => patchById.get(id) || (0, dependencies.countryFeatureById)(id))
-        .filter(Boolean).map(dependencies.deepClone);
+        .filter(Boolean).map(feature => (0, dependencies.deepClone)(feature));
       const proposedFeatures = (dependencies.state.countriesData?.features || [])
         .filter(feature => !affectedIds.has(String(feature?.id || '')))
         .map(feature => feature)
@@ -258,7 +261,7 @@ export function createGeometryPreview() {
       });
       activeGeometryPreviewDiscard = () => dependencies.mapEditClient.discard(requestId);
       activeGeometryPreviewApply = async () => {
-        if (!(0, dependencies.previewIsCurrent)(dependencies.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.state.stateRevision !== baseDataRevision) {
+        if (!shouldKeepResult() || !(0, dependencies.previewIsCurrent)(dependencies.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.state.stateRevision !== baseDataRevision) {
           dependencies.mapEditClient.discard(requestId);
           (0, dependencies.clearGeometryPreview)(dependencies.state.geometryPreview);
           activeGeometryPreviewApply = null;
@@ -320,10 +323,13 @@ export function createGeometryPreview() {
     transferredGeometry = null,
     snapshot = (0, dependencies.snapshotEditable)(),
     applyResult,
+    shouldKeepResult = () => true,
+    commitHistorySnapshot = false,
     successMessage = '변경을 적용했습니다.',
     errorMessage = '변경을 적용하지 못했습니다.',
   }) {
     discardActiveGeometryPreview({ announce: false });
+    if (!shouldKeepResult()) return false;
     const baseDataRevision = dependencies.state.stateRevision;
     const issues = afterFeatures.flatMap(feature => (0, dependencies.validateStructuredGeometry)(feature));
     const preview = (0, dependencies.buildGeometryPreview)({ operation, beforeFeatures, afterFeatures, removedIds, clipper: window.polygonClipping, transferredGeometry });
@@ -339,7 +345,7 @@ export function createGeometryPreview() {
     });
     activeGeometryPreviewDiscard = null;
     activeGeometryPreviewApply = async () => {
-      if (!(0, dependencies.previewIsCurrent)(dependencies.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.state.stateRevision !== baseDataRevision) {
+      if (!shouldKeepResult() || !(0, dependencies.previewIsCurrent)(dependencies.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.state.stateRevision !== baseDataRevision) {
         (0, dependencies.clearGeometryPreview)(dependencies.state.geometryPreview);
         activeGeometryPreviewApply = null;
         dependencies.renderingDomain?.invalidateGpuInteraction?.('local-geometry-preview-cancelled');
@@ -357,6 +363,7 @@ export function createGeometryPreview() {
       try {
         await applyResult();
         assertCurrentProjectReferences();
+        if (commitHistorySnapshot) dependencies.projectDomain.commitHistorySnapshot(snapshot);
         dependencies.state.stateRevision += 1;
         dependencies.projectDomain.queueAutosave();
         dependencies.renderingDomain?.invalidateGenericPatch?.('local-geometry-preview-applied');

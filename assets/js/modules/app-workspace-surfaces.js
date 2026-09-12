@@ -559,9 +559,12 @@ export function createWorkspaceSurfaces() {
   }
 
   function syncMobileNavigation() {
-    const adding = dependencies.state?.tool === 'new-country' || !!(0, dependencies.hydroToolConfig)(dependencies.state?.tool) || dependencies.state?.labelPlacementMode || dependencies.state?.tool === 'label';
+    const adding = dependencies.state?.tool === 'new-country' || dependencies.state?.tool === 'draw-territorial-unit'
+      || !!(0, dependencies.hydroToolConfig)(dependencies.state?.tool) || dependencies.state?.labelPlacementMode || dependencies.state?.tool === 'label';
     (0, dependencies.$)('createMenuBtn')?.classList.toggle('active', !!adding);
     (0, dependencies.$)('addCountryBtn')?.classList.toggle('active', dependencies.state?.tool === 'new-country');
+    (0, dependencies.$)('addSubunitBtn')?.classList.toggle('active', dependencies.state?.territorySelectionSession?.kind === 'subunit');
+    (0, dependencies.$)('addRegionBtn')?.classList.toggle('active', dependencies.state?.territorySelectionSession?.kind === 'region');
     (0, dependencies.$)('addLabelBtn')?.classList.toggle('active', !!dependencies.state?.labelPlacementMode || dependencies.state?.tool === 'label');
     (0, dependencies.$)('addRiverBtn')?.classList.toggle('active', dependencies.state?.tool === 'river');
     (0, dependencies.$)('addLakeBtn')?.classList.toggle('active', dependencies.state?.tool === 'lake');

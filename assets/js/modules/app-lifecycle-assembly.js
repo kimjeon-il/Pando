@@ -177,7 +177,7 @@ export function createLifecycleAssembly() {
             d3: dependencies.d3,
             navigator,
             createMapInputController: dependencies.createMapInputController,
-            getInputSnapshot: () => ({ moving: dependencies.state.mapMoving, spacePanActive: dependencies.state.spacePanActive, tool: dependencies.state.tool, projection: dependencies.state.projection, globeZoom: dependencies.state.view.globeZoom, flatZoom: dependencies.state.view.flatZoom, annexPhase: dependencies.state.annexPhase, newCountryPhase: dependencies.state.newCountryPhase, labelPlacementMode: dependencies.state.labelPlacementMode }),
+            getInputSnapshot: () => ({ moving: dependencies.state.mapMoving, spacePanActive: dependencies.state.spacePanActive, tool: dependencies.state.tool, projection: dependencies.state.projection, globeZoom: dependencies.state.view.globeZoom, flatZoom: dependencies.state.view.flatZoom, territorySelectionSession: dependencies.state.territorySelectionSession, labelPlacementMode: dependencies.state.labelPlacementMode }),
             setMoving: value => { dependencies.state.mapMoving = value; },
             clearHoverHit: () => { dependencies.lastHoverHit = null; },
             getQualityTier: () => dependencies.currentRenderQuality.tier,

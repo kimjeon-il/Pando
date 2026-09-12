@@ -108,11 +108,13 @@ export function createMapInputPresentation({
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
       },
       canDirectTap: () => {
-        if (getInputSnapshot().tool === 'move') return false;
-        const annexLine = getInputSnapshot().tool === 'annex-territory' && ['line', 'polygon'].includes(getInputSnapshot().annexPhase);
-        const newCountryLine = getInputSnapshot().tool === 'new-country' && getInputSnapshot().newCountryPhase === 'line';
-        const draftTap = (isGenericFeatureDraftTool(getInputSnapshot().tool) || newCountryLine || annexLine) && getDraftSnapshot().inputPhase === 'draw';
-        return getInputSnapshot().labelPlacementMode || draftTap || getInputSnapshot().tool === 'point';
+        const input = getInputSnapshot();
+        if (input.tool === 'move') return false;
+        const territoryDraft = input.territorySelectionSession?.tool === input.tool
+          && input.territorySelectionSession.stage === 'selection'
+          && ['line', 'polygon'].includes(input.territorySelectionSession.selectionPhase);
+        const draftTap = (isGenericFeatureDraftTool(input.tool) || territoryDraft) && getDraftSnapshot().inputPhase === 'draw';
+        return input.labelPlacementMode || draftTap || input.tool === 'point';
       },
       directTap: handleMapClick,
       canDoubleTap: () => isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'country-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
@@ -151,8 +153,11 @@ export function createMapInputPresentation({
       const screenPoint = d3.mouse(this);
       const coord = screenToGeo(screenPoint);
       if (coord) {
-        const newCountryLineMode = getInputSnapshot().tool === 'new-country' && getInputSnapshot().newCountryPhase === 'line';
-        if ((isGenericFeatureDraftTool(getInputSnapshot().tool) || newCountryLineMode || (getInputSnapshot().tool === 'annex-territory' && ['line', 'polygon'].includes(getInputSnapshot().annexPhase))) && draft.inputPhase === 'draw' && draft.coords.length) {
+        const input = getInputSnapshot();
+        const territoryDraft = input.territorySelectionSession?.tool === input.tool
+          && input.territorySelectionSession.stage === 'selection'
+          && ['line', 'polygon'].includes(input.territorySelectionSession.selectionPhase);
+        if ((isGenericFeatureDraftTool(input.tool) || territoryDraft) && draft.inputPhase === 'draw' && draft.coords.length) {
           dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
         }
         if (getInputSnapshot().tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape, .territorial-unit-shape, .distribution-shape')) {

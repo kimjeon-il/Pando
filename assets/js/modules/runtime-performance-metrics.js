@@ -390,7 +390,6 @@ function installCommitToPaintProbe(documentRef, globalObject, metrics) {
   const clickSelectors = [
     '#modePrimaryBtn',
     '#territorialTypeConfirmBtn',
-    '#territorialCreateConfirmBtn',
     '#distributionTypeConfirmBtn',
     '#confirmModalConfirmBtn',
     '#coastReconciliationCountryBtn',

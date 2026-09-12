@@ -622,12 +622,12 @@ body.file-menu-open .mobile-backdrop {
 .country-shape.annex-donor { fill: none !important; stroke: #d8b5ff !important; stroke-width: 2.6px !important; }
 .country-shape.merge-target { fill: none !important; stroke: #d8b5ff !important; stroke-width: 2.6px !important; }
 .country-shape.new-country-source { fill: none !important; stroke: #ffd77d !important; stroke-width: 2.6px !important; }
-.annex-candidate { stroke-width: 2.2px; vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: all; }
-.annex-candidate.side-a { fill: rgba(104,190,126,.30); stroke: #a8edb8; }
-.annex-candidate.side-b { fill: rgba(153,111,205,.27); stroke: #dab8ff; }
-.annex-candidate.selected-candidate { fill: rgba(104,190,126,.42); stroke: #d5ffde; stroke-width: 3.2px; opacity: 1; }
-.annex-candidate.alternate-candidate { fill: rgba(153,111,205,.16); stroke: #b998d5; opacity: .58; }
-.annex-candidate:hover { fill-opacity: .74; stroke-width: 3.2px; opacity: 1; }
+.territory-candidate { stroke-width: 2.2px; vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: all; }
+.territory-candidate.side-a { fill: rgba(104,190,126,.30); stroke: #a8edb8; }
+.territory-candidate.side-b { fill: rgba(153,111,205,.27); stroke: #dab8ff; }
+.territory-candidate.selected-candidate { fill: rgba(104,190,126,.42); stroke: #d5ffde; stroke-width: 3.2px; opacity: 1; }
+.territory-candidate.alternate-candidate { fill: rgba(153,111,205,.16); stroke: #b998d5; opacity: .58; }
+.territory-candidate:hover { fill-opacity: .74; stroke-width: 3.2px; opacity: 1; }
 .territory-component { vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: all; }
 .territory-component.available { fill: rgba(226,201,130,.08); stroke: rgba(255,224,153,.72); stroke-width: 1.4px; }
 .territory-component.selected-component { fill: rgba(104,190,126,.42); stroke: #d5ffde; stroke-width: 3px; }
@@ -688,7 +688,24 @@ body.file-menu-open .mobile-backdrop {
 .mode-task-window-content[hidden] { display: none; }
 .mode-task-section { min-width: 0; display: grid; gap: var(--ui-space-2); }
 .mode-task-section-title { color: var(--muted); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-semibold); }
-.mode-task-method-section:has(#modeMethodSwitch.hidden):has(#modeRiverBoundaryOption.hidden) { display: none; }
+.mode-task-method-section:has(#modeMethodSwitch.hidden):has(#modeRiverBoundaryOption.hidden):has(#territorialCreateReference.hidden) { display: none; }
+
+.territorial-create-setup {
+  display: grid;
+  gap: 12px;
+  padding: 12px 10px 4px;
+}
+
+.territorial-create-reference {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid var(--ui-border-color, #c9d0d7);
+  border-radius: 8px;
+}
+
+.territorial-create-reference > span { font-weight: 700; }
+.territorial-create-reference > small { color: var(--ui-muted-color, #66707a); }
 
 
 /* ===== v0.10.2: 매개평면 GPU 메시, QGIS 벡터 호환, 계층형 레이어 ===== */

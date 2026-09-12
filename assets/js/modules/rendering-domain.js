@@ -359,15 +359,19 @@ export function createRenderingDomain({
       ? framePath(renderViewState, countries.path)
       : countries.path;
     countries.renderPendingCountryOverlays?.();
+    const territorySelection = state.territorySelectionSession?.tool === state.tool
+      ? state.territorySelectionSession : null;
+    const territoryTargetId = String(territorySelection?.targetCountryId || '');
+    const territorySourceIds = new Set((territorySelection?.sourceCountryIds || []).map(String));
     const highlighted = state.layerVisibility?.countries && state.countriesData
       ? state.countriesData.features.filter(feature => {
           const id = String(feature.id || '');
           if (!countries.isLayerItemVisible?.('countries', id)) return false;
           return (state.tool === 'country-coast' && state.coastEditCountryId === id)
             || (state.tool === 'country-border' && state.boundaryEditCountryIds?.includes(id))
-            || (state.tool === 'annex-territory' && (state.annexTargetCountryId === id || state.annexDonorCountryIds?.includes(id)))
-            || (state.tool === 'merge-country' && (state.mergeSourceCountryId === id || state.mergeTargetCountryIds?.includes(id)))
-            || (state.tool === 'new-country' && state.newCountrySourceIds?.includes(id));
+            || (territorySelection?.targetHighlightRole && territoryTargetId === id)
+            || (territorySelection?.sourceHighlightRole && territorySourceIds.has(id))
+            || (state.tool === 'merge-country' && (state.mergeSourceCountryId === id || state.mergeTargetCountryIds?.includes(id)));
         })
       : [];
     const fillSelection = countries.countryLayer?.selectAll('path.country-highlight-fill').data(highlighted, feature => feature.id);
@@ -376,10 +380,10 @@ export function createRenderingDomain({
     allCountryFills?.attr('d', feature => visualPath?.(feature))
       .attr('data-gpu-scene-key', feature => `country-tool-fill:${feature.id}`)
       .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds?.includes(String(feature.id)))
-      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.id)
-      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryIds?.includes(String(feature.id)))
+      .classed('annex-editing', feature => territorySelection?.targetHighlightRole === 'annex-target' && territoryTargetId === String(feature.id))
+      .classed('annex-donor', feature => territorySelection?.sourceHighlightRole === 'annex-source' && territorySourceIds.has(String(feature.id)))
       .classed('merge-target', feature => state.tool === 'merge-country' && state.mergeTargetCountryIds?.includes(String(feature.id)))
-      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds?.includes(String(feature.id)));
+      .classed('new-country-source', feature => territorySelection?.sourceHighlightRole === 'reference' && territorySourceIds.has(String(feature.id)));
     fillSelection?.exit().remove();
     const selection = countries.countryLayer?.selectAll('path.country-shape').data(highlighted, feature => feature.id);
     selection?.enter().append('path').attr('class', 'country-shape gpu-country-highlight');
@@ -388,10 +392,10 @@ export function createRenderingDomain({
       .attr('data-gpu-scene-key', feature => `country-tool-outline:${feature.id}`)
       .classed('border-editing', feature => state.tool === 'country-border' && state.boundaryEditCountryIds?.includes(String(feature.id)))
       .classed('coast-editing', feature => state.tool === 'country-coast' && state.coastEditCountryId === feature.id)
-      .classed('annex-editing', feature => state.tool === 'annex-territory' && state.annexTargetCountryId === feature.id)
-      .classed('annex-donor', feature => state.tool === 'annex-territory' && state.annexDonorCountryIds?.includes(String(feature.id)))
+      .classed('annex-editing', feature => territorySelection?.targetHighlightRole === 'annex-target' && territoryTargetId === String(feature.id))
+      .classed('annex-donor', feature => territorySelection?.sourceHighlightRole === 'annex-source' && territorySourceIds.has(String(feature.id)))
       .classed('merge-target', feature => state.tool === 'merge-country' && state.mergeTargetCountryIds?.includes(String(feature.id)))
-      .classed('new-country-source', feature => state.tool === 'new-country' && state.newCountrySourceIds?.includes(String(feature.id)));
+      .classed('new-country-source', feature => territorySelection?.sourceHighlightRole === 'reference' && territorySourceIds.has(String(feature.id)));
     selection?.exit().remove();
     const pending = state.layerVisibility?.countries && state.pendingCountryRenderIds?.size
       ? [...state.pendingCountryRenderIds].map(countries.countryFeatureById).filter(Boolean)
@@ -406,9 +410,9 @@ export function createRenderingDomain({
     }
     const highlightStyle = feature => {
       const id = String(feature.id || '');
-      if (state.tool === 'annex-territory' && state.annexTargetCountryId === id) return { color: '#68be7e', fillAlpha: 0.16, stroke: '#9ee0a9', width: 2.4 };
-      if ((state.tool === 'annex-territory' && state.annexDonorCountryIds?.includes(id)) || (state.tool === 'merge-country' && state.mergeTargetCountryIds?.includes(id))) return { color: '#996fcd', fillAlpha: 0.16, stroke: '#d8b5ff', width: 2.6 };
-      if (state.tool === 'new-country' && state.newCountrySourceIds?.includes(id)) return { color: '#e2c982', fillAlpha: 0.14, stroke: '#ffd77d', width: 2.6 };
+      if (territorySelection?.targetHighlightRole === 'annex-target' && territoryTargetId === id) return { color: '#68be7e', fillAlpha: 0.16, stroke: '#9ee0a9', width: 2.4 };
+      if ((territorySelection?.sourceHighlightRole === 'annex-source' && territorySourceIds.has(id)) || (state.tool === 'merge-country' && state.mergeTargetCountryIds?.includes(id))) return { color: '#996fcd', fillAlpha: 0.16, stroke: '#d8b5ff', width: 2.6 };
+      if (territorySelection?.sourceHighlightRole === 'reference' && territorySourceIds.has(id)) return { color: '#e2c982', fillAlpha: 0.14, stroke: '#ffd77d', width: 2.6 };
       return { color: countries.resolvedInteractionStyle?.().selection.color, fillAlpha: 0.18, stroke: countries.mapTheme?.().border, width: 0.72 };
     };
     const toolPolygons = [];
@@ -1899,8 +1903,8 @@ export function createRenderingDomain({
       .on('mouseleave', d => publishEditingInteraction({ type: 'territory-component-leave', componentKey: d.key }))
       .on('click', d => { stop(); publishEditingInteraction({ type: 'territory-component-toggle', componentKey: d.key, screenPoint: localEditingPoint() }); });
     componentPaths.each(function(d) { const node = d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(`${d.countryName} · ${formatTerritoryArea?.(d.areaKm2) || d.areaKm2}`); });
-    joinEditingNodes(layer, 'path.annex-candidate', operation?.candidates || [], d => d.index)
-      .attr('class', d => `annex-candidate ${d.index === 0 ? 'side-a' : 'side-b'} ${d.selected ? 'selected-candidate' : 'alternate-candidate'}`)
+    joinEditingNodes(layer, 'path.territory-candidate', operation?.candidates || [], d => d.index)
+      .attr('class', d => `territory-candidate ${d.index === 0 ? 'side-a' : 'side-b'} ${d.selected ? 'selected-candidate' : 'alternate-candidate'}`)
       .style('pointer-events', d => d.interactive === false ? 'none' : null)
       .on('click', d => { if (d.interactive === false) return; stop(); publishEditingInteraction({ type: 'territory-candidate-select', candidateIndex: d.index }); });
     const shapes = [
