@@ -84,6 +84,7 @@ export function createTerritorySelectionWorkflow() {
         label: '영토 편입',
         setupStageLabel: '대상 선택',
         defaultName: '',
+        nameLabel: '',
         generatedIdPrefix: '',
         supportsName: false,
         showSetup: false,
@@ -120,6 +121,7 @@ export function createTerritorySelectionWorkflow() {
         label: '국가 추가',
         setupStageLabel: '기본 설정',
         defaultName: '새 국가',
+        nameLabel: '국가명',
         generatedIdPrefix: 'USR',
         supportsName: true,
         showSetup: true,
@@ -155,6 +157,7 @@ export function createTerritorySelectionWorkflow() {
         label: '하위단위 추가',
         setupStageLabel: '기본 설정',
         defaultName: '새 하위단위',
+        nameLabel: '하위단위명',
         generatedIdPrefix: 'subunit',
         supportsName: true,
         showSetup: true,
@@ -190,6 +193,7 @@ export function createTerritorySelectionWorkflow() {
         label: '지방 추가',
         setupStageLabel: '기본 설정',
         defaultName: '새 지방',
+        nameLabel: '지방명',
         generatedIdPrefix: 'region',
         supportsName: true,
         showSetup: true,
@@ -470,11 +474,24 @@ export function createTerritorySelectionWorkflow() {
   function refreshCombinedGeometry(current = session()) {
     if (!current) return null;
     current.combinedGeometry = combineSelectionGeometry(current);
-    current.remainingGeometry = current.currentGeometry && current.workingSourceGeometry
-      ? (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.difference(
+    if (current.selectionPhase === 'components' || !current.currentGeometry || !current.workingSourceGeometry) {
+      current.remainingGeometry = current.workingSourceGeometry;
+      return current.combinedGeometry;
+    }
+    try {
+      current.remainingGeometry = (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.difference(
         (0, dependencies.geometryMultiCoordinates)(current.workingSourceGeometry),
         (0, dependencies.geometryMultiCoordinates)(current.currentGeometry),
-      )) : current.workingSourceGeometry;
+      ));
+    } catch (error) {
+      current.remainingGeometry = null;
+      (0, dependencies.reportOperationError)(
+        error,
+        '선택 후 남은 영역을 계산하지 못했습니다. 현재 영역을 다시 선택하세요.',
+        'PL-TERRITORY-SELECTION-003',
+        3800,
+      );
+    }
     return current.combinedGeometry;
   }
 
@@ -636,6 +653,15 @@ export function createTerritorySelectionWorkflow() {
       let prepared = false;
       try {
         prepared = await adapterFor(current)?.preview?.(current, key) === true;
+      } catch (error) {
+        if (previewIsCurrent(current, key)) {
+          (0, dependencies.reportOperationError)(
+            error,
+            '선택한 영역의 결과를 준비하지 못했습니다. 영역을 다시 선택하세요.',
+            'PL-TERRITORY-PREVIEW-001',
+            3800,
+          );
+        }
       } finally {
         if (previewIsCurrent(current, key)) {
           current.previewPending = false;
@@ -700,6 +726,7 @@ export function createTerritorySelectionWorkflow() {
       activeMethod: current.stage === 'method' ? current.pendingMethod : current.method,
       showSetup: current.stage === 'setup' && adapter.showSetup,
       showName: current.stage === 'setup' && adapter.supportsName,
+      nameLabel: adapter.nameLabel,
       showSubunitFields: current.stage === 'setup' && adapter.showSubunitFields,
       showReference: adapter.showReference(current),
       showCountryFlow: adapter.showCountryFlow,

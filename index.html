@@ -259,7 +259,7 @@
                     </div>
                   </div>
                   <div id="territorialCreateSetup" class="territorial-create-setup hidden">
-                    <label class="ui-field field-group"><span>이름</span><input id="territorialCreateNameInput" type="text" maxlength="120" autocomplete="off" /></label>
+                    <label class="ui-field field-group"><span id="territorialCreateNameLabel">이름</span><input id="territorialCreateNameInput" type="text" maxlength="120" autocomplete="off" /></label>
                     <label id="territorialCreateSovereignRow" class="ui-field field-group"><span>소속 국가</span><select id="territorialCreateSovereignInput"></select></label>
                     <label id="territorialCreateParentRow" class="ui-field field-group"><span>상위 소속</span><select id="territorialCreateParentInput"></select></label>
                     <label id="territorialCreateSourceRow" class="ui-field field-group"><span>기준 영역</span><select id="territorialCreateSourceInput"></select></label>
@@ -271,7 +271,11 @@
                       <label class="mode-direct-method-option"><input id="modeComponentsMethodInput" type="radio" name="modeSelectionMethod" value="components" /><span>영토 조각 선택</span></label>
                     </div>
                     <div id="territorialCreateReference" class="territorial-create-reference hidden" aria-live="polite">
-                      <span id="territorialCreateReferenceCount">기준 국가 0개</span>
+                      <div class="territorial-create-reference-heading">
+                        <span>기준 국가</span>
+                        <span id="territorialCreateReferenceCount" class="territorial-create-reference-count">0개</span>
+                      </div>
+                      <div id="territorialCreateReferenceList" class="territorial-create-reference-list" role="list" aria-label="선택한 기준 국가"></div>
                     </div>
                     <label id="modeRiverBoundaryOption" class="mode-river-boundary-option mode-aux-control hidden" for="modeRiverBoundaryInput">
                       <input id="modeRiverBoundaryInput" type="checkbox" />
