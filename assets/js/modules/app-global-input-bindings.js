@@ -48,7 +48,8 @@ export function createGlobalInputBindings() {
         else if ((0, dependencies.$)('rightPanel')?.classList.contains('mobile-open')) {
           (0, dependencies.closeSurface)('editor', { manual: dependencies.layoutMode === 'wide', restoreFocus: true });
         }
-        else if (dependencies.layoutMode !== 'wide' && (0, dependencies.$)('leftPanel')?.classList.contains('mobile-open')) (0, dependencies.closeSurface)('layers', { restoreFocus: true });
+        else if ((0, dependencies.$)('objectSearchSurface')?.classList.contains('surface-open')) (0, dependencies.closeSurface)('search', { restoreFocus: true });
+        else if ((0, dependencies.$)('mapDisplaySurface')?.classList.contains('surface-open')) (0, dependencies.closeSurface)('display', { restoreFocus: true });
         else if (!(0, dependencies.$)('actionStatus')?.classList.contains('hidden')) (0, dependencies.clearNotification)();
         else dependencies.selectionUiController.clear({ reason: 'escape-selection-clear' });
       }

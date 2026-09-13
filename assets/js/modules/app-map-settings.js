@@ -59,6 +59,9 @@ export function createMapSettings() {
 
   function setLayerVisibility(key, visible) {
     dependencies.state.layerVisibility[key] = visible;
+    if (visible) dependencies.expandedMapDisplayGroups.add(key);
+    else dependencies.expandedMapDisplayGroups.delete(key);
+    syncMapDisplayDisclosures();
     (0, dependencies.markLayerTreeDirty)();
     dependencies.layerTreeController?.render();
     if (dependencies.DISTRIBUTION_GROUP_TYPES[key]) dependencies.distributionVisibilityRevision += 1;
@@ -92,7 +95,7 @@ export function createMapSettings() {
         },
       },
     });
-    syncLayerStylePanels();
+    syncMapDisplayDisclosures();
     if (target.presentationGroup === 'countries') {
       dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-presentation');
     }
@@ -120,6 +123,7 @@ export function createMapSettings() {
       title.append(' ', output);
       const input = document.createElement('input');
       input.type = 'range';
+      input.className = 'ui-range-progress';
       input.min = '0'; input.max = '100'; input.value = '100';
       input.dataset.layerStyleOpacity = group;
       input.setAttribute('aria-label', `${target.label} ${target.opacityLabel || '투명도'}`);
@@ -153,16 +157,28 @@ export function createMapSettings() {
     return panel;
   }
 
-  function syncLayerStylePanels() {
+  function mapDisplayPanel(group) {
+    if (group === 'terrain') return (0, dependencies.$)('terrainDisplayOptions');
+    return document.querySelector(`[data-layer-style-panel="${group}"]`);
+  }
+
+  function mapDisplayVisible(group) {
+    return group === 'terrain'
+      ? dependencies.state.physicalSettings.terrainVisible !== false
+      : dependencies.state.layerVisibility[group] !== false;
+  }
+
+  function mapDisplayLabel(group) {
+    return group === 'terrain'
+      ? '지형 표시'
+      : LAYER_STYLE_TARGETS[group]?.label ? `${LAYER_STYLE_TARGETS[group].label} 표시` : '표시';
+  }
+
+  function syncMapDisplayDisclosures() {
     dependencies.state.layerPresentation = (0, dependencies.normalizeLayerPresentation)(dependencies.state.layerPresentation);
     document.querySelectorAll('[data-layer-style-panel]').forEach(panel => {
       const group = panel.dataset.layerStylePanel;
       createLayerInlineStylePanel(group);
-      const expanded = dependencies.expandedLayerStyleGroups.has(group);
-      panel.hidden = !expanded;
-      const toggle = document.querySelector(`[data-layer-style-toggle="${group}"]`);
-      toggle?.setAttribute('aria-expanded', String(expanded));
-      toggle?.classList.toggle('active', expanded);
       const target = LAYER_STYLE_TARGETS[group];
       if (!target) return;
       const style = (0, dependencies.layerStyle)(dependencies.state.layerPresentation, target.presentationGroup);
@@ -175,21 +191,37 @@ export function createMapSettings() {
       const blendMode = panel.querySelector('[data-layer-style-blend-mode]');
       if (blendMode) blendMode.value = style.blendMode;
     });
+
+    document.querySelectorAll('[data-map-display-row]').forEach(trigger => {
+      const group = trigger.dataset.mapDisplayRow;
+      const row = trigger.closest('.map-display-row');
+      const visible = mapDisplayVisible(group);
+      if (!visible) dependencies.expandedMapDisplayGroups.delete(group);
+      const expanded = visible && dependencies.expandedMapDisplayGroups.has(group);
+      const panel = mapDisplayPanel(group);
+      if (panel) panel.hidden = !expanded;
+      row?.classList.toggle('is-disabled', !visible);
+      trigger.disabled = !visible;
+      trigger.setAttribute('aria-expanded', String(expanded));
+      const label = `${mapDisplayLabel(group)} 설정 ${expanded ? '접기' : '펼치기'}`;
+      trigger.setAttribute('aria-label', label);
+    });
   }
 
-  function toggleLayerStylePanel(group) {
-    const panel = createLayerInlineStylePanel(group);
-    const toggle = document.querySelector(`[data-layer-style-toggle="${group}"]`);
-    if (!panel || !toggle) return;
-    const open = !dependencies.expandedLayerStyleGroups.has(group);
-    if (open) dependencies.expandedLayerStyleGroups.add(group); else dependencies.expandedLayerStyleGroups.delete(group);
-    panel.hidden = !open;
-    toggle.setAttribute('aria-expanded', String(open));
-    toggle.classList.toggle('active', open);
-    syncLayerStylePanels();
+  function toggleMapDisplayDisclosure(group) {
+    if (!mapDisplayVisible(group)) return false;
+    const panel = group === 'terrain' ? mapDisplayPanel(group) : createLayerInlineStylePanel(group);
+    if (!panel) return false;
+    if (dependencies.expandedMapDisplayGroups.has(group)) dependencies.expandedMapDisplayGroups.delete(group);
+    else {
+      dependencies.expandedMapDisplayGroups.clear();
+      dependencies.expandedMapDisplayGroups.add(group);
+    }
+    syncMapDisplayDisclosures();
+    return true;
   }
 
-  function renderLayerPresentationList() {
+  function renderMapDisplaySettings() {
     dependencies.state.layerPresentation = (0, dependencies.normalizeLayerPresentation)(dependencies.state.layerPresentation);
     const units = dependencies.state.territorialUnits || [];
     const available = {
@@ -202,10 +234,75 @@ export function createMapSettings() {
     };
     for (const [id, visible] of Object.entries(available)) {
       (0, dependencies.$)(id)?.closest('.layer-type-settings')?.classList.toggle('hidden', !visible);
+      if (!visible) dependencies.expandedMapDisplayGroups.delete(id.replace(/Visible$/, ''));
     }
-    syncLayerStylePanels();
+    syncMapDisplayDisclosures();
     syncDistributionPresentationControls();
     (0, dependencies.syncPhysicalControls)();
+  }
+
+  function bindMapDisplayUI() {
+    const surface = (0, dependencies.$)('mapDisplaySurface');
+    if (!surface) return;
+    const visibilityInputs = [
+      ['countries', 'countriesVisible'], ['subunits', 'subunitsVisible'], ['regions', 'regionsVisible'],
+      ['languages', 'languagesVisible'], ['ethnicities', 'ethnicitiesVisible'], ['religions', 'religionsVisible'],
+      ['rivers', 'riversVisible'], ['lakes', 'lakesVisible'], ['genericFeatures', 'genericFeaturesVisible'],
+      ['labels', 'labelsVisible'], ['basemapLabels', 'basemapLabelsVisible'], ['countryFlags', 'countryFlagsVisible'],
+    ];
+    for (const [group, id] of visibilityInputs) {
+      (0, dependencies.$)(id)?.addEventListener('change', event => setLayerVisibility(group, event.currentTarget.checked));
+    }
+    (0, dependencies.$)('terrainVisible')?.addEventListener('change', event => {
+      dependencies.state.physicalSettings.terrainVisible = !!event.currentTarget.checked;
+      if (event.currentTarget.checked) dependencies.expandedMapDisplayGroups.add('terrain');
+      else dependencies.expandedMapDisplayGroups.delete('terrain');
+      dependencies.gpuMapRenderer.invalidatePhysicalStyle('terrain-visibility');
+      (0, dependencies.syncPhysicalControls)();
+      syncMapDisplayDisclosures();
+      (0, dependencies.markLayerTreeDirty)();
+      dependencies.renderingDomain?.invalidateBaseScene?.('terrain-visibility');
+      dependencies.projectDomain.queuePresentationAutosave();
+    });
+    for (const id of ['terrainPoliticalRadio', 'terrainPhysicalRadio']) {
+      (0, dependencies.$)(id)?.addEventListener('change', event => {
+        if (!event.currentTarget.checked) return;
+        dependencies.state.physicalSettings.terrainStyle = event.currentTarget.value === 'physical' ? 'physical' : 'political';
+        dependencies.gpuMapRenderer.invalidatePhysicalStyle('terrain-style');
+        (0, dependencies.syncPhysicalControls)();
+        (0, dependencies.markLayerTreeDirty)();
+        dependencies.renderingDomain?.invalidateBaseScene?.('terrain-style');
+        dependencies.projectDomain.queuePresentationAutosave();
+      });
+    }
+    surface.addEventListener('click', event => {
+      const row = event.target.closest('[data-map-display-row]');
+      if (!row || event.target !== row) return;
+      toggleMapDisplayDisclosure(row.dataset.mapDisplayRow);
+    });
+    surface.addEventListener('change', event => {
+      const boundary = event.target.closest('[data-layer-style-boundary]');
+      if (boundary) updateLayerPresentationStyle(boundary.dataset.layerStyleBoundary, { boundaryVisible: boundary.checked });
+      const blend = event.target.closest('[data-layer-style-blend-mode]');
+      if (blend) updateLayerPresentationStyle(blend.dataset.layerStyleBlendMode, { blendMode: blend.value });
+      if (event.target.matches('input[name="distributionLayerMode"]') && event.target.checked) {
+        dependencies.distributionService.setRenderMode(event.target.value);
+        syncDistributionPresentationControls();
+        dependencies.renderingDomain?.renderDistributions?.();
+        dependencies.projectDomain.queuePresentationAutosave();
+      }
+      if (event.target.id === 'distributionBoundaryVisibleInput') {
+        dependencies.distributionService.setBoundaryVisible(event.target.checked);
+        syncDistributionPresentationControls();
+        dependencies.renderingDomain?.renderDistributions?.();
+        dependencies.projectDomain.queuePresentationAutosave();
+      }
+    });
+    surface.addEventListener('input', event => {
+      const opacity = event.target.closest('[data-layer-style-opacity]');
+      if (opacity) updateLayerPresentationStyle(opacity.dataset.layerStyleOpacity, { opacity: Number(opacity.value) / 100 });
+    });
+    renderMapDisplaySettings();
   }
 
   function syncDistributionPresentationControls() {
@@ -225,15 +322,6 @@ export function createMapSettings() {
     hint.textContent = mode === dependencies.DISTRIBUTION_RENDER_MODES.INTENSITY
       ? '선택한 분포가 많을수록 색이 진해집니다.'
       : '각 지역에서 가장 많은 분포 하나만 표시합니다.';
-  }
-
-  function setMapPanelView(view, { focus = false } = {}) {
-    dependencies.mapPanelView = view === 'view' ? 'view' : 'layers';
-    const showingView = dependencies.mapPanelView === 'view';
-    (0, dependencies.$)('layerSection')?.classList.toggle('hidden', showingView);
-    (0, dependencies.$)('mapViewSection')?.classList.toggle('hidden', !showingView);
-    dependencies.mapSurfaceTabs?.sync(dependencies.mapPanelView, { focus });
-    if (showingView) renderLayerPresentationList();
   }
 
   function initializeLAYER_STYLE_TARGETS() {
@@ -272,14 +360,16 @@ export function createMapSettings() {
 
   return Object.freeze({
     connect,
+    get bindMapDisplayUI() { return bindMapDisplayUI; },
     initializeLAYER_STYLE_TARGETS,
     get projectSerializer() { return projectSerializer; },
+    get renderMapDisplaySettings() { return renderMapDisplaySettings; },
     get setLayerVisibility() { return setLayerVisibility; },
-    get setMapPanelView() { return setMapPanelView; },
     get setProjection() { return setProjection; },
+    get syncMapDisplayDisclosures() { return syncMapDisplayDisclosures; },
     get syncDistributionPresentationControls() { return syncDistributionPresentationControls; },
     get syncProjectionButtons() { return syncProjectionButtons; },
-    get toggleLayerStylePanel() { return toggleLayerStylePanel; },
+    get toggleMapDisplayDisclosure() { return toggleMapDisplayDisclosure; },
     get updateLayerPresentationStyle() { return updateLayerPresentationStyle; },
   });
 }

@@ -49,7 +49,7 @@ class V0130RuntimeTests(unittest.TestCase):
     def test_terrain_toggle_settings_and_automatic_water_colour(self):
         self.assertNotIn('data-layer-group="terrain"', INDEX)
         self.assertIn('id="terrainVisible" type="checkbox" checked aria-label="지형 표시"', INDEX)
-        self.assertIn('id="terrainDisplayOptions" class="terrain-display-options"', INDEX)
+        self.assertIn('id="terrainDisplayOptions" class="terrain-display-options map-display-details"', INDEX)
         self.assertNotIn('id="terrainLayerSettingsTitle">지형</strong>', INDEX)
         self.assertNotIn('class="layer-style-editor terrain-settings"', INDEX)
         self.assertLess(INDEX.index('id="labelsVisible"'), INDEX.index('id="terrainVisible"'))

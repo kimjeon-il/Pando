@@ -45,10 +45,15 @@ export function createReadinessNotifications() {
     const notice = (0, dependencies.$)('actionStatus');
     if (!notice) return;
     const fullMessage = String(message ?? '').replace(/\s+/g, ' ').trim();
+    const isTopLevelNotice = tone === 'working' || tone === 'error';
+    clearTimeout(setActionStatus._timer);
+    if (!fullMessage || !isTopLevelNotice) {
+      clearNotification();
+      return;
+    }
     const visibleMessage = (0, dependencies.isMobile)()
       ? (0, dependencies.compactNotificationMessage)(fullMessage, { tone, maxLength: 22 })
       : fullMessage;
-    clearTimeout(setActionStatus._timer);
     notice.classList.remove('hidden');
     notice.classList.remove('ready', 'working', 'success', 'error', 'info', 'warning');
     notice.classList.add(tone);
@@ -234,14 +239,14 @@ export function createReadinessNotifications() {
       '#rightPanel button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
       '.top-actions button', '.top-actions input',
       '#undoBtn', '#redoBtn',
-      '.layer-child-menu', '.layer-folder-lock', '.layer-style-toggle',
+      '.layer-child-menu', '.layer-folder-lock', '[data-map-display-row]',
       '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-style-blend-mode]',
       '.layer-folder input[type="checkbox"]', '#labelsVisible', '#basemapLabelsVisible',
     ].join(','));
 
     (READINESS_INDEPENDENT_CONTROL_SELECTOR = [
       '.layer-visibility-toggle',
-      '.layer-style-toggle',
+      '[data-map-display-row]',
       '[data-layer-style-opacity]',
       '[data-layer-style-boundary]',
       '[data-layer-style-blend-mode]',

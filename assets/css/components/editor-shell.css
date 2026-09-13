@@ -249,10 +249,10 @@
 .project-save-status:is(.dirty, .unsaved, [data-save-state="dirty"], [data-save-state="unsaved"]) .project-save-status-dot { background: var(--ui-v2-status-neutral-dot); }
 .project-save-status:is(.error, [data-save-state="error"]) .project-save-status-dot { background: var(--ui-v2-status-error-dot); }
 
-/* Persistent left layer dock; editor overlays the map independently. */
+/* The command surfaces float over a map-first workspace; there is no left dock. */
 [data-layout="wide"] .workspace {
-  --projection-safe-left: var(--ui-shell-left-panel-width);
-  --map-safe-left: var(--ui-shell-left-panel-width);
+  --projection-safe-left: 0px;
+  --map-safe-left: 0px;
   --map-safe-right: 0px;
 }
 
@@ -550,4 +550,55 @@
 
 .historical-library-ownership h3 {
   margin: 0;
+}
+
+/* The inspector presents object actions by intent, rather than treating
+   destructive, contextual, and dismissal controls as one icon cluster. */
+.editor-empty {
+  flex: 0 0 auto;
+  min-height: 0;
+  place-items: start;
+  padding: var(--ui-space-4) var(--ui-surface-content-rail-x);
+  text-align: left;
+}
+
+.editor-empty p { max-width: 34ch; }
+
+.surface-editor .surface-header-actions {
+  gap: var(--ui-space-1);
+}
+
+.surface-editor #objectLockBtn { color: var(--text-soft); }
+
+.surface-editor #objectDeleteBtn:not(:disabled) {
+  border-color: var(--danger-border);
+  background: var(--danger-surface);
+  color: var(--danger-text);
+}
+
+.surface-editor #mobileCloseRightBtn { margin-inline-start: var(--ui-space-1); }
+
+.editor-country-header-fields .editor-country-color-trigger {
+  width: auto;
+  min-width: var(--ui-control-height);
+  padding-inline: var(--ui-space-2);
+  gap: var(--ui-space-1);
+}
+
+.editor-country-header-fields .editor-country-color-trigger .ui-color-value {
+  display: inline;
+  max-width: 6.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-soft);
+  font-size: var(--ui-font-caption);
+}
+
+.editor-action-row > span { min-width: 0; }
+.editor-action-row > span > :is(strong, small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 799px) {
+  .editor-country-header-fields .editor-country-color-trigger .ui-color-value { display: none; }
+  .editor-action-row > span > small { display: none; }
 }

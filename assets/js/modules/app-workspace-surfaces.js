@@ -10,7 +10,6 @@ export function createWorkspaceSurfaces() {
   let uid;
   let detectLayoutMode;
   let layoutMode;
-  let mapPanelView;
   let isMobile;
   let lastOverlayTrigger;
   let fileMenuTrigger;
@@ -18,11 +17,10 @@ export function createWorkspaceSurfaces() {
   let surfaceController;
   let surfaceState;
   let editorWorkspacePresentation;
-  let mapSurfaceTabs;
   let editorSurfaceTabs;
   let MOBILE_SHEET_SNAP_COLLAPSED_PX;
   let MOBILE_SHEET_EDITOR_RATIOS;
-  let MOBILE_SHEET_MAP_RATIOS;
+  let MOBILE_SHEET_AUXILIARY_RATIOS;
   let SHEET_SNAP_RATIOS;
   let SHEET_SNAP_LABELS;
   let SHEET_SNAP_DEFAULTS;
@@ -67,7 +65,7 @@ export function createWorkspaceSurfaces() {
       const rootScale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
       return Math.min(mobileSheetAvailableHeight(), Math.max(headerHeight, MOBILE_SHEET_SNAP_COLLAPSED_PX * rootScale));
     }
-    const ratios = kind === 'edit' ? MOBILE_SHEET_EDITOR_RATIOS : MOBILE_SHEET_MAP_RATIOS;
+    const ratios = kind === 'edit' ? MOBILE_SHEET_EDITOR_RATIOS : MOBILE_SHEET_AUXILIARY_RATIOS;
     const ratio = safeIndex === 1 ? ratios.half : ratios.expanded;
     return Math.min(mobileSheetAvailableHeight(), mobileViewportHeight() * ratio);
   }
@@ -174,7 +172,7 @@ export function createWorkspaceSurfaces() {
     refreshMapSheetMetrics();
     syncMobileNavigation();
     requestAnimationFrame(dependencies.syncMapHudBounds);
-    if (!view.layersOpen || view.editorOpen) closeCreateMenu();
+    if (view.searchOpen || view.displayOpen || view.editorOpen) closeCreateMenu();
     else if (isCreateMenuOpen()) positionLayerCreateMenu();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     else (0, dependencies.$)('app')?.style.removeProperty('--file-menu-notification-top');
@@ -253,7 +251,7 @@ export function createWorkspaceSurfaces() {
   function closeActiveMobileSheet({ restoreFocus = false, syncHistory = true } = {}) {
     if (!isMobile() || !surfaceController.activeMobileSheet) return;
     const kind = surfaceController.activeMobileSheet;
-    const surface = { map: 'layers', edit: 'editor' }[kind];
+    const surface = { search: 'search', display: 'display', edit: 'editor' }[kind];
     const panel = mobileSheetPanel(kind);
     surfaceController.close(surface);
     resetMobileSheetSession(panel);
@@ -265,12 +263,11 @@ export function createWorkspaceSurfaces() {
 
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
     if (isMobile()) {
-      const exceptKind = except === 'left' ? 'map' : except === 'right' ? 'edit' : null;
+      const exceptKind = except === 'search' ? 'search' : except === 'display' ? 'display' : except === 'editor' ? 'edit' : null;
       if (surfaceController.activeMobileSheet && surfaceController.activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
       return;
     }
-    if (except !== 'left') surfaceController.close('layers');
-    if (except !== 'right') surfaceController.close('editor');
+    for (const surface of ['search', 'display', 'editor']) if (surface !== except) surfaceController.close(surface);
     closeCreateMenu();
     syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
@@ -511,14 +508,14 @@ export function createWorkspaceSurfaces() {
   }
 
   function openSurface(surface, { trigger = null, automatic = false } = {}) {
-    if (!['layers', 'editor'].includes(surface)) return;
+    if (!['search', 'display', 'editor'].includes(surface)) return;
     closeCreateMenu();
     closeFileMenu();
     const activeTrigger = trigger instanceof HTMLElement ? trigger : document.activeElement instanceof HTMLElement ? document.activeElement : null;
     if (isMobile()) lastOverlayTrigger = activeTrigger;
     surfaceController.open(surface, { automatic });
     if (isMobile()) {
-      const kind = { layers: 'map', editor: 'edit' }[surface];
+      const kind = { search: 'search', display: 'display', editor: 'edit' }[surface];
       const panel = mobileSheetPanel(kind);
       resetMobileSheetSession(panel);
       trackMobileSheetHistory(kind);
@@ -528,7 +525,7 @@ export function createWorkspaceSurfaces() {
 
   function closeSurface(surface, { manual = false, restoreFocus = false, syncHistory = true } = {}) {
     if (surface === 'editor' && editorWorkspacePresentation.isDocked()) return;
-    const mobileKind = isMobile() ? { layers: 'map', editor: 'edit' }[surface] : null;
+    const mobileKind = isMobile() ? { search: 'search', display: 'display', editor: 'edit' }[surface] : null;
     const mobilePanel = mobileKind ? mobileSheetPanel(mobileKind) : null;
     if (!surfaceController.close(surface, { manual, selected: !!dependencies.state?.selected })) return;
     if (mobilePanel) resetMobileSheetSession(mobilePanel);
@@ -551,7 +548,7 @@ export function createWorkspaceSurfaces() {
   }
 
   function toggleSurface(surface, trigger = null) {
-    if (surfaceController.isOpen(surface) && !(surface === 'layers' && layoutMode === 'wide')) {
+    if (surfaceController.isOpen(surface)) {
       closeSurface(surface, { manual: surface === 'editor', restoreFocus: true });
     } else {
       openSurface(surface, { trigger });
@@ -589,8 +586,6 @@ export function createWorkspaceSurfaces() {
 
     (layoutMode = detectLayoutMode());
 
-    (mapPanelView = 'layers');
-
     (isMobile = () => layoutMode === 'mobile');
 
     (lastOverlayTrigger = null);
@@ -613,25 +608,23 @@ export function createWorkspaceSurfaces() {
       onLayoutChange: () => (0, dependencies.queueMapResize)('editor-task-layout'),
     }));
 
-    (mapSurfaceTabs = null);
-
     (editorSurfaceTabs = null);
 
     (MOBILE_SHEET_SNAP_COLLAPSED_PX = 84);
 
     (MOBILE_SHEET_EDITOR_RATIOS = Object.freeze({ half: 0.48, expanded: 0.86 }));
 
-    (MOBILE_SHEET_MAP_RATIOS = Object.freeze({ half: 0.52, expanded: 0.88 }));
+    (MOBILE_SHEET_AUXILIARY_RATIOS = Object.freeze({ half: 0.52, expanded: 0.88 }));
 
     (SHEET_SNAP_RATIOS = Object.freeze([0, MOBILE_SHEET_EDITOR_RATIOS.half, MOBILE_SHEET_EDITOR_RATIOS.expanded]));
 
     (SHEET_SNAP_LABELS = Object.freeze(['접힌 상태', '중간 높이', '확장']));
 
-    (SHEET_SNAP_DEFAULTS = Object.freeze({ layers: 1, edit: 1 }));
+    (SHEET_SNAP_DEFAULTS = Object.freeze({ search: 1, display: 1, edit: 1 }));
 
     (MOBILE_SHEET_DEFAULT_SNAP = 1);
 
-    (MOBILE_SHEET_IDS = Object.freeze({ map: 'leftPanel', edit: 'rightPanel' }));
+    (MOBILE_SHEET_IDS = Object.freeze({ search: 'objectSearchSurface', display: 'mapDisplaySurface', edit: 'rightPanel' }));
 
     (sheetSnapIndex = new Map(Object.values(MOBILE_SHEET_IDS).map(id => [id, MOBILE_SHEET_DEFAULT_SNAP])));
 
@@ -678,10 +671,6 @@ export function createWorkspaceSurfaces() {
     get layoutMode() { return layoutMode; },
     get mapModeContextWasActive() { return mapModeContextWasActive; },
     set mapModeContextWasActive(value) { mapModeContextWasActive = value; },
-    get mapPanelView() { return mapPanelView; },
-    set mapPanelView(value) { mapPanelView = value; },
-    get mapSurfaceTabs() { return mapSurfaceTabs; },
-    set mapSurfaceTabs(value) { mapSurfaceTabs = value; },
     get openSelectionEditor() { return openSelectionEditor; },
     get openSurface() { return openSurface; },
     get refreshMapSheetMetrics() { return refreshMapSheetMetrics; },

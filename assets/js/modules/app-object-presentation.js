@@ -22,7 +22,7 @@ export function createObjectPresentation() {
   let LAYER_SEARCH_GROUP_KEYS;
   let layerGroupNames;
   let layerNameCollator;
-  let expandedLayerStyleGroups;
+  let expandedMapDisplayGroups;
   function connect(ports) {
     if (dependencies) throw new Error('object-presentation already connected');
     dependencies = ports;
@@ -247,7 +247,7 @@ export function createObjectPresentation() {
 
     (layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' }));
 
-    (expandedLayerStyleGroups = new Set());
+    (expandedMapDisplayGroups = new Set());
   }
 
   return Object.freeze({
@@ -269,7 +269,7 @@ export function createObjectPresentation() {
     set distributionService(value) { distributionService = value; },
     get distributionVisibilityRevision() { return distributionVisibilityRevision; },
     set distributionVisibilityRevision(value) { distributionVisibilityRevision = value; },
-    get expandedLayerStyleGroups() { return expandedLayerStyleGroups; },
+    get expandedMapDisplayGroups() { return expandedMapDisplayGroups; },
     get genericFeatureColor() { return genericFeatureColor; },
     get genericFeatureDisplayFeature() { return genericFeatureDisplayFeature; },
     get genericFeatureLandClipCache() { return genericFeatureLandClipCache; },

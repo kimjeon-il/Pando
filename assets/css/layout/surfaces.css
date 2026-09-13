@@ -163,3 +163,102 @@
 [data-layout="mobile"] .surface-header .sheet-drag-handle {
   display: grid;
 }
+
+/* Map commands own transient surfaces; there is no persistent layer drawer. */
+.surface-search,
+.surface-display {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--surface-elevated);
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--control-shadow);
+  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
+}
+
+.surface-search > .surface-body,
+.surface-display > .surface-body {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+[data-layout="wide"] :is(.surface-search, .surface-display) {
+  position: fixed;
+  z-index: 36;
+  /* Keep the transient surface below the map command bar rather than covering it. */
+  top: calc(var(--ui-shell-topbar-height) + var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-6) + var(--ui-space-2));
+  left: calc(var(--ui-map-edge) + var(--ui-popover-screen-edge));
+  width: min(340px, calc(100vw - var(--ui-popover-screen-edge) * 2));
+  max-height: min(680px, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-shell-statusbar-height) - var(--ui-space-6)));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(calc(-1 * var(--ui-space-2)));
+}
+
+[data-layout="wide"] :is(.surface-search, .surface-display).surface-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+[data-layout="compact"] :is(.surface-search, .surface-display) {
+  position: fixed;
+  z-index: 36;
+  top: calc(var(--ui-shell-topbar-height) + var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-6) + var(--ui-space-2));
+  bottom: var(--ui-shell-statusbar-height);
+  width: var(--compact-drawer-width, var(--ui-shell-compact-drawer-width));
+  max-height: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+[data-layout="compact"] .surface-search {
+  left: var(--ui-shell-compact-inset);
+  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
+}
+
+[data-layout="compact"] .surface-display {
+  right: var(--ui-shell-compact-inset);
+  transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
+}
+
+[data-layout="compact"] :is(.surface-search, .surface-display).mobile-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+[data-layout="mobile"] :is(.surface-search, .surface-display) {
+  position: fixed;
+  z-index: 100;
+  right: 0;
+  bottom: var(--mobile-nav-height);
+  left: 0;
+  width: 100%;
+  height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
+  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--ui-v2-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
+  max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
+  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(calc(100% + var(--ui-surface-mobile-hidden-offset)));
+}
+
+[data-layout="mobile"] :is(.surface-search, .surface-display).mobile-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+[data-layout="mobile"] :is(.surface-search, .surface-display).mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
+  height: var(--sheet-drag-height, var(--sheet-height));
+  transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
+}

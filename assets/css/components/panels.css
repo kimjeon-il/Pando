@@ -345,3 +345,121 @@ body.file-menu-open .mobile-backdrop {
   display: none;
   pointer-events: none;
 }
+
+/* Surface controls use the same quiet hierarchy: neutral navigation, one
+   compact settings row, and only the primary workflow buttons use blue. */
+.topbar .file-menu-btn {
+  border-color: var(--ui-control-border);
+  background: var(--ui-control-bg);
+  color: var(--ui-control-text);
+}
+
+.topbar .file-menu-btn:is(:hover, .sheet-open) {
+  border-color: var(--ui-control-border-hover);
+  background: var(--ui-control-bg-hover);
+  color: var(--text-strong);
+}
+
+.map-command-toolbar {
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1);
+  border: 1px solid var(--toolbar-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--toolbar-bg);
+  box-shadow: var(--control-shadow);
+}
+
+.map-command-toolbar .map-command-divider {
+  margin-inline: var(--ui-space-1);
+  background: var(--ui-control-border);
+}
+
+.surface-display .map-name-settings { gap: var(--ui-space-1); }
+
+.surface-display .layer-type-settings {
+  display: grid;
+  gap: var(--ui-space-1);
+}
+
+.surface-display .map-display-row {
+  position: relative;
+  min-height: var(--ui-v2-control-md);
+  display: flex;
+  align-items: center;
+  padding-inline: var(--ui-space-2);
+  border-radius: var(--ui-radius-control);
+  cursor: pointer;
+  transition: background-color .14s ease, color .14s ease;
+}
+
+.surface-display .map-display-row > label { position: relative; z-index: 1; flex: 0 1 auto; min-width: 0; }
+
+.surface-display .map-display-detail-trigger {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.surface-display .map-display-detail-trigger:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: -2px;
+}
+
+.surface-display .map-display-row:has(.map-display-detail-trigger:is(:hover, :focus-visible)):not(.is-disabled) {
+  background: var(--surface-hover);
+}
+
+.surface-display .map-display-row:has(.map-display-detail-trigger[aria-expanded="true"]) {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface-subtle));
+}
+
+.surface-display .map-display-row.is-disabled { opacity: .58; cursor: default; }
+
+.surface-display .map-display-details {
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+}
+
+.create-menu-category {
+  display: grid;
+  gap: 2px;
+  padding-block: var(--ui-space-2);
+}
+
+.create-menu-category + .create-menu-category,
+.create-library-actions {
+  border-top: 1px solid var(--ui-control-border);
+}
+
+.create-menu-group-title {
+  padding: 0 var(--ui-space-2) var(--ui-space-1);
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: .02em;
+}
+
+.create-menu-item {
+  min-height: var(--ui-v2-control-md);
+  border-color: transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+}
+
+.create-menu-item:is(:hover, :focus-visible) {
+  border-color: transparent;
+  background: var(--surface-hover);
+}
+
+@media (max-width: 799px) {
+  .surface-display .map-display-row { min-height: var(--ui-touch-height); }
+}

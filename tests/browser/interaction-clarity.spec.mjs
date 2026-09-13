@@ -107,7 +107,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#layerPresentationBtn, #layerPresentationCloseBtn, #layerPresentationModal')).toHaveCount(0);
   await expect(page.locator('#layerStyleEditorTitle')).toHaveCount(0);
   await page.locator('#mapLayersTabBtn').click();
-  await page.locator('[data-layer-style-toggle="countries"]').click();
+  await page.locator('[data-map-display-row="countries"]').click();
   await expect(page.locator('[data-layer-order-direction]')).toHaveCount(0);
   await page.locator('[data-layer-style-opacity="countries"]').fill('80');
   await page.locator('[data-layer-style-opacity="countries"]').dispatchEvent('change');
