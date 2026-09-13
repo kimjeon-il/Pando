@@ -14,6 +14,7 @@ export function createProjectUiBridge({
   undoProject,
   redoProject,
   createEmptyProject,
+  isProjectReplacing = () => false,
   setActionStatus,
   closeFileMenu,
   openConfirmModal,
@@ -48,6 +49,7 @@ export function createProjectUiBridge({
   }
 
   function handleUndoRequest() {
+    if (isProjectReplacing()) return;
     if (!requireCanonicalData()) return;
     if (getEditingSnapshot().processing) return;
     if (getEditingSnapshot().previewActive) {
@@ -63,6 +65,7 @@ export function createProjectUiBridge({
   }
 
   function handleRedoRequest() {
+    if (isProjectReplacing()) return;
     if (!requireCanonicalData()) return;
     if (getEditingSnapshot().processing) return;
     if (getEditingSnapshot().previewActive) {
@@ -93,6 +96,7 @@ export function createProjectUiBridge({
   function requestNewProject(event) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
+    if (isProjectReplacing()) return;
 
     closeFileMenu();
     const hasUnsavedChanges = getSaveSnapshot().hasUnsavedChanges;

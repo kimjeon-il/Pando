@@ -9,6 +9,7 @@ import { linkGpuProgram } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
 import { createHydroViewRequests } from './hydro-view-requests.js';
+import { createBuiltinMeshResourceLoader } from './builtin-mesh-resource.js';
 import { isRenderScene } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import {
@@ -403,6 +404,8 @@ export function createGpuMapRenderer(deps) {
     let pendingCanonicalCommit = null;
     let projectGeneration = 0;
     let projectRenderBlocked = false;
+    let builtinMeshBaseline = null;
+    const builtinMeshResourceLoader = createBuiltinMeshResourceLoader({ runtimeAssetUrl });
     let renderScene = null;
     let renderInteractionState = Object.freeze({
       selectionPacket: null,
@@ -1535,6 +1538,87 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
+    function disposeMeshEntry(entry) {
+      if (!entry) return;
+      if (builtinMeshBaseline?.mesh === entry.mesh) builtinMeshBaseline.resources = null;
+      disposeMeshResources(entry.resources);
+    }
+
+    function rememberBuiltinMesh(meshValue, countryIds, identity = null) {
+      const ids = [...(countryIds || [])].map(String).filter(Boolean);
+      if (!meshValue || ids.length !== 258) throw new Error('내장 기본 메시의 국가 슬롯이 올바르지 않습니다.');
+      builtinMeshBaseline = {
+        mesh: meshValue,
+        countryIds: ids,
+        identity: identity && typeof identity === 'object'
+          ? Object.freeze({
+            hash: String(identity.hash || ''),
+            header: [...(identity.header || [])].map(Number),
+            dataRevision: String(identity.dataRevision || DATA_REVISION),
+            countryIds: [...(identity.countryIds || ids)].map(String),
+          })
+          : null,
+        resources: null,
+      };
+      return builtinMeshBaseline;
+    }
+
+    async function ensureBuiltinMeshBaseline(countryIds = []) {
+      if (builtinMeshBaseline?.mesh) return true;
+      const resource = await builtinMeshResourceLoader.load(countryIds);
+      const decoded = await decodeBuiltInMesh(resource.meshBuffer, countryIds, resource.preparedStroke);
+      decoded.mesh.spatialBlocks = resource.spatialBlocks;
+      rememberBuiltinMesh(decoded.mesh, decoded.ids, resource.identity);
+      return true;
+    }
+
+    function waitForCanonicalVisualFrame(onStaged = null) {
+      return new Promise((resolve, reject) => {
+        pendingCanonicalCommit?.reject(Object.assign(new Error('Superseded canonical frame request'), { name: 'AbortError' }));
+        pendingCanonicalCommit = { resolve, reject, generation: projectGeneration };
+        onStaged?.();
+        invalidateGpuFrame('built-in-project-transition-ready');
+      });
+    }
+
+    async function activateBuiltinMeshBaseline({ projectGeneration: requestedGeneration = projectGeneration, onStaged = null } = {}) {
+      if (Number(requestedGeneration) !== projectGeneration || !builtinMeshBaseline?.mesh) return false;
+      if (!isWebGlRenderer()) {
+        onStaged?.();
+        const rebuilt = await rebuildFromCountries(state.countriesData?.features || [], {
+          reason: 'new-project-canvas-fallback', projectGeneration: requestedGeneration,
+        });
+        return rebuilt !== false;
+      }
+      const baseline = builtinMeshBaseline;
+      const activeEntry = meshVariants.get('canonical');
+      if (activeEntry?.mesh !== baseline.mesh || !activeEntry.resources) {
+        const stagedResources = await stageMeshResources(baseline.mesh, { projectGeneration: requestedGeneration });
+        if (Number(requestedGeneration) !== projectGeneration) {
+          disposeMeshResources(stagedResources);
+          return false;
+        }
+        setMesh(baseline.mesh, baseline.countryIds, {
+          stagedResources,
+          renderFrame: false,
+          quality: 'canonical',
+          preserveOtherVariants: false,
+        });
+        baseline.resources = meshVariants.get('canonical')?.resources || null;
+      } else {
+        activateMeshVariant('canonical', { renderFrame: false });
+        baseline.resources = activeEntry.resources;
+      }
+      projectRenderBlocked = false;
+      previewAllowed = false;
+      canonicalMeshReady = true;
+      meshQuality = 'canonical';
+      activeMeshQuality = 'canonical';
+      markPaletteDirty({ base: true, emphasis: true });
+      sceneColorCache.invalidate('built-in-project-transition');
+      return waitForCanonicalVisualFrame(onStaged).then(() => true);
+    }
+
     function uploadMeshResources(nextMesh, staged = null) {
       if (!gl || !nextMesh) return null;
       const resources = staged || {
@@ -1669,10 +1753,10 @@ export function createGpuMapRenderer(deps) {
         return false;
       }
       if (!preserveOtherVariants) {
-        for (const entry of meshVariants.values()) disposeMeshResources(entry.resources);
+        for (const entry of meshVariants.values()) disposeMeshEntry(entry);
         meshVariants.clear();
       } else if (meshVariants.has(variantQuality)) {
-        disposeMeshResources(meshVariants.get(variantQuality).resources);
+        disposeMeshEntry(meshVariants.get(variantQuality));
       }
       nextMesh.metadataCountryIds = [...countryIds];
       nextMesh.triangleRangesByCountryId = createCountryTriangleRangeMap(nextMesh, countryIds);
@@ -1683,6 +1767,7 @@ export function createGpuMapRenderer(deps) {
         resources: stagedResources || uploadMeshResources(nextMesh),
       };
       meshVariants.set(variantQuality, entry);
+      if (builtinMeshBaseline?.mesh === nextMesh) builtinMeshBaseline.resources = entry.resources;
       activateMeshVariant(variantQuality, { renderFrame });
       prewarmCountryStrokeResources();
       projectRenderBlocked = false;
@@ -1700,7 +1785,7 @@ export function createGpuMapRenderer(deps) {
       canonicalPromotionError = '';
       const previewEntry = meshVariants.get('preview');
       if (previewEntry) {
-        if (previewEntry !== meshVariants.get('canonical')) disposeMeshResources(previewEntry.resources);
+        if (previewEntry !== meshVariants.get('canonical')) disposeMeshEntry(previewEntry);
         meshVariants.delete('preview');
       }
       countryStrokePacketCache.preview.mesh = null;
@@ -1987,7 +2072,7 @@ export function createGpuMapRenderer(deps) {
       rendererUi.onContextStateChange?.('fallback');
     }
 
-    function resetProjectRenderState({ generation = null } = {}) {
+    function resetProjectRenderState({ generation = null, preserveBuiltinMesh = false } = {}) {
       pendingCanonicalCommit?.reject(Object.assign(new Error('Project replaced during canonical commit'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
       uploadScheduler?.cancelAll();
@@ -1997,7 +2082,7 @@ export function createGpuMapRenderer(deps) {
         : projectGeneration + 1;
       projectRenderBlocked = true;
       resetCountryGeometryVisualState({ renderFrame: false, renderPending: false });
-      sceneColorCache.reset?.({ dropActive: true });
+      sceneColorCache.reset?.({ dropActive: !preserveBuiltinMesh });
       renderScene = null;
       renderInteractionState = Object.freeze({
         selectionPacket: null,
@@ -2013,14 +2098,16 @@ export function createGpuMapRenderer(deps) {
       countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set() };
       countryEmphasisRevision += 1;
       markPaletteDirty({ emphasis: true });
-      for (const entry of meshVariants.values()) disposeMeshResources(entry.resources);
-      meshVariants.clear();
-      mesh = null;
-      meshCountryIds = [];
-      qualityPhase = previewAllowed ? 'startup-preview' : 'canonical-loading';
-      activeMeshQuality = previewAllowed ? 'preview' : 'canonical';
-      meshQuality = previewAllowed ? 'preview' : 'canonical';
-      canonicalMeshReady = false;
+      if (!preserveBuiltinMesh) {
+        for (const entry of meshVariants.values()) disposeMeshEntry(entry);
+        meshVariants.clear();
+        mesh = null;
+        meshCountryIds = [];
+        qualityPhase = previewAllowed ? 'startup-preview' : 'canonical-loading';
+        activeMeshQuality = previewAllowed ? 'preview' : 'canonical';
+        meshQuality = previewAllowed ? 'preview' : 'canonical';
+        canonicalMeshReady = false;
+      }
       for (const pending of terrainUploadQueue.splice(0)) pending.bitmap?.close?.();
       terrainFetchQueue.length = 0;
       terrainFetchQueuedKeys.clear();
@@ -2035,9 +2122,9 @@ export function createGpuMapRenderer(deps) {
       terrainTargetTilesLoaded = 0;
       terrainFallbackTileCount = 0;
       terrainRetentionKeys = new Set();
-      // The legacy renderer owns its default framebuffer, so clear the old
-      // project immediately during a project reset.
-      if (gl && !gl.isContextLost?.()) {
+      // Keep the previously committed pixels in place while a new project is
+      // prepared.  They are replaced only by the prepared canonical frame.
+      if (!preserveBuiltinMesh && gl && !gl.isContextLost?.()) {
         try {
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
           gl.viewport(0, 0, Math.max(1, pixelWidth), Math.max(1, pixelHeight));
@@ -4713,10 +4800,11 @@ export function createGpuMapRenderer(deps) {
       return false;
     }
 
-    async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, onStaged = null, quality = 'canonical', projectGeneration: requestedGeneration = projectGeneration }) {
+    async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, onStaged = null, quality = 'canonical', builtinIdentity = null, projectGeneration: requestedGeneration = projectGeneration }) {
       if (Number(requestedGeneration) !== projectGeneration) return false;
       const decoded = await decodeBuiltInMesh(meshBuffer, features, preparedStroke);
       decoded.mesh.spatialBlocks = spatialBlocks;
+      if (quality === 'canonical' && builtinIdentity) rememberBuiltinMesh(decoded.mesh, decoded.ids, builtinIdentity);
       if (Number(requestedGeneration) !== projectGeneration) return false;
       const stagedResources = await stageMeshResources(decoded.mesh, { projectGeneration: requestedGeneration });
       if (Number(requestedGeneration) !== projectGeneration) { disposeMeshResources(stagedResources); return false; }
@@ -5098,7 +5186,9 @@ export function createGpuMapRenderer(deps) {
       setHydroEdits,
       setHydroInteractionActive, setRenderQuality,
       invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
-      resetProjectRenderState, getProjectGeneration: () => projectGeneration,
+      resetProjectRenderState, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline,
+      hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,
+      getProjectGeneration: () => projectGeneration,
       invalidateCountryPalette,
       setCountryEmphasis, clearCountryEmphasis, supportsCountryEmphasis,
       setInteractionStyle, getCountryInteractionBoundaryData,

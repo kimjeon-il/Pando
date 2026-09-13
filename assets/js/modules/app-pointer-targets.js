@@ -218,6 +218,11 @@ export function createPointerTargets() {
   }
 
   function mapClickBlocked(event = dependencies.d3.event) {
+    if (dependencies.state.projectReplacing) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      return true;
+    }
     if (event?.defaultPrevented) {
       event.stopPropagation?.();
       return true;

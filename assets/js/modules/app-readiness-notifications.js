@@ -41,11 +41,11 @@ export function createReadinessNotifications() {
     if ((0, dependencies.$)('actionStatus')?.classList.contains('error')) clearNotification();
   }
 
-  function setActionStatus(message, tone = 'success', timeout = 1800) {
+  function setActionStatus(message, tone = 'success', timeout = 1800, { forceVisible = false } = {}) {
     const notice = (0, dependencies.$)('actionStatus');
     if (!notice) return;
     const fullMessage = String(message ?? '').replace(/\s+/g, ' ').trim();
-    const isTopLevelNotice = tone === 'working' || tone === 'error';
+    const isTopLevelNotice = tone === 'working' || tone === 'error' || forceVisible;
     clearTimeout(setActionStatus._timer);
     if (!fullMessage || !isTopLevelNotice) {
       clearNotification();

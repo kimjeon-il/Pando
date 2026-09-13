@@ -32,6 +32,9 @@ export function createProjectDomain({
   restoreCountriesFromDelta = null,
   onProjectChanged = () => {},
   onProjectReset = () => {},
+  onReplacementState = () => {},
+  onReplacementCommitted = () => {},
+  onReplacementError = () => {},
 } = {}) {
   let generation = 0;
   let disposed = false;
@@ -60,9 +63,11 @@ export function createProjectDomain({
     onProjectChanged(event);
     return event;
   };
-  const bumpGeneration = reason => {
+  const bumpGeneration = (reason, detail = null) => {
     generation += 1;
-    onProjectReset(Object.freeze({ generation, reason: String(reason || 'project-reset') }));
+    const event = { generation, reason: String(reason || 'project-reset') };
+    if (detail && typeof detail === 'object') Object.assign(event, detail);
+    onProjectReset(Object.freeze(event));
     return generation;
   };
   const assertActive = () => {
@@ -104,6 +109,7 @@ export function createProjectDomain({
       });
     }
     replacing = true;
+    onReplacementState(true, reason);
     let checkpoint;
     let resetStarted = false;
     try {
@@ -112,10 +118,15 @@ export function createProjectDomain({
       checkpoint = captureReplacement?.();
       persistence?.cancelPending?.();
       resetStarted = true;
-      const nextGeneration = bumpGeneration(`project-${reason}`);
+      const nextGeneration = bumpGeneration(`project-${reason}`, reason === 'new'
+        ? { preserveBuiltinMesh: prepared?.builtinMeshReady === true }
+        : null);
       const result = await replaceSnapshot(serializedProject, {
         reason, generation: nextGeneration, skipRenderReset: true,
-        ...(reason === 'new' ? { prepared } : {}),
+        ...(reason === 'new' ? {
+          prepared,
+          preserveBuiltinMesh: prepared?.builtinMeshReady === true,
+        } : {}),
       });
       if (result === false) throw new Error('Project replacement was rejected.');
       if (reason === 'new') await persistence?.clear?.();
@@ -123,6 +134,7 @@ export function createProjectDomain({
       if (reason === 'new') saveState?.markNewProject('content:0');
       else saveState?.markOpenedFile(`content:${Date.now()}`);
       notify(`project-${reason}`, null, invalidateProject);
+      onReplacementCommitted(reason);
       return result;
     } catch (error) {
       if (resetStarted && checkpoint !== undefined && restoreReplacement) {
@@ -131,9 +143,11 @@ export function createProjectDomain({
         try { await restoreReplacement(checkpoint, rollbackGeneration); }
         catch (restoreError) { error.restoreError = restoreError; }
       }
+      onReplacementError(error, reason);
       throw error;
     } finally {
       replacing = false;
+      onReplacementState(false, reason);
     }
   };
   const load = project => replace(project, 'load');
@@ -185,6 +199,7 @@ export function createProjectDomain({
     buildAutosave,
     countriesFromAutosaveDelta,
     getGeneration: () => generation,
+    isReplacing: () => replacing,
     dispatch,
     load,
     createEmpty,
