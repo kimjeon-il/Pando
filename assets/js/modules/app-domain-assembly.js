@@ -10,6 +10,7 @@ export function createDomainAssembly() {
   let gisDomain;
   let editingDomain;
   let selectionUiController;
+  let selectionToolbarPresentation;
   let countryPropertyController;
   let objectPropertyController;
   let layerTreeController;
@@ -267,12 +268,6 @@ export function createDomainAssembly() {
         notes: (0, dependencies.$)('notesInput'),
         area: (0, dependencies.$)('countryAreaValue'),
         selectionStatus: (0, dependencies.$)('selectionStatus'),
-        flagPreview: (0, dependencies.$)('flagPreview'),
-        flagTrigger: (0, dependencies.$)('flagMenuBtn'),
-        flagMenu: (0, dependencies.$)('flagMenu'),
-        flagUpload: (0, dependencies.$)('flagUploadBtn'),
-        flagFile: (0, dependencies.$)('flagFileInput'),
-        flagRemove: (0, dependencies.$)('flagRemoveBtn'),
       },
       getCountryView: value => {
         const ref = (0, dependencies.normalizeObjectRef)(value);
@@ -303,6 +298,59 @@ export function createDomainAssembly() {
       syncStatus: dependencies.syncStatusBar,
       commitField: dependencies.commitCountryEdit,
       metrics: dependencies.selectionPerformanceMetrics,
+    });
+
+    selectionToolbarPresentation = (0, dependencies.createSelectionToolbarPresentation)({
+      window,
+      document,
+      getElement: dependencies.$,
+      getSelection: () => selectionDomain.snapshot().selection,
+      getView: value => {
+        const ref = (0, dependencies.normalizeObjectRef)(value);
+        if (!ref?.id || ref.domain !== 'territorial') return null;
+        if (ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+          const feature = (0, dependencies.countryFeatureById)(ref.id);
+          if (!feature) return null;
+          const override = dependencies.state.countryOverrides[String(ref.id)] || {};
+          return {
+            ref,
+            feature,
+            name: (0, dependencies.countryName)(feature),
+            flagUrl: (0, dependencies.effectiveCountryFlagUrl)({
+              countryId: ref.id,
+              override,
+              assetRevision: dependencies.ASSET_REVISION,
+            }),
+          };
+        }
+        const feature = (0, dependencies.territorialUnitById)(ref.id);
+        if (!feature || feature.properties?.unitType !== ref.type) return null;
+        return {
+          ref,
+          feature,
+          name: (0, dependencies.territorialUnitName)(feature),
+          flagUrl: (0, dependencies.effectiveTerritorialFlagUrl)(feature, {
+            assetRevision: dependencies.ASSET_REVISION,
+          }),
+        };
+      },
+      commitFlag: (ref, value) => ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? (0, dependencies.commitCountryEdit)('flagDataUrl', value)
+        : (0, dependencies.commitTerritorialUnitMeta)('flagDataUrl', value),
+      openEditor: (_ref, trigger) => (0, dependencies.openSelectionEditor)({ explicit: true, trigger, focus: true }),
+      isEditorOpen: () => dependencies.surfaceState.editorOpen,
+      isMutationBlocked: ref => dependencies.state.projectReplacing
+        || dependencies.state.modeProcessing
+        || dependencies.objectRefLocked(ref)
+        || dependencies.state.tool !== 'select'
+        || !!dependencies.state.labelPlacementMode
+        || !!dependencies.state.territorySelectionSession
+        || !!dependencies.state.geometryPreview?.session
+        || !!editingDomain?.draftInputActive?.(),
+      getProjectGeneration: () => projectDomain?.getGeneration?.() || 0,
+      closeColorPickers: dependencies.closeAllColorPickers,
+      createSemanticIcon: dependencies.createSemanticIcon,
+      getLayout: () => dependencies.layoutMode,
     });
 
     selectionUiController = (0, dependencies.createSelectionUiController)({
@@ -347,6 +395,8 @@ export function createDomainAssembly() {
             if (dependencies.surfaceState.editorOpen) (0, dependencies.closeSurface)('editor');
           }
         },
+        syncSelectionToolbar: () => selectionToolbarPresentation.sync(),
+        clearSelectionToolbar: () => selectionToolbarPresentation.clear(),
         syncBatchActions: dependencies.syncBatchActionAvailability,
         syncMapSurfaces: dependencies.syncMapContextSurfaces,
         syncLayerRows: selection => layerTreeController?.syncSelection(selection, { reveal: true }),
@@ -355,6 +405,7 @@ export function createDomainAssembly() {
       metrics: dependencies.selectionPerformanceMetrics,
     });
     countryPropertyController.bind();
+    selectionToolbarPresentation.bind();
     selectionUiController.bind();
 
     editingDomain = (0, dependencies.createEditingDomain)({
@@ -1064,6 +1115,9 @@ export function createDomainAssembly() {
 
     (selectionUiController = null);
 
+    selectionToolbarPresentation?.dispose?.();
+    (selectionToolbarPresentation = null);
+
     (countryPropertyController = null);
 
     (objectPropertyController = null);
@@ -1084,6 +1138,7 @@ export function createDomainAssembly() {
     get projectDomain() { return projectDomain; },
     get renderingDomain() { return renderingDomain; },
     get selectionDomain() { return selectionDomain; },
+    get selectionToolbarPresentation() { return selectionToolbarPresentation; },
     get selectionUiController() { return selectionUiController; },
   });
 }

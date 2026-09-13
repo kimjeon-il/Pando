@@ -89,7 +89,7 @@ export function createObjectCommands() {
       const label = dependencies.state.labels.find(item => String(item.id) === ref.id);
       if (label) {
         (0, dependencies.focusCoordinate)(label.coordinates);
-        if (announce) (0, dependencies.setActionStatus)('선택 위치로 이동 완료', 'success', 2200);
+        if (announce) (0, dependencies.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
         return true;
       }
     }
@@ -104,7 +104,7 @@ export function createObjectCommands() {
       ? runtimeAnchor
       : null;
     (0, dependencies.focusCountry)(feature, { maxZoom: (0, dependencies.isMobile)() ? 12 : 10, preferredAnchor });
-    if (announce) (0, dependencies.setActionStatus)('선택 위치로 이동 완료', 'success', 2200);
+    if (announce) (0, dependencies.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
     return true;
   }
 
@@ -364,10 +364,12 @@ export function createObjectCommands() {
     if (focusButton) focusButton.classList.toggle('hidden', refs.length !== 1 || !primary);
     const flagButton = (0, dependencies.$)('flagMenuBtn');
     if (flagButton) {
-      const singleCountry = refs.length === 1 && primary?.domain === 'territorial' && primary?.type === 'country';
-      flagButton.classList.toggle('hidden', !singleCountry);
-      flagButton.disabled = !singleCountry || objectRefLocked(primary);
-      if (!singleCountry || flagButton.disabled) (0, dependencies.$)('flagMenu')?.hidePopover();
+      const singleTerritorial = refs.length === 1
+        && primary?.domain === 'territorial'
+        && [dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT, dependencies.TERRITORIAL_UNIT_TYPES.REGION].includes(primary.type);
+      flagButton.classList.toggle('hidden', !singleTerritorial);
+      flagButton.disabled = !singleTerritorial || objectRefLocked(primary);
+      if (!singleTerritorial || flagButton.disabled) (0, dependencies.$)('flagMenu')?.hidePopover();
     }
     const lockButton = (0, dependencies.$)('objectLockBtn');
     if (lockButton) {
@@ -385,6 +387,7 @@ export function createObjectCommands() {
     }
     const menuFocus = (0, dependencies.$)('objectFocusMenuBtn');
     if (menuFocus) menuFocus.disabled = refs.length !== 1 || !primary;
+    dependencies.syncSelectionToolbarInteraction?.();
   }
 
   function positionObjectActionsMenu(trigger) {

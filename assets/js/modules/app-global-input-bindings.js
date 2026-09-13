@@ -45,6 +45,7 @@ export function createGlobalInputBindings() {
       }
       if (e.key === 'Escape') {
         if (dependencies.state.modeProcessing) { e.preventDefault(); return; }
+        if (dependencies.closeSelectionToolbarTransient?.({ restoreFocus: true })) { e.preventDefault(); return; }
         if (!(0, dependencies.$)('preferencesModal')?.classList.contains('hidden')) { (0, dependencies.$)('preferencesCancelBtn')?.click(); return; }
         if (!(0, dependencies.$)('objectChooser')?.classList.contains('hidden')) { (0, dependencies.closeObjectChooser)({ restoreFocus: true }); return; }
         if (!(0, dependencies.$)('objectActionsMenu')?.classList.contains('hidden')) { (0, dependencies.closeObjectActionsMenu)({ restoreFocus: true }); return; }
@@ -56,6 +57,7 @@ export function createGlobalInputBindings() {
         if (dependencies.confirmModalController?.isOpen()) { (0, dependencies.closeConfirmModal)(); return; }
         if (document.body.classList.contains('file-menu-open')) { (0, dependencies.closeFileMenu)({ restoreFocus: true }); return; }
         if (dependencies.surfaceController.isOpen('create')) { (0, dependencies.closeSurface)('create', { restoreFocus: true }); return; }
+        if (dependencies.surfaceController.isOpen('search')) { e.preventDefault(); (0, dependencies.closeSurface)('search', { restoreFocus: true }); return; }
         if (dependencies.editingDraftSnapshot().vertexInsertMode) { dependencies.editingDomain.setDraftVertexInsertMode(false); return; }
         if (dependencies.state.territorySelectionSession) { (0, dependencies.$)('modeCancelBtn')?.click(); return; }
         if (dependencies.state.geometryPreview.session) { (0, dependencies.discardActiveGeometryPreview)(); return; }
@@ -66,7 +68,6 @@ export function createGlobalInputBindings() {
         else if ((0, dependencies.$)('rightPanel')?.classList.contains('mobile-open')) {
           (0, dependencies.closeSurface)('editor', { manual: dependencies.layoutMode === 'wide', restoreFocus: true });
         }
-        else if ((0, dependencies.$)('objectSearchSurface')?.classList.contains('surface-open')) (0, dependencies.closeSurface)('search', { restoreFocus: true });
         else if ((0, dependencies.$)('mapDisplaySurface')?.classList.contains('surface-open')) (0, dependencies.closeSurface)('display', { restoreFocus: true });
         else if (!(0, dependencies.$)('actionStatus')?.classList.contains('hidden')) (0, dependencies.clearNotification)();
         else dependencies.selectionUiController.clear({ reason: 'escape-selection-clear' });

@@ -47,8 +47,22 @@ function fixture(initialLayout) {
   };
 }
 
-test('compact search, display, and editor surfaces are mutually exclusive and synchronize ARIA once rendered', () => {
+test('compact search preserves the editor and synchronizes ARIA while replacing competing menus', () => {
   const { controller, elements } = fixture('compact');
+  controller.open('editor');
+  controller.open('search');
+  controller.render();
+  assert.equal(controller.isOpen('editor'), true);
+  assert.equal(elements.objectSearchBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.mobileEditBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.objectSearchSurface.inert, false);
+  controller.open('editor', { automatic: true });
+  assert.equal(controller.isOpen('search'), true);
+  controller.close('search');
+  controller.render();
+  assert.equal(controller.isOpen('editor'), true);
+  assert.equal(elements.objectSearchSurface.inert, true);
+  controller.close('editor');
   for (const [surface, button] of [['search', 'mobileSearchBtn'], ['display', 'mobileDisplayBtn'], ['editor', 'mobileEditBtn']]) {
     controller.open(surface);
     const view = controller.render();
@@ -187,12 +201,13 @@ test('toggle owns the common open and close transition without treating it as a 
 
 test('layout changes preserve a user-opened transient command surface', () => {
   const wideSearch = fixture('wide');
+  wideSearch.controller.open('editor');
   wideSearch.controller.open('search');
   wideSearch.controller.render();
   wideSearch.setLayout('compact');
   wideSearch.controller.syncLayout('wide');
   assert.deepEqual(wideSearch.controller.render(), {
-    createOpen: false, searchOpen: true, displayOpen: false, editorOpen: false, activeMobileSheet: null,
+    createOpen: false, searchOpen: true, displayOpen: false, editorOpen: true, activeMobileSheet: null,
   });
 
   wideSearch.setLayout('mobile');

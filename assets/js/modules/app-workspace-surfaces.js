@@ -1,4 +1,5 @@
 import { clearMenuPosition, createMenuPositionScheduler, positionRootMenu } from './menu-presentation.js';
+import { createSearchToolbarPresentation } from './search-toolbar-presentation.js';
 
 /** WorkspaceSurfaces: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -37,6 +38,9 @@ export function createWorkspaceSurfaces() {
   let mobileViewportHeight;
   let mobileSheetSettlement;
   let menuPositionScheduler;
+  let searchToolbarPresentation;
+  let searchFocusFrame = 0;
+  let searchComposing = false;
   function connect(ports) {
     if (dependencies) throw new Error('workspace-surfaces already connected');
     dependencies = ports;
@@ -144,11 +148,16 @@ export function createWorkspaceSurfaces() {
 
   function applyLayoutMode({ initial = false } = {}) {
     const nextLayout = detectLayoutMode();
-    if (nextLayout !== layoutMode && (activeSheetDrag || mobileSheetSettlement.size)) {
+    if (nextLayout !== layoutMode && (activeSheetDrag || mobileSheetSettlement.size || searchComposing)) {
       pendingLayoutChange = true;
       return false;
     }
     const previous = layoutMode;
+    if (previous !== nextLayout) {
+      cancelAnimationFrame(searchFocusFrame);
+      searchFocusFrame = 0;
+    }
+    pendingLayoutChange = false;
     layoutMode = nextLayout;
     const app = (0, dependencies.$)('app');
     if (app) app.dataset.layout = layoutMode;
@@ -160,7 +169,11 @@ export function createWorkspaceSurfaces() {
     }
     const fileOpen = !!document.querySelector('.top-actions')?.classList.contains('mobile-open');
     surfaceController.render({ fileOpen });
+    searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
+    dependencies.syncSelectionToolbarInteraction?.();
+    dependencies.syncSelectionToolbarOcclusion?.();
+    requestAnimationFrame(() => dependencies.syncSelectionToolbarOcclusion?.());
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
     syncEditorPanelControls();
@@ -174,7 +187,15 @@ export function createWorkspaceSurfaces() {
   function syncOverlayState() {
     const fileOpen = !!document.querySelector('.top-actions')?.classList.contains('mobile-open');
     const view = surfaceController.render({ fileOpen });
+    if (!surfaceController.isOpen('search')) {
+      cancelAnimationFrame(searchFocusFrame);
+      searchFocusFrame = 0;
+    }
+    searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
+    dependencies.syncSelectionToolbarInteraction?.();
+    dependencies.syncSelectionToolbarOcclusion?.();
+    requestAnimationFrame(() => dependencies.syncSelectionToolbarOcclusion?.());
     syncEditorPanelControls();
     refreshMapSheetMetrics();
     requestAnimationFrame(dependencies.syncMapHudBounds);
@@ -216,7 +237,13 @@ export function createWorkspaceSurfaces() {
     const ids = isMobile()
       ? { create: 'mobileCreateBtn', search: 'mobileSearchBtn', display: 'mobileDisplayBtn', editor: 'mobileEditBtn' }
       : { create: 'createMenuBtn', search: 'objectSearchBtn', display: 'mapDisplayBtn' };
-    const trigger = (0, dependencies.$)(ids[surface])
+    const panelId = { create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', editor: 'rightPanel' }[surface];
+    const rememberedTrigger = lastOverlayTrigger?.isConnected
+      && lastOverlayTrigger.getClientRects().length > 0
+      && lastOverlayTrigger.getAttribute('aria-controls') === panelId
+      ? lastOverlayTrigger
+      : null;
+    const trigger = rememberedTrigger || (0, dependencies.$)(ids[surface])
       || (lastOverlayTrigger?.getClientRects().length ? lastOverlayTrigger : (0, dependencies.$)('map'));
     trigger?.focus({ preventScroll: true });
   }
@@ -242,6 +269,7 @@ export function createWorkspaceSurfaces() {
   }
 
   function positionWorkspaceMenus() {
+    searchToolbarPresentation.position();
     const fileMenu = document.querySelector('.top-actions');
     const createMenu = (0, dependencies.$)('createMenu');
     if (isMobile()) {
@@ -514,11 +542,25 @@ export function createWorkspaceSurfaces() {
     });
   }
 
-  function openSelectionEditor() {
+  function openSelectionEditor({ explicit = false, trigger = null, focus = false } = {}) {
     const panel = (0, dependencies.$)('rightPanel');
-    if (!panel) return;
-    if (layoutMode !== 'wide' || !surfaceState.editorManuallyCollapsed) openSurface('editor', { automatic: true });
+    if (!panel) return false;
+    let opened = surfaceController.isOpen('editor');
+    if (!opened && explicit) opened = openSurface('editor', { trigger, automatic: false });
+    else if (!opened && (layoutMode !== 'wide' || !surfaceState.editorManuallyCollapsed)) {
+      opened = openSurface('editor', { automatic: true });
+    }
+    if (!opened) return false;
     if (panel.classList.contains('mobile-open')) (0, dependencies.$)('editorScrollBody')?.scrollTo?.({ top: 0, behavior: 'instant' });
+    if (focus) requestAnimationFrame(() => {
+      if (!surfaceController.isOpen('editor')) return;
+      const visible = element => element.getClientRects().length > 0 && !element.closest('[hidden], .hidden');
+      const target = [...panel.querySelectorAll('[role="tab"][aria-selected="true"]:not([aria-disabled="true"])')].find(visible)
+        || [...panel.querySelectorAll('input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled)')].find(visible);
+      target?.focus({ preventScroll: true });
+    });
+    dependencies.syncSelectionToolbarInteraction?.();
+    return true;
   }
 
   function openSurface(surface, { trigger = null, automatic = false } = {}) {
@@ -535,6 +577,16 @@ export function createWorkspaceSurfaces() {
       trackMobileSheetHistory(kind);
     }
     syncOverlayState();
+    if (surface === 'search') {
+      cancelAnimationFrame(searchFocusFrame);
+      searchFocusFrame = requestAnimationFrame(() => {
+        searchFocusFrame = 0;
+        if (surfaceController.isOpen('search') && !dependencies.state.projectReplacing
+          && !document.activeElement?.closest('.ui-modal, [aria-modal="true"]')) {
+          (0, dependencies.$)('layerSearchInput')?.focus({ preventScroll: true });
+        }
+      });
+    }
     if (surface === 'create' && !isMobile()) {
       requestAnimationFrame(() => {
         if (surfaceController.isOpen('create') && !isMobile()) activeCreateMenuItems()[0]?.focus({ preventScroll: true });
@@ -657,9 +709,24 @@ export function createWorkspaceSurfaces() {
 
     (mobileViewportHeight = () => window.visualViewport?.height || window.innerHeight);
 
-    (mobileSheetSettlement = new WeakMap());
+    (mobileSheetSettlement = new Map());
 
     (menuPositionScheduler = createMenuPositionScheduler(positionWorkspaceMenus));
+    searchToolbarPresentation = createSearchToolbarPresentation({
+      document,
+      panel: (0, dependencies.$)('objectSearchSurface'),
+      toolbar: document.querySelector('.map-command-toolbar'),
+      slot: document.querySelector('.map-command-search'),
+      results: (0, dependencies.$)('layerSearchResults'),
+      isOpen: () => surfaceController.isOpen('search'),
+      isMobile,
+      schedulePosition: () => menuPositionScheduler.schedule(),
+    });
+    (0, dependencies.$)('layerSearchInput')?.addEventListener('compositionstart', () => { searchComposing = true; });
+    (0, dependencies.$)('layerSearchInput')?.addEventListener('compositionend', () => {
+      searchComposing = false;
+      if (pendingLayoutChange) applyLayoutMode();
+    });
     window.addEventListener('resize', () => menuPositionScheduler.schedule());
     window.visualViewport?.addEventListener?.('resize', () => menuPositionScheduler.schedule());
     window.visualViewport?.addEventListener?.('scroll', () => menuPositionScheduler.schedule());

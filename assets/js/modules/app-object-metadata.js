@@ -126,6 +126,11 @@ export function createObjectMetadata() {
     else if (canonicalField === 'parentId') Object.assign(candidateFeature, (0, dependencies.changeParent)(candidateFeature, value));
     else if (canonicalField === 'sovereignId') Object.assign(candidateFeature, (0, dependencies.changeSovereign)(candidateFeature, value));
     else if (canonicalField === 'unitType') Object.assign(candidateFeature, (0, dependencies.changeUnitType)(candidateFeature, value));
+    else if (canonicalField === 'flagDataUrl') {
+      candidateFeature.properties ||= {};
+      candidateFeature.properties.metadata ||= {};
+      candidateFeature.properties.metadata.flagDataUrl = value;
+    }
     else candidateFeature.properties[canonicalField] = value;
     const parentValidation = (0, dependencies.validateSubunitParentChanges)(dependencies.state.territorialUnits, candidateUnits, id => !!(0, dependencies.countryFeatureById)(id));
     if (!parentValidation.ok) {
@@ -145,6 +150,7 @@ export function createObjectMetadata() {
     dependencies.territorialApplicationService.replaceUnits(normalizedUnits, {
       type: 'territorial-metadata', affectedIds: [feature.id],
     });
+    if (canonicalField === 'flagDataUrl') dependencies.renderingDomain?.invalidateLabels?.('territorial-flag-edited');
     (0, dependencies.markLayerTreeDirty)();
     (0, dependencies.applyTerritorialUnitSelectionIntent)(feature.id, true);
     const unitLabel = feature.properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT

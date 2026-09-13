@@ -17,6 +17,7 @@ const sources = Object.freeze([
   'assets/css/components/topbar.css',
   'assets/css/features/layer-panel.css',
   'assets/css/components/editor-shell.css',
+  'assets/css/components/selection-toolbar.css',
   'assets/css/components/panels.css',
   'assets/css/components/menus.css',
   'assets/css/components/view-menu.css',

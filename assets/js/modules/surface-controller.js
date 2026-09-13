@@ -82,7 +82,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
       : userIntent ? SURFACE_OPEN_ORIGINS.USER : SURFACE_OPEN_ORIGINS.AUTOMATIC;
     if (surface === 'editor' && userIntent) resetAutomaticBlock('editor');
 
-    if (layout === 'mobile' || (layout === 'compact' && surface !== 'create')) clearOtherSurfaces(surface);
+    if (layout === 'mobile' || (layout === 'compact' && (surface === 'display' || (surface === 'editor' && !isOpen('search'))))) clearOtherSurfaces(surface);
     else if (surface !== 'editor') {
       for (const candidate of SURFACES) {
         if (candidate === surface || candidate === 'editor') continue;
@@ -144,7 +144,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
         panel.setAttribute('aria-hidden', String(hidden));
         panel.inert = hidden;
       } else if (panel) {
-        panel.inert = surface === 'create' && !openState;
+        panel.inert = (surface === 'create' || surface === 'search') && !openState;
         if (surface === 'create') {
           panel.setAttribute('role', 'menu');
           panel.setAttribute('aria-hidden', String(!openState));
@@ -199,6 +199,13 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     }
 
     if (layout === 'compact') {
+      if (isOpen('search')) {
+        setOpen('create', false);
+        setOpen('display', false);
+        openOrigins.create = null;
+        openOrigins.display = null;
+        return;
+      }
       if (isOpen('create')) {
         setOpen('search', false);
         setOpen('display', false);

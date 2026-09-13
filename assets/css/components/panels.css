@@ -327,7 +327,7 @@ body.file-menu-open .mobile-backdrop {
 }
 
 
-.surface-search,
+.surface-search:not(.search-toolbar-desktop),
 .surface-display {
   background: var(--surface-elevated);
   border: var(--ui-border-width) solid var(--border);

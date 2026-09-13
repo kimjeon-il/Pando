@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+/* global Event, EventTarget */
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
@@ -12,6 +13,8 @@ function setup() {
   const focused = [];
   const presented = [];
   const opened = [];
+  const toolbarSynced = [];
+  let toolbarCleared = 0;
   const ui = createSelectionUiController({
     selectionDomain: domain,
     resolveRef: normalizeObjectRef,
@@ -19,9 +22,11 @@ function setup() {
     uiActions: {
       focusObject: ref => focused.push(ref.key),
       openEditor: ref => opened.push(ref.key),
+      syncSelectionToolbar: ref => toolbarSynced.push(ref?.key || ''),
+      clearSelectionToolbar: () => { toolbarCleared += 1; },
     },
   });
-  return { domain, ui, focused, presented, opened };
+  return { domain, ui, focused, presented, opened, toolbarSynced, get toolbarCleared() { return toolbarCleared; } };
 }
 
 test('country selection, reselection, toggle and range present without focusing the map', () => {
@@ -42,7 +47,7 @@ test('country selection, reselection, toggle and range present without focusing 
     assert.equal(domain.primary().key, b.key);
     assert.deepEqual(focused, []);
     assert.ok(presented.includes(a.key) && presented.includes(b.key));
-    assert.deepEqual(opened, presented);
+    assert.deepEqual(opened, []);
   }
 });
 
@@ -74,4 +79,15 @@ test('explicit show-on-map button still focuses the selected country', () => {
   button.dispatchEvent(new Event('click'));
   assert.deepEqual(focused, [ref]);
   bindings.dispose();
+});
+
+test('selection toolbar follows single selection and clears for multiple selection', () => {
+  const setupState = setup();
+  const a = country('A');
+  const b = country('B');
+  setupState.ui.applyIntent(a, { openEditor: false });
+  assert.equal(setupState.toolbarSynced.at(-1), a.key);
+  setupState.ui.applyIntent(b, { mode: 'toggle', openEditor: false });
+  setupState.ui.syncNow(setupState.domain.snapshot(), { force: true });
+  assert.ok(setupState.toolbarCleared > 0);
 });

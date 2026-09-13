@@ -27,15 +27,13 @@ export function createNavigationBindings() {
     (0, dependencies.toggleSurface)(surface, trigger);
     if (surface === 'display' && wasOpen) (0, dependencies.closeDesktopViewMenuGroup)();
     if (surface === 'display') (0, dependencies.renderMapDisplaySettings)();
-    if (surface === 'search' && (0, dependencies.$)('objectSearchSurface')?.classList.contains('surface-open')) {
-      requestAnimationFrame(() => (0, dependencies.$)('layerSearchInput')?.focus({ preventScroll: true }));
-    }
   }
 
   function bindNavigationUI() {
     bindSurfaceTabs();
     (0, dependencies.bindMapDisplayUI)();
     let displayPointerStartedInside = false;
+    let searchToolbarPointer = false;
     const closeDesktopDisplayMenu = () => {
       const display = (0, dependencies.$)('mapDisplaySurface');
       if (dependencies.layoutMode === 'mobile' || !display?.classList.contains('surface-open')) return;
@@ -44,6 +42,7 @@ export function createNavigationBindings() {
     };
     document.addEventListener('pointerdown', event => {
       displayPointerStartedInside = !!event.target.closest('#mapDisplaySurface');
+      searchToolbarPointer = !!event.target.closest('#createMenuBtn, #resetViewBtn');
       if (!event.target.closest('#notificationCloseBtn')) (0, dependencies.clearErrorNotification)();
     }, true);
     document.addEventListener('click', e => {
@@ -97,6 +96,27 @@ export function createNavigationBindings() {
       (0, dependencies.toggleSurface)('create', event.currentTarget);
     });
     (0, dependencies.$)('objectSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
+    (0, dependencies.$)('resetViewBtn')?.addEventListener('click', () => {
+      if (dependencies.layoutMode !== 'mobile') (0, dependencies.closeSurface)('search');
+    });
+    const searchPanel = (0, dependencies.$)('objectSearchSurface');
+    searchPanel?.addEventListener('keydown', event => {
+      if (dependencies.state.projectReplacing) { event.preventDefault(); event.stopPropagation(); return; }
+      if (event.isComposing || event.key !== 'Escape') event.stopPropagation();
+      // Escape is handled after dialogs, but before map-edit commands, globally.
+    });
+    searchPanel?.addEventListener('focusout', event => {
+      if (dependencies.layoutMode === 'mobile' || searchToolbarPointer) return;
+      const next = event.relatedTarget;
+      if (!next || next.closest('#objectSearchSurface, #objectSearchBtn, .ui-modal, [role="dialog"], .ui-overlay-scrollbar[aria-controls="layerSearchResults"]')) return;
+      queueMicrotask(() => {
+        if (dependencies.layoutMode !== 'mobile' && !searchPanel.contains(document.activeElement)) {
+          (0, dependencies.closeSurface)('search');
+        }
+      });
+    });
+    document.addEventListener('pointerup', () => { searchToolbarPointer = false; });
+    document.addEventListener('pointercancel', () => { searchToolbarPointer = false; });
     (0, dependencies.$)('mapDisplayBtn')?.addEventListener('click', event => toggleWorkspaceSurface('display', event.currentTarget));
     (0, dependencies.$)('objectLockBtn')?.addEventListener('click', () => dependencies.batchToggleLocked());
     (0, dependencies.$)('objectVisibilityBtn')?.addEventListener('click', () => dependencies.batchSetVisibility());
@@ -147,7 +167,7 @@ export function createNavigationBindings() {
       if (dependencies.surfaceController.isOpen('create') && !event.target.closest('#createMenu, #createMenuBtn, .mobile-bottom-bar, .ui-modal, [role="dialog"]')) (0, dependencies.closeSurface)('create');
       if (dependencies.surfaceController.isOpen('search')
         && scrollbarOwner !== 'layerSearchResults'
-        && !event.target.closest('#objectSearchSurface, #objectSearchBtn, #mobileSearchBtn, .mobile-bottom-bar, .ui-modal, [role="dialog"]')) {
+        && !event.target.closest('#objectSearchSurface, #objectSearchBtn, #mobileSearchBtn, .map-command-toolbar, .mobile-bottom-bar, .ui-modal, [role="dialog"]')) {
         (0, dependencies.closeSurface)('search');
       }
     }, true);

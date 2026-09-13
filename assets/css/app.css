@@ -3437,6 +3437,54 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   transform: translateX(-50%);
 }
 .map-command-toolbar .icon-btn { flex: 0 0 var(--ui-control-height); }
+.map-command-search {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--ui-control-height);
+  min-width: 0;
+  height: var(--ui-control-height);
+  transition: width 180ms ease;
+}
+.map-command-search.is-expanded {
+  width: min(22.5rem, var(--search-toolbar-available-width, calc(100dvw - var(--ui-menu-screen-edge) * 2 - var(--ui-control-height) * 2 - var(--ui-toolbar-gap) * 2 - var(--ui-toolbar-padding) * 2 - 2px)));
+}
+.map-command-toolbar:has(.map-command-search.is-expanded) { z-index: 40; }
+.map-command-search > #objectSearchBtn[hidden] { display: none; }
+.surface-search.search-toolbar-desktop {
+  position: static;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  transition: none;
+}
+.surface-search.search-toolbar-desktop:not(.surface-open),
+.map-command-search .surface-search.search-toolbar-desktop > .surface-header { display: none; }
+.surface-search.search-toolbar-desktop .surface-body-delegated,
+.search-toolbar-desktop .object-search-section {
+  position: static;
+  flex: 0 0 auto;
+  overflow: visible;
+  padding: 0;
+}
+.search-toolbar-desktop .object-search-section .layer-search { margin: 0; }
+.search-toolbar-desktop .object-search-section .layer-search-results {
+  position: absolute;
+  bottom: calc(100% + var(--ui-menu-trigger-gap));
+  left: 0;
+  width: 100%;
+  max-height: min(24rem, var(--search-results-max-height, 24rem));
+  overflow-y: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-command-search { transition: none; }
+}
 .map-command-divider { width: 1px; align-self: stretch; margin: var(--ui-space-1) 0; background: var(--border); }
 .object-search-section,
 .map-view-panel-section { min-height: 0; display: flex; flex-direction: column; }
@@ -3469,7 +3517,7 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
     width: auto;
     transform: none;
   }
-  .app-root[data-layout="mobile"] .map-command-toolbar :is(#createMenuBtn, #objectSearchBtn, #mapDisplayBtn, .map-command-divider) { display: none; }
+  .app-root[data-layout="mobile"] .map-command-toolbar :is(#createMenuBtn, .map-command-search, #mapDisplayBtn, .map-command-divider) { display: none; }
   .app-root[data-layout="mobile"] .map-command-toolbar button { width: var(--ui-touch-height); height: var(--ui-touch-height); }
   .app-root[data-layout="mobile"] .surface-editor .surface-header { grid-template-columns: minmax(0, 1fr) auto; }
   .app-root[data-layout="mobile"] .surface-editor .surface-header-actions { display: flex; grid-column: 2; grid-row: 1; align-items: center; gap: var(--ui-space-1); }

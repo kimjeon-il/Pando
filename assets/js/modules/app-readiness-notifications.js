@@ -237,6 +237,7 @@ export function createReadinessNotifications() {
       '#createMenu .ui-menu-item',
       '#rightPanel input', '#rightPanel select', '#rightPanel textarea',
       '#rightPanel button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
+      '#selectionToolbar input', '#selectionToolbar textarea', '#selectionToolbar button:not(#selectionToolbarEditBtn)',
       '.top-actions button', '.top-actions input',
       '#mobileFileBtn', '#preferencesBtn', '#helpBtn', '#undoBtn', '#redoBtn',
       '.layer-child-menu', '.layer-folder-lock', '[data-map-display-row]',
