@@ -24,30 +24,35 @@ class ShellFileSaveContractTests(unittest.TestCase):
         ):
             self.assertNotIn(identifier, combined)
 
-    def test_topbar_uses_three_zones_and_status_overlay_owns_save_state(self):
-        topbar = re.search(r'<header class="topbar">(.*?)</header>', HTML, re.S)
+    def test_topbar_uses_command_groups_and_status_overlay_owns_save_state(self):
+        topbar = re.search(r'<header class="topbar"[^>]*>(.*?)</header>', HTML, re.S)
         self.assertIsNotNone(topbar)
         markup = topbar.group(1)
-        self.assertLess(markup.index('class="brand"'), markup.index('class="topbar-center"'))
-        self.assertLess(markup.index('class="topbar-center"'), markup.index('class="topbar-file-actions"'))
-        file_actions = re.search(r'<div class="topbar-file-actions">(.*?)</div>\s*</header>', HTML, re.S)
+        self.assertNotIn('class="brand"', markup)
+        self.assertLess(markup.index('id="undoBtn"'), markup.index('id="mobileFileBtn"'))
+        self.assertLess(markup.index('id="mobileFileBtn"'), markup.index('id="preferencesBtn"'))
+        self.assertLess(markup.index('id="preferencesBtn"'), markup.index('id="helpBtn"'))
+        file_actions = re.search(r'<div class="topbar-file-actions">(.*?)</nav>\s*</div>', HTML, re.S)
         self.assertIsNotNone(file_actions)
         self.assertNotIn('id="projectSaveStatus"', file_actions.group(1))
-        self.assertIn('id="projectSaveStatus"', HTML[HTML.index('<div class="ui-status map-bottom-status"'):HTML.index('</main>', HTML.index('<div class="ui-status map-bottom-status"'))])
+        bottom_status_start = HTML.index('id="mapBottomStatus"')
+        self.assertIn('id="projectSaveStatus"', HTML[bottom_status_start:HTML.index('</main>', bottom_status_start)])
         self.assertNotIn('id="projectSaveStatus"', re.search(r'<div class="topbar-center"(.*?)</div>\s*</div>', HTML, re.S).group(1))
-        self.assertIn("grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr)", CSS)
+        self.assertIn('class="topbar-center"', markup)
 
     def test_file_menu_uses_application_commands_and_accessible_menu_roles(self):
         menu = re.search(r'<nav id="fileMenu"(.*?)</nav>', HTML, re.S)
         self.assertIsNotNone(menu)
         markup = menu.group(1)
         self.assertIn('role="menu"', menu.group(0))
-        for label in ("새 프로젝트", "불러오기", "프로젝트 저장", "데이터 내보내기", "환경설정", "키보드 도움말"):
+        for label in ("새 프로젝트", "프로젝트 불러오기", "프로젝트 저장", "GIS 가져오기", "GIS 내보내기"):
             self.assertIn(label, markup)
         for old_label in ("GeoPackage 저장", "GIS 파일 열기", "GeoJSON 가져오기", "GeoJSON 내보내기", "벡터 데이터 가져오기"):
             self.assertNotIn(old_label, markup)
-        self.assertEqual(markup.count('role="menuitem"'), 6)
-        self.assertNotIn('id="keyboardHelpBtn"', re.search(r'<header class="topbar">(.*?)</header>', HTML, re.S).group(1))
+        self.assertEqual(markup.count('role="menuitem"'), 5)
+        topbar_markup = re.search(r'<header class="topbar"[^>]*>(.*?)</header>', HTML, re.S).group(1)
+        self.assertIn('id="preferencesBtn"', topbar_markup)
+        self.assertIn('id="helpBtn"', topbar_markup)
 
     def test_dirty_state_is_separate_from_autosave_and_transient_notifications(self):
         self.assertIn("hasUnsavedChanges: false", SAVE_STATE)

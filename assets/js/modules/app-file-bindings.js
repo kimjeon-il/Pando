@@ -86,10 +86,12 @@ export function createFileBindings() {
         dependencies.userPreferences = (0, dependencies.saveUserPreferences)(dependencies.userPreferences);
       }
       preferencesOrigin = null;
+      (0, dependencies.closeColorPicker)(preferencesModal.querySelector('[data-color-picker="accent"]'));
       preferencesModal.classList.add('hidden');
       if (restoreFocus) (0, dependencies.$)('preferencesBtn')?.focus({ preventScroll: true });
     };
     const openPreferences = () => {
+      (0, dependencies.closeFileMenu)();
       syncPreferencesForm();
       preferencesOrigin = { ...dependencies.userPreferences.appearance };
       preferencesModal?.classList.remove('hidden');
@@ -109,13 +111,30 @@ export function createFileBindings() {
       button.addEventListener('click', () => previewAccent(button.dataset.preferenceAccent || null));
     });
     document.getElementById('preferencesAccentInput').addEventListener('input', event => previewAccent(event.target.value.toLowerCase()));
-    document.getElementById('preferencesAccentCustomBtn').addEventListener('click', () => {
-      const input = document.getElementById('preferencesAccentInput');
-      if (input.showPicker) input.showPicker(); else input.click();
-    });
     (0, dependencies.$)('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
     (0, dependencies.$)('preferencesStatusBarVisibleInput')?.addEventListener('change', applyPreferencesForm);
     (0, dependencies.$)('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
+    const helpModal = (0, dependencies.$)('helpModal');
+    const closeHelp = ({ restoreFocus = true } = {}) => {
+      if (!helpModal || helpModal.classList.contains('hidden')) return;
+      helpModal.classList.add('hidden');
+      if (restoreFocus) (0, dependencies.$)('helpBtn')?.focus({ preventScroll: true });
+    };
+    const openHelp = async () => {
+      (0, dependencies.closeFileMenu)();
+      try {
+        await (window.PANDOLAB_ENSURE_MODAL_STYLES?.() || Promise.resolve());
+      } catch (error) {
+        (0, dependencies.reportOperationError)(error, '도움말 화면을 불러오지 못했습니다.', 'PL-HELP-001', 4200);
+        return;
+      }
+      helpModal?.classList.remove('hidden');
+      (0, dependencies.$)('helpCloseBtn')?.focus({ preventScroll: true });
+    };
+    (0, dependencies.$)('helpBtn')?.addEventListener('click', () => { void openHelp(); });
+    (0, dependencies.$)('helpCloseBtn')?.addEventListener('click', () => closeHelp());
+    (0, dependencies.$)('helpDoneBtn')?.addEventListener('click', () => closeHelp());
+    helpModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closeHelp());
     const fileMenu = document.querySelector('.top-actions');
     const visibleFileMenuItems = () => [...(fileMenu?.querySelectorAll('[role="menuitem"]:not(:disabled)') || [])]
       .filter(item => !item.closest('.hidden'));

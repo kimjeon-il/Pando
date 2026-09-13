@@ -74,13 +74,12 @@ class V0180UiSystemTests(unittest.TestCase):
         self.assertIn('id="mobileZoomInBtn" class="ui-button icon-btn"', INDEX)
         self.assertIn('id="mobileZoomOutBtn" class="ui-button icon-btn"', INDEX)
 
-    def test_korean_brand_uses_an_empty_reserved_icon_frame(self):
+    def test_browser_metadata_keeps_the_name_while_topbar_omits_branding(self):
         self.assertIn('<link rel="icon" href="data:," />', INDEX)
         self.assertIn('<title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>', INDEX)
-        self.assertIn('<div class="brand-mark" aria-hidden="true"></div>', INDEX)
-        self.assertIn('<div><strong>판도연구소</strong></div>', INDEX)
+        self.assertNotIn('class="brand"', INDEX)
+        self.assertNotIn('class="brand-mark"', INDEX)
         self.assertNotIn('icon-atlas', INDEX)
-        self.assertRegex(CSS, r"\.brand-mark \{[^}]*width: 34px;[^}]*height: 34px;")
 
     def test_every_create_menu_entry_has_a_unique_semantic_icon(self):
         button_ids = (

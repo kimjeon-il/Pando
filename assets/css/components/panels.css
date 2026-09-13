@@ -345,20 +345,6 @@ body.file-menu-open .mobile-backdrop {
   pointer-events: none;
 }
 
-/* Surface controls use the same quiet hierarchy: neutral navigation, one
-   compact settings row, and only the primary workflow buttons use blue. */
-.topbar .file-menu-btn {
-  border-color: transparent;
-  background: var(--ui-button-subtle);
-  color: var(--ui-control-text);
-}
-
-.topbar .file-menu-btn:is(:hover, .sheet-open) {
-  border-color: transparent;
-  background: var(--ui-button-subtle-hover);
-  color: var(--text-strong);
-}
-
 .map-command-toolbar {
   gap: var(--ui-space-1);
   padding: var(--ui-space-1);
@@ -510,4 +496,16 @@ body.file-menu-open .mobile-backdrop {
     border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
   }
   .object-search-section .layer-search-result { min-height: var(--ui-touch-height); }
+}
+.preferences-accent .ui-color-popover.is-custom {
+  position: static;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  padding: var(--ui-space-2) 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  transform: none;
 }

@@ -33,7 +33,6 @@ export function createObjectPropertyController(runtime = {}) {
     automaticLabelSettings,
     hydroFeatureById,
     hydroEditById,
-    isHydroFeatureVisible,
     hydroCategoryKey,
     hydroCategoryLabel,
     hydroFallbackName,
@@ -313,7 +312,7 @@ export function createObjectPropertyController(runtime = {}) {
 
   function presentHydro(id, refreshOnly = false) {
     const feature = hydroFeatureById(id);
-    if (!feature || !isHydroFeatureVisible(feature)) return false;
+    if (!feature) return false;
     const properties = feature.properties || {};
     const editable = !!hydroEditById(id);
     const categoryKey = hydroCategoryKey(properties.category);

@@ -16,6 +16,20 @@ export function createGlobalInputBindings() {
         e.preventDefault();
         return;
       }
+      const helpModal = (0, dependencies.$)('helpModal');
+      if (helpModal && !helpModal.classList.contains('hidden')) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          (0, dependencies.$)('helpCloseBtn')?.click();
+        } else if (
+          e.key === 'Delete'
+          || e.key === 'Backspace'
+          || ((e.ctrlKey || e.metaKey) && ['s', 'y', 'z'].includes(e.key.toLowerCase()))
+        ) {
+          e.preventDefault();
+        }
+        return;
+      }
       const tag = document.activeElement?.tagName;
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable;
       // Let focused controls handle Enter/Space once, through their normal click/change event.

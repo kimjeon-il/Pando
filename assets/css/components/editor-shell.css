@@ -157,22 +157,6 @@
 }
 .editor-panel[data-editor-content="task"] .mode-task-minimize-btn { display: none; }
 
-.topbar {
-  min-height: var(--design-topbar-height);
-  height: auto;
-  padding-inline: var(--ui-space-4);
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-topbar);
-}
-
-.topbar .brand strong {
-  font-size: var(--design-font-lg);
-  font-weight: var(--design-weight-bold);
-  line-height: var(--design-line-tight);
-}
-
-.topbar :is(button, .ui-button) { min-height: var(--design-control-sm); }
-
 .mode-task-window {
   border: 1px solid var(--overlay-border);
   border-radius: var(--design-radius-lg);
@@ -264,37 +248,6 @@
 .app-root[data-layout="wide"] .workspace.editor-drawer-open .map-view-toolbar {
   right: calc(var(--ui-shell-right-panel-width) + var(--ui-map-edge));
 }
-
-.topbar {
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  padding-inline: var(--ui-space-6) var(--ui-space-4);
-  background: var(--surface-topbar);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-.topbar .brand {
-  gap: var(--ui-space-3);
-  padding-inline-end: var(--ui-space-6);
-  border-inline-end: 1px solid var(--border);
-}
-
-.topbar .brand-mark {
-  width: var(--design-brand-mark-size);
-  min-width: var(--design-brand-mark-size);
-  height: var(--design-brand-mark-size);
-  border: 0;
-  border-radius: var(--design-radius-md);
-  background: var(--text-strong);
-  color: var(--surface-elevated);
-}
-
-.topbar .brand-mark .brand-logo {
-  width: var(--design-icon-size);
-  height: var(--design-icon-size);
-}
-
-.topbar .brand strong { font-size: var(--design-font-xl); }
 
 [data-layout="wide"] .left-panel {
   top: 0;
@@ -420,45 +373,6 @@
 /* Desktop workbench refinement: keep the map dominant, and make document,
    navigation, layer, and inspector roles readable at a glance. */
 @media (min-width: 800px) {
-  [data-layout="wide"] .topbar {
-    min-height: var(--design-topbar-height);
-    height: auto;
-    gap: var(--ui-space-3);
-    padding-inline: var(--ui-space-3) var(--ui-space-4);
-    background: var(--surface-elevated);
-  }
-
-  [data-layout="wide"] .topbar .brand {
-    min-height: 100%;
-    gap: var(--ui-space-3);
-    padding-inline-end: var(--ui-space-5);
-  }
-
-  [data-layout="wide"] .topbar .brand strong {
-    font-size: var(--design-font-lg);
-    letter-spacing: -.01em;
-  }
-
-  [data-layout="wide"] .topbar .brand-mark {
-    width: var(--design-brand-mark-size);
-    min-width: var(--design-brand-mark-size);
-    height: var(--design-brand-mark-size);
-    border-radius: var(--design-radius-md);
-    background: var(--text-strong);
-    color: var(--surface-elevated);
-  }
-
-  [data-layout="wide"] .topbar-file-actions {
-    gap: var(--ui-space-1);
-    padding-inline-start: var(--ui-space-2);
-  }
-
-  [data-layout="wide"] .file-menu-btn {
-    min-height: var(--design-control-md);
-    padding-inline: var(--ui-space-3);
-    border-radius: var(--design-radius-md);
-  }
-
   [data-layout="wide"] .left-panel {
     background: var(--surface-elevated);
   }

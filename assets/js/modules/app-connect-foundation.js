@@ -88,6 +88,8 @@ export function connectFoundation({
     get DISTRIBUTION_TYPE_LABELS() { return objectPresentation.DISTRIBUTION_TYPE_LABELS; },
     get distributionEntriesForLayer() { return runtime.distributionEntriesForLayer; },
     get distributionLayerById() { return propertySelection.distributionLayerById; },
+    get distributionVisibilityRevision() { return objectPresentation.distributionVisibilityRevision; },
+    set distributionVisibilityRevision(value) { objectPresentation.distributionVisibilityRevision = value; },
     get focusCoordinate() { return cameraNavigation.focusCoordinate; },
     get focusCountry() { return cameraNavigation.focusCountry; },
     get genericFeatureName() { return objectPresentation.genericFeatureName; },

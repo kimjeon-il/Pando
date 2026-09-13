@@ -238,7 +238,7 @@ export function createReadinessNotifications() {
       '#rightPanel input', '#rightPanel select', '#rightPanel textarea',
       '#rightPanel button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
       '.top-actions button', '.top-actions input',
-      '#undoBtn', '#redoBtn',
+      '#mobileFileBtn', '#preferencesBtn', '#helpBtn', '#undoBtn', '#redoBtn',
       '.layer-child-menu', '.layer-folder-lock', '[data-map-display-row]',
       '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-style-blend-mode]',
       '.layer-folder input[type="checkbox"]', '#labelsVisible', '#basemapLabelsVisible',

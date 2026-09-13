@@ -13,6 +13,7 @@ export function connectLifecycleUi({
   fileBindings.connect({
     get $() { return environment.$; },
     get applyUserPreferences() { return countryLabels.applyUserPreferences; },
+    get closeColorPicker() { return colorPicker.closeColorPicker; },
     get closeFileMenu() { return workspaceSurfaces.closeFileMenu; },
     get defaultUserPreferences() { return runtime.defaultUserPreferences; },
     get fileMenuTrigger() { return workspaceSurfaces.fileMenuTrigger; },
@@ -335,6 +336,7 @@ export function connectLifecycleUi({
     get normalizeObjectRef() { return runtime.normalizeObjectRef; },
     get objectDisplayInfo() { return objectCommands.objectDisplayInfo; },
     get objectRefExists() { return objectCommands.objectRefExists; },
+    get objectRefVisible() { return objectCommands.objectRefVisible; },
     get openSelectionEditor() { return workspaceSurfaces.openSelectionEditor; },
     get overlayStackLayer() { return mapHost.overlayStackLayer; },
     get path() { return mapProjection.path; },

@@ -1405,7 +1405,7 @@ export function createRenderingDomain({
     const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
     // Read-only visual extensions are not SelectionDomain members. A country
     // remains one selected object, including when it owns detached subunits.
-    const items = selectionState.selection.items.flatMap(ref => {
+    const items = selectionState.selection.items.filter(ref => selection.objectRefVisible?.(ref) !== false).flatMap(ref => {
       if (ref.domain !== 'territorial' || ref.type !== selection.countryType) return [ref];
       const extra = selection.countrySubunitExtent?.(ref.id);
       return extra ? [ref, { domain: 'territorial', type: 'subunit', id: ref.id,
@@ -1419,6 +1419,7 @@ export function createRenderingDomain({
     const hoveredCountryId = !selection.isMobile?.()
       && hovered?.domain === 'territorial'
       && hovered?.type === selection.countryType
+      && selection.objectRefVisible?.(hovered) !== false
       && !selectionDomain.has(hovered)
       ? String(hovered.id || '')
       : '';
@@ -1528,7 +1529,7 @@ export function createRenderingDomain({
     let boundarySegmentCount = 0;
     const svgFallbackKeys = [];
     const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
-    const items = selectionState.selection.items;
+    const items = selectionState.selection.items.filter(ref => selection.objectRefVisible?.(ref) !== false);
     const primaryKey = selectionState.selection.primaryKey;
     const genericPrimary = [];
     const genericSecondary = [];
@@ -1546,7 +1547,7 @@ export function createRenderingDomain({
     const selectionOutlinesVisible = selectionStyle.outlineVisible !== false;
     const state = selection.getState?.() || {};
     const hovered = selectionState.hover;
-    const hoveredFeature = hovered ? selection.mapFeatureForObjectRef?.(hovered) : null;
+    const hoveredFeature = hovered && selection.objectRefVisible?.(hovered) !== false ? selection.mapFeatureForObjectRef?.(hovered) : null;
     const hoverActive = !selection.isMobile?.() && hoveredFeature?.geometry && !state.mapMoving && !editingPacket?.draft?.dragging
       && !selectionDomain.has(hovered);
     if (hoverActive) {

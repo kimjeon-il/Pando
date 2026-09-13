@@ -1,9 +1,12 @@
+import { createCustomColorControl } from './custom-color-control.js';
+
 /** ColorPicker: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createColorPicker() {
   let dependencies;
+  const customControls = new WeakMap();
 
   function connect(ports) {
     if (dependencies) throw new Error('color-picker already connected');
@@ -46,6 +49,8 @@ export function createColorPicker() {
     const popover = picker.querySelector('.ui-color-popover');
     const trigger = picker.querySelector('.ui-color-trigger');
     if (popover?.classList.contains('hidden')) return;
+    customControls.get(picker)?.close();
+    popover?.classList.remove('is-custom');
     popover.classList.add('hidden');
     picker.classList.remove('is-open');
     trigger?.setAttribute('aria-expanded', 'false');
@@ -93,9 +98,35 @@ export function createColorPicker() {
     picker.classList.toggle('is-open', opening);
     trigger.setAttribute('aria-expanded', String(opening));
     if (opening) requestAnimationFrame(() => {
+      if (!picker.classList.contains('is-open')) return;
       alignColorPopoverToViewport(popover);
-      popover.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
+      if (!popover.classList.contains('is-custom')) popover.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
     });
+  }
+
+  function openCustomColorPicker(picker) {
+    const popover = picker.querySelector('.ui-color-popover');
+    const input = picker.querySelector('.ui-native-color-input');
+    if (!popover || !input) return;
+    if (!picker.classList.contains('is-open')) openColorPicker(picker);
+    let control = customControls.get(picker);
+    if (!control) {
+      control = createCustomColorControl({
+        onApply(value) {
+          // Preserve the existing object commit and preference preview handlers.
+          input.value = value;
+          input.dispatchEvent(new window.Event(picker.hasAttribute('data-color-custom-only') ? 'input' : 'change', { bubbles: true }));
+          closeColorPicker(picker, { restoreFocus: true });
+        },
+        onCancel: () => closeColorPicker(picker, { restoreFocus: true }),
+      });
+      customControls.set(picker, control);
+      popover.appendChild(control.element);
+    }
+    popover.classList.add('is-custom');
+    control.open(input.value);
+    alignColorPopoverToViewport(popover);
+    if (picker.hasAttribute('data-color-custom-only')) control.element.scrollIntoView({ block: 'nearest' });
   }
 
   function resetCountryColor() {
@@ -250,8 +281,9 @@ export function createColorPicker() {
       const swatches = picker.querySelector('.ui-color-swatches');
       const defaultButton = picker.querySelector('[data-color-default]');
       const customButton = picker.querySelector('[data-color-custom]');
+      const customOnly = picker.hasAttribute('data-color-custom-only');
       populateColorPalette(swatches);
-      trigger?.addEventListener('click', () => openColorPicker(picker));
+      if (!customOnly) trigger?.addEventListener('click', () => openColorPicker(picker));
       defaultButton?.addEventListener('click', () => {
         if (applyColorPickerSelection(kind, '', true)) closeColorPicker(picker, { restoreFocus: true });
       });
@@ -261,10 +293,10 @@ export function createColorPicker() {
         if (applyColorPickerSelection(kind, button.dataset.colorValue)) closeColorPicker(picker, { restoreFocus: true });
       });
       customButton?.addEventListener('click', () => {
-        closeColorPicker(picker);
-        input?.click();
+        if (customOnly && picker.classList.contains('is-open')) closeColorPicker(picker, { restoreFocus: true });
+        else openCustomColorPicker(picker);
       });
-      input?.addEventListener('change', event => {
+      if (!customOnly) input?.addEventListener('change', event => {
         applyColorPickerSelection(kind, event.target.value);
         trigger?.focus({ preventScroll: true });
       });

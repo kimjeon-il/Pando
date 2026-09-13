@@ -1,0 +1,321 @@
+/* Desktop map-display menu. The mobile sheet keeps the panel presentation. */
+
+@media (min-width: 800px) {
+  [data-layout="wide"] .surface-display.view-menu-desktop,
+  [data-layout="compact"] .surface-display.view-menu-desktop {
+    position: fixed;
+    z-index: 140;
+    top: var(--view-menu-root-top, calc(var(--ui-shell-topbar-height) + var(--ui-space-2)));
+    right: auto;
+    bottom: auto;
+    left: var(--view-menu-root-left, var(--ui-space-2));
+    width: min(15rem, calc(100vw - var(--ui-space-4)));
+    max-height: var(--view-menu-root-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
+    overflow: visible;
+    border: 1px solid var(--border);
+    border-radius: var(--ui-radius-panel);
+    background: var(--surface-elevated);
+    box-shadow: var(--shadow);
+    transform: translateY(calc(-1 * var(--ui-space-1)));
+  }
+
+  [data-layout="wide"] .surface-display.view-menu-desktop.surface-open,
+  [data-layout="compact"] .surface-display.view-menu-desktop.mobile-open {
+    transform: translateY(0);
+  }
+
+  .surface-display.view-menu-desktop > .surface-header { display: none; }
+
+  .surface-display.view-menu-desktop > .surface-body,
+  .surface-display.view-menu-desktop .map-view-panel-section {
+    min-height: 0;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .surface-display.view-menu-desktop .map-view-settings {
+    max-height: var(--view-menu-root-max-height, 80dvh);
+    display: block;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--ui-space-1) 0;
+  }
+
+  .surface-display.view-menu-desktop .map-view-settings > .layer-style-editor {
+    display: block;
+    margin: 0;
+    padding: var(--ui-space-1) 0;
+    border: 0;
+  }
+
+  .surface-display.view-menu-desktop .map-view-settings > .layer-style-editor + .layer-style-editor {
+    border-top: 1px solid var(--border);
+  }
+
+  .surface-display.view-menu-desktop :is(
+    #mapProjectionSettingsTitle,
+    #mapSymbolSettingsTitle,
+    #mapNameSettingsTitle,
+    #distributionViewSettingsTitle
+  ) { display: none; }
+
+  .surface-display.view-menu-desktop .map-projection-settings > .view-menu-parent,
+  .surface-display.view-menu-desktop .distribution-menu-group > .view-menu-parent,
+  .surface-display.view-menu-desktop .map-display-detail-trigger {
+    width: 100%;
+    min-height: 2.25rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1rem;
+    align-items: center;
+    gap: var(--ui-space-2);
+    padding: 0 var(--ui-space-3);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    box-shadow: none;
+  }
+
+  .surface-display.view-menu-desktop .view-menu-leading {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--ui-space-2);
+  }
+
+  .surface-display.view-menu-desktop .view-menu-leading > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .surface-display.view-menu-desktop .view-menu-icon {
+    width: 1rem;
+    height: 1rem;
+    color: var(--muted);
+  }
+
+  .surface-display.view-menu-desktop .view-menu-chevron {
+    width: .875rem;
+    height: .875rem;
+    color: var(--muted);
+  }
+
+  .surface-display.view-menu-desktop .view-menu-parent:is(:hover, :focus-visible, [aria-expanded="true"]):not(:disabled) {
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+
+  .surface-display.view-menu-desktop .view-menu-parent[aria-expanded="true"] .view-menu-icon,
+  .surface-display.view-menu-desktop .view-menu-parent:is(:hover, :focus-visible) .view-menu-icon { color: var(--accent); }
+
+  .surface-display.view-menu-desktop .map-symbol-settings {
+    display: grid;
+    gap: 0;
+  }
+
+  .surface-display.view-menu-desktop .map-symbol-settings .map-display-row {
+    min-height: 2.25rem;
+    padding: 0;
+  }
+
+  .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row {
+    position: relative;
+    width: 100%;
+    min-height: 2.25rem;
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr) 1rem;
+    align-items: center;
+    gap: var(--ui-space-2);
+    padding: 0 var(--ui-space-3);
+    border-radius: 0;
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row:hover { background: var(--surface-hover); }
+
+  .surface-display.view-menu-desktop .map-symbol-settings input[type="checkbox"],
+  .surface-display.view-menu-desktop .map-display-details .ui-toggle > input[type="checkbox"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    opacity: 0;
+    clip-path: inset(50%);
+  }
+
+  .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row > span:last-child::after,
+  .surface-display.view-menu-desktop .map-display-details .ui-toggle > span:last-child::after {
+    position: absolute;
+    right: var(--ui-space-3);
+    color: var(--accent);
+    content: '';
+    font-weight: var(--ui-weight-semibold);
+  }
+
+  .surface-display.view-menu-desktop .map-symbol-settings input:checked + span::after,
+  .surface-display.view-menu-desktop .map-display-details .ui-toggle > input:checked + span::after { content: '✓'; }
+
+  .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row:has(input:focus-visible),
+  .surface-display.view-menu-desktop .map-display-details .ui-toggle:has(input:focus-visible) {
+    outline: 2px solid var(--ui-focus-ring);
+    outline-offset: -2px;
+  }
+
+  .surface-display.view-menu-desktop .map-name-settings {
+    display: grid;
+    gap: 0;
+  }
+
+  .surface-display.view-menu-desktop .map-name-settings > .layer-type-settings,
+  .surface-display.view-menu-desktop .distribution-type-slot > .layer-type-settings {
+    display: block;
+    padding: 0;
+  }
+
+  .surface-display.view-menu-desktop .map-name-settings > .layer-type-settings > .map-display-row,
+  .surface-display.view-menu-desktop .distribution-type-slot > .layer-type-settings > .map-display-row {
+    min-height: 2.25rem;
+    padding: 0;
+  }
+
+  .surface-display.view-menu-desktop .map-name-settings .map-display-row > .ui-choice-row,
+  .surface-display.view-menu-desktop .distribution-type-slot .map-display-row > .ui-choice-row {
+    display: none;
+  }
+
+  .surface-display.view-menu-desktop .map-display-details,
+  .surface-display.view-menu-desktop .map-view-projection-slot,
+  .surface-display.view-menu-desktop .distribution-view-settings {
+    position: fixed;
+    z-index: 141;
+    top: var(--view-menu-child-top);
+    left: var(--view-menu-child-left);
+    width: var(--view-menu-child-width, 16.25rem);
+    max-height: var(--view-menu-child-max-height, calc(100dvh - var(--ui-space-4)));
+    display: block;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0;
+    padding: 2.25rem 0 var(--ui-space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--ui-radius-panel);
+    background: var(--surface-elevated);
+    box-shadow: var(--shadow);
+  }
+
+  .surface-display.view-menu-desktop .map-display-details[inert] { opacity: .58; }
+
+  .surface-display.view-menu-desktop .layer-type-settings:has(.map-display-details:not([hidden])) > .layer-type-settings-heading > .ui-choice-row {
+    position: fixed;
+    z-index: 142;
+    top: var(--view-menu-child-top);
+    left: var(--view-menu-child-left);
+    width: var(--view-menu-child-width, 16.25rem);
+    min-height: 2.25rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1rem;
+    align-items: center;
+    padding: 0 var(--ui-space-3);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-elevated);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .surface-display.view-menu-desktop .layer-type-settings:has(.map-display-details:not([hidden])) > .layer-type-settings-heading > .ui-choice-row > span {
+    min-width: 0;
+  }
+
+  .surface-display.view-menu-desktop .layer-type-settings:has(.map-display-details:not([hidden])) > .layer-type-settings-heading > .ui-choice-row:hover { background: var(--surface-hover); }
+
+  .surface-display.view-menu-desktop .layer-inline-style-panel .ui-field,
+  .surface-display.view-menu-desktop .layer-inline-style-panel .ui-choice-row,
+  .surface-display.view-menu-desktop .distribution-view-settings > .ui-field,
+  .surface-display.view-menu-desktop .distribution-view-settings > .ui-choice-row,
+  .surface-display.view-menu-desktop .terrain-mode-option {
+    min-height: 2.25rem;
+    margin: 0;
+    padding: 0 var(--ui-space-3);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .surface-display.view-menu-desktop .layer-inline-style-panel .ui-field,
+  .surface-display.view-menu-desktop .distribution-view-settings > .ui-field {
+    display: grid;
+    gap: var(--ui-space-1);
+    padding-block: var(--ui-space-2);
+  }
+
+  .surface-display.view-menu-desktop .layer-inline-style-panel .ui-field > span,
+  .surface-display.view-menu-desktop .layer-inline-style-panel .ui-field > label,
+  .surface-display.view-menu-desktop .distribution-view-settings > .ui-field > label {
+    min-width: 0;
+  }
+
+  .surface-display.view-menu-desktop .layer-inline-style-panel .ui-choice-row,
+  .surface-display.view-menu-desktop .distribution-view-settings > .ui-choice-row,
+  .surface-display.view-menu-desktop .terrain-mode-option { cursor: pointer; }
+
+  .surface-display.view-menu-desktop .layer-inline-style-panel .ui-choice-row:hover,
+  .surface-display.view-menu-desktop .distribution-view-settings > .ui-choice-row:hover,
+  .surface-display.view-menu-desktop .terrain-mode-option:hover { background: var(--surface-hover); }
+
+  .surface-display.view-menu-desktop .layer-inline-style-panel .ui-range-progress { width: 100%; }
+
+  .surface-display.view-menu-desktop .map-view-projection-slot .projection-control {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    height: auto;
+  }
+
+  .surface-display.view-menu-desktop .map-view-projection-slot .projection-btn {
+    min-height: 2.25rem;
+    justify-content: flex-start;
+    padding: 0 var(--ui-space-3);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+  }
+
+  .surface-display.view-menu-desktop .map-view-projection-slot .projection-btn:is(:hover, :focus-visible, .active, [aria-pressed="true"]) {
+    border-color: transparent;
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+
+  .surface-display.view-menu-desktop .distribution-view-settings { padding-top: 2.25rem; }
+
+  .surface-display.view-menu-desktop .distribution-type-slot {
+    display: grid;
+    padding-bottom: var(--ui-space-1);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .surface-display.view-menu-desktop .distribution-view-settings > .layer-setting-hint { padding: var(--ui-space-1) var(--ui-space-3); }
+
+  .surface-display.view-menu-desktop .distribution-view-settings .ui-choice-copy {
+    display: block;
+  }
+
+  .surface-display.view-menu-desktop .distribution-view-settings .ui-choice-copy > small,
+  .surface-display.view-menu-desktop .terrain-mode-option .ui-choice-copy > small { display: none; }
+
+  .surface-display.view-menu-desktop .terrain-display-options { padding: 2.25rem 0 var(--ui-space-2); }
+
+  .surface-display.view-menu-desktop .terrain-display-options .terrain-mode-options { gap: 0; }
+
+  .surface-display.view-menu-desktop .terrain-mode-option:has(input:checked) { background: var(--surface-hover); }
+}
+
+@media (max-width: 799px) {
+  .map-projection-settings > .view-menu-parent,
+  .distribution-menu-group > .view-menu-parent { display: none; }
+}

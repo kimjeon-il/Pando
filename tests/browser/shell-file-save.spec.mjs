@@ -47,11 +47,12 @@ const vectorFixture = {
   })),
 };
 
-test('desktop shell keeps a stable three-zone topbar and an accessible file menu', async ({ page }) => {
+test('desktop shell keeps a stable command topbar and accessible file and help dialogs', async ({ page }) => {
   test.setTimeout(300_000);
   const errors = await openApp(page);
   const topbar = page.locator('.topbar');
-  await expect(topbar).toHaveCSS('height', '60px');
+  await expect(topbar).toHaveCSS('height', '48px');
+  await expect(page.locator('.brand')).toHaveCount(0);
   await expect(page.locator('#projectSaveStatus')).toBeVisible();
   await expect(page.locator('#projectSaveStatusText')).toHaveText('미저장');
   const centerBefore = await page.locator('.topbar-center').boundingBox();
@@ -59,16 +60,49 @@ test('desktop shell keeps a stable three-zone topbar and an accessible file menu
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#fileMenu')).toBeVisible();
   await expect(page.locator('#mobileFileBtn')).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '불러오기', '프로젝트 저장', '데이터 내보내기', '환경설정']);
+  await expect(page.locator('#fileMenu > [role="menuitem"]')).toContainText(['새 프로젝트', '프로젝트 불러오기', '프로젝트 저장', 'GIS 가져오기', 'GIS 내보내기']);
   const centerAfter = await page.locator('.topbar-center').boundingBox();
   expect(Math.abs(centerAfter.x - centerBefore.x)).toBeLessThanOrEqual(1);
 
   await expect(page.locator('#newProjectBtn')).toBeFocused();
   await page.keyboard.press('End');
-  await expect(page.locator('#preferencesBtn')).toBeFocused();
+  await expect(page.locator('#dataExportBtn')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.locator('#mobileFileBtn')).toBeFocused();
   await expect(page.locator('#fileMenu')).toBeHidden();
+
+  await page.locator('#preferencesBtn').click();
+  await expect(page.locator('#preferencesModal')).toBeVisible();
+  await page.locator('#preferencesCancelBtn').click();
+  await expect(page.locator('#preferencesBtn')).toBeFocused();
+
+  await page.locator('#helpBtn').click();
+  await expect(page.locator('#helpModal')).toBeVisible();
+  await expect(page.locator('#helpShortcutsTitle')).toHaveText('단축키');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#helpModal')).toBeHidden();
+  await expect(page.locator('#helpBtn')).toBeFocused();
+
+  const topbarControlIds = ['undoBtn', 'redoBtn', 'mobileFileBtn', 'mapDisplayBtn', 'preferencesBtn', 'helpBtn'];
+  for (const width of [1440, 1024, 390, 320]) {
+    await page.setViewportSize({ width, height: width <= 390 ? 720 : 900 });
+    const controls = await page.locator(topbarControlIds.map(id => `#${id}`).join(',')).evaluateAll(elements => (
+      elements.map(element => {
+        const rect = element.getBoundingClientRect();
+        return { id: element.id, x: rect.x, y: rect.y, right: rect.right, width: rect.width, height: rect.height };
+      })
+    ));
+    expect(controls.map(control => control.id)).toEqual(topbarControlIds);
+    expect(Math.max(...controls.map(control => control.y)) - Math.min(...controls.map(control => control.y))).toBeLessThanOrEqual(1);
+    expect(controls.at(-1).right).toBeLessThanOrEqual(width + 0.5);
+    if (width <= 799) {
+      for (const control of controls) {
+        expect(control.width).toBeGreaterThanOrEqual(48);
+        expect(control.height).toBeGreaterThanOrEqual(48);
+      }
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
 
   await makeProjectDirty(page);
   await expect(page.locator('#projectSaveStatus')).toBeVisible();
@@ -128,7 +162,7 @@ test('mobile keeps dirty state compact and places notifications below the file m
   await expect(page.locator('#projectSaveStatus')).toBeVisible();
   const textBox = await page.locator('#projectSaveStatusText').boundingBox();
   expect(textBox.width).toBeLessThanOrEqual(1);
-  await expect(page.locator('.topbar')).toHaveCSS('height', '60px');
+  await expect(page.locator('.topbar')).toHaveCSS('height', '48px');
 
   await page.locator('#mobileFileBtn').click();
   const menuBox = await page.locator('#fileMenu').boundingBox();

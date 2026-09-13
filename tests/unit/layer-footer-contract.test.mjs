@@ -3,12 +3,13 @@ import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
-test('map command bar owns add while the editor header owns lock and delete', () => {
+test('map command bar owns add while the editor header owns object visibility, lock and delete', () => {
   const html = read('index.html');
   const toolbar = html.match(/<div class="[^"]*map-command-toolbar[^"]*"[\s\S]*?<\/div>/)[0];
   const editorHeader = html.match(/<aside id="rightPanel"[\s\S]*?<header class="surface-header">[\s\S]*?<\/header>/)[0];
   assert.match(toolbar, /<button id="createMenuBtn"/);
   assert.match(editorHeader, /<button id="objectLockBtn"/);
+  assert.match(editorHeader, /<button id="objectVisibilityBtn"/);
   assert.match(editorHeader, /<button id="objectDeleteBtn"/);
   const add = toolbar.match(/<button id="createMenuBtn"[\s\S]*?<\/button>/)[0];
   assert.match(add, /aria-haspopup="menu"/);
