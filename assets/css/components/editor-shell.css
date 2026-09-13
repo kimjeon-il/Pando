@@ -537,10 +537,10 @@
   min-height: 0;
   max-height: 45dvh;
   overflow-y: auto;
-  padding: 12px;
+  padding: var(--ui-space-5);
   border-top: 1px solid var(--border);
   display: grid;
-  gap: 12px;
+  gap: var(--ui-space-5);
   flex-shrink: 0;
 }
 
@@ -568,15 +568,15 @@
   gap: var(--ui-space-1);
 }
 
-.surface-editor #objectLockBtn { color: var(--text-soft); }
+.surface-editor .editor-object-command--lock { color: var(--text-soft); }
 
-.surface-editor #objectDeleteBtn:not(:disabled) {
+.surface-editor .editor-object-command--delete:not(:disabled) {
   border-color: var(--danger-border);
   background: var(--danger-surface);
   color: var(--danger-text);
 }
 
-.surface-editor #mobileCloseRightBtn { margin-inline-start: var(--ui-space-1); }
+.surface-editor .editor-surface-close { margin-inline-start: var(--ui-space-1); }
 
 .editor-country-header-fields .editor-country-color-trigger {
   width: auto;
