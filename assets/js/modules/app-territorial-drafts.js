@@ -2,6 +2,8 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
+import { resolveSelectChoice } from './select-option-policy.js';
+
 export function createTerritorialDrafts() {
   let dependencies;
   function connect(ports) {
@@ -72,7 +74,7 @@ export function createTerritorialDrafts() {
 
   function territorialCreateSourceChoices(session = dependencies.state.territorySelectionSession) {
     if (!session || session.kind !== dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) return [];
-    const choices = [{ value: '', label: '기준 영역 선택' }];
+    const choices = [{ value: '', label: '기준 영역 선택', placeholder: true }];
     if (unassignedSourceForSession(session)) choices.push({ value: 'unassigned', label: '미지정 영역' });
     for (const feature of directSubunitChildren(session).filter(item => item.properties?.isRemainder !== true
       && !dependencies.state.territorialUnits.some(child => text(child.properties?.parentId) === text(item.id)))) {
@@ -94,13 +96,32 @@ export function createTerritorialDrafts() {
   function territorialCreateSetupModel() {
     const session = dependencies.state.territorySelectionSession;
     if (!session) return null;
-    const countryOptions = (0, dependencies.territorialUnitCountryOptions)().filter(option => option.value);
-    const parentOptions = session.kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT && session.sovereignId
+    const countryOptions = [
+      { value: '', label: '소속 국가 선택', placeholder: true },
+      ...(0, dependencies.territorialUnitCountryOptions)().filter(option => option.value),
+    ];
+    const countryChoice = resolveSelectChoice(countryOptions, session.sovereignId, { autoSelectSingle: true });
+    if (countryChoice.single && countryChoice.value !== text(session.sovereignId)) {
+      session.sovereignId = countryChoice.value;
+      session.parentId = countryChoice.value;
+      session.sourceKey = 'unassigned';
+      session.setupSourceCache = null;
+    }
+    const rawParentOptions = session.kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT && session.sovereignId
       ? (0, dependencies.subunitParentChoices)(session.sovereignId, dependencies.state.countriesData.features, dependencies.state.territorialUnits, {
         name: feature => feature.properties?.unitType ? (0, dependencies.territorialUnitName)(feature) : (0, dependencies.countryName)(feature),
       }) : [];
+    const parentOptions = rawParentOptions.length ? rawParentOptions : [{ value: '', label: '상위 소속 선택', placeholder: true }];
+    const parentChoice = resolveSelectChoice(parentOptions, session.parentId, { autoSelectSingle: true });
+    if (parentChoice.single && parentChoice.value !== text(session.parentId)) {
+      session.parentId = parentChoice.value;
+      session.sourceKey = 'unassigned';
+      session.setupSourceCache = null;
+    }
     const sourceOptions = territorialCreateSourceChoices(session);
-    return { session, countryOptions, parentOptions, sourceOptions };
+    const sourceChoice = resolveSelectChoice(sourceOptions, session.sourceKey, { autoSelectSingle: true });
+    if (sourceChoice.single) session.sourceKey = sourceChoice.value;
+    return { session, countryOptions, parentOptions, sourceOptions, choiceStates: { country: countryChoice, parent: parentChoice, source: sourceChoice } };
   }
 
   function territorialCreateSetupValid(session = dependencies.state.territorySelectionSession) {

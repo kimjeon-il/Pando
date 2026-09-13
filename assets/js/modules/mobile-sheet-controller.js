@@ -1,6 +1,6 @@
 import { installFeedbackController } from './feedback-controller.js';
 
-const AUXILIARY_PANEL_IDS = new Set(['objectSearchSurface', 'mapDisplaySurface']);
+const AUXILIARY_PANEL_IDS = new Set(['createMenu', 'objectSearchSurface', 'mapDisplaySurface']);
 const EDIT_PANEL_ID = 'rightPanel';
 const SHEET_PANEL_IDS = [...AUXILIARY_PANEL_IDS, EDIT_PANEL_ID];
 const SNAP_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);

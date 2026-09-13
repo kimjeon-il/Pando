@@ -2,12 +2,11 @@
 .surface-display.view-menu-desktop {
   position: fixed;
   z-index: 140;
-  top: var(--view-menu-root-top, calc(var(--ui-shell-topbar-height) + var(--ui-space-2)));
+  top: var(--ui-menu-position-top, calc(var(--ui-shell-topbar-height) + var(--ui-menu-trigger-gap)));
   right: auto;
   bottom: auto;
-  left: var(--view-menu-root-left, var(--ui-space-2));
-  width: min(15rem, calc(100vw - var(--ui-space-4)));
-  max-height: var(--view-menu-root-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
+  left: var(--ui-menu-position-left, var(--ui-menu-screen-edge));
+  max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
   overflow: visible;
   transform: none;
 }
@@ -21,7 +20,7 @@
 .surface-display.view-menu-desktop > .surface-header { display: none; }
 .surface-display.view-menu-desktop > .surface-body,
 .surface-display.view-menu-desktop .map-view-panel-section { min-height: 0; overflow: visible; padding: 0; }
-.view-menu-desktop .view-menu-root { max-height: var(--view-menu-root-max-height, 80dvh); overflow-y: auto; overscroll-behavior: contain; }
+.view-menu-desktop .view-menu-root { max-height: var(--ui-menu-position-max-height, 80dvh); overflow-y: auto; overscroll-behavior: contain; }
 .view-menu-popups { display: contents; }
 .view-menu-desktop .view-menu-root > .layer-style-editor,
 .view-menu-desktop .layer-type-settings,
@@ -33,10 +32,9 @@
 .view-menu-desktop .view-menu-popups > .ui-menu-surface {
   position: fixed;
   z-index: 141;
-  top: var(--view-menu-child-top);
-  left: var(--view-menu-child-left);
-  width: var(--view-menu-child-width, 16.25rem);
-  max-height: var(--view-menu-child-max-height, calc(100dvh - var(--ui-space-4)));
+  top: var(--ui-menu-position-top);
+  left: var(--ui-menu-position-left);
+  max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-space-4)));
   overflow-y: auto;
   overscroll-behavior: contain;
 }

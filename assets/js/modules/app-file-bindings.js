@@ -1,3 +1,5 @@
+import { exitMenuOnTab } from './menu-presentation.js';
+
 /** FileBindings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -92,6 +94,7 @@ export function createFileBindings() {
     };
     const openPreferences = () => {
       (0, dependencies.closeFileMenu)();
+      (0, dependencies.closeSurface)('create');
       syncPreferencesForm();
       preferencesOrigin = { ...dependencies.userPreferences.appearance };
       preferencesModal?.classList.remove('hidden');
@@ -122,6 +125,7 @@ export function createFileBindings() {
     };
     const openHelp = async () => {
       (0, dependencies.closeFileMenu)();
+      (0, dependencies.closeSurface)('create');
       try {
         await (window.PANDOLAB_ENSURE_MODAL_STYLES?.() || Promise.resolve());
       } catch (error) {
@@ -141,9 +145,11 @@ export function createFileBindings() {
     fileMenu?.addEventListener('keydown', event => {
       const active = document.activeElement;
       if (event.key === 'Tab') {
-        event.preventDefault();
-        event.stopPropagation();
-        (0, dependencies.closeFileMenu)({ restoreFocus: true });
+        exitMenuOnTab(event, {
+          menus: fileMenu,
+          trigger: (0, dependencies.$)('mobileFileBtn'),
+          close: () => (0, dependencies.closeFileMenu)({ restoreFocus: false }),
+        });
         return;
       }
       const items = visibleFileMenuItems();

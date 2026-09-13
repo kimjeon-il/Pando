@@ -6,7 +6,7 @@
  */
 
 const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
-const { missingLibraryOwnership, prepareLibraryOwnership, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
+const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutCountryFlags } = await import(`./country-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
 const { countryDisplayName, defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -418,6 +418,7 @@ export {
   moduleRevision,
   missingLibraryOwnership,
   prepareLibraryOwnership,
+  shouldShowTerritorialParentChoice,
   subunitParentChoices,
   BUILTIN_TERRITORY_MERGES,
   layoutCountryFlags,

@@ -11,7 +11,7 @@ export function createPropertyEditorBindings({
   removeDistributionEntry,
   addTerritorialDistributionEntry,
   requestDraftDiscard,
-  returnToMapAfterMobileAction,
+  completeToolStart,
   startGeometryDistributionDraft,
   requestTerritorialUnitDivisionRemoval,
   enterTerritorialUnitSplitMode,
@@ -83,19 +83,19 @@ export function createPropertyEditorBindings({
       if (button) removeDistributionEntry(button.dataset.distributionEntryDelete);
     });
     listen($('addTerritorialDistributionBtn'), 'click', addTerritorialDistributionEntry);
-    listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(() => returnToMapAfterMobileAction(startGeometryDistributionDraft())));
+    listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(startGeometryDistributionDraft())));
     listen($('removeSubunitDivisionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitDivisionRemoval(getPrimary().id));
-    listen($('splitSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitSplitMode(getPrimary().id))));
-    listen($('mergeSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitMergeMode(getPrimary().id))));
-    listen($('mergeRegionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitMergeMode(getPrimary().id))));
-    listen($('reassignSubunitShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitRedrawMode(getPrimary().id))));
+    listen($('splitSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitSplitMode(getPrimary().id))));
+    listen($('mergeSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitMergeMode(getPrimary().id))));
+    listen($('mergeRegionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitMergeMode(getPrimary().id))));
+    listen($('reassignSubunitShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitRedrawMode(getPrimary().id))));
     listen($('reconcileSubunitCoastBtn'), 'click', () => {
       if (!(getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
       const feature = territorialUnitById(getPrimary().id);
       if (feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT || feature.properties?.locked === true) return;
       reconcileAdminCountryCoast(getPrimary().id);
     });
-    listen($('reassignRegionShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => returnToMapAfterMobileAction(enterTerritorialUnitRedrawMode(getPrimary().id))));
+    listen($('reassignRegionShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitRedrawMode(getPrimary().id))));
     listen($('promoteSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitPromotion(getPrimary().id));
     listen($('changeCountryTypeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type === TERRITORIAL_UNIT_TYPES.COUNTRY)
       && openTerritorialTypeModal(TERRITORIAL_UNIT_TYPES.COUNTRY, getPrimary().id));
@@ -121,11 +121,21 @@ export function createPropertyEditorBindings({
       setActionStatus('주권 국가와 상위 소속을 확인한 뒤 변경하세요.', 'success', 3400);
     });
 
-    listen($('genericFeatureConvertType'), 'change', event => {
-      const target = event.target.value;
-      $('genericFeatureConvertCountryField')?.classList.toggle('hidden', !['subunit', 'region'].includes(target));
-      $('genericFeatureConvertDistributionField')?.classList.toggle('hidden', target !== 'distribution');
-    });
+    const syncGenericFeatureConversionFields = () => {
+      const target = $('genericFeatureConvertType').value;
+      const countryField = $('genericFeatureConvertCountryField');
+      const distributionField = $('genericFeatureConvertDistributionField');
+      countryField?.classList.toggle('hidden', !['subunit', 'region'].includes(target) || countryField.dataset.singleChoice === 'true');
+      distributionField?.classList.toggle('hidden', target !== 'distribution' || distributionField.dataset.singleChoice === 'true');
+      const countryRequired = ['subunit', 'region'].includes(target);
+      const distributionRequired = target === 'distribution';
+      $('convertGenericFeatureBtn').disabled = (countryRequired
+        && (!$('genericFeatureConvertCountryInput').value || countryField?.dataset.invalidChoice === 'true'))
+        || (distributionRequired && !$('genericFeatureConvertDistributionInput').value);
+    };
+    listen($('genericFeatureConvertType'), 'change', syncGenericFeatureConversionFields);
+    listen($('genericFeatureConvertCountryInput'), 'change', syncGenericFeatureConversionFields);
+    listen($('genericFeatureConvertDistributionInput'), 'change', syncGenericFeatureConversionFields);
     listen($('convertGenericFeatureBtn'), 'click', () => {
       const primary = getPrimary();
       if (primary?.domain !== 'generic') return;
@@ -153,7 +163,7 @@ export function createPropertyEditorBindings({
       items[(current + delta + items.length) % items.length]?.focus();
     });
     listen($('multiPropertiesVisibilityInput'), 'change', event => batchSetVisibility(event.target.checked));
-    listen($('multiBorderEditBtn'), 'click', () => requestDraftDiscard(() => returnToMapAfterMobileAction(enterCountryBorderEditFromSelection())));
+    listen($('multiBorderEditBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterCountryBorderEditFromSelection())));
   }
 
   return Object.freeze({

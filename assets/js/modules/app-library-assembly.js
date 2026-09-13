@@ -241,9 +241,11 @@ export function createLibraryAssembly() {
       renderMapPreview: historicalLibraryPreviewSvg,
       createEmptyState: dependencies.createEmptyState,
       replaceSelectOptions: dependencies.replaceSelectOptions,
+      shouldShowTerritorialParentChoice: dependencies.shouldShowTerritorialParentChoice,
       collator: dependencies.layerNameCollator,
       isMobile: dependencies.isMobile,
-      closeCreateMenu: dependencies.closeCreateMenu,
+      closeSurface: dependencies.closeSurface,
+      focusSurfaceTrigger: dependencies.focusSurfaceTrigger,
       instantiate: instantiateHistoricalLibraryEntities,
       ownershipContext: (ids, year, depth, versions) => ({
         missing: (0, dependencies.missingLibraryOwnership)(historicalLibraryService.instantiateDescriptors(ids, year, depth, versions), libraryInstanceId, dependencies.state.countriesData.features, dependencies.state.territorialUnits),

@@ -6,7 +6,6 @@
   .historical-library-preview,
   .historical-library-result,
   .editor-action-row,
-  .create-menu-item,
   .file-menu-item,
   .ui-callout,
   .ui-alert,
@@ -17,8 +16,8 @@
   overflow-wrap: anywhere;
 }
 
-:is(.editor-action-row, .create-menu-item, .file-menu-item) > span,
-:is(.editor-action-row, .create-menu-item) > :is(div, span) {
+:is(.editor-action-row, .file-menu-item) > span,
+.editor-action-row > :is(div, span) {
   min-width: 0;
 }
 

@@ -14,6 +14,13 @@
   const importPlanModuleUrl = new URL('modules/import-plan.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
   const assetRevision = window.PANDOLAB_ASSET_REVISION || globalThis.PANDOLAB_BUILD_META?.assetRevision || new URL(scriptUrl).searchParams.get('v') || '';
+  const ownershipPresentationUrl = new URL('modules/library-ownership.js', baseUrl);
+  const selectOptionPolicyUrl = new URL('modules/select-option-policy.js', baseUrl);
+  if (assetRevision) ownershipPresentationUrl.searchParams.set('v', assetRevision);
+  if (assetRevision) selectOptionPolicyUrl.searchParams.set('v', assetRevision);
+  let shouldShowTerritorialParentChoice;
+  let markPlaceholderOption;
+  let resolveSelectChoice;
   if (assetRevision) gpkgWorkerUrlObject.searchParams.set('v', assetRevision);
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
   const supportedExtensions = new Set(['gpkg', 'geojson', 'json', 'shp', 'shx', 'dbf', 'prj', 'cpg', 'shz', 'zip', 'kml', 'kmz', 'gml', 'xml', 'fgb', 'qgz', 'qgs']);
@@ -460,6 +467,17 @@
     return String(value).slice(0, 48);
   }
 
+  function placeholderOption(label) {
+    return markPlaceholderOption(new Option(label, ''));
+  }
+
+  function applyDirectSelectPolicy(select, selectedValue = '', { autoSelectSingle = true } = {}) {
+    const state = resolveSelectChoice([...select.options], selectedValue, { autoSelectSingle });
+    select.value = state.value;
+    select.dataset.singleChoice = String(state.single);
+    return state;
+  }
+
   function populateFieldSelect(select, fields, { includeFid = false, includeFeatureId = false, includeStyle = false, selected = '', roleLabel = '속성', fieldExamples = {}, fieldFilter = null } = {}) {
     select.replaceChildren();
     if (includeFid) select.add(new Option('원본 FID', '__fid__'));
@@ -473,7 +491,7 @@
       if (example !== '예시 없음') option.dataset.tooltip = `예: ${example}`;
       select.add(option);
     });
-    select.value = selected || (includeFid ? '__fid__' : '');
+    return applyDirectSelectPolicy(select, selected || (includeFid ? '__fid__' : ''));
   }
 
   function isCanonicalField(fields, fieldName) {
@@ -492,7 +510,7 @@
   function syncAutoMappedField(rowId, selectId, automatic) {
     const row = document.getElementById(rowId);
     const select = document.getElementById(selectId);
-    row?.classList.toggle('hidden', automatic);
+    row?.classList.toggle('hidden', automatic || select?.dataset.singleChoice === 'true');
     if (select) select.disabled = automatic;
   }
 
@@ -614,9 +632,9 @@
     const select = document.getElementById('gisTargetCountry');
     if (!select) return;
     const selected = select.value;
-    select.replaceChildren(new Option('소속 국가를 선택하세요', ''));
+    select.replaceChildren(placeholderOption('소속 국가를 선택하세요'));
     for (const country of wizardOptions.countryOptions || []) select.add(new Option(country.name || country.id, country.id));
-    if ([...select.options].some(option => option.value === selected)) select.value = selected;
+    return applyDirectSelectPolicy(select, selected);
   }
 
   function populateParentUnits() {
@@ -625,7 +643,7 @@
     const selected = select.value;
     const ownerId = document.getElementById('gisTargetCountry')?.value || '';
     const country = (wizardOptions.countryOptions || []).find(item => String(item.id) === String(ownerId));
-    select.replaceChildren(new Option(country?.name || '소속 국가 선택', ''));
+    select.replaceChildren(country ? new Option(country.name || country.id, '') : placeholderOption('소속 국가 선택'));
     const candidates = (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId));
     const seen = new Set();
     function append(parentId, depth) {
@@ -637,7 +655,7 @@
       }
     }
     append(String(ownerId), 1);
-    if ([...select.options].some(option => option.value === selected)) select.value = selected;
+    return applyDirectSelectPolicy(select, selected);
   }
 
   function updateTargetFields() {
@@ -661,16 +679,27 @@
       if (recommendation) countrySelect.value = String(recommendation.id);
     }
     document.getElementById('gisDistributionTypeRow')?.classList.toggle('hidden', !distribution);
-    document.getElementById('gisTargetCountryRow')?.classList.toggle('hidden', !territorial || independentRegion);
+    document.getElementById('gisTargetCountryRow')?.classList.toggle('hidden', !territorial || independentRegion
+      || countrySelect?.dataset.singleChoice === 'true');
     document.getElementById('gisIndependentRegionRow')?.classList.toggle('hidden', target !== TERRITORIAL_IMPORT_TARGETS.REGION);
-    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'subunit');
     document.getElementById('gisUseCountryFieldRow')?.classList.toggle('hidden', !territorial);
-    document.getElementById('gisCountryFieldRow')?.classList.toggle('hidden', !territorial || !useCountryField);
-    document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'subunit' || !useCountryField);
-    document.getElementById('gisLevelFieldRow')?.classList.toggle('hidden', target !== 'subunit');
-    document.getElementById('gisColorFieldRow')?.classList.toggle('hidden', target === 'country');
-    populateParentUnits();
-    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'subunit' || document.getElementById('gisParentUnit').options.length < 2);
+    document.getElementById('gisCountryFieldRow')?.classList.toggle('hidden', !territorial || !useCountryField
+      || document.getElementById('gisCountryField')?.dataset.singleChoice === 'true');
+    document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'subunit' || !useCountryField
+      || document.getElementById('gisParentField')?.dataset.singleChoice === 'true');
+    document.getElementById('gisLevelFieldRow')?.classList.toggle('hidden', target !== 'subunit'
+      || document.getElementById('gisLevelField')?.dataset.singleChoice === 'true');
+    document.getElementById('gisColorFieldRow')?.classList.toggle('hidden', target === 'country'
+      || document.getElementById('gisColorField')?.dataset.singleChoice === 'true');
+    const parentChoice = populateParentUnits();
+    const parentSelect = document.getElementById('gisParentUnit');
+    const sovereignId = countrySelect?.value || '';
+    const effectiveParentId = parentSelect?.value || sovereignId;
+    const parentOptions = [...(parentSelect?.options || [])].map((option, index) => ({
+      value: option.value || (index === 0 ? sovereignId : ''),
+    }));
+    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'subunit' || parentChoice?.single === true
+      || !shouldShowTerritorialParentChoice?.({ sovereignId, parentId: effectiveParentId, options: parentOptions }));
     const modeSelect = document.getElementById('gisOpenMode');
     const modeRow = document.getElementById('gisOpenModeRow');
     if (importSourceKind === 'project') modeSelect.value = 'replace';
@@ -1087,12 +1116,13 @@
       caption.textContent = '프로젝트 국가';
       const select = document.createElement('select');
       select.dataset.identitySourceKey = row.sourceKey;
-      select.add(new Option('연결을 선택하세요', ''));
+      select.add(placeholderOption('연결을 선택하세요'));
       select.add(new Option('새 국가로 추가', 'new'));
       for (const country of wizardOptions.countryOptions || []) select.add(new Option(country.name || country.id, `existing:${country.id}`));
       const automatic = row.status === 'existing' && row.editorId ? `existing:${row.editorId}` : '';
       const selected = manualMappings[row.sourceKey] || automatic;
-      if ([...select.options].some(option => option.value === selected)) select.value = selected;
+      const identityChoice = applyDirectSelectPolicy(select, selected);
+      label.hidden = identityChoice.single;
       select.onchange = () => {
         if (select.value) manualMappings[row.sourceKey] = select.value;
         else delete manualMappings[row.sourceKey];
@@ -1110,6 +1140,12 @@
   }
 
   async function openImportWizard(files, options = {}) {
+    const [ownershipPresentation, selectOptionPolicy] = await Promise.all([
+      import(ownershipPresentationUrl.href),
+      import(selectOptionPolicyUrl.href),
+    ]);
+    ({ shouldShowTerritorialParentChoice } = ownershipPresentation);
+    ({ markPlaceholderOption, resolveSelectChoice } = selectOptionPolicy);
     document.getElementById('gisAdvancedMapping').open = false;
     wizardOptions = options || {};
     importSourceKind = 'vector';
@@ -1151,8 +1187,8 @@
       const projectLayerIndex = session.projectMetadata?.projectState
         ? session.descriptors.findIndex(descriptor => descriptor.layerName === 'countries')
         : -1;
-      if (projectLayerIndex >= 0) layerSelect.value = String(projectLayerIndex);
-      document.getElementById('gisLayerRow')?.classList.toggle('hidden', session.descriptors.length === 1 || projectLayerIndex >= 0);
+      const layerChoice = applyDirectSelectPolicy(layerSelect, projectLayerIndex >= 0 ? String(projectLayerIndex) : layerSelect.value);
+      document.getElementById('gisLayerRow')?.classList.toggle('hidden', layerChoice.single || projectLayerIndex >= 0);
       document.getElementById('gisSecurityNote')?.classList.toggle('hidden', !session.prepared.originals.some(file => ['qgs', 'qgz'].includes(extension(file.name))));
       document.getElementById('gisSourceReport').innerHTML = reportHtml(session);
       document.getElementById('gisSourceReport').classList.toggle('hidden', !reportHtml(session));

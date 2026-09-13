@@ -65,14 +65,12 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 }
 
 .app-root .top-actions {
-  position: absolute;
+  position: fixed;
   z-index: 2000;
-  top: calc(100% + var(--ui-space-2));
+  top: var(--ui-menu-position-top, calc(var(--ui-shell-topbar-height) + var(--ui-menu-trigger-gap)));
   right: auto;
-  left: 0;
-  width: 17.5rem;
-  max-width: calc(100vw - var(--ui-space-6));
-  max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-5));
+  left: var(--ui-menu-position-left, var(--ui-menu-screen-edge));
+  max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-5)));
   overflow-y: auto;
 }
 
@@ -119,7 +117,7 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
     top: calc(var(--ui-shell-topbar-height) + var(--ui-space-2));
     right: auto;
     left: max(var(--ui-space-2), env(safe-area-inset-left));
-    width: min(17.5rem, calc(100vw - var(--ui-space-4) - env(safe-area-inset-left) - env(safe-area-inset-right)));
+    width: min(var(--ui-menu-width), calc(100vw - var(--ui-space-4) - env(safe-area-inset-left) - env(safe-area-inset-right)));
     max-width: none;
   }
 }

@@ -407,7 +407,6 @@ export function createCountryModes() {
     (0, dependencies.$)('map').classList.add('generic-feature-mode');
     (0, dependencies.$)('map').classList.remove('select-mode');
     (0, dependencies.setModeBanner)('지명을 배치할 위치를 선택하세요.');
-    (0, dependencies.syncMobileNavigation)();
     (0, dependencies.updateModeButtons)();
     return true;
   }
@@ -419,7 +418,6 @@ export function createCountryModes() {
     (0, dependencies.$)('map').classList.add('select-mode');
     (0, dependencies.setModeBanner)();
     (0, dependencies.setCurrentTool)('국가 선택');
-    (0, dependencies.syncMobileNavigation)();
     (0, dependencies.updateModeButtons)();
     if (announce) (0, dependencies.setActionStatus)('지명 추가를 취소했습니다.', 'success');
   }

@@ -1,6 +1,5 @@
-/* Shared command-row language for create and editor actions. */
+/* Shared command-row language for editor actions. */
 .editor-action-row,
-.create-menu-item,
 .ui-row-button {
   min-width: 0;
   border-radius: var(--ui-radius-control);
@@ -66,53 +65,14 @@
 .editor-action-row:focus-visible .command-row-icon { color: var(--text-soft); }
 .editor-action-row:is(.active, [aria-pressed="true"]) .command-row-icon { color: var(--accent); }
 
-.create-menu-item {
-  min-height: var(--design-control-md);
-  display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
-  align-items: center;
-  gap: var(--ui-space-2);
-  padding: var(--ui-space-2);
-  text-align: left;
-}
-
-.create-menu-item .create-menu-icon {
-  width: var(--ui-icon-size);
-  height: var(--ui-icon-size);
-  display: grid;
-  place-items: center;
-  background: transparent;
-}
-
-.create-menu-item .create-menu-icon .ui-icon {
-  width: var(--ui-icon-size);
-  height: var(--ui-icon-size);
-}
-
-.create-menu-item > span:nth-child(2) {
-  min-width: 0;
-  display: grid;
-  gap: var(--ui-space-0-5);
-}
-
-.create-menu-item strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.create-menu-item strong { font-size: var(--ui-font-md); font-weight: var(--ui-weight-medium); }
-
-:is(.editor-action-row, .create-menu-item, .ui-row-button):has(small:not(:empty)) {
+:is(.editor-action-row, .ui-row-button):has(small:not(:empty)) {
   min-height: var(--design-command-description-height);
 }
 
 @media (max-width: 799px) {
-  .editor-action-row,
-  .create-menu-item { min-height: var(--ui-touch-height); }
+  .editor-action-row { min-height: var(--ui-touch-height); }
 
-  :is(.editor-action-row, .create-menu-item, .ui-row-button):has(small:not(:empty)) {
+  :is(.editor-action-row, .ui-row-button):has(small:not(:empty)) {
     min-height: var(--design-command-description-height-mobile);
   }
 }

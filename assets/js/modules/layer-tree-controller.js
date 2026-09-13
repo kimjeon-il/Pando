@@ -33,6 +33,20 @@ export function createLayerTreeController({
     return createIcon?.(semanticName, 'ui-icon layer-search-result-icon') || null;
   }
 
+  function searchResultVisual(item) {
+    if (!item.flagUrl) return searchResultIcon(item);
+    const flag = document.createElement('img');
+    flag.className = 'layer-search-result-flag';
+    flag.src = item.flagUrl;
+    flag.alt = '';
+    flag.decoding = 'async';
+    flag.addEventListener('error', () => {
+      const fallback = searchResultIcon(item);
+      if (fallback && flag.isConnected) flag.replaceWith(fallback);
+    }, { once: true });
+    return flag;
+  }
+
   function rowFor(item) {
     const current = selection();
     const selected = current.items?.some(candidate => candidate.key === item.key) || false;
@@ -49,8 +63,8 @@ export function createLayerTreeController({
     row.classList.toggle('is-primary-selected', primary);
     const name = document.createElement('strong');
     name.textContent = item.name;
-    const icon = searchResultIcon(item);
-    if (icon) name.prepend(icon);
+    const visual = searchResultVisual(item);
+    if (visual) name.prepend(visual);
     const type = document.createElement('span');
     type.textContent = item.typeLabel;
     row.append(name, type);

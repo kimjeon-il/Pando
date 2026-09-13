@@ -55,7 +55,7 @@ export function createGlobalInputBindings() {
         if (!(0, dependencies.$)('gisExportModal')?.classList.contains('hidden')) { dependencies.gisExportController?.close(); return; }
         if (dependencies.confirmModalController?.isOpen()) { (0, dependencies.closeConfirmModal)(); return; }
         if (document.body.classList.contains('file-menu-open')) { (0, dependencies.closeFileMenu)({ restoreFocus: true }); return; }
-        if ((0, dependencies.isCreateMenuOpen)()) { (0, dependencies.closeCreateMenu)({ restoreFocus: true }); return; }
+        if (dependencies.surfaceController.isOpen('create')) { (0, dependencies.closeSurface)('create', { restoreFocus: true }); return; }
         if (dependencies.editingDraftSnapshot().vertexInsertMode) { dependencies.editingDomain.setDraftVertexInsertMode(false); return; }
         if (dependencies.state.territorySelectionSession) { (0, dependencies.$)('modeCancelBtn')?.click(); return; }
         if (dependencies.state.geometryPreview.session) { (0, dependencies.discardActiveGeometryPreview)(); return; }

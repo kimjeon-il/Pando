@@ -1,4 +1,5 @@
 import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
+import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).flatMap(keys => Object.values(keys)));
 
@@ -17,6 +18,7 @@ export function createMapSettings() {
   let displayMenuLayout = null;
   let displayMenuGesture = null;
   let pendingDisplayMenuLayout = false;
+  let desktopViewMenuPositioner;
   const displayMenuPanels = new Map();
   const displayMenuPresentation = new Map();
   const DISTRIBUTION_STYLE_GROUPS = new Set(['languages', 'ethnicities', 'religions']);
@@ -319,7 +321,7 @@ export function createMapSettings() {
     }
     for (const [group, entry] of displayMenuPanels) {
       const { panel, anchor, visibility, visibilityAnchor, body, contentNodes, separator } = entry;
-      setMenuPresentation(panel, desktop, ['ui-menu-surface', 'ui-menu-list']);
+      setMenuPresentation(panel, desktop, ['ui-menu-surface', 'ui-menu-list', 'ui-command-menu']);
       panel.dataset.menuLevel = DISTRIBUTION_STYLE_GROUPS.has(group) ? '2' : '1';
       if (desktop) {
         if (body) {
@@ -346,7 +348,7 @@ export function createMapSettings() {
         anchor.after(panel);
         panel.inert = false;
         delete panel.dataset.menuLevel;
-        for (const property of ['left', 'top', 'width', 'max-height']) panel.style.removeProperty(`--view-menu-child-${property}`);
+        clearMenuPosition(panel);
       }
     }
     const distributionSlot = (0, dependencies.$)('distributionTypeSlot');
@@ -358,6 +360,8 @@ export function createMapSettings() {
     if (desktop) root.setAttribute('role', 'menu');
     surface.classList.toggle('view-menu-desktop', desktop);
     surface.classList.toggle('ui-menu-surface', desktop);
+    surface.classList.toggle('ui-command-menu', desktop);
+    if (!desktop) clearMenuPosition(surface);
     for (const element of surface.querySelectorAll('.projection-control, .terrain-mode-options, .distribution-type-slot, [role="radiogroup"], [data-menu-group]')) {
       element.dataset.menuGroup = '';
       setMenuPresentation(element, desktop, ['ui-menu-group']);
@@ -387,29 +391,10 @@ export function createMapSettings() {
 
   function positionDesktopViewMenus() {
     if (!desktopMenuOpen()) return;
-    positionDesktopViewMenuSurface();
+    const surface = (0, dependencies.$)('mapDisplaySurface');
+    positionRootMenu({ menu: surface, trigger: (0, dependencies.$)('mapDisplayBtn') });
     if (desktopViewMenuRoot) positionDesktopViewMenuGroup(desktopViewMenuRoot);
     if (desktopDistributionDetail) positionDesktopViewMenuGroup(desktopDistributionDetail);
-  }
-
-  function positionDesktopViewMenuSurface() {
-    if (!isDesktopViewMenu()) return;
-    const surface = (0, dependencies.$)('mapDisplaySurface');
-    const trigger = (0, dependencies.$)('mapDisplayBtn');
-    if (!surface || !trigger) return;
-    const viewport = window.visualViewport;
-    const viewportLeft = viewport?.offsetLeft || 0;
-    const viewportTop = viewport?.offsetTop || 0;
-    const viewportWidth = viewport?.width || window.innerWidth;
-    const viewportHeight = viewport?.height || window.innerHeight;
-    const edge = 8;
-    const rect = trigger.getBoundingClientRect();
-    const width = Math.min(240, Math.max(180, viewportWidth - edge * 2));
-    const left = Math.max(viewportLeft + edge, Math.min(rect.left, viewportLeft + viewportWidth - edge - width));
-    const top = Math.min(rect.bottom + 6, viewportTop + viewportHeight - edge - 120);
-    surface.style.setProperty('--view-menu-root-left', `${Math.round(left)}px`);
-    surface.style.setProperty('--view-menu-root-top', `${Math.round(top)}px`);
-    surface.style.setProperty('--view-menu-root-max-height', `${Math.round(Math.max(120, viewportTop + viewportHeight - edge - top))}px`);
   }
 
   function positionDesktopViewMenuGroup(group) {
@@ -417,26 +402,7 @@ export function createMapSettings() {
     const panel = displayPanelForDesktopGroup(group);
     const trigger = desktopMenuTrigger(group);
     if (!panel || !trigger || panel.hidden) return;
-    const viewport = window.visualViewport;
-    const viewportLeft = viewport?.offsetLeft || 0;
-    const viewportTop = viewport?.offsetTop || 0;
-    const viewportWidth = viewport?.width || window.innerWidth;
-    const viewportHeight = viewport?.height || window.innerHeight;
-    const edge = 8;
-    const gap = 6;
-    const rect = trigger.getBoundingClientRect();
-    const menuRect = trigger.closest('[role="menu"]')?.getBoundingClientRect() || rect;
-    const width = Math.min(260, viewportWidth - edge * 2);
-    const availableHeight = Math.max(0, viewportHeight - edge * 2);
-    panel.style.setProperty('--view-menu-child-width', `${width}px`);
-    panel.style.setProperty('--view-menu-child-max-height', `${availableHeight}px`);
-    const height = Math.min(panel.scrollHeight + panel.offsetHeight - panel.clientHeight, availableHeight);
-    const right = viewportLeft + viewportWidth - edge;
-    const opensLeft = menuRect.right + gap + width > right && menuRect.left - gap - width >= viewportLeft + edge;
-    const left = Math.max(viewportLeft + edge, Math.min(opensLeft ? menuRect.left - gap - width : menuRect.right + gap, right - width));
-    const top = Math.max(viewportTop + edge, Math.min(rect.top, viewportTop + viewportHeight - edge - height));
-    panel.style.setProperty('--view-menu-child-left', `${Math.round(left)}px`);
-    panel.style.setProperty('--view-menu-child-top', `${Math.round(top)}px`);
+    positionSubmenu({ menu: panel, trigger, parentMenu: trigger.closest('[role="menu"]') });
   }
 
   function setDesktopViewMenuGroup(group, { toggle = false } = {}) {
@@ -452,7 +418,7 @@ export function createMapSettings() {
       desktopDistributionDetail = null;
     }
     syncMapDisplayDisclosures();
-    requestAnimationFrame(positionDesktopViewMenus);
+    desktopViewMenuPositioner.schedule();
     return true;
   }
 
@@ -568,7 +534,7 @@ export function createMapSettings() {
     (0, dependencies.$)('distributionMenuTrigger')?.setAttribute('aria-expanded', String(distributionExpanded));
     surface?.classList.toggle('view-menu-desktop', menuDesktop);
     syncDesktopMenuChecks();
-    if (menuDesktop) requestAnimationFrame(positionDesktopViewMenus);
+    if (menuDesktop) desktopViewMenuPositioner.schedule();
   }
 
   function toggleMapDisplayDisclosure(group) {
@@ -625,7 +591,6 @@ export function createMapSettings() {
   function bindMapDisplayUI() {
     const surface = (0, dependencies.$)('mapDisplaySurface');
     if (!surface) return;
-    let tabNavigation = false;
     const visibilityInputs = [
       ['countries', 'countriesVisible'], ['subunits', 'subunitsVisible'], ['regions', 'regionsVisible'],
       ['languages', 'languagesVisible'], ['ethnicities', 'ethnicitiesVisible'], ['religions', 'religionsVisible'],
@@ -737,8 +702,18 @@ export function createMapSettings() {
         (0, dependencies.closeSurface)('display', { restoreFocus: true });
         return;
       }
-      tabNavigation = event.key === 'Tab';
-      if (tabNavigation) return;
+      if (event.key === 'Tab') {
+        exitMenuOnTab(event, {
+          menus: surface,
+          trigger: (0, dependencies.$)('mapDisplayBtn'),
+          close: () => {
+            cancelDesktopMenuTimers();
+            closeDesktopViewMenuGroup();
+            (0, dependencies.closeSurface)('display', { restoreFocus: false });
+          },
+        });
+        return;
+      }
       if (active?.matches('input[type="range"], select')) return;
       if (event.key === 'ArrowLeft') {
         if (!menu || menu.classList.contains('view-menu-root')) return;
@@ -781,15 +756,6 @@ export function createMapSettings() {
     surface.addEventListener('keyup', event => {
       if (desktopMenuOpen()) event.stopPropagation();
     });
-    surface.addEventListener('focusout', () => {
-      queueMicrotask(() => {
-        if (tabNavigation && desktopMenuOpen() && !surface.contains(document.activeElement)) {
-          closeDesktopViewMenuGroup();
-          (0, dependencies.closeSurface)('display', { restoreFocus: false });
-        }
-        tabNavigation = false;
-      });
-    });
     const app = (0, dependencies.$)('app');
     new MutationObserver(() => {
       cancelDesktopMenuTimers();
@@ -798,11 +764,13 @@ export function createMapSettings() {
     }).observe(app, { attributes: true, attributeFilter: ['data-layout'] });
     new MutationObserver(() => {
       if (!surface.classList.contains('surface-open') && !surface.classList.contains('mobile-open')) closeDesktopViewMenuGroup();
-      else requestAnimationFrame(positionDesktopViewMenus);
+      else desktopViewMenuPositioner.schedule();
     }).observe(surface, { attributes: true, attributeFilter: ['class'] });
-    window.addEventListener('resize', () => requestAnimationFrame(positionDesktopViewMenus));
+    window.addEventListener('resize', () => desktopViewMenuPositioner.schedule());
+    window.visualViewport?.addEventListener?.('resize', () => desktopViewMenuPositioner.schedule());
+    window.visualViewport?.addEventListener?.('scroll', () => desktopViewMenuPositioner.schedule());
     surface.addEventListener('scroll', () => {
-      if (desktopMenuOpen()) requestAnimationFrame(positionDesktopViewMenus);
+      if (desktopMenuOpen()) desktopViewMenuPositioner.schedule();
     }, true);
     surface.addEventListener('change', event => {
       syncDesktopMenuChecks();
@@ -881,6 +849,8 @@ export function createMapSettings() {
         hydroManifest: dependencies.state.hydroManifest,
       }),
     }));
+
+    (desktopViewMenuPositioner = createMenuPositionScheduler(positionDesktopViewMenus));
   }
 
   return Object.freeze({

@@ -4,6 +4,9 @@
  */
 export function createObjectPicking() {
   let dependencies;
+  let objectPickRevision = 0;
+  let objectChooserPresentationRevision = 0;
+  let objectChooserIntentMode = 'replace';
 
   function connect(ports) {
     if (dependencies) throw new Error('object-picking already connected');
@@ -75,9 +78,29 @@ export function createObjectPicking() {
       return !!projected && projectedPointDistance(projected, screenPoint) <= tolerance;
     });
     if (geometry.type.includes('Polygon')) {
-      try { if (dependencies.d3.geo.contains({ type: 'Feature', properties: {}, geometry }, coord)) return true; } catch (_) {}
+      if ((0, dependencies.pointInCountryFeature)(coord, { type: 'Feature', properties: {}, geometry })) return true;
     }
     return projectedLineDistance(geometry, screenPoint) <= tolerance;
+  }
+
+  function objectRefSelectable(value) {
+    const ref = (0, dependencies.normalizeObjectRef)(value);
+    if (!ref || !(0, dependencies.objectRefExists)(ref)) return false;
+    if (ref.domain === 'territorial') {
+      const group = ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries'
+        : ref.type === dependencies.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : 'subunits';
+      return dependencies.state.layerVisibility[group] !== false && (0, dependencies.isLayerItemVisible)(group, ref.id);
+    }
+    if (ref.domain === 'distribution') {
+      const group = dependencies.DISTRIBUTION_TYPE_GROUPS[ref.type] || `${ref.type}s`;
+      return dependencies.state.layerVisibility[group] !== false && (0, dependencies.isLayerItemVisible)(group, ref.id);
+    }
+    if (ref.domain === 'generic') return dependencies.state.layerVisibility.genericFeatures !== false
+      && (0, dependencies.isLayerItemVisible)('genericFeatures', ref.id);
+    if (ref.domain === 'label') return dependencies.state.layerVisibility.labels !== false
+      && (0, dependencies.isLayerItemVisible)('labels', ref.id);
+    if (ref.domain === 'hydro') return (0, dependencies.isHydroFeatureVisible)((0, dependencies.hydroFeatureById)(ref.id));
+    return false;
   }
 
   function selectableVisualRank(ref) {
@@ -93,12 +116,13 @@ export function createObjectPicking() {
     return { labels: 1300, hydro: 850, countries: 500 }[group] || 700;
   }
 
-  async function selectableObjectsAt(screenPoint, coord) {
+  async function selectableObjectsAt(screenPoint, coord, { seedRefs = [] } = {}) {
     const candidates = [];
     const add = ref => {
       const normalized = (0, dependencies.normalizeObjectRef)(ref);
-      if (normalized && !candidates.some(candidate => candidate.key === normalized.key)) candidates.push(normalized);
+      if (objectRefSelectable(normalized) && !candidates.some(candidate => candidate.key === normalized.key)) candidates.push(normalized);
     };
+    seedRefs.forEach(add);
     dependencies.selectionPerformanceMetrics.exactHitTestCount = 0;
     const indexed = (0, dependencies.indexedMapObjectCandidates)(screenPoint);
     for (const entry of indexed) {
@@ -159,7 +183,10 @@ export function createObjectPicking() {
     return candidates.sort((left, right) => selectableVisualRank(right) - selectableVisualRank(left) || (0, dependencies.objectDisplayInfo)(left).name.localeCompare((0, dependencies.objectDisplayInfo)(right).name, 'ko'));
   }
 
-  function closeObjectChooser({ restoreFocus = false } = {}) {
+  function closeObjectChooser({ restoreFocus = false, cancelPending = true } = {}) {
+    if (cancelPending) objectPickRevision += 1;
+    objectChooserPresentationRevision += 1;
+    objectChooserIntentMode = 'replace';
     const chooser = (0, dependencies.$)('objectChooser');
     if (!chooser) return;
     chooser.classList.add('hidden');
@@ -168,11 +195,12 @@ export function createObjectPicking() {
     if (restoreFocus) (0, dependencies.$)('map')?.focus();
   }
 
-  function openObjectChooser(candidates, screenPoint) {
+  function openObjectChooser(candidates, screenPoint, intentMode) {
     const chooser = (0, dependencies.$)('objectChooser');
     const list = (0, dependencies.$)('objectChooserList');
     if (!chooser || !list || candidates.length < 2) return closeObjectChooser();
     if ((0, dependencies.isMobile)() && dependencies.surfaceController.activeMobileSheet) (0, dependencies.closeActiveMobileSheet)();
+    objectChooserIntentMode = intentMode === 'toggle' ? 'toggle' : 'replace';
     dependencies.objectChooserCandidates = candidates.slice();
     list.replaceChildren(...candidates.map((ref, index) => {
       const info = (0, dependencies.objectDisplayInfo)(ref);
@@ -190,15 +218,20 @@ export function createObjectPicking() {
       return button;
     }));
     chooser.classList.remove('hidden');
+    const presentationRevision = ++objectChooserPresentationRevision;
     if ((0, dependencies.isMobile)()) {
       chooser.removeAttribute('style');
-      requestAnimationFrame(() => list.querySelector('[role="option"]')?.focus({ preventScroll: true }));
+      requestAnimationFrame(() => {
+        if (presentationRevision !== objectChooserPresentationRevision || chooser.classList.contains('hidden')) return;
+        list.querySelector('[role="option"]')?.focus({ preventScroll: true });
+      });
       return;
     }
     const bounds = (0, dependencies.$)('map')?.getBoundingClientRect();
     if (!bounds) return;
     const edge = 8;
     requestAnimationFrame(() => {
+      if (presentationRevision !== objectChooserPresentationRevision || chooser.classList.contains('hidden')) return;
       const width = chooser.offsetWidth || 300;
       const height = chooser.offsetHeight || 200;
       chooser.style.left = `${(0, dependencies.clamp)(screenPoint[0] + 12, edge, Math.max(edge, bounds.width - width - edge))}px`;
@@ -206,25 +239,28 @@ export function createObjectPicking() {
     });
   }
 
-  async function handleObjectSelectionAt(screenPoint, { sourceEvent = dependencies.d3.event, forcedRef = null } = {}) {
+  function chooseObjectCandidate(index, { toggle = false } = {}) {
+    const ref = dependencies.objectChooserCandidates[Number(index)];
+    if (!objectRefSelectable(ref)) return false;
+    const mode = toggle || objectChooserIntentMode === 'toggle' ? 'toggle' : 'replace';
+    dependencies.selectionUiController.applyIntent(ref, { mode, scope: 'map' });
+    return true;
+  }
+
+  async function handleObjectSelectionAt(screenPoint, { sourceEvent = dependencies.d3.event, hitRef = null } = {}) {
+    const requestRevision = ++objectPickRevision;
+    const projectGeneration = dependencies.projectDomain?.getGeneration?.() ?? 0;
+    const pickViewRevision = dependencies.viewRevision;
+    const source = sourceEvent?.sourceEvent || sourceEvent || {};
+    const intentMode = source.ctrlKey || source.metaKey ? 'toggle' : 'replace';
+    closeObjectChooser({ cancelPending: false });
     const inputStartedAt = performance.now();
     const performanceBefore = (0, dependencies.selectionPerformanceCounterSnapshot)();
     Object.assign(dependencies.selectionPerformanceMetrics, {
       handlerMs: 0, indexQueryMs: 0, indexedCandidateCount: 0, exactHitTestCount: 0,
       gpuPickMs: 0, pickCacheHit: false, direct: false,
     });
-    const normalizedForced = (0, dependencies.normalizeObjectRef)(forcedRef);
-    if (normalizedForced && (0, dependencies.objectRefExists)(normalizedForced)) {
-      dependencies.selectionPerformanceMetrics.direct = true;
-      const event = sourceEvent?.sourceEvent || sourceEvent || {};
-      const mode = event.ctrlKey || event.metaKey ? 'toggle' : 'replace';
-      dependencies.selectionUiController.applyIntent(normalizedForced, { mode, scope: 'map' });
-      dependencies.selectionPerformanceMetrics.handlerMs = performance.now() - inputStartedAt;
-      requestAnimationFrame(() => {
-        (0, dependencies.publishSelectionPerformanceSample)(inputStartedAt, performanceBefore, `direct:${normalizedForced.key}`);
-      });
-      return true;
-    }
+    const normalizedHit = (0, dependencies.normalizeObjectRef)(hitRef);
     const coord = (0, dependencies.screenToGeo)(screenPoint);
     if (!coord) {
       closeObjectChooser();
@@ -232,21 +268,23 @@ export function createObjectPicking() {
       (0, dependencies.closeSurface)('editor', { restoreFocus: false });
       return false;
     }
-    const candidates = await selectableObjectsAt(screenPoint, coord);
+    const candidates = (await selectableObjectsAt(screenPoint, coord, { seedRefs: [normalizedHit] })).filter(objectRefSelectable);
+    if (requestRevision !== objectPickRevision
+      || projectGeneration !== (dependencies.projectDomain?.getGeneration?.() ?? 0)
+      || pickViewRevision !== dependencies.viewRevision
+      || dependencies.state.tool !== 'select' || dependencies.state.labelPlacementMode) return false;
     if (!candidates.length) {
-      closeObjectChooser();
+      closeObjectChooser({ cancelPending: false });
       dependencies.selectionUiController.clear({ reason: 'map-background-selection-clear' });
       (0, dependencies.closeSurface)('editor', { restoreFocus: false });
       return false;
     }
-    const event = sourceEvent?.sourceEvent || sourceEvent || {};
     if (candidates.length > 1) {
-      openObjectChooser(candidates, screenPoint);
+      openObjectChooser(candidates, screenPoint, intentMode);
       return true;
     }
-    const target = normalizedForced || candidates[0];
-    const mode = event.ctrlKey || event.metaKey ? 'toggle' : 'replace';
-    dependencies.selectionUiController.applyIntent(target, { mode, scope: 'map' });
+    const target = candidates[0];
+    dependencies.selectionUiController.applyIntent(target, { mode: intentMode, scope: 'map' });
     dependencies.selectionPerformanceMetrics.handlerMs = performance.now() - inputStartedAt;
     requestAnimationFrame(() => {
       (0, dependencies.publishSelectionPerformanceSample)(inputStartedAt, performanceBefore, `map:${target.key}`);
@@ -323,6 +361,7 @@ export function createObjectPicking() {
     connect,
 
     get closeObjectChooser() { return closeObjectChooser; },
+    get chooseObjectCandidate() { return chooseObjectCandidate; },
     get createCountryFeature() { return createCountryFeature; },
     get geometryHitsScreenPoint() { return geometryHitsScreenPoint; },
     get handleMapClick() { return handleMapClick; },

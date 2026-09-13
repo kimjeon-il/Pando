@@ -55,17 +55,23 @@ export function createConfirmModalController({
     elements.ok.textContent = confirmText;
     elements.ok.classList.toggle('danger-confirm', !!danger);
     if (elements.cancel) elements.cancel.textContent = cancelText;
-    const hasChoices = Array.isArray(choices) && choices.length > 0;
-    elements.choiceRow.classList.toggle('hidden', !hasChoices);
-    if (hasChoices) setChoices(elements.choice, choices, choices[0].value);
+    const hasChoiceOptions = Array.isArray(choices) && choices.length > 0;
+    const choiceState = hasChoiceOptions
+      ? setChoices(elements.choice, choices, choices.find(choice => choice?.placeholder !== true)?.value, { autoSelectSingle: true })
+      : null;
+    const candidateCount = choiceState?.candidateCount
+      ?? (hasChoiceOptions ? choices.filter(choice => choice?.placeholder !== true && choice?.disabled !== true).length : 0);
+    const showChoices = candidateCount > 1;
+    elements.choiceRow.classList.toggle('hidden', !showChoices);
+    elements.ok.disabled = hasChoiceOptions && candidateCount === 0;
     action = typeof onConfirm === 'function'
-      ? () => onConfirm(hasChoices ? elements.choice.value : undefined)
+      ? () => onConfirm(candidateCount > 0 ? elements.choice.value : undefined)
       : null;
     elements.modal.classList.remove('hidden');
     window.requestAnimationFrame(() => {
       const initial = danger && elements.cancel
         ? elements.cancel
-        : hasChoices ? elements.choice : elements.ok;
+        : showChoices ? elements.choice : elements.ok;
       initial?.focus({ preventScroll: true });
     });
     return true;

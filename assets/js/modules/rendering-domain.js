@@ -300,7 +300,7 @@ export function createRenderingDomain({
       if (labels.mapClickBlocked?.() || state.tool !== 'select' || state.labelPlacementMode) return;
       labels.d3?.event?.stopPropagation?.();
       const point = labels.d3?.mouse?.(labels.svg);
-      labels.handleObjectSelectionAt?.(point, { sourceEvent: labels.d3?.event, forcedRef: { domain: 'label', type: d.kind || 'label', id: d.id } });
+      labels.handleObjectSelectionAt?.(point, { sourceEvent: labels.d3?.event, hitRef: { domain: 'label', type: d.kind || 'label', id: d.id } });
     });
     enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
     enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
@@ -505,7 +505,7 @@ export function createRenderingDomain({
         hydro.d3?.event?.stopPropagation?.();
         hydro.handleObjectSelectionAt?.(hydro.d3?.mouse?.(hydro.svg), {
           sourceEvent: hydro.d3?.event,
-          forcedRef: { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id },
+          hitRef: { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id },
         });
       });
     selection.attr('d', feature => hydro.path?.(feature))
@@ -537,6 +537,7 @@ export function createRenderingDomain({
     active();
     const t = territorial;
     const state = t.getState?.() || {};
+    const terrainColorAlpha = Math.max(0, Math.min(1, Number(t.mapTheme?.().terrainColorAlpha ?? 1)));
     t.syncBuiltinPalette?.();
     const types = t.TERRITORIAL_UNIT_TYPES || {};
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
@@ -573,7 +574,7 @@ export function createRenderingDomain({
         t.d3?.event?.stopPropagation?.();
         t.handleObjectSelectionAt?.(t.d3?.mouse?.(t.svg), {
           sourceEvent: t.d3?.event,
-          forcedRef: { domain: 'territorial', type: feature.properties?.unitType || types.SUBUNIT, id: feature.id },
+          hitRef: { domain: 'territorial', type: feature.properties?.unitType || types.SUBUNIT, id: feature.id },
         });
       });
     selection?.attr('d', feature => t.path?.(feature))
@@ -590,7 +591,7 @@ export function createRenderingDomain({
       .classed('territorial-unit-merge-target', feature => (state.territorialUnitMergeTargetIds || []).includes(String(feature.id)))
       .style('color', t.territorialUnitColor)
       .style('fill', t.territorialUnitColor)
-      .style('fill-opacity', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${feature.id}`).opacity)
+      .style('fill-opacity', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${feature.id}`).opacity * terrainColorAlpha)
       .style('stroke', 'none').style('stroke-opacity', 0).style('stroke-width', 0).style('stroke-dasharray', 'none')
       .style('mix-blend-mode', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${feature.id}`).blendMode)
       .attr('data-presentation-group', t.presentationGroupForTerritorialFeature);
@@ -622,7 +623,7 @@ export function createRenderingDomain({
       const geometryRevision = t.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
       polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
         order: t.gpuSceneOrder?.(group, 10, objectKey), blendMode: unitStyle.blendMode,
-        style: { color: t.territorialUnitColor?.(feature), fillAlpha: unitStyle.opacity, blendMode: unitStyle.blendMode } });
+        style: { color: t.territorialUnitColor?.(feature), fillAlpha: unitStyle.opacity * terrainColorAlpha, blendMode: unitStyle.blendMode } });
       if (state.territorialUnitMergeSourceId === String(feature.id)
         || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))) {
         strokes.push({ key: `${objectKey}:operation-outline`, objectKey, geometryRevision,
@@ -669,7 +670,7 @@ export function createRenderingDomain({
         }
         if (stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
         g.d3?.event?.stopPropagation?.();
-        g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, forcedRef: { domain: 'generic', type: 'feature', id: d.id } });
+        g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, hitRef: { domain: 'generic', type: 'feature', id: d.id } });
       });
     const selectedRef = d => g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: d.id });
     selection?.attr('d', g.path)
@@ -815,7 +816,7 @@ export function createRenderingDomain({
         const stateNow = d.getState?.() || {};
         if (d.mapClickBlocked?.() || stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
         d.d3?.event?.stopPropagation?.();
-        d.handleObjectSelectionAt?.(d.d3?.mouse?.(d.svg), { sourceEvent: d.d3?.event, forcedRef: { domain: 'distribution', type: row.layer.type, id: row.layer.id } });
+        d.handleObjectSelectionAt?.(d.d3?.mouse?.(d.svg), { sourceEvent: d.d3?.event, hitRef: { domain: 'distribution', type: row.layer.type, id: row.layer.id } });
       });
     selection.attr('d', row => d.path?.({ type: 'Feature', properties: {}, geometry: row.geometry }))
       .attr('data-gpu-scene-key', row => `distribution-entry:${row.id}:${isArea(row) ? 'fill' : 'line'}`)
@@ -880,6 +881,7 @@ export function createRenderingDomain({
     const visibleIds = new Set(visibleFeatures.map(feature => String(feature.id)));
     const styleByType = new Map([
       ['subunit', { presentationGroup: 'subunits', width: 2, dash: [0, 0] }],
+      ['subunit-internal', { presentationGroup: 'subunits', width: 1.1, dash: [3, 2] }],
       ['region', { presentationGroup: 'regions', width: 1.5, dash: [7, 3] }],
     ]);
     const visibleSignature = [...visibleIds].sort().map(id => {
@@ -894,10 +896,10 @@ export function createRenderingDomain({
     if (territorialBoundaryBatchCache.signature !== signature) {
       const groups = new Map([...styleByType].map(([styleType, definition]) => [styleType, { key: styleType, styleType, width: definition.width, dash: definition.dash, segments: [] }]));
       for (const segment of territorialBoundaryCache.segments) {
-        const owner = (segment.unitIds || []).find(id => visibleIds.has(String(id)));
+        const owner = (segment.unitOwners || []).find(item => visibleIds.has(String(item.id)));
         if (!owner) continue;
-        const feature = visibleFeatures.find(item => String(item.id) === String(owner));
-        const styleType = feature?.properties?.unitType || 'subunit';
+        const feature = visibleFeatures.find(item => String(item.id) === String(owner.id));
+        const styleType = segment.styleType || feature?.properties?.unitType || 'subunit';
         const definition = styleByType.get(styleType) || styleByType.get('subunit');
         const group = groups.get(styleType) || groups.get('subunit');
         if (!group) continue;

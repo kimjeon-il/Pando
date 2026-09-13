@@ -234,7 +234,7 @@ export function createReadinessNotifications() {
 
   function initializeCANONICAL_CONTROL_SELECTOR() {
     (CANONICAL_CONTROL_SELECTOR = [
-      '#createMenu .create-menu-item',
+      '#createMenu .ui-menu-item',
       '#rightPanel input', '#rightPanel select', '#rightPanel textarea',
       '#rightPanel button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
       '.top-actions button', '.top-actions input',

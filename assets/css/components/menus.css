@@ -1,10 +1,15 @@
-/* File commands and desktop view settings share this menu vocabulary. */
+/* File, view and create share this menu vocabulary. */
 .ui-menu-surface {
   --surface-elevated: var(--design-color-surface-elevated);
   border: var(--ui-border-width) solid var(--overlay-border);
   border-radius: var(--ui-radius-panel);
   background: var(--surface-elevated);
   box-shadow: var(--control-shadow);
+}
+.ui-command-menu,
+[data-layout]:not([data-layout="mobile"]) .ui-command-menu {
+  width: min(var(--ui-menu-width), calc(100vw - var(--ui-menu-screen-edge) * 2));
+  max-width: calc(100vw - var(--ui-menu-screen-edge) * 2);
 }
 .ui-menu, .ui-menu-list { display: grid; gap: var(--ui-menu-gap); padding: var(--ui-menu-padding); }
 .ui-menu-group { display: grid; gap: var(--ui-menu-gap); min-width: 0; margin: 0; padding: 0; border: 0; }
@@ -75,6 +80,8 @@
 .ui-menu-control > span { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
 .ui-menu-control output { margin: 0; }
 .ui-menu-control .ui-range-progress { width: 100%; }
+
+[data-layout="mobile"] .ui-sheet .ui-menu-list .ui-menu-item { min-height: var(--ui-touch-height); }
 
 @media (prefers-reduced-motion: reduce) { .ui-menu-list .ui-menu-item { transition: none; } }
 @media (forced-colors: active) {

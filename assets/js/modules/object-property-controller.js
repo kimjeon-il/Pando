@@ -42,6 +42,7 @@ export function createObjectPropertyController(runtime = {}) {
     readDomainColor,
     syncColorPicker,
     replaceSelectOptions,
+    shouldShowTerritorialParentChoice,
     formatArea,
     geometryAreaKm2,
     layerNameCompare,
@@ -154,7 +155,12 @@ export function createObjectPropertyController(runtime = {}) {
       && String(candidate.properties?.name || '').trim().toLocaleLowerCase('ko') === normalizedName);
     $(`${prefix}NameConflict`).classList.toggle('hidden', !conflict);
     $(`${prefix}NameInput`).value = properties.name || '';
-    replaceSelectOptions($(`${prefix}CountryInput`), territorialUnitCountryOptions(), properties.sovereignId);
+    const countrySelect = $(`${prefix}CountryInput`);
+    const countryChoice = replaceSelectOptions(countrySelect, territorialUnitCountryOptions(), properties.sovereignId, {
+      autoSelectSingle: true,
+      preserveInvalid: true,
+    });
+    countrySelect.closest('.field-group')?.classList.toggle('hidden', countryChoice.single);
     const inheritedColor = territorialUnitColor({ ...feature, properties: { ...properties, style: {} } });
     const color = readDomainColor(colorDomains.TERRITORIAL, { feature }, { inherited: inheritedColor, fallback: defaultGenericFeatureColor });
     $(`${prefix}ColorInput`).value = color.value;
@@ -166,14 +172,20 @@ export function createObjectPropertyController(runtime = {}) {
     for (const actionId of actionIds) $(actionId).disabled = properties.locked === true;
     if (subunits) {
       const parentOptions = territorialUnitParentOptions(feature);
-      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId);
-      $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', parentOptions.length < 2 && String(properties.parentId) === String(properties.sovereignId));
+      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId, { autoSelectSingle: true, preserveInvalid: true });
+      $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', !shouldShowTerritorialParentChoice({
+        sovereignId: properties.sovereignId,
+        parentId: properties.parentId,
+        options: parentOptions,
+      }));
       $('subunitLevelInput').value = properties.adminLevel || '';
     } else if (region) {
       replaceSelectOptions($('regionParentInput'), territorialParentOptions(feature), properties.parentId);
       // Kept only to display pre-v5 relationship data; Region is not a new
       // branch in the Country/Subunit hierarchy.
       $('regionParentInput').disabled = true;
+      $('regionParentInput').closest('.field-group')?.classList.toggle('hidden', !properties.parentId
+        || String(properties.parentId) === String(properties.sovereignId));
       $('regionValidFromInput').value = properties.validFrom || '';
       $('regionValidToInput').value = properties.validTo || '';
     }
@@ -234,10 +246,19 @@ export function createObjectPropertyController(runtime = {}) {
       value: unit.id,
       label: `${unit.properties?.name || unit.id} · ${runtime.territorialTypeLabel(unit.properties?.unitType)}`,
     })).sort((a, b) => layerNameCompare(a.label, b.label));
-    replaceSelectOptions($('distributionParentInput'), parentOptions, layer.parentId);
-    replaceSelectOptions($('distributionTerritorialUnitInput'), unitOptions, $('distributionTerritorialUnitInput').value);
+    const distributionParent = $('distributionParentInput');
+    const parentChoice = replaceSelectOptions(distributionParent, parentOptions, layer.parentId, { autoSelectSingle: true, preserveInvalid: true });
+    const parentField = distributionParent.closest('.field-group');
+    parentField?.classList.toggle('hidden', parentChoice.single);
+    parentField?.closest('details')?.classList.toggle('hidden', parentChoice.single);
+    const territorialInput = $('distributionTerritorialUnitInput');
+    const territorialChoice = replaceSelectOptions(territorialInput, unitOptions.length
+      ? unitOptions
+      : [{ value: '', label: '선택 가능한 기준 영역 없음', placeholder: true }], territorialInput.value, { autoSelectSingle: true });
+    territorialInput.closest('.field-group')?.classList.toggle('hidden', territorialChoice.single);
     $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
-    for (const idValue of ['distributionNameInput', 'distributionColorTrigger', 'distributionParentInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
+    for (const idValue of ['distributionNameInput', 'distributionColorTrigger', 'distributionParentInput', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
+    $('addTerritorialDistributionBtn').disabled = layer.locked || !territorialInput.value;
     renderDistributionEntries(layer);
     $('selectionStatus').textContent = layer.name;
     syncStatusBar();
@@ -260,22 +281,33 @@ export function createObjectPropertyController(runtime = {}) {
           : [];
     const convertSection = $('genericFeatureConversionSection');
     convertSection.classList.toggle('hidden', !options.length);
-    replaceSelectOptions($('genericFeatureConvertType'), options, $('genericFeatureConvertType').value || options[0]?.value);
+    const typeInput = $('genericFeatureConvertType');
+    const typeChoice = replaceSelectOptions(typeInput, options, typeInput.value || options[0]?.value, { autoSelectSingle: true });
+    typeInput.closest('.field-group')?.classList.toggle('hidden', typeChoice.single);
     const target = $('genericFeatureConvertType').value;
     const countryField = $('genericFeatureConvertCountryField');
-    countryField.classList.toggle('hidden', !['subunit', 'region'].includes(target));
-    if (!countryField.classList.contains('hidden')) {
-      const countryOptions = [{ value: '', label: '국가 선택' }, ...(state.countriesData?.features || []).map(country => ({
-        value: String(country.id), label: String(country.properties?.name || country.properties?.NAME || country.id),
-      })).sort((left, right) => layerNameCompare(left.label, right.label))];
-      replaceSelectOptions($('genericFeatureConvertCountryInput'), countryOptions, feature.properties?.ownerId || '');
-    }
+    const countryOptions = [{ value: '', label: '국가 선택', placeholder: true }, ...(state.countriesData?.features || []).map(country => ({
+      value: String(country.id), label: String(country.properties?.name || country.properties?.NAME || country.id),
+    })).sort((left, right) => layerNameCompare(left.label, right.label))];
+    const countryChoice = replaceSelectOptions($('genericFeatureConvertCountryInput'), countryOptions, feature.properties?.ownerId || '', {
+      autoSelectSingle: true,
+      preserveInvalid: true,
+    });
+    countryField.dataset.singleChoice = String(countryChoice.single);
+    countryField.dataset.invalidChoice = String(countryChoice.invalid);
+    countryField.classList.toggle('hidden', !['subunit', 'region'].includes(target) || countryChoice.single);
     const distributionField = $('genericFeatureConvertDistributionField');
-    distributionField.classList.toggle('hidden', target !== 'distribution');
-    if (!distributionField.classList.contains('hidden')) {
-      replaceSelectOptions($('genericFeatureConvertDistributionInput'), [{ value: '', label: '분포 레이어 선택' }, ...distributionService.listLayers().map(layer => ({ value: layer.id, label: layer.name }))], '');
-    }
-    $('convertGenericFeatureBtn').disabled = !options.length;
+    const distributionChoice = replaceSelectOptions($('genericFeatureConvertDistributionInput'), [
+      { value: '', label: '분포 레이어 선택', placeholder: true },
+      ...distributionService.listLayers().map(layer => ({ value: layer.id, label: layer.name })),
+    ], '', { autoSelectSingle: true });
+    distributionField.dataset.singleChoice = String(distributionChoice.single);
+    distributionField.classList.toggle('hidden', target !== 'distribution' || distributionChoice.single);
+    const targetRequiresCountry = ['subunit', 'region'].includes(target);
+    const targetRequiresDistribution = target === 'distribution';
+    $('convertGenericFeatureBtn').disabled = !options.length
+      || (targetRequiresCountry && (!$('genericFeatureConvertCountryInput').value || countryChoice.invalid))
+      || (targetRequiresDistribution && !$('genericFeatureConvertDistributionInput').value);
     $('genericFeatureRoleValue').textContent = genericFeatureRoleLabels[role] || role;
     $('genericFeatureTopologyValue').textContent = feature.properties?.topologyGroup || '—';
     syncActionTab('generic');

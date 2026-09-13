@@ -142,18 +142,17 @@ export function createObjectPresentation() {
     const buildContent = (0, dependencies.$)('createBuildPanel');
     if (buildContent) {
       dependencies.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
-        const categoryNode = buildContent.querySelector(`.create-menu-category[data-map-category="${categoryKey}"]`);
+        const categoryNode = buildContent.querySelector(`.ui-menu-group[data-map-category="${categoryKey}"]`);
         const category = dependencies.MAP_OBJECT_CATEGORIES[categoryKey];
         if (!categoryNode || !category) return;
-        buildContent.appendChild(categoryNode);
         categoryNode.setAttribute('role', 'group');
         categoryNode.setAttribute('aria-label', category.label);
         category.createItems.forEach(type => {
           const item = categoryNode.querySelector(`[data-map-object-type="${type}"]`);
           if (!item) return;
           const metadata = dependencies.MAP_OBJECT_TYPES[type];
-          const label = item.querySelector('strong');
-          const icon = item.querySelector('.create-menu-icon use');
+          const label = item.querySelector('span');
+          const icon = item.querySelector('.ui-icon use');
           if (metadata) {
             if (label) label.textContent = metadata.label;
             if (icon) icon.setAttribute('href', `#${metadata.icon}`);
