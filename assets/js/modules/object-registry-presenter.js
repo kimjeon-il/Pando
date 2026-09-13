@@ -55,9 +55,9 @@ function syncObjectTaxonomy(root) {
     node.dataset.objectCategory = descriptor.category;
     node.dataset.objectEditor = descriptor.editor;
     node.dataset.objectCreatable = String(descriptor.creatable);
-    const label = node.querySelector('strong');
+    const label = node.querySelector(node.classList.contains('ui-menu-item') ? 'span' : 'strong');
     if (label) label.textContent = descriptor.label;
-    if (descriptor.icon) syncUseIcon(node.querySelector('.create-menu-icon') || node, descriptor.icon);
+    if (descriptor.icon) syncUseIcon(node, descriptor.icon);
   }
 }
 

@@ -229,9 +229,16 @@ export function createTaskPresentation() {
       if (model?.showSubunitFields) {
         const setupModel = (0, dependencies.territorialCreateSetupModel)();
         if (setupModel) {
-          (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateSovereignInput'), setupModel.countryOptions, selection.sovereignId);
-          (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateParentInput'), setupModel.parentOptions, selection.parentId);
-          (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateSourceInput'), setupModel.sourceOptions, selection.sourceKey);
+          const countryChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateSovereignInput'), setupModel.countryOptions, selection.sovereignId, { autoSelectSingle: true });
+          const parentChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateParentInput'), setupModel.parentOptions, selection.parentId, { autoSelectSingle: true });
+          const sourceChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateSourceInput'), setupModel.sourceOptions, selection.sourceKey, { autoSelectSingle: true });
+          (0, dependencies.$)('territorialCreateSovereignRow')?.classList.toggle('hidden', countryChoice.single);
+          (0, dependencies.$)('territorialCreateParentRow')?.classList.toggle('hidden', !(0, dependencies.shouldShowTerritorialParentChoice)({
+            sovereignId: selection.sovereignId,
+            parentId: selection.parentId,
+            options: setupModel.parentOptions,
+          }));
+          (0, dependencies.$)('territorialCreateSourceRow')?.classList.toggle('hidden', sourceChoice.single);
         }
       }
     }

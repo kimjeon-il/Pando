@@ -3,11 +3,10 @@
 }
 
 /* The wide dock has no workspace navigation; retain the shared narrow controls. */
-[data-layout="wide"] .adaptive-nav { display: none; }
 
 /* Both desktop surfaces end at the same persistent status boundary. */
-[data-layout="wide"] .workspace-surface,
-[data-layout="compact"] .workspace-surface {
+[data-layout="wide"] .workspace-surface:not(.surface-create),
+[data-layout="compact"] .workspace-surface:not(.surface-create) {
   bottom: var(--ui-shell-statusbar-height);
 }
 
@@ -51,7 +50,7 @@
   display: none;
 }
 
-[data-layout="compact"] .workspace-surface {
+[data-layout="compact"] .workspace-surface:not(.surface-create) {
   position: fixed;
   z-index: 36;
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
@@ -160,6 +159,7 @@
 }
 
 /* Map commands own transient surfaces; there is no persistent layer drawer. */
+.surface-create,
 .surface-search,
 .surface-display {
   display: flex;
@@ -169,6 +169,7 @@
   transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
 }
 
+.surface-create > .surface-body,
 .surface-search > .surface-body,
 .surface-display > .surface-body {
   min-height: 0;
@@ -222,7 +223,7 @@
   transform: translateX(0);
 }
 
-[data-layout="mobile"] :is(.surface-search, .surface-display) {
+[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display) {
   position: fixed;
   z-index: 100;
   right: 0;
@@ -238,14 +239,29 @@
   transform: translateY(calc(100% + var(--ui-surface-mobile-hidden-offset)));
 }
 
-[data-layout="mobile"] :is(.surface-search, .surface-display).mobile-open {
+[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display).mobile-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
 }
 
-[data-layout="mobile"] :is(.surface-search, .surface-display).mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
+[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display).mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
   height: var(--sheet-drag-height, var(--sheet-height));
   transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
 }
+
+/* Create changes its placement, not its menu rows, between menu and sheet. */
+[data-layout]:not([data-layout="mobile"]) .surface-create {
+  position: fixed;
+  top: var(--ui-menu-position-top, var(--ui-shell-topbar-height));
+  left: var(--ui-menu-position-left, var(--ui-shell-compact-inset));
+  max-height: var(--ui-menu-position-max-height, 80dvh);
+  z-index: var(--ui-layer-create-z);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+[data-layout]:not([data-layout="mobile"]) .surface-create.surface-open { opacity: 1; visibility: visible; pointer-events: auto; }
+[data-layout]:not([data-layout="mobile"]) .surface-create > .surface-header { display: none; }
+.surface-create > .surface-body { overflow: auto; padding: 0; }

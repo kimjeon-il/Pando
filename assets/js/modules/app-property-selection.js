@@ -2,6 +2,8 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
+import { resolveSelectChoice } from './select-option-policy.js';
+
 export function createPropertySelection() {
   let dependencies;
 
@@ -18,16 +20,35 @@ export function createPropertySelection() {
     dependencies.editorSurfaceTabs?.sync(active, { focus });
   }
 
-  function replaceSelectOptions(select, options, selectedValue = '') {
-    if (!select) return;
-    select.replaceChildren(...options.map(option => {
+  function replaceSelectOptions(select, options, selectedValue = '', { autoSelectSingle = false, preserveInvalid = false } = {}) {
+    if (!select) return Object.freeze({ candidateCount: 0, invalid: false, single: false, value: '' });
+    const normalized = [...(options || [])];
+    const requestedValue = String(selectedValue ?? '');
+    let state = resolveSelectChoice(normalized, requestedValue, { autoSelectSingle, preserveInvalid });
+    if (preserveInvalid && state.invalid) {
+      normalized.push({ value: requestedValue, label: `${requestedValue} · 기존 값`, disabled: true, invalid: true });
+      const unresolved = resolveSelectChoice(normalized, requestedValue, { autoSelectSingle, preserveInvalid: true });
+      state = Object.freeze({ ...unresolved, invalid: true, single: false, value: requestedValue });
+    }
+    select.replaceChildren(...normalized.map(option => {
       const element = document.createElement('option');
       element.value = String(option.value ?? '');
       element.textContent = String(option.label ?? option.value ?? '');
       if (option.searchText) element.dataset.searchText = String(option.searchText);
+      if (option.tooltip) element.dataset.tooltip = String(option.tooltip);
+      if (option.placeholder === true) {
+        element.dataset.placeholder = 'true';
+        element.disabled = true;
+        element.hidden = true;
+      } else {
+        element.disabled = option.disabled === true;
+        element.hidden = option.hidden === true;
+      }
+      if (option.invalid === true) element.dataset.invalid = 'true';
       return element;
     }));
-    select.value = String(selectedValue || '');
+    select.value = state.value;
+    return Object.freeze({ ...state, value: select.value });
   }
 
   function territorialUnitCountryOptions() {
@@ -111,10 +132,11 @@ export function createPropertySelection() {
     return true;
   }
 
-  function createDistributionLayerFromPrompt(type) {
+  function createDistributionLayerFromPrompt(type, { beforeCreate } = {}) {
     const label = dependencies.DISTRIBUTION_TYPE_LABELS[type];
     const name = prompt(`새 ${label} 항목의 이름을 입력하세요.`, `새 ${label}`);
     if (name === null) return false;
+    beforeCreate?.();
     const layer = dependencies.distributionService.createLayer({
       id: (0, dependencies.uid)(`distribution_${type}`),
       type,

@@ -132,7 +132,8 @@ export function createTerritorialConversion() {
       impacts.push(`소속 국가 유지${sovereign ? `: ${(0, dependencies.countryName)(sovereign)}` : ''}`);
       if (targetType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
         const parentName = targetParent ? (0, dependencies.territorialUnitName)(targetParent) : sovereign ? (0, dependencies.countryName)(sovereign) : '선택한 상위 소속';
-        impacts.push(`상위 소속: ${parentName}`, '행정 단계는 선택적으로 지정');
+        if (String(parentId) !== String(sovereignId)) impacts.push(`상위 소속: ${parentName}`);
+        impacts.push('행정 단계는 선택적으로 지정');
       } else if (sourceType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
         impacts.push('기존 행정 단계와 상위 행정 관계 해제');
       }
@@ -205,27 +206,37 @@ export function createTerritorialConversion() {
     const targetIsCountry = targetType === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY;
     const targetIsAdmin = targetType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT;
     const sovereignRow = (0, dependencies.$)('territorialTypeSovereignRow');
-    sovereignRow.classList.toggle('hidden', !sourceIsCountry || targetIsCountry);
+    let sovereignChoice = { single: false };
 
     let sovereignId = sourceIsCountry ? (0, dependencies.$)('territorialTypeSovereignInput').value : String(source.properties?.sovereignId || '');
     if (sourceIsCountry && !targetIsCountry) {
-      const options = (0, dependencies.territorialUnitCountryOptions)().filter(option => option.value && option.value !== String(territorialTypeSource.id));
-      if (!options.some(option => option.value === sovereignId)) sovereignId = String(options[0]?.value || '');
-      (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialTypeSovereignInput'), options, sovereignId);
+      const candidates = (0, dependencies.territorialUnitCountryOptions)().filter(option => option.value && option.value !== String(territorialTypeSource.id));
+      const options = [{ value: '', label: '소속 국가 선택', placeholder: true }, ...candidates];
+      if (!candidates.some(option => option.value === sovereignId)) sovereignId = '';
+      sovereignChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialTypeSovereignInput'), options, sovereignId, { autoSelectSingle: true });
+      sovereignId = sovereignChoice.value;
     }
+    sovereignRow.classList.toggle('hidden', !sourceIsCountry || targetIsCountry || sovereignChoice.single);
 
     const parentRow = (0, dependencies.$)('territorialTypeParentRow');
     parentRow.classList.toggle('hidden', !targetIsAdmin);
     if (targetIsAdmin) {
-      const options = territorialTypeParentOptions(source, sovereignId);
+      const parentCandidates = territorialTypeParentOptions(source, sovereignId);
+      const options = parentCandidates.length
+        ? parentCandidates
+        : [{ value: '', label: '상위 소속 선택', placeholder: true }];
       const currentParent = (0, dependencies.$)('territorialTypeParentInput').value;
       const preferredParent = options.some(option => option.value === currentParent)
         ? currentParent
         : options.some(option => option.value === String(source.properties?.parentId || ''))
           ? String(source.properties.parentId)
           : String(options[0]?.value || '');
-      (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialTypeParentInput'), options, preferredParent);
-      parentRow.classList.toggle('hidden', options.length < 2 && preferredParent === sovereignId);
+      const parentChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialTypeParentInput'), options, preferredParent, { autoSelectSingle: true });
+      parentRow.classList.toggle('hidden', !(0, dependencies.shouldShowTerritorialParentChoice)({
+        sovereignId,
+        parentId: parentChoice.value,
+        options: parentCandidates,
+      }));
     }
 
     const targetCountry = (0, dependencies.countryFeatureById)(sovereignId);
@@ -265,13 +276,19 @@ export function createTerritorialConversion() {
       .filter(([type]) => [dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(type) && type !== unitType)
       .map(([value, label]) => ({ value, label }));
     const preferred = unitType === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY ? dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT : dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY;
-    (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialTypeInput'), options, preferred);
+    const targetChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialTypeInput'), options, preferred, { autoSelectSingle: true });
+    (0, dependencies.$)('territorialTypeInput').closest('.field-group')?.classList.toggle('hidden', targetChoice.single);
     (0, dependencies.$)('territorialTypeContext').textContent = `${territorialTypeSourceName(source)} · 현재 ${dependencies.TERRITORIAL_TYPE_LABELS[unitType]}`;
     (0, dependencies.$)('territorialTypeSovereignInput').value = '';
     (0, dependencies.$)('territorialTypeParentInput').value = '';
     (0, dependencies.$)('territorialTypeModal').classList.remove('hidden');
     syncTerritorialTypeModal();
-    requestAnimationFrame(() => (0, dependencies.$)('territorialTypeInput').focus());
+    requestAnimationFrame(() => {
+      const modal = (0, dependencies.$)('territorialTypeModal');
+      const focusTarget = [...(modal?.querySelectorAll?.('select, button') || [])]
+        .find(element => !element.disabled && !element.closest('.hidden, [hidden]'));
+      focusTarget?.focus();
+    });
   }
 
   function closeTerritorialTypeModal() {

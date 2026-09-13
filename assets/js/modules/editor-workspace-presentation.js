@@ -25,7 +25,7 @@ export function createEditorWorkspacePresentation({
     task.classList.toggle('is-minimized', false);
     if (content.hidden) content.hidden = false;
     if (!minimize.hidden) minimize.hidden = true;
-    if (docked && !isEditorOpen()) openEditor();
+    if (changed && docked && !isEditorOpen()) openEditor();
     if (changed) onLayoutChange();
   };
   const sync = (input = {}) => {

@@ -282,6 +282,9 @@ function pointSegmentDistance(point, a, b) {
 export function buildTerritorialInternalBoundarySegments(countries = [], units = [], { precision = 7, epsilon = 1e-7 } = {}) {
   // No unit can own an internal boundary: do not even inspect country geometry.
   if (!(units || []).some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) return [];
+  const countryIds = new Set((countries || [])
+    .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
+    .map((feature, index) => featureId(feature, index)));
   const countryFeatures = (countries || [])
     .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
     .map((feature, index) => topologyFeature(feature, 'country', index));
@@ -291,6 +294,7 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
   const unitMeta = new Map(unitFeatures.map(feature => [feature.id, {
     id: featureId(feature).replace(/^unit:/, ''),
     type: feature.properties?.unitType || '',
+    sovereignId: String(feature.properties?.sovereignId || ''),
   }]));
   const topology = buildBoundaryTopology([...countryFeatures, ...unitFeatures], { precision, epsilon });
   const countryEdges = [...topology.segments.values()].filter(segment => [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')));
@@ -333,12 +337,22 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
     if (!unitOwners.length || [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')) || nearCountryExterior(segment)) continue;
     const metadata = unitOwners.map(ownerId => unitMeta.get(ownerId)).filter(Boolean);
     if (!metadata.length) continue;
-    const styleType = metadata.some(item => item.type === 'region') ? 'region' : 'subunit';
+    const validSovereignIds = new Set(metadata
+      .map(item => item.sovereignId)
+      .filter(sovereignId => sovereignId && countryIds.has(sovereignId)));
+    if (validSovereignIds.size > 1) continue;
+    const allSovereignsValid = metadata.every(item => item.sovereignId && countryIds.has(item.sovereignId));
+    const sameCountrySubunits = metadata.every(item => item.type === 'subunit')
+      && allSovereignsValid
+      && validSovereignIds.size === 1;
+    const styleType = metadata.some(item => item.type === 'region')
+      ? 'region'
+      : sameCountrySubunits ? 'subunit-internal' : 'subunit';
     output.push({
       key: segment.key,
       a: segment.a,
       b: segment.b,
-      unitIds: metadata.map(item => item.id),
+      unitOwners: metadata.map(item => ({ id: item.id, unitType: item.type, sovereignId: item.sovereignId })),
       styleType,
     });
   }

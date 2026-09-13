@@ -3,8 +3,14 @@
 .mobile-bottom-bar { display: none; }
 
 @media (max-width: 799px) {
-  .mobile-bottom-bar {
+  [data-layout="mobile"] .mobile-bottom-bar {
     display: grid;
+    position: absolute;
+    z-index: 150;
+    inset: auto 0 0;
+    height: var(--mobile-nav-height);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: var(--ui-space-1) var(--ui-space-1) calc(var(--ui-mobile-bottom-nav-padding) + env(safe-area-inset-bottom));
     border-top: 1px solid var(--border);
     background: var(--mobile-nav-bg);
   }
@@ -12,26 +18,39 @@
   .mobile-bottom-bar .ui-nav-item {
     min-width: 0;
     min-height: var(--ui-touch-height);
-    border-color: transparent;
+    height: var(--ui-mobile-bottom-nav-item-height);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-nav-icon-label-gap);
+    padding: var(--ui-space-1) var(--ui-space-0-5);
+    border: var(--ui-border-width) solid transparent;
+    border-radius: var(--ui-radius-control);
     background: transparent;
     color: var(--muted);
+    box-shadow: none;
   }
 
-  .mobile-bottom-bar .ui-nav-item:hover,
-  .mobile-bottom-bar .ui-nav-item:focus-visible {
-    border-color: transparent;
+  .mobile-bottom-bar .ui-nav-item > span { height: 22px; display: grid; place-items: center; }
+  .mobile-bottom-bar .ui-nav-item .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); color: inherit; }
+
+  /* Open state has one source; object selection does not select navigation. */
+  .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] {
     background: var(--surface-hover);
-    color: var(--text-strong);
+    color: var(--accent);
   }
 
-  .mobile-bottom-bar .ui-nav-item[aria-expanded="true"],
-  .mobile-bottom-bar .ui-nav-item.sheet-open {
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
-    color: var(--text-strong);
+  .mobile-bottom-bar .ui-nav-item:active:not(:disabled) {
+    background: var(--ui-button-subtle-pressed);
   }
 
-  .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] .ui-icon,
-  .mobile-bottom-bar .ui-nav-item.sheet-open .ui-icon { color: var(--accent); }
+  @media (hover: hover) and (pointer: fine) {
+    .mobile-bottom-bar .ui-nav-item:hover:not(:disabled, [aria-expanded="true"]) {
+      background: var(--surface-hover);
+      color: var(--text-strong);
+    }
+  }
 
   .mobile-bottom-bar .ui-nav-item strong {
     font-size: var(--ui-font-md);

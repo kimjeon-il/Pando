@@ -160,7 +160,7 @@ export async function composeApplication({ revision }) {
   });
   mapInteractionConnector.connectMapInteraction({
     cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, cutGeometry, domainAssembly,
-    environment, genericCommands, geometryPreview, gpuScene, hydroSettings, interactionPackets, layerList,
+    environment, genericCommands, geometryPreview, gpuScene, hydroSettings, interactionPackets, landRelations, layerList,
     lifecycleAssembly, mapAudit, mapHost, mapProjection, objectCommands, objectPicking, objectPresentation,
     physicalResources, pointerTargets, projectSession, propertySelection, readinessNotifications,
     renderQuality, riverCandidates, runtime, serviceAssembly, spatialIndex, taskPresentation,

@@ -1,3 +1,5 @@
+import { effectiveCountryFlagUrl, effectiveTerritorialFlagUrl } from './country-flags.js';
+
 /** LayerList: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -111,6 +113,11 @@ export function createLayerList() {
           id,
           name: (0, dependencies.countryName)(feature),
           color: (0, dependencies.countryColor)(feature),
+          flagUrl: effectiveCountryFlagUrl({
+            countryId: id,
+            override: dependencies.state.countryOverrides[id] || {},
+            assetRevision: dependencies.ASSET_REVISION,
+          }),
           searchText: id,
           meta: group === 'countryLabels' && dependencies.pendingCountryLabelAnchors.has(id) ? '계산 중' : '',
           selected: (dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && dependencies.state.selected.id === id,
@@ -128,6 +135,7 @@ export function createLayerList() {
           id: String(feature.id),
           name: (0, dependencies.territorialUnitName)(feature),
           color: (0, dependencies.territorialUnitColor)(feature),
+          flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.ASSET_REVISION }),
           meta: levelLabel,
           searchText: `${countryLabel} ${levelLabel}`,
           folderName: kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT

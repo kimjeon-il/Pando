@@ -1,22 +1,4 @@
-/* Shared map, create, historical-library, and GIS panel presentation. */
-.layer-create-menu {
-  position: fixed;
-  top: var(--layer-create-top, var(--ui-shell-topbar-height));
-  left: var(--layer-create-left, var(--ui-shell-compact-inset));
-  width: min(var(--ui-layer-create-width), calc(100vw - var(--ui-space-5)));
-  max-height: var(--layer-create-height, 80dvh);
-  overflow: auto;
-  padding: var(--ui-space-2) var(--ui-surface-content-rail-x);
-  border: var(--ui-border-width) solid var(--border);
-  border-radius: var(--ui-radius-control);
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow);
-  z-index: var(--ui-layer-create-z);
-}
-.layer-create-menu.hidden { display: none; }
-.layer-create-content, .layer-create-groups { min-width: 0; }
-
-/* Map and create panel rules. */
+/* Shared map, create, historical-library, and GIS panel presentation. *//* Map and create panel rules. */
 
 /* Map settings and create surface presentation. */
 
@@ -177,47 +159,6 @@
 }
 
 
-.create-menu-category {
-  min-width: 0;
-  display: grid;
-  gap: var(--ui-space-0-5);
-  padding: var(--ui-space-3) 0;
-  border-top: 1px solid var(--border);
-}
-
-.create-menu-category:first-child {
-  padding-top: 0;
-  border-top: 0;
-}
-
-.create-menu-category + .create-menu-category { margin-top: 0; }
-
-.create-menu-group {
-  min-height: 1.5rem;
-  display: flex;
-  align-items: center;
-  padding-inline: var(--ui-space-2);
-}
-
-.create-menu-item {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-}
-
-.create-menu-item:hover,
-.create-menu-item:focus-visible {
-  background: var(--surface-hover);
-  color: var(--text-strong);
-}
-
-.create-menu-item .create-menu-icon { color: var(--muted); }
-
-.create-menu-item:hover .create-menu-icon,
-.create-menu-item:focus-visible .create-menu-icon { color: var(--text-soft); }
-
-.create-menu-item > span:nth-child(2) { gap: var(--ui-space-0-5); }
 
 @media (max-width: 799px) {
   .map-view-settings > .layer-style-editor { padding-block: var(--ui-space-4); }
@@ -231,12 +172,10 @@
 
   .terrain-strength-control input[type="range"] { min-height: var(--ui-touch-height); }
 
-  .create-menu-item { min-height: var(--ui-touch-height); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-view-projection-slot .projection-btn,
-  .create-menu-item { transition: none; }
+  .map-view-projection-slot .projection-btn { transition: none; }
 }
 
 /* Library, GIS, and file panel rules. */
@@ -387,28 +326,6 @@ body.file-menu-open .mobile-backdrop {
   background: var(--surface-subtle);
 }
 
-.create-menu-category {
-  display: grid;
-  gap: var(--ui-space-0-5);
-  padding-block: var(--ui-space-2);
-}
-
-.create-menu-category + .create-menu-category,
-.create-library-actions {
-  border-top: 1px solid var(--ui-control-border);
-}
-
-.create-menu-item {
-  min-height: var(--design-control-md);
-  border-color: transparent;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-}
-
-.create-menu-item:is(:hover, :focus-visible) {
-  border-color: transparent;
-  background: var(--surface-hover);
-}
 
 .surface-search,
 .surface-display {
@@ -458,6 +375,14 @@ body.file-menu-open .mobile-backdrop {
   width: var(--ui-icon-size);
   height: var(--ui-icon-size);
   color: var(--muted);
+}
+
+.object-search-section .layer-search-result-flag {
+  width: var(--ui-icon-size);
+  height: calc(var(--ui-icon-size) * 0.7);
+  flex: 0 0 var(--ui-icon-size);
+  display: block;
+  object-fit: contain;
 }
 
 .object-search-section .layer-search-result:is(:hover, :focus-visible) {

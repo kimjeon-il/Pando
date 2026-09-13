@@ -149,7 +149,9 @@
 
   /* Existing surface/component aliases are resolved from this token layer. */
   --ui-border-width: 1px;
-  --ui-layer-create-width: 17.5rem;
+  --ui-menu-width: 17.5rem;
+  --ui-menu-trigger-gap: 6px;
+  --ui-menu-screen-edge: 8px;
   --ui-layer-create-z: 140;
   --ui-library-preview-height: 11.875rem;
   --ui-scrollbar-z: 2100;

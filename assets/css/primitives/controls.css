@@ -201,6 +201,13 @@ html { font-size: 100%; }
 
 :where(.ui-button):active:not(:disabled) { background: var(--ui-button-subtle-pressed); }
 
+.ui-button.ui-search-clear:is(:hover, :active) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ui-control-text);
+  box-shadow: none;
+}
+
 .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn):is(
   [aria-pressed="true"],
   [aria-expanded="true"],

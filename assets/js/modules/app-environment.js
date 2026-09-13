@@ -108,6 +108,7 @@ export function createEnvironment() {
     const base = (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light'
       ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1, ocean: '#ffffff', oceanGpu: [1, 1, 1] }
       : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92, ocean: '#0d2837', oceanGpu: [0.051, 0.157, 0.216] };
+    base.terrainColorAlpha = terrainFillAlpha ?? 1;
     base.fillAlpha *= countryStyle.opacity;
     base.fillAlphaByte = Math.round(base.fillAlpha * 255);
     base.borderAlpha = countryStyle.boundaryVisible ? base.borderAlpha * countryStyle.opacity : 0;
@@ -363,7 +364,7 @@ export function createEnvironment() {
       'app', 'map', 'mapBottomStatus', 'statusView', 'projectionStatus', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
       'objectSearchSurface', 'objectSearchSection', 'mapDisplaySurface', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
       'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'subunitLabelsVisible', 'subunitFlagsVisible', 'regionLabelsVisible', 'regionFlagsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
-      'createMenuBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'countryNameInput', 'countryColorInput', 'notesInput',
+      'createMenuBtn', 'mobileCreateBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'countryNameInput', 'countryColorInput', 'notesInput',
       'debugMapPanel', 'countryAreaValue',
       'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
       'genericFeatureConversionSection', 'genericFeatureConvertType', 'genericFeatureConvertCountryField', 'genericFeatureConvertCountryInput', 'genericFeatureConvertDistributionField', 'genericFeatureConvertDistributionInput', 'convertGenericFeatureBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',

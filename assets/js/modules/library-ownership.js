@@ -32,6 +32,16 @@ export function subunitParentChoices(countryId, countries, units, { exclude = []
   return result;
 }
 
+export function shouldShowTerritorialParentChoice({ sovereignId = '', parentId = '', options = [] } = {}) {
+  const sovereign = text(sovereignId);
+  const parent = text(parentId);
+  if (!sovereign || !parent || parent !== sovereign) return true;
+  const candidates = [...new Set((options || [])
+    .map(option => text(option?.value ?? option?.id))
+    .filter(Boolean))];
+  return candidates.length !== 1 || candidates[0] !== sovereign;
+}
+
 export function missingLibraryOwnership(descriptors, resolve, countries, units) {
   const included = new Map(descriptors.map(item => [item.libraryId, item]));
   const existing = new Map([...countries, ...units].map(item => [text(item.id), item]));

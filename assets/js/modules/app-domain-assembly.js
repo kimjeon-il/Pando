@@ -235,6 +235,7 @@ export function createDomainAssembly() {
       readDomainColor: dependencies.readDomainColor,
       syncColorPicker: dependencies.syncColorPicker,
       replaceSelectOptions: dependencies.replaceSelectOptions,
+      shouldShowTerritorialParentChoice: dependencies.shouldShowTerritorialParentChoice,
       formatArea: dependencies.formatArea,
       geometryAreaKm2: dependencies.sphericalGeometryAreaKm2,
       layerNameCompare: (left, right) => dependencies.layerNameCollator.compare(left, right),
@@ -341,7 +342,6 @@ export function createDomainAssembly() {
           if ((0, dependencies.$)('selectionStatus')) (0, dependencies.$)('selectionStatus').textContent = '';
           objectPropertyController.show(null);
           (0, dependencies.syncCountryActionButtons)();
-          (0, dependencies.syncMobileNavigation)();
           if (dependencies.layoutMode === 'wide') {
             dependencies.surfaceState.editorManuallyCollapsed = false;
             if (dependencies.surfaceState.editorOpen) (0, dependencies.closeSurface)('editor');
@@ -401,7 +401,6 @@ export function createDomainAssembly() {
           dependencies.state.tool = tool;
           (0, dependencies.setCurrentTool)((0, dependencies.toolLabel)(tool));
           (0, dependencies.setModeBanner)();
-          (0, dependencies.syncMobileNavigation)();
           (0, dependencies.updateModeButtons)();
           return options;
         },

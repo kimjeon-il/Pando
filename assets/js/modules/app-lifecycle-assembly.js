@@ -78,7 +78,7 @@ export function createLifecycleAssembly() {
             removeDistributionEntry: dependencies.removeDistributionEntry,
             addTerritorialDistributionEntry: dependencies.addTerritorialDistributionEntry,
             requestDraftDiscard: dependencies.requestDraftDiscard,
-            returnToMapAfterMobileAction: dependencies.returnToMapAfterMobileAction,
+            completeToolStart: dependencies.completeToolStart,
             startGeometryDistributionDraft: dependencies.startGeometryDistributionDraft,
             requestTerritorialUnitDivisionRemoval: dependencies.requestTerritorialUnitDivisionRemoval,
             enterTerritorialUnitSplitMode: dependencies.enterTerritorialUnitSplitMode,

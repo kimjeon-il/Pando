@@ -1,9 +1,9 @@
-const SURFACES = Object.freeze(['search', 'display', 'editor']);
+const SURFACES = Object.freeze(['create', 'search', 'display', 'editor']);
 const SURFACE_SET = new Set(SURFACES);
-const SURFACE_TO_MOBILE = Object.freeze({ search: 'search', display: 'display', editor: 'edit' });
-const MOBILE_TO_SURFACE = Object.freeze({ search: 'search', display: 'display', edit: 'editor' });
-const SURFACE_TO_PANEL = Object.freeze({ search: 'objectSearchSurface', display: 'mapDisplaySurface', editor: 'rightPanel' });
-const SURFACE_TO_TRIGGER = Object.freeze({ search: ['objectSearchBtn', 'mobileSearchBtn'], display: ['mapDisplayBtn', 'mobileDisplayBtn'], editor: ['mobileEditBtn'] });
+const SURFACE_TO_MOBILE = Object.freeze({ create: 'create', search: 'search', display: 'display', editor: 'edit' });
+const MOBILE_TO_SURFACE = Object.freeze({ create: 'create', search: 'search', display: 'display', edit: 'editor' });
+const SURFACE_TO_PANEL = Object.freeze({ create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', editor: 'rightPanel' });
+const SURFACE_TO_TRIGGER = Object.freeze({ create: ['createMenuBtn', 'mobileCreateBtn'], search: ['objectSearchBtn', 'mobileSearchBtn'], display: ['mapDisplayBtn', 'mobileDisplayBtn'], editor: ['mobileEditBtn'] });
 const SURFACE_OPEN_ORIGINS = Object.freeze({ USER: 'user', AUTOMATIC: 'automatic', RESTORED: 'restored' });
 
 export { SURFACE_OPEN_ORIGINS };
@@ -13,6 +13,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
   const automaticOpenBlocked = Object.fromEntries(SURFACES.map(surface => [surface, false]));
   const state = {
     activeSurface: null,
+    createOpen: false,
     searchOpen: false,
     displayOpen: false,
     editorOpen: false,
@@ -65,6 +66,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
   function canOpen(surface, { automatic = false, explicit = false } = {}) {
     if (!SURFACE_SET.has(surface)) return false;
     if (!automatic || explicit || surface !== 'editor') return true;
+    if (isOpen('create')) return false;
     if (getLayout() === 'mobile') return false;
     return !automaticOpenBlocked.editor;
   }
@@ -80,11 +82,16 @@ export function createSurfaceController({ getElement, getLayout, document }) {
       : userIntent ? SURFACE_OPEN_ORIGINS.USER : SURFACE_OPEN_ORIGINS.AUTOMATIC;
     if (surface === 'editor' && userIntent) resetAutomaticBlock('editor');
 
-    if (layout !== 'wide') clearOtherSurfaces(surface);
+    if (layout === 'mobile' || (layout === 'compact' && surface !== 'create')) clearOtherSurfaces(surface);
     else if (surface !== 'editor') {
-      const otherFloatingSurface = surface === 'search' ? 'display' : 'search';
-      setOpen(otherFloatingSurface, false);
-      openOrigins[otherFloatingSurface] = null;
+      for (const candidate of SURFACES) {
+        if (candidate === surface || candidate === 'editor') continue;
+        setOpen(candidate, false);
+        openOrigins[candidate] = null;
+      }
+    } else {
+      setOpen('create', false);
+      openOrigins.create = null;
     }
 
     setOpen(surface, true);
@@ -137,9 +144,14 @@ export function createSurfaceController({ getElement, getLayout, document }) {
         panel.setAttribute('aria-hidden', String(hidden));
         panel.inert = hidden;
       } else if (panel) {
-        panel.inert = false;
-        panel.removeAttribute('aria-hidden');
-        panel.removeAttribute('role');
+        panel.inert = surface === 'create' && !openState;
+        if (surface === 'create') {
+          panel.setAttribute('role', 'menu');
+          panel.setAttribute('aria-hidden', String(!openState));
+        } else {
+          panel.removeAttribute('aria-hidden');
+          panel.removeAttribute('role');
+        }
         panel.removeAttribute('aria-modal');
       }
     }
@@ -149,7 +161,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     getElement('mobileFileBtn')?.classList.toggle('sheet-open', fileOpen);
     getElement('mobileFileBtn')?.setAttribute('aria-expanded', String(fileOpen));
     getElement('mobileBackdrop')?.setAttribute('aria-hidden', String(!fileOpen));
-    return { searchOpen: state.searchOpen, displayOpen: state.displayOpen, editorOpen: state.editorOpen, activeMobileSheet };
+    return { createOpen: state.createOpen, searchOpen: state.searchOpen, displayOpen: state.displayOpen, editorOpen: state.editorOpen, activeMobileSheet };
   }
 
   function syncLayout(previousLayout) {
@@ -187,6 +199,12 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     }
 
     if (layout === 'compact') {
+      if (isOpen('create')) {
+        setOpen('search', false);
+        setOpen('display', false);
+        state.activeSurface = 'create';
+        return;
+      }
       const preferred = state.activeSurface && isOpen(state.activeSurface) ? state.activeSurface
         : SURFACES.find(surface => isOpen(surface)) || null;
       clearOtherSurfaces(preferred);

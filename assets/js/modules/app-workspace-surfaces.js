@@ -1,3 +1,5 @@
+import { clearMenuPosition, createMenuPositionScheduler, positionRootMenu } from './menu-presentation.js';
+
 /** WorkspaceSurfaces: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -13,7 +15,7 @@ export function createWorkspaceSurfaces() {
   let isMobile;
   let lastOverlayTrigger;
   let fileMenuTrigger;
-  let createMenuTrigger;
+  let pendingLayoutChange = false;
   let surfaceController;
   let surfaceState;
   let editorWorkspacePresentation;
@@ -34,6 +36,7 @@ export function createWorkspaceSurfaces() {
   let ignoreNextMobileSheetPopstate;
   let mobileViewportHeight;
   let mobileSheetSettlement;
+  let menuPositionScheduler;
   function connect(ports) {
     if (dependencies) throw new Error('workspace-surfaces already connected');
     dependencies = ports;
@@ -140,8 +143,13 @@ export function createWorkspaceSurfaces() {
   }
 
   function applyLayoutMode({ initial = false } = {}) {
+    const nextLayout = detectLayoutMode();
+    if (nextLayout !== layoutMode && (activeSheetDrag || mobileSheetSettlement.size)) {
+      pendingLayoutChange = true;
+      return false;
+    }
     const previous = layoutMode;
-    layoutMode = detectLayoutMode();
+    layoutMode = nextLayout;
     const app = (0, dependencies.$)('app');
     if (app) app.dataset.layout = layoutMode;
     document.body.dataset.layout = layoutMode;
@@ -156,10 +164,9 @@ export function createWorkspaceSurfaces() {
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
     syncEditorPanelControls();
-    syncMobileNavigation();
     requestAnimationFrame(dependencies.syncMapHudBounds);
-    if (previous !== layoutMode) closeCreateMenu();
-    else if (isCreateMenuOpen()) positionLayerCreateMenu();
+    syncCreateSurface();
+    menuPositionScheduler.schedule();
     if (!initial && previous !== layoutMode) (0, dependencies.queueMapResize)('layout-mode-change');
     return previous !== layoutMode;
   }
@@ -170,10 +177,9 @@ export function createWorkspaceSurfaces() {
     editorWorkspacePresentation.sync();
     syncEditorPanelControls();
     refreshMapSheetMetrics();
-    syncMobileNavigation();
     requestAnimationFrame(dependencies.syncMapHudBounds);
-    if (view.searchOpen || view.displayOpen || view.editorOpen) closeCreateMenu();
-    else if (isCreateMenuOpen()) positionLayerCreateMenu();
+    syncCreateSurface();
+    menuPositionScheduler.schedule();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     else (0, dependencies.$)('app')?.style.removeProperty('--file-menu-notification-top');
     if (layoutMode !== 'wide') (0, dependencies.queueMapResize)('panel-layout');
@@ -200,82 +206,84 @@ export function createWorkspaceSurfaces() {
     if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
   }
 
-  function isCreateMenuOpen() {
-    return !!(0, dependencies.$)('createMenu') && !(0, dependencies.$)('createMenu').classList.contains('hidden');
-  }
-
-  function closeCreateMenu({ restoreFocus = false } = {}) {
-    if (!isCreateMenuOpen()) return;
-    (0, dependencies.$)('createMenu').classList.add('hidden');
-    (0, dependencies.$)('createMenuBtn')?.setAttribute('aria-expanded', 'false');
-    const trigger = createMenuTrigger;
-    createMenuTrigger = null;
-    if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
-  }
-
   function activeCreateMenuItems() {
     const panel = (0, dependencies.$)('createMenu');
-    return panel ? [...panel.querySelectorAll('.create-menu-item:not([disabled])')] : [];
+    return panel ? [...panel.querySelectorAll('.ui-menu-item:not([disabled])')]
+      .filter(item => !item.closest('.hidden, [hidden]') && item.getClientRects().length > 0) : [];
   }
 
-  function toggleCreateMenu(trigger) {
-    if (isCreateMenuOpen()) { closeCreateMenu({ restoreFocus: true }); return; }
-    closeFileMenu();
-    createMenuTrigger = trigger || (0, dependencies.$)('createMenuBtn');
-    (0, dependencies.$)('createMenu').classList.remove('hidden');
-    (0, dependencies.$)('createMenuBtn')?.setAttribute('aria-expanded', 'true');
-    positionLayerCreateMenu();
-    activeCreateMenuItems()[0]?.focus({ preventScroll: true });
+  function focusSurfaceTrigger(surface) {
+    const ids = isMobile()
+      ? { create: 'mobileCreateBtn', search: 'mobileSearchBtn', display: 'mobileDisplayBtn', editor: 'mobileEditBtn' }
+      : { create: 'createMenuBtn', search: 'objectSearchBtn', display: 'mapDisplayBtn' };
+    const trigger = (0, dependencies.$)(ids[surface])
+      || (lastOverlayTrigger?.getClientRects().length ? lastOverlayTrigger : (0, dependencies.$)('map'));
+    trigger?.focus({ preventScroll: true });
   }
 
-  function positionLayerCreateMenu() {
-    const menu = (0, dependencies.$)('createMenu');
-    const trigger = (0, dependencies.$)('createMenuBtn');
-    if (!menu || !trigger) return;
-    const rect = trigger.getBoundingClientRect();
-    const viewport = window.visualViewport;
-    const left = viewport?.offsetLeft || 0;
-    const top = viewport?.offsetTop || 0;
-    const width = viewport?.width || window.innerWidth;
-    const height = viewport?.height || window.innerHeight;
-    menu.style.setProperty('--layer-create-left', `${Math.max(left + 8, Math.min(rect.left, left + width - menu.getBoundingClientRect().width - 8))}px`);
-    const below = top + height - rect.bottom - 16;
-    const above = rect.top - top - 16;
-    const available = Math.max(0, Math.max(below, above));
-    menu.style.setProperty('--layer-create-height', `${available}px`);
-    const menuHeight = Math.min(menu.scrollHeight, available);
-    const y = above >= menuHeight || above >= below ? rect.top - 8 - menuHeight : rect.bottom + 8;
-    menu.style.setProperty('--layer-create-top', `${Math.max(top + 8, y)}px`);
+  function syncCreateSurface() {
+    const panel = (0, dependencies.$)('createMenu');
+    if (!panel) return;
+    const mobile = isMobile();
+    panel.classList.toggle('ui-menu-surface', !mobile);
+    panel.classList.toggle('ui-command-menu', !mobile);
+    for (const button of panel.querySelectorAll('.ui-menu-item')) {
+      button.tabIndex = mobile ? 0 : -1;
+      if (mobile) button.removeAttribute('role');
+      else button.setAttribute('role', 'menuitem');
+    }
+    (0, dependencies.$)('createMenuBtn')?.setAttribute('aria-haspopup', 'menu');
+    (0, dependencies.$)('mobileCreateBtn')?.setAttribute('aria-haspopup', 'dialog');
+    if (mobile) {
+      clearMenuPosition(panel);
+    } else if (surfaceController.isOpen('create')) {
+      menuPositionScheduler.schedule();
+    }
+  }
+
+  function positionWorkspaceMenus() {
+    const fileMenu = document.querySelector('.top-actions');
+    const createMenu = (0, dependencies.$)('createMenu');
+    if (isMobile()) {
+      clearMenuPosition(fileMenu);
+      clearMenuPosition(createMenu);
+      return;
+    }
+    if (fileMenu?.classList.contains('mobile-open')) {
+      positionRootMenu({ menu: fileMenu, trigger: (0, dependencies.$)('mobileFileBtn') });
+    }
+    if (surfaceController.isOpen('create')) {
+      positionRootMenu({ menu: createMenu, trigger: (0, dependencies.$)('createMenuBtn') });
+    }
   }
 
   function closeActiveMobileSheet({ restoreFocus = false, syncHistory = true } = {}) {
     if (!isMobile() || !surfaceController.activeMobileSheet) return;
     const kind = surfaceController.activeMobileSheet;
-    const surface = { search: 'search', display: 'display', edit: 'editor' }[kind];
+    const surface = { create: 'create', search: 'search', display: 'display', edit: 'editor' }[kind];
     const panel = mobileSheetPanel(kind);
     surfaceController.close(surface);
     resetMobileSheetSession(panel);
     syncOverlayState();
     if (syncHistory) releaseMobileSheetHistory();
-    if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
+    if (restoreFocus) focusSurfaceTrigger(surface);
     if (restoreFocus) lastOverlayTrigger = null;
   }
 
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
     if (isMobile()) {
-      const exceptKind = except === 'search' ? 'search' : except === 'display' ? 'display' : except === 'editor' ? 'edit' : null;
+      const exceptKind = { create: 'create', search: 'search', display: 'display', editor: 'edit' }[except] || null;
       if (surfaceController.activeMobileSheet && surfaceController.activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
       return;
     }
-    for (const surface of ['search', 'display', 'editor']) if (surface !== except) surfaceController.close(surface);
-    closeCreateMenu();
+    for (const surface of ['create', 'search', 'display', 'editor']) if (surface !== except) surfaceController.close(surface);
     syncOverlayState();
     if (restoreFocus && lastOverlayTrigger?.isConnected) lastOverlayTrigger.focus({ preventScroll: true });
     if (restoreFocus) lastOverlayTrigger = null;
   }
 
   function toggleFileMenu() {
-    closeCreateMenu();
+    closeSurface('create');
     const menu = document.querySelector('.top-actions');
     if (!menu) return;
     const willOpen = !menu.classList.contains('mobile-open');
@@ -323,13 +331,20 @@ export function createWorkspaceSurfaces() {
     if (settlement.timer) clearTimeout(settlement.timer);
     mobileSheetSettlement.delete(panel);
     const { dismiss, restoreFocus } = settlement;
+    const resumeLayout = () => {
+      if (!pendingLayoutChange) return;
+      pendingLayoutChange = false;
+      applyLayoutMode();
+    };
     panel.classList.remove('is-sheet-dragging', 'is-sheet-settling');
     panel.style.removeProperty('--sheet-drag-height');
     panel.style.removeProperty('--sheet-drag-offset');
     if (dismiss) {
       closeActiveMobileSheet({ restoreFocus });
+      resumeLayout();
       return true;
     }
+    resumeLayout();
     refreshMapSheetMetrics();
     requestAnimationFrame(dependencies.syncMapHudBounds);
     (0, dependencies.queueMapResize)('panel-layout');
@@ -504,45 +519,59 @@ export function createWorkspaceSurfaces() {
     if (!panel) return;
     if (layoutMode !== 'wide' || !surfaceState.editorManuallyCollapsed) openSurface('editor', { automatic: true });
     if (panel.classList.contains('mobile-open')) (0, dependencies.$)('editorScrollBody')?.scrollTo?.({ top: 0, behavior: 'instant' });
-    syncMobileNavigation();
   }
 
   function openSurface(surface, { trigger = null, automatic = false } = {}) {
-    if (!['search', 'display', 'editor'].includes(surface)) return;
-    closeCreateMenu();
+    if (!['create', 'search', 'display', 'editor'].includes(surface)) return false;
+    if (dependencies.state.projectReplacing) return false;
     closeFileMenu();
     const activeTrigger = trigger instanceof HTMLElement ? trigger : document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    if (isMobile()) lastOverlayTrigger = activeTrigger;
-    surfaceController.open(surface, { automatic });
+    if (!surfaceController.open(surface, { automatic })) return false;
+    if (activeTrigger) lastOverlayTrigger = activeTrigger;
     if (isMobile()) {
-      const kind = { search: 'search', display: 'display', editor: 'edit' }[surface];
+      const kind = { create: 'create', search: 'search', display: 'display', editor: 'edit' }[surface];
       const panel = mobileSheetPanel(kind);
       resetMobileSheetSession(panel);
       trackMobileSheetHistory(kind);
     }
     syncOverlayState();
+    if (surface === 'create' && !isMobile()) {
+      requestAnimationFrame(() => {
+        if (surfaceController.isOpen('create') && !isMobile()) activeCreateMenuItems()[0]?.focus({ preventScroll: true });
+      });
+    }
+    return true;
   }
 
   function closeSurface(surface, { manual = false, restoreFocus = false, syncHistory = true } = {}) {
     if (surface === 'editor' && editorWorkspacePresentation.isDocked()) return;
-    const mobileKind = isMobile() ? { search: 'search', display: 'display', editor: 'edit' }[surface] : null;
+    const mobileKind = isMobile() ? { create: 'create', search: 'search', display: 'display', editor: 'edit' }[surface] : null;
     const mobilePanel = mobileKind ? mobileSheetPanel(mobileKind) : null;
     if (!surfaceController.close(surface, { manual, selected: !!dependencies.state?.selected })) return;
     if (mobilePanel) resetMobileSheetSession(mobilePanel);
     if (surface === 'editor') (0, dependencies.closeAllColorPickers)();
     syncOverlayState();
     if (mobilePanel && syncHistory) releaseMobileSheetHistory();
-    const trigger = lastOverlayTrigger;
-    if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
+    if (restoreFocus) focusSurfaceTrigger(surface);
     if (restoreFocus) lastOverlayTrigger = null;
   }
 
-  function returnToMapAfterMobileAction(started, { fromCreate = false } = {}) {
+  function completeToolStart(started, { destination = 'map' } = {}) {
     if (!started) return false;
-    if (fromCreate && isCreateMenuOpen()) closeCreateMenu();
-    if (isMobile()) {
-      closeActiveMobileSheet();
+    if (destination === 'editor') {
+      openSurface('editor');
+      requestAnimationFrame(() => {
+        if (!surfaceController.isOpen('editor')) return;
+        const panel = (0, dependencies.$)('rightPanel');
+        const input = [...panel.querySelectorAll('input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled)')]
+          .find(element => element.getClientRects().length > 0 && !element.closest('[hidden], .hidden'));
+        input?.focus({ preventScroll: true });
+      });
+    } else if (isMobile()) {
+      closeMobileSheets();
       requestAnimationFrame(() => (0, dependencies.$)('map')?.focus({ preventScroll: true }));
+    } else {
+      closeSurface('create');
     }
     return true;
   }
@@ -553,19 +582,6 @@ export function createWorkspaceSurfaces() {
     } else {
       openSurface(surface, { trigger });
     }
-  }
-
-  function syncMobileNavigation() {
-    const adding = dependencies.state?.tool === 'new-country' || dependencies.state?.tool === 'draw-territorial-unit'
-      || !!(0, dependencies.hydroToolConfig)(dependencies.state?.tool) || dependencies.state?.labelPlacementMode || dependencies.state?.tool === 'label';
-    (0, dependencies.$)('createMenuBtn')?.classList.toggle('active', !!adding);
-    (0, dependencies.$)('addCountryBtn')?.classList.toggle('active', dependencies.state?.tool === 'new-country');
-    (0, dependencies.$)('addSubunitBtn')?.classList.toggle('active', dependencies.state?.territorySelectionSession?.kind === 'subunit');
-    (0, dependencies.$)('addRegionBtn')?.classList.toggle('active', dependencies.state?.territorySelectionSession?.kind === 'region');
-    (0, dependencies.$)('addLabelBtn')?.classList.toggle('active', !!dependencies.state?.labelPlacementMode || dependencies.state?.tool === 'label');
-    (0, dependencies.$)('addRiverBtn')?.classList.toggle('active', dependencies.state?.tool === 'river');
-    (0, dependencies.$)('addLakeBtn')?.classList.toggle('active', dependencies.state?.tool === 'lake');
-    (0, dependencies.$)('mobileEditBtn')?.classList.toggle('needs-attention', !!dependencies.state?.selected && !surfaceState.editorOpen);
   }
 
   function initializeIsPolygonDraftTool() {
@@ -592,7 +608,6 @@ export function createWorkspaceSurfaces() {
 
     (fileMenuTrigger = null);
 
-    (createMenuTrigger = null);
 
     (surfaceController = (0, dependencies.createSurfaceController)({ getElement: dependencies.$, getLayout: () => layoutMode, document }));
 
@@ -604,7 +619,9 @@ export function createWorkspaceSurfaces() {
       dockSlot: (0, dependencies.$)('editorTaskSlot'), floatingSlot: (0, dependencies.$)('mapTopContextSlot'),
       content: (0, dependencies.$)('modeTaskWindowContent'), minimize: (0, dependencies.$)('modeTaskMinimizeBtn'),
       isEditorOpen: () => surfaceController.isOpen('editor'),
-      openEditor: () => openSurface('editor'),
+      openEditor: () => {
+        if (!surfaceController.isOpen('create')) openSurface('editor');
+      },
       onLayoutChange: () => (0, dependencies.queueMapResize)('editor-task-layout'),
     }));
 
@@ -620,11 +637,11 @@ export function createWorkspaceSurfaces() {
 
     (SHEET_SNAP_LABELS = Object.freeze(['접힌 상태', '중간 높이', '확장']));
 
-    (SHEET_SNAP_DEFAULTS = Object.freeze({ search: 1, display: 1, edit: 1 }));
+    (SHEET_SNAP_DEFAULTS = Object.freeze({ create: 1, search: 1, display: 1, edit: 1 }));
 
     (MOBILE_SHEET_DEFAULT_SNAP = 1);
 
-    (MOBILE_SHEET_IDS = Object.freeze({ search: 'objectSearchSurface', display: 'mapDisplaySurface', edit: 'rightPanel' }));
+    (MOBILE_SHEET_IDS = Object.freeze({ create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', edit: 'rightPanel' }));
 
     (sheetSnapIndex = new Map(Object.values(MOBILE_SHEET_IDS).map(id => [id, MOBILE_SHEET_DEFAULT_SNAP])));
 
@@ -641,6 +658,11 @@ export function createWorkspaceSurfaces() {
     (mobileViewportHeight = () => window.visualViewport?.height || window.innerHeight);
 
     (mobileSheetSettlement = new WeakMap());
+
+    (menuPositionScheduler = createMenuPositionScheduler(positionWorkspaceMenus));
+    window.addEventListener('resize', () => menuPositionScheduler.schedule());
+    window.visualViewport?.addEventListener?.('resize', () => menuPositionScheduler.schedule());
+    window.visualViewport?.addEventListener?.('scroll', () => menuPositionScheduler.schedule());
   }
 
   return Object.freeze({
@@ -653,7 +675,6 @@ export function createWorkspaceSurfaces() {
     get bindMobileSheetSurface() { return bindMobileSheetSurface; },
     get clampViewZooms() { return clampViewZooms; },
     get closeActiveMobileSheet() { return closeActiveMobileSheet; },
-    get closeCreateMenu() { return closeCreateMenu; },
     get closeFileMenu() { return closeFileMenu; },
     get closeMobileSheets() { return closeMobileSheets; },
     get closeSurface() { return closeSurface; },
@@ -664,7 +685,6 @@ export function createWorkspaceSurfaces() {
     set fileMenuTrigger(value) { fileMenuTrigger = value; },
     get ignoreNextMobileSheetPopstate() { return ignoreNextMobileSheetPopstate; },
     set ignoreNextMobileSheetPopstate(value) { ignoreNextMobileSheetPopstate = value; },
-    get isCreateMenuOpen() { return isCreateMenuOpen; },
     get isGenericFeatureDraftTool() { return isGenericFeatureDraftTool; },
     get isMobile() { return isMobile; },
     get isPolygonDraftTool() { return isPolygonDraftTool; },
@@ -674,13 +694,12 @@ export function createWorkspaceSurfaces() {
     get openSelectionEditor() { return openSelectionEditor; },
     get openSurface() { return openSurface; },
     get refreshMapSheetMetrics() { return refreshMapSheetMetrics; },
-    get returnToMapAfterMobileAction() { return returnToMapAfterMobileAction; },
+    get completeToolStart() { return completeToolStart; },
+    get focusSurfaceTrigger() { return focusSurfaceTrigger; },
     get setMobileSheetHeight() { return setMobileSheetHeight; },
     get surfaceController() { return surfaceController; },
     get surfaceState() { return surfaceState; },
-    get syncMobileNavigation() { return syncMobileNavigation; },
     get syncOverlayState() { return syncOverlayState; },
-    get toggleCreateMenu() { return toggleCreateMenu; },
     get toggleFileMenu() { return toggleFileMenu; },
     get toggleSurface() { return toggleSurface; },
     get trackMobileSheetHistory() { return trackMobileSheetHistory; },

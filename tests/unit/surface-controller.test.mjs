@@ -27,7 +27,7 @@ function fixture(initialLayout) {
   const elements = Object.fromEntries([
     'objectSearchSurface', 'mapDisplaySurface', 'rightPanel', 'createMenu', 'objectSearchBtn',
     'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'createMenuBtn', 'mobileEditBtn',
-    'mobileFileBtn', 'mobileBackdrop',
+    'mobileFileBtn', 'mobileBackdrop', 'mobileCreateBtn',
   ].map(id => [id, element(id)]));
   const workspace = element('workspace');
   const body = element('body');
@@ -59,30 +59,84 @@ test('compact search, display, and editor surfaces are mutually exclusive and sy
   }
 });
 
-test('retired layer and create surfaces cannot change the command surface state', () => {
-  for (const layout of ['wide', 'compact', 'mobile']) {
+test('retired layer surface cannot change command surfaces', () => {
+  const { controller } = fixture('wide');
+  controller.open('search');
+  const before = controller.render();
+  assert.equal(controller.open('layers'), false);
+  assert.deepEqual(controller.render(), before);
+});
+
+test('desktop create keeps the editor while replacing competing menus', () => {
+  for (const layout of ['wide', 'compact']) {
     const { controller, elements } = fixture(layout);
-    controller.open('search');
-    const before = controller.render();
-    assert.equal(controller.open('layers'), false);
-    assert.equal(controller.open('create'), false);
-    assert.deepEqual(controller.render(), before);
-    assert.equal(elements.createMenu.getAttribute('role'), undefined);
-    assert.equal(elements.createMenuBtn.getAttribute('aria-expanded'), undefined);
+    controller.open('editor');
+    controller.open('create');
+    assert.equal(controller.render().editorOpen, true);
+    assert.equal(elements.createMenu.getAttribute('role'), 'menu');
+    assert.equal(elements.createMenuBtn.getAttribute('aria-expanded'), 'true');
+    assert.equal(controller.open('editor', { automatic: true }), false);
+    assert.equal(controller.isOpen('create'), true);
+    controller.close('create');
+    controller.render();
+    assert.equal(elements.createMenu.inert, true);
+    assert.equal(controller.isOpen('editor'), true);
+    controller.open('display');
+    controller.open('create');
+    assert.equal(controller.isOpen('display'), false);
   }
+});
+
+test('mobile create participates in sheet exclusivity, roles and trigger ARIA', () => {
+  const { controller, elements } = fixture('mobile');
+  for (const surface of ['create', 'search', 'editor', 'display', 'create']) {
+    controller.open(surface);
+    controller.render();
+    assert.equal(['create', 'search', 'editor', 'display'].filter(key => controller.isOpen(key)).length, 1);
+  }
+  assert.equal(controller.activeMobileSheet, 'create');
+  assert.equal(elements.createMenu.getAttribute('role'), 'dialog');
+  assert.equal(elements.createMenu.inert, false);
+  assert.equal(elements.mobileCreateBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.mobileEditBtn.getAttribute('aria-expanded'), 'false');
+  controller.close('create');
+  controller.render();
+  assert.equal(controller.activeMobileSheet, null);
+  assert.equal(elements.createMenu.inert, true);
+  assert.equal(elements.mobileCreateBtn.getAttribute('aria-expanded'), 'false');
+});
+
+test('create reuses its panel through mobile and compact transitions', () => {
+  const { controller, elements, setLayout } = fixture('compact');
+  const original = elements.createMenu;
+  controller.open('create');
+  controller.render();
+  setLayout('mobile');
+  controller.syncLayout('compact');
+  controller.render();
+  assert.equal(controller.activeMobileSheet, 'create');
+  assert.equal(elements.createMenu, original);
+  assert.equal(elements.createMenu.getAttribute('role'), 'dialog');
+  setLayout('compact');
+  controller.syncLayout('mobile');
+  controller.render();
+  assert.equal(controller.isOpen('create'), true);
+  assert.equal(controller.activeMobileSheet, null);
+  assert.equal(elements.createMenu, original);
+  assert.equal(elements.createMenu.getAttribute('role'), 'menu');
 });
 
 test('wide editor can coexist with one transient command surface', () => {
   const { controller, elements } = fixture('wide');
 
   controller.open('editor');
-  assert.deepEqual(controller.render(), { searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: null });
+  assert.deepEqual(controller.render(), { createOpen: false, searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: null });
   assert.equal(elements.mobileEditBtn.getAttribute('aria-expanded'), 'true');
 
   controller.open('display');
-  assert.deepEqual(controller.render(), { searchOpen: false, displayOpen: true, editorOpen: true, activeMobileSheet: null });
+  assert.deepEqual(controller.render(), { createOpen: false, searchOpen: false, displayOpen: true, editorOpen: true, activeMobileSheet: null });
   controller.open('search');
-  assert.deepEqual(controller.render(), { searchOpen: true, displayOpen: false, editorOpen: true, activeMobileSheet: null });
+  assert.deepEqual(controller.render(), { createOpen: false, searchOpen: true, displayOpen: false, editorOpen: true, activeMobileSheet: null });
   assert.equal(elements.mobileSearchBtn.getAttribute('aria-expanded'), 'true');
   assert.equal(elements.mobileDisplayBtn.getAttribute('aria-expanded'), 'false');
 });
@@ -102,11 +156,11 @@ test('automatic editor open is blocked on mobile but explicit editor intent open
   const { controller } = fixture('mobile');
   assert.equal(controller.open('editor', { automatic: true }), false);
   assert.deepEqual(controller.render(), {
-    searchOpen: false, displayOpen: false, editorOpen: false, activeMobileSheet: null,
+    createOpen: false, searchOpen: false, displayOpen: false, editorOpen: false, activeMobileSheet: null,
   });
   assert.equal(controller.open('editor'), true);
   assert.deepEqual(controller.render(), {
-    searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: 'edit',
+    createOpen: false, searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: 'edit',
   });
 });
 
@@ -138,13 +192,13 @@ test('layout changes preserve a user-opened transient command surface', () => {
   wideSearch.setLayout('compact');
   wideSearch.controller.syncLayout('wide');
   assert.deepEqual(wideSearch.controller.render(), {
-    searchOpen: true, displayOpen: false, editorOpen: false, activeMobileSheet: null,
+    createOpen: false, searchOpen: true, displayOpen: false, editorOpen: false, activeMobileSheet: null,
   });
 
   wideSearch.setLayout('mobile');
   wideSearch.controller.syncLayout('compact');
   assert.deepEqual(wideSearch.controller.render(), {
-    searchOpen: true, displayOpen: false, editorOpen: false, activeMobileSheet: 'search',
+    createOpen: false, searchOpen: true, displayOpen: false, editorOpen: false, activeMobileSheet: 'search',
   });
 });
 
@@ -155,7 +209,7 @@ test('an active editor surface follows the responsive transition to mobile', () 
   automaticEditor.setLayout('mobile');
   automaticEditor.controller.syncLayout('wide');
   assert.deepEqual(automaticEditor.controller.render(), {
-    searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: 'edit',
+    createOpen: false, searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: 'edit',
   });
 
   const userEditor = fixture('wide');
@@ -164,6 +218,6 @@ test('an active editor surface follows the responsive transition to mobile', () 
   userEditor.setLayout('mobile');
   userEditor.controller.syncLayout('wide');
   assert.deepEqual(userEditor.controller.render(), {
-    searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: 'edit',
+    createOpen: false, searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: 'edit',
   });
 });

@@ -383,6 +383,7 @@ export function connectObjectEditing({
     get restoreEditable() { return projectSnapshots.restoreEditable; },
     get runTerritorialUnitTransaction() { return objectPresentation.runTerritorialUnitTransaction; },
     get setActionStatus() { return readinessNotifications.setActionStatus; },
+    get shouldShowTerritorialParentChoice() { return runtime.shouldShowTerritorialParentChoice; },
     get snapGeometryToGrid() { return countryValidation.snapGeometryToGrid; },
     get snapshotEditable() { return projectSnapshots.snapshotEditable; },
     get state() { return projectSession.state; },

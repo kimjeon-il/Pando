@@ -98,6 +98,7 @@ export function connectMapResources({
   layerList.connect({
     get $() { return environment.$; },
     get activeLayerFolderKeys() { return hydroSettings.activeLayerFolderKeys; },
+    get ASSET_REVISION() { return environment.ASSET_REVISION; },
     get builtinRenderCountries() { return builtinSession.builtinRenderCountries; },
     get countryColor() { return objectPresentation.countryColor; },
     get countryName() { return objectPresentation.countryName; },

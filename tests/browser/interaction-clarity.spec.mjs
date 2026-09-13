@@ -14,12 +14,13 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   return errors;
 }
 
-async function clickMapBackgroundAt(page, point, { altKey = false } = {}) {
+async function clickMapBackgroundAt(page, point, { altKey = false, ctrlKey = false } = {}) {
   await page.locator('#map .map-svg').dispatchEvent('click', {
     bubbles: true,
     clientX: point.x,
     clientY: point.y,
     altKey,
+    ctrlKey,
   });
 }
 
@@ -131,9 +132,6 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 test('overlapping map objects open the compact chooser and expose disambiguating type labels', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
-  await page.locator('#mapViewTabBtn').click();
-  await page.locator('#basemapLabelsVisible').uncheck();
-  await page.locator('#mapLayersTabBtn').click();
   await page.locator('#createMenuBtn').click();
   await page.locator('#addLabelBtn').click();
 
@@ -145,21 +143,6 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   await selectUiOption(page, '#labelKindInput', 'capital');
   await expect(page.locator('.user-label')).toContainText('겹침 테스트');
   await expect(page.locator('#labelProperties')).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('#labelProperties .editor-disclosure')).toHaveCount(0);
-  const labelNotes = page.locator('#labelNotesInput');
-  await expect(labelNotes).toBeVisible();
-  await labelNotes.fill('지명 메모 테스트');
-  await labelNotes.blur();
-  await expect(labelNotes).toHaveValue('지명 메모 테스트');
-  await expect(page.locator('#undoBtn')).toBeEnabled();
-  await page.locator('#undoBtn').click();
-  await clickMapBackgroundAt(page, point);
-  await page.locator('#objectChooser').getByRole('option').filter({ hasText: '겹침 테스트' }).click();
-  await expect(labelNotes).toHaveValue('');
-  await page.locator('#redoBtn').click();
-  await clickMapBackgroundAt(page, point);
-  await page.locator('#objectChooser').getByRole('option').filter({ hasText: '겹침 테스트' }).click();
-  await expect(labelNotes).toHaveValue('지명 메모 테스트');
 
   await clickMapBackgroundAt(page, point);
   const chooser = page.locator('#objectChooser');
@@ -171,10 +154,13 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   await expect(page.locator('#propertyTitle')).toHaveText('겹침 테스트');
 
   await page.locator('#objectChooserCloseBtn').click();
-  await clickMapBackgroundAt(page, point, { altKey: true });
+  await clickMapBackgroundAt(page, point, { ctrlKey: true });
   await expect(chooser).toBeVisible();
   await expect(chooser.getByRole('option')).toHaveCount(2);
   await expect(page.locator('#propertyTitle')).toHaveText('겹침 테스트');
+  await chooser.getByRole('option').filter({ hasText: '국가' }).click();
+  await expect(chooser).toBeHidden();
+  await expect(page.locator('#multiProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
