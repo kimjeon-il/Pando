@@ -111,7 +111,7 @@ class V0180UiSystemTests(unittest.TestCase):
         self.assertIn('id="createLibraryTabBtn"', INDEX)
         self.assertEqual(
             re.findall(r'class="create-menu-group-title">([^<]+)', INDEX),
-            ["영토·구역", "인문 분포", "지형지물", "라이브러리"],
+            [],
         )
         self.assertNotIn('>영토</span>', INDEX)
         self.assertNotIn('>자료</span>', INDEX)

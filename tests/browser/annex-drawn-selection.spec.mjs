@@ -4,7 +4,7 @@ test('annex selection controls and heading fit a narrow editor surface', async (
   // Exercise the shipped HTML/CSS without loading the world mesh and camera.
   await page.route('**/annex-controls-fixture', route => route.fulfill({
     contentType: 'text/html',
-    body: '<!doctype html><html lang="ko"><head><link rel="stylesheet" href="/assets/css/app.css"><link rel="stylesheet" href="/assets/css/ui-v2.bundle.css"></head><body></body></html>',
+    body: '<!doctype html><html lang="ko"><head><link rel="stylesheet" href="/assets/css/app.css"><link rel="stylesheet" href="/assets/css/ui.bundle.css"></head><body></body></html>',
   }));
   await page.goto('/annex-controls-fixture');
   await page.evaluate(async () => {

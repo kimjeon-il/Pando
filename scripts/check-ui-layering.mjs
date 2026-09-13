@@ -4,7 +4,7 @@ import process from 'node:process';
 
 const root = process.cwd();
 const requiredLayeredFiles = Object.freeze([
-  'assets/css/tokens/ui-v2.css',
+  'assets/css/tokens/design-tokens.css',
   'assets/css/primitives/controls.css',
   'assets/css/components/surface.css',
   'assets/css/components/content.css',
@@ -20,12 +20,12 @@ const requiredLayeredFiles = Object.freeze([
 ]);
 const bootstrapPath = path.join(root, 'assets/js/bootstrap.js');
 const appStylesheetPath = path.join(root, 'assets/css/app.css');
-const bundlePath = path.join(root, 'assets/css/ui-v2.bundle.css');
+const bundlePath = path.join(root, 'assets/css/ui.bundle.css');
 const modalBundlePath = path.join(root, 'assets/css/ui-modal.bundle.css');
 const modalSourceFiles = Object.freeze(['assets/css/components/modals.css']);
 const indexPath = path.join(root, 'index.html');
 const uiRuntimePath = path.join(root, 'assets/js/modules/ui-runtime.js');
-const componentDocPath = path.join(root, 'docs/architecture/ui-components-v2.md');
+const componentDocPath = path.join(root, 'docs/architecture/ui-components.md');
 const retiredArtifacts = Object.freeze([
   'assets/css/phase1-ui-cleanup.css',
   'assets/js/modules/phase1-ui-cleanup.js',
@@ -69,11 +69,11 @@ for (const relativePath of modalSourceFiles) {
 }
 
 if (!fs.existsSync(componentDocPath)) {
-  failures.push('missing UI v2 component documentation: docs/architecture/ui-components-v2.md');
+  failures.push('missing UI component documentation: docs/architecture/ui-components.md');
 }
 
 if (!fs.existsSync(bundlePath)) {
-  failures.push('missing canonical UI bundle: assets/css/ui-v2.bundle.css');
+  failures.push('missing canonical UI bundle: assets/css/ui.bundle.css');
 } else {
   const bundle = fs.readFileSync(bundlePath, 'utf8');
   const sourceContents = requiredLayeredFiles.map(relativePath => ({
@@ -131,7 +131,7 @@ if (!fs.existsSync(bootstrapPath)) {
   failures.push('missing canonical bootstrap: assets/js/bootstrap.js');
 } else {
   const bootstrap = fs.readFileSync(bootstrapPath, 'utf8');
-  if (bootstrap.includes("const UI_BUNDLE = '../css/ui-v2.bundle.css'")) failures.push('bootstrap still installs ui-v2.bundle.css dynamically');
+  if (bootstrap.includes("const UI_BUNDLE = '../css/ui.bundle.css'")) failures.push('bootstrap still installs ui.bundle.css dynamically');
   if (!bootstrap.includes('../css/ui-modal.bundle.css')) failures.push('bootstrap does not expose lazy ui-modal.bundle.css loading');
   const individualLinks = requiredLayeredFiles
     .map(relativePath => relativePath.replace('assets/css/', '../css/'))
@@ -145,8 +145,8 @@ if (!fs.existsSync(bootstrapPath)) {
   }
 }
 
-if (!fs.existsSync(indexPath) || !fs.readFileSync(indexPath, 'utf8').includes('data-pandolab-ui-v2="ui-v2-bundle"')) {
-  failures.push('index.html does not statically own ui-v2.bundle.css');
+if (!fs.existsSync(indexPath) || !fs.readFileSync(indexPath, 'utf8').includes('data-pandolab-ui="ui-bundle"')) {
+  failures.push('index.html does not statically own ui.bundle.css');
 }
 
 if (!fs.existsSync(uiRuntimePath)) {

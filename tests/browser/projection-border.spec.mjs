@@ -6,7 +6,7 @@ test('projection buttons retain all four borders in either selection state', asy
   const section = html.match(/<section class="layer-style-editor map-projection-settings"[\s\S]*?<\/section>/)[0];
   await page.route('**/projection-fixture', route => route.fulfill({ contentType: 'text/html', body: `
     <link rel="stylesheet" href="/assets/css/app.css">
-    <link rel="stylesheet" href="/assets/css/ui-v2.bundle.css">${section}` }));
+    <link rel="stylesheet" href="/assets/css/ui.bundle.css">${section}` }));
   await page.goto('/projection-fixture');
   for (const width of [1366, 1024, 390]) {
     await page.setViewportSize({ width, height: 800 });

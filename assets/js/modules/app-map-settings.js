@@ -67,7 +67,7 @@ export function createMapSettings() {
     if (dependencies.DISTRIBUTION_GROUP_TYPES[key]) dependencies.distributionVisibilityRevision += 1;
     if (key === 'countries') dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') dependencies.gpuMapRenderer.invalidateHydroVisibility();
-    if (key === 'countryFlags') dependencies.renderingDomain?.invalidateLabels?.('country-flags-visibility');
+    if (['labels', 'basemapLabels', 'countryFlags'].includes(key)) dependencies.renderingDomain?.invalidateLabels?.('label-visibility');
     else dependencies.renderingDomain?.invalidateBaseScene?.('layer-visibility');
     dependencies.projectDomain.queuePresentationAutosave();
   }

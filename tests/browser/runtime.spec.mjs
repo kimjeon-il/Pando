@@ -1017,7 +1017,7 @@ test('map display controls stay separate from the compact layer list', async ({ 
   await expect(page.locator('[data-map-display-row="labels"], [data-map-display-row="countryLabels"]')).toHaveCount(0);
   await page.locator('#mapViewTabBtn').click();
   await expect(page.locator('#mapNameSettingsTitle')).toHaveText('지도 표시');
-  await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
+  await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('객체명');
   await expect(page.locator('#mapViewSection label:has(#labelsVisible)')).toContainText('지명 표시');
   await expect(page.locator('.terrain-settings')).toHaveCount(0);
   const terrainVisible = page.locator('#terrainVisible');

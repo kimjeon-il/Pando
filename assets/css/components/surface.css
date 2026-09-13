@@ -26,7 +26,7 @@
 .ui-overlay-scrollbar:focus-visible { outline: var(--ui-border-width) solid var(--accent); }
 
 .workspace-surface {
-  --surface-elevated: var(--ui-v2-color-panel);
+  --surface-elevated: var(--design-color-panel);
   --ui-surface-border-top: 0;
   --ui-surface-border-right: 0;
   --ui-surface-border-bottom: 0;
@@ -78,8 +78,8 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  font-size: var(--ui-v2-font-xl);
-  line-height: var(--ui-v2-line-title);
+  font-size: var(--design-font-xl);
+  line-height: var(--design-line-title);
 }
 
 .surface-header-title > strong {
@@ -93,14 +93,14 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: var(--ui-v2-button-gap);
+  gap: var(--design-button-gap);
 }
 
 .surface-header .sheet-drag-handle { display: none; }
 
 .surface-tabs {
   flex: 0 0 auto;
-  min-height: var(--ui-v2-tab-height);
+  min-height: var(--design-tab-height);
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
@@ -111,8 +111,8 @@
 
 .surface-tabs .ui-tab {
   position: relative;
-  min-height: var(--ui-v2-tab-height);
-  font-size: var(--ui-v2-font-md);
+  min-height: var(--design-tab-height);
+  font-size: var(--design-font-md);
   border: 0;
   background: transparent;
   color: var(--muted);

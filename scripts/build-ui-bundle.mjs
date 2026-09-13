@@ -4,10 +4,10 @@ import { fileURLToPath } from 'node:url';
 
 const scriptsDirectory = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const projectRoot = resolve(scriptsDirectory, '..');
-const outputPath = resolve(projectRoot, 'assets/css/ui-v2.bundle.css');
+const outputPath = resolve(projectRoot, 'assets/css/ui.bundle.css');
 const modalOutputPath = resolve(projectRoot, 'assets/css/ui-modal.bundle.css');
 const sources = Object.freeze([
-  'assets/css/tokens/ui-v2.css',
+  'assets/css/tokens/design-tokens.css',
   'assets/css/primitives/controls.css',
   'assets/css/components/surface.css',
   'assets/css/components/content.css',

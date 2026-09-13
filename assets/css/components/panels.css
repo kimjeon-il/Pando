@@ -21,6 +21,7 @@
 /* Map settings and create surface presentation. */
 
 .map-view-settings {
+  --map-display-row-height: var(--ui-control-height);
   min-width: 0;
   display: grid;
   gap: 0;
@@ -32,7 +33,7 @@
 
 /* Map display rows share the parent grid gap, whether they expose a style menu
    or only a visibility toggle. */
-.map-name-settings > .layer-type-settings {
+.map-display-list > .layer-type-settings {
   padding-block: 0;
 }
 
@@ -41,8 +42,7 @@
   border-top: 0;
 }
 
-.map-view-settings > .layer-style-editor > strong,
-.create-menu-group-title {
+.map-view-settings > .layer-style-editor > strong {
   color: var(--muted);
   font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-semibold);
@@ -63,7 +63,7 @@
 
 .map-view-projection-slot .projection-btn {
   min-width: 0;
-  min-height: var(--ui-v2-command-row-min-height);
+  min-height: var(--design-command-row-min-height);
   height: auto;
   display: inline-flex;
   align-items: center;
@@ -87,8 +87,8 @@
 }
 
 .map-view-projection-slot .projection-btn .ui-icon {
-  width: var(--ui-v2-projection-icon-size);
-  height: var(--ui-v2-projection-icon-size);
+  width: var(--design-projection-icon-size);
+  height: var(--design-projection-icon-size);
   flex: 0 0 auto;
 }
 
@@ -107,8 +107,8 @@
 }
 
 .map-view-settings .ui-choice-row,
-.map-view-settings .ui-toggle {
-  min-height: var(--ui-v2-control-mobile-height);
+.map-view-settings .map-display-row {
+  min-height: var(--map-display-row-height);
 }
 
 .map-view-settings .ui-choice-row,
@@ -139,7 +139,7 @@
 }
 .map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"]:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline-offset: var(--design-focus-offset);
 }
 
 .map-view-settings .ui-choice-copy {
@@ -161,7 +161,7 @@
 /* Terrain modes use the same quiet radio-row treatment as distribution modes.
    Selection is communicated by the radio itself, not a card-sized highlight. */
 .map-view-settings .terrain-mode-option {
-  min-height: var(--ui-v2-control-mobile-height);
+  min-height: var(--design-control-mobile-height);
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -255,8 +255,7 @@
     height: auto;
   }
 
-  .map-view-settings .ui-choice-row,
-  .map-view-settings .ui-toggle { min-height: var(--ui-touch-height); }
+  .map-view-settings { --map-display-row-height: var(--ui-touch-height); }
 
   .terrain-strength-control input[type="range"] { min-height: var(--ui-touch-height); }
 
@@ -271,7 +270,7 @@
 /* Library, GIS, and file panel rules. */
 
 .top-actions .file-menu-item {
-  min-height: var(--ui-v2-control-lg);
+  min-height: var(--design-control-lg);
   border-color: transparent;
   background: transparent;
   color: var(--text-soft);
@@ -366,7 +365,7 @@ body.file-menu-open .mobile-backdrop {
   border: 1px solid var(--toolbar-border);
   border-radius: var(--ui-radius-panel);
   background: var(--toolbar-bg);
-  box-shadow: var(--ui-v2-toolbar-shadow);
+  box-shadow: var(--design-toolbar-shadow);
 }
 
 .map-command-toolbar .map-command-divider {
@@ -374,19 +373,18 @@ body.file-menu-open .mobile-backdrop {
   background: var(--ui-control-border);
 }
 
-.surface-display .map-name-settings { gap: var(--ui-space-1); }
-
-.surface-display .layer-type-settings {
+/* Visibility lists share their spacing, including rows with optional details. */
+.surface-display .map-display-list,
+.surface-display .map-display-list > .layer-type-settings {
   display: grid;
   gap: var(--ui-space-1);
 }
 
 .surface-display .map-display-row {
   position: relative;
-  min-height: var(--ui-v2-control-md);
   display: flex;
   align-items: center;
-  padding-inline: var(--ui-space-2);
+  padding: 0 var(--ui-space-2);
   border-radius: var(--ui-radius-control);
   cursor: pointer;
   transition: background-color .14s ease, color .14s ease;
@@ -408,7 +406,7 @@ body.file-menu-open .mobile-backdrop {
 
 .surface-display .map-display-detail-trigger:focus-visible {
   outline: 2px solid var(--ui-focus-ring);
-  outline-offset: calc(-1 * var(--ui-v2-focus-offset));
+  outline-offset: calc(-1 * var(--design-focus-offset));
 }
 
 .surface-display .map-display-row:has(.map-display-detail-trigger:is(:hover, :focus-visible)):not(.is-disabled) {
@@ -440,16 +438,8 @@ body.file-menu-open .mobile-backdrop {
   border-top: 1px solid var(--ui-control-border);
 }
 
-.create-menu-group-title {
-  padding: 0 var(--ui-space-2) var(--ui-space-1);
-  color: var(--muted);
-  font-size: var(--ui-font-caption);
-  font-weight: var(--ui-weight-semibold);
-  letter-spacing: .02em;
-}
-
 .create-menu-item {
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   border-color: transparent;
   border-radius: var(--ui-radius-control);
   background: transparent;
@@ -476,7 +466,7 @@ body.file-menu-open .mobile-backdrop {
 }
 
 .object-search-section .layer-search-result {
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -516,7 +506,6 @@ body.file-menu-open .mobile-backdrop {
 }
 
 @media (max-width: 799px) {
-  .surface-display .map-display-row { min-height: var(--ui-touch-height); }
   [data-layout="mobile"] :is(.surface-search, .surface-display) {
     border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
   }

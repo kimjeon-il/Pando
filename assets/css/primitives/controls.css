@@ -1,16 +1,16 @@
-/* Canonical UI v2 primitive controls. Feature styles may position these
+/* Canonical UI primitive controls. Feature styles may position these
    controls, but they do not redefine their visual language. */
 
 html { font-size: 100%; }
 
 .ui-icon {
-  width: var(--ui-v2-icon-size);
-  height: var(--ui-v2-icon-size);
+  width: var(--design-icon-size);
+  height: var(--design-icon-size);
   display: block;
   flex: 0 0 auto;
   fill: none;
   stroke: currentColor;
-  stroke-width: var(--ui-v2-icon-stroke-width);
+  stroke-width: var(--design-icon-stroke-width);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -28,13 +28,13 @@ html { font-size: 100%; }
   padding: 0;
   background: var(--swatch);
   border: 2px solid var(--border);
-  border-radius: var(--ui-v2-radius-pill);
+  border-radius: var(--design-radius-pill);
 }
 
 .ui-button.preferences-accent-chip:is(:hover, :focus-visible) {
   background: var(--swatch);
   outline: 2px solid var(--text-strong);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline-offset: var(--design-focus-offset);
 }
 
 .ui-button.preferences-accent-chip[aria-pressed="true"] {
@@ -51,45 +51,45 @@ html { font-size: 100%; }
 
 /* Projection glyphs are the only intentionally larger common icons. */
 .projection-btn .ui-icon {
-  width: var(--ui-v2-projection-icon-size);
-  height: var(--ui-v2-projection-icon-size);
+  width: var(--design-projection-icon-size);
+  height: var(--design-projection-icon-size);
 }
 
 :where(.ui-button) {
   -webkit-appearance: none;
   appearance: none;
   min-width: 0;
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   margin: 0;
-  padding: 0 var(--ui-v2-control-padding-x);
+  padding: 0 var(--design-control-padding-x);
   border: 1px solid transparent;
-  border-radius: var(--ui-v2-radius-md);
+  border-radius: var(--design-radius-md);
   background: var(--ui-button-subtle);
   color: var(--ui-control-text);
-  font: var(--ui-v2-weight-semibold) var(--ui-v2-font-md) / var(--ui-v2-line-normal) var(--ui-v2-font-family);
+  font: var(--design-weight-semibold) var(--design-font-md) / var(--design-line-normal) var(--design-font-family);
   -webkit-tap-highlight-color: transparent;
   box-shadow: none;
   transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease, box-shadow .14s ease;
 }
 
 :where(.ui-button):focus-visible {
-  outline: 2px solid var(--ui-v2-color-focus-ring);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline: 2px solid var(--design-color-focus-ring);
+  outline-offset: var(--design-focus-offset);
 }
 
 :where(.ui-button):active:not(:disabled) { transform: none; }
 :where(.ui-button):disabled { cursor: not-allowed; opacity: .48; }
 
 .ui-button:is(.btn, .create-menu-btn, .mode-primary-btn) {
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   height: auto;
   padding-block: var(--ui-space-1);
 }
 
 .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) {
-  width: var(--ui-v2-control-md);
-  min-width: var(--ui-v2-control-md);
-  min-height: var(--ui-v2-control-md);
+  width: var(--design-control-md);
+  min-width: var(--design-control-md);
+  min-height: var(--design-control-md);
   height: auto;
   padding: 0;
   display: inline-grid;
@@ -99,15 +99,15 @@ html { font-size: 100%; }
 }
 
 .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) .ui-icon {
-  width: var(--ui-v2-icon-size);
-  height: var(--ui-v2-icon-size);
+  width: var(--design-icon-size);
+  height: var(--design-icon-size);
 }
 
 .ui-button.compact:is(.icon-btn, .ui-icon-button),
 .ui-button:is(.mode-task-minimize-btn, .mode-task-close-btn) {
-  width: var(--ui-v2-control-sm);
-  min-width: var(--ui-v2-control-sm);
-  min-height: var(--ui-v2-control-sm);
+  width: var(--design-control-sm);
+  min-width: var(--design-control-sm);
+  min-height: var(--design-control-sm);
   height: auto;
 }
 
@@ -163,9 +163,9 @@ html { font-size: 100%; }
 ):not(.ui-native-select),
 .ui-select-control,
 .ui-search-field {
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   height: auto;
-  font-size: var(--ui-v2-font-md);
+  font-size: var(--design-font-md);
 }
 
 .ui-search-field > input[type="search"] { height: 100%; }
@@ -174,24 +174,24 @@ html { font-size: 100%; }
    minimum control rhythm. */
 :where(.field-group, .ui-field, .gis-form-grid) textarea {
   height: auto;
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
 }
 
 /* A toggle is a compact visual control inside a larger labelled hit area. */
 .ui-toggle {
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   display: inline-flex;
   align-items: center;
 }
 
 .ui-toggle > input[type="checkbox"] {
   position: relative;
-  width: var(--ui-v2-toggle-width);
-  min-width: var(--ui-v2-toggle-width);
-  height: var(--ui-v2-toggle-height);
-  min-height: var(--ui-v2-toggle-height);
+  width: var(--design-toggle-width);
+  min-width: var(--design-toggle-width);
+  height: var(--design-toggle-height);
+  min-height: var(--design-toggle-height);
   border: 0;
-  border-radius: var(--ui-v2-radius-pill);
+  border-radius: var(--design-radius-pill);
   background: var(--border-strong);
   color: var(--accent-text);
   box-shadow: none;
@@ -201,9 +201,9 @@ html { font-size: 100%; }
 .ui-toggle > input[type="checkbox"]::before {
   position: absolute;
   top: 50%;
-  left: var(--ui-v2-toggle-thumb-inset);
-  width: var(--ui-v2-toggle-thumb-size);
-  height: var(--ui-v2-toggle-thumb-size);
+  left: var(--design-toggle-thumb-inset);
+  width: var(--design-toggle-thumb-size);
+  height: var(--design-toggle-thumb-size);
   border: 0;
   border-radius: 50%;
   background: var(--surface-elevated);
@@ -217,12 +217,12 @@ html { font-size: 100%; }
 }
 
 .ui-toggle > input[type="checkbox"]:checked::before {
-  left: calc(100% - var(--ui-v2-toggle-thumb-size) - var(--ui-v2-toggle-thumb-inset));
+  left: calc(100% - var(--design-toggle-thumb-size) - var(--design-toggle-thumb-inset));
 }
 
 .ui-toggle > input[type="checkbox"]:focus-visible {
-  outline: 2px solid var(--ui-v2-color-focus-ring);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline: 2px solid var(--design-color-focus-ring);
+  outline-offset: var(--design-focus-offset);
 }
 
 /* Destructive intent is reserved for the final confirmation action. */
@@ -266,10 +266,10 @@ html { font-size: 100%; }
   }
 
   .ui-toggle > input[type="checkbox"] {
-    width: var(--ui-v2-toggle-mobile-width);
-    min-width: var(--ui-v2-toggle-mobile-width);
-    height: var(--ui-v2-toggle-mobile-height);
-    min-height: var(--ui-v2-toggle-mobile-height);
+    width: var(--design-toggle-mobile-width);
+    min-width: var(--design-toggle-mobile-width);
+    height: var(--design-toggle-mobile-height);
+    min-height: var(--design-toggle-mobile-height);
   }
 
   :where(.field-group, .ui-field, .gis-form-grid) :where(
@@ -281,7 +281,7 @@ html { font-size: 100%; }
   ):not(.ui-native-select),
   .ui-select-control,
   .ui-search-field {
-    min-height: var(--ui-v2-control-mobile-height);
+    min-height: var(--design-control-mobile-height);
     height: auto;
   }
 

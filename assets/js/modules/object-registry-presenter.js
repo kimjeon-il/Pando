@@ -43,7 +43,7 @@ function syncObjectTaxonomy(root) {
   for (const node of root.querySelectorAll?.('[data-map-category]') || []) {
     const descriptor = MAP_OBJECT_CATEGORIES[node.dataset.mapCategory];
     if (!descriptor) continue;
-    const heading = node.querySelector('.create-menu-group-title, .layer-category-title');
+    const heading = node.querySelector('.layer-category-title');
     if (heading) heading.textContent = descriptor.label;
     node.dataset.objectCategory = descriptor.key;
   }

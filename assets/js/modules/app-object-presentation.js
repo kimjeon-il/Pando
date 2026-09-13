@@ -139,12 +139,6 @@ export function createObjectPresentation() {
   }
 
   function syncMapObjectCategoryLabels() {
-    document.querySelectorAll('[data-map-category]').forEach(node => {
-      const category = dependencies.MAP_OBJECT_CATEGORIES[node.dataset.mapCategory];
-      if (!category) return;
-      const title = node.querySelector('.create-menu-group-title');
-      if (title) title.textContent = category.label;
-    });
     const buildContent = (0, dependencies.$)('createBuildPanel');
     if (buildContent) {
       dependencies.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {

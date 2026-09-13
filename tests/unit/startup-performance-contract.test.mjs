@@ -14,14 +14,14 @@ const projectRestore = read('assets/js/modules/app-project-restore.js');
 const lifecycleWiring = read('assets/js/modules/app-connect-lifecycle-ui.js');
 const meshResourceLoader = read('assets/js/modules/builtin-mesh-resource.js');
 const metadata = read('assets/js/build-meta.js');
-const bundle = read('assets/css/ui-v2.bundle.css');
+const bundle = read('assets/css/ui.bundle.css');
 const surfaces = read('assets/css/layout/surfaces.css');
 const editorShell = read('assets/css/components/editor-shell.css');
 const modalBundle = read('assets/css/ui-modal.bundle.css');
 const indexHtml = read('index.html');
 
 const uiSources = Object.freeze([
-  'assets/css/tokens/ui-v2.css',
+  'assets/css/tokens/design-tokens.css',
   'assets/css/primitives/controls.css',
   'assets/css/components/surface.css',
   'assets/css/components/content.css',
@@ -114,8 +114,8 @@ test('UI bundle contains every canonical stylesheet exactly once in order', () =
     assert.equal(bundle.indexOf(marker, index + marker.length), -1, `duplicate bundle source: ${source}`);
     previous = index;
   }
-  assert.doesNotMatch(bootstrap, /const UI_BUNDLE = '\.\.\/css\/ui-v2\.bundle\.css'/);
-  assert.match(indexHtml, /ui-v2\.bundle\.css[^>]+data-pandolab-ui-v2="ui-v2-bundle"/);
+  assert.doesNotMatch(bootstrap, /const UI_BUNDLE = '\.\.\/css\/ui\.bundle\.css'/);
+  assert.match(indexHtml, /ui\.bundle\.css[^>]+data-pandolab-ui="ui-bundle"/);
   assert.doesNotMatch(bootstrap, /const UI_STYLES/);
 });
 

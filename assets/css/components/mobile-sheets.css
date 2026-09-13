@@ -42,7 +42,7 @@
 
   .workspace-surface.ui-sheet {
     --ui-sheet-handle-visual-offset: var(--ui-space-1);
-    --surface-elevated: var(--ui-v2-color-panel);
+    --surface-elevated: var(--design-color-panel);
     border-top: 1px solid var(--border);
     border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
     background: var(--surface-elevated);
@@ -84,11 +84,11 @@
 
   .surface-header .sheet-drag-handle:focus-visible {
     outline: 2px solid var(--focus-ring);
-    outline-offset: calc(-1 * var(--ui-v2-focus-offset));
+    outline-offset: calc(-1 * var(--design-focus-offset));
   }
 
   .sheet-drag-handle > span {
-    width: var(--ui-v2-control-lg);
+    width: var(--design-control-lg);
     height: var(--ui-space-1);
     border-radius: var(--ui-radius-pill);
     background: color-mix(in srgb, var(--muted) 54%, transparent);
@@ -99,15 +99,15 @@
   .surface-header-title { min-width: 0; }
 
   .surface-header-title > strong {
-    font-size: var(--ui-v2-font-xl);
-    line-height: var(--ui-v2-line-title);
+    font-size: var(--design-font-xl);
+    line-height: var(--design-line-title);
     font-weight: var(--ui-weight-bold);
   }
 
   .workspace-surface[data-sheet-snap="0"] .surface-tabs,
   .surface-editor[data-sheet-snap="0"] .editor-scroll-body { display: none; }
 
-  .surface-editor[data-sheet-snap="0"] > .surface-header { min-height: var(--ui-v2-sheet-snap-collapsed); }
+  .surface-editor[data-sheet-snap="0"] > .surface-header { min-height: var(--design-sheet-snap-collapsed); }
 
   .surface-tabs,
   .surface-tabs .ui-tab { min-height: var(--ui-touch-height); }
@@ -137,8 +137,8 @@
   /* Snap 0 closes the map through the controller; open/closed layout owns hit testing. */
 
   .surface-map .layer-child {
-      min-height: var(--ui-v2-layer-row-height-mobile);
-      height: var(--ui-v2-layer-row-height-mobile);
+      min-height: var(--design-layer-row-height-mobile);
+      height: var(--design-layer-row-height-mobile);
     }
   .surface-map .projection-btn { min-height: var(--ui-touch-height); }
 

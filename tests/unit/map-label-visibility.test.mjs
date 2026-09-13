@@ -1,0 +1,115 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createCountryLabels } from '../../assets/js/modules/app-country-labels.js';
+import { createMapSettings } from '../../assets/js/modules/app-map-settings.js';
+import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
+import { layoutCountryFlags } from '../../assets/js/modules/country-label-flags.js';
+import { automaticLabelSettings, labelKey, layoutLabels, LABEL_PRIORITIES } from '../../assets/js/modules/label-layout.js';
+
+function fixture(visibility = {}) {
+  const features = ['AAA', 'BBB', 'SUBUNIT', 'NOFLAG'].map(id => ({
+    type: 'Feature', id, properties: { name: id },
+    geometry: { type: 'Polygon', coordinates: [[[-10, -10], [10, -10], [10, 10], [-10, 10], [-10, -10]]] },
+  }));
+  const anchors = new Map(features.map((feature, index) => [feature.id, [100 + index * 200, 100]]));
+  const hiddenIds = new Set();
+  const state = {
+    projection: 'globe', view: { globeZoom: 2 }, countryVisualPhase: 'canonical',
+    layerVisibility: { basemapLabels: true, countryFlags: true, labels: true, ...visibility },
+    countryOverrides: {}, labelSettings: {}, size: { width: 1000, height: 600 },
+    labels: [{ id: 'PLACE', kind: 'capital', name: 'Place', coordinates: [100, 300] }],
+  };
+  const controller = createCountryLabels();
+  controller.connect({
+    state, automaticLabelSettings, labelKey, layoutLabels, layoutCountryFlags, LABEL_PRIORITIES,
+    countryLabelAnchors: anchors, pendingCountryLabelAnchors: new Set(),
+    builtinRenderCountries: () => ({
+      labelById: new Map(features.map(feature => [feature.id, feature])),
+      labelRefs: new Map([['SUBUNIT', { domain: 'territorial', type: 'subunit', id: 'SUBUNIT' }]]),
+    }),
+    isLayerItemVisible: (_group, id) => !hiddenIds.has(id),
+    visibleMapObjectCandidates: () => state.labels.filter(label => !hiddenIds.has(label.id)),
+    projectVisibleCoordinate: coordinate => coordinate,
+    selectionDomain: { has: () => false }, TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country' },
+    currentRenderQuality: { labelDensity: 1, tier: 'high' }, viewportCullingMetrics: { lastByDomain: { label: {} } },
+    isMobile: () => false, activeProjection: () => ({ scale: () => 1000 }),
+    geometryBounds: () => [-10, -10, 10, 10], countryName: feature => feature.properties.name,
+    effectiveCountryFlagUrl: ({ countryId }) => countryId === 'NOFLAG' ? null : `/${countryId}.svg`,
+  });
+  controller.initializeCountryLabelScreenAreas();
+  return { controller, state, anchors, hiddenIds };
+}
+
+for (const names of [true, false]) for (const flags of [true, false]) for (const places of [true, false]) {
+  test(`label visibility stays independent: names=${names}, flags=${flags}, places=${places}`, () => {
+    const { controller } = fixture({ basemapLabels: names, countryFlags: flags, labels: places });
+    const layout = controller.visibleLabelLayout();
+    assert.equal(layout.countryLabels.length, names ? 4 : flags ? 2 : 0);
+    assert.equal(layout.countryFlags.size, flags ? 2 : 0);
+    assert.equal(layout.userLabels.length, places ? 1 : 0);
+  });
+}
+
+test('flag-only layout uses flag dimensions without reserving invisible name space', () => {
+  const { controller, anchors } = fixture({ basemapLabels: false, labels: false });
+  anchors.set('BBB', [130, 100]);
+  assert.deepEqual([...controller.visibleLabelLayout().countryFlags.keys()], ['AAA', 'BBB']);
+});
+
+test('flag-only markers keep zoom and per-object visibility rules', () => {
+  const { controller, state, hiddenIds } = fixture({ basemapLabels: false });
+  state.view.globeZoom = 1;
+  assert.equal(controller.visibleLabelLayout().countryLabels.length, 0);
+  state.view.globeZoom = 2;
+  hiddenIds.add('AAA');
+  assert.deepEqual(controller.visibleLabelLayout().countryLabels.map(feature => feature.id), ['BBB']);
+});
+
+test('all symbol switches schedule a fresh label layout without redrawing country geometry', t => {
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { querySelectorAll: () => [], addEventListener() {}, removeEventListener() {} },
+  });
+  t.after(() => {
+    if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument);
+    else delete globalThis.document;
+  });
+  const { controller, state } = fixture();
+  const frames = [], layouts = [];
+  const rendering = createRenderingDomain({
+    requestFrame: callback => { frames.push(callback); return frames.length; },
+    renderers: { labelLayout: () => { const layout = controller.visibleLabelLayout(); layouts.push(layout); return layout; } },
+  });
+  const settings = createMapSettings();
+  let baseInvalidations = 0, autosaves = 0;
+  settings.connect({
+    state, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
+    normalizeLayerPresentation: value => value, markLayerTreeDirty() {},
+    renderingDomain: {
+      invalidateLabels: rendering.invalidateLabels,
+      invalidateBaseScene: () => { baseInvalidations += 1; },
+    },
+    projectDomain: { queuePresentationAutosave: () => { autosaves += 1; } },
+  });
+  settings.setLayerVisibility('basemapLabels', false);
+  frames.shift()();
+  assert.equal(layouts.at(-1).countryFlags.size, 2);
+  settings.setLayerVisibility('countryFlags', false);
+  frames.shift()();
+  assert.equal(layouts.at(-1).countryLabels.length, 0);
+  settings.setLayerVisibility('labels', false);
+  frames.shift()();
+  assert.equal(layouts.at(-1).userLabels.length, 0);
+  settings.setLayerVisibility('basemapLabels', true);
+  settings.setLayerVisibility('countryFlags', true);
+  settings.setLayerVisibility('labels', true);
+  assert.equal(frames.length, 1, 'successive visibility changes share a frame');
+  frames.shift()();
+  assert.equal(layouts.at(-1).countryLabels.length, 4);
+  assert.equal(layouts.at(-1).countryFlags.size, 2);
+  assert.equal(layouts.at(-1).userLabels.length, 1);
+  assert.equal(baseInvalidations, 0);
+  assert.equal(autosaves, 6);
+  rendering.dispose();
+});
