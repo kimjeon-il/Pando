@@ -175,7 +175,9 @@
   --ui-dialog-actions-top: var(--ui-space-6);
   --ui-map-edge: var(--ui-space-3);
   --ui-map-status-height: var(--ui-shell-statusbar-height);
-  --ui-mobile-bottom-nav-height: 3.5rem;
+  --ui-mobile-bottom-nav-item-height: 3.5rem;
+  --ui-mobile-bottom-nav-padding: var(--ui-space-3);
+  --ui-mobile-bottom-nav-height: calc(var(--ui-mobile-bottom-nav-item-height) + var(--ui-space-1) + var(--ui-mobile-bottom-nav-padding) + var(--ui-border-width));
   --ui-icon-size: var(--design-icon-size);
   --ui-icon-size-sm: var(--design-icon-size-sm);
   --ui-statusbar-height: var(--ui-shell-statusbar-height);
@@ -1529,14 +1531,14 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status { opacity
   bottom: 0;
   height: var(--mobile-nav-height);
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding: var(--ui-space-1) var(--ui-space-1) env(safe-area-inset-bottom);
+  padding: var(--ui-space-1) var(--ui-space-1) calc(var(--ui-mobile-bottom-nav-padding) + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   background: var(--mobile-nav-bg);
 }
 
 .app-root[data-layout="mobile"] .adaptive-nav button {
   min-width: 0;
-  height: 56px;
+  height: var(--ui-mobile-bottom-nav-item-height);
   padding: var(--ui-space-1) var(--ui-space-0-5);
   border: 0;
   border-radius: 10px;

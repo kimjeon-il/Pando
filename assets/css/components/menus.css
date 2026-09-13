@@ -61,7 +61,8 @@
   opacity: 0;
   clip-path: inset(50%);
 }
-.ui-menu-list .ui-menu-item[data-menu-choice] > .ui-icon { display: none; }
+.ui-menu-list .ui-menu-item[data-menu-choice]:not(.ui-menu-icon-choice) > .ui-icon { display: none; }
+.ui-menu-list .ui-menu-icon-choice > .ui-menu-mark { grid-column: 3; }
 .ui-menu-mark { display: grid; place-items: center; color: var(--accent); pointer-events: none; }
 .ui-menu-item[data-menu-choice="checkbox"] > input:checked ~ .ui-menu-mark::before { content: '✓'; }
 .ui-menu-item[data-menu-choice="radio"]:is([aria-checked="true"], :has(> input:checked)) > .ui-menu-mark::before { content: '●'; }

@@ -161,7 +161,7 @@ export function createMapSettings() {
     }
     if (target.boundary) {
       const choice = document.createElement('label');
-      choice.className = 'ui-choice-row';
+      choice.className = 'ui-choice-row ui-toggle';
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.dataset.layerStyleBoundary = group;
