@@ -89,14 +89,27 @@ test('desktop shell keeps a stable command topbar and accessible file and help d
     const controls = await page.locator(topbarControlIds.map(id => `#${id}`).join(',')).evaluateAll(elements => (
       elements.map(element => {
         const rect = element.getBoundingClientRect();
-        return { id: element.id, x: rect.x, y: rect.y, right: rect.right, width: rect.width, height: rect.height };
+        return {
+          id: element.id,
+          visible: getComputedStyle(element).display !== 'none',
+          x: rect.x,
+          y: rect.y,
+          right: rect.right,
+          width: rect.width,
+          height: rect.height,
+        };
       })
     ));
     expect(controls.map(control => control.id)).toEqual(topbarControlIds);
-    expect(Math.max(...controls.map(control => control.y)) - Math.min(...controls.map(control => control.y))).toBeLessThanOrEqual(1);
-    expect(controls.at(-1).right).toBeLessThanOrEqual(width + 0.5);
+    const visibleControls = controls.filter(control => control.visible);
+    const expectedIds = width <= 799
+      ? topbarControlIds.filter(id => id !== 'mapDisplayBtn')
+      : topbarControlIds;
+    expect(visibleControls.map(control => control.id)).toEqual(expectedIds);
+    expect(Math.max(...visibleControls.map(control => control.y)) - Math.min(...visibleControls.map(control => control.y))).toBeLessThanOrEqual(1);
+    expect(visibleControls.at(-1).right).toBeLessThanOrEqual(width + 0.5);
     if (width <= 799) {
-      for (const control of controls) {
+      for (const control of visibleControls) {
         expect(control.width).toBeGreaterThanOrEqual(48);
         expect(control.height).toBeGreaterThanOrEqual(48);
       }
