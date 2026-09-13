@@ -141,10 +141,11 @@
 [data-layout="mobile"] .surface-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(var(--ui-touch-height), auto) auto;
+  grid-template-rows: minmax(var(--ui-touch-height), auto);
   flex-basis: auto;
-  min-height: var(--ui-surface-header-height-mobile);
-  padding-block: 0 var(--ui-space-2);
+  min-height: var(--ui-touch-height);
+  padding-block: 0;
+  border-bottom: 0;
   touch-action: none;
   cursor: ns-resize;
 }

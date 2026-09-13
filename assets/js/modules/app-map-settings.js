@@ -338,6 +338,8 @@ export function createMapSettings() {
         if (visibility) visibilityAnchor.after(visibility);
         if (body) {
           panel.append(...contentNodes);
+          const opacityField = panel.querySelector('[data-layer-style-opacity]')?.closest('label');
+          if (opacityField) panel.append(opacityField);
           body.remove();
           separator.remove();
         }

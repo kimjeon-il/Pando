@@ -34,13 +34,14 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 }
 
 .app-root .topbar .topbar-command {
+  --topbar-command-background: transparent;
   min-width: 0;
   min-height: var(--design-control-md);
   height: var(--design-control-md);
   padding: 0 var(--ui-space-3);
   border: 0;
   border-radius: var(--ui-radius-control);
-  background: transparent;
+  background: var(--topbar-command-background);
   color: var(--text-soft);
   font-size: var(--ui-font-body);
   font-weight: var(--ui-weight-medium);
@@ -48,8 +49,8 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 }
 
 .app-root .topbar .topbar-command:is(:hover, :active, [aria-expanded="true"]):not(:disabled) {
+  --topbar-command-background: var(--ui-button-subtle-hover);
   border-color: transparent;
-  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 
@@ -92,7 +93,26 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
     height: var(--ui-touch-height);
   }
 
-  .app-root[data-layout="mobile"] .topbar .topbar-command { padding-inline: var(--ui-space-1); }
+  /* The highlight is smaller than the unchanged 48px touch target. */
+  .app-root[data-layout="mobile"] .topbar .topbar-command {
+    position: relative;
+    isolation: isolate;
+    padding-inline: var(--ui-space-3);
+    background: transparent;
+  }
+
+  .app-root[data-layout="mobile"] .topbar .topbar-command::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset-inline: var(--ui-space-1);
+    top: 50%;
+    height: calc(var(--ui-touch-height) - var(--ui-space-3) * 2);
+    border-radius: inherit;
+    background: var(--topbar-command-background);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
 
   .app-root[data-layout="mobile"] .top-actions {
     position: fixed;
