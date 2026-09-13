@@ -6,48 +6,48 @@
   font-display: swap;
 }
 :root {
-  --bg: var(--ui-v2-color-bg);
-  --panel: var(--ui-v2-color-panel);
-  --panel-2: var(--ui-v2-color-panel-2);
-  --border: var(--ui-v2-color-border);
-  --border-strong: var(--ui-v2-color-border-strong);
-  --text: var(--ui-v2-color-text);
-  --muted: var(--ui-v2-color-muted);
-  --text-soft: var(--ui-v2-color-text-soft);
-  --text-strong: var(--ui-v2-color-text);
-  --accent: var(--ui-v2-color-accent);
-  --accent-2: var(--ui-v2-color-accent-2);
-  --accent-surface: var(--ui-v2-color-accent-surface);
-  --accent-surface-hover: var(--ui-v2-color-accent-surface-hover);
-  --accent-border: var(--ui-v2-color-accent-border);
-  --accent-text: var(--ui-v2-color-accent-text);
+  --bg: var(--design-color-bg);
+  --panel: var(--design-color-panel);
+  --panel-2: var(--design-color-panel-2);
+  --border: var(--design-color-border);
+  --border-strong: var(--design-color-border-strong);
+  --text: var(--design-color-text);
+  --muted: var(--design-color-muted);
+  --text-soft: var(--design-color-text-soft);
+  --text-strong: var(--design-color-text);
+  --accent: var(--design-color-accent);
+  --accent-2: var(--design-color-accent-2);
+  --accent-surface: var(--design-color-accent-surface);
+  --accent-surface-hover: var(--design-color-accent-surface-hover);
+  --accent-border: var(--design-color-accent-border);
+  --accent-text: var(--design-color-accent-text);
   --selection-strong-bg: var(--accent-surface);
   --selection-strong-fg: var(--accent-text);
   --selection-strong-muted: color-mix(in srgb, var(--accent-text) 88%, var(--accent-surface));
   --selection-soft-bg: color-mix(in srgb, var(--accent-surface) 24%, var(--surface-card));
   --selection-soft-border: color-mix(in srgb, var(--accent-border) 70%, var(--ui-card-border));
   --selection-soft-fg: var(--text-strong);
-  --focus-ring: var(--ui-v2-color-focus-ring);
+  --focus-ring: var(--design-color-focus-ring);
   --selection-focus-on-strong: var(--accent-text);
-  --danger: var(--ui-v2-color-danger);
-  --danger-surface: var(--ui-v2-color-danger-surface);
-  --danger-border: var(--ui-v2-color-danger-border);
-  --danger-text: var(--ui-v2-color-danger-text);
-  --surface-topbar: var(--ui-v2-color-surface-topbar);
-  --surface-input: var(--ui-v2-color-surface-input);
-  --surface-subtle: var(--ui-v2-color-surface-subtle);
-  --surface-card: var(--ui-v2-color-surface-card);
-  --surface-elevated: var(--ui-v2-color-surface-elevated);
-  --surface-hover: var(--ui-v2-color-surface-hover);
-  --surface-hover-border: var(--ui-v2-color-surface-hover-border);
-  --status-border: var(--ui-v2-color-status-border);
-  --status-bg: var(--ui-v2-color-status-bg);
-  --status-text: var(--ui-v2-color-status-text);
-  --overlay-panel: var(--ui-v2-color-overlay-panel);
-  --overlay-border: var(--ui-v2-color-overlay-border);
-  --toolbar-bg: var(--ui-v2-color-toolbar-bg);
-  --toolbar-border: var(--ui-v2-color-toolbar-border);
-  --mobile-nav-bg: var(--ui-v2-color-mobile-nav-bg);
+  --danger: var(--design-color-danger);
+  --danger-surface: var(--design-color-danger-surface);
+  --danger-border: var(--design-color-danger-border);
+  --danger-text: var(--design-color-danger-text);
+  --surface-topbar: var(--design-color-surface-topbar);
+  --surface-input: var(--design-color-surface-input);
+  --surface-subtle: var(--design-color-surface-subtle);
+  --surface-card: var(--design-color-surface-card);
+  --surface-elevated: var(--design-color-surface-elevated);
+  --surface-hover: var(--design-color-surface-hover);
+  --surface-hover-border: var(--design-color-surface-hover-border);
+  --status-border: var(--design-color-status-border);
+  --status-bg: var(--design-color-status-bg);
+  --status-text: var(--design-color-status-text);
+  --overlay-panel: var(--design-color-overlay-panel);
+  --overlay-border: var(--design-color-overlay-border);
+  --toolbar-bg: var(--design-color-toolbar-bg);
+  --toolbar-border: var(--design-color-toolbar-border);
+  --mobile-nav-bg: var(--design-color-mobile-nav-bg);
   --map-stage: #0c1117;
   --map-wrap-bg: #10141a;
   --map-ocean: #0d2837;
@@ -96,48 +96,48 @@
   --bootstrap-card-shadow: 0 18px 60px rgba(0,0,0,.42);
   --bootstrap-progress-bg: #11161c;
   --bootstrap-text: #b7c0ca;
-  --control-shadow: var(--ui-v2-control-shadow);
+  --control-shadow: var(--design-control-shadow);
   --inset-highlight: rgba(255,255,255,.015);
-  --shadow: var(--ui-v2-shadow);
+  --shadow: var(--design-shadow);
   /* Primitive spacing scale. Component geometry is tokenized separately below. */
-  --ui-space-0: var(--ui-v2-space-0);
-  --ui-space-0-5: var(--ui-v2-space-0-5);
-  --ui-space-1: var(--ui-v2-space-1);
-  --ui-space-1-5: var(--ui-v2-space-1-5);
-  --ui-space-2: var(--ui-v2-space-2);
-  --ui-space-3: var(--ui-v2-space-3);
-  --ui-space-4: var(--ui-v2-space-4);
-  --ui-space-5: var(--ui-v2-space-5);
-  --ui-space-6: var(--ui-v2-space-6);
-  --ui-space-8: var(--ui-v2-space-8);
-  --ui-space-10: var(--ui-v2-space-10);
-  --ui-radius-control: var(--ui-v2-radius-md);
-  --ui-radius-panel: var(--ui-v2-radius-lg);
-  --ui-font-family: var(--ui-v2-font-family);
+  --ui-space-0: var(--design-space-0);
+  --ui-space-0-5: var(--design-space-0-5);
+  --ui-space-1: var(--design-space-1);
+  --ui-space-1-5: var(--design-space-1-5);
+  --ui-space-2: var(--design-space-2);
+  --ui-space-3: var(--design-space-3);
+  --ui-space-4: var(--design-space-4);
+  --ui-space-5: var(--design-space-5);
+  --ui-space-6: var(--design-space-6);
+  --ui-space-8: var(--design-space-8);
+  --ui-space-10: var(--design-space-10);
+  --ui-radius-control: var(--design-radius-md);
+  --ui-radius-panel: var(--design-radius-lg);
+  --ui-font-family: var(--design-font-family);
   --ui-font-map: var(--map-font-body);
-  --ui-font-caption: var(--ui-v2-font-sm);
-  --ui-font-label: var(--ui-v2-font-md);
-  --ui-font-body: var(--ui-v2-font-md);
-  --ui-font-section: var(--ui-v2-font-lg);
-  --ui-font-title: var(--ui-v2-font-xl);
-  --ui-font-modal-title: var(--ui-v2-font-xl);
-  --ui-font-sm: var(--ui-v2-font-sm);
-  --ui-font-md: var(--ui-v2-font-md);
-  --ui-font-lg: var(--ui-v2-font-lg);
-  --ui-font-xl: var(--ui-v2-font-xl);
-  --ui-line-tight: var(--ui-v2-line-tight);
-  --ui-line-normal: var(--ui-v2-line-normal);
-  --ui-weight-regular: var(--ui-v2-weight-regular);
-  --ui-weight-medium: var(--ui-v2-weight-medium);
-  --ui-weight-semibold: var(--ui-v2-weight-semibold);
-  --ui-weight-bold: var(--ui-v2-weight-bold);
-  --ui-weight-strong: var(--ui-v2-weight-semibold);
+  --ui-font-caption: var(--design-font-sm);
+  --ui-font-label: var(--design-font-md);
+  --ui-font-body: var(--design-font-md);
+  --ui-font-section: var(--design-font-lg);
+  --ui-font-title: var(--design-font-xl);
+  --ui-font-modal-title: var(--design-font-xl);
+  --ui-font-sm: var(--design-font-sm);
+  --ui-font-md: var(--design-font-md);
+  --ui-font-lg: var(--design-font-lg);
+  --ui-font-xl: var(--design-font-xl);
+  --ui-line-tight: var(--design-line-tight);
+  --ui-line-normal: var(--design-line-normal);
+  --ui-weight-regular: var(--design-weight-regular);
+  --ui-weight-medium: var(--design-weight-medium);
+  --ui-weight-semibold: var(--design-weight-semibold);
+  --ui-weight-bold: var(--design-weight-bold);
+  --ui-weight-strong: var(--design-weight-semibold);
   /* Shared control, field, row, surface, and responsive geometry. */
-  --ui-control-height: var(--ui-v2-control-md);
-  --ui-touch-height: var(--ui-v2-touch-height);
+  --ui-control-height: var(--design-control-md);
+  --ui-touch-height: var(--design-touch-height);
   --ui-control-padding-x: var(--ui-space-3);
   --ui-control-padding-y: var(--ui-space-2);
-  --ui-control-gap: var(--ui-v2-button-gap);
+  --ui-control-gap: var(--design-button-gap);
   --ui-field-label-gap: var(--ui-space-1-5);
   --ui-field-gap: var(--ui-space-3);
   --ui-field-helper-gap: var(--ui-space-1);
@@ -150,8 +150,8 @@
   --ui-panel-padding: var(--ui-space-4);
   --ui-section-gap: var(--ui-space-6);
   --ui-card-padding: var(--ui-space-3);
-  --ui-tree-row-height: var(--ui-v2-layer-row-height);
-  --ui-tree-folder-height: var(--ui-v2-layer-row-height);
+  --ui-tree-row-height: var(--design-layer-row-height);
+  --ui-tree-folder-height: var(--design-layer-row-height);
   --ui-tree-action-size: var(--ui-control-height);
   --ui-tree-action-size-touch: var(--ui-touch-height);
   --ui-tree-check-size: 18px;
@@ -171,13 +171,13 @@
   --ui-dialog-padding-compact: var(--ui-surface-content-rail-x);
   --ui-dialog-title-gap: var(--ui-space-3);
   --ui-dialog-section-gap: var(--ui-space-4);
-  --ui-dialog-actions-gap: var(--ui-v2-button-gap);
+  --ui-dialog-actions-gap: var(--design-button-gap);
   --ui-dialog-actions-top: var(--ui-space-6);
   --ui-map-edge: var(--ui-space-3);
   --ui-map-status-height: var(--ui-shell-statusbar-height);
   --ui-mobile-bottom-nav-height: 3.5rem;
-  --ui-icon-size: var(--ui-v2-icon-size);
-  --ui-icon-size-sm: var(--ui-v2-icon-size-sm);
+  --ui-icon-size: var(--design-icon-size);
+  --ui-icon-size-sm: var(--design-icon-size-sm);
   --ui-statusbar-height: var(--ui-shell-statusbar-height);
   --ui-left-panel-width: var(--ui-shell-left-panel-width);
   --ui-right-panel-width: var(--ui-shell-right-panel-width);
@@ -187,9 +187,9 @@
   --ui-toolbar-gap: var(--ui-space-1);
   --ui-nav-icon-label-gap: var(--ui-space-1);
   --ui-status-padding-y: 5px;
-  --ui-surface-header-height-compact: var(--ui-v2-surface-header-height-desktop);
-  --ui-surface-mobile-handle-space: var(--ui-v2-sheet-handle-space);
-  --ui-surface-header-height-mobile: var(--ui-v2-sheet-header-height-mobile);
+  --ui-surface-header-height-compact: var(--design-surface-header-height-desktop);
+  --ui-surface-mobile-handle-space: var(--design-sheet-handle-space);
+  --ui-surface-header-height-mobile: var(--design-sheet-header-height-mobile);
   --ui-surface-body-padding-x: var(--ui-space-4);
   --ui-surface-content-padding-x: 1rem;
   --ui-surface-content-padding-bottom: var(--ui-panel-padding);
@@ -199,11 +199,11 @@
   --ui-control-bg: var(--panel-2);
   --ui-control-bg-hover: var(--surface-hover);
   --ui-control-bg-pressed: color-mix(in srgb, var(--surface-hover) 72%, var(--accent-surface));
-  --ui-button-subtle: var(--ui-v2-color-button-subtle);
-  --ui-button-subtle-hover: var(--ui-v2-color-button-subtle-hover);
-  --ui-button-subtle-pressed: var(--ui-v2-color-button-subtle-pressed);
-  --ui-button-selected: var(--ui-v2-color-button-selected);
-  --ui-button-selected-hover: var(--ui-v2-color-button-selected-hover);
+  --ui-button-subtle: var(--design-color-button-subtle);
+  --ui-button-subtle-hover: var(--design-color-button-subtle-hover);
+  --ui-button-subtle-pressed: var(--design-color-button-subtle-pressed);
+  --ui-button-selected: var(--design-color-button-selected);
+  --ui-button-selected-hover: var(--design-color-button-selected-hover);
   --ui-control-border: var(--border);
   --ui-control-border-hover: var(--surface-hover-border);
   --ui-control-text: var(--text-soft);
@@ -216,40 +216,40 @@
 
 /* Resolved theme is applied to the root by the preference bootstrap. */
 :root[data-theme="light"] {
-    --bg: var(--ui-v2-color-bg);
-    --panel: var(--ui-v2-color-panel);
-    --panel-2: var(--ui-v2-color-panel-2);
-    --border: var(--ui-v2-color-border);
-    --border-strong: var(--ui-v2-color-border-strong);
-    --text: var(--ui-v2-color-text);
-    --muted: var(--ui-v2-color-muted);
-    --text-soft: var(--ui-v2-color-text-soft);
-    --text-strong: var(--ui-v2-color-text);
-    --accent: var(--ui-v2-color-accent);
-    --accent-2: var(--ui-v2-color-accent-2);
-    --accent-surface: var(--ui-v2-color-accent-surface);
-    --accent-surface-hover: var(--ui-v2-color-accent-surface-hover);
-    --accent-border: var(--ui-v2-color-accent-border);
-    --accent-text: var(--ui-v2-color-accent-text);
-    --danger: var(--ui-v2-color-danger);
-    --danger-surface: var(--ui-v2-color-danger-surface);
-    --danger-border: var(--ui-v2-color-danger-border);
-    --danger-text: var(--ui-v2-color-danger-text);
-    --surface-topbar: var(--ui-v2-color-surface-topbar);
-    --surface-input: var(--ui-v2-color-surface-input);
-    --surface-subtle: var(--ui-v2-color-surface-subtle);
-    --surface-card: var(--ui-v2-color-surface-card);
-    --surface-elevated: var(--ui-v2-color-surface-elevated);
-    --surface-hover: var(--ui-v2-color-surface-hover);
-    --surface-hover-border: var(--ui-v2-color-surface-hover-border);
-    --status-border: var(--ui-v2-color-status-border);
-    --status-bg: var(--ui-v2-color-status-bg);
-    --status-text: var(--ui-v2-color-status-text);
-    --overlay-panel: var(--ui-v2-color-overlay-panel);
-    --overlay-border: var(--ui-v2-color-overlay-border);
-    --toolbar-bg: var(--ui-v2-color-toolbar-bg);
-    --toolbar-border: var(--ui-v2-color-toolbar-border);
-    --mobile-nav-bg: var(--ui-v2-color-mobile-nav-bg);
+    --bg: var(--design-color-bg);
+    --panel: var(--design-color-panel);
+    --panel-2: var(--design-color-panel-2);
+    --border: var(--design-color-border);
+    --border-strong: var(--design-color-border-strong);
+    --text: var(--design-color-text);
+    --muted: var(--design-color-muted);
+    --text-soft: var(--design-color-text-soft);
+    --text-strong: var(--design-color-text);
+    --accent: var(--design-color-accent);
+    --accent-2: var(--design-color-accent-2);
+    --accent-surface: var(--design-color-accent-surface);
+    --accent-surface-hover: var(--design-color-accent-surface-hover);
+    --accent-border: var(--design-color-accent-border);
+    --accent-text: var(--design-color-accent-text);
+    --danger: var(--design-color-danger);
+    --danger-surface: var(--design-color-danger-surface);
+    --danger-border: var(--design-color-danger-border);
+    --danger-text: var(--design-color-danger-text);
+    --surface-topbar: var(--design-color-surface-topbar);
+    --surface-input: var(--design-color-surface-input);
+    --surface-subtle: var(--design-color-surface-subtle);
+    --surface-card: var(--design-color-surface-card);
+    --surface-elevated: var(--design-color-surface-elevated);
+    --surface-hover: var(--design-color-surface-hover);
+    --surface-hover-border: var(--design-color-surface-hover-border);
+    --status-border: var(--design-color-status-border);
+    --status-bg: var(--design-color-status-bg);
+    --status-text: var(--design-color-status-text);
+    --overlay-panel: var(--design-color-overlay-panel);
+    --overlay-border: var(--design-color-overlay-border);
+    --toolbar-bg: var(--design-color-toolbar-bg);
+    --toolbar-border: var(--design-color-toolbar-border);
+    --mobile-nav-bg: var(--design-color-mobile-nav-bg);
     --map-stage: #ffffff;
     --map-wrap-bg: #ffffff;
     --map-ocean: #ffffff;
@@ -298,9 +298,9 @@
     --bootstrap-card-shadow: 0 18px 60px rgba(37,45,53,.16);
     --bootstrap-progress-bg: #e1e5e9;
     --bootstrap-text: #66717d;
-    --control-shadow: var(--ui-v2-control-shadow);
+    --control-shadow: var(--design-control-shadow);
     --inset-highlight: rgba(255,255,255,.65);
-    --shadow: var(--ui-v2-shadow);
+    --shadow: var(--design-shadow);
     color-scheme: light;
 }
 
@@ -329,16 +329,16 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .action-status { min-width: 112px; max-width: 460px; height: 36px; display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px; align-items: center; padding: 0 var(--ui-control-padding-x); border-radius: 999px; border: 1px solid var(--status-border); background: var(--status-bg); color: var(--status-text); font-size: var(--ui-font-body); box-shadow: inset 0 0 0 1px var(--inset-highlight); pointer-events: auto; }
 .action-status strong { min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: var(--ui-weight-semibold); }
 .action-status.error .notification-close { display: grid; place-items: center; }
-.status-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--ui-v2-status-neutral-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-v2-status-neutral-dot) 12%, transparent); }
-.action-status.working { border-color: var(--ui-v2-status-working-border); background: var(--ui-v2-status-working-bg); color: var(--ui-v2-status-working-text); }
-.action-status.working .status-dot { background: var(--ui-v2-status-working-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-v2-status-working-dot) 15%, transparent); animation: statusPulse 1s ease-in-out infinite; }
-.action-status.success { border-color: var(--ui-v2-status-success-border); background: var(--ui-v2-status-success-bg); color: var(--ui-v2-status-success-text); }
-.action-status.success .status-dot { background: var(--ui-v2-status-success-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-v2-status-success-dot) 14%, transparent); }
-.action-status.error { border-color: var(--ui-v2-status-error-border); background: var(--ui-v2-status-error-bg); color: var(--ui-v2-status-error-text); }
+.status-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--design-status-neutral-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--design-status-neutral-dot) 12%, transparent); }
+.action-status.working { border-color: var(--design-status-working-border); background: var(--design-status-working-bg); color: var(--design-status-working-text); }
+.action-status.working .status-dot { background: var(--design-status-working-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--design-status-working-dot) 15%, transparent); animation: statusPulse 1s ease-in-out infinite; }
+.action-status.success { border-color: var(--design-status-success-border); background: var(--design-status-success-bg); color: var(--design-status-success-text); }
+.action-status.success .status-dot { background: var(--design-status-success-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--design-status-success-dot) 14%, transparent); }
+.action-status.error { border-color: var(--design-status-error-border); background: var(--design-status-error-bg); color: var(--design-status-error-text); }
 .action-status.info { border-color: var(--status-border); background: var(--status-bg); color: var(--status-text); }
-.action-status.warning { border-color: var(--ui-v2-status-working-border); background: var(--ui-v2-status-working-bg); color: var(--ui-v2-status-working-text); }
-.action-status.warning .status-dot { background: var(--ui-v2-status-working-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-v2-status-working-dot) 15%, transparent); }
-.action-status.error .status-dot { background: var(--ui-v2-status-error-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-v2-status-error-dot) 14%, transparent); }
+.action-status.warning { border-color: var(--design-status-working-border); background: var(--design-status-working-bg); color: var(--design-status-working-text); }
+.action-status.warning .status-dot { background: var(--design-status-working-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--design-status-working-dot) 15%, transparent); }
+.action-status.error .status-dot { background: var(--design-status-error-dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--design-status-error-dot) 14%, transparent); }
 @keyframes statusPulse { 50% { opacity: .45; transform: scale(.78); } }
 .divider { width: 1px; height: 23px; background: var(--border); margin: 0 var(--ui-space-1); }
 
@@ -823,8 +823,8 @@ body.is-loading .app-root { pointer-events: none; user-select: none; }
 #bootstrapLoadingText { color: var(--text-strong); font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); line-height: var(--ui-line-normal); }
 .startup-probe { margin-top: var(--ui-space-1-5); color: var(--muted); font-size: var(--ui-font-caption); font-weight: var(--ui-weight-regular); line-height: var(--ui-line-normal); pointer-events: none; }
 .ui-progress.bootstrap-progress { height: 4px; margin-top: var(--ui-space-4); overflow: hidden; border-radius: 999px; background: var(--bootstrap-progress-bg); }
-.bootstrap-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--ui-v2-status-working-dot); transition: width .18s ease; }
-.bootstrap-loading.error .bootstrap-progress span { background: var(--ui-v2-status-error-dot); }
+.bootstrap-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--design-status-working-dot); transition: width .18s ease; }
+.bootstrap-loading.error .bootstrap-progress span { background: var(--design-status-error-dot); }
 
 /* 시스템 밝은 테마: 지도는 Wikimedia 참조 SVG의 기본 배색을, UI는 고대비 표면 토큰을 사용한다. */
 @media (prefers-color-scheme: light) {
@@ -832,7 +832,7 @@ body.is-loading .app-root { pointer-events: none; user-select: none; }
   .file-menu-btn { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
   .file-menu-btn::after { color: #dbe8f8; }
   .file-menu-btn.sheet-open { background: var(--accent-surface-hover); border-color: var(--accent-border); }
-  .status-dot { background: var(--ui-v2-status-neutral-dot); }
+  .status-dot { background: var(--design-status-neutral-dot); }
   .mobile-bottom-bar button.active { background: var(--accent-surface); border-color: transparent; color: var(--accent-text); box-shadow: none; }
   .layer-search { background: #ffffff; }
   .layer-search input::placeholder { color: #7a8590; }
@@ -853,7 +853,7 @@ body.is-loading .app-root { pointer-events: none; user-select: none; }
   .draft-vertex-dot { fill: #dbe8f8; stroke: var(--accent-border); }
   .country-shape.new-country-source { stroke: var(--accent) !important; }
   .ui-progress span,
-  .bootstrap-progress span { background: var(--ui-v2-status-working-dot); }
+  .bootstrap-progress span { background: var(--design-status-working-dot); }
 }
 
 .territorial-type-card { width: min(500px, calc(100vw - 32px)); }
@@ -1042,7 +1042,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .brand strong, .surface-header strong, .editor-object-header h2 {
   font-size: var(--ui-font-xl);
   font-weight: var(--ui-weight-bold);
-  line-height: var(--ui-v2-line-title);
+  line-height: var(--design-line-title);
 }
 .editor-section-title {
   font-size: var(--ui-font-lg);
@@ -1052,7 +1052,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .ui-dialog-card h2 {
   font-size: var(--ui-font-modal-title);
   font-weight: var(--ui-weight-bold);
-  line-height: var(--ui-v2-line-title);
+  line-height: var(--design-line-title);
 }
 .field-group label, .gis-form-grid .field-group > span {
   font-size: var(--ui-font-label);
@@ -1436,7 +1436,7 @@ body[data-layout="mobile"] {
   bottom: var(--mobile-nav-height);
   left: 0;
   width: 100%;
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
+  height: var(--sheet-height, var(--design-sheet-snap-half));
   max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   border: 1px solid var(--border);
@@ -1498,11 +1498,11 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status { opacity
 }
 
 .app-root[data-layout="mobile"] .left-panel{
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-layer-half));
+  height: var(--sheet-height, var(--design-sheet-snap-layer-half));
 }
 .app-root[data-layout="mobile"] .right-panel,
 .app-root[data-layout="mobile"] .right-panel.collapsed {
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
+  height: var(--sheet-height, var(--design-sheet-snap-half));
 }
 
 .app-root[data-layout="mobile"] .top-actions {
@@ -1779,7 +1779,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 .ui-segment-option.active:hover,
 .ui-segment-option[aria-pressed="true"]:hover { background: var(--accent-surface-hover); color: var(--accent-text); }
-.projection-btn .ui-icon { width: var(--ui-v2-projection-icon-size); height: var(--ui-v2-projection-icon-size); }
+.projection-btn .ui-icon { width: var(--design-projection-icon-size); height: var(--design-projection-icon-size); }
 #resetViewBtn { font-size: var(--ui-font-body); }
 
 /* Common composition primitives used by every active UI family. */
@@ -2329,16 +2329,6 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 
 
 
-.map-display-row {
-  position: relative;
-  min-height: var(--ui-control-height);
-  padding: 0 var(--ui-space-2);
-  border-radius: var(--ui-radius-control);
-  cursor: pointer;
-}
-.map-display-row:has(.map-display-detail-trigger:is(:hover, :focus-visible)):not(.is-disabled) { background: var(--ui-control-bg-hover); }
-.map-display-row:has(.map-display-detail-trigger[aria-expanded="true"]) { background: color-mix(in srgb, var(--accent-surface) 14%, transparent); }
-.map-display-row.is-disabled { cursor: default; opacity: .62; }
 .layer-presentation-row {
   min-height: var(--ui-tree-row-height);
   display: grid;
@@ -2516,8 +2506,8 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 /* Responsive sizing changes hit targets, never the component language. */
 @media (max-width: 799px) {
   :root {
-    --ui-tree-row-height: var(--ui-v2-layer-row-height-mobile);
-    --ui-tree-folder-height: var(--ui-v2-layer-row-height-mobile);
+    --ui-tree-row-height: var(--design-layer-row-height-mobile);
+    --ui-tree-folder-height: var(--design-layer-row-height-mobile);
   }
 }
 .app-root[data-layout="compact"] .adaptive-nav { gap: var(--ui-toolbar-gap); padding: var(--ui-toolbar-padding); }
@@ -2551,7 +2541,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 
 
 
-.app-root[data-layout="mobile"] .map-display-row { min-height: var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .layer-presentation-row { min-height: var(--ui-touch-height); grid-template-columns: var(--ui-touch-height) minmax(0, 1fr) var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .map-name-settings .map-display-details { padding-inline: var(--ui-space-2); }
 .app-root[data-layout="mobile"] .map-name-settings .map-display-details input[type="range"] { min-height: var(--ui-touch-height); }
@@ -2924,7 +2913,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   top: calc(100% + var(--ui-select-popover-gap));
   right: 0;
   z-index: 80;
-  width: min(var(--ui-v2-country-color-popover-width), calc(100vw - (var(--ui-popover-screen-edge) * 2)));
+  width: min(var(--design-country-color-popover-width), calc(100vw - (var(--ui-popover-screen-edge) * 2)));
   max-width: calc(100vw - (var(--ui-popover-screen-edge) * 2));
   display: grid;
   gap: var(--ui-space-2);
@@ -3567,9 +3556,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 .surface-display .surface-body-delegated { display: flex; flex-direction: column; overflow: hidden; }
 .surface-display .map-view-panel-section { flex: 1 1 auto; padding: var(--ui-space-3); }
 .surface-display .map-view-settings { display: grid; gap: var(--ui-space-3); }
-.surface-display .map-name-settings { display: grid; gap: 0; }
-.surface-display .map-symbol-settings { display: grid; gap: 0; }
-.surface-display .layer-type-settings-heading > label { min-height: var(--ui-control-height); }
 .surface-display .map-display-details { margin-inline: 0; }
 .editor-object-command { color: var(--text-soft); }
 .editor-object-command:is(:hover, :focus-visible):not(:disabled) { color: var(--text); }

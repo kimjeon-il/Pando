@@ -92,9 +92,9 @@
   text-overflow: ellipsis;
   white-space: normal;
   color: var(--text);
-  font-size: var(--ui-v2-font-xl);
-  font-weight: var(--ui-v2-weight-bold);
-  line-height: var(--ui-v2-line-title);
+  font-size: var(--design-font-xl);
+  font-weight: var(--design-weight-bold);
+  line-height: var(--design-line-title);
 }
 
 :where(.ui-object-context-meta, .editor-object-meta) {
@@ -107,7 +107,7 @@
 :where(.ui-object-context-meta, .editor-object-meta) > span {
   min-width: 0;
   color: var(--muted);
-  font-size: var(--ui-v2-font-xs);
+  font-size: var(--design-font-xs);
   font-weight: var(--ui-weight-regular);
   line-height: var(--ui-line-tight);
 }
@@ -122,7 +122,7 @@
 }
 
 /* Preferences is available before lazy workflow styles have loaded. */
-.preferences-accent-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr)); gap: var(--ui-v2-button-gap); align-items: center; }
+.preferences-accent-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr)); gap: var(--design-button-gap); align-items: center; }
 
 .layer-child.ui-selectable-row.is-selected { border-color: transparent; }
 

@@ -4,7 +4,7 @@
   min-width: 0;
   max-width: 28.75rem;
   height: 2.125rem;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--ui-v2-control-sm);
+  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--design-control-sm);
   gap: var(--ui-space-2);
   padding: 0 var(--ui-space-2) 0 var(--ui-space-3);
   border-radius: var(--ui-radius-pill);
@@ -18,32 +18,32 @@
 }
 
 .action-status.ui-toast .notification-close {
-  width: var(--ui-v2-control-sm);
-  min-width: var(--ui-v2-control-sm);
-  height: var(--ui-v2-control-sm);
-  min-height: var(--ui-v2-control-sm);
+  width: var(--design-control-sm);
+  min-width: var(--design-control-sm);
+  height: var(--design-control-sm);
+  min-height: var(--design-control-sm);
 }
 
 .action-status.ui-toast.working {
-  border-color: var(--ui-v2-feedback-working-border);
-  background: var(--ui-v2-feedback-working-bg);
-  color: var(--ui-v2-feedback-working-text);
+  border-color: var(--design-feedback-working-border);
+  background: var(--design-feedback-working-bg);
+  color: var(--design-feedback-working-text);
 }
 
 .action-status.ui-toast.working .status-dot {
-  background: var(--ui-v2-feedback-working-dot);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-v2-feedback-working-dot) 14%, transparent);
+  background: var(--design-feedback-working-dot);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--design-feedback-working-dot) 14%, transparent);
 }
 
 .action-status.ui-toast.warning {
-  border-color: var(--ui-v2-feedback-warning-border);
-  background: var(--ui-v2-feedback-warning-bg);
-  color: var(--ui-v2-feedback-warning-text);
+  border-color: var(--design-feedback-warning-border);
+  background: var(--design-feedback-warning-bg);
+  color: var(--design-feedback-warning-text);
 }
 
 .action-status.ui-toast.warning .status-dot {
-  background: var(--ui-v2-feedback-warning-dot);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-v2-feedback-warning-dot) 14%, transparent);
+  background: var(--design-feedback-warning-dot);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--design-feedback-warning-dot) 14%, transparent);
 }
 
 .project-save-status[data-save-state="saving"] .project-save-status-dot {
@@ -57,9 +57,9 @@
 }
 
 .ui-alert.ui-alert--warning {
-  border-color: var(--ui-v2-feedback-warning-border);
-  background: var(--ui-v2-feedback-warning-bg);
-  color: var(--ui-v2-feedback-warning-text);
+  border-color: var(--design-feedback-warning-border);
+  background: var(--design-feedback-warning-bg);
+  color: var(--design-feedback-warning-text);
 }
 
 .ui-alert.ui-alert--info {

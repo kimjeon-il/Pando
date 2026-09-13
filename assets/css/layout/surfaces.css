@@ -50,7 +50,7 @@
 [data-layout="wide"] .workspace-surface > .surface-header,
 [data-layout="compact"] .workspace-surface > .surface-header {
   display: grid;
-  min-height: var(--ui-v2-surface-header-height-desktop);
+  min-height: var(--design-surface-header-height-desktop);
 }
 
 [data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) {
@@ -105,8 +105,8 @@
   bottom: var(--mobile-nav-height);
   left: 0;
   width: 100%;
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
-  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--ui-v2-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
+  height: var(--sheet-height, var(--design-sheet-snap-half));
+  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--design-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
   max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   opacity: 0;
@@ -120,7 +120,7 @@
 }
 
 [data-layout="mobile"] .surface-map {
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-layer-half));
+  height: var(--sheet-height, var(--design-sheet-snap-layer-half));
 }
 
 [data-layout="mobile"] .workspace-surface.mobile-open {
@@ -237,8 +237,8 @@
   bottom: var(--mobile-nav-height);
   left: 0;
   width: 100%;
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
-  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--ui-v2-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
+  height: var(--sheet-height, var(--design-sheet-snap-half));
+  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--design-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
   max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   opacity: 0;
   visibility: hidden;

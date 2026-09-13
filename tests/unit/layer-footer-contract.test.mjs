@@ -20,7 +20,7 @@ test('map command bar owns add while the editor header owns lock and delete', ()
 test('desktop shell has no retired vertical navigation geometry', () => {
   const shell = read('assets/css/components/editor-shell.css');
   assert.doesNotMatch(shell, /\[data-layout="wide"\] \.adaptive-nav/);
-  const tokens = read('assets/css/tokens/ui-v2.css');
+  const tokens = read('assets/css/tokens/design-tokens.css');
   assert.doesNotMatch(tokens + shell, /--ui-(?:v2|shell)-workspace-(?:rail|nav|active)-/);
   assert.match(shell, /\[data-layout="wide"\] \.left-panel\s*\{[^}]*left: 0;/);
 });

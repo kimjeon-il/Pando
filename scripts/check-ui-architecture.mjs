@@ -5,17 +5,17 @@ import process from 'node:process';
 const root = process.cwd();
 const cssRoot = path.join(root, 'assets', 'css');
 const htmlPath = path.join(root, 'index.html');
-const policyDocPath = path.join(root, 'docs', 'architecture', 'ui-architecture-v2.md');
+const policyDocPath = path.join(root, 'docs', 'architecture', 'ui-architecture.md');
 const html = fs.readFileSync(htmlPath, 'utf8');
 const failures = [];
 
 const cssLayers = new Set(['tokens', 'primitives', 'components', 'layout', 'features', 'utilities']);
 
-// app.css carries legacy rules; ui-v2.bundle.css is a generated aggregation
+// app.css carries legacy rules; ui.bundle.css is a generated aggregation
 // artifact whose source ownership remains in the layered files below.
 const legacyCssBudgets = new Map([
   ['app.css', 178186],
-  ['ui-v2.bundle.css', Number.MAX_SAFE_INTEGER],
+  ['ui.bundle.css', Number.MAX_SAFE_INTEGER],
   ['ui-modal.bundle.css', Number.MAX_SAFE_INTEGER],
 ]);
 
@@ -199,7 +199,7 @@ for (const retiredPath of retiredUiArtifacts) {
 }
 
 if (!fs.existsSync(policyDocPath)) {
-  failures.push('missing UI architecture policy: docs/architecture/ui-architecture-v2.md');
+  failures.push('missing UI architecture policy: docs/architecture/ui-architecture.md');
 } else {
   const policy = fs.readFileSync(policyDocPath, 'utf8');
   for (const phrase of ['Tokens → Primitives → Components → Layout → Features', 'Legacy CSS ratchet', 'Surface DOM contract']) {

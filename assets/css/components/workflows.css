@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ui-space-2);
-  min-height: var(--ui-v2-control-lg);
+  min-height: var(--design-control-lg);
   padding: var(--ui-space-2) var(--ui-space-3);
   border-bottom: 1px solid var(--border);
 }
@@ -220,8 +220,8 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-  height: var(--ui-v2-control-md);
-  min-height: var(--ui-v2-control-md);
+  height: var(--design-control-md);
+  min-height: var(--design-control-md);
   padding: 0 var(--ui-space-2);
   border: 1px solid transparent;
   border-radius: var(--ui-radius-control);
@@ -251,7 +251,7 @@
 
 .workflow-map-session .mode-aux-control:is(:focus-visible, :has(input:focus-visible)) {
   outline: 2px solid var(--accent);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline-offset: var(--design-focus-offset);
 }
 
 .workflow-map-session .mode-aux-control:is(:disabled, :has(input:disabled)) {
@@ -261,7 +261,7 @@
 
 .workflow-map-session .mode-river-boundary-option {
   width: calc((100% - var(--ui-toolbar-gap)) / 2);
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   justify-self: start;
 }
 .workflow-map-session .mode-river-boundary-option input {
@@ -275,8 +275,8 @@
 }
 
 .app-root[data-layout="mobile"] .workflow-map-session .mode-aux-control {
-  height: var(--ui-v2-control-mobile-height);
-  min-height: var(--ui-v2-control-mobile-height);
+  height: var(--design-control-mobile-height);
+  min-height: var(--design-control-mobile-height);
 }
 
 .workflow-map-session .mode-action-bar {
@@ -300,7 +300,7 @@
 
 .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) {
   min-width: 0;
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   justify-content: center;
 }
 

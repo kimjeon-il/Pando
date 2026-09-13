@@ -67,7 +67,7 @@
 .editor-action-row:is(.active, [aria-pressed="true"]) .command-row-icon { color: var(--accent); }
 
 .create-menu-item {
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   display: grid;
   grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
   align-items: center;
@@ -113,7 +113,7 @@
 }
 
 :is(.editor-action-row, .create-menu-item, .ui-row-button):has(small:not(:empty)) {
-  min-height: var(--ui-v2-command-description-height);
+  min-height: var(--design-command-description-height);
 }
 
 @media (max-width: 799px) {
@@ -121,6 +121,6 @@
   .create-menu-item { min-height: var(--ui-touch-height); }
 
   :is(.editor-action-row, .create-menu-item, .ui-row-button):has(small:not(:empty)) {
-    min-height: var(--ui-v2-command-description-height-mobile);
+    min-height: var(--design-command-description-height-mobile);
   }
 }

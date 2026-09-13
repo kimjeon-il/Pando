@@ -10,7 +10,7 @@
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
   <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-11715582715e" />
-  <link rel="stylesheet" href="assets/css/ui-v2.bundle.css?v=0.33.0-build-11715582715e" data-pandolab-ui-v2="ui-v2-bundle" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.33.0-build-11715582715e" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -141,13 +141,13 @@
                 </div>
               </div>
             </section>
-            <section class="layer-style-editor map-symbol-settings" aria-labelledby="mapSymbolSettingsTitle">
+            <section class="layer-style-editor map-symbol-settings map-display-list" aria-labelledby="mapSymbolSettingsTitle">
               <strong id="mapSymbolSettingsTitle">이름과 기호</strong>
-              <label class="ui-choice-row ui-toggle"><input id="basemapLabelsVisible" type="checkbox" checked aria-label="국가명 표시" /><span>국가명</span></label>
-              <label class="ui-choice-row ui-toggle"><input id="countryFlagsVisible" type="checkbox" checked aria-label="국기 표시" /><span>국기</span></label>
-              <label class="ui-choice-row ui-toggle"><input id="labelsVisible" type="checkbox" checked aria-label="지명 표시" /><span>지명</span></label>
+              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><input id="basemapLabelsVisible" type="checkbox" checked aria-label="객체명 표시" /><span>객체명</span></label></div>
+              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><input id="countryFlagsVisible" type="checkbox" checked aria-label="국기 표시" /><span>국기</span></label></div>
+              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><input id="labelsVisible" type="checkbox" checked aria-label="지명 표시" /><span>지명</span></label></div>
             </section>
-            <section class="layer-style-editor map-name-settings" aria-labelledby="mapNameSettingsTitle">
+            <section class="layer-style-editor map-name-settings map-display-list" aria-labelledby="mapNameSettingsTitle">
               <strong id="mapNameSettingsTitle">객체</strong>
               <section class="layer-type-settings" aria-label="국가 표시 설정">
                 <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="countries" aria-label="국가 표시 설정 펼치기" aria-controls="layerStylePanel-countries" aria-expanded="false"></button><label class="ui-choice-row ui-toggle"><input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" /><span>국가</span></label></div>
@@ -612,24 +612,21 @@
                   <div class="layer-create-groups">
                   <div id="createBuildPanel">
                       <div class="create-menu-category" data-map-category="territorial">
-                        <strong class="create-menu-group-title">영토</strong>
                         <button id="addCountryBtn" data-map-object-type="country" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg></span><span><strong>국가</strong></span></button>
                         <button id="addSubunitBtn" data-map-object-type="subunit" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg></span><span><strong>하위단위</strong></span></button>
                         <button id="addRegionBtn" data-map-object-type="region" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg></span><span><strong>지방</strong></span></button>
                       </div>
                       <div class="create-menu-category" data-map-category="distribution">
-                        <strong class="create-menu-group-title">분포</strong>
                         <button id="addDistributionBtn" data-map-object-type="distribution" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button" aria-haspopup="dialog" aria-controls="distributionTypeModal"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg></span><span><strong>분포</strong></span></button>
                       </div>
                       <div class="create-menu-category" data-map-category="features">
-                        <strong class="create-menu-group-title">지도 객체</strong>
                         <button id="addLabelBtn" data-map-object-type="label" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg></span><span><strong>지명</strong></span></button>
                         <button id="addRiverBtn" data-map-object-type="river" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg></span><span><strong>강</strong></span></button>
                         <button id="addLakeBtn" data-map-object-type="lake" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg></span><span><strong>호수</strong></span></button>
                       </div>
                   </div>
                   <div class="create-menu-category create-library-actions">
-                      <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리에서 추가</strong></span></button>
+                      <button id="addFromLibraryBtn" class="ui-button ui-row-button create-menu-item" role="menuitem" tabindex="-1" type="button"><span class="create-menu-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg></span><span><strong>라이브러리</strong></span></button>
                   </div>
                   </div>
                 </div>

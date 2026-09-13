@@ -40,7 +40,7 @@
 
 .action-status {
   height: auto;
-  min-height: var(--ui-v2-control-lg);
+  min-height: var(--design-control-lg);
 }
 
 .map-bottom-status {
@@ -53,8 +53,8 @@
 .sheet-drag-handle:focus-visible,
 [role="tab"]:focus-visible,
 [role="radio"]:focus-visible {
-  outline: 2px solid var(--ui-v2-color-focus-ring);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline: 2px solid var(--design-color-focus-ring);
+  outline-offset: var(--design-focus-offset);
 }
 
 .historical-library-results,
@@ -111,7 +111,7 @@
   [role="tab"]:focus-visible,
   [role="radio"]:focus-visible {
     outline: 2px solid Highlight;
-    outline-offset: var(--ui-v2-focus-offset);
+    outline-offset: var(--design-focus-offset);
   }
 
   .ui-alert,

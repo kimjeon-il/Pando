@@ -10,7 +10,7 @@ import {
 const root = process.cwd();
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const contentCss = fs.readFileSync(path.join(root, 'assets/css/components/content.css'), 'utf8');
-const uiTokens = fs.readFileSync(path.join(root, 'assets/css/tokens/ui-v2.css'), 'utf8');
+const uiTokens = fs.readFileSync(path.join(root, 'assets/css/tokens/design-tokens.css'), 'utf8');
 const failures = [];
 
 function fail(message) {
@@ -32,7 +32,7 @@ function textById(id) {
 
 // Create commands and library acquisition share one list, without route tabs.
 if (/id="(?:createBuildTabBtn|createLibraryTabBtn|createLibraryPanel)"/.test(html)) fail('create menu must not retain route tabs');
-if (textById('addFromLibraryBtn') !== '라이브러리에서 추가') fail('library entry must be named 라이브러리에서 추가');
+if (textById('addFromLibraryBtn') !== '라이브러리') fail('library entry must be named 라이브러리');
 
 const buildStart = html.indexOf('id="createBuildPanel"');
 const libraryStart = html.indexOf('class="create-menu-category create-library-actions"');
