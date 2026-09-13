@@ -183,7 +183,8 @@ export function createMapSettings() {
   }
 
   function isDesktopViewMenu() {
-    return (0, dependencies.$)('app')?.dataset.layout !== 'mobile';
+    const layout = (0, dependencies.$)('app')?.dataset.layout;
+    return layout === 'wide' || layout === 'compact';
   }
 
   function displayGroupForTrigger(trigger) {
@@ -376,6 +377,14 @@ export function createMapSettings() {
       trigger.setAttribute('aria-expanded', String(expanded));
       const label = `${mapDisplayLabel(group)} 설정 ${expanded ? '접기' : '펼치기'}`;
       trigger.setAttribute('aria-label', label);
+      const visibilityLabel = (0, dependencies.$)(group === 'terrain' ? 'terrainVisible' : `${group}Visible`)?.nextElementSibling;
+      if (visibilityLabel?.matches('span')) {
+        visibilityLabel.textContent = desktop
+          ? '표시'
+          : group === 'terrain'
+            ? '지형'
+            : LAYER_STYLE_TARGETS[group]?.label || '표시';
+      }
     });
     const projectionSlot = (0, dependencies.$)('mapViewProjectionSlot');
     const projectionExpanded = desktop && desktopViewMenuRoot === 'projection';
@@ -540,7 +549,7 @@ export function createMapSettings() {
     });
     const app = (0, dependencies.$)('app');
     new MutationObserver(() => {
-      syncDistributionTypePlacement();
+      syncMapDisplayDisclosures();
       if (!surface.classList.contains('surface-open') && !surface.classList.contains('mobile-open')) closeDesktopViewMenuGroup();
     }).observe(app, { attributes: true, attributeFilter: ['data-layout'] });
     new MutationObserver(() => {

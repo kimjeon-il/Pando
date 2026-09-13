@@ -1,8 +1,6 @@
 /* Desktop map-display menu. The mobile sheet keeps the panel presentation. */
 
-@media (min-width: 800px) {
-  [data-layout="wide"] .surface-display.view-menu-desktop,
-  [data-layout="compact"] .surface-display.view-menu-desktop {
+.surface-display.view-menu-desktop {
     position: fixed;
     z-index: 140;
     top: var(--view-menu-root-top, calc(var(--ui-shell-topbar-height) + var(--ui-space-2)));
@@ -19,8 +17,7 @@
     transform: translateY(calc(-1 * var(--ui-space-1)));
   }
 
-  [data-layout="wide"] .surface-display.view-menu-desktop.surface-open,
-  [data-layout="compact"] .surface-display.view-menu-desktop.mobile-open {
+.surface-display.view-menu-desktop:is(.surface-open, .mobile-open) {
     transform: translateY(0);
   }
 
@@ -62,6 +59,9 @@
   .surface-display.view-menu-desktop .map-projection-settings > .view-menu-parent,
   .surface-display.view-menu-desktop .distribution-menu-group > .view-menu-parent,
   .surface-display.view-menu-desktop .map-display-detail-trigger {
+    position: static;
+    inset: auto;
+    z-index: auto;
     width: 100%;
     min-height: 2.25rem;
     display: grid;
@@ -313,9 +313,9 @@
   .surface-display.view-menu-desktop .terrain-display-options .terrain-mode-options { gap: 0; }
 
   .surface-display.view-menu-desktop .terrain-mode-option:has(input:checked) { background: var(--surface-hover); }
-}
+.surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent,
+.surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent { display: none; }
 
-@media (max-width: 799px) {
-  .map-projection-settings > .view-menu-parent,
-  .distribution-menu-group > .view-menu-parent { display: none; }
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger :is(.view-menu-leading, .view-menu-chevron) {
+  visibility: hidden;
 }
