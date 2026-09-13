@@ -5,8 +5,6 @@
 @media (max-width: 799px) {
   .mobile-bottom-bar {
     display: grid;
-    min-height: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
     border-top: 1px solid var(--border);
     background: var(--mobile-nav-bg);
   }
@@ -54,6 +52,15 @@
     min-height: var(--ui-surface-header-height-mobile);
     padding-inline: var(--ui-surface-content-rail-x);
   }
+
+  .surface-display:not(.view-menu-desktop) > .surface-header {
+    grid-template-rows: minmax(var(--ui-touch-height), auto);
+    min-height: var(--ui-touch-height);
+    padding-block: 0;
+    border-bottom: 0;
+  }
+
+  .surface-display:not(.view-menu-desktop) > .surface-header > .surface-header-title { display: none; }
 
   .surface-header .sheet-drag-handle {
     --ui-control-bg: transparent;

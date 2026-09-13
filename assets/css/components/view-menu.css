@@ -47,5 +47,7 @@
 .surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent,
 .surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent,
 .surface-display:not(.view-menu-desktop) .view-menu-separator,
+.surface-display:not(.view-menu-desktop) .view-menu-icon,
 .surface-display:not(.view-menu-desktop) .ui-menu-mark { display: none; }
-.surface-display:not(.view-menu-desktop) .map-display-detail-trigger :is(.view-menu-leading, .view-menu-chevron) { visibility: hidden; }
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-leading { display: contents; }
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-chevron { display: none; }

@@ -2767,34 +2767,6 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 .map-view-settings .ui-choice-row,
 .map-view-settings .field-group { margin: 0; }
 
-/* Each map layer can be shown independently, so retain checkbox semantics while
-   using the compact radio-style mark requested for the visibility rows. */
-.map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"] {
-  appearance: none;
-  box-sizing: border-box;
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
-  flex: 0 0 1.125rem;
-  margin: 0;
-  border: 1px solid var(--ui-control-border);
-  border-radius: 50%;
-  background: var(--surface-input);
-  cursor: pointer;
-}
-.map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"]:hover {
-  border-color: var(--ui-control-border-hover);
-}
-.map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"]:checked {
-  border-color: var(--accent);
-  background:
-    radial-gradient(circle at center, var(--accent) 0 4px, transparent 4.5px),
-    var(--surface-input);
-}
-.map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"]:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: var(--design-focus-offset);
-}
-
 .map-view-settings .ui-choice-copy {
   min-width: 0;
   display: grid;
@@ -3006,17 +2978,42 @@ body.file-menu-open .mobile-backdrop {
   transition: background-color .14s ease, color .14s ease;
 }
 
-.surface-display:not(.view-menu-desktop) .map-display-row > label { position: relative; z-index: 1; flex: 0 1 auto; min-width: 0; }
+.surface-display:not(.view-menu-desktop) .ui-choice-row:has(> input[type="checkbox"]) {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.surface-display:not(.view-menu-desktop) .ui-choice-row > input[type="checkbox"] {
+  order: 1;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row > label { position: relative; z-index: 1; flex: 1 1 auto; min-width: 0; }
+
+/* Keep the disclosure row and the switch as separate full-height targets. */
+.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label {
+  flex: 0 0 var(--ui-touch-height);
+  margin-inline-start: auto;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label > span { display: none; }
 
 .surface-display:not(.view-menu-desktop) .map-display-detail-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   position: absolute;
   inset: 0;
   z-index: 0;
   width: 100%;
   min-height: 0;
-  padding: 0;
+  padding: 0 calc(var(--ui-touch-height) + var(--ui-space-2)) 0 calc(var(--ui-space-2) + var(--ui-border-width));
   border: 0;
   background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   box-shadow: none;
 }
 
@@ -3205,7 +3202,8 @@ body.file-menu-open .mobile-backdrop {
   opacity: 0;
   clip-path: inset(50%);
 }
-.ui-menu-list .ui-menu-item[data-menu-choice] > .ui-icon { display: none; }
+.ui-menu-list .ui-menu-item[data-menu-choice]:not(.ui-menu-icon-choice) > .ui-icon { display: none; }
+.ui-menu-list .ui-menu-icon-choice > .ui-menu-mark { grid-column: 3; }
 .ui-menu-mark { display: grid; place-items: center; color: var(--accent); pointer-events: none; }
 .ui-menu-item[data-menu-choice="checkbox"] > input:checked ~ .ui-menu-mark::before { content: '✓'; }
 .ui-menu-item[data-menu-choice="radio"]:is([aria-checked="true"], :has(> input:checked)) > .ui-menu-mark::before { content: '●'; }
@@ -3277,8 +3275,10 @@ body.file-menu-open .mobile-backdrop {
 .surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent,
 .surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent,
 .surface-display:not(.view-menu-desktop) .view-menu-separator,
+.surface-display:not(.view-menu-desktop) .view-menu-icon,
 .surface-display:not(.view-menu-desktop) .ui-menu-mark { display: none; }
-.surface-display:not(.view-menu-desktop) .map-display-detail-trigger :is(.view-menu-leading, .view-menu-chevron) { visibility: hidden; }
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-leading { display: contents; }
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-chevron { display: none; }
 
 /* source: assets/css/components/mobile-sheets.css */
 
@@ -3289,8 +3289,6 @@ body.file-menu-open .mobile-backdrop {
 @media (max-width: 799px) {
   .mobile-bottom-bar {
     display: grid;
-    min-height: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
     border-top: 1px solid var(--border);
     background: var(--mobile-nav-bg);
   }
@@ -3338,6 +3336,15 @@ body.file-menu-open .mobile-backdrop {
     min-height: var(--ui-surface-header-height-mobile);
     padding-inline: var(--ui-surface-content-rail-x);
   }
+
+  .surface-display:not(.view-menu-desktop) > .surface-header {
+    grid-template-rows: minmax(var(--ui-touch-height), auto);
+    min-height: var(--ui-touch-height);
+    padding-block: 0;
+    border-bottom: 0;
+  }
+
+  .surface-display:not(.view-menu-desktop) > .surface-header > .surface-header-title { display: none; }
 
   .surface-header .sheet-drag-handle {
     --ui-control-bg: transparent;

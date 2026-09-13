@@ -114,34 +114,6 @@
 .map-view-settings .ui-choice-row,
 .map-view-settings .field-group { margin: 0; }
 
-/* Each map layer can be shown independently, so retain checkbox semantics while
-   using the compact radio-style mark requested for the visibility rows. */
-.map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"] {
-  appearance: none;
-  box-sizing: border-box;
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
-  flex: 0 0 1.125rem;
-  margin: 0;
-  border: 1px solid var(--ui-control-border);
-  border-radius: 50%;
-  background: var(--surface-input);
-  cursor: pointer;
-}
-.map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"]:hover {
-  border-color: var(--ui-control-border-hover);
-}
-.map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"]:checked {
-  border-color: var(--accent);
-  background:
-    radial-gradient(circle at center, var(--accent) 0 4px, transparent 4.5px),
-    var(--surface-input);
-}
-.map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"]:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: var(--design-focus-offset);
-}
-
 .map-view-settings .ui-choice-copy {
   min-width: 0;
   display: grid;
@@ -353,17 +325,42 @@ body.file-menu-open .mobile-backdrop {
   transition: background-color .14s ease, color .14s ease;
 }
 
-.surface-display:not(.view-menu-desktop) .map-display-row > label { position: relative; z-index: 1; flex: 0 1 auto; min-width: 0; }
+.surface-display:not(.view-menu-desktop) .ui-choice-row:has(> input[type="checkbox"]) {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.surface-display:not(.view-menu-desktop) .ui-choice-row > input[type="checkbox"] {
+  order: 1;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row > label { position: relative; z-index: 1; flex: 1 1 auto; min-width: 0; }
+
+/* Keep the disclosure row and the switch as separate full-height targets. */
+.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label {
+  flex: 0 0 var(--ui-touch-height);
+  margin-inline-start: auto;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label > span { display: none; }
 
 .surface-display:not(.view-menu-desktop) .map-display-detail-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   position: absolute;
   inset: 0;
   z-index: 0;
   width: 100%;
   min-height: 0;
-  padding: 0;
+  padding: 0 calc(var(--ui-touch-height) + var(--ui-space-2)) 0 calc(var(--ui-space-2) + var(--ui-border-width));
   border: 0;
   background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   box-shadow: none;
 }
 
