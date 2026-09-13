@@ -11,9 +11,30 @@ test('territorial selection toolbar owns the shared flag menu and explicit edito
   await expect(page.locator('#countryNameInput')).toHaveValue('폴란드');
   await expect(page.locator('#rightPanel #countryNameInput, #rightPanel #flagMenuBtn, #rightPanel #notesInput')).toHaveCount(0);
 
+  const toolbarCenter = async () => page.locator('#selectionToolbar').evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    return Math.round(bounds.left + (bounds.width / 2));
+  });
+  const initialToolbarCenter = await toolbarCenter();
+  await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('data-tooltip', '편집');
+  await page.locator('#selectionToolbarEditBtn').click();
+  await expect(page.locator('#rightPanel')).toHaveClass(/surface-open/);
+  await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('aria-label', '편집 닫기');
+  expect(await toolbarCenter()).toBe(initialToolbarCenter);
+  await page.locator('#selectionToolbarEditBtn').click();
+  await expect(page.locator('#rightPanel')).not.toHaveClass(/surface-open/);
+  await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('aria-expanded', 'false');
+  expect(await toolbarCenter()).toBe(initialToolbarCenter);
   await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#rightPanel')).toHaveClass(/surface-open/);
   await expect(page.locator('#editorObjectHeader')).toBeHidden();
+  await page.locator('#objectSearchBtn').click();
+  await expect(page.locator('#objectSearchSurface')).toBeVisible();
+  expect(await toolbarCenter()).toBe(initialToolbarCenter);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#objectSearchSurface')).toBeHidden();
+  expect(await toolbarCenter()).toBe(initialToolbarCenter);
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.locator('#mobileCloseRightBtn').click();
 

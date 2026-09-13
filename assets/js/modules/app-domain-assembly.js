@@ -338,6 +338,7 @@ export function createDomainAssembly() {
         ? (0, dependencies.commitCountryEdit)('flagDataUrl', value)
         : (0, dependencies.commitTerritorialUnitMeta)('flagDataUrl', value),
       openEditor: (_ref, trigger) => (0, dependencies.openSelectionEditor)({ explicit: true, trigger, focus: true }),
+      closeEditor: () => (0, dependencies.closeSurface)('editor', { manual: true }),
       isEditorOpen: () => dependencies.surfaceState.editorOpen,
       isMutationBlocked: ref => dependencies.state.projectReplacing
         || dependencies.state.modeProcessing

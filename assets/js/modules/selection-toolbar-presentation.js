@@ -13,6 +13,7 @@ export function createSelectionToolbarPresentation({
   getView = () => null,
   commitFlag = () => false,
   openEditor = () => false,
+  closeEditor = () => false,
   isEditorOpen = () => false,
   isMutationBlocked = () => false,
   getProjectGeneration = () => 0,
@@ -113,7 +114,10 @@ export function createSelectionToolbarPresentation({
       notes.readOnly = blocked;
       notes.setAttribute('aria-readonly', String(blocked));
     }
-    $('selectionToolbarEditBtn')?.setAttribute('aria-expanded', String(!!isEditorOpen()));
+    const editButton = $('selectionToolbarEditBtn');
+    const editorOpen = !!isEditorOpen();
+    editButton?.setAttribute('aria-expanded', String(editorOpen));
+    editButton?.setAttribute('aria-label', editorOpen ? '편집 닫기' : '편집 열기');
     if (blocked) {
       closeFlag();
       closeColorPickers();
@@ -180,6 +184,7 @@ export function createSelectionToolbarPresentation({
     toolbar.removeAttribute('data-object-type');
     toolbar.setAttribute('aria-hidden', 'true');
     $('selectionToolbarEditBtn')?.setAttribute('aria-expanded', 'false');
+    $('selectionToolbarEditBtn')?.setAttribute('aria-label', '편집 열기');
     return true;
   }
 
@@ -216,7 +221,8 @@ export function createSelectionToolbarPresentation({
     $('selectionToolbarEditBtn')?.addEventListener('click', event => {
       if (!activeRef) return;
       closeTransient();
-      openEditor(activeRef, event.currentTarget);
+      if (isEditorOpen()) closeEditor(activeRef, event.currentTarget);
+      else openEditor(activeRef, event.currentTarget);
       syncInteraction();
     });
     $('flagMenuBtn')?.addEventListener('click', () => {
