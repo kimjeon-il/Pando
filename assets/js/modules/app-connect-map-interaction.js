@@ -139,6 +139,7 @@ export function connectMapInteraction({
     get replaceSelectOptions() { return propertySelection.replaceSelectOptions; },
     get shouldShowTerritorialParentChoice() { return runtime.shouldShowTerritorialParentChoice; },
     get syncOverlayState() { return workspaceSurfaces.syncOverlayState; },
+    get syncSelectionToolbarInteraction() { return domainAssembly.selectionToolbarPresentation?.syncInteraction; },
     get syncStatusBar() { return readinessNotifications.syncStatusBar; },
     get TERRITORIAL_UNIT_TYPES() { return runtime.TERRITORIAL_UNIT_TYPES; },
     get territorialCreateSetupModel() { return territorialDrafts.territorialCreateSetupModel; },

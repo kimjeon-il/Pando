@@ -57,6 +57,8 @@ export function connectFoundation({
     get queueMapResize() { return mapHost.queueMapResize; },
     get state() { return projectSession.state; },
     get syncMapHudBounds() { return taskPresentation.syncMapHudBounds; },
+    get syncSelectionToolbarInteraction() { return domainAssembly.selectionToolbarPresentation?.syncInteraction; },
+    get syncSelectionToolbarOcclusion() { return domainAssembly.selectionToolbarPresentation?.syncOcclusion; },
     get ZOOM_LIMITS() { return environment.ZOOM_LIMITS; },
   });
   projectSession.connect({
@@ -120,6 +122,7 @@ export function connectFoundation({
     get selectionUiController() { return domainAssembly.selectionUiController; },
     get setActionStatus() { return readinessNotifications.setActionStatus; },
     get state() { return projectSession.state; },
+    get syncSelectionToolbarInteraction() { return domainAssembly.selectionToolbarPresentation?.syncInteraction; },
     get TERRITORIAL_UNIT_TYPES() { return runtime.TERRITORIAL_UNIT_TYPES; },
     get territorialChildren() { return runtime.territorialChildren; },
     get territorialRepository() { return objectPresentation.territorialRepository; },

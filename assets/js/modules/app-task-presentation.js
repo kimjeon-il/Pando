@@ -161,7 +161,6 @@ export function createTaskPresentation() {
   }
 
   function syncMapHudBounds() {
-    if (dependencies.layoutMode === 'wide') return;
     const slot = (0, dependencies.$)('mapTopContextSlot');
     const map = (0, dependencies.$)('map');
     if (!slot || !map) return;
@@ -172,6 +171,13 @@ export function createTaskPresentation() {
     let right = bounds.width - edge;
     const view = document.querySelector('.map-view-toolbar');
     if (elementHasLayout(view)) right = Math.min(right, view.getBoundingClientRect().left - bounds.left - 8);
+    const editor = (0, dependencies.$)('rightPanel');
+    if (elementHasLayout(editor) && editor.classList.contains('surface-open')) {
+      const editorBounds = editor.getBoundingClientRect();
+      const mapCenter = bounds.left + (bounds.width / 2);
+      if (editorBounds.left >= mapCenter) right = Math.min(right, editorBounds.left - bounds.left - 8);
+      else if (editorBounds.right <= mapCenter) left = Math.max(left, editorBounds.right - bounds.left + 8);
+    }
     if (right <= left) {
       left = edge;
       right = bounds.width - edge;
@@ -195,6 +201,7 @@ export function createTaskPresentation() {
       minimize.setAttribute('aria-expanded', 'true');
     }
     dependencies.editorWorkspacePresentation.sync({ active: editing });
+    dependencies.syncSelectionToolbarInteraction?.();
     requestAnimationFrame(syncMapHudBounds);
   }
 
@@ -230,7 +237,7 @@ export function createTaskPresentation() {
         const setupModel = (0, dependencies.territorialCreateSetupModel)();
         if (setupModel) {
           const countryChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateSovereignInput'), setupModel.countryOptions, selection.sovereignId, { autoSelectSingle: true });
-          const parentChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateParentInput'), setupModel.parentOptions, selection.parentId, { autoSelectSingle: true });
+          (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateParentInput'), setupModel.parentOptions, selection.parentId, { autoSelectSingle: true });
           const sourceChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateSourceInput'), setupModel.sourceOptions, selection.sourceKey, { autoSelectSingle: true });
           (0, dependencies.$)('territorialCreateSovereignRow')?.classList.toggle('hidden', countryChoice.single);
           (0, dependencies.$)('territorialCreateParentRow')?.classList.toggle('hidden', !(0, dependencies.shouldShowTerritorialParentChoice)({

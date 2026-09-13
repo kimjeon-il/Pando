@@ -69,6 +69,7 @@ export function createObjectPropertyController(runtime = {}) {
   function syncActionTab(type) {
     const form = activeForm(type);
     const sections = form ? [...form.children].filter(element => !element.hidden && !element.classList.contains('hidden')) : [];
+    const infoAvailable = sections.some(element => element.matches?.('.editor-info-section'));
     const hasActions = sections.some(element => element.matches?.('.editor-action-section') && !element.classList.contains('editor-relation-section'));
     const relationSections = sections.filter(element => element.matches?.('.editor-relation-section'));
     const relationAvailable = relationSections.length > 0;
@@ -83,25 +84,26 @@ export function createObjectPropertyController(runtime = {}) {
       if (inlineRelation) rightPanel.setAttribute('data-editor-inline-relation', 'true');
       else rightPanel.removeAttribute('data-editor-inline-relation');
     }
-    $('actionsTabBtn').hidden = !type;
+    $('editorTabBtn').hidden = !type || !infoAvailable;
+    $('editorTabBtn').setAttribute('aria-disabled', String(!infoAvailable));
+    $('actionsTabBtn').hidden = !type || !hasActions;
     $('actionsTabBtn').setAttribute('aria-disabled', String(!hasActions));
     $('relationTabBtn').hidden = !type || !relationTabVisible;
     $('relationTabBtn').setAttribute('aria-disabled', String(!relationTabVisible));
+    const availableViews = [infoAvailable && 'info', hasActions && 'actions', relationTabVisible && 'relation'].filter(Boolean);
+    document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type || availableViews.length <= 1);
     const current = rightPanel?.getAttribute('data-editor-view');
-    if (current === 'relation' && !relationTabVisible) setEditorShellView('info');
-    else if (current === 'actions' && !hasActions) setEditorShellView(relationTabVisible ? 'relation' : 'info');
+    if (current && !availableViews.includes(current)) setEditorShellView(availableViews[0] || 'info');
   }
 
   function show(type, title = '', { resetScroll = true, typeLabel = '' } = {}) {
     if (type && resetScroll) setEditorShellView('info');
     $('emptyProperties').classList.toggle('hidden', !!type);
     const objectHeader = $('editorObjectHeader');
-    objectHeader.classList.toggle('hidden', !type);
-    objectHeader.classList.toggle('editor-object-header--country', type === 'country');
-    $('countryHeaderFields')?.classList.toggle('hidden', type !== 'country');
-    document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type);
+    const toolbarOwnsHeader = ['country', 'subunit', 'region'].includes(type);
+    objectHeader.classList.toggle('hidden', !type || toolbarOwnsHeader);
     $('editSheetTitle')?.classList.remove('hidden');
-    $('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
+    $('rightPanel')?.setAttribute('aria-labelledby', type && !toolbarOwnsHeader ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
     for (const [kind, id] of Object.entries({
       country: 'countryProperties', subunit: 'subunitProperties',
       region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',

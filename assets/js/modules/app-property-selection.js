@@ -14,8 +14,13 @@ export function createPropertySelection() {
 
   function setEditorShellView(view, { focus = false } = {}) {
     const requested = view === 'relation' ? 'relation' : view === 'actions' ? 'actions' : 'info';
-    const tab = requested === 'relation' ? (0, dependencies.$)('relationTabBtn') : requested === 'actions' ? (0, dependencies.$)('actionsTabBtn') : (0, dependencies.$)('editorTabBtn');
-    const active = requested !== 'info' && (tab?.hidden || tab?.getAttribute('aria-disabled') === 'true') ? 'info' : requested;
+    const tabs = {
+      info: (0, dependencies.$)('editorTabBtn'),
+      actions: (0, dependencies.$)('actionsTabBtn'),
+      relation: (0, dependencies.$)('relationTabBtn'),
+    };
+    const available = key => !!tabs[key] && !tabs[key].hidden && tabs[key].getAttribute('aria-disabled') !== 'true';
+    const active = available(requested) ? requested : ['info', 'actions', 'relation'].find(available) || requested;
     (0, dependencies.$)('rightPanel')?.setAttribute('data-editor-view', active);
     dependencies.editorSurfaceTabs?.sync(active, { focus });
   }
@@ -249,11 +254,11 @@ export function createPropertySelection() {
   function applyTerritorialSelectionIntent(type, id, refreshOnly = false) {
     const unitType = String(type || (0, dependencies.territorialUnitById)(id)?.properties?.unitType || '');
     if (unitType === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      return dependencies.selectionUiController.applyIntent((0, dependencies.countryObjectRef)(id), { refreshOnly, openEditor: !refreshOnly });
+      return dependencies.selectionUiController.applyIntent((0, dependencies.countryObjectRef)(id), { refreshOnly, openEditor: false });
     }
     const unit = (0, dependencies.territorialUnitById)(id);
     if (!unit || unit.properties?.unitType !== unitType) return false;
-    return dependencies.selectionUiController.applyIntent((0, dependencies.normalizeObjectRef)({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: !refreshOnly });
+    return dependencies.selectionUiController.applyIntent((0, dependencies.normalizeObjectRef)({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: false });
   }
 
   function setTerritorialUnitName(type, id, name) {
@@ -342,7 +347,7 @@ export function createPropertySelection() {
   function applyCountrySelectionIntent(id, refreshOnly = false) {
     return dependencies.selectionUiController.applyIntent(
       (0, dependencies.countryObjectRef)(id),
-      { refreshOnly, openEditor: !refreshOnly, reason: 'country-selection' },
+      { refreshOnly, openEditor: false, reason: 'country-selection' },
     );
   }
 
@@ -352,7 +357,7 @@ export function createPropertySelection() {
       domain: 'territorial',
       type: feature.properties?.unitType || dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT,
       id: String(id),
-    }), { refreshOnly, openEditor: !refreshOnly, reason: 'territorial-selection' }) : false;
+    }), { refreshOnly, openEditor: false, reason: 'territorial-selection' }) : false;
   }
 
   function applyDistributionSelectionIntent(id, refreshOnly = false) {

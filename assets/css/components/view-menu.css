@@ -5,6 +5,7 @@
   top: var(--ui-menu-position-top, calc(var(--ui-shell-topbar-height) + var(--ui-menu-trigger-gap)));
   right: auto;
   bottom: auto;
+  height: auto;
   left: var(--ui-menu-position-left, var(--ui-menu-screen-edge));
   max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
   overflow: visible;
