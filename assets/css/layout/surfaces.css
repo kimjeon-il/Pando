@@ -174,7 +174,9 @@
   flex: 1 1 auto;
 }
 
-[data-layout="wide"] :is(.surface-search, .surface-display) {
+.surface-display { opacity: 0; visibility: hidden; pointer-events: none; }
+
+[data-layout="wide"] .surface-search {
   position: fixed;
   z-index: 36;
   /* Keep the transient surface below the map command bar rather than covering it. */
@@ -188,14 +190,14 @@
   transform: translateY(calc(-1 * var(--ui-space-2)));
 }
 
-[data-layout="wide"] :is(.surface-search, .surface-display).surface-open {
+[data-layout="wide"] .surface-search.surface-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
 }
 
-[data-layout="compact"] :is(.surface-search, .surface-display) {
+[data-layout="compact"] .surface-search {
   position: fixed;
   z-index: 36;
   top: calc(var(--ui-shell-topbar-height) + var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-6) + var(--ui-space-2));
@@ -212,12 +214,7 @@
   transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
 }
 
-[data-layout="compact"] .surface-display {
-  right: var(--ui-shell-compact-inset);
-  transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
-}
-
-[data-layout="compact"] :is(.surface-search, .surface-display).mobile-open {
+[data-layout="compact"] .surface-search.mobile-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;

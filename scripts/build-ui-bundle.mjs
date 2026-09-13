@@ -18,6 +18,7 @@ const sources = Object.freeze([
   'assets/css/features/layer-panel.css',
   'assets/css/components/editor-shell.css',
   'assets/css/components/panels.css',
+  'assets/css/components/menus.css',
   'assets/css/components/view-menu.css',
   'assets/css/components/mobile-sheets.css',
   'assets/css/components/feedback.css',

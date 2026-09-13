@@ -33,17 +33,23 @@ export function createNavigationBindings() {
   function bindNavigationUI() {
     bindSurfaceTabs();
     (0, dependencies.bindMapDisplayUI)();
+    let displayPointerStartedInside = false;
+    const closeDesktopDisplayMenu = () => {
+      const display = (0, dependencies.$)('mapDisplaySurface');
+      if (dependencies.layoutMode === 'mobile' || !display?.classList.contains('surface-open')) return;
+      (0, dependencies.closeDesktopViewMenuGroup)();
+      (0, dependencies.closeSurface)('display', { restoreFocus: false });
+    };
     document.addEventListener('pointerdown', event => {
+      displayPointerStartedInside = !!event.target.closest('#mapDisplaySurface');
       if (!event.target.closest('#notificationCloseBtn')) (0, dependencies.clearErrorNotification)();
     }, true);
     document.addEventListener('click', e => {
       if (!e.target.closest('.top-actions') && !e.target.closest('#mobileFileBtn')) {
         (0, dependencies.closeFileMenu)();
       }
-      const display = (0, dependencies.$)('mapDisplaySurface');
-      if (dependencies.layoutMode !== 'mobile' && display?.classList.contains('surface-open') && !e.target.closest('#mapDisplaySurface, #mapDisplayBtn')) {
-        (0, dependencies.closeDesktopViewMenuGroup)();
-        (0, dependencies.closeSurface)('display');
+      if (!e.target.closest('#mapDisplaySurface, #mapDisplayBtn') && !(e.detail && displayPointerStartedInside)) {
+        closeDesktopDisplayMenu();
       }
       if (!e.target.closest('#objectActionsMenu') && !e.target.closest('[data-layer-item-menu]')) (0, dependencies.closeObjectActionsMenu)();
       if (!e.target.closest('#objectChooser')) (0, dependencies.closeObjectChooser)();
@@ -69,11 +75,13 @@ export function createNavigationBindings() {
 
     (0, dependencies.$)('mobileFileBtn')?.addEventListener('click', event => {
       event.stopPropagation();
+      closeDesktopDisplayMenu();
       (0, dependencies.toggleFileMenu)();
     });
     (0, dependencies.$)('notificationCloseBtn')?.addEventListener('click', dependencies.clearNotification);
     (0, dependencies.$)('createMenuBtn')?.addEventListener('click', event => {
       event.stopPropagation();
+      closeDesktopDisplayMenu();
       (0, dependencies.toggleCreateMenu)(event.currentTarget);
     });
     (0, dependencies.$)('objectSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));

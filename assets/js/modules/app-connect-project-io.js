@@ -106,6 +106,7 @@ export function connectProjectIo({
     get writeDomainColor() { return runtime.writeDomainColor; },
   });
   projectRestore.connect({
+    get renderMapDisplaySettings() { return mapSettings.renderMapDisplaySettings; },
     get $() { return environment.$; },
     get analyzeAdminCountryCoast() { return runtime.analyzeAdminCountryCoast; },
     get applyFreshBuiltinClassification() { return builtinSession.applyFreshBuiltinClassification; },

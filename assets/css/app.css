@@ -890,31 +890,7 @@ body { font-size: var(--ui-font-body); }
   width: 280px; max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-space-5)); overflow-y: auto;
 }
 .top-actions:not(.mobile-open) { display: none; pointer-events: none; }
-.top-actions {
-  padding-block: var(--ui-menu-padding);
-  padding-inline: 0;
-}
 .top-actions.mobile-open { display: grid; }
-.top-actions .btn, .top-actions .btn:not(.ghost) {
-  width: 100%; min-width: 0; text-align: left; white-space: nowrap;
-}
-.top-actions .file-menu-item {
-  display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
-  align-items: center;
-  gap: var(--ui-space-2);
-}
-.top-actions .file-menu-icon {
-  width: var(--ui-icon-size);
-  height: var(--ui-icon-size);
-  color: var(--muted);
-}
-.top-actions .file-menu-item:hover .file-menu-icon,
-.top-actions .file-menu-item:focus-visible .file-menu-icon { color: var(--text-strong); }
-.top-actions .divider { width: 100%; height: 1px; margin: 0; }
-.file-submenu { display: grid; gap: var(--ui-menu-gap); margin-left: var(--ui-space-3); padding-left: var(--ui-space-2); border-left: 1px solid var(--border); }
-.file-submenu-trigger { display: flex; align-items: center; justify-content: space-between; }
-.file-help-menu-item { color: var(--muted); }
 
 .btn, .icon-btn, .danger-btn, .mode-action-bar button {
   border-radius: var(--ui-radius-control); transition: background-color .14s ease, border-color .14s ease, color .14s ease, box-shadow .14s ease;
@@ -1816,7 +1792,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 .ui-panel { padding: var(--ui-panel-padding); }
 .ui-panel--dense { padding: var(--ui-panel-padding-dense); }
 .ui-section { display: grid; gap: var(--ui-field-gap); }
-.ui-menu { display: grid; gap: var(--ui-menu-gap); padding: var(--ui-menu-padding); }
 .ui-popover { border: 1px solid var(--overlay-border); border-radius: var(--ui-radius-panel); background: var(--surface-elevated); box-shadow: var(--control-shadow); }
 .ui-floating-surface {
   border: 1px solid var(--overlay-border);

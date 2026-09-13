@@ -10,7 +10,7 @@ test('topbar separates history, file, view, settings and help commands', () => {
   assert.equal(topbar.includes('class="brand"'), false);
   assert.deepEqual([...topbar.matchAll(/id="(undoBtn|redoBtn|mobileFileBtn|mapDisplayBtn|preferencesBtn|helpBtn)"/g)].map(m => m[1]),
     ['undoBtn', 'redoBtn', 'mobileFileBtn', 'mapDisplayBtn', 'preferencesBtn', 'helpBtn']);
-  assert.match(topbar, /id="mapDisplayBtn"[\s\S]*?<use href="#icon-eye"\/>/);
+  assert.match(topbar, /<button id="mapDisplayBtn"[^>]*>보기<\/button>/);
   assert.deepEqual([...menu.matchAll(/<button id="([^"]+)"/g)].map(m => m[1]),
     ['newProjectBtn', 'openProjectBtn', 'saveProjectBtn', 'openGisBtn', 'dataExportBtn']);
   assert.deepEqual([...menu.matchAll(/<use href="#([^"]+)"/g)].map(m => m[1]),
