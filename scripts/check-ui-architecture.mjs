@@ -38,7 +38,6 @@ const rawColorPattern = /(?:#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\()/i;
 const rawPixelPattern = /(?:^|[^\w-])-?(?:\d*\.)?\d+px\b/i;
 
 const surfaceContracts = Object.freeze([
-  Object.freeze({ id: 'leftPanel', variant: 'surface-map' }),
   Object.freeze({ id: 'rightPanel', variant: 'surface-editor' }),
 ]);
 

@@ -139,7 +139,7 @@
 }
 .map-name-settings .layer-type-settings .ui-radio-toggle > input[type="checkbox"]:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: var(--ui-v2-focus-offset);
 }
 
 .map-view-settings .ui-choice-copy {
@@ -408,7 +408,7 @@ body.file-menu-open .mobile-backdrop {
 
 .surface-display .map-display-detail-trigger:focus-visible {
   outline: 2px solid var(--ui-focus-ring);
-  outline-offset: -2px;
+  outline-offset: calc(-1 * var(--ui-v2-focus-offset));
 }
 
 .surface-display .map-display-row:has(.map-display-detail-trigger:is(:hover, :focus-visible)):not(.is-disabled) {
@@ -431,7 +431,7 @@ body.file-menu-open .mobile-backdrop {
 
 .create-menu-category {
   display: grid;
-  gap: 2px;
+  gap: var(--ui-space-0-5);
   padding-block: var(--ui-space-2);
 }
 
@@ -460,6 +460,65 @@ body.file-menu-open .mobile-backdrop {
   background: var(--surface-hover);
 }
 
+.surface-search,
+.surface-display {
+  background: var(--surface-elevated);
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--control-shadow);
+}
+
+/* Search is a quick picker, not a second card list. */
+.object-search-section .layer-search-results {
+  display: grid;
+  align-content: start;
+  gap: var(--ui-space-0-5);
+}
+
+.object-search-section .layer-search-result {
+  min-height: var(--ui-v2-control-md);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: 0 var(--ui-space-2);
+  border-color: transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+}
+
+.object-search-section .layer-search-result > strong {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.object-search-section .layer-search-result > span {
+  grid-row: auto;
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  white-space: nowrap;
+}
+
+.object-search-section .layer-search-result-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  color: var(--muted);
+}
+
+.object-search-section .layer-search-result:is(:hover, :focus-visible) {
+  border-color: transparent;
+  background: var(--surface-hover);
+}
+
 @media (max-width: 799px) {
   .surface-display .map-display-row { min-height: var(--ui-touch-height); }
+  [data-layout="mobile"] :is(.surface-search, .surface-display) {
+    border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
+  }
+  .object-search-section .layer-search-result { min-height: var(--ui-touch-height); }
 }

@@ -171,10 +171,6 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  background: var(--surface-elevated);
-  border: var(--ui-border-width) solid var(--border);
-  border-radius: var(--ui-radius-panel);
-  box-shadow: var(--control-shadow);
   transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
 }
 
@@ -190,8 +186,8 @@
   /* Keep the transient surface below the map command bar rather than covering it. */
   top: calc(var(--ui-shell-topbar-height) + var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-6) + var(--ui-space-2));
   left: calc(var(--ui-map-edge) + var(--ui-popover-screen-edge));
-  width: min(340px, calc(100vw - var(--ui-popover-screen-edge) * 2));
-  max-height: min(680px, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-shell-statusbar-height) - var(--ui-space-6)));
+  width: min(var(--ui-transient-surface-width), calc(100vw - var(--ui-popover-screen-edge) * 2));
+  max-height: min(var(--ui-transient-surface-max-height), calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-shell-statusbar-height) - var(--ui-space-6)));
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -244,7 +240,6 @@
   height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
   min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--ui-v2-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
   max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
-  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;

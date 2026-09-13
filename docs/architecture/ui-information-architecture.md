@@ -32,14 +32,14 @@
 편집 화면의 위계는 다음으로 고정한다.
 
 ```text
-Surface Header: 편집 + 닫기
+Surface Header: 편집 + 잠금 + 삭제 + 닫기
 Tabs:           정보 / 작업
 ObjectContext:  객체명 + 유형 + 상태 (+ 지도에서 보기)
 Content:        속성 또는 작업
 Danger:         삭제
 ```
 
-Surface Header는 현재 창이 무엇인지 설명하는 영역이며 선택 객체의 이름, 유형, 잠금, 삭제 같은 객체 상태를 넣지 않는다. 객체의 정체성은 탭 아래 본문 첫머리의 ObjectContext가 담당한다.
+Surface Header는 현재 창이 무엇인지 설명하고, 선택 객체에 직접 작용하는 잠금·삭제와 닫기만 제공한다. 객체의 이름·유형·상태는 탭 아래 본문 첫머리의 ObjectContext가 담당한다.
 
 ObjectContext의 이름은 두 줄까지 허용하고 이후 말줄임한다. 유형과 잠금 상태는 보조 정보 줄에 표시한다. `지도에서 보기`는 ObjectContext의 보조 action으로 유지할 수 있다.
 
@@ -56,7 +56,7 @@ ObjectContext의 이름은 두 줄까지 허용하고 이후 말줄임한다. �
 - `추가`의 `만들기 / 라이브러리` 경로 유지
 - `만들기`의 대분류 명칭·순서와 주요 객체 타입
 - Generic Feature 직접 생성 금지
-- 편집 Surface Header에 객체별 정보/action 침범 금지
+- 편집 Surface Header에는 잠금·삭제·닫기만 두고 객체별 정보는 침범하지 않음
 - `header → tabs → body → ObjectContext` 위계 유지
 - ObjectContext의 이름/유형/상태 계약
 - 삭제가 최종 danger section에만 존재하는지
