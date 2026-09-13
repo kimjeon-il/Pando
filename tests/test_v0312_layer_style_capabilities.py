@@ -1,18 +1,18 @@
-from tests.application_source import read_application_sources
 from pathlib import Path
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = read_application_sources(ROOT)
+MAP_SETTINGS = (ROOT / 'assets' / 'js' / 'modules' / 'app-map-settings.js').read_text(encoding='utf-8')
+RENDERING_DOMAIN = (ROOT / 'assets' / 'js' / 'modules' / 'rendering-domain.js').read_text(encoding='utf-8')
 HTML = (ROOT / 'index.html').read_text(encoding='utf-8')
 
 
 class LayerStyleCapabilityTests(unittest.TestCase):
     def test_layer_controls_only_expose_supported_capabilities(self):
-        targets = APP[APP.index('const LAYER_STYLE_TARGETS'):APP.index('function updateLayerPresentationStyle')]
+        targets = MAP_SETTINGS[MAP_SETTINGS.index('(LAYER_STYLE_TARGETS = Object.freeze({'):MAP_SETTINGS.index('(projectSerializer =')]
         self.assertIn("countries: { presentationGroup: 'countries', label: '국가', opacity: true, boundary: true, boundaryLabel: '국경 표시' }", targets)
-        for group in ('territories', 'administrative', 'regions'):
+        for group in ('subunits', 'regions'):
             self.assertIn(f"{group}: {{ presentationGroup: '{group}'", targets)
         for group in ('languages', 'ethnicities', 'religions'):
             self.assertIn(f"{group}: {{ presentationGroup: '{group}',", targets)
@@ -25,9 +25,9 @@ class LayerStyleCapabilityTests(unittest.TestCase):
         self.assertIn('id="distributionViewSettingsTitle">인문 분포', HTML)
         self.assertIn('id="distributionLayerModeInput"', HTML)
         self.assertIn('id="distributionBoundaryVisibleInput"', HTML)
-        self.assertNotIn('data-layer-style-toggle="distribution"', HTML)
+        self.assertNotIn('data-map-display-disclosure="distribution"', HTML)
         self.assertNotIn('data-layer-style-panel="distribution"', HTML)
-        self.assertIn('const boundaryVisible = state.distributionSettings?.boundaryVisible !== false;', APP)
+        self.assertIn('const boundaryVisible = state.distributionSettings?.boundaryVisible !== false;', RENDERING_DOMAIN)
 
 
 if __name__ == '__main__':

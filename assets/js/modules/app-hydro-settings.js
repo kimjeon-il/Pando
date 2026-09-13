@@ -55,9 +55,7 @@ export function createHydroSettings() {
     const terrainVisible = dependencies.state.physicalSettings.terrainVisible !== false;
     if ((0, dependencies.$)('terrainVisible')) {
       (0, dependencies.$)('terrainVisible').checked = terrainVisible;
-      (0, dependencies.$)('terrainVisible').setAttribute('aria-expanded', String(terrainVisible));
     }
-    if ((0, dependencies.$)('terrainDisplayOptions')) (0, dependencies.$)('terrainDisplayOptions').hidden = !terrainVisible;
     if ((0, dependencies.$)('terrainPoliticalRadio')) (0, dependencies.$)('terrainPoliticalRadio').checked = dependencies.state.physicalSettings.terrainStyle === 'political';
     if ((0, dependencies.$)('terrainPhysicalRadio')) (0, dependencies.$)('terrainPhysicalRadio').checked = dependencies.state.physicalSettings.terrainStyle === 'physical';
   }

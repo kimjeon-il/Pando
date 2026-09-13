@@ -29,7 +29,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
 
 async function makeProjectDirty(page) {
   if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
-  await page.locator('[data-layer-style-toggle="countries"]').click();
+  await page.locator('[data-map-display-row="countries"]').click();
   await page.locator('[data-layer-style-opacity="countries"]').fill('80');
   await page.locator('[data-layer-style-opacity="countries"]').dispatchEvent('change');
 }

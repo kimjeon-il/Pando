@@ -11,23 +11,26 @@ export function createNavigationBindings() {
   }
 
   function bindSurfaceTabs() {
-    dependencies.mapSurfaceTabs = (0, dependencies.createSurfaceTabsController)({
-      tablist: (0, dependencies.$)('mapPanelTabs'),
-      onSelect: (key, options) => (0, dependencies.setMapPanelView)(key, options),
-    });
     dependencies.editorSurfaceTabs = (0, dependencies.createSurfaceTabsController)({
       tablist: document.querySelector('.editor-view-tabs'),
       onSelect: (key, options) => (0, dependencies.setEditorShellView)(key, options),
     });
-    dependencies.mapSurfaceTabs.bind();
     dependencies.editorSurfaceTabs.bind();
-    (0, dependencies.setMapPanelView)(dependencies.mapPanelView);
     (0, dependencies.syncMapObjectCategoryLabels)();
     (0, dependencies.setEditorShellView)('info');
   }
 
+  function toggleWorkspaceSurface(surface, trigger) {
+    (0, dependencies.toggleSurface)(surface, trigger);
+    if (surface === 'display') (0, dependencies.renderMapDisplaySettings)();
+    if (surface === 'search' && (0, dependencies.$)('objectSearchSurface')?.classList.contains('surface-open')) {
+      requestAnimationFrame(() => (0, dependencies.$)('layerSearchInput')?.focus({ preventScroll: true }));
+    }
+  }
+
   function bindNavigationUI() {
     bindSurfaceTabs();
+    (0, dependencies.bindMapDisplayUI)();
     document.addEventListener('pointerdown', event => {
       if (!event.target.closest('#notificationCloseBtn')) (0, dependencies.clearErrorNotification)();
     }, true);
@@ -66,13 +69,19 @@ export function createNavigationBindings() {
       event.stopPropagation();
       (0, dependencies.toggleCreateMenu)(event.currentTarget);
     });
+    (0, dependencies.$)('objectSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
+    (0, dependencies.$)('mapDisplayBtn')?.addEventListener('click', event => toggleWorkspaceSurface('display', event.currentTarget));
+    (0, dependencies.$)('objectLockBtn')?.addEventListener('click', () => dependencies.batchToggleLocked());
+    (0, dependencies.$)('objectDeleteBtn')?.addEventListener('click', () => dependencies.deleteSelectedFromObjectMenu());
     (0, dependencies.$)('mobileBackdrop')?.addEventListener('click', () => {
       (0, dependencies.closeFileMenu)({ restoreFocus: true });
     });
     Object.values(dependencies.MOBILE_SHEET_IDS).forEach(id => (0, dependencies.bindMobileSheetSurface)((0, dependencies.$)(id)));
-    (0, dependencies.$)('mobileMapBtn')?.addEventListener('click', event => (0, dependencies.toggleSurface)('layers', event.currentTarget));
+    (0, dependencies.$)('mobileSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
     (0, dependencies.$)('mobileEditBtn')?.addEventListener('click', event => (0, dependencies.toggleSurface)('editor', event.currentTarget));
-    (0, dependencies.$)('mobileCloseLeftBtn')?.addEventListener('click', () => (0, dependencies.closeSurface)('layers', { restoreFocus: true }));
+    (0, dependencies.$)('mobileDisplayBtn')?.addEventListener('click', event => toggleWorkspaceSurface('display', event.currentTarget));
+    (0, dependencies.$)('objectSearchCloseBtn')?.addEventListener('click', () => (0, dependencies.closeSurface)('search', { restoreFocus: true }));
+    (0, dependencies.$)('mapDisplayCloseBtn')?.addEventListener('click', () => (0, dependencies.closeSurface)('display', { restoreFocus: true }));
     (0, dependencies.$)('mobileCloseRightBtn')?.addEventListener('click', () => {
       (0, dependencies.closeSurface)('editor', { manual: dependencies.layoutMode === 'wide', restoreFocus: true });
     });
@@ -107,19 +116,13 @@ export function createNavigationBindings() {
   function bindLayerUI() {
     dependencies.layerTreeController = (0, dependencies.createAppLayerTreeController)({
       window, document, getElement: dependencies.$, state: dependencies.state, layerSearchGroupKeys: dependencies.LAYER_SEARCH_GROUP_KEYS,
-      builtinCountryIds: () => dependencies.builtinCountryIds, builtinSession: () => dependencies.state.sessionBaseCountriesJson == null,
-      setBundleVisibility: dependencies.setLayerItemsVisibility,
       layerGroupNames: dependencies.layerGroupNames, createIcon: (name, className) => (0, dependencies.createSemanticIcon)(document, name, className),
       createEmptyState: dependencies.createEmptyState, layerTreeItems: dependencies.layerTreeItems, layerItemObjectRef: dependencies.layerItemObjectRef, normalizeObjectRef: dependencies.normalizeObjectRef, selectionDomain: dependencies.selectionDomain,
-      isLayerItemVisible: dependencies.isLayerListItemVisible, objectRefLocked: dependencies.objectRefLocked, hydroCategoryKey: dependencies.hydroCategoryKey,
+      hydroCategoryKey: dependencies.hydroCategoryKey,
       compareItems: (left, right) => dependencies.layerNameCollator.compare(left.name, right.name) || dependencies.layerNameCollator.compare(left.id, right.id),
-      pruneLayerItemVisibility: dependencies.pruneLayerItemVisibility, syncCanonicalControls: dependencies.syncCanonicalControls, syncSearchClearButton: dependencies.syncSearchClearButton,
-      setLayerVisibility: dependencies.setLayerVisibility, toggleLayerStylePanel: dependencies.toggleLayerStylePanel, updateLayerPresentationStyle: dependencies.updateLayerPresentationStyle, distributionService: dependencies.distributionService,
-      syncDistributionPresentationControls: dependencies.syncDistributionPresentationControls, renderingDomain: () => dependencies.renderingDomain,
-      queuePresentationAutosave: (...args) => dependencies.projectDomain.queuePresentationAutosave(...args), gpuMapRenderer: dependencies.gpuMapRenderer, syncPhysicalControls: dependencies.syncPhysicalControls, markLayerTreeDirty: dependencies.markLayerTreeDirty,
-      setActionStatus: dependencies.setActionStatus, selectLayerTreeItem: dependencies.selectLayerTreeItem, openObjectActionsMenu: dependencies.openObjectActionsMenu,
-      isMobile: dependencies.isMobile, returnToMapAfterMobileAction: dependencies.returnToMapAfterMobileAction, closeObjectActionsMenu: dependencies.closeObjectActionsMenu,
-      syncLayerVisibilityToggle: dependencies.syncLayerVisibilityToggle, setLayerItemVisibility: dependencies.setLayerItemVisibility, batchToggleLocked: dependencies.batchToggleLocked, deleteSelectedFromObjectMenu: dependencies.deleteSelectedFromObjectMenu,
+      syncCanonicalControls: dependencies.syncCanonicalControls, syncSearchClearButton: dependencies.syncSearchClearButton,
+      markLayerTreeDirty: dependencies.markLayerTreeDirty, selectLayerTreeItem: dependencies.selectLayerTreeItem,
+      closeSearchAfterSingleSelection: () => (0, dependencies.closeSurface)('search'),
     });
     dependencies.layerTreeController.bind();
   }

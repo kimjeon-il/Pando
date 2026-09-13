@@ -132,8 +132,6 @@ export function createToolBindings() {
     (0, dependencies.$)('mergeCountryBtn')?.addEventListener('click', () => {
       if ((dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY)) (0, dependencies.requestDraftDiscard)(() => (0, dependencies.returnToMapAfterMobileAction)((0, dependencies.enterMergeCountryMode)(dependencies.state.selected.id)));
     });
-    (0, dependencies.bindHoldZoom)((0, dependencies.$)('zoomInBtn'), 1.25);
-    (0, dependencies.bindHoldZoom)((0, dependencies.$)('zoomOutBtn'), 0.8);
     (0, dependencies.$)('resetViewBtn').addEventListener('click', dependencies.resetView);
   }
 

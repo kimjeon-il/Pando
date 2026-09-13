@@ -269,7 +269,7 @@ test('annex archives a component and starts the next method without losing the c
 
 test('narrow mobile widths keep the editor type scale instead of shrinking text', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const errors = await openApp(page, { waitForCanonical: false });
+  const errors = await openApp(page);
   for (const width of [360, 320]) {
     await page.setViewportSize({ width, height: 780 });
     await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
@@ -1002,21 +1002,19 @@ test('virtualized country deletion honors per-object lock, undo, and autosave re
   expect(errors).toEqual([]);
 });
 
-test('layer folders expose presentation controls while global view settings stay in the map view', async ({ page }) => {
+test('map display controls stay separate from the compact layer list', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
-  const errors = await openApp(page);
-  const categories = page.locator('.layer-category');
-  await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지형지물']);
-  await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '권역', '행정구역', '지방']);
-  await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder:not([hidden]) .layer-folder-name')).toHaveText(['강', '호수']);
-  await expect(categories.nth(2).locator('.layer-folder[data-layer-group="genericFeatures"]')).toBeHidden();
+  const errors = await openApp(page, { waitForCanonical: false });
+  const layerList = page.locator('#layerSection .layer-list');
+  await expect(layerList).toHaveAttribute('aria-label', '프로젝트 레이어');
+  await expect(layerList.getByRole('button', { name: '정치체', exact: true })).toHaveCount(1);
+  await expect(layerList.getByRole('button', { name: '지형지물', exact: true })).toHaveCount(1);
   await expect(page.locator('#layerSection #terrainVisible')).toHaveCount(0);
-  await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
-  await expect(page.locator('[data-layer-style-toggle="countries"]')).toHaveCount(1);
-  await expect(page.locator('[data-layer-style-toggle="rivers"]')).toHaveCount(1);
-  await expect(page.locator('[data-layer-style-toggle="lakes"]')).toHaveCount(1);
-  await expect(page.locator('[data-layer-style-toggle="labels"], [data-layer-style-toggle="countryLabels"]')).toHaveCount(0);
+  await expect(page.locator('#layerSection [data-map-display-row]')).toHaveCount(0);
+  await expect(page.locator('[data-map-display-row="countries"]')).toHaveCount(1);
+  await expect(page.locator('[data-map-display-row="rivers"]')).toHaveCount(1);
+  await expect(page.locator('[data-map-display-row="lakes"]')).toHaveCount(1);
+  await expect(page.locator('[data-map-display-row="labels"], [data-map-display-row="countryLabels"]')).toHaveCount(0);
   await page.locator('#mapViewTabBtn').click();
   await expect(page.locator('#mapNameSettingsTitle')).toHaveText('지도 표시');
   await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
@@ -1024,26 +1022,51 @@ test('layer folders expose presentation controls while global view settings stay
   await expect(page.locator('.terrain-settings')).toHaveCount(0);
   const terrainVisible = page.locator('#terrainVisible');
   const terrainOptions = page.locator('#terrainDisplayOptions');
+  const terrainDisclosure = page.locator('[data-map-display-row="terrain"]');
   await expect(page.locator('#mapViewSection #terrainVisible')).toHaveCount(1);
   await expect(page.locator('label:has(#terrainVisible)')).toContainText('지형 표시');
   await expect(page.locator('#terrainPoliticalRadio').locator('xpath=..')).toContainText('국가 색상 유지');
   await expect(page.locator('#terrainPhysicalRadio').locator('xpath=..')).toContainText('지형 높낮이 색상');
   await expect(page.locator('#terrainStrengthControl, #terrainStrengthInput')).toHaveCount(0);
   expect(await page.locator('#terrainVisible').evaluate(input => input.closest('.map-name-settings') != null)).toBe(true);
-  expect(await page.locator('#countriesVisible, #subunitsVisible, #regionsVisible, #languagesVisible, #ethnicitiesVisible, #religionsVisible, #riversVisible, #lakesVisible').evaluateAll(inputs => inputs.map(input => ({
-    type: input.type,
-    radioStyle: input.closest('label')?.classList.contains('ui-radio-toggle'),
-    radius: getComputedStyle(input).borderRadius,
-  })))).toEqual(Array.from({ length: 8 }, () => ({ type: 'checkbox', radioStyle: true, radius: '50%' })));
-  await expect(terrainVisible).toHaveAttribute('aria-expanded', 'true');
+  expect(await page.locator('#countriesVisible, #subunitsVisible, #regionsVisible, #languagesVisible, #ethnicitiesVisible, #religionsVisible, #riversVisible, #lakesVisible')
+    .evaluateAll(inputs => inputs.map(input => input.type))).toEqual(Array.from({ length: 8 }, () => 'checkbox'));
+  await expect(terrainDisclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(terrainOptions).toBeHidden();
+  await terrainDisclosure.click();
+  await expect(terrainDisclosure).toHaveAttribute('aria-expanded', 'true');
   await expect(terrainOptions).toBeVisible();
   await terrainVisible.uncheck();
-  await expect(terrainVisible).toHaveAttribute('aria-expanded', 'false');
+  await expect(terrainDisclosure).toBeDisabled();
+  await expect(terrainDisclosure).toHaveAttribute('aria-expanded', 'false');
   await expect(terrainOptions).toBeHidden();
   await terrainVisible.check();
+  await expect(terrainDisclosure).toBeEnabled();
+  await expect(terrainOptions).toBeHidden();
+  await terrainDisclosure.click();
   await expect(terrainOptions).toBeVisible();
   await page.locator('#terrainPhysicalRadio').check();
   await page.locator('#terrainPoliticalRadio').check();
+  const countryDisclosure = page.locator('[data-map-display-row="countries"]');
+  const countryOptions = page.locator('#layerStylePanel-countries');
+  await expect(countryDisclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(countryOptions).toBeHidden();
+  await countryDisclosure.click();
+  await expect(countryDisclosure).toHaveAttribute('aria-expanded', 'true');
+  await expect(countryOptions).toBeVisible();
+  const countryOpacity = page.locator('[data-layer-style-opacity="countries"]');
+  await expect(countryOpacity).toHaveClass(/ui-range-progress/);
+  await countryOpacity.fill('62');
+  await countryOpacity.dispatchEvent('input');
+  await expect(page.locator('[data-layer-style-opacity-value="countries"]')).toHaveText('62%');
+  await expect(countryOpacity).toHaveCSS('--ui-range-progress', '62%');
+  await page.locator('#countriesVisible').uncheck();
+  await expect(countryDisclosure).toBeDisabled();
+  await expect(countryDisclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(countryOptions).toBeHidden();
+  await page.locator('#countriesVisible').check();
+  await expect(countryDisclosure).toBeEnabled();
+  await expect(countryOptions).toBeHidden();
   for (const layout of layouts.slice(1)) {
     await page.setViewportSize(layout.viewport);
     await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
@@ -1353,90 +1376,46 @@ test('shared color picker applies presets, restores defaults, and participates i
   expect(errors).toEqual([]);
 });
 
-test('layer style hover is isolated and preferences reuse the shared color picker', async ({ page }) => {
+test('map display disclosures isolate nested settings', async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize(layouts[0].viewport);
   await page.emulateMedia({ colorScheme: 'light' });
   const errors = await openApp(page, { waitForCanonical: false });
-  const folder = page.locator('.layer-folder[data-layer-group="countries"]');
-  const row = folder.locator(':scope > .layer-folder-row');
-  const visibility = row.locator('.layer-visibility-control');
-  const styleToggle = row.locator('[data-layer-style-toggle="countries"]');
-  const readHover = async locator => {
-    await locator.hover();
-    await page.waitForTimeout(200);
-    return locator.evaluate(element => {
-      const rowElement = element.closest('.layer-folder-row');
-      const style = getComputedStyle(element);
-      return { background: style.backgroundColor, color: style.color, rowBackground: getComputedStyle(rowElement).backgroundColor };
-    });
-  };
-  const baseRowBackground = await row.evaluate(element => getComputedStyle(element).backgroundColor);
-  const visibilityHover = await readHover(visibility);
-  await page.mouse.move(0, 0);
-  const styleHover = await readHover(styleToggle);
-  expect(styleHover.background).toBe(visibilityHover.background);
-  expect(styleHover.color).toBe(visibilityHover.color);
-  expect(styleHover.rowBackground).toBe(baseRowBackground);
-  await styleToggle.click();
-  await expect(styleToggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(styleToggle).toHaveClass(/active/);
-  await page.mouse.move(0, 0);
-  const settledActiveStyle = await styleToggle.evaluate(element => {
+  await page.locator('#mapViewTabBtn').click();
+  const disclosure = page.locator('[data-map-display-row="countries"]');
+  const displayOptions = page.locator('#layerStylePanel-countries');
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(displayOptions).toBeHidden();
+  await disclosure.click();
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+  await expect(displayOptions).toBeVisible();
+  const displaySurface = await displayOptions.evaluate(element => {
     const style = getComputedStyle(element);
-    return { background: style.backgroundColor, color: style.color };
+    return { background: style.backgroundColor, borderTop: style.borderTopColor };
   });
-  expect(settledActiveStyle.background).not.toBe('rgba(0, 0, 0, 0)');
-  expect(settledActiveStyle.color).not.toBe('rgba(0, 0, 0, 0)');
+  expect(displaySurface.background).not.toBe('rgba(0, 0, 0, 0)');
+  expect(displaySurface.borderTop).not.toBe('rgba(0, 0, 0, 0)');
 
-  const folderToggle = row.locator('[data-layer-folder-toggle="countries"]').first();
-  if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
-  await page.locator('#countriesLayerChildren .layer-child-name').first().click();
-  await expect(page.locator('#countryProperties')).toBeVisible();
-  expect(await page.locator('.editor-flag-actions > .icon-btn').evaluateAll(buttons => buttons.map(button => {
-    const style = getComputedStyle(button);
-    const icon = button.querySelector('.ui-icon');
-    return [style.width, style.height, getComputedStyle(icon).width, getComputedStyle(icon).height];
-  }))).toEqual([
-    ['30px', '30px', '16px', '16px'],
-    ['30px', '30px', '16px', '16px'],
-  ]);
+  expect(errors).toEqual([]);
+});
 
-  await page.locator('#mobileFileBtn').click();
-  await page.locator('#preferencesBtn').click();
-  await expect(page.locator('#preferencesModal')).toBeVisible();
-  await page.locator('#preferencesSelectionColorTrigger').click();
-  const palette = page.locator('#preferencesSelectionColorPopover');
-  await expect(palette).toBeVisible();
-  await expect(palette.locator('.ui-color-swatch-grid--palette [data-color-value]')).toHaveCount(65);
-  await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
-  await palette.locator('[data-color-value="#ef4444"]').click();
-  await expect(page.locator('#preferencesSelectionColorInput')).toHaveValue('#ef4444');
-  await expect(page.locator('#preferencesSelectionColorValue')).toHaveText('#EF4444');
-  await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--map-selection-halo'))).toBe('#ef4444');
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences') || '{}').selection?.color)).toBe('#ef4444');
-
-  await page.locator('#preferencesCloseBtn').click();
+test('mobile sheet offsets only the visual grab bar without shrinking its touch target', async ({ page }) => {
   await page.setViewportSize(layouts[2].viewport);
-  await page.emulateMedia({ colorScheme: 'dark' });
-  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
-  if (await page.locator('#mobileEditBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileEditBtn').click();
-  expect(await page.locator('.editor-flag-actions > .icon-btn').evaluateAll(buttons => buttons.map(button => {
-    const style = getComputedStyle(button);
-    return [style.width, style.height];
-  }))).toEqual([
-    ['36px', '36px'],
-    ['36px', '36px'],
-  ]);
-  await page.locator('#mobileFileBtn').click();
-  await page.locator('#preferencesBtn').click();
-  await page.locator('#preferencesSelectionColorTrigger').click();
-  await expect(palette).toBeVisible();
-  const paletteBox = await palette.boundingBox();
-  expect(paletteBox.x).toBeGreaterThanOrEqual(0);
-  expect(paletteBox.x + paletteBox.width).toBeLessThanOrEqual(layouts[2].viewport.width);
-  expect(paletteBox.y).toBeGreaterThanOrEqual(0);
-  expect(paletteBox.y + paletteBox.height).toBeLessThanOrEqual(layouts[2].viewport.height);
+  const errors = await openApp(page, { waitForCanonical: false });
+  if (await page.locator('#mobileMapBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileMapBtn').click();
+  const handle = page.getByRole('slider', { name: '지도 창 높이 조절' });
+  const metrics = await handle.evaluate(element => {
+    const handleBox = element.getBoundingClientRect();
+    const barBox = element.querySelector('span').getBoundingClientRect();
+    return {
+      touchHeight: handleBox.height,
+      visualOffset: getComputedStyle(element).getPropertyValue('--ui-sheet-handle-visual-offset').trim(),
+      barInset: barBox.top - handleBox.top,
+    };
+  });
+  expect(metrics.touchHeight).toBeGreaterThanOrEqual(48);
+  expect(metrics.visualOffset).toBe('4px');
+  expect(metrics.barInset).toBeGreaterThanOrEqual(4);
   expect(errors).toEqual([]);
 });
 

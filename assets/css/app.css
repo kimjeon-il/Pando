@@ -1300,7 +1300,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .adaptive-nav,
 .surface-header,
 .mobile-backdrop { display: none; }
-.compact-primary-controls { display: contents; }
 
 .mobile-backdrop { opacity: 0; transition: opacity 170ms ease; }
 
@@ -1378,70 +1377,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 
 
-.app-root[data-layout="compact"] .compact-primary-controls {
-  display: flex;
-  position: absolute;
-  z-index: 42;
-  top: 12px;
-  left: var(--ui-shell-compact-inset);
-  align-items: stretch;
-  gap: var(--ui-space-2);
-}
-
-.app-root[data-layout="compact"] .adaptive-nav {
-  display: flex;
-  position: static;
-  width: auto;
-  height: auto;
-  flex-direction: row;
-  gap: var(--ui-toolbar-gap);
-  padding: var(--ui-toolbar-padding);
-  border: 1px solid var(--toolbar-border);
-  border-radius: var(--ui-radius-panel);
-  background: var(--toolbar-bg);
-  box-shadow: var(--shadow);
-}
-
-.app-root[data-layout="compact"] .adaptive-nav button {
-  width: auto;
-  min-width: 78px;
-  height: var(--ui-control-height);
-  padding: 0 var(--ui-space-1-5);
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--muted);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-nav-icon-label-gap);
-}
-
-.app-root[data-layout="compact"] .adaptive-nav button > span { height: var(--ui-icon-size); display: grid; place-items: center; }
-.app-root[data-layout="compact"] .adaptive-nav .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
-.app-root[data-layout="compact"] .adaptive-nav button.active,
-.app-root[data-layout="compact"] .adaptive-nav button.sheet-open { background: var(--accent-surface); color: var(--accent-text); }
-.app-root[data-layout="compact"] .adaptive-nav button.needs-attention:not(.sheet-open) { color: var(--accent-2); }
-.app-root[data-layout="compact"] .mobile-backdrop { display: none !important; }
-
-/* Compact controls: the wrapper only positions the two intentional surfaces. */
-.app-root[data-layout="compact"] .compact-primary-controls {
-  background: transparent !important;
-  border: 0 !important;
-  outline: 0;
-  box-shadow: none;
-  backdrop-filter: none !important;
-  filter: none !important;
-}
-.app-root[data-layout="compact"] .compact-primary-controls::before,
-.app-root[data-layout="compact"] .compact-primary-controls::after,
-.app-root[data-layout="compact"] .adaptive-nav::before,
-.app-root[data-layout="compact"] .adaptive-nav::after { content: none !important; display: none !important; }
-.app-root[data-layout="compact"] .adaptive-nav button:not(:hover):not(.active):not(.sheet-open) {
-  background: transparent;
-  box-shadow: none;
-}
 /* Mobile: modeless snap sheets over a stable full-width map. */
 body[data-layout="mobile"] {
   overscroll-behavior: none;
@@ -2388,22 +2323,16 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 
 
 
-.layer-style-toggle {
-  width: var(--ui-tree-action-size);
-  min-width: var(--ui-tree-action-size);
-  height: var(--ui-tree-action-size);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
+.map-display-row {
+  position: relative;
+  min-height: var(--ui-control-height);
+  padding: 0 var(--ui-space-2);
   border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--muted);
+  cursor: pointer;
 }
-.layer-style-toggle:hover { color: var(--text-strong); background: var(--ui-control-bg-hover); }
-.layer-style-toggle:is(.active, [aria-expanded="true"]) { color: var(--accent); background: color-mix(in srgb, var(--accent-surface) 18%, transparent); }
-.layer-style-toggle:is(.active, [aria-expanded="true"]):is(:hover, :focus-visible) { color: var(--accent); background: color-mix(in srgb, var(--accent-surface) 18%, transparent); }
-.layer-style-toggle .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
+.map-display-row:has(.map-display-detail-trigger:is(:hover, :focus-visible)):not(.is-disabled) { background: var(--ui-control-bg-hover); }
+.map-display-row:has(.map-display-detail-trigger[aria-expanded="true"]) { background: color-mix(in srgb, var(--accent-surface) 14%, transparent); }
+.map-display-row.is-disabled { cursor: default; opacity: .62; }
 .layer-presentation-row {
   min-height: var(--ui-tree-row-height);
   display: grid;
@@ -2415,7 +2344,6 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 .layer-presentation-subrow { margin-left: var(--ui-tree-indent); }
 .layer-presentation-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-soft); }
 .layer-presentation-row > .layer-presentation-name { grid-column: 1 / 3; }
-.layer-presentation-row > .layer-style-toggle { grid-column: 3; }
 .layer-inline-style-panel {
   display: grid;
   gap: var(--ui-space-2);
@@ -2425,12 +2353,19 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
   border-radius: 0;
   background: var(--surface-subtle);
 }
-.layer-inline-style-panel[hidden] { display: none; }
+.map-name-settings .map-display-details {
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--ui-radius-control);
+  background: var(--panel-2);
+}
+.map-name-settings .map-display-details[hidden] { display: none; }
 .layer-inline-style-field { gap: var(--ui-space-1); }
 .layer-inline-style-field > span { display: flex; justify-content: space-between; color: var(--text-soft); }
 .layer-inline-style-field output { color: var(--text-strong); font-variant-numeric: tabular-nums; }
 .layer-inline-style-panel input[type="range"] { width: 100%; }
-html.keyboard-navigation .layer-style-toggle:focus-visible { border-radius: var(--ui-radius-control); outline-offset: -2px; }
+html.keyboard-navigation .map-display-detail-trigger:focus-visible { border-radius: var(--ui-radius-control); outline-offset: -2px; }
 .layer-child-name {
   min-width: 0;
   min-height: var(--ui-control-height);
@@ -2610,13 +2545,10 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 
 
 
-.app-root[data-layout="mobile"] .layer-style-toggle {
-  width: var(--ui-tree-action-size-touch);
-  min-width: var(--ui-tree-action-size-touch);
-  height: var(--ui-tree-action-size-touch);
-}
+.app-root[data-layout="mobile"] .map-display-row { min-height: var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .layer-presentation-row { min-height: var(--ui-touch-height); grid-template-columns: var(--ui-touch-height) minmax(0, 1fr) var(--ui-touch-height); }
-.app-root[data-layout="mobile"] .layer-inline-style-panel { margin-inline: var(--ui-row-padding-x); padding-inline: var(--ui-space-2); }
+.app-root[data-layout="mobile"] .map-name-settings .map-display-details { padding-inline: var(--ui-space-2); }
+.app-root[data-layout="mobile"] .map-name-settings .map-display-details input[type="range"] { min-height: var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .layer-child-menu { width: var(--ui-tree-action-size-touch); min-width: var(--ui-tree-action-size-touch); height: var(--ui-tree-action-size-touch); }
 .app-root[data-layout="mobile"] .map-view-toolbar {
   width: calc(var(--ui-touch-height) + var(--ui-toolbar-padding) + var(--ui-toolbar-padding) + 2px);
@@ -3603,4 +3535,66 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   right: calc(var(--map-safe-right, 0px) + var(--ui-popover-screen-edge));
   bottom: calc(112px + env(safe-area-inset-bottom));
   transform: none;
+}
+
+/* Map command bar and transient search/display surfaces. */
+.map-command-toolbar {
+  position: absolute;
+  z-index: 18;
+  top: var(--ui-map-edge);
+  right: auto;
+  bottom: auto;
+  left: calc(var(--map-safe-left, 0px) + var(--ui-map-edge));
+  width: max-content;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-toolbar-gap);
+}
+.map-command-toolbar .icon-btn { flex: 0 0 var(--ui-control-height); }
+.map-command-divider { width: 1px; align-self: stretch; margin: var(--ui-space-1) 0; background: var(--border); }
+.object-search-section,
+.map-view-panel-section { min-height: 0; display: flex; flex-direction: column; }
+.object-search-section { flex: 1 1 auto; overflow: hidden; }
+.object-search-section .layer-search { margin-block-start: var(--ui-space-3); }
+.object-search-section .layer-search-results { flex: 1 1 auto; min-height: 0; overflow: auto; }
+.surface-search .surface-body-delegated,
+.surface-display .surface-body-delegated { display: flex; flex-direction: column; overflow: hidden; }
+.surface-display .map-view-panel-section { flex: 1 1 auto; padding: var(--ui-space-3); }
+.surface-display .map-view-settings { display: grid; gap: var(--ui-space-3); }
+.surface-display .map-name-settings { display: grid; gap: 0; }
+.surface-display .map-symbol-settings { display: grid; gap: 0; }
+.surface-display .layer-type-settings-heading > label { min-height: var(--ui-control-height); }
+.surface-display .map-display-details { margin-inline: 0; }
+.editor-object-command { color: var(--text-soft); }
+.editor-object-command:is(:hover, :focus-visible):not(:disabled) { color: var(--text); }
+.app-root[data-layout="wide"] .right-panel.surface-open {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+@media (min-width: 800px) {
+  .map-command-toolbar { top: calc(var(--ui-map-edge) + var(--ui-space-1)); }
+}
+
+@media (max-width: 799px) {
+  .app-root .adaptive-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .app-root[data-layout="mobile"] .map-command-toolbar {
+    top: var(--ui-map-edge);
+    right: auto;
+    bottom: auto;
+    left: calc(var(--map-safe-left, 0px) + var(--ui-popover-screen-edge));
+    display: flex;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    width: auto;
+  }
+  .app-root[data-layout="mobile"] .map-command-toolbar :is(#objectSearchBtn, #mapDisplayBtn, .map-command-divider) { display: none; }
+  .app-root[data-layout="mobile"] .map-command-toolbar button { width: var(--ui-touch-height); height: var(--ui-touch-height); }
+  .app-root[data-layout="mobile"] .surface-editor .surface-header { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(var(--ui-touch-height), auto) auto; }
+  .app-root[data-layout="mobile"] .surface-editor .surface-header-actions { display: flex; grid-column: 2; grid-row: 1; align-items: center; gap: var(--ui-space-1); }
+  .app-root[data-layout="mobile"] .surface-editor .editor-object-command { display: grid; width: var(--ui-touch-height); height: var(--ui-touch-height); }
+  .app-root[data-layout="mobile"] .surface-editor .sheet-close-btn { display: none; }
+  .app-root[data-layout="mobile"] :is(.surface-search, .surface-display) .layer-search-results { padding-bottom: var(--ui-space-3); }
 }

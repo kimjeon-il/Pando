@@ -1,7 +1,10 @@
 /* Mobile bottom-sheet chrome and task-surface presentation. */
 
+.mobile-bottom-bar { display: none; }
+
 @media (max-width: 799px) {
   .mobile-bottom-bar {
+    display: grid;
     min-height: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
     border-top: 1px solid var(--border);
@@ -38,6 +41,7 @@
   }
 
   .workspace-surface.ui-sheet {
+    --ui-sheet-handle-visual-offset: var(--ui-space-1);
     --surface-elevated: var(--ui-v2-color-panel);
     border-top: 1px solid var(--border);
     border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
@@ -64,7 +68,7 @@
     height: auto;
     display: grid;
     place-items: start center;
-    padding: var(--ui-space-2) 0 0;
+    padding: calc(var(--ui-space-2) + var(--ui-space-1)) 0 0;
     border: 0;
     background: transparent;
     box-shadow: none;
@@ -88,6 +92,7 @@
     height: var(--ui-space-1);
     border-radius: var(--ui-radius-pill);
     background: color-mix(in srgb, var(--muted) 54%, transparent);
+    transform: translateY(var(--ui-sheet-handle-visual-offset));
     pointer-events: none;
   }
 
