@@ -245,7 +245,7 @@
         </div>
 
 
-        <div id="mapTopContextSlot" class="map-top-context-slot" aria-live="polite">
+        <div class="selection-toolbar-slot">
           <section id="selectionToolbar" class="ui-floating-surface selection-toolbar hidden" role="region" aria-label="선택 객체 기본 정보" aria-hidden="true">
             <button id="flagMenuBtn" class="ui-button icon-btn selection-toolbar-flag" type="button" aria-label="깃발 관리" data-tooltip="깃발 관리" aria-haspopup="menu" aria-expanded="false" aria-controls="flagMenu"><span id="flagPreview" class="editor-flag-thumbnail"></span></button>
             <div id="countryToolbarFields" class="selection-toolbar-fields ui-color-picker hidden" data-selection-kind="country" data-color-picker="country">
@@ -278,7 +278,7 @@
               <div id="regionColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="지방 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
             </div>
             <button id="selectionToolbarNotesBtn" class="ui-button icon-btn" type="button" aria-label="메모 열기" data-tooltip="메모" aria-haspopup="dialog" aria-expanded="false" aria-controls="selectionToolbarNotesPopover"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-note"/></svg></button>
-            <button id="selectionToolbarEditBtn" class="ui-button icon-btn" type="button" aria-label="상세 편집 열기" data-tooltip="상세 편집" aria-controls="rightPanel" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg></button>
+            <button id="selectionToolbarEditBtn" class="ui-button icon-btn" type="button" aria-label="편집 열기" data-tooltip="편집" aria-controls="rightPanel" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pencil"/></svg></button>
             <div id="selectionToolbarNotesPopover" class="ui-popover selection-toolbar-notes hidden" role="dialog" aria-label="선택 객체 메모">
               <label class="selection-toolbar-note-field hidden" data-selection-notes="country" for="notesInput"><span>메모</span><textarea id="notesInput" form="countryProperties" rows="4" placeholder="국가에 관한 메모를 입력하세요."></textarea></label>
               <label class="selection-toolbar-note-field hidden" data-selection-notes="subunit" for="subunitNotesInput"><span>메모</span><textarea id="subunitNotesInput" form="subunitProperties" rows="4"></textarea></label>
@@ -290,6 +290,9 @@
             </div>
             <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
           </section>
+        </div>
+
+        <div id="mapTopContextSlot" class="map-top-context-slot" aria-live="polite">
           <div id="modeEditingContext" class="mode-editing-context hidden">
             <section id="modeEditingHud" class="ui-floating-surface ui-workflow-shell workflow-map-session mode-task-window" role="region" aria-label="지도 편집 작업">
               <header class="mode-task-window-header">

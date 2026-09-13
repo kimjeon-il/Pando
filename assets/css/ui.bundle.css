@@ -2502,8 +2502,27 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 
 /* Compact primary metadata editor for one selected territorial object. */
 
-.map-top-context-slot { row-gap: var(--ui-space-2); }
-.map-top-context-slot:has(.selection-toolbar:not(.hidden)) { top: var(--ui-popover-screen-edge); }
+.map-overlay-layer {
+  --selection-toolbar-top: var(--ui-popover-screen-edge);
+  --selection-toolbar-height: calc(var(--ui-control-height) + var(--ui-space-3));
+}
+
+.selection-toolbar-slot {
+  position: absolute;
+  z-index: 63;
+  top: var(--selection-toolbar-top);
+  right: calc(env(safe-area-inset-right) + var(--ui-popover-screen-edge));
+  left: calc(env(safe-area-inset-left) + var(--ui-popover-screen-edge));
+  display: grid;
+  justify-items: center;
+  pointer-events: none;
+}
+
+.selection-toolbar-slot > * { pointer-events: auto; }
+
+.map-overlay-layer:has(.selection-toolbar-slot .selection-toolbar:not(.hidden)) .map-top-context-slot {
+  top: calc(var(--selection-toolbar-top) + var(--selection-toolbar-height) + var(--ui-space-2));
+}
 
 .selection-toolbar {
   position: relative;
@@ -2649,6 +2668,8 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 }
 
 @media (max-width: 799px) {
+  .map-overlay-layer { --selection-toolbar-height: calc(var(--ui-touch-height) + var(--ui-space-3)); }
+
   .selection-toolbar {
     width: fit-content;
     max-width: min(22.5rem, calc(100dvw - env(safe-area-inset-left) - env(safe-area-inset-right) - (var(--ui-popover-screen-edge) * 2)));
@@ -2668,13 +2689,9 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
     font-size: 1rem;
   }
 
-  body[data-layout="mobile"]:has(#actionStatus:not(.hidden)) .map-top-context-slot {
-    top: calc(var(--ui-popover-screen-edge) + var(--ui-touch-height) + var(--ui-space-2));
+  body[data-layout="mobile"]:has(#actionStatus:not(.hidden)) .map-overlay-layer {
+    --selection-toolbar-top: calc(var(--ui-popover-screen-edge) + var(--ui-touch-height) + var(--ui-space-2));
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .map-top-context-slot { transition: none; }
 }
 
 /* source: assets/css/components/panels.css */
