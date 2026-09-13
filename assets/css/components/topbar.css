@@ -47,19 +47,6 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   white-space: nowrap;
 }
 
-.app-root .topbar .topbar-view-command {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-space-1);
-}
-
-.app-root .topbar .topbar-view-command .ui-icon {
-  width: 1rem;
-  height: 1rem;
-  flex: 0 0 auto;
-}
-
 .app-root .topbar .topbar-command:is(:hover, :active, [aria-expanded="true"]):not(:disabled) {
   border-color: transparent;
   background: var(--ui-button-subtle-hover);

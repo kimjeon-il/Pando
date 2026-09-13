@@ -228,6 +228,7 @@ export function createMapSettings() {
 
   function positionDesktopViewMenuGroup(group) {
     if (!isDesktopViewMenu()) return;
+    const surface = (0, dependencies.$)('mapDisplaySurface');
     const panel = displayPanelForDesktopGroup(group);
     const scope = displayScopeForDesktopGroup(group);
     const trigger = group === 'projection'
@@ -235,7 +236,7 @@ export function createMapSettings() {
       : group === 'distribution'
         ? (0, dependencies.$)('distributionMenuTrigger')
         : document.querySelector(`[data-map-display-row="${group}"]`);
-    if (!panel || !scope || !trigger || panel.hidden) return;
+    if (!surface || !panel || !scope || !trigger || panel.hidden) return;
     const viewport = window.visualViewport;
     const viewportLeft = viewport?.offsetLeft || 0;
     const viewportTop = viewport?.offsetTop || 0;
@@ -244,16 +245,21 @@ export function createMapSettings() {
     const edge = 8;
     const gap = 6;
     const rect = trigger.getBoundingClientRect();
-    const width = Math.max(220, panel.getBoundingClientRect().width || 260);
+    const width = 260;
     const height = Math.min(panel.scrollHeight || 0, Math.max(180, viewportHeight - edge * 2));
     const viewportRight = viewportLeft + viewportWidth;
     const opensLeft = rect.right + gap + width > viewportRight - edge && rect.left - gap - width >= viewportLeft + edge;
     const left = opensLeft ? rect.left - gap - width : rect.right + gap;
     const top = Math.max(viewportTop + edge, Math.min(rect.top, viewportTop + viewportHeight - edge - height));
-    scope.style.setProperty('--view-menu-child-left', `${Math.round(left)}px`);
-    scope.style.setProperty('--view-menu-child-top', `${Math.round(top)}px`);
-    scope.style.setProperty('--view-menu-child-width', `${Math.round(width)}px`);
-    scope.style.setProperty('--view-menu-child-max-height', `${Math.round(Math.max(180, viewportTop + viewportHeight - edge - top))}px`);
+    const childPosition = {
+      '--view-menu-child-left': `${Math.round(left)}px`,
+      '--view-menu-child-top': `${Math.round(top)}px`,
+      '--view-menu-child-width': `${Math.round(width)}px`,
+      '--view-menu-child-max-height': `${Math.round(Math.max(180, viewportTop + viewportHeight - edge - top))}px`,
+    };
+    for (const target of [surface, scope, panel]) {
+      for (const [name, value] of Object.entries(childPosition)) target.style.setProperty(name, value);
+    }
     scope.classList.toggle('view-menu-opens-left', opensLeft);
   }
 

@@ -1939,19 +1939,6 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   white-space: nowrap;
 }
 
-.app-root .topbar .topbar-view-command {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-space-1);
-}
-
-.app-root .topbar .topbar-view-command .ui-icon {
-  width: 1rem;
-  height: 1rem;
-  flex: 0 0 auto;
-}
-
 .app-root .topbar .topbar-command:is(:hover, :active, [aria-expanded="true"]):not(:disabled) {
   border-color: transparent;
   background: var(--ui-button-subtle-hover);
@@ -3192,25 +3179,24 @@ body.file-menu-open .mobile-backdrop {
 /* Desktop map-display menu. The mobile sheet keeps the panel presentation. */
 
 .surface-display.view-menu-desktop {
-    position: fixed;
-    z-index: 140;
-    top: var(--view-menu-root-top, calc(var(--ui-shell-topbar-height) + var(--ui-space-2)));
-    right: auto;
-    bottom: auto;
-    left: var(--view-menu-root-left, var(--ui-space-2));
-    width: min(15rem, calc(100vw - var(--ui-space-4)));
-    max-height: var(--view-menu-root-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
-    overflow: visible;
-    border: 1px solid var(--border);
-    border-radius: var(--ui-radius-panel);
-    background: var(--surface-elevated);
-    box-shadow: var(--shadow);
-    transform: translateY(calc(-1 * var(--ui-space-1)));
-  }
+  position: fixed;
+  z-index: 140;
+  top: var(--view-menu-root-top, calc(var(--ui-shell-topbar-height) + var(--ui-space-2)));
+  right: auto;
+  bottom: auto;
+  left: var(--view-menu-root-left, var(--ui-space-2));
+  width: min(15rem, calc(100vw - var(--ui-space-4)));
+  max-height: var(--view-menu-root-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
+  overflow: visible;
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--surface-elevated);
+  box-shadow: var(--control-shadow);
+  /* A transformed root becomes the containing block for the fixed child menu. */
+  transform: none;
+}
 
-.surface-display.view-menu-desktop:is(.surface-open, .mobile-open) {
-    transform: translateY(0);
-  }
+.surface-display.view-menu-desktop:is(.surface-open, .mobile-open) { transform: none; }
 
   .surface-display.view-menu-desktop > .surface-header { display: none; }
 
@@ -3317,7 +3303,7 @@ body.file-menu-open .mobile-backdrop {
     width: 100%;
     min-height: 2.25rem;
     display: grid;
-    grid-template-columns: 1.25rem minmax(0, 1fr) 1rem;
+    grid-template-columns: 1.25rem minmax(0, 1fr);
     align-items: center;
     gap: var(--ui-space-2);
     padding: 0 var(--ui-space-3);
@@ -3327,6 +3313,8 @@ body.file-menu-open .mobile-backdrop {
   }
 
   .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row:hover { background: var(--surface-hover); }
+
+  .surface-display.view-menu-desktop .map-symbol-settings .view-menu-icon { display: none; }
 
   .surface-display.view-menu-desktop .map-symbol-settings input[type="checkbox"],
   .surface-display.view-menu-desktop .map-display-details .ui-toggle > input[type="checkbox"] {
@@ -3338,17 +3326,23 @@ body.file-menu-open .mobile-backdrop {
     clip-path: inset(50%);
   }
 
-  .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row > span:last-child::after,
-  .surface-display.view-menu-desktop .map-display-details .ui-toggle > span:last-child::after {
-    position: absolute;
-    right: var(--ui-space-3);
+  .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row > span:last-child {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row > span:last-child::before,
+  .surface-display.view-menu-desktop .layer-type-settings:has(.map-display-details:not([hidden])) > .layer-type-settings-heading > .ui-choice-row > span::before {
+    display: inline-grid;
+    width: 1.25rem;
+    margin-inline-start: calc(-1 * (1.25rem + var(--ui-space-2)));
     color: var(--accent);
     content: '';
     font-weight: var(--ui-weight-semibold);
   }
 
-  .surface-display.view-menu-desktop .map-symbol-settings input:checked + span::after,
-  .surface-display.view-menu-desktop .map-display-details .ui-toggle > input:checked + span::after { content: '✓'; }
+  .surface-display.view-menu-desktop .map-symbol-settings input:checked + span::before,
+  .surface-display.view-menu-desktop .layer-type-settings:has(.map-display-details:not([hidden])) > .layer-type-settings-heading > .ui-choice-row > input:checked + span::before { content: '✓'; }
 
   .surface-display.view-menu-desktop .map-symbol-settings .ui-choice-row:has(input:focus-visible),
   .surface-display.view-menu-desktop .map-display-details .ui-toggle:has(input:focus-visible) {
@@ -3395,7 +3389,7 @@ body.file-menu-open .mobile-backdrop {
     border: 1px solid var(--border);
     border-radius: var(--ui-radius-panel);
     background: var(--surface-elevated);
-    box-shadow: var(--shadow);
+    box-shadow: var(--control-shadow);
   }
 
   .surface-display.view-menu-desktop .map-display-details[inert] { opacity: .58; }
@@ -3408,8 +3402,9 @@ body.file-menu-open .mobile-backdrop {
     width: var(--view-menu-child-width, 16.25rem);
     min-height: 2.25rem;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 1rem;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
+    gap: var(--ui-space-2);
     padding: 0 var(--ui-space-3);
     border-bottom: 1px solid var(--border);
     background: var(--surface-elevated);
@@ -3419,6 +3414,15 @@ body.file-menu-open .mobile-backdrop {
 
   .surface-display.view-menu-desktop .layer-type-settings:has(.map-display-details:not([hidden])) > .layer-type-settings-heading > .ui-choice-row > span {
     min-width: 0;
+  }
+
+  .surface-display.view-menu-desktop .layer-type-settings:has(.map-display-details:not([hidden])) > .layer-type-settings-heading > .ui-choice-row > input[type="checkbox"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    opacity: 0;
+    clip-path: inset(50%);
   }
 
   .surface-display.view-menu-desktop .layer-type-settings:has(.map-display-details:not([hidden])) > .layer-type-settings-heading > .ui-choice-row:hover { background: var(--surface-hover); }

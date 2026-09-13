@@ -31,10 +31,24 @@ test('compact map commands stay clickable and search closes only after a single 
 
   await page.locator('#mapDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
+  await expect(page.locator('#mapDisplaySurface')).toHaveClass(/view-menu-desktop/);
   const countryRow = page.locator('[data-map-display-row="countries"]');
   await countryRow.click();
   await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
   await expect(countryRow).toHaveAttribute('aria-expanded', 'true');
+  const displayMenuGeometry = await page.evaluate(() => {
+    const rect = selector => {
+      const { left, right, top, width, height } = document.querySelector(selector)?.getBoundingClientRect() || {};
+      return { left, right, top, width, height };
+    };
+    const countryRow = rect('[data-map-display-row="countries"]');
+    const panel = rect('#layerStylePanel-countries');
+    const visibilityLabel = rect('#countriesVisible + span');
+    return { countryRow, panel, visibilityLabel };
+  });
+  expect(displayMenuGeometry.panel.left).toBeGreaterThanOrEqual(displayMenuGeometry.countryRow.right);
+  expect(Math.abs(displayMenuGeometry.panel.top - displayMenuGeometry.countryRow.top)).toBeLessThanOrEqual(2);
+  expect(displayMenuGeometry.visibilityLabel.height).toBeLessThanOrEqual(24);
   await page.locator('#countriesVisible').uncheck();
   await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
   await expect(page.locator('#layerStylePanel-countries')).toHaveJSProperty('inert', true);
@@ -61,9 +75,12 @@ test('mobile bottom navigation opens the display sheet without restoring desktop
   const errors = await openApp(page, { width: 390, height: 844 });
 
   await expect(page.locator('#mobileDisplayBtn')).toBeVisible();
+  await expect(page.locator('#mapDisplayBtn')).toBeHidden();
   await expect(page.locator('#objectSearchBtn')).toBeHidden();
   await page.locator('#mobileDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
+  await expect(page.locator('[data-map-display-row="terrain"] .view-menu-leading')).toBeHidden();
+  await expect(page.locator('#terrainVisible + span')).toHaveText('지형');
   await page.locator('[data-map-display-row="terrain"]').click();
   await expect(page.locator('#terrainDisplayOptions')).toBeVisible();
   await expect(page.locator('.sheet-drag-handle[data-sheet-handle="mapDisplaySurface"]')).toBeVisible();
