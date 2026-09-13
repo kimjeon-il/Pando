@@ -1,9 +1,3 @@
-[data-layout="compact"] .topbar,
-[data-layout="mobile"] .topbar {
-  padding-block: var(--ui-space-3);
-  padding-inline: max(var(--ui-surface-content-rail-x), env(safe-area-inset-left)) max(var(--ui-surface-content-rail-x), env(safe-area-inset-right));
-}
-
 [data-layout="wide"] .surface-map {
   width: var(--ui-shell-left-panel-width);
 }

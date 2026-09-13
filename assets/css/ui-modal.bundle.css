@@ -33,6 +33,50 @@ body.modal-open { overflow: hidden; }
   flex: 1 1 var(--ui-workflow-action-min-width);
 }
 
+.help-card {
+  width: min(34rem, calc(100vw - (var(--ui-dialog-edge) * 2)));
+  max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.help-card .ui-dialog-header { align-items: center; }
+.help-content {
+  min-height: 0;
+  display: grid;
+  gap: var(--ui-space-5);
+  margin-top: var(--ui-space-4);
+  overflow-y: auto;
+}
+.help-section { display: grid; gap: var(--ui-space-2); }
+.help-section h3 { margin: 0; color: var(--text-strong); font-size: var(--ui-font-section); }
+.help-list { display: grid; gap: var(--ui-space-1); margin: 0; }
+.help-list > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(7rem, .8fr) minmax(0, 1.4fr);
+  gap: var(--ui-space-3);
+  padding-block: var(--ui-space-2);
+}
+.help-list dt { color: var(--text-strong); font-weight: var(--ui-weight-medium); }
+.help-list dd { min-width: 0; margin: 0; color: var(--text-soft); line-height: var(--ui-line-normal); }
+.help-list kbd {
+  display: inline-block;
+  padding: 0 var(--ui-space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--ui-font-sm);
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .help-list > div { grid-template-columns: minmax(0, 1fr); gap: var(--ui-space-1); }
+}
+
 .confirm-modal-card h2 {
   margin: 0 0 var(--ui-dialog-title-gap);
 }

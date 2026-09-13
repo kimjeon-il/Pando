@@ -36,11 +36,14 @@ test('compact map commands stay clickable and search closes only after a single 
   await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
   await expect(countryRow).toHaveAttribute('aria-expanded', 'true');
   await page.locator('#countriesVisible').uncheck();
-  await expect(page.locator('#layerStylePanel-countries')).toBeHidden();
+  await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
+  await expect(page.locator('#layerStylePanel-countries')).toHaveJSProperty('inert', true);
   await page.locator('#countriesVisible').check();
   await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
+  await expect(page.locator('#layerStylePanel-countries')).toHaveJSProperty('inert', false);
 
-  await page.locator('#mapDisplayCloseBtn').click();
+  await page.locator('#mapDisplayBtn').click();
+  await expect(page.locator('#mapDisplaySurface')).toBeHidden();
   await page.locator('#objectSearchBtn').click();
   await expect(page.locator('#objectSearchSurface')).toBeVisible();
   await (await searchFor(page, '폴란드')).click();

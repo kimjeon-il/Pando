@@ -122,7 +122,7 @@ export function createObjectCommands() {
   function objectBatchCapabilities(value) {
     const ref = (0, dependencies.normalizeObjectRef)(value);
     if (!ref) return new Set();
-    if (ref.domain === 'hydro' && !(0, dependencies.hydroEditById)(ref.id)) return new Set();
+    if (ref.domain === 'hydro' && !(0, dependencies.hydroEditById)(ref.id)) return new Set(['visible']);
     const values = new Set(['visible']);
     if (ref.domain === 'territorial') {
       values.add('color');
@@ -187,6 +187,11 @@ export function createObjectCommands() {
 
   function objectRefVisible(value) {
     const ref = (0, dependencies.normalizeObjectRef)(value);
+    if (ref?.domain === 'hydro' && !(0, dependencies.hydroEditById)(ref.id)) {
+      const feature = (0, dependencies.hydroFeatureById)(ref.id);
+      const id = String(feature?.properties?.pandolab_id || feature?.id || ref.id);
+      return dependencies.state.physicalSettings.hiddenHydroIds?.[id] !== true;
+    }
     const group = layerGroupForObjectRef(ref);
     return !!(ref && group && (0, dependencies.isLayerItemVisible)(group, ref.id));
   }
@@ -246,11 +251,19 @@ export function createObjectCommands() {
 
   function batchSetVisibility(nextVisible = null) {
     const refs = dependencies.selectionDomain.snapshot().selection.items;
-    if (!refs.length || !commonBatchCapabilities(refs).has('visible')) return;
-    const allVisible = refs.every(ref => (0, dependencies.isLayerItemVisible)(layerGroupForObjectRef(ref), ref.id));
+    if (dependencies.state.projectReplacing || !refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('visible')) return;
+    const allVisible = refs.every(objectRefVisible);
     const visible = typeof nextVisible === 'boolean' ? nextVisible : !allVisible;
     if (refs.every(ref => objectRefVisible(ref) === visible)) return;
     for (const ref of refs) {
+      if (ref.domain === 'hydro' && !(0, dependencies.hydroEditById)(ref.id)) {
+        const feature = (0, dependencies.hydroFeatureById)(ref.id);
+        const id = String(feature.properties?.pandolab_id || feature.id);
+        const hidden = dependencies.state.physicalSettings.hiddenHydroIds ||= {};
+        if (visible) delete hidden[id];
+        else hidden[id] = true;
+        continue;
+      }
       const group = layerGroupForObjectRef(ref);
       if (!group) continue;
       dependencies.state.itemVisibility[group] ||= {};
@@ -260,8 +273,12 @@ export function createObjectCommands() {
     if (refs.some(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
       dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-visibility');
     }
+    if (refs.some(ref => ref.domain === 'hydro')) dependencies.gpuMapRenderer.invalidateHydroVisibility();
+    if (refs.some(ref => ref.domain === 'distribution')) dependencies.distributionVisibilityRevision += 1;
     (0, dependencies.markLayerTreeDirty)();
-    dependencies.renderingDomain?.invalidateBaseScene?.('batch-country-visibility');
+    dependencies.renderingDomain?.invalidateBaseScene?.('object-visibility');
+    dependencies.renderingDomain?.invalidateLabels?.('object-visibility');
+    dependencies.renderingDomain?.invalidateSelection?.('object-visibility');
     dependencies.projectDomain.queuePresentationAutosave();
     syncBatchActionAvailability();
   }
@@ -313,6 +330,18 @@ export function createObjectCommands() {
     const refs = dependencies.selectionDomain.snapshot().selection.items;
     const primary = dependencies.selectionDomain.primary();
     const capabilities = commonBatchCapabilities(refs);
+    const canSetVisibility = refs.length > 0 && capabilities.has('visible') && refs.every(objectRefExists) && !dependencies.state.projectReplacing;
+    const visibleCount = refs.filter(objectRefVisible).length;
+    const visibilityButton = (0, dependencies.$)('objectVisibilityBtn');
+    if (visibilityButton) {
+      const allVisible = visibleCount === refs.length;
+      const label = refs.length > 1 ? allVisible ? '선택한 객체 모두 숨기기' : '선택한 객체 모두 표시' : allVisible ? '객체 숨기기' : '객체 표시';
+      visibilityButton.disabled = !canSetVisibility;
+      visibilityButton.setAttribute('aria-label', label);
+      visibilityButton.setAttribute('aria-pressed', refs.length && visibleCount > 0 && !allVisible ? 'mixed' : String(refs.length > 0 && allVisible));
+      visibilityButton.dataset.tooltip = label;
+      (0, dependencies.$)('objectVisibilityIcon')?.setAttribute('href', !refs.length || visibleCount ? '#icon-eye' : '#icon-eye-off');
+    }
     const locked = refs.length > 0 && refs.every(objectRefLocked);
     const canLock = refs.length > 0 && capabilities.has('lock');
     const canDelete = refs.length > 1
@@ -323,9 +352,11 @@ export function createObjectCommands() {
     const status = (0, dependencies.$)('editorObjectStatus');
     if (status) {
       const lockedCount = refs.filter(objectRefLocked).length;
-      const statusText = refs.length > 1
+      const lockStatus = refs.length > 1
         ? (lockedCount === refs.length ? '모두 잠김' : lockedCount ? '일부 잠김' : '')
         : (primary && objectRefLocked(primary) ? '잠김' : '');
+      const visibilityStatus = refs.length && !visibleCount ? '숨김' : visibleCount < refs.length ? '일부 숨김' : '';
+      const statusText = [visibilityStatus, lockStatus].filter(Boolean).join(' · ');
       status.textContent = statusText;
       status.classList.toggle('hidden', !statusText);
     }
@@ -536,6 +567,7 @@ export function createObjectCommands() {
     get objectDisplayInfo() { return objectDisplayInfo; },
     get objectRefExists() { return objectRefExists; },
     get objectRefLocked() { return objectRefLocked; },
+    get objectRefVisible() { return objectRefVisible; },
     get openObjectActionsMenu() { return openObjectActionsMenu; },
     get requestBatchDelete() { return requestBatchDelete; },
     get requireCountriesUnlocked() { return requireCountriesUnlocked; },

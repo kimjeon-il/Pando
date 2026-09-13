@@ -72,26 +72,25 @@
   </div>
   <div id="app" class="app-root" data-app-version="0.33.0" data-layout="wide" data-od-id="app-shell">
     <header class="topbar" data-od-id="topbar">
-      <div class="brand" data-od-id="brand">
-        <div class="brand-mark" aria-hidden="true"><svg class="ui-icon brand-logo" viewBox="0 0 24 24"><use href="#icon-map"/></svg></div>
-        <div><strong>판도연구소</strong></div>
-      </div>
-
-      <div class="topbar-file-actions">
-        <button id="mobileFileBtn" class="ui-button file-menu-btn" type="button" aria-label="파일 메뉴 열기" aria-haspopup="menu" aria-controls="fileMenu" aria-expanded="false" data-od-id="file-menu-button"><span>파일</span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-      <nav id="fileMenu" class="ui-menu ui-popover ui-floating-surface top-actions ui-scroll-surface" role="menu" aria-label="파일 메뉴">
-        <button id="newProjectBtn" type="button" class="ui-button btn ghost file-menu-item" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>새 프로젝트</span></button>
-        <button id="openProjectBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>프로젝트 불러오기</span></button>
-        <input id="projectFileInput" type="file" accept=".gpkg,application/geopackage+sqlite3" hidden />
-        <button id="saveProjectBtn" class="ui-button btn file-menu-item ghost" type="button" role="menuitem" aria-label="프로젝트 저장" data-tooltip="프로젝트 저장"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-save"/></svg><span>프로젝트 저장</span></button>
-        <span class="divider" role="separator"></span>
-        <button id="openGisBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map-import"/></svg><span>GIS 가져오기</span></button>
-        <input id="gisFileInput" type="file" multiple accept=".gpkg,.qgz,.qgs,.shp,.shx,.dbf,.prj,.cpg,.shz,.zip,.geojson,.json,.kml,.kmz,.gml,.xml,.fgb,application/geopackage+sqlite3,application/geo+json,application/json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden />
-        <button id="dataExportBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map-export"/></svg><span>GIS 내보내기</span></button>
-        <span class="divider" role="separator"></span>
-        <button id="preferencesBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-gear"/></svg><span>환경설정</span></button>
-      </nav></div>
       <nav class="topbar-history" aria-label="편집 기록"><button id="undoBtn" class="ui-button icon-btn" data-tooltip="실행취소" aria-label="실행취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></button><button id="redoBtn" class="ui-button icon-btn" data-tooltip="다시실행" aria-label="다시실행"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></button></nav>
+      <div class="topbar-actions" role="navigation" aria-label="문서 및 도움말">
+        <div class="topbar-file-actions">
+          <button id="mobileFileBtn" class="ui-button file-menu-btn topbar-command topbar-text-command" type="button" aria-label="파일 메뉴 열기" aria-haspopup="menu" aria-controls="fileMenu" aria-expanded="false" data-od-id="file-menu-button">파일</button>
+          <nav id="fileMenu" class="ui-menu ui-popover ui-floating-surface top-actions ui-scroll-surface" role="menu" aria-label="파일 메뉴">
+            <button id="newProjectBtn" type="button" class="ui-button btn ghost file-menu-item" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>새 프로젝트</span></button>
+            <button id="openProjectBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>프로젝트 불러오기</span></button>
+            <input id="projectFileInput" type="file" accept=".gpkg,application/geopackage+sqlite3" hidden />
+            <button id="saveProjectBtn" class="ui-button btn file-menu-item ghost" type="button" role="menuitem" aria-label="프로젝트 저장" data-tooltip="프로젝트 저장"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-save"/></svg><span>프로젝트 저장</span></button>
+            <span class="divider" role="separator"></span>
+            <button id="openGisBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map-import"/></svg><span>GIS 가져오기</span></button>
+            <input id="gisFileInput" type="file" multiple accept=".gpkg,.qgz,.qgs,.shp,.shx,.dbf,.prj,.cpg,.shz,.zip,.geojson,.json,.kml,.kmz,.gml,.xml,.fgb,application/geopackage+sqlite3,application/geo+json,application/json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden />
+            <button id="dataExportBtn" class="ui-button btn ghost file-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map-export"/></svg><span>GIS 내보내기</span></button>
+          </nav>
+        </div>
+        <button id="mapDisplayBtn" class="ui-button topbar-command topbar-text-command topbar-view-command" type="button" aria-label="보기" aria-controls="mapDisplaySurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg><span>보기</span></button>
+        <button id="preferencesBtn" class="ui-button topbar-command topbar-text-command" type="button">설정</button>
+        <button id="helpBtn" class="ui-button topbar-command topbar-text-command" type="button" aria-haspopup="dialog" aria-controls="helpModal">도움말</button>
+      </div>
       <div class="topbar-center" aria-live="polite" aria-atomic="true">
         <div id="actionStatus" class="ui-status action-status ready hidden" role="status">
           <span class="status-dot" aria-hidden="true"></span>
@@ -133,6 +132,7 @@
         <section id="mapViewSection" class="panel-section ui-panel--dense map-view-panel-section ui-scroll-surface">
           <div class="map-view-settings">
             <section class="layer-style-editor map-projection-settings" aria-labelledby="mapProjectionSettingsTitle">
+              <button id="mapProjectionMenuTrigger" class="ui-button view-menu-parent view-menu-projection-trigger" type="button" aria-label="투영법 펼치기" aria-controls="mapViewProjectionSlot" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg><span>투영법</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               <strong id="mapProjectionSettingsTitle">투영법</strong>
               <div id="mapViewProjectionSlot" class="map-view-projection-slot">
                 <div id="projectionControl" class="ui-segmented projection-control" role="group" aria-label="투영법">
@@ -143,50 +143,51 @@
             </section>
             <section class="layer-style-editor map-symbol-settings map-display-list" aria-labelledby="mapSymbolSettingsTitle">
               <strong id="mapSymbolSettingsTitle">이름과 기호</strong>
-              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><input id="basemapLabelsVisible" type="checkbox" checked aria-label="객체명 표시" /><span>객체명</span></label></div>
-              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><input id="countryFlagsVisible" type="checkbox" checked aria-label="국기 표시" /><span>국기</span></label></div>
-              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><input id="labelsVisible" type="checkbox" checked aria-label="지명 표시" /><span>지명</span></label></div>
+              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg><input id="basemapLabelsVisible" type="checkbox" checked aria-label="객체명 표시" /><span>객체명</span></label></div>
+              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-territory"/></svg><input id="countryFlagsVisible" type="checkbox" checked aria-label="국기 표시" /><span>국기</span></label></div>
+              <div class="map-display-row"><label class="ui-choice-row ui-toggle"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg><input id="labelsVisible" type="checkbox" checked aria-label="지명 표시" /><span>지명</span></label></div>
             </section>
             <section class="layer-style-editor map-name-settings map-display-list" aria-labelledby="mapNameSettingsTitle">
               <strong id="mapNameSettingsTitle">객체</strong>
-              <section class="layer-type-settings" aria-label="국가 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="countries" aria-label="국가 표시 설정 펼치기" aria-controls="layerStylePanel-countries" aria-expanded="false"></button><label class="ui-choice-row ui-toggle"><input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" /><span>국가</span></label></div>
+              <section class="layer-type-settings" data-map-display-group="countries" aria-label="국가 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="countries" aria-label="국가 표시 설정 펼치기" aria-controls="layerStylePanel-countries" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span>국가</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="countriesVisible" type="checkbox" checked aria-label="국가 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-countries" class="layer-inline-style-panel map-display-details" data-layer-style-panel="countries" role="group" aria-label="국가 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings" aria-label="하위단위 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="subunits" aria-label="하위단위 표시 설정 펼치기" aria-controls="layerStylePanel-subunits" aria-expanded="false"></button><label class="ui-choice-row ui-toggle"><input id="subunitsVisible" type="checkbox" checked aria-label="하위단위 레이어 표시" /><span>하위단위</span></label></div>
+              <section class="layer-type-settings" data-map-display-group="subunits" aria-label="하위단위 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="subunits" aria-label="하위단위 표시 설정 펼치기" aria-controls="layerStylePanel-subunits" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span>하위단위</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="subunitsVisible" type="checkbox" checked aria-label="하위단위 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-subunits" class="layer-inline-style-panel map-display-details" data-layer-style-panel="subunits" role="group" aria-label="하위단위 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings" aria-label="지방 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="regions" aria-label="지방 표시 설정 펼치기" aria-controls="layerStylePanel-regions" aria-expanded="false"></button><label class="ui-choice-row ui-radio-toggle"><input id="regionsVisible" type="checkbox" checked aria-label="지방 레이어 표시" /><span>지방</span></label></div>
+              <section class="layer-type-settings" data-map-display-group="regions" aria-label="지방 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="regions" aria-label="지방 표시 설정 펼치기" aria-controls="layerStylePanel-regions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg><span>지방</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-radio-toggle"><input id="regionsVisible" type="checkbox" checked aria-label="지방 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-regions" class="layer-inline-style-panel map-display-details" data-layer-style-panel="regions" role="group" aria-label="지방 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings" aria-label="언어 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="languages" aria-label="언어 표시 설정 펼치기" aria-controls="layerStylePanel-languages" aria-expanded="false"></button><label class="ui-choice-row ui-radio-toggle"><input id="languagesVisible" type="checkbox" checked aria-label="언어 레이어 표시" /><span>언어</span></label></div>
+              <div id="distributionMobileItemAnchor" aria-hidden="true"></div>
+              <section class="layer-type-settings" data-map-display-group="languages" aria-label="언어 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="languages" aria-label="언어 표시 설정 펼치기" aria-controls="layerStylePanel-languages" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg><span>언어</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-radio-toggle"><input id="languagesVisible" type="checkbox" checked aria-label="언어 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-languages" class="layer-inline-style-panel map-display-details" data-layer-style-panel="languages" role="group" aria-label="언어 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings" aria-label="민족 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="ethnicities" aria-label="민족 표시 설정 펼치기" aria-controls="layerStylePanel-ethnicities" aria-expanded="false"></button><label class="ui-choice-row ui-radio-toggle"><input id="ethnicitiesVisible" type="checkbox" checked aria-label="민족 레이어 표시" /><span>민족</span></label></div>
+              <section class="layer-type-settings" data-map-display-group="ethnicities" aria-label="민족 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="ethnicities" aria-label="민족 표시 설정 펼치기" aria-controls="layerStylePanel-ethnicities" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-ethnicity"/></svg><span>민족</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-radio-toggle"><input id="ethnicitiesVisible" type="checkbox" checked aria-label="민족 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-ethnicities" class="layer-inline-style-panel map-display-details" data-layer-style-panel="ethnicities" role="group" aria-label="민족 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings" aria-label="종교 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="religions" aria-label="종교 표시 설정 펼치기" aria-controls="layerStylePanel-religions" aria-expanded="false"></button><label class="ui-choice-row ui-radio-toggle"><input id="religionsVisible" type="checkbox" checked aria-label="종교 레이어 표시" /><span>종교</span></label></div>
+              <section class="layer-type-settings" data-map-display-group="religions" aria-label="종교 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="religions" aria-label="종교 표시 설정 펼치기" aria-controls="layerStylePanel-religions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-religion"/></svg><span>종교</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-radio-toggle"><input id="religionsVisible" type="checkbox" checked aria-label="종교 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-religions" class="layer-inline-style-panel map-display-details" data-layer-style-panel="religions" role="group" aria-label="종교 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings" aria-label="강 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="rivers" aria-label="강 표시 설정 펼치기" aria-controls="layerStylePanel-rivers" aria-expanded="false"></button><label class="ui-choice-row ui-toggle"><input id="riversVisible" type="checkbox" checked aria-label="강 레이어 표시" /><span>강</span></label></div>
+              <section class="layer-type-settings" data-map-display-group="rivers" aria-label="강 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="rivers" aria-label="강 표시 설정 펼치기" aria-controls="layerStylePanel-rivers" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg><span>강</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="riversVisible" type="checkbox" checked aria-label="강 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-rivers" class="layer-inline-style-panel map-display-details" data-layer-style-panel="rivers" role="group" aria-label="강 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings" aria-label="호수 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="lakes" aria-label="호수 표시 설정 펼치기" aria-controls="layerStylePanel-lakes" aria-expanded="false"></button><label class="ui-choice-row ui-toggle"><input id="lakesVisible" type="checkbox" checked aria-label="호수 레이어 표시" /><span>호수</span></label></div>
+              <section class="layer-type-settings" data-map-display-group="lakes" aria-label="호수 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="lakes" aria-label="호수 표시 설정 펼치기" aria-controls="layerStylePanel-lakes" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg><span>호수</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="lakesVisible" type="checkbox" checked aria-label="호수 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-lakes" class="layer-inline-style-panel map-display-details" data-layer-style-panel="lakes" role="group" aria-label="호수 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings" aria-label="기타 객체 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="genericFeatures" aria-label="기타 객체 표시 설정 펼치기" aria-controls="layerStylePanel-genericFeatures" aria-expanded="false"></button><label class="ui-choice-row"><input id="genericFeaturesVisible" type="checkbox" checked aria-label="기타 객체 레이어 표시" /><span>기타 객체</span></label></div>
+              <section class="layer-type-settings" data-map-display-group="genericFeatures" aria-label="기타 객체 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="genericFeatures" aria-label="기타 객체 표시 설정 펼치기" aria-controls="layerStylePanel-genericFeatures" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg><span>기타 객체</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row"><input id="genericFeaturesVisible" type="checkbox" checked aria-label="기타 객체 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-genericFeatures" class="layer-inline-style-panel map-display-details" data-layer-style-panel="genericFeatures" role="group" aria-label="기타 객체 표시 설정" hidden></div>
               </section>
-              <section class="layer-type-settings terrain-display-settings" aria-label="지형 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger" type="button" data-map-display-row="terrain" aria-label="지형 표시 설정 펼치기" aria-controls="terrainDisplayOptions" aria-expanded="false"></button><label class="ui-choice-row ui-toggle"><input id="terrainVisible" type="checkbox" checked aria-label="지형 표시" /><span>지형</span></label></div>
+              <section class="layer-type-settings terrain-display-settings" data-map-display-group="terrain" aria-label="지형 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="terrain" aria-label="지형 표시 설정 펼치기" aria-controls="terrainDisplayOptions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>지형</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="terrainVisible" type="checkbox" checked aria-label="지형 표시" /><span>표시</span></label></div>
               <div id="terrainDisplayOptions" class="terrain-display-options map-display-details" hidden>
                 <div class="terrain-mode-options" role="radiogroup" aria-label="지형 표현 방식">
                   <label class="ui-choice-row terrain-mode-option" for="terrainPoliticalRadio"><input id="terrainPoliticalRadio" type="radio" name="terrainStyle" value="political" checked /><span class="ui-choice-copy"><strong>국가 색상 유지</strong><small>국가별 색 위에 지형 명암을 더합니다.</small></span></label>
@@ -195,8 +196,11 @@
               </div>
               </section>
             </section>
-            <section id="distributionViewSettings" class="layer-style-editor distribution-view-settings hidden" aria-labelledby="distributionViewSettingsTitle">
+            <section id="distributionMenuGroup" class="layer-style-editor distribution-menu-group hidden" aria-labelledby="distributionViewSettingsTitle">
+              <button id="distributionMenuTrigger" class="ui-button view-menu-parent view-menu-distribution-trigger" type="button" aria-label="분포 설정 펼치기" aria-controls="distributionViewSettings" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg><span>분포</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+              <section id="distributionViewSettings" class="distribution-view-settings" aria-labelledby="distributionViewSettingsTitle">
               <strong id="distributionViewSettingsTitle">인문 분포</strong>
+              <div id="distributionTypeSlot" class="distribution-type-slot"></div>
               <div class="ui-field field-group" role="radiogroup" aria-label="표시 기준" aria-describedby="distributionLayerModeHint">
                 <label class="ui-choice-row"><input id="distributionDominantRadio" type="radio" name="distributionLayerMode" value="dominant" checked /><span class="ui-choice-copy"><strong>가장 많은 분포만 표시</strong><small>각 지역에서 1개만 표시합니다.</small></span></label>
                 <label class="ui-choice-row"><input id="distributionIntensityRadio" type="radio" name="distributionLayerMode" value="intensity" /><span class="ui-choice-copy"><strong>비율을 색 농도로 표시</strong><small>선택한 분포가 많을수록 진하게 표시합니다.</small></span></label>
@@ -204,6 +208,7 @@
               <select id="distributionLayerModeInput" data-native-select hidden><option value="dominant">가장 많은 분포만 표시</option><option value="intensity">비율을 색 농도로 표시</option></select>
               <small id="distributionLayerModeHint" class="layer-setting-hint"></small>
               <label class="ui-choice-row ui-toggle"><input id="distributionBoundaryVisibleInput" type="checkbox" checked aria-label="분포 경계 표시" /><span>분포 경계 표시</span></label>
+            </section>
             </section>
           </div>
           </section>
@@ -225,8 +230,6 @@
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar floating-toolbar" aria-label="지도 명령">
           <button id="createMenuBtn" class="ui-button icon-btn" type="button" aria-label="추가" data-tooltip="추가" aria-haspopup="menu" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <button id="objectSearchBtn" class="ui-button icon-btn" type="button" aria-label="검색" data-tooltip="검색" aria-controls="objectSearchSurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg></button>
-          <span class="map-command-divider" aria-hidden="true"></span>
-          <button id="mapDisplayBtn" class="ui-button icon-btn" type="button" aria-label="표시" data-tooltip="표시" aria-controls="mapDisplaySurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-eye"/></svg></button>
           <button id="resetViewBtn" class="ui-button icon-btn" data-tooltip="전체 지도 보기" aria-label="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
@@ -350,6 +353,7 @@
             <strong id="editSheetTitle">편집</strong>
           </div>
           <div class="surface-header-actions">
+            <button id="objectVisibilityBtn" class="ui-button icon-btn editor-object-command" type="button" aria-label="객체 숨기기" data-tooltip="객체 숨기기" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectVisibilityIcon" href="#icon-eye"/></svg></button>
             <button id="objectLockBtn" class="ui-button icon-btn editor-object-command editor-object-command--lock" type="button" aria-label="잠금" data-tooltip="잠금" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
             <button id="objectDeleteBtn" class="ui-button icon-btn editor-object-command editor-object-command--delete" type="button" aria-label="삭제" data-tooltip="삭제" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
             <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn editor-surface-close" type="button" aria-label="편집창 닫기" data-tooltip="편집창 닫기"><svg class="ui-icon editor-close-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><svg class="ui-icon editor-collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
@@ -646,7 +650,7 @@
           <h3 id="preferencesAppearanceTitle">화면</h3>
           <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
           <label class="ui-choice-row ui-toggle"><input id="preferencesStatusBarVisibleInput" type="checkbox" checked /><span>하단 상태표시줄 표시</span></label>
-          <div class="preferences-accent" role="group" aria-labelledby="preferencesAccentTitle">
+          <div class="preferences-accent ui-color-picker" data-color-picker="accent" data-color-custom-only role="group" aria-labelledby="preferencesAccentTitle">
             <strong id="preferencesAccentTitle">강조색</strong>
             <div class="preferences-accent-swatches">
               <button type="button" class="ui-button btn ghost" data-preference-accent="" aria-pressed="true">기본값</button>
@@ -657,12 +661,46 @@
               <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#e87924" style="--swatch: #e87924" aria-label="주황" aria-pressed="false"></button>
               <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#d9468f" style="--swatch: #d9468f" aria-label="분홍" aria-pressed="false"></button>
             </div>
-            <button id="preferencesAccentCustomBtn" type="button" class="ui-button btn ghost"><span id="preferencesAccentPreview" class="ui-color-preview" aria-hidden="true"></span><span>사용자 지정</span><output id="preferencesAccentValue"></output></button>
+            <button id="preferencesAccentCustomBtn" type="button" class="ui-button btn ghost ui-color-trigger" data-color-custom aria-expanded="false" aria-controls="preferencesAccentPopover" aria-haspopup="dialog"><span id="preferencesAccentPreview" class="ui-color-preview" aria-hidden="true"></span><span>사용자 지정</span><output id="preferencesAccentValue"></output></button>
             <input id="preferencesAccentInput" type="color" class="ui-native-color-input" value="#4f8cff" tabindex="-1" aria-hidden="true" />
+            <div id="preferencesAccentPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="강조색 사용자 지정"></div>
           </div>
         </section>
       </div>
       <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>
+    </section>
+  </div>
+  <div id="helpModal" class="ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="ui-dialog-backdrop"></div>
+    <section class="ui-dialog-card help-card">
+      <header class="ui-dialog-header">
+        <div><h2 id="helpTitle">도움말</h2></div>
+        <button id="helpCloseBtn" class="ui-button icon-btn" type="button" aria-label="도움말 닫기" data-tooltip="도움말 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+      </header>
+      <div class="help-content">
+        <section class="help-section" aria-labelledby="helpBasicsTitle">
+          <h3 id="helpBasicsTitle">기본 조작</h3>
+          <dl class="help-list">
+            <div><dt>객체 선택</dt><dd>지도에서 국가·강·호수 등의 객체를 누릅니다.</dd></div>
+            <div><dt>지도 이동</dt><dd>빈 지도 영역을 드래그합니다.</dd></div>
+            <div><dt>확대·축소</dt><dd>마우스 휠이나 두 손가락 제스처를 사용합니다.</dd></div>
+            <div><dt>전체 지도</dt><dd>지도 도구막대의 전체 지도 보기 버튼을 누릅니다.</dd></div>
+          </dl>
+        </section>
+        <section class="help-section" aria-labelledby="helpShortcutsTitle">
+          <h3 id="helpShortcutsTitle">단축키</h3>
+          <dl class="help-list help-shortcuts">
+            <div><dt><kbd>Ctrl/Cmd</kbd> + <kbd>S</kbd></dt><dd>프로젝트 저장</dd></div>
+            <div><dt><kbd>Ctrl/Cmd</kbd> + <kbd>Z</kbd></dt><dd>실행 취소</dd></div>
+            <div><dt><kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd></dt><dd>다시 실행</dd></div>
+            <div><dt><kbd>Enter</kbd></dt><dd>현재 단계 완료 또는 적용</dd></div>
+            <div><dt><kbd>Esc</kbd></dt><dd>열린 창 닫기 또는 현재 작업 취소</dd></div>
+            <div><dt><kbd>Delete</kbd> / <kbd>Backspace</kbd></dt><dd>선택한 꼭짓점 또는 객체 삭제</dd></div>
+            <div><dt><kbd>Space</kbd> + 드래그</dt><dd>그리기·편집 중 지도 이동</dd></div>
+          </dl>
+        </section>
+      </div>
+      <div class="ui-dialog-actions"><button id="helpDoneBtn" class="ui-button btn" type="button">닫기</button></div>
     </section>
   </div>
   <div id="confirmModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">

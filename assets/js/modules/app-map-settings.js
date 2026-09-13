@@ -6,6 +6,12 @@ export function createMapSettings() {
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let projectSerializer;
+  let desktopViewMenuRoot = null;
+  let desktopDistributionDetail = null;
+  let desktopViewMenuOpenTimer = null;
+  let desktopViewMenuCloseTimer = null;
+  let distributionTypePlacement = null;
+  const DISTRIBUTION_STYLE_GROUPS = new Set(['languages', 'ethnicities', 'religions']);
   function connect(ports) {
     if (dependencies) throw new Error('map-settings already connected');
     dependencies = ports;
@@ -59,8 +65,10 @@ export function createMapSettings() {
 
   function setLayerVisibility(key, visible) {
     dependencies.state.layerVisibility[key] = visible;
-    if (visible) dependencies.expandedMapDisplayGroups.add(key);
-    else dependencies.expandedMapDisplayGroups.delete(key);
+    if (!isDesktopViewMenu()) {
+      if (visible) dependencies.expandedMapDisplayGroups.add(key);
+      else dependencies.expandedMapDisplayGroups.delete(key);
+    }
     syncMapDisplayDisclosures();
     (0, dependencies.markLayerTreeDirty)();
     dependencies.layerTreeController?.render();
@@ -174,7 +182,165 @@ export function createMapSettings() {
       : LAYER_STYLE_TARGETS[group]?.label ? `${LAYER_STYLE_TARGETS[group].label} 표시` : '표시';
   }
 
+  function isDesktopViewMenu() {
+    return (0, dependencies.$)('app')?.dataset.layout !== 'mobile';
+  }
+
+  function displayGroupForTrigger(trigger) {
+    if (!trigger) return null;
+    if (trigger.id === 'mapProjectionMenuTrigger') return 'projection';
+    if (trigger.id === 'distributionMenuTrigger') return 'distribution';
+    return trigger.dataset.mapDisplayRow || null;
+  }
+
+  function displayPanelForDesktopGroup(group) {
+    if (group === 'projection') return (0, dependencies.$)('mapViewProjectionSlot');
+    if (group === 'distribution') return (0, dependencies.$)('distributionViewSettings');
+    return mapDisplayPanel(group);
+  }
+
+  function displayScopeForDesktopGroup(group) {
+    if (group === 'projection') return (0, dependencies.$)('mapProjectionMenuTrigger')?.closest('.map-projection-settings');
+    if (group === 'distribution') return (0, dependencies.$)('distributionMenuGroup');
+    return document.querySelector(`[data-map-display-group="${group}"]`);
+  }
+
+  function positionDesktopViewMenuSurface() {
+    if (!isDesktopViewMenu()) return;
+    const surface = (0, dependencies.$)('mapDisplaySurface');
+    const trigger = (0, dependencies.$)('mapDisplayBtn');
+    if (!surface || !trigger) return;
+    const viewport = window.visualViewport;
+    const viewportLeft = viewport?.offsetLeft || 0;
+    const viewportTop = viewport?.offsetTop || 0;
+    const viewportWidth = viewport?.width || window.innerWidth;
+    const viewportHeight = viewport?.height || window.innerHeight;
+    const edge = 8;
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(240, Math.max(180, viewportWidth - edge * 2));
+    const left = Math.max(viewportLeft + edge, Math.min(rect.left, viewportLeft + viewportWidth - edge - width));
+    const top = Math.min(rect.bottom + 6, viewportTop + viewportHeight - edge - 120);
+    surface.style.setProperty('--view-menu-root-left', `${Math.round(left)}px`);
+    surface.style.setProperty('--view-menu-root-top', `${Math.round(top)}px`);
+    surface.style.setProperty('--view-menu-root-max-height', `${Math.round(Math.max(120, viewportTop + viewportHeight - edge - top))}px`);
+  }
+
+  function positionDesktopViewMenuGroup(group) {
+    if (!isDesktopViewMenu()) return;
+    const panel = displayPanelForDesktopGroup(group);
+    const scope = displayScopeForDesktopGroup(group);
+    const trigger = group === 'projection'
+      ? (0, dependencies.$)('mapProjectionMenuTrigger')
+      : group === 'distribution'
+        ? (0, dependencies.$)('distributionMenuTrigger')
+        : document.querySelector(`[data-map-display-row="${group}"]`);
+    if (!panel || !scope || !trigger || panel.hidden) return;
+    const viewport = window.visualViewport;
+    const viewportLeft = viewport?.offsetLeft || 0;
+    const viewportTop = viewport?.offsetTop || 0;
+    const viewportWidth = viewport?.width || window.innerWidth;
+    const viewportHeight = viewport?.height || window.innerHeight;
+    const edge = 8;
+    const gap = 6;
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.max(220, panel.getBoundingClientRect().width || 260);
+    const height = Math.min(panel.scrollHeight || 0, Math.max(180, viewportHeight - edge * 2));
+    const viewportRight = viewportLeft + viewportWidth;
+    const opensLeft = rect.right + gap + width > viewportRight - edge && rect.left - gap - width >= viewportLeft + edge;
+    const left = opensLeft ? rect.left - gap - width : rect.right + gap;
+    const top = Math.max(viewportTop + edge, Math.min(rect.top, viewportTop + viewportHeight - edge - height));
+    scope.style.setProperty('--view-menu-child-left', `${Math.round(left)}px`);
+    scope.style.setProperty('--view-menu-child-top', `${Math.round(top)}px`);
+    scope.style.setProperty('--view-menu-child-width', `${Math.round(width)}px`);
+    scope.style.setProperty('--view-menu-child-max-height', `${Math.round(Math.max(180, viewportTop + viewportHeight - edge - top))}px`);
+    scope.classList.toggle('view-menu-opens-left', opensLeft);
+  }
+
+  function syncDistributionTypePlacement() {
+    const slot = (0, dependencies.$)('distributionTypeSlot');
+    const anchor = (0, dependencies.$)('distributionMobileItemAnchor');
+    if (!slot || !anchor) return;
+    const placement = isDesktopViewMenu() ? 'desktop' : 'mobile';
+    if (distributionTypePlacement === placement) return;
+    const focusedRange = document.activeElement?.matches?.('[data-layer-style-opacity]');
+    if (focusedRange) {
+      document.addEventListener('pointerup', () => syncDistributionTypePlacement(), { once: true });
+      return;
+    }
+    const sections = [...document.querySelectorAll('[data-map-display-group="languages"], [data-map-display-group="ethnicities"], [data-map-display-group="religions"]')];
+    if (placement === 'desktop') slot.append(...sections);
+    else anchor.after(...sections);
+    distributionTypePlacement = placement;
+  }
+
+  function setDesktopViewMenuGroup(group, { toggle = false } = {}) {
+    if (!isDesktopViewMenu()) return false;
+    if (DISTRIBUTION_STYLE_GROUPS.has(group)) {
+      const unchanged = desktopViewMenuRoot === 'distribution' && desktopDistributionDetail === group;
+      desktopViewMenuRoot = 'distribution';
+      desktopDistributionDetail = toggle && unchanged ? null : group;
+    } else {
+      const unchanged = desktopViewMenuRoot === group;
+      desktopViewMenuRoot = toggle && unchanged ? null : group;
+      desktopDistributionDetail = null;
+    }
+    syncMapDisplayDisclosures();
+    requestAnimationFrame(() => {
+      if (desktopViewMenuRoot) positionDesktopViewMenuGroup(desktopViewMenuRoot);
+      if (desktopDistributionDetail) positionDesktopViewMenuGroup(desktopDistributionDetail);
+    });
+    return true;
+  }
+
+  function closeDesktopViewMenuGroup({ focusParent = false } = {}) {
+    if (!desktopViewMenuRoot && !desktopDistributionDetail) return false;
+    const parent = desktopDistributionDetail ? (0, dependencies.$)('distributionMenuTrigger') : null;
+    desktopViewMenuRoot = null;
+    desktopDistributionDetail = null;
+    syncMapDisplayDisclosures();
+    if (focusParent) parent?.focus({ preventScroll: true });
+    return true;
+  }
+
+  function collapseDesktopViewMenuLevel({ focusParent = false } = {}) {
+    if (!isDesktopViewMenu()) return false;
+    if (desktopDistributionDetail) {
+      const parent = (0, dependencies.$)('distributionMenuTrigger');
+      desktopDistributionDetail = null;
+      syncMapDisplayDisclosures();
+      if (focusParent) parent?.focus({ preventScroll: true });
+      return true;
+    }
+    if (desktopViewMenuRoot) {
+      const trigger = desktopViewMenuRoot === 'projection'
+        ? (0, dependencies.$)('mapProjectionMenuTrigger')
+        : desktopViewMenuRoot === 'distribution'
+          ? (0, dependencies.$)('distributionMenuTrigger')
+          : document.querySelector(`[data-map-display-row="${desktopViewMenuRoot}"]`);
+      desktopViewMenuRoot = null;
+      syncMapDisplayDisclosures();
+      if (focusParent) trigger?.focus({ preventScroll: true });
+      return true;
+    }
+    return false;
+  }
+
+  function scheduleDesktopViewMenuGroup(group, delay = 150) {
+    clearTimeout(desktopViewMenuOpenTimer);
+    clearTimeout(desktopViewMenuCloseTimer);
+    desktopViewMenuOpenTimer = setTimeout(() => setDesktopViewMenuGroup(group), delay);
+  }
+
+  function scheduleDesktopViewMenuClose() {
+    clearTimeout(desktopViewMenuOpenTimer);
+    clearTimeout(desktopViewMenuCloseTimer);
+    desktopViewMenuCloseTimer = setTimeout(() => closeDesktopViewMenuGroup(), 200);
+  }
+
   function syncMapDisplayDisclosures() {
+    syncDistributionTypePlacement();
+    const desktop = isDesktopViewMenu();
+    const surface = (0, dependencies.$)('mapDisplaySurface');
     dependencies.state.layerPresentation = (0, dependencies.normalizeLayerPresentation)(dependencies.state.layerPresentation);
     document.querySelectorAll('[data-layer-style-panel]').forEach(panel => {
       const group = panel.dataset.layerStylePanel;
@@ -196,19 +362,35 @@ export function createMapSettings() {
       const group = trigger.dataset.mapDisplayRow;
       const row = trigger.closest('.map-display-row');
       const visible = mapDisplayVisible(group);
-      if (!visible) dependencies.expandedMapDisplayGroups.delete(group);
-      const expanded = visible && dependencies.expandedMapDisplayGroups.has(group);
+      if (!desktop && !visible) dependencies.expandedMapDisplayGroups.delete(group);
+      const expanded = desktop
+        ? desktopViewMenuRoot === group || desktopDistributionDetail === group
+        : visible && dependencies.expandedMapDisplayGroups.has(group);
       const panel = mapDisplayPanel(group);
-      if (panel) panel.hidden = !expanded;
-      row?.classList.toggle('is-disabled', !visible);
-      trigger.disabled = !visible;
+      if (panel) {
+        panel.hidden = !expanded;
+        panel.inert = desktop && expanded && !visible;
+      }
+      row?.classList.toggle('is-disabled', !desktop && !visible);
+      trigger.disabled = !desktop && !visible;
       trigger.setAttribute('aria-expanded', String(expanded));
       const label = `${mapDisplayLabel(group)} 설정 ${expanded ? '접기' : '펼치기'}`;
       trigger.setAttribute('aria-label', label);
     });
+    const projectionSlot = (0, dependencies.$)('mapViewProjectionSlot');
+    const projectionExpanded = desktop && desktopViewMenuRoot === 'projection';
+    if (projectionSlot) projectionSlot.hidden = desktop && !projectionExpanded;
+    (0, dependencies.$)('mapProjectionMenuTrigger')?.setAttribute('aria-expanded', String(projectionExpanded));
+    const distributionSettings = (0, dependencies.$)('distributionViewSettings');
+    const distributionExpanded = desktop && desktopViewMenuRoot === 'distribution';
+    if (distributionSettings) distributionSettings.hidden = desktop && !distributionExpanded;
+    (0, dependencies.$)('distributionMenuTrigger')?.setAttribute('aria-expanded', String(distributionExpanded));
+    surface?.classList.toggle('view-menu-desktop', desktop);
+    if (desktop) requestAnimationFrame(positionDesktopViewMenuSurface);
   }
 
   function toggleMapDisplayDisclosure(group) {
+    if (isDesktopViewMenu()) return setDesktopViewMenuGroup(group, { toggle: true });
     if (!mapDisplayVisible(group)) return false;
     const panel = group === 'terrain' ? mapDisplayPanel(group) : createLayerInlineStylePanel(group);
     if (!panel) return false;
@@ -224,17 +406,26 @@ export function createMapSettings() {
   function renderMapDisplaySettings() {
     dependencies.state.layerPresentation = (0, dependencies.normalizeLayerPresentation)(dependencies.state.layerPresentation);
     const units = dependencies.state.territorialUnits || [];
+    const distributionGroups = new Set((dependencies.state.distributionLayers || [])
+      .map(layer => Object.entries(dependencies.DISTRIBUTION_GROUP_TYPES).find(([, type]) => type === layer.type)?.[0])
+      .filter(Boolean));
     const available = {
       subunitsVisible: units.some(unit => unit.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT),
       regionsVisible: units.some(unit => unit.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION),
       genericFeaturesVisible: dependencies.state.genericFeatures.length > 0,
-      languagesVisible: dependencies.state.distributionEntries.length > 0,
-      ethnicitiesVisible: dependencies.state.distributionEntries.length > 0,
-      religionsVisible: dependencies.state.distributionEntries.length > 0,
+      languagesVisible: distributionGroups.has('languages'),
+      ethnicitiesVisible: distributionGroups.has('ethnicities'),
+      religionsVisible: distributionGroups.has('religions'),
     };
     for (const [id, visible] of Object.entries(available)) {
       (0, dependencies.$)(id)?.closest('.layer-type-settings')?.classList.toggle('hidden', !visible);
       if (!visible) dependencies.expandedMapDisplayGroups.delete(id.replace(/Visible$/, ''));
+    }
+    const hasDistribution = distributionGroups.size > 0;
+    (0, dependencies.$)('distributionMenuGroup')?.classList.toggle('hidden', !hasDistribution);
+    if (!hasDistribution && desktopViewMenuRoot === 'distribution') {
+      desktopViewMenuRoot = null;
+      desktopDistributionDetail = null;
     }
     syncMapDisplayDisclosures();
     syncDistributionPresentationControls();
@@ -255,8 +446,10 @@ export function createMapSettings() {
     }
     (0, dependencies.$)('terrainVisible')?.addEventListener('change', event => {
       dependencies.state.physicalSettings.terrainVisible = !!event.currentTarget.checked;
-      if (event.currentTarget.checked) dependencies.expandedMapDisplayGroups.add('terrain');
-      else dependencies.expandedMapDisplayGroups.delete('terrain');
+      if (!isDesktopViewMenu()) {
+        if (event.currentTarget.checked) dependencies.expandedMapDisplayGroups.add('terrain');
+        else dependencies.expandedMapDisplayGroups.delete('terrain');
+      }
       dependencies.gpuMapRenderer.invalidatePhysicalStyle('terrain-visibility');
       (0, dependencies.syncPhysicalControls)();
       syncMapDisplayDisclosures();
@@ -276,9 +469,90 @@ export function createMapSettings() {
       });
     }
     surface.addEventListener('click', event => {
+      const parent = event.target.closest('.view-menu-parent');
+      if (parent && isDesktopViewMenu()) {
+        event.preventDefault();
+        event.stopPropagation();
+        setDesktopViewMenuGroup(displayGroupForTrigger(parent), { toggle: true });
+        return;
+      }
       const row = event.target.closest('[data-map-display-row]');
-      if (!row || event.target !== row) return;
+      if (!row || isDesktopViewMenu()) return;
       toggleMapDisplayDisclosure(row.dataset.mapDisplayRow);
+    });
+    surface.addEventListener('pointerover', event => {
+      if (!isDesktopViewMenu()) return;
+      const parent = event.target.closest('.view-menu-parent');
+      const group = displayGroupForTrigger(parent);
+      if (!group) return;
+      clearTimeout(desktopViewMenuCloseTimer);
+      scheduleDesktopViewMenuGroup(group);
+    });
+    surface.addEventListener('pointerout', event => {
+      if (!isDesktopViewMenu() || event.relatedTarget?.closest('#mapDisplaySurface')) return;
+      scheduleDesktopViewMenuClose();
+    });
+    surface.addEventListener('pointerenter', () => clearTimeout(desktopViewMenuCloseTimer));
+    surface.addEventListener('keydown', event => {
+      if (!isDesktopViewMenu()) return;
+      const menuItems = [...surface.querySelectorAll('.view-menu-parent:not([hidden]):not(:disabled)')]
+        .filter(item => item.getClientRects().length > 0);
+      const currentIndex = menuItems.indexOf(document.activeElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        if (collapseDesktopViewMenuLevel({ focusParent: true })) return;
+        (0, dependencies.closeSurface)('display', { restoreFocus: true });
+        return;
+      }
+      if (event.key === 'Tab') {
+        closeDesktopViewMenuGroup();
+        return;
+      }
+      if (event.key === 'ArrowRight' || event.key === 'Enter' || event.key === ' ') {
+        const parent = document.activeElement?.closest('.view-menu-parent');
+        if (!parent) return;
+        event.preventDefault();
+        event.stopPropagation();
+        setDesktopViewMenuGroup(displayGroupForTrigger(parent));
+        const panel = displayPanelForDesktopGroup(displayGroupForTrigger(parent));
+        requestAnimationFrame(() => panel?.querySelector('button, input, select')?.focus({ preventScroll: true }));
+        return;
+      }
+      if (event.key === 'ArrowLeft') {
+        if (!document.activeElement?.closest('.view-menu-parent')) return;
+        event.preventDefault();
+        event.stopPropagation();
+        collapseDesktopViewMenuLevel({ focusParent: true });
+        return;
+      }
+      if (currentIndex < 0) return;
+      let nextIndex;
+      if (event.key === 'ArrowDown') nextIndex = currentIndex + 1;
+      else if (event.key === 'ArrowUp') nextIndex = currentIndex - 1;
+      else if (event.key === 'Home') nextIndex = 0;
+      else if (event.key === 'End') nextIndex = menuItems.length - 1;
+      else return;
+      if (!menuItems.length) return;
+      event.preventDefault();
+      event.stopPropagation();
+      menuItems[(nextIndex + menuItems.length) % menuItems.length]?.focus({ preventScroll: true });
+    });
+    const app = (0, dependencies.$)('app');
+    new MutationObserver(() => {
+      syncDistributionTypePlacement();
+      if (!surface.classList.contains('surface-open') && !surface.classList.contains('mobile-open')) closeDesktopViewMenuGroup();
+    }).observe(app, { attributes: true, attributeFilter: ['data-layout'] });
+    new MutationObserver(() => {
+      if (!surface.classList.contains('surface-open') && !surface.classList.contains('mobile-open')) closeDesktopViewMenuGroup();
+    }).observe(surface, { attributes: true, attributeFilter: ['class'] });
+    window.addEventListener('resize', () => {
+      if (!isDesktopViewMenu()) return;
+      requestAnimationFrame(() => {
+        positionDesktopViewMenuSurface();
+        if (desktopViewMenuRoot) positionDesktopViewMenuGroup(desktopViewMenuRoot);
+        if (desktopDistributionDetail) positionDesktopViewMenuGroup(desktopDistributionDetail);
+      });
     });
     surface.addEventListener('change', event => {
       const boundary = event.target.closest('[data-layer-style-boundary]');
@@ -306,7 +580,6 @@ export function createMapSettings() {
   }
 
   function syncDistributionPresentationControls() {
-    (0, dependencies.$)('distributionViewSettings')?.classList.toggle('hidden', !dependencies.state.distributionEntries.length);
     const mode = dependencies.state.distributionSettings?.renderMode || dependencies.DISTRIBUTION_RENDER_MODES.DOMINANT;
     for (const id of ['distributionLayerModeInput', 'distributionRenderModeInput']) {
       const input = (0, dependencies.$)(id);
@@ -361,6 +634,7 @@ export function createMapSettings() {
   return Object.freeze({
     connect,
     get bindMapDisplayUI() { return bindMapDisplayUI; },
+    get closeDesktopViewMenuGroup() { return closeDesktopViewMenuGroup; },
     initializeLAYER_STYLE_TARGETS,
     get projectSerializer() { return projectSerializer; },
     get renderMapDisplaySettings() { return renderMapDisplaySettings; },

@@ -581,17 +581,14 @@ test('wide keeps layers visible while the add popover opens', async ({ page }) =
   expect(errors).toEqual([]);
 });
 
-test('brand frame stays empty and every add action renders a unique icon', async ({ page }) => {
+test('brand is omitted while every add action renders a unique icon', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   await expect(page).toHaveTitle('판도연구소 — 국가와 국경을 만드는 세계지도 편집기');
-  await expect(page.locator('.brand > div:last-child strong')).toHaveText('판도연구소');
-  const brandMark = page.locator('.brand-mark');
-  await expect(brandMark).toBeVisible();
-  expect(await brandMark.evaluate(element => element.childElementCount)).toBe(0);
-  const brandBox = await brandMark.boundingBox();
-  expect(brandBox?.width).toBe(34);
-  expect(brandBox?.height).toBe(34);
+  await expect(page.locator('.topbar .brand, .topbar .brand-mark')).toHaveCount(0);
+  await expect(page.locator('#mobileFileBtn')).toHaveText('파일');
+  await expect(page.locator('#preferencesBtn')).toHaveText('설정');
+  await expect(page.locator('#helpBtn')).toHaveText('도움말');
 
   await page.locator('#createMenuBtn').click();
   const iconHrefs = await page.locator('#createMenu .create-menu-item use').evaluateAll(elements => (

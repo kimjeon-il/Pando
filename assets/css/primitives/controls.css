@@ -1,6 +1,88 @@
 /* Canonical UI primitive controls. Feature styles may position these
    controls, but they do not redefine their visual language. */
 
+/* Custom color editing shares one compact control in object and preference pickers. */
+.ui-color-popover:not(.is-custom) > .ui-custom-color,
+.ui-color-popover.is-custom > :not(.ui-custom-color) { display: none; }
+.ui-color-popover.is-custom {
+  max-height: calc(100dvh - var(--ui-popover-screen-edge) * 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.ui-custom-color { min-width: 0; display: grid; gap: var(--ui-space-2); color: var(--text); }
+.ui-custom-color-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
+.ui-custom-color-heading strong { font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
+.ui-custom-color-plane {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: clamp(120px, 22dvh, 180px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), var(--color-hue, red);
+  cursor: crosshair;
+  touch-action: none;
+}
+.ui-custom-color-plane:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.ui-custom-color-cursor {
+  position: absolute;
+  left: clamp(6px, var(--color-x, 0%), calc(100% - 6px));
+  top: clamp(6px, var(--color-y, 0%), calc(100% - 6px));
+  width: 12px; height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #0009;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.ui-custom-color-hue { display: flex; min-width: 0; align-items: center; }
+.ui-custom-color-hue > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.ui-custom-color-hue input[type="range"] { width: 100%; min-height: var(--ui-control-height); margin: 0; }
+.ui-custom-color-hue input::-webkit-slider-runnable-track {
+  height: 10px; border-radius: var(--ui-radius-control);
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.ui-custom-color-hue input::-moz-range-track {
+  height: 10px; border-radius: var(--ui-radius-control);
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.ui-custom-color-hue input::-webkit-slider-thumb { width: 18px; height: 18px; margin-top: -4px; border: 2px solid #fff; background: transparent; box-shadow: 0 0 0 1px #0008; }
+.ui-custom-color-hue input::-moz-range-thumb { width: 18px; height: 18px; border: 2px solid #fff; background: transparent; box-shadow: 0 0 0 1px #0008; }
+.ui-custom-color-value-row { display: flex; min-width: 0; align-items: end; gap: var(--ui-space-2); }
+.ui-custom-color-preview { display: block; flex: 0 0 var(--ui-control-height); height: var(--ui-control-height); border: 1px solid var(--border); border-radius: var(--ui-radius-control); }
+.ui-custom-color-hex { flex: 1; }
+.ui-custom-color .ui-field { display: grid; min-width: 0; gap: var(--ui-space-1); }
+.ui-custom-color .ui-field > span { color: var(--text-soft); font-size: var(--ui-font-sm); }
+.ui-custom-color .ui-field input {
+  width: 100%; min-width: 0;
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: 1px solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-input);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.ui-custom-color .ui-field input:focus-visible { border-color: var(--accent); outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.ui-custom-color input[aria-invalid="true"] { border-color: var(--danger); }
+.ui-custom-color-formats { display: flex; gap: var(--ui-space-1); }
+.ui-custom-color-formats .ui-button { padding-inline: var(--ui-space-2); background: transparent; font-size: var(--ui-font-sm); }
+.ui-custom-color-formats .ui-button[aria-pressed="true"] { background: var(--ui-button-selected); color: var(--accent); }
+.ui-custom-color-channels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ui-space-2); }
+.ui-custom-color-message { margin: 0; color: var(--text-soft); font-size: var(--ui-font-sm); }
+.ui-custom-color-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); margin-top: var(--ui-space-1); }
+@media (max-width: 799px) {
+  .ui-color-popover.is-custom { max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height, var(--ui-mobile-bottom-nav-height)) - var(--ui-space-4) * 2); }
+  .ui-custom-color :is(.ui-button, .ui-field input, .ui-custom-color-hue input) { min-height: var(--ui-touch-height); }
+  .ui-custom-color-preview { flex-basis: var(--ui-touch-height); height: var(--ui-touch-height); }
+}
+@media (forced-colors: active) {
+  .ui-custom-color-plane, .ui-custom-color-hue input, .ui-custom-color-preview { forced-color-adjust: none; }
+  .ui-custom-color-formats .ui-button[aria-pressed="true"] { outline: 1px solid Highlight; }
+}
+
 html { font-size: 100%; }
 
 .ui-icon {

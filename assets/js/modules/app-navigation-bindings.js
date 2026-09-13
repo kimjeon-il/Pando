@@ -21,7 +21,9 @@ export function createNavigationBindings() {
   }
 
   function toggleWorkspaceSurface(surface, trigger) {
+    const wasOpen = surface === 'display' && (0, dependencies.$)('mapDisplaySurface')?.classList.contains('surface-open');
     (0, dependencies.toggleSurface)(surface, trigger);
+    if (surface === 'display' && wasOpen) (0, dependencies.closeDesktopViewMenuGroup)();
     if (surface === 'display') (0, dependencies.renderMapDisplaySettings)();
     if (surface === 'search' && (0, dependencies.$)('objectSearchSurface')?.classList.contains('surface-open')) {
       requestAnimationFrame(() => (0, dependencies.$)('layerSearchInput')?.focus({ preventScroll: true }));
@@ -37,6 +39,11 @@ export function createNavigationBindings() {
     document.addEventListener('click', e => {
       if (!e.target.closest('.top-actions') && !e.target.closest('#mobileFileBtn')) {
         (0, dependencies.closeFileMenu)();
+      }
+      const display = (0, dependencies.$)('mapDisplaySurface');
+      if (dependencies.layoutMode !== 'mobile' && display?.classList.contains('surface-open') && !e.target.closest('#mapDisplaySurface, #mapDisplayBtn')) {
+        (0, dependencies.closeDesktopViewMenuGroup)();
+        (0, dependencies.closeSurface)('display');
       }
       if (!e.target.closest('#objectActionsMenu') && !e.target.closest('[data-layer-item-menu]')) (0, dependencies.closeObjectActionsMenu)();
       if (!e.target.closest('#objectChooser')) (0, dependencies.closeObjectChooser)();
@@ -72,6 +79,7 @@ export function createNavigationBindings() {
     (0, dependencies.$)('objectSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
     (0, dependencies.$)('mapDisplayBtn')?.addEventListener('click', event => toggleWorkspaceSurface('display', event.currentTarget));
     (0, dependencies.$)('objectLockBtn')?.addEventListener('click', () => dependencies.batchToggleLocked());
+    (0, dependencies.$)('objectVisibilityBtn')?.addEventListener('click', () => dependencies.batchSetVisibility());
     (0, dependencies.$)('objectDeleteBtn')?.addEventListener('click', () => dependencies.deleteSelectedFromObjectMenu());
     (0, dependencies.$)('mobileBackdrop')?.addEventListener('click', () => {
       (0, dependencies.closeFileMenu)({ restoreFocus: true });

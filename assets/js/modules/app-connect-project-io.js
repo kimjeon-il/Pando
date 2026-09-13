@@ -16,6 +16,7 @@ export function connectProjectIo({
     get BASE_DATASET() { return environment.BASE_DATASET; },
     get buildCountryDelta() { return projectSnapshots.buildCountryDelta; },
     get clamp() { return environment.clamp; },
+    get closeSurface() { return workspaceSurfaces.closeSurface; },
     get createProjectSerializer() { return runtime.createProjectSerializer; },
     get deepClone() { return environment.deepClone; },
     get DISTRIBUTION_GROUP_TYPES() { return objectPresentation.DISTRIBUTION_GROUP_TYPES; },
@@ -368,6 +369,7 @@ export function connectProjectIo({
   });
   navigationBindings.connect({
     get $() { return environment.$; },
+    get batchSetVisibility() { return objectCommands.batchSetVisibility; },
     get bindMapDisplayUI() { return mapSettings.bindMapDisplayUI; },
     get activeCreateMenuItems() { return workspaceSurfaces.activeCreateMenuItems; },
     get batchToggleLocked() { return objectCommands.batchToggleLocked; },
@@ -378,6 +380,7 @@ export function connectProjectIo({
     get clearNotification() { return readinessNotifications.clearNotification; },
     get closeCreateMenu() { return workspaceSurfaces.closeCreateMenu; },
     get closeFileMenu() { return workspaceSurfaces.closeFileMenu; },
+    get closeDesktopViewMenuGroup() { return mapSettings.closeDesktopViewMenuGroup; },
     get closeObjectActionsMenu() { return objectCommands.closeObjectActionsMenu; },
     get closeObjectChooser() { return objectPicking.closeObjectChooser; },
     get closeSurface() { return workspaceSurfaces.closeSurface; },
