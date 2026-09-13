@@ -121,6 +121,7 @@ export function connectMapResources({
     get LAYER_GROUP_KEYS() { return objectPresentation.LAYER_GROUP_KEYS; },
     get layerGroupNames() { return objectPresentation.layerGroupNames; },
     get pendingCountryLabelAnchors() { return countryIndex.pendingCountryLabelAnchors; },
+    get scheduleCountryLabelAnchors() { return countryIndex.scheduleCountryLabelAnchors; },
     get projectDomain() { return domainAssembly.projectDomain; },
     get renderingDomain() { return domainAssembly.renderingDomain; },
     get selectionDomain() { return domainAssembly.selectionDomain; },

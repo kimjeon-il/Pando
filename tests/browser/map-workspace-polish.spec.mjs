@@ -49,12 +49,12 @@ test('compact map commands stay clickable and search closes only after a single 
   expect(displayMenuGeometry.panel.left).toBeGreaterThanOrEqual(displayMenuGeometry.countryRow.right);
   expect(Math.abs(displayMenuGeometry.panel.top - displayMenuGeometry.countryRow.top)).toBeLessThanOrEqual(2);
   expect(displayMenuGeometry.visibilityLabel.height).toBeLessThanOrEqual(24);
-  await page.locator('#countriesVisible').uncheck();
+  await page.locator('#countriesVisible').locator('..').click();
   await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
-  await expect(page.locator('#layerStylePanel-countries')).toHaveJSProperty('inert', true);
-  await page.locator('#countriesVisible').check();
+  await expect(page.locator('#layerStylePanel-countries .view-menu-panel-content')).toHaveJSProperty('inert', true);
+  await page.locator('#countriesVisible').locator('..').click();
   await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
-  await expect(page.locator('#layerStylePanel-countries')).toHaveJSProperty('inert', false);
+  await expect(page.locator('#layerStylePanel-countries .view-menu-panel-content')).toHaveJSProperty('inert', false);
 
   await page.locator('#mapDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeHidden();

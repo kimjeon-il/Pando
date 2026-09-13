@@ -56,19 +56,7 @@ export function createProjectRestore() {
     dependencies.editingDomain?.resetProject?.(dependencies.projectDomain?.getGeneration?.() || 0);
 
     (0, dependencies.syncProjectionButtons)();
-    (0, dependencies.$)('countriesVisible').checked = dependencies.state.layerVisibility.countries;
-    (0, dependencies.$)('subunitsVisible').checked = dependencies.state.layerVisibility.subunits !== false;
-    (0, dependencies.$)('regionsVisible').checked = dependencies.state.layerVisibility.regions !== false;
-    (0, dependencies.$)('languagesVisible').checked = dependencies.state.layerVisibility.languages !== false;
-    (0, dependencies.$)('ethnicitiesVisible').checked = dependencies.state.layerVisibility.ethnicities !== false;
-    (0, dependencies.$)('religionsVisible').checked = dependencies.state.layerVisibility.religions !== false;
-    (0, dependencies.$)('riversVisible').checked = dependencies.state.layerVisibility.rivers !== false;
-    (0, dependencies.$)('lakesVisible').checked = dependencies.state.layerVisibility.lakes !== false;
-    (0, dependencies.$)('genericFeaturesVisible').checked = dependencies.state.layerVisibility.genericFeatures;
-    (0, dependencies.$)('labelsVisible').checked = dependencies.state.layerVisibility.labels;
-    (0, dependencies.$)('basemapLabelsVisible').checked = dependencies.state.layerVisibility.basemapLabels;
-    (0, dependencies.$)('countryFlagsVisible').checked = dependencies.state.layerVisibility.countryFlags !== false;
-    (0, dependencies.syncPhysicalControls)();
+    (0, dependencies.renderMapDisplaySettings)();
     if ((0, dependencies.$)('layerSearchInput')) (0, dependencies.$)('layerSearchInput').value = dependencies.state.layerSearch;
     dependencies.layerTreeController?.render(true);
     dependencies.objectPropertyController.show(null);
@@ -289,19 +277,7 @@ export function createProjectRestore() {
     (0, dependencies.refreshCountryCentroids)();
     dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
 
-    (0, dependencies.$)('countriesVisible').checked = true;
-    (0, dependencies.$)('subunitsVisible').checked = true;
-    (0, dependencies.$)('regionsVisible').checked = true;
-    (0, dependencies.$)('languagesVisible').checked = true;
-    (0, dependencies.$)('ethnicitiesVisible').checked = true;
-    (0, dependencies.$)('religionsVisible').checked = true;
-    (0, dependencies.$)('riversVisible').checked = true;
-    (0, dependencies.$)('lakesVisible').checked = true;
-    (0, dependencies.$)('genericFeaturesVisible').checked = true;
-    (0, dependencies.$)('labelsVisible').checked = true;
-    (0, dependencies.$)('basemapLabelsVisible').checked = true;
-    (0, dependencies.$)('countryFlagsVisible').checked = dependencies.state.layerVisibility.countryFlags !== false;
-    (0, dependencies.syncPhysicalControls)();
+    (0, dependencies.renderMapDisplaySettings)();
     if ((0, dependencies.$)('layerSearchInput')) (0, dependencies.$)('layerSearchInput').value = '';
     dependencies.layerTreeController?.render(true);
     (0, dependencies.syncProjectionButtons)();

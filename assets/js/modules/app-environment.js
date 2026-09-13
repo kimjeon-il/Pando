@@ -362,7 +362,7 @@ export function createEnvironment() {
     (REQUIRED_UI_IDS = Object.freeze([
       'app', 'map', 'mapBottomStatus', 'statusView', 'projectionStatus', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
       'objectSearchSurface', 'objectSearchSection', 'mapDisplaySurface', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
-      'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
+      'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'subunitLabelsVisible', 'subunitFlagsVisible', 'regionLabelsVisible', 'regionFlagsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
       'createMenuBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'countryNameInput', 'countryColorInput', 'notesInput',
       'debugMapPanel', 'countryAreaValue',
       'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',

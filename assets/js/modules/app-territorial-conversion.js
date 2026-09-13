@@ -365,7 +365,7 @@ export function createTerritorialConversion() {
       adminLevel: null,
       color: String(sourceOverride.color || ''),
       notes: String(sourceOverride.notes || ''),
-      metadata: { convertedFromCountry: { properties: sourceProperties, override: sourceOverride } },
+      metadata: { convertedFromCountry: { countryId: String(countryId), properties: sourceProperties, override: sourceOverride } },
     });
     const snapshot = (0, dependencies.snapshotEditable)();
     (0, dependencies.setActionStatus)(`${name}의 국가 경계를 대상 국가에 합치는 중입니다.`, 'working', 0);

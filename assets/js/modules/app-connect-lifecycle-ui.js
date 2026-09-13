@@ -91,6 +91,7 @@ export function connectLifecycleUi({
     get trackMobileSheetHistory() { return workspaceSurfaces.trackMobileSheetHistory; },
   });
   editorBindings.connect({
+    get renderMapDisplaySettings() { return mapSettings.renderMapDisplaySettings; },
     get $() { return environment.$; },
     get bindFileAndGisUI() { return fileBindings.bindFileAndGisUI; },
     get bindGlobalInputUI() { return globalInputBindings.bindGlobalInputUI; },
@@ -111,6 +112,7 @@ export function connectLifecycleUi({
     get syncSearchClearButton() { return environment.syncSearchClearButton; },
   });
   progressiveStartup.connect({
+    get renderMapDisplaySettings() { return mapSettings.renderMapDisplaySettings; },
     get $() { return environment.$; },
     get applyAdaptiveRenderQuality() { return renderQuality.applyAdaptiveRenderQuality; },
     get applyAutosavedView() { return historyAssembly.applyAutosavedView; },

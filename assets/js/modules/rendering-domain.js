@@ -226,8 +226,8 @@ export function createRenderingDomain({
     const state = labelState();
     const layer = labels.countryLabelLayer;
     if (!layer) return false;
-    const namesVisible = state.layerVisibility?.basemapLabels !== false;
     const resolvedLayout = layout || labels.visibleLabelLayout?.();
+    const namesVisible = feature => resolvedLayout?.countryLabelNames?.get(String(feature.id)) !== false;
     const data = resolvedLayout?.countryLabels || [];
     const selection = layer.selectAll('g.country-label-item').data(data, d => d.id);
     selection.exit().remove();
@@ -248,8 +248,8 @@ export function createRenderingDomain({
       });
     enter.append('text').attr('class', 'country-label').attr('dy', '.35em');
     const all = layer.selectAll('g.country-label-item');
-    all.select('text').text(namesVisible ? labels.countryName || (d => d.name || '') : '')
-      .style('display', namesVisible ? null : 'none')
+    all.select('text').text(feature => namesVisible(feature) ? labels.countryName?.(feature) || feature.properties?.name || '' : '')
+      .style('display', feature => namesVisible(feature) ? null : 'none')
       .classed('major', d => (resolvedLayout?.countryScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
     all
       .style('opacity', labels.layerStyle?.(state.layerPresentation, 'countryLabels').opacity)
@@ -265,15 +265,16 @@ export function createRenderingDomain({
       });
     countryLabelPositionBindings = [];
     all.each(function(feature) {
+      const nameVisible = namesVisible(feature);
       let flag = resolvedLayout?.countryFlags?.get(String(feature.id));
       const text = this.querySelector('text');
       const image = this.querySelector('image');
       if (flag?.url === image.dataset.failedUrl) flag = null;
-      text.setAttribute('x', flag && namesVisible ? (flag.width + flag.gap) / 2 : 0);
+      text.setAttribute('x', flag && nameVisible ? (flag.width + flag.gap) / 2 : 0);
       image.style.display = flag ? '' : 'none';
       if (flag) {
-        const width = namesVisible ? text.getComputedTextLength() : 0;
-        image.setAttribute('x', namesVisible ? -(width + flag.width + flag.gap) / 2 : -flag.width / 2);
+        const width = nameVisible ? text.getComputedTextLength() : 0;
+        image.setAttribute('x', nameVisible ? -(width + flag.width + flag.gap) / 2 : -flag.width / 2);
         image.setAttribute('y', -flag.height / 2);
         image.setAttribute('width', flag.width); image.setAttribute('height', flag.height);
         if (image.getAttribute('href') !== flag.url) image.setAttribute('href', flag.url);

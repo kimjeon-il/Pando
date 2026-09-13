@@ -8,14 +8,14 @@ import { automaticLabelSettings, labelKey, layoutLabels, LABEL_PRIORITIES } from
 
 function fixture(visibility = {}) {
   const features = ['AAA', 'BBB', 'SUBUNIT', 'NOFLAG'].map(id => ({
-    type: 'Feature', id, properties: { name: id },
+    type: 'Feature', id, properties: { name: id, ...(id === 'SUBUNIT' ? { unitType: 'subunit' } : {}) },
     geometry: { type: 'Polygon', coordinates: [[[-10, -10], [10, -10], [10, 10], [-10, 10], [-10, -10]]] },
   }));
   const anchors = new Map(features.map((feature, index) => [feature.id, [100 + index * 200, 100]]));
   const hiddenIds = new Set();
   const state = {
     projection: 'globe', view: { globeZoom: 2 }, countryVisualPhase: 'canonical',
-    layerVisibility: { basemapLabels: true, countryFlags: true, labels: true, ...visibility },
+    layerVisibility: { basemapLabels: true, countryFlags: true, labels: true, subunitLabels: visibility.basemapLabels !== false, ...visibility },
     countryOverrides: {}, labelSettings: {}, size: { width: 1000, height: 600 },
     labels: [{ id: 'PLACE', kind: 'capital', name: 'Place', coordinates: [100, 300] }],
   };
@@ -37,7 +37,7 @@ function fixture(visibility = {}) {
     effectiveCountryFlagUrl: ({ countryId }) => countryId === 'NOFLAG' ? null : `/${countryId}.svg`,
   });
   controller.initializeCountryLabelScreenAreas();
-  return { controller, state, anchors, hiddenIds };
+  return { controller, state, anchors, hiddenIds, features };
 }
 
 for (const names of [true, false]) for (const flags of [true, false]) for (const places of [true, false]) {
@@ -84,7 +84,7 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
   const settings = createMapSettings();
   let baseInvalidations = 0, autosaves = 0;
   settings.connect({
-    state, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
+    state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
     normalizeLayerPresentation: value => value, markLayerTreeDirty() {},
     renderingDomain: {
       invalidateLabels: rendering.invalidateLabels,
@@ -97,7 +97,7 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
   assert.equal(layouts.at(-1).countryFlags.size, 2);
   settings.setLayerVisibility('countryFlags', false);
   frames.shift()();
-  assert.equal(layouts.at(-1).countryLabels.length, 0);
+  assert.deepEqual(layouts.at(-1).countryLabels.map(feature => feature.id), ['SUBUNIT']);
   settings.setLayerVisibility('labels', false);
   frames.shift()();
   assert.equal(layouts.at(-1).userLabels.length, 0);
@@ -113,3 +113,32 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
   assert.equal(autosaves, 6);
   rendering.dispose();
 });
+
+for (const [id, group, nameKey, flagKey] of [
+  ['AAA', 'countries', 'basemapLabels', 'countryFlags'],
+  ['SUBUNIT', 'subunits', 'subunitLabels', 'subunitFlags'],
+  ['BBB', 'regions', 'regionLabels', 'regionFlags'],
+]) {
+  test(`territorial symbols are independent for ${group}`, () => {
+    const { controller, state, features } = fixture();
+    features.find(feature => feature.id === 'BBB').properties.unitType = 'region';
+    for (const feature of features.filter(feature => feature.properties.unitType)) {
+      feature.properties.metadata = { flagDataUrl: `/${feature.id}.svg` };
+    }
+    state.layerVisibility[nameKey] = false;
+    let layout = controller.visibleLabelLayout();
+    assert.equal(layout.countryLabelNames.get(id), false);
+    assert.equal(layout.countryFlags.has(id), true, 'hiding a name retains its flag');
+    for (const other of ['AAA', 'SUBUNIT', 'BBB'].filter(key => key !== id)) {
+      assert.equal(layout.countryLabelNames.get(other), true, 'other types retain names');
+    }
+    state.layerVisibility[flagKey] = false;
+    layout = controller.visibleLabelLayout();
+    assert.equal(layout.countryLabels.some(feature => feature.id === id), false);
+    state.layerVisibility[flagKey] = true;
+    state.layerVisibility[group] = false;
+    layout = controller.visibleLabelLayout();
+    assert.equal(layout.countryLabels.some(feature => feature.id === id), false);
+    assert.equal(state.layerVisibility[flagKey], true, 'hiding a type retains its symbol preferences');
+  });
+}

@@ -75,6 +75,10 @@ export function createProjectSession() {
       labels: true,
       basemapLabels: true,
       countryFlags: true,
+      subunitLabels: true,
+      subunitFlags: true,
+      regionLabels: true,
+      regionFlags: true,
     }));
 
     (state = {

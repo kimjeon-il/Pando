@@ -241,6 +241,7 @@ export function createReadinessNotifications() {
       '#mobileFileBtn', '#preferencesBtn', '#helpBtn', '#undoBtn', '#redoBtn',
       '.layer-child-menu', '.layer-folder-lock', '[data-map-display-row]',
       '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-style-blend-mode]',
+      '[data-territorial-symbol]',
       '.layer-folder input[type="checkbox"]', '#labelsVisible', '#basemapLabelsVisible',
     ].join(','));
 
@@ -250,6 +251,7 @@ export function createReadinessNotifications() {
       '[data-layer-style-opacity]',
       '[data-layer-style-boundary]',
       '[data-layer-style-blend-mode]',
+      '[data-territorial-symbol]',
       '#terrainVisible',
       'input[name="terrainStyle"]',
       '#labelsVisible',

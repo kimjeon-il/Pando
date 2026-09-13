@@ -1,4 +1,4 @@
-/* Shared command-row language for create, editor, and file actions. */
+/* Shared command-row language for create and editor actions. */
 .editor-action-row,
 .create-menu-item,
 .ui-row-button {
@@ -103,14 +103,6 @@
 }
 
 .create-menu-item strong { font-size: var(--ui-font-md); font-weight: var(--ui-weight-medium); }
-
-.file-menu-item {
-  display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
-  align-items: center;
-  column-gap: var(--ui-space-2);
-  text-align: left;
-}
 
 :is(.editor-action-row, .create-menu-item, .ui-row-button):has(small:not(:empty)) {
   min-height: var(--design-command-description-height);
