@@ -49,18 +49,10 @@
 
   .workspace-surface.ui-sheet > .surface-header {
     position: relative;
-    min-height: var(--ui-surface-header-height-mobile);
     padding-inline: var(--ui-surface-content-rail-x);
   }
 
-  .surface-display:not(.view-menu-desktop) > .surface-header {
-    grid-template-rows: minmax(var(--ui-touch-height), auto);
-    min-height: var(--ui-touch-height);
-    padding-block: 0;
-    border-bottom: 0;
-  }
-
-  .surface-display:not(.view-menu-desktop) > .surface-header > .surface-header-title { display: none; }
+  .workspace-surface.ui-sheet > .surface-header > .surface-header-title { display: none; }
 
   .surface-header .sheet-drag-handle {
     --ui-control-bg: transparent;
@@ -114,8 +106,6 @@
   .workspace-surface[data-sheet-snap="0"] .surface-tabs,
   .surface-editor[data-sheet-snap="0"] .editor-scroll-body { display: none; }
 
-  .surface-editor[data-sheet-snap="0"] > .surface-header { min-height: var(--design-sheet-snap-collapsed); }
-
   .surface-tabs,
   .surface-tabs .ui-tab { min-height: var(--ui-touch-height); }
 
@@ -155,7 +145,6 @@
     flex: 0 0 auto;
     min-height: var(--ui-touch-height);
     padding: 0;
-    border-bottom: 1px solid var(--border);
   }
 
   .surface-editor[data-editor-content="task"] > .surface-header :is(.surface-header-title, .surface-header-actions) { display: none; }

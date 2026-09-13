@@ -3555,7 +3555,7 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   }
   .app-root[data-layout="mobile"] .map-command-toolbar :is(#objectSearchBtn, #mapDisplayBtn, .map-command-divider) { display: none; }
   .app-root[data-layout="mobile"] .map-command-toolbar button { width: var(--ui-touch-height); height: var(--ui-touch-height); }
-  .app-root[data-layout="mobile"] .surface-editor .surface-header { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(var(--ui-touch-height), auto) auto; }
+  .app-root[data-layout="mobile"] .surface-editor .surface-header { grid-template-columns: minmax(0, 1fr) auto; }
   .app-root[data-layout="mobile"] .surface-editor .surface-header-actions { display: flex; grid-column: 2; grid-row: 1; align-items: center; gap: var(--ui-space-1); }
   .app-root[data-layout="mobile"] .surface-editor .editor-object-command { display: grid; width: var(--ui-touch-height); height: var(--ui-touch-height); }
   .app-root[data-layout="mobile"] .surface-editor .sheet-close-btn { display: none; }

@@ -1769,10 +1769,11 @@ html { font-size: 100%; }
 [data-layout="mobile"] .surface-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(var(--ui-touch-height), auto) auto;
+  grid-template-rows: minmax(var(--ui-touch-height), auto);
   flex-basis: auto;
-  min-height: var(--ui-surface-header-height-mobile);
-  padding-block: 0 var(--ui-space-2);
+  min-height: var(--ui-touch-height);
+  padding-block: 0;
+  border-bottom: 0;
   touch-action: none;
   cursor: ns-resize;
 }
@@ -1915,13 +1916,14 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 }
 
 .app-root .topbar .topbar-command {
+  --topbar-command-background: transparent;
   min-width: 0;
   min-height: var(--design-control-md);
   height: var(--design-control-md);
   padding: 0 var(--ui-space-3);
   border: 0;
   border-radius: var(--ui-radius-control);
-  background: transparent;
+  background: var(--topbar-command-background);
   color: var(--text-soft);
   font-size: var(--ui-font-body);
   font-weight: var(--ui-weight-medium);
@@ -1929,8 +1931,8 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 }
 
 .app-root .topbar .topbar-command:is(:hover, :active, [aria-expanded="true"]):not(:disabled) {
+  --topbar-command-background: var(--ui-button-subtle-hover);
   border-color: transparent;
-  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 
@@ -1973,7 +1975,26 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
     height: var(--ui-touch-height);
   }
 
-  .app-root[data-layout="mobile"] .topbar .topbar-command { padding-inline: var(--ui-space-1); }
+  /* The highlight is smaller than the unchanged 48px touch target. */
+  .app-root[data-layout="mobile"] .topbar .topbar-command {
+    position: relative;
+    isolation: isolate;
+    padding-inline: var(--ui-space-3);
+    background: transparent;
+  }
+
+  .app-root[data-layout="mobile"] .topbar .topbar-command::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset-inline: var(--ui-space-1);
+    top: 50%;
+    height: calc(var(--ui-touch-height) - var(--ui-space-3) * 2);
+    border-radius: inherit;
+    background: var(--topbar-command-background);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
 
   .app-root[data-layout="mobile"] .top-actions {
     position: fixed;
@@ -2594,23 +2615,12 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   gap: var(--ui-space-1);
 }
 
-.surface-editor .editor-object-command--lock { color: var(--text-soft); }
-
-.surface-editor .editor-object-command--lock[aria-pressed="true"] {
-  background: var(--ui-button-selected);
-  color: var(--accent);
-}
-
-.surface-editor .editor-object-command--delete:not(:disabled) {
+.surface-editor .ui-button.editor-object-command,
+.surface-editor .ui-button.editor-object-command:is(:hover, :active, :focus-visible, [aria-pressed="true"]):not(:disabled) {
   border-color: transparent;
   background: transparent;
   color: var(--text-soft);
-}
-
-.surface-editor .editor-object-command--delete:is(:hover, :focus-visible):not(:disabled) {
-  border-color: transparent;
-  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
-  color: var(--danger-text);
+  box-shadow: none;
 }
 
 .surface-editor .distribution-entry-delete:not(:disabled) {
@@ -3333,18 +3343,10 @@ body.file-menu-open .mobile-backdrop {
 
   .workspace-surface.ui-sheet > .surface-header {
     position: relative;
-    min-height: var(--ui-surface-header-height-mobile);
     padding-inline: var(--ui-surface-content-rail-x);
   }
 
-  .surface-display:not(.view-menu-desktop) > .surface-header {
-    grid-template-rows: minmax(var(--ui-touch-height), auto);
-    min-height: var(--ui-touch-height);
-    padding-block: 0;
-    border-bottom: 0;
-  }
-
-  .surface-display:not(.view-menu-desktop) > .surface-header > .surface-header-title { display: none; }
+  .workspace-surface.ui-sheet > .surface-header > .surface-header-title { display: none; }
 
   .surface-header .sheet-drag-handle {
     --ui-control-bg: transparent;
@@ -3398,8 +3400,6 @@ body.file-menu-open .mobile-backdrop {
   .workspace-surface[data-sheet-snap="0"] .surface-tabs,
   .surface-editor[data-sheet-snap="0"] .editor-scroll-body { display: none; }
 
-  .surface-editor[data-sheet-snap="0"] > .surface-header { min-height: var(--design-sheet-snap-collapsed); }
-
   .surface-tabs,
   .surface-tabs .ui-tab { min-height: var(--ui-touch-height); }
 
@@ -3439,7 +3439,6 @@ body.file-menu-open .mobile-backdrop {
     flex: 0 0 auto;
     min-height: var(--ui-touch-height);
     padding: 0;
-    border-bottom: 1px solid var(--border);
   }
 
   .surface-editor[data-editor-content="task"] > .surface-header :is(.surface-header-title, .surface-header-actions) { display: none; }

@@ -482,23 +482,12 @@
   gap: var(--ui-space-1);
 }
 
-.surface-editor .editor-object-command--lock { color: var(--text-soft); }
-
-.surface-editor .editor-object-command--lock[aria-pressed="true"] {
-  background: var(--ui-button-selected);
-  color: var(--accent);
-}
-
-.surface-editor .editor-object-command--delete:not(:disabled) {
+.surface-editor .ui-button.editor-object-command,
+.surface-editor .ui-button.editor-object-command:is(:hover, :active, :focus-visible, [aria-pressed="true"]):not(:disabled) {
   border-color: transparent;
   background: transparent;
   color: var(--text-soft);
-}
-
-.surface-editor .editor-object-command--delete:is(:hover, :focus-visible):not(:disabled) {
-  border-color: transparent;
-  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
-  color: var(--danger-text);
+  box-shadow: none;
 }
 
 .surface-editor .distribution-entry-delete:not(:disabled) {
