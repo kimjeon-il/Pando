@@ -12,6 +12,10 @@ export function createGlobalInputBindings() {
 
   function bindGlobalInputUI() {
     document.addEventListener('keydown', e => {
+      if (dependencies.state.projectReplacing) {
+        e.preventDefault();
+        return;
+      }
       const tag = document.activeElement?.tagName;
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable;
       // Let focused controls handle Enter/Space once, through their normal click/change event.

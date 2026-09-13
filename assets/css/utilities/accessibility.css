@@ -95,6 +95,15 @@
 }
 
 @media (forced-colors: active) {
+  :where(.ui-button) {
+    border-color: ButtonText;
+  }
+
+  :where(.ui-button):is([aria-pressed="true"], [aria-expanded="true"], .active, .sheet-open) {
+    border-color: Highlight;
+    color: Highlight;
+  }
+
   :where(.ui-button):focus-visible,
   [role="option"]:focus-visible,
   [role="menuitem"]:focus-visible,

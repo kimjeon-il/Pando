@@ -152,6 +152,7 @@ export function createProgressiveStartup() {
         meshBuffer: mesh.meshBuffer,
         preparedStroke: mesh.preparedStroke,
         spatialBlocks: mesh.spatialBlocks,
+        builtinIdentity: mesh.identity,
         onStaged: () => {
           dependencies.state.countryVisualPhase = 'canonical';
           dependencies.countryDisplaySource = null;

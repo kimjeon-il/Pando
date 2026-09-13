@@ -10,6 +10,9 @@ const coordinator = read('assets/js/modules/map-render-coordinator.js');
 const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');
 const bootstrap = read('assets/js/bootstrap.js');
 const loader = read('assets/js/workers/data-loader-worker.js');
+const projectRestore = read('assets/js/modules/app-project-restore.js');
+const lifecycleWiring = read('assets/js/modules/app-connect-lifecycle-ui.js');
+const meshResourceLoader = read('assets/js/modules/builtin-mesh-resource.js');
 const metadata = read('assets/js/build-meta.js');
 const bundle = read('assets/css/ui-v2.bundle.css');
 const surfaces = read('assets/css/layout/surfaces.css');
@@ -152,6 +155,25 @@ test('canonical startup is input-gated and strictly sequential', () => {
   assert.doesNotMatch(loader, /manifest\.assets\.canonicalCountries/);
   assert.doesNotMatch(loader, /countriesSourceBuffer|response\.clone\(\)/);
   assert.doesNotMatch(app, /pristineCountriesSourceBuffer|parsePristineCountries/);
+});
+
+test('new project reuses a prepared built-in mesh instead of scheduling a world rebuild', () => {
+  assert.match(gpuRenderer, /function ensureBuiltinMeshBaseline/);
+  assert.match(gpuRenderer, /function activateBuiltinMeshBaseline/);
+  assert.match(gpuRenderer, /preserveBuiltinMesh/);
+  assert.match(loader, /builtin-mesh-only/);
+  assert.match(loader, /type: 'builtin-mesh-ready'/);
+  assert.match(bootstrap, /identity:\s*data\.identity \|\| null/);
+  assert.match(lifecycleWiring, /get canonicalCountryStore\(\) \{ return builtinSession\.canonicalCountryStore; \}/);
+  assert.match(meshResourceLoader, /if \(pending\) return pending/);
+  const resetStart = projectRestore.indexOf('async function resetProjectInPlace');
+  const resetEnd = projectRestore.indexOf('function initializeConfirmModalController', resetStart);
+  const resetSource = projectRestore.slice(resetStart, resetEnd);
+  assert.ok(resetStart >= 0 && resetEnd > resetStart);
+  assert.doesNotMatch(resetSource, /scheduleGpuMeshRebuild/);
+  assert.match(resetSource, /activateBuiltinMeshBaseline/);
+  assert.match(resetSource, /cancelGpuMeshRebuild/);
+  assert.match(resetSource, /invalidateProject\?\.\('built-in-project-transition-ready'\)/);
 });
 
 test('modal, GIS, and historical runtimes are absent from the initial request graph', () => {

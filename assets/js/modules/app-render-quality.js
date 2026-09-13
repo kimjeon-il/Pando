@@ -59,11 +59,24 @@ export function createRenderQuality() {
     return dependencies.resolvedInteractionStyle;
   }
 
-  function scheduleGpuMeshRebuild(delay = 80) {
+  function cancelGpuMeshRebuild() {
     clearTimeout(gpuRebuildTimer);
+    gpuRebuildTimer = null;
+  }
+
+  function scheduleGpuMeshRebuild(delay = 80, projectGeneration = null) {
+    clearTimeout(gpuRebuildTimer);
+    const requestedGeneration = Number.isFinite(projectGeneration)
+      ? Number(projectGeneration)
+      : dependencies.gpuMapRenderer.getProjectGeneration?.();
     gpuRebuildTimer = setTimeout(() => {
+      gpuRebuildTimer = null;
+      if (Number.isFinite(requestedGeneration)
+          && dependencies.gpuMapRenderer.getProjectGeneration?.() !== requestedGeneration) return;
       dependencies.mapEditClient.rebase(dependencies.state.countriesData?.features || []);
-      dependencies.gpuMapRenderer.rebuildFromCountries((0, dependencies.builtinRenderCountries)().collection.features);
+      dependencies.gpuMapRenderer.rebuildFromCountries((0, dependencies.builtinRenderCountries)().collection.features, {
+        projectGeneration: requestedGeneration,
+      });
     }, delay);
   }
 
@@ -89,6 +102,7 @@ export function createRenderQuality() {
     initializeRenderQualityController,
     initializeGpuRebuildTimer,
     get applyAdaptiveRenderQuality() { return applyAdaptiveRenderQuality; },
+    get cancelGpuMeshRebuild() { return cancelGpuMeshRebuild; },
     get currentRenderQuality() { return currentRenderQuality; },
     get queueAdaptiveRenderQualityRefresh() { return queueAdaptiveRenderQualityRefresh; },
     get renderQualityController() { return renderQualityController; },

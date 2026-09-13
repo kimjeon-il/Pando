@@ -199,6 +199,11 @@
   --ui-control-bg: var(--panel-2);
   --ui-control-bg-hover: var(--surface-hover);
   --ui-control-bg-pressed: color-mix(in srgb, var(--surface-hover) 72%, var(--accent-surface));
+  --ui-button-subtle: var(--ui-v2-color-button-subtle);
+  --ui-button-subtle-hover: var(--ui-v2-color-button-subtle-hover);
+  --ui-button-subtle-pressed: var(--ui-v2-color-button-subtle-pressed);
+  --ui-button-selected: var(--ui-v2-color-button-selected);
+  --ui-button-selected-hover: var(--ui-v2-color-button-selected-hover);
   --ui-control-border: var(--border);
   --ui-control-border-hover: var(--surface-hover-border);
   --ui-control-text: var(--text-soft);
@@ -1164,13 +1169,13 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease;
 }
 .btn.ghost, .icon-btn, .mode-cancel-btn {
-  border-color: var(--border);
-  background: var(--panel-2);
+  border-color: transparent;
+  background: var(--ui-button-subtle);
   color: var(--text-soft);
 }
 .btn.ghost:hover, .icon-btn:hover, .mode-cancel-btn:hover {
-  border-color: var(--surface-hover-border);
-  background: var(--surface-hover);
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 
@@ -1649,9 +1654,9 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 .mode-cancel-btn,
 .sheet-close-btn {
   min-height: var(--ui-control-height);
-  border: 1px solid var(--ui-control-border);
+  border: 1px solid transparent;
   border-radius: var(--ui-radius-control);
-  background: var(--ui-control-bg);
+  background: var(--ui-button-subtle);
   color: var(--ui-control-text);
 }
 .btn,
@@ -1669,12 +1674,13 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   padding: 0;
   display: inline-grid;
   place-items: center;
+  background: transparent;
 }
 .icon-btn .ui-icon,
 .ui-icon-button .ui-icon,
 .sheet-close-btn .ui-icon{ width: var(--ui-icon-size); height: var(--ui-icon-size); }
 .btn.ghost,
-.mode-cancel-btn { background: var(--ui-control-bg); border-color: var(--ui-control-border); color: var(--ui-control-text); }
+.mode-cancel-btn { background: var(--ui-button-subtle); border-color: transparent; color: var(--ui-control-text); }
 .btn:not(.ghost),
 .file-menu-btn,
 .create-menu-btn,
@@ -1787,30 +1793,30 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   transition: background-color .14s ease, border-color .14s ease, color .14s ease;
 }
 .ui-selectable-row:hover:not(.is-selected) {
-  border-color: var(--ui-control-border);
-  background: var(--ui-control-bg-hover);
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 .ui-selectable-row.is-selected {
-  border-color: var(--accent-border);
-  background: var(--selection-strong-bg);
-  color: var(--selection-strong-fg);
+  border-color: transparent;
+  background: var(--ui-button-selected);
+  color: var(--text-strong);
 }
 .ui-selectable-row.is-multi-selected:not(.is-primary-selected) {
-  border-color: var(--selection-soft-border);
-  background: var(--selection-soft-bg);
+  border-color: transparent;
+  background: var(--ui-button-selected);
   color: var(--selection-soft-fg);
 }
 .ui-row-button {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--ui-control-border);
-  background: var(--ui-control-bg);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--ui-control-text);
 }
-.ui-row-button:hover { border-color: var(--ui-control-border-hover); background: var(--ui-control-bg-hover); color: var(--text-strong); }
+.ui-row-button:hover { border-color: transparent; background: var(--ui-button-subtle-hover); color: var(--text-strong); }
 .ui-row-button.active,
-.ui-row-button[aria-pressed="true"] { border-color: var(--accent-border); background: var(--accent-surface); color: var(--accent-text); }
+.ui-row-button[aria-pressed="true"] { border-color: transparent; background: var(--ui-button-selected); color: var(--text-strong); }
 .ui-choice-row { display: flex; align-items: center; gap: var(--ui-control-gap); border: 1px solid transparent; border-radius: var(--ui-radius-control); }
 .ui-field { min-width: 0; }
 .ui-panel { padding: var(--ui-panel-padding); }

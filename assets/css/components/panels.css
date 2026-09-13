@@ -70,9 +70,9 @@
   justify-content: center;
   gap: var(--ui-space-2);
   padding-inline: var(--ui-space-3);
-  border: 1px solid var(--ui-control-border);
+  border: 1px solid transparent;
   border-radius: var(--ui-radius-control);
-  background: var(--ui-control-bg);
+  background: var(--ui-button-subtle);
   color: var(--muted);
 }
 
@@ -93,16 +93,16 @@
 }
 
 .map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, var(--ui-control-bg));
+  border-color: transparent;
+  background: var(--ui-button-selected);
   color: var(--text-strong);
 }
 
 .map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) .ui-icon { color: var(--accent); }
 
 .map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]):hover {
-  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent) 13%, var(--ui-control-bg));
+  border-color: transparent;
+  background: var(--ui-button-selected-hover);
   color: var(--text-strong);
 }
 
@@ -349,14 +349,14 @@ body.file-menu-open .mobile-backdrop {
 /* Surface controls use the same quiet hierarchy: neutral navigation, one
    compact settings row, and only the primary workflow buttons use blue. */
 .topbar .file-menu-btn {
-  border-color: var(--ui-control-border);
-  background: var(--ui-control-bg);
+  border-color: transparent;
+  background: var(--ui-button-subtle);
   color: var(--ui-control-text);
 }
 
 .topbar .file-menu-btn:is(:hover, .sheet-open) {
-  border-color: var(--ui-control-border-hover);
-  background: var(--ui-control-bg-hover);
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 
@@ -366,7 +366,7 @@ body.file-menu-open .mobile-backdrop {
   border: 1px solid var(--toolbar-border);
   border-radius: var(--ui-radius-panel);
   background: var(--toolbar-bg);
-  box-shadow: var(--control-shadow);
+  box-shadow: var(--ui-v2-toolbar-shadow);
 }
 
 .map-command-toolbar .map-command-divider {

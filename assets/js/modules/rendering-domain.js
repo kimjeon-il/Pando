@@ -1860,10 +1860,10 @@ export function createRenderingDomain({
     segmentCount: territorialBoundaryCache.segments.length,
     groupCount: territorialBoundaryBatchCache.groups.length,
   });
-  const resetProjectGeneration = generation => {
+  const resetProjectGeneration = (generation, { preserveBuiltinMesh = false } = {}) => {
     active();
     resetTerritorialBoundaryCache();
-    gpuMapRenderer?.resetProjectRenderState?.({ generation });
+    gpuMapRenderer?.resetProjectRenderState?.({ generation, preserveBuiltinMesh });
     return generation;
   };
   const getStats = () => Object.freeze({

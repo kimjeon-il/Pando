@@ -211,6 +211,8 @@ export function createProjectRestore() {
   }
 
   async function resetProjectInPlace({ projectGeneration = null, skipRenderReset = false, prepared = null } = {}) {
+    const preparedCountries = prepared?.countries || prepared;
+    if (!preparedCountries?.features) throw new Error('내장 기본 프로젝트 자료가 준비되지 않았습니다.');
     closeConfirmModal();
     (0, dependencies.closeMobileSheets)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
@@ -218,6 +220,8 @@ export function createProjectRestore() {
       : dependencies.projectDomain
         ? dependencies.projectDomain.resetRenderGeneration('project-reset')
         : dependencies.gpuMapRenderer.resetProjectRenderState?.();
+    (0, dependencies.cancelGpuMeshRebuild)();
+    dependencies.mapEditClient?.stop?.();
     dependencies.boundarySelectionAnalysisCache.clear();
     dependencies.state.countryVisualPhase = 'preview';
     dependencies.countryDisplaySource = null;
@@ -268,24 +272,20 @@ export function createProjectRestore() {
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     dependencies.state.countryIndex.clear();
-    dependencies.state.countriesData = (0, dependencies.reindexCountries)(prepared, false, { assumeCanonical: true });
+    dependencies.state.countriesData = (0, dependencies.reindexCountries)(preparedCountries, false, { assumeCanonical: true });
+    const restoredExactly = dependencies.canonicalCountryStore
+      ? dependencies.state.countriesData.features.length === dependencies.canonicalCountryStore.ids().length
+        && dependencies.state.countriesData.features.every(feature => dependencies.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
+      : true;
+    if (!restoredExactly) {
+      throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
+    }
     (0, dependencies.applyFreshBuiltinClassification)();
     (0, dependencies.applyPristineLabelAnchors)(dependencies.state.countriesData);
     dependencies.state.auditPreviewCountries = null;
     (0, dependencies.pruneLayerItemVisibility)();
     (0, dependencies.markLayerTreeDirty)();
     (0, dependencies.configureDatasetSession)(null);
-    (0, dependencies.scheduleGpuMeshRebuild)(0, nextProjectGeneration);
-    const expectedCountries = (0, dependencies.classifyBuiltinCountries)({ ...prepared, features: prepared.features }).countries;
-    const expectedById = new Map(expectedCountries.features.map(feature => [String(feature.id), feature]));
-    const restoredExactly = dependencies.canonicalCountryStore
-      ? dependencies.state.countriesData.features.length === expectedCountries.features.length
-        && dependencies.state.countriesData.features.every(feature => JSON.stringify(feature.geometry) === JSON.stringify(expectedById.get(String(feature.id))?.geometry))
-        && dependencies.state.territorialUnits.every(feature => dependencies.canonicalCountryStore.geometryEquals((0, dependencies.builtinSubunitSourceId)(feature), feature.geometry))
-      : true;
-    if (!restoredExactly) {
-      throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
-    }
     (0, dependencies.refreshCountryCentroids)();
     dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
 
@@ -309,21 +309,44 @@ export function createProjectRestore() {
     (0, dependencies.$)('selectionStatus').textContent = '';
     dependencies.editingDomain?.setTool('select', { announce: false });
 
-    // 기존 SVG 노드는 편집된 Feature 객체를 __data__로 들고 있을 수 있으므로 완전히 제거 후 원본으로 재바인딩한다.
-    dependencies.countryLayer?.selectAll('*').remove();
-    dependencies.countryLabelLayer?.selectAll('*').remove();
-    dependencies.boundaryEditLayer?.selectAll('*').remove();
-    dependencies.territorialUnitLayer?.selectAll('*').remove();
-    dependencies.distributionLayer?.selectAll('*').remove();
-    dependencies.vertexLayer?.selectAll('*').remove();
-    dependencies.genericFeatureLayer?.selectAll('*').remove();
-    dependencies.labelLayer?.selectAll('*').remove();
+    const clearReplacedProjectLayers = () => {
+      // Existing SVG nodes can retain the edited Feature as __data__.  Clear
+      // them only when the canonical mesh is staged, so labels never arrive
+      // before the corresponding country surface.
+      dependencies.countryLayer?.selectAll('*').remove();
+      dependencies.countryLabelLayer?.selectAll('*').remove();
+      dependencies.selectionLayer?.selectAll('*').remove();
+      dependencies.hoverLayer?.selectAll('*').remove();
+      dependencies.boundaryEditLayer?.selectAll('*').remove();
+      dependencies.territorialUnitLayer?.selectAll('*').remove();
+      dependencies.distributionLayer?.selectAll('*').remove();
+      dependencies.vertexLayer?.selectAll('*').remove();
+      dependencies.genericFeatureLayer?.selectAll('*').remove();
+      dependencies.labelLayer?.selectAll('*').remove();
+      dependencies.previewLayer?.selectAll('*').remove();
+      dependencies.validationLayer?.selectAll('*').remove();
+      dependencies.draftLayer?.selectAll('*').remove();
+      dependencies.snapLayer?.selectAll('*').remove();
+      dependencies.territorialOperationLayer?.selectAll('*').remove();
+    };
 
-    (0, dependencies.syncMapHostFromState)();
-    (0, dependencies.resizeMap)();
+    const activatedBuiltinMesh = await dependencies.gpuMapRenderer.activateBuiltinMeshBaseline({
+      projectGeneration: nextProjectGeneration,
+      onStaged: () => {
+        dependencies.state.countryVisualPhase = 'canonical';
+        dependencies.countryDisplaySource = null;
+        dependencies.countryDisplayIndex = new Map();
+        clearReplacedProjectLayers();
+        (0, dependencies.syncMapHostFromState)();
+        dependencies.renderingDomain?.invalidateProject?.('built-in-project-transition-ready');
+        (0, dependencies.resizeMap)();
+      },
+    });
+    if (!activatedBuiltinMesh) {
+      throw new Error('내장 기본 메시를 화면에 적용하지 못했습니다.');
+    }
     (0, dependencies.scheduleMapObjectSpatialIndexRebuild)();
     dependencies.projectUi.syncHistory();
-    (0, dependencies.setActionStatus)('새 프로젝트를 만들었습니다.', 'success', 3200);
   }
 
   function initializeConfirmModalController() {

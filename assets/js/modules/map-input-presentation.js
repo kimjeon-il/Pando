@@ -86,12 +86,14 @@ export function createMapInputPresentation({
       // escape through a child SVG hit target and become page zoom.
       element: $('map'),
       interactiveTarget: (target, event) => {
+        if (getInputSnapshot().projectReplacing) return true;
         if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.left-panel,.right-panel')) return true;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);
         return getInputSnapshot().tool !== 'move' && !getInputSnapshot().spacePanActive && mapInteractionGate.isPandoTarget(target);
       },
       canNavigate: () => {
+        if (getInputSnapshot().projectReplacing) return false;
         const enabled = mapNavigationEnabled();
         mapInteractionGate.setNavigationEnabled(enabled);
         return enabled;
@@ -109,6 +111,7 @@ export function createMapInputPresentation({
       },
       canDirectTap: () => {
         const input = getInputSnapshot();
+        if (input.projectReplacing) return false;
         if (input.tool === 'move') return false;
         const territoryDraft = input.territorySelectionSession?.tool === input.tool
           && input.territorySelectionSession.stage === 'selection'
@@ -118,9 +121,10 @@ export function createMapInputPresentation({
         return input.labelPlacementMode || draftTap || input.tool === 'point';
       },
       directTap: handleMapClick,
-      canDoubleTap: () => isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'country-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
+      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'country-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
       suppressClick: suppressNextMapClick,
       canDrawStroke: () => {
+        if (getInputSnapshot().projectReplacing) return false;
         const active = editingDomain?.draftInputActive?.() && getDraftSnapshot().inputPhase === 'draw' && !getInputSnapshot().spacePanActive;
         mapInteractionGate.setDraftInputActive(active);
         return active;
@@ -141,6 +145,7 @@ export function createMapInputPresentation({
     });
 
     svg.on('mousemove', function() {
+      if (getInputSnapshot().projectReplacing) return;
       const draft = getDraftSnapshot();
       if (draft.strokeActive) return;
       if (d3.event.target?.closest?.('.draft-interactive') || draft.dragging) {

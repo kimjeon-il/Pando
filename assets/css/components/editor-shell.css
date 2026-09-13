@@ -522,7 +522,7 @@
     border: 1px solid var(--toolbar-border);
     border-radius: var(--ui-v2-radius-lg);
     background: var(--toolbar-bg);
-    box-shadow: var(--control-shadow);
+    box-shadow: var(--ui-v2-toolbar-shadow);
   }
 
   [data-layout="wide"] .map-view-toolbar .icon-btn {
@@ -570,9 +570,29 @@
 
 .surface-editor .editor-object-command--lock { color: var(--text-soft); }
 
+.surface-editor .editor-object-command--lock[aria-pressed="true"] {
+  background: var(--ui-button-selected);
+  color: var(--accent);
+}
+
 .surface-editor .editor-object-command--delete:not(:disabled) {
-  border-color: var(--danger-border);
-  background: var(--danger-surface);
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.surface-editor .editor-object-command--delete:is(:hover, :focus-visible):not(:disabled) {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
+  color: var(--danger-text);
+}
+
+.surface-editor .distribution-entry-delete:not(:disabled) {
+  color: var(--text-soft);
+}
+
+.surface-editor .distribution-entry-delete:is(:hover, :focus-visible):not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
   color: var(--danger-text);
 }
 

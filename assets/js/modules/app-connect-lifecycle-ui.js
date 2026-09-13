@@ -196,6 +196,7 @@ export function connectLifecycleUi({
     get buildRiverTerritoryPartitions() { return runtime.buildRiverTerritoryPartitions; },
     get buildSelectionBoundarySegments() { return runtime.buildSelectionBoundarySegments; },
     get buildTerritorialInternalBoundarySegments() { return runtime.buildTerritorialInternalBoundarySegments; },
+    get canonicalCountryStore() { return builtinSession.canonicalCountryStore; },
     get captureCountryGeometryValidationBaseline() { return countryValidation.captureCountryGeometryValidationBaseline; },
     get clearActiveEditPreview() { return gpuScene.clearActiveEditPreview; },
     get closeObjectActionsMenu() { return objectCommands.closeObjectActionsMenu; },

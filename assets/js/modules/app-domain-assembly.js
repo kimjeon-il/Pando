@@ -75,6 +75,7 @@ export function createDomainAssembly() {
           projectGeneration: options?.generation,
           skipRenderReset: options?.skipRenderReset === true,
           prepared: options?.prepared,
+          preserveBuiltinMesh: options?.preserveBuiltinMesh === true,
         };
         if (project) return (0, dependencies.applyAtlasState)(project, options?.reason === 'load', resetOptions);
         return (0, dependencies.resetProjectInPlace)(resetOptions);
@@ -83,7 +84,14 @@ export function createDomainAssembly() {
       history: dependencies.historyService,
       persistence: dependencies.persistenceService,
       saveState: dependencies.saveState,
-      prepareEmpty: () => (0, dependencies.materializePristineCountries)(),
+      prepareEmpty: async () => {
+        const countryIds = dependencies.canonicalCountryStore?.ids?.() || [];
+        const [countries] = await Promise.all([
+          (0, dependencies.materializePristineCountries)(),
+          dependencies.gpuMapRenderer.ensureBuiltinMeshBaseline(countryIds),
+        ]);
+        return { countries, builtinMeshReady: true };
+      },
       createProjectFile: async project => {
         await (0, dependencies.ensureGisIoRuntime)();
         if (!window.PandoLabGIS?.exportGeoPackage) throw new Error('GeoPackage 저장 모듈을 불러오지 못했습니다.');
@@ -119,10 +127,23 @@ export function createDomainAssembly() {
       onProjectChanged: event => {
         window.dispatchEvent(new CustomEvent('pandolab:project-changed', { detail: event }));
       },
+      onReplacementState: (replacing, reason) => {
+        dependencies.state.projectReplacing = replacing;
+        if (replacing) {
+          editingDomain?.cancelActiveGesture?.(`project-${reason}-preparing`);
+          if (reason === 'new') (0, dependencies.setActionStatus)('새 프로젝트 준비 중…', 'working', 0);
+        }
+      },
+      onReplacementCommitted: reason => {
+        if (reason === 'new') (0, dependencies.setActionStatus)('새 프로젝트를 만들었습니다.', 'success', 3200, { forceVisible: true });
+      },
+      onReplacementError: (error, reason) => {
+        if (reason === 'new') (0, dependencies.setActionStatus)(error?.message || '새 프로젝트를 준비하지 못했습니다. 기존 프로젝트를 유지했습니다.', 'error', 0);
+      },
       onProjectReset: event => {
         selectionDomain?.resetProject(event.generation);
         editingDomain?.resetProject?.(event.generation);
-        renderingDomain?.resetProjectGeneration(event.generation);
+        renderingDomain?.resetProjectGeneration(event.generation, { preserveBuiltinMesh: event.preserveBuiltinMesh === true });
       },
     });
 
