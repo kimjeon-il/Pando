@@ -7,6 +7,8 @@ import { EMPTY_EDITING_RENDER_PACKET } from './editing-render-packet.js';
 import { createGpuUploadScheduler } from './gpu-upload-scheduler.js';
 import { commitSelectionFallbackCoverage } from './selection-fallback-coverage.js';
 import { createTerritorialFillResolver } from './territorial-fill-style.js';
+import { connectBoundarySegments } from './boundary-lines.js';
+import { highlightedAncestorIds, excludeAncestorHighlightBoundary } from './territorial-highlight-boundary.js';
 
 export function createRenderingDomain({
   context = null,
@@ -897,7 +899,8 @@ export function createRenderingDomain({
       const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
       return `${type}:${style.opacity}:${style.boundaryVisible}`;
     }).join('|');
-    const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature}`;
+    const boundaryColor = t.mapTheme?.().border || '#ffffff';
+    const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature};${boundaryColor}`;
     if (territorialBoundaryBatchCache.signature !== signature) {
       const groups = new Map([...styleByType].map(([styleType, definition]) => [styleType, { key: styleType, styleType, width: definition.width, dash: definition.dash, segments: [] }]));
       for (const segment of territorialBoundaryCache.segments) {
@@ -910,7 +913,7 @@ export function createRenderingDomain({
         if (!group) continue;
         const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup, `territorial:${feature.properties.unitType}:${feature.id}`) || {};
         if (!style.boundaryVisible || !(style.opacity > 0)) continue;
-        group.segments.push({ a: segment.a, b: segment.b, color: t.territorialUnitColor?.(feature) || t.mapTheme?.().border, opacity: style.opacity });
+        group.segments.push({ a: segment.a, b: segment.b, color: boundaryColor, opacity: style.opacity });
       }
       territorialBoundaryBatchCache = { signature, revision: `${territorialBoundaryCache.rebuildCount}:${signature}`, groups: [...groups.values()].filter(group => group.segments.length) };
     }
@@ -920,12 +923,14 @@ export function createRenderingDomain({
       if (!fallbackGroups.has(key)) fallbackGroups.set(key, { key, styleType: group.styleType, color: segment.color, opacity: segment.opacity, coordinates: [] });
       fallbackGroups.get(key).coordinates.push([segment.a, segment.b]);
     }
-    const data = [...fallbackGroups.values()].map(group => ({ ...group, geometry: { type: 'MultiLineString', coordinates: group.coordinates } }));
+    const data = [...fallbackGroups.values()].map(group => ({ ...group, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(group.coordinates) } }));
     const selection = t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').data(data, group => group.key);
-    selection?.enter().append('path').attr('class', 'territorial-internal-boundary');
-    selection?.attr('class', group => `territorial-internal-boundary territorial-internal-boundary--${group.styleType}`)
+    const paths = selection?.enter().append('path').merge(selection);
+    paths?.attr('class', group => `territorial-internal-boundary territorial-internal-boundary--${group.styleType}`)
       .attr('d', group => t.path?.({ type: 'Feature', properties: {}, geometry: group.geometry }))
-      .attr('data-gpu-scene-key', group => `territorial-internal:${group.key}`).style('color', group => group.color).style('stroke', group => group.color).style('stroke-opacity', group => group.opacity);
+      .attr('data-gpu-scene-key', group => `territorial-internal:${group.key}`).style('color', group => group.color).style('stroke', group => group.color).style('stroke-opacity', group => group.opacity)
+      .style('stroke-width', group => styleByType.get(group.styleType).width)
+      .style('stroke-dasharray', group => styleByType.get(group.styleType).dash.join(' '));
     selection?.exit().remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
       const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits', width: 1, dash: [] };
@@ -1558,6 +1563,24 @@ export function createRenderingDomain({
     const hoveredFeature = hovered && selection.objectRefVisible?.(hovered) !== false ? selection.mapFeatureForObjectRef?.(hovered) : null;
     const hoverActive = !selection.isMobile?.() && hoveredFeature?.geometry && !state.mapMoving && !editingPacket?.draft?.dragging
       && !selectionDomain.has(hovered);
+    const highlightedRefs = [...(selectionOutlinesVisible ? items : []), ...(hoverActive ? [hovered] : [])]
+      .filter(ref => ref.domain === 'territorial');
+    const highlightedIds = new Set(highlightedRefs.map(ref => String(ref.id)));
+    const hierarchyBoundary = (ref, feature, role) => {
+      const ancestors = highlightedAncestorIds(feature, state.territorialUnits || [], highlightedIds);
+      const boundary = cachedSelectionBoundaryFeature(ref.key, feature, role);
+      if (!ancestors.length) return boundary;
+      const revision = `${boundary.revision}:highlighted-ancestors:${ancestors.sort().join(',')}`;
+      const cached = selectionBoundaryGeometryCache.get(revision);
+      if (cached) return { feature: cached, revision };
+      const ancestorFeatures = ancestors.map(id => {
+        const ancestorRef = highlightedRefs.find(item => String(item.id) === id);
+        const canonical = ancestorRef.scopeFeature || selection.mapFeatureForObjectRef?.(ancestorRef);
+        return ancestorRef.type === selection.countryType ? selection.countryDisplayFeature?.(canonical) : canonical;
+      }).filter(Boolean);
+      const clipped = excludeAncestorHighlightBoundary(boundary.feature, ancestorFeatures);
+      return { feature: setLimitedSelectionCache(selectionBoundaryGeometryCache, revision, clipped), revision };
+    };
     if (hoverActive) {
       const isCountry = hovered.domain === 'territorial' && hovered.type === selection.countryType;
       const feature = isCountry ? selection.countryDisplayFeature?.(hoveredFeature) : hoveredFeature;
@@ -1572,7 +1595,7 @@ export function createRenderingDomain({
           .attr('d', selectionFramePath);
       }
       const boundary = !isCountry && ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type)
-        ? cachedSelectionBoundaryFeature(key, feature, 'hover')
+        ? hierarchyBoundary(hovered, feature, 'hover')
         : { feature, revision: selectionGeometryRevision(key, 'hover', feature) };
       fallbackRequests.hover.push(isCountry
         ? { key, resolveFeature: () => selection.countryOutlineFeature?.(feature), cacheKey: selectionGeometryRevision(key, 'hover-country') }
@@ -1626,7 +1649,7 @@ export function createRenderingDomain({
         if ((fillAlpha || 0) > 0) interactionFillRequests.push({ objectKey: ref.key, style: { color: selectionStyle.color, fillAlpha } });
       }
       const boundary = hasBoundaryGeometry && geometries.some(geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type))
-        ? cachedSelectionBoundaryFeature(ref.key, feature, 'selection-outline')
+        ? hierarchyBoundary(ref, feature, 'selection-outline')
         : { feature, revision: selectionGeometryRevision(ref.key, 'selection-outline', feature) };
       if (selectionOutlinesVisible) {
         const channel = primary ? 'primary' : 'secondary';
