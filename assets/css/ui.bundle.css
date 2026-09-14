@@ -1859,39 +1859,23 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 
 .app-root .topbar .topbar-command {
   --topbar-command-background: transparent;
-  position: relative;
-  isolation: isolate;
   min-width: 0;
   min-height: var(--design-control-md);
   height: var(--design-control-md);
   padding: 0 var(--ui-space-3);
   border: 0;
   border-radius: var(--ui-radius-control);
-  background: transparent;
+  background: var(--topbar-command-background);
   color: var(--text-soft);
   font-size: var(--ui-font-body);
   font-weight: var(--ui-weight-medium);
   white-space: nowrap;
 }
 
-.app-root .topbar .topbar-command::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset-inline: var(--ui-space-1);
-  top: 50%;
-  width: auto;
-  height: calc(var(--design-control-md) - (var(--ui-space-1) * 2));
-  border-radius: calc(var(--ui-radius-control) - 2px);
-  background: var(--topbar-command-background);
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
 /* The file trigger is a document command, not a primary action. */
 .app-root .topbar .file-menu-btn.topbar-command {
   min-width: 0;
-  background: transparent;
+  background: var(--topbar-command-background);
   color: var(--text-soft);
   font-weight: var(--ui-weight-medium);
 }
@@ -1899,7 +1883,7 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 .app-root .topbar .topbar-command:is(:hover, :active, [aria-expanded="true"]):not(:disabled) {
   --topbar-command-background: var(--ui-button-subtle-hover);
   border-color: transparent;
-  background: transparent;
+  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 
@@ -1949,8 +1933,16 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   }
 
   .app-root[data-layout="mobile"] .topbar .topbar-command::before {
-    inset-inline: var(--ui-space-1);
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset-inline: var(--ui-space-2);
+    top: 50%;
     height: calc(var(--ui-touch-height) - var(--ui-space-3) * 2);
+    border-radius: inherit;
+    background: var(--topbar-command-background);
+    transform: translateY(-50%);
+    pointer-events: none;
   }
 
   .app-root[data-layout="mobile"] .top-actions {
