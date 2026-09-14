@@ -87,7 +87,7 @@ const currentProject = () => ({
   countryOverrides: { DEU: { color: '#53657a' } },
   territorialUnits: [{
     type: 'Feature', id: uuid(1),
-    properties: { schemaVersion: 2, unitType: 'subunit', isRemainder: false },
+    properties: { schemaVersion: 2, unitType: 'subunit' },
     geometry: { type: 'Polygon', coordinates: [] },
   }],
   territorialRelations: [{ id: uuid(2), schemaVersion: 1 }],

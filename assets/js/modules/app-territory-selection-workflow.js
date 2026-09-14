@@ -946,7 +946,7 @@ export function createTerritorySelectionWorkflow() {
       : current.stage === 'selection' ? '영역 선택' : '결과 확인';
     const count = partCount(current);
     const primaryLabel = current.stage === 'review'
-      ? adapter.finalLabel(count)
+      ? current.editOperation === 'annex' ? '편입' : adapter.finalLabel(count)
       : '다음';
     return {
       current,

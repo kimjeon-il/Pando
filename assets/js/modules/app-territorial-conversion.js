@@ -38,6 +38,10 @@ export function createTerritorialConversion() {
         queue.push(String(child.id));
       }
     }
+    if (dependencies.state.territorialUnits.some(unit => descendantIds.has(String(unit.id)) && unit.properties?.locked)) {
+      (0, dependencies.setActionStatus)('잠긴 자식 하위단위를 먼저 잠금 해제하세요.', 'error', 3600);
+      return false;
+    }
     const convertedMetadata = source.properties?.metadata?.convertedFromCountry || {};
     const country = (0, dependencies.createCountryFeature)(name, [], (0, dependencies.territorialStyleColor)(source) || null, (0, dependencies.snapGeometryToGrid)(source.geometry, 7));
     country.id = String(source.id);
@@ -45,54 +49,14 @@ export function createTerritorialConversion() {
     const restoredOverride = convertedMetadata.override && typeof convertedMetadata.override === 'object'
       ? (0, dependencies.deepClone)(convertedMetadata.override)
       : {};
-    const snapshot = (0, dependencies.snapshotEditable)();
-    (0, dependencies.setActionStatus)('선택한 하위단위를 새 국가로 독립시키는 중입니다.', 'working', 0);
-    const result = await (0, dependencies.transactCountryEdit)({
-      operation: 'new-country',
-      payload: { sourceIds: [sourceCountryId], transferredGeometry: source.geometry, newFeature: country },
-      snapshot,
-      applyResult: plan => {
-        dependencies.state.countryOverrides[source.id] = {
-          ...restoredOverride,
-          name,
-          color: (0, dependencies.territorialStyleColor)(source) || restoredOverride.color || '',
-          notes: String(source.properties?.notes || restoredOverride.notes || ''),
-        };
-        (0, dependencies.applyWorkerCountryPatches)(plan, { presentation: 'preserve-existing-scene' });
-        (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
-        dependencies.state.territorialUnits = dependencies.state.territorialUnits.flatMap(feature => {
-          if (String(feature.id) === String(source.id)) return [];
-          if (descendantIds.has(String(feature.id))) {
-            feature.properties.sovereignId = String(country.id);
-            if (String(feature.properties?.parentId || '') === String(source.id)) feature.properties.parentId = String(country.id);
-            return [feature];
-          }
-          if (String(feature.properties?.sovereignId || '') !== sourceCountryId) return [feature];
-          const remainder = (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.difference(feature.geometry.coordinates, source.geometry.coordinates));
-          if (!remainder) return [];
-          feature.geometry = remainder;
-          return [feature];
-        });
-        dependencies.state.territorialRelations = dependencies.state.territorialRelations.filter(relation => String(relation.unitId || '') !== String(source.id));
-        for (const relation of dependencies.state.territorialRelations) {
-          const related = String(relation.unitId || '') === String(source.id) || descendantIds.has(String(relation.unitId || ''));
-          if (related && String(relation.sovereignId || '') === sourceCountryId) relation.sovereignId = String(country.id);
-          if (String(relation.parentId || '') === String(source.id)) relation.parentId = String(country.id);
-        }
-        for (const entry of dependencies.state.distributionEntries) {
-          if (entry.mode === dependencies.DISTRIBUTION_MODES.TERRITORIAL && String(entry.territorialUnitId) === String(source.id)) entry.territorialUnitId = String(country.id);
-        }
-        dependencies.state.territorialUnits = (0, dependencies.normalizeTerritorialUnits)(dependencies.state.territorialUnits, { countryExists: id => !!(0, dependencies.countryFeatureById)(id) });
-        (0, dependencies.reconcileTerritorialUnitCompleteness)([sourceCountryId, country.id]);
-        (0, dependencies.refreshCountryCentroids)(new Set(plan.affectedIds));
-        (0, dependencies.markLayerTreeDirty)();
-        (0, dependencies.applyCountrySelectionIntent)(country.id);
-        dependencies.renderingDomain?.invalidateCountryPatch?.('territorial-promoted-country');
+    return (0, dependencies.previewTerritorialEdit)({
+      operation: 'promote', targetId: String(source.id), newCountry: country,
+      countryOverride: {
+        ...restoredOverride, name,
+        color: (0, dependencies.territorialStyleColor)(source) || restoredOverride.color || '',
+        notes: String(source.properties?.notes || restoredOverride.notes || ''),
       },
-      onSuccess: () => (0, dependencies.setActionStatus)(`${name} 하위단위를 새 국가로 독립시켰습니다. 소속 하위단위는 유지했습니다.`, 'success', 4000),
-      onError: error => (0, dependencies.reportOperationError)(error, '하위단위를 새 국가로 독립시키지 못했습니다.', 'PL-REGION-PROMOTE-001', 4700),
-    });
-    return result.ok;
+    }, { selectedId: String(source.id) });
   }
 
   function buildTerritorialStructurePreview({ source, sourceType, targetType, sovereignId = '', parentId = '' } = {}) {
@@ -126,16 +90,14 @@ export function createTerritorialConversion() {
       impacts.push(`${(0, dependencies.countryName)(targetCountry)} 국경 변경 및 기존 국가 관계 해제`);
     } else if (targetIsCountry) {
       summary = `${sourceName}의 영역을 현재 소속 국가에서 분리해 독립 국가로 전환합니다.`;
-      impacts.push('기존 상위 소속과 소속 국가 관계 해제', '기존 국가 국경 변경 및 새 국가 1개 생성');
+      impacts.push('기존 상위 단위와 소속 국가 관계 해제', '기존 국가 국경 변경 및 새 국가 1개 생성');
     } else {
       const sovereign = (0, dependencies.countryFeatureById)(sovereignId || source.properties?.sovereignId);
       impacts.push(`소속 국가 유지${sovereign ? `: ${(0, dependencies.countryName)(sovereign)}` : ''}`);
       if (targetType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
-        const parentName = targetParent ? (0, dependencies.territorialUnitName)(targetParent) : sovereign ? (0, dependencies.countryName)(sovereign) : '선택한 상위 소속';
-        if (String(parentId) !== String(sovereignId)) impacts.push(`상위 소속: ${parentName}`);
-        impacts.push('행정 단계는 선택적으로 지정');
+        const parentName = targetParent ? (0, dependencies.territorialUnitName)(targetParent) : sovereign ? (0, dependencies.countryName)(sovereign) : '선택한 상위 단위';
+        if (String(parentId) !== String(sovereignId)) impacts.push(`상위 단위: ${parentName}`);
       } else if (sourceType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
-        impacts.push('기존 행정 단계와 상위 행정 관계 해제');
       }
     }
 
@@ -224,7 +186,7 @@ export function createTerritorialConversion() {
       const parentCandidates = territorialTypeParentOptions(source, sovereignId);
       const options = parentCandidates.length
         ? parentCandidates
-        : [{ value: '', label: '상위 소속 선택', placeholder: true }];
+        : [{ value: '', label: '상위 단위 선택', placeholder: true }];
       const currentParent = (0, dependencies.$)('territorialTypeParentInput').value;
       const preferredParent = options.some(option => option.value === currentParent)
         ? currentParent
@@ -308,7 +270,7 @@ export function createTerritorialConversion() {
       ? dependencies.territorialRepository.get(parentId || sovereignId)
       : (0, dependencies.countryFeatureById)(sovereignId);
     if (!parent || (targetType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT && !(0, dependencies.territorialUnitInsideContainer)(source, parent))) {
-      (0, dependencies.setActionStatus)('영역 전체를 포함하는 올바른 상위 소속을 선택하세요.', 'error', 3900);
+      (0, dependencies.setActionStatus)('영역 전체를 포함하는 올바른 상위 단위를 선택하세요.', 'error', 3900);
       return false;
     }
     try {
@@ -363,7 +325,7 @@ export function createTerritorialConversion() {
     }
     const parent = targetType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT ? dependencies.territorialRepository.get(parentId || targetCountryId) : target;
     if (!parent || (String(parent.id || '') !== String(targetCountryId) && !(0, dependencies.territorialUnitInsideContainer)(source, parent))) {
-      (0, dependencies.setActionStatus)('국가 영역 전체를 포함하는 올바른 상위 소속을 선택하세요.', 'error', 3900);
+      (0, dependencies.setActionStatus)('국가 영역 전체를 포함하는 올바른 상위 단위를 선택하세요.', 'error', 3900);
       return false;
     }
     const sourceOverride = (0, dependencies.deepClone)(dependencies.state.countryOverrides[countryId] || {});
@@ -377,9 +339,7 @@ export function createTerritorialConversion() {
       geometry: sourceGeometry,
       parentId: targetType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT ? String(parentId || targetCountryId) : String(targetCountryId),
       sovereignId: String(targetCountryId),
-      isRemainder: false,
       coverageMode: dependencies.TERRITORIAL_COVERAGE_MODES.PARTITION,
-      adminLevel: null,
       color: String(sourceOverride.color || ''),
       notes: String(sourceOverride.notes || ''),
       metadata: { convertedFromCountry: { countryId: String(countryId), properties: sourceProperties, override: sourceOverride } },

@@ -17,7 +17,6 @@ const ACTION_UI_BINDINGS = Object.freeze({
   ]),
   'change-type': Object.freeze([
     Object.freeze({ elementId: 'changeCountryTypeBtn', labelSelector: 'strong' }),
-    Object.freeze({ elementId: 'changeSubunitTypeBtn', labelSelector: 'strong' }),
   ]),
   'border-edit': Object.freeze([
     Object.freeze({ elementId: 'editBorderBtn', labelSelector: 'strong' }),

@@ -184,9 +184,6 @@ export function createTerritorialGeometryKernel(clipper) {
         if (multiArea(overlap) > 1e-10) issues.push(`${units[leftIndex].id}와 ${units[rightIndex].id}가 겹칩니다.`);
       }
     }
-    const covered = clipper.union(...units.map(unit => unit.geometry.coordinates));
-    const remainder = clipper.difference(container.geometry.coordinates, covered);
-    if (multiArea(remainder) > 1e-10) issues.push('분할 영역 사이에 빈틈이 있습니다.');
     return { ok: issues.length === 0, issues };
   }
 

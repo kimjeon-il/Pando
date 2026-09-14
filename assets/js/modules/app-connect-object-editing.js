@@ -221,8 +221,19 @@ export function connectObjectEditing({
     get uid() { return workspaceSurfaces.uid; },
   });
   territorialDrafts.connect({
+    get reindexCountries() { return countryIndex.reindexCountries; },
+    get backToTerritorialSelection() { return territorySelectionWorkflow.back; },
+    get discardActiveGeometryPreview() { return geometryPreview.discardActiveGeometryPreview; },
+    get rebuildBoundaryTopology() { return geometryPreview.rebuildBoundaryTopology; },
+    get sphericalGeometryAreaKm2() { return runtime.sphericalGeometryAreaKm2; },
+    get applyCountrySelectionIntent() { return propertySelection.applyCountrySelectionIntent; },
+    get enterCountryCoastEdit() { return countryModes.enterCountryCoastEdit; },
+    get markCountryGeometriesChanged() { return spatialIndex.markCountryGeometriesChanged; },
+    get refreshCountryCentroids() { return countryValidation.refreshCountryCentroids; },
+    get mapEditClient() { return spatialIndex.mapEditClient; },
+    get openConfirmModal() { return projectRestore.openConfirmModal; },
+    get snapshotEditable() { return projectSnapshots.snapshotEditable; },
     get $() { return environment.$; },
-    get addUnassignedTerritorialUnitGeometry() { return landRelations.addUnassignedTerritorialUnitGeometry; },
     get applyTerritorialUnitSelectionIntent() { return propertySelection.applyTerritorialUnitSelectionIntent; },
     get beginLocalGeometryPreview() { return geometryPreview.beginLocalGeometryPreview; },
     get buildCutSplitCandidates() { return cutGeometry.buildCutSplitCandidates; },
@@ -302,6 +313,7 @@ export function connectObjectEditing({
     get writeDomainColor() { return runtime.writeDomainColor; },
   });
   objectMetadata.connect({
+    get previewTerritorialEdit() { return territorialDrafts.previewTerritorialEdit; },
     get $() { return environment.$; },
     get applyCountrySelectionIntent() { return propertySelection.applyCountrySelectionIntent; },
     get applyGenericSelectionIntent() { return propertySelection.applyGenericSelectionIntent; },
@@ -354,6 +366,8 @@ export function connectObjectEditing({
     get validateTerritorialUnitRelations() { return objectPresentation.validateTerritorialUnitRelations; },
   });
   territorialConversion.connect({
+    get previewTerritorialEdit() { return territorialDrafts.previewTerritorialEdit; },
+    get beginWorkerGeometryPreview() { return geometryPreview.beginWorkerGeometryPreview; },
     get $() { return environment.$; },
     get applyCountrySelectionIntent() { return propertySelection.applyCountrySelectionIntent; },
     get applyLabelSelectionIntent() { return propertySelection.applyLabelSelectionIntent; },

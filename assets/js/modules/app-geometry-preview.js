@@ -97,7 +97,8 @@ export function createGeometryPreview() {
     const edges = new Map();
     const nodes = new Map();
     const targetIds = [...new Set((Array.isArray(targetCountryIds) ? targetCountryIds : [targetCountryIds]).map(String).filter(Boolean))];
-    const targets = targetIds.map(dependencies.countryFeatureById).filter(Boolean);
+    const unitById = id => dependencies.state.territorialUnits.find(unit => String(unit.id) === String(id));
+    const targets = targetIds.map(id => (0, dependencies.countryFeatureById)(id) || unitById(id)).filter(Boolean);
     if (!targets.length) {
       dependencies.state.boundaryTopology = { edges, nodes };
       dependencies.state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
@@ -110,7 +111,9 @@ export function createGeometryPreview() {
       const queryBounds = [targetBounds[0] - margin, targetBounds[1] - margin, targetBounds[2] + margin, targetBounds[3] + margin];
       for (const feature of (0, dependencies.spatialFeatures)(queryBounds)) nearby.set(String(feature?.id || ''), feature);
     }
-    const features = [...nearby.values()];
+    const unitTarget = targets.find(feature => feature.properties?.unitType === 'subunit');
+    const features = unitTarget ? dependencies.state.territorialUnits.filter(unit => unit.properties?.unitType === 'subunit'
+      && unit.properties.parentId === unitTarget.properties.parentId && unit.properties.sovereignId === unitTarget.properties.sovereignId) : [...nearby.values()];
 
     for (const feature of features) {
       const countryId = String(feature?.id || '');
@@ -325,6 +328,7 @@ export function createGeometryPreview() {
     applyResult,
     shouldKeepResult = () => true,
     commitHistorySnapshot = false,
+    beforeApply = async () => true,
     successMessage = '변경을 적용했습니다.',
     errorMessage = '변경을 적용하지 못했습니다.',
   }) {
@@ -357,6 +361,9 @@ export function createGeometryPreview() {
         (0, dependencies.setActionStatus)('미리보기 형상을 수정하세요.', 'error', 3400);
         return false;
       }
+      if (!await beforeApply()) return false;
+      if (!shouldKeepResult() || dependencies.state.stateRevision !== baseDataRevision
+        || !(0, dependencies.previewIsCurrent)(dependencies.state.geometryPreview, session.sessionId, baseDataRevision)) return false;
       (0, dependencies.clearGeometryPreview)(dependencies.state.geometryPreview);
       activeGeometryPreviewApply = null;
       activeGeometryPreviewDiscard = null;

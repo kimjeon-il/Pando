@@ -791,7 +791,6 @@ export function createEditingDomain({
         nameField: result.mapping?.nameField || '',
         countryField: result.mapping?.countryField || '',
         parentField: result.mapping?.parentField || '',
-        levelField: result.mapping?.levelField || '',
       },
     });
   };

@@ -88,9 +88,7 @@ export function createObjectPresentation() {
     const properties = feature?.properties || {};
     if (properties.name) return (0, dependencies.defaultGeographicName)((0, dependencies.builtinSubunitSourceId)(feature), properties.name);
     if (properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
-    return properties.isRemainder === true
-      ? (properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION ? '미지정 지방' : '미지정 하위단위')
-      : (properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION ? '이름 없는 지방' : '이름 없는 하위단위');
+    return '이름 없는 하위단위';
   }
 
   function territorialUnitColor(feature) {

@@ -97,9 +97,9 @@ export function createLibraryAssembly() {
     });
     const units = prepared.filter(item => item.type !== 'country').map(item => (0, dependencies.createTerritorialFeature)({
       id: item.id, unitType: item.type, name: item.name, geometry: item.geometry,
-      parentId: item.parentId, sovereignId: item.sovereignId, adminLevel: item.adminLevel,
+      parentId: item.parentId, sovereignId: item.sovereignId,
       coverageMode: item.type === 'region' ? dependencies.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.TERRITORIAL_COVERAGE_MODES.PARTITION,
-      isRemainder: false, validFrom: item.validFrom, validTo: item.validTo,
+      validFrom: item.validFrom, validTo: item.validTo,
       color: item.metadata?.defaultColor || '',
       metadata: item.metadata, sourceLibraryId: item.libraryId, sourceGeometryVersion: item.geometryVersionId,
     }));
@@ -151,7 +151,7 @@ export function createLibraryAssembly() {
     for (const unit of units.filter(feature => feature.properties.unitType === 'subunit')) {
       const parent = draftById.get(String(unit.properties.parentId));
       if (!parent || !draft.features.some(feature => String(feature.id) === String(unit.properties.sovereignId))) throw new Error('추가 후 소속 관계가 유효하지 않습니다.');
-      if (!(0, dependencies.territorialUnitInsideContainer)(unit, parent)) throw new Error(`${unit.properties.name}의 경계가 상위 소속 안에 포함되지 않습니다. 적합한 상위 소속을 선택하세요.`);
+      if (!(0, dependencies.territorialUnitInsideContainer)(unit, parent)) throw new Error(`${unit.properties.name}의 경계가 상위 단위 안에 포함되지 않습니다. 적합한 상위 단위를 선택하세요.`);
     }
     const impactKey = JSON.stringify([revision, landRevision, rootIds, referenceDate, childDepth, versionOverrides, options.ownership || {}, impacts]);
     if (impacts.length && options.confirmedImpact !== impactKey) return { confirmationRequired: true, impactKey, impacts };

@@ -35,34 +35,10 @@ export function createLandRelations() {
     return (0, dependencies.geometryPolygonSets)(feature?.geometry).some(polygon => pointInPolygonSet(point, polygon));
   }
 
-  function partitionGroupMatches(feature, { unitType, sovereignId, parentId = '', adminLevel = null, metadata = {} }) {
-    const expectedParentId = String(parentId || sovereignId || '');
+  function partitionGroupMatches(feature, { unitType, sovereignId, parentId = '' }) {
     return feature.properties?.unitType === unitType
       && String(feature.properties?.sovereignId || '') === String(sovereignId || '')
-      && feature.properties?.coverageMode === dependencies.TERRITORIAL_COVERAGE_MODES.PARTITION
-      && String(feature.properties?.parentId || feature.properties?.sovereignId || '') === expectedParentId
-      && (feature.properties?.metadata?.legacyTerritorialPartition || '') === (metadata.legacyTerritorialPartition || '')
-      && (unitType !== dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT || Number(feature.properties?.adminLevel || 0) === Number(adminLevel || 0));
-  }
-
-  function addUnassignedTerritorialUnitGeometry(context, geometry) {
-    const clipper = window.polygonClipping;
-    const normalized = (0, dependencies.normalizeClippedLandGeometry)(geometry?.coordinates || geometry);
-    if (!normalized) return null;
-    let target = dependencies.state.territorialUnits.find(feature => partitionGroupMatches(feature, context)
-      && feature.properties?.isRemainder === true);
-    if (target) {
-      target.geometry = (0, dependencies.normalizeClippedLandGeometry)(clipper.union(target.geometry.coordinates, normalized.coordinates)) || target.geometry;
-      return target;
-    }
-    target = (0, dependencies.createPartitionTerritorialFeature)({
-      id: (0, dependencies.uid)('subunit'),
-      ...context,
-      isRemainder: true,
-      geometry: normalized,
-    });
-    dependencies.state.territorialUnits.push(target);
-    return target;
+      && String(feature.properties?.parentId || '') === String(parentId || sovereignId || '');
   }
 
   function reconcileTerritorialUnitCompleteness(countryIds, { preserveIds = [] } = {}) {
@@ -82,26 +58,6 @@ export function createLandRelations() {
       return [feature];
     });
 
-    const groupContexts = new Map();
-    for (const feature of dependencies.state.territorialUnits) {
-      if (feature.properties?.unitType !== dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT || !wanted.has(String(feature.properties?.sovereignId || ''))) continue;
-      const context = {
-        unitType: dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT,
-        sovereignId: String(feature.properties.sovereignId || ''),
-        parentId: String(feature.properties.parentId || ''),
-        adminLevel: Number(feature.properties.adminLevel) || null,
-        metadata: { legacyTerritorialPartition: feature.properties?.metadata?.legacyTerritorialPartition || '' },
-      };
-      groupContexts.set(`${context.sovereignId}|${context.parentId}|${context.adminLevel}|${context.metadata.legacyTerritorialPartition}`, context);
-    }
-    for (const context of [...groupContexts.values()].sort((left, right) => left.adminLevel - right.adminLevel)) {
-      const parent = context.parentId ? dependencies.territorialRepository.get(context.parentId) : (0, dependencies.countryFeatureById)(context.sovereignId);
-      if (!parent?.geometry) continue;
-      const siblings = dependencies.state.territorialUnits.filter(feature => partitionGroupMatches(feature, context));
-      const covered = clipper.union(...siblings.map(feature => feature.geometry.coordinates));
-      const remainder = (0, dependencies.normalizeClippedLandGeometry)(clipper.difference(parent.geometry.coordinates, covered));
-      if (remainder) addUnassignedTerritorialUnitGeometry(context, remainder);
-    }
     dependencies.state.territorialUnits = (0, dependencies.normalizeTerritorialUnits)(dependencies.state.territorialUnits, { countryExists: id => !!(0, dependencies.countryFeatureById)(id) });
   }
 
@@ -125,12 +81,6 @@ export function createLandRelations() {
       feature.geometry = remainder;
       return [feature];
     });
-    const targetHasTerritories = dependencies.state.territorialUnits.some(feature => partitionGroupMatches(feature, {
-      unitType: dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT, sovereignId: targetOwnerId,
-    }));
-    if (targetHasTerritories) addUnassignedTerritorialUnitGeometry({
-      unitType: dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT, sovereignId: String(targetOwnerId), parentId: '', adminLevel: null,
-    }, transferredGeometry);
     reconcileTerritorialUnitCompleteness([...sources, String(targetOwnerId)]);
     (0, dependencies.markLayerTreeDirty)();
     return changedIds;
@@ -170,7 +120,6 @@ export function createLandRelations() {
   return Object.freeze({
     connect,
     initializeRingHitTester,
-    get addUnassignedTerritorialUnitGeometry() { return addUnassignedTerritorialUnitGeometry; },
     get partitionGroupMatches() { return partitionGroupMatches; },
     get pointInCountryFeature() { return pointInCountryFeature; },
     get pointInGenericFeature() { return pointInGenericFeature; },

@@ -149,6 +149,8 @@ export function connectMapInteraction({
     get territorySelectionPresentation() { return territorySelectionWorkflow.presentation; },
   });
   countryModes.connect({
+    get enterTerritorialUnitRedrawMode() { return territorialDrafts.enterTerritorialUnitRedrawMode; },
+    get previewTerritorialEdit() { return territorialDrafts.previewTerritorialEdit; },
     get clearTerritorySelection() { return territorySelectionWorkflow.clear; },
     get $() { return environment.$; },
     get applyCountrySelectionIntent() { return propertySelection.applyCountrySelectionIntent; },

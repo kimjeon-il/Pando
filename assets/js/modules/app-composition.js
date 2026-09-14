@@ -140,7 +140,7 @@ export async function composeApplication({ revision }) {
     builtinSession, cameraNavigation, colorPicker, countryIndex, countryLabels, countryModes, cutGeometry,
     domainAssembly, environment, geometryPreview, gpuScene, hydroSettings, landRelations, layerList,
     lifecycleAssembly, mapHost, mapProjection, objectCommands, objectDeletion, objectPicking,
-    objectPresentation, physicalResources, pointerTargets, projectRestore, projectSession, propertySelection,
+    objectPresentation, physicalResources, pointerTargets, projectRestore, projectSession, projectSnapshots, propertySelection,
     readinessNotifications, renderQuality, runtime, serviceAssembly, spatialIndex, taskPresentation,
     workspaceSurfaces,
   });

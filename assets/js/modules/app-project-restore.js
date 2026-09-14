@@ -132,6 +132,7 @@ export function createProjectRestore() {
 
   async function reconcileAdminCountryCoast(adminId, { manual = true } = {}) {
     await (0, dependencies.ensureGisRuntime)();
+    const revision = dependencies.state.stateRevision;
     const analysis = analyzeAdminCountryCoastConflicts(adminId);
     if (!analysis.admin || !analysis.country) {
       (0, dependencies.setActionStatus)('소속 국가를 찾을 수 없어 해안선을 비교할 수 없습니다.', 'error', 3600);
@@ -157,43 +158,22 @@ export function createProjectRestore() {
       return { ok: true, changed: false, independent: true };
     }
 
-    const snapshot = (0, dependencies.snapshotEditable)();
-    const countryId = String(analysis.country.id || '');
-    const adminIdKey = String(analysis.admin.id);
-    const countryBefore = (0, dependencies.deepClone)(analysis.country.geometry);
-    const adminBefore = (0, dependencies.deepClone)(analysis.admin.geometry);
+    if (dependencies.state.stateRevision !== revision) return { ok: false, cancelled: true };
     try {
       const planned = (0, dependencies.planCoastReconciliations)({ conflicts: analysis.conflicts, direction: decision.direction });
-      const nextCountry = planned.countryGeometry;
-      const nextAdmin = planned.adminGeometry;
-      const countryValidation = (0, dependencies.validateCoastReplacement)(nextCountry, { clipper: window.polygonClipping });
-      const adminValidation = (0, dependencies.validateCoastReplacement)(nextAdmin, { clipper: window.polygonClipping });
-      if (!countryValidation.ok || !adminValidation.ok) throw new Error('정합 결과 geometry가 올바르지 않습니다.');
-      dependencies.projectDomain.recordHistory({
-        type: 'coast-reconciliation',
-        description: `${(0, dependencies.territorialUnitName)(analysis.admin)}·${(0, dependencies.countryName)(analysis.country)} 해안선 정합`,
-        affectedIds: [adminIdKey, countryId],
-      });
-      if (decision.direction === 'admin-to-country') {
-        analysis.country.geometry = nextCountry;
-        dependencies.state.historyDirtyCountryIds.add(countryId);
-        (0, dependencies.reconcileTerritorialUnitCompleteness)([countryId], { preserveIds: [adminIdKey] });
-      } else {
-        analysis.admin.geometry = nextAdmin;
-        (0, dependencies.reconcileTerritorialUnitCompleteness)([countryId]);
+      const clipper = window.polygonClipping;
+      let coastBaseline;
+      if (decision.direction === 'country-to-admin') {
+        const addition = clipper.difference(planned.adminGeometry.coordinates, analysis.admin.geometry.coordinates);
+        const removal = clipper.difference(analysis.admin.geometry.coordinates, planned.adminGeometry.coordinates);
+        coastBaseline = { type: 'MultiPolygon', coordinates: clipper.union(clipper.difference(analysis.country.geometry.coordinates, addition), removal) };
       }
-      (0, dependencies.normalizeProjectObjects)();
-      (0, dependencies.assertCurrentProjectReferences)();
-      (0, dependencies.markLayerTreeDirty)();
-      dependencies.renderingDomain?.invalidateCountryPatch?.('admin-country-coast-reconciled');
-      dependencies.projectDomain.queueAutosave();
-      (0, dependencies.setActionStatus)(decision.direction === 'admin-to-country' ? '하위단위 해안선을 기준으로 국가 해안선을 조정했습니다.' : '국가 해안선을 기준으로 하위단위 해안선을 조정했습니다.', 'success', 4200);
-      return { ok: true, changed: true, direction: decision.direction };
+      const prepared = await (0, dependencies.previewTerritorialEdit)({ operation: 'coast',
+        targetId: analysis.admin.id, draft: planned.countryGeometry, coastBaseline,
+      }, { selectedId: analysis.admin.id, shouldKeepResult: () => dependencies.state.stateRevision === revision });
+      return { ok: prepared, preview: prepared, changed: false };
     } catch (error) {
-      analysis.country.geometry = countryBefore;
-      analysis.admin.geometry = adminBefore;
-      (0, dependencies.restoreEditable)(snapshot);
-      (0, dependencies.reportOperationError)(error, '해안선 정합을 적용하지 못했습니다.', 'PL-COAST-RECONCILE-001', 4400);
+      (0, dependencies.reportOperationError)(error, '해안선 정합을 계산하지 못했습니다.', 'PL-COAST-RECONCILE-001', 4400);
       return { ok: false, error };
     }
   }
@@ -332,7 +312,7 @@ export function createProjectRestore() {
 
     (openConfirmModal = options => getConfirmModalController()
       .then(controller => controller.open(options))
-      .catch(error => (0, dependencies.reportOperationError)(error, '확인 창을 불러오지 못했습니다.', 'PL-MODAL-001')));
+      .catch(error => { options.onCancel?.(); (0, dependencies.reportOperationError)(error, '확인 창을 불러오지 못했습니다.', 'PL-MODAL-001'); }));
 
     (closeConfirmModal = () => confirmModalController?.close());
   }

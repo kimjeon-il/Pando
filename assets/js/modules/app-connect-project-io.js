@@ -106,6 +106,7 @@ export function connectProjectIo({
     get writeDomainColor() { return runtime.writeDomainColor; },
   });
   projectRestore.connect({
+    get previewTerritorialEdit() { return territorialDrafts.previewTerritorialEdit; },
     get renderMapDisplaySettings() { return mapSettings.renderMapDisplaySettings; },
     get $() { return environment.$; },
     get analyzeAdminCountryCoast() { return runtime.analyzeAdminCountryCoast; },
@@ -200,6 +201,9 @@ export function connectProjectIo({
     get vertexLayer() { return mapHost.vertexLayer; },
   });
   objectDeletion.connect({
+    get snapshotEditable() { return projectSnapshots.snapshotEditable; },
+    get restoreEditable() { return projectSnapshots.restoreEditable; },
+    get reportOperationError() { return readinessNotifications.reportOperationError; },
     get applyTerritorialUnitSelectionIntent() { return propertySelection.applyTerritorialUnitSelectionIntent; },
     get countryFeatureById() { return countryIndex.countryFeatureById; },
     get countryName() { return objectPresentation.countryName; },

@@ -14,6 +14,7 @@ export function createObjectPropertyController(runtime = {}) {
     colorDomains,
     defaultGenericFeatureColor,
     hydroToolConfig,
+    refreshTerritorialCoastAvailability,
     territorialUnitById,
     territorialUnitName,
     territorialUnitCountryOptions,
@@ -158,7 +159,7 @@ export function createObjectPropertyController(runtime = {}) {
     $(`${prefix}NameConflict`).classList.toggle('hidden', !conflict);
     $(`${prefix}NameInput`).value = properties.name || '';
     const countrySelect = $(`${prefix}CountryInput`);
-    const countryChoice = replaceSelectOptions(countrySelect, territorialUnitCountryOptions(), properties.sovereignId, {
+    const countryChoice = replaceSelectOptions(countrySelect, territorialUnitCountryOptions().filter(option => !subunits || option.value), properties.sovereignId, {
       autoSelectSingle: true,
       preserveInvalid: true,
     });
@@ -170,17 +171,17 @@ export function createObjectPropertyController(runtime = {}) {
     $(`${prefix}NotesInput`).value = properties.notes || '';
     const actionIds = region
       ? ['reassignRegionShapeBtn', 'mergeRegionBtn', 'transferRegionBtn']
-      : ['splitSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'reconcileSubunitCoastBtn', 'transferSubunitBtn', 'promoteSubunitBtn', 'changeSubunitTypeBtn', 'removeSubunitDivisionBtn'];
+      : ['addSubunitChildBtn', 'annexSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'editSubunitCoastBtn', 'reconcileSubunitCoastBtn', 'promoteSubunitBtn', 'removeSubunitDivisionBtn'];
     for (const actionId of actionIds) $(actionId).disabled = properties.locked === true;
     if (subunits) {
+      refreshTerritorialCoastAvailability?.(feature);
       const parentOptions = territorialUnitParentOptions(feature);
-      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId, { autoSelectSingle: true, preserveInvalid: true });
+      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId, { autoSelectSingle: true, preserveInvalid: false });
       $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', !shouldShowTerritorialParentChoice({
         sovereignId: properties.sovereignId,
         parentId: properties.parentId,
         options: parentOptions,
       }));
-      $('subunitLevelInput').value = properties.adminLevel || '';
     } else if (region) {
       replaceSelectOptions($('regionParentInput'), territorialParentOptions(feature), properties.parentId);
       // Kept only to display pre-v5 relationship data; Region is not a new

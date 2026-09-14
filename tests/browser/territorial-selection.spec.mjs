@@ -80,7 +80,7 @@ test('a territory above a visible country is selected directly and does not bloc
   const name = '지도 선택 시험 권역';
   await importTerritorialPolygon(page, {
     name,
-    target: 'territory',
+    target: 'subunit',
     coordinates: [[9, 50], [9, 51], [10, 51], [10, 50], [9, 50]],
   });
 
@@ -94,8 +94,8 @@ test('a territory above a visible country is selected directly and does not bloc
 
   const afterDrag = await territorialShapeCenter(page, name);
   await selectTerritorialObjectOnMap(page, afterDrag, name);
-  await expect(page.locator('#selectionStatus')).toContainText(`권역 · 독일 · ${name}`);
-  await expect(page.locator('#territoryProperties')).toBeVisible();
+  await expect(page.locator('#selectionStatus')).toContainText(`하위단위 · 독일 · ${name}`);
+  await expect(page.locator('#subunitProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -105,15 +105,15 @@ test('an administrative area above a visible country is chosen explicitly', asyn
   const name = '지도 선택 시험 행정구역';
   await importTerritorialPolygon(page, {
     name,
-    target: 'administrative',
+    target: 'subunit',
     coordinates: [[9, 50], [9, 51], [10, 51], [10, 50], [9, 50]],
   });
 
   const point = await territorialShapeCenter(page, name);
   expect(point).not.toBeNull();
   await selectTerritorialObjectOnMap(page, point, name);
-  await expect(page.locator('#selectionStatus')).toContainText(`행정구역 · 독일 · 1급 · ${name}`);
-  await expect(page.locator('#administrativeProperties')).toBeVisible();
+  await expect(page.locator('#selectionStatus')).toContainText(`하위단위 · 독일 · ${name}`);
+  await expect(page.locator('#subunitProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -135,10 +135,9 @@ test('a region import stays explicit, opens the region editor, and survives undo
       id: String(feature.id),
       unitType: feature.properties.unitType,
       coverageMode: feature.properties.coverageMode,
-      isRemainder: feature.properties.isRemainder,
     } : null;
   }, name);
-  expect(snapshot).toMatchObject({ unitType: 'region', coverageMode: 'explicit', isRemainder: false });
+  expect(snapshot).toMatchObject({ unitType: 'region', coverageMode: 'explicit' });
   await expect(page.locator('#regionProperties')).toBeVisible();
   await expect(page.locator('#selectionStatus')).toContainText(`지방 · ${name}`);
 
@@ -161,7 +160,7 @@ test('a mobile touch tap selects the territorial overlay above its country', asy
     const name = '모바일 선택 시험 권역';
     await importTerritorialPolygon(page, {
       name,
-      target: 'territory',
+      target: 'subunit',
       coordinates: [[9, 50], [9, 51], [10, 51], [10, 50], [9, 50]],
     });
     if (await page.locator('#mobileCloseRightBtn').isVisible()) {
@@ -176,8 +175,8 @@ test('a mobile touch tap selects the territorial overlay above its country', asy
     await page.locator('path.territorial-unit-shape').nth(shapeIndex).dispatchEvent('click');
     await expect(page.locator('#selectionStatus')).toContainText(name);
     await expect(page.locator('#objectChooser')).toBeHidden();
-    await expect(page.locator('#selectionStatus')).toContainText(`권역 · 독일 · ${name}`);
-    await expect(page.locator('#territoryProperties')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#selectionStatus')).toContainText(`하위단위 · 독일 · ${name}`);
+    await expect(page.locator('#subunitProperties')).not.toHaveClass(/hidden/);
     expect(errors).toEqual([]);
   } finally {
     await context.close();

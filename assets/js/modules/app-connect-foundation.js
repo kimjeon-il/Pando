@@ -3,7 +3,7 @@ export function connectFoundation({
   builtinSession, cameraNavigation, colorPicker, countryIndex, countryLabels, countryModes, cutGeometry,
   domainAssembly, environment, geometryPreview, gpuScene, hydroSettings, landRelations, layerList,
   lifecycleAssembly, mapHost, mapProjection, objectCommands, objectDeletion, objectPicking, objectPresentation,
-  physicalResources, pointerTargets, projectRestore, projectSession, propertySelection, readinessNotifications,
+  physicalResources, pointerTargets, projectRestore, projectSession, projectSnapshots, propertySelection, readinessNotifications,
   renderQuality, runtime, serviceAssembly, spatialIndex, taskPresentation, workspaceSurfaces,
 }) {
   environment.connect({
@@ -73,6 +73,8 @@ export function connectFoundation({
     get projectUi() { return lifecycleAssembly.projectUi; },
   });
   objectCommands.connect({
+    get snapshotEditable() { return projectSnapshots.snapshotEditable; },
+    get restoreEditable() { return projectSnapshots.restoreEditable; },
     get $() { return environment.$; },
     get boundaryEditSelectionAnalysis() { return geometryPreview.boundaryEditSelectionAnalysis; },
     get clamp() { return environment.clamp; },

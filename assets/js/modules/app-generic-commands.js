@@ -214,7 +214,7 @@ export function createGenericCommands() {
         const unit = (0, dependencies.createTerritorialFeature)({
           id: (0, dependencies.uid)(unitType), unitType, name, geometry: (0, dependencies.deepClone)(feature.geometry),
           sovereignId: String(country.id), parentId: target === 'subunit' ? String(country.id) : '',
-          coverageMode: dependencies.TERRITORIAL_COVERAGE_MODES.EXPLICIT, isRemainder: false, color,
+          coverageMode: dependencies.TERRITORIAL_COVERAGE_MODES.EXPLICIT, color,
           validFrom: feature.properties?.validFrom ?? null, validTo: feature.properties?.validTo ?? null,
           notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
         });

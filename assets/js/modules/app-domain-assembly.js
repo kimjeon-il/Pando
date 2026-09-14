@@ -1,3 +1,4 @@
+import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
 /** DomainAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -202,6 +203,7 @@ export function createDomainAssembly() {
       colorDomains: dependencies.COLOR_DOMAINS,
       defaultGenericFeatureColor: dependencies.DEFAULT_GENERIC_FEATURE_COLOR,
       hydroToolConfig: dependencies.HYDRO_TOOL_CONFIG,
+      refreshTerritorialCoastAvailability: dependencies.refreshTerritorialCoastAvailability,
       territorialUnitById: dependencies.territorialUnitById,
       territorialUnitName: dependencies.territorialUnitName,
       territorialUnitCountryName: dependencies.territorialUnitCountryName,
@@ -571,9 +573,32 @@ export function createDomainAssembly() {
             : node.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(coastId);
           if (!allowed) return false;
           const affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
+          const boundaryFeature = id => (0, dependencies.countryFeatureById)(id) || dependencies.state.territorialUnits.find(unit => String(unit.id) === String(id));
           if (!(0, dependencies.requireCountriesUnlocked)([...affectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return false;
+          if ([...affectedIds].some(id => boundaryFeature(id)?.properties?.locked)) {
+            (0, dependencies.setActionStatus)('잠긴 객체와 공유하는 경계는 이동할 수 없습니다.', 'error', 3400);
+            return false;
+          }
+          const hierarchyIds = new Set(affectedIds);
+          for (const id of affectedIds) {
+            let parent = boundaryFeature(id);
+            const visited = new Set();
+            while (parent?.properties?.parentId && !visited.has(String(parent.id))) {
+              visited.add(String(parent.id));
+              hierarchyIds.add(String(parent.properties.parentId));
+              parent = boundaryFeature(parent.properties.parentId);
+            }
+          }
+          if (!(0, dependencies.requireCountriesUnlocked)([...hierarchyIds], '경계를 조정')) return false;
+          const lockedHierarchy = dependencies.state.territorialUnits.some(unit => unit.properties?.locked && (
+            hierarchyIds.has(String(unit.id)) || (hierarchyIds.has(String(unit.properties.sovereignId)) && boundaryTouchesGeometry(unit.geometry, node.coordinate))
+          ));
+          if (lockedHierarchy) {
+            (0, dependencies.setActionStatus)('변경 구간의 상위 단위 또는 자식이 잠겨 있습니다.', 'error', 3400);
+            return false;
+          }
           const features = new Map([...affectedIds]
-            .map(id => [id, (0, dependencies.countryFeatureById)(id)])
+            .map(id => [id, boundaryFeature(id)])
             .filter(([, feature]) => feature)
             .map(([id, feature]) => [id, (0, dependencies.deepClone)(feature)]));
           const refs = [...(node.refs || []), ...(node.virtualRefs || [])]
@@ -605,9 +630,9 @@ export function createDomainAssembly() {
             snapshot: (0, dependencies.snapshotEditable)(),
             validationBaseline: affectedIds.size > 1 ? (0, dependencies.captureCountryGeometryValidationBaseline)(affectedIds) : null,
             structuredBaseline: new Set([...affectedIds]
-              .flatMap(id => (0, dependencies.validateStructuredGeometry)((0, dependencies.countryFeatureById)(id)).filter(Boolean))
+              .flatMap(id => (0, dependencies.validateStructuredGeometry)(boundaryFeature(id)).filter(Boolean))
               .map(dependencies.structuredGeometryIssueKey)),
-            beforeGeometries: new Map([...affectedIds].map(id => [id, (0, dependencies.deepClone)((0, dependencies.countryFeatureById)(id)?.geometry)])),
+            beforeGeometries: new Map([...affectedIds].map(id => [id, (0, dependencies.deepClone)(boundaryFeature(id)?.geometry)])),
           };
         },
         moveBoundaryGesture: (session, coordinate) => {
@@ -631,40 +656,24 @@ export function createDomainAssembly() {
         commitBoundaryGesture: session => {
           (0, dependencies.clearActiveEditPreview)('country-boundary-preview-end');
           if (!session.changed) return false;
-          try {
-            const structuredIssues = [...session.affectedIds]
-              .flatMap(id => (0, dependencies.validateStructuredGeometry)(session.features.get(id)).filter(Boolean))
-              .filter(issue => !session.structuredBaseline.has((0, dependencies.structuredGeometryIssueKey)(issue)));
-            if (structuredIssues.length) throw new Error(structuredIssues[0].message);
-            const validation = (0, dependencies.validateCountryGeometryEdit)(session.affectedIds, session.validationBaseline, { featureOverrides: session.features });
-            if (!validation.ok) throw new Error(validation.message);
-            for (const id of session.affectedIds) {
-              const current = (0, dependencies.countryFeatureById)(id);
-              const preview = session.features.get(id);
-              if (current && preview?.geometry) current.geometry = (0, dependencies.deepClone)(preview.geometry);
-            }
-            for (const id of session.affectedIds) {
-              const current = (0, dependencies.countryFeatureById)(id);
-              const before = session.beforeGeometries.get(id);
-              if (current && before) (0, dependencies.syncHardLandDependents)(id, before, current.geometry, session.startCoordinate);
-            }
-            (0, dependencies.markCountryGeometriesChanged)(session.affectedIds);
-            (0, dependencies.refreshCountryCentroids)(session.affectedIds);
-            (0, dependencies.rebuildBoundaryTopology)(session.borderMode ? dependencies.state.boundaryEditCountryIds : dependencies.state.coastEditCountryId);
-            projectDomain.commitHistorySnapshot(session.snapshot);
-            renderingDomain?.invalidateEditedGeometryPatch?.('country', 'boundary-edit-commit');
-            projectDomain.queueAutosave();
-            (0, dependencies.setActionStatus)(session.borderMode
-              ? `${session.affectedIds.size}개 국가의 공유국경을 함께 수정했습니다.`
-              : '해안선을 수정했습니다.', 'success');
-            return true;
-          } catch (error) {
-            (0, dependencies.rebuildBoundaryTopology)(session.borderMode ? dependencies.state.boundaryEditCountryIds : dependencies.state.coastEditCountryId);
-            (0, dependencies.reportOperationError)(error, session.borderMode
-              ? '공유국경을 이동하지 못해 변경을 되돌렸습니다.'
-              : '해안선을 이동하지 못해 변경을 되돌렸습니다.', session.borderMode ? 'PL-BORDER-001' : 'PL-COAST-001', 4300);
-            return false;
+          const unitTarget = dependencies.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.state.boundaryEditSeedCountryId));
+          if (session.borderMode && unitTarget) {
+            return (0, dependencies.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
+              parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
+            }, { selectedId: unitTarget.id, shouldKeepResult: () => dependencies.state.tool === 'country-border'
+              && String(dependencies.state.boundaryEditSeedCountryId) === String(unitTarget.id) });
           }
+          if (!session.borderMode) {
+            const countryId = [...session.affectedIds][0];
+            return (0, dependencies.previewTerritorialEdit)({
+              operation: 'coast', targetId: countryId, draft: session.features.get(countryId)?.geometry,
+            }, { selectedId: dependencies.state.coastEditReturnSelection?.id || countryId,
+              shouldKeepResult: () => dependencies.state.tool === 'country-coast' && String(dependencies.state.coastEditCountryId) === String(countryId) });
+          }
+          const ids = [...session.affectedIds];
+          return (0, dependencies.previewTerritorialEdit)({ operation: 'country-boundary', targetId: ids[0],
+            featurePatches: [...session.features.values()],
+          }, { selectedId: ids[0], shouldKeepResult: () => dependencies.state.tool === 'country-border' });
         },
         renderPacket: () => {
           const boundarySegments = (0, dependencies.getCountryBoundarySegments)().flatMap(item => {

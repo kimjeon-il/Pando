@@ -543,7 +543,6 @@
     });
     populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['sovereign_id', 'country_id', 'countryId', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
     populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 소속', selected: autoField(fields, ['parent_id', 'parent']) });
-    populateFieldSelect(document.getElementById('gisLevelField'), fields, { ...fieldOptions, roleLabel: '행정 단계', selected: autoField(fields, ['admin_level', 'level', 'adm_level']) });
     syncAutoMappedField('gisIdFieldRow', 'gisIdField', hasCanonicalId);
     syncAutoMappedField('gisNameFieldRow', 'gisNameField', hasCanonicalName);
     const crsInput = document.getElementById('gisCrsInput');
@@ -687,8 +686,6 @@
       || document.getElementById('gisCountryField')?.dataset.singleChoice === 'true');
     document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'subunit' || !useCountryField
       || document.getElementById('gisParentField')?.dataset.singleChoice === 'true');
-    document.getElementById('gisLevelFieldRow')?.classList.toggle('hidden', target !== 'subunit'
-      || document.getElementById('gisLevelField')?.dataset.singleChoice === 'true');
     document.getElementById('gisColorFieldRow')?.classList.toggle('hidden', target === 'country'
       || document.getElementById('gisColorField')?.dataset.singleChoice === 'true');
     const parentChoice = populateParentUnits();
@@ -995,7 +992,7 @@
         detectedCrs: descriptor.crs.label,
         targetType: atlasMetadata?.projectState ? 'project' : mapping.targetType,
         distributionType: mapping.distributionType || '',
-        propertyMapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, level: mapping.levelField, color: mapping.colorField },
+        propertyMapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField },
         targetCountryId: mapping.targetCountryId,
         fallbackCountryId: mapping.targetCountryId,
         useFeatureCountryField: mapping.useFeatureCountryField,
@@ -1010,7 +1007,7 @@
         layer: descriptor.layerName,
         sourceCrs: descriptor.crs.label,
         fields: descriptor.fieldDefinitions || [],
-        mapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, level: mapping.levelField, color: mapping.colorField },
+        mapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField },
       },
     };
   }
@@ -1036,7 +1033,6 @@
       nameField: document.getElementById('gisNameField').value,
       countryField: document.getElementById('gisCountryField').value,
       parentField: document.getElementById('gisParentField').value,
-      levelField: document.getElementById('gisLevelField').value,
       colorField: targetType === 'country' ? '' : document.getElementById('gisColorField').value,
       sourceCrs: document.getElementById('gisCrsInput').value.trim(),
       groupDuplicates: true,
@@ -1230,7 +1226,7 @@
       };
       layerSelect.onchange = refresh;
       targetSelect.onchange = () => { invalidatePrepared(); updateTargetFields(); };
-      for (const id of ['gisIdField', 'gisNameField', 'gisCountryField', 'gisParentField', 'gisLevelField', 'gisColorField', 'gisDistributionType', 'gisParentUnit']) {
+      for (const id of ['gisIdField', 'gisNameField', 'gisCountryField', 'gisParentField', 'gisColorField', 'gisDistributionType', 'gisParentUnit']) {
         document.getElementById(id).onchange = () => { invalidatePrepared(); updateTargetFields(); };
       }
       document.getElementById('gisUseCountryField').onchange = () => { invalidatePrepared(); updateTargetFields(); };
