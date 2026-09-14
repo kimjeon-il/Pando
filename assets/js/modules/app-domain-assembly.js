@@ -323,6 +323,7 @@ export function createDomainAssembly() {
               override,
               assetRevision: dependencies.ASSET_REVISION,
             }),
+            hasFlagOverride: Object.hasOwn(override, 'flagDataUrl'),
           };
         }
         const feature = (0, dependencies.territorialUnitById)(ref.id);
@@ -334,11 +335,13 @@ export function createDomainAssembly() {
           flagUrl: (0, dependencies.effectiveTerritorialFlagUrl)(feature, {
             assetRevision: dependencies.ASSET_REVISION,
           }),
+          hasFlagOverride: Object.hasOwn(feature.properties?.metadata || {}, 'flagDataUrl'),
         };
       },
       commitFlag: (ref, value) => ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY
         ? (0, dependencies.commitCountryEdit)('flagDataUrl', value)
         : (0, dependencies.commitTerritorialUnitMeta)('flagDataUrl', value),
+      openFlagLibrary: dependencies.openFlagLibraryPicker,
       openEditor: (_ref, trigger) => (0, dependencies.openSelectionEditor)({ explicit: true, trigger, focus: true }),
       closeEditor: () => (0, dependencies.closeSurface)('editor', { manual: true }),
       isEditorOpen: () => dependencies.surfaceState.editorOpen,

@@ -68,7 +68,7 @@ test('territorial selection toolbar owns the shared flag menu and explicit edito
     await expect(page.locator('#selectionToolbar')).toBeVisible();
     await page.locator('#flagMenuBtn').click();
     await expect(page.locator('#flagMenu')).toBeVisible();
-    await expect(page.locator('#flagUploadBtn')).toBeFocused();
+    await expect(page.locator('#flagLibraryBtn')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(page.locator('#flagMenu')).toBeHidden();
     await expect(page.locator('#flagMenuBtn')).toBeFocused();
@@ -89,6 +89,9 @@ test('territorial selection toolbar owns the shared flag menu and explicit edito
   await page.locator('#flagRemoveBtn').click();
   await expect(page.locator('#flagPreview .ui-icon')).toBeVisible();
   await page.locator('#flagMenuBtn').click();
-  await expect(page.locator('#flagUploadBtn')).toHaveText('깃발 추가');
-  await expect(page.locator('#flagRemoveBtn')).toBeHidden();
+  await expect(page.locator('#flagMenu')).toHaveClass(/ui-command-menu/);
+  await expect(page.locator('#flagMenu .ui-menu-item')).toHaveCount(4);
+  await expect(page.locator('#flagUploadBtn')).toHaveText('파일');
+  await expect(page.locator('#flagDefaultBtn')).toBeEnabled();
+  await expect(page.locator('#flagRemoveBtn')).toBeDisabled();
 });
