@@ -51,23 +51,36 @@ export function createLayerTreeController({
     const current = selection();
     const selected = current.items?.some(candidate => candidate.key === item.key) || false;
     const primary = current.primaryKey === item.key;
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.className = 'ui-button layer-search-result ui-selectable-row';
-    row.dataset.objectSearchSelect = item.layerGroup;
-    row.dataset.itemId = item.id;
+    const row = document.createElement('div');
+    row.className = 'layer-search-result ui-selectable-row';
     row.dataset.objectKey = item.key;
     row.setAttribute('role', 'option');
     row.setAttribute('aria-selected', String(selected));
     row.classList.toggle('is-selected', selected);
     row.classList.toggle('is-primary-selected', primary);
+
+    const select = document.createElement('button');
+    select.type = 'button';
+    select.className = 'ui-button layer-search-result-select layer-child-name';
+    select.dataset.objectSearchSelect = item.layerGroup;
+    select.dataset.itemId = item.id;
+    select.setAttribute('aria-label', item.name);
     const name = document.createElement('strong');
     name.textContent = item.name;
     const visual = searchResultVisual(item);
     if (visual) name.prepend(visual);
-    const type = document.createElement('span');
-    type.textContent = item.typeLabel;
-    row.append(name, type);
+    select.append(name);
+
+    const focus = document.createElement('button');
+    focus.type = 'button';
+    focus.className = 'ui-button icon-btn layer-search-focus-action';
+    focus.dataset.objectSearchFocus = item.layerGroup;
+    focus.dataset.itemId = item.id;
+    focus.dataset.tooltip = '선택 객체로 이동';
+    focus.setAttribute('aria-label', `${item.name} 선택 객체로 이동`);
+    const focusIcon = createIcon?.('focus', 'ui-icon');
+    if (focusIcon) focus.append(focusIcon);
+    row.append(select, focus);
     return row;
   }
 
@@ -151,6 +164,14 @@ export function createLayerTreeController({
     if (didSelect && !additive && !range) commands.closeAfterSingleSelection?.();
   }
 
+  function focusResult(target) {
+    const group = target.dataset.objectSearchFocus;
+    const id = target.dataset.itemId;
+    if (!group || !id) return;
+    commands.selectItem({ group, id, additive: false, range: false, orderedRefs: [] });
+    commands.focusItem?.(group, id);
+  }
+
   function bind() {
     elements.search?.addEventListener('input', event => {
       commands.setSearchValue(event.currentTarget.value || '');
@@ -167,6 +188,12 @@ export function createLayerTreeController({
       elements.search.focus({ preventScroll: true });
     });
     elements.searchResults?.addEventListener('click', event => {
+      const focus = event.target.closest('[data-object-search-focus]');
+      if (focus) {
+        event.preventDefault();
+        focusResult(focus);
+        return;
+      }
       const row = event.target.closest('[data-object-search-select]');
       if (row) selectResult(row, event);
     });
@@ -184,7 +211,7 @@ export function createAppLayerTreeController(runtime = {}) {
   const {
     window, document, getElement: $, state,
     layerSearchGroupKeys, layerTreeItems, layerItemObjectRef, selectionDomain,
-    compareItems, syncSearchClearButton, markLayerTreeDirty, selectLayerTreeItem, closeSearchAfterSingleSelection, createIcon,
+    compareItems, syncSearchClearButton, markLayerTreeDirty, selectLayerTreeItem, closeSearchAfterSingleSelection, focusObjectRef, createIcon,
   } = runtime;
   return createLayerTreeController({
     window,
@@ -233,6 +260,7 @@ export function createAppLayerTreeController(runtime = {}) {
         });
         return didSelect;
       },
+      focusItem: (group, id) => focusObjectRef?.(layerItemObjectRef(group, id)),
       closeAfterSingleSelection: closeSearchAfterSingleSelection,
     },
   });
