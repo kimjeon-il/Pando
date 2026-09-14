@@ -118,6 +118,15 @@ export function createSelectionToolbarPresentation({
     const editorOpen = !!isEditorOpen();
     editButton?.setAttribute('aria-expanded', String(editorOpen));
     editButton?.setAttribute('aria-label', editorOpen ? '편집 닫기' : '편집 열기');
+    const typeButton = $('selectionToolbarTypeBtn');
+    const typeConvertible = kind === 'country' || kind === 'subunit';
+    if (typeButton) {
+      const label = kind === 'country' ? '하위단위로 전환' : '국가로 전환';
+      typeButton.classList.toggle('hidden', !typeConvertible);
+      typeButton.disabled = blocked || !typeConvertible;
+      typeButton.setAttribute('aria-label', label);
+      typeButton.dataset.tooltip = label;
+    }
     if (blocked) {
       closeFlag();
       closeColorPickers();
@@ -224,6 +233,15 @@ export function createSelectionToolbarPresentation({
       if (isEditorOpen()) closeEditor(activeRef, event.currentTarget);
       else openEditor(activeRef, event.currentTarget);
       syncInteraction();
+    });
+    $('selectionToolbarTypeBtn')?.addEventListener('click', () => {
+      if (!activeRef) return;
+      const targetId = activeKind() === 'country' ? 'changeCountryTypeBtn'
+        : activeKind() === 'subunit' ? 'changeSubunitTypeBtn' : '';
+      const target = targetId ? $(targetId) : null;
+      if (!target || target.disabled) return;
+      closeTransient();
+      target.click();
     });
     $('flagMenuBtn')?.addEventListener('click', () => {
       const menu = $('flagMenu');

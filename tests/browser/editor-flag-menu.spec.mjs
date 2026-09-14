@@ -37,6 +37,10 @@ test('territorial selection toolbar owns the shared flag menu and explicit edito
     return Math.round(bounds.left + (bounds.width / 2));
   });
   const initialToolbarCenter = await toolbarCenter();
+  await expect(page.locator('#selectionToolbarTypeBtn')).toHaveAttribute('data-tooltip', '하위단위로 전환');
+  await page.locator('#selectionToolbarTypeBtn').click();
+  await expect(page.locator('#territorialTypeModal')).toBeVisible();
+  await page.locator('#territorialTypeCancelBtn').click();
   await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('data-tooltip', '편집');
   await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#rightPanel')).toHaveClass(/surface-open/);

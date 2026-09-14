@@ -48,9 +48,18 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   white-space: nowrap;
 }
 
+/* The file trigger is a document command, not a primary action. */
+.app-root .topbar .file-menu-btn.topbar-command {
+  min-width: 0;
+  background: var(--topbar-command-background);
+  color: var(--text-soft);
+  font-weight: var(--ui-weight-medium);
+}
+
 .app-root .topbar .topbar-command:is(:hover, :active, [aria-expanded="true"]):not(:disabled) {
   --topbar-command-background: var(--ui-button-subtle-hover);
   border-color: transparent;
+  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 

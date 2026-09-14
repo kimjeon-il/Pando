@@ -23,8 +23,8 @@ test('changing accent preserves every non-color interaction rule', () => {
   }
 });
 
-test('accent tokens retain chosen hue and pick contrasting button text', () => {
-  assert.equal(accentTokens('#ffffff')['accent-text'], '#000000');
+test('accent tokens retain chosen hue and always use white button text', () => {
+  assert.equal(accentTokens('#ffffff')['accent-text'], '#ffffff');
   assert.equal(accentTokens('#000000')['accent-text'], '#ffffff');
   assert.equal(accentTokens('#8b5cf6').accent, '#8b5cf6');
   assert.ok(!('danger' in accentTokens('#8b5cf6')));
