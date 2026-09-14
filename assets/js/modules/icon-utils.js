@@ -20,7 +20,7 @@ const ICON_REGISTRY = Object.freeze({
   eye: 'icon-eye',
   eyeOff: 'icon-eye-off',
   settings: 'icon-tune',
-  focus: 'icon-focus-object',
+  focus: 'icon-focus-target',
   lock: 'icon-lock-closed',
   unlock: 'icon-lock-open',
   delete: 'icon-trash',

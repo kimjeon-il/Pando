@@ -190,6 +190,7 @@ export function createNavigationBindings() {
       compareItems: (left, right) => dependencies.layerNameCollator.compare(left.name, right.name) || dependencies.layerNameCollator.compare(left.id, right.id),
       syncCanonicalControls: dependencies.syncCanonicalControls, syncSearchClearButton: dependencies.syncSearchClearButton,
       markLayerTreeDirty: dependencies.markLayerTreeDirty, selectLayerTreeItem: dependencies.selectLayerTreeItem,
+      focusObjectRef: dependencies.focusObjectRef,
       closeSearchAfterSingleSelection: () => (0, dependencies.closeSurface)('search'),
     });
     dependencies.layerTreeController.bind();

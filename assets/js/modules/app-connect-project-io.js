@@ -399,6 +399,7 @@ export function connectProjectIo({
     get distributionService() { return objectPresentation.distributionService; },
     get editorSurfaceTabs() { return workspaceSurfaces.editorSurfaceTabs; },
     set editorSurfaceTabs(value) { workspaceSurfaces.editorSurfaceTabs = value; },
+    get focusObjectRef() { return objectCommands.focusObjectRef; },
     get gpuMapRenderer() { return serviceAssembly.gpuMapRenderer; },
     get hydroCategoryKey() { return objectPresentation.hydroCategoryKey; },
     get surfaceController() { return workspaceSurfaces.surfaceController; },

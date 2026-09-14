@@ -44,7 +44,11 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await search.fill('폴란드');
   const poland = page.locator('#layerSearchResults .layer-search-result').first();
   await expect(poland).toContainText('폴란드');
-  await poland.click();
+  await expect(poland.locator('.layer-search-focus-action')).toBeVisible();
+  await expect(poland.locator(':scope > span')).toHaveCount(0);
+  const viewRevisionBeforeSearchFocus = await page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0));
+  await poland.locator('.layer-search-focus-action').click();
+  await expect.poll(() => page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0))).toBeGreaterThan(viewRevisionBeforeSearchFocus);
   await expect(page.locator('#focusSelectedObjectBtn')).toBeVisible();
   const viewRevisionBeforeFocus = await page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0));
   await page.locator('#focusSelectedObjectBtn').click();

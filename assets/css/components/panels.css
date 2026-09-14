@@ -346,15 +346,27 @@ body.file-menu-open .mobile-backdrop {
   min-height: var(--design-control-md);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--ui-space-2);
-  padding: 0 var(--ui-space-2);
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
   border-color: transparent;
   border-radius: var(--ui-radius-control);
   background: transparent;
 }
 
-.object-search-section .layer-search-result > strong {
+.object-search-section .layer-search-result-select {
+  min-width: 0;
+  min-height: inherit;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--ui-space-2);
+  border-color: transparent;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.object-search-section .layer-search-result-select > strong {
   min-width: 0;
   display: flex;
   align-items: center;
@@ -364,11 +376,16 @@ body.file-menu-open .mobile-backdrop {
   white-space: nowrap;
 }
 
-.object-search-section .layer-search-result > span {
-  grid-row: auto;
+.object-search-section .layer-search-focus-action {
+  align-self: center;
+  width: var(--design-control-md);
+  height: var(--design-control-md);
+  margin-inline-end: var(--ui-space-0-5);
   color: var(--muted);
-  font-size: var(--ui-font-caption);
-  white-space: nowrap;
+}
+
+.object-search-section .layer-search-focus-action:is(:hover, :focus-visible) {
+  color: var(--text-strong);
 }
 
 .object-search-section .layer-search-result-icon {
@@ -385,7 +402,7 @@ body.file-menu-open .mobile-backdrop {
   object-fit: contain;
 }
 
-.object-search-section .layer-search-result:is(:hover, :focus-visible) {
+.object-search-section .layer-search-result:is(:hover, :focus-within) {
   border-color: transparent;
   background: var(--surface-hover);
 }
@@ -395,6 +412,7 @@ body.file-menu-open .mobile-backdrop {
     border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
   }
   .object-search-section .layer-search-result { min-height: var(--ui-touch-height); }
+  .object-search-section .layer-search-focus-action { width: var(--ui-touch-height); height: var(--ui-touch-height); }
 }
 .preferences-accent .ui-color-popover.is-custom {
   position: static;
