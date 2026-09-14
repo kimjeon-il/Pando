@@ -499,7 +499,7 @@ export function createCutGeometry() {
     return geometry;
   }
 
-  function applyWorkerCountryPatches(result) {
+  function applyWorkerCountryPatches(result, options = {}) {
     const updates = new Map((result.features || []).map(feature => {
       const next = (0, dependencies.deepClone)(feature);
       const normalizedGeometry = (0, dependencies.normalizeCountryGeometry)(next.geometry);
@@ -525,7 +525,10 @@ export function createCutGeometry() {
     (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
     dependencies.applyingMapEditWorkerResult = true;
     try {
-      (0, dependencies.markCountryGeometriesChanged)(new Set(result.affectedIds || [...updates.keys(), ...removed]));
+      (0, dependencies.markCountryGeometriesChanged)(
+        new Set(result.affectedIds || [...updates.keys(), ...removed]),
+        options,
+      );
     } finally {
       dependencies.applyingMapEditWorkerResult = false;
     }

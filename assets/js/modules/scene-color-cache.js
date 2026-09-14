@@ -215,6 +215,14 @@ export function createSceneColorCache() {
       && activeProjectGeneration === Number(projectGeneration || 0);
   }
 
+  // A country-add transition may keep the last complete scene on screen while
+  // its replacement is rendered into staging.  Callers must still require an
+  // exact view and project match; this deliberately does not relax either
+  // safety boundary for ordinary geometry edits.
+  function canCompositePreserved(viewSignature = '', projectGeneration = 0) {
+    return hasActiveFor(viewSignature, projectGeneration);
+  }
+
   function hasActiveProject(projectGeneration = 0) {
     return valid && !!activeTarget && !disabled
       && activeProjectGeneration === Number(projectGeneration || 0);
@@ -351,6 +359,7 @@ export function createSceneColorCache() {
     hasActiveFor,
     hasActiveProject,
     canComposite,
+    canCompositePreserved,
     isAvailable: () => !!gl && !!compositeProgram && !disabled,
     stats: () => Object.freeze({
       valid,

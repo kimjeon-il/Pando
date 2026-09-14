@@ -820,7 +820,9 @@ export function createGisImportTransactionCommitter(runtime = {}) {
 
       state.sourceInfo = appendImportedSourceInfo(state.sourceInfo, result.sourceInfo);
       scheduleCountryLabelAnchors(null, 10);
-      markCountryGeometriesChanged(plan.affectedIds || importedIds);
+      markCountryGeometriesChanged(plan.affectedIds || importedIds, {
+        presentation: plan.countryPatchPresentation || 'replace-scene',
+      });
       commitHistorySnapshot(before);
     } catch (error) {
       restoreCountryEditSnapshot(before);
