@@ -33,6 +33,10 @@
   padding: var(--ui-space-1-5);
 }
 
+/* A backdrop filter creates a containing block for fixed descendants.
+   The mobile color sheet must be fixed to the viewport, not this toolbar. */
+.selection-toolbar { backdrop-filter: none; }
+
 .selection-toolbar.hidden,
 .selection-toolbar-fields.hidden,
 .selection-toolbar-note-field.hidden { display: none !important; }
