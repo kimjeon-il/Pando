@@ -74,7 +74,7 @@
 .ui-custom-color-message { margin: 0; color: var(--text-soft); font-size: var(--ui-font-sm); }
 .ui-custom-color-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); margin-top: var(--ui-space-1); }
 @media (max-width: 799px) {
-  .ui-color-popover.is-custom { max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height, var(--ui-mobile-bottom-nav-height)) - var(--ui-space-4) * 2); }
+  .ui-color-popover.is-custom { max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-map-bottom-occupied-height) - var(--ui-space-4) * 2); }
   .ui-custom-color :is(.ui-button, .ui-field input, .ui-custom-color-hue input) { min-height: var(--ui-touch-height); }
   .ui-custom-color-preview { flex-basis: var(--ui-touch-height); height: var(--ui-touch-height); }
 }

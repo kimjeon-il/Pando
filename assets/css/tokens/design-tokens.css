@@ -136,6 +136,7 @@
      surfaces do not duplicate breakpoint-specific dimensions. */
   --ui-shell-topbar-height: var(--ui-topbar-measured, var(--design-topbar-height));
   --ui-shell-statusbar-height: var(--design-statusbar-height);
+  --ui-map-bottom-occupied-height: var(--ui-shell-statusbar-height);
   --ui-shell-left-panel-width: var(--design-left-panel-width);
   --ui-shell-right-panel-width: var(--design-right-panel-width);
   --design-radius-sm: 5px;

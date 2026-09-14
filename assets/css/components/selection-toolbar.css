@@ -57,7 +57,7 @@
 
 .selection-toolbar-name {
   inline-size: auto;
-  min-inline-size: 5rem;
+  min-inline-size: calc(1em + var(--ui-control-padding-x) + var(--ui-control-padding-x) + var(--ui-border-width) + var(--ui-border-width));
   max-inline-size: 15rem;
   height: var(--ui-control-height);
   overflow: hidden;
@@ -67,9 +67,10 @@
 }
 
 /* These inputs live outside a field-group after moving into the toolbar. */
-.selection-toolbar :is(.selection-toolbar-name, .selection-toolbar-note-field textarea) {
+.selection-toolbar .selection-toolbar-name,
+.selection-toolbar .selection-toolbar-note-field textarea {
   padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
-  border: 1px solid var(--component-field-border);
+  border: var(--ui-border-width) solid var(--component-field-border);
   border-radius: var(--ui-radius-control);
   background-color: var(--surface-input);
   color: var(--text);
@@ -77,18 +78,32 @@
   transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
 }
 
-.selection-toolbar :is(.selection-toolbar-name, .selection-toolbar-note-field textarea):hover:not(:disabled):not([readonly]) {
+.selection-toolbar .selection-toolbar-name {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.selection-toolbar .selection-toolbar-note-field textarea:hover:not(:disabled):not([readonly]) {
   border-color: var(--ui-control-border-hover);
 }
 
-.selection-toolbar :is(.selection-toolbar-name, .selection-toolbar-note-field textarea):focus {
+.selection-toolbar .selection-toolbar-name:focus,
+.selection-toolbar .selection-toolbar-note-field textarea:focus {
   border-color: var(--accent-border);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-.selection-toolbar :is(.selection-toolbar-name, .selection-toolbar-note-field textarea):is(:disabled, [readonly]) {
+.selection-toolbar .selection-toolbar-name:focus { background-color: var(--surface-input); }
+
+.selection-toolbar .selection-toolbar-name:is(:disabled, [readonly]),
+.selection-toolbar .selection-toolbar-note-field textarea:is(:disabled, [readonly]) {
   color: var(--muted);
   background-color: var(--surface-subtle);
+}
+
+.selection-toolbar .selection-toolbar-name:is(:disabled, [readonly]) {
+  border-color: transparent;
+  background-color: transparent;
 }
 
 .selection-toolbar > .icon-btn,

@@ -11,6 +11,27 @@ test('territorial selection toolbar owns the shared flag menu and explicit edito
   await expect(page.locator('#countryNameInput')).toHaveValue('폴란드');
   await expect(page.locator('#rightPanel #countryNameInput, #rightPanel #flagMenuBtn, #rightPanel #notesInput')).toHaveCount(0);
 
+  const nameInput = page.locator('#countryNameInput');
+  const nameChrome = () => nameInput.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { background: style.backgroundColor, border: style.borderTopColor, shadow: style.boxShadow };
+  });
+  expect(await nameChrome()).toEqual({ background: 'rgba(0, 0, 0, 0)', border: 'rgba(0, 0, 0, 0)', shadow: 'none' });
+  await nameInput.focus();
+  const focusedNameChrome = await nameChrome();
+  expect(focusedNameChrome.background).not.toBe('rgba(0, 0, 0, 0)');
+  expect(focusedNameChrome.border).not.toBe('rgba(0, 0, 0, 0)');
+  expect(focusedNameChrome.shadow).not.toBe('none');
+  await nameInput.fill('가');
+  const oneCharacterWidth = await nameInput.evaluate(element => element.getBoundingClientRect().width);
+  await nameInput.fill('가나');
+  const twoCharacterWidth = await nameInput.evaluate(element => element.getBoundingClientRect().width);
+  expect(oneCharacterWidth).toBeLessThan(twoCharacterWidth);
+  expect(twoCharacterWidth).toBeLessThan(80);
+  await nameInput.fill('폴란드');
+  await nameInput.press('Tab');
+  await expect.poll(nameChrome).toEqual({ background: 'rgba(0, 0, 0, 0)', border: 'rgba(0, 0, 0, 0)', shadow: 'none' });
+
   const toolbarCenter = async () => page.locator('#selectionToolbar').evaluate(element => {
     const bounds = element.getBoundingClientRect();
     return Math.round(bounds.left + (bounds.width / 2));
