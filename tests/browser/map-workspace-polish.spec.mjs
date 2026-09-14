@@ -21,6 +21,38 @@ async function searchFor(page, query) {
   return result;
 }
 
+async function setStatusBarVisible(page, visible) {
+  await page.locator('#preferencesBtn').click();
+  await expect(page.locator('#preferencesModal')).toBeVisible();
+  await page.locator('#preferencesStatusBarVisibleInput').setChecked(visible);
+  await page.locator('#preferencesApplyBtn').click();
+  await expect(page.locator('html')).toHaveAttribute('data-status-bar-visible', String(visible));
+}
+
+async function bottomFloatingGeometry(page) {
+  return page.evaluate(() => {
+    const rect = selector => {
+      const bounds = document.querySelector(selector)?.getBoundingClientRect();
+      return bounds ? { top: bounds.top, bottom: bounds.bottom } : null;
+    };
+    const mobile = document.querySelector('#app')?.dataset.layout === 'mobile';
+    const rootStyle = getComputedStyle(document.documentElement);
+    const computedBottom = selector => Number.parseFloat(getComputedStyle(document.querySelector(selector)).bottom);
+    return {
+      mobile,
+      edge: Number.parseFloat(rootStyle.getPropertyValue('--ui-map-edge')),
+      popoverGap: Number.parseFloat(rootStyle.getPropertyValue('--ui-space-2')),
+      toolbar: rect('.map-command-toolbar'),
+      status: rect('#mapBottomStatus'),
+      lowerBoundary: mobile ? rect('.mobile-bottom-bar')?.top : rect('.map-wrap')?.bottom,
+      mobileBottom: mobile ? {
+        objectChooser: computedBottom('#objectChooser'),
+        colorPopover: computedBottom('#countryColorPopover'),
+      } : null,
+    };
+  });
+}
+
 test('compact map commands stay clickable and search closes only after a single normal selection', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 1024, height: 800 });
@@ -84,5 +116,39 @@ test('mobile bottom navigation opens the display sheet without restoring desktop
   await page.locator('[data-map-display-row="terrain"]').click();
   await expect(page.locator('#terrainDisplayOptions')).toBeVisible();
   await expect(page.locator('.sheet-drag-handle[data-sheet-handle="mapDisplaySurface"]')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('bottom floating controls clear the status bar only while it is visible', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page, { width: 1440, height: 900 });
+
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 1024, height: 800 },
+    { width: 390, height: 844 },
+    { width: 320, height: 700 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await setStatusBarVisible(page, true);
+    const visible = await bottomFloatingGeometry(page);
+    expect(Math.round(visible.status.top - visible.toolbar.bottom)).toBe(visible.edge);
+    if (visible.mobile) {
+      const occupied = viewport.height - visible.status.top;
+      expect(Math.round(visible.mobileBottom.objectChooser - occupied)).toBe(visible.edge);
+      expect(Math.round(visible.mobileBottom.colorPopover - occupied)).toBe(visible.popoverGap);
+    }
+
+    await setStatusBarVisible(page, false);
+    await expect(page.locator('#mapBottomStatus')).toBeHidden();
+    const hidden = await bottomFloatingGeometry(page);
+    expect(Math.round(hidden.lowerBoundary - hidden.toolbar.bottom)).toBe(hidden.edge);
+    if (hidden.mobile) {
+      const occupied = viewport.height - hidden.lowerBoundary;
+      expect(Math.round(hidden.mobileBottom.objectChooser - occupied)).toBe(hidden.edge);
+      expect(Math.round(hidden.mobileBottom.colorPopover - occupied)).toBe(hidden.popoverGap);
+    }
+  }
+
   expect(errors).toEqual([]);
 });

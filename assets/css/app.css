@@ -1383,6 +1383,7 @@ body[data-layout="mobile"] {
 }
 .app-root[data-layout="mobile"] {
   --mobile-nav-height: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom));
+  --ui-map-bottom-occupied-height: calc(var(--mobile-nav-height) + var(--ui-shell-statusbar-height));
 }
 
 .app-root[data-layout="mobile"] .left-panel,
@@ -2874,11 +2875,11 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
     position: fixed;
     top: auto;
     right: var(--ui-popover-screen-edge);
-    bottom: calc(var(--mobile-nav-height, var(--ui-mobile-bottom-nav-height)) + var(--ui-space-2));
+    bottom: calc(var(--ui-map-bottom-occupied-height) + var(--ui-space-2));
     left: var(--ui-popover-screen-edge);
     width: auto;
     max-width: none;
-    max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height, var(--ui-mobile-bottom-nav-height)) - (var(--ui-space-4) * 2));
+    max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-map-bottom-occupied-height) - (var(--ui-space-4) * 2));
     overflow-y: auto;
     padding: var(--ui-space-3);
     border-radius: var(--ui-radius-sheet);
@@ -3302,16 +3303,17 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 .app-root[data-layout="mobile"] .object-actions-menu .ui-row-button { min-height: var(--ui-touch-height); }
 .app-root[data-layout="mobile"] #projectSaveStatusText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .app-root[data-layout="mobile"] .object-chooser {
+  --object-chooser-max-height: min(50dvh, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-map-bottom-occupied-height) - (var(--ui-map-edge) * 2)));
   position: fixed;
   top: auto;
   right: var(--ui-map-edge);
-  bottom: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom) + var(--ui-map-edge));
+  bottom: calc(var(--ui-map-bottom-occupied-height) + var(--ui-map-edge));
   left: var(--ui-map-edge);
   width: auto;
-  max-height: 50dvh;
+  max-height: var(--object-chooser-max-height);
 }
 .app-root[data-layout="mobile"] .object-chooser-list {
-  max-height: calc(50dvh - var(--ui-touch-height) - var(--ui-space-2));
+  max-height: calc(var(--object-chooser-max-height) - var(--ui-touch-height) - var(--ui-space-2));
   padding-inline: var(--ui-menu-padding);
 }
 .app-root[data-layout="mobile"] .layer-style-editor { grid-template-columns: 1fr; }
@@ -3428,7 +3430,7 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   z-index: 18;
   top: auto;
   right: auto;
-  bottom: calc(var(--ui-shell-statusbar-height) + var(--ui-map-edge));
+  bottom: calc(var(--ui-map-bottom-occupied-height) + var(--ui-map-edge));
   left: 50%;
   width: max-content;
   display: flex;
@@ -3509,7 +3511,7 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   .app-root[data-layout="mobile"] .map-command-toolbar {
     top: auto;
     right: max(var(--ui-map-edge), env(safe-area-inset-right));
-    bottom: calc(var(--mobile-nav-height) + var(--ui-map-edge));
+    bottom: calc(var(--ui-map-bottom-occupied-height) + var(--ui-map-edge));
     left: auto;
     display: flex;
     grid-template-columns: none;

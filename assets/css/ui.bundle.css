@@ -142,6 +142,7 @@
      surfaces do not duplicate breakpoint-specific dimensions. */
   --ui-shell-topbar-height: var(--ui-topbar-measured, var(--design-topbar-height));
   --ui-shell-statusbar-height: var(--design-statusbar-height);
+  --ui-map-bottom-occupied-height: var(--ui-shell-statusbar-height);
   --ui-shell-left-panel-width: var(--design-left-panel-width);
   --ui-shell-right-panel-width: var(--design-right-panel-width);
   --design-radius-sm: 5px;
@@ -329,7 +330,7 @@
 .ui-custom-color-message { margin: 0; color: var(--text-soft); font-size: var(--ui-font-sm); }
 .ui-custom-color-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); margin-top: var(--ui-space-1); }
 @media (max-width: 799px) {
-  .ui-color-popover.is-custom { max-height: calc(100dvh - var(--ui-topbar-height) - var(--mobile-nav-height, var(--ui-mobile-bottom-nav-height)) - var(--ui-space-4) * 2); }
+  .ui-color-popover.is-custom { max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-map-bottom-occupied-height) - var(--ui-space-4) * 2); }
   .ui-custom-color :is(.ui-button, .ui-field input, .ui-custom-color-hue input) { min-height: var(--ui-touch-height); }
   .ui-custom-color-preview { flex-basis: var(--ui-touch-height); height: var(--ui-touch-height); }
 }
@@ -2559,7 +2560,7 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 
 .selection-toolbar-name {
   inline-size: auto;
-  min-inline-size: 5rem;
+  min-inline-size: calc(1em + var(--ui-control-padding-x) + var(--ui-control-padding-x) + var(--ui-border-width) + var(--ui-border-width));
   max-inline-size: 15rem;
   height: var(--ui-control-height);
   overflow: hidden;
@@ -2569,9 +2570,10 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 }
 
 /* These inputs live outside a field-group after moving into the toolbar. */
-.selection-toolbar :is(.selection-toolbar-name, .selection-toolbar-note-field textarea) {
+.selection-toolbar .selection-toolbar-name,
+.selection-toolbar .selection-toolbar-note-field textarea {
   padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
-  border: 1px solid var(--component-field-border);
+  border: var(--ui-border-width) solid var(--component-field-border);
   border-radius: var(--ui-radius-control);
   background-color: var(--surface-input);
   color: var(--text);
@@ -2579,18 +2581,32 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
 }
 
-.selection-toolbar :is(.selection-toolbar-name, .selection-toolbar-note-field textarea):hover:not(:disabled):not([readonly]) {
+.selection-toolbar .selection-toolbar-name {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.selection-toolbar .selection-toolbar-note-field textarea:hover:not(:disabled):not([readonly]) {
   border-color: var(--ui-control-border-hover);
 }
 
-.selection-toolbar :is(.selection-toolbar-name, .selection-toolbar-note-field textarea):focus {
+.selection-toolbar .selection-toolbar-name:focus,
+.selection-toolbar .selection-toolbar-note-field textarea:focus {
   border-color: var(--accent-border);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-.selection-toolbar :is(.selection-toolbar-name, .selection-toolbar-note-field textarea):is(:disabled, [readonly]) {
+.selection-toolbar .selection-toolbar-name:focus { background-color: var(--surface-input); }
+
+.selection-toolbar .selection-toolbar-name:is(:disabled, [readonly]),
+.selection-toolbar .selection-toolbar-note-field textarea:is(:disabled, [readonly]) {
   color: var(--muted);
   background-color: var(--surface-subtle);
+}
+
+.selection-toolbar .selection-toolbar-name:is(:disabled, [readonly]) {
+  border-color: transparent;
+  background-color: transparent;
 }
 
 .selection-toolbar > .icon-btn,
