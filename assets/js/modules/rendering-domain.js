@@ -6,6 +6,7 @@ import {
 import { EMPTY_EDITING_RENDER_PACKET } from './editing-render-packet.js';
 import { createGpuUploadScheduler } from './gpu-upload-scheduler.js';
 import { commitSelectionFallbackCoverage } from './selection-fallback-coverage.js';
+import { createTerritorialFillResolver } from './territorial-fill-style.js';
 
 export function createRenderingDomain({
   context = null,
@@ -408,7 +409,9 @@ export function createRenderingDomain({
     for (const feature of pending) {
       const id = String(feature.id || '');
       const geometryRevision = countries.selectionGeometryRevision?.(`country:${id}`, 'pending-country', feature);
-      pendingPolygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300, style: { color: countries.countryColor?.(feature), fillAlpha: countries.mapTheme?.().fillAlpha, blendMode: 'normal' } });
+      pendingPolygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300,
+        role: 'territorial-fill', ownerId: id, territoryDepth: 0,
+        style: { color: countries.countryColor?.(feature), fillAlpha: countries.mapTheme?.().fillAlpha, blendMode: 'normal' } });
       pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: { color: countries.mapTheme?.().border, alpha: countries.mapTheme?.().borderAlpha, width: 1, cap: 'round' } });
     }
     const highlightStyle = feature => {
@@ -537,7 +540,9 @@ export function createRenderingDomain({
     active();
     const t = territorial;
     const state = t.getState?.() || {};
-    const terrainColorAlpha = Math.max(0, Math.min(1, Number(t.mapTheme?.().terrainColorAlpha ?? 1)));
+    const theme = countries.mapTheme?.() || {};
+    const resolveFill = createTerritorialFillResolver({ state, countryColor: feature => countries.countryColor?.(feature),
+      defaultColor: theme.defaultLand, terrainAlpha: theme.countryColorAlpha ?? theme.terrainColorAlpha ?? 1 });
     t.syncBuiltinPalette?.();
     const types = t.TERRITORIAL_UNIT_TYPES || {};
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
@@ -551,7 +556,6 @@ export function createRenderingDomain({
         || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))
         || state.territorialUnitSplitSourceId === String(feature.id)
         || state.territorialUnitRedrawSourceId === String(feature.id);
-      if (!editing && t.isNativeBuiltinSubunit?.(feature)) return false;
       return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id)
         && (selected || editing || (visibleIds.has(String(feature.id)) && t.geometryMayIntersectViewport?.(feature.geometry)));
     });
@@ -589,11 +593,11 @@ export function createRenderingDomain({
       .classed('has-explicit-color', feature => !!t.territorialStyleColor?.(feature))
       .classed('territorial-unit-merge-source', feature => state.territorialUnitMergeSourceId === String(feature.id))
       .classed('territorial-unit-merge-target', feature => (state.territorialUnitMergeTargetIds || []).includes(String(feature.id)))
-      .style('color', t.territorialUnitColor)
-      .style('fill', t.territorialUnitColor)
-      .style('fill-opacity', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${feature.id}`).opacity * terrainColorAlpha)
+      .style('color', feature => resolveFill(feature).color)
+      .style('fill', feature => resolveFill(feature).color)
+      .style('fill-opacity', feature => resolveFill(feature).fillAlpha)
       .style('stroke', 'none').style('stroke-opacity', 0).style('stroke-width', 0).style('stroke-dasharray', 'none')
-      .style('mix-blend-mode', feature => t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${feature.id}`).blendMode)
+      .style('mix-blend-mode', feature => resolveFill(feature).blendMode)
       .attr('data-presentation-group', t.presentationGroupForTerritorialFeature);
     selection?.exit().remove();
     const operationOutlines = data.filter(feature => state.territorialUnitMergeSourceId === String(feature.id)
@@ -616,14 +620,15 @@ export function createRenderingDomain({
     const strokes = [];
     for (const feature of data) {
       const group = t.presentationGroupForTerritorialFeature?.(feature) || 'subunits';
-      const unitStyle = t.layerStyle?.(state.layerPresentation, group, `territorial:${feature.properties.unitType}:${feature.id}`) || {};
+      const unitStyle = resolveFill(feature);
       const type = feature.properties?.unitType || types.SUBUNIT;
       const objectKey = t.normalizeObjectRef?.({ domain: 'territorial', type, id: feature.id })?.key
         || `territorial:${type}:${feature.id}`;
       const geometryRevision = t.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
       polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
+        role: 'territorial-fill', ownerId: unitStyle.ownerId, parentId: unitStyle.parentId, territoryDepth: unitStyle.depth,
         order: t.gpuSceneOrder?.(group, 10, objectKey), blendMode: unitStyle.blendMode,
-        style: { color: t.territorialUnitColor?.(feature), fillAlpha: unitStyle.opacity * terrainColorAlpha, blendMode: unitStyle.blendMode } });
+        style: { color: unitStyle.color, fillAlpha: unitStyle.fillAlpha, blendMode: unitStyle.blendMode } });
       if (state.territorialUnitMergeSourceId === String(feature.id)
         || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))) {
         strokes.push({ key: `${objectKey}:operation-outline`, objectKey, geometryRevision,

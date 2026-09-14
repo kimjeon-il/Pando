@@ -1,9 +1,10 @@
 'use strict';
-importScripts('../vendor/d3.min.js', './geographic-boundary-core.js');
+importScripts('../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js');
 
 function canvasFallbackWorkerMain() {
     let canvas = null;
     let context = null;
+    let substrate = null;
     let features = [];
     let geometryRevision = 0;
     let terrainManifest = null;
@@ -564,6 +565,10 @@ function canvasFallbackWorkerMain() {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const projection = createProjection(message, width, height);
         terrainComplete = renderTerrain(message, projection, width, height, dpr);
+        if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
+        const substrateContext = substrate.getContext('2d');
+        substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
+        substrateContext.drawImage(canvas, 0, 0);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const geoPath = self.d3.geo.path().projection(projection).context(context);
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
@@ -583,6 +588,7 @@ function canvasFallbackWorkerMain() {
           context.fillStyle = message.colors?.[countryId(feature, index)] || defaultLand;
           context.fill();
         }
+        self.PandoLabCanvasSceneComposition.drawFills(context, geoPath, message.scenePolygons || [], substrate, dpr);
         const emphasis = message.countryEmphasis || {};
         const selectedCountryIds = new Set((emphasis.selectedIds || []).map(String));
         for (let index = 0; message.visible && index < features.length; index += 1) {

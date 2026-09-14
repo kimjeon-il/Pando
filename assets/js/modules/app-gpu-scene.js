@@ -72,7 +72,7 @@ export function createGpuScene() {
     const normalizedStrokes = strokes.filter(item => item?.key && (item?.geometry || item?.startsEnds)).map(normalizeItem);
     const geometrySignature = [...normalizedPolygons, ...normalizedStrokes]
       .map(item => [item.key, item.geometryRevision, item.objectKey || '', item.chunkKey,
-        item.lodPolicy, item.priority, item.protected === true].join(':')).join('|');
+        item.lodPolicy, item.priority, item.protected === true, item.role, item.ownerId, item.parentId, item.territoryDepth].join(':')).join('|');
     const styleSignature = [...normalizedPolygons, ...normalizedStrokes]
       .map(item => `${item.key}:${JSON.stringify(item.style || {})}:${item.order}:${item.blendMode || ''}`).join('|');
     const previous = gpuSceneDomains.get(domain);
@@ -251,16 +251,14 @@ export function createGpuScene() {
 
   function applyGpuSceneCoverage(frameResult) {
     const webGlReady = ['webgl2', 'webgl1'].includes(dependencies.gpuMapRenderer.getRuntimeState?.()?.renderer);
-    if (!webGlReady) {
-      dependencies.svg?.selectAll?.('[data-gpu-scene-key]')?.classed('gpu-scene-hit-proxy', false);
-      return;
-    }
+    const ownedFills = new Set((currentRenderScene?.polygons || []).map(packet => packet.key));
     const rendered = new Set(frameResult?.baseResult?.overlayRenderedKeys || []);
     const missing = new Set(frameResult?.baseResult?.overlayMissingKeys || []);
-    if (!rendered.size && !missing.size) return;
     dependencies.svg?.selectAll?.('[data-gpu-scene-key]')?.classed('gpu-scene-hit-proxy', function() {
       const key = this.getAttribute('data-gpu-scene-key') || '';
-      return webGlReady && rendered.has(key) && !missing.has(key);
+      // A late GPU upload keeps the parent scene, never an SVG fill above water.
+      // Canvas consumes the same polygons; SVG retains only its stroke/hit roles.
+      return ownedFills.has(key) || (webGlReady && rendered.has(key) && !missing.has(key));
     });
   }
 

@@ -1,3 +1,4 @@
+import '../workers/canvas-scene-composition-core.js';
 import { decodeCountryMesh } from './country-mesh-codec.js';
 import { visibleSpatialBlockRanges } from './mesh-spatial-blocks.js';
 import { createRenderDevice } from './render-device.js';
@@ -3905,17 +3906,6 @@ export function createGpuMapRenderer(deps) {
       } else {
         renderTerrain();
       }
-      flushPaletteUpdates();
-      resetGpuNormalBlend(gl);
-      if (state.layerVisibility.countries) {
-        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
-      }
-      drawHydro('lake');
-      drawHydro('lake-boundary');
-      drawHydro('river');
-      drawHydro('border-river');
-      const countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
       const overlayItems = [
         ...(renderScene?.polygons || []).map(packet => ({ kind: 'polygon', packet })),
         ...(renderScene?.strokes || []).map(packet => ({ kind: 'stroke', packet })),
@@ -3948,18 +3938,46 @@ export function createGpuMapRenderer(deps) {
       }
       const overlayRenderedKeys = [];
       const overlayMissingKeys = [];
-      for (const item of overlayItems) {
+      const drawOverlay = item => {
         const pass = item.kind === 'polygon' ? polygonOverlayPass : strokeRenderer;
         if (deferredOverlayKeys.has(String(item.packet.key)) || failedOverlayKeys.has(String(item.packet.key)) || !pass.hasResource?.(item.packet.key)) {
           overlayMissingKeys.push(String(item.packet.key));
-          continue;
+          return;
         }
         const result = item.kind === 'polygon'
-          ? polygonOverlayPass.drawPackets([item.packet], activeFrameContext)
+          ? polygonOverlayPass.drawPackets([item.packet], activeFrameContext, { claimTransparent: item.packet.role === 'territorial-fill' })
           : strokeRenderer.drawBatches([item.packet], activeFrameContext);
         overlayRenderedKeys.push(...(result?.renderedKeys || []));
         overlayMissingKeys.push(...(result?.missingKeys || []));
+      };
+      // Front-to-back ownership: each sample receives exactly one territorial
+      // fill, regardless of nesting, alpha, or the number of overlapping units.
+      gl.stencilMask(0xff);
+      gl.clearStencil(0);
+      gl.clear(gl.STENCIL_BUFFER_BIT);
+      gl.enable(gl.STENCIL_TEST);
+      gl.stencilFunc(gl.EQUAL, 0, 0xff);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+      const territoryItems = overlayItems.filter(item => item.kind === 'polygon' && item.packet.role === 'territorial-fill')
+        .sort((a, b) => b.packet.territoryDepth - a.packet.territoryDepth || b.packet.order - a.packet.order);
+      for (const item of territoryItems) drawOverlay(item);
+      flushPaletteUpdates();
+      resetGpuNormalBlend(gl);
+      if (state.layerVisibility.countries) {
+        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
+        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
       }
+      gl.disable(gl.STENCIL_TEST);
+      for (const item of overlayItems) {
+        if (item.kind === 'polygon' && item.packet.role !== 'territorial-fill') drawOverlay(item);
+      }
+      resetGpuNormalBlend(gl);
+      drawHydro('lake');
+      drawHydro('lake-boundary');
+      drawHydro('river');
+      drawHydro('border-river');
+      const countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
+      for (const item of overlayItems) if (item.kind === 'stroke') drawOverlay(item);
       performanceMetrics.overlayUploadBytes += overlayUploadBytes;
       performanceMetrics.lastOverlayUploadBytes = overlayUploadBytes;
       performanceMetrics.overlayDeferredItemCount = deferredOverlayKeys.size;
@@ -4221,6 +4239,7 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
+    let canvasFillSubstrate = null;
     function renderCanvasFallback() {
       if (!ctx2d || !canvas) return;
       if (resizePending) resize();
@@ -4229,6 +4248,13 @@ export function createGpuMapRenderer(deps) {
       ctx2d.clearRect(0, 0, pixelWidth, pixelHeight);
       ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
       const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
+      const substrate = canvasFillSubstrate ||= document.createElement('canvas');
+      if (substrate.width !== pixelWidth || substrate.height !== pixelHeight) {
+        substrate.width = pixelWidth;
+        substrate.height = pixelHeight;
+      }
+      substrate.getContext('2d').clearRect(0, 0, pixelWidth, pixelHeight);
+      substrate.getContext('2d').drawImage(canvas, 0, 0);
       const theme = mapTheme();
       ctx2d.lineJoin = 'round';
       ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
@@ -4241,6 +4267,13 @@ export function createGpuMapRenderer(deps) {
           ctx2d.globalAlpha = theme.fillAlpha;
           ctx2d.fillStyle = countryColor(feature);
           ctx2d.fill();
+        }
+      }
+      globalThis.PandoLabCanvasSceneComposition.drawFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr);
+      if (state.layerVisibility.countries) {
+        for (const feature of state.countriesData?.features || []) {
+          const id = String(feature?.id || '');
+          if (!isLayerItemVisible('countries', id)) continue;
           const emphasis = countryEmphasisStyle(id);
           if (emphasis) {
             ctx2d.beginPath();
@@ -4266,6 +4299,14 @@ export function createGpuMapRenderer(deps) {
       displayedRenderRevision = currentRenderRevision;
     }
 
+    function canvasScenePolygons() {
+      return (renderScene?.polygons || []).filter(packet => packet.ringCoordinates).map(packet => ({
+        key: packet.key, ringCoordinates: packet.ringCoordinates, ringOffsets: packet.ringOffsets, polygonOffsets: packet.polygonOffsets,
+        role: packet.role, territoryDepth: packet.territoryDepth,
+        order: packet.order, style: packet.style, blendMode: packet.blendMode,
+      }));
+    }
+
     function canvasWorkerStyleMessage() {
       const colors = {};
       for (const feature of state.countriesData?.features || []) {
@@ -4277,6 +4318,7 @@ export function createGpuMapRenderer(deps) {
         visible: !!state.layerVisibility.countries,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
+        scenePolygons: canvasScenePolygons(),
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
           hoverId: countryEmphasis.hoverId,
@@ -4372,7 +4414,8 @@ export function createGpuMapRenderer(deps) {
 
     function syncCanvasWorkerState() {
       if (!canvasWorker || !canvasWorkerReady) return;
-      const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme()].join(':');
+      const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme(),
+        renderScene?.revisions?.geometry, renderScene?.revisions?.style, renderScene?.revisions?.overlayOrder].join(':');
       if (styleSignature !== canvasLastStyleSignature) {
         canvasLastStyleSignature = styleSignature;
         postCanvasWorkerMessage(canvasWorkerStyleMessage());
@@ -5134,7 +5177,7 @@ export function createGpuMapRenderer(deps) {
         },
         interactionStyle,
         boundaryOwner: 'interaction-overlay',
-        visualPassOrder: ['country-fill', 'lake', 'lake-boundary', 'river', 'border-river', 'country-boundary', 'hover', 'secondary-selection', 'primary-selection'],
+        visualPassOrder: ['territorial-fill', 'country-fill', 'overlay-fill', 'lake', 'lake-boundary', 'river', 'border-river', 'country-boundary', 'overlay-stroke', 'hover', 'secondary-selection', 'primary-selection'],
         emphasizedCountryCount: countryEmphasis.selectedIds.size,
         viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
         canvasBackingPixels: [pixelWidth, pixelHeight],
