@@ -3183,6 +3183,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .editor-panel[data-editor-view="actions"] .editor-view > .editor-action-section { display: grid; }
 .editor-panel[data-editor-view="actions"] details.editor-action-section { display: block; }
 .editor-panel[data-editor-view="actions"] .editor-view > .editor-relation-section { display: none !important; }
+.editor-panel[data-editor-view="actions"][data-editor-inline-relation="true"] .editor-view > .editor-relation-section { display: grid !important; }
 .editor-panel[data-editor-view="relation"] .editor-view > :not(.editor-relation-section):not([hidden]) { display: none !important; }
 .editor-panel[data-editor-view="relation"] .editor-view > .editor-relation-section { display: grid; }
 .editor-panel[data-editor-view="relation"] details.editor-relation-section { display: block; }
