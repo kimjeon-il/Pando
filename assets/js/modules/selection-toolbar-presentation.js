@@ -12,6 +12,7 @@ export function createSelectionToolbarPresentation({
   getSelection = () => ({ items: [], primaryKey: null }),
   getView = () => null,
   commitFlag = () => false,
+  openFlagLibrary = () => false,
   openEditor = () => false,
   closeEditor = () => false,
   isEditorOpen = () => false,
@@ -73,15 +74,15 @@ export function createSelectionToolbarPresentation({
     if (!preview) return;
     preview.replaceChildren();
     const upload = $('flagUploadBtn');
+    const reset = $('flagDefaultBtn');
     const remove = $('flagRemoveBtn');
+    if (upload) upload.disabled = false;
+    if (reset) reset.disabled = !view?.hasFlagOverride;
+    if (remove) remove.disabled = !view?.flagUrl;
     if (!view?.flagUrl) {
       if (createSemanticIcon) preview.appendChild(createSemanticIcon(document, view?.ref?.type || 'country'));
-      if (upload) upload.textContent = '깃발 추가';
-      remove?.classList.add('hidden');
       return;
     }
-    if (upload) upload.textContent = '깃발 변경';
-    remove?.classList.remove('hidden');
     const image = document.createElement('img');
     image.src = view.flagUrl;
     image.alt = `${view.name || '선택 객체'} 깃발`;
@@ -283,6 +284,22 @@ export function createSelectionToolbarPresentation({
     $('flagUploadBtn')?.addEventListener('click', () => {
       closeFlag({ restoreFocus: true });
       $('flagFileInput')?.click();
+    });
+    $('flagLibraryBtn')?.addEventListener('click', () => {
+      const ref = activeRef;
+      closeFlag();
+      if (!ref || currentSelection()?.key !== ref.key) return;
+      void Promise.resolve(openFlagLibrary({
+        onPickFlag: value => {
+          if (currentSelection()?.key === ref.key) commitFlag(ref, value);
+        },
+        restoreFocus: $('flagMenuBtn'),
+      }));
+    });
+    $('flagDefaultBtn')?.addEventListener('click', () => {
+      const ref = activeRef;
+      closeFlag({ restoreFocus: true });
+      if (ref && currentSelection()?.key === ref.key) commitFlag(ref, undefined);
     });
     $('flagRemoveBtn')?.addEventListener('click', () => {
       const ref = activeRef;

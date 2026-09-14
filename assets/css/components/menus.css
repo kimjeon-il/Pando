@@ -12,6 +12,7 @@
   max-width: calc(100vw - var(--ui-menu-screen-edge) * 2);
 }
 .ui-menu, .ui-menu-list { display: grid; gap: var(--ui-menu-gap); padding: var(--ui-menu-padding); }
+.ui-menu[popover]:not(:popover-open) { display: none; }
 .ui-menu-group { display: grid; gap: var(--ui-menu-gap); min-width: 0; margin: 0; padding: 0; border: 0; }
 
 .ui-menu-list .ui-menu-item {

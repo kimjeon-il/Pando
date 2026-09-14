@@ -43,7 +43,10 @@ export function createTerritorialApplicationService({
       const feature = country(key);
       if (!feature) return { ok: false, code: 'not-found' };
       const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
-      if (currentValue === value) return { ok: true, changed: false, unit: feature };
+      const hasExplicitValue = field === 'flagDataUrl'
+        ? countryCommands.hasField?.(key, field) === true
+        : currentValue !== undefined;
+      if (currentValue === value && (value !== undefined || !hasExplicitValue)) return { ok: true, changed: false, unit: feature };
       mutateDocument({ type: 'country-metadata', affectedIds: [key] }, () => {
         countryCommands.setField(key, field, value);
       }, { renderDirty: { domain: 'country', change: 'metadata' } });

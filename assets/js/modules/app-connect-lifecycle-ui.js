@@ -344,6 +344,16 @@ export function connectLifecycleUi({
     get objectRefExists() { return objectCommands.objectRefExists; },
     get objectRefLocked() { return objectCommands.objectRefLocked; },
     get objectRefVisible() { return objectCommands.objectRefVisible; },
+    get openFlagLibraryPicker() {
+      return async options => {
+        try {
+          const controller = await libraryAssembly.getHistoricalLibraryController();
+          await controller.open(options);
+        } catch (error) {
+          readinessNotifications.reportOperationError(error, '국가·지역 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);
+        }
+      };
+    },
     get openSelectionEditor() { return workspaceSurfaces.openSelectionEditor; },
     get overlayStackLayer() { return mapHost.overlayStackLayer; },
     get path() { return mapProjection.path; },

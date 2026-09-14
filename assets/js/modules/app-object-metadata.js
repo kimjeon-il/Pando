@@ -123,7 +123,8 @@ export function createObjectMetadata() {
     else if (canonicalField === 'flagDataUrl') {
       candidateFeature.properties ||= {};
       candidateFeature.properties.metadata ||= {};
-      candidateFeature.properties.metadata.flagDataUrl = value;
+      if (value === undefined) delete candidateFeature.properties.metadata.flagDataUrl;
+      else candidateFeature.properties.metadata.flagDataUrl = value;
     }
     else candidateFeature.properties[canonicalField] = value;
     const parentValidation = (0, dependencies.validateSubunitParentChanges)(dependencies.state.territorialUnits, candidateUnits, id => !!(0, dependencies.countryFeatureById)(id));

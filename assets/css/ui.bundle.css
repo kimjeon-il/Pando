@@ -2095,12 +2095,10 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 .editor-flag-thumbnail { display: grid; place-items: center; width: 2.5rem; height: 1.75rem; }
 .editor-flag-thumbnail img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .editor-flag-menu {
-  position: fixed; margin: 0; padding: var(--ui-space-1); min-width: 10rem;
-  border: var(--ui-border-width) solid var(--border); border-radius: var(--ui-radius-control);
-  background: var(--surface-elevated); color: var(--text); box-shadow: var(--control-shadow);
+  position: fixed;
+  margin: 0;
+  min-width: 10rem;
 }
-.editor-flag-menu:popover-open { display: grid; gap: var(--ui-space-1); }
-.editor-flag-menu button { text-align: left; }
 
 .editor-flag-preview {
   width: 100%;
@@ -3152,6 +3150,7 @@ body.file-menu-open .mobile-backdrop {
   max-width: calc(100vw - var(--ui-menu-screen-edge) * 2);
 }
 .ui-menu, .ui-menu-list { display: grid; gap: var(--ui-menu-gap); padding: var(--ui-menu-padding); }
+.ui-menu[popover]:not(:popover-open) { display: none; }
 .ui-menu-group { display: grid; gap: var(--ui-menu-gap); min-width: 0; margin: 0; padding: 0; border: 0; }
 
 .ui-menu-list .ui-menu-item {

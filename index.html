@@ -285,9 +285,11 @@
               <label class="selection-toolbar-note-field hidden" data-selection-notes="subunit" for="subunitNotesInput"><span>메모</span><textarea id="subunitNotesInput" form="subunitProperties" rows="4"></textarea></label>
               <label class="selection-toolbar-note-field hidden" data-selection-notes="region" for="regionNotesInput"><span>메모</span><textarea id="regionNotesInput" form="regionProperties" rows="4"></textarea></label>
             </div>
-            <div id="flagMenu" class="editor-flag-menu" popover="auto" role="menu" aria-label="깃발 관리">
-              <button id="flagUploadBtn" type="button" class="ui-button" role="menuitem">깃발 변경</button>
-              <button id="flagRemoveBtn" type="button" class="ui-button" role="menuitem">깃발 제거</button>
+            <div id="flagMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-surface ui-menu-list ui-command-menu editor-flag-menu" popover="auto" role="menu" aria-label="깃발 관리">
+              <button id="flagLibraryBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg><span>라이브러리</span></button>
+              <button id="flagUploadBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>파일</span></button>
+              <button id="flagDefaultBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg><span>기본값</span></button>
+              <button id="flagRemoveBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>삭제</span></button>
             </div>
             <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
           </section>
