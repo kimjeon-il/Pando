@@ -1859,23 +1859,39 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 
 .app-root .topbar .topbar-command {
   --topbar-command-background: transparent;
+  position: relative;
+  isolation: isolate;
   min-width: 0;
   min-height: var(--design-control-md);
   height: var(--design-control-md);
   padding: 0 var(--ui-space-3);
   border: 0;
   border-radius: var(--ui-radius-control);
-  background: var(--topbar-command-background);
+  background: transparent;
   color: var(--text-soft);
   font-size: var(--ui-font-body);
   font-weight: var(--ui-weight-medium);
   white-space: nowrap;
 }
 
+.app-root .topbar .topbar-command::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset-inline: var(--ui-space-1);
+  top: 50%;
+  width: auto;
+  height: calc(var(--design-control-md) - (var(--ui-space-1) * 2));
+  border-radius: calc(var(--ui-radius-control) - 2px);
+  background: var(--topbar-command-background);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
 /* The file trigger is a document command, not a primary action. */
 .app-root .topbar .file-menu-btn.topbar-command {
   min-width: 0;
-  background: var(--topbar-command-background);
+  background: transparent;
   color: var(--text-soft);
   font-weight: var(--ui-weight-medium);
 }
@@ -1883,7 +1899,7 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
 .app-root .topbar .topbar-command:is(:hover, :active, [aria-expanded="true"]):not(:disabled) {
   --topbar-command-background: var(--ui-button-subtle-hover);
   border-color: transparent;
-  background: var(--ui-button-subtle-hover);
+  background: transparent;
   color: var(--text-strong);
 }
 
@@ -1933,16 +1949,8 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   }
 
   .app-root[data-layout="mobile"] .topbar .topbar-command::before {
-    content: '';
-    position: absolute;
-    z-index: -1;
     inset-inline: var(--ui-space-1);
-    top: 50%;
     height: calc(var(--ui-touch-height) - var(--ui-space-3) * 2);
-    border-radius: inherit;
-    background: var(--topbar-command-background);
-    transform: translateY(-50%);
-    pointer-events: none;
   }
 
   .app-root[data-layout="mobile"] .top-actions {
@@ -2544,6 +2552,10 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   gap: var(--ui-space-1);
   padding: var(--ui-space-1-5);
 }
+
+/* A backdrop filter creates a containing block for fixed descendants.
+   The mobile color sheet must be fixed to the viewport, not this toolbar. */
+.selection-toolbar { backdrop-filter: none; }
 
 .selection-toolbar.hidden,
 .selection-toolbar-fields.hidden,
@@ -3301,6 +3313,7 @@ body.file-menu-open .mobile-backdrop {
   }
 
   .mobile-bottom-bar .ui-nav-item {
+    position: relative;
     min-width: 0;
     min-height: var(--ui-touch-height);
     height: var(--ui-mobile-bottom-nav-item-height);
@@ -3322,12 +3335,24 @@ body.file-menu-open .mobile-backdrop {
 
   /* Open state has one source; object selection does not select navigation. */
   .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] {
-    background: var(--surface-hover);
+    background: transparent;
     color: var(--accent);
   }
 
+  .mobile-bottom-bar .ui-nav-item[aria-expanded="true"]::after {
+    content: '';
+    position: absolute;
+    inset-inline: 50%;
+    bottom: var(--ui-space-0-5);
+    width: 1.5rem;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transform: translateX(-50%);
+  }
+
   .mobile-bottom-bar .ui-nav-item:active:not(:disabled) {
-    background: var(--ui-button-subtle-pressed);
+    background: transparent;
   }
 
   @media (hover: hover) and (pointer: fine) {

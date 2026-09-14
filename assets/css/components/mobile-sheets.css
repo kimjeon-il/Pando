@@ -16,6 +16,7 @@
   }
 
   .mobile-bottom-bar .ui-nav-item {
+    position: relative;
     min-width: 0;
     min-height: var(--ui-touch-height);
     height: var(--ui-mobile-bottom-nav-item-height);
@@ -37,12 +38,24 @@
 
   /* Open state has one source; object selection does not select navigation. */
   .mobile-bottom-bar .ui-nav-item[aria-expanded="true"] {
-    background: var(--surface-hover);
+    background: transparent;
     color: var(--accent);
   }
 
+  .mobile-bottom-bar .ui-nav-item[aria-expanded="true"]::after {
+    content: '';
+    position: absolute;
+    inset-inline: 50%;
+    bottom: var(--ui-space-0-5);
+    width: 1.5rem;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transform: translateX(-50%);
+  }
+
   .mobile-bottom-bar .ui-nav-item:active:not(:disabled) {
-    background: var(--ui-button-subtle-pressed);
+    background: transparent;
   }
 
   @media (hover: hover) and (pointer: fine) {
