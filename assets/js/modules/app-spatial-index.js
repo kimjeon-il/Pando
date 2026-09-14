@@ -214,7 +214,7 @@ export function createSpatialIndex() {
     }
   }
 
-  function markCountryGeometriesChanged(ids = []) {
+  function markCountryGeometriesChanged(ids = [], { presentation = 'replace-scene' } = {}) {
     const changed = new Set();
     for (const rawId of ids) {
       const id = String(rawId || '');
@@ -242,7 +242,10 @@ export function createSpatialIndex() {
     dependencies.boundarySelectionAnalysisCache.clear();
     dependencies.genericFeatureLandClipCache = new WeakMap();
     dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    dependencies.gpuMapRenderer.applyCountryPatch({ ids: [...changed], features, removedIds });
+    dependencies.gpuMapRenderer.applyCountryPatch(
+      { ids: [...changed], features, removedIds },
+      { presentation },
+    );
     if (!applyingMapEditWorkerResult) mapEditClient.syncPatch(changed);
   }
 

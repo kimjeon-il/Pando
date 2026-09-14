@@ -478,7 +478,7 @@ export function createCountryCommits() {
       snapshot,
       applyResult: transferPlan => {
         const affectedIds = new Set(transferPlan.affectedIds);
-        (0, dependencies.applyWorkerCountryPatches)(transferPlan);
+        (0, dependencies.applyWorkerCountryPatches)(transferPlan, { presentation: 'preserve-existing-scene' });
         (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
         (0, dependencies.transferLandDependents)(transferredGeometry, sourceIds, feature.id);
         (0, dependencies.refreshCountryCentroids)(affectedIds);

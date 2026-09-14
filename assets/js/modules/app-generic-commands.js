@@ -113,7 +113,7 @@ export function createGenericCommands() {
       payload: { sourceIds, transferredGeometry, newFeature: country },
       snapshot,
       applyResult: result => {
-        (0, dependencies.applyWorkerCountryPatches)(result);
+        (0, dependencies.applyWorkerCountryPatches)(result, { presentation: 'preserve-existing-scene' });
         (0, dependencies.transferLandDependents)(transferredGeometry, sourceIds, country.id, [feature.id]);
         dependencies.state.genericFeatures = dependencies.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
         dependencies.mapObjectGeometryRevisions.generic += 1;

@@ -163,6 +163,15 @@ export function createLibraryAssembly() {
       if (item.metadata?.defaultFlagDataUrl) override.flagDataUrl = item.metadata.defaultFlagDataUrl;
       countryOverrides[item.id] = override;
     }
+    // Library entries usually merge through the GIS transaction, which also
+    // handles replacements and territorial units.  A country-add can update
+    // its donor boundaries, but it must not remove a country or add another
+    // object kind.  Those cases keep the normal invalidation path so stale
+    // boundaries cannot be retained.
+    const preserveExistingScene = countryFeatures.length > 0
+      && countryFeatures.length === prepared.length
+      && !units.length
+      && !deleted;
     const committer = await (0, dependencies.getGisImportCommitter)();
     assertCurrent();
     const result = await committer.commitGisMerge({
@@ -180,10 +189,11 @@ export function createLibraryAssembly() {
     }, {
       countriesData: draft, affectedIds: [...affectedIds],
       counts: { added: prepared.length, subtracted: donorIds.size, deleted },
+      countryPatchPresentation: preserveExistingScene ? 'preserve-existing-scene' : 'replace-scene',
     });
     (0, dependencies.markLayerTreeDirty)();
     (0, dependencies.scheduleMapObjectSpatialIndexRebuild)();
-    dependencies.renderingDomain?.invalidateProject?.('historical-library-import');
+    if (!preserveExistingScene) dependencies.renderingDomain?.invalidateProject?.('historical-library-import');
     dependencies.saveState.markNewProject('content:0');
     return result;
   }

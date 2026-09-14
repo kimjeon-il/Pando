@@ -58,7 +58,7 @@ export function createTerritorialConversion() {
           color: (0, dependencies.territorialStyleColor)(source) || restoredOverride.color || '',
           notes: String(source.properties?.notes || restoredOverride.notes || ''),
         };
-        (0, dependencies.applyWorkerCountryPatches)(plan);
+        (0, dependencies.applyWorkerCountryPatches)(plan, { presentation: 'preserve-existing-scene' });
         (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
         dependencies.state.territorialUnits = dependencies.state.territorialUnits.flatMap(feature => {
           if (String(feature.id) === String(source.id)) return [];
