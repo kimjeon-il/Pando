@@ -203,7 +203,7 @@ export function createTerritorialDrafts() {
       (0, dependencies.updateModeButtons)();
     }).catch(error => {
       cache.pending = false;
-      if (dependencies.state.territorySelectionSession === session) (0, dependencies.reportOperationError)(error, '미구분 면적을 계산하지 못했습니다.', 'PL-TERRITORIAL-SOURCE', 3600);
+      if (dependencies.state.territorySelectionSession === session) (0, dependencies.reportOperationError)(error, '직할 영역을 계산하지 못했습니다.', 'PL-TERRITORIAL-SOURCE', 3600);
     });
     return null;
   }
@@ -211,7 +211,12 @@ export function createTerritorialDrafts() {
   function territorialCreateSourceChoices(session = dependencies.state.territorySelectionSession) {
     if (!session || session.kind !== dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) return [];
     const choices = [{ value: '', label: '기준 영역 선택', placeholder: true }];
-    if (unassignedSourceForSession(session)) choices.push({ value: 'unassigned', label: '미구분 면적' });
+    if (unassignedSourceForSession(session)) {
+      const parent = parentFeatureForSession(session);
+      const parentName = parent?.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT
+        ? (0, dependencies.territorialUnitName)(parent) : (0, dependencies.countryName)(parent);
+      choices.push({ value: 'unassigned', label: `${parentName} 직할 영역` });
+    }
     for (const feature of directSubunitChildren(session).filter(feature => text(feature.id) !== session.editTargetId)) {
       choices.push({ value: text(feature.id), label: (0, dependencies.territorialUnitName)(feature) });
     }
