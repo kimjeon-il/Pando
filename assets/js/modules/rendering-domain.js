@@ -925,13 +925,14 @@ export function createRenderingDomain({
     }
     const data = [...fallbackGroups.values()].map(group => ({ ...group, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(group.coordinates) } }));
     const selection = t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').data(data, group => group.key);
-    const paths = selection?.enter().append('path').merge(selection);
+    selection?.enter().append('path').attr('class', 'territorial-internal-boundary');
+    selection?.exit().remove();
+    const paths = t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary');
     paths?.attr('class', group => `territorial-internal-boundary territorial-internal-boundary--${group.styleType}`)
       .attr('d', group => t.path?.({ type: 'Feature', properties: {}, geometry: group.geometry }))
       .attr('data-gpu-scene-key', group => `territorial-internal:${group.key}`).style('color', group => group.color).style('stroke', group => group.color).style('stroke-opacity', group => group.opacity)
       .style('stroke-width', group => styleByType.get(group.styleType).width)
       .style('stroke-dasharray', group => styleByType.get(group.styleType).dash.join(' '));
-    selection?.exit().remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
       const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits', width: 1, dash: [] };
       return { key: `territorial-internal:${group.key}`, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 30 + index), style: { color: group.color, alpha: group.opacity, width: definition.width, dash: definition.dash, cap: 'round', join: 'round' } };
