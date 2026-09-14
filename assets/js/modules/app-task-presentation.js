@@ -233,11 +233,14 @@ export function createTaskPresentation() {
       if (nameLabel) nameLabel.textContent = model.nameLabel || '이름';
       const name = (0, dependencies.$)('territorialCreateNameInput');
       if (name && name.value !== selection.name) name.value = selection.name;
+      if (name) name.closest('.field-group')?.classList.toggle('hidden', !!selection.editOperation);
       if (model?.showSubunitFields) {
         const setupModel = (0, dependencies.territorialCreateSetupModel)();
         if (setupModel) {
           const countryChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateSovereignInput'), setupModel.countryOptions, selection.sovereignId, { autoSelectSingle: true });
           (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateParentInput'), setupModel.parentOptions, selection.parentId, { autoSelectSingle: true });
+          (0, dependencies.$)('territorialCreateSovereignInput').disabled = !!selection.editOperation;
+          (0, dependencies.$)('territorialCreateParentInput').disabled = !!selection.editOperation;
           const sourceChoice = (0, dependencies.replaceSelectOptions)((0, dependencies.$)('territorialCreateSourceInput'), setupModel.sourceOptions, selection.sourceKey, { autoSelectSingle: true });
           (0, dependencies.$)('territorialCreateSovereignRow')?.classList.toggle('hidden', countryChoice.single);
           (0, dependencies.$)('territorialCreateParentRow')?.classList.toggle('hidden', !(0, dependencies.shouldShowTerritorialParentChoice)({

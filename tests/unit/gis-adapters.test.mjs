@@ -26,7 +26,7 @@ test('territorial GIS rows keep hierarchy sovereignty dates and multipart geomet
   assert.deepEqual(rows.subunits[0], {
     ...rows.subunits[0],
     id: 'admin-a', type: 'subunit', parent_id: 'country-gr', sovereign_id: 'country-gr',
-    admin_level: 1, valid_from: '1900', valid_to: '2000', source_library_id: 'lib-admin-a',
+    valid_from: '1900', valid_to: '2000', source_library_id: 'lib-admin-a',
   });
 });
 

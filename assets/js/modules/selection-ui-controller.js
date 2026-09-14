@@ -118,8 +118,7 @@ export function createSelectionUiController({
         && ['country', 'subunit', 'region'].includes(ref.type);
       const shouldOpenEditor = openEditor == null ? !territorialToolbarTarget : openEditor;
       presentPrimary({ refreshOnly, openEditor: shouldOpenEditor });
-      const isCountry = ref.domain === 'territorial' && ref.type === 'country';
-      if (!refreshOnly && !isCountry) uiActions.focusObject?.(ref);
+      if (!refreshOnly && !territorialToolbarTarget) uiActions.focusObject?.(ref);
     } else if (!selectionDomain.size()) uiActions.clearPresenter?.({ refreshOnly: false });
     uiActions.closeChooser?.();
     return selected;

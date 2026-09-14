@@ -1,3 +1,5 @@
+import { subunitSelectionPolicy } from './territorial-interaction-policy.js';
+import './territorial-edit-plan.js';
 /** CountryModes: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -176,10 +178,19 @@ export function createCountryModes() {
     return true;
   }
 
-  function enterCountryBorderEditFromSelection() {
+  function enterCountryBorderEditFromSelection(operation = 'boundary') {
     (0, dependencies.clearNotification)();
     const snapshot = selectionSessionSnapshot();
     const refs = dependencies.selectionDomain.snapshot().selection.items;
+    if (refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === 'subunit')) {
+      const units = refs.map(ref => (0, dependencies.territorialUnitById)(ref.id));
+      const policy = subunitSelectionPolicy(units, { adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry) });
+      if (!policy.valid) { (0, dependencies.setActionStatus)(policy.message, 'error', 3600); return false; }
+      if (operation === 'merge') return (0, dependencies.previewTerritorialEdit)({ operation: 'merge', targetId: units[0].id,
+        parentId: units[0].properties.parentId, sourceIds: units.slice(1).map(unit => unit.id),
+      }, { selectedId: units[0].id });
+      return (0, dependencies.enterTerritorialUnitRedrawMode)(units[0].id, units.map(unit => String(unit.id)));
+    }
     const ids = refs.filter(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id);
     if (ids.length !== refs.length || ids.length < 2) {
       (0, dependencies.setActionStatus)('국가를 2개 이상 선택하세요', 'error', 3200);
@@ -269,6 +280,13 @@ export function createCountryModes() {
 
   function finishCountryBorderEdit() {
     if (dependencies.state.tool !== 'country-border') return false;
+    const subunit = dependencies.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.state.boundaryEditSeedCountryId));
+    if (subunit) {
+      dependencies.editingDomain?.setTool('select', { announce: false });
+      dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+      dependencies.state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
+      return true;
+    }
     const ids = dependencies.state.boundaryEditCountryIds.slice();
     const primaryId = (dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && ids.includes(String(dependencies.state.selected.id)) ? String(dependencies.state.selected.id) : ids.at(-1);
     dependencies.editingDomain?.setTool('select', { announce: false });

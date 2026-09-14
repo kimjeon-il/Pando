@@ -66,7 +66,7 @@ export function prepareLibraryOwnership({ descriptors, resolve, countries, units
   const visiting = new Set();
   function prepare(item) {
     if (prepared.has(item.libraryId)) return prepared.get(item.libraryId);
-    if (visiting.has(item.libraryId)) throw new Error('라이브러리 상위 소속 관계가 순환합니다.');
+    if (visiting.has(item.libraryId)) throw new Error('라이브러리 상위 단위 관계가 순환합니다.');
     visiting.add(item.libraryId);
     const choice = choices[item.libraryId];
     if (choice && !['subunit', 'country'].includes(choice.mode)) throw new Error('추가 방식을 선택하세요.');
@@ -82,7 +82,7 @@ export function prepareLibraryOwnership({ descriptors, resolve, countries, units
         if (!countries.some(country => text(country.id) === text(choice.countryId))) throw new Error('소속 국가를 선택하세요.');
         const parentId = text(choice.parentId || choice.countryId);
         if (!subunitParentChoices(choice.countryId, countries, units).some(option => option.value === parentId)) {
-          throw new Error('선택한 국가에 속하는 상위 소속을 선택하세요.');
+          throw new Error('선택한 국가에 속하는 상위 단위를 선택하세요.');
         }
         parent = existing.get(parentId);
         next.parentId = parentId;
@@ -90,16 +90,16 @@ export function prepareLibraryOwnership({ descriptors, resolve, countries, units
       } else {
         const descriptor = byLibrary.get(item.parentLibraryId);
         parent = descriptor ? prepare(descriptor) : existing.get(resolve(item.parentLibraryId));
-        if (!parent) throw new Error(`${item.name}의 소속 국가와 상위 소속을 선택하세요.`);
+        if (!parent) throw new Error(`${item.name}의 소속 국가와 상위 단위를 선택하세요.`);
         const parentType = parent.type === 'Feature' ? parent.properties?.unitType || 'country' : parent.type;
-        if (!['country', 'subunit'].includes(parentType)) throw new Error('상위 소속은 국가 또는 하위단위여야 합니다.');
+        if (!['country', 'subunit'].includes(parentType)) throw new Error('상위 단위는 국가 또는 하위단위여야 합니다.');
         next.parentId = text(parent.id);
         next.sovereignId = parentType === 'country' ? text(parent.id) : text(parent.sovereignId || parent.properties?.sovereignId);
       }
       // Country expansion is planned separately. Never expand an intermediate subunit.
       const parentIsSubunit = parent.type === 'subunit' || parent.properties?.unitType === 'subunit';
       if (parentIsSubunit && contains && !contains(item.geometry, parent.geometry)) {
-        throw new Error(`${item.name}의 경계가 상위 소속 안에 포함되지 않습니다. 국가 자신이나 적합한 상위 소속을 선택하세요.`);
+        throw new Error(`${item.name}의 경계가 상위 단위 안에 포함되지 않습니다. 국가 자신이나 적합한 상위 단위를 선택하세요.`);
       }
     } else {
       next.parentId = resolve(item.parentLibraryId);

@@ -105,17 +105,15 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       ? territorialUnitMatchesFromImportedValue(rawParentValue, countryId, knownUnits)
       : [];
     const mappedParent = parentMatches.length === 1 ? parentMatches[0] : null;
-    if (rawParentValue && parentMatches.length > 1) throw createGisImportError(`객체별 상위 소속 값 "${rawParentValue}"이(가) 여러 영역과 일치합니다. 고유 ID로 직접 연결하세요.`, {
+    if (rawParentValue && parentMatches.length > 1) throw createGisImportError(`객체별 상위 단위 값 "${rawParentValue}"이(가) 여러 영역과 일치합니다. 고유 ID로 직접 연결하세요.`, {
       category: RELIABILITY_ERROR_CATEGORIES.RELATION,
       objectIds: [String(raw.id ?? index + 1), ...parentMatches.map(feature => String(feature.id))],
     });
-    if (rawParentValue && !mappedParent) throw createGisImportError(`객체별 상위 소속 값 "${rawParentValue}"을(를) 현재 지도에서 찾을 수 없습니다.`, {
+    if (rawParentValue && !mappedParent) throw createGisImportError(`객체별 상위 단위 값 "${rawParentValue}"을(를) 현재 지도에서 찾을 수 없습니다.`, {
       category: RELIABILITY_ERROR_CATEGORIES.RELATION,
       objectIds: [String(raw.id ?? index + 1), rawParentValue],
     });
     const parent = commonParent || mappedParent;
-    const rank = mapping.levelField ? Number(properties[mapping.levelField]) : null;
-    const level = kind === TERRITORIAL_UNIT_TYPES.SUBUNIT && rank > 0 ? Math.floor(rank) : null;
     const mappedId = mapping.idField === '__fid__' ? raw.id : properties[mapping.idField];
     const sourceId = String(mappedId ?? raw.id ?? '').trim();
     const baseOptions = {
@@ -123,8 +121,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       unitType: kind,
       sovereignId: countryId,
       parentId: parent?.id || '',
-      adminLevel: level,
-      isRemainder: false,
       name: String(mapping.nameField ? properties[mapping.nameField] || '' : properties.name || '').trim() || `가져온 ${territorialTypeLabel(kind)} ${index + 1}`,
       color: properties.color || properties.editorColor || '',
       notes: properties.notes || '',
@@ -136,8 +132,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       return createTerritorialFeature({
         ...baseOptions,
         coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
-        isRemainder: false,
-        adminLevel: null,
       });
     }
     return createPartitionTerritorialFeature(baseOptions);
@@ -193,7 +187,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id, feature.properties.parentId],
       });
-      if (!container?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가 또는 상위 소속을 찾을 수 없습니다.`, {
+      if (!container?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가 또는 상위 단위를 찾을 수 없습니다.`, {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id, countryId, feature.properties.parentId],
       });
@@ -201,36 +195,19 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         ? null
         : normalizeClippedLandGeometry(clipper.difference(feature.geometry.coordinates, container.geometry.coordinates));
       if (outside && sphericalGeometryAreaKm2(outside) > Math.max(0.0001, sphericalGeometryAreaKm2(feature.geometry) * 1e-9)) {
-        throw new Error(`${territorialUnitName(feature)}의 전체 geometry가 선택한 국가 또는 상위 소속 안에 포함되지 않습니다.`);
+        throw new Error(`${territorialUnitName(feature)}의 전체 geometry가 선택한 국가 또는 상위 단위 안에 포함되지 않습니다.`);
       }
       const context = {
         unitType: kind,
         sovereignId: countryId,
         parentId: feature.properties.parentId,
-        adminLevel: feature.properties.adminLevel,
       };
       const siblings = nextUnits.filter(candidate => partitionGroupMatches(candidate, context));
-      for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder !== true)) {
+      for (const sibling of siblings) {
         const overlap = clipper.intersection(feature.geometry.coordinates, sibling.geometry.coordinates);
         if (multiPolygonPlanarArea(overlap) > Math.max(1e-9, multiPolygonPlanarArea(feature.geometry.coordinates) * 1e-9)) {
           throw new Error(`${territorialUnitName(feature)}이(가) 기존 ${territorialUnitName(sibling)}과(와) 겹칩니다.`);
         }
-      }
-      const hadPartition = siblings.length > 0;
-      for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder === true)) {
-        const remainder = normalizeClippedLandGeometry(clipper.difference(sibling.geometry.coordinates, feature.geometry.coordinates));
-        const siblingIndex = nextUnits.findIndex(candidate => String(candidate.id) === String(sibling.id));
-        if (remainder) nextUnits[siblingIndex].geometry = remainder;
-        else nextUnits.splice(siblingIndex, 1);
-      }
-      if (!hadPartition) {
-        const remainder = normalizeClippedLandGeometry(clipper.difference(container.geometry.coordinates, feature.geometry.coordinates));
-        if (remainder) nextUnits.push(createPartitionTerritorialFeature({
-          id: uid('subunit'),
-          ...context,
-          isRemainder: true,
-          geometry: remainder,
-        }));
       }
       nextUnits.push(feature);
       affectedCountries.add(countryId);
@@ -475,7 +452,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       if (!container?.geometry) {
         feature.properties.sovereignId = '';
         feature.properties.parentId = '';
-        feature.properties.isRemainder = false;
         nextUnits.push(feature);
         importedCount += 1;
         continue;
@@ -489,30 +465,13 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         unitType: kind,
         sovereignId: feature.properties.sovereignId,
         parentId: feature.properties.parentId,
-        adminLevel: feature.properties.adminLevel,
       };
       const siblings = nextUnits.filter(candidate => partitionGroupMatches(candidate, context));
-      for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder !== true)) {
+      for (const sibling of siblings) {
         const overlap = clipper.intersection(feature.geometry.coordinates, sibling.geometry.coordinates);
         if (multiPolygonPlanarArea(overlap) > Math.max(1e-9, multiPolygonPlanarArea(feature.geometry.coordinates) * 1e-9)) {
           throw new Error(`${territorialUnitName(feature)}이(가) 기존 ${territorialUnitName(sibling)}과(와) 겹칩니다.`);
         }
-      }
-      const hadPartition = siblings.length > 0;
-      for (const sibling of siblings.filter(candidate => candidate.properties?.isRemainder === true)) {
-        const remainder = normalizeClippedLandGeometry(clipper.difference(sibling.geometry.coordinates, feature.geometry.coordinates));
-        const siblingIndex = nextUnits.findIndex(candidate => String(candidate.id) === String(sibling.id));
-        if (remainder) nextUnits[siblingIndex].geometry = remainder;
-        else nextUnits.splice(siblingIndex, 1);
-      }
-      if (!hadPartition) {
-        const remainder = normalizeClippedLandGeometry(clipper.difference(container.geometry.coordinates, feature.geometry.coordinates));
-        if (remainder) nextUnits.push(createPartitionTerritorialFeature({
-          id: uid('subunit'),
-          ...context,
-          isRemainder: true,
-          geometry: remainder,
-        }));
       }
       nextUnits.push(feature);
       importedCount += 1;
@@ -579,7 +538,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         parentId: String(parent?.id || (!rawCountry ? defaultContext.parentId : '') || ''),
         sovereignId,
         coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
-        isRemainder: false,
         validFrom: properties.valid_from || properties.validFrom || null,
         validTo: properties.valid_to || properties.validTo || null,
         color: properties.color || properties.editorColor || '',

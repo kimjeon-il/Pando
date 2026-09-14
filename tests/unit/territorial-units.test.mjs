@@ -10,11 +10,9 @@ import {
   createTerritorialRepository,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
-  reconcilePartitionRemainder,
   resolveTerritorialRelation,
   runTerritorialTransaction,
   validateTerritorialRelations,
-  validatePartitionRemainders,
 } from '../../assets/js/modules/territorial-units.js';
 
 const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
@@ -30,18 +28,18 @@ test('territorial normalization rejects legacy aliases and duplicate IDs', () =>
   assert.throws(() => normalizeTerritorialUnits([unit, unit], { countryExists: id => id === 'PL' }), /중복/);
 });
 
-test('administrative levels are preserved and dangling parents fail instead of being rewritten', () => {
+test('hierarchy uses parent relations without administrative levels', () => {
   const units = normalizeTerritorialUnits([
     createTerritorialFeature({ id: 't1', unitType: 'subunit', sovereignId: 'PL', parentId: 'PL', geometry: square() }),
     createTerritorialFeature({ id: 'a1', unitType: 'subunit', sovereignId: 'PL', parentId: 't1', adminLevel: 8, geometry: square(0, 0, 5, 5) }),
     createTerritorialFeature({ id: 'a2', unitType: 'subunit', sovereignId: 'PL', parentId: 'a1', adminLevel: 8, geometry: square(0, 0, 2, 2) }),
   ], { countryExists: id => id === 'PL' });
-  assert.equal(units.find(item => item.id === 'a1').properties.adminLevel, 8);
-  assert.equal(units.find(item => item.id === 'a2').properties.adminLevel, 8);
+  assert.equal(units.find(item => item.id === 'a1').properties.adminLevel, undefined);
+  assert.equal(units.find(item => item.id === 'a2').properties.adminLevel, undefined);
   assert.equal(validateTerritorialRelations(units, { countryExists: id => id === 'PL' }).ok, true);
   assert.throws(() => normalizeTerritorialUnits([
     createTerritorialFeature({ id: 'a3', unitType: 'subunit', sovereignId: 'PL', parentId: 'missing', geometry: square() }),
-  ], { countryExists: id => id === 'PL' }), /상위 소속 missing/);
+  ], { countryExists: id => id === 'PL' }), /상위 단위|같은 소속 국가/);
 });
 
 test('subunit and region type changes preserve identity and geometry', () => {
@@ -51,13 +49,13 @@ test('subunit and region type changes preserve identity and geometry', () => {
   const administrative = changeUnitType(territory, TERRITORIAL_UNIT_TYPES.REGION);
   assert.equal(administrative.id, territory.id);
   assert.equal(administrative.properties.unitType, TERRITORIAL_UNIT_TYPES.REGION);
-  assert.equal(administrative.properties.adminLevel, null);
+  assert.equal(administrative.properties.adminLevel, undefined);
   assert.equal(administrative.properties.style.color, '#169b62');
   assert.deepEqual(administrative.geometry, territory.geometry);
   const restored = changeUnitType(administrative, TERRITORIAL_UNIT_TYPES.SUBUNIT);
   assert.equal(restored.id, territory.id);
   assert.equal(restored.properties.unitType, TERRITORIAL_UNIT_TYPES.SUBUNIT);
-  assert.equal(restored.properties.adminLevel, null);
+  assert.equal(restored.properties.adminLevel, undefined);
   assert.deepEqual(restored.geometry, territory.geometry);
 });
 
@@ -71,37 +69,25 @@ test('explicit regions keep independent parent and sovereignty relationships', (
   assert.equal(region.properties.sovereignId, '');
 });
 
-test('partition remainder keeps sovereignty independent from its remainder meaning', () => {
+test('deprecated remainder flags are not stored', () => {
   const [remainder] = normalizeTerritorialUnits([createTerritorialFeature({
     id: 'remainder', unitType: 'subunit', parentId: 'PL', sovereignId: 'PL', isRemainder: true, geometry: square(),
   })], { countryExists: id => id === 'PL' });
-  assert.equal(remainder.properties.isRemainder, true);
+  assert.equal(remainder.properties.isRemainder, undefined);
   assert.equal(remainder.properties.sovereignId, 'PL');
   assert.equal(remainder.properties.parentId, 'PL');
   const independent = createTerritorialFeature({ id: 'independent', unitType: 'region', sovereignId: '', isRemainder: false, geometry: square() });
   assert.equal(independent.properties.sovereignId, '');
-  assert.equal(independent.properties.isRemainder, false);
+  assert.equal(independent.properties.isRemainder, undefined);
 });
 
 test('dangling sovereigns and circular parents fail without automatic clearing', () => {
   assert.throws(() => normalizeTerritorialUnits([
     createTerritorialFeature({ id: 'a1', unitType: 'subunit', sovereignId: 'gone', parentId: 'a2', geometry: square() }),
     createTerritorialFeature({ id: 'a2', unitType: 'subunit', sovereignId: 'gone', parentId: 'a1', geometry: square() }),
-  ], { countryExists: () => false }), /주권 국가 gone|순환/);
+  ], { countryExists: () => false }), /소속 국가 gone|순환/);
 });
 
-test('one remainder per partition is enforced and reconciliation is explicit', () => {
-  const piece = createTerritorialFeature({ id: 'piece', unitType: 'subunit', parentId: 'PL', sovereignId: 'PL', geometry: square(0, 0, 5, 5) });
-  const remainder = createTerritorialFeature({ id: 'remainder', unitType: 'subunit', parentId: 'PL', sovereignId: 'PL', isRemainder: true, geometry: square(5, 0, 10, 10) });
-  const duplicate = createTerritorialFeature({ id: 'duplicate', unitType: 'subunit', parentId: 'PL', sovereignId: 'PL', isRemainder: true, geometry: square() });
-  assert.equal(validatePartitionRemainders([piece, remainder]).ok, true);
-  assert.equal(validatePartitionRemainders([piece, remainder, duplicate]).ok, false);
-  assert.throws(() => normalizeTerritorialUnits([piece, remainder, duplicate], { countryExists: id => id === 'PL' }), /중복/);
-  const updatedGeometry = square(6, 0, 10, 10);
-  const reconciled = reconcilePartitionRemainder({ siblings: [piece, remainder], remainderGeometry: updatedGeometry });
-  assert.deepEqual(reconciled.find(item => item.properties.isRemainder).geometry, updatedGeometry);
-  assert.notDeepEqual(remainder.geometry, updatedGeometry);
-});
 
 test('dated relations resolve by reference date and overlapping ranges are rejected', () => {
   const unit = createTerritorialFeature({ id: 't1', unitType: 'subunit', sovereignId: 'A', parentId: 'A', geometry: square() });

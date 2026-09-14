@@ -1,3 +1,5 @@
+import { subunitSelectionPolicy, territorialDeletionAllowed, removeTerritorialUnits } from './territorial-interaction-policy.js';
+import './territorial-edit-plan.js';
 /** ObjectCommands: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -52,7 +54,7 @@ export function createObjectCommands() {
       const feature = (0, dependencies.territorialUnitById)(ref.id);
       const type = (0, dependencies.territorialTypeLabel)(ref.type);
       const context = ref.type === dependencies.TERRITORIAL_UNIT_TYPES.REGION ? '' : (0, dependencies.territorialUnitCountryName)(feature);
-      return { name: feature ? (0, dependencies.territorialUnitName)(feature) : ref.id, type, detail: [context, ref.type === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT && Number(feature?.properties?.adminLevel) > 0 ? `${Number(feature.properties.adminLevel)}급` : ''].filter(Boolean).join(' · ') };
+      return { name: feature ? (0, dependencies.territorialUnitName)(feature) : ref.id, type, detail: context };
     }
     if (ref.domain === 'distribution') {
       const layer = (0, dependencies.distributionLayerById)(ref.id);
@@ -127,7 +129,7 @@ export function createObjectCommands() {
     if (ref.domain === 'territorial') {
       values.add('color');
       values.add('lock');
-      if (ref.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY && !(0, dependencies.territorialChildren)(dependencies.state.territorialUnits, ref.id).length) values.add('delete');
+      if (ref.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY && territorialDeletionAllowed([(0, dependencies.territorialUnitById)(ref.id)], dependencies.state.territorialUnits)) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
     } else if (ref.domain === 'hydro') {
@@ -142,10 +144,6 @@ export function createObjectCommands() {
     if (!refs.length) return new Set();
     const common = objectBatchCapabilities(refs[0]);
     for (const ref of refs.slice(1)) for (const capability of [...common]) if (!objectBatchCapabilities(ref).has(capability)) common.delete(capability);
-    if (refs.some(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY)
-      && !refs.every(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
-      common.delete('lock');
-    }
     return common;
   }
 
@@ -217,14 +215,24 @@ export function createObjectCommands() {
     if ((0, dependencies.$)('multiPropertiesColorInput')) (0, dependencies.$)('multiPropertiesColorInput').disabled = !capabilities.has('color');
     if ((0, dependencies.$)('multiPropertiesColorTrigger')) (0, dependencies.$)('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
     const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY);
-    (0, dependencies.$)('multiCountryActions')?.classList.toggle('hidden', !countryOnly);
+    const subunitOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === 'subunit');
+    const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => (0, dependencies.territorialUnitById)(ref.id)), {
+      adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry),
+    }) : null;
+    (0, dependencies.$)('multiCountryActions')?.classList.toggle('hidden', !countryOnly && !subunitOnly);
+    const mergeButton = (0, dependencies.$)('multiSubunitMergeBtn');
+    if (mergeButton) { mergeButton.hidden = !subunitOnly; mergeButton.disabled = !subunitPolicy?.valid; }
+    const title = (0, dependencies.$)('multiBorderEditBtn')?.querySelector('strong');
+    if (title) title.textContent = subunitOnly ? '경계 조정' : '국경 조정';
+    const detail = (0, dependencies.$)('multiBorderEditBtn')?.querySelector('small');
+    if (detail) detail.textContent = subunitOnly ? '선택 하위단위 사이의 공유 경계 편집' : '선택 국가 사이의 공유국경 편집';
     const borderButton = (0, dependencies.$)('multiBorderEditBtn');
     const borderHelp = (0, dependencies.$)('multiBorderEditHelp');
     if (countryOnly) {
       const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(refs.map(ref => ref.id));
       const lockedIds = refs.map(ref => ref.id).filter(isCountryLocked);
       if (borderButton) {
-        borderButton.disabled = lockedIds.length > 0;
+        borderButton.disabled = lockedIds.length > 0 || !analysis.valid;
         borderButton.dataset.tooltip = lockedIds.length
           ? '잠긴 국가를 해제한 뒤 국경을 조정하세요.'
           : (analysis.message || '선택 후 공유국경을 확인합니다.');
@@ -245,6 +253,10 @@ export function createObjectCommands() {
         borderHelp.textContent = '';
         borderHelp.classList.add('hidden');
       }
+    }
+    if (subunitOnly) {
+      if (borderButton) borderButton.disabled = !subunitPolicy.valid;
+      if (borderHelp) { borderHelp.textContent = subunitPolicy.message; borderHelp.classList.remove('hidden'); }
     }
     syncObjectActionsMenu();
   }
@@ -285,7 +297,7 @@ export function createObjectCommands() {
 
   function batchSetLocked(nextLocked = null) {
     const refs = dependencies.selectionDomain.snapshot().selection.items;
-    if (!refs.length || !commonBatchCapabilities(refs).has('lock')) return;
+    if (!refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('lock')) return;
     const locked = typeof nextLocked === 'boolean' ? nextLocked : !refs.every(objectRefLocked);
     if (refs.every(ref => objectRefLocked(ref) === locked)) return;
     dependencies.projectDomain.recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
@@ -301,6 +313,7 @@ export function createObjectCommands() {
         if (feature) feature.properties.locked = locked;
       }
     }
+    dependencies.state.stateRevision += 1;
     dependencies.layerTreeController?.syncLocks(refs);
     dependencies.renderingDomain?.invalidateSelection?.('batch-lock');
     dependencies.projectDomain.queueAutosave();
@@ -500,45 +513,48 @@ export function createObjectCommands() {
       confirmText: '선택 객체 삭제',
       danger: true,
       onConfirm: () => {
-        dependencies.projectDomain.recordHistory({ type: 'batch-delete', description: `${refs.length}개 객체 삭제`, affectedIds: refs.map(ref => ref.id) });
-        const removedDistributionIds = new Set(refs.filter(ref => ref.domain === 'distribution').map(ref => ref.id));
-        const removedHydroEditIds = new Set(refs.filter(ref => ref.domain === 'hydro').map(ref => ref.id));
-        const removedGenericFeatureIds = new Set(refs.filter(ref => ref.domain === 'generic').map(ref => ref.id));
-        const removedLabelIds = new Set(refs.filter(ref => ref.domain === 'label').map(ref => ref.id));
-        const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && ref.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id));
-        let expanded = true;
-        while (expanded) {
-          expanded = false;
-          for (const feature of dependencies.state.territorialUnits) {
-            if (!removedUnitIds.has(String(feature.properties?.parentId)) || removedUnitIds.has(String(feature.id))) continue;
-            removedUnitIds.add(String(feature.id));
-            expanded = true;
+        if (refs.some(ref => !objectRefExists(ref) || objectRefLocked(ref)) || !commonBatchCapabilities(refs).has('delete')) {
+          (0, dependencies.setActionStatus)('객체의 잠금 또는 자식 관계가 바뀌어 삭제를 중단했습니다.', 'error', 3600);
+          return false;
+        }
+        const snapshot = (0, dependencies.snapshotEditable)();
+        try {
+          const removedDistributionIds = new Set(refs.filter(ref => ref.domain === 'distribution').map(ref => ref.id));
+          const removedHydroEditIds = new Set(refs.filter(ref => ref.domain === 'hydro').map(ref => ref.id));
+          const removedGenericFeatureIds = new Set(refs.filter(ref => ref.domain === 'generic').map(ref => ref.id));
+          const removedLabelIds = new Set(refs.filter(ref => ref.domain === 'label').map(ref => ref.id));
+          const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && ref.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id));
+          dependencies.state.distributionLayers = dependencies.state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
+          dependencies.state.distributionEntries = dependencies.state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId))
+            && (entry.mode !== dependencies.DISTRIBUTION_MODES.TERRITORIAL || !removedUnitIds.has(String(entry.territorialUnitId))));
+          const restoredHydroSourceIds = dependencies.state.hydroEdits.filter(feature => removedHydroEditIds.has(String(feature.id))).map(feature => String(feature.properties?.sourceFeatureId || '')).filter(Boolean);
+          dependencies.state.hydroEdits = dependencies.state.hydroEdits.filter(feature => !removedHydroEditIds.has(String(feature.id)));
+          for (const sourceId of restoredHydroSourceIds) {
+            if (!dependencies.state.hydroEdits.some(feature => String(feature.properties?.sourceFeatureId || '') === sourceId)) delete dependencies.state.physicalSettings.hiddenHydroIds[sourceId];
           }
+          if (restoredHydroSourceIds.length) dependencies.gpuMapRenderer.invalidateHydroVisibility();
+          for (const layer of dependencies.state.distributionLayers) if (removedDistributionIds.has(String(layer.parentId))) layer.parentId = '';
+          (0, dependencies.reassignGenericFeatureParents)([...removedGenericFeatureIds]);
+          dependencies.state.genericFeatures = dependencies.state.genericFeatures.filter(feature => !removedGenericFeatureIds.has(String(feature.id)));
+          dependencies.state.labels = dependencies.state.labels.filter(label => !removedLabelIds.has(String(label.id)));
+          for (const id of removedLabelIds) delete dependencies.state.labelSettings[(0, dependencies.labelKey)('label', id)];
+          removeTerritorialUnits(dependencies.state, removedUnitIds, dependencies.DISTRIBUTION_MODES.TERRITORIAL);
+          dependencies.state.stateRevision += 1;
+          dependencies.renderingDomain?.invalidateTerritorialPatch?.('batch-delete');
+          dependencies.selectionDomain.clear({ reason: 'batch-delete-clear' });
+          dependencies.objectPropertyController?.show(null);
+          (0, dependencies.markLayerTreeDirty)();
+          dependencies.renderingDomain?.invalidateOverlayGeometry?.('batch', 'batch-delete');
+          dependencies.renderingDomain?.invalidateSelection?.('batch-delete');
+          dependencies.renderingDomain?.invalidateLabels?.('batch-delete');
+          dependencies.projectDomain.commitHistorySnapshot(snapshot);
+          dependencies.projectDomain.queueAutosave();
+          (0, dependencies.setActionStatus)(`${refs.length}개 객체 삭제 완료`, 'success', 2800);
+        } catch (error) {
+          (0, dependencies.restoreEditable)(snapshot);
+          (0, dependencies.setActionStatus)(error.message || '삭제를 적용하지 못해 전체 변경을 복구했습니다.', 'error', 4000);
+          return false;
         }
-        dependencies.state.distributionLayers = dependencies.state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
-        dependencies.state.distributionEntries = dependencies.state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId))
-          && (entry.mode !== dependencies.DISTRIBUTION_MODES.TERRITORIAL || !removedUnitIds.has(String(entry.territorialUnitId))));
-        const restoredHydroSourceIds = dependencies.state.hydroEdits.filter(feature => removedHydroEditIds.has(String(feature.id))).map(feature => String(feature.properties?.sourceFeatureId || '')).filter(Boolean);
-        dependencies.state.hydroEdits = dependencies.state.hydroEdits.filter(feature => !removedHydroEditIds.has(String(feature.id)));
-        for (const sourceId of restoredHydroSourceIds) {
-          if (!dependencies.state.hydroEdits.some(feature => String(feature.properties?.sourceFeatureId || '') === sourceId)) delete dependencies.state.physicalSettings.hiddenHydroIds[sourceId];
-        }
-        if (restoredHydroSourceIds.length) dependencies.gpuMapRenderer.invalidateHydroVisibility();
-        for (const layer of dependencies.state.distributionLayers) if (removedDistributionIds.has(String(layer.parentId))) layer.parentId = '';
-        (0, dependencies.reassignGenericFeatureParents)([...removedGenericFeatureIds]);
-        dependencies.state.genericFeatures = dependencies.state.genericFeatures.filter(feature => !removedGenericFeatureIds.has(String(feature.id)));
-        dependencies.state.labels = dependencies.state.labels.filter(label => !removedLabelIds.has(String(label.id)));
-        for (const id of removedLabelIds) delete dependencies.state.labelSettings[(0, dependencies.labelKey)('label', id)];
-        dependencies.state.territorialUnits = dependencies.state.territorialUnits.filter(feature => !removedUnitIds.has(String(feature.id)));
-        dependencies.state.territorialRelations = dependencies.state.territorialRelations.filter(relation => !removedUnitIds.has(String(relation.unitId)) && !removedUnitIds.has(String(relation.parentId)));
-        dependencies.selectionDomain.clear({ reason: 'batch-delete-clear' });
-        dependencies.objectPropertyController?.show(null);
-        (0, dependencies.markLayerTreeDirty)();
-        dependencies.renderingDomain?.invalidateOverlayGeometry?.('batch', 'batch-delete');
-        dependencies.renderingDomain?.invalidateSelection?.('batch-delete');
-        dependencies.renderingDomain?.invalidateLabels?.('batch-delete');
-        dependencies.projectDomain.queueAutosave();
-        (0, dependencies.setActionStatus)(`${refs.length}개 객체 삭제 완료`, 'success', 2800);
       },
     });
   }

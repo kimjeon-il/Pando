@@ -58,7 +58,7 @@ export function classifyBuiltinCountries(collection) {
     if (!row) { countries.push(feature); continue; }
     subunits.push(createTerritorialFeature({
       id: row.id, unitType: 'subunit', name: defaultGeographicName(row.sourceCountryId, feature.properties.name), geometry: feature.geometry,
-      parentId: row.parentId, sovereignId: row.parentId, coverageMode: 'explicit', adminLevel: null,
+      parentId: row.parentId, sovereignId: row.parentId, coverageMode: 'explicit',
       notes: row.note || '',
       metadata: {
         builtinSubunit: { revision: BUILTIN_SUBUNIT_REVISION, sourceCountryId: row.sourceCountryId,

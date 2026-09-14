@@ -75,12 +75,12 @@ export function createPropertySelection() {
     const options = (0, dependencies.subunitParentChoices)(countryId, dependencies.state.countriesData.features, dependencies.state.territorialUnits, {
       exclude: [feature.id], name: item => item.properties?.unitType ? (0, dependencies.territorialUnitName)(item) : (0, dependencies.countryName)(item),
     });
-    const parentId = String(feature.properties?.parentId || '');
-    if (!options.some(option => option.value === parentId)) {
-      const parent = (0, dependencies.territorialUnitById)(parentId) || (0, dependencies.countryFeatureById)(parentId);
-      options.push({ value: parentId, label: parent ? `${parent.properties?.name || parentId} · 기존 소속` : parentId ? `${parentId} · 기존 소속` : '상위 소속 없음' });
-    }
-    return options;
+    return options.filter(option => {
+      const parent = (0, dependencies.territorialUnitById)(option.value) || (0, dependencies.countryFeatureById)(option.value);
+      if (!parent?.geometry) return false;
+      const difference = window.polygonClipping.difference(feature.geometry.coordinates, parent.geometry.coordinates);
+      return difference.length === 0;
+    });
   }
 
   function territorialParentOptions(feature) {
@@ -95,7 +95,7 @@ export function createPropertySelection() {
       }
     }
     return [
-      { value: '', label: '상위 소속 없음' },
+      { value: '', label: '상위 단위 없음' },
       ...dependencies.territorialRepository.list()
         .filter(candidate => !excluded.has(String(candidate.id)))
         .map(candidate => ({
@@ -288,7 +288,10 @@ export function createPropertySelection() {
     if (type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) {
       if ((dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.state.selected.id) === key) dependencies.countryPropertyController.refresh((0, dependencies.countryObjectRef)(key));
       (0, dependencies.syncBatchActionAvailability)();
-    } else dependencies.objectPropertyController.presentTerritorial(key, true);
+    } else if (dependencies.state.selected?.domain === 'territorial' && String(dependencies.state.selected.id) === key) {
+      dependencies.selectionUiController.presentPrimary({ refreshOnly: true });
+    }
+    (0, dependencies.syncBatchActionAvailability)();
     return true;
   }
 

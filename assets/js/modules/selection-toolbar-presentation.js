@@ -237,7 +237,7 @@ export function createSelectionToolbarPresentation({
     $('selectionToolbarTypeBtn')?.addEventListener('click', () => {
       if (!activeRef) return;
       const targetId = activeKind() === 'country' ? 'changeCountryTypeBtn'
-        : activeKind() === 'subunit' ? 'changeSubunitTypeBtn' : '';
+        : activeKind() === 'subunit' ? 'promoteSubunitBtn' : '';
       const target = targetId ? $(targetId) : null;
       if (!target || target.disabled) return;
       closeTransient();

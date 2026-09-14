@@ -29,11 +29,11 @@ function setup() {
   return { domain, ui, focused, presented, opened, toolbarSynced, get toolbarCleared() { return toolbarCleared; } };
 }
 
-test('country selection, reselection, toggle and range present without focusing the map', () => {
+for (const type of ['country', 'subunit', 'region']) test(`${type} selection, reselection, toggle and range do not move the map`, () => {
   for (const scope of ['map', 'layer', 'chooser']) {
     const { domain, ui, focused, presented, opened } = setup();
-    const a = country('A');
-    const b = country('B');
+    const a = normalizeObjectRef({ domain: 'territorial', type, id: 'A' });
+    const b = normalizeObjectRef({ domain: 'territorial', type, id: 'B' });
     ui.applyIntent(a, { scope });
     ui.applyIntent(a, { scope });
     assert.equal(domain.size(), 1);
@@ -51,19 +51,19 @@ test('country selection, reselection, toggle and range present without focusing 
   }
 });
 
-test('non-country selection retains automatic focus', () => {
+test('non-territorial selection retains automatic focus', () => {
   const { ui, focused } = setup();
-  for (const [domain, type] of [['territorial', 'region'], ['generic', 'polygon'], ['hydro', 'river'], ['label', 'label'], ['distribution', 'distribution']]) {
+  for (const [domain, type] of [['generic', 'polygon'], ['hydro', 'river'], ['label', 'label'], ['distribution', 'distribution']]) {
     const ref = normalizeObjectRef({ domain, type, id: '1' });
     ui.applyIntent(ref);
     assert.equal(focused.at(-1), ref.key);
   }
-  assert.equal(focused.length, 5);
+  assert.equal(focused.length, 4);
 });
 
-test('explicit show-on-map button still focuses the selected country', () => {
+for (const type of ['country', 'subunit', 'region']) test(`explicit show-on-map button focuses the selected ${type}`, () => {
   const button = new EventTarget();
-  const ref = country('A');
+  const ref = normalizeObjectRef({ domain: 'territorial', type, id: 'A' });
   const focused = [];
   const bindings = createPropertyEditorBindings({
     getElement: id => {

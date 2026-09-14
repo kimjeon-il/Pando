@@ -9,6 +9,7 @@ function versionedWorkerAssetUrl(relativePath) {
 
 importScripts(
   versionedWorkerAssetUrl('../modules/country-geometry.js'),
+  versionedWorkerAssetUrl('../modules/territorial-edit-plan.js'),
   versionedWorkerAssetUrl('../vendor/polygon-clipping.min.js'),
 );
 
@@ -404,7 +405,7 @@ function executeNewCountry(message, working) {
   return { features: updates, removedIds, affectedIds: [...affectedIds], affectedSourceIds, transferredArea, newCountryId: newId };
 }
 
-self.onmessage = event => {
+self.onmessage = async event => {
   const message = event.data || {};
   try {
     if (message.type === 'rebase') {
@@ -448,13 +449,38 @@ self.onmessage = event => {
       throw new Error('CANCELLED');
     }
     const working = new Map(countries);
-    const result = message.operation === 'merge'
+    let result;
+    if (message.operation === 'territorial-coast-availability') {
+      const [{ buildBoundaryTopology }, { analyzeAdminCountryCoast }] = await Promise.all([
+        import(versionedWorkerAssetUrl('../modules/boundary-topology.js')),
+        import(versionedWorkerAssetUrl('../modules/coast-reconciliation.js')),
+      ]);
+      const countryTopology = buildBoundaryTopology(message.payload.countries);
+      const country = message.payload.countries.find(feature => featureId(feature) === String(message.payload.unit.properties.sovereignId));
+      const kernel = self.PandoLabTerritorialEdit.createKernel(self.polygonClipping);
+      const coastal = [...countryTopology.segments.values()].some(segment => segment.kind === 'coast'
+        && segment.ownerIds.has(featureId(country)) && kernel.adjacent(message.payload.unit.geometry,
+          { type: 'Polygon', coordinates: [[segment.a, segment.b]] }));
+      const analysis = analyzeAdminCountryCoast({ adminFeature: message.payload.unit, countryFeature: country, countryTopology });
+      result = { coastal, reconciliation: analysis.status !== 'unavailable' && !!analysis.conflicts?.length };
+    } else if (message.operation === 'territorial-source') {
+      const { parent, children } = message.payload;
+      const occupied = children.length ? self.polygonClipping.union(...children.map(feature => multiCoordinates(feature.geometry))) : [];
+      result = { geometry: normalizeCountryGeometry({ type: 'MultiPolygon', coordinates: occupied.length
+        ? self.polygonClipping.difference(multiCoordinates(parent.geometry), occupied) : multiCoordinates(parent.geometry) }) };
+    } else result = message.operation === 'territorial-edit'
+      ? self.PandoLabTerritorialEdit.createKernel(self.polygonClipping).plan(message.payload)
+      : message.operation === 'merge'
       ? executeMerge(message, working)
       : message.operation === 'new-country'
         ? executeNewCountry(message, working)
         : message.operation === 'annex-batch'
           ? executeAnnexBatch(message, working)
           : executeAnnex(message, working);
+    if (message.operation === 'territorial-edit') {
+      result.features = result.features.map(feature => ({ ...feature, geometry: normalizeCountryGeometry(feature.geometry) }));
+    }
+    if (Number(message.dataRevision || 0) !== currentDataRevision) throw new Error('CANCELLED');
     if (cancelled.has(Number(message.requestId))) throw new Error('CANCELLED');
     pendingResults.set(Number(message.requestId), {
       result,

@@ -264,7 +264,7 @@
             <div id="subunitToolbarFields" class="selection-toolbar-fields ui-color-picker hidden" data-selection-kind="subunit" data-color-picker="subunit">
               <label class="selection-toolbar-label" for="subunitNameInput">하위단위명</label>
               <input id="subunitNameInput" class="selection-toolbar-name" form="subunitProperties" type="text" placeholder="예: 마조프셰주" aria-label="하위단위명" />
-              <p id="subunitNameConflict" class="editor-help selection-toolbar-conflict hidden">같은 국가에 이름이 같은 하위단위가 있습니다. 단계와 상위 소속을 확인하세요.</p>
+              <p id="subunitNameConflict" class="editor-help selection-toolbar-conflict hidden">같은 국가에 이름이 같은 하위단위가 있습니다. 상위 단위를 확인하세요.</p>
               <button id="subunitColorTrigger" class="ui-button icon-btn ui-color-trigger selection-toolbar-color" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="subunitColorPopover" aria-labelledby="subunitColorLabel subunitColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="subunitColorLabel" class="selection-toolbar-label">색상</span><span id="subunitColorValue" class="ui-color-value">국가색 상속</span></button>
               <input id="subunitColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
               <div id="subunitColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="하위단위 색상 팔레트"><button id="subunitInheritColorBtn" class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>국가색 상속</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
@@ -272,7 +272,7 @@
             <div id="regionToolbarFields" class="selection-toolbar-fields ui-color-picker hidden" data-selection-kind="region" data-color-picker="region">
               <label class="selection-toolbar-label" for="regionNameInput">지방명</label>
               <input id="regionNameInput" class="selection-toolbar-name" form="regionProperties" type="text" placeholder="예: 실레시아" aria-label="지방명" />
-              <p id="regionNameConflict" class="editor-help selection-toolbar-conflict hidden">이름이 같은 지방이 있습니다. 시대와 상위 소속을 확인하세요.</p>
+              <p id="regionNameConflict" class="editor-help selection-toolbar-conflict hidden">이름이 같은 지방이 있습니다. 시대와 상위 단위를 확인하세요.</p>
               <button id="regionColorTrigger" class="ui-button icon-btn ui-color-trigger selection-toolbar-color" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="regionColorPopover" aria-labelledby="regionColorLabel regionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="regionColorLabel" class="selection-toolbar-label">색상</span><span id="regionColorValue" class="ui-color-value">기본 색상</span></button>
               <input id="regionColorInput" class="ui-native-color-input" type="color" value="#8c68d8" tabindex="-1" aria-hidden="true" />
               <div id="regionColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="지방 색상 팔레트"><button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="true"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
@@ -326,7 +326,7 @@
                   <div id="territorialCreateSetup" class="territorial-create-setup hidden">
                     <label class="ui-field field-group"><span id="territorialCreateNameLabel">이름</span><input id="territorialCreateNameInput" type="text" maxlength="120" autocomplete="off" /></label>
                     <label id="territorialCreateSovereignRow" class="ui-field field-group"><span>소속 국가</span><select id="territorialCreateSovereignInput"></select></label>
-                    <label id="territorialCreateParentRow" class="ui-field field-group"><span>상위 소속</span><select id="territorialCreateParentInput"></select></label>
+                    <label id="territorialCreateParentRow" class="ui-field field-group"><span>상위 단위</span><select id="territorialCreateParentInput"></select></label>
                     <label id="territorialCreateSourceRow" class="ui-field field-group"><span>기준 영역</span><select id="territorialCreateSourceInput"></select></label>
                   </div>
                   <div class="mode-task-section mode-task-method-section">
@@ -459,6 +459,7 @@
             </section>
             <section id="multiCountryActions" class="editor-section editor-action-section hidden" aria-label="다중 선택 작업">
               <div class="editor-action-list">
+                <button id="multiSubunitMergeBtn" type="button" class="ui-button editor-action-row" hidden><span><strong>하위단위 합병</strong><small>선택한 하위단위를 하나로 합치기</small></span></button>
                 <button id="multiBorderEditBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>국경 조정</strong><small>선택 국가 사이의 공유국경 편집</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
               <p id="multiBorderEditHelp" class="editor-help hidden" aria-live="polite"></p>
@@ -471,6 +472,7 @@
             <section class="editor-section editor-action-section" aria-labelledby="countryGeometryActionsTitle">
               <h3 id="countryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
+                <button id="addCountrySubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span><strong>하위단위 추가</strong><small>상위 단위와 기준 영역을 선택하여 추가</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="annexTerritoryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="mergeCountryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>국가 합병</strong><small>선택한 국가들과 하나로 합치기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="editBorderBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>국경 조정</strong><small>선택한 접경국 사이의 공유국경 편집</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -486,33 +488,32 @@
 
           <form id="subunitProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <section class="editor-section editor-info-section editor-section-primary">
-              <div class="ui-field field-group editor-field"><label for="subunitCountryInput">주권 국가</label><select id="subunitCountryInput"><option value="">소속 국가 미지정</option></select></div>
-              <div class="ui-field field-group editor-field"><label for="subunitParentInput">상위 소속</label><select id="subunitParentInput"><option value="" disabled hidden selected data-placeholder="true">소속 국가 선택</option></select></div>
-              <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="subunit-details"><summary><span>상세 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><label class="ui-field field-group editor-field"><span>행정 단계 (선택)</span><input id="subunitLevelInput" type="number" min="1" step="1" placeholder="미지정" /></label></div></details>
+              <div class="ui-field field-group editor-field"><label for="subunitCountryInput">소속 국가</label><select id="subunitCountryInput"><option value="">소속 국가 미지정</option></select></div>
+              <div class="ui-field field-group editor-field"><label for="subunitParentInput">상위 단위</label><select id="subunitParentInput"><option value="" disabled hidden selected data-placeholder="true">소속 국가 선택</option></select></div>
             </section>
             <section class="editor-section editor-action-section" aria-labelledby="subunitGeometryActionsTitle">
               <h3 id="subunitGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
               <div class="editor-action-list">
-                <button id="reassignSubunitShapeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 수정</strong><small>부모 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="addSubunitChildBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span><strong>하위단위 추가</strong><small>이 하위단위 안에 자식 하위단위 추가</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="annexSubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>영역 편입</strong><small>같은 상위 단위 안에서 영역 가져오기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="mergeSubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>하위단위 합병</strong><small>같은 상위 단위의 연결된 하위단위 선택</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="reassignSubunitShapeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 조정</strong><small>형제 사이 공유 경계를 함께 이동</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="editSubunitCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안선 조정</strong><small>소속 국가와 하위단위 해안선을 함께 조정</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="reconcileSubunitCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안선 정합</strong><small>국가 해안선과 불일치 구간 조정</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="mergeSubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>영역 합치기</strong><small>같은 부모·단계의 인접 영역 선택</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="splitSubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-split"/></svg><span><strong>영역 나누기</strong><small>부모 영역 안에서 두 영역으로 분할</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
             <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="subunitRelationActionsTitle" data-od-id="subunit-relation-actions-title"><h3 id="subunitRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
               <div class="editor-action-list">
-                <button id="transferSubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>소속 변경</strong></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="changeSubunitTypeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>종류 변경</strong><small>국가로 전환</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="promoteSubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span><strong>국가로 전환</strong><small>선택 구역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-                <button id="removeSubunitDivisionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span><strong>구분 해제</strong><small>영역 관계를 정리하고 구분 제거</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+                <button id="removeSubunitDivisionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span><strong>하위단위 삭제</strong><small>상위 단위의 면적을 유지하고 객체 삭제</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
           </form>
 
           <form id="regionProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <section class="editor-section editor-info-section editor-section-primary">
-              <div class="ui-field field-group editor-field"><label for="regionCountryInput">주권 국가</label><select id="regionCountryInput"><option value="">주권 국가 없음</option></select></div>
-              <div class="ui-field field-group editor-field"><label for="regionParentInput">상위 소속</label><select id="regionParentInput"><option value="">상위 소속 없음</option></select></div>
+              <div class="ui-field field-group editor-field"><label for="regionCountryInput">소속 국가</label><select id="regionCountryInput"><option value="">소속 국가 없음</option></select></div>
+              <div class="ui-field field-group editor-field"><label for="regionParentInput">상위 단위</label><select id="regionParentInput"><option value="">상위 단위 없음</option></select></div>
               <fieldset class="editor-period-group"><legend>유효 기간</legend><div class="editor-period-fields">
                 <div class="ui-field field-group editor-field"><label for="regionValidFromInput">시작일</label><input id="regionValidFromInput" type="text" inputmode="numeric" placeholder="예: 1910-01-01" /></div>
                 <div class="ui-field field-group editor-field"><label for="regionValidToInput">종료일</label><input id="regionValidToInput" type="text" inputmode="numeric" placeholder="현재까지면 비워 둠" /></div>
@@ -760,7 +761,7 @@
       <div class="territorial-type-fields">
         <label class="ui-field field-group"><span>새 종류</span><select id="territorialTypeInput"><option value="country">국가</option><option value="subunit">하위단위</option></select></label>
         <label id="territorialTypeSovereignRow" class="ui-field field-group hidden"><span>소속 국가</span><select id="territorialTypeSovereignInput"></select><small>국가를 하위단위로 바꾸면 영토가 이 국가에 합쳐집니다.</small></label>
-        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 소속</span><select id="territorialTypeParentInput"></select><small>행정 단계는 상위 소속에 맞춰 자동으로 정해집니다.</small></label>
+        <label id="territorialTypeParentRow" class="ui-field field-group hidden"><span>상위 단위</span><select id="territorialTypeParentInput"></select></label>
         <section id="territorialTypeImpact" class="territorial-type-impact" aria-live="polite">
           <strong id="territorialTypeImpactSummary"></strong>
           <ul id="territorialTypeImpactList"></ul>
@@ -823,15 +824,14 @@
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
           <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="" disabled hidden selected data-placeholder="true">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">선택한 국가로 영토가 이전됩니다.</small></label>
           <label id="gisIndependentRegionRow" class="ui-check gis-wide hidden" data-gis-step="3"><input id="gisIndependentRegion" type="checkbox" /><span>국가에 속하지 않는 독립 지방으로 가져오기</span></label>
-          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>상위 소속</span><select id="gisParentUnit"><option value="" disabled hidden selected data-placeholder="true">소속 국가 선택</option></select><small>행정 단계는 상위 소속에 맞춰 정해집니다.</small></label>
+          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>상위 단위</span><select id="gisParentUnit"><option value="" disabled hidden selected data-placeholder="true">소속 국가 선택</option></select></label>
           <div class="gis-mapping-summary gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
           <details id="gisAdvancedMapping" class="ui-disclosure editor-disclosure gis-wide" data-gis-step="2"><summary><span>속성 연결 수정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body gis-form-grid">
             <label id="gisIdFieldRow" class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
             <label id="gisNameFieldRow" class="ui-field field-group"><span>이름 속성</span><select id="gisNameField"></select></label>
             <label id="gisUseCountryFieldRow" class="ui-check gis-wide hidden"><input id="gisUseCountryField" type="checkbox" /><span>객체별 소속 국가 속성 사용</span></label>
             <label id="gisCountryFieldRow" class="ui-field field-group"><span>소속 국가 속성</span><select id="gisCountryField"></select><small>값이 비어 있을 때만 공통 소속 국가를 사용합니다. 알 수 없는 값은 오류로 표시됩니다.</small></label>
-            <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 소속 속성</span><select id="gisParentField"></select></label>
-            <label id="gisLevelFieldRow" class="ui-field field-group"><span>행정 단계 속성</span><select id="gisLevelField"></select></label>
+            <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 단위 속성</span><select id="gisParentField"></select></label>
             <label id="gisColorFieldRow" class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
             <label class="ui-field field-group"><span>수동 좌표계</span><input id="gisCrsInput" type="text" inputmode="numeric" placeholder="EPSG:4326" /></label>
           </div></details>

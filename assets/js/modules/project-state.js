@@ -150,10 +150,9 @@ export function assertCurrentProjectSchema(input) {
     requireSchemaVersion(feature?.properties?.schemaVersion, `영역 ${text(feature?.id)}`, 2);
     assertAllowedKeys(feature?.properties, new Set([
       'schemaVersion', 'unitType', 'name', 'parentId', 'sovereignId', 'coverageMode',
-      'adminLevel', 'style', 'locked', 'validFrom', 'validTo', 'isRemainder', 'notes',
+      'style', 'locked', 'validFrom', 'validTo', 'notes',
       'metadata', 'sourceFolderId', 'sourceLibraryId', 'sourceGeometryVersion',
     ]), `영역 ${text(feature?.id)}`);
-    if (typeof feature?.properties?.isRemainder !== 'boolean') throw schemaError(`영역 ${text(feature?.id)}에 isRemainder가 없습니다.`, 'PL-SCHEMA-REMAINDER');
   }
   for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 1);
   for (const layer of project.distributionLayers || []) {
