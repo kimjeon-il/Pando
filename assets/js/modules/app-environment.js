@@ -109,6 +109,7 @@ export function createEnvironment() {
       ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1, ocean: '#ffffff', oceanGpu: [1, 1, 1] }
       : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92, ocean: '#0d2837', oceanGpu: [0.051, 0.157, 0.216] };
     base.terrainColorAlpha = terrainFillAlpha ?? 1;
+    base.countryColorAlpha = base.fillAlpha;
     base.fillAlpha *= countryStyle.opacity;
     base.fillAlphaByte = Math.round(base.fillAlpha * 255);
     base.borderAlpha = countryStyle.boundaryVisible ? base.borderAlpha * countryStyle.opacity : 0;

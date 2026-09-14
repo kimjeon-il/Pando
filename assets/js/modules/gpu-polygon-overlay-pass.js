@@ -191,7 +191,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     return setGpuViewUniforms(gl, { frameContext, worldOffset, getLocation: name => programInfo.uniforms[name] });
   }
 
-  function drawPackets(packets = [], frameContext, { styleByKey = null } = {}) {
+  function drawPackets(packets = [], frameContext, { styleByKey = null, claimTransparent = false } = {}) {
     const started = performance.now();
     drawCount += 1;
     const renderedKeys = [];
@@ -214,12 +214,13 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
         const style = styleByKey?.get?.(key) || packet.style || {};
         const [red, green, blue] = parseGpuColor(style.color);
         const alpha = Math.max(0, Math.min(1, Number(style.fillAlpha ?? style.alpha ?? 1)));
-        if (alpha <= 0) {
+        if (alpha <= 0 && !claimTransparent) {
           if (key) renderedKeys.push(key);
           continue;
         }
         applyGpuBlendMode(gl, packet.blendMode || style.blendMode);
-        gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
+        const rgbAlpha = (packet.blendMode || style.blendMode) === 'multiply' ? alpha : 1;
+        gl.uniform4f(programInfo.uniforms.uColor, red * rgbAlpha, green * rgbAlpha, blue * rgbAlpha, alpha);
         gl.bindBuffer(gl.ARRAY_BUFFER, resource.positionBuffer);
         gl.enableVertexAttribArray(programInfo.coord);
         gl.vertexAttribPointer(programInfo.coord, 2, gl.FLOAT, false, 0, 0);
@@ -273,7 +274,8 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
         const [red, green, blue] = parseGpuColor(style.color);
         const alpha = Math.max(0, Math.min(1, Number(style.fillAlpha ?? style.alpha ?? 1)));
         applyGpuBlendMode(gl, item.blendMode || style.blendMode);
-        gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
+        const rgbAlpha = (item.blendMode || style.blendMode) === 'multiply' ? alpha : 1;
+        gl.uniform4f(programInfo.uniforms.uColor, red * rgbAlpha, green * rgbAlpha, blue * rgbAlpha, alpha);
         gl.bindBuffer(gl.ARRAY_BUFFER, resource.positionBuffer);
         gl.enableVertexAttribArray(programInfo.coord);
         gl.vertexAttribPointer(programInfo.coord, 2, gl.FLOAT, false, 0, 0);

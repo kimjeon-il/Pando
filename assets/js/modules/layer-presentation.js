@@ -92,7 +92,11 @@ export function normalizeLayerPresentation(value = {}) {
     styles[group] = normalizeLayerStyle(sourceStyles[group]);
   }
   const objectStyles = {};
-  for (const [key, style] of Object.entries(value.objectStyles || {})) objectStyles[key] = normalizeLayerStyle(style);
+  for (const [key, style] of Object.entries(value.objectStyles || {})) {
+    const normalized = normalizeLayerStyle(style);
+    objectStyles[key] = Object.fromEntries(Object.keys(normalized)
+      .filter(property => Object.hasOwn(style, property)).map(property => [property, normalized[property]]));
+  }
   const objectOrder = [...new Set((value.objectOrder || []).map(String))];
   return { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder, styles, objectStyles, objectOrder };
 }
@@ -104,5 +108,5 @@ export function moveOverlayGroup(presentation, group, direction) {
 }
 
 export const layerStyle = (presentation, group, objectKey = '') => normalizeLayerStyle(
-  (objectKey && presentation?.objectStyles?.[objectKey]) || presentation?.styles?.[group],
+  { ...presentation?.styles?.[group], ...(objectKey && presentation?.objectStyles?.[objectKey]) },
 );
