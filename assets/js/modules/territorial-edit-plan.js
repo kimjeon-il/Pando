@@ -10,10 +10,26 @@
   }, 0), 0);
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-  function createKernel(clipper) {
+  function createKernel(clipper, { normalize = geometry => geometry, segmentCandidates = null } = {}) {
+    const boundsCache = new WeakMap();
+    const bounds = geometry => {
+      if (!geometry) return [Infinity, Infinity, -Infinity, -Infinity];
+      if (boundsCache.has(geometry)) return boundsCache.get(geometry);
+      const result = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const polygon of coordinates(geometry)) for (const ring of polygon) for (const [x, y] of ring) {
+        result[0] = Math.min(result[0], x); result[1] = Math.min(result[1], y);
+        result[2] = Math.max(result[2], x); result[3] = Math.max(result[3], y);
+      }
+      boundsCache.set(geometry, result);
+      return result;
+    };
+    const disjoint = (a, b) => {
+      const left = bounds(a), right = bounds(b);
+      return left[2] < right[0] || right[2] < left[0] || left[3] < right[1] || right[3] < left[1];
+    };
     const shape = value => value?.length ? { type: 'MultiPolygon', coordinates: value } : null;
-    const intersection = (a, b) => a && b ? shape(clipper.intersection(coordinates(a), coordinates(b))) : null;
-    const difference = (a, b) => a && b ? shape(clipper.difference(coordinates(a), coordinates(b))) : clone(a);
+    const intersection = (a, b) => a && b && !disjoint(a, b) ? shape(clipper.intersection(coordinates(a), coordinates(b))) : null;
+    const difference = (a, b) => a && b && !disjoint(a, b) ? shape(clipper.difference(coordinates(a), coordinates(b))) : clone(a);
     const union = (...values) => {
       const valid = values.filter(Boolean);
       return valid.length ? shape(clipper.union(...valid.map(coordinates))) : null;
@@ -21,13 +37,15 @@
     const significant = (geometry, reference) => area(geometry) > Math.max(1e-10, area(reference) * 1e-9);
     const contains = (parent, child) => !significant(difference(child, parent), child);
     function adjacent(a, b) {
+      function* allSegments(geometry) {
+        for (const polygon of coordinates(geometry)) for (const ring of polygon) for (let index = 1; index < ring.length; index++) yield { a: ring[index - 1], b: ring[index] };
+      }
       // Collinear overlap works when neighboring rings have different segmentation.
       for (const pa of coordinates(a)) for (const ra of pa) for (let i = 1; i < ra.length; i++) {
         const p = ra[i - 1], q = ra[i], dx = q[0] - p[0], dy = q[1] - p[1];
         const length = Math.hypot(dx, dy);
         if (!length) continue;
-        for (const pb of coordinates(b)) for (const rb of pb) for (let j = 1; j < rb.length; j++) {
-          const u = rb[j - 1], v = rb[j];
+        for (const { a: u, b: v } of segmentCandidates ? segmentCandidates(b, p, q) : allSegments(b)) {
           if (Math.abs(dx * (u[1] - p[1]) - dy * (u[0] - p[0])) / length > 1e-7
             || Math.abs(dx * (v[1] - p[1]) - dy * (v[0] - p[0])) / length > 1e-7) continue;
           const t = r => ((r[0] - p[0]) * dx + (r[1] - p[1]) * dy) / (length * length);
@@ -69,7 +87,8 @@
     }
 
     function plan(request) {
-      const countries = clone(request.countries || []), units = clone(request.units || []);
+      // Inputs are read-only; only put()/explicit patches own mutable copies.
+      const countries = [...(request.countries || [])], units = [...(request.units || [])];
       const before = [...countries, ...units], byId = new Map(before.map(feature => [id(feature.id), feature]));
       const patches = new Map(), removed = new Set(), impacts = [], ownershipChanges = [];
       const read = key => patches.get(id(key)) || byId.get(id(key));
@@ -280,6 +299,7 @@
         && !ownershipChanges.some(change => change.id === key && change.replacementId)) {
         impacts.push({ kind: 'remove-child', id: key, name: byId.get(key)?.properties?.name || key });
       }
+      for (const feature of features) feature.geometry = normalize(feature.geometry);
       const all = before.filter(feature => !removed.has(id(feature.id)) && !patches.has(id(feature.id))).concat(features);
       const countryIds = new Set(countries.map(feature => id(feature.id)));
       const nextCountries = all.filter(feature => countryIds.has(id(feature.id)));

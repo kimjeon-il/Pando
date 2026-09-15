@@ -166,6 +166,7 @@ function freezePacket(item, geometryPacket, kind, { lod = 'high', projection = '
     style: normalizedStyle(item?.style),
     blendMode: item?.blendMode === 'multiply' || item?.style?.blendMode === 'multiply' ? 'multiply' : 'normal',
     role: String(item?.role || ''),
+    interactionPriority: Number(item?.interactionPriority || 0),
     ownerId: String(item?.ownerId || ''),
     parentId: String(item?.parentId || ''),
     territoryDepth: Number(item?.territoryDepth || 0),

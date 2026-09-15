@@ -57,20 +57,20 @@
   --map-label: #d8dee5;
   --map-label-halo: rgba(11,15,20,.94);
   --country-selection-fill: rgba(226,201,130,.14);
-  --map-preview-remove: #ef7171;
-  --map-preview-remove-fill: rgba(239,113,113,.24);
-  --map-preview-add: #67a9ff;
-  --map-preview-add-fill: rgba(103,169,255,.24);
-  --map-preview-old-boundary: rgba(215,223,232,.48);
-  --map-preview-new-boundary: #8fc2ff;
+  --map-preview-remove: var(--map-selection-halo);
+  --map-preview-remove-fill: var(--map-selection-halo);
+  --map-preview-add: var(--map-selection-halo);
+  --map-preview-add-fill: var(--map-selection-halo);
+  --map-preview-old-boundary: var(--map-selection-halo);
+  --map-preview-new-boundary: var(--map-selection-halo);
   --map-selection-halo: var(--accent);
-  --map-hover-stroke: color-mix(in srgb, var(--map-selection-halo) 80%, white);
-  --map-hover-fill: color-mix(in srgb, var(--map-hover-stroke) 7%, transparent);
+  --map-hover-stroke: var(--map-selection-halo);
+  --map-hover-fill: transparent;
   --map-error-overlap: #ef5d62;
   --map-error-gap: #f4c24f;
   --map-error-invalid: #b782ee;
   --map-error-relation: #ee934f;
-  --map-snap: #5fd38b;
+  --map-snap: var(--map-selection-halo);
   --globe-shadow: #000000;
   --globe-shadow-opacity: .55;
   --user-label-dot: #e0c26f;
@@ -261,20 +261,20 @@
     --map-label: #1c2229;
     --map-label-halo: rgba(255,255,255,.94);
     --country-selection-fill: rgba(49,94,157,.10);
-    --map-preview-remove: #b92f3b;
-    --map-preview-remove-fill: rgba(185,47,59,.20);
-    --map-preview-add: #2468b6;
-    --map-preview-add-fill: rgba(36,104,182,.18);
-    --map-preview-old-boundary: rgba(37,48,60,.46);
-    --map-preview-new-boundary: #174f90;
+    --map-preview-remove: var(--map-selection-halo);
+    --map-preview-remove-fill: var(--map-selection-halo);
+    --map-preview-add: var(--map-selection-halo);
+    --map-preview-add-fill: var(--map-selection-halo);
+    --map-preview-old-boundary: var(--map-selection-halo);
+    --map-preview-new-boundary: var(--map-selection-halo);
     --map-selection-halo: var(--accent);
-    --map-hover-stroke: color-mix(in srgb, var(--map-selection-halo) 80%, white);
-    --map-hover-fill: color-mix(in srgb, var(--map-hover-stroke) 6%, transparent);
+    --map-hover-stroke: var(--map-selection-halo);
+    --map-hover-fill: transparent;
     --map-error-overlap: #b82431;
     --map-error-gap: #a66a00;
     --map-error-invalid: #7436ad;
     --map-error-relation: #ad5115;
-    --map-snap: #137944;
+    --map-snap: var(--map-selection-halo);
     --globe-shadow: #000000;
     --globe-shadow-opacity: 1;
     --user-label-dot: #315e9d;
@@ -425,7 +425,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 }
 .map-hit-area { fill: transparent; pointer-events: all; }
 .gpu-country-highlight,
-.country-highlight-fill { pointer-events: none !important; }
 .country-patch-preview {
   pointer-events: none !important;
   stroke-width: .72px;
@@ -464,12 +463,12 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
   filter: none;
 }
 .map-hover-fill { stroke: none; }
-.map-hover-outline { fill: none; stroke: var(--map-hover-stroke); stroke-width: 1.5px; stroke-opacity: 1; }
+.map-hover-outline { fill: none; }
 .map-selection-fill { stroke: none; }
 .map-selection-outline,
 .map-selection-casing { fill: none; }
 .map-validation-issue { fill-opacity: .22; stroke-width: 2px; vector-effect: non-scaling-stroke; }
-.map-validation-fill { stroke: none !important; }
+.map-validation-fill { fill: none !important; stroke: none !important; }
 .map-validation-outline { fill: none !important; fill-opacity: 0; }
 .map-validation-issue.issue-overlap { fill: var(--map-error-overlap); stroke: var(--map-error-overlap); }
 .map-validation-issue.issue-gap { fill: var(--map-error-gap); stroke: var(--map-error-gap); }
@@ -483,8 +482,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .snap-indicator-point { fill: var(--surface-elevated); stroke: var(--map-snap); stroke-width: 2.5px; vector-effect: non-scaling-stroke; }
 .snap-indicator-segment { fill: none; stroke: var(--map-snap); stroke-width: 3px; vector-effect: non-scaling-stroke; }
 .snap-indicator-cross { fill: none; stroke: var(--map-snap); stroke-width: 2px; vector-effect: non-scaling-stroke; }
-.gpu-country-highlight { fill: transparent; }
-.country-highlight-fill { fill: transparent; stroke: none; }
 .map-ocean { fill: var(--map-ocean); stroke: none; }
 .map-base-svg:not(.flat-projection) .map-ocean-flat { display: none; }
 .map-base-svg.flat-projection .map-ocean-globe { display: none; }
@@ -514,8 +511,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .territorial-internal-boundary--subunit-internal { stroke-width: 1.1px; stroke-dasharray: 3 2; }
 .territorial-internal-boundary--region { stroke-width: 1.5px; stroke-dasharray: 7 3; }
 .territorial-unit-shape.has-explicit-color { fill-opacity: .24; }
-.territorial-unit-shape.territorial-unit-merge-source { stroke: var(--accent-2); stroke-width: 3px; }
-.territorial-unit-shape.territorial-unit-merge-target { fill-opacity: .28; stroke: var(--accent); stroke-width: 3px; }
 .territorial-unit-operation-outline,
 .hydro-edit-boundary,
 .generic-feature-boundary,
@@ -523,8 +518,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .generic-feature-shape,
 .hydro-edit-shape { stroke-width: 1.8px; stroke-linejoin: round; stroke-linecap: round; cursor: pointer; vector-effect: non-scaling-stroke; }
 .hydro-edit-shape.hydro-edit-native-hit { pointer-events: all; }
-.generic-feature-shape.selected-point { stroke: var(--map-selection-halo); stroke-width: 2.5px; }
-.generic-feature-shape.selected-point.is-secondary-selection { stroke-width: 1.5px; opacity: .72; }
 .distribution-shape { stroke-width: 1.4px; stroke-linejoin: round; cursor: pointer; vector-effect: non-scaling-stroke; }
 .distribution-entry-list { display: grid; gap: var(--ui-space-2); margin-bottom: var(--ui-space-4); }
 .distribution-entry-row { grid-template-columns: minmax(0, 1fr) var(--ui-control-height); gap: var(--ui-space-2); align-items: center; padding: var(--ui-space-2); }
@@ -532,13 +525,8 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .distribution-entry-row strong { font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
 .distribution-entry-row small { color: var(--muted); font-size: var(--ui-font-sm); line-height: var(--ui-line-normal); }
 .distribution-entry-add { display: grid; gap: var(--ui-space-3); }
-.generic-feature-boundary.generic-feature-merge-source { stroke-width: 3px; filter: none; }
-.generic-feature-shape.generic-feature-merge-target { fill-opacity: .48 !important; }
-.generic-feature-boundary.generic-feature-merge-target { stroke: var(--accent) !important; stroke-width: 3px; }
 .user-label-dot { fill: var(--place-label-point-color, var(--user-label-dot)); stroke: var(--user-label-dot-stroke); stroke-width: 1.5px; cursor: pointer; }
 .user-label-text { fill: var(--place-label-color, var(--user-label-text)); font-family: var(--place-label-font-family, var(--ui-font-family)); font-size: var(--map-font-caption); font-weight: var(--ui-weight-semibold); paint-order: stroke; stroke: var(--user-label-halo); stroke-width: 3px; stroke-linejoin: round; cursor: pointer; }
-.user-label.selected .user-label-dot { stroke: var(--map-selection-halo); stroke-width: 2.5px; }
-.user-label.selected.is-secondary-selection .user-label-dot { stroke-width: 1.8px; stroke-dasharray: 2 2; opacity: .72; }
 .preferences-card {
   width: min(520px, calc(100vw - var(--ui-dialog-edge) * 2));
   max-height: calc(100dvh - var(--ui-dialog-edge) * 2);
@@ -554,26 +542,24 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 .preferences-accent { display: grid; gap: var(--ui-space-3); }
 #preferencesAccentCustomBtn { display: flex; align-items: center; gap: var(--ui-space-2); flex-wrap: wrap; }
 #preferencesAccentValue { font-variant-numeric: tabular-nums; }
-.vertex-handle { fill: #fff1bd; stroke: #6f5520; stroke-width: 1.5px; cursor: move; }
+.vertex-handle { fill: var(--surface-elevated); stroke: var(--map-selection-halo); stroke-width: 1.5px; cursor: move; }
 .vertex-handle:hover { r: 6px; }
-.draft-shape { fill: rgba(205,169,93,.14); stroke: #e2c982; stroke-width: 2px; stroke-dasharray: 5 4; pointer-events: none; }
-.draft-shape.draft-raw-stroke { fill: none; stroke: var(--accent); stroke-width: 2.5px; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.draft-auto-close-preview { fill: none; stroke: var(--accent); stroke-width: 1.8px; stroke-dasharray: 4 4; opacity: .72; pointer-events: none; vector-effect: non-scaling-stroke; }
+.draft-shape { fill: var(--map-selection-halo); fill-opacity: var(--map-primary-fill-alpha); stroke: var(--map-selection-halo); stroke-width: 2.5px; pointer-events: none; vector-effect: non-scaling-stroke; }
+.draft-shape.draft-raw-stroke { fill: none; stroke: var(--map-selection-halo); stroke-width: 2.5px; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.draft-auto-close-preview { fill: none; stroke: var(--map-selection-halo); stroke-width: 1.8px; stroke-dasharray: 4 4; opacity: .72; pointer-events: none; vector-effect: non-scaling-stroke; }
 .river-partition-emphasis { fill: none; stroke: var(--map-selection-halo); stroke-width: 2.5px; stroke-opacity: 1; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; vector-effect: non-scaling-stroke; }
 #map.draft-stroke-active { cursor: crosshair; touch-action: none; }
 .draft-interactive { pointer-events: all; }
 .draft-vertex { cursor: move; }
 .draft-vertex-hit { fill: transparent; stroke: none; }
-.draft-vertex-dot { fill: #ffe099; stroke: #6f5520; stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
-.draft-vertex.selected .draft-vertex-dot { fill: #fff; stroke: var(--accent); stroke-width: 2.5px; }
+.draft-vertex-dot { fill: var(--surface-elevated); stroke: var(--map-selection-halo); stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
+.draft-vertex.selected .draft-vertex-dot { fill: var(--surface-elevated); stroke: var(--map-selection-halo); stroke-width: 2.5px; }
 .draft-segment-hit { fill: none; stroke: transparent; stroke-width: 18px; vector-effect: non-scaling-stroke; cursor: copy; }
 .draft-insert-handle { cursor: copy; }
 .draft-insert-hit { fill: transparent; stroke: none; }
-.draft-insert-dot { fill: var(--surface-elevated); stroke: var(--accent); stroke-width: 2px; vector-effect: non-scaling-stroke; }
-.draft-insert-plus { fill: none; stroke: var(--accent); stroke-width: 1.8px; stroke-linecap: round; vector-effect: non-scaling-stroke; pointer-events: none; }
+.draft-insert-dot { fill: var(--surface-elevated); stroke: var(--map-selection-halo); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.draft-insert-plus { fill: none; stroke: var(--map-selection-halo); stroke-width: 1.8px; stroke-linecap: round; vector-effect: non-scaling-stroke; pointer-events: none; }
 .draft-split-preview { pointer-events: none; vector-effect: non-scaling-stroke; stroke-width: 1.4px; }
-.draft-split-preview.side-a { fill: rgba(66,163,107,.18); stroke: rgba(66,163,107,.72); }
-.draft-split-preview.side-b { fill: rgba(139,100,196,.16); stroke: rgba(139,100,196,.68); }
 .draft-issue-marker { pointer-events: none; }
 .draft-issue-marker circle { fill: var(--surface-elevated); stroke: #d45656; stroke-width: 2px; vector-effect: non-scaling-stroke; }
 .draft-issue-marker path { fill: none; stroke: #d45656; stroke-width: 2px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
@@ -609,30 +595,10 @@ body.file-menu-open .mobile-backdrop {
 
 
 /* ===== 시험판 0.7: 국가 영토 편집 UI ===== */
-.vertex-handle.country-vertex { fill: #fff5cc; stroke: #8b6822; stroke-width: 2px; cursor: grab; vector-effect: non-scaling-stroke; }
+.vertex-handle.country-vertex { fill: var(--surface-elevated); stroke: var(--map-selection-halo); stroke-width: 2px; cursor: grab; vector-effect: non-scaling-stroke; }
 .vertex-handle.country-vertex:active { cursor: grabbing; }
-.draft-shape.annex-draft { fill: rgba(108,177,119,.18); stroke: #9ee0a9; }
-.country-highlight-fill.annex-editing { fill: rgba(104,190,126,.16); }
-.country-highlight-fill.annex-donor { fill: rgba(153,111,205,.16); }
-.country-highlight-fill.merge-target { fill: rgba(153,111,205,.16); }
-.country-highlight-fill.new-country-source { fill: rgba(226,201,130,.14); }
-.country-shape.annex-editing { fill: none !important; stroke: #9ee0a9 !important; stroke-width: 2.4px !important; }
-.country-shape.annex-donor { fill: none !important; stroke: #d8b5ff !important; stroke-width: 2.6px !important; }
-.country-shape.merge-target { fill: none !important; stroke: #d8b5ff !important; stroke-width: 2.6px !important; }
-.country-shape.new-country-source { fill: none !important; stroke: #ffd77d !important; stroke-width: 2.6px !important; }
 .territory-candidate { stroke-width: 2.2px; vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: all; }
-.territory-candidate.side-a { fill: rgba(104,190,126,.30); stroke: #a8edb8; }
-.territory-candidate.side-b { fill: rgba(153,111,205,.27); stroke: #dab8ff; }
-.territory-candidate.selected-candidate { fill: rgba(104,190,126,.42); stroke: #d5ffde; stroke-width: 3.2px; opacity: 1; }
-.territory-candidate.alternate-candidate { fill: rgba(153,111,205,.16); stroke: #b998d5; opacity: .58; }
-.territory-candidate:hover { fill-opacity: .74; stroke-width: 3.2px; opacity: 1; }
 .territory-component { vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: all; }
-.territory-component.available { fill: rgba(226,201,130,.08); stroke: rgba(255,224,153,.72); stroke-width: 1.4px; }
-.territory-component.selected-component { fill: rgba(104,190,126,.42); stroke: #d5ffde; stroke-width: 3px; }
-.territory-component:hover { fill: rgba(104,190,126,.30); stroke: #d5ffde; stroke-width: 2.8px; }
-.territory-component.river-partition { fill: color-mix(in srgb, var(--map-selection-halo) 18%, transparent); stroke: color-mix(in srgb, var(--map-selection-halo) 78%, var(--text-strong)); opacity: .72; }
-.territory-component.river-partition.hovered-component { fill: color-mix(in srgb, var(--map-selection-halo) 30%, transparent); stroke-width: 3.2px; opacity: 1; }
-.territory-component.river-partition.selected-component { fill: color-mix(in srgb, var(--map-selection-halo) 42%, transparent); stroke: var(--map-selection-halo); opacity: 1; }
 
 
 .map-top-context-slot {
@@ -756,23 +722,14 @@ body.file-menu-open .mobile-backdrop {
 
 
 /* ===== v0.10.2: 매개평면 GPU 메시, QGIS 벡터 호환, 계층형 레이어 ===== */
-.country-shape.coast-editing,
-.country-shape.border-editing {
-  fill-opacity: .68 !important;
-  stroke: var(--map-border) !important;
-  stroke-width: .72px !important;
-  filter: none !important;
-  /* 국가 외곽 전체를 강조하지 않는다. 실제 편집 대상 선만 별도 레이어에서 강조한다. */
-}
-.country-highlight-fill.border-editing { fill: color-mix(in srgb, var(--accent) 18%, transparent); }
 .boundary-edit-layer { pointer-events: none; }
 .boundary-edit-segment {
   fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
   vector-effect: non-scaling-stroke;
 }
-.boundary-edit-segment.coast { stroke: #72c9ef; stroke-width: 3.4px; }
-.boundary-edit-segment.shared { stroke: var(--map-snap); stroke-width: 3.4px; stroke-dasharray: 6 3; }
-.vertex-handle.country-vertex.coast-vertex { fill: #c5efff; stroke: #256681; }
+.boundary-edit-segment.coast { stroke: var(--map-selection-halo); stroke-width: 2.5px; }
+.boundary-edit-segment.shared { stroke: var(--map-selection-halo); stroke-width: 2.5px; }
+.vertex-handle.country-vertex.coast-vertex { fill: var(--surface-elevated); stroke: var(--map-selection-halo); }
 .vertex-handle.country-vertex.shared-boundary-vertex { fill: var(--surface-elevated); stroke: var(--map-snap); }
 .vertex-handle.country-vertex.fixed-boundary-vertex { fill: var(--surface-muted, #d8dde5) !important; stroke: var(--text-muted, #6b7280) !important; stroke-dasharray: 2 1; cursor: not-allowed !important; opacity: .9; }
 body[data-layout="mobile"] .gis-country-identity-row { grid-template-columns: 1fr; }
@@ -836,11 +793,10 @@ body.is-loading .app-root { pointer-events: none; user-select: none; }
   .field-group input[type="text"]:focus,
   .field-group textarea:focus,
   .field-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(49,94,157,.12); }
-  .user-label.selected .user-label-dot { stroke: var(--map-selection-halo); }
   .vertex-handle,
-  .vertex-handle.country-vertex { fill: #dbe8f8; stroke: var(--accent-border); }
-  .draft-shape { fill: rgba(49,94,157,.14); stroke: var(--accent); }
-  .draft-vertex-dot { fill: #dbe8f8; stroke: var(--accent-border); }
+  .vertex-handle.country-vertex { fill: var(--surface-elevated); stroke: var(--map-selection-halo); }
+  .draft-shape { fill: var(--map-selection-halo); fill-opacity: var(--map-primary-fill-alpha); stroke: var(--map-selection-halo); }
+  .draft-vertex-dot { fill: var(--surface-elevated); stroke: var(--map-selection-halo); }
   .country-shape.new-country-source { stroke: var(--accent) !important; }
   .ui-progress span,
   .bootstrap-progress span { background: var(--design-status-working-dot); }
@@ -2620,35 +2576,22 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .app-root[data-layout="mobile"] .mode-action-bar { justify-content: stretch; }
 
 /* Boundary-cut feedback: shared by area, territorial, annexation, and new-country splits. */
-.draft-shape.cut-pending {
-  fill: rgba(216, 155, 50, .10) !important;
-  stroke: #d89b32 !important;
-}
-.draft-shape.cut-valid {
-  fill: rgba(66, 163, 107, .13) !important;
-  stroke: #42a36b !important;
-  stroke-dasharray: none;
-}
-.draft-shape.cut-invalid {
-  fill: rgba(212, 86, 86, .10) !important;
-  stroke: #d45656 !important;
-}
-.draft-shape.draft-invalid {
-  fill: rgba(212, 86, 86, .10) !important;
-  stroke: #d45656 !important;
-}
+.draft-shape.cut-pending { stroke: var(--map-selection-halo); fill: var(--map-selection-halo); fill-opacity: var(--map-primary-fill-alpha); }
+.draft-shape.cut-valid { stroke: var(--map-selection-halo); fill: var(--map-selection-halo); fill-opacity: var(--map-primary-fill-alpha); }
+.draft-shape.cut-invalid { stroke: var(--map-selection-halo); fill: var(--map-selection-halo); fill-opacity: var(--map-primary-fill-alpha); }
+.draft-shape.draft-invalid { stroke: var(--map-selection-halo); fill: var(--map-selection-halo); fill-opacity: var(--map-primary-fill-alpha); }
 .draft-snap-point {
   fill: var(--surface-elevated);
-  stroke: #42a36b;
+  stroke: var(--map-selection-halo);
   stroke-width: 2.5px;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
-.mode-task-instruction.cut-pending { color: #b97712; }
-.mode-task-instruction.cut-valid { color: #278653; font-weight: var(--ui-weight-semibold); }
+.mode-task-instruction.cut-pending { color: var(--text); }
+.mode-task-instruction.cut-valid { color: var(--text); font-weight: var(--ui-weight-semibold); }
 .mode-task-instruction.cut-invalid { color: #c44343; font-weight: var(--ui-weight-semibold); }
-[data-theme="dark"] .mode-task-instruction.cut-pending { color: #f0bd62; }
-[data-theme="dark"] .mode-task-instruction.cut-valid { color: #77d39a; }
+[data-theme="dark"] .mode-task-instruction.cut-pending { color: var(--text); }
+[data-theme="dark"] .mode-task-instruction.cut-valid { color: var(--text); }
 [data-theme="dark"] .mode-task-instruction.cut-invalid { color: #ff8d8d; }
 
 /* ===== PandoLab v0.19.0: shared editor shell and components ===== */
@@ -3528,3 +3471,29 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   .app-root[data-layout="mobile"] .surface-editor .sheet-close-btn { display: none; }
   .app-root[data-layout="mobile"] :is(.surface-search, .surface-display) .layer-search-results { padding-bottom: var(--ui-space-3); }
 }
+
+/* Interaction roles share the map preference tokens in every tool. */
+.territory-component, .territory-candidate, .draft-split-preview {
+  fill: var(--map-selection-halo); fill-opacity: 0;
+  stroke: var(--map-selection-halo); stroke-opacity: var(--map-candidate-stroke-alpha);
+  stroke-width: var(--map-candidate-stroke-width); vector-effect: non-scaling-stroke;
+}
+.territory-component.selected-component {
+  fill-opacity: var(--map-secondary-fill-alpha); stroke-opacity: var(--map-secondary-stroke-alpha);
+  stroke-width: var(--map-secondary-stroke-width);
+}
+.territory-component.hovered-component:not(.selected-component) {
+  fill-opacity: var(--map-hover-fill-alpha); stroke-opacity: var(--map-hover-stroke-alpha);
+  stroke-width: var(--map-hover-stroke-width);
+}
+.territory-candidate.selected-candidate {
+  fill-opacity: var(--map-primary-fill-alpha); stroke-opacity: var(--map-primary-stroke-alpha);
+  stroke-width: var(--map-primary-stroke-width);
+}
+
+.canvas-interaction-fill-proxy { fill: none !important; }
+
+.gpu-interaction-fill-proxy { fill: none !important; }
+.gpu-interaction-stroke-proxy { stroke: none !important; }
+
+.common-interaction-outline { stroke: none !important; }

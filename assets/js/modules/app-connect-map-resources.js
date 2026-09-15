@@ -51,6 +51,7 @@ export function connectMapResources({
     get viewRevision() { return mapHost.viewRevision; },
   });
   objectPresentation.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get $() { return environment.$; },
     get boundsOverlap() { return cutGeometry.boundsOverlap; },
     get builtinSubunitSourceId() { return runtime.builtinSubunitSourceId; },
@@ -207,6 +208,7 @@ export function connectMapResources({
     get state() { return projectSession.state; },
   });
   interactionPackets.connect({
+    get resolvedInteractionStyle() { return environment.resolvedInteractionStyle; },
     get $() { return environment.$; },
     get activeCutDraftSourceGeometry() { return cutGeometry.activeCutDraftSourceGeometry; },
     get createRenderSceneBuilder() { return runtime.createRenderSceneBuilder; },

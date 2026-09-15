@@ -1,3 +1,4 @@
+import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
 /** GpuScene: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -44,12 +45,18 @@ export function createGpuScene() {
     return null;
   }
 
+  const geometryTokens = new WeakMap();
+  let geometryToken = 0;
   function selectionGeometryRevision(key, role = 'outline', feature = null) {
     // Geometry revisions are advanced at the canonical mutation boundary.
     // Avoid serializing multipart geometry in the selection hot path; callers
     // still use the geometry object itself for exact rendering when a revision
     // changes.
-    void feature;
+    const geometry = feature?.geometry;
+    if (geometry) {
+      if (!geometryTokens.has(geometry)) geometryTokens.set(geometry, ++geometryToken);
+      return `${key}:${role}:${geometryTokens.get(geometry)}:${readGeometryRevision(geometry)}`;
+    }
     return `${key}:${role}:state-${dependencies.state.stateRevision}:country-${dependencies.countryLandRevision}`;
   }
 
@@ -191,6 +198,8 @@ export function createGpuScene() {
   function syncGpuInteractionState({ selectionPacket = currentSelectionPacket, interactionFillItems = dependencies.currentGpuInteractionFillItems } = {}) {
     currentSelectionPacket = selectionPacket || null;
     dependencies.currentGpuInteractionFillItems = interactionFillItems || [];
+    const activePreview = dependencies.editPreviewController.packet();
+    dependencies.currentGpuEditPreviewPackets = activePreview ? [activePreview] : [];
     dependencies.gpuMapRenderer.setInteractionState?.({
       selectionPacket: currentSelectionPacket,
       genericFillItems: dependencies.currentGpuInteractionFillItems,
@@ -206,8 +215,8 @@ export function createGpuScene() {
     dependencies.renderingDomain?.invalidateGpuInteraction?.(reason);
   }
 
-  function beginActiveEditPreview({ key, segments, style }) {
-    dependencies.editPreviewController.begin({ key, segments, style, order: 25_000 });
+  function beginActiveEditPreview({ key, segments }) {
+    dependencies.editPreviewController.begin({ key, segments, order: 25_000 });
     syncActiveEditPreview('edit-preview-start');
   }
 
@@ -243,7 +252,7 @@ export function createGpuScene() {
       if (!resourceKeys.length || (request.singleResourceOnly && resourceKeys.length !== 1)) continue;
       resourcesByObject.set(objectKey, resourceKeys);
       for (const key of resourceKeys) {
-        items.push({ key, style: request.style, blendMode: 'normal' });
+        items.push({ key, priority: request.priority || 2, depth: request.depth || 0, objectKey, style: request.style, blendMode: 'normal' });
       }
     }
     return { items, resourcesByObject };
@@ -263,6 +272,8 @@ export function createGpuScene() {
   }
 
   function applyGpuInteractionCoverage(frameResult) {
+    const canvasFills = ['canvas-worker', 'canvas2d'].includes(dependencies.gpuMapRenderer.getRuntimeState?.()?.renderer);
+    dependencies.interactionSvg?.selectAll?.('[data-gpu-interaction-fill-keys]')?.classed('canvas-interaction-fill-proxy', canvasFills);
     const webGlReady = ['webgl2', 'webgl1'].includes(dependencies.gpuMapRenderer.getRuntimeState?.()?.renderer);
     const results = [
       ...(frameResult?.interactionResult?.previewResults || []),
@@ -270,10 +281,14 @@ export function createGpuScene() {
     ];
     const rendered = new Set(results.flatMap(result => result?.renderedKeys || []));
     const missing = new Set(results.flatMap(result => result?.missingKeys || []));
-    dependencies.interactionSvg?.selectAll?.('[data-gpu-interaction-keys]')?.classed('gpu-interaction-hit-proxy', function() {
-      const keys = String(this.getAttribute('data-gpu-interaction-keys') || '').split(/\s+/).filter(Boolean);
+    const covered = (node, channel) => {
+      const keys = String(node.getAttribute(`data-gpu-interaction-${channel}-keys`) || '').split(/\s+/).filter(Boolean);
       return webGlReady && keys.length > 0 && keys.every(key => rendered.has(key) && !missing.has(key));
-    });
+    };
+    dependencies.interactionSvg?.selectAll?.('[data-gpu-interaction-keys]')
+      ?.classed('gpu-interaction-hit-proxy', false)
+      .classed('gpu-interaction-fill-proxy', function() { return covered(this, 'fill'); })
+      .classed('gpu-interaction-stroke-proxy', function() { return covered(this, 'stroke'); });
   }
 
   function setMapHover(type, id, feature, ref = null) {
@@ -281,9 +296,9 @@ export function createGpuScene() {
     void type;
     void id;
     const nextRef = feature?.geometry ? (0, dependencies.normalizeObjectRef)(ref) : null;
-    if ((dependencies.selectionDomain.snapshot().hover?.key || '') === (nextRef?.key || '')) return;
+
     dependencies.lastHoverHit = nextRef ? { ref: nextRef, feature } : null;
-    dependencies.selectionDomain.setHover(nextRef);
+    dependencies.selectionDomain.setHover(nextRef, { source: 'map', expectedKey: !feature && ref ? (0, dependencies.normalizeObjectRef)(ref)?.key : '' });
   }
 
   function initializeSelectionPass() {

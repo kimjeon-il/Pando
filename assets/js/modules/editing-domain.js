@@ -1,3 +1,4 @@
+import { touchGeometry } from './geometry-versions.js';
 import {
   createDraftEditState,
   deleteDraftVertex,
@@ -109,6 +110,7 @@ function editableVertices(feature) {
 }
 
 function setEditableVertex(feature, vertex, value) {
+  touchGeometry(feature.geometry);
   const next = cloneCoordinate(value);
   const type = feature?.geometry?.type;
   if (type === 'LineString') feature.geometry.coordinates[vertex.index] = next;
@@ -173,6 +175,7 @@ export function createEditingDomain({
   let pendingMove = null;
   let pendingMoveFrame = 0;
   let snapshotCache = null;
+  let draftPreparationEpoch = 0;
 
   const tool = toolController || {};
   const services = draftServices || {};
@@ -220,6 +223,7 @@ export function createEditingDomain({
   };
 
   const refreshDerivedState = ({ buildPreview = false } = {}) => {
+    const preparationEpoch = ++draftPreparationEpoch;
     const assessment = services.assessDraft?.({
       tool: activeTool,
       coords: cloneCoordinates(draftCoords),
@@ -227,6 +231,23 @@ export function createEditingDomain({
       buildPreview,
       revision: draftEdit.revision,
     }) || null;
+    if (assessment?.then) {
+      const expectedDraft = draftEdit, expectedRevision = draftEdit.revision, expectedTool = activeTool, expectedGeneration = projectGeneration;
+      draftCutAssessment = { status: 'pending', valid: false, issues: [], message: '경계선을 계산하고 있습니다.' };
+      draftEdit.splitPreview = null;
+      assessment.then(result => {
+        if (disposed || preparationEpoch !== draftPreparationEpoch || expectedDraft !== draftEdit || !draftCoords.length || expectedRevision !== draftEdit.revision || expectedTool !== activeTool || expectedGeneration !== projectGeneration) return;
+        draftCutAssessment = result;
+        draftEdit.issues = result?.issues || [];
+        draftEdit.splitPreview = result?.split ? { revision: expectedRevision, candidates: result.split.candidates } : null;
+        emit('cut-preparation-ready');
+      }).catch(error => {
+        if (disposed || preparationEpoch !== draftPreparationEpoch || expectedDraft !== draftEdit || !draftCoords.length || expectedRevision !== draftEdit.revision || expectedTool !== activeTool || expectedGeneration !== projectGeneration) return;
+        draftCutAssessment = { status: 'invalid', valid: false, issues: [], message: error.message };
+        emit('cut-preparation-failed');
+      });
+      return draftCutAssessment;
+    }
     draftCutAssessment = assessment?.cutAssessment || assessment || null;
     draftEdit.issues = [...(assessment?.issues
       || draftCutAssessment?.issues
@@ -467,6 +488,8 @@ export function createEditingDomain({
 
   const clearDraft = (options = {}) => {
     active();
+    services.cancelPreparation?.();
+    draftPreparationEpoch += 1;
     const normalizedOptions = typeof options === 'boolean'
       ? { render: options }
       : (options || {});
@@ -643,7 +666,9 @@ export function createEditingDomain({
     if (type.endsWith('-drag-start')) return beginGesture(value);
     if (type.endsWith('-drag-move')) return queueGestureMove(value);
     if (type.endsWith('-drag-end')) return endGesture(value);
-    if (Number(value.projectGeneration) !== projectGeneration || Number(value.packetRevision) !== revision) return false;
+    if (Number(value.projectGeneration) !== projectGeneration) return false;
+    // Display-only hover emissions must not discard a click on the same prepared source.
+    if (Number(value.packetRevision) !== revision && !(type.startsWith('territory-component-') && value.territorySourceKey)) return false;
     if (type === 'draft-segment-hover' || type === 'draft-segment-insert') {
       if (!draftInputActive() || draftStroke.active || services.isSpacePanActive?.()) return false;
       if (type === 'draft-segment-insert' && !draftEdit.vertexInsertMode) return false;
@@ -710,6 +735,8 @@ export function createEditingDomain({
         : [],
     } : supplemental.objectVertices;
     packet = createEditingRenderPacket({
+      boundaryActiveNodeKey: activeGesture?.session?.kind === 'boundary' ? activeGesture.vertexKey : null,
+      boundaryActiveCoordinate: activeGesture?.session?.kind === 'boundary' ? activeGesture.session.coordinate : null,
       revision,
       projectGeneration,
       tool: activeTool,

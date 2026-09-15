@@ -20,6 +20,28 @@ const {
 } = self.PandoLabCountryGeometry;
 
 const countries = new Map();
+const editSources = new Map();
+const cutSources = new Map();
+const validatedPreviews = new Map();
+let sourceRevision = 0;
+let previewSequence = 0;
+function syncEditSources(patch) {
+  for (const key of patch.removedKeys || []) editSources.delete(key);
+  for (const row of patch.patches || []) {
+    const geometry = Object.hasOwn(row, 'geometry') ? row.geometry : editSources.get(row.key)?.feature.geometry;
+    editSources.set(row.key, { kind: row.kind, feature: { ...row.metadata, geometry } });
+  }
+  if (sourceRevision !== patch.sourceRevision) validatedPreviews.clear();
+  sourceRevision = patch.sourceRevision;
+}
+function sourceFeatures(kind) {
+  return [...editSources.values()].filter(row => row.kind === kind).map(row => row.feature);
+}
+const boundaryFeatures = new Map();
+let boundaryService = null;
+let displayService = null;
+let coastTopologyCache = null;
+let coastResultCache = new WeakMap();
 const pendingResults = new Map();
 const cancelled = new Set();
 let currentDataRevision = 0;
@@ -68,7 +90,9 @@ function area(value) {
   ), 0);
 }
 
+const geometryBoundsCache = new WeakMap();
 function geometryBounds(geometry) {
+  if (geometry && geometryBoundsCache.has(geometry)) return geometryBoundsCache.get(geometry);
   const bounds = [Infinity, Infinity, -Infinity, -Infinity];
   const visit = value => {
     if (!Array.isArray(value)) return;
@@ -80,6 +104,7 @@ function geometryBounds(geometry) {
     value.forEach(visit);
   };
   visit(geometry?.coordinates);
+  if (geometry) geometryBoundsCache.set(geometry, bounds);
   return bounds;
 }
 
@@ -408,7 +433,14 @@ function executeNewCountry(message, working) {
 self.onmessage = async event => {
   const message = event.data || {};
   try {
+    if (message.type === 'edit-sync') { syncEditSources(message); return; }
     if (message.type === 'rebase') {
+      displayService = null; cutSources.clear(); coastTopologyCache = null; coastResultCache = new WeakMap();
+      editSources.clear(); validatedPreviews.clear();
+      syncEditSources(message.editSources || { patches: [], sourceRevision: 0 });
+      boundaryService = null;
+      boundaryFeatures.clear();
+      for (const feature of message.boundaryFeatures || message.features || []) boundaryFeatures.set(featureId(feature), feature);
       countries.clear();
       for (const feature of message.features || []) countries.set(featureId(feature), feature);
       pendingResults.clear();
@@ -421,8 +453,14 @@ self.onmessage = async event => {
       });
       return;
     }
+    if (message.type === 'boundary-invalidate') { boundaryService = null; return; }
+    if (message.type === 'boundary-sync') {
+      applyPatch(boundaryFeatures, message.features || [], message.removedIds || []);
+      return;
+    }
     if (message.type === 'sync-patch') {
       if (Number(message.dataRevision || 0) < currentDataRevision) return;
+      if (message.editSources) syncEditSources(message.editSources);
       applyPatch(countries, message.features || [], message.removedIds || []);
       currentDataRevision = Number(message.dataRevision || currentDataRevision);
       return;
@@ -448,10 +486,26 @@ self.onmessage = async event => {
     if (Number(message.dataRevision || 0) !== currentDataRevision || cancelled.has(Number(message.requestId))) {
       throw new Error('CANCELLED');
     }
-    const readOnly = ['territory-components', 'territory-selection', 'territory-slivers'].includes(message.operation);
+    const boundaryOperation = message.operation === 'boundary-prepare' || message.operation === 'boundary-move';
+    const componentOperation = ['territory-components', 'territory-selection', 'territory-slivers'].includes(message.operation);
+    const readOnly = boundaryOperation || componentOperation || message.operation.startsWith('territorial-');
+    if (message.sourceRevision != null && message.sourceRevision !== sourceRevision) throw new Error('CANCELLED');
     const working = readOnly ? null : new Map(countries);
     let result;
-    if (readOnly) {
+    if (boundaryOperation) {
+      if (!boundaryService) {
+        const { createBoundaryPreparation } = await import(versionedWorkerAssetUrl('../modules/boundary-preparation.js'));
+        boundaryService ||= createBoundaryPreparation();
+      }
+      const service = boundaryService;
+      let lastYield = performance.now();
+      const checkpoint = async () => {
+        if (performance.now() - lastYield >= 8) { await new Promise(resolve => setTimeout(resolve, 0)); lastYield = performance.now(); }
+        if (service !== boundaryService || cancelled.has(Number(message.requestId)) || Number(message.dataRevision) !== currentDataRevision) throw new Error('CANCELLED');
+      };
+      await service.sync([...boundaryFeatures.values()], checkpoint);
+      result = message.operation === 'boundary-prepare' ? await service.prepare(message.payload, checkpoint) : service.move(message.payload);
+    } else if (componentOperation) {
       const { createTerritoryComponentPlan } = await import(versionedWorkerAssetUrl('../modules/territory-component-plan.js'));
       let lastYield = performance.now();
       const plan = createTerritoryComponentPlan({ clipper: self.polygonClipping, normalize: normalizeCountryGeometry,
@@ -466,26 +520,236 @@ self.onmessage = async event => {
       const method = message.operation === 'territory-components' ? 'prepare'
         : message.operation === 'territory-selection' ? 'selection' : 'slivers';
       result = await plan[method](message.payload);
+    } else if (message.operation === 'territorial-library-batch') {
+      const [{ createCountryImportMergePlanner }, { validateCollection }, { geometryAreaKm2 }] = await Promise.all([
+        import(versionedWorkerAssetUrl('../modules/import-service.js')),
+        import(versionedWorkerAssetUrl('../modules/gis-geometry-validation.js')),
+        import(versionedWorkerAssetUrl('../modules/geometry-metrics.js')),
+      ]);
+      const planner = createCountryImportMergePlanner({ clipper: self.polygonClipping, clone: structuredClone,
+        featureCountryId: featureId, countryName: feature => feature.properties?.name || featureId(feature),
+        geometryBounds, boundsOverlap, normalizeGeometry: normalizeCountryGeometry, geometryCoordinates: multiCoordinates,
+        planarArea: area, areaKm2: geometryAreaKm2, validateCountryCollection: () => ({ overlapAreaKm2: 0 }) });
+      const originals = sourceFeatures('country');
+      let draft = { type: 'FeatureCollection', features: originals };
+      const affected = new Set(), donors = new Set(), transfers = [], impacts = [];
+      let deleted = 0;
+      const merge = async (feature, geometry = feature.geometry) => {
+        const plan = await planner(draft, { type: 'FeatureCollection', features: [feature] }, 'territory-replacement');
+        for (const id of plan.affectedIds) {
+          if (editSources.get(`country:${id}`)?.feature.properties?.locked) throw new Error(`${id}: 잠긴 국가의 영토를 변경할 수 없습니다.`);
+          affected.add(id);
+        }
+        for (const id of plan.donorIds) {
+          donors.add(id);
+          const before = draft.features.find(item => featureId(item) === id), after = plan.countriesData.features.find(item => featureId(item) === id);
+          impacts.push({ id, name: before.properties?.name || id, area: geometryAreaKm2(before.geometry) - geometryAreaKm2(after?.geometry), deleted: !after });
+        }
+        deleted += plan.counts.deleted;
+        transfers.push({ targetId: featureId(feature), geometry, donorIds: plan.donorIds });
+        draft = plan.countriesData;
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (message.sourceRevision !== sourceRevision || cancelled.has(Number(message.requestId))) throw new Error('CANCELLED');
+      };
+      for (const feature of message.payload.countries) await merge(feature);
+      const units = message.payload.units, unitIds = new Set(units.map(featureId)), groups = new Map();
+      for (const unit of units.filter(unit => unit.properties.unitType === 'subunit' && !unitIds.has(String(unit.properties.parentId)))) {
+        const id = String(unit.properties.sovereignId);
+        if (!groups.has(id)) groups.set(id, []);
+        groups.get(id).push(unit.geometry);
+      }
+      for (const [id, geometries] of groups) {
+        const owner = draft.features.find(feature => featureId(feature) === id);
+        if (!owner) throw new Error('소속 국가가 영토 변경으로 사라집니다. 소속을 다시 선택하세요.');
+        const geometry = normalizeCountryGeometry(self.polygonClipping.union(...geometries.map(multiCoordinates)));
+        if (!self.polygonClipping.difference(multiCoordinates(geometry), multiCoordinates(owner.geometry)).length) continue;
+        impacts.push({ id, name: owner.properties?.name || id, expansion: true });
+        await merge({ ...owner, geometry: normalizeCountryGeometry(self.polygonClipping.union(multiCoordinates(owner.geometry), multiCoordinates(geometry))) }, geometry);
+      }
+      const byId = new Map([...draft.features, ...sourceFeatures('territorial'), ...units].map(feature => [featureId(feature), feature]));
+      for (const unit of units.filter(unit => unit.properties.unitType === 'subunit')) {
+        const parent = byId.get(String(unit.properties.parentId));
+        if (!parent || !draft.features.some(country => featureId(country) === String(unit.properties.sovereignId))
+          || self.polygonClipping.difference(multiCoordinates(unit.geometry), multiCoordinates(parent.geometry)).length) throw new Error(`${unit.properties.name}: 상위 단위에 포함되지 않습니다.`);
+      }
+      if (validateCollection(draft, [...affected]).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
+      const kept = new Set(draft.features.map(featureId));
+      result = { features: draft.features.filter(feature => affected.has(featureId(feature))), removedIds: originals.filter(feature => !kept.has(featureId(feature))).map(featureId),
+        affectedIds: [...affected], transfers, impacts, donorIds: [...donors], deleted };
+    } else if (message.operation === 'territorial-preview') {
+      const [{ buildGeometryPreview }, { validateGeometry }] = await Promise.all([
+        import(versionedWorkerAssetUrl('../modules/geometry-preview.js')),
+        import(versionedWorkerAssetUrl('../modules/geometry-validation.js')),
+      ]);
+      const { beforeIds = [], afterFeatures = [], removedIds = [], operation, transferredGeometry } = message.payload;
+      const beforeFeatures = beforeIds.map(id => editSources.get(`territorial:${id}`)?.feature || editSources.get(`generic:${id}`)?.feature).filter(Boolean);
+      if (beforeFeatures.length !== beforeIds.length || beforeFeatures.some(feature => feature.properties?.locked)) throw new Error('편집 대상이 변경되었거나 잠겨 있습니다.');
+      const issues = afterFeatures.flatMap(validateGeometry);
+      result = buildGeometryPreview({ operation, beforeFeatures, afterFeatures, removedIds, transferredGeometry, clipper: self.polygonClipping });
+      result.validation = { issues, blocking: issues.some(issue => issue.severity !== 'warning') };
+      result.preparationId = `preview:${++previewSequence}`;
+      if (!result.validation.blocking) {
+        validatedPreviews.set(result.preparationId, { sourceRevision });
+        while (validatedPreviews.size > 8) validatedPreviews.delete(validatedPreviews.keys().next().value);
+      }
+    } else if (message.operation === 'territorial-region-merge') {
+      const { createTerritorialGeometryKernel } = await import(versionedWorkerAssetUrl('../modules/territorial-geometry.js'));
+      const source = editSources.get(`territorial:${message.payload.targetId}`)?.feature;
+      const targets = message.payload.targetIds.map(id => editSources.get(`territorial:${id}`)?.feature);
+      if (!source || targets.some(feature => !feature) || [source, ...targets].some(feature => feature.properties?.locked || feature.properties?.unitType !== 'region')) throw new Error('합칠 지방이 변경되었거나 잠겨 있습니다.');
+      result = createTerritorialGeometryKernel(self.polygonClipping).mergeUnits(source, targets);
+    } else if (message.operation === 'territorial-region-redraw') {
+      const { targetId, containerId, siblingIds, draft } = message.payload;
+      const source = editSources.get(`territorial:${targetId}`)?.feature;
+      const container = editSources.get(`territorial:${containerId}`)?.feature || editSources.get(`country:${containerId}`)?.feature;
+      if (!source || !container || source.properties?.locked || source.properties?.unitType !== 'region') throw new Error('지방 편집 대상이 변경되었습니다.');
+      const geometry = normalizeCountryGeometry({ type: 'MultiPolygon', coordinates: self.polygonClipping.intersection(draft.coordinates, container.geometry.coordinates) });
+      if (!geometry) throw new Error('그린 영역이 상위 영역 안에 없습니다.');
+      for (const id of siblingIds) {
+        const sibling = editSources.get(`territorial:${id}`)?.feature;
+        if (!sibling) throw new Error('다른 지방이 변경되었습니다.');
+        if (area(self.polygonClipping.intersection(geometry.coordinates, sibling.geometry.coordinates)) > 1e-9) throw new Error('다른 지방과 영역이 겹칩니다.');
+      }
+      result = { feature: { ...source, geometry } };
+    } else if (message.operation === 'territorial-drawn') {
+      const { validateGeometry } = await import(versionedWorkerAssetUrl('../modules/geometry-validation.js'));
+      const draft = normalizeCountryGeometry(message.payload.draft);
+      if (!draft) throw new Error('그린 영역을 닫힌 Polygon으로 만들 수 없습니다.');
+      const issues = validateGeometry({ type: 'Feature', id: 'draft', properties: {}, geometry: draft });
+      if (issues.length) throw new Error(issues[0].message);
+      const source = message.payload.source;
+      const geometry = source ? normalizeCountryGeometry({ type: 'MultiPolygon', coordinates: self.polygonClipping.intersection(multiCoordinates(draft), multiCoordinates(source)) }) : draft;
+      if (!geometry) throw new Error('그린 영역이 기준 영역 안에 없습니다.');
+      result = { geometry };
+    } else if (message.operation === 'territorial-snap') {
+      const { geometrySegmentIndex } = await import(versionedWorkerAssetUrl('../modules/geometry-segment-index.js'));
+      const { coordinate, margin, activeOwnerIds = [], sourceKey, source } = message.payload;
+      if (source) cutSources.set(sourceKey, source);
+      const sourceGeometry = cutSources.get(sourceKey);
+      if (sourceKey && !sourceGeometry) throw new Error('스냅 원본을 다시 준비하세요.');
+      while (cutSources.size > 8) cutSources.delete(cutSources.keys().next().value);
+      const bounds = [coordinate[0] - margin, coordinate[1] - margin, coordinate[0] + margin, coordinate[1] + margin];
+      const candidates = [], seenVertices = new Set();
+      const active = new Set(activeOwnerIds);
+      const features = [...editSources.values()].filter(row => ['country', 'territorial', 'generic'].includes(row.kind)).map(row => row.feature);
+      if (sourceGeometry) features.push({ id: sourceKey, geometry: sourceGeometry });
+      for (const feature of features) {
+        if (!['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)) continue;
+        const featureBounds = geometryBounds(feature.geometry);
+        const wrapsLongitude = featureBounds && featureBounds[2] - featureBounds[0] > 180;
+        if (wrapsLongitude) {
+          if (featureBounds[3] < bounds[1] || featureBounds[1] > bounds[3]) continue;
+        } else if (![-360, 0, 360].some(shift => boundsOverlap([bounds[0] + shift, bounds[1], bounds[2] + shift, bounds[3]], featureBounds))) continue;
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (message.sourceRevision !== sourceRevision || cancelled.has(Number(message.requestId))) throw new Error('CANCELLED');
+        const ownerIds = feature.id === sourceKey ? activeOwnerIds : [featureId(feature)];
+        for (const edge of geometrySegmentIndex(feature.geometry).query(bounds)) {
+          for (const vertex of [edge.a, edge.b]) {
+            const nodeKey = vertex.map(value => Number(value).toFixed(7)).join(',');
+            if (seenVertices.has(nodeKey)) continue;
+            seenVertices.add(nodeKey);
+            candidates.push({ kind: 'vertex', coordinate: vertex, ownerIds, nodeKey });
+          }
+          candidates.push({ kind: feature.id === sourceKey ? 'boundary' : active.size && !active.has(featureId(feature)) ? 'neighbor' : 'edge',
+            a: edge.a, b: edge.b, ownerIds, segmentKey: `${feature.id}:${edge.polygonIndex}:${edge.ringIndex}:${edge.segmentIndex}` });
+        }
+      }
+      const [{ createCutGeometry }, { createCountryValidation }, { createBoundarySpatialIndex, segmentBounds }] = await Promise.all([
+        import(versionedWorkerAssetUrl('../modules/app-cut-geometry.js')),
+        import(versionedWorkerAssetUrl('../modules/app-country-validation.js')),
+        import(versionedWorkerAssetUrl('../modules/boundary-spatial-index.js')),
+      ]);
+      const cut = createCutGeometry(), validation = createCountryValidation();
+      cut.connect({ clamp: (v, min, max) => Math.max(min, Math.min(max, v)), interpolateCoordinate: validation.interpolateCoordinate });
+      const edges = candidates.filter(candidate => candidate.a && candidate.b);
+      const index = createBoundarySpatialIndex();
+      edges.forEach((edge, id) => index.insert(id, { edge, id }, segmentBounds(edge)));
+      for (const [id, edge] of edges.entries()) for (const other of index.query(segmentBounds(edge))) {
+        if (other.id <= id || edge.segmentKey === other.edge.segmentKey) continue;
+        const hit = cut.segmentIntersectionDetail(edge.a, edge.b, other.edge.a, other.edge.b);
+        if (!hit || hit.overlap || hit.lineT <= 1e-7 || hit.lineT >= 1 - 1e-7 || hit.boundaryT <= 1e-7 || hit.boundaryT >= 1 - 1e-7) continue;
+        candidates.push({ kind: 'intersection', coordinate: hit.coord, ownerIds: [...new Set([...edge.ownerIds, ...other.edge.ownerIds])] });
+      }
+      result = { candidates };
+    } else if (message.operation === 'territorial-cut') {
+      if (!self.d3) importScripts(versionedWorkerAssetUrl('../vendor/d3.min.js'));
+      if (message.payload.source) cutSources.set(message.payload.sourceKey, message.payload.source);
+      const source = cutSources.get(message.payload.sourceKey);
+      if (!source) throw new Error('분할 원본을 다시 준비하세요.');
+      while (cutSources.size > 8) cutSources.delete(cutSources.keys().next().value);
+      const { prepareCutInWorker } = await import(versionedWorkerAssetUrl('../modules/cut-worker-preparation.js'));
+      result = prepareCutInWorker({ ...message.payload, source }, self.PandoLabCountryGeometry, self.d3, self.polygonClipping);
+    } else if (message.operation === 'territorial-display') {
+      const { createEditDisplayPreparation } = await import(versionedWorkerAssetUrl('../modules/edit-display-preparation.js'));
+      displayService ||= createEditDisplayPreparation();
+      const service = displayService;
+      result = await service.prepare(message.payload, sourceFeatures('country'), sourceFeatures('territorial'), async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (service !== displayService || message.sourceRevision !== sourceRevision || cancelled.has(Number(message.requestId))) throw new Error('CANCELLED');
+      }, key => editSources.get(key)?.feature);
+    } else if (message.operation === 'territorial-land-clip') {
+      const feature = editSources.get(`generic:${message.payload.targetId}`)?.feature;
+      if (!feature) throw new Error('영역 객체를 찾을 수 없습니다.');
+      const ownerId = String(feature.properties?.ownerId || '');
+      const owner = editSources.get(`country:${ownerId}`)?.feature;
+      const bounds = geometryBounds(feature.geometry);
+      const nearby = owner ? [owner] : sourceFeatures('country');
+      const pieces = [];
+      for (const country of nearby) {
+        if (!boundsOverlap(bounds, geometryBounds(country.geometry))) continue;
+        pieces.push(...self.polygonClipping.intersection(multiCoordinates(feature.geometry), multiCoordinates(country.geometry)));
+      }
+      result = { geometry: normalizeCountryGeometry(pieces) };
+    } else if (message.operation === 'territorial-parents') {
+      const feature = editSources.get(`territorial:${message.payload.targetId}`)?.feature;
+      if (!feature) throw new Error('하위단위를 찾을 수 없습니다.');
+      result = { ids: (message.payload.candidateIds || []).filter(id => {
+        const parent = editSources.get(`territorial:${id}`)?.feature || editSources.get(`country:${id}`)?.feature;
+        return parent?.geometry && self.polygonClipping.difference(multiCoordinates(feature.geometry), multiCoordinates(parent.geometry)).length === 0;
+      }) };
+    } else if (message.operation === 'territorial-validation') {
+      const receipt = validatedPreviews.get(message.payload.preparationId);
+      if (!receipt || receipt.sourceRevision !== sourceRevision) throw new Error('미리보기 원본이 변경되었습니다. 다시 계산하세요.');
+      result = { valid: true, preparationId: message.payload.preparationId, sourceRevision };
     } else if (message.operation === 'territorial-coast-availability') {
+      if (message.payload.unitId) message.payload = { countries: sourceFeatures('country'),
+        unit: editSources.get(`territorial:${message.payload.unitId}`)?.feature };
+      if (!message.payload.unit) throw new Error('하위단위를 찾을 수 없습니다.');
       const [{ buildBoundaryTopology }, { analyzeAdminCountryCoast }] = await Promise.all([
         import(versionedWorkerAssetUrl('../modules/boundary-topology.js')),
         import(versionedWorkerAssetUrl('../modules/coast-reconciliation.js')),
       ]);
-      const countryTopology = buildBoundaryTopology(message.payload.countries);
+      const coastCountries = message.payload.countries;
+      if (!coastTopologyCache || coastTopologyCache.geometries.length !== coastCountries.length || coastCountries.some((feature, index) => coastTopologyCache.geometries[index] !== feature.geometry)) {
+        coastTopologyCache = { geometries: coastCountries.map(feature => feature.geometry), topology: buildBoundaryTopology(coastCountries) };
+        coastResultCache = new WeakMap();
+      }
+      const countryTopology = coastTopologyCache.topology;
       const country = message.payload.countries.find(feature => featureId(feature) === String(message.payload.unit.properties.sovereignId));
+      const coastCached = coastResultCache.get(message.payload.unit.geometry);
+      if (coastCached?.countryId === featureId(country)) result = coastCached.result;
+      else {
       const kernel = self.PandoLabTerritorialEdit.createKernel(self.polygonClipping);
       const coastal = [...countryTopology.segments.values()].some(segment => segment.kind === 'coast'
         && segment.ownerIds.has(featureId(country)) && kernel.adjacent(message.payload.unit.geometry,
           { type: 'Polygon', coordinates: [[segment.a, segment.b]] }));
       const analysis = analyzeAdminCountryCoast({ adminFeature: message.payload.unit, countryFeature: country, countryTopology });
       result = { coastal, reconciliation: analysis.status !== 'unavailable' && !!analysis.conflicts?.length };
+        coastResultCache.set(message.payload.unit.geometry, { countryId: featureId(country), result });
+      }
     } else if (message.operation === 'territorial-source') {
-      const { parent, children } = message.payload;
+      const { parent, children } = message.payload.parentId ? {
+        parent: editSources.get(`territorial:${message.payload.parentId}`)?.feature || editSources.get(`country:${message.payload.parentId}`)?.feature,
+        children: sourceFeatures('territorial').filter(feature => String(feature.properties?.parentId) === String(message.payload.parentId) && feature.properties?.unitType === 'subunit'),
+      } : message.payload;
+      if (!parent) throw new Error('상위 단위를 찾을 수 없습니다.');
       const occupied = children.length ? self.polygonClipping.union(...children.map(feature => multiCoordinates(feature.geometry))) : [];
       result = { geometry: normalizeCountryGeometry({ type: 'MultiPolygon', coordinates: occupied.length
         ? self.polygonClipping.difference(multiCoordinates(parent.geometry), occupied) : multiCoordinates(parent.geometry) }) };
     } else result = message.operation === 'territorial-edit'
-      ? self.PandoLabTerritorialEdit.createKernel(self.polygonClipping).plan(message.payload)
+      ? self.PandoLabTerritorialEdit.createKernel(self.polygonClipping, { normalize: normalizeCountryGeometry,
+        segmentCandidates: (await import(versionedWorkerAssetUrl('../modules/geometry-segment-index.js'))).territorialSegmentCandidates }).plan({ ...message.payload,
+        countries: sourceFeatures('country'), units: sourceFeatures('territorial') })
       : message.operation === 'merge'
       ? executeMerge(message, working)
       : message.operation === 'new-country'
@@ -494,7 +758,36 @@ self.onmessage = async event => {
           ? executeAnnexBatch(message, working)
           : executeAnnex(message, working);
     if (message.operation === 'territorial-edit') {
-      result.features = result.features.map(feature => ({ ...feature, geometry: normalizeCountryGeometry(feature.geometry) }));
+      const [{ buildGeometryPreview }, { validateGeometry }] = await Promise.all([
+        import(versionedWorkerAssetUrl('../modules/geometry-preview.js')),
+        import(versionedWorkerAssetUrl('../modules/geometry-validation.js')),
+      ]);
+      if (message.sourceRevision !== sourceRevision) throw new Error('CANCELLED');
+      const beforeFeatures = [...sourceFeatures('country'), ...sourceFeatures('territorial')].filter(feature => result.affectedIds.includes(featureId(feature)));
+      const issues = result.features.flatMap(validateGeometry);
+      result.preview = buildGeometryPreview({ operation: `territorial-${message.payload.operation}`, beforeFeatures,
+        afterFeatures: result.features, removedIds: result.removedIds, clipper: self.polygonClipping });
+      result.preview.validation = { issues, blocking: issues.some(issue => issue.severity !== 'warning') };
+      result.preparationId = `territorial:${currentDataRevision}:${++previewSequence}`;
+      if (!result.preview.validation.blocking && !result.impacts.some(impact => impact.kind === 'coast-owner')) {
+        validatedPreviews.set(result.preparationId, { sourceRevision });
+        while (validatedPreviews.size > 8) validatedPreviews.delete(validatedPreviews.keys().next().value);
+      }
+    }
+    if (!readOnly) {
+      const [{ buildGeometryPreview }, { validateTerritorialGeometry }] = await Promise.all([
+        import(versionedWorkerAssetUrl('../modules/geometry-preview.js')),
+        import(versionedWorkerAssetUrl('../modules/geometry-validation.js')),
+      ]);
+      const affectedIds = new Set(result.affectedIds.map(String));
+      const before = [...countries.values()], after = [...working.values()];
+      const issueKey = issue => `${issue.kind}:${[...(issue.entityRefs || [])].sort().join('|')}`;
+      const baseline = new Set(validateTerritorialGeometry(before, { clipper: self.polygonClipping, affectedIds }).map(issueKey));
+      const issues = validateTerritorialGeometry(after, { clipper: self.polygonClipping, affectedIds }).filter(issue => !baseline.has(issueKey(issue)));
+      result.preview = buildGeometryPreview({ operation: message.operation, beforeFeatures: before.filter(feature => affectedIds.has(featureId(feature))),
+        afterFeatures: result.features, removedIds: result.removedIds, clipper: self.polygonClipping,
+        transferredGeometry: result.transferredGeometry || message.previewTransferredGeometry });
+      result.preview.validation = { issues, blocking: issues.some(issue => issue.severity !== 'warning') };
     }
     if (Number(message.dataRevision || 0) !== currentDataRevision) throw new Error('CANCELLED');
     if (cancelled.has(Number(message.requestId))) throw new Error('CANCELLED');

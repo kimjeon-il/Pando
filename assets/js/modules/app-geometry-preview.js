@@ -1,3 +1,5 @@
+import { touchGeometry } from './geometry-versions.js';
+import { adoptBoundaryRenderPacketAsync } from './editing-render-packet.js';
 /** GeometryPreview: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -10,6 +12,8 @@ export function createGeometryPreview() {
   let boundarySelectionAnalysisMetrics;
   let activeGeometryPreviewApply;
   let activeGeometryPreviewDiscard;
+  let localPreparationEpoch = 0;
+  let localPreparationPending = false;
   function connect(ports) {
     if (dependencies) throw new Error('geometry-preview already connected');
     dependencies = ports;
@@ -67,6 +71,7 @@ export function createGeometryPreview() {
   function setCountryVertexCoord(feature, vertex, coord) {
     const ring = countryRingForVertex(feature, vertex);
     if (!ring || vertex.index < 0 || vertex.index >= ring.length - 1) return false;
+    touchGeometry(feature.geometry);
     // 배열 객체를 교체하지 않고 값만 바꿔 토폴로지 세그먼트 참조가 드래그 중에도 유지되게 한다.
     ring[vertex.index][0] = coord[0];
     ring[vertex.index][1] = coord[1];
@@ -81,10 +86,7 @@ export function createGeometryPreview() {
     return `${Number(coord?.[0] || 0).toFixed(precision)},${Number(coord?.[1] || 0).toFixed(precision)}`;
   }
 
-  function edgeKey(a, b, precision = 7) {
-    const ka = coordKey(a, precision), kb = coordKey(b, precision);
-    return ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
-  }
+
 
   function coordNear(a, b, tolerance = 0.00008) {
     if (!a || !b) return false;
@@ -93,105 +95,119 @@ export function createGeometryPreview() {
     return dx <= tolerance && Math.abs(a[1] - b[1]) <= tolerance;
   }
 
-  function rebuildBoundaryTopology(targetCountryIds = dependencies.state.coastEditCountryId) {
-    const edges = new Map();
-    const nodes = new Map();
-    const targetIds = [...new Set((Array.isArray(targetCountryIds) ? targetCountryIds : [targetCountryIds]).map(String).filter(Boolean))];
-    const unitById = id => dependencies.state.territorialUnits.find(unit => String(unit.id) === String(id));
-    const targets = targetIds.map(id => (0, dependencies.countryFeatureById)(id) || unitById(id)).filter(Boolean);
-    if (!targets.length) {
-      dependencies.state.boundaryTopology = { edges, nodes };
-      dependencies.state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
-      return;
-    }
-    const margin = 0.0002;
-    const nearby = new Map();
-    for (const target of targets) {
-      const targetBounds = (0, dependencies.geometryBounds)(target.geometry);
-      const queryBounds = [targetBounds[0] - margin, targetBounds[1] - margin, targetBounds[2] + margin, targetBounds[3] + margin];
-      for (const feature of (0, dependencies.spatialFeatures)(queryBounds)) nearby.set(String(feature?.id || ''), feature);
-    }
-    const unitTarget = targets.find(feature => feature.properties?.unitType === 'subunit');
-    const features = unitTarget ? dependencies.state.territorialUnits.filter(unit => unit.properties?.unitType === 'subunit'
-      && unit.properties.parentId === unitTarget.properties.parentId && unit.properties.sovereignId === unitTarget.properties.sovereignId) : [...nearby.values()];
-
-    for (const feature of features) {
-      const countryId = String(feature?.id || '');
-      const polygons = geometryPolygonSets(feature.geometry);
-      polygons.forEach((polygon, polygonIndex) => {
-        polygon.forEach((ring, ringIndex) => {
-          const count = Math.max(0, (ring?.length || 0) - 1);
-          if (count < 2) return;
-          for (let index = 0; index < count; index += 1) {
-            const a = ring[index];
-            const b = ring[(index + 1) % count];
-            const eKey = edgeKey(a, b);
-            if (!edges.has(eKey)) edges.set(eKey, { key: eKey, refs: [], countryIds: new Set(), kind: 'coast' });
-            const edge = edges.get(eKey);
-            edge.refs.push({ countryId, feature, polygonIndex, ringIndex, index, a, b });
-            edge.countryIds.add(countryId);
-
-            const nKey = coordKey(a);
-            if (!nodes.has(nKey)) nodes.set(nKey, { key: nKey, coord: a, refs: [], countryIds: new Set() });
-            const node = nodes.get(nKey);
-            node.refs.push({
-              countryId, feature,
-              vertex: { key: `${polygonIndex}:${ringIndex}:${index}`, polygonIndex, ringIndex, index, coord: a },
-              prevEdgeKey: edgeKey(ring[(index - 1 + count) % count], a),
-              nextEdgeKey: eKey,
-            });
-            node.countryIds.add(countryId);
-          }
-        });
-      });
-    }
-
-    for (const edge of edges.values()) edge.kind = edge.countryIds.size >= 2 ? 'land' : 'coast';
-    for (const node of nodes.values()) {
-      for (const ref of node.refs) {
-        ref.prevKind = edges.get(ref.prevEdgeKey)?.kind || 'coast';
-        ref.nextKind = edges.get(ref.nextEdgeKey)?.kind || 'coast';
-      }
-    }
-
-    dependencies.state.boundaryTopology = { edges, nodes };
-    dependencies.state.sharedBoundaryTopology = (0, dependencies.buildSharedBoundaryTopology)(features);
+  let boundaryEpoch = 0;
+  let identitySequence = 0;
+  const geometryIdentities = new WeakMap();
+  function boundaryRevision() {
+    const identity = geometry => {
+      if (!geometry) return 0;
+      if (!geometryIdentities.has(geometry)) geometryIdentities.set(geometry, ++identitySequence);
+      return geometryIdentities.get(geometry);
+    };
+    return JSON.stringify([dependencies.projectDomain?.getGeneration?.(),
+      [...(dependencies.state.countriesData?.features || []), ...dependencies.state.territorialUnits].map(feature => [
+        String(feature.id), identity(feature.geometry), feature.properties?.parentId, feature.properties?.sovereignId,
+        !!feature.properties?.locked, !!dependencies.state.countryOverrides?.[feature.id]?.locked,
+      ])]);
   }
 
-  function boundaryEditSelectionAnalysis(countryIds = dependencies.state.boundaryEditCountryIds, { rebuild = false } = {}) {
-    const ids = [...new Set(countryIds.map(String).filter(id => (0, dependencies.countryFeatureById)(id)))];
-    const cacheKey = `${dependencies.countryLandRevision}:${ids.slice().sort().join('|')}`;
-    const cached = boundarySelectionAnalysisCache.get(cacheKey);
-    if (cached) {
-      boundarySelectionAnalysisMetrics.cacheHits += 1;
-      return cached;
-    }
-    if (!rebuild) {
-      boundarySelectionAnalysisMetrics.cacheMisses += 1;
-      return {
-        selectedIds: ids,
-        segmentKeys: new Set(),
-        isolatedIds: [],
-        valid: ids.length >= 2,
-        analyzed: false,
-        message: ids.length >= 2 ? '국경 조정 시작 시 공유국경을 확인합니다.' : '접경국을 하나 이상 더 선택하세요.',
+  function rebuildBoundaryTopology(targetCountryIds = dependencies.state.coastEditCountryId) {
+    const state = dependencies.state;
+    const targetIds = [...new Set((Array.isArray(targetCountryIds) ? targetCountryIds : [targetCountryIds]).filter(id => id != null).map(String))].sort();
+    if (!['country-border', 'country-coast'].includes(state.tool) || !targetIds.length) return Promise.resolve(false);
+    const tool = state.tool;
+    const mode = tool === 'country-coast' ? 'coast' : 'border';
+    const neighborsOnly = mode === 'border' && state.boundaryEditPhase === 'selecting';
+    const scopeId = state.coastEditScopeGenericFeatureId;
+    const selectionKey = JSON.stringify(targetIds);
+    const revision = boundaryRevision();
+    const key = JSON.stringify([mode, targetIds, neighborsOnly, state.boundaryEditAutoSeedId, state.coastEditScopeGenericFeatureId, revision]);
+    const previous = state.boundaryPreparation;
+    if (previous?.key === key && ['pending', 'ready'].includes(previous.status)) return previous.promise;
+    previous?.cancel();
+    const epoch = ++boundaryEpoch;
+    const controller = new AbortController();
+    const current = () => state.boundaryPreparation === preparation && epoch === boundaryEpoch
+      && tool === state.tool && revision === boundaryRevision() && !controller.signal.aborted
+      && scopeId === state.coastEditScopeGenericFeatureId
+      && neighborsOnly === (mode === 'border' && state.boundaryEditPhase === 'selecting')
+      && selectionKey === JSON.stringify((mode === 'coast' ? [String(state.coastEditCountryId)] : [...state.boundaryEditCountryIds].map(String)).sort());
+    const stale = () => {
+      if (state.boundaryPreparation === preparation && tool === state.tool && !controller.signal.aborted) {
+        preparation.status = 'error';
+        preparation.message = '준비 중 형상이나 소속·잠금이 바뀌었습니다. 다시 시도하세요.';
+        refresh();
+      }
+      return false;
+    };
+    const refresh = () => {
+      dependencies.editingDomain?.refreshTerritorySelection?.({ tool, reason: 'boundary-preparation' });
+      dependencies.renderingDomain?.invalidateGpuInteraction?.('boundary-preparation');
+      dependencies.updateModeButtons();
+    };
+    const preparation = {
+      key, status: 'pending', workerPending: true, result: null, nodes: new Map(), revision,
+      cancel() {
+        if (controller.signal.aborted) return;
+        controller.abort();
+        if (preparation.workerPending || preparation.status === 'moving') dependencies.mapEditClient.stop();
+      },
+      retry() { void rebuildBoundaryTopology(targetIds); },
+      current,
+    };
+    state.boundaryPreparation = preparation;
+    preparation.promise = dependencies.mapEditClient.execute('boundary-prepare', { payload: {
+      targetIds, mode, neighborsOnly, autoSeedId: state.boundaryEditAutoSeedId, projectGeneration: dependencies.projectDomain?.getGeneration?.(), revision,
+    } }, { signal: controller.signal, jobKey: 'boundary-prepare' }).then(async ({ result }) => {
+      preparation.workerPending = false;
+      if (!current()) return stale();
+      const scope = state.coastEditScopeGenericFeatureId
+        ? state.genericFeatures.find(feature => String(feature.id) === String(state.coastEditScopeGenericFeatureId)) : null;
+      if (scope) for (const handle of result.handles) if (!dependencies.pointInGenericFeature(handle.coordinate, dependencies.genericFeatureDisplayFeature(scope))) handle.fixed = true;
+      let lastYield = performance.now();
+      const checkpoint = async () => {
+        if (performance.now() - lastYield >= 8) { await new Promise(resolve => setTimeout(resolve, 0)); lastYield = performance.now(); }
+        if (!current()) throw Object.assign(new Error('준비가 취소되었습니다.'), { cancelled: true });
       };
-    }
-    boundarySelectionAnalysisMetrics.cacheMisses += 1;
-    const startedAt = performance.now();
-    rebuildBoundaryTopology(ids);
-    const plan = (0, dependencies.planSharedBoundaryEdit)(dependencies.state.sharedBoundaryTopology, ids);
-    const names = plan.isolatedIds.map(id => (0, dependencies.countryName)((0, dependencies.countryFeatureById)(id)) || id);
-    let message = '';
-    if (ids.length < 2) message = '접경국을 하나 이상 더 선택하세요.';
-    else if (!plan.segmentKeys.size) message = '선택 국가 사이에 편집할 공유국경이 없습니다.';
-    else if (names.length) message = `${names.join(', ')}은(는) 다른 선택 국가와 접하지 않습니다.`;
-    const result = { ...plan, message, analyzed: true };
-    boundarySelectionAnalysisCache.set(cacheKey, result);
-    boundarySelectionAnalysisMetrics.builds += 1;
-    boundarySelectionAnalysisMetrics.buildMs += performance.now() - startedAt;
-    while (boundarySelectionAnalysisCache.size > 64) boundarySelectionAnalysisCache.delete(boundarySelectionAnalysisCache.keys().next().value);
-    return result;
+      const nodes = { get: key => result.handles[result.displayIndex?.nodeKeys?.[key]] };
+      const packet = await adoptBoundaryRenderPacketAsync(result, checkpoint);
+      if (!current()) return stale();
+      preparation.result = result;
+      preparation.nodes = nodes;
+      preparation.packet = packet;
+      preparation.status = 'ready';
+      if (neighborsOnly && dependencies.setModeBanner) dependencies.setModeBanner(result.valid
+        ? `${result.selectedIds.length}개 국가 선택됨 · 완료하면 공유국경을 편집합니다.`
+        : result.selectedIds.length < 2 ? '접경국을 하나 이상 더 선택하세요.' : '선택 국가 사이에 연결된 공유국경이 없습니다.');
+      if (!neighborsOnly && !result.valid) {
+        preparation.status = 'error';
+        preparation.message = '편집 가능한 경계가 없습니다. 대상을 다시 선택하세요.';
+      }
+      refresh();
+      return result;
+    }).catch(error => {
+      preparation.workerPending = false;
+      if (!current()) return stale();
+      preparation.status = 'error';
+      preparation.message = error.message || '경계 준비에 실패했습니다. 다시 시도하세요.';
+      refresh();
+      return false;
+    });
+    refresh();
+    return preparation.promise;
+  }
+
+  function boundaryEditSelectionAnalysis(countryIds = dependencies.state.boundaryEditCountryIds) {
+    const ids = [...new Set(countryIds.map(String))].sort();
+    const preparation = dependencies.state.boundaryPreparation;
+    const result = preparation?.status === 'ready' ? preparation.result : null;
+    const matches = result && JSON.stringify(result.selectedIds) === JSON.stringify(ids);
+    return {
+      selectedIds: ids, valid: !!matches && result.valid, analyzed: !!matches,
+      isolatedIds: matches ? result.isolatedIds : [],
+      message: preparation?.status === 'error' ? preparation.message : !matches ? '경계를 준비하고 있습니다.'
+        : ids.length < 2 ? '접경국을 하나 이상 더 선택하세요.' : result.valid ? '' : '선택 국가 사이에 연결된 공유국경이 없습니다.',
+    };
   }
 
   async function beginWorkerGeometryPreview({
@@ -209,7 +225,7 @@ export function createGeometryPreview() {
     (0, dependencies.setActionStatus)('변경 미리보기 계산 중…', 'working', 0);
     let requestId = 0;
     try {
-      const response = await dependencies.mapEditClient.execute(operation, payload);
+      const response = await dependencies.mapEditClient.execute(operation, { ...payload, previewTransferredGeometry: transferredGeometry });
       requestId = response.requestId;
       if (dependencies.state.stateRevision !== baseDataRevision || !shouldKeepResult()) {
         dependencies.mapEditClient.discard(requestId);
@@ -221,33 +237,14 @@ export function createGeometryPreview() {
       const removedIds = new Set((result.removedIds || []).map(String));
       const beforeFeatures = [...affectedIds]
         .map(id => (0, dependencies.countryFeatureById)(id))
-        .filter(Boolean)
-        .map(feature => (0, dependencies.deepClone)(feature));
-      const patchById = new Map((result.features || []).map(feature => [String(feature?.id || ''), (0, dependencies.deepClone)(feature)]));
+        .filter(Boolean);
+      const patchById = new Map((result.features || []).map(feature => [String(feature?.id || ''), feature]));
       const afterFeatures = [...affectedIds].filter(id => !removedIds.has(id))
         .map(id => patchById.get(id) || (0, dependencies.countryFeatureById)(id))
-        .filter(Boolean).map(feature => (0, dependencies.deepClone)(feature));
-      const proposedFeatures = (dependencies.state.countriesData?.features || [])
-        .filter(feature => !affectedIds.has(String(feature?.id || '')))
-        .map(feature => feature)
-        .concat(afterFeatures);
-      const baselineIssues = (0, dependencies.validateTerritorialGeometry)(dependencies.state.countriesData?.features || [], {
-        clipper: window.polygonClipping,
-        affectedIds,
-      });
-      const baselineIssueKeys = new Set(baselineIssues.map(issue => `${issue.kind}:${[...(issue.entityRefs || [])].sort().join('|')}`));
-      const validationIssues = (0, dependencies.validateTerritorialGeometry)(proposedFeatures, {
-        clipper: window.polygonClipping,
-        affectedIds,
-      }).filter(issue => !baselineIssueKeys.has(`${issue.kind}:${[...(issue.entityRefs || [])].sort().join('|')}`));
-      const preview = (0, dependencies.buildGeometryPreview)({
-        operation,
-        beforeFeatures,
-        afterFeatures,
-        removedIds: [...removedIds],
-        clipper: window.polygonClipping,
-        transferredGeometry,
-      });
+        .filter(Boolean);
+      const preview = result.preview;
+      if (!preview?.validation) throw new Error('Worker 미리보기 검증 결과를 받지 못했습니다.');
+      const validationIssues = preview.validation.issues;
       const session = (0, dependencies.beginGeometryPreview)(dependencies.state.geometryPreview, {
         operation,
         baseDataRevision,
@@ -318,7 +315,7 @@ export function createGeometryPreview() {
     }
   }
 
-  function beginLocalGeometryPreview({
+  async function beginLocalGeometryPreview({
     operation,
     beforeFeatures = [],
     afterFeatures = [],
@@ -329,14 +326,36 @@ export function createGeometryPreview() {
     shouldKeepResult = () => true,
     commitHistorySnapshot = false,
     beforeApply = async () => true,
+    preparedPreview = null,
+    validatePrepared = async () => true,
     successMessage = '변경을 적용했습니다.',
     errorMessage = '변경을 적용하지 못했습니다.',
   }) {
     discardActiveGeometryPreview({ announce: false });
     if (!shouldKeepResult()) return false;
     const baseDataRevision = dependencies.state.stateRevision;
-    const issues = afterFeatures.flatMap(feature => (0, dependencies.validateStructuredGeometry)(feature));
-    const preview = (0, dependencies.buildGeometryPreview)({ operation, beforeFeatures, afterFeatures, removedIds, clipper: window.polygonClipping, transferredGeometry });
+    const epoch = ++localPreparationEpoch;
+    if (!preparedPreview) {
+      localPreparationPending = true;
+      try {
+        const response = await dependencies.mapEditClient.execute('territorial-preview', { payload: {
+          operation, beforeIds: beforeFeatures.map(feature => String(feature.id)), afterFeatures, removedIds, transferredGeometry,
+        } });
+        if (epoch !== localPreparationEpoch || !shouldKeepResult() || dependencies.state.stateRevision !== baseDataRevision) return false;
+        preparedPreview = response.result;
+        validatePrepared = async () => {
+          await dependencies.mapEditClient.execute('territorial-validation', { payload: { preparationId: preparedPreview.preparationId } });
+          return dependencies.mapEditClient.sourcesCurrent(response.sourceRevision);
+        };
+      } catch (error) {
+        if (!error?.cancelled) (0, dependencies.reportOperationError)(error, errorMessage, 'PL-PREVIEW-PREPARE', 3600);
+        return false;
+      } finally {
+        if (epoch === localPreparationEpoch) localPreparationPending = false;
+      }
+    }
+    const issues = preparedPreview.validation?.issues || [];
+    const preview = preparedPreview;
     const session = (0, dependencies.beginGeometryPreview)(dependencies.state.geometryPreview, {
       operation,
       baseDataRevision,
@@ -362,13 +381,18 @@ export function createGeometryPreview() {
         return false;
       }
       if (!await beforeApply()) return false;
+      try { if (!await validatePrepared()) return false; }
+      catch (error) {
+        (0, dependencies.reportOperationError)(error, '미리보기를 다시 계산하세요.', 'PL-PREVIEW-STALE', 3600);
+        return false;
+      }
       if (!shouldKeepResult() || dependencies.state.stateRevision !== baseDataRevision
         || !(0, dependencies.previewIsCurrent)(dependencies.state.geometryPreview, session.sessionId, baseDataRevision)) return false;
       (0, dependencies.clearGeometryPreview)(dependencies.state.geometryPreview);
       activeGeometryPreviewApply = null;
       activeGeometryPreviewDiscard = null;
       try {
-        await applyResult();
+        applyResult();
         assertCurrentProjectReferences();
         if (commitHistorySnapshot) dependencies.projectDomain.commitHistorySnapshot(snapshot);
         dependencies.state.stateRevision += 1;
@@ -398,6 +422,11 @@ export function createGeometryPreview() {
   }
 
   function discardActiveGeometryPreview({ announce = true } = {}) {
+    localPreparationEpoch += 1;
+    if (localPreparationPending) {
+      localPreparationPending = false;
+      dependencies.mapEditClient.stop();
+    }
     if (!dependencies.state.geometryPreview.session) return false;
     activeGeometryPreviewDiscard?.();
     activeGeometryPreviewApply = null;
@@ -410,61 +439,14 @@ export function createGeometryPreview() {
     return true;
   }
 
-  function activeCountryBoundaryPlan() {
-    if (dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'editing') {
-      return { mode: 'border', ...(0, dependencies.planSharedBoundaryEdit)(dependencies.state.sharedBoundaryTopology, dependencies.state.boundaryEditCountryIds) };
-    }
-    if (dependencies.state.tool === 'country-coast' && dependencies.state.coastEditCountryId) {
-      return { mode: 'coast', ...(0, dependencies.planCoastEdit)(dependencies.state.sharedBoundaryTopology, dependencies.state.coastEditCountryId) };
-    }
-    return null;
-  }
-
+  const emptyBoundaryRows = Object.freeze([]);
   function getCountryBoundaryHandles() {
-    const plan = activeCountryBoundaryPlan();
-    if (!plan) return [];
-    const allowedIds = new Set(plan.mode === 'border' ? dependencies.state.boundaryEditCountryIds.map(String) : [String(dependencies.state.coastEditCountryId)]);
-    const scope = dependencies.state.coastEditScopeGenericFeatureId
-      ? dependencies.state.genericFeatures.find(item => String(item.id) === String(dependencies.state.coastEditScopeGenericFeatureId))
-      : null;
-    const handles = [];
-    const nodeKeys = new Set([...plan.editableNodeKeys, ...plan.fixedNodeKeys]);
-    for (const nodeKey of nodeKeys) {
-      const node = dependencies.state.sharedBoundaryTopology?.nodes?.get?.(nodeKey);
-      if (!node) continue;
-      const ref = node.refs.find(item => allowedIds.has(String(item.featureId)))
-        || node.virtualRefs?.find(item => allowedIds.has(String(item.featureId)));
-      if (!ref) continue;
-      if (scope && !(0, dependencies.pointInGenericFeature)(node.coordinate, (0, dependencies.genericFeatureDisplayFeature)(scope))) continue;
-      handles.push({
-        key: `${ref.polygonIndex}:${ref.ringIndex}:${ref.vertexIndex ?? ref.segmentIndex}`,
-        polygonIndex: ref.polygonIndex,
-        ringIndex: ref.ringIndex,
-        index: ref.vertexIndex ?? ref.segmentIndex,
-        nodeKey: node.key,
-        coord: node.coordinate,
-        boundaryKind: node.kind === 'coast' ? 'coast' : 'shared',
-        ownerIds: [...node.ownerIds],
-        fixed: plan.fixedNodeKeys.has(node.key),
-      });
-    }
-    return handles;
+    const preparation = dependencies.state.boundaryPreparation;
+    return preparation?.status === 'ready' ? preparation.result.handles : emptyBoundaryRows;
   }
-
   function getCountryBoundarySegments() {
-    const plan = activeCountryBoundaryPlan();
-    if (!plan) return [];
-    const result = [];
-    for (const segmentKey of plan.segmentKeys) {
-      const edge = dependencies.state.sharedBoundaryTopology?.segments?.get?.(segmentKey);
-      if (!edge) continue;
-      result.push({
-        key: edge.key,
-        kind: plan.mode === 'border' ? 'shared' : 'coast',
-        geometry: { type: 'LineString', coordinates: [edge.a, edge.b] },
-      });
-    }
-    return result;
+    const preparation = dependencies.state.boundaryPreparation;
+    return preparation?.status === 'ready' ? preparation.result.segments : emptyBoundaryRows;
   }
 
   function initializeEditPreviewController() {

@@ -7,6 +7,7 @@ export function createLibraryAssembly() {
   let historicalLibraryService;
   let historicalLibraryController;
   let LIBRARY_TYPE_LABELS;
+  let batchPreparation = null;
   function connect(ports) {
     if (dependencies) throw new Error('library-assembly already connected');
     dependencies = ports;
@@ -80,79 +81,56 @@ export function createLibraryAssembly() {
         throw new Error('선택한 경계 버전을 찾을 수 없습니다.');
       }
     }
-    const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth, versionOverrides);
-    const prepared = (0, dependencies.prepareLibraryOwnership)({
-      descriptors, resolve: libraryInstanceId, countries: dependencies.state.countriesData.features,
-      units: dependencies.state.territorialUnits, choices: options.ownership || {},
-      allocateId: type => (0, dependencies.uid)(`library_${type}`),
-      contains: (geometry, container) => (0, dependencies.territorialUnitInsideContainer)({ geometry }, { geometry: container }),
-    });
+    const preparationKey = JSON.stringify([revision, landRevision, rootIds, referenceDate, childDepth, versionOverrides, options.ownership || {}]);
+    if (batchPreparation?.key !== preparationKey || batchPreparation.project !== currentCountries) {
+      const entry = { key: preparationKey, project: currentCountries, promise: null };
+      batchPreparation = entry;
+      entry.promise = (async () => {
+        const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth, versionOverrides);
+        const prepared = (0, dependencies.prepareLibraryOwnership)({
+          descriptors, resolve: libraryInstanceId, countries: dependencies.state.countriesData.features,
+          units: dependencies.state.territorialUnits, choices: options.ownership || {},
+          allocateId: type => (0, dependencies.uid)(`library_${type}`),
+          // Exact containment is checked in the batch Worker before applying anything.
+          contains: null,
+        });
+        if (!prepared.length) return { prepared };
+        const countryFeatures = prepared.filter(item => item.type === 'country').map(item => {
+          const feature = (0, dependencies.createCountryFeature)(item.name, [], null, item.geometry);
+          feature.id = item.id;
+          if (item.validFrom) feature.properties.validFrom = item.validFrom;
+          if (item.validTo) feature.properties.validTo = item.validTo;
+          return feature;
+        });
+        const units = prepared.filter(item => item.type !== 'country').map(item => (0, dependencies.createTerritorialFeature)({
+          id: item.id, unitType: item.type, name: item.name, geometry: item.geometry,
+          parentId: item.parentId, sovereignId: item.sovereignId,
+          coverageMode: item.type === 'region' ? dependencies.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.TERRITORIAL_COVERAGE_MODES.PARTITION,
+          validFrom: item.validFrom, validTo: item.validTo,
+          color: item.metadata?.defaultColor || '',
+          metadata: item.metadata, sourceLibraryId: item.libraryId, sourceGeometryVersion: item.geometryVersionId,
+        }));
+        const response = await dependencies.mapEditClient.execute('territorial-library-batch', { payload: { countries: countryFeatures, units } });
+        return { descriptors, prepared, countryFeatures, units, batch: response.result, sourceRevision: response.sourceRevision };
+
+      })().catch(error => { if (batchPreparation === entry) batchPreparation = null; throw error; });
+    }
+    const { descriptors, prepared, countryFeatures, units, batch, sourceRevision } = await batchPreparation.promise;
+    assertCurrent();
     if (!prepared.length) return { added: 0, subtracted: 0, deleted: 0, affectedIds: [] };
-    const countryFeatures = prepared.filter(item => item.type === 'country').map(item => {
-      const feature = (0, dependencies.createCountryFeature)(item.name, [], null, item.geometry);
-      feature.id = item.id;
-      if (item.validFrom) feature.properties.validFrom = item.validFrom;
-      if (item.validTo) feature.properties.validTo = item.validTo;
-      return feature;
-    });
-    const units = prepared.filter(item => item.type !== 'country').map(item => (0, dependencies.createTerritorialFeature)({
-      id: item.id, unitType: item.type, name: item.name, geometry: item.geometry,
-      parentId: item.parentId, sovereignId: item.sovereignId,
-      coverageMode: item.type === 'region' ? dependencies.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.TERRITORIAL_COVERAGE_MODES.PARTITION,
-      validFrom: item.validFrom, validTo: item.validTo,
-      color: item.metadata?.defaultColor || '',
-      metadata: item.metadata, sourceLibraryId: item.libraryId, sourceGeometryVersion: item.geometryVersionId,
-    }));
-    let draft = (0, dependencies.deepClone)(dependencies.state.countriesData);
-    const affectedIds = new Set();
-    const transfers = [];
-    const impacts = [];
-    const donorIds = new Set();
-    let deleted = 0;
-    async function merge(incoming, targetId, geometry) {
-      const plan = await dependencies.gisWorkflow.planMerge(draft, { type: 'FeatureCollection', features: incoming }, 'territory-replacement');
-      assertCurrent();
-      if (!plan.canCommit) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
-      for (const id of plan.affectedIds || []) {
-        if ((0, dependencies.isCountryLocked)(id)) throw new Error(`${(0, dependencies.countryName)((0, dependencies.countryFeatureById)(id))}이(가) 잠겨 있어 영토를 변경할 수 없습니다.`);
-        affectedIds.add(id);
-      }
-      for (const id of plan.donorIds || []) {
-        donorIds.add(id);
-        const before = draft.features.find(feature => String(feature.id) === id);
-        const after = plan.countriesData.features.find(feature => String(feature.id) === id);
-        const area = (0, dependencies.sphericalGeometryAreaKm2)(before.geometry) - (after ? (0, dependencies.sphericalGeometryAreaKm2)(after.geometry) : 0);
-        impacts.push(`${(0, dependencies.countryName)(before)}: ${area.toLocaleString('ko', { maximumFractionDigits: 3 })} km² 이전${after ? '' : ' · 전체 영토 이전'}`);
-      }
-      deleted += Number(plan.counts?.deleted || 0);
-      transfers.push({ targetId, geometry, donorIds: plan.donorIds || [] });
-      draft = plan.countriesData;
+    if (!dependencies.mapEditClient.sourcesCurrent(sourceRevision)) {
+      batchPreparation = null;
+      throw new Error('프로젝트가 변경되었습니다. 추가할 항목을 다시 준비하세요.');
     }
-    // Prepare every country and child before committing any of them.
-    for (const feature of countryFeatures) await merge([feature], String(feature.id), feature.geometry);
-    const unitIds = new Set(units.map(unit => String(unit.id)));
-    const roots = units.filter(unit => unit.properties.unitType === 'subunit' && !unitIds.has(String(unit.properties.parentId)));
-    const groups = new Map();
-    for (const unit of roots) {
-      const id = String(unit.properties.sovereignId);
-      if (!groups.has(id)) groups.set(id, []);
-      groups.get(id).push(unit.geometry);
-    }
-    for (const [id, geometries] of groups) {
-      const owner = draft.features.find(feature => String(feature.id) === id);
-      if (!owner) throw new Error('소속 국가가 영토 변경으로 사라집니다. 소속을 다시 선택하세요.');
-      const geometry = combineHistoricalLibraryGeometries(geometries);
-      if ((0, dependencies.territorialUnitInsideContainer)({ geometry }, owner)) continue;
-      const expanded = { ...owner, geometry: combineHistoricalLibraryGeometries([owner.geometry, geometry]) };
-      impacts.push(`${(0, dependencies.countryName)(owner)}: 소속 하위단위의 경계까지 국가 영토 확장`);
-      await merge([expanded], id, geometry);
-    }
-    const draftById = new Map([...draft.features, ...dependencies.state.territorialUnits, ...units].map(feature => [String(feature.id), feature]));
-    for (const unit of units.filter(feature => feature.properties.unitType === 'subunit')) {
-      const parent = draftById.get(String(unit.properties.parentId));
-      if (!parent || !draft.features.some(feature => String(feature.id) === String(unit.properties.sovereignId))) throw new Error('추가 후 소속 관계가 유효하지 않습니다.');
-      if (!(0, dependencies.territorialUnitInsideContainer)(unit, parent)) throw new Error(`${unit.properties.name}의 경계가 상위 단위 안에 포함되지 않습니다. 적합한 상위 단위를 선택하세요.`);
-    }
+    const patches = new Map(batch.features.map(feature => [String(feature.id), feature]));
+    const removed = new Set(batch.removedIds);
+    const existingIds = new Set(currentCountries.features.map(feature => String(feature.id)));
+    const draft = { type: 'FeatureCollection', features: currentCountries.features.filter(feature => !removed.has(String(feature.id)))
+      .map(feature => patches.get(String(feature.id)) || feature).concat(batch.features.filter(feature => !existingIds.has(String(feature.id)))) };
+    const affectedIds = new Set(batch.affectedIds), donorIds = new Set(batch.donorIds);
+    const transfers = batch.transfers, deleted = batch.deleted;
+    const impacts = batch.impacts.map(impact => impact.expansion ? `${impact.name}: 소속 하위단위의 경계까지 국가 영토 확장`
+      : `${impact.name}: ${impact.area.toLocaleString('ko', { maximumFractionDigits: 3 })} km² 이전${impact.deleted ? ' · 전체 영토 이전' : ''}`);
     const impactKey = JSON.stringify([revision, landRevision, rootIds, referenceDate, childDepth, versionOverrides, options.ownership || {}, impacts]);
     if (impacts.length && options.confirmedImpact !== impactKey) return { confirmationRequired: true, impactKey, impacts };
     assertCurrent();
@@ -195,6 +173,7 @@ export function createLibraryAssembly() {
     (0, dependencies.scheduleMapObjectSpatialIndexRebuild)();
     if (!preserveExistingScene) dependencies.renderingDomain?.invalidateProject?.('historical-library-import');
     dependencies.saveState.markNewProject('content:0');
+    batchPreparation = null;
     return result;
   }
 

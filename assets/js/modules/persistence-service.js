@@ -115,7 +115,23 @@ export function createPersistenceService({
   onWarning = () => {},
   now = () => new Date(),
 }) {
-  async function persist(project = null) {
+  let writeTail = Promise.resolve();
+  let queuedAutosave = null;
+  let persistenceEpoch = 0;
+  function persist(project = null) {
+    if (!project && queuedAutosave) return queuedAutosave;
+    const epoch = persistenceEpoch;
+    const pending = writeTail.then(() => {
+      if (queuedAutosave === pending) queuedAutosave = null;
+      if (epoch !== persistenceEpoch) return;
+      return persistOne(project);
+    });
+    if (!project) queuedAutosave = pending;
+    writeTail = pending.catch(() => {});
+    return pending;
+  }
+
+  async function persistOne(project = null) {
     if (!canPersist()) return;
     const startedAt = metricNow();
     const detail = {
@@ -231,12 +247,15 @@ export function createPersistenceService({
   }
 
   function cancelPending() {
+    persistenceEpoch += 1;
+    queuedAutosave = null;
     scheduler.cancel('autosave');
     scheduler.cancel('view-autosave');
   }
 
   async function clear() {
     cancelPending();
+    await writeTail;
     try {
       await storage.deleteRecords();
     } catch (_) {}

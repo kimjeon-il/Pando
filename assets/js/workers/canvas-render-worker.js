@@ -30,7 +30,13 @@ function canvasFallbackWorkerMain() {
     const countryOutlineCache = new WeakMap();
 
     function mergeRenderState(message) {
-      lastRenderMessage = { ...(lastRenderMessage || {}), ...message, type: 'render' };
+      const updated = { ...message };
+      for (const channel of ['scenePolygons', 'interactionPolygons']) {
+        if (!Array.isArray(message[channel])) continue;
+        const previous = new Map((lastRenderMessage?.[channel] || []).map(packet => [packet.key, packet]));
+        updated[channel] = message[channel].map(packet => packet.ringCoordinates ? packet : { ...previous.get(packet.key), ...packet });
+      }
+      lastRenderMessage = { ...(lastRenderMessage || {}), ...updated, type: 'render' };
       return lastRenderMessage;
     }
 
@@ -358,23 +364,18 @@ function canvasFallbackWorkerMain() {
 
     function createProjection(message, width, height) {
       const view = message.view || {};
+      const frame = message.renderProjection || {};
+      const translate = frame.translate || [width / 2, height / 2];
       if (message.projection === 'globe') {
-        const base = Math.max(60, Math.min(width, height - 26) * 0.455);
-        return self.d3.geo.orthographic()
-          .translate([width / 2, height / 2])
-          .scale(base * Number(view.globeZoom || 1))
-          .rotate(view.globeRotation || [-15, -25, 0])
-          .clipAngle(90)
-          .precision(0.35);
+        const fallback = Math.max(60, Math.min(width, height - 26) * 0.455) * Number(view.globeZoom || 1);
+        return self.d3.geo.orthographic().translate(translate).scale(frame.scale || fallback)
+          .rotate(view.globeRotation || [-15, -25, 0]).clipAngle(90).precision(0.35);
       }
-      const base = Math.max(30, width / (2 * Math.PI));
-      return self.d3.geo.mercator()
-        .translate([width / 2, height / 2])
-        .scale(base * Number(view.flatZoom || 1))
-        .center(view.flatCenter || [0, 20])
-        .rotate([0, 0, 0])
-        .clipExtent([[0, 0], [width, height - 25]])
-        .precision(0.25);
+      const safe = frame.safeInset || { left: 0, top: 0, right: 0, bottom: 0 };
+      return self.d3.geo.equirectangular().translate(translate)
+        .scale(frame.scale || Math.max(30, width / (2 * Math.PI)) * Number(view.flatZoom || 1))
+        .center(view.flatCenter || [0, 20]).rotate([0, 0, 0])
+        .clipExtent([[safe.left, safe.top], [width - safe.right, height - safe.bottom]]).precision(0.25);
     }
 
     function activeHydroFeatures(includeEdits = true) {
@@ -411,7 +412,8 @@ function canvasFallbackWorkerMain() {
       return `#${values.map(value => value.toString(16).padStart(2, '0')).join('')}`;
     }
 
-    function renderHydroPass(message, projection, dpr, borderAligned) {
+    function renderHydroPass(message, projection, dpr, borderAligned, target = context, reserve = false) {
+      const context = target;
       const geoPath = self.d3.geo.path().projection(projection).context(context);
       const features = activeHydroFeatures();
       context.save();
@@ -433,7 +435,7 @@ function canvasFallbackWorkerMain() {
           if (borderAligned) continue;
           context.beginPath();
           geoPath(feature);
-          context.globalAlpha = hydroOpacity;
+          context.globalAlpha = reserve ? 1 : hydroOpacity;
           context.fillStyle = featureColor;
           context.fill();
           if (message.theme?.lakeBoundaryVisible !== false) {
@@ -452,7 +454,7 @@ function canvasFallbackWorkerMain() {
         const parts = lineParts(feature.geometry);
         const profiles = properties.stroke_widths || [];
         const fallback = Math.max(0.55, Math.min(2.6, Number(properties.stroke_width || 0.8)));
-        context.globalAlpha = hydroOpacity;
+        context.globalAlpha = reserve ? 1 : hydroOpacity;
         context.strokeStyle = featureColor;
         for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
           const part = parts[partIndex];
@@ -591,20 +593,25 @@ function canvasFallbackWorkerMain() {
         self.PandoLabCanvasSceneComposition.drawFills(context, geoPath, message.scenePolygons || [], substrate, dpr);
         const emphasis = message.countryEmphasis || {};
         const selectedCountryIds = new Set((emphasis.selectedIds || []).map(String));
+        const emphasisEntries = [];
         for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
           const id = countryId(feature, index);
           if (hiddenCountryIds.has(id)) continue;
-          const kind = id === String(emphasis.primaryId || '') ? 'primary'
-            : selectedCountryIds.has(id) ? 'secondary'
-              : id === String(emphasis.hoverId || '') ? 'hover' : '';
-          if (!kind) continue;
-          context.beginPath();
-          geoPath(feature);
-          context.globalAlpha = Number(emphasis[`${kind}Alpha`] || 0);
-          context.fillStyle = emphasis[`${kind}Color`] || defaultLand;
-          context.fill();
+          const kind = (emphasis.primaryIds || [String(emphasis.primaryId || '')]).includes(id) ? 'primary'
+            : selectedCountryIds.has(id) ? 'secondary' : id === String(emphasis.hoverId || '') ? 'hover' : '';
+          if (kind) emphasisEntries.push({ key: `country:${id}`, geometry: feature,
+            priority: emphasis.priorities?.[id] || (kind === 'primary' ? 4 : kind === 'secondary' ? 3 : 2),
+            style: { color: emphasis[`${kind}Color`], fillAlpha: Number(emphasis[`${kind}Alpha`] || 0) } });
         }
+        const polygonByKey = new Map((message.scenePolygons || []).map(packet => [packet.key, packet]));
+        for (const item of message.interactionFillItems || []) if (polygonByKey.has(item.key)) emphasisEntries.push({ ...item, packet: polygonByKey.get(item.key) });
+        for (const packet of message.interactionPolygons || []) emphasisEntries.push({ key: packet.key, packet,
+          priority: packet.interactionPriority || 5, style: packet.style });
+        self.PandoLabCanvasSceneComposition.drawEmphasis(context, geoPath, emphasisEntries, dpr, {
+          key: [message.viewRevision, message.projectionRevision, pixelWidth, pixelHeight, physicalStyleRevision, hydroEditRevision, [...hydroActivePackIds].join(','), hydroPacks.size].join(':'),
+          draw: mask => { renderHydroPass(message, projection, dpr, false, mask, true); renderHydroPass(message, projection, dpr, true, mask, true); },
+        });
         renderHydroPass(message, projection, dpr, false);
         renderHydroPass(message, projection, dpr, true);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -623,6 +630,7 @@ function canvasFallbackWorkerMain() {
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({
         type: 'frame',
+        styleRevision,
         frameId: Number(message.frameId || message.revision || 0),
         revision: Number(message.revision || 0),
         viewRevision: Number(message.viewRevision || message.revision || 0),

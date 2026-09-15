@@ -14,6 +14,11 @@ const assertDeepFrozen = value => {
   for (const item of Object.values(value)) assertDeepFrozen(item);
 };
 
+test('worker split results without presentation keys remain two distinct render entries', () => {
+  const packet = createDraftRenderPacket({ splitCandidates: [{ geometry: null, area: 1 }, { geometry: null, area: 2 }] });
+  assert.equal(new Set(packet.splitCandidates.map(candidate => candidate.key)).size, 2);
+});
+
 test('asynchronous territory results replace cached packets for every active territory tool', () => {
   for (const tool of ['annex-territory', 'new-country', 'draw-territorial-unit']) {
     const requests = [];

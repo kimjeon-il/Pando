@@ -198,6 +198,7 @@ export function connectFoundation({
     get state() { return projectSession.state; },
   });
   pointerTargets.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get $() { return environment.$; },
     get activeCutDraftSourceGeometry() { return cutGeometry.activeCutDraftSourceGeometry; },
     get activeProjection() { return mapProjection.activeProjection; },

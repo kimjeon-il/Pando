@@ -24,6 +24,7 @@ export function createSelectionPacket({
       secondaryIds: Object.freeze([...(country.secondaryIds || [])].map(String).filter(Boolean)),
     }),
     generic: Object.freeze({
+      candidate: Object.freeze(cloneItems(generic.candidate)),
       hover: Object.freeze(cloneItems(generic.hover)),
       primary: Object.freeze(cloneItems(generic.primary)),
       secondary: Object.freeze(cloneItems(generic.secondary)),

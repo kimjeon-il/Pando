@@ -35,7 +35,8 @@ function createGisWorker() {
   context.importScripts = () => {};
   vm.runInContext(read('assets/js/vendor/polygon-clipping.min.js'), context);
   context.postMessage = message => messages.push(message);
-  vm.runInContext(read('assets/js/workers/gis-geometry-worker.js'), context);
+  vm.runInContext(read('assets/js/modules/gis-geometry-validation.js').replace('export function validateCollection', 'function validateCollection')
+    + read('assets/js/workers/gis-geometry-worker.js').replace(/ {4}const \{ validateCollection \} = await import\([^\n]+\);\r?\n/, ''), context);
   return {
     validate(collection, affectedIds = null) {
       messages.length = 0;

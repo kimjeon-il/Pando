@@ -170,6 +170,7 @@ export function connectObjectEditing({
     get updateModeButtons() { return taskPresentation.updateModeButtons; },
   });
   propertySelection.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get $() { return environment.$; },
     get builtInHydroFeatureById() { return hydroSettings.builtInHydroFeatureById; },
     get COLOR_PRESETS() { return environment.COLOR_PRESETS; },
@@ -420,6 +421,7 @@ export function connectObjectEditing({
     get validateTerritorialUnitRelations() { return objectPresentation.validateTerritorialUnitRelations; },
   });
   projectSnapshots.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get $() { return environment.$; },
     get applyPristineLabelAnchors() { return countryIndex.applyPristineLabelAnchors; },
     get applyProjectFields() { return runtime.applyProjectFields; },

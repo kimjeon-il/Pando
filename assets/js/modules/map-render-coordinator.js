@@ -204,7 +204,22 @@ export function createMapRenderCoordinator({
         callRenderer('validation', rendererTimes, viewState);
       }
 
-      if (mask & MAP_RENDER_DIRTY.SELECTION_DATA) {
+      if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {
+        const domainPatch = mask & (MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
+          | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH);
+        if (!(mask & MAP_RENDER_DIRTY.OVERLAY_DATA) && !domainPatch) {
+          callRenderer('hydroEdits', rendererTimes, viewState);
+        }
+        if (!domainPatch || (mask & MAP_RENDER_DIRTY.COUNTRY_PATCH)) {
+          callRenderer('boundaryEdit', rendererTimes, viewState);
+        }
+        callRenderer('vertices', rendererTimes, viewState);
+        callRenderer('draft', rendererTimes, viewState);
+        callRenderer('snapIndicator', rendererTimes, viewState);
+      }
+
+
+      if (mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.EDITING_OVERLAYS)) {
         callRenderer('selectionData', rendererTimes, viewState);
       } else if (mask & MAP_RENDER_DIRTY.SELECTION_STYLE) {
         callRenderer('selectionStyle', rendererTimes, viewState);
@@ -224,7 +239,7 @@ export function createMapRenderCoordinator({
         });
       }
       if ((mask & MAP_RENDER_DIRTY.GPU_INTERACTION)
-        && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW))) {
+        && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.EDITING_OVERLAYS))) {
         const interactionResult = callRenderer('gpuInteraction', rendererTimes, viewState);
         // A stroke upload can complete without a selection or camera change.
         // Commit its coverage to the temporary SVG layer in this same frame.
@@ -235,19 +250,6 @@ export function createMapRenderCoordinator({
         });
       }
 
-      if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {
-        const domainPatch = mask & (MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
-          | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH);
-        if (!(mask & MAP_RENDER_DIRTY.OVERLAY_DATA) && !domainPatch) {
-          callRenderer('hydroEdits', rendererTimes, viewState);
-        }
-        if (!domainPatch || (mask & MAP_RENDER_DIRTY.COUNTRY_PATCH)) {
-          callRenderer('boundaryEdit', rendererTimes, viewState);
-        }
-        callRenderer('vertices', rendererTimes, viewState);
-        callRenderer('draft', rendererTimes, viewState);
-        callRenderer('snapIndicator', rendererTimes, viewState);
-      }
 
       if (mask & MAP_RENDER_DIRTY.LABEL_LAYOUT) {
         const labelLayout = callRenderer('labelLayout', rendererTimes, viewState);

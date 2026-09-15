@@ -1,8 +1,10 @@
+import { createGeometrySnapshotPool } from './geometry-versions.js';
 /** ProjectSnapshots: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createProjectSnapshots() {
+  const geometrySnapshots = createGeometrySnapshotPool();
   let dependencies;
   let historyStore;
   let historyService;
@@ -12,6 +14,7 @@ export function createProjectSnapshots() {
   }
 
   function configureDatasetSession(project = null) {
+    geometrySnapshots.clear();
     const deltaProject = project?.format === 'pandolab-autosave-delta';
     const pristineCompatible = !project?.countriesData || project.baseDataset === dependencies.BASE_DATASET || deltaProject;
     dependencies.state.sessionBaseCountriesJson = pristineCompatible
@@ -63,7 +66,7 @@ export function createProjectSnapshots() {
     const removedIds = [];
     for (const id of dependencies.state.historyDirtyCountryIds) {
       const feature = current.get(String(id));
-      if (feature) changed.push((0, dependencies.deepClone)(feature));
+      if (feature) changed.push(geometrySnapshots.clone(feature));
       else removedIds.push(String(id));
     }
     return { changed, removedIds };
@@ -71,7 +74,7 @@ export function createProjectSnapshots() {
 
   function restoreCountriesFromSnapshot(snapshot) {
     if (snapshot.countriesData) {
-      dependencies.state.countriesData = (0, dependencies.reindexCountries)((0, dependencies.deepClone)(snapshot.countriesData), true);
+      dependencies.state.countriesData = (0, dependencies.reindexCountries)(geometrySnapshots.restore(snapshot.countriesData, dependencies.state.countriesData), true);
       dependencies.state.historyDirtyCountryIds = new Set();
       return;
     }
@@ -79,6 +82,7 @@ export function createProjectSnapshots() {
     const changed = new Map((delta.changed || []).map(feature => [String(feature.id || ''), feature]));
     const removed = new Set((delta.removedIds || []).map(String));
     const seen = new Set();
+    const currentById = new Map((dependencies.state.countriesData?.features || []).map(feature => [String(feature.id || ''), feature]));
     let base;
     if (dependencies.state.sessionBaseCountriesJson) {
       base = JSON.parse(dependencies.state.sessionBaseCountriesJson);
@@ -86,16 +90,15 @@ export function createProjectSnapshots() {
         const id = String(feature.id || '');
         if (!changed.has(id)) return feature;
         seen.add(id);
-        return (0, dependencies.deepClone)(changed.get(id));
+        return geometrySnapshots.restore(changed.get(id), currentById.get(id));
       });
     } else if (dependencies.canonicalCountryStore) {
-      const currentById = new Map((dependencies.state.countriesData?.features || []).map(feature => [String(feature.id || ''), feature]));
       base = { type: 'FeatureCollection', features: [] };
       for (const id of dependencies.canonicalCountryStore.ids()) {
         if (removed.has(id)) continue;
         if (changed.has(id)) {
           seen.add(id);
-          base.features.push((0, dependencies.deepClone)(changed.get(id)));
+          base.features.push(geometrySnapshots.restore(changed.get(id), currentById.get(id)));
           continue;
         }
         const current = currentById.get(id);
@@ -109,10 +112,10 @@ export function createProjectSnapshots() {
         const id = String(feature.id || '');
         if (!changed.has(id)) return feature;
         seen.add(id);
-        return (0, dependencies.deepClone)(changed.get(id));
+        return geometrySnapshots.restore(changed.get(id), currentById.get(id));
       });
     }
-    for (const [id, feature] of changed) if (!seen.has(id)) base.features.push((0, dependencies.deepClone)(feature));
+    for (const [id, feature] of changed) if (!seen.has(id)) base.features.push(geometrySnapshots.restore(feature, currentById.get(id)));
     dependencies.state.countriesData = (0, dependencies.reindexCountries)(base, true);
     const unchangedIds = (dependencies.state.countriesData.features || []).map(feature => String(feature.id || '')).filter(id => !changed.has(id));
     if (!dependencies.state.sessionBaseCountriesJson) (0, dependencies.applyPristineLabelAnchors)(dependencies.state.countriesData, unchangedIds);
@@ -123,22 +126,24 @@ export function createProjectSnapshots() {
     return {
       countryDelta: buildCountryDelta(),
       historyDirtyCountryIds: [...dependencies.state.historyDirtyCountryIds],
-      ...(0, dependencies.pickProjectFields)(dependencies.state, { scope: 'history', clone: dependencies.deepClone }),
+      ...(0, dependencies.pickProjectFields)(dependencies.state, { scope: 'history', clone: geometrySnapshots.clone }),
     };
   }
 
   function applySharedProjectFields(source, scope = 'project') {
+    const fieldCopy = (key, value) => scope === 'history'
+      ? geometrySnapshots.restore(value || [], dependencies.state[key]) : (0, dependencies.deepClone)(value || []);
     return (0, dependencies.applyProjectFields)(dependencies.state, source, {
       scope,
       clone: dependencies.deepClone,
       normalizers: {
         labelSettings: value => (0, dependencies.deepClone)(value || {}),
-        genericFeatures: value => (0, dependencies.deepClone)(value || []),
-        hydroEdits: value => (0, dependencies.deepClone)(value || []),
-        territorialUnits: value => (0, dependencies.deepClone)(value || []),
+        genericFeatures: value => fieldCopy('genericFeatures', value),
+        hydroEdits: value => fieldCopy('hydroEdits', value),
+        territorialUnits: value => fieldCopy('territorialUnits', value),
         territorialRelations: value => (0, dependencies.deepClone)(value || []),
         distributionLayers: value => (0, dependencies.deepClone)(value || []),
-        distributionEntries: value => (0, dependencies.deepClone)(value || []),
+        distributionEntries: value => fieldCopy('distributionEntries', value),
         distributionSettings: value => ({
           renderMode: value?.renderMode === dependencies.DISTRIBUTION_RENDER_MODES.INTENSITY ? dependencies.DISTRIBUTION_RENDER_MODES.INTENSITY : dependencies.DISTRIBUTION_RENDER_MODES.DOMINANT,
           boundaryVisible: value?.boundaryVisible !== false,
@@ -151,15 +156,16 @@ export function createProjectSnapshots() {
     });
   }
 
-  function normalizeProjectObjects() {
+  function normalizeProjectObjects({ history = false } = {}) {
     const countryIds = new Set((dependencies.state.countriesData?.features || []).map(feature => String(feature?.id || '')).filter(Boolean));
     dependencies.state.countryOverrides = (0, dependencies.pruneCountryOverrides)(dependencies.state.countryOverrides, countryIds);
     dependencies.state.hydroEdits = (0, dependencies.normalizeHydroEditCollection)(dependencies.state.hydroEdits);
-    dependencies.state.genericFeatures = (0, dependencies.normalizeGenericFeatureCollection)(dependencies.state.genericFeatures || []);
+    dependencies.state.genericFeatures = (0, dependencies.normalizeGenericFeatureCollection)(dependencies.state.genericFeatures || [], history ? { cloneFeature: feature => ({ ...feature }) } : {});
     dependencies.state.distributionLayers = (0, dependencies.normalizeDistributionLayers)(dependencies.state.distributionLayers);
     const distributionLayerIds = new Set(dependencies.state.distributionLayers.map(layer => layer.id));
     dependencies.state.distributionEntries = (0, dependencies.normalizeDistributionEntries)(dependencies.state.distributionEntries, {
       layerExists: id => distributionLayerIds.has(id),
+      ...(history ? { cloneGeometry: geometry => geometry } : {}),
     });
     dependencies.state.distributionSettings = {
       renderMode: dependencies.state.distributionSettings?.renderMode === dependencies.DISTRIBUTION_RENDER_MODES.INTENSITY ? dependencies.DISTRIBUTION_RENDER_MODES.INTENSITY : dependencies.DISTRIBUTION_RENDER_MODES.DOMINANT,
@@ -170,6 +176,7 @@ export function createProjectSnapshots() {
       : '';
     dependencies.state.territorialUnits = (0, dependencies.normalizeTerritorialUnits)(dependencies.state.territorialUnits, {
       countryExists: id => !!(0, dependencies.countryFeatureById)(id),
+      validatedUnchanged: history ? new Set(dependencies.state.territorialUnits) : undefined,
     });
     dependencies.state.territorialRelations = (0, dependencies.normalizeTerritorialRelations)(dependencies.state.territorialRelations);
     const relationValidation = dependencies.territorialApplicationService.validateRelations(dependencies.state.territorialUnits, {
@@ -203,7 +210,7 @@ export function createProjectSnapshots() {
     dependencies.gpuMapRenderer.invalidateHydroVisibility();
     (0, dependencies.syncPhysicalControls)();
     restoreCountriesFromSnapshot(snapshot);
-    normalizeProjectObjects();
+    normalizeProjectObjects({ history: true });
     const restoredDirtyIds = new Set(dependencies.state.historyDirtyCountryIds);
     for (const id of dependencies.state.historyDirtyCountryIds) changedCountryIds.add(String(id));
     (0, dependencies.pruneLayerItemVisibility)();
@@ -222,8 +229,10 @@ export function createProjectSnapshots() {
     dependencies.state.tool = 'select';
     dependencies.objectPropertyController.show(null);
     (0, dependencies.$)('selectionStatus').textContent = '';
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    dependencies.state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+    dependencies.mapEditClient?.invalidateBoundaryCache?.();
+
     (0, dependencies.updateModeButtons)();
     if (changedCountryIds.size) (0, dependencies.markCountryGeometriesChanged)(changedCountryIds);
     dependencies.state.historyDirtyCountryIds = restoredDirtyIds;

@@ -328,6 +328,7 @@ export function connectProjectIo({
     get versionedModuleUrl() { return runtime.versionedModuleUrl; },
   });
   libraryAssembly.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get $() { return environment.$; },
     get closeSurface() { return workspaceSurfaces.closeSurface; },
     get focusSurfaceTrigger() { return workspaceSurfaces.focusSurfaceTrigger; },

@@ -1,3 +1,4 @@
+import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -5,11 +6,10 @@ import { createEditPreviewController } from '../../assets/js/modules/edit-previe
 
 test('edit preview reuses its typed buffer and exposes only the latest segments', () => {
   let clock = 0;
-  const preview = createEditPreviewController({ now: () => ++clock });
+  const preview = createEditPreviewController({ now: () => ++clock, getStyle: () => resolveMapInteractionStyle({ selectionColor: '#abcdef' }) });
   preview.begin({
     key: 'border:AAA|BBB',
     segments: [{ start: [1, 2], end: [3, 4] }],
-    style: { color: '#abcdef', width: 3 },
   });
   const allocated = preview.stats().allocatedBytes;
   preview.update([

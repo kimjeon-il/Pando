@@ -6,6 +6,14 @@ import { resolveSelectChoice } from './select-option-policy.js';
 
 export function createPropertySelection() {
   let dependencies;
+  const parentPreparations = new Map();
+  const parentGeometryTokens = new WeakMap();
+  let parentGeometrySequence = 0;
+  const parentGeometryToken = geometry => {
+    if (!geometry) return 0;
+    if (!parentGeometryTokens.has(geometry)) parentGeometryTokens.set(geometry, ++parentGeometrySequence);
+    return parentGeometryTokens.get(geometry);
+  };
 
   function connect(ports) {
     if (dependencies) throw new Error('property-selection already connected');
@@ -75,12 +83,26 @@ export function createPropertySelection() {
     const options = (0, dependencies.subunitParentChoices)(countryId, dependencies.state.countriesData.features, dependencies.state.territorialUnits, {
       exclude: [feature.id], name: item => item.properties?.unitType ? (0, dependencies.territorialUnitName)(item) : (0, dependencies.countryName)(item),
     });
-    return options.filter(option => {
-      const parent = (0, dependencies.territorialUnitById)(option.value) || (0, dependencies.countryFeatureById)(option.value);
-      if (!parent?.geometry) return false;
-      const difference = window.polygonClipping.difference(feature.geometry.coordinates, parent.geometry.coordinates);
-      return difference.length === 0;
-    });
+    const signature = JSON.stringify([parentGeometryToken(feature.geometry), feature.properties.parentId, countryId,
+      options.map(option => {
+        const parent = (0, dependencies.territorialUnitById)(option.value) || (0, dependencies.countryFeatureById)(option.value);
+        return [option.value, parentGeometryToken(parent?.geometry), parent?.properties?.parentId, parent?.properties?.locked];
+      })]);
+    let entry = parentPreparations.get(String(feature.id));
+    if (entry?.signature !== signature) {
+      entry = { signature, ids: null };
+      parentPreparations.set(String(feature.id), entry);
+      while (parentPreparations.size > 16) parentPreparations.delete(parentPreparations.keys().next().value);
+      dependencies.mapEditClient.execute('territorial-parents', { payload: { targetId: String(feature.id), candidateIds: options.map(option => option.value) } },
+        { jobKey: 'territorial-parents' }).then(response => {
+        if (parentPreparations.get(String(feature.id)) !== entry) return;
+        entry.ids = new Set(response.result.ids);
+        if (String(dependencies.state.selected?.id) === String(feature.id)) dependencies.objectPropertyController.present(dependencies.state.selected, { refreshOnly: true });
+      }).catch(() => { if (parentPreparations.get(String(feature.id)) === entry) parentPreparations.delete(String(feature.id)); });
+    }
+    const prepared = options.filter(option => entry.ids ? entry.ids.has(option.value) : String(option.value) === String(feature.properties.parentId));
+    prepared.pending = !entry.ids;
+    return prepared;
   }
 
   function territorialParentOptions(feature) {

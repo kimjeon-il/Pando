@@ -38,37 +38,40 @@ function pointOnSegment(point, a, b, epsilon) {
   return distance <= epsilon ? Math.max(0, Math.min(1, t)) : null;
 }
 
-export function buildBoundaryTopology(features = [], { precision = 7, epsilon = 1e-7 } = {}) {
-  const nodes = new Map();
-  const rawSegments = [];
-  const ensureNode = coordinate => {
-    const key = topologyNodeKey(coordinate, precision);
-    if (!nodes.has(key)) nodes.set(key, { key, coordinate: cloneCoordinate(coordinate), ownerIds: new Set(), refs: [], virtualRefs: [] });
-    return nodes.get(key);
-  };
+export function boundarySourceSegments(feature, fallbackId = 0) {
+  const rows = [];
+  const id = featureId(feature, fallbackId);
+  for (const polygon of polygonRings(feature)) {
+    (polygon.rings || []).forEach((ring, ringIndex) => {
+      const limit = Math.max(0, ring.length - 1);
+      for (let index = 0; index < limit; index++) rows.push({
+        featureId: id, polygonIndex: polygon.polygonIndex, ringIndex,
+        segmentIndex: index, endVertexIndex: (index + 1) % limit,
+        a: ring[index], b: ring[index + 1],
+      });
+    });
+  }
+  return rows;
+}
 
-  features.forEach((feature, featureIndex) => {
-    const id = featureId(feature, featureIndex);
-    for (const polygon of polygonRings(feature)) {
-      (polygon.rings || []).forEach((ring, ringIndex) => {
-        const limit = Math.max(0, ring.length - 1);
-        for (let vertexIndex = 0; vertexIndex < limit; vertexIndex += 1) {
-          const coordinate = ring[vertexIndex];
-          const node = ensureNode(coordinate);
-          node.ownerIds.add(id);
-          node.refs.push({ featureId: id, polygonIndex: polygon.polygonIndex, ringIndex, vertexIndex });
-          rawSegments.push({
-            featureId: id,
-            polygonIndex: polygon.polygonIndex,
-            ringIndex,
-            segmentIndex: vertexIndex,
-            a: cloneCoordinate(ring[vertexIndex]),
-            b: cloneCoordinate(ring[vertexIndex + 1]),
-          });
-        }
+export function buildBoundaryTopology(features = [], options = {}) {
+  return buildBoundaryTopologyFromSegments(features.flatMap(boundarySourceSegments), options);
+}
+
+export function buildBoundaryTopologyFromSegments(rawSegments, { precision = 7, epsilon = 1e-7 } = {}) {
+  const nodes = new Map();
+  for (const raw of rawSegments) {
+    for (const [coordinate, vertexIndex] of [[raw.a, raw.segmentIndex], [raw.b, raw.endVertexIndex]]) {
+      const key = topologyNodeKey(coordinate, precision);
+      if (!nodes.has(key)) nodes.set(key, { key, coordinate: cloneCoordinate(coordinate), ownerIds: new Set(), refs: [], virtualRefs: [] });
+      const node = nodes.get(key);
+      node.ownerIds.add(raw.featureId);
+      if (!node.refs.some(ref => ref.featureId === raw.featureId && ref.polygonIndex === raw.polygonIndex
+        && ref.ringIndex === raw.ringIndex && ref.vertexIndex === vertexIndex)) node.refs.push({
+        featureId: raw.featureId, polygonIndex: raw.polygonIndex, ringIndex: raw.ringIndex, vertexIndex,
       });
     }
-  });
+  }
 
   const nodeValues = [...nodes.values()];
   // A shared-border vertex may lie inside the opposite owner's longer segment.

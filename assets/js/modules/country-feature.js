@@ -17,7 +17,7 @@ export function countryProperties(properties = {}) {
   return output;
 }
 
-export function normalizeCountryFeature(feature, { id = countryId(feature), name = '' } = {}) {
+export function normalizeCountryFeature(feature, { id = countryId(feature), name = '', clone = structuredClone } = {}) {
   const normalizedId = text(id);
   if (!normalizedId) throw new Error('국가 ID가 비어 있습니다.');
   const properties = countryProperties({ ...(feature?.properties || {}), ...(name ? { name } : {}) });
@@ -25,7 +25,7 @@ export function normalizeCountryFeature(feature, { id = countryId(feature), name
     type: 'Feature',
     id: normalizedId,
     properties,
-    geometry: structuredClone(feature?.geometry),
+    geometry: clone(feature?.geometry),
   };
 }
 
