@@ -1,3 +1,4 @@
+import { interactionCssProperties } from './map-interaction-style.js';
 /** Environment: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -78,9 +79,9 @@ export function createEnvironment() {
     const computed = getComputedStyle(document.documentElement);
     return (0, dependencies.resolveMapInteractionStyle)({
       theme,
-      selectionColor: resolvedAccentColor,
-      outlineVisible: true,
-      fillStrength: 0.35,
+      selectionColor: userPreferences.selection.color || resolvedAccentColor,
+      outlineVisible: userPreferences.selection.outlineVisible,
+      fillStrength: userPreferences.selection.fillStrength,
       tokens: {
         accent: computed.getPropertyValue('--accent').trim(),
         textStrong: computed.getPropertyValue('--text-strong').trim(),
@@ -330,7 +331,7 @@ export function createEnvironment() {
 
     (resolvedInteractionStyle = resolveCurrentInteractionStyle());
 
-    document.documentElement.style.setProperty('--map-selection-halo', resolvedInteractionStyle.selection.color);
+    for (const [property, value] of Object.entries(interactionCssProperties(resolvedInteractionStyle))) document.documentElement.style.setProperty(property, value);
 
     (0, dependencies.setSelectionColor)(resolvedInteractionStyle.selection.color);
 

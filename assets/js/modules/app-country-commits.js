@@ -435,7 +435,8 @@ export function createCountryCommits() {
         (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
         (0, dependencies.transferLandDependents)(plan.transferredGeometry || candidate.geometry, donorIds, targetId);
         (0, dependencies.refreshCountryCentroids)(affectedIds);
-        dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+        dependencies.state.boundaryPreparation?.cancel();
+        dependencies.state.boundaryPreparation = null;
         if (!(0, dependencies.countryFeatureById)(targetId)) throw new Error('편입받을 국가가 편입 결과에서 사라졌습니다.');
         dependencies.editingDomain?.clearDraft?.({ reason: 'annex-committed', render: false });
         dependencies.editingDomain?.setTool('select', { announce: false });
@@ -488,7 +489,8 @@ export function createCountryCommits() {
         (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
         (0, dependencies.transferLandDependents)(transferredGeometry, sourceIds, feature.id);
         (0, dependencies.refreshCountryCentroids)(affectedIds);
-        dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+        dependencies.state.boundaryPreparation?.cancel();
+        dependencies.state.boundaryPreparation = null;
         dependencies.state.multiDraft = null;
         dependencies.editingDomain?.clearDraft?.({ reason: 'country-created', render: false });
         dependencies.editingDomain?.setTool('select', { announce: false });
@@ -534,7 +536,8 @@ export function createCountryCommits() {
         (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
         (0, dependencies.reassignLandDependents)(targetIds, sourceId);
         (0, dependencies.refreshCountryCentroids)(new Set([sourceId]));
-        dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+        dependencies.state.boundaryPreparation?.cancel();
+        dependencies.state.boundaryPreparation = null;
         dependencies.editingDomain?.setTool('select', { announce: false });
         (0, dependencies.applyCountrySelectionIntent)(sourceId);
         dependencies.renderingDomain?.invalidateCountryPatch?.('country-merge-committed');

@@ -91,7 +91,7 @@ test('Canvas Worker persists independently revisioned view and style state', () 
 
 test('map edit worker clones only objects modified by the operation', () => {
   const source = read('assets/js/workers/map-edit-worker.js');
-  assert.ok(source.includes('const working = new Map(countries);'));
+  assert.ok(source.includes('const working = readOnly ? null : new Map(countries);'));
   assert.ok(!source.includes("new Map([...countries].map"));
   assert.ok(source.includes('const nextTarget = clone(target);'));
   assert.ok(source.includes('const next = clone(source);'));

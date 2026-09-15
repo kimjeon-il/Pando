@@ -271,6 +271,7 @@ export function createSceneColorCache() {
   function composite(pixelWidth = width, pixelHeight = height, {
     targetFramebuffer = null,
     clearTarget = true,
+    blendOver = false,
     reproject = null,
   } = {}) {
     if (!gl || !valid || !activeTarget?.colorTexture || !compositeProgram || disabled || gl.isContextLost?.()) return false;
@@ -284,7 +285,9 @@ export function createSceneColorCache() {
       gl.disable(gl.STENCIL_TEST);
       gl.disable(gl.CULL_FACE);
       gl.disable(gl.SCISSOR_TEST);
-      gl.disable(gl.BLEND);
+      if (blendOver) {
+        gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      } else gl.disable(gl.BLEND);
       gl.colorMask(true, true, true, true);
       if (clearTarget) {
         gl.clearColor(0, 0, 0, 0);

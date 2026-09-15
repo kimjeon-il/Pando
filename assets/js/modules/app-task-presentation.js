@@ -351,6 +351,9 @@ export function createTaskPresentation() {
     const unitRedrawMode = state.tool === 'redraw-territorial-unit' && !!state.territorialUnitRedrawSourceId;
     const boundarySelectMode = state.tool === 'country-border' && state.boundaryEditPhase === 'selecting';
     const boundaryEditMode = state.tool === 'country-border' && state.boundaryEditPhase === 'editing';
+    const boundaryPreparation = ['country-border', 'country-coast'].includes(state.tool) ? state.boundaryPreparation : null;
+    const boundaryPending = ['pending', 'moving'].includes(boundaryPreparation?.status);
+    const boundaryFailed = boundaryPreparation?.status === 'error';
     const boundaryReady = !boundarySelectMode || (0, dependencies.boundaryEditSelectionAnalysis)(state.boundaryEditCountryIds).valid;
     const cutLineMode = genericSplitMode || unitSplitMode || selectionModel?.line;
     const cutLineReady = !cutLineMode || draft.cutAssessment?.valid === true;
@@ -362,14 +365,31 @@ export function createTaskPresentation() {
     const taskName = (0, dependencies.$)('modeTaskName');
     const taskStage = (0, dependencies.$)('modeTaskStage');
     if (taskName) taskName.textContent = selectionModel?.taskName || task.name;
-    if (taskStage) taskStage.textContent = selectionModel?.stageLabel || task.stage;
+    if (taskStage) taskStage.textContent = boundaryPending ? '경계 준비 중…' : boundaryFailed ? boundaryPreparation.message : selectionModel?.stageLabel || task.stage;
     syncTerritoryTransferFlow(selectionModel);
     syncTerritorySetup(selectionModel);
     syncTerritoryReviewSummary(selectionModel);
+    const instruction = (0, dependencies.$)('modeTaskInstruction');
+    let legend = instruction?.parentElement?.querySelector('[data-interaction-legend]');
+    if (!legend && instruction) {
+      legend = instruction.ownerDocument.createElement('small');
+      legend.dataset.interactionLegend = '';
+      instruction.insertAdjacentElement('afterend', legend);
+    }
+    if (legend) {
+      const candidates = state.territorySelectionSession?.candidates || [];
+      const chosen = state.territorySelectionSession?.selectedCandidateIndex;
+      legend.textContent = candidates.length
+        ? candidates.map((_, index) => `${String.fromCharCode(65 + index)} · ${index === chosen ? '선택됨' : '선택 안 됨'}`).join(' / ')
+        : mergeTargetMode || genericMergeMode || unitMergeMode ? '굵은 선: 남길 대상 · 가는 선: 합칠 대상'
+          : state.territorySelectionSession?.kind === 'annex' ? '굵은 선: 편입받는 대상 · 가는 선: 제공 영역'
+            : selection ? '옅은 선: 기준 영역 · 굵은 선: 새 영역 · 가는 선: 선택한 조각' : '';
+      legend.hidden = !legend.textContent;
+    }
 
     const specialMode = !!(selection || labelMode || terrainMode || previewMode || (0, dependencies.isSpecialTool)(state.tool) || draftMode);
     const busy = state.modeProcessing || selection?.previewPending;
-    const calculating = selection?.computationPending || selection?.activePhase === 'preparing';
+    const calculating = boundaryPending || selection?.computationPending || selection?.activePhase === 'preparing';
     const bar = (0, dependencies.$)('modeActionBar');
     bar?.classList.toggle('hidden', !specialMode);
     bar?.classList.toggle('single-action', labelMode);
@@ -449,7 +469,7 @@ export function createTaskPresentation() {
         disabled ||= unitMergeMode && !state.territorialUnitMergeTargetIds.length;
         disabled ||= (genericSplitMode || unitSplitMode) && !hydroReview && !cutLineReady;
         disabled ||= unitRedrawMode && draft.coords.length < 3;
-        disabled ||= boundarySelectMode && !boundaryReady;
+        disabled ||= boundaryPending || (boundarySelectMode && !boundaryReady && !boundaryFailed);
         disabled ||= previewMode && state.geometryPreview.session.validation?.blocking === true;
         if (hydroReview) label = '생성';
         else if (previewMode) label = '변경 적용';
@@ -461,6 +481,8 @@ export function createTaskPresentation() {
         else if (genericSplitMode || unitSplitMode) label = '영역 나누기';
         else if (unitRedrawMode) label = '영역 다시 지정';
       }
+      if (boundaryFailed && !previewMode) label = '다시 시도';
+      if (boundaryPending) label = '경계 준비 중…';
       primary.disabled = !!disabled;
       setButtonLabel(primary, label);
       (0, dependencies.$)('modePrimaryIcon')?.setAttribute('href', icon);
@@ -491,6 +513,10 @@ export function createTaskPresentation() {
       : (0, dependencies.territorySelectionAdvance)();
     if (dependencies.state.geometryPreview.session) return (0, dependencies.applyActiveGeometryPreview)();
     if (multiDraftReviewActive(dependencies.state) && !dependencies.editingDomain?.draftInputActive?.()) return (0, dependencies.completeMultiDraftCreation)();
+    if (['country-border', 'country-coast'].includes(dependencies.state.tool) && dependencies.state.boundaryPreparation?.status === 'error') {
+      dependencies.state.boundaryPreparation.retry();
+      return true;
+    }
     if (dependencies.state.tool === 'country-border' && dependencies.state.boundaryEditPhase === 'selecting') return (0, dependencies.beginCountryBorderEditing)();
     if (dependencies.state.tool === 'country-border') return (0, dependencies.finishCountryBorderEdit)();
     if (dependencies.state.tool === 'country-coast') return (0, dependencies.finishCountryCoastEdit)();

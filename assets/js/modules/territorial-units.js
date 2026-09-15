@@ -96,11 +96,12 @@ function parentCreatesCycle(id, parentId, byId) {
 
 export function normalizeTerritorialUnits(value, {
   countryExists = () => true,
+  validatedUnchanged = null,
 } = {}) {
   const normalized = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    const feature = normalizeTerritorialFeature(raw);
+    const feature = validatedUnchanged?.has(raw) ? raw : normalizeTerritorialFeature(raw);
     if (!feature) throw new Error('영역 형식이 올바르지 않습니다.');
     if (feature.properties.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) throw new Error('국가는 countriesData에 저장해야 합니다.');
     if (seen.has(feature.id)) throw new Error(`영역 ID가 중복되었습니다: ${feature.id}`);

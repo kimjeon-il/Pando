@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+test.use({ channel: 'chromium' });
 
 test('Russia subunit components keep input responsive and reuse preparation on hover and selection', async ({ page }, testInfo) => {
   test.setTimeout(180_000);
@@ -13,7 +14,7 @@ test('Russia subunit components keep input responsive and reuse preparation on h
         return super.postMessage(message, ...args);
       }
     };
-    new PerformanceObserver(list => {
+    new window.PerformanceObserver(list => {
       window.__componentMetrics.longTasks.push(...list.getEntries().map(entry => ({ start: entry.startTime, duration: entry.duration })));
     }).observe({ type: 'longtask', buffered: true });
     setInterval(() => { window.__componentMetrics.ticks += 1; }, 50);
@@ -33,11 +34,11 @@ test('Russia subunit components keep input responsive and reuse preparation on h
   const ticks = await page.evaluate(() => window.__componentMetrics.ticks);
   await components.evaluateAll(nodes => {
     for (const node of nodes.slice(0, 10)) {
-      node.dispatchEvent(new MouseEvent('mouseenter'));
-      node.dispatchEvent(new MouseEvent('mouseleave'));
+      node.dispatchEvent(new window.MouseEvent('mouseenter'));
+      node.dispatchEvent(new window.MouseEvent('mouseleave'));
     }
     const node = nodes.at(-1);
-    node.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    node.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
   });
   await expect(page.locator('.draft-layer .selected-component')).toHaveCount(1);
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });

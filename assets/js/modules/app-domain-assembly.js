@@ -1,3 +1,6 @@
+import { rememberCutPreparation } from './cut-preparation-cache.js';
+import { geometryRevision } from './geometry-versions.js';
+import { freezeEditingGeometry } from './editing-render-packet.js';
 import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
 /** DomainAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -5,6 +8,10 @@ import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
  */
 export function createDomainAssembly() {
   let dependencies;
+  const cutSources = new WeakMap();
+  let cutSourceSequence = 0;
+  let cutRequest = null;
+  let confirmedCutSource = null;
   let projectDomain;
   let selectionDomain;
   let renderingDomain;
@@ -425,6 +432,8 @@ export function createDomainAssembly() {
         discardGeometryPreview: dependencies.discardActiveGeometryPreview,
         clearHover: () => { dependencies.lastHoverHit = null; selectionDomain.setHover(null); },
         resetForTool: tool => {
+          dependencies.state.boundaryPreparation?.cancel();
+          dependencies.state.boundaryPreparation = null;
           dependencies.state.labelPlacementMode = false;
           if (tool !== 'country-coast') {
             dependencies.state.coastEditCountryId = null;
@@ -474,22 +483,42 @@ export function createDomainAssembly() {
         screenToCoordinate: point => (0, dependencies.screenToGeo)(point),
         snapCandidates: ({ coordinate, excludeNodeKey }) => (0, dependencies.localSnapCandidates)(coordinate)
           .filter(candidate => !excludeNodeKey || candidate.nodeKey !== excludeNodeKey),
+        cancelPreparation: () => {
+          if (cutRequest?.pending) dependencies.mapEditClient.stop();
+          cutRequest = null;
+          confirmedCutSource = null;
+        },
         assessDraft: ({ tool, coords, buildPreview }) => {
-          const sourceGeometry = (0, dependencies.activeCutDraftSourceGeometry)();
-          if (sourceGeometry) {
-            const assessment = (0, dependencies.assessCutDraft)(coords, sourceGeometry);
-            if (assessment.valid && buildPreview) {
-              try {
-                const split = (0, dependencies.buildCutSplitCandidates)(sourceGeometry, coords);
-                assessment.splitPreview = {
-                  revision: Number(editingDomain?.snapshot?.().revision || 0),
-                  candidates: split.candidates.map(candidate => ({ geometry: (0, dependencies.deepClone)(candidate.geometry), area: candidate.area })),
-                };
-              } catch (_) { assessment.splitPreview = null; }
+          const source = (0, dependencies.activeCutDraftSourceGeometry)();
+          if (!source) { cutRequest = null; return null; }
+          let sourceKey = cutSources.get(source);
+          if (!sourceKey) { sourceKey = `cut:${++cutSourceSequence}`; cutSources.set(source, sourceKey); }
+          sourceKey += `:${geometryRevision(source)}`;
+          const projection = (0, dependencies.activeProjection)();
+          const view = { kind: dependencies.state.projection, scale: projection.scale(), translate: projection.translate(),
+            rotate: projection.rotate(), center: projection.center(), size: { ...dependencies.state.size },
+            coarsePointer: globalThis.matchMedia?.('(pointer: coarse)')?.matches === true,
+            snapDistance: dependencies.CUT_ENDPOINT_SNAP_DISTANCE };
+          const workerStats = dependencies.mapEditClient.stats();
+          const key = JSON.stringify([sourceKey, coords, view, buildPreview, tool, projectDomain?.getGeneration?.()]);
+          if (cutRequest?.key === key) return cutRequest.promise;
+          const entry = { key, sourceKey, promise: null, pending: true };
+          cutRequest = entry;
+          entry.promise = dependencies.mapEditClient.execute('territorial-cut', { payload: {
+            sourceKey, source: confirmedCutSource?.key === sourceKey && confirmedCutSource.workerRevision === workerStats.dataRevision && workerStats.ready ? undefined : source,
+            coords, view, buildPreview,
+          } }, { jobKey: 'territorial-cut' }).then(response => {
+            for (const candidate of response.result.split?.candidates || []) {
+              freezeEditingGeometry(candidate.geometry);
+              if (candidate.feature) freezeEditingGeometry(candidate.feature.geometry);
             }
-            return assessment;
-          }
-          return null;
+            if (cutRequest === entry) {
+              confirmedCutSource = { key: sourceKey, workerRevision: response.geometryRevision };
+              rememberCutPreparation(source, coords, response.result);
+            }
+            return response.result;
+          }).catch(error => { if (cutRequest === entry) { cutRequest = null; confirmedCutSource = null; } throw error; }).finally(() => { entry.pending = false; });
+          return entry.promise;
         },
         requestFrame: callback => requestAnimationFrame(callback),
         cancelFrame: handle => cancelAnimationFrame(handle),
@@ -526,13 +555,6 @@ export function createDomainAssembly() {
           (0, dependencies.beginActiveEditPreview)({
             key: `${(0, dependencies.isHydroEditFeature)(source) ? 'hydro' : 'generic'}:${source.id}`,
             segments,
-            style: {
-              color: (0, dependencies.isHydroEditFeature)(source) ? '#72c9ef' : dependencies.resolvedInteractionStyle.selection.color,
-              alpha: 1,
-              width: 3.2,
-              casing: { color: '#101820', alpha: 0.55, width: 4.8 },
-              cap: 'round', join: 'round',
-            },
           });
           return feature;
         },
@@ -562,15 +584,18 @@ export function createDomainAssembly() {
         },
         beginBoundaryGesture: event => {
           if (!['country-border', 'country-coast'].includes(dependencies.state.tool)) return false;
-          const node = dependencies.state.sharedBoundaryTopology?.nodes?.get?.(String(event.vertexKey || ''));
-          if (!node) return false;
+          const preparation = dependencies.state.boundaryPreparation;
+          if (preparation?.status !== 'ready') return false;
+          if (!preparation.current()) {
+            preparation.status = 'error';
+            preparation.message = '형상이나 소속·잠금이 바뀌었습니다. 경계를 다시 준비하세요.';
+            (0, dependencies.updateModeButtons)();
+            return false;
+          }
+          const node = preparation.nodes.get(String(event.vertexKey || ''));
+          if (!node || node.fixed) return false;
           const borderMode = dependencies.state.tool === 'country-border';
-          const selectedIds = new Set(dependencies.state.boundaryEditCountryIds.map(String));
           const coastId = String(dependencies.state.coastEditCountryId || event.targetRef?.id || '');
-          const allowed = borderMode
-            ? node.ownerIds.size >= 2 && [...node.ownerIds].every(id => selectedIds.has(String(id)))
-            : node.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(coastId);
-          if (!allowed) return false;
           const affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
           const boundaryFeature = id => (0, dependencies.countryFeatureById)(id) || dependencies.state.territorialUnits.find(unit => String(unit.id) === String(id));
           if (!(0, dependencies.requireCountriesUnlocked)([...affectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return false;
@@ -596,70 +621,58 @@ export function createDomainAssembly() {
             (0, dependencies.setActionStatus)('변경 구간의 상위 단위 또는 자식이 잠겨 있습니다.', 'error', 3400);
             return false;
           }
-          const features = new Map([...affectedIds]
-            .map(id => [id, boundaryFeature(id)])
-            .filter(([, feature]) => feature)
-            .map(([id, feature]) => [id, (0, dependencies.deepClone)(feature)]));
-          const refs = [...(node.refs || []), ...(node.virtualRefs || [])]
-            .filter(ref => affectedIds.has(String(ref.featureId)))
-            .map(ref => ({
-              countryId: String(ref.featureId),
-              vertex: { polygonIndex: ref.polygonIndex, ringIndex: ref.ringIndex, index: ref.vertexIndex ?? ref.segmentIndex },
-            }));
           (0, dependencies.beginActiveEditPreview)({
             key: `${borderMode ? 'border' : 'coast'}:${[...affectedIds].sort().join('|')}:${node.key}`,
-            segments: (0, dependencies.getCountryBoundarySegments)().map(item => ({
-              start: item.geometry.coordinates[0], end: item.geometry.coordinates[1],
-            })),
-            style: {
-              color: borderMode ? dependencies.resolvedInteractionStyle.selection.color : '#72c9ef',
-              alpha: 1,
-              width: 3.8,
-              casing: { color: '#101820', alpha: 0.65, width: 5.4 },
-              cap: 'round', join: 'round',
-            },
+            segments: node.segments,
           });
           return {
             borderMode,
             affectedIds,
-            features,
-            refs,
-            startCoordinate: node.coordinate.slice(),
+            preparation,
+            node,
+            startCoordinate: node.coordinate,
+            coordinate: node.coordinate,
             changed: false,
-            snapshot: (0, dependencies.snapshotEditable)(),
-            validationBaseline: affectedIds.size > 1 ? (0, dependencies.captureCountryGeometryValidationBaseline)(affectedIds) : null,
-            structuredBaseline: new Set([...affectedIds]
-              .flatMap(id => (0, dependencies.validateStructuredGeometry)(boundaryFeature(id)).filter(Boolean))
-              .map(dependencies.structuredGeometryIssueKey)),
-            beforeGeometries: new Map([...affectedIds].map(id => [id, (0, dependencies.deepClone)(boundaryFeature(id)?.geometry)])),
           };
         },
         moveBoundaryGesture: (session, coordinate) => {
           session.changed = session.changed || !(0, dependencies.coordNear)(session.startCoordinate, coordinate, 1e-9);
-          for (const ref of session.refs) {
-            const feature = session.features.get(ref.countryId);
-            if (feature) (0, dependencies.setCountryVertexCoord)(feature, ref.vertex, coordinate);
-          }
-          const segments = session.refs.flatMap(ref => {
-            const feature = session.features.get(ref.countryId);
-            const ring = feature ? (0, dependencies.countryRingForVertex)(feature, ref.vertex) : null;
-            const count = Math.max(0, (ring?.length || 0) - 1);
-            if (!ring || !count) return [];
-            return [
-              { start: ring[(ref.vertex.index - 1 + count) % count], end: ring[ref.vertex.index] },
-              { start: ring[ref.vertex.index], end: ring[(ref.vertex.index + 1) % count] },
-            ];
-          });
+          session.coordinate = coordinate.slice();
+          const same = value => dependencies.coordNear(value, session.startCoordinate, 1e-9);
+          const segments = session.node.segments.map(segment => ({
+            start: same(segment.start) ? coordinate : segment.start,
+            end: same(segment.end) ? coordinate : segment.end,
+          }));
           (0, dependencies.updateActiveEditPreview)(segments);
         },
-        commitBoundaryGesture: session => {
+        commitBoundaryGesture: async session => {
           (0, dependencies.clearActiveEditPreview)('country-boundary-preview-end');
           if (!session.changed) return false;
+          const preparation = session.preparation;
+          if (!preparation.current() || preparation.status !== 'ready') return false;
+          preparation.status = 'moving';
+          (0, dependencies.updateModeButtons)();
+          try {
+            const response = await dependencies.mapEditClient.execute('boundary-move', { payload: {
+              preparationId: preparation.result.preparationId, nodeKey: session.node.nodeKey, coordinate: session.coordinate,
+            } }, { jobKey: 'boundary-move' });
+            if (!preparation.current()) return false;
+            session.features = new Map(response.result.features.map(feature => [String(feature.id), feature]));
+          } catch (error) {
+            if (preparation.current()) {
+              preparation.status = 'error';
+              preparation.message = error.message || '경계 이동을 계산하지 못했습니다. 다시 시도하세요.';
+            }
+            return false;
+          } finally {
+            if (preparation.status === 'moving') preparation.status = 'ready';
+            (0, dependencies.updateModeButtons)();
+          }
           const unitTarget = dependencies.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.state.boundaryEditSeedCountryId));
           if (session.borderMode && unitTarget) {
             return (0, dependencies.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
               parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
-            }, { selectedId: unitTarget.id, shouldKeepResult: () => dependencies.state.tool === 'country-border'
+            }, { selectedId: unitTarget.id, shouldKeepResult: () => preparation.current() && dependencies.state.tool === 'country-border'
               && String(dependencies.state.boundaryEditSeedCountryId) === String(unitTarget.id) });
           }
           if (!session.borderMode) {
@@ -667,19 +680,14 @@ export function createDomainAssembly() {
             return (0, dependencies.previewTerritorialEdit)({
               operation: 'coast', targetId: countryId, draft: session.features.get(countryId)?.geometry,
             }, { selectedId: dependencies.state.coastEditReturnSelection?.id || countryId,
-              shouldKeepResult: () => dependencies.state.tool === 'country-coast' && String(dependencies.state.coastEditCountryId) === String(countryId) });
+              shouldKeepResult: () => preparation.current() && dependencies.state.tool === 'country-coast' && String(dependencies.state.coastEditCountryId) === String(countryId) });
           }
           const ids = [...session.affectedIds];
           return (0, dependencies.previewTerritorialEdit)({ operation: 'country-boundary', targetId: ids[0],
             featurePatches: [...session.features.values()],
-          }, { selectedId: ids[0], shouldKeepResult: () => dependencies.state.tool === 'country-border' });
+          }, { selectedId: ids[0], shouldKeepResult: () => preparation.current() && dependencies.state.tool === 'country-border' });
         },
         renderPacket: () => {
-          const boundarySegments = (0, dependencies.getCountryBoundarySegments)().flatMap(item => {
-            const coordinates = item.geometry?.coordinates || [];
-            return coordinates.length >= 2 ? [{ key: item.key, kind: item.kind, start: coordinates[0], end: coordinates[1] }] : [];
-          });
-          const boundaryHandles = (0, dependencies.getCountryBoundaryHandles)();
           const territoryItems = (0, dependencies.territoryComponentItems)();
           const territorySelection = dependencies.state.territorySelectionSession;
           const selectionVisible = territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection';
@@ -697,9 +705,10 @@ export function createDomainAssembly() {
             })));
           }
           return {
-            boundaryEdit: boundarySegments.length || boundaryHandles.length ? { segments: boundarySegments, handles: boundaryHandles } : null,
+            boundaryEdit: dependencies.state.boundaryPreparation?.status === 'ready' ? dependencies.state.boundaryPreparation.packet : null,
             territoryOperation: territoryItems.length || candidates.length ? {
               kind: dependencies.state.tool,
+              sourceKey: `${territorySelection?.id}:${territorySelection?.componentIndex?.key}:${territorySelection?.settingsRevision}`,
               phase: territorySelection?.activePhase || null,
               components: territoryItems.map(item => ({ ...item, hovered: item.key === territorySelection?.hoveredComponentKey })),
               candidates,
@@ -709,6 +718,7 @@ export function createDomainAssembly() {
         handleTerritoryInteraction: event => {
           const territorySelection = dependencies.state.territorySelectionSession;
           if (!territorySelection || territorySelection.stage !== 'selection') return false;
+          if (event.type.startsWith('territory-component-') && event.territorySourceKey !== `${territorySelection.id}:${territorySelection.componentIndex?.key}:${territorySelection.settingsRevision}`) return false;
           if (event.type === 'territory-component-hover') {
             territorySelection.hoveredComponentKey = event.componentKey;
           }
@@ -739,6 +749,15 @@ export function createDomainAssembly() {
     });
 
     renderingDomain = (0, dependencies.createRenderingDomain)({
+      prepareEditDisplay: (payload, options) => dependencies.mapEditClient.execute('territorial-display', { payload }, options),
+      onEditDisplayReady: result => {
+        if (result?.kind === 'highlight') {
+          renderingDomain?.invalidateSelectionOverlay?.('highlight-ready');
+          return;
+        }
+        renderingDomain?.invalidateTerritorialPatch?.('edit-display-ready');
+        renderingDomain?.invalidateGpuInteraction?.('edit-display-ready');
+      },
       context: domainContext,
       gpuMapRenderer: dependencies.gpuMapRenderer,
       sceneBuilder: dependencies.renderSceneBuilder,
@@ -993,6 +1012,7 @@ export function createDomainAssembly() {
         getProjection: () => dependencies.state.projection,
         isMobile: dependencies.isMobile,
         gpuMapRenderer: dependencies.gpuMapRenderer,
+        activeEditPreview: () => dependencies.editPreviewController.packet(),
         buildGpuInteractionFillItems: dependencies.buildGpuInteractionFillItems,
         syncGpuInteractionState: dependencies.syncGpuInteractionState,
         setCurrentSelectionPacket: packet => { dependencies.currentSelectionPacket = packet || null; },

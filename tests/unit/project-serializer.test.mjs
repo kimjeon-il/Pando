@@ -15,6 +15,20 @@ const serializer = snapshot => createProjectSerializer({
   now: () => new Date('2026-08-29T00:00:00Z'),
 });
 
+test('autosaves share frozen geometry versions while keeping live project arrays detached', () => {
+  const country = { type: 'Feature', id: 'RUS', properties: { name: 'Russia' }, geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } };
+  const service = serializer({ countriesData: { features: [country] }, countryDelta: { changed: [country] }, projectFields: { genericFeatures: [country] } });
+  const first = service.buildAutosave(), second = service.buildAutosave();
+  assert.equal(first.countryDelta.changed[0].geometry, second.countryDelta.changed[0].geometry);
+  assert.notEqual(first.countryDelta.changed[0].geometry, country.geometry);
+  assert.equal(first.genericFeatures[0].geometry, first.countryDelta.changed[0].geometry);
+  assert.ok(Object.isFrozen(first.genericFeatures[0].geometry.coordinates));
+  const full = serializer({ fullAutosave: true, countriesData: { features: [country] }, projectFields: { genericFeatures: [country] } });
+  const saved = full.buildAutosave();
+  assert.equal(saved.countriesData.features[0].geometry, full.buildAutosave().countriesData.features[0].geometry);
+  assert.equal(saved.genericFeatures[0].geometry, saved.countriesData.features[0].geometry);
+});
+
 test('project serializer keeps document and presentation input while adding current contracts', () => {
   const service = serializer({
     countriesData: { type: 'FeatureCollection', features: [] },

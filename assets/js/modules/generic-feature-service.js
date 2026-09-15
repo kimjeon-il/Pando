@@ -114,11 +114,11 @@ export function normalizeGenericFeatureSemantics(feature) {
   return feature;
 }
 
-export function normalizeGenericFeatureCollection(genericFeatures) {
+export function normalizeGenericFeatureCollection(genericFeatures, { cloneFeature = clone } = {}) {
   const output = [];
   const seen = new Set();
   for (const raw of Array.isArray(genericFeatures) ? genericFeatures : []) {
-    const feature = normalizeGenericFeatureSemantics(clone(raw));
+    const feature = normalizeGenericFeatureSemantics(cloneFeature(raw));
     const id = text(feature?.id);
     if (!id) throw new Error('기타 객체 ID가 비어 있습니다.');
     if (seen.has(id)) throw new Error(`기타 객체 ID가 중복되었습니다: ${id}`);

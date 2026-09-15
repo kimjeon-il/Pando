@@ -1,3 +1,5 @@
+import { geometryRevision } from './geometry-versions.js';
+import { createEditSourceTracker } from './edit-source-tracker.js';
 import { createLatestWorkerJobScheduler } from './worker-job-scheduler.js';
 import {
   WORKER_RPC_ERROR_CATEGORIES,
@@ -31,6 +33,8 @@ function createMapEditWorkerCodec() {
     encodeEvent(envelope) {
       const legacyTypes = {
         'map-edit.rebase': 'rebase',
+        'map-edit.boundary-sync': 'boundary-sync',
+        'map-edit.boundary-invalidate': 'boundary-invalidate',
         'map-edit.sync-patch': 'sync-patch',
         'map-edit.commit': 'commit',
         'map-edit.discard': 'discard',
@@ -72,6 +76,8 @@ export function createMapEditWorkerClient({
   createWorker,
   getFeatures,
   getFeatureById,
+  getBoundaryFeatures = null,
+  getEditSources = null,
   getTargetRevision = null,
   now = () => performance.now(),
   schedule = (callback, delay) => setTimeout(callback, delay),
@@ -81,6 +87,15 @@ export function createMapEditWorkerClient({
   let rpc = null;
   let dataRevision = 0;
   let ready = false;
+  let boundarySources = new Map();
+  const editSources = createEditSourceTracker();
+  const sourceRows = () => getEditSources?.() || getFeatures().map(feature => ({ kind: 'country', feature }));
+  function syncEditSources() {
+    const patch = editSources.update(sourceRows());
+    if (patch.patches.length || patch.removedKeys.length) ensureRpc().notify('edit-sync', patch);
+    return patch.sourceRevision;
+  }
+  const boundarySignature = feature => JSON.stringify([geometryRevision(feature.geometry), feature.properties?.unitType, feature.properties?.parentId, feature.properties?.sovereignId, !!(feature.boundaryLocked ?? feature.properties?.locked)]);
   const currentTargetRevision = () => typeof getTargetRevision === 'function'
     ? Number(getTargetRevision())
     : dataRevision;
@@ -93,7 +108,7 @@ export function createMapEditWorkerClient({
       defaultTimeoutMs: requestTimeoutMs,
       getProjectRevision: currentTargetRevision,
       isCurrent: ({ entry }) => Number(entry.metadata?.geometryRevision) === dataRevision
-        && Number(entry.projectRevision) === currentTargetRevision(),
+        && (entry.metadata?.boundaryReadOnly || Number(entry.projectRevision) === currentTargetRevision()),
       onEvent: event => {
         if (event.operation !== 'map-edit.ready') return;
         const message = event.payload || {};
@@ -122,6 +137,7 @@ export function createMapEditWorkerClient({
       priority: entry.priority,
       timeoutMs: requestTimeoutMs,
       metadata: {
+        boundaryReadOnly: entry.payload.operation.startsWith('boundary-') || entry.payload.operation.startsWith('territorial-'),
         jobKey: entry.jobKey,
         dataRevision: entry.geometryRevision,
         geometryRevision: entry.geometryRevision,
@@ -129,7 +145,7 @@ export function createMapEditWorkerClient({
       },
     }).then(response => response.result).catch(error => {
       // A cancel message cannot interrupt a synchronous polygon operation.
-      if (error?.code === 'PL-WORKER-RPC-TIMEOUT') {
+      if (['PL-WORKER-RPC-TIMEOUT', 'PL-WORKER-RPC-CRASH'].includes(error?.code)) {
         const timedOutRpc = rpc;
         // Deliver the timeout to its caller before cancelling the other queued work.
         setTimeout(() => { if (rpc === timedOutRpc) stop(); }, 0);
@@ -149,8 +165,28 @@ export function createMapEditWorkerClient({
       targetRevision: entry.targetRevision,
     }, { projectRevision: entry.targetRevision }),
     isCurrent: entry => Number(entry.geometryRevision) === dataRevision
-      && Number(entry.targetRevision) === currentTargetRevision(),
+      && (entry.payload.operation.startsWith('boundary-') || entry.payload.operation.startsWith('territorial-') || Number(entry.targetRevision) === currentTargetRevision()),
   });
+
+  function boundarySnapshot() {
+    const features = getBoundaryFeatures?.() || getFeatures();
+    boundarySources = new Map(features.map(feature => [String(feature.id), { geometry: feature.geometry, signature: boundarySignature(feature) }]));
+    return features;
+  }
+
+  function syncBoundarySources() {
+    const features = getBoundaryFeatures?.() || getFeatures();
+    const ids = new Set(features.map(feature => String(feature.id)));
+    const patches = features.filter(feature => {
+      const previous = boundarySources.get(String(feature.id));
+      return previous?.geometry !== feature.geometry || previous?.signature !== boundarySignature(feature);
+    });
+    const removedIds = [...boundarySources.keys()].filter(id => !ids.has(id));
+    if (!patches.length && !removedIds.length) return;
+    for (const id of removedIds) boundarySources.delete(id);
+    for (const feature of patches) boundarySources.set(String(feature.id), { geometry: feature.geometry, signature: boundarySignature(feature) });
+    ensureRpc().notify('map-edit.boundary-sync', { features: patches, removedIds }, { projectRevision: currentTargetRevision() });
+  }
 
   function rebase(features = getFeatures()) {
     scheduler.cancelAll('rebase');
@@ -160,7 +196,8 @@ export function createMapEditWorkerClient({
       dataRevision,
       geometryRevision: dataRevision,
       targetRevision: currentTargetRevision(),
-      features,
+      features, boundaryFeatures: boundarySnapshot(),
+      editSources: (editSources.reset(), editSources.update(sourceRows())),
     }, { projectRevision: currentTargetRevision(), priority: 1000 });
     return dataRevision;
   }
@@ -179,13 +216,18 @@ export function createMapEditWorkerClient({
       targetRevision: currentTargetRevision(),
       features,
       removedIds,
+      editSources: editSources.update(sourceRows()),
     }, { projectRevision: currentTargetRevision(), priority: 900 });
     return true;
   }
 
   async function prepareWorker() {
     if (!rpc) rebase();
-    if (!ready) await waitForReady();
+    if (!ready) {
+      const preparingRpc = rpc;
+      try { await waitForReady(); }
+      catch (error) { if (rpc === preparingRpc) stop(); throw error; }
+    }
   }
 
   async function execute(operation, payload, {
@@ -195,6 +237,9 @@ export function createMapEditWorkerClient({
     signal = null,
   } = {}) {
     await prepareWorker();
+    if (signal?.aborted) throw Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true });
+    if (operation.startsWith('boundary-')) syncBoundarySources();
+    const sourceRevision = operation.startsWith('territorial-') ? syncEditSources() : null;
     const geometryRevision = dataRevision;
     const resolvedTargetRevision = targetRevision == null ? currentTargetRevision() : Number(targetRevision);
     const ticket = scheduler.enqueue({
@@ -203,10 +248,12 @@ export function createMapEditWorkerClient({
       targetRevision: resolvedTargetRevision,
       priority,
       signal,
-      payload: { operation, payload },
+      payload: { operation, payload: sourceRevision == null ? payload : { ...payload, sourceRevision } },
     });
     const result = await ticket.promise;
+    if (sourceRevision != null && sourceRevision !== syncEditSources()) throw Object.assign(new Error('원본이 바뀌어 계산을 취소했습니다.'), { cancelled: true });
     return {
+      sourceRevision,
       requestId: ticket.requestId,
       jobKey: String(jobKey),
       geometryRevision,
@@ -237,6 +284,10 @@ export function createMapEditWorkerClient({
     rpc?.cancelAll('cancelled');
   }
 
+  function invalidateBoundaryCache() {
+    rpc?.notify('map-edit.boundary-invalidate', {}, { projectRevision: currentTargetRevision() });
+  }
+
   function stop() {
     scheduler.cancelAll('stopped');
     rpc?.stop('stopped');
@@ -249,9 +300,11 @@ export function createMapEditWorkerClient({
     commit,
     discard,
     execute,
+    invalidateBoundaryCache,
     rebase,
     stop,
     syncPatch,
+    sourcesCurrent: revision => !!rpc && ready && syncEditSources() === revision,
     stats: () => Object.freeze({
       role: 'stateful-dedicated-rpc',
       dataRevision,

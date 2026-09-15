@@ -177,6 +177,8 @@ export function connectLifecycleUi({
     get TERRITORIAL_UNIT_TYPES() { return runtime.TERRITORIAL_UNIT_TYPES; },
   });
   domainAssembly.connect({
+    get CUT_ENDPOINT_SNAP_DISTANCE() { return environment.CUT_ENDPOINT_SNAP_DISTANCE; },
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get $() { return environment.$; },
     get activeCutDraftSourceGeometry() { return cutGeometry.activeCutDraftSourceGeometry; },
     get activeProjection() { return mapProjection.activeProjection; },

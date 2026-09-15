@@ -176,6 +176,8 @@ export function createObjectPropertyController(runtime = {}) {
     if (subunits) {
       refreshTerritorialCoastAvailability?.(feature);
       const parentOptions = territorialUnitParentOptions(feature);
+      $('subunitParentInput').disabled = properties.locked === true || parentOptions.pending === true;
+      $('subunitParentInput').setAttribute('aria-busy', String(parentOptions.pending === true));
       replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId, { autoSelectSingle: true, preserveInvalid: false });
       $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', !shouldShowTerritorialParentChoice({
         sovereignId: properties.sovereignId,

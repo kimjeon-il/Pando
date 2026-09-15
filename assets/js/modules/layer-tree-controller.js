@@ -173,6 +173,16 @@ export function createLayerTreeController({
   }
 
   function bind() {
+    const hoverRow = event => event.target.closest('[data-object-search-select]');
+    elements.searchResults?.addEventListener('pointerover', event => {
+      if (event.pointerType === 'touch') return;
+      const row = hoverRow(event);
+      if (row && !row.contains(event.relatedTarget)) commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, true);
+    });
+    elements.searchResults?.addEventListener('pointerout', event => {
+      const row = hoverRow(event);
+      if (row && !row.contains(event.relatedTarget)) commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, false);
+    });
     elements.search?.addEventListener('input', event => {
       commands.setSearchValue(event.currentTarget.value || '');
       window.clearTimeout(searchTimer);
@@ -233,6 +243,11 @@ export function createAppLayerTreeController(runtime = {}) {
       compare: compareItems,
     },
     commands: {
+      hoverItem: (group, id, entered) => {
+        if (state.tool !== 'select' || state.mapMoving) return;
+        const ref = layerItemObjectRef(group, id);
+        selectionDomain.setHover(entered ? ref : null, { source: 'list', expectedKey: entered ? '' : ref?.key });
+      },
       syncCanonicalControls: runtime.syncCanonicalControls,
       syncSearchClear: () => syncSearchClearButton($('layerSearchInput'), $('layerSearchClearBtn')),
       beginHydration: () => {

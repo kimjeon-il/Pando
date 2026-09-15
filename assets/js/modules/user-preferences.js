@@ -54,7 +54,7 @@ export function normalizeUserPreferences(value) {
   const source = value && typeof value === 'object' && Number(value.version) === DEFAULTS.version ? value : {};
   const theme = THEMES.has(source.appearance?.theme) ? source.appearance.theme : defaults.appearance.theme;
   const fillStrength = normalizeFillStrength(source.selection?.fillStrength, defaults.selection.fillStrength);
-  const outlineVisible = source.selection?.outlineVisible !== false || fillStrength === 0;
+  const outlineVisible = source.selection?.outlineVisible !== false;
   return {
     version: DEFAULTS.version,
     appearance: {

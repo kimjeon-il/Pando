@@ -53,6 +53,7 @@ export function createCountryModes() {
 
   function resetBoundaryEditState() {
     dependencies.state.boundaryEditCountryIds = [];
+    dependencies.state.boundaryEditAutoSeedId = null;
     dependencies.state.boundaryEditPhase = null;
     dependencies.state.boundaryEditInitialSelection = null;
     dependencies.state.boundaryEditSeedCountryId = null;
@@ -162,6 +163,7 @@ export function createCountryModes() {
     if (!(0, dependencies.requireCountriesUnlocked)([id], '국경 조정 대상을 선택')) return false;
     const initialSelection = selectionSessionSnapshot();
     if (!dependencies.editingDomain?.setTool('country-border', { announce: false })) return false;
+    dependencies.state.boundaryEditAutoSeedId = null;
     dependencies.state.boundaryEditCountryIds = [String(id)];
     dependencies.state.boundaryEditPhase = 'selecting';
     dependencies.state.boundaryEditInitialSelection = initialSelection;
@@ -182,7 +184,7 @@ export function createCountryModes() {
     const refs = dependencies.selectionDomain.snapshot().selection.items;
     if (refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === 'subunit')) {
       const units = refs.map(ref => (0, dependencies.territorialUnitById)(ref.id));
-      const policy = subunitSelectionPolicy(units, { adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry) });
+      const policy = subunitSelectionPolicy(units, operation === 'merge' ? { adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry) } : { deferConnectivity: true });
       if (!policy.valid) { (0, dependencies.setActionStatus)(policy.message, 'error', 3600); return false; }
       if (operation === 'merge') return (0, dependencies.previewTerritorialEdit)({ operation: 'merge', targetId: units[0].id,
         parentId: units[0].properties.parentId, sourceIds: units.slice(1).map(unit => unit.id),
@@ -195,12 +197,9 @@ export function createCountryModes() {
       return false;
     }
     if (!(0, dependencies.requireCountriesUnlocked)(ids, '국경 조정을 시작')) return false;
-    const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(ids, { rebuild: true });
-    if (!analysis.valid) {
-      (0, dependencies.setActionStatus)(analysis.message, 'error', 3800);
-      return false;
-    }
+    const analysis = { selectedIds: ids };
     if (!dependencies.editingDomain?.setTool('country-border', { announce: false })) return false;
+    dependencies.state.boundaryEditAutoSeedId = null;
     dependencies.state.boundaryEditCountryIds = analysis.selectedIds;
     dependencies.state.boundaryEditPhase = 'editing';
     dependencies.state.boundaryEditInitialSelection = snapshot;
@@ -216,15 +215,8 @@ export function createCountryModes() {
   }
 
   function boundaryNeighborIds(selectedCountryIds = dependencies.state.boundaryEditCountryIds) {
-    const selected = new Set(selectedCountryIds.map(String));
-    const neighbors = new Set();
-    for (const segment of dependencies.state.sharedBoundaryTopology?.segments?.values?.() || []) {
-      if (segment.kind !== 'shared') continue;
-      const owners = [...segment.ownerIds].map(String);
-      if (!owners.some(id => selected.has(id))) continue;
-      for (const id of owners) if (!selected.has(id)) neighbors.add(id);
-    }
-    return neighbors;
+    return new Set(dependencies.state.boundaryPreparation?.status === 'ready'
+      ? dependencies.state.boundaryPreparation.result.neighbors : []);
   }
 
   function toggleBoundaryEditCountry(id) {
@@ -239,7 +231,7 @@ export function createCountryModes() {
       }
       selected.delete(countryId);
     } else {
-      (0, dependencies.rebuildBoundaryTopology)([...selected]);
+      if (dependencies.state.boundaryPreparation?.status !== 'ready') return false;
       if (!boundaryNeighborIds([...selected]).has(countryId)) {
         (0, dependencies.setActionStatus)('현재 선택 집합과 실제 국경을 맞댄 국가만 추가할 수 있습니다.', 'error', 3200);
         return false;
@@ -250,7 +242,8 @@ export function createCountryModes() {
     dependencies.selectionUiController.replaceMany(dependencies.state.boundaryEditCountryIds.map(dependencies.countryObjectRef), {
       primary: (0, dependencies.countryObjectRef)(countryId), scope: 'map', reason: 'boundary-edit-selection', present: false,
     });
-    const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds, { rebuild: true });
+    (0, dependencies.rebuildBoundaryTopology)(dependencies.state.boundaryEditCountryIds);
+    const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds);
     (0, dependencies.setModeBanner)(analysis.valid
       ? `${analysis.selectedIds.length}개 국가 선택됨 · 완료하면 공유국경을 편집합니다.`
       : analysis.message);
@@ -262,11 +255,12 @@ export function createCountryModes() {
   function beginCountryBorderEditing() {
     if (dependencies.state.tool !== 'country-border' || dependencies.state.boundaryEditPhase !== 'selecting') return false;
     if (!(0, dependencies.requireCountriesUnlocked)(dependencies.state.boundaryEditCountryIds, '국경 조정을 시작')) return false;
-    const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds, { rebuild: true });
+    const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds);
     if (!analysis.valid) {
       (0, dependencies.setActionStatus)(analysis.message, 'error', 3400);
       return false;
     }
+    dependencies.state.boundaryEditAutoSeedId = null;
     dependencies.state.boundaryEditCountryIds = analysis.selectedIds;
     dependencies.state.boundaryEditPhase = 'editing';
     (0, dependencies.rebuildBoundaryTopology)(analysis.selectedIds);
@@ -281,15 +275,17 @@ export function createCountryModes() {
     const subunit = dependencies.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.state.boundaryEditSeedCountryId));
     if (subunit) {
       dependencies.editingDomain?.setTool('select', { announce: false });
-      dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-      dependencies.state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
+      dependencies.state.boundaryPreparation?.cancel();
+      dependencies.state.boundaryPreparation = null;
+
       return true;
     }
     const ids = dependencies.state.boundaryEditCountryIds.slice();
     const primaryId = (dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && ids.includes(String(dependencies.state.selected.id)) ? String(dependencies.state.selected.id) : ids.at(-1);
     dependencies.editingDomain?.setTool('select', { announce: false });
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    dependencies.state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+
     dependencies.selectionUiController.replaceMany(ids.map(dependencies.countryObjectRef), {
       primary: (0, dependencies.countryObjectRef)(primaryId), scope: 'map', reason: 'boundary-edit-commit', present: true,
     });
@@ -303,11 +299,7 @@ export function createCountryModes() {
     const feature = (0, dependencies.countryFeatureById)(id);
     if (!feature) return false;
     if (!(0, dependencies.requireCountriesUnlocked)([id], '해안선 조정을 시작')) return false;
-    (0, dependencies.rebuildBoundaryTopology)(id);
-    dependencies.state.coastEditCountryId = String(id);
-    dependencies.state.coastEditScopeGenericFeatureId = scopeGenericFeatureId ? String(scopeGenericFeatureId) : null;
-    dependencies.state.coastEditReturnSelection = returnSelection ? (0, dependencies.deepClone)(returnSelection) : null;
-    dependencies.editingDomain?.setTool('country-coast', { announce: false });
+    if (!dependencies.editingDomain?.setTool('country-coast', { announce: false })) return false;
     dependencies.state.coastEditCountryId = String(id);
     dependencies.state.coastEditScopeGenericFeatureId = scopeGenericFeatureId ? String(scopeGenericFeatureId) : null;
     dependencies.state.coastEditReturnSelection = returnSelection ? (0, dependencies.deepClone)(returnSelection) : null;
@@ -325,8 +317,9 @@ export function createCountryModes() {
     const feature = (0, dependencies.countryFeatureById)(id);
     const returnSelection = dependencies.state.coastEditReturnSelection ? (0, dependencies.deepClone)(dependencies.state.coastEditReturnSelection) : null;
     dependencies.editingDomain?.setTool('select', { announce: false });
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    dependencies.state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+
     dependencies.state.coastEditScopeGenericFeatureId = null;
     dependencies.state.coastEditReturnSelection = null;
     if (returnSelection?.type === 'generic' && dependencies.state.genericFeatures.some(item => String(item.id) === String(returnSelection.id))) (0, dependencies.applyGenericSelectionIntent)(String(returnSelection.id), true);
@@ -394,8 +387,9 @@ export function createCountryModes() {
     resetTerritorialUnitEditState();
     dependencies.state.genericFeatureSplitSourceId = null;
     dependencies.editingDomain?.setTool('select', { announce: false });
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    dependencies.state.sharedBoundaryTopology = { segments: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+
     if (cancelledTool === 'country-border' && boundarySelectionSnapshot) dependencies.selectionUiController.restore(boundarySelectionSnapshot);
     else if (selectedGenericFeatureId && dependencies.state.genericFeatures.some(item => String(item.id) === String(selectedGenericFeatureId))) (0, dependencies.applyGenericSelectionIntent)(String(selectedGenericFeatureId), true);
     else if (selectedTerritorialUnitId && (0, dependencies.territorialUnitById)(selectedTerritorialUnitId)) (0, dependencies.applyTerritorialUnitSelectionIntent)(String(selectedTerritorialUnitId), true);

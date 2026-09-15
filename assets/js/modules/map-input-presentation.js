@@ -174,7 +174,7 @@ export function createMapInputPresentation({
         dispatchEditingInteraction('draft-hover-clear');
         cancelCountryHoverPick({ clear: true });
         clearHoverHit();
-        selectionDomain.setHover(null);
+        selectionDomain.setHover(null, { source: 'map' });
       }
     });
 
@@ -182,7 +182,7 @@ export function createMapInputPresentation({
       cancelCountryHoverPick();
       dispatchEditingInteraction('draft-hover-clear');
       clearHoverHit();
-      selectionDomain.setHover(null);
+      selectionDomain.setHover(null, { source: 'map' });
     });
     boundInput = mapInputController;
     boundSvg = svg;

@@ -48,23 +48,16 @@ export function createObjectPresentation() {
     if ((0, dependencies.genericFeatureGeometryKind)(feature) !== 'polygon' || (0, dependencies.genericFeatureLandBinding)(feature) === 'none') return feature;
     const cached = genericFeatureLandClipCache.get(feature);
     const ownerId = String(feature.properties?.ownerId || '');
-    if (cached && cached.revision === dependencies.countryLandRevision && cached.geometry === feature.geometry && cached.ownerId === ownerId) return cached.feature;
-    const clipper = window.polygonClipping;
-    if (!clipper?.intersection) return feature;
-    const bounds = (0, dependencies.geometryBounds)(feature.geometry);
-    const countries = ownerId && (0, dependencies.countryFeatureById)(ownerId)
-      ? [(0, dependencies.countryFeatureById)(ownerId)]
-      : (0, dependencies.spatialFeatures)(bounds);
-    const pieces = [];
-    for (const country of countries) {
-      if (!country?.geometry || !(0, dependencies.boundsOverlap)(bounds, (0, dependencies.geometryBounds)(country.geometry))) continue;
-      const clipped = clipper.intersection(feature.geometry.coordinates, country.geometry.coordinates);
-      if (clipped?.length) pieces.push(...clipped);
-    }
-    const geometry = (0, dependencies.normalizeClippedLandGeometry)(pieces);
-    const display = geometry ? { ...feature, geometry } : { ...feature, geometry: null };
-    genericFeatureLandClipCache.set(feature, { revision: dependencies.countryLandRevision, geometry: feature.geometry, ownerId, feature: display });
-    return display;
+    if (cached && cached.revision === dependencies.countryLandRevision && cached.geometry === feature.geometry && cached.ownerId === ownerId) return { ...feature, geometry: cached.feature.geometry };
+    const entry = { revision: dependencies.countryLandRevision, geometry: feature.geometry, ownerId, feature: { ...feature, geometry: null } };
+    genericFeatureLandClipCache.set(feature, entry);
+    dependencies.mapEditClient.execute('territorial-land-clip', { payload: { targetId: String(feature.id) } },
+      { jobKey: `territorial-land-clip:${feature.id}` }).then(response => {
+      if (genericFeatureLandClipCache.get(feature) !== entry || entry.geometry !== feature.geometry || entry.revision !== dependencies.countryLandRevision) return;
+      entry.feature = { ...feature, geometry: response.result.geometry };
+      dependencies.renderingDomain?.invalidateGenericPatch?.('land-clip-ready');
+    }).catch(() => { if (genericFeatureLandClipCache.get(feature) === entry) genericFeatureLandClipCache.delete(feature); });
+    return entry.feature;
   }
 
   function genericFeatureName(feature) {

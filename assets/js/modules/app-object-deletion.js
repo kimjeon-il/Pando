@@ -39,7 +39,8 @@ export function createObjectDeletion() {
         delete dependencies.state.countryOverrides[key];
         (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
         (0, dependencies.markCountryGeometriesChanged)([key]);
-        dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+        dependencies.state.boundaryPreparation?.cancel();
+        dependencies.state.boundaryPreparation = null;
         if ((dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.state.selected.id) === key) dependencies.selectionUiController.clear({ reason: 'country-delete-selection-clear' });
         else {
           (0, dependencies.markLayerTreeDirty)();

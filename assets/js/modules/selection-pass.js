@@ -1,16 +1,10 @@
+import { resolveMapInteractionStyle, interactionRoleStyle } from './map-interaction-style.js';
 import { isRenderDevice } from './render-device.js';
 import { buildStrokeGeometryPacket } from './render-scene.js';
 import { buildSelectionChannelSignature } from './selection-stroke-geometry.js';
 
-const CHANNELS = Object.freeze(['hover', 'primary', 'secondary']);
-const DEFAULT_INTERACTION_STYLE = Object.freeze({
-  hover: Object.freeze({ color: '#d7ba7d', width: 1.5, alpha: 1, fillAlpha: 0.05775 }),
-  selection: Object.freeze({
-    color: '#cda95d',casingColor: '#f2f4f6',outlineVisible: true,
-    primary: Object.freeze({ innerWidth: 2.5, innerAlpha: 1, outerWidth: 4, casingAlpha: 0.72, fillAlpha: 0.13 }),
-    secondary: Object.freeze({ innerWidth: 1.5, innerAlpha: 0.72, outerWidth: 2.8, casingAlpha: 0.48, fillAlpha: 0.08 }),
-  }),
-});
+const CHANNELS = Object.freeze(['candidate', 'hover', 'primary', 'secondary']);
+const DEFAULT_INTERACTION_STYLE = resolveMapInteractionStyle();
 
 function emptyChannel(requested = []) {
   return Object.freeze({
@@ -20,8 +14,8 @@ function emptyChannel(requested = []) {
 }
 
 function channelStyle(name, style) {
-  if (name === 'hover') return Object.freeze({
-    color: style.hover.color,alpha: style.hover.alpha,width: style.hover.width,cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',
+  if (name === 'hover' || name === 'candidate') return Object.freeze({
+    ...interactionRoleStyle(style, name),cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',
   });
   const selection = name === 'primary' ? style.selection.primary : style.selection.secondary;
   return Object.freeze({
@@ -56,7 +50,7 @@ export function createSelectionPass({ onRenderError = null } = {}) {
   let strokeDrawCallCount = 0;
   let lastRenderResult = null;
   const geometryCache = new Map();
-  const items = { hover: [],primary: [],secondary: [] };
+  const items = { candidate: [],hover: [],primary: [],secondary: [] };
   const channelMetrics = Object.fromEntries(CHANNELS.map(name => [name, {
     signature: '',rebuildCount: 0,rebuildMs: 0,uploadBytes: 0,activeBytes: 0,buildFailed: false,
   }]));
@@ -97,8 +91,9 @@ export function createSelectionPass({ onRenderError = null } = {}) {
       geometryRevision,
       startsEnds: geometry.startsEnds,
       segmentCount: geometry.segmentCount,
-    }) : null;
-    geometryCache.set(cacheKey, packet);
+    }) : item?.geometry?.geometry?.type === 'MultiLineString' && item.geometry.geometry.coordinates.length === 0
+      ? Object.freeze({ empty: true, key: `selection-object:${objectKey}` }) : null;
+    if (packet) geometryCache.set(cacheKey, packet);
     while (geometryCache.size > 512) geometryCache.delete(geometryCache.keys().next().value);
     return packet;
   }
@@ -118,7 +113,7 @@ export function createSelectionPass({ onRenderError = null } = {}) {
   function preparedItem(item, channel) {
     const key = String(item?.key || '');
     if (!key) return null;
-    if (key.startsWith('country:')) return Object.freeze({ key,packet: countryPacket(key.slice(8), channel) });
+    if (key.startsWith('country:') && !item.geometry) return Object.freeze({ key,packet: countryPacket(key.slice(8), channel) });
     return Object.freeze({ key,packet: cachedGenericPacket(item) });
   }
 
@@ -140,7 +135,7 @@ export function createSelectionPass({ onRenderError = null } = {}) {
     const generic = packet.generic || {};
     const country = packet.country || {};
     const next = {
-      hover: [...(generic.hover || [])],primary: [...(generic.primary || [])],secondary: [...(generic.secondary || [])],
+      candidate: [...(generic.candidate || [])],hover: [...(generic.hover || [])],primary: [...(generic.primary || [])],secondary: [...(generic.secondary || [])],
     };
     if (country.hoverId) next.hover.push({ key: `country:${country.hoverId}`,geometryRevision: packet.countryBoundaryRevision });
     if (country.primaryId) next.primary.push({ key: `country:${country.primaryId}`,geometryRevision: packet.countryBoundaryRevision });
@@ -160,13 +155,18 @@ export function createSelectionPass({ onRenderError = null } = {}) {
     styleRevision = nextRevision;interactionStyle = nextStyle;return true;
   }
 
-  function drawChannel(name, frameContext) {
+  function drawChannel(name, frameContext, phase = 'inner') {
     const requested = items[name];
     const renderedKeys = [];const missingKeys = [];
-    const style = channelStyle(name, interactionStyle);
+    const resolvedStyle = channelStyle(name, interactionStyle);
+    if (phase === 'casing' && !(resolvedStyle.casing?.alpha > 0)) return null;
+    const style = phase === 'casing'
+      ? { ...resolvedStyle, ...resolvedStyle.casing, casing: null, innerCutout: resolvedStyle.width }
+      : { ...resolvedStyle, casing: null };
     const groups = new Map();
     for (const item of requested) {
       if (!item.packet) { missingKeys.push(item.key);continue; }
+      if (item.packet.empty) { renderedKeys.push(item.key);continue; }
       const isCountry = item.key.startsWith('country:') && Array.isArray(item.packet.ownerIds);
       const groupKey = isCountry ? `country:${item.packet.key}` : `generic:${item.packet.key}`;
       let group = groups.get(groupKey);
@@ -220,7 +220,10 @@ export function createSelectionPass({ onRenderError = null } = {}) {
       renderFailureCount += 1;lastDrawMs = performance.now() - started;drawMs += lastDrawMs;return lastRenderResult;
     }
     try {
+      drawChannel('secondary', frameContext, 'casing');
+      drawChannel('primary', frameContext, 'casing');
       const channels = Object.freeze({
+        candidate: drawChannel('candidate', frameContext),
         hover: drawChannel('hover', frameContext),
         secondary: drawChannel('secondary', frameContext),
         primary: drawChannel('primary', frameContext),

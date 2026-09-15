@@ -1,3 +1,4 @@
+import { resolveMapInteractionStyle } from './map-interaction-style.js';
 import '../workers/canvas-scene-composition-core.js';
 import { decodeCountryMesh } from './country-mesh-codec.js';
 import { visibleSpatialBlockRanges } from './mesh-spatial-blocks.js';
@@ -418,6 +419,7 @@ export function createGpuMapRenderer(deps) {
     let lastSelectionRenderResult = null;
     let lastBaseSceneResult = null;
     const sceneColorCache = createSceneColorCache();
+    const interactionFillCache = createSceneColorCache();
     const polygonOverlayPass = createGpuPolygonOverlayPass({
       onResourceReady: key => overlayResourceReady(key),
       onError: payload => console.warn(`[${payload?.stage || 'gpu-polygon-overlay'}]`, payload?.error || payload),
@@ -533,17 +535,10 @@ export function createGpuMapRenderer(deps) {
     let activeFrameContext = null;
     let lastVisualFrame = null;
     let framePresentationListener = null;
-    let interactionStyle = {
-      hover: { color: '#d7ba7d', fillAlpha: 0.05775 },
-      selection: {
-        color: '#cda95d', casingColor: '#f2f4f6',
-        primary: { innerWidth: 2.5, innerAlpha: 1, outerWidth: 4, casingAlpha: 0.72, fillAlpha: 0.13 },
-        secondary: { innerWidth: 1.5, innerAlpha: 0.72, outerWidth: 2.8, casingAlpha: 0.48, fillAlpha: 0.08 },
-      },
-      drawOrder: ['hover', 'secondary-casing', 'secondary-inner', 'primary-casing', 'primary-inner'],
-    };
-    let countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set() };
+    let interactionStyle = resolveMapInteractionStyle();
+    let countryEmphasis = { primaryId: '', primaryIds: new Set(), priorities: {}, hoverId: '', selectedIds: new Set() };
     let countryEmphasisRevision = 0;
+    let lastInteractionFillResult = null;
     let countryPaletteRevision = 0;
     let physicalStyleStateRevision = 0;
     let overridePositionBuffer = null;
@@ -634,6 +629,7 @@ export function createGpuMapRenderer(deps) {
     let canvasStyleRevision = 0;
     let canvasPhysicalStyleRevision = 0;
     let canvasLastStyleSignature = '';
+    let canvasDisplayedStyleRevision = 0;
     let canvasLastPhysicalStyleSignature = '';
     let canvasWorkerLatestRequestedRevision = 0;
     let canvasWorkerDisplayedRevision = 0;
@@ -1433,6 +1429,7 @@ export function createGpuMapRenderer(deps) {
     function initializeSharedGpuPasses() {
       if (!renderDevice) return false;
       const sceneCacheReady = sceneColorCache.initialize(renderDevice);
+      interactionFillCache.initialize(renderDevice);
       const device = renderDevice, revision = renderDeviceContextRevision;
       const enqueue = (name, run) => uploadScheduler.enqueueUpload({
         key: 'shader:' + revision + ':' + name, contextGeneration: revision, priority: 20,
@@ -1465,6 +1462,7 @@ export function createGpuMapRenderer(deps) {
       pendingCanonicalCommit = null;
       uploadScheduler?.cancelAll();
       sceneColorCache.handleContextLost();
+      interactionFillCache.handleContextLost();
       polygonOverlayPass.handleContextLost();
       strokeRenderer.handleContextLost();
       if (!selectionPass?.stats?.().contextLost) selectionPass?.handleContextLost?.();
@@ -2164,7 +2162,7 @@ export function createGpuMapRenderer(deps) {
       lastSceneFrameContext = null;
       selectionPass?.clear?.();
       strokeRenderer.cancelPendingUploads();
-      countryEmphasis = { primaryId: '', hoverId: '', selectedIds: new Set() };
+      countryEmphasis = { primaryId: '', primaryIds: new Set(), priorities: {}, hoverId: '', selectedIds: new Set() };
       countryEmphasisRevision += 1;
       markPaletteDirty({ emphasis: true });
       if (!preserveBuiltinMesh) {
@@ -2368,7 +2366,7 @@ export function createGpuMapRenderer(deps) {
 
     function countryEmphasisStyle(id) {
       const normalizedId = String(id || '');
-      const kind = normalizedId === countryEmphasis.primaryId ? 'primary'
+      const kind = countryEmphasis.primaryIds.has(normalizedId) ? 'primary'
         : countryEmphasis.selectedIds.has(normalizedId) ? 'secondary'
           : normalizedId === countryEmphasis.hoverId ? 'hover' : '';
       if (!kind) return null;
@@ -2569,7 +2567,7 @@ export function createGpuMapRenderer(deps) {
       const dpr = resolveRenderPixelRatio();
       const nextWidth = Math.max(1, Math.round(cssWidth * dpr));
       const nextHeight = Math.max(1, Math.round(cssHeight * dpr));
-      const backingChanged = pixelWidth !== nextWidth || pixelHeight !== nextHeight;
+      const backingChanged = pixelWidth !== nextWidth || pixelHeight !== nextHeight || canvas.width !== nextWidth || canvas.height !== nextHeight;
       if (backingChanged) {
         canvas.width = nextWidth;
         canvas.height = nextHeight;
@@ -4059,10 +4057,9 @@ export function createGpuMapRenderer(deps) {
       return lastBaseSceneResult;
     }
 
-    function drawCountryInteractionFills() {
+    function drawCountryInteractionFills(priority = null) {
       if (projectRenderBlocked) return;
-      performanceMetrics.countryInteractionIndexCount = 0;
-      performanceMetrics.countryInteractionRangeCount = 0;
+
       performanceMetrics.countryInteractionFullIndexCount = Number(mesh?.triangleIndices?.length || 0) + Number(overrideMesh?.triangleIndices?.length || 0);
       if (!state.layerVisibility.countries) return;
       const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
@@ -4070,7 +4067,7 @@ export function createGpuMapRenderer(deps) {
         ...countryEmphasis.selectedIds,
         countryEmphasis.primaryId,
         countryEmphasis.hoverId,
-      ].map(String).filter(Boolean));
+      ].map(String).filter(id => id && (priority == null || Number(countryEmphasis.priorities[id] || (countryEmphasis.primaryIds.has(id) ? 4 : countryEmphasis.selectedIds.has(id) ? 3 : 2)) === priority)));
       if (!emphasizedIds.size) return;
       flushPaletteUpdates();
       resetGpuNormalBlend(gl);
@@ -4095,27 +4092,83 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawInteractionPasses(viewState) {
-      drawCountryInteractionFills();
-      const genericFillResult = polygonOverlayPass.drawResourceItems(
-        renderInteractionState.genericFillItems || [],
-        activeFrameContext,
-      );
+      performanceMetrics.countryInteractionIndexCount = 0;
+      performanceMetrics.countryInteractionRangeCount = 0;
+      const fillTarget = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+      const fillTargetReady = interactionFillCache.beginScene(pixelWidth, pixelHeight, '', projectGeneration);
+      if (fillTargetReady) { gl.colorMask(true, true, true, true); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
+      // One sample, one emphasis. Water is reserved before claiming land.
+      gl.stencilMask(0xff);
+      gl.clearStencil(0);
+      gl.clear(gl.STENCIL_BUFFER_BIT);
+      gl.enable(gl.STENCIL_TEST);
+      const fillResults = [];
+      const previewFillResults = [];
+      const draftFillResults = [];
+      const fillPackets = [...(renderInteractionState.previewPackets || []), ...(renderInteractionState.draftPackets || [])].filter(item => item.kind === 'polygon');
+      // Hand off the entire fill mask atomically. Mixing an SVG winner with a
+      // lower-priority GPU fill would blend the same pixel twice.
+      for (const item of fillPackets) polygonOverlayPass.ensureResource(item.packet);
+      let fillReady = fillTargetReady && (renderInteractionState.genericFillItems || []).every(item => polygonOverlayPass.hasResource(item.key))
+        && fillPackets.every(item => polygonOverlayPass.hasResource(item.packet.key))
+        && [...countryEmphasis.selectedIds, countryEmphasis.primaryId, countryEmphasis.hoverId].filter(Boolean).every(id => !geometryRevisionTracker.isPending(id));
+      if (!fillReady) {
+        fillResults.push({ succeeded: false, renderedKeys: [], missingKeys: (renderInteractionState.genericFillItems || []).map(item => item.key) });
+        for (const [packets, results] of [[renderInteractionState.previewPackets, previewFillResults], [renderInteractionState.draftPackets, draftFillResults]]) {
+          results.push({ succeeded: false, renderedKeys: [], missingKeys: (packets || []).filter(item => item.kind === 'polygon').map(item => item.packet.key) });
+        }
+      }
+      try {
+        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+        gl.colorMask(false, false, false, false);
+        drawHydro('lake'); drawHydro('river'); drawHydro('border-river');
+        gl.colorMask(true, true, true, true);
+        gl.stencilFunc(gl.EQUAL, 0, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+        for (const priority of fillReady ? [5, 4, 3, 2] : []) {
+          for (const [packets, results] of [[renderInteractionState.previewPackets, previewFillResults], [renderInteractionState.draftPackets, draftFillResults]]) {
+            for (const item of packets || []) if (item.kind === 'polygon' && Number(item.packet.interactionPriority || 5) === priority) {
+              results.push(polygonOverlayPass.drawPackets([item.packet], activeFrameContext));
+            }
+          }
+          drawCountryInteractionFills(priority);
+          fillResults.push(polygonOverlayPass.drawResourceItems(
+            (renderInteractionState.genericFillItems || []).filter(item => Number(item.priority || 2) === priority)
+              .sort((a, b) => Number(a.depth || 0) - Number(b.depth || 0) || String(a.objectKey || a.key).localeCompare(String(b.objectKey || b.key))), activeFrameContext));
+        }
+      } finally {
+        gl.colorMask(true, true, true, true);
+        gl.disable(gl.STENCIL_TEST);
+        gl.stencilMask(0xff);
+      }
+      if (fillTargetReady) {
+        interactionFillCache.finishScene(fillTarget);
+        if (fillReady) fillReady = interactionFillCache.composite(pixelWidth, pixelHeight, { targetFramebuffer: fillTarget, clearTarget: false, blendOver: true });
+      } else gl.bindFramebuffer(gl.FRAMEBUFFER, fillTarget);
+      resetGpuNormalBlend(gl);
+      const genericFillResult = { succeeded: fillReady && fillResults.every(result => result.succeeded),
+        renderedKeys: fillReady ? fillResults.flatMap(result => result.renderedKeys || []) : [],
+        missingKeys: fillResults.flatMap(result => result.missingKeys || []) };
+      lastInteractionFillResult = genericFillResult;
       lastSelectionRenderResult = selectionPass?.draw?.(viewState, {
         size: { width: cssWidth, height: cssHeight },
         dpr: effectivePixelRatio,
         pixelWidth,
         pixelHeight,
       }, { clear: false, frameContext: activeFrameContext }) || null;
-      const drawPackets = packets => (packets || []).map(item => (
+      const drawPackets = packets => (packets || []).filter(item => item.kind !== 'polygon').map(item => (
         item?.kind === 'polygon'
           ? polygonOverlayPass.drawPackets([item.packet], activeFrameContext)
           : strokeRenderer.drawBatches([item.packet], activeFrameContext)
       ));
-      const previewResults = drawPackets(renderInteractionState.previewPackets);
-      const draftResults = drawPackets(renderInteractionState.draftPackets);
+      const fillCoverage = results => fillReady ? results : results.map(result => ({ ...result, succeeded: false,
+        missingKeys: [...(result.missingKeys || []), ...(result.renderedKeys || [])], renderedKeys: [] }));
+      const previewResults = [...fillCoverage(previewFillResults), ...drawPackets(renderInteractionState.previewPackets)];
+      const draftResults = [...fillCoverage(draftFillResults), ...drawPackets(renderInteractionState.draftPackets)];
       sceneCacheInteractionDrawCount += 1;
       performanceMetrics.interactionFrameCount += 1;
-      return { genericFillResult, selection: lastSelectionRenderResult, previewResults, draftResults };
+      return { fillOwner: fillReady ? 'gpu' : 'svg', genericFillResult, selection: lastSelectionRenderResult, previewResults, draftResults };
     }
 
     function sceneViewSignature(viewState = activeRenderViewState || getRenderViewState()) {
@@ -4285,12 +4338,12 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
-    function renderCanvasHydro(canvasPath, theme) {
+    function renderCanvasHydro(canvasPath, theme, target = ctx2d, reserve = false) {
       const builtIn = [];
       for (const packId of hydroActivePackIds) builtIn.push(...(hydroPacks.get(packId)?.features || []));
       const features = [...builtIn, ...(state.hydroEdits || [])];
-      ctx2d.lineCap = 'round';
-      ctx2d.lineJoin = 'round';
+      target.lineCap = 'round';
+      target.lineJoin = 'round';
       for (const feature of features) {
         if (!feature?.geometry || !isHydroFeatureVisible(feature)) continue;
         const lake = feature.properties?.category === 'lake';
@@ -4299,26 +4352,26 @@ export function createGpuMapRenderer(deps) {
         if (Number(opacity) <= 0) continue;
         const color = feature.properties?.editorColor || hydroDisplayColor(lake ? 'lake' : 'river');
         if (lake) {
-          ctx2d.beginPath(); canvasPath(feature);
-          ctx2d.globalAlpha = opacity; ctx2d.fillStyle = color; ctx2d.fill();
+          target.beginPath(); canvasPath(feature);
+          target.globalAlpha = reserve ? 1 : opacity; target.fillStyle = color; target.fill();
           if (theme.lakeBoundaryVisible !== false) {
-            ctx2d.beginPath(); canvasPath(countryOutlineFeature(feature));
-            ctx2d.strokeStyle = color; ctx2d.lineWidth = Math.max(0.5, Number(theme.lakeBoundaryWidth) || 1); ctx2d.stroke();
+            target.beginPath(); canvasPath(countryOutlineFeature(feature));
+            target.strokeStyle = color; target.lineWidth = Math.max(0.5, Number(theme.lakeBoundaryWidth) || 1); target.stroke();
           }
           continue;
         }
         const profiles = feature.properties?.stroke_widths || [];
         const fallback = Math.max(0.55, Math.min(2.6, Number(feature.properties?.stroke_width || 0.8)));
-        ctx2d.globalAlpha = opacity; ctx2d.strokeStyle = color;
+        target.globalAlpha = reserve ? 1 : opacity; target.strokeStyle = color;
         for (const [partIndex, part] of hydroLineParts(feature.geometry).entries()) {
           const widths = profiles[partIndex] || [];
           for (let index = 0; index < part.length - 1; index += 1) {
-            ctx2d.beginPath();
+            target.beginPath();
             canvasPath({ type: 'LineString', coordinates: [part[index], part[index + 1]] });
             const start = Number(widths[index] ?? fallback);
             const end = Number(widths[index + 1] ?? start);
-            ctx2d.lineWidth = (start + end) / 2 * Math.max(0.5, Number(theme.riverWidth) || 1);
-            ctx2d.stroke();
+            target.lineWidth = (start + end) / 2 * Math.max(0.5, Number(theme.riverWidth) || 1);
+            target.stroke();
           }
         }
       }
@@ -4355,20 +4408,24 @@ export function createGpuMapRenderer(deps) {
         }
       }
       globalThis.PandoLabCanvasSceneComposition.drawFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr);
-      if (state.layerVisibility.countries) {
-        for (const feature of state.countriesData?.features || []) {
-          const id = String(feature?.id || '');
-          if (!isLayerItemVisible('countries', id)) continue;
-          const emphasis = countryEmphasisStyle(id);
-          if (emphasis) {
-            ctx2d.beginPath();
-            canvasPath(feature);
-            ctx2d.globalAlpha = emphasis.alphaByte / 255;
-            ctx2d.fillStyle = colorHex(emphasis.color);
-            ctx2d.fill();
-          }
-        }
+      const emphasisEntries = [];
+      if (state.layerVisibility.countries) for (const feature of state.countriesData?.features || []) {
+        const id = String(feature.id || '');
+        const emphasis = countryEmphasisStyle(id);
+        if (isLayerItemVisible('countries', id) && emphasis) emphasisEntries.push({ key: `country:${id}`, geometry: feature,
+          priority: countryEmphasis.priorities[id] || (countryEmphasis.primaryIds.has(id) ? 4 : countryEmphasis.selectedIds.has(id) ? 3 : 2),
+          style: { color: colorHex(emphasis.color), fillAlpha: emphasis.alphaByte / 255 } });
       }
+      const packets = new Map((renderScene?.polygons || []).map(packet => [packet.key, packet]));
+      for (const item of renderInteractionState.genericFillItems || []) if (packets.has(item.key)) {
+        emphasisEntries.push({ ...item, packet: packets.get(item.key) });
+      }
+      for (const packet of canvasInteractionPolygons()) emphasisEntries.push({ key: packet.key, packet,
+        priority: packet.interactionPriority || 5, style: packet.style });
+      globalThis.PandoLabCanvasSceneComposition.drawEmphasis(ctx2d, canvasPath, emphasisEntries, dpr, {
+        key: [JSON.stringify(getRenderViewState()), physicalStyleStateRevision, hydroAcceptedRevision, hydroEditRevision, [...hydroActivePackIds].join(',')].join(':'),
+        draw: mask => renderCanvasHydro(d3.geo.path().projection(activeProjection()).context(mask), theme, mask, true),
+      });
       renderCanvasHydro(canvasPath, theme);
       if (state.layerVisibility.countries) for (const feature of state.countriesData?.features || []) {
           const id = String(feature?.id || '');
@@ -4380,8 +4437,14 @@ export function createGpuMapRenderer(deps) {
           ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
           ctx2d.stroke();
         }
+
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
+    }
+
+    function canvasInteractionPolygons() {
+      return [...(renderInteractionState.previewPackets || []), ...(renderInteractionState.draftPackets || [])]
+        .filter(item => item.kind === 'polygon').map(item => item.packet);
     }
 
     function canvasScenePolygons() {
@@ -4390,6 +4453,22 @@ export function createGpuMapRenderer(deps) {
         role: packet.role, territoryDepth: packet.territoryDepth,
         order: packet.order, style: packet.style, blendMode: packet.blendMode,
       }));
+    }
+
+    const canvasSentGeometry = new Map();
+    function canvasPacketDelta(packets, channel) {
+      const next = new Set();
+      const result = packets.map(packet => {
+        const key = `${channel}:${packet.key}`;
+        next.add(key);
+        const previous = canvasSentGeometry.get(key);
+        canvasSentGeometry.set(key, packet.ringCoordinates);
+        if (previous !== packet.ringCoordinates) return packet;
+        const { ringCoordinates: _coordinates, ringOffsets: _rings, polygonOffsets: _polygons, ...metadata } = packet;
+        return metadata;
+      });
+      for (const key of canvasSentGeometry.keys()) if (key.startsWith(`${channel}:`) && !next.has(key)) canvasSentGeometry.delete(key);
+      return result;
     }
 
     function canvasWorkerStyleMessage() {
@@ -4403,9 +4482,13 @@ export function createGpuMapRenderer(deps) {
         visible: !!state.layerVisibility.countries,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         colors,
-        scenePolygons: canvasScenePolygons(),
+        scenePolygons: canvasPacketDelta(canvasScenePolygons(), 'scene'),
+        interactionFillItems: renderInteractionState.genericFillItems || [],
+        interactionPolygons: canvasPacketDelta(canvasInteractionPolygons(), 'interaction'),
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
+          primaryIds: [...countryEmphasis.primaryIds],
+          priorities: countryEmphasis.priorities,
           hoverId: countryEmphasis.hoverId,
           selectedIds: [...countryEmphasis.selectedIds],
           primaryColor: interactionStyle.selection.color,
@@ -4449,6 +4532,8 @@ export function createGpuMapRenderer(deps) {
       };
       return {
         type: 'view',
+        renderProjection: { translate: frame?.cssTranslate || view.translate, scale: frame?.cssScale || view.scale,
+          safeInset: frame?.safeInset || null, flatProjectionKind: 'equirectangular' },
         width: Math.max(1, Number(view.size?.width || state.size.width)),
         height: Math.max(1, Number(view.size?.height || state.size.height)),
         dpr: Number(view.dpr || resolveRenderPixelRatio()),
@@ -4465,6 +4550,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function canvasWorkerInitMessage() {
+      canvasSentGeometry.clear();
       const message = {
         ...canvasWorkerViewMessage(currentRenderRevision),
         ...canvasWorkerStyleMessage(),
@@ -4565,7 +4651,7 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(visualFrame)) return null;
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
       activeRenderViewState = visualFrame.viewState;
-      if (!isWebGlRenderer()) return null;
+      if (!isWebGlRenderer()) return renderFrame(visualFrame);
       performanceMetrics.selectionOnlyFrameCount += 1;
       return renderWebGl(visualFrame, { interactionOnly: true });
     }
@@ -4667,7 +4753,8 @@ export function createGpuMapRenderer(deps) {
       const canDisplay = revision >= canvasWorkerDisplayedRevision
         && revision >= canvasWorkerLatestRequestedRevision
         && Number(message.projectGeneration || projectGeneration) === projectGeneration
-        && geometryRevision >= geometryRevisionTracker.committedRevision();
+        && geometryRevision >= geometryRevisionTracker.committedRevision()
+        && Number(message.styleRevision || 0) === canvasStyleRevision;
       if (canDisplay && message.bitmap) {
         if (canvasWorkerBitmapContext) {
           canvasWorkerBitmapContext.transferFromImageBitmap(message.bitmap);
@@ -4678,6 +4765,7 @@ export function createGpuMapRenderer(deps) {
           message.bitmap.close?.();
         }
         canvasWorkerDisplayedRevision = revision;
+        canvasDisplayedStyleRevision = Number(message.styleRevision || 0);
         displayedRenderRevision = revision;
         framePresentationListener?.({
           frameId: Number(message.frameId || revision || 0),
@@ -4958,7 +5046,7 @@ export function createGpuMapRenderer(deps) {
             type: 'replace-data',
             revision: Number(currentRenderRevision || 0),
             geometryRevision: geometryRevisionTracker.committedRevision(),
-            features: features || state.countriesData?.features || [],
+            features: state.countriesData?.features || features || [],
           });
         });
       } else {
@@ -4983,11 +5071,15 @@ export function createGpuMapRenderer(deps) {
       return decoded;
     }
 
-    function setCountryEmphasis({ primaryId = '', hoverId = '', selectedIds = [] } = {}) {
+    function setCountryEmphasis({ primaryId = '', primaryIds = [], priorities = {}, hoverId = '', selectedIds = [] } = {}) {
       const nextSelected = new Set((selectedIds || []).map(String).filter(Boolean));
       const nextPrimary = String(primaryId || '');
+      const nextPrimaries = new Set([...primaryIds, nextPrimary].map(String).filter(Boolean));
       const nextHover = String(hoverId || '');
       const unchanged = countryEmphasis.primaryId === nextPrimary
+        && JSON.stringify(countryEmphasis.priorities) === JSON.stringify(priorities)
+        && countryEmphasis.primaryIds.size === nextPrimaries.size
+        && [...nextPrimaries].every(id => countryEmphasis.primaryIds.has(id))
         && countryEmphasis.hoverId === nextHover
         && countryEmphasis.selectedIds.size === nextSelected.size
         && [...nextSelected].every(id => countryEmphasis.selectedIds.has(id));
@@ -4999,11 +5091,13 @@ export function createGpuMapRenderer(deps) {
         countryEmphasis.primaryId,
         countryEmphasis.hoverId,
         ...countryEmphasis.selectedIds,
+        ...countryEmphasis.primaryIds,
+        ...nextPrimaries,
         nextPrimary,
         nextHover,
         ...nextSelected,
       ].map(String).filter(Boolean));
-      countryEmphasis = { primaryId: nextPrimary, hoverId: nextHover, selectedIds: nextSelected };
+      countryEmphasis = { primaryId: nextPrimary, primaryIds: nextPrimaries, priorities, hoverId: nextHover, selectedIds: nextSelected };
       countryEmphasisRevision += 1;
       markPaletteDirty({ emphasis: true, countryIds: [...changedIds] });
       if (rendererMode !== 'pending') invalidateGpuInteraction('country-emphasis');
@@ -5156,7 +5250,12 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
+    let canvasInteractionSignature = '';
     function setInteractionState(nextInteraction = {}) {
+      const signature = JSON.stringify([nextInteraction.selectionPacket?.revision, nextInteraction.selectionPacket?.hoverRevision,
+        nextInteraction.selectionPacket?.styleRevision, nextInteraction.genericFillItems,
+        [...(nextInteraction.previewPackets || []), ...(nextInteraction.draftPackets || [])].map(item => [item.packet?.key, item.packet?.geometryRevision, item.packet?.style])]);
+      if (signature !== canvasInteractionSignature) { canvasInteractionSignature = signature; canvasLastStyleSignature = ''; }
       renderInteractionState = Object.freeze({
         selectionPacket: nextInteraction.selectionPacket || null,
         genericFillKeys: Object.freeze([...(nextInteraction.genericFillKeys || [])].map(String)),
@@ -5301,8 +5400,12 @@ export function createGpuMapRenderer(deps) {
         pickLastReadPixelsMs: Number(pickLastReadPixelsMs.toFixed(3)),
         pickSceneRenderCount,
         countryEmphasisRevision,
+        interactionFillCoverage: lastInteractionFillResult,
+        interactionFillItems: (renderInteractionState.genericFillItems || []).map(item => ({ key: item.key, priority: item.priority })),
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
+          primaryIds: [...countryEmphasis.primaryIds],
+          priorities: countryEmphasis.priorities,
           hoverId: countryEmphasis.hoverId,
           selectedIds: [...countryEmphasis.selectedIds],
           boundaryEnabled: false,
@@ -5333,6 +5436,7 @@ export function createGpuMapRenderer(deps) {
         patchWorkerOutputBytes,
         lastGeometryCommitTimings: lastGeometryCommitTimings ? { ...lastGeometryCommitTimings } : null,
         canvasWorkerBusy,
+        canvasStyleRevision, canvasDisplayedStyleRevision,
         canvasWorkerHasPendingFrame: !!canvasWorkerPendingMessage,
         webglContextLost,
         webGlVersion: glVersion || null,

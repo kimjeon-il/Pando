@@ -61,7 +61,9 @@ export function createProjectRestore() {
     dependencies.layerTreeController?.render(true);
     dependencies.objectPropertyController.show(null);
     (0, dependencies.$)('selectionStatus').textContent = '';
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+    dependencies.mapEditClient?.invalidateBoundaryCache?.();
     (0, dependencies.scheduleGpuMeshRebuild)(0, nextProjectGeneration);
     (0, dependencies.syncMapHostFromState)();
     (0, dependencies.scheduleMapObjectSpatialIndexRebuild)();
@@ -255,7 +257,9 @@ export function createProjectRestore() {
     (0, dependencies.markLayerTreeDirty)();
     (0, dependencies.configureDatasetSession)(null);
     (0, dependencies.refreshCountryCentroids)();
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+    dependencies.mapEditClient?.invalidateBoundaryCache?.();
 
     (0, dependencies.renderMapDisplaySettings)();
     if ((0, dependencies.$)('layerSearchInput')) (0, dependencies.$)('layerSearchInput').value = '';

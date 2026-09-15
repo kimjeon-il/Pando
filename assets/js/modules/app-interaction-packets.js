@@ -1,3 +1,4 @@
+import { interactionNodeRole, interactionRoleStyle, resolveMapInteractionStyle, INTERACTION_ROLE_PRIORITY } from './map-interaction-style.js';
 /** InteractionPackets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -89,45 +90,6 @@ export function createInteractionPackets() {
     if (issue) (0, dependencies.$)('modeTaskInstruction')?.classList.add('cut-invalid');
   }
 
-  function gpuInteractionColor(value) {
-    const text = String(value || '').trim().toLowerCase();
-    if (!text || text === 'none' || text === 'transparent') return null;
-    const hex = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(text);
-    if (hex) {
-      const raw = hex[1];
-      const expanded = raw.length === 3 ? raw.split('').map(part => `${part}${part}`).join('') : raw;
-      return {
-        color: `#${expanded.slice(0, 6)}`,
-        alpha: expanded.length === 8 ? Number.parseInt(expanded.slice(6), 16) / 255 : 1,
-      };
-    }
-    const rgb = /^rgba?\((.+)\)$/i.exec(text);
-    if (rgb) {
-      const parts = rgb[1].replace(/\//g, ' ').split(/[\s,]+/).filter(Boolean);
-      if (parts.length >= 3) {
-        const channel = part => Math.max(0, Math.min(255, part.endsWith('%') ? Number.parseFloat(part) * 2.55 : Number.parseFloat(part)));
-        const values = parts.slice(0, 3).map(channel);
-        if (values.every(Number.isFinite)) {
-          return {
-            color: `#${values.map(value => Math.round(value).toString(16).padStart(2, '0')).join('')}`,
-            alpha: Math.max(0, Math.min(1, Number.parseFloat(parts[3] ?? '1'))),
-          };
-        }
-      }
-    }
-    const srgb = /^color\(srgb\s+(.+)\)$/i.exec(text);
-    if (srgb) {
-      const parts = srgb[1].replace(/\//g, ' ').split(/\s+/).filter(Boolean).map(Number);
-      if (parts.length >= 3 && parts.slice(0, 3).every(Number.isFinite)) {
-        return {
-          color: `#${parts.slice(0, 3).map(value => Math.round(Math.max(0, Math.min(1, value)) * 255).toString(16).padStart(2, '0')).join('')}`,
-          alpha: Math.max(0, Math.min(1, Number.isFinite(parts[3]) ? parts[3] : 1)),
-        };
-      }
-    }
-    return null;
-  }
-
   function gpuInteractionGeometry(datum) {
     const geometry = datum?.type === 'Feature'
       ? datum.geometry
@@ -141,35 +103,19 @@ export function createInteractionPackets() {
     return ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(geometry?.type) ? geometry : null;
   }
 
-  function gpuInteractionStyle(node, role) {
-    const computed = getComputedStyle(node);
-    const opacity = Math.max(0, Math.min(1, Number.parseFloat(computed.opacity || '1')));
-    const source = gpuInteractionColor(role === 'fill' ? computed.fill : computed.stroke);
-    if (!source) return null;
-    const roleOpacity = Math.max(0, Math.min(1, Number.parseFloat(role === 'fill' ? computed.fillOpacity : computed.strokeOpacity) || 0));
-    const alpha = source.alpha * opacity * roleOpacity;
-    if (alpha <= 0.0001) return null;
-    if (role === 'fill') {
-      return {
-        color: source.color,
-        alpha,
-        fillAlpha: alpha,
-        blendMode: computed.mixBlendMode === 'multiply' ? 'multiply' : 'normal',
-      };
-    }
-    const dash = String(computed.strokeDasharray || '').toLowerCase() === 'none'
-      ? [0, 0]
-      : String(computed.strokeDasharray || '').split(/[\s,]+/).filter(Boolean).slice(0, 2).map(value => Math.max(0, Number.parseFloat(value) || 0));
-    return {
-      color: source.color,
-      alpha,
-      width: Math.max(0, Number.parseFloat(computed.strokeWidth || '0')),
-      cap: computed.strokeLinecap === 'butt' ? 'butt' : 'round',
-      join: ['round', 'bevel', 'miter'].includes(computed.strokeLinejoin) ? computed.strokeLinejoin : 'round',
-      dash: dash.length === 2 ? dash : [0, 0],
-      miterLimit: Math.max(1, Number.parseFloat(computed.strokeMiterlimit || '4') || 4),
-      blendMode: computed.mixBlendMode === 'multiply' ? 'multiply' : 'normal',
-    };
+  function gpuInteractionStyle(node, channel, domain) {
+    const role = interactionNodeRole(node, domain);
+    if (channel === 'stroke' && (node.classList.contains('geometry-preview-fill') || node.dataset.commonOutline === 'true')) return null;
+    const directManipulation = node.classList.contains('draft-shape');
+    const style = interactionRoleStyle(dependencies.resolvedInteractionStyle || resolveMapInteractionStyle(), role, { directManipulation });
+    node.style.fill = style.color;
+    node.style.fillOpacity = String(style.fillAlpha);
+    node.style.stroke = style.color;
+    node.style.strokeWidth = `${style.width}px`;
+    node.style.strokeOpacity = String(style.alpha);
+    node.style.opacity = '1';
+    if (channel === 'fill') return style.fillAlpha > 0 ? { color: style.color, fillAlpha: style.fillAlpha, blendMode: 'normal' } : null;
+    return { color: style.color, alpha: style.alpha, width: style.width, cap: 'round', join: 'round', dash: [0, 0], blendMode: 'normal' };
   }
 
   function buildGpuInteractionLayerPackets(domain, layer) {
@@ -180,19 +126,28 @@ export function createInteractionPackets() {
       if (node.classList.contains('draft-segment-hit') || node.closest('.draft-issue-marker')) return;
       const geometry = gpuInteractionGeometry(node.__data__);
       if (!geometry) return;
-      const objectKey = `interaction:${domain}:${index}`;
+      const objectKey = `interaction:${domain}:${node.__data__?.key ?? node.__data__?.index ?? index}`;
+      const priority = INTERACTION_ROLE_PRIORITY[interactionNodeRole(node, domain)];
+      node.setAttribute('data-object-key', objectKey);
+      node.setAttribute('data-interaction-priority', String(priority));
       const revision = (0, dependencies.selectionGeometryRevision)(objectKey, domain, (0, dependencies.featureFromGeometry)(geometry));
       const resourceKeys = [];
-      const fillStyle = ['Polygon', 'MultiPolygon'].includes(geometry.type) ? gpuInteractionStyle(node, 'fill') : null;
+      node.classList.remove('gpu-interaction-hit-proxy', 'gpu-interaction-fill-proxy', 'gpu-interaction-stroke-proxy', 'canvas-interaction-fill-proxy');
+      node.removeAttribute('data-gpu-interaction-stroke-keys');
+      node.removeAttribute('data-gpu-interaction-fill-keys');
+      node.removeAttribute('data-gpu-interaction-keys');
+      const fillStyle = ['Polygon', 'MultiPolygon'].includes(geometry.type) ? gpuInteractionStyle(node, 'fill', domain) : null;
       if (fillStyle) {
         const key = `${objectKey}:fill`;
         resourceKeys.push(key);
-        polygons.push({ key, geometry, geometryRevision: revision, order: index * 2, style: fillStyle, blendMode: fillStyle.blendMode });
+        node.setAttribute('data-gpu-interaction-fill-keys', key);
+        polygons.push({ key, geometry, geometryRevision: revision, order: index * 2, role: 'interaction-fill', interactionPriority: priority, style: fillStyle, blendMode: fillStyle.blendMode });
       }
-      const strokeStyle = gpuInteractionStyle(node, 'stroke');
+      const strokeStyle = gpuInteractionStyle(node, 'stroke', domain);
       if (strokeStyle?.width > 0) {
         const key = `${objectKey}:stroke`;
         resourceKeys.push(key);
+        node.setAttribute('data-gpu-interaction-stroke-keys', key);
         strokes.push({ key, geometry, geometryRevision: revision, order: index * 2 + 1, style: strokeStyle, blendMode: strokeStyle.blendMode });
       }
       if (resourceKeys.length) node.setAttribute('data-gpu-interaction-keys', resourceKeys.join(' '));

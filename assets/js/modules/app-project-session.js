@@ -166,8 +166,7 @@ export function createProjectSession() {
       // deliberately outside the project document: only the final geometry is
       // persisted, and cancelling a tool must leave no partial object behind.
       multiDraft: null,
-      boundaryTopology: { edges: new Map(), nodes: new Map() },
-      sharedBoundaryTopology: { segments: new Map(), nodes: new Map() },
+      boundaryPreparation: null,
       spatialIndex: [],
       mapMoving: false,
       historyDirtyCountryIds: new Set(),

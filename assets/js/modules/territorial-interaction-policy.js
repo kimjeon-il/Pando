@@ -1,10 +1,10 @@
-export function subunitSelectionPolicy(units, { adjacent, locked = unit => unit.properties?.locked } = {}) {
+export function subunitSelectionPolicy(units, { adjacent, deferConnectivity = false, locked = unit => unit.properties?.locked } = {}) {
   if (units.length < 2 || units.some(unit => unit?.properties?.unitType !== 'subunit')) return { valid: false, message: '하위단위를 2개 이상 선택하세요.' };
   const first = units[0].properties;
   if (units.some(unit => unit.properties.parentId !== first.parentId || unit.properties.sovereignId !== first.sovereignId)) return { valid: false, message: '같은 소속 국가·상위 단위의 하위단위만 함께 편집할 수 있습니다.' };
   if (units.some(locked)) return { valid: false, message: '선택한 하위단위의 잠금을 해제하세요.' };
   const connected = [units[0]], pending = units.slice(1);
-  while (pending.length) {
+  while (!deferConnectivity && pending.length) {
     const index = pending.findIndex(unit => connected.some(other => adjacent(unit, other)));
     if (index < 0) return { valid: false, message: '선택한 하위단위들이 공유 경계로 연결되어야 합니다.' };
     connected.push(...pending.splice(index, 1));

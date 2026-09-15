@@ -97,7 +97,6 @@ export function createTerritorialConversion() {
       if (targetType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
         const parentName = targetParent ? (0, dependencies.territorialUnitName)(targetParent) : sovereign ? (0, dependencies.countryName)(sovereign) : '선택한 상위 단위';
         if (String(parentId) !== String(sovereignId)) impacts.push(`상위 단위: ${parentName}`);
-      } else if (sourceType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
       }
     }
 
@@ -379,7 +378,8 @@ export function createTerritorialConversion() {
         });
         if (!territorialValidation.ok) throw new Error(territorialValidation.issues[0] || '영역 관계가 올바르지 않습니다.');
         (0, dependencies.refreshCountryCentroids)(new Set(plan.affectedIds));
-        dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+        dependencies.state.boundaryPreparation?.cancel();
+        dependencies.state.boundaryPreparation = null;
         (0, dependencies.markLayerTreeDirty)();
         (0, dependencies.applyTerritorialUnitSelectionIntent)(converted.id, true);
         dependencies.renderingDomain?.invalidateCountryPatch?.('country-converted-to-region');
