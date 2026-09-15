@@ -383,26 +383,32 @@ export function createCountryCommits() {
     const archivedComponents = (session.parts || []).filter(part => part.method === 'components' && part.component).map(part => part.component);
     const selectedComponents = [...archivedComponents, ...activeComponentItems];
     const snapshots = new Map((session.componentSnapshots || []).map(snapshot => [snapshot.id, snapshot.items || []]));
-    const riverSliverContext = [];
+    const groups = new Map();
+    const liveItems = session.activePhase === 'components' ? dependencies.territoryComponentItems() : [];
     for (const item of selectedComponents) {
       const polygonIndex = item.sourcePolygonIndex ?? item.polygonIndex;
-      if (!item.usesRiverBoundary || riverSliverContext.some(row => row.donorId === item.countryId && row.polygonIndex === polygonIndex)) continue;
-      const snapshotItems = item.snapshotId
-        ? snapshots.get(item.snapshotId) || []
-        : session.activePhase === 'components' ? (0, dependencies.territoryComponentItems)() : [];
-      const unselectedGeometries = snapshotItems
-        .filter(other => other.componentKey === item.componentKey && other.key !== item.key)
-        .map(other => {
-          try {
-            return (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.difference(
-              (0, dependencies.geometryMultiCoordinates)(other.geometry),
-              (0, dependencies.geometryMultiCoordinates)(session.combinedGeometry),
-            ));
-          } catch { return other.geometry; }
-        }).filter(Boolean);
-      riverSliverContext.push({
-        donorId: item.countryId, polygonIndex, unselectedGeometries,
-      });
+      if (!item.usesRiverBoundary) continue;
+      const groupKey = `${item.countryId}:${polygonIndex}`;
+      if (!groups.has(groupKey)) groups.set(groupKey, { donorId: item.countryId, polygonIndex, geometries: new Set() });
+      const snapshotItems = item.snapshotId ? snapshots.get(item.snapshotId) || [] : liveItems;
+      for (const other of snapshotItems) {
+        if (other.countryId === item.countryId && (other.sourcePolygonIndex ?? other.polygonIndex) === polygonIndex
+          && other.key !== item.key) groups.get(groupKey).geometries.add(other.geometry);
+      }
+    }
+    let riverSliverContext = [];
+    if (groups.size) {
+      session.workerRequests = (session.workerRequests || 0) + 1;
+      session.operationAbort ||= new AbortController();
+      let response;
+      try { response = await dependencies.mapEditClient.execute('territory-slivers', { payload: {
+        groups: [...groups.values()].map(group => ({ ...group, geometries: [...group.geometries] })),
+        combinedGeometry: session.combinedGeometry,
+      } }, { jobKey: `${session.id}:territory-slivers`, signal: session.operationAbort.signal });
+      } finally { session.workerRequests -= 1; }
+      if (dependencies.state.territorySelectionSession !== session
+        || expectedKey !== [session.id, session.projectGeneration, session.settingsRevision, session.sourceRevision, session.selectionRevision].join(':')) return false;
+      riverSliverContext = response.result;
     }
     const donorIds = [...new Set([
       ...session.sourceCountryIds.map(String),

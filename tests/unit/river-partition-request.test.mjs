@@ -35,6 +35,7 @@ function harness() {
       state.physicalLoadState.hydro = 'ready';
       return true;
     },
+    installRiverComponentIndex() {},
     gisDomain: {
       loadRiverPartitionFeatures: async () => { calls.push('sources'); return { features: [], diagnostics: {} }; },
       computeRiverPartition: async request => { calls.push('compute'); calls.push(request.hydroRevision); return { candidates: [], donorResults: [] }; },

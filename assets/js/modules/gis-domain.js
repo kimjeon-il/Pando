@@ -18,7 +18,6 @@ export function createGisDomain({
   projectDomain = null,
   importService = null,
   riverPartitionWorkerFactory = null,
-  riverPartitionFallback = null,
   riverPartitionSource = null,
   onImportPlanned = () => {},
   reportDiagnostic = () => {},
@@ -91,12 +90,13 @@ export function createGisDomain({
         const pending = riverPartitionRequests.get(Number(message.requestId));
         if (!pending) return;
         riverPartitionRequests.delete(Number(message.requestId));
+        clearTimeout(pending.timer);
         if (message.type === 'error') pending.reject(new Error(message.message || '하천 영토 조각을 계산하지 못했습니다.'));
         else pending.resolve(message.result || { candidates: [], donorResults: [], diagnostics: {} });
       };
       riverPartitionWorker.onerror = event => {
         const error = new Error(event.message || '하천 영토 분할 Worker 실행 오류');
-        for (const pending of riverPartitionRequests.values()) pending.reject(error);
+        for (const pending of riverPartitionRequests.values()) { clearTimeout(pending.timer); pending.reject(error); }
         riverPartitionRequests.clear();
         riverPartitionWorker?.terminate?.();
         riverPartitionWorker = null;
@@ -114,12 +114,13 @@ export function createGisDomain({
     const projectGeneration = projectDomain?.getGeneration?.() || 0;
     const worker = ensureRiverPartitionWorker();
     if (!worker) {
-      if (typeof riverPartitionFallback !== 'function') return Promise.resolve({ candidates: [], donorResults: [], diagnostics: {} });
-      return Promise.resolve().then(() => riverPartitionFallback(cloneValue(payload)));
+      return Promise.reject(new Error('하천 분할 Worker를 준비하지 못했습니다. 다시 시도하세요.'));
     }
     const requestId = ++riverPartitionRequestId;
     return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => cancelRiverPartition(new Error('하천 분할 계산 시간이 초과되었습니다. 다시 시도하세요.')), 60_000);
       riverPartitionRequests.set(requestId, {
+        timer,
         resolve: result => {
           if (operationTokens.get(operation) !== taskToken || projectDomain?.getGeneration?.() !== projectGeneration) {
             reportDiagnostic({ type: 'stale-worker-result', operation, taskToken, projectGeneration });
@@ -130,17 +131,21 @@ export function createGisDomain({
         },
         reject,
       });
-      try { worker.postMessage({ type: 'compute', requestId, payload: cloneValue(payload) }); }
-      catch (error) { riverPartitionRequests.delete(requestId); reject(error); }
+      try { worker.postMessage({ type: 'compute', requestId, payload }); }
+      catch (error) { clearTimeout(timer); riverPartitionRequests.delete(requestId); reject(error); }
     });
   };
-  const dispose = () => {
-    disposed = true;
-    operationTokens.clear();
-    for (const pending of riverPartitionRequests.values()) pending.reject(new Error('GIS domain disposed.'));
+  const cancelRiverPartition = (error = Object.assign(new Error('하천 분할을 취소했습니다.'), { cancelled: true })) => {
+    operationTokens.delete('riverPartition');
+    for (const pending of riverPartitionRequests.values()) { clearTimeout(pending.timer); pending.reject(error); }
     riverPartitionRequests.clear();
     riverPartitionWorker?.terminate?.();
     riverPartitionWorker = null;
   };
-  return Object.freeze({ planImport, loadRiverPartitionFeatures, computeRiverPartition, dispose });
+  const dispose = () => {
+    disposed = true;
+    operationTokens.clear();
+    cancelRiverPartition();
+  };
+  return Object.freeze({ planImport, loadRiverPartitionFeatures, computeRiverPartition, cancelRiverPartition, dispose });
 }

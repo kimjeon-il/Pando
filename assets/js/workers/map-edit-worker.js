@@ -448,9 +448,25 @@ self.onmessage = async event => {
     if (Number(message.dataRevision || 0) !== currentDataRevision || cancelled.has(Number(message.requestId))) {
       throw new Error('CANCELLED');
     }
-    const working = new Map(countries);
+    const readOnly = ['territory-components', 'territory-selection', 'territory-slivers'].includes(message.operation);
+    const working = readOnly ? null : new Map(countries);
     let result;
-    if (message.operation === 'territorial-coast-availability') {
+    if (readOnly) {
+      const { createTerritoryComponentPlan } = await import(versionedWorkerAssetUrl('../modules/territory-component-plan.js'));
+      let lastYield = performance.now();
+      const plan = createTerritoryComponentPlan({ clipper: self.polygonClipping, normalize: normalizeCountryGeometry,
+        checkpoint: async () => {
+          if (performance.now() - lastYield >= 8) {
+            await new Promise(resolve => setTimeout(resolve, 0));
+            lastYield = performance.now();
+          }
+          if (cancelled.has(Number(message.requestId)) || Number(message.dataRevision) !== currentDataRevision) throw new Error('CANCELLED');
+        },
+      });
+      const method = message.operation === 'territory-components' ? 'prepare'
+        : message.operation === 'territory-selection' ? 'selection' : 'slivers';
+      result = await plan[method](message.payload);
+    } else if (message.operation === 'territorial-coast-availability') {
       const [{ buildBoundaryTopology }, { analyzeAdminCountryCoast }] = await Promise.all([
         import(versionedWorkerAssetUrl('../modules/boundary-topology.js')),
         import(versionedWorkerAssetUrl('../modules/coast-reconciliation.js')),
@@ -482,7 +498,7 @@ self.onmessage = async event => {
     }
     if (Number(message.dataRevision || 0) !== currentDataRevision) throw new Error('CANCELLED');
     if (cancelled.has(Number(message.requestId))) throw new Error('CANCELLED');
-    pendingResults.set(Number(message.requestId), {
+    if (!readOnly) pendingResults.set(Number(message.requestId), {
       result,
       dataRevision: Number(message.dataRevision || 0),
       geometryRevision: Number(message.geometryRevision || message.dataRevision || 0),

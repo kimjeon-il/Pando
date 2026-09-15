@@ -8,6 +8,8 @@ export function connectObjectEditing({
   territorialConversion, territorialDrafts, territoryComponentUi, territoryComponents, territorySelectionWorkflow, workspaceSurfaces,
 }) {
   territorySelectionWorkflow.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
+    get installComponentIndex() { return territoryComponents.installComponentIndex; },
     get applyActiveGeometryPreview() { return geometryPreview.applyActiveGeometryPreview; },
     get countryFeatureById() { return countryIndex.countryFeatureById; },
     get defaultDraftInstruction() { return interactionPackets.defaultDraftInstruction; },
@@ -43,6 +45,7 @@ export function connectObjectEditing({
     get validateNewCountrySelectionSetup() { return countryModes.validateNewCountrySelectionSetup; },
   });
   countryCommits.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get activeCutDraftSourceGeometry() { return cutGeometry.activeCutDraftSourceGeometry; },
     get applyCountrySelectionIntent() { return propertySelection.applyCountrySelectionIntent; },
     get applyDistributionSelectionIntent() { return propertySelection.applyDistributionSelectionIntent; },

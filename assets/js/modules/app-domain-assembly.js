@@ -155,10 +155,6 @@ export function createDomainAssembly() {
       riverPartitionWorkerFactory: () => new Worker((0, dependencies.runtimeAssetUrl)('workers/river-territory-partition-worker.js'), {
         type: 'module', name: 'pandolab-river-territory-partitions',
       }),
-      riverPartitionFallback: async payload => {
-        await (0, dependencies.ensureGisRuntime)();
-        return (0, dependencies.buildRiverTerritoryPartitions)({ ...payload, clipper: window.polygonClipping });
-      },
       riverPartitionSource: {
         ensureReady: async () => {
           if (dependencies.state.physicalLoadState.hydro === 'ready') return true;

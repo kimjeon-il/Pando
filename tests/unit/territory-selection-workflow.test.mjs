@@ -6,9 +6,10 @@ import { createTerritorySelectionWorkflow } from '../../assets/js/modules/app-te
 const geometry = id => ({ type: 'MultiPolygon', coordinates: [[[[id, 0], [id + 1, 0], [id + 1, 1], [id, 0]]]] });
 
 async function settle(t) {
+  t.mock.timers.tick(0);
+  for (let i = 0; i < 20; i++) await Promise.resolve();
   t.mock.timers.tick(300);
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let i = 0; i < 20; i++) await Promise.resolve();
 }
 
 function harness(t) {
@@ -27,7 +28,23 @@ function harness(t) {
 
   const countries = new Map(['A', 'B', 'C'].map((id, index) => [id, { id, geometry: geometry(index * 3) }]));
   const state = { territorySelectionSession: null, geometryPreview: { session: null } };
-  const calls = { prepare: [], preview: [], apply: 0, refresh: [], errors: [] };
+  const calls = { prepare: [], preview: [], apply: 0, refresh: [], errors: [], worker: [], stopped: 0 };
+  const union = values => {
+    const pieces = values.filter(Boolean);
+    return pieces.length ? { type: 'MultiPolygon', coordinates: pieces.flatMap(value => value.coordinates) } : null;
+  };
+  const worker = {
+    stop() { calls.stopped += 1; },
+    async execute(operation, { payload }) {
+      calls.worker.push(operation);
+      if (operation === 'territory-components') return { result: {
+        items: [], componentFeatures: payload.features, baseSourceGeometry: payload.baseGeometry,
+        workingSourceGeometry: payload.baseGeometry, archivedGeometry: union(payload.parts),
+      } };
+      const currentGeometry = payload.components ? union(payload.selected) : payload.currentGeometry;
+      return { result: { currentGeometry, combinedGeometry: union([payload.archivedGeometry, currentGeometry]), remainingGeometry: payload.workingSourceGeometry } };
+    },
+  };
   let draft = [];
   let uid = 0;
   let releaseApply;
@@ -59,6 +76,8 @@ function harness(t) {
   };
   workflow.connect({
     state,
+    mapEditClient: worker,
+    installComponentIndex(current, result, key) { current.componentIndex = { key, items: result.items, byKey: new Map(componentItems().map(item => [item.key, item])) }; },
     uid: prefix => `${prefix}-${++uid}`,
     projectDomain: { getGeneration: () => 7 },
     countryFeatureById: id => countries.get(String(id)),
@@ -110,7 +129,7 @@ function harness(t) {
   });
   workflow.initializeTerritorySelectionWorkflow();
   return {
-    state, calls, workflow,
+    state, calls, workflow, worker,
     holdApply: () => { holdApply = true; },
     releaseApply: value => releaseApply(value),
   };
@@ -254,4 +273,52 @@ test('the common scheduler only keeps the latest aggregate preview and applies o
   h.releaseApply(true);
   assert.equal(await applying, true);
   assert.equal(h.state.territorySelectionSession, null);
+});
+
+
+test('late selection result cannot restore cleared geometry and cancel stops the worker', async t => {
+  const h = harness(t);
+  const current = h.workflow.start('subunit', starts[2][1]);
+  await h.workflow.advance();
+  await h.workflow.selectMethod('components');
+  const normalExecute = h.worker.execute;
+  let release;
+  h.worker.execute = (operation, request) => operation === 'territory-selection'
+    ? new Promise(resolve => { release = resolve; }) : normalExecute(operation, request);
+  h.workflow.toggleComponent('first');
+  t.mock.timers.tick(0);
+  for (let i = 0; i < 20; i++) await Promise.resolve();
+  assert.equal(current.computationPending, true);
+  assert.equal(h.workflow.presentation().primaryDisabled, true);
+  h.workflow.clear();
+  assert.equal(h.calls.stopped, 1);
+  release({ result: { currentGeometry: geometry(30), combinedGeometry: geometry(30), remainingGeometry: geometry(0) } });
+  await settle(t);
+  assert.equal(h.state.territorySelectionSession, null);
+  assert.equal(h.calls.preview.length, 0);
+});
+
+test('selection coalesces clicks without rebuilding source and supports worker error retry', async t => {
+  const h = harness(t);
+  const current = h.workflow.start('new-country', starts[1][1]);
+  await h.workflow.advance();
+  await h.workflow.selectMethod('components');
+  const normalExecute = h.worker.execute;
+  let failed = false;
+  h.worker.execute = async (operation, request) => {
+    if (operation === 'territory-selection' && !failed) { failed = true; throw new Error('worker timeout'); }
+    return normalExecute(operation, request);
+  };
+  h.workflow.toggleComponent('first');
+  h.workflow.toggleComponent('second');
+  await settle(t);
+  assert.equal(current.computationError, true);
+  assert.deepEqual(current.selectedComponentKeys, ['first', 'second']);
+  assert.equal(current.combinedGeometry, null);
+  await h.workflow.selectMethod('components');
+  await settle(t);
+  assert.equal(current.computationError, false);
+  assert.equal(h.calls.worker.filter(name => name === 'territory-components').length, 1);
+  assert.equal(h.calls.worker.filter(name => name === 'territory-selection').length, 1);
+  assert.equal(h.workflow.previewReady(), true);
 });
