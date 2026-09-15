@@ -61,7 +61,7 @@ export function createLayerTreeController({
 
     const select = document.createElement('button');
     select.type = 'button';
-    select.className = 'ui-button layer-search-result-select layer-child-name';
+    select.className = 'ui-button layer-search-result-select';
     select.dataset.objectSearchSelect = item.layerGroup;
     select.dataset.itemId = item.id;
     select.setAttribute('aria-label', item.name);

@@ -24,7 +24,7 @@ export function mapInteractionEntries(snapshot, state, { countryType = 'country'
       else country(session.sovereignId, 'reference');
     }
     if (session.targetHighlightRole) country(session.targetCountryId, 'edit-target');
-    for (const id of session.sourceCountryIds || []) country(id, session.sourceHighlightRole === 'annex-source' ? 'selected-provider' : 'reference');
+    for (const id of session.sourceCountryIds || []) country(id, session.sourceHighlightRole || 'reference');
   }
   if (state.tool === 'country-coast') country(state.coastEditCountryId, 'edit-target');
   if (state.tool === 'country-border') for (const id of state.boundaryEditCountryIds || []) country(id, 'edit-target');
