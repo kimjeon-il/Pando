@@ -17,6 +17,10 @@ export function createTerritoryComponentUi() {
   function updateTerritoryComponentSelectionFeedback() {
     const session = (0, dependencies.activeTerritorySelectionSession)();
     if (!session || session.stage !== 'selection' || session.activePhase !== 'components') return;
+    if (session.computationPending) {
+      dependencies.setModeBanner('선택 영역을 계산하는 중입니다.');
+      return;
+    }
     const prefix = session.useRiverBoundaries ? session.riverComponentLabel : session.componentLabel;
     if (session.showRiverFailureSources) {
       const invalidIds = new Set(session.riverPartitionDonorResults

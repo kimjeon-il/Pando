@@ -1,3 +1,19 @@
+const immutableGeometries = new WeakSet();
+
+/** Only call for privately owned calculation results, never live project geometry. */
+export function freezeEditingGeometry(value) {
+  if (!value || immutableGeometries.has(value)) return value;
+  const freezeCoordinates = coordinates => {
+    if (!Array.isArray(coordinates) || Object.isFrozen(coordinates)) return;
+    for (const child of coordinates) freezeCoordinates(child);
+    Object.freeze(coordinates);
+  };
+  freezeCoordinates(value.coordinates);
+  Object.freeze(value);
+  immutableGeometries.add(value);
+  return value;
+}
+
 const coordinate = value => (
   Array.isArray(value) && value.length >= 2
     ? Object.freeze([Number(value[0]), Number(value[1])])
@@ -24,6 +40,7 @@ const cloneGeometryCoordinates = value => {
 
 const geometry = value => {
   if (!value?.type) return null;
+  if (immutableGeometries.has(value)) return value;
   return Object.freeze({
     type: String(value.type),
     coordinates: cloneGeometryCoordinates(value.coordinates),

@@ -251,6 +251,7 @@ export function connectMapInteraction({
     get viewRevision() { return mapHost.viewRevision; },
   });
   riverCandidates.connect({
+    get installRiverComponentIndex() { return territoryComponents.installRiverComponentIndex; },
     get activeTerritorySelectionSession() { return territorySelectionWorkflow.activeSession; },
     get countryName() { return objectPresentation.countryName; },
     get editingDomain() { return domainAssembly.editingDomain; },

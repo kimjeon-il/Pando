@@ -353,11 +353,12 @@ export function createTerritorialDrafts() {
   function createTerritorialSourceFeature(session) {
     if (session.kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT) return resolveTerritorialCreateSource(session);
     if (session.activeMethod === 'polygon') return null;
-    const geometry = (0, dependencies.selectedCountryUnionGeometry)(session.sourceCountryIds);
-    if (!geometry) return null;
+    const features = session.sourceCountryIds.map(id => dependencies.countryFeatureById(id)).filter(feature => feature?.geometry);
+    if (!features.length) return null;
+    const geometry = { type: 'MultiPolygon', coordinates: features.flatMap(feature => dependencies.geometryMultiCoordinates(feature.geometry)) };
     return {
       feature: { type: 'Feature', id: 'territorial-create-source', properties: { name: '기준 영역' }, geometry },
-      existingId: '', virtual: true,
+      existingId: '', virtual: true, features,
     };
   }
 
@@ -376,20 +377,18 @@ export function createTerritorialDrafts() {
     if (session.sourceFingerprint === fingerprint && (session.baseSourceGeometry || session.activeMethod === 'polygon')) return true;
     session.sourceInfo = { context, source: null, existingId: '', virtual: false, sourceWasExisting: false };
     if (sourceInfo) {
-      const source = (0, dependencies.deepClone)(sourceInfo.feature);
+      const source = sourceInfo.feature;
       session.sourceInfo = {
         context, source, existingId: sourceInfo.existingId || '', virtual: sourceInfo.virtual,
         sourceWasExisting: !!sourceInfo.existingId,
       };
     }
-    session.baseSourceGeometry = sourceInfo ? (0, dependencies.deepClone)(sourceInfo.feature.geometry) : null;
-    session.workingSourceGeometry = sourceInfo ? (0, dependencies.deepClone)(sourceInfo.feature.geometry) : null;
+    session.baseSourceGeometry = sourceInfo?.features ? null : sourceInfo?.feature?.geometry || null;
+    session.workingSourceGeometry = sourceInfo?.feature?.geometry || null;
     session.remainingGeometry = session.workingSourceGeometry;
     session.sourceRevision += 1;
     session.sourceFingerprint = fingerprint;
-    if (session.activeMethod === 'components') {
-      session.componentFeatures = [(0, dependencies.deepClone)(sourceInfo.feature)];
-    }
+    session.componentFeatures = sourceInfo?.features || (sourceInfo ? [sourceInfo.feature] : []);
     return true;
   }
 

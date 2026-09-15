@@ -118,11 +118,20 @@ export function createRenderingDomain({
     binding.enter().append(tag).attr('class', className);
     return layer.selectAll(selector);
   };
+  const componentProjectionCache = new WeakMap();
   const reprojectEditingLayer = (layer, frame) => {
     const path = framePath(frame, interaction.path || editing.path);
     layer?.selectAll('path').each(function(d) {
       const geometry = d?.geometry || (d?.start && d?.end ? { type: 'LineString', coordinates: [d.start, d.end] } : null);
-      if (geometry) this.setAttribute('d', path({ type: 'Feature', properties: {}, geometry }) || '');
+      if (geometry) {
+        const cacheable = this.classList.contains('territory-component') && Object.isFrozen(geometry)
+          && frame?.viewRevision != null && frame?.projectionRevision != null;
+        const cached = cacheable && componentProjectionCache.get(this);
+        if (cached && cached.geometry === geometry && cached.view === frame.viewRevision
+          && cached.projection === frame.projectionRevision) return;
+        this.setAttribute('d', path({ type: 'Feature', properties: {}, geometry }) || '');
+        if (cacheable) componentProjectionCache.set(this, { geometry, view: frame.viewRevision, projection: frame.projectionRevision });
+      }
     });
     layer?.selectAll('g, circle, path.snap-indicator-cross').each(function(d) {
       if (this.parentNode !== layer.node?.() && (this.parentNode?.__data__?.coordinate || this.parentNode?.__data__?.coord)) return;

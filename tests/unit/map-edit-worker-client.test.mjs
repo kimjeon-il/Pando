@@ -3,6 +3,37 @@ import test from 'node:test';
 
 import { createMapEditWorkerClient } from '../../assets/js/modules/map-edit-worker-client.js';
 
+test('timed out geometry calculation terminates its worker and retries from current project data', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const workers = [];
+  let features = [{ id: 'AAA', geometry: null }];
+  const client = createMapEditWorkerClient({
+    createWorker: () => {
+      const worker = createFakeWorker();
+      if (!workers.length) worker.postMessage = function(message) {
+        this.messages.push(message);
+        if (message.type === 'rebase') Promise.resolve().then(() => this.onmessage({ data: { type: 'ready' } }));
+      };
+      workers.push(worker);
+      return worker;
+    },
+    getFeatures: () => features,
+    getFeatureById: id => features.find(feature => feature.id === id),
+    schedule: callback => Promise.resolve().then(callback),
+  });
+  t.after(() => client.stop());
+  const rejected = assert.rejects(client.execute('territory-components', { payload: {} }), { code: 'PL-WORKER-RPC-TIMEOUT' });
+  for (let i = 0; i < 20; i++) await Promise.resolve();
+  t.mock.timers.tick(60_000);
+  for (let i = 0; i < 20; i++) await Promise.resolve();
+  t.mock.timers.tick(0);
+  await rejected;
+  assert.equal(workers[0].terminated, true);
+  features = [{ id: 'BBB', geometry: null }];
+  await client.execute('territory-components', { payload: {} });
+  assert.deepEqual(workers[1].messages[0].features, features);
+});
+
 function createFakeWorker() {
   return {
     messages: [],

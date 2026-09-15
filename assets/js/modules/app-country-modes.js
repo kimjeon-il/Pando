@@ -123,17 +123,15 @@ export function createCountryModes() {
     try {
       const fingerprint = [...ids].sort().join('|');
       if (session.sourceCountryFingerprint === fingerprint && session.baseSourceGeometry) return true;
-      const sourceGeometry = (0, dependencies.selectedCountryUnionGeometry)(ids);
-      if (!sourceGeometry) return false;
-      session.baseSourceGeometry = (0, dependencies.deepClone)(sourceGeometry);
-      session.workingSourceGeometry = (0, dependencies.deepClone)(sourceGeometry);
-      session.remainingGeometry = (0, dependencies.deepClone)(sourceGeometry);
+      const features = ids.map(id => (0, dependencies.countryFeatureById)(id)).filter(Boolean);
+      if (!features.length) return false;
+      // The selection worker unions multiple sources; keep immutable source references here.
+      session.baseSourceGeometry = features.length === 1 ? features[0].geometry : null;
+      session.workingSourceGeometry = session.baseSourceGeometry;
+      session.remainingGeometry = session.baseSourceGeometry;
       session.sourceRevision += 1;
       session.sourceCountryFingerprint = fingerprint;
-      session.componentFeatures = ids
-        .map(id => (0, dependencies.countryFeatureById)(id))
-        .filter(Boolean)
-        .map(feature => (0, dependencies.deepClone)(feature));
+      session.componentFeatures = features;
       return true;
     } catch (error) {
       (0, dependencies.reportOperationError)(error, '선택한 국가의 영토를 준비할 수 없습니다. 대상을 다시 선택하세요.', 'PL-TERRITORY-SELECTION-002', 3800);

@@ -6,6 +6,7 @@ export function createRiverCandidates() {
   let dependencies;
   let riverPartitionGeneration;
   let riverPartitionCache;
+  const geometrySignatures = new WeakMap();
   function connect(ports) {
     if (dependencies) throw new Error('river-candidates already connected');
     dependencies = ports;
@@ -13,6 +14,7 @@ export function createRiverCandidates() {
 
   function resetRiverPartitionState({ preserveCache = true } = {}) {
     riverPartitionGeneration += 1;
+    dependencies.gisDomain?.cancelRiverPartition?.();
     const session = (0, dependencies.activeTerritorySelectionSession)();
     if (session) {
       session.riverPartitionStatus = 'idle';
@@ -25,7 +27,12 @@ export function createRiverCandidates() {
 
   function riverPartitionGeometrySignature(feature) {
     if (!feature?.geometry) return '';
-    return `${String(feature.id || '')}:${JSON.stringify(feature.geometry.coordinates || [])}`;
+    let signature = geometrySignatures.get(feature.geometry);
+    if (signature === undefined) {
+      signature = JSON.stringify(feature.geometry.coordinates || []);
+      geometrySignatures.set(feature.geometry, signature);
+    }
+    return `${String(feature.id || '')}:${signature}`;
   }
 
   function riverPartitionHydroEditSignature() {
@@ -108,6 +115,7 @@ export function createRiverCandidates() {
     session.riverPartitionCandidates = candidates;
     session.riverPartitionDonorResults = donorResults;
     const composition = (0, dependencies.riverBoundaryComposition)((0, dependencies.territoryBaseComponentItems)(), { candidates, donorResults });
+    dependencies.installRiverComponentIndex(session, composition, candidates, donorResults);
     session.riverPartitionStatus = composition.items.length ? 'ready' : 'error';
     return composition;
   }

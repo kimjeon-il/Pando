@@ -127,7 +127,15 @@ export function createMapEditWorkerClient({
         geometryRevision: entry.geometryRevision,
         targetRevision: entry.targetRevision,
       },
-    }).then(response => response.result);
+    }).then(response => response.result).catch(error => {
+      // A cancel message cannot interrupt a synchronous polygon operation.
+      if (error?.code === 'PL-WORKER-RPC-TIMEOUT') {
+        const timedOutRpc = rpc;
+        // Deliver the timeout to its caller before cancelling the other queued work.
+        setTimeout(() => { if (rpc === timedOutRpc) stop(); }, 0);
+      }
+      throw error;
+    });
   }
 
   const scheduler = createLatestWorkerJobScheduler({

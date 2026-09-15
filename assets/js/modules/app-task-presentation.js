@@ -369,11 +369,12 @@ export function createTaskPresentation() {
 
     const specialMode = !!(selection || labelMode || terrainMode || previewMode || (0, dependencies.isSpecialTool)(state.tool) || draftMode);
     const busy = state.modeProcessing || selection?.previewPending;
+    const calculating = selection?.computationPending || selection?.activePhase === 'preparing';
     const bar = (0, dependencies.$)('modeActionBar');
     bar?.classList.toggle('hidden', !specialMode);
     bar?.classList.toggle('single-action', labelMode);
     bar?.classList.toggle('is-processing', !!busy);
-    bar?.setAttribute('aria-busy', String(!!busy));
+    bar?.setAttribute('aria-busy', String(!!busy || !!calculating));
 
     const methodSwitch = (0, dependencies.$)('modeMethodSwitch');
     methodSwitch?.classList.toggle('hidden', !selectionModel?.showMethods);
@@ -464,7 +465,7 @@ export function createTaskPresentation() {
       setButtonLabel(primary, label);
       (0, dependencies.$)('modePrimaryIcon')?.setAttribute('href', icon);
       primary.setAttribute('aria-label', label === '다음' ? '다음 단계' : label);
-      primary.setAttribute('aria-busy', String(!!busy));
+      primary.setAttribute('aria-busy', String(!!busy || !!calculating));
     }
 
     const cancel = (0, dependencies.$)('modeCancelBtn');
