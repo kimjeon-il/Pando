@@ -120,6 +120,21 @@ test('tool receivers, donors and nested parents keep their semantic roles indepe
   assert.equal(rows[1].depth, 2);
 });
 
+test('country creation sources use the same secondary selection emphasis as annex donors', () => {
+  const snapshot = { selection: { items: [], primaryKey: null }, hover: null };
+  const session = (kind, sourceHighlightRole) => ({ tool: kind === 'annex' ? 'annex-territory' : 'new-country', kind, sourceCountryIds: ['DEU', 'POL'], sourceHighlightRole });
+  for (const [kind, role] of [['new-country', 'selected-provider'], ['annex', 'selected-provider']]) {
+    const rows = mapInteractionEntries(snapshot, { tool: session(kind, role).tool, territorySelectionSession: session(kind, role) });
+    assert.equal(rows.length, 2);
+    assert.ok(rows.every(row => row.role === 'selected-provider'));
+    assert.ok(rows.every(row => row.priority === 3));
+  }
+  const style = resolveMapInteractionStyle({ theme: 'light', fillStrength: 0.35 });
+  const selected = interactionRoleStyle(style, 'selected-provider');
+  assert.ok(selected.fillAlpha > 0);
+  assert.ok(selected.width > interactionRoleStyle(style, 'reference').width);
+});
+
 test('Canvas metadata updates share immutable coordinate reconstruction', () => {
   const packet = { ringCoordinates: new Float64Array([0, 0, 1, 0, 1, 1, 0, 0]), ringOffsets: [0, 4], polygonOffsets: [0, 1] };
   const before = globalThis.PandoLabCanvasSceneComposition.geometryFor(packet);
