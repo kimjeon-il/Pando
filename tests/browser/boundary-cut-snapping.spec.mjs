@@ -138,8 +138,7 @@ test('a cut line with endpoints just inside the polygon snaps to both boundaries
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
-  if (!(await page.locator('#createMenuBtn').isVisible())) await page.locator('#mobileMapBtn').click();
-  await page.locator('#createMenuBtn').click();
+  await page.locator('#mobileCreateBtn').click();
   await page.locator('#addRiverBtn').click();
   const mobileMapBox = await page.locator('#map').boundingBox();
   expect(mobileMapBox).not.toBeNull();

@@ -114,66 +114,8 @@
 
 
 
-.layer-child {
-  --selection-strong-bg: transparent;
-  --selection-strong-fg: var(--text-strong);
-  --selection-strong-muted: var(--text-soft);
-  position: relative;
-}
-
 /* Preferences is available before lazy workflow styles have loaded. */
 .preferences-accent-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr)); gap: var(--design-button-gap); align-items: center; }
-
-.layer-child.ui-selectable-row.is-selected { border-color: transparent; }
-
-.layer-child.is-active {
-  background: color-mix(in srgb, var(--accent) 4%, transparent);
-}
-
-.layer-child.is-active::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 0;
-  inset-block-start: var(--ui-space-1-5);
-  inset-block-end: var(--ui-space-1-5);
-  width: var(--ui-space-0-5);
-  border-radius: var(--ui-space-0-5);
-  background: var(--accent);
-  pointer-events: none;
-}
-
-.layer-folder-row > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker),
-.layer-child > :where(.layer-count, .layer-item-count, .layer-object-count, .layer-swatch, .layer-type-dot, .layer-shape-marker) {
-  display: none;
-}
-
-@media (max-width: 799px) {
-
-}
-
-/* Layer row surfaces: feature states do not redefine component skin. */
-
-.layer-panel-footer { border-top: 1px solid var(--border); background: var(--surface-elevated); padding: var(--ui-space-2) var(--ui-surface-content-rail-x); padding-bottom: max(var(--ui-space-2), env(safe-area-inset-bottom));
-}
-.app-root .layer-action-bar > .icon-btn { padding: 0; border: 0; background: transparent; box-shadow: none;
-}
-.app-root .layer-action-bar > .icon-btn:is(:hover, :focus-visible):not(:disabled) { background: var(--surface-hover);
-}
 @media (max-width: 799px) {
   .app-root .topbar-center { padding: 0;
 }}
-.app-root .layer-bundle-row { padding: 0 var(--ui-row-padding-x);
-}
-.layer-bundle-toggle { padding: 0; border: 0; background: transparent;
-}
-.app-root .layer-child-name { background: transparent;
-}
-.app-root .layer-child[data-bundle-member] { padding-inline-start: calc(var(--ui-row-padding-x) + var(--ui-space-5));
-}
-.app-root .layer-child.layer-hierarchy-row {
-  padding-inline-start: calc(var(--ui-row-padding-x) + var(--layer-depth, 0) * var(--ui-icon-size));
-}
-.app-root .layer-child.layer-search-result { padding: 0 var(--ui-row-padding-x);
-}
-.layer-type-settings { padding-block: var(--ui-space-2); border-top: 0;
-}

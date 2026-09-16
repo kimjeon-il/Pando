@@ -160,16 +160,7 @@
     font-size: var(--ui-font-md);
   }
 
-  .surface-editor .editor-scroll-body,
-  .surface-map .surface-body{ overscroll-behavior: contain; }
-
-  /* Snap 0 closes the map through the controller; open/closed layout owns hit testing. */
-
-  .surface-map .layer-child {
-      min-height: var(--design-layer-row-height-mobile);
-      height: var(--design-layer-row-height-mobile);
-    }
-  .surface-map .projection-btn { min-height: var(--ui-touch-height); }
+  .surface-editor .editor-scroll-body { overscroll-behavior: contain; }
 
   .surface-editor[data-editor-content="task"] > .surface-header {
     display: grid;

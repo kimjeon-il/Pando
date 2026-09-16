@@ -46,7 +46,6 @@
   }
 }
 
-[data-layout="wide"] .surface-map { width: var(--ui-shell-left-panel-width); }
 [data-layout="wide"] .surface-editor { width: var(--ui-shell-right-panel-width); }
 
 /* Keep the map viewport stable while the wide inspector opens over its edge. */
@@ -167,32 +166,6 @@
   right: calc(var(--ui-shell-right-panel-width) + var(--ui-map-edge));
 }
 
-[data-layout="wide"] .left-panel {
-  top: 0;
-  right: auto;
-  left: 0;
-  width: var(--ui-shell-left-panel-width);
-  border: 0;
-  border-inline-end: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--surface-elevated);
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-[data-layout="wide"] .left-panel {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-[data-layout="wide"] .left-panel > .surface-header .surface-header-actions {
-  display: none;
-}
-
-
 @media (max-width: 799px) {
 
   .map-bottom-status {
@@ -288,51 +261,8 @@
   object-fit: cover;
 }
 
-/* Desktop workbench refinement: keep the map dominant, and make document,
-   navigation, layer, and inspector roles readable at a glance. */
+/* Desktop workbench refinement keeps the map and inspector roles readable. */
 @media (min-width: 800px) {
-  [data-layout="wide"] .left-panel {
-    background: var(--surface-elevated);
-  }
-
-  [data-layout="wide"] .left-panel .layer-search {
-    border-color: var(--border);
-    border-radius: var(--design-radius-lg);
-    background: var(--surface-input);
-  }
-
-  [data-layout="wide"] .left-panel .layer-category {
-    padding-block: var(--ui-space-4) var(--ui-space-2);
-    border-top: 0;
-  }
-
-  [data-layout="wide"] .left-panel .layer-category:first-child {
-    border-top: 0;
-  }
-
-  [data-layout="wide"] .left-panel .layer-category-title {
-    margin: 0 var(--ui-space-2) var(--ui-space-1);
-    color: var(--muted);
-    font-size: var(--design-font-xs);
-    font-weight: var(--design-weight-bold);
-    letter-spacing: .06em;
-  }
-
-  [data-layout="wide"] .left-panel .layer-folder-row {
-    min-height: var(--design-layer-row-height);
-    border-radius: var(--design-radius-md);
-  }
-
-  [data-layout="wide"] .left-panel .layer-folder-row:hover,
-  [data-layout="wide"] .left-panel .layer-folder-row:focus-within {
-    background: var(--surface-hover);
-  }
-
-  [data-layout="wide"] .layer-panel-footer {
-    padding: var(--ui-space-3);
-    background: var(--surface-subtle);
-  }
-
   [data-layout="wide"] .right-panel {
     background: var(--surface-elevated);
   }

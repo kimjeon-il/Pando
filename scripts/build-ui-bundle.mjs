@@ -15,7 +15,6 @@ const sources = Object.freeze([
   'assets/css/components/workflows.css',
   'assets/css/layout/surfaces.css',
   'assets/css/components/topbar.css',
-  'assets/css/features/layer-panel.css',
   'assets/css/components/editor-shell.css',
   'assets/css/components/selection-toolbar.css',
   'assets/css/components/panels.css',

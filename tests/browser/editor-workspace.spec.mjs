@@ -27,7 +27,7 @@ test('the current editor surface owns tasks at every responsive width', async ({
   // so opening the editor must not shift the geographic projection.
   expect(Math.round(map.x + map.width)).toBe(1440);
   expect(Math.round(map.x + map.width)).toBeGreaterThan(Math.round(panel.x));
-  await expect(page.locator('#leftPanel')).toBeVisible();
+  await expect(page.locator('#mapDisplaySurface')).toBeHidden();
   await page.locator('#focusSelectedObjectBtn').click();
   await openActionsTab(page);
   await page.locator('#annexTerritoryBtn').click();

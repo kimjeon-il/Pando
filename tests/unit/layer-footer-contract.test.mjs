@@ -18,10 +18,10 @@ test('map command bar owns add while the editor header owns object visibility, l
   assert.match(add, /href="#icon-plus"/);
   assert.doesNotMatch(add, /<span/);
 });
-test('desktop shell has no retired vertical navigation geometry', () => {
+test('desktop shell has no retired vertical navigation or layer panel geometry', () => {
   const shell = read('assets/css/components/editor-shell.css');
   assert.doesNotMatch(shell, /\[data-layout="wide"\] \.adaptive-nav/);
   const tokens = read('assets/css/tokens/design-tokens.css');
   assert.doesNotMatch(tokens + shell, /--ui-(?:v2|shell)-workspace-(?:rail|nav|active)-/);
-  assert.match(shell, /\[data-layout="wide"\] \.left-panel\s*\{[^}]*left: 0;/);
+  assert.doesNotMatch(tokens + shell, /(?:--design-left-panel-width|--ui-shell-left-panel-width|\.left-panel)/);
 });

@@ -72,16 +72,6 @@ export function createReadinessNotifications() {
     return !!element?.matches?.(READINESS_INDEPENDENT_CONTROL_SELECTOR);
   }
 
-  function syncLayerVisibilityToggle(input) {
-    if (!input?.classList?.contains('layer-visibility-toggle')) return;
-    const label = input.dataset.visibilityLabel || '레이어';
-    input.dataset.tooltip = input.checked ? `${label} 숨기기` : `${label} 표시`;
-  }
-
-  function syncLayerVisibilityToggles(scope = document) {
-    scope?.querySelectorAll?.('input.layer-visibility-toggle').forEach(syncLayerVisibilityToggle);
-  }
-
   function syncCanonicalControls(scope = document) {
     const unavailable = !(0, dependencies.canMutateProject)(dependencies.state.dataReadiness);
     if (!canonicalControlsRegistered || scope !== document) {
@@ -115,7 +105,6 @@ export function createReadinessNotifications() {
         delete element.dataset.readinessAriaDisabled;
       }
     }
-    syncLayerVisibilityToggles((0, dependencies.$)('layerSection'));
   }
 
   function setDataReadiness(value) {
@@ -240,14 +229,13 @@ export function createReadinessNotifications() {
       '#selectionToolbar input', '#selectionToolbar textarea', '#selectionToolbar button:not(#selectionToolbarEditBtn)',
       '.top-actions button', '.top-actions input',
       '#mobileFileBtn', '#preferencesBtn', '#helpBtn', '#undoBtn', '#redoBtn',
-      '.layer-child-menu', '.layer-folder-lock', '[data-map-display-row]',
+      '[data-map-display-row]',
       '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-style-blend-mode]',
       '[data-territorial-symbol]',
-      '.layer-folder input[type="checkbox"]', '#labelsVisible', '#basemapLabelsVisible',
+      '#labelsVisible', '#basemapLabelsVisible',
     ].join(','));
 
     (READINESS_INDEPENDENT_CONTROL_SELECTOR = [
-      '.layer-visibility-toggle',
       '[data-map-display-row]',
       '[data-layer-style-opacity]',
       '[data-layer-style-boundary]',
@@ -302,7 +290,6 @@ export function createReadinessNotifications() {
     get setCurrentTool() { return setCurrentTool; },
     get showFatalError() { return showFatalError; },
     get syncCanonicalControls() { return syncCanonicalControls; },
-    get syncLayerVisibilityToggle() { return syncLayerVisibilityToggle; },
     get syncStatusBar() { return syncStatusBar; },
   });
 }

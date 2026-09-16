@@ -438,7 +438,6 @@ export function connectProjectIo({
     get state() { return projectSession.state; },
     get syncCanonicalControls() { return readinessNotifications.syncCanonicalControls; },
     get syncDistributionPresentationControls() { return mapSettings.syncDistributionPresentationControls; },
-    get syncLayerVisibilityToggle() { return readinessNotifications.syncLayerVisibilityToggle; },
     get syncMapObjectCategoryLabels() { return objectPresentation.syncMapObjectCategoryLabels; },
     get syncPhysicalControls() { return hydroSettings.syncPhysicalControls; },
     get syncRangeProgress() { return hydroSettings.syncRangeProgress; },

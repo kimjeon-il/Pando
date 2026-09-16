@@ -35,7 +35,7 @@ if (/id="(?:createBuildTabBtn|createLibraryTabBtn|createLibraryPanel)"/.test(htm
 if (textById('addFromLibraryBtn') !== '라이브러리') fail('library entry must be named 라이브러리');
 
 const buildStart = html.indexOf('id="createBuildPanel"');
-const libraryStart = html.indexOf('class="create-menu-category create-library-actions"');
+const libraryStart = html.indexOf('id="addFromLibraryBtn"');
 const buildPanel = buildStart >= 0 && libraryStart > buildStart ? html.slice(buildStart, libraryStart) : '';
 if (!buildPanel) fail('create build panel could not be resolved');
 const categoryContract = MAP_OBJECT_CATEGORY_ORDER.map(category => {
@@ -74,7 +74,7 @@ const headerEnd = headerStart >= 0 ? editor.indexOf('</header>', headerStart) : 
 const editorHeader = headerStart >= 0 && headerEnd > headerStart ? editor.slice(headerStart, headerEnd) : '';
 if (!editorHeader.includes('id="editSheetTitle"') || !editorHeader.includes('>편집<')) fail('editor Surface Header must identify the edit surface');
 if (!editorHeader.includes('id="mobileCloseRightBtn"')) fail('editor Surface Header must expose the close action');
-for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus', 'focusSelectedObjectBtn']) {
+for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (editorHeader.includes(`id="${forbiddenId}"`)) fail(`editor object control #${forbiddenId} must not live in the Surface Header`);
 }
 for (const id of ['objectLockBtn', 'objectDeleteBtn']) {
@@ -90,7 +90,7 @@ const objectContext = contextIndex >= 0 && contextEnd > contextIndex ? editor.sl
 for (const requiredId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (!objectContext.includes(`id="${requiredId}"`)) fail(`ObjectContext is missing #${requiredId}`);
 }
-if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext must own the optional map-focus action');
+if (!editorHeader.includes('id="focusSelectedObjectBtn"')) fail('editor Surface Header must own the optional map-focus action');
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
