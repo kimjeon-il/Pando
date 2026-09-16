@@ -41,5 +41,11 @@ export async function installReferenceImageFeature({ revision = '' } = {}) {
   const { installReferenceImageController } = await import(controllerUrl.href);
   const controller = installReferenceImageController();
   moveControlsToOverlayLayer();
-  return controller;
+
+  const lineRefinerUrl = new URL('./reference-image-line-refine-controller.js', import.meta.url);
+  if (revision) lineRefinerUrl.searchParams.set('v', revision);
+  const { installReferenceImageLineRefiner } = await import(lineRefinerUrl.href);
+  const lineRefiner = installReferenceImageLineRefiner();
+
+  return Object.freeze({ controller, lineRefiner });
 }
