@@ -63,7 +63,8 @@ test('line refinement requires a ready unlocked warp and supports cancel/apply p
   await expect(start).toBeVisible();
   await expect(start).toBeDisabled();
 
-  const stored = await expect.poll(() => readStoredRecord(page)).not.toBeNull().then(() => readStoredRecord(page));
+  await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
+  const stored = await readStoredRecord(page);
   const mapBox = await page.locator('#map').boundingBox();
   const centerX = mapBox.x + stored.screenRect.x + stored.screenRect.width / 2;
   const centerY = mapBox.y + stored.screenRect.y + stored.screenRect.height / 2;
@@ -106,7 +107,7 @@ test('line refinement requires a ready unlocked warp and supports cancel/apply p
     };
   });
 
-  const boundaryX = centerX + 94;
+  const boundaryX = centerX + 90;
   const boundaryY = centerY + 40;
   await page.mouse.move(boundaryX + 4, boundaryY - 45);
   await page.mouse.down();
