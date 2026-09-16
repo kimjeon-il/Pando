@@ -47,5 +47,10 @@ export async function installReferenceImageFeature({ revision = '' } = {}) {
   const { installReferenceImageLineRefiner } = await import(lineRefinerUrl.href);
   installReferenceImageLineRefiner();
 
+  const liveWireUrl = new URL('./reference-image-live-wire-controller.js', import.meta.url);
+  if (revision) liveWireUrl.searchParams.set('v', revision);
+  const { installReferenceImageLiveWire } = await import(liveWireUrl.href);
+  installReferenceImageLiveWire();
+
   return controller;
 }
