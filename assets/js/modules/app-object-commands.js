@@ -67,7 +67,7 @@ export function createObjectCommands() {
     if (ref.domain === 'hydro') {
       const feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
       const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature?.properties?.category || ref.type);
-      return { name: (0, dependencies.hydroPresentation.hydroEditorName)(feature?.properties?.name, (0, dependencies.hydroPresentation.hydroFallbackName)(category)), type: (0, dependencies.hydroPresentation.hydroCategoryLabel)(category), detail: (0, dependencies.objectModelA.hydroSourceLabel)(category, { builtin: !(0, dependencies.hydroPresentation.hydroEditById)(ref.id) }) };
+      return { name: (0, dependencies.hydroPresentation.hydroEditorName)(feature?.properties?.name, (0, dependencies.hydroPresentation.hydroFallbackName)(category)), type: (0, dependencies.hydroPresentation.hydroCategoryLabel)(category), detail: '' };
     }
     const label = dependencies.projectState.state.labels.find(item => String(item.id) === ref.id);
     const labelKind = { capital: '수도', city: '도시', town: '마을', region: '지역명', mountain: '산', water: '수역', custom: '기타' };

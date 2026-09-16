@@ -26,6 +26,10 @@ function harness(refs, { builtin = false } = {}) {
     countryFeatureById: () => feature, territorialUnitById: () => feature, territorialChildren: () => [],
     distributionLayerById: () => feature,
     hydroFeatureById: () => feature, hydroEditById: () => builtin ? null : feature,
+    hydroCategoryKey: value => value === 'lake' ? 'lake' : 'river',
+    hydroCategoryLabel: value => value === 'lake' ? '호수' : '강',
+    hydroFallbackName: value => `이름 없는 ${value === 'lake' ? '호수' : '강'}`,
+    hydroEditorName: (value, fallback) => String(value || '').trim() || fallback,
     isLayerItemVisible: (group, id) => state.itemVisibility[group]?.[id] !== false,
     markLayerTreeDirty() {},
     gpuMapRenderer: { invalidateCountryPalette() { effects.palette++; }, invalidateHydroVisibility() { effects.hydro++; } },
@@ -37,6 +41,17 @@ function harness(refs, { builtin = false } = {}) {
   commands.connect(capabilityPortsForFixture(FOUNDATION_OWNER_PORTS.objectCommands, ports));
   return { commands, state, effects, nodes, ports };
 }
+
+test('river and lake display info uses only the object kind without built-in source text', () => {
+  for (const type of ['river', 'lake']) {
+    const { commands } = harness([{ domain: 'hydro', type, id: `builtin-${type}` }], { builtin: true });
+    assert.deepEqual(commands.objectDisplayInfo({ domain: 'hydro', type, id: `builtin-${type}` }), {
+      name: `이름 없는 ${type === 'lake' ? '호수' : '강'}`,
+      type: type === 'lake' ? '호수' : '강',
+      detail: '',
+    });
+  }
+});
 
 test('per-object visibility keeps every layer master and selection intact', () => {
   for (const [domain, type, group] of [
