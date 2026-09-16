@@ -19,7 +19,13 @@ const targetDirectory = path.join(hydroRoot, 'v0.13.1');
 const review = readJson(path.join(root, 'reports', 'hydro-names', 'europe-major-rivers.json'));
 const overridePath = path.join(hydroRoot, 'hydronym-ko-overrides.json');
 const overrideDocument = readJson(overridePath);
-const systems = approvedSystemsFromReview(review);
+// Keep explicit system corrections from the source override document in
+// addition to reviewed candidates. Explicit corrections win on conflicts so
+// a known mislabel cannot be reintroduced by a broad review regeneration.
+const systems = {
+  ...approvedSystemsFromReview(review),
+  ...(overrideDocument.systems || {}),
+};
 
 const nextOverrides = { ...overrideDocument, version: '0.13.1', systems };
 fs.writeFileSync(overridePath, `${JSON.stringify(nextOverrides, null, 2)}\n`);
