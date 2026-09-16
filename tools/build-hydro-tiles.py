@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build PandoLab v0.13.0 connected river systems and Natural Earth lake shards.
+"""Build PandoLab v0.13.1 connected river systems and Natural Earth lake shards.
 
 HydroRIVERS provides canonical river geometry. Natural Earth provides the
 global 1:10m lake geometry and enriches matched river names. Optional OSM
@@ -36,7 +36,7 @@ from shapely.strtree import STRtree
 from hydro_connectivity import repair_connections, audit_parts
 
 
-VERSION = "0.13.0"
+VERSION = "0.13.1"
 PACK_FORMAT_VERSION = 4
 MICRO = 1_000_000
 RIVER_FLOW_WEIGHT = 4.0
@@ -147,6 +147,16 @@ def load_hydronym_overrides(path: Path | None) -> dict[str, str]:
         return {}
     payload = json.loads(path.read_text(encoding="utf-8"))
     return {str(key).strip(): str(value).strip() for key, value in (payload.get("aliases") or {}).items() if str(value).strip()}
+
+
+def load_hydronym_system_overrides(path: Path | None) -> dict[str, dict[str, Any]]:
+    if path is None or not path.exists():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        str(key).strip(): value for key, value in (payload.get("systems") or {}).items()
+        if isinstance(value, dict) and str(value.get("nameKo") or "").strip()
+    }
 
 
 def normalize_hydronym(name: str, category: str, overrides: dict[str, str]) -> str:
@@ -1797,7 +1807,10 @@ def main() -> None:
     output = args.output.resolve()
     overrides_path = args.hydronym_overrides.resolve() if args.hydronym_overrides else hydro_root / "hydronym-ko-overrides.json"
     hydronym_overrides = load_hydronym_overrides(overrides_path)
-    reviewed_hydronyms = set(hydronym_overrides.values())
+    system_name_overrides = load_hydronym_system_overrides(overrides_path)
+    reviewed_hydronyms = set(hydronym_overrides.values()) | {
+        str(value["nameKo"]).strip() for value in system_name_overrides.values()
+    }
     osm_path = args.osm_waterways.resolve() if args.osm_waterways else None
     osm_index = OsmWaterwayIndex(osm_path, hydronym_overrides)
     rivers_base, lakes_base = load_ne_base(hydro_root)
@@ -1846,6 +1859,7 @@ def main() -> None:
         region_named_systems = 0
         for system in systems:
             system_id = int(system["systemId"])
+            system_override = system_name_overrides.get(str(system_id))
             mainstem_index = int(system["mainstemIndex"])
             chain_osm_matches = {
                 index: osm_index.match(geometry_bounds(chain_geometry(chains[index])))
@@ -1868,7 +1882,8 @@ def main() -> None:
                 if name in reviewed_hydronyms
             ), "")
             display_name = normalize_hydronym(
-                reviewed_name or osm_name or ne_mainstem_name or (ne_other_names[0] if ne_other_names else ""),
+                str((system_override or {}).get("nameKo") or "")
+                or reviewed_name or osm_name or ne_mainstem_name or (ne_other_names[0] if ne_other_names else ""),
                 "river", hydronym_overrides,
             )
             if display_name:
@@ -1882,7 +1897,9 @@ def main() -> None:
             if matched_osm_relations:
                 region_osm_matches += 1
                 osm_name_matches += 1
-            aliases = sorted(set(ne_other_names + osm_names) - {"", display_name})
+            aliases = sorted(set(
+                ne_other_names + osm_names + list((system_override or {}).get("aliases") or [])
+            ) - {"", display_name})
             tributary_names = sorted(({
                 normalize_hydronym(matched_names.get(index, ""), "river", hydronym_overrides)
                 for index in system["chainIndexes"] if index != mainstem_index and matched_names.get(index)
@@ -2059,7 +2076,7 @@ def main() -> None:
         "metadata": layout["metadata"],
         "shards": layout["shards"],
         "cache": {
-            "name": f"pandolab-water-v0.13.0-{layout['index']['sha256'][:12]}",
+            "name": f"pandolab-water-v0.13.1-{layout['index']['sha256'][:12]}",
             "backgroundDownload": True,
             "rangeRequests": True,
         },

@@ -121,10 +121,6 @@ export function createObjectPresentation() {
     return `이름 없는 ${hydroCategoryLabel(value)}`;
   }
 
-  function hydroSourceLabel(value, { builtin = false } = {}) {
-    return `${builtin ? '내장 ' : '사용자 '}${hydroCategoryLabel(value)}`;
-  }
-
   function hydroAccusativeLabel(value) {
     return hydroCategoryKey(value) === 'lake' ? '호수를' : '강을';
   }
@@ -267,7 +263,6 @@ export function createObjectPresentation() {
     get hydroCategoryKey() { return hydroCategoryKey; },
     get hydroCategoryLabel() { return hydroCategoryLabel; },
     get hydroFallbackName() { return hydroFallbackName; },
-    get hydroSourceLabel() { return hydroSourceLabel; },
     get layerGroupNames() { return layerGroupNames; },
     get layerNameCollator() { return layerNameCollator; },
     get projectCommandPipeline() { return projectCommandPipeline; },

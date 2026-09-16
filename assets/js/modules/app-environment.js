@@ -195,7 +195,7 @@ export function createEnvironment() {
 
     (APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || ''));
 
-    (HYDRO_DATA_VERSION = '0.13.0');
+    (HYDRO_DATA_VERSION = '0.13.1');
 
     (FLAT_PROJECTION_KIND = 'equirectangular');
 
