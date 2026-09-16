@@ -1,3 +1,5 @@
+import { installReferenceImageEditingBridge } from './reference-image-editing-bridge.js';
+
 /** GlobalInputBindings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -11,6 +13,7 @@ export function createGlobalInputBindings() {
   }
 
   function bindGlobalInputUI() {
+    installReferenceImageEditingBridge(() => dependencies.editingDomain);
     document.addEventListener('keydown', e => {
       if (dependencies.state.projectReplacing) {
         e.preventDefault();
@@ -200,11 +203,8 @@ export function createGlobalInputBindings() {
     });
   }
 
-
-
   return Object.freeze({
     connect,
-
     get bindGlobalInputUI() { return bindGlobalInputUI; },
   });
 }
