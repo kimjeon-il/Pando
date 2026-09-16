@@ -43,30 +43,30 @@ export function createCutGeometry() {
   }
 
   function normalizeClippedLandGeometry(multiPolygon) {
-    return (0, dependencies.normalizeCountryGeometry)(multiPolygon);
+    return (0, dependencies.geometryModel.normalizeCountryGeometry)(multiPolygon);
   }
 
   function pointOnRingBoundary(point, rawRing, tolerance = 1e-7) {
-    const ring = (0, dependencies.ensureClosedRing)(rawRing);
+    const ring = (0, dependencies.geometryModel.ensureClosedRing)(rawRing);
     for (let i = 0; i < ring.length - 1; i += 1) {
-      if ((0, dependencies.pointOnSegment)(point, ring[i], ring[i + 1], tolerance)) return true;
+      if ((0, dependencies.territoryGeometry.pointOnSegment)(point, ring[i], ring[i + 1], tolerance)) return true;
     }
     return false;
   }
 
   function pointInPolygonSetInterior(point, polygon) {
     if (!polygon?.length || pointOnRingBoundary(point, polygon[0])) return false;
-    if (!(0, dependencies.pointInRing)(point, polygon[0])) return false;
+    if (!(0, dependencies.territoryGeometry.pointInRing)(point, polygon[0])) return false;
     for (let i = 1; i < polygon.length; i += 1) {
-      if (pointOnRingBoundary(point, polygon[i]) || (0, dependencies.pointInRing)(point, polygon[i])) return false;
+      if (pointOnRingBoundary(point, polygon[i]) || (0, dependencies.territoryGeometry.pointInRing)(point, polygon[i])) return false;
     }
     return true;
   }
 
   function segmentsIntersectOrTouch(a, b, c, d, tolerance = 1e-9) {
-    return (0, dependencies.segmentsProperlyIntersect)(a, b, c, d, tolerance) ||
-      (0, dependencies.pointOnSegment)(a, c, d, tolerance) || (0, dependencies.pointOnSegment)(b, c, d, tolerance) ||
-      (0, dependencies.pointOnSegment)(c, a, b, tolerance) || (0, dependencies.pointOnSegment)(d, a, b, tolerance);
+    return (0, dependencies.geometryValidation.segmentsProperlyIntersect)(a, b, c, d, tolerance) ||
+      (0, dependencies.territoryGeometry.pointOnSegment)(a, c, d, tolerance) || (0, dependencies.territoryGeometry.pointOnSegment)(b, c, d, tolerance) ||
+      (0, dependencies.territoryGeometry.pointOnSegment)(c, a, b, tolerance) || (0, dependencies.territoryGeometry.pointOnSegment)(d, a, b, tolerance);
   }
 
   function lineHasSelfIntersection(coords) {
@@ -114,21 +114,21 @@ export function createCutGeometry() {
     const lineT = cross(qp, s) / denominator;
     const boundaryT = cross(qp, r) / denominator;
     if (lineT < -epsilon || lineT > 1 + epsilon || boundaryT < -epsilon || boundaryT > 1 + epsilon) return null;
-    const t = (0, dependencies.clamp)(lineT, 0, 1);
+    const t = (0, dependencies.platform.clamp)(lineT, 0, 1);
     return {
       overlap: false,
       lineT: t,
-      boundaryT: (0, dependencies.clamp)(boundaryT, 0, 1),
-      coord: (0, dependencies.interpolateCoordinate)(a, b, t),
+      boundaryT: (0, dependencies.platform.clamp)(boundaryT, 0, 1),
+      coord: (0, dependencies.geometryValidation.interpolateCoordinate)(a, b, t),
     };
   }
 
   function coordinateAtPathPosition(rawLine, position) {
     const maxPosition = Math.max(0, rawLine.length - 1);
-    const bounded = (0, dependencies.clamp)(position, 0, maxPosition);
+    const bounded = (0, dependencies.platform.clamp)(position, 0, maxPosition);
     if (bounded >= maxPosition) return rawLine[rawLine.length - 1].slice();
     const segmentIndex = Math.floor(bounded);
-    return (0, dependencies.interpolateCoordinate)(rawLine[segmentIndex], rawLine[segmentIndex + 1], bounded - segmentIndex);
+    return (0, dependencies.geometryValidation.interpolateCoordinate)(rawLine[segmentIndex], rawLine[segmentIndex + 1], bounded - segmentIndex);
   }
 
   function interiorComponentIndex(point, polygons) {
@@ -143,7 +143,7 @@ export function createCutGeometry() {
       return dependencies.state.genericFeatures.find(item => String(item.id) === String(dependencies.state.genericFeatureSplitSourceId))?.geometry || null;
     }
     if (dependencies.state.tool === 'split-territorial-unit') {
-      return ((0, dependencies.territorialUnitById)(dependencies.state.territorialUnitSplitSourceId) || dependencies.state.territorialUnitSplitVirtualSource)?.geometry || null;
+      return ((0, dependencies.objectPresentation.territorialUnitById)(dependencies.state.territorialUnitSplitSourceId) || dependencies.state.territorialUnitSplitVirtualSource)?.geometry || null;
     }
     const territorySelection = dependencies.state.territorySelectionSession;
     if (territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection'
@@ -152,15 +152,15 @@ export function createCutGeometry() {
   }
 
   function cutEndpointSnapDistance() {
-    const coarsePointer = dependencies.coarsePointer ?? globalThis.matchMedia?.('(pointer: coarse)')?.matches;
+    const coarsePointer = dependencies.platform.coarsePointer ?? globalThis.matchMedia?.('(pointer: coarse)')?.matches;
     return coarsePointer ? dependencies.CUT_ENDPOINT_SNAP_DISTANCE.touch : dependencies.CUT_ENDPOINT_SNAP_DISTANCE.mouse;
   }
 
   function snapCutDraftLine(rawLine, sourceGeometry) {
-    return (0, dependencies.snapLineEndpointsToBoundary)(rawLine, sourceGeometry, {
-      project: coordinate => (0, dependencies.activeProjection)()(coordinate),
+    return (0, dependencies.geometryModel.snapLineEndpointsToBoundary)(rawLine, sourceGeometry, {
+      project: coordinate => (0, dependencies.mapView.activeProjection)()(coordinate),
       maxDistance: cutEndpointSnapDistance(),
-      isVisible: dependencies.isCoordVisible,
+      isVisible: dependencies.mapView.isCoordVisible,
       maxSegmentLength: Math.max(1, dependencies.state.size.width * 0.7),
     });
   }
@@ -168,7 +168,7 @@ export function createCutGeometry() {
   function cutDraftErrorMessage(line, sourceGeometry, originalError) {
     const fallback = String(originalError?.message || '경계선을 사용할 수 없습니다.');
     if (!Array.isArray(line) || line.length < 2) return '경계선을 만들려면 점을 두 개 이상 입력하세요.';
-    const polygons = (0, dependencies.geometryPolygonSets)(sourceGeometry);
+    const polygons = (0, dependencies.geometryPreview.geometryPolygonSets)(sourceGeometry);
     if (!polygons.length) return fallback;
     let events;
     try { events = collectCutBoundaryEvents(line, polygons); }
@@ -195,7 +195,7 @@ export function createCutGeometry() {
         if (!detail) continue;
         return {
           kind: detail.overlap ? 'segment-overlap' : 'self-intersection',
-          coordinate: detail.coord || (0, dependencies.interpolateCoordinate)(points[left], points[left + 1], 0.5),
+          coordinate: detail.coord || (0, dependencies.geometryValidation.interpolateCoordinate)(points[left], points[left + 1], 0.5),
           segmentIndex: left,
         };
       }
@@ -208,7 +208,7 @@ export function createCutGeometry() {
     const message = cutDraftErrorMessage(line, sourceGeometry, originalError);
     const issues = [];
     for (let index = 1; index < line.length; index += 1) {
-      if (!(0, dependencies.coordNear)(line[index - 1], line[index], 1e-9)) continue;
+      if (!(0, dependencies.geometryPreview.coordNear)(line[index - 1], line[index], 1e-9)) continue;
       issues.push({ kind: 'duplicate-vertex', coordinate: line[index].slice(), vertexIndex: index, segmentIndex: index - 1, message });
       return issues;
     }
@@ -217,7 +217,7 @@ export function createCutGeometry() {
       issues.push({ ...selfIntersection, message });
       return issues;
     }
-    const polygons = (0, dependencies.geometryPolygonSets)(sourceGeometry);
+    const polygons = (0, dependencies.geometryPreview.geometryPolygonSets)(sourceGeometry);
     if (!polygons.length) return [{ kind: 'invalid-cut', coordinate: line[Math.floor((line.length - 1) / 2)].slice(), message }];
     const startInside = interiorComponentIndex(line[0], polygons) !== null;
     const endInside = interiorComponentIndex(line[line.length - 1], polygons) !== null;
@@ -229,7 +229,7 @@ export function createCutGeometry() {
     catch (_) {
       return [{
         kind: 'boundary-overlap',
-        coordinate: (0, dependencies.interpolateCoordinate)(line[0], line[1], 0.5),
+        coordinate: (0, dependencies.geometryValidation.interpolateCoordinate)(line[0], line[1], 0.5),
         segmentIndex: 0,
         message,
       }];
@@ -261,12 +261,12 @@ export function createCutGeometry() {
         }
         for (let index = 0; index < line.length - 1; index += 1) {
           const a = line[index], b = line[index + 1];
-          const projectedA = (0, dependencies.activeProjection)()(a);
-          const projectedB = (0, dependencies.activeProjection)()(b);
+          const projectedA = (0, dependencies.mapView.activeProjection)()(a);
+          const projectedB = (0, dependencies.mapView.activeProjection)()(b);
           const screenLength = projectedA && projectedB ? Math.hypot(projectedB[0] - projectedA[0], projectedB[1] - projectedA[1]) : 120;
-          const samples = (0, dependencies.clamp)(Math.ceil(screenLength / 8), 12, 80);
+          const samples = (0, dependencies.platform.clamp)(Math.ceil(screenLength / 8), 12, 80);
           for (let sample = 1; sample < samples; sample += 1) {
-            const coordinate = (0, dependencies.interpolateCoordinate)(a, b, sample / samples);
+            const coordinate = (0, dependencies.geometryValidation.interpolateCoordinate)(a, b, sample / samples);
             if (pointInPolygonSetInterior(coordinate, component)) continue;
             return [{ kind: 'segment-outside', coordinate, segmentIndex: index, message }];
           }
@@ -276,7 +276,7 @@ export function createCutGeometry() {
     const middleSegmentIndex = Math.max(0, Math.min(line.length - 2, Math.floor((line.length - 2) / 2)));
     return [{
       kind: events.length ? 'invalid-cut' : 'no-boundary-crossing',
-      coordinate: (0, dependencies.interpolateCoordinate)(line[middleSegmentIndex], line[middleSegmentIndex + 1], 0.5),
+      coordinate: (0, dependencies.geometryValidation.interpolateCoordinate)(line[middleSegmentIndex], line[middleSegmentIndex + 1], 0.5),
       segmentIndex: middleSegmentIndex,
       message,
     }];
@@ -321,7 +321,7 @@ export function createCutGeometry() {
     const events = [];
     for (let lineIndex = 0; lineIndex < rawLine.length - 1; lineIndex += 1) {
       const a = rawLine[lineIndex], b = rawLine[lineIndex + 1];
-      if ((0, dependencies.coordNear)(a, b, 1e-10)) continue;
+      if ((0, dependencies.geometryPreview.coordNear)(a, b, 1e-10)) continue;
       polygons.forEach((polygon, polygonIndex) => {
         let geometry = polygonIndexGeometries.get(polygon);
         if (!geometry) { geometry = { type: 'Polygon', coordinates: polygon }; polygonIndexGeometries.set(polygon, geometry); }
@@ -349,7 +349,7 @@ export function createCutGeometry() {
     const unique = [];
     for (const event of events) {
       const previous = unique[unique.length - 1];
-      if (previous && Math.abs(previous.position - event.position) <= 1e-7 && (0, dependencies.coordNear)(previous.coord, event.coord, 1e-7)) {
+      if (previous && Math.abs(previous.position - event.position) <= 1e-7 && (0, dependencies.geometryPreview.coordNear)(previous.coord, event.coord, 1e-7)) {
         previous.refs.push(event.ref);
       } else {
         unique.push({ position: event.position, coord: event.coord.slice(), refs: [event.ref] });
@@ -361,7 +361,7 @@ export function createCutGeometry() {
   function extractSingleInteriorCut(rawLine, sourceGeometry) {
     const line = (rawLine || []).map(coord => [Number(coord[0]), Number(coord[1])]);
     if (line.length < 2) throw new Error('새 국경선에는 두 점 이상이 필요합니다.');
-    const polygons = (0, dependencies.geometryPolygonSets)(sourceGeometry);
+    const polygons = (0, dependencies.geometryPreview.geometryPolygonSets)(sourceGeometry);
     if (!polygons.length) throw new Error('분할할 영토를 찾을 수 없습니다.');
     const events = collectCutBoundaryEvents(line, polygons);
     if (events.length !== 2) {
@@ -389,7 +389,7 @@ export function createCutGeometry() {
     for (let vertexIndex = 1; vertexIndex < line.length - 1; vertexIndex += 1) {
       if (vertexIndex > entry.position + 1e-7 && vertexIndex < exit.position - 1e-7) cutLine.push(line[vertexIndex].slice());
     }
-    if (!(0, dependencies.coordNear)(cutLine[cutLine.length - 1], exit.coord, 1e-9)) cutLine.push(exit.coord.slice());
+    if (!(0, dependencies.geometryPreview.coordNear)(cutLine[cutLine.length - 1], exit.coord, 1e-9)) cutLine.push(exit.coord.slice());
     return {
       polygons,
       componentIndex,
@@ -405,7 +405,7 @@ export function createCutGeometry() {
   }
 
   function augmentedRingWithCutEndpoints(rawRing, firstEndpoint, lastEndpoint) {
-    const open = (0, dependencies.ensureClosedRing)(rawRing).slice(0, -1).map(coord => coord.slice());
+    const open = (0, dependencies.geometryModel.ensureClosedRing)(rawRing).slice(0, -1).map(coord => coord.slice());
     const insertions = new Map();
     for (const endpoint of [firstEndpoint, lastEndpoint]) {
       if (endpoint.t <= 0.002 || endpoint.t >= 0.998) continue;
@@ -417,11 +417,11 @@ export function createCutGeometry() {
       augmented.push(open[i].slice());
       const additions = (insertions.get(i) || []).sort((a, b) => a.t - b.t);
       for (const addition of additions) {
-        if (!(0, dependencies.coordNear)(augmented[augmented.length - 1], addition.coord, 1e-9)) augmented.push(addition.coord.slice());
+        if (!(0, dependencies.geometryPreview.coordNear)(augmented[augmented.length - 1], addition.coord, 1e-9)) augmented.push(addition.coord.slice());
       }
     }
-    const firstIndex = augmented.findIndex(coord => (0, dependencies.coordNear)(coord, firstEndpoint.coord, 1e-7));
-    const lastIndex = augmented.findIndex(coord => (0, dependencies.coordNear)(coord, lastEndpoint.coord, 1e-7));
+    const firstIndex = augmented.findIndex(coord => (0, dependencies.geometryPreview.coordNear)(coord, firstEndpoint.coord, 1e-7));
+    const lastIndex = augmented.findIndex(coord => (0, dependencies.geometryPreview.coordNear)(coord, lastEndpoint.coord, 1e-7));
     if (firstIndex < 0 || lastIndex < 0 || firstIndex === lastIndex) {
       throw new Error('편입선의 양 끝점을 영토를 가져올 국가의 경계에서 구분할 수 없습니다.');
     }
@@ -442,8 +442,8 @@ export function createCutGeometry() {
 
   function validateAnnexCutLine(cutLine, component) {
     if (!Array.isArray(cutLine) || cutLine.length < 2) throw new Error('새 국경선에는 두 점 이상이 필요합니다.');
-    const unique = new Set(cutLine.map(coord => (0, dependencies.coordKey)(coord, 8)));
-    if (unique.size < 2 || cutLine.some((coord, index) => index > 0 && (0, dependencies.coordNear)(coord, cutLine[index - 1], 1e-9))) {
+    const unique = new Set(cutLine.map(coord => (0, dependencies.geometryPreview.coordKey)(coord, 8)));
+    if (unique.size < 2 || cutLine.some((coord, index) => index > 0 && (0, dependencies.geometryPreview.coordNear)(coord, cutLine[index - 1], 1e-9))) {
       throw new Error('서로 다른 위치를 연결하세요.');
     }
     if (lineHasSelfIntersection(cutLine)) throw new Error('새 국경선이 자기 자신과 교차합니다.');
@@ -454,20 +454,20 @@ export function createCutGeometry() {
     }
     for (let i = 0; i < cutLine.length - 1; i += 1) {
       const a = cutLine[i], b = cutLine[i + 1];
-      const projectedA = (0, dependencies.activeProjection)()(a);
-      const projectedB = (0, dependencies.activeProjection)()(b);
+      const projectedA = (0, dependencies.mapView.activeProjection)()(a);
+      const projectedB = (0, dependencies.mapView.activeProjection)()(b);
       const screenLength = projectedA && projectedB ? Math.hypot(projectedB[0] - projectedA[0], projectedB[1] - projectedA[1]) : 120;
-      const samples = (0, dependencies.clamp)(Math.ceil(screenLength / 5), 24, 160);
+      const samples = (0, dependencies.platform.clamp)(Math.ceil(screenLength / 5), 24, 160);
       for (let sample = 1; sample < samples; sample += 1) {
-        const point = (0, dependencies.interpolateCoordinate)(a, b, sample / samples);
+        const point = (0, dependencies.geometryValidation.interpolateCoordinate)(a, b, sample / samples);
         if (!pointInPolygonSetInterior(point, component)) {
           throw new Error('새 국경선은 영토를 가져올 국가의 밖이나 호수·구멍을 통과할 수 없습니다.');
         }
       }
       for (const ring of component) {
-        const closed = (0, dependencies.ensureClosedRing)(ring);
+        const closed = (0, dependencies.geometryModel.ensureClosedRing)(ring);
         for (let j = 0; j < closed.length - 1; j += 1) {
-          if ((0, dependencies.segmentsProperlyIntersect)(a, b, closed[j], closed[j + 1])) {
+          if ((0, dependencies.geometryValidation.segmentsProperlyIntersect)(a, b, closed[j], closed[j + 1])) {
             throw new Error('새 국경선이 영토를 가져올 국가의 경계를 중간에서 가로지릅니다.');
           }
         }
@@ -480,33 +480,33 @@ export function createCutGeometry() {
     if (cached?.split) return cached.split;
     if (globalThis.document) throw new Error(cached?.splitError || '최신 경계선의 계산이 끝난 뒤 다시 시도하세요.');
     prepareSourceIndexes(sourceGeometry);
-    const clipper = dependencies.polygonClipping || globalThis.polygonClipping;
+    const clipper = dependencies.platform.polygonClipping || globalThis.polygonClipping;
     if (!clipper?.intersection || !clipper?.union || !clipper?.xor) throw new Error('영토 편입 엔진을 불러오지 못했습니다.');
     if (!sourceGeometry || !['Polygon', 'MultiPolygon'].includes(sourceGeometry.type)) throw new Error('분할할 영토를 찾을 수 없습니다.');
     const { extracted } = assessment?.valid ? assessment : prepareCutDraft(rawLine, sourceGeometry);
     const { component, componentIndex, cutLine, firstEndpoint, lastEndpoint } = extracted;
-    if ((0, dependencies.coordNear)(firstEndpoint.coord, lastEndpoint.coord, 1e-7)) throw new Error('국경선의 양 끝점이 너무 가깝습니다.');
+    if ((0, dependencies.geometryPreview.coordNear)(firstEndpoint.coord, lastEndpoint.coord, 1e-7)) throw new Error('국경선의 양 끝점이 너무 가깝습니다.');
     if (!assessment?.valid) validateAnnexCutLine(cutLine, component);
 
     const augmented = augmentedRingWithCutEndpoints(component[0], firstEndpoint, lastEndpoint);
     const forwardArc = walkRingArc(augmented.ring, augmented.firstIndex, augmented.lastIndex, 1);
     const backwardArc = walkRingArc(augmented.ring, augmented.firstIndex, augmented.lastIndex, -1);
     const candidateRings = [forwardArc, backwardArc].map(arc =>
-      (0, dependencies.ensureClosedRing)([...cutLine.map(coord => coord.slice()), ...arc.slice(1, -1).reverse().map(coord => coord.slice())])
+      (0, dependencies.geometryModel.ensureClosedRing)([...cutLine.map(coord => coord.slice()), ...arc.slice(1, -1).reverse().map(coord => coord.slice())])
     );
-    if (candidateRings.some(ring => Math.abs((0, dependencies.ringSignedArea)(ring)) <= 1e-14 || (0, dependencies.ringHasSelfIntersection)(ring))) {
+    if (candidateRings.some(ring => Math.abs((0, dependencies.geometryModel.ringSignedArea)(ring)) <= 1e-14 || (0, dependencies.geometryValidation.ringHasSelfIntersection)(ring))) {
       throw new Error('새 국경선으로 유효한 두 영토를 만들 수 없습니다.');
     }
 
     const candidates = candidateRings.map(ring => normalizeClippedLandGeometry(clipper.intersection([ring], component)));
     if (candidates.some(candidate => !candidate)) throw new Error('새 국경선 한쪽에 유효한 영토가 없습니다.');
-    const componentArea = (0, dependencies.multiPolygonPlanarArea)([component]);
-    const areas = candidates.map(candidate => (0, dependencies.multiPolygonPlanarArea)((0, dependencies.geometryMultiCoordinates)(candidate)));
+    const componentArea = (0, dependencies.territoryGeometry.multiPolygonPlanarArea)([component]);
+    const areas = candidates.map(candidate => (0, dependencies.territoryGeometry.multiPolygonPlanarArea)((0, dependencies.territoryGeometry.geometryMultiCoordinates)(candidate)));
     const tolerance = Math.max(1e-10, componentArea * 1e-10);
     if (areas.some(area => area <= tolerance)) throw new Error('새 국경선 한쪽 영토가 너무 작거나 비어 있습니다.');
-    const overlapArea = (0, dependencies.multiPolygonPlanarArea)(clipper.intersection(candidates[0].coordinates, candidates[1].coordinates));
+    const overlapArea = (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(clipper.intersection(candidates[0].coordinates, candidates[1].coordinates));
     const combined = clipper.union(candidates[0].coordinates, candidates[1].coordinates);
-    const missingArea = (0, dependencies.multiPolygonPlanarArea)(clipper.xor(component, combined));
+    const missingArea = (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(clipper.xor(component, combined));
     if (overlapArea > tolerance || missingArea > tolerance) throw new Error('새 국경선이 영토를 가져올 국가를 정확히 두 영역으로 나누지 못했습니다.');
 
     return {
@@ -519,7 +519,7 @@ export function createCutGeometry() {
   function selectedCountryUnionGeometry(sourceIds) {
     const ids = new Set((sourceIds || []).map(String));
     if (!ids.size) throw new Error('영토를 가져올 국가를 하나 이상 선택하세요.');
-    const union = (0, dependencies.countryUnionFromFeatures)(dependencies.state.countriesData?.features || [], ids);
+    const union = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(dependencies.state.countriesData?.features || [], ids);
     const geometry = normalizeClippedLandGeometry(union);
     if (!geometry) throw new Error('선택 국가의 영토 합집합을 만들 수 없습니다.');
     return geometry;
@@ -527,9 +527,9 @@ export function createCutGeometry() {
 
   function applyWorkerCountryPatches(result, options = {}) {
     const updates = new Map((result.features || []).map(feature => {
-      const next = (0, dependencies.deepClone)(feature);
-      const normalizedGeometry = (0, dependencies.normalizeCountryGeometry)(next.geometry);
-      if (!normalizedGeometry) throw new Error(`${(0, dependencies.countryName)(next)}의 편집 결과가 유효하지 않습니다.`);
+      const next = (0, dependencies.platform.deepClone)(feature);
+      const normalizedGeometry = (0, dependencies.geometryModel.normalizeCountryGeometry)(next.geometry);
+      if (!normalizedGeometry) throw new Error(`${(0, dependencies.objectPresentation.countryName)(next)}의 편집 결과가 유효하지 않습니다.`);
       next.geometry = normalizedGeometry;
       return [String(next.id || ''), next];
     }));
@@ -548,15 +548,15 @@ export function createCutGeometry() {
       return [feature];
     });
     for (const feature of updates.values()) dependencies.state.countriesData.features.push(feature);
-    (0, dependencies.reindexCountries)(dependencies.state.countriesData, true);
-    dependencies.applyingMapEditWorkerResult = true;
+    (0, dependencies.geometryMutation.reindexCountries)(dependencies.state.countriesData, true);
+    dependencies.geometryMutation.setApplyingWorkerResult(true);
     try {
-      (0, dependencies.markCountryGeometriesChanged)(
+      (0, dependencies.spatialQuery.markCountryGeometriesChanged)(
         new Set(result.affectedIds || [...updates.keys(), ...removed]),
         options,
       );
     } finally {
-      dependencies.applyingMapEditWorkerResult = false;
+      dependencies.geometryMutation.setApplyingWorkerResult(false);
     }
   }
 

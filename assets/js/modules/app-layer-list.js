@@ -14,7 +14,7 @@ export function createLayerList() {
 
   function normalizeLayerItemState(value) {
     const output = {};
-    for (const group of dependencies.LAYER_GROUP_KEYS) {
+    for (const group of dependencies.layerPresentation.LAYER_GROUP_KEYS) {
       const source = value?.[group];
       output[group] = source && typeof source === 'object' && !Array.isArray(source) ? { ...source } : {};
     }
@@ -22,7 +22,7 @@ export function createLayerList() {
   }
 
   function normalizeLayerFolderState(value) {
-    return Object.fromEntries((0, dependencies.activeLayerFolderKeys)().map(key => [key, !!value?.[key]]));
+    return Object.fromEntries((0, dependencies.hydroPresentation.activeLayerFolderKeys)().map(key => [key, !!value?.[key]]));
   }
 
   function markLayerTreeDirty() {
@@ -30,7 +30,7 @@ export function createLayerList() {
   }
 
   function isLayerItemVisible(group, id) {
-    if (group === 'hydro' && dependencies.HYDRO_LAYER_META[String(id)]) {
+    if (group === 'hydro' && dependencies.hydroPresentation.HYDRO_LAYER_META[String(id)]) {
       return dependencies.state.physicalSettings.hydroLayers?.[String(id)] !== false;
     }
     return dependencies.state.itemVisibility?.[group]?.[String(id)] !== false;
@@ -43,7 +43,7 @@ export function createLayerList() {
   function setLayerItemsVisibility(items, visible) {
     const byGroup = new Map();
     for (const item of items) {
-      if (!dependencies.LAYER_GROUP_KEYS.includes(item.layerGroup)) continue;
+      if (!dependencies.layerPresentation.LAYER_GROUP_KEYS.includes(item.layerGroup)) continue;
       const ids = byGroup.get(item.layerGroup) || [];
       ids.push(String(item.id)); byGroup.set(item.layerGroup, ids);
     }
@@ -75,11 +75,11 @@ export function createLayerList() {
         }
         dependencies.gpuMapRenderer.invalidateHydroVisibility();
       } else {
-        (0, dependencies.setScopedItemVisibility)({
+        (0, dependencies.layerPresentation.setScopedItemVisibility)({
           layerVisibility: dependencies.state.layerVisibility, itemVisibility: dependencies.state.itemVisibility,
           group, allIds: layerTreeItems(group).map(item => item.id), ids, visible,
         });
-        if (dependencies.DISTRIBUTION_GROUP_TYPES[group]) dependencies.distributionVisibilityRevision += 1;
+        if (dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group]) dependencies.distributionPresentation.bumpVisibilityRevision();
         if (group === 'countries') dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-item-visibility');
       }
     }
@@ -90,7 +90,7 @@ export function createLayerList() {
       for (const master of masters) { const input = (0, dependencies.$)(master + 'Visible'); if (input) input.checked = dependencies.state.layerVisibility[master] !== false; }
     }
     markLayerTreeDirty();
-    dependencies.renderingDomain?.invalidateOverlayStyle?.('layer-item-visibility');
+    dependencies.domains.renderingDomain?.invalidateOverlayStyle?.('layer-item-visibility');
     dependencies.projectDomain.queuePresentationAutosave();
   }
 
@@ -100,7 +100,7 @@ export function createLayerList() {
 
   function isLayerListItemVisible(group, id) {
     const master = group === 'hydro'
-      ? ((0, dependencies.hydroCategoryKey)(dependencies.HYDRO_LAYER_META[id]?.category || (0, dependencies.hydroEditById)(id)?.properties?.category) === 'lake' ? 'lakes' : 'rivers')
+      ? ((0, dependencies.hydroPresentation.hydroCategoryKey)(dependencies.hydroPresentation.HYDRO_LAYER_META[id]?.category || (0, dependencies.hydroPresentation.hydroEditById)(id)?.properties?.category) === 'lake' ? 'lakes' : 'rivers')
       : group;
     return dependencies.state.layerVisibility[master] !== false && isLayerItemVisible(group, id);
   }
@@ -111,12 +111,12 @@ export function createLayerList() {
         const id = String(feature.id || '');
         return {
           id,
-          name: (0, dependencies.countryName)(feature),
-          color: (0, dependencies.countryColor)(feature),
+          name: (0, dependencies.objectPresentation.countryName)(feature),
+          color: (0, dependencies.colorModel.countryColor)(feature),
           flagUrl: effectiveCountryFlagUrl({
             countryId: id,
             override: dependencies.state.countryOverrides[id] || {},
-            assetRevision: dependencies.ASSET_REVISION,
+            assetRevision: dependencies.layerPresentation.ASSET_REVISION,
           }),
           searchText: id,
           meta: group === 'countryLabels' && dependencies.pendingCountryLabelAnchors.has(id) ? '계산 중' : '',
@@ -129,13 +129,13 @@ export function createLayerList() {
         ? dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT
         : dependencies.TERRITORIAL_UNIT_TYPES.REGION;
       return dependencies.state.territorialUnits.filter(feature => feature.properties?.unitType === kind).map(feature => {
-        const countryLabel = (0, dependencies.territorialUnitCountryName)(feature);
+        const countryLabel = (0, dependencies.objectPresentation.territorialUnitCountryName)(feature);
 
         return {
           id: String(feature.id),
-          name: (0, dependencies.territorialUnitName)(feature),
-          color: (0, dependencies.territorialUnitColor)(feature),
-          flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.ASSET_REVISION }),
+          name: (0, dependencies.objectPresentation.territorialUnitName)(feature),
+          color: (0, dependencies.colorModel.territorialUnitColor)(feature),
+          flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
           meta: '',
           searchText: countryLabel,
           folderName: kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT
@@ -150,36 +150,36 @@ export function createLayerList() {
         };
       });
     }
-    if (dependencies.DISTRIBUTION_GROUP_TYPES[group]) {
-      const type = dependencies.DISTRIBUTION_GROUP_TYPES[group];
+    if (dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group]) {
+      const type = dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group];
       return dependencies.state.distributionLayers.filter(layer => layer.type === type).map(layer => ({
         id: layer.id,
         name: layer.name,
-        color: (0, dependencies.distributionColor)(layer),
-        folderName: dependencies.layerGroupNames[group],
+        color: (0, dependencies.distributionPresentation.distributionColor)(layer),
+        folderName: dependencies.layerPresentation.layerGroupNames[group],
         selected: dependencies.state.selected?.domain === 'distribution' && dependencies.state.selected.id === layer.id,
       }));
     }
     if (group === 'hydro') {
-      const builtIns = Object.entries(dependencies.HYDRO_LAYER_META).map(([id, meta]) => ({
+      const builtIns = Object.entries(dependencies.hydroPresentation.HYDRO_LAYER_META).map(([id, meta]) => ({
           id,
           name: meta.sourceLabel,
           searchText: `${meta.label} ${meta.sourceLabel}`,
           title: `${meta.sourceLabel} 상태 보기`,
-          color: (0, dependencies.hydroDisplayColor)(meta.category),
+          color: (0, dependencies.hydroPresentation.hydroDisplayColor)(meta.category),
           folderName: meta.label,
-          hydroCategory: (0, dependencies.hydroCategoryKey)(meta.category),
+          hydroCategory: (0, dependencies.hydroPresentation.hydroCategoryKey)(meta.category),
           layerGroup: 'hydro',
           isBuiltin: true,
           selected: false,
         }));
       const userItems = dependencies.state.hydroEdits.map(feature => ({
         id: String(feature.id),
-        name: (0, dependencies.hydroEditorName)(feature.properties?.name, (0, dependencies.hydroFallbackName)(feature.properties?.category)),
-        color: feature.properties?.editorColor || dependencies.HYDRO_TOOL_CONFIG[feature.properties?.category || 'river'].color,
-        meta: `${(0, dependencies.hydroCategoryLabel)(feature.properties?.category)} · 사용자`,
-        folderName: (0, dependencies.hydroCategoryLabel)(feature.properties?.category),
-        hydroCategory: (0, dependencies.hydroCategoryKey)(feature.properties?.category),
+        name: (0, dependencies.hydroPresentation.hydroEditorName)(feature.properties?.name, (0, dependencies.hydroPresentation.hydroFallbackName)(feature.properties?.category)),
+        color: feature.properties?.editorColor || dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[feature.properties?.category || 'river'].color,
+        meta: `${(0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties?.category)} · 사용자`,
+        folderName: (0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties?.category),
+        hydroCategory: (0, dependencies.hydroPresentation.hydroCategoryKey)(feature.properties?.category),
         layerGroup: 'hydro',
         isBuiltin: false,
         selected: dependencies.state.selected?.domain === 'hydro' && dependencies.state.selected.id === String(feature.id),
@@ -189,9 +189,9 @@ export function createLayerList() {
     if (group === 'genericFeatures') {
       return dependencies.state.genericFeatures.map(feature => ({
         id: String(feature.id),
-        name: (0, dependencies.genericFeatureName)(feature),
-        color: (0, dependencies.genericFeatureColor)(feature),
-        meta: `${(0, dependencies.genericFeatureRoleLabel)(feature)} · 사용자`,
+        name: (0, dependencies.objectPresentation.genericFeatureName)(feature),
+        color: (0, dependencies.colorModel.genericFeatureColor)(feature),
+        meta: `${(0, dependencies.objectPresentation.genericFeatureRoleLabel)(feature)} · 사용자`,
         layerGroup: 'genericFeatures',
         selected: dependencies.state.selected?.domain === 'generic' && dependencies.state.selected.id === String(feature.id),
       }));
@@ -208,22 +208,22 @@ export function createLayerList() {
   function pruneLayerItemVisibility() {
     const valid = {
       countries: new Set((dependencies.state.countriesData?.features || []).map(feature => String(feature.id || ''))),
-      countryLabels: new Set((0, dependencies.builtinRenderCountries)().labelById.keys()),
+      countryLabels: new Set((0, dependencies.countries.builtinRenderCountries)().labelById.keys()),
       subunits: new Set(dependencies.state.territorialUnits.filter(feature => feature.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT).map(feature => String(feature.id))),
       regions: new Set(dependencies.state.territorialUnits.filter(feature => feature.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION).map(feature => String(feature.id))),
       languages: new Set(dependencies.state.distributionLayers.filter(layer => layer.type === dependencies.DISTRIBUTION_TYPES.LANGUAGE).map(layer => layer.id)),
       ethnicities: new Set(dependencies.state.distributionLayers.filter(layer => layer.type === dependencies.DISTRIBUTION_TYPES.ETHNICITY).map(layer => layer.id)),
       religions: new Set(dependencies.state.distributionLayers.filter(layer => layer.type === dependencies.DISTRIBUTION_TYPES.RELIGION).map(layer => layer.id)),
-      hydro: new Set([...Object.keys(dependencies.HYDRO_LAYER_META), ...dependencies.state.hydroEdits.map(feature => String(feature.id))]),
+      hydro: new Set([...Object.keys(dependencies.hydroPresentation.HYDRO_LAYER_META), ...dependencies.state.hydroEdits.map(feature => String(feature.id))]),
       genericFeatures: new Set(dependencies.state.genericFeatures.map(feature => String(feature.id))),
       labels: new Set(dependencies.state.labels.map(label => String(label.id))),
     };
-    for (const group of dependencies.LAYER_GROUP_KEYS) {
+    for (const group of dependencies.layerPresentation.LAYER_GROUP_KEYS) {
       dependencies.state.itemVisibility[group] ||= {};
       for (const id of Object.keys(dependencies.state.itemVisibility[group])) if (!valid[group].has(id)) delete dependencies.state.itemVisibility[group][id];
     }
 
-    dependencies.selectionDomain?.prune?.(null, { reason: 'prune-invalid-selection' });
+    dependencies.domains.selectionDomain?.prune?.(null, { reason: 'prune-invalid-selection' });
   }
 
 
