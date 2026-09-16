@@ -12,6 +12,9 @@ import {
   referenceImagePlacementHit,
 } from './reference-image-placement.js';
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
+import { registerReferenceImageInput } from './reference-image-input.js';
+import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
+import { installReferenceImageSurface } from './reference-image-surface.js';
 import {
   listStoredReferenceImages,
   putStoredReferenceImage,
@@ -54,11 +57,6 @@ function createId(prefix = 'ref') {
 
 function mapHost() {
   return globalThis.__PANDOLAB_MAP_HOST__ || null;
-}
-
-function canvasPoint(event, mapElement) {
-  const rect = mapElement.getBoundingClientRect();
-  return [event.clientX - rect.left, event.clientY - rect.top];
 }
 
 function createImageFromBlob(blob) {
@@ -117,7 +115,7 @@ function serializableRecord(record, order) {
   };
 }
 
-export function installReferenceImageController() {
+export function installReferenceImageController({ workspaceSurfaces, confirm, getGeneration = () => 0, isBlocked = () => false, cancelTools = () => {} } = {}) {
   if (document.documentElement.dataset.referenceImageController === 'installed') return globalThis.__PANDOLAB_REFERENCE_IMAGES__ || null;
   const mapElement = document.getElementById('map');
   if (!mapElement) return null;
@@ -138,6 +136,14 @@ export function installReferenceImageController() {
   let placementEditingId = '';
   let placementDrag = null;
   let disposed = false;
+  let session = 0;
+  let dragBefore = null;
+  let continuousBefore = null;
+  const history = createReferenceImageHistory();
+  const objectUrls = new Set();
+  const currentToken = () => `${session}:${getGeneration()}`;
+  const validToken = token => !disposed && token === currentToken() && !isBlocked();
+  let surface;
 
   const selected = () => records.find(record => record.id === selectedId) || null;
   const renderer = createReferenceImageCanvasRenderer({
@@ -176,9 +182,10 @@ export function installReferenceImageController() {
     const index = records.indexOf(record);
     if (index < 0 || !record.blob) return;
     clearScheduledPersist(record.id);
+    const token = currentToken();
     const timer = globalThis.setTimeout(() => {
       pendingPersistTimers.delete(record.id);
-      void persist(record);
+      if (validToken(token)) void persist(record);
     }, PERSIST_DEBOUNCE_MS);
     pendingPersistTimers.set(record.id, timer);
   }
@@ -198,6 +205,9 @@ export function installReferenceImageController() {
   }
 
   function renderEditor() {
+    const historyLocked = records.some(record => record.locked);
+    panel.querySelector('[data-ref-action="undo"]').disabled = !history.canUndo() || historyLocked;
+    panel.querySelector('[data-ref-action="redo"]').disabled = !history.canRedo() || historyLocked;
     const record = selected();
     editorElement.hidden = !record;
     if (!record) {
@@ -212,7 +222,47 @@ export function installReferenceImageController() {
       count: records.length,
       blendOptions: BLEND_OPTIONS,
       warpOptions: WARP_OPTIONS,
+      gcpState,
     });
+    syncEditingSurface();
+  }
+
+  function syncEditingSurface() {
+    const active = !!(gcpState || placementEditingId);
+    const hint = gcpState ? (gcpState.step === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.') : '이미지를 드래그해 배치하세요.';
+    surface?.setEditing(active, hint);
+  }
+
+  function cancelInteraction() {
+    cancelTools();
+    cancelGcp(false);
+    stopPlacementEditing({ renderUi: false });
+    renderEditor();
+  }
+
+  function restoreHistory(direction) {
+    if (isBlocked() || records.some(record => record.locked)) return;
+    cancelInteraction();
+    const next = history[direction](records);
+    if (!next) return;
+    session++;
+    continuousBefore = null;
+    // Lock is a guard, not an edit to be implicitly restored by history.
+    for (const item of next) item.locked = records.find(record => record.id === item.id)?.locked ?? false;
+    records.splice(0, records.length, ...next);
+    for (const record of records) rebuildWarp(record);
+    if (!selected()) selectedId = records.at(-1)?.id || '';
+    void persistAll(); refreshUi();
+  }
+
+  function resetSession() {
+    session++;
+    cancelInteraction();
+    continuousBefore = null;
+    history.clear();
+    for (const id of pendingPersistTimers.keys()) clearScheduledPersist(id);
+    surface?.close();
+    refreshUi();
   }
 
   function refreshUi() {
@@ -230,7 +280,10 @@ export function installReferenceImageController() {
 
   async function addBlob(blob, name, persisted = null, { select = true, save = true } = {}) {
     if (!(blob instanceof Blob) || !ACCEPTED_IMAGE_TYPES.has(blob.type)) throw new Error('PNG, JPG, WebP 이미지만 사용할 수 있습니다.');
+    const token = currentToken();
     const decoded = await createImageFromBlob(blob);
+    if (!validToken(token)) { URL.revokeObjectURL(decoded.url); return null; }
+    objectUrls.add(decoded.url);
     const source = normalizePersistedRecord(persisted || {});
     const record = {
       ...source,
@@ -245,6 +298,8 @@ export function installReferenceImageController() {
       projectedMesh: null,
     };
     rebuildWarp(record);
+    if (select) cancelInteraction();
+    if (save) history.push(records);
     records.push(record);
     if (select) selectedId = record.id;
     if (save) await persist(record);
@@ -254,10 +309,11 @@ export function installReferenceImageController() {
 
   async function removeRecord(record) {
     const index = records.indexOf(record);
-    if (index < 0) return;
+    if (index < 0 || record.locked || isBlocked()) return;
+    cancelInteraction();
+    history.push(records);
     records.splice(index, 1);
     clearScheduledPersist(record.id);
-    if (record.objectUrl) URL.revokeObjectURL(record.objectUrl);
     selectedId = records.at(-1)?.id || '';
     if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
     if (gcpState?.recordId === record.id) cancelGcp(false);
@@ -269,6 +325,7 @@ export function installReferenceImageController() {
     const index = records.indexOf(record);
     const nextIndex = index + delta;
     if (index < 0 || nextIndex < 0 || nextIndex >= records.length) return false;
+    history.push(records);
     records.splice(index, 1);
     records.splice(nextIndex, 0, record);
     void persistAll();
@@ -278,6 +335,7 @@ export function installReferenceImageController() {
 
   function startPlacementEditing(record) {
     if (!record || record.locked || record.warp?.ok) return;
+    cancelTools();
     cancelGcp(false);
     placementEditingId = record.id;
     mapElement.classList.add('is-reference-placement-mode');
@@ -286,25 +344,29 @@ export function installReferenceImageController() {
   }
 
   function stopPlacementEditing({ renderUi = true } = {}) {
-    placementDrag = null;
+    cancelPlacementDrag();
     placementEditingId = '';
     mapElement.classList.remove('is-reference-placement-mode');
     if (renderUi) renderEditor();
     renderer.requestRender();
+    syncEditingSurface();
   }
 
-  function armGcp(record) {
+  function armGcp(record, pointId = '', side = 'image') {
     if (!record || record.locked) return;
+    cancelTools();
     stopPlacementEditing({ renderUi: false });
-    gcpState = { recordId: record.id, step: 'image', image: null };
+    gcpState = { recordId: record.id, step: side, image: null, pointId, token: currentToken() };
     mapElement.classList.add('is-reference-gcp-mode');
-    setHint('1/2 · 이미지에서 맞출 지점을 선택하세요.', 'working');
+    renderEditor();
+    setHint(side === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '실제 지도 위치를 선택하세요.', 'working');
   }
 
   function cancelGcp(renderUi = true) {
     gcpState = null;
     mapElement.classList.remove('is-reference-gcp-mode');
     if (renderUi && selected()) renderEditor();
+    syncEditingSurface();
   }
 
   function beginPlacementDrag(event, record, point) {
@@ -312,11 +374,13 @@ export function installReferenceImageController() {
     if (!hit) return false;
     placementDrag = createReferenceImagePlacementDrag(record, hit, point, event.pointerId);
     if (!placementDrag) return false;
+    dragBefore = copyReferenceImageRecords(records);
+    surface?.setGestureActive(true);
     try { mapElement.setPointerCapture?.(event.pointerId); } catch (_) {}
     return true;
   }
 
-  function updatePlacementDrag(event) {
+  function updatePlacementDrag(point, event) {
     if (!placementDrag || event.pointerId !== placementDrag.pointerId) return false;
     const record = records.find(candidate => candidate.id === placementDrag.recordId);
     if (!record || record.locked || record.warp?.ok) {
@@ -326,7 +390,7 @@ export function installReferenceImageController() {
     const changed = applyReferenceImagePlacementDrag(
       record,
       placementDrag,
-      canvasPoint(event, mapElement),
+      point,
       { shiftKey: event.shiftKey },
     );
     if (changed) renderer.requestRender();
@@ -338,6 +402,12 @@ export function installReferenceImageController() {
     const record = records.find(candidate => candidate.id === placementDrag.recordId);
     try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
     placementDrag = null;
+    if (record && dragBefore) {
+      const before = dragBefore.find(item => item.id === record.id);
+      if (JSON.stringify(before.screenRect) !== JSON.stringify(record.screenRect) || before.rotation !== record.rotation) history.push(dragBefore);
+    }
+    dragBefore = null;
+    surface?.setGestureActive(false);
     if (record) {
       void persist(record);
       renderEditor();
@@ -346,76 +416,92 @@ export function installReferenceImageController() {
     return true;
   }
 
-  function onMapPointerDown(event) {
-    if (event.button !== 0) return;
-    const point = canvasPoint(event, mapElement);
+  function cancelPlacementDrag() {
+    if (!placementDrag) return;
+    const record = records.find(item => item.id === placementDrag.recordId);
+    if (record) {
+      record.screenRect = { ...placementDrag.startRect };
+      record.rotation = placementDrag.startRotation;
+    }
+    try { mapElement.releasePointerCapture?.(placementDrag.pointerId); } catch (_) {}
+    placementDrag = null; dragBefore = null;
+    surface?.setGestureActive(false);
+    renderer.requestRender();
+  }
+
+  function commitGcp(point) {
     if (gcpState) {
       const record = records.find(candidate => candidate.id === gcpState.recordId);
-      if (!record || record.locked) {
+      if (!record || record.locked || !validToken(gcpState.token)) {
         cancelGcp();
         return;
       }
-      event.preventDefault();
-      event.stopImmediatePropagation();
+      const before = copyReferenceImageRecords(records);
       if (gcpState.step === 'image') {
         const uv = renderer.hitTestUv(record, point);
         if (!uv) {
           setHint('이미지가 보이는 영역 안을 선택하세요.', 'error');
           return;
         }
-        gcpState.image = uv;
-        gcpState.step = 'map';
-        setHint('2/2 · 같은 지점의 실제 지도 위치를 선택하세요.', 'working');
-        return;
+        if (gcpState.pointId) {
+          applyReferenceImageEdit(record, 'replace-image', { id: gcpState.pointId, value: uv });
+        } else {
+          gcpState.image = uv;
+          gcpState.step = 'map';
+          syncEditingSurface();
+          setHint('2/2 · 같은 지점의 실제 지도 위치를 선택하세요.', 'working');
+          return;
+        }
+      } else {
+        const coordinate = mapHost()?.unproject(point);
+        if (!coordinate || !coordinate.every(Number.isFinite)) {
+          setHint('이 위치에서는 지도 좌표를 계산할 수 없습니다.', 'error');
+          return;
+        }
+        if (gcpState.pointId) applyReferenceImageEdit(record, 'replace-coordinate', { id: gcpState.pointId, value: coordinate });
+        else record.controlPoints.push({
+          id: createId('gcp'),
+          image: [...gcpState.image],
+          coordinate: [coordinate[0], coordinate[1]],
+        });
       }
-      const coordinate = mapHost()?.unproject(point);
-      if (!coordinate || !coordinate.every(Number.isFinite)) {
-        setHint('이 위치에서는 지도 좌표를 계산할 수 없습니다.', 'error');
-        return;
-      }
-      record.controlPoints.push({
-        id: createId('gcp'),
-        image: [...gcpState.image],
-        coordinate: [coordinate[0], coordinate[1]],
-      });
+      history.push(before);
       rebuildWarp(record);
       void persist(record);
-      gcpState = { recordId: record.id, step: 'image', image: null };
+      if (gcpState.pointId) cancelGcp(false);
+      else gcpState = { recordId: record.id, step: 'image', image: null, pointId: '', token: currentToken() };
       refreshUi();
       setHint('기준점을 추가했습니다. 계속 추가하거나 Esc로 종료하세요.', 'success');
       return;
     }
+  }
 
+  function beginGesture(point, event, { spacePan = false } = {}) {
+    if (isBlocked() || !(gcpState || placementEditingId)) return null;
+    if (event.button === 1 || spacePan) return { kind: 'navigate' };
+    if (event.button !== 0) return null;
+    if (gcpState) {
+      const state = gcpState;
+      surface?.setGestureActive(true);
+      return { kind: 'tap', end: next => { surface?.setGestureActive(false); if (gcpState === state) commitGcp(next); }, cancel: () => surface?.setGestureActive(false) };
+    }
     const record = selected();
-    if (record && placementEditingId === record.id && !record.locked && !record.warp?.ok && beginPlacementDrag(event, record, point)) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
+    if (record && !record.locked && !record.warp?.ok && beginPlacementDrag(event, record, point)) {
+      return { kind: 'exclusive', move: updatePlacementDrag, end: (_point, up) => finishPlacementDrag(up), cancel: cancelPlacementDrag };
     }
-  }
-
-  function onMapPointerMove(event) {
-    if (!placementDrag) return;
-    if (updatePlacementDrag(event)) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    }
-  }
-
-  function onMapPointerUp(event) {
-    if (!placementDrag) return;
-    if (finishPlacementDrag(event)) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    }
+    return { kind: 'navigate' };
   }
 
   function onEditorInput(event) {
     const record = selected();
-    if (!record) return;
+    if (!record || isBlocked()) return;
     const field = event.target?.dataset?.refField;
     if (!field) return;
     const continuous = CONTINUOUS_FIELDS.has(field);
     if (event.type === 'input' && !continuous) return;
+    if (record.locked && ['rotation', 'warp'].includes(field)) return;
+    if (continuous && !continuousBefore) continuousBefore = copyReferenceImageRecords(records);
+    if (!continuous && field !== 'locked') history.push(records);
 
     if (field === 'name') record.name = event.target.value || '참조 이미지';
     if (field === 'opacity') record.opacity = clamp(Number(event.target.value), 0, 1);
@@ -442,41 +528,53 @@ export function installReferenceImageController() {
       if (output) output.textContent = `${Math.round(record.opacity * 100)}%`;
     }
     if (field === 'rotation') event.target.value = numberText(record.rotation, 1);
+    if (continuous && event.type === 'change' && continuousBefore) { history.push(continuousBefore); continuousBefore = null; }
+    const historyLocked = records.some(item => item.locked);
+    panel.querySelector('[data-ref-action="undo"]').disabled = !history.canUndo() || historyLocked;
+    panel.querySelector('[data-ref-action="redo"]').disabled = !history.canRedo() || historyLocked;
     if (field === 'warp' || field === 'locked') renderEditor();
     renderer.requestRender();
   }
 
   async function onPanelClick(event) {
-    const action = event.target.closest('[data-ref-action]')?.dataset.refAction;
+    const button = event.target.closest('[data-ref-action]');
+    const action = button?.dataset.refAction;
+    if (button?.disabled || isBlocked()) return;
     if (!action) {
       const row = event.target.closest('[data-reference-image-id]');
       if (row) {
-        if (placementEditingId && placementEditingId !== row.dataset.referenceImageId) stopPlacementEditing({ renderUi: false });
+        cancelInteraction();
         selectedId = row.dataset.referenceImageId;
+        surface.resetScroll();
         refreshUi();
       }
       return;
     }
     const record = selected();
     if (action === 'close') {
-      panel.hidden = true;
-      launcher.setAttribute('aria-expanded', 'false');
-      cancelGcp(false);
-      stopPlacementEditing({ renderUi: false });
-      renderer.requestRender();
+      surface.close({ restoreFocus: true });
       return;
     }
+    if (action === 'finish' || action === 'cancel') { cancelInteraction(); return; }
+    if (action === 'undo' || action === 'redo') { restoreHistory(action); return; }
     if (action === 'add') {
       fileInput.click();
       return;
     }
     if (!record) return;
-    if (action === 'delete') await removeRecord(record);
+    if (record.locked && !['bring-forward', 'send-backward'].includes(action)) return;
+    if (action === 'delete' || action === 'clear-gcp') {
+      const token = currentToken();
+      const accepted = await confirm({ title: action === 'delete' ? '참조 이미지 삭제' : '기준점 전체 삭제', message: action === 'delete' ? '이 참조 이미지를 삭제할까요?' : '기준점을 모두 삭제하고 보정을 해제할까요?', confirmText: '삭제', danger: true });
+      if (!accepted || !validToken(token) || selected() !== record || record.locked || !records.includes(record)) return;
+      if (action === 'delete') { await removeRecord(record); return; }
+    }
     if (action === 'placement') {
       if (placementEditingId === record.id) stopPlacementEditing();
       else startPlacementEditing(record);
     }
     if (action === 'reset-placement' && !record.locked && !record.warp?.ok) {
+      history.push(records);
       record.screenRect = defaultReferenceImageScreenRect(record.image, mapElement);
       record.rotation = 0;
       void persist(record);
@@ -485,50 +583,35 @@ export function installReferenceImageController() {
     if (action === 'bring-forward') moveRecord(record, 1);
     if (action === 'send-backward') moveRecord(record, -1);
     if (action === 'gcp') armGcp(record);
-    if (action === 'undo-gcp' && record.controlPoints.length) {
-      record.controlPoints.pop();
-      rebuildWarp(record);
-      void persist(record);
-      refreshUi();
+    if (action === 'edit-image' || action === 'edit-coordinate') armGcp(record, button.dataset.pointId, action === 'edit-image' ? 'image' : 'map');
+    const before = copyReferenceImageRecords(records);
+    const editAction = action === 'undo-gcp' ? 'delete-gcp' : action;
+    const id = action === 'undo-gcp' ? record.controlPoints.at(-1)?.id : button?.dataset.pointId;
+    if (applyReferenceImageEdit(record, editAction, { id })) {
+      history.push(before); cancelGcp(false); rebuildWarp(record); void persist(record); refreshUi();
     }
-    if (action === 'clear-gcp' && record.controlPoints.length) {
-      record.controlPoints = [];
-      rebuildWarp(record);
-      void persist(record);
-      refreshUi();
-    }
-    if (action === 'flip-x' || action === 'flip-y') {
-      if (action === 'flip-x') record.flipX = !record.flipX;
-      else record.flipY = !record.flipY;
-      if (record.controlPoints.length) {
-        record.controlPoints = [];
-        rebuildWarp(record);
-      }
-      void persist(record);
-      refreshUi();
-    }
-  }
-
-  function onLauncherClick() {
-    panel.hidden = !panel.hidden;
-    launcher.setAttribute('aria-expanded', String(!panel.hidden));
-    if (panel.hidden) {
-      cancelGcp(false);
-      stopPlacementEditing({ renderUi: false });
-    }
-    renderer.requestRender();
   }
 
   function onKeyDown(event) {
-    if (event.key !== 'Escape') return;
-    if (gcpState) cancelGcp();
-    else if (placementEditingId) stopPlacementEditing();
+    if (panel.hidden || isBlocked()) return false;
+    if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
+    if (event.key === 'Escape') {
+      if (gcpState || placementEditingId) cancelInteraction();
+      else surface.close({ restoreFocus: true });
+      return true;
+    }
+    if ((event.ctrlKey || event.metaKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
+      restoreHistory(event.key.toLowerCase() === 'y' || event.shiftKey ? 'redo' : 'undo'); return true;
+    }
+    return ['Delete', 'Backspace', 'Enter'].includes(event.key) && !!(gcpState || placementEditingId);
   }
 
   async function onFileChange() {
+    const token = currentToken();
     const files = [...(fileInput.files || [])];
     fileInput.value = '';
     for (const file of files) {
+      if (!validToken(token)) break;
       try {
         await addBlob(file, file.name);
       } catch (error) {
@@ -538,21 +621,25 @@ export function installReferenceImageController() {
   }
 
   const onPanelClickEvent = event => { void onPanelClick(event); };
-  launcher.addEventListener('click', onLauncherClick);
+  surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
+  const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(gcpState || placementEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
+  const stopPanelKeys = event => {
+    const text = event.target?.closest('input,textarea,select,[contenteditable="true"]');
+    if (!text && onKeyDown(event)) event.preventDefault();
+    event.stopPropagation();
+  };
+  panel.addEventListener('keydown', stopPanelKeys);
   panel.addEventListener('click', onPanelClickEvent);
   editorElement.addEventListener('input', onEditorInput);
   editorElement.addEventListener('change', onEditorInput);
-  mapElement.addEventListener('pointerdown', onMapPointerDown, true);
-  mapElement.addEventListener('pointermove', onMapPointerMove, true);
-  mapElement.addEventListener('pointerup', onMapPointerUp, true);
-  mapElement.addEventListener('pointercancel', onMapPointerUp, true);
-  globalThis.addEventListener('keydown', onKeyDown);
   fileInput.addEventListener('change', onFileChange);
 
+  const restoreToken = currentToken();
   listStoredReferenceImages()
     .then(async values => {
       const ordered = [...values].sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
       for (const value of ordered) {
+        if (!validToken(restoreToken)) return;
         if (!value?.blob) continue;
         try {
           await addBlob(value.blob, value.name, value, { select: false, save: false });
@@ -560,6 +647,7 @@ export function installReferenceImageController() {
           console.warn('[reference-image-restore]', error);
         }
       }
+      if (!validToken(restoreToken)) return;
       selectedId = records.at(-1)?.id || '';
       void persistAll();
       refreshUi();
@@ -582,33 +670,24 @@ export function installReferenceImageController() {
       diagnostics: record.warp?.ok ? record.warp.diagnostics : null,
     })),
     open: () => {
-      panel.hidden = false;
-      launcher.setAttribute('aria-expanded', 'true');
+      surface.open();
       renderer.requestRender();
     },
     close: () => {
-      panel.hidden = true;
-      launcher.setAttribute('aria-expanded', 'false');
-      cancelGcp(false);
-      stopPlacementEditing({ renderUi: false });
-      renderer.requestRender();
+      surface.close();
     },
     requestRender: renderer.requestRender,
     destroy: () => {
       if (disposed) return;
       disposed = true;
+      unregisterInput(); cancelInteraction(); surface.destroy(); history.clear();
       void persistAll();
-      launcher.removeEventListener('click', onLauncherClick);
+      panel.removeEventListener('keydown', stopPanelKeys);
       panel.removeEventListener('click', onPanelClickEvent);
       editorElement.removeEventListener('input', onEditorInput);
       editorElement.removeEventListener('change', onEditorInput);
-      mapElement.removeEventListener('pointerdown', onMapPointerDown, true);
-      mapElement.removeEventListener('pointermove', onMapPointerMove, true);
-      mapElement.removeEventListener('pointerup', onMapPointerUp, true);
-      mapElement.removeEventListener('pointercancel', onMapPointerUp, true);
-      globalThis.removeEventListener('keydown', onKeyDown);
       fileInput.removeEventListener('change', onFileChange);
-      records.forEach(record => record.objectUrl && URL.revokeObjectURL(record.objectUrl));
+      objectUrls.forEach(url => URL.revokeObjectURL(url));
       renderer.destroy();
       panel.remove();
       launcher.remove();

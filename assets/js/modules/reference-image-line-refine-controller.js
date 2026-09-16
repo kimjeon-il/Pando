@@ -1,3 +1,4 @@
+import { referenceImageKeyBlocked } from './reference-image-input.js';
 import {
   buildReferenceImageMesh,
   buildReferenceImageWarp,
@@ -510,6 +511,7 @@ export function installReferenceImageLineRefiner() {
   }
 
   function onKeyDown(event) {
+    if (referenceImageKeyBlocked(event)) return;
     if (event.key !== 'Escape' || !state) return;
     event.preventDefault();
     event.stopImmediatePropagation();

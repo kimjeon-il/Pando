@@ -1,4 +1,5 @@
 import { installReferenceImageEditingBridge } from './reference-image-editing-bridge.js';
+import { cancelReferenceImageInput, handleReferenceImageKey, referenceImageInputActive } from './reference-image-input.js';
 
 /** GlobalInputBindings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -35,6 +36,14 @@ export function createGlobalInputBindings() {
       }
       const tag = document.activeElement?.tagName;
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable;
+      const blockingModal = [...document.querySelectorAll('[aria-modal="true"]')].some(node => !node.hidden && !node.classList.contains('hidden') && node.getClientRects().length);
+      if (!blockingModal && !editingText && handleReferenceImageKey(e)) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+      if (!blockingModal && !editingText && e.code === 'Space' && referenceImageInputActive()) {
+        dependencies.projectState.state.spacePanActive = true;
+        dependencies.lifecycleUi.mapInteractionGate.setForcedPan(true);
+        dependencies.mapView.mapHost?.setForcedPan?.(true);
+        e.preventDefault(); return;
+      }
       // Let focused controls handle Enter/Space once, through their normal click/change event.
       if (['Enter', ' '].includes(e.key) && document.activeElement?.closest('button, [role="button"]')) return;
       if (e.code === 'Space' && !editingText && (dependencies.domains.editingDomain?.draftInputActive?.() || ['country-border', 'country-coast'].includes(dependencies.projectState.state.tool) || dependencies.projectState.state.selected?.domain === 'generic' || (dependencies.projectState.state.selected?.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id)))) {
@@ -128,6 +137,7 @@ export function createGlobalInputBindings() {
       (0, dependencies.platform.$)('map')?.classList.remove('space-pan-active');
     });
     window.addEventListener('blur', () => {
+      cancelReferenceImageInput();
       dependencies.lifecycleUi.mapInputController?.cancel?.();
       dependencies.domains.editingDomain?.cancelActiveGesture?.('window-blur');
       dependencies.projectState.state.spacePanActive = false;

@@ -1,5 +1,5 @@
 .reference-image-panel {
-  padding: var(--ui-space-3);
+  padding: var(--ui-space-0);
   border: var(--ui-border-width) solid var(--overlay-border);
   border-radius: var(--ui-radius-panel);
   background: var(--overlay-panel);
@@ -25,8 +25,37 @@
 }
 
 .reference-image-panel-header {
-  padding-block-end: var(--ui-space-3);
+  padding: var(--ui-space-3);
   border-block-end: var(--ui-border-width) solid var(--border);
+}
+
+.reference-image-body { padding: var(--ui-space-3); }
+.reference-image-editing-summary { padding: var(--ui-space-2); }
+
+.reference-image-points {
+  margin: var(--ui-space-0);
+  padding: var(--ui-space-0);
+  gap: var(--ui-space-2);
+  list-style: none;
+}
+.reference-image-points li {
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2);
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-control);
+}
+.reference-image-points li > span {
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-semibold);
+}
+.reference-image-points li[aria-current="true"] {
+  background: var(--selection-soft-bg);
+  border-color: var(--accent-border);
+}
+
+[data-layout="mobile"] .reference-image-panel-header {
+  padding-block-end: var(--ui-space-0);
+  border-block-end: 0;
 }
 
 .reference-image-panel-header > div {

@@ -1,4 +1,5 @@
 import { rememberCutPreparation } from './cut-preparation-cache.js';
+import { resetReferenceImageSession } from './reference-image-input.js';
 import { geometryRevision } from './geometry-versions.js';
 import { freezeEditingGeometry } from './editing-render-packet.js';
 import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
@@ -139,6 +140,7 @@ export function createDomainAssembly() {
       onReplacementState: (replacing, reason) => {
         dependencies.projectState.state.projectReplacing = replacing;
         if (replacing) {
+          resetReferenceImageSession();
           editingDomain?.cancelActiveGesture?.(`project-${reason}-preparing`);
           if (reason === 'new') (0, dependencies.feedback.setActionStatus)('새 프로젝트 준비 중…', 'working', 0);
         }

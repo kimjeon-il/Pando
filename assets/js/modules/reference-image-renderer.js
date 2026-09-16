@@ -102,9 +102,9 @@ export function createReferenceImageCanvasRenderer({
 
   function drawTriangle(record, destination, uv, dpr) {
     const source = uv.map(pair => {
-      const u = record.flipX ? 1 - pair[0] : pair[0];
-      const v = record.flipY ? 1 - pair[1] : pair[1];
-      return [u * record.image.naturalWidth, v * record.image.naturalHeight];
+      // Warp control points and mesh UVs are already in original-image space.
+      // Reflection belongs only to the uncalibrated placement transform.
+      return [pair[0] * record.image.naturalWidth, pair[1] * record.image.naturalHeight];
     });
     const transform = affineForTriangles(source, destination);
     if (!transform) return;

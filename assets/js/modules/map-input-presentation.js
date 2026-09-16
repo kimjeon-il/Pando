@@ -1,3 +1,5 @@
+import { beginReferenceImageGesture, referenceImageInputActive } from './reference-image-input.js';
+
 export function createMapInputPresentation({
   getElement: $,
   window,
@@ -85,9 +87,11 @@ export function createMapInputPresentation({
       // Own the complete map surface so native touch/pinch gestures cannot
       // escape through a child SVG hit target and become page zoom.
       element: $('map'),
+      beginExternalGesture: (point, event) => getInputSnapshot().projectReplacing ? null : beginReferenceImageGesture(point, event, { spacePan: getInputSnapshot().spacePanActive }),
       interactiveTarget: (target, event) => {
         if (getInputSnapshot().projectReplacing) return true;
-        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.right-panel')) return true;
+        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.right-panel,.reference-image-panel')) return true;
+        if (referenceImageInputActive()) return false;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);
         return getInputSnapshot().tool !== 'move' && !getInputSnapshot().spacePanActive && mapInteractionGate.isPandoTarget(target);

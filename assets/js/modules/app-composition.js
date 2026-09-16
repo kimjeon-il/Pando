@@ -263,7 +263,14 @@ export async function composeApplication({ revision }) {
         if (!started) return started;
         try {
           const { installReferenceImageFeature } = await import(`./reference-image-bootstrap.js?v=${encodeURIComponent(revision)}`);
-          await installReferenceImageFeature({ revision });
+          await installReferenceImageFeature({
+            revision, workspaceSurfaces,
+            getGeneration: () => domainAssembly.projectDomain.getGeneration(),
+            isBlocked: () => projectSession.state.projectReplacing || projectSession.state.modeProcessing,
+            confirm: options => new Promise(resolve => {
+              projectRestore.openConfirmModal({ ...options, onConfirm: () => resolve(true), onCancel: () => resolve(false) });
+            }),
+          });
         } catch (error) {
           console.warn('[reference-image-bootstrap]', error);
         }

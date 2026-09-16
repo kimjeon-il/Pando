@@ -1,9 +1,9 @@
-const SURFACES = Object.freeze(['create', 'search', 'display', 'editor']);
+const SURFACES = Object.freeze(['create', 'search', 'display', 'editor', 'reference']);
 const SURFACE_SET = new Set(SURFACES);
-const SURFACE_TO_MOBILE = Object.freeze({ create: 'create', search: 'search', display: 'display', editor: 'edit' });
-const MOBILE_TO_SURFACE = Object.freeze({ create: 'create', search: 'search', display: 'display', edit: 'editor' });
-const SURFACE_TO_PANEL = Object.freeze({ create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', editor: 'rightPanel' });
-const SURFACE_TO_TRIGGER = Object.freeze({ create: ['createMenuBtn', 'mobileCreateBtn'], search: ['objectSearchBtn', 'mobileSearchBtn'], display: ['mapDisplayBtn', 'mobileDisplayBtn'], editor: ['mobileEditBtn'] });
+const SURFACE_TO_MOBILE = Object.freeze({ create: 'create', search: 'search', display: 'display', editor: 'edit', reference: 'reference' });
+const MOBILE_TO_SURFACE = Object.freeze({ create: 'create', search: 'search', display: 'display', edit: 'editor', reference: 'reference' });
+const SURFACE_TO_PANEL = Object.freeze({ create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', editor: 'rightPanel', reference: 'referenceImageSurface' });
+const SURFACE_TO_TRIGGER = Object.freeze({ create: ['createMenuBtn', 'mobileCreateBtn'], search: ['objectSearchBtn', 'mobileSearchBtn'], display: ['mapDisplayBtn', 'mobileDisplayBtn'], editor: ['mobileEditBtn'], reference: ['referenceImageBtn'] });
 const SURFACE_OPEN_ORIGINS = Object.freeze({ USER: 'user', AUTOMATIC: 'automatic', RESTORED: 'restored' });
 
 export { SURFACE_OPEN_ORIGINS };
@@ -17,6 +17,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
     searchOpen: false,
     displayOpen: false,
     editorOpen: false,
+    referenceOpen: false,
     openOrigins,
     automaticOpenBlocked,
   };
@@ -144,7 +145,7 @@ export function createSurfaceController({ getElement, getLayout, document }) {
         panel.setAttribute('aria-hidden', String(hidden));
         panel.inert = hidden;
       } else if (panel) {
-        panel.inert = (surface === 'create' || surface === 'search') && !openState;
+        panel.inert = (surface === 'create' || surface === 'search' || surface === 'reference') && !openState;
         if (surface === 'create') {
           panel.setAttribute('role', 'menu');
           panel.setAttribute('aria-hidden', String(!openState));

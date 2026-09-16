@@ -34,23 +34,26 @@ function moveControlsToOverlayLayer() {
   if (panel) overlayLayer.appendChild(panel);
 }
 
-export async function installReferenceImageFeature({ revision = '' } = {}) {
+export async function installReferenceImageFeature({ revision = '', workspaceSurfaces, confirm, getGeneration, isBlocked } = {}) {
   for (const path of STYLE_PATHS) ensureStylesheet(path, revision);
   const controllerUrl = new URL('./reference-image-controller.js', import.meta.url);
   if (revision) controllerUrl.searchParams.set('v', revision);
   const { installReferenceImageController } = await import(controllerUrl.href);
-  const controller = installReferenceImageController();
+  let lineRefiner, liveWire;
+  const controller = installReferenceImageController({ workspaceSurfaces, confirm, getGeneration, isBlocked,
+    cancelTools: () => { if (lineRefiner?.active()) lineRefiner.cancel(); if (liveWire?.active()) liveWire.cancel(); },
+  });
   moveControlsToOverlayLayer();
 
   const lineRefinerUrl = new URL('./reference-image-line-refine-controller.js', import.meta.url);
   if (revision) lineRefinerUrl.searchParams.set('v', revision);
   const { installReferenceImageLineRefiner } = await import(lineRefinerUrl.href);
-  installReferenceImageLineRefiner();
+  lineRefiner = installReferenceImageLineRefiner();
 
   const liveWireUrl = new URL('./reference-image-live-wire-controller.js', import.meta.url);
   if (revision) liveWireUrl.searchParams.set('v', revision);
   const { installReferenceImageLiveWire } = await import(liveWireUrl.href);
-  installReferenceImageLiveWire();
+  liveWire = installReferenceImageLiveWire();
 
   return controller;
 }
