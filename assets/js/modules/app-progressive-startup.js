@@ -221,6 +221,29 @@ export function createProgressiveStartup() {
     });
   }
 
+  async function initializeStartupRuntime({ afterInitialMapSetup = null } = {}) {
+    (0, dependencies.applyLayoutMode)({ initial: true });
+    (0, dependencies.bindUI)();
+    dependencies.layerTreeController.beginHydration();
+    (0, dependencies.initSvg)();
+    (0, dependencies.resizeMap)();
+    if (typeof afterInitialMapSetup === 'function') afterInitialMapSetup();
+
+    const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
+    if (startupMetrics) startupMetrics.mapHostStage = 'frame-pending';
+    await awaitVisualFrame();
+    if (startupMetrics) startupMetrics.mapHostStage = 'host-initialize';
+    dependencies.mapHostReadyPromise = (0, dependencies.initializeMapHost)();
+    await dependencies.mapHostReadyPromise;
+    if (startupMetrics) startupMetrics.mapHostStage = 'gpu-initialize';
+    const gpuInitializeStartedAt = performance.now();
+    const gpuReady = await dependencies.gpuMapRenderer.initialize();
+    const gpuInitializeMs = performance.now() - gpuInitializeStartedAt;
+    if (startupMetrics) startupMetrics.mapHostStage = 'ready';
+    (0, dependencies.startMapResizeObserver)();
+    return { gpuReady, gpuInitializeMs };
+  }
+
   async function initProgressive() {
     (0, dependencies.assertRuntimeCompatibility)();
     if (!window.d3) throw new Error('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.');
@@ -238,34 +261,19 @@ export function createProgressiveStartup() {
     dependencies.state.boundaryPreparation = null;
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '빠른 미리보기 GPU 지도를 준비하는 중입니다.';
 
-    (0, dependencies.applyLayoutMode)({ initial: true });
-    (0, dependencies.bindUI)();
-    dependencies.layerTreeController.beginHydration();
     window.addEventListener('pandolab:geometry-progress', handleGeometryProgress);
     window.addEventListener('pandolab:mesh-progress', handleMeshProgress);
     window.addEventListener('pandolab:geometry-error', handleGeometryError);
     window.addEventListener('pandolab:mesh-error', handleMeshError);
-    (0, dependencies.initSvg)();
-    (0, dependencies.resizeMap)();
-    if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'frame-pending';
-    await awaitVisualFrame();
-    if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'host-initialize';
-    dependencies.mapHostReadyPromise = (0, dependencies.initializeMapHost)();
-    await dependencies.mapHostReadyPromise;
-    if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'gpu-initialize';
-    const previewMeshStartedAt = performance.now();
-    await dependencies.gpuMapRenderer.initialize();
-    if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'ready';
+    const { gpuInitializeMs } = await initializeStartupRuntime();
     if (window.__PANDOLAB_STARTUP_METRICS__) {
       const previewRenderer = dependencies.gpuMapRenderer.getRuntimeState();
-      window.__PANDOLAB_STARTUP_METRICS__.previewMeshUploadMs = performance.now() - previewMeshStartedAt;
+      window.__PANDOLAB_STARTUP_METRICS__.previewMeshUploadMs = gpuInitializeMs;
       window.__PANDOLAB_STARTUP_METRICS__.renderer = previewRenderer.renderer;
       window.__PANDOLAB_STARTUP_METRICS__.fallbackReason = previewRenderer.fallbackReason;
       window.__PANDOLAB_STARTUP_METRICS__.devicePixelRatio = previewRenderer.devicePixelRatio;
       window.__PANDOLAB_STARTUP_METRICS__.effectivePixelRatio = previewRenderer.effectivePixelRatio;
     }
-    (0, dependencies.startMapResizeObserver)();
-
     (0, dependencies.syncProjectControls)();
     (0, dependencies.resizeMap)();
     dependencies.projectUi.syncHistory();
@@ -351,26 +359,14 @@ export function createProgressiveStartup() {
     dependencies.state.boundaryPreparation?.cancel();
     dependencies.state.boundaryPreparation = null;
 
-    (0, dependencies.applyLayoutMode)({ initial: true });
-    (0, dependencies.bindUI)();
-    dependencies.layerTreeController.beginHydration();
-    (0, dependencies.initSvg)();
-    (0, dependencies.resizeMap)();
-    dependencies.mapEditClient.rebase(dependencies.state.countriesData?.features || []);
-    if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'frame-pending';
-    await awaitVisualFrame();
-    if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'host-initialize';
-    dependencies.mapHostReadyPromise = (0, dependencies.initializeMapHost)();
-    await dependencies.mapHostReadyPromise;
-    if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'gpu-initialize';
-    const gpuReady = await dependencies.gpuMapRenderer.initialize();
-    if (window.__PANDOLAB_STARTUP_METRICS__) window.__PANDOLAB_STARTUP_METRICS__.mapHostStage = 'ready';
+    const { gpuReady } = await initializeStartupRuntime({
+      afterInitialMapSetup: () => dependencies.mapEditClient.rebase(dependencies.state.countriesData?.features || []),
+    });
     if (gpuReady) {
       dependencies.state.countryVisualPhase = 'canonical';
       dependencies.countryDisplaySource = null;
       dependencies.countryDisplayIndex = new Map();
     }
-    (0, dependencies.startMapResizeObserver)();
     if (restored && gpuReady) {
       if (externalGeometry || dependencies.state.sessionBaseCountriesJson) (0, dependencies.scheduleGpuMeshRebuild)(0);
       else if (dependencies.state.historyDirtyCountryIds.size) {

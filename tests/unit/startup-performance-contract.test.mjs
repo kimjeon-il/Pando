@@ -1,4 +1,5 @@
 import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
+import { UI_BUNDLE_SOURCES } from '../../scripts/lib/ui-source-catalog.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -19,21 +20,6 @@ const surfaces = read('assets/css/layout/surfaces.css');
 const editorShell = read('assets/css/components/editor-shell.css');
 const modalBundle = read('assets/css/ui-modal.bundle.css');
 const indexHtml = read('index.html');
-
-const uiSources = Object.freeze([
-  'assets/css/tokens/design-tokens.css',
-  'assets/css/primitives/controls.css',
-  'assets/css/components/surface.css',
-  'assets/css/components/content.css',
-  'assets/css/components/command-row.css',
-  'assets/css/components/workflows.css',
-  'assets/css/layout/surfaces.css',
-  'assets/css/components/editor-shell.css',
-  'assets/css/components/panels.css',
-  'assets/css/components/mobile-sheets.css',
-  'assets/css/components/feedback.css',
-  'assets/css/utilities/accessibility.css',
-]);
 
 test('render resources use frame snapshots instead of Proxy traps', () => {
   assert.doesNotMatch(app, /createLiveResources|new\s+Proxy/);
@@ -106,7 +92,7 @@ test('data and asset revisions remain separate contracts', () => {
 
 test('UI bundle contains every canonical stylesheet exactly once in order', () => {
   let previous = -1;
-  for (const source of uiSources) {
+  for (const source of UI_BUNDLE_SOURCES) {
     const marker = `/* source: ${source} */`;
     const index = bundle.indexOf(marker);
     assert.ok(index > previous, `missing or out-of-order bundle source: ${source}`);

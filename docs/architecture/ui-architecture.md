@@ -190,6 +190,9 @@ workspace-surface
 - `check:ui-components`: primitive/component 조합 검사
 - `check:ui-architecture`: 계층, Surface DOM contract, legacy ratchet 및 retired artifact 검사
 - `check:ui-layering`: 원본 목록과 계층 검사
+- `check:ui-ia`: 현재 surface variant와 생성·편집 정보 구조 검사
+
+`scripts/lib/ui-source-catalog.mjs`는 canonical bundle, lazy modal, 원본 audit 입력 목록의 단일 원본이다. 검사기는 생성 bundle을 다시 입력으로 읽거나 자체 CSS 경로 배열을 유지하지 않는다. IA 검사는 현재 surface별 구조 차이를 `menu-sheet`·`delegated`·`editor` 계약으로 구분한다.
 
 UI 예외를 추가해서 검사를 우회하는 것보다 기존 primitive/component를 확장하는 것을 우선한다. 예외가 필요한 경우 이유가 코드에 남아야 하며 범위는 최소여야 한다.
 

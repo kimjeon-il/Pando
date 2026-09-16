@@ -20,20 +20,25 @@
 
 주요 컴포넌트의 담당 원본은 다음과 같다. 기존 파일 안의 모든 override를 승인하는 목록은 아니며, 다른 소유자의 속성을 덮어쓰는 규칙은 후속 이관 대상이다.
 
+실행 가능한 원본 목록과 bundle 순서는 `scripts/lib/ui-source-catalog.mjs`가 단일 소유한다. bundle 생성기와 layering·component·IA 검사는 이 catalog를 사용하며, 생성물인 `ui.bundle.css`와 `ui-modal.bundle.css`를 다시 검사 입력으로 사용하지 않는다.
+
 - `assets/css/tokens/design-tokens.css`: Surface와 콘텐츠 component가 공유하는 의미 토큰
 - `assets/css/primitives/controls.css`: Button/Field/Icon의 외형과 상태
 - `assets/css/components/surface.css`: Surface/Header/Tabs/Body/Content
 - `assets/css/components/content.css`: Section/Field/ActionList/PropertyList/ObjectContext 호환 계약
 - `assets/css/components/command-row.css`: 작업 행의 아이콘·제목·설명·chevron 배열
 - `assets/css/components/editor-shell.css`: 편집 컨텍스트·toolbar·작업 HUD의 조합
+- `assets/css/components/selection-toolbar.css`: 단일 선택 객체의 상단 기본 정보 toolbar
 - `assets/css/components/workflows.css`: 편집 작업창·dialog·wizard 공통 표현
 - `assets/css/components/topbar.css`: 상단 문서 명령의 배치·반응형 표현과 파일 메뉴 위치
 - `assets/css/components/panels.css`: 지도·추가·Library/GIS 패널 표현
+- `assets/css/components/menus.css`: 파일·보기·추가가 공유하는 menu surface·행·구분선
 - `assets/css/components/view-menu.css`: 넓음·중간 폭의 상단 `보기` 계층형 메뉴 표현
 - `assets/css/layout/surfaces.css`: wide/compact/mobile의 Surface 배치와 표시 상태
 - `assets/css/components/modals.css`: Dialog/Wizard shell
 - `assets/css/components/mobile-sheets.css`: 공통 handle·sheet 조작 계약
 - `assets/css/components/feedback.css`: 지속 상태·toast·empty/loading/error 표현
+- `assets/css/utilities/accessibility.css`: 공통 focus·접근성·동작 줄이기 보정
 
 표시 설정은 한 DOM을 공유한다. 넓음·중간 폭에서는 `components/view-menu.css`가 상단 `보기`의 계층형 메뉴와 옆 하위 메뉴를 표현하고, 모바일에서는 기존 sheet의 `map-display-list`와 `map-display-row`를 유지한다. 언어·민족·종교는 데스크톱 메뉴에서 `분포`의 하위 항목으로 이동하지만, 실제 input과 상태는 복제하지 않는다.
 

@@ -1,0 +1,184 @@
+/** Shared, live capability ports for the spatial-data owner group. */
+export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
+  cameraNavigation: Object.freeze(["countries","domains","feedback","mapNavigation","mapView","objectLookup","physicalData","platform","projectState","rendering","surfaces"]),
+  readinessNotifications: Object.freeze(["platform","projectState","readiness","surfaces"]),
+  countryIndex: Object.freeze(["countries","domains","geometryModel","layers","mapView","platform","projectState","spatialQuery"]),
+  spatialIndex: Object.freeze(["countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","presentationCommands","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
+  geometryPreview: Object.freeze(["countries","domains","feedback","geometryEditing","geometryModel","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
+  territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel"]),
+  countryValidation: Object.freeze(["countries","cutGeometry","domains","geometryModel","geometryPreview","presentation","projectState","snapshots","spatialQuery","territoryGeometry"]),
+  landRelations: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","layers","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
+});
+
+export function createSpatialDataPorts(providers) {
+  const ports = {
+    countries: Object.freeze({
+      get builtinRenderCountries() { return providers.builtinSession.builtinRenderCountries; },
+      get countryFeatureById() { return providers.countryIndex.countryFeatureById; },
+      get countryLabelFeatureById() { return providers.builtinSession.countryLabelFeatureById; },
+      get countryLandRevision() { return providers.countryIndex.countryLandRevision; },
+      get PRISTINE_LABEL_ANCHORS() { return providers.builtinSession.PRISTINE_LABEL_ANCHORS; },
+      get scheduleCountryLabelAnchors() { return providers.countryIndex.scheduleCountryLabelAnchors; },
+      get validLabelAnchor() { return providers.countryIndex.validLabelAnchor; },
+    }),
+    countryCommands: Object.freeze({
+      bumpLandRevision: () => { providers.countryIndex.countryLandRevision += 1; },
+    }),
+    cutGeometry: Object.freeze({
+      get boundsOverlap() { return providers.cutGeometry.boundsOverlap; },
+      get coordinateBounds() { return providers.cutGeometry.coordinateBounds; },
+      get normalizeClippedLandGeometry() { return providers.cutGeometry.normalizeClippedLandGeometry; },
+    }),
+    domains: Object.freeze({
+      get editingDomain() { return providers.domainAssembly.editingDomain; },
+      get projectDomain() { return providers.domainAssembly.projectDomain; },
+      get renderingDomain() { return providers.domainAssembly.renderingDomain; },
+      get selectionUiController() { return providers.domainAssembly.selectionUiController; },
+    }),
+    feedback: Object.freeze({
+      get reportOperationError() { return providers.readinessNotifications.reportOperationError; },
+      get setActionStatus() { return providers.readinessNotifications.setActionStatus; },
+    }),
+    geometryEditing: Object.freeze({
+      get beginGeometryPreview() { return providers.runtime.beginGeometryPreview; },
+      get buildGeometryPreview() { return providers.runtime.buildGeometryPreview; },
+      get clearGeometryPreview() { return providers.runtime.clearGeometryPreview; },
+      get planCoastEdit() { return providers.runtime.planCoastEdit; },
+      get planSharedBoundaryEdit() { return providers.runtime.planSharedBoundaryEdit; },
+      get previewIsCurrent() { return providers.runtime.previewIsCurrent; },
+      get runCountryEditTransaction() { return providers.runtime.runCountryEditTransaction; },
+    }),
+    geometryModel: Object.freeze({
+      get ensureClosedRing() { return providers.runtime.ensureClosedRing; },
+      get hasCanonicalCountryWinding() { return providers.runtime.hasCanonicalCountryWinding; },
+      get normalizeCountryGeometry() { return providers.runtime.normalizeCountryGeometry; },
+      get ringSignedArea() { return providers.runtime.ringSignedArea; },
+      get validateStructuredGeometry() { return providers.runtime.validateStructuredGeometry; },
+      get validateTerritorialGeometry() { return providers.runtime.validateTerritorialGeometry; },
+    }),
+    geometryPreview: Object.freeze({
+      get boundarySelectionAnalysisCache() { return providers.geometryPreview.boundarySelectionAnalysisCache; },
+      get coordKey() { return providers.geometryPreview.coordKey; },
+      get coordNear() { return providers.geometryPreview.coordNear; },
+      get geometryPolygonSets() { return providers.geometryPreview.geometryPolygonSets; },
+      get rebuildBoundaryTopology() { return providers.geometryPreview.rebuildBoundaryTopology; },
+    }),
+    labels: Object.freeze({
+      get countryOutlineCache() { return providers.countryLabels.countryOutlineCache; },
+    }),
+    layers: Object.freeze({
+      get markLayerTreeDirty() { return providers.layerList.markLayerTreeDirty; },
+    }),
+    mapNavigation: Object.freeze({
+      get equirectangularCenterForAnchor() { return providers.runtime.equirectangularCenterForAnchor; },
+      get FLAT_LATITUDE_LIMIT() { return providers.environment.FLAT_LATITUDE_LIMIT; },
+      get normalizeMapSurfaceDragDelta() { return providers.runtime.normalizeMapSurfaceDragDelta; },
+      get ZOOM_LIMITS() { return providers.environment.ZOOM_LIMITS; },
+    }),
+    mapView: Object.freeze({
+      get activeProjection() { return providers.mapProjection.activeProjection; },
+      get flatProjection() { return providers.mapProjection.flatProjection; },
+      get isCoordVisible() { return providers.mapProjection.isCoordVisible; },
+      get mapHost() { return providers.mapHost.mapHost; },
+      get path() { return providers.mapProjection.path; },
+      get projectionLayoutMetrics() { return providers.mapProjection.projectionLayoutMetrics; },
+      get ringRepresentativePoint() { return providers.mapProjection.ringRepresentativePoint; },
+      get screenToGeo() { return providers.mapProjection.screenToGeo; },
+      get syncMapHostFromState() { return providers.mapHost.syncMapHostFromState; },
+      get updateProjection() { return providers.mapProjection.updateProjection; },
+    }),
+    objectLookup: Object.freeze({
+      get layerItemObjectRef() { return providers.objectCommands.layerItemObjectRef; },
+      get objectRefExists() { return providers.objectCommands.objectRefExists; },
+    }),
+    physicalData: Object.freeze({
+      get HYDRO_LAYER_META() { return providers.environment.HYDRO_LAYER_META; },
+      get loadHydroData() { return providers.physicalResources.loadHydroData; },
+    }),
+    platform: Object.freeze({
+      get $() { return providers.environment.$; },
+      get clamp() { return providers.environment.clamp; },
+      get d3() { return providers.environment.d3; },
+      get deepClone() { return providers.environment.deepClone; },
+      get runtimeAssetUrl() { return providers.environment.runtimeAssetUrl; },
+    }),
+    presentation: Object.freeze({
+      get countryName() { return providers.objectPresentation.countryName; },
+      get genericFeatureDisplayFeature() { return providers.objectPresentation.genericFeatureDisplayFeature; },
+      get genericFeatureLandClipCache() { return providers.objectPresentation.genericFeatureLandClipCache; },
+      get territorialRepository() { return providers.objectPresentation.territorialRepository; },
+    }),
+    presentationCommands: Object.freeze({
+      resetGenericFeatureLandClipCache: () => { providers.objectPresentation.genericFeatureLandClipCache = new WeakMap(); },
+    }),
+    projectState: Object.freeze({
+      get mapWorkScheduler() { return providers.projectSession.mapWorkScheduler; },
+      get state() { return providers.projectSession.state; },
+    }),
+    readiness: Object.freeze({
+      get canMutateProject() { return providers.runtime.canMutateProject; },
+      get compactNotificationMessage() { return providers.runtime.compactNotificationMessage; },
+      get createOperationalError() { return providers.runtime.createOperationalError; },
+      get DATA_READINESS() { return providers.runtime.DATA_READINESS; },
+      get isAbortError() { return providers.runtime.isAbortError; },
+      get RELIABILITY_ERROR_CATEGORIES() { return providers.runtime.RELIABILITY_ERROR_CATEGORIES; },
+      get reliabilityDiagnostic() { return providers.environment.reliabilityDiagnostic; },
+      get runtimeReady() { return providers.environment.runtimeReady; },
+      get transitionDataReadiness() { return providers.runtime.transitionDataReadiness; },
+    }),
+    rendering: Object.freeze({
+      get gpuMapRenderer() { return providers.serviceAssembly.gpuMapRenderer; },
+      get selectionPerformanceMetrics() { return providers.serviceAssembly.selectionPerformanceMetrics; },
+    }),
+    snapshots: Object.freeze({
+      get applySharedProjectFields() { return providers.projectSnapshots.applySharedProjectFields; },
+      get normalizeProjectObjects() { return providers.projectSnapshots.normalizeProjectObjects; },
+      get restoreCountriesFromSnapshot() { return providers.projectSnapshots.restoreCountriesFromSnapshot; },
+      get snapshotEditable() { return providers.projectSnapshots.snapshotEditable; },
+    }),
+    spatialFactories: Object.freeze({
+      get createEditPreviewController() { return providers.runtime.createEditPreviewController; },
+      get createMapEditWorkerClient() { return providers.runtime.createMapEditWorkerClient; },
+      get createMapObjectSpatialIndex() { return providers.runtime.createMapObjectSpatialIndex; },
+    }),
+    spatialQuery: Object.freeze({
+      get geometryBounds() { return providers.spatialIndex.geometryBounds; },
+      get mapEditClient() { return providers.spatialIndex.mapEditClient; },
+      get markCountryGeometriesChanged() { return providers.spatialIndex.markCountryGeometriesChanged; },
+      get rebuildSpatialIndex() { return providers.spatialIndex.rebuildSpatialIndex; },
+      get spatialFeatures() { return providers.spatialIndex.spatialFeatures; },
+    }),
+    surfaces: Object.freeze({
+      get isGenericFeatureDraftTool() { return providers.workspaceSurfaces.isGenericFeatureDraftTool; },
+      get isMobile() { return providers.workspaceSurfaces.isMobile; },
+      get uid() { return providers.workspaceSurfaces.uid; },
+    }),
+    taskUi: Object.freeze({
+      get setModeBanner() { return providers.taskPresentation.setModeBanner; },
+      get updateModeButtons() { return providers.taskPresentation.updateModeButtons; },
+    }),
+    territorialModel: Object.freeze({
+      get assertProjectReferenceIntegrity() { return providers.runtime.assertProjectReferenceIntegrity; },
+      get buildSharedBoundaryTopology() { return providers.runtime.buildSharedBoundaryTopology; },
+      get composeRiverBoundaryTerritoryComponents() { return providers.runtime.composeRiverBoundaryTerritoryComponents; },
+      get createPartitionTerritorialFeature() { return providers.runtime.createPartitionTerritorialFeature; },
+      get createRingHitTester() { return providers.runtime.createRingHitTester; },
+      get DISTRIBUTION_MODES() { return providers.runtime.DISTRIBUTION_MODES; },
+      get normalizeTerritorialUnits() { return providers.runtime.normalizeTerritorialUnits; },
+      get TERRITORIAL_COVERAGE_MODES() { return providers.runtime.TERRITORIAL_COVERAGE_MODES; },
+      get TERRITORIAL_UNIT_TYPES() { return providers.runtime.TERRITORIAL_UNIT_TYPES; },
+    }),
+    territoryGeometry: Object.freeze({
+      get countryUnionFromFeatures() { return providers.territoryComponents.countryUnionFromFeatures; },
+      get geometryMultiCoordinates() { return providers.territoryComponents.geometryMultiCoordinates; },
+      get multiPolygonPlanarArea() { return providers.territoryComponents.multiPolygonPlanarArea; },
+      get pointInGenericFeature() { return providers.landRelations.pointInGenericFeature; },
+      get ringHitTester() { return providers.landRelations.ringHitTester; },
+      get territorialUnitContainer() { return providers.objectMetadata.territorialUnitContainer; },
+    }),
+    validation: Object.freeze({
+      get restoreCountryEditSnapshot() { return providers.countryValidation.restoreCountryEditSnapshot; },
+    }),
+  };
+  return Object.freeze(ports);
+}
