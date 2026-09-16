@@ -23,7 +23,7 @@ test('all owners construct without DOM access, connect once, and expose every re
   const handles = { runtime: {} };
   const portsByOwner = new Map();
   const runtimeSource = read('assets/js/modules/app-runtime-dependencies.js');
-  for (const name of moduleNames.filter(name => !/runtime-dependencies|connect-/.test(name))) {
+  for (const name of moduleNames.filter(name => !/runtime-dependencies|capability-ports|connect-/.test(name))) {
     const module = await import(new URL(`assets/js/modules/${name}`, root));
     const factoryName = Object.keys(module).find(key => key.startsWith('create'));
     assert.ok(factoryName, name);
@@ -38,6 +38,8 @@ test('all owners construct without DOM access, connect once, and expose every re
     } });
     handles[handleName] = handle;
   }
+  const { createApplicationPorts } = await import(new URL('assets/js/modules/app-capability-ports.js', root));
+  handles.ports = createApplicationPorts(handles);
   for (const name of moduleNames.filter(name => /connect-/.test(name))) {
     const module = await import(new URL(`assets/js/modules/${name}`, root));
     Object.values(module)[0](handles);
@@ -83,9 +85,11 @@ test('all owners construct without DOM access, connect once, and expose every re
   assert.ok(composition.lastIndexOf('Connector.connect') < stages[0].index);
 });
 
-test('object editing composition supplies the shared territory component UI', () => {
-  const connection = composition.match(/objectEditingConnector\.connectObjectEditing\(\{([\s\S]*?)\n\s*\}\);/)?.[1] || '';
-  assert.match(connection, /\bterritoryComponentUi\b/);
+test('object editing consumes the shared territory component UI through application ports', () => {
+  const providers = composition.match(/const applicationProviders = \{([\s\S]*?)\n\s*\};/)?.[1] || '';
+  const contract = read('assets/js/modules/app-capability-ports-object-editing.js');
+  assert.match(providers, /\bterritoryComponentUi\b/);
+  assert.match(contract, /"territoryComponentUi"/);
 });
 
 test('canonical replacement retains one live store and updates dependent ID reads', () => {

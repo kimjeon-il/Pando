@@ -82,7 +82,7 @@ export function createProjectSession() {
     }));
 
     (state = {
-      dataReadiness: dependencies.DATA_READINESS.PREVIEW,
+      dataReadiness: dependencies.readiness.DATA_READINESS.PREVIEW,
       geometryProgress: 0,
       meshProgress: 0,
       countriesData: null,
@@ -99,9 +99,9 @@ export function createProjectSession() {
       territorialRelations: [],
       distributionLayers: [],
       distributionEntries: [],
-      distributionSettings: { renderMode: dependencies.DISTRIBUTION_RENDER_MODES.DOMINANT, boundaryVisible: true },
+      distributionSettings: { renderMode: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.DOMINANT, boundaryVisible: true },
       selectedDistributionLayerId: '',
-      layerPresentation: (0, dependencies.normalizeLayerPresentation)(),
+      layerPresentation: (0, dependencies.modelValidation.normalizeLayerPresentation)(),
       selected: null,
       projection: 'globe',
       layerVisibility: normalizeLayerVisibility(),
@@ -113,7 +113,7 @@ export function createProjectSession() {
           lakes_natural_earth: true,
         },
         hiddenHydroIds: {},
-        dataset: dependencies.PHYSICAL_DATASET,
+        dataset: dependencies.physicalConfig.PHYSICAL_DATASET,
       },
       hydroCollections: {},
       hydroFeatureCache: new Map(),
@@ -172,7 +172,7 @@ export function createProjectSession() {
       historyDirtyCountryIds: new Set(),
       pendingCountryRenderIds: new Set(),
       sessionBaseCountriesJson: null,
-      geometryPreview: (0, dependencies.createGeometryPreviewState)(),
+      geometryPreview: (0, dependencies.applicationFactories.createGeometryPreviewState)(),
       modeProcessing: false,
       modeTaskMinimized: false,
       audit: { status: 'idle', revision: 0, report: null, selectedIssueId: null },
@@ -196,15 +196,15 @@ export function createProjectSession() {
       layerTreeRevision: 1,
     });
 
-    (atomicMapStateController = (0, dependencies.createAtomicMapStateController)({
+    (atomicMapStateController = (0, dependencies.uiFactoriesA.createAtomicMapStateController)({
       applySnapshot: snapshot => {
         if (snapshot.projection) state.projection = snapshot.projection;
-        if (snapshot.view) state.view = (0, dependencies.clampViewZooms)({ ...state.view, ...snapshot.view });
+        if (snapshot.view) state.view = (0, dependencies.workspaceUiA.clampViewZooms)({ ...state.view, ...snapshot.view });
         state.transitionRevision = Number(snapshot.stateRevision || state.transitionRevision || 0);
       },
     }));
 
-    (saveState = (0, dependencies.createSaveStateController)({ onChange: (...args) => dependencies.projectUi.syncSaveStatus(...args) }));
+    (saveState = (0, dependencies.uiFactoriesB.createSaveStateController)({ onChange: (...args) => dependencies.lifecycleUi.projectUi.syncSaveStatus(...args) }));
 
     (objectChooserCandidates = []);
   }

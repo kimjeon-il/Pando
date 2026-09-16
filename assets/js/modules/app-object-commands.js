@@ -15,121 +15,121 @@ export function createObjectCommands() {
   }
 
   function countryObjectRef(id) {
-    return (0, dependencies.normalizeObjectRef)({ domain: 'territorial', type: dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY, id: String(id) });
+    return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, id: String(id) });
   }
 
   function layerItemObjectRef(group, id) {
     const key = String(id);
-    if (group === 'countries' || group === 'countryLabels') return (0, dependencies.normalizeObjectRef)({ domain: 'territorial', type: dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY, id: key });
+    if (group === 'countries' || group === 'countryLabels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, id: key });
     if (group === 'subunits' || group === 'regions') {
-      const fallback = group === 'subunits' ? dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT : group === 'regions' ? dependencies.TERRITORIAL_UNIT_TYPES.REGION : dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT;
-      return (0, dependencies.normalizeObjectRef)({ domain: 'territorial', type: (0, dependencies.territorialUnitById)(key)?.properties?.unitType || fallback, id: key });
+      const fallback = group === 'subunits' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : group === 'regions' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT;
+      return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: (0, dependencies.objectPresentation.territorialUnitById)(key)?.properties?.unitType || fallback, id: key });
     }
-    if (dependencies.DISTRIBUTION_GROUP_TYPES[group]) return (0, dependencies.normalizeObjectRef)({ domain: 'distribution', type: (0, dependencies.distributionLayerById)(key)?.type || dependencies.DISTRIBUTION_GROUP_TYPES[group], id: key });
-    if (group === 'hydro' && (0, dependencies.hydroEditById)(key)) return (0, dependencies.normalizeObjectRef)({ domain: 'hydro', type: (0, dependencies.hydroEditById)(key)?.properties?.category || 'river', id: key });
-    if (group === 'genericFeatures') return (0, dependencies.normalizeObjectRef)({ domain: 'generic', type: 'feature', id: key });
-    if (group === 'labels') return (0, dependencies.normalizeObjectRef)({ domain: 'label', type: dependencies.state.labels.find(item => String(item.id) === key)?.kind || 'label', id: key });
+    if (dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group]) return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: (0, dependencies.propertyEditingA.distributionLayerById)(key)?.type || dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group], id: key });
+    if (group === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(key)) return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: (0, dependencies.hydroPresentation.hydroEditById)(key)?.properties?.category || 'river', id: key });
+    if (group === 'genericFeatures') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'generic', type: 'feature', id: key });
+    if (group === 'labels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'label', type: dependencies.projectState.state.labels.find(item => String(item.id) === key)?.kind || 'label', id: key });
     return null;
   }
 
   function objectRefExists(value) {
-    const ref = (0, dependencies.normalizeObjectRef)(value);
+    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return false;
-    if (ref.domain === 'territorial') return ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY ? !!(0, dependencies.countryFeatureById)(ref.id) : !!(0, dependencies.territorialUnitById)(ref.id);
-    if (ref.domain === 'distribution') return !!(0, dependencies.distributionLayerById)(ref.id);
-    if (ref.domain === 'generic') return dependencies.state.genericFeatures.some(item => String(item.id) === ref.id);
-    if (ref.domain === 'hydro') return !!(0, dependencies.hydroFeatureById)(ref.id);
-    if (ref.domain === 'label') return dependencies.state.labels.some(item => String(item.id) === ref.id);
+    if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? !!(0, dependencies.countries.countryFeatureById)(ref.id) : !!(0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+    if (ref.domain === 'distribution') return !!(0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
+    if (ref.domain === 'generic') return dependencies.projectState.state.genericFeatures.some(item => String(item.id) === ref.id);
+    if (ref.domain === 'hydro') return !!(0, dependencies.hydroModel.hydroFeatureById)(ref.id);
+    if (ref.domain === 'label') return dependencies.projectState.state.labels.some(item => String(item.id) === ref.id);
     return false;
   }
 
   function objectDisplayInfo(value) {
-    const ref = (0, dependencies.normalizeObjectRef)(value);
+    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return { name: '알 수 없는 객체', type: '' };
-    if (ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      const feature = (0, dependencies.countryFeatureById)(ref.id);
-      return { name: feature ? (0, dependencies.countryName)(feature) : ref.id, type: '국가', detail: feature?.properties?.name || '' };
+    if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      const feature = (0, dependencies.countries.countryFeatureById)(ref.id);
+      return { name: feature ? (0, dependencies.presentation.countryName)(feature) : ref.id, type: '국가', detail: feature?.properties?.name || '' };
     }
     if (ref.domain === 'territorial') {
-      const feature = (0, dependencies.territorialUnitById)(ref.id);
-      const type = (0, dependencies.territorialTypeLabel)(ref.type);
-      const context = ref.type === dependencies.TERRITORIAL_UNIT_TYPES.REGION ? '' : (0, dependencies.territorialUnitCountryName)(feature);
-      return { name: feature ? (0, dependencies.territorialUnitName)(feature) : ref.id, type, detail: context };
+      const feature = (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+      const type = (0, dependencies.territorialServicesB.territorialTypeLabel)(ref.type);
+      const context = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? '' : (0, dependencies.objectPresentation.territorialUnitCountryName)(feature);
+      return { name: feature ? (0, dependencies.objectPresentation.territorialUnitName)(feature) : ref.id, type, detail: context };
     }
     if (ref.domain === 'distribution') {
-      const layer = (0, dependencies.distributionLayerById)(ref.id);
-      return { name: layer?.name || ref.id, type: dependencies.DISTRIBUTION_TYPE_LABELS[layer?.type || ref.type] || '분포', detail: `${(0, dependencies.distributionEntriesForLayer)(dependencies.state.distributionEntries, ref.id).length}개 분포` };
+      const layer = (0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
+      return { name: layer?.name || ref.id, type: dependencies.objectModelA.DISTRIBUTION_TYPE_LABELS[layer?.type || ref.type] || '분포', detail: `${(0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, ref.id).length}개 분포` };
     }
     if (ref.domain === 'generic') {
-      const feature = dependencies.state.genericFeatures.find(item => String(item.id) === ref.id);
-      return { name: feature ? (0, dependencies.genericFeatureName)(feature) : ref.id, type: feature ? (0, dependencies.genericFeatureRoleLabel)(feature) : '기타 객체', detail: '' };
+      const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
+      return { name: feature ? (0, dependencies.objectPresentation.genericFeatureName)(feature) : ref.id, type: feature ? (0, dependencies.objectPresentation.genericFeatureRoleLabel)(feature) : '기타 객체', detail: '' };
     }
     if (ref.domain === 'hydro') {
-      const feature = (0, dependencies.hydroFeatureById)(ref.id);
-      const category = (0, dependencies.hydroCategoryKey)(feature?.properties?.category || ref.type);
-      return { name: (0, dependencies.hydroEditorName)(feature?.properties?.name, (0, dependencies.hydroFallbackName)(category)), type: (0, dependencies.hydroCategoryLabel)(category), detail: (0, dependencies.hydroSourceLabel)(category, { builtin: !(0, dependencies.hydroEditById)(ref.id) }) };
+      const feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
+      const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature?.properties?.category || ref.type);
+      return { name: (0, dependencies.hydroPresentation.hydroEditorName)(feature?.properties?.name, (0, dependencies.hydroPresentation.hydroFallbackName)(category)), type: (0, dependencies.hydroPresentation.hydroCategoryLabel)(category), detail: (0, dependencies.objectModelA.hydroSourceLabel)(category, { builtin: !(0, dependencies.hydroPresentation.hydroEditById)(ref.id) }) };
     }
-    const label = dependencies.state.labels.find(item => String(item.id) === ref.id);
+    const label = dependencies.projectState.state.labels.find(item => String(item.id) === ref.id);
     const labelKind = { capital: '수도', city: '도시', town: '마을', region: '지역명', mountain: '산', water: '수역', custom: '기타' };
     return { name: label?.name || ref.id, type: '지명', detail: labelKind[label?.kind] || '지명' };
   }
 
   function focusObjectRef(value, { announce = true } = {}) {
-    const ref = (0, dependencies.normalizeObjectRef)(value);
+    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return false;
     let feature = null;
-    if (ref.domain === 'territorial') feature = ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.countryFeatureById)(ref.id) : (0, dependencies.territorialUnitById)(ref.id);
-    else if (ref.domain === 'generic') feature = dependencies.state.genericFeatures.find(item => String(item.id) === ref.id);
-    else if (ref.domain === 'hydro') feature = (0, dependencies.hydroFeatureById)(ref.id);
+    if (ref.domain === 'territorial') feature = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.countries.countryFeatureById)(ref.id) : (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+    else if (ref.domain === 'generic') feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
+    else if (ref.domain === 'hydro') feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
     else if (ref.domain === 'distribution') {
-      const features = (0, dependencies.distributionEntriesForLayer)(dependencies.state.distributionEntries, ref.id).map(entry => {
-        const geometry = entry.mode === dependencies.DISTRIBUTION_MODES.TERRITORIAL ? dependencies.territorialRepository.get(entry.territorialUnitId)?.geometry : entry.geometry;
+      const features = (0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, ref.id).map(entry => {
+        const geometry = entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL ? dependencies.presentation.territorialRepository.get(entry.territorialUnitId)?.geometry : entry.geometry;
         return geometry ? { type: 'Feature', properties: {}, geometry } : null;
       }).filter(Boolean);
       if (features.length) feature = { type: 'FeatureCollection', features };
     } else if (ref.domain === 'label') {
-      const label = dependencies.state.labels.find(item => String(item.id) === ref.id);
+      const label = dependencies.projectState.state.labels.find(item => String(item.id) === ref.id);
       if (label) {
-        (0, dependencies.focusCoordinate)(label.coordinates);
-        if (announce) (0, dependencies.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
+        (0, dependencies.navigation.focusCoordinate)(label.coordinates);
+        if (announce) (0, dependencies.feedback.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
         return true;
       }
     }
     if (!feature?.geometry && feature?.type !== 'FeatureCollection') return false;
-    const countryScope = ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? dependencies.territorialScope.scope(ref.id) : null;
+    const countryScope = ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      ? dependencies.objectModelB.territorialScope.scope(ref.id) : null;
     if (countryScope?.members.length) feature = countryScope.extent;
-    const runtimeAnchor = ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? dependencies.countryLabelAnchors.get(String(feature?.id || ''))
+    const runtimeAnchor = ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      ? dependencies.labelPresentation.countryLabelAnchors.get(String(feature?.id || ''))
       : null;
-    const preferredAnchor = !countryScope?.members.length && (0, dependencies.validLabelAnchor)(runtimeAnchor)
+    const preferredAnchor = !countryScope?.members.length && (0, dependencies.countries.validLabelAnchor)(runtimeAnchor)
       ? runtimeAnchor
       : null;
-    (0, dependencies.focusCountry)(feature, { maxZoom: (0, dependencies.isMobile)() ? 12 : 10, preferredAnchor });
-    if (announce) (0, dependencies.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
+    (0, dependencies.navigation.focusCountry)(feature, { maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10, preferredAnchor });
+    if (announce) (0, dependencies.feedback.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
     return true;
   }
 
   function layerGroupForObjectRef(value) {
-    const ref = (0, dependencies.normalizeObjectRef)(value);
+    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return '';
-    if (ref.domain === 'territorial') return ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries' : ref.type === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT ? 'subunits' : ref.type === dependencies.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : 'subunits';
-    if (ref.domain === 'distribution') return dependencies.DISTRIBUTION_TYPE_GROUPS[ref.type] || '';
-    if (ref.domain === 'hydro' && (0, dependencies.hydroEditById)(ref.id)) return 'hydro';
+    if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? 'subunits' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : 'subunits';
+    if (ref.domain === 'distribution') return dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS[ref.type] || '';
+    if (ref.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(ref.id)) return 'hydro';
     if (ref.domain === 'generic') return 'genericFeatures';
     if (ref.domain === 'label') return 'labels';
     return '';
   }
 
   function objectBatchCapabilities(value) {
-    const ref = (0, dependencies.normalizeObjectRef)(value);
+    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return new Set();
-    if (ref.domain === 'hydro' && !(0, dependencies.hydroEditById)(ref.id)) return new Set(['visible']);
+    if (ref.domain === 'hydro' && !(0, dependencies.hydroPresentation.hydroEditById)(ref.id)) return new Set(['visible']);
     const values = new Set(['visible']);
     if (ref.domain === 'territorial') {
       values.add('color');
       values.add('lock');
-      if (ref.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY && territorialDeletionAllowed([(0, dependencies.territorialUnitById)(ref.id)], dependencies.state.territorialUnits)) values.add('delete');
+      if (ref.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY && territorialDeletionAllowed([(0, dependencies.objectPresentation.territorialUnitById)(ref.id)], dependencies.projectState.state.territorialUnits)) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
     } else if (ref.domain === 'hydro') {
@@ -140,7 +140,7 @@ export function createObjectCommands() {
     return values;
   }
 
-  function commonBatchCapabilities(refs = dependencies.selectionDomain.snapshot().selection.items) {
+  function commonBatchCapabilities(refs = dependencies.domains.selectionDomain.snapshot().selection.items) {
     if (!refs.length) return new Set();
     const common = objectBatchCapabilities(refs[0]);
     for (const ref of refs.slice(1)) for (const capability of [...common]) if (!objectBatchCapabilities(ref).has(capability)) common.delete(capability);
@@ -148,17 +148,17 @@ export function createObjectCommands() {
   }
 
   function isCountryLocked(id) {
-    return dependencies.state.countryOverrides?.[String(id)]?.locked === true;
+    return dependencies.projectState.state.countryOverrides?.[String(id)]?.locked === true;
   }
 
   function setCountryLockedState(id, locked) {
     const key = String(id || '');
-    if (!key || !(0, dependencies.countryFeatureById)(key)) return false;
-    const override = { ...(dependencies.state.countryOverrides[key] || {}) };
+    if (!key || !(0, dependencies.countries.countryFeatureById)(key)) return false;
+    const override = { ...(dependencies.projectState.state.countryOverrides[key] || {}) };
     if (locked) override.locked = true;
     else delete override.locked;
-    if (Object.keys(override).length) dependencies.state.countryOverrides[key] = override;
-    else delete dependencies.state.countryOverrides[key];
+    if (Object.keys(override).length) dependencies.projectState.state.countryOverrides[key] = override;
+    else delete dependencies.projectState.state.countryOverrides[key];
     return true;
   }
 
@@ -169,29 +169,29 @@ export function createObjectCommands() {
   function requireCountriesUnlocked(ids, action = '편집') {
     const lockedIds = lockedCountryIds(ids);
     if (!lockedIds.length) return true;
-    (0, dependencies.setActionStatus)(`${lockedIds.length}개국 잠금 해제 후 ${action}하세요`, 'error', 3800);
+    (0, dependencies.feedback.setActionStatus)(`${lockedIds.length}개국 잠금 해제 후 ${action}하세요`, 'error', 3800);
     return false;
   }
 
   function objectRefLocked(value) {
-    const ref = (0, dependencies.normalizeObjectRef)(value);
+    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return false;
-    if (ref.domain === 'territorial') return ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY ? isCountryLocked(ref.id) : (0, dependencies.territorialUnitById)(ref.id)?.properties?.locked === true;
-    if (ref.domain === 'distribution') return (0, dependencies.distributionLayerById)(ref.id)?.locked === true;
-    if (ref.domain === 'generic') return dependencies.state.genericFeatures.find(item => String(item.id) === ref.id)?.properties?.locked === true;
-    if (ref.domain === 'hydro') return (0, dependencies.hydroEditById)(ref.id)?.properties?.locked === true;
+    if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? isCountryLocked(ref.id) : (0, dependencies.objectPresentation.territorialUnitById)(ref.id)?.properties?.locked === true;
+    if (ref.domain === 'distribution') return (0, dependencies.propertyEditingA.distributionLayerById)(ref.id)?.locked === true;
+    if (ref.domain === 'generic') return dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id)?.properties?.locked === true;
+    if (ref.domain === 'hydro') return (0, dependencies.hydroPresentation.hydroEditById)(ref.id)?.properties?.locked === true;
     return false;
   }
 
   function objectRefVisible(value) {
-    const ref = (0, dependencies.normalizeObjectRef)(value);
-    if (ref?.domain === 'hydro' && !(0, dependencies.hydroEditById)(ref.id)) {
-      const feature = (0, dependencies.hydroFeatureById)(ref.id);
+    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
+    if (ref?.domain === 'hydro' && !(0, dependencies.hydroPresentation.hydroEditById)(ref.id)) {
+      const feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
       const id = String(feature?.properties?.pandolab_id || feature?.id || ref.id);
-      return dependencies.state.physicalSettings.hiddenHydroIds?.[id] !== true;
+      return dependencies.projectState.state.physicalSettings.hiddenHydroIds?.[id] !== true;
     }
     const group = layerGroupForObjectRef(ref);
-    return !!(ref && group && (0, dependencies.isLayerItemVisible)(group, ref.id));
+    return !!(ref && group && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id));
   }
 
   function syncBatchBooleanInput(input, values, enabled) {
@@ -208,28 +208,28 @@ export function createObjectCommands() {
     }
   }
 
-  function syncBatchActionAvailability(selection = dependencies.selectionDomain.snapshot().selection) {
+  function syncBatchActionAvailability(selection = dependencies.domains.selectionDomain.snapshot().selection) {
     const refs = selection.items || [];
     const capabilities = commonBatchCapabilities(refs);
-    syncBatchBooleanInput((0, dependencies.$)('multiPropertiesVisibilityInput'), refs.map(objectRefVisible), capabilities.has('visible'));
-    if ((0, dependencies.$)('multiPropertiesColorInput')) (0, dependencies.$)('multiPropertiesColorInput').disabled = !capabilities.has('color');
-    if ((0, dependencies.$)('multiPropertiesColorTrigger')) (0, dependencies.$)('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
-    const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY);
+    syncBatchBooleanInput((0, dependencies.platform.$)('multiPropertiesVisibilityInput'), refs.map(objectRefVisible), capabilities.has('visible'));
+    if ((0, dependencies.platform.$)('multiPropertiesColorInput')) (0, dependencies.platform.$)('multiPropertiesColorInput').disabled = !capabilities.has('color');
+    if ((0, dependencies.platform.$)('multiPropertiesColorTrigger')) (0, dependencies.platform.$)('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
+    const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);
     const subunitOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === 'subunit');
-    const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => (0, dependencies.territorialUnitById)(ref.id)), {
+    const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => (0, dependencies.objectPresentation.territorialUnitById)(ref.id)), {
       adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry),
     }) : null;
-    (0, dependencies.$)('multiCountryActions')?.classList.toggle('hidden', !countryOnly && !subunitOnly);
-    const mergeButton = (0, dependencies.$)('multiSubunitMergeBtn');
+    (0, dependencies.platform.$)('multiCountryActions')?.classList.toggle('hidden', !countryOnly && !subunitOnly);
+    const mergeButton = (0, dependencies.platform.$)('multiSubunitMergeBtn');
     if (mergeButton) { mergeButton.hidden = !subunitOnly; mergeButton.disabled = !subunitPolicy?.valid; }
-    const title = (0, dependencies.$)('multiBorderEditBtn')?.querySelector('strong');
+    const title = (0, dependencies.platform.$)('multiBorderEditBtn')?.querySelector('strong');
     if (title) title.textContent = subunitOnly ? '경계 조정' : '국경 조정';
-    const detail = (0, dependencies.$)('multiBorderEditBtn')?.querySelector('small');
+    const detail = (0, dependencies.platform.$)('multiBorderEditBtn')?.querySelector('small');
     if (detail) detail.textContent = subunitOnly ? '선택 하위단위 사이의 공유 경계 편집' : '선택 국가 사이의 공유국경 편집';
-    const borderButton = (0, dependencies.$)('multiBorderEditBtn');
-    const borderHelp = (0, dependencies.$)('multiBorderEditHelp');
+    const borderButton = (0, dependencies.platform.$)('multiBorderEditBtn');
+    const borderHelp = (0, dependencies.platform.$)('multiBorderEditHelp');
     if (countryOnly) {
-      const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(refs.map(ref => ref.id));
+      const analysis = (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(refs.map(ref => ref.id));
       const lockedIds = refs.map(ref => ref.id).filter(isCountryLocked);
       if (borderButton) {
         borderButton.disabled = lockedIds.length > 0 || !analysis.valid;
@@ -262,63 +262,63 @@ export function createObjectCommands() {
   }
 
   function batchSetVisibility(nextVisible = null) {
-    const refs = dependencies.selectionDomain.snapshot().selection.items;
-    if (dependencies.state.projectReplacing || !refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('visible')) return;
+    const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
+    if (dependencies.projectState.state.projectReplacing || !refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('visible')) return;
     const allVisible = refs.every(objectRefVisible);
     const visible = typeof nextVisible === 'boolean' ? nextVisible : !allVisible;
     if (refs.every(ref => objectRefVisible(ref) === visible)) return;
     for (const ref of refs) {
-      if (ref.domain === 'hydro' && !(0, dependencies.hydroEditById)(ref.id)) {
-        const feature = (0, dependencies.hydroFeatureById)(ref.id);
+      if (ref.domain === 'hydro' && !(0, dependencies.hydroPresentation.hydroEditById)(ref.id)) {
+        const feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
         const id = String(feature.properties?.pandolab_id || feature.id);
-        const hidden = dependencies.state.physicalSettings.hiddenHydroIds ||= {};
+        const hidden = dependencies.projectState.state.physicalSettings.hiddenHydroIds ||= {};
         if (visible) delete hidden[id];
         else hidden[id] = true;
         continue;
       }
       const group = layerGroupForObjectRef(ref);
       if (!group) continue;
-      dependencies.state.itemVisibility[group] ||= {};
-      if (visible) delete dependencies.state.itemVisibility[group][ref.id];
-      else dependencies.state.itemVisibility[group][ref.id] = false;
+      dependencies.projectState.state.itemVisibility[group] ||= {};
+      if (visible) delete dependencies.projectState.state.itemVisibility[group][ref.id];
+      else dependencies.projectState.state.itemVisibility[group][ref.id] = false;
     }
-    if (refs.some(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
-      dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-visibility');
+    if (refs.some(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
+      dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-visibility');
     }
-    if (refs.some(ref => ref.domain === 'hydro')) dependencies.gpuMapRenderer.invalidateHydroVisibility();
-    if (refs.some(ref => ref.domain === 'distribution')) dependencies.distributionVisibilityRevision += 1;
-    (0, dependencies.markLayerTreeDirty)();
-    dependencies.renderingDomain?.invalidateBaseScene?.('object-visibility');
-    dependencies.renderingDomain?.invalidateLabels?.('object-visibility');
-    dependencies.renderingDomain?.invalidateSelection?.('object-visibility');
-    dependencies.projectDomain.queuePresentationAutosave();
+    if (refs.some(ref => ref.domain === 'hydro')) dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
+    if (refs.some(ref => ref.domain === 'distribution')) dependencies.distributionPresentation.bumpVisibilityRevision();
+    (0, dependencies.layers.markLayerTreeDirty)();
+    dependencies.domains.renderingDomain?.invalidateBaseScene?.('object-visibility');
+    dependencies.domains.renderingDomain?.invalidateLabels?.('object-visibility');
+    dependencies.domains.renderingDomain?.invalidateSelection?.('object-visibility');
+    dependencies.domains.projectDomain.queuePresentationAutosave();
     syncBatchActionAvailability();
   }
 
   function batchSetLocked(nextLocked = null) {
-    const refs = dependencies.selectionDomain.snapshot().selection.items;
+    const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (!refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('lock')) return;
     const locked = typeof nextLocked === 'boolean' ? nextLocked : !refs.every(objectRefLocked);
     if (refs.every(ref => objectRefLocked(ref) === locked)) return;
-    dependencies.projectDomain.recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
+    dependencies.domains.projectDomain.recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
-      if (ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) setCountryLockedState(ref.id, locked);
-      else if (ref.domain === 'territorial') (0, dependencies.territorialUnitById)(ref.id).properties.locked = locked;
-      else if (ref.domain === 'distribution') (0, dependencies.distributionLayerById)(ref.id).locked = locked;
+      if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) setCountryLockedState(ref.id, locked);
+      else if (ref.domain === 'territorial') (0, dependencies.objectPresentation.territorialUnitById)(ref.id).properties.locked = locked;
+      else if (ref.domain === 'distribution') (0, dependencies.propertyEditingA.distributionLayerById)(ref.id).locked = locked;
       else if (ref.domain === 'generic') {
-        const feature = dependencies.state.genericFeatures.find(item => String(item.id) === ref.id);
+        const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
         if (feature) feature.properties.locked = locked;
       } else if (ref.domain === 'hydro') {
-        const feature = (0, dependencies.hydroEditById)(ref.id);
+        const feature = (0, dependencies.hydroPresentation.hydroEditById)(ref.id);
         if (feature) feature.properties.locked = locked;
       }
     }
-    dependencies.state.stateRevision += 1;
-    dependencies.layerTreeController?.syncLocks(refs);
-    dependencies.renderingDomain?.invalidateSelection?.('batch-lock');
-    dependencies.projectDomain.queueAutosave();
-    const primary = dependencies.selectionDomain.primary();
-    if (primary) dependencies.selectionUiController.presentPrimary({ refreshOnly: true });
+    dependencies.projectState.state.stateRevision += 1;
+    dependencies.domains.layerTreeController?.syncLocks(refs);
+    dependencies.domains.renderingDomain?.invalidateSelection?.('batch-lock');
+    dependencies.domains.projectDomain.queueAutosave();
+    const primary = dependencies.domains.selectionDomain.primary();
+    if (primary) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
     syncBatchActionAvailability();
   }
 
@@ -327,7 +327,7 @@ export function createObjectCommands() {
   }
 
   function closeObjectActionsMenu({ restoreFocus = false } = {}) {
-    const menu = (0, dependencies.$)('objectActionsMenu');
+    const menu = (0, dependencies.platform.$)('objectActionsMenu');
     if (!menu) return;
     const wasOpen = !menu.classList.contains('hidden');
     const trigger = objectActionsMenuTrigger;
@@ -340,12 +340,12 @@ export function createObjectCommands() {
   }
 
   function syncObjectActionsMenu() {
-    const refs = dependencies.selectionDomain.snapshot().selection.items;
-    const primary = dependencies.selectionDomain.primary();
+    const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
+    const primary = dependencies.domains.selectionDomain.primary();
     const capabilities = commonBatchCapabilities(refs);
-    const canSetVisibility = refs.length > 0 && capabilities.has('visible') && refs.every(objectRefExists) && !dependencies.state.projectReplacing;
+    const canSetVisibility = refs.length > 0 && capabilities.has('visible') && refs.every(objectRefExists) && !dependencies.projectState.state.projectReplacing;
     const visibleCount = refs.filter(objectRefVisible).length;
-    const visibilityButton = (0, dependencies.$)('objectVisibilityBtn');
+    const visibilityButton = (0, dependencies.platform.$)('objectVisibilityBtn');
     if (visibilityButton) {
       const allVisible = visibleCount === refs.length;
       const label = refs.length > 1 ? allVisible ? '선택한 객체 모두 숨기기' : '선택한 객체 모두 표시' : allVisible ? '객체 숨기기' : '객체 표시';
@@ -353,16 +353,16 @@ export function createObjectCommands() {
       visibilityButton.setAttribute('aria-label', label);
       visibilityButton.setAttribute('aria-pressed', refs.length && visibleCount > 0 && !allVisible ? 'mixed' : String(refs.length > 0 && allVisible));
       visibilityButton.dataset.tooltip = label;
-      (0, dependencies.$)('objectVisibilityIcon')?.setAttribute('href', !refs.length || visibleCount ? '#icon-eye' : '#icon-eye-off');
+      (0, dependencies.platform.$)('objectVisibilityIcon')?.setAttribute('href', !refs.length || visibleCount ? '#icon-eye' : '#icon-eye-off');
     }
     const locked = refs.length > 0 && refs.every(objectRefLocked);
     const canLock = refs.length > 0 && capabilities.has('lock');
     const canDelete = refs.length > 1
       ? capabilities.has('delete')
-      : !!primary && (primary.domain !== 'hydro' || !!(0, dependencies.hydroEditById)(primary.id));
+      : !!primary && (primary.domain !== 'hydro' || !!(0, dependencies.hydroPresentation.hydroEditById)(primary.id));
     const deleteDisabled = !canDelete || !!(primary && objectRefLocked(primary));
     const lockLabel = locked ? '잠금 해제' : refs.length > 1 ? '모두 잠금' : '잠금';
-    const status = (0, dependencies.$)('editorObjectStatus');
+    const status = (0, dependencies.platform.$)('editorObjectStatus');
     if (status) {
       const lockedCount = refs.filter(objectRefLocked).length;
       const lockStatus = refs.length > 1
@@ -373,38 +373,38 @@ export function createObjectCommands() {
       status.textContent = statusText;
       status.classList.toggle('hidden', !statusText);
     }
-    const focusButton = (0, dependencies.$)('focusSelectedObjectBtn');
+    const focusButton = (0, dependencies.platform.$)('focusSelectedObjectBtn');
     if (focusButton) focusButton.classList.toggle('hidden', refs.length !== 1 || !primary);
-    const flagButton = (0, dependencies.$)('flagMenuBtn');
+    const flagButton = (0, dependencies.platform.$)('flagMenuBtn');
     if (flagButton) {
       const singleTerritorial = refs.length === 1
         && primary?.domain === 'territorial'
-        && [dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT, dependencies.TERRITORIAL_UNIT_TYPES.REGION].includes(primary.type);
+        && [dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION].includes(primary.type);
       flagButton.classList.toggle('hidden', !singleTerritorial);
       flagButton.disabled = !singleTerritorial || objectRefLocked(primary);
-      if (!singleTerritorial || flagButton.disabled) (0, dependencies.$)('flagMenu')?.hidePopover();
+      if (!singleTerritorial || flagButton.disabled) (0, dependencies.platform.$)('flagMenu')?.hidePopover();
     }
-    const lockButton = (0, dependencies.$)('objectLockBtn');
+    const lockButton = (0, dependencies.platform.$)('objectLockBtn');
     if (lockButton) {
       lockButton.disabled = !canLock;
       lockButton.setAttribute('aria-pressed', String(locked));
       lockButton.setAttribute('aria-label', lockLabel);
       lockButton.dataset.tooltip = lockLabel;
-      (0, dependencies.$)('objectLockIcon')?.setAttribute('href', locked ? '#icon-lock-closed' : '#icon-lock-open');
+      (0, dependencies.platform.$)('objectLockIcon')?.setAttribute('href', locked ? '#icon-lock-closed' : '#icon-lock-open');
     }
-    const deleteButton = (0, dependencies.$)('objectDeleteBtn');
+    const deleteButton = (0, dependencies.platform.$)('objectDeleteBtn');
     if (deleteButton) {
       deleteButton.disabled = deleteDisabled;
       deleteButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
       deleteButton.setAttribute('aria-label', deleteButton.dataset.tooltip);
     }
-    const menuFocus = (0, dependencies.$)('objectFocusMenuBtn');
+    const menuFocus = (0, dependencies.platform.$)('objectFocusMenuBtn');
     if (menuFocus) menuFocus.disabled = refs.length !== 1 || !primary;
-    dependencies.syncSelectionToolbarInteraction?.();
+    dependencies.domainControllers.syncSelectionToolbarInteraction?.();
   }
 
   function positionObjectActionsMenu(trigger) {
-    const menu = (0, dependencies.$)('objectActionsMenu');
+    const menu = (0, dependencies.platform.$)('objectActionsMenu');
     if (!menu || !trigger?.isConnected || menu.classList.contains('hidden')) return;
     const rootStyle = getComputedStyle(document.documentElement);
     const edge = Number.parseFloat(rootStyle.getPropertyValue('--ui-popover-screen-edge')) || 8;
@@ -418,7 +418,7 @@ export function createObjectCommands() {
     const menuRect = menu.getBoundingClientRect();
     const minLeft = viewportLeft + edge;
     const maxLeft = Math.max(minLeft, viewportRight - menuRect.width - edge);
-    const left = (0, dependencies.clamp)(triggerRect.right - menuRect.width, minLeft, maxLeft);
+    const left = (0, dependencies.platform.clamp)(triggerRect.right - menuRect.width, minLeft, maxLeft);
     const belowTop = triggerRect.bottom + gap;
     const aboveTop = triggerRect.top - gap - menuRect.height;
     const preferredTop = belowTop + menuRect.height <= viewportBottom - edge || aboveTop < viewportTop + edge
@@ -427,12 +427,12 @@ export function createObjectCommands() {
     const minTop = viewportTop + edge;
     const maxTop = Math.max(minTop, viewportBottom - menuRect.height - edge);
     menu.style.left = `${Math.round(left)}px`;
-    menu.style.top = `${Math.round((0, dependencies.clamp)(preferredTop, minTop, maxTop))}px`;
+    menu.style.top = `${Math.round((0, dependencies.platform.clamp)(preferredTop, minTop, maxTop))}px`;
   }
 
   function openObjectActionsMenu(trigger) {
-    const menu = (0, dependencies.$)('objectActionsMenu');
-    if (!menu || !trigger || !dependencies.selectionDomain.primary()) return;
+    const menu = (0, dependencies.platform.$)('objectActionsMenu');
+    if (!menu || !trigger || !dependencies.domains.selectionDomain.primary()) return;
     const toggleClosed = objectActionsMenuTrigger === trigger && !menu.classList.contains('hidden');
     closeObjectActionsMenu();
     if (toggleClosed) return;
@@ -446,67 +446,67 @@ export function createObjectCommands() {
 
   function deleteSelectedFromObjectMenu() {
     closeObjectActionsMenu();
-    const primary = dependencies.selectionDomain.primary();
-    if (dependencies.selectionDomain.size() > 1) requestBatchDelete();
-    else if (primary?.domain === 'territorial' && primary.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) (0, dependencies.requestDeleteCountry)(primary.id);
-    else if (primary?.domain === 'territorial') (0, dependencies.requestTerritorialUnitDivisionRemoval)(primary.id);
+    const primary = dependencies.domains.selectionDomain.primary();
+    if (dependencies.domains.selectionDomain.size() > 1) requestBatchDelete();
+    else if (primary?.domain === 'territorial' && primary.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) (0, dependencies.objectDeletion.requestDeleteCountry)(primary.id);
+    else if (primary?.domain === 'territorial') (0, dependencies.objectDeletion.requestTerritorialUnitDivisionRemoval)(primary.id);
     else {
       if (!primary) return;
       const info = objectDisplayInfo(primary);
-      (0, dependencies.openConfirmModal)({
+      (0, dependencies.projectRestore.openConfirmModal)({
         title: `${info.type} 삭제`,
         message: `${info.name} 객체를 지도에서 삭제합니다. 실행취소로 복구할 수 있습니다.`,
         impacts: [`${info.type} 1개 삭제`, '연결된 표시·설정 정리'],
         confirmText: '삭제',
         danger: true,
-        onConfirm: dependencies.deleteSelected,
+        onConfirm: dependencies.objectDeletion.deleteSelected,
       });
     }
   }
 
   function batchSetColor(color) {
-    const refs = dependencies.selectionDomain.snapshot().selection.items;
+    const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (!refs.length || !commonBatchCapabilities(refs).has('color')) return;
-    const normalizedColor = (0, dependencies.normalizeEditorColor)(color, dependencies.DEFAULT_GENERIC_FEATURE_COLOR);
-    dependencies.projectDomain.recordHistory({ type: 'batch-color', description: `${refs.length}개 객체 색상 변경`, affectedIds: refs.map(ref => ref.id) });
+    const normalizedColor = (0, dependencies.colorModel.normalizeEditorColor)(color, dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR);
+    dependencies.domains.projectDomain.recordHistory({ type: 'batch-color', description: `${refs.length}개 객체 색상 변경`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
-      if (ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-        dependencies.state.countryOverrides[ref.id] ||= {};
-        (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, {
-          feature: (0, dependencies.countryFeatureById)(ref.id), override: dependencies.state.countryOverrides[ref.id],
-        }, normalizedColor, { fallback: (0, dependencies.defaultCountryColor)() });
+      if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+        dependencies.projectState.state.countryOverrides[ref.id] ||= {};
+        (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, {
+          feature: (0, dependencies.countries.countryFeatureById)(ref.id), override: dependencies.projectState.state.countryOverrides[ref.id],
+        }, normalizedColor, { fallback: (0, dependencies.colorModel.defaultCountryColor)() });
       } else if (ref.domain === 'territorial') {
-        const feature = (0, dependencies.territorialUnitById)(ref.id);
-        if (feature) (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }, normalizedColor, { fallback: dependencies.DEFAULT_GENERIC_FEATURE_COLOR });
+        const feature = (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+        if (feature) (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, normalizedColor, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
       } else if (ref.domain === 'distribution') {
-        const layer = (0, dependencies.distributionLayerById)(ref.id);
-        if (layer) (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.DISTRIBUTION, { layer }, normalizedColor, { fallback: dependencies.DEFAULT_GENERIC_FEATURE_COLOR });
+        const layer = (0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
+        if (layer) (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.DISTRIBUTION, { layer }, normalizedColor, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
       } else if (ref.domain === 'generic') {
-        const feature = dependencies.state.genericFeatures.find(item => String(item.id) === ref.id);
-        if (feature) (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.GENERIC, { feature }, normalizedColor, { fallback: (0, dependencies.defaultGenericFeatureColor)(feature) });
+        const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
+        if (feature) (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.GENERIC, { feature }, normalizedColor, { fallback: (0, dependencies.objectModelA.defaultGenericFeatureColor)(feature) });
       } else if (ref.domain === 'hydro') {
-        const feature = (0, dependencies.hydroEditById)(ref.id);
+        const feature = (0, dependencies.hydroPresentation.hydroEditById)(ref.id);
         if (feature) feature.properties.color = normalizedColor;
       }
     }
-    if (refs.some(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
-      dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
+    if (refs.some(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
+      dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
     }
-    (0, dependencies.markLayerTreeDirty)();
-    dependencies.renderingDomain?.invalidateBaseScene?.('batch-country-color');
-    dependencies.projectDomain.queueAutosave();
+    (0, dependencies.layers.markLayerTreeDirty)();
+    dependencies.domains.renderingDomain?.invalidateBaseScene?.('batch-country-color');
+    dependencies.domains.projectDomain.queueAutosave();
     syncBatchActionAvailability();
   }
 
   function requestBatchDelete() {
-    const refs = dependencies.selectionDomain.snapshot().selection.items;
+    const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (!refs.length || !commonBatchCapabilities(refs).has('delete')) return;
     const typeCounts = new Map();
     for (const ref of refs) {
       const type = objectDisplayInfo(ref).type;
       typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
     }
-    (0, dependencies.openConfirmModal)({
+    (0, dependencies.projectRestore.openConfirmModal)({
       title: `${refs.length}개 객체 삭제`,
       message: '선택한 객체와 직접 연결된 데이터가 함께 삭제됩니다. 한 번의 실행취소로 복구할 수 있습니다.',
       impacts: [...typeCounts].map(([type, count]) => `${type} ${count}개 삭제`),
@@ -514,45 +514,45 @@ export function createObjectCommands() {
       danger: true,
       onConfirm: () => {
         if (refs.some(ref => !objectRefExists(ref) || objectRefLocked(ref)) || !commonBatchCapabilities(refs).has('delete')) {
-          (0, dependencies.setActionStatus)('객체의 잠금 또는 자식 관계가 바뀌어 삭제를 중단했습니다.', 'error', 3600);
+          (0, dependencies.feedback.setActionStatus)('객체의 잠금 또는 자식 관계가 바뀌어 삭제를 중단했습니다.', 'error', 3600);
           return false;
         }
-        const snapshot = (0, dependencies.snapshotEditable)();
+        const snapshot = (0, dependencies.snapshots.snapshotEditable)();
         try {
           const removedDistributionIds = new Set(refs.filter(ref => ref.domain === 'distribution').map(ref => ref.id));
           const removedHydroEditIds = new Set(refs.filter(ref => ref.domain === 'hydro').map(ref => ref.id));
           const removedGenericFeatureIds = new Set(refs.filter(ref => ref.domain === 'generic').map(ref => ref.id));
           const removedLabelIds = new Set(refs.filter(ref => ref.domain === 'label').map(ref => ref.id));
-          const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && ref.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id));
-          dependencies.state.distributionLayers = dependencies.state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
-          dependencies.state.distributionEntries = dependencies.state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId))
-            && (entry.mode !== dependencies.DISTRIBUTION_MODES.TERRITORIAL || !removedUnitIds.has(String(entry.territorialUnitId))));
-          const restoredHydroSourceIds = dependencies.state.hydroEdits.filter(feature => removedHydroEditIds.has(String(feature.id))).map(feature => String(feature.properties?.sourceFeatureId || '')).filter(Boolean);
-          dependencies.state.hydroEdits = dependencies.state.hydroEdits.filter(feature => !removedHydroEditIds.has(String(feature.id)));
+          const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && ref.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id));
+          dependencies.projectState.state.distributionLayers = dependencies.projectState.state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
+          dependencies.projectState.state.distributionEntries = dependencies.projectState.state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId))
+            && (entry.mode !== dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL || !removedUnitIds.has(String(entry.territorialUnitId))));
+          const restoredHydroSourceIds = dependencies.projectState.state.hydroEdits.filter(feature => removedHydroEditIds.has(String(feature.id))).map(feature => String(feature.properties?.sourceFeatureId || '')).filter(Boolean);
+          dependencies.projectState.state.hydroEdits = dependencies.projectState.state.hydroEdits.filter(feature => !removedHydroEditIds.has(String(feature.id)));
           for (const sourceId of restoredHydroSourceIds) {
-            if (!dependencies.state.hydroEdits.some(feature => String(feature.properties?.sourceFeatureId || '') === sourceId)) delete dependencies.state.physicalSettings.hiddenHydroIds[sourceId];
+            if (!dependencies.projectState.state.hydroEdits.some(feature => String(feature.properties?.sourceFeatureId || '') === sourceId)) delete dependencies.projectState.state.physicalSettings.hiddenHydroIds[sourceId];
           }
-          if (restoredHydroSourceIds.length) dependencies.gpuMapRenderer.invalidateHydroVisibility();
-          for (const layer of dependencies.state.distributionLayers) if (removedDistributionIds.has(String(layer.parentId))) layer.parentId = '';
-          (0, dependencies.reassignGenericFeatureParents)([...removedGenericFeatureIds]);
-          dependencies.state.genericFeatures = dependencies.state.genericFeatures.filter(feature => !removedGenericFeatureIds.has(String(feature.id)));
-          dependencies.state.labels = dependencies.state.labels.filter(label => !removedLabelIds.has(String(label.id)));
-          for (const id of removedLabelIds) delete dependencies.state.labelSettings[(0, dependencies.labelKey)('label', id)];
-          removeTerritorialUnits(dependencies.state, removedUnitIds, dependencies.DISTRIBUTION_MODES.TERRITORIAL);
-          dependencies.state.stateRevision += 1;
-          dependencies.renderingDomain?.invalidateTerritorialPatch?.('batch-delete');
-          dependencies.selectionDomain.clear({ reason: 'batch-delete-clear' });
-          dependencies.objectPropertyController?.show(null);
-          (0, dependencies.markLayerTreeDirty)();
-          dependencies.renderingDomain?.invalidateOverlayGeometry?.('batch', 'batch-delete');
-          dependencies.renderingDomain?.invalidateSelection?.('batch-delete');
-          dependencies.renderingDomain?.invalidateLabels?.('batch-delete');
-          dependencies.projectDomain.commitHistorySnapshot(snapshot);
-          dependencies.projectDomain.queueAutosave();
-          (0, dependencies.setActionStatus)(`${refs.length}개 객체 삭제 완료`, 'success', 2800);
+          if (restoredHydroSourceIds.length) dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
+          for (const layer of dependencies.projectState.state.distributionLayers) if (removedDistributionIds.has(String(layer.parentId))) layer.parentId = '';
+          (0, dependencies.landRelations.reassignGenericFeatureParents)([...removedGenericFeatureIds]);
+          dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(feature => !removedGenericFeatureIds.has(String(feature.id)));
+          dependencies.projectState.state.labels = dependencies.projectState.state.labels.filter(label => !removedLabelIds.has(String(label.id)));
+          for (const id of removedLabelIds) delete dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', id)];
+          removeTerritorialUnits(dependencies.projectState.state, removedUnitIds, dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL);
+          dependencies.projectState.state.stateRevision += 1;
+          dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('batch-delete');
+          dependencies.domains.selectionDomain.clear({ reason: 'batch-delete-clear' });
+          dependencies.domainControllers.objectPropertyController?.show(null);
+          (0, dependencies.layers.markLayerTreeDirty)();
+          dependencies.domains.renderingDomain?.invalidateOverlayGeometry?.('batch', 'batch-delete');
+          dependencies.domains.renderingDomain?.invalidateSelection?.('batch-delete');
+          dependencies.domains.renderingDomain?.invalidateLabels?.('batch-delete');
+          dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
+          dependencies.domains.projectDomain.queueAutosave();
+          (0, dependencies.feedback.setActionStatus)(`${refs.length}개 객체 삭제 완료`, 'success', 2800);
         } catch (error) {
-          (0, dependencies.restoreEditable)(snapshot);
-          (0, dependencies.setActionStatus)(error.message || '삭제를 적용하지 못해 전체 변경을 복구했습니다.', 'error', 4000);
+          (0, dependencies.projectSnapshots.restoreEditable)(snapshot);
+          (0, dependencies.feedback.setActionStatus)(error.message || '삭제를 적용하지 못해 전체 변경을 복구했습니다.', 'error', 4000);
           return false;
         }
       },

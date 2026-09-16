@@ -67,6 +67,6 @@ The remaining direct Worker calls in `app.js` are intentionally limited to the c
 
 ## Capability port migration
 
-Application owners migrate from flat dependency bags one connector domain at a time. `spatial-data` is the first completed domain: its eight owners receive shared, frozen capability ports from `app-capability-ports.js`, each limited to twelve live reads or explicit commands. An owner never supports flat and grouped dependency names at the same time.
+All seven connector domains now use shared capability ports. Their 55 application owners receive frozen, live port objects from `app-capability-ports.js`; each port is limited to twelve reads or explicit commands. Owners no longer accept flat dependency bags, and no compatibility path supports flat and grouped names at the same time.
 
-The seven `app-connect-*` modules remain explicit composition adapters during this migration. Their removal is not a completion criterion; each adapter becomes responsible only for selecting the capability ports used by its owners. Writable dependency properties are replaced with named commands, while reads retain live identity through getters.
+The seven `app-connect-*` modules remain thin composition adapters whose only responsibility is selecting each owner's declared capability ports. Writable provider properties are exposed as named commands, while reads retain live identity through getters. Port registries merge shared names by property descriptor, and distinct geometry capabilities use separate ports so the twelve-member boundary remains enforced.

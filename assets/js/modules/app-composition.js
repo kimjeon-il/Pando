@@ -137,21 +137,23 @@ export async function composeApplication({ revision }) {
   const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup();
   const domainAssembly = factoryDomainAssembly.createDomainAssembly();
   const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly();
-  const applicationPorts = factoryCapabilityPorts.createApplicationPorts({
-    builtinSession, cameraNavigation, colorPicker, countryIndex, countryLabels, countryModes,
-    countryValidation, cutGeometry, domainAssembly, environment, geometryPreview, gpuScene,
-    hydroSettings, landRelations, layerList, mapHost, mapProjection, objectCommands, objectMetadata,
-    objectPresentation, physicalResources, pointerTargets, projectSession, projectSnapshots,
-    propertySelection, readinessNotifications, renderQuality, runtime, serviceAssembly, spatialIndex,
-    taskPresentation, territoryComponents, workspaceSurfaces,
-  });
+  const applicationProviders = {
+    runtime, environment, builtinSession, workspaceSurfaces, projectSession, objectCommands,
+    serviceAssembly, renderQuality, pointerTargets, cameraNavigation, readinessNotifications,
+    countryIndex, spatialIndex, geometryPreview, territorySelectionWorkflow, territoryComponents,
+    countryValidation, landRelations, cutGeometry, mapProjection, objectPresentation, hydroSettings,
+    layerList, countryLabels, physicalResources, interactionPackets, territoryComponentUi, gpuScene,
+    mapAudit, mapHost, taskPresentation, countryModes, objectPicking, riverCandidates, countryCommits,
+    genericCommands, propertySelection, territorialDrafts, colorPicker, objectMetadata,
+    territorialConversion, projectSnapshots, mapSettings, historyAssembly, projectRestore,
+    objectDeletion, gisAssembly, libraryAssembly, navigationBindings, toolBindings, fileBindings,
+    globalInputBindings, editorBindings, progressiveStartup, domainAssembly, lifecycleAssembly,
+  };
+  const applicationPorts = factoryCapabilityPorts.createApplicationPorts(applicationProviders);
   foundationConnector.connectFoundation({
-    builtinSession, cameraNavigation, colorPicker, countryIndex, countryLabels, countryModes, cutGeometry,
-    domainAssembly, environment, geometryPreview, gpuScene, hydroSettings, landRelations, layerList,
-    lifecycleAssembly, mapHost, mapProjection, objectCommands, objectDeletion, objectPicking,
-    objectPresentation, physicalResources, pointerTargets, projectRestore, projectSession, projectSnapshots, propertySelection,
-    readinessNotifications, renderQuality, runtime, serviceAssembly, spatialIndex, taskPresentation,
-    workspaceSurfaces,
+    ports: applicationPorts,
+    environment, builtinSession, workspaceSurfaces, projectSession, objectCommands, serviceAssembly,
+    renderQuality, pointerTargets,
   });
   spatialDataConnector.connectSpatialData({
     ports: applicationPorts,
@@ -164,41 +166,23 @@ export async function composeApplication({ revision }) {
     physicalResources, interactionPackets,
   });
   mapInteractionConnector.connectMapInteraction({
-    cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, cutGeometry, domainAssembly,
-    environment, genericCommands, geometryPreview, gpuScene, hydroSettings, interactionPackets, landRelations, layerList,
-    lifecycleAssembly, mapAudit, mapHost, mapProjection, objectCommands, objectPicking, objectPresentation,
-    physicalResources, pointerTargets, projectSession, propertySelection, readinessNotifications,
-    renderQuality, riverCandidates, runtime, serviceAssembly, spatialIndex, taskPresentation,
-    territorySelectionWorkflow,
-    territorialDrafts, territoryComponentUi, territoryComponents, workspaceSurfaces,
+    ports: applicationPorts,
+    territoryComponentUi, gpuScene, mapAudit, mapHost, taskPresentation, countryModes, objectPicking,
+    riverCandidates,
   });
   objectEditingConnector.connectObjectEditing({
-    builtinSession, colorPicker, countryCommits, countryIndex, countryModes, countryValidation, cutGeometry,
-    domainAssembly, environment, genericCommands, geometryPreview, gisAssembly, hydroSettings,
-    interactionPackets, landRelations, layerList, lifecycleAssembly, mapHost, mapProjection, objectCommands,
-    objectMetadata, objectPicking, objectPresentation, projectRestore, projectSession, projectSnapshots,
-    propertySelection, readinessNotifications, riverCandidates, runtime, serviceAssembly, spatialIndex, taskPresentation,
-    territorialConversion, territorialDrafts, territoryComponentUi, territoryComponents, territorySelectionWorkflow, workspaceSurfaces,
+    ports: applicationPorts,
+    territorySelectionWorkflow, countryCommits, genericCommands, propertySelection, territorialDrafts,
+    colorPicker, objectMetadata, territorialConversion, projectSnapshots,
   });
   projectIoConnector.connectProjectIo({
-    builtinSession, cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, countryValidation,
-    cutGeometry, domainAssembly, environment, genericCommands, geometryPreview, gisAssembly, historyAssembly,
-    hydroSettings, landRelations, layerList, libraryAssembly, lifecycleAssembly, mapHost, mapProjection,
-    mapSettings, navigationBindings, objectCommands, objectDeletion, objectMetadata, objectPicking,
-    objectPresentation, pointerTargets, projectRestore, projectSession, projectSnapshots, propertySelection,
-    readinessNotifications, renderQuality, runtime, serviceAssembly, spatialIndex, taskPresentation,
-    territorialDrafts, territoryComponentUi, territoryComponents, territorySelectionWorkflow, toolBindings, workspaceSurfaces,
+    ports: applicationPorts,
+    mapSettings, historyAssembly, projectRestore, objectDeletion, gisAssembly, libraryAssembly,
+    navigationBindings, toolBindings,
   });
   lifecycleUiConnector.connectLifecycleUi({
-    builtinSession, cameraNavigation, colorPicker, countryCommits, countryIndex, countryLabels, countryModes,
-    countryValidation, cutGeometry, domainAssembly, editorBindings, environment, fileBindings, genericCommands,
-    geometryPreview, gisAssembly, globalInputBindings, gpuScene, historyAssembly, hydroSettings,
-    interactionPackets, landRelations, layerList, libraryAssembly, lifecycleAssembly, mapAudit, mapHost,
-    mapProjection, mapSettings, navigationBindings, objectCommands, objectDeletion, objectMetadata,
-    objectPicking, objectPresentation, physicalResources, pointerTargets, progressiveStartup, projectRestore,
-    projectSession, projectSnapshots, propertySelection, readinessNotifications, renderQuality,
-    riverCandidates, runtime, serviceAssembly, spatialIndex, taskPresentation, territorialConversion,
-    territorialDrafts, territoryComponentUi, territoryComponents, territorySelectionWorkflow, toolBindings, workspaceSurfaces,
+    ports: applicationPorts,
+    fileBindings, globalInputBindings, editorBindings, progressiveStartup, domainAssembly, lifecycleAssembly,
   });
 
   environment.initializeD3();

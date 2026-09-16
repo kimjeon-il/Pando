@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { createRiverCandidates } from '../../assets/js/modules/app-river-candidates.js';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
+import { MAP_INTERACTION_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 function harness() {
   let release;
@@ -46,7 +48,7 @@ function harness() {
     reportOperationError: error => calls.push(error.message),
   };
   const candidates = createRiverCandidates();
-  candidates.connect(context);
+  candidates.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.riverCandidates, context));
   candidates.initializeRiverPartitionGeneration();
   context.resetRiverPartitionState = candidates.resetRiverPartitionState;
   return { state, session, calls, context, release, run: candidates.prepareRiverPartitionCandidates };

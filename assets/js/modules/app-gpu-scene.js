@@ -27,17 +27,17 @@ export function createGpuScene() {
   }
 
   function mapFeatureForObjectRef(value) {
-    const ref = (0, dependencies.normalizeObjectRef)(value);
+    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return null;
-    if (ref.domain === 'territorial') return ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.countryFeatureById)(ref.id) : (0, dependencies.territorialUnitById)(ref.id);
+    if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.countries.countryFeatureById)(ref.id) : (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
     if (ref.domain === 'generic') {
-      const genericFeature = dependencies.state.genericFeatures.find(feature => String(feature.id) === ref.id) || null;
-      return genericFeature ? (0, dependencies.genericFeatureDisplayFeature)(genericFeature) : null;
+      const genericFeature = dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === ref.id) || null;
+      return genericFeature ? (0, dependencies.presentation.genericFeatureDisplayFeature)(genericFeature) : null;
     }
-    if (ref.domain === 'hydro') return (0, dependencies.hydroFeatureById)(ref.id);
+    if (ref.domain === 'hydro') return (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
     if (ref.domain === 'distribution') {
-      const features = (0, dependencies.distributionEntriesForLayer)(dependencies.state.distributionEntries, ref.id).map(entry => {
-        const geometry = entry.mode === dependencies.DISTRIBUTION_MODES.TERRITORIAL ? dependencies.territorialRepository.get(entry.territorialUnitId)?.geometry : entry.geometry;
+      const features = (0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, ref.id).map(entry => {
+        const geometry = entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL ? dependencies.presentation.territorialRepository.get(entry.territorialUnitId)?.geometry : entry.geometry;
         return geometry ? featureFromGeometry(geometry) : null;
       }).filter(Boolean);
       return features.length ? { type: 'FeatureCollection', features } : null;
@@ -57,14 +57,14 @@ export function createGpuScene() {
       if (!geometryTokens.has(geometry)) geometryTokens.set(geometry, ++geometryToken);
       return `${key}:${role}:${geometryTokens.get(geometry)}:${readGeometryRevision(geometry)}`;
     }
-    return `${key}:${role}:state-${dependencies.state.stateRevision}:country-${dependencies.countryLandRevision}`;
+    return `${key}:${role}:state-${dependencies.projectState.state.stateRevision}:country-${dependencies.countries.countryLandRevision}`;
   }
 
   function gpuSceneOrder(group, offset = 0, objectKey = '') {
-    const order = dependencies.state.layerPresentation?.overlayOrder || dependencies.OVERLAY_GROUPS;
+    const order = dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS;
     const index = order.indexOf(group);
     return (index < 0 ? order.length : index) * 1000 + Number(offset || 0)
-      + (0, dependencies.layerObjectRank)(dependencies.state.layerPresentation, objectKey);
+      + (0, dependencies.applicationServicesB.layerObjectRank)(dependencies.projectState.state.layerPresentation, objectKey);
   }
 
   function replaceGpuSceneDomain(domain, { polygons = [], strokes = [] } = {}) {
@@ -99,15 +99,15 @@ export function createGpuScene() {
     return true;
   }
 
-  function syncGpuRenderScene({ selectionPacket = currentSelectionPacket, interactionFillItems = dependencies.currentGpuInteractionFillItems } = {}) {
-    const overlayOrderSignature = JSON.stringify(dependencies.state.layerPresentation?.overlayOrder || dependencies.OVERLAY_GROUPS);
+  function syncGpuRenderScene({ selectionPacket = currentSelectionPacket, interactionFillItems = dependencies.interactionPresentation.currentGpuInteractionFillItems } = {}) {
+    const overlayOrderSignature = JSON.stringify(dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS);
     if (syncGpuRenderScene.overlayOrderSignature !== overlayOrderSignature) {
       syncGpuRenderScene.overlayOrderSignature = overlayOrderSignature;
       renderSceneOrderRevision += 1;
     }
     currentSelectionPacket = selectionPacket || null;
-    dependencies.currentGpuInteractionFillItems = interactionFillItems || [];
-    const qualitySignature = `${dependencies.currentRenderQuality.revision}:${dependencies.currentRenderQuality.backgroundLod}:${dependencies.state.projection}`;
+    dependencies.interactionStateCommands.replaceGpuInteractionFillItems(interactionFillItems || []);
+    const qualitySignature = `${dependencies.renderScene.currentRenderQuality.revision}:${dependencies.renderScene.currentRenderQuality.backgroundLod}:${dependencies.projectState.state.projection}`;
     if (syncGpuRenderScene.qualitySignature !== qualitySignature) {
       syncGpuRenderScene.qualitySignature = qualitySignature;
       renderSceneGeometryRevision += 1;
@@ -115,36 +115,36 @@ export function createGpuScene() {
         if (gpuSceneDomains.has(domainName)) gpuSceneDirtyDomains.add(domainName);
       }
     }
-    renderSceneBuilder.setCacheByteBudget(dependencies.currentRenderQuality.renderPacketCacheBudgetBytes);
+    renderSceneBuilder.setCacheByteBudget(dependencies.renderScene.currentRenderQuality.renderPacketCacheBudgetBytes);
     const sceneInput = {
       revision: ++renderSceneRevision,
       revisions: {
         geometry: renderSceneGeometryRevision,
         style: renderSceneStyleRevision,
         overlayOrder: renderSceneOrderRevision,
-        countryState: `${dependencies.countryLandRevision}:${dependencies.state.pendingCountryRenderIds?.size || 0}`,
+        countryState: `${dependencies.countries.countryLandRevision}:${dependencies.projectState.state.pendingCountryRenderIds?.size || 0}`,
         selection: currentSelectionPacket?.revision || 0,
-        editPreview: dependencies.state.geometryPreview?.revision || 0,
-        view: dependencies.viewRevision,
+        editPreview: dependencies.projectState.state.geometryPreview?.revision || 0,
+        view: dependencies.mapLayout.viewRevision,
       },
       country: {
-        visible: dependencies.state.layerVisibility.countries !== false,
-        meshRevision: dependencies.countryLandRevision,
-        overrideRevision: [...(dependencies.state.pendingCountryRenderIds || [])].sort().join(','),
+        visible: dependencies.projectState.state.layerVisibility.countries !== false,
+        meshRevision: dependencies.countries.countryLandRevision,
+        overrideRevision: [...(dependencies.projectState.state.pendingCountryRenderIds || [])].sort().join(','),
       },
       physical: {
-        terrainVisible: !!dependencies.state.physicalSettings.terrainVisible,
-        terrainStyle: dependencies.state.physicalSettings.terrainStyle,
-        hydroVisibilityRevision: dependencies.state.physicalSettings.hiddenHydroIds ? Object.keys(dependencies.state.physicalSettings.hiddenHydroIds).length : 0,
-        hydroStyleRevision: `${dependencies.state.layerVisibility.rivers}:${dependencies.state.layerVisibility.lakes}:${dependencies.state.stateRevision}`,
+        terrainVisible: !!dependencies.projectState.state.physicalSettings.terrainVisible,
+        terrainStyle: dependencies.projectState.state.physicalSettings.terrainStyle,
+        hydroVisibilityRevision: dependencies.projectState.state.physicalSettings.hiddenHydroIds ? Object.keys(dependencies.projectState.state.physicalSettings.hiddenHydroIds).length : 0,
+        hydroStyleRevision: `${dependencies.projectState.state.layerVisibility.rivers}:${dependencies.projectState.state.layerVisibility.lakes}:${dependencies.projectState.state.stateRevision}`,
       },
-      renderQuality: dependencies.currentRenderQuality,
-      projection: dependencies.state.projection,
+      renderQuality: dependencies.renderScene.currentRenderQuality,
+      projection: dependencies.projectState.state.projection,
       interaction: {
         selectionPacket: currentSelectionPacket,
-        genericFillItems: dependencies.currentGpuInteractionFillItems,
-        previewPackets: [...dependencies.currentGpuPreviewPackets, ...dependencies.currentGpuEditPreviewPackets],
-        draftPackets: dependencies.currentGpuDraftPackets,
+        genericFillItems: dependencies.interactionPresentation.currentGpuInteractionFillItems,
+        previewPackets: [...dependencies.interactionPresentation.currentGpuPreviewPackets, ...dependencies.interactionPresentation.currentGpuEditPreviewPackets],
+        draftPackets: dependencies.interactionPresentation.currentGpuDraftPackets,
       },
     };
     if (currentRenderScene && gpuSceneDirtyDomains.size) {
@@ -191,46 +191,46 @@ export function createGpuScene() {
       currentRenderScene = renderSceneBuilder.patch(currentRenderScene, sceneInput);
     }
     gpuSceneDirtyDomains.clear();
-    dependencies.gpuMapRenderer.setRenderScene?.(currentRenderScene);
+    dependencies.rendering.gpuMapRenderer.setRenderScene?.(currentRenderScene);
     return currentRenderScene;
   }
 
-  function syncGpuInteractionState({ selectionPacket = currentSelectionPacket, interactionFillItems = dependencies.currentGpuInteractionFillItems } = {}) {
+  function syncGpuInteractionState({ selectionPacket = currentSelectionPacket, interactionFillItems = dependencies.interactionPresentation.currentGpuInteractionFillItems } = {}) {
     currentSelectionPacket = selectionPacket || null;
-    dependencies.currentGpuInteractionFillItems = interactionFillItems || [];
-    const activePreview = dependencies.editPreviewController.packet();
-    dependencies.currentGpuEditPreviewPackets = activePreview ? [activePreview] : [];
-    dependencies.gpuMapRenderer.setInteractionState?.({
+    dependencies.interactionStateCommands.replaceGpuInteractionFillItems(interactionFillItems || []);
+    const activePreview = dependencies.geometryOperations.editPreviewController.packet();
+    dependencies.interactionStateCommands.replaceGpuEditPreviewPackets(activePreview ? [activePreview] : []);
+    dependencies.rendering.gpuMapRenderer.setInteractionState?.({
       selectionPacket: currentSelectionPacket,
-      genericFillItems: dependencies.currentGpuInteractionFillItems,
-      previewPackets: [...dependencies.currentGpuPreviewPackets, ...dependencies.currentGpuEditPreviewPackets],
-      draftPackets: dependencies.currentGpuDraftPackets,
+      genericFillItems: dependencies.interactionPresentation.currentGpuInteractionFillItems,
+      previewPackets: [...dependencies.interactionPresentation.currentGpuPreviewPackets, ...dependencies.interactionPresentation.currentGpuEditPreviewPackets],
+      draftPackets: dependencies.interactionPresentation.currentGpuDraftPackets,
     });
   }
 
   function syncActiveEditPreview(reason = 'edit-preview') {
-    const packet = dependencies.editPreviewController.packet();
-    dependencies.currentGpuEditPreviewPackets = packet ? [packet] : [];
+    const packet = dependencies.geometryOperations.editPreviewController.packet();
+    dependencies.interactionStateCommands.replaceGpuEditPreviewPackets(packet ? [packet] : []);
     syncGpuInteractionState();
-    dependencies.renderingDomain?.invalidateGpuInteraction?.(reason);
+    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.(reason);
   }
 
   function beginActiveEditPreview({ key, segments }) {
-    dependencies.editPreviewController.begin({ key, segments, order: 25_000 });
+    dependencies.geometryOperations.editPreviewController.begin({ key, segments, order: 25_000 });
     syncActiveEditPreview('edit-preview-start');
   }
 
   function updateActiveEditPreview(segments) {
-    if (!dependencies.editPreviewController.update(segments)) return false;
+    if (!dependencies.geometryOperations.editPreviewController.update(segments)) return false;
     syncActiveEditPreview('edit-preview-move');
     return true;
   }
 
   function clearActiveEditPreview(reason = 'edit-preview-clear') {
-    if (!dependencies.editPreviewController.clear() && !dependencies.currentGpuEditPreviewPackets.length) return false;
-    dependencies.currentGpuEditPreviewPackets = [];
+    if (!dependencies.geometryOperations.editPreviewController.clear() && !dependencies.interactionPresentation.currentGpuEditPreviewPackets.length) return false;
+    dependencies.interactionStateCommands.replaceGpuEditPreviewPackets([]);
     syncGpuInteractionState();
-    dependencies.renderingDomain?.invalidateGpuInteraction?.(reason);
+    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.(reason);
     return true;
   }
 
@@ -259,11 +259,11 @@ export function createGpuScene() {
   }
 
   function applyGpuSceneCoverage(frameResult) {
-    const webGlReady = ['webgl2', 'webgl1'].includes(dependencies.gpuMapRenderer.getRuntimeState?.()?.renderer);
+    const webGlReady = ['webgl2', 'webgl1'].includes(dependencies.rendering.gpuMapRenderer.getRuntimeState?.()?.renderer);
     const ownedFills = new Set((currentRenderScene?.polygons || []).map(packet => packet.key));
     const rendered = new Set(frameResult?.baseResult?.overlayRenderedKeys || []);
     const missing = new Set(frameResult?.baseResult?.overlayMissingKeys || []);
-    dependencies.svg?.selectAll?.('[data-gpu-scene-key]')?.classed('gpu-scene-hit-proxy', function() {
+    dependencies.mapLayers.svg?.selectAll?.('[data-gpu-scene-key]')?.classed('gpu-scene-hit-proxy', function() {
       const key = this.getAttribute('data-gpu-scene-key') || '';
       // A late GPU upload keeps the parent scene, never an SVG fill above water.
       // Canvas consumes the same polygons; SVG retains only its stroke/hit roles.
@@ -272,9 +272,9 @@ export function createGpuScene() {
   }
 
   function applyGpuInteractionCoverage(frameResult) {
-    const canvasFills = ['canvas-worker', 'canvas2d'].includes(dependencies.gpuMapRenderer.getRuntimeState?.()?.renderer);
-    dependencies.interactionSvg?.selectAll?.('[data-gpu-interaction-fill-keys]')?.classed('canvas-interaction-fill-proxy', canvasFills);
-    const webGlReady = ['webgl2', 'webgl1'].includes(dependencies.gpuMapRenderer.getRuntimeState?.()?.renderer);
+    const canvasFills = ['canvas-worker', 'canvas2d'].includes(dependencies.rendering.gpuMapRenderer.getRuntimeState?.()?.renderer);
+    dependencies.mapHostViewB.interactionSvg?.selectAll?.('[data-gpu-interaction-fill-keys]')?.classed('canvas-interaction-fill-proxy', canvasFills);
+    const webGlReady = ['webgl2', 'webgl1'].includes(dependencies.rendering.gpuMapRenderer.getRuntimeState?.()?.renderer);
     const results = [
       ...(frameResult?.interactionResult?.previewResults || []),
       ...(frameResult?.interactionResult?.draftResults || []),
@@ -285,20 +285,20 @@ export function createGpuScene() {
       const keys = String(node.getAttribute(`data-gpu-interaction-${channel}-keys`) || '').split(/\s+/).filter(Boolean);
       return webGlReady && keys.length > 0 && keys.every(key => rendered.has(key) && !missing.has(key));
     };
-    dependencies.interactionSvg?.selectAll?.('[data-gpu-interaction-keys]')
+    dependencies.mapHostViewB.interactionSvg?.selectAll?.('[data-gpu-interaction-keys]')
       ?.classed('gpu-interaction-hit-proxy', false)
       .classed('gpu-interaction-fill-proxy', function() { return covered(this, 'fill'); })
       .classed('gpu-interaction-stroke-proxy', function() { return covered(this, 'stroke'); });
   }
 
   function setMapHover(type, id, feature, ref = null) {
-    if ((0, dependencies.isMobile)() || dependencies.state.tool !== 'select' || dependencies.state.mapMoving) return;
+    if ((0, dependencies.surfaces.isMobile)() || dependencies.projectState.state.tool !== 'select' || dependencies.projectState.state.mapMoving) return;
     void type;
     void id;
-    const nextRef = feature?.geometry ? (0, dependencies.normalizeObjectRef)(ref) : null;
+    const nextRef = feature?.geometry ? (0, dependencies.selectionServices.normalizeObjectRef)(ref) : null;
 
-    dependencies.lastHoverHit = nextRef ? { ref: nextRef, feature } : null;
-    dependencies.selectionDomain.setHover(nextRef, { source: 'map', expectedKey: !feature && ref ? (0, dependencies.normalizeObjectRef)(ref)?.key : '' });
+    dependencies.interactionStateCommands.setHoverHit(nextRef ? { ref: nextRef, feature } : null);
+    dependencies.domains.selectionDomain.setHover(nextRef, { source: 'map', expectedKey: !feature && ref ? (0, dependencies.selectionServices.normalizeObjectRef)(ref)?.key : '' });
   }
 
   function initializeSelectionPass() {
@@ -306,9 +306,9 @@ export function createGpuScene() {
   }
 
   function initializeRenderSceneBuilder() {
-    (renderSceneBuilder = (0, dependencies.createRenderSceneBuilder)({
+    (renderSceneBuilder = (0, dependencies.renderScene.createRenderSceneBuilder)({
       triangulate: (...args) => window.earcut(...args),
-      cacheByteBudget: dependencies.currentRenderQuality.renderPacketCacheBudgetBytes,
+      cacheByteBudget: dependencies.renderScene.currentRenderQuality.renderPacketCacheBudgetBytes,
     }));
   }
 

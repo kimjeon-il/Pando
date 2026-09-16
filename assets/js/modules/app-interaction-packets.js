@@ -30,17 +30,17 @@ export function createInteractionPackets() {
   }
 
   function presentationGroupForTerritorialFeature(feature) {
-    return feature?.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT
+    return feature?.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT
       ? 'subunits'
-      : feature?.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION
+      : feature?.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION
         ? 'regions'
         : 'subunits';
   }
 
   function applyOverlayStackOrder() {
     if (!dependencies.mapLayers.overlayStackLayer) return;
-    const order = dependencies.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS;
-    const objectOrder = new Map((dependencies.state.layerPresentation?.objectOrder || []).map((key, index) => [key, index]));
+    const order = dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS;
+    const objectOrder = new Map((dependencies.projectState.state.layerPresentation?.objectOrder || []).map((key, index) => [key, index]));
     const groupForDatum = datum => datum?.layer
       ? dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS[datum.layer.type]
       : datum?.properties?.unitType
@@ -65,21 +65,21 @@ export function createInteractionPackets() {
       return '꼭짓점을 드래그해 미세조정하세요.';
     }
     const inputHint = (0, dependencies.surfaces.isMobile)() ? '한 손가락으로 그리세요.' : '드래그하거나 클릭해 그리세요.';
-    const hydro = (0, dependencies.draftPresentation.hydroToolConfig)(dependencies.state.tool);
-    if (hydro) return `${hydro.label}의 ${(0, dependencies.surfaces.isPolygonDraftTool)(dependencies.state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
-    if (dependencies.state.tool === 'split-generic-feature') {
+    const hydro = (0, dependencies.draftPresentation.hydroToolConfig)(dependencies.projectState.state.tool);
+    if (hydro) return `${hydro.label}의 ${(0, dependencies.surfaces.isPolygonDraftTool)(dependencies.projectState.state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
+    if (dependencies.projectState.state.tool === 'split-generic-feature') {
       return '영역을 가로질러 경계를 그리세요.';
     }
-    if (dependencies.state.tool === 'split-territorial-unit') {
+    if (dependencies.projectState.state.tool === 'split-territorial-unit') {
       return '영역을 가로질러 경계를 그리세요.';
     }
-    if (dependencies.state.tool === 'redraw-territorial-unit') return '부모 영역 안에 새 영역을 그리세요.';
-    const territorySelection = dependencies.state.territorySelectionSession;
-    if (territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection') {
+    if (dependencies.projectState.state.tool === 'redraw-territorial-unit') return '부모 영역 안에 새 영역을 그리세요.';
+    const territorySelection = dependencies.projectState.state.territorySelectionSession;
+    if (territorySelection?.tool === dependencies.projectState.state.tool && territorySelection.stage === 'selection') {
       const instruction = territorySelection.draftInstructions?.[territorySelection.activeMethod];
       if (instruction) return instruction;
     }
-    if (dependencies.state.distributionDraft && (0, dependencies.surfaces.isPolygonDraftTool)(dependencies.state.tool)) return '분포 영역을 지도에서 지정하세요.';
+    if (dependencies.projectState.state.distributionDraft && (0, dependencies.surfaces.isPolygonDraftTool)(dependencies.projectState.state.tool)) return '분포 영역을 지도에서 지정하세요.';
     return inputHint;
   }
 
@@ -87,7 +87,7 @@ export function createInteractionPackets() {
     if (!dependencies.domains.editingDomain?.draftInputActive?.() || (0, dependencies.draftPresentation.activeCutDraftSourceGeometry)()) return;
     const issue = (0, dependencies.draftPresentation.editingDraftSnapshot)().issues[0];
     (0, dependencies.draftPresentation.setModeBanner)(issue?.message || defaultDraftInstruction());
-    if (issue) (0, dependencies.$)('modeTaskInstruction')?.classList.add('cut-invalid');
+    if (issue) (0, dependencies.platform.$)('modeTaskInstruction')?.classList.add('cut-invalid');
   }
 
   function gpuInteractionGeometry(datum) {

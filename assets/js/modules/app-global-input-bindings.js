@@ -12,15 +12,15 @@ export function createGlobalInputBindings() {
 
   function bindGlobalInputUI() {
     document.addEventListener('keydown', e => {
-      if (dependencies.state.projectReplacing) {
+      if (dependencies.projectState.state.projectReplacing) {
         e.preventDefault();
         return;
       }
-      const helpModal = (0, dependencies.$)('helpModal');
+      const helpModal = (0, dependencies.platform.$)('helpModal');
       if (helpModal && !helpModal.classList.contains('hidden')) {
         if (e.key === 'Escape') {
           e.preventDefault();
-          (0, dependencies.$)('helpCloseBtn')?.click();
+          (0, dependencies.platform.$)('helpCloseBtn')?.click();
         } else if (
           e.key === 'Delete'
           || e.key === 'Backspace'
@@ -34,54 +34,54 @@ export function createGlobalInputBindings() {
       const editingText = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable;
       // Let focused controls handle Enter/Space once, through their normal click/change event.
       if (['Enter', ' '].includes(e.key) && document.activeElement?.closest('button, [role="button"]')) return;
-      if (e.code === 'Space' && !editingText && (dependencies.editingDomain?.draftInputActive?.() || ['country-border', 'country-coast'].includes(dependencies.state.tool) || dependencies.state.selected?.domain === 'generic' || (dependencies.state.selected?.domain === 'hydro' && (0, dependencies.hydroEditById)(dependencies.state.selected.id)))) {
-        dependencies.state.spacePanActive = true;
-        dependencies.mapInteractionGate.setForcedPan(true);
-        dependencies.mapHost?.setForcedPan?.(true);
-        (0, dependencies.$)('map')?.classList.add('space-pan-active');
-        dependencies.editingDomain?.clearDraftHover?.('space-pan');
+      if (e.code === 'Space' && !editingText && (dependencies.domains.editingDomain?.draftInputActive?.() || ['country-border', 'country-coast'].includes(dependencies.projectState.state.tool) || dependencies.projectState.state.selected?.domain === 'generic' || (dependencies.projectState.state.selected?.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id)))) {
+        dependencies.projectState.state.spacePanActive = true;
+        dependencies.lifecycleUi.mapInteractionGate.setForcedPan(true);
+        dependencies.mapView.mapHost?.setForcedPan?.(true);
+        (0, dependencies.platform.$)('map')?.classList.add('space-pan-active');
+        dependencies.domains.editingDomain?.clearDraftHover?.('space-pan');
         e.preventDefault();
         return;
       }
       if (e.key === 'Escape') {
-        if (dependencies.state.modeProcessing) { e.preventDefault(); return; }
-        if (dependencies.closeSelectionToolbarTransient?.({ restoreFocus: true })) { e.preventDefault(); return; }
-        if (!(0, dependencies.$)('preferencesModal')?.classList.contains('hidden')) { (0, dependencies.$)('preferencesCancelBtn')?.click(); return; }
-        if (!(0, dependencies.$)('objectChooser')?.classList.contains('hidden')) { (0, dependencies.closeObjectChooser)({ restoreFocus: true }); return; }
-        if (!(0, dependencies.$)('objectActionsMenu')?.classList.contains('hidden')) { (0, dependencies.closeObjectActionsMenu)({ restoreFocus: true }); return; }
-        if (dependencies.historicalLibraryController?.isOpen()) { dependencies.historicalLibraryController.close(); return; }
-        if (!(0, dependencies.$)('territorialTypeModal')?.classList.contains('hidden')) { (0, dependencies.closeTerritorialTypeModal)(); return; }
-        if (!(0, dependencies.$)('distributionTypeModal')?.classList.contains('hidden')) { (0, dependencies.$)('distributionTypeCancelBtn')?.click(); return; }
-        if (!(0, dependencies.$)('gisImportModal')?.classList.contains('hidden')) { (0, dependencies.$)('gisImportCancelBtn')?.click(); return; }
-        if (!(0, dependencies.$)('gisExportModal')?.classList.contains('hidden')) { dependencies.gisExportController?.close(); return; }
-        if (dependencies.confirmModalController?.isOpen()) { (0, dependencies.closeConfirmModal)(); return; }
-        if (document.body.classList.contains('file-menu-open')) { (0, dependencies.closeFileMenu)({ restoreFocus: true }); return; }
-        if (dependencies.surfaceController.isOpen('create')) { (0, dependencies.closeSurface)('create', { restoreFocus: true }); return; }
-        if (dependencies.surfaceController.isOpen('search')) { e.preventDefault(); (0, dependencies.closeSurface)('search', { restoreFocus: true }); return; }
-        if (dependencies.editingDraftSnapshot().vertexInsertMode) { dependencies.editingDomain.setDraftVertexInsertMode(false); return; }
-        if (dependencies.state.territorySelectionSession) { (0, dependencies.$)('modeCancelBtn')?.click(); return; }
-        if (dependencies.state.geometryPreview.session) { (0, dependencies.discardActiveGeometryPreview)(); return; }
-        if (dependencies.state.labelPlacementMode) (0, dependencies.exitLabelMode)();
-        else if (dependencies.editingDomain?.draftInputActive?.()) (0, dependencies.requestDraftDiscard)(() => (0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool) ? (0, dependencies.cancelDraft)(true) : (0, dependencies.cancelActiveMode)());
-        else if (['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'country-border', 'country-coast'].includes(dependencies.state.tool)) (0, dependencies.cancelActiveMode)();
-        else if ((0, dependencies.editingDraftCoordinates)().length) (0, dependencies.cancelDraft)(true);
-        else if ((0, dependencies.$)('rightPanel')?.classList.contains('mobile-open')) {
-          (0, dependencies.closeSurface)('editor', { manual: dependencies.layoutMode === 'wide', restoreFocus: true });
+        if (dependencies.projectState.state.modeProcessing) { e.preventDefault(); return; }
+        if (dependencies.domainControllers.closeSelectionToolbarTransient?.({ restoreFocus: true })) { e.preventDefault(); return; }
+        if (!(0, dependencies.platform.$)('preferencesModal')?.classList.contains('hidden')) { (0, dependencies.platform.$)('preferencesCancelBtn')?.click(); return; }
+        if (!(0, dependencies.platform.$)('objectChooser')?.classList.contains('hidden')) { (0, dependencies.objectPicking.closeObjectChooser)({ restoreFocus: true }); return; }
+        if (!(0, dependencies.platform.$)('objectActionsMenu')?.classList.contains('hidden')) { (0, dependencies.objectOperationsA.closeObjectActionsMenu)({ restoreFocus: true }); return; }
+        if (dependencies.libraryUi.historicalLibraryController?.isOpen()) { dependencies.libraryUi.historicalLibraryController.close(); return; }
+        if (!(0, dependencies.platform.$)('territorialTypeModal')?.classList.contains('hidden')) { (0, dependencies.territorialConversion.closeTerritorialTypeModal)(); return; }
+        if (!(0, dependencies.platform.$)('distributionTypeModal')?.classList.contains('hidden')) { (0, dependencies.platform.$)('distributionTypeCancelBtn')?.click(); return; }
+        if (!(0, dependencies.platform.$)('gisImportModal')?.classList.contains('hidden')) { (0, dependencies.platform.$)('gisImportCancelBtn')?.click(); return; }
+        if (!(0, dependencies.platform.$)('gisExportModal')?.classList.contains('hidden')) { dependencies.gisServicesA.gisExportController?.close(); return; }
+        if (dependencies.projectRestore.confirmModalController?.isOpen()) { (0, dependencies.projectRestore.closeConfirmModal)(); return; }
+        if (document.body.classList.contains('file-menu-open')) { (0, dependencies.workspaceUiA.closeFileMenu)({ restoreFocus: true }); return; }
+        if (dependencies.workspaceUiB.surfaceController.isOpen('create')) { (0, dependencies.workspaceUiA.closeSurface)('create', { restoreFocus: true }); return; }
+        if (dependencies.workspaceUiB.surfaceController.isOpen('search')) { e.preventDefault(); (0, dependencies.workspaceUiA.closeSurface)('search', { restoreFocus: true }); return; }
+        if (dependencies.draftPresentation.editingDraftSnapshot().vertexInsertMode) { dependencies.domains.editingDomain.setDraftVertexInsertMode(false); return; }
+        if (dependencies.projectState.state.territorySelectionSession) { (0, dependencies.platform.$)('modeCancelBtn')?.click(); return; }
+        if (dependencies.projectState.state.geometryPreview.session) { (0, dependencies.geometryOperations.discardActiveGeometryPreview)(); return; }
+        if (dependencies.projectState.state.labelPlacementMode) (0, dependencies.countryEditingB.exitLabelMode)();
+        else if (dependencies.domains.editingDomain?.draftInputActive?.()) (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool) ? (0, dependencies.genericEditingA.cancelDraft)(true) : (0, dependencies.countryEditingA.cancelActiveMode)());
+        else if (['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'country-border', 'country-coast'].includes(dependencies.projectState.state.tool)) (0, dependencies.countryEditingA.cancelActiveMode)();
+        else if ((0, dependencies.countryEditingA.editingDraftCoordinates)().length) (0, dependencies.genericEditingA.cancelDraft)(true);
+        else if ((0, dependencies.platform.$)('rightPanel')?.classList.contains('mobile-open')) {
+          (0, dependencies.workspaceUiA.closeSurface)('editor', { manual: dependencies.surfaces.layoutMode === 'wide', restoreFocus: true });
         }
-        else if ((0, dependencies.$)('mapDisplaySurface')?.classList.contains('surface-open')) (0, dependencies.closeSurface)('display', { restoreFocus: true });
-        else if (!(0, dependencies.$)('actionStatus')?.classList.contains('hidden')) (0, dependencies.clearNotification)();
-        else dependencies.selectionUiController.clear({ reason: 'escape-selection-clear' });
+        else if ((0, dependencies.platform.$)('mapDisplaySurface')?.classList.contains('surface-open')) (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: true });
+        else if (!(0, dependencies.platform.$)('actionStatus')?.classList.contains('hidden')) (0, dependencies.readinessUi.clearNotification)();
+        else dependencies.domains.selectionUiController.clear({ reason: 'escape-selection-clear' });
       }
       if (e.key === 'Enter' && !editingText) {
-        const drawing = dependencies.editingDomain?.draftInputActive?.() && !dependencies.state.geometryPreview.session;
-        const action = dependencies.$(drawing ? 'modeDraftDoneBtn' : 'modePrimaryBtn');
+        const drawing = dependencies.domains.editingDomain?.draftInputActive?.() && !dependencies.projectState.state.geometryPreview.session;
+        const action = dependencies.platform.$(drawing ? 'modeDraftDoneBtn' : 'modePrimaryBtn');
         if (action && !action.closest('.hidden, [hidden]')) {
           e.preventDefault();
-          if (!dependencies.state.modeProcessing && !action.disabled) action.click();
+          if (!dependencies.projectState.state.modeProcessing && !action.disabled) action.click();
           return;
         }
       }
-      if (!editingText && Number.isInteger((0, dependencies.editingDraftSnapshot)().selectedVertexIndex) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && dependencies.editingDomain?.draftInputActive?.()) {
+      if (!editingText && Number.isInteger((0, dependencies.draftPresentation.editingDraftSnapshot)().selectedVertexIndex) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && dependencies.domains.editingDomain?.draftInputActive?.()) {
         const distance = e.shiftKey ? 10 : 1;
         const offsets = {
           ArrowLeft: [-distance, 0],
@@ -90,111 +90,111 @@ export function createGlobalInputBindings() {
           ArrowDown: [0, distance],
         };
         e.preventDefault();
-        dependencies.editingDomain?.moveSelectedDraftPointByPixels(...offsets[e.key]);
+        dependencies.domains.editingDomain?.moveSelectedDraftPointByPixels(...offsets[e.key]);
         return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        void (0, dependencies.getGisFileController)().then(controller => controller.saveProject());
+        void (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.saveProject());
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !editingText) {
-        e.preventDefault(); dependencies.projectUi.undo();
+        e.preventDefault(); dependencies.lifecycleUi.projectUi.undo();
       }
       if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey)) && !editingText) {
-        e.preventDefault(); dependencies.projectUi.redo();
+        e.preventDefault(); dependencies.lifecycleUi.projectUi.redo();
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !editingText) {
-        if (dependencies.editingDomain?.draftInputActive?.()) {
+        if (dependencies.domains.editingDomain?.draftInputActive?.()) {
           e.preventDefault();
-          dependencies.editingDomain?.deleteSelectedDraftPoint();
+          dependencies.domains.editingDomain?.deleteSelectedDraftPoint();
           return;
         }
-        if (dependencies.state.selected) {
+        if (dependencies.projectState.state.selected) {
           e.preventDefault();
-          if (dependencies.selectionDomain.size() > 1) (0, dependencies.requestBatchDelete)();
-          else (0, dependencies.deleteSelected)();
+          if (dependencies.domains.selectionDomain.size() > 1) (0, dependencies.objectOperationsA.requestBatchDelete)();
+          else (0, dependencies.objectDeletion.deleteSelected)();
         }
       }
     });
 
     document.addEventListener('keyup', e => {
       if (e.code !== 'Space') return;
-      dependencies.state.spacePanActive = false;
-      dependencies.mapInteractionGate.setForcedPan(false);
-      dependencies.mapHost?.setForcedPan?.(false);
-      (0, dependencies.$)('map')?.classList.remove('space-pan-active');
+      dependencies.projectState.state.spacePanActive = false;
+      dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
+      dependencies.mapView.mapHost?.setForcedPan?.(false);
+      (0, dependencies.platform.$)('map')?.classList.remove('space-pan-active');
     });
     window.addEventListener('blur', () => {
-      dependencies.mapInputController?.cancel?.();
-      dependencies.editingDomain?.cancelActiveGesture?.('window-blur');
-      dependencies.state.spacePanActive = false;
-      dependencies.mapInteractionGate.setForcedPan(false);
-      dependencies.mapHost?.setForcedPan?.(false);
-      (0, dependencies.$)('map')?.classList.remove('space-pan-active');
+      dependencies.lifecycleUi.mapInputController?.cancel?.();
+      dependencies.domains.editingDomain?.cancelActiveGesture?.('window-blur');
+      dependencies.projectState.state.spacePanActive = false;
+      dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
+      dependencies.mapView.mapHost?.setForcedPan?.(false);
+      (0, dependencies.platform.$)('map')?.classList.remove('space-pan-active');
     });
     const clearAssistedPan = () => {
-      dependencies.state.spacePanActive = false;
-      dependencies.mapInteractionGate.setForcedPan(false);
-      dependencies.mapHost?.setForcedPan?.(false);
-      (0, dependencies.$)('map')?.classList.remove('space-pan-active');
+      dependencies.projectState.state.spacePanActive = false;
+      dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
+      dependencies.mapView.mapHost?.setForcedPan?.(false);
+      (0, dependencies.platform.$)('map')?.classList.remove('space-pan-active');
     };
-    (0, dependencies.$)('map')?.addEventListener('pointercancel', () => { clearAssistedPan(); dependencies.editingDomain?.cancelActiveGesture?.('pointercancel'); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) { clearAssistedPan(); dependencies.mapInputController?.cancel?.(); dependencies.editingDomain?.cancelActiveGesture?.('document-hidden'); } });
-    (0, dependencies.$)('map')?.addEventListener('touchcancel', () => dependencies.editingDomain?.cancelActiveGesture?.('touchcancel'), { passive: true });
+    (0, dependencies.platform.$)('map')?.addEventListener('pointercancel', () => { clearAssistedPan(); dependencies.domains.editingDomain?.cancelActiveGesture?.('pointercancel'); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { clearAssistedPan(); dependencies.lifecycleUi.mapInputController?.cancel?.(); dependencies.domains.editingDomain?.cancelActiveGesture?.('document-hidden'); } });
+    (0, dependencies.platform.$)('map')?.addEventListener('touchcancel', () => dependencies.domains.editingDomain?.cancelActiveGesture?.('touchcancel'), { passive: true });
 
     window.addEventListener('resize', () => {
-      (0, dependencies.closeObjectActionsMenu)();
-      const layoutChanged = (0, dependencies.applyLayoutMode)();
+      (0, dependencies.objectOperationsA.closeObjectActionsMenu)();
+      const layoutChanged = (0, dependencies.workspaceUiA.applyLayoutMode)();
       if (!layoutChanged) {
-        (0, dependencies.refreshMapSheetMetrics)();
-        if (!dependencies.mapResizeObserver) (0, dependencies.queueMapResize)('window-resize-fallback');
+        (0, dependencies.workspaceUiB.refreshMapSheetMetrics)();
+        if (!dependencies.mapHostViewB.mapResizeObserver) (0, dependencies.mapHostViewB.queueMapResize)('window-resize-fallback');
       }
     });
     window.addEventListener('orientationchange', () => {
-      (0, dependencies.refreshMapSheetMetrics)();
-      (0, dependencies.queueMapResize)('orientation-change');
+      (0, dependencies.workspaceUiB.refreshMapSheetMetrics)();
+      (0, dependencies.mapHostViewB.queueMapResize)('orientation-change');
     });
-    window.visualViewport?.addEventListener?.('resize', dependencies.closeObjectActionsMenu);
-    const onSystemThemeChange = event => (0, dependencies.applySystemTheme)(!!event.matches);
-    if (typeof dependencies.systemThemeQuery.addEventListener === 'function') dependencies.systemThemeQuery.addEventListener('change', onSystemThemeChange);
-    else if (typeof dependencies.systemThemeQuery.addListener === 'function') dependencies.systemThemeQuery.addListener(onSystemThemeChange);
+    window.visualViewport?.addEventListener?.('resize', dependencies.objectOperationsA.closeObjectActionsMenu);
+    const onSystemThemeChange = event => (0, dependencies.platformConfigurationB.applySystemTheme)(!!event.matches);
+    if (typeof dependencies.platformConfigurationB.systemThemeQuery.addEventListener === 'function') dependencies.platformConfigurationB.systemThemeQuery.addEventListener('change', onSystemThemeChange);
+    else if (typeof dependencies.platformConfigurationB.systemThemeQuery.addListener === 'function') dependencies.platformConfigurationB.systemThemeQuery.addListener(onSystemThemeChange);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
-        dependencies.mapInputController?.cancel?.();
-        dependencies.editingDomain?.cancelActiveGesture?.('document-hidden');
-        dependencies.mapWorkScheduler.cancel('autosave');
-        dependencies.mapWorkScheduler.cancel('view-autosave');
-        dependencies.projectDomain.persistAutosave().catch(error => console.warn('Immediate autosave failed', error));
+        dependencies.lifecycleUi.mapInputController?.cancel?.();
+        dependencies.domains.editingDomain?.cancelActiveGesture?.('document-hidden');
+        dependencies.projectState.mapWorkScheduler.cancel('autosave');
+        dependencies.projectState.mapWorkScheduler.cancel('view-autosave');
+        dependencies.domains.projectDomain.persistAutosave().catch(error => console.warn('Immediate autosave failed', error));
       }
     });
     window.addEventListener('beforeunload', () => {
-      if (!(0, dependencies.canMutateProject)(dependencies.state.dataReadiness)) return;
-      try { dependencies.projectDomain.flushAutosave().catch(() => {}); } catch (_) {}
+      if (!(0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness)) return;
+      try { dependencies.domains.projectDomain.flushAutosave().catch(() => {}); } catch (_) {}
     });
     window.addEventListener('popstate', event => {
-      if (dependencies.ignoreNextMobileSheetPopstate) {
-        dependencies.ignoreNextMobileSheetPopstate = false;
+      if (dependencies.workspaceUiB.ignoreNextMobileSheetPopstate) {
+        dependencies.surfaceCommands.setIgnoreNextMobileSheetPopstate(false);
         return;
       }
-      if ((0, dependencies.isMobile)() && dependencies.surfaceController.activeMobileSheet) {
+      if ((0, dependencies.surfaces.isMobile)() && dependencies.workspaceUiB.surfaceController.activeMobileSheet) {
         const openSelect = document.querySelector('.ui-select-popover:not([hidden])');
         if (openSelect) {
-          dependencies.selectController.closeAll({ restoreFocus: true });
-          (0, dependencies.trackMobileSheetHistory)(dependencies.surfaceController.activeMobileSheet);
+          dependencies.platformConfigurationB.selectController.closeAll({ restoreFocus: true });
+          (0, dependencies.workspaceUiC.trackMobileSheetHistory)(dependencies.workspaceUiB.surfaceController.activeMobileSheet);
           return;
         }
         const openPicker = document.querySelector('[data-color-picker].is-open');
         if (openPicker) {
-          (0, dependencies.closeColorPicker)(openPicker, { restoreFocus: true });
-          (0, dependencies.trackMobileSheetHistory)(dependencies.surfaceController.activeMobileSheet);
+          (0, dependencies.colorPicker.closeColorPicker)(openPicker, { restoreFocus: true });
+          (0, dependencies.workspaceUiC.trackMobileSheetHistory)(dependencies.workspaceUiB.surfaceController.activeMobileSheet);
           return;
         }
-        (0, dependencies.closeActiveMobileSheet)({ restoreFocus: true, syncHistory: false });
+        (0, dependencies.workspaceUiA.closeActiveMobileSheet)({ restoreFocus: true, syncHistory: false });
         return;
       }
-      if (event.state?.[dependencies.MOBILE_SHEET_HISTORY_KEY]) {
+      if (event.state?.[dependencies.workspaceUiA.MOBILE_SHEET_HISTORY_KEY]) {
         const nextState = { ...event.state };
-        delete nextState[dependencies.MOBILE_SHEET_HISTORY_KEY];
+        delete nextState[dependencies.workspaceUiA.MOBILE_SHEET_HISTORY_KEY];
         window.history.replaceState(nextState, '', window.location.href);
       }
     });

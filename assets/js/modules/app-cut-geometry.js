@@ -139,21 +139,21 @@ export function createCutGeometry() {
   }
 
   function activeCutDraftSourceGeometry() {
-    if (dependencies.state.tool === 'split-generic-feature') {
-      return dependencies.state.genericFeatures.find(item => String(item.id) === String(dependencies.state.genericFeatureSplitSourceId))?.geometry || null;
+    if (dependencies.projectState.state.tool === 'split-generic-feature') {
+      return dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.genericFeatureSplitSourceId))?.geometry || null;
     }
-    if (dependencies.state.tool === 'split-territorial-unit') {
-      return ((0, dependencies.objectPresentation.territorialUnitById)(dependencies.state.territorialUnitSplitSourceId) || dependencies.state.territorialUnitSplitVirtualSource)?.geometry || null;
+    if (dependencies.projectState.state.tool === 'split-territorial-unit') {
+      return ((0, dependencies.objectPresentation.territorialUnitById)(dependencies.projectState.state.territorialUnitSplitSourceId) || dependencies.projectState.state.territorialUnitSplitVirtualSource)?.geometry || null;
     }
-    const territorySelection = dependencies.state.territorySelectionSession;
-    if (territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection'
+    const territorySelection = dependencies.projectState.state.territorySelectionSession;
+    if (territorySelection?.tool === dependencies.projectState.state.tool && territorySelection.stage === 'selection'
       && territorySelection.activePhase === 'drawing' && territorySelection.activeMethod === 'line') return territorySelection.workingSourceGeometry || null;
     return null;
   }
 
   function cutEndpointSnapDistance() {
     const coarsePointer = dependencies.platform.coarsePointer ?? globalThis.matchMedia?.('(pointer: coarse)')?.matches;
-    return coarsePointer ? dependencies.CUT_ENDPOINT_SNAP_DISTANCE.touch : dependencies.CUT_ENDPOINT_SNAP_DISTANCE.mouse;
+    return coarsePointer ? dependencies.geometryValidation.CUT_ENDPOINT_SNAP_DISTANCE.touch : dependencies.geometryValidation.CUT_ENDPOINT_SNAP_DISTANCE.mouse;
   }
 
   function snapCutDraftLine(rawLine, sourceGeometry) {
@@ -161,7 +161,7 @@ export function createCutGeometry() {
       project: coordinate => (0, dependencies.mapView.activeProjection)()(coordinate),
       maxDistance: cutEndpointSnapDistance(),
       isVisible: dependencies.mapView.isCoordVisible,
-      maxSegmentLength: Math.max(1, dependencies.state.size.width * 0.7),
+      maxSegmentLength: Math.max(1, dependencies.projectState.state.size.width * 0.7),
     });
   }
 
@@ -519,7 +519,7 @@ export function createCutGeometry() {
   function selectedCountryUnionGeometry(sourceIds) {
     const ids = new Set((sourceIds || []).map(String));
     if (!ids.size) throw new Error('영토를 가져올 국가를 하나 이상 선택하세요.');
-    const union = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(dependencies.state.countriesData?.features || [], ids);
+    const union = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(dependencies.projectState.state.countriesData?.features || [], ids);
     const geometry = normalizeClippedLandGeometry(union);
     if (!geometry) throw new Error('선택 국가의 영토 합집합을 만들 수 없습니다.');
     return geometry;
@@ -534,10 +534,10 @@ export function createCutGeometry() {
       return [String(next.id || ''), next];
     }));
     const removed = new Set((result.removedIds || []).map(String));
-    dependencies.state.countriesData.features = dependencies.state.countriesData.features.flatMap(feature => {
+    dependencies.projectState.state.countriesData.features = dependencies.projectState.state.countriesData.features.flatMap(feature => {
       const id = String(feature.id || '');
       if (removed.has(id)) {
-        delete dependencies.state.countryOverrides[id];
+        delete dependencies.projectState.state.countryOverrides[id];
         return [];
       }
       if (updates.has(id)) {
@@ -547,8 +547,8 @@ export function createCutGeometry() {
       }
       return [feature];
     });
-    for (const feature of updates.values()) dependencies.state.countriesData.features.push(feature);
-    (0, dependencies.geometryMutation.reindexCountries)(dependencies.state.countriesData, true);
+    for (const feature of updates.values()) dependencies.projectState.state.countriesData.features.push(feature);
+    (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
     dependencies.geometryMutation.setApplyingWorkerResult(true);
     try {
       (0, dependencies.spatialQuery.markCountryGeometriesChanged)(

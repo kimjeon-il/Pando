@@ -17,8 +17,8 @@ export function createServiceAssembly() {
   function selectionPerformanceCounterSnapshot() {
     if (!selectionPerfEnabled) return null;
     const gpu = gpuMapRenderer?.getStats?.() || {};
-    const selectionGpu = dependencies.selectionPass?.stats?.() || {};
-    const render = dependencies.renderingDomain?.getStats?.() || {};
+    const selectionGpu = dependencies.gpuRenderingA.selectionPass?.stats?.() || {};
+    const render = dependencies.domains.renderingDomain?.getStats?.() || {};
     return {
       selectionBufferBuildCount: Number(selectionGpu.bufferBuildCount || 0),
       selectionUploadBytes: Number(selectionGpu.bufferUploadBytes || 0),
@@ -34,7 +34,7 @@ export function createServiceAssembly() {
     if (!selectionPerfEnabled) return;
     const after = selectionPerformanceCounterSnapshot();
     const gpu = gpuMapRenderer?.getStats?.() || {};
-    const selectionGpu = dependencies.selectionPass?.stats?.() || {};
+    const selectionGpu = dependencies.gpuRenderingA.selectionPass?.stats?.() || {};
     selectionPerformanceBaseline.record({
       scenario,
       inputToPresentMs: selectionPerformanceMetrics.inputToPresentMs,
@@ -46,7 +46,7 @@ export function createServiceAssembly() {
       selectionUploadBytes: after.selectionUploadBytes - before.selectionUploadBytes,
       mainDrawCount: after.mainDrawCount - before.mainDrawCount,
       selectionDrawCount: after.selectionDrawCount - before.selectionDrawCount,
-      svgFallbackCount: Number(dependencies.renderingDomain?.getSelectionRenderStats?.().fallbackCount || 0),
+      svgFallbackCount: Number(dependencies.domains.renderingDomain?.getSelectionRenderStats?.().fallbackCount || 0),
       longTaskCount: after.longTaskCount - before.longTaskCount,
       worldMeshUploadCount: 0,
       hydroUploadBytes: after.hydroUploadBytes - before.hydroUploadBytes,
@@ -83,7 +83,7 @@ export function createServiceAssembly() {
       direct: false,
     });
 
-    (selectionPerformanceBaseline = (0, dependencies.createSelectionPerformanceBaseline)({ mobile: (0, dependencies.isMobile)() }));
+    (selectionPerformanceBaseline = (0, dependencies.selectionServices.createSelectionPerformanceBaseline)({ mobile: (0, dependencies.surfaces.isMobile)() }));
 
     (selectionPerfEnabled = new URLSearchParams(location.search).has('perf'));
 
@@ -100,60 +100,60 @@ export function createServiceAssembly() {
   }
 
   function initializeGpuMapRenderer() {
-    (gpuMapRenderer = (0, dependencies.createGpuMapRenderer)({
-      APP_VERSION: dependencies.APP_VERSION,
-      ASSET_REVISION: dependencies.ASSET_REVISION,
-      DATA_REVISION: dependencies.DATA_REVISION,
-      PHYSICAL_DATA_BASE_URL: dependencies.PHYSICAL_DATA_BASE_URL,
-      activeProjection: dependencies.activeProjection,
+    (gpuMapRenderer = (0, dependencies.renderFactories.createGpuMapRenderer)({
+      APP_VERSION: dependencies.platformConfigurationA.APP_VERSION,
+      ASSET_REVISION: dependencies.layerPresentation.ASSET_REVISION,
+      DATA_REVISION: dependencies.physicalConfig.DATA_REVISION,
+      PHYSICAL_DATA_BASE_URL: dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL,
+      activeProjection: dependencies.mapView.activeProjection,
       countryColor: feature => feature.properties?.unitType === 'subunit'
-        ? (0, dependencies.territorialUnitColor)((0, dependencies.builtinRenderCountries)().nativeUnits.get(String(feature.id)) || feature) : (0, dependencies.countryColor)(feature),
-      countryFeatureById: dependencies.renderCountryFeatureById,
-      countryOutlineFeature: dependencies.countryOutlineFeature,
-      d3: dependencies.d3,
-      deepClone: dependencies.deepClone,
-      defaultCountryColor: dependencies.defaultCountryColor,
-      flatProjection: dependencies.flatProjection,
-      getSystemTheme: () => document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || dependencies.systemTheme,
-      globeProjection: dependencies.globeProjection,
-      hydroDisplayColor: dependencies.hydroDisplayColor,
-      hydroFeatureById: dependencies.hydroFeatureById,
-      hydroVisibilityThreshold: dependencies.hydroVisibilityThreshold,
-      isCountryVisibleById: dependencies.isRenderCountryVisible,
-      isHydroFeatureVisible: dependencies.isHydroFeatureVisible,
-      isLayerItemVisible: dependencies.isLayerItemVisible,
-      isMobile: dependencies.isMobile,
-      isSafeKoreanErrorMessage: dependencies.isSafeKoreanErrorMessage,
-      mapTheme: dependencies.mapTheme,
-      mapWorkScheduler: dependencies.mapWorkScheduler,
-      prepareHydroFeature: dependencies.prepareHydroFeature,
-      queueMapResize: dependencies.queueMapResize,
-      renderPendingCountryOverlays: dependencies.renderPendingCountryOverlays,
-      renderViewFrame: () => dependencies.renderingDomain?.invalidateView?.('render-view') || false,
-      reportOperationError: dependencies.reportOperationError,
+        ? (0, dependencies.colorModel.territorialUnitColor)((0, dependencies.countries.builtinRenderCountries)().nativeUnits.get(String(feature.id)) || feature) : (0, dependencies.colorModel.countryColor)(feature),
+      countryFeatureById: dependencies.builtinCountries.renderCountryFeatureById,
+      countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
+      d3: dependencies.platform.d3,
+      deepClone: dependencies.platform.deepClone,
+      defaultCountryColor: dependencies.colorModel.defaultCountryColor,
+      flatProjection: dependencies.mapView.flatProjection,
+      getSystemTheme: () => document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || dependencies.preferences.systemTheme,
+      globeProjection: dependencies.mapView.globeProjection,
+      hydroDisplayColor: dependencies.hydroPresentation.hydroDisplayColor,
+      hydroFeatureById: dependencies.hydroModel.hydroFeatureById,
+      hydroVisibilityThreshold: dependencies.physicalResources.hydroVisibilityThreshold,
+      isCountryVisibleById: dependencies.builtinCountries.isRenderCountryVisible,
+      isHydroFeatureVisible: dependencies.physicalServices.isHydroFeatureVisible,
+      isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
+      isMobile: dependencies.surfaces.isMobile,
+      isSafeKoreanErrorMessage: dependencies.readinessUi.isSafeKoreanErrorMessage,
+      mapTheme: dependencies.preferences.mapTheme,
+      mapWorkScheduler: dependencies.projectState.mapWorkScheduler,
+      prepareHydroFeature: dependencies.physicalResources.prepareHydroFeature,
+      queueMapResize: dependencies.mapHostViewB.queueMapResize,
+      renderPendingCountryOverlays: dependencies.countryLabelModel.renderPendingCountryOverlays,
+      renderViewFrame: () => dependencies.domains.renderingDomain?.invalidateView?.('render-view') || false,
+      reportOperationError: dependencies.feedback.reportOperationError,
       rendererUi: {
         createCanvas: () => document.createElement('canvas'),
-        getMapElement: () => (0, dependencies.$)('map'),
+        getMapElement: () => (0, dependencies.platform.$)('map'),
         setEngineStatus: text => {
           (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = text;
         },
-        onContextStateChange: phase => dependencies.renderingDomain?.invalidateGpuContext?.(phase) || false,
-        requestHostRepaint: reason => dependencies.mapHost?.requestRepaint?.(reason) || false,
+        onContextStateChange: phase => dependencies.domains.renderingDomain?.invalidateGpuContext?.(phase) || false,
+        requestHostRepaint: reason => dependencies.mapView.mapHost?.requestRepaint?.(reason) || false,
       },
-      runtimeAssetUrl: dependencies.runtimeAssetUrl,
-      scheduleGpuFrame: reason => dependencies.renderingDomain?.invalidateGpuFrame?.(reason) || false,
-      scheduleGpuInteractionFrame: reason => dependencies.renderingDomain?.invalidateGpuInteraction?.(reason) || false,
-      scheduleGpuMeshRebuild: dependencies.scheduleGpuMeshRebuild,
-      setActionStatus: dependencies.setActionStatus,
-      state: new Proxy(dependencies.state, { get: (target, key) => {
-        if (key === 'countriesData') return (0, dependencies.builtinRenderCountries)().collection;
+      runtimeAssetUrl: dependencies.platform.runtimeAssetUrl,
+      scheduleGpuFrame: reason => dependencies.domains.renderingDomain?.invalidateGpuFrame?.(reason) || false,
+      scheduleGpuInteractionFrame: reason => dependencies.domains.renderingDomain?.invalidateGpuInteraction?.(reason) || false,
+      scheduleGpuMeshRebuild: dependencies.renderQuality.scheduleGpuMeshRebuild,
+      setActionStatus: dependencies.feedback.setActionStatus,
+      state: new Proxy(dependencies.projectState.state, { get: (target, key) => {
+        if (key === 'countriesData') return (0, dependencies.countries.builtinRenderCountries)().collection;
         if (key === 'layerVisibility') return { ...target.layerVisibility, countries: target.layerVisibility.countries
-          || [...(0, dependencies.builtinRenderCountries)().nativeUnits.keys()].some(dependencies.isRenderCountryVisible) };
+          || [...(0, dependencies.countries.builtinRenderCountries)().nativeUnits.keys()].some(dependencies.builtinCountries.isRenderCountryVisible) };
         return Reflect.get(target, key);
       } }),
     }));
 
-    gpuMapRenderer.setRenderQuality?.(dependencies.currentRenderQuality);
+    gpuMapRenderer.setRenderQuality?.(dependencies.renderScene.currentRenderQuality);
   }
 
   return Object.freeze({

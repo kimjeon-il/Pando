@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCountryLabels } from '../../assets/js/modules/app-country-labels.js';
+import { createApplicationPorts, MAP_RESOURCE_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { createMapSettings } from '../../assets/js/modules/app-map-settings.js';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
 import { layoutCountryFlags } from '../../assets/js/modules/country-label-flags.js';
 import { automaticLabelSettings, labelKey, layoutLabels, LABEL_PRIORITIES } from '../../assets/js/modules/label-layout.js';
+import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 function fixture(visibility = {}) {
   const features = ['AAA', 'BBB', 'SUBUNIT', 'NOFLAG'].map(id => ({
@@ -20,22 +22,36 @@ function fixture(visibility = {}) {
     labels: [{ id: 'PLACE', kind: 'capital', name: 'Place', coordinates: [100, 300] }],
   };
   const controller = createCountryLabels();
-  controller.connect({
-    state, automaticLabelSettings, labelKey, layoutLabels, layoutCountryFlags, LABEL_PRIORITIES,
-    countryLabelAnchors: anchors, pendingCountryLabelAnchors: new Set(),
-    builtinRenderCountries: () => ({
+  const providers = new Proxy({
+    projectSession: { state },
+    runtime: { automaticLabelSettings, labelKey, layoutLabels, layoutCountryFlags, LABEL_PRIORITIES,
+      TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country' },
+      effectiveCountryFlagUrl: ({ countryId }) => countryId === 'NOFLAG' ? null : `/${countryId}.svg`,
+    },
+    countryIndex: { countryLabelAnchors: anchors, pendingCountryLabelAnchors: new Set() },
+    builtinSession: { builtinRenderCountries: () => ({
       labelById: new Map(features.map(feature => [feature.id, feature])),
       labelRefs: new Map([['SUBUNIT', { domain: 'territorial', type: 'subunit', id: 'SUBUNIT' }]]),
-    }),
-    isLayerItemVisible: (_group, id) => !hiddenIds.has(id),
-    visibleMapObjectCandidates: () => state.labels.filter(label => !hiddenIds.has(label.id)),
-    projectVisibleCoordinate: coordinate => coordinate,
-    selectionDomain: { has: () => false }, TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country' },
-    currentRenderQuality: { labelDensity: 1, tier: 'high' }, viewportCullingMetrics: { lastByDomain: { label: {} } },
-    isMobile: () => false, activeProjection: () => ({ scale: () => 1000 }),
-    geometryBounds: () => [-10, -10, 10, 10], countryName: feature => feature.properties.name,
-    effectiveCountryFlagUrl: ({ countryId }) => countryId === 'NOFLAG' ? null : `/${countryId}.svg`,
-  });
+    }) },
+    layerList: { isLayerItemVisible: (_group, id) => !hiddenIds.has(id) },
+    spatialIndex: {
+      visibleMapObjectCandidates: () => state.labels.filter(label => !hiddenIds.has(label.id)),
+      geometryBounds: () => [-10, -10, 10, 10],
+      viewportCullingMetrics: { lastByDomain: { label: {} } },
+    },
+    mapProjection: {
+      projectVisibleCoordinate: coordinate => coordinate,
+      activeProjection: () => ({ scale: () => 1000 }),
+    },
+    domainAssembly: { selectionDomain: { has: () => false } },
+    renderQuality: { currentRenderQuality: { labelDensity: 1, tier: 'high' } },
+    objectPresentation: { countryName: feature => feature.properties.name },
+    workspaceSurfaces: { isMobile: () => false },
+  }, { get: (target, key) => target[key] ||= {} });
+  const ports = createApplicationPorts(providers);
+  controller.connect(Object.freeze(Object.fromEntries(
+    MAP_RESOURCE_OWNER_PORTS.countryLabels.map(portName => [portName, ports[portName]]),
+  )));
   controller.initializeCountryLabelScreenAreas();
   return { controller, state, anchors, hiddenIds, features };
 }
@@ -83,7 +99,7 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
   });
   const settings = createMapSettings();
   let baseInvalidations = 0, autosaves = 0;
-  settings.connect({
+  settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, {
     state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
     normalizeLayerPresentation: value => value, markLayerTreeDirty() {},
     renderingDomain: {
@@ -91,7 +107,7 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
       invalidateBaseScene: () => { baseInvalidations += 1; },
     },
     projectDomain: { queuePresentationAutosave: () => { autosaves += 1; } },
-  });
+  }));
   settings.setLayerVisibility('basemapLabels', false);
   frames.shift()();
   assert.equal(layouts.at(-1).countryFlags.size, 2);

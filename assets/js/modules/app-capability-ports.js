@@ -1,10 +1,19 @@
+import { createFoundationPorts, FOUNDATION_OWNER_PORTS } from './app-capability-ports-foundation.js';
+import { createMapInteractionPorts, MAP_INTERACTION_OWNER_PORTS } from './app-capability-ports-map-interaction.js';
+import { createObjectEditingPorts, OBJECT_EDITING_OWNER_PORTS } from './app-capability-ports-object-editing.js';
+import { createProjectIoPorts, PROJECT_IO_OWNER_PORTS } from './app-capability-ports-project-io.js';
+import { createLifecycleUiPorts, LIFECYCLE_UI_OWNER_PORTS } from './app-capability-ports-lifecycle-ui.js';
+import { mergeCapabilityPorts } from './app-capability-port-utils.js';
+
+export { FOUNDATION_OWNER_PORTS, MAP_INTERACTION_OWNER_PORTS, OBJECT_EDITING_OWNER_PORTS, PROJECT_IO_OWNER_PORTS, LIFECYCLE_UI_OWNER_PORTS };
+
 /** Shared, live capability ports for the spatial-data owner group. */
 export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
   cameraNavigation: Object.freeze(["countries","domains","feedback","mapNavigation","mapView","objectLookup","physicalData","platform","projectState","rendering","surfaces"]),
   readinessNotifications: Object.freeze(["platform","projectState","readiness","surfaces"]),
   countryIndex: Object.freeze(["countries","domains","geometryModel","layers","mapView","platform","projectState","spatialQuery"]),
   spatialIndex: Object.freeze(["countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","presentationCommands","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
-  geometryPreview: Object.freeze(["countries","domains","feedback","geometryEditing","geometryModel","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
+  geometryPreview: Object.freeze(["countries","domains","feedback","geometryEditingCore","geometryModel","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
   territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel"]),
   countryValidation: Object.freeze(["countries","cutGeometry","domains","geometryModel","geometryPreview","presentation","projectState","snapshots","spatialQuery","territoryGeometry"]),
   landRelations: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","layers","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
@@ -41,7 +50,7 @@ export function createSpatialDataPorts(providers) {
       get reportOperationError() { return providers.readinessNotifications.reportOperationError; },
       get setActionStatus() { return providers.readinessNotifications.setActionStatus; },
     }),
-    geometryEditing: Object.freeze({
+    geometryEditingCore: Object.freeze({
       get beginGeometryPreview() { return providers.runtime.beginGeometryPreview; },
       get buildGeometryPreview() { return providers.runtime.buildGeometryPreview; },
       get clearGeometryPreview() { return providers.runtime.clearGeometryPreview; },
@@ -357,8 +366,13 @@ function createMapResourcePorts(providers) {
 }
 
 export function createApplicationPorts(providers) {
-  return Object.freeze({
-    ...createSpatialDataPorts(providers),
-    ...createMapResourcePorts(providers),
-  });
+  return mergeCapabilityPorts(
+    createSpatialDataPorts(providers),
+    createMapResourcePorts(providers),
+    createFoundationPorts(providers),
+    createMapInteractionPorts(providers),
+    createObjectEditingPorts(providers),
+    createProjectIoPorts(providers),
+    createLifecycleUiPorts(providers),
+  );
 }

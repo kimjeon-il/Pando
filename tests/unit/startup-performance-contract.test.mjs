@@ -13,6 +13,7 @@ const bootstrap = read('assets/js/bootstrap.js');
 const loader = read('assets/js/workers/data-loader-worker.js');
 const projectRestore = read('assets/js/modules/app-project-restore.js');
 const lifecycleWiring = read('assets/js/modules/app-connect-lifecycle-ui.js');
+const foundationPorts = read('assets/js/modules/app-capability-ports-foundation.js');
 const meshResourceLoader = read('assets/js/modules/builtin-mesh-resource.js');
 const metadata = read('assets/js/build-meta.js');
 const bundle = read('assets/css/ui.bundle.css');
@@ -41,7 +42,7 @@ test('label and terrain view work scales with the visible frame', () => {
   const labelMetricsSource = app.slice(labelMetricsStart, labelMetricsEnd);
   assert.ok(labelMetricsStart >= 0 && labelMetricsEnd > labelMetricsStart);
   assert.doesNotMatch(labelMetricsSource, /path\.bounds/);
-  assert.match(labelMetricsSource, /geometryBounds\(geometry\)/);
+  assert.match(labelMetricsSource, /spatialQuery\.geometryBounds/);
   assert.match(gpuRenderer, /const globe = Number\(frameContext\?\.mode\) === 0/);
   assert.match(gpuRenderer, /const angularStep = globe/);
   assert.doesNotMatch(gpuRenderer, /Math\.ceil\(spanLon \/ 0\.499\)/);
@@ -149,7 +150,8 @@ test('new project reuses a prepared built-in mesh instead of scheduling a world 
   assert.match(loader, /builtin-mesh-only/);
   assert.match(loader, /type: 'builtin-mesh-ready'/);
   assert.match(bootstrap, /identity:\s*data\.identity \|\| null/);
-  assert.match(lifecycleWiring, /get canonicalCountryStore\(\) \{ return builtinSession\.canonicalCountryStore; \}/);
+  assert.match(lifecycleWiring, /connectCapabilityOwners\(LIFECYCLE_UI_OWNER_PORTS/);
+  assert.match(foundationPorts, /\["canonicalCountryStore","builtinSession","canonicalCountryStore"\]/);
   assert.match(meshResourceLoader, /if \(pending\) return pending/);
   const resetStart = projectRestore.indexOf('async function resetProjectInPlace');
   const resetEnd = projectRestore.indexOf('function initializeConfirmModalController', resetStart);

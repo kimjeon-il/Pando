@@ -33,7 +33,7 @@ export function createObjectPresentation() {
   }
 
   function genericFeatureColor(feature) {
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.GENERIC, { feature }, { fallback: defaultGenericFeatureColor(feature) }).value;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.GENERIC, { feature }, { fallback: defaultGenericFeatureColor(feature) }).value;
   }
 
   function genericFeatureRoleLabel(feature) {
@@ -51,7 +51,7 @@ export function createObjectPresentation() {
     if (cached && cached.revision === dependencies.countries.countryLandRevision && cached.geometry === feature.geometry && cached.ownerId === ownerId) return { ...feature, geometry: cached.feature.geometry };
     const entry = { revision: dependencies.countries.countryLandRevision, geometry: feature.geometry, ownerId, feature: { ...feature, geometry: null } };
     genericFeatureLandClipCache.set(feature, entry);
-    dependencies.mapEditClient.execute('territorial-land-clip', { payload: { targetId: String(feature.id) } },
+    dependencies.spatialQuery.mapEditClient.execute('territorial-land-clip', { payload: { targetId: String(feature.id) } },
       { jobKey: `territorial-land-clip:${feature.id}` }).then(response => {
       if (genericFeatureLandClipCache.get(feature) !== entry || entry.geometry !== feature.geometry || entry.revision !== dependencies.countries.countryLandRevision) return;
       entry.feature = { ...feature, geometry: response.result.geometry };
@@ -69,23 +69,23 @@ export function createObjectPresentation() {
   }
 
   function territorialStyleColor(feature) {
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }).explicit;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }).explicit;
   }
 
   function setTerritorialStyleColor(feature, color) {
     if (!feature?.properties) return '';
-    return (0, dependencies.colorModel.writeDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }, color, { clear: !color, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
+    return (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, color, { clear: !color, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
   }
 
   function territorialUnitName(feature) {
     const properties = feature?.properties || {};
     if (properties.name) return (0, dependencies.objectPresentation.defaultGeographicName)((0, dependencies.objectCatalog.builtinSubunitSourceId)(feature), properties.name);
-    if (properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
+    if (properties.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
     return '이름 없는 하위단위';
   }
 
   function territorialUnitColor(feature) {
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }, {
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, {
       inherited: territorialScope.color(feature, dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR),
       fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
     }).value;
@@ -98,15 +98,15 @@ export function createObjectPresentation() {
 
   function countryColor(feature) {
     const id = String(feature?.id || '');
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.state.countryOverrides[id] }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }).value;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.projectState.state.countryOverrides[id] }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }).value;
   }
 
   function distributionColor(layer) {
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }).value;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }).value;
   }
 
   function countryName(feature) {
-    return (0, dependencies.objectPresentation.countryDisplayName)(feature, dependencies.state.countryOverrides[String(feature?.id || '')]);
+    return (0, dependencies.objectPresentation.countryDisplayName)(feature, dependencies.projectState.state.countryOverrides[String(feature?.id || '')]);
   }
 
   function hydroCategoryKey(value) {
@@ -130,9 +130,9 @@ export function createObjectPresentation() {
   }
 
   function syncMapObjectCategoryLabels() {
-    const buildContent = (0, dependencies.$)('createBuildPanel');
+    const buildContent = (0, dependencies.platform.$)('createBuildPanel');
     if (buildContent) {
-      dependencies.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
+      dependencies.objectCatalog.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
         const categoryNode = buildContent.querySelector(`.ui-menu-group[data-map-category="${categoryKey}"]`);
         const category = dependencies.objectCatalog.MAP_OBJECT_CATEGORIES[categoryKey];
         if (!categoryNode || !category) return;
@@ -160,7 +160,7 @@ export function createObjectPresentation() {
 
   function initializeTerritorialScope() {
     (territorialScope = (0, dependencies.objectPresentation.createTerritorialScopeResolver)({
-      read: () => ({ units: dependencies.state.territorialUnits, revision: `${dependencies.state.stateRevision}:${dependencies.countries.countryLandRevision}:${dependencies.mapObjectGeometryRevisions.territorial}` }),
+      read: () => ({ units: dependencies.projectState.state.territorialUnits, revision: `${dependencies.projectState.state.stateRevision}:${dependencies.countries.countryLandRevision}:${dependencies.spatialQuery.mapObjectGeometryRevisions.territorial}` }),
       countryById: dependencies.countries.countryFeatureById,
       countryColor,
       clipper: () => window.polygonClipping,
@@ -199,9 +199,9 @@ export function createObjectPresentation() {
     (validateTerritorialUnitRelations = (units, options) => territorialApplicationService.validateRelations(units, options));
 
     (DISTRIBUTION_GROUP_TYPES = Object.freeze({
-      languages: dependencies.DISTRIBUTION_TYPES.LANGUAGE,
-      ethnicities: dependencies.DISTRIBUTION_TYPES.ETHNICITY,
-      religions: dependencies.DISTRIBUTION_TYPES.RELIGION,
+      languages: dependencies.objectCatalog.DISTRIBUTION_TYPES.LANGUAGE,
+      ethnicities: dependencies.objectCatalog.DISTRIBUTION_TYPES.ETHNICITY,
+      religions: dependencies.objectCatalog.DISTRIBUTION_TYPES.RELIGION,
     }));
 
     (DISTRIBUTION_TYPE_GROUPS = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_GROUP_TYPES).map(([group, type]) => [type, group]))));
